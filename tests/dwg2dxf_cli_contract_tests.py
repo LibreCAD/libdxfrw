@@ -2151,6 +2151,13 @@ def check_malformed_underlaydefinition_body(converter, root, writer):
         "--generate-cli-malformed-underlaydefinition-body-source", profiles)
 
 
+def check_malformed_material_body(converter, root, writer):
+    profiles = {"AC1015": "2007", "AC1018": "2007"}
+    return check_malformed_object_body_family(
+        converter, root, writer, "MATERIAL",
+        "--generate-cli-malformed-material-body-source", profiles)
+
+
 def check_skipped_record_projection(converter, root, writer):
     """Check generated skipped custom-class disposition across writer revisions."""
     if writer is None:
@@ -3411,6 +3418,8 @@ def main():
                 converter, root, args.writer)
             underlaydefinition_checked = check_malformed_underlaydefinition_body(
                 converter, root, args.writer)
+            material_checked = check_malformed_material_body(
+                converter, root, args.writer)
             print(f"CLI partial DWG read: PASS ({checked} strict/partial/readback "
                   f"controls, {vba_checked} VBA_PROJECT, "
                   f"{block_representation_checked} BLOCKREPRESENTATION_DATA, "
@@ -3421,8 +3430,9 @@ def main():
                   f"{pointpath_checked} POINTPATH, "
                   f"{partialviewingindex_checked} PARTIAL_VIEWING_INDEX, "
                   f"{curvepath_checked} CURVEPATH, "
-                  f"{plotsettings_checked} PLOTSETTINGS, and "
-                  f"{underlaydefinition_checked} UNDERLAYDEFINITION body controls)")
+                  f"{plotsettings_checked} PLOTSETTINGS, "
+                  f"{underlaydefinition_checked} UNDERLAYDEFINITION, and "
+                  f"{material_checked} MATERIAL body controls)")
             return
         if args.source_disposition_only:
             checked = check_source_disposition_projection(converter, root, args.writer)

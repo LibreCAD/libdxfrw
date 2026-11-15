@@ -28486,6 +28486,11 @@ public:
     using DRW_UnderlayDefinition::parseDwg;
 };
 
+class MaterialBodyProbe final : public DRW_Material {
+public:
+    using DRW_Material::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28621,6 +28626,11 @@ public:
             underlayDefinition_.filename = "RECOVERY_UNDERLAY.pdf";
             underlayDefinition_.sheetName = "RECOVERY_UNDERLAY_PAGE";
         }
+        if (kind_ == 25) {
+            material_.handle = 0x700u;
+            material_.m_name = "RECOVERY_MATERIAL";
+            material_.m_description = "generated malformed-body control";
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -28703,6 +28713,10 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerUnderlayDefinitionObjectClass(
                       &underlayDefinition_) && wrote;
+        } else if (kind_ == 25) {
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerMaterialObjectClass(&material_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -28710,7 +28724,7 @@ public:
                    && kind_ != 15 && kind_ != 16 && kind_ != 17
                    && kind_ != 18 && kind_ != 19 && kind_ != 20
                    && kind_ != 21 && kind_ != 22 && kind_ != 23
-                   && kind_ != 24) {
+                   && kind_ != 24 && kind_ != 25) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -28778,6 +28792,10 @@ public:
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeUnderlayDefinition(
                                &underlayDefinition_)) && wrote;
+        } else if (kind_ == 25) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeMaterial(&material_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -28863,6 +28881,7 @@ private:
     DRW_CurvePath curvePath_;
     DRW_PlotSettings plotSettings_;
     DRW_UnderlayDefinition underlayDefinition_;
+    DRW_Material material_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -42285,7 +42304,9 @@ int main(int argc, char** argv) {
             || std::string(argv[1])
                    == "--generate-cli-malformed-plotsettings-body-source"
             || std::string(argv[1])
-                   == "--generate-cli-malformed-underlaydefinition-body-source")) {
+                   == "--generate-cli-malformed-underlaydefinition-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-material-body-source")) {
         const bool malformedBodySource = std::string(argv[1])
             == "--generate-cli-malformed-object-body-source";
         const bool malformedPrologueSource = std::string(argv[1])
@@ -42324,6 +42345,8 @@ int main(int argc, char** argv) {
         const bool malformedUnderlayDefinitionBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-underlaydefinition-body-source";
+        const bool malformedMaterialBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-material-body-source";
         if (std::filesystem::exists(argv[2])) {
             std::cerr << "Refusing to replace an existing malformed-object source\n";
             return 1;
@@ -42359,7 +42382,8 @@ int main(int argc, char** argv) {
             || malformedPartialViewingIndexBodySource
             || malformedCurvePathBodySource
             || malformedPlotSettingsBodySource
-            || malformedUnderlayDefinitionBodySource) {
+            || malformedUnderlayDefinitionBodySource
+            || malformedMaterialBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
             if (std::filesystem::exists(validPath)) {
@@ -42390,7 +42414,9 @@ int main(int argc, char** argv) {
                                                                 : malformedPlotSettingsBodySource
                                                                     ? 23
                                                                     : malformedUnderlayDefinitionBodySource
-                                                                        ? 24 : 8,
+                                                                        ? 24
+                                                                        : malformedMaterialBodySource
+                                                                            ? 25 : 8,
                 nullptr, version);
             if (!validWriter.write(&validSource, version, true)
                 || !validSource.wrote) {
@@ -42448,7 +42474,8 @@ int main(int argc, char** argv) {
                  || malformedPartialViewingIndexBodySource
                  || malformedCurvePathBodySource
                  || malformedPlotSettingsBodySource
-                 || malformedUnderlayDefinitionBodySource)
+                 || malformedUnderlayDefinitionBodySource
+                 || malformedMaterialBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
                 && commonEndBit < searchEndBit) {
@@ -42553,6 +42580,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedMaterialBodySource) {
+                            MaterialBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         MLineStyleBodyProbe typed;
                         return typed.parseDwg(version, &typedBuffer,
                                               malformed.m_bodyBitSize);
@@ -42642,7 +42674,8 @@ int main(int argc, char** argv) {
                   || malformedPartialViewingIndexBodySource
                   || malformedCurvePathBodySource
                   || malformedPlotSettingsBodySource
-                  || malformedUnderlayDefinitionBodySource)
+                  || malformedUnderlayDefinitionBodySource
+                  || malformedMaterialBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
                 const char* objectKind = malformedDbColorBodySource
@@ -42671,6 +42704,8 @@ int main(int argc, char** argv) {
                                                                             ? "PLOTSETTINGS"
                                                                             : malformedUnderlayDefinitionBodySource
                                                                                 ? "UNDERLAYDEFINITION"
+                                                                                : malformedMaterialBodySource
+                                                                                    ? "MATERIAL"
                                     : "MLINESTYLE";
                 const char* mutationKind = malformedPrologueSource
                     ? "common-prologue" : "body";
@@ -42696,7 +42731,9 @@ int main(int argc, char** argv) {
                                             : malformedPlotSettingsBodySource
                                                 ? 23
                                                 : malformedUnderlayDefinitionBodySource
-                                                    ? 24 : 7,
+                                                    ? 24
+                                                    : malformedMaterialBodySource
+                                                        ? 25 : 7,
                 nullptr, version);
             source.setMalformedObject(malformed);
             if (!writer.write(&source, version, true) || !source.wrote) {
