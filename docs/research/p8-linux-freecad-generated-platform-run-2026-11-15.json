@@ -18,5 +18,13 @@
     "Generated profiles only; the selected controls expect 3DFACE and SOLID unsupported, and polyface behavior is bounded by the explicit harness assertions.",
     "No mesh/surface/ACIS native qualification, native Windows qualification, whole-drawing parity, or format claim follows.",
     "No external DWG/DXF fixture was added."
-  ]
+  ],
+  "subsequent_rerun": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43719385171/job/132827848723",
+    "source_commit": "2c36308b9daa32d32d4c9ab8ac7015c6e3b63ca5",
+    "runner": "GitHub Actions ubuntu-24.04 x86_64",
+    "consumer": "same hash-pinned FreeCAD 1.1.4 AppImage and revision",
+    "result": "10/10 selected checks passed: both FreeCAD-form CLI controls, plus generated AC1021 LINE and generated AC1021/AC1024/AC1032 mixed primitives, each open and insert.",
+    "limitations": "Generated profiles only; explicit harness expectations still classify 3DFACE and SOLID as unsupported. Mesh, surface, ACIS and broad Linux qualification remain open."
+  }
 }

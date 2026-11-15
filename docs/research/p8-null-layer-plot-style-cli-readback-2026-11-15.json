@@ -13,7 +13,8 @@
   ],
   "limits": [
     "Synthetic same-writer source and independent peer parsing are not native plotting semantics.",
-    "Linux hosted rerun and native Windows qualification remain open.",
+    "The bounded Linux rerun subsequently passed; native Windows qualification remains open.",
     "No DWG/DXF fixture added."
-  ]
+  ],
+  "hosted_linux_rerun": "https://github.com/dxli/libdxfrw/actions/runs/43719385171/job/132827848723"
 }
