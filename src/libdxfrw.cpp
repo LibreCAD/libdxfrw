@@ -2873,6 +2873,7 @@ public:
           m_name(entry != nullptr ? entry->name : std::string()),
           m_mutationCheckpoint(owner.m_dxfWriteMutations.size()),
           m_lineTypesBefore(owner.m_writingContext.lineTypesMap.size()),
+          m_pendingLTypeStylesBefore(owner.m_pendingLTypeStyleReferences.size()),
           m_pendingBlockRecordsBefore(owner.m_pendingBlockRecords.size()),
           m_wlayer0Before(owner.wlayer0),
           m_dimstyleStdBefore(owner.dimstyleStd),
@@ -2892,6 +2893,7 @@ public:
           m_name(),
           m_mutationCheckpoint(owner.m_dxfWriteMutations.size()),
           m_lineTypesBefore(owner.m_writingContext.lineTypesMap.size()),
+          m_pendingLTypeStylesBefore(owner.m_pendingLTypeStyleReferences.size()),
           m_pendingBlockRecordsBefore(owner.m_pendingBlockRecords.size()),
           m_wlayer0Before(owner.wlayer0),
           m_dimstyleStdBefore(owner.dimstyleStd),
@@ -3026,6 +3028,7 @@ private:
             m_owner.m_dxfWriteMutations.pop_back();
         }
         m_owner.m_writingContext.lineTypesMap.resize(m_lineTypesBefore);
+        m_owner.m_pendingLTypeStyleReferences.resize(m_pendingLTypeStylesBefore);
         m_owner.m_pendingBlockRecords.resize(m_pendingBlockRecordsBefore);
         m_owner.wlayer0 = m_wlayer0Before;
         m_owner.dimstyleStd = m_dimstyleStdBefore;
@@ -3050,6 +3053,7 @@ private:
     std::string m_name;
     std::size_t m_mutationCheckpoint;
     std::size_t m_lineTypesBefore;
+    std::size_t m_pendingLTypeStylesBefore;
     std::size_t m_pendingBlockRecordsBefore;
     bool m_wlayer0Before;
     bool m_dimstyleStdBefore;
@@ -5602,6 +5606,7 @@ void dxfRW::discardDxfWriteResults() noexcept {
     m_dxfBlockSectionActive = false;
     m_dxfBlockSectionComplete = false;
     m_writingContext.lineTypesMap.clear();
+    m_pendingLTypeStyleReferences.clear();
     textStyleMap.clear();
     m_sourceTextStyleNamesByHandle.clear();
     m_sourceBlockRecordNamesByHandle.clear();
@@ -7808,13 +7813,23 @@ bool dxfRW::writeLineType(DRW_LType *ent){
             if (segment.shapeFlags != 0) {
                 std::uint32_t emittedStyleHandle = 0;
                 if (segment.styleHandle.ref != 0) {
-                    const auto style =
+                    auto style =
                         m_writingContext.sourceHandleToWrittenTableMap.find(
                             segment.styleHandle.ref);
+                    if (style == m_writingContext.sourceHandleToWrittenTableMap.end()
+                        && m_dxfWriteAttemptActive && m_dxfTableRowCountActive) {
+                        if (preallocateTableRecordHandle(segment.styleHandle.ref) == 0)
+                            return failDxfWrite();
+                        style = m_writingContext.sourceHandleToWrittenTableMap.find(
+                            segment.styleHandle.ref);
+                    }
                     if (style == m_writingContext.sourceHandleToWrittenTableMap.end()
                         || style->second == 0)
                         return failDxfWrite();
                     emittedStyleHandle = style->second;
+                    if (m_dxfWriteAttemptActive && m_dxfTableRowCountActive)
+                        m_pendingLTypeStyleReferences.emplace_back(
+                            segment.styleHandle.ref, emittedStyleHandle);
                 }
                 write(writer->writeInt16(75, segment.complexShapeCode));
                 write(writer->writeString(
@@ -18414,6 +18429,15 @@ bool dxfRW::writeTables(const char** outputStage) {
         return false;
     if (!writeEndTable())
         return false;
+    for (const auto& reference : m_pendingLTypeStyleReferences) {
+        const auto actual = m_writtenDxfSourceTableHandles.find(reference.first);
+        if (m_sourceTextStyleNamesByHandle.count(reference.first) != 1u
+            || actual == m_writtenDxfSourceTableHandles.end()
+            || actual->second != reference.second
+            || m_writtenDxfTableSourceHandles.count(reference.second) != 1u
+            || m_writtenDxfTableSourceHandles.at(reference.second) != reference.first)
+            return failDxfWrite();
+    }
 
     setOutputStage("VIEW table");
     writer->writeString(0, "TABLE");

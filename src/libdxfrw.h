@@ -1910,6 +1910,10 @@ private:
     bool m_writeError {false};
     std::size_t m_dxfTableRowCount {0};
     bool m_dxfTableRowCountActive {false};
+    // LTYPE precedes STYLE in TABLES. Check these source identities after
+    // STYLE emission before publishing the drawing.
+    std::vector<std::pair<std::uint32_t, std::uint32_t>>
+        m_pendingLTypeStyleReferences;
     // Internal compatibility-probe switch. The standalone-safe classifier
     // remains the default for all public read/write calls.
     bool m_useTargetLegacyClassifier {false};

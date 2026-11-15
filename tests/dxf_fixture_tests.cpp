@@ -28063,6 +28063,11 @@ void testLTypeMirrorAuthority(TestContext& t) {
 }
 
 void testComplexLTypeStyleHandleRemap(TestContext& t) {
+    // Exercise consumers that do not preallocate STYLE handles in writeHeader.
+    class NoStylePreplanExporter final : public dx_iface {
+    public:
+        void writeHeader(DRW_Header&) override {}
+    };
     const auto nonce = std::chrono::steady_clock::now()
         .time_since_epoch().count();
     for (const bool binary : {false, true}) {
@@ -28093,7 +28098,7 @@ void testComplexLTypeStyleHandleRemap(TestContext& t) {
         t.expect(lineType.resolve(), "complex LTYPE test input validates");
         source.lineTypes.push_back(lineType);
 
-        dx_iface exporter;
+        NoStylePreplanExporter exporter;
         const bool written = exporter.fileExport(
             output.string(), DRW::AC1027, binary, &source, false);
         t.expect(written, binary
@@ -28149,7 +28154,7 @@ void testComplexLTypeStyleHandleRemap(TestContext& t) {
     t.expect(unresolvedLineType.resolve(),
              "unresolved complex LTYPE test input validates locally");
     unresolved.lineTypes.push_back(unresolvedLineType);
-    dx_iface rejectingExporter;
+    NoStylePreplanExporter rejectingExporter;
     const bool incorrectlyWritten = rejectingExporter.fileExport(
         rejectedOutput.string(), DRW::AC1027, false, &unresolved, false);
     std::ifstream stream(rejectedOutput, std::ios::binary);
@@ -28185,7 +28190,7 @@ void testComplexLTypeStyleHandleRemap(TestContext& t) {
     collidingEntity->basePoint = DRW_Coord(1.0, 2.0, 0.0);
     collidingEntity->secPoint = DRW_Coord(3.0, 4.0, 0.0);
     colliding.mBlock->ent.push_back(collidingEntity.release());
-    dx_iface collisionExporter;
+    NoStylePreplanExporter collisionExporter;
     const bool collisionWritten = collisionExporter.fileExport(
         rejectedOutput.string(), DRW::AC1027, false, &colliding, false);
     std::ifstream collisionStream(rejectedOutput, std::ios::binary);
@@ -28193,6 +28198,67 @@ void testComplexLTypeStyleHandleRemap(TestContext& t) {
         (std::istreambuf_iterator<char>(collisionStream)), {});
     t.expect(!collisionWritten && collisionOutput == sentinel,
              "cross-kind STYLE/entity source-handle collision refuses atomically");
+    for (const bool binary : {false, true}) {
+        const std::filesystem::path retryOutput =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-ltype-style-retry-" + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        {
+            std::ofstream destination(retryOutput, std::ios::binary | std::ios::trunc);
+            destination << sentinel;
+        }
+        dx_data retryData;
+        retryData.lineTypes.push_back(unresolvedLineType);
+        NoStylePreplanExporter retryExporter;
+        dxfRW retryCodec(retryOutput.string().c_str());
+        retryExporter.cData = &retryData;
+        retryExporter.currentBlock = retryData.mBlock;
+        retryExporter.dxfW = &retryCodec;
+        const bool missingWritten = retryCodec.write(
+            &retryExporter, DRW::AC1027, binary);
+        std::ifstream missingFile(retryOutput, std::ios::binary);
+        const std::string missingBytes(
+            (std::istreambuf_iterator<char>(missingFile)), {});
+        t.expect(!missingWritten && missingBytes == sentinel,
+                 "unplanned missing STYLE refuses without replacing destination");
+        DRW_Layer wrongKind;
+        wrongKind.name = "WRONG_KIND";
+        wrongKind.handle = unresolvedSegment.styleHandle.ref;
+        retryData.layers.push_back(wrongKind);
+        const bool wrongWritten = retryCodec.write(
+            &retryExporter, DRW::AC1027, binary);
+        std::ifstream wrongFile(retryOutput, std::ios::binary);
+        const std::string wrongBytes(
+            (std::istreambuf_iterator<char>(wrongFile)), {});
+        t.expect(!wrongWritten && wrongBytes == sentinel,
+                 "LAYER with referenced identity cannot stand in for STYLE");
+        retryData.layers.clear();
+        DRW_Textstyle retryStyle;
+        retryStyle.handle = unresolvedSegment.styleHandle.ref;
+        retryStyle.name = "CORRECTED_SHAPE_STYLE";
+        retryData.textStyles.push_back(retryStyle);
+        const bool retried = retryCodec.write(
+            &retryExporter, DRW::AC1027, binary);
+        dx_iface retryReader;
+        dx_data retryReadback;
+        const bool read = retried
+            && retryReader.fileImport(retryOutput.string(), &retryReadback, false);
+        const auto gotStyle = std::find_if(retryReadback.textStyles.cbegin(),
+            retryReadback.textStyles.cend(), [](const DRW_Textstyle& style) {
+                return style.name == "CORRECTED_SHAPE_STYLE";
+            });
+        const auto gotLineType = std::find_if(retryReadback.lineTypes.cbegin(),
+            retryReadback.lineTypes.cend(), [](const DRW_LType& linetype) {
+                return linetype.name == "UNRESOLVED_SHAPE_LTYPE";
+            });
+        t.expect(read && gotStyle != retryReadback.textStyles.cend()
+                     && gotLineType != retryReadback.lineTypes.cend()
+                     && gotLineType->segments.size() == 1u
+                     && gotLineType->segments[0].styleHandle.ref == gotStyle->handle,
+                 "same codec retries with a real STYLE and reads its exact identity");
+        std::error_code cleanup;
+        std::filesystem::remove(retryOutput, cleanup);
+    }
     std::error_code error;
     std::filesystem::remove(rejectedOutput, error);
 }
