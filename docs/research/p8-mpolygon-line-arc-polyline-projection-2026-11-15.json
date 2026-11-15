@@ -18,7 +18,7 @@
     "The upstream-linked LibreCAD combined selector improves from 10/12 to 11/12 cases passing (155/163 assertions)."
   ],
   "limits": [
-    "Endpoint continuity uses 64 machine epsilons times coordinate scale, so the conversion can normalize gaps within that numeric tolerance; larger gaps retain their original edge form.",
+    "Endpoint continuity is bounded by the smaller of 64 machine epsilons times coordinate scale and 1e-10 times the shorter adjacent chord. Arc endpoint offsets and chord are separately checked against their radius; see the later precision receipt.",
     "Full-circle arcs, single-edge loops, splines, ellipses and other unsupported projections retain the prior output path; no curve flattening or broader native interoperability is claimed.",
     "The remaining consumer test expects rejection for several nonprojected edge profiles; reconcile this with upstream's existing representation and source-preservation requirements before changing the behavior.",
     "No DWG or DXF fixture files were added."

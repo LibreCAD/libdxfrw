@@ -11109,11 +11109,32 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
                     sweep += fullTurn;
                 if (sweep == 0.0)
                     return false;
-                segment = {arc->basePoint.x + arc->radious * std::cos(start),
-                           arc->basePoint.y + arc->radious * std::sin(start),
-                           arc->basePoint.x + arc->radious * std::cos(end),
-                           arc->basePoint.y + arc->radious * std::sin(end),
+                const double startX = arc->radious * std::cos(start);
+                const double startY = arc->radious * std::sin(start);
+                const double endX = arc->radious * std::cos(end);
+                const double endY = arc->radious * std::sin(end);
+                segment = {arc->basePoint.x + startX,
+                           arc->basePoint.y + startY,
+                           arc->basePoint.x + endX,
+                           arc->basePoint.y + endY,
                            (arc->isccw ? 1.0 : -1.0) * std::tan(sweep / 4.0)};
+                // A bulge carries radius through its endpoints. When a small
+                // arc is far from the origin, adding the center can round
+                // those endpoints enough to change or collapse the circle.
+                // Retain the original edge unless its offsets and chord
+                // survive to a small fraction of the arc's own scale.
+                const double tolerance = 1e-10 * arc->radious;
+                const double chord = std::hypot(segment.endX - segment.startX,
+                                                segment.endY - segment.startY);
+                const double expectedChord = arc->radious * (2.0 * std::sin(sweep / 2.0));
+                if (!std::isfinite(chord) || !std::isfinite(expectedChord)
+                    || chord <= 0.0 || expectedChord <= 0.0
+                    || std::abs((segment.startX - arc->basePoint.x) - startX) > tolerance
+                    || std::abs((segment.startY - arc->basePoint.y) - startY) > tolerance
+                    || std::abs((segment.endX - arc->basePoint.x) - endX) > tolerance
+                    || std::abs((segment.endY - arc->basePoint.y) - endY) > tolerance
+                    || std::abs(chord - expectedChord) > 1e-10 * expectedChord)
+                    return false;
             } else {
                 return false;
             }
@@ -11124,6 +11145,24 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
         const auto canProjectPolyline = [&segmentFor](const DRW_HatchLoop& loop) {
             if ((loop.type & 2) != 0 || loop.objlist.size() < 2)
                 return false;
+            const auto connected = [](const PolygonSegment& left,
+                                      const PolygonSegment& right) {
+                const double scale = std::max({1.0, std::abs(left.endX),
+                    std::abs(left.endY), std::abs(right.startX),
+                    std::abs(right.startY)});
+                const double leftLength = std::hypot(left.endX - left.startX,
+                                                     left.endY - left.startY);
+                const double rightLength = std::hypot(right.endX - right.startX,
+                                                      right.endY - right.startY);
+                if (!std::isfinite(leftLength) || !std::isfinite(rightLength)
+                    || leftLength <= 0.0 || rightLength <= 0.0)
+                    return false;
+                const double tolerance = std::min(
+                    64.0 * std::numeric_limits<double>::epsilon() * scale,
+                    1e-10 * std::min(leftLength, rightLength));
+                return std::hypot(left.endX - right.startX,
+                                  left.endY - right.startY) <= tolerance;
+            };
             PolygonSegment first{}, previous{};
             for (std::size_t i = 0; i < loop.objlist.size(); ++i) {
                 PolygonSegment current{};
@@ -11131,22 +11170,11 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
                     return false;
                 if (i == 0) {
                     first = current;
-                } else {
-                    const double scale = std::max({1.0, std::abs(previous.endX),
-                        std::abs(previous.endY), std::abs(current.startX),
-                        std::abs(current.startY)});
-                    if (std::hypot(previous.endX - current.startX,
-                                   previous.endY - current.startY)
-                        > 64.0 * std::numeric_limits<double>::epsilon() * scale)
-                        return false;
-                }
+                } else if (!connected(previous, current))
+                    return false;
                 previous = current;
             }
-            const double scale = std::max({1.0, std::abs(previous.endX),
-                std::abs(previous.endY), std::abs(first.startX), std::abs(first.startY)});
-            return std::hypot(previous.endX - first.startX,
-                              previous.endY - first.startY)
-                <= 64.0 * std::numeric_limits<double>::epsilon() * scale;
+            return connected(previous, first);
         };
         writer->writeString(0, "MPOLYGON");
         if (!writeEntity(ent))

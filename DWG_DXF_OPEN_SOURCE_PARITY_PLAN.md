@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **473 completed implementation and qualification slices** and **32 remaining
+The plan records **474 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`473 / (473 + 32) = 93.7%`. The previous 28-package denominator was stale; a recount
+`474 / (474 + 32) = 93.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -1217,7 +1217,7 @@ counterclockwise, short, major, wrapped and semicircular arcs have generated
 ASCII/Binary readback and invalid-input refusal/retry; an optional ezdxf
 check reconstructs all 16 encoded profiles and verifies center, radius, sweep,
 endpoints and direction. Gapped and unsupported edge profiles retain the existing edge form;
-full circles and broader native behavior remain open ([receipt](docs/research/p8-mpolygon-line-arc-polyline-projection-2026-11-15.json)).
+full circles and broader native behavior remain open ([receipt](docs/research/p8-mpolygon-line-arc-polyline-projection-2026-11-15.json)). A follow-up precision guard keeps edges when large-coordinate rounding would distort an arc or bridge a gap; safe ordinary translations still project ([precision receipt](docs/research/p8-mpolygon-projection-precision-2026-11-15.json)).
 The local bundled fork now maps DIMASSOC group 70 to trans-space and 71 to
 rotated type, matching Autodesk and upstream. The cross-library tests verify
 ASCII/Binary wire values and distinguish the bundled raw-carrier limitation

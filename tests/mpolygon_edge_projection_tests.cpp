@@ -127,6 +127,56 @@ bool run(bool binary, bool ccw, bool gap, DRW::Version version,
         << " ccw=" << ccw << " gap=" << gap << " version=" << static_cast<int>(version) << '\n';
     return ok;
 }
+
+// mode 0: a real gap at a large coordinate; mode 1: a small arc at an
+// unrepresentably large coordinate; mode 2: an ordinarily translated arc.
+bool runPrecisionProfile(bool binary, int mode) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-mpolygon-precision-" + std::to_string(nonce) + ".dxf");
+    const ArcProfile profile{0.0, M_PI / 2.0, std::sqrt(2.0) - 1.0};
+    Emitter emitter(true, false, profile);
+    auto* line = static_cast<DRW_Line*>(emitter.polygon.looplist[0]->objlist[0].get());
+    auto* arc = static_cast<DRW_Arc*>(emitter.polygon.looplist[0]->objlist[1].get());
+    const double shift = mode == 1 ? 1e16 : mode == 2 ? 1e6 : 1e12;
+    line->basePoint.x += shift;
+    line->secPoint.x += shift;
+    arc->basePoint.x += shift;
+    if (mode == 0)
+        line->secPoint.x += 0.01;
+    const double expectedEnd = line->secPoint.x;
+    const double expectedCenter = arc->basePoint.x;
+    dxfRW output(path.string().c_str());
+    emitter.writer = &output;
+    bool ok = output.write(&emitter, DRW::AC1021, binary) && emitter.accepted;
+    Capture capture;
+    dxfRW input(path.string().c_str());
+    ok = input.read(&capture, false) && capture.count == 1 && ok;
+    if (capture.polygon.looplist.size() != 1 || !capture.polygon.looplist[0]) {
+        ok = false;
+    } else if (mode == 2) {
+        const auto& loop = *capture.polygon.looplist[0];
+        const auto* polyline = loop.objlist.size() == 1
+            ? dynamic_cast<const DRW_LWPolyline*>(loop.objlist[0].get()) : nullptr;
+        ok = ok && (loop.type & 2) != 0 && polyline
+            && polyline->vertlist.size() == 2 && polyline->vertlist[1]
+            && std::abs(polyline->vertlist[1]->bulge - profile.expectedBulge) < 1e-12;
+    } else if (capture.polygon.looplist[0]->objlist.size() != 2) {
+        ok = false;
+    } else {
+        const auto& loop = *capture.polygon.looplist[0];
+        const auto* parsedLine = dynamic_cast<const DRW_Line*>(loop.objlist[0].get());
+        const auto* parsedArc = dynamic_cast<const DRW_Arc*>(loop.objlist[1].get());
+        ok = ok && (loop.type & 2) == 0 && parsedLine && parsedArc
+            && parsedLine->secPoint.x == expectedEnd
+            && parsedArc->basePoint.x == expectedCenter && parsedArc->radious == 5.0;
+    }
+    std::error_code ignored;
+    std::filesystem::remove(path, ignored);
+    if (!ok) std::cerr << "MPOLYGON precision fallback failed: binary=" << binary
+        << " mode=" << mode << '\n';
+    return ok;
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -152,5 +202,8 @@ int main(int argc, char** argv) {
                 for (bool gap : {false, true})
                     for (const ArcProfile& profile : profiles)
                         ok = run(binary, ccw, gap, version, profile) && ok;
+    for (bool binary : {false, true})
+        for (int mode : {0, 1, 2})
+            ok = runPrecisionProfile(binary, mode) && ok;
     return ok ? 0 : 1;
 }
