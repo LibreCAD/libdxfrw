@@ -38,6 +38,12 @@
 
 namespace {
 
+static_assert(LIBDXFRW_HAS_BLOCK_RECORD_CALLBACK == 1,
+              "BLOCK_RECORD callback feature macro is missing");
+static_assert(std::is_same<decltype(&DRW_Interface::addBlockRecord),
+                           void (DRW_Interface::*)(const DRW_Block_Record &)>::value,
+              "BLOCK_RECORD callback feature macro must match the public API");
+
 // Separate from the older LibreCAD_3 callback surface above: this is the
 // actual current LibreCAD bf58e1e878f71d6c5c051ccd3dd3d0981c19644a facade
 // call (rs_filterdxfrw.cpp:4418), including its input-only enum spellings.

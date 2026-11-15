@@ -13,6 +13,10 @@
 #ifndef DRW_INTERFACE_H
 #define DRW_INTERFACE_H
 
+// Allows consumers that also support older bundled forks to declare this
+// optional callback with an override specifier only when it exists.
+#define LIBDXFRW_HAS_BLOCK_RECORD_CALLBACK 1
+
 // Preserve a caller's X11 None macro while declaring all header enums.
 #if defined(None)
 # if defined(_MSC_VER) || defined(__GNUC__) || defined(__clang__)

@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-15",
+  "problem": "The upstream DRW_Interface has a non-pure addBlockRecord callback, while the LibreCAD bundled interface does not. A downstream method without override dispatches on upstream but triggers the compiler missing-override warning; an unconditional override does not compile against the bundled interface.",
+  "change": "Define LIBDXFRW_HAS_BLOCK_RECORD_CALLBACK in the public interface header. This is a compile-time feature signal for the existing non-pure method; it does not add or change any virtual method, class layout or binary symbol.",
+  "validation": [
+    "LC3 compatibility target compiles and asserts that the feature signal matches the exact public callback signature.",
+    "A conditional consumer method compiles against both current upstream and bundled LibreCAD headers under clang++ -Wall -Wextra -Werror -Winconsistent-missing-override, using override only when the upstream feature signal is present.",
+    "Source-release inventory and the 719-input qualification implementation digest pass in an isolated staged checkout; no support claim changes."
+  ],
+  "implementationDigestSha256": "b46d7a93ba1e00201a1cc70300bbc48bc16bb2ab9b4169acf8f3ee37f21c478f",
+  "limits": "The feature signal does not establish source completeness, output support, full ABI parity, downstream integration, or platform qualification. The downstream bounded observation is a separate in-progress change."
+}
