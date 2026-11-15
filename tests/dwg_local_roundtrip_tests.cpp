@@ -29163,6 +29163,7 @@ public:
             dimensionAssociation_.handle = 0x700u;
             dimensionAssociation_.m_dimensionHandle = DRW::NoHandle;
             dimensionAssociation_.m_associativityFlags = 0;
+            dimensionAssociation_.m_isTransSpace = true;
         }
         if (kind_ == 66) {
             layout_.handle = 0x700u;
@@ -43896,6 +43897,9 @@ int main(int argc, char** argv) {
             ReadOutcomeControl capture(nullptr, 0, &validReader, version);
             const bool validRead = validReader.read(&capture, false);
             if (!validRead
+                || ((malformedSpatialIndexBodySource
+                     || malformedDimensionAssociationBodySource)
+                    && validReader.getObjectParseFailures() != 0)
                 || (!malformedProxyObjectBodySource
                     && !capture.hasCapturedObject())) {
                 std::cerr << "Could not capture generated supported object frame\n";

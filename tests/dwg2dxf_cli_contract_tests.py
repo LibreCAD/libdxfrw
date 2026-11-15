@@ -2678,7 +2678,7 @@ def check_malformed_evaluationgraph_body(converter, root, writer):
 def check_malformed_dimassoc_body(converter, root, writer):
     profiles = {
         "AC1021": "2007",
-        # The generated AC1024 bounded body has no one-bit parser-failing mutation.
+        "AC1024": "2010",
         "AC1027": None,
         "AC1032": "2018",
     }
