@@ -20,7 +20,7 @@ struct Generated {
     std::uint64_t stringStart{0u};
     std::array<std::uint64_t, 3> handleStarts{};
 };
-Generated build(bool dictionary, DRW::Version version) {
+Generated build(bool dictionary, DRW::Version version, bool writerPadding) {
     DRW_TextCodec codec;
     codec.setVersion(version, false);
     dwgBufferW out(&codec), strings(&codec);
@@ -39,13 +39,15 @@ Generated build(bool dictionary, DRW::Version version) {
         strings.putVariableText(version, "Normal");
         result.stringStart = out.bitCount();
         appendBits(out, strings);
-        // Match the witnessed seven-code-unit string stream with nine zero
-        // trailing bits; the other admitted six-unit profile is unchanged.
-        for (int i = 0; i < 9; ++i) out.putBit(0u);
-        out.putRawShort16(static_cast<std::uint16_t>(strings.bitCount() + 9u));
+        // Exercise the two- and nine-bit zero-padded seven-code-unit streams.
+        const int padding = writerPadding ? 2 : 9;
+        for (int i = 0; i < padding; ++i) out.putBit(0u);
+        out.putRawShort16(static_cast<std::uint16_t>(strings.bitCount() + padding));
         out.putBit(1u);
     } else {
         out.putBit(0u); // no string stream
+        if (writerPadding)
+            for (int i = 0; i < 24; ++i) out.putBit(0u);
     }
     const auto bodyBits = out.bitCount();
     result.handleStarts[0] = out.bitCount();
@@ -74,8 +76,10 @@ void flip(std::vector<std::uint8_t>& bytes, std::uint64_t bit) {
 
 int main() {
     for (const auto version : {DRW::AC1024, DRW::AC1027}) {
+     for (const bool writerPadding : {false, true}) {
+      if (writerPadding && version != DRW::AC1024) continue;
       for (const bool dictionary : {false, true}) {
-        const auto generated = build(dictionary, version);
+        const auto generated = build(dictionary, version, writerPadding);
         const auto matches = [dictionary, version](const DRW_UnsupportedObject& raw) {
             return version == DRW::AC1024
                 ? dx_ac1024_plotstyle_wire::matches(raw, dictionary,
@@ -106,6 +110,7 @@ int main() {
         }
         if (!matches(generated.raw)) return 1;
       }
+     }
     }
     return 0;
 }

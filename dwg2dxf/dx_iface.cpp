@@ -96,13 +96,13 @@ bool standardDwgCommonEqual(const DRW_TableEntry&, const DRW_TableEntry&,
 bool lineTypeSourceEqual(const DRW_LType&, const DRW_LType&,
                          DRW::Version);
 
-bool exactAc1027ClassSourceMatches(const dx_data& data, const DRW_UnsupportedObject& raw,
+bool exactModernClassSourceMatches(const dx_data& data, const DRW_UnsupportedObject& raw,
                                    const char* recordName, const char* className,
-                                   int count) noexcept {
+                                   int count, DRW::Version version) noexcept {
     if (!data.hasCompleteOpaqueDwgSourceCapture() || !data.hasUnchangedDwgClassEvidence()
         || !data.dwgClassCoverage.m_complete
         || data.dwgClassCoverage.m_status != DRW_DwgClassCoverageStatus::FinalizedComplete
-        || !raw.m_hasClassDefinition || raw.m_version != DRW::AC1027
+        || !raw.m_hasClassDefinition || raw.m_version != version
         || raw.m_recordName != recordName || raw.m_className != className)
         return false;
     const DRW_DwgClassCoverageEntry* match = nullptr;
@@ -125,6 +125,13 @@ bool exactAc1027ClassSourceMatches(const dx_data& data, const DRW_UnsupportedObj
         && raw.m_classMaintenanceVersion == match->m_maintenanceVersion
         && raw.m_classUnknown1 == match->m_unknown1
         && raw.m_classUnknown2 == match->m_unknown2;
+}
+
+bool exactAc1027ClassSourceMatches(const dx_data& data, const DRW_UnsupportedObject& raw,
+                                   const char* recordName, const char* className,
+                                   int count) noexcept {
+    return exactModernClassSourceMatches(data, raw, recordName, className,
+                                         count, DRW::AC1027);
 }
 
 bool exactAc1021GeneratedDictionaryDefaultClass(
@@ -17558,6 +17565,11 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             const auto placeholderFrame =
                 data->m_opaqueDwgSourceFrames.find(
                     {data->importGeneration, placeholderHandle});
+            const bool ac1024NoReactors = data->sourceVersion == DRW::AC1024
+                && dictionary != dictionariesWithDefault.end()
+                && placeholder != placeholders.end()
+                && dictionary->second->reactorHandles.empty()
+                && placeholder->second->reactorHandles.empty();
             const DRW_Dictionary::Entry* rootEntry = nullptr;
             std::size_t rootMatches = 0u;
             for (const DRW_Dictionary::Entry& entry :
@@ -17574,6 +17586,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 && (frame->second.m_objectType == 500
                     || (data->sourceVersion == DRW::AC1027
                         && frame->second.m_objectType >= 500)
+                    || (ac1024NoReactors && frame->second.m_objectType >= 500)
                     || exactAc1021GeneratedDictionaryDefaultClass(
                         *data, frame->second.m_objectType,
                         "ACDBDICTIONARYWDFLT",
@@ -17608,15 +17621,40 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     == placeholderHandle
                 && dictionary->second->m_defaultEntryHandle
                     == placeholderHandle
-                && (data->sourceVersion == DRW::AC1027 ? dictionary->second->reactorHandles.empty() : dictionary->second->reactorHandles == std::vector<std::uint32_t>{data->namedObjectDictionary.handle})
+                && ((data->sourceVersion == DRW::AC1027 || ac1024NoReactors)
+                    ? dictionary->second->reactorHandles.empty()
+                    : dictionary->second->reactorHandles == std::vector<std::uint32_t>{data->namedObjectDictionary.handle})
                 && dictionary->second->xDictHandle == 0u
                 && dictionary->second->appData.empty()
                 && dictionary->second->extData.empty()
                 && placeholder->second->parentHandle == dictionaryHandle
-                && (data->sourceVersion == DRW::AC1027 ? placeholder->second->reactorHandles.empty() : placeholder->second->reactorHandles == std::vector<std::uint32_t>{dictionaryHandle})
+                && ((data->sourceVersion == DRW::AC1027 || ac1024NoReactors)
+                    ? placeholder->second->reactorHandles.empty()
+                    : placeholder->second->reactorHandles == std::vector<std::uint32_t>{dictionaryHandle})
                 && placeholder->second->xDictHandle == 0u
                 && placeholder->second->appData.empty()
                 && placeholder->second->extData.empty()
+                && (!ac1024NoReactors
+                    || (dictionary->second->reactorCount() == 0
+                        && placeholder->second->reactorCount() == 0
+                        && dictionary->second->extensionDictionaryFlag() == 1u
+                        && placeholder->second->extensionDictionaryFlag() == 1u
+                        && !dictionary->second->hasDataStorageBinaryData()
+                        && !placeholder->second->hasDataStorageBinaryData()
+                        && dictionary->second->pendingAppIdResolutions.empty()
+                        && dictionary->second->pendingLayerRefResolutions.empty()
+                        && placeholder->second->pendingAppIdResolutions.empty()
+                        && placeholder->second->pendingLayerRefResolutions.empty()
+                        && dictionary->second->cloning == 1
+                        && dictionary->second->hardOwner == 0
+                        && exactModernClassSourceMatches(*data, frame->second,
+                            "ACDBDICTIONARYWDFLT", "AcDbDictionaryWithDefault", 1, DRW::AC1024)
+                        && exactAc1027ClassFrameCensus(data->m_opaqueDwgSourceFrames,
+                            data->importGeneration, frame->second, 1u)
+                        && dx_ac1024_plotstyle_wire::matches(frame->second, true,
+                            data->namedObjectDictionary.handle, placeholderHandle)
+                        && dx_ac1024_plotstyle_wire::matches(placeholderFrame->second,
+                            false, dictionaryHandle, placeholderHandle)))
                 && (data->sourceVersion != DRW::AC1027
                     || (dictionary->second->cloning == 1
                         && dictionary->second->hardOwner == 0
@@ -17651,6 +17689,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         data->importGeneration;
                 }
             }
+            if (ac1024NoReactors
+                && m_dwgDictionaryDefaultOutputSources.count(dictionaryHandle) != 1u)
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "AC1024 no-reactor plot-style source proof is incomplete");
         }
         m_extensionDictionaryOwnerSourceOwner = data;
         m_extensionDictionaryOwnerSourceGeneration = data->importGeneration;
@@ -54725,6 +54767,10 @@ bool dx_iface::hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept {
         const auto& source =
             *m_dwgDictionaryDefaultOutputSources.begin();
         const DwgDictionaryDefaultOutputSource& proof = source.second;
+        const bool ac1024NoReactors =
+            m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1024
+            && proof.dictionary.reactorHandles.empty()
+            && proof.placeholder.reactorHandles.empty();
         if (source.first != proof.dictionary.handle
             || m_extensionDictionaryWithDefaultHandles.front()
                 != proof.dictionary.handle
@@ -54765,8 +54811,12 @@ bool dx_iface::hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept {
             || proof.dictionary.m_entries.front().m_handle
                 != proof.placeholder.handle
             || proof.placeholder.parentHandle != proof.dictionary.handle
-            || (m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1027 ? !proof.dictionary.reactorHandles.empty() : proof.dictionary.reactorHandles != std::vector<std::uint32_t>{proof.namedObjectDictionary.handle})
-            || (m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1027 ? !proof.placeholder.reactorHandles.empty() : proof.placeholder.reactorHandles != std::vector<std::uint32_t>{proof.dictionary.handle}))
+            || ((m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1027 || ac1024NoReactors)
+                ? !proof.dictionary.reactorHandles.empty()
+                : proof.dictionary.reactorHandles != std::vector<std::uint32_t>{proof.namedObjectDictionary.handle})
+            || ((m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1027 || ac1024NoReactors)
+                ? !proof.placeholder.reactorHandles.empty()
+                : proof.placeholder.reactorHandles != std::vector<std::uint32_t>{proof.dictionary.handle}))
             return false;
 
         const auto frameMatches = [this](
@@ -54803,9 +54853,33 @@ bool dx_iface::hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept {
                     proof.dictionary.handle, proof.placeholder.handle))
                 return false;
         }
+        if (ac1024NoReactors) {
+            const auto dictFrame = cData->m_opaqueDwgSourceFrames.find(
+                {cData->importGeneration, proof.dictionary.handle});
+            const auto placeFrame = cData->m_opaqueDwgSourceFrames.find(
+                {cData->importGeneration, proof.placeholder.handle});
+            if (dictFrame == cData->m_opaqueDwgSourceFrames.end()
+                || placeFrame == cData->m_opaqueDwgSourceFrames.end()
+                || proof.dictionary.reactorCount() != 0 || proof.placeholder.reactorCount() != 0
+                || proof.dictionary.extensionDictionaryFlag() != 1u
+                || proof.placeholder.extensionDictionaryFlag() != 1u
+                || proof.dictionary.hasDataStorageBinaryData()
+                || proof.placeholder.hasDataStorageBinaryData()
+                || proof.dictionary.cloning != 1 || proof.dictionary.hardOwner != 0
+                || !exactModernClassSourceMatches(*cData, dictFrame->second,
+                    "ACDBDICTIONARYWDFLT", "AcDbDictionaryWithDefault", 1, DRW::AC1024)
+                || !exactAc1027ClassFrameCensus(cData->m_opaqueDwgSourceFrames,
+                    cData->importGeneration, dictFrame->second, 1u)
+                || !dx_ac1024_plotstyle_wire::matches(dictFrame->second, true,
+                    proof.namedObjectDictionary.handle, proof.placeholder.handle)
+                || !dx_ac1024_plotstyle_wire::matches(placeFrame->second, false,
+                    proof.dictionary.handle, proof.placeholder.handle))
+                return false;
+        }
         return (proof.objectType == 500
                 || (m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1027
                     && proof.objectType >= 500)
+                || (ac1024NoReactors && proof.objectType >= 500)
                 || exactAc1021GeneratedDictionaryDefaultClass(
                     *cData, proof.objectType, "ACDBDICTIONARYWDFLT",
                     "AcDbDictionaryWithDefault"))
@@ -55478,7 +55552,7 @@ bool dx_iface::inspectDwgDictionaryDefaultOutput(
                     || shape.kind != dx_standard_output::Family::Other)
                     return false;
                 dx_standard_output::RecordCursor cursor(body, view);
-                if (m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1027) {
+                if (proof.placeholder.reactorHandles.empty()) {
                     dx_standard_output::RecordCursor::Token self, owner;
                     std::uint32_t selfHandle = 0u, ownerHandle = 0u;
                     return cursor.next(self) && self.code == 5

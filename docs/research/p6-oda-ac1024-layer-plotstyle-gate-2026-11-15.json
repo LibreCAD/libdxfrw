@@ -9,7 +9,7 @@
   "adapterCapture": "For the polyface input, libdxfrw captures two LAYER records with valid DXF fields, ACI 7, Continuous linetype, plot-style handle 19 and material handle 33; both getDxfPlotStyleHandle/getDxfMaterialHandle and validateDxf succeed. The parser-recorded source handle spans and their independent peer comparison are recorded separately below; emitted output mapping remains open.",
   "isolation": "For each sample, a scratch process imports a fresh drawing and calls partial-policy export once with untouched source data and once after clearing only the in-memory LAYER plot-style fields. Untouched runs refuse without output. Clearing those fields makes serialization advance to OBJECTS, which then refuses at TABLESTYLE; no output is published. This deliberate loss is only an isolation experiment and is not an implementation or an acceptable fix. The CLI independently reports the untouched failure at LAYER table.",
   "codeBoundary": "The general LAYER writer rejects a nonzero non-default group-390 source handle when no reference resolver is configured. The adapter has a separate AC1027 source-bound layer route with source publication, material/plot-style graph snapshots, mapped output and finalization checks; it is not automatically applicable to this AC1024 two-layer profile. The generic DWG adapter currently strips unqualified material links, so fixing only plot-style transport would not establish lossless layer output.",
-  "nextAction": "Bind the AC1024 no-reactor Normal dictionary/placeholder observer to current import class and source-frame census and existing output inspection; qualify Global material and the two source-backed LAYER records. Add selected-graph ASCII/Binary output/readback, mutation/refusal, rollback/retry and LibreCAD compatibility. Preserve strict HEADER and whole-document gates.",
+  "nextAction": "Bind both source-backed AC1024 layers to the qualified Normal plot-style graph and the source Global material graph. Implement and inspect exact emitted 347/390 roles and mapped target identities/owners, with ASCII/Binary readback, failure/refusal/rollback/retry and LibreCAD compatibility. Preserve strict HEADER and whole-document gates.",
   "probeHashes": {
     "layerCaptureSource": "356a344583b7f9b5c801bd4e7d112a59ffcf966ecfeb78346a779b2e6b35566a",
     "layerCaptureExecutable": "1f2a7e0f6ea808b60416f6287fce492a29fe972baaf3e2f6277c7c3560d1afdf",
@@ -148,7 +148,7 @@
     "scope": "Bounded AC1024 no-reactor Normal DICTIONARYWDFLT and ACDBPLACEHOLDER source bodies, not graph output admission. The source dictionary and placeholder frames are independently CRC-checked with libdxfrw, then their handle stream tokens are separately decoded and matched with LibreDWG roles and targets.",
     "source": "Both locally generated ODA DWGs have DICTIONARYWDFLT 0x12 and PLACEHOLDER 0x13, no reactors; the class table identifies exactly one ACDBDICTIONARYWDFLT instance. Decoded object offsets are 1703 and 3949 (polyface) or 3954 (closed mesh); raw bodies are 29 and 6 bytes, with handle streams of 50 and 16 bits.",
     "handleSpans": "Dictionary: owner H4 -> NOD 0xa at bit 182, entry H2 -> 0x13 at bit 198, default H5 -> 0x13 at bit 214; all 16 bits. Placeholder: owner H4 -> dictionary 0x12 at bit 32, 16 bits. LibreDWG independently corroborates handle roles and target identities.",
-    "codec": "Share the existing exact no-reactor plot-style wire observer with a version-specific AC1024 wrapper; AC1024 does not have the R2013+ data-storage flag bit. Existing AC1027 wrapper remains version-restricted. The observer checks the Normal string stream, common fields, exact references and trailing padding.",
+    "codec": "Share the existing exact no-reactor plot-style wire observer with a version-specific AC1024 wrapper; AC1024 does not have the R2013+ data-storage flag bit. Existing AC1027 wrapper remains version-restricted. The observer checks the Normal string stream, common fields, exact references and trailing padding. A separately authored from-scratch AC1024 DWG adds the two-zero-bit string-tail and 25-zero-bit placeholder-tail variants; LibreDWG independently decodes its zero-reactor Normal/default/owner graph.",
     "tests": "Fixture-free generated AC1024 and AC1027 bodies pass their respective versioned observers. Controls reject changed handle roles, string content, version, reactor count and truncated bodies, and accept an unmodified retry. Both ODA sources match the production AC1024 observer. GCC 16 syntax check passed under -Werror.",
     "testExecutableSha256": "8f683f964ebfe242cd2c02f4cbb7cd30329a4fd2b9f369a7b853a4bf0abe459c",
     "polyfaceProbeLogSha256": "f53ae698af08641bdbafa148a26b17d7e9aad669da9464ba8473d42661c9a558",
@@ -157,5 +157,27 @@
     "cleanSourceInventory": "1199 released files; generated controls contain no committed DWG/DXF fixtures",
     "ctestInventory": "1370 tests; added only libdxfrw_dwg_ac1024_plotstyle_wire",
     "limits": "Frame extraction and bit-span checks share libdxfrw codecs; LibreDWG confirms roles/targets but not bit offsets. This observer does not by itself establish graph closure, native semantics or output admission."
+  },
+  "plotStyleSelectedGraph": {
+    "scope": "Same-version AC1024 selected NOD -> Normal DICTIONARYWDFLT -> ACDBPLACEHOLDER graph with no reactors. The existing reactor-bearing AC1021/AC1024 profiles remain separate.",
+    "admission": "Bind typed graph and source bodies to a complete, unchanged AC1024 class receipt and one-instance source-frame census; check the no-reactor common state, exact Normal name, owner/entry/default roles and version-specific wire observer. A no-reactor candidate with incomplete or mutated proof fails closed instead of falling back to generic writing.",
+    "generatedSource": "A from-scratch libdxfrw-authored AC1024 DWG has dictionary class 513 and no-reactor source records. LibreDWG independently decodes its Normal entry, default pointer and owner links. DWG sha256 84b1cf7e52430ff44d1b1c68893532df3ed7b22c6e4d1d7ae0e80560afbbe599; LibreDWG JSON sha256 8afe74c07244de48f4fce8d9e8f6fcff796af4bbcb185adb8d3a5ae79cc76a3c.",
+    "tests": "The fixture-free graph test and wire controls pass; source changes to default, reactor count, extension flag and raw bytes are refused with destination preservation, including a late mutation after objects staging; restoration succeeds with the same writer. Both ODA-generated source graphs pass selected ASCII and Binary output and local readback. The existing AC1021 selected graph regression passes. Five adjacent AC1024 source/binding/graph and DICTIONARYVAR fast tests pass. GCC 16 syntax check uses -Wall -Wextra -pedantic -Werror.",
+    "independentRoundtrip": "ODA File Converter 27.1 converted both selected ASCII DXFs and both selected binary DXFs to AC1024 DWG without emitted errors; LibreDWG 0.14 read each resulting DWG and confirmed the unique NOD plot-style entry, Normal dictionary entry, default pointer and reciprocal owners. Input/output joins were made by the local file names and are not independently authenticated execution attestations.",
+    "artifactSha256": {
+      "polyfaceAscii": "7c5477679d832d5f15512d83f1ccd50890d6e5553641081e9ec1a41902d5cf05",
+      "polyfaceBinary": "960944c8c79df44564848e52b6f7c1af27f6f9d49d63eef4ce86c6ce170fb893",
+      "closedAscii": "07fe5264638d823818725dcee8d531ef0a47057ebf94230f225f8ed4286a0a46",
+      "closedBinary": "e23a64377a11196f85d4d50d9c7c5803d36b5f12ec30102cc0e9f0edf88a8829",
+      "odaPolyfaceAscii": "d5a4ea5ed4fe2923de93e49431f23456fa218981c451e26f971456e43b9ee617",
+      "odaClosedAscii": "ee579b5812c4c846909305e741926afb23b70434b6c34feee9aa22d365efc901",
+      "odaPolyfaceBinary": "243edffd88cfe7406a5ffb7fdd957a7a57aeacd0cbf5610fd3145c5e265729e1",
+      "odaClosedBinary": "d5c64b722b145652743cc2c7a384dbd9b2b23d79ea283846e4118c91f32ee941"
+    },
+    "testExecutableSha256": "71fdbdaaf18d27448ab3383e170be5bb5a7cf7a6dca6be341510f661e84f0916",
+    "qualificationDigest": "93e6bd0e7d3c254f0b15ce076e644372f270be65a5540d0e11115e90bcde8026",
+    "cleanSourceInventory": "1200 released files; no DWG/DXF fixture committed",
+    "ctestInventory": "1371 tests; added only libdxfrw_dwg_ac1024_plotstyle_graph",
+    "limits": "Selected graph only; ODA conversion is not native plotting semantics. LAYER 347/390 output, source material closure, HEADER suffix and whole-document export remain unqualified. No support claim is promoted."
   }
 }

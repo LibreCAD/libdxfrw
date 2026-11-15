@@ -42,7 +42,8 @@ inline bool matches(const DRW_UnsupportedObject& raw, bool dictionary,
         Bits footer{raw.m_rawBytes.data(), end - 17u, end};
         const auto size = static_cast<std::uint32_t>(footer.little(2u));
         if (footer.take(1u) != 1u || !footer.good
-            || (size != 106u && size != 131u)
+            || (size != 106u && size != 131u
+                && !(version == DRW::AC1024 && size == 124u))
             || size > end - 17u || end - 17u - size != body.pos)
             return false;
         Bits text{raw.m_rawBytes.data(), body.pos, end - 17u};
@@ -52,11 +53,12 @@ inline bool matches(const DRW_UnsupportedObject& raw, bool dictionary,
             if (text.little(2u) != static_cast<unsigned char>(c)) return false;
         if (length == 7u && text.little(2u) != 0u) return false;
         const auto tail = text.end - text.pos;
-        if ((size == 106u ? tail != 0u : tail != 9u)
+        if ((size == 106u ? tail != 0u : size == 124u ? tail != 2u : tail != 9u)
             || text.take(tail) != 0u || !text.good) return false;
     } else {
         const auto remaining = body.end - body.pos;
-        if ((remaining != 1u && remaining != 24u)
+        if ((remaining != 1u && remaining != 24u
+                && !(version == DRW::AC1024 && remaining == 25u))
             || body.take(remaining) != 0u || !body.good) return false;
     }
     Bits handles{raw.m_rawBytes.data(), end, total};

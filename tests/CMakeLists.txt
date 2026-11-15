@@ -602,6 +602,20 @@ add_test(NAME libdxfrw_dwg_ac1024_layer_source_binding
         ${CMAKE_CURRENT_BINARY_DIR}/ac1024-layer-binding-scratch)
 set_tests_properties(libdxfrw_dwg_ac1024_layer_source_binding PROPERTIES
     LABELS "fast;dwg;layer;generated;source;transaction" TIMEOUT 30)
+add_executable(libdxfrw_dwg_ac1024_plotstyle_graph_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dwg_ac1024_plotstyle_graph_tests.cpp
+    ${_libdxfrw_test_adapter_source})
+target_compile_features(libdxfrw_dwg_ac1024_plotstyle_graph_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dwg_ac1024_plotstyle_graph_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dwg_ac1024_plotstyle_graph_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_dwg_ac1024_plotstyle_graph_tests PRIVATE dxfrw)
+libdxfrw_check_test_adapter_context(libdxfrw_dwg_ac1024_plotstyle_graph_tests)
+add_test(NAME libdxfrw_dwg_ac1024_plotstyle_graph
+    COMMAND libdxfrw_dwg_ac1024_plotstyle_graph_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/ac1024-plotstyle-graph-scratch)
+set_tests_properties(libdxfrw_dwg_ac1024_plotstyle_graph PROPERTIES
+    LABELS "fast;dwg;plotstyle;generated;graph;transaction" TIMEOUT 30)
 add_executable(libdxfrw_ac1021_group_polyline_dxf_readback_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/ac1021_group_polyline_dxf_readback_tests.cpp
     ${_libdxfrw_test_adapter_source})

@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "date": "2026-11-15",
   "title": "Hosted GCC 13 range-loop warning in generated DICTIONARYVAR test",
-  "status": "LOCAL_FIX_PENDING_HOSTED_RERUN",
+  "status": "HOSTED_FAST_RERUN_PASSED",
   "supportClaimEffect": "none",
   "failedRun": {
     "repository": "dxli/libdxfrw",
@@ -19,5 +19,13 @@
     "Clean checkout qualification digest and build inventory pass with the updated code."
   ],
   "implementationDigest": "ed7bdfa3442ee8d8729e9ad5143b87de0a0a327318fee163b966a0668d0d19f8",
-  "nextAction": "Push the fixed head and monitor hosted GCC 13 fast regressions plus dependent source-release and native/FreeCAD jobs. Do not treat local GCC 16 syntax checks as the hosted result."
+  "nextAction": "Package/source-release and other supported-platform qualification remain governed by P8-F; the source-release job was skipped in this rerun and no support claim is promoted.",
+  "hostedRerun": {
+    "head": "f4aed932",
+    "runId": 43762180269,
+    "fastRegressions": "success",
+    "sourceRelease": "skipped by workflow",
+    "nativeQualification": "success, run 43762180186",
+    "freecadQualification": "success, run 43762180247"
+  }
 }
