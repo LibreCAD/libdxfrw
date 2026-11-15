@@ -30620,7 +30620,8 @@ bool dx_iface::validateVerifiedTableCandidates(const dx_data& data,
                 if(data.tableStylesCaptureFailed)return false;
                 const DRW_TableStyle* live=nullptr;
                 for(const auto& candidate:data.tableStyles)if(candidate.handle==xrecords.selectedTableStyle) {
-                    if(live)return false;live=&candidate;
+                    if(live)return false;
+                    live=&candidate;
                 }
                 DwgTableStyleAc1018Candidate::Result style;
                 if(!live || !DwgTableStyleAc1018Candidate::inspect(styleSource->raw,*live,style)
@@ -30636,7 +30637,8 @@ bool dx_iface::validateVerifiedTableCandidates(const dx_data& data,
                         if(data.cellStyleMapsCaptureFailed)return false;
                         const DRW_CellStyleMap* liveMap=nullptr;
                         for(const auto& candidate:data.cellStyleMaps)if(candidate.handle==xrecords.selectedCellStyleMap) {
-                            if(liveMap)return false;liveMap=&candidate;
+                            if(liveMap)return false;
+                            liveMap=&candidate;
                         }
                         DwgCellStyleMapAc1018Candidate::Result map;
                         if(!liveMap || !DwgCellStyleMapAc1018Candidate::inspect(mapSource->raw,*liveMap,map)

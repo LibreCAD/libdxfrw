@@ -322,7 +322,8 @@ public:
         case 2:case 3:
             if(mtextEvaluatorSeen) {if(!stageMText(pendingCode,reader))return false;}
             else if(!appendText(field.m_fieldCode,fieldText(reader),scalarBytes[1]))return false;
-            if(code==2)++codeFields;break;
+            if(code==2)++codeFields;
+            break;
         case 4:if(!replaceText(reader,scalarBytes[2],field.m_formatString))return false;break;
         case 6:
             if(primarySeen || childValueCount<0 || field.m_childValues.size()>=static_cast<std::size_t>(childValueCount))return false;

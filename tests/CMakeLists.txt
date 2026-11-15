@@ -1955,12 +1955,15 @@ target_include_directories(libdxfrw_dwg2dxf_adapter_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/src
 )
 target_link_libraries(libdxfrw_dwg2dxf_adapter_tests PRIVATE dxfrw)
-add_test(NAME libdxfrw_dwg_ac1024_modeler_wireframe_presence
-    COMMAND libdxfrw_dwg2dxf_adapter_tests
-        --modeler-ac1024-wireframe-presence
-        ${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1024/visualization_-_aerial.dwg)
-set_tests_properties(libdxfrw_dwg_ac1024_modeler_wireframe_presence
-    PROPERTIES LABELS "fast;dwg;AC1024;modeler;wireframe;physical" TIMEOUT 30)
+set(_modeler_wireframe_sample
+    "${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1024/visualization_-_aerial.dwg")
+if(EXISTS "${_modeler_wireframe_sample}")
+    add_test(NAME libdxfrw_dwg_ac1024_modeler_wireframe_presence
+        COMMAND libdxfrw_dwg2dxf_adapter_tests
+            --modeler-ac1024-wireframe-presence "${_modeler_wireframe_sample}")
+    set_tests_properties(libdxfrw_dwg_ac1024_modeler_wireframe_presence
+        PROPERTIES LABELS "fast;dwg;AC1024;modeler;wireframe;physical" TIMEOUT 30)
+endif()
 if(TARGET dwg2dxf)
 add_test(NAME dwg2dxf_generated_ac1021_group_parent_reactor_closure
     COMMAND ${CMAKE_COMMAND}

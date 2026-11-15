@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **487 completed implementation and qualification slices** and **32 remaining
+The plan records **488 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`487 / (487 + 32) = 93.8%`. The previous 28-package denominator was stale; a recount
+`488 / (488 + 32) = 93.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -28,6 +28,11 @@ native rerun gate are recorded in the [receipt](docs/research/p8-freecad-hosted-
 The hosted fast check also exposed stale source inventories; all tracked core
 headers and 75 other tracked release files are now included, and the generated
 CMake, Automake and source-release inventory checks pass. Native runs remain open.
+A second hosted run reached both compilers; GCC indentation and MSVC lambda
+constant-storage errors are fixed, with a full local GCC Release build and
+focused parser tests passing. The optional physical AC1024 test now registers
+only when its local sample exists. Native reruns and frozen CTest inventory
+refresh remain open.
 
 The upstream-linked LibreCAD `[mtext]~[dwg]` selector now passes 4/4 after
 normalizing invalid DXF line-spacing styles and correcting its R2018 column

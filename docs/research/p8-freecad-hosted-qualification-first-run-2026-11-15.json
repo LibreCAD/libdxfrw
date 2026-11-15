@@ -24,5 +24,20 @@
     "Rerun the current implementation on hosted Linux and Windows; fix additional build or runtime failures before claiming any qualification.",
     "Generated primitive cases do not close the mesh, surface, ACIS, or native platform phase gates.",
     "No external drawing fixture added."
-  ]
+  ],
+  "second_hosted_run": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43716996536",
+    "head": "95cb3aee15e0cd7b494c379d3466ec663b804a20",
+    "result": "Both pinned archives verified and Windows command path was found. Linux GCC 13 stopped on misleading indentation; Windows MSVC stopped on LWPOLYLINE local constexpr captures before either native test ran.",
+    "fixes": "Separate misleading one-line statements; give LWPOLYLINE parser constants static storage so the lambdas do not require captures; preserve their values and parser behavior.",
+    "verification": [
+      "Full macOS GCC 16 Release dwg2dxf build with -Werror passed.",
+      "Clang build and focused LWPOLYLINE component-order and FIELD MTEXT tests passed 2/2.",
+      "Physical AC1024 sample test is registered only if its uncommitted local sample exists; absent/present/absent scratch configure controls passed."
+    ],
+    "limits": [
+      "MSVC and GCC 13 fixes require hosted rerun.",
+      "No native FreeCAD qualification has passed."
+    ]
+  }
 }

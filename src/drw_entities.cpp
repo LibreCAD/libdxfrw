@@ -17604,9 +17604,9 @@ bool DRW_LWPolyline::parseCode(int code, const std::unique_ptr<dxfReader>& reade
     // vertex records bind optional fields to the most recent group 10. Retain
     // the historical ordinal-array route for grouped coordinates detected
     // before any optional vertex field has been seen.
-    constexpr std::uint32_t countMask = 0x3FFFFFFFu;
-    constexpr std::uint32_t grouped = 0x80000000u;
-    constexpr std::uint32_t sawOptional = 0x40000000u;
+    static constexpr std::uint32_t countMask = 0x3FFFFFFFu;
+    static constexpr std::uint32_t grouped = 0x80000000u;
+    static constexpr std::uint32_t sawOptional = 0x40000000u;
     auto& xState = m_dxfVertexFieldCounts[0];
     const auto xCount = [&]() { return xState & countMask; };
     const auto yCount = m_dxfVertexFieldCounts[1];

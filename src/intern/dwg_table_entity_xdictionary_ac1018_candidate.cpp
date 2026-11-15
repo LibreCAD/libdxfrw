@@ -29,7 +29,8 @@ bool inspect(const DRW_UnsupportedObject& raw,Result& result) noexcept {
         if(!b.isGood() || bit(b)>candidate.dataEndBit || proxyBytes!=2104u
             || static_cast<std::uint64_t>(proxyBytes)*8u>candidate.dataEndBit-bit(b))return false;
         const auto after=bit(b)+static_cast<std::uint64_t>(proxyBytes)*8u;
-        if(!b.setPosition(after/8u))return false;b.setBitPos(static_cast<std::uint8_t>(after%8u));
+        if(!b.setPosition(after/8u))return false;
+        b.setBitPos(static_cast<std::uint8_t>(after%8u));
         // This source has no common owner, no reactors and a present xdict.
         if(b.get2Bits()!=2u || b.get2Bits()!=2u || b.getBit()!=0u || !b.isGood()
             || bit(b)>candidate.dataEndBit || b.getBitShort()!=256u || b.get2Bits()!=1u
@@ -38,7 +39,8 @@ bool inspect(const DRW_UnsupportedObject& raw,Result& result) noexcept {
         if(!b.setPosition(candidate.dataEndBit/8u))return false;
         b.setBitPos(static_cast<std::uint8_t>(candidate.dataEndBit%8u));
         candidate.dictionaryStartBit=bit(b);
-        if(!handle(b,3u,candidate.dictionary))return false;candidate.dictionaryEndBit=bit(b);
+        if(!handle(b,3u,candidate.dictionary))return false;
+        candidate.dictionaryEndBit=bit(b);
         if(candidate.dictionary==candidate.handle || !handle(b,5u,candidate.layer)
             || !handle(b,5u,candidate.block) || !handle(b,5u,candidate.style))return false;
         result=candidate;return true;

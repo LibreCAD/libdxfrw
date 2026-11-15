@@ -9,7 +9,8 @@ bool bound(const dwgBuffer& b,std::uint64_t end){return b.isGood() && bit(b)<=en
 bool bl(dwgBuffer& b,std::uint64_t end,std::int32_t expected) {
     const auto tag=b.get2Bits();std::int32_t v=0;
     if(tag==0u)v=static_cast<std::int32_t>(b.getRawLong32());else if(tag==1u)v=b.getRawChar8();
-    else if(tag!=2u)return false;return bound(b,end) && v==expected;
+    else if(tag!=2u)return false;
+    return bound(b,end) && v==expected;
 }
 bool bs(dwgBuffer& b,std::uint64_t end,std::uint16_t expected){return b.getBitShort()==expected && bound(b,end);}
 bool bd(dwgBuffer& b,std::uint64_t end,double expected) {
