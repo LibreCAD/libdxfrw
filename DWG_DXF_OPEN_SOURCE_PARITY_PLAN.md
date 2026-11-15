@@ -2,9 +2,10 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **443 completed implementation and qualification slices** and **28 remaining
+The plan records **444 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`443 / (443 + 28) = 94.1%`. This is a count-based progress measure, not an
+`444 / (444 + 32) = 93.3%`. The previous 28-package denominator was stale; a recount
+of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -717,7 +718,7 @@ only with a complete NOD owner graph ([screen receipt](docs/research/p6-cli-dict
 
 The full fast cohort is registered as `dwg2dxf_cli_partial_read_disposition`;
 SECTION_SETTINGS, POINTCLOUDCOLORMAP, the POINTCLOUDDEFINITION family,
-MLEADERSTYLE, SPATIAL_FILTER, IDBUFFER, LAYER_INDEX, SPATIAL_INDEX, LIGHTLIST, GEODATA, and TABLESTYLE also have dedicated fast selectors
+MLEADERSTYLE, SPATIAL_FILTER, IDBUFFER, LAYER_INDEX, SPATIAL_INDEX, LIGHTLIST, GEODATA, TABLESTYLE, MOTIONPATH, NAVISWORKSMODELDEF, and SECTION_MANAGER also have dedicated fast selectors
 for profile-specific iteration without rerunning that cohort.
 The PointCloud reactor/ReactorEx body profile also has the dedicated
 `dwg2dxf_cli_pointcloud_reactor_recovery` selector.
@@ -734,6 +735,16 @@ now also have dedicated selectors for sub-second reader/refusal checks.
 existing strict incomplete-read and explicit-partial NOD dependency refusal
 checks; the aggregate disposition cohort was not rerun and output support is
 unchanged. The selector timings and counts are added to each profile receipt.
+
+**P6-F focused validation selector slice (2026-11-15):** dedicated
+`dwg2dxf_cli_motionpath_recovery`,
+`dwg2dxf_cli_navisworks_modeldef_recovery`, and
+`dwg2dxf_cli_section_manager_recovery` CTests pass 28, 28, and 18 generated
+recovery controls in 1.48, 1.49, and 2.17 seconds, respectively (2.19 seconds
+wall time when run together). The aggregate disposition cohort was not rerun.
+Existing strict refusal, explicit-partial readback, and AC1027 source-reference
+gates remain intact; no output or support claim is promoted. The 32 parent
+packages remain open until their full exit criteria pass.
 
 **P6-F forty-fifth generated OBJECTS body recovery profile (2026-11-15):**
 `POINTCLOUDDEFREACTOR` and `POINTCLOUDDEFREACTOREX` now have bounded malformed

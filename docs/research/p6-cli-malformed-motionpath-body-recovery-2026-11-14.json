@@ -88,7 +88,8 @@
     "focusedControl": "check_malformed_motionpath_body: PASS; 28 disposition controls across AC1015/AC1018/AC1021/AC1024/AC1027/AC1032",
     "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 28.12 seconds",
     "pythonSyntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py: PASS",
-    "diffCheck": "git diff --check: PASS"
+    "diffCheck": "git diff --check: PASS",
+    "dedicatedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_motionpath_recovery$' --output-on-failure: PASS 1/1 in 1.48 seconds (28 controls)."
   },
   "limitations": [
     "Generated parser-recovery and CLI disposition only; no real MotionPath source or target graph is included.",

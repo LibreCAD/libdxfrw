@@ -29,7 +29,8 @@
     "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
     "diff_check": "git diff --check passed.",
     "focused_test": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure passed; runtime 29.93 seconds.",
-    "cohort": "909 controls, up from 891; 18 profile controls added."
+    "cohort": "909 controls, up from 891; 18 profile controls added.",
+    "dedicatedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_section_manager_recovery$' --output-on-failure: PASS 1/1 in 2.17 seconds (18 controls)."
   },
   "limits": [
     "Generated local recovery and output-disposition evidence only; no producer-authored SECTION_MANAGER source or complete owner/section graph is qualified.",

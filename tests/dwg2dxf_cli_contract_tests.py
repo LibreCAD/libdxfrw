@@ -3825,6 +3825,12 @@ def main():
                         help="run only the strict/explicit-partial DWG CLI controls")
     parser.add_argument("--section-settings-only", action="store_true",
                         help="run only the generated SECTION_SETTINGS recovery controls")
+    parser.add_argument("--motionpath-recovery-only", action="store_true",
+                        help="run only generated MOTIONPATH recovery controls")
+    parser.add_argument("--navisworks-modeldef-recovery-only", action="store_true",
+                        help="run only generated NAVISWORKSMODELDEF recovery controls")
+    parser.add_argument("--section-manager-recovery-only", action="store_true",
+                        help="run only generated SECTION_MANAGER recovery controls")
     parser.add_argument("--wipeoutvariables-recovery-only", action="store_true",
                         help="run only generated WIPEOUTVARIABLES recovery controls")
     parser.add_argument("--rastervariables-recovery-only", action="store_true",
@@ -3940,6 +3946,21 @@ def main():
             checked = check_malformed_section_settings_body(
                 converter, root, args.writer)
             print(f"CLI SECTION_SETTINGS recovery: PASS ({checked} controls)")
+            return
+        if args.motionpath_recovery_only:
+            checked = check_malformed_motionpath_body(
+                converter, root, args.writer)
+            print(f"CLI MOTIONPATH recovery: PASS ({checked} controls)")
+            return
+        if args.navisworks_modeldef_recovery_only:
+            checked = check_malformed_navisworks_modeldef_body(
+                converter, root, args.writer)
+            print(f"CLI NAVISWORKSMODELDEF recovery: PASS ({checked} controls)")
+            return
+        if args.section_manager_recovery_only:
+            checked = check_malformed_section_manager_body(
+                converter, root, args.writer)
+            print(f"CLI SECTION_MANAGER recovery: PASS ({checked} controls)")
             return
         if args.wipeoutvariables_recovery_only:
             checked = check_malformed_wipeoutvariables_body(

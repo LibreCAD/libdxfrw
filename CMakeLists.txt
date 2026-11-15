@@ -258,6 +258,30 @@ if(LIBDXFRW_BUILD_TESTS)
                 --section-settings-only)
         set_tests_properties(dwg2dxf_cli_section_settings_recovery PROPERTIES
             LABELS "fast;cli;dwg;disposition" TIMEOUT 20)
+        add_test(NAME dwg2dxf_cli_motionpath_recovery
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py
+                --converter $<TARGET_FILE:dwg2dxf>
+                --writer $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+                --motionpath-recovery-only)
+        set_tests_properties(dwg2dxf_cli_motionpath_recovery PROPERTIES
+            LABELS "fast;cli;dwg;disposition" TIMEOUT 20)
+        add_test(NAME dwg2dxf_cli_navisworks_modeldef_recovery
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py
+                --converter $<TARGET_FILE:dwg2dxf>
+                --writer $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+                --navisworks-modeldef-recovery-only)
+        set_tests_properties(dwg2dxf_cli_navisworks_modeldef_recovery PROPERTIES
+            LABELS "fast;cli;dwg;disposition" TIMEOUT 20)
+        add_test(NAME dwg2dxf_cli_section_manager_recovery
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py
+                --converter $<TARGET_FILE:dwg2dxf>
+                --writer $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+                --section-manager-recovery-only)
+        set_tests_properties(dwg2dxf_cli_section_manager_recovery PROPERTIES
+            LABELS "fast;cli;dwg;disposition" TIMEOUT 20)
         add_test(NAME dwg2dxf_cli_pointcloud_colormap_recovery
             COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py

@@ -31,7 +31,8 @@
     "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
     "diff_check": "git diff --check passed.",
     "focused_test": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure passed; runtime 27.77 seconds.",
-    "cohort": "891 controls, up from 863; 28 profile controls added."
+    "cohort": "891 controls, up from 863; 28 profile controls added.",
+    "dedicatedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_navisworks_modeldef_recovery$' --output-on-failure: PASS 1/1 in 1.49 seconds (28 controls)."
   },
   "limits": [
     "Generated local recovery and output-disposition evidence only; no producer-authored NAVISWORKSMODELDEF, NWD file interpretation, native behavior, or external interoperability is qualified.",
