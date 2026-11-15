@@ -1,0 +1,48 @@
+{
+  "date": "2026-11-15",
+  "scope": "scratch-generated mesh sources through ODA File Converter and separate FreeCAD readback; AC1024 HEADER suffix characterization",
+  "oda": {
+    "version": "27.1.0.0",
+    "binarySha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "dwgRevision": "AC1024",
+    "forwardCommand": "ODAFileConverter input output ACAD2010 DWG 0 0 *.dxf",
+    "reverseCommand": "ODAFileConverter input output ACAD2010 DXF 0 0 *.dwg"
+  },
+  "scratchSources": {
+    "polyfaceDxf": "23602cc7de346ea0eacd6d31644909cd3bd08f4408de5bc171ac5091b6b53052",
+    "polyfaceOdaDwg": "f18332b967e99776adac0e0cf1a6a66612275e270604f7591478586802573c13",
+    "polyfaceOdaReadbackDxf": "c1827537abf8400a20277d2d6f8ec4463223d992cf653270b47f3a25791fdb23",
+    "closedMeshDxf": "cfb0e1d37d914436bfdd0e49fc44c2e602dbb834304545136f77b954f2d84a41",
+    "closedMeshOdaDwg": "df2ec8285245a09a0ba709672797df2d0fcc2d16906aac7d8462c2a7496d10b5",
+    "closedMeshOdaReadbackDxf": "0f04e390fdca642bcbf6271d39118a046de113a35553c8bf7cce100aa3bc3d3f"
+  },
+  "nativeFreecad": "The ODA DWG-to-DXF readbacks separately import in the macOS ARM64 headless FreeCAD development candidate with six ordered unmerged patches. The POLYFACE is a one-face compound with all four expected vertices and area 13; the M-closed mesh has three expected face vertex sets matching ezdxf expansion. The following LINE is retained. This route uses ODA to convert DWG, not libdxfrw.",
+  "libdxfrw": "The installed candidate reads both generated ODA DWGs with operationSucceeded=true, 162/162 and 163/163 observed frames respectively published and no record parse failures. Strict conversion refuses because HEADER integrity reports the maintenance-55 extra word and 739-byte unclaimed suffix. Allow-partial also refuses at VISUALSTYLE carrier coverage; no libdxfrw DXF was published.",
+  "headerEvidence": {
+    "sourceVersion": "AC1024, maintenance 55",
+    "decodedSectionBytes": 1582,
+    "declaredPayloadBytes": 801,
+    "payloadEnd": 825,
+    "envelopeTrailerEnd": 843,
+    "suffixBytes": 739,
+    "polyfaceStoredAndComputedCrc": "0x7efa",
+    "differentDrawings": "Both decoded suffixes are 739 bytes, differ at every byte and have a uniform zero XOR in the least significant bit.",
+    "repeatInput": "Three independent ODA conversions of the exact same generated input retain 739-byte suffixes but produce three distinct suffix SHA-256 hashes; every pair differs at every suffix byte, with pairwise least-significant-bit XOR uniform across the suffix. This observation does not prove padding or harmlessness.",
+    "repeatedDwgSha256": [
+      "88a94362b725811127b336138407e6f9d7e69d760fb93e3a80dbd0049da5a8da",
+      "fc6ea721d97402b2bb299230a44abcdeb62e639ad2cda5462c0836d3608dc320",
+      "6ccf8d092571b9773e418512a58dcfca3a064de2c96306f496b8fbf3b8ea71b"
+    ],
+    "repeatedSuffixSha256": [
+      "12cade2007210f13e44c913c32973505d77ed342d3c60b6e0b00bff5e3cf104b",
+      "768c02cb8f05231a67cfe16aca2fa7b34292d9bcf82ffb7e9e014fc3689901e6",
+      "0dccd0636fd7efa9bfe5e9a7b29027dee724aba72da2ba01c7b6f2156ec4ff98"
+    ]
+  },
+  "limits": [
+    "The input geometry is locally generated; ODA resaves are independent conversion evidence, not independently authored models.",
+    "The patched FreeCAD route is headless and unmerged, and ODA performed the DWG-to-DXF step; no libdxfrw output or complete DWG graph is qualified.",
+    "Suffix meaning remains unknown; do not treat random-like or changing bytes as disposable without source-bound specification or independent semantic proof.",
+    "No fixture files are committed and no format-support or phase-gate claim is promoted."
+  ]
+}
