@@ -4102,7 +4102,8 @@ bool dwgRW::addLayer(DRW_Layer *ent) {
             const auto& xref = ent->xrefBlockHandle;
             std::uint32_t material = 0u, plot = 0u;
             bool hasMaterial = false, hasPlot = false;
-            if (version != DRW::AC1024 || ent->hasDwgCommonLinkTail()
+            if (version != DRW::AC1024 || (ent->name != "0" && ent->name != "Defpoints")
+                || ent->hasDwgCommonLinkTail()
                 || !ent->dwgHandleFieldSpans().empty()
                 || ent->reactorCount() != 0 || !ent->reactorHandles.empty()
                 || ent->xDictHandle != 0u || ent->extensionDictionaryFlag() > 1u
@@ -4126,6 +4127,10 @@ bool dwgRW::addLayer(DRW_Layer *ent) {
             canonical.setDwgCommonObjectState(0, 1u, false);
             canonical.xrefBlockHandle.code = DRW::DwgHardPointer;
             handle = w->addLayer(canonical);
+            if (handle != 0u && !w->bindCanonicalLayer(handle, plot)) {
+                markDwgWriteFailure();
+                handle = 0u;
+            }
         } else {
             handle = w->addLayer(*ent);
         }

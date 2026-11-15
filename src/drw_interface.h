@@ -1129,13 +1129,13 @@ public:
 /** Optional, per-layer opt-in for source-independent AC1024 authoring.
  * Returning true requests the witnessed missing-extension-dictionary flag and
  * hard-pointer null xref for that layer. The caller must establish that the
- * layer is newly authored and that its non-null plot-style reference identifies
- * a complete output graph. Its material must be the staged Global material
- * from DRW_DwgDefaultMaterialProvider. The caller must not opt in imported
- * source-preservation layers; retained DWG link evidence and incompatible
- * common data are refused. This
- * interface is separate from DRW_Interface and does not establish complete
- * DWG interoperability. */
+ * layer is newly authored. The bounded profile accepts only layers named 0 or
+ * Defpoints, the staged Global material from DRW_DwgDefaultMaterialProvider,
+ * and a no-reactor Normal plot-style graph; its emitted handle roles, NOD root
+ * and placeholder owner are checked before publication. The caller must not
+ * opt in imported source-preservation layers; retained DWG link evidence and
+ * incompatible common data are refused. This interface is separate from
+ * DRW_Interface and does not establish complete DWG interoperability. */
 class DRW_DwgCanonicalLayerProvider {
 public:
   virtual ~DRW_DwgCanonicalLayerProvider() = default;

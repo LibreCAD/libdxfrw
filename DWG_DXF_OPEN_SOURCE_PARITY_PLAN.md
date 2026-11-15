@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **578 completed implementation and qualification slices** and **32 remaining
+The plan records **579 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`578 / (578 + 32) = 94.8%`. The previous 28-package denominator was stale; a recount
+`579 / (579 + 32) = 94.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -161,13 +161,13 @@ with complete default material/plot-style graphs, a controlled matrix shows
 that ODA produces a DXF with both layer references only when the caller-authored
 layers carry both a missing-extension flag and typed null xref. Each one alone
 fails; adding or removing the repeated header alone does not change that result.
-The source-independent per-layer opt-in now emits those two null roles without
-modifying caller fields; incompatible or retained DWG source evidence is refused.
-ODA and LibreDWG verify the selected graph. The caller still attests plot-style
-graph closure, so implement an internal emitted-graph proof before broadening the
-profile. Investigate the reported page-size disagreement, the basic generated
-drawings lacking reference graphs, and remaining versions before broadening
-writer support
+The source-independent opt-in emits those null roles without modifying caller
+fields. It now checks the emitted layer handle tails, the no-reactor Normal
+plot-style dictionary and placeholder, NOD root and reciprocal ownership before
+publication; graph failures and in-attempt retries are covered. ODA and LibreDWG
+verify the selected graph. Investigate the reported page-size disagreement, the
+basic generated drawings lacking reference graphs, and remaining versions before
+broadening writer support
 ([header receipt](docs/research/p6-ac1018-ac1024-repeated-file-header-2026-11-15.json),
 [layer experiment](docs/research/p6-ac1024-authored-layer-null-matrix-2026-11-15.json)).
 

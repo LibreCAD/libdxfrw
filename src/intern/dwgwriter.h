@@ -515,6 +515,12 @@ public:
         bool defaultPlotStyleGraphEmitted {false};
         std::array<std::uint32_t, 4> defaultMaterialHandles {{0, 0, 0, 0}};
         bool defaultMaterialGraphEmitted {false};
+        std::vector<std::uint32_t> canonicalLayerHandles;
+        std::uint32_t canonicalPlotTarget {0};
+        std::uint32_t canonicalPlotDictionary {0};
+        std::uint32_t canonicalPlaceholderOwner {0};
+        bool canonicalPlotDictionarySeen {false};
+        bool canonicalPlaceholderSeen {false};
         bool deferredPlotSettingsDictionary {false};
         bool deferredPlotSettingsDictionaryEmitted {false};
         std::size_t deferredPlotSettingsEntryCount {0};

@@ -143,7 +143,8 @@ public:
         plotPlaceholder_.parentHandle = plotDictionary_.handle;
         plotPlaceholder_.setDwgCommonObjectState(0, 1u, false);
         registered_ = output_.registerDictionaryWithDefaultObjectClass(&plotDictionary_)
-            && output_.registerDwgNamedObjectDictionaryEntry("ACAD_PLOTSTYLENAME", plotDictionary_.handle);
+            && output_.registerDwgNamedObjectDictionaryEntry(
+                graphFailure == 4 ? "ALT_PLOT" : "ACAD_PLOTSTYLENAME", plotDictionary_.handle);
     }
     void writeLayers() override {
         DRW_Layer layer;
@@ -157,13 +158,17 @@ public:
             if (incompatible == 1) layer.xrefBlockHandle.ref = 0xB200u;
             if (incompatible == 2) layer.setDwgCommonLinkTailValidated(true);
             if (incompatible == 3) layer.handlePlotS = "BAD";
+            if (incompatible == 4) layer.name = "Other";
+            if (incompatible == 5) layer.materialHandle.ref ^= 1u;
             const bool layerZeroAdded = output_.addLayer(&layer);
             if (layerShape_ == 3)
                 callerUnchanged = layer.extensionDictionaryFlag() == 0u
                     && layer.xrefBlockHandle.code == 0u
                     && layer.xrefBlockHandle.ref == (incompatible == 1 ? 0xB200u : 0u)
                     && layer.hasDwgCommonLinkTail() == (incompatible == 2)
-                    && layer.handlePlotS == (incompatible == 3 ? "BAD" : "");
+                    && layer.handlePlotS == (incompatible == 3 ? "BAD" : "")
+                    && layer.name == (incompatible == 4 ? "Other" : "0")
+                    && layer.materialHandle.ref == (incompatible == 5 ? (global_ ^ 1u) : global_);
             if (!layerZeroAdded) return;
             layer.handle = 0u;
         }
@@ -173,14 +178,42 @@ public:
                 && layer.xrefBlockHandle.code == 0u && layer.xrefBlockHandle.ref == 0u;
     }
     void writeObjects() override {
-        if (material_) objects_ = output_.writeDictionaryWithDefault(&plotDictionary_)
-            && output_.writeAcDbPlaceholder(&plotPlaceholder_);
+        ++objectCalls;
+        if (material_) {
+            auto dictionary = plotDictionary_;
+            auto placeholder = plotPlaceholder_;
+            if (graphFailure == 2) placeholder.parentHandle ^= 1u;
+            if (graphFailure == 3) dictionary.m_defaultEntryHandle = 0u;
+            if (graphFailure == 5) dictionary.m_entries.front().m_name = "Other";
+            if (graphFailure == 6) dictionary.m_entries.front().m_handle ^= 1u;
+            if (graphFailure == 7) placeholder.setDwgCommonObjectState(0, 0u, false);
+            if (graphFailure == 8) dictionary.parentHandle ^= 1u;
+            if (graphFailure == 11) placeholder.setDwgCommonObjectState(1, 1u, false);
+            if (graphFailure == 12) dictionary.setDwgCommonObjectState(1, 1u, false);
+            if (graphFailure == 9) {
+                auto bad = dictionary;
+                bad.m_entries.front().m_name = "Other";
+                if (output_.writeDictionaryWithDefault(&bad)) { objects_ = false; return; }
+            }
+            if (graphFailure == 10) {
+                if (!output_.writeDictionaryWithDefault(&dictionary)) { objects_ = false; return; }
+                auto bad = placeholder;
+                bad.setDwgCommonObjectState(0, 0u, false);
+                if (output_.writeAcDbPlaceholder(&bad)) { objects_ = false; return; }
+                objects_ = output_.writeAcDbPlaceholder(&placeholder);
+                return;
+            }
+            objects_ = output_.writeDictionaryWithDefault(&dictionary)
+                && (graphFailure == 1 || output_.writeAcDbPlaceholder(&placeholder));
+        }
     }
     bool added = false;
     bool registered_ = false, objects_ = false;
     int incompatible = 0;
+    int graphFailure = 0;
     bool callerUnchanged = false;
     mutable unsigned canonicalCalls = 0u;
+    unsigned objectCalls = 0u;
 private:
     dwgRW& output_;
     bool material_;
@@ -318,11 +351,12 @@ int main(int argc, char** argv) {
     if (!materialWriter.reserveHandle(0xA11u)) return 1;
     if (layerShape == 3) {
         const std::string sentinel = "keep canonical layer destination\n";
-        for (int failure = 1; failure <= 3; ++failure) {
+        for (int failure = 1; failure <= 5; ++failure) {
             { std::ofstream f(materialPath, std::ios::binary | std::ios::trunc); f << sentinel; }
             materialAuthor.incompatible = failure;
+            const auto calls = materialAuthor.canonicalCalls;
             if (materialWriter.write(&materialAuthor, DRW::AC1024, false)
-                || !materialAuthor.callerUnchanged) return 1;
+                || materialAuthor.canonicalCalls == calls || !materialAuthor.callerUnchanged) return 1;
             { std::ifstream f(materialPath, std::ios::binary);
               if (std::string(std::istreambuf_iterator<char>(f), {}) != sentinel) return 1; }
         }
@@ -333,6 +367,21 @@ int main(int argc, char** argv) {
             || materialAuthor.canonicalCalls == calls || !materialAuthor.callerUnchanged) return 1;
         { std::ifstream f(materialPath, std::ios::binary);
           if (std::string(std::istreambuf_iterator<char>(f), {}) != sentinel) return 1; }
+        for (int failure : {1, 2, 3, 4, 5, 6, 7, 8, 11, 12}) {
+            { std::ofstream f(materialPath, std::ios::binary | std::ios::trunc); f << sentinel; }
+            materialAuthor.graphFailure = failure;
+            const auto calls = materialAuthor.objectCalls;
+            if (materialWriter.write(&materialAuthor, DRW::AC1024, false)
+                || materialAuthor.objectCalls == calls) return 1;
+            { std::ifstream f(materialPath, std::ios::binary);
+              if (std::string(std::istreambuf_iterator<char>(f), {}) != sentinel) return 1; }
+        }
+        for (int retry = 9; retry <= 10; ++retry) {
+            materialAuthor.graphFailure = retry;
+            if (!materialWriter.write(&materialAuthor, DRW::AC1024, false)
+                || !materialAuthor.objects_) return 1;
+        }
+        materialAuthor.graphFailure = 0;
     }
     const bool materialWritten = materialWriter.write(&materialAuthor, DRW::AC1024, false);
     if (!materialWritten || !materialAuthor.added || !materialAuthor.registered_ || !materialAuthor.objects_

@@ -53,6 +53,30 @@ namespace {
 constexpr std::uint32_t kMaxDwgBlockRecordPreviewBytes = 0xA00000u;
 constexpr int kDwgBlockRecordFlagsMask = 0x7Fu;
 
+template <std::size_t N>
+bool canonicalHandleTailMatches(const DRW::DwgObjectFrameReceipt& frame,
+    std::uint32_t handle, std::uint16_t objectType,
+    const std::array<std::pair<std::uint8_t, std::uint64_t>, N>& expected) {
+    if (!frame.valid || frame.version != DRW::AC1024 || frame.objectHandle != handle
+        || frame.classNumber != objectType)
+        return false;
+    std::size_t index = 0u;
+    std::uint64_t priorEnd = 0u;
+    for (const auto& occurrence : frame.occurrences) {
+        if (occurrence.stream != DRW::DwgObjectHandleStream::Handles) continue;
+        if (index >= expected.size() || occurrence.objectHandle != handle
+            || occurrence.serializedSegment != DRW::DwgObjectSerializedSegment::Handles
+            || occurrence.token.code != expected[index].first
+            || occurrence.token.reference != expected[index].second
+            || occurrence.token.startBit < priorEnd
+            || occurrence.token.endBit <= occurrence.token.startBit
+            || occurrence.token.endBit > frame.handleBitSize) return false;
+        priorEnd = occurrence.token.endBit;
+        ++index;
+    }
+    return index == expected.size();
+}
+
 bool validAc1018TableBlockRecordReference(const dwgHandle& handle) {
     const bool normalized = handle.code == DRW::DwgNullReference
         && handle.size == 0u && handle.rawCode == 0u && handle.ref64 == 0u;
@@ -2071,6 +2095,12 @@ dwgWriter::CompoundWriteCheckpoint dwgWriter15::checkpointCompoundWrite() const 
     checkpoint.defaultPlotStyleGraphEmitted = m_defaultPlotStyleGraphEmitted;
     checkpoint.defaultMaterialHandles = m_defaultMaterialHandles;
     checkpoint.defaultMaterialGraphEmitted = m_defaultMaterialGraphEmitted;
+    checkpoint.canonicalLayerHandles = m_canonicalLayerHandles;
+    checkpoint.canonicalPlotTarget = m_canonicalPlotTarget;
+    checkpoint.canonicalPlotDictionary = m_canonicalPlotDictionary;
+    checkpoint.canonicalPlaceholderOwner = m_canonicalPlaceholderOwner;
+    checkpoint.canonicalPlotDictionarySeen = m_canonicalPlotDictionarySeen;
+    checkpoint.canonicalPlaceholderSeen = m_canonicalPlaceholderSeen;
     checkpoint.deferredPlotSettingsDictionary =
         m_deferredPlotSettingsDictionary;
     checkpoint.deferredPlotSettingsDictionaryEmitted =
@@ -2280,6 +2310,12 @@ void dwgWriter15::rollbackCompoundWrite(
     m_defaultPlotStyleGraphEmitted = checkpoint.defaultPlotStyleGraphEmitted;
     m_defaultMaterialHandles = checkpoint.defaultMaterialHandles;
     m_defaultMaterialGraphEmitted = checkpoint.defaultMaterialGraphEmitted;
+    m_canonicalLayerHandles = checkpoint.canonicalLayerHandles;
+    m_canonicalPlotTarget = checkpoint.canonicalPlotTarget;
+    m_canonicalPlotDictionary = checkpoint.canonicalPlotDictionary;
+    m_canonicalPlaceholderOwner = checkpoint.canonicalPlaceholderOwner;
+    m_canonicalPlotDictionarySeen = checkpoint.canonicalPlotDictionarySeen;
+    m_canonicalPlaceholderSeen = checkpoint.canonicalPlaceholderSeen;
     m_deferredPlotSettingsDictionary =
         checkpoint.deferredPlotSettingsDictionary;
     m_deferredPlotSettingsDictionaryEmitted =
@@ -3657,6 +3693,22 @@ bool dwgWriter15::validateDwgNamedObjectDictionaryEntries() const {
               }) != 1) return false;
     }
 
+    if (!m_canonicalLayerHandles.empty()) {
+        if (m_version != DRW::AC1024 || m_canonicalLayerHandles.size() > 2u
+            || !m_canonicalPlotDictionarySeen || !m_canonicalPlaceholderSeen
+            || m_canonicalPlotTarget == 0u || m_canonicalPlotDictionary == 0u
+            || m_canonicalPlaceholderOwner != m_canonicalPlotDictionary
+            || !hasSingleFrame(m_canonicalPlotTarget)
+            || !hasSingleFrame(m_canonicalPlotDictionary)
+            || std::count_if(m_emittedDwgNamedObjectDictionaryEntries.cbegin(),
+                m_emittedDwgNamedObjectDictionaryEntries.cend(), [this](const auto& entry) {
+                    return isPlotStyleDictionaryKey(entry.name)
+                        && entry.childHandle == m_canonicalPlotDictionary;
+                }) != 1) return false;
+        for (const auto layer : m_canonicalLayerHandles)
+            if (m_emittedDwgTableRecordHandles.count(layer) != 1u) return false;
+    }
+
     std::set<std::string> names;
     for (const auto& entry : m_emittedDwgNamedObjectDictionaryEntries) {
         if (entry.name.empty() || entry.childHandle == 0
@@ -3804,7 +3856,18 @@ bool dwgWriter15::emitLayerRecord(std::uint32_t handle, const DRW_Layer& lay) {
     if (!layerCopy.encodeDwgForWriter(m_version, &body, sb, hb, typedLegacyNulls))
         return false;
 
-    return finishTableRecord(handle);
+    if (!finishTableRecord(handle)) return false;
+    if (std::find(m_canonicalLayerHandles.begin(), m_canonicalLayerHandles.end(), handle)
+        != m_canonicalLayerHandles.end()) {
+        const std::array<std::pair<std::uint8_t, std::uint64_t>, 5> expected{{
+            {DRW::DwgSoftPointer, DRW::DwgLayerControlHandle},
+            {DRW::DwgHardPointer, 0u}, {DRW::DwgHardPointer, m_canonicalPlotTarget},
+            {DRW::DwgHardPointer, m_defaultMaterialHandles[3]},
+            {DRW::DwgHardPointer, layerCopy.lTypeH.ref}}};
+        if (!canonicalHandleTailMatches(m_lastDwgObjectFrame, handle, DRW::DwgLayerObjectType, expected))
+            return false;
+    }
+    return true;
 }
 
 bool dwgWriter15::emitStyleRecord(std::uint32_t handle, const DRW_Textstyle& ts) {
@@ -4032,6 +4095,21 @@ bool dwgWriter15::writeAcDbPlaceholder(
                                    layerRefs)) {
         m_objectEedWriteFailure = !object.extData.empty();
         return false;
+    }
+    if (m_canonicalPlotTarget != 0u && object.handle == m_canonicalPlotTarget) {
+        const std::array<std::pair<std::uint8_t, std::uint64_t>, 1> expected{{
+            {DRW::DwgSoftPointer, object.parentHandle}}};
+        if (m_canonicalPlaceholderSeen || placeholder.reactorCount() != 0
+            || object.reactorCount() != 0
+            || object.extensionDictionaryFlag() != 1u || object.xDictHandle != 0u
+            || object.hasDataStorageBinaryData() || !object.appData.empty()
+            || !object.extData.empty() || !object.pendingAppIdResolutions.empty()
+            || !object.pendingLayerRefResolutions.empty()
+            || !canonicalHandleTailMatches(m_lastDwgObjectFrame, object.handle,
+                                           dwgObjType::ACDBPLACEHOLDER, expected))
+            return false;
+        m_canonicalPlaceholderOwner = object.parentHandle;
+        m_canonicalPlaceholderSeen = true;
     }
     return true;
 }
@@ -6499,6 +6577,28 @@ bool dwgWriter15::writeDictionaryWithDefault(const DRW_DictionaryWithDefault& di
         m_objectEedWriteFailure = !object.extData.empty();
         return false;
     }
+    if (m_canonicalPlotTarget != 0u && object.m_defaultEntryHandle == m_canonicalPlotTarget) {
+        const std::array<std::pair<std::uint8_t, std::uint64_t>, 3> expected{{
+            {DRW::DwgSoftPointer, DRW::DwgNamedObjectsDictionaryHandle},
+            {DRW::DwgSoftOwnership, m_canonicalPlotTarget},
+            {DRW::DwgHardPointer, m_canonicalPlotTarget}}};
+        if (m_canonicalPlotDictionarySeen
+            || object.parentHandle != DRW::DwgNamedObjectsDictionaryHandle
+            || object.m_entries.size() != 1u || object.m_entries.front().m_name != "Normal"
+            || object.m_entries.front().m_handle != m_canonicalPlotTarget
+            || object.cloning != 1 || object.hardOwner != 0
+            || dictionary.reactorCount() != 0 || object.reactorCount() != 0
+            || object.extensionDictionaryFlag() != 1u
+            || object.xDictHandle != 0u || object.hasDataStorageBinaryData()
+            || !object.appData.empty() || !object.extData.empty()
+            || !object.pendingAppIdResolutions.empty() || !object.pendingLayerRefResolutions.empty()
+            || !canonicalHandleTailMatches(m_lastDwgObjectFrame, object.handle,
+                typedDwgClassNum("AcDbDictionaryWithDefault", "ACDBDICTIONARYWDFLT",
+                                 DRW_DictionaryWithDefault::kDwgClassNum), expected))
+            return false;
+        m_canonicalPlotDictionary = object.handle;
+        m_canonicalPlotDictionarySeen = true;
+    }
     return true;
 }
 
@@ -7197,6 +7297,20 @@ std::uint32_t dwgWriter15::addLType(const DRW_LType& lt) {
     m_writingCtx.ltypeMap[upper] = h;
     m_pendingLTypes.emplace_back(h, lt);
     return h;
+}
+
+bool dwgWriter15::bindCanonicalLayer(std::uint32_t layer, std::uint32_t plot) {
+    if (m_version != DRW::AC1024 || m_dwgTableRecordsComplete
+        || layer == 0u || layer == DRW::NoHandle || plot == 0u || plot == DRW::NoHandle
+        || (m_canonicalPlotTarget != 0u && m_canonicalPlotTarget != plot)
+        || m_canonicalLayerHandles.size() >= 2u
+        || std::find(m_canonicalLayerHandles.begin(), m_canonicalLayerHandles.end(), layer)
+            != m_canonicalLayerHandles.end()) return false;
+    try {
+        m_canonicalLayerHandles.push_back(layer);
+        m_canonicalPlotTarget = plot;
+        return true;
+    } catch (...) { return false; }
 }
 
 std::uint32_t dwgWriter15::addLayer(const DRW_Layer& lay) {

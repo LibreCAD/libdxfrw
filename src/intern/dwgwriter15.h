@@ -121,6 +121,7 @@ public:
         return m_defaultMaterialHandles;
     }
     bool defaultDwgMaterialGraphActive() const { return m_defaultMaterialHandles[0] != 0; }
+    bool bindCanonicalLayer(std::uint32_t layer, std::uint32_t plot);
     bool rejectDefaultDwgMaterialFrameConflicts();
     void latchDefaultDwgMaterialConflict() { m_defaultMaterialConflict = true; }
     bool conflictsDefaultDwgMaterialDictionary(const DRW_Dictionary& dictionary,
@@ -748,6 +749,12 @@ protected:
         m_emittedDwgNamedObjectDictionaryEntries;
     bool m_dwgNamedObjectDictionaryComplete {false};
     std::uint32_t m_plotSettingsDictionaryHandle {0};
+    std::vector<std::uint32_t> m_canonicalLayerHandles;
+    std::uint32_t m_canonicalPlotTarget {0};
+    std::uint32_t m_canonicalPlotDictionary {0};
+    std::uint32_t m_canonicalPlaceholderOwner {0};
+    bool m_canonicalPlotDictionarySeen {false};
+    bool m_canonicalPlaceholderSeen {false};
     std::uint32_t m_defaultPlotStyleDictionaryHandle {0};
     std::uint32_t m_defaultPlotStylePlaceholderHandle {0};
     bool m_defaultPlotStyleGraphEmitted {false};
