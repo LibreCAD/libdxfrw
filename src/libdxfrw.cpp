@@ -11062,6 +11062,8 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
             return false;
         EntityRecordScope scope(*this, ent);
         const auto writeBoundaryHandles = [this](const DRW_HatchLoop& loop) {
+            if (loop.m_boundaryHandles.empty())
+                return true;
             if (!writer->writeInt32(97,
                                     static_cast<int>(loop.m_boundaryHandles.size())))
                 return failDxfWrite();
@@ -11196,7 +11198,8 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
                     return false;
             }
         }
-        writer->writeInt16(75, ent->hstyle);
+        if (ent->hstyle != 0)
+            writer->writeInt16(75, ent->hstyle);
         writer->writeInt16(76, ent->hpattern);
         if (!ent->solid) {
             writer->writeDouble(52, ent->angle * ARAD);

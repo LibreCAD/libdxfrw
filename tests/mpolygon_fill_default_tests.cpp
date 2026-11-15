@@ -27,8 +27,10 @@ public:
     void addMPolygon(const DRW_MPolygon* polygon) override {
         if (polygon != nullptr) {
             fills.push_back(polygon->solid);
+            hstyle = polygon->hstyle;
             if (polygon->looplist.size() == 1 && polygon->looplist[0]
                 && polygon->looplist[0]->objlist.size() == 1) {
+                boundaryHandles = polygon->looplist[0]->m_boundaryHandles;
                 const auto* polyline = dynamic_cast<const DRW_LWPolyline*>(
                     polygon->looplist[0]->objlist[0].get());
                 geometryOk = polyline && (polyline->flags & 1) != 0
@@ -39,6 +41,8 @@ public:
         }
     }
     std::vector<int> fills;
+    std::vector<std::uint32_t> boundaryHandles;
+    int hstyle = -1;
     bool geometryOk = false;
 };
 
@@ -49,7 +53,9 @@ public:
         polygon.dxfVersion = 1;
         polygon.solid = 1;
         polygon.name = "SOLID";
+        polygon.hstyle = nondefault ? 1 : 0;
         auto loop = std::make_shared<DRW_HatchLoop>(3);
+        if (nondefault) loop->m_boundaryHandles.push_back(0x50u);
         auto polyline = std::make_shared<DRW_LWPolyline>();
         polyline->flags = 1;
         for (int i = 0; i < 3; ++i) {
@@ -65,13 +71,15 @@ public:
     }
     dxfRW* writer = nullptr;
     bool accepted = false;
+    bool nondefault = false;
 };
 
-bool writerFlagOrder(bool binary) {
+bool writerFlagOrder(bool binary, bool nondefault) {
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
     const auto path = std::filesystem::temp_directory_path()
         / ("libdxfrw-mpolygon-order-" + std::to_string(nonce) + ".dxf");
     PolygonEmitter emitter;
+    emitter.nondefault = nondefault;
     dxfRW output(path.string().c_str());
     emitter.writer = &output;
     bool ok = output.write(&emitter, DRW::AC1021, binary) && emitter.accepted;
@@ -84,23 +92,34 @@ bool writerFlagOrder(bool binary) {
     bool inPolygon = false;
     bool inPath = false;
     std::vector<int> flags;
+    int styleCount = 0;
+    int sourceCount = 0;
+    int sourceHandleCount = 0;
     int code = 0;
     while (reader->readRec(&code)) {
         if (code == 0) inPolygon = reader->getString() == "MPOLYGON";
         if (!inPolygon) continue;
         if (code == 92) inPath = true;
-        else if (inPath && code == 93) break;
+        else if (inPath && code == 93) inPath = false;
         else if (inPath && (code == 73 || code == 72)) {
             flags.push_back(code);
             ok = ok && reader->getInt32() == 1;
         }
+        if (code == 75) ++styleCount;
+        if (code == 97) ++sourceCount;
+        if (code == 330 && reader->getString() == "50") ++sourceHandleCount;
     }
-    ok = ok && flags == std::vector<int>({73, 72});
+    ok = ok && flags == std::vector<int>({73, 72})
+        && styleCount == (nondefault ? 1 : 0)
+        && sourceCount == (nondefault ? 1 : 0)
+        && sourceHandleCount == (nondefault ? 1 : 0);
     input.close();
     TypedConsumer typed;
     dxfRW verify(path.string().c_str());
     ok = verify.read(&typed, false) && typed.fills == std::vector<int>({1})
-        && typed.geometryOk && ok;
+        && typed.geometryOk && typed.hstyle == (nondefault ? 1 : 0)
+        && typed.boundaryHandles == (nondefault ? std::vector<std::uint32_t>({0x50u})
+                                               : std::vector<std::uint32_t>()) && ok;
     std::error_code ignored;
     std::filesystem::remove(path, ignored);
     if (!ok) std::cerr << (binary ? "binary" : "ASCII") << " MPOLYGON flag order failed\n";
@@ -182,5 +201,6 @@ int main() {
     if (DRW_Hatch{}.solid != 1 || DRW_MPolygon{}.solid != 1) return 1;
     return run(false, false) && run(true, false)
         && run(false, true) && run(true, true)
-        && writerFlagOrder(false) && writerFlagOrder(true) ? 0 : 1;
+        && writerFlagOrder(false, false) && writerFlagOrder(true, false)
+        && writerFlagOrder(false, true) && writerFlagOrder(true, true) ? 0 : 1;
 }
