@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-rastervariables-body-recovery-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_RASTERVARIABLES_READER_AND_FAIL_CLOSED_DISPOSITION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Bounded malformed RASTERVARIABLES body recovery and strict/explicit-partial CLI refusal for dependency-root sources.",
+  "source": {
+    "kind": "scratch-only DWGs authored at test runtime by the in-tree DWG writer; each valid typed seed is converted to a raw mutated frame and injected with matching custom-class registration",
+    "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-rastervariables-body-source",
+    "object": "RASTERVARIABLES class version 0, image-frame 1, image-quality 1, and units 1, registered under the generated ACAD_IMAGE_VARS named-object dictionary entry. The typed source uses the direct NOD parent and reciprocal reactor profile.",
+    "bodyMutation": "A one-bit mutation after the fully validated common prologue is selected inside the declared object body and makes DRW_RasterVariables::parseDwg fail. The root dictionary entry remains byte-valid and points at the failed frame.",
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1027", "AC1032"],
+    "excludedVersion": "AC1024: the bounded one-bit body-span search found no parser-failing mutation; no recovery claim is made for this revision.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-cli-malformed-rastervariables-body-recovery-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "controls": "For each eligible revision, the reader reports one object parse failure and one failed frame, retains the following LINE, and balances source = published + failed. Strict conversion refuses atomically because the read is incomplete. Explicit-partial conversion also refuses atomically because the retained ACAD_IMAGE_VARS root dictionary entry targets the failed RASTERVARIABLES frame. AC1027 is refused at the existing source-reference qualification gate in both modes. The input bytes remain unchanged."
+  },
+  "results": {
+    "readRecoveryFrameCounts": {
+      "AC1015": {"sourceFrames": 28, "publishedFrames": 27, "failedFrames": 1},
+      "AC1018": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1021": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1027": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1032": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1}
+    },
+    "cliDispositionControls": 15,
+    "perRevisionControls": 3,
+    "fullFocusedDispositionCohortControls": 692,
+    "outputQualification": "No output/readback profile is qualified. Strict conversion refuses on incomplete DWG disposition; explicit-partial conversion refuses when extension-object graph validation detects the ACAD_IMAGE_VARS NOD target is missing or ambiguous. AC1027 remains behind its source-reference gate."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2: PASS",
+    "focusedControl": "check_malformed_rastervariables_body: PASS; 15 reader and atomic-refusal controls across AC1015/AC1018/AC1021/AC1027/AC1032",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 21.66 seconds",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated reader-recovery and fail-closed CLI evidence only; it establishes no successful output/readback, RASTERVARIABLES field semantics, producer prevalence, or interoperability.",
+    "AC1024 is excluded because the bounded declared-body one-bit search found no parser-failing mutation.",
+    "Explicit-partial mode preserves owner/reference integrity requirements; this dependency-root profile cannot be emitted while its root dictionary target is failed.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "P6-F adds malformed RASTERVARIABLES body recovery at AC1015/AC1018/AC1021/AC1027/AC1032 and verifies atomic strict refusal, explicit-partial owner-graph refusal, and the AC1027 source-reference gate.",
+    "remainingP6F": "Continue source/resource inventory for supported OBJECTS body parsers with bounded negative profiles; distinguish profiles whose failed frame breaks a required retained dependency graph from profiles that can be safely emitted in explicit-partial mode.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "416 completed slices and 32 remaining packages: 416/(416+32)=92.9%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-cli-malformed-wipeoutvariables-body-recovery-2026-11-14.json"
+}

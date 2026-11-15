@@ -28506,6 +28506,11 @@ public:
     using DRW_WipeoutVariables::parseDwg;
 };
 
+class RasterVariablesBodyProbe final : public DRW_RasterVariables {
+public:
+    using DRW_RasterVariables::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28722,6 +28727,18 @@ public:
                 DRW::DwgNamedObjectsDictionaryHandle};
             wipeoutVariables_.setDwgCommonObjectState(1, 1, false);
         }
+        if (kind_ == 34) {
+            rasterVariables_.handle = 0x700u;
+            rasterVariables_.m_classVersion = 0;
+            rasterVariables_.m_imageFrame = 1;
+            rasterVariables_.m_imageQuality = 1;
+            rasterVariables_.m_units = 1;
+            rasterVariables_.parentHandle =
+                DRW::DwgNamedObjectsDictionaryHandle;
+            rasterVariables_.reactorHandles = {
+                DRW::DwgNamedObjectsDictionaryHandle};
+            rasterVariables_.setDwgCommonObjectState(1, 1, false);
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -28829,6 +28846,17 @@ public:
                 wrote = writer_->registerWipeoutVariablesObjectClass(
                     &wipeoutVariables_) && wrote;
             }
+        } else if (kind_ == 34) {
+            wrote = writer_->registerDwgNamedObjectDictionaryEntry(
+                "ACAD_IMAGE_VARS",
+                hasMalformedObject_ ? opaque_.m_handle
+                                    : rasterVariables_.handle) && wrote;
+            if (hasMalformedObject_) {
+                wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
+            } else {
+                wrote = writer_->registerRasterVariablesObjectClass(
+                    &rasterVariables_) && wrote;
+            }
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -28837,7 +28865,8 @@ public:
                    && kind_ != 18 && kind_ != 19 && kind_ != 20
                    && kind_ != 21 && kind_ != 22 && kind_ != 23
                    && kind_ != 24 && kind_ != 25 && kind_ != 26
-                   && !(kind_ >= 27 && kind_ <= 32) && kind_ != 33) {
+                   && !(kind_ >= 27 && kind_ <= 32) && kind_ != 33
+                   && kind_ != 34) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -28923,6 +28952,11 @@ public:
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeWipeoutVariables(
                                &wipeoutVariables_)) && wrote;
+        } else if (kind_ == 34) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeRasterVariables(
+                               &rasterVariables_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29012,6 +29046,7 @@ private:
     DRW_VisualStyle visualStyle_;
     DRW_RenderSettings renderSettings_;
     DRW_WipeoutVariables wipeoutVariables_;
+    DRW_RasterVariables rasterVariables_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -42441,6 +42476,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-visualstyle-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-wipeoutvariables-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-rastervariables-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -42487,6 +42524,8 @@ int main(int argc, char** argv) {
             == "--generate-cli-malformed-visualstyle-body-source";
         const bool malformedWipeoutVariablesBodySource = std::string(argv[1])
             == "--generate-cli-malformed-wipeoutvariables-body-source";
+        const bool malformedRasterVariablesBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-rastervariables-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -42562,6 +42601,7 @@ int main(int argc, char** argv) {
             || malformedMaterialBodySource
             || malformedVisualStyleBodySource
             || malformedWipeoutVariablesBodySource
+            || malformedRasterVariablesBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -42600,7 +42640,9 @@ int main(int argc, char** argv) {
                                                                                 ? 26
                                                                                 : malformedWipeoutVariablesBodySource
                                                                                     ? 33
-                                                                                    : malformedRenderSettingsBodySource
+                                                                                    : malformedRasterVariablesBodySource
+                                                                                        ? 34
+                                                                                        : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
                 nullptr, version);
@@ -42664,6 +42706,7 @@ int main(int argc, char** argv) {
                  || malformedMaterialBodySource
                  || malformedVisualStyleBodySource
                  || malformedWipeoutVariablesBodySource
+                 || malformedRasterVariablesBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -42792,6 +42835,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedRasterVariablesBodySource) {
+                            RasterVariablesBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         MLineStyleBodyProbe typed;
                         return typed.parseDwg(version, &typedBuffer,
                                               malformed.m_bodyBitSize);
@@ -42885,6 +42933,7 @@ int main(int argc, char** argv) {
                   || malformedMaterialBodySource
                   || malformedVisualStyleBodySource
                   || malformedWipeoutVariablesBodySource
+                  || malformedRasterVariablesBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -42920,7 +42969,9 @@ int main(int argc, char** argv) {
                                                                                         ? "VISUALSTYLE"
                                                                                         : malformedWipeoutVariablesBodySource
                                                                                             ? "WIPEOUTVARIABLES"
-                                                                                            : malformedRenderSettingsBodySource
+                                                                                            : malformedRasterVariablesBodySource
+                                                                                                ? "RASTERVARIABLES"
+                                                                                                : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
                 const char* mutationKind = malformedPrologueSource
@@ -42954,7 +43005,9 @@ int main(int argc, char** argv) {
                                                             ? 26
                                                             : malformedWipeoutVariablesBodySource
                                                                 ? 33
-                                                                : malformedRenderSettingsBodySource
+                                                                    : malformedRasterVariablesBodySource
+                                                                        ? 34
+                                                                        : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,
                 nullptr, version);

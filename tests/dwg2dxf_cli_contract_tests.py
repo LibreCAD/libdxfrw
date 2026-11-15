@@ -2172,25 +2172,22 @@ def check_malformed_visualstyle_body(converter, root, writer):
         "--generate-cli-malformed-visualstyle-body-source", profiles)
 
 
-def check_malformed_wipeoutvariables_body(converter, root, writer):
-    profiles = {
-        "AC1015": "2007",
-        "AC1018": "2007",
-        "AC1021": "2007",
-    }
+def check_malformed_dependency_root_object_body(
+        converter, root, writer, object_name, generator_option, root_key,
+        profiles):
     if writer is None:
         raise AssertionError(
-            "WIPEOUTVARIABLES recovery control requires the local DWG writer")
+            f"{object_name} recovery control requires the local DWG writer")
     checked = 0
     for revision, target_year in profiles.items():
         source = root / (
-            f"generated malformed WIPEOUTVARIABLES body source {revision}.dwg")
+            f"generated malformed {object_name} body source {revision}.dwg")
         generated = run_bounded(
-            [str(writer), "--generate-cli-malformed-wipeoutvariables-body-source",
-             str(source), revision], 10, 131072, cwd=root)
+            [str(writer), generator_option, str(source), revision],
+            10, 131072, cwd=root)
         if generated.returncode != 0 or not source.is_file():
             raise AssertionError(
-                f"could not author malformed {revision} WIPEOUTVARIABLES source: "
+                f"could not author malformed {revision} {object_name} source: "
                 f"{generated!r}")
         original = source.read_bytes()
         counted = run_bounded(
@@ -2214,24 +2211,28 @@ def check_malformed_wipeoutvariables_body(converter, root, writer):
                 or failed_frames != 1 or source_frames <= 1
                 or published_frames + 1 != source_frames):
             raise AssertionError(
-                f"{revision} malformed WIPEOUTVARIABLES stopped later OBJECTS "
+                f"{revision} malformed {object_name} stopped later OBJECTS "
                 f"frames: {counted!r}")
         checked += 1
 
+        target = "2013" if target_year is None else target_year
         for partial_mode in (False, True):
             output = root / (
-                f"malformed WIPEOUTVARIABLES body {revision} "
+                f"malformed {object_name} body {revision} "
                 f"{'partial' if partial_mode else 'strict'}.dxf")
             output.write_bytes(SENTINEL)
             arguments = [str(converter), str(source), "-o", str(output),
-                         f"-v{target_year}", "-y", "-d"]
+                         f"-v{target}", "-y", "-d"]
             if partial_mode:
                 arguments.append("--allow-partial-dwg-read")
             result = run_bounded(
                 arguments, 10, 2 * 1024 * 1024, cwd=root)
-            if partial_mode:
-                refusal = (b"NOD dictionary entry target is missing or ambiguous: "
-                          b"key=ACAD_WIPEOUT_VARS")
+            if target_year is None:
+                refusal = b"AC1027 DWG source references are not fully qualified"
+            elif partial_mode:
+                refusal = (
+                    b"NOD dictionary entry target is missing or ambiguous: key="
+                    + root_key.encode("ascii"))
             else:
                 refusal = (b"strict-complete conversion requires successful, "
                            b"complete DWG read disposition")
@@ -2248,11 +2249,34 @@ def check_malformed_wipeoutvariables_body(converter, root, writer):
                     or refusal not in result.stderr
                     or any(field not in projection for field in required)):
                 raise AssertionError(
-                    f"{revision} malformed WIPEOUTVARIABLES {'partial' if partial_mode else 'strict'} "
+                    f"{revision} malformed {object_name} "
+                    f"{'partial' if partial_mode else 'strict'} "
                     f"conversion did not refuse atomically at its integrity gate: "
                     f"{result!r}")
             checked += 1
     return checked
+
+
+def check_malformed_wipeoutvariables_body(converter, root, writer):
+    profiles = {"AC1015": "2007", "AC1018": "2007", "AC1021": "2007"}
+    return check_malformed_dependency_root_object_body(
+        converter, root, writer, "WIPEOUTVARIABLES",
+        "--generate-cli-malformed-wipeoutvariables-body-source",
+        "ACAD_WIPEOUT_VARS", profiles)
+
+
+def check_malformed_rastervariables_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_dependency_root_object_body(
+        converter, root, writer, "RASTERVARIABLES",
+        "--generate-cli-malformed-rastervariables-body-source",
+        "ACAD_IMAGE_VARS", profiles)
 
 
 def check_malformed_rendersettings_bodies(converter, root, writer):
@@ -3552,6 +3576,8 @@ def main():
                 converter, root, args.writer)
             visualstyle_checked = check_malformed_visualstyle_body(
                 converter, root, args.writer)
+            rastervariables_checked = check_malformed_rastervariables_body(
+                converter, root, args.writer)
             wipeoutvariables_checked = check_malformed_wipeoutvariables_body(
                 converter, root, args.writer)
             render_settings_checked = check_malformed_rendersettings_bodies(
@@ -3571,6 +3597,7 @@ def main():
                   f"{underlaydefinition_checked} UNDERLAYDEFINITION, "
                   f"{material_checked} MATERIAL, "
                   f"{visualstyle_checked} VISUALSTYLE, "
+                  f"{rastervariables_checked} RASTERVARIABLES, "
                   f"{wipeoutvariables_checked} WIPEOUTVARIABLES, and "
                   f"{render_settings_count} RENDERSETTINGS controls across "
                   f"Settings ({render_settings_checked['Settings']}), "
