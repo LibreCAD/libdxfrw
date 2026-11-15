@@ -28571,6 +28571,11 @@ public:
     using DRW_LayerIndex::parseDwg;
 };
 
+class SpatialIndexBodyProbe final : public DRW_SpatialIndex {
+public:
+    using DRW_SpatialIndex::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -29021,6 +29026,13 @@ public:
             idBuffer_.classVersion = 0;
             idBuffer_.objIds = {0x703u};
         }
+        if (kind_ == 54) {
+            spatialIndex_.handle = 0x700u;
+            spatialIndex_.parentHandle =
+                DRW::DwgModelSpaceBlockRecordHandle;
+            spatialIndex_.timestamp1 = 300u;
+            spatialIndex_.timestamp2 = 400u;
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -29196,6 +29208,11 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerLayerIndexObjectClass(&layerIndex_) && wrote;
             wrote = writer_->registerIDBufferObjectClass(&idBuffer_) && wrote;
+        } else if (kind_ == 54) {
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerSpatialIndexObjectClass(&spatialIndex_)
+                    && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -29352,6 +29369,10 @@ public:
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeLayerIndex(&layerIndex_)) && wrote;
             wrote = writer_->writeIDBuffer(&idBuffer_) && wrote;
+        } else if (kind_ == 54) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeSpatialIndex(&spatialIndex_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29374,7 +29395,8 @@ public:
             wrote = writer_->writeLine(&malformed) && wrote;
         }
         DRW_Line line;
-        if (kind_ == 15 || kind_ == 21 || kind_ == 22 || kind_ == 52)
+        if (kind_ == 15 || kind_ == 21 || kind_ == 22 || kind_ == 52
+            || kind_ == 54)
             line.handle = 0x701u;
         else if (kind_ == 53)
             line.handle = 0x703u;
@@ -29456,6 +29478,7 @@ private:
     DRW_SpatialFilter spatialFilter_;
     DRW_IDBuffer idBuffer_;
     DRW_LayerIndex layerIndex_;
+    DRW_SpatialIndex spatialIndex_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -42923,6 +42946,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-idbuffer-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-layer-index-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-spatial-index-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -43023,6 +43048,9 @@ int main(int argc, char** argv) {
         const bool malformedLayerIndexBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-layer-index-body-source";
+        const bool malformedSpatialIndexBodySource =
+            std::string(argv[1])
+                == "--generate-cli-malformed-spatial-index-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -43117,6 +43145,7 @@ int main(int argc, char** argv) {
             || malformedSpatialFilterBodySource
             || malformedIdBufferBodySource
             || malformedLayerIndexBodySource
+            || malformedSpatialIndexBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -43193,6 +43222,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 52
                                                                                                         : malformedLayerIndexBodySource
                                                                                                             ? 53
+                                                                                                        : malformedSpatialIndexBodySource
+                                                                                                            ? 54
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -43303,6 +43334,7 @@ int main(int argc, char** argv) {
                  || malformedSpatialFilterBodySource
                  || malformedIdBufferBodySource
                  || malformedLayerIndexBodySource
+                 || malformedSpatialIndexBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -43524,6 +43556,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedSpatialIndexBodySource) {
+                            SpatialIndexBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         if (malformedPointCloudDefinitionBodySource
                             || malformedPointCloudDefinitionExBodySource) {
                             PointCloudDefinitionBodyProbe typed;
@@ -43645,6 +43682,7 @@ int main(int argc, char** argv) {
                   || malformedSpatialFilterBodySource
                   || malformedIdBufferBodySource
                   || malformedLayerIndexBodySource
+                  || malformedSpatialIndexBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -43718,6 +43756,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "IDBUFFER"
                                                                                                                 : malformedLayerIndexBodySource
                                                                                                                     ? "LAYER_INDEX"
+                                                                                                                : malformedSpatialIndexBodySource
+                                                                                                                    ? "SPATIAL_INDEX"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
@@ -43793,6 +43833,8 @@ int main(int argc, char** argv) {
                                                                                         ? 52
                                                                                     : malformedLayerIndexBodySource
                                                                                         ? 53
+                                                                                    : malformedSpatialIndexBodySource
+                                                                                        ? 54
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,

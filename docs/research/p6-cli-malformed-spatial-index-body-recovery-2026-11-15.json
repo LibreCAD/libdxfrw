@@ -1,0 +1,43 @@
+{
+  "title": "Generated SPATIAL_INDEX body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_SPATIAL_INDEX_BODY_RECOVERY_PASS",
+  "scope": "CLI disposition for bounded malformed SPATIAL_INDEX OBJECTS bodies at revisions with a parser-failing body mutation, including continuation, strict refusal, and explicit-partial output readback.",
+  "selection": {
+    "source": "P6-F typed OBJECTS parser and writer inventory",
+    "reason": "DRW_SpatialIndex has typed DWG parse and write routes. Its generated body contains the two timestamp fields consumed before the version-bounded opaque tail, allowing a bounded negative profile without changing parser behavior."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-spatial-index-body-source",
+    "profile": "One SPATIAL_INDEX at handle 0x700 owned by modelspace, with timestamps 300 and 400, followed by a LINE at handle 0x701.",
+    "mutation": "The generator searches the bounded object frame for a one-bit mutation rejected by DRW_SpatialIndex::parseDwg while preserving the object handle and common prologue."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 5, "output_revision": "AC1021"},
+    "AC1018": {"controls": 5, "output_revision": "AC1021"},
+    "AC1021": {"controls": 5, "output_revision": "AC1021"},
+    "AC1024": {"controls": 0, "status": "excluded; no parser-failing one-bit mutation found in the bounded body"},
+    "AC1027": {"controls": 0, "status": "excluded; no parser-failing one-bit mutation found in the bounded body"},
+    "AC1032": {"controls": 0, "status": "excluded; no parser-failing one-bit mutation found in the bounded body"}
+  },
+  "assertions": [
+    "Each admitted generated source records one failed OBJECTS frame, continues to the following LINE, and balances source/published/failed frame accounting.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel at AC1015, AC1018, and AC1021 source revisions.",
+    "Explicit-partial ASCII/Binary conversion and fresh DXF readback retain the LINE for each admitted source revision.",
+    "No recovery or support claim is made for AC1024, AC1027, or AC1032 because the bounded generator found no parser-failing mutation there."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j4 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed before the final receipt/plan-only edits.",
+    "diff_check": "git diff --check passed before the final receipt/plan-only edits.",
+    "targeted": "ctest --test-dir build-gcc -V -R '^dwg2dxf_cli_spatial_index_recovery$' passed 1/1 in 0.50 seconds and reported 15 controls.",
+    "aggregate": "The dwg2dxf_cli_partial_read_disposition aggregate remains at its latest recorded 917 controls / 29.40 seconds and was not rerun for this isolated profile."
+  },
+  "limits": [
+    "Generated parser recovery and disposition evidence only; producer-authored SPATIAL_INDEX semantics and native spatial-query behavior are not qualified.",
+    "The parser treats the body after the timestamps as opaque bounded data; this generated profile has no such suffix and does not qualify arbitrary tails.",
+    "AC1024, AC1027, and AC1032 are excluded because no parser-failing one-bit mutation was found in their bounded body spans.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

@@ -2508,6 +2508,17 @@ def check_malformed_layer_index_body(converter, root, writer):
         "--generate-cli-malformed-layer-index-body-source", profiles)
 
 
+def check_malformed_spatial_index_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "SPATIAL_INDEX",
+        "--generate-cli-malformed-spatial-index-body-source", profiles)
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3717,6 +3728,8 @@ def main():
                         help="run only generated IDBUFFER recovery controls")
     parser.add_argument("--layer-index-only", action="store_true",
                         help="run only generated LAYER_INDEX recovery controls")
+    parser.add_argument("--spatial-index-only", action="store_true",
+                        help="run only generated SPATIAL_INDEX recovery controls")
     parser.add_argument("--source-disposition-only", action="store_true",
                         help="run only CLI repair/skip/mask preflight projections")
     parser.add_argument("--historical-ac1021-only", action="store_true",
@@ -3823,6 +3836,11 @@ def main():
             checked = check_malformed_layer_index_body(
                 converter, root, args.writer)
             print(f"CLI LAYER_INDEX recovery: PASS ({checked} controls)")
+            return
+        if args.spatial_index_only:
+            checked = check_malformed_spatial_index_body(
+                converter, root, args.writer)
+            print(f"CLI SPATIAL_INDEX recovery: PASS ({checked} controls)")
             return
         if args.partial_read_only:
             checked = check_partial_dwg_read_cli(converter, root, args.writer)
