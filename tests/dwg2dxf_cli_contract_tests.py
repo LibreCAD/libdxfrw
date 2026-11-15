@@ -2291,6 +2291,20 @@ def check_malformed_background_solid_body(converter, root, writer):
         "--generate-cli-malformed-background-solid-body-source", profiles)
 
 
+def check_malformed_background_groundplane_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "GROUNDPLANEBACKGROUND",
+        "--generate-cli-malformed-background-groundplane-body-source",
+        profiles)
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3594,6 +3608,9 @@ def main():
                 converter, root, args.writer)
             background_checked = check_malformed_background_solid_body(
                 converter, root, args.writer)
+            background_groundplane_checked = (
+                check_malformed_background_groundplane_body(
+                    converter, root, args.writer))
             render_settings_checked = check_malformed_rendersettings_bodies(
                 converter, root, args.writer)
             render_settings_count = sum(render_settings_checked.values())
@@ -3613,7 +3630,8 @@ def main():
                   f"{visualstyle_checked} VISUALSTYLE, "
                   f"{rastervariables_checked} RASTERVARIABLES, "
                   f"{wipeoutvariables_checked} WIPEOUTVARIABLES, "
-                  f"{background_checked} SOLIDBACKGROUND, and "
+                  f"{background_checked} SOLIDBACKGROUND, "
+                  f"{background_groundplane_checked} GROUNDPLANEBACKGROUND, and "
                   f"{render_settings_count} RENDERSETTINGS controls across "
                   f"Settings ({render_settings_checked['Settings']}), "
                   f"Global ({render_settings_checked['Global']}), "
