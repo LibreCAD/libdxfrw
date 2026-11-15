@@ -1134,6 +1134,7 @@ tools/research/freecad_imported_sat_torus_bound_probe.py
 tools/research/freecad_torus_bound_probe.py
 tools/research/inspect_mtext_field_freecad.FCMacro
 tools/research/inventory_cover_peer_body_handles.py
+tools/research/mutate_ac1024_header_suffix_traced.py
 tools/research/p4_forum_ltype_oda_compare.py
 tools/research/p5_ac1018_appid_sibling_scratch_instrument.py
 tools/research/p5_ac1018_cellstylemap_binding_probe.cpp

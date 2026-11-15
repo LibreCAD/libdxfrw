@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **580 completed implementation and qualification slices** and **32 remaining
+The plan records **581 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`580 / (580 + 32) = 94.8%`. The previous 28-package denominator was stale; a recount
+`581 / (581 + 32) = 94.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -144,12 +144,16 @@ Global-material/Normal-plot-style profile now has source-bound staged output,
 mutation refusal and retry, plus locally generated ASCII/Binary peer roundtrips
 ([receipt](docs/research/p6-oda-ac1024-layer-plotstyle-gate-2026-11-15.json)).
 The original ODA-derived polyface source still fails strict-complete preflight
-before TABLES because its read disposition is not complete. Resolve the 739-byte
-HEADER suffix with independent source/version evidence, then rerun strict output
-and address the next actual document gate (the earlier lossy diagnostic reached
-TABLESTYLE). Prove the physical source's emitted 347/390 links and native
-consumer behavior before any broader support claim. Do not discard the suffix or
-clear references to get past a gate.
+before TABLES because its read disposition is not complete. A provenance-traced
+experiment now replaces all 739 suffix bytes in two ODA-generated AC1024 sources;
+ODA, LibreDWG and patched headless FreeCAD give matching observed results. This
+is one producer and does not establish a universal padding rule. Obtain an
+independent producer or source-backed semantics for the suffix, then rerun
+strict output and address the next actual document gate (the earlier lossy
+diagnostic reached TABLESTYLE). Prove the physical source's emitted 347/390
+links and native consumer behavior before any broader support claim. Do not
+discard the suffix or clear references to get past a gate
+([experiment](docs/research/p6-ac1024-full-header-suffix-mutation-2026-11-15.json)).
 
 **P6 writer interoperability packet — AC1018/AC1024 container and objects.**
 The required R2004-family repeated file-header copy is now emitted and checked
