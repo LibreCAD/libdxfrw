@@ -105,77 +105,34 @@ created locally from scratch for the specific control.
 
 ### Next LibreCAD integration work
 
-A clean local LibreCAD branch at base `8a82e359` implements the scoped input
-policy with a bundled-fork feature guard, reports legacy Unicode profile
-observations, refuses unrepresentable R12/R14 insertion units before touching
-the destination, and corrects the `$DIMSTYLE` overload and two LTYPE test
-issues. The upstream-linked focused harness and the clean bundled-library fast
-target both pass the named-LTYPE (18/18, 465 assertions), units (18 assertions)
-and helper (2 assertions) selectors. The downstream commit is local and not
-merged; the [portable patch](docs/patches/librecad-p8-upstream-compat-2026-11-15.patch)
-was checked against the pinned base. A second local [test API patch](docs/patches/librecad-p8-test-api-compat-2026-11-15.patch)
-uses signature-derived writer parameters, explicit fields and a DXF-only
-MPOLYGON version selector. The full fast-test target now builds against both
-upstream and bundled libdxfrw. Five focused controls pass on both. The DXF
-MPOLYGON reader now defaults omitted group 71 to pattern fill, with generated
-ASCII/Binary typed and legacy callback controls and the LibreCAD case passing
-([receipt](docs/research/p8-mpolygon-dxf-omitted-solid-fill-default-2026-11-15.json)).
-The LibreCAD MPOLYGON trailer test now uses documented annotation value 1;
-all four path/trailer variants pass on both libraries, and generated
-ASCII/Binary controls retain refusal for invalid value 42 ([receipt](docs/research/p8-mpolygon-annotation-domain-consumer-control-2026-11-15.json)).
-The combined DIMASSOC/MPOLYGON selector now passes 12/12 against upstream with
-the opt-in polyline policy and 12/12 against the corrected bundled fork.
-Integrate the ten local patches against the current consumer head and repeat in
-a clean upstream-linked build. Qualify LibreCAD_3, ABI and required platforms separately; strict source
-admission remains closed for `DeclaredUtf8`. See the [consumer receipt](docs/research/p8-librecad-consumer-compat-patch-2026-11-15.json)
-and [test target receipt](docs/research/p8-librecad-upstream-test-target-api-2026-11-15.json).
+The local LibreCAD branch has 12 unmerged commits based on `8a82e359`; apply
+the corresponding `docs/patches/librecad-p8-*.patch` files in commit order,
+then qualify a clean full-application build with the bundled and installed
+upstream libraries. The modified upstream-linked LTYPE selector has one
+remaining failure: resolve the historical LTYPE byte-golden differences and
+R12 default-layer lineweight refusal without silently losing data. Repeat PR
+#3269 and ASCII/Binary failure/retry controls. Qualify LibreCAD_3 through a
+clean link and runtime import/export, then run the required ABI and platform
+matrix ([current diagnosis](docs/research/p8-canonical-ltype-policy-consumer-test-2026-11-15.json)).
 
-MPOLYGON polyline output now places the closed flag before the bulge flag,
-matching ezdxf and the LibreCAD bundled writer. Generated ASCII/Binary output
-passes local readback, and ezdxf 1.4.5 independently reads the closed path and
-bulge in both encodings. The refreshed full LibreCAD test target confirms
-12/12 selected cases pass with the policy. Default group 75 and empty group 97 are now omitted for MPOLYGON, while nondefault
-style and nonempty source handles remain emitted and pass ASCII/Binary local
-and ezdxf readback. Native semantics of those populated fields and edge-path
-projection remain open ([order receipt](docs/research/p8-mpolygon-polyline-flag-order-2026-11-15.json),
-[default-tag receipt](docs/research/p8-mpolygon-default-trailer-tags-2026-11-15.json)).
-The local LibreCAD geometry fixture now sets the sliced HATCH runtime type
-before invoking the HATCH writer; it passes 16 assertions against the bundled
-fork. The upstream default preserves four edge profiles where the bundled fork
-refuses output. The opt-in policy rejects those profiles for this consumer
-while preserving upstream's default extended edge path. Further qualify
-ELLIPSE/SPLINE paths and raw replay against native consumers
-([fixture receipt](docs/research/p8-librecad-mpolygon-hatch-fixture-2026-11-15.json),
-[patch](docs/patches/librecad-p8-mpolygon-hatch-test-type-2026-11-15.patch)).
-Closed line/arc MPOLYGON edge loops now project to bulge polylines when their
-endpoints connect within a scale-aware floating-point tolerance. Clockwise and
-counterclockwise, short, major, wrapped and semicircular arcs have generated
-ASCII/Binary readback and invalid-input refusal/retry; an optional ezdxf
-check reconstructs all 16 encoded profiles and verifies center, radius, sweep,
-endpoints and direction. In default mode, gapped and unsupported profiles
-retain the existing edge form;
-mixed-edge full circles and broader native behavior remain open ([receipt](docs/research/p8-mpolygon-line-arc-polyline-projection-2026-11-15.json)). A follow-up precision guard keeps edges when large-coordinate rounding would distort an arc or bridge a gap; safe ordinary translations still project ([precision receipt](docs/research/p8-mpolygon-projection-precision-2026-11-15.json)). The typed DXF writer now offers an opt-in polyline-only boundary policy for 2D consumers; its default retains extended edge paths. Local tests cover refusal/retry, preserved destinations, callback-time policy snapshots, and normal polyline output. Both patched LibreCAD linked builds pass the focused cases; raw replay and native rendering are outside the policy ([policy receipt](docs/research/p8-mpolygon-polyline-policy-2026-11-15.json)). The local LibreCAD adapter selects this policy when available, and the same strict geometry test passes both linked builds ([integration receipt](docs/research/p8-librecad-mpolygon-policy-integration-2026-11-15.json), [patch](docs/patches/librecad-p8-mpolygon-policy-2026-11-15.patch)). Isolated full-circle arc loops now project to two half-circle bulges in both modes, with seven-revision ASCII/Binary readback, near-full and precision fallbacks, failure/retry, and ezdxf geometry reconstruction ([circle receipt](docs/research/p8-mpolygon-full-circle-projection-2026-11-15.json)).
-The local bundled fork now maps DIMASSOC group 70 to trans-space and 71 to
-rotated type, matching Autodesk and upstream. The cross-library tests verify
-ASCII/Binary wire values and distinguish the bundled raw-carrier limitation
-from upstream's modeled osnap support; all four DIMASSOC cases pass against
-both implementations. This fix remains an unmerged downstream patch
-([receipt](docs/research/p8-librecad-dimassoc-field-mapping-2026-11-15.json),
-[patch](docs/patches/librecad-p8-dimassoc-field-mapping-2026-11-15.patch)).
+Apply the patches in this order (all under `docs/patches/`, with suffix
+`-2026-11-15.patch`): `librecad-p8-upstream-compat`,
+`librecad-p8-test-api-compat`, `librecad-p8-mpolygon-annotation-test`,
+`librecad-p8-mpolygon-hatch-test-type`, `librecad-p8-dimassoc-field-mapping`,
+`librecad-p8-mpolygon-policy`, `librecad-p8-mtext-column-extents`,
+`librecad-p8-associative-prefix-compat`, `librecad-p8-canonical-ltype-metadata`,
+`librecad-p8-installed-legacy-codepage`, `librecad-p8-complex-ltype-style-remap`,
+and `librecad-p8-canonical-ltype-policy-test`. Rebase and resolve against the
+current consumer head; do not assume an old patch applies unchanged. All 12
+apply in that order at the pinned base and reproduce the local consumer tree
+([receipt](docs/research/p8-librecad-patch-chain-verification-2026-11-15.json)).
 
-The DIMASSOC comparison exposed a separate loss risk: repeated singleton body
-groups 330, 90, 70, or 71 could overwrite earlier data and be emitted as a
-single value. Typed output now refuses these records while preserving the raw
-carrier. Focused parser/refusal/reset and existing scalar/transaction controls
-pass. Generated ASCII/Binary full-file controls also verify both duplicate
-values in the raw callback and preserve the existing destination on typed
-write refusal. Raw replay and native interoperability remain unqualified. This
-does not establish native associative-dimension behavior ([receipt](docs/research/p8-dimassoc-duplicate-body-fields-2026-11-15.json)).
-
-The queue below contains only unfinished actions. Completed source profiles,
-codecs, tests, and controls have been removed from the queue; their commits and
-receipts remain in Git and `docs/research/`. Resume from the linked blocker
-instead of repeating successful scans or controls.
+For MPOLYGON, retain the consumer's opt-in polyline policy; independently
+qualify ELLIPSE/SPLINE paths, raw replay, populated trailer semantics and mixed
+full-circle arcs before extending it ([projection receipt](docs/research/p8-mpolygon-line-arc-polyline-projection-2026-11-15.json)).
+DIMASSOC raw replay and native associative behavior also remain open
+([receipt](docs/research/p8-dimassoc-duplicate-body-fields-2026-11-15.json)).
+Keep strict `DeclaredUtf8` source admission closed pending its evidence gate.
 
 **Immediate P4 packet — AC1032 associative-network profile and owner path.**
 The generated DIMASSOC graph node is indexed and guarded. The AC1032 parser now
@@ -1362,7 +1319,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P8-A | OPEN | Freeze clean-consumer builds and exact module, dependency, and runtime identities for each required 3D consumer. | Clean checkout/build provenance, ABI and linked-library inventory, repeatable import command. |
 | P8-B | OPEN | Qualify native Linux FreeCAD open and insert for representative mesh, surface, and ACIS source profiles. | The generated LINE and mixed primitive Linux profile passes 10/10, including CLI controls; 3DFACE and SOLID remain explicitly unsupported. Mesh, surface and ACIS still need native Linux counts, geometry, bounds and diagnostics ([receipt](docs/research/p8-linux-freecad-generated-platform-run-2026-11-15.json)). |
 | P8-C | OPEN | Qualify native Windows FreeCAD open and insert for the same source profiles. | The limited generated LINE and primitive profile passes 11/11 at `d2b65bd6`, including exact converter handoff and batch naming. Qualify mesh, surface and ACIS and rerun after subsequent source changes ([receipt](docs/research/p8-freecad-linux-windows-generated-pass-2026-11-15.json)). |
-| P8-D | OPEN | Complete LibreCAD and LibreCAD_3 compatibility against clean upstream consumers, including merged [LibreCAD PR #3269](https://github.com/LibreCAD/LibreCAD/pull/3269) and edited/untouched LTYPE metadata. | Integrate the ten unmerged local LibreCAD patches; build the full application against the installed library and qualify both bundled and upstream codecs. The modified upstream-linked LTYPE selector passes 14/15; the remaining test has historical table byte-golden differences and R12 refusal for the new document's explicit 0.25 mm layer lineweight. Resolve those behaviors without silently dropping lineweight, then repeat the relevant ASCII/Binary, rollback/retry and PR #3269 import/export controls ([diagnosis](docs/research/p8-canonical-ltype-policy-consumer-test-2026-11-15.json), [remap patch](docs/patches/librecad-p8-complex-ltype-style-remap-2026-11-15.patch)). The current LibreCAD_3 persistence sources pass installed-header syntax checks only; perform a clean linked build and runtime DWG/DXF cases ([receipt](docs/research/p8-librecad3-installed-header-syntax-2026-11-15.json)). ABI and other-platform qualification remain open. |
+| P8-D | OPEN | Complete LibreCAD and LibreCAD_3 compatibility against clean upstream consumers, including merged [LibreCAD PR #3269](https://github.com/LibreCAD/LibreCAD/pull/3269) and edited/untouched LTYPE metadata. | Integrate the 12 unmerged local LibreCAD patches; build the full application against the installed library and qualify both bundled and upstream codecs. The modified upstream-linked LTYPE selector passes 14/15; the remaining test has historical table byte-golden differences and R12 refusal for the new document's explicit 0.25 mm layer lineweight. Resolve those behaviors without silently dropping lineweight, then repeat the relevant ASCII/Binary, rollback/retry and PR #3269 import/export controls ([diagnosis](docs/research/p8-canonical-ltype-policy-consumer-test-2026-11-15.json), [remap patch](docs/patches/librecad-p8-complex-ltype-style-remap-2026-11-15.patch)). The current LibreCAD_3 persistence sources pass installed-header syntax checks only; perform a clean linked build and runtime DWG/DXF cases ([receipt](docs/research/p8-librecad3-installed-header-syntax-2026-11-15.json)). ABI and other-platform qualification remain open. |
 | P8-E | OPEN | Close ABI, package reproducibility and native focused-test failures across supported build modes; record public symbol/layout impact. | Clean consumer build matrix and ABI comparison. Earlier hosted macOS ARM64 and Linux x86_64 focused runs each had 4/7 pass and 3 fail, including 363 cascading local-roundtrip assertions, 13 reader-matrix assertions and 19 fixture assertions. Historical ENC handling, specification-backed repairs and corrections to generated controls now make the complete local reader matrix, fixture suite and roundtrip executable pass; strict output and graph validation remain intact. Hosted macOS, Linux and Windows focused jobs at `c32a4dac` passed seven tests each and sealed; A macOS ARM64 staged package and relocation control pass, and repeated static installs now use a deterministic archive index; the installed library links and runs consumers. ABI and broader platform/package qualification remain open ([macOS install receipt](docs/research/p8-macos-static-install-reproducibility-2026-11-15.json), [passing native receipt](docs/research/p8-native-three-platform-focused-pass-2026-11-15.json), [hosted receipt](docs/research/p8-hosted-macos-focused-failures-2026-11-15.json), [SUNSTUDY receipt](docs/research/p4-sunstudy-dwg-common-handle-order-2026-11-15.json), [TABLESTYLE receipt](docs/research/p4-tablestyle-r24-null-owner-role-2026-11-15.json), [partial-read receipt](docs/research/p8-partial-read-versioned-export-control-2026-11-15.json), [digest receipt](docs/research/p8-qualification-digest-refresh-2026-11-15.json)). |
 | P8-F | OPEN | Repair or disposition hosted package CI failures, including macOS staging and Intel bottle availability. | Green reproducible package jobs or explicit supported-platform exclusions in release policy. |
 | P8-G | OPEN | Decide and document supported platforms, required native consumers, and release qualification thresholds. | Evidence-backed release matrix for each supported platform; no unresolved required red job. Local macOS ARM64 FreeCAD 1.1.4 generated AC1021/AC1024/AC1032 primitive open/insert matrix passes, but rejects 3DFACE/SOLID and imports polyface as wire ([receipt](docs/research/p8-macos-freecad-generated-primitives-ac1021-ac1032-2026-11-14.json)); native Linux/Windows and modeler-solid qualification remain open. |

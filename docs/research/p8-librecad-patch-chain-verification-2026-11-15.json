@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-15",
+  "base": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "target": "8f1f6e0d83d77b6df37390d2090a3f4e3d403fd7",
+  "count": 12,
+  "method": "In a disposable local LibreCAD clone, checked out the pinned base, applied the 12 documented patch artifacts in commit order with git apply --check before each application, and compared the resulting worktree against the target commit using a separate Git index.",
+  "result": "All 12 forward checks and applications passed; the resulting tracked worktree had no differences from the target commit.",
+  "limits": "This checks exact patch reproducibility at the pinned base only. It does not establish applicability to a newer upstream consumer head, build or runtime behavior, or completion of P8-D. The downstream branch remains local and unmerged."
+}
