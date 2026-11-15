@@ -6,7 +6,7 @@
   "supportClaimEffect": "none",
   "sources": "The two locally generated ODA AC1024 mesh samples and hashes are identified by p6-oda-ac1024-visualstyle-extension-graph-2026-11-15.json. No drawing fixture or derivative is committed.",
   "sourceGraph": "LibreDWG 0.14 decodes source NOD -> ACAD_PLOTSTYLENAME DICTIONARYWDFLT handle 0x12, whose Normal entry and default pointer target ACDBPLACEHOLDER 0x13 owned by the dictionary. The two source LAYER records (0 and Defpoints) each have plotstyle H5 target 0x13 and material H5 target Global MATERIAL 0x21. ODA returned DXF independently places group 390=13 on each layer and resolves the same named/default dictionary and placeholder graph.",
-  "adapterCapture": "For the polyface input, libdxfrw captures two LAYER records with valid DXF fields, ACI 7, Continuous linetype, plot-style handle 19 and material handle 33; both getDxfPlotStyleHandle/getDxfMaterialHandle and validateDxf succeed. Physical source frame roles and output mapping have not yet been established by this probe.",
+  "adapterCapture": "For the polyface input, libdxfrw captures two LAYER records with valid DXF fields, ACI 7, Continuous linetype, plot-style handle 19 and material handle 33; both getDxfPlotStyleHandle/getDxfMaterialHandle and validateDxf succeed. The parser-recorded source handle spans and their independent peer comparison are recorded separately below; emitted output mapping remains open.",
   "isolation": "For each sample, a scratch process imports a fresh drawing and calls partial-policy export once with untouched source data and once after clearing only the in-memory LAYER plot-style fields. Untouched runs refuse without output. Clearing those fields makes serialization advance to OBJECTS, which then refuses at TABLESTYLE; no output is published. This deliberate loss is only an isolation experiment and is not an implementation or an acceptable fix. The CLI independently reports the untouched failure at LAYER table.",
   "codeBoundary": "The general LAYER writer rejects a nonzero non-default group-390 source handle when no reference resolver is configured. The adapter has a separate AC1027 source-bound layer route with source publication, material/plot-style graph snapshots, mapped output and finalization checks; it is not automatically applicable to this AC1024 two-layer profile. The generic DWG adapter currently strips unqualified material links, so fixing only plot-style transport would not establish lossless layer output.",
   "nextAction": "Capture physical AC1024 layer frame/publication and compare field and reference roles with peer source and output; establish source-bound Global material and dictionary-with-default/Normal placeholder graph closure. Design a bounded two-layer route using the existing source-bound output pattern, map and inspect both 347 and 390 on emitted layers, validate target identities and ownership, add mutation/refusal/rollback/retry and LibreCAD compatibility tests, then rerun partial CLI. Keep unknown HEADER suffix and whole-document gates closed.",
@@ -24,5 +24,66 @@
     "ODA is an independent conversion/projection but does not alone prove user-visible plotting semantics.",
     "Scratch source mutation intentionally loses a reference and must never be used to promote support.",
     "This finding does not qualify native consumers, material output, whole-document output or strict HEADER admission."
-  ]
+  ],
+  "odaSpecification": "ODA Open Design Specification for .dwg files v5.4.1 \u00a720.4.54 orders the common table references followed by plotstyle hard pointer (R2000+), material (R2007+) and linetype hard pointer; the typed code-5 material role is corroborated by LibreDWG and prior p6-ac1018plus-layer-body-handle-role-spans-2026-11-09.json.",
+  "adapterHandleSpans": {
+    "scope": "Parser-recorded bit offsets within each decoded LAYER object handle stream, not independent byte-level re-decoding or physical-file offsets. Both generated DWGs exhibit the same offsets and target values.",
+    "layer0": {
+      "handle": "0x27",
+      "xrefBlock": [
+        154,
+        8,
+        5
+      ],
+      "plotStyle": [
+        162,
+        16,
+        5,
+        "0x13"
+      ],
+      "material": [
+        178,
+        16,
+        5,
+        "0x21"
+      ],
+      "lineType": [
+        194,
+        16,
+        5,
+        "0x26"
+      ]
+    },
+    "defpoints": {
+      "handle": "0x28",
+      "xrefBlock": [
+        282,
+        8,
+        5
+      ],
+      "plotStyle": [
+        290,
+        16,
+        5,
+        "0x13"
+      ],
+      "material": [
+        306,
+        16,
+        5,
+        "0x21"
+      ],
+      "lineType": [
+        322,
+        16,
+        5,
+        "0x26"
+      ]
+    },
+    "crosscheck": "LibreDWG JSON independently reports the plotstyle, material and linetype source target values and H5 roles; ODA-returned DXF binds the plotstyle target through group 390 to Normal.",
+    "probeSourceSha256": "008c6f74acb495623e6353bc068a4a43a23687ad09c70ad3647803bad1fb20d2",
+    "probeExecutableSha256": "d8be73ff99bba35743b187d865a3bb1e72607d4711ef5789d084af4b615c9776",
+    "polyfaceLogSha256": "446e3354076c36f8b1e59b34f322c99a4e16d97454a5978578de5466b09bbc71",
+    "closedLogSha256": "36ffe96e8ce0cc7ebe342cc5612f38c58eb93251146d5c974e461e5ff39c42df"
+  }
 }
