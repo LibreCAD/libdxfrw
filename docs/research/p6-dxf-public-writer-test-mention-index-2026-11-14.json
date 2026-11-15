@@ -31,7 +31,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 17188,
+          "line": 17191,
           "occurrences": 1
         },
         {
@@ -415,7 +415,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 12207,
+          "line": 12208,
           "occurrences": 4
         },
         {
@@ -437,8 +437,13 @@
         517
       ],
       "method": "writeAttrib",
-      "test_source_reference_count": 2,
+      "test_source_reference_count": 3,
       "test_source_references": [
+        {
+          "file": "tests/dxf_attrib_version_allocation_tests.cpp",
+          "line": 179,
+          "occurrences": 1
+        },
         {
           "file": "tests/dxf_fixture_tests.cpp",
           "line": 12153,
@@ -508,7 +513,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 12947,
+          "line": 12950,
           "occurrences": 2
         },
         {
@@ -549,7 +554,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 12950,
+          "line": 12953,
           "occurrences": 1
         },
         {
@@ -583,7 +588,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 12945,
+          "line": 12948,
           "occurrences": 4
         },
         {
@@ -661,7 +666,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 73156,
+          "line": 73378,
           "occurrences": 2
         },
         {
@@ -799,7 +804,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 59239,
+          "line": 59242,
           "occurrences": 1
         },
         {
@@ -841,7 +846,7 @@
         },
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 87249,
+          "line": 87471,
           "occurrences": 2
         },
         {
@@ -957,7 +962,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 16780,
+          "line": 16783,
           "occurrences": 8
         },
         {
@@ -1008,7 +1013,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 59111,
+          "line": 59114,
           "occurrences": 1
         },
         {
@@ -1064,7 +1069,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 17187,
+          "line": 17190,
           "occurrences": 1
         }
       ]
@@ -1080,7 +1085,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 85122,
+          "line": 85344,
           "occurrences": 1
         },
         {
@@ -1162,7 +1167,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 29768,
+          "line": 29771,
           "occurrences": 5
         },
         {
@@ -1343,7 +1348,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 85543,
+          "line": 85765,
           "occurrences": 1
         },
         {
@@ -1538,7 +1543,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 16774,
+          "line": 16777,
           "occurrences": 9
         },
         {
@@ -1565,7 +1570,7 @@
         501
       ],
       "method": "writeInsert",
-      "test_source_reference_count": 12,
+      "test_source_reference_count": 13,
       "test_source_references": [
         {
           "file": "tests/attdef_equal_alignment_controls.h",
@@ -1603,8 +1608,13 @@
           "occurrences": 18
         },
         {
+          "file": "tests/dxf_attrib_version_allocation_tests.cpp",
+          "line": 180,
+          "occurrences": 1
+        },
+        {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 12952,
+          "line": 12955,
           "occurrences": 3
         },
         {
@@ -1645,7 +1655,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 26618,
+          "line": 26621,
           "occurrences": 1
         },
         {
@@ -1681,7 +1691,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 28928,
+          "line": 28931,
           "occurrences": 10
         },
         {
@@ -1722,7 +1732,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 20550,
+          "line": 20553,
           "occurrences": 1
         },
         {
@@ -1753,7 +1763,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 85310,
+          "line": 85532,
           "occurrences": 1
         },
         {
@@ -1799,7 +1809,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 32148,
+          "line": 32151,
           "occurrences": 3
         },
         {
@@ -2122,7 +2132,7 @@
       "test_source_references": [
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 29708,
+          "line": 29711,
           "occurrences": 5
         },
         {
@@ -2189,7 +2199,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 47757,
+          "line": 47760,
           "occurrences": 2
         },
         {
@@ -2261,7 +2271,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 16076,
+          "line": 16079,
           "occurrences": 3
         },
         {
@@ -2317,7 +2327,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 12222,
+          "line": 12223,
           "occurrences": 2
         },
         {
@@ -2373,7 +2383,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 34476,
+          "line": 34479,
           "occurrences": 3
         },
         {
@@ -2450,7 +2460,7 @@
         },
         {
           "file": "tests/modeler_dxf_allocation_tests.cpp",
-          "line": 92,
+          "line": 93,
           "occurrences": 1
         },
         {
@@ -2689,7 +2699,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 20551,
+          "line": 20554,
           "occurrences": 1
         },
         {
@@ -3031,7 +3041,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 65788,
+          "line": 65791,
           "occurrences": 2
         },
         {
@@ -3125,7 +3135,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 86050,
+          "line": 86272,
           "occurrences": 1
         },
         {
@@ -3391,7 +3401,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 65044,
+          "line": 65047,
           "occurrences": 1
         },
         {
@@ -3463,7 +3473,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 16792,
+          "line": 16795,
           "occurrences": 2
         },
         {
@@ -3633,7 +3643,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 20010,
+          "line": 20013,
           "occurrences": 1
         },
         {
@@ -3736,7 +3746,7 @@
       "test_source_references": [
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 65801,
+          "line": 65804,
           "occurrences": 1
         },
         {
@@ -4005,7 +4015,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 32545,
+          "line": 32548,
           "occurrences": 2
         },
         {
@@ -4051,7 +4061,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 29728,
+          "line": 29731,
           "occurrences": 2
         },
         {
@@ -4077,7 +4087,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 84937,
+          "line": 85159,
           "occurrences": 1
         },
         {
@@ -4180,7 +4190,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 27130,
+          "line": 27133,
           "occurrences": 3
         },
         {
@@ -4345,7 +4355,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 19182,
+          "line": 19185,
           "occurrences": 2
         },
         {
@@ -4381,7 +4391,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 86729,
+          "line": 86951,
           "occurrences": 1
         },
         {
@@ -4492,7 +4502,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 18093,
+          "line": 18096,
           "occurrences": 6
         },
         {
@@ -4549,7 +4559,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 59010,
+          "line": 59232,
           "occurrences": 1
         },
         {
@@ -4575,7 +4585,7 @@
         },
         {
           "file": "tests/dxf_fixture_tests.cpp",
-          "line": 65044,
+          "line": 65047,
           "occurrences": 1
         },
         {
@@ -4636,7 +4646,7 @@
   ],
   "public_writer_declaration_count": 120,
   "public_writer_method_count": 114,
-  "repository_head": "775a82d84234217e57f2dd3062a12fe3eaffb66c",
+  "repository_head": "a894ea806679a43cbb463ebbe6fbfef75f281019",
   "schema": "libdxfrw.public-writer-test-mention-index.v1",
   "scope": "Textual source index only; mentions do not prove assertions, rollback, retry, readback, version coverage, or semantics."
 }

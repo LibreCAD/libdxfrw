@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-modeler-dxf-sat-text-version-matrix-allocation-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_AC1014_AC1024_MODELER_DXF_TRANSACTION_MATRIX_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Whole-operation ASCII/Binary allocation rollback, same-codec retry, and typed readback for the generated 3DSOLID SAT-text carrier across AC1014, AC1015, AC1018, AC1021, and AC1024.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DXF modeler record",
+    "profile": "One E3DSOLID with 600 generated printable text bytes in three ordered group-1/3 chunks (255, 255, and 90 bytes). The payload is a carrier stress input and is not asserted to be valid ACIS syntax or geometry. All output files are created under the build scratch directory and removed/replaced by the test runner.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "parentCommit": "a894ea806679a43cbb463ebbe6fbfef75f281019",
+    "files": [
+      "tests/modeler_dxf_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-modeler-dxf-sat-text-version-matrix-allocation-2026-11-14.json"
+    ],
+    "method": "Extend the existing focused allocation test from AC1024 to five revisions. For each revision and encoding, calibrate all whole-write allocation offsets, inject each failure, and assert caller/destination/identity rollback and staging cleanup. Retry with the same codec and require byte identity plus fresh typed import with exact target revision and ordered payload chunks."
+  },
+  "validation": {
+    "normalBuild": "cmake --build build-gcc --target libdxfrw_modeler_dxf_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_modeler_dxf_allocation_transaction$' --output-on-failure: PASS 1/1 (2.32 sec)",
+    "directRun": "PASS at the CTest scratch path; all ten revision/encoding profiles completed their full allocation sweeps, rollback checks, same-codec retries, and typed readbacks.",
+    "allocationOffsets": {
+      "AC1014": {"ASCII": 92, "Binary": 91},
+      "AC1015": {"ASCII": 94, "Binary": 93},
+      "AC1018": {"ASCII": 94, "Binary": 93},
+      "AC1021": {"ASCII": 94, "Binary": 93},
+      "AC1024": {"ASCII": 101, "Binary": 100},
+      "totalInjectedFailures": 945
+    },
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transport and transaction evidence only; the SAT-like text is not syntax-checked, kernel-read, or validated as geometry.",
+    "AC1027+ remains outside this matrix. The current writer rejects the raw text carrier beyond AC1024 and requires a separately qualified ACDS profile; this receipt does not broaden that route.",
+    "No producer interoperability, native-consumer behavior, or 3D semantic support claim is established.",
+    "No drawing fixture was committed and no support claim is promoted."
+  ],
+  "nextAction": "Continue P6-G's exact public-writer inventory and keep AC1027+ on its source-profile-specific ACDS gates; continue P7 independent ACIS semantic and native-consumer qualification separately."
+}
