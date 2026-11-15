@@ -8,5 +8,10 @@
     "windows": "11/11 passed, including Windows batch naming"
   },
   "coverage": "Generated AC1021 LINE and mixed primitive plus AC1024/AC1032 mixed primitive files, each opened and inserted; CLI controls and exact converter route are checked.",
-  "qualificationLimits": "The generated primitive profiles explicitly expect 3DFACE and SOLID unsupported. These results do not qualify mesh, surface, ACIS, other drawing profiles, or subsequent source revisions. P8-B and P8-C remain open and no support claims are promoted."
+  "qualificationLimits": "The generated primitive profiles explicitly expect 3DFACE and SOLID unsupported. These results do not qualify mesh, surface, ACIS, other drawing profiles, or subsequent source revisions. P8-B and P8-C remain open and no support claims are promoted.",
+  "viewportFixRerun": {
+    "sourceCommit": "7ecc8fb96be02228946d48a92bcb561294be3bec",
+    "workflow": "https://github.com/dxli/libdxfrw/actions/runs/43728273558",
+    "conclusion": "success; same focused platform coverage and limits as the initial result"
+  }
 }

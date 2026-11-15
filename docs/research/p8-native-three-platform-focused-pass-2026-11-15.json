@@ -8,5 +8,10 @@
     "macos-clang": "7/7 focused tests passed; receipt sealed and post-upload verified",
     "windows-msvc": "7/7 focused tests passed; receipt sealed and post-upload verified"
   },
-  "limits": "Applies only to the recorded revision, platforms and focused suite. Source changes after this revision require a fresh digest and rerun; broad suites, ABI, packaging, and other evidence gates remain open. No support claims are promoted."
+  "limits": "Applies only to the recorded revision, platforms and focused suite. Source changes after this revision require a fresh digest and rerun; broad suites, ABI, packaging, and other evidence gates remain open. No support claims are promoted.",
+  "viewportFixRerun": {
+    "sourceCommit": "7ecc8fb96be02228946d48a92bcb561294be3bec",
+    "workflow": "https://github.com/dxli/libdxfrw/actions/runs/43728273573",
+    "conclusion": "success; same focused platform coverage and limits as the initial result"
+  }
 }
