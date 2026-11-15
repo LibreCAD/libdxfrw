@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **452 completed implementation and qualification slices** and **32 remaining
+The plan records **453 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`452 / (452 + 32) = 93.4%`. The previous 28-package denominator was stale; a recount
+`453 / (453 + 32) = 93.4%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -729,12 +729,20 @@ sentinel. Together with the AC1015 positive profile, the dedicated selector
 passes 11 controls in 0.33 seconds. No AC1018 partial output qualification is
 admitted ([receipt](docs/research/p6-cli-malformed-geodata-body-recovery-2026-11-15.json)).
 
-**P6-F DICTIONARYWDFLT candidate screen (2026-11-15; not an admitted recovery
-profile):** a generated one-entry default dictionary with a typed DICTIONARYVAR
-target reaches the parser and isolates one malformed object, but explicit-
-partial DXF export fails closed because the target is outside the required NOD
-`AcDbVariableDictionary` route. No profile or output support is admitted; resume
-only with a complete NOD owner graph ([screen receipt](docs/research/p6-cli-dictionarywithdefault-cli-recovery-graph-screen-2026-11-15.json)).
+**P6-F DICTIONARYWDFLT generated malformed-body recovery profile (2026-11-15):**
+a generated malformed WDFLT frame now sits beside a separate complete
+`ACAD_PLOTSTYLENAME -> DICTIONARYWDFLT -> Normal -> PLACEHOLDER` graph. The
+malformed frame is dropped; strict ASCII/Binary conversion refuses atomically,
+while explicit-partial output and fresh LINE readback pass for AC1015, AC1018,
+AC1021, and AC1024. AC1027 remains reader-only behind the source-reference
+gate. The dedicated selector passes 23 controls. This qualifies generated
+parser recovery and partial-output disposition only, not producer prevalence,
+general dictionary closure, plot-style semantics, or native application
+acceptance ([receipt](docs/research/p6-cli-malformed-dictionarywdefault-body-recovery-2026-11-15.json)).
+
+The earlier DICTIONARYWDFLT candidate screen exposed a missing graph shape and
+is superseded by this complete generated plot-style owner profile; its receipt
+is retained as the failed experiment record.
 
 The longer partial-read aggregate is registered as
 `dwg2dxf_cli_partial_read_disposition`;

@@ -1,7 +1,7 @@
 {
   "title": "DICTIONARYWDFLT CLI recovery candidate graph screen",
   "date": "2026-11-15",
-  "status": "SCREENED_PARTIAL_OUTPUT_REFUSED_GRAPH_CLOSURE",
+  "status": "SUPERSEDED_BY_GENERATED_PLOTSTYLE_OWNER_PROFILE",
   "scope": "One generated AC1015 DICTIONARYWDFLT profile; this is a candidate screen, not a passing recovery/output qualification.",
   "source": {
     "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and cleaned by the temporary test harness.",
@@ -12,17 +12,18 @@
     "read": "AC1015 source read completes with 29 source frames, 28 published frames, and one failed object frame.",
     "strict": "The malformed source is not eligible for strict output.",
     "partial": "Explicit-partial DXF output fails closed during extension-object graph validation.",
-    "diagnostic": "DICTIONARYVAR records require the NOD AcDbVariableDictionary route."
+    "diagnostic": "This first candidate omitted the exact admitted ACAD_PLOTSTYLENAME -> DICTIONARYWDFLT -> Normal -> PLACEHOLDER graph and failed the successful-import-receipt gate."
   },
   "validation": {
     "focused_command": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_dictionary_default_recovery$' --output-on-failure",
-    "result": "The candidate screen fails the generic profile's expected partial-output positive because the generated target graph is missing the required NOD variable-dictionary route; no DXF output is admitted.",
+    "result": "The candidate screen failed explicit-partial output admission because its NOD-rooted graph did not match the adapter's exact plot-style dictionary/default-placeholder profile. A follow-up generated source with that complete graph is recorded separately.",
     "build": "The local dwg2dxf and dwg_local_roundtrip targets compile with the attempted source generator."
   },
-  "next_action": "Resume only with a generated or producer-bound NOD AcDbVariableDictionary graph and exact entry/owner identity. Otherwise keep DICTIONARYWDFLT output refused and continue with another bounded parser profile.",
+  "superseded_by": "p6-cli-malformed-dictionarywdefault-body-recovery-2026-11-15.json",
+  "next_action": "Use the follow-up receipt for the generated ACAD_PLOTSTYLENAME owner profile; do not infer general DICTIONARYWDFLT graph or producer support.",
   "limits": [
     "No partial or strict output support is qualified by this screen.",
-    "The attempted generated target does not close the required NOD owner route.",
+    "This first candidate does not close the required plot-style default graph.",
     "No DWG or DXF fixture file is committed."
   ]
 }

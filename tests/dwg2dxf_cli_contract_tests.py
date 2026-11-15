@@ -2709,6 +2709,19 @@ def check_malformed_csac_document_options_body(converter, root, writer):
         profiles)
 
 
+def check_malformed_dictionary_default_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "DICTIONARYWDFLT",
+        "--generate-cli-malformed-dictionary-default-body-source", profiles)
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3951,6 +3964,9 @@ def main():
     parser.add_argument("--csac-document-options-recovery-only",
                         action="store_true",
                         help="run only generated CSACDOCUMENTOPTIONS recovery controls")
+    parser.add_argument("--dictionary-default-recovery-only",
+                        action="store_true",
+                        help="run only generated DICTIONARYWDFLT recovery controls")
     parser.add_argument("--source-disposition-only", action="store_true",
                         help="run only CLI repair/skip/mask preflight projections")
     parser.add_argument("--historical-ac1021-only", action="store_true",
@@ -4150,6 +4166,11 @@ def main():
             checked = check_malformed_csac_document_options_body(
                 converter, root, args.writer)
             print(f"CLI CSACDOCUMENTOPTIONS recovery: PASS ({checked} controls)")
+            return
+        if args.dictionary_default_recovery_only:
+            checked = check_malformed_dictionary_default_body(
+                converter, root, args.writer)
+            print(f"CLI DICTIONARYWDFLT recovery: PASS ({checked} controls)")
             return
         if args.partial_read_only:
             checked = check_partial_dwg_read_cli(converter, root, args.writer)

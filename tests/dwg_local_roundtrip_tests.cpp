@@ -28626,6 +28626,12 @@ public:
     using DRW_CsacDocumentOptions::parseDwg;
 };
 
+class DictionaryWithDefaultBodyProbe final
+    : public DRW_DictionaryWithDefault {
+public:
+    using DRW_DictionaryWithDefault::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28645,6 +28651,12 @@ public:
                             "CSACDOCUMENTOPTIONS",
                             "AcDbCsacDocumentOptions",
                             "ObjectDBX Classes")
+                  : kind == 70
+                      ? libdxfrw_test::makeRawCustomObject(
+                            sourceVersion,
+                            DRW_DictionaryWithDefault::kDwgClassNum,
+                            0x700u, "ACDBDICTIONARYWDFLT",
+                            "AcDbDictionaryWithDefault", "ACAD")
                   : makeCliSkippedObject(kind, 0, sourceVersion)),
           opaqueSecond_(kind == 5
               ? libdxfrw_test::makeRawCustomObject(
@@ -29179,6 +29191,39 @@ public:
             geoData_.m_coordinateProjectionRadius = 6.5;
             geoData_.m_coordinateSystemDefinition = "LOCAL_RECOVERY";
         }
+        if (kind_ == 70) {
+            dictionaryWithDefault_.handle = 0x700u;
+            dictionaryWithDefault_.parentHandle =
+                DRW::DwgModelSpaceBlockRecordHandle;
+            dictionaryWithDefault_.cloning = 1;
+            dictionaryWithDefault_.hardOwner = 0;
+            dictionaryWithDefault_.m_defaultEntryHandle = 0xB200u;
+
+            plotStyleDictionary_.handle = 0xB100u;
+            plotStyleDictionary_.parentHandle =
+                DRW::DwgNamedObjectsDictionaryHandle;
+            plotStyleDictionary_.cloning = 1;
+            plotStyleDictionary_.hardOwner = 0;
+            plotStyleDictionary_.m_entries = {{"Normal", 0xB200u}};
+            plotStyleDictionary_.m_defaultEntryHandle = 0xB200u;
+            const bool hasPersistentReactorProfile = sourceVersion <= DRW::AC1024;
+            if (hasPersistentReactorProfile) {
+                plotStyleDictionary_.reactorHandles = {
+                    DRW::DwgNamedObjectsDictionaryHandle};
+            }
+            plotStyleDictionary_.setDwgCommonObjectState(
+                hasPersistentReactorProfile ? 1 : 0,
+                sourceVersion >= DRW::AC1018 ? 1 : 0, false);
+
+            plotStylePlaceholder_.handle = 0xB200u;
+            plotStylePlaceholder_.parentHandle = plotStyleDictionary_.handle;
+            if (hasPersistentReactorProfile)
+                plotStylePlaceholder_.reactorHandles = {
+                    plotStyleDictionary_.handle};
+            plotStylePlaceholder_.setDwgCommonObjectState(
+                hasPersistentReactorProfile ? 1 : 0,
+                sourceVersion >= DRW::AC1018 ? 1 : 0, false);
+        }
         if (kind_ == 58) {
             tableStyle_.handle = 0x700u;
             tableStyle_.parentHandle =
@@ -29460,6 +29505,16 @@ public:
                 "ACAD_LAYOUT", 0xA604u) && wrote;
             if (hasMalformedObject_)
                 wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
+        } else if (kind_ == 70) {
+            wrote = writer_->registerDwgNamedObjectDictionaryEntry(
+                "ACAD_PLOTSTYLENAME", plotStyleDictionary_.handle)
+                && wrote;
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerDictionaryWithDefaultObjectClass(
+                      &dictionaryWithDefault_) && wrote;
+            wrote = writer_->registerDictionaryWithDefaultObjectClass(
+                &plotStyleDictionary_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -29677,6 +29732,15 @@ public:
             } else {
                 wrote = writer_->writeLayout(&layout_) && wrote;
             }
+        } else if (kind_ == 70) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeDictionaryWithDefault(
+                               &dictionaryWithDefault_)) && wrote;
+            wrote = writer_->writeDictionaryWithDefault(
+                &plotStyleDictionary_) && wrote;
+            wrote = writer_->writeAcDbPlaceholder(&plotStylePlaceholder_)
+                && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29701,7 +29765,7 @@ public:
         DRW_Line line;
         if (kind_ == 15 || kind_ == 21 || kind_ == 22 || kind_ == 52
             || kind_ == 54 || kind_ == 55 || kind_ == 56 || kind_ == 58
-            || kind_ == 66 || kind_ == 69)
+            || kind_ == 66 || kind_ == 69 || kind_ == 70)
             line.handle = 0x701u;
         else if (kind_ == 53)
             line.handle = 0x703u;
@@ -29794,6 +29858,9 @@ private:
     DRW_DimensionAssociation dimensionAssociation_;
     DRW_Layout layout_;
     DRW_Layout layoutSupplement_;
+    DRW_DictionaryWithDefault dictionaryWithDefault_;
+    DRW_DictionaryWithDefault plotStyleDictionary_;
+    DRW_AcDbPlaceholder plotStylePlaceholder_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -43287,6 +43354,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-layout-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-csac-document-options-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-dictionary-default-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -43422,6 +43491,9 @@ int main(int argc, char** argv) {
         const bool malformedCsacDocumentOptionsBodySource =
             std::string(argv[1])
             == "--generate-cli-malformed-csac-document-options-body-source";
+        const bool malformedDictionaryWithDefaultBodySource =
+            std::string(argv[1])
+            == "--generate-cli-malformed-dictionary-default-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -43529,6 +43601,7 @@ int main(int argc, char** argv) {
             || malformedDimensionAssociationBodySource
             || malformedLayoutBodySource
             || malformedCsacDocumentOptionsBodySource
+            || malformedDictionaryWithDefaultBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -43631,6 +43704,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 66
                                                                                                         : malformedCsacDocumentOptionsBodySource
                                                                                                             ? 69
+                                                                                                        : malformedDictionaryWithDefaultBodySource
+                                                                                                            ? 70
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -43754,6 +43829,7 @@ int main(int argc, char** argv) {
                  || malformedDimensionAssociationBodySource
                  || malformedLayoutBodySource
                  || malformedCsacDocumentOptionsBodySource
+                 || malformedDictionaryWithDefaultBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -44025,6 +44101,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedDictionaryWithDefaultBodySource) {
+                            DictionaryWithDefaultBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         if (malformedPointCloudDefinitionBodySource
                             || malformedPointCloudDefinitionExBodySource
                             || malformedPointCloudReactorBodySource
@@ -44171,6 +44252,7 @@ int main(int argc, char** argv) {
                   || malformedDimensionAssociationBodySource
                   || malformedLayoutBodySource
                   || malformedCsacDocumentOptionsBodySource
+                  || malformedDictionaryWithDefaultBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -44270,6 +44352,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "LAYOUT"
                                                                                                                 : malformedCsacDocumentOptionsBodySource
                                                                                                                     ? "CSACDOCUMENTOPTIONS"
+                                                                                                                : malformedDictionaryWithDefaultBodySource
+                                                                                                                    ? "DICTIONARYWDFLT"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
@@ -44371,6 +44455,8 @@ int main(int argc, char** argv) {
                                                                                         ? 66
                                                                                     : malformedCsacDocumentOptionsBodySource
                                                                                         ? 69
+                                                                                    : malformedDictionaryWithDefaultBodySource
+                                                                                        ? 70
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,
