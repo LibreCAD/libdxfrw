@@ -1,0 +1,737 @@
+diff --git a/persistence/libdxfrw/dxfimpl.cpp b/persistence/libdxfrw/dxfimpl.cpp
+index ecf9a72..c458813 100644
+--- a/persistence/libdxfrw/dxfimpl.cpp
++++ b/persistence/libdxfrw/dxfimpl.cpp
+@@ -9,6 +9,7 @@
+ #include <functional>
+ #include <map>
+ #include <set>
++#include <stdexcept>
+ 
+ #include <cad/primitive/circle.h>
+ #include <cad/primitive/hatch.h>
+@@ -46,6 +47,126 @@
+ 
+ using namespace lc::persistence;
+ 
++namespace {
++// The kernel's HATCH keeps this immutable source snapshot across ordinary
++// entity operations. A simple closed polyline can be replayed unchanged or
++// translated in its plane; other edits take the reported projection path.
++class MPolygonSnapshot final : public lc::meta::EntityMetaType {
++public:
++    struct Vertex { double x, y, bulge; };
++    MPolygonSnapshot(const DRW_MPolygon& polygon, const DRW_Hatch& projected,
++                     lc::meta::Block_CSPtr projectedBlock)
++        : block(std::move(projectedBlock)), name(polygon.name), solid(polygon.solid), angle(polygon.angle),
++          scale(polygon.scale), layer(projected.layer), lineType(projected.lineType),
++          color(projected.color), lineWeight(projected.lWeight) {
++        if (polygon.solid != 1 || polygon.associative != 0 || polygon.isGradient != 0
++            || polygon.hstyle != 0 || polygon.hpattern != 1 || polygon.doubleflag != 0
++            || !polygon.extData.empty() || !polygon.appData.empty()
++            || !polygon.reactorHandles.empty() || polygon.xDictHandle != 0
++            || polygon.shadowHandle != 0 || polygon.fullVisualStyleHandle != 0
++            || polygon.faceVisualStyleHandle != 0 || polygon.edgeVisualStyleHandle != 0
++            || polygon.hasDwgAcDbColorHandle() || polygon.dwgAcDbColorHandle() != 0
++            || !std::isfinite(polygon.xDirX) || !std::isfinite(polygon.xDirY)
++            || polygon.numProxyGraph != 0 || polygon.hasDataStorageRecord
++            || polygon.hasDataStoragePayloadMarker
++            || polygon.basePoint.z != 0.0 || polygon.extPoint.x != 0.0
++            || polygon.extPoint.y != 0.0 || polygon.extPoint.z != 1.0
++            || polygon.looplist.size() != 1 || !polygon.looplist[0]
++            || polygon.looplist[0]->type != 2
++            || !polygon.looplist[0]->m_boundaryHandles.empty()
++            || polygon.looplist[0]->objlist.size() != 1) return;
++        const auto* poly = dynamic_cast<const DRW_LWPolyline*>(
++            polygon.looplist[0]->objlist[0].get());
++        if (!poly || poly->flags != 1 || poly->vertlist.size() < 3
++            || poly->width != 0.0 || poly->elevation != 0.0
++            || poly->thickness != 0.0 || poly->extPoint.x != 0.0
++            || poly->extPoint.y != 0.0 || poly->extPoint.z != 1.0) return;
++        for (const auto& v : poly->vertlist) {
++            if (!v || !std::isfinite(v->x) || !std::isfinite(v->y)
++                || !std::isfinite(v->bulge) || v->stawidth != 0.0
++                || v->endwidth != 0.0) return;
++            const double x = v->x + polygon.xDirX;
++            const double y = v->y + polygon.xDirY;
++            if (!std::isfinite(x) || !std::isfinite(y)) return;
++            vertices.push_back({x, y, v->bulge});
++        }
++        source = std::make_unique<DRW_MPolygon>(polygon);
++    }
++    const std::string id() const override { return "_LIBDXFRW_MPOLYGON"; }
++    const std::string metaTypeID() const override { return id(); }
++    bool replayable(const DRW_Hatch& hatch, const lc::entity::Hatch_CSPtr& model,
++                    double& outputOffsetX, double& outputOffsetY) const {
++        if (!source || model->block() != block || hatch.name != name || hatch.solid != solid
++            || hatch.angle != angle || hatch.scale != scale
++            || hatch.layer != layer || hatch.lineType != lineType
++            || hatch.color != color || hatch.lWeight != lineWeight
++            || hatch.looplist.size() != 1 || !hatch.looplist[0]
++            || hatch.looplist[0]->type != 2
++            || hatch.looplist[0]->objlist.size() != 1) return false;
++        const auto* poly = dynamic_cast<const DRW_LWPolyline*>(
++            hatch.looplist[0]->objlist[0].get());
++        if (!poly || poly->flags != 1 || poly->vertlist.size() != vertices.size()
++            || poly->width != 0.0 || poly->elevation != 0.0 || poly->thickness != 0.0)
++            return false;
++        const auto& loops = model->getRegion().loopList();
++        if (loops.size() != 1 || loops[0].entities().size() != 1) return false;
++        const auto modelPolyline = std::dynamic_pointer_cast<const lc::entity::LWPolyline>(
++            loops[0].entities()[0]);
++        if (!modelPolyline || modelPolyline->vertex().size() != vertices.size()
++            || modelPolyline->extrusionDirection().x() != 0.0
++            || modelPolyline->extrusionDirection().y() != 0.0
++            || modelPolyline->extrusionDirection().z() != 1.0) return false;
++        if (!poly->vertlist[0]) return false;
++        const double dx = poly->vertlist[0]->x - vertices[0].x;
++        const double dy = poly->vertlist[0]->y - vertices[0].y;
++        outputOffsetX = source->xDirX + dx;
++        outputOffsetY = source->xDirY + dy;
++        if (!std::isfinite(outputOffsetX) || !std::isfinite(outputOffsetY)) return false;
++        const auto* original = dynamic_cast<const DRW_LWPolyline*>(
++            source->looplist[0]->objlist[0].get());
++        if (!original || original->vertlist.size() != vertices.size()) return false;
++        for (std::size_t i = 0; i < vertices.size(); ++i) {
++            if (modelPolyline->vertex()[i].location().z() != 0.0) return false;
++            const auto& v = poly->vertlist[i];
++            const auto& raw = original->vertlist[i];
++            if (!v || !raw || raw->x + outputOffsetX != v->x
++                || raw->y + outputOffsetY != v->y
++                || v->bulge != vertices[i].bulge || v->stawidth != 0.0
++                || v->endwidth != 0.0) return false;
++        }
++        return true;
++    }
++    bool canWrite(DRW::Version version) const {
++        if (!source || (source->isGradient == 0 && !source->gradColors.empty()))
++            return false;
++#if !defined(LIBDXFRW_HAS_MPOLYGON_POLYLINE_POLICY)
++        // The older bundled codec interprets MPOLYGON groups 70/71 as the
++        // HATCH solid/associativity pair, so it cannot safely replay them.
++        (void)version;
++        return false;
++#else
++        if (source->dxfVersion != 1) return false;
++#endif
++        if (version < DRW::AC1018
++            && (source->isGradient != 0 || source->gradReserved != 0
++                || source->gradAngle != 0.0 || source->gradShift != 0.0
++                || source->singleColor != 0 || source->gradTint != 0.0
++                || !source->gradName.empty() || !source->gradColors.empty()))
++            return false;
++        return true;
++    }
++    static const char* key() { return "_LIBDXFRW_MPOLYGON"; }
++    std::unique_ptr<DRW_MPolygon> source;
++    lc::meta::Block_CSPtr block;
++    std::string name;
++    int solid; double angle, scale;
++    std::string layer, lineType;
++    int color; DRW_LW_Conv::lineWidth lineWeight;
++    std::vector<Vertex> vertices;
++};
++} // namespace
++
++
+ const std::map<int, lc::Units> DXFimpl::_dxfToLCUnits = {
+     {0, lc::Units::None},
+     {1, lc::Units::Inch},
+@@ -925,16 +1046,52 @@ void DXFimpl::addHatch(const DRW_Hatch* data) {
+         LOG_TRACE << "addHatch ";
+         auto layer = getLayer(*data);
+         auto mf = getMetaInfo(*data);
++        const auto* polygon = dynamic_cast<const DRW_MPolygon*>(data);
++        if (polygon && !mf) mf = lc::meta::MetaInfo::create();
++        // MPOLYGON stores boundary points in offset space. The offset is a
++        // point displacement, so it applies to points but not axis vectors or
++        // spline tangents. Ordinary HATCH boundaries have no such offset.
++        const double offsetX = polygon ? polygon->xDirX : 0.0;
++        const double offsetY = polygon ? polygon->xDirY : 0.0;
++        const auto addOffset = [polygon](double value, double offset) {
++            if (!polygon) return value;
++            const double mapped = value + offset;
++            if (polygon && !std::isfinite(mapped))
++                throw std::overflow_error("MPOLYGON boundary offset is not finite");
++            return mapped;
++        };
++        const auto pointInOffsetPlane = [offsetX, offsetY, addOffset](const DRW_Coord& point) {
++            return lc::geo::Coordinate(addOffset(point.x, offsetX),
++                                       addOffset(point.y, offsetY), point.z);
++        };
++        const auto pointsInOffsetPlane = [this, offsetX, offsetY, addOffset](const auto& points) {
++            auto mapped = coords(points);
++            for (auto& point : mapped)
++                point = lc::geo::Coordinate(addOffset(point.x(), offsetX),
++                                            addOffset(point.y(), offsetY), point.z());
++            return mapped;
++        };
+         lc::geo::Region reg;
+         auto lcHatch = std::make_shared<lc::entity::Hatch>(   layer,
+                        mf,
+                        getBlock(*data)
+                                                           );
++        if (polygon) {
++            DRW_Hatch projected;
++            getEntityAttributes(&projected, lcHatch);
++            mf->add(std::make_shared<MPolygonSnapshot>(*polygon, projected, lcHatch->block()));
++        }
+         lcHatch->setPatternName(data->name);
+-        lcHatch->setSolid(data->solid);
++        int solidFlag = data->solid;
++#if !defined(LIBDXFRW_HAS_MPOLYGON_POLYLINE_POLICY)
++        // Older libdxfrw applies HATCH's group 70/71 interpretation to DXF
++        // MPOLYGON. Its DWG parser already delivers the actual solid flag.
++        if (polygon && !_sourceIsDwg) solidFlag = polygon->associative;
++#endif
++        lcHatch->setSolid(solidFlag);
+         LOG_TRACE << "name " << data->name;
+-        LOG_TRACE << "solid " << data->solid;
+-        if(!data->solid) {
++        LOG_TRACE << "solid " << solidFlag;
++        if(!solidFlag) {
+             //Load pattern from dxf
+             lcHatch->setPattern(lc::persistence::PatternProvider::Instance()->getPattern(data->name));
+         }
+@@ -954,7 +1111,9 @@ void DXFimpl::addHatch(const DRW_Hatch* data) {
+                     LOG_TRACE << "Polyline";
+                     std::vector<lc::entity::LWVertex2D> points;
+                     for (const auto& i : data->vertlist) {
+-                        points.emplace_back(lc::geo::Coordinate(i->x, i->y), i->bulge, i->stawidth, i->endwidth);
++                        points.emplace_back(lc::geo::Coordinate(addOffset(i->x, offsetX),
++                                                                addOffset(i->y, offsetY)),
++                                            i->bulge, i->stawidth, i->endwidth);
+                     }
+                     auto isCLosed = (unsigned int) data->flags & 0x01u;
+                     auto lcLWPolyline = std::make_shared<lc::entity::LWPolyline>(
+@@ -971,8 +1130,8 @@ void DXFimpl::addHatch(const DRW_Hatch* data) {
+                     auto data = std::dynamic_pointer_cast<DRW_Line>(k);
+                     LOG_TRACE << "line";
+                     lc::builder::LineBuilder builder;
+-                    builder.setStart(coord(data->basePoint));
+-                    builder.setEnd(coord(data->secPoint));
++                    builder.setStart(pointInOffsetPlane(data->basePoint));
++                    builder.setEnd(pointInOffsetPlane(data->secPoint));
+                     builder.setLayer(layer);
+                     loopData.push_back(builder.build());
+                 } else if(k->eType == DRW::ETYPE::ARC) { //done
+@@ -985,7 +1144,7 @@ void DXFimpl::addHatch(const DRW_Hatch* data) {
+                     }
+                     lc::builder::ArcBuilder builder;
+                     LOG_TRACE << data->staangle <<','<< data->endangle;
+-                    builder.setCenter(coord(data->basePoint));
++                    builder.setCenter(pointInOffsetPlane(data->basePoint));
+                     builder.setRadius(data->radious);
+                     builder.setStartAngle(data->staangle);
+                     builder.setEndAngle(data->endangle);
+@@ -996,7 +1155,7 @@ void DXFimpl::addHatch(const DRW_Hatch* data) {
+                 } else if(k->eType == DRW::ETYPE::ELLIPSE) { //done
+                     auto data = std::dynamic_pointer_cast<DRW_Ellipse>(k);
+                     auto secPoint = coord(data->secPoint);
+-                    auto lcEllipse = std::make_shared<lc::entity::Ellipse>(coord(data->basePoint),
++                    auto lcEllipse = std::make_shared<lc::entity::Ellipse>(pointInOffsetPlane(data->basePoint),
+                                      secPoint,
+                                      secPoint.magnitude() * data->ratio,
+                                      data->staparam,
+@@ -1008,9 +1167,9 @@ void DXFimpl::addHatch(const DRW_Hatch* data) {
+                 } else if(k->eType == DRW::ETYPE::SPLINE) {
+                     auto data = std::dynamic_pointer_cast<DRW_Spline>(k);
+                     // Same as addSpline: keep the file's knot vector intact.
+-                    auto lcSpline = std::make_shared<lc::entity::Spline>(coords(data->controllist),
++                    auto lcSpline = std::make_shared<lc::entity::Spline>(pointsInOffsetPlane(data->controllist),
+                                     data->knotslist,
+-                                    coords(data->fitlist),
++                                    pointsInOffsetPlane(data->fitlist),
+                                     data->degree,
+                                     false,
+                                     data->tolfit,
+@@ -1034,8 +1193,15 @@ void DXFimpl::addHatch(const DRW_Hatch* data) {
+         // kernel currently has no way to retain its subtype or extra fields.
+         if (data->eType == DRW::MPOLYGON && _mpolygonsAsHatch++ == 0) {
+             _loss.notes.push_back(
+-                "MPOLYGON entities were imported as HATCH. Polygon-specific "
+-                "fill, offset and subtype information is not retained when saved.");
++                "MPOLYGON entities were imported as HATCH for editing. Some "
++                "polygon-specific information may not survive saving.");
++        }
++        if (polygon && (polygon->basePoint.z != 0.0 || polygon->extPoint.x != 0.0
++                        || polygon->extPoint.y != 0.0 || polygon->extPoint.z != 1.0)
++            && _mpolygonsWithNondefaultPlane++ == 0) {
++            _loss.notes.push_back(
++                "MPOLYGON elevation or extrusion is not fully mapped into "
++                "the editing plane; its displayed geometry may be incorrect.");
+         }
+     });
+ }
+@@ -2822,6 +2988,30 @@ void DXFimpl::writeHatch(const lc::entity::Hatch_CSPtr& h) {
+     }
+     hatch.loopsnum = hatch.looplist.size();
+ 
++    const auto snapshot = h->metaInfo<MPolygonSnapshot>(MPolygonSnapshot::key());
++    double outputOffsetX = 0.0, outputOffsetY = 0.0;
++    if (snapshot && _exportVersion > DRW::AC1009 && snapshot->canWrite(_exportVersion)
++        && snapshot->replayable(hatch, h, outputOffsetX, outputOffsetY)) {
++        DRW_MPolygon polygon(*snapshot->source);
++        // MPOLYGON stores vertices relative to its offset. A planar translation
++        // changes the offset, leaving the serialized boundary coordinates intact.
++        polygon.xDirX = outputOffsetX;
++        polygon.xDirY = outputOffsetY;
++        // A new document assigns new entity and owner handles; the qualified
++        // profile has no other retained reference edges to remap.
++        polygon.handle = DRW::NoHandle;
++        polygon.parentHandle = DRW::NoHandle;
++        if (!dxfW->writeMPolygon(&polygon)) {
++            LOG_ERROR << "libdxfrw refused MPOLYGON " << hatch.name;
++            _loss.droppedByType["MPOLYGON"]++;
++        }
++        return;
++    }
++    if (snapshot && _mpolygonsWrittenAsHatch++ == 0) {
++        _loss.notes.push_back(
++            "Some MPOLYGON entities were written as HATCH; boundary geometry "
++            "or polygon-specific information may not be retained.");
++    }
+     if (!dxfW->writeHatch(&hatch)) {
+         LOG_ERROR << "libdxfrw refused HATCH " << hatch.name;
+         _loss.droppedByType["HATCH"]++;
+diff --git a/persistence/libdxfrw/dxfimpl.h b/persistence/libdxfrw/dxfimpl.h
+index 154fda7..2dbb5a6 100644
+--- a/persistence/libdxfrw/dxfimpl.h
++++ b/persistence/libdxfrw/dxfimpl.h
+@@ -520,6 +520,8 @@ public:
+     std::size_t _attributesWithoutTags{0};
+     std::size_t _mtextsAsText{0};
+     std::size_t _mpolygonsAsHatch{0};
++    std::size_t _mpolygonsWithNondefaultPlane{0};
++    std::size_t _mpolygonsWrittenAsHatch{0};
+ 
+     void recordLoss(const char* recordKind) {
+         _loss.droppedByType[recordKind]++;
+diff --git a/unittest/persistence/dwgimporttest.cpp b/unittest/persistence/dwgimporttest.cpp
+index 4b51003..687b55d 100644
+--- a/unittest/persistence/dwgimporttest.cpp
++++ b/unittest/persistence/dwgimporttest.cpp
+@@ -14,6 +14,7 @@
+ 
+ #include <algorithm>
+ #include <chrono>
++#include <fstream>
+ #include <map>
+ #include <memory>
+ #include <string>
+@@ -23,13 +24,17 @@
+ 
+ #include <gtest/gtest.h>
+ 
++#include <cad/primitive/arc.h>
+ #include <cad/primitive/dimension.h>
+ #include <cad/storage/documentimpl.h>
+ #include <cad/storage/storagemanagerimpl.h>
+ 
+ #include <cad/primitive/dimradial.h>
+ #include <cad/primitive/hatch.h>
++#include <cad/primitive/ellipse.h>
++#include <cad/primitive/spline.h>
+ #include <cad/primitive/line.h>
++#include <cad/primitive/lwpolyline.h>
+ #include <cad/primitive/text.h>
+ 
+ #include "persistence/file.h"
+@@ -130,7 +135,7 @@ TEST(DwgImportTest, FixturesPopulateADocument) {
+         if (std::string(name) == "ordinary_enc_AC1018.dwg") {
+             EXPECT_TRUE(std::none_of(result.loss.notes.begin(), result.loss.notes.end(),
+                                      [](const std::string& note) {
+-                                         return note.find("MPOLYGON entities were imported as HATCH")
++                                         return note.find("MPOLYGON entities were imported as HATCH for editing")
+                                                 != std::string::npos;
+                                      }));
+         }
+@@ -320,7 +325,7 @@ TEST(DwgImportTest, EmptyMpolygonProjectionReportsExportLoss) {
+     ASSERT_TRUE(imported.ok);
+     EXPECT_EQ(std::count_if(imported.loss.notes.begin(), imported.loss.notes.end(),
+                             [](const std::string& note) {
+-                                return note.find("MPOLYGON entities were imported as HATCH")
++                                return note.find("MPOLYGON entities were imported as HATCH for editing")
+                                        != std::string::npos;
+                             }), 1);
+ 
+@@ -432,3 +437,379 @@ TEST(DwgImportTest, DwgIsRefusedWhenTheBuildHasNoReader) {
+ }
+ 
+ #endif
++
++// From-scratch DXF control: no external drawing is required.
++TEST(DwgImportTest, MpolygonSimpleBoundaryAndEditedFallback) {
++    const std::string input = tmpPath("simple-mpolygon-source");
++    {
++        std::ofstream f(input);
++        ASSERT_TRUE(f.good());
++        f << "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1018\n0\nENDSEC\n"
++             "0\nSECTION\n2\nENTITIES\n0\nMPOLYGON\n5\n55\n"
++             "100\nAcDbEntity\n8\n0\n100\nAcDbMPolygon\n70\n1\n"
++             "10\n0\n20\n0\n30\n0\n210\n0\n220\n0\n230\n1\n"
++             "2\nSOLID\n71\n1\n91\n1\n92\n2\n73\n1\n72\n0\n93\n3\n"
++             "10\n1\n20\n2\n10\n4\n20\n2\n10\n3\n20\n5\n"
++             "76\n1\n78\n0\n63\n3\n98\n0\n11\n2\n21\n5\n99\n0\n"
++             "0\nENDSEC\n0\nEOF\n";
++        ASSERT_TRUE(f.good());
++    }
++    auto doc = newDwgDocument();
++    const auto imported = lc::persistence::File::importFile(
++        doc, input, lc::persistence::File::LIBDXFRW);
++    ASSERT_TRUE(imported.ok);
++    ASSERT_FALSE(imported.loss.notes.empty());
++    lc::entity::Hatch_CSPtr hatch;
++    for (const auto& entity : doc->entityContainer().asVector())
++        if (auto candidate = std::dynamic_pointer_cast<const lc::entity::Hatch>(entity))
++            hatch = candidate;
++    ASSERT_NE(hatch, nullptr);
++
++    const std::string ascii = tmpPath("simple-mpolygon-ascii");
++    const std::string binary = tmpPath("simple-mpolygon-binary");
++    bool asciiPreserved = false;
++    for (const auto& test : std::map<std::string, lc::persistence::File::Type>{
++             {ascii, lc::persistence::File::LIBDXFRW_DXF_R2000},
++             {binary, lc::persistence::File::LIBDXFRW_DXB_R2000}}) {
++        const auto written = lc::persistence::File::exportFile(doc, test.first, test.second);
++        ASSERT_TRUE(written.ok) << test.first;
++        const bool preserved = written.loss.empty();
++        if (test.first == ascii) asciiPreserved = preserved;
++        if (!preserved) {
++            EXPECT_TRUE(std::any_of(written.loss.notes.begin(), written.loss.notes.end(),
++                                    [](const std::string& note) {
++                                        return note.find("written as HATCH") != std::string::npos;
++                                    }));
++        }
++        auto reopened = newDwgDocument();
++        const auto read = lc::persistence::File::importFile(
++            reopened, test.first, lc::persistence::File::LIBDXFRW);
++        ASSERT_TRUE(read.ok);
++        EXPECT_EQ(std::any_of(read.loss.notes.begin(), read.loss.notes.end(),
++                               [](const std::string& note) {
++                                   return note.find("MPOLYGON entities") != std::string::npos;
++                               }), preserved);
++    }
++    // The ASCII tags independently expose the preserved subtype and fields.
++    std::ifstream f(ascii);
++    ASSERT_TRUE(f.good());
++    bool inPolygon = false, seenPolygon = false, fill = false, xdir = false, ydir = false;
++    std::string code, value;
++    while (std::getline(f, code) && std::getline(f, value)) {
++        if (!code.empty() && code.back() == '\r') code.pop_back();
++        if (!value.empty() && value.back() == '\r') value.pop_back();
++        const int group = std::stoi(code);
++        if (group == 0) {
++            if (inPolygon) break;
++            inPolygon = value == "MPOLYGON";
++            seenPolygon = seenPolygon || inPolygon;
++        }
++        if (inPolygon && group == 63) fill = std::stoi(value) == 3;
++        if (inPolygon && group == 11) xdir = std::stod(value) == 2.0;
++        if (inPolygon && group == 21) ydir = std::stod(value) == 5.0;
++    }
++    if (asciiPreserved) EXPECT_TRUE(seenPolygon && fill && xdir && ydir);
++    else EXPECT_FALSE(seenPolygon);
++
++    // A planar translation changes the offset while retaining the subtype.
++    const auto moved = hatch->move(lc::geo::Coordinate(10, 0, 0));
++    ASSERT_NE(moved, nullptr);
++    doc->removeEntity(hatch);
++    doc->insertEntity(moved);
++    const std::string edited = tmpPath("edited-mpolygon");
++    const auto written = lc::persistence::File::exportFile(
++        doc, edited, lc::persistence::File::LIBDXFRW_DXF_R2000);
++    ASSERT_TRUE(written.ok);
++    EXPECT_EQ(written.loss.empty(), asciiPreserved);
++    if (!asciiPreserved) {
++        EXPECT_TRUE(std::any_of(written.loss.notes.begin(), written.loss.notes.end(),
++                                [](const std::string& note) {
++                                    return note.find("written as HATCH") != std::string::npos;
++                                }));
++    }
++    auto reopened = newDwgDocument();
++    ASSERT_TRUE(lc::persistence::File::importFile(
++        reopened, edited, lc::persistence::File::LIBDXFRW).ok);
++    lc::entity::Hatch_CSPtr readHatch;
++    for (const auto& entity : reopened->entityContainer().asVector())
++        if (auto candidate = std::dynamic_pointer_cast<const lc::entity::Hatch>(entity))
++            readHatch = candidate;
++    ASSERT_NE(readHatch, nullptr);
++    ASSERT_EQ(readHatch->getRegion().loopList().size(), 1u);
++    const auto& edges = readHatch->getRegion().loopList()[0].entities();
++    ASSERT_EQ(edges.size(), 1u);
++    const auto poly = std::dynamic_pointer_cast<const lc::entity::LWPolyline>(edges[0]);
++    ASSERT_NE(poly, nullptr);
++    ASSERT_EQ(poly->vertex().size(), 3u);
++    EXPECT_DOUBLE_EQ(poly->vertex()[0].location().x(), 13.0);
++    EXPECT_DOUBLE_EQ(poly->vertex()[0].location().y(), 7.0);
++
++    // A rotation cannot reuse the original offset-space snapshot.
++    const auto rotated = hatch->rotate(lc::geo::Coordinate(0, 0, 0), 0.5);
++    ASSERT_NE(rotated, nullptr);
++    doc->removeEntity(moved);
++    doc->insertEntity(rotated);
++    const std::string rotatedOutput = tmpPath("rotated-mpolygon-output");
++    const auto rotatedWrite = lc::persistence::File::exportFile(
++        doc, rotatedOutput, lc::persistence::File::LIBDXFRW_DXF_R2000);
++    ASSERT_TRUE(rotatedWrite.ok);
++    EXPECT_TRUE(std::any_of(rotatedWrite.loss.notes.begin(), rotatedWrite.loss.notes.end(),
++                            [](const std::string& note) {
++                                return note.find("written as HATCH") != std::string::npos;
++                            }));
++
++    // Restore the original entity and retry the same destination. The stale
++    // projection warning must not leak into a fresh export.
++    doc->removeEntity(rotated);
++    doc->insertEntity(hatch);
++    const auto retried = lc::persistence::File::exportFile(
++        doc, edited, lc::persistence::File::LIBDXFRW_DXF_R2000);
++    ASSERT_TRUE(retried.ok);
++    EXPECT_EQ(retried.loss.empty(), asciiPreserved);
++    auto retriedDoc = newDwgDocument();
++    const auto retriedRead = lc::persistence::File::importFile(
++        retriedDoc, edited, lc::persistence::File::LIBDXFRW);
++    ASSERT_TRUE(retriedRead.ok);
++    EXPECT_EQ(std::any_of(retriedRead.loss.notes.begin(), retriedRead.loss.notes.end(),
++                           [](const std::string& note) {
++                               return note.find("MPOLYGON entities") != std::string::npos;
++                           }), asciiPreserved);
++    // A Z-only edit cannot be mistaken for unchanged XY coordinates.
++    const auto lifted = hatch->move(lc::geo::Coordinate(0, 0, 3));
++    ASSERT_NE(lifted, nullptr);
++    doc->removeEntity(hatch);
++    doc->insertEntity(lifted);
++    const std::string liftedOutput = tmpPath("lifted-mpolygon-output");
++    const auto liftedWrite = lc::persistence::File::exportFile(
++        doc, liftedOutput, lc::persistence::File::LIBDXFRW_DXF_R2000);
++    ASSERT_TRUE(liftedWrite.ok);
++    EXPECT_TRUE(std::any_of(liftedWrite.loss.notes.begin(), liftedWrite.loss.notes.end(),
++                            [](const std::string& note) {
++                                return note.find("boundary geometry") != std::string::npos;
++                            }));
++    auto liftedDoc = newDwgDocument();
++    const auto liftedRead = lc::persistence::File::importFile(
++        liftedDoc, liftedOutput, lc::persistence::File::LIBDXFRW);
++    ASSERT_TRUE(liftedRead.ok);
++    EXPECT_TRUE(std::none_of(liftedRead.loss.notes.begin(), liftedRead.loss.notes.end(),
++                             [](const std::string& note) {
++                                 return note.find("MPOLYGON entities") != std::string::npos;
++                             }));
++
++    // A source outside the replay profile must take the reported path too.
++    std::ifstream original(input);
++    std::string complexSource((std::istreambuf_iterator<char>(original)),
++                              std::istreambuf_iterator<char>());
++    const auto countAt = complexSource.find("91\n1\n92\n2\n");
++    ASSERT_NE(countAt, std::string::npos);
++    complexSource.replace(countAt, std::string("91\n1\n92\n2\n").size(),
++                          "91\n2\n92\n2\n");
++    const auto tailAt = complexSource.find("76\n1\n78\n0\n");
++    ASSERT_NE(tailAt, std::string::npos);
++    complexSource.insert(tailAt, "92\n2\n73\n1\n72\n0\n93\n3\n"
++                                "10\n6\n20\n2\n10\n9\n20\n2\n10\n8\n20\n5\n");
++    const std::string complexInput = tmpPath("complex-mpolygon-source");
++    { std::ofstream complexFile(complexInput); complexFile << complexSource; }
++    auto complexDoc = newDwgDocument();
++    ASSERT_TRUE(lc::persistence::File::importFile(
++        complexDoc, complexInput, lc::persistence::File::LIBDXFRW).ok);
++    const std::string complexOutput = tmpPath("complex-mpolygon-output");
++    const auto complexWrite = lc::persistence::File::exportFile(
++        complexDoc, complexOutput, lc::persistence::File::LIBDXFRW_DXF_R2000);
++    ASSERT_TRUE(complexWrite.ok);
++    EXPECT_TRUE(std::any_of(complexWrite.loss.notes.begin(), complexWrite.loss.notes.end(),
++                            [](const std::string& note) {
++                                return note.find("written as HATCH") != std::string::npos;
++                            }));
++    auto complexRead = newDwgDocument();
++    ASSERT_TRUE(lc::persistence::File::importFile(
++        complexRead, complexOutput, lc::persistence::File::LIBDXFRW).ok);
++    lc::entity::Hatch_CSPtr complexHatch;
++    for (const auto& entity : complexRead->entityContainer().asVector())
++        if (auto candidate = std::dynamic_pointer_cast<const lc::entity::Hatch>(entity))
++            complexHatch = candidate;
++    ASSERT_NE(complexHatch, nullptr);
++    EXPECT_EQ(complexHatch->getRegion().loopList().size(), 2u);
++    // Offset applies to edge points and arc centers, but not radii.
++    std::ifstream edgeSourceFile(input);
++    std::string edgeSource((std::istreambuf_iterator<char>(edgeSourceFile)),
++                           std::istreambuf_iterator<char>());
++    const std::string polyTags = "92\n2\n73\n1\n72\n0\n93\n3\n"
++                                 "10\n1\n20\n2\n10\n4\n20\n2\n10\n3\n20\n5\n";
++    const auto edgeAt = edgeSource.find(polyTags);
++    ASSERT_NE(edgeAt, std::string::npos);
++    edgeSource.replace(edgeAt, polyTags.size(),
++        "92\n0\n93\n4\n72\n1\n10\n1\n20\n2\n11\n4\n21\n2\n"
++        "72\n2\n10\n4\n20\n3\n40\n1\n50\n270\n51\n90\n73\n1\n"
++        "72\n3\n10\n6\n20\n6\n11\n2\n21\n0\n40\n0.5\n"
++        "50\n0\n51\n180\n73\n1\n"
++        "72\n4\n94\n2\n73\n0\n74\n0\n95\n6\n96\n3\n"
++        "40\n0\n40\n0\n40\n0\n40\n1\n40\n1\n40\n1\n"
++        "10\n1\n20\n0\n10\n1\n20\n1\n10\n0\n20\n1\n97\n0\n");
++    const std::string edgeInput = tmpPath("edge-mpolygon-source");
++    { std::ofstream edgeFile(edgeInput); edgeFile << edgeSource; }
++    auto edgeDoc = newDwgDocument();
++    ASSERT_TRUE(lc::persistence::File::importFile(
++        edgeDoc, edgeInput, lc::persistence::File::LIBDXFRW).ok);
++    lc::entity::Hatch_CSPtr edgeHatch;
++    for (const auto& entity : edgeDoc->entityContainer().asVector())
++        if (auto candidate = std::dynamic_pointer_cast<const lc::entity::Hatch>(entity))
++            edgeHatch = candidate;
++    ASSERT_NE(edgeHatch, nullptr);
++    ASSERT_EQ(edgeHatch->getRegion().loopList().size(), 1u);
++    const auto& edgeEntities = edgeHatch->getRegion().loopList()[0].entities();
++    ASSERT_EQ(edgeEntities.size(), 4u);
++    const auto line = std::dynamic_pointer_cast<const lc::entity::Line>(edgeEntities[0]);
++    const auto arc = std::dynamic_pointer_cast<const lc::entity::Arc>(edgeEntities[1]);
++    const auto ellipse = std::dynamic_pointer_cast<const lc::entity::Ellipse>(edgeEntities[2]);
++    const auto spline = std::dynamic_pointer_cast<const lc::entity::Spline>(edgeEntities[3]);
++    ASSERT_NE(line, nullptr);
++    ASSERT_NE(arc, nullptr);
++    ASSERT_NE(ellipse, nullptr);
++    ASSERT_NE(spline, nullptr);
++    EXPECT_DOUBLE_EQ(line->start().x(), 3.0);
++    EXPECT_DOUBLE_EQ(line->start().y(), 7.0);
++    EXPECT_DOUBLE_EQ(line->end().x(), 6.0);
++    EXPECT_DOUBLE_EQ(line->end().y(), 7.0);
++    EXPECT_DOUBLE_EQ(arc->center().x(), 6.0);
++    EXPECT_DOUBLE_EQ(arc->center().y(), 8.0);
++    EXPECT_DOUBLE_EQ(arc->radius(), 1.0);
++    EXPECT_DOUBLE_EQ(ellipse->center().x(), 8.0);
++    EXPECT_DOUBLE_EQ(ellipse->center().y(), 11.0);
++    EXPECT_DOUBLE_EQ(ellipse->majorP().x(), 2.0);
++    EXPECT_DOUBLE_EQ(ellipse->majorP().y(), 0.0);
++    ASSERT_EQ(spline->controlPoints().size(), 3u);
++    EXPECT_DOUBLE_EQ(spline->controlPoints()[0].x(), 3.0);
++    EXPECT_DOUBLE_EQ(spline->controlPoints()[0].y(), 5.0);
++    EXPECT_DOUBLE_EQ(spline->controlPoints()[2].x(), 2.0);
++    EXPECT_DOUBLE_EQ(spline->controlPoints()[2].y(), 6.0);
++    // Ordinary HATCH coordinates must not acquire an MPOLYGON offset.
++    std::ifstream simpleFile(input);
++    const std::string simpleSource((std::istreambuf_iterator<char>(simpleFile)),
++                                   std::istreambuf_iterator<char>());
++    std::string hatchSource = simpleSource;
++    auto replaceOnce = [](std::string& text, const std::string& from, const std::string& to) {
++        const auto pos = text.find(from);
++        if (pos == std::string::npos) return false;
++        text.replace(pos, from.size(), to);
++        return true;
++    };
++    ASSERT_TRUE(replaceOnce(hatchSource, "0\nMPOLYGON\n", "0\nHATCH\n"));
++    ASSERT_TRUE(replaceOnce(hatchSource, "AcDbMPolygon", "AcDbHatch"));
++    ASSERT_TRUE(replaceOnce(hatchSource, "71\n1\n91\n", "71\n0\n91\n"));
++    ASSERT_TRUE(replaceOnce(hatchSource, "63\n3\n98\n0\n11\n2\n21\n5\n99\n0\n", "98\n0\n"));
++    const std::string hatchInput = tmpPath("ordinary-hatch-source");
++    { std::ofstream hatchFile(hatchInput); hatchFile << hatchSource; }
++    auto hatchDoc = newDwgDocument();
++    const auto hatchRead = lc::persistence::File::importFile(
++        hatchDoc, hatchInput, lc::persistence::File::LIBDXFRW);
++    ASSERT_TRUE(hatchRead.ok);
++    EXPECT_TRUE(hatchRead.loss.notes.empty());
++    lc::entity::Hatch_CSPtr ordinaryHatch;
++    for (const auto& entity : hatchDoc->entityContainer().asVector())
++        if (auto candidate = std::dynamic_pointer_cast<const lc::entity::Hatch>(entity))
++            ordinaryHatch = candidate;
++    ASSERT_NE(ordinaryHatch, nullptr);
++    ASSERT_EQ(ordinaryHatch->getRegion().loopList().size(), 1u);
++    const auto& hatchEdges = ordinaryHatch->getRegion().loopList()[0].entities();
++    ASSERT_EQ(hatchEdges.size(), 1u);
++    const auto hatchPoly = std::dynamic_pointer_cast<const lc::entity::LWPolyline>(hatchEdges[0]);
++    ASSERT_NE(hatchPoly, nullptr);
++    ASSERT_EQ(hatchPoly->vertex().size(), 3u);
++    EXPECT_DOUBLE_EQ(hatchPoly->vertex()[0].location().x(), 1.0);
++    EXPECT_DOUBLE_EQ(hatchPoly->vertex()[0].location().y(), 2.0);
++
++    std::string tiltedSource = simpleSource;
++    ASSERT_TRUE(replaceOnce(tiltedSource, "220\n0\n230\n1\n", "220\n0.6\n230\n0.8\n"));
++    const std::string tiltedInput = tmpPath("tilted-mpolygon-source");
++    { std::ofstream tiltedFile(tiltedInput); tiltedFile << tiltedSource; }
++    auto tiltedDoc = newDwgDocument();
++    const auto tiltedRead = lc::persistence::File::importFile(
++        tiltedDoc, tiltedInput, lc::persistence::File::LIBDXFRW);
++    ASSERT_TRUE(tiltedRead.ok);
++    EXPECT_TRUE(std::any_of(tiltedRead.loss.notes.begin(), tiltedRead.loss.notes.end(),
++                            [](const std::string& note) {
++                                return note.find("elevation or extrusion") != std::string::npos;
++                            }));
++
++    std::string overflowSource = simpleSource;
++    ASSERT_TRUE(replaceOnce(overflowSource, "10\n1\n20\n2\n10\n4\n", "10\n1e308\n20\n2\n10\n4\n"));
++    ASSERT_TRUE(replaceOnce(overflowSource, "11\n2\n21\n5\n99\n", "11\n1e308\n21\n5\n99\n"));
++    const std::string overflowInput = tmpPath("overflow-mpolygon-source");
++    { std::ofstream overflowFile(overflowInput); overflowFile << overflowSource; }
++    auto overflowDoc = newDwgDocument();
++    const auto overflowRead = lc::persistence::File::importFile(
++        overflowDoc, overflowInput, lc::persistence::File::LIBDXFRW);
++    ASSERT_EQ(overflowRead.failures.size(), 1u);
++    EXPECT_NE(overflowRead.failures.front().reason.find("offset is not finite"), std::string::npos);
++    EXPECT_TRUE(overflowDoc->entityContainer().asVector().empty());
++    auto retryDoc = newDwgDocument();
++    const auto retryRead = lc::persistence::File::importFile(
++        retryDoc, input, lc::persistence::File::LIBDXFRW);
++    EXPECT_TRUE(retryRead.ok);
++    EXPECT_TRUE(retryRead.failures.empty());
++
++    // MPOLYGON's group 71 is the solid-fill flag even when the older bundled
++    // codec forwards it in the HATCH associativity field.
++    std::string patternSource = simpleSource;
++    ASSERT_TRUE(replaceOnce(patternSource, "71\n1\n91\n", "71\n0\n91\n"));
++    const std::string patternInput = tmpPath("pattern-mpolygon-source");
++    { std::ofstream patternFile(patternInput); patternFile << patternSource; }
++    auto patternDoc = newDwgDocument();
++    const auto patternRead = lc::persistence::File::importFile(
++        patternDoc, patternInput, lc::persistence::File::LIBDXFRW);
++    ASSERT_TRUE(patternRead.ok);
++    lc::entity::Hatch_CSPtr patternHatch;
++    for (const auto& entity : patternDoc->entityContainer().asVector())
++        if (auto candidate = std::dynamic_pointer_cast<const lc::entity::Hatch>(entity))
++            patternHatch = candidate;
++    ASSERT_NE(patternHatch, nullptr);
++    EXPECT_FALSE(patternHatch->isSolid());
++
++    // R2000 cannot carry retained R2004 gradient companions. Use the
++    // reported projection instead of poisoning the whole write attempt.
++    std::string gradientSource = simpleSource;
++    ASSERT_TRUE(replaceOnce(gradientSource, "99\n0\n0\nENDSEC\n",
++        "99\n0\n450\n0\n451\n0\n460\n0\n461\n0\n452\n1\n"
++        "462\n0.5\n453\n0\n470\nLINEAR\n0\nENDSEC\n"));
++    const std::string gradientInput = tmpPath("gradient-mpolygon-source");
++    { std::ofstream gradientFile(gradientInput); gradientFile << gradientSource; }
++    auto gradientDoc = newDwgDocument();
++    const auto gradientRead = lc::persistence::File::importFile(
++        gradientDoc, gradientInput, lc::persistence::File::LIBDXFRW);
++    ASSERT_TRUE(gradientRead.ok);
++    ASSERT_GT(gradientRead.entitiesDelivered, 0u);
++    const std::string gradientOutput = tmpPath("gradient-mpolygon-r2000");
++    const auto gradientWrite = lc::persistence::File::exportFile(
++        gradientDoc, gradientOutput, lc::persistence::File::LIBDXFRW_DXF_R2000);
++    ASSERT_TRUE(gradientWrite.ok);
++    EXPECT_TRUE(std::any_of(gradientWrite.loss.notes.begin(), gradientWrite.loss.notes.end(),
++                            [](const std::string& note) {
++                                return note.find("written as HATCH") != std::string::npos;
++                            }));
++
++    // A newer MPOLYGON schema must not reach a version-1-only serializer.
++    std::string newerSource = simpleSource;
++    ASSERT_TRUE(replaceOnce(newerSource, "70\n1\n10\n", "70\n2\n10\n"));
++    const std::string newerInput = tmpPath("newer-mpolygon-source");
++    { std::ofstream newerFile(newerInput); newerFile << newerSource; }
++    auto newerDoc = newDwgDocument();
++    const auto newerRead = lc::persistence::File::importFile(
++        newerDoc, newerInput, lc::persistence::File::LIBDXFRW);
++    const std::string newerOutput = tmpPath("newer-mpolygon-output");
++    if (newerRead.ok && newerRead.entitiesDelivered != 0u) {
++        const auto newerWrite = lc::persistence::File::exportFile(
++            newerDoc, newerOutput, lc::persistence::File::LIBDXFRW_DXF_R2000);
++        ASSERT_TRUE(newerWrite.ok);
++        EXPECT_TRUE(std::any_of(newerWrite.loss.notes.begin(), newerWrite.loss.notes.end(),
++                                [](const std::string& note) {
++                                    return note.find("written as HATCH") != std::string::npos;
++                                }));
++    }
++
++    for (const auto& path : {input, ascii, binary, edited, rotatedOutput, liftedOutput,
++                             complexInput, complexOutput, edgeInput, hatchInput,
++                             tiltedInput, overflowInput, gradientInput, gradientOutput,
++                             newerInput, newerOutput, patternInput})
++        boost::filesystem::remove(path);
++}

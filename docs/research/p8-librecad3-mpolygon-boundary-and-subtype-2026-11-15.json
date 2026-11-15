@@ -25,5 +25,6 @@
     "exportSha256": "0445c892ee084e11818e0a195251d86f6036c1a1087750aa3e716ce89cf9ff0d",
     "observedLoss": "Input is MPOLYGON; output has one HATCH and zero MPOLYGON entities. ImportResult.loss and ExportResult.loss are both empty. The subtype and MPOLYGON-specific metadata including x direction therefore are not preserved or reported; only selected triangle geometry was checked."
   },
-  "remaining": "Design and implement durable MPOLYGON subtype/metadata preservation through LibreCAD_3, including edits and saved-file readback, or make any chosen projection explicit and correctly reported. Qualify real producer sources, other boundary kinds, versions, platforms, and other consumers separately. No broad support claim changes."
+  "remaining": "Design and implement durable MPOLYGON subtype/metadata preservation through LibreCAD_3, including edits and saved-file readback, or make any chosen projection explicit and correctly reported. Qualify real producer sources, other boundary kinds, versions, platforms, and other consumers separately. No broad support claim changes.",
+  "laterCorrection": "The consumer coordinates recorded by this earlier probe were raw offset-space coordinates. Autodesk ObjectARX states that the offset must be added back to recover the actual boundary points. See p8-librecad3-mpolygon-offset-preservation-2026-11-15.json for the fix and corrected tests."
 }
