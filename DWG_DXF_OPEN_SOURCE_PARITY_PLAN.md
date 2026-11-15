@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **579 completed implementation and qualification slices** and **32 remaining
+The plan records **580 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`579 / (579 + 32) = 94.8%`. The previous 28-package denominator was stale; a recount
+`580 / (580 + 32) = 94.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -165,9 +165,10 @@ The source-independent opt-in emits those null roles without modifying caller
 fields. It now checks the emitted layer handle tails, the no-reactor Normal
 plot-style dictionary and placeholder, NOD root and reciprocal ownership before
 publication; graph failures and in-attempt retries are covered. ODA and LibreDWG
-verify the selected graph. Investigate the reported page-size disagreement, the
-basic generated drawings lacking reference graphs, and remaining versions before
-broadening writer support
+verify the selected graph. The independent page-size disagreement has been
+resolved for this uncompressed control; retain separate compressed-page and
+producer qualification. Investigate basic generated drawings lacking reference
+graphs and remaining versions before broadening writer support
 ([header receipt](docs/research/p6-ac1018-ac1024-repeated-file-header-2026-11-15.json),
 [layer experiment](docs/research/p6-ac1024-authored-layer-null-matrix-2026-11-15.json)).
 

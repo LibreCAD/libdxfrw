@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-15",
+  "scope": "The eight data pages of one locally authored, uncompressed AC1024 DWG that ODA File Converter 27.1 converted successfully. This is not a general verdict for compressed pages or other producers.",
+  "source": "ODA Open Design Specification v5.4.1 section 4.6 describes the 32-byte data-page header and its +0x0c decompressed page-size field. The page map records the physical page extent.",
+  "finding": "The unmodified public dwg-verifier at commit 5a7dc5c6790cd8fece1494c710585019a253dbba reports eight T1.page.header discrepancies because it requires those two different sizes to be equal. The generated uncompressed pages have +0x0c equal to payload and maximum logical page size, and page-map extents exactly 32 bytes larger. Two AppInfo pages are 128 logical/160 physical bytes; six pages are 29696 logical/29728 physical bytes.",
+  "independentEvidence": "ODA produced a DXF without an error file from this exact DWG and its output retained the two layers' Global material and Normal plot-style links. LibreDWG 0.14 independently decoded the same source. Neither observation establishes semantic rendering or plotting behavior.",
+  "controlledVerifierProbe": "In a temporary copy only, add the single uncompressed-page alternative page_size == section.max_page_size and physical_extent == 32 + page_size. The otherwise unchanged verifier reports zero findings for the generated DWG and for two ODA-generated AC1024 controls. This localized modification is an explanatory experiment, not an independent verifier release or a basis for a general support claim.",
+  "sha256": {
+    "dwg": "318bd94261ac17630365800d165ac58b0fb0c037e249b6c2c927d82e6188f416",
+    "originalVerifierStructuralPy": "8fd01b73158cbabf8944ff3d903ac83af9a1215e2315ee6cbadd31b444b776b1",
+    "modifiedVerifierStructuralPy": "b67434ae531cf8bce97751ae516f0fb83a20b738c0405f04165031fc0ac12cfb"
+  },
+  "sources": [
+    "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "https://github.com/realDragonium/dwg-verifier/blob/5a7dc5c6790cd8fece1494c710585019a253dbba/src/dwgcheck/structural.py"
+  ],
+  "limits": "This resolves the reported mismatch for the witnessed uncompressed profile only. ODA-generated compressed pages use a different observed +0x0c relationship; their interpretation and other version profiles are separate. No verifier code or DWG/DXF fixture was committed, and no support claim or phase gate was promoted."
+}
