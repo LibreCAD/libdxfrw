@@ -30,7 +30,7 @@ public:
     std::vector<int> fills;
 };
 
-bool emitDrawing(std::ostream& stream, bool binary) {
+bool emitDrawing(std::ostream& stream, bool binary, bool invalidAnnotation) {
     if (binary) {
         static constexpr char signature[] = "AutoCAD Binary DXF\r\n\x1a\0";
         stream.write(signature, sizeof(signature) - 1);
@@ -47,7 +47,7 @@ bool emitDrawing(std::ostream& stream, bool binary) {
         || !text(2, "ENTITIES")) return false;
     const char* handles[] = {"30", "31", "32", "33"};
     const int flags[] = {-1, 1, 0, -1};
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < (invalidAnnotation ? 1 : 4); ++i) {
         if (!text(0, "MPOLYGON") || !text(5, handles[i])
             || !text(100, "AcDbEntity") || !text(8, "0")
             || !text(100, "AcDbMPolygon") || !integer(70, 1)
@@ -58,16 +58,17 @@ bool emitDrawing(std::ostream& stream, bool binary) {
             || !integer(72, 0) || !count(93, 3)
             || !real(10, 0) || !real(20, 0) || !real(10, 1)
             || !real(20, 0) || !real(10, 0) || !real(20, 1)
-            || !integer(76, 1) || !real(52, 0) || !real(41, 1)
+            || !integer(76, 1) || (invalidAnnotation && !integer(73, 42))
+            || !real(52, 0) || !real(41, 1)
             || !integer(77, 0) || !integer(78, 0)
             || !real(11, 0) || !real(21, 0) || !count(99, 0)) return false;
     }
     return text(0, "ENDSEC") && text(0, "EOF") && !writer->hasWriteError();
 }
 
-bool run(bool binary) {
+bool run(bool binary, bool invalidAnnotation) {
     std::ostringstream output(std::ios::binary);
-    if (!emitDrawing(output, binary)) return false;
+    if (!emitDrawing(output, binary, invalidAnnotation)) return false;
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
     const auto path = std::filesystem::temp_directory_path()
         / ("libdxfrw-mpolygon-default-" + std::to_string(nonce) + ".dxf");
@@ -80,10 +81,16 @@ bool run(bool binary) {
     const std::vector<int> expected{0, 1, 0, 0};
     TypedConsumer typed;
     dxfRW typedReader(path.string().c_str());
-    const bool typedOk = typedReader.read(&typed, false) && typed.fills == expected;
+    const bool typedRead = typedReader.read(&typed, false);
+    const bool typedOk = invalidAnnotation ? !typedRead && typed.fills.empty()
+                                                && typedReader.getError() == DRW::BAD_CODE_PARSED
+                                           : typedRead && typed.fills == expected;
     LegacyConsumer legacy;
     dxfRW legacyReader(path.string().c_str());
-    const bool legacyOk = legacyReader.read(&legacy, false) && legacy.fills == expected;
+    const bool legacyRead = legacyReader.read(&legacy, false);
+    const bool legacyOk = invalidAnnotation ? !legacyRead && legacy.fills.empty()
+                                                 && legacyReader.getError() == DRW::BAD_CODE_PARSED
+                                            : legacyRead && legacy.fills == expected;
     std::error_code ignored;
     std::filesystem::remove(path, ignored);
     if (!typedOk || !legacyOk)
@@ -96,5 +103,6 @@ int main() {
     // Directly constructed objects keep their existing API defaults; only
     // DXF input without group 71 uses the MPOLYGON pattern default.
     if (DRW_Hatch{}.solid != 1 || DRW_MPolygon{}.solid != 1) return 1;
-    return run(false) && run(true) ? 0 : 1;
+    return run(false, false) && run(true, false)
+        && run(false, true) && run(true, true) ? 0 : 1;
 }

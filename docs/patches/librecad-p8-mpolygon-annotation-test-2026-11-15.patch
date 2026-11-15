@@ -1,0 +1,31 @@
+From 7a1fb7d78818fd4ac2d65ef18015aba6d71e3520 Mon Sep 17 00:00:00 2001
+From: dxli <dongxuli2011@gmail.com>
+Date: Sun, 15 Nov 2026 05:38:49 -0500
+Subject: [PATCH] Use a valid MPOLYGON annotation in trailer tests
+
+---
+ librecad/src/lib/filters/tests/lc_mpolygon_dxf_tests.cpp | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/librecad/src/lib/filters/tests/lc_mpolygon_dxf_tests.cpp b/librecad/src/lib/filters/tests/lc_mpolygon_dxf_tests.cpp
+index aa840d9..4879ce0 100644
+--- a/librecad/src/lib/filters/tests/lc_mpolygon_dxf_tests.cpp
++++ b/librecad/src/lib/filters/tests/lc_mpolygon_dxf_tests.cpp
+@@ -229,12 +229,12 @@ TEST_CASE("DXF MPOLYGON: trailer codes do not overwrite the last boundary edge",
+     const std::string dxf =
+         "0\nSECTION\n2\nENTITIES\n0\nMPOLYGON\n100\nAcDbEntity\n8\n0\n100\nAcDbMPolygon\n"
+         "70\n1\n2\nSOLID\n71\n1\n91\n1\n" + boundaries[kind] +
+-        "76\n1\n73\n42\n11\n7.5\n21\n-2.5\n99\n0\n0\nENDSEC\n0\nEOF\n";
++        "76\n1\n73\n1\n11\n7.5\n21\n-2.5\n99\n0\n0\nENDSEC\n0\nEOF\n";
+     CaptureIface cap;
+     REQUIRE(readDxfString(dxf, cap, "lc_mpoly_trailer.dxf"));
+     REQUIRE(cap.m_count == 1);
+     const auto& mp = cap.m_mpolygon;
+-    CHECK(mp.annotatedBoundary == 42);
++    CHECK(mp.annotatedBoundary == 1);
+     CHECK(mp.xDirX == 7.5);
+     CHECK(mp.xDirY == -2.5);
+     REQUIRE(mp.looplist.size() == 1);
+-- 
+2.54.0 (Apple Git-157)
+
