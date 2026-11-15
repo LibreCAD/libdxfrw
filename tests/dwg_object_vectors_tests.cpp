@@ -20041,6 +20041,9 @@ void testAc1012PlusVportHandleRoles(TestContext& t) {
         source.setDwgCommonObjectState(1, 0u, false);
         source.name = "generated-vport";
         if (version > DRW::AC1018) {
+            // Exercise encoded zero values as well as the omitted legacy fields.
+            source.useDefaultLighting = false;
+            source.defaultLightingType = 0;
             source.backgroundHandle = source.handle + 0x14u;
             source.visualStyleHandle = source.handle + 0x15u;
             source.m_sunHandle = source.handle + 0x16u;
@@ -20063,6 +20066,11 @@ void testAc1012PlusVportHandleRoles(TestContext& t) {
                      && parsed.visualStyleHandle == source.visualStyleHandle
                      && parsed.m_sunHandle == source.m_sunHandle,
                  std::string("VPORT reads versioned handle roles in ")
+                     + versionName(version));
+        t.expect(parsedValid
+                     && parsed.useDefaultLighting == (version <= DRW::AC1018)
+                     && parsed.defaultLightingType == (version <= DRW::AC1018 ? 1u : 0u),
+                 std::string("VPORT preserves omitted legacy lighting defaults and encoded modern values in ")
                      + versionName(version));
         if (parsedValid) {
             const auto& spans = parsed.dwgHandleFieldSpans();

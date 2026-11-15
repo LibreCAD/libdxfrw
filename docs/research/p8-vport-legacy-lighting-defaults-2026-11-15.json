@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-15",
+  "finding": "The DWG VPORT parser initialized R2007-only lighting fields to false and zero even for older input that omits them, overriding the public defaults and causing AC1015 and AC1018 same-version DXF output to refuse a nonexistent modern setting.",
+  "specification": "ODA DWG v5.4.1 section 20.4.64 places those VPORT fields in the R2007+ body. The earlier-version fallback uses the existing DRW_Vport public defaults; it does not infer encoded modern values.",
+  "change": "Initialize the staged fields from the fresh VPORT defaults and overwrite them only when the versioned DWG contains them. The partial-read CLI control now uses the source revision for its legacy output targets.",
+  "validation": [
+    "Generated VPORT handle and field controls cover AC1012, AC1014, AC1015 and AC1018 default values and AC1021, AC1024 and AC1027 explicitly encoded zero lighting values, with existing truncation and retry controls.",
+    "The existing ASCII and binary VPORT version-loss refusal, destination preservation and retry control passes.",
+    "The default-target dwg2dxf CLI contract passes and the partial-read CLI control passes directly, including same-version legacy output.",
+    "The local fast lane passes seven focused executables and all 44 required integration CTests.",
+    "The separate partial-read CTest hit its previous 30-second timeout locally; a direct invocation passes in 29.23 seconds without competing tests. Its CTest timeout is raised to 90 seconds to accommodate process startup and loaded hosts, and it passes through CTest in 29.66 seconds.",
+    "The rebuilt full local DWG reader matrix and DWG fixture executables pass."
+  ],
+  "limits": "No format, consumer, or phase-gate support claim is promoted. Previously sealed Linux and macOS focused receipts apply to d2b65bd6 and must be refreshed after this change; Windows native and FreeCAD application qualification remain pending."
+}

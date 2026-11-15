@@ -1176,17 +1176,10 @@ def check_partial_dwg_read_cli(converter, root, writer):
             checked += 1
             continue
 
-        # The generated AC1015/AC1018 source carries VPORT state that cannot
-        # be represented by those legacy DXF revisions. Preserve that state by
-        # selecting the first admitting R2007 target instead of relying on a
-        # same-revision default that correctly refuses the downgrade.
-        partial_target_revision = (b"AC1021"
-                                   if revision in (b"AC1015", b"AC1018")
-                                   else revision)
-        partial_target_option = (
-            ("-v2007",)
-            if partial_target_revision == b"AC1021" and revision < b"AC1021"
-            else ())
+        # Omitted pre-R2007 VPORT lighting fields retain representable defaults,
+        # so the generated source can use its own revision as the DXF target.
+        partial_target_revision = revision
+        partial_target_option = ()
         partial_output = root / f"partial-read admitted result {version}.dxf"
         partial = run_bounded(
             [str(converter), str(source), "-o", str(partial_output),

@@ -253,7 +253,7 @@ if(LIBDXFRW_BUILD_TESTS)
                 --writer $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
                 --partial-read-only)
         set_tests_properties(dwg2dxf_cli_partial_read_disposition PROPERTIES
-            LABELS "fast;cli;dwg;disposition" TIMEOUT 30)
+            LABELS "fast;cli;dwg;disposition" TIMEOUT 90)
         add_test(NAME dwg2dxf_cli_section_settings_recovery
             COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py

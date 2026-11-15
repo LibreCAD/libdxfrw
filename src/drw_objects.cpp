@@ -6766,8 +6766,10 @@ bool DRW_Vport::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
         && !readRawCharWithinBody(bodyBuf, version, bodyEnd,
                                   parsedRenderMode))
         return fail();
-    bool parsedUseDefaultLighting = false;
-    std::uint8_t parsedDefaultLightingType = 0;
+    // These fields do not exist before R2007. Preserve the public VPORT
+    // defaults in those files rather than inventing nondefault settings.
+    bool parsedUseDefaultLighting = parsed.useDefaultLighting;
+    std::uint8_t parsedDefaultLightingType = parsed.defaultLightingType;
     double parsedBrightness = 0.0;
     double parsedContrast = 0.0;
     std::uint32_t parsedAmbientColor = 250;
