@@ -36,5 +36,11 @@
     "implementationDigestSha256": "2d0364dd6ec26e519a8a97514990b6ecd16f85ce0b93ee8e80afa0a5edb04817",
     "selectedInputCount": 713,
     "validation": "Clean-clone digest and qualified-format support checks pass; no routes are advertised. Native and FreeCAD focused qualification must be rerun for this digest."
+  },
+  "sunstudyRecoveryRefresh": {
+    "sourceCommit": "558af964",
+    "implementationDigestSha256": "b254a80b9886e288bccc4387e7ab6417dd51efe7d50dd00cdba43ffc1ad0ff6a",
+    "selectedInputCount": 713,
+    "validation": "Clean-clone digest and qualified-format support checks pass; no routes advertised. Native qualification must be rerun for this revision."
   }
 }
