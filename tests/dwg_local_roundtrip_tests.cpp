@@ -28586,6 +28586,11 @@ public:
     using DRW_GeoData::parseDwg;
 };
 
+class TableStyleBodyProbe final : public DRW_TableStyle {
+public:
+    using DRW_TableStyle::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -29073,6 +29078,31 @@ public:
             geoData_.m_coordinateProjectionRadius = 6.5;
             geoData_.m_coordinateSystemDefinition = "LOCAL_RECOVERY";
         }
+        if (kind_ == 58) {
+            tableStyle_.handle = 0x700u;
+            tableStyle_.parentHandle =
+                DRW::DwgModelSpaceBlockRecordHandle;
+            tableStyle_.m_name = "RECOVERY_TABLESTYLE";
+            tableStyle_.m_flowDirection = 0;
+            tableStyle_.m_flags = 0;
+            tableStyle_.m_horizontalCellMargin = 0.1;
+            tableStyle_.m_verticalCellMargin = 0.2;
+            for (int rowIndex = 0; rowIndex < 3; ++rowIndex) {
+                DRW_TableStyleRowStyle row;
+                row.m_textHeight = 1.0 + rowIndex;
+                row.m_textAlignment = rowIndex + 1;
+                row.m_textStyleHandle = DRW::DwgStandardTextStyleHandle;
+                row.m_textColor = 256;
+                row.m_fillColor = 256;
+                for (int borderIndex = 0; borderIndex < 6; ++borderIndex) {
+                    DRW_TableStyleBorder border;
+                    border.m_edgeFlags = 1 << borderIndex;
+                    border.m_visible = 1;
+                    row.m_borders.push_back(border);
+                }
+                tableStyle_.m_rowStyles.push_back(std::move(row));
+            }
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -29261,6 +29291,10 @@ public:
             wrote = hasMalformedObject_
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerGeoDataObjectClass(&geoData_) && wrote;
+        } else if (kind_ == 58) {
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerTableStyleObjectClass(&tableStyle_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -29429,6 +29463,10 @@ public:
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeGeoData(&geoData_)) && wrote;
+        } else if (kind_ == 58) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeTableStyle(&tableStyle_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29452,7 +29490,7 @@ public:
         }
         DRW_Line line;
         if (kind_ == 15 || kind_ == 21 || kind_ == 22 || kind_ == 52
-            || kind_ == 54 || kind_ == 55 || kind_ == 56)
+            || kind_ == 54 || kind_ == 55 || kind_ == 56 || kind_ == 58)
             line.handle = 0x701u;
         else if (kind_ == 53)
             line.handle = 0x703u;
@@ -29537,6 +29575,7 @@ private:
     DRW_SpatialIndex spatialIndex_;
     DRW_LightList lightList_;
     DRW_GeoData geoData_;
+    DRW_TableStyle tableStyle_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -43010,6 +43049,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-lightlist-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-geodata-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-tablestyle-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -43119,6 +43160,9 @@ int main(int argc, char** argv) {
         const bool malformedGeoDataBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-geodata-body-source";
+        const bool malformedTableStyleBodySource =
+            std::string(argv[1])
+                == "--generate-cli-malformed-tablestyle-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -43216,6 +43260,7 @@ int main(int argc, char** argv) {
             || malformedSpatialIndexBodySource
             || malformedLightListBodySource
             || malformedGeoDataBodySource
+            || malformedTableStyleBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -43298,6 +43343,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 55
                                                                                                         : malformedGeoDataBodySource
                                                                                                             ? 56
+                                                                                                        : malformedTableStyleBodySource
+                                                                                                            ? 58
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -43411,6 +43458,7 @@ int main(int argc, char** argv) {
                  || malformedSpatialIndexBodySource
                  || malformedLightListBodySource
                  || malformedGeoDataBodySource
+                 || malformedTableStyleBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -43647,6 +43695,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedTableStyleBodySource) {
+                            TableStyleBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         if (malformedPointCloudDefinitionBodySource
                             || malformedPointCloudDefinitionExBodySource) {
                             PointCloudDefinitionBodyProbe typed;
@@ -43771,6 +43824,7 @@ int main(int argc, char** argv) {
                   || malformedSpatialIndexBodySource
                   || malformedLightListBodySource
                   || malformedGeoDataBodySource
+                  || malformedTableStyleBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -43850,6 +43904,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "LIGHTLIST"
                                                                                                                 : malformedGeoDataBodySource
                                                                                                                     ? "GEODATA"
+                                                                                                                : malformedTableStyleBodySource
+                                                                                                                    ? "TABLESTYLE"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
@@ -43931,6 +43987,8 @@ int main(int argc, char** argv) {
                                                                                         ? 55
                                                                                     : malformedGeoDataBodySource
                                                                                         ? 56
+                                                                                    : malformedTableStyleBodySource
+                                                                                        ? 58
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,

@@ -2591,6 +2591,16 @@ def check_malformed_geodata_body(converter, root, writer):
     return qualified + checked
 
 
+def check_malformed_tablestyle_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "TABLESTYLE",
+        "--generate-cli-malformed-tablestyle-body-source", profiles)
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3806,6 +3816,8 @@ def main():
                         help="run only generated LIGHTLIST recovery controls")
     parser.add_argument("--geodata-only", action="store_true",
                         help="run only generated GEODATA recovery controls")
+    parser.add_argument("--tablestyle-only", action="store_true",
+                        help="run only generated TABLESTYLE recovery controls")
     parser.add_argument("--source-disposition-only", action="store_true",
                         help="run only CLI repair/skip/mask preflight projections")
     parser.add_argument("--historical-ac1021-only", action="store_true",
@@ -3927,6 +3939,11 @@ def main():
             checked = check_malformed_geodata_body(
                 converter, root, args.writer)
             print(f"CLI GEODATA recovery: PASS ({checked} controls)")
+            return
+        if args.tablestyle_only:
+            checked = check_malformed_tablestyle_body(
+                converter, root, args.writer)
+            print(f"CLI TABLESTYLE recovery: PASS ({checked} controls)")
             return
         if args.partial_read_only:
             checked = check_partial_dwg_read_cli(converter, root, args.writer)

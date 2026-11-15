@@ -330,6 +330,14 @@ if(LIBDXFRW_BUILD_TESTS)
                 --geodata-only)
         set_tests_properties(dwg2dxf_cli_geodata_recovery PROPERTIES
             LABELS "fast;cli;dwg;disposition" TIMEOUT 20)
+        add_test(NAME dwg2dxf_cli_tablestyle_recovery
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py
+                --converter $<TARGET_FILE:dwg2dxf>
+                --writer $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+                --tablestyle-only)
+        set_tests_properties(dwg2dxf_cli_tablestyle_recovery PROPERTIES
+            LABELS "fast;cli;dwg;disposition" TIMEOUT 20)
         add_test(NAME dwg2dxf_cli_extended_contract
             COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py
