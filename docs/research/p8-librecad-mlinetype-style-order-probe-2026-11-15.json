@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad-mlinetype-style-order-probe-2026-11-15",
+  "date": "2026-11-15",
+  "status": "reproduced_forward_style_dependency",
+  "supportClaimEffect": "none",
+  "libdxfrwHead": "fe420e29073a5b1ba9523e90b623a9b02da2c094",
+  "consumer": {
+    "repository": "LibreCAD/LibreCAD",
+    "head": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+    "environment": "disposable macOS ARM64 focused upstream-linked test target",
+    "existingConsumerChanges": "Prior receipt's temporary $DIMSTYLE overload correction and group helper correction; original kNamedR2000Fixture restored for first probe."
+  },
+  "test": "DXF a linetype named only by an MLINESTYLE element reaches the walk",
+  "original": {
+    "result": "FAIL at LTYPE table",
+    "firstRejectedRecord": "VENDOR_CPLX handle 0x41",
+    "sourceStyleReference": "group 340 handle 0x4A (GASSTYLE)",
+    "observed": "Later LTYPE callbacks also fail after sticky write failure; do not attribute those to independent defects."
+  },
+  "isolated": {
+    "change": "Replace only the complex second VENDOR_CPLX segment with a simple dash; retain original MLINESTYLE and referenced VENDOR_MLS without a source LTYPE row.",
+    "result": "PASS, 5 assertions; generated VENDOR_MLS output record and both MLINESTYLE linetype names checked by existing consumer test."
+  },
+  "analysis": "Temporary instrumentation confirmed that writeLineType rejects source STYLE handle 0x4A because it is absent from sourceHandleToWrittenTableMap. writeTables invokes writeLTypes before writeTextstyles, so the referenced STYLE has not yet been emitted. Instrumentation was removed after the probe. The earlier receipt\u2019s MLINESTYLE attribution is superseded for this fixture and current source head.",
+  "next": "Implement a bounded forward STYLE identity plan with collision and kind checks and proof that each referenced STYLE is actually written before publication. Cover missing/wrong-kind references, alias collisions, ASCII/Binary and retry/readback. Alternatively prove a compatible table reorder before using it. Rerun the original LibreCAD case and PR 3269 selector with the known consumer DIMSTYLE correction; qualify other MLINESTYLE profiles separately.",
+  "fixturePolicy": "No DWG/DXF fixture added; test fixture is embedded text in disposable checkout."
+}

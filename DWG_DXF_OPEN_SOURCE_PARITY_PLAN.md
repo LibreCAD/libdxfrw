@@ -1165,6 +1165,25 @@ created locally from scratch for the specific control.
 
 ### Next work packets
 
+### Immediate integration defect — complex LTYPE forward STYLE reference
+
+The upstream-linked LibreCAD MLINESTYLE regression at head `fe420e29` fails
+first while writing `VENDOR_CPLX`, whose group 340 refers to STYLE `0x4A`.
+LTYPE is emitted before STYLE, but the writer requires that STYLE's emitted
+identity already exist; temporary instrumentation confirms the reference is
+absent at the rejection branch. In a disposable consumer checkout, replacing only the
+complex segment with a simple dash leaves the original MLINESTYLE fixture in
+place and the named-MLINESTYLE test passes all five assertions. This supersedes
+the earlier attribution of that fixture's failure to MLINESTYLE; it does not
+qualify other MLINESTYLE profiles. Implement a bounded forward STYLE identity
+plan, check kind/collisions and require actual STYLE emission before publication;
+cover missing and wrong-kind targets, rollback/retry and ASCII/Binary readback.
+A table reorder is an alternative only after proving consumer and format
+compatibility. Then rerun the original LibreCAD fixture and PR #3269 cases
+with the documented consumer `$DIMSTYLE` correction. See the
+[focused probe](docs/research/p8-librecad-mlinetype-style-order-probe-2026-11-15.json).
+
+
 The queue below contains only unfinished actions. Completed source profiles,
 codecs, tests, and controls have been removed from the queue; their commits and
 receipts remain in Git and `docs/research/`. Resume from the linked blocker
