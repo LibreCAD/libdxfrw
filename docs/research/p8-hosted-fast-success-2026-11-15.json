@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-15",
+  "workflow": "https://github.com/dxli/libdxfrw/actions/runs/43731499460",
+  "sourceCommit": "c32a4dac9193ef02958c1518e6aeeea647d5aa6e",
+  "platform": "GitHub Actions Ubuntu 24.04, GCC 13",
+  "results": {
+    "focusedExecutables": "7/7 passed",
+    "integrationCtests": "43 passed, 1 explicitly permitted skip, 0 failed",
+    "skipped": "libdxfrw_numeric_process_locale; host lacks the optional comma-decimal locale",
+    "sourceReleaseJob": "skipped on this branch push"
+  },
+  "validation": "The fast runner checks the exact required CTest set and accepts only the documented locale skip. The prior numeric and raw-entity APPID failures no longer occur.",
+  "limits": "The hosted result applies to the recorded revision and fast suite only. A later macOS package installation change requires rerunning selected checks; source-release, broad, ABI and independent semantic gates remain open. No support claim is promoted."
+}

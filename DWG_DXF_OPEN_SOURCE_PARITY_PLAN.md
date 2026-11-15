@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **532 completed implementation and qualification slices** and **32 remaining
+The plan records **533 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`532 / (532 + 32) = 94.3%`. The previous 28-package denominator was stale; a recount
+`533 / (533 + 32) = 94.3%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -27,8 +27,10 @@ it is missing ([numeric receipt](docs/research/p8-fast-numeric-reservation-contr
 The next hosted fast run stopped at the source inventory because the newly
 tracked consumer patch was missing. Both release inventories have been
 regenerated from a clean clone. A fully rebuilt local fast lane now passes
-seven executables and all 44 required integration CTests; fresh hosted
-qualification remains required ([inventory receipt](docs/research/p8-release-inventory-associative-patch-2026-11-15.json),
+seven executables and all 44 required integration CTests. Hosted Linux at
+`c32a4dac` passes seven executables and 43 of 44 integration CTests, with
+the optional OS-locale case explicitly skipped; the source-release job was
+not run. Rerun after the subsequent package change ([hosted receipt](docs/research/p8-hosted-fast-success-2026-11-15.json)); qualification remains required ([inventory receipt](docs/research/p8-release-inventory-associative-patch-2026-11-15.json),
 [clean consumer diagnosis](docs/research/p8-clean-consumer-ltype-diagnosis-2026-11-15.json)).
 
 The pre-R2007 DWG VPORT reader now retains its public lighting defaults when
