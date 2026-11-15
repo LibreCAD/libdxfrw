@@ -28536,6 +28536,11 @@ public:
     using DRW_Section::parseDwg;
 };
 
+class SectionSettingsBodyProbe final : public DRW_Section {
+public:
+    using DRW_Section::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28859,6 +28864,36 @@ public:
             sectionManager_.m_isLive = true;
             sectionManager_.m_sectionHandles = {0xE800u};
         }
+        if (kind_ == 45) {
+            sectionSettings_.handle = 0x700u;
+            sectionSettings_.m_kind = DRW_Section::Settings;
+            sectionSettings_.m_currentType = 1;
+            DRW_SectionTypeSettings type;
+            type.m_type = 2;
+            type.m_generation = 3;
+            type.m_sourceHandles = {0x701u};
+            type.m_destinationBlockHandle = 0x17u;
+            type.m_destinationFile = "RECOVERY_SECTION.dwg";
+            DRW_SectionGeometrySettings geometry;
+            geometry.m_numGeometries = 1;
+            geometry.m_hexIndex = 4;
+            geometry.m_flags = 5;
+            geometry.m_color = 6;
+            geometry.m_layer = "RECOVERY_LAYER";
+            geometry.m_lineType = "CONTINUOUS";
+            geometry.m_lineTypeScale = 0.5;
+            geometry.m_plotStyle = "RECOVERY_STYLE";
+            geometry.m_lineWeight = 7;
+            geometry.m_faceTransparency = 8;
+            geometry.m_edgeTransparency = 9;
+            geometry.m_hatchType = 1;
+            geometry.m_hatchPattern = "SOLID";
+            geometry.m_hatchAngle = 0.25;
+            geometry.m_hatchSpacing = 0.75;
+            geometry.m_hatchScale = 1.25;
+            type.m_geometry.push_back(geometry);
+            sectionSettings_.m_types.push_back(type);
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -29000,6 +29035,11 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerSectionObjectClass(&sectionManager_)
                     && wrote;
+        } else if (kind_ == 45) {
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerSectionObjectClass(&sectionSettings_)
+                    && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -29011,7 +29051,7 @@ public:
                    && !(kind_ >= 27 && kind_ <= 32) && kind_ != 33
                    && kind_ != 34 && !(kind_ >= 35 && kind_ <= 40)
                    && kind_ != 41 && kind_ != 42 && kind_ != 43
-                   && kind_ != 44) {
+                   && kind_ != 44 && kind_ != 45) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -29123,6 +29163,10 @@ public:
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeSection(&sectionManager_)) && wrote;
+        } else if (kind_ == 45) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeSection(&sectionSettings_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29218,6 +29262,7 @@ private:
     DRW_SunStudy sunStudy_;
     DRW_NavisworksModelDef navisworksModelDef_;
     DRW_Section sectionManager_;
+    DRW_Section sectionSettings_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -42669,6 +42714,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-navisworks-modeldef-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-section-manager-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-section-settings-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -42745,6 +42792,9 @@ int main(int argc, char** argv) {
         const bool malformedSectionManagerBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-section-manager-body-source";
+        const bool malformedSectionSettingsBodySource =
+            std::string(argv[1])
+                == "--generate-cli-malformed-section-settings-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -42831,6 +42881,7 @@ int main(int argc, char** argv) {
             || malformedSunStudyBodySource
             || malformedNavisworksModelDefBodySource
             || malformedSectionManagerBodySource
+            || malformedSectionSettingsBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -42891,6 +42942,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 43
                                                                                                         : malformedSectionManagerBodySource
                                                                                                             ? 44
+                                                                                                        : malformedSectionSettingsBodySource
+                                                                                                            ? 45
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -42993,6 +43046,7 @@ int main(int argc, char** argv) {
                  || malformedSunStudyBodySource
                  || malformedNavisworksModelDefBodySource
                  || malformedSectionManagerBodySource
+                 || malformedSectionSettingsBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -43183,6 +43237,12 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedSectionSettingsBodySource) {
+                            SectionSettingsBodyProbe typed;
+                            typed.m_kind = DRW_Section::Settings;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         MLineStyleBodyProbe typed;
                         return typed.parseDwg(version, &typedBuffer,
                                               malformed.m_bodyBitSize);
@@ -43287,6 +43347,7 @@ int main(int argc, char** argv) {
                   || malformedSunStudyBodySource
                   || malformedNavisworksModelDefBodySource
                   || malformedSectionManagerBodySource
+                  || malformedSectionSettingsBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -43344,6 +43405,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "NAVISWORKSMODELDEF"
                                                                                                                 : malformedSectionManagerBodySource
                                                                                                                     ? "SECTION_MANAGER"
+                                                                                                                : malformedSectionSettingsBodySource
+                                                                                                                    ? "SECTION_SETTINGS"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
@@ -43403,6 +43466,8 @@ int main(int argc, char** argv) {
                                                                                         ? 43
                                                                                     : malformedSectionManagerBodySource
                                                                                         ? 44
+                                                                                    : malformedSectionSettingsBodySource
+                                                                                        ? 45
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,

@@ -2409,6 +2409,16 @@ def check_malformed_section_manager_body(converter, root, writer):
         "--generate-cli-malformed-section-manager-body-source", profiles)
 
 
+def check_malformed_section_settings_body(converter, root, writer):
+    profiles = {
+        "AC1021": "2007",
+        "AC1027": None,
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "SECTION_SETTINGS",
+        "--generate-cli-malformed-section-settings-body-source", profiles)
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3604,6 +3614,8 @@ def main():
                         help="run only the unsupported DWG envelope-codepage diagnostic control")
     parser.add_argument("--partial-read-only", action="store_true",
                         help="run only the strict/explicit-partial DWG CLI controls")
+    parser.add_argument("--section-settings-only", action="store_true",
+                        help="run only the generated SECTION_SETTINGS recovery controls")
     parser.add_argument("--source-disposition-only", action="store_true",
                         help="run only CLI repair/skip/mask preflight projections")
     parser.add_argument("--historical-ac1021-only", action="store_true",
@@ -3676,6 +3688,11 @@ def main():
             checked = check_skipped_record_projection(converter, root, args.writer)
             print(f"CLI skipped-record disposition: PASS ({checked} version/profile controls)")
             return
+        if args.section_settings_only:
+            checked = check_malformed_section_settings_body(
+                converter, root, args.writer)
+            print(f"CLI SECTION_SETTINGS recovery: PASS ({checked} controls)")
+            return
         if args.partial_read_only:
             checked = check_partial_dwg_read_cli(converter, root, args.writer)
             vba_checked = check_malformed_vba_project_body(
@@ -3734,6 +3751,8 @@ def main():
                     converter, root, args.writer))
             section_manager_checked = check_malformed_section_manager_body(
                 converter, root, args.writer)
+            section_settings_checked = check_malformed_section_settings_body(
+                converter, root, args.writer)
             render_settings_checked = check_malformed_rendersettings_bodies(
                 converter, root, args.writer)
             render_settings_count = sum(render_settings_checked.values())
@@ -3762,7 +3781,8 @@ def main():
                   f"{motionpath_checked} MOTIONPATH, "
                   f"{sunstudy_checked} SUNSTUDY, "
                   f"{navisworks_modeldef_checked} NAVISWORKSMODELDEF, "
-                  f"{section_manager_checked} SECTION_MANAGER, and "
+                  f"{section_manager_checked} SECTION_MANAGER, "
+                  f"{section_settings_checked} SECTION_SETTINGS, and "
                   f"{render_settings_count} RENDERSETTINGS controls across "
                   f"Settings ({render_settings_checked['Settings']}), "
                   f"Global ({render_settings_checked['Global']}), "
