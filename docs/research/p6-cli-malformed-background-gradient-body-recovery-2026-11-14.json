@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-background-gradient-body-recovery-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_GRADIENTBACKGROUND_RECOVERY_AND_PARTIAL_OUTPUT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Bounded malformed Gradient BACKGROUND body recovery with strict refusal and explicit-partial ASCII/Binary readback.",
+  "source": {
+    "kind": "scratch-only DWGs authored at test runtime by the in-tree DWG writer; each valid typed seed is converted to a raw mutated frame and injected with matching custom-class registration",
+    "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-background-gradient-body-source",
+    "object": "Gradient BACKGROUND class version 0 with three generated color scalars and finite horizon, height, and rotation values; no owner, reactor, or type-specific handle dependency is added.",
+    "bodyMutation": "One bit is flipped after the validated common prologue inside the bounded object body.",
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-cli-malformed-background-gradient-body-recovery-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "controls": "Each eligible reader records one object parse failure and one failed object frame, retains the following LINE callback, and balances source = published + failed. Strict ASCII/Binary conversion refuses atomically. Explicit-partial ASCII/Binary conversion succeeds at AC1015/AC1018/AC1021/AC1024/AC1032; fresh DXF readback contains the retained LINE and VPORT. AC1027 reader recovery succeeds but both CLI modes refuse at the existing DWG source-reference qualification gate. The input DWGs remain unchanged."
+  },
+  "results": {
+    "readRecoveryFrameCounts": {
+      "AC1015": {"sourceFrames": 28, "publishedFrames": 27, "failedFrames": 1},
+      "AC1018": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1021": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1024": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1027": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1032": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1}
+    },
+    "cliDispositionControls": 28,
+    "perRevisionControls": {
+      "AC1015": 5,
+      "AC1018": 5,
+      "AC1021": 5,
+      "AC1024": 5,
+      "AC1027": 3,
+      "AC1032": 5
+    },
+    "fullFocusedDispositionCohortControls": 761,
+    "outputQualification": "Explicit-partial ASCII/Binary conversion and readback pass at AC1015/AC1018/AC1021/AC1024/AC1032. AC1027 is reader-only behind the source-reference gate. No claim is made for the other Background variants."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2: PASS",
+    "focusedControl": "check_malformed_background_gradient_body: PASS; 28 strict/partial/readback controls across AC1015/AC1018/AC1021/AC1024/AC1027/AC1032",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 23.60 seconds",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated parser-recovery and CLI disposition only; the output/readback result covers this Gradient subtype and generated field profile.",
+    "No other Background subtype, native visual semantics, producer prevalence, or interoperability is established.",
+    "AC1027 output remains unqualified behind the source-reference closure gate.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "P6-F adds generated Gradient BACKGROUND body recovery across all six revisions, with strict refusal and explicit-partial ASCII/Binary output/readback at AC1015/AC1018/AC1021/AC1024/AC1032.",
+    "remainingP6F": "Continue the source/resource inventory and select the next supported OBJECTS body parser with a bounded reproducible failure; treat sibling Background variants separately.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "419 completed slices and 32 remaining packages: 419/(419+32)=92.9%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-cli-malformed-background-groundplane-body-recovery-2026-11-14.json"
+}

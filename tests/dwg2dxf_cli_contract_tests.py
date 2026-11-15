@@ -2305,6 +2305,20 @@ def check_malformed_background_groundplane_body(converter, root, writer):
         profiles)
 
 
+def check_malformed_background_gradient_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "GRADIENTBACKGROUND",
+        "--generate-cli-malformed-background-gradient-body-source", profiles)
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3611,6 +3625,9 @@ def main():
             background_groundplane_checked = (
                 check_malformed_background_groundplane_body(
                     converter, root, args.writer))
+            background_gradient_checked = (
+                check_malformed_background_gradient_body(
+                    converter, root, args.writer))
             render_settings_checked = check_malformed_rendersettings_bodies(
                 converter, root, args.writer)
             render_settings_count = sum(render_settings_checked.values())
@@ -3631,7 +3648,8 @@ def main():
                   f"{rastervariables_checked} RASTERVARIABLES, "
                   f"{wipeoutvariables_checked} WIPEOUTVARIABLES, "
                   f"{background_checked} SOLIDBACKGROUND, "
-                  f"{background_groundplane_checked} GROUNDPLANEBACKGROUND, and "
+                  f"{background_groundplane_checked} GROUNDPLANEBACKGROUND, "
+                  f"{background_gradient_checked} GRADIENTBACKGROUND, and "
                   f"{render_settings_count} RENDERSETTINGS controls across "
                   f"Settings ({render_settings_checked['Settings']}), "
                   f"Global ({render_settings_checked['Global']}), "
