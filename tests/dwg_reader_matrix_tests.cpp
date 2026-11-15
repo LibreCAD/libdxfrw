@@ -6108,6 +6108,7 @@ void testFileLevelVportHandlesSectionR2004(
                   return left.second < right.second;
               });
     bool allFramesBounded = !framesByOffset.empty();
+    bool sawUnalignedHandleStream = false;
     std::uint64_t priorFrameEnd = 0u;
     std::unordered_map<std::uint32_t, std::size_t> frameBodySizes;
     frameBodySizes.reserve(framesByOffset.size());
@@ -6122,10 +6123,10 @@ void testFileLevelVportHandlesSectionR2004(
         const std::int32_t bodySize = framePrefix.getModularShort();
         const std::uint64_t handleBits = version >= DRW::AC1024
             ? framePrefix.getUModularChar() : 0u;
+        sawUnalignedHandleStream |= (handleBits % 8u != 0u);
         const std::uint64_t prefixSize = framePrefix.getPosition();
         if (!framePrefix.isGood() || bodySize <= 0 || prefixSize == 0u
-            || handleBits % 8u != 0u
-            || handleBits / 8u > static_cast<std::uint64_t>(bodySize)
+            || handleBits >= static_cast<std::uint64_t>(bodySize) * 8u
             || prefixSize > bytesRemaining
             || bytesRemaining - prefixSize < 2u
             || static_cast<std::uint64_t>(bodySize)
@@ -6157,6 +6158,9 @@ void testFileLevelVportHandlesSectionR2004(
     t.expect(allFramesBounded,
              "every " + versionName
                  + " HANDLES offset lands on a bounded, nonoverlapping, CRC-valid OBJECTS frame");
+    if (version == DRW::AC1027)
+        t.expect(sawUnalignedHandleStream,
+                 "AC1027 frame control includes a non-byte-aligned handle stream");
 
     const auto ledgerHandlesMapped = [&reader](
             const std::vector<std::uint32_t>& handles) {
@@ -18160,8 +18164,18 @@ void checkHeaderDateTimeVersion(TestContext& t, DRW::Version version,
     HeaderSectionReader reader(bytes, 0u, version, maintenance);
     DRW_Header parsed;
     const bool read = reader.readDwgHeader(parsed);
-    t.expect(read && reader.diagnostics().empty(),
-             "date/time HEADER reads cleanly: " + label);
+    const auto& diagnostics = reader.diagnostics();
+    const bool highSizeCompatibility = version == DRW::AC1027
+        || version == DRW::AC1032;
+    const bool expectedDiagnostics = highSizeCompatibility
+        ? diagnostics.size() == 1u
+            && diagnostics.front().kind == DwgIntegrityCheckKind::HeaderSectionCompatibility
+            && diagnostics.front().severity == DwgIntegritySeverity::Warning
+            && diagnostics.front().hasExpected && diagnostics.front().hasObserved
+            && diagnostics.front().observed == diagnostics.front().expected + 4u
+        : diagnostics.empty();
+    t.expect(read && expectedDiagnostics,
+             "date/time HEADER retains the expected envelope diagnostics: " + label);
     if (!read)
         return;
 
@@ -18649,8 +18663,19 @@ void testHeaderCompatibilityProfile(TestContext& t) {
     source.addStr("MENU", "header-boundary-menu", 1);
     dwgWriter32 writer(nullptr, &source);
     t.expect(writer.writeDwgHeader(), "compatible profile source generation");
-    const auto canonical = writer.buffer();
+    auto canonical = writer.buffer();
     const auto crcOffset = canonical.size() - 18u;
+    // The writer emits the alternate excluded-high-word profile. Construct a
+    // canonical envelope explicitly so the forged-trailer control below does
+    // not accidentally exercise the accepted alternate-profile suffix path.
+    patchHeaderTestLong(canonical, 16u,
+                        static_cast<std::uint32_t>(crcOffset - 20u));
+    sealHeaderTest(canonical, crcOffset);
+    HeaderSectionReader canonicalReader(canonical, 0u, DRW::AC1032, 55u);
+    DRW_Header canonicalHeader;
+    t.expect(canonicalReader.readDwgHeader(canonicalHeader)
+                 && canonicalReader.diagnostics().empty(),
+             "canonical HEADER control has no compatibility or suffix warning");
     auto compatible = canonical;
     patchHeaderTestLong(compatible, 16u,
                         static_cast<std::uint32_t>(crcOffset - 24u));
@@ -23297,6 +23322,7 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--header-version-envelopes") {
         TestContext focused;
         testHeaderVersionEnvelopes(focused);
+        testHeaderCompatibilityProfile(focused);
         std::cout << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;
     }

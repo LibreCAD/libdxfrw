@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-15",
+  "scope": "Correct generated HEADER and object-frame test controls; no production codec or support-claim change.",
+  "evidence": [
+    "The generated AC1032 HEADER declares 519 bytes with a CRC offset of 543: its declared count excludes the four-byte high-size word. The compatibility reader therefore reports the expected four-byte profile warning.",
+    "ODA Open Design Specification v5.4.1 section 9 describes the versioned HEADER size word; sections 20.1 and 20.2 define R2010+ handle-stream sizes in bits, including end padding. A handle stream starting inside a byte need not have a byte-multiple bit count."
+  ],
+  "changes": [
+    "Date/time controls require the exact compatibility-warning kind, severity and four-byte delta for the generated AC1027 and AC1032 profiles while preserving value assertions and clean diagnostics for earlier profiles.",
+    "Construct and CRC-seal a truly canonical HEADER control before testing that a distant forged trailer cannot rescue a surplus canonical envelope. The alternate profile retains its existing CRC, malformed-body, suffix, rollback and retry checks.",
+    "For the modern viewport object-frame control, compare handle bits directly against body bits and require an actual non-byte-aligned AC1027 witness. Offset ordering, nonoverlap, bounds and frame CRC checks remain in force."
+  ],
+  "validation": [
+    "The complete local libdxfrw_dwg_reader_matrix_tests executable passes with zero assertion failures; the previous local run had five.",
+    "The header-date-time-validation, header-version-envelopes and viewport-handles-section focused selectors pass."
+  ],
+  "limits": [
+    "Local generated controls do not establish independent producer interoperability or promote support claims.",
+    "The broader native roundtrip and hosted qualification remain open; the hosted qualification status overlay also needs its implementation digest refreshed."
+  ]
+}
