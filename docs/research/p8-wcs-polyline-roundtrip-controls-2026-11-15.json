@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-15",
+  "finding": "The generated topology controls supplied a non-default or zero extrusion for WCS polyline families, which the current writer correctly refuses rather than silently discard. Two conflicting topology flag cases also incorrectly expected successful output.",
+  "specification": "ODA Open Design Specification v5.4.1 sections 20.4.17, 20.4.33 and 20.4.34 omit the extrusion field for DWG 3D POLYLINE, PFACE and MESH. The DWG reader exposes the public default (0,0,1); see p4-ac1021-tablet-wcs-mesh-default-2026-11-07.json.",
+  "changes": [
+    "Use the WCS default in valid generated 3D/polyface/mesh records while retaining non-default extrusion coverage for 2D OCS polylines.",
+    "For each conflicting topology combination and encoding, assert refusal, destination sentinel preservation, and successful same-exporter retry after correcting parent and vertex roles."
+  ],
+  "validation": [
+    "The local full roundtrip removes both topology and both polygon-mesh assertions, leaving three unrelated failures.",
+    "The separate WCS POLYLINE extrusion loss guard passes its refusal and retry controls."
+  ],
+  "limits": "This changes generated test models, not the writer's loss guard or support claims. Native cross-platform reruns remain required."
+}

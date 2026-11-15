@@ -31910,8 +31910,9 @@ bool runDxfPolygonMeshModes(bool binary, const std::filesystem::path& directory,
         polyline->smoothM = mode.smooth ? 3 : 0;
         polyline->smoothN = mode.smooth ? 2 : 0;
         polyline->curvetype = mode.smooth;
-        polyline->extPoint = mode.flags == 0 ? DRW_Coord(0, 0, 1)
-                                            : DRW_Coord(0, .6, .8);
+        // WCS polyline topologies have no extrusion field in DWG. Use the
+        // public default instead of asking the DXF writer to discard a value.
+        polyline->extPoint = DRW_Coord(0, 0, 1);
         for (int i = 0; i != mode.count; ++i) {
             DRW_Vertex vertex(points[i].x, points[i].y,
                               mode.flags == 0 ? 0 : points[i].z, 0);
@@ -31932,6 +31933,34 @@ bool runDxfPolygonMeshModes(bool binary, const std::filesystem::path& directory,
         const auto output = directory / ("libdxfrw-polygon-mesh-" + encoding
                                         + "-" + mode.name + "-second.dxf");
         dx_iface exporter;
+        const int topology = mode.flags & (8 | 16 | 64);
+        if ((topology & (topology - 1)) != 0) {
+            const std::string sentinel = "preserve conflicting polyline\n";
+            { std::ofstream file(input, std::ios::binary); file << sentinel; }
+            const bool refused = !exporter.fileExport(
+                input.string(), DRW::AC1027, binary, &source, false);
+            std::string after;
+            {
+                std::ifstream file(input, std::ios::binary);
+                after.assign(std::istreambuf_iterator<char>(file), {});
+            }
+            bool repaired = refused && after == sentinel
+                && polyline->flags == mode.flags;
+            polyline->flags = (mode.flags & 64) != 0 ? 64 : 8;
+            for (const auto& vertex : polyline->vertlist)
+                vertex->flags = polyline->flags == 64 ? 192 : 32;
+            const DRW_Polyline corrected = *polyline;
+            repaired = repaired && exporter.fileExport(
+                input.string(), DRW::AC1027, binary, &source, false)
+                && rawMatches(input, corrected,
+                    polyline->flags == 64 ? "AcDbPolyFaceMesh" : "AcDb3dPolyline");
+            if (!repaired)
+                std::cerr << "POLYLINE topology refusal/retry failed: "
+                          << mode.name << " (" << encoding << ")\n";
+            valid = repaired && valid;
+            if (!keepOutput) std::filesystem::remove(input, ec);
+            continue;
+        }
         dx_data reopened;
         dx_iface importer;
         bool matches = exporter.fileExport(input.string(), DRW::AC1027, binary,
@@ -32016,9 +32045,9 @@ bool runDxfTopologyRoundTrip(bool binary, const std::filesystem::path& directory
     poly3d->handle = 0xFA02u;
     poly3d->flags = 8;
     poly3d->vertexcount = 3;
-    // DWG 3D polylines do not store a meaningful extrusion vector. A zero
-    // initialized DXF normal must not leak into WCS-only POLYLINE output.
-    poly3d->extPoint = DRW_Coord(0.0, 0.0, 0.0);
+    // DWG 3D polylines have no extrusion field; the reader exposes the
+    // public WCS default for the output model.
+    poly3d->extPoint = DRW_Coord(0.0, 0.0, 1.0);
     poly3d->addVertex(DRW_Vertex(13.0, 14.0, 15.0, 0.0));
     poly3d->addVertex(DRW_Vertex(16.0, 17.0, 18.0, 0.0));
     poly3d->addVertex(DRW_Vertex(19.0, 20.0, 21.0, 0.0));
@@ -32031,7 +32060,7 @@ bool runDxfTopologyRoundTrip(bool binary, const std::filesystem::path& directory
     polyface->flags = 64;
     polyface->vertexcount = 4;
     polyface->facecount = 1;
-    polyface->extPoint = DRW_Coord(0.0, 0.0, 0.0);
+    polyface->extPoint = DRW_Coord(0.0, 0.0, 1.0);
     const std::array<DRW_Coord, 4> polyfacePoints{{
         DRW_Coord(0.0, 0.0, 0.0), DRW_Coord(1.0, 0.0, 0.0),
         DRW_Coord(1.0, 1.0, 0.0), DRW_Coord(0.0, 1.0, 0.0)}};
@@ -32056,7 +32085,7 @@ bool runDxfTopologyRoundTrip(bool binary, const std::filesystem::path& directory
     polygonMesh->flags = 16;
     polygonMesh->vertexcount = 2;
     polygonMesh->facecount = 2;
-    polygonMesh->extPoint = DRW_Coord(0.0, 0.0, 0.0);
+    polygonMesh->extPoint = DRW_Coord(0.0, 0.0, 1.0);
     const std::array<DRW_Coord, 4> polygonMeshPoints{{
         DRW_Coord(0.0, 0.0, 0.0), DRW_Coord(2.0, 0.0, 0.0),
         DRW_Coord(2.0, 2.0, 4.0), DRW_Coord(0.0, 2.0, 0.0)}};
