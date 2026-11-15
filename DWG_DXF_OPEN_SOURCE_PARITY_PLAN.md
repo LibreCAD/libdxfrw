@@ -36,9 +36,11 @@ table byte goldens and R12 export of the new-document default lineweight
 ([remap receipt](docs/research/p8-bundled-complex-ltype-style-remap-2026-11-15.json),
 [policy receipt](docs/research/p8-canonical-ltype-policy-consumer-test-2026-11-15.json)).
 The first hosted run at `70e8f034` exposed a stale frozen CTest inventory.
-It is regenerated against that commit and matches all 1,365 names in the
-hosted macOS inventory; rerun native qualification after this repair
-([receipt](docs/research/p8-native-inventory-codepage-regeneration-2026-11-15.json)).
+After regeneration, native focused qualification at `c5b3f5b4` passes 7/7
+on Linux, macOS and Windows; the limited generated FreeCAD profile passes
+10/10 on Linux and 11/11 on Windows. Broader consumer and semantic gates
+remain open ([inventory repair](docs/research/p8-native-inventory-codepage-regeneration-2026-11-15.json),
+[hosted receipt](docs/research/p8-hosted-native-freecad-codepage-fix-2026-11-15.json)).
 The current clean LibreCAD_3 persistence adapter also passes syntax checks
 against the installed public headers; its clean link, runtime and DWG paths
 remain open ([receipt](docs/research/p8-librecad3-installed-header-syntax-2026-11-15.json)).
