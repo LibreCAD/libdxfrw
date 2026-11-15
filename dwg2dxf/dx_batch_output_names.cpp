@@ -212,7 +212,9 @@ public:
         return clean;
     }
 
-    const std::filesystem::path& workDirectory() const { return workDirectory_; }
+    const std::filesystem::path& workPath(const std::filesystem::path&) const {
+        return workDirectory_;
+    }
 
 private:
     struct Entry {

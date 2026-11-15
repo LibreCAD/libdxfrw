@@ -533,7 +533,7 @@ struct DRW_AcisTransformObservation {
     bool pointerResolved = false;
     bool rawLiteralPresent = false;
     std::size_t rawLiteralTokenIndex =
-        std::numeric_limits<std::size_t>::max();
+        (std::numeric_limits<std::size_t>::max)();
     std::string rawLiteral;
     //! Full decoded record token sequence; trailing hints remain uninterpreted.
     std::vector<DRW_SabToken> rawTokens;
@@ -635,7 +635,7 @@ inline DRW_AcisProjectionCoverage drw_acisProjectionCoverage(
         != projection.wireframe.lumps.size()) {
         hasKnownGaps = true;
     }
-    const std::size_t maxRows = std::numeric_limits<std::size_t>::max();
+    const std::size_t maxRows = (std::numeric_limits<std::size_t>::max)();
     std::size_t shellRowsFromLumps = 0u;
     for (const DRW_AcisLump& lump : projection.wireframe.lumps) {
         if (lump.shellNodeIndices.size() > maxRows - shellRowsFromLumps) {
@@ -656,7 +656,7 @@ inline DRW_AcisProjectionCoverage drw_acisProjectionCoverage(
     }
     if (faceRowsFromShells != projection.wireframe.faces.size())
         hasKnownGaps = true;
-    const double maxFiniteValue = std::numeric_limits<double>::max();
+    const double maxFiniteValue = (std::numeric_limits<double>::max)();
     const auto finiteValue = [maxFiniteValue](double value) noexcept {
         return value >= -maxFiniteValue && value <= maxFiniteValue;
     };
@@ -1564,7 +1564,7 @@ inline DRW_AcisProjectionCoverage drw_acisProjectionCoverage(
                                      graphLinkGroupIndexReady](
                                         int sourceNodeIndex,
                                         std::size_t pointerCount) {
-        const std::size_t missing = std::numeric_limits<std::size_t>::max();
+        const std::size_t missing = (std::numeric_limits<std::size_t>::max)();
         if (!graphLinkGroupIndexReady)
             return missing;
         const auto found = std::lower_bound(
@@ -1593,7 +1593,7 @@ inline DRW_AcisProjectionCoverage drw_acisProjectionCoverage(
         return first;
     };
     const std::size_t missingGraphLinkGroup =
-        std::numeric_limits<std::size_t>::max();
+        (std::numeric_limits<std::size_t>::max)();
     const std::size_t firstBodyLink = findGraphLinkGroup(
         projection.bodyNodeIndex, 4u);
     const int firstLump = projection.lumpNodeIndices.empty()
@@ -1800,7 +1800,7 @@ enum class DRW_AcisProjectionFailure {
 struct DRW_AcisRootedProjectionReport {
     DRW_AcisProjectionFailure failure = DRW_AcisProjectionFailure::NoFailure;
     int failedNodeIndex = -1;
-    std::size_t failedPointerOrdinal = std::numeric_limits<std::size_t>::max();
+    std::size_t failedPointerOrdinal = (std::numeric_limits<std::size_t>::max)();
     std::size_t bodyCount = 0;
     std::size_t multiplyRootedNodeCount = 0;
     std::size_t verticesOutsideBodyRoots = 0;

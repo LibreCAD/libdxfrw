@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **492 completed implementation and qualification slices** and **32 remaining
+The plan records **493 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`492 / (492 + 32) = 93.9%`. The previous 28-package denominator was stale; a recount
+`493 / (493 + 32) = 93.9%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -40,7 +40,9 @@ on a null LAYER plot-style reference. The null reference now round-trips in
 local ASCII/Binary and both CLI controls pass locally; hosted rerun remains
 required ([Linux receipt](docs/research/p8-linux-freecad-generated-platform-run-2026-11-15.json),
 [fix receipt](docs/research/p8-null-layer-plot-style-cli-readback-2026-11-15.json)).
-Windows compiler fixes also await hosted verification.
+The latest Windows run reached the CLI build and exposed Windows macro,
+lambda, and batch-path errors; fixes and a Windows consumer/batch test are
+ready for hosted verification ([receipt](docs/research/p8-windows-cli-header-build-fixes-2026-11-15.json)).
 
 The upstream-linked LibreCAD `[mtext]~[dwg]` selector now passes 4/4 after
 normalizing invalid DXF line-spacing styles and correcting its R2018 column

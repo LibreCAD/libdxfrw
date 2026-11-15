@@ -866,9 +866,9 @@ private:
     if (!finite(data.extPoint))
       return;
 
-    const double normalScale = std::max({std::fabs(data.extPoint.x),
-                                         std::fabs(data.extPoint.y),
-                                         std::fabs(data.extPoint.z)});
+    const double normalScale = (std::max)({std::fabs(data.extPoint.x),
+                                           std::fabs(data.extPoint.y),
+                                           std::fabs(data.extPoint.z)});
     if (normalScale == 0.0 || !std::isfinite(normalScale))
       return;
     DRW_Coord normal(data.extPoint.x / normalScale,

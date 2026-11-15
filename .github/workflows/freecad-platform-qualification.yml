@@ -128,7 +128,7 @@ jobs:
             -DLIBDXFRW_BUILD_DWG2DXF=ON `
             -DLIBDXFRW_BUILD_TESTS=ON
           if ($LASTEXITCODE -ne 0) { throw "CMake configure failed: $LASTEXITCODE" }
-          cmake --build build --config Release --parallel 2 --target dwg2dxf libdxfrw_dwg_local_roundtrip
+          cmake --build build --config Release --parallel 2 --target dwg2dxf libdxfrw_dwg_local_roundtrip libdxfrw_batch_output_names_tests libdxfrw_consumer_cxx17_contract
           if ($LASTEXITCODE -ne 0) { throw "CMake build failed: $LASTEXITCODE" }
           $prefix = Join-Path $env:RUNNER_TEMP 'libdxfrw install'
           cmake --install build --config Release --prefix $prefix
@@ -143,7 +143,7 @@ jobs:
           cmake --build build --config Release --parallel 2 --target dwg2dxf
           if ($LASTEXITCODE -ne 0) { throw "CMake rebuild failed: $LASTEXITCODE" }
           ctest --test-dir build -C Release `
-            -R '^dwg2dxf_freecad_(generated_ac1021_(line|primitives)_.*|generated_ac1024_primitives_.*|generated_ac1032_primitives_.*|cli_compat|installed_cli_compat)$' `
+            -R '^(dwg2dxf_freecad_(generated_ac1021_(line|primitives)_.*|generated_ac1024_primitives_.*|generated_ac1032_primitives_.*|cli_compat|installed_cli_compat)|libdxfrw_batch_output_names)$' `
             --output-on-failure --verbose
           if ($LASTEXITCODE -ne 0) { throw "FreeCAD CTest qualification failed: $LASTEXITCODE" }
 

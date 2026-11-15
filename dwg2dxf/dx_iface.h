@@ -814,8 +814,8 @@ public:
             const std::vector<std::string>& linetypeNames) noexcept override {
         if (!cData || cData->sourceFormat != dx_source_format::DWG
             || cData->importGeneration == 0u) return;
-        constexpr std::size_t maxResourceNames = 100000u;
-        constexpr std::size_t maxResourceNameBytes =
+        static constexpr std::size_t maxResourceNames = 100000u;
+        static constexpr std::size_t maxResourceNameBytes =
             16u * 1024u * 1024u;
         const auto bounded = [](const std::vector<std::string>& names) {
             std::size_t bytes = 0u;
