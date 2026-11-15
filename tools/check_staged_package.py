@@ -1309,6 +1309,7 @@ BUILD_OPTION_CASES = (
     ("tests-without-library", False, False, True,
      "LIBDXFRW_BUILD_TESTS requires LIBDXFRW_BUILD_LIBRARY"),
     ("tests-with-library", True, False, True, None),
+    ("tests-with-library-and-cli", True, True, True, None),
     ("all-disabled", False, False, False, None),
     ("cli-without-library", False, True, False,
      "LIBDXFRW_BUILD_DWG2DXF requires LIBDXFRW_BUILD_LIBRARY"),
@@ -1371,7 +1372,7 @@ def self_test_build_option_contract() -> None:
 
 
 def self_test_build_options(cxx: str) -> None:
-    """Exercise four option profiles and eight probe controls; never build project targets."""
+    """Exercise five option profiles and eight probe controls; never build project targets."""
     # Keep ordinary --self-test compiler-free. Only this explicit opt-in runs
     # CMake/compiler discovery, using the invoking Python rather than PATH's
     # possibly older python3 when the tests-enabled positive is configured.
@@ -1389,12 +1390,21 @@ def self_test_build_options(cxx: str) -> None:
                         build / "CMakeFiles" / "TargetDirectories.txt",
                         build / "CTestTestfile.cmake")):
                     raise RuntimeError("rejected options created a target/test graph")
+                if diagnostic is None and tests:
+                    names = ("dwg2dxf_generated_ac1021_group_parent_reactor_closure",
+                             "dwg2dxf_dimassoc_adapter_closure_refusal")
+                    selection = "^(%s)$" % "|".join(names)
+                    listing = run_bounded(["ctest", "--test-dir", str(build), "-N",
+                                           "-R", selection], timeout=30, output_limit=32768)
+                    listed = (listing.stdout + listing.stderr).decode("utf-8", "replace")
+                    if listing.returncode != 0 or any((name in listed) != cli for name in names):
+                        raise RuntimeError("CLI test registration does not match the build option:\n" + listed)
             except RuntimeError:
                 print(output, end="")
                 raise
             print("build options %s: PASS (configure-only control)" % name)
         self_test_python_probe(cxx, source, Path(directory))
-    print("build options self-test: PASS (4 profiles; no library/format build)")
+    print("build options self-test: PASS (5 profiles; no library/format build)")
 
 
 def self_test_python_probe(cxx: str, source: Path, root: Path) -> None:

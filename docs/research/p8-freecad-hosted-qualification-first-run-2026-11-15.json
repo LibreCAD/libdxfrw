@@ -1,0 +1,28 @@
+{
+  "date": "2026-11-15",
+  "scope": "Hosted FreeCAD workflow bring-up and current-branch build-option fixes; no native application qualification has passed.",
+  "fork_run": "https://github.com/dxli/libdxfrw/actions/runs/43716600382",
+  "fork_commit": "3b0410d567dd5faa450d6cce70ef16e65c173d46",
+  "upstream_baseline": "https://github.com/LibreCAD/libdxfrw/actions/runs/43716494212",
+  "observations": [
+    "Fork Linux verified pinned FreeCAD 1.1.4 archive but GCC 13 rejected an always-true int16 upper-bound comparison with -Werror before executable build.",
+    "Fork Windows verified and extracted pinned FreeCAD 1.1.4 archive but found two case-insensitive FreeCADCmd.exe matches; local SHA-256 verified archive listing has root FreeCADCmd.exe and bin/freecadcmd.exe.",
+    "Fork fast CI configured tests with the CLI disabled and exposed two unconditional target-file references.",
+    "Upstream baseline tested a different revision and FreeCAD 1.1.3: Linux had no TMPDIR for the existing test harness; Windows found two command executables. The current fork workflow explicitly sets Linux TMPDIR."
+  ],
+  "fixes": [
+    "Guard the two CLI-dependent tests with TARGET dwg2dxf; add enabled/disabled CTest-registration controls to the build-options self-test.",
+    "Remove the redundant int16 maximum comparison, preserving the existing lower bound and result.",
+    "Use the fixed bin/freecadcmd.exe path from the SHA-256-pinned Windows release archive; retain existence check."
+  ],
+  "local_validation": [
+    "Five build-option configure profiles including CTest registration assertions, eight Python probe controls, staged-package self-test.",
+    "GCC 16 -std=c++17 -Wall -Wextra -pedantic -Werror syntax check on src/intern/dwgbuffer.cpp.",
+    "actionlint for the FreeCAD workflow and git diff --check."
+  ],
+  "remaining": [
+    "Rerun the current implementation on hosted Linux and Windows; fix additional build or runtime failures before claiming any qualification.",
+    "Generated primitive cases do not close the mesh, surface, ACIS, or native platform phase gates.",
+    "No external drawing fixture added."
+  ]
+}

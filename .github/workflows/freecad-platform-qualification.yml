@@ -108,11 +108,13 @@ jobs:
           New-Item -ItemType Directory -Path $destination | Out-Null
           & $sevenZip x $archive "-o$destination" -y
           if ($LASTEXITCODE -ne 0) { throw "7-Zip extraction failed: $LASTEXITCODE" }
-          $commands = @(Get-ChildItem -Path $destination -Filter FreeCADCmd.exe -File -Recurse)
-          if ($commands.Count -ne 1) {
-            throw "Expected one FreeCADCmd.exe in the pinned archive, found $($commands.Count)"
+          # The pinned archive also contains a root launcher. Use the actual
+          # console executable in bin, whose layout is fixed by the hash above.
+          $command = Join-Path $destination 'FreeCAD_1.1.4-Windows-x86_64-py311/bin/freecadcmd.exe'
+          if (-not (Test-Path -Path $command -PathType Leaf)) {
+            throw "FreeCAD console executable missing from pinned archive: $command"
           }
-          "cmd=$($commands[0].FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "cmd=$command" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Build, install, and qualify the Windows handoff
         shell: pwsh

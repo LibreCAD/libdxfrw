@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **485 completed implementation and qualification slices** and **32 remaining
+The plan records **486 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`485 / (485 + 32) = 93.8%`. The previous 28-package denominator was stale; a recount
+`486 / (486 + 32) = 93.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -21,7 +21,10 @@ The native FreeCAD qualification workflow also accepts pushes to dedicated
 `codex/freecad-platform-qualification-*` branches, so a fork can run the
 current branch without changing its divergent default branch. The trigger
 is only an execution path; platform gates remain open until the actual
-Linux and Windows results and their scope are reviewed.
+Linux and Windows results and their scope are reviewed. Initial hosted runs
+exposed disabled-CLI CMake test registration, a GCC type-limits error, and
+two FreeCAD executables in the Windows archive; the fixes and remaining
+native rerun gate are recorded in the [receipt](docs/research/p8-freecad-hosted-qualification-first-run-2026-11-15.json).
 
 The upstream-linked LibreCAD `[mtext]~[dwg]` selector now passes 4/4 after
 normalizing invalid DXF line-spacing styles and correcting its R2018 column

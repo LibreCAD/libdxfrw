@@ -2062,8 +2062,7 @@ public:
             oType = static_cast<std::int16_t>(value);
     }
     std::uint16_t getDwgClassNum() const {
-        return oType >= 500 && oType <= 0x7FFF
-            ? static_cast<std::uint16_t>(oType) : 0u;
+        return oType >= 500 ? static_cast<std::uint16_t>(oType) : 0u;
     }
     DRW_Table(const DRW_Table& o): DRW_Insert(o),
         m_valueFlag(o.m_valueFlag),

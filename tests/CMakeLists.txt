@@ -1961,6 +1961,7 @@ add_test(NAME libdxfrw_dwg_ac1024_modeler_wireframe_presence
         ${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1024/visualization_-_aerial.dwg)
 set_tests_properties(libdxfrw_dwg_ac1024_modeler_wireframe_presence
     PROPERTIES LABELS "fast;dwg;AC1024;modeler;wireframe;physical" TIMEOUT 30)
+if(TARGET dwg2dxf)
 add_test(NAME dwg2dxf_generated_ac1021_group_parent_reactor_closure
     COMMAND ${CMAKE_COMMAND}
         "-DAUTHOR=$<TARGET_FILE:libdxfrw_dwg_ac1021_polyline_group_targets_tests>"
@@ -1981,6 +1982,7 @@ add_test(NAME dwg2dxf_dimassoc_adapter_closure_refusal
 set_tests_properties(dwg2dxf_dimassoc_adapter_closure_refusal PROPERTIES
     LABELS "fast;dwg;dxf;dimassoc;adapter;graph;generated;transaction"
     TIMEOUT 30)
+endif()
 add_test(NAME dwg2dxf_generated_dimassoc_graph_node
     COMMAND libdxfrw_dwg2dxf_adapter_tests --generated-dimassoc-graph)
 set_tests_properties(dwg2dxf_generated_dimassoc_graph_node PROPERTIES
