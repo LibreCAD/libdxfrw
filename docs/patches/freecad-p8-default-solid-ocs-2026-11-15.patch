@@ -1,0 +1,109 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+index 9bf444d..4c39b53 100644
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -1328,17 +1328,23 @@ void ImpExpDxfRead::OnReadSolid(
+         // A DXF SOLID with identical 3rd and 4th vertices is a triangle.
+         bool isTriangle = (third - fourth).Length() < Precision::Confusion();
+ 
++        // SOLID corners are expressed in OCS; the collector and block geometry use WCS.
++        const gp_Pnt p1 = makePoint(OCSOrientationTransform * first);
++        const gp_Pnt p2 = makePoint(OCSOrientationTransform * second);
++        const gp_Pnt p3 = makePoint(OCSOrientationTransform * third);
++        const gp_Pnt p4 = makePoint(OCSOrientationTransform * fourth);
++
+         // DXF SOLID vertex order is 1-2-4-3, not 1-2-3-4; connecting naively produces a bowtie.
+         BRepBuilderAPI_MakeWire wireBuilder;
+-        wireBuilder.Add(BRepBuilderAPI_MakeEdge(makePoint(first), makePoint(second)).Edge());
++        wireBuilder.Add(BRepBuilderAPI_MakeEdge(p1, p2).Edge());
+         if (isTriangle) {
+-            wireBuilder.Add(BRepBuilderAPI_MakeEdge(makePoint(second), makePoint(third)).Edge());
+-            wireBuilder.Add(BRepBuilderAPI_MakeEdge(makePoint(third), makePoint(first)).Edge());
++            wireBuilder.Add(BRepBuilderAPI_MakeEdge(p2, p3).Edge());
++            wireBuilder.Add(BRepBuilderAPI_MakeEdge(p3, p1).Edge());
+         }
+         else {
+-            wireBuilder.Add(BRepBuilderAPI_MakeEdge(makePoint(second), makePoint(fourth)).Edge());
+-            wireBuilder.Add(BRepBuilderAPI_MakeEdge(makePoint(fourth), makePoint(third)).Edge());
+-            wireBuilder.Add(BRepBuilderAPI_MakeEdge(makePoint(third), makePoint(first)).Edge());
++            wireBuilder.Add(BRepBuilderAPI_MakeEdge(p2, p4).Edge());
++            wireBuilder.Add(BRepBuilderAPI_MakeEdge(p4, p3).Edge());
++            wireBuilder.Add(BRepBuilderAPI_MakeEdge(p3, p1).Edge());
+         }
+ 
+         if (!wireBuilder.IsDone()) {
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+index 9d383bf..d94623d 100644
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2064,8 +2064,8 @@ void CDxfRead::ResolveEntityAttributes()
+     // means the X and Y components of EntityNormalVector are less than 1/64, a value chosen because
+     // it is exactly representable in all binary floating-point systems.
+     Base::Vector3d xDirection;
+-    if (EntityNormalVector.x < ArbitraryAxisAlgorithmThreshold
+-        && EntityNormalVector.y < ArbitraryAxisAlgorithmThreshold) {
++    if (std::abs(EntityNormalVector.x) < ArbitraryAxisAlgorithmThreshold
++        && std::abs(EntityNormalVector.y) < ArbitraryAxisAlgorithmThreshold) {
+         // The Z axis is close to the UCS Z axis, the X direction is UCSY × OCSZ
+         static const Base::Vector3d UCSYAxis(0, 1, 0);
+         xDirection = UCSYAxis % EntityNormalVector;
+@@ -2075,6 +2075,7 @@ void CDxfRead::ResolveEntityAttributes()
+         static const Base::Vector3d UCSZAxis(0, 0, 1);
+         xDirection = UCSZAxis % EntityNormalVector;
+     }
++    xDirection.Normalize();
+     OCSOrientationTransform.setCol(0, xDirection);
+     // In all cases the Y direction is the Zdirection × XDirection which gives a right-hand
+     // orthonormal coordinate system
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index dc76e0c..07853bd 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -21,6 +21,8 @@
+ 
+ """DXF import tests."""
+ 
++import os
++
+ import FreeCAD
+ import Import
+ from importtests.TestImportBase import TestImportBase
+@@ -74,3 +76,38 @@ class TestImportDXF(TestImportBase):
+         self.assertAlmostEqual(bound_box.XMax, 10.0)
+         self.assertAlmostEqual(bound_box.YMax, 5.0)
+         self.assertAlmostEqual(bound_box.ZLength, 0.0)
++
++    def test_read_solid_ocs_vertices(self):
++        """SOLID corners use an orthonormal arbitrary-axis OCS basis."""
++        corners = [(1, 2, 3), (4, 2, 3), (1, 6, 3), (4, 6, 3)]
++        cases = [
++            ((0, 0, 1), corners),
++            ((-1, 0, 0), [(-3, -1, 2), (-3, -4, 2), (-3, -1, 6), (-3, -4, 6)]),
++            ((0.6, 0, 0.8), [(0.2, 1, 3.6), (0.2, 4, 3.6), (-3, 1, 6), (-3, 4, 6)]),
++            ((3, 0, 4), [(0.2, 1, 3.6), (0.2, 4, 3.6), (-3, 1, 6), (-3, 4, 6)]),
++        ]
++        for index, (normal, expected) in enumerate(cases):
++            with self.subTest(normal=normal):
++                tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                        (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                        (0, "SECTION"), (2, "ENTITIES"), (0, "SOLID"), (8, "0")]
++                for i, point in enumerate(corners):
++                    tags.extend((code + i, value) for code, value in zip((10, 20, 30), point))
++                tags.extend(zip((210, 220, 230), normal))
++                tags.extend([(0, "ENDSEC"), (0, "EOF")])
++                path = os.path.join(self.temp_dir, f"solid-ocs-{index}.dxf")
++                with open(path, "w", encoding="ascii", newline="\n") as stream:
++                    stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                previous = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                shapes = [obj.Shape for obj in self.document.Objects
++                          if obj not in previous and obj.isDerivedFrom("Part::Feature")]
++                self.assertEqual(stats["entityCounts"].get("SOLID"), 1)
++                self.assertEqual(len(shapes), 1)
++                self.assertTrue(shapes[0].isValid())
++                self.assertAlmostEqual(shapes[0].Area, 12.0)
++                actual = sorted((v.Point.x, v.Point.y, v.Point.z) for v in shapes[0].Vertexes)
++                self.assertEqual(len(actual), 4)
++                for a, e in zip(actual, sorted(expected)):
++                    for coordinate, target in zip(a, e):
++                        self.assertAlmostEqual(coordinate, target, places=8)
