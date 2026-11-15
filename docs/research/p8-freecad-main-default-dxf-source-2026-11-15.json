@@ -11,7 +11,7 @@
     "freecad114_dxf.cpp": "635d7d580a42d49a725b5c63f7b75411532f1c27070e824770a9ddfecbe7b9f3"
   },
   "findings": [
-    "The pinned 1.1.4 CDxfRead source has no SOLID or 3DFACE dispatcher; its native no-shape results were recorded separately.",
+    "The pinned 1.1.4 CDxfRead source has no SOLID or 3DFACE dispatcher; its native no-shape results were recorded separately. An unmerged follow-up implements a bounded planar 3DFACE route; see p8-freecad-main-planar-3dface-patch-2026-11-15.json.",
     "At current main, CDxfRead::ReadEntity dispatches SOLID to ReadSolid and ImpExpDxfRead::OnReadSolid constructs the face with DXF corner order 1-2-4-3. There is no corresponding 3DFACE dispatch; generic-shape comments are not a reader route.",
     "Native confirmation: current-main SOLID with negative-axis or oblique extrusion is created at raw OCS vertices; default-axis SOLID and following LINE remain intact. The unmerged patch applies the normalized arbitrary-axis basis to SOLID corners.",
     "The shared OCS basis used signed X/Y comparisons and omitted X-axis normalization; the patch uses absolute threshold comparisons and normalizes the selected axis. Native SOLID controls exercise normals (-1,0,0), (0.6,0,0.8), and non-unit (3,0,4); other OCS consumers still require independent qualification."
@@ -23,7 +23,7 @@
   ],
   "next": [
     "Integrate and review the downstream SOLID OCS patch; qualify GUI open/insert and native Linux/Windows, additional signed/threshold/invalid normals, thickness, and other shared-basis consumers.",
-    "Implement WCS 3DFACE dispatch with triangular/planar quad handling and explicit disposition of nonplanar faces and group-70 edge visibility; test supported shapes and failure reporting, open/insert and nested blocks.",
+    "Integrate the unmerged planar WCS 3DFACE follow-up; qualify GUI and platforms, and separately resolve nonplanar triangulation and group-70 invisible-edge semantics.",
     "Keep FreeCAD 1.1.4 and development-source results distinct."
   ],
   "limits": [

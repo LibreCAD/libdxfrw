@@ -1,0 +1,315 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+index 4c39b53..0017e7d 100644
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -28,6 +28,7 @@
+ #include <BRepBuilderAPI_MakeVertex.hxx>
+ #include <BRepBuilderAPI_MakeWire.hxx>
+ #include <BRepBuilderAPI_Transform.hxx>
++#include <BRepCheck_Analyzer.hxx>
+ #include <BRepBuilderAPI_GTransform.hxx>
+ #include <BRep_Tool.hxx>
+ #include <BRep_Builder.hxx>
+@@ -1313,6 +1314,48 @@ void ImpExpDxfRead::OnReadText(
+     Collector->AddObject((FeaturePythonBuilder)makeText);
+ }
+ 
++void ImpExpDxfRead::OnRead3dFace(
++    const Base::Vector3d& first,
++    const Base::Vector3d& second,
++    const Base::Vector3d& third,
++    const Base::Vector3d& fourth
++)
++{
++    if (shouldSkipEntity()) {
++        return;
++    }
++
++    try {
++        // 3DFACE coordinates are WCS, unlike the OCS corners of SOLID.
++        const gp_Pnt p1 = makePoint(first);
++        const gp_Pnt p2 = makePoint(second);
++        const gp_Pnt p3 = makePoint(third);
++        const gp_Pnt p4 = makePoint(fourth);
++        const bool isTriangle = third.x == fourth.x && third.y == fourth.y && third.z == fourth.z;
++        BRepBuilderAPI_MakeWire wireBuilder;
++        wireBuilder.Add(BRepBuilderAPI_MakeEdge(p1, p2).Edge());
++        wireBuilder.Add(BRepBuilderAPI_MakeEdge(p2, p3).Edge());
++        if (!isTriangle) {
++            wireBuilder.Add(BRepBuilderAPI_MakeEdge(p3, p4).Edge());
++            wireBuilder.Add(BRepBuilderAPI_MakeEdge(p4, p1).Edge());
++        }
++        else {
++            wireBuilder.Add(BRepBuilderAPI_MakeEdge(p3, p1).Edge());
++        }
++        if (wireBuilder.IsDone()) {
++            // Do not invent a triangulation for nonplanar quadrilaterals.
++            BRepBuilderAPI_MakeFace faceBuilder(wireBuilder.Wire(), true);
++            if (faceBuilder.IsDone() && BRepCheck_Analyzer(faceBuilder.Face()).IsValid()) {
++                Collector->AddObject(faceBuilder.Face(), "Face3D");
++                return;
++            }
++        }
++    }
++    catch (const Standard_Failure&) {
++    }
++    UnsupportedFeature("3DFACE nonplanar or invalid geometry");
++}
++
+ void ImpExpDxfRead::OnReadSolid(
+     const Base::Vector3d& first,
+     const Base::Vector3d& second,
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.h b/src/Mod/Import/App/dxf/ImpExpDxf.h
+index fcc751a..6629320 100644
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.h
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.h
+@@ -76,6 +76,12 @@ public:
+         const std::string& text,
+         double rotation
+     ) override;
++    void OnRead3dFace(
++        const Base::Vector3d& first,
++        const Base::Vector3d& second,
++        const Base::Vector3d& third,
++        const Base::Vector3d& fourth
++    ) override;
+     void OnReadSolid(
+         const Base::Vector3d& first,
+         const Base::Vector3d& second,
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+index d94623d..06d3cd0 100644
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -8,6 +8,7 @@
+ #include <fstream>
+ #include <iomanip>
+ #include <iostream>
++#include <limits>
+ #include <sstream>
+ #include <exception>
+ #include <string>
+@@ -2219,6 +2220,94 @@ bool CDxfRead::ReadText()
+     return true;
+ }
+ 
++void CDxfRead::Process3dFaceDouble(CDxfRead* object, void* target)
++{
++    auto& destination = *static_cast<double*>(target);
++    if (!std::isnan(destination)) {
++        destination = std::numeric_limits<double>::infinity();
++        return;
++    }
++    std::istringstream stream(object->m_record_data);
++    stream.imbue(std::locale("C"));
++    double value = 0.0;
++    if (!(stream >> value) || !(stream >> std::ws).eof() || !std::isfinite(value)) {
++        destination = std::numeric_limits<double>::infinity();
++        return;
++    }
++    destination = object->mm(value);
++}
++
++void CDxfRead::Process3dFaceFlags(CDxfRead* object, void* target)
++{
++    auto& destination = *static_cast<int*>(target);
++    if (destination != -1) {
++        destination = -2;
++        return;
++    }
++    std::istringstream stream(object->m_record_data);
++    stream.imbue(std::locale("C"));
++    int value = 0;
++    if (!(stream >> value) || !(stream >> std::ws).eof() || value < 0 || value > 15) {
++        destination = -2;
++        return;
++    }
++    destination = value;
++}
++
++bool CDxfRead::Read3dFace()
++{
++    const double absent = std::numeric_limits<double>::quiet_NaN();
++    Base::Vector3d first(absent, absent, absent);
++    Base::Vector3d second(absent, absent, absent);
++    Base::Vector3d third(absent, absent, absent);
++    Base::Vector3d fourth(absent, absent, absent);
++    int invisibleEdges = -1;
++
++    const auto setupCorner = [this](int code, Base::Vector3d& point) {
++        m_coordinate_attributes.emplace(code + eXOffset, std::pair(&Process3dFaceDouble, &point.x));
++        m_coordinate_attributes.emplace(code + eYOffset, std::pair(&Process3dFaceDouble, &point.y));
++        m_coordinate_attributes.emplace(code + eZOffset, std::pair(&Process3dFaceDouble, &point.z));
++    };
++    setupCorner(ePrimaryPoint, first);
++    setupCorner(ePoint2, second);
++    setupCorner(ePoint3, third);
++    setupCorner(ePoint4, fourth);
++    m_coordinate_attributes.emplace(eInteger1, std::pair(&Process3dFaceFlags, &invisibleEdges));
++    ProcessAllEntityAttributes();
++
++    for (auto* point : {&first, &second, &third}) {
++        if (std::isnan(point->z)) {
++            point->z = 0.0;
++        }
++    }
++    // A missing fourth corner is a triangle; partially specified corners are
++    // not geometry we can reconstruct safely. Omitted Z defaults to zero.
++    if (std::isnan(fourth.x) && std::isnan(fourth.y) && std::isnan(fourth.z)) {
++        fourth = third;
++    }
++    else if (std::isnan(fourth.z)) {
++        fourth.z = 0.0;
++    }
++    const auto finitePoint = [](const Base::Vector3d& point) {
++        return std::isfinite(point.x) && std::isfinite(point.y) && std::isfinite(point.z);
++    };
++    if (!finitePoint(first) || !finitePoint(second) || !finitePoint(third)
++        || !finitePoint(fourth)) {
++        UnsupportedFeature("3DFACE missing or nonfinite corner");
++        return true;
++    }
++    if (invisibleEdges == -2) {
++        UnsupportedFeature("3DFACE invalid or repeated edge flags");
++        return true;
++    }
++    if (invisibleEdges > 0) {
++        UnsupportedFeature("3DFACE invisible edge flags");
++        return true;
++    }
++    OnRead3dFace(first, second, third, fourth);
++    return true;
++}
++
+ bool CDxfRead::ReadSolid()
+ {
+     Base::Vector3d first;
+@@ -2893,6 +2982,9 @@ bool CDxfRead::ReadEntity()
+     if (IsObjectName("TEXT")) {
+         return ReadText();
+     }
++    if (IsObjectName("3DFACE")) {
++        return Read3dFace();
++    }
+     if (IsObjectName("SOLID")) {
+         return ReadSolid();
+     }
+diff --git a/src/Mod/Import/App/dxf/dxf.h b/src/Mod/Import/App/dxf/dxf.h
+index 5b7cc34..2da4639 100644
+--- a/src/Mod/Import/App/dxf/dxf.h
++++ b/src/Mod/Import/App/dxf/dxf.h
+@@ -650,6 +650,7 @@ private:
+     bool ReadLine();
+     bool ReadText();
+     bool ReadSolid();
++    bool Read3dFace();
+     bool ReadArc();
+     bool ReadCircle();
+     bool ReadEllipse();
+@@ -694,6 +695,8 @@ private:
+     void SetupStringAttribute(eDXFGroupCode_t record_type, std::string& destination);
+     std::map<int, std::pair<void (*)(CDxfRead*, void*), void*>> m_coordinate_attributes;
+     static void ProcessScaledDouble(CDxfRead* object, void* target);
++    static void Process3dFaceDouble(CDxfRead* object, void* target);
++    static void Process3dFaceFlags(CDxfRead* object, void* target);
+     static void ProcessScaledDoubleIntoList(CDxfRead* object, void* target);
+     static void ProcessStdString(CDxfRead* object, void* target);
+     static void ProcessLayerReference(CDxfRead* object, void* target);
+@@ -947,6 +950,13 @@ public:
+         const double /*rotation*/
+     )
+     {}
++    virtual void OnRead3dFace(
++        const Base::Vector3d& /*first*/,
++        const Base::Vector3d& /*second*/,
++        const Base::Vector3d& /*third*/,
++        const Base::Vector3d& /*fourth*/
++    )
++    {}
+     virtual void OnReadSolid(
+         const Base::Vector3d& /*first*/,
+         const Base::Vector3d& /*second*/,
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index 07853bd..8f5c041 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -111,3 +111,80 @@ class TestImportDXF(TestImportBase):
+                 for a, e in zip(actual, sorted(expected)):
+                     for coordinate, target in zip(a, e):
+                         self.assertAlmostEqual(coordinate, target, places=8)
++
++    def test_read_3dface_and_report_unsupported_profiles(self):
++        """Preserve planar WCS faces and report unsupported face semantics."""
++        rectangle = [(0, 0, 0), (2, 0, 0), (2, 2, 0), (0, 2, 0)]
++        tilted = [(0, 0, 0), (2, 0, 1), (2, 2, 3), (0, 2, 2)]
++        cases = [
++            ("tilted", tilted, 0, 1, None),
++            ("missing4", rectangle[:3], 0, 1, None),
++            ("triangle", rectangle[:3] + [rectangle[2]], 0, 1, None),
++            ("noz", rectangle, 0, 1, None),
++            ("noflag", rectangle, 0, 1, None),
++            ("badnumber", rectangle, 0, 0, "3DFACE missing or nonfinite corner"),
++            ("nan", rectangle, 0, 0, "3DFACE missing or nonfinite corner"),
++            ("repeatedcoord", rectangle, 0, 0, "3DFACE missing or nonfinite corner"),
++            ("badflag", rectangle, "oops", 0, "3DFACE invalid or repeated edge flags"),
++            ("trailflag", rectangle, "0junk", 0, "3DFACE invalid or repeated edge flags"),
++            ("repeatedflag", rectangle, 0, 0, "3DFACE invalid or repeated edge flags"),
++            ("partial4", rectangle, 0, 0, "3DFACE missing or nonfinite corner"),
++            ("missing2", rectangle, 0, 0, "3DFACE missing or nonfinite corner"),
++            ("hidden", rectangle, 1, 0, "3DFACE invisible edge flags"),
++            ("badflags", rectangle, 16, 0, "3DFACE invalid or repeated edge flags"),
++            ("nonplanar", [(0, 0, 0), (2, 0, 0), (2, 2, 2), (0, 2, 0)],
++             0, 0, "3DFACE nonplanar or invalid geometry"),
++            ("bowtie", [(0, 0, 0), (2, 2, 0), (0, 2, 0), (2, 0, 0)],
++             0, 0, "3DFACE nonplanar or invalid geometry"),
++            ("degenerate", [(0, 0, 0), (0, 0, 0), (2, 2, 0), (0, 2, 0)],
++             0, 0, "3DFACE nonplanar or invalid geometry"),
++        ]
++        for name, points, flags, face_count, unsupported in cases:
++            with self.subTest(profile=name):
++                tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                        (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                        (0, "SECTION"), (2, "ENTITIES"), (0, "3DFACE"), (8, "0")]
++                for i, point in enumerate(points):
++                    if name == "missing2" and i == 1:
++                        continue
++                    x = point[0]
++                    if i == 0 and name == "badnumber":
++                        x = "1junk"
++                    elif i == 0 and name == "nan":
++                        x = "nan"
++                    tags.append((10 + i, x))
++                    if i == 0 and name == "repeatedcoord":
++                        tags.append((10, 1))
++                    if name != "partial4" or i != 3:
++                        tags.append((20 + i, point[1]))
++                    if name != "noz":
++                        tags.append((30 + i, point[2]))
++                if name != "noflag":
++                    tags.append((70, flags))
++                if name == "repeatedflag":
++                    tags.append((70, 0))
++                tags.extend([(0, "LINE"), (8, "0"),
++                             (10, 20), (20, 20), (30, 0), (11, 21), (21, 20), (31, 0),
++                             (0, "ENDSEC"), (0, "EOF")])
++                path = os.path.join(self.temp_dir, f"face-{name}.dxf")
++                with open(path, "w", encoding="ascii", newline="\n") as stream:
++                    stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                before = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                shapes = [obj.Shape for obj in self.document.Objects
++                          if obj not in before and obj.isDerivedFrom("Part::Feature")]
++                faces = [shape for shape in shapes if len(shape.Faces) == 1]
++                lines = [shape for shape in shapes if len(shape.Faces) == 0 and len(shape.Edges) == 1]
++                self.assertEqual(stats["entityCounts"].get("3DFACE"), 1)
++                self.assertEqual(stats["entityCounts"].get("LINE"), 1)
++                self.assertEqual(len(faces), face_count)
++                self.assertEqual(len(lines), 1)
++                line_points = sorted((v.Point.x, v.Point.y, v.Point.z) for v in lines[0].Vertexes)
++                self.assertEqual(line_points, [(20, 20, 0), (21, 20, 0)])
++                if unsupported is None:
++                    self.assertEqual(stats["unsupportedFeatures"], {})
++                    self.assertTrue(faces[0].isValid())
++                    actual = sorted((v.Point.x, v.Point.y, v.Point.z) for v in faces[0].Vertexes)
++                    self.assertEqual(actual, sorted(set(points)))
++                else:
++                    self.assertIn(unsupported, stats["unsupportedFeatures"])
