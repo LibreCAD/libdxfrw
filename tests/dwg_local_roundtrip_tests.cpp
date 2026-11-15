@@ -28744,7 +28744,7 @@ public:
                 DRW::DwgNamedObjectsDictionaryHandle};
             rasterVariables_.setDwgCommonObjectState(1, 1, false);
         }
-        if (kind_ >= 35 && kind_ <= 38) {
+        if (kind_ >= 35 && kind_ <= 39) {
             background_.handle = 0x700u;
             background_.m_classVersion = 0;
             if (kind_ == 35) {
@@ -28766,7 +28766,7 @@ public:
                 background_.m_horizon = 0.2;
                 background_.m_height = 0.8;
                 background_.m_rotation = 1.5;
-            } else {
+            } else if (kind_ == 38) {
                 background_.m_kind = DRW_Background::Image;
                 background_.m_fileName = "RECOVERY_BACKGROUND_IMAGE.png";
                 background_.m_fitToScreen = true;
@@ -28774,6 +28774,13 @@ public:
                 background_.m_useTiling = false;
                 background_.m_offset = {12.5, 34.5, 0.0};
                 background_.m_scale = {1.25, 0.75, 0.0};
+            } else {
+                background_.m_kind = DRW_Background::Ibl;
+                background_.m_iblName = "RECOVERY_BACKGROUND_IBL";
+                background_.m_enabled = true;
+                background_.m_displayImage = true;
+                background_.m_rotation = 0.625;
+                background_.m_secondaryBackgroundHandle = 0;
             }
         }
         if (kind_ == 6) {
@@ -28894,7 +28901,7 @@ public:
                 wrote = writer_->registerRasterVariablesObjectClass(
                     &rasterVariables_) && wrote;
             }
-        } else if (kind_ >= 35 && kind_ <= 38) {
+        } else if (kind_ >= 35 && kind_ <= 39) {
             wrote = hasMalformedObject_
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerBackgroundObjectClass(&background_)
@@ -28908,7 +28915,7 @@ public:
                    && kind_ != 21 && kind_ != 22 && kind_ != 23
                    && kind_ != 24 && kind_ != 25 && kind_ != 26
                    && !(kind_ >= 27 && kind_ <= 32) && kind_ != 33
-                   && kind_ != 34 && !(kind_ >= 35 && kind_ <= 38)) {
+                   && kind_ != 34 && !(kind_ >= 35 && kind_ <= 39)) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -28999,7 +29006,7 @@ public:
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeRasterVariables(
                                &rasterVariables_)) && wrote;
-        } else if (kind_ >= 35 && kind_ <= 38) {
+        } else if (kind_ >= 35 && kind_ <= 39) {
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeBackground(&background_)) && wrote;
@@ -42533,6 +42540,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-background-gradient-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-background-image-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-background-ibl-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -42593,6 +42602,9 @@ int main(int argc, char** argv) {
         const bool malformedBackgroundImageBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-background-image-body-source";
+        const bool malformedBackgroundIblBodySource =
+            std::string(argv[1])
+                == "--generate-cli-malformed-background-ibl-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -42673,6 +42685,7 @@ int main(int argc, char** argv) {
             || malformedBackgroundGroundPlaneBodySource
             || malformedBackgroundGradientBodySource
             || malformedBackgroundImageBodySource
+            || malformedBackgroundIblBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -42721,7 +42734,9 @@ int main(int argc, char** argv) {
                                                                                                         ? 37
                                                                                                         : malformedBackgroundImageBodySource
                                                                                                             ? 38
-                                                                                                            : malformedRenderSettingsBodySource
+                                                                                                        : malformedBackgroundIblBodySource
+                                                                                                            ? 39
+                                                                                                        : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
                 nullptr, version);
@@ -42790,6 +42805,7 @@ int main(int argc, char** argv) {
                  || malformedBackgroundGroundPlaneBodySource
                  || malformedBackgroundGradientBodySource
                  || malformedBackgroundImageBodySource
+                 || malformedBackgroundIblBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -42947,6 +42963,12 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedBackgroundIblBodySource) {
+                            BackgroundBodyProbe typed;
+                            typed.m_kind = DRW_Background::Ibl;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         MLineStyleBodyProbe typed;
                         return typed.parseDwg(version, &typedBuffer,
                                               malformed.m_bodyBitSize);
@@ -43045,6 +43067,7 @@ int main(int argc, char** argv) {
                   || malformedBackgroundGroundPlaneBodySource
                   || malformedBackgroundGradientBodySource
                   || malformedBackgroundImageBodySource
+                  || malformedBackgroundIblBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -43090,7 +43113,9 @@ int main(int argc, char** argv) {
                                                                                                                 ? "GRADIENTBACKGROUND"
                                                                                                                 : malformedBackgroundImageBodySource
                                                                                                                     ? "IMAGEBACKGROUND"
-                                                                                                                    : malformedRenderSettingsBodySource
+                                                                                                                : malformedBackgroundIblBodySource
+                                                                                                                    ? "IBLBACKGROUND"
+                                                                                                                : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
                 const char* mutationKind = malformedPrologueSource
@@ -43134,7 +43159,9 @@ int main(int argc, char** argv) {
                                                                                     ? 37
                                                                                     : malformedBackgroundImageBodySource
                                                                                         ? 38
-                                                                                        : malformedRenderSettingsBodySource
+                                                                                    : malformedBackgroundIblBodySource
+                                                                                        ? 39
+                                                                                    : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,
                 nullptr, version);

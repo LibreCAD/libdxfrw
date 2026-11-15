@@ -2333,6 +2333,20 @@ def check_malformed_background_image_body(converter, root, writer):
         "--generate-cli-malformed-background-image-body-source", profiles)
 
 
+def check_malformed_background_ibl_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+        # No one-bit mutation within the bounded IBL body fails its parser.
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "IBLBACKGROUND",
+        "--generate-cli-malformed-background-ibl-body-source", profiles)
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3644,6 +3658,8 @@ def main():
                     converter, root, args.writer))
             background_image_checked = check_malformed_background_image_body(
                 converter, root, args.writer)
+            background_ibl_checked = check_malformed_background_ibl_body(
+                converter, root, args.writer)
             render_settings_checked = check_malformed_rendersettings_bodies(
                 converter, root, args.writer)
             render_settings_count = sum(render_settings_checked.values())
@@ -3666,7 +3682,8 @@ def main():
                   f"{background_checked} SOLIDBACKGROUND, "
                   f"{background_groundplane_checked} GROUNDPLANEBACKGROUND, "
                   f"{background_gradient_checked} GRADIENTBACKGROUND, "
-                  f"{background_image_checked} IMAGEBACKGROUND, and "
+                  f"{background_image_checked} IMAGEBACKGROUND, "
+                  f"{background_ibl_checked} IBLBACKGROUND, and "
                   f"{render_settings_count} RENDERSETTINGS controls across "
                   f"Settings ({render_settings_checked['Settings']}), "
                   f"Global ({render_settings_checked['Global']}), "
