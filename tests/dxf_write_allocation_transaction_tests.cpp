@@ -12393,6 +12393,203 @@ bool runRenderSettingsSweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+class ObjectPtrExport final : public dx_iface {
+public:
+    explicit ObjectPtrExport(dxfRW& output) : output(output) {
+        cData = &storage;
+        currentBlock = storage.mBlock;
+        dxfW = &output;
+        object.handle = 0xDA70u;
+        object.parentHandle = 0xCu;
+    }
+
+    void writeObjects() override { written = output.writeObjectPtr(&object); }
+
+    dxfRW& output;
+    dx_data storage;
+    DRW_ObjectPtr object;
+    bool written = false;
+};
+
+class ObjectPtrCapture final : public dx_iface {
+public:
+    ObjectPtrCapture() {
+        cData = &storage;
+        currentBlock = storage.mBlock;
+    }
+
+    void addObjectPtr(const DRW_ObjectPtr& value) override {
+        ++count;
+        object = value;
+    }
+
+    dx_data storage;
+    DRW_ObjectPtr object;
+    unsigned count = 0u;
+};
+
+bool runObjectPtrSweep(const std::filesystem::path& directory) {
+    const auto fail = [](DRW::Version version, bool binary,
+                         const char* message) {
+        std::cerr << "OBJECT_PTR " << static_cast<int>(version) << ' '
+                  << (binary ? "Binary" : "ASCII") << ": " << message
+                  << '\n';
+        return false;
+    };
+    if (!std::filesystem::create_directories(directory)
+        && !std::filesystem::is_directory(directory)) {
+        std::cerr << "OBJECT_PTR allocation transaction: could not create scratch directory\n";
+        return false;
+    }
+
+    const std::array<DRW::Version, 6> versions{{
+        DRW::AC1015, DRW::AC1018, DRW::AC1021,
+        DRW::AC1024, DRW::AC1027, DRW::AC1032}};
+    const std::string sentinel = "previous complete document\n";
+    for (const DRW::Version version : versions) {
+        for (const bool binary : {false, true}) {
+            const std::string stem = "objectptr-"
+                + std::to_string(static_cast<int>(version))
+                + (binary ? "-binary.dxf" : "-ascii.dxf");
+            const std::filesystem::path output = directory / stem;
+            if (!clearStagedOutput(output))
+                return fail(version, binary,
+                            "could not clear output staging files");
+
+            {
+                dxfRW codec(output.string().c_str());
+                ObjectPtrExport adapter(codec);
+                if (!codec.write(&adapter, version, binary)
+                    || !adapter.written) {
+                    std::error_code ignored;
+                    std::filesystem::remove(output, ignored);
+                    return fail(version, binary, "warm-up write failed");
+                }
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            {
+                std::ofstream prior(output,
+                                    std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior.good())
+                    return fail(version, binary,
+                                "could not seed calibration destination");
+            }
+            long allocationCount = 0;
+            std::string expectedBytes;
+            {
+                dxfRW codec(output.string().c_str());
+                ObjectPtrExport adapter(codec);
+                armAllocationFailure(1000000000L);
+                const bool wrote = codec.write(&adapter, version, binary);
+                allocationCount = static_cast<long>(allocationAttempts);
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                if (!wrote || !adapter.written || injected
+                    || allocationCount <= 0
+                    || !readBytes(output, expectedBytes)) {
+                    std::error_code ignored;
+                    std::filesystem::remove(output, ignored);
+                    return fail(version, binary,
+                                "calibration write failed");
+                }
+                ObjectPtrCapture capture;
+                dxfRW reader(output.string().c_str());
+                if (!reader.read(&capture, false) || capture.count != 1u
+                    || capture.object.handle != adapter.object.handle
+                    || capture.object.parentHandle
+                        != adapter.object.parentHandle) {
+                    std::error_code ignored;
+                    std::filesystem::remove(output, ignored);
+                    return fail(version, binary,
+                                "calibration typed readback failed");
+                }
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+
+            for (long offset = 0; offset < allocationCount; ++offset) {
+                {
+                    std::ofstream prior(output,
+                                        std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior.good())
+                        return fail(version, binary,
+                                    "could not seed prior destination");
+                }
+                dxfRW codec(output.string().c_str());
+                ObjectPtrExport adapter(codec);
+                const DRW_ObjectPtr original = adapter.object;
+                armAllocationFailure(offset);
+                const bool wrote = codec.write(&adapter, version, binary);
+                const bool injected = allocationFailed;
+                disarmAllocationFailure();
+                std::string afterFailure;
+                const bool bytesRead = readBytes(output, afterFailure);
+                const auto& context = *codec.getWritingContext();
+                const bool identitiesRolledBack =
+                    context.sourceHandleToMintedMap.empty()
+                    && context.sourceHandleToWrittenObjectMap.empty()
+                    && context.writtenSourceEntityHandles.empty()
+                    && context.ambiguousSourceHandles.empty();
+                const bool callerSame = adapter.object.handle == original.handle
+                    && adapter.object.parentHandle == original.parentHandle
+                    && adapter.object.reactorHandles
+                        == original.reactorHandles
+                    && adapter.object.extensionDictionaryFlag()
+                        == original.extensionDictionaryFlag()
+                    && adapter.object.xDictHandle == original.xDictHandle
+                    && adapter.object.extData.empty();
+                if (wrote || !injected || !bytesRead
+                    || afterFailure != sentinel || !callerSame
+                    || !identitiesRolledBack || hasStagedOutput(output)) {
+                    std::cerr << "offset=" << offset << " wrote=" << wrote
+                              << " callbackCompleted=" << adapter.written
+                              << " injected=" << injected
+                              << " callerSame=" << callerSame
+                              << " identitiesRolledBack="
+                              << identitiesRolledBack << '\n';
+                    std::error_code ignored;
+                    std::filesystem::remove(output, ignored);
+                    return fail(version, binary,
+                                "injected failure changed caller or destination "
+                                "state");
+                }
+
+                const bool retried = codec.write(&adapter, version, binary);
+                std::string retryBytes;
+                const bool retryRead = readBytes(output, retryBytes);
+                ObjectPtrCapture capture;
+                dxfRW reader(output.string().c_str());
+                const bool readback = reader.read(&capture, false)
+                    && capture.count == 1u
+                    && capture.object.handle == original.handle
+                    && capture.object.parentHandle == original.parentHandle;
+                if (!retried || !adapter.written || !retryRead
+                    || retryBytes != expectedBytes || !readback
+                    || hasStagedOutput(output)) {
+                    std::cerr << "offset=" << offset << " retry=" << retried
+                              << " bytesMatch="
+                              << (retryRead && retryBytes == expectedBytes)
+                              << " readback=" << readback << '\n';
+                    std::error_code ignored;
+                    std::filesystem::remove(output, ignored);
+                    return fail(version, binary,
+                                "same-writer retry or typed readback failed");
+                }
+                std::error_code ignored;
+                std::filesystem::remove(output, ignored);
+            }
+            std::cout << "OBJECT_PTR " << static_cast<int>(version) << ' '
+                      << (binary ? "Binary" : "ASCII")
+                      << ": allocation offsets=" << allocationCount
+                      << ", caller/destination rollback, retry/readback=PASS\n";
+        }
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -12410,7 +12607,7 @@ void operator delete[](void* value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char** argv) {
     if (argc < 2 || argc > 3) {
-        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|dimension-versions|hatch-mpolygon-versions|long-mtext|camera|leader-versions|mleader-versions|light-entity|ole-frames|ray-xline|tolerance|helix|spline|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings]\n";
+        std::cerr << "usage: dxf_write_allocation_transaction_tests SCRATCH_DIR [r2018-embedded-attribute|legacy-compound-entities|polyline-topologies|dimension-versions|hatch-mpolygon-versions|long-mtext|camera|leader-versions|mleader-versions|light-entity|ole-frames|ray-xline|tolerance|helix|spline|light-list|sun-study|spatial-filter|section-manager|section-settings|block-record|background|render-settings|objectptr]\n";
         return 2;
     }
     const std::filesystem::path directory(argv[1]);
@@ -12468,6 +12665,8 @@ int main(int argc, char** argv) {
             return runBackgroundSweep(directory) ? 0 : 1;
         if (mode == "render-settings")
             return runRenderSettingsSweep(directory) ? 0 : 1;
+        if (mode == "objectptr")
+            return runObjectPtrSweep(directory) ? 0 : 1;
         return 2;
     }
     return run(directory) ? 0 : 1;

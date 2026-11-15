@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **457 completed implementation and qualification slices** and **32 remaining
+The plan records **458 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`457 / (457 + 32) = 93.5%`. The previous 28-package denominator was stale; a recount
+`458 / (458 + 32) = 93.5%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -961,6 +961,15 @@ DXF output without mutating the caller's `DRW_Layer`. Generated ASCII/Binary
 write/readback controls pass from AC1009 through AC1032. This establishes only
 the bounded serialized LTYPE normalization, not xref target graph closure or
 native xref display behavior ([receipt](docs/research/p6-dxf-xref-layer-linetype-normalization-2026-11-14.json)).
+
+**P6-G OBJECT_PTR direct-writer allocation transaction slice (2026-11-15):**
+generated standalone OBJECTPTR records now pass rollback, caller-state and
+handle-map preservation, same-codec byte-identical retry, and fresh typed
+readback across AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 in ASCII and Binary.
+All 1,046 injected allocation failures pass; the focused CTest completes in
+2.40 seconds. This closes only the generated OBJECTPTR writer transaction
+profile, not producer semantics, parent-target graph closure, or native consumer
+behavior ([receipt](docs/research/p6-dxf-objectptr-version-matrix-allocation-rollback-retry-2026-11-15.json)).
 
 **Newest local P6-G slice (2026-11-14):** generated AC1021 DIMSTYLE records
 with nondefault typed and dynamic `$DIMTFILLCLR` values now pass

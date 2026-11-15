@@ -1,0 +1,38 @@
+{
+  "title": "OBJECTPTR direct-writer version-matrix allocation rollback and retry",
+  "date": "2026-11-15",
+  "status": "GENERATED_OBJECTPTR_VERSION_MATRIX_TRANSACTION_PASS",
+  "scope": "Focused generated DXF dxfRW::writeObjectPtr transaction coverage across six supported revisions and both encodings, including atomic destination preservation, caller and handle-map rollback, same-codec retry, and fresh typed readback.",
+  "source": {
+    "provenance": "Generated from scratch by the allocation-transaction test adapter in the build-tree scratch directory; generated DXF files are removed after each control.",
+    "record": "One OBJECTPTR at source handle 0xDA70 with parent handle 0xC and no XDATA, reactors, or extension dictionary.",
+    "encoding_matrix": ["ASCII", "Binary"]
+  },
+  "revision_results": {
+    "AC1015": {"allocation_failures_per_encoding": 86},
+    "AC1018": {"allocation_failures_per_encoding": 86},
+    "AC1021": {"allocation_failures_per_encoding": 86},
+    "AC1024": {"allocation_failures_per_encoding": 93},
+    "AC1027": {"allocation_failures_per_encoding": 86},
+    "AC1032": {"allocation_failures_per_encoding": 86}
+  },
+  "total_injected_failures": 1046,
+  "assertions": [
+    "Every injected allocation failure preserves the prior destination sentinel and leaves no staged output file.",
+    "Every injected failure preserves the caller OBJECTPTR handle, parent, reactors, extension-dictionary handle, and XDATA state, and rolls back source-handle/object identity maps.",
+    "Retry on the same dxfRW instance reproduces the clean baseline bytes exactly.",
+    "Fresh ASCII/Binary import reads exactly one OBJECTPTR with the expected handle and parent handle after baseline writes and every retry."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dxf_write_allocation_transaction_tests -j2 passed.",
+    "diff_check": "git diff --check passed.",
+    "targeted": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_objectptr_allocation_transaction$' --output-on-failure passed 1/1 in 2.40 seconds.",
+    "aggregate": "The full dxf_write_allocation_transaction suite and broader CTest suite were not rerun."
+  },
+  "limits": [
+    "Generated writer transaction and same-library readback only; producer-authored OBJECTPTR semantics and native consumer behavior are not qualified.",
+    "The test checks a parent handle value but does not resolve or qualify the target object's graph closure.",
+    "This does not establish DWG OBJECT_PTR output support.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}
