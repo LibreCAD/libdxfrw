@@ -41,6 +41,7 @@
     "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2: PASS",
     "focusedControl": "check_malformed_rastervariables_body: PASS; 15 reader and atomic-refusal controls across AC1015/AC1018/AC1021/AC1027/AC1032",
     "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 21.66 seconds",
+    "dedicatedTestAdded2026-11-15": "ctest --test-dir build-gcc -V -R '^dwg2dxf_cli_rastervariables_recovery$' passed 1/1 in 0.40 seconds and reported 15 controls.",
     "diffCheck": "git diff --check: PASS"
   },
   "limitations": [

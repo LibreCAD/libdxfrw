@@ -3825,6 +3825,10 @@ def main():
                         help="run only the strict/explicit-partial DWG CLI controls")
     parser.add_argument("--section-settings-only", action="store_true",
                         help="run only the generated SECTION_SETTINGS recovery controls")
+    parser.add_argument("--wipeoutvariables-recovery-only", action="store_true",
+                        help="run only generated WIPEOUTVARIABLES recovery controls")
+    parser.add_argument("--rastervariables-recovery-only", action="store_true",
+                        help="run only generated RASTERVARIABLES recovery controls")
     parser.add_argument("--pointcloud-colormap-only", action="store_true",
                         help="run only generated POINTCLOUDCOLORMAP recovery controls")
     parser.add_argument("--pointcloud-definition-only", action="store_true",
@@ -3936,6 +3940,16 @@ def main():
             checked = check_malformed_section_settings_body(
                 converter, root, args.writer)
             print(f"CLI SECTION_SETTINGS recovery: PASS ({checked} controls)")
+            return
+        if args.wipeoutvariables_recovery_only:
+            checked = check_malformed_wipeoutvariables_body(
+                converter, root, args.writer)
+            print(f"CLI WIPEOUTVARIABLES recovery: PASS ({checked} controls)")
+            return
+        if args.rastervariables_recovery_only:
+            checked = check_malformed_rastervariables_body(
+                converter, root, args.writer)
+            print(f"CLI RASTERVARIABLES recovery: PASS ({checked} controls)")
             return
         if args.pointcloud_colormap_only:
             checked = check_malformed_pointcloud_colormap_body(

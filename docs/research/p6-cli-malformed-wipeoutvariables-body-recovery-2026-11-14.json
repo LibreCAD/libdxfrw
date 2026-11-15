@@ -39,6 +39,7 @@
     "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j2: PASS",
     "focusedControl": "check_malformed_wipeoutvariables_body: PASS; 9 reader and atomic-refusal controls across AC1015/AC1018/AC1021",
     "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 22.34 seconds",
+    "dedicatedTestAdded2026-11-15": "ctest --test-dir build-gcc -V -R '^dwg2dxf_cli_wipeoutvariables_recovery$' passed 1/1 in 0.26 seconds and reported 9 controls.",
     "diffCheck": "git diff --check: PASS"
   },
   "limitations": [

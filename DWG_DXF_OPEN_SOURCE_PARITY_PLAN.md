@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **442 completed implementation and qualification slices** and **29 remaining
+The plan records **443 completed implementation and qualification slices** and **28 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`442 / (442 + 29) = 93.8%`. This is a count-based progress measure, not an
+`443 / (443 + 28) = 94.1%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -725,6 +725,15 @@ The modern SUN body profile has the dedicated `dwg2dxf_cli_sun_recovery`
 selector.
 The legacy SUNSTUDY profile now has `dwg2dxf_cli_sunstudy_recovery`, so its ten
 recovery controls run independently of the 29-second aggregate.
+The dependency-root `WIPEOUTVARIABLES` and `RASTERVARIABLES` refusal profiles
+now also have dedicated selectors for sub-second reader/refusal checks.
+
+**P6-F focused validation selector slice (2026-11-15):** dedicated
+`WIPEOUTVARIABLES` and `RASTERVARIABLES` recovery CTests pass 9 controls in
+0.26 seconds and 15 controls in 0.40 seconds, respectively. They retain the
+existing strict incomplete-read and explicit-partial NOD dependency refusal
+checks; the aggregate disposition cohort was not rerun and output support is
+unchanged. The selector timings and counts are added to each profile receipt.
 
 **P6-F forty-fifth generated OBJECTS body recovery profile (2026-11-15):**
 `POINTCLOUDDEFREACTOR` and `POINTCLOUDDEFREACTOREX` now have bounded malformed
