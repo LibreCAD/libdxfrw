@@ -20079,6 +20079,13 @@ void testHeaderPackedFlags(TestContext& t) {
     modernDxfFlags.addInt("$EXTNAMES", 1, 290);
     modernDxfFlags.addInt("$PSTYLEMODE", 0, 290);
     modernDxfFlags.addInt("$OLESTARTUP", 1, 290);
+    t.expect(modernDxfFlags.canWriteDxfHeaderInitialPreflight(DRW::AC1015)
+                 && modernDxfFlags.canWriteDxfHeaderInitialPreflight(DRW::AC1018)
+                 && modernDxfFlags.canWriteDxfHeaderInitialPreflight(DRW::AC1021)
+                 && modernDxfFlags.canWriteDxfHeaderInitialPreflight(DRW::AC1024)
+                 && modernDxfFlags.canWriteDxfHeaderInitialPreflight(DRW::AC1032)
+                 && !modernDxfFlags.canWriteDxfHeaderInitialPreflight(DRW::AC1014),
+             "DXF group-290 boolean HEADER variables are accepted from AC1015 and rejected for AC1014");
     encoded = 0u;
     t.expect(DrwHeaderEncodeTestAccess::encodeFlags(modernDxfFlags, encoded)
                  && encoded == ((1u << 11u) | (1u << 14u)),

@@ -908,11 +908,12 @@ bool DRW_Header::finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader) {
 
 bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexcept {
     // Packed DWG flags decode to their legacy group-70 representation, while
-    // modern DXF files may already carry group 290. Accept both for AC2010+
-    // and let the target-version writer below normalize the emitted code.
+    // DXF R2000+ uses group 290 for these boolean HEADER variables. Accept
+    // both source representations and let the target-version writer below
+    // normalize the emitted code.
     const int headerBooleanGroupCode = 70;
     const int alternateHeaderBooleanGroupCode =
-        ver > DRW::AC1021 ? 290 : -1;
+        ver > DRW::AC1014 ? 290 : -1;
     return canWriteDxfHeaderStructure()
         && canWriteDxfUnknownHeaderVariables()
         && canWriteDxfLinetypeScale()

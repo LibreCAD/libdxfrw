@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-14)
 
-The plan records **396 completed implementation and qualification slices** and **32 remaining
+The plan records **397 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`396 / (396 + 32) = 92.5%`. This is a count-based progress measure, not an
+`397 / (397 + 32) = 92.5%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -6400,6 +6400,16 @@ evidence only; imported producer semantics, independent reference closure and
 native behavior remain open. No fixture files were added. See the
 [planned-source transaction receipt](docs/research/p6-dxf-image-planned-source-version-matrix-2026-11-14.json)
 and [initial convenience-overload receipt](docs/research/p6-dxf-image-writer-version-matrix-allocation-2026-11-13.json).
+The selected-reactor ASCII/Binary reimport matrix also exposed a HEADER
+compatibility bug: the writer emitted `$EXTNAMES`, `$PSTYLEMODE` and
+`$OLESTARTUP` as group 290 from AC1015 onward, while preflight accepted that
+representation only after AC1021. Preflight now accepts group 290 from AC1015,
+continues to accept the legacy group-70 representation, and rejects group 290
+for AC1014. The focused HEADER guard and selected-reactor reimport/reexport
+control pass; the same selector explicitly verifies atomic strict refusal for
+its incomplete AC1027 source profile. This repairs codec roundtrip admission
+only and does not qualify that source for output or close P6-A. See the
+[HEADER group-code receipt](docs/research/p6-dxf-header-boolean-group290-roundtrip-2026-11-14.json).
 
 **P6-G OLE compound entity revision matrix (2026-11-13):** a generated
 OLEFRAME/OLE2FRAME pair with 130-byte payloads now passes whole-operation

@@ -10271,7 +10271,8 @@ bool selectedRasterReactorMetadata() {
             && actual.xRecords.front().m_dataEntries.back().i64_val() == r.handle
             && std::count(d.reactorHandles.begin(), d.reactorHandles.end(), r.handle) == 1;
     };
-    unsigned cells = 0u, retries = 0u, wireRefusals = 0u, nativeCells = 0u, guardRefusals = 0u;
+    unsigned cells = 0u, retries = 0u, wireRefusals = 0u, nativeCells = 0u,
+        nativeRefusals = 0u, guardRefusals = 0u;
     std::size_t outputBudget = 0u;
     for (const auto version : {DRW::AC1015, DRW::AC1018, DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032})
       for (const bool binary : {false, true}) {
@@ -10516,16 +10517,24 @@ bool selectedRasterReactorMetadata() {
         if (!reader.fileImport(native.string(), &imported, false) || !Access::rasterWireReady(imported))
             return fail("native selected-reactor source observation failed");
         for (const bool binary : {false, true}) {
-            if (!exporter.fileExport(path.string(), DRW::AC1032, binary, &imported, false, true,
+            const bool exported = exporter.fileExport(path.string(), DRW::AC1032, binary, &imported, false, true,
                     dx_dxfSourceTextPolicy::Compatible, DRW::DxfTextWritePolicy::Compatible,
-                    dx_dxfProxyGraphicsPolicy::Compatible, dx_dwgReadCompletenessPolicy::AllowPartial)
-                || !check() || !Access::rasterOutputPublished(exporter, 2u, 1u))
+                    dx_dxfProxyGraphicsPolicy::Compatible, dx_dwgReadCompletenessPolicy::AllowPartial);
+            if (version == DRW::AC1027) {
+                if (exported || Access::rasterOutputPublished(exporter, 2u, 1u))
+                    return fail("unqualified AC1027 source bypassed strict-output refusal");
+                ++nativeRefusals;
+                continue;
+            }
+            if (!exported || !check() || !Access::rasterOutputPublished(exporter, 2u, 1u))
                 return fail("native selected-reactor projection/readback/output proof failed");
             ++nativeCells;
         }
     }
     if (wireRefusals != 360u) return fail("raster dictionary/field fault matrix skipped a control");
+    if (nativeRefusals != 2u) return fail("AC1027 incomplete-source refusal matrix skipped a control");
     std::cout << "Selected raster metadata authored/reexports=" << cells << " native=" << nativeCells
+        << " native incomplete-source refusals=" << nativeRefusals
         << " refusal/retries=" << retries << " exact field/role fault retries=" << wireRefusals
         << " inspector guards=" << guardRefusals << " accounted output allowance=" << outputBudget << '\n';
     return true;

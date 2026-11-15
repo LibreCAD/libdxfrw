@@ -1,0 +1,47 @@
+{
+  "title": "DXF R2000+ boolean HEADER group-290 reimport/reexport compatibility",
+  "date": "2026-11-14",
+  "status": "completed_local_codec_compatibility_slice",
+  "observation": {
+    "failure": "The selected IMAGEDEF/IMAGEDEF_REACTOR ASCII and Binary reimport matrix failed when reexporting an AC1018 DXF at HEADER initial validation.",
+    "cause": "The writer emits EXTNAMES, PSTYLEMODE, and OLESTARTUP using boolean group code 290 for versions after AC1014, but the initial preflight accepted group 290 only for versions after AC1021.",
+    "support_boundary": "Autodesk's DXF HEADER reference documents EXTNAMES and PSTYLEMODE as group 290; the group-code type reference defines 290-299 as boolean values. This evidence supports code admission and roundtrip consistency, not native feature semantics."
+  },
+  "implementation": {
+    "file": "src/drw_header.cpp",
+    "change": "Accept group 290 for these HEADER booleans from AC1015 onward while retaining group 70 for the packed DWG/legacy representation. Group 290 remains refused for AC1014.",
+    "related_test_adjustment": "The generated native-DWG selector now asserts that the known incomplete AC1027 source profile is refused for ASCII and Binary output with no raster proof published. It does not count this profile as a successful output cell."
+  },
+  "sources": [
+    {
+      "publisher": "Autodesk",
+      "title": "HEADER Section Group Codes (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+      "supports": "EXTNAMES and PSTYLEMODE use group code 290."
+    },
+    {
+      "publisher": "Autodesk",
+      "title": "Group Code Value Types Reference (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2553CF98-44F6-4828-82DD-FE3BC7448113.htm",
+      "supports": "Group codes 290-299 are boolean flag values."
+    }
+  ],
+  "validation": [
+    {
+      "command": "build-gcc/libdxfrw_dwg_reader_matrix_tests --header-packed-flags",
+      "result": "PASS",
+      "coverage": "Accept group 290 for AC1015, AC1018, AC1021, AC1024, and AC1032; reject it for AC1014."
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_selected_raster_reactor_metadata$' --output-on-failure",
+      "result": "PASS (1/1, 0.55 seconds)",
+      "coverage": "12 generated ASCII/Binary revision reimports and reexports; 10 successful local DWG-source cells; two AC1027 incomplete-source refusal controls; atomic mutation/refusal/retry checks."
+    }
+  ],
+  "fixture_policy": "No DWG or DXF fixture files were added; all generated controls use scratch paths.",
+  "limitations": [
+    "Generated same-library codec consistency is not independent producer or native-consumer qualification.",
+    "AC1027 DWG output remains refused when source references are not fully qualified.",
+    "The IMAGEDEF owner back-reference output gate remains in force; P6-A remains open."
+  ]
+}
