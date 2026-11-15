@@ -28446,6 +28446,11 @@ public:
     using DRW_Dictionary::parseDwg;
 };
 
+class VxControlBodyProbe final : public DRW_VxControl {
+public:
+    using DRW_VxControl::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28525,6 +28530,11 @@ public:
             dictionary_.cloning = 1;
             dictionary_.hardOwner = 0;
         }
+        if (kind_ == 17) {
+            vxControl_.handle = 0x700u;
+            vxControl_.classVersion = 1u;
+            vxControl_.flags = 0u;
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -28569,11 +28579,15 @@ public:
         } else if (kind_ == 16) {
             wrote = writer_->registerDwgNamedObjectDictionaryEntry(
                 dictionary_.name, dictionary_.handle) && wrote;
+        } else if (kind_ == 17) {
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerVxControlObjectClass(&vxControl_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
                    && kind_ != 11 && kind_ != 13 && kind_ != 14
-                   && kind_ != 15 && kind_ != 16) {
+                   && kind_ != 15 && kind_ != 16 && kind_ != 17) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -28605,6 +28619,10 @@ public:
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeDictionary(&dictionary_)) && wrote;
+        } else if (kind_ == 17) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeVxControl(&vxControl_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -28682,6 +28700,7 @@ private:
     DRW_BlockRepresentationData blockRepresentation_;
     DRW_Group group_;
     DRW_Dictionary dictionary_;
+    DRW_VxControl vxControl_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -42088,7 +42107,9 @@ int main(int argc, char** argv) {
             || std::string(argv[1])
                    == "--generate-cli-malformed-group-body-source"
             || std::string(argv[1])
-                   == "--generate-cli-malformed-dictionary-body-source")) {
+                   == "--generate-cli-malformed-dictionary-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-vxcontrol-body-source")) {
         const bool malformedBodySource = std::string(argv[1])
             == "--generate-cli-malformed-object-body-source";
         const bool malformedPrologueSource = std::string(argv[1])
@@ -42108,6 +42129,8 @@ int main(int argc, char** argv) {
             == "--generate-cli-malformed-group-body-source";
         const bool malformedDictionaryBodySource = std::string(argv[1])
             == "--generate-cli-malformed-dictionary-body-source";
+        const bool malformedVxControlBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-vxcontrol-body-source";
         if (std::filesystem::exists(argv[2])) {
             std::cerr << "Refusing to replace an existing malformed-object source\n";
             return 1;
@@ -42135,7 +42158,8 @@ int main(int argc, char** argv) {
             || malformedVbaProjectBodySource
             || malformedBlockRepresentationBodySource
             || malformedGroupBodySource
-            || malformedDictionaryBodySource) {
+            || malformedDictionaryBodySource
+            || malformedVxControlBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
             if (std::filesystem::exists(validPath)) {
@@ -42150,7 +42174,9 @@ int main(int argc, char** argv) {
                             : malformedVbaProjectBodySource ? 13
                                 : malformedBlockRepresentationBodySource
                                 ? 14 : malformedGroupBodySource ? 15
-                                    : malformedDictionaryBodySource ? 16 : 8,
+                                    : malformedDictionaryBodySource ? 16
+                                        : malformedVxControlBodySource
+                                            ? 17 : 8,
                 nullptr, version);
             if (!validWriter.write(&validSource, version, true)
                 || !validSource.wrote) {
@@ -42200,7 +42226,8 @@ int main(int argc, char** argv) {
                  || malformedVbaProjectBodySource
                  || malformedBlockRepresentationBodySource
                  || malformedGroupBodySource
-                 || malformedDictionaryBodySource)
+                 || malformedDictionaryBodySource
+                 || malformedVxControlBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
                 && commonEndBit < searchEndBit) {
@@ -42262,6 +42289,11 @@ int main(int argc, char** argv) {
                         }
                         if (malformedDictionaryBodySource) {
                             DictionaryBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
+                        if (malformedVxControlBodySource) {
+                            VxControlBodyProbe typed;
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
@@ -42346,7 +42378,8 @@ int main(int argc, char** argv) {
                   || malformedVbaProjectBodySource
                   || malformedBlockRepresentationBodySource
                   || malformedGroupBodySource
-                  || malformedDictionaryBodySource)
+                  || malformedDictionaryBodySource
+                  || malformedVxControlBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
                 const char* objectKind = malformedDbColorBodySource
@@ -42359,6 +42392,8 @@ int main(int argc, char** argv) {
                                         : malformedGroupBodySource ? "GROUP"
                                             : malformedDictionaryBodySource
                                                 ? "DICTIONARY"
+                                                : malformedVxControlBodySource
+                                                    ? "VX_CONTROL"
                                     : "MLINESTYLE";
                 const char* mutationKind = malformedPrologueSource
                     ? "common-prologue" : "body";
@@ -42373,7 +42408,8 @@ int main(int argc, char** argv) {
             }
 
             dwgRW writer(argv[2]);
-            ReadOutcomeControl source(&writer, 7, nullptr, version);
+            ReadOutcomeControl source(&writer,
+                malformedVxControlBodySource ? 17 : 7, nullptr, version);
             source.setMalformedObject(malformed);
             if (!writer.write(&source, version, true) || !source.wrote) {
                 const DRW_OperationDiagnostic diagnostic =

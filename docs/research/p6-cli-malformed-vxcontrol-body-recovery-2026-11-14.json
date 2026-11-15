@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-vxcontrol-body-recovery-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_VX_CONTROL_AC1021_AC1032_BODY_RECOVERY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add bounded malformed VX_CONTROL OBJECTS-body recovery and CLI disposition controls for revisions whose typed body has an encoded span.",
+  "source": {
+    "kind": "scratch-only DWGs authored at test runtime by the in-tree DWG writer; the valid typed VX_CONTROL seed is converted to a raw mutated frame and injected with its custom-class registration",
+    "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-vxcontrol-body-source",
+    "object": "VX_CONTROL custom-class object with classVersion 1, flags 0, and an empty counted record list. The one-bit mutation search preserves the validated common prologue and stays within the declared body-bit span.",
+    "versions": ["AC1021", "AC1024", "AC1027", "AC1032"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-cli-malformed-vxcontrol-body-recovery-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "controls": "Each mutated source reads successfully with one object parse failure, zero entity parse failures, one failed object frame, exact source-frame accounting, and the following LINE callback. Strict ASCII/Binary conversion preserves the destination sentinel. Explicit-partial ASCII/Binary conversion succeeds and reopens with the retained LINE and VPORT. AC1027 reader recovery passes, while both CLI modes stop at the established source-reference qualification gate."
+  },
+  "results": {
+    "readRecoveryProfiles": {
+      "AC1021": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1024": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1027": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1032": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1}
+    },
+    "cliDispositionControls": 18,
+    "fullFocusedDispositionCohortControls": 289,
+    "outputQualification": "AC1021, AC1024, and AC1032 pass strict refusal plus explicit-partial ASCII/Binary readback. AC1027 remains reader-only at the source-reference gate."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2: PASS",
+    "pythonSyntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 8.90 seconds",
+    "directControl": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only: PASS; 172 existing controls, 28 VBA_PROJECT controls, 15 BLOCKREPRESENTATION_DATA controls, 28 GROUP controls, 28 DICTIONARY controls, and 18 VX_CONTROL controls",
+    "diffCheck": "git diff --check and python3 -m json.tool: PASS"
+  },
+  "limitations": [
+    "Generated parser-recovery and CLI disposition evidence only; it does not establish VX_CONTROL class semantics, producer prevalence, or interoperability.",
+    "AC1027 output remains unqualified behind the source-reference closure gate.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "P6-F now includes bounded VX_CONTROL malformed-body recovery for AC1021/AC1024/AC1027/AC1032, with strict refusal and explicit-partial ASCII/Binary readback at three output-qualified revisions.",
+    "remainingP6F": "Continue source/resource inventory and select only a supported OBJECTS body with a reproducible bounded parser-failure mutation; keep per-version claims tied to successful controls.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "403 completed slices and 32 remaining packages: 403/(403+32)=92.6%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-cli-malformed-dictionary-body-recovery-2026-11-14.json"
+}

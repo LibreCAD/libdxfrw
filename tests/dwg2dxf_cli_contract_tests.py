@@ -2043,6 +2043,18 @@ def check_malformed_dictionary_body(converter, root, writer):
         "--generate-cli-malformed-dictionary-body-source", profiles)
 
 
+def check_malformed_vxcontrol_body(converter, root, writer):
+    profiles = {
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "VX_CONTROL",
+        "--generate-cli-malformed-vxcontrol-body-source", profiles)
+
+
 def check_skipped_record_projection(converter, root, writer):
     """Check generated skipped custom-class disposition across writer revisions."""
     if writer is None:
@@ -3287,11 +3299,13 @@ def main():
                 converter, root, args.writer)
             dictionary_checked = check_malformed_dictionary_body(
                 converter, root, args.writer)
+            vxcontrol_checked = check_malformed_vxcontrol_body(
+                converter, root, args.writer)
             print(f"CLI partial DWG read: PASS ({checked} strict/partial/readback "
                   f"controls, {vba_checked} VBA_PROJECT, "
                   f"{block_representation_checked} BLOCKREPRESENTATION_DATA, "
-                  f"{group_checked} GROUP, and {dictionary_checked} "
-                  "DICTIONARY body controls)")
+                  f"{group_checked} GROUP, {dictionary_checked} DICTIONARY, "
+                  f"and {vxcontrol_checked} VX_CONTROL body controls)")
             return
         if args.source_disposition_only:
             checked = check_source_disposition_projection(converter, root, args.writer)
