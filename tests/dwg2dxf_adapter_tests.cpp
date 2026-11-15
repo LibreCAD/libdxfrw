@@ -3581,7 +3581,7 @@ public:
             raw.m_rawBytes[index / 8u] ^= static_cast<std::uint8_t>(1u << (7u - index % 8u));
         return true;
     }
-    static bool physicalRasterOwnerDiagnostic(const dx_data& data) {
+    static bool physicalRasterParentBackReference(const dx_data& data) {
         if (data.m_rasterDwgSourceFailed || data.m_rasterDwgSources.size() != 2u)
             return false;
         const auto definition = data.m_rasterDwgSources.find({data.importGeneration, 0x31u});
@@ -3594,10 +3594,11 @@ public:
                 return false;
         const auto& d = definition->second;
         const auto& r = reactor->second;
-        return d.wire.status == dx_raster_wire::Status::UnqualifiedOwnerRole
+        return d.wire.status
+                == dx_raster_wire::Status::KnownSoftPointerOwnerBackReference
             && d.wire.ownerRole == 4u && d.wire.owner == 0x30u
             && d.raw.m_reactorHandles == std::vector<std::uint32_t>{0x30u, 0x33u}
-            && (d.profileIssues & dx_raster_wire::UnknownWire)
+            && !(d.profileIssues & dx_raster_wire::UnknownWire)
             && r.wire.status == dx_raster_wire::Status::Proven
             && r.wire.ownerRole == 4u && r.wire.owner == 0x32u;
     }
@@ -86407,48 +86408,62 @@ bool rasterVariablesDwgAdapterTransport(
             return fail("physical AC1032 RASTERVARIABLES field/role span mismatch");
         if (revision == DRW::AC1024 && !frameOne) {
             using Access = DxIfaceStandardDwgCaptureTestAccess;
-            if (!Access::physicalRasterOwnerDiagnostic(imported)
+            if (!Access::physicalRasterParentBackReference(imported)
                 || Access::rasterUnchanged(importer))
-                return fail("physical IMAGEDEF owner-role evidence was not captured as unqualified");
+                return fail("physical IMAGEDEF soft-pointer owner back-reference did not remain separately gated");
             for (bool changeEed : {false, true}) {
                 dx_data mutated;
                 dx_iface retryReader;
                 if (!retryReader.fileImport(sourcePath.string(), &mutated, false)
-                    || !Access::physicalRasterOwnerDiagnostic(mutated)
+                    || !Access::physicalRasterParentBackReference(mutated)
                     || !Access::rejectPhysicalRasterMutation(mutated, retryReader, changeEed))
                     return fail("physical IMAGEDEF typed mutation escaped source correlation");
                 dx_data retried;
                 if (!retryReader.fileImport(sourcePath.string(), &retried, false)
-                    || !Access::physicalRasterOwnerDiagnostic(retried)
+                    || !Access::physicalRasterParentBackReference(retried)
                     || Access::rasterUnchanged(retryReader))
                     return fail("physical IMAGEDEF same-reader re-import failed");
             }
             dx_iface exporter;
-            const std::string sentinel = "UNQUALIFIED_IMAGEDEF_OWNER";
+            const std::string sentinel = "IMAGEDEF_BACK_REFERENCE_OUTPUT_GATE";
             for (const auto& target : {std::make_pair(asciiPath, false), std::make_pair(binaryPath, true)}) {
                 for (const auto policy : {dx_dwgReadCompletenessPolicy::Legacy,
                                           dx_dwgReadCompletenessPolicy::RequireComplete,
                                           dx_dwgReadCompletenessPolicy::AllowPartial}) {
                     for (bool requireOwners : {false, true}) {
-                        { std::ofstream output(target.first, std::ios::binary | std::ios::trunc); output << sentinel; }
+                        {
+                            std::ofstream output(target.first,
+                                std::ios::binary | std::ios::trunc);
+                            output << sentinel;
+                        }
                         for (unsigned attempt = 0u; attempt != 2u; ++attempt) {
                             std::ostringstream diagnostic;
                             bool exported = false;
                             {
-                                struct Redirect { std::streambuf* old; ~Redirect() { std::cerr.rdbuf(old); } }
-                                    redirect{std::cerr.rdbuf(diagnostic.rdbuf())};
-                                exported = exporter.fileExport(target.first.string(), revision, target.second, &imported,
-                                    true, requireOwners, dx_dxfSourceTextPolicy::Compatible,
-                                    DRW::DxfTextWritePolicy::Compatible, dx_dxfProxyGraphicsPolicy::Compatible, policy);
+                                struct Redirect {
+                                    std::streambuf* old;
+                                    ~Redirect() { std::cerr.rdbuf(old); }
+                                } redirect{std::cerr.rdbuf(diagnostic.rdbuf())};
+                                exported = exporter.fileExport(target.first.string(),
+                                    revision, target.second, &imported, true,
+                                    requireOwners,
+                                    dx_dxfSourceTextPolicy::Compatible,
+                                    DRW::DxfTextWritePolicy::Compatible,
+                                    dx_dxfProxyGraphicsPolicy::Compatible, policy);
                             }
-                            if (exported || diagnostic.str().find("DWG IMAGEDEF owner role is unqualified for output") == std::string::npos) {
-                                std::cerr << "policy=" << static_cast<int>(policy) << " owners=" << requireOwners
-                                          << " binary=" << target.second << ": " << diagnostic.str();
-                                return fail("unqualified IMAGEDEF owner role was exported");
+                            if (exported || diagnostic.str().find(
+                                    "DWG IMAGEDEF owner back-reference output behavior is not qualified")
+                                    == std::string::npos) {
+                                std::cerr << "policy=" << static_cast<int>(policy)
+                                          << " owners=" << requireOwners
+                                          << " binary=" << target.second << ": "
+                                          << diagnostic.str();
+                                return fail("unqualified IMAGEDEF output behavior was promoted");
                             }
                             std::ifstream input(target.first, std::ios::binary);
-                            if (std::string((std::istreambuf_iterator<char>(input)), {}) != sentinel)
-                                return fail("unqualified IMAGEDEF refusal changed destination");
+                            if (std::string((std::istreambuf_iterator<char>(input)), {})
+                                != sentinel)
+                                return fail("IMAGEDEF output refusal changed destination");
                         }
                     }
                 }

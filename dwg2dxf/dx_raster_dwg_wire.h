@@ -13,10 +13,14 @@
 
 namespace dx_raster_wire {
 enum class Kind { Definition, Reactor };
-// The diagnostic status records a fully framed source whose IMAGEDEF parent
-// uses a soft-pointer wire code, in conflict with the IMAGEDEF-specific
-// hard-owner wording. It is not output qualification.
-enum class Status { Malformed, Unsupported, Proven, UnqualifiedOwnerRole };
+enum class Status {
+    Malformed,
+    Unsupported,
+    Proven,
+    // The IMAGEDEF owner back-reference has a known soft-pointer wire role,
+    // but its native operation and strict-output profile are still gated.
+    KnownSoftPointerOwnerBackReference
+};
 enum class Field : std::size_t {
     Type, DataEnd, Self, EedSize, ReactorCount, XDictMissing, DataStorage,
     ClassVersion, ImageU, ImageV, PathLength, PathUnits, Loaded, Resolution,
@@ -98,7 +102,10 @@ inline Profile profile(unsigned revision, Kind kind, const Proof& proof) noexcep
         || revision == 2013u || revision == 2018u;
     value.layout = revision >= 2010u ? Layout::Split2010
         : revision >= 2007u ? Layout::Split2007 : Layout::LegacyInline;
-    value.knownBodyClass = proof.status == Status::Proven
+    const bool knownWireClass = proof.status == Status::Proven
+        || (proof.status == Status::KnownSoftPointerOwnerBackReference
+            && (kind != Kind::Definition || proof.objectType == 102u));
+    value.knownBodyClass = knownWireClass
         && proof.classVersion == (kind == Kind::Definition ? 0u : 2u);
     value.bytePath = kind == Kind::Definition && revision < 2007u;
     value.unicodePath = kind == Kind::Definition && revision >= 2007u;
@@ -310,25 +317,27 @@ Proof observe(const std::uint8_t* bytes, std::size_t size, unsigned revision,
         if (!body.good || result.dataEnd <= body.pos || result.dataEnd >= total) return result;
         body.end = result.dataEnd;
     }
-    // Identify this possible conflicting owner before parsing EED. An
-    // unsupported EED must not fall through the generic Unsupported path,
-    // which is allowed for older profiles without inspecting owner bytes.
+    // IMAGEDEF's common parent is a back-reference to its owner dictionary.
+    // ODA §2.13 defines code 4 and relative code C as soft pointers; the
+    // dictionary entry is the separate ownership edge (DXF group 350). These
+    // observed profiles must be identified before EED parsing so malformed or
+    // unsupported EED cannot fall through the generic Unsupported path.
     detail::Bits ownerProbe{bytes, result.dataEnd, total};
     const auto ownerCode = static_cast<unsigned>(ownerProbe.take(8u) >> 4u);
     const bool observedRelativeOwnerRevision = revision == 2007u
         || revision == 2010u || revision == 2013u || revision == 2018u;
-    const bool unqualifiedOwnerCandidate = kind == Kind::Definition
+    const bool softPointerOwnerBackReference = kind == Kind::Definition
         && ownerProbe.good
         && ((revision == 2010u && ownerCode == 4u)
             || (observedRelativeOwnerRevision && ownerCode == 12u));
     // Fixed-type role-4 IMAGEDEF is not part of this observed profile.
-    if (unqualifiedOwnerCandidate && definitionType < 500u) return result;
+    if (softPointerOwnerBackReference && definitionType < 500u) return result;
     begin = body.pos;
     result.self = detail::handle(body, 0u, 0u, true).value;
     detail::span(result, Field::Self, begin, body.pos);
     const auto eedStatus = detail::eed(body, revision, result, eedVisitor);
     if (eedStatus != Status::Proven) {
-        result.status = unqualifiedOwnerCandidate ? Status::Malformed : eedStatus;
+        result.status = softPointerOwnerBackReference ? Status::Malformed : eedStatus;
         return result;
     }
     if (revision < 2000u) {
@@ -428,14 +437,16 @@ Proof observe(const std::uint8_t* bytes, std::size_t size, unsigned revision,
     detail::span(result, Field::ScalarPadding, body.pos, body.end);
     detail::Bits handles{bytes, result.dataEnd, total};
     begin = handles.pos;
-    // ODA §2.13 defines codes 6/8/10/12 as offset soft pointers. AutoCAD
-    // AC1021/24/27/32 samples use code 12 for IMAGEDEF's parent, conflicting
-    // with §20.4.81's hard-owner wording. Decode the target for diagnostics
-    // and source retention, but keep the profile explicitly unqualified.
-    const auto owner = detail::handle(handles, unqualifiedOwnerCandidate ? 4u : kind == Kind::Definition ? 3u : 4u, result.self);
+    // ODA §2.13 defines codes 4 and 6/8/A/C as soft pointers. AutoCAD
+    // AC1021/24/27/32 pairs use code C for IMAGEDEF's parent back-reference;
+    // the dictionary's group-350 entry carries ownership in the other
+    // direction. Preserve the raw role while decoding the back-reference.
+    const unsigned expectedParentRole = softPointerOwnerBackReference ? 4u
+        : kind == Kind::Definition ? 3u : 4u;
+    const auto owner = detail::handle(handles, expectedParentRole, result.self);
     result.owner = owner.value; result.ownerRole = owner.role;
     detail::span(result, Field::Owner, begin, handles.pos);
-    if (!handles.good || (unqualifiedOwnerCandidate && (owner.length == 0u || owner.value == 0u))
+    if (!handles.good || (softPointerOwnerBackReference && (owner.length == 0u || owner.value == 0u))
         || result.reactorCount > (handles.end - handles.pos) / 8u) return result;
     begin = handles.pos;
     for (std::uint32_t n = 0; n < result.reactorCount; ++n) {
@@ -452,8 +463,9 @@ Proof observe(const std::uint8_t* bytes, std::size_t size, unsigned revision,
     }
     if (!handles.good || handles.end - handles.pos > 7u) return result;
     detail::span(result, Field::HandlePadding, handles.pos, handles.end);
-    result.status = unqualifiedOwnerCandidate ? Status::UnqualifiedOwnerRole
-        : result.dataStorage ? Status::Unsupported : Status::Proven;
+    result.status = result.dataStorage ? Status::Unsupported
+        : softPointerOwnerBackReference
+            ? Status::KnownSoftPointerOwnerBackReference : Status::Proven;
     return result;
 }
 } // namespace dx_raster_wire

@@ -374,14 +374,16 @@ bool run() {
             || !wire::profile(revision, wire::Kind::Definition, p).knownBodyClass) return false;
         ++customProfiles;
     }
-    // The physical AC1024 producer uses an IMAGEDEF soft-pointer parent,
-    // conflicting with the record-specific ODA hard-owner wording. Retain
-    // complete evidence in a distinct, non-output-qualified status only.
-    auto unqualified = make(2010u, wire::Kind::Definition, true, false,
-                            2u, 514u, false, nullptr, true);
-    const auto parent = unqualified.spans[static_cast<std::size_t>(wire::Field::Owner)];
-    const auto reactors = unqualified.spans[static_cast<std::size_t>(wire::Field::Reactors)];
-    unqualified.bytes.patch(parent.begin, 4u, 4u);
+    // The physical AC1024 producer uses a soft-pointer parent back-reference;
+    // the dictionary entry is the separate ownership edge. Preserve complete
+    // wire evidence while keeping output qualification as a separate gate.
+    auto softPointerBackReference = make(2010u, wire::Kind::Definition, true,
+                                         false, 2u, 514u, false, nullptr, true);
+    const auto parent = softPointerBackReference.spans[
+        static_cast<std::size_t>(wire::Field::Owner)];
+    const auto reactors = softPointerBackReference.spans[
+        static_cast<std::size_t>(wire::Field::Reactors)];
+    softPointerBackReference.bytes.patch(parent.begin, 4u, 4u);
     unsigned visitedReactors = 0u;
     const auto inspectReactor = [&](std::uint32_t index, std::uint32_t value,
                                     wire::Span span, std::uint8_t role) noexcept {
@@ -392,31 +394,42 @@ bool run() {
         ++visitedReactors;
         return true;
     };
-    const auto unqualifiedProof = wire::observe(unqualified.bytes.bytes.data(),
-        unqualified.bytes.bytes.size(), unqualified.revision, unqualified.kind,
-        unqualified.handles, inspectReactor, wire::detail::IgnoreEed{},
-        unqualified.objectType);
-    if (unqualifiedProof.status != wire::Status::UnqualifiedOwnerRole
-        || unqualifiedProof.ownerRole != 4u || unqualifiedProof.owner != 0x2211u
-        || unqualifiedProof.reactorCount != 2u || visitedReactors != 2u
-        || !sameSpans(unqualified, unqualifiedProof)) return false;
+    const auto backReferenceProof = wire::observe(
+        softPointerBackReference.bytes.bytes.data(),
+        softPointerBackReference.bytes.bytes.size(),
+        softPointerBackReference.revision, softPointerBackReference.kind,
+        softPointerBackReference.handles, inspectReactor,
+        wire::detail::IgnoreEed{}, softPointerBackReference.objectType);
+    if (backReferenceProof.status
+            != wire::Status::KnownSoftPointerOwnerBackReference
+        || backReferenceProof.ownerRole != 4u
+        || backReferenceProof.owner != 0x2211u
+        || backReferenceProof.reactorCount != 2u || visitedReactors != 2u
+        || !sameSpans(softPointerBackReference, backReferenceProof)) return false;
     for (unsigned role : {2u, 5u, 6u}) {
-        auto bad = unqualified; bad.bytes.patch(parent.begin, role, 4u);
+        auto bad = softPointerBackReference;
+        bad.bytes.patch(parent.begin, role, 4u);
         if (scan(bad).status != wire::Status::Malformed) return false;
     }
-    auto zeroOwner = unqualified; zeroOwner.bytes.patch(parent.begin + 8u, 0u, 16u);
+    auto zeroOwner = softPointerBackReference;
+    zeroOwner.bytes.patch(parent.begin + 8u, 0u, 16u);
     if (scan(zeroOwner).status != wire::Status::Malformed) return false;
-    auto badReactor = unqualified; badReactor.bytes.patch(reactors.begin, 5u, 4u);
+    auto badReactor = softPointerBackReference;
+    badReactor.bytes.patch(reactors.begin, 5u, 4u);
     if (scan(badReactor).status != wire::Status::Malformed) return false;
-    for (std::size_t size = 0; size < unqualified.bytes.bytes.size(); ++size)
-        if (wire::observe(unqualified.bytes.bytes.data(), size, unqualified.revision,
-                          unqualified.kind, unqualified.handles,
+    for (std::size_t size = 0;
+         size < softPointerBackReference.bytes.bytes.size(); ++size)
+        if (wire::observe(softPointerBackReference.bytes.bytes.data(), size,
+                          softPointerBackReference.revision,
+                          softPointerBackReference.kind,
+                          softPointerBackReference.handles,
                           wire::detail::Ignore{}, wire::detail::IgnoreEed{},
-                          unqualified.objectType).status != wire::Status::Malformed) return false;
-    // AutoCAD's AC1021/24/27/32 samples encode IMAGEDEF's parent as code-C,
-    // a relative soft pointer, while the ODA IMAGEDEF schema calls it a hard
-    // owner. Decode the exact target and following reactor spans, but retain
-    // the explicitly unqualified status for every witnessed revision.
+                          softPointerBackReference.objectType).status
+            != wire::Status::Malformed) return false;
+    // AutoCAD's AC1021/24/27/32 samples encode IMAGEDEF's parent back-reference
+    // as code C, a relative soft pointer. The dictionary entry is the distinct
+    // ownership edge. Preserve the exact target and following reactor spans,
+    // while keeping output qualification separate from wire-role parsing.
     for (const unsigned revision : {2007u, 2010u, 2013u, 2018u}) {
         auto relativeOwner = make(revision, wire::Kind::Definition, false,
             false, 2u, 528u, false, nullptr, true);
@@ -443,7 +456,8 @@ bool run() {
             revision, wire::Kind::Definition, relativeOwner.handles,
             inspectRelativeReactor, wire::detail::IgnoreEed{},
             relativeOwner.objectType);
-        if (relativeProof.status != wire::Status::UnqualifiedOwnerRole
+        if (relativeProof.status
+                != wire::Status::KnownSoftPointerOwnerBackReference
             || relativeProof.ownerRole != 12u
             || relativeProof.owner != 0x11223342u
             || relativeProof.reactorCount != 2u || reactorsVisited != 2u

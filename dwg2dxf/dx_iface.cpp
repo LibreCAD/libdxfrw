@@ -23337,7 +23337,8 @@ unsigned rasterWireRevision(DRW::Version version) noexcept {
 bool rasterWireMatches(const dx_raster_wire::Proof& proof, const DRW_TableEntry& typed,
                        int objectType, bool definition) noexcept {
     if (proof.status != dx_raster_wire::Status::Proven
-        && proof.status != dx_raster_wire::Status::UnqualifiedOwnerRole)
+        && proof.status
+            != dx_raster_wire::Status::KnownSoftPointerOwnerBackReference)
         return proof.status == dx_raster_wire::Status::Unsupported;
     if (proof.objectType != static_cast<unsigned>(objectType) || proof.self != typed.handle
         || proof.owner != typed.parentHandle || proof.reactorCount != typed.reactorHandles.size()
@@ -27721,7 +27722,7 @@ void dx_iface::finishRasterDwgSources(bool successfulRead, std::size_t appIdBegi
                 static_cast<std::uint32_t>(raw.m_objectType));
             if (!rasterWireMatches(wire, *typed, raw.m_objectType, definition)
                 || ((wire.status == dx_raster_wire::Status::Proven
-                     || wire.status == dx_raster_wire::Status::UnqualifiedOwnerRole)
+                     || wire.status == dx_raster_wire::Status::KnownSoftPointerOwnerBackReference)
                     && wire.eedVariants != typed->extData.size())) {
                 DRW_DBG("Raster DWG wire proof mismatch status=");
                 DRW_DBG(static_cast<unsigned>(wire.status));
@@ -27748,7 +27749,10 @@ void dx_iface::finishRasterDwgSources(bool successfulRead, std::size_t appIdBegi
             const auto profile = dx_raster_wire::profile(rasterWireRevision(raw.m_version),
                 definition ? dx_raster_wire::Kind::Definition : dx_raster_wire::Kind::Reactor, wire);
             std::uint32_t profileIssues = dx_raster_wire::TextSemanticsNotIndependent;
-            if (wire.status != dx_raster_wire::Status::Proven) profileIssues |= dx_raster_wire::UnknownWire;
+            if (wire.status != dx_raster_wire::Status::Proven
+                && wire.status
+                    != dx_raster_wire::Status::KnownSoftPointerOwnerBackReference)
+                profileIssues |= dx_raster_wire::UnknownWire;
             if (!profile.knownBodyClass) profileIssues |= dx_raster_wire::UnknownBodyClass;
             if (wire.dataStorage) profileIssues |= dx_raster_wire::ExternalDataStorage;
             if (wire.eedLayerEndianConflict) profileIssues |= dx_raster_wire::LayerByteOrderDisagreement;
@@ -28017,8 +28021,9 @@ bool dx_iface::hasUnchangedRasterDwgSources() const noexcept {
             return mismatch("class-row binding changed");
         if (!frame.wireObserved || !frame.dependenciesObserved) return mismatch("wire/dependency proof missing");
         if (frame.wire.status == dx_raster_wire::Status::Malformed) return mismatch("wire profile malformed");
-        if (frame.wire.status == dx_raster_wire::Status::UnqualifiedOwnerRole)
-            return mismatch("owner role unqualified");
+        if (frame.wire.status
+            == dx_raster_wire::Status::KnownSoftPointerOwnerBackReference)
+            return mismatch("IMAGEDEF owner back-reference output behavior is not qualified");
         if (!frame.publicationSeen) return mismatch("frame publication missing");
         if (source.first.first != frame.generation) return mismatch("generation key mismatch");
         if (source.first.second != frame.raw.m_handle) return mismatch("handle key mismatch");
@@ -84321,13 +84326,15 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         return false;
     }
     if (!hasUnchangedRasterDwgSources()) {
-        const bool unqualifiedOwner = std::any_of(cData->m_rasterDwgSources.begin(),
-            cData->m_rasterDwgSources.end(), [](const auto& item) {
+        const bool ownerBackReference = std::any_of(
+            cData->m_rasterDwgSources.begin(), cData->m_rasterDwgSources.end(),
+            [](const auto& item) {
                 return item.second.wireObserved
-                    && item.second.wire.status == dx_raster_wire::Status::UnqualifiedOwnerRole;
+                    && item.second.wire.status
+                        == dx_raster_wire::Status::KnownSoftPointerOwnerBackReference;
             });
-        reportPreflightFailure(unqualifiedOwner
-            ? "DWG IMAGEDEF owner role is unqualified for output"
+        reportPreflightFailure(ownerBackReference
+            ? "DWG IMAGEDEF owner back-reference output behavior is not qualified"
             : "DWG IMAGEDEF/reactor source capture or immutable payload correlation failed");
         return false;
     }
