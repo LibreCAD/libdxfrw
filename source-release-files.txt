@@ -33,6 +33,7 @@ docs/LIBRECAD_DXFRW_UPGRADE_HISTORY.md
 docs/SOURCE_RELEASE.md
 docs/UPGRADE_SUPPORT.md
 docs/patches/librecad-p8-associative-prefix-compat-2026-11-15.patch
+docs/patches/librecad-p8-canonical-ltype-metadata-2026-11-15.patch
 docs/patches/librecad-p8-dimassoc-field-mapping-2026-11-15.patch
 docs/patches/librecad-p8-mpolygon-annotation-test-2026-11-15.patch
 docs/patches/librecad-p8-mpolygon-hatch-test-type-2026-11-15.patch

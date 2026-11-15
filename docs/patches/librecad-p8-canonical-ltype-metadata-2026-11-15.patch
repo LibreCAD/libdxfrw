@@ -1,0 +1,146 @@
+From 9f82b2b41cc0f1d5f59fcb89b85732c537a6503d Mon Sep 17 00:00:00 2001
+From: dxli <dongxuli2011@gmail.com>
+Date: Sun, 15 Nov 2026 10:56:45 -0500
+Subject: [PATCH] Preserve canonical linetype metadata when supported
+
+---
+ librecad/src/lib/filters/rs_filterdxfrw.cpp   | 23 +++++++
+ .../lib/filters/tests/dxf_roundtrip_tests.cpp | 67 +++++++++++++++++++
+ 2 files changed, 90 insertions(+)
+
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index 9ebe25e..56b79f0 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -282,6 +282,18 @@ struct hasDwgReplayState<
+     T, std::void_t<decltype(std::declval<const T &>().replayState)>>
+     : std::true_type {};
+ 
++// The upstream codec can attach source table metadata before it emits the
++// mandatory LTYPE rows. Older bundled libdxfrw has no equivalent setup hook.
++template <typename Writer>
++auto setCanonicalLTypeMetadataIfAvailable(
++    Writer &writer, const std::vector<DRW_LType> &records, int)
++    -> decltype(writer.setCanonicalLineTypeMetadata(records), void()) {
++  writer.setCanonicalLineTypeMetadata(records);
++}
++template <typename Writer>
++void setCanonicalLTypeMetadataIfAvailable(
++    Writer &, const std::vector<DRW_LType> &, long) {}
++
+ std::string normalizeDwgTableName(const std::string &name) {
+   std::string normalized = name;
+   std::transform(
+@@ -12892,6 +12904,17 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+       m_dxfW->setRootDictEntries(rootEntries);
+   }
+ 
++  // Mandatory LTYPE rows are emitted before writeLTypes(). Supply their
++  // archived table-entry metadata up front when the codec supports it.
++  std::vector<DRW_LType> canonicalLTypes;
++  for (const auto &entry :
++       m_graphic->dwgAdvancedMetadata().lineTypeTableEntries()) {
++    const std::string name = normalizeDwgTableName(entry.first);
++    if (name == "BYBLOCK" || name == "BYLAYER" || name == "CONTINUOUS")
++      canonicalLTypes.push_back(entry.second);
++  }
++  setCanonicalLTypeMetadataIfAvailable(*m_dxfW, canonicalLTypes, 0);
++
+   //    bool success = m_dxfW->write(this, exportVersion, false); //ascii
+   const bool success =
+       m_dxfW->write(this, exportVersion, binary) && !m_writeFailed; // binary
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 5cda0f4..cd02420 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -33,6 +33,7 @@
+ #include <catch2/generators/catch_generators.hpp>
+ 
+ #include <algorithm>
++#include <array>
+ #include <cmath>
+ #include <cstddef>
+ #include <cstdlib>
+@@ -46,6 +47,7 @@
+ #include <set>
+ #include <string>
+ #include <tuple>
++#include <type_traits>
+ #include <utility>
+ #include <vector>
+ 
+@@ -6835,6 +6837,71 @@ TEST_CASE("A dimension's override arrow becomes an INSERT as soon as its "
+   CHECK(insertCount == 2); // one per end
+ }
+ 
++namespace {
++template <typename T, typename = void>
++struct SupportsCanonicalLTypeMetadata : std::false_type {};
++template <typename T>
++struct SupportsCanonicalLTypeMetadata<
++    T, std::void_t<decltype(std::declval<T &>().setCanonicalLineTypeMetadata(
++           std::declval<const std::vector<DRW_LType> &>()))>> : std::true_type {};
++} // namespace
++
++TEST_CASE("DXF canonical LTYPE application data follows the available codec",
++          "[dxf][roundtrip][filter][ltype][application-groups]") {
++  ensureSettings();
++  const std::string src = tmpFile("canonical_ltype_app_src.dxf");
++  const std::string out = tmpFile("canonical_ltype_app_out.dxf");
++  std::filesystem::remove(src);
++  std::filesystem::remove(out);
++  const std::array<std::pair<const char *, const char *>, 3> names{{
++      {"ByBlock", "14"}, {"ByLayer", "15"}, {"Continuous", "16"}}};
++  std::string fixture =
++      "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1021\n0\nENDSEC\n"
++      "0\nSECTION\n2\nTABLES\n0\nTABLE\n2\nLTYPE\n70\n3\n";
++  for (const auto &[name, handle] : names) {
++    fixture += std::string("0\nLTYPE\n5\n") + handle +
++        "\n330\n5\n102\n{CANON_APP\n1\n" + name +
++        "-payload\n102\n}\n100\nAcDbSymbolTableRecord\n"
++        "100\nAcDbLinetypeTableRecord\n2\n" + name +
++        "\n70\n0\n3\n\n72\n65\n73\n0\n40\n0\n";
++  }
++  fixture += "0\nENDTAB\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n"
++             "0\nENDSEC\n0\nEOF\n";
++  writeText(src, fixture);
++  RS_Graphic graphic;
++  RS_FilterDXFRW reader;
++  REQUIRE(reader.fileImport(graphic, QString::fromStdString(src), RS2::FormatDXFRW));
++  for (const auto &[name, handle] : names) {
++    (void)handle;
++    const auto *source = graphic.dwgAdvancedMetadata().findLineTypeTableEntryByName(name);
++    REQUIRE(source != nullptr);
++    REQUIRE(source->appData.size() == 1u);
++  }
++  RS_FilterDXFRW writer;
++  REQUIRE(writer.fileExport(graphic, QString::fromStdString(out), RS2::FormatDXFRW));
++  for (const auto &[name, handle] : names) {
++    (void)handle;
++    const auto payload = ltypeRecordGroupValues(out, name, "1");
++    if constexpr (SupportsCanonicalLTypeMetadata<dxfRW>::value)
++      CHECK(payload == std::vector<std::string>{std::string(name) + "-payload"});
++    else
++      CHECK(payload.empty()); // Older bundled codec has no metadata setup hook.
++  }
++  RS_Graphic reopened;
++  RS_FilterDXFRW rereader;
++  REQUIRE(rereader.fileImport(reopened, QString::fromStdString(out), RS2::FormatDXFRW));
++  if constexpr (SupportsCanonicalLTypeMetadata<dxfRW>::value) {
++    for (const auto &[name, handle] : names) {
++      (void)handle;
++      const auto *record = reopened.dwgAdvancedMetadata().findLineTypeTableEntryByName(name);
++      REQUIRE(record != nullptr);
++      CHECK(record->appData.size() == 1u);
++    }
++  }
++  std::filesystem::remove(src);
++  std::filesystem::remove(out);
++}
++
+ TEST_CASE("DXF unused LTYPE and STYLE application groups survive filter round trip",
+           "[dxf][roundtrip][filter][ltype][style][application-groups]") {
+   ensureSettings();
+-- 
+2.54.0 (Apple Git-157)
+
