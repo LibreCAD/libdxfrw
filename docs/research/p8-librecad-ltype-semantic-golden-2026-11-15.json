@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-15",
+  "base": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-ltype-semantic-golden-2026-11-15.patch",
+  "patchSha256": "0707c3335bfbfb0514f71c7b367d39ed212fa99cc068261011c25627596d4c5d",
+  "finding": "The upstream codec writes the actual 35 LTYPE table entries in group 70 instead of the bundled historical value 4, uses a distinct valid handle allocation, and serializes some re-summed pattern lengths at a different floating-point precision. The LTYPE payloads match within the documented numeric comparison. R12 export of a new drawing separately refuses its explicit 0.25 mm layer lineweight because R12 cannot carry it.",
+  "change": "Keep the ordered golden for all group codes, names, descriptions, flags, alignment and dash values, compare pattern lengths within 1e-12 relative/absolute tolerance, and verify output handles are unique with each owner pointing to the emitted table. Require each codec\u2019s table count. The LTYPE-specific R12 case explicitly chooses a default layer lineweight. A separate policy test verifies the upstream refusal preserves the prior destination and caller pen, changes the pen to the neutral default, retries using the same filter, and imports the result using a fresh filter. The older bundled codec is expected to allow the lossy export.",
+  "validation": [
+    "The modified incremental macOS upstream-linked LibreCAD selector [ltype]~[dwg] passes 16/16 cases and 3974 assertions, including R12 failure/retry and fresh readback.",
+    "The modified test translation unit compiles against bundled LibreCAD codec headers; the bundled runtime was not rerun for this patch.",
+    "The patch applies forward and reverse after the existing 12 patches at base 8a82e359; the resulting test file is byte-identical to the tested file.",
+    "No generated drawing fixtures are committed."
+  ],
+  "limits": "This updates a downstream test, not the production R12 export policy. The user-visible upstream R12 refusal of nondefault lineweight remains; the consumer integration, clean full build, bundled runtime and other platforms remain open. The local patch chain is unmerged and does not promote a format claim."
+}
