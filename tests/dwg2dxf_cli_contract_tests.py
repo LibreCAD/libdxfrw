@@ -2533,6 +2533,15 @@ def check_malformed_lightlist_body(converter, root, writer):
         "--generate-cli-malformed-lightlist-body-source", profiles)
 
 
+def check_malformed_geodata_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "GEODATA",
+        "--generate-cli-malformed-geodata-body-source", profiles)
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3746,6 +3755,8 @@ def main():
                         help="run only generated SPATIAL_INDEX recovery controls")
     parser.add_argument("--lightlist-only", action="store_true",
                         help="run only generated LIGHTLIST recovery controls")
+    parser.add_argument("--geodata-only", action="store_true",
+                        help="run only generated GEODATA recovery controls")
     parser.add_argument("--source-disposition-only", action="store_true",
                         help="run only CLI repair/skip/mask preflight projections")
     parser.add_argument("--historical-ac1021-only", action="store_true",
@@ -3862,6 +3873,11 @@ def main():
             checked = check_malformed_lightlist_body(
                 converter, root, args.writer)
             print(f"CLI LIGHTLIST recovery: PASS ({checked} controls)")
+            return
+        if args.geodata_only:
+            checked = check_malformed_geodata_body(
+                converter, root, args.writer)
+            print(f"CLI GEODATA recovery: PASS ({checked} controls)")
             return
         if args.partial_read_only:
             checked = check_partial_dwg_read_cli(converter, root, args.writer)
