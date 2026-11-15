@@ -1,0 +1,182 @@
+From 2e31fef426f4e250a056ed064d5186f8f71ef76b Mon Sep 17 00:00:00 2001
+From: dxli <dongxuli2011@gmail.com>
+Date: Sun, 15 Nov 2026 06:00:33 -0500
+Subject: [PATCH] Correct DIMASSOC DXF field mapping
+
+---
+ libraries/libdxfrw/src/drw_objects.cpp        |  4 +-
+ libraries/libdxfrw/src/libdxfrw.cpp           |  4 +-
+ .../lib/filters/tests/dxf_object_tests.cpp    | 86 ++++++++++++++++++-
+ 3 files changed, 86 insertions(+), 8 deletions(-)
+
+diff --git a/libraries/libdxfrw/src/drw_objects.cpp b/libraries/libdxfrw/src/drw_objects.cpp
+index 15ddea4..46225ec 100644
+--- a/libraries/libdxfrw/src/drw_objects.cpp
++++ b/libraries/libdxfrw/src/drw_objects.cpp
+@@ -17658,14 +17658,14 @@ bool DRW_DimensionAssociation::parseCode(int code, const std::unique_ptr<dxfRead
+         switch (code) {
+         case 330: m_dimensionHandle = reader->getHandleString(); return true;
+         case 90:  m_associativityFlags = reader->getInt32(); return true;
+-        case 70: {
++        case 70:  m_isTransSpace = (reader->getInt32() != 0); return true;
++        case 71: {
+             const int value = reader->getInt32();
+             if (value < 0 || value > std::numeric_limits<std::uint8_t>::max())
+                 return false;
+             m_rotatedDimensionType = static_cast<std::uint8_t>(value);
+             return true;
+         }
+-        case 71:  m_isTransSpace = (reader->getInt32() != 0); return true;
+         case 1: { // opens a new osnap reference block
+             if (m_osnapRefs.size() >= dwgSafety::MaxOwnedObjectCount)
+                 return false;
+diff --git a/libraries/libdxfrw/src/libdxfrw.cpp b/libraries/libdxfrw/src/libdxfrw.cpp
+index efeb4d2..8a163c8 100644
+--- a/libraries/libdxfrw/src/libdxfrw.cpp
++++ b/libraries/libdxfrw/src/libdxfrw.cpp
+@@ -15987,8 +15987,8 @@ bool dxfRW::writeDimensionAssociation(DRW_DimensionAssociation *ent) {
+         written = written && writeString(330, toHexStr(ent->m_dimensionHandle));
+     written = written
+         && writer->writeInt32(90, static_cast<int>(ent->m_associativityFlags))
+-        && writer->writeInt16(70, static_cast<int>(ent->m_rotatedDimensionType))
+-        && writer->writeBool(71, ent->m_isTransSpace);
++        && writer->writeInt16(70, ent->m_isTransSpace ? 1 : 0)
++        && writer->writeInt16(71, static_cast<int>(ent->m_rotatedDimensionType));
+     for (const DRW_DimensionAssociationOsnapRef &ref : ent->m_osnapRefs) {
+         written = written && writeUtf8String(1, ref.m_className)
+             && writer->writeInt16(72, static_cast<int>(ref.m_objectOsnapType));
+diff --git a/librecad/src/lib/filters/tests/dxf_object_tests.cpp b/librecad/src/lib/filters/tests/dxf_object_tests.cpp
+index 5a95b50..d3b4cfc 100644
+--- a/librecad/src/lib/filters/tests/dxf_object_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_object_tests.cpp
+@@ -40,11 +40,14 @@
+ #include <memory>
+ #include <sstream>
+ #include <string>
++#include <type_traits>
++#include <utility>
+ #include <vector>
+ 
+ #include "drw_header.h"
+ #include "drw_entities.h"
+ #include "drw_objects.h"
++#include "intern/dxfreader.h"
+ #include "intern/dxfwriter.h"
+ #include "libdxfrw.h"
+ 
+@@ -11596,6 +11599,12 @@ public:
+     m_rawObjects.push_back(d);
+   }
+ };
++template <typename T, typename = void>
++struct HasModeledOsnapType : std::false_type {};
++template <typename T>
++struct HasModeledOsnapType<T, std::void_t<decltype(
++    std::declval<T>().m_hasObjectOsnapType)>> : std::true_type {};
++
+ class DimAssocCapture : public StubInterface {
+ public:
+   int m_callCount = 0;
+@@ -11951,7 +11960,59 @@ TEST_CASE("DXF DIMASSOC is read into a DRW_DimensionAssociation",
+   CHECK(a.m_osnapRefs[0].m_objectHandle == 0x510u);
+   CHECK(a.m_osnapRefs[1].m_objectOsnapType == 7);
+   CHECK(a.m_osnapRefs[1].m_objectHandle == 0x511u);
+-  CHECK(a.m_hasUnrepresentableDetail);
++  CHECK(a.m_hasUnrepresentableDetail ==
++        !HasModeledOsnapType<DRW_DimensionAssociationOsnapRef>::value);
++}
++
++TEST_CASE("DXF DIMASSOC maps trans-space and rotated type to their documented groups",
++          "[dxf][dimassoc][field-mapping]") {
++  const char *input =
++      "0\nSECTION\n2\nOBJECTS\n0\nDIMASSOC\n5\n521\n"
++      "330\n1A\n100\nAcDbDimAssoc\n330\n500\n90\n0\n"
++      "70\n1\n71\n0\n0\nENDSEC\n0\nEOF\n";
++  DimAssocCapture source;
++  readDxf(input, source, "lc_dimassoc_documented_field_input.dxf");
++  REQUIRE(source.m_callCount == 1);
++  CHECK(source.m_captured.m_isTransSpace);
++  CHECK(source.m_captured.m_rotatedDimensionType == 0);
++
++  for (bool binary : {false, true}) {
++    const auto path = std::filesystem::temp_directory_path() /
++        (binary ? "lc_dimassoc_field_output_binary.dxf"
++                : "lc_dimassoc_field_output_ascii.dxf");
++    DimensionAssociationEmitter emitter;
++    emitter.m_association = source.m_captured;
++    dxfRW writer(path.string().c_str());
++    emitter.m_rw = &writer;
++    REQUIRE(writer.write(&emitter, DRW::AC1027, binary));
++    REQUIRE(emitter.m_writeResult);
++    {
++      std::ifstream wire(path, std::ios::binary);
++      if (binary) wire.seekg(22);
++      std::unique_ptr<dxfReader> tags = binary
++          ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&wire))
++          : std::unique_ptr<dxfReader>(new dxfReaderAscii(&wire));
++      tags->setVersion("AC1027", true);
++      bool inAssociation = false;
++      int group70 = -1;
++      int group71 = -1;
++      int code = 0;
++      while (tags->readRec(&code)) {
++        if (code == 0) inAssociation = tags->getString() == "DIMASSOC";
++        if (inAssociation && code == 70) group70 = tags->getInt32();
++        if (inAssociation && code == 71) group71 = tags->getInt32();
++      }
++      CHECK(group70 == 1);
++      CHECK(group71 == 0);
++    }
++    DimAssocCapture written;
++    dxfRW reader(path.string().c_str());
++    REQUIRE(reader.read(&written, false));
++    REQUIRE(written.m_callCount == 1);
++    CHECK(written.m_captured.m_isTransSpace);
++    CHECK(written.m_captured.m_rotatedDimensionType == 0);
++    std::filesystem::remove(path);
++  }
+ }
+ 
+ TEST_CASE("DXF DIMASSOC rejects out-of-range byte fields",
+@@ -11964,7 +12025,7 @@ TEST_CASE("DXF DIMASSOC rejects out-of-range byte fields",
+   };
+ 
+   DimAssocCapture rotatedTypeCapture;
+-  CHECK_FALSE(tryReadDxf(makeDxf("70\n256"), rotatedTypeCapture,
++  CHECK_FALSE(tryReadDxf(makeDxf("71\n256"), rotatedTypeCapture,
+                          "lc_dimassoc_rotated_type_overflow.dxf"));
+   CHECK(rotatedTypeCapture.m_callCount == 0);
+ 
+@@ -12008,10 +12069,27 @@ TEST_CASE("DXF DIMASSOC writer refuses lossy associations",
+     verifyRejected(std::move(association));
+   }
+ 
+-  SECTION("osnap subtype requires a raw carrier") {
++  SECTION("osnap subtype follows retained detail capabilities") {
+     DRW_DimensionAssociation association = makeAssociation();
+     association.m_osnapRefs[0].m_objectOsnapType = 1;
+-    verifyRejected(std::move(association));
++    if (!HasModeledOsnapType<DRW_DimensionAssociationOsnapRef>::value) {
++      verifyRejected(std::move(association));
++    } else {
++      DimensionAssociationEmitter emitter;
++      emitter.m_association = association;
++      dxfRW writer(path.string().c_str());
++      emitter.m_rw = &writer;
++      REQUIRE(writer.write(&emitter, DRW::AC1027, false));
++      REQUIRE(emitter.m_writeResult);
++      DimAssocCapture capture;
++      dxfRW reader(path.string().c_str());
++      REQUIRE(reader.read(&capture, false));
++      REQUIRE(capture.m_callCount == 1);
++      REQUIRE(capture.m_captured.m_osnapRefs.size() == 1);
++      CHECK(capture.m_captured.m_osnapRefs[0].m_objectOsnapType == 1);
++      CHECK(capture.m_captured.m_osnapRefs[0].m_objectHandle == 0x510u);
++      CHECK_FALSE(capture.m_captured.m_hasUnrepresentableDetail);
++    }
+   }
+ 
+   SECTION("active slots must match retained references") {
+-- 
+2.54.0 (Apple Git-157)
+
