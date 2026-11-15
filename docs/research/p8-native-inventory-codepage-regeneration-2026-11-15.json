@@ -1,0 +1,9 @@
+{
+  "date": "2026-11-15",
+  "failingRun": "https://github.com/dxli/libdxfrw/actions/runs/43735787904",
+  "sourceCommit": "70e8f034a77cb1e65ddfc12f7679a32e41d2702d",
+  "failure": "The macOS focused qualification refused before running its selected tests because registering libdxfrw_legacy_codepage_consumer added one name to the live CTest inventory while the frozen broad inventory still had 1364 names.",
+  "repair": "Ran the supported freeze-inventory command in a clean clone at the source commit, configured with the fixed hosted profile. It produced 1365 names with digest 550d28eb9a000623410d7abd8e6df8ca501b5c8b2306b0aba9ad3962de45a7da. The set exactly matches the macOS job's uploaded inventory: only the new consumer test was added and none were removed.",
+  "validation": "Required-test and workflow contract checks and their self-tests pass; a clean-clone qualification implementation digest and format-support check pass with digest 8a7c43305e73a3a81c0d54edbd190fff207197767b81c156da27a6459ca1e9b2 over 714 inputs and zero advertised routes.",
+  "limits": "The failed macOS job is not a passing focused test run. Hosted native qualification must be rerun at the repaired revision; no semantic or format support claim is promoted."
+}
