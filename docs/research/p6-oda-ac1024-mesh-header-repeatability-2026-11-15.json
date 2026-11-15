@@ -37,12 +37,13 @@
       "12cade2007210f13e44c913c32973505d77ed342d3c60b6e0b00bff5e3cf104b",
       "768c02cb8f05231a67cfe16aca2fa7b34292d9bcf82ffb7e9e014fc3689901e6",
       "0dccd0636fd7efa9bfe5e9a7b29027dee724aba72da2ba01c7b6f2156ec4ff98"
-    ]
+    ],
+    "odaSpecification": "ODA Open Design Specification v5.4.1 section 9 describes random bits only up to the next byte boundary, followed by CRC and the ending sentinel. This does not characterize 739 bytes after the ending sentinel."
   },
   "limits": [
     "The input geometry is locally generated; ODA resaves are independent conversion evidence, not independently authored models.",
     "The patched FreeCAD route is headless and unmerged, and ODA performed the DWG-to-DXF step; no libdxfrw output or complete DWG graph is qualified.",
-    "Suffix meaning remains unknown; do not treat random-like or changing bytes as disposable without source-bound specification or independent semantic proof.",
+    "The authoritative section 9 byte-alignment note does not explain the post-sentinel suffix; its meaning remains unknown. Do not discard it without source-bound specification or independent semantic proof.",
     "No fixture files are committed and no format-support or phase-gate claim is promoted."
   ]
 }
