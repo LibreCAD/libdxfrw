@@ -21,5 +21,6 @@
     "No LibreCAD_3 native runtime qualification.",
     "No external DWG/DXF sample committed.",
     "Broader LibreCAD MTEXT line-spacing and R2018 extents differences remain open."
-  ]
+  ],
+  "follow_up_resolution": "The prior four line-spacing and two extents assertions pass after the DXF default normalization and the local LibreCAD test correction; see p8-librecad-mtext-spacing-column-extents-2026-11-15.json. The independent upstream column-scope selector has a separate pre-existing embedded-orientation failure."
 }

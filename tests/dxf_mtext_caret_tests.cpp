@@ -13,12 +13,19 @@
 
 namespace {
 struct Capture final : LC3CompatCheck {
-    void addMText(const DRW_MText& value) override { ++count; text = value.text; }
+    void addMText(const DRW_MText& value) override {
+        ++count; text = value.text; style = value.linespacingStyle;
+    }
     void addAttDef(const DRW_Attdef& value) override {
-        if (value.mtext) { ++embeddedCount; embeddedText = value.mtext->text; }
+        if (value.mtext) {
+            ++embeddedCount; embeddedText = value.mtext->text;
+            embeddedStyle = value.mtext->linespacingStyle;
+        }
     }
     int count = 0;
     int embeddedCount = 0;
+    std::uint16_t style = 0;
+    std::uint16_t embeddedStyle = 0;
     std::string text;
     std::string embeddedText;
 };
@@ -177,6 +184,35 @@ int main(int argc, char** argv) {
                 return 1;
             }
         }
+    }
+    for (const auto version : {DRW::AC1018, DRW::AC1021, DRW::AC1027, DRW::AC1032}) {
+      for (bool binary : {false, true}) for (const std::uint16_t style : {0u, 1u, 2u, 7u, 65535u}) {
+        const auto expected = static_cast<std::uint16_t>(style == 2u ? 2u : 1u);
+        const auto prefix = "spacing-" + std::to_string(static_cast<int>(version))
+            + (binary ? "-binary-" : "-ascii-") + std::to_string(style);
+        const auto target = dir / (prefix + ".dxf");
+        dxfRW output(target.string().c_str()); Exporter exporter(output, "spacing");
+        exporter.value.linespacingStyle = style;
+        if (!output.write(&exporter, version, binary) || !exporter.ok
+            || exporter.value.linespacingStyle != style) return 1;
+        dxfRW input(target.string().c_str()); Capture capture;
+        if (!input.read(&capture, false) || capture.count != 1
+            || capture.style != expected) {
+            std::cerr << "standalone MTEXT line spacing mismatch\n"; return 1;
+        }
+        if (version != DRW::AC1032) continue;
+        const auto nestedTarget = dir / (prefix + "-embedded.dxf");
+        dxfRW nestedOutput(nestedTarget.string().c_str());
+        EmbeddedExporter nested(nestedOutput, "spacing");
+        nested.value.mtext->linespacingStyle = style;
+        if (!nestedOutput.write(&nested, version, binary) || !nested.ok
+            || nested.value.mtext->linespacingStyle != style) return 1;
+        dxfRW nestedInput(nestedTarget.string().c_str()); Capture nestedCapture;
+        if (!nestedInput.read(&nestedCapture, false) || nestedCapture.embeddedCount != 1
+            || nestedCapture.embeddedStyle != expected) {
+            std::cerr << "embedded MTEXT line spacing mismatch\n"; return 1;
+        }
+      }
     }
     std::cout << "MTEXT caret source, ASCII/Binary output and typed readback PASS\n";
 }

@@ -1,0 +1,24 @@
+diff --git a/librecad/src/lib/filters/tests/dxf_attribute_tests.cpp b/librecad/src/lib/filters/tests/dxf_attribute_tests.cpp
+index 1f0e9871c..12054d57c 100644
+--- a/librecad/src/lib/filters/tests/dxf_attribute_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_attribute_tests.cpp
+@@ -2715,7 +2715,7 @@ TEST_CASE("DXF MTEXT writers store line spacing style 1 or 2 only",
+   }
+ }
+ 
+-TEST_CASE("DXF MTEXT skips its group-101 embedded object",
++TEST_CASE("DXF MTEXT retains its group-101 column extents",
+           "[dxf][mtext][embedded-mtext]") {
+   // MTEXT 3EC of ACadSharp's sample_AC1032_ascii.dxf (written by AutoCAD
+   // 2018), without its handle and owner groups. The embedded object holds
+@@ -2754,8 +2754,8 @@ TEST_CASE("DXF MTEXT skips its group-101 embedded object",
+   CHECK(mtext.angle == 0.0);
+   CHECK(mtext.secPoint.x == 0.0);
+   CHECK(mtext.secPoint.y == 0.0);
+-  CHECK(mtext.m_r2018ExtentsWidth == 0.0);
+-  CHECK(mtext.m_r2018ExtentsHeight == 0.0);
++  CHECK(mtext.m_r2018ExtentsWidth == 13.49522510231923);
++  CHECK(mtext.m_r2018ExtentsHeight == 2.944292860391086);
+   CHECK(mtext.m_backgroundScale == 0.0);
+   // The XDATA follows the embedded object and is the MTEXT's.
+   REQUIRE(mtext.extData.size() == 2);

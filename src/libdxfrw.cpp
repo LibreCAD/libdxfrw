@@ -617,6 +617,12 @@ bool hasHatchGradientDxfPayload(const DRW_Hatch& hatch) {
         || !hatch.gradName.empty() || !hatch.gradColors.empty();
 }
 
+// DXF MTEXT group 73 has only At least (1) and Exact (2). Treat an unset or
+// unrecognized style as the default without mutating the caller's model.
+std::uint16_t dxfMTextLineSpacingStyle(std::uint16_t style) noexcept {
+    return style == 2u ? 2u : 1u;
+}
+
 bool isSafeDxfMTextContent(const std::string& text) {
     if (text.find('\0') != std::string::npos)
         return false;
@@ -14572,7 +14578,7 @@ bool dxfRW::writeEmbeddedMText(DRW_MText *ent) {
         && (orientation == DRW_MText::DxfOrientationMode::Rotation
             || (legacyOrientation && ent->angle != 0.0)))
         writer->writeDouble(50, ent->angle);
-    writer->writeInt16(73, ent->linespacingStyle);
+    writer->writeInt16(73, dxfMTextLineSpacingStyle(ent->linespacingStyle));
     writer->writeDouble(44, ent->interlin);
     if (!writeMTextBackground(ent))
         return false;
@@ -15247,7 +15253,7 @@ bool dxfRW::writeMText(DRW_MText *ent){
             writer->writeDouble(21, ent->secPoint.y);
             writer->writeDouble(31, ent->secPoint.z);
         }
-        writer->writeInt16(73, ent->linespacingStyle);  // linespacing style (was: alignV)
+        writer->writeInt16(73, dxfMTextLineSpacingStyle(ent->linespacingStyle));
         writer->writeDouble(44, ent->interlin);
 //RLZ ... 11, 21, 31 needed?
         // Background fill. DRW_MText has always read 45, 63, 90, 421 and 441
