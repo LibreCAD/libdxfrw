@@ -53499,6 +53499,228 @@ bool physicalSortEntsOwnerScopeQualification(
     return true;
 }
 
+bool physicalEmptyNamedSortEntsNoopOutputReadback(
+        const std::filesystem::path& sourcePath) {
+    struct ExpectedSource {
+        std::uint32_t table;
+        std::uint32_t dictionary;
+        std::uint32_t owner;
+    };
+    const std::array<ExpectedSource, 6> expected{{
+        {0x1BB9u, 0x110Eu, 0x110Du},
+        {0x1BBAu, 0x1146u, 0x1145u},
+        {0x1F66u, 0x1F65u, 0x1F57u},
+        {0x1FB3u, 0x1FB2u, 0x1FA4u},
+        {0x2037u, 0x2032u, 0x201Eu},
+        {0x2090u, 0x208Bu, 0x2077u}
+    }};
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || !source.dwgReadOutcome.operationSucceeded
+        || source.dwgReadOutcome.opaqueViewCallbacks != 490u)
+        return fail("empty named SORTENTSTABLE source is not the pinned complete AC1024 profile");
+
+    for (const ExpectedSource& profile : expected) {
+        const auto table = std::find_if(source.sortEntsTables.begin(),
+            source.sortEntsTables.end(), [&profile](
+                    const DRW_SortEntsTable& candidate) {
+                return candidate.handle == profile.table;
+            });
+        const auto dictionary = std::find_if(source.dictionaries.begin(),
+            source.dictionaries.end(), [&profile](
+                    const DRW_Dictionary& candidate) {
+                return candidate.handle == profile.dictionary;
+            });
+        const auto owner = std::find_if(source.blockRecords.begin(),
+            source.blockRecords.end(), [&profile](
+                    const DRW_Block_Record& candidate) {
+                return candidate.handle == profile.owner;
+            });
+        const auto membership = std::find_if(
+            source.dwgSortEntsMemberships.begin(),
+            source.dwgSortEntsMemberships.end(), [&profile](
+                    const DRW_DwgSortEntsMembership& candidate) {
+                return candidate.m_tableHandle == profile.table;
+            });
+        const std::size_t sortEntryCount =
+            dictionary == source.dictionaries.end() ? 0u
+            : static_cast<std::size_t>(std::count_if(
+                dictionary->m_entries.begin(), dictionary->m_entries.end(),
+                [&profile](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_SORTENTS"
+                        && entry.m_handle == profile.table;
+                }));
+        if (table == source.sortEntsTables.end()
+            || table->parentHandle != profile.dictionary
+            || table->m_blockOwnerHandle != profile.owner
+            || !table->m_entityHandles.empty()
+            || !table->m_sortHandles.empty()
+            || table->xDictHandle != 0u
+            || (table->reactorHandles
+                != std::vector<std::uint32_t>{profile.dictionary})
+            || dictionary == source.dictionaries.end()
+            || dictionary->parentHandle != profile.owner
+            || sortEntryCount != 1u
+            || owner == source.blockRecords.end()
+            || owner->xDictHandle != profile.dictionary
+            || owner->name == "*Model_Space"
+            || owner->name == "*Paper_Space"
+            || membership == source.dwgSortEntsMemberships.end()
+            || !membership->m_complete
+            || !membership->m_hasSourceLocation
+            || !membership->m_classStreamOrdinal.has_value()
+            || membership->m_recordName != "SORTENTSTABLE"
+            || membership->m_className != "AcDbSortentsTable"
+            || !membership->m_entries.empty())
+            return fail("empty named SORTENTSTABLE source identity/owner/membership changed");
+    }
+
+    for (const bool binary : {false, true}) {
+        const auto nonce = std::chrono::steady_clock::now()
+                               .time_since_epoch().count();
+        const std::filesystem::path outputPath =
+            std::filesystem::temp_directory_path()
+            / ("libdxfrw-empty-named-sortents-"
+               + std::to_string(nonce)
+               + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() {
+                std::error_code ignored;
+                std::filesystem::remove(path, ignored);
+            }
+        } cleanup{outputPath};
+        const std::string sentinel =
+            "preserve empty named SORTENTSTABLE destination\n";
+        const auto seedDestination = [&]() {
+            std::ofstream output(outputPath,
+                std::ios::binary | std::ios::trunc);
+            return output && static_cast<bool>(output << sentinel);
+        };
+        const auto destinationIsSentinel = [&]() {
+            std::ifstream input(outputPath, std::ios::binary);
+            const std::string contents{
+                std::istreambuf_iterator<char>(input), {}};
+            return contents == sentinel;
+        };
+        dx_iface writer;
+        const auto exportStrict = [&]() {
+            return writer.fileExport(outputPath.string(), DRW::AC1024,
+                binary, &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete);
+        };
+        const auto table = std::find_if(source.sortEntsTables.begin(),
+            source.sortEntsTables.end(), [](const DRW_SortEntsTable& value) {
+                return value.handle == 0x1BB9u;
+            });
+        if (table == source.sortEntsTables.end() || !seedDestination())
+            return fail("could not seed the physical empty-table refusal control");
+        const std::size_t qualifiedBefore =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source);
+        const bool tableQualifiedBefore =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, 0x1BB9u);
+        const std::vector<std::uint32_t> originalReactors =
+            table->reactorHandles;
+        DRW_SortEntsTable& mutableTable = *table;
+        mutableTable.reactorHandles = {0xDEADu};
+        const bool malformedRejected = !exportStrict();
+        mutableTable.reactorHandles = originalReactors;
+        if (!malformedRejected || !destinationIsSentinel()
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source) != qualifiedBefore
+            || DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, 0x1BB9u)
+                != tableQualifiedBefore)
+            return fail("malformed empty-table reactor was not refused atomically");
+        if (!exportStrict())
+            return fail("corrected empty named SORTENTSTABLE could not retry on the same adapter");
+        if (DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualificationCount(
+                source) != source.dwgReadOutcome.opaqueViewCallbacks)
+            return fail("strict retry did not qualify every captured opaque callback");
+        for (const ExpectedSource& profile : expected)
+            if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration, profile.table)
+                || !DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                    source, source.importGeneration, profile.dictionary))
+                return fail("strict retry did not qualify an omitted table and its owner dictionary");
+
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1024
+            || output.dictionaryCaptureFailed
+            || output.sortEntsCaptureFailed)
+            return fail("strict empty-table output failed fresh DXF import");
+        for (const ExpectedSource& profile : expected) {
+            const auto sourceOwner = std::find_if(source.blockRecords.begin(),
+                source.blockRecords.end(), [&profile](
+                        const DRW_Block_Record& candidate) {
+                    return candidate.handle == profile.owner;
+                });
+            if (sourceOwner == source.blockRecords.end())
+                return fail("source BLOCK_RECORD disappeared before readback comparison");
+            const auto outputOwner = std::find_if(output.blockRecords.begin(),
+                output.blockRecords.end(), [&sourceOwner](
+                        const DRW_Block_Record& candidate) {
+                    return candidate.name == sourceOwner->name;
+                });
+            if (outputOwner == output.blockRecords.end()
+                || outputOwner->xDictHandle == 0u)
+                return fail("strict readback lost the named-block extension-dictionary owner");
+            const auto sourceDictionary = std::find_if(
+                source.dictionaries.begin(), source.dictionaries.end(),
+                [&profile](const DRW_Dictionary& candidate) {
+                    return candidate.handle == profile.dictionary;
+                });
+            const auto outputDictionary = std::find_if(
+                output.dictionaries.begin(), output.dictionaries.end(),
+                [&outputOwner](const DRW_Dictionary& candidate) {
+                    return candidate.handle == outputOwner->xDictHandle;
+                });
+            if (sourceDictionary == source.dictionaries.end()
+                || outputDictionary == output.dictionaries.end()
+                || outputDictionary->parentHandle != outputOwner->handle)
+                return fail("strict readback lost the projected owner dictionary");
+            std::vector<std::string> expectedEntryNames;
+            for (const DRW_Dictionary::Entry& entry :
+                 sourceDictionary->m_entries) {
+                if (entry.m_name == "ACAD_SORTENTS"
+                    && entry.m_handle == profile.table)
+                    continue;
+                expectedEntryNames.push_back(entry.m_name);
+            }
+            if (expectedEntryNames.size() != outputDictionary->m_entries.size())
+                return fail("strict readback changed unrelated owner-dictionary membership");
+            for (std::size_t index = 0u;
+                 index < expectedEntryNames.size(); ++index)
+                if (outputDictionary->m_entries[index].m_name
+                        != expectedEntryNames[index]
+                    || outputDictionary->m_entries[index].m_handle == 0u
+                    || outputDictionary->m_entries[index].m_handle
+                        == DRW::NoHandle)
+                    return fail("strict readback changed projected dictionary order or target identity");
+            for (const DRW_SortEntsTable& outputTable : output.sortEntsTables)
+                if (outputTable.m_blockOwnerHandle == outputOwner->handle)
+                    return fail("strict readback emitted a named-block SORTENTSTABLE no-op");
+        }
+        std::cerr << "Physical AC1024 empty named-block SORTENTSTABLE "
+                  << (binary ? "binary" : "ASCII")
+                  << " strict output passed: six omitted tables, projected "
+                     "dictionary readback, all callbacks qualified, atomic "
+                     "refusal and same-adapter retry.\n";
+    }
+    return true;
+}
+
 bool physicalDictionaryDefaultOutputReadback(
         const std::filesystem::path& sourcePath,
         bool requireAc1018 = false,
@@ -90028,6 +90250,10 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--sortents-owner-scope-qualification")
         return physicalSortEntsOwnerScopeQualification(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1])
+            == "--sortents-empty-named-noop-physical-output-readback")
+        return physicalEmptyNamedSortEntsNoopOutputReadback(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--dictionary-default-physical-output-readback")
         return physicalDictionaryDefaultOutputReadback(argv[2]) ? 0 : 1;

@@ -121,6 +121,38 @@
         "scope": "Focused graph/output control passed; its malformed graph variants logged expected fail-closed refusals."
       },
       "interpretation": "This recheck resolves the previous source-local output qualification gap: the six dictionaries are compared against their projected bodies, the six empty named-block SORTENTSTABLE records are absent, and strict conversion publishes only after all 490 opaque callback identities are qualified. The earlier 478/490 refusal is retained above as history. This remains one local AC1024 source profile, not general named-block SORTENTSTABLE support, native-consumer qualification, independent semantics, or a support-claim promotion."
+    },
+    "strictRetryFreshReadback": {
+      "sourcePath": "/Users/dli/doc/dwg/architectural_example-imperial.dwg",
+      "sourceSha256": "52d14a7bdb946099d3cf16fd276d19bd8924348fd02b2ddd0003cd4f6b34cce7",
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --sortents-empty-named-noop-physical-output-readback /Users/dli/doc/dwg/architectural_example-imperial.dwg",
+      "testExecutableSha256": "c0140265602d379b1d295916ed2fd3e12bdb07bd313f8d2b002133f869ffd190",
+      "logPath": "/private/tmp/architectural-empty-sortents-roundtrip-test.log",
+      "logSha256": "8dd8d42a38daf8fe29e37a19203b9af1132bb82974f2e301cecdf5ced921d026",
+      "exitCode": 0,
+      "encodings": ["ASCII", "Binary"],
+      "failureControl": "For each encoding, change the first empty named-table reactor to 0xDEAD. Require strict export refusal, preservation of the seeded destination bytes, and no change to the opaque-output qualification count or target-table identity. The source is restored before retry on the same adapter instance and destination path.",
+      "successControl": "Both retries publish under RequireComplete. Each source/output attempt qualifies all 490 captured opaque callbacks and specifically qualifies all six omitted table frames and their six owner-dictionary callbacks.",
+      "freshReadback": "A separate dx_iface.fileImport loads each published ASCII/Binary DXF into a new dx_data. The control checks each named BLOCK_RECORD XDICTIONARY edge, reciprocal DICTIONARY parent, exact ordered entry-name projection with only ACAD_SORTENTS removed, valid retained target handles, and absence of a SORTENTSTABLE owned by each of the six named blocks.",
+      "fixtureDisposition": "The source drawing and generated outputs remain outside the repository; the test adds no DWG/DXF fixture.",
+      "supportClaimEffect": "none"
+    },
+    "independentReaderAttempts": {
+      "libreDWG": {
+        "version": "0.14",
+        "command": "dxf2dwg --as r2000 -v1 -y -o /private/tmp/architectural-sortents-libredwg-roundtrip.dwg /private/tmp/architectural-sortents-owner-proof.dxf",
+        "exitCode": 1,
+        "logPath": "/private/tmp/architectural-sortents-libredwg-roundtrip.log",
+        "logSha256": "50d269ce5ce144f43940d9c2031c402d788e06077073ba913b681cabb70d3015",
+        "failure": "LibreDWG rejects the full DXF at EVALUATION_GRAPH group code 92 after MATERIAL warnings. The six dictionary projections therefore have no independent full-file readback from this attempt."
+      },
+      "odaFileConverter": {
+        "version": "27.1.0",
+        "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter --help",
+        "exitCode": 134,
+        "failure": "The application aborts during PasteBoard/XPC startup (clipboard/find pasteboard error -4960); no conversion or file read was performed. Retry only after desktop session state changes."
+      },
+      "interpretation": "Local strict output and fresh libdxfrw import readback pass. Independent semantic/native qualification remains open; neither failed full-file reader attempt promotes a support claim."
     }
   }
 }
