@@ -43,6 +43,7 @@ CTEST_REGRESSIONS = (
     "dwg2dxf_header_maintenance_ascii_cli",
     "dwg2dxf_header_maintenance_binary_cli",
     "libdxfrw_numeric_locale",
+    "libdxfrw_legacy_codepage_consumer",
     "libdxfrw_numeric_process_locale",
     "dwg2dxf_numeric_locale_ascii_cli",
     "dwg2dxf_numeric_locale_binary_cli",

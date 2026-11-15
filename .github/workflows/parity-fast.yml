@@ -88,6 +88,7 @@ jobs:
           lc3_compat_check libdxfrw_dwg2dxf_adapter_tests
           libdxfrw_dimstyle_optional_handle_tests libdxfrw_block_owner_tests
           libdxfrw_numeric_locale_tests
+          libdxfrw_legacy_codepage_consumer_tests
           libdxfrw_debug_state_tests
           libdxfrw_dwg2dxf_version_tests dwg2dxf
 

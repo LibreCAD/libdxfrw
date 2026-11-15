@@ -1380,6 +1380,15 @@ if(LIBDXFRW_BUILD_TESTS)
         LABELS "fast;dxf;hatch;gradient;generated"
         TIMEOUT 15)
 
+    add_executable(libdxfrw_legacy_codepage_consumer_tests
+        tests/legacy_codepage_consumer_tests.cpp)
+    target_compile_features(libdxfrw_legacy_codepage_consumer_tests PRIVATE cxx_std_17)
+    target_link_libraries(libdxfrw_legacy_codepage_consumer_tests PRIVATE dxfrw)
+    add_test(NAME libdxfrw_legacy_codepage_consumer
+        COMMAND libdxfrw_legacy_codepage_consumer_tests)
+    set_tests_properties(libdxfrw_legacy_codepage_consumer PROPERTIES
+        LABELS "fast;consumer;codepage" TIMEOUT 15)
+
     add_executable(libdxfrw_gbk_codepage_tests
         tests/gbk_codepage_tests.cpp
         dwg2dxf/dx_iface.cpp)

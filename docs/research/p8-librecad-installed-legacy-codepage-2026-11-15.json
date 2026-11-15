@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-15",
+  "problem": "LibreCAD's SHP and JWW importers included intern/drw_textcodec.h, which the installed libdxfrw development package does not provide.",
+  "implementation": "DRW_LegacyCodePageDecoder exposes a reusable narrow facade over the existing compatible numeric ANSI codepage converter. Unsupported names return no value instead of reporting the fallback as the requested page. Its documented behavior retains possible invalid-byte loss and DXF escape interpretation; plain-text importers retain their encoding-aware backslash segmentation. The consumer patch selects the new facade when present and otherwise keeps its existing bundled internal-codec path.",
+  "consumer": {
+    "base": "9f82b2b41cc0f1d5f59fcb89b85732c537a6503d",
+    "localCommit": "b66ea43",
+    "patch": "docs/patches/librecad-p8-installed-legacy-codepage-2026-11-15.patch",
+    "status": "local and unmerged; forward and reverse patch checks pass"
+  },
+  "validation": [
+    "libdxfrw_legacy_codepage_consumer passes, including all 65,536 two-byte CP932 values against the direct historical converter, every single byte for 14 codepages, known Unicode outputs, an escape, unsupported codepage, and move/reuse controls.",
+    "The actual modified SHP and JWW translation units compile with the old bundled headers and fallback branch.",
+    "A standalone consumer compiles and links against the installed public header and archive; staged package relocation checks pass.",
+    "An incremental LibreCAD probe compiles the modified SHP/JWW sources and actual test sources with installed libdxfrw includes and no libdxfrw source include path; it links their objects into the existing consumer archive against the installed libdxfrw archive. The archive contains no bundled libdxfrw objects. JWW [jww][import] passes 17 cases and 343 assertions; SHP [shp][filter][matrix][codepage] passes 3 cases and 20 assertions.",
+    "lc3_compat_check builds, libdxfrw_3d_consumer_probe passes, and the fast-runner self-test passes. The new decoder test is added to the bounded fast CI selector."
+  ],
+  "environment": "macOS 27.2.1 ARM64, Apple clang 21.0.0, C++17, static installed archive",
+  "installedArchiveSha256": "95e9f20acae0b6d745dd5b94a4a4b3cf53db74ba23f653a14f310fcb49719060",
+  "implementationDigestSha256": "4cbe715875bf843b37063aae456414f2c35621d3d31f19a02e06a09537ebcb42",
+  "digestInputCount": 714,
+  "limits": "The package-linked importer probe uses an existing incremental consumer archive with only the two importer objects replaced. A complete source-free consumer rebuild is still running; this receipt is not a clean full build or a Windows/Linux consumer qualification. The older bundled path has syntax coverage here, not a fresh runtime regression. No DWG/DXF format or phase support claim is promoted."
+}

@@ -34,6 +34,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <cmath>
 #include <memory>
 #include <optional>
@@ -56,6 +57,33 @@
 
 #define UTF8STRING std::string
 #define DRW_UNUSED(x) (void)x
+
+// A narrow compatibility bridge for consumers which previously included the
+// private text-codec header to decode legacy byte fields outside DXF files.
+#define LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER 1
+class DRW_LegacyCodePageDecoder {
+public:
+    explicit DRW_LegacyCodePageDecoder(int codePage);
+    ~DRW_LegacyCodePageDecoder();
+    DRW_LegacyCodePageDecoder(const DRW_LegacyCodePageDecoder&) = delete;
+    DRW_LegacyCodePageDecoder& operator=(const DRW_LegacyCodePageDecoder&) = delete;
+    DRW_LegacyCodePageDecoder(DRW_LegacyCodePageDecoder&&) noexcept;
+    DRW_LegacyCodePageDecoder& operator=(DRW_LegacyCodePageDecoder&&) noexcept;
+
+    /// True only for an available ANSI numeric codepage, without fallback.
+    bool supported() const noexcept;
+    /// Decode using the historical compatible converter. Unsupported pages
+    /// return nullopt. Invalid source bytes may be discarded and DXF \\U+/\\M+
+    /// sequences may be interpreted; callers handling plain text must separate
+    /// literal backslashes according to their source encoding before decoding.
+    /// Reuse avoids rebuilding the table selection; concurrent calls on the
+    /// same decoder are not supported.
+    std::optional<std::string> toUtf8(std::string_view bytes);
+
+private:
+    class Impl;
+    std::unique_ptr<Impl> m_impl;
+};
 
 // Preserve the historical public scalar aliases.  The target implementation
 // uses <cstdint> directly, but downstream filters still include these names.

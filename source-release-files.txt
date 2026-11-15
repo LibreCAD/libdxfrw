@@ -35,6 +35,7 @@ docs/UPGRADE_SUPPORT.md
 docs/patches/librecad-p8-associative-prefix-compat-2026-11-15.patch
 docs/patches/librecad-p8-canonical-ltype-metadata-2026-11-15.patch
 docs/patches/librecad-p8-dimassoc-field-mapping-2026-11-15.patch
+docs/patches/librecad-p8-installed-legacy-codepage-2026-11-15.patch
 docs/patches/librecad-p8-mpolygon-annotation-test-2026-11-15.patch
 docs/patches/librecad-p8-mpolygon-hatch-test-type-2026-11-15.patch
 docs/patches/librecad-p8-mpolygon-policy-2026-11-15.patch
@@ -693,6 +694,7 @@ tests/layout_source_controls.h
 tests/lc3_compat_check.cpp
 tests/legacy_attdef_scope_controls.h
 tests/legacy_blockref_relation_tests.cpp
+tests/legacy_codepage_consumer_tests.cpp
 tests/legacy_entities_compound_join_tests.cpp
 tests/legacy_identity_controls.h
 tests/light_dxf_proxy_replay_tests.cpp

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **535 completed implementation and qualification slices** and **32 remaining
+The plan records **536 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`535 / (535 + 32) = 94.4%`. The previous 28-package denominator was stale; a recount
+`536 / (536 + 32) = 94.4%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -18,10 +18,14 @@ sub-slices do not retire their parent package until its full exit gate passes. T
 activity proxy, not as the percentage of package gates completed.
 
 For P8-A/P8-D, an incremental macOS LibreCAD consumer links the separately
-installed static archive and passes the selected DXF checks. Its SHP and JWW
-filters still require `intern/drw_textcodec.h` from a source overlay; a clean
-public-package-only build and broader consumer qualification remain open
+installed static archive and passes the selected DXF checks. A public legacy
+codepage bridge and a local LibreCAD patch remove the SHP/JWW dependency on
+the uninstalled codec header; selected package-linked JWW and SHP import tests
+pass, while the older bundled-codec path still compiles. The patch remains
+unmerged; a clean full-consumer build and broader qualification remain open
 ([receipt](docs/research/p8-librecad-installed-static-link-2026-11-15.json)).
+The [codepage receipt](docs/research/p8-librecad-installed-legacy-codepage-2026-11-15.json)
+records the behavior and package-linked test limits.
 The current clean LibreCAD_3 persistence adapter also passes syntax checks
 against the installed public headers; its clean link, runtime and DWG paths
 remain open ([receipt](docs/research/p8-librecad3-installed-header-syntax-2026-11-15.json)).
@@ -1281,7 +1285,7 @@ all four path/trailer variants pass on both libraries, and generated
 ASCII/Binary controls retain refusal for invalid value 42 ([receipt](docs/research/p8-mpolygon-annotation-domain-consumer-control-2026-11-15.json)).
 The combined DIMASSOC/MPOLYGON selector now passes 12/12 against upstream with
 the opt-in polyline policy and 12/12 against the corrected bundled fork.
-Integrate the seven local patches against the current consumer head and repeat in
+Integrate the eight local patches against the current consumer head and repeat in
 a clean upstream-linked build. Qualify LibreCAD_3, ABI and required platforms separately; strict source
 admission remains closed for `DeclaredUtf8`. See the [consumer receipt](docs/research/p8-librecad-consumer-compat-patch-2026-11-15.json)
 and [test target receipt](docs/research/p8-librecad-upstream-test-target-api-2026-11-15.json).
