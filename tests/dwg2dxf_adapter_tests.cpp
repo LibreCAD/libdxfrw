@@ -3162,7 +3162,7 @@ public:
             const std::uint32_t rawBits = expectedFrame == 1u ? 128u : 120u;
             if (raw.m_rawBytes.size() != (expectedFrame == 1u ? 16u : 15u)
                 || raw.m_bodyBitSize != 0u
-                || raw.m_objectType != (expectedFrame == 1u ? 516u : 513u)
+                || raw.m_objectType != (expectedFrame == 1u ? 516 : 513)
                 || !raw.m_isCustomClass
                 || raw.m_commonLinkEvidence
                     != DRW_DwgCommonLinkEvidence::Unknown)
@@ -3203,7 +3203,7 @@ public:
                 0x10u, 0x42u, 0x90u, 0x42u, 0x80u}};
             const std::uint32_t handleStart = expectedFrame == 1u ? 50u : 42u;
             if (raw.m_rawBytes.size() != (expectedFrame == 1u ? 11u : 10u)
-                || raw.m_objectType != (expectedFrame == 1u ? 516u : 513u)
+                || raw.m_objectType != (expectedFrame == 1u ? 516 : 513)
                 || raw.m_bodyBitSize != 38u
                 || (expectedFrame == 0u
                     && !std::equal(expected.begin(), expected.end(),
