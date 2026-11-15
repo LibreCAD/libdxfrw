@@ -14426,6 +14426,18 @@ bool dxfRW::writeAttrib(DRW_Attrib *ent,
     }
     if (ent != nullptr && ent->eType != DRW::ATTRIB)
         return rejectDxfWriteWithReason("ATTRIB", "runtime type and entity tag disagree or subtype is not supported");
+    // ATTRIB is only meaningful as part of an owning INSERT/TABLE sequence.
+    // Without an explicit owner the writer could previously publish a bare
+    // ATTRIB record that the DXF reader correctly rejects at top level.
+    const bool hasExplicitParentOwner = ent != nullptr
+        && ownerOverride == DRW::NoHandle
+        && ent->parentHandle != 0u
+        && ent->parentHandle != DRW::NoHandle;
+    if (ent != nullptr
+        && (ownerOverride == 0u
+            || (ownerOverride == DRW::NoHandle && !hasExplicitParentOwner)))
+        return rejectDxfWriteWithReason(
+            "ATTRIB", "explicit INSERT or TABLE owner context required");
     if (!preflightEntity(ent)
         || !isSafeDxfRecordText(ent->tag)
         || !ent->m_r2018OuterAnnotativeData.empty()

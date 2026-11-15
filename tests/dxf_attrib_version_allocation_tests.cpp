@@ -175,7 +175,9 @@ public:
         } trackingScope{reached};
         armAllocationFailure(failAt);
         try {
-            accepted = codec.writeInsert(&insert);
+            accepted = emitOwnerlessAttrib
+                ? codec.writeAttrib(attribute.get())
+                : codec.writeInsert(&insert);
         } catch (const std::bad_alloc&) {
             accepted = false;
         }
@@ -190,6 +192,7 @@ public:
     long failAt = -1;
     long reached = 0;
     bool accepted = false;
+    bool emitOwnerlessAttrib = false;
 };
 
 class Readback final : public dx_iface {
@@ -431,6 +434,44 @@ bool run(const std::filesystem::path& directory) {
             }
             if (allocationCount <= 0)
                 return fail("calibration observed no writer allocations");
+
+            {
+                {
+                    std::ofstream prior(output,
+                                        std::ios::binary | std::ios::trunc);
+                    prior << sentinel;
+                    if (!prior)
+                        return fail("could not seed ownerless refusal sentinel");
+                }
+                dxfRW codec(output.string().c_str());
+                Export exporter(codec);
+                const DRW_Attrib source = *exporter.attribute;
+                const DRW_Insert sourceInsert = exporter.insert;
+                exporter.emitOwnerlessAttrib = true;
+                const bool rejected = !codec.write(&exporter, version, binary)
+                    && !exporter.accepted
+                    && sameInsertSource(exporter.insert, sourceInsert)
+                    && sameAttrib(*exporter.attribute, source, true);
+                std::string afterRefusal;
+                if (!rejected || !readBytes(output, afterRefusal)
+                    || afterRefusal != sentinel)
+                    return fail("ownerless ATTRIB refusal changed output or caller");
+
+                exporter.emitOwnerlessAttrib = false;
+                const bool retried = codec.write(&exporter, version, binary);
+                std::string retryBytes;
+                if (!retried || !exporter.accepted
+                    || !sameInsertSource(exporter.insert, sourceInsert)
+                    || !sameAttrib(*exporter.attribute, source, true)
+                    || !readBytes(output, retryBytes)
+                    || retryBytes != expectedBytes
+                    || !rawRecordMatches(retryBytes, binary, version)
+                    || !readbackMatches(output, version))
+                    return fail("corrected same-codec INSERT retry failed");
+                std::cout << "ATTRIB " << name << ' '
+                          << (binary ? "Binary" : "ASCII")
+                          << ": ownerless direct refusal/corrected INSERT retry=PASS\n";
+            }
 
             for (long offset = 0; offset < allocationCount; ++offset) {
                 {

@@ -12150,7 +12150,8 @@ public:
 
     void writeEntities() override {
         callbackRan = true;
-        attributeWritten = dxfW->writeAttrib(&attribute);
+        attributeWritten = dxfW->writeAttrib(
+            &attribute, DRW::DxfModelSpaceBlockRecordHandle);
     }
 };
 
@@ -12220,7 +12221,8 @@ public:
 
     void writeEntities() override {
         emitted = dxfW->writeMText(&standalone);
-        emitted = dxfW->writeAttrib(&attribute) && emitted;
+        emitted = dxfW->writeAttrib(
+            &attribute, DRW::DxfModelSpaceBlockRecordHandle) && emitted;
         emitted = dxfW->writeAttdef(&definition) && emitted;
         emitted = dxfW->writeLine(&sentinel) && emitted;
     }
@@ -12677,7 +12679,8 @@ public:
 
     void writeEntities() override {
         callbackRan = true;
-        attributeWritten = !emitAttribute || dxfW->writeAttrib(&attribute);
+        attributeWritten = !emitAttribute || dxfW->writeAttrib(
+            &attribute, DRW::DxfModelSpaceBlockRecordHandle);
         definitionWritten = !emitDefinition || dxfW->writeAttdef(&definition);
     }
 };
