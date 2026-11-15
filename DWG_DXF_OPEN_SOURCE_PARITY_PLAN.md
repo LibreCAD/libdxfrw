@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **562 completed implementation and qualification slices** and **32 remaining
+The plan records **563 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`562 / (562 + 32) = 94.6%`. The previous 28-package denominator was stale; a recount
+`563 / (563 + 32) = 94.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -139,16 +139,17 @@ DIMASSOC raw replay and native associative behavior also remain open
 ([receipt](docs/research/p8-dimassoc-duplicate-body-fields-2026-11-15.json)).
 Keep strict `DeclaredUtf8` source admission closed pending its evidence gate.
 
-**P6-E adjacent packet — AC1024 LAYER output.** The selected custom
-DICTIONARYVAR graph now passes source-bound ASCII/Binary output and readback
-([receipt](docs/research/p6-oda-ac1024-custom-dictionaryvar-graph-2026-11-15.json)).
-The two generated ODA samples now refuse during LAYER-table serialization in
-explicit partial mode, preserving the destination. Inspect the source layers,
-their retained fields and mapped material/plot-style/linetype roles; compare the
-same graph with LibreDWG and ODA DXF. Identify the exact failing writer
-precondition before editing, then add a focused regression with malformed
-reference refusal, destination preservation and retry. Retain the separate
-HEADER suffix and whole-document completeness gates.
+**P6-E adjacent packet — AC1024 LAYER output.** The generated ODA samples
+fail on LAYER plot-style transport: both layers reference the NOD's `Normal`
+plot-style placeholder, corroborated by LibreDWG and ODA DXF. A scratch-only
+clearing experiment advances to a later TABLESTYLE refusal but intentionally
+loses the reference ([receipt](docs/research/p6-oda-ac1024-layer-plotstyle-gate-2026-11-15.json)).
+Bind the original layer frames, Global material and plot-style dictionary/default
+and placeholder to the existing output hooks; adapt the AC1027 source-bound
+pattern only for the evidenced AC1024 two-layer profile. Prove emitted 347/390
+roles, graph ownership, source mutation refusal, destination rollback and retry,
+plus LibreCAD compatibility. Re-run partial conversion; keep the independent
+HEADER suffix and complete-document gates closed.
 
 **Immediate P4 packet — AC1032 associative-network profile and owner path.**
 The generated DIMASSOC graph node is indexed and guarded. The AC1032 parser now

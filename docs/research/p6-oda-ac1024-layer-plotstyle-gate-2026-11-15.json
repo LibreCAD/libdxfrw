@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-15",
+  "title": "ODA AC1024 LAYER plot-style writer failure isolation",
+  "status": "SOURCE_GRAPH_AND_SCRATCH_FAILURE_ISOLATION",
+  "supportClaimEffect": "none",
+  "sources": "The two locally generated ODA AC1024 mesh samples and hashes are identified by p6-oda-ac1024-visualstyle-extension-graph-2026-11-15.json. No drawing fixture or derivative is committed.",
+  "sourceGraph": "LibreDWG 0.14 decodes source NOD -> ACAD_PLOTSTYLENAME DICTIONARYWDFLT handle 0x12, whose Normal entry and default pointer target ACDBPLACEHOLDER 0x13 owned by the dictionary. The two source LAYER records (0 and Defpoints) each have plotstyle H5 target 0x13 and material H5 target Global MATERIAL 0x21. ODA returned DXF independently places group 390=13 on each layer and resolves the same named/default dictionary and placeholder graph.",
+  "adapterCapture": "For the polyface input, libdxfrw captures two LAYER records with valid DXF fields, ACI 7, Continuous linetype, plot-style handle 19 and material handle 33; both getDxfPlotStyleHandle/getDxfMaterialHandle and validateDxf succeed. Physical source frame roles and output mapping have not yet been established by this probe.",
+  "isolation": "For each sample, a scratch process imports a fresh drawing and calls partial-policy export once with untouched source data and once after clearing only the in-memory LAYER plot-style fields. Untouched runs refuse without output. Clearing those fields makes serialization advance to OBJECTS, which then refuses at TABLESTYLE; no output is published. This deliberate loss is only an isolation experiment and is not an implementation or an acceptable fix. The CLI independently reports the untouched failure at LAYER table.",
+  "codeBoundary": "The general LAYER writer rejects a nonzero non-default group-390 source handle when no reference resolver is configured. The adapter has a separate AC1027 source-bound layer route with source publication, material/plot-style graph snapshots, mapped output and finalization checks; it is not automatically applicable to this AC1024 two-layer profile. The generic DWG adapter currently strips unqualified material links, so fixing only plot-style transport would not establish lossless layer output.",
+  "nextAction": "Capture physical AC1024 layer frame/publication and compare field and reference roles with peer source and output; establish source-bound Global material and dictionary-with-default/Normal placeholder graph closure. Design a bounded two-layer route using the existing source-bound output pattern, map and inspect both 347 and 390 on emitted layers, validate target identities and ownership, add mutation/refusal/rollback/retry and LibreCAD compatibility tests, then rerun partial CLI. Keep unknown HEADER suffix and whole-document gates closed.",
+  "probeHashes": {
+    "layerCaptureSource": "356a344583b7f9b5c801bd4e7d112a59ffcf966ecfeb78346a779b2e6b35566a",
+    "layerCaptureExecutable": "1f2a7e0f6ea808b60416f6287fce492a29fe972baaf3e2f6277c7c3560d1afdf",
+    "layerCaptureLog": "8f175b33c4bb1b17c0615edcf613f830358bafd9a54e7ae1b06d0465019841bf",
+    "isolationSource": "488510b16c8090179e4fa9183ae1a0a665c5b20a1a9ee8963e9cf60d6d344d53",
+    "isolationExecutable": "ccaef0510f559e2b48e129f3ea938e5d92a83f27efa0cf7ab9786f239723da2a",
+    "polyfaceBaselineLog": "95221b3de4517b0157e23eda59dd41948cfdbfa92f521bdc946edc963ff6f921",
+    "polyfaceClearedLog": "2da3991856dcbd7588c730fb597f3fb63e32dc4769f3b7fbe61dd12608243af7"
+  },
+  "limits": [
+    "Generated sources, not independent producer-authored drawings.",
+    "ODA is an independent conversion/projection but does not alone prove user-visible plotting semantics.",
+    "Scratch source mutation intentionally loses a reference and must never be used to promote support.",
+    "This finding does not qualify native consumers, material output, whole-document output or strict HEADER admission."
+  ]
+}
