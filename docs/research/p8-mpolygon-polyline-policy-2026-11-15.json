@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p8-mpolygon-polyline-policy-2026-11-15",
   "date": "2026-11-15",
-  "status": "typed_writer_policy_locally_verified_consumer_pending",
+  "status": "typed_writer_policy_and_focused_consumer_verified",
   "supportClaimEffect": "none",
   "finding": "LibreCAD's bundled MPOLYGON writer rejects boundaries it cannot project to polylines, while upstream retains extended edge paths useful to other consumers. A single unconditional behavior would discard one of these compatibility requirements.",
   "change": "Add an opt-in typed MPOLYGON polyline-only DXF writer policy. Default retains extended edge-path output. The selected policy is snapped once per whole-file write and changes made in callbacks apply to the next write.",
@@ -14,7 +14,7 @@
     "On the local AppleClang build sizeof(dxfRW) is 4576 both before and after; this alone is not an ABI qualification."
   ],
   "limits": [
-    "The LibreCAD upstream-linked build and policy integration are pending at the time of this receipt.",
+    "The local LibreCAD adapter and focused tests pass both linked builds; this is not a current-head integration or complete application qualification.",
     "The setting affects only typed writeMPolygon calls; raw replay, native rendering and other MPOLYGON fields are not covered.",
     "Full-circle projection and broader consumer/platform and ABI qualification remain open.",
     "No DWG or DXF fixture files were added."
