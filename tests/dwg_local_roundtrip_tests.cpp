@@ -28646,15 +28646,66 @@ public:
             visualStyle_.desc = "generated malformed-body control";
             visualStyle_.type = 1;
         }
-        if (kind_ == 27) {
+        if (kind_ >= 27 && kind_ <= 32) {
             renderSettings_.handle = 0x700u;
-            renderSettings_.m_kind = DRW_RenderSettings::Settings;
+            renderSettings_.m_kind = static_cast<DRW_RenderSettings::Kind>(
+                kind_ - 27);
             renderSettings_.m_classVersion = 1;
-            renderSettings_.m_name = "RECOVERY_RENDERSETTINGS";
-            renderSettings_.m_strings = {
-                "RECOVERY_RENDERSETTINGS", "", "generated recovery control"};
-            renderSettings_.m_longs = {1, 2};
-            renderSettings_.m_bools = {true, false, true, false};
+            switch (renderSettings_.m_kind) {
+            case DRW_RenderSettings::Settings:
+                renderSettings_.m_name = "RECOVERY_RENDERSETTINGS";
+                renderSettings_.m_strings = {
+                    "RECOVERY_RENDERSETTINGS", "",
+                    "generated recovery control"};
+                renderSettings_.m_longs = {1, 2};
+                renderSettings_.m_bools = {true, false, true, false};
+                break;
+            case DRW_RenderSettings::Global:
+                renderSettings_.m_name = "RECOVERY_RENDERGLOBAL";
+                renderSettings_.m_strings = {"RECOVERY_RENDERGLOBAL"};
+                renderSettings_.m_longs = {1, 7, 8};
+                break;
+            case DRW_RenderSettings::Environment:
+                renderSettings_.m_name = "RECOVERY_RENDERENVIRONMENT";
+                renderSettings_.m_strings = {"RECOVERY_RENDERENVIRONMENT"};
+                renderSettings_.m_bools = {true, false, true};
+                renderSettings_.m_bytes = {10, 20, 30};
+                renderSettings_.m_doubles = {0.1, 0.9, 2.0, 3.0};
+                break;
+            case DRW_RenderSettings::Entry:
+                renderSettings_.m_name = "RECOVERY_RENDERENTRY";
+                renderSettings_.m_strings = {"RECOVERY_RENDERENTRY", "", ""};
+                renderSettings_.m_longs = {1, 11, 12, 13, 14, 15, 16, 17};
+                renderSettings_.m_shorts = {1, 2, 3, 4, 5, 6};
+                renderSettings_.m_doubles = {1.5};
+                break;
+            case DRW_RenderSettings::RapidRT:
+                renderSettings_.m_name = "RECOVERY_RENDERRAPIDRT";
+                renderSettings_.m_strings = {
+                    "RECOVERY_RENDERRAPIDRT", "", "generated recovery"};
+                renderSettings_.m_longs = {1, 9, 2, 3, 4, 5, 6, 7};
+                renderSettings_.m_bools = {true, false, true, false};
+                renderSettings_.m_doubles = {0.25, 0.75};
+                renderSettings_.m_hasPredefined = true;
+                break;
+            case DRW_RenderSettings::MentalRay:
+                renderSettings_.m_name = "RECOVERY_RENDERMENTALRAY";
+                renderSettings_.m_strings = {
+                    "RECOVERY_RENDERMENTALRAY", "", "generated recovery"};
+                renderSettings_.m_longs = {
+                    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14};
+                renderSettings_.m_shorts = {1, 2, 3, 4, 5, 6, 7};
+                renderSettings_.m_bools = {
+                    true, false, true, false, true, false, true, false};
+                renderSettings_.m_doubles = {
+                    0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
+                    0.7, 0.8, 0.9, 1.0, 1.1, 1.2};
+                renderSettings_.m_hasPredefined =
+                    sourceVersion >= DRW::AC1032;
+                renderSettings_.m_hasPredefinedPresent =
+                    sourceVersion >= DRW::AC1032;
+                break;
+            }
         }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
@@ -28747,7 +28798,7 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerVisualStyleObjectClass(&visualStyle_)
                     && wrote;
-        } else if (kind_ == 27) {
+        } else if (kind_ >= 27 && kind_ <= 32) {
             wrote = hasMalformedObject_
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerRenderSettingsObjectClass(
@@ -28760,7 +28811,7 @@ public:
                    && kind_ != 18 && kind_ != 19 && kind_ != 20
                    && kind_ != 21 && kind_ != 22 && kind_ != 23
                    && kind_ != 24 && kind_ != 25 && kind_ != 26
-                   && kind_ != 27) {
+                   && !(kind_ >= 27 && kind_ <= 32)) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -28836,7 +28887,7 @@ public:
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeVisualStyle(&visualStyle_)) && wrote;
-        } else if (kind_ == 27) {
+        } else if (kind_ >= 27 && kind_ <= 32) {
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeRenderSettings(&renderSettings_))
@@ -42356,8 +42407,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-material-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-visualstyle-body-source"
-            || std::string(argv[1])
-                   == "--generate-cli-malformed-rendersettings-body-source")) {
+            || std::string(argv[1]).rfind(
+                   "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
             == "--generate-cli-malformed-object-body-source";
         const bool malformedPrologueSource = std::string(argv[1])
@@ -42400,8 +42451,42 @@ int main(int argc, char** argv) {
             == "--generate-cli-malformed-material-body-source";
         const bool malformedVisualStyleBodySource = std::string(argv[1])
             == "--generate-cli-malformed-visualstyle-body-source";
-        const bool malformedRenderSettingsBodySource = std::string(argv[1])
-            == "--generate-cli-malformed-rendersettings-body-source";
+        const std::string renderSettingsOption(argv[1]);
+        int malformedRenderSettingsKind = -1;
+        if (renderSettingsOption
+            == "--generate-cli-malformed-rendersettings-body-source")
+            malformedRenderSettingsKind = DRW_RenderSettings::Settings;
+        else if (renderSettingsOption
+                 == "--generate-cli-malformed-rendersettings-global-body-source")
+            malformedRenderSettingsKind = DRW_RenderSettings::Global;
+        else if (renderSettingsOption
+                 == "--generate-cli-malformed-rendersettings-environment-body-source")
+            malformedRenderSettingsKind = DRW_RenderSettings::Environment;
+        else if (renderSettingsOption
+                 == "--generate-cli-malformed-rendersettings-entry-body-source")
+            malformedRenderSettingsKind = DRW_RenderSettings::Entry;
+        else if (renderSettingsOption
+                 == "--generate-cli-malformed-rendersettings-rapidrt-body-source")
+            malformedRenderSettingsKind = DRW_RenderSettings::RapidRT;
+        else if (renderSettingsOption
+                 == "--generate-cli-malformed-rendersettings-mentalray-body-source")
+            malformedRenderSettingsKind = DRW_RenderSettings::MentalRay;
+        const bool malformedRenderSettingsBodySource =
+            malformedRenderSettingsKind >= 0;
+        const char* const renderSettingsObjectNames[] = {
+            "RENDERSETTINGS_SETTINGS", "RENDERSETTINGS_GLOBAL",
+            "RENDERSETTINGS_ENVIRONMENT", "RENDERSETTINGS_ENTRY",
+            "RENDERSETTINGS_RAPIDRT", "RENDERSETTINGS_MENTALRAY"};
+        const char* const malformedRenderSettingsObjectName =
+            malformedRenderSettingsBodySource
+                ? renderSettingsObjectNames[malformedRenderSettingsKind]
+                : "RENDERSETTINGS";
+        if (renderSettingsOption.rfind(
+                "--generate-cli-malformed-rendersettings-", 0) == 0
+            && !malformedRenderSettingsBodySource) {
+            std::cerr << "Unsupported RENDERSETTINGS recovery subtype\n";
+            return 1;
+        }
         if (std::filesystem::exists(argv[2])) {
             std::cerr << "Refusing to replace an existing malformed-object source\n";
             return 1;
@@ -42477,7 +42562,8 @@ int main(int argc, char** argv) {
                                                                             : malformedVisualStyleBodySource
                                                                                 ? 26
                                                                                 : malformedRenderSettingsBodySource
-                                                                                    ? 27 : 8,
+                                                                                        ? 27 + malformedRenderSettingsKind
+                                                                                        : 8,
                 nullptr, version);
             if (!validWriter.write(&validSource, version, true)
                 || !validSource.wrote) {
@@ -42655,6 +42741,9 @@ int main(int argc, char** argv) {
                         }
                         if (malformedRenderSettingsBodySource) {
                             RenderSettingsBodyProbe typed;
+                            typed.m_kind =
+                                static_cast<DRW_RenderSettings::Kind>(
+                                    malformedRenderSettingsKind);
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
@@ -42784,7 +42873,7 @@ int main(int argc, char** argv) {
                                                                                     : malformedVisualStyleBodySource
                                                                                         ? "VISUALSTYLE"
                                                                                         : malformedRenderSettingsBodySource
-                                                                                            ? "RENDERSETTINGS"
+                                                                                                ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
                 const char* mutationKind = malformedPrologueSource
                     ? "common-prologue" : "body";
@@ -42816,7 +42905,8 @@ int main(int argc, char** argv) {
                                                         : malformedVisualStyleBodySource
                                                             ? 26
                                                             : malformedRenderSettingsBodySource
-                                                                ? 27 : 7,
+                                                                    ? 27 + malformedRenderSettingsKind
+                                                                    : 7,
                 nullptr, version);
             source.setMalformedObject(malformed);
             if (!writer.write(&source, version, true) || !source.wrote) {

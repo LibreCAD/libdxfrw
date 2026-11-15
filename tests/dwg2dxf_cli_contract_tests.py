@@ -2172,8 +2172,8 @@ def check_malformed_visualstyle_body(converter, root, writer):
         "--generate-cli-malformed-visualstyle-body-source", profiles)
 
 
-def check_malformed_rendersettings_body(converter, root, writer):
-    profiles = {
+def check_malformed_rendersettings_bodies(converter, root, writer):
+    all_profiles = {
         "AC1015": "2007",
         "AC1018": "2007",
         "AC1021": "2007",
@@ -2181,9 +2181,28 @@ def check_malformed_rendersettings_body(converter, root, writer):
         "AC1027": None,
         "AC1032": "2018",
     }
-    return check_malformed_object_body_family(
-        converter, root, writer, "RENDERSETTINGS_SETTINGS",
-        "--generate-cli-malformed-rendersettings-body-source", profiles)
+    variants = {
+        "Settings": ("--generate-cli-malformed-rendersettings-body-source",
+                     all_profiles),
+        "Global": ("--generate-cli-malformed-rendersettings-global-body-source",
+                   all_profiles),
+        "Environment": (
+            "--generate-cli-malformed-rendersettings-environment-body-source",
+            {"AC1015": "2007", "AC1018": "2007", "AC1021": "2007"}),
+        "Entry": ("--generate-cli-malformed-rendersettings-entry-body-source",
+                  all_profiles),
+        "RapidRT": ("--generate-cli-malformed-rendersettings-rapidrt-body-source",
+                    all_profiles),
+        "MentalRay": (
+            "--generate-cli-malformed-rendersettings-mentalray-body-source",
+            all_profiles),
+    }
+    return {
+        name: check_malformed_object_body_family(
+            converter, root, writer, f"RENDERSETTINGS_{name.upper()}",
+            generator_option, profiles)
+        for name, (generator_option, profiles) in variants.items()
+    }
 
 
 def check_skipped_record_projection(converter, root, writer):
@@ -3450,8 +3469,9 @@ def main():
                 converter, root, args.writer)
             visualstyle_checked = check_malformed_visualstyle_body(
                 converter, root, args.writer)
-            render_settings_checked = check_malformed_rendersettings_body(
+            render_settings_checked = check_malformed_rendersettings_bodies(
                 converter, root, args.writer)
+            render_settings_count = sum(render_settings_checked.values())
             print(f"CLI partial DWG read: PASS ({checked} strict/partial/readback "
                   f"controls, {vba_checked} VBA_PROJECT, "
                   f"{block_representation_checked} BLOCKREPRESENTATION_DATA, "
@@ -3466,8 +3486,13 @@ def main():
                   f"{underlaydefinition_checked} UNDERLAYDEFINITION, "
                   f"{material_checked} MATERIAL, "
                   f"{visualstyle_checked} VISUALSTYLE, and "
-                  f"{render_settings_checked} RENDERSETTINGS Settings-subtype "
-                  "body controls)")
+                  f"{render_settings_count} RENDERSETTINGS controls across "
+                  f"Settings ({render_settings_checked['Settings']}), "
+                  f"Global ({render_settings_checked['Global']}), "
+                  f"Environment ({render_settings_checked['Environment']}), "
+                  f"Entry ({render_settings_checked['Entry']}), "
+                  f"RapidRT ({render_settings_checked['RapidRT']}), and "
+                  f"MentalRay ({render_settings_checked['MentalRay']}) subtypes)")
             return
         if args.source_disposition_only:
             checked = check_source_disposition_projection(converter, root, args.writer)

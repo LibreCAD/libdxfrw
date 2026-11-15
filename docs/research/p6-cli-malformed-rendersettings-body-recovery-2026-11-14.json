@@ -2,14 +2,30 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p6-cli-malformed-rendersettings-body-recovery-2026-11-14",
   "date": "2026-11-14",
-  "status": "GENERATED_RENDERSETTINGS_SETTINGS_AC1015_AC1032_BODY_RECOVERY_PASS",
+  "status": "GENERATED_RENDERSETTINGS_SUBTYPE_BODY_RECOVERY_PASS",
   "supportClaimEffect": "none",
-  "scope": "Add bounded malformed RENDERSETTINGS Settings-subtype OBJECTS-body recovery and CLI disposition controls across six DWG revisions.",
+  "scope": "Bounded malformed OBJECTS-body recovery and CLI disposition controls for all six typed RENDERSETTINGS subtypes.",
   "source": {
-    "kind": "scratch-only DWGs authored at test runtime by the in-tree DWG writer; the valid typed seed is converted to a raw mutated frame and injected with matching custom-class registration",
-    "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-rendersettings-body-source",
-    "object": "RENDERSETTINGS Settings subtype, class version 1, with generated name, positional strings, longs, and booleans. The one-bit mutation search preserves the validated common prologue and stays within the declared body-bit span.",
-    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "kind": "scratch-only DWGs authored at test runtime by the in-tree DWG writer; each valid typed seed is converted to a raw mutated frame and injected with matching custom-class registration",
+    "generators": [
+      "--generate-cli-malformed-rendersettings-body-source",
+      "--generate-cli-malformed-rendersettings-global-body-source",
+      "--generate-cli-malformed-rendersettings-environment-body-source",
+      "--generate-cli-malformed-rendersettings-entry-body-source",
+      "--generate-cli-malformed-rendersettings-rapidrt-body-source",
+      "--generate-cli-malformed-rendersettings-mentalray-body-source"
+    ],
+    "subtypes": ["Settings", "Global", "Environment", "Entry", "RapidRT", "MentalRay"],
+    "bodyMutation": "A one-bit mutation is selected inside the declared object body after preserving the validated common prologue. Environment AC1024/AC1027/AC1032 have no parser-failing one-bit mutation in the bounded body span searched; these generated profiles carry their substantive payload in the detached string stream.",
+    "versions": {
+      "Settings": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+      "Global": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+      "Environment": ["AC1015", "AC1018", "AC1021"],
+      "Entry": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+      "RapidRT": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+      "MentalRay": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"]
+    },
+    "generatedSourceProfiles": 33,
     "fixtureFilesAdded": 0
   },
   "implementation": {
@@ -20,10 +36,10 @@
       "docs/research/p6-cli-malformed-rendersettings-body-recovery-2026-11-14.json"
     ],
     "productionCodeChanged": false,
-    "controls": "Each mutated source reads successfully with one object parse failure, zero entity parse failures, one failed object frame, exact source-frame accounting, and the following LINE callback. Strict ASCII/Binary conversion preserves the destination sentinel. Explicit-partial ASCII/Binary conversion succeeds and reopens with the retained LINE and VPORT. AC1027 reader recovery passes, while both CLI modes stop at the established source-reference qualification gate."
+    "controls": "Every eligible generated source reads successfully with one object parse failure, zero entity parse failures, one failed object frame, exact source-frame accounting, and the following LINE callback. Strict ASCII/Binary conversion preserves the destination sentinel. Explicit-partial ASCII/Binary conversion succeeds and reopens with the retained LINE and VPORT. AC1027 reader recovery passes, while both CLI modes stop at the established source-reference qualification gate."
   },
   "results": {
-    "readRecoveryProfiles": {
+    "readRecoveryFrameCountsPerProfile": {
       "AC1015": {"sourceFrames": 28, "publishedFrames": 27, "failedFrames": 1},
       "AC1018": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
       "AC1021": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
@@ -31,28 +47,37 @@
       "AC1027": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
       "AC1032": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1}
     },
-    "cliDispositionControls": 28,
-    "fullFocusedDispositionCohortControls": 541,
-    "outputQualification": "AC1015, AC1018, AC1021, AC1024, and AC1032 pass strict refusal plus explicit-partial ASCII/Binary readback. AC1027 remains reader-only at the source-reference gate."
+    "readRecoveryProfiles": 33,
+    "cliDispositionControlsBySubtype": {
+      "Settings": 28,
+      "Global": 28,
+      "Environment": 15,
+      "Entry": 28,
+      "RapidRT": 28,
+      "MentalRay": 28
+    },
+    "cliDispositionControls": 155,
+    "fullFocusedDispositionCohortControls": 668,
+    "outputQualification": "Settings, Global, Entry, RapidRT, and MentalRay pass strict refusal plus explicit-partial ASCII/Binary readback at AC1015, AC1018, AC1021, AC1024, and AC1032; their AC1027 profiles pass reader recovery but remain behind the source-reference gate for output. Environment passes strict refusal and explicit-partial ASCII/Binary readback at AC1015, AC1018, and AC1021."
   },
   "validation": {
     "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2: PASS",
     "pythonSyntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py: PASS",
-    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 17.75 seconds",
-    "directControl": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only: PASS; 172 base strict/partial/readback controls, 28 controls each for VBA_PROJECT, GROUP, DICTIONARY, TV_DEVICE_PROPERTIES, POINTPATH, PARTIAL_VIEWING_INDEX, CURVEPATH, PLOTSETTINGS, PDF UNDERLAYDEFINITION, VISUALSTYLE, and RENDERSETTINGS Settings subtype; 15 BLOCKREPRESENTATION_DATA controls; 18 controls each for VX_CONTROL and VX_TABLE_RECORD; 10 MATERIAL controls",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 21.24 seconds",
+    "directControl": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only: PASS; 172 base strict/partial/readback controls, 28 controls each for VBA_PROJECT, GROUP, DICTIONARY, TV_DEVICE_PROPERTIES, POINTPATH, PARTIAL_VIEWING_INDEX, CURVEPATH, PLOTSETTINGS, PDF UNDERLAYDEFINITION, and VISUALSTYLE; 15 BLOCKREPRESENTATION_DATA controls; 18 controls each for VX_CONTROL and VX_TABLE_RECORD; 10 MATERIAL controls; and 155 RENDERSETTINGS controls (28 each for Settings, Global, Entry, RapidRT, MentalRay and 15 for Environment)",
     "diffCheck": "git diff --check: PASS"
   },
   "limitations": [
     "Generated parser-recovery and CLI disposition evidence only; it does not establish RENDERSETTINGS field semantics, native rendering behavior, producer prevalence, or interoperability.",
-    "Only the Settings subtype is covered. Global, Environment, Entry, RapidRT, and MentalRay siblings require separate bounded profiles.",
-    "AC1027 output remains unqualified behind the source-reference closure gate.",
+    "Environment has generated malformed-body coverage only at AC1015/AC1018/AC1021 because the bounded one-bit body-span search found no parser-failing mutation for AC1024/AC1027/AC1032.",
+    "AC1027 output remains unqualified behind the source-reference closure gate for the five subtypes with AC1027 reader profiles.",
     "No support claim is promoted and no DWG/DXF fixture is committed."
   ],
   "planImpact": {
-    "completedSlice": "P6-F now includes bounded RENDERSETTINGS Settings-subtype malformed-body recovery for AC1015/AC1018/AC1021/AC1024/AC1027/AC1032, with strict refusal and explicit-partial ASCII/Binary readback at five output-qualified revisions.",
-    "remainingP6F": "Continue source/resource inventory and select only supported OBJECTS bodies with reproducible bounded parser-failure mutations; treat sibling render-settings variants independently.",
+    "completedSlice": "P6-F now has bounded malformed-body recovery controls for Settings, Global, Environment, Entry, RapidRT, and MentalRay, with strict refusal and explicit-partial ASCII/Binary readback at each profile's output-qualified revisions.",
+    "remainingP6F": "Continue source/resource inventory and select only supported OBJECTS bodies with reproducible bounded parser-failure mutations; keep semantic and external interoperability gates separate from generated recovery evidence.",
     "phaseStatusesChanged": false,
-    "progressEstimate": "413 completed slices and 32 remaining packages: 413/(413+32)=92.8%; count-based, not effort-weighted."
+    "progressEstimate": "414 completed slices and 32 remaining packages: 414/(414+32)=92.8%; count-based, not effort-weighted."
   },
   "previousReceipt": "docs/research/p6-cli-malformed-visualstyle-body-recovery-2026-11-14.json"
 }
