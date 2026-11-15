@@ -29235,8 +29235,12 @@ public:
             spatialIndex_.handle = 0x700u;
             spatialIndex_.parentHandle =
                 DRW::DwgModelSpaceBlockRecordHandle;
-            spatialIndex_.timestamp1 = 300u;
-            spatialIndex_.timestamp2 = 400u;
+            // Zero BL timestamps make the valid body short enough for a
+            // selector-bit mutation to request an out-of-bounds payload on
+            // R2010+ as well as older revisions. The production parser still
+            // decides whether the candidate is malformed.
+            spatialIndex_.timestamp1 = 0u;
+            spatialIndex_.timestamp2 = 0u;
         }
         if (kind_ == 55) {
             lightList_.handle = 0x700u;

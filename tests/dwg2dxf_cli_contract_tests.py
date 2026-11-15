@@ -2542,6 +2542,9 @@ def check_malformed_spatial_index_body(converter, root, writer):
         "AC1015": "2007",
         "AC1018": "2007",
         "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
     }
     return check_malformed_object_body_family(
         converter, root, writer, "SPATIAL_INDEX",
