@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **595 completed implementation and qualification slices** and **32 remaining
+The plan records **596 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`595 / (595 + 32) = 94.9%`. The previous 28-package denominator was stale; a recount
+`596 / (596 + 32) = 94.9%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -73,6 +73,12 @@ planar translations and rotations with the newer library. The older pinned codec
 uses a reported HATCH fallback. Non-default planes, non-rigid edits, richer paths,
 native rendering, integration and other platforms remain open
 ([receipt](docs/research/p8-librecad3-mpolygon-rotation-preservation-2026-11-15.json)).
+
+The LibreCAD `ordinary_enc_AC1021.dwg` fixture fails libdxfrw at its LTYPE
+control; LibreDWG reads it but ODA rejects it with object-read errors. Treat
+this as a disputed source until a valid independent witness and exact wire
+boundary are established, not as evidence for softening the table parse
+([receipt](docs/research/p6-librecad-ordinary-ac1021-ltype-control-disagreement-2026-11-15.json)).
 
 For P6-F and P6-G, use the remaining scope and evidence links in the package
 rows below. The [public-writer test index](docs/research/p6-dxf-public-writer-test-mention-index-2026-11-15.json)

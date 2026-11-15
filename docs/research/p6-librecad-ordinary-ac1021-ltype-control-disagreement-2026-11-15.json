@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-15",
+  "source": "LibreCAD master librecad/src/lib/filters/tests/testdata/ordinary_enc_AC1021.dwg",
+  "sourceRepository": "https://github.com/LibreCAD/LibreCAD",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "sourceSha256": "00b4f1e9757236304c2f7c17b56c12c7ee217f8bc8cb9fdc9b97cda39ac3d136",
+  "libdxfrw": "Current local dwg2dxf identifies AC1021, fails the LTYPE control parse during TABLES and returns legacy error 9, with no output. An earlier installed-upstream LibreCAD reader also fails that same stage before block-record callbacks.",
+  "libreDwg": "LibreDWG 0.14 dwgread -O JSON exits successfully and reports LTYPE_CONTROL handle 5, one entry, BYBLOCK and BYLAYER. The output JSON sha256 is a4a0b0ff14b7c4396cb76c2f31d1a4d128d2b3e63ad20dd7d47c793dfd91a10e. Successful parse alone does not establish complete file validity.",
+  "oda": "ODA File Converter 27.1.0 audit-enabled ACAD2010 DXF conversion produced no DXF and wrote fixture.dxf.err with object-improperly-read warnings, including the LTYPE table, and a final invalid-input failure. The error-file sha256 is dbf5d34fe25d527b802547c0411ee8abcb680f3cdeb401feb625e6eb695d3bf9.",
+  "limits": "Independent readers disagree on a single existing LibreCAD fixture; ODA does not corroborate a valid producer-authored source. The exact LTYPE wire boundary and producer provenance remain unresolved. Do not soften the fatal table parse or claim a valid-file defect without a source-backed and independently accepted control. This investigation promotes no support claim and commits no fixture."
+}
