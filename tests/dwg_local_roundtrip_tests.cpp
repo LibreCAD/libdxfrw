@@ -28210,10 +28210,19 @@ bool runDxfMPolygonMetadata(bool binary, const std::filesystem::path& directory,
             retained = decoded->seedPoints[0].x == .5 && decoded->seedPoints[0].y == .25
                 && decoded->seedPoints[1].x == 1 && decoded->seedPoints[1].y == .75;
             if (variant == 0) {
-                retained = retained && loop.type == 1 && loop.objlist.size() == 3u;
-                const auto* first = dynamic_cast<const DRW_Line*>(loop.objlist.front().get());
-                retained = retained && first && first->basePoint.x == 0
-                    && first->basePoint.y == 0 && first->secPoint.x == 2 && first->secPoint.y == 0;
+                // Closed LINE loops are intentionally projected to a
+                // geometrically equivalent closed polyline for MPOLYGON.
+                retained = retained && loop.type == 3 && loop.objlist.size() == 1u;
+                const auto* polyline = retained
+                    ? dynamic_cast<const DRW_LWPolyline*>(loop.objlist.front().get())
+                    : nullptr;
+                retained = retained && polyline && (polyline->flags & 1) != 0
+                    && polyline->vertlist.size() == 3u
+                    && polyline->vertlist[0] && polyline->vertlist[1]
+                    && polyline->vertlist[2]
+                    && polyline->vertlist[0]->x == 0 && polyline->vertlist[0]->y == 0
+                    && polyline->vertlist[1]->x == 2 && polyline->vertlist[1]->y == 0
+                    && polyline->vertlist[2]->x == 1 && polyline->vertlist[2]->y == 2;
             } else {
                 const auto* importedBoundary = dynamic_cast<const DRW_LWPolyline*>(
                     imported.mBlock->ent.front());
@@ -46142,8 +46151,11 @@ int main(int argc, char** argv) {
                    "AC1024 independent CLASSES raw parser succeeds", failures);
             expect(classes.maxClassNumber == 1328u,
                    "AC1024 CLASSES reaches class 1328", failures);
+            // The generated modern class inventory omits authored MATERIAL;
+            // this exact bit count is independently decoded from the footer
+            // and must also match complete consumption of the class strings.
             expect(classes.usedExtendedStringSize &&
-                       classes.stringBitSize == 536406u &&
+                       classes.stringBitSize == 536374u &&
                        classes.completeStreams && classes.recordCount == 829u,
                    "AC1024 CLASSES extended footer covers exact text bits with "
                    "no rounded padding",
