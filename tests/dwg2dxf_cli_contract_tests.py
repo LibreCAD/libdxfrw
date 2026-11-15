@@ -2172,6 +2172,20 @@ def check_malformed_visualstyle_body(converter, root, writer):
         "--generate-cli-malformed-visualstyle-body-source", profiles)
 
 
+def check_malformed_rendersettings_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "RENDERSETTINGS_SETTINGS",
+        "--generate-cli-malformed-rendersettings-body-source", profiles)
+
+
 def check_skipped_record_projection(converter, root, writer):
     """Check generated skipped custom-class disposition across writer revisions."""
     if writer is None:
@@ -3436,6 +3450,8 @@ def main():
                 converter, root, args.writer)
             visualstyle_checked = check_malformed_visualstyle_body(
                 converter, root, args.writer)
+            render_settings_checked = check_malformed_rendersettings_body(
+                converter, root, args.writer)
             print(f"CLI partial DWG read: PASS ({checked} strict/partial/readback "
                   f"controls, {vba_checked} VBA_PROJECT, "
                   f"{block_representation_checked} BLOCKREPRESENTATION_DATA, "
@@ -3448,8 +3464,10 @@ def main():
                   f"{curvepath_checked} CURVEPATH, "
                   f"{plotsettings_checked} PLOTSETTINGS, "
                   f"{underlaydefinition_checked} UNDERLAYDEFINITION, "
-                  f"{material_checked} MATERIAL, and "
-                  f"{visualstyle_checked} VISUALSTYLE body controls)")
+                  f"{material_checked} MATERIAL, "
+                  f"{visualstyle_checked} VISUALSTYLE, and "
+                  f"{render_settings_checked} RENDERSETTINGS Settings-subtype "
+                  "body controls)")
             return
         if args.source_disposition_only:
             checked = check_source_disposition_projection(converter, root, args.writer)
