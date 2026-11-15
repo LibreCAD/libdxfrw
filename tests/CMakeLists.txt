@@ -2156,6 +2156,11 @@ add_test(NAME libdxfrw_visual_style_ac1024_typed_writer
 set_tests_properties(libdxfrw_visual_style_ac1024_typed_writer PROPERTIES
     LABELS "fast;dxf;graph;adapter;visualstyle;generated;transaction"
     TIMEOUT 30)
+add_test(NAME libdxfrw_visual_style_ac1024_extension_profile
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --visual-style-ac1024-extension-profile)
+set_tests_properties(libdxfrw_visual_style_ac1024_extension_profile PROPERTIES
+    LABELS "fast;dxf;graph;adapter;visualstyle;generated" TIMEOUT 30)
 add_test(NAME libdxfrw_visual_style_ac1021_typed_writer
     COMMAND libdxfrw_dwg2dxf_adapter_tests
         --visual-style-ac1021-typed-writer

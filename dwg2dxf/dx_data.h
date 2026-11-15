@@ -1410,13 +1410,89 @@ public:
                 || style.reactorHandles.front() != style.parentHandle
                 // DWG's xDictFlag is inverted: 1 means no extension
                 // dictionary handle follows the reactor list.
-                || style.extensionDictionaryFlag() != 1u
-                || style.xDictHandle != 0u
+                || ((style.xDictHandle == 0u)
+                    != (style.extensionDictionaryFlag() == 1u))
                 || style.hasDataStorageBinaryData()
                 || !style.extData.empty() || !style.appData.empty()
                 || !style.pendingAppIdResolutions.empty()
                 || !style.pendingLayerRefResolutions.empty())
                 return false;
+
+            // Admit only a source-matched, single-XRECORD extension graph.
+            if (style.xDictHandle == 0u) {
+                if (style.extensionDictionaryFlag() != 1u)
+                    return false;
+            } else {
+                if (style.extensionDictionaryFlag() != 0u)
+                    return false;
+                const DRW_Dictionary* extension = nullptr;
+                std::size_t extensionMatches = 0u;
+                for (const DRW_Dictionary& candidate : dictionaries) {
+                    if (candidate.handle != style.xDictHandle)
+                        continue;
+                    extension = &candidate;
+                    ++extensionMatches;
+                }
+                if (extensionMatches != 1u || extension == nullptr
+                    || extension->parentHandle != style.handle
+                    || extension->hardOwner != 1
+                    || extension->cloning != 1
+                    || extension->xDictHandle != 0u
+                    || extension->reactorCount() != 0u
+                    || !extension->reactorHandles.empty()
+                    || !extension->hasCompleteDwgEntries()
+                    || extension->m_entries.size() != 1u
+                    || extension->m_entries.front().m_name
+                        != "ACAD_XREC_ROUNDTRIP"
+                    || extension->m_entries.front().m_handle == 0u
+                    || extension->m_entries.front().m_handle == DRW::NoHandle
+                    || !extension->extData.empty()
+                    || !extension->appData.empty())
+                    return false;
+
+                const std::uint32_t recordHandle =
+                    extension->m_entries.front().m_handle;
+                const DRW_XRecord* record = nullptr;
+                std::size_t recordMatches = 0u;
+                for (const DRW_XRecord& candidate : xRecords) {
+                    if (candidate.handle != recordHandle)
+                        continue;
+                    record = &candidate;
+                    ++recordMatches;
+                }
+                if (recordMatches != 1u || record == nullptr
+                    || record->parentHandle != extension->handle
+                    || record->m_cloning != 1
+                    || record->xDictHandle != 0u
+                    || record->reactorCount() != 1u
+                    || record->reactorHandles.size() != 1u
+                    || record->reactorHandles.front() != extension->handle
+                    || !record->m_handleValues.empty()
+                    || !record->extData.empty() || !record->appData.empty()
+                    || record->m_dataEntries.size() != 126u
+                    || record->m_rawDataValid)
+                    return false;
+
+                const StandardDwgFrameKey dictionaryKey{
+                    importGeneration, extension->handle};
+                const StandardDwgFrameKey recordKey{
+                    importGeneration, record->handle};
+                const auto dictionaryFrame = m_standardDwgObjectFrames.find(
+                    dictionaryKey);
+                const auto recordFrame = m_standardDwgObjectFrames.find(
+                    recordKey);
+                if (dictionaryFrame == m_standardDwgObjectFrames.end()
+                    || recordFrame == m_standardDwgObjectFrames.end()
+                    || dictionaryFrame->second.generation != importGeneration
+                    || recordFrame->second.generation != importGeneration
+                    || !dictionaryFrame->second.payloadMatched
+                    || !recordFrame->second.payloadMatched
+                    || dictionaryFrame->second.raw.m_objectType
+                        != DRW_Dictionary::kDwgFixedType
+                    || recordFrame->second.raw.m_objectType
+                        != 79u)
+                    return false;
+            }
 
             for (std::size_t index = 0u; index < encoding.colorCount; ++index) {
                 const DRW_VisualStyleColor& color = encoding.colors[index];

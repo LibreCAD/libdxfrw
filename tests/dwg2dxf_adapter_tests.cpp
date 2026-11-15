@@ -191,6 +191,20 @@ public:
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    // Synthetic receipt for profile-guard controls; physical-source tests
+    // separately prove that real captured frames match their typed payloads.
+    static void seedVisualStyleProfileFrame(dx_data& data,
+                                            std::uint32_t handle, int type) {
+        dx_data::StandardDwgObjectFrame frame;
+        frame.generation = data.importGeneration;
+        frame.raw.m_objectType = type;
+        frame.payloadMatched = true;
+        data.m_standardDwgObjectFrames[{data.importGeneration, handle}] = frame;
+    }
+    static void eraseVisualStyleProfileFrame(dx_data& data,
+                                             std::uint32_t handle) {
+        data.m_standardDwgObjectFrames.erase({data.importGeneration, handle});
+    }
     static bool prepareEmptyWipeoutVariablesClass(dx_iface& iface,
                                                    const std::string& appName,
                                                    std::int32_t instances) {
@@ -49852,6 +49866,62 @@ void populateTypedAc1024VisualStyleGraph(dx_data& data) {
     receipt.successful = true;
 }
 
+bool ac1024VisualStyleExtensionProfileControls() {
+    dx_data data;
+    populateTypedAc1024VisualStyleGraph(data);
+    DRW_VisualStyle& style = data.visualStyles.front();
+    style.setDwgCommonObjectState(1, 0u, false);
+    style.xDictHandle = 0x701u;
+
+    DRW_Dictionary extension;
+    extension.reset();
+    extension.handle = style.xDictHandle;
+    extension.parentHandle = style.handle;
+    extension.cloning = 1;
+    extension.hardOwner = 1;
+    extension.setDwgCommonObjectState(0, 1u, false);
+    extension.m_entries.push_back({"ACAD_XREC_ROUNDTRIP", 0x702u});
+    data.dictionaries.push_back(extension);
+
+    DRW_XRecord record;
+    record.handle = 0x702u;
+    record.parentHandle = extension.handle;
+    record.m_cloning = 1;
+    record.setDwgCommonObjectState(1, 1u, false);
+    record.reactorHandles.push_back(extension.handle);
+    for (int i = 0; i < 126; ++i)
+        record.m_dataEntries.emplace_back(90, i);
+    data.xRecords.push_back(record);
+    DxIfaceStandardDwgCaptureTestAccess::seedVisualStyleProfileFrame(
+        data, extension.handle, DRW_Dictionary::kDwgFixedType);
+    DxIfaceStandardDwgCaptureTestAccess::seedVisualStyleProfileFrame(
+        data, record.handle, 79);
+    if (!data.hasCompleteAc1024VisualStyleSourceProfile())
+        return fail("generated AC1024 VisualStyle extension graph was refused");
+
+    data.xRecords.front().parentHandle = 0u;
+    if (data.hasCompleteAc1024VisualStyleSourceProfile())
+        return fail("VisualStyle extension accepted an invalid XRecord owner");
+    data.xRecords.front().parentHandle = extension.handle;
+    data.dictionaries.back().m_entries.front().m_name = "WRONG_KEY";
+    if (data.hasCompleteAc1024VisualStyleSourceProfile())
+        return fail("VisualStyle extension accepted an invalid dictionary key");
+    data.dictionaries.back().m_entries.front().m_name = "ACAD_XREC_ROUNDTRIP";
+    data.xRecords.front().m_dataEntries.pop_back();
+    if (data.hasCompleteAc1024VisualStyleSourceProfile())
+        return fail("VisualStyle extension accepted an incomplete XRecord");
+    data.xRecords.front().m_dataEntries.emplace_back(90, 125);
+    DxIfaceStandardDwgCaptureTestAccess::eraseVisualStyleProfileFrame(
+        data, record.handle);
+    if (data.hasCompleteAc1024VisualStyleSourceProfile())
+        return fail("VisualStyle extension accepted an absent source frame");
+    DxIfaceStandardDwgCaptureTestAccess::seedVisualStyleProfileFrame(
+        data, record.handle, 79);
+    if (!data.hasCompleteAc1024VisualStyleSourceProfile())
+        return fail("restored VisualStyle extension profile was refused");
+    return true;
+}
+
 void populateTypedAc1021VisualStyleGraph(dx_data& data) {
     data.sourceFormat = dx_source_format::DWG;
     data.sourceVersion = DRW::AC1021;
@@ -50266,17 +50336,19 @@ bool physicalAc1021VisualStyleOutput(const std::filesystem::path& sourcePath,
     return true;
 }
 
-bool physicalAc1021VisualStyleExtensionGraphOutput(
+bool physicalVisualStyleExtensionGraphOutput(
         const std::filesystem::path& sourcePath,
         const std::filesystem::path& directory) {
     dx_iface sourceReader;
     dx_data source;
     if (!sourceReader.fileImport(sourcePath.string(), &source, false)
         || source.sourceFormat != dx_source_format::DWG
-        || source.sourceVersion != DRW::AC1021
-        || source.visualStyles.size() != 25u
-        || !source.hasCompleteAc1021VisualStyleSourceProfile())
-        return fail("AC1021 VisualStyle extension graph did not match its source profile");
+        || (source.sourceVersion != DRW::AC1021
+            && source.sourceVersion != DRW::AC1024)
+        || source.visualStyles.size()
+            != (source.sourceVersion == DRW::AC1021 ? 25u : 24u)
+        || !source.hasCompleteDwgVisualStyleSourceProfile())
+        return fail("DWG VisualStyle extension graph did not match its source profile");
 
     const DRW_Dictionary* styleDictionary = nullptr;
     std::uint32_t styleDictionaryHandle = 0u;
@@ -50293,7 +50365,7 @@ bool physicalAc1021VisualStyleExtensionGraphOutput(
             styleDictionary = &dictionary;
     if (rootMatches != 1u || styleDictionary == nullptr
         || styleDictionary->m_entries.size() != source.visualStyles.size())
-        return fail("AC1021 VisualStyle root dictionary was not complete");
+        return fail("DWG VisualStyle root dictionary was not complete");
 
     dx_data selected;
     selected.sourceFormat = source.sourceFormat;
@@ -50324,14 +50396,14 @@ bool physicalAc1021VisualStyleExtensionGraphOutput(
             });
         if (extension == source.dictionaries.end()
             || extension->m_entries.size() != 1u)
-            return fail("AC1021 VisualStyle XDictionary is missing its single entry");
+            return fail("DWG VisualStyle XDictionary is missing its single entry");
         const std::uint32_t recordHandle = extension->m_entries.front().m_handle;
         const auto record = std::find_if(source.xRecords.begin(),
             source.xRecords.end(), [recordHandle](const DRW_XRecord& row) {
                 return row.handle == recordHandle;
             });
         if (record == source.xRecords.end())
-            return fail("AC1021 VisualStyle XDictionary target XRecord is missing");
+            return fail("DWG VisualStyle XDictionary target XRecord is missing");
         selected.dictionaries.push_back(*extension);
         selected.xRecords.push_back(*record);
         standardFrameHandles.insert(extension->handle);
@@ -50339,22 +50411,36 @@ bool physicalAc1021VisualStyleExtensionGraphOutput(
     }
     DxIfaceStandardDwgCaptureTestAccess::retainStandardFrames(
         source, selected, standardFrameHandles);
-    if (!selected.hasCompleteAc1021VisualStyleSourceProfile())
-        return fail("selected AC1021 VisualStyle extension graph lost source admission");
+    if (!selected.hasCompleteDwgVisualStyleSourceProfile())
+        return fail("selected DWG VisualStyle extension graph lost source admission");
+
+    // Profile admission must fail on broken graph roles before serialization.
+    const std::uint32_t savedOwner = selected.xRecords.front().parentHandle;
+    selected.xRecords.front().parentHandle = 0u;
+    if (selected.hasCompleteDwgVisualStyleSourceProfile())
+        return fail("VisualStyle extension XRecord with wrong owner was admitted");
+    selected.xRecords.front().parentHandle = savedOwner;
+    const std::string savedKey = selected.dictionaries.back().m_entries.front().m_name;
+    selected.dictionaries.back().m_entries.front().m_name = "WRONG_KEY";
+    if (selected.hasCompleteDwgVisualStyleSourceProfile())
+        return fail("VisualStyle extension dictionary with wrong key was admitted");
+    selected.dictionaries.back().m_entries.front().m_name = savedKey;
+    if (!selected.hasCompleteDwgVisualStyleSourceProfile())
+        return fail("restored VisualStyle extension graph did not regain admission");
 
     std::filesystem::create_directories(directory);
     for (const bool binary : {false, true}) {
         const auto output = directory / (binary
-            ? "physical-visual-style-xdict-ac1021-binary.dxf"
-            : "physical-visual-style-xdict-ac1021-ascii.dxf");
+            ? "physical-visual-style-xdict-binary.dxf"
+            : "physical-visual-style-xdict-ascii.dxf");
         dx_iface writer;
-        if (!writer.fileExport(output.string(), DRW::AC1021, binary,
+        if (!writer.fileExport(output.string(), source.sourceVersion, binary,
                 &selected, false, false,
                 dx_dxfSourceTextPolicy::Compatible,
                 DRW::DxfTextWritePolicy::Compatible,
                 dx_dxfProxyGraphicsPolicy::Compatible,
                 dx_dwgReadCompletenessPolicy::Legacy))
-            return fail("AC1021 VisualStyle extension graph output failed: "
+            return fail("DWG VisualStyle extension graph output failed: "
                 + writer.extensionGraphFailureDetail());
         dx_data readback;
         dx_iface reader;
@@ -50363,13 +50449,26 @@ bool physicalAc1021VisualStyleExtensionGraphOutput(
             || readback.dictionaries.size()
                 != selected.dictionaries.size() + 1u
             || readback.xRecords.size() != selected.xRecords.size())
-            return fail("AC1021 VisualStyle extension graph readback was incomplete: styles="
+            return fail("DWG VisualStyle extension graph readback was incomplete: styles="
                 + std::to_string(readback.visualStyles.size()) + "/"
                 + std::to_string(selected.visualStyles.size()) + " dictionaries="
                 + std::to_string(readback.dictionaries.size()) + "/"
                 + std::to_string(selected.dictionaries.size()) + " xrecords="
                 + std::to_string(readback.xRecords.size()) + "/"
                 + std::to_string(selected.xRecords.size()));
+        std::uint32_t outputStyleDictionary = 0u;
+        std::size_t outputRootMatches = 0u;
+        for (const DRW_Dictionary::Entry& entry :
+             readback.namedObjectDictionary.m_entries) {
+            if (entry.m_name == "ACAD_VISUALSTYLE") {
+                outputStyleDictionary = entry.m_handle;
+                ++outputRootMatches;
+            }
+        }
+        if (!readback.hasNamedObjectDictionary || outputRootMatches != 1u
+            || outputStyleDictionary == 0u
+            || outputStyleDictionary == DRW::NoHandle)
+            return fail("DWG VisualStyle NOD root edge is missing or ambiguous");
         for (const DRW_VisualStyle& original : selected.visualStyles) {
             const auto found = std::find_if(readback.visualStyles.begin(),
                 readback.visualStyles.end(), [&original](
@@ -50377,13 +50476,17 @@ bool physicalAc1021VisualStyleExtensionGraphOutput(
                         return candidate.handle == original.handle;
                     });
             if (found == readback.visualStyles.end()
-                || found->parentHandle != original.parentHandle
+                || original.parentHandle != styleDictionaryHandle
+                || found->parentHandle != outputStyleDictionary
                 || found->xDictHandle != original.xDictHandle
-                || found->reactorHandles != original.reactorHandles
+                || original.reactorHandles.size() != 1u
+                || original.reactorHandles.front() != styleDictionaryHandle
+                || found->reactorHandles.size() != 1u
+                || found->reactorHandles.front() != outputStyleDictionary
                 || found->m_body.edgeStyleApply != original.m_body.edgeStyleApply
                 || found->m_body.legacyReserved != original.m_body.legacyReserved
                 || found->extData.size() != original.extData.size())
-                return fail("AC1021 VisualStyle extension owner/body changed on readback handle="
+                return fail("DWG VisualStyle extension owner/body changed on readback handle="
                     + std::to_string(original.handle) + " owner="
                     + std::to_string(found == readback.visualStyles.end()
                         ? 0u : found->parentHandle) + "/"
@@ -50400,44 +50503,40 @@ bool physicalAc1021VisualStyleExtensionGraphOutput(
                 if (expected == nullptr || actual == nullptr
                     || actual->code() != expected->code()
                     || actual->type() != expected->type())
-                    return fail("AC1021 VisualStyle EED group shape changed on readback");
+                    return fail("DWG VisualStyle EED group shape changed on readback");
                 if ((expected->type() == DRW_Variant::STRING
                         && std::string(actual->c_str()) != expected->c_str())
                     || (expected->type() == DRW_Variant::INTEGER
                         && actual->i_val() != expected->i_val()))
-                    return fail("AC1021 VisualStyle EED value changed on readback");
+                    return fail("DWG VisualStyle EED value changed on readback");
             }
         }
         for (const DRW_Dictionary& original : selected.dictionaries) {
+            const std::uint32_t expectedHandle =
+                original.handle == styleDictionaryHandle
+                ? outputStyleDictionary : original.handle;
             const auto found = std::find_if(readback.dictionaries.begin(),
-                readback.dictionaries.end(), [&original](
+                readback.dictionaries.end(), [expectedHandle](
                     const DRW_Dictionary& candidate) {
-                        return candidate.handle == original.handle;
+                        return candidate.handle == expectedHandle;
                     });
             if (found == readback.dictionaries.end()
-                || found->parentHandle != original.parentHandle
+                || found->parentHandle != (original.handle == styleDictionaryHandle
+                    ? readback.namedObjectDictionary.handle
+                    : original.parentHandle)
                 || found->cloning != original.cloning
                 || found->hardOwner != original.hardOwner
                 || found->xDictHandle != original.xDictHandle
                 || found->reactorHandles != original.reactorHandles
                 || found->m_entries.size() != original.m_entries.size())
-                return fail("AC1021 VisualStyle dictionary owner or entry count changed");
+                return fail("DWG VisualStyle dictionary owner or entry count changed");
             for (std::size_t index = 0u; index < original.m_entries.size(); ++index)
                 if (found->m_entries[index].m_name
                         != original.m_entries[index].m_name
                     || found->m_entries[index].m_handle
                         != original.m_entries[index].m_handle)
-                    return fail("AC1021 VisualStyle dictionary edge changed on readback");
+                    return fail("DWG VisualStyle dictionary edge changed on readback");
         }
-        if (!readback.hasNamedObjectDictionary
-            || std::count_if(readback.namedObjectDictionary.m_entries.begin(),
-                readback.namedObjectDictionary.m_entries.end(),
-                [&selected](const DRW_Dictionary::Entry& entry) {
-                    return entry.m_name == "ACAD_VISUALSTYLE"
-                        && entry.m_handle
-                            == selected.dictionaries.front().handle;
-                }) != 1)
-            return fail("AC1021 VisualStyle NOD root edge changed on readback");
         for (const DRW_XRecord& original : selected.xRecords) {
             const auto found = std::find_if(readback.xRecords.begin(),
                 readback.xRecords.end(), [&original](
@@ -50452,7 +50551,7 @@ bool physicalAc1021VisualStyleExtensionGraphOutput(
                 || found->m_handleValues != original.m_handleValues
                 || found->extData.size() != original.extData.size()
                 || found->m_dataEntries.size() != original.m_dataEntries.size())
-                return fail("AC1021 VisualStyle XRecord common/payload shape changed handle="
+                return fail("DWG VisualStyle XRecord common/payload shape changed handle="
                     + std::to_string(original.handle) + " owner="
                     + std::to_string(found == readback.xRecords.end()
                         ? 0u : found->parentHandle) + "/"
@@ -50480,70 +50579,71 @@ bool physicalAc1021VisualStyleExtensionGraphOutput(
                 const DRW_Variant& actual = found->m_dataEntries[index];
                 if (actual.code() != expected.code()
                     || actual.type() != expected.type())
-                    return fail("AC1021 VisualStyle XRecord value type/order changed");
+                    return fail("DWG VisualStyle XRecord value type/order changed");
                 switch (expected.type()) {
                 case DRW_Variant::STRING:
                     if (std::string(actual.c_str()) != expected.c_str())
-                        return fail("AC1021 VisualStyle XRecord string changed");
+                        return fail("DWG VisualStyle XRecord string changed");
                     break;
                 case DRW_Variant::INTEGER:
                     if (actual.i_val() != expected.i_val())
-                        return fail("AC1021 VisualStyle XRecord integer changed");
+                        return fail("DWG VisualStyle XRecord integer changed");
                     break;
                 case DRW_Variant::INTEGER64:
                     if (actual.i64_val() != expected.i64_val())
-                        return fail("AC1021 VisualStyle XRecord integer64 changed");
+                        return fail("DWG VisualStyle XRecord integer64 changed");
                     break;
                 case DRW_Variant::DOUBLE:
                     if (actual.d_val() != expected.d_val())
-                        return fail("AC1021 VisualStyle XRecord double changed");
+                        return fail("DWG VisualStyle XRecord double changed");
                     break;
                 case DRW_Variant::COORD:
                 case DRW_Variant::BINARY:
                 case DRW_Variant::INVALID:
-                    return fail("AC1021 VisualStyle XRecord contains an unqualified value type");
+                    return fail("DWG VisualStyle XRecord contains an unqualified value type");
                 }
             }
         }
         const std::string sentinel =
-            "preserve rejected AC1021 VisualStyle extension graph\n";
+            "preserve rejected DWG VisualStyle extension graph\n";
         { std::ofstream existing(output, std::ios::binary | std::ios::trunc);
           existing << sentinel; }
         const DRW_XRecord savedRecord = selected.xRecords.front();
         selected.xRecords.front().m_dataEntries.front().addString(
             102, "{MUTATED_SOURCE_PROFILE");
-        if (writer.fileExport(output.string(), DRW::AC1021, binary,
+        if (writer.fileExport(output.string(), source.sourceVersion, binary,
                 &selected, false, false,
                 dx_dxfSourceTextPolicy::Compatible,
                 DRW::DxfTextWritePolicy::Compatible,
                 dx_dxfProxyGraphicsPolicy::Compatible,
                 dx_dwgReadCompletenessPolicy::Legacy))
-            return fail("mutated AC1021 VisualStyle XRecord source was emitted");
+            return fail("mutated DWG VisualStyle XRecord source was emitted");
         std::ifstream sentinelInput(output, std::ios::binary);
         const std::string retained{
             std::istreambuf_iterator<char>(sentinelInput),
             std::istreambuf_iterator<char>()};
         if (retained != sentinel)
-            return fail("rejected AC1021 VisualStyle graph replaced the destination");
+            return fail("rejected DWG VisualStyle graph replaced the destination");
         selected.xRecords.front() = savedRecord;
-        if (!writer.fileExport(output.string(), DRW::AC1021, binary,
+        if (!writer.fileExport(output.string(), source.sourceVersion, binary,
                 &selected, false, false,
                 dx_dxfSourceTextPolicy::Compatible,
                 DRW::DxfTextWritePolicy::Compatible,
                 dx_dxfProxyGraphicsPolicy::Compatible,
                 dx_dwgReadCompletenessPolicy::Legacy))
-            return fail("corrected AC1021 VisualStyle graph same-writer retry failed");
+            return fail("corrected DWG VisualStyle graph same-writer retry failed");
         dx_data retryReadback;
         dx_iface retryReader;
         if (!retryReader.fileImport(output.string(), &retryReadback, false)
-            || retryReadback.visualStyles.size() != 25u
-            || retryReadback.xRecords.size() != 25u)
-            return fail("corrected AC1021 VisualStyle graph retry did not read back");
+            || retryReadback.visualStyles.size() != selected.visualStyles.size()
+            || retryReadback.xRecords.size() != selected.xRecords.size())
+            return fail("corrected DWG VisualStyle graph retry did not read back");
     }
-    std::cout << "physicalAc1021VisualStyleExtensionGraphOutput PASS"
-              << " encodings=ASCII,Binary visualStyles=25 dictionaries=26"
-              << " xrecords=25 EED=3-groups-per-style"
-              << " orderedXRecordValues=252-per-record"
+    std::cout << "physicalVisualStyleExtensionGraphOutput PASS"
+              << " encodings=ASCII,Binary visualStyles=" << selected.visualStyles.size()
+              << " dictionaries=" << selected.dictionaries.size()
+              << " xrecords=" << selected.xRecords.size()
+              << " orderedXRecordValues=" << selected.xRecords.front().m_dataEntries.size()
               << " rollback=pass sameWriterRetry=pass\n";
     return true;
 }
@@ -89693,7 +89793,11 @@ int main(int argc, char** argv) {
         return opaqueDwgSourceInventory(argv[2]) ? 0 : 1;
     if (argc == 4
         && std::string(argv[1]) == "--visual-style-ac1021-physical-extension-graph")
-        return physicalAc1021VisualStyleExtensionGraphOutput(
+        return physicalVisualStyleExtensionGraphOutput(
+            argv[2], argv[3]) ? 0 : 1;
+    if (argc == 4
+        && std::string(argv[1]) == "--visual-style-ac1024-physical-extension-graph")
+        return physicalVisualStyleExtensionGraphOutput(
             argv[2], argv[3]) ? 0 : 1;
     if (argc == 4
         && std::string(argv[1]) == "--scale-ac1021-physical-selected-graph")
@@ -90467,6 +90571,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--visual-style-ac1024-typed-writer")
         return typedAc1024VisualStyleWriterRoundTrip(argv[2]) ? 0 : 1;
+    if (argc == 2
+        && std::string(argv[1]) == "--visual-style-ac1024-extension-profile")
+        return ac1024VisualStyleExtensionProfileControls() ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--visual-style-ac1021-typed-writer")
         return typedAc1021VisualStyleWriterRoundTrip(argv[2]) ? 0 : 1;
