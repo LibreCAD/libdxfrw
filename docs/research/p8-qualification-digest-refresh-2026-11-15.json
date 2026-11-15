@@ -5,6 +5,12 @@
   "method": "Computed the digest from a clean local clone at the source commit, excluding untracked local samples and generated files. Updated only the non-self-referential status overlay digest.",
   "implementationDigestSha256": "133a2459f16bfdc337af6f319548801e9667ddb9dbab4a2360a39a48349292dd",
   "selectedInputCount": 713,
+  "subsequentRefresh": {
+    "sourceCommit": "645a03e8",
+    "implementationDigestSha256": "f3bb5d653bcb4969ed78575ba580679dcde7284b69e948b95058936e4acd8bd7",
+    "selectedInputCount": 713,
+    "validation": "Clean-clone implementation digest and qualified-format support checks pass; zero routes advertised."
+  },
   "validation": [
     "check_qualification_digest.py passes in the clean clone with the updated status overlay.",
     "check_qualified_format_support.py passes: 15 claims, 2 candidate routes, 0 advertised."
