@@ -1,0 +1,36 @@
+{
+  "date": "2026-11-15",
+  "source": {
+    "repository": "https://github.com/LibreDWG/libredwg",
+    "issue": "https://github.com/LibreDWG/libredwg/issues/209",
+    "introducingCommit": "https://github.com/LibreDWG/libredwg/commit/eb5ca6d4f711309c1b5159b5af25833ebdd06f81",
+    "path": "test/test-data/2010/gh209_1.dwg",
+    "sha256": "4d3d81a0dd7b7a845368e3517ad745b763a9e338b0bae09e78e86c5bf2742e27",
+    "provenance": "Public GEODATA test case added in 2020; issue records a user-submitted 2010_1.dwg. The originating DWG producer is not identified. No source fixture or derivative is committed."
+  },
+  "negativeControl": {
+    "version": "AC1024",
+    "appMaintenance": 55,
+    "logicalHeaderBytes": 818,
+    "unclaimedSuffixBytes": 0,
+    "logicalHeaderSha256": "de7ac2a361584aa578c0b138c4e33203c1d8dfd482646eda33551b17314a8ec4",
+    "validation": "Pinned independent verifier reported no container findings; one compressed HEADER page, exact declared section size, unique end sentinel, matching envelope size and CRC."
+  },
+  "odaResave": {
+    "producer": "ODA File Converter 27.1.0, ACAD2010 DWG output, audit enabled",
+    "sha256": "9e6d2fbc3e9f26b74ab56a20d46c5a733ef079213f810bb627417a6549f6a0c4",
+    "logicalHeaderBytes": 1534,
+    "unclaimedSuffixBytes": 739,
+    "logicalHeaderSha256": "5aef1b84b49433267ece6c7192a7b994c456c2dc175d87e9c34f34f56334acdb",
+    "validation": "No .err file; pinned independent verifier reported no container findings; one compressed HEADER page, exact declared section size, unique end sentinel, matching envelope size and CRC."
+  },
+  "suffixMutation": {
+    "method": "tools/research/mutate_ac1024_header_suffix_traced.py changes every suffix byte via 739 independent compressed literal roots, validates exact decoded bounds and checksums, and verifies independent decompression and container checks. Variants are scratch-only.",
+    "zeroSha256": "57591ba5ea33c99a5cfccfa9db2faa38786ccd6847129403adf706caadf668a7",
+    "xorA5Sha256": "ec3a4a5a0fe024801b9e310b50eadec332de65316b8243d34b475c7e68e79883",
+    "odaDxfNormalizedSha256": "c12846a0505d7740ffcbbc2ed647a00ab71191631f8d4a420f291df85ce9f5cb",
+    "libreDwgJsonSha256": "0d21b40f8dc01d792f59362c5b6f4338936aeceed849b25bb9f627ef40d3de78",
+    "observations": "ODA converted all three resaved variants to DXF without .err files; outputs were byte-identical after normalizing only $TDUPDATE and $TDUUPDATE. LibreDWG 0.14 JSON outputs were byte-identical for all three, including its reported GEODATA. The output comparisons are among the ODA-resaved variants; no equivalence to the original source is asserted."
+  },
+  "limits": "A single source/resave pair establishes an observed producer transformation, not that every ODA output has a suffix or that the suffix has no semantics. Maintenance version 55 alone cannot require its presence. The original producer is unknown; the independent reader is not an independent suffix-producing implementation. Do not discard suffixes, infer padding, broaden support claims, or bypass strict refusal without separate source-backed semantics and qualification."
+}

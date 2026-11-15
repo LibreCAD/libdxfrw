@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **581 completed implementation and qualification slices** and **32 remaining
+The plan records **582 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`581 / (581 + 32) = 94.8%`. The previous 28-package denominator was stale; a recount
+`582 / (582 + 32) = 94.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -147,8 +147,13 @@ The original ODA-derived polyface source still fails strict-complete preflight
 before TABLES because its read disposition is not complete. A provenance-traced
 experiment now replaces all 739 suffix bytes in two ODA-generated AC1024 sources;
 ODA, LibreDWG and patched headless FreeCAD give matching observed results. This
-is one producer and does not establish a universal padding rule. Obtain an
-independent producer or source-backed semantics for the suffix, then rerun
+is one producer and does not establish a universal padding rule. A public
+AC1024 GEODATA source with maintenance 55 has no suffix; an ODA resave adds
+739 bytes, and complete suffix mutation again leaves the observed ODA and
+LibreDWG outputs unchanged. The original producer is unknown, so this is a
+negative control and producer-transformation observation, not independent
+suffix semantics ([receipt](docs/research/p6-ac1024-external-source-oda-resave-suffix-2026-11-15.json)).
+Obtain an independent suffix producer or source-backed semantics, then rerun
 strict output and address the next actual document gate (the earlier lossy
 diagnostic reached TABLESTYLE). Prove the physical source's emitted 347/390
 links and native consumer behavior before any broader support claim. Do not
