@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **500 completed implementation and qualification slices** and **32 remaining
+The plan records **501 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`500 / (500 + 32) = 94.0%`. The previous 28-package denominator was stale; a recount
+`501 / (501 + 32) = 94.0%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -34,6 +34,11 @@ focused parser tests passing. The optional physical AC1024 test now registers
 only when its local sample exists. The frozen CTest inventory now matches
 the clean 1,364-test hosted profile, with the local-only physical sample omitted;
 native reruns remain open ([receipt](docs/research/p8-native-ctest-inventory-refresh-2026-11-15.json)).
+The latest Windows FreeCAD run passed its batch-name check but its ten FreeCAD
+checks could not generate source drawings because the shared test driver
+overflowed the Windows stack. A test-only stack reserve and the reported MSVC
+lambda-capture fixes are prepared; actual Windows rerun remains required
+([receipt](docs/research/p8-windows-test-driver-stack-msvc-2026-11-15.json)).
 The Linux FreeCAD 1.1.4 hosted rerun passes 10/10 checks: both CLI
 compatibility controls and all generated LINE/primitive open/insert cases.
 The preceding null LAYER plot-style readback failure is fixed and verified

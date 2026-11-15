@@ -1468,6 +1468,12 @@ if(LIBDXFRW_BUILD_TESTS)
         tests/modeler_block_census_tests.cpp
         tests/hatch_reference_tests.cpp
         ${_libdxfrw_root_test_adapter_source})
+    # This test driver's many generated controls share a large main frame.
+    # The MSVC default stack overflows before even the small generator modes
+    # execute. Keep the larger reserve confined to this test executable.
+    if(MSVC)
+        target_link_options(libdxfrw_dwg_local_roundtrip PRIVATE /STACK:16777216)
+    endif()
     target_compile_features(libdxfrw_dwg_local_roundtrip PRIVATE cxx_std_17)
     target_include_directories(libdxfrw_dwg_local_roundtrip PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src

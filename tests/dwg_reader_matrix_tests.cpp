@@ -17497,8 +17497,8 @@ void testAc1015PersubentManagerBoundedPartialPrefix(TestContext& t) {
 void testAc1018TableObjectsRetainOnlyValidatedRawFrames(TestContext& t) {
     constexpr std::uint16_t tableContentClass = 700u;
     constexpr std::uint16_t tableGeometryClass = 701u;
-    constexpr std::uint32_t tableContentHandle = 0xA100u;
-    constexpr std::uint32_t tableGeometryHandle = 0xA101u;
+    static constexpr std::uint32_t tableContentHandle = 0xA100u;
+    static constexpr std::uint32_t tableGeometryHandle = 0xA101u;
     GeneratedAc1018OpaqueTableObject tableContent, tableGeometry;
     const bool framesBuilt = makeGeneratedAc1018OpaqueTableObject(
             tableContentClass, tableContentHandle, tableContent)
@@ -20144,14 +20144,14 @@ void testHeaderPackedFlags(TestContext& t) {
                  && (encoded & 0x001fu) == 24u,
              "DWG rewrite preserves a reserved lineweight source code");
 
-    constexpr int celweight = 211;
-    constexpr int endcaps = 2;
-    constexpr int joinstyle = 1;
-    constexpr int lwdisplay = 1;
-    constexpr int xedit = 0;
-    constexpr int extnames = 1;
-    constexpr int pstylemode = 1;
-    constexpr int olestartup = 0;
+    static constexpr int celweight = 211;
+    static constexpr int endcaps = 2;
+    static constexpr int joinstyle = 1;
+    static constexpr int lwdisplay = 1;
+    static constexpr int xedit = 0;
+    static constexpr int extnames = 1;
+    static constexpr int pstylemode = 1;
+    static constexpr int olestartup = 0;
     const auto addValues = [=](DRW_Header& header) {
         header.addInt("$CELWEIGHT", celweight, 370);
         header.addInt("$ENDCAPS", endcaps, 280);
