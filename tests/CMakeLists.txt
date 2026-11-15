@@ -7176,3 +7176,11 @@ add_test(NAME p5_style_resource_generated_source_binding
     COMMAND p5_ac1018_style_resource_source_probe
         ${CMAKE_CURRENT_BINARY_DIR}/generated-p5-style-resource-source.dwg)
 set_tests_properties(p5_style_resource_generated_source_binding PROPERTIES LABELS "dwg;fast;table" TIMEOUT 30)
+
+add_executable(libdxfrw_mpolygon_fill_default_tests mpolygon_fill_default_tests.cpp)
+target_compile_features(libdxfrw_mpolygon_fill_default_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_mpolygon_fill_default_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_mpolygon_fill_default_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_mpolygon_fill_default_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_mpolygon_fill_default COMMAND libdxfrw_mpolygon_fill_default_tests)
+set_tests_properties(libdxfrw_mpolygon_fill_default PROPERTIES LABELS "dxf;fast;mpolygon" TIMEOUT 30)

@@ -23727,6 +23727,9 @@ bool dxfRW::processMPolygon() {
     DRW_DBG("dxfRW::processMPolygon");
     int code;
     DRW_MPolygon poly;
+    // Group 71 is MPOLYGON's solid-fill flag. When it is absent, use the
+    // pattern-fill default; leave the general HATCH and DWG defaults intact.
+    poly.solid = 0;
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (0 == code) {
