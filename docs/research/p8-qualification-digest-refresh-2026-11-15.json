@@ -11,6 +11,12 @@
     "selectedInputCount": 713,
     "validation": "Clean-clone implementation digest and qualified-format support checks pass; zero routes advertised."
   },
+  "latestRefresh": {
+    "sourceCommit": "c4c920f7",
+    "implementationDigestSha256": "fd51997422b7825263df75c3d62d4dba4a5564d230033192b081a7b16f77a0b4",
+    "selectedInputCount": 713,
+    "validation": "Clean-clone digest and qualified-format support checks pass; zero routes advertised."
+  },
   "validation": [
     "check_qualification_digest.py passes in the clean clone with the updated status overlay.",
     "check_qualified_format_support.py passes: 15 claims, 2 candidate routes, 0 advertised."
