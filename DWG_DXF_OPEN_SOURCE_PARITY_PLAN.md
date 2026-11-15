@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **459 completed implementation and qualification slices** and **32 remaining
+The plan records **460 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`459 / (459 + 32) = 93.5%`. The previous 28-package denominator was stale; a recount
+`460 / (460 + 32) = 93.5%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -1165,22 +1165,17 @@ created locally from scratch for the specific control.
 
 ### Next work packets
 
-### Immediate integration defect — edited LTYPE and MLINESTYLE output
+### Next LibreCAD integration work
 
-The complex LTYPE forward STYLE reference is now fixed and verified: whole-file
-writers can reserve the later STYLE identity and require its successful typed
-emission before table finalization. ASCII/Binary missing/wrong-kind refusal,
-same-codec retry and reference readback pass; the original LibreCAD named-only
-MLINESTYLE regression passes. Four of five PR #3269 cases pass in the focused
-upstream-linked consumer harness with the documented temporary DIMSTYLE and
-helper corrections. The changed complex-LTYPE case still fails at OBJECTS:
-its `VENDOR_MLS_STYLE` writer returns false for the `VENDOR_MLS`/`BYLAYER`
-elements. Identify the exact rejection, fix or disposition the consumer and
-writer dependency, and rerun the unmodified fixture and all five cases. The
-broader selector is 10/18 and requires separate failure attribution. See the
-[fix receipt](docs/research/p8-ltype-forward-style-identity-2026-11-15.json)
-and [initial diagnosis](docs/research/p8-librecad-mlinetype-style-order-probe-2026-11-15.json).
-
+The five PR #3269 cases now pass with the original MLINESTYLE fixture in the
+focused upstream-linked LibreCAD harness (49 assertions), after temporary
+consumer `$DIMSTYLE` and group-value helper corrections. The named MLINESTYLE
+case also passes. The broader named-LTYPE selector is 11/18: investigate and
+disposition the seven remaining failures, make the consumer corrections
+permanent, and compile and run the full clean upstream-linked consumer target.
+Qualify LibreCAD_3 and the required platforms separately. The local canonical
+MLINESTYLE linetype fix and its ASCII/Binary allocation, refusal and retry
+controls are recorded in the [receipt](docs/research/p8-mlinestyle-canonical-linetypes-2026-11-15.json).
 
 The queue below contains only unfinished actions. Completed source profiles,
 codecs, tests, and controls have been removed from the queue; their commits and
@@ -2361,7 +2356,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P8-A | OPEN | Freeze clean-consumer builds and exact module, dependency, and runtime identities for each required 3D consumer. | Clean checkout/build provenance, ABI and linked-library inventory, repeatable import command. |
 | P8-B | OPEN | Qualify native Linux FreeCAD open and insert for representative mesh, surface, and ACIS source profiles. | Native Linux receipt with document counts, inserted geometry, bounds, and diagnostics. |
 | P8-C | OPEN | Qualify native Windows FreeCAD open and insert for the same source profiles. | Native Windows receipt matching P8-B observations and exact converter/importer path. |
-| P8-D | OPEN | Complete LibreCAD and LibreCAD_3 compatibility qualification against clean upstream consumers. | Clean builds, ABI/source compatibility checks, and focused import/export cases with no fork-only callbacks; include the merged [LibreCAD PR #3269](https://github.com/LibreCAD/LibreCAD/pull/3269) changed-LTYPE-definition save/readback regression (merged 2026-11-13 as `4060fb6bb6319034fb391485bb1a4d07f6a3ab6e`), verifying edits override archived DXF/DWG records while table-entry metadata and untouched complex records remain preserved. The selected upstream libdxfrw LTYPE edit/metadata path has generated ASCII/Binary readback coverage across seven DXF revisions ([receipt](docs/research/p8-libdxfrw-ltype-edit-preservation-2026-11-14.json)); the current LibreCAD `RS_FilterDXFRW` source passes a syntax-only compile against upstream headers ([receipt](docs/research/p8-librecad-filter-upstream-header-compatibility-2026-11-14.json)); and a clean LibreCAD master checkout builds `librecad_dxf_fast_tests` and passes 18 LTYPE-focused tests (465 assertions), including all five PR #3269 regressions against its bundled library ([receipt](docs/research/p8-librecad-master-pr3269-fast-regression-2026-11-14.json)). A disposable upstream-linked single-TU target also builds after moving the private BLOCK_RECORD decoder into `DRW::internal`, which removes a consumer test namespace collision. Against that overlay, three of the five PR #3269 cases pass unmodified: the DWG case fails because LibreCAD forwards `$DIMSTYLE` as an integer where strict DXF group 2 needs a string, and the complex-LTYPE case fails during OBJECTS emission with an unrelated MLINESTYLE object. The broader 18-case selector is 7 passed/11 failed and includes older unrelated expectations; the full consumer test target does not compile because other LibreCAD test translation units have upstream API/type incompatibilities. In the disposable consumer, changing the default `$DIMSTYLE` insertion to `QStringLiteral("Standard")`, removing MLINESTYLE OBJECTS from the complex-LTYPE-only fixture, and making its helper scan valid pre-name table metadata yields 5/5 PR #3269 tests passing (49 assertions) against upstream. The emitted LTYPE application group and group 310 (`CAFE`) are preserved before group 2. These consumer/test changes remain unpatched in LibreCAD. See [upstream-linked receipt](docs/research/p8-librecad-upstream-linked-pr3269-qualification-2026-11-14.json). Next: upstream LibreCAD should change the default `$DIMSTYLE` insertion to `QStringLiteral("Standard")` and merge the complex-LTYPE fixture/helper corrections demonstrated in the receipt. Qualify the separate MLINESTYLE OBJECTS route independently; then make the full LibreCAD consumer test target compile against upstream without the temporary single-TU harness, run LibreCAD_3 clean linked tests, compare ABI, and qualify platform behavior. |
+| P8-D | OPEN | Complete LibreCAD and LibreCAD_3 compatibility qualification against clean upstream consumers. | Clean builds, ABI/source compatibility checks, and focused import/export cases with no fork-only callbacks; include the merged [LibreCAD PR #3269](https://github.com/LibreCAD/LibreCAD/pull/3269) changed-LTYPE-definition save/readback regression (merged 2026-11-13 as `4060fb6bb6319034fb391485bb1a4d07f6a3ab6e`), verifying edits override archived DXF/DWG records while table-entry metadata and untouched complex records remain preserved. The selected upstream libdxfrw LTYPE edit/metadata path has generated ASCII/Binary readback coverage across seven DXF revisions ([receipt](docs/research/p8-libdxfrw-ltype-edit-preservation-2026-11-14.json)); the current LibreCAD `RS_FilterDXFRW` source passes a syntax-only compile against upstream headers ([receipt](docs/research/p8-librecad-filter-upstream-header-compatibility-2026-11-14.json)); and a clean LibreCAD master checkout builds `librecad_dxf_fast_tests` and passes 18 LTYPE-focused tests (465 assertions), including all five PR #3269 regressions against its bundled library ([receipt](docs/research/p8-librecad-master-pr3269-fast-regression-2026-11-14.json)). A disposable upstream-linked single-TU target also builds after moving the private BLOCK_RECORD decoder into `DRW::internal`, which removes a consumer test namespace collision. Against that overlay, three of the five PR #3269 cases pass unmodified: the DWG case fails because LibreCAD forwards `$DIMSTYLE` as an integer where strict DXF group 2 needs a string, and the complex-LTYPE case fails during OBJECTS emission with an unrelated MLINESTYLE object. The broader 18-case selector is 7 passed/11 failed and includes older unrelated expectations; the full consumer test target does not compile because other LibreCAD test translation units have upstream API/type incompatibilities. In the disposable consumer, changing the default `$DIMSTYLE` insertion to `QStringLiteral("Standard")`, removing MLINESTYLE OBJECTS from the complex-LTYPE-only fixture, and making its helper scan valid pre-name table metadata yields 5/5 PR #3269 tests passing (49 assertions) against upstream. The emitted LTYPE application group and group 310 (`CAFE`) are preserved before group 2. These consumer/test changes remain unpatched in LibreCAD. See [upstream-linked receipt](docs/research/p8-librecad-upstream-linked-pr3269-qualification-2026-11-14.json). Latest focused result supersedes the earlier four/five-case status: all five PR #3269 cases pass with the original MLINESTYLE fixture after the bounded canonical linetype fix and temporary consumer corrections; the broader selector is 11/18 ([receipt](docs/research/p8-mlinestyle-canonical-linetypes-2026-11-15.json)). Next: upstream LibreCAD should change the default `$DIMSTYLE` insertion to `QStringLiteral("Standard")` and merge the complex-LTYPE fixture/helper corrections demonstrated in the receipt. Qualify the separate MLINESTYLE OBJECTS route independently; then make the full LibreCAD consumer test target compile against upstream without the temporary single-TU harness, run LibreCAD_3 clean linked tests, compare ABI, and qualify platform behavior. |
 | P8-E | OPEN | Close ABI and package reproducibility across supported build modes; record public symbol/layout impact. | Clean consumer build matrix and ABI comparison for supported release targets. |
 | P8-F | OPEN | Repair or disposition hosted package CI failures, including macOS staging and Intel bottle availability. | Green reproducible package jobs or explicit supported-platform exclusions in release policy. |
 | P8-G | OPEN | Decide and document supported platforms, required native consumers, and release qualification thresholds. | Evidence-backed release matrix for each supported platform; no unresolved required red job. Local macOS ARM64 FreeCAD 1.1.4 generated AC1021/AC1024/AC1032 primitive open/insert matrix passes, but rejects 3DFACE/SOLID and imports polyface as wire ([receipt](docs/research/p8-macos-freecad-generated-primitives-ac1021-ac1032-2026-11-14.json)); native Linux/Windows and modeler-solid qualification remain open. |

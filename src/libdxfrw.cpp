@@ -36918,6 +36918,21 @@ bool dxfRW::writeMLineStyle(DRW_MLineStyle *ent) {
                 if (!requestedName.empty() && !matchesName)
                     return failDxfWrite();
             }
+            // These rows are emitted directly by writeTables, so they do not
+            // appear in lineTypesMap. Resolve their names to the fixed output
+            // identities used by that table, while still rejecting a
+            // conflicting explicit handle.
+            if (matchingLineTypes == 0 && !requestedName.empty()) {
+                const std::uint32_t canonical = requestedName == "BYBLOCK" ? 0x14u
+                    : requestedName == "BYLAYER" ? 0x15u
+                    : requestedName == "CONTINUOUS" ? 0x16u : 0u;
+                if (canonical != 0u
+                    && (element.linetypeHandle == 0u
+                        || (version > DRW::AC1009 && requestedHandle == canonical))) {
+                    matchingLineTypes = 1u;
+                    matchedHandle = canonical;
+                }
+            }
             if (lineType.empty()) {
                 // The pre-R2018 MLINESTYLE index has defined values for the
                 // built-in linetypes. Preserve those known meanings; ordinary

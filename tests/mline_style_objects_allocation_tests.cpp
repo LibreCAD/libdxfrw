@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <map>
 #include <new>
 #include <string>
 #include <vector>
@@ -40,6 +41,13 @@ DRW_MLineStyle makeStyle() {
     second.color = 256;
     second.linetypeIndex = 32766;
     style.elements = {first, second};
+    for (const char* name : {"BYLAYER", "BYBLOCK", "CONTINUOUS"}) {
+        DRW_MLineElement element;
+        element.linetype = name;
+        if (element.linetype == "BYBLOCK")
+            element.linetypeHandle = 0x14u;
+        style.elements.push_back(element);
+    }
     style.extData.push_back(new DRW_Variant(1001, std::string("ACAD")));
     style.extData.push_back(new DRW_Variant(
         1000, std::string("mline-style-allocation-retry")));
@@ -80,6 +88,7 @@ bool sameStyle(const DRW_MLineStyle& actual, bool readback = false) {
             }
         }
         if (left.offset != right.offset || left.color != right.color
+            || (!readback && left.linetypeHandle != right.linetypeHandle)
             || left.linetype != expectedLineType)
             return false;
     }
@@ -223,6 +232,40 @@ bool allocationSweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+bool refusalAndRetry(const std::filesystem::path& directory) {
+    for (const bool binary : {false, true}) {
+        const auto path = directory / (binary ? "refusal-binary.dxf" : "refusal-ascii.dxf");
+        const std::string sentinel = "prior destination\n";
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            output << sentinel;
+        }
+        dxfRW codec(path.string().c_str());
+        Export exporter(codec);
+        exporter.style.elements[2].linetypeHandle = 0x16u;
+        std::string bytes;
+        if (codec.write(&exporter, DRW::AC1024, binary)
+            || !readBytes(path, bytes) || bytes != sentinel)
+            return false;
+        exporter.style.elements[2].linetypeHandle = 0xD751u;
+        codec.setHandleRemap({{0xD751u, 0u}});
+        if (codec.write(&exporter, DRW::AC1024, binary)
+            || !readBytes(path, bytes) || bytes != sentinel)
+            return false;
+        codec.setHandleRemap(std::map<std::uint32_t, std::uint32_t>{});
+        exporter.style.elements[2].linetypeHandle = 0;
+        exporter.style.elements[2].linetype = "MISSING_CUSTOM";
+        if (codec.write(&exporter, DRW::AC1024, binary)
+            || !readBytes(path, bytes) || bytes != sentinel)
+            return false;
+        exporter.style.elements[2].linetype = "BYLAYER";
+        if (!codec.write(&exporter, DRW::AC1024, binary)
+            || !sameStyle(exporter.style) || !readbackMatches(path))
+            return false;
+    }
+    return true;
+}
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -260,5 +303,5 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return allocationSweep(directory) ? 0 : 2;
+    return allocationSweep(directory) && refusalAndRetry(directory) ? 0 : 2;
 }
