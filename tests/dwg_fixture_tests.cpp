@@ -382,6 +382,36 @@ void testAdvancedTargetFixtures(TestContext& t) {
                     binary ? "large-radial-binary"
                            : "large-radial-ascii");
                 dx_iface exporter;
+                // This projection omits the original plot-style and material
+                // object graphs. Prove that the unmodified references are
+                // refused atomically before testing the isolated geometry.
+                bool hasDetachedReference = false;
+                for (const DRW_Layer& layer : isolated.layers) {
+                    std::uint32_t plot = 0u, material = 0u;
+                    bool plotPresent = false, materialPresent = false;
+                    if (layer.getDxfPlotStyleHandle(plot, plotPresent)
+                        && layer.getDxfMaterialHandle(material, materialPresent)
+                        && ((plotPresent && plot != 0u)
+                            || (materialPresent && material != 0u)))
+                        hasDetachedReference = true;
+                }
+                { std::ofstream saved(output, std::ios::binary); saved << "sentinel"; }
+                const bool rejected = !exporter.fileExport(
+                    output.string(), isolated.sourceVersion, binary,
+                    &isolated, false);
+                std::ifstream saved(output, std::ios::binary);
+                const std::string contents((std::istreambuf_iterator<char>(saved)), {});
+                saved.close();
+                t.expect(hasDetachedReference && rejected && contents == "sentinel",
+                         "large radial detached layer references refuse atomically");
+                // The following test covers the dimension and picture-block
+                // geometry only, with fresh default layer dependencies.
+                for (DRW_Layer& layer : isolated.layers) {
+                    layer.handlePlotS.clear();
+                    layer.handleMaterialS.clear();
+                    layer.plotStyleHandle = dwgHandle{};
+                    layer.materialHandle = dwgHandle{};
+                }
                 const bool exported = exporter.fileExport(
                     output.string(), isolated.sourceVersion, binary,
                     &isolated, false);

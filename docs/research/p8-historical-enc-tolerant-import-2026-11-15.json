@@ -20,5 +20,6 @@
   "limits": [
     "Permits bounded tolerant import only; anomalous roles remain integrity errors and cannot promote strict output or broader producer support.",
     "No new DWG/DXF fixture committed."
-  ]
+  ],
+  "followup": "The subsequently corrected isolated large-radial fixture projection passes the complete local fixture test; see p8-large-radial-fixture-projection-2026-11-15.json."
 }
