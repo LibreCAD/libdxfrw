@@ -4093,12 +4093,53 @@ bool dwgRW::addLayer(DRW_Layer *ent) {
     auto *w = asWriter15(writer);
     if (w == nullptr) return recordWriteResult(WriteSkipKind::TableRecord, false);
     const auto mutation = captureTableWriteState(ent);
-    const std::uint32_t handle = w->addLayer(*ent);
+    std::uint32_t handle = 0u;
+    bool canonicalRequested = false;
+    try {
+        auto* provider = dynamic_cast<DRW_DwgCanonicalLayerProvider*>(iface);
+        canonicalRequested = provider != nullptr && provider->wantsDwgCanonicalLayerNulls(*ent);
+        if (canonicalRequested) {
+            const auto& xref = ent->xrefBlockHandle;
+            std::uint32_t material = 0u, plot = 0u;
+            bool hasMaterial = false, hasPlot = false;
+            if (version != DRW::AC1024 || ent->hasDwgCommonLinkTail()
+                || !ent->dwgHandleFieldSpans().empty()
+                || ent->reactorCount() != 0 || !ent->reactorHandles.empty()
+                || ent->xDictHandle != 0u || ent->extensionDictionaryFlag() > 1u
+                || ent->hasDataStorageBinaryData() || !ent->appData.empty()
+                || !ent->extData.empty() || !ent->pendingAppIdResolutions.empty()
+                || !ent->pendingLayerRefResolutions.empty()
+                || xref.ref != 0u || xref.ref64 != 0u || xref.size != 0u
+                || (xref.code != 0u && xref.code != DRW::DwgHardPointer)
+                || (xref.rawCode != 0u && xref.rawCode != DRW::DwgHardPointer)
+                || !ent->getDxfMaterialHandle(material, hasMaterial) || !hasMaterial
+                || !ent->getDxfPlotStyleHandle(plot, hasPlot) || !hasPlot
+                || material == 0u || material == DRW::NoHandle
+                || plot == 0u || plot == DRW::NoHandle || material == plot
+                || material != ent->materialHandle.ref || plot != ent->plotStyleHandle.ref
+                || !w->defaultDwgMaterialGraphActive()
+                || material != w->defaultDwgMaterialGraphHandles()[3]) {
+                markDwgWriteFailure();
+                return recordWriteResult(WriteSkipKind::TableRecord, false);
+            }
+            DRW_Layer canonical(*ent);
+            canonical.setDwgCommonObjectState(0, 1u, false);
+            canonical.xrefBlockHandle.code = DRW::DwgHardPointer;
+            handle = w->addLayer(canonical);
+        } else {
+            handle = w->addLayer(*ent);
+        }
+    } catch (...) {
+        restoreTableWriteState(mutation);
+        markDwgWriteFailure();
+        return recordWriteResult(WriteSkipKind::TableRecord, false);
+    }
     if (handle != 0) {
         ent->handle = handle;
         rememberCallerMutation(mutation);
     } else {
         restoreTableWriteState(mutation);
+        if (canonicalRequested) markDwgWriteFailure();
     }
     return recordWriteResult(WriteSkipKind::TableRecord, handle != 0);
 }

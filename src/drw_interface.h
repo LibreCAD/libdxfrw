@@ -1126,6 +1126,24 @@ public:
   }
 };
 
+/** Optional, per-layer opt-in for source-independent AC1024 authoring.
+ * Returning true requests the witnessed missing-extension-dictionary flag and
+ * hard-pointer null xref for that layer. The caller must establish that the
+ * layer is newly authored and that its non-null plot-style reference identifies
+ * a complete output graph. Its material must be the staged Global material
+ * from DRW_DwgDefaultMaterialProvider. The caller must not opt in imported
+ * source-preservation layers; retained DWG link evidence and incompatible
+ * common data are refused. This
+ * interface is separate from DRW_Interface and does not establish complete
+ * DWG interoperability. */
+class DRW_DwgCanonicalLayerProvider {
+public:
+  virtual ~DRW_DwgCanonicalLayerProvider() = default;
+  virtual bool wantsDwgCanonicalLayerNulls(const DRW_Layer& layer) const {
+    (void)layer; return false;
+  }
+};
+
 /** Explicit opt-in for the witnessed AC1021 and AC1024 default material graphs.
  * Callers with an existing ACAD_MATERIAL graph must omit this opt-in; an
  * existing or later conflicting registration causes the output to fail.
