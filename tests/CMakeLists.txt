@@ -7184,3 +7184,11 @@ target_include_directories(libdxfrw_mpolygon_fill_default_tests PRIVATE ${CMAKE_
 target_link_libraries(libdxfrw_mpolygon_fill_default_tests PRIVATE dxfrw)
 add_test(NAME libdxfrw_mpolygon_fill_default COMMAND libdxfrw_mpolygon_fill_default_tests)
 set_tests_properties(libdxfrw_mpolygon_fill_default PROPERTIES LABELS "dxf;fast;mpolygon" TIMEOUT 30)
+
+add_executable(libdxfrw_dimassoc_duplicate_dxf_tests dimassoc_duplicate_dxf_tests.cpp)
+target_compile_features(libdxfrw_dimassoc_duplicate_dxf_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dimassoc_duplicate_dxf_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dimassoc_duplicate_dxf_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_dimassoc_duplicate_dxf_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_dimassoc_duplicate_dxf COMMAND libdxfrw_dimassoc_duplicate_dxf_tests)
+set_tests_properties(libdxfrw_dimassoc_duplicate_dxf PROPERTIES LABELS "dxf;fast;dimassoc;generated" TIMEOUT 30)

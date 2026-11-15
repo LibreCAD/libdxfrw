@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **466 completed implementation and qualification slices** and **32 remaining
+The plan records **467 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`466 / (466 + 32) = 93.6%`. The previous 28-package denominator was stale; a recount
+`467 / (467 + 32) = 93.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -1198,9 +1198,11 @@ and [test target receipt](docs/research/p8-librecad-upstream-test-target-api-202
 The DIMASSOC comparison exposed a separate loss risk: repeated singleton body
 groups 330, 90, 70, or 71 could overwrite earlier data and be emitted as a
 single value. Typed output now refuses these records while preserving the raw
-carrier. Focused ASCII parser/refusal/reset and existing scalar/transaction
-controls pass; Binary duplicate-record input and native interoperability remain
-unqualified. This does not resolve the six consumer test differences ([receipt](docs/research/p8-dimassoc-duplicate-body-fields-2026-11-15.json)).
+carrier. Focused parser/refusal/reset and existing scalar/transaction controls
+pass. Generated ASCII/Binary full-file controls also verify both duplicate
+values in the raw callback and preserve the existing destination on typed
+write refusal. Raw replay and native interoperability remain unqualified. This
+does not resolve the six consumer test differences ([receipt](docs/research/p8-dimassoc-duplicate-body-fields-2026-11-15.json)).
 
 The queue below contains only unfinished actions. Completed source profiles,
 codecs, tests, and controls have been removed from the queue; their commits and

@@ -10,10 +10,11 @@
   "verification": [
     "libdxfrw_hardening_tests --dimassoc-unsupported-detail: pass, including ASCII duplicate and distinct-field controls, unchanged output on refusal, and parser reset.",
     "libdxfrw_hardening_tests --dimassoc-documented-scalar-fields: pass, including ASCII and Binary scalar write/readback.",
-    "ctest -R '^libdxfrw_dimassoc_dxf_allocation_rollback_retry$': pass."
+    "ctest -R '^libdxfrw_dimassoc_dxf_allocation_rollback_retry$': pass.",
+    "libdxfrw_dimassoc_duplicate_dxf: generated full-file ASCII and Binary inputs each retain both distinct raw values for all four fields, publish one guarded typed object, and preserve a sentinel destination when typed output is refused."
   ],
   "limits": [
-    "Duplicate input is directly exercised in ASCII only; Binary duplicate input, full object callback/raw replay and native interoperability remain unqualified.",
+    "Raw object replay and native interoperability remain unqualified; this test checks raw callback contents, not replay.",
     "LibreCAD combined DIMASSOC/MPOLYGON compatibility differences remain open.",
     "No DWG or DXF fixture files were added."
   ]
