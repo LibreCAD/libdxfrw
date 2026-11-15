@@ -1860,19 +1860,13 @@ def check_partial_dwg_read_cli(converter, root, writer):
     return checked
 
 
-def check_malformed_vba_project_body(converter, root, writer):
-    """Exercise bounded VBA_PROJECT body recovery across DWG revisions."""
+def check_malformed_object_body_family(
+        converter, root, writer, object_name, generator_option, profiles):
+    """Exercise one bounded typed OBJECTS-body parser family."""
     if writer is None:
-        raise AssertionError("VBA_PROJECT recovery control requires the local DWG writer")
+        raise AssertionError(
+            f"{object_name} recovery control requires the local DWG writer")
     checked = 0
-    profiles = {
-        "AC1015": "2007",
-        "AC1018": "2007",
-        "AC1021": "2007",
-        "AC1024": "2010",
-        "AC1027": None,
-        "AC1032": "2018",
-    }
     output_revisions = {
         "2007": b"AC1021",
         "2010": b"AC1024",
@@ -1880,18 +1874,19 @@ def check_malformed_vba_project_body(converter, root, writer):
         "2018": b"AC1032",
     }
     for revision, target_year in profiles.items():
-        source = root / f"generated malformed VBA_PROJECT body source {revision}.dwg"
+        source = root / (
+            f"generated malformed {object_name} body source {revision}.dwg")
         generated = run_bounded(
-            [str(writer), "--generate-cli-malformed-vbaproject-body-source",
-             str(source), revision], 10, 131072, cwd=root)
+            [str(writer), generator_option, str(source), revision],
+            10, 131072, cwd=root)
         if generated.returncode != 0 or not source.is_file():
             raise AssertionError(
-                f"could not author malformed {revision} VBA_PROJECT source: "
+                f"could not author malformed {revision} {object_name} source: "
                 f"{generated!r}")
         original = source.read_bytes()
         if original[:6] != revision.encode("ascii"):
             raise AssertionError(
-                f"VBA_PROJECT generator emitted the wrong revision for {revision}")
+                f"{object_name} generator emitted the wrong revision for {revision}")
 
         counted = run_bounded(
             [str(writer), "--count-dwg-lines", str(source)],
@@ -1914,12 +1909,13 @@ def check_malformed_vba_project_body(converter, root, writer):
                 or failed_frames != 1 or source_frames <= 1
                 or published_frames + 1 != source_frames):
             raise AssertionError(
-                f"{revision} malformed VBA_PROJECT stopped later OBJECTS frames: "
+                f"{revision} malformed {object_name} stopped later OBJECTS frames: "
                 f"{counted!r}")
         checked += 1
 
         if target_year is None:
-            output = root / f"malformed VBA_PROJECT body {revision} source gate.dxf"
+            output = root / (
+                f"malformed {object_name} body {revision} source gate.dxf")
             output.write_bytes(SENTINEL)
             for partial_mode in (False, True):
                 arguments = [str(converter), str(source), "-o", str(output),
@@ -1934,7 +1930,7 @@ def check_malformed_vba_project_body(converter, root, writer):
                         or b"AC1027 DWG source references are not fully qualified"
                            not in result.stderr):
                     raise AssertionError(
-                        f"{revision} VBA_PROJECT output bypassed source gate: "
+                        f"{revision} {object_name} output bypassed source gate: "
                         f"{result!r}")
                 checked += 1
             continue
@@ -1942,7 +1938,7 @@ def check_malformed_vba_project_body(converter, root, writer):
         for binary in (False, True):
             encoding = "Binary" if binary else "ASCII"
             output = root / (
-                f"malformed VBA_PROJECT body {revision} {encoding}.dxf")
+                f"malformed {object_name} body {revision} {encoding}.dxf")
             for partial_mode in (False, True):
                 output.write_bytes(SENTINEL)
                 mode = "partial" if partial_mode else "strict"
@@ -1968,7 +1964,7 @@ def check_malformed_vba_project_body(converter, root, writer):
                         or source.read_bytes() != original
                         or any(field not in projection for field in required)):
                     raise AssertionError(
-                        f"{revision} malformed VBA_PROJECT {mode} disposition "
+                        f"{revision} malformed {object_name} {mode} disposition "
                         f"was incorrect: {result!r}")
                 if partial_mode:
                     reopened = run_bounded(
@@ -1986,16 +1982,37 @@ def check_malformed_vba_project_body(converter, root, writer):
                             or b"is not a completeness/support claim"
                                not in result.stderr):
                         raise AssertionError(
-                            f"{revision} VBA_PROJECT partial output failed readback: "
+                            f"{revision} {object_name} partial output failed readback: "
                             f"{reopened!r}")
                 elif (output.read_bytes() != SENTINEL
                       or b"strict-complete conversion requires successful, "
                          b"complete DWG read disposition" not in result.stderr):
                     raise AssertionError(
-                        f"{revision} VBA_PROJECT strict output did not refuse "
+                        f"{revision} {object_name} strict output did not refuse "
                         f"atomically: {result!r}")
                 checked += 1
     return checked
+
+
+def check_malformed_vba_project_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "VBA_PROJECT",
+        "--generate-cli-malformed-vbaproject-body-source", profiles)
+
+
+def check_malformed_blockrepresentation_body(converter, root, writer):
+    profiles = {"AC1015": "2007", "AC1018": "2007", "AC1021": "2007"}
+    return check_malformed_object_body_family(
+        converter, root, writer, "BLOCKREPRESENTATION_DATA",
+        "--generate-cli-malformed-blockrepresentation-body-source", profiles)
 
 
 def check_skipped_record_projection(converter, root, writer):
@@ -3236,8 +3253,12 @@ def main():
             checked = check_partial_dwg_read_cli(converter, root, args.writer)
             vba_checked = check_malformed_vba_project_body(
                 converter, root, args.writer)
+            block_representation_checked = check_malformed_blockrepresentation_body(
+                converter, root, args.writer)
             print(f"CLI partial DWG read: PASS ({checked} strict/partial/readback "
-                  f"controls, {vba_checked} VBA_PROJECT body controls)")
+                  f"controls, {vba_checked} VBA_PROJECT and "
+                  f"{block_representation_checked} BLOCKREPRESENTATION_DATA "
+                  "body controls)")
             return
         if args.source_disposition_only:
             checked = check_source_disposition_projection(converter, root, args.writer)
