@@ -2,6 +2,9 @@ name: FreeCAD native platform qualification
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - 'codex/freecad-platform-qualification-*'
 
 permissions:
   contents: read
