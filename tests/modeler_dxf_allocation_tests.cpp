@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-// Generated whole-write modeler SAT text allocation rollback/retry control.
+// Generated whole-write 3DSOLID/REGION/BODY SAT-text allocation control.
 #include "dx_iface.h"
 #include "libdxfrw.h"
 
@@ -75,12 +75,13 @@ bool hasStagedOutput(const std::filesystem::path &target) {
 
 class Export final : public dx_iface {
 public:
-  Export(dxfRW &output, const std::vector<std::uint8_t> &payload)
+  Export(dxfRW &output, const std::vector<std::uint8_t> &payload,
+         DRW::ETYPE type)
       : output(output), payload(payload) {
     cData = &storage;
     currentBlock = storage.mBlock;
     dxfW = &output;
-    geometry.eType = DRW::E3DSOLID;
+    geometry.eType = type;
     geometry.handle = 0xFC00u;
     geometry.parentHandle = DRW::DxfModelSpaceBlockRecordHandle;
     geometry.m_modelerVersion = 1u;
@@ -105,9 +106,9 @@ public:
 };
 
 bool callerMatches(const Export &actual,
-                   const std::vector<std::uint8_t> &payload) {
+                   const std::vector<std::uint8_t> &payload, DRW::ETYPE type) {
   const DRW_ModelerGeometry &value = actual.geometry;
-  return value.eType == DRW::E3DSOLID && value.handle == 0xFC00u &&
+  return value.eType == type && value.handle == 0xFC00u &&
          value.parentHandle == DRW::DxfModelSpaceBlockRecordHandle &&
          value.m_modelerVersion == 1u && value.m_rawBytes == payload &&
          value.m_dxfPayloadChunks.size() == 3u &&
@@ -124,7 +125,7 @@ bool callerMatches(const Export &actual,
 
 bool readbackMatches(const std::filesystem::path &path,
                      const std::vector<std::uint8_t> &payload,
-                     DRW::Version version) {
+                     DRW::Version version, DRW::ETYPE type) {
   dx_data data;
   dx_iface importer;
   if (!importer.fileImport(path.string(), &data, false) ||
@@ -134,7 +135,9 @@ bool readbackMatches(const std::filesystem::path &path,
   }
   const DRW_ModelerGeometry *modeler = nullptr;
   for (const DRW_Entity *entity : data.mBlock->ent) {
-    if (entity == nullptr || entity->eType != DRW::E3DSOLID)
+    if (entity == nullptr ||
+        (entity->eType != DRW::E3DSOLID && entity->eType != DRW::REGION &&
+         entity->eType != DRW::BODY))
       continue;
     if (modeler != nullptr)
       return false;
@@ -157,7 +160,7 @@ bool readbackMatches(const std::filesystem::path &path,
         value.m_rawBytes.begin() +
             static_cast<std::ptrdiff_t>(chunk.m_offset + chunk.m_length));
   }
-  const bool matches = value.eType == DRW::E3DSOLID && value.handle != 0u &&
+  const bool matches = value.eType == type && value.handle != 0u &&
                        value.handle != DRW::NoHandle &&
                        value.m_rawBytes == expected && recovered == payload &&
                        value.m_dxfPayloadChunks.size() == 3u &&
@@ -197,103 +200,110 @@ bool run(const std::filesystem::path &directory) {
       {DRW::AC1018, "AC1018"},
       {DRW::AC1021, "AC1021"},
       {DRW::AC1024, "AC1024"}};
-  for (const auto &[version, versionName] : versions) {
-    for (const bool binary : {false, true}) {
-      const auto output =
-          directory / (std::string("modeler-sat-") + versionName +
-                       (binary ? "-allocation-transaction-binary.dxf"
-                               : "-allocation-transaction-ascii.dxf"));
-      {
-        dxfRW codec(output.string().c_str());
-        Export adapter(codec, payload);
-        if (!codec.write(&adapter, version, binary) || !adapter.written ||
-            !readbackMatches(output, payload, version))
-          return fail("warm-up write or typed readback failed");
-        std::error_code ignored;
-        std::filesystem::remove(output, ignored);
-      }
-
-      long allocationCount = 0;
-      std::string expectedBytes;
-      {
-        dxfRW codec(output.string().c_str());
-        Export adapter(codec, payload);
-        armAllocationFailure(1000000000L);
-        const bool wrote = codec.write(&adapter, version, binary);
-        allocationCount = static_cast<long>(allocationAttempts);
-        disarmAllocationFailure();
-        const bool callerState = callerMatches(adapter, payload);
-        const bool bytesAvailable = readBytes(output, expectedBytes);
-        const bool typedReadback =
-            bytesAvailable && readbackMatches(output, payload, version);
-        if (!wrote || !adapter.written || !callerState || !typedReadback) {
-          std::cerr << "modeler calibration wrote=" << wrote
-                    << " callback=" << adapter.written
-                    << " caller=" << callerState << " bytes=" << bytesAvailable
-                    << " readback=" << typedReadback
-                    << " attempts=" << allocationAttempts
-                    << " diagnostic=" << codec.getLastDiagnostic().code << ": "
-                    << codec.getLastDiagnostic().message << '\n';
-          return fail("calibration write or typed readback failed");
-        }
-      }
-      if (allocationCount <= 0)
-        return fail("calibration observed no allocations");
-
-      for (long offset = 0; offset < allocationCount; ++offset) {
+  const std::vector<std::pair<DRW::ETYPE, const char *>> types = {
+      {DRW::E3DSOLID, "3dsolid"}, {DRW::REGION, "region"}, {DRW::BODY, "body"}};
+  for (const auto &[type, typeName] : types) {
+    for (const auto &[version, versionName] : versions) {
+      for (const bool binary : {false, true}) {
+        const auto output =
+            directory /
+            (std::string("modeler-") + typeName + "-sat-" + versionName +
+             (binary ? "-allocation-transaction-binary.dxf"
+                     : "-allocation-transaction-ascii.dxf"));
         {
-          std::ofstream prior(output, std::ios::binary | std::ios::trunc);
-          prior << sentinel;
-          if (!prior.good())
-            return fail("could not seed prior destination");
-        }
-        dxfRW codec(output.string().c_str());
-        Export adapter(codec, payload);
-        armAllocationFailure(offset);
-        bool wrote = false;
-        try {
-          wrote = codec.write(&adapter, version, binary);
-        } catch (const std::bad_alloc &) {
-          wrote = false;
-        }
-        const bool injected = allocationFailed;
-        disarmAllocationFailure();
-        std::string afterFailure;
-        const bool bytesRead = readBytes(output, afterFailure);
-        const auto &context = *codec.getWritingContext();
-        const bool identitiesRolledBack =
-            context.sourceHandleToMintedMap.empty() &&
-            context.sourceHandleToWrittenObjectMap.empty() &&
-            context.writtenSourceEntityHandles.empty() &&
-            context.ambiguousSourceHandles.empty();
-        const bool callerState = callerMatches(adapter, payload);
-        const bool destinationState = bytesRead && afterFailure == sentinel;
-        const bool stagingState = hasStagedOutput(output);
-        if (wrote || !injected || !destinationState || !callerState ||
-            !identitiesRolledBack || stagingState) {
-          std::cerr << "modeler failure offset=" << offset << " wrote=" << wrote
-                    << " injected=" << injected
-                    << " destination=" << destinationState
-                    << " caller=" << callerState
-                    << " identities=" << identitiesRolledBack
-                    << " staging=" << stagingState
-                    << " callback=" << adapter.written
-                    << " attempts=" << allocationAttempts << '\n';
-          return fail("injected failure changed caller/destination state");
+          dxfRW codec(output.string().c_str());
+          Export adapter(codec, payload, type);
+          if (!codec.write(&adapter, version, binary) || !adapter.written ||
+              !readbackMatches(output, payload, version, type))
+            return fail("warm-up write or typed readback failed");
+          std::error_code ignored;
+          std::filesystem::remove(output, ignored);
         }
 
-        const bool retried = codec.write(&adapter, version, binary);
-        std::string retryBytes;
-        if (!retried || !adapter.written || !callerMatches(adapter, payload) ||
-            !readBytes(output, retryBytes) || retryBytes != expectedBytes ||
-            !readbackMatches(output, payload, version) ||
-            hasStagedOutput(output))
-          return fail("same-codec retry or typed readback failed");
+        long allocationCount = 0;
+        std::string expectedBytes;
+        {
+          dxfRW codec(output.string().c_str());
+          Export adapter(codec, payload, type);
+          armAllocationFailure(1000000000L);
+          const bool wrote = codec.write(&adapter, version, binary);
+          allocationCount = static_cast<long>(allocationAttempts);
+          disarmAllocationFailure();
+          const bool callerState = callerMatches(adapter, payload, type);
+          const bool bytesAvailable = readBytes(output, expectedBytes);
+          const bool typedReadback =
+              bytesAvailable && readbackMatches(output, payload, version, type);
+          if (!wrote || !adapter.written || !callerState || !typedReadback) {
+            std::cerr << "modeler calibration wrote=" << wrote
+                      << " callback=" << adapter.written
+                      << " caller=" << callerState
+                      << " bytes=" << bytesAvailable
+                      << " readback=" << typedReadback
+                      << " attempts=" << allocationAttempts
+                      << " diagnostic=" << codec.getLastDiagnostic().code
+                      << ": " << codec.getLastDiagnostic().message << '\n';
+            return fail("calibration write or typed readback failed");
+          }
+        }
+        if (allocationCount <= 0)
+          return fail("calibration observed no allocations");
+
+        for (long offset = 0; offset < allocationCount; ++offset) {
+          {
+            std::ofstream prior(output, std::ios::binary | std::ios::trunc);
+            prior << sentinel;
+            if (!prior.good())
+              return fail("could not seed prior destination");
+          }
+          dxfRW codec(output.string().c_str());
+          Export adapter(codec, payload, type);
+          armAllocationFailure(offset);
+          bool wrote = false;
+          try {
+            wrote = codec.write(&adapter, version, binary);
+          } catch (const std::bad_alloc &) {
+            wrote = false;
+          }
+          const bool injected = allocationFailed;
+          disarmAllocationFailure();
+          std::string afterFailure;
+          const bool bytesRead = readBytes(output, afterFailure);
+          const auto &context = *codec.getWritingContext();
+          const bool identitiesRolledBack =
+              context.sourceHandleToMintedMap.empty() &&
+              context.sourceHandleToWrittenObjectMap.empty() &&
+              context.writtenSourceEntityHandles.empty() &&
+              context.ambiguousSourceHandles.empty();
+          const bool callerState = callerMatches(adapter, payload, type);
+          const bool destinationState = bytesRead && afterFailure == sentinel;
+          const bool stagingState = hasStagedOutput(output);
+          if (wrote || !injected || !destinationState || !callerState ||
+              !identitiesRolledBack || stagingState) {
+            std::cerr << "modeler failure offset=" << offset
+                      << " wrote=" << wrote << " injected=" << injected
+                      << " destination=" << destinationState
+                      << " caller=" << callerState
+                      << " identities=" << identitiesRolledBack
+                      << " staging=" << stagingState
+                      << " callback=" << adapter.written
+                      << " attempts=" << allocationAttempts << '\n';
+            return fail("injected failure changed caller/destination state");
+          }
+
+          const bool retried = codec.write(&adapter, version, binary);
+          std::string retryBytes;
+          if (!retried || !adapter.written ||
+              !callerMatches(adapter, payload, type) ||
+              !readBytes(output, retryBytes) || retryBytes != expectedBytes ||
+              !readbackMatches(output, payload, version, type) ||
+              hasStagedOutput(output))
+            return fail("same-codec retry or typed readback failed");
+        }
+        std::cout << "Modeler " << typeName << " SAT text " << versionName
+                  << ' ' << (binary ? "Binary" : "ASCII")
+                  << ": allocation offsets=" << allocationCount
+                  << ", caller/destination rollback, retry/readback=PASS\n";
       }
-      std::cout << "Modeler SAT text " << versionName << ' '
-                << (binary ? "Binary" : "ASCII")
-                << ": allocation offsets=" << allocationCount
-                << ", caller/destination rollback, retry/readback=PASS\n";
     }
   }
   return true;
