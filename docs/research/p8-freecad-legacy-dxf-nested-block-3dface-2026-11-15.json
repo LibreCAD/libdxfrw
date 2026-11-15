@@ -3,7 +3,7 @@
   "scope": "unmerged FreeCAD legacy DXF importer ordered follow-up patch",
   "base": "FreeCAD main d956ec561639cfa83f755504b1b3358ea799428e with freecad-p8-legacy-dxf-surface-mesh-unit-scaling-2026-11-15.patch applied",
   "patch": "docs/patches/freecad-p8-legacy-dxf-block-3dface-2026-11-15.patch",
-  "patch_sha256": "80bd91448c8be36cd9d8bc88ccd509fa27a84599ba205325cb72a19e901d7ee4",
+  "patch_sha256": "b9ac1da15914ab12e254eec983ed69328eb38db5d85e663d8d443f66cee71251",
   "problem": "Legacy drawBlock iterates supported entity families but omits 3DFACE, discarding its geometry inside block references.",
   "change": "Route block-contained 3DFACE through the existing drawFace and append successful shapes to the block compound; preserve that function\u2019s existing failure behavior.",
   "validation": {

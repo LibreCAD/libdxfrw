@@ -1,10 +1,10 @@
 diff --git a/src/Mod/Draft/drafttests/test_dxf.py b/src/Mod/Draft/drafttests/test_dxf.py
-index d2cc7ad..a536256 100644
+index cbbe965..b29c6f5 100644
 --- a/src/Mod/Draft/drafttests/test_dxf.py
 +++ b/src/Mod/Draft/drafttests/test_dxf.py
-@@ -135,6 +135,27 @@ class DraftDXF(test_base.DraftTestCaseDoc):
-                     self.assertAlmostEqual(shape.Area,12*scale*scale,delta=1e-6)
-                     self.assertLegacyPoints((v.Point for v in shape.Vertexes),solid_points,scale,1e-8)
+@@ -167,6 +167,27 @@ class DraftDXF(test_base.DraftTestCaseDoc):
+                     self.assertLegacyPoints((v.Point for v in shape.Vertexes), points, scale, 1e-8)
+ 
  
 +    def test_legacy_block_keeps_3dface(self):
 +        """3DFACE geometry inside a block must reach the compound."""
@@ -31,10 +31,10 @@ index d2cc7ad..a536256 100644
          """Create some figures and export them to a DXF file."""
          operation = "importDXF.export"
 diff --git a/src/Mod/Draft/importDXF.py b/src/Mod/Draft/importDXF.py
-index 9b9a013..f6ae3e2 100644
+index d8ab185..f05a684 100644
 --- a/src/Mod/Draft/importDXF.py
 +++ b/src/Mod/Draft/importDXF.py
-@@ -1722,6 +1722,10 @@ def drawBlock(blockref, num=None, createObject=False):
+@@ -1723,6 +1723,10 @@ def drawBlock(blockref, num=None, createObject=False):
              s = drawInsert(insert)
              if s:
                  shapes.append(s)

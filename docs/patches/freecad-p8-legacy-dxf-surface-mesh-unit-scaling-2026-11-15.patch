@@ -1,17 +1,18 @@
 diff --git a/src/Mod/Draft/drafttests/test_dxf.py b/src/Mod/Draft/drafttests/test_dxf.py
-index feda114..d2cc7ad 100644
+index feda114..cbbe965 100644
 --- a/src/Mod/Draft/drafttests/test_dxf.py
 +++ b/src/Mod/Draft/drafttests/test_dxf.py
-@@ -35,6 +35,8 @@
+@@ -35,6 +35,9 @@
  # @{
  
  import os
++import unittest
 +from types import SimpleNamespace
 +from unittest import mock
  
  import FreeCAD as App
  import Draft
-@@ -93,6 +95,46 @@ class DraftDXF(test_base.DraftTestCaseDoc):
+@@ -93,6 +96,77 @@ class DraftDXF(test_base.DraftTestCaseDoc):
              if doc:
                  App.closeDocument(doc.Name)
  
@@ -23,59 +24,91 @@ index feda114..d2cc7ad 100644
 +            for x, y in zip(a, e):
 +                self.assertAlmostEqual(x, y, delta=tolerance)
 +
-+    def test_legacy_mesh_and_solid_use_resolved_scale(self):
-+        points = [(1.123456789, 2.25, 1.5), (4.123456789, 2.25, 4.5),
-+                  (1.123456789, 6.25, 5.5), (4.123456789, 6.25, 8.5)]
++    @unittest.skipUnless(getattr(importDXF, "mesh_available", True), "Mesh module unavailable")
++    def test_legacy_mesh_uses_resolved_scale(self):
++        points = [
++            (1.123456789, 2.25, 1.5),
++            (4.123456789, 2.25, 4.5),
++            (1.123456789, 6.25, 5.5),
++            (4.123456789, 6.25, 8.5),
++        ]
++
 +        class Vertex:
 +            flags = 192
-+            def __init__(self, point): self.point = point
-+            def __getitem__(self, index): return self.point[index]
-+            def __len__(self): return 3
-+        poly = SimpleNamespace(flags=16, points=[App.Vector(*p) for p in points], codes={71:2,72:2})
-+        face = SimpleNamespace(flags=128, codes={71:1,72:2,73:4,74:3})
-+        polyface = SimpleNamespace(flags=64, points=[Vertex(p) for p in points]+[face])
-+        solid_points = [(11.123456789,12.25,13.5),(14.123456789,12.25,13.5),
-+                        (11.123456789,16.25,13.5),(14.123456789,16.25,13.5)]
-+        solid = SimpleNamespace(codes={10+i:p[0] for i,p in enumerate(solid_points)})
-+        solid.codes.update({20+i:p[1] for i,p in enumerate(solid_points)})
-+        solid.codes.update({30+i:p[2] for i,p in enumerate(solid_points)})
-+        with mock.patch.object(importDXF, 'rawValue', side_effect=lambda obj,code: obj.codes.get(code)):
++
++            def __init__(self, point):
++                self.point = point
++
++            def __getitem__(self, index):
++                return self.point[index]
++
++            def __len__(self):
++                return 3
++
++        poly = SimpleNamespace(
++            flags=16, points=[App.Vector(*p) for p in points], codes={71: 2, 72: 2}
++        )
++        face = SimpleNamespace(flags=128, codes={71: 1, 72: 2, 73: 4, 74: 3})
++        polyface = SimpleNamespace(flags=64, points=[Vertex(p) for p in points] + [face])
++        with mock.patch.object(importDXF, "rawValue", side_effect=lambda obj, code: obj.codes.get(code)):
 +            for scale in (1.0, 25.4, 12.7):
-+                with self.subTest(scale=scale), mock.patch.object(importDXF, 'resolvedScale', scale, create=True):
-+                    for mesh in (poly,polyface):
-+                        output=importDXF.drawMesh(mesh)
++                for mesh in (poly, polyface):
++                    with self.subTest(scale=scale, flags=mesh.flags), mock.patch.object(
++                        importDXF, "resolvedScale", scale, create=True
++                    ):
++                        output = importDXF.drawMesh(mesh)
 +                        self.assertIsNotNone(output)
-+                        self.assertEqual(len(output.Facets),2)
-+                        self.assertLegacyPoints(output.Points,points,scale,0.0001)
-+                        shape=importDXF.drawMesh(mesh,forceShape=True)
++                        self.assertEqual(len(output.Facets), 2)
++                        self.assertLegacyPoints(output.Points, points, scale, 0.0001)
++                        shape = importDXF.drawMesh(mesh, forceShape=True)
 +                        self.assertIsNotNone(shape)
-+                        self.assertLegacyPoints((v.Point for v in shape.Vertexes),points,scale,0.0001)
-+                    shape=importDXF.drawSolid(solid)
++                        self.assertLegacyPoints(
++                            (v.Point for v in shape.Vertexes), points, scale, 0.0001
++                        )
++
++    def test_legacy_solid_uses_resolved_scale(self):
++        points = [
++            (11.123456789, 12.25, 13.5),
++            (14.123456789, 12.25, 13.5),
++            (11.123456789, 16.25, 13.5),
++            (14.123456789, 16.25, 13.5),
++        ]
++        solid = SimpleNamespace(codes={10 + i: p[0] for i, p in enumerate(points)})
++        solid.codes.update({20 + i: p[1] for i, p in enumerate(points)})
++        solid.codes.update({30 + i: p[2] for i, p in enumerate(points)})
++        with mock.patch.object(importDXF, "rawValue", side_effect=lambda obj, code: obj.codes.get(code)):
++            for scale in (1.0, 25.4, 12.7):
++                with self.subTest(scale=scale), mock.patch.object(
++                    importDXF, "resolvedScale", scale, create=True
++                ):
++                    shape = importDXF.drawSolid(solid)
 +                    self.assertTrue(shape.isValid())
-+                    self.assertAlmostEqual(shape.Area,12*scale*scale,delta=1e-6)
-+                    self.assertLegacyPoints((v.Point for v in shape.Vertexes),solid_points,scale,1e-8)
++                    self.assertAlmostEqual(shape.Area, 12 * scale * scale, delta=1e-6)
++                    self.assertLegacyPoints((v.Point for v in shape.Vertexes), points, scale, 1e-8)
++
 +
      def test_export_dxf(self):
          """Create some figures and export them to a DXF file."""
          operation = "importDXF.export"
 diff --git a/src/Mod/Draft/importDXF.py b/src/Mod/Draft/importDXF.py
-index 2424ee0..9b9a013 100644
+index 2424ee0..d8ab185 100644
 --- a/src/Mod/Draft/importDXF.py
 +++ b/src/Mod/Draft/importDXF.py
-@@ -1193,6 +1193,12 @@ def drawFace(face):
+@@ -1193,6 +1193,13 @@ def drawFace(face):
      return None
  
  
 +def _scaledRawVector(point):
 +    """Scale a raw DXF point without rounding its source coordinates."""
-+    return Vector(point[0] * resolvedScale, point[1] * resolvedScale,
-+                  point[2] * resolvedScale)
++    return Vector(
++        point[0] * resolvedScale, point[1] * resolvedScale, point[2] * resolvedScale
++    )
 +
 +
  def drawMesh(mesh, forceShape=False):
      """Return a Mesh (Mesh, Shell) from a DXF mesh.
  
-@@ -1224,7 +1230,7 @@ def drawMesh(mesh, forceShape=False):
+@@ -1224,7 +1231,7 @@ def drawMesh(mesh, forceShape=False):
          return None
      md = []
      if mesh.flags == 16:
@@ -84,7 +117,7 @@ index 2424ee0..9b9a013 100644
          udim = rawValue(mesh, 71)
          vdim = rawValue(mesh, 72)
          for u in range(udim - 1):
-@@ -1241,7 +1247,7 @@ def drawMesh(mesh, forceShape=False):
+@@ -1241,7 +1248,7 @@ def drawMesh(mesh, forceShape=False):
          fcs = []
          for p in mesh.points:
              if p.flags == 192:
@@ -93,7 +126,7 @@ index 2424ee0..9b9a013 100644
              elif p.flags == 128:
                  fcs.append(p)
          # print("Creating polyface with", len(pts),
-@@ -1303,11 +1309,11 @@ def drawSolid(solid):
+@@ -1303,11 +1310,11 @@ def drawSolid(solid):
      p4x = rawValue(solid, 13)
      p4y = rawValue(solid, 23)
      p4z = rawValue(solid, 33) or p1z
