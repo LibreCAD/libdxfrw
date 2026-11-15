@@ -14908,7 +14908,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                             // descent into the active network.
                             break;
                         }
-                        if (data->sourceFormat == dx_source_format::DXF
+                        if ((data->sourceFormat == dx_source_format::DXF
+                                || (data->sourceFormat == dx_source_format::DWG
+                                    && data->sourceVersion == DRW::AC1024))
                             && dictionaryVars.count(child) != 0u) {
                             auto& count = dictionaryVarMemberships[child];
                             if (count < 2u)
@@ -15532,6 +15534,18 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
             if (!includeNamedObjectRoot || !data->hasNamedObjectDictionary)
                 return reject(ExtensionGraphFailure::InvalidGraph,
                     "DICTIONARYVAR records require the NOD AcDbVariableDictionary route");
+            std::uint32_t customDwgOwner = 0u;
+            std::size_t customDwgRoots = 0u;
+            if (data->sourceFormat == dx_source_format::DWG
+                && data->sourceVersion == DRW::AC1024) {
+                for (const DRW_Dictionary::Entry& entry :
+                     data->namedObjectDictionary.m_entries) {
+                    if (entry.m_name == "EZDXF_META") {
+                        customDwgOwner = entry.m_handle;
+                        ++customDwgRoots;
+                    }
+                }
+            }
             for (const auto& variable : dictionaryVars) {
                 const auto owner = variable.second->parentHandle;
                 const bool systemVariable = variableDictionaryRootCount == 1u
@@ -15547,12 +15561,29 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     && visitedDictionaryVars.count(variable.first) != 0u
                     && membership != dictionaryVarMemberships.end()
                     && membership->second == 1u;
-                if (!systemVariable && !customDxfVariable)
+                const bool customDwgVariable = data->sourceFormat == dx_source_format::DWG
+                    && data->sourceVersion == DRW::AC1024
+                    && customDwgRoots == 1u && owner == customDwgOwner
+                    && owner != data->namedObjectDictionary.handle
+                    && dictionaries.count(owner) != 0u
+                    && visitedDictionaries.count(owner) != 0u
+                    && visitedDictionaryVars.count(variable.first) != 0u
+                    && membership != dictionaryVarMemberships.end()
+                    && membership->second == 1u;
+                if (!systemVariable && !customDxfVariable && !customDwgVariable)
                     return reject(ExtensionGraphFailure::InvalidGraph,
-                        variableDictionaryRootCount == 1u
+                        (variableDictionaryRootCount == 1u
                             ? "DICTIONARYVAR owner is not the NOD's AcDbVariableDictionary"
-                            : "DICTIONARYVAR records require the NOD AcDbVariableDictionary route");
-                if (!systemVariable)
+                            : "DICTIONARYVAR records require the NOD AcDbVariableDictionary route")
+                        + std::string(": handle=") + std::to_string(variable.first)
+                        + " owner=" + std::to_string(owner)
+                        + " customRoots=" + std::to_string(customDwgRoots)
+                        + " customOwner=" + std::to_string(customDwgOwner)
+                        + " visitedOwner=" + std::to_string(visitedDictionaries.count(owner))
+                        + " visitedVariable=" + std::to_string(visitedDictionaryVars.count(variable.first))
+                        + " memberships=" + std::to_string(membership == dictionaryVarMemberships.end()
+                            ? 0u : membership->second));
+                if (customDxfVariable)
                     m_customDxfDictionaryVarHandles.insert(variable.first);
             }
         }
@@ -33297,15 +33328,62 @@ bool dx_iface::prepareDwgDictionaryVars(DRW::Version version, bool binary,
         }
         if (owner == nullptr || owner->parentHandle != nod.handle
             || owner->flags != 0 || !owner->hasCompleteDwgEntries()
-            || owner->m_entries.size() != cData->dictionaryVars.size()
             || owner->hasDataStorageBinaryData()
             || !owner->pendingAppIdResolutions.empty()
             || !owner->pendingLayerRefResolutions.empty())
             return reject("AcDbVariableDictionary owner or entry profile is incomplete");
+
+        const DRW_Dictionary::Entry* customRoot = nullptr;
+        if (cData->sourceVersion == DRW::AC1024) {
+            for (const DRW_Dictionary::Entry& entry : nod.m_entries) {
+                if (entry.m_name != "EZDXF_META")
+                    continue;
+                if (customRoot != nullptr)
+                    return reject("EZDXF_META NOD key is duplicated");
+                customRoot = &entry;
+            }
+        }
+        const DRW_Dictionary* customOwner = nullptr;
+        if (customRoot != nullptr) {
+            for (const DRW_Dictionary& dictionary : cData->dictionaries) {
+                if (dictionary.handle != customRoot->m_handle)
+                    continue;
+                if (customOwner != nullptr)
+                    return reject("EZDXF_META owner handle is ambiguous");
+                customOwner = &dictionary;
+            }
+            if (customOwner == nullptr || customOwner->handle == 0u
+                || customOwner->handle == DRW::NoHandle
+                || customOwner->handle == owner->handle
+                || customOwner->parentHandle != nod.handle
+                || customOwner->flags != 0 || customOwner->hardOwner != 1
+                || customOwner->cloning != 1
+                || !customOwner->hasCompleteDwgEntries()
+                || customOwner->m_entries.size() != 2u
+                || customOwner->reactorCount() != 0u
+                || !customOwner->reactorHandles.empty()
+                || customOwner->xDictHandle != 0u
+                || customOwner->hasDataStorageBinaryData()
+                || !customOwner->extData.empty() || !customOwner->appData.empty()
+                || !customOwner->pendingAppIdResolutions.empty()
+                || !customOwner->pendingLayerRefResolutions.empty())
+                return reject("EZDXF_META owner is outside the witnessed profile");
+            std::set<UTF8STRING> keys;
+            for (const DRW_Dictionary::Entry& entry : customOwner->m_entries)
+                keys.insert(entry.m_name);
+            if (keys != std::set<UTF8STRING>{"CREATED_BY_EZDXF", "WRITTEN_BY_EZDXF"})
+                return reject("EZDXF_META keys are outside the witnessed profile");
+        }
+        if (owner->m_entries.size()
+                + (customOwner == nullptr ? 0u : customOwner->m_entries.size())
+            != cData->dictionaryVars.size())
+            return reject("rooted variable dictionary entry count is incomplete");
         for (const DRW_Dictionary::Entry& entry : nod.m_entries)
-            if (entry.m_handle == owner->handle
-                && entry.m_name != "AcDbVariableDictionary")
-                return reject("AcDbVariableDictionary target is aliased from the NOD");
+            if ((entry.m_handle == owner->handle
+                    && entry.m_name != "AcDbVariableDictionary")
+                || (customOwner != nullptr && entry.m_handle == customOwner->handle
+                    && entry.m_name != "EZDXF_META"))
+                return reject("variable dictionary target is aliased from the NOD");
 
         std::unordered_set<std::uint32_t> selected;
         selected.reserve(m_extensionDictionaryVarHandles.size());
@@ -33316,26 +33394,41 @@ bool dx_iface::prepareDwgDictionaryVars(DRW::Version version, bool binary,
 
         std::unordered_set<std::uint32_t> ownerTargets;
         std::unordered_set<UTF8STRING> ownerKeys;
+        std::unordered_map<std::uint32_t, std::uint32_t> targetOwners;
         ownerTargets.reserve(owner->m_entries.size());
         ownerKeys.reserve(owner->m_entries.size());
-        for (const DRW_Dictionary::Entry& entry : owner->m_entries)
+        for (const DRW_Dictionary::Entry& entry : owner->m_entries) {
             if (entry.m_handle == 0u || entry.m_handle == DRW::NoHandle
                 || entry.m_name.empty()
                 || !ownerTargets.insert(entry.m_handle).second
                 || !ownerKeys.insert(entry.m_name).second)
                 return reject("owner keys or target identities are invalid");
+            targetOwners.emplace(entry.m_handle, owner->handle);
+        }
+        if (customOwner != nullptr)
+            for (const DRW_Dictionary::Entry& entry : customOwner->m_entries) {
+                if (entry.m_handle == 0u || entry.m_handle == DRW::NoHandle
+                    || !ownerTargets.insert(entry.m_handle).second)
+                    return reject("custom owner target identities are invalid or duplicated");
+                targetOwners.emplace(entry.m_handle, customOwner->handle);
+            }
 
         std::size_t retainedBytes = 0u;
         for (const DRW_DictionaryVar& value : cData->dictionaryVars) {
             if (selected.erase(value.handle) != 1u
-                || !ownerTargets.count(value.handle))
+                || !ownerTargets.count(value.handle)
+                || targetOwners.at(value.handle) != value.parentHandle)
                 return reject("source identity is not selected by the rooted owner graph");
+            const bool custom = customOwner != nullptr
+                && value.parentHandle == customOwner->handle;
             if (value.tType != DRW::DICTIONARYVAR
-                || value.parentHandle != owner->handle
+                || (!custom && value.parentHandle != owner->handle)
                 || !value.hasDwgCommonLinkTail()
-                || value.reactorCount() != 1
-                || value.reactorHandles.size() != 1u
-                || value.reactorHandles.front() != owner->handle
+                || (custom && (value.reactorCount() != 0
+                    || !value.reactorHandles.empty() || value.m_schema != 0))
+                || (!custom && (value.reactorCount() != 1
+                    || value.reactorHandles.size() != 1u
+                    || value.reactorHandles.front() != owner->handle))
                 || value.xDictHandle != 0u
                 || value.hasDataStorageBinaryData()
                 || !value.appData.empty() || !value.extData.empty()
@@ -33358,7 +33451,10 @@ bool dx_iface::prepareDwgDictionaryVars(DRW::Version version, bool binary,
         if (!selected.empty() || !ownerTargets.empty())
             return reject("rooted owner set is not exactly the selected source set");
         std::size_t dictionaryItems = 0u;
-        for (const DRW_Dictionary* dictionary : {&nod, owner}) {
+        std::vector<const DRW_Dictionary*> sourceDictionaries{&nod, owner};
+        if (customOwner != nullptr)
+            sourceDictionaries.push_back(customOwner);
+        for (const DRW_Dictionary* dictionary : sourceDictionaries) {
             std::size_t estimated = 0u, items = 0u;
             if (!estimateDictionaryTypedBytes(*dictionary, estimated, items)
                 || estimated > kMaxAdapterNamedResourceTypedRetainedBytes
@@ -33373,7 +33469,7 @@ bool dx_iface::prepareDwgDictionaryVars(DRW::Version version, bool binary,
         }
         if (m_dwgDictionaryVarOutputSources.size()
                 != cData->dictionaryVars.size()
-            || m_dwgDictionaryVarOutputDictionaries.size() != 2u
+            || m_dwgDictionaryVarOutputDictionaries.size() != sourceDictionaries.size()
             || dictionaryItems > kMaxAdapterNamedResourceTypedRecords)
             return reject("source or dictionary snapshot set is incomplete");
         m_dwgDictionaryVarOutputOwner = cData;
@@ -33418,7 +33514,9 @@ bool dx_iface::hasUnchangedDwgDictionaryVars() const noexcept {
             != m_dwgDictionaryVarOutputSources.size()
         || m_extensionDictionaryVarHandles.size()
             != m_dwgDictionaryVarOutputSources.size()
-        || m_dwgDictionaryVarOutputDictionaries.size() != 2u)
+        || (m_dwgDictionaryVarOutputDictionaries.size() != 2u
+            && (sourceVersion != DRW::AC1024
+                || m_dwgDictionaryVarOutputDictionaries.size() != 3u)))
         return false;
     try {
         std::unordered_set<std::uint32_t> selected;
@@ -33771,63 +33869,77 @@ bool dx_iface::inspectDwgDictionaryVars(
             return source == 0u
                 || (output != 0u && output != DRW::NoHandle);
         };
-        const DRW_DictionaryVar& first =
-            m_dwgDictionaryVarOutputSources.begin()->second.model;
-        const auto ownerSnapshot =
-            m_dwgDictionaryVarOutputDictionaries.find(first.parentHandle);
         const auto nodSnapshot = m_dwgDictionaryVarOutputDictionaries.find(
             cData->namedObjectDictionary.handle);
-        if (ownerSnapshot == m_dwgDictionaryVarOutputDictionaries.end()
-            || nodSnapshot == m_dwgDictionaryVarOutputDictionaries.end())
-            return reject("rooted owner dictionary snapshots are missing");
-        std::uint32_t emittedOwner = 0u, emittedNod = 0u;
-        if (!map(first.parentHandle, emittedOwner)
+        std::uint32_t emittedNod = 0u;
+        if (nodSnapshot == m_dwgDictionaryVarOutputDictionaries.end()
             || !map(cData->namedObjectDictionary.handle, emittedNod)
-            || ownerSnapshot->second.parentHandle
-                != cData->namedObjectDictionary.handle
-            || !dxfW->dxfWriteRecordHasIdentity(
-                emittedOwner, "DICTIONARY", "OBJECTS")
-            || !dxfW->dxfWriteRecordHasOwner(emittedOwner, emittedNod)
             || !dxfW->dxfWriteRecordHasIdentity(
                 emittedNod, "DICTIONARY", "OBJECTS"))
-            return reject("AcDbVariableDictionary owner role did not emit");
+            return reject("root dictionary snapshot or output is missing");
 
-        std::map<std::uint32_t,
-                 const DwgDictionaryVarOutputSource*> expected;
+        std::map<std::uint32_t, DRW_Dictionary> expectedOwners;
+        std::map<UTF8STRING, std::uint32_t> expectedRootEdges;
+        for (const auto& item : m_dwgDictionaryVarOutputDictionaries) {
+            if (item.first == cData->namedObjectDictionary.handle)
+                continue;
+            const DRW_Dictionary& sourceOwner = item.second;
+            std::uint32_t emittedOwner = 0u;
+            if (sourceOwner.parentHandle != cData->namedObjectDictionary.handle
+                || !map(sourceOwner.handle, emittedOwner)
+                || !dxfW->dxfWriteRecordHasIdentity(
+                    emittedOwner, "DICTIONARY", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(emittedOwner, emittedNod))
+                return reject("variable owner dictionary role did not emit");
+            std::size_t rootMatches = 0u;
+            for (const DRW_Dictionary::Entry& entry : nodSnapshot->second.m_entries) {
+                if (entry.m_handle != sourceOwner.handle)
+                    continue;
+                ++rootMatches;
+                if (!expectedRootEdges.emplace(entry.m_name, emittedOwner).second)
+                    return reject("variable owner NOD key is ambiguous");
+            }
+            if (rootMatches != 1u)
+                return reject("variable owner NOD edge is missing or aliased");
+            DRW_Dictionary expectedOwner = sourceOwner;
+            if (!map(expectedOwner.handle, expectedOwner.handle)
+                || !map(expectedOwner.parentHandle, expectedOwner.parentHandle))
+                return reject("owner dictionary handles are unmapped");
+            if (expectedOwner.xDictHandle != 0u
+                && !map(expectedOwner.xDictHandle, expectedOwner.xDictHandle))
+                return reject("owner dictionary extension handle is unmapped");
+            for (std::uint32_t& reactor : expectedOwner.reactorHandles)
+                if (!map(reactor, reactor))
+                    return reject("owner dictionary reactor handle is unmapped");
+            for (DRW_Dictionary::Entry& entry : expectedOwner.m_entries) {
+                if (!map(entry.m_handle, entry.m_handle))
+                    return reject("owner dictionary child handle is unmapped");
+                if (entry.m_dxfHandleCode
+                    == DRW_Dictionary::Entry::DxfHandleCode::Unspecified)
+                    entry.m_dxfHandleCode = expectedOwner.hardOwner
+                        ? DRW_Dictionary::Entry::DxfHandleCode::HardOwner
+                        : DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+            }
+            if (!expectedOwners.emplace(emittedOwner, std::move(expectedOwner)).second)
+                return reject("variable owner output handle is ambiguous");
+        }
+        if (expectedOwners.empty() || expectedRootEdges.size() != expectedOwners.size())
+            return reject("variable owner output graph is incomplete");
+        std::map<std::uint32_t, const DwgDictionaryVarOutputSource*> expected;
         for (const auto& item : m_dwgDictionaryVarOutputSources) {
             std::uint32_t emitted = 0u, owner = 0u;
             if (!map(item.first, emitted)
                 || !map(item.second.model.parentHandle, owner)
-                || owner != emittedOwner
+                || expectedOwners.count(owner) != 1u
                 || !expected.emplace(emitted, &item.second).second
                 || !dxfW->dxfWriteRecordHasIdentity(
                     emitted, "DICTIONARYVAR", "OBJECTS")
-                || !dxfW->dxfWriteRecordHasOwner(emitted, emittedOwner))
+                || !dxfW->dxfWriteRecordHasOwner(emitted, owner))
                 return reject("DICTIONARYVAR source identity or owner mapping is ambiguous");
         }
         if (expected.size() != m_dwgDictionaryVarOutputSources.size())
             return reject("DICTIONARYVAR output handle map is incomplete");
 
-        DRW_Dictionary expectedOwner = ownerSnapshot->second;
-        if (!map(expectedOwner.handle, expectedOwner.handle)
-            || !map(expectedOwner.parentHandle, expectedOwner.parentHandle))
-            return reject("owner dictionary handles are unmapped");
-        if (expectedOwner.xDictHandle != 0u
-            && !map(expectedOwner.xDictHandle, expectedOwner.xDictHandle))
-            return reject("owner dictionary extension handle is unmapped");
-        for (std::uint32_t& reactor : expectedOwner.reactorHandles)
-            if (!map(reactor, reactor))
-                return reject("owner dictionary reactor handle is unmapped");
-        for (DRW_Dictionary::Entry& entry : expectedOwner.m_entries) {
-            if (!map(entry.m_handle, entry.m_handle))
-                return reject("owner dictionary child handle is unmapped");
-            if (entry.m_dxfHandleCode
-                == DRW_Dictionary::Entry::DxfHandleCode::Unspecified) {
-                entry.m_dxfHandleCode = expectedOwner.hardOwner
-                    ? DRW_Dictionary::Entry::DxfHandleCode::HardOwner
-                    : DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
-            }
-        }
         const auto normalizeDxfCommon = [](
                 DRW_TableEntry& expectedModel) {
             expectedModel.setDwgCommonObjectState(0, 0u, false);
@@ -33842,15 +33954,16 @@ bool dx_iface::inspectDwgDictionaryVars(
                 expectedModel.appData.push_front(std::move(reactors));
             }
         };
-        normalizeDxfCommon(expectedOwner);
+        for (auto& owner : expectedOwners)
+            normalizeDxfCommon(owner.second);
 
-        std::unordered_set<std::uint32_t> seenVariables;
-        bool rootSeen = false, ownerSeen = false, namesMatch = true;
+        std::unordered_set<std::uint32_t> seenVariables, seenOwners;
+        bool rootSeen = false, namesMatch = true;
         const auto inspect = dx_standard_output::inspectSelected(
             view,
             [&](std::string_view name, std::uint32_t handle) {
                 const bool variable = expected.count(handle) != 0u;
-                const bool dictionary = handle == emittedOwner
+                const bool dictionary = expectedOwners.count(handle) != 0u
                     || handle == emittedNod;
                 if (variable && !asciiIdentifierEquals(name, "DICTIONARYVAR"))
                     namesMatch = false;
@@ -33860,17 +33973,17 @@ bool dx_iface::inspectDwgDictionaryVars(
             },
             [&](const dx_standard_output::Shape& shape,
                 std::string_view body) {
-                if (shape.handle == emittedNod || shape.handle == emittedOwner) {
+                const auto ownerEntry = expectedOwners.find(shape.handle);
+                if (shape.handle == emittedNod || ownerEntry != expectedOwners.end()) {
                     if (shape.kind != dx_standard_output::Family::Dictionary)
                         return false;
                     dx_standard_output::Decoder decoder(view);
-                    if (shape.handle == emittedOwner) {
-                        if (ownerSeen)
+                    if (ownerEntry != expectedOwners.end()) {
+                        if (!seenOwners.insert(shape.handle).second)
                             return false;
-                        ownerSeen = true;
                         return decoder.decodeRecord<DRW_Dictionary>(
                             body, [&](const DRW_Dictionary& actual) {
-                                return standardDwgModelsEqual(expectedOwner,
+                                return standardDwgModelsEqual(ownerEntry->second,
                                     actual, view.version,
                                     dwgObjType::DICTIONARY);
                             });
@@ -33880,17 +33993,25 @@ bool dx_iface::inspectDwgDictionaryVars(
                     rootSeen = true;
                     return decoder.decodeRecord<DRW_Dictionary>(
                         body, [&](const DRW_Dictionary& actual) {
-                            const auto count = static_cast<std::size_t>(
-                                std::count_if(actual.m_entries.begin(),
-                                    actual.m_entries.end(),
-                                    [emittedOwner](
-                                        const DRW_Dictionary::Entry& entry) {
-                                        return entry.m_name
-                                                == "AcDbVariableDictionary"
-                                            && entry.m_handle == emittedOwner;
-                                    }));
-                            return actual.handle == emittedNod
-                                && actual.parentHandle == 0u && count == 1u;
+                            if (actual.handle != emittedNod || actual.parentHandle != 0u)
+                                return false;
+                            for (const auto& root : expectedRootEdges) {
+                                const auto count = std::count_if(
+                                    actual.m_entries.begin(), actual.m_entries.end(),
+                                    [&root](const DRW_Dictionary::Entry& entry) {
+                                        return entry.m_name == root.first
+                                            && entry.m_handle == root.second;
+                                    });
+                                const auto aliases = std::count_if(
+                                    actual.m_entries.begin(), actual.m_entries.end(),
+                                    [&root](const DRW_Dictionary::Entry& entry) {
+                                        return entry.m_name == root.first
+                                            || entry.m_handle == root.second;
+                                    });
+                                if (count != 1 || aliases != 1)
+                                    return false;
+                            }
+                            return true;
                         });
                 }
                 const auto source = expected.find(shape.handle);
@@ -33952,7 +34073,8 @@ bool dx_iface::inspectDwgDictionaryVars(
                     });
             });
         const bool outputMatches = inspect && namesMatch && rootSeen
-            && ownerSeen && seenVariables.size() == expected.size();
+            && seenOwners.size() == expectedOwners.size()
+            && seenVariables.size() == expected.size();
         if (!outputMatches)
             return reject("staged identities, owner dictionary or raw fields differ");
 
@@ -33965,8 +34087,10 @@ bool dx_iface::inspectDwgDictionaryVars(
         for (const auto& item : m_dwgDictionaryVarOutputSources)
             if (!qualifySource(item.first))
                 return reject("DICTIONARYVAR source identity could not be qualified");
-        if (!qualifySource(first.parentHandle))
-            return reject("AcDbVariableDictionary owner identity could not be qualified");
+        for (const auto& dictionary : m_dwgDictionaryVarOutputDictionaries)
+            if (dictionary.first != cData->namedObjectDictionary.handle
+                && !qualifySource(dictionary.first))
+                return reject("variable owner identity could not be qualified");
         m_dwgDictionaryVarsInspected = true;
         return true;
     } catch (...) {

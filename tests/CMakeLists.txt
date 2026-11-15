@@ -3820,6 +3820,11 @@ add_test(NAME libdxfrw_dictionaryvar_objects_allocation_retry
     COMMAND libdxfrw_dxf_fixture_tests --dictionaryvar-objects-allocation-retry)
 set_tests_properties(libdxfrw_dictionaryvar_objects_allocation_retry PROPERTIES
     LABELS "fast;dxf;dictionaryvar;graph;allocation;transaction" TIMEOUT 120)
+add_test(NAME libdxfrw_dictionaryvar_ac1024_mixed_graph
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --dictionaryvar-ac1024-mixed-generated
+        ${CMAKE_CURRENT_BINARY_DIR}/dictionaryvar-mixed-generated)
+set_tests_properties(libdxfrw_dictionaryvar_ac1024_mixed_graph PROPERTIES
+    LABELS "fast;dxf;dictionaryvar;graph;generated;transaction" TIMEOUT 30)
 add_test(NAME libdxfrw_pointcloud_objects_allocation_retry
     COMMAND libdxfrw_dxf_fixture_tests --pointcloud-objects-allocation-retry)
 set_tests_properties(libdxfrw_pointcloud_objects_allocation_retry PROPERTIES

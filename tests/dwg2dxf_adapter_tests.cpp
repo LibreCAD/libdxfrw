@@ -51817,6 +51817,252 @@ bool physicalAc1021ScaleSelectedGraphOutput(
     return true;
 }
 
+bool generatedAc1024MixedDictionaryVarGraph(
+        const std::filesystem::path& directory) {
+    dx_data data;
+    data.sourceFormat = dx_source_format::DWG;
+    data.sourceVersion = DRW::AC1024;
+    data.importGeneration = 1u;
+    data.dwgReadOutcome.attempted = true;
+    data.dwgReadOutcome.operationSucceeded = true;
+    data.dwgReadOutcome.sourceVersion = DRW::AC1024;
+    data.namedObjectDictionary.reset();
+    data.namedObjectDictionary.handle = 0xA00u;
+    data.namedObjectDictionary.m_entries.push_back({"AcDbVariableDictionary", 0xA10u});
+    data.namedObjectDictionary.m_entries.push_back({"EZDXF_META", 0xA20u});
+    data.hasNamedObjectDictionary = true;
+    DRW_Dictionary system;
+    system.reset(); system.handle = 0xA10u; system.parentHandle = 0xA00u;
+    system.cloning = 1; system.m_entries.push_back({"SYSTEM", 0xA11u});
+    DRW_Dictionary custom;
+    custom.reset(); custom.handle = 0xA20u; custom.parentHandle = 0xA00u;
+    custom.cloning = 1; custom.hardOwner = 1;
+    custom.m_entries.push_back({"CREATED_BY_EZDXF", 0xA21u});
+    custom.m_entries.push_back({"WRITTEN_BY_EZDXF", 0xA22u});
+    data.dictionaries.push_back(system);
+    data.dictionaries.push_back(custom);
+    dx_iface capture;
+    capture.cData = &data;
+    for (const auto item : std::array<std::pair<std::uint32_t, std::uint32_t>, 3>{{
+            {0xA11u, 0xA10u}, {0xA21u, 0xA20u}, {0xA22u, 0xA20u}}}) {
+        DRW_DictionaryVar variable;
+        variable.handle = item.first; variable.parentHandle = item.second;
+        variable.m_schema = 0; variable.m_value = "generated value";
+        const bool isSystem = item.second == system.handle;
+        variable.setDwgCommonObjectState(isSystem ? 1 : 0, 1u, false);
+        variable.setDwgCommonLinkTailValidated(true);
+        if (isSystem) variable.reactorHandles.push_back(system.handle);
+        capture.addDictionaryVar(variable);
+    }
+    auto& receipt = data.namedResourceImport;
+    receipt.generation = 1u;
+    receipt.sourceFormat = dx_source_format::DWG;
+    receipt.sourceVersion = DRW::AC1024;
+    receipt.dictionaryVarRange = {0u, data.dictionaryVars.size()};
+    receipt.typedRetainedRecords = data.namedResourceTypedRetainedRecords;
+    receipt.typedRetainedBytes = data.namedResourceTypedRetainedBytes;
+    receipt.successful = true;
+    if (!data.hasSingleSuccessfulNamedResourceImport())
+        return fail("generated mixed DICTIONARYVAR import receipt invalid");
+    std::filesystem::create_directories(directory);
+    for (const bool binary : {false, true}) {
+        const auto output = directory / (binary ? "generated-mixed-binary.dxf"
+                                                : "generated-mixed-ascii.dxf");
+        dx_iface writer;
+        DxIfaceStandardDwgCaptureTestAccess::setDictionaryVarExtensionHandles(
+            writer, {0xA11u, 0xA21u, 0xA22u});
+        const auto run = [&]() {
+            return writer.fileExport(output.string(), DRW::AC1024, binary, &data,
+                false, false, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::Compatible, dx_dxfProxyGraphicsPolicy::Compatible,
+                dx_dwgReadCompletenessPolicy::Legacy);
+        };
+        if (!run()) return fail("generated mixed DICTIONARYVAR output refused: "
+                                + writer.extensionGraphFailureDetail());
+        dx_data readback;
+        dx_iface reader;
+        if (!reader.fileImport(output.string(), &readback, false)
+            || readback.dictionaryVars.size() != 3u)
+            return fail("generated mixed DICTIONARYVAR readback failed");
+        const std::string sentinel = "preserve generated mixed destination\n";
+        auto verifyFailure = [&]() {
+            { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+            if (run()) return false;
+            std::ifstream in(output, std::ios::binary);
+            return std::string(std::istreambuf_iterator<char>(in), {}) == sentinel;
+        };
+        data.dictionaries.back().m_entries.front().m_name = "WRONG_KEY";
+        if (!verifyFailure()) return fail("wrong custom key did not refuse atomically");
+        data.dictionaries.back().m_entries.front().m_name = "CREATED_BY_EZDXF";
+        auto variable = std::find_if(data.dictionaryVars.begin(), data.dictionaryVars.end(),
+            [](const auto& value) { return value.handle == 0xA21u; });
+        if (variable == data.dictionaryVars.end()) return fail("generated custom variable missing");
+        variable->parentHandle = system.handle;
+        if (!verifyFailure()) return fail("wrong custom owner did not refuse atomically");
+        variable->parentHandle = custom.handle;
+        variable->reactorHandles.push_back(custom.handle);
+        if (!verifyFailure()) return fail("unexpected custom reactor did not refuse atomically");
+        variable->reactorHandles.clear();
+        data.namedObjectDictionary.m_entries.push_back({"ALIAS", custom.handle});
+        if (!verifyFailure()) return fail("aliased custom owner did not refuse atomically");
+        data.namedObjectDictionary.m_entries.pop_back();
+        if (!run()) return fail("restored generated mixed graph did not retry");
+    }
+    return true;
+}
+
+bool physicalAc1024MixedDictionaryVarGraphOutput(
+        const std::filesystem::path& sourcePath,
+        const std::filesystem::path& directory) {
+    dx_data source;
+    dx_iface sourceReader;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || !source.hasSingleSuccessfulNamedResourceImport()
+        || !source.hasNamedObjectDictionary || source.dictionaryVars.size() != 8u)
+        return fail("AC1024 mixed DICTIONARYVAR source profile is incomplete");
+    const auto ownerFor = [](const dx_data& data, const std::string& key)
+            -> const DRW_Dictionary* {
+        const DRW_Dictionary::Entry* root = nullptr;
+        for (const auto& entry : data.namedObjectDictionary.m_entries)
+            if (entry.m_name == key) {
+                if (root != nullptr) return nullptr;
+                root = &entry;
+            }
+        if (root == nullptr) return nullptr;
+        const DRW_Dictionary* owner = nullptr;
+        for (const auto& dictionary : data.dictionaries)
+            if (dictionary.handle == root->m_handle) {
+                if (owner != nullptr) return nullptr;
+                owner = &dictionary;
+            }
+        return owner;
+    };
+    const auto* system = ownerFor(source, "AcDbVariableDictionary");
+    const auto* custom = ownerFor(source, "EZDXF_META");
+    if (system == nullptr || custom == nullptr || system->m_entries.size() != 6u
+        || custom->m_entries.size() != 2u)
+        return fail("AC1024 mixed variable owner dictionaries are incomplete");
+    dx_data selected;
+    selected.sourceFormat = source.sourceFormat;
+    selected.sourceVersion = source.sourceVersion;
+    selected.importGeneration = source.importGeneration;
+    selected.dwgReadOutcome = source.dwgReadOutcome;
+    selected.namedObjectDictionary = source.namedObjectDictionary;
+    selected.namedObjectDictionary.m_entries.erase(
+        std::remove_if(selected.namedObjectDictionary.m_entries.begin(),
+            selected.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name != "AcDbVariableDictionary"
+                    && entry.m_name != "EZDXF_META";
+            }), selected.namedObjectDictionary.m_entries.end());
+    selected.hasNamedObjectDictionary = true;
+    selected.dictionaries.push_back(*system);
+    selected.dictionaries.push_back(*custom);
+    selected.dictionaryVars = source.dictionaryVars;
+    selected.namedResourceImport = source.namedResourceImport;
+    selected.namedResourceImport.dictionaryVarRange = {0u, selected.dictionaryVars.size()};
+    selected.namedResourceImport.scaleRange = {0u, 0u};
+    selected.namedResourceImport.mLineStyleRange = {0u, 0u};
+    selected.namedResourceImport.mLeaderStyleRange = {0u, 0u};
+    selected.namedResourceImport.rawRange = {0u, 0u};
+    selected.namedResourceTypedRetainedRecords = selected.dictionaryVars.size();
+    selected.namedResourceTypedRetainedBytes = source.namedResourceTypedRetainedBytes;
+    selected.namedResourceImport.typedRetainedRecords = selected.namedResourceTypedRetainedRecords;
+    selected.namedResourceImport.typedRetainedBytes = selected.namedResourceTypedRetainedBytes;
+    if (!selected.hasSingleSuccessfulNamedResourceImport())
+        return fail("AC1024 mixed variable source receipt is incomplete");
+    const auto verify = [&selected, &ownerFor](const std::filesystem::path& path) {
+        dx_data output;
+        dx_iface reader;
+        if (!reader.fileImport(path.string(), &output, false)
+            || output.dictionaryVars.size() != selected.dictionaryVars.size())
+            return false;
+        for (const std::string key : {"AcDbVariableDictionary", "EZDXF_META"}) {
+            const auto* expectedOwner = ownerFor(selected, key);
+            const auto* actualOwner = ownerFor(output, key);
+            if (expectedOwner == nullptr || actualOwner == nullptr
+                || expectedOwner->m_entries.size() != actualOwner->m_entries.size()
+                || actualOwner->parentHandle != output.namedObjectDictionary.handle
+                || expectedOwner->hardOwner != actualOwner->hardOwner)
+                return false;
+            for (const auto& edge : expectedOwner->m_entries) {
+                const auto actualEdge = std::find_if(actualOwner->m_entries.begin(),
+                    actualOwner->m_entries.end(), [&edge](const auto& candidate) {
+                        return candidate.m_name == edge.m_name;
+                    });
+                const auto expected = std::find_if(selected.dictionaryVars.begin(),
+                    selected.dictionaryVars.end(), [&edge](const auto& variable) {
+                        return variable.handle == edge.m_handle;
+                    });
+                if (actualEdge == actualOwner->m_entries.end()
+                    || expected == selected.dictionaryVars.end()) return false;
+                const auto actual = std::find_if(output.dictionaryVars.begin(),
+                    output.dictionaryVars.end(), [&actualEdge](const auto& variable) {
+                        return variable.handle == actualEdge->m_handle;
+                    });
+                if (actual == output.dictionaryVars.end()
+                    || actual->parentHandle != actualOwner->handle
+                    || actual->m_schema != expected->m_schema
+                    || actual->m_value != expected->m_value
+                    || actual->reactorHandles.size() != expected->reactorHandles.size()
+                    || (!actual->reactorHandles.empty()
+                        && actual->reactorHandles.front() != actualOwner->handle))
+                    return false;
+            }
+        }
+        return true;
+    };
+    std::filesystem::create_directories(directory);
+    for (const bool binary : {false, true}) {
+        const auto output = directory / (binary ? "mixed-binary.dxf" : "mixed-ascii.dxf");
+        class LateMutation final : public dx_iface {
+        public:
+            bool mutate = false;
+            std::uint32_t handle = 0u;
+            void writeObjects() override {
+                dx_iface::writeObjects();
+                if (mutate && cData != nullptr)
+                    for (auto& value : cData->dictionaryVars)
+                        if (value.handle == handle) value.m_value += "-mutated";
+            }
+        } writer;
+        std::vector<std::uint32_t> handles;
+        for (const auto& value : selected.dictionaryVars) {
+            handles.push_back(value.handle);
+            if (value.parentHandle == custom->handle) writer.handle = value.handle;
+        }
+        DxIfaceStandardDwgCaptureTestAccess::setDictionaryVarExtensionHandles(writer, handles);
+        const auto exportSelected = [&]() {
+            return writer.fileExport(output.string(), DRW::AC1024, binary, &selected,
+                true, false, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::Compatible, dx_dxfProxyGraphicsPolicy::Compatible,
+                dx_dwgReadCompletenessPolicy::Legacy);
+        };
+        if (!exportSelected() || !verify(output))
+            return fail("AC1024 mixed variable graph export/readback failed: "
+                + writer.extensionGraphFailureDetail());
+        const std::string sentinel = "preserve mixed variable destination\n";
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        auto variable = std::find_if(selected.dictionaryVars.begin(), selected.dictionaryVars.end(),
+            [&writer](const auto& value) { return value.handle == writer.handle; });
+        if (variable == selected.dictionaryVars.end()) return fail("custom mutation target missing");
+        const UTF8STRING original = variable->m_value;
+        writer.mutate = true;
+        if (exportSelected()) return fail("late-mutated custom variable was emitted");
+        std::ifstream in(output, std::ios::binary);
+        if (std::string(std::istreambuf_iterator<char>(in), {}) != sentinel)
+            return fail("rejected custom variable replaced destination");
+        variable->m_value = original;
+        writer.mutate = false;
+        if (!exportSelected() || !verify(output))
+            return fail("restored custom variable same-writer retry failed");
+    }
+    std::cout << "physicalAc1024MixedDictionaryVarGraphOutput PASS ASCII,Binary rollback,retry\n";
+    return true;
+}
+
 bool physicalAc1021DictionaryVarSelectedGraphOutput(
         const std::filesystem::path& sourcePath,
         const std::filesystem::path& directory) {
@@ -89799,6 +90045,12 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--visual-style-ac1024-physical-extension-graph")
         return physicalVisualStyleExtensionGraphOutput(
             argv[2], argv[3]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--dictionaryvar-ac1024-mixed-generated")
+        return generatedAc1024MixedDictionaryVarGraph(argv[2]) ? 0 : 1;
+    if (argc == 4
+        && std::string(argv[1]) == "--dictionaryvar-ac1024-mixed-physical-graph")
+        return physicalAc1024MixedDictionaryVarGraphOutput(argv[2], argv[3]) ? 0 : 1;
     if (argc == 4
         && std::string(argv[1]) == "--scale-ac1021-physical-selected-graph")
         return physicalAc1021ScaleSelectedGraphOutput(

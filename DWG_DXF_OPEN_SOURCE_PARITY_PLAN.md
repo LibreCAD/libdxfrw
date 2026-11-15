@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **561 completed implementation and qualification slices** and **32 remaining
+The plan records **562 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`561 / (561 + 32) = 94.6%`. The previous 28-package denominator was stale; a recount
+`562 / (562 + 32) = 94.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -139,17 +139,16 @@ DIMASSOC raw replay and native associative behavior also remain open
 ([receipt](docs/research/p8-dimassoc-duplicate-body-fields-2026-11-15.json)).
 Keep strict `DeclaredUtf8` source admission closed pending its evidence gate.
 
-**P6-E adjacent packet — custom DWG DICTIONARYVAR ownership.** Two generated
-ODA AC1024 drawings have six system variables and two reactor-free variables
-under the NOD-owned `EZDXF_META` dictionary. LibreDWG, ODA DXF and libdxfrw
-agree on the custom key, owner, schema and value; frame-presence limits are
-recorded in the [source receipt](docs/research/p6-oda-ac1024-custom-dictionaryvar-graph-2026-11-15.json).
-Extend the graph preflight, immutable snapshots and output inspector together:
-admit only that bounded custom profile beside the system dictionary; prove both
-remapped NOD edges, owner dictionaries, members, values and reactor roles. Add
-fixture-free malformed-graph controls and selected ASCII/Binary readback,
-mutation rollback, same-writer retry and existing-system regression. Rerun the
-physical partial diagnostic; retain the independent HEADER and document gates.
+**P6-E adjacent packet — AC1024 LAYER output.** The selected custom
+DICTIONARYVAR graph now passes source-bound ASCII/Binary output and readback
+([receipt](docs/research/p6-oda-ac1024-custom-dictionaryvar-graph-2026-11-15.json)).
+The two generated ODA samples now refuse during LAYER-table serialization in
+explicit partial mode, preserving the destination. Inspect the source layers,
+their retained fields and mapped material/plot-style/linetype roles; compare the
+same graph with LibreDWG and ODA DXF. Identify the exact failing writer
+precondition before editing, then add a focused regression with malformed
+reference refusal, destination preservation and retry. Retain the separate
+HEADER suffix and whole-document completeness gates.
 
 **Immediate P4 packet — AC1032 associative-network profile and owner path.**
 The generated DIMASSOC graph node is indexed and guarded. The AC1032 parser now
