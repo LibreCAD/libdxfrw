@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-15",
+  "hostedRun": "https://github.com/dxli/libdxfrw/actions/runs/43728273518",
+  "finding": "The generated block-owner fixture included XDATA under RAW_ENTITY_APP without registering that APPID. The output symbol-closure preflight correctly rejected the dangling name; earlier local testing used a stale linked test binary.",
+  "change": "Include RAW_ENTITY_APP in the source APPID table when generated raw entities are present. For each ASCII and Binary control, first remove the retained APPID and verify export refuses without changing a sentinel destination; restore the APPID and retry on the same adapter, then verify raw entity identities, owners, order and XDATA.",
+  "validation": [
+    "Freshly rebuilt libdxfrw_block_owners CTest passes in 0.28 seconds.",
+    "Missing-APPID refusal, destination preservation, corrected same-adapter retry and output readback are checked in both ASCII and Binary."
+  ],
+  "limits": "This corrects generated test data and strengthens its negative control; the production symbol-closure preflight remains in place. Hosted fast qualification must be rerun and no support claim is promoted."
+}

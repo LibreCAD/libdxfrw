@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <set>
@@ -45,10 +46,17 @@ bool generate(const std::string& path, bool binary, bool dangling = false,
     text(9, "$ACADVER"); text(1, "AC1027"); text(0, "ENDSEC");
     section("TABLES");
     text(0, "TABLE"); text(2, "APPID"); text(5, "9");
-    text(330, "0"); text(100, "AcDbSymbolTable"); writer->writeInt16(70, 1);
+    text(330, "0"); text(100, "AcDbSymbolTable");
+    writer->writeInt16(70, includeRawEntities ? 2 : 1);
     text(0, "APPID"); text(5, "D0"); text(330, "9");
     text(100, "AcDbSymbolTableRecord"); text(100, "AcDbRegAppTableRecord");
-    text(2, "VERTEX_APP"); writer->writeInt16(70, 0); text(0, "ENDTAB");
+    text(2, "VERTEX_APP"); writer->writeInt16(70, 0);
+    if (includeRawEntities) {
+        text(0, "APPID"); text(5, "D1"); text(330, "9");
+        text(100, "AcDbSymbolTableRecord"); text(100, "AcDbRegAppTableRecord");
+        text(2, "RAW_ENTITY_APP"); writer->writeInt16(70, 0);
+    }
+    text(0, "ENDTAB");
     text(0, "TABLE"); text(2, "LAYER"); text(5, "F0"); text(330, "0");
     text(100, "AcDbSymbolTable"); writer->writeInt16(70, 1);
     text(0, "LAYER"); text(5, "F1"); text(330, "F0");
@@ -693,6 +701,22 @@ bool testRawEntityAdapterRoundTrip(const std::filesystem::path& directory) {
             || (*named)->rawEntities.front().record.handle != 0x31u
             || (*named)->rawEntities.front().record.parentHandle != 0x1Fu)
             return fail("raw entity callback order/identity was not retained");
+        const auto appId = std::find_if(data.appIds.begin(), data.appIds.end(),
+            [](const DRW_AppId& value) { return value.name == "RAW_ENTITY_APP"; });
+        if (appId == data.appIds.end())
+            return fail("raw entity APPID source was not retained");
+        const DRW_AppId savedAppId = *appId;
+        data.appIds.erase(appId);
+        const std::string sentinel = "unmodified raw entity destination";
+        { std::ofstream destination(output, std::ios::binary); destination << sentinel; }
+        const bool missingExport = iface.fileExport(
+            output.string(), DRW::AC1027, binary, &data, false);
+        std::ifstream existing(output, std::ios::binary);
+        const std::string retained((std::istreambuf_iterator<char>(existing)),
+                                   std::istreambuf_iterator<char>());
+        if (missingExport || retained != sentinel)
+            return fail("missing raw entity APPID did not refuse atomically");
+        data.appIds.push_back(savedAppId);
         if (!iface.fileExport(output.string(), DRW::AC1027, binary, &data, false))
             return fail("raw entity adapter export failed ASCII/binary output control");
         if (!verify(output.string()))
