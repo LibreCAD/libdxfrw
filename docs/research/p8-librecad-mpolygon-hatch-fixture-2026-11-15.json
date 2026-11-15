@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad-mpolygon-hatch-fixture-2026-11-15",
+  "date": "2026-11-15",
+  "status": "fixture_corrected_geometry_gaps_exposed",
+  "supportClaimEffect": "none",
+  "finding": "The consumer geometry test sliced a DRW_MPolygon to DRW_Hatch but retained the MPOLYGON runtime type. Upstream correctly rejects that mismatched HATCH input before the intended geometry assertion.",
+  "downstream": {
+    "base": "7a1fb7d78818fd4ac2d65ef18015aba6d71e3520",
+    "commit": "15e3a7af03f0765ab1a4cc50b7dc3803936f28e7",
+    "patch": "docs/patches/librecad-p8-mpolygon-hatch-test-type-2026-11-15.patch",
+    "merged": false
+  },
+  "verification": [
+    "The corrected case passes all 16 assertions against LibreCAD's bundled library.",
+    "Against upstream the same case fails eight assertions across four geometry profiles; generic HATCH emission and the valid MPOLYGON profile now reach their intended paths.",
+    "The combined upstream DIMASSOC/MPOLYGON selector passes 6/11 cases, 121/135 assertions.",
+    "The portable patch passes forward and reverse apply checks against its stated parent and commit."
+  ],
+  "limits": [
+    "Do not assume every consumer refusal is required by the general DXF format; reconcile native/peer geometry support with existing data-preservation contracts before changing the writer.",
+    "The patch is local and has not been checked against a newer LibreCAD head.",
+    "No DWG or DXF fixtures added."
+  ]
+}
