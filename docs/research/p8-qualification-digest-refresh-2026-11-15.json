@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-15",
+  "sourceCommit": "3bae4140",
+  "reason": "Hosted macOS and Linux native receipt emission rejected the stale frozen implementation digest after tracked implementation and test changes.",
+  "method": "Computed the digest from a clean local clone at the source commit, excluding untracked local samples and generated files. Updated only the non-self-referential status overlay digest.",
+  "implementationDigestSha256": "133a2459f16bfdc337af6f319548801e9667ddb9dbab4a2360a39a48349292dd",
+  "selectedInputCount": 713,
+  "validation": [
+    "check_qualification_digest.py passes in the clean clone with the updated status overlay.",
+    "check_qualified_format_support.py passes: 15 claims, 2 candidate routes, 0 advertised."
+  ],
+  "limits": [
+    "A matching digest alone is not a native receipt or a support qualification; hosted tests must pass and successful receipts must be emitted and verified.",
+    "Any subsequent selected-input change requires a new digest."
+  ]
+}
