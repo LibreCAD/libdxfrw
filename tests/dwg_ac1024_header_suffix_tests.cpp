@@ -45,6 +45,14 @@ bool accepted(std::vector<std::uint8_t>& bytes, std::uint8_t maintenance,
         && r.hasHighSizeWord && r.highSizeWord == 0 && r.unclaimedBytes == suffix
         && r.trailerEnd + suffix == bytes.size();
 }
+bool ac1021Accepted(std::vector<std::uint8_t>& bytes, std::uint8_t maintenance,
+                    std::uint64_t suffix) {
+    dwgBuffer buffer(bytes.data(), bytes.size());
+    if (!buffer.setPosition(16)) return false;
+    const auto result = inspectDwgHeaderEnvelope(buffer, DRW::AC1021, maintenance);
+    return result.error == DwgHeaderEnvelopeError::None
+        && result.unclaimedBytes == suffix && result.trailerEnd + suffix == bytes.size();
+}
 }
 int main(int argc, char** argv) {
     if (argc == 2) {
@@ -84,6 +92,24 @@ int main(int argc, char** argv) {
     const auto canonicalResult = inspect(canonical, 55);
     if (canonicalResult.error != DwgHeaderEnvelopeError::None
         || canonicalResult.excludesHighSizeWord || canonicalResult.unclaimedBytes != 0) return 1;
+    // Independent ACadRust AC1021 maintenance-25 producer appends eight zeros.
+    auto ac1021 = makeSection(0);
+    ac1021[16] = 8;
+    const auto crc = crc16(ac1021, 28);
+    ac1021[28] = static_cast<std::uint8_t>(crc);
+    ac1021[29] = static_cast<std::uint8_t>(crc >> 8);
+    ac1021.resize(ac1021.size() + 8, 0);
+    if (!ac1021Accepted(ac1021, 25, 8) || ac1021Accepted(ac1021, 24, 8)) return 1;
+    for (std::size_t offset : {std::size_t(0), std::size_t(24), std::size_t(28),
+                               std::size_t(30), ac1021.size() - 1}) {
+        auto corrupt = ac1021; corrupt[offset] ^= 1u;
+        if (ac1021Accepted(corrupt, 25, 8) || !ac1021Accepted(ac1021, 25, 8)) return 1;
+    }
+    auto shortSuffix = ac1021; shortSuffix.pop_back();
+    auto longSuffix = ac1021; longSuffix.push_back(0);
+    if (ac1021Accepted(shortSuffix, 25, 7) || ac1021Accepted(longSuffix, 25, 9)) return 1;
+    ac1021.resize(ac1021.size() - 8);
+    if (!ac1021Accepted(ac1021, 25, 0) || !ac1021Accepted(ac1021, 24, 0)) return 1;
     std::cout << "AC1024 bounded HEADER suffix and corruption controls PASS\n";
     return 0;
 }

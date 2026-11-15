@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **477 completed implementation and qualification slices** and **32 remaining
+The plan records **478 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`477 / (477 + 32) = 93.7%`. The previous 28-package denominator was stale; a recount
+`478 / (478 + 32) = 93.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -1920,10 +1920,18 @@ identified but the typed body/output route is incomplete. Keep this profile
 refused and advance to the next locally implementable P4/P6 packet. Do not
 repeat the corpus census or alter the aggregate strict guard from this audit.
 
-3. **P5 / FIELD and TABLE residuals.** No eligible AC1021 FIELD graph currently
-   supplies complete FIELDLIST membership plus a consumer-visible root; keep
-   FIELD output refused and do not retry the screened samples. Resume only with
-   a source profile that closes that graph. Continue other P5 work only where
+3. **P5 / FIELD and TABLE residuals.** A hash-pinned public AC1027 DXF has a
+   source-audited FIELDLIST with 16 fields and eight MTEXT roots; FreeCAD
+   independently imports their cached text. ACadRust generated an AC1021 DWG
+   derivative that LibreDWG decodes with all 16 FIELDLIST members; its producer
+   is known, but the original DXF's originating CAD application is not. The
+   libdxfrw now reads its CRC-checked AC1021 HEADER with the producer's exact
+   eight-zero suffix and captures 16 raw FIELD frames plus a 16-slot FIELDLIST;
+   the existing typed-profile census rejects this different payload profile.
+   Original producer identity, physical DWG field spans, typed libdxfrw graph and
+   independent dynamic evaluation remain unqualified. Use the reproducible
+   source audit and candidate in the [receipt](docs/research/p5-mtext-fieldlist-source-cache-2026-11-15.json)
+   to pursue these gates; keep FIELD output refused. Continue other P5 work only where
    exact source spans and target roles are available; keep TABLEGEOMETRY,
    dynamic evaluation and native rendering claims gated. The generated
    pre-R24 TABLE scalar override profile for ODA §20.4.96.1 bits `0x01`–`0x10`
@@ -2387,7 +2395,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | --- | --- | --- | --- |
 | P4-B | OPEN | Resolve AC1032 associative-network class-version-2 fields from ODA and source-bound spans; add bounded parser and boundary controls. | Exact source/class frame plus ODA chapter; field/span map and generated boundary controls. |
 | P4-C | OPEN | Resolve AC1027 Sweep suffix and embedded-entity layout without assuming padding; preserve unknown bytes until role/order is proven. | Source-bound Sweep frame and ODA version comparison; truncation and following-frame alignment controls. |
-| P5-A | OPEN | Acquire a FIELD/FIELDLIST graph with a visible root and enumerate owners, field codes, dependencies, and expressions. | Producer/source identity, independently visible result, and complete raw frame inventory. |
+| P5-A | OPEN | Trace the AC1021 candidate through libdxfrw and capture physical field spans and graph roles; establish the original source producer and an independent evaluated result, or acquire an equivalent producer-authored profile. | The [source receipt](docs/research/p5-mtext-fieldlist-source-cache-2026-11-15.json) inventories 58 relevant DXF frames, 16 FIELDLIST members, eight MTEXT roots and independently imported cached text; these do not qualify dynamic evaluation or DWG wire spans. |
 | P5-B | OPEN | Implement typed FIELD/FIELDLIST parse and write for the selected profile, preserving unsupported tokens and reference roles. | P5-A map; parser spans, graph closure, strict output, typed readback. |
 | P5-C | OPEN | Qualify TABLE producer profiles and retained subrecords, separating geometry from metadata and cell caches. | Distinct source profile; physical field spans and field-by-field loss classification. |
 | P5-D | OPEN | Close R24 TABLECONTENT ownership, CELLSTYLEMAP, row/column dependencies, and emitted-record identity. | P5-C source and source-bound handles; focused ASCII/Binary output and fresh readback. |

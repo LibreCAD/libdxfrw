@@ -27,6 +27,8 @@
 // Witnessed AC1018/AC1021/AC1024 app-maintenance-55 profiles, AC1027
 // app-maintenance-4 and tracked AC1032 profiles may contain a diagnosed suffix
 // after the validated HEADER envelope. The suffix is not interpreted as padding.
+// ACadRust 0.6.8 also emits exactly eight zero bytes after the AC1021
+// maintenance-25 envelope; admit only that shape, with a valid envelope CRC.
 enum class DwgHeaderEnvelopeError { None, Bounds, BeginSentinel, EndSentinel };
 
 struct DwgHeaderEnvelope {
@@ -96,7 +98,9 @@ inline DwgHeaderEnvelope inspectDwgHeaderEnvelopeCandidate(
     result.hasHighSizeWord = dwgHeaderHasHighSizeWord(version,
                                                        appMaintenanceVersion);
     result.excludesHighSizeWord = excludesHighSizeWord;
-    const bool suffixAllowed = dwgHeaderMayHaveUnclaimedSuffix(
+    const bool eightZeroSuffixProfile = version == DRW::AC1021
+        && appMaintenanceVersion == 25u && !excludesHighSizeWord;
+    const bool suffixAllowed = eightZeroSuffixProfile || dwgHeaderMayHaveUnclaimedSuffix(
         version, appMaintenanceVersion, excludesHighSizeWord);
     if (result.start != 16u || count == 0u
         || (excludesHighSizeWord
@@ -134,6 +138,14 @@ inline DwgHeaderEnvelope inspectDwgHeaderEnvelopeCandidate(
             result.observed = value;
             result.hasValues = probe.isGood();
             return result;
+        }
+    }
+    if (eightZeroSuffixProfile && result.trailerEnd != input.size()) {
+        if (input.size() - result.trailerEnd != 8u)
+            return result;
+        for (std::size_t i = 0; i < 8u; ++i) {
+            if (probe.getRawChar8() != 0u || !probe.isGood())
+                return result;
         }
     }
     if (result.hasHighSizeWord) {

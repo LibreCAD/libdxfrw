@@ -7200,3 +7200,11 @@ target_include_directories(libdxfrw_dimassoc_duplicate_dxf_tests PRIVATE ${CMAKE
 target_link_libraries(libdxfrw_dimassoc_duplicate_dxf_tests PRIVATE dxfrw)
 add_test(NAME libdxfrw_dimassoc_duplicate_dxf COMMAND libdxfrw_dimassoc_duplicate_dxf_tests)
 set_tests_properties(libdxfrw_dimassoc_duplicate_dxf PROPERTIES LABELS "dxf;fast;dimassoc;generated" TIMEOUT 30)
+
+find_package(Python3 COMPONENTS Interpreter QUIET)
+if(Python3_Interpreter_FOUND)
+    add_test(NAME libdxfrw_mtext_field_source_audit
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/audit_mtext_field_source_tests.py)
+    set_tests_properties(libdxfrw_mtext_field_source_audit PROPERTIES
+        LABELS "dxf;fast;field;research" TIMEOUT 10)
+endif()
