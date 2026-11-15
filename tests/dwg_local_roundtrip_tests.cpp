@@ -29173,24 +29173,60 @@ public:
             tableStyle_.parentHandle =
                 DRW::DwgModelSpaceBlockRecordHandle;
             tableStyle_.m_name = "RECOVERY_TABLESTYLE";
-            tableStyle_.m_flowDirection = 0;
-            tableStyle_.m_flags = 0;
-            tableStyle_.m_horizontalCellMargin = 0.1;
-            tableStyle_.m_verticalCellMargin = 0.2;
-            for (int rowIndex = 0; rowIndex < 3; ++rowIndex) {
-                DRW_TableStyleRowStyle row;
-                row.m_textHeight = 1.0 + rowIndex;
-                row.m_textAlignment = rowIndex + 1;
-                row.m_textStyleHandle = DRW::DwgStandardTextStyleHandle;
-                row.m_textColor = 256;
-                row.m_fillColor = 256;
-                for (int borderIndex = 0; borderIndex < 6; ++borderIndex) {
-                    DRW_TableStyleBorder border;
-                    border.m_edgeFlags = 1 << borderIndex;
-                    border.m_visible = 1;
-                    row.m_borders.push_back(border);
+            if (sourceVersion >= DRW::AC1024) {
+                tableStyle_.m_r24PrefixPresent = true;
+                tableStyle_.m_r24ClassVersion = 0u;
+                tableStyle_.m_r24UnknownValue1 = 8;
+                tableStyle_.m_r24UnknownValue2 = 101;
+                tableStyle_.m_unknownHandle = 0x702u;
+                tableStyle_.m_tableCellStyle.m_type = 5;
+                tableStyle_.m_tableCellStyle.m_id = 4;
+                tableStyle_.m_tableCellStyle.m_styleClass = 2;
+                tableStyle_.m_tableCellStyle.m_name = "Table";
+                constexpr int styleClasses[] = {1, 1, 2};
+                constexpr const char *styleNames[] = {
+                    "_TITLE", "_HEADER", "_DATA"};
+                for (int index = 0; index < 3; ++index) {
+                    DRW_TableStyleCellStyle style;
+                    style.m_type = 5;
+                    style.m_hasData = true;
+                    style.m_contentFormat.m_cellAlignment = 5;
+                    style.m_contentFormat.m_textStyleHandle =
+                        DRW::DwgStandardTextStyleHandle;
+                    style.m_id = index + 1;
+                    style.m_styleClass = styleClasses[index];
+                    style.m_name = styleNames[index];
+                    for (int edge = 0; edge < 6; ++edge) {
+                        DRW_TableStyleBorder border;
+                        border.m_edgeFlags = 1 << edge;
+                        border.m_lineTypeHandle =
+                            DRW::DwgLtypeByBlockHandle;
+                        style.m_borders.push_back(border);
+                    }
+                    tableStyle_.m_cellStyles.push_back(std::move(style));
                 }
-                tableStyle_.m_rowStyles.push_back(std::move(row));
+            } else {
+                tableStyle_.m_flowDirection = 0;
+                tableStyle_.m_flags = 0;
+                tableStyle_.m_horizontalCellMargin = 0.1;
+                tableStyle_.m_verticalCellMargin = 0.2;
+                for (int rowIndex = 0; rowIndex < 3; ++rowIndex) {
+                    DRW_TableStyleRowStyle row;
+                    row.m_textHeight = 1.0 + rowIndex;
+                    row.m_textAlignment = rowIndex + 1;
+                    row.m_textStyleHandle =
+                        DRW::DwgStandardTextStyleHandle;
+                    row.m_textColor = 256;
+                    row.m_fillColor = 256;
+                    for (int borderIndex = 0; borderIndex < 6;
+                         ++borderIndex) {
+                        DRW_TableStyleBorder border;
+                        border.m_edgeFlags = 1 << borderIndex;
+                        border.m_visible = 1;
+                        row.m_borders.push_back(border);
+                    }
+                    tableStyle_.m_rowStyles.push_back(std::move(row));
+                }
             }
         }
         if (kind_ == 6) {
