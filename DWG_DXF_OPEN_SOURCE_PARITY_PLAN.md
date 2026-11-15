@@ -38,7 +38,9 @@ table byte goldens and R12 export of the new-document default lineweight
 The first hosted run at `70e8f034` exposed a stale frozen CTest inventory.
 After regeneration, native focused qualification at `c5b3f5b4` passes 7/7
 on Linux, macOS and Windows; the limited generated FreeCAD profile passes
-10/10 on Linux and 11/11 on Windows. Broader consumer and semantic gates
+10/10 on Linux and 11/11 on Windows. The hosted fast lane passes seven
+executables and 44/45 CTests, with the optional OS-locale test skipped.
+Broader consumer and semantic gates
 remain open ([inventory repair](docs/research/p8-native-inventory-codepage-regeneration-2026-11-15.json),
 [hosted receipt](docs/research/p8-hosted-native-freecad-codepage-fix-2026-11-15.json)).
 The current clean LibreCAD_3 persistence adapter also passes syntax checks
