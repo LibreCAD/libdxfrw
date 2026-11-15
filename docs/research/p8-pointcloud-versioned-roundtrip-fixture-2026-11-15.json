@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-15",
+  "finding": "The broad generated fixture supplied POINTCLOUD definition and reactor handles for AC1021 and AC1024 even though those versions do not encode them. The writer correctly refused to silently drop the references.",
+  "change": "Supply the references only for versions after AC1024; keep the existing older-version readback assertions requiring null references and the modern-version assertions requiring the actual references.",
+  "validation": [
+    "The generated POINTCLOUD write and readback assertions now pass for all six tested versions, including AC1021 and AC1024.",
+    "The separate POINTCLOUD DWG representability test passes its omitted-field refusal, atomicity and retry controls.",
+    "The full local roundtrip still fails, now with 31 assertions instead of 35."
+  ],
+  "limits": "This fixes generated test input and does not add a producer profile, relax the writer or promote support claims. The changed selected source requires a fresh digest before a later native receipt."
+}

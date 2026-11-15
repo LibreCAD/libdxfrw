@@ -6820,8 +6820,12 @@ public:
         pointCloud.pointCount = 1234;
         pointCloud.ucsName = "LOCAL_POINTCLOUD_UCS";
         pointCloud.ucsOrigin = DRW_Coord{4.0, 5.0, 6.0};
-        pointCloud.definitionHandle = 0xD600u;
-        pointCloud.reactorHandle = 0xD602u;
+        // The AC1021/AC1024 body does not carry these references; the
+        // encoder correctly rejects nonzero values instead of dropping them.
+        if (expectedVersion_ > DRW::AC1024) {
+            pointCloud.definitionHandle = 0xD600u;
+            pointCloud.reactorHandle = 0xD602u;
+        }
         pointCloud.showIntensity = false;
         pointCloud.showClipping = false;
         if (writer_->getVersion() <= DRW::AC1018) {
