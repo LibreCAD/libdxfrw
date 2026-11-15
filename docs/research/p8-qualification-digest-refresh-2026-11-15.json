@@ -42,5 +42,11 @@
     "implementationDigestSha256": "b254a80b9886e288bccc4387e7ab6417dd51efe7d50dd00cdba43ffc1ad0ff6a",
     "selectedInputCount": 713,
     "validation": "Clean-clone digest and qualified-format support checks pass; no routes advertised. Native qualification must be rerun for this revision."
+  },
+  "bodyMutationBoundaryRefresh": {
+    "sourceCommit": "4cdbbedb",
+    "implementationDigestSha256": "a4376d99f3624ed6462616d6668c0cbd89e8ddde2739fb959dcc0945af752f27",
+    "selectedInputCount": 713,
+    "validation": "Clean-clone digest and qualified-format support checks pass; no routes advertised. Rerun native qualification for this revision."
   }
 }
