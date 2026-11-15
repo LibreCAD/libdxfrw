@@ -54,5 +54,11 @@
     "implementationDigestSha256": "95f8f297b7f49195479b92b869942f1480b228d35cfca74049416dc0f2ff65ed",
     "selectedInputCount": 713,
     "validation": "Clean-clone digest and qualified-format support checks pass; no routes advertised. Hosted native, fast, and FreeCAD qualification must be rerun for this source."
+  },
+  "macosStaticInstallRefresh": {
+    "sourceCommit": "f45931de",
+    "implementationDigestSha256": "4824d3c490beb250ad9418d637d4e5c8338113de459291da2c0d1db73381e767",
+    "selectedInputCount": 713,
+    "validation": "Clean-clone implementation digest, source inventory and qualified-format support checks pass; no routes advertised. Hosted qualification must be rerun for this source."
   }
 }
