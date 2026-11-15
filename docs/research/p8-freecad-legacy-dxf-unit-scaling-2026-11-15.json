@@ -15,7 +15,8 @@
     "generated_dwg_dxf_open_insert": "metric and inch baseline/patched matrix 8/8 expected results; inch patched SOLID area 7741.92 square mm, polyface two facets, all vertices match mm coordinates",
     "polymesh_precision": "metric and inch baseline/patched open/insert 8/8 expected results, metric coordinates unchanged including high-precision source",
     "user_scale": "patched metric and inch open/insert at user factor 0.5: 4/4 pass for face, solid and polyface",
-    "upstream_unit": "actual proposed DraftDXF unit test: baseline fails at non-unit scales, patched passes; covers scale 1, 25.4, 12.7, both mesh representations, forceShape, SOLID area and coordinates"
+    "upstream_unit": "actual proposed DraftDXF unit test: baseline fails at non-unit scales, patched passes; covers scale 1, 25.4, 12.7, both mesh representations, forceShape, SOLID area and coordinates",
+    "nested_blocks": "Generated DXF control with two nested rotated inserts: metric original/patched and inch patched line/SOLID/POLYFACE vertices match the analytic transform on open and insert; inch baseline mismatch reproduced."
   },
   "scratch_source_sha256": {
     "imperial_dwg": "388b4fddd7c41ca670dd395640d315201249c178ba0976b285e5b5af5cffb0ac",
@@ -28,7 +29,7 @@
   "limitations": [
     "Patch is not merged or installed in FreeCAD; native test uses the pinned 1.1.4 importer with the corresponding source edits, not a build of FreeCAD main.",
     "Legacy optional importer only; default C++ DXF importer is unchanged.",
-    "No independent producer/native non-default units, nested blocks, other entity types, ACIS, or Linux/Windows verification of this patch.",
+    "No independent producer/native non-default units, broad nested blocks, other entity types, ACIS, or Linux/Windows verification of this patch.",
     "Generated files were scratch-only and are not committed."
   ]
 }
