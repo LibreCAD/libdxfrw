@@ -2433,6 +2433,20 @@ def check_malformed_pointcloud_colormap_body(converter, root, writer):
         "--generate-cli-malformed-pointcloud-colormap-body-source", profiles)
 
 
+def check_malformed_pointcloud_definition_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "POINTCLOUDDEFINITION",
+        "--generate-cli-malformed-pointcloud-definition-body-source", profiles)
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3632,6 +3646,8 @@ def main():
                         help="run only the generated SECTION_SETTINGS recovery controls")
     parser.add_argument("--pointcloud-colormap-only", action="store_true",
                         help="run only generated POINTCLOUDCOLORMAP recovery controls")
+    parser.add_argument("--pointcloud-definition-only", action="store_true",
+                        help="run only generated POINTCLOUDDEFINITION recovery controls")
     parser.add_argument("--source-disposition-only", action="store_true",
                         help="run only CLI repair/skip/mask preflight projections")
     parser.add_argument("--historical-ac1021-only", action="store_true",
@@ -3713,6 +3729,11 @@ def main():
             checked = check_malformed_pointcloud_colormap_body(
                 converter, root, args.writer)
             print(f"CLI POINTCLOUDCOLORMAP recovery: PASS ({checked} controls)")
+            return
+        if args.pointcloud_definition_only:
+            checked = check_malformed_pointcloud_definition_body(
+                converter, root, args.writer)
+            print(f"CLI POINTCLOUDDEFINITION recovery: PASS ({checked} controls)")
             return
         if args.partial_read_only:
             checked = check_partial_dwg_read_cli(converter, root, args.writer)
