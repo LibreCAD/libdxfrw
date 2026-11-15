@@ -28436,6 +28436,11 @@ public:
     using DRW_BlockRepresentationData::parseDwg;
 };
 
+class GroupBodyProbe final : public DRW_Group {
+public:
+    using DRW_Group::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28501,6 +28506,13 @@ public:
             blockRepresentation_.m_blockHandle =
                 DRW::DwgModelSpaceBlockRecordHandle;
         }
+        if (kind_ == 15) {
+            group_.handle = 0x700u;
+            group_.parentHandle = DRW::DwgAcadGroupDictionaryHandle;
+            group_.name = "RECOVERY_GROUP";
+            group_.m_description = "generated malformed GROUP body";
+            group_.m_entityHandles = {0x701u};
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -28539,10 +28551,14 @@ public:
         } else if (kind_ == 12) {
             wrote = writer_->registerDictionaryVarObjectClass(
                 &dictionaryVar_) && wrote;
+        } else if (kind_ == 15) {
+            wrote = writer_->registerDwgGroupDictionaryEntry(
+                group_.name, group_.handle) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
-                   && kind_ != 11 && kind_ != 13 && kind_ != 14) {
+                   && kind_ != 11 && kind_ != 13 && kind_ != 14
+                   && kind_ != 15) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -28566,6 +28582,10 @@ public:
         } else if (kind_ == 14) {
             wrote = writer_->writeBlockRepresentationData(
                 &blockRepresentation_) && wrote;
+        } else if (kind_ == 15) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeGroup(&group_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -28588,6 +28608,8 @@ public:
             wrote = writer_->writeLine(&malformed) && wrote;
         }
         DRW_Line line;
+        if (kind_ == 15)
+            line.handle = 0x701u;
         line.basePoint = {11, 12, 13}; line.secPoint = {21, 22, 23};
         wrote = writer_->writeLine(&line) && wrote;
     }
@@ -28606,6 +28628,7 @@ public:
     }
     void setMalformedObject(const DRW_UnsupportedObject& object) {
         opaque_ = object;
+        hasMalformedObject_ = true;
     }
     bool hasCapturedObject() const noexcept {
         return hasCapturedObject_;
@@ -28638,8 +28661,10 @@ private:
     DRW_DictionaryVar dictionaryVar_;
     DRW_VbaProject vbaProject_;
     DRW_BlockRepresentationData blockRepresentation_;
+    DRW_Group group_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
+    bool hasMalformedObject_{false};
     dx_data owned_;
 };
 
@@ -42039,7 +42064,9 @@ int main(int argc, char** argv) {
             || std::string(argv[1])
                    == "--generate-cli-malformed-vbaproject-body-source"
             || std::string(argv[1])
-                   == "--generate-cli-malformed-blockrepresentation-body-source")) {
+                   == "--generate-cli-malformed-blockrepresentation-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-group-body-source")) {
         const bool malformedBodySource = std::string(argv[1])
             == "--generate-cli-malformed-object-body-source";
         const bool malformedPrologueSource = std::string(argv[1])
@@ -42055,6 +42082,8 @@ int main(int argc, char** argv) {
         const bool malformedBlockRepresentationBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-blockrepresentation-body-source";
+        const bool malformedGroupBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-group-body-source";
         if (std::filesystem::exists(argv[2])) {
             std::cerr << "Refusing to replace an existing malformed-object source\n";
             return 1;
@@ -42080,7 +42109,8 @@ int main(int argc, char** argv) {
             || malformedDbColorBodySource || malformedXRecordBodySource
             || malformedDictionaryVarBodySource
             || malformedVbaProjectBodySource
-            || malformedBlockRepresentationBodySource) {
+            || malformedBlockRepresentationBodySource
+            || malformedGroupBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
             if (std::filesystem::exists(validPath)) {
@@ -42094,7 +42124,7 @@ int main(int argc, char** argv) {
                         : malformedDictionaryVarBodySource ? 12
                             : malformedVbaProjectBodySource ? 13
                                 : malformedBlockRepresentationBodySource
-                                    ? 14 : 8,
+                                ? 14 : malformedGroupBodySource ? 15 : 8,
                 nullptr, version);
             if (!validWriter.write(&validSource, version, true)
                 || !validSource.wrote) {
@@ -42142,7 +42172,8 @@ int main(int argc, char** argv) {
                  || malformedXRecordBodySource
                  || malformedDictionaryVarBodySource
                  || malformedVbaProjectBodySource
-                 || malformedBlockRepresentationBodySource)
+                 || malformedBlockRepresentationBodySource
+                 || malformedGroupBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
                 && commonEndBit < searchEndBit) {
@@ -42194,6 +42225,11 @@ int main(int argc, char** argv) {
                         }
                         if (malformedBlockRepresentationBodySource) {
                             BlockRepresentationBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
+                        if (malformedGroupBodySource) {
+                            GroupBodyProbe typed;
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
@@ -42276,7 +42312,8 @@ int main(int argc, char** argv) {
                   || malformedXRecordBodySource
                   || malformedDictionaryVarBodySource
                   || malformedVbaProjectBodySource
-                  || malformedBlockRepresentationBodySource)
+                  || malformedBlockRepresentationBodySource
+                  || malformedGroupBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
                 const char* objectKind = malformedDbColorBodySource
@@ -42286,6 +42323,7 @@ int main(int argc, char** argv) {
                                 ? "VBA_PROJECT"
                                 : malformedBlockRepresentationBodySource
                                     ? "BLOCKREPRESENTATION_DATA"
+                                    : malformedGroupBodySource ? "GROUP"
                                     : "MLINESTYLE";
                 const char* mutationKind = malformedPrologueSource
                     ? "common-prologue" : "body";
