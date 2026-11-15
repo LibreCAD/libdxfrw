@@ -13,5 +13,11 @@
     "sourceCommit": "7ecc8fb96be02228946d48a92bcb561294be3bec",
     "workflow": "https://github.com/dxli/libdxfrw/actions/runs/43728273558",
     "conclusion": "success; same focused platform coverage and limits as the initial result"
+  },
+  "compatibilityFixRerun": {
+    "sourceCommit": "c32a4dac9193ef02958c1518e6aeeea647d5aa6e",
+    "workflow": "https://github.com/dxli/libdxfrw/actions/runs/43731499681",
+    "conclusion": "success; same focused platform coverage and limits as initial result",
+    "implementationDigestSha256": "95f8f297b7f49195479b92b869942f1480b228d35cfca74049416dc0f2ff65ed"
   }
 }
