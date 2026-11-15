@@ -2628,6 +2628,20 @@ def check_malformed_tablestyle_body(converter, root, writer):
         "--generate-cli-malformed-tablestyle-body-source", profiles)
 
 
+def check_malformed_field_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "FIELD",
+        "--generate-cli-malformed-field-body-source", profiles)
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3857,6 +3871,8 @@ def main():
                         help="run only generated GEODATA recovery controls")
     parser.add_argument("--tablestyle-only", action="store_true",
                         help="run only generated TABLESTYLE recovery controls")
+    parser.add_argument("--field-recovery-only", action="store_true",
+                        help="run only generated FIELD recovery controls")
     parser.add_argument("--source-disposition-only", action="store_true",
                         help="run only CLI repair/skip/mask preflight projections")
     parser.add_argument("--historical-ac1021-only", action="store_true",
@@ -4026,6 +4042,11 @@ def main():
             checked = check_malformed_tablestyle_body(
                 converter, root, args.writer)
             print(f"CLI TABLESTYLE recovery: PASS ({checked} controls)")
+            return
+        if args.field_recovery_only:
+            checked = check_malformed_field_body(
+                converter, root, args.writer)
+            print(f"CLI FIELD recovery: PASS ({checked} controls)")
             return
         if args.partial_read_only:
             checked = check_partial_dwg_read_cli(converter, root, args.writer)
