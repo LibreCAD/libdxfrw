@@ -13,11 +13,12 @@
     "The actual modified SHP and JWW translation units compile with the old bundled headers and fallback branch.",
     "A standalone consumer compiles and links against the installed public header and archive; staged package relocation checks pass.",
     "An incremental LibreCAD probe compiles the modified SHP/JWW sources and actual test sources with installed libdxfrw includes and no libdxfrw source include path; it links their objects into the existing consumer archive against the installed libdxfrw archive. The archive contains no bundled libdxfrw objects. JWW [jww][import] passes 17 cases and 343 assertions; SHP [shp][filter][matrix][codepage] passes 3 cases and 20 assertions.",
-    "lc3_compat_check builds, libdxfrw_3d_consumer_probe passes, and the fast-runner self-test passes. The new decoder test is added to the bounded fast CI selector."
+    "lc3_compat_check builds, libdxfrw_3d_consumer_probe passes, and the fast-runner self-test passes. The new decoder test is added to the bounded fast CI selector.",
+    "A subsequent recompilation of the LibreCAD library and both focused importer test executables completed with installed include paths and no libdxfrw source include path. The link commands use the installed archive, and the rebuilt LibreCAD archive has no bundled libdxfrw object members. JWW again passes 17 cases/343 assertions and SHP codepage passes 3/20."
   ],
   "environment": "macOS 27.2.1 ARM64, Apple clang 21.0.0, C++17, static installed archive",
   "installedArchiveSha256": "95e9f20acae0b6d745dd5b94a4a4b3cf53db74ba23f653a14f310fcb49719060",
   "implementationDigestSha256": "4cbe715875bf843b37063aae456414f2c35621d3d31f19a02e06a09537ebcb42",
   "digestInputCount": 714,
-  "limits": "The package-linked importer probe uses an existing incremental consumer archive with only the two importer objects replaced. A complete source-free consumer rebuild is still running; this receipt is not a clean full build or a Windows/Linux consumer qualification. The older bundled path has syntax coverage here, not a fresh runtime regression. No DWG/DXF format or phase support claim is promoted."
+  "limits": "The initial package-linked importer probe used an existing incremental consumer archive with only the two importer objects replaced. The later library rebuild uses a modified source overlay and does not build the full application, qualify Windows/Linux, or run all LibreCAD tests. The older bundled path has syntax coverage here, not a fresh runtime regression. No DWG/DXF format or phase support claim is promoted."
 }

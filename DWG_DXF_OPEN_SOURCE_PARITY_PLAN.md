@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **536 completed implementation and qualification slices** and **32 remaining
+The plan records **538 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`536 / (536 + 32) = 94.4%`. The previous 28-package denominator was stale; a recount
+`538 / (538 + 32) = 94.4%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -20,12 +20,18 @@ activity proxy, not as the percentage of package gates completed.
 For P8-A/P8-D, an incremental macOS LibreCAD consumer links the separately
 installed static archive and passes the selected DXF checks. A public legacy
 codepage bridge and a local LibreCAD patch remove the SHP/JWW dependency on
-the uninstalled codec header; selected package-linked JWW and SHP import tests
-pass, while the older bundled-codec path still compiles. The patch remains
-unmerged; a clean full-consumer build and broader qualification remain open
+the uninstalled codec header; selected JWW and SHP import tests pass after the
+LibreCAD library rebuilds against installed headers and archive, while the
+older bundled-codec path still compiles. The patch remains unmerged; a clean
+full-application build and broader qualification remain open
 ([receipt](docs/research/p8-librecad-installed-static-link-2026-11-15.json)).
 The [codepage receipt](docs/research/p8-librecad-installed-legacy-codepage-2026-11-15.json)
 records the behavior and package-linked test limits.
+The local LibreCAD patch set also repairs the bundled writer's complex LTYPE
+STYLE reference remapping, including identical source/output handles, and
+corrects the test's missing STYLE targets. ASCII/Binary retry and fresh
+readback pass, but the patch remains unmerged and other LTYPE compatibility
+failures remain ([receipt](docs/research/p8-bundled-complex-ltype-style-remap-2026-11-15.json)).
 The first hosted run at `70e8f034` exposed a stale frozen CTest inventory.
 It is regenerated against that commit and matches all 1,365 names in the
 hosted macOS inventory; rerun native qualification after this repair
@@ -1289,7 +1295,7 @@ all four path/trailer variants pass on both libraries, and generated
 ASCII/Binary controls retain refusal for invalid value 42 ([receipt](docs/research/p8-mpolygon-annotation-domain-consumer-control-2026-11-15.json)).
 The combined DIMASSOC/MPOLYGON selector now passes 12/12 against upstream with
 the opt-in polyline policy and 12/12 against the corrected bundled fork.
-Integrate the eight local patches against the current consumer head and repeat in
+Integrate the nine local patches against the current consumer head and repeat in
 a clean upstream-linked build. Qualify LibreCAD_3, ABI and required platforms separately; strict source
 admission remains closed for `DeclaredUtf8`. See the [consumer receipt](docs/research/p8-librecad-consumer-compat-patch-2026-11-15.json)
 and [test target receipt](docs/research/p8-librecad-upstream-test-target-api-2026-11-15.json).

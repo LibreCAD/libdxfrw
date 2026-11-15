@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-15",
+  "problem": "The bundled LibreCAD DXF writer emits STYLE before LTYPE and records the STYLE's new handle, but complex LTYPE group 340 used only an independent reference resolver. It could retain old source handles. The existing test also named STYLE handles without providing their records.",
+  "consumerBase": "b66ea43",
+  "consumerCommit": "e17ae3d9530c07917daa2a41cf32a4595670cd8c",
+  "patch": "docs/patches/librecad-p8-complex-ltype-style-remap-2026-11-15.patch",
+  "implementation": "Use a known emitted handle before the fallback resolver. Register STYLE source-to-output handles, including identity mappings, inside the existing record mutation journal so record failure rolls back the new entry. The regression creates both STYLE targets and checks fresh readback against their actual emitted handles.",
+  "validation": [
+    "A fresh standalone bundled-library build, with the original writer object substituted as a control, reproduces the defect: source references 0x42/0x43 are emitted unchanged while the STYLE records are 0x31/0x32. The patched bundled library passes eight ASCII/Binary, identity/remapped and absent/conflicting-resolver profiles, with failed-write destination preservation, same-writer retry, and fresh readback.",
+    "A standalone bundled allocation-fault probe fails each of 12 measured STYLE-write allocations in ASCII and 12 in Binary. Each refusal retains the previous destination and a retry on the same writer succeeds. The separate eight-profile probe verifies readback; the fault probe itself is temporary and does not inspect every retried output.",
+    "The actual LibreCAD complex-LTYPE regression passes against the installed upstream library: 176 assertions across the eight sections, including failure, retry and readback. The associated consumer archive is an incremental local overlay, not a clean application build.",
+    "The patch passes forward application against its parent index and reverse application against the consumer commit. No drawing fixture is added."
+  ],
+  "limits": "The consumer commit is local and unmerged. The bounded bundled tests do not qualify ambiguous or missing STYLE target graphs, other producer profiles, native display, other platforms, or the full LibreCAD test suite. Two other tagged LTYPE failures and the full P8-D exit criteria remain open; no format-support claim is promoted."
+}

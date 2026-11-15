@@ -1,0 +1,255 @@
+diff --git a/libraries/libdxfrw/src/libdxfrw.cpp b/libraries/libdxfrw/src/libdxfrw.cpp
+index 8a163c8..1f3a071 100644
+--- a/libraries/libdxfrw/src/libdxfrw.cpp
++++ b/libraries/libdxfrw/src/libdxfrw.cpp
+@@ -1046,6 +1046,9 @@ private:
+                 }
+                 break;
+             }
++            case DxfWriteMutationKind::HandleRemapInsert:
++                m_owner.m_handleRemap.erase(mutation.handle);
++                break;
+             case DxfWriteMutationKind::SourceHandleInsert:
+                 m_owner.m_writingContext.sourceHandleToMintedMap.erase(
+                     mutation.handle);
+@@ -2400,8 +2403,13 @@ bool dxfRW::writeLineType(DRW_LType *ent){
+             write(writer->writeInt16(74, segment.shapeFlags));
+             if (segment.shapeFlags != 0) {
+                 write(writer->writeInt16(75, segment.complexShapeCode));
++                // STYLE records are emitted before LTYPE records and may
++                // receive new handles. Prefer their recorded write mapping;
++                // keep the caller's resolver for references without one.
++                const auto mappedStyle = m_handleRemap.find(segment.styleHandle.ref);
+                 const std::uint32_t styleHandle =
+-                    resolveReference(segment.styleHandle.ref);
++                    mappedStyle != m_handleRemap.end()
++                        ? mappedStyle->second : resolveReference(segment.styleHandle.ref);
+                 if (styleHandle != 0)
+                     write(writer->writeString(340, toHexStr(styleHandle)));
+                 write(writer->writeDouble(46, segment.scale));
+@@ -2585,12 +2593,29 @@ bool dxfRW::writeTextstyle(DRW_Textstyle *ent){
+         m_writeError = true;
+     if (!result || writer->hasWriteError())
+         return false;
++    // STYLE records precede LTYPE records. Register their emitted handles
++    // before committing so failure rolls back the map along with the record.
++    // Identity mappings must be present too: the external resolver must not
++    // override a STYLE already emitted under its source handle.
++    const auto sourceHandle = static_cast<std::uint32_t>(ent->handle);
++    if (version > DRW::AC1009 && sourceHandle != 0 && allocatedHandle != 0
++        && m_handleRemap.find(sourceHandle) == m_handleRemap.end()) {
++        const std::size_t checkpoint = m_dxfWriteMutations.size();
++        m_dxfWriteMutations.push_back({DxfWriteMutationKind::HandleRemapInsert,
++                                       {}, sourceHandle, 0, false});
++        try {
++            if (!m_handleRemap.emplace(sourceHandle, allocatedHandle).second)
++                m_dxfWriteMutations.resize(checkpoint);
++        } catch (...) {
++            m_dxfWriteMutations.resize(checkpoint);
++            throw;
++        }
++    }
+     if (!record.commit()) {
+         m_writeError = true;
+         return false;
+     }
+     state.commit();
+-    noteTableRecordHandle(static_cast<std::uint32_t>(ent->handle), allocatedHandle);
+     return true;
+ }
+ 
+diff --git a/libraries/libdxfrw/src/libdxfrw.h b/libraries/libdxfrw/src/libdxfrw.h
+index 71290e4..2249fa3 100644
+--- a/libraries/libdxfrw/src/libdxfrw.h
++++ b/libraries/libdxfrw/src/libdxfrw.h
+@@ -579,6 +579,7 @@ private:
+     enum class DxfWriteMutationKind : std::uint8_t {
+         BlockMapInsert,
+         TextStyleMapSet,
++        HandleRemapInsert,
+         SourceHandleInsert,
+         SourceHandleErase,
+         AmbiguousSourceHandleInsert,
+diff --git a/librecad/src/lib/filters/tests/dxf_object_tests.cpp b/librecad/src/lib/filters/tests/dxf_object_tests.cpp
+index d3b4cfc..f039759 100644
+--- a/librecad/src/lib/filters/tests/dxf_object_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_object_tests.cpp
+@@ -558,10 +558,14 @@ public:
+ class LTypeCapture : public StubInterface {
+ public:
+   std::vector<DRW_LType> m_ltypes;
++  std::vector<DRW_Textstyle> m_styles;
+ 
+   void addLType(const DRW_LType &ltype) override {
+     m_ltypes.push_back(ltype);
+   }
++  void addTextStyle(const DRW_Textstyle &style) override {
++    m_styles.push_back(style);
++  }
+ };
+ 
+ class LTypeEmitter : public StubInterface {
+@@ -569,9 +573,24 @@ public:
+   dxfRW *m_writer = nullptr;
+   DRW_LType m_ltype;
+   bool m_writeResult = true;
++  std::uint32_t m_shapeSource = 0x42u;
++  std::uint32_t m_textSource = 0x43u;
+ 
+   void writeLTypes() override {
+-    m_writeResult = m_writer->writeLineType(&m_ltype);
++    m_writeResult = m_writer->writeLineType(&m_ltype) && m_writeResult;
++  }
++  void writeTextstyles() override {
++    DRW_Textstyle shape;
++    shape.handle = m_shapeSource;
++    shape.name = "COMPLEX_SHAPE_STYLE";
++    shape.flags = 1;
++    shape.font = "shape.shx";
++    DRW_Textstyle text;
++    text.handle = m_textSource;
++    text.name = "COMPLEX_TEXT_STYLE";
++    text.font = "txt";
++    m_writeResult = m_writer->writeTextstyle(&shape) && m_writeResult;
++    m_writeResult = m_writer->writeTextstyle(&text) && m_writeResult;
+   }
+ };
+ 
+@@ -9349,55 +9368,89 @@ TEST_CASE("DXF table record writers preserve XDATA",
+ 
+ TEST_CASE("DXF LTYPE preserves complex segment payloads",
+           "[dxf][table][ltype]") {
+-  const auto path =
+-      std::filesystem::temp_directory_path() / "lc_complex_ltype.dxf";
+-  std::filesystem::remove(path);
+-
+-  LTypeEmitter emitter;
+-  emitter.m_ltype.name = "COMPLEX";
+-  emitter.m_ltype.desc = "complex line type";
+-  emitter.m_ltype.segments = {
+-      DRW_LTypeSegment{1.0, 0, {}, 0.0, 0.0, 1.0, 0.0, 0, {}},
+-      DRW_LTypeSegment{-.5, 23, {}, 1.25, -2.5, 2.0, M_PI / 4.0, 4, {}},
+-      DRW_LTypeSegment{.25, 0, {}, -.25, .5, .75, -M_PI / 6.0, 2, "TXT"}};
+-  emitter.m_ltype.segments[1].styleHandle.ref = 0x42u;
+-  emitter.m_ltype.segments[1].styleHandle.code = 5;
+-  emitter.m_ltype.segments[1].styleHandle.ref64 = 0x42u;
+-  emitter.m_ltype.segments[2].styleHandle.ref = 0x43u;
+-  emitter.m_ltype.segments[2].styleHandle.code = 5;
+-  emitter.m_ltype.segments[2].styleHandle.ref64 = 0x43u;
+-
+-  {
+-    dxfRW writer(path.string().c_str());
+-    emitter.m_writer = &writer;
+-    REQUIRE(writer.write(&emitter, DRW::AC1021, false));
+-    CHECK(emitter.m_writeResult);
++  for (bool binary : {false, true}) {
++    for (bool withResolver : {false, true}) {
++      for (bool identity : {false, true}) {
++        DYNAMIC_SECTION((binary ? "binary" : "ASCII") << ", resolver=" << withResolver
++                        << ", identity=" << identity) {
++          const auto path =
++              std::filesystem::temp_directory_path() /
++              (binary ? "lc_complex_ltype_binary.dxf" : "lc_complex_ltype_ascii.dxf");
++          std::filesystem::remove(path);
++
++          LTypeEmitter emitter;
++          emitter.m_shapeSource = identity ? 0x31u : 0x42u;
++          emitter.m_textSource = identity ? 0x32u : 0x43u;
++          emitter.m_ltype.name = "COMPLEX";
++          emitter.m_ltype.desc = "complex line type";
++          emitter.m_ltype.segments = {
++              DRW_LTypeSegment{1.0, 0, {}, 0.0, 0.0, 1.0, 0.0, 0, {}},
++              DRW_LTypeSegment{-.5, 23, {}, 1.25, -2.5, 2.0, M_PI / 4.0, 4, {}},
++              DRW_LTypeSegment{.25, 0, {}, -.25, .5, .75, -M_PI / 6.0, 2, "TXT"}};
++          emitter.m_ltype.segments[1].styleHandle.ref = emitter.m_shapeSource;
++          emitter.m_ltype.segments[1].styleHandle.code = 5;
++          emitter.m_ltype.segments[1].styleHandle.ref64 = emitter.m_shapeSource;
++          emitter.m_ltype.segments[2].styleHandle.ref = emitter.m_textSource;
++          emitter.m_ltype.segments[2].styleHandle.code = 5;
++          emitter.m_ltype.segments[2].styleHandle.ref64 = emitter.m_textSource;
++
++          {
++            dxfRW writer(path.string().c_str());
++            emitter.m_writer = &writer;
++            if (withResolver) {
++              writer.setReferenceResolver([](std::uint32_t handle) {
++                return handle == 0x42u || handle == 0x43u ||
++                       handle == 0x31u || handle == 0x32u ? 0x99u : handle;
++              });
++            }
++            {
++              std::ofstream previous(path, std::ios::binary);
++              previous << "previous output\n";
++            }
++            emitter.m_ltype.segments[1].scale =
++                std::numeric_limits<double>::quiet_NaN();
++            CHECK_FALSE(writer.write(&emitter, DRW::AC1021, binary));
++            CHECK(slurp(path) == "previous output\n");
++            emitter.m_ltype.segments[1].scale = 2.0;
++            emitter.m_writeResult = true;
++            REQUIRE(writer.write(&emitter, DRW::AC1021, binary));
++            CHECK(emitter.m_writeResult);
++          }
++
++          LTypeCapture capture;
++          dxfRW reader(path.string().c_str());
++          REQUIRE(reader.read(&capture, false));
++          std::filesystem::remove(path);
++
++          const auto it = std::find_if(
++              capture.m_ltypes.cbegin(), capture.m_ltypes.cend(),
++              [](const DRW_LType &ltype) { return ltype.name == "COMPLEX"; });
++          REQUIRE(it != capture.m_ltypes.cend());
++          const DRW_LType &parsed = *it;
++          REQUIRE(parsed.segments.size() == 3u);
++          CHECK(parsed.alignment == 'A');
++          CHECK(parsed.segments[0].length == Catch::Approx(1.0));
++          CHECK(parsed.segments[1].complexShapeCode == 23);
++          CHECK(parsed.segments[1].shapeFlags == 4);
++          const auto styleHandle = [&](const std::string &name) {
++            const auto found = std::find_if(capture.m_styles.begin(), capture.m_styles.end(),
++                [&](const DRW_Textstyle &style) { return style.name == name; });
++            REQUIRE(found != capture.m_styles.end());
++            return found->handle;
++          };
++          CHECK(parsed.segments[1].styleHandle.ref == styleHandle("COMPLEX_SHAPE_STYLE"));
++          CHECK(parsed.segments[1].xOffset == Catch::Approx(1.25));
++          CHECK(parsed.segments[1].yOffset == Catch::Approx(-2.5));
++          CHECK(parsed.segments[1].scale == Catch::Approx(2.0));
++          CHECK(parsed.segments[1].rotation == Catch::Approx(M_PI / 4.0));
++          CHECK(parsed.segments[2].shapeFlags == 2);
++          CHECK(parsed.segments[2].styleHandle.ref == styleHandle("COMPLEX_TEXT_STYLE"));
++          CHECK(parsed.segments[2].text == "TXT");
++          CHECK(parsed.segments[2].rotation == Catch::Approx(-M_PI / 6.0));
++        }
++      }
++    }
+   }
+-
+-  LTypeCapture capture;
+-  dxfRW reader(path.string().c_str());
+-  REQUIRE(reader.read(&capture, false));
+-  std::filesystem::remove(path);
+-
+-  const auto it = std::find_if(
+-      capture.m_ltypes.cbegin(), capture.m_ltypes.cend(),
+-      [](const DRW_LType &ltype) { return ltype.name == "COMPLEX"; });
+-  REQUIRE(it != capture.m_ltypes.cend());
+-  const DRW_LType &parsed = *it;
+-  REQUIRE(parsed.segments.size() == 3u);
+-  CHECK(parsed.alignment == 'A');
+-  CHECK(parsed.segments[0].length == Catch::Approx(1.0));
+-  CHECK(parsed.segments[1].complexShapeCode == 23);
+-  CHECK(parsed.segments[1].shapeFlags == 4);
+-  CHECK(parsed.segments[1].styleHandle.ref == 0x42u);
+-  CHECK(parsed.segments[1].xOffset == Catch::Approx(1.25));
+-  CHECK(parsed.segments[1].yOffset == Catch::Approx(-2.5));
+-  CHECK(parsed.segments[1].scale == Catch::Approx(2.0));
+-  CHECK(parsed.segments[1].rotation == Catch::Approx(M_PI / 4.0));
+-  CHECK(parsed.segments[2].shapeFlags == 2);
+-  CHECK(parsed.segments[2].styleHandle.ref == 0x43u);
+-  CHECK(parsed.segments[2].text == "TXT");
+-  CHECK(parsed.segments[2].rotation == Catch::Approx(-M_PI / 6.0));
+ }
+ 
+ TEST_CASE("DXF writer rejects malformed XDATA payload pointers",
