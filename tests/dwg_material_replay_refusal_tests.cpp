@@ -69,12 +69,15 @@ bool codecControls(MaterialProbe& source) {
         if (!opaque.setDwgRawData({}, 0u, version)
             || !refusalIsAtomic(opaque, version)) return false;
     }
-    // Existing manually authored, non-raw MATERIAL behavior stays available.
+    // Manually authored legacy MATERIAL stays available; modern versions
+    // require an exact retained source profile, including detached strings.
     MaterialProbe manual;
     manual.m_name = "manual";
+    for (auto version : {DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032})
+        if (!refusalIsAtomic(manual, version)) return false;
     dwgBufferW body, strings, handles;
-    return manual.encodeDwg(DRW::AC1024, &body, &strings, &handles)
-        && strings.bitCount() > 0;
+    return manual.encodeDwg(DRW::AC1018, &body, &strings, &handles)
+        && body.bitCount() > 0;
 }
 
 struct Adapter : LC3CompatCheck {
@@ -121,13 +124,25 @@ bool wholeFileControls(const MaterialProbe& parsed) {
         if (std::string(std::istreambuf_iterator<char>(input), {}) != "preserve-sentinel")
             return false;
     }
-    // Retry with an independent non-raw manual object on the same facade.
+    // Newly authored modern bodies are also outside the exact replay profiles.
+    // Refusal remains fatal to the whole file even if the caller ignores it.
     adapter.material.reset();
     adapter.material.handle = 0x97u;
     adapter.material.m_name = "manual-after-refusal";
+    for (auto target : {DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        { std::ofstream file(path, std::ios::binary); file << "preserve-sentinel"; }
+        adapter.registered = false;
+        adapter.accepted = true;
+        if (output.write(&adapter, target, true)
+            || !adapter.registered || adapter.accepted) return false;
+        std::ifstream input(path, std::ios::binary);
+        if (std::string(std::istreambuf_iterator<char>(input), {}) != "preserve-sentinel")
+            return false;
+    }
+    // Retry the same authored object on a supported legacy profile.
     adapter.registered = false;
     adapter.accepted = false;
-    if (!output.write(&adapter, DRW::AC1024, true)
+    if (!output.write(&adapter, DRW::AC1018, true)
         || !adapter.registered || !adapter.accepted) return false;
     dwgRW reader(filename.c_str());
     Capture capture;

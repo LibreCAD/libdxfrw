@@ -4033,10 +4033,12 @@ public:
             renderMentalRegistration.m_kind = DRW_RenderSettings::MentalRay;
             registeredRenderMental_ = writer_->registerRenderSettingsObjectClass(
                 &renderMentalRegistration);
-            DRW_Material materialRegistration;
-            materialRegistration.handle = 0xC800u;
-            registeredMaterial_ = writer_->registerMaterialObjectClass(
-                &materialRegistration);
+            if (expectedVersion_ <= DRW::AC1018) {
+                DRW_Material materialRegistration;
+                materialRegistration.handle = 0xC800u;
+                registeredMaterial_ = writer_->registerMaterialObjectClass(
+                    &materialRegistration);
+            }
             if (writer_->getVersion() >= DRW::AC1018) {
                 DRW_DbColor dbColorRegistration;
                 dbColorRegistration.handle = 0xC900u;
@@ -4431,7 +4433,9 @@ public:
             {"LOCAL_RENDER_ENTRY", 0xC400u},
             {"LOCAL_RENDER_RAPIDRT", 0xC600u},
             {"LOCAL_RENDER_MENTALRAY", 0xC700u},
-            {"LOCAL_MATERIAL", 0xC800u},
+            // Modern MATERIAL output requires an exact source-bound profile.
+            // Keep the slot explicit but empty in this authored broad fixture.
+            {"LOCAL_MATERIAL", expectedVersion_ <= DRW::AC1018 ? 0xC800u : 0u},
             {"LOCAL_DBCOLOR", 0xC900u},
             {"LOCAL_LIGHTLIST", 0xCA00u},
             {"LOCAL_SCALE", 0xCB00u},
@@ -4901,8 +4905,9 @@ public:
         material.parentHandle = dictionary.handle;
         material.m_name = "LOCAL_MATERIAL";
         material.m_description = "LOCAL_MATERIAL_DESC";
-        wroteMaterial_ = registeredMaterial_ && writer_->writeMaterial(&material)
-            && material.handle != 0;
+        if (expectedVersion_ <= DRW::AC1018)
+            wroteMaterial_ = registeredMaterial_ && writer_->writeMaterial(&material)
+                && material.handle != 0;
 
         DRW_DbColor dbColor;
         dbColor.handle = 0xC900u;
@@ -5111,7 +5116,8 @@ public:
         invalidMaterial.parentHandle = dictionary.handle;
         invalidMaterial.m_name = "LOCAL_BAD_MATERIAL";
         invalidMaterial.setDwgCommonObjectState(0, 2, false);
-        rejectedMalformedMaterial_ = !writer_->writeMaterial(&invalidMaterial);
+        if (expectedVersion_ <= DRW::AC1018)
+            rejectedMalformedMaterial_ = !writer_->writeMaterial(&invalidMaterial);
 
         DRW_DbColor invalidDbColor;
         invalidDbColor.handle = 0xC901u;
@@ -7458,7 +7464,8 @@ public:
                 && data.m_entries[18].m_name == "LOCAL_RENDER_MENTALRAY"
                 && data.m_entries[18].m_handle == 0xC700u
                 && data.m_entries[19].m_name == "LOCAL_MATERIAL"
-                && data.m_entries[19].m_handle == 0xC800u
+                && data.m_entries[19].m_handle
+                    == (expectedVersion_ <= DRW::AC1018 ? 0xC800u : 0u)
                 && data.m_entries[20].m_name == "LOCAL_DBCOLOR"
                 && data.m_entries[20].m_handle == 0xC900u
                 && data.m_entries[21].m_name == "LOCAL_LIGHTLIST"
@@ -8656,7 +8663,7 @@ public:
             && wroteVisualStyle_ && wroteRenderSettings_
             && wroteRenderEnvironment_ && wroteRenderGlobal_
             && wroteRenderEntry_ && wroteRenderRapid_ && wroteRenderMental_
-            && wroteMaterial_
+            && (expectedVersion_ > DRW::AC1018 || wroteMaterial_)
             && (wroteDbColor_ || rejectedUnsupportedDbColor_)
             && wroteLightList_
             && wroteScale_
@@ -9090,10 +9097,10 @@ public:
       const std::size_t expected =
           expectedVersion_ == DRW::AC1015   ? 54u
           : expectedVersion_ == DRW::AC1018 ? 55u
-          : expectedVersion_ == DRW::AC1021 ? 59u
+          : expectedVersion_ == DRW::AC1021 ? 58u
           : (expectedVersion_ == DRW::AC1024 || expectedVersion_ == DRW::AC1027
               || expectedVersion_ == DRW::AC1032)
-              ? 59u
+              ? 58u
               : 56u;
       return readRawObjectInvariant_ &&
              readLocalRawObjectHandles_.size() == expected;
@@ -9110,7 +9117,8 @@ public:
           readWipeoutVariablesSeen_ && readVisualStyleSeen_ &&
           readRenderSettingsSeen_ && readRenderEnvironmentSeen_ &&
           readRenderGlobalSeen_ && readRenderEntrySeen_ &&
-          readRenderRapidSeen_ && readRenderMentalSeen_ && readMaterialSeen_ &&
+          readRenderRapidSeen_ && readRenderMentalSeen_ &&
+          (expectedVersion_ > DRW::AC1018 ? !readMaterialSeen_ : readMaterialSeen_) &&
           readLightListSeen_ && readScaleSeen_ && readIDBufferSeen_ &&
           readLayerIndexSeen_ && readSpatialIndexSeen_ &&
           (readTableStyleSeen_ || !tableStyleExpected_) &&
@@ -45897,8 +45905,8 @@ int main(int argc, char** argv) {
         expect(writeIface.rejectedMalformedRenderRapid(),
                ("local DWG writer rejected malformed RapidRT RENDERSETTINGS transaction" + suffix).c_str(),
                failures);
-        expect(writeIface.rejectedMalformedMaterial(),
-               ("local DWG writer rejected malformed MATERIAL transaction" + suffix).c_str(),
+        expect(version > DRW::AC1018 || writeIface.rejectedMalformedMaterial(),
+               ("local DWG MATERIAL malformed check for supported authored profile" + suffix).c_str(),
                failures);
         expect(version == DRW::AC1015
                    ? writeIface.rejectedUnsupportedDbColor()
@@ -46402,8 +46410,9 @@ int main(int argc, char** argv) {
         expect(readIface.readRenderRapidSeen(),
                ("local DWG self-read publishes RapidRT RENDERSETTINGS" + suffix).c_str(),
                failures);
-        expect(readIface.readMaterialSeen(),
-               ("local DWG self-read publishes MATERIAL" + suffix).c_str(),
+        expect(version > DRW::AC1018 ? !readIface.readMaterialSeen()
+                                     : readIface.readMaterialSeen(),
+               ("local DWG self-read follows MATERIAL authored-profile gate" + suffix).c_str(),
                failures);
         expect(version == DRW::AC1015
                    ? !readIface.readDbColorSeen()

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **501 completed implementation and qualification slices** and **32 remaining
+The plan records **502 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`501 / (501 + 32) = 94.0%`. The previous 28-package denominator was stale; a recount
+`502 / (502 + 32) = 94.0%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -39,6 +39,12 @@ checks could not generate source drawings because the shared test driver
 overflowed the Windows stack. A test-only stack reserve and the reported MSVC
 lambda-capture fixes are prepared; actual Windows rerun remains required
 ([receipt](docs/research/p8-windows-test-driver-stack-msvc-2026-11-15.json)).
+The broad local roundtrip fixture now omits newly authored modern MATERIAL
+records, which the exact-profile writer correctly refuses, while a separate
+test verifies atomic refusal and a legacy retry. All generated DWG writes now
+proceed and the local suite reports 35 remaining assertions; investigate those
+without interpreting this as a passing suite or broader MATERIAL support
+([receipt](docs/research/p8-modern-material-roundtrip-projection-2026-11-15.json)).
 The Linux FreeCAD 1.1.4 hosted rerun passes 10/10 checks: both CLI
 compatibility controls and all generated LINE/primitive open/insert cases.
 The preceding null LAYER plot-style readback failure is fixed and verified
