@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-mpolygon-line-arc-polyline-projection-2026-11-15",
+  "date": "2026-11-15",
+  "status": "bounded_closed_line_arc_projection",
+  "supportClaimEffect": "none",
+  "sources": [
+    "https://github.com/mozman/ezdxf/blob/master/src/ezdxf/entities/boundary_paths.py",
+    "https://ezdxf.readthedocs.io/en/stable/dxfentities/hatch.html"
+  ],
+  "finding": "LibreCAD and ezdxf use polyline paths for MPOLYGON. The upstream writer retained a closed LINE/ARC path as edges, so LibreCAD's polyline readback expectation failed.",
+  "change": "Project connected closed LINE/ARC edge loops to closed bulge polylines using the DXF clockwise angle convention. Keep other paths in the pre-existing edge form. Retain boundary handles and do not mutate the source object.",
+  "verification": [
+    "The generated control fails on the prior library for all eight closed semicircle profiles and passes after the change.",
+    "A 64-profile matrix covers clockwise/counterclockwise quarter, half, major and wrapped arcs; connected and gapped loops; ASCII/Binary; AC1021/AC1032; invalid-radius refusal with sentinel preservation and same-writer corrected retry; source object state; and typed geometry/handle readback.",
+    "Independent ezdxf 1.4.5 reads the generated clockwise and counterclockwise semicircle profiles in ASCII and Binary with the expected signed bulge.",
+    "The selected HATCH boundary, MPOLYGON default, and seven-revision HATCH/MPOLYGON allocation transaction tests pass.",
+    "The upstream-linked LibreCAD combined selector improves from 10/12 to 11/12 cases passing (155/163 assertions)."
+  ],
+  "limits": [
+    "Endpoint continuity uses 64 machine epsilons times coordinate scale, so the conversion can normalize gaps within that numeric tolerance; larger gaps retain their original edge form.",
+    "Full-circle arcs, single-edge loops, splines, ellipses and other unsupported projections retain the prior output path; no curve flattening or broader native interoperability is claimed.",
+    "The remaining consumer test expects rejection for several nonprojected edge profiles; reconcile this with upstream's existing representation and source-preservation requirements before changing the behavior.",
+    "No DWG or DXF fixture files were added."
+  ]
+}

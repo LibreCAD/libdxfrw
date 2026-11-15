@@ -11076,6 +11076,78 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
             }
             return true;
         };
+        // A closed LINE/ARC edge loop can be represented by polyline bulges,
+        // the MPOLYGON path form used by LibreCAD and ezdxf. Keep every other
+        // edge profile on the existing writer path rather than approximate it.
+        struct PolygonSegment {
+            double startX, startY, endX, endY, bulge;
+        };
+        const auto segmentFor = [](const DRW_Entity* edge, PolygonSegment& segment) {
+            if (edge == nullptr)
+                return false;
+            if (edge->eType == DRW::LINE) {
+                const auto* line = dynamic_cast<const DRW_Line*>(edge);
+                if (line == nullptr)
+                    return false;
+                segment = {line->basePoint.x, line->basePoint.y,
+                           line->secPoint.x, line->secPoint.y, 0.0};
+            } else if (edge->eType == DRW::ARC) {
+                const auto* arc = dynamic_cast<const DRW_Arc*>(edge);
+                if (arc == nullptr || (arc->isccw != 0 && arc->isccw != 1)
+                    || !std::isfinite(arc->radious) || arc->radious <= 0.0
+                    || !std::isfinite(arc->staangle)
+                    || !std::isfinite(arc->endangle))
+                    return false;
+                constexpr double fullTurn = 2.0 * M_PI;
+                const double start = arc->isccw ? arc->staangle : -arc->staangle;
+                const double end = arc->isccw ? arc->endangle : -arc->endangle;
+                const double delta = arc->isccw ? end - start : start - end;
+                if (!std::isfinite(delta) || std::abs(delta) >= fullTurn)
+                    return false;
+                double sweep = std::fmod(delta, fullTurn);
+                if (sweep < 0.0)
+                    sweep += fullTurn;
+                if (sweep == 0.0)
+                    return false;
+                segment = {arc->basePoint.x + arc->radious * std::cos(start),
+                           arc->basePoint.y + arc->radious * std::sin(start),
+                           arc->basePoint.x + arc->radious * std::cos(end),
+                           arc->basePoint.y + arc->radious * std::sin(end),
+                           (arc->isccw ? 1.0 : -1.0) * std::tan(sweep / 4.0)};
+            } else {
+                return false;
+            }
+            return std::isfinite(segment.startX) && std::isfinite(segment.startY)
+                && std::isfinite(segment.endX) && std::isfinite(segment.endY)
+                && std::isfinite(segment.bulge);
+        };
+        const auto canProjectPolyline = [&segmentFor](const DRW_HatchLoop& loop) {
+            if ((loop.type & 2) != 0 || loop.objlist.size() < 2)
+                return false;
+            PolygonSegment first{}, previous{};
+            for (std::size_t i = 0; i < loop.objlist.size(); ++i) {
+                PolygonSegment current{};
+                if (!segmentFor(loop.objlist[i].get(), current))
+                    return false;
+                if (i == 0) {
+                    first = current;
+                } else {
+                    const double scale = std::max({1.0, std::abs(previous.endX),
+                        std::abs(previous.endY), std::abs(current.startX),
+                        std::abs(current.startY)});
+                    if (std::hypot(previous.endX - current.startX,
+                                   previous.endY - current.startY)
+                        > 64.0 * std::numeric_limits<double>::epsilon() * scale)
+                        return false;
+                }
+                previous = current;
+            }
+            const double scale = std::max({1.0, std::abs(previous.endX),
+                std::abs(previous.endY), std::abs(first.startX), std::abs(first.startY)});
+            return std::hypot(previous.endX - first.startX,
+                              previous.endY - first.startY)
+                <= 64.0 * std::numeric_limits<double>::epsilon() * scale;
+        };
         writer->writeString(0, "MPOLYGON");
         if (!writeEntity(ent))
             return false;
@@ -11093,6 +11165,29 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
         writer->writeInt32(91, loopCount);
         for (int i = 0; i < loopCount; ++i) {
             DRW_HatchLoop *loop = ent->looplist.at(i).get();
+            if (canProjectPolyline(*loop)) {
+                bool hasBulge = false;
+                for (const auto& edge : loop->objlist) {
+                    PolygonSegment segment{};
+                    (void)segmentFor(edge.get(), segment);
+                    hasBulge = hasBulge || segment.bulge != 0.0;
+                }
+                writer->writeInt32(92, loop->type | 2);
+                writer->writeInt16(73, 1);
+                writer->writeInt16(72, hasBulge ? 1 : 0);
+                writer->writeInt32(93, static_cast<int>(loop->objlist.size()));
+                for (const auto& edge : loop->objlist) {
+                    PolygonSegment segment{};
+                    (void)segmentFor(edge.get(), segment);
+                    writer->writeDouble(10, segment.startX);
+                    writer->writeDouble(20, segment.startY);
+                    if (hasBulge)
+                        writer->writeDouble(42, segment.bulge);
+                }
+                if (!writeBoundaryHandles(*loop))
+                    return false;
+                continue;
+            }
             writer->writeInt32(92, loop->type);
             if ((loop->type & 2) == 2) {
                 DRW_LWPolyline *pl = nullptr;
