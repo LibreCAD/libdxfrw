@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **533 completed implementation and qualification slices** and **32 remaining
+The plan records **534 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`533 / (533 + 32) = 94.3%`. The previous 28-package denominator was stale; a recount
+`534 / (534 + 32) = 94.3%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -16,6 +16,12 @@ been removed from the execution queue; their commits and receipts remain the
 evidence record. The remaining count is derived from the 32 OPEN P4–P8 rows below; completed
 sub-slices do not retire their parent package until its full exit gate passes. Treat the percentage as a rough equal-weight
 activity proxy, not as the percentage of package gates completed.
+
+For P8-A/P8-D, an incremental macOS LibreCAD consumer links the separately
+installed static archive and passes the selected DXF checks. Its SHP and JWW
+filters still require `intern/drw_textcodec.h` from a source overlay; a clean
+public-package-only build and broader consumer qualification remain open
+([receipt](docs/research/p8-librecad-installed-static-link-2026-11-15.json)).
 
 The hosted fast regression at `7ecc8fb9` found two failing controls after
 fresh linking: the numeric reservation expectation and raw-entity APPID
