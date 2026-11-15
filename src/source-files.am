@@ -81,6 +81,7 @@ dist_noinst_HEADERS = \
     intern/dwg_dxf_output_transaction.h \
     intern/dwg_datatable_ac1018_candidate.h \
     intern/dwg_tablecontent_ac1018_candidate.h \
+    intern/dwg_table_cache_membership_ac1018_candidate.h \
     intern/dwg_tablegeometry_ac1018_candidate.h \
     intern/dwg_table_roundtrip_xrecord_ac1018_candidate.h \
     intern/dwg_table_child_xrecord_ac1018_candidate.h \
@@ -109,6 +110,7 @@ dist_noinst_HEADERS = \
     intern/dwgreader32.h \
     intern/dwgreaderR11.h \
     intern/dwgreaderR1_40.h \
+    intern/dwgsortentsdiagnostic.h \
     intern/dwgtemplate.h \
     intern/dwgvaluekind.h \
     intern/dwgwriter.h \
@@ -148,6 +150,7 @@ dist_noinst_HEADERS = \
     intern/dxftablecapacity.h \
     intern/dxftablecontent.h \
     intern/dxftablereferences.h \
+    intern/dxftransparency.h \
     intern/dxfvalue.h \
     intern/dxfviewucs.h \
     intern/dxfwriter.h \
