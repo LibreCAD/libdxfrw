@@ -24,5 +24,16 @@
   "limits": [
     "Windows MSVC compilation and Windows batch filesystem behavior still require the hosted rerun.",
     "No Windows FreeCAD support or whole-platform qualification is asserted."
-  ]
+  ],
+  "followup_run": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43720529612/job/132831327530",
+    "source_commit": "58f5452c617e60a2761c0b5e3533772482378fc9",
+    "result": "Earlier public-header, lambda and batch-path errors are resolved. MSVC reached CLI source compilation but failed because windows.h min/max macros affected CLI-internal headers, and the CLI adapter exceeded default COFF object-section limits.",
+    "changes": "Define NOMINMAX before windows.h in the CLI translation unit and apply MSVC /bigobj privately to the dwg2dxf executable target; the public-header macro-preservation contract remains in place.",
+    "local_checks": [
+      "Clang warning-clean main.cpp syntax check.",
+      "Source inventory and whitespace checks pass."
+    ],
+    "limit": "MSVC compilation and Windows runtime remain unverified until the next hosted run."
+  }
 }
