@@ -1,0 +1,4661 @@
+{
+  "methods": [
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        418
+      ],
+      "method": "writeAcDbPlaceholder",
+      "test_source_reference_count": 6,
+      "test_source_references": [
+        {
+          "file": "tests/dictionary_default_objects_allocation_tests.cpp",
+          "line": 52,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_default_plotstyle_optin_tests.cpp",
+          "line": 281,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 1849,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dwg_plotstyle_nod_admission_tests.cpp",
+          "line": 80,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 17191,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1465,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        450
+      ],
+      "method": "writeAppId",
+      "test_source_reference_count": 23,
+      "test_source_references": [
+        {
+          "file": "tests/appid_table_allocation_tests.cpp",
+          "line": 47,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/attdef_equal_alignment_controls.h",
+          "line": 182,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 6137,
+          "occurrences": 8
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6028,
+          "occurrences": 34
+        },
+        {
+          "file": "tests/dwg_reader_matrix_tests.cpp",
+          "line": 11322,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_table_candidate_binding_tests.cpp",
+          "line": 93,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_tablestyle_xrecord_full_bundle_tests.cpp",
+          "line": 21,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_tablestyle_xrecord_reader_binding_tests.cpp",
+          "line": 16,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_xrecord_verified_source_tests.cpp",
+          "line": 115,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 767,
+          "occurrences": 36
+        },
+        {
+          "file": "tests/dxf_mtext_legacy_columns_tests.cpp",
+          "line": 61,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_no_raw_sections_tests.cpp",
+          "line": 107,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_symbol_output_tests.cpp",
+          "line": 85,
+          "occurrences": 8
+        },
+        {
+          "file": "tests/dxf_whole_source_tests.cpp",
+          "line": 151,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/gbk_codepage_tests.cpp",
+          "line": 6046,
+          "occurrences": 5
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 4642,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/lc3_compat_check.cpp",
+          "line": 158,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/raw_application_scope_controls.h",
+          "line": 48,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/render_preset_graph_output_controls.h",
+          "line": 574,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/render_preset_source_controls.h",
+          "line": 56,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/rendering_projection_controls.h",
+          "line": 186,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 1661,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wipeout_dwg_proxy_replay_tests.cpp",
+          "line": 68,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        469
+      ],
+      "method": "writeArc",
+      "test_source_reference_count": 8,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_legacy_block_content_chain_tests.cpp",
+          "line": 110,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_model_chain_optin_tests.cpp",
+          "line": 157,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6093,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 674,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_legacy_extrusion_conversion_tests.cpp",
+          "line": 58,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1404,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 24327,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2603,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        526
+      ],
+      "method": "writeArcAlignedText",
+      "test_source_reference_count": 6,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6743,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_text_style_resolution_tests.cpp",
+          "line": 110,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 680,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1396,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/numeric_locale_tests.cpp",
+          "line": 235,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 16542,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        616
+      ],
+      "method": "writeAssociativeConstraintGroup",
+      "test_source_reference_count": 2,
+      "test_source_references": [
+        {
+          "file": "tests/associative_constraint_group_allocation_tests.cpp",
+          "line": 463,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 9790,
+          "occurrences": 6
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        608
+      ],
+      "method": "writeAssociativeDependency",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/associative_dependency_allocation_tests.cpp",
+          "line": 111,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/associative_network_objects_allocation_tests.cpp",
+          "line": 182,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 8680,
+          "occurrences": 12
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        610
+      ],
+      "method": "writeAssociativeDependencyBody",
+      "test_source_reference_count": 2,
+      "test_source_references": [
+        {
+          "file": "tests/associative_dependency_allocation_tests.cpp",
+          "line": 113,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 9428,
+          "occurrences": 4
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        612
+      ],
+      "method": "writeAssociativeNetwork",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/associative_constraint_group_allocation_tests.cpp",
+          "line": 606,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/associative_network_objects_allocation_tests.cpp",
+          "line": 179,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 9114,
+          "occurrences": 6
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        614
+      ],
+      "method": "writeAssociativeVariable",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/associative_constraint_group_allocation_tests.cpp",
+          "line": 544,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/associative_network_objects_allocation_tests.cpp",
+          "line": 180,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 9305,
+          "occurrences": 5
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        519
+      ],
+      "method": "writeAttdef",
+      "test_source_reference_count": 8,
+      "test_source_references": [
+        {
+          "file": "tests/attdef_equal_alignment_controls.h",
+          "line": 92,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/attdef_role_controls.h",
+          "line": 150,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/block_owner_tests.cpp",
+          "line": 890,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/compound_source_profile_controls.h",
+          "line": 134,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 4371,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 12208,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dxf_mtext_legacy_columns_tests.cpp",
+          "line": 34,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1378,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        517
+      ],
+      "method": "writeAttrib",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dxf_attrib_version_allocation_tests.cpp",
+          "line": 179,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 12153,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_primitive_subtype_dispatch_tests.cpp",
+          "line": 26,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        591
+      ],
+      "method": "writeBackground",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/background_objects_allocation_tests.cpp",
+          "line": 43,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5816,
+          "occurrences": 8
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 4478,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1434,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 7960,
+          "occurrences": 10
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        492
+      ],
+      "method": "writeBlock",
+      "test_source_reference_count": 6,
+      "test_source_references": [
+        {
+          "file": "tests/block_owner_tests.cpp",
+          "line": 1611,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 13018,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 12950,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 11385,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 1585,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 6873,
+          "occurrences": 3
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        494
+      ],
+      "method": "writeBlockEnd",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/block_owner_tests.cpp",
+          "line": 1611,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 13019,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 12953,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 11387,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 4,
+      "header_lines": [
+        478,
+        479,
+        481,
+        487
+      ],
+      "method": "writeBlockRecord",
+      "test_source_reference_count": 6,
+      "test_source_references": [
+        {
+          "file": "tests/block_owner_tests.cpp",
+          "line": 1607,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 13005,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 12948,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 11355,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 1618,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 3967,
+          "occurrences": 9
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        623
+      ],
+      "method": "writeBlockRepresentationData",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/blockrepresentation_objects_allocation_tests.cpp",
+          "line": 63,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 12850,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 1914,
+          "occurrences": 5
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        532
+      ],
+      "method": "writeCamera",
+      "test_source_reference_count": 2,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6238,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1398,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        516
+      ],
+      "method": "writeCellStyleMap",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 73388,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5421,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_cellstylemap_allocation_tests.cpp",
+          "line": 90,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1458,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 16718,
+          "occurrences": 5
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        468
+      ],
+      "method": "writeCircle",
+      "test_source_reference_count": 12,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_legacy_block_content_chain_tests.cpp",
+          "line": 98,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dwg_legacy_insert_chain_tests.cpp",
+          "line": 246,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_model_chain_optin_tests.cpp",
+          "line": 156,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dwg_legacy_polyline_chain_tests.cpp",
+          "line": 293,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6086,
+          "occurrences": 5
+        },
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 673,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_legacy_extrusion_conversion_tests.cpp",
+          "line": 49,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_primitive_subtype_dispatch_tests.cpp",
+          "line": 22,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_r12_ellipse_boundary_tests.cpp",
+          "line": 24,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1361,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 24319,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2585,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        597
+      ],
+      "method": "writeCurvePath",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5755,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/partial_viewing_index_objects_allocation_tests.cpp",
+          "line": 96,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 4891,
+          "occurrences": 4
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        431
+      ],
+      "method": "writeDataLink",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/datalink_objects_allocation_tests.cpp",
+          "line": 81,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 59242,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1452,
+          "occurrences": 3
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        434
+      ],
+      "method": "writeDataTable",
+      "test_source_reference_count": 1,
+      "test_source_references": [
+        {
+          "file": "tests/dxf_datatable_read_tests.cpp",
+          "line": 98,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        603
+      ],
+      "method": "writeDbColor",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dbcolor_objects_allocation_tests.cpp",
+          "line": 69,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 87495,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 1953,
+          "occurrences": 6
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1438,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 3517,
+          "occurrences": 7
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        416
+      ],
+      "method": "writeDictionary",
+      "test_source_reference_count": 23,
+      "test_source_references": [
+        {
+          "file": "tests/associative_network_objects_allocation_tests.cpp",
+          "line": 178,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/block_owner_tests.cpp",
+          "line": 1619,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/datalink_objects_allocation_tests.cpp",
+          "line": 80,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dictionaryvar_objects_version_allocation_tests.cpp",
+          "line": 42,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 5942,
+          "occurrences": 24
+        },
+        {
+          "file": "tests/dwg_default_material_optin_tests.cpp",
+          "line": 489,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dwg_default_plotstyle_optin_tests.cpp",
+          "line": 264,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_block_content_chain_tests.cpp",
+          "line": 63,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_insert_chain_tests.cpp",
+          "line": 109,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_model_chain_optin_tests.cpp",
+          "line": 129,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_polyline_chain_tests.cpp",
+          "line": 150,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 1379,
+          "occurrences": 22
+        },
+        {
+          "file": "tests/dwg_object_vectors_tests.cpp",
+          "line": 13033,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_reader_matrix_tests.cpp",
+          "line": 17909,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_table_candidate_binding_tests.cpp",
+          "line": 117,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_tablestyle_xrecord_full_bundle_tests.cpp",
+          "line": 44,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dxf_dictionary_late_hardowner_tests.cpp",
+          "line": 22,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 16783,
+          "occurrences": 8
+        },
+        {
+          "file": "tests/gbk_codepage_tests.cpp",
+          "line": 6379,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/render_preset_graph_output_controls.h",
+          "line": 145,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/scale_objects_allocation_tests.cpp",
+          "line": 51,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10201,
+          "occurrences": 12
+        },
+        {
+          "file": "tests/writer_primitives_tests.cpp",
+          "line": 386,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        574
+      ],
+      "method": "writeDictionaryVar",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dictionaryvar_objects_version_allocation_tests.cpp",
+          "line": 44,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 4706,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 59114,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1437,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10207,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        417
+      ],
+      "method": "writeDictionaryWithDefault",
+      "test_source_reference_count": 7,
+      "test_source_references": [
+        {
+          "file": "tests/dictionary_default_objects_allocation_tests.cpp",
+          "line": 50,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_default_plotstyle_optin_tests.cpp",
+          "line": 272,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_insert_chain_tests.cpp",
+          "line": 112,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_model_chain_optin_tests.cpp",
+          "line": 134,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 4718,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dwg_plotstyle_nod_admission_tests.cpp",
+          "line": 79,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 17190,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        559
+      ],
+      "method": "writeDimension",
+      "test_source_reference_count": 6,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 85354,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 33797,
+          "occurrences": 5
+        },
+        {
+          "file": "tests/dxf_dimension_oblique_tests.cpp",
+          "line": 18,
+          "occurrences": 9
+        },
+        {
+          "file": "tests/dxf_primitive_subtype_dispatch_tests.cpp",
+          "line": 28,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1381,
+          "occurrences": 23
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 8318,
+          "occurrences": 19
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        604
+      ],
+      "method": "writeDimensionAssociation",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dimassoc_physical_transport_tests.cpp",
+          "line": 151,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 4566,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dwg_object_vectors_tests.cpp",
+          "line": 21867,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 23472,
+          "occurrences": 7
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 1915,
+          "occurrences": 10
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        445
+      ],
+      "method": "writeDimstyle",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dimstyle_table_allocation_tests.cpp",
+          "line": 101,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 29771,
+          "occurrences": 5
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 22848,
+          "occurrences": 5
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        622
+      ],
+      "method": "writeDynamicBlockObject",
+      "test_source_reference_count": 2,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 12324,
+          "occurrences": 11
+        },
+        {
+          "file": "tests/dynamic_block_objects_allocation_tests.cpp",
+          "line": 201,
+          "occurrences": 4
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        470
+      ],
+      "method": "writeEllipse",
+      "test_source_reference_count": 8,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_ellipse_wcs_test.h",
+          "line": 23,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6119,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 676,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_ellipse_extreme_axis_tests.cpp",
+          "line": 13,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_r12_ellipse_boundary_tests.cpp",
+          "line": 17,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_r12_ellipse_wrap_tests.cpp",
+          "line": 25,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1405,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2612,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        617
+      ],
+      "method": "writeEvaluationGraph",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 4606,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/evaluation_graph_objects_allocation_tests.cpp",
+          "line": 126,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10243,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        581
+      ],
+      "method": "writeField",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 4750,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/field_objects_allocation_tests.cpp",
+          "line": 128,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/partial_viewing_index_objects_allocation_tests.cpp",
+          "line": 91,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10222,
+          "occurrences": 21
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        582
+      ],
+      "method": "writeFieldList",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 4737,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/field_objects_allocation_tests.cpp",
+          "line": 132,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/partial_viewing_index_objects_allocation_tests.cpp",
+          "line": 93,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10223,
+          "occurrences": 8
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        578
+      ],
+      "method": "writeGeoData",
+      "test_source_reference_count": 8,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 85775,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5507,
+          "occurrences": 5
+        },
+        {
+          "file": "tests/dwg_object_vectors_tests.cpp",
+          "line": 22812,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1443,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/gbk_codepage_tests.cpp",
+          "line": 5967,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/geodata_objects_allocation_tests.cpp",
+          "line": 41,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 18811,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 3343,
+          "occurrences": 37
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        533
+      ],
+      "method": "writeGeoPositionMarker",
+      "test_source_reference_count": 2,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6261,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1399,
+          "occurrences": 3
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        528
+      ],
+      "method": "writeHatch",
+      "test_source_reference_count": 14,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_hatch_edge_subtype_tests.cpp",
+          "line": 71,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_hatch_ellipse_edge_dwg_tests.cpp",
+          "line": 60,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_hatch_pattern_angle_units_tests.cpp",
+          "line": 108,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6665,
+          "occurrences": 8
+        },
+        {
+          "file": "tests/dxf_ellipse_extreme_axis_tests.cpp",
+          "line": 32,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_hatch_boundary_payload_tests.cpp",
+          "line": 22,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_hatch_pattern_angle_units_tests.cpp",
+          "line": 38,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_primitive_subtype_dispatch_tests.cpp",
+          "line": 27,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_r12_ellipse_wrap_tests.cpp",
+          "line": 37,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1368,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 966,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/hatch_reference_tests.cpp",
+          "line": 966,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2953,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 21711,
+          "occurrences": 8
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        477
+      ],
+      "method": "writeHelix",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 27133,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6223,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1414,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2821,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 2,
+      "header_lines": [
+        541,
+        545
+      ],
+      "method": "writeImage",
+      "test_source_reference_count": 6,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 5933,
+          "occurrences": 8
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 2581,
+          "occurrences": 15
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 16777,
+          "occurrences": 9
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1363,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/image_writer_version_allocation_tests.cpp",
+          "line": 57,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wipeout_dwg_proxy_replay_tests.cpp",
+          "line": 83,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        501
+      ],
+      "method": "writeInsert",
+      "test_source_reference_count": 13,
+      "test_source_references": [
+        {
+          "file": "tests/attdef_equal_alignment_controls.h",
+          "line": 92,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/compound_source_profile_controls.h",
+          "line": 134,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 13027,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_block_content_chain_tests.cpp",
+          "line": 125,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_insert_chain_tests.cpp",
+          "line": 214,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dwg_legacy_model_chain_optin_tests.cpp",
+          "line": 161,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 2187,
+          "occurrences": 18
+        },
+        {
+          "file": "tests/dxf_attrib_version_allocation_tests.cpp",
+          "line": 180,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 12955,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_legacy_extrusion_conversion_tests.cpp",
+          "line": 633,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1372,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 1611,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 3973,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        474
+      ],
+      "method": "writeLWPolyline",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6099,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 26621,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1362,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/hatch_reference_tests.cpp",
+          "line": 967,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2921,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        444
+      ],
+      "method": "writeLayer",
+      "test_source_reference_count": 6,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 14899,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 28931,
+          "occurrences": 10
+        },
+        {
+          "file": "tests/dxf_layer_color_order_tests.cpp",
+          "line": 25,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_symbol_output_tests.cpp",
+          "line": 76,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/layer_table_allocation_tests.cpp",
+          "line": 70,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 6458,
+          "occurrences": 3
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        562
+      ],
+      "method": "writeLayout",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 1565,
+          "occurrences": 9
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 20553,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1463,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/render_preset_graph_output_controls.h",
+          "line": 372,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 7747,
+          "occurrences": 10
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        558
+      ],
+      "method": "writeLeader",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 85542,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6680,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1369,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 6229,
+          "occurrences": 4
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        531
+      ],
+      "method": "writeLight",
+      "test_source_reference_count": 7,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 29927,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg2dxf_light_angle_tests.cpp",
+          "line": 65,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6376,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 32151,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_light_rgb_421_tests.cpp",
+          "line": 17,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1397,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/light_dxf_proxy_replay_tests.cpp",
+          "line": 23,
+          "occurrences": 3
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        595
+      ],
+      "method": "writeLightList",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5130,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_lightlist_resolver_snapshot_tests.cpp",
+          "line": 67,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 10331,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 5649,
+          "occurrences": 4
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        464
+      ],
+      "method": "writeLine",
+      "test_source_reference_count": 50,
+      "test_source_references": [
+        {
+          "file": "tests/debug_state_tests.cpp",
+          "line": 222,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 8675,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_ac1021_polyline_block_membership_tests.cpp",
+          "line": 51,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dwg_ac1027_block_control_boundary_tests.cpp",
+          "line": 79,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_ac1027_default_graph_strict_tests.cpp",
+          "line": 64,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_ac1027_empty_view_ucs_controls_tests.cpp",
+          "line": 81,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_ac1027_maintenance_header_tests.cpp",
+          "line": 18,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_default_material_optin_tests.cpp",
+          "line": 483,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_default_plotstyle_optin_tests.cpp",
+          "line": 255,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_ellipse_wcs_test.h",
+          "line": 24,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_hatch_edge_subtype_tests.cpp",
+          "line": 76,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_hatch_ellipse_edge_dwg_tests.cpp",
+          "line": 64,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_hatch_pattern_angle_units_tests.cpp",
+          "line": 122,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_block_content_chain_tests.cpp",
+          "line": 83,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dwg_legacy_insert_chain_tests.cpp",
+          "line": 127,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dwg_legacy_model_chain_optin_tests.cpp",
+          "line": 155,
+          "occurrences": 5
+        },
+        {
+          "file": "tests/dwg_legacy_polyline_chain_tests.cpp",
+          "line": 240,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 1755,
+          "occurrences": 32
+        },
+        {
+          "file": "tests/dwg_modern_header_section_size_tests.cpp",
+          "line": 49,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_modern_repeated_header_tests.cpp",
+          "line": 85,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_mtext_rotation_direction_tests.cpp",
+          "line": 62,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_object_vectors_tests.cpp",
+          "line": 13148,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dwg_polyline_1018_1024_membership_tests.cpp",
+          "line": 55,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_polyline_cross_scope_tests.cpp",
+          "line": 54,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dwg_polyline_owner_facade_tests.cpp",
+          "line": 34,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_reader_matrix_tests.cpp",
+          "line": 11331,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_solid_trace_elevation_tests.cpp",
+          "line": 134,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dwg_tablestyle_xrecord_full_bundle_tests.cpp",
+          "line": 23,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_text_alignment_elevation_tests.cpp",
+          "line": 26,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_text_style_resolution_tests.cpp",
+          "line": 115,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_view_angle_units_tests.cpp",
+          "line": 26,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_vport_angle_units_tests.cpp",
+          "line": 27,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 675,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 4321,
+          "occurrences": 29
+        },
+        {
+          "file": "tests/dxf_lightlist_resolver_snapshot_tests.cpp",
+          "line": 63,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_mtext_legacy_columns_tests.cpp",
+          "line": 32,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_primitive_subtype_dispatch_tests.cpp",
+          "line": 21,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_symbol_output_tests.cpp",
+          "line": 97,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1360,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_xdata_int16_tests.cpp",
+          "line": 232,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/gbk_codepage_tests.cpp",
+          "line": 6043,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 5104,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/hatch_reference_tests.cpp",
+          "line": 969,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/light_dxf_proxy_replay_tests.cpp",
+          "line": 106,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/partial_viewing_index_objects_allocation_tests.cpp",
+          "line": 82,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/render_preset_graph_output_controls.h",
+          "line": 572,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 1591,
+          "occurrences": 6
+        },
+        {
+          "file": "tests/sortents_objects_allocation_tests.cpp",
+          "line": 97,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 8319,
+          "occurrences": 17
+        },
+        {
+          "file": "tests/wipeout_dwg_proxy_replay_tests.cpp",
+          "line": 82,
+          "occurrences": 3
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        415
+      ],
+      "method": "writeLineType",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 29711,
+          "occurrences": 5
+        },
+        {
+          "file": "tests/dxf_symbol_output_tests.cpp",
+          "line": 577,
+          "occurrences": 7
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 1033,
+          "occurrences": 13
+        },
+        {
+          "file": "tests/ltype_table_allocation_tests.cpp",
+          "line": 103,
+          "occurrences": 3
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        577
+      ],
+      "method": "writeMLeaderStyle",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 4696,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1460,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/mleaderstyle_objects_allocation_tests.cpp",
+          "line": 74,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10224,
+          "occurrences": 12
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        522
+      ],
+      "method": "writeMLine",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6321,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 47760,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1370,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/gbk_codepage_tests.cpp",
+          "line": 199,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10777,
+          "occurrences": 5
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        586
+      ],
+      "method": "writeMLineStyle",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 2439,
+          "occurrences": 6
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1432,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/mline_style_objects_allocation_tests.cpp",
+          "line": 102,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10225,
+          "occurrences": 7
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        529
+      ],
+      "method": "writeMPolygon",
+      "test_source_reference_count": 9,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 35819,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dxf_ellipse_extreme_axis_tests.cpp",
+          "line": 32,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 16079,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_hatch_boundary_payload_tests.cpp",
+          "line": 22,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_hatch_pattern_angle_units_tests.cpp",
+          "line": 37,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1402,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 5149,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2975,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 21733,
+          "occurrences": 6
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        521
+      ],
+      "method": "writeMText",
+      "test_source_reference_count": 6,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6113,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_mtext_rotation_direction_tests.cpp",
+          "line": 35,
+          "occurrences": 12
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 12223,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_mtext_legacy_columns_tests.cpp",
+          "line": 35,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1411,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/gbk_codepage_tests.cpp",
+          "line": 6358,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        590
+      ],
+      "method": "writeMaterial",
+      "test_source_reference_count": 9,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 8749,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_default_material_optin_tests.cpp",
+          "line": 529,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 4904,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dwg_material_replay_refusal_tests.cpp",
+          "line": 87,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_compact_material_graph_tests.cpp",
+          "line": 17,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 34479,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_sparse_material_raw_tests.cpp",
+          "line": 31,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1444,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10227,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        535
+      ],
+      "method": "writeMesh",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 27131,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6405,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1366,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 2700,
+          "occurrences": 8
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2735,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        556
+      ],
+      "method": "writeModelerGeometry",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 27137,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 18991,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/modeler_dxf_allocation_tests.cpp",
+          "line": 94,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2563,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 6518,
+          "occurrences": 4
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        596
+      ],
+      "method": "writeMotionPath",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5740,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/partial_viewing_index_objects_allocation_tests.cpp",
+          "line": 95,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 4890,
+          "occurrences": 4
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        557
+      ],
+      "method": "writeMultiLeader",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1374,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 5098,
+          "occurrences": 11
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 1928,
+          "occurrences": 16
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        551
+      ],
+      "method": "writeNavisworksModel",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6461,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 689,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1377,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 4648,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        553
+      ],
+      "method": "writeNavisworksModelDef",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5682,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_navisworks_model_def_version_allocation_tests.cpp",
+          "line": 90,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1446,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 2855,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        599
+      ],
+      "method": "writeObjectPtr",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5781,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 12407,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/partial_viewing_index_objects_allocation_tests.cpp",
+          "line": 98,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 4893,
+          "occurrences": 3
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        537
+      ],
+      "method": "writeOle2Frame",
+      "test_source_reference_count": 2,
+      "test_source_references": [
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1416,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 19292,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        538
+      ],
+      "method": "writeOleFrame",
+      "test_source_reference_count": 2,
+      "test_source_references": [
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1417,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 19291,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        600
+      ],
+      "method": "writePartialViewingIndex",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5799,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/partial_viewing_index_objects_allocation_tests.cpp",
+          "line": 100,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 5925,
+          "occurrences": 8
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        561
+      ],
+      "method": "writePlotSettings",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 2056,
+          "occurrences": 7
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 20554,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1435,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/render_preset_graph_output_controls.h",
+          "line": 147,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 7746,
+          "occurrences": 4
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        451
+      ],
+      "method": "writePoint",
+      "test_source_reference_count": 12,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_hatch_pattern_angle_units_tests.cpp",
+          "line": 108,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6081,
+          "occurrences": 6
+        },
+        {
+          "file": "tests/dwg_reader_matrix_tests.cpp",
+          "line": 21230,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_text_alignment_elevation_tests.cpp",
+          "line": 27,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_viewport_angle_units_tests.cpp",
+          "line": 134,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 672,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_mtext_legacy_columns_tests.cpp",
+          "line": 33,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_primitive_subtype_dispatch_tests.cpp",
+          "line": 20,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1406,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/partial_viewing_index_objects_allocation_tests.cpp",
+          "line": 83,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2681,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 5898,
+          "occurrences": 6
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        549
+      ],
+      "method": "writePointCloud",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6825,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 685,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_pointcloud_omitted_fields_tests.cpp",
+          "line": 22,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1375,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 2169,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        554
+      ],
+      "method": "writePointCloudColorMap",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5663,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_pointcloud_colormap_version_allocation_tests.cpp",
+          "line": 108,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1445,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 2860,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        552
+      ],
+      "method": "writePointCloudDef",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5607,
+          "occurrences": 6
+        },
+        {
+          "file": "tests/dxf_pointcloud_def_version_allocation_tests.cpp",
+          "line": 102,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1447,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 1892,
+          "occurrences": 7
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        550
+      ],
+      "method": "writePointCloudEx",
+      "test_source_reference_count": 6,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6857,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_pointcloudex_cropped_fields_tests.cpp",
+          "line": 101,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 687,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_pointcloud_omitted_fields_tests.cpp",
+          "line": 22,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1376,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 2170,
+          "occurrences": 4
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        598
+      ],
+      "method": "writePointPath",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5769,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/partial_viewing_index_objects_allocation_tests.cpp",
+          "line": 97,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 4892,
+          "occurrences": 3
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        475
+      ],
+      "method": "writePolyline",
+      "test_source_reference_count": 20,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_ac1021_polyline_block_membership_tests.cpp",
+          "line": 76,
+          "occurrences": 12
+        },
+        {
+          "file": "tests/dwg_ac1021_polyline_group_targets_tests.cpp",
+          "line": 63,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_ac1027_block_control_boundary_tests.cpp",
+          "line": 79,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_ac1027_empty_view_ucs_controls_tests.cpp",
+          "line": 81,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_ac1027_maintenance_header_tests.cpp",
+          "line": 17,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_model_chain_optin_tests.cpp",
+          "line": 160,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_legacy_polyline_chain_tests.cpp",
+          "line": 79,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 2915,
+          "occurrences": 11
+        },
+        {
+          "file": "tests/dwg_modern_header_section_size_tests.cpp",
+          "line": 48,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_modern_repeated_header_tests.cpp",
+          "line": 81,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_polyline_1018_1024_membership_tests.cpp",
+          "line": 76,
+          "occurrences": 11
+        },
+        {
+          "file": "tests/dwg_polyline_cross_scope_group_tests.cpp",
+          "line": 63,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_polyline_cross_scope_tests.cpp",
+          "line": 79,
+          "occurrences": 12
+        },
+        {
+          "file": "tests/dwg_polyline_owner_facade_tests.cpp",
+          "line": 22,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_vertex_tangent_units_tests.cpp",
+          "line": 26,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 65791,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1371,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/partial_viewing_index_objects_allocation_tests.cpp",
+          "line": 84,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2701,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 20561,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 2,
+      "header_lines": [
+        455,
+        461
+      ],
+      "method": "writeProxyEntity",
+      "test_source_reference_count": 2,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 29608,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/proxy_entity_object_id_allocation_tests.cpp",
+          "line": 125,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        525
+      ],
+      "method": "writeRText",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6705,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_text_style_resolution_tests.cpp",
+          "line": 110,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 678,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1395,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 16528,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        575
+      ],
+      "method": "writeRasterVariables",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 86282,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 4762,
+          "occurrences": 7
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1436,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/rastervariables_objects_allocation_tests.cpp",
+          "line": 76,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 3124,
+          "occurrences": 4
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        643
+      ],
+      "method": "writeRawDxfEntity",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 7120,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_sectionobject_411_tests.cpp",
+          "line": 13,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1426,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 2,
+      "header_lines": [
+        625,
+        626
+      ],
+      "method": "writeRawDxfObject",
+      "test_source_reference_count": 31,
+      "test_source_references": [
+        {
+          "file": "tests/appid_table_allocation_tests.cpp",
+          "line": 61,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/background_objects_allocation_tests.cpp",
+          "line": 45,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dbcolor_objects_allocation_tests.cpp",
+          "line": 71,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dictionary_default_objects_allocation_tests.cpp",
+          "line": 73,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dimstyle_table_allocation_tests.cpp",
+          "line": 113,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 7123,
+          "occurrences": 9
+        },
+        {
+          "file": "tests/dxf_datatable_read_tests.cpp",
+          "line": 114,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 5938,
+          "occurrences": 9
+        },
+        {
+          "file": "tests/dxf_lightlist_resolver_snapshot_tests.cpp",
+          "line": 84,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_sparse_material_raw_tests.cpp",
+          "line": 31,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_sun_color_order_tests.cpp",
+          "line": 58,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1451,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_xdata_int16_tests.cpp",
+          "line": 136,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/geodata_objects_allocation_tests.cpp",
+          "line": 43,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/layer_table_allocation_tests.cpp",
+          "line": 82,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/ltype_table_allocation_tests.cpp",
+          "line": 115,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/mleaderstyle_objects_allocation_tests.cpp",
+          "line": 86,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/mline_style_objects_allocation_tests.cpp",
+          "line": 116,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/numeric_locale_tests.cpp",
+          "line": 183,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/partial_viewing_index_objects_allocation_tests.cpp",
+          "line": 86,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/raw_application_scope_controls.h",
+          "line": 51,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/raw_object_string_override_allocation_tests.cpp",
+          "line": 134,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/render_preset_graph_output_controls.h",
+          "line": 146,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/sortents_objects_allocation_tests.cpp",
+          "line": 84,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/spatial_filter_objects_allocation_tests.cpp",
+          "line": 49,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/sun_owner_override_allocation_tests.cpp",
+          "line": 129,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/textstyle_table_allocation_tests.cpp",
+          "line": 70,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/ucs_table_allocation_tests.cpp",
+          "line": 115,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/view_table_allocation_tests.cpp",
+          "line": 167,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/vport_table_allocation_tests.cpp",
+          "line": 167,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 1031,
+          "occurrences": 97
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        636
+      ],
+      "method": "writeRawDxfObjectWithStringAndInt32Overrides",
+      "test_source_reference_count": 1,
+      "test_source_references": [
+        {
+          "file": "tests/raw_object_string_override_allocation_tests.cpp",
+          "line": 136,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        631
+      ],
+      "method": "writeRawDxfObjectWithStringOverrides",
+      "test_source_reference_count": 1,
+      "test_source_references": [
+        {
+          "file": "tests/raw_object_string_override_allocation_tests.cpp",
+          "line": 139,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        466
+      ],
+      "method": "writeRay",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6145,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 65047,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_primitive_subtype_dispatch_tests.cpp",
+          "line": 23,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1412,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2667,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        601
+      ],
+      "method": "writeRenderSettings",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 4820,
+          "occurrences": 13
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 12190,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/render_preset_source_controls.h",
+          "line": 57,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/rendering_projection_controls.h",
+          "line": 187,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 3833,
+          "occurrences": 6
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        573
+      ],
+      "method": "writeScale",
+      "test_source_reference_count": 6,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5148,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 16795,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1433,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 13066,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/scale_objects_allocation_tests.cpp",
+          "line": 52,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10206,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        602
+      ],
+      "method": "writeSection",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5903,
+          "occurrences": 8
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 10942,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 1902,
+          "occurrences": 13
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        534
+      ],
+      "method": "writeSectionObject",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 683,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_sectionobject_vertices_tests.cpp",
+          "line": 19,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1401,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 6346,
+          "occurrences": 9
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        536
+      ],
+      "method": "writeShape",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6287,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 681,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1418,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        472
+      ],
+      "method": "writeSolid",
+      "test_source_reference_count": 7,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6133,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dwg_solid_trace_elevation_tests.cpp",
+          "line": 136,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 670,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fourth_corner_tests.cpp",
+          "line": 31,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_legacy_extrusion_conversion_tests.cpp",
+          "line": 427,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1408,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2651,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        580
+      ],
+      "method": "writeSortEntsTable",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 4728,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 20013,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/sortents_objects_allocation_tests.cpp",
+          "line": 70,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10221,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        579
+      ],
+      "method": "writeSpatialFilter",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5466,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 10793,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 789,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/spatial_filter_objects_allocation_tests.cpp",
+          "line": 47,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10218,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        476
+      ],
+      "method": "writeSpline",
+      "test_source_reference_count": 6,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6198,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_spline_helix_dispatch_tests.cpp",
+          "line": 35,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1367,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/hatch_reference_tests.cpp",
+          "line": 968,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2799,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/spline_rational_weight_precision_tests.cpp",
+          "line": 36,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        572
+      ],
+      "method": "writeSun",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 29706,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 65804,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_sun_color_order_tests.cpp",
+          "line": 48,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1442,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10205,
+          "occurrences": 6
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        592
+      ],
+      "method": "writeSunStudy",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5721,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 10575,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 4888,
+          "occurrences": 14
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        555
+      ],
+      "method": "writeSurface",
+      "test_source_reference_count": 6,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 27135,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6544,
+          "occurrences": 11
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1420,
+          "occurrences": 6
+        },
+        {
+          "file": "tests/hardening_tests.cpp",
+          "line": 18972,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2506,
+          "occurrences": 7
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 4455,
+          "occurrences": 4
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        502
+      ],
+      "method": "writeTable",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 15394,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/dwg_tablestyle_xrecord_full_bundle_tests.cpp",
+          "line": 24,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/table_legacy_height_controls.h",
+          "line": 410,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/table_legacy_merge_controls.h",
+          "line": 550,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 6665,
+          "occurrences": 3
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        439
+      ],
+      "method": "writeTableContent",
+      "test_source_reference_count": 2,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 11705,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/tablecontent_objects_allocation_tests.cpp",
+          "line": 150,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        443
+      ],
+      "method": "writeTableGeometry",
+      "test_source_reference_count": 1,
+      "test_source_references": [
+        {
+          "file": "tests/tablegeometry_objects_allocation_tests.cpp",
+          "line": 90,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        512
+      ],
+      "method": "writeTableStyle",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5305,
+          "occurrences": 9
+        },
+        {
+          "file": "tests/dwg_object_vectors_tests.cpp",
+          "line": 13056,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_tablestyle_xrecord_full_bundle_tests.cpp",
+          "line": 44,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_tablestyle_allocation_tests.cpp",
+          "line": 150,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1456,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        508
+      ],
+      "method": "writeTableWithLegacySourcePresence",
+      "test_source_reference_count": 1,
+      "test_source_references": [
+        {
+          "file": "tests/table_legacy_height_controls.h",
+          "line": 407,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        505
+      ],
+      "method": "writeTableWithLegacyZeroOverrides",
+      "test_source_reference_count": 2,
+      "test_source_references": [
+        {
+          "file": "tests/table_legacy_height_controls.h",
+          "line": 406,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/table_legacy_merge_controls.h",
+          "line": 552,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        524
+      ],
+      "method": "writeText",
+      "test_source_reference_count": 11,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 20082,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6106,
+          "occurrences": 10
+        },
+        {
+          "file": "tests/dwg_text_alignment_elevation_tests.cpp",
+          "line": 27,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_text_style_resolution_tests.cpp",
+          "line": 84,
+          "occurrences": 5
+        },
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 677,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 32548,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_legacy_extrusion_conversion_tests.cpp",
+          "line": 537,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_mtext_legacy_columns_tests.cpp",
+          "line": 31,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_primitive_subtype_dispatch_tests.cpp",
+          "line": 25,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1410,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/gbk_codepage_tests.cpp",
+          "line": 6043,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        446
+      ],
+      "method": "writeTextstyle",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dimstyle_table_allocation_tests.cpp",
+          "line": 97,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 29731,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_symbol_output_tests.cpp",
+          "line": 80,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/textstyle_table_allocation_tests.cpp",
+          "line": 58,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        527
+      ],
+      "method": "writeTolerance",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 85169,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6688,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1394,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        471
+      ],
+      "method": "writeTrace",
+      "test_source_reference_count": 8,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6126,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_solid_trace_elevation_tests.cpp",
+          "line": 136,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_3d_entity_version_allocation_tests.cpp",
+          "line": 671,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_fourth_corner_tests.cpp",
+          "line": 32,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_legacy_extrusion_conversion_tests.cpp",
+          "line": 422,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_primitive_subtype_dispatch_tests.cpp",
+          "line": 24,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1409,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2661,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        449
+      ],
+      "method": "writeUCS",
+      "test_source_reference_count": 2,
+      "test_source_references": [
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 11651,
+          "occurrences": 4
+        },
+        {
+          "file": "tests/ucs_table_allocation_tests.cpp",
+          "line": 103,
+          "occurrences": 2
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        523
+      ],
+      "method": "writeUnderlay",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6491,
+          "occurrences": 5
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 27133,
+          "occurrences": 3
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1419,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 4713,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        576
+      ],
+      "method": "writeUnderlayDefinition",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 5567,
+          "occurrences": 5
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1440,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10194,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        448
+      ],
+      "method": "writeView",
+      "test_source_reference_count": 3,
+      "test_source_references": [
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 7804,
+          "occurrences": 7
+        },
+        {
+          "file": "tests/view_table_allocation_tests.cpp",
+          "line": 155,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 1817,
+          "occurrences": 6
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        530
+      ],
+      "method": "writeViewport",
+      "test_source_reference_count": 8,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 13610,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_viewport_angle_units_tests.cpp",
+          "line": 128,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 4234,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_viewport_ambient_color_order_tests.cpp",
+          "line": 21,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_viewport_status_domain_tests.cpp",
+          "line": 35,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1403,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/render_preset_graph_output_controls.h",
+          "line": 365,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 7099,
+          "occurrences": 5
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        447
+      ],
+      "method": "writeVport",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 5814,
+          "occurrences": 5
+        },
+        {
+          "file": "tests/dxf_symbol_output_tests.cpp",
+          "line": 440,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/vport_table_allocation_tests.cpp",
+          "line": 155,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 7314,
+          "occurrences": 5
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        548
+      ],
+      "method": "writeWipeout",
+      "test_source_reference_count": 6,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6437,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 19185,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_wipeout_version_allocation_tests.cpp",
+          "line": 102,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1365,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 4783,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wipeout_dwg_proxy_replay_tests.cpp",
+          "line": 81,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        589
+      ],
+      "method": "writeWipeoutVariables",
+      "test_source_reference_count": 5,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 86975,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 4777,
+          "occurrences": 5
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1441,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 3201,
+          "occurrences": 6
+        },
+        {
+          "file": "tests/wipeoutvariables_objects_allocation_tests.cpp",
+          "line": 74,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        419
+      ],
+      "method": "writeXRecord",
+      "test_source_reference_count": 20,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 5707,
+          "occurrences": 18
+        },
+        {
+          "file": "tests/dwg_default_material_optin_tests.cpp",
+          "line": 573,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_legacy_block_content_chain_tests.cpp",
+          "line": 116,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_insert_chain_tests.cpp",
+          "line": 138,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_model_chain_optin_tests.cpp",
+          "line": 172,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_legacy_polyline_chain_tests.cpp",
+          "line": 234,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 1903,
+          "occurrences": 12
+        },
+        {
+          "file": "tests/dwg_reader_matrix_tests.cpp",
+          "line": 17914,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_table_candidate_binding_tests.cpp",
+          "line": 114,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_table_roundtrip_xrecord_ac1018_candidate_tests.cpp",
+          "line": 167,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_tablestyle_xrecord_full_bundle_tests.cpp",
+          "line": 51,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dwg_tablestyle_xrecord_reader_binding_tests.cpp",
+          "line": 22,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dwg_xrecord_verified_source_tests.cpp",
+          "line": 124,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_datatable_read_tests.cpp",
+          "line": 111,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_dictionary_late_hardowner_tests.cpp",
+          "line": 22,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 18096,
+          "occurrences": 6
+        },
+        {
+          "file": "tests/dxf_symbol_output_tests.cpp",
+          "line": 92,
+          "occurrences": 5
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1439,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/gbk_codepage_tests.cpp",
+          "line": 6390,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/wave1_tests.cpp",
+          "line": 10204,
+          "occurrences": 11
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        424
+      ],
+      "method": "writeXRecordDwgCompatibility",
+      "test_source_reference_count": 2,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 8493,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_xdata_int16_tests.cpp",
+          "line": 238,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": false,
+      "declaration_count": 1,
+      "header_lines": [
+        428
+      ],
+      "method": "writeXRecordLayerStateCompatibility",
+      "test_source_reference_count": 2,
+      "test_source_references": [
+        {
+          "file": "tests/dwg2dxf_adapter_tests.cpp",
+          "line": 59242,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_xdata_int16_tests.cpp",
+          "line": 237,
+          "occurrences": 1
+        }
+      ]
+    },
+    {
+      "allocation_transaction_test_reference": true,
+      "declaration_count": 1,
+      "header_lines": [
+        467
+      ],
+      "method": "writeXline",
+      "test_source_reference_count": 4,
+      "test_source_references": [
+        {
+          "file": "tests/dwg_local_roundtrip_tests.cpp",
+          "line": 6150,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/dxf_fixture_tests.cpp",
+          "line": 65047,
+          "occurrences": 1
+        },
+        {
+          "file": "tests/dxf_write_allocation_transaction_tests.cpp",
+          "line": 1413,
+          "occurrences": 2
+        },
+        {
+          "file": "tests/semantic_differential_adapter.cpp",
+          "line": 2673,
+          "occurrences": 1
+        }
+      ]
+    }
+  ],
+  "methods_with_no_test_source_reference": [],
+  "methods_without_reference_in_whole_file_allocation_test": [
+    "writeAppId",
+    "writeAssociativeConstraintGroup",
+    "writeAssociativeDependency",
+    "writeAssociativeDependencyBody",
+    "writeAssociativeNetwork",
+    "writeAssociativeVariable",
+    "writeAttrib",
+    "writeBlockRepresentationData",
+    "writeCurvePath",
+    "writeDataTable",
+    "writeDictionary",
+    "writeDictionaryWithDefault",
+    "writeDimensionAssociation",
+    "writeDimstyle",
+    "writeDynamicBlockObject",
+    "writeEvaluationGraph",
+    "writeField",
+    "writeFieldList",
+    "writeLayer",
+    "writeLineType",
+    "writeModelerGeometry",
+    "writeMotionPath",
+    "writePartialViewingIndex",
+    "writePointPath",
+    "writeProxyEntity",
+    "writeRawDxfObjectWithStringAndInt32Overrides",
+    "writeRawDxfObjectWithStringOverrides",
+    "writeSortEntsTable",
+    "writeTable",
+    "writeTableContent",
+    "writeTableGeometry",
+    "writeTableWithLegacySourcePresence",
+    "writeTableWithLegacyZeroOverrides",
+    "writeTextstyle",
+    "writeUCS",
+    "writeView",
+    "writeVport",
+    "writeXRecordDwgCompatibility",
+    "writeXRecordLayerStateCompatibility"
+  ],
+  "public_writer_declaration_count": 120,
+  "public_writer_method_count": 114,
+  "repository_head": "80abb37470a23a3d35b83e87de540f7750c07829",
+  "schema": "libdxfrw.public-writer-test-mention-index.v1",
+  "scope": "Textual source index only; mentions do not prove assertions, rollback, retry, readback, version coverage, or semantics."
+}
