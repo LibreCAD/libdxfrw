@@ -596,7 +596,11 @@ bool DRW_Header::parseCodeImpl(int code, const std::unique_ptr<dxfReader>& reade
             // normalized public HEADER entry and its semantic decoder.
             if (!captureDxfCodePageDeclaration(reader))
                 return false;
-            reader->setCodePage(reader->dxfCodePagePolicy() == DRW::DxfCodePagePolicy::ExactNamed
+            const auto selection = DRW_TextCodec::classifyCodePage(reader->getRawValue());
+            const bool scopedUtf8 = reader->dxfCodePagePolicy() == DRW::DxfCodePagePolicy::DeclaredUtf8
+                && selection.selectedName != nullptr
+                && std::string_view(selection.selectedName) == "UTF-8";
+            reader->setCodePage(reader->dxfCodePagePolicy() == DRW::DxfCodePagePolicy::ExactNamed || scopedUtf8
                 ? reader->getRawValue() : *curr->content.s);
             curr->addString(code, reader->getCodePage());
         }

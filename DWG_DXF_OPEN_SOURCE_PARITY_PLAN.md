@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **460 completed implementation and qualification slices** and **32 remaining
+The plan records **461 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`460 / (460 + 32) = 93.5%`. The previous 28-package denominator was stale; a recount
+`461 / (461 + 32) = 93.5%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -1167,20 +1167,21 @@ created locally from scratch for the specific control.
 
 ### Next LibreCAD integration work
 
-The focused upstream-linked LibreCAD named-LTYPE selector now passes 18/18
-(465 assertions) in a disposable checkout after temporary consumer and test
-changes: use `ExactNamed` input decoding, omit only unitless `$INSUNITS=0` for
-R12/R14 output, correct an LTYPE group-72 fixture and expectation from 66 to
-the documented 65, and apply the earlier `$DIMSTYLE` and group-value helper
-corrections. The original MLINESTYLE fixture is retained. These changes are not
-a qualified downstream patch: global `ExactNamed` changes other code-page
-behavior, legacy UTF-8 raises an unsupported-profile observation, and the
-nonzero INSUNITS loss case is unresolved. Implement and qualify a scoped
-consumer decoding policy and explicit old-target units-loss disposition,
-correct the malformed fixture while retaining a negative control, and make the
-other consumer corrections permanent. Compile and run the full clean
-upstream-linked consumer target, then qualify LibreCAD_3 and required
-platforms. See the [selector diagnosis](docs/research/p8-librecad-named-ltype-selector-diagnosis-2026-11-15.json)
+The focused upstream-linked LibreCAD named-LTYPE selector passes 18/18
+(465 assertions) in a disposable checkout using the new opt-in `DeclaredUtf8`
+policy and temporary consumer/test changes: omit only unitless `$INSUNITS=0`
+for R12/R14 output, correct an LTYPE group-72 fixture and expectation from 66
+to the documented 65, and apply the earlier `$DIMSTYLE` and group-value helper
+corrections. The original MLINESTYLE fixture is retained. The scoped library
+policy preserves Compatible decoding for other declarations and leaves strict
+source admission fail-closed; legacy UTF-8 still raises an unsupported-profile
+observation ([policy receipt](docs/research/p8-declared-utf8-scoped-input-policy-2026-11-15.json)).
+Integrate and qualify the policy in the consumer, including diagnostic handling;
+implement explicit old-target units-loss disposition for nonzero units; correct
+the malformed fixture while retaining a negative control; and make the other
+consumer corrections permanent. Compile and run the full clean upstream-linked
+consumer target, then qualify LibreCAD_3 and required platforms. See the
+[selector diagnosis](docs/research/p8-librecad-named-ltype-selector-diagnosis-2026-11-15.json)
 and [canonical MLINESTYLE fix](docs/research/p8-mlinestyle-canonical-linetypes-2026-11-15.json).
 
 The queue below contains only unfinished actions. Completed source profiles,

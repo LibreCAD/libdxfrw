@@ -139,7 +139,7 @@ std::string dxfReader::decodeSemanticText(std::string_view text, int sourceCode,
         if (!text.empty() && (!decoder.hasSourceVersion() || decoder.getSourceVersion() < DRW::AC1021)
             && selection.selectedName != nullptr
             && (std::string_view(selection.selectedName) == "UTF-16"
-                || (decoder.dxfCodePagePolicy() == DRW::DxfCodePagePolicy::ExactNamed
+                || (decoder.dxfCodePagePolicy() != DRW::DxfCodePagePolicy::Compatible
                     && std::string_view(selection.selectedName) == "UTF-8" && observation.nonAsciiBytes)))
             observation.issues |= DRW::dxfTextIssueMask(DRW::DxfTextIssue::UnsupportedEncodingProfile);
         appendTextReadObservation(m_textReadObservations, observation,

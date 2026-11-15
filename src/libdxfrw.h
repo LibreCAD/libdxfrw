@@ -165,7 +165,9 @@ public:
         m_dxfTextEncoding = encoding;
     }
     /** Select input declaration mapping for subsequent DXF reads. Compatible
-     * preserves historical aliases. ExactNamed uses an available exact mapping;
+     * preserves historical aliases. DeclaredUtf8 uses exact UTF-8 only for an
+     * explicit UTF-8 declaration, retaining Compatible behavior for other pages.
+     * ExactNamed uses an available exact mapping;
      * unknown/unimplemented high-byte text is replaced and observed, never
      * guessed through another page. Modern UTF8, output and raw carriers are
      * unchanged. Admitted reads snapshot this setting before callbacks.

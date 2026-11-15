@@ -20116,7 +20116,11 @@ bool dxfRW::processHeader() {
                     } else if (selection.selectedName != nullptr
                                && std::string_view(selection.selectedName) != reader->getCodePage()) {
                         diagnosticCode = "reapplied-codepage";
-                        diagnosticMessage = "legacy codepage metadata was normalized and reapplied by compatibility policy";
+                        const bool exactUtf8 = std::string_view(selection.selectedName) == "UTF-8"
+                            && reader->dxfCodePagePolicy() != DRW::DxfCodePagePolicy::Compatible;
+                        diagnosticMessage = exactUtf8
+                            ? "legacy codepage metadata was normalized; the explicit UTF-8 decoder remains selected for input"
+                            : "legacy codepage metadata was normalized and reapplied by compatibility policy";
                     }
                     if (diagnosticCode != nullptr)
                         recordOperationDiagnostic(DRW::OperationPhase::Header,

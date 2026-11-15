@@ -151,8 +151,10 @@ enum class DxfTextWritePolicy { Compatible, RequireLossless };
 
 // Input declaration selection only. Compatible preserves historical aliases;
 // ExactNamed uses an available exact mapping, never a similar byte codepage.
+// DeclaredUtf8 selects the exact UTF-8 decoder only for an explicit UTF-8
+// declaration and otherwise uses Compatible mapping.
 // It is independent of UTF8 recovery, output policy and DXF profile admission.
-enum class DxfCodePagePolicy { Compatible, ExactNamed };
+enum class DxfCodePagePolicy { Compatible, ExactNamed, DeclaredUtf8 };
 
 //! Version numbers for the DXF Format.
 enum Version {

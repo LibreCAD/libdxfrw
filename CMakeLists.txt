@@ -1389,6 +1389,10 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_gbk_codepage_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_gbk_codepage
         COMMAND libdxfrw_gbk_codepage_tests)
+    add_test(NAME libdxfrw_declared_utf8_policy
+        COMMAND libdxfrw_gbk_codepage_tests --declared-utf8-policy)
+    set_tests_properties(libdxfrw_declared_utf8_policy PROPERTIES
+        LABELS "fast;dxf;codepage" TIMEOUT 30)
     add_test(NAME libdxfrw_dwg_codepage_snapshot
         COMMAND libdxfrw_gbk_codepage_tests --dwg-codepage-snapshot)
     set_tests_properties(libdxfrw_dwg_codepage_snapshot PROPERTIES

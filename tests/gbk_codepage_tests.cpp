@@ -3560,6 +3560,100 @@ bool sameTextObservations(const DRW_DxfTextReadObservations& a,
         && a.hasFirstRecord == b.hasFirstRecord && a.counterSaturated == b.counterSaturated;
 }
 
+void testDeclaredUtf8Policy(TestContext& t) {
+    using Policy = DRW::DxfCodePagePolicy;
+    using Issue = DRW::DxfTextIssue;
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-declared-utf8-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    const std::string payload = "L\xC3\xA9Z";
+    std::size_t cases = 0;
+    for (const char* page : {"UTF-8", "UTF8", "UTF8-BIT", "ANSI_1252", "LATIN1", "unknown-local", static_cast<const char*>(nullptr)})
+      for (bool modern : {false, true}) for (bool pageFirst : {false, true})
+        for (bool binary : {false, true}) {
+            const auto bytes = makeTextObservationDrawing(page, modern, pageFirst, binary, payload);
+            { std::ofstream file(path, std::ios::binary | std::ios::trunc); file.write(bytes.data(), bytes.size()); }
+            const bool utf8Declaration = page != nullptr
+                && (std::string_view(page) == "UTF-8"
+                    || std::string_view(page) == "UTF8" || std::string_view(page) == "UTF8-BIT");
+            const auto read = [&](Policy policy, std::string& text,
+                                  DRW::DxfTextReadObservations& observations) {
+                dx_data data;
+                PreparedDxInterface sink;
+                sink.attach(&data);
+                dxfRW reader(path.string().c_str());
+                reader.setDxfCodePagePolicy(policy);
+                if (!reader.read(&sink, false) || data.mBlock->ent.empty()) return false;
+                const auto* value = dynamic_cast<const DRW_Text*>(data.mBlock->ent.front());
+                if (value == nullptr) return false;
+                text = value->text;
+                observations = reader.getTextReadObservations();
+                if (!binary) {
+                    dx_data memoryData;
+                    PreparedDxInterface memorySink;
+                    memorySink.attach(&memoryData);
+                    std::string memoryBytes = bytes;
+                    if (!reader.readAscii(&memorySink, false, memoryBytes)
+                        || memoryData.mBlock->ent.empty()) return false;
+                    const auto* memoryValue = dynamic_cast<const DRW_Text*>(memoryData.mBlock->ent.front());
+                    if (memoryValue == nullptr || memoryValue->text != text) return false;
+                }
+                return page != nullptr ? data.headerC.dxfCodePageDeclaration() == page
+                                       : !data.headerC.hasDxfCodePageDeclaration();
+            };
+            std::string actual, compatible, exact;
+            DRW::DxfTextReadObservations observed, ignored, exactObserved;
+            const bool ok = read(Policy::DeclaredUtf8, actual, observed)
+                && read(Policy::Compatible, compatible, ignored)
+                && read(Policy::ExactNamed, exact, exactObserved);
+            t.expect(ok && observed.codePagePolicy == Policy::DeclaredUtf8
+                         && actual == (utf8Declaration ? exact : compatible),
+                     "scoped UTF8 policy selects exact UTF8 only for its explicit aliases");
+            if (!utf8Declaration) {
+                ignored.codePagePolicy = Policy::DeclaredUtf8;
+                t.expect(sameTextObservations(observed, ignored),
+                         "other declarations keep Compatible observations and fallback");
+            }
+            if (utf8Declaration) {
+                t.expect(actual == payload
+                             && (observed.issueCount(Issue::UnsupportedEncodingProfile) > 0) == !modern,
+                         "scoped UTF8 decodes the value and preserves legacy-profile diagnostics");
+            }
+            ++cases;
+        }
+    // A malformed sequence follows the existing exact decoder's treatment;
+    // this option must not silently switch to the legacy single-byte page.
+    for (const std::string& input : {std::string("\xC3", 1), std::string("\xFF", 1)}) {
+        DRW_TextCodec scoped, exact;
+        scoped.setVersion(DRW::AC1015, true);
+        exact.setVersion(DRW::AC1015, true);
+        scoped.setDxfCodePagePolicy(Policy::DeclaredUtf8);
+        exact.setDxfCodePagePolicy(Policy::ExactNamed);
+        scoped.setCodePage("UTF-8", true);
+        exact.setCodePage("UTF-8", true);
+        scoped.reapplyCodePage("ANSI_1252", true);
+        exact.reapplyCodePage("ANSI_1252", true);
+        const auto actual = scoped.toUtf8(input);
+        const auto expected = exact.toUtf8(input);
+        t.expect(actual == expected
+                     && scoped.lastDecodeObservation().issues == exact.lastDecodeObservation().issues,
+                 "scoped UTF8 preserves the exact decoder's malformed-input behavior");
+    }
+    for (const char* page : {"UTF-8", "ANSI_1252"}) {
+        const auto bytes = makeTextObservationDrawing(page, false, false, false, payload);
+        { std::ofstream file(path, std::ios::binary | std::ios::trunc); file.write(bytes.data(), bytes.size()); }
+        dx_data data;
+        dx_iface importer;
+        const bool read = importer.fileImport(path.string(), &data, false, Policy::DeclaredUtf8);
+        t.expect(read && dx_iface::admitDxfSourceText(data).status
+                             == dx_dxfSourceTextStatus::EvidenceUnavailable,
+                 "strict source admission does not promote the new policy");
+    }
+    std::error_code error;
+    std::filesystem::remove(path, error);
+    std::cout << "Scoped declared UTF8 controls: " << cases << "\n";
+}
+
 void testExactCodePageReader(TestContext& t) {
     using Policy = DRW::DxfCodePagePolicy;
     using Issue = DRW::DxfTextIssue;
@@ -7925,6 +8019,10 @@ int main(int argc, char** argv) {
         testExactCodePageImport(context);
         testConverterDxfReadOutcome(context);
         testDxfSourceTextAdmission(context);
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--declared-utf8-policy") {
+        testDeclaredUtf8Policy(context);
         return context.failures == 0 ? 0 : 1;
     }
     if (argc == 2 && std::string(argv[1]) == "--exact-codepage-reader") {

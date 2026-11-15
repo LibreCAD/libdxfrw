@@ -262,12 +262,17 @@ std::string DRW_TextCodec::toUtf8(
     m_lastDecodeObservation = {};
     const DecodeIssueCollector collect{m_lastDecodeObservation, m_accumulatedDecodeIssues};
     const bool decodeDxfAsciiCaret = decodeDxfAsciiControlEscapes && m_dxfFormat;
+    const bool scopedUtf8 = m_dxfCodePagePolicy == DRW::DxfCodePagePolicy::DeclaredUtf8;
+    const bool declaredUtf8 = m_dxfInputResolution.decoderName != nullptr
+        && std::string_view(m_dxfInputResolution.decoderName) == "UTF-8"
+        && m_dxfInputResolution.status == DRW_CodePageMappingStatus::ExactImplementationAvailable;
     const bool exactPolicy = m_dxfFormat
         && m_dxfCodePagePolicy != DRW::DxfCodePagePolicy::Compatible
+        && (!scopedUtf8 || declaredUtf8)
         && (!m_sourceVersionSet || sourceVersion < DRW::AC1021);
     if (exactPolicy && (m_declaredCodePageSelection.kind != DRW_CodePageKind::Unspecified
                        || m_dxfCodePagePolicy != DRW::DxfCodePagePolicy::ExactNamed)) {
-        const bool available = m_dxfCodePagePolicy == DRW::DxfCodePagePolicy::ExactNamed
+        const bool available = (m_dxfCodePagePolicy == DRW::DxfCodePagePolicy::ExactNamed || scopedUtf8)
             && m_dxfInputResolution.status == DRW_CodePageMappingStatus::ExactImplementationAvailable;
         const bool recovering1252 = available && m_dxfInputResolution.decoderName != nullptr
             && std::string_view(m_dxfInputResolution.decoderName) == "ANSI_1252"

@@ -1352,6 +1352,12 @@ memory reads preserve previous evidence. The new policy/counters are appended
 to observations; public/facade layout changes require a rebuild, not a binary
 ABI claim. No pure virtual, projection option or callback lifetime is changed.
 
+`DeclaredUtf8` is an opt-in input policy that selects the exact UTF-8 decoder
+only for an explicit UTF-8 declaration and otherwise retains Compatible
+mapping. Legacy UTF-8 remains an unsupported source profile, and strict
+adapter source admission does not yet admit this policy, including its
+Compatible fallback cases. Output encoding and default reads are unchanged.
+
 Explicit ISO8859-4 input uses its fixed mapping, including A1→U+0104. Explicit
 ISO8859-1 aliases use the Latin-1 identity mapping, including 80→U+0080 rather
 than the compatible Windows-1252 euro sign. Normalized HEADER/output codec

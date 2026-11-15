@@ -194,6 +194,13 @@ Writes and rejected nested/null-interface memory reads preserve the last-read
 snapshot. Rebuild consumers for the added public/facade state; no new pure
 callback or binary-ABI guarantee is introduced.
 
+For legacy files explicitly declaring UTF-8, consumers can instead choose
+`DRW::DxfCodePagePolicy::DeclaredUtf8`. It uses the exact UTF-8 decoder for
+that declaration and retains Compatible mapping for other declarations and
+missing code pages. The legacy UTF-8 wire profile remains observable as
+unsupported for strict conversion; the adapter's strict source admission does
+not yet admit this policy. This option does not change output encoding.
+
 For example, explicit legacy input named `ISO8859-4` or `ISO-8859-4` decodes
 byte A1 as U+0104, using the fixed ISO table rather than a similar Windows
 page. This is input-only: normalized HEADER values and the writer's selected
