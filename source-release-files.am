@@ -36,6 +36,7 @@ EXTRA_DIST = \
     docs/UPGRADE_SUPPORT.md \
     docs/patches/freecad-p8-default-bounded-polyface-2026-11-15.patch \
     docs/patches/freecad-p8-default-classic-polyline-flags-2026-11-15.patch \
+    docs/patches/freecad-p8-default-closed-polygon-mesh-2026-11-15.patch \
     docs/patches/freecad-p8-default-open-polygon-mesh-2026-11-15.patch \
     docs/patches/freecad-p8-default-planar-3dface-2026-11-15.patch \
     docs/patches/freecad-p8-default-solid-ocs-2026-11-15.patch \
