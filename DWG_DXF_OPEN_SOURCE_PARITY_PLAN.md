@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **590 completed implementation and qualification slices** and **32 remaining
+The plan records **591 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`590 / (590 + 32) = 94.9%`. The previous 28-package denominator was stale; a recount
+`591 / (591 + 32) = 94.9%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -29,7 +29,11 @@ tracked DWGs in headless smoke. The refusal-specific test returns early for
 the older lossy bundled writer. A temporary clean installed-upstream CMake overlay builds the full default
 target after a fifteenth unmerged helper-compatibility patch; the two helpers
 compile and run against both codecs ([receipt](docs/research/p8-librecad-installed-codec-helpers-2026-11-15.json)). Integrating a portable installed-codec
-build option, GUI behavior and broader qualification remain open
+build option, GUI behavior and broader qualification remain open. The clean installed-upstream application
+refuses the tracked AC1024 title block for R2007 and R2010: the first reported
+callbacks identify nondefault R2010 MLEADERSTYLE attachments and empty named-block
+SORTENTSTABLEs, respectively. Validate and close their source graphs without
+dropping data ([title-block gate](docs/research/p8-librecad-ac1024-title-export-gates-2026-11-15.json)).
 ([bundled application receipt](docs/research/p8-librecad-clean-bundled-app-smoke-2026-11-15.json),
 [full-chain tests](docs/research/p8-librecad-clean-bundled-full-patch-chain-tests-2026-11-15.json))
 ([receipt](docs/research/p8-librecad-installed-static-link-2026-11-15.json)).
@@ -132,7 +136,9 @@ then integrate and qualify a portable installed-upstream build option. A
 temporary clean installed-library overlay builds the application and default
 helper targets after the fifteenth patch. The bundled build, focused LTYPE/PR #3269 tests and two narrow headless
 conversions pass with all 14 patches; qualify other platforms. The modified upstream-linked LTYPE selector passes after the semantic golden
-and diagnostic patches. Validate the R12/R14 failure message in the GUI and
+and diagnostic patches. Close the title-block MLEADERSTYLE version gate and
+source-bound empty SORTENTSTABLE graph/output closure, then test the next actual
+gate ([diagnosis](docs/research/p8-librecad-ac1024-title-export-gates-2026-11-15.json)). Validate the R12/R14 failure message in the GUI and
 on bundled/other-platform consumers without silently losing data. All five
 original PR #3269 cases now pass in the modified upstream-linked macOS test
 build; retain broader ASCII/Binary and platform controls
