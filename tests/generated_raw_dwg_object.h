@@ -28,7 +28,8 @@ inline DRW_UnsupportedObject makeRawCustomObject(
     const std::string& recordName, const std::string& className,
     const std::string& appName, std::uint32_t encodedHandle = 0,
     const std::string& singleVariableTextBody = {},
-    const std::function<void(dwgBufferW&)>& classBodyWriter = {}) {
+    const std::function<void(dwgBufferW&, dwgBufferW&, DRW::Version)>&
+        classBodyWriter = {}) {
     if (encodedHandle == 0)
         encodedHandle = handle;
 
@@ -51,7 +52,7 @@ inline DRW_UnsupportedObject makeRawCustomObject(
     if (version > DRW::AC1024)
         body.putBit(0); // R2013+: no DataStorage payload
     if (classBodyWriter) {
-        classBodyWriter(body);
+        classBodyWriter(body, strings, version);
     } else if (!singleVariableTextBody.empty()) {
         body.putBitLong(1);
         if (version > DRW::AC1018)
@@ -68,7 +69,7 @@ inline DRW_UnsupportedObject makeRawCustomObject(
     // the bounded string-stream footer.
     if (version > DRW::AC1018) {
         body.alignToByte();
-        if (singleVariableTextBody.empty()) {
+        if (strings.bitCount() == 0) {
             // An empty, seven-bit stream keeps the string-presence encoding
             // valid for generated profiles with no variable text.
             for (int bit = 0; bit < 7; ++bit)
@@ -122,6 +123,34 @@ inline DRW_UnsupportedObject makeRawCustomObject(
     object.m_rawBytes.insert(object.m_rawBytes.end(), handles.data().begin(),
                              handles.data().end());
     object.m_objectSize = static_cast<std::uint32_t>(object.m_rawBytes.size());
+    return object;
+}
+
+inline DRW_UnsupportedObject makeRawProxyObject(
+    DRW::Version version, std::uint32_t handle) {
+    DRW_UnsupportedObject object = makeRawCustomObject(
+        version, DRW_ProxyObject::kDwgType, handle, "ACAD_PROXY_OBJECT",
+        "AcDbProxyObject", "ACAD", 0, {},
+        [](dwgBufferW& body, dwgBufferW& strings, DRW::Version bodyVersion) {
+            body.putBitLong(0); // optional proxy class ID
+            if (bodyVersion >= DRW::AC1018) {
+                if (bodyVersion > DRW::AC1018)
+                    strings.putVariableText(bodyVersion, {});
+                else
+                    body.putVariableText(bodyVersion, {});
+            }
+            if (bodyVersion >= DRW::AC1032) {
+                body.putBitLong(1); // optional DWG version
+                body.putBitLong(2); // optional maintenance version
+            } else {
+                body.putBitLong(0); // optional drawing format
+            }
+            body.putBit(0); // optional from-DXF flag
+        });
+    object.m_isCustomClass = false;
+    object.m_hasClassDefinition = false;
+    object.m_className.clear();
+    object.m_classAppName.clear();
     return object;
 }
 

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **456 completed implementation and qualification slices** and **32 remaining
+The plan records **457 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`456 / (456 + 32) = 93.4%`. The previous 28-package denominator was stale; a recount
+`457 / (457 + 32) = 93.5%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -773,6 +773,20 @@ source-reference gate. The focused selector passes 28 controls. This generated
 parser-recovery result does not qualify producer prevalence, imagery meaning,
 geospatial accuracy, graph closure, or native display behavior
 ([receipt](docs/research/p6-cli-malformed-geomapimage-body-recovery-2026-11-15.json)).
+
+**P6-F ACAD_PROXY_OBJECT generated malformed-body recovery slice
+(2026-11-15):** a from-scratch standard fixed-type 499 ProxyObject profile has
+bounded optional class/subclass/drawing-format/from-DXF fields followed by a
+LINE. The generated one-bit mutation is rejected by `DRW_ProxyObject` while
+preserving the common prologue and following LINE. AC1015, AC1018, AC1021,
+AC1024, AC1027 and AC1032 preserve frame accounting and continue; strict
+conversion refuses atomically at the five output-qualified revisions, and
+explicit-partial ASCII/Binary output with fresh LINE readback passes there.
+AC1027 remains behind the existing source-reference gate. The focused selector
+passes 28 controls. This generated parser-recovery result does not establish
+producer prevalence, proxy payload fidelity, originating custom-class
+semantics, graph closure, or native consumer behavior
+([receipt](docs/research/p6-cli-malformed-proxy-object-body-recovery-2026-11-15.json)).
 
 The earlier DICTIONARYWDFLT candidate screen exposed a missing graph shape and
 is superseded by this complete generated plot-style owner profile; its receipt

@@ -28642,6 +28642,11 @@ public:
     using DRW_GeoMapImage::parseDwg;
 };
 
+class ProxyObjectBodyProbe final : public DRW_ProxyObject {
+public:
+    using DRW_ProxyObject::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28676,7 +28681,8 @@ public:
                       ? libdxfrw_test::makeRawCustomObject(
                             sourceVersion, 513u, 0x700u,
                             "GEOMAPIMAGE", "AcDbGeomapImage", "ACAD",
-                            0, {}, [](dwgBufferW& body) {
+                            0, {}, [](dwgBufferW& body, dwgBufferW&,
+                                      DRW::Version) {
                                 body.putBitLong(8); // class version
                                 body.put3BitDouble(DRW_Coord{1.0, 2.0, 3.0});
                                 body.put2RawDouble(DRW_Coord{4.0, 5.0, 0.0});
@@ -28686,6 +28692,8 @@ public:
                                 body.putRawChar8(60); // contrast
                                 body.putRawChar8(10); // fade
                             })
+                  : kind == 73
+                      ? libdxfrw_test::makeRawProxyObject(sourceVersion, 0x700u)
                   : makeCliSkippedObject(kind, 0, sourceVersion)),
           opaqueSecond_(kind == 5
               ? libdxfrw_test::makeRawCustomObject(
@@ -29548,6 +29556,8 @@ public:
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ == 72) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
+        } else if (kind_ == 73) {
+            wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -29778,6 +29788,8 @@ public:
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
         } else if (kind_ == 72) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
+        } else if (kind_ == 73) {
+            wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29803,7 +29815,7 @@ public:
         if (kind_ == 15 || kind_ == 21 || kind_ == 22 || kind_ == 52
             || kind_ == 54 || kind_ == 55 || kind_ == 56 || kind_ == 58
             || kind_ == 66 || kind_ == 69 || kind_ == 70 || kind_ == 71
-            || kind_ == 72)
+            || kind_ == 72 || kind_ == 73)
             line.handle = 0x701u;
         else if (kind_ == 53)
             line.handle = 0x703u;
@@ -29833,6 +29845,7 @@ public:
     const DRW_UnsupportedObject& capturedObject() const noexcept {
         return capturedObject_;
     }
+    const DRW_UnsupportedObject& rawObject() const noexcept { return opaque_; }
     void addDwgFramePublication(const DRW_DwgFramePublication& frame) override {
         dx_iface::addDwgFramePublication(frame);
         if (reader_ != nullptr) {
@@ -43398,6 +43411,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-layerfilter-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-geomapimage-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-proxy-object-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -43540,6 +43555,8 @@ int main(int argc, char** argv) {
             == "--generate-cli-malformed-layerfilter-body-source";
         const bool malformedGeoMapImageBodySource = std::string(argv[1])
             == "--generate-cli-malformed-geomapimage-body-source";
+        const bool malformedProxyObjectBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-proxy-object-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -43650,6 +43667,7 @@ int main(int argc, char** argv) {
             || malformedDictionaryWithDefaultBodySource
             || malformedLayerFilterBodySource
             || malformedGeoMapImageBodySource
+            || malformedProxyObjectBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -43758,6 +43776,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 71
                                                                                                         : malformedGeoMapImageBodySource
                                                                                                             ? 72
+                                                                                                        : malformedProxyObjectBodySource
+                                                                                                            ? 73
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -43774,12 +43794,15 @@ int main(int argc, char** argv) {
 
             dwgRW validReader(validPath.string().c_str());
             ReadOutcomeControl capture(nullptr, 0, &validReader, version);
-            if (!validReader.read(&capture, false)
-                || !capture.hasCapturedObject()) {
+            const bool validRead = validReader.read(&capture, false);
+            if (!validRead
+                || (!malformedProxyObjectBodySource
+                    && !capture.hasCapturedObject())) {
                 std::cerr << "Could not capture generated supported object frame\n";
                 return 1;
             }
-            DRW_UnsupportedObject malformed = capture.capturedObject();
+            DRW_UnsupportedObject malformed = malformedProxyObjectBodySource
+                ? validSource.rawObject() : capture.capturedObject();
             dwgBuffer commonBuffer(malformed.m_rawBytes.data(),
                                    malformed.m_rawBytes.size());
             dwgBuffer commonStrings = commonBuffer.forkIndependent();
@@ -43884,6 +43907,7 @@ int main(int argc, char** argv) {
                  || malformedDictionaryWithDefaultBodySource
                  || malformedLayerFilterBodySource
                  || malformedGeoMapImageBodySource
+                 || malformedProxyObjectBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -44170,6 +44194,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedProxyObjectBodySource) {
+                            ProxyObjectBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         if (malformedPointCloudDefinitionBodySource
                             || malformedPointCloudDefinitionExBodySource
                             || malformedPointCloudReactorBodySource
@@ -44319,6 +44348,7 @@ int main(int argc, char** argv) {
                   || malformedDictionaryWithDefaultBodySource
                   || malformedLayerFilterBodySource
                   || malformedGeoMapImageBodySource
+                  || malformedProxyObjectBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -44424,6 +44454,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "LAYERFILTER"
                                                                                                                 : malformedGeoMapImageBodySource
                                                                                                                     ? "GEOMAPIMAGE"
+                                                                                                                : malformedProxyObjectBodySource
+                                                                                                                    ? "ACAD_PROXY_OBJECT"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
@@ -44531,6 +44563,8 @@ int main(int argc, char** argv) {
                                                                                         ? 71
                                                                                     : malformedGeoMapImageBodySource
                                                                                         ? 72
+                                                                                    : malformedProxyObjectBodySource
+                                                                                        ? 73
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,

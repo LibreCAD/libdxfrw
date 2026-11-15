@@ -1,0 +1,43 @@
+{
+  "title": "Generated ACAD_PROXY_OBJECT malformed-body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_PROXY_OBJECT_BODY_RECOVERY_PASS",
+  "scope": "CLI disposition for a bounded malformed standard fixed-type ProxyObject across six generated DWG revisions, with following-frame continuation, strict refusal, and explicit-partial output readback where admitted.",
+  "selection": {
+    "source": "P6-F typed OBJECTS parser recovery inventory",
+    "reason": "The fixed type 499 ProxyObject parser has bounded optional metadata fields and can be exercised without asserting opaque proxy payload or originating custom-class semantics."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer in the temporary test directory; generated DWG and DXF files are removed by the test runner.",
+    "generator": "--generate-cli-malformed-proxy-object-body-source",
+    "profile": "One standard fixed-type 499 ACAD_PROXY_OBJECT at handle 0x700, with absent class ID, an empty subclass string where present, absent drawing-format metadata (or absent DWG and maintenance versions in AC1032), from-DXF false, an empty opaque payload, and a following LINE at handle 0x701.",
+    "mutation": "The generator writes and reads the valid generated source, then searches only the bounded body of its authored raw object for a one-bit mutation rejected by DRW_ProxyObject::parseDwg. The selected mutation preserves the common object prologue and object handle."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 5, "output_revision": "AC1021"},
+    "AC1018": {"controls": 5, "output_revision": "AC1021"},
+    "AC1021": {"controls": 5, "output_revision": "AC1021"},
+    "AC1024": {"controls": 5, "output_revision": "AC1024"},
+    "AC1027": {"controls": 3, "output": "refused by the existing source-reference gate"},
+    "AC1032": {"controls": 5, "output_revision": "AC1032"}
+  },
+  "assertions": [
+    "Each malformed source reports one failed OBJECTS frame, continues to the following LINE, and balances source, published, and failed frame accounting.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel at AC1015, AC1018, AC1021, AC1024, and AC1032.",
+    "Explicit-partial ASCII/Binary conversion and fresh DXF readback retain the LINE at AC1015, AC1018, AC1021, AC1024, and AC1032.",
+    "AC1027 strict and explicit-partial output remain refused by the existing source-reference gate."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 passed.",
+    "syntax": "python3 -B -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
+    "diff_check": "git diff --check passed after plan and receipt updates.",
+    "targeted": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --proxy-object-recovery-only passed with 28 controls; ctest --test-dir build-gcc -R '^dwg2dxf_cli_proxy_object_recovery$' --output-on-failure passed 1/1 in 0.87 seconds.",
+    "aggregate": "The dwg2dxf_cli_partial_read_disposition aggregate was not rerun for this isolated profile."
+  },
+  "limits": [
+    "Generated parser-recovery and disposition evidence only; producer-authored ProxyObject prevalence, originating custom-class semantics, and native consumer behavior are not qualified.",
+    "The empty payload profile does not qualify proxy graphics, application-defined payload fidelity, reference closure, or custom-class preservation.",
+    "AC1027 output remains refused by the existing source-reference gate.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}
