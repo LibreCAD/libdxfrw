@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-15",
+  "scope": "Repair reader-matrix generated LINE setup; no production format or support changes.",
+  "defect": "A shared test helper unconditionally attached two APPID EED references even to LINE records with no EED. The production writer correctly refused the orphan references, preventing several unrelated generated frame tests from running.",
+  "change": "Attach the two known APPID references only for the helper\u2019s EED-bearing test input. Add a focused selector for the existing malformed-EED/following-entity test.",
+  "validation": [
+    "The residual-entity sweep focused selector passes.",
+    "The existing malformed-EED/following-entity recovery selector passes with the two APPID groups preserved.",
+    "The complete local reader-matrix test still fails, but its assertion count drops from nine after the ENC repair to five; the hosted baseline before that repair was 13."
+  ],
+  "limits": [
+    "The remaining five reader-matrix assertions and broader local DWG roundtrip failures remain open.",
+    "This repairs test data; it does not relax orphan EED validation or qualify any producer/native support."
+  ]
+}

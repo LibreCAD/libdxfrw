@@ -764,8 +764,13 @@ public:
     static bool encodeLine(DRW_Line& line, DRW::Version version,
                            dwgBufferW* body, dwgBufferW* strings,
                            dwgBufferW* handles) {
-        line.dwgEedAppIdWriteRefs = {{0u, 0x123u}, {3u, 0x456u}};
-        line.dwgEedLayerWriteRefs.clear();
+        // Only the dedicated EED control has the two APPID groups at these
+        // offsets. Orphan APPID references make otherwise ordinary LINE
+        // frames invalid and must not be attached to unrelated controls.
+        if (!line.extData.empty()) {
+            line.dwgEedAppIdWriteRefs = {{0u, 0x123u}, {3u, 0x456u}};
+            line.dwgEedLayerWriteRefs.clear();
+        }
         return line.encodeDwg(version, body, 0u, strings, handles);
     }
 
@@ -23333,6 +23338,12 @@ int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--residual-entity-sweep") {
         TestContext focused;
         testResidualDwgEntitySweep(focused);
+        std::cout << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2 && std::string(argv[1]) == "--malformed-eed-following-entity") {
+        TestContext focused;
+        testMalformedEedEntityDoesNotBlockFollowingEntity(focused);
         std::cout << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;
     }
