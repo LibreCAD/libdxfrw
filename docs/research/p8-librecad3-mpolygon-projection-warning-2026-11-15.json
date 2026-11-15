@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-15",
+  "problem": "LibreCAD_3 converts MPOLYGON into a HATCH and loses the original subtype and MPOLYGON-specific fields without reporting the projection. Its UI also ignored all loss notes and falsely advised saving as R2000 for every export loss.",
+  "change": "A local unmerged downstream patch records one import loss note per read when one or more MPOLYGONs are projected. Open and save dialogs include loss notes and list omitted records without an unsupported claim about the revision needed. The fixture test also removes the unsubstantiated claim that its zero decoded paths establish parser loss.",
+  "consumerBase": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+  "consumerPinnedLibdxfrw": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+  "patch": "docs/patches/librecad3-p8-mpolygon-projection-warning-2026-11-15.patch",
+  "patchSha256": "e8a2a6e53ec77581076d6a44e7972a6bcae4646780e471a0e42adda247028902",
+  "validation": [
+    "Clean pinned consumer source archive: git apply --check passes.",
+    "macOS ARM64 installed-static-package persistence build: 8 existing focused DWG tests pass, including a tracked MPOLYGON warning and a LINE-only negative control.",
+    "A temporary generated nonempty AC1018 MPOLYGON preserves selected triangle coordinates through import and DXF reimport while reporting the projection; a separately generated two-polygon file emits exactly one warning and two HATCH output entities.",
+    "The changed persistence translation unit also passes a syntax check using clean headers from the actual pinned libdxfrw d68fb1ed commit.",
+    "The changed Qt UI translation unit compiles against Qt 6 in the macOS scratch configuration."
+  ],
+  "limitations": [
+    "Downstream patch is unmerged and no user LibreCAD_3 checkout was edited. The full application and warning dialog were not run.",
+    "The pinned-version check is syntax-only; generated and tracked runtime tests use the newer installed libdxfrw archive.",
+    "The loss note is returned on import, not persisted as an export warning across future sessions. The MPOLYGON subtype, fill and offset are still not preserved, and empty-boundary output remains reported as dropped.",
+    "This is a transparency mitigation, not completion of the preservation, edit, version, platform or consumer-compatibility gates. No support claim is promoted."
+  ]
+}
