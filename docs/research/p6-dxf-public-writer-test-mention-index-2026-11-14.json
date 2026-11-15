@@ -4646,7 +4646,7 @@
   ],
   "public_writer_declaration_count": 120,
   "public_writer_method_count": 114,
-  "repository_head": "a894ea806679a43cbb463ebbe6fbfef75f281019",
+  "repository_head": "d1af48a0b93ced79ca2f9ef5ca289df974623916",
   "schema": "libdxfrw.public-writer-test-mention-index.v1",
   "scope": "Textual source index only; mentions do not prove assertions, rollback, retry, readback, version coverage, or semantics."
 }

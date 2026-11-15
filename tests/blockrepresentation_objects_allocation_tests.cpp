@@ -89,11 +89,13 @@ bool readBytes(const std::filesystem::path& path, std::string& bytes) {
     return !input.bad();
 }
 
-bool readbackMatches(const std::filesystem::path& path) {
+bool readbackMatches(const std::filesystem::path& path,
+                     DRW::Version version) {
     dx_data data;
     dx_iface reader;
     return reader.fileImport(path.string(), &data, false)
         && data.sourceFormat == dx_source_format::DXF
+        && data.sourceVersion == version
         && data.blockRepresentationData.size() == 1u
         && data.blockRepresentationData.front().handle == 0xE803u
         && data.blockRepresentationData.front().parentHandle == 0xE802u
@@ -135,7 +137,7 @@ bool run(const std::filesystem::path& directory) {
             exporter.failAt = 1000000;
             const bool written = codec.write(&exporter, DRW::AC1024, binary);
             if (!written || !exporter.accepted || exporter.reached <= 0
-                || !readbackMatches(output))
+                || !readbackMatches(output, DRW::AC1024))
                 return fail("calibration did not write and read back");
             allocationCount = exporter.reached;
             if (!readBytes(output, expectedBytes))
@@ -143,6 +145,38 @@ bool run(const std::filesystem::path& directory) {
         }
         if (allocationCount <= 0)
             return fail("calibration observed no callback allocations");
+
+        const std::vector<DRW::Version> refusedVersions = {
+            DRW::AC1009, DRW::AC1014, DRW::AC1015, DRW::AC1018,
+            DRW::AC1021, DRW::AC1027, DRW::AC1032};
+        for (const DRW::Version refusedVersion : refusedVersions) {
+            {
+                std::ofstream prior(output,
+                    std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior)
+                    return fail("could not initialize version-gate sentinel");
+            }
+            dxfRW codec(output.string().c_str());
+            Export exporter(codec);
+            const DRW_BlockRepresentationData source = exporter.object;
+            const bool written = codec.write(&exporter, refusedVersion,
+                                              binary);
+            std::string afterRefusal;
+            if (written || exporter.accepted
+                || !readBytes(output, afterRefusal) || afterRefusal != sentinel
+                || !sourceMatches(exporter.object, source))
+                return fail("unsupported target changed destination or caller state");
+
+            const bool retry = codec.write(&exporter, DRW::AC1024, binary);
+            std::string retryBytes;
+            if (!retry || !exporter.accepted
+                || !readBytes(output, retryBytes)
+                || retryBytes != expectedBytes
+                || !readbackMatches(output, DRW::AC1024)
+                || !sourceMatches(exporter.object, source))
+                return fail("supported-target retry failed after version refusal");
+        }
 
         for (long offset = 0; offset < allocationCount; ++offset) {
             {
@@ -169,7 +203,8 @@ bool run(const std::filesystem::path& directory) {
             std::string retryBytes;
             if (!retry || !exporter.accepted
                 || !readBytes(output, retryBytes)
-                || retryBytes != expectedBytes || !readbackMatches(output)
+                || retryBytes != expectedBytes
+                || !readbackMatches(output, DRW::AC1024)
                 || !sourceMatches(exporter.object, source))
                 return fail("same-codec retry failed byte or typed readback");
         }
