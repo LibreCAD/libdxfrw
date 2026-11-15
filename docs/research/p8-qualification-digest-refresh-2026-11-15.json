@@ -30,5 +30,11 @@
   "limits": [
     "A matching digest alone is not a native receipt or a support qualification; hosted tests must pass and successful receipts must be emitted and verified.",
     "Any subsequent selected-input change requires a new digest."
-  ]
+  ],
+  "vportDefaultsRefresh": {
+    "sourceCommit": "729afcf3",
+    "implementationDigestSha256": "2d0364dd6ec26e519a8a97514990b6ecd16f85ce0b93ee8e80afa0a5edb04817",
+    "selectedInputCount": 713,
+    "validation": "Clean-clone digest and qualified-format support checks pass; no routes are advertised. Native and FreeCAD focused qualification must be rerun for this digest."
+  }
 }
