@@ -2109,6 +2109,20 @@ def check_malformed_partialviewingindex_body(converter, root, writer):
         "--generate-cli-malformed-partialviewingindex-body-source", profiles)
 
 
+def check_malformed_curvepath_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "CURVEPATH",
+        "--generate-cli-malformed-curvepath-body-source", profiles)
+
+
 def check_skipped_record_projection(converter, root, writer):
     """Check generated skipped custom-class disposition across writer revisions."""
     if writer is None:
@@ -3363,6 +3377,8 @@ def main():
                 converter, root, args.writer)
             partialviewingindex_checked = check_malformed_partialviewingindex_body(
                 converter, root, args.writer)
+            curvepath_checked = check_malformed_curvepath_body(
+                converter, root, args.writer)
             print(f"CLI partial DWG read: PASS ({checked} strict/partial/readback "
                   f"controls, {vba_checked} VBA_PROJECT, "
                   f"{block_representation_checked} BLOCKREPRESENTATION_DATA, "
@@ -3371,8 +3387,8 @@ def main():
                   f"{vxtablerecord_checked} VX_TABLE_RECORD, "
                   f"{tvdeviceproperties_checked} TV_DEVICE_PROPERTIES, "
                   f"{pointpath_checked} POINTPATH, and "
-                  f"{partialviewingindex_checked} PARTIAL_VIEWING_INDEX "
-                  "body controls)")
+                  f"{partialviewingindex_checked} PARTIAL_VIEWING_INDEX, "
+                  f"and {curvepath_checked} CURVEPATH body controls)")
             return
         if args.source_disposition_only:
             checked = check_source_disposition_projection(converter, root, args.writer)
