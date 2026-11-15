@@ -179,5 +179,23 @@
     "cleanSourceInventory": "1200 released files; no DWG/DXF fixture committed",
     "ctestInventory": "1371 tests; added only libdxfrw_dwg_ac1024_plotstyle_graph",
     "limits": "Selected graph only; ODA conversion is not native plotting semantics. LAYER 347/390 output, source material closure, HEADER suffix and whole-document export remain unqualified. No support claim is promoted."
+  },
+  "materialSourceWire": {
+    "scope": "AC1024 source-wire evidence for the three default MATERIAL records and their no-reactor dictionary; no material output or layer reference admission.",
+    "source": "Both local ODA-generated sources have NOD -> ACAD_MATERIAL dictionary 0xE with ByBlock -> 0x1F, ByLayer -> 0x20 and Global -> 0x21. Each MATERIAL has one H4 reactor to its dictionary. LibreDWG independently confirms the graph roles and target handles.",
+    "frames": "Dictionary: object-map offset 1550, 62-byte body and 70 handle-stream bits. The Global, ByLayer and ByBlock bodies are 95, 97 and 97 bytes with 34 handle-stream bits. Their offsets are 3635, 3533, 3431 in polyface and 3640, 3538, 3436 in closed mesh. Extracted source frames are CRC checked.",
+    "dictionaryHandleSpans": "Owner H4 -> NOD 0xA at bit 426; entries H2 -> 0x1F, 0x20 and 0x21 at bits 442, 458 and 474; all 16 bits. Bit positions derive from libdxfrw, while LibreDWG independently corroborates roles and targets.",
+    "codec": "Version-specific observer accepts the witnessed AC1024 zero-reactor dictionary and one-reactor material common bodies; the AC1027 wrapper retains its original version and reactor restrictions. Typed material reparsing matches the captured semantic fields, but both use the same implementation.",
+    "validation": "Fixture-free generated AC1024 and AC1027 controls pass, including wrong version, modified handle and name, reactor count, truncated body and restored retry. Both local ODA sources pass production source-wire observers. GCC 16 -Wall -Wextra -pedantic -Werror syntax check passed.",
+    "logsSha256": {
+      "polyfaceMaterial": "d7a2b602c3f40b3125b84487e6e450004f095236e73d6a9156603def449ab7cc",
+      "closedMaterial": "7d5824481d9697292689e5d114673d8007189ee1fe3a475ffcfb34f8191cb7ba",
+      "polyfaceDictionary": "a871e4442369be1fc3845b6d32c84b432322e899c7f4b4e2ceaeed5b30322d33",
+      "closedDictionary": "524b0070472ebe8ba0d27981551e611c89d22a0e5d8f8e10369d817e5d3b8508"
+    },
+    "qualificationDigest": "a03f4e3c13762a8af85f6cd55cf36b537d719c98c71a829a8638f9d4e04c3fd4",
+    "cleanSourceInventory": "1201 released files; no DWG/DXF fixture committed",
+    "ctestInventory": "1372 tests; added only libdxfrw_dwg_ac1024_material_wire",
+    "limits": "No independent native material semantic validation, graph output qualification, LAYER 347/390 closure or complete-document support claim. HEADER suffix remains gated."
   }
 }

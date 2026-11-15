@@ -3,11 +3,11 @@
 #define DX_AC1027_MATERIAL_WIRE_H
 #include "dx_raster_dwg_wire.h"
 #include "drw_objects.h"
-namespace dx_ac1027_material_wire {
+namespace dx_material_wire_detail {
 inline bool matches(const DRW_UnsupportedObject& raw,
-                    const DRW_Material& typed) noexcept {
+                    const DRW_Material& typed, DRW::Version version) noexcept {
     using namespace dx_raster_wire::detail;
-    if (raw.m_version != DRW::AC1027 || raw.m_isEntity || !raw.m_isCustomClass
+    if (raw.m_version != version || raw.m_isEntity || !raw.m_isCustomClass
         || raw.m_objectType < 500 || raw.m_recordName != "MATERIAL"
         || raw.m_className != "AcDbMaterial" || raw.m_handle == 0u
         || raw.m_handle != typed.handle || raw.m_parentHandle != typed.parentHandle
@@ -30,7 +30,8 @@ inline bool matches(const DRW_UnsupportedObject& raw,
     const auto self = handle(body, 0u, 0u, true);
     if (!body.good || self.value != raw.m_handle || body.shortValue() != 0u
         || body.longValue() != 1u || body.take(1u) != 1u
-        || body.take(1u) != 0u || !body.good) return false;
+        || (version > DRW::AC1024 && body.take(1u) != 0u)
+        || !body.good) return false;
     Bits handles{raw.m_rawBytes.data(), end, total};
     const auto owner = handle(handles, 4u, raw.m_handle);
     const auto reactor = handle(handles, 4u, raw.m_handle);
@@ -43,7 +44,7 @@ inline bool matches(const DRW_UnsupportedObject& raw,
 // Exact source-witnessed ACAD_MATERIAL dictionary, including all three
 // soft-owner item tokens and the independently bounded UTF-16 name stream.
 inline bool dictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& typed,
-                       std::uint32_t owner,
+                       std::uint32_t owner, DRW::Version version,
                        const char** failureReason = nullptr) noexcept {
     using namespace dx_raster_wire::detail;
     const auto fail = [failureReason](const char* reason) noexcept {
@@ -53,12 +54,14 @@ inline bool dictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& t
     };
     if (failureReason != nullptr)
         *failureReason = nullptr;
-    if (raw.m_version != DRW::AC1027 || raw.m_objectType != 42
+    if (raw.m_version != version || raw.m_objectType != 42
         || raw.m_isEntity || raw.m_isCustomClass
         || raw.m_handle != typed.handle || raw.m_parentHandle != owner)
         return fail("source identity");
-    if (raw.m_numReactors != 1
-        || raw.m_reactorHandles != std::vector<std::uint32_t>{owner})
+    if (version == DRW::AC1024
+        ? raw.m_numReactors != 0 || !raw.m_reactorHandles.empty()
+        : raw.m_numReactors != 1
+            || raw.m_reactorHandles != std::vector<std::uint32_t>{owner})
         return fail("source reactor metadata");
     if (raw.m_xDictFlag != 1u)
         return fail("source XDic missing flag");
@@ -97,14 +100,14 @@ inline bool dictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& t
     if (body.shortValue() != 0u)
         return fail("body size prefix");
     // ODA §20.4.44 places Numreactors after EED and before the R2004+
-    // XDic Missing Flag. The source-matched AC1027 material dictionary has
-    // one reactor (its NOD owner), which is repeated in the handle stream.
-    if (body.longValue() != 1u)
+    // XDic Missing Flag. The witnessed AC1024 dictionary has no reactors;
+    // the selected AC1027 dictionary has one reactor to its NOD owner.
+    if (body.longValue() != (version == DRW::AC1024 ? 0u : 1u))
         return fail("body reactor count");
     if (body.take(1u) != 1u)
         return fail("body XDic missing flag");
-    if (body.take(1u) != 0u)
-        return fail("body xref flag");
+    if (version > DRW::AC1024 && body.take(1u) != 0u)
+        return fail("body data-storage flag");
     if (body.longValue() != 3u)
         return fail("body dictionary item count");
     if (body.shortValue() != 1u)
@@ -135,10 +138,12 @@ inline bool dictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& t
     const auto ownerToken = handle(handles, 4u, raw.m_handle);
     if (!handles.good || ownerToken.role != 4u || ownerToken.value != owner)
         return fail("owner handle token");
-    const auto reactorToken = handle(handles, 4u, raw.m_handle);
-    if (!handles.good || reactorToken.role != 4u
-        || reactorToken.value != owner)
-        return fail("reactor handle token");
+    if (version > DRW::AC1024) {
+        const auto reactorToken = handle(handles, 4u, raw.m_handle);
+        if (!handles.good || reactorToken.role != 4u
+            || reactorToken.value != owner)
+            return fail("reactor handle token");
+    }
     for (const auto& entry : typed.m_entries) {
         const auto token = handle(handles, 2u, raw.m_handle);
         if (!handles.good || token.role != 2u || token.value != entry.m_handle)
@@ -148,5 +153,27 @@ inline bool dictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& t
     return tail < 8u && handles.take(tail) == 0u && handles.good
         ? true : fail("handle tail");
 }
+} // namespace dx_material_wire_detail
+
+namespace dx_ac1027_material_wire {
+inline bool matches(const DRW_UnsupportedObject& raw,
+                    const DRW_Material& typed) noexcept {
+    return dx_material_wire_detail::matches(raw, typed, DRW::AC1027);
+}
+inline bool dictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& typed,
+                       std::uint32_t owner, const char** failureReason = nullptr) noexcept {
+    return dx_material_wire_detail::dictionary(raw, typed, owner, DRW::AC1027, failureReason);
+}
 } // namespace dx_ac1027_material_wire
+
+namespace dx_ac1024_material_wire {
+inline bool matches(const DRW_UnsupportedObject& raw,
+                    const DRW_Material& typed) noexcept {
+    return dx_material_wire_detail::matches(raw, typed, DRW::AC1024);
+}
+inline bool dictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& typed,
+                       std::uint32_t owner, const char** failureReason = nullptr) noexcept {
+    return dx_material_wire_detail::dictionary(raw, typed, owner, DRW::AC1024, failureReason);
+}
+} // namespace dx_ac1024_material_wire
 #endif
