@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-wipeoutvariables-body-recovery-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_WIPEOUTVARIABLES_READER_AND_FAIL_CLOSED_DISPOSITION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Bounded malformed WIPEOUTVARIABLES body recovery and strict/explicit-partial CLI refusal for dependency-root sources.",
+  "source": {
+    "kind": "scratch-only DWGs authored at test runtime by the in-tree DWG writer; each valid typed seed is converted to a raw mutated frame and injected with matching custom-class registration",
+    "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-wipeoutvariables-body-source",
+    "object": "WIPEOUTVARIABLES class version 0 with display-frame value 1, registered under the generated ACAD_WIPEOUT_VARS named-object dictionary entry. The typed source uses the direct NOD parent and reciprocal reactor profile.",
+    "bodyMutation": "A one-bit mutation after the fully validated common prologue is selected inside the declared body span and makes DRW_WipeoutVariables::parseDwg fail. The ownership graph remains byte-valid and its retained root entry still targets the failed object frame.",
+    "versions": ["AC1015", "AC1018", "AC1021"],
+    "laterVersionSearch": "The bounded one-bit body-span search found no parser-failing mutation for AC1024, AC1027, or AC1032; no recovery claim is made for those versions.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-cli-malformed-wipeoutvariables-body-recovery-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "controls": "For each eligible revision, the reader reports one object parse failure and one failed frame, retains the following LINE, and balances source = published + failed. Strict conversion refuses atomically because the read is incomplete. Explicit-partial conversion also refuses atomically: the retained ACAD_WIPEOUT_VARS root dictionary entry targets the failed WIPEOUTVARIABLES frame, so the required owner graph is not closed. The input bytes remain unchanged."
+  },
+  "results": {
+    "readRecoveryFrameCounts": {
+      "AC1015": {"sourceFrames": 28, "publishedFrames": 27, "failedFrames": 1},
+      "AC1018": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1},
+      "AC1021": {"sourceFrames": 27, "publishedFrames": 26, "failedFrames": 1}
+    },
+    "cliDispositionControls": 9,
+    "perRevisionControls": 3,
+    "fullFocusedDispositionCohortControls": 677,
+    "outputQualification": "No output/readback profile is qualified. Strict conversion refuses on incomplete DWG disposition; explicit-partial conversion refuses when extension-object graph validation detects the NOD dictionary entry target is missing or ambiguous."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j2: PASS",
+    "focusedControl": "check_malformed_wipeoutvariables_body: PASS; 9 reader and atomic-refusal controls across AC1015/AC1018/AC1021",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 22.34 seconds",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated reader-recovery and fail-closed CLI evidence only; no successful output/readback, WIPEOUTVARIABLES field semantics, producer prevalence, or interoperability is established.",
+    "AC1024/AC1027/AC1032 are excluded because no parser-failing one-bit mutation was found in the bounded declared body span searched.",
+    "Explicit-partial mode preserves owner/reference integrity requirements; this dependency-root profile cannot be emitted while its root dictionary target is failed.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "P6-F adds malformed WIPEOUTVARIABLES body recovery at AC1015/AC1018/AC1021 and verifies atomic strict refusal plus explicit-partial refusal at the retained NOD owner-graph gate.",
+    "remainingP6F": "Continue source/resource inventory for supported OBJECTS body parsers with bounded negative profiles; distinguish profiles whose failed frame breaks a required retained dependency graph from profiles that can be safely emitted in explicit-partial mode.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "415 completed slices and 32 remaining packages: 415/(415+32)=92.8%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-cli-malformed-rendersettings-body-recovery-2026-11-14.json"
+}

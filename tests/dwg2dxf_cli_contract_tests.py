@@ -2172,6 +2172,89 @@ def check_malformed_visualstyle_body(converter, root, writer):
         "--generate-cli-malformed-visualstyle-body-source", profiles)
 
 
+def check_malformed_wipeoutvariables_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+    }
+    if writer is None:
+        raise AssertionError(
+            "WIPEOUTVARIABLES recovery control requires the local DWG writer")
+    checked = 0
+    for revision, target_year in profiles.items():
+        source = root / (
+            f"generated malformed WIPEOUTVARIABLES body source {revision}.dwg")
+        generated = run_bounded(
+            [str(writer), "--generate-cli-malformed-wipeoutvariables-body-source",
+             str(source), revision], 10, 131072, cwd=root)
+        if generated.returncode != 0 or not source.is_file():
+            raise AssertionError(
+                f"could not author malformed {revision} WIPEOUTVARIABLES source: "
+                f"{generated!r}")
+        original = source.read_bytes()
+        counted = run_bounded(
+            [str(writer), "--count-dwg-lines", str(source)],
+            10, 131072, cwd=root)
+        fields = {
+            field.split(b"=", 1)[0]: field.split(b"=", 1)[1]
+            for field in counted.stdout.split() if b"=" in field
+        }
+        try:
+            source_frames = int(fields[b"sourceFrames"])
+            published_frames = int(fields[b"publishedFrames"])
+            failed_frames = int(fields[b"failedFrames"])
+        except (KeyError, ValueError):
+            source_frames = published_frames = failed_frames = -1
+        if (counted.returncode != 0
+                or b"readSucceeded=true" not in counted.stdout
+                or b"lineCount=1" not in counted.stdout
+                or b"objectParseFailures=1" not in counted.stdout
+                or b"entityParseFailures=0" not in counted.stdout
+                or failed_frames != 1 or source_frames <= 1
+                or published_frames + 1 != source_frames):
+            raise AssertionError(
+                f"{revision} malformed WIPEOUTVARIABLES stopped later OBJECTS "
+                f"frames: {counted!r}")
+        checked += 1
+
+        for partial_mode in (False, True):
+            output = root / (
+                f"malformed WIPEOUTVARIABLES body {revision} "
+                f"{'partial' if partial_mode else 'strict'}.dxf")
+            output.write_bytes(SENTINEL)
+            arguments = [str(converter), str(source), "-o", str(output),
+                         f"-v{target_year}", "-y", "-d"]
+            if partial_mode:
+                arguments.append("--allow-partial-dwg-read")
+            result = run_bounded(
+                arguments, 10, 2 * 1024 * 1024, cwd=root)
+            if partial_mode:
+                refusal = (b"NOD dictionary entry target is missing or ambiguous: "
+                          b"key=ACAD_WIPEOUT_VARS")
+            else:
+                refusal = (b"strict-complete conversion requires successful, "
+                           b"complete DWG read disposition")
+            projection = next((line for line in result.stderr.splitlines()
+                               if line.startswith(
+                                   b"CLI source disposition projection:")), b"")
+            required = (
+                b"sourceDwgObjectParseFailures=1",
+                b"sourceDwgFrameCoverage=partial",
+                b"sourceDwgFramesFailed=1",
+            )
+            if (result.returncode != 1 or output.read_bytes() != SENTINEL
+                    or source.read_bytes() != original
+                    or refusal not in result.stderr
+                    or any(field not in projection for field in required)):
+                raise AssertionError(
+                    f"{revision} malformed WIPEOUTVARIABLES {'partial' if partial_mode else 'strict'} "
+                    f"conversion did not refuse atomically at its integrity gate: "
+                    f"{result!r}")
+            checked += 1
+    return checked
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3469,6 +3552,8 @@ def main():
                 converter, root, args.writer)
             visualstyle_checked = check_malformed_visualstyle_body(
                 converter, root, args.writer)
+            wipeoutvariables_checked = check_malformed_wipeoutvariables_body(
+                converter, root, args.writer)
             render_settings_checked = check_malformed_rendersettings_bodies(
                 converter, root, args.writer)
             render_settings_count = sum(render_settings_checked.values())
@@ -3485,7 +3570,8 @@ def main():
                   f"{plotsettings_checked} PLOTSETTINGS, "
                   f"{underlaydefinition_checked} UNDERLAYDEFINITION, "
                   f"{material_checked} MATERIAL, "
-                  f"{visualstyle_checked} VISUALSTYLE, and "
+                  f"{visualstyle_checked} VISUALSTYLE, "
+                  f"{wipeoutvariables_checked} WIPEOUTVARIABLES, and "
                   f"{render_settings_count} RENDERSETTINGS controls across "
                   f"Settings ({render_settings_checked['Settings']}), "
                   f"Global ({render_settings_checked['Global']}), "

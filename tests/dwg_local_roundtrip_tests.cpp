@@ -28501,6 +28501,11 @@ public:
     using DRW_RenderSettings::parseDwg;
 };
 
+class WipeoutVariablesBodyProbe final : public DRW_WipeoutVariables {
+public:
+    using DRW_WipeoutVariables::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28707,6 +28712,16 @@ public:
                 break;
             }
         }
+        if (kind_ == 33) {
+            wipeoutVariables_.handle = 0x700u;
+            wipeoutVariables_.m_classVersion = 0;
+            wipeoutVariables_.m_displayFrame = 1;
+            wipeoutVariables_.parentHandle =
+                DRW::DwgNamedObjectsDictionaryHandle;
+            wipeoutVariables_.reactorHandles = {
+                DRW::DwgNamedObjectsDictionaryHandle};
+            wipeoutVariables_.setDwgCommonObjectState(1, 1, false);
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -28803,6 +28818,17 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerRenderSettingsObjectClass(
                       &renderSettings_) && wrote;
+        } else if (kind_ == 33) {
+            wrote = writer_->registerDwgNamedObjectDictionaryEntry(
+                "ACAD_WIPEOUT_VARS",
+                hasMalformedObject_ ? opaque_.m_handle
+                                    : wipeoutVariables_.handle) && wrote;
+            if (hasMalformedObject_) {
+                wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
+            } else {
+                wrote = writer_->registerWipeoutVariablesObjectClass(
+                    &wipeoutVariables_) && wrote;
+            }
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -28811,7 +28837,7 @@ public:
                    && kind_ != 18 && kind_ != 19 && kind_ != 20
                    && kind_ != 21 && kind_ != 22 && kind_ != 23
                    && kind_ != 24 && kind_ != 25 && kind_ != 26
-                   && !(kind_ >= 27 && kind_ <= 32)) {
+                   && !(kind_ >= 27 && kind_ <= 32) && kind_ != 33) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -28892,6 +28918,11 @@ public:
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeRenderSettings(&renderSettings_))
                 && wrote;
+        } else if (kind_ == 33) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeWipeoutVariables(
+                               &wipeoutVariables_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -28980,6 +29011,7 @@ private:
     DRW_Material material_;
     DRW_VisualStyle visualStyle_;
     DRW_RenderSettings renderSettings_;
+    DRW_WipeoutVariables wipeoutVariables_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -42407,6 +42439,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-material-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-visualstyle-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-wipeoutvariables-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -42451,6 +42485,8 @@ int main(int argc, char** argv) {
             == "--generate-cli-malformed-material-body-source";
         const bool malformedVisualStyleBodySource = std::string(argv[1])
             == "--generate-cli-malformed-visualstyle-body-source";
+        const bool malformedWipeoutVariablesBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-wipeoutvariables-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -42525,6 +42561,7 @@ int main(int argc, char** argv) {
             || malformedUnderlayDefinitionBodySource
             || malformedMaterialBodySource
             || malformedVisualStyleBodySource
+            || malformedWipeoutVariablesBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -42561,7 +42598,9 @@ int main(int argc, char** argv) {
                                                                             ? 25
                                                                             : malformedVisualStyleBodySource
                                                                                 ? 26
-                                                                                : malformedRenderSettingsBodySource
+                                                                                : malformedWipeoutVariablesBodySource
+                                                                                    ? 33
+                                                                                    : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
                 nullptr, version);
@@ -42624,6 +42663,7 @@ int main(int argc, char** argv) {
                  || malformedUnderlayDefinitionBodySource
                  || malformedMaterialBodySource
                  || malformedVisualStyleBodySource
+                 || malformedWipeoutVariablesBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -42747,6 +42787,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedWipeoutVariablesBodySource) {
+                            WipeoutVariablesBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         MLineStyleBodyProbe typed;
                         return typed.parseDwg(version, &typedBuffer,
                                               malformed.m_bodyBitSize);
@@ -42839,6 +42884,7 @@ int main(int argc, char** argv) {
                   || malformedUnderlayDefinitionBodySource
                   || malformedMaterialBodySource
                   || malformedVisualStyleBodySource
+                  || malformedWipeoutVariablesBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -42872,7 +42918,9 @@ int main(int argc, char** argv) {
                                                                                     ? "MATERIAL"
                                                                                     : malformedVisualStyleBodySource
                                                                                         ? "VISUALSTYLE"
-                                                                                        : malformedRenderSettingsBodySource
+                                                                                        : malformedWipeoutVariablesBodySource
+                                                                                            ? "WIPEOUTVARIABLES"
+                                                                                            : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
                 const char* mutationKind = malformedPrologueSource
@@ -42904,7 +42952,9 @@ int main(int argc, char** argv) {
                                                         ? 25
                                                         : malformedVisualStyleBodySource
                                                             ? 26
-                                                            : malformedRenderSettingsBodySource
+                                                            : malformedWipeoutVariablesBodySource
+                                                                ? 33
+                                                                : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,
                 nullptr, version);
