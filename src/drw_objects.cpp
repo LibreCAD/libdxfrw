@@ -16765,6 +16765,13 @@ bool DRW_SunStudy::parseDwg(DRW::Version version, dwgBuffer *buf,
     }
     dwgBuffer handleBuffer = *buf;
     seekObjectHandleStream(version, &handleBuffer, objSize);
+    std::uint32_t parsedParentHandle = 0;
+    std::vector<std::uint32_t> parsedReactors;
+    std::uint32_t parsedXDictHandle = 0;
+    if (!this->readDwgObjectCommonHandles(version, &handleBuffer, &parsedParentHandle, &parsedReactors, &parsedXDictHandle)
+        || !handleBuffer.isGood())
+        return fail();
+
     dwgHandle pageSetupWizard;
     dwgHandle view;
     dwgHandle visualStyle;
@@ -16773,13 +16780,6 @@ bool DRW_SunStudy::parseDwg(DRW::Version version, dwgBuffer *buf,
         || !readDwgObjectHandleWithinFrame(version, handleBuffer, false, view)
         || !readDwgObjectHandleWithinFrame(version, handleBuffer, false, visualStyle)
         || !readDwgObjectHandleWithinFrame(version, handleBuffer, false, textStyle))
-        return fail();
-
-    std::uint32_t parsedParentHandle = 0;
-    std::vector<std::uint32_t> parsedReactors;
-    std::uint32_t parsedXDictHandle = 0;
-    if (!this->readDwgObjectCommonHandles(version, &handleBuffer, &parsedParentHandle, &parsedReactors, &parsedXDictHandle)
-        || !handleBuffer.isGood())
         return fail();
 
     m_classVersion = classVersion;
@@ -16891,13 +16891,13 @@ bool DRW_SunStudy::encodeDwg(DRW::Version version, dwgBufferW *buf,
         buf->putBitDouble(m_spacing);
         buf->putBit(m_lockViewports ? 1 : 0);
         buf->putBit(m_labelViewports ? 1 : 0);
+        putCommonObjectHandlePrefix(
+            hb, static_cast<std::uint32_t>(parentHandle), reactorCount(),
+            extensionDictionaryFlag(), &reactorHandles, xDictHandle);
         hb->putHandle(makeRefW(m_pageSetupWizardHandle, DRW::DwgHardPointer));
         hb->putHandle(makeRefW(m_viewHandle, DRW::DwgHardPointer));
         hb->putHandle(makeRefW(m_visualStyleHandle, DRW::DwgHardPointer));
         hb->putHandle(makeRefW(m_textStyleHandle, DRW::DwgHardPointer));
-        putCommonObjectHandlePrefix(
-            hb, static_cast<std::uint32_t>(parentHandle), reactorCount(),
-            extensionDictionaryFlag(), &reactorHandles, xDictHandle);
         if (!buf->isGood() || !sb->isGood() || !hb->isGood())
             return false;
 

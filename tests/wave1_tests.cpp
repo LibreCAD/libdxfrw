@@ -5226,6 +5226,38 @@ void testSunStudyDxfHourCount(TestContext& t) {
     public:
         using DRW_SunStudy::encodeDwg;
     };
+    // ODA 20.1 places the common owner/reactor/extension handles before
+    // object-specific handles. Inspect the encoded stream independently of
+    // the SUNSTUDY parser so matching encoder/parser mistakes cannot pass.
+    for (const DRW::Version version : {DRW::AC1015, DRW::AC1018, DRW::AC1021,
+                                       DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        SunStudyCodecProbe source;
+        source.parentHandle = 0x201u;
+        source.reactorHandles = {0x202u};
+        source.xDictHandle = 0x203u;
+        source.setDwgCommonObjectState(1, 0, false);
+        source.m_pageSetupWizardHandle = 0x204u;
+        source.m_viewHandle = 0x205u;
+        source.m_visualStyleHandle = 0x206u;
+        source.m_textStyleHandle = 0x207u;
+        dwgBufferW body, strings, handles;
+        const bool encoded = source.encodeDwg(version, &body, &strings, &handles);
+        auto bytes = handles.data();
+        dwgBuffer cursor(bytes.data(), bytes.size());
+        bool expected = encoded;
+        const std::array<std::pair<std::uint8_t, std::uint32_t>, 7> fields{{
+            {DRW::DwgSoftPointer, 0x201u}, {DRW::DwgSoftPointer, 0x202u},
+            {DRW::DwgHardOwnership, 0x203u}, {DRW::DwgHardPointer, 0x204u},
+            {DRW::DwgHardPointer, 0x205u}, {DRW::DwgHardPointer, 0x206u},
+            {DRW::DwgHardPointer, 0x207u}}};
+        for (const auto& field : fields) {
+            const auto handle = cursor.getHandle();
+            expected = expected && cursor.isGood() && handle.code == field.first
+                && handle.ref == field.second;
+        }
+        t.expect(expected && cursor.getPosition() == bytes.size(),
+                 "SUNSTUDY DWG common handles precede class-specific handles");
+    }
     for (const bool binary : {false, true}) {
         std::ostringstream output;
         if (binary)
