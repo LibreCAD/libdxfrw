@@ -2029,6 +2029,20 @@ def check_malformed_group_body(converter, root, writer):
         "--generate-cli-malformed-group-body-source", profiles)
 
 
+def check_malformed_dictionary_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "DICTIONARY",
+        "--generate-cli-malformed-dictionary-body-source", profiles)
+
+
 def check_skipped_record_projection(converter, root, writer):
     """Check generated skipped custom-class disposition across writer revisions."""
     if writer is None:
@@ -3271,10 +3285,13 @@ def main():
                 converter, root, args.writer)
             group_checked = check_malformed_group_body(
                 converter, root, args.writer)
+            dictionary_checked = check_malformed_dictionary_body(
+                converter, root, args.writer)
             print(f"CLI partial DWG read: PASS ({checked} strict/partial/readback "
-                  f"controls, {vba_checked} VBA_PROJECT and "
-                  f"{block_representation_checked} BLOCKREPRESENTATION_DATA "
-                  f"and {group_checked} GROUP body controls)")
+                  f"controls, {vba_checked} VBA_PROJECT, "
+                  f"{block_representation_checked} BLOCKREPRESENTATION_DATA, "
+                  f"{group_checked} GROUP, and {dictionary_checked} "
+                  "DICTIONARY body controls)")
             return
         if args.source_disposition_only:
             checked = check_source_disposition_projection(converter, root, args.writer)
