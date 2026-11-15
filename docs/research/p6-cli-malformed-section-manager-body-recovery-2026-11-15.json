@@ -1,0 +1,40 @@
+{
+  "title": "Generated SECTION_MANAGER body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_SECTION_MANAGER_BODY_RECOVERY_PASS",
+  "scope": "CLI disposition for malformed generated SECTION_MANAGER bodies at AC1021, AC1024, AC1027, and AC1032, including continuation, strict refusal, and explicit-partial output readback.",
+  "selection": {
+    "source": "P6-F typed OBJECTS dispatcher/parser inventory",
+    "reason": "SECTION_MANAGER is routed to the typed DRW_Section Manager parser. The bounded body has a live flag and count before a bounded hard-pointer list, and the existing local writer/readback suite already generates a one-entry Manager seed."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-section-manager-body-source",
+    "profile": "One live SECTION_MANAGER with one section handle and a following LINE. The bounded one-bit mutation is confined to the pre-handle body and causes the typed Manager parser to reject the frame."
+  },
+  "revision_results": {
+    "AC1021": {"controls": 5, "output_revision": "AC1021"},
+    "AC1024": {"controls": 5, "output_revision": "AC1024"},
+    "AC1027": {"controls": 3, "output": "refused by the existing source-reference gate"},
+    "AC1032": {"controls": 5, "output_revision": "AC1032"}
+  },
+  "assertions": [
+    "Each generated source records one failed OBJECTS frame, continues to the following LINE, and balances source/published/failed frame accounting.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel for output-qualified revisions.",
+    "Explicit-partial ASCII/Binary conversion and fresh typed DXF readback pass at AC1021, AC1024, and AC1032.",
+    "AC1027 strict and partial conversion remain refused by the source-reference gate."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
+    "diff_check": "git diff --check passed.",
+    "focused_test": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure passed; runtime 29.93 seconds.",
+    "cohort": "909 controls, up from 891; 18 profile controls added."
+  },
+  "limits": [
+    "Generated local recovery and output-disposition evidence only; no producer-authored SECTION_MANAGER source or complete owner/section graph is qualified.",
+    "The section handle target is not independently validated, and native section behavior is not tested.",
+    "AC1027 output remains refused by the source-reference gate.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

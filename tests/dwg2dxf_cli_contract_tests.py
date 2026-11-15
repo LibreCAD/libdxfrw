@@ -2397,6 +2397,18 @@ def check_malformed_navisworks_modeldef_body(converter, root, writer):
         "--generate-cli-malformed-navisworks-modeldef-body-source", profiles)
 
 
+def check_malformed_section_manager_body(converter, root, writer):
+    profiles = {
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "SECTION_MANAGER",
+        "--generate-cli-malformed-section-manager-body-source", profiles)
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3720,6 +3732,8 @@ def main():
             navisworks_modeldef_checked = (
                 check_malformed_navisworks_modeldef_body(
                     converter, root, args.writer))
+            section_manager_checked = check_malformed_section_manager_body(
+                converter, root, args.writer)
             render_settings_checked = check_malformed_rendersettings_bodies(
                 converter, root, args.writer)
             render_settings_count = sum(render_settings_checked.values())
@@ -3747,7 +3761,8 @@ def main():
                   f"{background_skylight_checked} SKYLIGHTBACKGROUND, "
                   f"{motionpath_checked} MOTIONPATH, "
                   f"{sunstudy_checked} SUNSTUDY, "
-                  f"{navisworks_modeldef_checked} NAVISWORKSMODELDEF, and "
+                  f"{navisworks_modeldef_checked} NAVISWORKSMODELDEF, "
+                  f"{section_manager_checked} SECTION_MANAGER, and "
                   f"{render_settings_count} RENDERSETTINGS controls across "
                   f"Settings ({render_settings_checked['Settings']}), "
                   f"Global ({render_settings_checked['Global']}), "

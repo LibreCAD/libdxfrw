@@ -28531,6 +28531,11 @@ public:
     using DRW_NavisworksModelDef::parseDwg;
 };
 
+class SectionManagerBodyProbe final : public DRW_Section {
+public:
+    using DRW_Section::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28848,6 +28853,12 @@ public:
             navisworksModelDef_.m_maxExtent = DRW_Coord{40.0, 50.0, 60.0};
             navisworksModelDef_.m_hostDrawingVisibility = true;
         }
+        if (kind_ == 44) {
+            sectionManager_.handle = 0x700u;
+            sectionManager_.m_kind = DRW_Section::Manager;
+            sectionManager_.m_isLive = true;
+            sectionManager_.m_sectionHandles = {0xE800u};
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -28984,6 +28995,11 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerNavisworksModelDefObjectClass(
                       &navisworksModelDef_) && wrote;
+        } else if (kind_ == 44) {
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerSectionObjectClass(&sectionManager_)
+                    && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -28994,7 +29010,8 @@ public:
                    && kind_ != 24 && kind_ != 25 && kind_ != 26
                    && !(kind_ >= 27 && kind_ <= 32) && kind_ != 33
                    && kind_ != 34 && !(kind_ >= 35 && kind_ <= 40)
-                   && kind_ != 41 && kind_ != 42 && kind_ != 43) {
+                   && kind_ != 41 && kind_ != 42 && kind_ != 43
+                   && kind_ != 44) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -29102,6 +29119,10 @@ public:
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeNavisworksModelDef(
                                &navisworksModelDef_)) && wrote;
+        } else if (kind_ == 44) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeSection(&sectionManager_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29196,6 +29217,7 @@ private:
     DRW_MotionPath motionPath_;
     DRW_SunStudy sunStudy_;
     DRW_NavisworksModelDef navisworksModelDef_;
+    DRW_Section sectionManager_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -42645,6 +42667,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-sunstudy-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-navisworks-modeldef-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-section-manager-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -42718,6 +42742,9 @@ int main(int argc, char** argv) {
         const bool malformedNavisworksModelDefBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-navisworks-modeldef-body-source";
+        const bool malformedSectionManagerBodySource =
+            std::string(argv[1])
+                == "--generate-cli-malformed-section-manager-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -42803,6 +42830,7 @@ int main(int argc, char** argv) {
             || malformedMotionPathBodySource
             || malformedSunStudyBodySource
             || malformedNavisworksModelDefBodySource
+            || malformedSectionManagerBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -42861,6 +42889,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 42
                                                                                                         : malformedNavisworksModelDefBodySource
                                                                                                             ? 43
+                                                                                                        : malformedSectionManagerBodySource
+                                                                                                            ? 44
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -42962,6 +42992,7 @@ int main(int argc, char** argv) {
                  || malformedMotionPathBodySource
                  || malformedSunStudyBodySource
                  || malformedNavisworksModelDefBodySource
+                 || malformedSectionManagerBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -43146,6 +43177,12 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedSectionManagerBodySource) {
+                            SectionManagerBodyProbe typed;
+                            typed.m_kind = DRW_Section::Manager;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         MLineStyleBodyProbe typed;
                         return typed.parseDwg(version, &typedBuffer,
                                               malformed.m_bodyBitSize);
@@ -43249,6 +43286,7 @@ int main(int argc, char** argv) {
                   || malformedMotionPathBodySource
                   || malformedSunStudyBodySource
                   || malformedNavisworksModelDefBodySource
+                  || malformedSectionManagerBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -43304,6 +43342,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "SUNSTUDY"
                                                                                                                 : malformedNavisworksModelDefBodySource
                                                                                                                     ? "NAVISWORKSMODELDEF"
+                                                                                                                : malformedSectionManagerBodySource
+                                                                                                                    ? "SECTION_MANAGER"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
@@ -43361,6 +43401,8 @@ int main(int argc, char** argv) {
                                                                                         ? 42
                                                                                     : malformedNavisworksModelDefBodySource
                                                                                         ? 43
+                                                                                    : malformedSectionManagerBodySource
+                                                                                        ? 44
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,
