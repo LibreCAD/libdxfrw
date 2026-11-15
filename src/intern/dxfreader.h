@@ -659,6 +659,11 @@ public:
     std::string getUtf8String() {
         return decodeSemanticText(strData, m_currentCode, true);
     }
+    // FIELD's _text evaluator carries MTEXT syntax in selected physical
+    // string groups. Retain caret commands while recording the real group.
+    std::string getUtf8MTextString() {
+        return decodeSemanticText(strData, m_currentCode, true, true, false);
+    }
     // A record-specific field can reuse a normally structural code, such as
     // MATERIAL's refraction filename9. Keep its actual observation location.
     std::string getSemanticUtf8String() {

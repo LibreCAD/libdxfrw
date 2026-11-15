@@ -7232,3 +7232,11 @@ target_include_directories(libdxfrw_dxf_mtext_caret_tests PRIVATE ${CMAKE_SOURCE
 target_link_libraries(libdxfrw_dxf_mtext_caret_tests PRIVATE dxfrw)
 add_test(NAME libdxfrw_dxf_mtext_caret COMMAND libdxfrw_dxf_mtext_caret_tests)
 set_tests_properties(libdxfrw_dxf_mtext_caret PROPERTIES LABELS "dxf;fast;mtext" TIMEOUT 30)
+
+add_executable(libdxfrw_dxf_field_mtext_tests dxf_field_mtext_tests.cpp)
+target_compile_features(libdxfrw_dxf_field_mtext_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dxf_field_mtext_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dxf_field_mtext_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_dxf_field_mtext_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_dxf_field_mtext COMMAND libdxfrw_dxf_field_mtext_tests)
+set_tests_properties(libdxfrw_dxf_field_mtext PROPERTIES LABELS "dxf;fast;field;mtext" TIMEOUT 30)

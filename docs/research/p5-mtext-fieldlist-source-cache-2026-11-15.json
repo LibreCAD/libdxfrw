@@ -677,5 +677,6 @@
       "No source physical DWG field spans, unmodified DWG producer evidence, or native dynamic evaluation.",
       "No fixture was added."
     ]
-  }
+  },
+  "field_text_transport_follow_up": "FIELD A9 expression, primary value and cache now survive source-bound ASCII/Binary output and ezdxf tag inspection; graph closure and dynamic evaluation remain open. See p5-dxf-field-mtext-text-transport-2026-11-15.json."
 }

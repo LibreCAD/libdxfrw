@@ -1829,7 +1829,8 @@ bool canWriteDxfFieldValue(
 template <typename HandleRemapper>
 bool writeDxfFieldValue(dxfWriter* writer, DRW::Version version,
                         const DRW_CadValue& value,
-                        const HandleRemapper& remapHandle) {
+                        const HandleRemapper& remapHandle,
+                        bool mtextContent = false) {
     if (writer == nullptr || !canWriteDxfFieldValue(version, value))
         return false;
 
@@ -1846,7 +1847,9 @@ bool writeDxfFieldValue(dxfWriter* writer, DRW::Version version,
             written = written && writer->writeDouble(140, value.m_value.d_val());
             break;
         case 4:
-            written = written && writer->writeUtf8String(1, value.m_value.c_str());
+            written = written && (mtextContent
+                ? writer->writeUtf8MTextChunks(value.m_value.c_str(), 2, 1, 250u, 250u)
+                : writer->writeUtf8String(1, value.m_value.c_str()));
             break;
         case 8: {
             const std::vector<std::uint8_t>* data = dxfFieldBinaryData(value);
@@ -36787,9 +36790,12 @@ bool dxfRW::writeField(DRW_Field *ent) {
     }
     if (!writeTableEntryAppData(*ent))
         return false;
+    const bool mtextContent = ent->m_evaluatorId == "_text";
     written = written && writeString(100, "AcDbField")
         && writeUtf8String(1, ent->m_evaluatorId)
-        && writeUtf8String(2, ent->m_fieldCode);
+        && (mtextContent
+            ? writer->writeUtf8MTextChunks(ent->m_fieldCode, 3, 2, 250u, 250u)
+            : writeUtf8String(2, ent->m_fieldCode));
     if (version <= DRW::AC1018 && !ent->m_formatString.empty())
         written = written && writeUtf8String(4, ent->m_formatString);
     written = written && writer->writeInt32(
@@ -36821,11 +36827,13 @@ bool dxfRW::writeField(DRW_Field *ent) {
     if (dxfFieldValueHasData(fieldValue)) {
         written = written && writeUtf8String(7, "ACFD_FIELD_VALUE")
             && writeDxfFieldValue(writer.get(), version, fieldValue,
-                                  remapHandle);
+                                  remapHandle, mtextContent);
     }
 
     written = written
-        && writeUtf8String(301, ent->m_valueString)
+        && (mtextContent
+            ? writer->writeUtf8MTextChunks(ent->m_valueString, 9, 301, 250u, 250u)
+            : writeUtf8String(301, ent->m_valueString))
         && writer->writeInt32(98, ent->m_valueStringLength);
     if (!written || (!ent->extData.empty() && !writeExtData(ent->extData))) {
         return false;
