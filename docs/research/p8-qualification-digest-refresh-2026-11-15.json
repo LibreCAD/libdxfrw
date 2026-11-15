@@ -17,6 +17,12 @@
     "selectedInputCount": 713,
     "validation": "Clean-clone digest and qualified-format support checks pass; zero routes advertised."
   },
+  "roundtripPassRefresh": {
+    "sourceCommit": "d9e17856",
+    "implementationDigestSha256": "2a9aaf788c255f97437815a187c6b12e7c4ae1284ad7d0909fe7aebccbf223f4",
+    "selectedInputCount": 713,
+    "validation": "Clean-clone digest and qualified-format support checks pass; zero routes advertised. The four local native executable regression CTests pass together 4/4."
+  },
   "validation": [
     "check_qualification_digest.py passes in the clean clone with the updated status overlay.",
     "check_qualified_format_support.py passes: 15 claims, 2 candidate routes, 0 advertised."

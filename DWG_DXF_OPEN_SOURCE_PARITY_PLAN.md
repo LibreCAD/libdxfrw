@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **515 completed implementation and qualification slices** and **32 remaining
+The plan records **516 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`515 / (515 + 32) = 94.1%`. The previous 28-package denominator was stale; a recount
+`516 / (516 + 32) = 94.2%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -53,7 +53,9 @@ to three remaining assertions after aligning the MPOLYGON, CLASSES and WCS
 topology controls and HATCH angle units. The final partial-read/export control
 now verifies modern output and atomically refuses the older target that cannot
 retain its DIMSTYLE metadata. The complete local roundtrip executable passes;
-hosted reruns are still required ([receipt](docs/research/p8-partial-read-versioned-export-control-2026-11-15.json)).
+hosted reruns are still required. The four local native executable CTests now
+pass together 4/4; contract-only checks and hosted platforms remain separate
+([receipt](docs/research/p8-partial-read-versioned-export-control-2026-11-15.json)).
 The latest hosted fast build compiled, then the Wave 1 executable failed 130
 assertions across VIEW, SORTENTSTABLE and DIMSTYLE controls. The complete local
 Wave 1 executable now passes after correcting those generated controls; rerun
