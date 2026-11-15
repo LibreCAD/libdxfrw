@@ -1,0 +1,156 @@
+--- a/librecad/src/lib/filters/rs_filterdxfrw.h
++++ b/librecad/src/lib/filters/rs_filterdxfrw.h
+@@ -3329,6 +3329,7 @@
+   // DRW_Interface write callbacks are void. Preserve callback failures until
+   // fileExport can return them to the caller instead of reporting success.
+   bool m_writeFailed{false};
++  QString m_exportFailureDetail;
+   /** Latch a typed DXF writer failure across the void callback boundary. */
+   bool noteDxfWrite(bool success) {
+     if (!success)
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -4149,6 +4149,8 @@
+ // fixme - sand - non informative error message (mixed file format which is
+ // known)
+ QString RS_FilterDXFRW::lastError() const {
++  if (!m_exportFailureDetail.isEmpty())
++    return m_exportFailureDetail;
+   switch (m_errorCode) {
+   case DRW::BAD_NONE:
+     return (QObject::tr("no DXF/DWG error", "RS_FilterDXFRW"));
+@@ -4265,6 +4267,7 @@
+  */
+ bool RS_FilterDXFRW::fileImport(RS_Graphic &g, const QString &file,
+                                 [[maybe_unused]] RS2::FormatType type) {
++  m_exportFailureDetail.clear();
+   RS_DEBUG->print("RS_FilterDXFRW::fileImport");
+   RS_DEBUG->print("DXFRW Filter: importing file '%s'...",
+                   (const char *)QFile::encodeName(file));
+@@ -11673,6 +11676,12 @@
+                                 const RS2::FormatType type) {
+   // Also protect callers using the filter directly rather than RS_FileIO.
+   if (g.isDxfRecoverySourceFile(file)) {
++    if (m_dxfW == nullptr
++#ifdef DWGSUPPORT
++        && m_dwgW == nullptr
++#endif
++    )
++      m_exportFailureDetail.clear();
+     m_errorCode = DRW::BAD_OPEN;
+     RS_DIALOGFACTORY->commandMessage(QObject::tr(
+         "The original legacy DXF is protected. Save the recovered drawing to a different file."));
+@@ -11696,6 +11705,7 @@
+   this->m_graphic = &g;
+   m_errorCode = DRW::BAD_NONE;
+   m_writeFailed = false;
++  m_exportFailureDetail.clear();
+   m_dxfLeftOutRawRecords = 0;
+   m_writeLeftOut.clear();
+   m_shapeLeftOut.clear();
+@@ -17160,6 +17170,8 @@
+ 
+ QString RS_FilterDXFRW::exportReport() const {
+   QStringList lines;
++  if (!m_exportFailureDetail.isEmpty())
++    lines << m_exportFailureDetail;
+   if (m_dxfLeftOutRawRecords > 0) {
+     lines << QObject::tr("%1 object(s) read from another DXF version, which "
+                          "this version cannot hold", "RS_FilterDXFRW")
+@@ -20143,7 +20155,17 @@
+           lay.handlePlotS =
+               m_dxfW->toHexStrHandle(m_dxfW->remapHandle(plotStyle));
+       }
+-      noteDxfWrite(m_dxfW->writeLayer(&lay));
++      const bool alreadyFailed = m_writeFailed;
++      const bool written = m_dxfW->writeLayer(&lay);
++      if (!written && !alreadyFailed && m_exportFailureDetail.isEmpty()
++          && m_version <= 1014
++          && lay.lWeight != DRW_LW_Conv::widthDefault) {
++        m_exportFailureDetail = QObject::tr(
++            "DXF R12 and R14 cannot store the lineweight of layer %1. "
++            "Use a newer DXF version or set that layer's lineweight to Default.",
++            "RS_FilterDXFRW").arg(l->getName());
++      }
++      noteDxfWrite(written);
+     }
+   }
+ }
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9457,6 +9457,12 @@
+   if (HasCanonicalLTypeMetadataForGolden<dxfRW>::value) {
+     CHECK_FALSE(written);
+     CHECK(textWithoutCR(out) == "previous destination\n");
++    const QString reason = QObject::tr(
++        "DXF R12 and R14 cannot store the lineweight of layer %1. "
++        "Use a newer DXF version or set that layer's lineweight to Default.",
++        "RS_FilterDXFRW").arg(QStringLiteral("0"));
++    CHECK(filter.lastError() == reason);
++    CHECK(filter.exportReport().contains(reason));
+   } else {
+     CHECK(written); // The older bundled writer permits the lossy export.
+   }
+@@ -9466,6 +9472,7 @@
+   REQUIRE(filter.fileExport(graphic, QString::fromStdString(out),
+                             RS2::FormatDXFRW12));
+   CHECK(countRecords(out, "LTYPE") == 35);
++  CHECK_FALSE(filter.exportReport().contains(QStringLiteral("lineweight")));
+   RS_Graphic reopened;
+   RS_FilterDXFRW reader;
+   REQUIRE(reader.fileImport(reopened, QString::fromStdString(out),
+@@ -9473,6 +9480,39 @@
+   CHECK(reopened.findLayer("0") != nullptr);
+   CHECK(reopened.findLineType("DASHED") != nullptr);
+   std::filesystem::remove(out);
++}
++
++TEST_CASE("Legacy DXF export reports unrepresentable layer lineweight",
++          "[dxf][roundtrip][filter][linetype][ltype][named]") {
++  if (!HasCanonicalLTypeMetadataForGolden<dxfRW>::value)
++    return; // The bundled writer permits this lossy export.
++  ensureSettings();
++  for (const RS2::FormatType format :
++       {RS2::FormatDXFRW12, RS2::FormatDXFRW14}) {
++    RS_Graphic graphic;
++    graphic.initForNewDocument();
++    RS_Layer *layer = graphic.findLayer("0");
++    REQUIRE(layer != nullptr);
++    RS_Pen pen = layer->getPen();
++    pen.setWidth(RS2::Width07);
++    layer->setPen(pen);
++    const std::string out = tmpFile("legacy_dxf_lineweight_report.dxf");
++    writeText(out, "previous destination\n");
++    RS_FileIO *io = RS_FileIO::instance();
++    REQUIRE_FALSE(io->fileExport(graphic, QString::fromStdString(out), format));
++    CHECK(textWithoutCR(out) == "previous destination\n");
++    const QString reason = QObject::tr(
++        "DXF R12 and R14 cannot store the lineweight of layer %1. "
++        "Use a newer DXF version or set that layer's lineweight to Default.",
++        "RS_FilterDXFRW").arg(QStringLiteral("0"));
++    CHECK(io->lastExportReport().contains(reason));
++    CHECK(layer->getPen().getWidth() == RS2::Width07);
++    pen.setWidth(RS2::WidthDefault);
++    layer->setPen(pen);
++    REQUIRE(io->fileExport(graphic, QString::fromStdString(out), format));
++    CHECK_FALSE(io->lastExportReport().contains(reason));
++    std::filesystem::remove(out);
++  }
+ }
+ 
+ #ifdef DWGSUPPORT
+--- a/librecad/src/ui/main/qc_applicationwindow.cpp
++++ b/librecad/src/ui/main/qc_applicationwindow.cpp
+@@ -963,7 +963,11 @@
+             startAutoSaveTimer(autoBackup);
+         }
+         else {
+-            msg = tr("Cannot save the file ") + w->getFileName() + tr(" , please check the filename and permissions.");
++            const QString reason = RS_FileIO::instance()->lastExportReport();
++            msg = reason.isEmpty()
++                ? tr("Cannot save the file ") + w->getFileName() + tr(" , please check the filename and permissions.")
++                : tr("Cannot save the file %1: %2").arg(
++                      w->getFileName(), reason.split(QLatin1Char('\n')).join(QStringLiteral("; ")));
+             showStatusMessage(msg, 2000);
+             return doSave(w, true);
+         }

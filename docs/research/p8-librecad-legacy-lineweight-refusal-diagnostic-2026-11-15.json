@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-legacy-dxf-lineweight-diagnostic-2026-11-15.patch",
+  "patchSha256": "a38d2868745ef2ddbf87fd8db6f2489d3fc42d5d9bc0fc8b3ce11c62d2d2fe94",
+  "problem": "An upstream-writer R12/R14 layer lineweight refusal returned false with no useful filter error, while the save UI attributed the failure to filename or permissions.",
+  "change": "On the first failed DXF layer write to R12/R14 with non-default lineweight, retain a translated message naming the layer and offering a newer format or default lineweight. Return it in lastError and exportReport; clear it at the next non-reentrant export or import and when protecting an original recovery source. The existing save failure path shows the export report when available.",
+  "validation": [
+    "Modified incremental macOS LibreCAD linked to installed upstream passes the [ltype]~[dwg] selector: 17/17 cases, 3991 assertions.",
+    "R12 and R14 failure controls run through RS_FileIO: each preserves destination and caller pen, reports the exact layer, and permits a subsequent successful export with a default lineweight, without stale report. Direct filter retry and fresh R12 reimport also pass.",
+    "The modified filter, test and application-window translation units compile with the bundled-codec headers.",
+    "The patch applies cleanly after the existing 13 patches at pinned LibreCAD master. No generated DWG or DXF fixture is committed."
+  ],
+  "limits": "The focused runtime uses a modified incremental macOS upstream-linked LibreCAD build; GUI display and actual bundled runtime are not independently tested by this receipt. A separate clean bundled application build is in progress. The diagnostic is scoped to the observed legacy layer-lineweight failure and does not claim to explain every refusal. The downstream patch remains unmerged; no format claim or phase gate is promoted."
+}

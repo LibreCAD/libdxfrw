@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **583 completed implementation and qualification slices** and **32 remaining
+The plan records **584 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`583 / (583 + 32) = 94.8%`. The previous 28-package denominator was stale; a recount
+`584 / (584 + 32) = 94.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -35,10 +35,14 @@ passes against upstream. A further unmerged test patch compares the historical
 LTYPE fields and reference roles while accounting for table count, handle and
 numeric serialization differences; the upstream selector now passes all 16 cases.
 R12 still refuses a new document with explicit layer lineweight; the policy test
-checks destination preservation and same-filter retry with a representable value
+checks destination preservation and same-filter retry with a representable value.
+A separate unmerged consumer patch reports the affected layer and actionable
+R12/R14 alternatives through the filter, file I/O and save failure status;
+the upstream-linked selector passes 17/17, including reset and retry
 ([remap receipt](docs/research/p8-bundled-complex-ltype-style-remap-2026-11-15.json),
 [policy receipt](docs/research/p8-canonical-ltype-policy-consumer-test-2026-11-15.json),
-[semantic golden receipt](docs/research/p8-librecad-ltype-semantic-golden-2026-11-15.json)).
+[semantic golden receipt](docs/research/p8-librecad-ltype-semantic-golden-2026-11-15.json),
+[diagnostic receipt](docs/research/p8-librecad-legacy-lineweight-refusal-diagnostic-2026-11-15.json)).
 The first hosted run at `70e8f034` exposed a stale frozen CTest inventory.
 After regeneration, native focused qualification at `c5b3f5b4` passes 7/7
 on Linux, macOS and Windows; the limited generated FreeCAD profile passes
@@ -113,13 +117,13 @@ created locally from scratch for the specific control.
 
 ### Next LibreCAD integration work
 
-The local LibreCAD branch has 12 unmerged commits based on `8a82e359` and a
-thirteenth unmerged test patch; apply the corresponding
+The local LibreCAD branch has 12 unmerged commits based on `8a82e359` and two
+additional unmerged patches; apply the corresponding
 `docs/patches/librecad-p8-*.patch` files in order,
 then qualify a clean full-application build with the bundled and installed
 upstream libraries. The modified upstream-linked LTYPE selector passes after the semantic golden
-patch; decide how LibreCAD should communicate the R12 default-layer lineweight
-refusal without silently losing data. Repeat PR
+and diagnostic patches. Validate the R12/R14 failure message in the GUI and
+on bundled/other-platform consumers without silently losing data. Repeat PR
 #3269 and ASCII/Binary failure/retry controls. Qualify LibreCAD_3 through a
 clean link and runtime import/export, then run the required ABI and platform
 matrix ([current diagnosis](docs/research/p8-canonical-ltype-policy-consumer-test-2026-11-15.json)).
@@ -132,11 +136,13 @@ Apply the patches in this order (all under `docs/patches/`, with suffix
 `librecad-p8-associative-prefix-compat`, `librecad-p8-canonical-ltype-metadata`,
 `librecad-p8-installed-legacy-codepage`, `librecad-p8-complex-ltype-style-remap`,
 and `librecad-p8-canonical-ltype-policy-test`, and
-`librecad-p8-ltype-semantic-golden`. Rebase and resolve against the
+`librecad-p8-ltype-semantic-golden`, and
+`librecad-p8-legacy-dxf-lineweight-diagnostic`. Rebase and resolve against the
 consumer head if it advances; the pinned base still matched LibreCAD master
 when checked on 2026-11-15. The first 12
 apply in that order at the pinned base and reproduce the local consumer tree;
-the thirteenth applies on that result and reproduces the tested file
+the thirteenth applies on that result and reproduces the tested file; the
+fourteenth also passes its forward check on the same ordered chain
 ([receipt](docs/research/p8-librecad-patch-chain-verification-2026-11-15.json)).
 
 For MPOLYGON, retain the consumer's opt-in polyline policy; independently
@@ -1373,7 +1379,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P8-A | OPEN | Freeze clean-consumer builds and exact module, dependency, and runtime identities for each required 3D consumer. | Clean checkout/build provenance, ABI and linked-library inventory, repeatable import command. |
 | P8-B | OPEN | Qualify native Linux FreeCAD open and insert for representative mesh, surface, and ACIS source profiles. | The default importer passes the limited primitive profile but reports 3DFACE/SOLID unsupported. A pinned optional legacy importer now has generated POLYFACE, valid SOLID and 3DFACE checks for AC1021/AC1024/AC1032; macOS and hosted Linux pass the millimetre controls. Integrate and independently qualify the unmerged legacy-importer unit-scaling fix; then test non-default units, nested blocks, additional mesh, surface and ACIS profiles ([receipt](docs/research/p8-freecad-legacy-surfaces-generated-2026-11-15.json)). |
 | P8-C | OPEN | Qualify native Windows FreeCAD open and insert for the same source profiles. | The limited default-importer profile passes, with 3DFACE/SOLID unsupported. Hosted Windows passes the separately provisioned legacy importer and corrected generated millimetre POLYFACE/SOLID/3DFACE profiles; integrate and qualify the unmerged legacy-importer unit-scaling fix, and test non-default units, nested blocks, additional mesh, surface and ACIS ([receipt](docs/research/p8-freecad-legacy-surfaces-generated-2026-11-15.json)). |
-| P8-D | OPEN | Complete LibreCAD and LibreCAD_3 compatibility against clean upstream consumers, including merged [LibreCAD PR #3269](https://github.com/LibreCAD/LibreCAD/pull/3269) and edited/untouched LTYPE metadata. | Integrate the 13 unmerged local LibreCAD patches; build the full application against the installed library and qualify both bundled and upstream codecs. The modified upstream-linked LTYPE selector passes 16/16 with the thirteenth unmerged test patch; its R12 case explicitly checks refusal and destination preservation for the new document's 0.25 mm layer lineweight, followed by same-filter retry with a representable default and fresh import. Decide how the application should communicate that refusal without silently dropping lineweight, then repeat the relevant ASCII/Binary and PR #3269 import/export controls ([diagnosis](docs/research/p8-canonical-ltype-policy-consumer-test-2026-11-15.json), [remap patch](docs/patches/librecad-p8-complex-ltype-style-remap-2026-11-15.patch)). A modified scratch LibreCAD application builds and converts one tracked DWG; repeat against clean current master with integrated patches. Integrate the three ordered unmerged LibreCAD_3 patches. Bounded simple MPOLYGON translation and rotation pass focused macOS tests; the pinned older codec uses a reported HATCH fallback. Implement non-rigid edits, richer paths, non-default-plane mapping, graph references and durable preservation beyond that profile; qualify native rendering and other platforms ([receipt](docs/research/p8-librecad3-mpolygon-rotation-preservation-2026-11-15.json)). ABI and other-platform qualification remain open. |
+| P8-D | OPEN | Complete LibreCAD and LibreCAD_3 compatibility against clean upstream consumers, including merged [LibreCAD PR #3269](https://github.com/LibreCAD/LibreCAD/pull/3269) and edited/untouched LTYPE metadata. | Integrate the 14 unmerged local LibreCAD patches; build the full application against the installed library and qualify both bundled and upstream codecs. The modified upstream-linked LTYPE selector passes 17/17 with the thirteenth and fourteenth unmerged patches; its R12/R14 cases check refusal, destination preservation, actionable layer-specific reporting, and retry with a representable default. Validate the save UI, bundled runtime and other platforms, then repeat the relevant ASCII/Binary and PR #3269 import/export controls ([diagnosis](docs/research/p8-canonical-ltype-policy-consumer-test-2026-11-15.json), [remap patch](docs/patches/librecad-p8-complex-ltype-style-remap-2026-11-15.patch)). A modified scratch LibreCAD application builds and converts one tracked DWG; repeat against clean current master with integrated patches. Integrate the three ordered unmerged LibreCAD_3 patches. Bounded simple MPOLYGON translation and rotation pass focused macOS tests; the pinned older codec uses a reported HATCH fallback. Implement non-rigid edits, richer paths, non-default-plane mapping, graph references and durable preservation beyond that profile; qualify native rendering and other platforms ([receipt](docs/research/p8-librecad3-mpolygon-rotation-preservation-2026-11-15.json)). ABI and other-platform qualification remain open. |
 | P8-E | OPEN | Close ABI, package reproducibility and native focused-test failures across supported build modes; record public symbol/layout impact. | Compare ABI and public symbol/layout changes against the released baseline; qualify clean static/shared consumer builds and packaging on all required platforms. macOS ARM64 static repeated installs and installed shared consumer/relocation checks pass, while Linux/Windows shared, cross-build reproducibility and the complete ABI matrix remain open ([static receipt](docs/research/p8-macos-static-install-reproducibility-2026-11-15.json), [shared receipt](docs/research/p8-macos-shared-package-legacy-codepage-2026-11-15.json)). Native focused tests passed 7/7 per platform at `c5b3f5b4`; verify later sources separately ([receipt](docs/research/p8-hosted-native-freecad-codepage-fix-2026-11-15.json)). |
 | P8-F | OPEN | Repair or disposition hosted package CI failures, including macOS staging and Intel bottle availability. | The hosted GCC 13 fast build at `f1d2f736` failed on a range-loop copy warning; the const-reference fix passed the hosted fast rerun at `f4aed932` (the source-release job was skipped) ([receipt](docs/research/p8-hosted-gcc13-dictionaryvar-test-warning-2026-11-15.json)). The fast run for `9d70ba63` failed because two downstream patch files were absent from the generated source-release lists. The repair's hosted fast lane and later `6453b578`, `7189c8e3`, `b2f44d42`, and `b164b8c1` fast lanes passed; source-release inventory and qualification digest also pass in a clean checkout after the downstream patch updates. The lists now also include the rotation patch and pass the clean-checkout generator and self-test. Green reproducible package jobs or explicit supported-platform exclusions in release policy remain required. |
 | P8-G | OPEN | Decide and document supported platforms, required native consumers, and release qualification thresholds. | Evidence-backed release matrix for each supported platform; no unresolved required red job. Local macOS ARM64 FreeCAD 1.1.4 generated AC1021/AC1024/AC1032 primitive open/insert matrix passes, but rejects 3DFACE/SOLID and imports polyface as wire ([receipt](docs/research/p8-macos-freecad-generated-primitives-ac1021-ac1032-2026-11-14.json)); modeler-solid qualification remains open. The optional legacy importer passes six generated millimetre open/insert checks for a POLYFACE, SOLID and 3DFACE on macOS and hosted Linux/Windows. Two ordered unmerged FreeCAD patches fix a reproduced SOLID/mesh non-default-unit scaling defect and missing 3DFACE in blocks; generated nested macOS open/insert controls pass. FreeCAD main has a SOLID route absent from pinned 1.1.4, but its original importer has an OCS defect and no 3DFACE dispatch. Six ordered unmerged patches correct the SOLID basis, add planar WCS 3DFACE handling, preserve classic 2D/3D POLYLINE closure, and import bounded planar unstyled POLYFACE and open or closed polygon meshes as compounds. Native macOS headless direct and nested inch/millimetre controls pass, as do selected DIMENSION basis checks. Extend POLYFACE and polygon meshes to remaining styles, hidden edges, smoothed grids and nonplanar faces ([open-grid receipt](docs/research/p8-freecad-main-open-polygon-mesh-2026-11-15.json), [closed-grid receipt](docs/research/p8-freecad-main-closed-polygon-mesh-2026-11-15.json)) ([POLYFACE receipt](docs/research/p8-freecad-main-bounded-polyface-2026-11-15.json)) ([classic polyline receipt](docs/research/p8-freecad-main-classic-polyline-flags-2026-11-15.json)). Integrate the patches and qualify GUI, other platforms and shared-basis consumers; nonplanar faces and invisible edges remain explicitly unsupported ([3DFACE receipt](docs/research/p8-freecad-main-planar-3dface-patch-2026-11-15.json)) ([source review](docs/research/p8-freecad-main-default-dxf-source-2026-11-15.json), [patch receipt](docs/research/p8-freecad-main-solid-ocs-patch-2026-11-15.json)). A generated nonplanar 3DFACE is still reported unimported; establish its producer/native diagonal and edge-visibility semantics before implementing a bounded fallback ([boundary](docs/research/p8-freecad-legacy-nonplanar-3dface-boundary-2026-11-15.json)). Integrate both patches and qualify broader nesting, producer sources and other platforms ([unit-scaling receipt](docs/research/p8-freecad-legacy-dxf-unit-scaling-2026-11-15.json), [nested 3DFACE receipt](docs/research/p8-freecad-legacy-dxf-nested-block-3dface-2026-11-15.json)) ([receipt](docs/research/p8-freecad-legacy-surfaces-generated-2026-11-15.json)). |
