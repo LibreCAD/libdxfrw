@@ -1,0 +1,44 @@
+{
+  "title": "Generated MLEADERSTYLE body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_MLEADERSTYLE_BODY_RECOVERY_PASS",
+  "scope": "CLI disposition for bounded malformed MLEADERSTYLE bodies at six DWG revisions, including continuation, strict refusal, and explicit-partial output readback where the revision is admitted.",
+  "selection": {
+    "source": "P6-F custom OBJECTS dispatcher/parser inventory",
+    "reason": "The typed DRW_MLeaderStyle route has a generated writer and a scalar profile with no nonzero style dependency handles, making it a bounded candidate for CLI recovery and output disposition."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-mleaderstyle-body-source",
+    "profile": "One MLEADERSTYLE with content type, leader type, point limit, landing gap, text defaults, height, scale, ByLayer colors, and a following LINE; style dependency handles are null.",
+    "mutation": "A bounded one-bit mutation in the body causes the typed MLeaderStyle parser to reject the object frame."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 5, "output_revision": "AC1015"},
+    "AC1018": {"controls": 5, "output_revision": "AC1018"},
+    "AC1021": {"controls": 5, "output_revision": "AC1021"},
+    "AC1024": {"controls": 5, "output_revision": "AC1024"},
+    "AC1027": {"controls": 3, "output": "refused by the existing source-reference gate"},
+    "AC1032": {"controls": 5, "output_revision": "AC1032"}
+  },
+  "assertions": [
+    "Each generated source records one failed OBJECTS frame, continues to the following LINE, and balances source/published/failed frame accounting.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel for output-qualified revisions.",
+    "Explicit-partial ASCII/Binary conversion and fresh typed DXF readback pass at AC1015, AC1018, AC1021, AC1024, and AC1032.",
+    "AC1027 strict and partial output remain refused by the source-reference gate."
+  ],
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 passed after registering the dedicated selector.",
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j2 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
+    "diff_check": "git diff --check passed after the receipt and plan update.",
+    "targeted": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_mleaderstyle_recovery$' --output-on-failure passed; 28 controls; 1.09 seconds.",
+    "aggregate": "The latest dwg2dxf_cli_partial_read_disposition run passed 917 controls in 29.40 seconds during the SECTION_SETTINGS slice. It was not rerun for this isolated profile."
+  },
+  "limits": [
+    "Generated local recovery evidence only; producer-authored MLEADERSTYLE semantics and native annotation behavior are not qualified.",
+    "The generated style has null dependency handles; it does not qualify styles that reference text styles, arrow blocks, or block content.",
+    "AC1027 output remains refused by the source-reference gate.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

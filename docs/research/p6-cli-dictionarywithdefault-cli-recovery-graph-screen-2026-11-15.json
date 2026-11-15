@@ -1,0 +1,28 @@
+{
+  "title": "DICTIONARYWDFLT CLI recovery candidate graph screen",
+  "date": "2026-11-15",
+  "status": "SCREENED_PARTIAL_OUTPUT_REFUSED_GRAPH_CLOSURE",
+  "scope": "One generated AC1015 DICTIONARYWDFLT profile; this is a candidate screen, not a passing recovery/output qualification.",
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and cleaned by the temporary test harness.",
+    "profile": "One default dictionary entry targets a generated typed DICTIONARYVAR record; the malformed dictionary is followed by a LINE.",
+    "mutation": "A bounded one-bit body mutation isolates one DICTIONARYWDFLT object failure and preserves subsequent frame publication."
+  },
+  "observed": {
+    "read": "AC1015 source read completes with 29 source frames, 28 published frames, and one failed object frame.",
+    "strict": "The malformed source is not eligible for strict output.",
+    "partial": "Explicit-partial DXF output fails closed during extension-object graph validation.",
+    "diagnostic": "DICTIONARYVAR records require the NOD AcDbVariableDictionary route."
+  },
+  "validation": {
+    "focused_command": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_dictionary_default_recovery$' --output-on-failure",
+    "result": "The candidate screen fails the generic profile's expected partial-output positive because the generated target graph is missing the required NOD variable-dictionary route; no DXF output is admitted.",
+    "build": "The local dwg2dxf and dwg_local_roundtrip targets compile with the attempted source generator."
+  },
+  "next_action": "Resume only with a generated or producer-bound NOD AcDbVariableDictionary graph and exact entry/owner identity. Otherwise keep DICTIONARYWDFLT output refused and continue with another bounded parser profile.",
+  "limits": [
+    "No partial or strict output support is qualified by this screen.",
+    "The attempted generated target does not close the required NOD owner route.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}
