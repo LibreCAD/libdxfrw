@@ -623,6 +623,26 @@ std::uint16_t dxfMTextLineSpacingStyle(std::uint16_t style) noexcept {
     return style == 2u ? 2u : 1u;
 }
 
+// Fresh embedded MTEXT historically wrote its nonzero legacy angle after the
+// 2D direction, so a conflicting angle won. Prefer the vector when it agrees
+// with that angle (or has a Z component that a 2D angle cannot represent).
+bool embeddedMTextLegacyAngleWins(const DRW_MText& text) noexcept {
+    if (text.angle == 0.0 || text.secPoint.z != 0.0)
+        return false;
+    const double scale = std::max(std::abs(text.secPoint.x),
+                                  std::abs(text.secPoint.y));
+    if (scale == 0.0)
+        return false;
+    const double x = text.secPoint.x / scale;
+    const double y = text.secPoint.y / scale;
+    const double length = std::hypot(x, y);
+    const double radians = std::remainder(text.angle, 360.0)
+        * (std::acos(-1.0) / 180.0);
+    constexpr double tolerance = 8.0 * std::numeric_limits<double>::epsilon();
+    return std::abs(x / length - std::cos(radians)) > tolerance
+        || std::abs(y / length - std::sin(radians)) > tolerance;
+}
+
 bool isSafeDxfMTextContent(const std::string& text) {
     if (text.find('\0') != std::string::npos)
         return false;
@@ -14563,6 +14583,7 @@ bool dxfRW::writeEmbeddedMText(DRW_MText *ent) {
     const bool writeDirection =
         orientation == DRW_MText::DxfOrientationMode::Direction
         || (legacyOrientation
+            && !embeddedMTextLegacyAngleWins(*ent)
             && (ent->secPoint.x != 0.0 || ent->secPoint.y != 0.0
                 || ent->secPoint.z != 0.0));
     if (writeDirection) {

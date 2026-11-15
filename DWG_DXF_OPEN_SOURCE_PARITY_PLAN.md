@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **481 completed implementation and qualification slices** and **32 remaining
+The plan records **482 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`481 / (481 + 32) = 93.8%`. The previous 28-package denominator was stale; a recount
+`482 / (482 + 32) = 93.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -21,10 +21,10 @@ The upstream-linked LibreCAD `[mtext]~[dwg]` selector now passes 4/4 after
 normalizing invalid DXF line-spacing styles and correcting its R2018 column
 extents test to require retention. The local consumer branch carries that test
 correction; see the [receipt](docs/research/p8-librecad-mtext-spacing-column-extents-2026-11-15.json).
-The upstream `libdxfrw_mtext_column_object_scope` selector separately has ten
-fresh embedded-orientation assertion failures and six read errors, reproduced
-against the committed baseline as well as the new code. Diagnose and fix those
-cases before declaring P8-D complete.
+The upstream `libdxfrw_mtext_column_object_scope` selector also passes after
+restoring the legacy angle precedence for conflicting fresh embedded 2D values
+while preserving 3D direction vectors. Its six read-error diagnostics are
+expected malformed-input controls; see the [orientation receipt](docs/research/p8-embedded-mtext-legacy-orientation-2026-11-15.json).
 
 The IMAGEDEF owner/back-reference distinction is one completed local slice;
 P6-A remains open for native operation semantics and strict output/readback proof.

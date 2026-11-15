@@ -46,5 +46,6 @@
     "The local LibreCAD test patch is not merged upstream.",
     "No LibreCAD_3 or native FreeCAD qualification follows from these controls.",
     "No external DWG/DXF fixture was committed."
-  ]
+  ],
+  "orientation_follow_up": "The previously observed ten embedded-orientation failures were fixed; the six BAD_CODE_PARSED diagnostic lines are expected malformed-input negative controls. See p8-embedded-mtext-legacy-orientation-2026-11-15.json."
 }

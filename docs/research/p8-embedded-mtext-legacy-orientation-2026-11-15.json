@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-15",
+  "scope": "DXF embedded MTEXT legacy API orientation; standalone MTEXT and DWG encoding are unchanged.",
+  "reference": {
+    "url": "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-5E5DB93B-F8D3-4433-ADF7-E92E250D2BAB.htm",
+    "rule": "When both rotation and direction are supplied, the last supplied representation wins."
+  },
+  "regression": {
+    "previous_change": "b526b240 omitted redundant group 50 when direction was available for independent parser compatibility.",
+    "legacy_difference": "Before that change a fresh embedded MTEXT with a nonzero angle and conflicting 2D direction emitted group 11 then group 50; the angle was authoritative. The later writer emitted only group 11 and produced the vector angle instead.",
+    "reproduction": "The upstream mtext-column-object-scope selector had ten fresh embedded cases expecting 30 degrees and reading 90 degrees. Instrumentation confirmed that the export and import succeeded with eight embedded records in each case; the six bad-read diagnostics belong to separate intentionally malformed negative controls."
+  },
+  "fix": "For fresh embedded LegacyApi objects, preserve nonzero angle precedence for conflicting 2D values while emitting only one orientation representation. Keep a matching direction vector and preserve any vector with a nonzero Z component. Source-parsed orientation modes and standalone MTEXT follow their existing paths. Relative direction comparison uses eight double-precision epsilons and scaled components.",
+  "validation": {
+    "focused_ctest": "4/4: libdxfrw_mtext_column_object_scope, libdxfrw_dxf_mtext_legacy_columns, libdxfrw_dwg_mtext_rotation_direction, libdxfrw_dxf_mtext_caret.",
+    "generated_cases": "ASCII/Binary AC1032 embedded ATTDEF readback covers conflicting 2D, matching direction, retained 3D direction and a small real angle difference; input objects remain unchanged.",
+    "ezdxf": "ezdxf 1.4.5 independently read all eight generated embedded ATTRIB-definition profiles and recovered rotation or the expected complete direction vector.",
+    "librecad": "Disposable upstream-linked [mtext]~[dwg] selector passed 4 cases / 215 assertions with the documented consumer test patches applied."
+  },
+  "limits": [
+    "No broad native 3D application or whole-document interoperability claim.",
+    "No external DWG/DXF sample was committed."
+  ]
+}

@@ -13312,12 +13312,20 @@ void testEmbeddedMTextOrientation(TestContext& t, bool binary,
     const bool freshWritten = freshWriter.fileExport(output.string(), DRW::AC1032, binary, &data, false);
     dx_data freshDecoded;
     EmbeddedOrientationInterface freshReader;
-    bool freshValid = freshWritten
+    const bool freshImported = freshWritten
         && freshReader.fileImport(output.string(), &freshDecoded, false);
+    bool freshValid = freshImported;
     const auto freshTexts = embeddedOrientationTexts(freshDecoded);
     freshValid = freshTexts.size() == 8u && freshValid;
     for (const auto* text : freshTexts) freshValid = text->angle == 30 && freshValid;
     for (const auto* text : texts) freshValid = text->angle == 30 && text->secPoint.y == 1 && freshValid;
+    if (!freshValid) {
+        std::cerr << "fresh embedded orientation diagnostics: written=" << freshWritten
+                  << " imported=" << freshImported << " expected=" << texts.size()
+                  << " found=" << freshTexts.size();
+        for (const auto* text : freshTexts) std::cerr << " angle=" << text->angle;
+        std::cerr << '\n';
+    }
     t.expect(freshValid, "fresh embedded API objects retain legacy vector-before-angle ordering without mutation");
 }
 

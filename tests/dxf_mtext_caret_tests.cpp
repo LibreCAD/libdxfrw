@@ -4,6 +4,7 @@
 #include "intern/dxfwriter.h"
 #include "lc3_compat_check.cpp"
 #include <chrono>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -20,12 +21,19 @@ struct Capture final : LC3CompatCheck {
         if (value.mtext) {
             ++embeddedCount; embeddedText = value.mtext->text;
             embeddedStyle = value.mtext->linespacingStyle;
+            embeddedAngle = value.mtext->angle;
+            embeddedDirection = value.mtext->secPoint;
+            embeddedHasDirection = embeddedDirection.x != 0.0
+                || embeddedDirection.y != 0.0 || embeddedDirection.z != 0.0;
         }
     }
     int count = 0;
     int embeddedCount = 0;
     std::uint16_t style = 0;
     std::uint16_t embeddedStyle = 0;
+    double embeddedAngle = 0.0;
+    DRW_Coord embeddedDirection;
+    bool embeddedHasDirection = false;
     std::string text;
     std::string embeddedText;
 };
@@ -213,6 +221,31 @@ int main(int argc, char** argv) {
             std::cerr << "embedded MTEXT line spacing mismatch\n"; return 1;
         }
       }
+    }
+    for (bool binary : {false, true}) {
+        for (int profile = 0; profile < 4; ++profile) {
+            const auto target = dir / (std::string("orientation-")
+                + (binary ? "binary-" : "ascii-") + std::to_string(profile) + ".dxf");
+            dxfRW output(target.string().c_str()); EmbeddedExporter exporter(output, "angle");
+            auto& textValue = *exporter.value.mtext;
+            textValue.angle = profile == 3 ? 30.0 + 1e-11 : 30.0;
+            textValue.secPoint = profile == 0 ? DRW_Coord{0.0, 1.0, 0.0}
+                : profile == 2 ? DRW_Coord{0.0, 1.0, 2.0}
+                               : DRW_Coord{0.8660254037844386, 0.5, 0.0};
+            const double originalAngle = textValue.angle;
+            const auto originalDirection = textValue.secPoint;
+            if (!output.write(&exporter, DRW::AC1032, binary) || !exporter.ok
+                || textValue.angle != originalAngle || textValue.secPoint.x != originalDirection.x
+                || textValue.secPoint.y != originalDirection.y
+                || textValue.secPoint.z != originalDirection.z) return 1;
+            dxfRW input(target.string().c_str()); Capture capture;
+            if (!input.read(&capture, false) || capture.embeddedCount != 1
+                || std::abs(capture.embeddedAngle - (profile == 2 ? 90.0 : originalAngle)) > 1e-10
+                || capture.embeddedHasDirection != (profile == 1 || profile == 2)
+                || (profile == 2 && capture.embeddedDirection.z != 2.0)) {
+                std::cerr << "embedded legacy MTEXT orientation mismatch\n"; return 1;
+            }
+        }
     }
     std::cout << "MTEXT caret source, ASCII/Binary output and typed readback PASS\n";
 }
