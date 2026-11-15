@@ -27755,13 +27755,13 @@ std::unique_ptr<DRW_Hatch> makePatternedHatchControl() {
     hatch->solid = 0;
     hatch->associative = 0;
     hatch->hpattern = 2;
-    hatch->angle = 17;
+    hatch->angle = 17.0 / ARAD;
     hatch->scale = 2.5;
     hatch->basePoint.z = 5;
     hatch->extPoint = {0, .6, .8};
     hatch->deflines = 2;
-    hatch->patternLines = {{30, 2, 3, 4, 7, {1, -2, 0}},
-                           {120, -5, 11, 9, -6, {3, 0, -4}}};
+    hatch->patternLines = {{30.0 / ARAD, 2, 3, 4, 7, {1, -2, 0}},
+                           {120.0 / ARAD, -5, 11, 9, -6, {3, 0, -4}}};
     auto loop = std::make_shared<DRW_HatchLoop>(2);
     auto boundary = std::make_shared<DRW_LWPolyline>();
     boundary->flags = 1;
@@ -27779,7 +27779,8 @@ bool patternedHatchMatches(const DRW_Hatch& value) {
     const auto expected = makePatternedHatchControl();
     if (value.eType != DRW::HATCH || value.name != expected->name
         || value.solid != 0 || value.associative != 0 || value.hpattern != 2
-        || value.angle != 17 || value.scale != 2.5 || value.deflines != 2
+        || std::abs(value.angle - expected->angle) > 1e-12
+        || value.scale != 2.5 || value.deflines != 2
         || value.basePoint.x != 0 || value.basePoint.y != 0 || value.basePoint.z != 5
         || value.extPoint.x != 0 || value.extPoint.y != .6 || value.extPoint.z != .8
         || value.patternLines.size() != 2 || value.loopsnum != 1
@@ -27788,7 +27789,7 @@ bool patternedHatchMatches(const DRW_Hatch& value) {
     for (std::size_t i = 0; i != 2; ++i) {
         const auto& line = value.patternLines[i];
         const auto& wanted = expected->patternLines[i];
-        if (line.angle != wanted.angle || line.baseX != wanted.baseX
+        if (std::abs(line.angle - wanted.angle) > 1e-12 || line.baseX != wanted.baseX
             || line.baseY != wanted.baseY || line.offsetX != wanted.offsetX
             || line.offsetY != wanted.offsetY || line.dashList != wanted.dashList)
             return false;
@@ -27820,7 +27821,18 @@ HatchPatternTags expectedHatchPatternTags() {
 }
 
 bool hatchPatternTagsMatch(const HatchPatternTags& tags) {
-    return tags == expectedHatchPatternTags();
+    const auto expected = expectedHatchPatternTags();
+    if (tags.size() != expected.size())
+        return false;
+    for (std::size_t i = 0; i < tags.size(); ++i) {
+        if (tags[i].first != expected[i].first)
+            return false;
+        const bool angle = tags[i].first == 52 || tags[i].first == 53;
+        if (angle ? std::abs(tags[i].second - expected[i].second) > 1e-12
+                  : tags[i].second != expected[i].second)
+            return false;
+    }
+    return true;
 }
 
 struct HatchPatternWireRecord {
@@ -27893,8 +27905,14 @@ bool writePatternedHatchFile(const std::filesystem::path& path, bool binary) {
     insert->yscale = 3;
     source.mBlock->ent.push_back(insert);
     dx_iface writer;
-    return writer.fileExport(path.string(), DRW::AC1027, binary, &source, false)
-        && patternedHatchMatches(*insideBefore) && patternedHatchMatches(*outsideBefore);
+    const bool exported = writer.fileExport(path.string(), DRW::AC1027, binary, &source, false);
+    const bool insidePreserved = patternedHatchMatches(*insideBefore);
+    const bool outsidePreserved = patternedHatchMatches(*outsideBefore);
+    if (!exported || !insidePreserved || !outsidePreserved)
+        std::cerr << "HATCH pattern source state: export=" << exported
+                  << " inside=" << insidePreserved
+                  << " outside=" << outsidePreserved << '\n';
+    return exported && insidePreserved && outsidePreserved;
 }
 
 bool verifyPatternedHatchFile(const std::filesystem::path& path) {
