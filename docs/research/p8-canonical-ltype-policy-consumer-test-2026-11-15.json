@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "e17ae3d9530c07917daa2a41cf32a4595670cd8c",
+  "consumerCommit": "8f1f6e0d83d77b6df37390d2090a3f4e3d403fd7",
+  "patch": "docs/patches/librecad-p8-canonical-ltype-policy-test-2026-11-15.patch",
+  "finding": "An existing direct-writer test expected the older bundled codec to omit unseeded mandatory-LTYPE metadata and report it. The upstream codec instead refuses the write to avoid loss unless the metadata was supplied before the mandatory records were emitted. Both behaviors must be checked according to the actual available codec API.",
+  "validation": [
+    "The revised actual consumer test passes against installed upstream, including explicit refusal and unchanged prior destination; the shared test translation unit also compiles against bundled headers.",
+    "A separately built bundled-codec probe confirms successful output and the existing left-out diagnostic. The upstream complex-LTYPE regression also passes 176 assertions.",
+    "The incremental upstream [ltype]~[dwg] selector now passes 14 of 15 test cases. The remaining case has two historical table-byte golden mismatches and one R12 export refusal for the new document's explicit lineweight.",
+    "The patch passes forward and reverse application checks against the local consumer history."
+  ],
+  "limits": "The local consumer patch is unmerged. The upstream selector uses a modified incremental consumer build; the bundled policy probe is standalone. The remaining golden and R12 behavior are not resolved by this test correction, and no P8-D or format-support claim is promoted."
+}

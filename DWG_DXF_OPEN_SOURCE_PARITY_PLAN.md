@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **538 completed implementation and qualification slices** and **32 remaining
+The plan records **539 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`538 / (538 + 32) = 94.4%`. The previous 28-package denominator was stale; a recount
+`539 / (539 + 32) = 94.4%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -30,8 +30,11 @@ records the behavior and package-linked test limits.
 The local LibreCAD patch set also repairs the bundled writer's complex LTYPE
 STYLE reference remapping, including identical source/output handles, and
 corrects the test's missing STYLE targets. ASCII/Binary retry and fresh
-readback pass, but the patch remains unmerged and other LTYPE compatibility
-failures remain ([receipt](docs/research/p8-bundled-complex-ltype-style-remap-2026-11-15.json)).
+readback pass, but the patch remains unmerged. The policy-aware metadata test
+now passes against upstream; one LTYPE test remains failing, covering historical
+table byte goldens and R12 export of the new-document default lineweight
+([remap receipt](docs/research/p8-bundled-complex-ltype-style-remap-2026-11-15.json),
+[policy receipt](docs/research/p8-canonical-ltype-policy-consumer-test-2026-11-15.json)).
 The first hosted run at `70e8f034` exposed a stale frozen CTest inventory.
 It is regenerated against that commit and matches all 1,365 names in the
 hosted macOS inventory; rerun native qualification after this repair
@@ -1295,7 +1298,7 @@ all four path/trailer variants pass on both libraries, and generated
 ASCII/Binary controls retain refusal for invalid value 42 ([receipt](docs/research/p8-mpolygon-annotation-domain-consumer-control-2026-11-15.json)).
 The combined DIMASSOC/MPOLYGON selector now passes 12/12 against upstream with
 the opt-in polyline policy and 12/12 against the corrected bundled fork.
-Integrate the nine local patches against the current consumer head and repeat in
+Integrate the ten local patches against the current consumer head and repeat in
 a clean upstream-linked build. Qualify LibreCAD_3, ABI and required platforms separately; strict source
 admission remains closed for `DeclaredUtf8`. See the [consumer receipt](docs/research/p8-librecad-consumer-compat-patch-2026-11-15.json)
 and [test target receipt](docs/research/p8-librecad-upstream-test-target-api-2026-11-15.json).

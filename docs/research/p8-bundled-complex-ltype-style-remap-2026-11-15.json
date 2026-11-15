@@ -11,5 +11,5 @@
     "The actual LibreCAD complex-LTYPE regression passes against the installed upstream library: 176 assertions across the eight sections, including failure, retry and readback. The associated consumer archive is an incremental local overlay, not a clean application build.",
     "The patch passes forward application against its parent index and reverse application against the consumer commit. No drawing fixture is added."
   ],
-  "limits": "The consumer commit is local and unmerged. The bounded bundled tests do not qualify ambiguous or missing STYLE target graphs, other producer profiles, native display, other platforms, or the full LibreCAD test suite. Two other tagged LTYPE failures and the full P8-D exit criteria remain open; no format-support claim is promoted."
+  "limits": "The consumer commit is local and unmerged. The bounded bundled tests do not qualify ambiguous or missing STYLE target graphs, other producer profiles, native display, other platforms, or the full LibreCAD test suite. Subsequent policy-test work leaves one tagged LTYPE test failing; the full P8-D exit criteria remain open and no format-support claim is promoted."
 }
