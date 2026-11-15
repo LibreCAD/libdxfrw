@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad-named-ltype-selector-diagnosis-2026-11-15",
+  "date": "2026-11-15",
+  "status": "temporary_consumer_probe",
+  "supportClaimEffect": "none",
+  "sourceHead": "c36f6b73",
+  "consumerHead": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "baseline": "Upstream-linked temporary LibreCAD harness, prior $DIMSTYLE overload and group helper corrections, original MLINESTYLE fixture: 11/18 tests pass.",
+  "diagnosis": {
+    "unicode": "Multiple R12 drawings declare UTF-8 but default Compatible policy historically re-applies the normalized ANSI_1252 decoder; ExactNamed decodes the declaration and reports a legacy Unicode encoding-profile observation. The default behavior and its observational tests are intentional compatibility contracts; do not change it globally without an explicit policy decision.",
+    "r12": "Temporary instrumentation of DRW_Header::write identifies canWriteDxfInsunits(AC1009) as a failing preflight; the sample HEADER carries group 70 $INSUNITS value 0.",
+    "input": "The fixture supplies LTYPE alignment group 72 value 66. The reader rejects it by design; Autodesk LTYPE reference specifies 65. The fixture also asserts preservation of 66, so both source and expectation need correction for a standards-conforming control.",
+    "reference": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm"
+  },
+  "experiment": {
+    "changes": [
+      "Set upstream dxfRW input policy to ExactNamed in the temporary LibreCAD adapter for the whole focused selector.",
+      "Skip only integer $INSUNITS=0 on AC1014 or earlier targets in the temporary consumer; no behavior for nonzero units was qualified.",
+      "Change the one invalid group 72 fixture value and its expected output from 66 to 65.",
+      "Retain earlier temporary $DIMSTYLE QString overload and group-value helper fixes."
+    ],
+    "result": "18/18 tests PASS, 465 assertions, including the original complex LTYPE and MLINESTYLE fixture."
+  },
+  "next": [
+    "Make a consumer-facing decoding policy decision that preserves compatibility fallback for non-UTF8 declarations and surfaces the existing unsupported-profile diagnostic; do not infer that enabling ExactNamed globally is safe.",
+    "Handle old-target INSUNITS loss explicitly in LibreCAD, including nonzero values and user-visible loss disposition; rerun R12/R14 exports.",
+    "Correct the invalid alignment fixture and preserve a distinct negative alignment test.",
+    "Make the temporary DIMSTYLE and metadata-helper changes permanent in the downstream consumer; qualify clean full builds, LibreCAD_3 and platforms."
+  ],
+  "fixturePolicy": "All edited fixture data lives in the disposable LibreCAD test source; no DWG/DXF fixture file was added."
+}
