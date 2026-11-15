@@ -28541,6 +28541,11 @@ public:
     using DRW_Section::parseDwg;
 };
 
+class PointCloudColorMapBodyProbe final : public DRW_PointCloudColorMap {
+public:
+    using DRW_PointCloudColorMap::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28894,6 +28899,30 @@ public:
             type.m_geometry.push_back(geometry);
             sectionSettings_.m_types.push_back(type);
         }
+        if (kind_ == 46) {
+            pointCloudColorMap_.handle = 0x700u;
+            pointCloudColorMap_.m_classVersion = 1;
+            pointCloudColorMap_.m_defaultIntensityColorScheme =
+                "RECOVERY_INTENSITY";
+            pointCloudColorMap_.m_defaultElevationColorScheme =
+                "RECOVERY_ELEVATION";
+            pointCloudColorMap_.m_defaultClassificationColorScheme =
+                "RECOVERY_CLASSIFICATION";
+            pointCloudColorMap_.m_colorRampCount = 1;
+            DRW_PointCloudColorMapRamp colorRamp;
+            colorRamp.m_classVersion = 2;
+            colorRamp.m_rampCount = 2;
+            colorRamp.m_colorSchemes = {
+                "RECOVERY_RAMP_LOW", "RECOVERY_RAMP_HIGH"};
+            pointCloudColorMap_.m_colorRamps.push_back(colorRamp);
+            pointCloudColorMap_.m_classificationColorRampCount = 1;
+            DRW_PointCloudColorMapRamp classificationRamp;
+            classificationRamp.m_classVersion = 3;
+            classificationRamp.m_rampCount = 1;
+            classificationRamp.m_colorSchemes = {"RECOVERY_CLASS_A"};
+            pointCloudColorMap_.m_classificationColorRamps.push_back(
+                classificationRamp);
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -29040,6 +29069,11 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerSectionObjectClass(&sectionSettings_)
                     && wrote;
+        } else if (kind_ == 46) {
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerPointCloudColorMapObjectClass(
+                      &pointCloudColorMap_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -29051,7 +29085,7 @@ public:
                    && !(kind_ >= 27 && kind_ <= 32) && kind_ != 33
                    && kind_ != 34 && !(kind_ >= 35 && kind_ <= 40)
                    && kind_ != 41 && kind_ != 42 && kind_ != 43
-                   && kind_ != 44 && kind_ != 45) {
+                   && kind_ != 44 && kind_ != 45 && kind_ != 46) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -29167,6 +29201,11 @@ public:
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeSection(&sectionSettings_)) && wrote;
+        } else if (kind_ == 46) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writePointCloudColorMap(
+                               &pointCloudColorMap_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29263,6 +29302,7 @@ private:
     DRW_NavisworksModelDef navisworksModelDef_;
     DRW_Section sectionManager_;
     DRW_Section sectionSettings_;
+    DRW_PointCloudColorMap pointCloudColorMap_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -42716,6 +42756,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-section-manager-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-section-settings-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-pointcloud-colormap-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -42795,6 +42837,9 @@ int main(int argc, char** argv) {
         const bool malformedSectionSettingsBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-section-settings-body-source";
+        const bool malformedPointCloudColorMapBodySource =
+            std::string(argv[1])
+                == "--generate-cli-malformed-pointcloud-colormap-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -42882,6 +42927,7 @@ int main(int argc, char** argv) {
             || malformedNavisworksModelDefBodySource
             || malformedSectionManagerBodySource
             || malformedSectionSettingsBodySource
+            || malformedPointCloudColorMapBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -42944,6 +42990,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 44
                                                                                                         : malformedSectionSettingsBodySource
                                                                                                             ? 45
+                                                                                                        : malformedPointCloudColorMapBodySource
+                                                                                                            ? 46
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -43047,6 +43095,7 @@ int main(int argc, char** argv) {
                  || malformedNavisworksModelDefBodySource
                  || malformedSectionManagerBodySource
                  || malformedSectionSettingsBodySource
+                 || malformedPointCloudColorMapBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -43243,6 +43292,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedPointCloudColorMapBodySource) {
+                            PointCloudColorMapBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         MLineStyleBodyProbe typed;
                         return typed.parseDwg(version, &typedBuffer,
                                               malformed.m_bodyBitSize);
@@ -43348,6 +43402,7 @@ int main(int argc, char** argv) {
                   || malformedNavisworksModelDefBodySource
                   || malformedSectionManagerBodySource
                   || malformedSectionSettingsBodySource
+                  || malformedPointCloudColorMapBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -43407,6 +43462,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "SECTION_MANAGER"
                                                                                                                 : malformedSectionSettingsBodySource
                                                                                                                     ? "SECTION_SETTINGS"
+                                                                                                                : malformedPointCloudColorMapBodySource
+                                                                                                                    ? "POINTCLOUDCOLORMAP"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
@@ -43468,6 +43525,8 @@ int main(int argc, char** argv) {
                                                                                         ? 44
                                                                                     : malformedSectionSettingsBodySource
                                                                                         ? 45
+                                                                                    : malformedPointCloudColorMapBodySource
+                                                                                        ? 46
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,

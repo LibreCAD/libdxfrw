@@ -1,0 +1,44 @@
+{
+  "title": "Generated POINTCLOUDCOLORMAP body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_POINTCLOUDCOLORMAP_BODY_RECOVERY_PASS",
+  "scope": "CLI disposition for malformed generated POINTCLOUDCOLORMAP bodies at six DWG revisions, including continuation, strict refusal, and explicit-partial output readback where the source-reference gate admits output.",
+  "selection": {
+    "source": "P6-F typed OBJECTS dispatcher/parser inventory",
+    "reason": "DRW_PointCloudColorMap has a bounded typed body covering class version, default scheme names, color ramps, and classification ramps, and an existing generated writer/readback route."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-pointcloud-colormap-body-source",
+    "profile": "One POINTCLOUDCOLORMAP with class version 1, three default scheme names, one two-entry color ramp, one one-entry classification ramp, and a following LINE.",
+    "mutation": "A bounded one-bit mutation in the pre-handle body causes the typed parser to reject the object frame."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 5, "output_revision": "AC1015"},
+    "AC1018": {"controls": 5, "output_revision": "AC1018"},
+    "AC1021": {"controls": 5, "output_revision": "AC1021"},
+    "AC1024": {"controls": 5, "output_revision": "AC1024"},
+    "AC1027": {"controls": 3, "output": "refused by the existing source-reference gate"},
+    "AC1032": {"controls": 5, "output_revision": "AC1032"}
+  },
+  "assertions": [
+    "Each generated source records one failed OBJECTS frame, continues to the following LINE, and balances source/published/failed frame accounting.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel for output-qualified revisions.",
+    "Explicit-partial ASCII/Binary conversion and fresh typed DXF readback pass at AC1015, AC1018, AC1021, AC1024, and AC1032.",
+    "AC1027 strict and partial conversion remain refused by the source-reference gate."
+  ],
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 passed after registering the dedicated selector.",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
+    "diff_check": "git diff --check passed after the receipt and plan-row update.",
+    "targeted": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_pointcloud_colormap_recovery$' --output-on-failure passed; 28 controls; 1.28 seconds.",
+    "aggregate": "The latest dwg2dxf_cli_partial_read_disposition run passed 917 controls in 29.40 seconds during the preceding SECTION_SETTINGS slice. It was not rerun for this isolated profile."
+  },
+  "limits": [
+    "Generated local recovery and output-disposition evidence only; producer-authored ramp semantics and independent consumer behavior are not qualified.",
+    "AC1027 output remains refused by the source-reference gate.",
+    "Native point-cloud color rendering and data interpretation are not tested.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}
