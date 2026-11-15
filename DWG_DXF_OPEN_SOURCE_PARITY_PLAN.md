@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **566 completed implementation and qualification slices** and **32 remaining
+The plan records **567 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`566 / (566 + 32) = 94.6%`. The previous 28-package denominator was stale; a recount
+`567 / (567 + 32) = 94.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -146,9 +146,8 @@ clearing experiment advances to a later TABLESTYLE refusal but intentionally
 loses the reference ([receipt](docs/research/p6-oda-ac1024-layer-plotstyle-gate-2026-11-15.json)).
 Parser-recorded H5 spans and LibreDWG target roles agree for both layers;
 CRC-validated decoded object frames reproduce those tokens in both samples. The
-reader now exposes an optional bounded source receipt; join both records to
-same-generation publication and immutable typed snapshots, then bind Global
-material and the plot-style dictionary/default
+optional reader receipts are now joined to same-generation publication and
+immutable typed snapshots. Bind Global material and the plot-style dictionary/default
 and placeholder to the existing output hooks; adapt the AC1027 source-bound
 pattern only for the evidenced AC1024 two-layer profile. Prove emitted 347/390
 roles, graph ownership, source mutation refusal, destination rollback and retry,

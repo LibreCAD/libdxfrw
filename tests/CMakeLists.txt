@@ -576,6 +576,20 @@ add_test(NAME libdxfrw_no_raw_sections COMMAND libdxfrw_no_raw_sections_tests)
 set_tests_properties(libdxfrw_no_raw_sections PROPERTIES LABELS "dxf;fast;transaction" TIMEOUT 30)
 
 include(${CMAKE_SOURCE_DIR}/cmake/libdxfrwTestAdapter.cmake)
+add_executable(libdxfrw_dwg_ac1024_layer_binding_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dwg_ac1024_layer_binding_tests.cpp
+    ${_libdxfrw_test_adapter_source})
+target_compile_features(libdxfrw_dwg_ac1024_layer_binding_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dwg_ac1024_layer_binding_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dwg_ac1024_layer_binding_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_dwg_ac1024_layer_binding_tests PRIVATE dxfrw)
+libdxfrw_check_test_adapter_context(libdxfrw_dwg_ac1024_layer_binding_tests)
+add_test(NAME libdxfrw_dwg_ac1024_layer_source_binding
+    COMMAND libdxfrw_dwg_ac1024_layer_binding_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/ac1024-layer-binding-scratch)
+set_tests_properties(libdxfrw_dwg_ac1024_layer_source_binding PROPERTIES
+    LABELS "fast;dwg;layer;generated;source;transaction" TIMEOUT 30)
 add_executable(libdxfrw_ac1021_group_polyline_dxf_readback_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/ac1021_group_polyline_dxf_readback_tests.cpp
     ${_libdxfrw_test_adapter_source})

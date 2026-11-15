@@ -9,7 +9,7 @@
   "adapterCapture": "For the polyface input, libdxfrw captures two LAYER records with valid DXF fields, ACI 7, Continuous linetype, plot-style handle 19 and material handle 33; both getDxfPlotStyleHandle/getDxfMaterialHandle and validateDxf succeed. The parser-recorded source handle spans and their independent peer comparison are recorded separately below; emitted output mapping remains open.",
   "isolation": "For each sample, a scratch process imports a fresh drawing and calls partial-policy export once with untouched source data and once after clearing only the in-memory LAYER plot-style fields. Untouched runs refuse without output. Clearing those fields makes serialization advance to OBJECTS, which then refuses at TABLESTYLE; no output is published. This deliberate loss is only an isolation experiment and is not an implementation or an acceptable fix. The CLI independently reports the untouched failure at LAYER table.",
   "codeBoundary": "The general LAYER writer rejects a nonzero non-default group-390 source handle when no reference resolver is configured. The adapter has a separate AC1027 source-bound layer route with source publication, material/plot-style graph snapshots, mapped output and finalization checks; it is not automatically applicable to this AC1024 two-layer profile. The generic DWG adapter currently strips unqualified material links, so fixing only plot-style transport would not establish lossless layer output.",
-  "nextAction": "Join the two optional AC1024 receipts to same-generation frame-publication identities and immutable typed layer snapshots, rejecting missing/duplicate/mutated source evidence. Bind Global material and Normal plot-style graphs, then implement selected output with exact 347/390 roles, mapped target identities and owners, mutation refusal, rollback/retry and LibreCAD compatibility. Keep HEADER suffix and whole-document gates closed.",
+  "nextAction": "Bind the two source-backed layers to the source Global material and Normal plot-style dictionary/default/placeholder graph, adapt the selected output planner for the bounded AC1024 profile, and prove exact 347/390 fields, mapped identities/owners and closure with ASCII/Binary readback, invalid graph and source mutation refusal, rollback/retry, and LibreCAD compatibility. Preserve strict HEADER and whole-document gates.",
   "probeHashes": {
     "layerCaptureSource": "356a344583b7f9b5c801bd4e7d112a59ffcf966ecfeb78346a779b2e6b35566a",
     "layerCaptureExecutable": "1f2a7e0f6ea808b60416f6287fce492a29fe972baaf3e2f6277c7c3560d1afdf",
@@ -121,15 +121,27 @@
     },
     "probeSourceSha256": "02674f4e31d1af7c353b8b0ca246254856487462430f055a63c10b20df664ba3",
     "probeExecutableSha256": "f817bbfc2ec34565173037e94a261673c8f54c11ac88e0d3f70ebe6136e5e7b6",
-    "limits": "Offsets are from the decoded object map; matching source publication callbacks and an immutable production frame receipt for both AC1024 layers are still required. Source data parsing, bit extraction and CRC checking share libdxfrw code. LibreDWG independently corroborates role and targets, not these bit offsets."
+    "limits": "Offsets are from the decoded object map; the adapter now joins its optional raw receipts to matching typed publications and frozen source snapshots. The scratch frame/bit/CRC checks share libdxfrw code; LibreDWG independently corroborates role and targets, not these bit offsets."
   },
   "optionalReaderReceipt": {
     "implementation": "For AC1024 only, the reader optionally captures at most the exact 0 and Defpoints layer source frames after successful table parsing, validates each frame CRC, retains the bounded raw body and object-map location/ordinal, and publishes them through a separate opt-in DRW_DwgAc1024LayerSourceHandler. Duplicate names, allocation failure, oversized bodies or invalid frames clear the optional evidence without altering ordinary table callbacks. Existing DRW_Interface vtables are not changed.",
-    "limits": "The callback is raw source evidence only. It is not yet joined to adapter publication identities, immutable source snapshots, graph targets, or emitted DXF; the LAYER output gate remains closed. A source with only one selected layer can emit one receipt and must not be treated as the two-layer profile.",
+    "limits": "The raw source receipt is now joined to adapter publication identities and immutable typed source snapshots. Material/plot-style graph targets and emitted DXF remain unqualified; LAYER output stays gated. A source with only one selected layer can emit one receipt and is not admitted by the two-layer evidence gate.",
     "validation": "CMake test libdxfrw_dwg_ac1024_layer_source_receipt generates AC1024 and AC1021 DWGs from scratch, confirms two receipts and typed layer matches for AC1024, no receipt for AC1021, repeated-read reset, truncated raw-body refusal and same-decoder retry, and successful read by an unchanged LibreCAD_3-style consumer. The same observer matched both locally generated ODA sources. The lc3_compat_check target compiled under the existing warning policy.",
     "testExecutableSha256": "a8def02962d748af984e88c640ae929ad6f8f18e2d7a659d93cf6f1cb0bab57c",
     "qualificationDigest": "11ecf2f887229d7e01fb79e67928564ff269cb2f3f47abb8ee51ff519e043a4b",
     "cleanSourceInventory": "1197 released files; the new test is generated at runtime, no DWG/DXF fixture is committed",
     "ctestInventory": "1368 tests; added only libdxfrw_dwg_ac1024_layer_source_receipt"
+  },
+  "adapterSourceBinding": {
+    "scope": "The in-tree adapter retains at most two optional AC1024 frame receipts and two same-generation typed frame publications; duplicates, invalid identities and excess layer publications fail the evidence gate. Each current layer must match its immutable import-time snapshot and the exact receipt handle, object-map offset/ordinal/space and publication identity.",
+    "reparse": "The gate reparses the CRC-validated captured body as a LAYER and separately reparses its common handle shell. It compares the layer fields, common links and four ordered handle spans against the frozen source snapshot; the separately resolved linetype name remains a graph dependency, not a raw-frame field.",
+    "tests": "Fixture-free generated AC1024 source and both locally generated ODA sources pass. The test changes a publication offset, raw frame byte, typed layer name and evidence failure state; each mutation is refused and the restored source is accepted on the same adapter. The earlier separate-interface receipt test also passes.",
+    "testExecutableSha256": "bdd1c8d89119a38e924eab1abb108ca0949d3b53a50c922bd76d3faceee05505",
+    "polyfaceLogSha256": "688513bdf05902d3af383c49fcdd6d616b451bd0303d9c3874c4fc1183967375",
+    "closedLogSha256": "cf90a506028efd30d38d78cdba675e7dce7147b8c03bd2329182f350cd29ec11",
+    "qualificationDigest": "66105432b16e81d35d44c069c3510775f64ce7275a55f4f75141154effdeb2eb",
+    "cleanSourceInventory": "1198 released files, with generated test inputs only",
+    "ctestInventory": "1369 tests; added only libdxfrw_dwg_ac1024_layer_source_binding",
+    "limits": "This is source receipt and publication binding, not material or plot-style graph closure, output qualification, complete export or semantic support."
   }
 }

@@ -493,6 +493,7 @@ tests/dwg_ac1021_polyline_group_targets_tests.cpp
 tests/dwg_ac1021_solid_trace_footer_tests.cpp
 tests/dwg_ac1024_default_material_tests.cpp
 tests/dwg_ac1024_header_suffix_tests.cpp
+tests/dwg_ac1024_layer_binding_tests.cpp
 tests/dwg_ac1024_layer_source_tests.cpp
 tests/dwg_ac1027_block_control_boundary_tests.cpp
 tests/dwg_ac1027_default_graph_strict_tests.cpp

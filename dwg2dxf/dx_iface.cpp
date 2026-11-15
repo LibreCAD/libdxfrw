@@ -28503,6 +28503,38 @@ bool dx_iface::retainDwgPlotSettingsPublication(
     }
 }
 
+void dx_iface::addDwgAc1024LayerSource(
+        const DRW_DwgAc1024LayerSource& source) noexcept {
+    if (!cData || typeid(*this) != typeid(dx_iface)
+        || source.m_raw.m_version != DRW::AC1024
+        || cData->sourceFormat != dx_source_format::DWG
+        || m_classEvidenceReadData != cData || !m_classEvidenceReadAttempt
+        || cData->m_classEvidenceOwner != this
+        || cData->m_classEvidenceAttempt != m_classEvidenceReadAttempt
+        || cData->importGeneration != cData->m_classEvidenceGeneration
+        || cData->m_ac1024LayerEvidenceFailed)
+        return;
+    try {
+        if (source.m_raw.m_handle == 0u || source.m_raw.m_handle == DRW::NoHandle
+            || source.m_raw.m_objectType != 51
+            || source.m_raw.m_rawBytes.empty()
+            || source.m_raw.m_rawBytes.size() > 1024u
+            || source.m_raw.m_objectSize != source.m_raw.m_rawBytes.size()
+            || source.m_sourceOffset != source.m_raw.m_objectOffset
+            || source.m_sourceOffsetSpace == DRW_DwgFrameOffsetSpace::Unknown
+            || cData->m_ac1024LayerSources.size() >= 2u
+            || !cData->m_ac1024LayerSources.emplace(source.m_raw.m_handle, source).second) {
+            cData->m_ac1024LayerEvidenceFailed = true;
+            cData->m_ac1024LayerSources.clear();
+            return;
+        }
+        cData->m_ac1024LayerGeneration = cData->importGeneration;
+    } catch (...) {
+        cData->m_ac1024LayerEvidenceFailed = true;
+        cData->m_ac1024LayerSources.clear();
+    }
+}
+
 void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
     if (cData == nullptr || !cData->dwgReadOutcome.attempted)
         return;
@@ -28519,6 +28551,30 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
                 && !data.m_isEntity && !data.m_isCustomClass && data.m_recordName == "layer"
                 && data.m_carrier == DRW_DwgFramePublication::Carrier::Typed;
             if (!proof.valid) proof.duplicate = true;
+        }
+    }
+    if (typeid(*this) == typeid(dx_iface) && m_classEvidenceReadData == cData
+        && m_classEvidenceReadAttempt && cData->importGeneration == cData->m_classEvidenceGeneration
+        && data.m_version == DRW::AC1024 && data.m_encodedType == 51
+        && !cData->m_ac1024LayerEvidenceFailed) {
+        try {
+            dx_data::Ac1024LayerPublication proof;
+            proof.handle = data.m_handle; proof.offset = data.m_sourceOffset;
+            proof.ordinal = data.m_sourceMapOrdinal; proof.space = data.m_sourceOffsetSpace;
+            proof.generation = cData->importGeneration;
+            proof.valid = data.m_hasSourceLocation && data.m_resolvedType == 51
+                && !data.m_isEntity && !data.m_isCustomClass && data.m_recordName == "layer"
+                && data.m_carrier == DRW_DwgFramePublication::Carrier::Typed
+                && proof.handle != 0u && proof.handle != DRW::NoHandle
+                && proof.space != DRW_DwgFrameOffsetSpace::Unknown;
+            if (!proof.valid || cData->m_ac1024LayerPublications.size() >= 2u
+                || !cData->m_ac1024LayerPublications.emplace(proof.handle, proof).second) {
+                cData->m_ac1024LayerEvidenceFailed = true;
+                cData->m_ac1024LayerPublications.clear();
+            }
+        } catch (...) {
+            cData->m_ac1024LayerEvidenceFailed = true;
+            cData->m_ac1024LayerPublications.clear();
         }
     }
     const auto index = static_cast<std::size_t>(data.m_carrier);
@@ -58774,6 +58830,109 @@ bool tableResourceSourceReferences(const DRW_RawDxfObject& raw,bool tableStyle,s
 
 } // namespace
 
+bool dx_iface::hasCompleteAc1024LayerSourceEvidence(const dx_data& data) const noexcept {
+    if (data.sourceFormat != dx_source_format::DWG
+        || data.sourceVersion != DRW::AC1024
+        || !data.dwgReadOutcome.attempted || !data.dwgReadOutcome.operationSucceeded
+        || data.importGeneration == 0u
+        || data.m_ac1024LayerGeneration != data.importGeneration
+        || data.m_ac1024LayerEvidenceFailed || data.layers.size() != 2u
+        || data.m_ac1024LayerSources.size() != 2u
+        || data.m_ac1024LayerPublications.size() != 2u)
+        return false;
+    try {
+        class LayerDecoder final : public DRW_Layer {
+        public:
+            using DRW_Layer::parseDwg;
+        };
+        class LayerCommonShell final : public DRW_TableEntry {
+        public:
+            bool parseDwg(DRW::Version version, dwgBuffer* buffer,
+                          std::uint32_t bits = 0u) override {
+                if (buffer == nullptr) return false;
+                dwgBuffer strings = buffer->forkIndependent();
+                return DRW_TableEntry::parseDwg(version, buffer, &strings, bits)
+                    && DRW_TableEntry::parseDwgCommonHandleData(version, buffer);
+            }
+        };
+        bool seenZero = false, seenDefpoints = false;
+        for (const DRW_Layer& layer : data.layers) {
+            if (layer.name == "0") {
+                if (seenZero) return false;
+                seenZero = true;
+            } else if (layer.name == "Defpoints") {
+                if (seenDefpoints) return false;
+                seenDefpoints = true;
+            } else return false;
+            const auto source = data.m_ac1024LayerSources.find(layer.handle);
+            const auto publication = data.m_ac1024LayerPublications.find(layer.handle);
+            const auto snapshot = data.m_standardDwgLayerSources.find(
+                {data.importGeneration, layer.handle});
+            if (source == data.m_ac1024LayerSources.end()
+                || publication == data.m_ac1024LayerPublications.end()
+                || snapshot == data.m_standardDwgLayerSources.end() || !snapshot->second
+                || !layerSourceEqual(layer, *snapshot->second, DRW::AC1024))
+                return false;
+            const auto& raw = source->second.m_raw;
+            const auto& proof = publication->second;
+            if (!proof.valid || proof.generation != data.importGeneration
+                || proof.handle != layer.handle || proof.offset != source->second.m_sourceOffset
+                || proof.ordinal != source->second.m_sourceMapOrdinal
+                || proof.space != source->second.m_sourceOffsetSpace
+                || raw.m_objectType != 51 || raw.m_version != DRW::AC1024
+                || raw.m_handle != layer.handle || raw.m_parentHandle != layer.parentHandle
+                || raw.m_objectOffset != proof.offset || raw.m_objectSize != raw.m_rawBytes.size()
+                || raw.m_rawBytes.empty() || raw.m_rawBytes.size() > 1024u)
+                return false;
+            DRW_TextCodec codec;
+            codec.setVersion(DRW::AC1024, false);
+            dwgBuffer buffer(raw.m_rawBytes.data(), raw.m_rawBytes.size(), &codec);
+            LayerDecoder decoded;
+            if (!decoded.parseDwg(DRW::AC1024, &buffer, raw.m_bodyBitSize))
+                return false;
+            dwgBuffer commonBuffer(raw.m_rawBytes.data(), raw.m_rawBytes.size(), &codec);
+            LayerCommonShell common;
+            if (!common.parseDwg(DRW::AC1024, &commonBuffer, raw.m_bodyBitSize)
+                || !commonBuffer.isGood() || !common.hasDwgCommonLinkTail()
+                || common.handle != layer.handle || common.parentHandle != layer.parentHandle
+                || common.reactorCount() != layer.reactorCount()
+                || common.reactorHandles != layer.reactorHandles
+                || common.extensionDictionaryFlag() != layer.extensionDictionaryFlag()
+                || common.xDictHandle != layer.xDictHandle
+                || common.hasDataStorageBinaryData() != layer.hasDataStorageBinaryData())
+                return false;
+            decoded.setDwgCommonLinkTailValidated(true);
+            const auto& decodedSpans = decoded.dwgHandleFieldSpans();
+            const auto& sourceSpans = snapshot->second->dwgHandleFieldSpans();
+            const std::array<const char*, 4> expectedNames{{
+                "xrefBlock", "plotStyle", "material", "lineType"}};
+            if (decodedSpans.size() != expectedNames.size()
+                || sourceSpans.size() != expectedNames.size())
+                return false;
+            for (std::size_t index = 0u; index < expectedNames.size(); ++index) {
+                const auto& parsed = decodedSpans[index];
+                const auto& original = sourceSpans[index];
+                if (parsed.m_name != expectedNames[index]
+                    || parsed.m_name != original.m_name
+                    || parsed.m_startBit != original.m_startBit
+                    || parsed.m_bitSize != original.m_bitSize
+                    || parsed.m_version != original.m_version
+                    || parsed.m_rawHandleCode != original.m_rawHandleCode
+                    || !parsed.m_parseComplete || !original.m_parseComplete)
+                    return false;
+            }
+            // The reader resolves the linetype name from its separate table;
+            // this receipt binds the source handle, not that name lookup.
+            decoded.lineType = layer.lineType;
+            if (!layerSourceEqual(decoded, *snapshot->second, DRW::AC1024))
+                return false;
+        }
+        return seenZero && seenDefpoints;
+    } catch (...) {
+        return false;
+    }
+}
+
 bool dx_iface::prepareDxfMLineLinetypes(std::size_t bytes) noexcept {
     m_dxfMLineLinetypes.clear();m_dxfMLineAppIds.clear();m_dxfMLineLayers.clear();
     m_dxfMLineLinetypesInspected=false;m_dxfMLineLinetypeCount=0u;m_dxfMLineLayerCount=0u;
@@ -76295,6 +76454,10 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     fData->m_ac1027DefaultLayerSource.reset();
     fData->m_ac1027LayerPublication = {};
     fData->m_ac1027DefaultLayerGeneration = 0u;
+    fData->m_ac1024LayerSources.clear();
+    fData->m_ac1024LayerPublications.clear();
+    fData->m_ac1024LayerGeneration = 0u;
+    fData->m_ac1024LayerEvidenceFailed = false;
     fData->m_ac1027DefaultLayerDuplicate = false;
     fData->m_ac1027HeaderMaterialSource.reset();
     fData->m_ac1027HeaderMaterialGeneration = 0u;

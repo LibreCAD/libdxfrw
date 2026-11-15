@@ -56,7 +56,7 @@ class DxIfaceExtensionGraphTestAccess;
 class DxIfaceTableSourceTestAccess;
 class DxIfaceDwgLtypeControlOutputTestAccess;
 
-class dx_iface : public DRW_Interface, public DRW_DxfClassSourceHandler, public DRW_DwgHeaderMaterialSourceHandler, public DRW_DwgProxyGraphicsResourceOrderHandler, public DRW_UnmodeledDxfObjectHandler,
+class dx_iface : public DRW_Interface, public DRW_DxfClassSourceHandler, public DRW_DwgHeaderMaterialSourceHandler, public DRW_DwgAc1024LayerSourceHandler, public DRW_DwgProxyGraphicsResourceOrderHandler, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DwgDbColorEedSourceHandler,
                  public DRW_DwgClassSourceHandler, public DRW_DxfTableSourceHandler,
                  public DRW_DxfSymbolSourceHandler, public DRW_DxfRootDictionarySourceHandler,
@@ -780,6 +780,7 @@ public:
 
 //reader part, stores all in class dx_data
     //header
+    void addDwgAc1024LayerSource(const DRW_DwgAc1024LayerSource& source) noexcept override;
     void addDwgAc1027DefaultLayerSource(const DRW_DwgAc1027LayerSource& source) noexcept override {
         if (!cData || typeid(*this) != typeid(dx_iface) || source.m_raw.m_version != DRW::AC1027
             || cData->sourceFormat != dx_source_format::DWG
@@ -1911,6 +1912,7 @@ public:
             dxfW->writeLineType(&(*it));
     }
     bool validateAc1027HeaderMaterial(std::uint32_t&) const noexcept;
+    bool hasCompleteAc1024LayerSourceEvidence(const dx_data&) const noexcept;
     bool usesAc1027DefaultLayerProfile() const noexcept;
     bool validateAc1027DefaultLayer(const DRW_Layer&, std::uint32_t&) const noexcept;
     bool inspectAc1027DefaultLayerOutput(const dxfRW::DxfTablesWriteView&) noexcept;

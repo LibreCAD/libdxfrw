@@ -2711,6 +2711,16 @@ private:
     } m_ac1027LayerPublication;
     std::uint64_t m_ac1027DefaultLayerGeneration{0u};
     bool m_ac1027DefaultLayerDuplicate{false};
+    struct Ac1024LayerPublication {
+        std::uint32_t handle{0u}, offset{0u};
+        std::uint64_t ordinal{0u}, generation{0u};
+        DRW_DwgFrameOffsetSpace space{DRW_DwgFrameOffsetSpace::Unknown};
+        bool valid{false};
+    };
+    std::map<std::uint32_t, DRW_DwgAc1024LayerSource> m_ac1024LayerSources;
+    std::map<std::uint32_t, Ac1024LayerPublication> m_ac1024LayerPublications;
+    std::uint64_t m_ac1024LayerGeneration{0u};
+    bool m_ac1024LayerEvidenceFailed{false};
     std::optional<dwgHandle> m_ac1027HeaderMaterialSource;
     std::uint64_t m_ac1027HeaderMaterialGeneration{0u};
     bool m_ac1027HeaderMaterialDuplicate{false};
