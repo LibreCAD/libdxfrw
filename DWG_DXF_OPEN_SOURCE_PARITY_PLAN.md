@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **517 completed implementation and qualification slices** and **32 remaining
+The plan records **518 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`517 / (517 + 32) = 94.2%`. The previous 28-package denominator was stale; a recount
+`518 / (518 + 32) = 94.2%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -42,16 +42,14 @@ focused parser tests passing. The optional physical AC1024 test now registers
 only when its local sample exists. The frozen CTest inventory now matches
 the clean 1,364-test hosted profile, with the local-only physical sample omitted;
 native reruns remain open ([receipt](docs/research/p8-native-ctest-inventory-refresh-2026-11-15.json)).
-The latest Windows FreeCAD run passed its batch-name and two CLI checks after
-the test-driver stack fix. All eight application open/insert checks failed at
-launch because CMake list removals stripped semicolon escapes from `PATH`;
-the harness now appends that argument last, verified with a direct CMake
-process-launch control. The rerun reaches FreeCAD and invokes the converter,
-but all eight open/insert checks see two captured subprocesses. Platform
-detection is now prewarmed outside the conversion capture and unexpected child
-arguments are reported; rerun Windows to verify whether that explains the
-extra child ([path receipt](docs/research/p8-windows-freecad-cmake-path-2026-11-15.json),
-[process receipt](docs/research/p8-windows-freecad-process-attribution-2026-11-15.json)).
+Hosted FreeCAD 1.1.4 at `d2b65bd6` passes 10/10 Linux and 11/11 Windows
+checks, including generated LINE and primitive open/insert profiles. The Windows
+process-observer fix now permits the exact single-converter handoff checks to
+pass; retain the historical [path](docs/research/p8-windows-freecad-cmake-path-2026-11-15.json)
+and [process](docs/research/p8-windows-freecad-process-attribution-2026-11-15.json)
+receipts. Qualify the later source revision and the remaining mesh, surface,
+and ACIS cases before closing either platform package
+([successful run receipt](docs/research/p8-freecad-linux-windows-generated-pass-2026-11-15.json)).
 The broad local roundtrip fixture now omits newly authored modern MATERIAL
 records, which the exact-profile writer correctly refuses, while a separate
 test verifies atomic refusal and a legacy retry. All generated DWG writes now
@@ -75,11 +73,9 @@ The preceding null LAYER plot-style readback failure is fixed and verified
 ([Linux receipt](docs/research/p8-linux-freecad-generated-platform-run-2026-11-15.json),
 [fix receipt](docs/research/p8-null-layer-plot-style-cli-readback-2026-11-15.json)).
 This does not qualify Linux mesh, surface, ACIS or the full P8-B gate.
-The latest Windows run reached the CLI build and exposed Windows macro,
-lambda, and batch-path errors; fixes and a Windows consumer/batch test are
-followed by a CLI-specific NOMINMAX correction. The latest Windows focused
-build also requires /bigobj for large test translation units; a project-local
-MSVC option now covers them. The next hosted run must verify build and runtime ([receipt](docs/research/p8-windows-cli-header-build-fixes-2026-11-15.json)).
+Windows build, CLI and the limited generated FreeCAD open/insert profile now
+pass on the hosted run at `d2b65bd6`. Its broader mesh, surface and ACIS
+qualification, and a rerun after the latest source changes, remain open.
 
 The upstream-linked LibreCAD `[mtext]~[dwg]` selector now passes 4/4 after
 normalizing invalid DXF line-spacing styles and correcting its R2018 column
@@ -2508,7 +2504,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P7-H | OPEN | Run native modeler acceptance on closed representative 3DSOLID/REGION/BODY profiles and compare geometry. | Exact application/version/build/importer receipt and analytic or independent-kernel comparison. |
 | P8-A | OPEN | Freeze clean-consumer builds and exact module, dependency, and runtime identities for each required 3D consumer. | Clean checkout/build provenance, ABI and linked-library inventory, repeatable import command. |
 | P8-B | OPEN | Qualify native Linux FreeCAD open and insert for representative mesh, surface, and ACIS source profiles. | The generated LINE and mixed primitive Linux profile passes 10/10, including CLI controls; 3DFACE and SOLID remain explicitly unsupported. Mesh, surface and ACIS still need native Linux counts, geometry, bounds and diagnostics ([receipt](docs/research/p8-linux-freecad-generated-platform-run-2026-11-15.json)). |
-| P8-C | OPEN | Qualify native Windows FreeCAD open and insert for the same source profiles. | Native Windows receipt matching P8-B observations and exact converter/importer path. |
+| P8-C | OPEN | Qualify native Windows FreeCAD open and insert for the same source profiles. | The limited generated LINE and primitive profile passes 11/11 at `d2b65bd6`, including exact converter handoff and batch naming. Qualify mesh, surface and ACIS and rerun after subsequent source changes ([receipt](docs/research/p8-freecad-linux-windows-generated-pass-2026-11-15.json)). |
 | P8-D | OPEN | Complete LibreCAD and LibreCAD_3 compatibility qualification against clean upstream consumers. | Clean builds, ABI/source compatibility checks, and focused import/export cases with no fork-only callbacks; include the merged [LibreCAD PR #3269](https://github.com/LibreCAD/LibreCAD/pull/3269) changed-LTYPE-definition save/readback regression (merged 2026-11-13 as `4060fb6bb6319034fb391485bb1a4d07f6a3ab6e`), verifying edits override archived DXF/DWG records while table-entry metadata and untouched complex records remain preserved. The selected upstream libdxfrw LTYPE edit/metadata path has generated ASCII/Binary readback coverage across seven DXF revisions ([receipt](docs/research/p8-libdxfrw-ltype-edit-preservation-2026-11-14.json)); the current LibreCAD `RS_FilterDXFRW` source passes a syntax-only compile against upstream headers ([receipt](docs/research/p8-librecad-filter-upstream-header-compatibility-2026-11-14.json)); and a clean LibreCAD master checkout builds `librecad_dxf_fast_tests` and passes 18 LTYPE-focused tests (465 assertions), including all five PR #3269 regressions against its bundled library ([receipt](docs/research/p8-librecad-master-pr3269-fast-regression-2026-11-14.json)). A disposable upstream-linked single-TU target also builds after moving the private BLOCK_RECORD decoder into `DRW::internal`, which removes a consumer test namespace collision. Against that overlay, three of the five PR #3269 cases pass unmodified: the DWG case fails because LibreCAD forwards `$DIMSTYLE` as an integer where strict DXF group 2 needs a string, and the complex-LTYPE case fails during OBJECTS emission with an unrelated MLINESTYLE object. The broader 18-case selector is 7 passed/11 failed and includes older unrelated expectations; the full consumer test target does not compile because other LibreCAD test translation units have upstream API/type incompatibilities. In the disposable consumer, changing the default `$DIMSTYLE` insertion to `QStringLiteral("Standard")`, removing MLINESTYLE OBJECTS from the complex-LTYPE-only fixture, and making its helper scan valid pre-name table metadata yields 5/5 PR #3269 tests passing (49 assertions) against upstream. The emitted LTYPE application group and group 310 (`CAFE`) are preserved before group 2. These consumer/test changes remain unpatched in LibreCAD. See [upstream-linked receipt](docs/research/p8-librecad-upstream-linked-pr3269-qualification-2026-11-14.json). Latest focused result supersedes the earlier four/five-case status: all five PR #3269 cases pass with the original MLINESTYLE fixture after the bounded canonical linetype fix and temporary consumer corrections; the broader selector was 11/18; a subsequent disposable consumer probe passes 18/18 after additional decoding-policy, unitless R12/R14 HEADER, and fixture corrections, which still need permanent qualification ([fix receipt](docs/research/p8-mlinestyle-canonical-linetypes-2026-11-15.json), [selector diagnosis](docs/research/p8-librecad-named-ltype-selector-diagnosis-2026-11-15.json)). A local consumer branch now implements those corrections, scoped input selection and the old-target units guard; the upstream-linked focused harness and clean bundled target pass their selected controls ([consumer receipt](docs/research/p8-librecad-consumer-compat-patch-2026-11-15.json)). The full fast-test target now builds in both the upstream overlay and clean bundled checkout, while the selected upstream and bundled DIMASSOC/MPOLYGON cases now pass with the opt-in policy ([default receipt](docs/research/p8-mpolygon-dxf-omitted-solid-fill-default-2026-11-15.json), [annotation receipt](docs/research/p8-mpolygon-annotation-domain-consumer-control-2026-11-15.json), [test target receipt](docs/research/p8-librecad-upstream-test-target-api-2026-11-15.json)). Next: resolve these semantic differences, integrate the seven local patches against the current LibreCAD head, reproduce a clean upstream-linked build, run LibreCAD_3 clean linked tests, compare ABI, and qualify platform behavior. |
 | P8-E | OPEN | Close ABI, package reproducibility and native focused-test failures across supported build modes; record public symbol/layout impact. | Clean consumer build matrix and ABI comparison. Earlier hosted macOS ARM64 and Linux x86_64 focused runs each had 4/7 pass and 3 fail, including 363 cascading local-roundtrip assertions, 13 reader-matrix assertions and 19 fixture assertions. Historical ENC handling, specification-backed repairs and corrections to generated controls now make the complete local reader matrix, fixture suite and roundtrip executable pass; strict output and graph validation remain intact. Hosted macOS and Linux focused jobs at `d2b65bd6` passed and sealed; Windows is still running. The later VPORT reader change requires a fresh digest and all three reruns; ABI and package qualification remain open ([hosted receipt](docs/research/p8-hosted-macos-focused-failures-2026-11-15.json), [SUNSTUDY receipt](docs/research/p4-sunstudy-dwg-common-handle-order-2026-11-15.json), [TABLESTYLE receipt](docs/research/p4-tablestyle-r24-null-owner-role-2026-11-15.json), [partial-read receipt](docs/research/p8-partial-read-versioned-export-control-2026-11-15.json), [digest receipt](docs/research/p8-qualification-digest-refresh-2026-11-15.json)). |
 | P8-F | OPEN | Repair or disposition hosted package CI failures, including macOS staging and Intel bottle availability. | Green reproducible package jobs or explicit supported-platform exclusions in release policy. |
