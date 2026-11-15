@@ -28430,6 +28430,11 @@ public:
     using DRW_DimensionAssociation::parseDwg;
 };
 
+class LayoutBodyProbe final : public DRW_Layout {
+public:
+    using DRW_Layout::parseDwg;
+};
+
 class DbColorBodyProbe final : public DRW_DbColor {
 public:
     using DRW_DbColor::parseDwg;
@@ -29059,6 +29064,20 @@ public:
             dimensionAssociation_.m_dimensionHandle = DRW::NoHandle;
             dimensionAssociation_.m_associativityFlags = 0;
         }
+        if (kind_ == 66) {
+            layout_.handle = 0x700u;
+            layout_.parentHandle = 0xA604u;
+            layout_.name = "LOCAL_RECOVERY_LAYOUT";
+            layout_.layoutFlags = 1;
+            layout_.paperSpaceBlockRecordHandle.ref =
+                DRW::DwgPaperSpaceBlockRecordHandle;
+            layoutSupplement_.handle = 0xA701u;
+            layoutSupplement_.parentHandle = 0xA604u;
+            layoutSupplement_.name = "LOCAL_RECOVERY_LAYOUT_SENTINEL";
+            layoutSupplement_.layoutFlags = 1;
+            layoutSupplement_.paperSpaceBlockRecordHandle.ref =
+                DRW::DwgPaperSpaceBlockRecordHandle;
+        }
         if (kind_ == 50) {
             mleaderStyle_.handle = 0x700u;
             mleaderStyle_.name = "RECOVERY_MLEADERSTYLE";
@@ -29389,6 +29408,11 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerDimensionAssociationObjectClass(
                       &dimensionAssociation_) && wrote;
+        } else if (kind_ == 66) {
+            wrote = writer_->registerDwgNamedObjectDictionaryEntry(
+                "ACAD_LAYOUT", 0xA604u) && wrote;
+            if (hasMalformedObject_)
+                wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -29403,7 +29427,7 @@ public:
                    && kind_ != 44 && kind_ != 45 && kind_ != 46
                    && kind_ != 47 && kind_ != 48 && kind_ != 50
                    && kind_ != 62 && kind_ != 63 && kind_ != 64
-                   && kind_ != 65
+                   && kind_ != 65 && kind_ != 66
                    && kind_ != 59 && kind_ != 60 && kind_ != 61) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29587,6 +29611,25 @@ public:
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeDimensionAssociation(
                                &dimensionAssociation_)) && wrote;
+        } else if (kind_ == 66) {
+            DRW_Dictionary layoutDictionary;
+            layoutDictionary.handle = 0xA604u;
+            layoutDictionary.parentHandle =
+                DRW::DwgNamedObjectsDictionaryHandle;
+            layoutDictionary.cloning = 1;
+            layoutDictionary.hardOwner = 1;
+            layoutDictionary.m_entries = hasMalformedObject_
+                ? std::vector<DRW_Dictionary::Entry>{
+                    {"LOCAL_RECOVERY_LAYOUT_SENTINEL", 0xA701u}}
+                : std::vector<DRW_Dictionary::Entry>{
+                    {"LOCAL_RECOVERY_LAYOUT", 0x700u}};
+            wrote = writer_->writeDictionary(&layoutDictionary) && wrote;
+            if (hasMalformedObject_) {
+                wrote = writer_->writeLayout(&layoutSupplement_) && wrote;
+                wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
+            } else {
+                wrote = writer_->writeLayout(&layout_) && wrote;
+            }
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29610,7 +29653,8 @@ public:
         }
         DRW_Line line;
         if (kind_ == 15 || kind_ == 21 || kind_ == 22 || kind_ == 52
-            || kind_ == 54 || kind_ == 55 || kind_ == 56 || kind_ == 58)
+            || kind_ == 54 || kind_ == 55 || kind_ == 56 || kind_ == 58
+            || kind_ == 66)
             line.handle = 0x701u;
         else if (kind_ == 53)
             line.handle = 0x703u;
@@ -29701,6 +29745,8 @@ private:
     DRW_FieldList fieldList_;
     DRW_EvaluationGraph evaluationGraph_;
     DRW_DimensionAssociation dimensionAssociation_;
+    DRW_Layout layout_;
+    DRW_Layout layoutSupplement_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -43190,6 +43236,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-evaluationgraph-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-dimassoc-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-layout-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -43320,6 +43368,8 @@ int main(int argc, char** argv) {
         const bool malformedDimensionAssociationBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-dimassoc-body-source";
+        const bool malformedLayoutBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-layout-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -43425,6 +43475,7 @@ int main(int argc, char** argv) {
             || malformedFieldListBodySource
             || malformedEvaluationGraphBodySource
             || malformedDimensionAssociationBodySource
+            || malformedLayoutBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -43523,6 +43574,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 64
                                                                                                         : malformedDimensionAssociationBodySource
                                                                                                             ? 65
+                                                                                                        : malformedLayoutBodySource
+                                                                                                            ? 66
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -43644,6 +43697,7 @@ int main(int argc, char** argv) {
                  || malformedFieldListBodySource
                  || malformedEvaluationGraphBodySource
                  || malformedDimensionAssociationBodySource
+                 || malformedLayoutBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -43905,6 +43959,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedLayoutBodySource) {
+                            LayoutBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         if (malformedPointCloudDefinitionBodySource
                             || malformedPointCloudDefinitionExBodySource
                             || malformedPointCloudReactorBodySource
@@ -44049,6 +44108,7 @@ int main(int argc, char** argv) {
                   || malformedFieldListBodySource
                   || malformedEvaluationGraphBodySource
                   || malformedDimensionAssociationBodySource
+                  || malformedLayoutBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -44144,6 +44204,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "ACAD_EVALUATION_GRAPH"
                                                                                                                 : malformedDimensionAssociationBodySource
                                                                                                                     ? "DIMASSOC"
+                                                                                                                : malformedLayoutBodySource
+                                                                                                                    ? "LAYOUT"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
@@ -44241,6 +44303,8 @@ int main(int argc, char** argv) {
                                                                                         ? 64
                                                                                     : malformedDimensionAssociationBodySource
                                                                                         ? 65
+                                                                                    : malformedLayoutBodySource
+                                                                                        ? 66
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,

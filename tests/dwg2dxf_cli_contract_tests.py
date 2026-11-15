@@ -2680,6 +2680,20 @@ def check_malformed_dimassoc_body(converter, root, writer):
         "--generate-cli-malformed-dimassoc-body-source", profiles)
 
 
+def check_malformed_layout_body(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "LAYOUT",
+        "--generate-cli-malformed-layout-body-source", profiles)
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3917,6 +3931,8 @@ def main():
                         help="run only generated evaluation-graph recovery controls")
     parser.add_argument("--dimassoc-recovery-only", action="store_true",
                         help="run only generated DIMASSOC recovery controls")
+    parser.add_argument("--layout-recovery-only", action="store_true",
+                        help="run only generated LAYOUT recovery controls")
     parser.add_argument("--source-disposition-only", action="store_true",
                         help="run only CLI repair/skip/mask preflight projections")
     parser.add_argument("--historical-ac1021-only", action="store_true",
@@ -4106,6 +4122,11 @@ def main():
             checked = check_malformed_dimassoc_body(
                 converter, root, args.writer)
             print(f"CLI DIMASSOC recovery: PASS ({checked} controls)")
+            return
+        if args.layout_recovery_only:
+            checked = check_malformed_layout_body(
+                converter, root, args.writer)
+            print(f"CLI LAYOUT recovery: PASS ({checked} controls)")
             return
         if args.partial_read_only:
             checked = check_partial_dwg_read_cli(converter, root, args.writer)
