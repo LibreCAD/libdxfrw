@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-15",
+  "title": "ODA AC1024 custom DICTIONARYVAR graph source and peer crosscheck",
+  "status": "SOURCE_AND_PEER_GRAPH_COMPARISON",
+  "supportClaimEffect": "none",
+  "sources": "The locally generated polyface and closed-mesh DXF controls were converted to AC1024 DWG and returned to DXF by ODA 27.1. Input and output hashes and the independent LibreDWG 0.14 JSON hashes are recorded in p6-oda-ac1024-visualstyle-extension-graph-2026-11-15.json. No fixture is committed.",
+  "sourceGraph": "Each DWG has one NOD EZDXF_META entry to an NOD-owned hard-owner DICTIONARY. It has two unique entries CREATED_BY_EZDXF and WRITTEN_BY_EZDXF; their DWG handle links use code 2. Both DICTIONARYVARs have owner equal to this dictionary, schema 0, no reactors and no extension dictionary. Each DWG separately also has six system DICTIONARYVARs under AcDbVariableDictionary with one owner reactor apiece.",
+  "crosscheck": "For both inputs, follow the source and ODA-output dictionary edges independently and match on the two dictionary keys. ODA DXF values/schema/owner and LibreDWG DWG JSON agree; libdxfrw typed callbacks match each source value and report zero reactors. The owner dictionary has an import-matched standard frame (type 42); each variable has an opaque source frame present, but this presence check alone does not prove bit spans or typed frame equality.",
+  "reasonForCurrentRefusal": "prepareExtensionObjectGraph only admits system-variable ownership for DWG. prepareDwgDictionaryVars and inspectDwgDictionaryVars also assume exactly one owner, and the snapshot path requires one reactor for every variable. Allowing the graph preflight alone would therefore remain incomplete and unsafe.",
+  "nextImplementation": "Admit only the witnessed AC1024 NOD-rooted EZDXF_META profile alongside the existing system owner. Validate unique owner/key membership and no-reactor common links; snapshot both dictionaries plus NOD and all typed variables; generalize the output inspector to prove both remapped owners, NOD keys, exact dictionary members and each variable schema/value/reactor transport. Add fixture-free malformed graph controls and selected ASCII/Binary source output/readback, atomic failure and same-writer retry, retain current system-profile regression, then rerun partial CLI. Do not weaken strict HEADER refusal.",
+  "probeHashes": {
+    "source": "0ce087da62ca61551629efc342e02506ddc6066ef03ae18e58ec37a9da0fa43b",
+    "executable": "380053a4d04594c347d5901cb8f55c3927cbd9e10634253a33fa1700c2b89ae8",
+    "polyfaceLog": "85c1a1df7bf546044c4ac78db25773d79291b9efded8ddc7231ecb32521c66de",
+    "closedmeshLog": "c6b3b9dcdaf7671914e700c0bbfcd7a6ed3181ff4f42acd2a1fa933e89c6fe9a",
+    "comparisonScript": "ebaa0732ad496772e12205577b2ae7893606ddb7f309803269025d56884d7b75"
+  },
+  "limits": [
+    "The source samples are generated locally and converted by ODA; they are not independently authored producer examples.",
+    "Peer and typed comparison is not a native user-semantics or source-bit-span proof.",
+    "This receipt establishes no emitted custom-DWG-variable graph and promotes no support claim."
+  ]
+}
