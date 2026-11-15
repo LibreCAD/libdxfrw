@@ -2622,6 +2622,7 @@ def check_malformed_tablestyle_body(converter, root, writer):
     profiles = {
         "AC1015": "2007",
         "AC1018": "2007",
+        "AC1021": "2007",
         "AC1024": "2010",
     }
     return check_malformed_object_body_family(

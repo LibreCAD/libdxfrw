@@ -17,26 +17,26 @@
   "revision_results": {
     "AC1015": {"controls": 5, "output_revision": "AC1021"},
     "AC1018": {"controls": 5, "output_revision": "AC1021"},
-    "AC1021": {"controls": 0, "status": "not qualified; the current TABLESTYLE writer capability matrix does not admit this revision"},
+    "AC1021": {"controls": 5, "output_revision": "AC1021", "status": "legacy TABLESTYLE body recovery only"},
     "AC1024": {"controls": 5, "output_revision": "AC1024", "status": "R24 body recovery only; generated handle target and TABLESTYLE graph semantics remain unqualified"},
     "AC1027": {"controls": 0, "status": "not qualified"},
     "AC1032": {"controls": 0, "status": "not qualified"}
   },
   "assertions": [
     "Each admitted source records one failed OBJECTS frame, continues to the following LINE, and balances source/published/failed frame accounting.",
-    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel at AC1015, AC1018, and AC1024.",
-    "Explicit-partial ASCII/Binary conversion and fresh DXF readback retain the LINE at all three admitted source revisions."
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel at AC1015, AC1018, AC1021, and AC1024.",
+    "Explicit-partial ASCII/Binary conversion and fresh DXF readback retain the LINE at all four admitted source revisions."
   ],
   "validation": {
     "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 passed.",
     "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py and python3 -m json.tool on this receipt passed.",
     "diff_check": "git diff --check passed.",
-    "targeted": "ctest --test-dir build-gcc -V -R '^dwg2dxf_cli_tablestyle_recovery$' passed 1/1 in 0.76 seconds and reported 15 controls, including five AC1024 controls.",
+    "targeted": "ctest --test-dir build-gcc -V -R '^dwg2dxf_cli_tablestyle_recovery$' passed 1/1 in 0.65 seconds and reported 20 controls: five each at AC1015, AC1018, AC1021, and AC1024.",
     "aggregate": "The dwg2dxf_cli_partial_read_disposition aggregate was not rerun for this isolated profile."
   },
   "limits": [
     "Generated parser recovery and disposition evidence only; TABLESTYLE dictionary membership, table formatting semantics, and native rendering are not qualified.",
-    "AC1021, AC1027, and AC1032 malformed TABLESTYLE body recovery are unqualified.",
+    "AC1027 and AC1032 malformed TABLESTYLE body recovery are unqualified.",
     "The AC1024 synthetic hard-owner target, TABLESTYLE dictionary closure, formatting semantics, and native rendering are unqualified.",
     "No DWG or DXF fixture file is committed."
   ]
