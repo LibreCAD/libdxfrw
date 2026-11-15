@@ -137,6 +137,7 @@ enum class DwgDataStorageWriterOperation : std::uint8_t {
 
 // Compile-time capability for consumers that also support the LibreCAD fork.
 #define LIBDXFRW_HAS_DECLARED_UTF8_POLICY 1
+#define LIBDXFRW_HAS_MPOLYGON_POLYLINE_POLICY 1
 
 namespace DRW {
 

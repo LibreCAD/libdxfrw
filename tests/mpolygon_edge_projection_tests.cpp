@@ -39,10 +39,15 @@ public:
         loop->objlist.push_back(arc);
         polygon.looplist.push_back(loop);
     }
-    void writeEntities() override { accepted = writer->writeMPolygon(&polygon); }
+    void writeEntities() override {
+        if (policyDuringCallback >= 0)
+            writer->setMPolygonPolylinePathsOnly(policyDuringCallback != 0);
+        accepted = writer->writeMPolygon(&polygon);
+    }
     dxfRW* writer = nullptr;
     DRW_MPolygon polygon;
     bool accepted = false;
+    int policyDuringCallback = -1;
 };
 
 class Capture final : public LC3CompatCheck {
@@ -177,6 +182,78 @@ bool runPrecisionProfile(bool binary, int mode) {
         << " mode=" << mode << '\n';
     return ok;
 }
+
+bool runPolicy(bool binary) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-mpolygon-policy-" + std::to_string(nonce) + ".dxf");
+    const ArcProfile profile{0.0, M_PI, 1.0};
+    Emitter emitter(true, true, profile);
+    dxfRW writer(path.string().c_str());
+    emitter.writer = &writer;
+    bool ok = !writer.mPolygonPolylinePathsOnly();
+    writer.setMPolygonPolylinePathsOnly(true);
+    emitter.policyDuringCallback = 0;
+    {
+        std::ofstream previous(path, std::ios::binary);
+        previous << "prior output";
+    }
+    ok = !writer.write(&emitter, DRW::AC1021, binary) && !emitter.accepted
+        && !writer.mPolygonPolylinePathsOnly() && ok;
+    {
+        std::ifstream previous(path, std::ios::binary);
+        const std::string bytes((std::istreambuf_iterator<char>(previous)),
+                                std::istreambuf_iterator<char>());
+        ok = ok && bytes == "prior output";
+    }
+    emitter.policyDuringCallback = 1;
+    ok = writer.write(&emitter, DRW::AC1021, binary) && emitter.accepted
+        && writer.mPolygonPolylinePathsOnly() && ok;
+    Capture fallback;
+    dxfRW fallbackReader(path.string().c_str());
+    ok = fallbackReader.read(&fallback, false) && fallback.count == 1
+        && fallback.polygon.looplist.size() == 1
+        && fallback.polygon.looplist[0]
+        && (fallback.polygon.looplist[0]->type & 2) == 0 && ok;
+    emitter.policyDuringCallback = -1;
+    ok = !writer.write(&emitter, DRW::AC1021, binary) && !emitter.accepted && ok;
+    auto* line = static_cast<DRW_Line*>(emitter.polygon.looplist[0]->objlist[0].get());
+    line->secPoint.x = 10.0;
+    ok = writer.write(&emitter, DRW::AC1021, binary) && emitter.accepted && ok;
+    Capture projected;
+    dxfRW projectedReader(path.string().c_str());
+    ok = projectedReader.read(&projected, false) && projected.count == 1
+        && projected.polygon.looplist.size() == 1
+        && projected.polygon.looplist[0]
+        && (projected.polygon.looplist[0]->type & 2) != 0 && ok;
+    auto polyline = std::make_shared<DRW_LWPolyline>();
+    polyline->flags = 1;
+    polyline->addVertex(DRW_Vertex2D(0.0, 0.0, 0.0));
+    polyline->addVertex(DRW_Vertex2D(1.0, 0.0, 0.0));
+    polyline->addVertex(DRW_Vertex2D(0.0, 1.0, 0.0));
+    emitter.polygon.looplist[0]->type = 3;
+    emitter.polygon.looplist[0]->objlist.clear();
+    emitter.polygon.looplist[0]->objlist.push_back(polyline);
+    ok = writer.write(&emitter, DRW::AC1021, binary) && emitter.accepted && ok;
+    std::string validOutput;
+    {
+        std::ifstream file(path, std::ios::binary);
+        validOutput.assign(std::istreambuf_iterator<char>(file),
+                           std::istreambuf_iterator<char>());
+    }
+    polyline->vertlist.clear();
+    ok = !writer.write(&emitter, DRW::AC1021, binary) && !emitter.accepted && ok;
+    {
+        std::ifstream file(path, std::ios::binary);
+        const std::string unchanged((std::istreambuf_iterator<char>(file)),
+                                    std::istreambuf_iterator<char>());
+        ok = ok && unchanged == validOutput;
+    }
+    std::error_code ignored;
+    std::filesystem::remove(path, ignored);
+    if (!ok) std::cerr << "MPOLYGON polyline-only policy failed: binary=" << binary << '\n';
+    return ok;
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -205,5 +282,7 @@ int main(int argc, char** argv) {
     for (bool binary : {false, true})
         for (int mode : {0, 1, 2})
             ok = runPrecisionProfile(binary, mode) && ok;
+    for (bool binary : {false, true})
+        ok = runPolicy(binary) && ok;
     return ok ? 0 : 1;
 }

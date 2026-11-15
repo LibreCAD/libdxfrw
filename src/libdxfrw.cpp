@@ -3118,6 +3118,7 @@ public:
         m_owner.m_leftOut.clear();
         m_owner.m_dxfWriteAttemptActive = true;
         m_owner.m_dxfNoRawSectionsSelected = m_owner.m_dxfNoRawSectionsPolicy;
+        m_owner.m_mPolygonPolylinePathsOnlySelected = m_owner.m_mPolygonPolylinePathsOnly;
         m_owner.m_dxfNoRawSectionsObserved = false;
 
     }
@@ -11176,6 +11177,20 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
             }
             return connected(previous, first);
         };
+        const bool polylineOnly = m_dxfWriteAttemptActive
+            ? m_mPolygonPolylinePathsOnlySelected : m_mPolygonPolylinePathsOnly;
+        if (polylineOnly) {
+            for (const auto& loop : ent->looplist) {
+                if ((loop->type & 2) != 0) {
+                    const auto* polyline = dynamic_cast<const DRW_LWPolyline*>(
+                        loop->objlist.front().get());
+                    if (polyline == nullptr || polyline->vertlist.empty())
+                        return m_dxfWriteAttemptActive ? failDxfWrite() : false;
+                } else if (!canProjectPolyline(*loop)) {
+                    return m_dxfWriteAttemptActive ? failDxfWrite() : false;
+                }
+            }
+        }
         writer->writeString(0, "MPOLYGON");
         if (!writeEntity(ent))
             return false;

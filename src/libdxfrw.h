@@ -176,6 +176,19 @@ public:
      * Consumer rebuild required; no new pure callback. */
     void setDxfCodePagePolicy(DRW::DxfCodePagePolicy policy) noexcept { m_dxfCodePagePolicy = policy; }
     DRW::DxfCodePagePolicy dxfCodePagePolicy() const noexcept { return m_dxfCodePagePolicy; }
+    /** Require MPOLYGON DXF boundaries to be nonempty polyline paths or
+     * closed line/arc loops that can be projected to polylines. The default
+     * retains the existing extended edge-path writer. Whole-file writes
+     * snapshot this setting before callbacks; changing it in a callback
+     * affects the next write. It applies to typed writeMPolygon() calls only;
+     * raw entity replay, native rendering, and other MPOLYGON fields are not
+     * covered. Consumer rebuild required. */
+    void setMPolygonPolylinePathsOnly(bool enabled) noexcept {
+        m_mPolygonPolylinePathsOnly = enabled;
+    }
+    bool mPolygonPolylinePathsOnly() const noexcept {
+        return m_mPolygonPolylinePathsOnly;
+    }
     /** Select semantic-text output policy for subsequent writes. The admitted
      * write snapshots it; callback changes affect only the next write. Ordinary
      * Compatible output/raw carriers remain unchanged. RequireLossless rejects
@@ -1921,6 +1934,8 @@ private:
     bool m_useTargetLegacyClassifier {false};
     DRW::DxfTextEncoding m_dxfTextEncoding {DRW::DxfTextEncoding::Declared};
     DRW::DxfCodePagePolicy m_dxfCodePagePolicy {DRW::DxfCodePagePolicy::Compatible};
+    bool m_mPolygonPolylinePathsOnly {false};
+    bool m_mPolygonPolylinePathsOnlySelected {false};
     std::string fileName;
     std::string codePage;
     bool binFile {false};
