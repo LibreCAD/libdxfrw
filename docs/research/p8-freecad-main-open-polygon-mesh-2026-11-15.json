@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-15",
+  "scope": "unmerged fifth ordered FreeCAD development default-importer patch; bounded open polygon meshes",
+  "base": "FreeCAD d956ec561639cfa83f755504b1b3358ea799428e with four prior default-importer patches applied",
+  "patch": "docs/patches/freecad-p8-default-open-polygon-mesh-2026-11-15.patch",
+  "patchSha256": "3599ace1f32303f4e217e8b94161fa8c5074cef9f3bd84b5facb84fc89a2577b",
+  "nativeBuild": "Headless macOS ARM64 FreeCADCmd built from exact source archive 29bdfe30632e084c0b6d015a1258f0ff75b8ed84fca660cec4e74fd4e2604bb9, AppleClang 21, Qt 6.12, OCCT 7.9.3; first four patches applied",
+  "combinedImportSha256": "27f08fb1b22ef3e206a1df25e9f8f7de2195ed4448136c53686da8bb0d9d750e",
+  "change": "Extend the bounded mesh reader to open, unsmoothed, layer-0 polygon grids with finite WCS vertices, valid M/N counts and safe ownership metadata. Construct planar cells in M-then-N vertex order as a Part compound. Reject invalid counts, closure flags, smoothing, mismatched subclass markers, malformed vertices, ownership/style metadata, nonplanar cells and incomplete sequences before output. Tighten POLYFACE subclass and advisory-count validation.",
+  "validation": {
+    "baseline": "The prior importer reports polygon mesh unsupported and fails the generated acceptance controls; the patched native importer passes.",
+    "generatedTest": "22 named generated-DXF cases, two accepted and 20 explicitly refused, with following LINE checks; a second same-file test checks invalid grid followed by valid grid and LINE without partial output. The existing 30-case POLYFACE and classic-polyline tests also pass.",
+    "independentGrid": "ezdxf 1.4.5 generated a non-square 2x3 grid in inches and millimetres; both cell vertex sets and analytic normals (-2,-3,6)/7 match. Additional nested two-level 90-degree INSERT controls match outer-link WCS vertices and area in both units.",
+    "combined": "All eight assembled tests pass for DIMENSION basis, SOLID OCS, planar 3DFACE, classic polylines, bounded POLYFACE and polygon meshes including same-file recovery. Five ordered patches apply to the exact source; the built importer matches the assembled source."
+  },
+  "references": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+    "https://github.com/mozman/ezdxf/blob/84ae31976940f99e6d5f4d3b2e9131da02b574fe/src/ezdxf/addons/r12writer.py"
+  ],
+  "scratchDxfSha256": {
+    "directInch": "a1a39c867f3a075c491d4d99ecb96db3baa25747905036dee91ffe815f67687d",
+    "directMetric": "16e5e4a0278ffd299d56d97ea6c9be7030090403f72362cff4749428498cfb74",
+    "nestedInch": "671c10146c95a767d72d78305d823b6fa8c3e2dcd0616058870cec85afb6df6c",
+    "nestedMetric": "28e03d650deacecd10bbfab8b7b4803c8160a4d77d29cf350bf0af0bc0968408"
+  },
+  "limits": [
+    "Five downstream FreeCAD default-importer patches are unmerged; native checks use headless Import.readDXF into isolated new documents, not full GUI open/insert or Linux/Windows.",
+    "Closed and smoothed polygon meshes, nonplanar cells, custom layers, per-face styling, invisible edges and unsupported metadata remain explicitly refused. Source DXF handles and editable mesh topology are not preserved as an output graph.",
+    "No physical producer sample, arbitrary nested transform, binary DXF, allocation-fault injection or producer/native semantic equivalence is established.",
+    "Scratch fixture files are not committed and no phase or format-support claim is promoted."
+  ]
+}
