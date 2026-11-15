@@ -1,0 +1,334 @@
+diff --git a/persistence/libdxfrw/dxfimpl.cpp b/persistence/libdxfrw/dxfimpl.cpp
+index c458813..ac3fdce 100644
+--- a/persistence/libdxfrw/dxfimpl.cpp
++++ b/persistence/libdxfrw/dxfimpl.cpp
+@@ -49,8 +49,8 @@ using namespace lc::persistence;
+ 
+ namespace {
+ // The kernel's HATCH keeps this immutable source snapshot across ordinary
+-// entity operations. A simple closed polyline can be replayed unchanged or
+-// translated in its plane; other edits take the reported projection path.
++// entity operations. A simple closed polyline can be replayed through planar
++// rigid transforms; other edits take the reported projection path.
+ class MPolygonSnapshot final : public lc::meta::EntityMetaType {
+ public:
+     struct Vertex { double x, y, bulge; };
+@@ -95,7 +95,8 @@ public:
+     const std::string id() const override { return "_LIBDXFRW_MPOLYGON"; }
+     const std::string metaTypeID() const override { return id(); }
+     bool replayable(const DRW_Hatch& hatch, const lc::entity::Hatch_CSPtr& model,
+-                    double& outputOffsetX, double& outputOffsetY) const {
++                    double& outputOffsetX, double& outputOffsetY,
++                    bool& rewriteBoundary) const {
+         if (!source || model->block() != block || hatch.name != name || hatch.solid != solid
+             || hatch.angle != angle || hatch.scale != scale
+             || hatch.layer != layer || hatch.lineType != lineType
+@@ -125,15 +126,99 @@ public:
+         const auto* original = dynamic_cast<const DRW_LWPolyline*>(
+             source->looplist[0]->objlist[0].get());
+         if (!original || original->vertlist.size() != vertices.size()) return false;
++        bool translation = true;
+         for (std::size_t i = 0; i < vertices.size(); ++i) {
+             if (modelPolyline->vertex()[i].location().z() != 0.0) return false;
+             const auto& v = poly->vertlist[i];
+             const auto& raw = original->vertlist[i];
+-            if (!v || !raw || raw->x + outputOffsetX != v->x
+-                || raw->y + outputOffsetY != v->y
++            if (!v || !raw || !std::isfinite(v->x) || !std::isfinite(v->y)
+                 || v->bulge != vertices[i].bulge || v->stawidth != 0.0
+                 || v->endwidth != 0.0) return false;
++            if (raw->x + outputOffsetX != v->x || raw->y + outputOffsetY != v->y)
++                translation = false;
+         }
++        rewriteBoundary = false;
++        if (translation) return true;
++
++        // A solid polygon without references or dormant pattern/gradient data
++        // can also be rotated without inventing a transformation for fields
++        // the kernel does not model.
++        if (source->annotatedBoundary != 0 || source->degenerateLoops != 0
++            || source->angle != 0.0 || !source->patternLines.empty()
++            || !source->seedPoints.empty() || source->pixelSize != 0.0
++            || source->gradReserved != 0 || source->gradAngle != 0.0
++            || source->gradShift != 0.0 || source->singleColor != 0
++            || source->gradTint != 0.0 || !source->gradName.empty()) return false;
++        std::size_t reference = 0;
++        double longest = 0.0;
++        for (std::size_t i = 1; i < vertices.size(); ++i) {
++            const double length = std::hypot(vertices[i].x - vertices[0].x,
++                                             vertices[i].y - vertices[0].y);
++            if (!std::isfinite(length)) return false;
++            if (length > longest) { longest = length; reference = i; }
++        }
++        if (reference == 0 || longest == 0.0) return false;
++        const double ux = (vertices[reference].x - vertices[0].x) / longest;
++        const double uy = (vertices[reference].y - vertices[0].y) / longest;
++        const double vx0 = poly->vertlist[reference]->x - poly->vertlist[0]->x;
++        const double vy0 = poly->vertlist[reference]->y - poly->vertlist[0]->y;
++        const double length = std::hypot(vx0, vy0);
++        if (!std::isfinite(length) || length == 0.0) return false;
++        const double vx = vx0 / length, vy = vy0 / length;
++        const double cosine = ux * vx + uy * vy;
++        const double sine = ux * vy - uy * vx;
++        const double epsilon = std::numeric_limits<double>::epsilon();
++        const double scale = std::max({std::numeric_limits<double>::min(), longest, length,
++                                       std::abs(vertices[0].x), std::abs(vertices[0].y),
++                                       std::abs(poly->vertlist[0]->x),
++                                       std::abs(poly->vertlist[0]->y)});
++        const double tolerance = 64.0 * epsilon * scale;
++        if (!std::isfinite(tolerance) || std::abs(longest - length) > tolerance)
++            return false;
++        for (std::size_t i = 0; i < vertices.size(); ++i) {
++            const double sx = vertices[i].x - vertices[0].x;
++            const double sy = vertices[i].y - vertices[0].y;
++            const double tx = poly->vertlist[i]->x - poly->vertlist[0]->x;
++            const double ty = poly->vertlist[i]->y - poly->vertlist[0]->y;
++            const double predictedX = cosine * sx - sine * sy;
++            const double predictedY = sine * sx + cosine * sy;
++            if (!std::isfinite(sx) || !std::isfinite(sy) || !std::isfinite(tx)
++                || !std::isfinite(ty) || !std::isfinite(predictedX)
++                || !std::isfinite(predictedY)
++                || std::abs(predictedX - tx) > tolerance
++                || std::abs(predictedY - ty) > tolerance)
++                return false;
++        }
++        const double raw0x = original->vertlist[0]->x;
++        const double raw0y = original->vertlist[0]->y;
++        outputOffsetX = poly->vertlist[0]->x - (cosine * raw0x - sine * raw0y);
++        outputOffsetY = poly->vertlist[0]->y - (sine * raw0x + cosine * raw0y);
++        if (!std::isfinite(outputOffsetX) || !std::isfinite(outputOffsetY)) return false;
++        // A rounded center may not reconstruct every edited double exactly.
++        // Try nearby representable centers before falling back; the bounded
++        // search never changes an output vertex or permits approximate replay.
++        const auto fitOffset = [&poly](double& offset, bool xAxis) {
++            const auto exact = [&poly, xAxis](double candidate) {
++                if (!std::isfinite(candidate)) return false;
++                for (const auto& vertex : poly->vertlist) {
++                    const double point = xAxis ? vertex->x : vertex->y;
++                    const double raw = point - candidate;
++                    if (!std::isfinite(raw) || raw + candidate != point) return false;
++                }
++                return true;
++            };
++            if (exact(offset)) return true;
++            double lower = offset, upper = offset;
++            for (int i = 0; i < 16; ++i) {
++                lower = std::nextafter(lower, -std::numeric_limits<double>::infinity());
++                if (exact(lower)) { offset = lower; return true; }
++                upper = std::nextafter(upper, std::numeric_limits<double>::infinity());
++                if (exact(upper)) { offset = upper; return true; }
++            }
++            return false;
++        };
++        if (!fitOffset(outputOffsetX, true) || !fitOffset(outputOffsetY, false)) return false;
++        rewriteBoundary = true;
+         return true;
+     }
+     bool canWrite(DRW::Version version) const {
+@@ -2990,13 +3075,22 @@ void DXFimpl::writeHatch(const lc::entity::Hatch_CSPtr& h) {
+ 
+     const auto snapshot = h->metaInfo<MPolygonSnapshot>(MPolygonSnapshot::key());
+     double outputOffsetX = 0.0, outputOffsetY = 0.0;
++    bool rewriteBoundary = false;
+     if (snapshot && _exportVersion > DRW::AC1009 && snapshot->canWrite(_exportVersion)
+-        && snapshot->replayable(hatch, h, outputOffsetX, outputOffsetY)) {
++        && snapshot->replayable(hatch, h, outputOffsetX, outputOffsetY, rewriteBoundary)) {
+         DRW_MPolygon polygon(*snapshot->source);
+         // MPOLYGON stores vertices relative to its offset. A planar translation
+         // changes the offset, leaving the serialized boundary coordinates intact.
+         polygon.xDirX = outputOffsetX;
+         polygon.xDirY = outputOffsetY;
++        if (rewriteBoundary) {
++            auto* saved = static_cast<DRW_LWPolyline*>(polygon.looplist[0]->objlist[0].get());
++            const auto* current = static_cast<const DRW_LWPolyline*>(hatch.looplist[0]->objlist[0].get());
++            for (std::size_t i = 0; i < saved->vertlist.size(); ++i) {
++                saved->vertlist[i]->x = current->vertlist[i]->x - outputOffsetX;
++                saved->vertlist[i]->y = current->vertlist[i]->y - outputOffsetY;
++            }
++        }
+         // A new document assigns new entity and owner handles; the qualified
+         // profile has no other retained reference edges to remap.
+         polygon.handle = DRW::NoHandle;
+diff --git a/unittest/persistence/dwgimporttest.cpp b/unittest/persistence/dwgimporttest.cpp
+index 687b55d..0ff746c 100644
+--- a/unittest/persistence/dwgimporttest.cpp
++++ b/unittest/persistence/dwgimporttest.cpp
+@@ -544,7 +544,8 @@ TEST(DwgImportTest, MpolygonSimpleBoundaryAndEditedFallback) {
+     EXPECT_DOUBLE_EQ(poly->vertex()[0].location().x(), 13.0);
+     EXPECT_DOUBLE_EQ(poly->vertex()[0].location().y(), 7.0);
+ 
+-    // A rotation cannot reuse the original offset-space snapshot.
++    // Rotation retains the subtype only when all encoded points reconstruct
++    // exactly and the library has the corrected MPOLYGON group semantics.
+     const auto rotated = hatch->rotate(lc::geo::Coordinate(0, 0, 0), 0.5);
+     ASSERT_NE(rotated, nullptr);
+     doc->removeEntity(moved);
+@@ -553,14 +554,75 @@ TEST(DwgImportTest, MpolygonSimpleBoundaryAndEditedFallback) {
+     const auto rotatedWrite = lc::persistence::File::exportFile(
+         doc, rotatedOutput, lc::persistence::File::LIBDXFRW_DXF_R2000);
+     ASSERT_TRUE(rotatedWrite.ok);
+-    EXPECT_TRUE(std::any_of(rotatedWrite.loss.notes.begin(), rotatedWrite.loss.notes.end(),
++    EXPECT_EQ(rotatedWrite.loss.empty(), asciiPreserved);
++    if (!asciiPreserved) {
++        EXPECT_TRUE(std::any_of(rotatedWrite.loss.notes.begin(), rotatedWrite.loss.notes.end(),
++                                [](const std::string& note) {
++                                    return note.find("written as HATCH") != std::string::npos;
++                                }));
++    }
++    auto rotatedDoc = newDwgDocument();
++    const auto rotatedRead = lc::persistence::File::importFile(
++        rotatedDoc, rotatedOutput, lc::persistence::File::LIBDXFRW);
++    ASSERT_TRUE(rotatedRead.ok);
++    EXPECT_EQ(std::any_of(rotatedRead.loss.notes.begin(), rotatedRead.loss.notes.end(),
++                           [](const std::string& note) {
++                               return note.find("MPOLYGON entities") != std::string::npos;
++                           }), asciiPreserved);
++    const auto expectedHatch = std::dynamic_pointer_cast<const lc::entity::Hatch>(rotated);
++    ASSERT_NE(expectedHatch, nullptr);
++    const auto expectedPoly = std::dynamic_pointer_cast<const lc::entity::LWPolyline>(
++        expectedHatch->getRegion().loopList()[0].entities()[0]);
++    lc::entity::Hatch_CSPtr rotatedHatch;
++    for (const auto& entity : rotatedDoc->entityContainer().asVector())
++        if (auto candidate = std::dynamic_pointer_cast<const lc::entity::Hatch>(entity))
++            rotatedHatch = candidate;
++    ASSERT_NE(rotatedHatch, nullptr);
++    ASSERT_EQ(rotatedHatch->getRegion().loopList().size(), 1u);
++    ASSERT_EQ(rotatedHatch->getRegion().loopList()[0].entities().size(), 1u);
++    const auto rotatedPoly = std::dynamic_pointer_cast<const lc::entity::LWPolyline>(
++        rotatedHatch->getRegion().loopList()[0].entities()[0]);
++    ASSERT_NE(expectedPoly, nullptr);
++    ASSERT_NE(rotatedPoly, nullptr);
++    ASSERT_EQ(rotatedPoly->vertex().size(), expectedPoly->vertex().size());
++    for (std::size_t i = 0; i < expectedPoly->vertex().size(); ++i) {
++        EXPECT_DOUBLE_EQ(rotatedPoly->vertex()[i].location().x(), expectedPoly->vertex()[i].location().x());
++        EXPECT_DOUBLE_EQ(rotatedPoly->vertex()[i].location().y(), expectedPoly->vertex()[i].location().y());
++        EXPECT_DOUBLE_EQ(rotatedPoly->vertex()[i].bulge(), expectedPoly->vertex()[i].bulge());
++    }
++
++    // A non-rigid edit takes the reported projection path.
++    const auto scaled = hatch->scale(lc::geo::Coordinate(0, 0, 0), lc::geo::Coordinate(2, 1, 1));
++    ASSERT_NE(scaled, nullptr);
++    doc->removeEntity(rotated);
++    doc->insertEntity(scaled);
++    const std::string scaledOutput = tmpPath("scaled-mpolygon-output");
++    const auto scaledWrite = lc::persistence::File::exportFile(
++        doc, scaledOutput, lc::persistence::File::LIBDXFRW_DXF_R2000);
++    ASSERT_TRUE(scaledWrite.ok);
++    EXPECT_TRUE(std::any_of(scaledWrite.loss.notes.begin(), scaledWrite.loss.notes.end(),
++                            [](const std::string& note) {
++                                return note.find("written as HATCH") != std::string::npos;
++                            }));
++
++    // Reflection is not an orientation-preserving rotation.
++    const auto reflected = hatch->scale(lc::geo::Coordinate(0, 0, 0),
++                                        lc::geo::Coordinate(-1, 1, 1));
++    ASSERT_NE(reflected, nullptr);
++    doc->removeEntity(scaled);
++    doc->insertEntity(reflected);
++    const std::string reflectedOutput = tmpPath("reflected-mpolygon-output");
++    const auto reflectedWrite = lc::persistence::File::exportFile(
++        doc, reflectedOutput, lc::persistence::File::LIBDXFRW_DXF_R2000);
++    ASSERT_TRUE(reflectedWrite.ok);
++    EXPECT_TRUE(std::any_of(reflectedWrite.loss.notes.begin(), reflectedWrite.loss.notes.end(),
+                             [](const std::string& note) {
+                                 return note.find("written as HATCH") != std::string::npos;
+                             }));
+ 
+     // Restore the original entity and retry the same destination. The stale
+     // projection warning must not leak into a fresh export.
+-    doc->removeEntity(rotated);
++    doc->removeEntity(reflected);
+     doc->insertEntity(hatch);
+     const auto retried = lc::persistence::File::exportFile(
+         doc, edited, lc::persistence::File::LIBDXFRW_DXF_R2000);
+@@ -807,9 +869,89 @@ TEST(DwgImportTest, MpolygonSimpleBoundaryAndEditedFallback) {
+                                 }));
+     }
+ 
+-    for (const auto& path : {input, ascii, binary, edited, rotatedOutput, liftedOutput,
++    for (const auto& path : {input, ascii, binary, edited, rotatedOutput, scaledOutput, reflectedOutput, liftedOutput,
+                              complexInput, complexOutput, edgeInput, hatchInput,
+                              tiltedInput, overflowInput, gradientInput, gradientOutput,
+                              newerInput, newerOutput, patternInput})
+         boost::filesystem::remove(path);
+ }
++
++TEST(DwgImportTest, MpolygonRotationPreservesBulges) {
++    const double bulges[] = {0.0, 0.5, -0.5, 2.0};
++    const double angles[] = {0.25, -0.5, 1.5707963267948966, 3.141592653589793};
++    for (double bulge : bulges) {
++        const std::string input = tmpPath("mpolygon-rotation-source");
++        {
++            std::ofstream f(input);
++            ASSERT_TRUE(f.good());
++            f << "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1018\n0\nENDSEC\n"
++                 "0\nSECTION\n2\nENTITIES\n0\nMPOLYGON\n5\n55\n"
++                 "100\nAcDbEntity\n8\n0\n100\nAcDbMPolygon\n70\n1\n"
++                 "10\n0\n20\n0\n30\n0\n210\n0\n220\n0\n230\n1\n"
++                 "2\nSOLID\n71\n1\n91\n1\n92\n2\n73\n1\n72\n1\n93\n3\n"
++                 "10\n1\n20\n2\n42\n" << bulge << "\n"
++                 "10\n4\n20\n2\n42\n0\n10\n3\n20\n5\n42\n0\n"
++                 "76\n1\n78\n0\n63\n3\n98\n0\n11\n2\n21\n5\n99\n0\n"
++                 "0\nENDSEC\n0\nEOF\n";
++            ASSERT_TRUE(f.good());
++        }
++        auto doc = newDwgDocument();
++        const auto imported = lc::persistence::File::importFile(
++            doc, input, lc::persistence::File::LIBDXFRW);
++        ASSERT_TRUE(imported.ok);
++        lc::entity::Hatch_CSPtr hatch;
++        for (const auto& e : doc->entityContainer().asVector())
++            if (auto h = std::dynamic_pointer_cast<const lc::entity::Hatch>(e)) hatch = h;
++        ASSERT_NE(hatch, nullptr);
++        const std::string baseline = tmpPath("mpolygon-rotation-baseline");
++        const auto first = lc::persistence::File::exportFile(
++            doc, baseline, lc::persistence::File::LIBDXFRW_DXF_R2000);
++        ASSERT_TRUE(first.ok);
++        const bool supports = first.loss.empty();
++        for (double angle : angles) {
++            const auto rotated = hatch->rotate(lc::geo::Coordinate(2, -1, 0), angle);
++            ASSERT_NE(rotated, nullptr);
++            doc->removeEntity(hatch);
++            doc->insertEntity(rotated);
++            const auto expectedHatch = std::dynamic_pointer_cast<const lc::entity::Hatch>(rotated);
++            ASSERT_NE(expectedHatch, nullptr);
++            const auto expected = std::dynamic_pointer_cast<const lc::entity::LWPolyline>(
++                expectedHatch->getRegion().loopList()[0].entities()[0]);
++            ASSERT_NE(expected, nullptr);
++            for (auto type : {lc::persistence::File::LIBDXFRW_DXF_R2000,
++                              lc::persistence::File::LIBDXFRW_DXB_R2000}) {
++                const std::string out = tmpPath("mpolygon-rotation-case");
++                const auto written = lc::persistence::File::exportFile(doc, out, type);
++                ASSERT_TRUE(written.ok) << bulge << "," << angle;
++                EXPECT_EQ(written.loss.empty(), supports) << bulge << "," << angle;
++                auto reopened = newDwgDocument();
++                const auto read = lc::persistence::File::importFile(
++                    reopened, out, lc::persistence::File::LIBDXFRW);
++                ASSERT_TRUE(read.ok);
++                const bool polygon = std::any_of(read.loss.notes.begin(), read.loss.notes.end(),
++                    [](const std::string& note) { return note.find("MPOLYGON entities") != std::string::npos; });
++                EXPECT_EQ(polygon, supports) << bulge << "," << angle;
++                lc::entity::Hatch_CSPtr result;
++                for (const auto& e : reopened->entityContainer().asVector())
++                    if (auto h = std::dynamic_pointer_cast<const lc::entity::Hatch>(e)) result = h;
++                ASSERT_NE(result, nullptr);
++                ASSERT_EQ(result->getRegion().loopList().size(), 1u);
++                ASSERT_EQ(result->getRegion().loopList()[0].entities().size(), 1u);
++                const auto poly = std::dynamic_pointer_cast<const lc::entity::LWPolyline>(
++                    result->getRegion().loopList()[0].entities()[0]);
++                ASSERT_NE(poly, nullptr);
++                ASSERT_EQ(poly->vertex().size(), expected->vertex().size());
++                for (std::size_t i = 0; i < poly->vertex().size(); ++i) {
++                    EXPECT_DOUBLE_EQ(poly->vertex()[i].location().x(), expected->vertex()[i].location().x());
++                    EXPECT_DOUBLE_EQ(poly->vertex()[i].location().y(), expected->vertex()[i].location().y());
++                    EXPECT_DOUBLE_EQ(poly->vertex()[i].bulge(), expected->vertex()[i].bulge());
++                }
++                boost::filesystem::remove(out);
++            }
++            doc->removeEntity(rotated);
++            doc->insertEntity(hatch);
++        }
++        boost::filesystem::remove(baseline);
++        boost::filesystem::remove(input);
++    }
++}

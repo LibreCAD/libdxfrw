@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-15",
+  "purpose": "Preserve a bounded simple MPOLYGON through planar rotations in LibreCAD_3 without reusing stale boundary coordinates.",
+  "primaryEvidence": {
+    "title": "Autodesk ObjectARX AcDbMPolygon::getOffsetVector",
+    "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbMPolygon__getOffsetVector.html",
+    "interpretation": "The stored boundary is offset-space geometry and the offset is recomputed on transformations. This patch infers an orientation-preserving planar rigid transform and rebases the boundary; peer checks are limited to encoded fields and analytic geometry, not native rendering."
+  },
+  "implementation": [
+    "For the existing simple, nonassociative, solid, default-plane single-polyline profile, infer a planar rotation from the furthest distinct vertex and verify all vertices and bulges against the rigid transform. Require selected inactive pattern, gradient and annotation state to be absent.",
+    "Transform the offset and rewrite the copied boundary in offset space. Before output, verify each serialized coordinate plus the selected offset reconstructs the current model double exactly; search at most 16 adjacent floating-point values in each direction for a valid nearby offset.",
+    "Retain the reported HATCH fallback for non-rigid changes, reflection, unrepresentable numeric cases, extra state, and the older pinned codec. Preserve the original source snapshot for later retries."
+  ],
+  "consumer": {
+    "repository": "LibreCAD/LibreCAD_3",
+    "base": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+    "patchOrder": [
+      {
+        "path": "docs/patches/librecad3-p8-mpolygon-projection-warning-2026-11-15.patch",
+        "sha256": "e8a2a6e53ec77581076d6a44e7972a6bcae4646780e471a0e42adda247028902"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-mpolygon-offset-preservation-2026-11-15.patch",
+        "sha256": "116e969e48a91562eed457df05e71558d99b86a37cbff15cae746577215c667f"
+      },
+      {
+        "path": "docs/patches/librecad3-p8-mpolygon-rotation-preservation-2026-11-15.patch",
+        "sha256": "3340ca0cc80f3f38d25d8264a3cb555ee3e469c0351a35a2e5181dcc17041da9"
+      }
+    ],
+    "status": "local, unmerged patches; sequential git apply --check passes on exact base"
+  },
+  "validation": {
+    "environment": "macOS ARM64 Apple clang 21, temporary installed-static-package consumer integration",
+    "newLibraryArchiveSha256": "95e9f20acae0b6d745dd5b94a4a4b3cf53db74ba23f653a14f310fcb49719060",
+    "pinnedLibraryCommit": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "pinnedLibraryArchiveSha256": "bbda069c14828f47194ef47fee39ec160e6fd3a53691b18e847ef3d177da4694",
+    "consumerTests": "10/10 tests pass on each library build. The new from-scratch rotation matrix covers four bulges (0, 0.5, -0.5, 2), four angles (0.25, -0.5, pi/2, pi), and ASCII/Binary, checking geometry, bulges and subtype. It exercises 32 combinations on the newer codec and the reported fallback on the pinned codec. Additional controls cover nonuniform scaling, reflection, Z edits and restoring/retrying the original.",
+    "independentPeer": {
+      "name": "ezdxf",
+      "version": "1.4.5",
+      "profile": "one locally generated triangle with bulge 0.5, rotated 0.25 radians about (2,-1), checked independently against analytic coordinates; both encodings retain fill ACI 3, closed path and bulge",
+      "maxCoordinateError": 8.881784197001252e-16,
+      "outputs": [
+        {
+          "name": "ASCII",
+          "sha256": "430bd737d1d09dad02549bfbcbefd056c1234f7f50f272fd4707206dacd0f520"
+        },
+        {
+          "name": "Binary",
+          "sha256": "b95463561f78bfea29a6f2f1496ef4d6cf2644a2f3d69c72407cc477779b3659"
+        }
+      ]
+    },
+    "releaseInventory": "Clean-checkout generator check and 18-control self-test pass for 1188 files; implementation digest remains fb5aec9e1cdaae7f50a1bd1e03dfa5588cec0f45c0f1c8f097e973a9eeba4192 (714 inputs)."
+  },
+  "limits": [
+    "The three downstream patches are unmerged and have not been run in the native LibreCAD_3 UI.",
+    "The rotation gate is intentionally limited to one modeled polyline, default plane, no associations or nontrivial retained auxiliary state. Nonuniform scale, reflection and other profiles remain fallback rather than MPOLYGON preservation.",
+    "The independent reader validates fields and computed geometry, not native CAD rendering, producer provenance, every angle, or broad DWG/DXF support. No phase gate or support claim is promoted."
+  ]
+}
