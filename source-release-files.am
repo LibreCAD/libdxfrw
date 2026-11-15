@@ -34,6 +34,7 @@ EXTRA_DIST = \
     docs/LIBRECAD_DXFRW_UPGRADE_HISTORY.md \
     docs/SOURCE_RELEASE.md \
     docs/UPGRADE_SUPPORT.md \
+    docs/patches/freecad-p8-legacy-dxf-surface-mesh-unit-scaling-2026-11-15.patch \
     docs/patches/librecad-p8-associative-prefix-compat-2026-11-15.patch \
     docs/patches/librecad-p8-canonical-ltype-metadata-2026-11-15.patch \
     docs/patches/librecad-p8-canonical-ltype-policy-test-2026-11-15.patch \

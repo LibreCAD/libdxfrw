@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-15",
+  "scope": "unmerged downstream FreeCAD legacy DXF importer patch; generated controls only",
+  "freecad_main_base": "d956ec561639cfa83f755504b1b3358ea799428e",
+  "freecad_main_importer_sha256": "569af9d5fd9f8e29f30d1bd93ff2c96d37b4584ee374294da7506f02458bc4fd",
+  "native_test_build": "FreeCAD 1.1.4 macOS arm64, revision 4fd3bf320d9566a27e60069fc8387448aaa3a094",
+  "native_importer_sha256": "c0520e31a75a8e4dcb002c606d606855b1a9a565da0f13400d62761dccf9a992",
+  "optional_parser_revision": "e060ef0d8fe7143c2e0ce34734b686ba073f3cc1",
+  "patch": "docs/patches/freecad-p8-legacy-dxf-surface-mesh-unit-scaling-2026-11-15.patch",
+  "patch_sha256": "6cd3d250967a2c7f76c9bcc94a787fbdd5281d24ba3bd709edfd01cf15301949",
+  "problem": "Legacy importer scales 3DFACE using drawing units and user scale but feeds SOLID and POLYFACE/POLYMESH points to FreeCAD without this resolved scale.",
+  "change": "Apply resolvedScale without rounding to SOLID and POLYFACE/POLYMESH vertices, including forceShape; retain existing face topology and point ordering.",
+  "baseline": "On generated inch AC1021 DWG converted to DXF, open and insert both scale 3DFACE by 25.4 while SOLID and POLYFACE remain unscaled. New focused upstream test fails at scale 25.4 and 12.7.",
+  "native_checks": {
+    "generated_dwg_dxf_open_insert": "metric and inch baseline/patched matrix 8/8 expected results; inch patched SOLID area 7741.92 square mm, polyface two facets, all vertices match mm coordinates",
+    "polymesh_precision": "metric and inch baseline/patched open/insert 8/8 expected results, metric coordinates unchanged including high-precision source",
+    "user_scale": "patched metric and inch open/insert at user factor 0.5: 4/4 pass for face, solid and polyface",
+    "upstream_unit": "actual proposed DraftDXF unit test: baseline fails at non-unit scales, patched passes; covers scale 1, 25.4, 12.7, both mesh representations, forceShape, SOLID area and coordinates"
+  },
+  "scratch_source_sha256": {
+    "imperial_dwg": "388b4fddd7c41ca670dd395640d315201249c178ba0976b285e5b5af5cffb0ac",
+    "imperial_dxf": "cb43ebbb36d6059d02f54141288bb04ce43244fbfe930f6c2a91bf6686dd7385",
+    "metric_dwg": "995b7217d926f145428d81c1b63bd8d32ee16a4b4eb4ccfb9337faa311cde1a8",
+    "metric_dxf": "8dbc37512b881baa3f6d761eba9adb50df5f9be812315a4f2e9f52c5cedba96d",
+    "imperial_polymesh_dxf": "30a458bfcf2077c89f1c4964b5ea20e3feffa10cd8a9dd6dd29dd625cd1fd066",
+    "metric_polymesh_dxf": "5ebf88919d34b1ad24d1dcfc88f0a572a1fce1ae953f89d9d4cfbcfaf13e0d1a"
+  },
+  "limitations": [
+    "Patch is not merged or installed in FreeCAD; native test uses the pinned 1.1.4 importer with the corresponding source edits, not a build of FreeCAD main.",
+    "Legacy optional importer only; default C++ DXF importer is unchanged.",
+    "No independent producer/native non-default units, nested blocks, other entity types, ACIS, or Linux/Windows verification of this patch.",
+    "Generated files were scratch-only and are not committed."
+  ]
+}

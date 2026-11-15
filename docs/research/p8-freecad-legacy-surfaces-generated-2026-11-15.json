@@ -102,11 +102,17 @@
     ],
     "defaultCppImporter": "Existing six generated AC1021/AC1024/AC1032 open/insert tests passed; their expectations still report 3DFACE and SOLID unsupported.",
     "registration": "All six optional tests registered and selected by the hosted regex; no new fixture committed.",
-    "inventory": "Clean source-release check 1188 files; frozen native CTest inventory unchanged at 1365 names; implementation digest ec6849938f5a13ce725a800bce281fcd09671d2367655bfc53e28c814fc416ad (714 inputs)."
+    "inventory": "Clean source-release check 1188 files; frozen native CTest inventory unchanged at 1365 names; implementation digest ec6849938f5a13ce725a800bce281fcd09671d2367655bfc53e28c814fc416ad (714 inputs).",
+    "hosted": {
+      "run": "https://github.com/dxli/libdxfrw/actions/runs/43747111195",
+      "commit": "6453b5787072c923c7eb6ab77281309ae5eddbb1",
+      "linux": "16/16 tests passed, including all six legacy cases",
+      "windows": "17/17 tests passed, including all six legacy cases"
+    }
   },
   "limitations": [
     "The optional legacy importer is separately provisioned; this does not change FreeCAD's default C++ importer or prove actual importDWG UI selection.",
-    "The observed sources are locally generated controls; native Linux and Windows runs of the new optional checks are pending, and no external producer profile or ACIS/surface family is qualified.",
+    "The observed sources are locally generated millimetre controls; no external producer, non-default units, nested blocks, ACIS or broader surface family is qualified.",
     "No format or phase support claim is promoted."
   ]
 }
