@@ -7207,4 +7207,20 @@ if(Python3_Interpreter_FOUND)
         COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/audit_mtext_field_source_tests.py)
     set_tests_properties(libdxfrw_mtext_field_source_audit PROPERTIES
         LABELS "dxf;fast;field;research" TIMEOUT 10)
+    add_test(NAME libdxfrw_ac1021_field_graph_audit
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/audit_ac1021_field_graph_tests.py)
+    set_tests_properties(libdxfrw_ac1021_field_graph_audit PROPERTIES
+        LABELS "dwg;fast;field;research" TIMEOUT 10)
 endif()
+
+# Opt-in research probe: the source file is obtained/generated separately and
+# is deliberately not part of the repository or the default build/test set.
+add_executable(libdxfrw_ac1021_mtext_field_census EXCLUDE_FROM_ALL
+    ${CMAKE_SOURCE_DIR}/tools/research/ac1021_mtext_field_census.cpp
+    ${_libdxfrw_test_adapter_source})
+target_compile_features(libdxfrw_ac1021_mtext_field_census PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_ac1021_mtext_field_census PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_ac1021_mtext_field_census PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_ac1021_mtext_field_census PRIVATE dxfrw)
+libdxfrw_check_test_adapter_context(libdxfrw_ac1021_mtext_field_census)

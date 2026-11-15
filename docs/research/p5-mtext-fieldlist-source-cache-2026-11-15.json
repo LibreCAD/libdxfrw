@@ -591,5 +591,91 @@
     "Matching cached text does not demonstrate dynamic field evaluation or rendering.",
     "Source and generated fixture are not committed.",
     "This receipt does not qualify FIELD output, dynamic evaluation or whole-document graph closure."
-  ]
+  ],
+  "ac1021_tv_derivative": {
+    "sha256": "3bc06ca9f22d478bc9477e8d08cadf2f6e245afa46e614f7fb1190e2fdb5c4ac",
+    "creation": "ACadRust 0.6.8 locally patched in a scratch copy so type-4 CadValue strings use versioned variable text in the writer and its self-reader; all other producer code is unchanged. This is an experimental derivative, not an independent producer-authored DWG.",
+    "specification": "ODA v5.4.1 sections 20.4.76 and 20.4.99 specify FIELD layout and TV for the type-4 value; the original ACadRust 0.6.8 writer emits an inline byte-counted UTF-16 string instead. This observation is limited to the inspected producer code and generated candidates.",
+    "reproduce_tool": "tools/research/create_ac1021_field_derivative.py",
+    "independent_graph_audit": "tools/research/audit_ac1021_field_graph.py",
+    "libdxfrw_probe": "libdxfrw_ac1021_mtext_field_census (opt-in CMake target)",
+    "libdxfrw": "16 complete typed FIELDs; one FIELDLIST with 16 unique typed members; eight field parent/child pairs, expressions and child caches verified. The original unpatched candidate is rejected by this exact typed census and is retained raw-only.",
+    "libredwg": {
+      "version": "0.14",
+      "fieldlist_members": 16,
+      "mtext_roots": [
+        {
+          "mtext": "9A",
+          "root_field": "A9",
+          "child_field": "CD",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        },
+        {
+          "mtext": "DA",
+          "root_field": "DD",
+          "child_field": "DE",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        },
+        {
+          "mtext": "E1",
+          "root_field": "E4",
+          "child_field": "E5",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        },
+        {
+          "mtext": "E8",
+          "root_field": "EB",
+          "child_field": "EC",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        },
+        {
+          "mtext": "F4",
+          "root_field": "F7",
+          "child_field": "F8",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        },
+        {
+          "mtext": "FD",
+          "root_field": "100",
+          "child_field": "101",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        },
+        {
+          "mtext": "104",
+          "root_field": "107",
+          "child_field": "108",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        },
+        {
+          "mtext": "10B",
+          "root_field": "10E",
+          "child_field": "10F",
+          "derivative_cached_sha256": "869b2ec2a132d1e81c5c288e37f07ce37fe66135598f63f1f81793c64bfd638e",
+          "source_cached_sha256": "0cdeb6e8385f4c102d02e17326b6b35f795913632b45803972ffe52be4c76ec2",
+          "source_cache_bytes_equal": false
+        }
+      ],
+      "checked": "NOD FIELDLIST binding, 16 unique members, eight MTEXT extension/field dictionaries, owner paths and child links; child expression and cached filename; derivative MTEXT equals derivative root cache."
+    },
+    "source_delta": "All eight derivative root caches differ byte-for-byte from source; observed changes replace three ^I sequences with tabs and one ^-space escape with ^. The visible meaning/evaluation equivalence has not been independently qualified.",
+    "output": "Strict conversion refuses the HEADER suffix warning; explicit partial mode still refuses FIELD/FIELDLIST with no qualified serializer. Output remains gated.",
+    "limits": [
+      "No source physical DWG field spans, unmodified DWG producer evidence, or native dynamic evaluation.",
+      "No fixture was added."
+    ]
+  }
 }
