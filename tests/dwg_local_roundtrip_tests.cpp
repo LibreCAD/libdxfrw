@@ -28415,6 +28415,11 @@ public:
     using DRW_Field::parseDwg;
 };
 
+class FieldListBodyProbe final : public DRW_FieldList {
+public:
+    using DRW_FieldList::parseDwg;
+};
+
 class DbColorBodyProbe final : public DRW_DbColor {
 public:
     using DRW_DbColor::parseDwg;
@@ -29029,6 +29034,11 @@ public:
             field_.m_valueString = "42";
             field_.m_valueStringLength = 2;
         }
+        if (kind_ == 63) {
+            fieldList_.handle = 0x700u;
+            fieldList_.m_unknown = 0;
+            fieldList_.m_fieldHandles = {DRW::NoHandle};
+        }
         if (kind_ == 50) {
             mleaderStyle_.handle = 0x700u;
             mleaderStyle_.name = "RECOVERY_MLEADERSTYLE";
@@ -29345,6 +29355,10 @@ public:
             wrote = hasMalformedObject_
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerFieldObjectClass(&field_) && wrote;
+        } else if (kind_ == 63) {
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerFieldListObjectClass(&fieldList_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -29358,7 +29372,7 @@ public:
                    && kind_ != 41 && kind_ != 42 && kind_ != 43
                    && kind_ != 44 && kind_ != 45 && kind_ != 46
                    && kind_ != 47 && kind_ != 48 && kind_ != 50
-                   && kind_ != 62
+                   && kind_ != 62 && kind_ != 63
                    && kind_ != 59 && kind_ != 60 && kind_ != 61) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29528,6 +29542,10 @@ public:
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeField(&field_)) && wrote;
+        } else if (kind_ == 63) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeFieldList(&fieldList_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29639,6 +29657,7 @@ private:
     DRW_GeoData geoData_;
     DRW_TableStyle tableStyle_;
     DRW_Field field_;
+    DRW_FieldList fieldList_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -43122,6 +43141,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-tablestyle-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-field-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-fieldlist-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -43244,6 +43265,8 @@ int main(int argc, char** argv) {
                 == "--generate-cli-malformed-tablestyle-body-source";
         const bool malformedFieldBodySource = std::string(argv[1])
             == "--generate-cli-malformed-field-body-source";
+        const bool malformedFieldListBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-fieldlist-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -43346,6 +43369,7 @@ int main(int argc, char** argv) {
             || malformedGeoDataBodySource
             || malformedTableStyleBodySource
             || malformedFieldBodySource
+            || malformedFieldListBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -43438,6 +43462,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 58
                                                                                                         : malformedFieldBodySource
                                                                                                             ? 62
+                                                                                                        : malformedFieldListBodySource
+                                                                                                            ? 63
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -43556,6 +43582,7 @@ int main(int argc, char** argv) {
                  || malformedGeoDataBodySource
                  || malformedTableStyleBodySource
                  || malformedFieldBodySource
+                 || malformedFieldListBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -43802,6 +43829,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedFieldListBodySource) {
+                            FieldListBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         if (malformedPointCloudDefinitionBodySource
                             || malformedPointCloudDefinitionExBodySource
                             || malformedPointCloudReactorBodySource
@@ -43943,6 +43975,7 @@ int main(int argc, char** argv) {
                   || malformedGeoDataBodySource
                   || malformedTableStyleBodySource
                   || malformedFieldBodySource
+                  || malformedFieldListBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -44032,6 +44065,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "TABLESTYLE"
                                                                                                                 : malformedFieldBodySource
                                                                                                                     ? "FIELD"
+                                                                                                                : malformedFieldListBodySource
+                                                                                                                    ? "FIELDLIST"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
@@ -44123,6 +44158,8 @@ int main(int argc, char** argv) {
                                                                                         ? 58
                                                                                     : malformedFieldBodySource
                                                                                         ? 62
+                                                                                    : malformedFieldListBodySource
+                                                                                        ? 63
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,
