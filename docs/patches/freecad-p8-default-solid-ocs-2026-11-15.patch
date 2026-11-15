@@ -56,7 +56,7 @@ index 9d383bf..d94623d 100644
      // In all cases the Y direction is the Zdirection × XDirection which gives a right-hand
      // orthonormal coordinate system
 diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
-index dc76e0c..07853bd 100644
+index dc76e0c..5337827 100644
 --- a/src/Mod/Import/importtests/TestImportDXF.py
 +++ b/src/Mod/Import/importtests/TestImportDXF.py
 @@ -21,6 +21,8 @@
@@ -68,10 +68,43 @@ index dc76e0c..07853bd 100644
  import FreeCAD
  import Import
  from importtests.TestImportBase import TestImportBase
-@@ -74,3 +76,38 @@ class TestImportDXF(TestImportBase):
+@@ -74,3 +76,71 @@ class TestImportDXF(TestImportBase):
          self.assertAlmostEqual(bound_box.XMax, 10.0)
          self.assertAlmostEqual(bound_box.YMax, 5.0)
          self.assertAlmostEqual(bound_box.ZLength, 0.0)
++
++    def test_dimension_ocs_orientation_axes(self):
++        """The shared arbitrary-axis basis must be orthonormal for signed normals."""
++        cases = [
++            ((0, 0, 1), [(1, 0, 0), (0, 1, 0), (0, 0, 1)]),
++            ((-1, 0, 0), [(0, -1, 0), (0, 0, 1), (-1, 0, 0)]),
++            ((0.6, 0, 0.8), [(0, 1, 0), (-0.8, 0, 0.6), (0.6, 0, 0.8)]),
++        ]
++        options = FreeCAD.ParamGet(self.option_source)
++        options.SetBool("dxftext", True)
++        for index, (normal, axes) in enumerate(cases):
++            with self.subTest(normal=normal):
++                tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                        (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                        (0, "SECTION"), (2, "ENTITIES"), (0, "DIMENSION"), (8, "0"),
++                        (70, 0), (10, 1), (20, 2), (30, 0), (11, 1), (21, 2), (31, 0),
++                        (13, 0), (23, 0), (33, 0), (14, 3), (24, 0), (34, 0), (50, 0)]
++                tags.extend(zip((210, 220, 230), normal))
++                tags.extend([(0, "ENDSEC"), (0, "EOF")])
++                path = os.path.join(self.temp_dir, f"dimension-ocs-{index}.dxf")
++                with open(path, "w", encoding="ascii", newline="\n") as stream:
++                    stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                previous = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                dimensions = [obj for obj in self.document.Objects if obj not in previous
++                              and obj.Name.startswith("Dimension")]
++                self.assertEqual(stats["entityCounts"].get("DIMENSION"), 1)
++                self.assertEqual(len(dimensions), 1)
++                rotation = dimensions[0].Placement.Rotation
++                for original, expected in zip(((1, 0, 0), (0, 1, 0), (0, 0, 1)), axes):
++                    actual = rotation.multVec(FreeCAD.Vector(*original))
++                    for value, target in zip((actual.x, actual.y, actual.z), expected):
++                        self.assertAlmostEqual(value, target, places=8)
 +
 +    def test_read_solid_ocs_vertices(self):
 +        """SOLID corners use an orthonormal arbitrary-axis OCS basis."""

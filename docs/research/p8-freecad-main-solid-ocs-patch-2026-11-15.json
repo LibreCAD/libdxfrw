@@ -3,7 +3,7 @@
   "scope": "unmerged downstream FreeCAD development C++ importer SOLID OCS patch",
   "freecadBase": "d956ec561639cfa83f755504b1b3358ea799428e",
   "patch": "docs/patches/freecad-p8-default-solid-ocs-2026-11-15.patch",
-  "patchSha256": "89573803e04394f761cfb1ebc1781960d179f53435f942c749239258d24cd3e9",
+  "patchSha256": "1baee1cb2f749d026438e8b71ef605324feb19fc5aaede0ca364fc5f9ff8aa41",
   "sourceArchiveSha256": "29bdfe30632e084c0b6d015a1258f0ff75b8ed84fca660cec4e74fd4e2604bb9",
   "build": "Headless macOS ARM64 AppleClang 21, CMake 4.4.5, Qt 6.12, OCCT 7.9.3, Python 3.12; temporary yaml-cpp 0.8.0 and Xerces-C 3.2.5; exact source archive with two C++ source files modified by the candidate patch.",
   "binarySha256": {
@@ -15,7 +15,8 @@
     "baseline": "Original native Import.readDXF into isolated fresh documents: negative-axis and oblique SOLIDs retain raw OCS vertices; default SOLID and following LINE correct. Proposed upstream generated-source test fails both nondefault cases.",
     "patched": "The proposed FreeCAD import test passes default, negative, oblique, and non-unit extrusion normals. Three separate generated direct controls match independent expected WCS vertices and areas and retain the following LINE. Four generated controls match expected outer App::Link geometry through two 90-degree inserts for negative and oblique normals in millimetres and inches.",
     "oracle": "Expected WCS points computed independently with ezdxf 1.4.5 OCS and analytic insert transforms; expected SOLID area is 12 square drawing units, converted to square millimetres.",
-    "packaging": "Patch applies cleanly to exact source files; generated test compiles and runs against both baseline and patched importer. Scratch DXFs are not committed."
+    "packaging": "Patch applies cleanly to exact source files; generated test compiles and runs against both baseline and patched importer. Scratch DXFs are not committed.",
+    "sharedBasis": "Native DIMENSION placement regression checks the three basis axes for default, negative-X, and oblique normals. Original shared basis fails negative-X; corrected basis passes all three. All four assembled ordered-patch tests pass together."
   },
   "scratchDxfSha256": {
     "directDefault": "65e529cc7c59df9801dcda72b32bf4dda93e55418e5553511b6d4f59d1b5365c",
@@ -28,7 +29,7 @@
   },
   "limits": [
     "Patch is unmerged and has not been run in FreeCAD GUI, on Linux/Windows, against producer-authored inputs, thickness or arbitrary transforms.",
-    "Shared OCS basis affects additional consumer paths that need their own native regression.",
+    "The shared OCS basis also affects other consumer paths; DIMENSION placement axes pass the selected controls, but other paths still need native regression.",
     "The direct test uses Import.readDXF into a new document and is not the complete GUI open/insert workflow.",
     "No phase or format support claim is promoted."
   ]
