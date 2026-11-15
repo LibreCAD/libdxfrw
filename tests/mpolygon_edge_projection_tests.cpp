@@ -8,8 +8,10 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <string>
 
 namespace {
+const char* peerOutput = nullptr;
 struct ArcProfile {
     double start, end, expectedBulge;
 };
@@ -109,6 +111,17 @@ bool run(bool binary, bool ccw, bool gap, DRW::Version version,
         }
     }
     std::error_code ignored;
+    if (peerOutput && version == DRW::AC1021 && !gap) {
+        const auto name = std::string(binary ? "binary-" : "ascii-")
+            + (ccw ? "ccw-" : "cw-")
+            + std::to_string(static_cast<int>(profile.start * 1000)) + "-"
+            + std::to_string(static_cast<int>(profile.end * 1000)) + ".dxf";
+        const auto target = std::filesystem::path(peerOutput) / name;
+        std::filesystem::copy_file(path, target,
+            std::filesystem::copy_options::overwrite_existing, ignored);
+        ok = !ignored && ok;
+        ignored.clear();
+    }
     std::filesystem::remove(path, ignored);
     if (!ok) std::cerr << "MPOLYGON edge projection failed: binary=" << binary
         << " ccw=" << ccw << " gap=" << gap << " version=" << static_cast<int>(version) << '\n';
@@ -116,7 +129,16 @@ bool run(bool binary, bool ccw, bool gap, DRW::Version version,
 }
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
+    if (argc == 3 && std::string(argv[1]) == "--peer-output") {
+        peerOutput = argv[2];
+        std::error_code error;
+        std::filesystem::create_directories(peerOutput, error);
+        if (error) return 1;
+    } else if (argc != 1) {
+        std::cerr << "usage: mpolygon_edge_projection_tests [--peer-output DIR]\n";
+        return 1;
+    }
     bool ok = true;
     const ArcProfile profiles[] = {
         {0.0, M_PI, 1.0},

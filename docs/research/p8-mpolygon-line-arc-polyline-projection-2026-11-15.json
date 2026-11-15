@@ -13,7 +13,7 @@
   "verification": [
     "The generated control fails on the prior library for all eight closed semicircle profiles and passes after the change.",
     "A 64-profile matrix covers clockwise/counterclockwise quarter, half, major and wrapped arcs; connected and gapped loops; ASCII/Binary; AC1021/AC1032; invalid-radius refusal with sentinel preservation and same-writer corrected retry; source object state; and typed geometry/handle readback.",
-    "Independent ezdxf 1.4.5 reads the generated clockwise and counterclockwise semicircle profiles in ASCII and Binary with the expected signed bulge.",
+    "Independent ezdxf 1.4.5 reconstructs center, radius, endpoints, sweep and direction for all 16 connected generated profiles (four arc sweeps, clockwise/counterclockwise, ASCII/Binary); the optional peer tool generates and removes its own scratch DXFs.",
     "The selected HATCH boundary, MPOLYGON default, and seven-revision HATCH/MPOLYGON allocation transaction tests pass.",
     "The upstream-linked LibreCAD combined selector improves from 10/12 to 11/12 cases passing (155/163 assertions)."
   ],
@@ -22,5 +22,7 @@
     "Full-circle arcs, single-edge loops, splines, ellipses and other unsupported projections retain the prior output path; no curve flattening or broader native interoperability is claimed.",
     "The remaining consumer test expects rejection for several nonprojected edge profiles; reconcile this with upstream's existing representation and source-preservation requirements before changing the behavior.",
     "No DWG or DXF fixture files were added."
-  ]
+  ],
+  "peerTool": "tools/research/check_mpolygon_projection_ezdxf.py",
+  "peerInvocation": "python3 tools/research/check_mpolygon_projection_ezdxf.py build-gcc/tests/libdxfrw_mpolygon_edge_projection_tests (using a Python environment with ezdxf 1.4.5)"
 }
