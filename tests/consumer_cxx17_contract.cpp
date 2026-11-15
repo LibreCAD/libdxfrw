@@ -43,3 +43,13 @@
 
 static_assert(sizeof(DRW_Variant::ActiveDwgLayerReference) > 0,
               "public C++17 API must be visible to downstream consumers");
+
+#if !defined(LIBDXFRW_HAS_EXTENDED_ASSOCIATIVE_PREFIX_KINDS)
+#error "Consumers need the extended associative-prefix capability marker"
+#endif
+using AssociativePrefixKind = DRW_AssociativePrefixStatus::Kind;
+static_assert(AssociativePrefixKind::AcDbAssocValueDependency
+                  != AssociativePrefixKind::AcDbAssocDependencyBody
+              && AssociativePrefixKind::AcDbAssoc2dConstraintGroup
+                  != AssociativePrefixKind::AcDbAssocVariable,
+              "The advertised diagnostic kinds must remain distinct");

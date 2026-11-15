@@ -7442,6 +7442,10 @@ struct DRW_AssociativeHandleRef {
   std::uint32_t m_handle = 0;
 };
 
+// Allows consumers shared with older bundled libdxfrw copies to gate mappings
+// for the four extended associative prefix diagnostic kinds.
+#define LIBDXFRW_HAS_EXTENDED_ASSOCIATIVE_PREFIX_KINDS 1
+
 struct DRW_AssociativePrefixStatus {
   enum class Kind {
     AcDbAssocAction,

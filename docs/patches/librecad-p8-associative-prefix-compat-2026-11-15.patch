@@ -1,0 +1,172 @@
+From 44ef026234168a329ad852d8244f035bafdb295a Mon Sep 17 00:00:00 2001
+From: dxli <dongxuli2011@gmail.com>
+Date: Sun, 15 Nov 2026 10:26:47 -0500
+Subject: [PATCH] Map extended associative diagnostics when available
+
+Adapt local LibreCAD commit 9e1bde5b3 with a capability guard for older bundled libdxfrw.
+---
+ .../engine/document/lc_dwgadvancedmetadata.h  | 41 ++++++++++++++++-
+ .../filters/tests/entity_metadata_tests.cpp   | 44 +++++++++++++++++++
+ 2 files changed, 84 insertions(+), 1 deletion(-)
+
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index 6c64f90..fe04089 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -90,7 +90,11 @@ public:
+     AcDbAssocActionBody,
+     AcDbEvalExpr,
+     AcDbShHistoryNode,
+-    AcShActionBody
++    AcShActionBody,
++    AcDbAssocValueDependency,
++    AcDbAssocDependencyBody,
++    AcDbAssoc2dConstraintGroup,
++    AcDbAssocVariable
+   };
+ 
+   enum class AssociativePrefixParseStatus {
+@@ -2183,6 +2187,11 @@ public:
+     size_t boundedCountOverflow = 0;
+     size_t decodedHandleCount = 0;
+     size_t decodedValueCount = 0;
++    // Append new counters to preserve offsets of existing diagnostic fields.
++    size_t assocValueDependency = 0;
++    size_t assocDependencyBody = 0;
++    size_t assoc2dConstraintGroup = 0;
++    size_t assocVariable = 0;
+   };
+ 
+   struct TableRecord {
+@@ -10594,6 +10603,14 @@ public:
+       return "AcDbShHistoryNode";
+     case AssociativePrefixKind::AcShActionBody:
+       return "AcShActionBody";
++    case AssociativePrefixKind::AcDbAssocValueDependency:
++      return "AcDbAssocValueDependency";
++    case AssociativePrefixKind::AcDbAssocDependencyBody:
++      return "AcDbAssocDependencyBody";
++    case AssociativePrefixKind::AcDbAssoc2dConstraintGroup:
++      return "AcDbAssoc2dConstraintGroup";
++    case AssociativePrefixKind::AcDbAssocVariable:
++      return "AcDbAssocVariable";
+     }
+     return "unknown";
+   }
+@@ -12383,6 +12400,16 @@ private:
+       return AssociativePrefixKind::AcDbShHistoryNode;
+     case DRW_AssociativePrefixStatus::Kind::AcShActionBody:
+       return AssociativePrefixKind::AcShActionBody;
++#ifdef LIBDXFRW_HAS_EXTENDED_ASSOCIATIVE_PREFIX_KINDS
++    case DRW_AssociativePrefixStatus::Kind::AcDbAssocValueDependency:
++      return AssociativePrefixKind::AcDbAssocValueDependency;
++    case DRW_AssociativePrefixStatus::Kind::AcDbAssocDependencyBody:
++      return AssociativePrefixKind::AcDbAssocDependencyBody;
++    case DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup:
++      return AssociativePrefixKind::AcDbAssoc2dConstraintGroup;
++    case DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable:
++      return AssociativePrefixKind::AcDbAssocVariable;
++#endif
+     }
+     return AssociativePrefixKind::AcDbAssocAction;
+   }
+@@ -12612,6 +12639,18 @@ private:
+     case AssociativePrefixKind::AcShActionBody:
+       ++counts.shActionBody;
+       break;
++    case AssociativePrefixKind::AcDbAssocValueDependency:
++      ++counts.assocValueDependency;
++      break;
++    case AssociativePrefixKind::AcDbAssocDependencyBody:
++      ++counts.assocDependencyBody;
++      break;
++    case AssociativePrefixKind::AcDbAssoc2dConstraintGroup:
++      ++counts.assoc2dConstraintGroup;
++      break;
++    case AssociativePrefixKind::AcDbAssocVariable:
++      ++counts.assocVariable;
++      break;
+     }
+     switch (prefix.status) {
+     case AssociativePrefixParseStatus::Complete:
+diff --git a/librecad/src/lib/filters/tests/entity_metadata_tests.cpp b/librecad/src/lib/filters/tests/entity_metadata_tests.cpp
+index d3dca24..327701e 100644
+--- a/librecad/src/lib/filters/tests/entity_metadata_tests.cpp
++++ b/librecad/src/lib/filters/tests/entity_metadata_tests.cpp
+@@ -2530,7 +2530,33 @@ TEST_CASE("DWG advanced metadata stores associative prefix accounting",
+   DRW_AssociativePrefixStatus bodyPrefix;
+   bodyPrefix.m_kind = DRW_AssociativePrefixStatus::Kind::AcShActionBody;
+   bodyPrefix.m_status = DRW_AssociativePrefixStatus::ParseStatus::Complete;
++#ifdef LIBDXFRW_HAS_EXTENDED_ASSOCIATIVE_PREFIX_KINDS
++  DRW_AssociativePrefixStatus valueDependencyPrefix;
++  valueDependencyPrefix.m_kind =
++      DRW_AssociativePrefixStatus::Kind::AcDbAssocValueDependency;
++  valueDependencyPrefix.m_status =
++      DRW_AssociativePrefixStatus::ParseStatus::Complete;
++  DRW_AssociativePrefixStatus dependencyBodyPrefix;
++  dependencyBodyPrefix.m_kind =
++      DRW_AssociativePrefixStatus::Kind::AcDbAssocDependencyBody;
++  dependencyBodyPrefix.m_status =
++      DRW_AssociativePrefixStatus::ParseStatus::Partial;
++  DRW_AssociativePrefixStatus constraintGroupPrefix;
++  constraintGroupPrefix.m_kind =
++      DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup;
++  constraintGroupPrefix.m_status =
++      DRW_AssociativePrefixStatus::ParseStatus::Complete;
++  DRW_AssociativePrefixStatus variablePrefix;
++  variablePrefix.m_kind =
++      DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable;
++  variablePrefix.m_status =
++      DRW_AssociativePrefixStatus::ParseStatus::Missing;
++  sweep.m_prefixStatuses = {evalPrefix, shPrefix, bodyPrefix,
++                            valueDependencyPrefix, dependencyBodyPrefix,
++                            constraintGroupPrefix, variablePrefix};
++#else
+   sweep.m_prefixStatuses = {evalPrefix, shPrefix, bodyPrefix};
++#endif
+   metadata.addAcShObject(sweep);
+ 
+   REQUIRE(metadata.associativeObjects().size() == 2u);
+@@ -2578,21 +2604,39 @@ TEST_CASE("DWG advanced metadata stores associative prefix accounting",
+ 
+   const LC_DwgAdvancedMetadata::AssociativePrefixCounts prefixCounts =
+       metadata.associativePrefixCounts();
++#ifdef LIBDXFRW_HAS_EXTENDED_ASSOCIATIVE_PREFIX_KINDS
++  CHECK(prefixCounts.prefixCount == 10u);
++#else
+   CHECK(prefixCounts.prefixCount == 6u);
++#endif
+   CHECK(prefixCounts.assocAction == 1u);
+   CHECK(prefixCounts.assocNetwork == 1u);
+   CHECK(prefixCounts.assocActionParam == 1u);
+   CHECK(prefixCounts.evalExpr == 1u);
+   CHECK(prefixCounts.shHistoryNode == 1u);
+   CHECK(prefixCounts.shActionBody == 1u);
++#ifdef LIBDXFRW_HAS_EXTENDED_ASSOCIATIVE_PREFIX_KINDS
++  CHECK(prefixCounts.assocValueDependency == 1u);
++  CHECK(prefixCounts.assocDependencyBody == 1u);
++  CHECK(prefixCounts.assoc2dConstraintGroup == 1u);
++  CHECK(prefixCounts.assocVariable == 1u);
++  CHECK(prefixCounts.complete == 6u);
++  CHECK(prefixCounts.partial == 2u);
++  CHECK(prefixCounts.missing == 1u);
++#else
+   CHECK(prefixCounts.complete == 4u);
+   CHECK(prefixCounts.partial == 1u);
++  CHECK(prefixCounts.missing == 0u);
++#endif
+   CHECK(prefixCounts.boundedCountOverflow == 1u);
+   CHECK(prefixCounts.decodedHandleCount == 4u);
+   CHECK(prefixCounts.decodedValueCount == 5u);
+   CHECK(std::string(LC_DwgAdvancedMetadata::associativePrefixKindName(
+             LC_DwgAdvancedMetadata::AssociativePrefixKind::AcDbEvalExpr))
+         == "AcDbEvalExpr");
++  CHECK(std::string(LC_DwgAdvancedMetadata::associativePrefixKindName(
++            LC_DwgAdvancedMetadata::AssociativePrefixKind::AcDbAssocVariable))
++        == "AcDbAssocVariable");
+   CHECK(std::string(
+             LC_DwgAdvancedMetadata::associativePrefixParseStatusName(
+                 LC_DwgAdvancedMetadata::AssociativePrefixParseStatus::
+-- 
+2.54.0 (Apple Git-157)
+
