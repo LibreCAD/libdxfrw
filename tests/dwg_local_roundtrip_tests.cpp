@@ -28456,6 +28456,11 @@ public:
     using DRW_VxTableRecord::parseDwg;
 };
 
+class TvDevicePropertiesBodyProbe final : public DRW_TvDeviceProperties {
+public:
+    using DRW_TvDeviceProperties::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28546,6 +28551,13 @@ public:
             vxTableRecord_.flags = 0u;
             vxTableRecord_.name = "RECOVERY_VX_TABLE_RECORD";
         }
+        if (kind_ == 19) {
+            tvDeviceProperties_.handle = 0x700u;
+            tvDeviceProperties_.flags = 0;
+            tvDeviceProperties_.maxRegenThreads = 8;
+            tvDeviceProperties_.antialiasingLevel =
+                std::numeric_limits<double>::max();
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -28599,12 +28611,17 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerVxTableRecordObjectClass(&vxTableRecord_)
                     && wrote;
+        } else if (kind_ == 19) {
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerTvDevicePropertiesObjectClass(
+                      &tvDeviceProperties_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
                    && kind_ != 11 && kind_ != 13 && kind_ != 14
                    && kind_ != 15 && kind_ != 16 && kind_ != 17
-                   && kind_ != 18) {
+                   && kind_ != 18 && kind_ != 19) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -28645,6 +28662,11 @@ public:
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeVxTableRecord(&vxTableRecord_))
                     && wrote;
+        } else if (kind_ == 19) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeTvDeviceProperties(
+                               &tvDeviceProperties_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -28724,6 +28746,7 @@ private:
     DRW_Dictionary dictionary_;
     DRW_VxControl vxControl_;
     DRW_VxTableRecord vxTableRecord_;
+    DRW_TvDeviceProperties tvDeviceProperties_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -42134,7 +42157,9 @@ int main(int argc, char** argv) {
             || std::string(argv[1])
                    == "--generate-cli-malformed-vxcontrol-body-source"
             || std::string(argv[1])
-                   == "--generate-cli-malformed-vxtablerecord-body-source")) {
+                   == "--generate-cli-malformed-vxtablerecord-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-tvdeviceproperties-body-source")) {
         const bool malformedBodySource = std::string(argv[1])
             == "--generate-cli-malformed-object-body-source";
         const bool malformedPrologueSource = std::string(argv[1])
@@ -42158,6 +42183,9 @@ int main(int argc, char** argv) {
             == "--generate-cli-malformed-vxcontrol-body-source";
         const bool malformedVxTableRecordBodySource = std::string(argv[1])
             == "--generate-cli-malformed-vxtablerecord-body-source";
+        const bool malformedTvDevicePropertiesBodySource =
+            std::string(argv[1])
+                == "--generate-cli-malformed-tvdeviceproperties-body-source";
         if (std::filesystem::exists(argv[2])) {
             std::cerr << "Refusing to replace an existing malformed-object source\n";
             return 1;
@@ -42187,7 +42215,8 @@ int main(int argc, char** argv) {
             || malformedGroupBodySource
             || malformedDictionaryBodySource
             || malformedVxControlBodySource
-            || malformedVxTableRecordBodySource) {
+            || malformedVxTableRecordBodySource
+            || malformedTvDevicePropertiesBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
             if (std::filesystem::exists(validPath)) {
@@ -42206,7 +42235,9 @@ int main(int argc, char** argv) {
                                         : malformedVxControlBodySource
                                             ? 17
                                             : malformedVxTableRecordBodySource
-                                                ? 18 : 8,
+                                                ? 18
+                                                : malformedTvDevicePropertiesBodySource
+                                                    ? 19 : 8,
                 nullptr, version);
             if (!validWriter.write(&validSource, version, true)
                 || !validSource.wrote) {
@@ -42258,7 +42289,8 @@ int main(int argc, char** argv) {
                  || malformedGroupBodySource
                  || malformedDictionaryBodySource
                  || malformedVxControlBodySource
-                 || malformedVxTableRecordBodySource)
+                 || malformedVxTableRecordBodySource
+                 || malformedTvDevicePropertiesBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
                 && commonEndBit < searchEndBit) {
@@ -42330,6 +42362,11 @@ int main(int argc, char** argv) {
                         }
                         if (malformedVxTableRecordBodySource) {
                             VxTableRecordBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
+                        if (malformedTvDevicePropertiesBodySource) {
+                            TvDevicePropertiesBodyProbe typed;
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
@@ -42416,7 +42453,8 @@ int main(int argc, char** argv) {
                   || malformedGroupBodySource
                   || malformedDictionaryBodySource
                   || malformedVxControlBodySource
-                  || malformedVxTableRecordBodySource)
+                  || malformedVxTableRecordBodySource
+                  || malformedTvDevicePropertiesBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
                 const char* objectKind = malformedDbColorBodySource
@@ -42433,6 +42471,8 @@ int main(int argc, char** argv) {
                                                     ? "VX_CONTROL"
                                                     : malformedVxTableRecordBodySource
                                                         ? "VX_TABLE_RECORD"
+                                                        : malformedTvDevicePropertiesBodySource
+                                                            ? "TV_DEVICE_PROPERTIES"
                                     : "MLINESTYLE";
                 const char* mutationKind = malformedPrologueSource
                     ? "common-prologue" : "body";
@@ -42449,7 +42489,8 @@ int main(int argc, char** argv) {
             dwgRW writer(argv[2]);
             ReadOutcomeControl source(&writer,
                 malformedVxControlBodySource ? 17
-                    : malformedVxTableRecordBodySource ? 18 : 7,
+                    : malformedVxTableRecordBodySource ? 18
+                        : malformedTvDevicePropertiesBodySource ? 19 : 7,
                 nullptr, version);
             source.setMalformedObject(malformed);
             if (!writer.write(&source, version, true) || !source.wrote) {
