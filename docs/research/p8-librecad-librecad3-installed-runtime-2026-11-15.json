@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-15",
+  "environment": "macOS ARM64, Apple clang 21, installed static libdxfrw",
+  "installedArchiveSha256": "95e9f20acae0b6d745dd5b94a4a4b3cf53db74ba23f653a14f310fcb49719060",
+  "librecad": {
+    "scratchBase": "9a66c6a516776f9ad7be74cf9b04901ad9e126a7",
+    "overlay": "Selected adapter/header and importer changes from the unmerged consumer branch 8f1f6e0d83d77b6df37390d2090a3f4e3d403fd7; temporary CMake configuration removes bundled library sources and links the installed archive. This is a modified source overlay, not a clean checkout of current LibreCAD master or an integrated release patch.",
+    "appSha256": "9871d16de765da900c8c34f52dbb44c1704809880877747fc76e0dd9a72a72aa",
+    "checks": [
+      "Full application build and offscreen --help succeeded.",
+      "Offscreen dwg2dxf converted the tracked ordinary_enc_AC1018.dwg to R2000 DXF; output has EOF and three LINE records.",
+      "Rebuilt JWW import selector passed 17 cases and 343 assertions; SHP codepage selector passed 3 cases and 20 assertions."
+    ]
+  },
+  "librecad3": {
+    "sourceCommit": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+    "testSourceGitBlob": "62c68a2bf1b042ff8383f8779f14cd200395ea90",
+    "integration": "Temporary CMake integration selects installed libdxfrw and builds actual persistence sources with USE_DWG_IMPORT=1; pinned dependency submodules were populated from their clean Git commits. The integration change is local and not a distributable patch.",
+    "testBinarySha256": "1abf1e874aaf173d14bec3629ee329eab7ea99d392a8230b826f99212aaf9c43",
+    "persistenceLibrarySha256": "c1bf8dc9c8b0f4792204364b9d4593c7a43e203d4f78aeca74b1be47c4ecc262",
+    "checks": "All 8 existing DwgImportTest tests passed. They cover format sniffing, eight tracked fixtures, DWG import and selected R2000 DXF roundtrip checks, selected line geometry/text/dimension values and resource budgets. The MPOLYGON test explicitly expects a missing boundary and a reported HATCH export loss.",
+    "fixtures": "The eight inputs are tracked under tests/fixtures/dwg in libdxfrw; no new fixtures were committed."
+  },
+  "limitations": [
+    "No consumer integration has been merged; the real LibreCAD application was built on a modified older scratch overlay and not clean current master.",
+    "LibreCAD_3 native UI, Windows, Linux, shared-library operation and broad 3D semantics were not qualified.",
+    "Existing tests count certain reported losses; passing does not establish lossless conversion, MPOLYGON boundary support, or phase completion."
+  ]
+}
