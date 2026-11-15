@@ -28637,6 +28637,11 @@ public:
     using DRW_LayerFilter::parseDwg;
 };
 
+class GeoMapImageBodyProbe final : public DRW_GeoMapImage {
+public:
+    using DRW_GeoMapImage::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28667,6 +28672,20 @@ public:
                             sourceVersion, 513u, 0x700u,
                             "LAYERFILTER", "AcDbLayerFilter", "ACAD",
                             0, "RECOVERY_LAYER")
+                  : kind == 72
+                      ? libdxfrw_test::makeRawCustomObject(
+                            sourceVersion, 513u, 0x700u,
+                            "GEOMAPIMAGE", "AcDbGeomapImage", "ACAD",
+                            0, {}, [](dwgBufferW& body) {
+                                body.putBitLong(8); // class version
+                                body.put3BitDouble(DRW_Coord{1.0, 2.0, 3.0});
+                                body.put2RawDouble(DRW_Coord{4.0, 5.0, 0.0});
+                                body.putBitShort(3); // display properties
+                                body.putBit(1); // clipping enabled
+                                body.putRawChar8(50); // brightness
+                                body.putRawChar8(60); // contrast
+                                body.putRawChar8(10); // fade
+                            })
                   : makeCliSkippedObject(kind, 0, sourceVersion)),
           opaqueSecond_(kind == 5
               ? libdxfrw_test::makeRawCustomObject(
@@ -29527,6 +29546,8 @@ public:
                 &plotStyleDictionary_) && wrote;
         } else if (kind_ == 71) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
+        } else if (kind_ == 72) {
+            wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -29755,6 +29776,8 @@ public:
                 && wrote;
         } else if (kind_ == 71) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
+        } else if (kind_ == 72) {
+            wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29779,7 +29802,8 @@ public:
         DRW_Line line;
         if (kind_ == 15 || kind_ == 21 || kind_ == 22 || kind_ == 52
             || kind_ == 54 || kind_ == 55 || kind_ == 56 || kind_ == 58
-            || kind_ == 66 || kind_ == 69 || kind_ == 70 || kind_ == 71)
+            || kind_ == 66 || kind_ == 69 || kind_ == 70 || kind_ == 71
+            || kind_ == 72)
             line.handle = 0x701u;
         else if (kind_ == 53)
             line.handle = 0x703u;
@@ -43372,6 +43396,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-dictionary-default-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-layerfilter-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-geomapimage-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -43512,6 +43538,8 @@ int main(int argc, char** argv) {
             == "--generate-cli-malformed-dictionary-default-body-source";
         const bool malformedLayerFilterBodySource = std::string(argv[1])
             == "--generate-cli-malformed-layerfilter-body-source";
+        const bool malformedGeoMapImageBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-geomapimage-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -43621,6 +43649,7 @@ int main(int argc, char** argv) {
             || malformedCsacDocumentOptionsBodySource
             || malformedDictionaryWithDefaultBodySource
             || malformedLayerFilterBodySource
+            || malformedGeoMapImageBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -43727,6 +43756,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 70
                                                                                                         : malformedLayerFilterBodySource
                                                                                                             ? 71
+                                                                                                        : malformedGeoMapImageBodySource
+                                                                                                            ? 72
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -43852,6 +43883,7 @@ int main(int argc, char** argv) {
                  || malformedCsacDocumentOptionsBodySource
                  || malformedDictionaryWithDefaultBodySource
                  || malformedLayerFilterBodySource
+                 || malformedGeoMapImageBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -44133,6 +44165,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedGeoMapImageBodySource) {
+                            GeoMapImageBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         if (malformedPointCloudDefinitionBodySource
                             || malformedPointCloudDefinitionExBodySource
                             || malformedPointCloudReactorBodySource
@@ -44281,6 +44318,7 @@ int main(int argc, char** argv) {
                   || malformedCsacDocumentOptionsBodySource
                   || malformedDictionaryWithDefaultBodySource
                   || malformedLayerFilterBodySource
+                  || malformedGeoMapImageBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -44384,6 +44422,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "DICTIONARYWDFLT"
                                                                                                                 : malformedLayerFilterBodySource
                                                                                                                     ? "LAYERFILTER"
+                                                                                                                : malformedGeoMapImageBodySource
+                                                                                                                    ? "GEOMAPIMAGE"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
@@ -44489,6 +44529,8 @@ int main(int argc, char** argv) {
                                                                                         ? 70
                                                                                     : malformedLayerFilterBodySource
                                                                                         ? 71
+                                                                                    : malformedGeoMapImageBodySource
+                                                                                        ? 72
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,

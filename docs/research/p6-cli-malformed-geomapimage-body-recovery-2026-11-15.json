@@ -1,0 +1,43 @@
+{
+  "title": "Generated GEOMAPIMAGE malformed-body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_GEOMAPIMAGE_BODY_RECOVERY_PASS",
+  "scope": "CLI disposition for one bounded malformed GEOMAPIMAGE OBJECTS body across six generated DWG revisions, with following-frame continuation, strict refusal, and explicit-partial output readback where admitted.",
+  "selection": {
+    "source": "P6-F typed OBJECTS parser recovery inventory",
+    "reason": "The AcDbGeomapImage route has a compact fixed-field parser with a class-version domain check and no image-definition target handle, allowing a generated negative profile without building a reference graph."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer in the temporary test directory; the test runner removes generated DWG and DXF files.",
+    "generator": "--generate-cli-malformed-geomapimage-body-source",
+    "profile": "One custom AcDbGeomapImage object at handle 0x700 with class version 8, insertion point (1,2,3), image size (4,5), display properties 3, clipping enabled, brightness 50, contrast 60 and fade 10; a LINE at handle 0x701 follows.",
+    "mutation": "The generated valid custom-class source is reparsed by DRW_GeoMapImage. The mutation search flips one bit only within the bounded object body, requires the typed parser to reject the candidate, and preserves the common object prologue and object handle."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 5, "output_revision": "AC1021"},
+    "AC1018": {"controls": 5, "output_revision": "AC1021"},
+    "AC1021": {"controls": 5, "output_revision": "AC1021"},
+    "AC1024": {"controls": 5, "output_revision": "AC1024"},
+    "AC1027": {"controls": 3, "output": "refused by the existing source-reference gate"},
+    "AC1032": {"controls": 5, "output_revision": "AC1032"}
+  },
+  "assertions": [
+    "Each malformed source reports one failed OBJECTS frame, continues to the following LINE, and balances source, published, and failed frame accounting.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel at AC1015, AC1018, AC1021, AC1024, and AC1032.",
+    "Explicit-partial ASCII/Binary conversion and fresh DXF readback retain the LINE at AC1015, AC1018, AC1021, AC1024, and AC1032.",
+    "AC1027 strict and explicit-partial output remain refused by the existing source-reference gate."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 passed.",
+    "syntax": "python3 -B -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
+    "diff_check": "git diff --check passed after plan and receipt updates.",
+    "targeted": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --geomapimage-recovery-only passed with 28 controls; ctest --test-dir build-gcc -R '^dwg2dxf_cli_geomapimage_recovery$' --output-on-failure passed 1/1 in 0.87 seconds.",
+    "aggregate": "The 917-control dwg2dxf_cli_partial_read_disposition aggregate was not rerun for this isolated profile."
+  },
+  "limits": [
+    "Generated parser-recovery and disposition evidence only; producer-authored GEOMAPIMAGE prevalence and native geospatial imagery behavior are not qualified.",
+    "The generated finite insertion and image-size values are parser controls, not claims about map units, coordinate reference systems, image pixels, or geolocation accuracy.",
+    "AC1027 output remains refused by the existing source-reference gate.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

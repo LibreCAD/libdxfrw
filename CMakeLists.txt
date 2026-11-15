@@ -466,6 +466,14 @@ if(LIBDXFRW_BUILD_TESTS)
                 --layerfilter-recovery-only)
         set_tests_properties(dwg2dxf_cli_layerfilter_recovery PROPERTIES
             LABELS "fast;cli;dwg;disposition" TIMEOUT 30)
+        add_test(NAME dwg2dxf_cli_geomapimage_recovery
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py
+                --converter $<TARGET_FILE:dwg2dxf>
+                --writer $<TARGET_FILE:libdxfrw_dwg_local_roundtrip>
+                --geomapimage-recovery-only)
+        set_tests_properties(dwg2dxf_cli_geomapimage_recovery PROPERTIES
+            LABELS "fast;cli;dwg;disposition" TIMEOUT 30)
         add_test(NAME dwg2dxf_cli_extended_contract
             COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
                 ${CMAKE_CURRENT_SOURCE_DIR}/tests/dwg2dxf_cli_contract_tests.py

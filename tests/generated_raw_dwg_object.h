@@ -2,6 +2,7 @@
 #define LIBDXFRW_TESTS_GENERATED_RAW_DWG_OBJECT_H
 
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -26,7 +27,8 @@ inline DRW_UnsupportedObject makeRawCustomObject(
     DRW::Version version, std::uint16_t classNumber, std::uint32_t handle,
     const std::string& recordName, const std::string& className,
     const std::string& appName, std::uint32_t encodedHandle = 0,
-    const std::string& singleVariableTextBody = {}) {
+    const std::string& singleVariableTextBody = {},
+    const std::function<void(dwgBufferW&)>& classBodyWriter = {}) {
     if (encodedHandle == 0)
         encodedHandle = handle;
 
@@ -48,7 +50,9 @@ inline DRW_UnsupportedObject makeRawCustomObject(
         body.putBit(0); // R2004+: XDictionary handle follows
     if (version > DRW::AC1024)
         body.putBit(0); // R2013+: no DataStorage payload
-    if (!singleVariableTextBody.empty()) {
+    if (classBodyWriter) {
+        classBodyWriter(body);
+    } else if (!singleVariableTextBody.empty()) {
         body.putBitLong(1);
         if (version > DRW::AC1018)
             strings.putVariableText(version, singleVariableTextBody);
