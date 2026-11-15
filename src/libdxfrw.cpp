@@ -34370,8 +34370,8 @@ bool dxfRW::writeDataLink(DRW_DataLink *ent) {
 }
 
 bool dxfRW::writeDataTable(DRW_DataTable *ent) {
-    constexpr std::size_t maxTextBytes = 16u * 1024u * 1024u;
-    constexpr std::size_t maxTotalTextBytes = 64u * 1024u * 1024u;
+    static constexpr std::size_t maxTextBytes = 16u * 1024u * 1024u;
+    static constexpr std::size_t maxTotalTextBytes = 64u * 1024u * 1024u;
     if (version < DRW::AC1014 || !preflightTableEntry(ent)
         || ent->handle == 0u || ent->handle == DRW::NoHandle
         || ent->flags < std::numeric_limits<std::int16_t>::min()

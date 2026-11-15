@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **489 completed implementation and qualification slices** and **32 remaining
+The plan records **490 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`489 / (489 + 32) = 93.9%`. The previous 28-package denominator was stale; a recount
+`490 / (490 + 32) = 93.9%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -34,6 +34,10 @@ focused parser tests passing. The optional physical AC1024 test now registers
 only when its local sample exists. The frozen CTest inventory now matches
 the clean 1,364-test hosted profile, with the local-only physical sample omitted;
 native reruns remain open ([receipt](docs/research/p8-native-ctest-inventory-refresh-2026-11-15.json)).
+The Linux FreeCAD 1.1.4 hosted run now passes all eight generated LINE and
+primitive open/insert cases, but the job fails two CLI DXF-readback controls
+on a null LAYER plot-style reference. Windows remains blocked by compiler
+portability. Both remain open ([Linux receipt](docs/research/p8-linux-freecad-generated-platform-run-2026-11-15.json)).
 
 The upstream-linked LibreCAD `[mtext]~[dwg]` selector now passes 4/4 after
 normalizing invalid DXF line-spacing styles and correcting its R2018 column

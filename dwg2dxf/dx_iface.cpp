@@ -48198,7 +48198,7 @@ bool dx_iface::inspectDxfSunStudyOutput(const dxfRW::DxfObjectsWriteView& view) 
         const auto emitted = dxfW->remapHandle(source.handle);
         const auto owner = dxfW->remapHandle(source.parentHandle);
         const auto root = dxfW->remapHandle(cData->namedObjectDictionary.handle);
-        constexpr std::uint32_t group = 0xDu;
+        static constexpr std::uint32_t group = 0xDu;
         if (emitted == 0u || emitted == DRW::NoHandle || owner == 0u || owner == DRW::NoHandle
             || root == 0u || root == DRW::NoHandle || emitted == owner || owner == root || emitted == root
             || group == emitted || group == owner || group == root)
@@ -70787,7 +70787,7 @@ bool dx_iface::hasUnchangedDwgDbColorEedDependencies(
         std::map<std::string, const DRW_AppId*> appsByName;
         std::map<std::string, const DRW_Layer*> layersByName;
         std::size_t indexBytes = 0u;
-        constexpr std::size_t rowOverhead = 16u * sizeof(void*)
+        static constexpr std::size_t rowOverhead = 16u * sizeof(void*)
             + sizeof(std::uint32_t) + sizeof(std::string);
         const auto indexRows = [&indexBytes](
                 const auto& rows, auto& byHandle, auto& byName) {
