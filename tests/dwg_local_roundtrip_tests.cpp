@@ -28516,6 +28516,11 @@ public:
     using DRW_Background::parseDwg;
 };
 
+class MotionPathBodyProbe final : public DRW_MotionPath {
+public:
+    using DRW_MotionPath::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28786,6 +28791,16 @@ public:
                 background_.m_sunHandle = 0xE900u;
             }
         }
+        if (kind_ == 41) {
+            motionPath_.handle = 0x700u;
+            motionPath_.m_classVersion = 2;
+            motionPath_.m_cameraPathHandle = 0xD925u;
+            motionPath_.m_targetPathHandle = 0xD926u;
+            motionPath_.m_viewTableHandle = 0xA700u;
+            motionPath_.m_frames = 120;
+            motionPath_.m_frameRate = 30;
+            motionPath_.m_cornerDeceleration = true;
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -28909,6 +28924,10 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerBackgroundObjectClass(&background_)
                     && wrote;
+        } else if (kind_ == 41) {
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerMotionPathObjectClass(&motionPath_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -28918,7 +28937,8 @@ public:
                    && kind_ != 21 && kind_ != 22 && kind_ != 23
                    && kind_ != 24 && kind_ != 25 && kind_ != 26
                    && !(kind_ >= 27 && kind_ <= 32) && kind_ != 33
-                   && kind_ != 34 && !(kind_ >= 35 && kind_ <= 40)) {
+                   && kind_ != 34 && !(kind_ >= 35 && kind_ <= 40)
+                   && kind_ != 41) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -29013,6 +29033,10 @@ public:
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeBackground(&background_)) && wrote;
+        } else if (kind_ == 41) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeMotionPath(&motionPath_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29104,6 +29128,7 @@ private:
     DRW_WipeoutVariables wipeoutVariables_;
     DRW_RasterVariables rasterVariables_;
     DRW_Background background_;
+    DRW_MotionPath motionPath_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -42547,6 +42572,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-background-ibl-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-background-skylight-handle-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-motionpath-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -42613,6 +42640,8 @@ int main(int argc, char** argv) {
         const bool malformedBackgroundSkylightHandleSource =
             std::string(argv[1])
                 == "--generate-cli-malformed-background-skylight-handle-source";
+        const bool malformedMotionPathBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-motionpath-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -42695,6 +42724,7 @@ int main(int argc, char** argv) {
             || malformedBackgroundImageBodySource
             || malformedBackgroundIblBodySource
             || malformedBackgroundSkylightHandleSource
+            || malformedMotionPathBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -42747,6 +42777,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 39
                                                                                                         : malformedBackgroundSkylightHandleSource
                                                                                                             ? 40
+                                                                                                        : malformedMotionPathBodySource
+                                                                                                            ? 41
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -42845,6 +42877,7 @@ int main(int argc, char** argv) {
                  || malformedBackgroundImageBodySource
                  || malformedBackgroundIblBodySource
                  || malformedBackgroundSkylightHandleSource
+                 || malformedMotionPathBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -43014,6 +43047,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedMotionPathBodySource) {
+                            MotionPathBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         MLineStyleBodyProbe typed;
                         return typed.parseDwg(version, &typedBuffer,
                                               malformed.m_bodyBitSize);
@@ -43114,6 +43152,7 @@ int main(int argc, char** argv) {
                   || malformedBackgroundImageBodySource
                   || malformedBackgroundIblBodySource
                   || malformedBackgroundSkylightHandleSource
+                  || malformedMotionPathBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -43163,6 +43202,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "IBLBACKGROUND"
                                                                                                                 : malformedBackgroundSkylightHandleSource
                                                                                                                     ? "SKYLIGHTBACKGROUND"
+                                                                                                                : malformedMotionPathBodySource
+                                                                                                                    ? "MOTIONPATH"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
@@ -43214,6 +43255,8 @@ int main(int argc, char** argv) {
                                                                                         ? 39
                                                                                     : malformedBackgroundSkylightHandleSource
                                                                                         ? 40
+                                                                                    : malformedMotionPathBodySource
+                                                                                        ? 41
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,

@@ -1,0 +1,106 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-motionpath-body-recovery-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_MOTIONPATH_RECOVERY_AND_PARTIAL_OUTPUT_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Bounded malformed MOTIONPATH OBJECTS body recovery with strict refusal and explicit-partial ASCII/Binary readback.",
+  "source": {
+    "kind": "Scratch-only DWGs authored at test runtime by the in-tree DWG writer; each valid typed seed is converted to a raw mutated frame and injected with matching custom-class registration.",
+    "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-motionpath-body-source",
+    "object": "MOTIONPATH class version 2 with non-null camera-path, target-path, and view-table handle values, 120 frames, 30 frame-rate units, and corner deceleration enabled. Target objects and ownership graph are not created.",
+    "bodyMutation": "One bit is flipped after the validated common prologue inside the bounded object body. The mutation search proves the typed MotionPath parser rejects the candidate while the common prologue remains valid.",
+    "eligibleRevisions": [
+      "AC1015",
+      "AC1018",
+      "AC1021",
+      "AC1024",
+      "AC1027",
+      "AC1032"
+    ],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-cli-malformed-motionpath-body-recovery-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "controls": "Each reader records one object parse failure and one failed object frame, retains the following LINE callback, and balances source = published + failed. Strict ASCII/Binary conversion refuses atomically. Explicit-partial ASCII/Binary conversion succeeds and fresh DXF readback retains the LINE and VPORT at AC1015/AC1018/AC1021/AC1024/AC1032. AC1027 reader recovery succeeds but both CLI modes refuse at the existing DWG source-reference qualification gate. Source DWGs remain unchanged."
+  },
+  "results": {
+    "readRecoveryFrameCounts": {
+      "AC1015": {
+        "sourceFrames": 28,
+        "publishedFrames": 27,
+        "failedFrames": 1
+      },
+      "AC1018": {
+        "sourceFrames": 27,
+        "publishedFrames": 26,
+        "failedFrames": 1
+      },
+      "AC1021": {
+        "sourceFrames": 27,
+        "publishedFrames": 26,
+        "failedFrames": 1
+      },
+      "AC1024": {
+        "sourceFrames": 27,
+        "publishedFrames": 26,
+        "failedFrames": 1
+      },
+      "AC1027": {
+        "sourceFrames": 27,
+        "publishedFrames": 26,
+        "failedFrames": 1
+      },
+      "AC1032": {
+        "sourceFrames": 27,
+        "publishedFrames": 26,
+        "failedFrames": 1
+      }
+    },
+    "cliDispositionControls": 28,
+    "perRevisionControls": {
+      "AC1015": 5,
+      "AC1018": 5,
+      "AC1021": 5,
+      "AC1024": 5,
+      "AC1027": 3,
+      "AC1032": 5
+    },
+    "fullFocusedDispositionCohortControls": 853,
+    "outputQualification": "Explicit-partial ASCII/Binary conversion and readback pass at AC1015/AC1018/AC1021/AC1024/AC1032. AC1027 is reader-only behind the source-reference gate. No hard-pointer target role, graph closure, or MotionPath application behavior is established."
+  },
+  "binding": {
+    "baseCommit": "698cc918 Add Skylight handle recovery controls",
+    "writerTestExecutableSha256": "a5015cb99b08591212506ef50cfa673ece4f78e4c63dc3bfe2c47736c728debd",
+    "converterExecutableSha256": "d7aad05d69eb00b0860d7a87f1496beb4465e15f6a880ca2665a96d90b68213c",
+    "generatorSourceSha256": "be652736e4440bbd5724ceedebdd17218cdb69985c2fd5206daab737a7a69abf",
+    "harnessSourceSha256": "5c40abf17ff5bd25167b6a63e3f0a7428505f88167e4272d5fc75e1b368863ed"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2: PASS",
+    "eligibilityScan": "Generated scratch sources for AC1015/AC1018/AC1021/AC1024/AC1027/AC1032; each produced one bounded MotionPath parser-failing mutation.",
+    "focusedControl": "check_malformed_motionpath_body: PASS; 28 disposition controls across AC1015/AC1018/AC1021/AC1024/AC1027/AC1032",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 28.12 seconds",
+    "pythonSyntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py: PASS",
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Generated parser-recovery and CLI disposition only; no real MotionPath source or target graph is included.",
+    "Hard-pointer target roles/closure, runtime path evaluation, producer prevalence, native application behavior, and interoperability remain unqualified.",
+    "AC1027 output remains unqualified behind the source-reference closure gate.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "P6-F adds generated MOTIONPATH body recovery across all six revisions, with strict refusal and explicit-partial ASCII/Binary output/readback at AC1015/AC1018/AC1021/AC1024/AC1032.",
+    "remainingP6F": "Continue the source/resource inventory for the next supported OBJECTS type with a concrete bounded malformed profile. Do not infer completeness from these generated parser profiles.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "423 completed slices and 32 remaining packages: 423/(423+32)=93.0%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-cli-malformed-background-skylight-handle-recovery-2026-11-14.json"
+}
