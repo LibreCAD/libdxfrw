@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-librecad-upstream-test-target-api-2026-11-15",
+  "date": "2026-11-15",
+  "status": "target_compiles_semantic_gaps_open",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "base": "f8ef2f44c7637a44f4c9687ff87ddda71c298e0e",
+    "commit": "4c301ea1c0a80dddba7e7ccbcea0fa4b21550088",
+    "branch": "codex/upstream-libdxfrw-consumer",
+    "checkout": "/private/tmp/librecad-parity-consumer-20261115",
+    "patch": "docs/patches/librecad-p8-test-api-compat-2026-11-15.patch",
+    "merged": false
+  },
+  "change": [
+    "Infer the test writer stub string parameter from the actual dxfWriter signature, supporting std::string and std::string_view.",
+    "Initialize DIMASSOC osnap references and TABLE cell attributes through named fields, avoiding assumptions about aggregate layout.",
+    "Access the MPOLYGON DXF group-70 version through a compile-time field selector; this does not equate its DWG meanings."
+  ],
+  "builds": [
+    "librecad_dxf_fast_tests builds with upstream libdxfrw b4650b05 in the focused upstream-linked checkout.",
+    "librecad_dxf_fast_tests builds against the bundled fork in the clean consumer checkout."
+  ],
+  "targetedTests": {
+    "both": "CLASS failure propagation 13 assertions; metadata sidecars 523; TABLE eligibility 29; TABLECONTENT invalidation 5; MPOLYGON DXF version domain 14 all pass on both.",
+    "bundled": "11 DIMASSOC/MPOLYGON cases pass (137 assertions).",
+    "upstream": "3 of 11 DIMASSOC/MPOLYGON cases pass (81/99 assertions); 8 fail with 18 failed assertions. The selector exposes differences in MPOLYGON fill default, path/trailer handling, writer order/geometry and DIMASSOC state/range behavior. These are open parity investigations; tests were not weakened."
+  },
+  "patchVerification": "Forward apply check passed on a clean detached worktree at the stated base; reverse apply check passed on the resulting downstream commit.",
+  "limits": [
+    "The upstream-linked target uses a disposable overlay rather than a clean independently linked consumer checkout.",
+    "No full suite was run.",
+    "The downstream commits are local and not merged; patch applicability to a newer remote head is unverified.",
+    "No DWG/DXF fixture files added."
+  ]
+}

@@ -1,0 +1,195 @@
+From 4c301ea1c0a80dddba7e7ccbcea0fa4b21550088 Mon Sep 17 00:00:00 2001
+From: dxli <dongxuli2011@gmail.com>
+Date: Sun, 15 Nov 2026 05:32:51 -0500
+Subject: [PATCH] Build DXF tests with bundled and upstream libdxfrw
+
+---
+ .../lib/filters/tests/dxf_object_tests.cpp    | 19 +++++++++++---
+ .../filters/tests/entity_metadata_tests.cpp   | 16 +++++++++---
+ .../filters/tests/lc_mpolygon_dxf_tests.cpp   | 25 +++++++++++++------
+ 3 files changed, 47 insertions(+), 13 deletions(-)
+
+diff --git a/librecad/src/lib/filters/tests/dxf_object_tests.cpp b/librecad/src/lib/filters/tests/dxf_object_tests.cpp
+index 2d5fc55..5a95b50 100644
+--- a/librecad/src/lib/filters/tests/dxf_object_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_object_tests.cpp
+@@ -1755,11 +1755,16 @@ public:
+   }
+ };
+ 
++template <typename T> struct DxfWriteStringArgument;
++template <typename R, typename C, typename T>
++struct DxfWriteStringArgument<R (C::*)(int, T)> { using type = T; };
++
+ class FailingDxfWriter final : public dxfWriter {
+ public:
+   FailingDxfWriter() : dxfWriter(nullptr) {}
+ 
+-  bool writeString(int, std::string) override {
++  bool writeString(int, DxfWriteStringArgument<
++                            decltype(&dxfWriter::writeString)>::type) override {
+     ++calls;
+     return false;
+   }
+@@ -11980,7 +11985,11 @@ TEST_CASE("DXF DIMASSOC writer refuses lossy associations",
+     association.parentHandle = 0x1A;
+     association.m_dimensionHandle = 0x500;
+     association.m_associativityFlags = 0x01;
+-    association.m_osnapRefs.push_back({"AcDbOsnapPointRef", 0, 0x510});
++    DRW_DimensionAssociationOsnapRef osnap;
++    osnap.m_className = "AcDbOsnapPointRef";
++    osnap.m_objectOsnapType = 0;
++    osnap.m_objectHandle = 0x510;
++    association.m_osnapRefs.push_back(osnap);
+     return association;
+   };
+   const auto verifyRejected = [&](DRW_DimensionAssociation association) {
+@@ -13042,7 +13051,11 @@ TEST_CASE("DXF typed OBJECTS families write and read through production codec",
+       association.m_associativityFlags = 0x01;
+       association.m_isTransSpace = true;
+       association.m_rotatedDimensionType = 3;
+-      association.m_osnapRefs.push_back({"AcDbLine", 0, 0x722});
++      DRW_DimensionAssociationOsnapRef osnap;
++      osnap.m_className = "AcDbLine";
++      osnap.m_objectOsnapType = 0;
++      osnap.m_objectHandle = 0x722;
++      association.m_osnapRefs.push_back(osnap);
+       REQUIRE(writer->writeDimensionAssociation(&association));
+ 
+       DRW_EvaluationGraph graph;
+diff --git a/librecad/src/lib/filters/tests/entity_metadata_tests.cpp b/librecad/src/lib/filters/tests/entity_metadata_tests.cpp
+index f6d0c5f..d3dca24 100644
+--- a/librecad/src/lib/filters/tests/entity_metadata_tests.cpp
++++ b/librecad/src/lib/filters/tests/entity_metadata_tests.cpp
+@@ -28,6 +28,7 @@
+ 
+ #include <algorithm>
+ #include <cstdio>
++#include <cstdint>
+ #include <filesystem>
+ #include <fstream>
+ #include <memory>
+@@ -54,6 +55,15 @@
+ 
+ namespace {
+ 
++DRW_TableCellAttribute makeTableCellAttribute(std::uint32_t handle, int index,
++                                              const char *text) {
++  DRW_TableCellAttribute attribute;
++  attribute.m_attdefHandle = handle;
++  attribute.m_index = index;
++  attribute.m_text = text;
++  return attribute;
++}
++
+ class ExtDataFilterProbe final : public RS_FilterDXFRW {
+ public:
+   using RS_FilterDXFRW::extractEntityExtData;
+@@ -552,7 +562,7 @@ TEST_CASE("DWG advanced metadata caches raw and semantic sidecars",
+   semanticRow.m_cells[0].m_valueHandle = 0x102u;
+   semanticRow.m_cells[0].m_geometryHandle = 0x103u;
+   semanticRow.m_cells[0].m_styleId = 9;
+-  semanticRow.m_cells[0].m_attributes.push_back({0x104u, 1, "A1"});
++  semanticRow.m_cells[0].m_attributes.push_back(makeTableCellAttribute(0x104u, 1, "A1"));
+   DRW_TableCellContent textContent;
+   textContent.m_type = 1;
+   textContent.m_text = "Cell text";
+@@ -1559,7 +1569,7 @@ TEST_CASE("DWG table native writer eligibility reports blocker buckets",
+   blockedCell.m_geometryFlags = 0x1u;
+   blockedCell.m_geometryHandle = 0x322u;
+   blockedCell.m_isMerged = true;
+-  blockedCell.m_attributes.push_back({0x323u, 1, "A"});
++  blockedCell.m_attributes.push_back(makeTableCellAttribute(0x323u, 1, "A"));
+   DRW_TableCellContent fieldContent;
+   fieldContent.m_type = 2;
+   fieldContent.m_handle = 0x324u;
+@@ -2179,7 +2189,7 @@ TEST_CASE("DWG advanced metadata invalidates TABLECONTENT raw replay",
+   DRW_TableRow row;
+   row.m_height = 1.0;
+   DRW_TableCell cell;
+-  cell.m_attributes.push_back({0x442u, 1, "Attribute text"});
++  cell.m_attributes.push_back(makeTableCellAttribute(0x442u, 1, "Attribute text"));
+   row.m_cells.push_back(cell);
+   tableContent.m_content.m_rows.push_back(row);
+   metadata.addTableContent(tableContent);
+diff --git a/librecad/src/lib/filters/tests/lc_mpolygon_dxf_tests.cpp b/librecad/src/lib/filters/tests/lc_mpolygon_dxf_tests.cpp
+index 1b122ef..aa840d9 100644
+--- a/librecad/src/lib/filters/tests/lc_mpolygon_dxf_tests.cpp
++++ b/librecad/src/lib/filters/tests/lc_mpolygon_dxf_tests.cpp
+@@ -36,6 +36,17 @@
+ 
+ namespace {
+ 
++// Both libraries expose DXF group 70, but use different names. This helper
++// intentionally describes the DXF field only, not the DWG body layout.
++template <typename T>
++auto mpolygonDxfVersion(T &value, int) -> decltype((value.dxfVersion)) {
++    return value.dxfVersion;
++}
++template <typename T>
++auto mpolygonDxfVersion(T &value, long) -> decltype((value.mpVersion)) {
++    return value.mpVersion;
++}
++
+ // Stub addMPolygon capture: all other DRW_Interface overrides are no-ops.
+ class CaptureIface : public DRW_Interface {
+ public:
+@@ -151,7 +162,7 @@ TEST_CASE("DXF MPOLYGON: 70 is the version, 71 is the solid flag",
+     REQUIRE(readDxfString(kPatternMPolygon, cap, "lc_mpoly_pattern.dxf"));
+     REQUIRE(cap.m_count == 1);
+     const DRW_MPolygon& mp = cap.m_mpolygon;
+-    CHECK(mp.mpVersion == 1);
++    CHECK(mpolygonDxfVersion(mp, 0) == 1);
+     CHECK(mp.solid == 0);           // the broken reader gave 1 (solid)
+     CHECK(mp.name == "ANSI31");
+     CHECK(mp.hpattern == 1);        // code 76
+@@ -203,7 +214,7 @@ TEST_CASE("DXF MPOLYGON: version is a nonnegative signed short",
+     const bool valid = version >= 0 && version <= 32767;
+     CHECK(readDxfString(dxf, cap, "lc_mpoly_version.dxf") == valid);
+     CHECK(cap.m_count == (valid ? 1 : 0));
+-    if (valid) CHECK(cap.m_mpolygon.mpVersion == version);
++    if (valid) CHECK(mpolygonDxfVersion(cap.m_mpolygon, 0) == version);
+ }
+ 
+ TEST_CASE("DXF MPOLYGON: trailer codes do not overwrite the last boundary edge",
+@@ -262,7 +273,7 @@ TEST_CASE("DXF MPOLYGON writer: version 70 precedes solid 71 and emits ODA tag o
+             void writeEntities() override {
+                 DRW_MPolygon mp;
+                 mp.layer = "0";
+-                mp.mpVersion = 1;
++                mpolygonDxfVersion(mp, 0) = 1;
+                 mp.solid = 0;
+                 mp.name = "ANSI31";
+                 mp.hpattern = 1;
+@@ -356,7 +367,7 @@ TEST_CASE("DXF MPOLYGON writer refuses a non-default annotatedBoundary",
+         void writeEntities() override {
+             DRW_MPolygon mp;
+             mp.layer = "0";
+-            mp.mpVersion = 1;
++            mpolygonDxfVersion(mp, 0) = 1;
+             mp.solid = 1;
+             mp.name = "SOLID";
+             mp.annotatedBoundary = 42;   // the writer must reject this
+@@ -393,7 +404,7 @@ TEST_CASE("DXF MPOLYGON writer flattens an ARC-edge loop into bulges",
+             void writeEntities() override {
+                 DRW_MPolygon mp;
+                 mp.layer = "0";
+-                mp.mpVersion = 1;
++                mpolygonDxfVersion(mp, 0) = 1;
+                 mp.solid = 1;
+                 mp.name = "SOLID";
+                 // Two edges: a line from (0,0) to (10,0) and a semicircle
+@@ -489,8 +500,8 @@ TEST_CASE("DXF MPOLYGON writer rejects unsupported geometry and versions",
+             static_cast<DRW_Line*>(loop->objlist.back().get())->secPoint.x = 1;
+     }
+     emit.mp.looplist.push_back(loop);
+-    if (kind == "negative version") emit.mp.mpVersion = -1;
+-    if (kind == "large version") emit.mp.mpVersion = 32768;
++    if (kind == "negative version") mpolygonDxfVersion(emit.mp, 0) = -1;
++    if (kind == "large version") mpolygonDxfVersion(emit.mp, 0) = 32768;
+     emit.m_writer = &writer;
+     const bool valid = kind == "valid";
+     CHECK(writer.write(&emit, DRW::AC1021, /*bin=*/false) == valid);
+-- 
+2.54.0 (Apple Git-157)
+
