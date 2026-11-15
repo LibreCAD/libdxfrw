@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **527 completed implementation and qualification slices** and **32 remaining
+The plan records **528 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`527 / (527 + 32) = 94.3%`. The previous 28-package denominator was stale; a recount
+`528 / (528 + 32) = 94.3%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -24,7 +24,10 @@ and a 23-byte atomic refusal. The block-owner source now registers its raw
 entities' APPID, and a negative control verifies atomic refusal and retry when
 it is missing ([numeric receipt](docs/research/p8-fast-numeric-reservation-control-2026-11-15.json),
 [APPID receipt](docs/research/p8-fast-block-owner-raw-appid-2026-11-15.json)).
-Fresh hosted qualification remains required.
+The next hosted fast run stopped at the source inventory because the newly
+tracked consumer patch was missing. Both release inventories have been
+regenerated from a clean clone; fresh hosted qualification remains required
+([receipt](docs/research/p8-release-inventory-associative-patch-2026-11-15.json)).
 
 The pre-R2007 DWG VPORT reader now retains its public lighting defaults when
 those R2007-only fields are absent, allowing same-version legacy DXF export;
