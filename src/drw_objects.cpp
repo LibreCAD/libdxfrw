@@ -20482,8 +20482,13 @@ bool DRW_TableStyle::encodeDwg(DRW::Version version, dwgBufferW *buf,
                 handleStage, static_cast<std::uint32_t>(parentHandle),
                 static_cast<std::int32_t>(reactorHandles.size()),
                 extensionDictionaryFlag(), &reactorHandles, xDictHandle);
-            handleStage->putHandle(makeRefW(
-                m_unknownHandle, DRW::DwgHardOwnership));
+            dwgHandle tableCellOwner = makeRefW(
+                m_unknownHandle, DRW::DwgHardOwnership);
+            // ODA 20.4.101.2 assigns this slot the hard-owner role even
+            // when its reference is null; makeRefW otherwise uses code zero.
+            if (m_unknownHandle == 0u)
+                tableCellOwner.code = DRW::DwgHardOwnership;
+            handleStage->putHandle(tableCellOwner);
             const auto writeCellStyleHandles = [handleStage](
                     const DRW_TableStyleCellStyle& style) {
                 if (!style.m_hasData)

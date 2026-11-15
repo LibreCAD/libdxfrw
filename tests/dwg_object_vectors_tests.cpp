@@ -5044,6 +5044,32 @@ void testCellStyleMapDwgEncodeRoundTrip(TestContext& t) {
 }
 
 void testTableStyleDwgEncodeAllocationRollback(TestContext& t) {
+    for (const DRW::Version version : {DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        for (const std::uint32_t cellOwner : {0u, 0xA204u}) {
+            TableStyleCodecProbe source;
+            source.setR24AllocationProfile();
+            source.reactorHandles = {0xA202u};
+            source.xDictHandle = 0xA203u;
+            source.setDwgCommonObjectState(1, 0, false);
+            source.m_unknownHandle = cellOwner;
+            dwgBufferW body, strings, handles;
+            const bool encoded = source.encodeDwg(version, &body, &strings, &handles);
+            auto bytes = handles.data();
+            dwgBuffer input(bytes.data(), bytes.size());
+            const auto owner = input.getHandle();
+            const auto reactor = input.getHandle();
+            const auto xdict = input.getHandle();
+            const auto tableCellOwner = input.getHandle();
+            t.expect(encoded && input.isGood()
+                         && owner.code == DRW::DwgSoftPointer && owner.ref == 0xA200u
+                         && reactor.code == DRW::DwgSoftPointer && reactor.ref == 0xA202u
+                         && xdict.code == DRW::DwgHardOwnership && xdict.ref == 0xA203u
+                         && tableCellOwner.code == DRW::DwgHardOwnership
+                         && tableCellOwner.ref == cellOwner
+                         && input.getPosition() == bytes.size(),
+                     "R24 TABLESTYLE writes a typed hard-owner slot, including null");
+        }
+    }
     const auto runProfile = [&t](DRW::Version version) {
         TableStyleFrame frame;
         std::array<std::uint64_t, 3> unitOffsets{};
