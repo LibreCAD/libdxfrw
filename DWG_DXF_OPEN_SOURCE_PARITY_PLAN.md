@@ -125,7 +125,8 @@ Apply the patches in this order (all under `docs/patches/`, with suffix
 `librecad-p8-associative-prefix-compat`, `librecad-p8-canonical-ltype-metadata`,
 `librecad-p8-installed-legacy-codepage`, `librecad-p8-complex-ltype-style-remap`,
 and `librecad-p8-canonical-ltype-policy-test`. Rebase and resolve against the
-current consumer head; do not assume an old patch applies unchanged. All 12
+consumer head if it advances; the pinned base still matched LibreCAD master
+when checked on 2026-11-15. All 12
 apply in that order at the pinned base and reproduce the local consumer tree
 ([receipt](docs/research/p8-librecad-patch-chain-verification-2026-11-15.json)).
 
