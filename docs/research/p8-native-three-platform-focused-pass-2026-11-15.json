@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-15",
+  "workflow": "https://github.com/dxli/libdxfrw/actions/runs/43726888462",
+  "sourceCommit": "d2b65bd6642870169680267f999a58eb0f068203",
+  "implementationDigestSha256": "2a9aaf788c255f97437815a187c6b12e7c4ae1284ad7d0909fe7aebccbf223f4",
+  "results": {
+    "linux-gcc": "7/7 focused tests passed; receipt sealed and post-upload verified",
+    "macos-clang": "7/7 focused tests passed; receipt sealed and post-upload verified",
+    "windows-msvc": "7/7 focused tests passed; receipt sealed and post-upload verified"
+  },
+  "limits": "Applies only to the recorded revision, platforms and focused suite. Source changes after this revision require a fresh digest and rerun; broad suites, ABI, packaging, and other evidence gates remain open. No support claims are promoted."
+}
