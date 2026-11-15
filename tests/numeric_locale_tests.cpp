@@ -341,17 +341,17 @@ bool testStringBackedNumeric(const std::filesystem::path& directory) {
         ArcText parsed;
         std::shared_ptr<DxfReadRetainedBudget> budget;
         if (field.first == 44) {
-            // The exact spelling of negative DBL_MAX is 24 bytes. Parsing
-            // transiently reserves that bound and then retains the field, so
-            // the exact peak is 48 bytes; one byte less must refuse cleanly.
-            auto shortBudget = std::make_shared<DxfReadRetainedBudget>(47u);
+            // Formatting reserves the 24-byte worst-case bound and transfers
+            // that reservation into the retained value without double charge.
+            // One byte less must still reject before changing the field.
+            auto shortBudget = std::make_shared<DxfReadRetainedBudget>(23u);
             fieldReader->setRetainedByteBudget(shortBudget);
             if (parsed.parseCode(fieldCode, fieldReader)
                 || !parsed.m_offsetFromArc.empty()
-                || !shortBudget->exceeded())
+                || !shortBudget->exceeded() || shortBudget->used() != 0u)
                 return expect(false,
                     "ARCALIGNEDTEXT D2T short-budget input was not refused atomically");
-            budget = std::make_shared<DxfReadRetainedBudget>(48u);
+            budget = std::make_shared<DxfReadRetainedBudget>(24u);
             fieldReader->setRetainedByteBudget(budget);
         }
         if (!parsed.parseCode(fieldCode, fieldReader))

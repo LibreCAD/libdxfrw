@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **525 completed implementation and qualification slices** and **32 remaining
+The plan records **526 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`525 / (525 + 32) = 94.3%`. The previous 28-package denominator was stale; a recount
+`526 / (526 + 32) = 94.3%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -16,6 +16,12 @@ been removed from the execution queue; their commits and receipts remain the
 evidence record. The remaining count is derived from the 32 OPEN P4–P8 rows below; completed
 sub-slices do not retire their parent package until its full exit gate passes. Treat the percentage as a rough equal-weight
 activity proxy, not as the percentage of package gates completed.
+
+The hosted fast regression at `7ecc8fb9` found two failing controls after
+fresh linking: the numeric reservation expectation and raw-entity APPID
+closure. The numeric control now verifies the transferred 24-byte reservation
+and a 23-byte atomic refusal; the separate raw-entity control remains under
+investigation ([receipt](docs/research/p8-fast-numeric-reservation-control-2026-11-15.json)).
 
 The pre-R2007 DWG VPORT reader now retains its public lighting defaults when
 those R2007-only fields are absent, allowing same-version legacy DXF export;
