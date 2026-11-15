@@ -2716,6 +2716,7 @@ def check_malformed_dictionary_default_body(converter, root, writer):
         "AC1021": "2007",
         "AC1024": "2010",
         "AC1027": None,
+        "AC1032": "2018",
     }
     return check_malformed_object_body_family(
         converter, root, writer, "DICTIONARYWDFLT",

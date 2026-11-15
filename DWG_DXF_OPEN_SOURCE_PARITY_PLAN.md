@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **453 completed implementation and qualification slices** and **32 remaining
+The plan records **454 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`453 / (453 + 32) = 93.4%`. The previous 28-package denominator was stale; a recount
+`454 / (454 + 32) = 93.4%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -739,6 +739,14 @@ gate. The dedicated selector passes 23 controls. This qualifies generated
 parser recovery and partial-output disposition only, not producer prevalence,
 general dictionary closure, plot-style semantics, or native application
 acceptance ([receipt](docs/research/p6-cli-malformed-dictionarywdefault-body-recovery-2026-11-15.json)).
+
+**P6-F DICTIONARYWDFLT AC1032 recovery extension (2026-11-15):** the generated
+R2018 profile adds a fifth source version. It preserves one failed OBJECTS
+frame and the following LINE; strict conversion refuses atomically, while
+explicit-partial ASCII/Binary output and fresh readback pass. The dedicated
+selector now passes 28 controls. This is generated recovery disposition only;
+AC1027 remains behind its source-reference gate, and AC1032 plot-style meaning
+is not qualified.
 
 The earlier DICTIONARYWDFLT candidate screen exposed a missing graph shape and
 is superseded by this complete generated plot-style owner profile; its receipt
