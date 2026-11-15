@@ -2815,6 +2815,14 @@ if(LIBDXFRW_BUILD_TESTS)
     target_link_libraries(libdxfrw_hardening_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_hardening
         COMMAND libdxfrw_hardening_tests)
+    add_test(NAME libdxfrw_dimassoc_unsupported_detail
+        COMMAND libdxfrw_hardening_tests --dimassoc-unsupported-detail)
+    set_tests_properties(libdxfrw_dimassoc_unsupported_detail PROPERTIES
+        LABELS "fast;dxf;dimassoc;reader;writer;generated" TIMEOUT 10)
+    add_test(NAME libdxfrw_dimassoc_documented_scalar_fields
+        COMMAND libdxfrw_hardening_tests --dimassoc-documented-scalar-fields)
+    set_tests_properties(libdxfrw_dimassoc_documented_scalar_fields PROPERTIES
+        LABELS "fast;dxf;dimassoc;reader;writer;generated" TIMEOUT 10)
     add_test(NAME libdxfrw_acsh_action_body_exact_span
         COMMAND libdxfrw_hardening_tests --acsh-action-body-exact-span)
     set_tests_properties(libdxfrw_acsh_action_body_exact_span PROPERTIES

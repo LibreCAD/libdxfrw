@@ -23457,6 +23457,36 @@ void testDimensionAssociationUnsupportedDetailGuard(TestContext& t) {
                  "DIMASSOC duplicate XREF handle strings remain typed-write-guarded");
     }
 
+    for (const char* duplicateBodyFields : {
+             "330\nA1\n330\nA2\n", "90\n1\n90\n0\n",
+             "70\n0\n70\n1\n", "71\n0\n71\n1\n"}) {
+        ExposedDimensionAssociation duplicate;
+        const std::string records = std::string("100\nAcDbDimAssoc\n")
+            + duplicateBodyFields;
+        const bool parsed = parseDxfRecords(duplicate, records);
+        duplicate.handle = 0xA0u;
+        std::ostringstream output;
+        output << "sentinel";
+        dxfRW writer("");
+        writer.version = DRW::AC1032;
+        writer.writer = std::make_unique<dxfWriterAscii>(&output);
+        t.expect(parsed && duplicate.m_hasUnrepresentableDetail
+                     && !writer.writeDimensionAssociation(&duplicate)
+                     && output.str() == "sentinel",
+                 "DIMASSOC duplicate singleton body field refuses lossy typed output");
+    }
+
+    ExposedDimensionAssociation singletons;
+    t.expect(parseDxfRecords(singletons,
+                 "100\nAcDbDimAssoc\n330\nA1\n90\n0\n70\n1\n71\n1\n")
+                 && !singletons.m_hasUnrepresentableDetail,
+             "DIMASSOC distinct singleton body fields remain representable");
+    singletons.reset();
+    t.expect(parseDxfRecords(singletons,
+                 "100\nAcDbDimAssoc\n330\nA2\n90\n0\n70\n0\n71\n0\n")
+                 && !singletons.m_hasUnrepresentableDetail,
+             "DIMASSOC reset clears singleton occurrence state");
+
     ExposedDimensionAssociation parsedDetail;
     const bool parsed = parseDxfRecords(parsedDetail,
         "100\nAcDbDimAssoc\n90\n1\n1\nAcDbOsnapPointRef\n"

@@ -27218,16 +27218,29 @@ bool DRW_DimensionAssociation::parseCode(int code, const std::unique_ptr<dxfRead
         return true;
     }
     if (m_dxfInBody) {
+        const auto noteBodyField = [this](std::uint8_t field) {
+            if ((m_dxfSeenBodyFields & field) != 0)
+                m_hasUnrepresentableDetail = true;
+            m_dxfSeenBodyFields |= field;
+        };
         switch (code) {
-        case 330: m_dimensionHandle = reader->getHandleString(); return true;
-        case 90:  m_associativityFlags = reader->getInt32(); return true;
+        case 330:
+            noteBodyField(0x01u);
+            m_dimensionHandle = reader->getHandleString();
+            return true;
+        case 90:
+            noteBodyField(0x02u);
+            m_associativityFlags = reader->getInt32();
+            return true;
         case 70:
+            noteBodyField(0x04u);
             m_isTransSpace = reader->getInt32() != 0;
             return true;
         case 71: {
             const int value = reader->getInt32();
             if (value < 0 || value > std::numeric_limits<std::uint8_t>::max())
                 return false;
+            noteBodyField(0x08u);
             m_rotatedDimensionType = static_cast<std::uint8_t>(value);
             return true;
         }

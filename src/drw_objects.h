@@ -7043,7 +7043,7 @@ public:
       m_rotatedDimensionType(o.m_rotatedDimensionType),
       m_osnapRefs(o.m_osnapRefs),
       m_hasUnrepresentableDetail(o.m_hasUnrepresentableDetail),
-      m_dxfInBody(false) {
+      m_dxfInBody(false), m_dxfSeenBodyFields(0) {
     tType = o.tType;
   }
   DRW_DimensionAssociation& operator=(const DRW_DimensionAssociation& o) {
@@ -7056,6 +7056,7 @@ public:
       m_osnapRefs = o.m_osnapRefs;
       m_hasUnrepresentableDetail = o.m_hasUnrepresentableDetail;
       m_dxfInBody = false;
+      m_dxfSeenBodyFields = 0;
       tType = o.tType;
     }
     return *this;
@@ -7071,6 +7072,7 @@ public:
     m_osnapRefs.clear();
     m_hasUnrepresentableDetail = false;
     m_dxfInBody = false;
+    m_dxfSeenBodyFields = 0;
   }
 
 protected:
@@ -7096,6 +7098,8 @@ private:
   /* DXF: true once past "100 AcDbDimAssoc" — body code 330 is the dimension
      handle, not the object owner. */
   bool m_dxfInBody = false;
+  // Presence of singleton body fields; repeated values require raw replay.
+  std::uint8_t m_dxfSeenBodyFields = 0;
 };
 
 struct DRW_EvaluationGraphNode {
