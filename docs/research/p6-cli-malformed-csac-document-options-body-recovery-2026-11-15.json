@@ -1,0 +1,44 @@
+{
+  "title": "Generated CSACDOCUMENTOPTIONS body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_CSACDOCUMENTOPTIONS_BODY_RECOVERY_AC1021_AC1024_AC1027_AC1032_PASS",
+  "scope": "CLI disposition for bounded malformed CSACDOCUMENTOPTIONS OBJECTS bodies at AC1021, AC1024, AC1027, and AC1032.",
+  "selection": {
+    "source": "P6-F supported custom OBJECTS parser inventory",
+    "reason": "The DWG reader has a typed AcDbCsacDocumentOptions route and parser. The parser consumes up to two bounded body bitlongs; this generated control provides a parser-accepted baseline and searches for a one-bit body mutation that isolates the record failure."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-csac-document-options-body-source",
+    "profile": "A custom class record named CSACDOCUMENTOPTIONS / AcDbCsacDocumentOptions at handle 0x700, written with the local raw-object helper's bounded payload, followed by a LINE sentinel.",
+    "mutation": "Searches the bounded OBJECTS frame for a one-bit body change rejected by DRW_CsacDocumentOptions::parseDwg while preserving the common prologue and object handle. The same generated body also supplies the pre-mutation parser control.",
+    "limits": "The source is a parser-disposition control, not a producer-authored CSACDOCUMENTOPTIONS example or semantic/graph fixture."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 0, "status": "excluded; generated legacy source did not yield a typed pre-mutation capture"},
+    "AC1018": {"controls": 0, "status": "excluded; generated legacy source did not yield a typed pre-mutation capture"},
+    "AC1021": {"controls": 5, "output_revision": "AC1021"},
+    "AC1024": {"controls": 5, "output_revision": "AC1024"},
+    "AC1027": {"controls": 3, "output": "strict and explicit-partial output refused by the existing source-reference gate"},
+    "AC1032": {"controls": 5, "output_revision": "AC1032"}
+  },
+  "assertions": [
+    "Every admitted source reports one failed OBJECTS frame, continues to the following LINE, and balances source, published, and failed frame accounting.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel for AC1021, AC1024, AC1027, and AC1032.",
+    "Explicit-partial ASCII/Binary conversion and fresh DXF readback retain the LINE at AC1021, AC1024, and AC1032.",
+    "AC1027 strict and explicit-partial output preserve the destination and refuse at the existing source-reference qualification gate."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py and python3 -m json.tool on this receipt passed.",
+    "diff_check": "git diff --check passed.",
+    "targeted": "ctest --test-dir build-gcc -V -R '^dwg2dxf_cli_csac_document_options_recovery$' passed 1/1 in 1.46 seconds and reported 18 controls.",
+    "aggregate": "The dwg2dxf_cli_partial_read_disposition aggregate was not rerun for this isolated profile."
+  },
+  "limits": [
+    "AC1015 and AC1018 typed body recovery are unqualified; their generated legacy controls could not capture a typed pre-mutation object.",
+    "AC1027 is reader-only behind the existing source-reference gate.",
+    "Generated parser recovery and output disposition do not qualify producer semantics, dictionary membership, graph closure, or native application acceptance.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

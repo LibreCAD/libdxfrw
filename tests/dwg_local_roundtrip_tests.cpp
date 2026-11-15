@@ -28621,6 +28621,11 @@ public:
     using DRW_TableStyle::parseDwg;
 };
 
+class CsacDocumentOptionsBodyProbe final : public DRW_CsacDocumentOptions {
+public:
+    using DRW_CsacDocumentOptions::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28634,6 +28639,12 @@ public:
                   ? libdxfrw_test::makeRawCustomObject(
                         sourceVersion, 700u, 0x700u, "MLINESTYLE",
                         "AcDbMlineStyle", "ACAD_MLINESTYLE")
+                  : kind == 69
+                      ? libdxfrw_test::makeRawCustomObject(
+                            sourceVersion, 1293u, 0x700u,
+                            "CSACDOCUMENTOPTIONS",
+                            "AcDbCsacDocumentOptions",
+                            "ObjectDBX Classes")
                   : makeCliSkippedObject(kind, 0, sourceVersion)),
           opaqueSecond_(kind == 5
               ? libdxfrw_test::makeRawCustomObject(
@@ -29690,7 +29701,7 @@ public:
         DRW_Line line;
         if (kind_ == 15 || kind_ == 21 || kind_ == 22 || kind_ == 52
             || kind_ == 54 || kind_ == 55 || kind_ == 56 || kind_ == 58
-            || kind_ == 66)
+            || kind_ == 66 || kind_ == 69)
             line.handle = 0x701u;
         else if (kind_ == 53)
             line.handle = 0x703u;
@@ -43274,6 +43285,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-dimassoc-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-layout-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-csac-document-options-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -43406,6 +43419,9 @@ int main(int argc, char** argv) {
                 == "--generate-cli-malformed-dimassoc-body-source";
         const bool malformedLayoutBodySource = std::string(argv[1])
             == "--generate-cli-malformed-layout-body-source";
+        const bool malformedCsacDocumentOptionsBodySource =
+            std::string(argv[1])
+            == "--generate-cli-malformed-csac-document-options-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -43512,6 +43528,7 @@ int main(int argc, char** argv) {
             || malformedEvaluationGraphBodySource
             || malformedDimensionAssociationBodySource
             || malformedLayoutBodySource
+            || malformedCsacDocumentOptionsBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -43612,6 +43629,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 65
                                                                                                         : malformedLayoutBodySource
                                                                                                             ? 66
+                                                                                                        : malformedCsacDocumentOptionsBodySource
+                                                                                                            ? 69
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -43734,6 +43753,7 @@ int main(int argc, char** argv) {
                  || malformedEvaluationGraphBodySource
                  || malformedDimensionAssociationBodySource
                  || malformedLayoutBodySource
+                 || malformedCsacDocumentOptionsBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -44000,6 +44020,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedCsacDocumentOptionsBodySource) {
+                            CsacDocumentOptionsBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         if (malformedPointCloudDefinitionBodySource
                             || malformedPointCloudDefinitionExBodySource
                             || malformedPointCloudReactorBodySource
@@ -44145,6 +44170,7 @@ int main(int argc, char** argv) {
                   || malformedEvaluationGraphBodySource
                   || malformedDimensionAssociationBodySource
                   || malformedLayoutBodySource
+                  || malformedCsacDocumentOptionsBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -44242,6 +44268,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "DIMASSOC"
                                                                                                                 : malformedLayoutBodySource
                                                                                                                     ? "LAYOUT"
+                                                                                                                : malformedCsacDocumentOptionsBodySource
+                                                                                                                    ? "CSACDOCUMENTOPTIONS"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
@@ -44341,6 +44369,8 @@ int main(int argc, char** argv) {
                                                                                         ? 65
                                                                                     : malformedLayoutBodySource
                                                                                         ? 66
+                                                                                    : malformedCsacDocumentOptionsBodySource
+                                                                                        ? 69
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,
