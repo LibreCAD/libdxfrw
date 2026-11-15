@@ -1098,7 +1098,8 @@ int main(int argc, char** argv) {
         return runAdapterClosureRetryRoundtrip(argv[2], true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--allocation-rollback-retry") {
         for (const DRW::Version version :
-             {DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+             {DRW::AC1018, DRW::AC1021, DRW::AC1024, DRW::AC1027,
+              DRW::AC1032}) {
             if (!allocationRollbackRetry(version, false)
                 || !allocationRollbackRetry(version, true))
                 return 1;
