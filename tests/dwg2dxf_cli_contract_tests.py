@@ -2421,7 +2421,9 @@ def check_malformed_section_manager_body(converter, root, writer):
 def check_malformed_section_settings_body(converter, root, writer):
     profiles = {
         "AC1021": "2007",
+        "AC1024": "2010",
         "AC1027": None,
+        "AC1032": "2018",
     }
     return check_malformed_object_body_family(
         converter, root, writer, "SECTION_SETTINGS",
