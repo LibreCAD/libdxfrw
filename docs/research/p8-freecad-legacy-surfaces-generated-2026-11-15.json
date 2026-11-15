@@ -1,0 +1,112 @@
+{
+  "date": "2026-11-15",
+  "scope": "Native FreeCAD 1.1.4 optional legacy Python DXF importer, macOS ARM64, generated AC1021/AC1024/AC1032 DWG converted by installed libdxfrw dwg2dxf; open and insert of the converted DXF.",
+  "issueFound": "The earlier generated SOLID used 1-2-3-4 geometric order although SOLID perimeter uses 1-2-4-3; its face was self-crossing and had zero area in the optional importer. The previous generated header also made that importer scale 3DFACE coordinates as inches while leaving SOLID/POLYFACE coordinates unscaled.",
+  "sources": [
+    {
+      "title": "Autodesk SOLID DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E0C5F04E-D0C5-48F5-AC09-32733E8848F2.htm"
+    },
+    {
+      "title": "ezdxf SOLID layout reference",
+      "url": "https://ezdxf.readthedocs.io/en/stable/layouts/layouts.html"
+    },
+    {
+      "title": "FreeCAD 1.1.4 legacy DXF importer source",
+      "url": "https://github.com/FreeCAD/FreeCAD/blob/4fd3bf320d9566a27e60069fc8387448aaa3a094/src/Mod/Draft/importDXF.py"
+    }
+  ],
+  "change": "Generate a valid SOLID with corrected corner order and explicit $INSUNITS=4/$MEASUREMENT=1. The optional native macro checks both header values, the two-triangle POLYFACE, a valid 12 mm\u00b2 SOLID face and a valid tilted 3DFACE of area sqrt(432) mm\u00b2, including all vertices. Register open/insert tests for all three DWG revisions and provision the pinned optional importer in Linux/Windows hosted qualification.",
+  "environment": {
+    "platform": "macOS ARM64",
+    "freecadVersion": "1.1.4",
+    "freecadRevision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "freecadCmdSha256": "67a66f17b663637bcf022330b37559813e65417e2a96f9da1bb3ae34cad08b60",
+    "addonRepository": "https://github.com/yorikvanhavre/Draft-dxf-importer",
+    "addonCommit": "e060ef0d8fe7143c2e0ce34734b686ba073f3cc1",
+    "addonModules": {
+      "dxfReader.py": "7c61f540a4b0a484097c2ef1b42fa9f692babe59f45be9541b32cfb1805bc445",
+      "dxfLibrary.py": "0bae42b630a9797ea56dcbe9a6dfa648369a089289f7fb33ab928c9784cac7c8",
+      "dxfColorMap.py": "4b4a66749c68944502c4ba4c981427563b2adb8e125877626710c585d07de4b0",
+      "dxfImportObjects.py": "4f897ec54f5669cedf42274574a0d38cdf543333e25f7452075c00be8a7365b5"
+    },
+    "generatorSha256": "c9d40848e19c1f6dd57b1b990306c6cb2839d6c2de371e197b8202bf3e32c9f6",
+    "converterSha256": "bef362019db40c5ddf145940ba8b4162ba92b2dbee560adf60a572213aca2e6c",
+    "macroSha256": "aefcb4dc32e4c670f107ee08bc314915b5e28b2f609b742a48b6dac04df8c7c8",
+    "runnerSha256": "ddbc11f464cd64b44a2e223cd062d09c97bd4e40a9628c591db7faad51b3c205",
+    "workflowSha256": "ed9d6812977702c31a35739e4dbeebb620d69d2238133caf868cb97c5daa7013"
+  },
+  "validation": {
+    "legacyOpenInsert": "6/6 passed, isolated application settings and temporary addon",
+    "results": [
+      {
+        "version": "AC1021",
+        "operation": "open",
+        "dwgSha256": "995b7217d926f145428d81c1b63bd8d32ee16a4b4eb4ccfb9337faa311cde1a8",
+        "dxfSha256": "8dbc37512b881baa3f6d761eba9adb50df5f9be812315a4f2e9f52c5cedba96d",
+        "facets": 2,
+        "solidArea": 12.0,
+        "faceArea": 20.784609690826535,
+        "surfaceCases": 2
+      },
+      {
+        "version": "AC1021",
+        "operation": "insert",
+        "dwgSha256": "995b7217d926f145428d81c1b63bd8d32ee16a4b4eb4ccfb9337faa311cde1a8",
+        "dxfSha256": "8dbc37512b881baa3f6d761eba9adb50df5f9be812315a4f2e9f52c5cedba96d",
+        "facets": 2,
+        "solidArea": 12.0,
+        "faceArea": 20.784609690826535,
+        "surfaceCases": 2
+      },
+      {
+        "version": "AC1024",
+        "operation": "open",
+        "dwgSha256": "4662b86d3f815c2c14552a1e548e3ef410a59102b64054429b7be00fb7012c1f",
+        "dxfSha256": "6a8732570501502dc8dcc0e6aed2276e49792295b7a7528df515d216cab3c103",
+        "facets": 2,
+        "solidArea": 12.0,
+        "faceArea": 20.784609690826535,
+        "surfaceCases": 2
+      },
+      {
+        "version": "AC1024",
+        "operation": "insert",
+        "dwgSha256": "4662b86d3f815c2c14552a1e548e3ef410a59102b64054429b7be00fb7012c1f",
+        "dxfSha256": "6a8732570501502dc8dcc0e6aed2276e49792295b7a7528df515d216cab3c103",
+        "facets": 2,
+        "solidArea": 12.0,
+        "faceArea": 20.784609690826535,
+        "surfaceCases": 2
+      },
+      {
+        "version": "AC1032",
+        "operation": "open",
+        "dwgSha256": "bf0aefacdfe7f9999ae32f30ff31df9015fb4706d7b1045225258f92774ae300",
+        "dxfSha256": "38486c3d55290e3234bc25c647c48be1fbc046f63fa9f35613216e86fe4980a6",
+        "facets": 2,
+        "solidArea": 12.0,
+        "faceArea": 20.784609690826535,
+        "surfaceCases": 2
+      },
+      {
+        "version": "AC1032",
+        "operation": "insert",
+        "dwgSha256": "bf0aefacdfe7f9999ae32f30ff31df9015fb4706d7b1045225258f92774ae300",
+        "dxfSha256": "38486c3d55290e3234bc25c647c48be1fbc046f63fa9f35613216e86fe4980a6",
+        "facets": 2,
+        "solidArea": 12.0,
+        "faceArea": 20.784609690826535,
+        "surfaceCases": 2
+      }
+    ],
+    "defaultCppImporter": "Existing six generated AC1021/AC1024/AC1032 open/insert tests passed; their expectations still report 3DFACE and SOLID unsupported.",
+    "registration": "All six optional tests registered and selected by the hosted regex; no new fixture committed.",
+    "inventory": "Clean source-release check 1188 files; frozen native CTest inventory unchanged at 1365 names; implementation digest ec6849938f5a13ce725a800bce281fcd09671d2367655bfc53e28c814fc416ad (714 inputs)."
+  },
+  "limitations": [
+    "The optional legacy importer is separately provisioned; this does not change FreeCAD's default C++ importer or prove actual importDWG UI selection.",
+    "The observed sources are locally generated controls; native Linux and Windows runs of the new optional checks are pending, and no external producer profile or ACIS/surface family is qualified.",
+    "No format or phase support claim is promoted."
+  ]
+}

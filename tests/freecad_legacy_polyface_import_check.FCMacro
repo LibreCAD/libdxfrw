@@ -3,6 +3,7 @@
 # the macro never downloads or installs addon code.
 import json
 import hashlib
+import math
 import os
 import platform
 import sys
@@ -21,6 +22,18 @@ if not addon_dir or not os.path.isdir(addon_dir):
     raise RuntimeError("a local LIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR is required")
 if operation not in ("open", "insert"):
     raise RuntimeError("operation must be open or insert")
+
+# Keep the surface coordinates independently interpretable as millimetres.
+with open(source, "r", encoding="utf-8") as stream:
+    lines = stream.read().splitlines()
+tags = [(lines[i].strip(), lines[i + 1].strip())
+        for i in range(0, len(lines) - 1, 2)]
+for name, value in (("$INSUNITS", "4"), ("$MEASUREMENT", "1")):
+    matches = [i for i, tag in enumerate(tags) if tag == ("9", name)]
+    if len(matches) != 1 or matches[0] + 1 >= len(tags):
+        raise AssertionError("missing or duplicate " + name)
+    if tags[matches[0] + 1] != ("70", value):
+        raise AssertionError("unexpected unit value for " + name)
 
 required_modules = (
     "dxfReader.py", "dxfLibrary.py", "dxfColorMap.py", "dxfImportObjects.py")
@@ -75,6 +88,38 @@ if len(mesh.Facets) != 2 or points != expected_points or bounds != expected_boun
     raise AssertionError("POLYFACE mesh geometry differs: facets=%d points=%r bounds=%r"
                          % (len(mesh.Facets), points, bounds))
 
+# SOLID and 3DFACE are distinct records and use different vertex orders.
+# Select the individual faces by their authored geometry, not their names or
+# FreeCAD's aggregate layer object. The generator explicitly sets millimetres.
+def find_face(expected_vertices, expected_area):
+    expected = sorted(expected_vertices)
+    matches = []
+    for obj in document.Objects:
+        shape = getattr(obj, "Shape", None)
+        if shape is None or shape.isNull() or len(shape.Faces) != 1:
+            continue
+        actual = sorted((float(v.Point.x), float(v.Point.y), float(v.Point.z))
+                        for v in shape.Vertexes)
+        if len(actual) != len(expected):
+            continue
+        if not all(math.isclose(a, b, rel_tol=0.0, abs_tol=1e-7)
+                   for point, wanted in zip(actual, expected)
+                   for a, b in zip(point, wanted)):
+            continue
+        if not shape.isValid() or not math.isclose(
+                float(shape.Area), expected_area, rel_tol=1e-10, abs_tol=1e-8):
+            raise AssertionError("surface geometry is invalid or has unexpected area")
+        matches.append(obj)
+    if len(matches) != 1:
+        raise AssertionError("expected one matching surface, found %d" % len(matches))
+    return matches[0]
+
+solid = find_face(((141.0, 142.0, 13.0), (144.0, 142.0, 13.0),
+                   (141.0, 146.0, 13.0), (144.0, 146.0, 13.0)), 12.0)
+face = find_face(((101.0, 102.0, 1.0), (104.0, 102.0, 4.0),
+                  (104.0, 106.0, 8.0), (101.0, 106.0, 5.0)),
+                 math.sqrt(432.0))
+
 result = {
     "operation": operation,
     "importer": "legacy-python",
@@ -90,6 +135,9 @@ result = {
     "facets": len(mesh.Facets),
     "points": points,
     "bounds": bounds,
+    "surfaceCases": 2,
+    "solidArea": float(solid.Shape.Area),
+    "faceArea": float(face.Shape.Area),
 }
 print("LIBDXFRW_FREECAD_LEGACY_POLYFACE_PASS="
       + json.dumps(result, sort_keys=True, allow_nan=False))

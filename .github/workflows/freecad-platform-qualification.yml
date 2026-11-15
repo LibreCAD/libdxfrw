@@ -20,6 +20,14 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Check out pinned optional legacy DXF importer
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: yorikvanhavre/Draft-dxf-importer
+          ref: e060ef0d8fe7143c2e0ce34734b686ba073f3cc1
+          path: _freecad_legacy_addon
+          persist-credentials: false
+
       - name: Download and verify pinned FreeCAD release
         shell: bash
         run: |
@@ -47,6 +55,9 @@ jobs:
           TMPDIR: ${{ runner.temp }}
         run: |
           set -euo pipefail
+          addon="$GITHUB_WORKSPACE/_freecad_legacy_addon"
+          test "$(git -C "$addon" rev-parse HEAD)" = e060ef0d8fe7143c2e0ce34734b686ba073f3cc1
+          git -C "$addon" diff --quiet HEAD -- dxfReader.py dxfLibrary.py dxfColorMap.py dxfImportObjects.py
           cmake -S . -B build -G Ninja \
             -DCMAKE_C_COMPILER=gcc-13 \
             -DCMAKE_CXX_COMPILER=g++-13 \
@@ -62,11 +73,13 @@ jobs:
           cmake -S . -B build \
             -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_LINE_CONTROL=ON \
             -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_PRIMITIVE_CONTROL=ON \
+            -DLIBDXFRW_ENABLE_FREECAD_LEGACY_POLYFACE_CONTROL=ON \
+            -DLIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR="$addon" \
             -DLIBDXFRW_FREECADCMD_EXECUTABLE='${{ steps.freecad.outputs.cmd }}' \
             -DLIBDXFRW_FREECAD_DWG2DXF_EXECUTABLE="$installed"
           cmake --build build --parallel 2 --target dwg2dxf
           ctest --test-dir build \
-            -R '^dwg2dxf_freecad_(generated_ac1021_(line|primitives)_.*|generated_ac1024_primitives_.*|generated_ac1032_primitives_.*|cli_compat|installed_cli_compat)$' \
+            -R '^dwg2dxf_freecad_(generated_ac1021_(line|primitives)_.*|generated_ac1024_primitives_.*|generated_ac1032_primitives_.*|legacy_polyface(_ac1024|_ac1032)?_(open|insert)|cli_compat|installed_cli_compat)$' \
             --output-on-failure --verbose
 
       - name: Preserve native test evidence
@@ -86,6 +99,14 @@ jobs:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
+
+      - name: Check out pinned optional legacy DXF importer
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: yorikvanhavre/Draft-dxf-importer
+          ref: e060ef0d8fe7143c2e0ce34734b686ba073f3cc1
+          path: _freecad_legacy_addon
           persist-credentials: false
 
       - name: Download, verify, and unpack pinned FreeCAD release
@@ -120,6 +141,12 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          $addon = Join-Path $env:GITHUB_WORKSPACE '_freecad_legacy_addon'
+          if ((git -C $addon rev-parse HEAD) -ne 'e060ef0d8fe7143c2e0ce34734b686ba073f3cc1') {
+            throw 'Unexpected legacy DXF importer revision'
+          }
+          git -C $addon diff --quiet HEAD -- dxfReader.py dxfLibrary.py dxfColorMap.py dxfImportObjects.py
+          if ($LASTEXITCODE -ne 0) { throw 'Legacy DXF importer files differ from the pinned revision' }
           cmake -S . -B build -G 'Visual Studio 17 2022' -A x64 `
             -DCMAKE_POLICY_VERSION_MINIMUM=3.5 `
             -DCMAKE_BUILD_TYPE=Release `
@@ -137,13 +164,15 @@ jobs:
           cmake -S . -B build `
             -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_LINE_CONTROL=ON `
             -DLIBDXFRW_ENABLE_FREECAD_GENERATED_AC1021_PRIMITIVE_CONTROL=ON `
+            -DLIBDXFRW_ENABLE_FREECAD_LEGACY_POLYFACE_CONTROL=ON `
+            "-DLIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR=$addon" `
             "-DLIBDXFRW_FREECADCMD_EXECUTABLE=${{ steps.freecad.outputs.cmd }}" `
             "-DLIBDXFRW_FREECAD_DWG2DXF_EXECUTABLE=$installed"
           if ($LASTEXITCODE -ne 0) { throw "CMake reconfigure failed: $LASTEXITCODE" }
           cmake --build build --config Release --parallel 2 --target dwg2dxf
           if ($LASTEXITCODE -ne 0) { throw "CMake rebuild failed: $LASTEXITCODE" }
           ctest --test-dir build -C Release `
-            -R '^(dwg2dxf_freecad_(generated_ac1021_(line|primitives)_.*|generated_ac1024_primitives_.*|generated_ac1032_primitives_.*|cli_compat|installed_cli_compat)|libdxfrw_batch_output_names)$' `
+            -R '^(dwg2dxf_freecad_(generated_ac1021_(line|primitives)_.*|generated_ac1024_primitives_.*|generated_ac1032_primitives_.*|legacy_polyface(_ac1024|_ac1032)?_(open|insert)|cli_compat|installed_cli_compat)|libdxfrw_batch_output_names)$' `
             --output-on-failure --verbose
           if ($LASTEXITCODE -ne 0) { throw "FreeCAD CTest qualification failed: $LASTEXITCODE" }
 

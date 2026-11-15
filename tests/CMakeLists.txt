@@ -5238,26 +5238,36 @@ if(LIBDXFRW_ENABLE_FREECAD_LEGACY_POLYFACE_CONTROL)
             message(FATAL_ERROR "${_required} does not exist: ${${_required}}")
         endif()
     endforeach()
-    foreach(_operation IN ITEMS open insert)
-        add_test(
-            NAME dwg2dxf_freecad_legacy_polyface_${_operation}
-            COMMAND ${CMAKE_COMMAND}
-                "-DFREECADCMD=${LIBDXFRW_FREECADCMD_EXECUTABLE}"
-                "-DDWG2DXF=${LIBDXFRW_FREECAD_DWG2DXF_EXECUTABLE}"
-                "-DBUILD_DWG2DXF=$<TARGET_FILE:dwg2dxf>"
-                "-DDWG_SOURCE_GENERATOR=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
-                -DDWG_SOURCE_VERSION=AC1021
-                -DEXPECTED_MAGIC_HEX=414331303231
-                "-DIMPORT_CHECK_MACRO=${CMAKE_CURRENT_SOURCE_DIR}/freecad_legacy_polyface_import_check.FCMacro"
-                -DIMPORT_CHECK_MODE=legacy_polyface
-                "-DFREECAD_LEGACY_DXF_ADDON_DIR=${LIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR}"
-                "-DOPERATION=${_operation}"
-                -P ${CMAKE_CURRENT_SOURCE_DIR}/run_freecad_installed_3d_line_test.cmake
-        )
-        set_tests_properties(dwg2dxf_freecad_legacy_polyface_${_operation}
-            PROPERTIES
-                LABELS "freecad;installed;generated;integration;AC1021;platform;legacy;polyface"
-                TIMEOUT 180)
+    foreach(_version IN ITEMS AC1021 AC1024 AC1032)
+        string(HEX "${_version}" _magic)
+        string(TOLOWER "${_version}" _version_lower)
+        foreach(_operation IN ITEMS open insert)
+            if(_version STREQUAL "AC1021")
+                # Preserve the original names for existing callers.
+                set(_test_name dwg2dxf_freecad_legacy_polyface_${_operation})
+            else()
+                set(_test_name dwg2dxf_freecad_legacy_polyface_${_version_lower}_${_operation})
+            endif()
+            add_test(
+                NAME ${_test_name}
+                COMMAND ${CMAKE_COMMAND}
+                    "-DFREECADCMD=${LIBDXFRW_FREECADCMD_EXECUTABLE}"
+                    "-DDWG2DXF=${LIBDXFRW_FREECAD_DWG2DXF_EXECUTABLE}"
+                    "-DBUILD_DWG2DXF=$<TARGET_FILE:dwg2dxf>"
+                    "-DDWG_SOURCE_GENERATOR=$<TARGET_FILE:libdxfrw_dwg_local_roundtrip>"
+                    "-DDWG_SOURCE_VERSION=${_version}"
+                    "-DEXPECTED_MAGIC_HEX=${_magic}"
+                    "-DIMPORT_CHECK_MACRO=${CMAKE_CURRENT_SOURCE_DIR}/freecad_legacy_polyface_import_check.FCMacro"
+                    -DIMPORT_CHECK_MODE=legacy_polyface
+                    "-DFREECAD_LEGACY_DXF_ADDON_DIR=${LIBDXFRW_FREECAD_LEGACY_DXF_ADDON_DIR}"
+                    "-DOPERATION=${_operation}"
+                    -P ${CMAKE_CURRENT_SOURCE_DIR}/run_freecad_installed_3d_line_test.cmake
+            )
+            set_tests_properties(${_test_name}
+                PROPERTIES
+                    LABELS "freecad;installed;generated;integration;${_version};platform;legacy;polyface"
+                    TIMEOUT 180)
+        endforeach()
     endforeach()
 endif()
 

@@ -10100,7 +10100,12 @@ class CliPrimitiveDwgSource final : public dx_iface {
 public:
     explicit CliPrimitiveDwgSource(dwgRW* writer) : writer_(writer) {}
 
-    void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+    void writeHeader(DRW_Header& header) override {
+        header.vars.clear();
+        // Give native consumers an unambiguous millimetre calibration.
+        header.addInt("$INSUNITS", 4, 70);
+        header.addInt("$MEASUREMENT", 1, 70);
+    }
     void writeDwgClasses() override {}
     void collectDwgAppIds() override {}
     void writeBlocks() override {}
@@ -10189,8 +10194,9 @@ public:
         DRW_Solid solid;
         solid.basePoint = {141.0, 142.0, 13.0};
         solid.secPoint = {144.0, 142.0, 13.0};
-        solid.thirdPoint = {144.0, 146.0, 13.0};
-        solid.fourPoint = {141.0, 146.0, 13.0};
+        // SOLID traverses corners in 1-2-4-3 order, unlike 3DFACE.
+        solid.thirdPoint = {141.0, 146.0, 13.0};
+        solid.fourPoint = {144.0, 146.0, 13.0};
         wroteSolid_ = writer_->writeSolid(&solid) && solid.handle != 0u;
 
         // A tilted planar face checks actual 3D surface transport through

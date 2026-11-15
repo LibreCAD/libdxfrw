@@ -374,6 +374,7 @@ if(DEFINED IMPORT_CHECK_MODE AND IMPORT_CHECK_MODE STREQUAL "legacy_polyface")
             "\"operation\": \"${OPERATION}\""
             "\"importer\": \"legacy-python\""
             "\"facets\": 2"
+            "\"surfaceCases\": 2"
             "\"converterSha256\": \"${_converter_sha256}\""
             "\"bounds\": [121.0, 122.0, 1.0, 124.0, 126.0, 8.0]")
         string(FIND "${_freecad_stdout}" "${_expected}" _found)

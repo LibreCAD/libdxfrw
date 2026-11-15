@@ -97,5 +97,6 @@
     "The other primitive checks do not qualify general surface, mesh, or ACIS support.",
     "No support claim is promoted."
   ],
-  "nextReadyPacket": "Keep SOLID, 3DFACE, and POLYFACE surface claims unqualified for this FreeCAD route. Do not alter conforming DXF serialization to accommodate this importer. Continue with other consumers or a separately qualified importer route, and keep native Linux/Windows and P7 modeler gates open."
+  "nextReadyPacket": "Keep SOLID, 3DFACE, and POLYFACE surface claims unqualified for this FreeCAD route. Do not alter conforming DXF serialization to accommodate this importer. Continue with other consumers or a separately qualified importer route, and keep native Linux/Windows and P7 modeler gates open.",
+  "laterClarification": "The original generated SOLID corner order was self-crossing under the SOLID 1-2-4-3 perimeter convention; the previous observation remains valid only as the default importer reporting that record unsupported, not as evidence of a valid intended rectangle. The generator now uses the corrected order and explicit millimetres. See p8-freecad-legacy-surfaces-generated-2026-11-15.json."
 }
