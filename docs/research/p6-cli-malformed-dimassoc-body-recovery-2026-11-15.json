@@ -1,0 +1,41 @@
+{
+  "title": "Generated DIMASSOC body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_DIMASSOC_BODY_RECOVERY_PASS",
+  "scope": "Malformed DIMASSOC OBJECTS-body recovery and CLI disposition at revisions where the generated body contains a parser-failing one-bit mutation.",
+  "selection": {
+    "source": "P6-F typed OBJECTS parser and writer inventory",
+    "reason": "DIMASSOC has a typed AC1021+ parser and writer. A zero-associativity profile isolates recovery without claiming a dimension target or associative relationship."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the in-tree dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-dimassoc-body-source",
+    "profile": "One DIMASSOC with no OsnapPointRef entries, a null dimension pointer, and a following LINE sentinel.",
+    "mutation": "The generator searches the bounded body for a one-bit mutation rejected by DRW_DimensionAssociation::parseDwg while preserving the common OBJECTS prologue and handle."
+  },
+  "revision_results": {
+    "AC1021": {"controls": 5, "output_revision": "AC1021"},
+    "AC1024": {"controls": 0, "status": "excluded; no one-bit parser-failing mutation was found in the bounded generated body"},
+    "AC1027": {"controls": 3, "output": "strict and partial output refused by the existing source-reference gate"},
+    "AC1032": {"controls": 5, "output_revision": "AC1032"}
+  },
+  "assertions": [
+    "At AC1021, AC1027, and AC1032, the generated source continues through the following LINE and reports one failed OBJECTS frame, zero entity parse failures, and balanced source/published/failed frame accounting.",
+    "At AC1021 and AC1032, strict ASCII/Binary conversion refuses atomically and explicit-partial ASCII/Binary output passes fresh DXF readback with the LINE retained.",
+    "At AC1027, strict and explicit-partial output preserve the destination and refuse at the existing source-reference gate."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2 passed.",
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed before the final receipt and plan edits.",
+    "diff_check": "git diff --check passed before the final receipt and plan edits.",
+    "targeted": "ctest --test-dir build-gcc -V -R '^dwg2dxf_cli_dimassoc_recovery$' passed 1/1 in 0.45 seconds and reported 13 controls.",
+    "aggregate": "The longer dwg2dxf_cli_partial_read_disposition aggregate was not rerun for this isolated selector slice."
+  },
+  "limits": [
+    "Generated parser recovery and CLI disposition only; no DIMASSOC-to-DIMENSION relationship, OsnapPointRef semantics, dependency closure, producer prevalence, or native associativity is qualified.",
+    "AC1024 is excluded because its bounded source body yielded no parser-failing one-bit mutation.",
+    "AC1027 output remains refused by the existing source-reference gate.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

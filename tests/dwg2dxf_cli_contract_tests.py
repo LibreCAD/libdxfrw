@@ -2668,6 +2668,18 @@ def check_malformed_evaluationgraph_body(converter, root, writer):
         "--generate-cli-malformed-evaluationgraph-body-source", profiles)
 
 
+def check_malformed_dimassoc_body(converter, root, writer):
+    profiles = {
+        "AC1021": "2007",
+        # The generated AC1024 bounded body has no one-bit parser-failing mutation.
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "DIMASSOC",
+        "--generate-cli-malformed-dimassoc-body-source", profiles)
+
+
 def check_malformed_rendersettings_bodies(converter, root, writer):
     all_profiles = {
         "AC1015": "2007",
@@ -3903,6 +3915,8 @@ def main():
                         help="run only generated FIELDLIST recovery controls")
     parser.add_argument("--evaluationgraph-recovery-only", action="store_true",
                         help="run only generated evaluation-graph recovery controls")
+    parser.add_argument("--dimassoc-recovery-only", action="store_true",
+                        help="run only generated DIMASSOC recovery controls")
     parser.add_argument("--source-disposition-only", action="store_true",
                         help="run only CLI repair/skip/mask preflight projections")
     parser.add_argument("--historical-ac1021-only", action="store_true",
@@ -4087,6 +4101,11 @@ def main():
             checked = check_malformed_evaluationgraph_body(
                 converter, root, args.writer)
             print(f"CLI evaluation-graph recovery: PASS ({checked} controls)")
+            return
+        if args.dimassoc_recovery_only:
+            checked = check_malformed_dimassoc_body(
+                converter, root, args.writer)
+            print(f"CLI DIMASSOC recovery: PASS ({checked} controls)")
             return
         if args.partial_read_only:
             checked = check_partial_dwg_read_cli(converter, root, args.writer)
