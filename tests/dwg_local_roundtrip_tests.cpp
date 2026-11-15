@@ -28526,6 +28526,11 @@ public:
     using DRW_SunStudy::parseDwg;
 };
 
+class SunBodyProbe final : public DRW_Sun {
+public:
+    using DRW_Sun::parseDwg;
+};
+
 class NavisworksModelDefBodyProbe final : public DRW_NavisworksModelDef {
 public:
     using DRW_NavisworksModelDef::parseDwg;
@@ -28995,6 +29000,20 @@ public:
                 : DRW_PointCloudDef::Reactor;
             pointCloudDefinition_.m_classVersion = 2;
         }
+        if (kind_ == 61) {
+            sun_.handle = 0x700u;
+            sun_.m_classVersion = 2;
+            sun_.m_isOn = true;
+            sun_.m_color = 7;
+            sun_.m_intensity = 1.25;
+            sun_.m_hasShadow = true;
+            sun_.m_julianDay = 2450000;
+            sun_.m_milliseconds = 3600000;
+            sun_.m_isDaylightSavings = true;
+            sun_.m_shadowType = 1;
+            sun_.m_shadowMapSize = 256;
+            sun_.m_shadowSoftness = 10;
+        }
         if (kind_ == 50) {
             mleaderStyle_.handle = 0x700u;
             mleaderStyle_.name = "RECOVERY_MLEADERSTYLE";
@@ -29267,6 +29286,10 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerPointCloudDefObjectClass(
                       &pointCloudDefinition_) && wrote;
+        } else if (kind_ == 61) {
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerSunObjectClass(&sun_) && wrote;
         } else if (kind_ == 50) {
             wrote = hasMalformedObject_
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
@@ -29316,7 +29339,7 @@ public:
                    && kind_ != 41 && kind_ != 42 && kind_ != 43
                    && kind_ != 44 && kind_ != 45 && kind_ != 46
                    && kind_ != 47 && kind_ != 48 && kind_ != 50
-                   && kind_ != 59 && kind_ != 60) {
+                   && kind_ != 59 && kind_ != 60 && kind_ != 61) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -29443,6 +29466,10 @@ public:
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writePointCloudDef(
                                &pointCloudDefinition_)) && wrote;
+        } else if (kind_ == 61) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeSun(&sun_)) && wrote;
         } else if (kind_ == 50) {
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
@@ -29578,6 +29605,7 @@ private:
     DRW_Section sectionSettings_;
     DRW_PointCloudColorMap pointCloudColorMap_;
     DRW_PointCloudDef pointCloudDefinition_;
+    DRW_Sun sun_;
     DRW_MLeaderStyle mleaderStyle_;
     DRW_SpatialFilter spatialFilter_;
     DRW_IDBuffer idBuffer_;
@@ -43050,6 +43078,8 @@ int main(int argc, char** argv) {
             || std::string(argv[1])
                    == "--generate-cli-malformed-pointcloud-reactor-ex-body-source"
             || std::string(argv[1])
+                   == "--generate-cli-malformed-sun-body-source"
+            || std::string(argv[1])
                    == "--generate-cli-malformed-mleaderstyle-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-spatial-filter-body-source"
@@ -43159,6 +43189,8 @@ int main(int argc, char** argv) {
         const bool malformedPointCloudReactorExBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-pointcloud-reactor-ex-body-source";
+        const bool malformedSunBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-sun-body-source";
         const bool malformedMLeaderStyleBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-mleaderstyle-body-source";
@@ -43275,6 +43307,7 @@ int main(int argc, char** argv) {
             || malformedPointCloudDefinitionExBodySource
             || malformedPointCloudReactorBodySource
             || malformedPointCloudReactorExBodySource
+            || malformedSunBodySource
             || malformedMLeaderStyleBodySource
             || malformedSpatialFilterBodySource
             || malformedIdBufferBodySource
@@ -43355,6 +43388,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 59
                                                                                                         : malformedPointCloudReactorExBodySource
                                                                                                             ? 60
+                                                                                                        : malformedSunBodySource
+                                                                                                            ? 61
                                                                                                         : malformedMLeaderStyleBodySource
                                                                                                             ? 50
                                                                                                         : malformedSpatialFilterBodySource
@@ -43479,6 +43514,7 @@ int main(int argc, char** argv) {
                  || malformedPointCloudDefinitionExBodySource
                  || malformedPointCloudReactorBodySource
                  || malformedPointCloudReactorExBodySource
+                 || malformedSunBodySource
                  || malformedMLeaderStyleBodySource
                  || malformedSpatialFilterBodySource
                  || malformedIdBufferBodySource
@@ -43744,6 +43780,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedSunBodySource) {
+                            SunBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         MLineStyleBodyProbe typed;
                         return typed.parseDwg(version, &typedBuffer,
                                               malformed.m_bodyBitSize);
@@ -43854,6 +43895,7 @@ int main(int argc, char** argv) {
                   || malformedPointCloudDefinitionExBodySource
                   || malformedPointCloudReactorBodySource
                   || malformedPointCloudReactorExBodySource
+                  || malformedSunBodySource
                   || malformedMLeaderStyleBodySource
                   || malformedSpatialFilterBodySource
                   || malformedIdBufferBodySource
@@ -43931,6 +43973,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "POINTCLOUDDEFREACTOR"
                                                                                                                 : malformedPointCloudReactorExBodySource
                                                                                                                     ? "POINTCLOUDDEFREACTOREX"
+                                                                                                                : malformedSunBodySource
+                                                                                                                    ? "SUN"
                                                                                                                 : malformedMLeaderStyleBodySource
                                                                                                                     ? "MLEADERSTYLE"
                                                                                                                 : malformedSpatialFilterBodySource
@@ -44018,6 +44062,8 @@ int main(int argc, char** argv) {
                                                                                         ? 59
                                                                                     : malformedPointCloudReactorExBodySource
                                                                                         ? 60
+                                                                                    : malformedSunBodySource
+                                                                                        ? 61
                                                                                     : malformedMLeaderStyleBodySource
                                                                                         ? 50
                                                                                     : malformedSpatialFilterBodySource

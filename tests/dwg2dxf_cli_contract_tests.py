@@ -2383,6 +2383,18 @@ def check_malformed_sunstudy_body(converter, root, writer):
         "--generate-cli-malformed-sunstudy-body-source", profiles)
 
 
+def check_malformed_sun_body(converter, root, writer):
+    profiles = {
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    return check_malformed_object_body_family(
+        converter, root, writer, "SUN",
+        "--generate-cli-malformed-sun-body-source", profiles)
+
+
 def check_malformed_navisworks_modeldef_body(converter, root, writer):
     profiles = {
         "AC1015": "2007",
@@ -3843,6 +3855,8 @@ def main():
                         help="run only generated skipped-record disposition controls")
     parser.add_argument("--sunstudy-observation-only", action="store_true",
                         help="run only explicit DXF source observation CLI controls")
+    parser.add_argument("--sun-only", action="store_true",
+                        help="run only generated SUN recovery controls")
     args = parser.parse_args()
     converter = args.converter.resolve(strict=True)
     # Child processes run in a temporary directory, so resolve a caller's
@@ -3858,6 +3872,10 @@ def main():
         if args.sunstudy_observation_only:
             checked = check_sunstudy_observation_cli(converter, root)
             print(f"SUNSTUDY observation CLI: PASS ({checked} route/refusal controls)")
+            return
+        if args.sun_only:
+            checked = check_malformed_sun_body(converter, root, args.writer)
+            print(f"CLI SUN recovery: PASS ({checked} controls)")
             return
         if args.options_only:
             checked = check_options(converter, root)
