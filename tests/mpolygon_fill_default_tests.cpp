@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Generated DXF controls for MPOLYGON's omitted solid-fill flag.
 #include "lc3_compat_check.cpp"
+#include "intern/dxfreader.h"
 #include "intern/dxfwriter.h"
 
 #include <chrono>
@@ -24,11 +25,87 @@ public:
 class TypedConsumer final : public LC3CompatCheck {
 public:
     void addMPolygon(const DRW_MPolygon* polygon) override {
-        if (polygon != nullptr)
+        if (polygon != nullptr) {
             fills.push_back(polygon->solid);
+            if (polygon->looplist.size() == 1 && polygon->looplist[0]
+                && polygon->looplist[0]->objlist.size() == 1) {
+                const auto* polyline = dynamic_cast<const DRW_LWPolyline*>(
+                    polygon->looplist[0]->objlist[0].get());
+                geometryOk = polyline && (polyline->flags & 1) != 0
+                    && polyline->vertlist.size() == 3
+                    && polyline->vertlist[0]
+                    && polyline->vertlist[0]->bulge == 0.5;
+            }
+        }
     }
     std::vector<int> fills;
+    bool geometryOk = false;
 };
+
+class PolygonEmitter final : public LC3CompatCheck {
+public:
+    void writeEntities() override {
+        DRW_MPolygon polygon;
+        polygon.dxfVersion = 1;
+        polygon.solid = 1;
+        polygon.name = "SOLID";
+        auto loop = std::make_shared<DRW_HatchLoop>(3);
+        auto polyline = std::make_shared<DRW_LWPolyline>();
+        polyline->flags = 1;
+        for (int i = 0; i < 3; ++i) {
+            auto vertex = std::make_shared<DRW_Vertex2D>();
+            vertex->x = i == 1 ? 1.0 : 0.0;
+            vertex->y = i == 2 ? 1.0 : 0.0;
+            vertex->bulge = i == 0 ? 0.5 : 0.0;
+            polyline->vertlist.push_back(vertex);
+        }
+        loop->objlist.push_back(polyline);
+        polygon.looplist.push_back(loop);
+        accepted = writer->writeMPolygon(&polygon);
+    }
+    dxfRW* writer = nullptr;
+    bool accepted = false;
+};
+
+bool writerFlagOrder(bool binary) {
+    const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-mpolygon-order-" + std::to_string(nonce) + ".dxf");
+    PolygonEmitter emitter;
+    dxfRW output(path.string().c_str());
+    emitter.writer = &output;
+    bool ok = output.write(&emitter, DRW::AC1021, binary) && emitter.accepted;
+    std::ifstream input(path, std::ios::binary);
+    if (binary) input.seekg(22);
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(std::make_unique<dxfReaderBinary>(&input))
+        : std::unique_ptr<dxfReader>(std::make_unique<dxfReaderAscii>(&input));
+    reader->setVersion("AC1021", true);
+    bool inPolygon = false;
+    bool inPath = false;
+    std::vector<int> flags;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) inPolygon = reader->getString() == "MPOLYGON";
+        if (!inPolygon) continue;
+        if (code == 92) inPath = true;
+        else if (inPath && code == 93) break;
+        else if (inPath && (code == 73 || code == 72)) {
+            flags.push_back(code);
+            ok = ok && reader->getInt32() == 1;
+        }
+    }
+    ok = ok && flags == std::vector<int>({73, 72});
+    input.close();
+    TypedConsumer typed;
+    dxfRW verify(path.string().c_str());
+    ok = verify.read(&typed, false) && typed.fills == std::vector<int>({1})
+        && typed.geometryOk && ok;
+    std::error_code ignored;
+    std::filesystem::remove(path, ignored);
+    if (!ok) std::cerr << (binary ? "binary" : "ASCII") << " MPOLYGON flag order failed\n";
+    return ok;
+}
 
 bool emitDrawing(std::ostream& stream, bool binary, bool invalidAnnotation) {
     if (binary) {
@@ -104,5 +181,6 @@ int main() {
     // DXF input without group 71 uses the MPOLYGON pattern default.
     if (DRW_Hatch{}.solid != 1 || DRW_MPolygon{}.solid != 1) return 1;
     return run(false, false) && run(true, false)
-        && run(false, true) && run(true, true) ? 0 : 1;
+        && run(false, true) && run(true, true)
+        && writerFlagOrder(false) && writerFlagOrder(true) ? 0 : 1;
 }

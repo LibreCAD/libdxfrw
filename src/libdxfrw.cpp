@@ -11099,8 +11099,8 @@ bool dxfRW::writeMPolygon(DRW_MPolygon *ent){
                 const bool hasBulge = pl && std::any_of(
                     pl->vertlist.begin(), pl->vertlist.end(),
                     [](const std::shared_ptr<DRW_Vertex2D>& v){ return v && v->bulge != 0.0; });
-                writer->writeInt16(72, hasBulge ? 1 : 0);
                 writer->writeInt16(73, pl ? (pl->flags & 1) : 0);
+                writer->writeInt16(72, hasBulge ? 1 : 0);
                 const int nv = pl ? static_cast<int>(pl->vertlist.size()) : 0;
                 writer->writeInt32(93, nv);
                 for (int v = 0; v < nv; ++v) {

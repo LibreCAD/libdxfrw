@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **467 completed implementation and qualification slices** and **32 remaining
+The plan records **468 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`467 / (467 + 32) = 93.6%`. The previous 28-package denominator was stale; a recount
+`468 / (468 + 32) = 93.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -1194,6 +1194,14 @@ patches against the current consumer head and repeat in a clean upstream-linked
 build. Qualify LibreCAD_3, ABI and required platforms separately; strict source
 admission remains closed for `DeclaredUtf8`. See the [consumer receipt](docs/research/p8-librecad-consumer-compat-patch-2026-11-15.json)
 and [test target receipt](docs/research/p8-librecad-upstream-test-target-api-2026-11-15.json).
+
+MPOLYGON polyline output now places the closed flag before the bulge flag,
+matching ezdxf and the LibreCAD bundled writer. Generated ASCII/Binary output
+passes local readback, and ezdxf 1.4.5 independently reads the closed path and
+bulge in both encodings. A refreshed full LibreCAD test-target build is in
+progress; the earlier 5/11 result remains the last complete comparison. Group
+75/97 behavior, edge-path projection, and native interoperability remain open
+([receipt](docs/research/p8-mpolygon-polyline-flag-order-2026-11-15.json)).
 
 The DIMASSOC comparison exposed a separate loss risk: repeated singleton body
 groups 330, 90, 70, or 71 could overwrite earlier data and be emitted as a
