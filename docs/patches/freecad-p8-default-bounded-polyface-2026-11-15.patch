@@ -1,0 +1,576 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+index 0017e7d..22d66e3 100644
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -1314,6 +1314,44 @@ void ImpExpDxfRead::OnReadText(
+     Collector->AddObject((FeaturePythonBuilder)makeText);
+ }
+ 
++void ImpExpDxfRead::OnReadPolyface(
++    const std::vector<Base::Vector3d>& vertices,
++    const std::vector<std::vector<std::size_t>>& faces
++)
++{
++    if (shouldSkipEntity()) {
++        return;
++    }
++    try {
++        BRep_Builder builder;
++        TopoDS_Compound compound;
++        builder.MakeCompound(compound);
++        for (const auto& face : faces) {
++            BRepBuilderAPI_MakeWire wire;
++            for (std::size_t i = 0; i < face.size(); ++i) {
++                const gp_Pnt first = makePoint(vertices[face[i]]);
++                const gp_Pnt second = makePoint(vertices[face[(i + 1) % face.size()]]);
++                wire.Add(BRepBuilderAPI_MakeEdge(first, second).Edge());
++            }
++            if (!wire.IsDone()) {
++                UnsupportedFeature("POLYFACE nonplanar or invalid geometry");
++                return;
++            }
++            BRepBuilderAPI_MakeFace result(wire.Wire(), true);
++            if (!result.IsDone() || !BRepCheck_Analyzer(result.Face()).IsValid()) {
++                UnsupportedFeature("POLYFACE nonplanar or invalid geometry");
++                return;
++            }
++            builder.Add(compound, result.Face());
++        }
++        Collector->AddObject(compound, "Polyface");
++        return;
++    }
++    catch (const Standard_Failure&) {
++    }
++    UnsupportedFeature("POLYFACE nonplanar or invalid geometry");
++}
++
+ void ImpExpDxfRead::OnRead3dFace(
+     const Base::Vector3d& first,
+     const Base::Vector3d& second,
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.h b/src/Mod/Import/App/dxf/ImpExpDxf.h
+index 6629320..66e56e7 100644
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.h
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.h
+@@ -76,6 +76,10 @@ public:
+         const std::string& text,
+         double rotation
+     ) override;
++    void OnReadPolyface(
++        const std::vector<Base::Vector3d>& vertices,
++        const std::vector<std::vector<std::size_t>>& faces
++    ) override;
+     void OnRead3dFace(
+         const Base::Vector3d& first,
+         const Base::Vector3d& second,
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+index 0eddc13..643dcd8 100644
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -5,6 +5,7 @@
+ 
+ 
+ #include <cmath>
++#include <cctype>
+ #include <fstream>
+ #include <iomanip>
+ #include <iostream>
+@@ -2397,6 +2398,202 @@ bool CDxfRead::ReadLwPolyLine()
+     return true;
+ }
+ 
++void CDxfRead::ProcessPolyfaceInteger(CDxfRead* object, void* target)
++{
++    auto& destination = *static_cast<int*>(target);
++    if (destination != -1) {
++        destination = -2;
++        return;
++    }
++    std::istringstream stream(object->m_record_data);
++    stream.imbue(std::locale("C"));
++    int value = 0;
++    if (!(stream >> value) || !(stream >> std::ws).eof() || value < 0 || value > 32767) {
++        destination = -2;
++        return;
++    }
++    destination = value;
++}
++
++bool CDxfRead::ReadPolyface(
++    bool profileValid, const std::string& parentHandle, const std::string& containerHandle
++)
++{
++    // Handles are optional in this geometry profile, but if supplied they
++    // must be valid and unique; owner spelling is compared canonically.
++    const auto canonicalHandle = [](const std::string& raw) {
++        std::string result;
++        if (raw.empty() || raw.size() > 16) return result;
++        for (unsigned char c : raw) {
++            if (!std::isxdigit(c)) return std::string();
++            result.push_back(static_cast<char>(std::toupper(c)));
++        }
++        const auto first = result.find_first_not_of('0');
++        return first == std::string::npos ? std::string() : result.substr(first);
++    };
++    const std::string canonicalParent = canonicalHandle(parentHandle);
++    const std::string canonicalContainer = canonicalHandle(containerHandle);
++    if ((!parentHandle.empty() && canonicalParent.empty())
++        || (!containerHandle.empty() && canonicalContainer.empty())) profileValid = false;
++    std::set<std::string> handles;
++    if (!canonicalParent.empty()) handles.insert(canonicalParent);
++    std::vector<Base::Vector3d> vertices;
++    std::vector<std::vector<std::size_t>> faces;
++    const double absent = std::numeric_limits<double>::quiet_NaN();
++    constexpr std::size_t recordLimit = 1000000;
++    std::size_t recordCount = 0;
++
++    while (get_next_record() && m_record_type == eObjectType && IsObjectName("VERTEX")) {
++        if (++recordCount > recordLimit) {
++            profileValid = false;
++        }
++        Base::Vector3d point(absent, absent, absent);
++        int vertexFlags = -1;
++        int indices[4] = {-1, -1, -1, -1};
++        std::string layer = "0";
++        std::string owner;
++        bool layerSeen = false;
++        bool ownerSeen = false;
++        bool handleSeen = false;
++        InitializeAttributes();
++        m_coordinate_attributes.emplace(10, std::pair(&Process3dFaceDouble, &point.x));
++        m_coordinate_attributes.emplace(20, std::pair(&Process3dFaceDouble, &point.y));
++        m_coordinate_attributes.emplace(30, std::pair(&Process3dFaceDouble, &point.z));
++        m_coordinate_attributes.emplace(70, std::pair(&ProcessPolyfaceInteger, &vertexFlags));
++        for (int i = 0; i < 4; ++i) {
++            m_coordinate_attributes.emplace(71 + i, std::pair(&ProcessPolyfaceInteger, &indices[i]));
++        }
++        while (get_next_record() && m_record_type != eObjectType) {
++            switch (static_cast<int>(m_record_type)) {
++                case 8:
++                    if (layerSeen) profileValid = false;
++                    layerSeen = true;
++                    layer = m_record_data;
++                    break;
++                case 330:
++                    if (ownerSeen) profileValid = false;
++                    ownerSeen = true;
++                    owner = m_record_data;
++                    break;
++                case 5: {
++                    const std::string handle = canonicalHandle(m_record_data);
++                    if (handleSeen || handle.empty() || !handles.insert(handle).second) {
++                        profileValid = false;
++                    }
++                    handleSeen = true;
++                    break;
++                }
++                case 100:
++                    if (m_record_data != "AcDbEntity" && m_record_data != "AcDbVertex"
++                        && m_record_data != "AcDbPolyFaceMeshVertex"
++                        && m_record_data != "AcDbFaceRecord") {
++                        profileValid = false;
++                    }
++                    break;
++                case 10: case 20: case 30: case 70:
++                case 71: case 72: case 73: case 74:
++                    break;
++                default:
++                    profileValid = false;
++                    break;
++            }
++            ProcessAttribute();
++        }
++        repeat_last_record();
++        const std::string canonicalOwner = canonicalHandle(owner);
++        if (layer != "0" || (ownerSeen && (canonicalOwner.empty()
++            || (canonicalOwner != canonicalParent && canonicalOwner != canonicalContainer)))) {
++            profileValid = false;
++        }
++        if (std::isnan(point.z)) point.z = 0.0;
++        if (vertexFlags == 192) {
++            if (!std::isfinite(point.x) || !std::isfinite(point.y) || !std::isfinite(point.z)) {
++                profileValid = false;
++            }
++            for (int index : indices) {
++                if (index != -1 && index != 0) profileValid = false;
++            }
++            if (profileValid) vertices.push_back(point);
++        }
++        else if (vertexFlags == 128) {
++            // Face-record coordinates are unused, but unexpected or invalid
++            // values are not admitted by this bounded profile.
++            if ((!std::isnan(point.x) && point.x != 0.0)
++                || (!std::isnan(point.y) && point.y != 0.0) || point.z != 0.0) {
++                profileValid = false;
++            }
++            std::vector<std::size_t> face;
++            bool ended = false;
++            for (int index : indices) {
++                if (index == -2) profileValid = false;
++                if (index <= 0) ended = true;
++                else if (ended) profileValid = false;
++                else face.push_back(static_cast<std::size_t>(index - 1));
++            }
++            if (face.size() < 3 || face.size() > 4) profileValid = false;
++            if (profileValid) faces.push_back(std::move(face));
++        }
++        else {
++            profileValid = false;
++        }
++    }
++    if (!IsObjectName("SEQEND")) {
++        repeat_last_record();
++        profileValid = false;
++    }
++    else {
++        bool seqendOwnerSeen = false;
++        bool seqendLayerSeen = false;
++        bool seqendHandleSeen = false;
++        while (get_next_record() && m_record_type != eObjectType) {
++            switch (static_cast<int>(m_record_type)) {
++                case 8:
++                    if (seqendLayerSeen || m_record_data != "0") profileValid = false;
++                    seqendLayerSeen = true;
++                    break;
++                case 330: {
++                    const std::string owner = canonicalHandle(m_record_data);
++                    if (seqendOwnerSeen || owner.empty()
++                        || (owner != canonicalParent && owner != canonicalContainer)) {
++                        profileValid = false;
++                    }
++                    seqendOwnerSeen = true;
++                    break;
++                }
++                case 100:
++                    if (m_record_data != "AcDbEntity") profileValid = false;
++                    break;
++                case 5: {
++                    const std::string handle = canonicalHandle(m_record_data);
++                    if (seqendHandleSeen || handle.empty() || !handles.insert(handle).second) {
++                        profileValid = false;
++                    }
++                    seqendHandleSeen = true;
++                    break;
++                }
++                default:
++                    profileValid = false;
++                    break;
++            }
++        }
++        repeat_last_record();
++    }
++    for (const auto& face : faces) {
++        for (std::size_t i = 0; i < face.size(); ++i) {
++            if (face[i] >= vertices.size()) profileValid = false;
++            for (std::size_t j = 0; j < i; ++j) {
++                if (face[i] == face[j]) profileValid = false;
++            }
++        }
++    }
++    if (!profileValid || vertices.empty() || faces.empty()) {
++        UnsupportedFeature("POLYFACE unsupported or invalid profile");
++        return true;
++    }
++    OnReadPolyface(vertices, faces);
++    return true;
++}
++
+ bool CDxfRead::ReadPolyLine()
+ {
+     VertexInfo currentVertex;
+@@ -2404,22 +2601,90 @@ bool CDxfRead::ReadPolyLine()
+     int flags = 0;
+ 
+     SetupValueAttribute(eInteger1, flags);
+-    ProcessAllEntityAttributes();
++    bool polyfaceProfile = true;
++    bool layerSeen = false;
++    bool flagsSeen = false;
++    bool ownerSeen = false;
++    bool handleSeen = false;
++    std::string polyfaceLayer = "0";
++    std::string containerHandle;
++    while (get_next_record() && m_record_type != eObjectType) {
++        switch (static_cast<int>(m_record_type)) {
++            case 8:
++                if (layerSeen) polyfaceProfile = false;
++                layerSeen = true;
++                polyfaceLayer = m_record_data;
++                break;
++            case 70: {
++                if (flagsSeen) polyfaceProfile = false;
++                flagsSeen = true;
++                std::istringstream stream(m_record_data);
++                stream.imbue(std::locale("C"));
++                int value = 0;
++                if (!(stream >> value) || !(stream >> std::ws).eof() || value < 0) {
++                    polyfaceProfile = false;
++                }
++                break;
++            }
++            case 5:
++                if (handleSeen || m_record_data.empty()) polyfaceProfile = false;
++                handleSeen = true;
++                break;
++            case 10: case 20: case 30: {
++                std::istringstream stream(m_record_data);
++                stream.imbue(std::locale("C"));
++                double value = 0.0;
++                if (!(stream >> value) || !(stream >> std::ws).eof() || value != 0.0) {
++                    polyfaceProfile = false;
++                }
++                break;
++            }
++            case 330:
++                if (ownerSeen) polyfaceProfile = false;
++                ownerSeen = true;
++                containerHandle = m_record_data;
++                if (containerHandle.empty()) polyfaceProfile = false;
++                break;
++            case 100:
++                if (m_record_data != "AcDbEntity" && m_record_data != "AcDbPolyFaceMesh") {
++                    polyfaceProfile = false;
++                }
++                break;
++            case 66: case 71: case 72:
++                break;
++            default:
++                polyfaceProfile = false;
++                break;
++        }
++        ProcessAttribute();
++    }
++    repeat_last_record();
++    ResolveEntityAttributes();
++    polyfaceProfile = polyfaceProfile && polyfaceLayer == "0";
++    const std::string parentHandle = m_current_entity_handle;
+     // VERTEX records also use group 70; preserve the parent flags before
+     // processing those records into the existing attribute map.
+     const int polylineFlags = flags;
+     const bool isMesh = (polylineFlags & (16 | 64)) != 0;
++    if ((polylineFlags & 64) != 0 && (polylineFlags & 16) == 0) {
++        return ReadPolyface(polyfaceProfile && polylineFlags == 64, parentHandle, containerHandle);
++    }
+ 
+     // We are now followed by a series of VERTEX entities followed by ENDSEQ.
+     // To avoid eating and discarding the rest of the entieies if ENDSEQ is missing,
+     // we quit on any unknown type-0 record.
+     Setup3DVectorAttribute(ePrimaryPoint, currentVertex.location);
+     SetupValueAttribute(eFloat3, currentVertex.bulge);
++    bool unexpectedMeshVertex = false;
+     while (get_next_record() && m_record_type == eObjectType && IsObjectName("VERTEX")) {
+         // Set vertex defaults
+         currentVertex.location = Base::Vector3d();
+         currentVertex.bulge = 0.0;
++        flags = 0;
+         ProcessAllEntityAttributes();
++        if (!isMesh && (flags & (64 | 128)) != 0) {
++            unexpectedMeshVertex = true;
++        }
+         if (!isMesh) {
+             vertices.push_back(currentVertex);
+         }
+@@ -2429,6 +2694,10 @@ bool CDxfRead::ReadPolyLine()
+         repeat_last_record();
+     }
+ 
++    if (unexpectedMeshVertex) {
++        UnsupportedFeature("POLYLINE mesh vertex records without mesh header");
++        return true;
++    }
+     if (isMesh) {
+         // Mesh face records are not polyline vertices. Do not fabricate a wire.
+         UnsupportedFeature("POLYLINE polygon or polyface mesh");
+diff --git a/src/Mod/Import/App/dxf/dxf.h b/src/Mod/Import/App/dxf/dxf.h
+index 2da4639..cf3eb7c 100644
+--- a/src/Mod/Import/App/dxf/dxf.h
++++ b/src/Mod/Import/App/dxf/dxf.h
+@@ -658,6 +658,9 @@ private:
+     bool ReadSpline();
+     bool ReadLwPolyLine();
+     bool ReadPolyLine();
++    bool ReadPolyface(
++        bool profileValid, const std::string& parentHandle, const std::string& containerHandle
++    );
+ 
+     void OnReadArc(
+         double start_angle,
+@@ -697,6 +700,7 @@ private:
+     static void ProcessScaledDouble(CDxfRead* object, void* target);
+     static void Process3dFaceDouble(CDxfRead* object, void* target);
+     static void Process3dFaceFlags(CDxfRead* object, void* target);
++    static void ProcessPolyfaceInteger(CDxfRead* object, void* target);
+     static void ProcessScaledDoubleIntoList(CDxfRead* object, void* target);
+     static void ProcessStdString(CDxfRead* object, void* target);
+     static void ProcessLayerReference(CDxfRead* object, void* target);
+@@ -950,6 +954,11 @@ public:
+         const double /*rotation*/
+     )
+     {}
++    virtual void OnReadPolyface(
++        const std::vector<Base::Vector3d>& /*vertices*/,
++        const std::vector<std::vector<std::size_t>>& /*faces*/
++    )
++    {}
+     virtual void OnRead3dFace(
+         const Base::Vector3d& /*first*/,
+         const Base::Vector3d& /*second*/,
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index 6312676..c8d0bf7 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -268,9 +268,154 @@ class TestImportDXF(TestImportBase):
+                                  [(20, 20, 0), (21, 20, 0)])
+                 if mesh:
+                     self.assertEqual(wires, [])
+-                    self.assertIn("POLYLINE polygon or polyface mesh", stats["unsupportedFeatures"])
++                    meshes = [obj for obj in objects if obj.Name.startswith("Polyface")]
++                    if name == "polyface":
++                        self.assertEqual(len(meshes), 1)
++                        self.assertEqual(len(meshes[0].Shape.Faces), 1)
++                        self.assertEqual(stats["unsupportedFeatures"], {})
++                    else:
++                        self.assertEqual(meshes, [])
++                        reason = ("POLYFACE unsupported or invalid profile" if name == "meshmissingseqend"
++                                  else "POLYLINE polygon or polyface mesh")
++                        self.assertIn(reason, stats["unsupportedFeatures"])
+                 else:
+                     self.assertEqual(len(wires), 1)
+                     self.assertEqual(len(wires[0].Shape.Edges), edge_count)
+                     self.assertEqual(wires[0].Shape.isClosed(), edge_count == 4)
+                     self.assertEqual(stats["unsupportedFeatures"], {})
++
++    def test_bounded_polyface_geometry_and_rejections(self):
++        """Read bounded POLYFACE facets without losing unsupported semantics."""
++        coords = [(1, 1, 1), (4, 1, 2), (4, 5, 3), (1, 5, 2)]
++        cases = [
++            ("quad_parent_owner", True, 1), ("quad_container_owner", True, 1),
++            ("quad_no_owner", True, 1), ("canonical_owner", True, 1), ("interleaved", True, 1),
++            ("triangles", True, 2), ("bad_index", False, 0),
++            ("hidden_edge", False, 0), ("repeated_index", False, 0),
++            ("nonplanar", False, 0), ("nonplanar_second", False, 0), ("face_color", False, 0),
++            ("face_layer", False, 0), ("parent_color", False, 0),
++            ("wrong_owner", False, 0), ("duplicate_x", False, 0),
++            ("duplicate_handle", False, 0), ("bad_handle", False, 0),
++            ("seqend_duplicate_handle", False, 0),
++            ("bad_index_text", False, 0), ("missing_seqend", False, 0),
++            ("seqend_wrong_owner", False, 0), ("seqend_duplicate_owner", False, 0),
++            ("seqend_style", False, 0), ("unknown_subclass", False, 0),
++            ("missing_header_flag", False, 0),
++        ]
++        for name, accepted, face_count in cases:
++            with self.subTest(profile=name):
++                tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                        (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                        (0, "SECTION"), (2, "ENTITIES"), (0, "POLYLINE"),
++                        (5, "A"), (330, "B"), (8, "0"), (66, 1)]
++                if name != "missing_header_flag":
++                    tags.append((70, 64))
++                if name == "parent_color":
++                    tags.append((62, 1))
++                owner = "B" if name == "quad_container_owner" else "A"
++                if name == "wrong_owner":
++                    owner = "C"
++                elif name == "canonical_owner":
++                    owner = "000a"
++                def vertex(i):
++                    x, y, z = coords[i]
++                    if name in ("nonplanar", "nonplanar_second") and i == 2:
++                        z += 1
++                    data = [(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, z), (70, 192)]
++                    if name != "quad_no_owner":
++                        data.insert(2, (330, owner))
++                    if name == "duplicate_handle" or (name == "seqend_duplicate_handle" and i == 0):
++                        data.append((5, "C"))
++                    if name == "bad_handle" and i == 0:
++                        data.append((5, "G"))
++                    if name == "duplicate_x" and i == 0:
++                        data.append((10, x))
++                    return data
++                def face(indices):
++                    data = [(0, "VERTEX"), (8, "OTHER" if name == "face_layer" else "0"),
++                            (10, 0), (20, 0), (30, 0), (70, 128)]
++                    if name != "quad_no_owner":
++                        data.insert(2, (330, owner))
++                    if name == "face_color":
++                        data.append((62, 1))
++                    if name == "unknown_subclass":
++                        data.append((100, "CustomFaceRecord"))
++                    data.extend((71 + i, value) for i, value in enumerate(indices))
++                    return data
++                indices = [1, 2, 3, 4]
++                if name == "bad_index": indices[3] = 99
++                if name == "hidden_edge": indices[0] = -1
++                if name == "repeated_index": indices[3] = 3
++                if name == "bad_index_text": indices[0] = "1junk"
++                tags.extend(vertex(0)); tags.extend(vertex(1))
++                if name == "interleaved": tags.extend(face(indices))
++                tags.extend(vertex(2)); tags.extend(vertex(3))
++                if name == "triangles":
++                    tags.extend(face([1, 2, 3])); tags.extend(face([1, 3, 4]))
++                elif name == "nonplanar_second":
++                    tags.extend(face([1, 2, 3])); tags.extend(face([1, 2, 3, 4]))
++                elif name != "interleaved":
++                    tags.extend(face(indices))
++                if name != "missing_seqend":
++                    tags.append((0, "SEQEND"))
++                    if name == "seqend_wrong_owner":
++                        tags.append((330, "C"))
++                    if name == "seqend_duplicate_owner":
++                        tags.extend([(330, "A"), (330, "A")])
++                    if name == "seqend_style":
++                        tags.append((62, 1))
++                    if name == "seqend_duplicate_handle":
++                        tags.append((5, "C"))
++                tags.extend([(0, "LINE"), (8, "0"), (10, 20), (20, 20), (30, 0),
++                             (11, 21), (21, 20), (31, 0), (0, "ENDSEC"), (0, "EOF")])
++                path = os.path.join(self.temp_dir, f"polyface-{name}.dxf")
++                with open(path, "w", encoding="ascii", newline="\n") as stream:
++                    stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                before = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                objects = [obj for obj in self.document.Objects
++                           if obj not in before and obj.isDerivedFrom("Part::Feature")]
++                meshes = [obj for obj in objects if obj.Name.startswith("Polyface")]
++                lines = [obj for obj in objects if obj.Name.startswith("Shape")]
++                self.assertEqual(len(lines), 1)
++                self.assertEqual(sorted((v.Point.x, v.Point.y, v.Point.z)
++                                        for v in lines[0].Shape.Vertexes),
++                                 [(20, 20, 0), (21, 20, 0)])
++                if accepted:
++                    self.assertEqual(stats["unsupportedFeatures"], {})
++                    self.assertEqual(len(meshes), 1)
++                    shape = meshes[0].Shape
++                    self.assertTrue(shape.isValid())
++                    self.assertEqual(len(shape.Faces), face_count)
++                    self.assertAlmostEqual(shape.Area, 13.0)
++                    self.assertEqual(sorted({(v.Point.x, v.Point.y, v.Point.z)
++                                             for v in shape.Vertexes}), sorted(coords))
++                else:
++                    self.assertEqual(meshes, [])
++                    self.assertTrue(stats["unsupportedFeatures"])
++
++    def test_polyface_invalid_then_valid_same_file(self):
++        """A refused mesh must not leak partial faces or stop the next entity."""
++        points = [(1, 1, 1), (4, 1, 2), (4, 5, 3), (1, 5, 2)]
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")]
++        for handle, last_index in (("A", 99), ("B", 4)):
++            tags.extend([(0, "POLYLINE"), (5, handle), (8, "0"), (66, 1), (70, 64)])
++            for x, y, z in points:
++                tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, z), (70, 192)])
++            tags.extend([(0, "VERTEX"), (8, "0"), (70, 128),
++                         (71, 1), (72, 2), (73, 3), (74, last_index), (0, "SEQEND")])
++        tags.extend([(0, "LINE"), (8, "0"), (10, 20), (20, 20), (30, 0),
++                     (11, 21), (21, 20), (31, 0), (0, "ENDSEC"), (0, "EOF")])
++        path = os.path.join(self.temp_dir, "polyface-recovery.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++        self.assertEqual(stats["entityCounts"].get("POLYLINE"), 2)
++        self.assertEqual(stats["entityCounts"].get("LINE"), 1)
++        self.assertEqual(len(stats["unsupportedFeatures"]["POLYFACE unsupported or invalid profile"]), 1)
++        meshes = [obj for obj in self.document.Objects if obj.Name.startswith("Polyface")]
++        self.assertEqual(len(meshes), 1)
++        self.assertEqual(len(meshes[0].Shape.Faces), 1)
++        self.assertAlmostEqual(meshes[0].Shape.Area, 13.0)
++        self.assertTrue(any(obj.Name.startswith("Shape") for obj in self.document.Objects))
