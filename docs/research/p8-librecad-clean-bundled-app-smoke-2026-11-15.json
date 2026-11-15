@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "baseCheck": "GitHub LibreCAD/LibreCAD master matched the pinned base on 2026-11-15.",
+  "patches": "First 13 ordered LibreCAD integration patches applied to a disposable clean checkout; the fourteenth diagnostic patch was added only after this build and smoke.",
+  "environment": "macOS 27.2.1 ARM64, Apple clang 21.0.0, CMake 4.4.5, Qt offscreen; Release build, BUILD_TESTS=OFF, bundled libdxfrw, -DCMAKE_POLICY_VERSION_MINIMUM=3.5.",
+  "result": "Clean configure and full application/plugin build succeeded. The LibreCAD application --help and dwg2dxf conversion command ran headlessly with exit code zero on the two tracked repository inputs below; each output existed, was nonempty and ended with DXF EOF. Logs contained no error, failure, warning or left-out text.",
+  "applicationSha256": "f8f398f4e12a5d77dbeec484fcc347c96ac2341ec9e62c0064dc83549969f0c1",
+  "samples": [
+    {
+      "path": "tests/samples/AC1021/lineweights.dwg",
+      "sourceSha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+      "scratchDxfSha256": "98083b2ccf6249e69c6845181e63b5616180a2ceb295f0a3664114ccfb253eb1"
+    },
+    {
+      "path": "tests/samples/AC1024/title_block-iso.dwg",
+      "sourceSha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+      "scratchDxfSha256": "e7a8778b764a4953f453f0a8648e9649c2de1dd0f0a042a79939e6bf766070f5"
+    }
+  ],
+  "limits": "This is a bundled-codec build and narrow conversion smoke, not semantic parity, GUI qualification, full test suite, cross-platform support or the installed upstream-library build. The 13 patches remain unmerged. The produced DXFs were scratch-only and were not committed. The fourteenth patch and focused bundled regression were being tested separately. No phase gate or support claim is promoted."
+}
