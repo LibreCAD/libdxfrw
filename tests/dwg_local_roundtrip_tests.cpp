@@ -28466,6 +28466,11 @@ public:
     using DRW_PointPath::parseDwg;
 };
 
+class PartialViewingIndexBodyProbe final : public DRW_PartialViewingIndex {
+public:
+    using DRW_PartialViewingIndex::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28569,6 +28574,18 @@ public:
             pointPath_.m_point = DRW_Coord(
                 std::numeric_limits<double>::max(), 2.0, 3.0);
         }
+        if (kind_ == 21) {
+            partialViewingIndex_.handle = 0x700u;
+            DRW_PartialViewingIndexEntry entry;
+            entry.extentsMin = DRW_Coord(
+                std::numeric_limits<double>::max(), 2.0, 3.0);
+            entry.extentsMax = DRW_Coord(
+                std::numeric_limits<double>::max(), 20.0, 30.0);
+            entry.objectHandle = 0x701u;
+            partialViewingIndex_.m_entries.push_back(entry);
+            partialViewingIndex_.m_entryCount = 1u;
+            partialViewingIndex_.m_hasEntries = true;
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -28631,12 +28648,18 @@ public:
             wrote = hasMalformedObject_
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerPointPathObjectClass(&pointPath_) && wrote;
+        } else if (kind_ == 21) {
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerPartialViewingIndexObjectClass(
+                      &partialViewingIndex_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
                    && kind_ != 11 && kind_ != 13 && kind_ != 14
                    && kind_ != 15 && kind_ != 16 && kind_ != 17
-                   && kind_ != 18 && kind_ != 19 && kind_ != 20) {
+                   && kind_ != 18 && kind_ != 19 && kind_ != 20
+                   && kind_ != 21) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -28686,6 +28709,11 @@ public:
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writePointPath(&pointPath_)) && wrote;
+        } else if (kind_ == 21) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writePartialViewingIndex(
+                               &partialViewingIndex_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -28708,7 +28736,7 @@ public:
             wrote = writer_->writeLine(&malformed) && wrote;
         }
         DRW_Line line;
-        if (kind_ == 15)
+        if (kind_ == 15 || kind_ == 21)
             line.handle = 0x701u;
         line.basePoint = {11, 12, 13}; line.secPoint = {21, 22, 23};
         wrote = writer_->writeLine(&line) && wrote;
@@ -28767,6 +28795,7 @@ private:
     DRW_VxTableRecord vxTableRecord_;
     DRW_TvDeviceProperties tvDeviceProperties_;
     DRW_PointPath pointPath_;
+    DRW_PartialViewingIndex partialViewingIndex_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -42181,7 +42210,9 @@ int main(int argc, char** argv) {
             || std::string(argv[1])
                    == "--generate-cli-malformed-tvdeviceproperties-body-source"
             || std::string(argv[1])
-                   == "--generate-cli-malformed-pointpath-body-source")) {
+                   == "--generate-cli-malformed-pointpath-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-partialviewingindex-body-source")) {
         const bool malformedBodySource = std::string(argv[1])
             == "--generate-cli-malformed-object-body-source";
         const bool malformedPrologueSource = std::string(argv[1])
@@ -42210,6 +42241,9 @@ int main(int argc, char** argv) {
                 == "--generate-cli-malformed-tvdeviceproperties-body-source";
         const bool malformedPointPathBodySource = std::string(argv[1])
             == "--generate-cli-malformed-pointpath-body-source";
+        const bool malformedPartialViewingIndexBodySource =
+            std::string(argv[1])
+                == "--generate-cli-malformed-partialviewingindex-body-source";
         if (std::filesystem::exists(argv[2])) {
             std::cerr << "Refusing to replace an existing malformed-object source\n";
             return 1;
@@ -42241,7 +42275,8 @@ int main(int argc, char** argv) {
             || malformedVxControlBodySource
             || malformedVxTableRecordBodySource
             || malformedTvDevicePropertiesBodySource
-            || malformedPointPathBodySource) {
+            || malformedPointPathBodySource
+            || malformedPartialViewingIndexBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
             if (std::filesystem::exists(validPath)) {
@@ -42264,7 +42299,9 @@ int main(int argc, char** argv) {
                                                 : malformedTvDevicePropertiesBodySource
                                                     ? 19
                                                     : malformedPointPathBodySource
-                                                        ? 20 : 8,
+                                                        ? 20
+                                                        : malformedPartialViewingIndexBodySource
+                                                            ? 21 : 8,
                 nullptr, version);
             if (!validWriter.write(&validSource, version, true)
                 || !validSource.wrote) {
@@ -42318,7 +42355,8 @@ int main(int argc, char** argv) {
                  || malformedVxControlBodySource
                  || malformedVxTableRecordBodySource
                  || malformedTvDevicePropertiesBodySource
-                 || malformedPointPathBodySource)
+                 || malformedPointPathBodySource
+                 || malformedPartialViewingIndexBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
                 && commonEndBit < searchEndBit) {
@@ -42400,6 +42438,11 @@ int main(int argc, char** argv) {
                         }
                         if (malformedPointPathBodySource) {
                             PointPathBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
+                        if (malformedPartialViewingIndexBodySource) {
+                            PartialViewingIndexBodyProbe typed;
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
@@ -42488,7 +42531,8 @@ int main(int argc, char** argv) {
                   || malformedVxControlBodySource
                   || malformedVxTableRecordBodySource
                   || malformedTvDevicePropertiesBodySource
-                  || malformedPointPathBodySource)
+                  || malformedPointPathBodySource
+                  || malformedPartialViewingIndexBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
                 const char* objectKind = malformedDbColorBodySource
@@ -42509,6 +42553,8 @@ int main(int argc, char** argv) {
                                                             ? "TV_DEVICE_PROPERTIES"
                                                             : malformedPointPathBodySource
                                                                 ? "POINTPATH"
+                                                                : malformedPartialViewingIndexBodySource
+                                                                    ? "PARTIAL_VIEWING_INDEX"
                                     : "MLINESTYLE";
                 const char* mutationKind = malformedPrologueSource
                     ? "common-prologue" : "body";
@@ -42527,7 +42573,9 @@ int main(int argc, char** argv) {
                 malformedVxControlBodySource ? 17
                     : malformedVxTableRecordBodySource ? 18
                         : malformedTvDevicePropertiesBodySource ? 19
-                            : malformedPointPathBodySource ? 20 : 7,
+                                : malformedPointPathBodySource ? 20
+                                    : malformedPartialViewingIndexBodySource
+                                        ? 21 : 7,
                 nullptr, version);
             source.setMalformedObject(malformed);
             if (!writer.write(&source, version, true) || !source.wrote) {
