@@ -94,14 +94,14 @@ bool decode(Field& field,const std::string& bytes,bool binary,const char* revisi
     dxfField::Decoder decoder(field,static_cast<DRW::Version>(reader->getVersion()));
     int code=0;
     while(reader->readRec(&code)) {
-        if(!decoder.beforeRecord(code))return false;
+        if(!decoder.beforeRecord(code,reader))return false;
         if(code==102||(code>=1000&&code<=1071)) {if(!field.parseCode(code,reader))return false;}
         else {dxfField::ReferenceKind reference;if(!decoder.parseCode(code,reader,reference))return false;}
     }
-    return (!budget||!budget->exceeded())&&decoder.finish();
+    return (!budget||!budget->exceeded())&&decoder.finish(reader);
 }
 bool parse(Field& field,dxfField::Decoder& decoder,const std::unique_ptr<dxfReader>& reader,int code) {
-    if(!decoder.beforeRecord(code))return false;
+    if(!decoder.beforeRecord(code,reader))return false;
     if(code==102||(code>=1000&&code<=1071))return field.parseCode(code,reader);
     dxfField::ReferenceKind reference;
     return decoder.parseCode(code,reader,reference);
@@ -239,6 +239,52 @@ bool pendingBinaryAndContexts() {
     std::cout<<"FIELD cleanup: 16 pending-binary schedules plus budget-context isolation\n";
     return true;
 }
+bool pendingMTextCleanup() {
+    const Tags prefix={{5,"A"},{100,"AcDbField"},{1,"_text"},
+        {3,std::string(512u,'x')},{2,std::string(512u,'y')}};
+    for(bool binary:{false,true})for(long allocation=-2;allocation<8;++allocation) {
+        auto budget=std::make_shared<DxfReadRetainedBudget>(1024u*1024u);Field field;
+        {
+            Tags tags=prefix;tags.push_back({90,"0"});
+            std::istringstream input(wire(tags,binary),std::ios::binary);
+            std::unique_ptr<dxfReader> reader;
+            if(binary)reader=std::make_unique<dxfReaderBinary>(&input);else reader=std::make_unique<dxfReaderAscii>(&input);
+            reader->setVersion("AC1032",true);reader->setRetainedByteBudget(budget);
+            dxfField::Decoder decoder(field,DRW::AC1032);int code=0;
+            for(std::size_t i=0;i<prefix.size();++i)
+                if(!reader->readRec(&code)||!parse(field,decoder,reader,code))return false;
+            if(!reader->readRec(&code))return false;
+            const auto pressure=allocation==-2?budget->limit()-budget->used()-5119u:0u;
+            if(!budget->reserve(pressure))return false;
+            bool accepted=false;
+            try {AllocationFailure failure(allocation);accepted=parse(field,decoder,reader,code);}
+            catch(const std::bad_alloc&) {accepted=false;}
+            budget->release(pressure);
+            if(allocation==-2&&(accepted||!budget->exceeded()))return false;
+        }
+        if(field.retained()!=payload(field)||budget->used()!=field.retained()) {
+            std::cerr<<"pending MTEXT owner mismatch binary="<<binary<<" allocation="<<allocation<<'\n';return false;
+        }
+        field.reset();if(budget->used())return false;
+    }
+    // Flushing staged source text must not accept a different reader budget.
+    auto original=std::make_shared<DxfReadRetainedBudget>(1024u*1024u);
+    auto incoming=std::make_shared<DxfReadRetainedBudget>(1024u*1024u);Field field;
+    {
+        std::istringstream input(wire(prefix,false),std::ios::binary);
+        std::unique_ptr<dxfReader> reader=std::make_unique<dxfReaderAscii>(&input);
+        reader->setVersion("AC1032",true);reader->setRetainedByteBudget(original);
+        dxfField::Decoder decoder(field,DRW::AC1032);int code=0;
+        for(std::size_t i=0;i<prefix.size();++i)
+            if(!reader->readRec(&code)||!parse(field,decoder,reader,code))return false;
+        reader->setRetainedByteBudget(incoming);
+        if(decoder.beforeRecord(90,reader)||!incoming->exceeded()||!field.m_fieldCode.empty())return false;
+    }
+    if(original->used()!=payload(field)||incoming->used())return false;
+    field.reset();if(original->used())return false;
+    std::cout<<"FIELD pending MTEXT cleanup: 20 budget/allocation schedules\n";
+    return true;
+}
 bool tests() {
     unsigned routes=0u;
     for(const char* version:{"AC1015","AC1018","AC1021","AC1024","AC1027","AC1032"})for(bool binary:{false,true}) {
@@ -269,7 +315,7 @@ bool tests() {
     if(shared->used()!=payload(first)+payload(second))return false;
     first.reset();if(shared->used()!=payload(second))return false;
     second.reset();if(shared->used())return false;
-    return routes==12u&&boundaries()&&pendingBinaryAndContexts();
+    return routes==12u&&boundaries()&&pendingBinaryAndContexts()&&pendingMTextCleanup();
 }
 }
 int main(){return tests()?0:1;}

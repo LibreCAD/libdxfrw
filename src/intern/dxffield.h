@@ -29,7 +29,7 @@ class Decoder {
     DRW_CadValue* activeValue=nullptr;
     int childHandleCount=-1,objectHandleCount=-1,childValueCount=-1;
     unsigned evaluatorFields=0u,codeFields=0u;
-    bool unresolvedTextCaret=false, mtextEvaluatorSeen=false;
+    bool unresolvedMTextEncoding=false, mtextEvaluatorSeen=false;
     DRW_Field::ChildValue child;
     std::shared_ptr<DxfReadRetainedBudget> budget;
     bool budgetContextSet=false;
@@ -40,6 +40,13 @@ class Decoder {
     } activeBytes;
     std::size_t childKeyBytes=0u;
     std::shared_ptr<DxfReadRetainedLease> pendingLease;
+    struct PendingMText {
+        std::string raw;
+        std::shared_ptr<DxfReadRetainedLease> lease;
+        bool open=false;
+    };
+    PendingMText pendingCode, pendingPrimary, pendingCache;
+    enum class MTextTarget {Code, Primary, Cache};
 
     bool context(const std::unique_ptr<dxfReader>& reader) {
         if(!reader)return false;
@@ -80,14 +87,66 @@ class Decoder {
         checkpoint.commit();retainPending();return true;
     }
     UTF8STRING fieldText(const std::unique_ptr<dxfReader>& reader) {
-        // If ASCII text preceded the evaluator, a caret may already have
-        // passed through generic decoding. Do not publish a later _text
-        // interpretation of that ambiguous value. Binary DXF is unchanged.
-        if(evaluatorFields==0u && !reader->isBinary()
-            && reader->getStringView().find('^')!=std::string_view::npos)
-            unresolvedTextCaret=true;
+        // Generic decoding may already have changed caret syntax, escapes or
+        // multibyte text before a later _text evaluator identifies its role.
+        if(evaluatorFields==0u) {
+            const auto raw=reader->getStringView();
+            if((!reader->isBinary() && raw.find('^')!=std::string_view::npos)
+                || raw.find('\\')!=std::string_view::npos
+                || std::any_of(raw.begin(),raw.end(),[](unsigned char c){return c>=0x80u;}))
+                unresolvedMTextEncoding=true;
+        }
         return evaluatorFields==1u && field.m_evaluatorId=="_text"
             ? reader->getUtf8MTextString() : reader->getUtf8String();
+    }
+    bool stageMText(PendingMText& pending,const std::unique_ptr<dxfReader>& reader) {
+        const auto chunk=reader->getStringView();
+        if(chunk.size()>pending.raw.max_size()-pending.raw.size()) {
+            if(budget)budget->reject();
+            return false;
+        }
+        DxfReadRetainedLeaseCheckpoint checkpoint(pending.lease);
+        if(!retainDxfReadBytes(pending.lease,budget,chunk.size()))return false;
+        pending.raw.append(chunk.data(),chunk.size());
+        pending.open=true;checkpoint.commit();return true;
+    }
+    bool finishMText(PendingMText& pending,MTextTarget target,
+                     const std::unique_ptr<dxfReader>& reader) {
+        if(!pending.open)return true;
+        const auto size=pending.raw.size();
+        if(size>(std::numeric_limits<std::size_t>::max)()/5u
+            || !reader->chargeDecodeWork(size)) {
+            if(budget)budget->reject();
+            return false;
+        }
+        DxfReadRetainedReservation temporary(budget,size*5u);
+        if(budget && !temporary.reserved())return false;
+        UTF8STRING decoded=reader->toUtf8MTextString(pending.raw);
+        if(decoded.size()>size*4u || !temporary.resize(decoded.size())) {
+            if(budget)budget->reject();
+            return false;
+        }
+        const auto bytes=decoded.size();
+        DxfReadRetainedLeaseCheckpoint checkpoint(field.m_dxfRetainedStringLease);
+        if(budget) {
+            if(!field.m_dxfRetainedStringLease)
+                field.m_dxfRetainedStringLease=std::make_shared<DxfReadRetainedLease>(budget);
+            if(!field.m_dxfRetainedStringLease->absorb(temporary))return false;
+        }
+        if(target==MTextTarget::Code) {
+            field.m_fieldCode+=decoded;
+            if(budget)scalarBytes[1]+=bytes;
+        } else if(target==MTextTarget::Cache) {
+            field.m_valueString+=decoded;
+            if(budget)scalarBytes[4]+=bytes;
+        } else {
+            if(!activeValue || !primaryOpen)return false;
+            activeValue->m_value.appendString(1,std::move(decoded));
+            if(budget)activeBytes.text+=bytes;
+        }
+        checkpoint.commit();
+        std::string().swap(pending.raw);pending.lease.reset();pending.open=false;
+        return true;
     }
     bool appendBinary(std::string_view text) {
         if((text.size()&1u)!=0u)return false;
@@ -165,13 +224,20 @@ public:
     Decoder(const Decoder&)=delete;
     Decoder& operator=(const Decoder&)=delete;
 
-    bool beforeRecord(int code) {
+    bool beforeRecord(int code,const std::unique_ptr<dxfReader>& reader) {
+        if(!context(reader))return false;
+        if(pendingCode.open && (activeValue || (code!=2 && code!=3))
+            && !finishMText(pendingCode,MTextTarget::Code,reader))return false;
+        if(pendingPrimary.open && (!activeValue || !primaryOpen || (code!=1 && code!=2))
+            && !finishMText(pendingPrimary,MTextTarget::Primary,reader))return false;
+        if(pendingCache.open && (activeValue || (code!=9 && code!=301))
+            && !finishMText(pendingCache,MTextTarget::Cache,reader))return false;
         return !activeValue || activeHasFlags
             || (code!=0 && code!=6 && code!=7 && code!=9 && code!=98 && code!=301)
             || closeValue();
     }
-    bool finish() {
-        if(!beforeRecord(0) || !inSubclass || activeValue || !field.handle
+    bool finish(const std::unique_ptr<dxfReader>& reader) {
+        if(!beforeRecord(0,reader) || !inSubclass || activeValue || !field.handle
             || childHandleCount<0 || objectHandleCount<0 || childValueCount<0
             || static_cast<std::size_t>(childHandleCount)!=field.m_childHandles.size()
             || static_cast<std::size_t>(objectHandleCount)!=field.m_objectHandles.size()
@@ -195,8 +261,10 @@ public:
             switch(code) {
             case 1:case 2:
                 if(activeValue->m_dataType!=4)return false;
-                if(!appendValueText(primaryOpen ? fieldText(reader)
-                                               : reader->getUtf8String()))return false;
+                if(primaryOpen && mtextEvaluatorSeen) {
+                    if(!stageMText(pendingPrimary,reader))return false;
+                } else if(!appendValueText(primaryOpen ? fieldText(reader)
+                                                       : reader->getUtf8String()))return false;
                 break;
             case 11:
                 if(activeValue->m_dataType!=16 && activeValue->m_dataType!=32)return false;
@@ -247,12 +315,14 @@ public:
             if(!replaceText(reader,scalarBytes[0],field.m_evaluatorId))return false;
             ++evaluatorFields;
             if(field.m_evaluatorId=="_text") {
-                if(evaluatorFields!=1u || unresolvedTextCaret)return false;
+                if(evaluatorFields!=1u || unresolvedMTextEncoding)return false;
                 mtextEvaluatorSeen=true;
             }
             break;
-        case 2:if(!appendText(field.m_fieldCode,fieldText(reader),scalarBytes[1]))return false;++codeFields;break;
-        case 3:if(!appendText(field.m_fieldCode,fieldText(reader),scalarBytes[1]))return false;break;
+        case 2:case 3:
+            if(mtextEvaluatorSeen) {if(!stageMText(pendingCode,reader))return false;}
+            else if(!appendText(field.m_fieldCode,fieldText(reader),scalarBytes[1]))return false;
+            if(code==2)++codeFields;break;
         case 4:if(!replaceText(reader,scalarBytes[2],field.m_formatString))return false;break;
         case 6:
             if(primarySeen || childValueCount<0 || field.m_childValues.size()>=static_cast<std::size_t>(childValueCount))return false;
@@ -285,7 +355,10 @@ public:
         case 95:field.m_evaluationStatusFlags=reader->getInt32();break;
         case 96:field.m_evaluationErrorCode=reader->getInt32();break;
         case 300:if(!replaceText(reader,scalarBytes[3],field.m_evaluationErrorMessage))return false;break;
-        case 9:case 301:if(!appendText(field.m_valueString,fieldText(reader),scalarBytes[4]))return false;break;
+        case 9:case 301:
+            if(mtextEvaluatorSeen) {if(!stageMText(pendingCache,reader))return false;}
+            else if(!appendText(field.m_valueString,fieldText(reader),scalarBytes[4]))return false;
+            break;
         case 98:field.m_valueStringLength=reader->getInt32();break;
         case 360: {
             const auto handle=reader->getHandleString();

@@ -56760,7 +56760,7 @@ bool fieldSourceMatchesRawDxf(const DRW_RawDxfObject& raw,
     int code = 0;
     while (buffer.position() < body.size()) {
         if (!reader->readRec(&code) || code == 0
-            || !decoder.beforeRecord(code))
+            || !decoder.beforeRecord(code,reader))
             return false;
         if (code == 102 || (code >= 1000 && code <= 1071)) {
             if (!parsed.parseCode(code, reader))
@@ -56774,7 +56774,7 @@ bool fieldSourceMatchesRawDxf(const DRW_RawDxfObject& raw,
     return !budget->exceeded()
         && !reader->typedVariantNodeBudgetExceeded()
         && reader->recordCount() == raw.groups.size()
-        && decoder.finish() && decoder.sourceCorePresent()
+        && decoder.finish(reader) && decoder.sourceCorePresent()
         && parsed.handle == raw.handle
         && parsed.parentHandle == raw.parentHandle
         && fieldSourceEqual(parsed, field, version);
@@ -63973,7 +63973,7 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
             if(!model)return;
             int code=0;
             while(buffer.position()<body.size()) {
-                if(!reader->readRec(&code)||code==0||!decoder.beforeRecord(code)){replayBudgetFailure();return;}
+                if(!reader->readRec(&code)||code==0||!decoder.beforeRecord(code,reader)){replayBudgetFailure();return;}
                 const auto index=reader->recordCount()-1u;
                 if(index>=references.size())return;
                 if(code==102||(code>=1000&&code<=1071)) {
@@ -63987,7 +63987,7 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
                 }
             }
             if(budget->exceeded()||reader->typedVariantNodeBudgetExceeded()){source.resourceProofCaptureFailed=true;return;}
-            if(reader->recordCount()!=raw.groups.size()||!decoder.finish()||!decoder.sourceCorePresent()
+            if(reader->recordCount()!=raw.groups.size()||!decoder.finish(reader)||!decoder.sourceCorePresent()
                 ||raw.handle!=parsed.handle||raw.parentHandle!=parsed.parentHandle||!fieldSourceEqual(parsed,*model,raw.m_version))return;
         } else if(block) {
             DRW_Block_Record parsed;DRW::internal::DxfBlockRecordDecoder decoder(parsed,reader);

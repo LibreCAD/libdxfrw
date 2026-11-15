@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **483 completed implementation and qualification slices** and **32 remaining
+The plan records **484 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`483 / (483 + 32) = 93.8%`. The previous 28-package denominator was stale; a recount
+`484 / (484 + 32) = 93.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -1947,8 +1947,11 @@ repeat the corpus census or alter the aggregate strict guard from this audit.
    The selected DXF `_text` FIELD expression, primary value and cache now retain
    their MTEXT syntax and pass source-bound ASCII/Binary peer checks
    ([receipt](docs/research/p5-dxf-field-mtext-text-transport-2026-11-15.json)).
-   Qualify non-scalar chunk boundaries and other nested value contexts before
-   widening that profile or enabling graph output. Original producer identity,
+   UTF-8, Unicode escape and CP932 characters split across continuation records
+   now decode after assembly in ASCII/Binary synthetic controls
+   ([receipt](docs/research/p5-dxf-field-mtext-chunk-boundaries-2026-11-15.json)).
+   Qualify other nested value contexts before widening that profile or enabling
+   graph output. Original producer identity,
    physical DWG field spans, source-text equivalence, and independent dynamic
    evaluation remain unqualified. Use the reproducible
    source audit and candidate in the [receipt](docs/research/p5-mtext-fieldlist-source-cache-2026-11-15.json)
@@ -2417,7 +2420,7 @@ dependency-ready local package. Do not stop implementation at a blocker.
 | P4-B | OPEN | Resolve AC1032 associative-network class-version-2 fields from ODA and source-bound spans; add bounded parser and boundary controls. | Exact source/class frame plus ODA chapter; field/span map and generated boundary controls. |
 | P4-C | OPEN | Resolve AC1027 Sweep suffix and embedded-entity layout without assuming padding; preserve unknown bytes until role/order is proven. | Source-bound Sweep frame and ODA version comparison; truncation and following-frame alignment controls. |
 | P5-A | OPEN | Capture physical DWG field spans and graph roles; establish the original source producer and source-text equivalence plus an independent evaluated result, or acquire an equivalent producer-authored profile. | The [source receipt](docs/research/p5-mtext-fieldlist-source-cache-2026-11-15.json) inventories 58 DXF frames and a scratch TV-encoded AC1021 derivative with 16 typed FIELDs and eight MTEXT graph paths. Root-cache bytes differ from the source; the patched derivative is not an independent producer witness or dynamic evaluation proof. |
-| P5-B | OPEN | Complete typed FIELD/FIELDLIST graph output for the selected profile, preserving unsupported tokens and reference roles; qualify non-scalar source chunk boundaries and other `_text` nested values. | P5-A map; parser spans, graph closure, strict output, typed readback. Isolated `_text` source text now has ASCII/Binary readback and independent peer tag checks; this does not close the graph. |
+| P5-B | OPEN | Complete typed FIELD/FIELDLIST graph output for the selected profile, preserving unsupported tokens and reference roles; qualify remaining `_text` nested values and source producer profiles. | P5-A map; parser spans, graph closure, strict output, typed readback. Isolated `_text` source text now has ASCII/Binary readback and independent peer tag checks; this does not close the graph. |
 | P5-C | OPEN | Qualify TABLE producer profiles and retained subrecords, separating geometry from metadata and cell caches. | Distinct source profile; physical field spans and field-by-field loss classification. |
 | P5-D | OPEN | Close R24 TABLECONTENT ownership, CELLSTYLEMAP, row/column dependencies, and emitted-record identity. | P5-C source and source-bound handles; focused ASCII/Binary output and fresh readback. |
 | P5-E | OPEN | Resolve Content Format/CELLSTYLEMAP semantics with native or independent consumer evidence; refuse unmodeled style state. | Independent semantic observation tied to exact producer/version and output candidate. |

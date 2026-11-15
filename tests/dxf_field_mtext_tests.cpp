@@ -22,22 +22,26 @@ struct Exporter final : LC3CompatCheck {
     dxfRW& out; DRW_Field field; bool ok = false;
 };
 bool create(const std::filesystem::path& path, bool binary, bool mtext,
-            bool lateEvaluator, const std::string& text) {
+            bool lateEvaluator, const std::string& text,
+            std::size_t forcedSplit = std::string::npos,
+            const char* version = "AC1027", const char* codepage = nullptr) {
     std::ofstream stream(path, std::ios::binary | std::ios::trunc);
     if (!stream) return false;
     if (binary) stream.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
     std::unique_ptr<dxfWriter> w = binary
         ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
         : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
-    w->setVersion("AC1027", true);
+    w->setVersion(version, true);
     w->writeString(0,"SECTION"); w->writeString(2,"HEADER");
-    w->writeString(9,"$ACADVER"); w->writeString(1,"AC1027");
+    w->writeString(9,"$ACADVER"); w->writeString(1,version);
+    if (codepage) { w->writeString(9,"$DWGCODEPAGE"); w->writeString(3,codepage); }
     w->writeString(0,"ENDSEC"); w->writeString(0,"SECTION");
     w->writeString(2,"OBJECTS"); w->writeString(0,"FIELD");
     w->writeString(5,"50"); w->writeString(330,"C");
     w->writeString(100,"AcDbField");
     if (!lateEvaluator) w->writeString(1,mtext?"_text":"Other");
-    const auto split = mtext ? text.find('^') + 1u : text.size();
+    const auto split = forcedSplit != std::string::npos ? forcedSplit
+        : mtext ? text.find('^') + 1u : text.size();
     w->writeString(3,std::string_view(text).substr(0,split));
     w->writeString(2,std::string_view(text).substr(split));
     if (lateEvaluator) w->writeString(1,mtext?"_text":"Other");
@@ -110,6 +114,33 @@ int main(int argc, char** argv) {
         dxfRW input(source.string().c_str()); Capture capture;
         if (!input.read(&capture,false) || !matches(capture,text)) {
             std::cerr << "_text FIELD source lost MTEXT syntax\n"; return 1;
+        }
+        const std::string splitWire = std::string("u") + "\xE2\x82\xAC" + "\\U+0041^ 2";
+        const std::string splitExpected = std::string("u") + "\xE2\x82\xAC" + "A^ 2";
+        for (std::size_t split = 2; split <= 10; ++split) {
+            if (!create(source,binary,true,false,splitWire,split)) return 1;
+            dxfRW splitReader(source.string().c_str()); Capture splitCapture;
+            if (!splitReader.read(&splitCapture,false) || !matches(splitCapture,splitExpected)) {
+                std::cerr << "split _text FIELD UTF-8/escape failed at " << split
+                          << " binary=" << binary << '\n'; return 1;
+            }
+        }
+        const std::string legacyWire = std::string("u") + "\x82\xA0" + "^ 2";
+        const std::string legacyExpected = std::string("u") + "\xE3\x81\x82" + "^ 2";
+        if (!create(source,binary,true,false,legacyWire,2,"AC1018","ANSI_932")) return 1;
+        dxfRW legacyReader(source.string().c_str()); Capture legacyCapture;
+        if (!legacyReader.read(&legacyCapture,false) || !matches(legacyCapture,legacyExpected)) {
+            std::cerr << "split _text FIELD CP932 failed binary=" << binary << '\n'; return 1;
+        }
+        if (!create(source,binary,true,true,splitWire,2)) return 1;
+        dxfRW ambiguousReader(source.string().c_str()); Capture ambiguous;
+        if (ambiguousReader.read(&ambiguous,false) || ambiguous.count != 0) {
+            std::cerr << "late _text evaluator accepted ambiguous multibyte text\n"; return 1;
+        }
+        if (!create(source,binary,true,true,"\\U+0041^ 2",3)) return 1;
+        dxfRW escapedReader(source.string().c_str()); Capture ambiguousEscape;
+        if (escapedReader.read(&ambiguousEscape,false) || ambiguousEscape.count != 0) {
+            std::cerr << "late _text evaluator accepted ambiguous escape text\n"; return 1;
         }
         for (const auto version : {DRW::AC1018, DRW::AC1021, DRW::AC1027, DRW::AC1032}) {
           for (bool strict : {false,true}) {

@@ -29874,13 +29874,13 @@ bool dxfRW::processField() {
     dxfField::Decoder decoder(field,version);
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
-        if (!decoder.beforeRecord(code))
+        if (!decoder.beforeRecord(code,reader))
             return setError(DRW::BAD_CODE_PARSED);
         if (code == 0) {
             if (!acceptObjectBoundary(code))
                 return setError(DRW::BAD_READ_OBJECTS);
             DRW_DBG(nextentity); DRW_DBG("\n");
-            if (!decoder.finish()
+            if (!decoder.finish(reader)
                 || !validateCapturedRawDxfObject(raw,binFile,reader->classifierProfile()))
                 return setError(DRW::BAD_CODE_PARSED);
             publishDxfResource(*reader,*iface,2u,field,raw,true,decoder.sourceCorePresent(),[&](){iface->addField(field);});
