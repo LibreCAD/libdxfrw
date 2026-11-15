@@ -9,7 +9,7 @@
   "adapterCapture": "For the polyface input, libdxfrw captures two LAYER records with valid DXF fields, ACI 7, Continuous linetype, plot-style handle 19 and material handle 33; both getDxfPlotStyleHandle/getDxfMaterialHandle and validateDxf succeed. The parser-recorded source handle spans and their independent peer comparison are recorded separately below; emitted output mapping remains open.",
   "isolation": "For each sample, a scratch process imports a fresh drawing and calls partial-policy export once with untouched source data and once after clearing only the in-memory LAYER plot-style fields. Untouched runs refuse without output. Clearing those fields makes serialization advance to OBJECTS, which then refuses at TABLESTYLE; no output is published. This deliberate loss is only an isolation experiment and is not an implementation or an acceptable fix. The CLI independently reports the untouched failure at LAYER table.",
   "codeBoundary": "The general LAYER writer rejects a nonzero non-default group-390 source handle when no reference resolver is configured. The adapter has a separate AC1027 source-bound layer route with source publication, material/plot-style graph snapshots, mapped output and finalization checks; it is not automatically applicable to this AC1024 two-layer profile. The generic DWG adapter currently strips unqualified material links, so fixing only plot-style transport would not establish lossless layer output.",
-  "nextAction": "Capture physical AC1024 layer frame/publication and compare field and reference roles with peer source and output; establish source-bound Global material and dictionary-with-default/Normal placeholder graph closure. Design a bounded two-layer route using the existing source-bound output pattern, map and inspect both 347 and 390 on emitted layers, validate target identities and ownership, add mutation/refusal/rollback/retry and LibreCAD compatibility tests, then rerun partial CLI. Keep unknown HEADER suffix and whole-document gates closed.",
+  "nextAction": "Add a bounded optional AC1024 layer-source receipt for both CRC-validated records with object-map ordinal/offset and matched publication identity, preserving 2D consumer ABI. Bind this receipt to immutable typed layer snapshots and the Global material and Normal plot-style graphs. Design selected output with exact 347/390 roles, mapped target identities and owners, mutation refusal, rollback/retry and LibreCAD compatibility. Keep HEADER suffix and whole-document gates closed.",
   "probeHashes": {
     "layerCaptureSource": "356a344583b7f9b5c801bd4e7d112a59ffcf966ecfeb78346a779b2e6b35566a",
     "layerCaptureExecutable": "1f2a7e0f6ea808b60416f6287fce492a29fe972baaf3e2f6277c7c3560d1afdf",
@@ -85,5 +85,42 @@
     "probeExecutableSha256": "d8be73ff99bba35743b187d865a3bb1e72607d4711ef5789d084af4b615c9776",
     "polyfaceLogSha256": "446e3354076c36f8b1e59b34f322c99a4e16d97454a5978578de5466b09bbc71",
     "closedLogSha256": "36ffe96e8ce0cc7ebe342cc5612f38c58eb93251146d5c974e461e5ff39c42df"
+  },
+  "frameCrosscheck": {
+    "method": "For both hash-bound source DWGs, debug traces identify the AcDb:AcDbObjects page at physical 0x680 with 32-byte page header and compressed payload at 0x6a0. Decompress the first page with the existing R2004-family codec; locate layer frames at decoded object-map offsets 767 and 799, then validate each frame CRC with DwgObjectFrame. A scratch probe reads the three handle tokens directly from each validated body using parser-recorded bit offsets; this second extraction uses libdxfrw codecs and is not an independent DWG decoder.",
+    "polyfacePageCompressedBytes": 6564,
+    "closedPageCompressedBytes": 6577,
+    "decodedPageBytes": 29696,
+    "polyfaceDecodedPageSha256": "b691e0aba1bad4a616615f76a78b4a00e83ad1603f8e8e6161607f413b0cfba1",
+    "closedDecodedPageSha256": "edb81cbd58c179eb293a1b2bcbcdcb5f5be1b6e50a4ed5d488aa72ae5f5108f1",
+    "frames": {
+      "0x27": {
+        "decodedOffset": 767,
+        "bodyBytes": 27,
+        "objectDataBits": 138,
+        "handleStreamBits": 78,
+        "crc": "valid",
+        "plotMaterialLinetype": [
+          "H5 0x13",
+          "H5 0x21",
+          "H5 0x26"
+        ]
+      },
+      "0x28": {
+        "decodedOffset": 799,
+        "bodyBytes": 43,
+        "objectDataBits": 266,
+        "handleStreamBits": 78,
+        "crc": "valid",
+        "plotMaterialLinetype": [
+          "H5 0x13",
+          "H5 0x21",
+          "H5 0x26"
+        ]
+      }
+    },
+    "probeSourceSha256": "02674f4e31d1af7c353b8b0ca246254856487462430f055a63c10b20df664ba3",
+    "probeExecutableSha256": "f817bbfc2ec34565173037e94a261673c8f54c11ac88e0d3f70ebe6136e5e7b6",
+    "limits": "Offsets are from the decoded object map; matching source publication callbacks and an immutable production frame receipt for both AC1024 layers are still required. Source data parsing, bit extraction and CRC checking share libdxfrw code. LibreDWG independently corroborates role and targets, not these bit offsets."
   }
 }
