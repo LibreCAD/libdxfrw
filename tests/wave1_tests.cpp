@@ -1811,9 +1811,9 @@ void testViewFlagWireKinds(TestContext& t) {
                 DRW_View view;
                 view.name = "WIRE_VIEW";
                 view.hasUCS = hasUcs;
-                view.cameraPlottable = !hasUcs;
+                view.cameraPlottable = version > DRW::AC1018 && !hasUcs;
                 view.ucsOrigin = DRW_Coord(11.0, 12.0, 13.0);
-                view.m_brightness = 1.25;
+                view.m_brightness = version > DRW::AC1018 ? 1.25 : 0.0;
                 t.expect(owner.writeView(&view)
                              && owner.writer->writeString(0, "ENDTAB"),
                          "VIEW flag sentinel writes without a full document");
@@ -10249,7 +10249,7 @@ void testTypedObjectCommonMetadata(TestContext& t) {
     exercise("SPATIAL_FILTER", spatialFilter,
              [](auto& w, auto& e) { return w.writeSpatialFilter(&e); });
     DRW_SortEntsTable sort;
-    sort.m_blockOwnerHandle = 0x600u;
+    sort.m_blockOwnerHandle = DRW::DxfModelSpaceBlockRecordHandle;
     exercise("SORTENTSTABLE", sort, [](auto& w, auto& e) { return w.writeSortEntsTable(&e); });
     exercise("FIELD", DRW_Field{}, [](auto& w, auto& e) { return w.writeField(&e); });
     exercise("FIELDLIST", DRW_FieldList{}, [](auto& w, auto& e) { return w.writeFieldList(&e); });
@@ -22868,8 +22868,8 @@ void testTypedAppDataNumericWireKinds(TestContext& t) {
 }
 
 void testDynamicDimstyleNumericWireKinds(TestContext& t) {
-    for (const int value : {std::numeric_limits<int>::min(), -32769, 0, 1,
-                            65536, 70001, std::numeric_limits<int>::max()}) {
+    // Group 90 is DIMARCSYM, whose supported semantic values are 0..2.
+    for (const int value : {0, 1, 2}) {
         expectTypedNumericWire(t, [value](dxfRW& writer) {
             DRW_Dimstyle style;
             style.name = "DYNAMIC_WIRE";
@@ -22880,6 +22880,14 @@ void testDynamicDimstyleNumericWireKinds(TestContext& t) {
             return writer.writeDimstyle(&style);
         }, {"90:" + std::to_string(value), "371:25", "295:1"},
            "dynamic DIMSTYLE I32 preserves values and following fields");
+    }
+    for (const int value : {std::numeric_limits<int>::min(), -32769,
+                            65536, 70001, std::numeric_limits<int>::max()}) {
+        expectTypedNumericRangeRejected(t, [value](dxfRW& writer) {
+            DRW_Dimstyle style;
+            style.add("WIRE90", 90, value);
+            return writer.writeDimstyle(&style);
+        });
     }
     for (const int value : {-32768, 32767}) {
         expectTypedNumericWire(t, [value](dxfRW& writer) {
@@ -22909,7 +22917,7 @@ void testDynamicDimstyleNumericWireKinds(TestContext& t) {
             owner.writer = std::make_unique<dxfWriterAscii>(&output);
         DRW_Dimstyle style;
         style.dimtxsty.clear();
-        style.add("WIRE90", 90, 70001);
+        style.add("WIRE90", 90, 0);
         t.expect(owner.writeDimstyle(&style)
                      && owner.writer->writeString(0, "WIRE_END"),
                  "pre-R2007 DIMSTYLE keeps existing inactive-variable policy");
@@ -22918,6 +22926,19 @@ void testDynamicDimstyleNumericWireKinds(TestContext& t) {
         t.expect(ended && std::none_of(tags.begin(), tags.end(),
                      [](const auto& tag) { return tag.rfind("90:", 0) == 0; }),
                  "pre-R2007 dynamic DIMSTYLE does not emit group 90");
+        std::ostringstream refusedOutput;
+        dxfRW refused("");
+        refused.version = DRW::AC1015;
+        refused.binFile = binary;
+        if (binary)
+            refused.writer = std::make_unique<dxfWriterBinary>(&refusedOutput);
+        else
+            refused.writer = std::make_unique<dxfWriterAscii>(&refusedOutput);
+        DRW_Dimstyle nondefault;
+        nondefault.dimtxsty.clear();
+        nondefault.add("WIRE90", 90, 1);
+        t.expect(!refused.writeDimstyle(&nondefault) && refusedOutput.str().empty(),
+                 "pre-R2007 DIMSTYLE refuses a nondefault DIMARCSYM without loss");
     }
     expectTypedNumericRangeRejected(t, [](dxfRW& writer) {
         DRW_Dimstyle style;

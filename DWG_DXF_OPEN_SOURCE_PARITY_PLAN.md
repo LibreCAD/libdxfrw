@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **509 completed implementation and qualification slices** and **32 remaining
+The plan records **510 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`509 / (509 + 32) = 94.1%`. The previous 28-package denominator was stale; a recount
+`510 / (510 + 32) = 94.1%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -49,8 +49,10 @@ to 10 remaining assertions; investigate those
 without interpreting this as a passing suite or broader MATERIAL support
 ([receipt](docs/research/p8-modern-material-roundtrip-projection-2026-11-15.json)).
 The latest hosted fast build compiled, then the Wave 1 executable failed 130
-assertions across VIEW, SORTENTSTABLE and DIMSTYLE controls; reproduce and
-resolve the first failures in each group before claiming fast-suite success.
+assertions across VIEW, SORTENTSTABLE and DIMSTYLE controls. The complete local
+Wave 1 executable now passes after correcting those generated controls; rerun
+the full hosted fast workflow before claiming its success
+([receipt](docs/research/p8-wave1-versioned-fixture-controls-2026-11-15.json)).
 The Linux FreeCAD 1.1.4 hosted rerun passes 10/10 checks: both CLI
 compatibility controls and all generated LINE/primitive open/insert cases.
 The preceding null LAYER plot-style readback failure is fixed and verified
