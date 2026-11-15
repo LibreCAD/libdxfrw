@@ -2370,6 +2370,10 @@ def check_malformed_sunstudy_body(converter, root, writer):
     profiles = {
         "AC1015": "2007",
         "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
     }
     return check_malformed_object_body_family(
         converter, root, writer, "SUNSTUDY",
@@ -4018,7 +4022,7 @@ def main():
     parser.add_argument("--sunstudy-observation-only", action="store_true",
                         help="run only explicit DXF source observation CLI controls")
     parser.add_argument("--sunstudy-recovery-only", action="store_true",
-                        help="run only generated legacy SUNSTUDY recovery controls")
+                        help="run only generated SUNSTUDY recovery controls")
     parser.add_argument("--sun-only", action="store_true",
                         help="run only generated SUN recovery controls")
     args = parser.parse_args()
