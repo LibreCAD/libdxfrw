@@ -6382,7 +6382,7 @@ add_test(NAME libdxfrw_dxf_objectptr_allocation_transaction
         ${CMAKE_CURRENT_BINARY_DIR}/dxf-objectptr-allocation objectptr)
 set_tests_properties(libdxfrw_dxf_objectptr_allocation_transaction PROPERTIES
     LABELS "dxf;fast;objects;transaction;allocation;objectptr;versions"
-    TIMEOUT 120)
+    TIMEOUT 30)
 add_test(NAME libdxfrw_dxf_r2018_embedded_attribute_allocation_transaction
     COMMAND libdxfrw_dxf_write_allocation_transaction_tests
         ${CMAKE_CURRENT_BINARY_DIR}/dxf-r2018-embedded-attribute-allocation

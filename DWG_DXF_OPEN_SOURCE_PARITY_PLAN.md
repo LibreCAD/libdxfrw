@@ -962,14 +962,15 @@ write/readback controls pass from AC1009 through AC1032. This establishes only
 the bounded serialized LTYPE normalization, not xref target graph closure or
 native xref display behavior ([receipt](docs/research/p6-dxf-xref-layer-linetype-normalization-2026-11-14.json)).
 
-**P6-G OBJECT_PTR direct-writer allocation transaction slice (2026-11-15):**
-generated standalone OBJECTPTR records now pass rollback, caller-state and
-handle-map preservation, same-codec byte-identical retry, and fresh typed
-readback across AC1015/AC1018/AC1021/AC1024/AC1027/AC1032 in ASCII and Binary.
-All 1,046 injected allocation failures pass; the focused CTest completes in
-2.40 seconds. This closes only the generated OBJECTPTR writer transaction
-profile, not producer semantics, parent-target graph closure, or native consumer
-behavior ([receipt](docs/research/p6-dxf-objectptr-version-matrix-allocation-rollback-retry-2026-11-15.json)).
+**P6-G OBJECT_PTR AC1015 direct-writer transaction slice (2026-11-15):** the
+existing generated writer matrix already covers AC1018/AC1021/AC1024/AC1027/
+AC1032, so the focused test adds only the uncovered earliest supported target.
+Its ASCII/Binary allocation sweep passes all 172 injected failures with
+caller/destination and handle-map preservation, same-codec byte-identical retry,
+and fresh typed readback. The focused CTest completes in under one second.
+This closes only generated AC1015 transaction behavior, not producer semantics,
+parent-target graph closure, or native consumer behavior
+([receipt](docs/research/p6-dxf-objectptr-ac1015-allocation-rollback-retry-2026-11-15.json)).
 
 **Newest local P6-G slice (2026-11-14):** generated AC1021 DIMSTYLE records
 with nondefault typed and dynamic `$DIMTFILLCLR` values now pass

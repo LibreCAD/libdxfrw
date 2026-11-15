@@ -12443,9 +12443,9 @@ bool runObjectPtrSweep(const std::filesystem::path& directory) {
         return false;
     }
 
-    const std::array<DRW::Version, 6> versions{{
-        DRW::AC1015, DRW::AC1018, DRW::AC1021,
-        DRW::AC1024, DRW::AC1027, DRW::AC1032}};
+    // AC1018–AC1032 are covered by the multi-object route matrix; this
+    // focused profile closes its missing earliest supported target only.
+    const std::array<DRW::Version, 1> versions{{DRW::AC1015}};
     const std::string sentinel = "previous complete document\n";
     for (const DRW::Version version : versions) {
         for (const bool binary : {false, true}) {
