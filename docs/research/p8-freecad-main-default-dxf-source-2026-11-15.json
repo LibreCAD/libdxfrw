@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-15",
+  "scope": "source-level FreeCAD default C++ DXF importer comparison; not a native execution of FreeCAD main",
+  "freecadMainCommit": "d956ec561639cfa83f755504b1b3358ea799428e",
+  "freecad114Commit": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+  "sourceSha256": {
+    "main_dxf.cpp": "5c39159b5b881508ff64af9c5c31807bbc69e84038322a928222fc01e83fa442",
+    "main_ImpExpDxf.cpp": "1ac20cf94009eb1bcb77ad6810a300beba121cf83f0f72dc716d5c7ebe012de1",
+    "main_ImpExpDxf.h": "78837710df4088378312a3d780cbf0f6f6a387b04d8b1a440e1c5ef51cc79401",
+    "main_dxf.h": "18229993625e2e487db8c477cbfbd1d1cf847a5068b30223ed913691c64dc352",
+    "freecad114_dxf.cpp": "635d7d580a42d49a725b5c63f7b75411532f1c27070e824770a9ddfecbe7b9f3"
+  },
+  "findings": [
+    "The pinned 1.1.4 CDxfRead source has no SOLID or 3DFACE dispatcher; its native no-shape results were recorded separately.",
+    "At current main, CDxfRead::ReadEntity dispatches SOLID to ReadSolid and ImpExpDxfRead::OnReadSolid constructs the face with DXF corner order 1-2-4-3. There is no corresponding 3DFACE dispatch; generic-shape comments are not a reader route.",
+    "Source-level concern: ResolveEntityAttributes computes an OCS matrix, but OnReadSolid passes the raw OCS corners through static makePoint to the collector without applying that matrix. Non-default extrusion needs actual native confirmation, including nested block context and thickness.",
+    "Source-level concern: the OCS branch compares signed X/Y to 1/64 instead of their absolute values, and does not normalize the selected X vector. Analytic example normal (-1,0,0) gives source X (0,0,1) but the standard arbitrary-axis X is (0,-1,0); normal (0.6,0,0.8) gives source X (0,0.6,0), length 0.6, rather than normalized (0,1,0). Default normal gives correct X (1,0,0)."
+  ],
+  "references": [
+    "https://github.com/FreeCAD/FreeCAD/blob/d956ec561639cfa83f755504b1b3358ea799428e/src/Mod/Import/App/dxf/dxf.cpp",
+    "https://github.com/FreeCAD/FreeCAD/blob/d956ec561639cfa83f755504b1b3358ea799428e/src/Mod/Import/App/dxf/ImpExpDxf.cpp",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-D99F1509-E4E4-47A3-8691-92EA07DC88F5.htm"
+  ],
+  "next": [
+    "Build the exact FreeCAD main revision or obtain a provenance-bound development build; test generated ASCII/Binary SOLID with default and signed/non-axis normals and verify analytic WCS vertices, open/insert, units, block transforms, and thickness.",
+    "Repair the shared basis using absolute threshold tests and normalized axes, checking zero/invalid normals and all OCS consumers; apply orientation to SOLID without double-transforming block geometry.",
+    "Implement WCS 3DFACE dispatch with triangular/planar quad handling and explicit disposition of nonplanar faces and group-70 edge visibility; test supported shapes and failure reporting, open/insert and nested blocks.",
+    "Keep FreeCAD 1.1.4 and current-master results distinct and repeat native Linux/Windows qualification."
+  ],
+  "limits": [
+    "No FreeCAD main build or runtime was executed; source-level concerns are not a measured FreeCAD regression or downstream patch.",
+    "No new format-support claims or phase-gate promotion."
+  ]
+}
