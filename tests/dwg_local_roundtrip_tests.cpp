@@ -28442,6 +28442,7 @@ public:
         return DRW_TableEntry::parseDwgCommonHandleData(
             version, body, false, false);
     }
+    std::uint32_t objectDataBitSize() const { return objSize; }
 };
 
 class MLineStyleBodyProbe final : public DRW_MLineStyle {
@@ -43911,14 +43912,12 @@ int main(int argc, char** argv) {
                 + commonBuffer.getBitPos();
             const std::uint64_t rawEndBit =
                 static_cast<std::uint64_t>(malformed.m_rawBytes.size()) * 8u;
-            // Modern object frames provide an explicit body-bit bound. The
-            // legacy AC1015 profile only carries its total bounded object
-            // span, so restrict that search to the raw frame after the
-            // validated common prologue.
-            const std::uint64_t bodyEndBit = malformed.m_bodyBitSize == 0
-                ? rawEndBit
-                : commonEndBit
-                    + static_cast<std::uint64_t>(malformed.m_bodyBitSize);
+            // parseDwg's size argument is the R2010+ handle-stream bit
+            // count, not the length of the body after the common prologue.
+            // The common parser derives objSize as the absolute object-data
+            // boundary (or reads it from the older object header).
+            const std::uint64_t bodyEndBit = common.objectDataBitSize() == 0
+                ? rawEndBit : common.objectDataBitSize();
             std::uint64_t searchStartBit = commonEndBit;
             std::uint64_t searchEndBit = std::min(rawEndBit, bodyEndBit);
             if (malformedBackgroundSkylightHandleSource) {
@@ -44010,8 +44009,9 @@ int main(int argc, char** argv) {
                 for (std::uint64_t bit = searchStartBit;
                      bit < searchEndBit; ++bit) {
                     std::vector<std::uint8_t> candidate = malformed.m_rawBytes;
+                    // dwgBuffer numbers bits from the most significant bit.
                     candidate[static_cast<std::size_t>(bit / 8u)] ^=
-                        static_cast<std::uint8_t>(1u << (bit % 8u));
+                        static_cast<std::uint8_t>(1u << (7u - (bit % 8u)));
                     dwgBuffer candidateCommon(candidate.data(),
                                               candidate.size());
                     dwgBuffer candidateStrings =

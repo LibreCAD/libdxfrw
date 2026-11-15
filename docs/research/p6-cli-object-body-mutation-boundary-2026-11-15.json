@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-15",
+  "finding": "The generated malformed-object search treated parseDwg m_bodyBitSize as a post-prologue body length, although it is the R2010+ handle-stream bit count. It also flipped bits LSB-first even though dwgBuffer positions are MSB-first. Some valid body fields were never searched and edge bits could fall outside the advertised interval.",
+  "change": "Use the common parser object-data end as the absolute search boundary, clamp it to the raw frame, and flip each bit in dwgBuffer order. Add five newly isolated SOLIDBACKGROUND, GROUNDPLANEBACKGROUND, IMAGEBACKGROUND and IBLBACKGROUND revision profiles to the existing disposition matrix.",
+  "validation": [
+    "The complete partial-read CLI CTest passes in 33.51 seconds. Its family harness requires exactly one typed object failure, unchanged source, preserved strict-output sentinel, admitted ASCII/Binary partial output and reopened LINE/VPORT counts for each non-AC1027 profile.",
+    "The rebuilt complete local DWG roundtrip CTest passes.",
+    "AC1024, AC1027 and AC1032 SPATIAL_INDEX still have no one-bit typed-parser failure after the corrected wider bounded search and remain open.",
+    "All generated DWG/DXF files are scratch-only; none are committed."
+  ],
+  "limits": "The new cases exercise generated corruption and bounded parser recovery, not independent producer semantics or a support claim. AC1027 remains source-gated and no phase gate is closed."
+}

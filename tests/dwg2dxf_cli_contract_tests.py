@@ -2276,6 +2276,8 @@ def check_malformed_background_solid_body(converter, root, writer):
     profiles = {
         "AC1015": "2007",
         "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1024": "2010",
         "AC1027": None,
         "AC1032": "2018",
     }
@@ -2289,6 +2291,7 @@ def check_malformed_background_groundplane_body(converter, root, writer):
         "AC1015": "2007",
         "AC1018": "2007",
         "AC1021": "2007",
+        "AC1024": "2010",
         "AC1027": None,
         "AC1032": "2018",
     }
@@ -2317,7 +2320,7 @@ def check_malformed_background_image_body(converter, root, writer):
         "AC1015": "2007",
         "AC1018": "2007",
         "AC1021": "2007",
-        # No one-bit mutation within the bounded Image body fails its parser.
+        "AC1024": "2010",
         "AC1027": None,
         "AC1032": "2018",
     }
@@ -2331,7 +2334,7 @@ def check_malformed_background_ibl_body(converter, root, writer):
         "AC1015": "2007",
         "AC1018": "2007",
         "AC1021": "2007",
-        # No one-bit mutation within the bounded IBL body fails its parser.
+        "AC1024": "2010",
         "AC1027": None,
         "AC1032": "2018",
     }
