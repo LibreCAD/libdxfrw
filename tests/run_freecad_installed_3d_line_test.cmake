@@ -288,7 +288,6 @@ set(_environment
     "LIBDXFRW_FREECAD_EXPECT_DWG2DXF_SHA256=${_converter_sha256}"
     "LIBDXFRW_FREECAD_EXPECT_LINE_BOUNDS=[[1,2,3,4,6,9]]"
     "LIBDXFRW_FREECAD_EXPECT_LINE_ENDPOINTS=[[[1,2,3],[4,6,9]]]"
-    "PATH=${_test_path_arg}"
     "FREECAD_USER_HOME=${_user_home}"
     "FREECAD_USER_DATA=${_user_data}"
     "FREECAD_USER_TEMP=${_user_temp}"
@@ -350,6 +349,10 @@ if(DEFINED EXPECTED_FREECAD_REVISION)
         "LIBDXFRW_FREECAD_EXPECT_REVISION=${EXPECTED_FREECAD_REVISION}")
 endif()
 
+# list(REMOVE_ITEM) reconstructs the list and strips the escaped semicolons
+# in a Windows PATH. Append it only after all list removals, immediately
+# before expanding the argument vector for cmake -E env.
+list(APPEND _environment "PATH=${_test_path_arg}")
 execute_process(
     COMMAND "${CMAKE_COMMAND}" -E env ${_environment}
         "${FREECADCMD}" --user-cfg "${_user_cfg}" "${IMPORT_CHECK_MACRO}"

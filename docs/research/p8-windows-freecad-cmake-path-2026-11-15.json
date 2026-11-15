@@ -1,0 +1,10 @@
+{
+  "date": "2026-11-15",
+  "hostedSourceCommit": "26ed8f57",
+  "hostedRun": "https://github.com/dxli/libdxfrw/actions/runs/43723402311/job/132840034756",
+  "observation": "Windows passed the batch naming and two FreeCAD CLI compatibility checks, but all eight FreeCAD open/insert cases failed immediately with 'no such file or directory'. The pinned FreeCAD executable existed and each generated DWG passed installed-converter strict preflight.",
+  "cause": "A direct CMake process-launch reproduction showed list(REMOVE_ITEM) strips the escaped semicolons from the already-added Windows PATH item. Expanding the reconstructed environment list makes cmake -E env interpret a PATH fragment as the executable.",
+  "change": "Append the escaped PATH argument only after all list removals, immediately before the process launch.",
+  "validation": "A direct CMake control reproduces the original error and passes after the same argument-order correction, preserving all three semicolon-separated path components through process launch.",
+  "limits": "This local CMake control is not a Windows FreeCAD execution. The eight native application checks require a fresh Windows run, and no support claim is promoted."
+}
