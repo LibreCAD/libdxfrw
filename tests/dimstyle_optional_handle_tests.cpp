@@ -1,6 +1,7 @@
 #include "dx_iface.h"
 #include "intern/dxfreader.h"
 
+#include <algorithm>
 #include <chrono>
 #include <array>
 #include <cstring>
@@ -11,6 +12,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -91,6 +93,79 @@ bool verify(const std::string& path, bool directVars) {
         for (int code = 341; code <= 347; ++code) {
             if (references[style][code] != (style == "Zero" ? "0" : "A9"))
                 return fail("explicit null/nonempty DIMSTYLE handle changed");
+        }
+    }
+    return true;
+}
+
+bool legacyLinetypeReferences(const std::filesystem::path& directory) {
+    struct Profile {
+        const char* name;
+        std::vector<std::pair<int, std::string>> references;
+        std::uint32_t first;
+        std::uint32_t second;
+        bool valid;
+    };
+    const std::vector<Profile> profiles{
+        {"modern", {{346, "41"}, {347, "42"}}, 0x41u, 0x42u, true},
+        {"legacy", {{347, "41"}, {348, "42"}}, 0x41u, 0x42u, true},
+        {"legacy-reordered", {{348, "42"}, {347, "41"}}, 0x41u, 0x42u, true},
+        {"legacy-second-only", {{348, "42"}}, 0u, 0x42u, true},
+        {"conflicting-modern-first", {{346, "41"}, {348, "42"}}, 0u, 0u, false},
+        {"conflicting-legacy-first", {{348, "42"}, {346, "41"}}, 0u, 0u, false},
+    };
+    for (const bool binary : {false, true}) {
+        for (const auto& profile : profiles) {
+            const auto path = directory / (std::string(profile.name)
+                + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            std::ofstream out(path, std::ios::binary);
+            if (!out)
+                return fail("could not create generated DIMSTYLE legacy control");
+            if (binary)
+                out.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
+            const auto stringTag = [&](int code, const std::string& value) {
+                if (binary) {
+                    out.put(static_cast<char>(code & 0xff));
+                    out.put(static_cast<char>((code >> 8) & 0xff));
+                    out << value;
+                    out.put('\0');
+                } else {
+                    out << code << '\n' << value << '\n';
+                }
+            };
+            stringTag(0, "SECTION"); stringTag(2, "HEADER");
+            stringTag(9, "$ACADVER"); stringTag(1, "AC1021");
+            stringTag(0, "ENDSEC"); stringTag(0, "SECTION");
+            stringTag(2, "TABLES"); stringTag(0, "TABLE");
+            stringTag(2, "DIMSTYLE"); stringTag(0, "DIMSTYLE");
+            stringTag(105, "31"); stringTag(2, "LEGACY_TEST");
+            for (const auto& tag : profile.references)
+                stringTag(tag.first, tag.second);
+            stringTag(0, "ENDTAB"); stringTag(0, "ENDSEC");
+            stringTag(0, "EOF");
+            out.close();
+            if (!out)
+                return fail("could not finish generated DIMSTYLE legacy control");
+
+            dx_data data;
+            dx_iface reader;
+            const bool read = reader.fileImport(path.string(), &data, false);
+            if (read != profile.valid)
+                return fail(std::string("DIMSTYLE legacy source disposition: ")
+                            + profile.name);
+            if (!read)
+                continue;
+            const auto style = std::find_if(data.dimStyles.begin(),
+                data.dimStyles.end(), [](const DRW_Dimstyle& value) {
+                    return value.name == "LEGACY_TEST";
+                });
+            if (style == data.dimStyles.end()
+                || style->dimltex1H.ref != profile.first
+                || style->dimltex2H.ref != profile.second
+                || style->hasDxfDimensionLinetypeReference(346)
+                    != (profile.first != 0u)
+                || !style->hasDxfDimensionLinetypeReference(347))
+                return fail(std::string("DIMSTYLE legacy handles: ") + profile.name);
         }
     }
     return true;
@@ -489,6 +564,10 @@ int main(int argc, char** argv) {
         / ("libdxfrw-dimstyle-handles-" + std::to_string(
             std::chrono::steady_clock::now().time_since_epoch().count()));
     std::filesystem::create_directory(directory);
+    if (!legacyLinetypeReferences(directory)) {
+        std::cerr << "Evidence: " << directory << '\n';
+        return 1;
+    }
     for (bool binary : {false, true}) {
         const auto path = directory / (binary ? "vars binary.dxf" : "vars ascii.dxf");
         if (!generate(path.string(), binary, true) || !verify(path.string(), true)) {

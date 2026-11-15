@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-15",
+  "finding": "A clean LibreCAD master-based consumer linked to upstream lost the first extension-line linetype for legacy LibreCAD DIMSTYLE groups 347/348. LibreCAD bundled libdxfrw already recognizes that historical pair, while upstream only read groups 346/347.",
+  "change": "Recognize legacy group 348 and map the 347/348 pair to the canonical two linetype references in either input order. Preserve 346/347 handling; refuse an ambiguous mix containing both 346 and 348. Reuse an existing presence-bit field, with no public layout growth.",
+  "evidence": [
+    "LibreCAD bundled reader at current master accepts the historical 347/348 pair. Its tests include both modern and legacy roundtrips.",
+    "Autodesk published DIMSTYLE DXF group-code table does not specify groups 345-348; this is a bounded LibreCAD compatibility mapping, not an Autodesk-format claim. https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-F2FAD36F-0CE3-4943-9DAD-A9BCD2AE81DA.htm"
+  ],
+  "validation": [
+    "Generated ASCII and Binary controls cover modern 346/347, legacy 347/348, reversed legacy order, single legacy second reference, and both orders of conflicting 346/348.",
+    "Existing DIMSTYLE compatible resource remapping and readback transaction CTest passes.",
+    "Fresh LibreCAD master-based consumer linked to the changed upstream implementation passes four focused DIMSTYLE linetype roundtrip cases: legacy, named modern, built-in modern and ByLayer/Continuous (51 assertions total)."
+  ],
+  "limits": "The clean upstream-linked consumer is a copied-source overlay with the previously recorded local patches. Three other tagged LTYPE failures and full clean-platform consumer qualification remain open; no support claim or phase gate is promoted."
+}

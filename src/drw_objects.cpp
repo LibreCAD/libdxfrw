@@ -3892,6 +3892,8 @@ bool DRW_Dimstyle::canWriteDxfDimensionColors() const noexcept {
 }
 
 bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
+    // Older LibreCAD DXF writers used 347/348 for extension linetypes.
+    constexpr std::uint16_t kDxfLegacyDimltex2 = 0x0800;
     const auto retainDxfHandle = [&reader](dwgHandle& target) {
         target = dwgHandle{};
         if (!reader->isValidHandleString())
@@ -4214,12 +4216,32 @@ bool DRW_Dimstyle::parseCode(int code, const std::unique_ptr<dxfReader>& reader)
         m_dxfDimensionPresence |= kDxfDxfDimltype;
         break;
     case 346:
+        if ((m_dxfDimensionPresence & kDxfLegacyDimltex2) != 0)
+            return false;
         retainDxfHandle(dimltex1H);
         m_dxfDimensionPresence |= kDxfDxfDimltex1;
         break;
     case 347:
+        if ((m_dxfDimensionPresence & kDxfLegacyDimltex2) != 0) {
+            retainDxfHandle(dimltex1H);
+            m_dxfDimensionPresence |= kDxfDxfDimltex1;
+        } else {
+            retainDxfHandle(dimltex2H);
+            m_dxfDimensionPresence |= kDxfDxfDimltex2;
+        }
+        break;
+    case 348:
+        // LibreCAD's older writer used 347/348 instead of 346/347. Do
+        // not silently choose between conflicting modern and legacy pairs.
+        if ((m_dxfDimensionPresence
+             & (kDxfDxfDimltex1 | kDxfLegacyDimltex2)) != 0)
+            return false;
+        if ((m_dxfDimensionPresence & kDxfDxfDimltex2) != 0) {
+            dimltex1H = dimltex2H;
+            m_dxfDimensionPresence |= kDxfDxfDimltex1;
+        }
         retainDxfHandle(dimltex2H);
-        m_dxfDimensionPresence |= kDxfDxfDimltex2;
+        m_dxfDimensionPresence |= kDxfDxfDimltex2 | kDxfLegacyDimltex2;
         break;
     default:
         return DRW_TableEntry::parseCode(code, reader);
