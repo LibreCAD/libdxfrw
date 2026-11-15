@@ -1,0 +1,44 @@
+{
+  "title": "Generated POINTCLOUDDEFINITIONEX body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_POINTCLOUDDEFINITIONEX_BODY_RECOVERY_PASS",
+  "scope": "Malformed-body CLI disposition for the POINTCLOUDDEFINITIONEX sibling class at six DWG revisions, paired with the already-qualified POINTCLOUDDEFINITION profile in one focused selector.",
+  "selection": {
+    "source": "P6-F typed OBJECTS dispatcher/parser inventory",
+    "reason": "DRW_PointCloudDef::DefinitionEx shares the bounded definition body parser while using its own custom class binding; generated recovery evidence now covers both definition class routes."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and removed by the test runner.",
+    "generator": "--generate-cli-malformed-pointcloud-definition-ex-body-source",
+    "profile": "One POINTCLOUDDEFINITIONEX with class version 2, a local filename, loaded state, point count 789, finite extents, and a following LINE.",
+    "mutation": "A bounded one-bit mutation within the pre-handle body causes the typed DefinitionEx parser to reject the object frame."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 10, "output_revision": "AC1015", "coverage": "Definition and DefinitionEx"},
+    "AC1018": {"controls": 10, "output_revision": "AC1018", "coverage": "Definition and DefinitionEx"},
+    "AC1021": {"controls": 10, "output_revision": "AC1021", "coverage": "Definition and DefinitionEx"},
+    "AC1024": {"controls": 10, "output_revision": "AC1024", "coverage": "Definition and DefinitionEx"},
+    "AC1027": {"controls": 6, "output": "both variants refused by the existing source-reference gate"},
+    "AC1032": {"controls": 10, "output_revision": "AC1032", "coverage": "Definition and DefinitionEx"}
+  },
+  "assertions": [
+    "Each generated source records one failed OBJECTS frame, continues to the following LINE, and balances source/published/failed frame accounting.",
+    "Strict ASCII/Binary conversion refuses atomically and preserves the destination sentinel for output-qualified revisions.",
+    "Explicit-partial ASCII/Binary conversion and fresh typed DXF readback pass for both Definition variants at AC1015, AC1018, AC1021, AC1024, and AC1032.",
+    "Both variants remain refused at AC1027 by the source-reference gate."
+  ],
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 passed.",
+    "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j2 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
+    "diff_check": "git diff --check passed after the plan and receipt update.",
+    "targeted": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_pointcloud_definition_recovery$' --output-on-failure passed; 56 controls; 1.90 seconds.",
+    "aggregate": "The latest dwg2dxf_cli_partial_read_disposition run passed 917 controls in 29.40 seconds during the SECTION_SETTINGS slice. It was not rerun for this addition."
+  },
+  "limits": [
+    "Generated local recovery and output-disposition evidence only; producer-authored point-cloud semantics and independent consumer behavior are not qualified.",
+    "AC1027 output remains refused by the source-reference gate for both class variants.",
+    "Native point-cloud loading, extents, and rendering are not tested.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

@@ -28938,6 +28938,16 @@ public:
             pointCloudDefinition_.m_extentsMin = DRW_Coord{-1.0, -2.0, -3.0};
             pointCloudDefinition_.m_extentsMax = DRW_Coord{10.0, 20.0, 30.0};
         }
+        if (kind_ == 48) {
+            pointCloudDefinition_.handle = 0x700u;
+            pointCloudDefinition_.m_kind = DRW_PointCloudDef::DefinitionEx;
+            pointCloudDefinition_.m_classVersion = 2;
+            pointCloudDefinition_.m_sourceFilename = "RECOVERY_POINTCLOUD_EX.rcs";
+            pointCloudDefinition_.m_isLoaded = true;
+            pointCloudDefinition_.m_pointCount = 789;
+            pointCloudDefinition_.m_extentsMin = DRW_Coord{-4.0, -5.0, -6.0};
+            pointCloudDefinition_.m_extentsMax = DRW_Coord{40.0, 50.0, 60.0};
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -29089,7 +29099,7 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerPointCloudColorMapObjectClass(
                       &pointCloudColorMap_) && wrote;
-        } else if (kind_ == 47) {
+        } else if (kind_ == 47 || kind_ == 48) {
             wrote = hasMalformedObject_
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerPointCloudDefObjectClass(
@@ -29106,7 +29116,7 @@ public:
                    && kind_ != 34 && !(kind_ >= 35 && kind_ <= 40)
                    && kind_ != 41 && kind_ != 42 && kind_ != 43
                    && kind_ != 44 && kind_ != 45 && kind_ != 46
-                   && kind_ != 47) {
+                   && kind_ != 47 && kind_ != 48) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -29227,7 +29237,7 @@ public:
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writePointCloudColorMap(
                                &pointCloudColorMap_)) && wrote;
-        } else if (kind_ == 47) {
+        } else if (kind_ == 47 || kind_ == 48) {
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writePointCloudDef(
@@ -42787,6 +42797,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-pointcloud-colormap-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-pointcloud-definition-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-pointcloud-definition-ex-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -42872,6 +42884,9 @@ int main(int argc, char** argv) {
         const bool malformedPointCloudDefinitionBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-pointcloud-definition-body-source";
+        const bool malformedPointCloudDefinitionExBodySource =
+            std::string(argv[1])
+                == "--generate-cli-malformed-pointcloud-definition-ex-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -42961,6 +42976,7 @@ int main(int argc, char** argv) {
             || malformedSectionSettingsBodySource
             || malformedPointCloudColorMapBodySource
             || malformedPointCloudDefinitionBodySource
+            || malformedPointCloudDefinitionExBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -43027,6 +43043,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 46
                                                                                                         : malformedPointCloudDefinitionBodySource
                                                                                                             ? 47
+                                                                                                        : malformedPointCloudDefinitionExBodySource
+                                                                                                            ? 48
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -43132,6 +43150,7 @@ int main(int argc, char** argv) {
                  || malformedSectionSettingsBodySource
                  || malformedPointCloudColorMapBodySource
                  || malformedPointCloudDefinitionBodySource
+                 || malformedPointCloudDefinitionExBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -43333,9 +43352,12 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
-                        if (malformedPointCloudDefinitionBodySource) {
+                        if (malformedPointCloudDefinitionBodySource
+                            || malformedPointCloudDefinitionExBodySource) {
                             PointCloudDefinitionBodyProbe typed;
-                            typed.m_kind = DRW_PointCloudDef::Definition;
+                            typed.m_kind = malformedPointCloudDefinitionExBodySource
+                                ? DRW_PointCloudDef::DefinitionEx
+                                : DRW_PointCloudDef::Definition;
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
@@ -43446,6 +43468,7 @@ int main(int argc, char** argv) {
                   || malformedSectionSettingsBodySource
                   || malformedPointCloudColorMapBodySource
                   || malformedPointCloudDefinitionBodySource
+                  || malformedPointCloudDefinitionExBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -43509,6 +43532,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "POINTCLOUDCOLORMAP"
                                                                                                                 : malformedPointCloudDefinitionBodySource
                                                                                                                     ? "POINTCLOUDDEFINITION"
+                                                                                                                : malformedPointCloudDefinitionExBodySource
+                                                                                                                    ? "POINTCLOUDDEFINITIONEX"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
@@ -43574,6 +43599,8 @@ int main(int argc, char** argv) {
                                                                                         ? 46
                                                                                     : malformedPointCloudDefinitionBodySource
                                                                                         ? 47
+                                                                                    : malformedPointCloudDefinitionExBodySource
+                                                                                        ? 48
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,

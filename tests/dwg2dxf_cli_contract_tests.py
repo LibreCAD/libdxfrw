@@ -2433,7 +2433,7 @@ def check_malformed_pointcloud_colormap_body(converter, root, writer):
         "--generate-cli-malformed-pointcloud-colormap-body-source", profiles)
 
 
-def check_malformed_pointcloud_definition_body(converter, root, writer):
+def check_malformed_pointcloud_definition_bodies(converter, root, writer):
     profiles = {
         "AC1015": "2007",
         "AC1018": "2007",
@@ -2442,9 +2442,14 @@ def check_malformed_pointcloud_definition_body(converter, root, writer):
         "AC1027": None,
         "AC1032": "2018",
     }
-    return check_malformed_object_body_family(
+    definition = check_malformed_object_body_family(
         converter, root, writer, "POINTCLOUDDEFINITION",
         "--generate-cli-malformed-pointcloud-definition-body-source", profiles)
+    definition_ex = check_malformed_object_body_family(
+        converter, root, writer, "POINTCLOUDDEFINITIONEX",
+        "--generate-cli-malformed-pointcloud-definition-ex-body-source",
+        profiles)
+    return definition + definition_ex
 
 
 def check_malformed_rendersettings_bodies(converter, root, writer):
@@ -3731,7 +3736,7 @@ def main():
             print(f"CLI POINTCLOUDCOLORMAP recovery: PASS ({checked} controls)")
             return
         if args.pointcloud_definition_only:
-            checked = check_malformed_pointcloud_definition_body(
+            checked = check_malformed_pointcloud_definition_bodies(
                 converter, root, args.writer)
             print(f"CLI POINTCLOUDDEFINITION recovery: PASS ({checked} controls)")
             return
