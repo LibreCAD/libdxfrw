@@ -5145,7 +5145,9 @@ bool dwgWriter15::rejectDefaultDwgMaterialFrameConflicts() {
             m_defaultMaterialHandles.end(), h) != m_defaultMaterialHandles.end();
     };
     bool conflict = protectedHandle(m_currentHandle);
-    const auto check = [this, &protectedHandle, &conflict](const dwgBufferW& buffer) {
+    std::size_t queuedLayerMaterialReferences = 0u;
+    const auto check = [this, &protectedHandle, &conflict,
+                        &queuedLayerMaterialReferences](const dwgBufferW& buffer) {
         for (const auto& token : buffer.handleOccurrences()) {
             std::uint64_t target = token.reference;
             switch (token.code) {
@@ -5173,7 +5175,22 @@ bool dwgWriter15::rejectDefaultDwgMaterialFrameConflicts() {
             const bool layerEdge = m_currentHandle == DRW::DwgLayer0Handle
                 && token.reference == m_defaultMaterialHandles[3]
                 && token.code == DRW::DwgHardPointer;
-            if (!nodEdge && !layerEdge) conflict = true;
+            // AC1024 drawings can contain several typed layers referring to
+            // the same Global material. Only admit a queued LAYER's own
+            // material field; protected handles in arbitrary frames remain
+            // conflicts.
+            const bool queuedLayerEdge = m_version == DRW::AC1024
+                && &buffer == &m_objectHandles
+                && token.reference == m_defaultMaterialHandles[3]
+                && token.code == DRW::DwgHardPointer
+                && std::any_of(m_pendingLayers.begin(), m_pendingLayers.end(),
+                    [this](const auto& layer) {
+                        return layer.first == m_currentHandle
+                            && layer.second.materialHandle.ref == m_defaultMaterialHandles[3];
+                    });
+            if (queuedLayerEdge && ++queuedLayerMaterialReferences != 1u)
+                conflict = true;
+            if (!nodEdge && !layerEdge && !queuedLayerEdge) conflict = true;
         }
     };
     check(m_objectBody); check(m_objectStrings); check(m_objectHandles);

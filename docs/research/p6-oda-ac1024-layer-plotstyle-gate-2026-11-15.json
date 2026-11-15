@@ -216,5 +216,11 @@
     "cleanSourceInventory": "1201 released files, unchanged; no DWG/DXF fixture committed",
     "ctestInventory": "1372 tests, unchanged",
     "limits": "This low-level marker and readback do not prove the referenced objects exist. AC1024 source binding, staged TABLES/OBJECTS inspection, graph closure and full-document HEADER evidence remain required before adapter admission."
+  },
+  "additionalLayerDwgWriter": {
+    "scope": "Locally authored AC1024 DWG writer default-material graph; only queued typed LAYER records may refer to staged Global via one hard-pointer token. Other versions and protected object-frame references retain their previous restrictions.",
+    "validation": "Generated tests write and read an additional Defpoints layer pointing at Global. A layer whose plot-style and material pointers both target the protected Global object is refused with destination preservation; a corrected same-writer retry succeeds. The existing material opt-in controls and GCC 16 strict syntax check pass. LibreDWG 0.14 independently decoded both 0 and Defpoints as H5 references to the same Global material; generated DWG SHA-256 060532f13bb91e8f5019c56396e54db3b871776635113c8ca122b3d3b2563291 and peer JSON SHA-256 5522cc6c147d48f54b6db9466644d51a8f7ca22d06e7381d11bed034749c7ef8.",
+    "qualificationDigest": "b0072a15de6a550369ffcabce11674aac2670df6a9c0be86cefe61c9544e082e",
+    "limits": "This authoring path is not proof of material rendering semantics or complete-document conversion. The generated fixture remains local and is not committed."
   }
 }

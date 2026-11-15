@@ -399,7 +399,8 @@ bool directControls() {
 enum class Mode { Normal, EarlyRoot, SourceRoot, HeaderInvalid, HeaderGlobal, EarlyMaterialClass, LateMaterialClass,
                   EarlyRawSection, LateRawSection, LateRoot, NodAlias, GroupAlias, DictionaryOwner,
                   DictionaryChild, DictionaryHandle, XrecordOwner, RawObject, CallerMaterial,
-                  ReplayMaterial, SuppliedLayer, SuppliedLayerGlobal, LateEntityHandle };
+                  ReplayMaterial, SuppliedLayer, SuppliedLayerGlobal,
+                  ExtraLayerGlobal, ExtraLayerConflictingPlot, LateEntityHandle };
 struct Adapter : LC3CompatCheck, DRW_DwgDefaultMaterialProvider, DRW_DwgDefaultPlotStyleProvider {
     explicit Adapter(dwgRW& writer) : output(writer) {}
     bool wantsDwgDefaultMaterialGraph() const override { return enabled; }
@@ -474,6 +475,13 @@ struct Adapter : LC3CompatCheck, DRW_DwgDefaultMaterialProvider, DRW_DwgDefaultP
             DRW_Layer layer; layer.name="0";
             layer.materialHandle.ref = mode == Mode::SuppliedLayerGlobal
                 ? handles[3] : 0xB200u;
+            supplied = output.addLayer(&layer);
+        }
+        if (mode == Mode::ExtraLayerGlobal || mode == Mode::ExtraLayerConflictingPlot) {
+            DRW_Layer layer; layer.name = "Defpoints";
+            layer.materialHandle.ref = handles[3];
+            if (mode == Mode::ExtraLayerConflictingPlot)
+                layer.plotStyleHandle.ref = handles[3];
             supplied = output.addLayer(&layer);
         }
     }
@@ -732,6 +740,7 @@ struct Capture : LC3CompatCheck {
             layerMaterial=layer.materialHandle.ref;
             layerPlotStyle=layer.plotStyleHandle.ref;
         }
+        if (layer.name == "Defpoints") extraLayerMaterial = layer.materialHandle.ref;
     }
     bool matches(const std::array<std::uint32_t,4>& h, bool supplied,
                  std::uint32_t expectedPlotStyle=0u) const {
@@ -744,7 +753,7 @@ struct Capture : LC3CompatCheck {
             if(std::find(materials.begin(),materials.end(),std::make_pair(names[i],h[i+1]))==materials.end()) return false;
         return true;
     }
-    std::uint32_t root=0,dictionary=0,owner=0,layerMaterial=0,layerPlotStyle=0;
+    std::uint32_t root=0,dictionary=0,owner=0,layerMaterial=0,layerPlotStyle=0,extraLayerMaterial=0;
     std::array<std::uint32_t,3> children{};
     std::vector<std::pair<std::string,std::uint32_t>> materials;
     std::vector<DRW_Material> parsedMaterials;
@@ -1567,6 +1576,19 @@ int main(int argc,char**argv) {
             std::cerr << "supplied layer with planned Global material failed\n";
             return 1;
         }
+        if (version == DRW::AC1024) {
+            adapter.mode = Mode::ExtraLayerGlobal;
+            if (!output.write(&adapter, version, true) || !adapter.supplied) return 1;
+            dwgRW extraReader(path.c_str()); Capture extra;
+            if (!extraReader.read(&extra, false) || extra.extraLayerMaterial != adapter.handles[3]) return 1;
+            if (keep) std::filesystem::copy_file(path, dir / "graph-extra-layer-ac1024.dwg");
+            { std::ofstream f(path, std::ios::binary); f << "prior destination"; }
+            adapter.mode = Mode::ExtraLayerConflictingPlot;
+            if (output.write(&adapter, version, true)) return 1;
+            { std::ifstream f(path, std::ios::binary); if (std::string(std::istreambuf_iterator<char>(f), {}) != "prior destination") return 1; }
+            adapter.mode = Mode::ExtraLayerGlobal;
+            if (!output.write(&adapter, version, true) || !inspect(path, adapter.handles, false, version)) return 1;
+        }
         if (version == DRW::AC1027) {
             adapter.plotEnabled=false;
             {std::ofstream f(path,std::ios::binary);f<<"prior destination";}
@@ -1577,7 +1599,8 @@ int main(int argc,char**argv) {
         }
         adapter.mode=Mode::HeaderGlobal;
         if(!output.write(&adapter,version,true)||!inspect(path,adapter.handles,false,version))return 1;
-        if(keep) std::filesystem::copy_file(path,dir/(version == DRW::AC1021 ? "graph-global-ac1021.dwg" : "graph-global-ac1024.dwg"));
+        if(keep) std::filesystem::copy_file(path,dir/(version == DRW::AC1021 ? "graph-global-ac1021.dwg"
+            : version == DRW::AC1024 ? "graph-global-ac1024.dwg" : "graph-global-ac1027.dwg"));
         for(Mode mode:{Mode::EarlyRoot,Mode::HeaderInvalid,Mode::EarlyMaterialClass,Mode::LateMaterialClass,
              Mode::EarlyRawSection,Mode::LateRawSection,Mode::LateRoot,Mode::NodAlias,Mode::GroupAlias,
              Mode::DictionaryOwner,Mode::DictionaryChild,Mode::DictionaryHandle,Mode::XrecordOwner,
