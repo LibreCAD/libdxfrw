@@ -32,6 +32,7 @@ docs/3D_SUPPORT_STATUS.md
 docs/LIBRECAD_DXFRW_UPGRADE_HISTORY.md
 docs/SOURCE_RELEASE.md
 docs/UPGRADE_SUPPORT.md
+docs/patches/freecad-p8-default-classic-polyline-flags-2026-11-15.patch
 docs/patches/freecad-p8-default-planar-3dface-2026-11-15.patch
 docs/patches/freecad-p8-default-solid-ocs-2026-11-15.patch
 docs/patches/freecad-p8-legacy-dxf-block-3dface-2026-11-15.patch

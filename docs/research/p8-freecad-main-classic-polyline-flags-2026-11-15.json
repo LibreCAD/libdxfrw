@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-15",
+  "scope": "unmerged third ordered FreeCAD development default-importer patch",
+  "base": "FreeCAD d956ec561639cfa83f755504b1b3358ea799428e with prior SOLID OCS and planar 3DFACE patches applied",
+  "patch": "docs/patches/freecad-p8-default-classic-polyline-flags-2026-11-15.patch",
+  "patchSha256": "f75cb36627c11b0d7fd0e767ace0295794f849b506ca2bbedfad7dac8af91171",
+  "nativeBuild": "Headless macOS ARM64 FreeCADCmd from exact source archive 29bdfe30632e084c0b6d015a1258f0ff75b8ed84fca660cec4e74fd4e2604bb9; AppleClang 21, Qt 6.12, OCCT 7.9.3; prior two patches applied",
+  "combinedImportSha256": "fb02695640860a3cfd2fb4c5fa03e44e99fec08cc63993ee174cad7a4ecc751e",
+  "baseline": "POLYLINE header group 70 and each VERTEX group 70 share the same destination; child flags overwrite parent flags. Generated closed 2D and 3D polylines lose the closing edge; generated polyface creates a wire through an irrelevant (0,0,0) face record, while polygon mesh is reduced to a wire without reporting a loss.",
+  "change": "Capture parent flags before reading child records; retain them when emitting ordinary polylines. Consume polygon-mesh/polyface records without fabricating wires and report the unsupported mesh family. Preserve continuation when SEQEND is absent. This guard does not implement mesh import.",
+  "validation": {
+    "unit": "Actual generated-source FreeCAD import test: 8 cases for open/closed 2D and 3D, missing SEQEND, polygon mesh, polyface and mesh with missing SEQEND. Expected following LINE and unsupported-feature disposition checked; original importer fails, patched importer passes.",
+    "native": "Separate ezdxf-generated controls: both closed 2D and 3D have four edges rather than three; POLYFACE and polygon mesh have no fabricated wire and are explicitly reported; following LINE geometry is unchanged.",
+    "combined": "SOLID OCS, planar 3DFACE and classic-polyline regression tests pass together on the rebuilt FreeCAD importer. Three patches apply in order to the exact FreeCAD revision."
+  },
+  "references": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-ABF6B778-BE20-4B49-9B58-A94E64CEFFF3.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm"
+  ],
+  "scratchDxfSha256": {
+    "closed2d": "dc6918c327b4af44bfb07c0aff5eb4f16d820b7cb596f3de0a43d305fe087a4c",
+    "closed3d": "b94c1bab6315b8cd4afa3b48c9d7fba57477bb90b567f6b3ddef8ee2bf72039b",
+    "polyface": "23602cc7de346ea0eacd6d31644909cd3bd08f4408de5bc171ac5091b6b53052",
+    "polymesh": "65f6613c85f2face4cf6c4a79cbf33d96aefce0e3775e487c314f025434f38ac"
+  },
+  "limits": [
+    "All three downstream FreeCAD default-importer patches remain unmerged. Native checks use headless Import.readDXF into isolated fresh documents; GUI open/insert and Linux/Windows are not tested.",
+    "POLYFACE and polygon-mesh semantics, including edge visibility and per-face styling, remain unsupported, not qualified.",
+    "No producer-authored source, arbitrary nested transformation, binary DXF, 3D solid or broad mesh support is implied.",
+    "Scratch DXFs are not committed; no phase or support claim is promoted."
+  ]
+}
