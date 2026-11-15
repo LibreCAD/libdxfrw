@@ -1,0 +1,55 @@
+{
+  "date": "2026-11-15",
+  "source": "tests/samples/AC1024/title_block-iso.dwg",
+  "sourceSha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+  "peer": "LibreDWG dwgread 0.14 JSON, independently decoded from the original source",
+  "peerJsonSha256": "450b086f16867b618eaf586ab897138a750d91dfe9dd2b982448bcfb8eed79f0",
+  "graphs": [
+    {
+      "table": "22D4",
+      "block": "225B",
+      "blockName": "*U",
+      "dictionary": "22D3",
+      "dictionaryEntries": {
+        "ACAD_SORTENTS": "22D4"
+      }
+    },
+    {
+      "table": "21D3",
+      "block": "0127",
+      "blockName": "Title_Block-ISO",
+      "dictionary": "21CD",
+      "dictionaryEntries": {
+        "ACAD_ENHANCEDBLOCK": "21CE",
+        "ACAD_SORTENTS": "21D3",
+        "AcDbDynamicBlockRoundTripPurgePreventer": "21D9"
+      }
+    },
+    {
+      "table": "2121",
+      "block": "20A8",
+      "blockName": "*U",
+      "dictionary": "2120",
+      "dictionaryEntries": {
+        "ACAD_SORTENTS": "2121"
+      }
+    },
+    {
+      "table": "00F3",
+      "block": "0002",
+      "blockName": "*Model_Space",
+      "dictionary": "00F2",
+      "dictionaryEntries": {
+        "ACAD_SORTENTS": "00F3"
+      }
+    }
+  ],
+  "observations": [
+    "For each graph, LibreDWG reports the BLOCK_HEADER extension dictionary equal to the listed dictionary, the dictionary parent equal to the listed block, and the SORTENTSTABLE parent and sole reactor equal to that dictionary.",
+    "The libdxfrw source trace reports zero entity/sort pairs for all four tables; the first three named-block records trigger the existing writer owner restriction when projected by the LibreCAD adapter. The fourth is model space and is not evidence for omission.",
+    "A heuristic traversal of decoded LibreDWG JSON OBJECTS found each table referenced only by its parent dictionary ACAD_SORTENTS entry. This search cannot account for references in fields LibreDWG did not decode or for references outside its OBJECTS output.",
+    "The Title_Block-ISO dictionary also owns enhanced-block and purge-preventer entries; an output projection must preserve those entries and their dependencies. Two anonymous block dictionaries contain only ACAD_SORTENTS, but their extension-dictionary relationships still require an explicit output plan."
+  ],
+  "next": "Bind each table/class/location and each dictionary typed baseline to retained raw physical source frames and source generation in the LibreCAD adapter, compare membership with both dictionaries and block records, freeze the complete graph, and reject mutations or unknown inbound references. Stage only a validated empty named-table omission, preserve each projected dictionary and other entries, prove actual output identity/closure, ASCII/Binary fresh import and independent readback, and exercise destination rollback and same-adapter retry. Keep nonempty, ambiguous, raw-unbound and model/paper records outside the omission.",
+  "limits": "LibreDWG decoding is an independent representation of this repository fixture, not proof of original producer identity or full unknown-field semantics. The adapter has not yet established the raw typed baselines, mutation freeze, output graph closure or native consumer behavior for this source. The strict CLI independently encounters a LAYER gate. No output admission or support claim is promoted."
+}
