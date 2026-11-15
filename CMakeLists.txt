@@ -49,6 +49,10 @@ endif()
 if (MSVC)
     set(LIBDXFRW_WARNING_FLAGS /W3)
     set(LIBDXFRW_ADAPTER_WARNING_FLAGS /W3 /WX /bigobj)
+    # Several production and test translation units exceed COFF's default
+    # section limit. Keep this local to the project directory and do not
+    # propagate it through the library's public usage requirements.
+    add_compile_options(/bigobj)
     # The adapter is compiled into several test targets and also as a shared
     # object-library source. Keep the large-object option attached to the
     # source so every MSVC compilation path gets it.

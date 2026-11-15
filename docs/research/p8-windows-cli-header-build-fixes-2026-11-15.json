@@ -35,5 +35,16 @@
       "Source inventory and whitespace checks pass."
     ],
     "limit": "MSVC compilation and Windows runtime remain unverified until the next hosted run."
+  },
+  "focused_test_build_followup": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43720529635/job/132831393048",
+    "source_commit": "58f5452c617e60a2761c0b5e3533772482378fc9",
+    "result": "MSVC reports C1128 because the generated local DWG roundtrip test translation unit exceeds the default COFF section limit.",
+    "change": "Apply /bigobj to MSVC compilation in the project directory, including library, CLI and test targets; warning flags and downstream public usage requirements are unchanged.",
+    "checks": [
+      "A configure-only MSVC-branch probe verifies /bigobj in generated commands for the library, adapter, local-roundtrip, reader matrix, DXF fixture and adapter-test translation units.",
+      "Build-option configure checks pass locally."
+    ],
+    "limit": "An actual MSVC rebuild and native Windows runtime check remain required."
   }
 }

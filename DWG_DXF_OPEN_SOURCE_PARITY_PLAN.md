@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **497 completed implementation and qualification slices** and **32 remaining
+The plan records **498 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`497 / (497 + 32) = 94.0%`. The previous 28-package denominator was stale; a recount
+`498 / (498 + 32) = 94.0%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -42,8 +42,9 @@ The preceding null LAYER plot-style readback failure is fixed and verified
 This does not qualify Linux mesh, surface, ACIS or the full P8-B gate.
 The latest Windows run reached the CLI build and exposed Windows macro,
 lambda, and batch-path errors; fixes and a Windows consumer/batch test are
-followed by a CLI-specific NOMINMAX and MSVC /bigobj correction; the next
-hosted run must verify both build and runtime ([receipt](docs/research/p8-windows-cli-header-build-fixes-2026-11-15.json)).
+followed by a CLI-specific NOMINMAX correction. The latest Windows focused
+build also requires /bigobj for large test translation units; a project-local
+MSVC option now covers them. The next hosted run must verify build and runtime ([receipt](docs/research/p8-windows-cli-header-build-fixes-2026-11-15.json)).
 
 The upstream-linked LibreCAD `[mtext]~[dwg]` selector now passes 4/4 after
 normalizing invalid DXF line-spacing styles and correcting its R2018 column
