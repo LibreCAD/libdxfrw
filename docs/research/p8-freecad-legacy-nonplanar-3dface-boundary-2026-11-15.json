@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-15",
+  "scope": "generated local DXF on FreeCAD 1.1.4 macOS ARM64 optional legacy importer with two unmerged local FreeCAD patches",
+  "source": "scratch DXF SHA-256 dab3de448f5e3ee9cb3ab2f2ea7b4383be0e6620e1bce9783a51c8be7b65f05f; model space has one planar and one nonplanar four-corner 3DFACE in millimetres",
+  "vertices": {
+    "nonplanar": [
+      [
+        0,
+        0,
+        0
+      ],
+      [
+        2,
+        0,
+        0
+      ],
+      [
+        2,
+        2,
+        2
+      ],
+      [
+        0,
+        2,
+        0
+      ]
+    ],
+    "planar": [
+      [
+        10,
+        0,
+        0
+      ],
+      [
+        12,
+        0,
+        0
+      ],
+      [
+        12,
+        2,
+        0
+      ],
+      [
+        10,
+        2,
+        0
+      ]
+    ]
+  },
+  "native": "Open and insert each retain the planar face, report one object not imported, and omit the nonplanar face.",
+  "peer": "Assimp 6.0 CLI, default import plus -tri OBJ export, retains both faces; for this generated nonplanar face it outputs triangles 1-2-3 and 1-3-4, using the first/third diagonal. This establishes one peer choice, not AutoCAD-equivalent triangulation. Assimp OBJ coordinates are converted to its output axis convention.",
+  "peer_obj_sha256": "1a924e91df870a005f7299d9e4f038e5f2478edcdcfd2d713491a3a0661a6373",
+  "references": [
+    "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-MAC-Core/files/GUID-5E88BB23-9110-45FB-B54A-3FF2E2002585.htm",
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-747865D5-51F0-45F2-BEFE-9572DBC5B151.htm",
+    "https://github.com/assimp/assimp/blob/master/code/PostProcessing/TriangulateProcess.cpp"
+  ],
+  "next": "Establish producer/native or independent specification evidence for nonplanar quad interpretation, diagonal and invisible-edge presentation. Implement a bounded explicitly reported fallback only when its meaning and visibility behavior are supported; cover open/insert, both diagonals, concave/self-crossing and degenerate controls, units, nested blocks, and platform runs. Preserve refusal/reporting for unresolved shapes.",
+  "limits": [
+    "No producer-authored CAD result, external geometry semantics, invisible-edge qualification or cross-platform coverage.",
+    "The scratch DXF and OBJ are not committed."
+  ]
+}
