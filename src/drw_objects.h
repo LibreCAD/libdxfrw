@@ -757,6 +757,15 @@ struct DRW_DwgAc1027LayerSource {
   DRW_DwgFrameOffsetSpace m_sourceOffsetSpace{DRW_DwgFrameOffsetSpace::Unknown};
 };
 
+//! Optional CRC-validated AC1024 LAYER source frame and object-map identity.
+//! The receipt is evidence only; it does not by itself qualify DXF output.
+struct DRW_DwgAc1024LayerSource {
+  DRW_UnsupportedObject m_raw;
+  std::uint32_t m_sourceOffset{0u};
+  std::uint64_t m_sourceMapOrdinal{0u};
+  DRW_DwgFrameOffsetSpace m_sourceOffsetSpace{DRW_DwgFrameOffsetSpace::Unknown};
+};
+
 //! Reader disposition of one HANDLE-map source frame.
 //!
 //! Pending, Deferred, and Staged are transient. Unresolved is assigned only by

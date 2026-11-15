@@ -1641,6 +1641,8 @@ protected:
   const DRW_DwgAc1027LayerSource* ac1027DefaultLayerSource() const noexcept {
     return m_ac1027DefaultLayerSource ? &*m_ac1027DefaultLayerSource : nullptr;
   }
+  const std::vector<DRW_DwgAc1024LayerSource>&
+  ac1024LayerSources() const noexcept { return m_ac1024LayerSources; }
   std::optional<dwgHandle> ac1027HeaderMaterialSource() const noexcept {
     if (version != DRW::AC1027 || !m_haveDwgHeaderCurrentReferences
         || !m_ac1027HeaderMaterialCrcValidated) return std::nullopt;
@@ -2271,6 +2273,7 @@ public:
   bool m_haveDwgHeaderCurrentReferences{false};
   bool m_ac1027HeaderMaterialCrcValidated{false};
   std::optional<DRW_DwgAc1027LayerSource> m_ac1027DefaultLayerSource;
+  std::vector<DRW_DwgAc1024LayerSource> m_ac1024LayerSources;
   bool m_dwgNodPublished{false};
   bool m_dwgNodFailureReported{false};
   //! Typed AcDb:AcDsPrototype_1b index (PR-2a). Parallel to raw section store.

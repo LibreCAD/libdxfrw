@@ -90,6 +90,19 @@ add_test(NAME libdxfrw_dxf_legacy_extrusion
     COMMAND libdxfrw_dxf_legacy_extrusion_tests)
 set_tests_properties(libdxfrw_dxf_legacy_extrusion PROPERTIES LABELS "dxf;fast;extrusion" TIMEOUT 30)
 
+add_executable(libdxfrw_dwg_ac1024_layer_source_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dwg_ac1024_layer_source_tests.cpp)
+target_compile_features(libdxfrw_dwg_ac1024_layer_source_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dwg_ac1024_layer_source_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dwg_ac1024_layer_source_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(libdxfrw_dwg_ac1024_layer_source_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_dwg_ac1024_layer_source_receipt
+    COMMAND libdxfrw_dwg_ac1024_layer_source_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/ac1024-layer-source-scratch)
+set_tests_properties(libdxfrw_dwg_ac1024_layer_source_receipt PROPERTIES
+    LABELS "fast;dwg;layer;generated;source" TIMEOUT 30)
+
 # Plotstyle root collision checks preserve the caller's spelling and avoid
 # changing admission rules for unrelated dictionary keys.
 add_executable(libdxfrw_dwg_plotstyle_nod_admission_tests

@@ -8749,6 +8749,10 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
 
   // parse layers, start with layer Control
   m_ac1027DefaultLayerSource.reset();
+  m_ac1024LayerSources.clear();
+  bool ac1024LayerEvidenceInvalid = false;
+  bool ac1024LayerZeroSeen = false;
+  bool ac1024DefpointsSeen = false;
   bool ac1027LayerZeroSeen = false;
   mit = ObjectMap.find(hdr.layerCtrl);
   if (mit == ObjectMap.end()) {
@@ -8815,6 +8819,48 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
                   m_ac1027DefaultLayerSource = std::move(receipt);
                 }
               } catch (...) { m_ac1027DefaultLayerSource.reset(); }
+            }
+          }
+          // Keep this evidence optional and bounded. It does not change the
+          // ordinary table callback or qualify output for other layer sets.
+          if (version == DRW::AC1024
+              && (la->name == "0" || la->name == "Defpoints")
+              && !ac1024LayerEvidenceInvalid) {
+            bool& seen = la->name == "0" ? ac1024LayerZeroSeen : ac1024DefpointsSeen;
+            if (seen) {
+              ac1024LayerEvidenceInvalid = true;
+              m_ac1024LayerSources.clear();
+            } else {
+              seen = true;
+              try {
+                DwgObjectFrame evidence;
+                if (!evidence.readAt(*dbuf, version, oc.loc)
+                    || evidence.body().size() > 1024u) {
+                  ac1024LayerEvidenceInvalid = true;
+                  m_ac1024LayerSources.clear();
+                } else {
+                  DRW_UnsupportedObject raw;
+                  raw.m_objectType = kLayerTable.recordType;
+                  raw.m_handle = la->handle; raw.m_parentHandle = la->parentHandle;
+                  raw.m_bodyBitSize = evidence.bodyBitSize(); raw.m_version = version;
+                  raw.m_objectOffset = oc.loc;
+                  raw.m_objectSize = static_cast<std::uint32_t>(evidence.body().size());
+                  raw.m_numReactors = la->reactorCount();
+                  raw.m_reactorHandles = la->reactorHandles;
+                  raw.m_xDictFlag = la->extensionDictionaryFlag();
+                  raw.m_xDictHandle = la->xDictHandle;
+                  raw.m_hasDataStorage = la->hasDataStorageBinaryData();
+                  raw.m_rawBytes = evidence.body();
+                  DRW_DwgAc1024LayerSource receipt;
+                  receipt.m_raw = std::move(raw); receipt.m_sourceOffset = oc.loc;
+                  receipt.m_sourceMapOrdinal = oc.sourceOrdinal;
+                  receipt.m_sourceOffsetSpace = oc.sourceOffsetSpace;
+                  m_ac1024LayerSources.push_back(std::move(receipt));
+                }
+              } catch (...) {
+                ac1024LayerEvidenceInvalid = true;
+                m_ac1024LayerSources.clear();
+              }
             }
           }
           (void)insertTableRecord(layermap, std::move(la), "layer", oc.handle,

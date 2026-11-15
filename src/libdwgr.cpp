@@ -5595,6 +5595,9 @@ bool dwgRW::processDwg() {
         if (const auto* layer = reader->ac1027DefaultLayerSource())
             sink->addDwgAc1027DefaultLayerSource(*layer);
     }
+    if (auto* sink = dynamic_cast<DRW_DwgAc1024LayerSourceHandler*>(iface))
+        for (const auto& layer : reader->ac1024LayerSources())
+            sink->addDwgAc1024LayerSource(layer);
     } catch (...) {
         recordOperationDiagnostic(
             DRW::OperationPhase::Callback,

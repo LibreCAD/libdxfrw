@@ -1095,6 +1095,14 @@ public:
   virtual void addDwgAc1027DefaultLayerSource(const DRW_DwgAc1027LayerSource& source) noexcept = 0;
 };
 
+//! Optional AC1024 layer evidence; existing DRW_Interface vtables are unchanged.
+class DRW_DwgAc1024LayerSourceHandler {
+public:
+  virtual ~DRW_DwgAc1024LayerSourceHandler() = default;
+  virtual void addDwgAc1024LayerSource(
+      const DRW_DwgAc1024LayerSource& source) noexcept = 0;
+};
+
 /** Optional source-slot metadata for decoding DWG proxy graphic resources.
  * This extension is separate from DRW_Interface so existing consumers keep
  * the same virtual table. The vectors preserve the source control-table index
