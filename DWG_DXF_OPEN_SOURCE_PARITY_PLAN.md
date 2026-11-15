@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **479 completed implementation and qualification slices** and **32 remaining
+The plan records **480 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`479 / (479 + 32) = 93.7%`. The previous 28-package denominator was stale; a recount
+`480 / (480 + 32) = 93.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -16,6 +16,12 @@ been removed from the execution queue; their commits and receipts remain the
 evidence record. The remaining count is derived from the 32 OPEN P4–P8 rows below; completed
 sub-slices do not retire their parent package until its full exit gate passes. Treat the percentage as a rough equal-weight
 activity proxy, not as the percentage of package gates completed.
+
+The upstream-linked LibreCAD caret-specific MTEXT test now passes, as do its
+codec controls. Its broader `[mtext]~[dwg]` selector remains 2/4: resolve the
+four invalid line-spacing normalization assertions and the two R2018 extents
+retention assertions against the format and consumer contracts before P8-D can
+close. See the [MTEXT receipt](docs/research/p8-mtext-caret-inline-syntax-2026-11-15.json).
 
 The IMAGEDEF owner/back-reference distinction is one completed local slice;
 P6-A remains open for native operation semantics and strict output/readback proof.
@@ -1931,7 +1937,13 @@ repeat the corpus census or alter the aggregate strict guard from this audit.
    form instead yields 16 complete typed fields, all 16 FIELDLIST links and
    eight parent/child pairs in libdxfrw. LibreDWG independently verifies the
    candidate's MTEXT/dictionary/field links and child caches. Its root caches
-   differ from the source at escape sequences; original producer identity,
+   differ from the source at escape sequences, with an ezdxf-observed stacked
+   fraction rendering difference. The same investigation identified and fixed
+   libdxfrw's MTEXT caret handling for standalone and embedded DXF text; see the
+   [MTEXT receipt](docs/research/p8-mtext-caret-inline-syntax-2026-11-15.json).
+   The DXF FIELD decoder still applies generic caret decoding to groups 2/3
+   and 9/301; qualify the `_text` FIELD evaluator and nested cached-value
+   contexts before changing that path or enabling output. Original producer identity,
    physical DWG field spans, source-text equivalence, and independent dynamic
    evaluation remain unqualified. Use the reproducible
    source audit and candidate in the [receipt](docs/research/p5-mtext-fieldlist-source-cache-2026-11-15.json)

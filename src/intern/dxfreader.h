@@ -651,6 +651,11 @@ public:
     std::string toUtf8String(std::string t, int sourceCode = 0) {
         return decodeSemanticText(t, sourceCode, false);
     }
+    // MTEXT owns caret sequences as inline formatting syntax (for example
+    // "\\S1^ 2;"), so do not decode them as generic DXF string escapes.
+    std::string toUtf8MTextString(std::string t) {
+        return decodeSemanticText(t, 0, false, false, false);
+    }
     std::string getUtf8String() {
         return decodeSemanticText(strData, m_currentCode, true);
     }
@@ -772,7 +777,8 @@ private:
     std::string decodeSemanticText(std::string_view text, int sourceCode,
                                    bool physicalRecord);
     std::string decodeSemanticText(std::string_view text, int sourceCode,
-                                  bool physicalRecord, bool forceSemantic);
+                                  bool physicalRecord, bool forceSemantic,
+                                  bool decodeAsciiControlEscapes = true);
     DRW_DxfTextReadObservations m_textReadObservations;
     DRW_TextCodec decoder;
     bool m_bIgnoreComments {false};

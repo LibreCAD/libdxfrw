@@ -116,17 +116,19 @@ std::string dxfReader::decodeSemanticText(std::string_view text, int sourceCode,
 }
 
 std::string dxfReader::decodeSemanticText(std::string_view text, int sourceCode,
-                                         bool physicalRecord, bool forceSemantic) {
+                                         bool physicalRecord, bool forceSemantic,
+                                         bool decodeAsciiControlEscapes) {
     // A semantic getter may also be used for a subclass/structural marker.
     // Do not turn raw controls, binary data or handles into text-loss events.
     const bool semantic = forceSemantic || (sourceCode == 0 ? !physicalRecord
         : dxfValueKindForCode(sourceCode, m_classifierProfile) == DxfValueKind::Str
             && sourceCode != 9 && sourceCode != 100 && sourceCode != 102
             && sourceCode != 999 && sourceCode != 1002 && !isDxfHandleCode(sourceCode));
-    // Caret escapes are an ASCII-DXF semantic-string convention. Apply them
-    // inside the selected converter so DBCS trail bytes that resemble caret
-    // syntax remain part of their original multibyte character.
-    auto result = decoder.toUtf8(text, semantic && !isBinary());
+    // Generic semantic strings may use ASCII-DXF caret escapes. MTEXT asks
+    // to retain its own caret formatting syntax. Apply generic decoding inside
+    // the converter so DBCS trail bytes remain part of their original scalar.
+    auto result = decoder.toUtf8(text, semantic && !isBinary()
+                                 && decodeAsciiControlEscapes);
     if (semantic) {
         auto observation = decoder.lastDecodeObservation();
         observation.sourceProfile = decoder.dxfSourceProfile(text);

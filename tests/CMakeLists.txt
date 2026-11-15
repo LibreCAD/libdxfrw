@@ -7224,3 +7224,11 @@ target_include_directories(libdxfrw_ac1021_mtext_field_census PRIVATE
     ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(libdxfrw_ac1021_mtext_field_census PRIVATE dxfrw)
 libdxfrw_check_test_adapter_context(libdxfrw_ac1021_mtext_field_census)
+
+add_executable(libdxfrw_dxf_mtext_caret_tests dxf_mtext_caret_tests.cpp)
+target_compile_features(libdxfrw_dxf_mtext_caret_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dxf_mtext_caret_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dxf_mtext_caret_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_dxf_mtext_caret_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_dxf_mtext_caret COMMAND libdxfrw_dxf_mtext_caret_tests)
+set_tests_properties(libdxfrw_dxf_mtext_caret PROPERTIES LABELS "dxf;fast;mtext" TIMEOUT 30)

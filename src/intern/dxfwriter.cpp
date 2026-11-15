@@ -520,14 +520,16 @@ bool dxfWriter::validateStrictText(std::string_view text) {
 bool dxfWriter::encodeStrictTextScalar(std::string_view text,
                                       std::size_t offset,
                                       std::size_t& sourceBytes,
-                                      std::string& encoded) {
+                                      std::string& encoded,
+                                      bool preserveMTextCaret) {
     if (offset >= text.size()) return failText(TextFailure::InvalidUtf8);
     const auto lead = static_cast<unsigned char>(text[offset]);
     sourceBytes = lead < 0x80u ? 1u : lead < 0xE0u ? 2u : lead < 0xF0u ? 3u : 4u;
     if (sourceBytes > text.size() - offset)
         return failText(TextFailure::InvalidUtf8);
     const auto scalar = text.substr(offset, sourceBytes); // complete scalar, validated by caller
-    if (!m_binaryStrings && sourceBytes == 1u) {
+    if (!m_binaryStrings && sourceBytes == 1u
+        && !(preserveMTextCaret && lead == '^')) {
         char caret[2] = {};
         const std::size_t caretBytes = encodeDxfAsciiControl(lead, caret);
         if (caretBytes != 0u) {
@@ -574,7 +576,8 @@ bool dxfWriter::encodeStrictText(std::string_view text, std::size_t maxBytes,
                                  std::string& encoded,
                                  std::vector<EncodedTextChunk>& chunks,
                                  std::size_t maxCharacters,
-                                 bool shortFinalChunk) {
+                                 bool shortFinalChunk,
+                                 bool preserveMTextCaret) {
     if (!validateStrictText(text)) return false;
     if (maxBytes == 0u) return failText(TextFailure::TargetLoss);
     encoded.clear();
@@ -585,14 +588,29 @@ bool dxfWriter::encodeStrictText(std::string_view text, std::size_t maxBytes,
     for (std::size_t offset = 0; offset < text.size();) {
         std::size_t sourceBytes = 0u;
         std::string scalar;
-        if (!encodeStrictTextScalar(text, offset, sourceBytes, scalar)
-            || scalar.size() > maxBytes)
+        if (!encodeStrictTextScalar(text, offset, sourceBytes, scalar,
+                                    preserveMTextCaret))
+            return failText(TextFailure::TargetLoss);
+        std::size_t scalarCharacters = 1u;
+        if (preserveMTextCaret && text[offset] == '^'
+            && sourceBytes < text.size() - offset) {
+            std::size_t nextBytes = 0u;
+            std::string next;
+            if (!encodeStrictTextScalar(text, offset + sourceBytes,
+                                        nextBytes, next, true))
+                return false;
+            scalar += next;
+            sourceBytes += nextBytes;
+            ++scalarCharacters;
+        }
+        if (scalar.size() > maxBytes
+            || (maxCharacters != 0u && scalarCharacters > maxCharacters))
             return failText(TextFailure::TargetLoss);
         const std::size_t chunkBytes = encoded.size() - chunkStart;
         if (chunkBytes != 0u
             && (scalar.size() > maxBytes - chunkBytes
                 || (maxCharacters != 0u
-                    && chunkCharacters >= maxCharacters))) {
+                    && scalarCharacters > maxCharacters - chunkCharacters))) {
             chunks.push_back({chunkStart, chunkBytes});
             chunkStart = encoded.size();
             chunkCharacters = 0u;
@@ -601,7 +619,7 @@ bool dxfWriter::encodeStrictText(std::string_view text, std::size_t maxBytes,
         if (scalar.size() > encoded.max_size() - encoded.size())
             return failText(TextFailure::TargetLoss);
         encoded.append(scalar);
-        ++chunkCharacters;
+        chunkCharacters += scalarCharacters;
         lastScalarBytes = scalar.size();
         offset += sourceBytes;
     }
@@ -840,13 +858,14 @@ bool dxfWriter::writeUtf8MTextChunks(std::string_view text,
         std::size_t chunkStart = 0u;
         std::size_t chunkCharacters = 0u;
         std::size_t lastScalarBytes = 0u;
-        const auto appendEncodedScalar = [&](std::string_view encoded) {
-            if (encoded.size() > maxBytes)
+        const auto appendEncodedScalar = [&](std::string_view encoded,
+                                             std::size_t characters) {
+            if (encoded.size() > maxBytes || characters > maxCharacters)
                 return recordWriteResult(false);
             const std::size_t chunkBytes = encodedChunks.size() - chunkStart;
             if (chunkBytes != 0u
                 && (encoded.size() > maxBytes - chunkBytes
-                    || chunkCharacters >= maxCharacters)) {
+                    || characters > maxCharacters - chunkCharacters)) {
                 chunks.push_back({chunkStart, chunkBytes});
                 chunkStart = encodedChunks.size();
                 chunkCharacters = 0u;
@@ -855,7 +874,7 @@ bool dxfWriter::writeUtf8MTextChunks(std::string_view text,
             if (encoded.size() > encodedChunks.max_size() - encodedChunks.size())
                 return recordWriteResult(false);
             encodedChunks.append(encoded);
-            ++chunkCharacters;
+            chunkCharacters += characters;
             lastScalarBytes = encoded.size();
             return true;
         };
@@ -888,6 +907,7 @@ bool dxfWriter::writeUtf8MTextChunks(std::string_view text,
             return 1;
         };
 
+        bool pendingCaret = false;
         for (;;) {
             std::array<char, 4> scalar{};
             const int first = nextNormalizedByte(scalar[0]);
@@ -910,13 +930,23 @@ bool dxfWriter::writeUtf8MTextChunks(std::string_view text,
             std::string_view encodedScalar(scalar.data(), scalarSize);
             char caret[2] = {};
             const std::size_t caretBytes = !m_binaryStrings && scalarSize == 1u
+                    && scalar[0] != '^'
                 ? encodeDxfAsciiControl(
                     static_cast<unsigned char>(scalar[0]), caret) : 0u;
             if (caretBytes != 0u)
                 encodedScalar = std::string_view(caret, caretBytes);
-            if (!appendEncodedScalar(encodedScalar))
+            if (pendingCaret) {
+                std::string pair("^");
+                pair.append(encodedScalar);
+                if (!appendEncodedScalar(pair, 2u)) return false;
+                pendingCaret = false;
+            } else if (scalarSize == 1u && scalar[0] == '^') {
+                pendingCaret = true;
+            } else if (!appendEncodedScalar(encodedScalar, 1u)) {
                 return false;
+            }
         }
+        if (pendingCaret && !appendEncodedScalar("^", 1u)) return false;
 
         const std::size_t finalChunkSize = encodedChunks.size() - chunkStart;
         if (!chunks.empty() && chunkCharacters == maxCharacters
@@ -962,20 +992,21 @@ bool dxfWriter::writeUtf8MTextChunks(std::string_view text,
     std::vector<EncodedTextChunk> chunks;
     if (requiresLosslessText()) {
         if (!encodeStrictText(text, maxBytes, encodedChunks, chunks,
-                              maxCharacters, true))
+                              maxCharacters, true, true))
             return false;
     } else {
         std::size_t chunkStart = 0u;
         std::size_t chunkCharacters = 0u;
         std::size_t lastScalarBytes = 0u;
         const bool asciiPassThrough = encoder.getCodePage() != "UTF-16";
-        const auto appendEncodedScalar = [&](std::string_view encoded) {
-            if (encoded.size() > maxBytes)
+        const auto appendEncodedScalar = [&](std::string_view encoded,
+                                             std::size_t characters) {
+            if (encoded.size() > maxBytes || characters > maxCharacters)
                 return recordWriteResult(false);
             const std::size_t chunkBytes = encodedChunks.size() - chunkStart;
             if (chunkBytes != 0u
                 && (encoded.size() > maxBytes - chunkBytes
-                    || chunkCharacters >= maxCharacters)) {
+                    || characters > maxCharacters - chunkCharacters)) {
                 chunks.push_back({chunkStart, chunkBytes});
                 chunkStart = encodedChunks.size();
                 chunkCharacters = 0u;
@@ -984,9 +1015,20 @@ bool dxfWriter::writeUtf8MTextChunks(std::string_view text,
             if (encoded.size() > encodedChunks.max_size() - encodedChunks.size())
                 return recordWriteResult(false);
             encodedChunks.append(encoded);
-            ++chunkCharacters;
+            chunkCharacters += characters;
             lastScalarBytes = encoded.size();
             return true;
+        };
+        bool pendingCaret = false;
+        const auto appendMTextScalar = [&](std::string_view scalar, bool caret) {
+            if (pendingCaret) {
+                std::string pair("^");
+                pair.append(scalar);
+                pendingCaret = false;
+                return appendEncodedScalar(pair, 2u);
+            }
+            if (caret) { pendingCaret = true; return true; }
+            return appendEncodedScalar(scalar, 1u);
         };
         for (std::size_t offset = 0; offset < text.size();) {
             const auto lead = static_cast<unsigned char>(text[offset]);
@@ -996,35 +1038,36 @@ bool dxfWriter::writeUtf8MTextChunks(std::string_view text,
                 length = text.size() - offset;
             if (lead < 0x80u) {
                 char caret[2] = {};
-                const std::size_t caretBytes = !m_binaryStrings
+                const std::size_t caretBytes = !m_binaryStrings && lead != '^'
                     ? encodeDxfAsciiControl(lead, caret) : 0u;
                 const std::string_view scalar = caretBytes != 0u
                     ? std::string_view(caret, caretBytes)
                     : text.substr(offset, length);
                 if (asciiPassThrough || usesCompatibleModernDxfUtf8()
                     || caretBytes != 0u) {
-                    if (!appendEncodedScalar(scalar))
+                    if (!appendMTextScalar(scalar, lead == '^'))
                         return false;
                 } else {
                     const std::string encoded = fromUtf8String(
                         text.substr(offset, length));
-                    if (!appendEncodedScalar(encoded))
+                    if (!appendMTextScalar(encoded, lead == '^'))
                         return false;
                 }
             } else if (usesCompatibleModernDxfUtf8()) {
                 // Modern compatible DXF is an identity UTF-8 mapping for
                 // every scalar, not only ASCII. Keep the caller's scalar as
                 // a view instead of allocating a per-scalar encoded string.
-                if (!appendEncodedScalar(text.substr(offset, length)))
+                if (!appendMTextScalar(text.substr(offset, length), false))
                     return false;
             } else {
                 const std::string encoded =
                     fromUtf8String(text.substr(offset, length));
-                if (!appendEncodedScalar(encoded))
+                if (!appendMTextScalar(encoded, false))
                     return false;
             }
             offset += length;
         }
+        if (pendingCaret && !appendEncodedScalar("^", 1u)) return false;
         const std::size_t finalChunkSize = encodedChunks.size() - chunkStart;
         if (!chunks.empty() && chunkCharacters == maxCharacters
             && lastScalarBytes != 0u && lastScalarBytes <= finalChunkSize) {

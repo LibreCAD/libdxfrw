@@ -5960,7 +5960,9 @@ void testTargetTextFacade(TestContext& t) {
                 && sourceWriter->writeString(0, "SECTION")
                 && sourceWriter->writeString(2, "ENTITIES")
                 && sourceWriter->writeString(0, entity)
-                && sourceWriter->writeString(5, "A")
+                // A is reserved by the writer's fixed output graph; use a
+                // source handle that can be preserved by both TEXT and MTEXT.
+                && sourceWriter->writeString(5, "A0")
                 && sourceWriter->writeString(100, "AcDbEntity")
                 && sourceWriter->writeString(8, "0")
                 && sourceWriter->writeString(100, mtext ? "AcDbMText" : "AcDbText")

@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-15",
+  "problem": "The ASCII DXF semantic-string decoder treated MTEXT inline caret syntax as generic transport escapes, converting a valid stacked-fraction separator ^ space into a bare caret before the MTEXT callback. The writer also quoted MTEXT carets a second time.",
+  "source_evidence": {
+    "source_receipt": "docs/research/p5-mtext-fieldlist-source-cache-2026-11-15.json",
+    "sample_sha256": "fb09a7af8882787553149a675c6d15b45bab8ff4a49f58200460832eab3de401",
+    "original_spelling": "\\S1^ 2;",
+    "peer_documentation": "https://ezdxf.readthedocs.io/en/stable/dxfinternals/entities/mtext.html",
+    "peer_finding": "ezdxf documents ^ space as a literal caret and as required after the stack separator; plain_mtext on the original and incorrectly decoded form differs (1^2 versus 1p).",
+    "origin_producer": "unverified"
+  },
+  "change": "MTEXT source text retains its caret syntax through version-aware text conversion, and the standalone/embedded MTEXT writers preserve caret characters while maintaining existing control and encoding handling. Generic non-MTEXT semantic-string handling remains unchanged.",
+  "validation": {
+    "generated_public_api": "Legacy AC1018 and modern AC1027, ASCII and Binary input; compatible and strict output; chunk boundary split and newline normalization; four embedded AC1032 ATTDEF ASCII/Binary and policy readbacks. Caret pairs are kept in one chunk; byte/character limits that cannot hold a pair refuse without emitting a partial record.",
+    "independent_ezdxf": "ezdxf 1.4.5 read 20 generated standalone MTEXT source/output files across both versions, encodings and policies, including newline cases; all retained the fraction and caret commands, and plain_mtext retained 1^2. Files were generated locally and not committed.",
+    "existing_tests": "MTEXT chunk wire-boundary selector and target-text-transport selector passed; latter contains 56 ASCII caret/control cases and 32 CIF handoffs. Its generated MTEXT source handle was corrected from reserved A to A0. Focused MTEXT legacy-column, FIELD audit and new MTEXT tests passed 4/4.",
+    "librecad": "Disposable upstream-linked macOS LibreCAD target built after applying the two relevant hunks of the already recorded test-adapter compatibility patch. The caret-specific MTEXT test passed 134 assertions; [dxf_codec] passed 21 cases / 487 assertions; [dxf_roundtrip] passed 5 / 34. The wider [mtext]~[dwg] selector passed 2 of 4 cases and failed six assertions: four expect invalid line-spacing styles 0 and 7 to be normalized to 1, and two expect the R2018 column extents to be discarded. These are not qualified by the caret fix."
+  },
+  "limits": [
+    "No general CAD rendering or FIELD dynamic-evaluation claim.",
+    "No LibreCAD_3 native runtime qualification.",
+    "No external DWG/DXF sample committed.",
+    "Broader LibreCAD MTEXT line-spacing and R2018 extents differences remain open."
+  ]
+}

@@ -21670,7 +21670,7 @@ bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
                 return false;
             text.append(chunk.data(), chunk.size());
             if (decodeWholeText)
-                text = reader->toUtf8String(text);
+                text = reader->toUtf8MTextString(text);
             return true;
         }
 
@@ -21712,7 +21712,7 @@ bool DRW_MText::parseCode(int code, const std::unique_ptr<dxfReader>& reader){
 
         std::string decoded;
         try {
-            decoded = reader->toUtf8String(text);
+            decoded = reader->toUtf8MTextString(text);
         } catch (...) {
             // The converter's by-value input and partial output are gone as
             // stack unwinds. The assembled raw text remains charged to this

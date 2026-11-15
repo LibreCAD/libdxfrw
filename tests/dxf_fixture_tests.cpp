@@ -12345,20 +12345,15 @@ void testMTextChunkWireBoundaries(TestContext& t) {
                          : "ASCII legacy MTEXT chunks preserve complete DBCS scalars");
 
             const std::string caret = std::string(249u, 'C') + "^M";
-            const std::string caretWire = binary
-                ? caret : std::string(249u, 'C') + "^ M";
-            const std::vector<std::size_t> caretChunkBytes = binary
-                ? std::vector<std::size_t>{250u, 1u}
-                : std::vector<std::size_t>{249u, 3u};
+            const std::string caretWire = caret;
+            const std::vector<std::size_t> caretChunkBytes{249u, 2u};
             std::vector<std::pair<int, std::string>> caretTags;
             const bool caretWritten = writeMTextChunkTags(
                 caret, "AC1032", "UTF-8", binary, policy, caretTags);
             t.expect(caretWritten
                          && mtextChunkTagsMatch(caretTags, caretWire,
                                                 caretChunkBytes),
-                     binary
-                         ? "binary MTEXT caret notation remains reconstructable across a tag boundary"
-                         : "ASCII MTEXT quotes literal caret as an unsplit chunk atom");
+                         "MTEXT caret notation remains together at a tag boundary");
 
             std::vector<std::pair<int, std::string>> emptyTags;
             const bool emptyWritten = writeMTextChunkTags(

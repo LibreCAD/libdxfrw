@@ -81,6 +81,8 @@ public:
                                          int continuationCode,
                                          int finalCode,
                                          std::size_t maxBytes);
+    // MTEXT caret pairs are already inline formatting syntax, not generic
+    // literal-carets to quote a second time.
     bool writeUtf8MTextChunks(std::string_view text, int continuationCode,
                               int finalCode, std::size_t maxBytes,
                               std::size_t maxCharacters);
@@ -215,14 +217,16 @@ private:
                           std::string& encoded,
                           std::vector<EncodedTextChunk>& chunks,
                           std::size_t maxCharacters = 0u,
-                          bool shortFinalChunk = false);
+                          bool shortFinalChunk = false,
+                          bool preserveMTextCaret = false);
     bool encodeTextPreservingCaretJ(
         std::string_view text, std::size_t maxBytes, std::string& encoded,
         std::vector<EncodedTextChunk>& chunks);
     bool validateStrictText(std::string_view text);
     bool encodeStrictTextScalar(std::string_view text, std::size_t offset,
                                 std::size_t& sourceBytes,
-                                std::string& encoded);
+                                std::string& encoded,
+                                bool preserveMTextCaret = false);
     bool encodeStrictTextString(std::string_view text,
                                 std::string& encoded);
     bool encodeCompatibleAsciiText(std::string_view text,

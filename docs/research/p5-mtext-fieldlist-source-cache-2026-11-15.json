@@ -671,7 +671,7 @@
       ],
       "checked": "NOD FIELDLIST binding, 16 unique members, eight MTEXT extension/field dictionaries, owner paths and child links; child expression and cached filename; derivative MTEXT equals derivative root cache."
     },
-    "source_delta": "All eight derivative root caches differ byte-for-byte from source; observed changes replace three ^I sequences with tabs and one ^-space escape with ^. The visible meaning/evaluation equivalence has not been independently qualified.",
+    "source_delta": "All eight derivative root caches differ byte-for-byte from source; observed changes replace three ^I sequences with tabs and one ^-space escape with ^. The visible meaning/evaluation equivalence has not been independently qualified. ezdxf plain_mtext produces 1^2 from the original and 1p from the derivative, demonstrating a rendering-relevant difference for this peer. See docs/research/p8-mtext-caret-inline-syntax-2026-11-15.json.",
     "output": "Strict conversion refuses the HEADER suffix warning; explicit partial mode still refuses FIELD/FIELDLIST with no qualified serializer. Output remains gated.",
     "limits": [
       "No source physical DWG field spans, unmodified DWG producer evidence, or native dynamic evaluation.",
