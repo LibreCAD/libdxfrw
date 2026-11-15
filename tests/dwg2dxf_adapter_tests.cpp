@@ -51843,7 +51843,7 @@ bool generatedAc1024MixedDictionaryVarGraph(
     data.dictionaries.push_back(custom);
     dx_iface capture;
     capture.cData = &data;
-    for (const auto item : std::array<std::pair<std::uint32_t, std::uint32_t>, 3>{{
+    for (const auto& item : std::array<std::pair<std::uint32_t, std::uint32_t>, 3>{{
             {0xA11u, 0xA10u}, {0xA21u, 0xA20u}, {0xA22u, 0xA20u}}}) {
         DRW_DictionaryVar variable;
         variable.handle = item.first; variable.parentHandle = item.second;

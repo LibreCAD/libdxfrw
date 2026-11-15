@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-15",
+  "title": "Hosted GCC 13 range-loop warning in generated DICTIONARYVAR test",
+  "status": "LOCAL_FIX_PENDING_HOSTED_RERUN",
+  "supportClaimEffect": "none",
+  "failedRun": {
+    "repository": "dxli/libdxfrw",
+    "runId": 43759863422,
+    "head": "f1d2f736",
+    "workflow": "libdxfrw fast parity regressions",
+    "step": "Build bounded fast targets and source compatibility check",
+    "failure": "GCC 13 -Werror=range-loop-construct rejected a by-value loop over std::pair in the generated mixed DICTIONARYVAR graph test. The fast test step did not start and source-release was skipped.",
+    "nativeAndFreecad": "Separate native and FreeCAD workflows for the same head completed successfully."
+  },
+  "change": "Iterate the pair array by const reference; test behavior is unchanged. Do not suppress -Werror.",
+  "localChecks": [
+    "GCC 16 with -Wall -Wextra -pedantic -Werror -fsyntax-only passes the complete adapter test translation unit and both new AC1024 layer evidence test translation units.",
+    "Clean checkout qualification digest and build inventory pass with the updated code."
+  ],
+  "implementationDigest": "ed7bdfa3442ee8d8729e9ad5143b87de0a0a327318fee163b966a0668d0d19f8",
+  "nextAction": "Push the fixed head and monitor hosted GCC 13 fast regressions plus dependent source-release and native/FreeCAD jobs. Do not treat local GCC 16 syntax checks as the hosted result."
+}
