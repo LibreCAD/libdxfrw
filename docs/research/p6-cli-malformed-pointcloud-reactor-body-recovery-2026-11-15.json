@@ -1,0 +1,45 @@
+{
+  "title": "Generated PointCloud reactor body recovery profile",
+  "date": "2026-11-15",
+  "status": "GENERATED_POINTCLOUD_REACTOR_BODY_RECOVERY_AC1015_AC1018_AC1021_PASS",
+  "scope": "CLI disposition for bounded malformed POINTCLOUDDEFREACTOR and POINTCLOUDDEFREACTOREX OBJECTS bodies at AC1015, AC1018, and AC1021.",
+  "selection": {
+    "source": "P6-F typed OBJECTS parser and writer inventory",
+    "reason": "The typed DRW_PointCloudDef parser has explicit Reactor and ReactorEx kinds. Their generated bodies contain the bounded class-version field and common object handles, allowing the recovery path to be checked without asserting PointCloud semantic support."
+  },
+  "source": {
+    "provenance": "Generated from scratch by the local dwg_local_roundtrip test writer and removed by the test runner.",
+    "generators": [
+      "--generate-cli-malformed-pointcloud-reactor-body-source",
+      "--generate-cli-malformed-pointcloud-reactor-ex-body-source"
+    ],
+    "profile": "Each source contains one typed reactor object at handle 0x700 and a following LINE sentinel. The body mutation search changes one bit within the bounded object frame while preserving the handle and common prologue.",
+    "mutation": "A candidate is admitted only when the corresponding typed PointCloudDef parser rejects it; other object-frame bits are not mutated."
+  },
+  "revision_results": {
+    "AC1015": {"controls": 10, "output_revision": "AC1021"},
+    "AC1018": {"controls": 10, "output_revision": "AC1021"},
+    "AC1021": {"controls": 10, "output_revision": "AC1021"},
+    "AC1024": {"controls": 0, "status": "no bounded one-bit parser-failing mutation found for the reactor profile"},
+    "AC1027": {"controls": 0, "status": "no bounded one-bit parser-failing mutation found for the Reactor profile; no revision profile admitted"},
+    "AC1032": {"controls": 0, "status": "no bounded one-bit parser-failing mutation found for the ReactorEx profile; no revision profile admitted"}
+  },
+  "assertions": [
+    "Each admitted generated source reports one OBJECTS parse failure, continues to the following LINE, and balances source, published, and failed frame counts.",
+    "Strict ASCII and Binary conversion refuses atomically and preserves a destination sentinel.",
+    "Explicit-partial ASCII and Binary conversion succeeds and fresh DXF readback retains the following LINE.",
+    "Partial-output warnings continue to state that the result is not a completeness or support claim."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip dwg2dxf -j4 passed.",
+    "syntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py passed.",
+    "diff_check": "git diff --check passed.",
+    "targeted": "ctest --test-dir build-gcc -V -R '^dwg2dxf_cli_pointcloud_reactor_recovery$' passed 1/1 in 0.93 seconds and reported 30 controls.",
+    "aggregate": "The dwg2dxf_cli_partial_read_disposition aggregate remains at its latest recorded 917 controls / 29.40 seconds and was not rerun for this isolated profile."
+  },
+  "limits": [
+    "Generated parser recovery and CLI disposition evidence only; PointCloud reactor ownership, graph closure, semantic behavior, and native rendering are not qualified.",
+    "Only AC1015, AC1018, and AC1021 are admitted. AC1024, AC1027, and AC1032 have no admitted bounded mutation profile.",
+    "No DWG or DXF fixture file is committed."
+  ]
+}

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **439 completed implementation and qualification slices** and **32 remaining
+The plan records **440 completed implementation and qualification slices** and **31 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`439 / (439 + 32) = 93.2%`. This is a count-based progress measure, not an
+`440 / (440 + 31) = 93.4%`. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
 items are tracked separately because they cannot promote support claims and do
@@ -719,6 +719,18 @@ The full fast cohort is registered as `dwg2dxf_cli_partial_read_disposition`;
 SECTION_SETTINGS, POINTCLOUDCOLORMAP, the POINTCLOUDDEFINITION family,
 MLEADERSTYLE, SPATIAL_FILTER, IDBUFFER, LAYER_INDEX, SPATIAL_INDEX, LIGHTLIST, GEODATA, and TABLESTYLE also have dedicated fast selectors
 for profile-specific iteration without rerunning that cohort.
+The PointCloud reactor/ReactorEx body profile also has the dedicated
+`dwg2dxf_cli_pointcloud_reactor_recovery` selector.
+
+**P6-F forty-fifth generated OBJECTS body recovery profile (2026-11-15):**
+`POINTCLOUDDEFREACTOR` and `POINTCLOUDDEFREACTOREX` now have bounded malformed
+body controls for AC1015, AC1018, and AC1021. Each profile verifies continued
+reading and frame accounting, strict ASCII/Binary atomic refusal, and
+explicit-partial ASCII/Binary output with fresh LINE readback. The dedicated
+selector passes 30 controls in 0.91 seconds. AC1024, AC1027, and AC1032 remain
+unqualified because bounded one-bit mutations did not isolate a parser failure
+in the sampled reactor bodies. These generated disposition checks do not
+qualify PointCloud graph closure, semantics, or native behavior ([receipt](docs/research/p6-cli-malformed-pointcloud-reactor-body-recovery-2026-11-15.json)).
 
 
 **P6-F malformed entity continuation across six revisions (2026-11-14):** the

@@ -2452,6 +2452,21 @@ def check_malformed_pointcloud_definition_bodies(converter, root, writer):
     return definition + definition_ex
 
 
+def check_malformed_pointcloud_reactor_bodies(converter, root, writer):
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+    }
+    reactor = check_malformed_object_body_family(
+        converter, root, writer, "POINTCLOUDDEFREACTOR",
+        "--generate-cli-malformed-pointcloud-reactor-body-source", profiles)
+    reactor_ex = check_malformed_object_body_family(
+        converter, root, writer, "POINTCLOUDDEFREACTOREX",
+        "--generate-cli-malformed-pointcloud-reactor-ex-body-source", profiles)
+    return reactor + reactor_ex
+
+
 def check_malformed_mleaderstyle_body(converter, root, writer):
     profiles = {
         "AC1015": "2007",
@@ -3802,6 +3817,8 @@ def main():
                         help="run only generated POINTCLOUDCOLORMAP recovery controls")
     parser.add_argument("--pointcloud-definition-only", action="store_true",
                         help="run only generated POINTCLOUDDEFINITION recovery controls")
+    parser.add_argument("--pointcloud-reactor-only", action="store_true",
+                        help="run only generated POINTCLOUDDEFREACTOR recovery controls")
     parser.add_argument("--mleaderstyle-only", action="store_true",
                         help="run only generated MLEADERSTYLE recovery controls")
     parser.add_argument("--spatial-filter-only", action="store_true",
@@ -3904,6 +3921,11 @@ def main():
             checked = check_malformed_pointcloud_definition_bodies(
                 converter, root, args.writer)
             print(f"CLI POINTCLOUDDEFINITION recovery: PASS ({checked} controls)")
+            return
+        if args.pointcloud_reactor_only:
+            checked = check_malformed_pointcloud_reactor_bodies(
+                converter, root, args.writer)
+            print(f"CLI POINTCLOUDDEFREACTOR recovery: PASS ({checked} controls)")
             return
         if args.mleaderstyle_only:
             checked = check_malformed_mleaderstyle_body(

@@ -28988,6 +28988,13 @@ public:
             pointCloudDefinition_.m_extentsMin = DRW_Coord{-4.0, -5.0, -6.0};
             pointCloudDefinition_.m_extentsMax = DRW_Coord{40.0, 50.0, 60.0};
         }
+        if (kind_ == 59 || kind_ == 60) {
+            pointCloudDefinition_.handle = 0x700u;
+            pointCloudDefinition_.m_kind = kind_ == 60
+                ? DRW_PointCloudDef::ReactorEx
+                : DRW_PointCloudDef::Reactor;
+            pointCloudDefinition_.m_classVersion = 2;
+        }
         if (kind_ == 50) {
             mleaderStyle_.handle = 0x700u;
             mleaderStyle_.name = "RECOVERY_MLEADERSTYLE";
@@ -29254,7 +29261,8 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerPointCloudColorMapObjectClass(
                       &pointCloudColorMap_) && wrote;
-        } else if (kind_ == 47 || kind_ == 48) {
+        } else if (kind_ == 47 || kind_ == 48
+                   || kind_ == 59 || kind_ == 60) {
             wrote = hasMalformedObject_
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerPointCloudDefObjectClass(
@@ -29307,7 +29315,8 @@ public:
                    && kind_ != 34 && !(kind_ >= 35 && kind_ <= 40)
                    && kind_ != 41 && kind_ != 42 && kind_ != 43
                    && kind_ != 44 && kind_ != 45 && kind_ != 46
-                   && kind_ != 47 && kind_ != 48 && kind_ != 50) {
+                   && kind_ != 47 && kind_ != 48 && kind_ != 50
+                   && kind_ != 59 && kind_ != 60) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -29428,7 +29437,8 @@ public:
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writePointCloudColorMap(
                                &pointCloudColorMap_)) && wrote;
-        } else if (kind_ == 47 || kind_ == 48) {
+        } else if (kind_ == 47 || kind_ == 48
+                   || kind_ == 59 || kind_ == 60) {
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writePointCloudDef(
@@ -43036,6 +43046,10 @@ int main(int argc, char** argv) {
             || std::string(argv[1])
                    == "--generate-cli-malformed-pointcloud-definition-ex-body-source"
             || std::string(argv[1])
+                   == "--generate-cli-malformed-pointcloud-reactor-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-pointcloud-reactor-ex-body-source"
+            || std::string(argv[1])
                    == "--generate-cli-malformed-mleaderstyle-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-spatial-filter-body-source"
@@ -43139,6 +43153,12 @@ int main(int argc, char** argv) {
         const bool malformedPointCloudDefinitionExBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-pointcloud-definition-ex-body-source";
+        const bool malformedPointCloudReactorBodySource =
+            std::string(argv[1])
+                == "--generate-cli-malformed-pointcloud-reactor-body-source";
+        const bool malformedPointCloudReactorExBodySource =
+            std::string(argv[1])
+                == "--generate-cli-malformed-pointcloud-reactor-ex-body-source";
         const bool malformedMLeaderStyleBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-mleaderstyle-body-source";
@@ -43253,6 +43273,8 @@ int main(int argc, char** argv) {
             || malformedPointCloudColorMapBodySource
             || malformedPointCloudDefinitionBodySource
             || malformedPointCloudDefinitionExBodySource
+            || malformedPointCloudReactorBodySource
+            || malformedPointCloudReactorExBodySource
             || malformedMLeaderStyleBodySource
             || malformedSpatialFilterBodySource
             || malformedIdBufferBodySource
@@ -43329,6 +43351,10 @@ int main(int argc, char** argv) {
                                                                                                             ? 47
                                                                                                         : malformedPointCloudDefinitionExBodySource
                                                                                                             ? 48
+                                                                                                        : malformedPointCloudReactorBodySource
+                                                                                                            ? 59
+                                                                                                        : malformedPointCloudReactorExBodySource
+                                                                                                            ? 60
                                                                                                         : malformedMLeaderStyleBodySource
                                                                                                             ? 50
                                                                                                         : malformedSpatialFilterBodySource
@@ -43451,6 +43477,8 @@ int main(int argc, char** argv) {
                  || malformedPointCloudColorMapBodySource
                  || malformedPointCloudDefinitionBodySource
                  || malformedPointCloudDefinitionExBodySource
+                 || malformedPointCloudReactorBodySource
+                 || malformedPointCloudReactorExBodySource
                  || malformedMLeaderStyleBodySource
                  || malformedSpatialFilterBodySource
                  || malformedIdBufferBodySource
@@ -43701,11 +43729,18 @@ int main(int argc, char** argv) {
                                                   malformed.m_bodyBitSize);
                         }
                         if (malformedPointCloudDefinitionBodySource
-                            || malformedPointCloudDefinitionExBodySource) {
+                            || malformedPointCloudDefinitionExBodySource
+                            || malformedPointCloudReactorBodySource
+                            || malformedPointCloudReactorExBodySource) {
                             PointCloudDefinitionBodyProbe typed;
-                            typed.m_kind = malformedPointCloudDefinitionExBodySource
-                                ? DRW_PointCloudDef::DefinitionEx
-                                : DRW_PointCloudDef::Definition;
+                            if (malformedPointCloudReactorBodySource)
+                                typed.m_kind = DRW_PointCloudDef::Reactor;
+                            else if (malformedPointCloudReactorExBodySource)
+                                typed.m_kind = DRW_PointCloudDef::ReactorEx;
+                            else if (malformedPointCloudDefinitionExBodySource)
+                                typed.m_kind = DRW_PointCloudDef::DefinitionEx;
+                            else
+                                typed.m_kind = DRW_PointCloudDef::Definition;
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
@@ -43817,6 +43852,8 @@ int main(int argc, char** argv) {
                   || malformedPointCloudColorMapBodySource
                   || malformedPointCloudDefinitionBodySource
                   || malformedPointCloudDefinitionExBodySource
+                  || malformedPointCloudReactorBodySource
+                  || malformedPointCloudReactorExBodySource
                   || malformedMLeaderStyleBodySource
                   || malformedSpatialFilterBodySource
                   || malformedIdBufferBodySource
@@ -43890,6 +43927,10 @@ int main(int argc, char** argv) {
                                                                                                                     ? "POINTCLOUDDEFINITION"
                                                                                                                 : malformedPointCloudDefinitionExBodySource
                                                                                                                     ? "POINTCLOUDDEFINITIONEX"
+                                                                                                                : malformedPointCloudReactorBodySource
+                                                                                                                    ? "POINTCLOUDDEFREACTOR"
+                                                                                                                : malformedPointCloudReactorExBodySource
+                                                                                                                    ? "POINTCLOUDDEFREACTOREX"
                                                                                                                 : malformedMLeaderStyleBodySource
                                                                                                                     ? "MLEADERSTYLE"
                                                                                                                 : malformedSpatialFilterBodySource
@@ -43973,6 +44014,10 @@ int main(int argc, char** argv) {
                                                                                         ? 47
                                                                                     : malformedPointCloudDefinitionExBodySource
                                                                                         ? 48
+                                                                                    : malformedPointCloudReactorBodySource
+                                                                                        ? 59
+                                                                                    : malformedPointCloudReactorExBodySource
+                                                                                        ? 60
                                                                                     : malformedMLeaderStyleBodySource
                                                                                         ? 50
                                                                                     : malformedSpatialFilterBodySource
