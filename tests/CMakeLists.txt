@@ -6218,6 +6218,19 @@ add_test(NAME libdxfrw_3d_entity_version_allocation
         ${CMAKE_CURRENT_BINARY_DIR}/3d-entity-version-allocation)
 set_tests_properties(libdxfrw_3d_entity_version_allocation PROPERTIES
     LABELS "dxf;fast;entity;3d;transaction;allocation;versions" TIMEOUT 120)
+add_executable(libdxfrw_attrib_version_allocation_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dxf_attrib_version_allocation_tests.cpp
+    ${_libdxfrw_test_adapter_source})
+target_compile_features(libdxfrw_attrib_version_allocation_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_attrib_version_allocation_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_attrib_version_allocation_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_attrib_version_allocation_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_attrib_version_allocation
+    COMMAND libdxfrw_attrib_version_allocation_tests
+        ${CMAKE_CURRENT_BINARY_DIR}/attrib-version-allocation)
+set_tests_properties(libdxfrw_attrib_version_allocation PROPERTIES
+    LABELS "dxf;fast;entity;attrib;transaction;allocation;versions" TIMEOUT 120)
 add_test(NAME libdxfrw_sectionobject_version_allocation
     COMMAND libdxfrw_3d_entity_version_allocation_tests
         ${CMAKE_CURRENT_BINARY_DIR}/sectionobject-version-allocation

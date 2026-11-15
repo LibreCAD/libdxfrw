@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-attrib-version-matrix-allocation-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_ATTRIBUTED_INSERT_VERSION_MATRIX_ROLLBACK_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Add fast allocation rollback, same-codec retry, raw group proof, and typed readback for a plain ATTRIB carried by its owning INSERT across the supported DXF revisions.",
+  "source": {
+    "kind": "locally generated in-memory DRW_Insert and DRW_Attrib",
+    "profile": "One INSERT with one single-line ATTRIB carrying a nondefault tag, text, insertion/alignment points, height, width scale, rotation, oblique angle, text generation, horizontal/vertical alignment, attribute flags, and field length.",
+    "versions": ["AC1009", "AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dxf_attrib_version_allocation_tests.cpp",
+      "tests/CMakeLists.txt",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-attrib-version-matrix-allocation-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "testSourceSha256": "5da089d62958da1817a029cba6cb7c4eb9d446d27c6aa17968bc0ae525d41ad5",
+    "testExecutableSha256": "a5c944a6ab4499ced5bb00f4f59f4ea50093f4b5d1a4b8d9f8b8bc4a57cff4fa",
+    "method": "For each revision and encoding, calibrate a successful full-document attributed INSERT write, inject std::bad_alloc at every measured allocation, require the seeded destination and complete INSERT/ATTRIB caller state to remain unchanged, retry on the same codec and compare exact bytes, then verify raw ATTRIB fields/owner role and fresh typed INSERT/ATTRIB import readback. R12 Binary uses its one-byte group-code reader."
+  },
+  "allocationOffsets": {
+    "AC1009": {"ASCII": 22, "Binary": 20},
+    "AC1014": {"ASCII": 22, "Binary": 22},
+    "AC1015": {"ASCII": 22, "Binary": 22},
+    "AC1018": {"ASCII": 22, "Binary": 22},
+    "AC1021": {"ASCII": 22, "Binary": 22},
+    "AC1024": {"ASCII": 22, "Binary": 22},
+    "AC1027": {"ASCII": 22, "Binary": 22},
+    "AC1032": {"ASCII": 22, "Binary": 22},
+    "totals": {"ASCII": 176, "Binary": 174, "all": 350}
+  },
+  "validation": {
+    "configure": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5: PASS",
+    "build": "cmake --build build-gcc --target libdxfrw_attrib_version_allocation_tests -j4: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^libdxfrw_attrib_version_allocation$' --output-on-failure: PASS 1/1 in 1.03 seconds",
+    "focusedCTestLog": "build-gcc/Testing/Temporary/LastTest.log records all 16 revision/encoding profiles and 350 successful injected-allocation rollback/retry/readback checks.",
+    "diffCheck": "git diff --check: PASS",
+    "fullSuites": "NOT RUN"
+  },
+  "limitations": [
+    "Generated transaction and same-library self-readback evidence only; producer and native application behavior remain unqualified.",
+    "One single-line ATTRIB profile is covered. ATTDEF, embedded multiline ATTRIB, retained Xrecord variants, and outer annotative payloads remain separate profiles.",
+    "This exercises ATTRIB through the owning INSERT compound route; no standalone ATTRIB-in-ENTITIES support is claimed.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "A generated one-ATTRIB attributed INSERT now has ASCII/Binary rollback, caller-state preservation, byte-identical same-codec retry, raw owner/field checks, and typed readback across AC1009/AC1014/AC1015/AC1018/AC1021/AC1024/AC1027/AC1032.",
+    "remainingP6G": "Continue exact public-writer inventory and uncovered overload/profile variants; this does not close producer semantics or broader ATTRIB-family support.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "391 completed slices and 32 remaining packages: 391/(391+32)=92.4%; count-based activity proxy only."
+  }
+}
