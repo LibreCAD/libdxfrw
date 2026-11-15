@@ -1,0 +1,66 @@
+--- a/librecad/src/lib/filters/tests/dwg_tarch_standalone.cpp
++++ b/librecad/src/lib/filters/tests/dwg_tarch_standalone.cpp
+@@ -336,7 +336,7 @@
+ 
+   EntityValidationIface iface;
+   try {
+-    dwgR reader(path.c_str());
++    dwgRW reader(path.c_str());
+     const bool ok = reader.read(&iface, true);
+     DRW::Version version = reader.getVersion();
+     DRW::error error = reader.getError();
+--- a/librecad/src/lib/filters/tests/libdxfrw_json_dump.cpp
++++ b/librecad/src/lib/filters/tests/libdxfrw_json_dump.cpp
+@@ -5,7 +5,6 @@
+ #include <string>
+ 
+ #include "libdxfrw_json_dump.h"
+-#include "intern/drw_dbg.h"
+ 
+ int main(int argc, char* argv[]) {
+     std::string in;
+@@ -17,7 +16,6 @@
+         else if (a == "-v") verbose = true;
+         else if (in.empty())          in = a;
+     }
+-    if (verbose) DRW_DBGSL(DRW_dbg::Level::Debug);
+     if (in.empty()) {
+         std::cerr << "usage: libdxfrw_json_dump <in.dwg|in.dxf> [-o out.json]\n";
+         return 2;
+@@ -25,7 +23,7 @@
+     if (!outPath.empty()) {
+         std::ofstream ofs(outPath);
+         if (!ofs) { std::cerr << "cannot open output: " << outPath << "\n"; return 2; }
+-        return jsondump::dumpCadFile(in, ofs);
++        return jsondump::dumpCadFile(in, ofs, verbose);
+     }
+-    return jsondump::dumpCadFile(in, std::cout);
++    return jsondump::dumpCadFile(in, std::cout, verbose);
+ }
+--- a/librecad/src/lib/filters/tests/libdxfrw_json_dump.h
++++ b/librecad/src/lib/filters/tests/libdxfrw_json_dump.h
+@@ -369,7 +369,7 @@
+ // ------------------------------ drivers ------------------------------------
+ // Branch on MAGIC BYTES, not extension: some corpora mislabel DXF as .dwg
+ // (dwg_tarch_standalone.cpp:436 sidesteps this by skipping '#'-prefixed files).
+-inline int dumpCadFile(const std::string& path, std::ostream& out) {
++inline int dumpCadFile(const std::string& path, std::ostream& out, bool verbose = false) {
+     char magic[8] = {0};
+     {
+         std::ifstream f(path, std::ios::binary);
+@@ -381,6 +381,7 @@
+     if (isDwg) {
+         iface.m_sourceFormat = "dwg";
+         dwgRW r(path.c_str());
++        if (verbose) r.setDebug(DRW::DebugLevel::Debug);
+         const bool ok = r.read(&iface, true); (void)ok;
+         iface.m_version    = versionStr(r.getVersion());
+         iface.m_entFail    = static_cast<long>(r.getEntityParseFailures());
+@@ -389,6 +390,7 @@
+     } else {
+         iface.m_sourceFormat = "dxf";
+         dxfRW r(path.c_str());
++        if (verbose) r.setDebug(DRW::DebugLevel::Debug);
+         const bool ok = r.read(&iface, true); (void)ok;
+         iface.m_version = versionStr(r.getVersion());
+     }
