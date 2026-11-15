@@ -28461,6 +28461,11 @@ public:
     using DRW_TvDeviceProperties::parseDwg;
 };
 
+class PointPathBodyProbe final : public DRW_PointPath {
+public:
+    using DRW_PointPath::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28558,6 +28563,12 @@ public:
             tvDeviceProperties_.antialiasingLevel =
                 std::numeric_limits<double>::max();
         }
+        if (kind_ == 20) {
+            pointPath_.handle = 0x700u;
+            pointPath_.m_classVersion = 1;
+            pointPath_.m_point = DRW_Coord(
+                std::numeric_limits<double>::max(), 2.0, 3.0);
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -28616,12 +28627,16 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerTvDevicePropertiesObjectClass(
                       &tvDeviceProperties_) && wrote;
+        } else if (kind_ == 20) {
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerPointPathObjectClass(&pointPath_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
                    && kind_ != 11 && kind_ != 13 && kind_ != 14
                    && kind_ != 15 && kind_ != 16 && kind_ != 17
-                   && kind_ != 18 && kind_ != 19) {
+                   && kind_ != 18 && kind_ != 19 && kind_ != 20) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -28667,6 +28682,10 @@ public:
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeTvDeviceProperties(
                                &tvDeviceProperties_)) && wrote;
+        } else if (kind_ == 20) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writePointPath(&pointPath_)) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -28747,6 +28766,7 @@ private:
     DRW_VxControl vxControl_;
     DRW_VxTableRecord vxTableRecord_;
     DRW_TvDeviceProperties tvDeviceProperties_;
+    DRW_PointPath pointPath_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -42159,7 +42179,9 @@ int main(int argc, char** argv) {
             || std::string(argv[1])
                    == "--generate-cli-malformed-vxtablerecord-body-source"
             || std::string(argv[1])
-                   == "--generate-cli-malformed-tvdeviceproperties-body-source")) {
+                   == "--generate-cli-malformed-tvdeviceproperties-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-pointpath-body-source")) {
         const bool malformedBodySource = std::string(argv[1])
             == "--generate-cli-malformed-object-body-source";
         const bool malformedPrologueSource = std::string(argv[1])
@@ -42186,6 +42208,8 @@ int main(int argc, char** argv) {
         const bool malformedTvDevicePropertiesBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-tvdeviceproperties-body-source";
+        const bool malformedPointPathBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-pointpath-body-source";
         if (std::filesystem::exists(argv[2])) {
             std::cerr << "Refusing to replace an existing malformed-object source\n";
             return 1;
@@ -42216,7 +42240,8 @@ int main(int argc, char** argv) {
             || malformedDictionaryBodySource
             || malformedVxControlBodySource
             || malformedVxTableRecordBodySource
-            || malformedTvDevicePropertiesBodySource) {
+            || malformedTvDevicePropertiesBodySource
+            || malformedPointPathBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
             if (std::filesystem::exists(validPath)) {
@@ -42237,7 +42262,9 @@ int main(int argc, char** argv) {
                                             : malformedVxTableRecordBodySource
                                                 ? 18
                                                 : malformedTvDevicePropertiesBodySource
-                                                    ? 19 : 8,
+                                                    ? 19
+                                                    : malformedPointPathBodySource
+                                                        ? 20 : 8,
                 nullptr, version);
             if (!validWriter.write(&validSource, version, true)
                 || !validSource.wrote) {
@@ -42290,7 +42317,8 @@ int main(int argc, char** argv) {
                  || malformedDictionaryBodySource
                  || malformedVxControlBodySource
                  || malformedVxTableRecordBodySource
-                 || malformedTvDevicePropertiesBodySource)
+                 || malformedTvDevicePropertiesBodySource
+                 || malformedPointPathBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
                 && commonEndBit < searchEndBit) {
@@ -42367,6 +42395,11 @@ int main(int argc, char** argv) {
                         }
                         if (malformedTvDevicePropertiesBodySource) {
                             TvDevicePropertiesBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
+                        if (malformedPointPathBodySource) {
+                            PointPathBodyProbe typed;
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
@@ -42454,7 +42487,8 @@ int main(int argc, char** argv) {
                   || malformedDictionaryBodySource
                   || malformedVxControlBodySource
                   || malformedVxTableRecordBodySource
-                  || malformedTvDevicePropertiesBodySource)
+                  || malformedTvDevicePropertiesBodySource
+                  || malformedPointPathBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
                 const char* objectKind = malformedDbColorBodySource
@@ -42473,6 +42507,8 @@ int main(int argc, char** argv) {
                                                         ? "VX_TABLE_RECORD"
                                                         : malformedTvDevicePropertiesBodySource
                                                             ? "TV_DEVICE_PROPERTIES"
+                                                            : malformedPointPathBodySource
+                                                                ? "POINTPATH"
                                     : "MLINESTYLE";
                 const char* mutationKind = malformedPrologueSource
                     ? "common-prologue" : "body";
@@ -42490,7 +42526,8 @@ int main(int argc, char** argv) {
             ReadOutcomeControl source(&writer,
                 malformedVxControlBodySource ? 17
                     : malformedVxTableRecordBodySource ? 18
-                        : malformedTvDevicePropertiesBodySource ? 19 : 7,
+                        : malformedTvDevicePropertiesBodySource ? 19
+                            : malformedPointPathBodySource ? 20 : 7,
                 nullptr, version);
             source.setMalformedObject(malformed);
             if (!writer.write(&source, version, true) || !source.wrote) {
