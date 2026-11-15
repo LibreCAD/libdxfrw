@@ -699,6 +699,11 @@ def digest(path):
 
 
 def capture_convert(filename):
+    # FreeCAD's PATH resolver calls platform.system(). On Windows an uncached
+    # platform probe may spawn the system 'ver' command; resolve it before
+    # observing conversion children so it cannot masquerade as a fallback.
+    # Still require exactly one observed conversion child below.
+    platform.system()
     processes = []
 
     def capture_popen(*args, **kwargs):
@@ -747,8 +752,8 @@ def assert_converter_route(dxf_path):
     processes = captured.get("converter_processes", [])
     if len(processes) != 1:
         raise AssertionError(
-            "expected exactly one dwg2dxf child and no fallback process; got %d"
-            % len(processes)
+            "expected exactly one dwg2dxf child and no fallback process; "
+            "got %d: %r" % (len(processes), [process.args for process in processes])
         )
 
     process = processes[0]
@@ -819,8 +824,8 @@ def assert_failed_converter_route():
     processes = captured.get("converter_processes", [])
     if len(processes) != 1:
         raise AssertionError(
-            "expected one failing dwg2dxf process with fallbacks disabled; got %d"
-            % len(processes)
+            "expected one failing dwg2dxf process with fallbacks disabled; "
+            "got %d: %r" % (len(processes), [process.args for process in processes])
         )
     process = processes[0]
     args = process.args

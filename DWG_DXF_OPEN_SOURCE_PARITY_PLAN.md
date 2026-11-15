@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **512 completed implementation and qualification slices** and **32 remaining
+The plan records **513 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`512 / (512 + 32) = 94.1%`. The previous 28-package denominator was stale; a recount
+`513 / (513 + 32) = 94.1%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -38,8 +38,12 @@ The latest Windows FreeCAD run passed its batch-name and two CLI checks after
 the test-driver stack fix. All eight application open/insert checks failed at
 launch because CMake list removals stripped semicolon escapes from `PATH`;
 the harness now appends that argument last, verified with a direct CMake
-process-launch control. Rerun actual Windows FreeCAD
-([receipt](docs/research/p8-windows-freecad-cmake-path-2026-11-15.json)).
+process-launch control. The rerun reaches FreeCAD and invokes the converter,
+but all eight open/insert checks see two captured subprocesses. Platform
+detection is now prewarmed outside the conversion capture and unexpected child
+arguments are reported; rerun Windows to verify whether that explains the
+extra child ([path receipt](docs/research/p8-windows-freecad-cmake-path-2026-11-15.json),
+[process receipt](docs/research/p8-windows-freecad-process-attribution-2026-11-15.json)).
 The broad local roundtrip fixture now omits newly authored modern MATERIAL
 records, which the exact-profile writer correctly refuses, while a separate
 test verifies atomic refusal and a legacy retry. All generated DWG writes now
