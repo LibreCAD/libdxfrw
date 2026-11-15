@@ -28556,6 +28556,11 @@ public:
     using DRW_MLeaderStyle::parseDwg;
 };
 
+class SpatialFilterBodyProbe final : public DRW_SpatialFilter {
+public:
+    using DRW_SpatialFilter::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28968,6 +28973,23 @@ public:
             mleaderStyle_.textColor = 256;
             mleaderStyle_.blockColor = 256;
         }
+        if (kind_ == 51) {
+            spatialFilter_.handle = 0x700u;
+            spatialFilter_.parentHandle =
+                DRW::DwgModelSpaceBlockRecordHandle;
+            spatialFilter_.m_boundaryPoints = {
+                DRW_Coord{1.0, 2.0, 0.0},
+                DRW_Coord{3.0, 4.0, 0.0}};
+            spatialFilter_.m_normal = DRW_Coord{0.0, 0.0, 1.0};
+            spatialFilter_.m_origin = DRW_Coord{5.0, 6.0, 7.0};
+            spatialFilter_.m_displayBoundary = true;
+            spatialFilter_.m_clipFrontPlane = true;
+            spatialFilter_.m_frontDistance = 8.0;
+            spatialFilter_.m_clipBackPlane = true;
+            spatialFilter_.m_backDistance = 9.0;
+            spatialFilter_.m_inverseInsertTransform.assign(12u, 0.0);
+            spatialFilter_.m_insertTransform.assign(12u, 0.0);
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -29129,6 +29151,11 @@ public:
                 ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
                 : writer_->registerMLeaderStyleObjectClass(
                       &mleaderStyle_) && wrote;
+        } else if (kind_ == 51) {
+            wrote = hasMalformedObject_
+                ? writer_->registerRawDwgObjectClass(&opaque_) && wrote
+                : writer_->registerSpatialFilterObjectClass(
+                      &spatialFilter_) && wrote;
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
@@ -29271,6 +29298,11 @@ public:
             wrote = (hasMalformedObject_
                          ? writer_->writeRawDwgObject(&opaque_)
                          : writer_->writeMLeaderStyle(&mleaderStyle_)) && wrote;
+        } else if (kind_ == 51) {
+            wrote = (hasMalformedObject_
+                         ? writer_->writeRawDwgObject(&opaque_)
+                         : writer_->writeSpatialFilter(&spatialFilter_))
+                    && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -29370,6 +29402,7 @@ private:
     DRW_PointCloudColorMap pointCloudColorMap_;
     DRW_PointCloudDef pointCloudDefinition_;
     DRW_MLeaderStyle mleaderStyle_;
+    DRW_SpatialFilter spatialFilter_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     bool hasMalformedObject_{false};
@@ -42831,6 +42864,8 @@ int main(int argc, char** argv) {
                    == "--generate-cli-malformed-pointcloud-definition-ex-body-source"
             || std::string(argv[1])
                    == "--generate-cli-malformed-mleaderstyle-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-spatial-filter-body-source"
             || std::string(argv[1]).rfind(
                    "--generate-cli-malformed-rendersettings-", 0) == 0)) {
         const bool malformedBodySource = std::string(argv[1])
@@ -42922,6 +42957,9 @@ int main(int argc, char** argv) {
         const bool malformedMLeaderStyleBodySource =
             std::string(argv[1])
                 == "--generate-cli-malformed-mleaderstyle-body-source";
+        const bool malformedSpatialFilterBodySource =
+            std::string(argv[1])
+                == "--generate-cli-malformed-spatial-filter-body-source";
         const std::string renderSettingsOption(argv[1]);
         int malformedRenderSettingsKind = -1;
         if (renderSettingsOption
@@ -43013,6 +43051,7 @@ int main(int argc, char** argv) {
             || malformedPointCloudDefinitionBodySource
             || malformedPointCloudDefinitionExBodySource
             || malformedMLeaderStyleBodySource
+            || malformedSpatialFilterBodySource
             || malformedRenderSettingsBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
@@ -43083,6 +43122,8 @@ int main(int argc, char** argv) {
                                                                                                             ? 48
                                                                                                         : malformedMLeaderStyleBodySource
                                                                                                             ? 50
+                                                                                                        : malformedSpatialFilterBodySource
+                                                                                                            ? 51
                                                                                                         : malformedRenderSettingsBodySource
                                                                                         ? 27 + malformedRenderSettingsKind
                                                                                         : 8,
@@ -43190,6 +43231,7 @@ int main(int argc, char** argv) {
                  || malformedPointCloudDefinitionBodySource
                  || malformedPointCloudDefinitionExBodySource
                  || malformedMLeaderStyleBodySource
+                 || malformedSpatialFilterBodySource
                  || malformedRenderSettingsBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
@@ -43396,6 +43438,11 @@ int main(int argc, char** argv) {
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
+                        if (malformedSpatialFilterBodySource) {
+                            SpatialFilterBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
                         if (malformedPointCloudDefinitionBodySource
                             || malformedPointCloudDefinitionExBodySource) {
                             PointCloudDefinitionBodyProbe typed;
@@ -43514,6 +43561,7 @@ int main(int argc, char** argv) {
                   || malformedPointCloudDefinitionBodySource
                   || malformedPointCloudDefinitionExBodySource
                   || malformedMLeaderStyleBodySource
+                  || malformedSpatialFilterBodySource
                   || malformedRenderSettingsBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
@@ -43581,6 +43629,8 @@ int main(int argc, char** argv) {
                                                                                                                     ? "POINTCLOUDDEFINITIONEX"
                                                                                                                 : malformedMLeaderStyleBodySource
                                                                                                                     ? "MLEADERSTYLE"
+                                                                                                                : malformedSpatialFilterBodySource
+                                                                                                                    ? "SPATIAL_FILTER"
                                                                                                                 : malformedRenderSettingsBodySource
                                                                                                 ? malformedRenderSettingsObjectName
                                     : "MLINESTYLE";
@@ -43650,6 +43700,8 @@ int main(int argc, char** argv) {
                                                                                         ? 48
                                                                                     : malformedMLeaderStyleBodySource
                                                                                         ? 50
+                                                                                    : malformedSpatialFilterBodySource
+                                                                                        ? 51
                                                                                     : malformedRenderSettingsBodySource
                                                                     ? 27 + malformedRenderSettingsKind
                                                                     : 7,
