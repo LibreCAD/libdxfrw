@@ -1860,6 +1860,144 @@ def check_partial_dwg_read_cli(converter, root, writer):
     return checked
 
 
+def check_malformed_vba_project_body(converter, root, writer):
+    """Exercise bounded VBA_PROJECT body recovery across DWG revisions."""
+    if writer is None:
+        raise AssertionError("VBA_PROJECT recovery control requires the local DWG writer")
+    checked = 0
+    profiles = {
+        "AC1015": "2007",
+        "AC1018": "2007",
+        "AC1021": "2007",
+        "AC1024": "2010",
+        "AC1027": None,
+        "AC1032": "2018",
+    }
+    output_revisions = {
+        "2007": b"AC1021",
+        "2010": b"AC1024",
+        "2013": b"AC1027",
+        "2018": b"AC1032",
+    }
+    for revision, target_year in profiles.items():
+        source = root / f"generated malformed VBA_PROJECT body source {revision}.dwg"
+        generated = run_bounded(
+            [str(writer), "--generate-cli-malformed-vbaproject-body-source",
+             str(source), revision], 10, 131072, cwd=root)
+        if generated.returncode != 0 or not source.is_file():
+            raise AssertionError(
+                f"could not author malformed {revision} VBA_PROJECT source: "
+                f"{generated!r}")
+        original = source.read_bytes()
+        if original[:6] != revision.encode("ascii"):
+            raise AssertionError(
+                f"VBA_PROJECT generator emitted the wrong revision for {revision}")
+
+        counted = run_bounded(
+            [str(writer), "--count-dwg-lines", str(source)],
+            10, 131072, cwd=root)
+        fields = {
+            field.split(b"=", 1)[0]: field.split(b"=", 1)[1]
+            for field in counted.stdout.split() if b"=" in field
+        }
+        try:
+            source_frames = int(fields[b"sourceFrames"])
+            published_frames = int(fields[b"publishedFrames"])
+            failed_frames = int(fields[b"failedFrames"])
+        except (KeyError, ValueError):
+            source_frames = published_frames = failed_frames = -1
+        if (counted.returncode != 0
+                or b"readSucceeded=true" not in counted.stdout
+                or b"lineCount=1" not in counted.stdout
+                or b"objectParseFailures=1" not in counted.stdout
+                or b"entityParseFailures=0" not in counted.stdout
+                or failed_frames != 1 or source_frames <= 1
+                or published_frames + 1 != source_frames):
+            raise AssertionError(
+                f"{revision} malformed VBA_PROJECT stopped later OBJECTS frames: "
+                f"{counted!r}")
+        checked += 1
+
+        if target_year is None:
+            output = root / f"malformed VBA_PROJECT body {revision} source gate.dxf"
+            output.write_bytes(SENTINEL)
+            for partial_mode in (False, True):
+                arguments = [str(converter), str(source), "-o", str(output),
+                             "-v2013", "-y", "-d"]
+                if partial_mode:
+                    arguments.append("--allow-partial-dwg-read")
+                result = run_bounded(
+                    arguments, 10, 2 * 1024 * 1024, cwd=root)
+                if (result.returncode != 1
+                        or output.read_bytes() != SENTINEL
+                        or source.read_bytes() != original
+                        or b"AC1027 DWG source references are not fully qualified"
+                           not in result.stderr):
+                    raise AssertionError(
+                        f"{revision} VBA_PROJECT output bypassed source gate: "
+                        f"{result!r}")
+                checked += 1
+            continue
+
+        for binary in (False, True):
+            encoding = "Binary" if binary else "ASCII"
+            output = root / (
+                f"malformed VBA_PROJECT body {revision} {encoding}.dxf")
+            for partial_mode in (False, True):
+                output.write_bytes(SENTINEL)
+                mode = "partial" if partial_mode else "strict"
+                arguments = [str(converter), str(source), "-o", str(output),
+                             f"-v{target_year}", "-y", "-d"]
+                if binary:
+                    arguments.append("-b")
+                if partial_mode:
+                    arguments.append("--allow-partial-dwg-read")
+                result = run_bounded(
+                    arguments, 10, 2 * 1024 * 1024, cwd=root)
+                projection = next((line for line in result.stderr.splitlines()
+                                   if line.startswith(
+                                       b"CLI source disposition projection:")), b"")
+                required = (
+                    b"sourceDwgObjectParseFailures=1",
+                    b"sourceDwgEntityParseFailures=0",
+                    b"sourceDwgFrameCoverage=partial",
+                    b"sourceDwgFramesFailed=1",
+                    b"sourceDwgIntegrityErrorsAmongRetained=0",
+                )
+                if (result.returncode != (0 if partial_mode else 1)
+                        or source.read_bytes() != original
+                        or any(field not in projection for field in required)):
+                    raise AssertionError(
+                        f"{revision} malformed VBA_PROJECT {mode} disposition "
+                        f"was incorrect: {result!r}")
+                if partial_mode:
+                    reopened = run_bounded(
+                        [str(writer), "--count-dxf-lines", str(output)],
+                        10, 131072, cwd=root)
+                    if (output.read_bytes() == SENTINEL
+                            or not output_has_revision(
+                                output.read_bytes(),
+                                output_revisions[target_year], binary)
+                            or reopened.returncode != 0
+                            or b"lineCount=1" not in reopened.stdout
+                            or b"vportCount=1" not in reopened.stdout
+                            or b"WARNING: explicit partial DWG read mode"
+                               not in result.stderr
+                            or b"is not a completeness/support claim"
+                               not in result.stderr):
+                        raise AssertionError(
+                            f"{revision} VBA_PROJECT partial output failed readback: "
+                            f"{reopened!r}")
+                elif (output.read_bytes() != SENTINEL
+                      or b"strict-complete conversion requires successful, "
+                         b"complete DWG read disposition" not in result.stderr):
+                    raise AssertionError(
+                        f"{revision} VBA_PROJECT strict output did not refuse "
+                        f"atomically: {result!r}")
+                checked += 1
+    return checked
+
+
 def check_skipped_record_projection(converter, root, writer):
     """Check generated skipped custom-class disposition across writer revisions."""
     if writer is None:
@@ -3096,7 +3234,10 @@ def main():
             return
         if args.partial_read_only:
             checked = check_partial_dwg_read_cli(converter, root, args.writer)
-            print(f"CLI partial DWG read: PASS ({checked} strict/partial/readback controls)")
+            vba_checked = check_malformed_vba_project_body(
+                converter, root, args.writer)
+            print(f"CLI partial DWG read: PASS ({checked} strict/partial/readback "
+                  f"controls, {vba_checked} VBA_PROJECT body controls)")
             return
         if args.source_disposition_only:
             checked = check_source_disposition_projection(converter, root, args.writer)

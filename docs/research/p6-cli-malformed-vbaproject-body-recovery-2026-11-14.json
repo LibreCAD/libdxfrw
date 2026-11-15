@@ -1,0 +1,51 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-malformed-vbaproject-body-recovery-2026-11-14",
+  "date": "2026-11-14",
+  "status": "GENERATED_VBA_PROJECT_BODY_RECOVERY_AND_CLI_DISPOSITION_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Extend generated malformed OBJECTS-body continuation and CLI disposition controls to the fixed-type VBA_PROJECT parser.",
+  "source": {
+    "kind": "scratch-only DWGs authored at test runtime by the in-tree DWG writer",
+    "generator": "libdxfrw_dwg_local_roundtrip --generate-cli-malformed-vbaproject-body-source",
+    "object": "Fixed-type VBA_PROJECT (DWG type 81), with one body-size bit mutated after validating the common prologue and within the bounded object-body span.",
+    "versions": ["AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/dwg_local_roundtrip_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-cli-malformed-vbaproject-body-recovery-2026-11-14.json"
+    ],
+    "productionCodeChanged": false,
+    "controls": "For each source revision, require successful read, exactly one failed OBJECTS frame, exact source-frame accounting, and a following LINE callback. For output-admitted revisions, check strict ASCII/Binary refusal preserves a sentinel, then explicit-partial output reopens with the retained LINE and VPORT and emits the incomplete-output warning. AC1027 remains reader-only because its independent source-reference gate blocks both output modes atomically."
+  },
+  "results": {
+    "readRecoveryProfiles": 6,
+    "asciiBinaryOutputProfiles": 5,
+    "ac1027SourceGateControls": 2,
+    "vbaProjectControls": 28,
+    "fullFocusedDispositionCohortControls": 200
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2: PASS",
+    "pythonSyntax": "python3 -m py_compile tests/dwg2dxf_cli_contract_tests.py: PASS",
+    "focusedCTest": "ctest --test-dir build-gcc -R '^dwg2dxf_cli_partial_read_disposition$' --output-on-failure: PASS 1/1 in 5.31 seconds",
+    "directControl": "python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build-gcc/dwg2dxf/dwg2dxf --writer build-gcc/libdxfrw_dwg_local_roundtrip --partial-read-only: PASS; 172 existing strict/partial/readback controls plus 28 VBA_PROJECT controls",
+    "diffCheck": "git diff --check and python3 -m json.tool: PASS"
+  },
+  "limitations": [
+    "Generated malformed-input recovery and CLI policy evidence only; no VBA_PROJECT payload semantics, producer interoperability, or broad OBJECTS completeness claim is established.",
+    "AC1027 output qualification remains blocked by the independent source-reference gate.",
+    "No support claim is promoted and no DWG/DXF fixture is committed."
+  ],
+  "planImpact": {
+    "completedSlice": "P6-F now includes a fifth typed OBJECTS-body recovery family, fixed-type VBA_PROJECT, across six DWG reader revisions.",
+    "remainingP6F": "Continue source/resource inventory and add only the next bounded supported parser/body profile; retain strict and source-gate refusal.",
+    "phaseStatusesChanged": false,
+    "progressEstimate": "399 completed slices and 32 remaining packages: 399/(399+32)=92.6%; count-based, not effort-weighted."
+  },
+  "previousReceipt": "docs/research/p6-cli-malformed-dictionaryvar-body-recovery-2026-11-14.json"
+}

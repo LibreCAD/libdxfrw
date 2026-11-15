@@ -28425,6 +28425,11 @@ public:
     using DRW_DictionaryVar::parseDwg;
 };
 
+class VbaProjectBodyProbe final : public DRW_VbaProject {
+public:
+    using DRW_VbaProject::parseDwg;
+};
+
 class ReadOutcomeControl final : public dx_iface {
 public:
     ReadOutcomeControl(dwgRW* writer, int kind, dwgRW* reader = nullptr,
@@ -28475,6 +28480,13 @@ public:
             dictionaryVar_.m_schema = 0;
             dictionaryVar_.m_value = "generated recovery value";
         }
+        if (kind_ == 13) {
+            vbaProject_.handle = 0x700u;
+            vbaProject_.m_data = {0x01u, 0x23u, 0x45u, 0x67u,
+                                  0x89u, 0xABu, 0xCDu, 0xEFu};
+            vbaProject_.m_dataSize = static_cast<std::uint32_t>(
+                vbaProject_.m_data.size());
+        }
         if (kind_ == 6) {
             // Retain the encoded object type and handle, but truncate before
             // EED/reactor state so the reader's independent common-prologue
@@ -28516,7 +28528,7 @@ public:
         } else if (kind_ == 7 && !opaque_.m_className.empty()) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
         } else if (kind_ >= 2 && kind_ != 7 && kind_ != 8
-                   && kind_ != 11) {
+                   && kind_ != 11 && kind_ != 13) {
             wrote = writer_->registerRawDwgObjectClass(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
                 wrote = writer_->registerRawDwgObjectClass(&opaqueSecond_) && wrote;
@@ -28535,6 +28547,8 @@ public:
             wrote = writer_->writeXRecord(&xrecord_) && wrote;
         } else if (kind_ == 12) {
             wrote = writer_->writeDictionaryVar(&dictionaryVar_) && wrote;
+        } else if (kind_ == 13) {
+            wrote = writer_->writeVbaProject(&vbaProject_) && wrote;
         } else if (kind_ >= 2) {
             wrote = writer_->writeRawDwgObject(&opaque_) && wrote;
             if (kind_ == 3 || kind_ == 4 || kind_ == 5) {
@@ -28605,6 +28619,7 @@ private:
     DRW_DbColor dbColor_;
     DRW_XRecord xrecord_;
     DRW_DictionaryVar dictionaryVar_;
+    DRW_VbaProject vbaProject_;
     DRW_UnsupportedObject capturedObject_;
     bool hasCapturedObject_{false};
     dx_data owned_;
@@ -42002,7 +42017,9 @@ int main(int argc, char** argv) {
             || std::string(argv[1])
                    == "--generate-cli-malformed-xrecord-body-source"
             || std::string(argv[1])
-                   == "--generate-cli-malformed-dictionaryvar-body-source")) {
+                   == "--generate-cli-malformed-dictionaryvar-body-source"
+            || std::string(argv[1])
+                   == "--generate-cli-malformed-vbaproject-body-source")) {
         const bool malformedBodySource = std::string(argv[1])
             == "--generate-cli-malformed-object-body-source";
         const bool malformedPrologueSource = std::string(argv[1])
@@ -42013,6 +42030,8 @@ int main(int argc, char** argv) {
             == "--generate-cli-malformed-xrecord-body-source";
         const bool malformedDictionaryVarBodySource = std::string(argv[1])
             == "--generate-cli-malformed-dictionaryvar-body-source";
+        const bool malformedVbaProjectBodySource = std::string(argv[1])
+            == "--generate-cli-malformed-vbaproject-body-source";
         if (std::filesystem::exists(argv[2])) {
             std::cerr << "Refusing to replace an existing malformed-object source\n";
             return 1;
@@ -42036,7 +42055,8 @@ int main(int argc, char** argv) {
         }
         if (malformedBodySource || malformedPrologueSource
             || malformedDbColorBodySource || malformedXRecordBodySource
-            || malformedDictionaryVarBodySource) {
+            || malformedDictionaryVarBodySource
+            || malformedVbaProjectBodySource) {
             const std::filesystem::path validPath =
                 std::string(argv[2]) + ".valid-control.dwg";
             if (std::filesystem::exists(validPath)) {
@@ -42047,13 +42067,14 @@ int main(int argc, char** argv) {
             ReadOutcomeControl validSource(
                 &validWriter, malformedDbColorBodySource ? 9
                     : malformedXRecordBodySource ? 11
-                        : malformedDictionaryVarBodySource ? 12 : 8,
+                        : malformedDictionaryVarBodySource ? 12
+                            : malformedVbaProjectBodySource ? 13 : 8,
                 nullptr, version);
             if (!validWriter.write(&validSource, version, true)
                 || !validSource.wrote) {
                 const DRW_OperationDiagnostic diagnostic =
                     validWriter.getLastDiagnostic();
-                std::cerr << "Could not generate valid MLINESTYLE control: "
+                std::cerr << "Could not generate valid OBJECTS body control: "
                           << diagnostic.code << " — "
                           << diagnostic.message << '\n';
                 return 1;
@@ -42093,7 +42114,8 @@ int main(int argc, char** argv) {
             bool foundPrologueFailure = false;
             if ((malformedBodySource || malformedDbColorBodySource
                  || malformedXRecordBodySource
-                 || malformedDictionaryVarBodySource)
+                 || malformedDictionaryVarBodySource
+                 || malformedVbaProjectBodySource)
                 && commonParsed && commonBuffer.isGood()
                 && common.handle == malformed.m_handle
                 && commonEndBit < searchEndBit) {
@@ -42135,6 +42157,11 @@ int main(int argc, char** argv) {
                         }
                         if (malformedDictionaryVarBodySource) {
                             DictionaryVarBodyProbe typed;
+                            return typed.parseDwg(version, &typedBuffer,
+                                                  malformed.m_bodyBitSize);
+                        }
+                        if (malformedVbaProjectBodySource) {
+                            VbaProjectBodyProbe typed;
                             return typed.parseDwg(version, &typedBuffer,
                                                   malformed.m_bodyBitSize);
                         }
@@ -42215,13 +42242,15 @@ int main(int argc, char** argv) {
             std::filesystem::remove(validPath, ignored);
             if (((malformedBodySource || malformedDbColorBodySource
                   || malformedXRecordBodySource
-                  || malformedDictionaryVarBodySource)
+                  || malformedDictionaryVarBodySource
+                  || malformedVbaProjectBodySource)
                  && !foundBodyFailure)
                 || (malformedPrologueSource && !foundPrologueFailure)) {
                 const char* objectKind = malformedDbColorBodySource
                     ? "DBCOLOR" : malformedXRecordBodySource
                         ? "XRECORD" : malformedDictionaryVarBodySource
-                            ? "DICTIONARYVAR" : "MLINESTYLE";
+                            ? "DICTIONARYVAR" : malformedVbaProjectBodySource
+                                ? "VBA_PROJECT" : "MLINESTYLE";
                 const char* mutationKind = malformedPrologueSource
                     ? "common-prologue" : "body";
                 std::cerr << "Could not find a one-bit " << objectKind << ' '
