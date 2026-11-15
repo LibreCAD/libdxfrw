@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 
@@ -1756,6 +1757,52 @@ def check(prefix: Path, cxx: str, libdir: str = "lib",
         check_consumer_routes(prefix, cxx, root, consumer, libdir, includedir)
 
 
+def check_macos_repeat_static_install(build_dir: Path, cxx: str,
+                                      libdir: str, includedir: str) -> None:
+    """Compare two installs of one static build, including DESTDIR and spaces."""
+    if sys.platform != "darwin":
+        raise RuntimeError("macOS static install check requires a macOS host")
+    for value in (libdir, includedir):
+        path = Path(value)
+        if path.is_absolute() or ".." in path.parts:
+            raise RuntimeError("repeat-install check requires relative install directories")
+    compiler = shlex.split(cxx)
+    if not compiler:
+        raise RuntimeError("no C++ compiler supplied")
+    with tempfile.TemporaryDirectory(prefix="libdxfrw repeat install ") as temporary:
+        root = Path(temporary)
+        first = root / "prefix one"
+        logical = Path("/logical prefix two")
+        destdir = root / "destination root"
+        second = destdir / logical.relative_to("/")
+        env = os.environ.copy()
+        env.pop("ZERO_AR_DATE", None)
+        env.pop("DESTDIR", None)
+        run(["cmake", "--install", str(build_dir), "--prefix", str(first)], env=env)
+        # Apple ranlib otherwise timestamps its index to the current second;
+        # ensure this control also fails when two uncorrected installs are fast.
+        time.sleep(1.1)
+        env["DESTDIR"] = str(destdir)
+        run(["cmake", "--install", str(build_dir), "--prefix", str(logical)], env=env)
+        archives = [prefix / libdir / "libdxfrw.a" for prefix in (first, second)]
+        if any(not path.is_file() or path.is_symlink() for path in archives):
+            raise RuntimeError("repeat-install check needs two static archives")
+        hashes = [hashlib.sha256(path.read_bytes()).hexdigest() for path in archives]
+        if hashes[0] != hashes[1]:
+            raise RuntimeError("repeated static installs differ: " + ", ".join(hashes))
+        source = root / "consumer.cpp"
+        source.write_text('#include <libdxfrw.h>\n'
+                          'int main() { dxfRW reader("unused.dxf"); '
+                          'return reader.getError() == DRW::BAD_NONE ? 0 : 1; }\n',
+                          encoding="utf-8")
+        for index, prefix in enumerate((first, second)):
+            executable = root / ("consumer-" + str(index))
+            run([*compiler, "-std=c++17", "-I" + str(prefix / includedir / "libdxfrw"),
+                 str(source), str(archives[index]), "-o", str(executable)])
+            run([str(executable)])
+    print("macOS repeated static install: PASS (prefix, DESTDIR, link and run)")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--prefix", type=Path, action="append",
@@ -1768,6 +1815,8 @@ def main() -> int:
                         help="opt-in configure-only library/CLI/test and Python-probe controls")
     parser.add_argument("--relocation-smoke", action="store_true",
                         help="copy one staged prefix and build relocated consumers")
+    parser.add_argument("--macos-static-repro-build-dir", type=Path,
+                        help="compare two macOS static installs of this build")
     parser.add_argument("--cxx", default=os.environ.get("CXX", "c++"))
     parser.add_argument("--libdir", default="lib",
                         help="relative GNUInstallDirs library destination")
@@ -1780,6 +1829,11 @@ def main() -> int:
     parser.add_argument("--install-manifest", type=Path,
                         help="CMake install_manifest.txt for exactly one staged prefix")
     args = parser.parse_args()
+    if args.macos_static_repro_build_dir:
+        if args.runtime_only:
+            parser.error("repeat static install cannot be combined with --runtime-only")
+        check_macos_repeat_static_install(args.macos_static_repro_build_dir,
+                                          args.cxx, args.libdir, args.includedir)
     if args.thread_metadata_self_test:
         if args.runtime_only:
             parser.error("thread metadata controls cannot be combined with --runtime-only")
@@ -1788,7 +1842,8 @@ def main() -> int:
         if args.runtime_only:
             parser.error("build option controls cannot be combined with --runtime-only")
         self_test_build_options(args.cxx)
-    if ((args.thread_metadata_self_test or args.build_options_self_test)
+    if ((args.thread_metadata_self_test or args.build_options_self_test
+         or args.macos_static_repro_build_dir)
             and not args.prefix and not args.self_test):
         return 0
     if args.self_test:

@@ -3646,6 +3646,29 @@ if(LIBDXFRW_BUILD_LIBRARY)
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     )
 
+    # CMake runs ranlib on installed macOS static archives without -D. That
+    # updates the archive index timestamp on every install, so normalize the
+    # installed index after CMake has finished it. Keep --prefix and DESTDIR
+    # evaluation at install time, and do not run ranlib on shared libraries.
+    get_target_property(_dxfrw_library_type dxfrw TYPE)
+    if(APPLE AND _dxfrw_library_type STREQUAL "STATIC_LIBRARY" AND CMAKE_RANLIB)
+        if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+            set(_dxfrw_install_archive_dir "${CMAKE_INSTALL_LIBDIR}")
+        else()
+            set(_dxfrw_install_archive_dir "\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+        endif()
+        install(CODE "
+            set(_dxfrw_archive \"\$ENV{DESTDIR}${_dxfrw_install_archive_dir}/$<TARGET_FILE_NAME:dxfrw>\")
+            if(EXISTS \"\${_dxfrw_archive}\" AND NOT IS_SYMLINK \"\${_dxfrw_archive}\")
+                execute_process(COMMAND \"${CMAKE_RANLIB}\" -D \"\${_dxfrw_archive}\"
+                                RESULT_VARIABLE _dxfrw_ranlib_result)
+                if(NOT _dxfrw_ranlib_result STREQUAL \"0\")
+                    message(FATAL_ERROR \"Deterministic libdxfrw archive indexing failed: \${_dxfrw_ranlib_result}\")
+                endif()
+            endif()
+        ")
+    endif()
+
     if(LIBDXFRW_INSTALL_DEV)
         install(EXPORT libdxfrw-targets
             FILE libdxfrwTargets.cmake
