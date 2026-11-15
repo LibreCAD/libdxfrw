@@ -43898,7 +43898,8 @@ int main(int argc, char** argv) {
             const bool validRead = validReader.read(&capture, false);
             if (!validRead
                 || ((malformedSpatialIndexBodySource
-                     || malformedDimensionAssociationBodySource)
+                     || malformedDimensionAssociationBodySource
+                     || malformedGeoDataBodySource)
                     && validReader.getObjectParseFailures() != 0)
                 || (!malformedProxyObjectBodySource
                     && !capture.hasCapturedObject())) {

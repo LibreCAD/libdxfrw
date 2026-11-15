@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-15",
+  "scope": "Generated GEODATA malformed-body recovery and fail-closed CLI disposition across AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032.",
+  "validation": [
+    "The baseline generator now requires zero object-parse failures before mutating the generated GEODATA body. The mutated source has one failed OBJECTS frame, zero entity parse failures, a following LINE, and reconciled source/published/failed frame counts.",
+    "dwg2dxf_cli_geodata_recovery passes 32 controls. AC1015 verifies strict atomic refusal and explicit-partial ASCII/Binary output with fresh LINE readback. AC1018, AC1021, AC1024 and AC1032 verify strict refusal and explicit-partial refusal at the GEODATA source CLASS/owner/host-block/body preflight, preserving source and destination. AC1027 verifies both refusals at the existing source-reference gate.",
+    "The GEODATA, SPATIAL_INDEX and DIMASSOC focused selectors pass together 3/3 in 2.55 seconds after rebuilding the local DWG writer. The Python test passes py_compile and git diff --check. No DWG/DXF fixture was committed."
+  ],
+  "implementationDigestSha256": "fb5aec9e1cdaae7f50a1bd1e03dfa5588cec0f45c0f1c8f097e973a9eeba4192",
+  "limits": "These generated tests establish parser recovery and refusal behavior only. Modern explicit-partial output remains refused; GEODATA graph closure, independent geolocation semantics, native consumers and same-object writer retry are not established. No support claim is promoted."
+}

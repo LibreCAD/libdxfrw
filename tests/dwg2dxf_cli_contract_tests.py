@@ -2566,61 +2566,76 @@ def check_malformed_lightlist_body(converter, root, writer):
 
 
 def check_malformed_geodata_body(converter, root, writer):
-    profiles = {
-        "AC1015": "2007",
-    }
     qualified = check_malformed_object_body_family(
         converter, root, writer, "GEODATA",
-        "--generate-cli-malformed-geodata-body-source", profiles)
-    source = root / "generated malformed GEODATA body source AC1018.dwg"
-    generated = run_bounded(
-        [str(writer), "--generate-cli-malformed-geodata-body-source",
-         str(source), "AC1018"], 10, 131072, cwd=root)
-    if generated.returncode != 0 or not source.is_file():
-        raise AssertionError(
-            f"could not author malformed AC1018 GEODATA source: {generated!r}")
-    original = source.read_bytes()
-    counted = run_bounded(
-        [str(writer), "--count-dwg-lines", str(source)],
-        10, 131072, cwd=root)
-    if (counted.returncode != 0
-            or b"readSucceeded=true" not in counted.stdout
-            or b"lineCount=1" not in counted.stdout
-            or b"objectParseFailures=1" not in counted.stdout
-            or b"entityParseFailures=0" not in counted.stdout
-            or b"failedFrames=1" not in counted.stdout):
-        raise AssertionError(
-            f"AC1018 malformed GEODATA did not continue with one failed frame: "
-            f"{counted!r}")
-    checked = 2
-    for binary in (False, True):
-        for partial_mode in (False, True):
-            output = root / (
-                f"malformed GEODATA AC1018 {'Binary' if binary else 'ASCII'} "
-                f"{'partial' if partial_mode else 'strict'}.dxf")
-            output.write_bytes(SENTINEL)
-            arguments = [str(converter), str(source), "-o", str(output),
-                         "-v2007", "-y", "-d"]
-            if binary:
-                arguments.append("-b")
-            if partial_mode:
-                arguments.append("--allow-partial-dwg-read")
-            result = run_bounded(
-                arguments, 10, 2 * 1024 * 1024, cwd=root)
-            expected_diagnostic = (
-                b"DXF export preflight failed: GEODATA source CLASS, owner, "
-                b"host-block, or body profile" if partial_mode else
-                b"strict-complete conversion requires successful, complete "
-                b"DWG read disposition")
-            if (result.returncode != 1 or output.read_bytes() != SENTINEL
-                    or source.read_bytes() != original
-                    or expected_diagnostic not in result.stderr):
-                raise AssertionError(
-                    f"AC1018 malformed GEODATA {'partial' if partial_mode else 'strict'} "
-                    f"{'Binary' if binary else 'ASCII'} refusal was not atomic: "
-                    f"{result!r}")
-            checked += 1
-    return qualified + checked
+        "--generate-cli-malformed-geodata-body-source", {"AC1015": "2007"})
+    source_gated = check_malformed_object_body_family(
+        converter, root, writer, "GEODATA",
+        "--generate-cli-malformed-geodata-body-source", {"AC1027": None})
+    checked = 0
+    for revision, target_year in (("AC1018", "2007"), ("AC1021", "2007"),
+                                  ("AC1024", "2010"), ("AC1032", "2018")):
+        source = root / f"generated malformed GEODATA body source {revision}.dwg"
+        generated = run_bounded(
+            [str(writer), "--generate-cli-malformed-geodata-body-source",
+             str(source), revision], 10, 131072, cwd=root)
+        if generated.returncode != 0 or not source.is_file():
+            raise AssertionError(
+                f"could not author malformed {revision} GEODATA source: {generated!r}")
+        original = source.read_bytes()
+        if original[:6] != revision.encode("ascii"):
+            raise AssertionError(f"wrong GEODATA source revision for {revision}")
+        counted = run_bounded(
+            [str(writer), "--count-dwg-lines", str(source)], 10, 131072, cwd=root)
+        fields = {
+            field.split(b"=", 1)[0]: field.split(b"=", 1)[1]
+            for field in counted.stdout.split() if b"=" in field
+        }
+        try:
+            source_frames = int(fields[b"sourceFrames"])
+            published_frames = int(fields[b"publishedFrames"])
+            failed_frames = int(fields[b"failedFrames"])
+        except (KeyError, ValueError):
+            source_frames = published_frames = failed_frames = -1
+        if (counted.returncode != 0
+                or b"readSucceeded=true" not in counted.stdout
+                or b"lineCount=1" not in counted.stdout
+                or b"objectParseFailures=1" not in counted.stdout
+                or b"entityParseFailures=0" not in counted.stdout
+                or failed_frames != 1 or source_frames <= 1
+                or published_frames + 1 != source_frames):
+            raise AssertionError(
+                f"{revision} malformed GEODATA did not continue with one failed frame: "
+                f"{counted!r}")
+        checked += 2
+        for binary in (False, True):
+            for partial_mode in (False, True):
+                output = root / (
+                    f"malformed GEODATA {revision} {'Binary' if binary else 'ASCII'} "
+                    f"{'partial' if partial_mode else 'strict'}.dxf")
+                output.write_bytes(SENTINEL)
+                arguments = [str(converter), str(source), "-o", str(output),
+                             f"-v{target_year}", "-y", "-d"]
+                if binary:
+                    arguments.append("-b")
+                if partial_mode:
+                    arguments.append("--allow-partial-dwg-read")
+                result = run_bounded(
+                    arguments, 10, 2 * 1024 * 1024, cwd=root)
+                expected_diagnostic = (
+                    b"DXF export preflight failed: GEODATA source CLASS, owner, "
+                    b"host-block, or body profile" if partial_mode else
+                    b"strict-complete conversion requires successful, complete "
+                    b"DWG read disposition")
+                if (result.returncode != 1 or output.read_bytes() != SENTINEL
+                        or source.read_bytes() != original
+                        or expected_diagnostic not in result.stderr):
+                    raise AssertionError(
+                        f"{revision} malformed GEODATA {'partial' if partial_mode else 'strict'} "
+                        f"{'Binary' if binary else 'ASCII'} refusal was not atomic: "
+                        f"{result!r}")
+                checked += 1
+    return qualified + source_gated + checked
 
 
 def check_malformed_tablestyle_body(converter, root, writer):
