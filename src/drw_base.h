@@ -135,6 +135,9 @@ enum class DwgDataStorageWriterOperation : std::uint8_t {
 #define M_PIx2      6.283185307179586 // 2*PI
 #define ARAD 57.29577951308232
 
+// Compile-time capability for consumers that also support the LibreCAD fork.
+#define LIBDXFRW_HAS_DECLARED_UTF8_POLICY 1
+
 namespace DRW {
 
 /// Input interpretation only; never changes DXF export encoding. Recovery is

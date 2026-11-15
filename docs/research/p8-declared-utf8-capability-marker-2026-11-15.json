@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-declared-utf8-capability-marker-2026-11-15",
+  "date": "2026-11-15",
+  "status": "verified_consumer_feature_detection",
+  "supportClaimEffect": "none",
+  "change": "The installed public header defines LIBDXFRW_HAS_DECLARED_UTF8_POLICY as 1 so a consumer can conditionally use the scoped input policy while building against an older bundled fork.",
+  "validation": [
+    "C++17 compile-only probes confirm the marker is present with the upstream header and absent with the LibreCAD bundled header.",
+    "A disposable upstream-linked LibreCAD harness using the marker-gated policy and explicit old-target units guard passes the named-LTYPE selector (18/18, 465 assertions), a unit guard control (12 assertions), and metadata helper control (2 assertions)."
+  ],
+  "limits": [
+    "The downstream changes are still being qualified against a clean bundled-library build; no downstream merge is claimed.",
+    "Legacy UTF-8 remains an unsupported profile and strict source admission remains closed.",
+    "No DWG/DXF fixture files added."
+  ]
+}

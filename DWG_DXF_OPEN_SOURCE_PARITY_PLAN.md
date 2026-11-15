@@ -1176,10 +1176,13 @@ corrections. The original MLINESTYLE fixture is retained. The scoped library
 policy preserves Compatible decoding for other declarations and leaves strict
 source admission fail-closed; legacy UTF-8 still raises an unsupported-profile
 observation ([policy receipt](docs/research/p8-declared-utf8-scoped-input-policy-2026-11-15.json)).
-Integrate and qualify the policy in the consumer, including diagnostic handling;
-implement explicit old-target units-loss disposition for nonzero units; correct
-the malformed fixture while retaining a negative control; and make the other
-consumer corrections permanent. Compile and run the full clean upstream-linked
+An upstream capability macro now permits source-compatible consumer selection
+when the bundled fork lacks this API ([marker receipt](docs/research/p8-declared-utf8-capability-marker-2026-11-15.json)). A clean downstream branch implements the
+policy, diagnostic and old-target units refusal; its upstream-linked focused
+controls pass and bundled-library qualification is in progress. Finish that
+qualification and retain an applicable downstream patch; correct the malformed
+fixture while retaining a negative control, and make the other consumer
+corrections permanent. Compile and run the full clean upstream-linked
 consumer target, then qualify LibreCAD_3 and required platforms. See the
 [selector diagnosis](docs/research/p8-librecad-named-ltype-selector-diagnosis-2026-11-15.json)
 and [canonical MLINESTYLE fix](docs/research/p8-mlinestyle-canonical-linetypes-2026-11-15.json).

@@ -200,6 +200,8 @@ that declaration and retains Compatible mapping for other declarations and
 missing code pages. The legacy UTF-8 wire profile remains observable as
 unsupported for strict conversion; the adapter's strict source admission does
 not yet admit this policy. This option does not change output encoding.
+Consumers that also build against LibreCAD's bundled fork can test the
+`LIBDXFRW_HAS_DECLARED_UTF8_POLICY` preprocessor macro before using it.
 
 For example, explicit legacy input named `ISO8859-4` or `ISO-8859-4` decodes
 byte A1 as U+0104, using the fixed ISO table rather than a similar Windows
