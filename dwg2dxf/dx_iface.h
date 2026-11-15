@@ -1914,6 +1914,10 @@ public:
     bool validateAc1027HeaderMaterial(std::uint32_t&) const noexcept;
     bool hasCompleteAc1024LayerSourceEvidence(const dx_data&) const noexcept;
     bool hasCompleteAc1024DefaultMaterialSourceEvidence(const dx_data&) const noexcept;
+    bool usesAc1024DefaultLayersProfile() const noexcept;
+    bool validateAc1024DefaultLayer(const DRW_Layer&, std::uint32_t&) const noexcept;
+    bool inspectAc1024DefaultLayersOutput(const dxfRW::DxfTablesWriteView&) noexcept;
+    bool finalizeAc1024DefaultLayersOutput() const noexcept;
     bool usesAc1027DefaultLayerProfile() const noexcept;
     bool validateAc1027DefaultLayer(const DRW_Layer&, std::uint32_t&) const noexcept;
     bool inspectAc1027DefaultLayerOutput(const dxfRW::DxfTablesWriteView&) noexcept;
@@ -1983,6 +1987,15 @@ public:
                     dxfW->writeLayer(nullptr); return;
                 }
                 DRW_Ac1027BoundLayer projection(layer, plotStyle);
+                if (!writeLayerAndConstraintAlias(projection)) return;
+                continue;
+            }
+            if (usesAc1024DefaultLayersProfile()) {
+                std::uint32_t plotStyle = 0u;
+                if (!validateAc1024DefaultLayer(layer, plotStyle)) {
+                    dxfW->writeLayer(nullptr); return;
+                }
+                DRW_Ac1024BoundLayer projection(layer, plotStyle);
                 if (!writeLayerAndConstraintAlias(projection)) return;
                 continue;
             }
@@ -5119,6 +5132,7 @@ private:
     DRW::Version m_dwgDictionaryDefaultOutputSourceVersion{DRW::UNKNOWNV};
     std::uint64_t m_dwgDictionaryDefaultOutputGeneration{0u};
     bool m_ac1027DefaultLayerInspected = false;
+    bool m_ac1024DefaultLayersInspected = false;
     bool m_dwgDictionaryDefaultOutputInspected{false};
     bool hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept;
     bool inspectDwgDictionaryDefaultOutput(

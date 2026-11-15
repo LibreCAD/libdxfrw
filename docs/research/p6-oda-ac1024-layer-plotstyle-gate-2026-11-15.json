@@ -222,5 +222,24 @@
     "validation": "Generated tests write and read an additional Defpoints layer pointing at Global. A layer whose plot-style and material pointers both target the protected Global object is refused with destination preservation; a corrected same-writer retry succeeds. The existing material opt-in controls and GCC 16 strict syntax check pass. LibreDWG 0.14 independently decoded both 0 and Defpoints as H5 references to the same Global material; generated DWG SHA-256 060532f13bb91e8f5019c56396e54db3b871776635113c8ca122b3d3b2563291 and peer JSON SHA-256 5522cc6c147d48f54b6db9466644d51a8f7ca22d06e7381d11bed034749c7ef8.",
     "qualificationDigest": "b0072a15de6a550369ffcabce11674aac2670df6a9c0be86cefe61c9544e082e",
     "limits": "This authoring path is not proof of material rendering semantics or complete-document conversion. The generated fixture remains local and is not committed."
+  },
+  "selectedTwoLayerOutput": {
+    "scope": "Strict, same-version AC1024 source-bound profile with exactly the 0 and Defpoints LAYER records, three canonical materials and a no-reactor Normal plot-style graph. This is a selected generated source, not complete qualification of other producers or arbitrary layers.",
+    "admission": "The adapter revalidates the CRC-backed layer receipts and publications, material class census, NOD and dictionary snapshots, material frames, and no-reactor plot-style graph; each layer must point by H5 to the selected Global material and Normal placeholder. Staged TABLES inspection checks exactly one remapped group 347 and 390 per source layer. Finalization checks the material and placeholder output identities and ownership after OBJECTS inspection.",
+    "validation": "A from-scratch generated DWG produces selected ASCII and binary DXFs with remapped two-layer material/plot-style edges. Changes to layer target handles, layer publication, plot source frame and a late material source frame are rejected with destination preservation; restoration retries successfully on the same writer. Seven focused AC1024/AC1027 layer, material, plot-style and transaction tests passed and lc3_compat_check compiled. GCC 16 strict syntax checking passed.",
+    "independentRoundtrip": "ODA File Converter 27.1 converted both generated DXFs to AC1024 DWG. LibreDWG 0.14 confirmed both layer material/plot-style H5 targets and the material and placeholder owner relationships in both resulting DWGs. This verifies selected graph transport, not material rendering or plotting semantics.",
+    "artifactSha256": {
+      "asciiDxf": "ade741cd5cc864354fc5d725aaa5c9ef662dd1edaf181d9a9dbd4f1c44003cfc",
+      "binaryDxf": "96efc17400d94d398272f6452fb0c6dcddb1f553eb0657c61b9848fd3e410bb0",
+      "asciiOdaDwg": "717cbfbadc7568198e5989d9eabff647b65143d19bffba477e5a12240fd2a644",
+      "binaryOdaDwg": "f1b6e8267f9b19d9961d45797f5ee2016c8a1dd08a6f1974e4a5efb6746583c0",
+      "asciiLibreDwgJson": "459a8c2fb3831fd1a63e89ff1824948407edec83c5469a9bf0b7db03ca19f704",
+      "binaryLibreDwgJson": "3a7586e5045bca74be45bfe3983521a2b109040659ed370ebf4ab7a86f85e894"
+    },
+    "physicalSource": "Both local ODA-derived sources pass source-binding mutation controls. Strict output of the original polyface source refuses at complete-DWG-read preflight, before TABLES; HEADER records a 739-byte unclaimed suffix. Earlier lossy diagnostic reached TABLESTYLE, but that result did not establish valid full conversion.",
+    "qualificationDigest": "e34d5576558698a61fe6250b9dd08035ffaefac2a392ae18f5d08fc45b969984",
+    "cleanSourceInventory": "1201 released files, unchanged; no DWG/DXF fixture committed",
+    "ctestInventory": "1372 tests, unchanged",
+    "limits": "The original physical-source output, independent HEADER suffix interpretation, TABLESTYLE, native consumer behavior and whole-document support remain open. No phase gate or external support claim is promoted."
   }
 }

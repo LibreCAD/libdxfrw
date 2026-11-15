@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **574 completed implementation and qualification slices** and **32 remaining
+The plan records **575 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`574 / (574 + 32) = 94.7%`. The previous 28-package denominator was stale; a recount
+`575 / (575 + 32) = 94.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -139,29 +139,17 @@ DIMASSOC raw replay and native associative behavior also remain open
 ([receipt](docs/research/p8-dimassoc-duplicate-body-fields-2026-11-15.json)).
 Keep strict `DeclaredUtf8` source admission closed pending its evidence gate.
 
-**P6-E adjacent packet — AC1024 LAYER output.** The generated ODA samples
-fail on LAYER plot-style transport: both layers reference the NOD's `Normal`
-plot-style placeholder, corroborated by LibreDWG and ODA DXF. A scratch-only
-clearing experiment advances to a later TABLESTYLE refusal but intentionally
-loses the reference ([receipt](docs/research/p6-oda-ac1024-layer-plotstyle-gate-2026-11-15.json)).
-Parser-recorded H5 spans and LibreDWG target roles agree for both layers;
-CRC-validated decoded object frames reproduce those tokens in both samples. The
-optional reader receipts are now joined to same-generation publication and
-immutable typed snapshots. An AC1024 no-reactor plot-style wire observer now
-checks the witnessed Normal dictionary/placeholder source bodies; that selected
-graph now passes ASCII/Binary output, ODA conversion and independent readback.
-The source gate now binds the three MATERIAL class frames, their no-reactor
-dictionary and the NOD to import-time evidence. A locally authored material
-graph passes LibreDWG inspection and mutation/refusal/restoration controls.
-The generated AC1024 DWG writer can now attach a queued second layer to its
-staged Global material, with protected-reference refusal and retry. A separate
-AC1024 DXF writer projection remaps layer 347/390 with version and
-strict-owner checks, rollback and retry controls; it is not yet selected by the adapter.
-Bind the source gate to Global material and both layers during output; adapt the AC1027
-source-bound pattern only for the evidenced AC1024 two-layer profile. Prove emitted 347/390
-roles, graph ownership, source mutation refusal, destination rollback and retry,
-plus LibreCAD compatibility. Re-run partial conversion; keep the independent
-HEADER suffix and complete-document gates closed.
+**P6-E adjacent packet — AC1024 full conversion.** The selected two-layer
+Global-material/Normal-plot-style profile now has source-bound staged output,
+mutation refusal and retry, plus locally generated ASCII/Binary peer roundtrips
+([receipt](docs/research/p6-oda-ac1024-layer-plotstyle-gate-2026-11-15.json)).
+The original ODA-derived polyface source still fails strict-complete preflight
+before TABLES because its read disposition is not complete. Resolve the 739-byte
+HEADER suffix with independent source/version evidence, then rerun strict output
+and address the next actual document gate (the earlier lossy diagnostic reached
+TABLESTYLE). Prove the physical source's emitted 347/390 links and native
+consumer behavior before any broader support claim. Do not discard the suffix or
+clear references to get past a gate.
 
 **Immediate P4 packet — AC1032 associative-network profile and owner path.**
 The generated DIMASSOC graph node is indexed and guarded. The AC1032 parser now
