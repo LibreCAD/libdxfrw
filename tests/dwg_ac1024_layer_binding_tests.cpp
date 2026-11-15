@@ -115,8 +115,8 @@ public:
 
 class BindingAuthor final : public LC3CompatCheck, public DRW_DwgDefaultMaterialProvider {
 public:
-    explicit BindingAuthor(dwgRW& output, bool material = false)
-        : output_(output), material_(material) {}
+    explicit BindingAuthor(dwgRW& output, bool material = false, int layerShape = 3)
+        : output_(output), material_(material), layerShape_(layerShape) {}
     bool wantsDwgDefaultMaterialGraph() const override { return material_; }
     bool dwgDefaultMaterialOpaqueReferencesAbsent(std::uint32_t dictionary,
         std::uint32_t byBlock, std::uint32_t byLayer, std::uint32_t global) const override {
@@ -143,6 +143,8 @@ public:
         if (material_) {
             layer.name = "0"; layer.materialHandle.ref = global_;
             layer.plotStyleHandle.ref = plotPlaceholder_.handle;
+            if ((layerShape_ & 1) != 0) layer.setDwgCommonObjectState(0, 1u, false);
+            if ((layerShape_ & 2) != 0) layer.xrefBlockHandle.code = DRW::DwgHardPointer;
             if (!output_.addLayer(&layer)) return;
             layer.handle = 0u;
         }
@@ -157,6 +159,7 @@ public:
 private:
     dwgRW& output_;
     bool material_;
+    int layerShape_;
     std::uint32_t global_ = 0u;
     DRW_DictionaryWithDefault plotDictionary_;
     DRW_AcDbPlaceholder plotPlaceholder_;
@@ -260,8 +263,11 @@ int main(int argc, char** argv) {
         return checkOutput(argv[2], directory / "layers-ascii.dxf", false)
             && checkOutput(argv[2], directory / "layers-binary.dxf", true) ? 0 : 1;
     }
-    const bool keep = argc == 3 && std::string(argv[1]) == "--keep";
+    const bool keep = (argc == 3 || argc == 4) && std::string(argv[1]) == "--keep";
     if (argc != 2 && !keep) return 2;
+    const std::string mode = argc == 4 ? argv[3] : "3";
+    if (mode.size() != 1u || mode[0] < '0' || mode[0] > '3') return 2;
+    const int layerShape = mode[0] - '0';
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();
     const std::filesystem::path directory = argv[keep ? 2 : 1];
     std::filesystem::create_directories(directory);
@@ -283,7 +289,7 @@ int main(int argc, char** argv) {
     if (!writer.write(&author, DRW::AC1024, false) || !author.added
         || !checkFile(path, false)) return 1;
     dwgRW materialWriter(materialPath.string().c_str());
-    BindingAuthor materialAuthor(materialWriter, true);
+    BindingAuthor materialAuthor(materialWriter, true, layerShape);
     if (!materialWriter.reserveHandle(0xA11u)) return 1;
     const bool materialWritten = materialWriter.write(&materialAuthor, DRW::AC1024, false);
     if (!materialWritten || !materialAuthor.added || !materialAuthor.registered_ || !materialAuthor.objects_) {

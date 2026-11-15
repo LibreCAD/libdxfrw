@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-15",
+  "scope": "Controlled local AC1024 two-layer source-independent DWG authoring, no-reactor Normal plot-style graph and three default MATERIAL records. No fixture is committed.",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.54 identifies the R2004+ missing-xdictionary flag and xref hard-pointer slot for LAYER. ODA-generated source layer frames independently have missing flag 1 and xref H5 null.",
+  "controls": "The same local author produced four combinations of missing-xdictionary flag and xref null role with both layer pointers bound to Global and Normal. ODA File Converter 27.1 converted only the both-canonical case, with no error file. Missing flag only and typed xref only both fail at AcDbLayerTableRecord(0x12); both default/untyped values also fail. Generated drawings can differ in serialization and author metadata; this is a controlled profile experiment, not a universal necessity proof.",
+  "repeatedHeaderIsolation": "For the successful canonical drawing, remove only the 108-byte repeated header, set its pointer to zero and recompute the header CRC: ODA still converts. For the noncanonical drawing, add the correct repeated header and reseal the pointer/CRC: ODA still fails. This isolates the repeated-header copy from the observed outcome on these samples; the spec-required copy remains correct.",
+  "odaOutput": "The successful ODA DXF contains exactly source layers 0 and Defpoints pointing by group 347 to Global material A15 and group 390 to placeholder A11. The Normal dictionary A10 default points to A11, whose owner is A10. No native rendering or plotting semantics are implied.",
+  "sha256": {
+    "canonicalRepeated": "318bd94261ac17630365800d165ac58b0fb0c037e249b6c2c927d82e6188f416",
+    "canonicalNoRepeat": "3fb440d3926d04dc7afc6c03f92ac13f035274da15fb1b3de0766a93b94f42f5",
+    "xdicOnly": "0e81eafc77418ccb4f26d2cca0d8fb382dcd18c54ec4225e702351d55fd142e6",
+    "xrefOnly": "d32255a2cb74fb929b925b4d5258afd5a7dbc14dd8d0d3f7b83156b43274d063",
+    "untypedRepeated": "c54cf18ce5b5237f633678a48d9604e3fe61a8080ce19e6dd4a6c3508951acf9",
+    "odaDxf": "124d0af44b75836369fdce4d39cf58ffa792b0500d1d5aeb50a39c621ad797ca"
+  },
+  "testTool": "The existing fixture-free layer binding test can generate the four profiles in a caller-selected scratch directory using --keep <directory> <0..3>. The normal CTest uses the both-canonical profile and passes the selected graph output and transaction controls.",
+  "next": "Add a separate explicit per-layer opt-in to normalize only unambiguous source-independent null fields; preserve ordinary caller/imported wire state, fail closed on incompatible fields, and test graph reachability, destination rollback, same-writer retry and 2D consumer compatibility.",
+  "qualificationDigest": "2b39ad01d93b183c90fc76baccf4a279fc8ba15e35524fbaf517c6010162585d",
+  "limits": "The result is a selected locally authored AC1024 graph and ODA conversion, not qualification of other DWG versions, arbitrary LAYER variants, all headers, native material semantics, or complete format support."
+}
