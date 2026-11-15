@@ -144,6 +144,20 @@ bool hasControlRoleDiagnostic(const dx_data& data, const char* controlName) {
     return false;
 }
 
+bool hasRoleMismatch(const dx_data& data, DwgIntegrityCheckKind kind,
+                     std::uint64_t expected, std::uint64_t observed) {
+    const auto& integrity = data.dwgReadOutcome.observations.integrity;
+    for (std::size_t index = 0;
+         index < std::min(integrity.retained, integrity.rows.size()); ++index) {
+        const auto& row = integrity.rows[index];
+        if (row.kind == kind && row.severity == DwgIntegritySeverity::Error
+            && row.hasExpected && row.hasObserved
+            && row.expected == expected && row.observed == observed)
+            return true;
+    }
+    return false;
+}
+
 bool hasHistoricalAc1021BlockBodyRoles(const dx_data& data) {
     const DRW_Block_Record* source = nullptr;
     for (const DRW_Block_Record& record : data.blockRecords) {
@@ -189,6 +203,28 @@ void testOrdinaryEncoding(TestContext& t, const char* name,
              "ordinary ENC DWG publishes exactly one header callback");
     t.expect(interface_.sourceCodePage == expectedCodePage,
              "ordinary ENC DWG propagates its source code page");
+    t.expect(hasRoleMismatch(data, DwgIntegrityCheckKind::LayerLineTypeHandleRole,
+                             DRW::DwgHardPointer, DRW::DwgSoftPointer),
+             "historical LAYER soft pointer remains an integrity error");
+    t.expect(hasRoleMismatch(data, DwgIntegrityCheckKind::BlockRecordBodyHandleRole,
+                             DRW::DwgHardOwnership, DRW::DwgSoftPointer),
+             "historical BLOCK_HEADER soft pointer remains an integrity error");
+    for (bool binary : {false, true}) {
+        const auto output = temporaryDxfPath(binary ? "enc-strict-binary" : "enc-strict-ascii");
+        { std::ofstream seed(output, std::ios::binary); seed << "sentinel"; }
+        dx_iface writer;
+        const bool accepted = writer.fileExport(output.string(), data.sourceVersion,
+            binary, &data, false, true, dx_dxfSourceTextPolicy::Compatible,
+            DRW::DxfTextWritePolicy::Compatible, dx_dxfProxyGraphicsPolicy::Compatible,
+            dx_dwgReadCompletenessPolicy::RequireComplete);
+        std::ifstream saved(output, std::ios::binary);
+        const std::string contents((std::istreambuf_iterator<char>(saved)), {});
+        t.expect(!accepted && contents == "sentinel",
+                 "historical integrity errors refuse strict output atomically");
+        saved.close();
+        std::error_code ignored;
+        std::filesystem::remove(output, ignored);
+    }
     if (data.sourceVersion == DRW::AC1021 || data.sourceVersion == DRW::AC1027) {
         t.expect(hasControlRoleDiagnostic(data, "LTYPE_CONTROL"),
                  "historical ENC LTYPE member roles remain diagnostic");
@@ -922,6 +958,17 @@ int testPhysicalInactiveGradientHatch(const char* sourcePath) {
 } // namespace
 
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--ordinary-enc-historical") {
+        TestContext context;
+        testOrdinaryEncoding(context, "ordinary_enc_AC1015.dwg", false, "", "ANSI_1252");
+        testOrdinaryEncoding(context, "ordinary_enc_AC1018.dwg", true, "Book$Entry", "ANSI_1252");
+        testOrdinaryEncoding(context, "ordinary_enc_AC1021.dwg", true, "Book$Entry", "ANSI_1252");
+        testOrdinaryEncoding(context, "ordinary_enc_AC1027.dwg", true, "Book$Entry", "ANSI_1252");
+        testOrdinaryEncoding(context, "ordinary_enc_ac1027_ansi932.dwg", true, "Book$Ａ", "ANSI_932");
+        if (context.failures != 0) return 1;
+        std::cout << "Historical ENC fixtures: PASS\n";
+        return 0;
+    }
     if (argc == 2
         && std::string(argv[1]) == "--ordinary-enc-ac1021-only") {
         TestContext context;

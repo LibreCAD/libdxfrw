@@ -9032,7 +9032,7 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
         ret2 = parseTableRecord(oc, kBlockTable, br);
         ret = ret && ret2;
         if (ret2) {
-          if (version == DRW::AC1021) {
+          {
             for (const DRW_DwgSubrecordRange& span :
                  br->dwgHandleFieldSpans()) {
               if ((span.m_name == "block"
