@@ -497,6 +497,7 @@ EXTRA_DIST = \
     tests/dwg_ac1024_header_suffix_tests.cpp \
     tests/dwg_ac1024_layer_binding_tests.cpp \
     tests/dwg_ac1024_layer_source_tests.cpp \
+    tests/dwg_ac1024_plotstyle_wire_tests.cpp \
     tests/dwg_ac1027_block_control_boundary_tests.cpp \
     tests/dwg_ac1027_default_graph_strict_tests.cpp \
     tests/dwg_ac1027_empty_view_ucs_controls_tests.cpp \
