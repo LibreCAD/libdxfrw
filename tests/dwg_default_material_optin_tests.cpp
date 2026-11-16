@@ -1463,6 +1463,8 @@ struct CanonicalBulkAdapter final : Adapter, DRW_DwgCanonicalLayerProvider {
             case 12: value.push_back("COLLISION"); value.push_back("collision"); break;
             case 13: value.push_back("K"); value.push_back("K "); break;
             case 14: value.push_back("K "); value.push_back("K"); break;
+            case 16: value.push_back("bad,name"); break;
+            case 17: value.push_back("bad`name"); break;
             default: break;
             }
             return value;
@@ -1567,7 +1569,7 @@ bool canonicalBulkLayers(const std::filesystem::path& path,
         adapter.mutateHeaderToLegacy = false;
     }
     const std::vector<int> faults = extended
-        ? std::vector<int>{1, 2, 3, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15}
+        ? std::vector<int>{1, 2, 3, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17}
         : std::vector<int>{1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
     for (const int fault : faults) {
         { std::ofstream f(path, std::ios::binary | std::ios::trunc); f << "prior destination"; }

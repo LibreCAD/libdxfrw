@@ -7372,7 +7372,7 @@ bool dwgWriter15::canonicalLayerNameValid(const std::string& name) const noexcep
             && std::toupper(c) != static_cast<int>(c - 'a' + 'A')) return false;
         if (alphanumeric || c == '_' || c == '-' || c == '$') continue;
         if (!m_canonicalLayerExtendedNames || c < 0x20u || c > 0x7eu
-            || std::strchr("<>/\\\":;?*|='", c) != nullptr) return false;
+            || std::strchr("<>/\\\":;?*|=',`", c) != nullptr) return false;
     }
     return true;
 }

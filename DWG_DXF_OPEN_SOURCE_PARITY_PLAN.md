@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **641 completed implementation and qualification slices** and **32 remaining
+The plan records **642 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`641 / (641 + 32) = 95.2%`. The previous 28-package denominator was stale; a recount
+`642 / (642 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -246,10 +246,15 @@ material and the qualified Normal plot-style graph. Generated 134-layer legacy
 and 136-layer extended profiles pass rollback/retry, fresh readback and
 independent ODA/LibreDWG/ezdxf graph checks for each revision
 ([receipt](docs/research/p6-canonical-bulk-layers-and-name-collisions-2026-11-16.json)).
-An ODA experiment collapses Unicode case variants that the general writer keeps
-as separate layers; research and implement a portable consumer-compatible
+Autodesk documents symbol-name comparison as locale-sensitive after
+normalization; an extended-names ODA experiment both merges and distinguishes
+Unicode pairs in ways a single full casefold does not match. Obtain native
+locale/platform comparison evidence and implement an explicit consumer-aware
 Unicode identity policy before admitting those names or claiming generic
-collision safety. Imported source state, arbitrary graph dependencies, native
+collision safety. The ASCII profile also refuses comma and grave accent per the
+ObjectARX symbol-name rules
+([receipt](docs/research/p6-symbol-name-locale-and-ascii-boundary-2026-11-16.json)).
+Imported source state, arbitrary graph dependencies, native
 rendering and general version support remain open
 ([header receipt](docs/research/p6-ac1018-ac1024-repeated-file-header-2026-11-15.json),
 [layer experiment](docs/research/p6-ac1024-authored-layer-null-matrix-2026-11-15.json)).
