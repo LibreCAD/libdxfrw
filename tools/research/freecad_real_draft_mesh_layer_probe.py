@@ -76,17 +76,20 @@ def drawing(case: str) -> str:
 def main() -> None:
     if not getattr(Draft, "__file__", None):
         raise RuntimeError("A real Draft module is required")
-    qt_core_images = []
+    qt_frameworks = {}
     if sys.platform == "darwin":
         dyld = ctypes.CDLL(None)
         dyld._dyld_image_count.restype = ctypes.c_uint32
         dyld._dyld_get_image_name.argtypes = [ctypes.c_uint32]
         dyld._dyld_get_image_name.restype = ctypes.c_char_p
-        qt_core_images = [dyld._dyld_get_image_name(i).decode()
-                          for i in range(dyld._dyld_image_count())
-                          if b"/QtCore.framework/" in dyld._dyld_get_image_name(i)]
-        if len(qt_core_images) != 1:
-            raise RuntimeError(f"Expected one loaded QtCore framework, found {qt_core_images}")
+        for index in range(dyld._dyld_image_count()):
+            image = dyld._dyld_get_image_name(index).decode()
+            for component in image.split("/"):
+                if component.startswith("Qt") and component.endswith(".framework"):
+                    qt_frameworks.setdefault(component, []).append(image)
+        duplicates = {name: paths for name, paths in qt_frameworks.items() if len(paths) != 1}
+        if "QtCore.framework" not in qt_frameworks or duplicates:
+            raise RuntimeError(f"Missing QtCore or duplicate Qt frameworks: {qt_frameworks}")
     parent = App.ParamGet("User parameter:BaseApp/Preferences/Mod/Import")
     option_name = "CodexHeadlessMeshLayerProbe_" + uuid.uuid4().hex
     options = parent.GetGroup(option_name)
@@ -133,7 +136,7 @@ def main() -> None:
         parent.RemGroup(option_name)
     print("FREECAD_REAL_DRAFT_MESH_LAYER=" + json.dumps({
         "draftModule": Draft.__file__, "importModule": Import.__file__,
-        "qtCoreImages": qt_core_images, "results": results
+        "qtFrameworkImages": qt_frameworks, "results": results
     }, sort_keys=True, default=str))
 
 

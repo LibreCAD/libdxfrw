@@ -24,7 +24,7 @@
     "Install PySide6-Essentials 6.12.0, shiboken6 6.12.0 and typing_extensions 4.16.0 into a temporary directory.",
     "Move only the temporary wheel's PySide6/Qt/lib directory aside so the already installed matching Homebrew Qt 6.12.0 frameworks resolve; keep the wheel contents available separately.",
     "Generate Draft_rc.py from the same FreeCAD source Draft.qrc using Homebrew Qt 6.12 rcc -g python. Add the temporary package directory, FreeCAD Draft source and FreeCAD src/3rdParty directories via the probe's task-specific environment variables.",
-    "Verify dyld reports exactly one loaded QtCore framework, from /opt/homebrew; do not treat matching version strings alone as proof of a single runtime."
+    "Verify dyld reports exactly one loaded copy of each Qt framework, including QtCore, from the intended runtime; matching version strings alone are insufficient."
   ],
   "probe": "tools/research/freecad_real_draft_mesh_layer_probe.py",
   "validation": {
@@ -36,8 +36,11 @@
       "/private/tmp/freecad-polyface-layer-20261116/real-draft-nested.log",
       "/private/tmp/freecad-polyface-layer-20261116/real-draft-identity.log",
       "/private/tmp/freecad-polyface-layer-20261116/pyside-install.log",
-      "/private/tmp/freecad-polyface-layer-20261116/typing-install.log"
-    ]
+      "/private/tmp/freecad-polyface-layer-20261116/typing-install.log",
+      "/private/tmp/freecad-polyface-layer-20261116/real-draft-all-qt-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/real-draft-duplicate-qt-negative.log"
+    ],
+    "qtRuntimeGuard": "The reusable probe passes with one copy of each loaded Qt framework. An isolated negative control restored the temporary wheel Qt frameworks, confirmed the probe refuses the duplicate-runtime configuration without a success marker, and restored the single-runtime layout afterward."
   },
   "limits": [
     "This is real Draft layer construction in a BUILD_GUI=OFF headless process; it does not qualify GUI visibility, color appearance, native producer interpretation or other operating systems.",
