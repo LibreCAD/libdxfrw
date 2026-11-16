@@ -4142,8 +4142,9 @@ void dxfRW::setRootDictEntries(
         const std::vector<std::pair<std::string, std::string>>& entries) {
     if (!preflightDxfSetup())
         return;
-    if (m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen
-        && m_generatedNodSource) {
+    if (m_dxfWriteAttemptActive
+        && (m_dxfDefaultPlotDictionary != 0u
+            || (m_dxfGroupPlanFrozen && m_generatedNodSource))) {
         m_writeError = true;
         return;
     }
@@ -4167,8 +4168,9 @@ void dxfRW::setRootDictEntries(
         std::vector<std::pair<std::string, std::string>>&& entries) {
     if (!preflightDxfSetup())
         return;
-    if (m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen
-        && m_generatedNodSource) {
+    if (m_dxfWriteAttemptActive
+        && (m_dxfDefaultPlotDictionary != 0u
+            || (m_dxfGroupPlanFrozen && m_generatedNodSource))) {
         m_writeError = true;
         return;
     }
@@ -5646,6 +5648,9 @@ void dxfRW::discardDxfWriteResults() noexcept {
     m_imagePlanSources.clear();
     m_imagePlanReactorSources.clear();
     m_plannedImageDictionaryHandle = 0u;
+    m_dxfDefaultPlotDictionary = 0u;
+    m_dxfDefaultPlotPlaceholder = 0u;
+    m_dxfDefaultPlotDictionaryRecord.clear();
     for (DRW_ImageDef *id : imageDef)
         delete id;
     imageDef.clear();
@@ -5905,6 +5910,89 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
     if (!preflightDxfClasses())
         return failWrite();
 
+    // Plan the ordinary DEFAULT plot-style graph before CLASSES and TABLES.
+    // Caller-supplied plot-style dictionaries remain authoritative. Explicit
+    // reservations and registered dictionary targets take priority over the
+    // conventional E/F identities; a collision is planned at fresh handles.
+    std::vector<DRW_Class> outputClasses;
+    const auto callerPlotStyle = std::find_if(
+        m_rootDictEntries.begin(), m_rootDictEntries.end(), [](const auto& entry) {
+            return dxfSymbolNameKey(entry.first) == "ACAD_PLOTSTYLENAME";
+        });
+    if (version > DRW::AC1014 && callerPlotStyle == m_rootDictEntries.end()) {
+        // A source-bound root may carry a plot-style entry that the caller
+        // has not projected. Never replace that source edge by coincidence.
+        if (m_generatedNodSource) {
+            for (const auto& entry : m_generatedNodSource->m_entries)
+                if (dxfSymbolNameKey(entry.m_name) == "ACAD_PLOTSTYLENAME")
+                    return failWrite();
+        }
+        try {
+            for (const auto& entry : m_rootDictEntries) {
+                std::uint64_t handle = 0;
+                if (!parseRawDxfHandleLexeme(entry.second, handle)
+                    || handle == 0u || handle > std::numeric_limits<std::uint32_t>::max())
+                    return failWrite();
+                m_handleAllocator->reserveForWrite(static_cast<std::uint32_t>(handle));
+            }
+            for (const auto& dictionary : m_namedDictObjects) {
+                const auto handle = remapObjectHandle(dictionary.handle);
+                if (handle != 0u)
+                    m_handleAllocator->reserveForWrite(handle);
+            }
+            if (!m_handleAllocator->isUnavailable(0xEu)
+                && !m_handleAllocator->isUnavailable(0xFu)) {
+                m_dxfDefaultPlotDictionary = 0xEu;
+                m_dxfDefaultPlotPlaceholder = 0xFu;
+                m_handleAllocator->reserveForWrite(0xEu);
+                m_handleAllocator->reserveForWrite(0xFu);
+            } else if (!allocateDxfHandle(m_dxfDefaultPlotDictionary)
+                       || !allocateDxfHandle(m_dxfDefaultPlotPlaceholder)) {
+                return failWrite();
+            }
+            outputClasses = m_dxfClasses;
+            const auto addClass = [&](const char* requested,
+                                      std::string* recordName) {
+                DRW_Class candidate;
+                if (!dxfClassForRecordName(requested, candidate)) return false;
+                const auto wanted = dxfSymbolNameKey(candidate.className);
+                for (auto& existing : outputClasses) {
+                    const auto name = dxfSymbolNameKey(existing.recName);
+                    if (dxfSymbolNameKey(existing.className) != wanted) {
+                        if (name == dxfSymbolNameKey(candidate.recName)) return false;
+                        continue;
+                    }
+                    if ((wanted == "ACDBDICTIONARYWITHDEFAULT"
+                         && name != "ACDBDICTIONARYWDFLT" && name != "DICTIONARYWDFLT")
+                        || (wanted == "ACDBPLACEHOLDER" && name != "ACDBPLACEHOLDER")
+                        || existing.entityFlag != 0
+                        || existing.instanceCount == std::numeric_limits<int>::max())
+                        return false;
+                    ++existing.instanceCount;
+                    if (recordName) *recordName = existing.recName;
+                    return true;
+                }
+                candidate.instanceCount = 1;
+                if (recordName) *recordName = candidate.recName;
+                outputClasses.push_back(std::move(candidate));
+                return true;
+            };
+            if (!addClass("ACDBDICTIONARYWDFLT", &m_dxfDefaultPlotDictionaryRecord)
+                || !addClass("ACDBPLACEHOLDER", nullptr))
+                return failWrite();
+            std::size_t classBytes = 0u;
+            if (!estimateDxfClassMetadataRetainedBytes(
+                    outputClasses, DRW::kMaxDxfBinaryPayloadBytes, classBytes))
+                return failWrite();
+            // Catch late caller-owned handle collisions before publication.
+            if (!m_dxfWriteRecordInventoryEnabled)
+                writer->setRecordInventoryEnabled(true,
+                    std::max(m_dxfWriteRecordInventoryLimit, std::size_t{4u * 1024u * 1024u}));
+        } catch (...) {
+            return failWrite();
+        }
+    }
+
     if (version > DRW::AC1009) {
         // BLOCK_RECORD handles can be referenced by HEADER and DIMSTYLE
         // records, both of which precede the physical BLOCK_RECORD table.
@@ -5953,7 +6041,7 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
         header.addStr(key, toHexStr(headerMaterial), 347);
         // No physical record has been emitted yet. Enable only this attempt's
         // actual target proof without changing future-operation policy.
-        if (!m_dxfWriteRecordInventoryEnabled)
+        if (!m_dxfWriteRecordInventoryEnabled && m_dxfDefaultPlotDictionary == 0u)
             writer->setRecordInventoryEnabled(true, m_dxfWriteRecordInventoryLimit);
     }
     outputStage = "GROUP source-identity planning";
@@ -5998,17 +6086,19 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
         if (!writeRequiredString(0, "SECTION")
             || !writeRequiredString(2, "CLASSES"))
             return failWrite();
-        DxfWriterRecordScope classes(*writer);
-        //Emit a CLASS record for each custom (non-fixed) object class actually
-        //present in the output. Without these, AutoCAD/ODA silently drop the
-        //corresponding OBJECTS instances (the entry and instance must co-exist).
-        //The filter registers them from the raw-net objects before write().
-        for (const DRW_Class &cls : m_dxfClasses) {
-            if (!cls.write(writer.get(), version) || writer->hasWriteError())
-                return failWrite();
-        }
-        if (!commitDxfWriteSection(classes,
-                [](std::string_view) { return true; }))
+        const bool classesWritten = [&]() {
+            DxfWriterRecordScope classes(*writer);
+            // Emit each custom class whose object is present in the output.
+            const auto& classesToWrite = m_dxfDefaultPlotDictionary != 0u
+                ? outputClasses : m_dxfClasses;
+            for (const DRW_Class &cls : classesToWrite) {
+                if (!cls.write(writer.get(), version) || writer->hasWriteError())
+                    return false;
+            }
+            return commitDxfWriteSection(classes,
+                [](std::string_view) { return true; });
+        }(); // Unwind the writer-bound scope before failWrite destroys writer.
+        if (!classesWritten)
             return failWrite();
         if (!writeRequiredString(0, "ENDSEC"))
             return failWrite();
@@ -6124,7 +6214,8 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
     if (!isOk)
         return failWrite();
     outputStage = "write inventory finalization";
-    if ((m_dxfWriteRecordInventoryEnabled || needsHeaderMaterialInventory)
+    if ((m_dxfWriteRecordInventoryEnabled || needsHeaderMaterialInventory
+         || m_dxfDefaultPlotDictionary != 0u)
         && !writer->finalizeRecordInventory())
         return failWrite();
     if (needsHeaderMaterialInventory
@@ -8068,7 +8159,9 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
                 const auto target = m_referenceResolver
                     ? resolveReference(sourcePlotStyle)
                     : remapObjectHandle(sourcePlotStyle);
-                if (target == 0u || target == DRW::NoHandle)
+                if (target == 0u || target == DRW::NoHandle
+                    || (m_dxfDefaultPlotPlaceholder != 0u
+                        && target == m_dxfDefaultPlotPlaceholder))
                     return failDxfWrite();
                 write(writer->writeString(390, toHexStr(target)));
             } else {
@@ -8078,9 +8171,10 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
                                                 hasPlotStyle))
                     return failDxfWrite();
                 if (!hasPlotStyle) {
-                    // Match the library's historical default PlotStyleName
-                    // placeholder for layers with no supplied source pointer.
-                    write(writer->writeString(390, "F"));
+                    // Bind the ordinary default to the planned placeholder.
+                    // Caller-provided plot-style graphs keep their old route.
+                    write(writer->writeString(390, m_dxfDefaultPlotPlaceholder != 0u
+                        ? toHexStr(m_dxfDefaultPlotPlaceholder) : "F"));
                 } else if (sourcePlotStyle == 0u) {
                     write(writer->writeString(390, "0"));
                 } else if (sourcePlotStyle == 0x0Fu
@@ -8096,7 +8190,9 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
                         return failDxfWrite();
                     const std::uint32_t target =
                         resolveReference(sourcePlotStyle);
-                    if (target == 0u || target == DRW::NoHandle)
+                    if (target == 0u || target == DRW::NoHandle
+                        || (m_dxfDefaultPlotPlaceholder != 0u
+                            && target == m_dxfDefaultPlotPlaceholder))
                         return failDxfWrite();
                     write(writer->writeString(390, toHexStr(target)));
                 }
@@ -19381,6 +19477,9 @@ bool dxfRW::writeObjects() {
         DxfDictionaryEntryAdmission root;
         std::size_t sourceNameBytes = DRW::kMaxDxfBinaryPayloadBytes;
         root.accept("ACAD_GROUP", 0xDu);
+        if (m_dxfDefaultPlotDictionary != 0u
+            && !root.accept("ACAD_PLOTSTYLENAME", m_dxfDefaultPlotDictionary))
+            return failDxfWrite();
         if (!imageDef.empty() || m_generatedImageDictionarySource)
             root.accept("ACAD_IMAGE_DICT", 0);
         for (const auto& entry : m_rootDictEntries) {
@@ -19520,6 +19619,8 @@ bool dxfRW::writeObjects() {
                 return true;
             };
             if (!select("ACAD_GROUP", 0xDu)
+                || (m_dxfDefaultPlotDictionary != 0u
+                    && !select("ACAD_PLOTSTYLENAME", m_dxfDefaultPlotDictionary))
                 || ((!imageDef.empty() || m_generatedImageDictionarySource) && !select("ACAD_IMAGE_DICT", imageDictionaryHandle)))
                 return failDxfWrite();
             for (const auto& entry : m_rootDictEntries) {
@@ -19563,6 +19664,10 @@ bool dxfRW::writeObjects() {
     writer->writeInt16(281, 1);
     writer->writeString(3, "ACAD_GROUP");
     writer->writeString(350, "D");
+    if (m_dxfDefaultPlotDictionary != 0u) {
+        writer->writeString(3, "ACAD_PLOTSTYLENAME");
+        writer->writeString(350, toHexStr(m_dxfDefaultPlotDictionary));
+    }
     if (!imageDef.empty() || m_generatedImageDictionarySource) {
         writer->writeString(3, "ACAD_IMAGE_DICT");
         writer->writeString(350, imgDictH);
@@ -19625,6 +19730,23 @@ bool dxfRW::writeObjects() {
         || (m_generatedGroupDictionarySourceHandle != 0u
             && !bindDxfWriteSourceObjectHandle(m_generatedGroupDictionarySourceHandle, 0xDu)))
         return false;
+    if (m_dxfDefaultPlotDictionary != 0u) {
+        const auto dict = toHexStr(m_dxfDefaultPlotDictionary);
+        const auto placeholder = toHexStr(m_dxfDefaultPlotPlaceholder);
+        if (!writer->writeString(0, m_dxfDefaultPlotDictionaryRecord)
+            || !writer->writeString(5, dict)
+            || !writer->writeString(330, "C")
+            || !writer->writeString(100, "AcDbDictionary")
+            || !writer->writeInt16(281, 1)
+            || !writer->writeString(3, "Normal")
+            || !writer->writeString(350, placeholder)
+            || !writer->writeString(100, "AcDbDictionaryWithDefault")
+            || !writer->writeString(340, placeholder)
+            || !writer->writeString(0, "ACDBPLACEHOLDER")
+            || !writer->writeString(5, placeholder)
+            || !writer->writeString(330, dict))
+            return failDxfWrite();
+    }
 //write IMAGEDEF_REACTOR
     for (const auto& planned : m_plannedImageDefinitions) {
         const auto source = m_imagePlanSources.find(planned.second);

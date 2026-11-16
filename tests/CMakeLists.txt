@@ -7414,3 +7414,15 @@ target_include_directories(libdxfrw_dxf_field_mtext_tests PRIVATE ${CMAKE_SOURCE
 target_link_libraries(libdxfrw_dxf_field_mtext_tests PRIVATE dxfrw)
 add_test(NAME libdxfrw_dxf_field_mtext COMMAND libdxfrw_dxf_field_mtext_tests)
 set_tests_properties(libdxfrw_dxf_field_mtext PROPERTIES LABELS "dxf;fast;field;mtext" TIMEOUT 30)
+
+add_executable(libdxfrw_dxf_default_plotstyle_graph_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dxf_default_plotstyle_graph_tests.cpp)
+target_compile_features(libdxfrw_dxf_default_plotstyle_graph_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dxf_default_plotstyle_graph_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dxf_default_plotstyle_graph_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_dxf_default_plotstyle_graph_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_dxf_default_plotstyle_graph
+    COMMAND libdxfrw_dxf_default_plotstyle_graph_tests
+        "${CMAKE_CURRENT_BINARY_DIR}/default-plotstyle-graph-scratch.dxf")
+set_tests_properties(libdxfrw_dxf_default_plotstyle_graph PROPERTIES
+    LABELS "fast;dxf;plotstyle;generated" TIMEOUT 30)

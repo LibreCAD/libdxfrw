@@ -4179,7 +4179,8 @@ bool matchesReadback(const std::filesystem::path& path) {
     const auto rawPlaceholder = std::find_if(
         adapter.objects.begin(), adapter.objects.end(),
         [](const DRW_RawDxfObject& value) {
-            return value.name == "ACDBPLACEHOLDER";
+            return value.name == "ACDBPLACEHOLDER"
+                && value.handle == kDirectPlaceholderHandle;
         });
     const auto mainDataLink = std::find_if(
         adapter.dataLinks.begin(), adapter.dataLinks.end(),
@@ -5709,8 +5710,14 @@ bool matchesReadback(const std::filesystem::path& path) {
             return entry.m_name == "WHOLE_OPERATION_DBCOLOR"
                 && entry.m_handle == kDbColorHandle;
         });
+    const auto plotStyleRootEntry = std::find_if(
+        root.m_entries.begin(), root.m_entries.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "ACAD_PLOTSTYLENAME" && entry.m_handle != 0u;
+        });
     const bool rootMatches = adapter.storage.hasNamedObjectDictionary
-        && root.handle == 0xCu && root.m_entries.size() == 5u
+        && root.handle == 0xCu && root.m_entries.size() == 6u
+        && plotStyleRootEntry != root.m_entries.end()
         && groupRootEntry != root.m_entries.end()
         && imageRootEntry != root.m_entries.end()
         && customRootEntry != root.m_entries.end()

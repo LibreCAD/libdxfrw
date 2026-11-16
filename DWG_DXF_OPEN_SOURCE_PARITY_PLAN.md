@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **732 completed implementation and qualification slices** and **32 remaining
+The plan records **733 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`732 / (732 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
+`733 / (733 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -226,13 +226,15 @@ Native GUI behavior, independent semantics and upstream integration remain open.
   The broader installed-codec version selector independently has four failing
   cases (nine assertions), including dangling references and export refusals;
   the unchanged pre-guard filter reproduces them. The bundled selector passes.
-  Six dangling-reference assertions share a specific cause: generated layer 0
-  points by group 390 to F, while no F record exists in the selected AC1015–
-  AC1032 outputs. The ordinary writer inserts F without generating or reserving
-  its graph target. Design a collision-safe default plot-style graph, preserving
-  caller-supplied graphs and verifying output roles and readback, then diagnose
-  the two remaining export-refusal failures before broadening claims
-  ([trace receipt](docs/research/p8-librecad-installed-default-plotstyle-orphan-2026-11-16.json)).
+  The ordinary installed-codec output now generates a collision-safe default
+  plot-style dictionary and placeholder when no caller root is supplied. Its
+  six-version ASCII/Binary graph passes independent ezdxf readback and the
+  whole-write allocation sweep; the LibreCAD version selector improved from
+  four failing cases / nine assertions to two / two. The remaining caller-root
+  default-pointer and source-graph cases still need proof; diagnose the two
+  export refusals and native plotting before broadening claims
+  ([trace](docs/research/p8-librecad-installed-default-plotstyle-orphan-2026-11-16.json),
+  [fix receipt](docs/research/p8-dxf-default-plotstyle-generated-graph-2026-11-16.json)).
   The local metadata bridge now retains the current codec's MLINESTYLE CMC
   fields, so unsupported colors are refused instead of silently normalized;
   ordinary ByLayer and bundled-codec controls pass. Qualify actual producer

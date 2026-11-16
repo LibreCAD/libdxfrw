@@ -648,6 +648,7 @@ EXTRA_DIST = \
     tests/dxf_cellstylemap_allocation_tests.cpp \
     tests/dxf_compact_material_graph_tests.cpp \
     tests/dxf_datatable_read_tests.cpp \
+    tests/dxf_default_plotstyle_graph_tests.cpp \
     tests/dxf_dictionary_late_hardowner_tests.cpp \
     tests/dxf_dimension_oblique_tests.cpp \
     tests/dxf_ellipse_extreme_axis_tests.cpp \

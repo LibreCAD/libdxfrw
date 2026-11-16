@@ -2096,6 +2096,11 @@ private:
     std::unique_ptr<const DRW_Dictionary> m_generatedImageDictionarySource;
     std::uint64_t m_generatedImageDictionaryGeneration{0};
     std::uint32_t m_plannedImageDictionaryHandle{0};
+    // Rebuild consumers: these attempt-local fields change dxfRW layout.
+    // Zero means the caller supplied the graph or the target does not use one.
+    std::uint32_t m_dxfDefaultPlotDictionary{0};
+    std::uint32_t m_dxfDefaultPlotPlaceholder{0};
+    std::string m_dxfDefaultPlotDictionaryRecord;
     std::map<std::uint32_t, std::uint32_t> m_plannedImageSourceHandles;
     /// Numeric handle -> replacement handle, applied by writeRawDxfObject to the
     /// few raw objects whose original handle collides with a fixed structural
