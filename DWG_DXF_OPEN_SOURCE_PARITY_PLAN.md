@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **688 completed implementation and qualification slices** and **32 remaining
+The plan records **689 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`688 / (688 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
+`689 / (689 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -123,10 +123,11 @@ line-ending normalization, and FreeCAD's own attributes then prevented applying
 the same patch chain directly inside a full checkout. The helper now installs
 verified replay bytes after checking the original checkout files against the
 archive. A local checkout with those attributes passes injected installation
-failure, byte restoration and retry. The fourth hosted dispatch has passed
-source preparation on Linux and Windows; both builds and the CMake
-source-directory identity checks are still pending. Candidate qualification
-remains unresolved.
+failure, byte restoration and retry. The fourth hosted dispatch passes ten
+focused headless tests on Linux x86_64 with matching source, Git base, CMake
+source, executable and importer identities; Windows is still running
+([receipt](docs/research/p8-freecad-candidate-hosted-workflow-2026-11-16.json)).
+Native GUI behavior and broader candidate qualification remain unresolved.
 Native GUI behavior, independent semantics and upstream integration remain open.
 
 ### Next LibreCAD integration work

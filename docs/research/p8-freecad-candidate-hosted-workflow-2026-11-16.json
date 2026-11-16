@@ -15,9 +15,9 @@
     "Existing push-triggered release qualification jobs remain enabled; candidate matrix is opt-in for dispatch.",
     "Candidate source application and headless runtime guards were separately exercised on macOS."
   ],
-  "status": "FOURTH DISPATCH SOURCE PREPARATION PASSED; BUILD AND PROBE PENDING",
+  "status": "LINUX FOCUSED HEADLESS PASS; WINDOWS RUNNING",
   "limitations": [
-    "Linux and Windows source preparation passed on the fourth hosted run, but builds and probes have not completed; neither platform is qualified.",
+    "Linux passed the selected headless candidate tests; Windows is still running. Neither GUI rendering nor broad support is qualified.",
     "Submodule gitlink status is recorded; binary reproducibility, full build provenance and independent semantic support are not established.",
     "Headless checks do not establish native GUI rendering or complete DWG/DXF support.",
     "The downstream FreeCAD patch series remains unmerged."
@@ -53,6 +53,50 @@
   "fourthDispatch": {
     "url": "https://github.com/dxli/libdxfrw/actions/runs/43849681525",
     "commit": "cab8f700",
-    "outcome": "Linux and Windows source replay and candidate application passed; both jobs entered pinned-environment installation. Build and probe remain pending."
+    "outcome": "Linux x86_64 completed the build and ten focused headless tests; Windows remains running.",
+    "linux": {
+      "jobUrl": "https://github.com/dxli/libdxfrw/actions/runs/43849681525/job/133238708049",
+      "artifactId": 14218345361,
+      "receiptSha256": "84bcbec8c392372b8894c387bab7e337f8c633af70bb2582311ec45294acac2b",
+      "sourceCommit": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+      "sourceArchiveSha256": "5ba6c1409d59405dfdb0ddac9922633171b6d9117e9776913b3ca0888b3870f4",
+      "patchCount": 20,
+      "gitBaseVerified": true,
+      "cmakeCacheSha256": "42c1d56cc2b325882db14ab67fd354ed18042a46eb1cd4ccfcf8566bc99fd2bc",
+      "freecadcmdSha256": "1f4aa8a150fe20e9973b835fc2ef4f07f666ed316a2aeb4ee8a34b88628293f6",
+      "importModuleSha256": "5f03d8ba008a4a530203b6c82ddc481e919fc5e935c9b942b302c63ef204d9bb",
+      "probeSha256": "75d69cf492f7aa410590438beb0cec9a739799fd5a040ab745d97a04cde2e240",
+      "platform": "linux",
+      "machine": "x86_64",
+      "freecadVersion": [
+        "27",
+        "1",
+        "0",
+        "20261115 (Git shallow)",
+        "Unknown",
+        "2026/11/15 20:17:45",
+        "(HEAD detached at 157bfcb)",
+        "157bfcb7462a733b03a7d041aeaa79fee7aff7a3"
+      ],
+      "pythonVersion": "3.13.18 | packaged by conda-forge | (main, Oct 26 2026, 11:50:24) [GCC 15.3.0]",
+      "tests": [
+        "test_read_lines",
+        "test_dimension_ocs_orientation_axes",
+        "test_read_solid_ocs_vertices",
+        "test_classic_polyline_header_flags_and_mesh_disposition",
+        "test_bounded_polyface_geometry_and_rejections",
+        "test_bounded_polygon_mesh_grid_and_rejections",
+        "test_off_layer_without_grouping_reports_visibility_loss",
+        "test_frozen_layer_without_grouping_remains_reported",
+        "test_out_of_range_layer_colors_report_and_keep_off_state",
+        "test_malformed_layer_colors_report_and_keep_off_state"
+      ],
+      "testsRun": 10,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "guiUp": 0,
+      "submoduleStatusSha256": "513a9d2a445fe55ca7812eb6563fe44d6958307f2d21ea92a8b223000120c773"
+    }
   }
 }
