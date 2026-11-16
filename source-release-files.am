@@ -101,6 +101,7 @@ EXTRA_DIST = \
     docs/patches/librecad-p8-upstream-compat-2026-11-15.patch \
     docs/patches/librecad-p8-zero-reactor-sortents-source-2026-11-15.patch \
     docs/patches/librecad3-p8-abi3-system-codec-2026-11-16.patch \
+    docs/patches/librecad3-p8-entity-lineweight-loss-2026-11-16.patch \
     docs/patches/librecad3-p8-legacy-layer-lineweight-2026-11-16.patch \
     docs/patches/librecad3-p8-mleader-import-loss-2026-11-16.patch \
     docs/patches/librecad3-p8-mline-import-loss-2026-11-16.patch \

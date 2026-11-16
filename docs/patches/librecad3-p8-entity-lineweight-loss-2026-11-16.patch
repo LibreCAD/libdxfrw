@@ -1,0 +1,114 @@
+diff --git a/persistence/libdxfrw/dxfimpl.cpp b/persistence/libdxfrw/dxfimpl.cpp
+index d74036a..bc72e1b 100644
+--- a/persistence/libdxfrw/dxfimpl.cpp
++++ b/persistence/libdxfrw/dxfimpl.cpp
+@@ -2341,5 +2341,17 @@ void DXFimpl::getEntityAttributes(DRW_Entity* ent, const lc::entity::CADEntity_C
+-    if(metaWidthByValue != nullptr) {
+-        ent->lWeight = static_cast<DRW_LW_Conv::lineWidth>(widthToInt(metaWidthByValue->width()));
+-    }
+-    else if(metaWidthByBlock != nullptr) {
+-        ent->lWeight = DRW_LW_Conv::lineWidth::widthByBlock;
++    if (metaWidthByValue != nullptr || metaWidthByBlock != nullptr) {
++        const int widthIndex = metaWidthByValue != nullptr
++            ? widthToInt(metaWidthByValue->width()) : -1;
++        std::string lossNote;
++        if (metaWidthByValue != nullptr && widthIndex < 0) {
++            lossNote = "Entity lineweights were not retained: the width is not representable in DXF.";
++        } else if (_exportVersion <= DRW::AC1014) {
++            lossNote = "Entity lineweights were not retained: R12/R14 DXF has no entity lineweight field.";
++        } else if (metaWidthByValue != nullptr) {
++            ent->lWeight = static_cast<DRW_LW_Conv::lineWidth>(widthIndex);
++        } else {
++            ent->lWeight = DRW_LW_Conv::lineWidth::widthByBlock;
++        }
++        if (!lossNote.empty()
++                && std::find(_loss.notes.begin(), _loss.notes.end(), lossNote) == _loss.notes.end()) {
++            _loss.notes.push_back(lossNote);
++        }
+diff --git a/unittest/persistence/dxfroundtriptest.cpp b/unittest/persistence/dxfroundtriptest.cpp
+index 01d6f35..02d0368 100644
+--- a/unittest/persistence/dxfroundtriptest.cpp
++++ b/unittest/persistence/dxfroundtriptest.cpp
+@@ -3348,0 +3349,82 @@ TEST(DxfRoundTripTest, UnrepresentableLayerWidthReportsLoss) {
++
++// NOLINTNEXTLINE(readability-identifier-naming)
++TEST(DxfRoundTripTest, EntityLineweightLossIsReportedAndRepresentableWeightsRoundTrip) {
++    struct WidthCase { const char* name; double width; int kind; bool legacyLoss; bool modernLoss; };
++    // kind: 0 = by layer, 1 = explicit value, 2 = by block.
++    const WidthCase cases[] = {
++        {"custom", 0.27, 1, true, true},
++        {"explicit", 0.25, 1, true, false},
++        {"byblock", 0.0, 2, true, false},
++        {"bylayer", 0.0, 0, false, false},
++    };
++    struct Target { lc::persistence::File::Type type; bool legacy; };
++    const Target targets[] = {
++        {lc::persistence::File::LIBDXFRW_DXF_R12, true},
++        {lc::persistence::File::LIBDXFRW_DXF_R14, true},
++        {lc::persistence::File::LIBDXFRW_DXB_R12, true},
++        {lc::persistence::File::LIBDXFRW_DXB_R14, true},
++        {lc::persistence::File::LIBDXFRW_DXF_R2000, false},
++        {lc::persistence::File::LIBDXFRW_DXB_R2000, false},
++    };
++    for (const auto& item : cases) {
++        auto doc = newDocument();
++        auto info = lc::meta::MetaInfo::create();
++        if (item.kind == 2) info->add(std::make_shared<lc::meta::MetaLineWidthByBlock>());
++        else if (item.kind == 1) info->add(std::make_shared<lc::meta::MetaLineWidthByValue>(item.width));
++        auto line = std::make_shared<lc::entity::Line>(
++            lc::geo::Coordinate(0, 0, 0), lc::geo::Coordinate(4, 3, 0),
++            doc->layerByName("0"), info);
++        insertThroughBuilder(doc, {line});
++        for (const auto& target : targets) {
++            const auto output = uniqueTmpDxf("entity-lineweight");
++            const auto result = lc::persistence::File::exportFile(doc, output, target.type);
++            ASSERT_TRUE(result.ok) << item.name << ": " << static_cast<int>(target.type);
++            const bool expectedLoss = target.legacy ? item.legacyLoss : item.modernLoss;
++            const auto entityNotes = std::count_if(result.loss.notes.begin(), result.loss.notes.end(),
++                [](const std::string& note) { return note.find("Entity lineweights") != std::string::npos; });
++            EXPECT_EQ(entityNotes, expectedLoss ? 1 : 0) << item.name;
++            if (expectedLoss) EXPECT_FALSE(lc::persistence::File::save(doc, output, target.type));
++            else if (!target.legacy) EXPECT_TRUE(lc::persistence::File::save(doc, output, target.type));
++            auto reopened = newDocument();
++            ASSERT_TRUE(lc::persistence::File::importFile(
++                reopened, output, lc::persistence::File::Library::LIBDXFRW).ok);
++            EXPECT_EQ(entitiesInDocument(reopened)["Line"], 1u);
++            if (!target.legacy && !item.modernLoss) {
++                const auto entities = reopened->entityContainer().asVector();
++                ASSERT_EQ(entities.size(), 1u);
++                if (item.kind == 2) {
++                    EXPECT_NE(entities[0]->metaInfo<lc::meta::MetaLineWidthByBlock>(
++                        lc::meta::MetaLineWidth::LCMETANAME()), nullptr);
++                } else if (item.kind == 1) {
++                    const auto width = entities[0]->metaInfo<lc::meta::MetaLineWidthByValue>(
++                        lc::meta::MetaLineWidth::LCMETANAME());
++                    ASSERT_NE(width, nullptr);
++                    EXPECT_DOUBLE_EQ(width->width(), item.width);
++                }
++            }
++            if (item.modernLoss && !target.legacy) {
++                auto corrected = newDocument();
++                auto correctedInfo = lc::meta::MetaInfo::create();
++                correctedInfo->add(std::make_shared<lc::meta::MetaLineWidthByValue>(0.25));
++                auto correctedLine = std::make_shared<lc::entity::Line>(
++                    lc::geo::Coordinate(0, 0, 0), lc::geo::Coordinate(4, 3, 0),
++                    corrected->layerByName("0"), correctedInfo);
++                insertThroughBuilder(corrected, {correctedLine});
++                const auto retry = lc::persistence::File::exportFile(corrected, output, target.type);
++                ASSERT_TRUE(retry.ok);
++                EXPECT_TRUE(retry.loss.empty());
++                EXPECT_TRUE(lc::persistence::File::save(corrected, output, target.type));
++                auto retried = newDocument();
++                ASSERT_TRUE(lc::persistence::File::importFile(
++                    retried, output, lc::persistence::File::Library::LIBDXFRW).ok);
++                ASSERT_EQ(retried->entityContainer().asVector().size(), 1u);
++                const auto width = retried->entityContainer().asVector()[0]
++                    ->metaInfo<lc::meta::MetaLineWidthByValue>(lc::meta::MetaLineWidth::LCMETANAME());
++                ASSERT_NE(width, nullptr);
++                EXPECT_DOUBLE_EQ(width->width(), 0.25);
++            }
++            boost::filesystem::remove(output);
++        }
++    }
++}
++

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **729 completed implementation and qualification slices** and **32 remaining
+The plan records **730 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`729 / (729 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
+`730 / (730 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -19,7 +19,7 @@ activity proxy, not as the percentage of package gates completed.
 
 The remaining consumer work includes integrating and qualifying the unmerged
 LibreCAD and LibreCAD_3 patches, preserving source-bound object graphs without
-loss, and native/platform verification. The LibreCAD_3 candidate now reports conversion of unrepresentable layer widths; both codec paths pass focused legacy/modern readback and retry controls ([receipt](docs/research/p8-librecad3-custom-layer-lineweight-loss-2026-11-16.json)). The absent-legacy-width provenance and entity-width paths still need investigation. The focused installed-codec LibreCAD
+loss, and native/platform verification. The LibreCAD_3 candidate now reports conversion of unrepresentable layer widths; both codec paths pass focused legacy/modern readback and retry controls ([receipt](docs/research/p8-librecad3-custom-layer-lineweight-loss-2026-11-16.json)). The subsequent entity-width patch reports unrepresentable or legacy-omitted widths and preserves modern representable/ByBlock readback ([receipt](docs/research/p8-librecad3-entity-lineweight-loss-2026-11-16.json)). Absent-legacy-width provenance remains unresolved. The focused installed-codec LibreCAD
 tests pass for the zero-reactor generated source profile; that is source
 correlation, not output or full-drawing qualification
 ([receipt](docs/research/p8-librecad-zero-reactor-sortents-source-2026-11-15.json)).
