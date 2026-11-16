@@ -1,0 +1,63 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+index 4e7f6a2..9c7b3c6 100644
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -1688 +1688,4 @@ CDxfRead::Layer* ImpExpDxfRead::MakeLayer(const std::string& name, ColorIndex_t
+-        Base::Color appColor = ObjectColor(color);
++        // A negative layer ACI indicates an off layer; its magnitude is the
++        // visible color to use if the user later shows that layer.
++        const ColorIndex_t visibleColor = color < 0 && color >= -255 ? -color : color;
++        Base::Color appColor = ObjectColor(visibleColor);
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index 87b74a4..af21cd8 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -24,0 +25 @@ import os
++import unittest
+@@ -52,0 +54,46 @@ class TestImportDXF(TestImportBase):
++    @unittest.skipUnless(FreeCAD.GuiUp, "GUI view providers are required")
++    def test_hidden_layer_color_after_show(self):
++        """An off layer keeps the same ACI color when it is made visible."""
++        import Draft  # noqa: F401 - enable the real Draft layer route
++        import ImportGui
++
++        options = FreeCAD.ParamGet(self.option_source)
++        options.SetBool("dxfUseDraftVisGroups", True)
++        options.SetBool("dxfGetOriginalColors", True)
++        colors = (1, 2, 10, 250, 255)
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"),
++                (2, "TABLES"), (0, "TABLE"), (2, "LAYER"), (70, len(colors) * 2)]
++        for color in colors:
++            for prefix, index in (("On", color), ("Off", -color)):
++                tags.extend([(0, "LAYER"), (2, f"{prefix}{color}"), (70, 0),
++                             (62, index), (6, "CONTINUOUS")])
++        tags.extend([(0, "ENDTAB"), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")])
++        for index, color in enumerate(colors):
++            for offset, prefix in enumerate(("On", "Off")):
++                tags.extend([(0, "LINE"), (8, f"{prefix}{color}"), (10, 10 * index),
++                             (20, offset), (30, 0), (11, 10 * index + 2), (21, offset), (31, 0)])
++        tags.extend([(0, "ENDSEC"), (0, "EOF")])
++        path = os.path.join(self.temp_dir, "hidden-layer-colors.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        stats = ImportGui.readDXF(path, self.document.Name, True, self.option_source)
++        self.document.recompute()
++        self.assertEqual(stats["unsupportedFeatures"], {})
++        layers = {obj.Label: obj for obj in self.document.Objects
++                  if getattr(getattr(obj, "Proxy", None), "Type", None) == "Layer"}
++        for color in colors:
++            with self.subTest(aci=color):
++                shown, hidden = layers[f"On{color}"], layers[f"Off{color}"]
++                self.assertEqual(len(shown.Group), 1)
++                self.assertEqual(len(hidden.Group), 1)
++                self.assertTrue(shown.ViewObject.Visibility)
++                self.assertTrue(shown.Group[0].ViewObject.Visibility)
++                self.assertFalse(hidden.ViewObject.Visibility)
++                self.assertFalse(hidden.Group[0].ViewObject.Visibility)
++                hidden.ViewObject.Visibility = True
++                self.assertTrue(hidden.Group[0].ViewObject.Visibility)
++                self.assertEqual(tuple(shown.ViewObject.LineColor), tuple(hidden.ViewObject.LineColor))
++                self.assertEqual(tuple(shown.Group[0].ViewObject.LineColor),
++                                 tuple(hidden.Group[0].ViewObject.LineColor))
++
