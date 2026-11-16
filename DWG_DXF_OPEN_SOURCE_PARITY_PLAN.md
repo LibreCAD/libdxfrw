@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **597 completed implementation and qualification slices** and **32 remaining
+The plan records **598 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`597 / (597 + 32) = 94.9%`. The previous 28-package denominator was stale; a recount
+`598 / (598 + 32) = 94.9%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -156,8 +156,12 @@ remaining compatible with older bundled headers. The seventeenth unmerged
 consumer patch now retains bounded, ambiguity-checked copies of BLOCK_RECORD
 links as correlation evidence; title-source, R14/R2004 and bundled controls
 pass, without changing export ([feature receipt](docs/research/p8-block-record-optional-callback-feature-2026-11-15.json),
-[observation receipt](docs/research/p8-librecad-block-record-link-observation-2026-11-15.json)). Bind
-raw frames and typed baselines, freeze membership and inbound references, stage
+[observation receipt](docs/research/p8-librecad-block-record-link-observation-2026-11-15.json)). The title witness publishes typed BLOCK_RECORD receipts but no raw BLOCK_RECORD
+callbacks; its named DICTIONARY and SORTENTSTABLE frames are retained. Correlate
+the block observations with their typed publications and common links, reparse
+the dictionary/table raw frames against frozen typed baselines and membership
+receipts, and bind the import generation ([receipt](docs/research/p8-librecad-title-block-source-receipts-2026-11-15.json)). Freeze
+membership and inbound references, stage
 only validated empty named-table omission, and prove remaining dictionary graph,
 output readback and failure/retry ([diagnosis](docs/research/p8-librecad-ac1024-title-export-gates-2026-11-15.json),
 [graph census](docs/research/p8-librecad-title-sortents-independent-graph-2026-11-15.json)). Validate the R12/R14 failure message in the GUI and
