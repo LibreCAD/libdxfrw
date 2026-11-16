@@ -39,11 +39,11 @@ import FreeCAD as App
 import Import
 
 
-def drawing(case: str) -> str:
+def drawing(case: str, units: int = 4) -> str:
     polygon = case in ("polygon", "nested_polygon")
     nested = case in ("nested", "nested_polygon")
     tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
-            (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
+            (9, "$INSUNITS"), (70, units), (0, "ENDSEC"),
             (0, "SECTION"), (2, "TABLES"), (0, "TABLE"), (2, "LAYER"), (70, 3)]
     for layer in ("0", "MESH", "OTHER"):
         tags.extend([(0, "LAYER"), (2, layer), (70, 0), (62, 1), (6, "CONTINUOUS")])

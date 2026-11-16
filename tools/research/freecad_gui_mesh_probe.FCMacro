@@ -85,15 +85,19 @@ def run():
         results = []
         with tempfile.TemporaryDirectory(prefix="freecad-gui-mesh-probe-") as scratch:
             for case in ("polyface", "polygon", "mixed", "nested", "nested_polygon",
-                         "nested_nolayers", "nested_polygon_nolayers", "color", "color_mixed"):
+                         "nested_nolayers", "nested_polygon_nolayers", "nested_inches_nolayers",
+                         "nested_polygon_inches_nolayers", "color", "color_mixed"):
                 is_color = case.startswith("color")
                 no_layers = is_color or case.endswith("_nolayers")
                 options.SetBool("dxfUseDraftVisGroups", not no_layers)
                 options.SetBool("dxfGetOriginalColors", is_color)
                 path = Path(scratch) / (case + ".dxf")
                 drawing_case = case[:-len("_nolayers")] if case.endswith("_nolayers") else case
+                inches = drawing_case.endswith("_inches")
+                if inches:
+                    drawing_case = drawing_case[:-len("_inches")]
                 path.write_text(color_drawing(case == "color_mixed") if is_color
-                                else controls["drawing"](drawing_case), encoding="ascii")
+                                else controls["drawing"](drawing_case, 1 if inches else 4), encoding="ascii")
                 doc = App.newDocument("GuiMeshProbe")
                 try:
                     stats = ImportGui.readDXF(str(path), doc.Name, True, source)
@@ -120,12 +124,17 @@ def run():
                         assert len(links) == 1 and links[0].ViewObject.Visibility
                         assert lines[0].ViewObject.Visibility and not stats["unsupportedFeatures"]
                         assert len(links[0].Shape.Faces) == 1
-                        assert abs(links[0].Shape.Area - (12 if case.startswith("nested_polygon") else 6)) < 1e-9
+                        scale = 25.4 if inches else 1.0
+                        area = (12 if case.startswith("nested_polygon") else 6) * scale * scale
+                        assert abs(links[0].Shape.Area - area) < 1e-8
+                        assert abs(lines[0].Shape.Length - 2 * scale) < 1e-8
+                        assert abs(stats["finalScalingFactor"] - scale) < 1e-8
                         bounds = links[0].Shape.BoundBox
-                        assert all(abs(a - b) < 1e-9 for a, b in zip(
+                        assert all(abs(a - b * scale) < 1e-8 for a, b in zip(
                             (bounds.XMin, bounds.YMin, bounds.XMax, bounds.YMax), (1, 2, 5, 5)))
                         detail = {"link": links[0].Name, "area": links[0].Shape.Area,
-                                  "bounds": [bounds.XMin, bounds.YMin, bounds.XMax, bounds.YMax]}
+                                  "bounds": [bounds.XMin, bounds.YMin, bounds.XMax, bounds.YMax],
+                                  "scale": scale, "followingLineLength": lines[0].Shape.Length}
                     else:
                         groups = {obj.Label: [member.Name for member in obj.Group]
                                   for obj in doc.Objects if hasattr(obj, "Group")
