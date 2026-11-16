@@ -1,0 +1,127 @@
+{
+  "date": "2026-11-16",
+  "scope": "Opt-in caller-authored typed DXF default plot-style graph",
+  "source_reference": [
+    {
+      "title": "Autodesk default class values",
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-DBDBE57E-9045-46A5-9FB9-99CADEB81CF0.htm"
+    },
+    {
+      "title": "Autodesk LAYER DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm"
+    }
+  ],
+  "change": "An opt-in two-source-handle declaration plans the caller dictionary and placeholder before image/record allocation and supplies the default LAYER hard pointer. Before publication the writer requires the rooted typed dictionary, matching Normal and default edges, canonical CLASS records, matching placeholder, and exact emitted record identity and owners. It prevents undeclared source aliases; invalid setups and incomplete or inconsistent output refuse atomically. Both-zero clears the declaration. The ordinary generated and existing undeclared caller routes retain their own behavior.",
+  "runtime": "Public dxfRW layout changes; development ABI 3 consumers must rebuild. API and graph checks are opt-in, typed DXF only.",
+  "tests": {
+    "matrix": "AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032; ASCII/Binary; identity/remapped source handles: 24 successful graphs",
+    "negative": "Missing dictionary/placeholder, wrong default/Normal name/target/role, incorrect owner and late root change: 192 sentinel-preserving refusals and same-writer retries; additional no-root, no-class, R14, invalid setup, clear and source-alias cases",
+    "normal": "4 focused CTests pass after rebuilding affected executables",
+    "asan": "Affected graph CTest passes with AddressSanitizer after rebuild",
+    "independent": "ezdxf 1.4.5 verified 24 outputs for canonical dictionary type, root/default/Normal, placeholder ownership and three LAYER references; no repaired output is used as source evidence."
+  },
+  "limitations": [
+    "No raw OBJECTS replay profile, producer-source equivalence or native plotting semantics is established.",
+    "Does not independently qualify consumer integration or cross-platform ABI.",
+    "No broad support claim or external gate is promoted."
+  ],
+  "scratch_outputs": [
+    {
+      "name": "caller-13-ascii-identity.dxf",
+      "sha256": "80e10e55b8623950b10ce333b9b413af21b18cf455fb326c45589c0e0342f362"
+    },
+    {
+      "name": "caller-13-ascii-remapped.dxf",
+      "sha256": "ef0710bab5a66b70753219ba02786feb633e6b9a34015e87877b809da78f9403"
+    },
+    {
+      "name": "caller-13-binary-identity.dxf",
+      "sha256": "73e1f3457c5c0fbe99d2aef2c82d7c8526d569486af4ade4b7307c28ab19880c"
+    },
+    {
+      "name": "caller-13-binary-remapped.dxf",
+      "sha256": "7c4d656645e8188be5715b5d500d54cc6d8ca71d299ede52b0a0059286ec5c1e"
+    },
+    {
+      "name": "caller-14-ascii-identity.dxf",
+      "sha256": "7d23ca8b3a5e4687f44363dfc41380fd72bb9ecd28e04a033f1b4f3c92989edf"
+    },
+    {
+      "name": "caller-14-ascii-remapped.dxf",
+      "sha256": "c81453eccf4e55ff182fce1cf0c4d66aa57e05a507c4182bf01dee11b626d456"
+    },
+    {
+      "name": "caller-14-binary-identity.dxf",
+      "sha256": "320ae5a84bf0bc28b4e158f7093e8715d3d1bf89a13caba72e7faa5f42153c29"
+    },
+    {
+      "name": "caller-14-binary-remapped.dxf",
+      "sha256": "52e3b906482e99309e9cf8f99fbe43aede511122c9f4010bcf9585ccd54c1cb1"
+    },
+    {
+      "name": "caller-15-ascii-identity.dxf",
+      "sha256": "2b8c36592fbbddbbda7c8c5521fe6cdd2bdc2a19f8c9762e04efcd8ba17c4848"
+    },
+    {
+      "name": "caller-15-ascii-remapped.dxf",
+      "sha256": "a2da32597bb6fe8d2811dd2a292d9769e4ea67964f17d0db8f1ce628597a4868"
+    },
+    {
+      "name": "caller-15-binary-identity.dxf",
+      "sha256": "efde7c83ad8b944db4825157256a529fc01945160b95a76d42c09c6a0b9221f0"
+    },
+    {
+      "name": "caller-15-binary-remapped.dxf",
+      "sha256": "6b700a08822bb2571d052fe71bf281cb753618631c9c29e8536fe9a427131359"
+    },
+    {
+      "name": "caller-16-ascii-identity.dxf",
+      "sha256": "cf16990f5bbd3bbb79a716225fc56168809cf6302eb95b8559449d7067b703df"
+    },
+    {
+      "name": "caller-16-ascii-remapped.dxf",
+      "sha256": "79722f585327f32ce29e03d9ef8989ac0ad827c087bd5b2339b2732efc514f36"
+    },
+    {
+      "name": "caller-16-binary-identity.dxf",
+      "sha256": "0423b6051f34070254dafb8d52d2b0b814957870b12268dd71a8f3e0aa4e9c49"
+    },
+    {
+      "name": "caller-16-binary-remapped.dxf",
+      "sha256": "300fd2cc0c2b0b8e495306b0c801a8f0b064ec870310c940936398be1425c40d"
+    },
+    {
+      "name": "caller-17-ascii-identity.dxf",
+      "sha256": "7d89ca413b06abbd60b2f3b4c940cc14ae8c7954384fbedfbcd091762099a106"
+    },
+    {
+      "name": "caller-17-ascii-remapped.dxf",
+      "sha256": "939ffede9ca426cfed3057430b7cb814ff3d9779705ad62e90c3ed0a290744f1"
+    },
+    {
+      "name": "caller-17-binary-identity.dxf",
+      "sha256": "45696feb505259722ce9089897613787cbd1ef104d7d75f25ea2cedf43467003"
+    },
+    {
+      "name": "caller-17-binary-remapped.dxf",
+      "sha256": "8012cacfbb4527d285573cf5c5df311195d7d24f7a878175a77e7c6f2d175cdc"
+    },
+    {
+      "name": "caller-18-ascii-identity.dxf",
+      "sha256": "2d03adabe15787a376a79a513407cda1a593e011f35f341787d95eac8c25fbdc"
+    },
+    {
+      "name": "caller-18-ascii-remapped.dxf",
+      "sha256": "e155655f7e6cbdcfc971c18a62e7a0bcedda04fe37f991db62d06c0d8939ccdf"
+    },
+    {
+      "name": "caller-18-binary-identity.dxf",
+      "sha256": "c3129444d4d3236001366cdfb5baf397833e39ffed8e0421e26ee5c1571de995"
+    },
+    {
+      "name": "caller-18-binary-remapped.dxf",
+      "sha256": "ab92edbce7feaa428831cf7a1343aca863ce8d8d0d6943bbe5b760ef7c690cb9"
+    }
+  ],
+  "fixtures": "Outputs were generated locally from scratch in /private/tmp and are not committed."
+}

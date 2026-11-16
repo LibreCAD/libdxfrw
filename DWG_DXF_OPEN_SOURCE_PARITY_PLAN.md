@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **735 completed implementation and qualification slices** and **32 remaining
+The plan records **736 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`735 / (735 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
+`736 / (736 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -237,8 +237,11 @@ Native GUI behavior, independent semantics and upstream integration remain open.
   codec's version gates. The previously failing installed-codec version selector
   now passes 6 cases / 125 assertions; the bundled selector passes 9 / 134.
   The typed-only omission and same-filter retry control passes both codecs.
-  Integrate this local patch and qualify the remaining caller-root default
-  pointer, source graphs and native plotting before broadening claims
+  An opt-in caller-authored typed dictionary and Normal placeholder now bind
+  default layers with per-attempt graph validation and independent readback
+  ([receipt](docs/research/p8-caller-typed-plotstyle-default-graph-2026-11-16.json)).
+  Integrate the local consumer patch and qualify caller raw graphs, additional
+  source graphs and native plotting before broadening claims
   ([identity and version-gate receipt](docs/research/p8-librecad-dxf-identity-version-gates-2026-11-16.json))
   ([trace](docs/research/p8-librecad-installed-default-plotstyle-orphan-2026-11-16.json),
   [fix receipt](docs/research/p8-dxf-default-plotstyle-generated-graph-2026-11-16.json)).

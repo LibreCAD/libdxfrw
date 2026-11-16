@@ -726,6 +726,18 @@ public:
         const std::vector<std::pair<std::string, std::string>>& entries);
     void setRootDictEntries(
         std::vector<std::pair<std::string, std::string>>&& entries);
+    /** Declare a caller-authored R2000+ default plot-style graph before
+     * writing. The root must select the dictionary, and the caller must emit
+     * that ACDBDICTIONARYWDFLT and its Normal ACDBPLACEHOLDER through their
+     * typed writers, with their matching CLASSES registrations. Default LAYER
+     * references then use the declared placeholder.
+     * The write verifies the default/Normal edges and physical owner/identity
+     * records before publication. Both zero clear the declaration. Invalid
+     * input leaves the previous declaration unchanged. This bounded typed
+     * profile does not qualify raw replay or native plotting. Rebuild consumers
+     * for the added dxfRW state. */
+    bool setDxfDefaultPlotStyleSourceHandles(std::uint32_t dictionary,
+                                             std::uint32_t placeholder) noexcept;
     /*!< Register named-dictionary OBJECTS to emit verbatim in the regenerated
      * OBJECTS section (DXF write path only). Each carries its source code-5
      * handle, parent (330) owner, and entry (name -> child handle) list. The
@@ -2101,6 +2113,13 @@ private:
     std::uint32_t m_dxfDefaultPlotDictionary{0};
     std::uint32_t m_dxfDefaultPlotPlaceholder{0};
     std::string m_dxfDefaultPlotDictionaryRecord;
+    // Caller declaration persists across attempts; targets and proofs do not.
+    std::uint32_t m_dxfCallerPlotDictionarySource{0};
+    std::uint32_t m_dxfCallerPlotPlaceholderSource{0};
+    std::uint32_t m_dxfCallerPlotDictionaryTarget{0};
+    std::uint32_t m_dxfCallerPlotPlaceholderTarget{0};
+    bool m_dxfCallerPlotDictionaryWritten{false};
+    bool m_dxfCallerPlotPlaceholderWritten{false};
     std::map<std::uint32_t, std::uint32_t> m_plannedImageSourceHandles;
     /// Numeric handle -> replacement handle, applied by writeRawDxfObject to the
     /// few raw objects whose original handle collides with a fixed structural

@@ -44,6 +44,45 @@ public:
     }
 };
 
+class CallerGraphExport final : public LC3CompatCheck {
+public:
+    enum class Mode { Valid, MissingDictionary, MissingPlaceholder, WrongDefault,
+                      WrongNormal, WrongNormalTarget, WrongNormalRole,
+                      WrongOwner, LateRoot, Alias };
+    CallerGraphExport(dxfRW& output, const DRW_DictionaryWithDefault& source)
+        : output(output), dictionary(source) {
+        layer.name = "Caller default";
+        explicitLayer.name = "Caller explicit";
+        explicitLayer.handlePlotS = "A1";
+        placeholder.handle = 0xA1u;
+        placeholder.parentHandle = 0xA0u;
+    }
+    dxfRW& output;
+    DRW_DictionaryWithDefault dictionary;
+    DRW_AcDbPlaceholder placeholder;
+    DRW_Layer layer, explicitLayer;
+    Mode mode = Mode::Valid;
+    void writeLayers() override {
+        if (mode == Mode::Alias) explicitLayer.handlePlotS = "F";
+        (void)output.writeLayer(&layer);
+        (void)output.writeLayer(&explicitLayer);
+    }
+    void writeObjects() override {
+        if (mode == Mode::LateRoot)
+            output.setRootDictEntries({{"ACAD_PLOTSTYLENAME", "EF"}});
+        DRW_DictionaryWithDefault dict(dictionary);
+        DRW_AcDbPlaceholder child(placeholder);
+        if (mode == Mode::WrongDefault) dict.m_defaultEntryHandle = 0xA2u;
+        if (mode == Mode::WrongNormal) dict.m_entries.front().m_name = "Other";
+        if (mode == Mode::WrongNormalTarget) dict.m_entries.front().m_handle = 0xA2u;
+        if (mode == Mode::WrongNormalRole)
+            dict.m_entries.front().m_dxfHandleCode = static_cast<DRW_Dictionary::Entry::DxfHandleCode>(360);
+        if (mode == Mode::WrongOwner) child.parentHandle = 0xC;
+        if (mode != Mode::MissingDictionary) (void)output.writeDictionaryWithDefault(&dict);
+        if (mode != Mode::MissingPlaceholder) (void)output.writeAcDbPlaceholder(&child);
+    }
+};
+
 class ExplicitDefaultExport final : public LC3CompatCheck {
 public:
     explicit ExplicitDefaultExport(dxfRW& output) : output(output) {
@@ -179,6 +218,117 @@ int main(int argc, char** argv) {
                         std::filesystem::copy_options::overwrite_existing);
                 }
             }
+        }
+    }
+    // A caller-authored graph must be declared before LAYER and physically
+    // emitted with the same default edge and reciprocal owner roles.
+    {
+        const std::string source =
+            "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1027\n0\nENDSEC\n"
+            "0\nSECTION\n2\nOBJECTS\n0\nDICTIONARY\n5\nC\n330\n0\n"
+            "100\nAcDbDictionary\n3\nACAD_PLOTSTYLENAME\n350\nA0\n"
+            "0\nDICTIONARYWDFLT\n5\nA0\n330\nC\n100\nAcDbDictionary\n"
+            "281\n1\n3\nNormal\n350\nA1\n100\nAcDbDictionaryWithDefault\n"
+            "340\nA1\n0\nACDBPLACEHOLDER\n5\nA1\n330\nA0\n0\nENDSEC\n0\nEOF\n";
+        { std::ofstream input(path, std::ios::binary); input << source; }
+        Capture parsed;
+        dxfRW input(path.string().c_str());
+        if (!input.read(&parsed, false) || parsed.dictionaries.size() != 1u) return 1;
+        for (const auto version : {DRW::AC1015, DRW::AC1018, DRW::AC1021,
+                                   DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+            for (bool binary : {false, true}) {
+                for (bool remapped : {false, true}) {
+                    dxfRW output(path.string().c_str());
+                    CallerGraphExport adapter(output, parsed.dictionaries.front());
+                    DRW_Class dictionaryClass, placeholderClass;
+                    if (!dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", dictionaryClass)
+                        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass)) return 1;
+                    dictionaryClass.instanceCount = placeholderClass.instanceCount = 1;
+                    output.setDxfClasses(std::vector<DRW_Class>{dictionaryClass, placeholderClass});
+                    output.setRootDictEntries({{"ACAD_PLOTSTYLENAME", remapped ? "B0" : "A0"}});
+                    if (remapped) output.setHandleRemap({{0xA0u, 0xB0u}, {0xA1u, 0xB1u}});
+                    if (!output.setDxfDefaultPlotStyleSourceHandles(0xA0u, 0xA1u)
+                        || output.setDxfDefaultPlotStyleSourceHandles(0u, 0xA1u)
+                        || output.setDxfDefaultPlotStyleSourceHandles(0xA0u, 0u)
+                        || output.setDxfDefaultPlotStyleSourceHandles(0xA0u, 0xA0u)
+                        || !output.write(&adapter, version, binary)
+                        || !checkGraph(path, 0u, 0u)) {
+                        std::cerr << "caller plot-style graph failed: version=" << version
+                                  << " binary=" << binary << " remapped=" << remapped << '\n';
+                        return 1;
+                    }
+                    for (const auto mode : {CallerGraphExport::Mode::MissingDictionary,
+                                             CallerGraphExport::Mode::MissingPlaceholder,
+                                             CallerGraphExport::Mode::WrongDefault,
+                                             CallerGraphExport::Mode::WrongNormal,
+                                             CallerGraphExport::Mode::WrongNormalTarget,
+                                             CallerGraphExport::Mode::WrongNormalRole,
+                                             CallerGraphExport::Mode::WrongOwner,
+                                             CallerGraphExport::Mode::LateRoot}) {
+                        adapter.mode = mode;
+                        { std::ofstream sentinel(path, std::ios::binary); sentinel << "previous file"; }
+                        if (output.write(&adapter, version, binary) || bytes(path) != "previous file") {
+                            std::cerr << "caller plot-style graph accepted invalid mode "
+                                      << static_cast<int>(mode) << '\n';
+                            return 1;
+                        }
+                        adapter.mode = CallerGraphExport::Mode::Valid;
+                        if (!output.write(&adapter, version, binary) || !checkGraph(path, 0u, 0u)) return 1;
+                    }
+                    if (argc == 3) {
+                        const auto evidence = std::filesystem::path(argv[2])
+                            / ("caller-" + std::to_string(static_cast<int>(version))
+                               + (binary ? "-binary-" : "-ascii-")
+                               + (remapped ? "remapped.dxf" : "identity.dxf"));
+                        std::filesystem::copy_file(path, evidence,
+                            std::filesystem::copy_options::overwrite_existing);
+                    }
+                    if (!output.setDxfDefaultPlotStyleSourceHandles(0u, 0u)) return 1;
+                    output.setRootDictEntries({});
+                    LC3CompatCheck ordinary;
+                    if (!output.write(&ordinary, version, binary)
+                        || !checkGraph(path, 0u, 0u)) return 1;
+                }
+            }
+        }
+        // Setup failures leave the destination intact and do not poison retry.
+        {
+            dxfRW output(path.string().c_str());
+            CallerGraphExport adapter(output, parsed.dictionaries.front());
+            if (!output.setDxfDefaultPlotStyleSourceHandles(0xA0u, 0xA1u)) return 1;
+            { std::ofstream sentinel(path, std::ios::binary); sentinel << "previous file"; }
+            if (output.write(&adapter, DRW::AC1024, false)
+                || bytes(path) != "previous file") return 1; // no root
+            output.setRootDictEntries({{"ACAD_PLOTSTYLENAME", "A0"}});
+            if (output.write(&adapter, DRW::AC1024, false)
+                || bytes(path) != "previous file") return 1; // no classes
+            DRW_Class dictionaryClass, placeholderClass;
+            if (!dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", dictionaryClass)
+                || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass)) return 1;
+            output.setDxfClasses(std::vector<DRW_Class>{dictionaryClass, placeholderClass});
+            if (output.write(&adapter, DRW::AC1014, false)
+                || bytes(path) != "previous file") return 1; // no R14 layer-390 profile
+            if (!output.write(&adapter, DRW::AC1024, false) || !checkGraph(path, 0u, 0u)) return 1;
+        }
+        // A different source identity cannot borrow the declared target F.
+        for (bool binary : {false, true}) {
+            dxfRW output(path.string().c_str());
+            CallerGraphExport adapter(output, parsed.dictionaries.front());
+            DRW_Class dictionaryClass, placeholderClass;
+            if (!dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", dictionaryClass)
+                || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass)) return 1;
+            output.setDxfClasses(std::vector<DRW_Class>{dictionaryClass, placeholderClass});
+            output.setRootDictEntries({{"ACAD_PLOTSTYLENAME", "B0"}});
+            output.setHandleRemap({{0xA0u, 0xB0u}, {0xA1u, 0xFu}});
+            if (!output.setDxfDefaultPlotStyleSourceHandles(0xA0u, 0xA1u)) return 1;
+            adapter.mode = CallerGraphExport::Mode::Alias;
+            { std::ofstream sentinel(path, std::ios::binary); sentinel << "previous file"; }
+            if (output.write(&adapter, DRW::AC1024, binary)
+                || bytes(path) != "previous file") return 1;
+            adapter.mode = CallerGraphExport::Mode::Valid;
+            adapter.explicitLayer.handlePlotS = "A1";
+            if (!output.write(&adapter, DRW::AC1024, binary)
+                || !checkGraph(path, 0u, 0u)) return 1;
         }
     }
     // A source identity resolving to the generated placeholder must not
