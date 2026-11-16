@@ -24,5 +24,13 @@
       "/private/tmp/librecad-abi3-ltype-no-skip.log"
     ]
   },
-  "limits": "No drawing files are committed. The local samples include a workspace-local title drawing of unestablished origin and do not establish producer-wide support. The full bundled-mode build and tests, full BUILD_TESTS suite, GUI, LibreCAD_3, native Linux/Windows and upstream integration remain open. No broad support claim or external gate is promoted."
+  "limits": "No drawing files are committed. The local samples include a workspace-local title drawing of unestablished origin and do not establish producer-wide support. The full bundled-mode build and tests, full BUILD_TESTS suite, GUI, LibreCAD_3, native Linux/Windows and upstream integration remain open. No broad support claim or external gate is promoted.",
+  "local_integration_candidate": {
+    "commit": "fe1fea1c2aad9534a687378808d3bdbb11b07f15",
+    "parent": "d40f178b9708b54ad34b15f721d22abb2315aa2b",
+    "branch": "codex/libdxfrw-abi3-integration-20261116",
+    "checkout": "/private/tmp/librecad-abi3-master-replay-20261116",
+    "status": "Local only; clean scratch checkout, not published or merged.",
+    "scope": "All 20 changed files, including the restored source; no DWG/DXF fixtures."
+  }
 }

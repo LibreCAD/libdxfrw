@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **720 completed implementation and qualification slices** and **32 remaining
+The plan records **721 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`720 / (720 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
+`721 / (721 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -369,7 +369,10 @@ GUI and cross-platform qualification remain open
 ([receipt](docs/research/p8-librecad-current-master-integration-2026-11-16.json)).
 The cumulative changes plus the ABI-3 fix also replay cleanly against
 `d40f178b9708b54ad34b15f721d22abb2315aa2b`; all 20 affected source files
-match the built candidate ([receipt](docs/research/p8-librecad-abi3-clean-consumer-2026-11-16.json)).
+match the built candidate. Local commit `fe1fea1c2aad9534a687378808d3bdbb11b07f15`
+on `codex/libdxfrw-abi3-integration-20261116` records that complete candidate
+on current master; it is unmerged and has not been published
+([receipt](docs/research/p8-librecad-abi3-clean-consumer-2026-11-16.json)).
 
 For MPOLYGON, retain the consumer's opt-in polyline policy; independently
 qualify ELLIPSE/SPLINE paths, raw replay, populated trailer semantics and mixed
