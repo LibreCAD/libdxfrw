@@ -1,0 +1,91 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -4033,3 +4033,54 @@
+         message(STATUS "Python3 interpreter not found; libdxfrw_cross_read_smoke is disabled")
+     endif()
+ endif()
++
++# Focused public-header consumer checks for the separately installed codec.
++# The complete BUILD_TESTS suite still needs bundled private codec headers.
++option(LIBRECAD_BUILD_SYSTEM_CODEC_TESTS
++       "Build focused public-header tests against installed libdxfrw" OFF)
++if (LIBRECAD_BUILD_SYSTEM_CODEC_TESTS)
++    if (NOT LIBRECAD_USE_SYSTEM_LIBDXFRW)
++        message(FATAL_ERROR
++            "LIBRECAD_BUILD_SYSTEM_CODEC_TESTS requires LIBRECAD_USE_SYSTEM_LIBDXFRW=ON")
++    endif()
++    find_package(Catch2 3 QUIET)
++    if (NOT Catch2_FOUND)
++        if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/externals/Catch2/CMakeLists.txt")
++            add_subdirectory(externals/Catch2 EXCLUDE_FROM_ALL)
++        else()
++            message(FATAL_ERROR
++                "LIBRECAD_BUILD_SYSTEM_CODEC_TESTS requires Catch2 v3 "
++                "or the externals/Catch2 submodule")
++        endif()
++    endif()
++    enable_testing()
++    add_executable(librecad_system_codec_tests EXCLUDE_FROM_ALL
++        librecad/src/main/lc_release_label.cpp
++        librecad/src/test/lc_testsettingsisolation.cpp
++        librecad/src/test/lc_testtempdirectory.cpp
++        librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp)
++    set_target_properties(librecad_system_codec_tests PROPERTIES
++        AUTOMOC OFF AUTOUIC OFF AUTORCC OFF)
++    target_include_directories(librecad_system_codec_tests PRIVATE ${SHARED_INCLUDES})
++    target_link_libraries(librecad_system_codec_tests PRIVATE
++        librecad_lib Catch2::Catch2WithMain Qt6::Core Qt6::Gui Qt6::Network
++        Qt6::PrintSupport Qt6::Svg Qt6::Widgets)
++    target_compile_features(librecad_system_codec_tests PRIVATE cxx_std_17)
++    if (MSVC)
++        target_compile_options(librecad_system_codec_tests PRIVATE /bigobj)
++    endif()
++    target_compile_definitions(librecad_system_codec_tests PRIVATE
++        BUILD_TESTS=1 DWGSUPPORT _USE_MATH_DEFINES
++        LIBRECAD_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
++        LIBRECAD_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}/librecad/src/lib/filters/tests/testdata")
++    add_test(NAME librecad_system_codec_ltype
++             COMMAND librecad_system_codec_tests "[ltype]~[dwg]")
++    add_test(NAME librecad_system_codec_block_record
++             COMMAND librecad_system_codec_tests "[blockrecord][source]")
++    add_test(NAME librecad_system_codec_pr3269
++             COMMAND librecad_system_codec_tests
++             "DXF writes a changed line type definition over its record,DWG writes a changed line type definition over its record,DXF writes a redefined built-in from the table,DXF writes a changed complex line type without its segments,DXF writes a twin archived spelling as it came beside a changed record")
++    set_tests_properties(librecad_system_codec_ltype
++        librecad_system_codec_block_record librecad_system_codec_pr3269
++        PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
++endif()
+--- a/README.md
++++ b/README.md
+@@ -147,6 +147,31 @@
+ 
+ More information: [Build from source](https://github.com/LibreCAD/LibreCAD/wiki/Build-from-source)
+ 
++### Using an installed libdxfrw (CMake)
++
++LibreCAD builds its bundled codec by default. To use a separately installed,
++compatible libdxfrw CMake package instead:
++
++```sh
++cmake -S . -B build-system -DLIBRECAD_USE_SYSTEM_LIBDXFRW=ON \
++  -DCMAKE_PREFIX_PATH=/path/to/libdxfrw/prefix -DBUILD_TESTS=OFF
++cmake --build build-system
++```
++
++If changing the prefix in an existing build directory, clear the cached
++`libdxfrw_DIR` value or configure a fresh build directory. The complete
++`BUILD_TESTS` suite currently requires bundled private codec headers. To run
++the focused public-header checks with an installed Catch2 v3 package (or the
++Catch2 submodule), configure the system build with
++`-DLIBRECAD_BUILD_SYSTEM_CODEC_TESTS=ON`, then run:
++
++```sh
++cmake --build build-system --target librecad_system_codec_tests
++ctest --test-dir build-system -R '^librecad_system_codec_' --output-on-failure
++```
++
++These focused checks do not qualify all formats or replace the complete suite.
++
+ ### Plugin Installation
+ 
+ CMake accepts `-DLIBRECAD_PLUGIN_INSTALL_DIR=lib/librecad/plugins` to override
