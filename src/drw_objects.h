@@ -769,6 +769,8 @@ struct DRW_DwgAc1024LayerSource {
   DRW_DwgFrameOffsetSpace m_sourceOffsetSpace{DRW_DwgFrameOffsetSpace::Unknown};
 };
 
+struct DRW_DwgFramePublication;
+
 //! Provisional CRC-checked AC1024 LAYER_CONTROL body for an opt-in reader.
 //! The H role and source graph still require independent verification.
 struct DRW_DwgAc1024LayerControlSource {
@@ -776,6 +778,10 @@ struct DRW_DwgAc1024LayerControlSource {
   std::uint32_t m_sourceOffset{0u};
   std::uint64_t m_sourceMapOrdinal{0u};
   DRW_DwgFrameOffsetSpace m_sourceOffsetSpace{DRW_DwgFrameOffsetSpace::Unknown};
+  //! Match a narrow no-EED, one-layer profile and its exact source receipt.
+  //! This does not authenticate the source or authorize graph/output changes.
+  [[nodiscard]] bool matchesAc1024LayerControlFrame(
+      const DRW_DwgFramePublication &publication) const noexcept;
 };
 
 //! Reader disposition of one HANDLE-map source frame.

@@ -4,11 +4,34 @@
 #include "libdwgr.h"
 #include "intern/dwgbuffer.h"
 #include <cstdint>
+#include <cstdlib>
 #include <iostream>
 #include <new>
 #include <optional>
 #include <string>
 
+namespace {
+long allocationsBeforeFailure = -1;
+std::size_t allocationAttempts = 0u;
+bool allocationTriggered = false;
+void arm(long count) noexcept { allocationsBeforeFailure = count; allocationAttempts = 0u; allocationTriggered = false; }
+void disarm() noexcept { allocationsBeforeFailure = -1; }
+}
+void *operator new(std::size_t size) {
+    if (allocationsBeforeFailure >= 0) {
+        ++allocationAttempts;
+        if (allocationsBeforeFailure-- == 0) {
+            allocationsBeforeFailure = -1; allocationTriggered = true; throw std::bad_alloc();
+        }
+    }
+    if (void *value = std::malloc(size == 0u ? 1u : size)) return value;
+    throw std::bad_alloc();
+}
+void *operator new[](std::size_t size) { return ::operator new(size); }
+void operator delete(void *value) noexcept { std::free(value); }
+void operator delete[](void *value) noexcept { std::free(value); }
+void operator delete(void *value, std::size_t) noexcept { std::free(value); }
+void operator delete[](void *value, std::size_t) noexcept { std::free(value); }
 namespace {
 struct Capture final : LC3CompatCheck, DRW_DwgAc1024LayerControlSourceHandler {
     std::optional<DRW_DwgAc1024LayerControlSource> source;
@@ -55,6 +78,37 @@ bool run(const std::string &sourcePath, const std::string &otherPath) {
                     "source/publication mismatch")
         || !require(c.coverage.m_complete && c.coverage.m_status == DRW_DwgFrameCoverageStatus::FinalizedComplete,
                     "source frame coverage incomplete")) return false;
+    const auto valid = [&] { return s.matchesAc1024LayerControlFrame(p); };
+    if (!require(valid(), "matching control source was refused")) return false;
+    arm(1000000); const bool calibrated = valid(); const auto count = allocationAttempts; disarm();
+    if (!require(calibrated && count > 0u, "allocation calibration failed")) return false;
+    for (std::size_t i = 0u; i < count; ++i) {
+        arm(static_cast<long>(i)); const bool accepted = valid(); const bool hit = allocationTriggered; disarm();
+        if (!require(hit && !accepted && valid(), "allocation failure/retry failed")) return false;
+    }
+    auto changed = s;
+    const std::uint64_t handleStart = static_cast<std::uint64_t>(r.m_rawBytes.size()) * 8u - r.m_bodyBitSize;
+    for (const std::uint64_t bit : {handleStart, handleStart + 8u, handleStart + 32u}) {
+        changed = s;
+        changed.m_raw.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
+        if (!require(!changed.matchesAc1024LayerControlFrame(p), "changed wire role accepted")) return false;
+    }
+    changed = s; changed.m_raw.m_rawBytes.pop_back(); --changed.m_raw.m_objectSize;
+    if (!require(!changed.matchesAc1024LayerControlFrame(p), "truncated control frame accepted")) return false;
+    changed = s; changed.m_raw.m_version = DRW::AC1027;
+    if (!require(!changed.matchesAc1024LayerControlFrame(p), "wrong source version accepted")) return false;
+    changed = s; changed.m_raw.m_xDictHandle ^= 1u;
+    if (!require(!changed.matchesAc1024LayerControlFrame(p), "wrong dictionary accepted")) return false;
+    changed = s; changed.m_raw.m_parentHandle = 1u;
+    if (!require(!changed.matchesAc1024LayerControlFrame(p), "invented raw owner accepted")) return false;
+    changed = s; changed.m_raw.m_commonHandleDataValidated = true;
+    if (!require(!changed.matchesAc1024LayerControlFrame(p), "invented raw evidence accepted")) return false;
+    auto changedPublication = p; ++changedPublication.m_sourceMapOrdinal;
+    if (!require(!s.matchesAc1024LayerControlFrame(changedPublication), "wrong publication accepted")) return false;
+    changedPublication = p; changedPublication.m_controlHandles.front() ^= 1u;
+    if (!require(!s.matchesAc1024LayerControlFrame(changedPublication), "wrong member accepted")) return false;
+    if (!require(valid(), "failed controls changed source")) return false;
+    std::cout << count << " verifier allocation failure/retry controls passed\n";
     dwgBuffer body(r.m_rawBytes.data(), r.m_rawBytes.size());
     if (!require(body.getObjType(DRW::AC1024) == DRW::DwgLayerControlObjectType && body.isGood(),
                  "wire type mismatch")) return false;

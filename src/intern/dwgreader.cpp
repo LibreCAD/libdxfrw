@@ -15741,6 +15741,91 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
   }
 }
 
+bool DRW_DwgAc1024LayerControlSource::matchesAc1024LayerControlFrame(
+    const DRW_DwgFramePublication &publication) const noexcept {
+  constexpr std::size_t maxBodyBytes = 4096u;
+  const auto &raw = m_raw;
+  if (raw.m_version != DRW::AC1024
+      || raw.m_objectType != DRW::DwgLayerControlObjectType
+      || raw.m_handle == 0u || raw.m_handle == DRW::NoHandle
+      || raw.m_isEntity || raw.m_isCustomClass || raw.m_hasClassDefinition
+      || raw.m_hasDataStorage || raw.m_typedPayloadValidated
+      || !raw.m_recordName.empty() || !raw.m_className.empty() || !raw.m_classAppName.empty()
+      || raw.m_parentHandle != DRW::NoHandle || raw.m_blockOwnerHandle != DRW::NoHandle
+      || raw.m_numReactors != 0 || !raw.m_reactorHandles.empty()
+      || raw.m_commonHandleDataValidated
+      || raw.m_commonLinkEvidence != DRW_DwgCommonLinkEvidence::Unknown
+      || raw.m_xDictFlag != 0u || raw.m_xDictHandle == 0u
+      || raw.m_xDictHandle == DRW::NoHandle || raw.m_rawBytes.empty()
+      || raw.m_rawBytes.size() > maxBodyBytes || raw.m_rawBytes.size() != raw.m_objectSize
+      || raw.m_objectOffset != m_sourceOffset
+      || raw.m_bodyBitSize >= static_cast<std::uint64_t>(raw.m_objectSize) * 8u
+      || (m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+          && m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer))
+    return false;
+  if (publication.m_version != raw.m_version || publication.m_handle != raw.m_handle
+      || !publication.m_hasSourceLocation || publication.m_sourceOffset != m_sourceOffset
+      || publication.m_sourceMapOrdinal != m_sourceMapOrdinal
+      || publication.m_sourceOffsetSpace != m_sourceOffsetSpace
+      || publication.m_encodedType != raw.m_objectType
+      || publication.m_resolvedType != raw.m_objectType
+      || publication.m_isEntity || publication.m_isCustomClass
+      || publication.m_recordName != "LAYER_CONTROL" || !publication.m_className.empty()
+      || publication.m_classStreamOrdinal.has_value()
+      || publication.m_carrier != DRW_DwgFramePublication::Carrier::Control
+      || publication.m_commonLinkEvidence != DRW_DwgCommonLinkEvidence::NotApplicable
+      || publication.m_commonHandleDataValidated
+      || publication.m_parentHandle != DRW::NoHandle
+      || publication.m_numReactors != 0 || !publication.m_reactorHandles.empty()
+      || publication.m_xDictFlag != raw.m_xDictFlag
+      || publication.m_xDictHandle != raw.m_xDictHandle
+      || publication.m_controlHandles.size() != 1u
+      || publication.m_controlHandles.front() == 0u
+      || publication.m_controlHandles.front() == DRW::NoHandle)
+    return false;
+  try {
+    DRW_TextCodec codec;
+    codec.setVersion(DRW::AC1024, false);
+    codec.resetAccumulatedDecodeIssues();
+    dwgBuffer body(raw.m_rawBytes.data(), raw.m_rawBytes.size(), &codec);
+    dwgBuffer type = body.forkIndependent();
+    if (type.getObjType(DRW::AC1024) != DRW::DwgLayerControlObjectType || !type.isGood())
+      return false;
+    DRW_ObjControl parsed;
+    if (!parsed.parseDwg(DRW::AC1024, &body, raw.m_bodyBitSize) || !body.isGood()
+        || codec.accumulatedDecodeIssues() != 0u || parsed.handle != raw.m_handle
+        || parsed.reactorCount() != 0 || !parsed.reactorHandles.empty()
+        || parsed.extensionDictionaryFlag() != 0u || parsed.xDictHandle != raw.m_xDictHandle
+        || parsed.hasDataStorageBinaryData() || !parsed.appData.empty() || !parsed.extData.empty()
+        || !parsed.pendingAppIdResolutions.empty() || !parsed.pendingLayerRefResolutions.empty()
+        || parsed.orderedHandleSlots.size() != 1u || parsed.orderedHandleRoles.size() != 1u
+        || parsed.orderedHandleSlots.front() != publication.m_controlHandles.front()
+        || parsed.orderedHandleRoles.front() != DRW::DwgSoftOwnership)
+      return false;
+    // Independently inspect the raw role nibbles: the ordinary control
+    // parser retains the xdictionary value but does not validate its role.
+    dwgBuffer handles(raw.m_rawBytes.data(), raw.m_rawBytes.size(), &codec);
+    const std::uint64_t total = static_cast<std::uint64_t>(raw.m_rawBytes.size()) * 8u;
+    const std::uint64_t start = total - raw.m_bodyBitSize;
+    if (!handles.setPosition(start >> 3u)) return false;
+    handles.setBitPos(static_cast<std::uint8_t>(start & 7u));
+    const dwgHandle owner = handles.getHandle();
+    const dwgHandle dictionary = handles.getHandle();
+    const dwgHandle layer = handles.getHandle();
+    const std::uint64_t end = static_cast<std::uint64_t>(handles.getPosition()) * 8u
+        + handles.getBitPos();
+    return handles.isGood() && end <= total && total - end <= 7u
+        && owner.code == DRW::DwgSoftPointer && owner.size == 0u && owner.ref == 0u
+        && dictionary.code == DRW::DwgHardOwnership && dictionary.ref == raw.m_xDictHandle
+        && dictionary.ref64 == raw.m_xDictHandle
+        && layer.code == DRW::DwgSoftOwnership
+        && layer.ref == publication.m_controlHandles.front()
+        && layer.ref64 == publication.m_controlHandles.front();
+  } catch (...) {
+    return false;
+  }
+}
+
 bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
                               std::uint32_t bs) {
   const auto fail = [this, buf]() {

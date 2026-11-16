@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "scope": "Non-mutating AC1024 LAYER_CONTROL source correlation for a narrow one-layer, no-EED, no-reactor profile with a present extension dictionary.",
+  "implementation": "DRW_DwgAc1024LayerControlSource::matchesAc1024LayerControlFrame validates source/publication identity and bounded body, reparses the table control, and separately reads the wire handle stream to require a null soft-pointer owner, a hard-owner extension dictionary, and exactly one non-null soft-owned layer matching the publication. It rejects unmodeled extra metadata and catches exceptions. It does not change parser acceptance or graph admission.",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.53. The tracked AC1024 title-block control 0x10 and its H roles/dictionary 0x107 agree with independent LibreDWG output.",
+  "validation": [
+    "The existing AC1024 source CTest verifies the physical control frame and refuses bit flips in the wire owner, xdictionary and layer roles, truncation, wrong source version and dictionary, invented raw metadata, and changed publication ordinal or member.",
+    "All 34 calibrated verifier allocation failures refuse and succeed on immediate retry. Existing no-handler, AC1021, and consumer-callback allocation-failure/fresh-reader retry controls pass.",
+    "The control, dictionary, empty SORTENTSTABLE, layer-binding and plot-style graph CTests pass; source-release inventory remains 1216 files. The qualification implementation digest includes 722 inputs."
+  ],
+  "implementationDigestSha256": "15ad4a5f2309dc30f4663cd21f0a3aee27e1f16ae5f4d77191e1f6efef0f6fac",
+  "limits": "The caller supplies mutable raw and publication observations. Correlation does not reauthenticate an enclosing CRC, prove the dictionary endpoint or unknown inbound references, bind a LibreCAD capture session, establish full control/version support, authorize graph/output changes, or promote support claims."
+}
