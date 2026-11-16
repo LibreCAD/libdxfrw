@@ -1,0 +1,202 @@
+{
+  "date": "2026-11-16",
+  "scope": "Native macOS ARM64 FreeCAD GUI importer and real Draft layer/view-provider property controls for the local eleven-patch candidate.",
+  "sourceBase": "FreeCAD d956ec561639cfa83f755504b1b3358ea799428e plus eleven ordered local importer patches; candidate remains unmerged.",
+  "runtime": {
+    "artifactSha256": {
+      "/private/tmp/freecad-main-gui-config-20261116/bin/FreeCAD": "f2a8917ab499f47c6c235aced89496f265f6a574c080f207d20428652a48c00a",
+      "/private/tmp/freecad-main-gui-config-20261116/Mod/Import/ImportGui.so": "37018ce9f51efe6a2a939a19961ef7d5969b3d642a5063461e37c6bf07c5b4e7",
+      "/private/tmp/freecad-main-gui-config-20261116/Mod/Import/Import.so": "b6dd3e880f22efe15a1fbb34531f655c6883689f4d3f32323251bf77d28779c7",
+      "/private/tmp/freecad-main-d956-source/src/Mod/Import/App/dxf/dxf.cpp": "878b5b740035e79f34e67c5b599f058a544a20b34b411f78612e48dd31c74430",
+      "/private/tmp/freecad-main-d956-source/src/Mod/Draft/Draft.py": "72c03a089baca13a55d7f3051988005c3e1005b532b3944b279d407dc122a9a9"
+    },
+    "guiUp": 1,
+    "qtFrameworkImages": {
+      "QtConcurrent.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtConcurrent.framework/Versions/A/QtConcurrent"
+      ],
+      "QtCore.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtCore.framework/Versions/A/QtCore"
+      ],
+      "QtDBus.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtDBus.framework/Versions/A/QtDBus"
+      ],
+      "QtGui.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtGui.framework/Versions/A/QtGui"
+      ],
+      "QtNetwork.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtNetwork.framework/Versions/A/QtNetwork"
+      ],
+      "QtOpenGL.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtOpenGL.framework/Versions/A/QtOpenGL"
+      ],
+      "QtOpenGLWidgets.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtOpenGLWidgets.framework/Versions/A/QtOpenGLWidgets"
+      ],
+      "QtPdf.framework": [
+        "/opt/homebrew/Cellar/qtwebengine/6.11.2_1/lib/QtPdf.framework/Versions/A/QtPdf"
+      ],
+      "QtPrintSupport.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtPrintSupport.framework/Versions/A/QtPrintSupport"
+      ],
+      "QtSvg.framework": [
+        "/opt/homebrew/Cellar/qtsvg/6.12.0_1/lib/QtSvg.framework/Versions/A/QtSvg"
+      ],
+      "QtSvgWidgets.framework": [
+        "/opt/homebrew/Cellar/qtsvg/6.12.0_1/lib/QtSvgWidgets.framework/Versions/A/QtSvgWidgets"
+      ],
+      "QtUiTools.framework": [
+        "/opt/homebrew/Cellar/qttools/6.12.0_1/lib/QtUiTools.framework/Versions/A/QtUiTools"
+      ],
+      "QtWidgets.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtWidgets.framework/Versions/A/QtWidgets"
+      ],
+      "QtXml.framework": [
+        "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtXml.framework/Versions/A/QtXml"
+      ]
+    },
+    "environment": "Qt Cocoa native desktop with isolated user/system configs and safe mode; Qt/PySide 6.12.0 and Python 3.12.16. One QtPdf image comes from Homebrew qtwebengine 6.11.2; the check establishes uniqueness, not complete cross-component version alignment.",
+    "guiBuild": "Temporary source build; FreeCAD, Import, ImportGui, pivy_coin and MaterialLib/MaterialModelLib/AppearanceLib resources built locally."
+  },
+  "probe": "tools/research/freecad_gui_mesh_probe.FCMacro",
+  "observed": [
+    {
+      "case": "polyface",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "Polyface"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "polygon",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "PolygonMesh"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "mixed",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYFACE unsupported or invalid profile": [
+          [
+            64,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "nested",
+      "detail": {
+        "groups": {
+          "0": [
+            "Link_INNER",
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYFACE nondefault layer in block": [
+          [
+            78,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "color",
+      "detail": {
+        "followingLineColor": [
+          0.0,
+          1.0,
+          0.0,
+          1.0
+        ],
+        "meshColors": [
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "color_mixed",
+      "detail": {
+        "followingLineColor": [
+          0.0,
+          1.0,
+          0.0,
+          1.0
+        ],
+        "meshColors": [
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "unsupported": {
+        "POLYFACE unsupported or invalid profile": [
+          [
+            20,
+            ""
+          ]
+        ]
+      }
+    }
+  ],
+  "validation": {
+    "positive": "Six GUI ImportGui controls pass with real Draft: two bounded meshes grouped on their source layer; mixed child layer and nondefault block layer refused with following LINE preserved; uniform face ACI applied to both mesh view providers; mixed face ACIs refused while a following valid mesh and green LINE remain correct.",
+    "negative": "A nonexistent control-module directory yields ok=false and FileNotFoundError; process exit alone is not a passing result.",
+    "fixtures": "All DXF controls are generated from scratch in a temporary directory and removed; no DWG/DXF fixtures are committed.",
+    "logs": [
+      "/private/tmp/freecad-polyface-layer-20261116/gui-full-probe-final2.log",
+      "/private/tmp/freecad-polyface-layer-20261116/gui-full-probe-negative.log"
+    ]
+  },
+  "limits": [
+    "The probe checks document and view-provider properties; it does not independently inspect pixels, visibility interaction or an external producer interpretation.",
+    "macOS ARM64 only; Linux and Windows GUI qualification, broader profiles, geometry and import semantics remain open.",
+    "The downstream FreeCAD patch chain is unmerged. No P4\u2013P9 phase gate or external-only support claim is promoted."
+  ]
+}

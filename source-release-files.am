@@ -1187,6 +1187,7 @@ EXTRA_DIST = \
     tools/research/decode_dxf_sat1.py \
     tools/research/dwg_ac1032_object_section_probe.cpp \
     tools/research/freecad_acis700_sat_probe.py \
+    tools/research/freecad_gui_mesh_probe.FCMacro \
     tools/research/freecad_imported_sat_torus_bound_probe.py \
     tools/research/freecad_real_draft_mesh_layer_probe.py \
     tools/research/freecad_torus_bound_probe.py \

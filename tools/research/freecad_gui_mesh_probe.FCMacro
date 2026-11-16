@@ -1,0 +1,149 @@
+"""Exercise a patched FreeCAD GUI importer with scratch DXF controls.
+
+Run this macro with a GUI-enabled FreeCAD build and disposable --user-cfg and
+--system-cfg paths. Set FREECAD_RESEARCH_TOOLS_DIR to this directory; the
+headless companion provides the scratch layer drawings.
+Set FREECAD_PART_MODULE_DIR, FREECAD_DRAFT_MODULE_DIR, FREECAD_3RDPARTY_DIR,
+and FREECAD_PYSIDE_DIR when these modules are not installed in the build.
+The build also needs its MaterialLib, MaterialModelLib and AppearanceLib
+resources. A successful run prints FREECAD_GUI_MESH_PROBE with ok=true.
+This checks view-provider properties, not visual rendering or platform parity.
+"""
+import ctypes
+import json
+import os
+from pathlib import Path
+import runpy
+import sys
+import tempfile
+import traceback
+import uuid
+
+for name in ("FREECAD_PYSIDE_DIR", "FREECAD_3RDPARTY_DIR", "FREECAD_DRAFT_MODULE_DIR",
+             "FREECAD_PART_MODULE_DIR", "FREECAD_RESEARCH_TOOLS_DIR"):
+    if os.environ.get(name):
+        sys.path.insert(0, os.environ[name])
+
+import FreeCAD as App
+from PySide import QtCore
+
+
+def color_drawing(mixed):
+    tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
+            (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")]
+    for offset, parent, faces in ((0, 1, (2, 3) if mixed else (2, 2)),
+                                  (10, 2, (2, 2))):
+        tags.extend([(0, "POLYLINE"), (8, "0"), (66, 1), (70, 64), (62, parent)])
+        for x, y in ((offset, 0), (offset + 4, 0), (offset + 4, 3), (offset, 3)):
+            tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 0),
+                         (70, 192), (62, parent)])
+        for indices, color in zip(((1, 2, 3), (1, 3, 4)), faces):
+            tags.extend([(0, "VERTEX"), (8, "0"), (10, 0), (20, 0), (30, 0),
+                         (70, 128), (71, indices[0]), (72, indices[1]),
+                         (73, indices[2]), (62, color)])
+        tags.extend([(0, "SEQEND"), (8, "0")])
+    tags.extend([(0, "LINE"), (8, "0"), (62, 3), (10, 30), (20, 0), (30, 0),
+                 (11, 32), (21, 0), (31, 0), (0, "ENDSEC"), (0, "EOF")])
+    return "".join(f"{code}\n{value}\n" for code, value in tags)
+
+
+def run():
+    parent = None
+    option_name = "CodexGuiMeshProbe_" + uuid.uuid4().hex
+    result = {"ok": False}
+    try:
+        if not __debug__:
+            raise RuntimeError("The probe requires Python assertions to be enabled")
+        import Draft
+        import ImportGui
+        tools_dir = os.environ.get("FREECAD_RESEARCH_TOOLS_DIR")
+        if not tools_dir:
+            raise RuntimeError("FREECAD_RESEARCH_TOOLS_DIR is required")
+        controls = runpy.run_path(str(Path(tools_dir) / "freecad_real_draft_mesh_layer_probe.py"),
+                                  run_name="freecad_mesh_control_library")
+
+        qt_frameworks = {}
+        if sys.platform == "darwin":
+            dyld = ctypes.CDLL(None)
+            dyld._dyld_image_count.restype = ctypes.c_uint32
+            dyld._dyld_get_image_name.argtypes = [ctypes.c_uint32]
+            dyld._dyld_get_image_name.restype = ctypes.c_char_p
+            for index in range(dyld._dyld_image_count()):
+                image = dyld._dyld_get_image_name(index).decode()
+                for component in image.split("/"):
+                    if component.startswith("Qt") and component.endswith(".framework"):
+                        qt_frameworks.setdefault(component, []).append(image)
+            if "QtCore.framework" not in qt_frameworks or any(len(p) != 1 for p in qt_frameworks.values()):
+                raise RuntimeError(f"Missing QtCore or duplicate Qt frameworks: {qt_frameworks}")
+
+        if not App.GuiUp:
+            raise RuntimeError("A GUI-enabled FreeCAD session is required")
+        parent = App.ParamGet("User parameter:BaseApp/Preferences/Mod/Import")
+        options = parent.GetGroup(option_name)
+        options.SetInt("DxfImportMode", 2)
+        source = "User parameter:BaseApp/Preferences/Mod/Import/" + option_name
+        results = []
+        with tempfile.TemporaryDirectory(prefix="freecad-gui-mesh-probe-") as scratch:
+            for case in ("polyface", "polygon", "mixed", "nested", "color", "color_mixed"):
+                is_color = case.startswith("color")
+                options.SetBool("dxfUseDraftVisGroups", not is_color)
+                options.SetBool("dxfGetOriginalColors", is_color)
+                path = Path(scratch) / (case + ".dxf")
+                path.write_text(color_drawing(case == "color_mixed") if is_color
+                                else controls["drawing"](case), encoding="ascii")
+                doc = App.newDocument("GuiMeshProbe")
+                try:
+                    stats = ImportGui.readDXF(str(path), doc.Name, True, source)
+                    doc.recompute()
+                    shapes = [obj for obj in doc.Objects
+                              if hasattr(obj, "Shape") and not obj.Shape.isNull()]
+                    lines = [obj for obj in shapes if obj.Name.startswith("Shape")
+                             and len(obj.Shape.Edges) == 1]
+                    assert len(lines) == 1, (case, [o.Name for o in shapes])
+                    if is_color:
+                        meshes = [o for o in shapes if o.Name.startswith("Polyface")]
+                        assert len(meshes) == (1 if case == "color_mixed" else 2)
+                        assert all(tuple(round(x, 5) for x in m.ViewObject.ShapeColor[:3])
+                                   == (1.0, 1.0, 0.0) for m in meshes)
+                        assert tuple(round(x, 5) for x in lines[0].ViewObject.LineColor[:3]) == (0.0, 1.0, 0.0)
+                        if case == "color_mixed":
+                            assert "POLYFACE unsupported or invalid profile" in stats["unsupportedFeatures"]
+                        else:
+                            assert not stats["unsupportedFeatures"]
+                        detail = {"meshColors": [list(m.ViewObject.ShapeColor) for m in meshes],
+                                  "followingLineColor": list(lines[0].ViewObject.LineColor)}
+                    else:
+                        groups = {obj.Label: [member.Name for member in obj.Group]
+                                  for obj in doc.Objects if hasattr(obj, "Group")
+                                  and getattr(getattr(obj, "Proxy", None), "Type", None) == "Layer"}
+                        assert lines[0].Name in groups["0"]
+                        if case in ("polyface", "polygon"):
+                            name = "Polyface" if case == "polyface" else "PolygonMesh"
+                            meshes = [obj for obj in shapes if obj.Name.startswith(name)]
+                            assert len(meshes) == 1 and meshes[0].Name in groups["MESH"]
+                            assert meshes[0].OriginalLayer == "MESH"
+                            assert len(meshes[0].Shape.Faces) == 1
+                            assert abs(meshes[0].Shape.Area - (6 if case == "polyface" else 12)) < 1e-9
+                            assert not stats["unsupportedFeatures"]
+                        else:
+                            reason = ("POLYFACE nondefault layer in block" if case == "nested"
+                                      else "POLYFACE unsupported or invalid profile")
+                            assert reason in stats["unsupportedFeatures"] and not groups["MESH"]
+                        detail = {"groups": groups}
+                    results.append({"case": case, "detail": detail,
+                                    "unsupported": stats["unsupportedFeatures"]})
+                finally:
+                    App.closeDocument(doc.Name)
+        result = {"ok": True, "guiUp": App.GuiUp, "importModule": ImportGui.__file__,
+                  "draftModule": Draft.__file__, "qtFrameworkImages": qt_frameworks,
+                  "results": results}
+    except Exception:
+        result["error"] = traceback.format_exc()
+    finally:
+        if parent is not None:
+            parent.RemGroup(option_name)
+        print("FREECAD_GUI_MESH_PROBE=" + json.dumps(result, sort_keys=True, default=str), flush=True)
+        QtCore.QCoreApplication.quit()
+
+
+QtCore.QTimer.singleShot(0, run)
