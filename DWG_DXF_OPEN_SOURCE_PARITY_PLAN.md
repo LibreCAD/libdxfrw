@@ -93,7 +93,7 @@ unrelated gate is pending.
 |---|---|---|---|
 | Order | Work packet | Next bounded action | Ready check and fast exit |
 |---|---|---|---|
-| 1 | P4-A, named-block SORTENTSTABLE | Add the existing candidate's dictionary/XRECORD closure and inbound references as one vertical slice; reuse the source census and bounded ODA output. | READY from existing evidence. Run the owning output/readback selector. Keep units, preview, and mixed entities for later slices; preserve refusal for unresolved targets. |
+| 1 | P4-A, named-block SORTENTSTABLE | Fix the current earliest source-graph blocker: capture and validate the AC1024 `LAYER_CONTROL` 0x10 frame and its hard-owner extension-dictionary edge to 0x107; bind that proof to the import generation, then resume dictionary/XRECORD and inbound-reference closure. Reuse the existing source and dictionary receipt. | READY from the ODA field rule and LibreDWG source observation. Keep proof private to the adapter session (no public layout/vtable change). Run only the source-chain/strict-output selector; mutation, duplicate, missing, and truncated controls must refuse atomically. |
 | 2 | P6-G, public DXF writer routes | Refresh the public-writer mention index on the implementation HEAD with `python3 tools/research/audit_dxf_public_writer_test_mentions.py --output /tmp/p6-dxf-writer-index.json`, then inspect actual assertions. Choose one low-cost route that lacks a focused success/refusal/retry/readback control; reuse its local source and test executable. | READY locally. The index is only navigation; its whole-file allocation flag is not a coverage result. Do not repeat the completed default plot-style adapter slice. |
 | 3 | P6-F, CLI partial-read disposition | Use the existing P6-F receipts to identify the next missing source-revision/output-encoding cell. Prioritize AC1012/AC1014 CLI output/readback; use generated controls only where no eligible repository sample exists. | READY for bounded local controls. Run the owning selector; do not rerun the 900+ control aggregate absent a changed shared path. Profiles blocked by AC1027 source-reference closure remain reader-only. |
 | 4 | P8-D, LibreCAD consumers | Refresh patch-index hashes and target heads; replay only unmerged, relevant patches on disposable checkouts. Run focused LTYPE, PR #3269, version, and R13 refusal/recovery selectors. | READY independently of DWG sample acquisition. Rebase first; preserve both LibreCAD 2D and LibreCAD_3 behavior. |
@@ -119,7 +119,7 @@ necessary but not by itself sufficient for the parent phase.
 
 | ID | Next implementation slice | Package exit evidence |
 | --- | --- | --- |
-| P4-A | Extend the existing nonempty/named-block SORTENTSTABLE candidate one closed dependency at a time, starting with dictionary/XRECORD and inbound references. Keep the three source/native blockers below as independent evidence tasks. | Each admitted profile has exact source-frame/callback identities, closed owner/reactor/reference roles, strict output, fresh readback, and independent semantics; unqualified profiles remain explicit. |
+| P4-A | Resolve the existing AC1024 title-block candidate's earliest graph failure at `LAYER_CONTROL` 0x10; then prove its 0x107 extension dictionary, dictionary/XRECORD closure, and inbound references one edge at a time. Keep the three source/native blockers below independent. | Each admitted profile has exact source-frame/callback identities, closed owner/reactor/reference roles, strict output, fresh readback, and independent semantics; unqualified profiles remain explicit. |
 | P4-B | Obtain a source-bound AC1032 associative-network class-version-2 frame; map versioned fields/spans against ODA before implementing a bounded decoder. | Complete field/order/handle-role and following-record boundary proof, negative/truncation tests, output graph and independent producer/consumer evidence. |
 | P4-C | Obtain an AC1027 Sweep frame with suffix and embedded entity; compare version boundaries and retain unknown bytes until their roles are proven. | Exact ordered spans and parent/embedded-entity roles, truncation/following-frame alignment, round trip, and independent semantic evidence. |
 
@@ -140,10 +140,17 @@ necessary but not by itself sufficient for the parent phase.
    integrity rows. Repair each independently; do not whitelist linetype order
    or suppress a raw callback to manufacture closure. See the
    [AC1021 refusal recheck](docs/research/p4-libreCAD-ac1021-strict-refusal-recheck-2026-11-07.json).
-4. Continue the READY implementation path: first prove dictionary/XRECORD and
-   inbound-reference closure for the existing nonempty/named-block candidate;
-   then add units, preview, and mixed entity content as separate slices. Reuse
-   the [source census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json)
+4. Continue the READY implementation path at the actual first blocker. For
+   `title_block-iso.dwg`, capture the AC1024 `LAYER_CONTROL` 0x10 physical
+   frame and validate its hard-owner extension-dictionary handle 0x107;
+   bind the proof to the import generation and correlate it with the exact
+   published/reparsed DICTIONARY 0x107. Do not clear the handle or relabel it
+   as a common link to force admission. Then freeze the typed/raw dictionary
+   and SORTENTSTABLE bodies, retain non-sort dictionary entries/XRECORDs, and
+   verify incoming-reference closure before adding units, preview, or mixed
+   entities as separate slices. Reuse the
+   [source census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json),
+   [control blocker receipt](docs/research/p8-title-layer-control-extension-graph-blocker-2026-11-15.json),
    and [bounded output evidence](docs/research/p8-experimental-named-sortents-oda-roundtrip-2026-11-15.json).
    Do not repeat the empty-table projection or treat it as proof for named
    blocks. The GROUP codepage-zero, empty STYLE name, and historical missing-
