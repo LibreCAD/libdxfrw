@@ -269,6 +269,6 @@
     "Mixed or ambiguous face colors still require refusal when color preservation is enabled. BYBLOCK and other unsupported attributes, mixed layers, nonplanar faces and hidden edges remain outside this profile.",
     "Native GUI property checks are not pixel rendering, independent producer semantics, or Linux/Windows qualification. No P4\u2013P9 phase gate or external support claim is promoted."
   ],
-  "probeEvolution": "The current GUI probe includes a later off-layer visibility diagnostic requiring the sixteenth downstream patch; the observations in this receipt describe its earlier candidate.",
+  "probeEvolution": "The current GUI probe includes later frozen-layer controls requiring the seventeenth downstream patch; observations in this receipt describe its earlier candidate.",
   "supersededBoundary": "The later BYBLOCK colors-disabled patch accepts group 62 value 0 only when source colors are disabled; this receipt records the earlier refusal."
 }

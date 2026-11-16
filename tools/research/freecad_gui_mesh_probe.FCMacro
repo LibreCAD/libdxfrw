@@ -100,7 +100,9 @@ def run():
                          "nested_byblock_face_nolayers", "nested_byblock_all_nolayers",
                          "layer_on_1", "layer_off_1", "layer_on_2", "layer_off_2", "layer_on_10", "layer_off_10",
                          "layer_on_250", "layer_off_250", "layer_on_255", "layer_off_255",
-                         "layer_on_2_nogroups", "layer_off_2_nogroups", "color", "color_mixed",
+                         "layer_on_2_nogroups", "layer_off_2_nogroups", "layer_frozen_2", "layer_newviewport_2",
+                         "layer_frozenoff_2", "layer_frozen_2_nogroups", "layer_frozenoff_2_nogroups",
+                         "color", "color_mixed",
                          "color_mixed_nocolor"):
                 is_color = case.startswith("color")
                 is_vertex = case.startswith("vertex_")
@@ -126,10 +128,12 @@ def run():
                 drawing_text = (color_drawing(case.startswith("color_mixed")) if is_color
                                 else controls["drawing"](drawing_case, 1 if inches else 4, is_vertex, byblock_at))
                 if is_layer:
-                    aci = int(case.split("_")[2]) * (-1 if "_off_" in case else 1)
+                    mode = case.split("_")[1]
+                    aci = int(case.split("_")[2]) * (-1 if mode in ("off", "frozenoff") else 1)
+                    flags = 1 if mode in ("frozen", "frozenoff") else 2 if mode == "newviewport" else 0
                     layer_tag = "0\nLAYER\n2\nMESH\n70\n0\n62\n1\n"
                     assert drawing_text.count(layer_tag) == 1
-                    drawing_text = drawing_text.replace(layer_tag, layer_tag[:-2] + str(aci) + "\n")
+                    drawing_text = drawing_text.replace(layer_tag, f"0\nLAYER\n2\nMESH\n70\n{flags}\n62\n{aci}\n")
                     line_tag = "0\nLINE\n8\n0\n"
                     assert drawing_text.count(line_tag) == 1
                     drawing_text = drawing_text.replace(line_tag, "0\nLINE\n8\nMESH\n")
@@ -145,20 +149,23 @@ def run():
                     assert len(lines) == 1, (case, [o.Name for o in shapes])
                     if is_layer:
                         meshes = [obj for obj in shapes if obj.Name.startswith("Polyface")]
-                        initial = "_on_" in case
+                        initial = mode in ("on", "newviewport")
                         assert len(meshes) == 1
                         if no_layers:
                             reason = "Off-layer visibility without layer grouping"
                             assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
-                            assert (reason in stats["unsupportedFeatures"]) == (not initial)
-                            if not initial:
+                            assert (reason in stats["unsupportedFeatures"]) == (aci < 0)
+                            if aci < 0:
                                 assert len(stats["unsupportedFeatures"][reason]) == 2
-                            detail = {"aci": aci, "initialVisible": True, "visibilityReported": not initial}
+                            assert ("Frozen layers" in stats["unsupportedFeatures"]) == bool(flags & 1)
+                            detail = {"aci": aci, "flags": flags, "initialVisible": True,
+                                      "offVisibilityReported": aci < 0}
                         else:
                             layer = next(obj for obj in doc.Objects if obj.Label == "MESH"
                                          and getattr(getattr(obj, "Proxy", None), "Type", None) == "Layer")
                             assert set(layer.Group) == {meshes[0], lines[0]}
-                            assert not stats["unsupportedFeatures"]
+                            assert ("Frozen layers" in stats["unsupportedFeatures"]) == bool(flags & 1)
+                            assert set(stats["unsupportedFeatures"]) <= {"Frozen layers"}
                             assert layer.ViewObject.Visibility == initial
                             assert meshes[0].ViewObject.Visibility == initial and lines[0].ViewObject.Visibility == initial
                             layer.ViewObject.Visibility = True

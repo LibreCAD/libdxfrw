@@ -955,5 +955,6 @@
     "Sixteen downstream patches are unmerged.",
     "The diagnostic does not preserve off-layer visibility and can be recorded before later filtering of an entity. Implement and test visibility through individual, fused and nested-block collectors before claiming that support.",
     "Frozen layers remain separately reported unsupported; independent producer and Linux/Windows qualification remain open. No phase gate or external-only support claim is promoted."
-  ]
+  ],
+  "probeEvolution": "The current GUI probe includes later frozen-layer controls requiring the seventeenth downstream patch; observations in this receipt describe its earlier candidate."
 }
