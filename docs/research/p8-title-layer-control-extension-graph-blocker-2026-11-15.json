@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-15",
+  "source": "tests/samples/AC1024/title_block-iso.dwg",
+  "sourceSha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+  "problem": "Full source-graph construction refuses the existing title-block source at LAYER_CONTROL handle 0x10 with InvalidControlReceipt. The control frame receipt is marked NotApplicable for common links but contains extension dictionary handle 0x107; the current graph builder requires NotApplicable controls to have no extension dictionary.",
+  "independentEvidence": "LibreDWG 0.14 JSON independently identifies LAYER_CONTROL 0x10 with missing-dictionary flag 0, null soft-pointer owner, hard-owner reference code 3 to 0x107, and layer member 0x4. It identifies DICTIONARY 0x107 with parent 0x10 and ACAD_LAYERSTATES entry targeting 0x108. ODA Open Design Specification v5.4.1 section 20.4.53 describes the layer control null owner, optional hard-owner xdictionary, and soft-owned layer members.",
+  "localEvidence": [
+    "The selected source-chain harness reads all source frame, class, dictionary, group, sort, field-list, typed-reference and block-reachability callbacks; its full graph reports refusal InvalidControlReceipt and source handle 0x10.",
+    "The existing DICTIONARY source verifier independently reparses and matches dictionary 0x107 to its raw, typed, publication and membership receipts. This does not validate the preceding control wire role.",
+    "The reader control parser currently reads the extension H but, except for a legacy special case, does not check its hard-owner role; stageControlReceipt copies the decoded handle while labeling common links NotApplicable. Clearing the handle or merely allowing it in graph construction would erase or assert unproven evidence.",
+    "The optional LibreCAD importer source-chain case now passes 95 assertions and all focused installed-codec CTests pass; the model-space control remains present."
+  ],
+  "implementationNext": [
+    "Capture and validate the exact control-object frame, owner, reactor and extension handle roles for the bounded AC1024 LAYER_CONTROL profile without rejecting unrelated legacy profiles; retain source identity and do not change the DRW_Interface virtual table or existing public struct layout merely to publish proof.",
+    "Bind an optional source-proof receipt to the import session and unique finalized frame, compare against the control publication and reparsed DICTIONARY 0x107, and represent the proven extension-dictionary edge in the source graph. Preserve non-sort dictionary entries and unknown references.",
+    "Add positive physical-source and generated role-mutation, omitted/mismatched receipt, duplicate, truncation, allocation-failure/rollback/retry and older-consumer controls. Re-run the graph on the title source to discover the next blocker; do not infer output closure from a single accepted edge."
+  ],
+  "limits": "One source with an independently decoded control reference is not a complete format/version profile, entire source graph, outgoing/incoming closure, export permission, native semantics or support claim."
+}
