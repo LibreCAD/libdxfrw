@@ -1,0 +1,119 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index e3668b9..540e5e9 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -3446,6 +3446,7 @@ public:
+     std::uint32_t extensionDictionaryHandle = 0;
+     std::uint32_t layoutHandle = 0;
+     std::size_t sourceEntityCount = 0u;
++    int insertionUnits = 0;
+     bool hasUnsupportedOutputState = false;
+     std::string name;
+     std::vector<std::uint32_t> reactorHandles;
+@@ -3485,10 +3486,11 @@ public:
+       observed.parentHandle = static_cast<std::uint32_t>(record.parentHandle);
+       observed.extensionDictionaryHandle = record.xDictHandle;
+       observed.layoutHandle = record.layoutHandle;
++      observed.insertionUnits = record.insUnits;
+ #if defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
+       observed.sourceEntityCount = record.entityMapCount();
+       observed.hasUnsupportedOutputState =
+-          (record.flags & ~64) != 0 || record.insUnits != 0
++          (record.flags & ~64) != 0 || (record.insUnits != 0 && record.insUnits != 4)
+           || record.xrefUnloaded || record.xrefIndex != -1
+           || record.xrefBlockHandle.ref != 0u || record.xrefBlockHandle.ref64 != 0u
+           || record.basePoint.x != 0.0 || record.basePoint.y != 0.0
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index cbdbea1..494c0cb 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -12342,6 +12342,22 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+             || (observed.extensionDictionaryHandle != 0u
+                 && experimentalSortDictionaryOwners.count(observed.extensionDictionaryHandle) == 0u))
+           return refuseExperimentalSort();
++        if (observed.insertionUnits == 4) {
++          // Only an unchanged, uniquely matched named block is admitted for
++          // the independently observed millimetres source profile.
++          const RS_Block *matched = nullptr;
++          const QString sourceName = QString::fromUtf8(observed.name.c_str());
++          for (unsigned i = 0; i < m_graphic->countBlocks(); ++i) {
++            const RS_Block *candidate = m_graphic->blockAt(i);
++            if (candidate->isDeleted() || candidate->getName().compare(sourceName, Qt::CaseInsensitive) != 0)
++              continue;
++            if (matched != nullptr) return refuseExperimentalSort();
++            matched = candidate;
++          }
++          if (matched == nullptr || matched->sourceHandle() != observed.handle
++              || matched->getInsertionUnits() != observed.insertionUnits)
++            return refuseExperimentalSort();
++        }
+         if (observed.layoutHandle != 0u) {
+           std::size_t count = 0u;
+           for (const auto &layout : metadata.layouts())
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 9a7461a..0c9d779 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9917,6 +9917,51 @@ TEST_CASE("Named block export preserves verified empty XRECORD dependency",
+     std::filesystem::remove(path);
+ }
+ #endif
++TEST_CASE("Named block export preserves source millimetre units",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_UNITS_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_ODA_NAMED_BLOCK_UNITS_FIXTURE to a locally generated ODA AC1024 DWG");
++  ensureSettings(); RS_Graphic graphic; RS_FilterDXFRW filter;
++  REQUIRE(filter.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  const auto &md = graphic.dwgAdvancedMetadata();
++  REQUIRE(md.matchesSelectedAc1024SortEntsOwnerChain(0x30u, 0xB003u, 0xB100u));
++  REQUIRE(md.blockRecordLinks().at(0x30u).insertionUnits == 4);
++  RS_Block *block = nullptr;
++  for (unsigned i = 0; i < graphic.countBlocks(); ++i)
++    if (graphic.blockAt(i)->getName() == QStringLiteral("Named")) block = graphic.blockAt(i);
++  REQUIRE(block != nullptr);
++  REQUIRE(block->sourceHandle() == 0x30u);
++  REQUIRE(block->getInsertionUnits() == 4);
++  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(true));
++  const char *keepPath = std::getenv("LIBRECAD_KEEP_NAMED_BLOCK_UNITS_DXF");
++  const std::string path = keepPath && *keepPath ? keepPath : tmpFile("named_sort_units.dxf");
++  const std::string sentinel = "previous destination\n";
++  writeText(path, sentinel);
++  block->setInsertionUnits(5);
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(path);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  block->setInsertionUnits(4);
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  RS_Graphic reread; RS_FilterDXFRW rereader;
++  REQUIRE(rereader.fileImport(reread, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  const RS_Block *readBlock = nullptr;
++  for (unsigned i = 0; i < reread.countBlocks(); ++i)
++    if (reread.blockAt(i)->getName() == QStringLiteral("Named")) readBlock = reread.blockAt(i);
++  REQUIRE(readBlock != nullptr);
++  CHECK(readBlock->getInsertionUnits() == 4);
++  REQUIRE(reread.dwgAdvancedMetadata().sortEntsTables().size() == 1u);
++  const auto &sort = reread.dwgAdvancedMetadata().sortEntsTables().front();
++  const auto it = reread.dwgAdvancedMetadata().blockRecordLinks().find(sort.blockOwnerHandle);
++  REQUIRE(it != reread.dwgAdvancedMetadata().blockRecordLinks().end());
++  CHECK(it->second.insertionUnits == 4);
++  if (!(keepPath && *keepPath))
++    std::filesystem::remove(path);
++}
++
+ TEST_CASE("Named block export keeps the complex title source protected",
+           "[dwg][roundtrip][sortentssource][source]") {
+   const char *fixture = std::getenv("LIBRECAD_AC1024_SORTENTS_FIXTURE");
+@@ -9955,7 +10000,9 @@ TEST_CASE("Block source observations refuse unsupported output properties",
+   record.basePoint.x = 1.0; CHECK(observedUnsupported()); record.basePoint.x = 0.0;
+   record.xrefIndex = 0; CHECK(observedUnsupported()); record.xrefIndex = -1;
+   record.xrefBlockHandle.ref = 1u; CHECK(observedUnsupported()); record.xrefBlockHandle.ref = 0u;
+-  record.insUnits = 4; CHECK(observedUnsupported()); record.insUnits = 0;
++  record.insUnits = 4; CHECK_FALSE(observedUnsupported());
++  CHECK(metadata.blockRecordLinks().at(record.handle).insertionUnits == 4);
++  record.insUnits = 5; CHECK(observedUnsupported()); record.insUnits = 0;
+   record.flags = 1; CHECK(observedUnsupported()); record.flags = 0;
+   record.previewData.push_back(1u); CHECK(observedUnsupported()); record.previewData.clear();
+   record.insertHandles.push_back(0x456u); CHECK(observedUnsupported()); record.insertHandles.clear();

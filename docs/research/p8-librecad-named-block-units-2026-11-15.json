@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-named-block-units-2026-11-15.patch",
+  "patchSha256": "a813c105b908cbc1646f0436305ab2a60da508f98cf30084f59024e7541f8536",
+  "implementation": "The thirtieth unmerged LibreCAD patch retains insertion units in source BLOCK_RECORD observations and admits the existing default-off AC1024 named-block SORTENTSTABLE export for the specific observed units=4 profile. It requires one undeleted block with matching source handle, name and unchanged units; nonzero values other than 4 and all other previously unsupported block properties remain refused.",
+  "validation": [
+    "A locally authored DXF with Named BLOCK_RECORD units=4 (SHA-256 88dcf53884dba0c01ec19ccfacb7ac00936d8874fb6e4304466f903dd4896bb7) was converted to AC1024 DWG by ODA 27.1 (SHA-256 dcb77ae45f2c6dc6b465b71af72bb95ec043af309b7b316e82c842046f7000bc). LibreDWG 0.14 independently reports block handle 30, extension dictionary B003 and insert_units=4.",
+    "The actual LibreCAD test passed 16 assertions covering imported source identity/units, changed-units refusal with destination preservation, same-filter retry, and fresh LibreCAD readback of the named-block unit and SORTENTSTABLE links. The installed-codec focused CTests passed 3/3; the complex title source remains protected.",
+    "LibreCAD ASCII DXF output SHA-256 2d33367b46480ae5c5985ac8b517a5acb6c754884b2309dd5a0b6cc6606d0e92 has units=4 and the expected block B17B / dictionary B003 / empty table B100 links, with zero ezdxf 1.4.5 audit errors/fixes. ODA roundtrip back to DXF preserves the same unit and links (SHA-256 3140f9c4c2ef3585806c3c1ee96c2b0a5a11f94a51ebf5e93b18ad647f111687), again with a clean ezdxf audit.",
+    "The patch applies after the prior 29 patches and the older bundled-codec filter compiles. Source-release inventory passes with 1226 files and 18 refusal controls; the 724-input implementation digest remains 64a2959853ace89b7d87ce130bdedda8c2a6f64aaec1cb203295dfe1b3220d83."
+  ],
+  "limits": "Only one locally authored empty-block, units=4 AC1024 source and ASCII DXF target are covered; this is a default-off programmatic path. It does not establish arbitrary unit values, modified units, nondefault metadata, nonempty source-block fidelity, native AutoCAD/FreeCAD semantics, full graph closure or support claims. No drawing fixture is committed."
+}
