@@ -51,8 +51,7 @@ DRW_UCS makeUcs(DRW::Version version) {
     return ucs;
 }
 
-bool sameUcs(const DRW_UCS& actual, DRW::Version version) {
-    const DRW_UCS expected = makeUcs(version);
+bool sameUcs(const DRW_UCS& actual, const DRW_UCS& expected) {
     if (actual.tType != DRW::UCS || actual.handle != expected.handle
         || actual.parentHandle != expected.parentHandle
         || actual.name != expected.name || actual.flags != expected.flags
@@ -91,6 +90,10 @@ bool sameUcs(const DRW_UCS& actual, DRW::Version version) {
             return false;
     }
     return true;
+}
+
+bool sameUcs(const DRW_UCS& actual, DRW::Version version) {
+    return sameUcs(actual, makeUcs(version));
 }
 
 class Export final : public LC3CompatCheck {
@@ -242,6 +245,73 @@ bool allocationSweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+// Legacy UCS rows omit group 146. Nonzero elevation must not disappear
+// silently when a caller targets one of those versions.
+bool elevationDowngradeGuard(const std::filesystem::path& directory) {
+    const auto path = directory / "ucs-elevation-downgrade.dxf";
+    const std::string prior = "previous destination bytes\n";
+    constexpr std::array<DRW::Version, 2> legacy{{
+        DRW::AC1009, DRW::AC1014}};
+    for (const auto target : legacy) {
+        for (const bool binary : {false, true}) {
+            dxfRW codec(path.string().c_str());
+            Export exporter(codec, target);
+            exporter.ucs.elevation = 4.5;
+            const DRW_UCS original = exporter.ucs;
+            {
+                std::ofstream output(path, std::ios::binary | std::ios::trunc);
+                output << prior;
+                if (!output) return false;
+            }
+            const bool wrote = codec.write(&exporter, target, binary);
+            std::string current;
+            if (wrote || exporter.accepted || !sameUcs(exporter.ucs, original)
+                || !readBytes(path, current) || current != prior) {
+                std::cerr << "nonzero UCS elevation lost on downgrade: version="
+                          << static_cast<int>(target) << " binary=" << binary << '\n';
+                return false;
+            }
+            // Retry with the same writer and unchanged source at R2000, which
+            // emits group 146, then verify through a fresh reader.
+            if (!codec.write(&exporter, DRW::AC1015, binary) || !exporter.accepted
+                || !sameUcs(exporter.ucs, original)) {
+                std::cerr << "modern UCS retry failed: " << static_cast<int>(target)
+                          << " binary=" << binary << '\n';
+                return false;
+            }
+            Reader modern;
+            dxfRW modernReader(path.string().c_str());
+            const bool modernRead = modernReader.read(&modern, false);
+            if (!modernRead || modern.ucs.size() != 1u
+                || modern.ucs.front().elevation != 4.5) {
+                std::cerr << "modern UCS readback failed: " << static_cast<int>(target)
+                          << " binary=" << binary << " read=" << modernRead
+                          << " count=" << modern.ucs.size() << '\n';
+                return false;
+            }
+            // Default elevation remains representable in the original target.
+            exporter.ucs.elevation = 0.0;
+            if (!codec.write(&exporter, target, binary) || !exporter.accepted) {
+                std::cerr << "legacy UCS retry failed: " << static_cast<int>(target)
+                          << " binary=" << binary << '\n';
+                return false;
+            }
+            Reader legacyRead;
+            dxfRW legacyReader(path.string().c_str());
+            const bool readLegacy = legacyReader.read(&legacyRead, false);
+            if (!readLegacy || legacyRead.ucs.size() != 1u
+                || legacyRead.ucs.front().elevation != 0.0) {
+                std::cerr << "legacy UCS readback failed: " << static_cast<int>(target)
+                          << " binary=" << binary << " read=" << readLegacy
+                          << " count=" << legacyRead.ucs.size() << '\n';
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -282,5 +352,5 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return allocationSweep(directory) ? 0 : 2;
+    return elevationDowngradeGuard(directory) && allocationSweep(directory) ? 0 : 2;
 }

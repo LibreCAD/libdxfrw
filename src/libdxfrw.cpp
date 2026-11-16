@@ -9473,7 +9473,8 @@ bool dxfRW::writeUCS(DRW_UCS *ent){
                       ent->orthographicOptions.front().point);
     const bool legacyOriginWithoutOption = !hasOptions && hasLegacyOrigin;
     if (ent->orthoType != 0 || ent->baseUcsHandle.ref != 0
-        || (oldTarget && (hasOptions || hasLegacyOrigin))
+        || (oldTarget && (hasOptions || hasLegacyOrigin
+                          || ent->elevation != 0.0))
         || conflictingLegacyOrigin || legacyOriginWithoutOption)
         return failDxfWrite();
     if (!preflightTableEntry(ent)
