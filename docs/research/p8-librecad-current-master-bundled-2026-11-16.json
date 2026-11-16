@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-16",
+  "consumerRepository": "LibreCAD/LibreCAD",
+  "consumerBase": "b007bff6e798425aa14ae507f7e884db68916e88",
+  "candidateCommit": "1894f6b8cfbab32417b75db2153b10f9f7f81cb9",
+  "source": "/private/tmp/librecad-p8-rebased-20261116",
+  "build": "/private/tmp/librecad-p8-rebased-bundled-build-20261116",
+  "environment": "macOS ARM64 Release; fresh configure, bundled codec, BUILD_TESTS=ON, LIBRECAD_USE_SYSTEM_LIBDXFRW=OFF, LIBRECAD_ENABLE_OPENTYPE=OFF; offscreen focused tests.",
+  "linkVerification": "librecad_tests links librecad_lib, not the separately installed libdxfrw archive.",
+  "results": [
+    "Clean bundled librecad_tests target built successfully.",
+    "[ltype]~[dwg]: 26 cases and 4033 assertions passed.",
+    "Five PR #3269 LTYPE cases: 5 cases and 49 assertions passed.",
+    "R12/R14 non-unitless and malformed-unit refusal, destination preservation and unitless retry: 1 case and 18 assertions passed, both bundled and separately installed current codec."
+  ],
+  "logs": [
+    "/private/tmp/librecad-p8-rebased-bundled-configure.log",
+    "/private/tmp/librecad-p8-rebased-bundled-build.log",
+    "/private/tmp/librecad-p8-rebased-bundled-ltype.log",
+    "/private/tmp/librecad-p8-rebased-bundled-pr3269.log",
+    "/private/tmp/librecad-p8-rebased-bundled-legacy-units.log",
+    "/private/tmp/librecad-p8-rebased-system-legacy-units.log"
+  ],
+  "limits": "Tests are focused; the full test suite, native GUI, Binary legacy-units paths, non-macOS platforms and upstream integration remain open. The local candidate is unmerged. No support claim or phase gate is promoted."
+}
