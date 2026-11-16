@@ -66,6 +66,7 @@ EXTRA_DIST = \
     docs/patches/librecad-p8-mpolygon-hatch-test-type-2026-11-15.patch \
     docs/patches/librecad-p8-mpolygon-policy-2026-11-15.patch \
     docs/patches/librecad-p8-mtext-column-extents-2026-11-15.patch \
+    docs/patches/librecad-p8-named-block-arc-wrap-test-2026-11-15.patch \
     docs/patches/librecad-p8-named-block-line-arc-output-2026-11-15.patch \
     docs/patches/librecad-p8-named-block-line-boundary-test-2026-11-15.patch \
     docs/patches/librecad-p8-named-block-line-circle-output-2026-11-15.patch \

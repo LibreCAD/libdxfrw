@@ -1,0 +1,77 @@
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 4d102114..d0d3d77d 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -10028,6 +10028,72 @@ TEST_CASE("Named block export preserves one verified source line",
+ #endif
+ 
+ #ifdef LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY
++TEST_CASE("Named block export preserves wrapped-angle LINE and ARC",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_ARC_WRAP_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_ODA_NAMED_BLOCK_ARC_WRAP_FIXTURE to a locally generated ODA AC1024 DWG");
++  ensureSettings(); RS_Graphic graphic; RS_FilterDXFRW filter;
++  REQUIRE(filter.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  const auto &metadata = graphic.dwgAdvancedMetadata();
++  REQUIRE(metadata.matchesSelectedAc1024SortEntsOwnerChain(0x30u, 0xB003u, 0xB100u));
++  const auto &observation = metadata.blockRecordLinks().at(0x30u);
++  REQUIRE(observation.sourceEntityCount == 2u);
++  REQUIRE(observation.boundedLineSources.size() == 1u);
++  REQUIRE(observation.boundedArcSources.size() == 1u);
++  RS_Block *block = nullptr;
++  for (unsigned i = 0; i < graphic.countBlocks(); ++i)
++    if (graphic.blockAt(i)->getName() == QStringLiteral("Named")) block = graphic.blockAt(i);
++  REQUIRE(block != nullptr);
++  lc::LC_ContainerTraverser walk{*block, RS2::ResolveNone};
++  RS_Entity *first = walk.first(); RS_Entity *second = walk.next();
++  REQUIRE(first != nullptr); REQUIRE(second != nullptr); REQUIRE(walk.next() == nullptr);
++  REQUIRE(first->rtti() == RS2::EntityLine); REQUIRE(second->rtti() == RS2::EntityArc);
++  auto *circle = static_cast<RS_Arc *>(second);
++  REQUIRE(circle->getRadius() == Catch::Approx(2.5));
++  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(true));
++  const char *keep = std::getenv("LIBRECAD_KEEP_NAMED_BLOCK_ARC_WRAP_DXF");
++  const std::string path = keep && *keep ? keep : tmpFile("named_sort_arc_wrap.dxf");
++  const std::string sentinel = "previous destination\n";
++  writeText(path, sentinel);
++  circle->setRadius(3.0);
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(path);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  circle->setRadius(2.5);
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  RS_Graphic reread; RS_FilterDXFRW rereader;
++  REQUIRE(rereader.fileImport(reread, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  const RS_Block *readBlock = nullptr;
++  for (unsigned i = 0; i < reread.countBlocks(); ++i)
++    if (reread.blockAt(i)->getName() == QStringLiteral("Named")) readBlock = reread.blockAt(i);
++  REQUIRE(readBlock != nullptr);
++  lc::LC_ContainerTraverser readWalk{*readBlock, RS2::ResolveNone};
++  const auto *outLine = readWalk.first(); const auto *outArc = readWalk.next();
++  REQUIRE(outLine != nullptr); REQUIRE(outArc != nullptr); REQUIRE(readWalk.next() == nullptr);
++  REQUIRE(outLine->rtti() == RS2::EntityLine); REQUIRE(outArc->rtti() == RS2::EntityArc);
++  const auto *result = static_cast<const RS_Arc *>(outArc);
++  CHECK(result->getCenter().x == Catch::Approx(5.0));
++  CHECK(result->getCenter().y == Catch::Approx(6.0));
++  CHECK(result->getRadius() == Catch::Approx(2.5));
++  CHECK(result->getAngle1() == Catch::Approx(5.23598775598299));
++  CHECK(result->getAngle2() == Catch::Approx(0.5235987755983));
++  CHECK_FALSE(result->isReversed());
++  REQUIRE(reread.dwgAdvancedMetadata().sortEntsTables().size() == 1u);
++  const std::string anglePath = tmpFile("named_sort_arc_wrap_angle_refusal.dxf");
++  writeText(anglePath, sentinel);
++  circle->setAngle1(circle->getAngle1() + 0.1);
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(anglePath), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(anglePath);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  std::filesystem::remove(anglePath);
++  if (!(keep && *keep)) std::filesystem::remove(path);
++}
++
+ TEST_CASE("Named block export preserves verified LINE and ARC",
+           "[dwg][roundtrip][sortentssource][source]") {
+   const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_LINE_ARC_FIXTURE");

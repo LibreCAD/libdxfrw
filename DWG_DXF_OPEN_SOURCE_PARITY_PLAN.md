@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **630 completed implementation and qualification slices** and **32 remaining
+The plan records **631 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`630 / (630 + 32) = 95.2%`. The previous 28-package denominator was stale; a recount
+`631 / (631 + 32) = 95.2%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -125,6 +125,9 @@ created locally from scratch for the specific control.
   A mixed LINE/ARC profile now passes exact source-angle checks, guarded
   output and peer readback; angle edits are refused
   ([receipt](docs/research/p8-librecad-named-block-line-arc-output-2026-11-15.json)).
+  A generated 300°-to-30° ARC also passes independent wrapped-angle
+  readback and the same transactional checks
+  ([receipt](docs/research/p8-librecad-named-block-arc-wrap-2026-11-15.json)).
   Qualify other entity types and richer geometry. Qualify nonempty XRECORD data, other unit values and remaining block properties
   without dropping dependencies. Unknown inbound references
   and dynamic-block objects remain
@@ -160,7 +163,8 @@ suffix `-2026-11-15.patch`, rebasing as needed against the consumer head:
 `librecad-p8-named-block-multi-line-output`,
 `librecad-p8-named-block-line-boundary-test`,
 `librecad-p8-named-block-line-circle-output`,
-`librecad-p8-named-block-line-arc-output`.
+`librecad-p8-named-block-line-arc-output`,
+`librecad-p8-named-block-arc-wrap-test`.
 The tested base is `8a82e35965d8d56a8f8608abd739fbb2c0de2f3e`.
 
 For MPOLYGON, retain the consumer's opt-in polyline policy; independently
