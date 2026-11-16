@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **726 completed implementation and qualification slices** and **32 remaining
+The plan records **727 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`726 / (726 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
+`727 / (727 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -297,7 +297,9 @@ Native GUI behavior, independent semantics and upstream integration remain open.
   broke 3.x saves, and makes the legacy lossy-write tests follow the documented
   bool-save contract. Fourteen focused persistence tests pass with each codec,
   including all advertised DXF save types and a 3D segment round-trip. The
-  complete local candidate ends at `9d78827a81b61a487b59ea99af16fdf23da53254`
+  macOS Python-runtime staging now selects the imported codec for the active
+  configuration; a generated two-location Debug/Release control passes. The
+  complete local candidate ends at `ae159e2358a6cee80b66dfbcd06b637e1d6a8e0e`
   on master `4fb48312708b39d499f7e6668104a3b54a8601c7`; it is not published
   or merged. Default-lineweight source provenance, full GUI/install and native
   platform qualification remain open

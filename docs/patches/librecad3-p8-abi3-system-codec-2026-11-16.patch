@@ -1,5 +1,5 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index aac8995..453a757 100644
+index aac8995..1fd25f3 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
 @@ -47,0 +48,2 @@ option(WITH_PERSISTENCE "Build dxf/dwg support" ON)
@@ -23,33 +23,16 @@ index aac8995..453a757 100644
 @@ -410,0 +417,2 @@ if(WITH_PERSISTENCE)
 +endif()
 +if(WITH_PERSISTENCE)
-@@ -620,5 +628,28 @@ if(APPLE AND WITH_PYTHONSCRIPT AND TARGET Python::Python)
+@@ -620,3 +628,3 @@ if(APPLE AND WITH_PYTHONSCRIPT AND TARGET Python::Python)
 -            get_target_property(LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY
 -                dxfrw LIBRARY_OUTPUT_DIRECTORY)
 -            if(NOT LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY)
--                set(LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY
--                    "${CMAKE_BINARY_DIR}/third_party/libdxfrw")
 +            if(LIBRECAD_USE_SYSTEM_LIBDXFRW)
-+                get_target_property(_lc_dxfrw_configs dxfrw IMPORTED_CONFIGURATIONS)
-+                foreach(_lc_dxfrw_config IN LISTS _lc_dxfrw_configs)
-+                    string(TOUPPER "${_lc_dxfrw_config}" _lc_dxfrw_config_upper)
-+                    get_target_property(_lc_dxfrw_location dxfrw
-+                        "IMPORTED_LOCATION_${_lc_dxfrw_config_upper}")
-+                    if(_lc_dxfrw_location AND EXISTS "${_lc_dxfrw_location}")
-+                        get_filename_component(LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY
-+                            "${_lc_dxfrw_location}" DIRECTORY)
-+                        break()
-+                    endif()
-+                endforeach()
-+                if(NOT LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY)
-+                    get_target_property(_lc_dxfrw_location dxfrw IMPORTED_LOCATION)
-+                    if(_lc_dxfrw_location AND EXISTS "${_lc_dxfrw_location}")
-+                        get_filename_component(LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY
-+                            "${_lc_dxfrw_location}" DIRECTORY)
-+                    else()
-+                        message(FATAL_ERROR "Cannot find installed libdxfrw runtime for staging")
-+                    endif()
-+                endif()
++                # Resolve the actual imported artifact for each build
++                # configuration when generating the install script.
+@@ -624 +632,8 @@ if(APPLE AND WITH_PYTHONSCRIPT AND TARGET Python::Python)
+-                    "${CMAKE_BINARY_DIR}/third_party/libdxfrw")
++                    "$<TARGET_FILE_DIR:libdxfrw::libdxfrw>")
 +            else()
 +                get_target_property(LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY
 +                    dxfrw LIBRARY_OUTPUT_DIRECTORY)
@@ -57,6 +40,28 @@ index aac8995..453a757 100644
 +                    set(LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY
 +                        "${CMAKE_BINARY_DIR}/third_party/libdxfrw")
 +                endif()
+@@ -633,5 +648,16 @@ if(APPLE AND WITH_PYTHONSCRIPT AND TARGET Python::Python)
+-    configure_file(
+-        "${CMAKE_SOURCE_DIR}/scripts/macos-install/relocatePythonRuntime.cmake.in"
+-        "${CMAKE_BINARY_DIR}/relocatePythonRuntime.cmake"
+-        @ONLY)
+-    install(SCRIPT "${CMAKE_BINARY_DIR}/relocatePythonRuntime.cmake")
++    if(LIBRECAD_USE_SYSTEM_LIBDXFRW)
++        configure_file(
++            "${CMAKE_SOURCE_DIR}/scripts/macos-install/relocatePythonRuntime.cmake.in"
++            "${CMAKE_BINARY_DIR}/relocatePythonRuntime-configured.cmake"
++            @ONLY)
++        file(GENERATE
++            OUTPUT "${CMAKE_BINARY_DIR}/relocatePythonRuntime-$<CONFIG>.cmake"
++            INPUT "${CMAKE_BINARY_DIR}/relocatePythonRuntime-configured.cmake")
++        install(SCRIPT "${CMAKE_BINARY_DIR}/relocatePythonRuntime-$<CONFIG>.cmake")
++    else()
++        configure_file(
++            "${CMAKE_SOURCE_DIR}/scripts/macos-install/relocatePythonRuntime.cmake.in"
++            "${CMAKE_BINARY_DIR}/relocatePythonRuntime.cmake"
++            @ONLY)
++        install(SCRIPT "${CMAKE_BINARY_DIR}/relocatePythonRuntime.cmake")
++    endif()
 diff --git a/README.md b/README.md
 index 7f3462b..e2d3aac 100644
 --- a/README.md
