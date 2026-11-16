@@ -24,8 +24,12 @@ P6-H1's AC1027 physical field spans are now closed as a sub-slice, while
 versioned output, graph closure, MLINE semantics, and consumer integration stay
 open under P6-H/P8-D. Bounded forward-STYLE identity and named MLINESTYLE
 linetype fixes are implemented and have focused local/consumer receipts; they
-are removed from the action queue and do not close P8-D integration. Package
-count is a scope index, not an effort or readiness estimate. Six external
+are removed from the action queue and do not close P8-D integration. P8-D3 has
+now been replayed and focused-tested on LibreCAD `origin/master` `d40f178`; its
+clean local candidate is recorded in
+[`p8-librecad-d3-rebase-focused-qualification-2026-11-16.json`](docs/research/p8-librecad-d3-rebase-focused-qualification-2026-11-16.json).
+P8-D remains open for interactive consumer qualification and integration.
+Package count is a scope index, not an effort or readiness estimate. Six external
 dispositions remain `DEFERRED_EXTERNAL` and cannot promote support claims.
 Completed actions have been removed from the work queue; receipts remain
 available as evidence and to prevent repeated work.
@@ -73,81 +77,68 @@ The package registry below is the exit checklist. Completed sub-slices are not
 queued again. P6-H1's AC1027 physical-span proof is closed by
 [`p6-ac1027-cover-mlinestyle-physical-field-span-proof-2026-11-16.json`](docs/research/p6-ac1027-cover-mlinestyle-physical-field-span-proof-2026-11-16.json).
 The bounded forward-STYLE identity and canonical MLINESTYLE-linetype behavior
-are also closed locally by the receipts listed under P8-D. The next queue is
-ordered by reusable existing work and the smallest remaining source-bound gap.
+are closed by the receipts listed under P8-D. P8-D3's rebase/build work is
+complete and is evidence only, not a remaining action. Queue order prioritizes
+work executable from existing source evidence, then batches shared GUI setup.
 
-1. **P8-D3 — rebase and qualify the existing LibreCAD change stack.** The
-   tested five-commit first-parent candidate runs from
-   `b007bff6e798425aa14ae507f7e884db68916e88` through
-   `014075bb1b7548e76b242e1bc0f1217ce8a83ba4`; its commits are `1894f6b8`,
-   `7192ad7`, `fc34c14`, `6a2d011`, and `014075b`. Local `origin/master` is now
-   `d40f178b9708b54ad34b15f721d22abb2315aa2b`, a descendant of that base.
-   Create a new clean scratch checkout at `d40f…`; preserve both the dirty
-   `/Users/dli/dev/LibreCAD` checkout and
-   `/private/tmp/librecad-p8-rebased-20261116` (which has an untracked source
-   file). Replay the exact five commits in order and resolve only conflicts in
-   their changed files; do not glob-apply the 45 similarly named patch files.
-   Build only `librecad_tests` and run the MLINESTYLE CMC retention/refusal
-   case, the five PR #3269 cases, and the focused LTYPE/DWG selection recorded
-   in the [CMC receipt](docs/research/p8-librecad-mlinestyle-cmc-retention-2026-11-16.json).
-   Also confirm the bundled-codec build and source-release patch inventory
-   checks. Do not rerun the full suite. Verify the bridge preserves fill and
-   element truecolor, method, flags, raw index, and color/book names; the
-   bundled codec must still compile and refuse or retain unsupported state
-   explicitly. No DWG/DXF fixture is needed. These generated controls do not
-   establish producer-authored extended CMC semantics, GUI behavior, ABI
-   compatibility, or non-macOS qualification.
-2. **P6-H2 — strict MLINESTYLE/MLINE output and readback.** First bind whether
-   an existing local source contains both a selected MLINESTYLE and an MLINE
-   that references it; current Cover evidence proves the style but does not
-   bind such an MLINE entity. If no matching producer profile is available,
-   use a from-scratch MLINE only to test writer mechanics and label the result
-   generated-control evidence. Feed the source-derived style, exact dictionary
-   membership, owner/reactor roles, and all layer/linetype/style dependencies
-   through strict AC1027 ASCII and Binary output. Compare every present color
-   component (ACI/truecolor, method, flags, raw index, names), angles, flags,
-   ordered offsets and linetype identities; compare MLINE path, scale,
-   extrusion/direction and vertex data only when a source-bound entity exists.
-   Reopen both files with an independent DXF reader. Preserve unrelated
-   full-source proxy refusal; use a bounded existing writer/adapter control
-   without bypassing preflight. Add transaction coverage only for an uncovered
-   route. A generated entity cannot close producer-semantic or native gates.
-3. **P6-H3 and P8-D1/D2 — one macOS interactive qualification block.** Do not
-   retry GUI launch while pasteboard/XPC remains unavailable; the failed
-   LibreCAD 2 launch is recorded in
-   `docs/research/p8-librecad-current-master-2d-launch-blocked-2026-11-16.json`.
-   When the interactive session works, use clean, source/configuration-bound
-   binaries and perform each check once: LibreCAD 2 LINE translate/save/close/
-   reopen; LibreCAD 3 MPOLYGON open/save/reopen; and, after H2, one
-   source-bound MLINE display/edit/save/reopen. Compare the serialized fields
-   and geometry with an already-installed independent reader. Scratch inputs
-   must be authored locally; commit no new DWG/DXF fixtures. If no source-bound
-   MLINE exists, keep its producer-semantic gate open even if a generated
-   display control passes.
-4. **P6-G — conditional only.** Reopen only for a named uncovered public
-   writer/overload route; add the single missing rollback, caller-state,
-   same-writer retry, or typed-readback assertion. Do not rescan the completed
-   route inventory.
-5. **Next-source selection — bounded and continuous.** After P8-D3 and P6-H2,
-   spend at most 15 minutes ranking existing receipts and already-local
-   sources by (a) exact source present, (b) smallest unresolved field/edge,
-   and (c) existing fast selector. Do one bounded screen, then either start the
-   first matching slice or create/advance a local acquisition/proof tool for
-   the highest-priority waiting row. Do not repeat completed corpus searches,
-   make speculative decoder changes, or wait idle for a remote sample, GUI, or
-   platform. A waiting row may remain waiting while its local prerequisite
-   work proceeds; support claims stay unchanged.
-6. **Late integration.** After candidate behavior stabilizes, run P8-A/B/C/E/F/G
-   and P7-H at one composed integration/release checkpoint. Use only affected
-   fast selectors between checkpoints; keep P9 external-only and non-blocking.
+1. **P6-H2 — strict MLINESTYLE output and readback.** Reuse the AC1027
+   `Cover.dwg` spans and handle-role map from P6-H1; do not repeat its parser
+   trace or corpus search. First check the existing indexed receipts for a
+   producer-bound MLINE whose style handle resolves to this style. If none is
+   present, proceed with the source-derived MLINESTYLE profile and use a locally
+   authored MLINE only for writer-mechanics controls. Build one field and
+   dependency ledger, then exercise strict ASCII and Binary output through the
+   existing adapter/writer routes. Compare represented CMC components, angles,
+   flags, ordered offsets, linetype identities, dictionary membership,
+   owner/reactor roles, and layer/linetype dependencies. Reopen with the
+   already-installed independent DXF reader and compare typed values and
+   reference roles. Add only a missing transaction assertion for rollback,
+   same-writer retry, or fresh readback. Preserve unrelated full-source proxy
+   refusal. Generated entities prove writer mechanics only; they do not close
+   producer semantics or native appearance. Keep AC1021 as a separate profile.
+2. **Next locally READY source-bound slice — one bounded selection pass.**
+   After H2, search existing plan receipts and already-local sources once for
+   an exact producer/version witness with the smallest unresolved field or
+   graph edge and an existing fast selector. Cap this pass at 15 minutes. Start
+   the first matching implementation/proof slice immediately. If none matches,
+   make one bounded local proof/acquisition tool for the highest-priority
+   waiting profile. End with either a named slice or a reusable local tool and
+   a precise missing-evidence trigger. Do not rerun completed corpus screens,
+   duplicate covered matrices, or make speculative decoder changes.
+3. **P6-H3 and P8-D1/D2 — one interactive qualification block.** Do not retry
+   GUI launch while the recorded pasteboard/XPC failure remains. When
+   interactive launch works, use clean, source/configuration-bound binaries
+   and perform each check once: LibreCAD 2 LINE translate/save/close/reopen;
+   LibreCAD 3 MPOLYGON open/save/reopen; and, after H2, one source-bound MLINE
+   display/edit/save/reopen if such an input exists. Compare saved records and
+   geometry with the already-installed independent reader. Until GUI launch is
+   available, keep advancing the next local READY slice; this wait does not
+   block implementation. Scratch inputs must be authored locally, and no new
+   DWG/DXF fixtures are committed. If no source-bound MLINE exists, keep its
+   producer-semantic gate open even if a generated display control passes.
+4. **P6-G — conditional single-route check.** Reopen only for a named public
+   writer/overload route that lacks rollback, caller-state preservation,
+   corrected same-writer retry, or typed readback. Add that one assertion and
+   receipt; do not rescan the completed route inventory.
+5. **Late integration.** After candidate behavior stabilizes, run P8-A/B/C/E/F/G
+   and P7-H at one composed integration/release checkpoint. Use affected fast
+   selectors between checkpoints; keep P9 external-only and non-blocking.
+
+For H2, source-derived style and graph checks are the minimum sub-slice exit;
+do not hold them for an MLINE witness. If an eligible entity source is found,
+extend the same ledger and independent readback to its path, scale,
+extrusion/direction, and vertex data. Cover currently binds a style but not an
+MLINE referencing it.
 
 ### Readiness and slice discipline
 
-- Immediate order: rebase/qualify the tested P8-D3 stack on `d40f…`, then
-  complete P6-H2. The P6-H1 span proof and bounded P8-D4 writer behavior are
-  already receipted and removed from the action queue. P6-H3 and P8-D1/D2 share
-  the macOS interactive-session trigger and are batched once it is available.
-  P6-G is conditional; integration gates stay late.
+- Immediate order: complete P6-H2 from the existing AC1027 Cover source
+  proof. P8-D3 is replayed and focused-qualified on `d40f…`; its local commit
+  chain and test identities are in the D3 receipt. P6-H1 and bounded P8-D4
+  behavior stay closed and are not repeated. After H2, make one bounded
+  source-selection pass and start the next locally READY slice. Batch P6-H3
+  with P8-D1/D2 only when GUI launch works; continue local work meanwhile.
+  P6-G remains conditional and integration gates stay late.
 - For each `WAITING_*` row, consult its named receipt and local source once. If
   the exact witness/tool/platform is absent, record the retrieval or activation
   trigger and move to a locally executable proof-preparation or implementation
@@ -260,7 +251,7 @@ locally evidenced packages.
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation stabilizes. | Reproducible commands and immutable source/tool/platform/runtime identity. |
 | P8-B / INTEGRATION_GATE | Refresh FreeCAD main and qualify selected Linux open/insert profiles using the actual converter/importer. | Exact binaries/modules, operation/settings/geometry, and independent semantics. |
 | P8-C / INTEGRATION_GATE | Qualify only the selected profiles on Windows through its actual converter/importer. | Windows runtime identity, open/insert semantics, and no fallback ambiguity. |
-| P8-D / NEXT_D3_GUI_WAITING | D1: LibreCAD 2 LINE save/reopen; D2: LibreCAD 3 MPOLYGON save/reopen; D3: rebase the tested five-commit upstream-consumer/CMC stack from base `b007…` onto current local `origin/master` `d40f…`, then run only changed/related selectors. D1/D2 wait for the recorded macOS pasteboard/XPC condition to clear. Preserve dirty worktrees. D4's bounded writer work is complete: forward STYLE identity has ASCII/Binary, wrong-kind/missing-target, collision and retry/readback controls; canonical MLINESTYLE linetype resolution is covered by the named-style and PR #3269 consumer tests. Reuse `docs/research/p8-ltype-forward-style-identity-2026-11-15.json`, `docs/research/p8-mlinestyle-canonical-linetypes-2026-11-15.json`, and `docs/research/p8-librecad-current-master-bundled-2026-11-16.json`; do not implement D4 again. | Separate clean source/build identity for each consumer; D3 retains or explicitly refuses all exposed CMC state and compiles against the bundled codec; after replay on `d40f…`, changed MLINESTYLE CMC/refusal, PR #3269, and focused LTYPE/DWG selectors pass. D1/D2 compare saved/reopened records with an independent reader. No new downloaded fixtures. |
+| P8-D / WAITING_FOR_GUI_D1_D2 | D1: LibreCAD 2 LINE translate/save/reopen. D2: LibreCAD 3 MPOLYGON save/reopen. Run both once when interactive launch works; the recorded macOS pasteboard/XPC condition currently prevents qualification. Use the clean source/build identities and the already-installed independent reader. No new DWG/DXF fixture is needed. | Compare saved/reopened records and geometry with the independent reader. P8-D3 qualification is recorded in `docs/research/p8-librecad-d3-rebase-focused-qualification-2026-11-16.json`; its candidate is local and unmerged. GUI, ABI, platform, and upstream-integration gates remain open. |
 | P8-E / INTEGRATION_GATE | Compare public symbols/class layouts with the release baseline; build clean static/shared consumers and relocatable packages. | ABI/SONAME, relocation, loaded-library checks on required platforms, and explicit rebuild requirements. |
 | P8-F / INTEGRATION_GATE | Inspect current required CI and source-release/packaging lanes; repair or formally disposition exclusions. | Source-matched required jobs green or formally dispositioned. |
 | P8-G / INTEGRATION_GATE | Set supported platforms, consumers, and release thresholds from completed evidence. | Evidence-backed support matrix with no required red job or advertised unqualified route. |
@@ -276,12 +267,11 @@ smoothing, mixed-color/layer, nested-block, persistence, and legacy importer
 unit/face cases under P8-B/C. Reuse runtime evidence only for its exact
 source/base/binary/configuration/operation.
 
-As of 2026-11-16, `/private/tmp/librecad-p8-rebased-20261116` is at
-`014075bb1b7548e76b242e1bc0f1217ce8a83ba4` and contains an untracked
-`librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp`. Preserve this
-scratch worktree; it is not a clean qualification checkout and the older
-`1894f6b8` receipt does not cover it. The clean consumer receipts remain
-usable only for their recorded source and build identities.
+The earlier `/private/tmp/librecad-p8-rebased-20261116` worktree and the
+user's dirty LibreCAD worktree were preserved. P8-D3's clean qualification
+checkout is `/private/tmp/librecad-p8-d40f-20261116`; its exact source, build,
+and focused test identities are in the linked receipt. The candidate remains
+local and unmerged.
 
 ## P9 — external-only dispositions
 
