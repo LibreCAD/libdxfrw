@@ -11,7 +11,7 @@
   "validation": {
     "focused": "Seven FreeCAD importer tests pass on macOS ARM64. Direct tests cover both mesh types, admitted and rejected ACI values, following LINE and recovery after duplicate color; block tests cover both mesh types, color-preservation on/off, explicit/BYLAYER and no leaked faces. Existing layer and bounded mesh regression controls pass.",
     "fusedGrouping": "For two generated meshes, differing ACI colors create two groups when colors are preserved; identical colors or disabled color preservation create one group. Total area remains 12 square millimetres.",
-    "peer": "Separately ezdxf 1.4.4 generated same/different-color POLYFACE drawings reproduce the same grouping and geometric results.",
+    "peer": "The originally tested ezdxf files had explicit parent colors but omitted child/face group 62, which defaults to BYLAYER. They demonstrate only the old importer grouping and do not establish source-color fidelity. Corrected ezdxf files with matching parent, vertex and face colors pass the same grouping controls after the mandatory consistency correction.",
     "replay": "Zero-context patch applies with git apply --unidiff-zero after the preceding eight patches; all four source files and test file match the tested candidate.",
     "logs": [
       "/private/tmp/freecad-polyface-layer-20261116/color-before.log",
@@ -26,6 +26,7 @@
   "limits": [
     "Only headless grouping and geometry are verified; GUI appearance, native Draft, other platforms and native producer semantics remain open.",
     "Block explicit colors are refused when preserving colors; face-specific styles, BYBLOCK, truecolor, hidden edges, smoothing and nonplanar faces remain unsupported.",
-    "No drawing fixture is committed; no phase gate or external-only support claim is promoted."
+    "No drawing fixture is committed; no phase gate or external-only support claim is promoted.",
+    "The parent-color patch must be followed by freecad-p8-default-mesh-color-consistency-2026-11-16.patch. Do not treat its original parent-only color profiles as semantic evidence."
   ]
 }
