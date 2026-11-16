@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-16",
+  "scope": "Preserve canonical ACAD APPID flags while retaining atomic refusal for unsupported non-flag metadata.",
+  "regression": "The initial flag-refusal guard at 507ae368 caused Linux and Windows FreeCAD release qualification and fast/native jobs to fail on generated DWG handoffs. The AC1021 source inspection found ACAD flags=64, with empty application/XDATA/reactor metadata.",
+  "change": "Backpatch the fixed-width canonical APPID group 70 after the callback, using a scoped per-thread sink and the existing bounded group-70 writer. Conflicting duplicate values refuse. Non-flag metadata that the prewritten row cannot retain still refuses. No public data member or virtual function was added.",
+  "checks": [
+    "Canonical flags 0, 16, 32, 48, 64, 80, 96 and 112 round-trip for AC1009, AC1014 and AC1032 ASCII/Binary.",
+    "Nested distinct writers retain independent flags; conflicting callbacks preserve the destination and a corrected same-writer retry passes.",
+    "Seven non-flag metadata/reference states refuse without mutating caller or destination; same-writer retry and default APPID readback pass.",
+    "Generated AC1021, AC1024 and AC1032 DWG -> ASCII/Binary DXF conversions pass 6/6 with ACAD flag 64 on readback.",
+    "The FreeCAD CLI compatibility check passes and now verifies flag 64 after conversion and DXF retry.",
+    "Local macOS FreeCAD generated AC1021 LINE open/insert and AC1021/AC1024/AC1032 primitive open/insert controls pass 8/8. Sandboxed FreeCAD launches failed because Qt reported ARM NEON unavailable; the same controls passed with desktop access.",
+    "The focused CLI contract passed when run directly; its 25-second CTest wrapper timed out locally both inside and outside the sandbox.",
+    "The APPID allocation, LTYPE allocation and source-table identity CTests passed 3/3.",
+    "The frozen implementation digest was refreshed from a clean temporary index matching all 5988 staged tracked entries; digest validation and its self-test pass. Claim statuses and receipt references are unchanged."
+  ],
+  "limitations": [
+    "The failed hosted revision is not qualified; the corrected revision must rerun fast, native and FreeCAD hosted jobs.",
+    "Non-flag canonical APPID metadata is not preserved and is refused.",
+    "Generated controls do not promote independent semantic or broad format support claims.",
+    "The digest refresh does not promote support claims or turn pending native qualification into a pass."
+  ],
+  "qualificationDigest": "f1fec14db2da02458ffccfc4846c6e0292fa8be34532c24ed79304698f5ff81e"
+}

@@ -111,6 +111,31 @@ if(_readback_version_pos EQUAL -1)
         "FreeCAD-form DXF readback downgraded the source revision from AC1021")
 endif()
 
+# The generated DWG's canonical ACAD APPID has flag 64. The FreeCAD handoff
+# must retain it both on the first conversion and on the DXF retry.
+function(assert_canonical_acad_flags path)
+    file(READ "${path}" _text)
+    string(REPLACE "\r\n" "\n" _text "${_text}")
+    string(FIND "${_text}" "  0\nAPPID\n" _start)
+    if(_start EQUAL -1)
+        message(FATAL_ERROR "Missing canonical APPID in ${path}")
+    endif()
+    string(SUBSTRING "${_text}" ${_start} -1 _tail)
+    string(FIND "${_tail}" "\n  0\n" _end)
+    if(_end EQUAL -1)
+        message(FATAL_ERROR "Unterminated canonical APPID in ${path}")
+    endif()
+    string(SUBSTRING "${_tail}" 0 ${_end} _record)
+    string(APPEND _record "\n")
+    string(FIND "${_record}" "\n  2\nACAD\n" _name)
+    string(FIND "${_record}" "\n 70\n   64\n" _flags)
+    if(_name EQUAL -1 OR _flags EQUAL -1)
+        message(FATAL_ERROR "Canonical ACAD APPID flag 64 was not retained in ${path}")
+    endif()
+endfunction()
+assert_canonical_acad_flags("${_output}")
+assert_canonical_acad_flags("${_readback_output}")
+
 # AC1027 remains strict-output refused while its complete source reference graph
 # is unqualified. Exercise the exact FreeCAD argv form and require atomic refusal.
 set(_ac1027_input "${_test_dir}/source drawing AC1027.dwg")

@@ -14,5 +14,6 @@
     "This prevents silent metadata loss; it does not implement preservation of nondefault ACAD APPID metadata.",
     "These generated controls are not independent producer or consumer semantic qualification.",
     "Other writer families and whole-document graph closure remain open."
-  ]
+  ],
+  "followUp": "The initial flags refusal caused a regression for generated DWG files whose ACAD APPID carries flag 64. Flags are now backpatched and round-trip; unsupported non-flag metadata still refuses. See p6-canonical-acad-appid-flags-backpatch-2026-11-16.json."
 }

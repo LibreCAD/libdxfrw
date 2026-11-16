@@ -226,6 +226,14 @@ struct DxfDimstyleHeaderHandleSink {
 thread_local DxfDimstyleHeaderHandleSink* activeDxfDimstyleHeaderHandleSink =
     nullptr;
 
+struct DxfCanonicalAppIdFlagSink {
+    const dxfRW* owner;
+    bool seen;
+    int flags;
+};
+
+thread_local DxfCanonicalAppIdFlagSink* activeDxfCanonicalAppIdFlagSink = nullptr;
+
 bool appendDxfWriterBytes(dxfWriter& writer, const std::string& bytes) {
     std::ostream* output = writer.stream();
     if (output == nullptr || writer.hasWriteError())
@@ -239,7 +247,7 @@ bool appendDxfWriterBytes(dxfWriter& writer, const std::string& bytes) {
     return true;
 }
 
-bool writeDxfTableCapacityPlaceholder(dxfWriter& writer,
+bool writeDxfNonnegativeGroup70Placeholder(dxfWriter& writer,
                                       std::streampos& groupOffset) {
     std::ostringstream* stream =
         dynamic_cast<std::ostringstream*>(writer.stream());
@@ -250,7 +258,7 @@ bool writeDxfTableCapacityPlaceholder(dxfWriter& writer,
         && writer.writeInt16(70, 0);
 }
 
-bool backpatchDxfTableCapacity(dxfWriter& writer,
+bool backpatchDxfNonnegativeGroup70(dxfWriter& writer,
                                std::streampos groupOffset,
                                std::size_t count, bool binary,
                                bool r12Binary) {
@@ -9605,14 +9613,22 @@ bool dxfRW::writeAppId(DRW_AppId *ent){
     // The built-in is serialized by writeTables before this callback. Bind
     // only that actual route, never a synthetic row requested elsewhere.
     if (strname == "ACAD") {
-        // The already-written built-in has flags=0 and no metadata. Reusing
-        // it for a source row with additional state would silently drop that
-        // state; the streaming callback cannot amend the committed row.
-        if (ent->flags != 0 || !ent->appData.empty() || !ent->extData.empty()
+        // Non-flag metadata cannot be added to the already-written built-in
+        // row. Its fixed-width flags can be backpatched after the callback.
+        if (!ent->appData.empty() || !ent->extData.empty()
             || !ent->reactorHandles.empty() || ent->reactorCount() != 0
             || ent->xDictHandle != 0 || !ent->pendingAppIdResolutions.empty()
             || !ent->pendingLayerRefResolutions.empty())
             return failDxfWrite();
+        auto* flagSink = activeDxfCanonicalAppIdFlagSink;
+        if (flagSink == nullptr || flagSink->owner != this) {
+            if (ent->flags != 0) return failDxfWrite();
+        } else {
+            if (flagSink->seen && flagSink->flags != ent->flags)
+                return failDxfWrite();
+            flagSink->seen = true;
+            flagSink->flags = ent->flags;
+        }
         if (version <= DRW::AC1009 || ent->handle == 0u || ent->handle == DRW::NoHandle)
             return true;
         if (m_registeredDxfXdataAppIds.count("ACAD") != 1u) return failDxfWrite();
@@ -18426,7 +18442,7 @@ bool dxfRW::writeTables(const char** outputStage) {
     };
     const auto writeCapacityPlaceholder = [this](std::streampos& offset) {
         if (writer == nullptr
-            || !writeDxfTableCapacityPlaceholder(*writer, offset)) {
+            || !writeDxfNonnegativeGroup70Placeholder(*writer, offset)) {
             m_writeError = true;
             return false;
         }
@@ -18434,7 +18450,7 @@ bool dxfRW::writeTables(const char** outputStage) {
     };
     const auto patchCapacity = [this, &tableRows](std::streampos offset) {
         if (writer == nullptr
-            || !backpatchDxfTableCapacity(
+            || !backpatchDxfNonnegativeGroup70(
                 *writer, offset, tableRows.value(), binFile,
                 binFile && version <= DRW::AC1009)) {
             m_writeError = true;
@@ -18803,13 +18819,25 @@ bool dxfRW::writeTables(const char** outputStage) {
         writer->writeString(100, "AcDbRegAppTableRecord");
     }
     writer->writeString(2, "ACAD");
-    writer->writeInt16(70, 0);
+    std::streampos canonicalAppIdFlagOffset;
+    if (!writeDxfNonnegativeGroup70Placeholder(*writer, canonicalAppIdFlagOffset))
+        return failDxfWrite();
     if (!recordDxfTableRow())
         return false;
     m_registeredDxfXdataAppIds.insert("ACAD");
     if (hasWriteFailure())
         return false;
-    iface->writeAppId();
+    DxfCanonicalAppIdFlagSink canonicalAppIdFlags{this, false, 0};
+    {
+        PointerRestoreScope<DxfCanonicalAppIdFlagSink> scope(
+            activeDxfCanonicalAppIdFlagSink, &canonicalAppIdFlags);
+        iface->writeAppId();
+    }
+    if (!hasWriteFailure()
+        && !backpatchDxfNonnegativeGroup70(*writer, canonicalAppIdFlagOffset,
+            static_cast<std::size_t>(canonicalAppIdFlags.flags), binFile,
+            binFile && version <= DRW::AC1009))
+        return failDxfWrite();
     if (hasWriteFailure() || !validateDxfXdataAppIdRegistrations()
         || !patchCapacity(appIdCountOffset))
         return false;

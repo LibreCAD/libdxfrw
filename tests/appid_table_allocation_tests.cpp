@@ -135,6 +135,83 @@ bool readbackMatches(const std::filesystem::path& path) {
         && sameAppId(reader.appIds.front(), expected, true);
 }
 
+bool canonicalFlagRoundTrip(const std::filesystem::path& directory) {
+    const auto path = directory / "canonical-appid-flags.dxf";
+    for (const auto version : {DRW::AC1009, DRW::AC1014, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            dxfRW codec(path.string().c_str());
+            CanonicalExport exporter(codec);
+            for (const int flags : {0, 16, 32, 48, 64, 80, 96, 112}) {
+                exporter.app.flags = flags;
+                if (!codec.write(&exporter, version, binary) || !exporter.accepted
+                    || exporter.app.flags != flags) {
+                    std::cerr << "canonical APPID flags write failed: " << flags << '\n';
+                    return false;
+                }
+                dxfRW input(path.string().c_str());
+                CanonicalReader reader;
+                if (!input.read(&reader, false) || reader.count != 1u || reader.flags != flags)
+                    return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool canonicalFlagScopeAndRetry(const std::filesystem::path& directory) {
+    const auto outerPath = directory / "canonical-appid-outer.dxf";
+    const auto innerPath = directory / "canonical-appid-inner.dxf";
+    for (const bool binary : {false, true}) {
+        class NestedExport final : public LC3CompatCheck {
+        public:
+            NestedExport(dxfRW& output, const std::filesystem::path& inner, bool binary)
+                : codec(output), innerPath(inner), binary(binary) {
+                app.name = "ACAD";
+                app.handle = 0xD751u;
+                app.flags = 64;
+            }
+            void writeHeader(DRW_Header&) override {}
+            void writeAppId() override {
+                dxfRW innerCodec(innerPath.string().c_str());
+                CanonicalExport inner(innerCodec);
+                inner.app.flags = 16;
+                innerSucceeded = innerCodec.write(&inner, DRW::AC1032, binary) && inner.accepted;
+                accepted = codec.writeAppId(&app);
+                if (conflict) {
+                    app.flags = 16;
+                    accepted = codec.writeAppId(&app) && accepted;
+                    app.flags = 64;
+                }
+            }
+            bool finalizeDxfWrite() override { return accepted && innerSucceeded; }
+            dxfRW& codec;
+            std::filesystem::path innerPath;
+            bool binary, accepted = false, innerSucceeded = false, conflict = false;
+            DRW_AppId app;
+        };
+        dxfRW codec(outerPath.string().c_str());
+        NestedExport exporter(codec, innerPath, binary);
+        exporter.conflict = true;
+        const std::string sentinel = "prior nested canonical APPID output\n";
+        { std::ofstream out(outerPath, std::ios::binary | std::ios::trunc); out << sentinel; }
+        std::string current;
+        if (codec.write(&exporter, DRW::AC1032, binary)
+            || !readBytes(outerPath, current) || current != sentinel)
+            return false;
+        exporter.conflict = false;
+        if (!codec.write(&exporter, DRW::AC1032, binary) || !exporter.accepted || !exporter.innerSucceeded)
+            return false;
+        dxfRW outerReaderCodec(outerPath.string().c_str());
+        CanonicalReader outerReader;
+        dxfRW innerReaderCodec(innerPath.string().c_str());
+        CanonicalReader innerReader;
+        if (!outerReaderCodec.read(&outerReader, false) || outerReader.count != 1u || outerReader.flags != 64
+            || !innerReaderCodec.read(&innerReader, false) || innerReader.count != 1u || innerReader.flags != 16)
+            return false;
+    }
+    return true;
+}
+
 bool canonicalMetadataRefusalRetry(const std::filesystem::path& directory) {
     const auto path = directory / "canonical-appid.dxf";
     const auto cleanPath = directory / "canonical-appid-clean.dxf";
@@ -147,23 +224,22 @@ bool canonicalMetadataRefusalRetry(const std::filesystem::path& directory) {
                 return false;
             std::string expected;
             if (!readBytes(cleanPath, expected)) return false;
-            for (unsigned fault = 0; fault != 8; ++fault) {
+            for (unsigned fault = 0; fault != 7; ++fault) {
                 { std::ofstream output(path, std::ios::binary | std::ios::trunc); output << prior; }
                 dxfRW codec(path.string().c_str());
                 CanonicalExport exporter(codec);
-                if (fault == 0) exporter.app.flags = 16;
-                if (fault == 1) exporter.app.appData.push_back({
+                if (fault == 0) exporter.app.appData.push_back({
                     {102, std::string("{CANONICAL_META")}, {1, std::string("value")},
                     {102, std::string("}")}});
-                if (fault == 2) {
+                if (fault == 1) {
                     exporter.app.extData.push_back(new DRW_Variant(1001, std::string("ACAD")));
                     exporter.app.extData.push_back(new DRW_Variant(1000, std::string("value")));
                 }
-                if (fault == 3) exporter.app.reactorHandles.push_back(0x123u);
-                if (fault == 4) exporter.app.xDictHandle = 0x123u;
-                if (fault == 5) exporter.app.pendingAppIdResolutions.push_back({});
-                if (fault == 6) exporter.app.pendingLayerRefResolutions.push_back({});
-                if (fault == 7) exporter.app.setDwgCommonObjectState(1, 0u, false);
+                if (fault == 2) exporter.app.reactorHandles.push_back(0x123u);
+                if (fault == 3) exporter.app.xDictHandle = 0x123u;
+                if (fault == 4) exporter.app.pendingAppIdResolutions.push_back({});
+                if (fault == 5) exporter.app.pendingLayerRefResolutions.push_back({});
+                if (fault == 6) exporter.app.setDwgCommonObjectState(1, 0u, false);
                 const auto beforeFlags = exporter.app.flags;
                 const auto beforeAppData = exporter.app.appData.size();
                 const auto beforeExtData = exporter.app.extData.size();
@@ -372,6 +448,7 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return canonicalMetadataRefusalRetry(directory) && allocationSweep(directory)
+    return canonicalFlagRoundTrip(directory) && canonicalFlagScopeAndRetry(directory)
+        && canonicalMetadataRefusalRetry(directory) && allocationSweep(directory)
         && unknownGroup71RefusalRetry(directory) ? 0 : 2;
 }

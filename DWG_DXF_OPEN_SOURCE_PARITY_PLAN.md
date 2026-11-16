@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **700 completed implementation and qualification slices** and **32 remaining
+The plan records **701 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`700 / (700 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
+`701 / (701 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -83,10 +83,13 @@ created locally from scratch for the specific control.
 
 ### Next work packets
 
-For P6-G, the fixed `ACAD` APPID route now refuses source flags or metadata it
-cannot emit instead of silently dropping them; focused rollback, same-writer
-retry, readback and source-alias checks pass
-([receipt](docs/research/p6-canonical-acad-appid-metadata-refusal-2026-11-16.json)).
+For P6-G, the fixed `ACAD` APPID route now backpatches source flags and refuses
+other metadata it cannot emit. The first refusal-only flag guard broke ordinary
+generated DWG handoff; the fix passes focused rollback/readback and local
+FreeCAD open/insert controls
+([regression receipt](docs/research/p6-canonical-acad-appid-flags-backpatch-2026-11-16.json)).
+The implementation digest is refreshed without changing claim statuses;
+rerun the failed hosted fast, native and FreeCAD qualification jobs.
 Predeclared canonical LTYPE flags now survive output; nondefault flags arriving
 only after the fixed row was written refuse atomically
 ([receipt](docs/research/p6-canonical-ltype-flags-2026-11-16.json)). Canonical
@@ -162,9 +165,10 @@ check, not as a substitute for full GUI or rendering qualification. The
 [guarded GUI runner](tools/research/run_freecad_candidate_gui_probe.py) binds
 the source, build, executable and loaded modules; its macOS smoke and negative
 checks pass ([receipt](docs/research/p8-freecad-candidate-gui-runner-2026-11-16.json)).
-An opt-in hosted GUI mode now builds the required GUI resources and runs that
-smoke on a Linux virtual display or a Windows runner. The run has been
-dispatched; record each result and its Qt backend when it completes
+An opt-in hosted GUI mode builds the required GUI resources and runs that
+smoke on a Linux virtual display or a Windows runner. The first Linux run built
+successfully but lacked `Draft_rc`; the workflow now builds Draft resources and
+the runner verifies their source. Retry Linux and record each Qt backend
 ([receipt](docs/research/p8-freecad-candidate-hosted-gui-workflow-2026-11-16.json)).
 Native GUI behavior, independent semantics and upstream integration remain open.
 
