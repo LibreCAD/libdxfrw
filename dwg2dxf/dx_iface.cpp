@@ -87804,10 +87804,16 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             classes.swap(normalized);
             return true;
         };
-        return registerClass((usesAc1027DefaultLayerProfile() || m_dxfLayerMaterialState.plotActive)
+        const bool callerDefaultPlotProfile =
+            m_dxfLayerMaterialState.defaultPlotSourceActive;
+        return registerClass((usesAc1027DefaultLayerProfile()
+                                  || m_dxfLayerMaterialState.plotActive
+                                  || callerDefaultPlotProfile)
                                  ? "ACDBDICTIONARYWDFLT" : "DICTIONARYWDFLT",
                              "ACDBDICTIONARYWITHDEFAULT",
-                             (usesAc1027DefaultLayerProfile() || m_dxfLayerMaterialState.plotActive)
+                             (usesAc1027DefaultLayerProfile()
+                                  || m_dxfLayerMaterialState.plotActive
+                                  || callerDefaultPlotProfile)
                                  ? "DICTIONARYWDFLT" : "ACDBDICTIONARYWDFLT",
                              m_extensionDictionaryWithDefaultHandles.size())
             && registerClass("ACDBPLACEHOLDER", "ACDBPLACEHOLDER", nullptr,
@@ -90089,6 +90095,14 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     dxfW->setNamedDictObjects(std::move(materialDictionaries));
     dxfW->setRootDictEntries(std::move(rootEntries));
+    if (m_dxfLayerMaterialState.defaultPlotSourceActive
+        && !dxfW->setDxfDefaultPlotStyleSourceHandles(
+            m_dxfLayerMaterialState.defaultPlotDictionarySource,
+            m_dxfLayerMaterialState.defaultPlotPlaceholderSource)) {
+        delete dxfW;
+        dxfW = nullptr;
+        return false;
+    }
     exportStage = "GROUP output preparation";
     if (cData->groups.size() > GroupCaptureMaxRecords) {
         delete dxfW;
@@ -92004,7 +92018,11 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
                 || !cData->hasNamedObjectDictionary
                 || cData->dictionaryWithDefaults.size() != 1u
                 || cData->rawDictionaryWithDefaults.size() != 1u
-                || cData->rawPlaceholders.size() != 1u)
+                || cData->rawPlaceholders.size() != 1u
+                || !cData->placeholders.empty()
+                || !cData->hasSingleSuccessfulDictionaryDefaultImport()
+                || m_extensionDictionaryWithDefaultHandles.size() != 1u
+                || m_extensionPlaceholderHandles.size() != 1u)
                 return false;
             for (const DRW_Layer& layer : cData->layers) {
                 std::uint32_t target = 0u;
@@ -92032,6 +92050,56 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
                 cData->rawDictionaryWithDefaults.front();
             const DRW_RawDxfObject& rawPlaceholder =
                 cData->rawPlaceholders.front();
+            const auto rawString = [](const DRW_Variant& group, int code,
+                                      std::string_view expected) {
+                return group.code() == code
+                    && group.type() == DRW_Variant::STRING
+                    && group.c_str() != nullptr
+                    && std::string_view(group.c_str()) == expected;
+            };
+            const auto rawInteger = [](const DRW_Variant& group, int code,
+                                       std::int32_t expected) {
+                return group.code() == code
+                    && group.type() == DRW_Variant::INTEGER
+                    && group.i_val() == expected;
+            };
+            const auto rawHandle = [](const DRW_Variant& group, int code,
+                                      std::uint32_t expected) {
+                if (group.code() != code
+                    || group.type() != DRW_Variant::STRING
+                    || group.c_str() == nullptr)
+                    return false;
+                const std::string_view text(group.c_str());
+                std::uint32_t parsedHandle = 0u;
+                const auto parsed = std::from_chars(
+                    text.data(), text.data() + text.size(), parsedHandle, 16);
+                return !text.empty() && parsed.ec == std::errc{}
+                    && parsed.ptr == text.data() + text.size()
+                    && parsedHandle == expected;
+            };
+            // Only normalize group 280 when the imported value is exactly the
+            // default soft-owner value and every other source field is covered
+            // by the typed writer. Unknown groups, reactors, XDATA and xdicts
+            // remain outside this adapter profile.
+            const bool conformantTypedProjection =
+                rawDictionary.groups.size() == 9u
+                && rawHandle(rawDictionary.groups[0], 5, dictionary.handle)
+                && rawHandle(rawDictionary.groups[1], 330,
+                             cData->namedObjectDictionary.handle)
+                && rawString(rawDictionary.groups[2], 100,
+                             "AcDbDictionary")
+                && rawInteger(rawDictionary.groups[3], 280, 0)
+                && rawInteger(rawDictionary.groups[4], 281,
+                              dictionary.cloning)
+                && rawString(rawDictionary.groups[5], 3, "Normal")
+                && rawHandle(rawDictionary.groups[6], 350, 0xFu)
+                && rawString(rawDictionary.groups[7], 100,
+                             "AcDbDictionaryWithDefault")
+                && rawHandle(rawDictionary.groups[8], 340, 0xFu)
+                && dictionary.hardOwner == 0
+                && dictionary.extData.empty() && dictionary.appData.empty()
+                && dictionary.reactorHandles.empty()
+                && dictionary.xDictHandle == 0u;
             if (rootMatches != 1u || rootEntry == nullptr
                 || rootEntry->m_handle != dictionary.handle
                 || dictionary.handle == 0u
@@ -92039,6 +92107,10 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
                 || dictionary.parentHandle
                     != cData->namedObjectDictionary.handle
                 || !dictionary.hasCompleteDxfPayload()
+                || !conformantTypedProjection
+                || m_extensionDictionaryWithDefaultHandles.front()
+                    != dictionary.handle
+                || m_extensionPlaceholderHandles.front() != 0xFu
                 || dictionary.m_defaultEntryHandle != 0xFu
                 || dictionary.m_entries.size() != 1u
                 || dictionary.m_entries.front().m_name != "Normal"
@@ -92054,10 +92126,49 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
                 || rawPlaceholder.handle != 0xFu
                 || rawPlaceholder.parentHandle != dictionary.handle)
                 return false;
+            state.defaultPlotSourceActive = true;
+            state.defaultPlotDictionarySource = dictionary.handle;
+            state.defaultPlotPlaceholderSource = rawPlaceholder.handle;
             return true;
         };
         if (hasExactDefaultOnlyPlotStyleGraph())
             return true;
+
+        // Do not let an AC1021 source that resembles the default-only graph
+        // fall through to the generic raw-object path when a field or edge is
+        // outside the profile above. That would bypass the explicit source
+        // graph contract and could silently retain a nonconformant record.
+        if (cData->sourceVersion == DRW::AC1021
+            && version == DRW::AC1021) {
+            bool referencesDefault = false;
+            for (const DRW_Layer& layer : cData->layers) {
+                std::uint32_t target = 0u;
+                const std::string& text = layer.handlePlotS;
+                const auto parsed = std::from_chars(
+                    text.data(), text.data() + text.size(), target, 16);
+                if (!text.empty() && parsed.ec == std::errc{}
+                    && parsed.ptr == text.data() + text.size()
+                    && target == 0xFu) {
+                    referencesDefault = true;
+                    break;
+                }
+            }
+            bool hasPlotStyleRoot = false;
+            for (const DRW_Dictionary::Entry& entry :
+                 cData->namedObjectDictionary.m_entries) {
+                if (asciiIdentifierEquals(
+                        entry.m_name, "ACAD_PLOTSTYLENAME")) {
+                    hasPlotStyleRoot = true;
+                    break;
+                }
+            }
+            const bool hasPlotStyleGraph =
+                !cData->dictionaryWithDefaults.empty()
+                || !cData->rawDictionaryWithDefaults.empty()
+                || !cData->rawPlaceholders.empty() || hasPlotStyleRoot;
+            if (referencesDefault && hasPlotStyleGraph)
+                return false;
+        }
 
         std::uint32_t selected = 0u; unsigned relevant = 0u;
         for (const auto& layer : cData->layers) {

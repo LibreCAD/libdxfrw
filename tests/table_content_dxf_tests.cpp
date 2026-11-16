@@ -6128,6 +6128,7 @@ int main(int argc,char** argv) {
     const bool dependencies=argc==2 && std::string(argv[1])=="--dependencies";
     const bool styleFont=argc==2 && std::string(argv[1])=="--style-font-xdata";
     const bool plotSources=argc==2 && std::string(argv[1])=="--plotstyle-sources";
+    const bool plotDefaultOutput=argc==2 && std::string(argv[1])=="--plotstyle-default-output";
     const bool effectiveOwnership=argc==2 && std::string(argv[1])=="--effective-ownership";
     const bool tableGeometryDependencies=argc==2 && std::string(argv[1])=="--table-geometry-dependencies";
     const bool entityDependencies=argc==2 && std::string(argv[1])=="--entity-dependencies";
@@ -6142,7 +6143,7 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableCellAppearanceWrite && !tableCellBorderVisibilityEdges && !tableRowMarginWrite && !tableColumnTableMarginWrite && !tableSingleCellStyleMarginWrite && !tableStyleFormatWrite && !tableStyleReferenceWrite && !tableLinkedGridWrite && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !plotDefaultOutput && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableCellAppearanceWrite && !tableCellBorderVisibilityEdges && !tableRowMarginWrite && !tableColumnTableMarginWrite && !tableSingleCellStyleMarginWrite && !tableStyleFormatWrite && !tableStyleReferenceWrite && !tableLinkedGridWrite && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     std::error_code error;const auto dir=reserveTestScratch(parent,stem,error);
@@ -6154,6 +6155,7 @@ int main(int argc,char** argv) {
         : tableGeometryDependencies ? tableGeometryDependencyTests(dir)
         : effectiveOwnership ? effectiveOwnershipTests(dir)
         : plotSources ? plotSourceTests(dir)
+        : plotDefaultOutput ? plotStyleDefaultOnlyAdapterOutputTests(dir)
         : styleFont ? styleFontTests(dir)
         : dependencies ? dependencyTests(dir)
         : symbolOrigins ? symbolOriginTests(dir)
@@ -6208,6 +6210,10 @@ int main(int argc,char** argv) {
         : spineProof ? spineSourceProofTests(dir)
         : blockRecordProof ? blockRecordSourceProofTests(dir)
         : tests(dir);
-    if (ok) std::filesystem::remove_all(dir,error); else std::cerr<<"Evidence: "<<dir<<'\n';
+    const char* keepScratch=std::getenv("LIBDXFRW_TEST_KEEP_SCRATCH");
+    if (ok&&(keepScratch==nullptr||keepScratch[0]=='\0'))
+        std::filesystem::remove_all(dir,error);
+    else
+        std::cerr<<"Evidence: "<<dir<<'\n';
     return ok?0:1;
 }

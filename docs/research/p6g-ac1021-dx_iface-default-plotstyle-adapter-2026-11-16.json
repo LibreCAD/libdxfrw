@@ -1,0 +1,56 @@
+{
+  "schema": 1,
+  "kind": "libdxfrw-p6g-dxf-default-plotstyle-adapter-evidence",
+  "date": "2026-11-16",
+  "baseCommit": "deb759aa",
+  "scope": {
+    "format": "DXF",
+    "sourceVersion": "AC1021",
+    "outputVersion": "AC1021",
+    "profile": "one ACAD_PLOTSTYLENAME DICTIONARYWDFLT entry Normal -> ACDBPLACEHOLDER at handle F; every LAYER group 390 is F",
+    "sourceProvenance": "runtime-authored locally from scratch by tests/plotstyle_source_controls.h; no downloaded or repository fixture payload",
+    "sourceEncoding": ["ASCII", "Binary"],
+    "outputEncoding": ["ASCII", "Binary"]
+  },
+  "implementation": {
+    "sourceAwareGate": "dx_iface::prepareDxfLayerPlot validates the exact source group sequence; group 280 is admitted for typed normalization only when its value is exactly zero. Unknown groups, nonzero hard-owner values, XDATA, dictionary reactors, extension dictionaries, extra entries, or additional graph records remain refused.",
+    "outputRoute": "fileExport declares the selected dictionary and placeholder source handles to dxfRW; writeObjects emits the typed dictionary so conformant ACDBDICTIONARYWDFLT output omits source group 280, while the bounded raw placeholder writer preserves its closed reactor and owner edges.",
+    "sourceMutation": "The adapter source state is checked after each export; both source encodings and both output encodings passed.",
+    "failureRetry": "A group-280 value of 1 is rejected in strict export; a pre-existing destination sentinel is preserved; the same adapter then imports the corrected source and successfully exports ASCII and Binary."
+  },
+  "evidence": {
+    "inputSha256": "48eead847c7fbc442d4ab5dc3303fb1a5e46ed09f5f24587c715caa9d6f8243c",
+    "asciiOutputSha256": "89dd5ef2f903bf5c1bf3e7b7ca3f06c896749415e616b43a3fd50bdc41d1548c",
+    "binaryOutputSha256": "c138c6ed572c8e3004171aff811647e472152d450f21bc8c95ea2f4535662bad",
+    "scratchDirectory": "/var/folders/dk/82sygs213tx480lrhplhmmmm0000gp/T/libdxfrw-table-content-506195207992125-0",
+    "freshReadback": "libdxfrw dx_iface import confirmed root entry, dictionary/default/Normal identities, owner links, LAYER 390 values, reactor, and omission of group 280 in emitted dictionary.",
+    "independentReadback": {
+      "tool": "ezdxf",
+      "version": "1.4.5",
+      "result": "ASCII and Binary both read as AC1021; root ACAD_PLOTSTYLENAME resolves to ACDBDICTIONARYWDFLT E801 owned by NOD C; Normal and default both resolve to placeholder F owned by E801; both emitted layers reference plot-style handle F."
+    },
+    "focusedTests": [
+      {
+        "command": "ctest --test-dir build -R '^libdxfrw_plotstyle_(default_adapter_output|original_sources)$' --output-on-failure",
+        "result": "2/2 passed; 3.61 seconds"
+      },
+      {
+        "command": "ctest --test-dir build-asan-custom -R '^libdxfrw_plotstyle_default_adapter_output$' --output-on-failure",
+        "result": "1/1 passed under ASan; 1.18 seconds"
+      }
+    ],
+    "build": "cmake --build build --target libdxfrw_table_content_dxf_tests -j 4 passed"
+  },
+  "implementationFileSha256": {
+    "dwg2dxf/dx_iface.cpp": "cfd032a30fbdd925b7f4202f2a701f4f7e50ffac09f811457884e55a8e741fbb",
+    "dwg2dxf/dx_iface.h": "672daa7e553dc77f8b61b016a88de39e19c9941e8dd7534e594600965810acc5",
+    "tests/CMakeLists.txt": "362410fb921b381be2d45fad3b66e94d615a9d406f0823e01c36f2af02d03df0",
+    "tests/plotstyle_source_controls.h": "d663c646c655aefc3dddb73f87660b4f69b921f9a2724c08a690a9ca5f53d6ea",
+    "tests/table_content_dxf_tests.cpp": "12878d63aa30f95ad92f2094a97aeaf664037fd964accc0b09f4b67c19c74f13"
+  },
+  "limits": [
+    "This is locally authored AC1021 source and independent parser compatibility evidence, not a producer-origin drawing qualification.",
+    "It does not qualify nondefault dictionary children, nonzero group-280 ownership, dictionary reactors, extension dictionaries, XDATA, native plotting, LibreCAD runtime behavior, or other versions.",
+    "No qualified-format support claim or platform gate is promoted."
+  ]
+}

@@ -2339,6 +2339,14 @@ public:
                     DRW_Ac1027BoundDictionary projection(*typed);
                     if (!dxfW->writeDictionaryWithDefault(&projection)) return;
                 } else if (!dxfW->writeDictionaryWithDefault(typed)) return;
+            } else if (m_dxfLayerMaterialState.defaultPlotSourceActive
+                       && handle
+                           == m_dxfLayerMaterialState.defaultPlotDictionarySource) {
+                if (rawMatches != 1u || raw == nullptr
+                    || !dxfW->writeDictionaryWithDefault(typed)) {
+                    dxfW->writeRawDxfObject(nullptr);
+                    return;
+                }
             } else if (rawMatches != 1u || raw == nullptr
                        || !dxfW->writeRawDxfObject(raw)) {
                 dxfW->writeRawDxfObject(nullptr);
@@ -4574,11 +4582,16 @@ private:
         bool active{false}, inspected{false};
         bool plotActive{false}, plotObjectsInspected{false};
         std::uint32_t plotTarget{0u}, plotOwner{0u};
+        bool defaultPlotSourceActive{false};
+        std::uint32_t defaultPlotDictionarySource{0u};
+        std::uint32_t defaultPlotPlaceholderSource{0u};
         void clear() noexcept {
             decltype(rows){}.swap(rows); decltype(layers){}.swap(layers);
             decltype(providers){}.swap(providers);
             owner=nullptr; generation=0u; version=DRW::UNKNOWNV;
             bytes=0u; active=false; inspected=false; plotActive=false; plotObjectsInspected=false; plotTarget=plotOwner=0u;
+            defaultPlotSourceActive=false; defaultPlotDictionarySource=0u;
+            defaultPlotPlaceholderSource=0u;
         }
     } m_dxfLayerMaterialState;
     bool prepareDxfLayerMaterials(DRW::Version) noexcept;

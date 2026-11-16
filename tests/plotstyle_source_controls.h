@@ -17,6 +17,57 @@ Tags plotSourceDocument(const std::string& version,bool blocks,unsigned form) {
     else dictionary.insert(dictionary.end(),placeholders.begin(),placeholders.end());
     tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),dictionary.begin(),dictionary.end());return tags;
 }
+Tags plotStyleDefaultOnlyAdapterDocument(std::int32_t hardOwner=0) {
+    auto tags=dependencyDocument("AC1021",false,0u);
+    const auto eraseRecord=[&tags](std::string_view name,
+                                   std::string_view handle) {
+        for(std::size_t start=0u;start<tags.size();++start) {
+            if(tags[start].code!=0||tags[start].value!=name)continue;
+            std::size_t end=start+1u;
+            while(end<tags.size()&&tags[end].code!=0)++end;
+            bool matchingHandle=false;
+            for(std::size_t i=start+1u;i+1u<end;++i) {
+                if(tags[i].code==5&&tags[i].value==handle) {
+                    matchingHandle=true;
+                    break;
+                }
+            }
+            if(matchingHandle) {
+                tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(start),
+                           tags.begin()+static_cast<std::ptrdiff_t>(end));
+                return true;
+            }
+        }
+        return false;
+    };
+    const auto table=slot(tags,0,"ACAD_TABLE");
+    std::size_t tableEnd=table+1u;
+    while(tableEnd<tags.size()&&tags[tableEnd].code!=0)++tableEnd;
+    while(tableEnd<tags.size()
+        &&(tags[tableEnd].value=="ATTRIB"
+            ||tags[tableEnd].value=="SEQEND")) {
+        ++tableEnd;
+        while(tableEnd<tags.size()&&tags[tableEnd].code!=0)++tableEnd;
+    }
+    tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(table),
+               tags.begin()+static_cast<std::ptrdiff_t>(tableEnd));
+    if(!eraseRecord("TABLESTYLE","704")||!eraseRecord("FIELD","705")
+        ||!eraseRecord("XRECORD","706")||!eraseRecord("DATALINK","707"))
+        throw std::logic_error("authored default plot-style source cleanup");
+    appendBlockFields(tags,"40",{{3,"ACAD_PLOTSTYLENAME"},{350,"E801"}});
+    const auto layer=blockField(tags,"D301",1001);
+    tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(layer),{{390,"F"}});
+    Tags objects{{0,"DICTIONARYWDFLT"},{5,"E801"},{330,"40"},
+        {100,"AcDbDictionary"},{280,std::to_string(hardOwner)},{281,"1"},
+        {3,"Normal"},{350,"F"},{100,"AcDbDictionaryWithDefault"},
+        {340,"F"},{0,"ACDBPLACEHOLDER"},{5,"F"},
+        {102,"{ACAD_REACTORS"},{330,"E801"},{102,"}"},{330,"E801"}};
+    auto at=slot(tags,2,"OBJECTS")+1u;
+    while(tags[at].code!=0||tags[at].value!="ENDSEC")++at;
+    tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),
+                objects.begin(),objects.end());
+    return tags;
+}
 struct PlotSourceProbe:dx_iface {
     using V=dxfRW::DxfPlotStyleSourceView;
     bool enabled=true,good=true,publicOnly=false,disableTyped=false;dxfRW* publicReader=nullptr;
@@ -185,4 +236,179 @@ bool plotSourceTests(const std::filesystem::path& dir) {
         <<"; exact/one-under limits="<<quotas<<"; immutable owner controls="<<contexts<<"; live-state independence="<<immutable<<"; reached allocation failures="<<reached<<"; proof failures="<<proofFailures<<"; adjacent capture failures="<<adjacentFailures
         <<"; unreached offsets="<<unreached<<"; public lifetime controls="<<lifetimes<<"; corrected imports="<<retries<<'\n';
     return profiles==120u&&markers>0u&&spans>0u&&refusals==45u&&parserRefusals==6u&&callbacks==45u&&quotas==24u&&contexts==21u&&immutable==120u&&proofFailures>0u&&proofFailures+adjacentFailures==reached&&reached+unreached==216u&&lifetimes==6u&&retries==330u;
+}
+
+bool plotStyleDefaultOnlyAdapterOutputTests(
+        const std::filesystem::path& dir) {
+    const auto input=dir/"default-plotstyle-source.dxf";
+    const auto refusedOutput=dir/"default-plotstyle-refused.dxf";
+    const auto sentinel=std::string("keep-existing-destination\n");
+    const auto diagnose=[](const dx_data& data,const char* phase) {
+        std::cerr<<"default plot-style adapter "<<phase<<": version="
+            <<static_cast<int>(data.sourceVersion)<<" dictionaries="
+            <<data.dictionaryWithDefaults.size()<<" raw dictionaries="
+            <<data.rawDictionaryWithDefaults.size()<<" raw placeholders="
+            <<data.rawPlaceholders.size()<<" layers="<<data.layers.size()
+            <<" plot report="<<static_cast<int>(
+                dx_iface::plotStyleSourceReport(data).state)<<'\n';
+        if(!data.dictionaryWithDefaults.empty()) {
+            const auto& d=data.dictionaryWithDefaults.front();
+            std::cerr<<" dict="<<std::hex<<d.handle<<" owner="
+                <<d.parentHandle<<" default="<<d.m_defaultEntryHandle
+                <<std::dec<<" hard="<<d.hardOwner<<" clone="<<d.cloning
+                <<" entries="<<d.m_entries.size()<<'\n';
+        }
+        if(!data.rawDictionaryWithDefaults.empty())
+            std::cerr<<" raw dict name="
+                <<data.rawDictionaryWithDefaults.front().name<<" groups="
+                <<data.rawDictionaryWithDefaults.front().groups.size()<<'\n';
+    };
+    const auto verify=[](const dx_data& data,bool emitted,
+                         std::int32_t expectedHardOwner=0) {
+        if(data.sourceVersion!=DRW::AC1021
+            ||!data.hasNamedObjectDictionary
+            ||data.dictionaryWithDefaults.size()!=1u
+            ||data.rawDictionaryWithDefaults.size()!=1u
+            ||!data.placeholders.empty()||data.rawPlaceholders.size()!=1u
+            ||data.layers.empty())
+            return false;
+        const DRW_DictionaryWithDefault& dictionary=
+            data.dictionaryWithDefaults.front();
+        const DRW_RawDxfObject& rawDictionary=
+            data.rawDictionaryWithDefaults.front();
+        const DRW_RawDxfObject& placeholder=data.rawPlaceholders.front();
+        if(dictionary.handle!=0xE801u
+            ||dictionary.parentHandle!=data.namedObjectDictionary.handle
+            ||dictionary.hardOwner!=expectedHardOwner||dictionary.cloning!=1
+            ||dictionary.m_defaultEntryHandle!=0xFu
+            ||dictionary.m_entries.size()!=1u
+            ||dictionary.m_entries.front().m_name!="Normal"
+            ||dictionary.m_entries.front().m_handle!=0xFu
+            ||rawDictionary.handle!=dictionary.handle
+            ||rawDictionary.parentHandle!=dictionary.parentHandle
+            ||(emitted
+                ? rawDictionary.name!="ACDBDICTIONARYWDFLT"
+                : rawDictionary.name!="DICTIONARYWDFLT")
+            ||placeholder.handle!=0xFu
+            ||placeholder.parentHandle!=dictionary.handle
+            ||placeholder.name!="ACDBPLACEHOLDER")
+            return false;
+        std::size_t rootMatches=0u;
+        for(const DRW_Dictionary::Entry& entry:
+                data.namedObjectDictionary.m_entries) {
+            if(entry.m_name!="ACAD_PLOTSTYLENAME")
+                continue;
+            if(entry.m_handle!=dictionary.handle)return false;
+            ++rootMatches;
+        }
+        if(rootMatches!=1u)return false;
+        for(const DRW_Layer& layer:data.layers) {
+            if(layer.handlePlotS!="F")return false;
+        }
+        const int expectedCodes[]={5,330,100,281,3,350,100,340};
+        std::size_t outputCode=0u;
+        for(const DRW_Variant& group:rawDictionary.groups) {
+            if(group.code()==280) {
+                if(emitted||group.type()!=DRW_Variant::INTEGER
+                    ||group.i_val()!=expectedHardOwner)
+                    return false;
+                continue;
+            }
+            if(outputCode>=sizeof(expectedCodes)/sizeof(expectedCodes[0])
+                ||group.code()!=expectedCodes[outputCode++])
+                return false;
+        }
+        if(outputCode!=sizeof(expectedCodes)/sizeof(expectedCodes[0]))
+            return false;
+        const int placeholderCodes[]={5,102,330,102,330};
+        if(placeholder.groups.size()!=
+                sizeof(placeholderCodes)/sizeof(placeholderCodes[0]))
+            return false;
+        for(std::size_t index=0;index<placeholder.groups.size();++index) {
+            if(placeholder.groups[index].code()!=placeholderCodes[index])
+                return false;
+        }
+        const auto stringGroup=[](const DRW_Variant& group,
+                                  std::string_view expected) {
+            return group.type()==DRW_Variant::STRING
+                &&group.c_str()!=nullptr
+                &&std::string_view(group.c_str())==expected;
+        };
+        return stringGroup(placeholder.groups[1],"{ACAD_REACTORS")
+            &&stringGroup(placeholder.groups[3],"}")
+            &&stringGroup(placeholder.groups[2],"E801")
+            &&stringGroup(placeholder.groups[4],"E801");
+    };
+
+    for(unsigned sourceEncoding:{0u,2u}) {
+        PlotSourceProbe adapter;
+        dx_data rejected;
+        if(!writeBlockBinding(input,plotStyleDefaultOnlyAdapterDocument(1),
+                              sourceEncoding))
+            return false;
+        if(!adapter.fileImport(input.string(),&rejected,false)) {
+            diagnose(rejected,"refusal-input import");
+            return false;
+        }
+        if(!adapter.good||!verify(rejected,false,1)) {
+            diagnose(rejected,"refusal-input verification");
+            return false;
+        }
+        {
+            std::ofstream existing(refusedOutput,std::ios::binary);
+            existing.write(sentinel.data(),
+                           static_cast<std::streamsize>(sentinel.size()));
+            if(!existing.good())return false;
+        }
+        if(adapter.fileExport(refusedOutput.string(),DRW::AC1021,false,&rejected,
+                              false,true)) {
+            std::cerr<<"nonconformant default dictionary was exported\n";
+            return false;
+        }
+        {
+            std::ifstream existing(refusedOutput,std::ios::binary);
+            const std::string contents(
+                (std::istreambuf_iterator<char>(existing)),
+                std::istreambuf_iterator<char>());
+            if(contents!=sentinel)return false;
+        }
+
+        dx_data source;
+        if(!writeBlockBinding(input,plotStyleDefaultOnlyAdapterDocument(),
+                              sourceEncoding)
+            ||!adapter.fileImport(input.string(),&source,false)) {
+            diagnose(source,"valid-input import");
+            return false;
+        }
+        if(!adapter.good||!verify(source,false)) {
+            diagnose(source,"valid-input verification");
+            return false;
+        }
+        for(bool binary:{false,true}) {
+            const auto output=dir/(binary?"default-plotstyle-binary.dxf"
+                                         :"default-plotstyle-ascii.dxf");
+            if(!adapter.fileExport(output.string(),DRW::AC1021,binary,
+                                   &source,false,true)) {
+                std::cerr<<"default plot-style adapter export failed, binary="
+                         <<binary<<'\n';
+                return false;
+            }
+            if(!verify(source,false)) {
+                std::cerr<<"default plot-style source changed during export\n";
+                return false;
+            }
+            dx_iface readback;
+            dx_data emitted;
+            if(!readback.fileImport(output.string(),&emitted,false)
+                ||!verify(emitted,true)) {
+                std::cerr<<"default plot-style fresh readback failed, binary="
+                         <<binary<<'\n';
+                return false;
+            }
+        }
+    }
+    std::cout<<"Default-only AC1021 source graph exported/read back in ASCII and "
+                "Binary; incompatible group-280 source preserved destination "
+                "and same-adapter retry succeeded\n";
+    return true;
 }

@@ -3197,6 +3197,10 @@ add_test(NAME libdxfrw_plotstyle_original_sources
     COMMAND libdxfrw_table_content_dxf_tests --plotstyle-sources)
 set_tests_properties(libdxfrw_plotstyle_original_sources PROPERTIES
     LABELS "fast;dxf;adapter;source;plotstyle;generated" TIMEOUT 30)
+add_test(NAME libdxfrw_plotstyle_default_adapter_output
+    COMMAND libdxfrw_table_content_dxf_tests --plotstyle-default-output)
+set_tests_properties(libdxfrw_plotstyle_default_adapter_output PROPERTIES
+    LABELS "fast;dxf;adapter;source;plotstyle;generated;transaction" TIMEOUT 30)
 add_test(NAME libdxfrw_dictionary_effective_ownership
     COMMAND libdxfrw_table_content_dxf_tests --effective-ownership)
 set_tests_properties(libdxfrw_dictionary_effective_ownership PROPERTIES
