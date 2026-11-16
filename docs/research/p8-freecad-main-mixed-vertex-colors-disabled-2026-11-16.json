@@ -341,7 +341,7 @@
     "A syntactically valid ACI does not make a parent/coordinate mismatch a conforming AutoCAD source; no producer support claim follows from this recovery."
   ],
   "supersededBoundary": "The later BYBLOCK colors-disabled patch accepts group 62 value 0 only when source colors are disabled; this receipt records the earlier refusal.",
-  "probeEvolution": "The current GUI probe includes later off-layer color cases requiring the fifteenth downstream patch; the observations in this receipt describe its earlier candidate.",
+  "probeEvolution": "The current GUI probe includes a later off-layer visibility diagnostic requiring the sixteenth downstream patch; the observations in this receipt describe its earlier candidate.",
   "sourceConformance": {
     "polyface": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PolyFaceMeshVertex.html",
     "polygon": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PolygonMeshVertex.html",

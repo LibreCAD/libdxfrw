@@ -930,5 +930,6 @@
     "The change targets valid signed ACI magnitudes; malformed layer indices remain outside the qualified profile.",
     "Frozen layers are separately reported unsupported by the candidate and are not fixed by off-layer handling.",
     "GUI properties are not pixel rendering, full producer interoperability, or Linux/Windows platform qualification; no phase gate or external-only support claim is promoted."
-  ]
+  ],
+  "probeEvolution": "The current GUI probe includes a later off-layer visibility diagnostic requiring the sixteenth downstream patch; the observations in this receipt describe its earlier candidate."
 }

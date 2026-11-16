@@ -99,14 +99,15 @@ def run():
                          "nested_byblock_parent_nolayers", "nested_byblock_vertex_nolayers",
                          "nested_byblock_face_nolayers", "nested_byblock_all_nolayers",
                          "layer_on_1", "layer_off_1", "layer_on_2", "layer_off_2", "layer_on_10", "layer_off_10",
-                         "layer_on_250", "layer_off_250", "layer_on_255", "layer_off_255", "color", "color_mixed",
+                         "layer_on_250", "layer_off_250", "layer_on_255", "layer_off_255",
+                         "layer_on_2_nogroups", "layer_off_2_nogroups", "color", "color_mixed",
                          "color_mixed_nocolor"):
                 is_color = case.startswith("color")
                 is_vertex = case.startswith("vertex_")
                 is_byblock = case.startswith("byblock_")
                 nested_byblock = case.startswith("nested_byblock_")
                 is_layer = case.startswith("layer_")
-                no_layers = is_color or case.endswith("_nolayers")
+                no_layers = is_color or case.endswith("_nolayers") or case.endswith("_nogroups")
                 options.SetBool("dxfUseDraftVisGroups", not no_layers)
                 options.SetBool("dxfGetOriginalColors", (is_color and not case.endswith("_nocolor"))
                                 or ((is_vertex or is_byblock) and case.endswith("_color")) or is_layer)
@@ -125,7 +126,7 @@ def run():
                 drawing_text = (color_drawing(case.startswith("color_mixed")) if is_color
                                 else controls["drawing"](drawing_case, 1 if inches else 4, is_vertex, byblock_at))
                 if is_layer:
-                    aci = int(case.rsplit("_", 1)[1]) * (-1 if "_off_" in case else 1)
+                    aci = int(case.split("_")[2]) * (-1 if "_off_" in case else 1)
                     layer_tag = "0\nLAYER\n2\nMESH\n70\n0\n62\n1\n"
                     assert drawing_text.count(layer_tag) == 1
                     drawing_text = drawing_text.replace(layer_tag, layer_tag[:-2] + str(aci) + "\n")
@@ -143,24 +144,33 @@ def run():
                              and len(obj.Shape.Edges) == 1]
                     assert len(lines) == 1, (case, [o.Name for o in shapes])
                     if is_layer:
-                        layer = next(obj for obj in doc.Objects if obj.Label == "MESH"
-                                     and getattr(getattr(obj, "Proxy", None), "Type", None) == "Layer")
                         meshes = [obj for obj in shapes if obj.Name.startswith("Polyface")]
-                        assert len(meshes) == 1 and set(layer.Group) == {meshes[0], lines[0]}
-                        assert not stats["unsupportedFeatures"]
                         initial = "_on_" in case
-                        assert layer.ViewObject.Visibility == initial
-                        assert meshes[0].ViewObject.Visibility == initial and lines[0].ViewObject.Visibility == initial
-                        layer.ViewObject.Visibility = True
-                        assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
-                        colors = (tuple(layer.ViewObject.LineColor), tuple(lines[0].ViewObject.LineColor),
-                                  tuple(meshes[0].ViewObject.ShapeColor))
-                        index = abs(aci)
-                        if initial:
-                            layer_colors[index] = colors
+                        assert len(meshes) == 1
+                        if no_layers:
+                            reason = "Off-layer visibility without layer grouping"
+                            assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
+                            assert (reason in stats["unsupportedFeatures"]) == (not initial)
+                            if not initial:
+                                assert len(stats["unsupportedFeatures"][reason]) == 2
+                            detail = {"aci": aci, "initialVisible": True, "visibilityReported": not initial}
                         else:
-                            assert colors == layer_colors[index], (case, colors, layer_colors[index])
-                        detail = {"aci": aci, "initialVisible": initial, "colorsAfterShow": colors}
+                            layer = next(obj for obj in doc.Objects if obj.Label == "MESH"
+                                         and getattr(getattr(obj, "Proxy", None), "Type", None) == "Layer")
+                            assert set(layer.Group) == {meshes[0], lines[0]}
+                            assert not stats["unsupportedFeatures"]
+                            assert layer.ViewObject.Visibility == initial
+                            assert meshes[0].ViewObject.Visibility == initial and lines[0].ViewObject.Visibility == initial
+                            layer.ViewObject.Visibility = True
+                            assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
+                            colors = (tuple(layer.ViewObject.LineColor), tuple(lines[0].ViewObject.LineColor),
+                                      tuple(meshes[0].ViewObject.ShapeColor))
+                            index = abs(aci)
+                            if initial:
+                                layer_colors[index] = colors
+                            else:
+                                assert colors == layer_colors[index], (case, colors, layer_colors[index])
+                            detail = {"aci": aci, "initialVisible": initial, "colorsAfterShow": colors}
                     elif is_color:
                         meshes = [o for o in shapes if o.Name.startswith("Polyface")]
                         assert len(meshes) == (1 if case == "color_mixed" else 2)

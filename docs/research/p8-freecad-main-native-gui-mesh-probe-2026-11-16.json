@@ -291,5 +291,5 @@
     "macOS ARM64 only; Linux and Windows GUI qualification, broader profiles, geometry and import semantics remain open.",
     "The downstream FreeCAD patch chain is unmerged. No P4\u2013P9 phase gate or external-only support claim is promoted."
   ],
-  "probeEvolution": "The current GUI probe includes later off-layer color cases requiring the fifteenth downstream patch; the observations in this receipt describe its earlier candidate."
+  "probeEvolution": "The current GUI probe includes a later off-layer visibility diagnostic requiring the sixteenth downstream patch; the observations in this receipt describe its earlier candidate."
 }
