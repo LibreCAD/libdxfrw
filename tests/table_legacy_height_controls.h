@@ -486,6 +486,65 @@ bool legacyTablePresenceAllocationTests(const std::filesystem::path& dir) {
         }
         return cell==4u&&group177Present==std::array<bool,4>{{false,true,false,true}};
     };
+    const auto prepareBlockCellProfile=[](
+            TableLegacyCountDirectProbe& writer,dx_data& data) {
+        tableExportReuseDrawing(writer,data,0u,false);
+        DRW_Block_Record model;model.handle=0x1fu;model.name="*Model_Space";
+        DRW_Block_Record record;record.handle=0x601u;
+        record.name="TABLE_CELL_BLOCK";
+        data.blockRecords.push_back(model);
+        data.blockRecords.push_back(record);
+        auto* block=new dx_ifaceBlock();
+        block->name=record.name;block->parentHandle=record.handle;
+        data.blocks.push_back(block);
+        if(data.tables.size()!=1u
+            ||data.tables.front().m_content.m_rows.size()!=1u
+            ||data.tables.front().m_content.m_rows.front().m_cells.size()!=1u)
+            return false;
+        auto& cell=data.tables.front().m_content.m_rows.front().m_cells.front();
+        if(cell.m_contents.size()!=1u)return false;
+        cell.m_type=2;cell.m_blockHandle=record.handle;
+        cell.m_contents.front().m_type=4;
+        cell.m_contents.front().m_handle=record.handle;
+        cell.m_overrideFlags=1u;cell.m_textAlignment=1;
+        return true;
+    };
+    const auto readBlockCellProfile=[&](bool binary) {
+        dx_iface reader;dx_data readback;
+        if(!reader.fileImport(output.string(),&readback,false)
+            ||readback.tables.size()!=1u
+            ||readback.tables.front().m_content.m_rows.size()!=1u
+            ||readback.tables.front().m_content.m_rows.front().m_cells.size()!=1u)
+            return false;
+        const auto& cell=readback.tables.front().m_content.m_rows.front().m_cells.front();
+        const auto blockRecord=std::find_if(readback.blockRecords.begin(),
+            readback.blockRecords.end(),[](const DRW_Block_Record& value) {
+                return value.name=="TABLE_CELL_BLOCK";
+            });
+        if(cell.m_type!=2||cell.m_blockHandle==0u
+            ||blockRecord==readback.blockRecords.end()
+            ||cell.m_blockHandle!=blockRecord->handle
+            ||cell.m_overrideFlags!=1u||cell.m_textAlignment!=1
+            ||!cell.m_attributes.empty())
+            return false;
+        bool inTable=false,inCell=false;
+        unsigned tableCount=0u,cellCount=0u,zeroCount=0u;
+        for(const auto& tag:attdefWireTags(output,binary)) {
+            if(tag.code==0) {
+                inTable=tag.text=="ACAD_TABLE";
+                inCell=false;
+                if(inTable)++tableCount;
+                continue;
+            }
+            if(!inTable)continue;
+            if(tag.code==171){inCell=true;++cellCount;}
+            if(inCell&&tag.code==179) {
+                if(tag.kind!=AttdefWireTag::Integer||tag.integer!=0)return false;
+                ++zeroCount;
+            }
+        }
+        return tableCount==1u&&cellCount==1u&&zeroCount==1u;
+    };
     for(const std::vector<std::uint8_t>& spellings:
             {std::vector<std::uint8_t>{0u},
              std::vector<std::uint8_t>{0u,1u,0u,1u}})
@@ -562,6 +621,89 @@ bool legacyTablePresenceAllocationTests(const std::filesystem::path& dir) {
                  <<(multiCell?"2x2 ":"1x1 ")
                  <<(binary?"Binary":"ASCII")<<": allocation offsets="
                  <<allocationCount<<", rollback/retry/readback=PASS\n";
+    }
+    for(bool binary:{false,true}) {
+        dx_data calibrationData;TableLegacyCountDirectProbe calibration;
+        if(!prepareBlockCellProfile(calibration,calibrationData))
+            return fail("could not create block-cell allocation profile");
+        calibration.spellings={2u};
+        calibration.useZeroOverrideApi=false;
+        calibration.allocation=1000000;
+        const auto failedBefore=symbolFailedAllocations;
+        if(!calibration.fileExport(output.string(),DRW::AC1018,binary,
+                                   &calibrationData,false)
+            ||!calibration.emitted
+            ||symbolFailedAllocations!=failedBefore
+            ||!readBlockCellProfile(binary))
+            return fail("block-cell calibration output/readback failed");
+        const long allocationCount=calibration.measuredAllocations;
+        if(allocationCount<=0)return fail("block-cell writer measured no allocations");
+        std::string expectedBytes;
+        if(!readOutputBytes(expectedBytes))
+            return fail("cannot retain block-cell clean output bytes");
+
+        for(long offset=0;offset<allocationCount;++offset) {
+            dx_data data;TableLegacyCountDirectProbe writer;
+            if(!prepareBlockCellProfile(writer,data))
+                return fail("could not create block-cell failure profile");
+            writer.spellings={2u};writer.useZeroOverrideApi=false;
+            const auto identities=tableExportIdentities(data);
+            const DRW_Table baseline(data.tables.front());
+            if(!tableExportSentinel(output,true))
+                return fail("cannot seed block-cell allocation sentinel");
+            writer.allocation=offset;
+            const auto failedAtStart=symbolFailedAllocations;
+            const bool written=writer.fileExport(
+                output.string(),DRW::AC1018,binary,&data,false);
+            writer.allocation=-1;
+            const bool callerPreserved=identities==tableExportIdentities(data)
+                &&DxIfaceTableSourceTestAccess::sameTableBody(
+                    baseline,data.tables.front());
+            if(written||!writer.allocationReached
+                ||symbolFailedAllocations==failedAtStart
+                ||!callerPreserved||!tableExportSentinel(output))
+                return fail("block-cell allocation failure changed caller or destination");
+
+            writer.allocationReached=false;writer.emitted=false;
+            if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false)
+                ||!writer.emitted||identities!=tableExportIdentities(data)
+                ||!DxIfaceTableSourceTestAccess::sameTableBody(
+                    baseline,data.tables.front()))
+                return fail("block-cell corrected same-writer retry failed");
+            std::string retryBytes;
+            if(!readOutputBytes(retryBytes)||retryBytes!=expectedBytes
+                ||!readBlockCellProfile(binary))
+                return fail("block-cell retry bytes/readback mismatch");
+        }
+
+        dx_data invalidData;TableLegacyCountDirectProbe invalidWriter;
+        if(!prepareBlockCellProfile(invalidWriter,invalidData))
+            return fail("could not create invalid block-cell profile");
+        invalidWriter.spellings={2u};invalidWriter.useZeroOverrideApi=true;
+        const auto invalidIdentities=tableExportIdentities(invalidData);
+        const DRW_Table invalidBaseline(invalidData.tables.front());
+        if(!tableExportSentinel(output,true)
+            ||invalidWriter.fileExport(output.string(),DRW::AC1018,binary,
+                                       &invalidData,false)
+            ||!tableExportSentinel(output)
+            ||invalidIdentities!=tableExportIdentities(invalidData)
+            ||!DxIfaceTableSourceTestAccess::sameTableBody(
+                invalidBaseline,invalidData.tables.front()))
+            return fail("zero-override overload accepted block-cell mask 2");
+        invalidWriter.useZeroOverrideApi=false;
+        invalidWriter.emitted=false;
+        if(!invalidWriter.fileExport(output.string(),DRW::AC1018,binary,
+                                     &invalidData,false)
+            ||!invalidWriter.emitted
+            ||invalidIdentities!=tableExportIdentities(invalidData)
+            ||!DxIfaceTableSourceTestAccess::sameTableBody(
+                invalidBaseline,invalidData.tables.front())
+            ||!readBlockCellProfile(binary))
+            return fail("source-presence overload did not retry block-cell mask 2");
+        std::cout<<"legacy TABLE block-cell 179=0 "
+                 <<(binary?"Binary":"ASCII")
+                 <<": allocation offsets="<<allocationCount
+                 <<", rollback/retry/readback and overload gate=PASS\n";
     }
     for(bool binary:{false,true}) {
         dx_data data;TableLegacyCountDirectProbe writer;
