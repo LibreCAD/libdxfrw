@@ -36,5 +36,6 @@
     "/private/tmp/librecad-p8-binary-nine-system.log",
     "/private/tmp/librecad-p8-binary-nine-bundled.log"
   ],
-  "limits": "Same-codec generated source controls only; R13 input, independently produced files, complex LTYPE metadata, binary output, GUI and non-macOS platforms remain open. The local candidate is not integrated upstream. No support claim or phase gate is promoted."
+  "limits": "Same-codec generated source controls only; R13 input, independently produced files, complex LTYPE metadata, binary output, GUI and non-macOS platforms remain open. The local candidate is not integrated upstream. No support claim or phase gate is promoted.",
+  "followUp": "The later p8-librecad-r13-dxf-diagnostic-2026-11-16.json reports an independently ODA-converted AC1012 input pair and retains the installed-codec OBJECTS export refusal as open."
 }

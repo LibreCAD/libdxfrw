@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **650 completed implementation and qualification slices** and **32 remaining
+The plan records **651 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`650 / (650 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
+`651 / (651 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -94,10 +94,16 @@ created locally from scratch for the specific control.
   Current LibreCAD save routing always chooses ASCII DXF. Generated simple
   LTYPE/LINE inputs pass actual LibreCAD import, editing, ASCII export and
   readback for AC1009, AC1014, AC1015, AC1018, AC1021, AC1024, AC1027 and
-  AC1032 in both source encodings and with both codecs. Qualify R13 input,
-  complex records and independent producers; the generator's codec deliberately
-  refuses AC1012 output. A binary-export UI is additional work, not an existing
-  save route ([matrix receipt](docs/research/p8-librecad-binary-ltype-versions-2026-11-16.json),
+  AC1032 in both source encodings and with both codecs. A locally authored,
+  ODA-converted AC1012 pair now passes focused ASCII/Binary LTYPE import with
+  both codecs. The installed codec refuses this full drawing during OBJECTS
+  emission; preserve all records while isolating and fixing the refusal. The
+  bundled codec passes selected LTYPE/LINE re-export checks, not full graph
+  qualification. Diagnostic propagation, destination preservation and retry
+  pass ([R13 receipt](docs/research/p8-librecad-r13-dxf-diagnostic-2026-11-16.json)).
+  Qualify complex records, additional independent producers and native behavior;
+  a binary-export UI is additional work, not an existing save route
+  ([matrix receipt](docs/research/p8-librecad-binary-ltype-versions-2026-11-16.json),
   [routing receipt](docs/research/p8-librecad-binary-ltype-routing-2026-11-16.json)).
 - Preserve the AC1024 title drawing's named-block SORTENTSTABLE and every
   dictionary dependency. The separately opted-in experimental codec path has
@@ -199,10 +205,11 @@ suffix `-2026-11-15.patch`, rebasing as needed against the consumer head:
 `librecad-p8-named-block-arc-wrap-test`,
 `librecad-p8-mleaderstyle-version-diagnostic`.
 Then apply [the binary LTYPE consumer test](docs/patches/librecad-p8-binary-ltype-import-2026-11-16.patch)
-with `git apply --unidiff-zero`. The current local candidate
-`fc34c14420c624f7292a76a82cc6742ca0d5e3fa` is based on LibreCAD master
-`b007bff6e798425aa14ae507f7e884db68916e88`; the 39 implementation patches and
-this test patch replay in order on that base. Its macOS installed-codec focus tests pass,
+and [the DXF diagnostic/R13 test](docs/patches/librecad-p8-dxf-write-diagnostic-r13-2026-11-16.patch),
+in order with `git apply --unidiff-zero`. The current local candidate
+`6a2d0119de368ace035d11084a83ee928b5ca613` is based on LibreCAD master
+`b007bff6e798425aa14ae507f7e884db68916e88`; all 41 patches replay in order on
+that base. Its macOS installed-codec focus tests pass,
 including all 24 source-graph cases with scratch controls; the clean bundled
 focus and R12/R14 unit-refusal controls also pass. Integration, full-suite,
 GUI and cross-platform qualification remain open

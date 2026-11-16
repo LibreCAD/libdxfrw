@@ -1,0 +1,128 @@
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index 5f26104..513fde7 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -284,0 +285,10 @@ struct hasDwgReplayState<
++// Newer codecs expose a structured write diagnostic. The bundled codec may
++// only provide the legacy error enum, so keep the detail optional.
++template <typename Writer>
++auto dxfWriteDiagnosticIfAvailable(const Writer &writer, int)
++    -> decltype(writer.getLastDiagnostic().message, QString()) {
++  return QString::fromStdString(writer.getLastDiagnostic().message);
++}
++template <typename Writer>
++QString dxfWriteDiagnosticIfAvailable(const Writer &, long) { return {}; }
++
+@@ -12396 +12406,5 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+-  if (m_writeFailed)
++  if (m_writeFailed) {
++    if (m_errorCode == DRW::BAD_NONE)
++      m_errorCode = DRW::BAD_UNKNOWN;
++    if (m_exportFailureDetail.isEmpty())
++      m_exportFailureDetail = QObject::tr("Cannot prepare shapes for DXF output.");
+@@ -12397,0 +12412 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
++  }
+@@ -13246,0 +13262,12 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
++  if (!success) {
++    if (m_errorCode == DRW::BAD_NONE) {
++      m_errorCode = m_dxfW->getError();
++      if (m_errorCode == DRW::BAD_NONE)
++        m_errorCode = DRW::BAD_UNKNOWN;
++    }
++    if (m_exportFailureDetail.isEmpty()) {
++      m_exportFailureDetail = dxfWriteDiagnosticIfAvailable(*m_dxfW, 0);
++      if (m_exportFailureDetail.isEmpty())
++        m_exportFailureDetail = QObject::tr("Cannot write the DXF drawing.");
++    }
++  }
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 8337561..4d822ff 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -3250 +3250,2 @@ TEST_CASE("DXF filter propagates typed writer rejection",
+-  std::filesystem::remove(out);
++  const std::string sentinel = "previous drawing\n";
++  writeText(out, sentinel);
+@@ -3261 +3262,8 @@ TEST_CASE("DXF filter propagates typed writer rejection",
+-  CHECK_FALSE(std::filesystem::exists(out));
++  CHECK(filter.lastErrorCode() != DRW::BAD_NONE);
++  CHECK(filter.lastError() != QStringLiteral("no DXF/DWG error"));
++  std::ifstream prior(out, std::ios::binary);
++  CHECK(std::string(std::istreambuf_iterator<char>(prior), {}) == sentinel);
++  prior.close();
++  RS_Graphic retry;
++  REQUIRE(filter.fileExport(retry, QString::fromStdString(out), RS2::FormatDXFRW));
++  CHECK(filter.lastErrorCode() == DRW::BAD_NONE);
+@@ -11484,0 +11493,72 @@ TEST_CASE("Binary DXF imports an editable line type definition",
++// Optional external-producer controls: inputs are made from a locally
++// authored drawing with ODA File Converter; no drawing fixture is stored here.
++TEST_CASE("R13 DXF imports an editable line type from ODA",
++          "[dxf][roundtrip][filter][ltype][linetype][binary][r13]") {
++  const char *ascii = std::getenv("LIBRECAD_R13_LTYPE_ASCII");
++  const char *binary = std::getenv("LIBRECAD_R13_LTYPE_BINARY");
++  if (!ascii || !*ascii || !binary || !*binary)
++    SKIP("Set LIBRECAD_R13_LTYPE_ASCII and LIBRECAD_R13_LTYPE_BINARY to locally generated ODA files");
++  ensureSettings();
++  for (const auto &source : {std::pair<const char *, bool>{ascii, false},
++                             std::pair<const char *, bool>{binary, true}}) {
++    const char *src = source.first;
++    CAPTURE(src);
++    std::ifstream input(src, std::ios::binary);
++    REQUIRE(input.is_open());
++    const std::string bytes(std::istreambuf_iterator<char>(input), {});
++    CHECK((bytes.compare(0, 18, "AutoCAD Binary DXF") == 0) == source.second);
++    if (source.second) {
++      const std::string versionPair("\x09\0$ACADVER\0\x01\0AC1012\0", 20);
++      REQUIRE(bytes.find(versionPair) != std::string::npos);
++    } else {
++      std::istringstream groups(bytes);
++      std::string code, value;
++      bool foundVersion = false;
++      while (std::getline(groups, code) && std::getline(groups, value)) {
++        if (QString::fromStdString(code).trimmed() != QStringLiteral("9") ||
++            QString::fromStdString(value).trimmed() != QStringLiteral("$ACADVER"))
++          continue;
++        REQUIRE(std::getline(groups, code));
++        REQUIRE(std::getline(groups, value));
++        foundVersion = QString::fromStdString(code).trimmed() == QStringLiteral("1") &&
++                       QString::fromStdString(value).trimmed() == QStringLiteral("AC1012");
++        break;
++      }
++      REQUIRE(foundVersion);
++    }
++    RS_Graphic graphic;
++    REQUIRE(importFile(graphic, src));
++    LC_LineType *entry = graphic.findLineType(QStringLiteral("VENDOR_BINARY"));
++    REQUIRE(entry != nullptr);
++    REQUIRE(entry->pattern == std::vector<double>{10.0, -5.0});
++    entry->pattern = {20.0, -10.0};
++    entry->description = QStringLiteral("Edited marks");
++    const std::string out = tmpFile("ltype_r13_peer_out.dxf");
++    const std::string sentinel = "previous drawing\n";
++    writeText(out, sentinel);
++    RS_FilterDXFRW exporter;
++    const bool success = exporter.fileExport(graphic, QString::fromStdString(out), RS2::FormatDXFRW);
++    if (!success) {
++      CHECK(exporter.lastErrorCode() != DRW::BAD_NONE);
++      CHECK(exporter.lastError() != QStringLiteral("no DXF/DWG error"));
++      std::ifstream retained(out, std::ios::binary);
++      CHECK(std::string(std::istreambuf_iterator<char>(retained), {}) == sentinel);
++      retained.close();
++      RS_Graphic retry;
++      REQUIRE(exporter.fileExport(retry, QString::fromStdString(out), RS2::FormatDXFRW));
++      CHECK(exporter.lastErrorCode() == DRW::BAD_NONE);
++    } else {
++      CHECK(ltypeRecordsSpelt(out, "VENDOR_BINARY") == Records{{20.0, -10.0}});
++      CHECK(recordGroupValues(out, "LINE", "6") ==
++            std::vector<std::string>{"VENDOR_BINARY"});
++      RS_Graphic back;
++      REQUIRE(importFile(back, out));
++      const LC_LineType *saved = importedEntry(back, "VENDOR_BINARY");
++      REQUIRE(saved != nullptr);
++      CHECK(saved->pattern == std::vector<double>{20.0, -10.0});
++      CHECK(saved->description == QStringLiteral("Edited marks"));
++    }
++    std::filesystem::remove(out);
++  }
++}
++
