@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-16",
+  "consumerRepository": "LibreCAD/LibreCAD_3",
+  "consumerBase": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+  "localCandidateCommit": "89f9657cc1ee92904626bdc4688cd2ba537d6d56",
+  "localCandidateBranch": "codex/libdxfrw-consumer-compat-20261116",
+  "candidateCheckout": "/private/tmp/librecad3-p8-delivery-20261116",
+  "candidateStatus": "Local and unmerged.",
+  "patch": "docs/patches/librecad3-p8-legacy-layer-lineweight-2026-11-16.patch",
+  "patchSha256": "9f7fcf3c22f66e43371b0646e95862b10a8dfeac6234fc6f5077a1a6deca3497",
+  "dependencies": [
+    "Three ordered LibreCAD_3 MPOLYGON patches already in docs/patches.",
+    "Only persistence/libdxfrw/dxfimpl.cpp and unittest/persistence/dxfroundtriptest.cpp from open LibreCAD_3 PR #456 at head 7e81275b71038d4a42fa580842e661ddcee7adbf, diff against its original base 5cf435f4a5a57d8dba1599c720917b902e74b25b. Its full diff does not apply cleanly to current master; unrelated PR files and fixtures are excluded."
+  ],
+  "observedFailure": "Before this patch, after applying the PR unit-header change, unitless R12 exports were rejected during LAYER table emission: the adapter passed layer 0 width enum 17 while this libdxfrw writer refuses non-default layer widths for R12/R14.",
+  "implementation": "For R12/R14 only, convert an otherwise unrepresentable layer width to the writer default and add one deduplicated loss note. Preserve modern widths and the library refusal contract. The existing File::save bool returns false on any reported loss even when the file was written; callers that permit and display conversion loss must use exportFile.",
+  "testEnvironment": "Fresh macOS ARM64 Release build at the stated consumer base with a temporary CMake installed-codec probe; current libdxfrw static archive built at 93ede70e418b17fbc3fe2741ad61c23469c5c8cf. The temporary CMake probe and dependency symlinks are not part of the local candidate commit.",
+  "validation": [
+    "Seven focused tests passed: three MPOLYGON cases; unit preservation; ASCII save roundtrips; ASCII/Binary text; and the new legacy layer matrix.",
+    "The locally authored matrix covers two layers, one LINE, ASCII and Binary R12/R14 export, one deduplicated loss note, geometry/layer reimport, bool-save failure on reported loss, then successful R2000 export and width readback.",
+    "The existing unit test covers unitless, inches, millimetres and metres across R12/R14, with units loss reported where applicable.",
+    "A clean source replay applies the three patches, the two selected pinned PR paths, and the new patch with --unidiff-zero; all five changed source files match the tested local candidate.",
+    "Source-release inventory generation and check pass for 1244 files; 18-control inventory self-test passes. No drawing fixture was added."
+  ],
+  "logs": [
+    "/private/tmp/librecad3-p8-candidate-focused.log",
+    "/private/tmp/librecad3-p8-layer-probe.log",
+    "/private/tmp/librecad3-p8-layer-matrix2.log"
+  ],
+  "limits": "Only focused macOS static installed-codec behavior was tested. Default layer-width origin can be ambiguous, and bool-only save remains false for a reported conversion even though output exists. GUI behavior, native Linux/Windows, pinned/bundled codec, upstream integration, non-default widths beyond tested values, and full format support remain open. No independent support claim or phase gate is promoted."
+}
