@@ -89,7 +89,7 @@ generated DWG handoff; the fix passes focused rollback/readback and local
 FreeCAD open/insert controls
 ([regression receipt](docs/research/p6-canonical-acad-appid-flags-backpatch-2026-11-16.json)). LibreDWG accepts the six generated outputs, but its flag observation is identical for a zero-flag control. The independent ezdxf reader distinguishes the emitted 64 flags from the zero control in all six outputs and reads all 48 generated version/encoding/flag combinations correctly; native flag semantics remain open.
 The implementation digest is refreshed without changing claim statuses;
-the replacement [fast](https://github.com/dxli/libdxfrw/actions/runs/43862739444), [native](https://github.com/dxli/libdxfrw/actions/runs/43862739412) and [FreeCAD release](https://github.com/dxli/libdxfrw/actions/runs/43862739438) qualification jobs are running at `65aefd2c`; inspect and disposition their results.
+the replacement [fast](https://github.com/dxli/libdxfrw/actions/runs/43862739444), [native](https://github.com/dxli/libdxfrw/actions/runs/43862739412) and [FreeCAD release](https://github.com/dxli/libdxfrw/actions/runs/43862739438) qualification jobs run at `65aefd2c`. FreeCAD Linux passed 16/16; Windows and fast checks remain in progress. Native Linux failed before compilation after three checkout connection timeouts; retry that job when the workflow finishes (job-only rerun was unavailable while it was running). Native Windows is running and macOS is queued; inspect and disposition their results.
 Predeclared canonical LTYPE flags now survive output; nondefault flags arriving
 only after the fixed row was written refuse atomically
 ([receipt](docs/research/p6-canonical-ltype-flags-2026-11-16.json)). Canonical
