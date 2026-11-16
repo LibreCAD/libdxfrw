@@ -18,6 +18,7 @@
 #define LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY 1
 #define LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE 1
 #define LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY 1
+#define LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY 1
 
 // X11's object-like None macro must not alter public enum definitions.
 // Save it locally; callers retain their exact macro after this header.
@@ -3925,6 +3926,11 @@ protected:
                                dwgBufferW *handleBuf = nullptr) const;
 
 public:
+  //! Correlate a selected empty AC1024 XRECORD with its source frame and
+  //! publication. This does not verify a CRC, ownership graph or output.
+  [[nodiscard]] bool matchesAc1024EmptyDwgFrame(
+      const DRW_UnsupportedObject &raw,
+      const DRW_DwgFramePublication &publication) const noexcept;
   int m_cloning = 0; /*!< duplicate-record handling, code 280 */
   std::vector<DRW_Variant> m_values;
   std::vector<std::pair<int, std::uint32_t>>

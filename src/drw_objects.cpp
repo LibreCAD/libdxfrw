@@ -11770,6 +11770,79 @@ bool DRW_XRecord::parseCode(int code,
     return false;
 }
 
+bool DRW_XRecord::matchesAc1024EmptyDwgFrame(
+    const DRW_UnsupportedObject &raw,
+    const DRW_DwgFramePublication &publication) const noexcept {
+    // This profile is deliberately limited to an empty fixed-type record
+    // with no extended data, reactors, extension dictionary or references.
+    constexpr std::size_t maxFrameBytes = 4096u;
+    if (raw.m_version != DRW::AC1024 || raw.m_objectType != dwgObjType::XRECORD
+        || raw.m_handle == 0u || raw.m_handle == DRW::NoHandle
+        || raw.m_parentHandle == 0u || raw.m_parentHandle == DRW::NoHandle
+        || raw.m_isEntity || raw.m_isCustomClass || raw.m_hasClassDefinition
+        || !raw.m_recordName.empty() || !raw.m_className.empty()
+        || !raw.m_classAppName.empty() || raw.m_hasDataStorage
+        || raw.m_rawBytes.empty() || raw.m_rawBytes.size() > maxFrameBytes
+        || raw.m_rawBytes.size() != raw.m_objectSize
+        || raw.m_bodyBitSize > static_cast<std::uint64_t>(raw.m_objectSize) * 8u
+        || raw.m_objectOffset > (std::numeric_limits<std::uint32_t>::max)()
+        || !raw.m_commonHandleDataValidated
+        || !drwDwgCommonLinkEvidenceValidated(raw.m_commonLinkEvidence)
+        || raw.m_numReactors != 0 || !raw.m_reactorHandles.empty()
+        || raw.m_xDictFlag != 1u || raw.m_xDictHandle != 0u)
+        return false;
+    if (publication.m_version != raw.m_version || publication.m_handle != raw.m_handle
+        || !publication.m_hasSourceLocation
+        || (publication.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+            && publication.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+        || publication.m_sourceOffset != raw.m_objectOffset
+        || publication.m_encodedType != dwgObjType::XRECORD
+        || publication.m_resolvedType != dwgObjType::XRECORD
+        || publication.m_isEntity || publication.m_isCustomClass
+        || !publication.m_recordName.empty() || !publication.m_className.empty()
+        || publication.m_classStreamOrdinal.has_value()
+        || !publication.m_controlHandles.empty()
+        || publication.m_carrier != DRW_DwgFramePublication::Carrier::TypedAndRaw
+        || !publication.m_commonHandleDataValidated
+        || publication.m_commonLinkEvidence != raw.m_commonLinkEvidence
+        || publication.m_parentHandle != raw.m_parentHandle
+        || publication.m_numReactors != 0 || !publication.m_reactorHandles.empty()
+        || publication.m_xDictFlag != 1u || publication.m_xDictHandle != 0u)
+        return false;
+    const auto emptyProfile = [](const DRW_XRecord &record) noexcept {
+        return record.tType == DRW::XRECORD && record.name.empty() && record.flags == 0
+            && record.m_cloning == 0 && record.m_values.empty()
+            && record.m_handleValues.empty() && record.m_dataEntries.empty()
+            && !record.m_rawDataValid && record.m_rawData.empty()
+            && !record.hasDwgRawDataSourceRecord() && record.appData.empty()
+            && record.extData.empty() && record.pendingAppIdResolutions.empty()
+            && record.pendingLayerRefResolutions.empty() && record.reactorCount() == 0
+            && record.reactorHandles.empty() && record.xDictHandle == 0u
+            && record.extensionDictionaryFlag() == 1u
+            && !record.hasDataStorageBinaryData() && record.hasDwgCommonLinkTail();
+    };
+    if (!emptyProfile(*this))
+        return false;
+    try {
+        DRW_TextCodec codec;
+        codec.setVersion(DRW::AC1024, false);
+        codec.resetAccumulatedDecodeIssues();
+        dwgBuffer body(raw.m_rawBytes.data(), raw.m_rawBytes.size(), &codec);
+        dwgBuffer typeProbe = body.forkIndependent();
+        if (typeProbe.getObjType(DRW::AC1024) != dwgObjType::XRECORD
+            || !typeProbe.isGood())
+            return false;
+        DRW_XRecord parsed;
+        return parsed.parseDwg(DRW::AC1024, &body, raw.m_bodyBitSize)
+            && body.isGood() && codec.accumulatedDecodeIssues() == 0u
+            && emptyProfile(parsed) && parsed.handle == handle
+            && parsed.handle == raw.m_handle && parsed.parentHandle == parentHandle
+            && static_cast<std::uint32_t>(parsed.parentHandle) == raw.m_parentHandle;
+    } catch (...) {
+        return false;
+    }
+}
+
 bool DRW_XRecord::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
     reset();
     const auto fail = [this, buf]() {
