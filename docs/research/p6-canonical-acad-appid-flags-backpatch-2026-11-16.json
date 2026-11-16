@@ -20,5 +20,44 @@
     "Generated controls do not promote independent semantic or broad format support claims.",
     "The digest refresh does not promote support claims or turn pending native qualification into a pass."
   ],
-  "qualificationDigest": "f1fec14db2da02458ffccfc4846c6e0292fa8be34532c24ed79304698f5ff81e"
+  "qualificationDigest": "f1fec14db2da02458ffccfc4846c6e0292fa8be34532c24ed79304698f5ff81e",
+  "peerAcceptance": {
+    "tool": "GNU LibreDWG dxf2dwg and dwgread 0.14",
+    "targetVersion": "r2000",
+    "inputs": [
+      {
+        "version": "AC1021",
+        "format": "ascii",
+        "sha256": "7876c264580e14be2870ad5e874bde4442121be84edbe9933b171a06bdb70257"
+      },
+      {
+        "version": "AC1021",
+        "format": "binary",
+        "sha256": "7f0cfb8a9698fdc755d167a4bdeed238e0da3b2ed1ce1de39f920ea01a1410e4"
+      },
+      {
+        "version": "AC1024",
+        "format": "ascii",
+        "sha256": "7876c264580e14be2870ad5e874bde4442121be84edbe9933b171a06bdb70257"
+      },
+      {
+        "version": "AC1024",
+        "format": "binary",
+        "sha256": "7f0cfb8a9698fdc755d167a4bdeed238e0da3b2ed1ce1de39f920ea01a1410e4"
+      },
+      {
+        "version": "AC1032",
+        "format": "ascii",
+        "sha256": "7876c264580e14be2870ad5e874bde4442121be84edbe9933b171a06bdb70257"
+      },
+      {
+        "version": "AC1032",
+        "format": "binary",
+        "sha256": "7f0cfb8a9698fdc755d167a4bdeed238e0da3b2ed1ce1de39f920ea01a1410e4"
+      }
+    ],
+    "result": "All six conversions and JSON readbacks returned success and contained one ACAD APPID with is_xref_ref=1. Each conversion emitted two Unknown HEADER.DIMLDRBLK STANDARD warnings. Converter and reader share the LibreDWG implementation.",
+    "negativeControl": "A scratch ASCII derivative changed only ACAD group 70 from 64 to 0; it also returned is_xref_ref=1, so the observed field cannot distinguish the flag values and does not independently verify preservation.",
+    "scope": "Peer acceptance of generated outputs only; neither whole-drawing compatibility nor independent flag semantics is established. No sample files were committed."
+  }
 }
