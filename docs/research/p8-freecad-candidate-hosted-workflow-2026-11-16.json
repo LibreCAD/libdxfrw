@@ -15,9 +15,9 @@
     "Existing push-triggered release qualification jobs remain enabled; candidate matrix is opt-in for dispatch.",
     "Candidate source application and headless runtime guards were separately exercised on macOS."
   ],
-  "status": "LINUX FOCUSED HEADLESS PASS; WINDOWS RUNNING",
+  "status": "LINUX AND WINDOWS FOCUSED HEADLESS PASS; GUI AND BROADER QUALIFICATION OPEN",
   "limitations": [
-    "Linux passed the selected headless candidate tests; Windows is still running. Neither GUI rendering nor broad support is qualified.",
+    "Linux and Windows passed the selected headless candidate tests. GUI rendering, independent semantics and broad support remain open.",
     "Submodule gitlink status is recorded; binary reproducibility, full build provenance and independent semantic support are not established.",
     "Headless checks do not establish native GUI rendering or complete DWG/DXF support.",
     "The downstream FreeCAD patch series remains unmerged."
@@ -53,7 +53,7 @@
   "fourthDispatch": {
     "url": "https://github.com/dxli/libdxfrw/actions/runs/43849681525",
     "commit": "cab8f700",
-    "outcome": "Linux x86_64 completed the build and ten focused headless tests; Windows remains running.",
+    "outcome": "Linux x86_64 and Windows x64 built the candidate and passed the same ten focused headless tests without skips.",
     "linux": {
       "jobUrl": "https://github.com/dxli/libdxfrw/actions/runs/43849681525/job/133238708049",
       "artifactId": 14218345361,
@@ -104,6 +104,87 @@
         "src/Mod/Import/App/dxf/dxf.h": "9afc81e16bc7c06fddf67fea70c8790afdc02027146c7c16a631676e3be4c34f",
         "src/Mod/Import/importtests/TestImportDXF.py": "d07db2e046bc934f0220d5cdffe9080d2bb8807a9245f27b32a5b4a375188402"
       },
+      "submodules": [
+        {
+          "commit": "543d0dd3fe966ddf20e884b44e5fdbf12cb43784",
+          "path": "src/3rdParty/GSL"
+        },
+        {
+          "commit": "4be80eef02a3486cda0d78f3ccbb308d207a9639",
+          "path": "src/3rdParty/OndselSolver"
+        },
+        {
+          "commit": "dc05ca0469f2b3b10ea4a93b468d95b5a5374bac",
+          "path": "src/3rdParty/coin"
+        },
+        {
+          "commit": "118ac5a21bcf57f0f90e2b0e681c9dcbf07074c2",
+          "path": "src/3rdParty/coin/cpack.d"
+        },
+        {
+          "commit": "6217657eef6aec24a0e4ecea4695031c1a622cf3",
+          "path": "src/3rdParty/coin/docs/doxygen-awesome"
+        },
+        {
+          "commit": "515f038d32f163a976acd8a8cd9e8d26e1d0b884",
+          "path": "src/3rdParty/pivy"
+        },
+        {
+          "commit": "745c1b1ebc8bc684439210c5fa237d2c6287153b",
+          "path": "src/Mod/AddonManager"
+        }
+      ]
+    },
+    "windows": {
+      "jobUrl": "https://github.com/dxli/libdxfrw/actions/runs/43849681525/job/133238707164",
+      "artifactId": 14218323389,
+      "receiptSha256": "58b7d2b287f3adf761a846026ccf2504118e58cb46de9c7a2665041f545d8559",
+      "sourceCommit": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+      "sourceArchiveSha256": "5ba6c1409d59405dfdb0ddac9922633171b6d9117e9776913b3ca0888b3870f4",
+      "patchCount": 20,
+      "patchedSourceSha256": {
+        "src/Mod/Import/App/dxf/ImpExpDxf.cpp": "46a7b9f0f72d80bf4df6584e458ae48ddd24354c01a889964679468c017b6583",
+        "src/Mod/Import/App/dxf/ImpExpDxf.h": "c9c95156d7c2b8b4e8e10d4bfaae996baafb32a9a3a6b96c8d3d3878590de6f2",
+        "src/Mod/Import/App/dxf/dxf.cpp": "b40d3fbab00ec760229e775aafec5f29466c42de5505a50a0719b2866d74c934",
+        "src/Mod/Import/App/dxf/dxf.h": "9afc81e16bc7c06fddf67fea70c8790afdc02027146c7c16a631676e3be4c34f",
+        "src/Mod/Import/importtests/TestImportDXF.py": "d07db2e046bc934f0220d5cdffe9080d2bb8807a9245f27b32a5b4a375188402"
+      },
+      "gitBaseVerified": true,
+      "cmakeCacheSha256": "d532b802aaf8615253ba4e2885d542c1636ee2766a8ed94e4abb2ae059076c26",
+      "freecadcmdSha256": "21191555cc8f4a27672784a1b6605fef05b2af1607cf6c7455967b3095c9fee9",
+      "importModuleSha256": "c8b70e274033b5af2daf4bec4d5b258701f2f23baba615a3af69ada0c096a461",
+      "probeSha256": "75d69cf492f7aa410590438beb0cec9a739799fd5a040ab745d97a04cde2e240",
+      "platform": "win32",
+      "machine": "AMD64",
+      "freecadVersion": [
+        "27",
+        "1",
+        "0",
+        "20261115 (Git shallow)",
+        "Unknown",
+        "2026/11/15 20:17:45",
+        "(HEAD detached at 157bfcb)",
+        "157bfcb7462a733b03a7d041aeaa79fee7aff7a3"
+      ],
+      "pythonVersion": "3.13.18 | packaged by conda-forge | (main, Oct 26 2026, 11:30:40) [MSC v.1944 64 bit (AMD64)]",
+      "tests": [
+        "test_read_lines",
+        "test_dimension_ocs_orientation_axes",
+        "test_read_solid_ocs_vertices",
+        "test_classic_polyline_header_flags_and_mesh_disposition",
+        "test_bounded_polyface_geometry_and_rejections",
+        "test_bounded_polygon_mesh_grid_and_rejections",
+        "test_off_layer_without_grouping_reports_visibility_loss",
+        "test_frozen_layer_without_grouping_remains_reported",
+        "test_out_of_range_layer_colors_report_and_keep_off_state",
+        "test_malformed_layer_colors_report_and_keep_off_state"
+      ],
+      "testsRun": 10,
+      "skipped": 0,
+      "failures": 0,
+      "errors": 0,
+      "guiUp": 0,
+      "submoduleStatusSha256": "cd8da55067a70a1eca8df8aa5185425be972b0518d524cca094f7e1b0a1920df",
       "submodules": [
         {
           "commit": "543d0dd3fe966ddf20e884b44e5fdbf12cb43784",

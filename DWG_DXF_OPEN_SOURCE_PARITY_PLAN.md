@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **692 completed implementation and qualification slices** and **32 remaining
+The plan records **693 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`692 / (692 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
+`693 / (693 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -116,16 +116,16 @@ changed paths only; it does not authenticate untracked or ignored files,
 submodules or build provenance. Preserve build logs and record these identities
 separately. The existing platform workflow now has an opt-in candidate matrix
 for the two hosted systems, with a pinned upstream checkout, recursive gitlink
-check, locked Pixi environment, focused build and probe; dispatch it and address
-the actual platform results ([workflow receipt](docs/research/p8-freecad-candidate-hosted-workflow-2026-11-16.json)).
+check, locked Pixi environment, focused build and probe
+([workflow receipt](docs/research/p8-freecad-candidate-hosted-workflow-2026-11-16.json)).
 The candidate dispatches failed before building: replay depended on Git input
 line-ending normalization, and FreeCAD's own attributes then prevented applying
 the same patch chain directly inside a full checkout. The helper now installs
 verified replay bytes after checking the original checkout files against the
 archive. A local checkout with those attributes passes injected installation
 failure, byte restoration and retry. The fourth hosted dispatch passes ten
-focused headless tests on Linux x86_64 with matching source, Git base, CMake
-source, executable and importer identities; Windows is still running
+focused headless tests on Linux x86_64 and Windows x64 with matching source,
+Git base, CMake source, executable and importer identity checks
 ([receipt](docs/research/p8-freecad-candidate-hosted-workflow-2026-11-16.json)).
 Native GUI behavior and broader candidate qualification remain unresolved.
 The existing [GUI probe](tools/research/freecad_gui_mesh_probe.FCMacro) also has
