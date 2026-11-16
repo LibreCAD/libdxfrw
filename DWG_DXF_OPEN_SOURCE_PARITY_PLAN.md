@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **639 completed implementation and qualification slices** and **32 remaining
+The plan records **640 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`639 / (639 + 32) = 95.2%`. The previous 28-package denominator was stale; a recount
+`640 / (640 + 32) = 95.2%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -240,13 +240,15 @@ transaction retry also pass. This closes no whole-drawing writer gate
 A fresh generated default-plotstyle matrix converts with ODA for AC1015 and
 AC1018, but AC1021–AC1032 still fail at LAYER after earlier object warnings;
 continue isolating the modern container, default graphs and remaining versions.
-An explicit source-independent AC1027 layer-0 opt-in now combines the staged
-Global material and default Normal plot-style graph with typed xref and trailing
-nulls. Exact emitted roles, graph identity, refusal/retry and peer conversion
-pass for the selected generated profile; additional layers, imported source
-state, native rendering and general AC1027 support remain open
-([receipt](docs/research/p6-ac1027-canonical-layer-default-graph-optin-2026-11-15.json)).
-Continue broader producer and graph qualification before extending it
+An explicit source-independent opt-in now covers layer 0 and Defpoints with
+the staged Global material and default Normal plot-style graph for AC1021 and
+AC1027. It checks versioned handle-stream boundaries, graph identity and
+reactors; focused refusal/retry, fresh readback, ODA conversion and independent
+LibreDWG/ezdxf reference checks pass for each selected generated two-layer
+profile ([receipt](docs/research/p6-ac1021-ac1027-two-layer-default-graph-optin-2026-11-16.json)).
+Other names, additional layers, imported source state, native rendering and
+general version support remain open. Continue broader producer and graph
+qualification before extending it
 ([header receipt](docs/research/p6-ac1018-ac1024-repeated-file-header-2026-11-15.json),
 [layer experiment](docs/research/p6-ac1024-authored-layer-null-matrix-2026-11-15.json)).
 

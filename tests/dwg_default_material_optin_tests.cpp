@@ -1265,7 +1265,7 @@ struct CanonicalR2013Adapter final : Adapter, DRW_DwgCanonicalLayerProvider {
     bool wantsDwgCanonicalLayerNulls(const DRW_Layer&) const override { return true; }
     void writeLayers() override {
         DRW_Layer layer;
-        layer.name = fault == 5 ? "Defpoints" : "0";
+        layer.name = fault == 5 ? "unsupported" : "0";
         layer.materialHandle.ref = fault == 4 ? 0xB200u : handles[3];
         layer.plotStyleHandle.ref = fault == 3 ? 0u : plotStylePlaceholder;
         if (fault == 1) layer.unknownHandle.ref = 0xB201u;
@@ -1329,6 +1329,95 @@ bool canonicalR2013Layer(const std::filesystem::path& path, bool keep) {
     if (keep)
         std::filesystem::copy_file(path, path.parent_path() / "canonical-layer-ac1027.dwg");
     for (int fault = 1; fault <= 8; ++fault) {
+        { std::ofstream f(path, std::ios::binary | std::ios::trunc); f << "prior destination"; }
+        adapter.fault = fault;
+        if (write() || adapter.accepted || !adapter.callerUnchanged) return false;
+        { std::ifstream f(path, std::ios::binary);
+          if (std::string(std::istreambuf_iterator<char>(f), {}) != "prior destination") return false; }
+        adapter.fault = 0;
+        if (!write() || !adapter.accepted || !adapter.callerUnchanged || !verify()) return false;
+    }
+    return true;
+}
+struct CanonicalMultiAdapter final : Adapter, DRW_DwgCanonicalLayerProvider {
+    using Adapter::Adapter;
+    bool wantsDwgCanonicalLayerNulls(const DRW_Layer&) const override { return true; }
+    void writeLayers() override {
+        callerUnchanged = true;
+        accepted = false;
+        for (int index = 0; index < 2; ++index) {
+            DRW_Layer layer;
+            layer.name = index == 0 ? "0" : (fault == 5 ? "unsupported" : "Defpoints");
+            layer.materialHandle.ref = index == 1 && fault == 4 ? 0xB200u : handles[3];
+            layer.plotStyleHandle.ref = index == 1 && fault == 3 ? 0u : plotStylePlaceholder;
+            if (index == 1 && fault == 1) layer.unknownHandle.ref = 0xB201u;
+            if (index == 1 && fault == 2) layer.unknownHandle.code = DRW::DwgSoftPointer;
+            if (index == 1 && fault == 6) layer.xrefBlockHandle.ref = 0xB202u;
+            if (index == 1 && fault == 7) layer.unknownHandle.ref64 = std::uint64_t{1} << 40;
+            if (index == 1 && fault == 8) layer.unknownHandle.rawCode = DRW::DwgSoftPointer;
+            if (index == 1 && fault == 9) layer.unknownHandle.code = DRW::DwgHardPointer;
+            if (index == 1 && fault == 10) layer.unknownHandle.rawCode = DRW::DwgHardPointer;
+            const auto unknown = layer.unknownHandle;
+            const auto xref = layer.xrefBlockHandle;
+            accepted = output.addLayer(&layer);
+            callerUnchanged = callerUnchanged && layer.extensionDictionaryFlag() == 0u
+                && layer.unknownHandle.ref == unknown.ref
+                && layer.unknownHandle.ref64 == unknown.ref64
+                && layer.unknownHandle.code == unknown.code
+                && layer.unknownHandle.rawCode == unknown.rawCode
+                && layer.xrefBlockHandle.ref == xref.ref
+                && layer.xrefBlockHandle.code == xref.code;
+            if (!accepted) { output.markDwgWriteFailure(); return; }
+        }
+    }
+    int fault = 0;
+    bool accepted = false;
+    bool callerUnchanged = false;
+};
+
+bool canonicalMultiLayer(const std::filesystem::path& path,
+                         DRW::Version version, bool keep) {
+    dwgRW output(path.string().c_str());
+    CanonicalMultiAdapter adapter(output);
+    adapter.version = version;
+    const auto verify = [&]() {
+        struct LayerCapture final : LC3CompatCheck {
+            void addLayer(const DRW_Layer& value) override { layers.push_back(value); }
+            std::vector<DRW_Layer> layers;
+        } capture;
+        dwgR reader(path.string().c_str());
+        if (!reader.read(&capture, false) || capture.layers.size() != 2u) return false;
+        for (const auto* name : {"0", "Defpoints"}) {
+            const auto found = std::find_if(capture.layers.begin(), capture.layers.end(),
+                [name](const DRW_Layer& layer) { return layer.name == name; });
+            if (found == capture.layers.end() || found->extensionDictionaryFlag() != 1u
+                || found->xrefBlockHandle.rawCode != DRW::DwgHardPointer
+                || found->xrefBlockHandle.ref != 0u
+                || found->plotStyleHandle.rawCode != DRW::DwgHardPointer
+                || found->plotStyleHandle.ref != adapter.plotStylePlaceholder
+                || found->materialHandle.rawCode != DRW::DwgHardPointer
+                || found->materialHandle.ref != adapter.handles[3]
+                || found->lTypeH.rawCode != DRW::DwgHardPointer || found->lTypeH.ref == 0u
+                || (version == DRW::AC1027
+                    && (found->unknownHandle.rawCode != DRW::DwgHardPointer
+                        || found->unknownHandle.ref != 0u))) return false;
+        }
+        return inspect(path.string(), adapter.handles, false, version,
+                       adapter.plotStylePlaceholder);
+    };
+    const auto write = [&]() { return output.write(&adapter, version, true); };
+    if (!write() || !adapter.accepted || !adapter.callerUnchanged || !verify()) {
+        std::cerr << "canonical two-layer write failed version=" << int(version)
+                  << " code=" << output.getLastDiagnostic().code << '\n';
+        return false;
+    }
+    if (keep) {
+        const auto name = version == DRW::AC1021 ? "canonical-layers-ac1021.dwg"
+                                                  : "canonical-layers-ac1027.dwg";
+        std::filesystem::copy_file(path, path.parent_path() / name);
+    }
+    const int faultCount = version == DRW::AC1021 ? 10 : 8;
+    for (int fault = 1; fault <= faultCount; ++fault) {
         { std::ofstream f(path, std::ios::binary | std::ios::trunc); f << "prior destination"; }
         adapter.fault = fault;
         if (write() || adapter.accepted || !adapter.callerUnchanged) return false;
@@ -1654,6 +1743,23 @@ int main(int argc,char**argv) {
             !inspect(path, adapter.handles, false, version)) {
             std::cerr << "supplied layer with planned Global material failed\n";
             return 1;
+        }
+        if (version == DRW::AC1021 || version == DRW::AC1027) {
+            // A queued Global reference without the new provider stays refused.
+            adapter.mode = Mode::ExtraLayerGlobal;
+            { std::ofstream f(path, std::ios::binary | std::ios::trunc); f << "prior destination"; }
+            if (output.write(&adapter, version, true)) return 1;
+            { std::ifstream f(path, std::ios::binary);
+              if (std::string(std::istreambuf_iterator<char>(f), {}) != "prior destination") return 1; }
+            adapter.mode = Mode::Normal;
+            if (!output.write(&adapter, version, true)
+                || !inspect(path, adapter.handles, false, version)) return 1;
+            const auto probe = dir / (version == DRW::AC1021
+                ? "canonical-multi-r2007-test.dwg" : "canonical-multi-r2013-test.dwg");
+            if (!canonicalMultiLayer(probe, version, keep)) {
+                std::cerr << "canonical two-layer controls failed version=" << int(version) << '\n';
+                return 1;
+            }
         }
         if (version == DRW::AC1024) {
             adapter.mode = Mode::ExtraLayerGlobal;

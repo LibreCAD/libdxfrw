@@ -4102,16 +4102,16 @@ bool dwgRW::addLayer(DRW_Layer *ent) {
             const auto& xref = ent->xrefBlockHandle;
             std::uint32_t material = 0u, plot = 0u;
             bool hasMaterial = false, hasPlot = false;
+            const bool r2007 = version == DRW::AC1021;
             const bool r2013 = version == DRW::AC1027;
             std::uint32_t stagedPlotDictionary = 0u, stagedPlotPlaceholder = 0u;
             const auto& unknown = ent->unknownHandle;
-            if ((version != DRW::AC1024 && !r2013)
-                || (r2013 ? ent->name != "0"
-                          : (ent->name != "0" && ent->name != "Defpoints"))
-                || (r2013 && (unknown.ref != 0u || unknown.ref64 != 0u
-                              || unknown.size != 0u
-                              || (unknown.code != 0u && unknown.code != DRW::DwgHardPointer)
-                              || (unknown.rawCode != 0u && unknown.rawCode != DRW::DwgHardPointer)))
+            if ((version != DRW::AC1024 && !r2007 && !r2013)
+                || (ent->name != "0" && ent->name != "Defpoints")
+                || unknown.ref != 0u || unknown.ref64 != 0u || unknown.size != 0u
+                || (unknown.code != 0u && unknown.code != DRW::DwgHardPointer)
+                || (unknown.rawCode != 0u && unknown.rawCode != DRW::DwgHardPointer)
+                || (!r2013 && (unknown.code != 0u || unknown.rawCode != 0u))
                 || ent->hasDwgCommonLinkTail()
                 || !ent->dwgHandleFieldSpans().empty()
                 || ent->reactorCount() != 0 || !ent->reactorHandles.empty()
@@ -4124,7 +4124,7 @@ bool dwgRW::addLayer(DRW_Layer *ent) {
                 || (xref.rawCode != 0u && xref.rawCode != DRW::DwgHardPointer)
                 || !ent->getDxfMaterialHandle(material, hasMaterial) || !hasMaterial
                 || !ent->getDxfPlotStyleHandle(plot, hasPlot) || !hasPlot
-                || (r2013 && (!w->defaultDwgPlotStyleGraphHandles(
+                || ((r2007 || r2013) && (!w->defaultDwgPlotStyleGraphHandles(
                                   stagedPlotDictionary, stagedPlotPlaceholder)
                               || stagedPlotDictionary == 0u
                               || stagedPlotPlaceholder != plot))

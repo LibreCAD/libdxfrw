@@ -1149,13 +1149,13 @@ public:
   }
 };
 
-/** Optional, per-layer opt-in for source-independent AC1024/AC1027 authoring.
- * Returning true requests the witnessed missing-extension-dictionary flag and
+/** Optional, per-layer opt-in for source-independent AC1021/AC1024/AC1027
+ * authoring. Returning true requests the witnessed missing-extension flag and
  * hard-pointer null xref; AC1027 also requests a hard-pointer trailing null.
  * The caller must establish that the layer is newly authored. The bounded
- * profile accepts layers named 0 or Defpoints in AC1024 and layer 0 only in
- * AC1027, with staged Global material and a no-reactor Normal plot-style graph
- * (the staged default graph is required for AC1027). Its emitted roles, NOD root
+ * profile accepts layers named 0 or Defpoints, with staged Global material and
+ * a Normal plot-style graph (the staged default graph is required for AC1021
+ * and AC1027). Its versioned emitted roles, NOD root
  * and placeholder owner are checked before publication. The caller must not
  * opt in imported source-preservation layers; retained DWG link evidence and
  * incompatible common data are refused. This interface is separate from

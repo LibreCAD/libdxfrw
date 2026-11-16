@@ -57,21 +57,29 @@ template <std::size_t N>
 bool canonicalHandleTailMatches(const DRW::DwgObjectFrameReceipt& frame,
     DRW::Version version, std::uint32_t handle, std::uint16_t objectType,
     const std::array<std::pair<std::uint8_t, std::uint64_t>, N>& expected) {
-    if (!frame.valid || (version != DRW::AC1024 && version != DRW::AC1027)
+    if (!frame.valid || (version != DRW::AC1021 && version != DRW::AC1024
+                         && version != DRW::AC1027)
         || frame.version != version || frame.objectHandle != handle
         || frame.classNumber != objectType)
         return false;
+    // R2007 LAYER handles are merged at their exact bit boundary into the
+    // data segment; other selected records keep a detached handle segment.
+    const bool mergedLayerHandles = version == DRW::AC1021
+        && objectType == DRW::DwgLayerObjectType;
+    const auto segment = mergedLayerHandles ? DRW::DwgObjectSerializedSegment::Data
+                                            : DRW::DwgObjectSerializedSegment::Handles;
+    const auto segmentBits = mergedLayerHandles ? frame.dataBitSize : frame.handleBitSize;
     std::size_t index = 0u;
     std::uint64_t priorEnd = 0u;
     for (const auto& occurrence : frame.occurrences) {
         if (occurrence.stream != DRW::DwgObjectHandleStream::Handles) continue;
         if (index >= expected.size() || occurrence.objectHandle != handle
-            || occurrence.serializedSegment != DRW::DwgObjectSerializedSegment::Handles
+            || occurrence.serializedSegment != segment
             || occurrence.token.code != expected[index].first
             || occurrence.token.reference != expected[index].second
             || occurrence.token.startBit < priorEnd
             || occurrence.token.endBit <= occurrence.token.startBit
-            || occurrence.token.endBit > frame.handleBitSize) return false;
+            || occurrence.token.endBit > segmentBits) return false;
         priorEnd = occurrence.token.endBit;
         ++index;
     }
@@ -3695,8 +3703,9 @@ bool dwgWriter15::validateDwgNamedObjectDictionaryEntries() const {
     }
 
     if (!m_canonicalLayerHandles.empty()) {
-        if ((m_version != DRW::AC1024 && m_version != DRW::AC1027)
-            || m_canonicalLayerHandles.size() > (m_version == DRW::AC1027 ? 1u : 2u)
+        if ((m_version != DRW::AC1021 && m_version != DRW::AC1024
+             && m_version != DRW::AC1027)
+            || m_canonicalLayerHandles.size() > 2u
             || !m_canonicalPlotDictionarySeen || !m_canonicalPlaceholderSeen
             || m_canonicalPlotTarget == 0u || m_canonicalPlotDictionary == 0u
             || m_canonicalPlaceholderOwner != m_canonicalPlotDictionary
@@ -4108,16 +4117,26 @@ bool dwgWriter15::writeAcDbPlaceholder(
         return false;
     }
     if (m_canonicalPlotTarget != 0u && object.handle == m_canonicalPlotTarget) {
+        const bool reactorProfile = m_version == DRW::AC1021;
         const std::array<std::pair<std::uint8_t, std::uint64_t>, 1> expected{{
             {DRW::DwgSoftPointer, object.parentHandle}}};
-        if (m_canonicalPlaceholderSeen || placeholder.reactorCount() != 0
-            || object.reactorCount() != 0
+        const std::array<std::pair<std::uint8_t, std::uint64_t>, 2> expectedR2007{{
+            expected[0], {DRW::DwgSoftPointer, object.parentHandle}}};
+        const bool rolesMatch = reactorProfile
+            ? canonicalHandleTailMatches(m_lastDwgObjectFrame, m_version, object.handle,
+                                         dwgObjType::ACDBPLACEHOLDER, expectedR2007)
+            : canonicalHandleTailMatches(m_lastDwgObjectFrame, m_version, object.handle,
+                                         dwgObjType::ACDBPLACEHOLDER, expected);
+        const bool reactorsMatch = reactorProfile
+            ? placeholder.reactorCount() == 1 && object.reactorCount() == 1
+                && object.reactorHandles.size() == 1u
+                && object.reactorHandles.front() == object.parentHandle
+            : placeholder.reactorCount() == 0 && object.reactorCount() == 0;
+        if (m_canonicalPlaceholderSeen || !reactorsMatch
             || object.extensionDictionaryFlag() != 1u || object.xDictHandle != 0u
             || object.hasDataStorageBinaryData() || !object.appData.empty()
             || !object.extData.empty() || !object.pendingAppIdResolutions.empty()
-            || !object.pendingLayerRefResolutions.empty()
-            || !canonicalHandleTailMatches(m_lastDwgObjectFrame, m_version, object.handle,
-                                           dwgObjType::ACDBPLACEHOLDER, expected))
+            || !object.pendingLayerRefResolutions.empty() || !rolesMatch)
             return false;
         m_canonicalPlaceholderOwner = object.parentHandle;
         m_canonicalPlaceholderSeen = true;
@@ -5264,11 +5283,16 @@ bool dwgWriter15::rejectDefaultDwgMaterialFrameConflicts() {
             const bool layerEdge = m_currentHandle == DRW::DwgLayer0Handle
                 && token.reference == m_defaultMaterialHandles[3]
                 && token.code == DRW::DwgHardPointer;
-            // AC1024 drawings can contain several typed layers referring to
-            // the same Global material. Only admit a queued LAYER's own
-            // material field; protected handles in arbitrary frames remain
-            // conflicts.
-            const bool queuedLayerEdge = m_version == DRW::AC1024
+            // AC1021/AC1027 additionally require this queued layer to be
+            // selected by the bounded canonical-layer opt-in. Other frames
+            // remain unable to reference the staged Global material.
+            const bool selectedCanonicalLayer =
+                (m_version == DRW::AC1021 || m_version == DRW::AC1027)
+                && std::find(m_canonicalLayerHandles.begin(),
+                             m_canonicalLayerHandles.end(), m_currentHandle)
+                    != m_canonicalLayerHandles.end();
+            const bool queuedLayerEdge = (m_version == DRW::AC1024
+                                           || selectedCanonicalLayer)
                 && &buffer == &m_objectHandles
                 && token.reference == m_defaultMaterialHandles[3]
                 && token.code == DRW::DwgHardPointer
@@ -6589,23 +6613,36 @@ bool dwgWriter15::writeDictionaryWithDefault(const DRW_DictionaryWithDefault& di
         return false;
     }
     if (m_canonicalPlotTarget != 0u && object.m_defaultEntryHandle == m_canonicalPlotTarget) {
+        const bool reactorProfile = m_version == DRW::AC1021;
         const std::array<std::pair<std::uint8_t, std::uint64_t>, 3> expected{{
             {DRW::DwgSoftPointer, DRW::DwgNamedObjectsDictionaryHandle},
             {DRW::DwgSoftOwnership, m_canonicalPlotTarget},
             {DRW::DwgHardPointer, m_canonicalPlotTarget}}};
+        const std::array<std::pair<std::uint8_t, std::uint64_t>, 4> expectedR2007{{
+            expected[0], expected[0], expected[1], expected[2]}};
+        const auto objectType = typedDwgClassNum(
+            "AcDbDictionaryWithDefault", "ACDBDICTIONARYWDFLT",
+            DRW_DictionaryWithDefault::kDwgClassNum);
+        const bool rolesMatch = reactorProfile
+            ? canonicalHandleTailMatches(m_lastDwgObjectFrame, m_version, object.handle,
+                                         objectType, expectedR2007)
+            : canonicalHandleTailMatches(m_lastDwgObjectFrame, m_version, object.handle,
+                                         objectType, expected);
+        const bool reactorsMatch = reactorProfile
+            ? dictionary.reactorCount() == 1 && object.reactorCount() == 1
+                && object.reactorHandles.size() == 1u
+                && object.reactorHandles.front() == DRW::DwgNamedObjectsDictionaryHandle
+            : dictionary.reactorCount() == 0 && object.reactorCount() == 0;
         if (m_canonicalPlotDictionarySeen
             || object.parentHandle != DRW::DwgNamedObjectsDictionaryHandle
             || object.m_entries.size() != 1u || object.m_entries.front().m_name != "Normal"
             || object.m_entries.front().m_handle != m_canonicalPlotTarget
-            || object.cloning != 1 || object.hardOwner != 0
-            || dictionary.reactorCount() != 0 || object.reactorCount() != 0
+            || object.cloning != 1 || object.hardOwner != 0 || !reactorsMatch
             || object.extensionDictionaryFlag() != 1u
             || object.xDictHandle != 0u || object.hasDataStorageBinaryData()
             || !object.appData.empty() || !object.extData.empty()
             || !object.pendingAppIdResolutions.empty() || !object.pendingLayerRefResolutions.empty()
-            || !canonicalHandleTailMatches(m_lastDwgObjectFrame, m_version, object.handle,
-                typedDwgClassNum("AcDbDictionaryWithDefault", "ACDBDICTIONARYWDFLT",
-                                 DRW_DictionaryWithDefault::kDwgClassNum), expected))
+            || !rolesMatch)
             return false;
         m_canonicalPlotDictionary = object.handle;
         m_canonicalPlotDictionarySeen = true;
@@ -7311,11 +7348,11 @@ std::uint32_t dwgWriter15::addLType(const DRW_LType& lt) {
 }
 
 bool dwgWriter15::bindCanonicalLayer(std::uint32_t layer, std::uint32_t plot) {
-    if ((m_version != DRW::AC1024 && m_version != DRW::AC1027)
-        || m_dwgTableRecordsComplete
+    if ((m_version != DRW::AC1021 && m_version != DRW::AC1024
+         && m_version != DRW::AC1027) || m_dwgTableRecordsComplete
         || layer == 0u || layer == DRW::NoHandle || plot == 0u || plot == DRW::NoHandle
         || (m_canonicalPlotTarget != 0u && m_canonicalPlotTarget != plot)
-        || m_canonicalLayerHandles.size() >= (m_version == DRW::AC1027 ? 1u : 2u)
+        || m_canonicalLayerHandles.size() >= 2u
         || std::find(m_canonicalLayerHandles.begin(), m_canonicalLayerHandles.end(), layer)
             != m_canonicalLayerHandles.end()) return false;
     try {

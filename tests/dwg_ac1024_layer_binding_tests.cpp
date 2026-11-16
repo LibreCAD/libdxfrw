@@ -160,6 +160,9 @@ public:
             if (incompatible == 3) layer.handlePlotS = "BAD";
             if (incompatible == 4) layer.name = "Other";
             if (incompatible == 5) layer.materialHandle.ref ^= 1u;
+            if (incompatible == 6) layer.unknownHandle.ref = 0xB201u;
+            if (incompatible == 7) layer.unknownHandle.code = DRW::DwgHardPointer;
+            if (incompatible == 8) layer.unknownHandle.rawCode = DRW::DwgHardPointer;
             const bool layerZeroAdded = output_.addLayer(&layer);
             if (layerShape_ == 3)
                 callerUnchanged = layer.extensionDictionaryFlag() == 0u
@@ -168,7 +171,10 @@ public:
                     && layer.hasDwgCommonLinkTail() == (incompatible == 2)
                     && layer.handlePlotS == (incompatible == 3 ? "BAD" : "")
                     && layer.name == (incompatible == 4 ? "Other" : "0")
-                    && layer.materialHandle.ref == (incompatible == 5 ? (global_ ^ 1u) : global_);
+                    && layer.materialHandle.ref == (incompatible == 5 ? (global_ ^ 1u) : global_)
+                    && layer.unknownHandle.ref == (incompatible == 6 ? 0xB201u : 0u)
+                    && layer.unknownHandle.code == (incompatible == 7 ? DRW::DwgHardPointer : 0u)
+                    && layer.unknownHandle.rawCode == (incompatible == 8 ? DRW::DwgHardPointer : 0u);
             if (!layerZeroAdded) return;
             layer.handle = 0u;
         }
@@ -351,7 +357,7 @@ int main(int argc, char** argv) {
     if (!materialWriter.reserveHandle(0xA11u)) return 1;
     if (layerShape == 3) {
         const std::string sentinel = "keep canonical layer destination\n";
-        for (int failure = 1; failure <= 5; ++failure) {
+        for (int failure = 1; failure <= 8; ++failure) {
             { std::ofstream f(materialPath, std::ios::binary | std::ios::trunc); f << sentinel; }
             materialAuthor.incompatible = failure;
             const auto calls = materialAuthor.canonicalCalls;
