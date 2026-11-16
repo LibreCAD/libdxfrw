@@ -15,10 +15,11 @@
     "A scratch-only change that supplies the source owner when the adapter considers it reachable let both ASCII and Binary source runs export and pass selected LTYPE/LINE checks. Each export reported 65 source objects left out because of the cross-version route. The shortcut was reverted; no output was promoted.",
     "A direct ASCII OBJECTS group-code census found 85 source records, including 44 ACAD_PROXY_OBJECT and 6 XRECORD records. The scratch output has 23 OBJECTS records, including no ACAD_PROXY_OBJECT or XRECORD. Counts are physical records, not graph-equivalence proof.",
     "An independent ezdxf read also showed source and scratch output object inventories differ; ezdxf upgrades R13 to R2000 and adds default objects in memory, so its counts are not used as physical source totals.",
-    "Both original source file and installed archive were restored after instrumentation; all 47 archive object members match the original installation. No test drawing was committed."
+    "Both original source file and installed archive were restored after instrumentation; all 47 archive object members match the original installation. No test drawing was committed.",
+    "Temporary runtime tracing of the unmodified owner route reports dxfReference source=0x76, dropped=1, suppressed=0 for both R13 encodings; the source-reference resolver rejects that output handle because it collides with the source XRECORD. The trace instrumentation was reverted."
   ],
   "nextSteps": [
-    "Capture the runtime owner resolver input and result to prove the suspected double mapping. The physical source/output dictionary path and source-handle-76 XRECORD collision are now established.",
+    "Implement a capability-aware, exactly-once owner mapping for the selected style, preserving both current and bundled codec contracts; first close or strictly refuse the other cross-version object dependencies.",
     "Inventory all source records reported left out and their dependencies; preserve them through an admitted cross-version path or refuse publication without altering the destination.",
     "Only then land a bounded owner correction with tests for old and current codec contracts, alias collisions, failure/retry, and independent full graph readback."
   ],
@@ -27,7 +28,8 @@
     "/private/tmp/librecad-p8-r13-style-trace2.log",
     "/private/tmp/librecad-p8-r13-guard-trace.log",
     "/private/tmp/librecad-p8-r13-binding-trace.log",
-    "/private/tmp/librecad-p8-r13-owner-graph.log"
+    "/private/tmp/librecad-p8-r13-owner-graph.log",
+    "/private/tmp/librecad-p8-r13-owner-runtime.log"
   ],
   "limits": "Source and generated outputs are scratch only. Selective successful re-export and reader audit do not prove full graph preservation, native behavior, version parity, or support; all phase and external gates remain unchanged.",
   "selectedPhysicalGraph": {
@@ -51,6 +53,6 @@
       "style": "22",
       "styleOwner": "76"
     },
-    "interpretation": "The source and output graphs share the selected keyed style relationship, but source handle 76 is a different XRECORD. Treating output 76 as a source reference is therefore ambiguous and unsafe. Direct runtime tracing of the second resolution and full graph closure remain outstanding."
+    "interpretation": "The source and output graphs share the selected keyed style relationship, but source handle 76 is a different XRECORD. Runtime tracing confirms dxfReference receives 0x76, finds it in the dropped-source set and rejects it. The codec receives an already remapped owner as though it were a source reference. Full graph closure remains outstanding."
   }
 }

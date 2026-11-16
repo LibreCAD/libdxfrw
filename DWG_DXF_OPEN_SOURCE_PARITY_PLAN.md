@@ -102,8 +102,10 @@ created locally from scratch for the specific control.
   land that shortcut until source-to-output ownership and all required records
   close. The source root `A` → `ACAD_MLINESTYLE` dictionary `10` → `STANDARD`
   style `22` became output root `C` → dictionary `76` → style `22`; source
-  handle `76` independently names a dropped XRECORD. Distinguish source from
-  output handle namespaces, resolve the owner exactly once for each codec,
+  handle `76` independently names a dropped XRECORD. Runtime tracing confirms
+  the current codec passes output `76` back to the source resolver, which
+  rejects it as dropped. Distinguish source from output handle namespaces,
+  resolve the owner exactly once for each codec,
   and retain or refuse the 65 cross-version omissions with rollback. Verify
   dictionary membership, owner roles, alias collisions and all required
   records through independent graph readback before enabling output
