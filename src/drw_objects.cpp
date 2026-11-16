@@ -13187,6 +13187,108 @@ bool DRW_WipeoutVariables::encodeDwg(DRW::Version version, dwgBufferW *buf,
     }
 }
 
+bool DRW_SortEntsTable::matchesAc1024EmptyDwgFrame(
+    const DRW_UnsupportedObject &raw,
+    const DRW_DwgFramePublication &publication,
+    const DRW_DwgSortEntsMembership &membership) const noexcept {
+    // Selected title-block profile: an empty table owned by an extension
+    // dictionary, with one reactor pointing back to that dictionary.
+    constexpr std::size_t maxFrameBytes = 4u * 1024u * 1024u;
+    if (raw.m_version != DRW::AC1024 || raw.m_objectType <= 499
+        || raw.m_handle == 0u || raw.m_handle == DRW::NoHandle
+        || raw.m_parentHandle == 0u || raw.m_parentHandle == DRW::NoHandle
+        || raw.m_isEntity || !raw.m_isCustomClass || !raw.m_hasClassDefinition
+        || raw.m_recordName != "SORTENTSTABLE"
+        || raw.m_className != "AcDbSortentsTable" || raw.m_hasDataStorage
+        || raw.m_rawBytes.empty() || raw.m_rawBytes.size() > maxFrameBytes
+        || raw.m_rawBytes.size() != raw.m_objectSize
+        || raw.m_bodyBitSize > static_cast<std::uint64_t>(raw.m_objectSize) * 8u
+        || raw.m_objectOffset > (std::numeric_limits<std::uint32_t>::max)()
+        || !raw.m_commonHandleDataValidated
+        || !drwDwgCommonLinkEvidenceValidated(raw.m_commonLinkEvidence)
+        || raw.m_numReactors != 1 || raw.m_reactorHandles.size() != 1u
+        || raw.m_reactorHandles[0] != raw.m_parentHandle
+        || raw.m_xDictFlag != 1u || raw.m_xDictHandle != 0u)
+        return false;
+    if (publication.m_version != raw.m_version
+        || publication.m_handle != raw.m_handle || !publication.m_hasSourceLocation
+        || (publication.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+            && publication.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+        || publication.m_sourceOffset != raw.m_objectOffset
+        || publication.m_encodedType != raw.m_objectType
+        || publication.m_resolvedType != raw.m_objectType
+        || publication.m_isEntity || !publication.m_isCustomClass
+        || publication.m_recordName != raw.m_recordName
+        || publication.m_className != raw.m_className
+        || !publication.m_classStreamOrdinal.has_value()
+        || !publication.m_controlHandles.empty()
+        || publication.m_carrier != DRW_DwgFramePublication::Carrier::TypedAndRaw
+        || !publication.m_commonHandleDataValidated
+        || publication.m_commonLinkEvidence != raw.m_commonLinkEvidence
+        || publication.m_parentHandle != raw.m_parentHandle
+        || publication.m_numReactors != raw.m_numReactors
+        || publication.m_reactorHandles != raw.m_reactorHandles
+        || publication.m_xDictFlag != raw.m_xDictFlag
+        || publication.m_xDictHandle != raw.m_xDictHandle)
+        return false;
+    if (membership.m_version != raw.m_version
+        || membership.m_tableHandle != raw.m_handle || !membership.m_complete
+        || !membership.m_hasSourceLocation
+        || membership.m_sourceOffset != publication.m_sourceOffset
+        || membership.m_sourceMapOrdinal != publication.m_sourceMapOrdinal
+        || membership.m_sourceOffsetSpace != publication.m_sourceOffsetSpace
+        || membership.m_encodedType != publication.m_encodedType
+        || membership.m_resolvedType != publication.m_resolvedType
+        || membership.m_recordName != publication.m_recordName
+        || membership.m_className != publication.m_className
+        || membership.m_classStreamOrdinal != publication.m_classStreamOrdinal
+        || !membership.m_entries.empty()
+        || membership.m_blockOwnerHandle == 0u
+        || membership.m_blockOwnerHandle == DRW::NoHandle
+        || tType != DRW::SORTENTSTABLE || !hasCompleteDwgEntries()
+        || !m_sortHandles.empty() || !m_entityHandles.empty()
+        || !appData.empty() || !extData.empty()
+        || !pendingAppIdResolutions.empty() || !pendingLayerRefResolutions.empty())
+        return false;
+    try {
+        DRW_TextCodec codec;
+        codec.setVersion(DRW::AC1024, false);
+        codec.resetAccumulatedDecodeIssues();
+        dwgBuffer body(raw.m_rawBytes.data(), raw.m_rawBytes.size(), &codec);
+        dwgBuffer typeProbe = body.forkIndependent();
+        if (typeProbe.getObjType(DRW::AC1024) != raw.m_objectType
+            || !typeProbe.isGood())
+            return false;
+        DRW_SortEntsTable parsed;
+        if (!parsed.parseDwg(DRW::AC1024, &body, raw.m_bodyBitSize)
+            || !body.isGood() || codec.accumulatedDecodeIssues() != 0u
+            || parsed.tType != tType || parsed.handle != handle
+            || parsed.handle != raw.m_handle || parsed.parentHandle != parentHandle
+            || static_cast<std::uint32_t>(parsed.parentHandle) != raw.m_parentHandle
+            || parsed.name != name || parsed.flags != flags
+            || parsed.reactorHandles != reactorHandles
+            || parsed.reactorHandles != raw.m_reactorHandles
+            || parsed.reactorCount() != reactorCount()
+            || parsed.reactorCount() != raw.m_numReactors
+            || parsed.xDictHandle != xDictHandle || parsed.xDictHandle != raw.m_xDictHandle
+            || parsed.extensionDictionaryFlag() != extensionDictionaryFlag()
+            || parsed.extensionDictionaryFlag() != raw.m_xDictFlag
+            || parsed.hasDwgCommonLinkTail() != hasDwgCommonLinkTail()
+            || parsed.hasDataStorageBinaryData() || hasDataStorageBinaryData()
+            || !parsed.appData.empty() || !parsed.extData.empty()
+            || !parsed.pendingAppIdResolutions.empty()
+            || !parsed.pendingLayerRefResolutions.empty()
+            || !parsed.hasCompleteDwgEntries() || !parsed.m_sortHandles.empty()
+            || !parsed.m_entityHandles.empty()
+            || parsed.m_blockOwnerHandle != m_blockOwnerHandle
+            || parsed.m_blockOwnerHandle != membership.m_blockOwnerHandle)
+            return false;
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
 bool DRW_SortEntsTable::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
     bool captureFieldSpans =
         g_sortEntsSpanDiagnostic.load(std::memory_order_relaxed);

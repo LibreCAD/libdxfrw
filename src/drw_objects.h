@@ -16,6 +16,7 @@
 #define DRW_OBJECTS_H
 
 #define LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY 1
+#define LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY 1
 
 // X11's object-like None macro must not alter public enum definitions.
 // Save it locally; callers retain their exact macro after this header.
@@ -4325,6 +4326,13 @@ public:
            m_sortHandles.size() == m_entityHandles.size();
   }
   bool finalizeDxf();
+  //! Correlate the selected empty AC1024 custom-class profile with its raw
+  //! frame and reader receipts. This is not class authentication, CRC,
+  //! graph closure, export admission or native semantic qualification.
+  [[nodiscard]] bool matchesAc1024EmptyDwgFrame(
+      const DRW_UnsupportedObject &raw,
+      const DRW_DwgFramePublication &publication,
+      const DRW_DwgSortEntsMembership &membership) const noexcept;
 
 protected:
   bool parseCode(int code, const std::unique_ptr<dxfReader> &reader) override;

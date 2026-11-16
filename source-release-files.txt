@@ -501,6 +501,7 @@ tests/dwg_ac1021_polyline_group_targets_tests.cpp
 tests/dwg_ac1021_solid_trace_footer_tests.cpp
 tests/dwg_ac1024_default_material_tests.cpp
 tests/dwg_ac1024_dictionary_source_verify_tests.cpp
+tests/dwg_ac1024_empty_sortents_source_verify_tests.cpp
 tests/dwg_ac1024_header_suffix_tests.cpp
 tests/dwg_ac1024_layer_binding_tests.cpp
 tests/dwg_ac1024_layer_source_tests.cpp
