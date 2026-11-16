@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-16",
+  "consumerRepository": "LibreCAD/LibreCAD",
+  "consumerBase": "b007bff6e798425aa14ae507f7e884db68916e88",
+  "localCandidateParent": "6a2d0119de368ace035d11084a83ee928b5ca613",
+  "localCandidateCommit": "014075bb1b7548e76b242e1bc0f1217ce8a83ba4",
+  "candidateStatus": "Local unmerged branch codex/libdxfrw-consumer-integration-20261116.",
+  "patch": "docs/patches/librecad-p8-mlinestyle-cmc-retention-2026-11-16.patch",
+  "patchSha256": "255d168b13c23f8d871c3be36fc2a6d4f1e4d222c7b5880c737c98444570cf5a",
+  "problem": "The consumer MLINESTYLE metadata stored only fill ACI and partial element color. A from-scratch probe with nondefault extended fill/element CMC state exported an MLINESTYLE successfully because the bridge discarded those fields before the current codec could reject their loss.",
+  "implementation": "Capture and restore fill truecolor, method, flags, raw index and color/book names, plus element method, flags, raw index and color/book names. Compile-time overload detection keeps the bundled codec, which does not expose those fields, source-compatible. The previously preserved element truecolor continues to be copied. The generated binary-input test closes its input stream before removing its scratch file for platform portability.",
+  "validation": [
+    "On the current installed codec, the focused test passes 67 assertions: ordinary and explicit representable ByLayer styles export; extended fill and element state are stored exactly; each of the six extended fields on each side independently causes a refusal with the existing destination retained; combined-state controls retry successfully with the same filter.",
+    "The bundled-codec build compiles and its ordinary-style control passes two assertions; it does not expose the newer fields and does not claim to test them.",
+    "The installed-codec LTYPE, PR #3269 and MLEADERSTYLE CTests pass. The bundled fast LTYPE selection passes 29 cases and 4321 assertions with both generated ODA R13 inputs.",
+    "The standalone libdxfrw MLINESTYLE validation, CMC retention and body-transaction tests pass.",
+    "The consumer patch applies after the preceding 41 patches and all three changed files match the committed local candidate. Source-release inventory and its 18-control self-test pass for 1248 files. No drawing fixture was added."
+  ],
+  "logs": [
+    "/private/tmp/librecad-p8-mline-color-probe2.log",
+    "/private/tmp/p8-mline-color-metadata-probe-build.log",
+    "/private/tmp/librecad-p8-mline-fields-system.log",
+    "/private/tmp/librecad-p8-mline-fields-bundled.log",
+    "/private/tmp/librecad-p8-mline-final-fast-bundled.log"
+  ],
+  "limits": "This is in-memory generated metadata and focused macOS consumer testing, not producer-authored DWG/CMC evidence, complete MLINESTYLE graph closure, DWG output qualification, GUI, non-macOS platforms, plugin ABI, or upstream integration. Partial intermediate codec APIs are not separately qualified. The R13 cross-version object-graph refusal remains open. No phase gate or support claim is promoted."
+}

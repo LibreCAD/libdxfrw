@@ -1,0 +1,262 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index f2381e5..142a406 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -2911,0 +2912,5 @@ public:
++    std::uint8_t colorMethod = 0;
++    std::uint8_t colorFlags = 0;
++    std::uint16_t colorDwgIndex = 0;
++    std::string colorName;
++    std::string colorBookName;
+@@ -2922,0 +2928,6 @@ public:
++    int fillColor24 = -1;
++    std::uint8_t fillColorMethod = 0;
++    std::uint8_t fillColorFlags = 0;
++    std::uint16_t fillColorDwgIndex = 0;
++    std::string fillColorName;
++    std::string fillColorBookName;
+@@ -2935,0 +2947,34 @@ public:
++  // The installed codec retains DWG CMC details that older bundled codecs
++  // do not expose. Copy every available field so a writer can refuse an
++  // unrepresentable color instead of silently discarding it.
++  template <typename Style>
++  static auto captureMLineFillColor(const Style &src, MLineStyleRecord &dst, int)
++      -> decltype((void)src.fillColor24, (void)src.fillColorMethod,
++                  (void)src.fillColorFlags, (void)src.fillColorDwgIndex,
++                  (void)src.fillColorName, (void)src.fillColorBookName, void()) {
++    dst.fillColor24 = src.fillColor24;
++    dst.fillColorMethod = src.fillColorMethod;
++    dst.fillColorFlags = src.fillColorFlags;
++    dst.fillColorDwgIndex = src.fillColorDwgIndex;
++    dst.fillColorName = src.fillColorName;
++    dst.fillColorBookName = src.fillColorBookName;
++  }
++  template <typename Style>
++  static void captureMLineFillColor(const Style &, MLineStyleRecord &, long) {}
++
++  template <typename Element>
++  static auto captureMLineElementColor(const Element &src,
++                                      MLineStyleElementRecord &dst, int)
++      -> decltype((void)src.colorMethod, (void)src.colorFlags,
++                  (void)src.colorDwgIndex, (void)src.colorName,
++                  (void)src.colorBookName, void()) {
++    dst.colorMethod = src.colorMethod;
++    dst.colorFlags = src.colorFlags;
++    dst.colorDwgIndex = src.colorDwgIndex;
++    dst.colorName = src.colorName;
++    dst.colorBookName = src.colorBookName;
++  }
++  template <typename Element>
++  static void captureMLineElementColor(const Element &,
++                                       MLineStyleElementRecord &, long) {}
++
+@@ -6176,0 +6222 @@ public:
++    captureMLineFillColor(style, record, 0);
+@@ -6191,0 +6238 @@ public:
++      captureMLineElementColor(e, er, 0);
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index 513fde7..1e732af 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -3074,0 +3075,33 @@ DRW_Scale scaleFromMetadata(const LC_DwgAdvancedMetadata::ScaleRecord &record) {
++template <typename Style>
++auto restoreMLineFillColor(
++    Style &dst, const LC_DwgAdvancedMetadata::MLineStyleRecord &src, int)
++    -> decltype((void)dst.fillColor24, (void)dst.fillColorMethod,
++                (void)dst.fillColorFlags, (void)dst.fillColorDwgIndex,
++                (void)dst.fillColorName, (void)dst.fillColorBookName, void()) {
++  dst.fillColor24 = src.fillColor24;
++  dst.fillColorMethod = src.fillColorMethod;
++  dst.fillColorFlags = src.fillColorFlags;
++  dst.fillColorDwgIndex = src.fillColorDwgIndex;
++  dst.fillColorName = src.fillColorName;
++  dst.fillColorBookName = src.fillColorBookName;
++}
++template <typename Style>
++void restoreMLineFillColor(
++    Style &, const LC_DwgAdvancedMetadata::MLineStyleRecord &, long) {}
++
++template <typename Element>
++auto restoreMLineElementColor(
++    Element &dst, const LC_DwgAdvancedMetadata::MLineStyleElementRecord &src,
++    int) -> decltype((void)dst.colorMethod, (void)dst.colorFlags,
++                     (void)dst.colorDwgIndex, (void)dst.colorName,
++                     (void)dst.colorBookName, void()) {
++  dst.colorMethod = src.colorMethod;
++  dst.colorFlags = src.colorFlags;
++  dst.colorDwgIndex = src.colorDwgIndex;
++  dst.colorName = src.colorName;
++  dst.colorBookName = src.colorBookName;
++}
++template <typename Element>
++void restoreMLineElementColor(
++    Element &, const LC_DwgAdvancedMetadata::MLineStyleElementRecord &, long) {}
++
+@@ -3089,0 +3123 @@ mlineStyleFromMetadata(const LC_DwgAdvancedMetadata::MLineStyleRecord &record) {
++  restoreMLineFillColor(s, record, 0);
+@@ -3097,0 +3132 @@ mlineStyleFromMetadata(const LC_DwgAdvancedMetadata::MLineStyleRecord &record) {
++    restoreMLineElementColor(e, er, 0);
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 4d822ff..5c95588 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -11467,0 +11468 @@ TEST_CASE("Binary DXF imports an editable line type definition",
++      input.close();
+@@ -11564,0 +11566,157 @@ TEST_CASE("R13 DXF imports an editable line type from ODA",
++namespace {
++template <typename Style, typename Element>
++auto checkMLineExtendedColorRefusal(int)
++    -> decltype((void)std::declval<Style &>().fillColor24,
++                (void)std::declval<Style &>().fillColorMethod,
++                (void)std::declval<Element &>().colorFlags,
++                (void)std::declval<Element &>().colorDwgIndex, void()) {
++  // An explicit CMC ByLayer method has the same meaning as ACI 256 and is
++  // representable; retaining metadata must not reject it.
++  {
++    RS_Graphic graphic;
++    Style style;
++    style.handle = 0x900u;
++    style.name = "P8_BYLAYER_PROBE";
++    style.fillColorMethod = 0xC0u; // DWG CMC ByLayer
++    Element element;
++    element.linetype = "BYLAYER";
++    element.colorMethod = 0xC0u;
++    style.elements.push_back(element);
++    graphic.dwgAdvancedMetadata().addMLineStyle(style);
++    const auto &stored = graphic.dwgAdvancedMetadata().mlineStyles().back();
++    CHECK(stored.fillColorMethod == 0xC0u);
++    REQUIRE(stored.elements.size() == 1u);
++    CHECK(stored.elements[0].colorMethod == 0xC0u);
++    const std::string out = tmpFile("mline_explicit_bylayer.dxf");
++    RS_FilterDXFRW filter;
++    REQUIRE(filter.fileExport(graphic, QString::fromStdString(out), RS2::FormatDXFRW));
++    CHECK(namedRecordGroupValues(out, "MLINESTYLE", "P8_BYLAYER_PROBE", "62") ==
++          std::vector<std::string>{"256", "256"});
++    std::filesystem::remove(out);
++  }
++  for (const bool elementColor : {false, true}) {
++    CAPTURE(elementColor);
++    RS_Graphic graphic;
++    Style style;
++    style.handle = 0x900u;
++    style.name = "P8_COLOR_PROBE";
++    Element element;
++    element.linetype = "BYLAYER";
++    if (elementColor) {
++      element.color24 = 0x123456;
++      element.colorMethod = 0xC2u;
++      element.colorFlags = 3u;
++      element.colorDwgIndex = 42u;
++      element.colorName = "Element color";
++      element.colorBookName = "Element book";
++    } else {
++      style.fillColor24 = 0x654321;
++      style.fillColorMethod = 0xC2u;
++      style.fillColorFlags = 3u;
++      style.fillColorDwgIndex = 41u;
++      style.fillColorName = "Fill color";
++      style.fillColorBookName = "Fill book";
++    }
++    style.elements.push_back(element);
++    graphic.dwgAdvancedMetadata().addMLineStyle(style);
++    const auto &stored = graphic.dwgAdvancedMetadata().mlineStyles().back();
++    REQUIRE(stored.elements.size() == 1u);
++    if (elementColor) {
++      CHECK(stored.elements[0].color24 == 0x123456);
++      CHECK(stored.elements[0].colorMethod == 0xC2u);
++      CHECK(stored.elements[0].colorFlags == 3u);
++      CHECK(stored.elements[0].colorDwgIndex == 42u);
++      CHECK(stored.elements[0].colorName == "Element color");
++      CHECK(stored.elements[0].colorBookName == "Element book");
++    } else {
++      CHECK(stored.fillColor24 == 0x654321);
++      CHECK(stored.fillColorMethod == 0xC2u);
++      CHECK(stored.fillColorFlags == 3u);
++      CHECK(stored.fillColorDwgIndex == 41u);
++      CHECK(stored.fillColorName == "Fill color");
++      CHECK(stored.fillColorBookName == "Fill book");
++    }
++    const std::string out = tmpFile("mline_extended_color_refusal.dxf");
++    const std::string sentinel = "previous drawing\n";
++    writeText(out, sentinel);
++    RS_FilterDXFRW filter;
++    CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(out),
++                                  RS2::FormatDXFRW));
++    CHECK(filter.lastErrorCode() != DRW::BAD_NONE);
++    std::ifstream prior(out, std::ios::binary);
++    CHECK(std::string(std::istreambuf_iterator<char>(prior), {}) == sentinel);
++    prior.close();
++    graphic.dwgAdvancedMetadata().clear();
++    REQUIRE(filter.fileExport(graphic, QString::fromStdString(out),
++                               RS2::FormatDXFRW));
++    CHECK(filter.lastErrorCode() == DRW::BAD_NONE);
++    std::filesystem::remove(out);
++  }
++  // Each unsupported field must independently reach the writer. A combined
++  // failure alone would not catch a mapper that silently lost one field.
++  for (const bool elementColor : {false, true}) {
++    for (int field = 0; field < 6; ++field) {
++      CAPTURE(elementColor, field);
++      RS_Graphic graphic;
++      Style style;
++      style.handle = 0x900u;
++      style.name = "P8_ONE_COLOR_FIELD";
++      Element element;
++      element.linetype = "BYLAYER";
++      if (elementColor) {
++        switch (field) {
++        case 0: element.color24 = 0x123456; break;
++        case 1: element.colorMethod = 0xC1u; break;
++        case 2: element.colorFlags = 1u; break;
++        case 3: element.colorDwgIndex = 42u; break;
++        case 4: element.colorName = "Element color"; break;
++        case 5: element.colorBookName = "Element book"; break;
++        }
++      } else {
++        switch (field) {
++        case 0: style.fillColor24 = 0x654321; break;
++        case 1: style.fillColorMethod = 0xC1u; break;
++        case 2: style.fillColorFlags = 1u; break;
++        case 3: style.fillColorDwgIndex = 41u; break;
++        case 4: style.fillColorName = "Fill color"; break;
++        case 5: style.fillColorBookName = "Fill book"; break;
++        }
++      }
++      style.elements.push_back(element);
++      graphic.dwgAdvancedMetadata().addMLineStyle(style);
++      const std::string out = tmpFile("mline_single_color_refusal.dxf");
++      const std::string sentinel = "previous drawing\n";
++      writeText(out, sentinel);
++      RS_FilterDXFRW filter;
++      CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(out), RS2::FormatDXFRW));
++      CHECK(filter.lastErrorCode() != DRW::BAD_NONE);
++      std::ifstream prior(out, std::ios::binary);
++      CHECK(std::string(std::istreambuf_iterator<char>(prior), {}) == sentinel);
++      prior.close();
++      std::filesystem::remove(out);
++    }
++  }
++}
++template <typename Style, typename Element>
++void checkMLineExtendedColorRefusal(long) {}
++} // namespace
++
++TEST_CASE("MLINESTYLE color state is retained or refused safely",
++          "[dxf][roundtrip][filter][ltype][mline][write-errors]") {
++  ensureSettings();
++  RS_Graphic graphic;
++  DRW_MLineStyle style;
++  style.handle = 0x900u;
++  style.name = "P8_COLOR_PROBE";
++  DRW_MLineElement element;
++  element.linetype = "BYLAYER";
++  style.elements.push_back(element);
++  graphic.dwgAdvancedMetadata().addMLineStyle(style);
++  const std::string out = tmpFile("mline_default_color.dxf");
++  RS_FilterDXFRW filter;
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(out), RS2::FormatDXFRW));
++  CHECK(namedRecordGroupValues(out, "MLINESTYLE", "P8_COLOR_PROBE", "70").size() == 1u);
++  std::filesystem::remove(out);
++  checkMLineExtendedColorRefusal<DRW_MLineStyle, DRW_MLineElement>(0);
++}
++

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **652 completed implementation and qualification slices** and **32 remaining
+The plan records **653 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`652 / (652 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
+`653 / (653 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -113,6 +113,11 @@ created locally from scratch for the specific control.
   The bundled codec passes selected LTYPE/LINE re-export checks, not full graph
   qualification. Diagnostic propagation, destination preservation and retry
   pass ([R13 receipt](docs/research/p8-librecad-r13-dxf-diagnostic-2026-11-16.json)).
+  The local metadata bridge now retains the current codec's MLINESTYLE CMC
+  fields, so unsupported colors are refused instead of silently normalized;
+  ordinary ByLayer and bundled-codec controls pass. Qualify actual producer
+  witnesses and DWG output separately
+  ([color receipt](docs/research/p8-librecad-mlinestyle-cmc-retention-2026-11-16.json)).
   Qualify complex records, additional independent producers and native behavior;
   a binary-export UI is additional work, not an existing save route
   ([matrix receipt](docs/research/p8-librecad-binary-ltype-versions-2026-11-16.json),
@@ -217,10 +222,11 @@ suffix `-2026-11-15.patch`, rebasing as needed against the consumer head:
 `librecad-p8-named-block-arc-wrap-test`,
 `librecad-p8-mleaderstyle-version-diagnostic`.
 Then apply [the binary LTYPE consumer test](docs/patches/librecad-p8-binary-ltype-import-2026-11-16.patch)
-and [the DXF diagnostic/R13 test](docs/patches/librecad-p8-dxf-write-diagnostic-r13-2026-11-16.patch),
+[the DXF diagnostic/R13 test](docs/patches/librecad-p8-dxf-write-diagnostic-r13-2026-11-16.patch),
+and [MLINESTYLE CMC retention](docs/patches/librecad-p8-mlinestyle-cmc-retention-2026-11-16.patch),
 in order with `git apply --unidiff-zero`. The current local candidate
-`6a2d0119de368ace035d11084a83ee928b5ca613` is based on LibreCAD master
-`b007bff6e798425aa14ae507f7e884db68916e88`; all 41 patches replay in order on
+`014075bb1b7548e76b242e1bc0f1217ce8a83ba4` is based on LibreCAD master
+`b007bff6e798425aa14ae507f7e884db68916e88`; all 42 patches replay in order on
 that base. Its macOS installed-codec focus tests pass,
 including all 24 source-graph cases with scratch controls; the clean bundled
 focus and R12/R14 unit-refusal controls also pass. Integration, full-suite,
