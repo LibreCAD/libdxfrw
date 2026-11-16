@@ -34,6 +34,7 @@ docs/SOURCE_RELEASE.md
 docs/UPGRADE_SUPPORT.md
 docs/patches/freecad-p8-default-block-mesh-layer-refusal-2026-11-16.patch
 docs/patches/freecad-p8-default-bounded-polyface-2026-11-15.patch
+docs/patches/freecad-p8-default-byblock-no-color-2026-11-16.patch
 docs/patches/freecad-p8-default-classic-polyline-flags-2026-11-15.patch
 docs/patches/freecad-p8-default-closed-polygon-mesh-2026-11-15.patch
 docs/patches/freecad-p8-default-mesh-color-consistency-2026-11-16.patch

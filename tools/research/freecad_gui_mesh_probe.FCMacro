@@ -87,23 +87,35 @@ def run():
             for case in ("polyface", "polygon", "mixed", "nested", "nested_polygon",
                          "nested_nolayers", "nested_polygon_nolayers", "nested_inches_nolayers",
                          "nested_polygon_inches_nolayers", "vertex_polyface_nocolor", "vertex_polygon_nocolor",
-                         "vertex_polyface_color", "vertex_polygon_color", "color", "color_mixed",
+                         "vertex_polyface_color", "vertex_polygon_color",
+                         "byblock_parent_polyface_nocolor", "byblock_parent_polyface_color",
+                         "byblock_parent_polygon_nocolor", "byblock_parent_polygon_color",
+                         "byblock_vertex_polyface_nocolor", "byblock_vertex_polyface_color",
+                         "byblock_vertex_polygon_nocolor", "byblock_vertex_polygon_color",
+                         "byblock_face_polyface_nocolor", "byblock_face_polyface_color",
+                         "nested_byblock_parent_nolayers", "nested_byblock_vertex_nolayers",
+                         "nested_byblock_face_nolayers", "color", "color_mixed",
                          "color_mixed_nocolor"):
                 is_color = case.startswith("color")
                 is_vertex = case.startswith("vertex_")
+                is_byblock = case.startswith("byblock_")
+                nested_byblock = case.startswith("nested_byblock_")
                 no_layers = is_color or case.endswith("_nolayers")
                 options.SetBool("dxfUseDraftVisGroups", not no_layers)
                 options.SetBool("dxfGetOriginalColors", (is_color and not case.endswith("_nocolor"))
-                                or (is_vertex and case.endswith("_color")))
+                                or ((is_vertex or is_byblock) and case.endswith("_color")))
                 path = Path(scratch) / (case + ".dxf")
                 drawing_case = case[:-len("_nolayers")] if case.endswith("_nolayers") else case
                 inches = drawing_case.endswith("_inches")
                 if inches:
                     drawing_case = drawing_case[:-len("_inches")]
-                if is_vertex:
+                if is_vertex or is_byblock:
                     drawing_case = "polygon" if "polygon" in case else "polyface"
+                if nested_byblock:
+                    drawing_case = "nested"
+                byblock_at = case.split("_")[2] if nested_byblock else case.split("_")[1] if is_byblock else ""
                 path.write_text(color_drawing(case.startswith("color_mixed")) if is_color
-                                else controls["drawing"](drawing_case, 1 if inches else 4, is_vertex), encoding="ascii")
+                                else controls["drawing"](drawing_case, 1 if inches else 4, is_vertex, byblock_at), encoding="ascii")
                 doc = App.newDocument("GuiMeshProbe")
                 try:
                     stats = ImportGui.readDXF(str(path), doc.Name, True, source)
@@ -148,9 +160,9 @@ def run():
                                   for obj in doc.Objects if hasattr(obj, "Group")
                                   and getattr(getattr(obj, "Proxy", None), "Type", None) == "Layer"}
                         assert lines[0].Name in groups["0"]
-                        accepted_vertex = is_vertex and case.endswith("_nocolor")
-                        if case in ("polyface", "polygon") or accepted_vertex:
-                            is_polygon = case == "polygon" or (accepted_vertex and "polygon" in case)
+                        accepted_colorless = (is_vertex or is_byblock) and case.endswith("_nocolor")
+                        if case in ("polyface", "polygon") or accepted_colorless:
+                            is_polygon = case == "polygon" or (accepted_colorless and "polygon" in case)
                             name = "PolygonMesh" if is_polygon else "Polyface"
                             meshes = [obj for obj in shapes if obj.Name.startswith(name)]
                             assert len(meshes) == 1 and meshes[0].Name in groups["MESH"]
@@ -167,7 +179,7 @@ def run():
                             layer.ViewObject.Visibility = True
                             assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
                         else:
-                            reason = ("POLYGON MESH unsupported or invalid profile" if is_vertex and "polygon" in case
+                            reason = ("POLYGON MESH unsupported or invalid profile" if (is_vertex or is_byblock) and "polygon" in case
                                       else "POLYFACE nondefault layer in block" if case == "nested"
                                       else "POLYGON MESH nondefault layer in block" if case == "nested_polygon"
                                       else "POLYFACE unsupported or invalid profile")

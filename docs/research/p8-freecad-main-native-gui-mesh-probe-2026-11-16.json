@@ -291,5 +291,5 @@
     "macOS ARM64 only; Linux and Windows GUI qualification, broader profiles, geometry and import semantics remain open.",
     "The downstream FreeCAD patch chain is unmerged. No P4\u2013P9 phase gate or external-only support claim is promoted."
   ],
-  "probeEvolution": "The current reusable GUI probe adds mixed face and coordinate colors-disabled cases requiring the twelfth and thirteenth downstream patches; the observations in this historical receipt were captured with the earlier eleven-patch probe."
+  "probeEvolution": "The current GUI probe requires the later mixed face, coordinate and BYBLOCK colors-disabled patches; the observations in this historical receipt were captured with the earlier eleven-patch probe."
 }

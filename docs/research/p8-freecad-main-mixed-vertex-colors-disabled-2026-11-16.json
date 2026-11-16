@@ -338,5 +338,7 @@
     "The downstream FreeCAD patch chain is unmerged and requires integration.",
     "Mixed coordinate colors still refuse with color preservation enabled; malformed styles, BYBLOCK, mixed layers, nonplanar geometry and hidden edges remain outside this profile.",
     "Native GUI properties do not establish pixel rendering, external producer semantics or Linux/Windows qualification; no phase gate or external-only support claim is promoted."
-  ]
+  ],
+  "supersededBoundary": "The later BYBLOCK colors-disabled patch accepts group 62 value 0 only when source colors are disabled; this receipt records the earlier refusal.",
+  "probeEvolution": "The current reusable GUI probe includes later BYBLOCK cases requiring the fourteenth downstream patch; the observations here describe the earlier candidate."
 }

@@ -39,7 +39,7 @@ import FreeCAD as App
 import Import
 
 
-def drawing(case: str, units: int = 4, mixed_vertex_colors: bool = False) -> str:
+def drawing(case: str, units: int = 4, mixed_vertex_colors: bool = False, byblock_at: str = "") -> str:
     polygon = case in ("polygon", "nested_polygon")
     nested = case in ("nested", "nested_polygon")
     tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
@@ -54,21 +54,22 @@ def drawing(case: str, units: int = 4, mixed_vertex_colors: bool = False) -> str
                      (10, 0), (20, 0), (30, 0)])
     tags.extend([(0, "POLYLINE"), (5, "A"), (8, "MESH"), (66, 1),
                  (70, 16 if polygon else 64)])
-    if mixed_vertex_colors:
-        tags.append((62, 1))
+    if mixed_vertex_colors or byblock_at:
+        tags.append((62, 0 if byblock_at == "parent" else 1))
     coords = ((0, 0), (0, 3), (4, 0), (4, 3)) if polygon else ((0, 0), (4, 0), (0, 3))
     if polygon:
         tags.extend([(71, 2), (72, 2)])
     for index, (x, y) in enumerate(coords):
         tags.extend([(0, "VERTEX"), (8, "MESH"), (10, x), (20, y), (30, 0),
                      (70, 64 if polygon else 192)])
-        if mixed_vertex_colors:
-            tags.append((62, 2 if index == 0 else 1))
+        if mixed_vertex_colors or byblock_at:
+            color = 0 if byblock_at == "vertex" and index == 0 else 2 if mixed_vertex_colors and index == 0 else 1
+            tags.append((62, color))
     if not polygon:
         tags.extend([(0, "VERTEX"), (8, "OTHER" if case == "mixed" else "MESH"),
                      (10, 0), (20, 0), (30, 0), (70, 128), (71, 1), (72, 2), (73, 3)])
-        if mixed_vertex_colors:
-            tags.append((62, 1))
+        if mixed_vertex_colors or byblock_at:
+            tags.append((62, 0 if byblock_at == "face" else 1))
     tags.extend([(0, "SEQEND"), (8, "MESH")])
     if nested:
         tags.extend([(0, "ENDBLK"), (8, "0"), (0, "ENDSEC"),
