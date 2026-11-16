@@ -86,17 +86,17 @@ def run():
         with tempfile.TemporaryDirectory(prefix="freecad-gui-mesh-probe-") as scratch:
             for case in ("polyface", "polygon", "mixed", "nested", "nested_polygon",
                          "nested_nolayers", "nested_polygon_nolayers", "nested_inches_nolayers",
-                         "nested_polygon_inches_nolayers", "color", "color_mixed"):
+                         "nested_polygon_inches_nolayers", "color", "color_mixed", "color_mixed_nocolor"):
                 is_color = case.startswith("color")
                 no_layers = is_color or case.endswith("_nolayers")
                 options.SetBool("dxfUseDraftVisGroups", not no_layers)
-                options.SetBool("dxfGetOriginalColors", is_color)
+                options.SetBool("dxfGetOriginalColors", is_color and not case.endswith("_nocolor"))
                 path = Path(scratch) / (case + ".dxf")
                 drawing_case = case[:-len("_nolayers")] if case.endswith("_nolayers") else case
                 inches = drawing_case.endswith("_inches")
                 if inches:
                     drawing_case = drawing_case[:-len("_inches")]
-                path.write_text(color_drawing(case == "color_mixed") if is_color
+                path.write_text(color_drawing(case.startswith("color_mixed")) if is_color
                                 else controls["drawing"](drawing_case, 1 if inches else 4), encoding="ascii")
                 doc = App.newDocument("GuiMeshProbe")
                 try:
@@ -110,9 +110,11 @@ def run():
                     if is_color:
                         meshes = [o for o in shapes if o.Name.startswith("Polyface")]
                         assert len(meshes) == (1 if case == "color_mixed" else 2)
-                        assert all(tuple(round(x, 5) for x in m.ViewObject.ShapeColor[:3])
-                                   == (1.0, 1.0, 0.0) for m in meshes)
-                        assert tuple(round(x, 5) for x in lines[0].ViewObject.LineColor[:3]) == (0.0, 1.0, 0.0)
+                        assert all(len(m.Shape.Faces) == 2 and abs(m.Shape.Area - 12) < 1e-9 for m in meshes)
+                        if not case.endswith("_nocolor"):
+                            assert all(tuple(round(x, 5) for x in m.ViewObject.ShapeColor[:3])
+                                       == (1.0, 1.0, 0.0) for m in meshes)
+                            assert tuple(round(x, 5) for x in lines[0].ViewObject.LineColor[:3]) == (0.0, 1.0, 0.0)
                         if case == "color_mixed":
                             assert "POLYFACE unsupported or invalid profile" in stats["unsupportedFeatures"]
                         else:

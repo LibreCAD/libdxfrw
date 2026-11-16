@@ -290,5 +290,6 @@
     "The probe checks document, view-provider properties and programmatic layer hide/show; it does not independently inspect pixels, manual GUI interaction or an external producer interpretation.",
     "macOS ARM64 only; Linux and Windows GUI qualification, broader profiles, geometry and import semantics remain open.",
     "The downstream FreeCAD patch chain is unmerged. No P4\u2013P9 phase gate or external-only support claim is promoted."
-  ]
+  ],
+  "probeEvolution": "The current reusable GUI probe adds a mixed-colors-disabled case requiring the twelfth downstream patch; the observations in this historical receipt were captured with the earlier eleven-patch probe."
 }
