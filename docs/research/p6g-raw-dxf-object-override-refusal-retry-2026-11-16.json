@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6g-raw-dxf-object-override-refusal-retry-2026-11-16",
+  "date": "2026-11-16",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P6-G",
+  "supportClaimEffect": "none",
+  "baseCommit": "071ab11a",
+  "scope": {
+    "format": "DXF",
+    "sourceVersion": "AC1024",
+    "outputVersion": "AC1024",
+    "route": [
+      "dxfRW::writeRawDxfObjectWithStringOverrides",
+      "dxfRW::writeRawDxfObjectWithStringAndInt32Overrides"
+    ],
+    "sourceProvenance": "DRW_RawDxfObject generated locally from scratch by tests/raw_object_string_override_allocation_tests.cpp; no external or repository drawing fixture is read",
+    "encodings": ["ASCII", "Binary"]
+  },
+  "implementation": {
+    "change": "Added focused refusal controls for string edits targeting an integer group and Int32 edits targeting a string group. The first malformed string case includes a valid earlier edit to ensure validation is atomic before record emission. The readback adapter now selects the target XRECORD while ignoring automatically emitted default plot-style records.",
+    "refusalProfiles": [
+      {
+        "kind": "string-on-integer",
+        "groupIndexes": [3, 8],
+        "selectedInvalidGroup": {"index": 8, "code": 90, "type": "Int32"}
+      },
+      {
+        "kind": "int32-on-string",
+        "groupIndexes": [3],
+        "selectedInvalidGroup": {"index": 3, "code": 1, "type": "string"}
+      }
+    ],
+    "retry": "After refusal, the same dxfRW writer and adapter retry with the corrected override set; emitted bytes match a successful calibration exactly and a fresh libdxfrw read verifies the full XRECORD identity and groups.",
+    "callerState": "The complete source DRW_RawDxfObject is compared before refusal and after retry."
+  },
+  "evidence": {
+    "testSourceSha256": "43272b99737f6afee7046a293398a2e0d422b4b1e1adeec85169ad50f4dc289e",
+    "focusedBuild": "cmake --build build --target libdxfrw_raw_object_string_override_allocation_tests -j 4: PASS",
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_raw_object_string_override_allocation$' --output-on-failure",
+      "result": "PASS 1/1 in 2.80 seconds"
+    },
+    "coverage": "Existing successful override readback and allocation rollback/retry sweeps pass for AC1014, AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032 in ASCII and Binary. Added four invalid-type/refusal/sentinel-rollback/corrected-retry profiles for AC1024 across both encodings.",
+    "retryOutputSha256": {
+      "stringOnIntegerAscii": "6c1ec4a5d2b1f58dad76c0858fb77a83d2c79683c36ca6b023b9092636454017",
+      "stringOnIntegerBinary": "07153ee8d3644bc6261a700e09a6e8fc4532c2690bc32f07216843c8932cca02",
+      "int32OnStringAscii": "d4edcb613cb40f00ce733f3505ae5d18389d082f70bfb2ef459677db6849ae7f",
+      "int32OnStringBinary": "735f2186977fbc4372848b2f92706bd6bd1f6b3c3eec44e4b3c997b7c95ed66"
+    },
+    "writerIndex": "docs/research/p6-dxf-public-writer-test-mention-index-2026-11-16.json was regenerated after the test-source change; it remains navigation evidence only."
+  },
+  "limits": [
+    "The invalid override cases are qualified for AC1024 only; existing positive profiles and allocation sweeps cover the listed seven revisions.",
+    "Readback uses a fresh libdxfrw parser. ezdxf is not installed in this environment, so no independent-reader claim is made.",
+    "No DWG/DXF fixture or support claim was added or promoted."
+  ]
+}

@@ -20,19 +20,19 @@ its changed navigation and CAM files do not remove the need to replay and test
 the candidate against the new base ([upstream comparison](https://github.com/FreeCAD/FreeCAD/compare/157bfcb7462a733b03a7d041aeaa79fee7aff7a3...84e73f0188fb32bb1fffb8d4d1edb4135543ba18)).
 Recheck heads before integration.
 
-The historical ledger records **739 completed slices**. This queue has **33
+The historical ledger records **740 completed slices**. This queue has **33
 open core packages**: P4-A/B/C (3), P5-A–H (8), P6-A–G (7), P7-A–H (8), and
 P8-A–G (7). P4-GROUP-01 is a subpacket of P4-A, not a package. Six P9 external
-dispositions are tracked separately. `739 / (739 + 33) = 95.7%` is only a
+dispositions are tracked separately. `740 / (740 + 33) = 95.7%` is only a
 count-based activity proxy that treats every remaining package as one minimum
 slice; the size and cost of remaining work are unknown. It is **not** an effort
 or release-readiness estimate. All five core phase gates P4–P8 remain OPEN;
 P9 remains DEFERRED_EXTERNAL, with **0 of 6 external dispositions resolved**.
 
-Recent P4-A source capture and narrow P6-G plot-style slices are complete and
-have been removed from the action queue; their receipts are retained as
-implementation inputs. They establish only the local profiles described in
-those receipts and do not close either package or promote broader support.
+Recent P4-A source capture and narrow P6-G plot-style and raw-override
+refusal/retry slices are complete and removed from the action queue; their
+receipts remain implementation inputs. They establish only their local
+profiles and do not close either package or promote broader support.
 
 Completed actions are not part of this queue. Their receipts remain under
 `docs/research/`; the previous detailed plan is recoverable with
@@ -84,8 +84,8 @@ unrelated gate is pending.
 
 | Order | Work packet | Next bounded action | Ready check and fast exit |
 |---|---|---|---|
-| 1 | P6-G, public DXF writer routes | Refresh the writer test index only if it is stale or absent; inspect candidate assertions and select the smallest uncovered public route. Add one focused success/refusal/retry/readback control, reusing the nearest existing test and local input. | READY locally. The index is navigation, not coverage. Keep each change within one route and one encoding/version where possible. |
-| 2 | P4-A, named-block SORTENTSTABLE | Integrate the session-bound proof into `prepareExtensionObjectGraph` at the `LAYER_CONTROL` extension-dictionary hard-owner edge. Admit only when frame/publication match and dictionary 0x107 uniquely resolves to parent 0x10; preserve non-sort keys and XRECORD dependencies, then record the next exact graph blocker. | READY from the source, ODA rule, peer observation, and [session-proof receipt](docs/research/p4-ac1024-layer-control-session-bound-source-proof-2026-11-16.json). Keep other revisions unchanged. Run source selectors and the owning graph/output selector; source proof alone does not authorize output. |
+| 1 | P4-A, named-block SORTENTSTABLE | Integrate the session-bound proof into `prepareExtensionObjectGraph` at the `LAYER_CONTROL` extension-dictionary hard-owner edge. Admit only when frame/publication match and dictionary 0x107 uniquely resolves to parent 0x10; preserve non-sort keys and XRECORD dependencies, then record the next exact graph blocker. | READY from the source, ODA rule, peer observation, and [session-proof receipt](docs/research/p4-ac1024-layer-control-session-bound-source-proof-2026-11-16.json). Keep other revisions unchanged. Run source selectors and the owning graph/output selector; source proof alone does not authorize output. |
+| 2 | P6-G, public DXF writer routes | Continue the refreshed public-writer index audit, excluding the completed default plot-style route and raw string/Int32 override refusal slice. Choose the smallest remaining route whose assertions lack a specific success/refusal/retry/readback condition; reuse its nearest test and local input. | READY locally. The index is navigation, not coverage; inspect assertions before selecting a route. Keep one route, encoding, and version per slice. |
 | 3 | P6-F, CLI partial-read disposition | Check existing receipts and eligible repository-owned AC1012/AC1014 sources for one missing CLI output/readback cell. Time-box source discovery; if no eligible source exists, choose the next locally executable disposition cell and keep semantic support unclaimed. | READY for bounded work. Run the owning selector; do not rerun the 900+ aggregate absent a shared-path change. AC1027 source-reference closure remains reader-only. |
 | 4 | P8-D, LibreCAD consumers | Refresh target heads and patch hashes; remove merged/stale changes, then replay the smallest relevant LibreCAD and LibreCAD_3 patch on disposable current checkouts. | READY independently of sample acquisition. Run focused LTYPE, PR #3269, version, and R13 refusal/recovery checks; preserve LibreCAD 2D and LibreCAD_3 behavior. |
 | 5 | P4-B/C, P5, P6-A–E, P7 | Choose a package only after a usable source profile exists. Reuse one source/harness across overlapping FIELD/TABLE/graph tasks, but keep feature claims and exit evidence separate. | Evidence-gated. If the source is unavailable, record the exact missing witness and move to the next READY row; do not start speculative parser/kernel work. |
@@ -179,7 +179,7 @@ lighting/plotting as separate gates.
 | P6-D | Use the current source/feature census to identify one uncovered version/field pair that has a physical source span. Add one boundary control, implement only the missing parser/writer/disposition, and record the next pair without expanding scope mid-slice. | Per-profile typed/normalized/raw/refused/dropped classification, geometry and unit/OCS preservation, source and independent consumer evidence. The package closes only after its selected coverage matrix is complete. |
 | P6-E | Select an unbound HEADER envelope or suffix profile; map declared data, CRC, sentinels, trailer and unclaimed bytes. | Complete physical accounting and version-specific reason for every byte; unexplained suffixes remain refused. |
 | P6-F | Continue from the existing disposition receipts. Select the next missing revision/output cell, prioritizing AC1012/AC1014 CLI output/readback; add a generated malformed source only when the harness has no eligible frame. | Exact frame accounting, tolerant continuation, strict destination preservation, partial-output disposition, fresh readback and corrected retry for each admitted cell. Synthetic recovery controls alone do not establish semantic support. |
-| P6-G | Use the [public-writer test index](docs/research/p6-dxf-public-writer-test-mention-index-2026-11-16.json) if current; otherwise refresh it. Audit assertions and implement the lowest-cost uncovered public route using existing local inputs and harnesses. | Source-to-output identity/reference fidelity, version gates, caller/destination rollback, same-adapter/writer retry and independent ASCII/Binary readback for each admitted profile. Existing plot-style adapter evidence is bounded to its receipt; index mentions alone do not satisfy this gate. |
+| P6-G | Use the current [public-writer test index](docs/research/p6-dxf-public-writer-test-mention-index-2026-11-16.json) to select the next route after the completed default plot-style and raw-override refusal slices. Refresh it only after relevant source/test changes. | Source-to-output identity/reference fidelity, version gates, caller/destination rollback, same-adapter/writer retry and independent ASCII/Binary readback for each admitted profile. The [raw-override receipt](docs/research/p6g-raw-dxf-object-override-refusal-retry-2026-11-16.json) is limited to AC1024 refusal; index mentions alone do not satisfy this gate. |
 
 For P6-D, include legacy through current DWG/DXF revisions, 2D/3D entities,
 HATCH/MPOLYGON, SPLINE, MLINESTYLE, dimensions/text, IMAGE/UNDERLAY,
@@ -230,8 +230,9 @@ producer-backed layout explains them. The ODA AC1024 mesh witness has a
 CRC-valid envelope followed by 739 unclaimed bytes. Its varying suffix has not been shown disposable; retain
 strict refusal and resolve its origin before accepting it
 ([repeatability evidence](docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json)).
-For P6-G, reuse the existing bounded plot-style receipts only as implementation
-context; they do not satisfy another public route or broaden its support claim.
+For P6-G, reuse the bounded plot-style and raw-override receipts only as
+implementation context; they do not satisfy another public route or broaden
+their support claims.
 
 ### P7 — ACIS/ACDS and 3D meaning (8 packages)
 
@@ -367,6 +368,6 @@ skipped.
 7. Keep the queue separate from the historical ledger. A completed subslice is
    deleted immediately, but its package remains open until its exit evidence
    passes. Update the **33-package** count only when a package closes or a
-   missing package is identified. The **739** completed-slice ledger and 95.7%
-   count proxy (`739 / (739 + 33)`) are activity bookkeeping, not effort or
+   missing package is identified. The **740** completed-slice ledger and 95.7%
+   count proxy (`740 / (740 + 33)`) are activity bookkeeping, not effort or
    support-progress measures.

@@ -18,6 +18,12 @@ enum class RawWriteMode {
     StringAndInt32Overrides
 };
 
+enum class InvalidOverride {
+    None,
+    StringOnInteger,
+    Int32OnString
+};
+
 long allocationsBeforeFailure = -1;
 std::size_t allocationAttempts = 0u;
 bool allocationFailed = false;
@@ -85,6 +91,20 @@ const std::vector<std::pair<std::size_t, std::int32_t>>& int32Overrides() {
     return overrides;
 }
 
+const std::vector<std::pair<std::size_t, std::string>>& invalidStringOverrides() {
+    // Index 8 is group 90, an integer field, so it is not a valid string edit.
+    static const std::vector<std::pair<std::size_t, std::string>> overrides{
+        {3u, "valid first edit"}, {8u, "invalid integer edit"}};
+    return overrides;
+}
+
+const std::vector<std::pair<std::size_t, std::int32_t>>& invalidInt32Overrides() {
+    // Index 3 is group 1, a string field, so it is not a valid Int32 edit.
+    static const std::vector<std::pair<std::size_t, std::int32_t>> overrides{
+        {3u, 2718}};
+    return overrides;
+}
+
 bool rawObjectMatches(const DRW_RawDxfObject& actual,
                       const DRW_RawDxfObject& expected) {
     if (actual.name != expected.name || actual.handle != expected.handle
@@ -130,7 +150,13 @@ public:
             ~TrackingScope() { disarmAllocationFailure(); }
         } trackingScope;
         armAllocationFailure(failAt);
-        if (mode == RawWriteMode::Plain)
+        if (invalidOverride == InvalidOverride::StringOnInteger)
+            accepted = codec.writeRawDxfObjectWithStringOverrides(
+                &object, invalidStringOverrides());
+        else if (invalidOverride == InvalidOverride::Int32OnString)
+            accepted = codec.writeRawDxfObjectWithStringAndInt32Overrides(
+                &object, stringOverrides(), invalidInt32Overrides());
+        else if (mode == RawWriteMode::Plain)
             accepted = codec.writeRawDxfObject(&object);
         else if (mode == RawWriteMode::StringAndInt32Overrides)
             accepted = codec.writeRawDxfObjectWithStringAndInt32Overrides(
@@ -147,6 +173,7 @@ public:
     dx_data storage;
     DRW_RawDxfObject object;
     RawWriteMode mode;
+    InvalidOverride invalidOverride = InvalidOverride::None;
     long failAt = -1;
     long reached = 0;
     bool accepted = false;
@@ -160,7 +187,8 @@ public:
     }
 
     void addRawDxfObject(const DRW_RawDxfObject& value) override {
-        objects.push_back(value);
+        if (value.name == "XRECORD")
+            objects.push_back(value);
     }
 
     dx_data storage;
@@ -251,6 +279,74 @@ bool readbackMatches(const std::filesystem::path& path,
         }
     }
     return matched;
+}
+
+bool runInvalidOverrideRetries(const std::filesystem::path& directory) {
+    const auto fail = [](const char* message) {
+        std::cerr << "raw DXF object invalid override retry: " << message
+                  << '\n';
+        return false;
+    };
+    constexpr DRW::Version version = DRW::AC1024;
+    const std::string sentinel = "prior invalid-override destination bytes\n";
+    const std::pair<InvalidOverride, RawWriteMode> cases[] = {
+        {InvalidOverride::StringOnInteger, RawWriteMode::StringOverrides},
+        {InvalidOverride::Int32OnString,
+         RawWriteMode::StringAndInt32Overrides}};
+    for (const bool binary : {false, true}) {
+        for (const auto& test : cases) {
+            const auto output = directory
+                / (std::string("raw-xrecord-invalid-override-")
+                   + (test.first == InvalidOverride::StringOnInteger
+                          ? "string-on-integer-" : "int32-on-string-")
+                   + (binary ? "binary.dxf" : "ascii.dxf"));
+            std::string expectedBytes;
+            {
+                dxfRW calibration(output.string().c_str());
+                Export exporter(calibration, version, test.second);
+                if (!calibration.write(&exporter, version, binary)
+                    || !exporter.accepted
+                    || !readbackMatches(output, test.second)
+                    || !readBytes(output, expectedBytes))
+                    return fail("valid calibration output did not read back");
+            }
+            {
+                std::ofstream prior(output,
+                                   std::ios::binary | std::ios::trunc);
+                prior << sentinel;
+                if (!prior)
+                    return fail("could not initialize destination sentinel");
+            }
+            dxfRW codec(output.string().c_str());
+            Export exporter(codec, version, test.second);
+            const DRW_RawDxfObject source = exporter.object;
+            exporter.invalidOverride = test.first;
+            const bool rejected = !codec.write(&exporter, version, binary)
+                && !exporter.accepted;
+            std::string afterRefusal;
+            if (!rejected || !readBytes(output, afterRefusal)
+                || afterRefusal != sentinel
+                || !rawObjectMatches(exporter.object, source))
+                return fail("invalid override changed output or caller state");
+
+            exporter.invalidOverride = InvalidOverride::None;
+            exporter.accepted = false;
+            const bool retried = codec.write(&exporter, version, binary);
+            std::string retryBytes;
+            if (!retried || !exporter.accepted
+                || !readBytes(output, retryBytes)
+                || retryBytes != expectedBytes
+                || !readbackMatches(output, test.second)
+                || !rawObjectMatches(exporter.object, source))
+                return fail("corrected same-codec retry did not match output");
+            std::cout << "raw XRECORD invalid override "
+                      << (test.first == InvalidOverride::StringOnInteger
+                              ? "string-on-integer" : "int32-on-string")
+                      << ' ' << (binary ? "Binary" : "ASCII")
+                      << ": refusal rollback/retry/readback=PASS\n";
+        }
+    }
+    return true;
 }
 
 bool run(const std::filesystem::path& directory) {
@@ -375,7 +471,7 @@ bool run(const std::filesystem::path& directory) {
         }
       }
     }
-    return true;
+    return runInvalidOverrideRetries(directory);
 }
 } // namespace
 
