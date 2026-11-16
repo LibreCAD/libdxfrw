@@ -5,7 +5,7 @@ from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
 
 class LibdxfrwConan(ConanFile):
     name = "libdxfrw"
-    version = "2.0.0"
+    version = "3.0.0"
     package_type = "library"
     license = "GPL-2.0-or-later"
     url = "https://github.com/LibreCAD/libdxfrw"

@@ -28,7 +28,7 @@
 # endif
 #endif
 
-#define DRW_VERSION "2.0.1"
+#define DRW_VERSION "3.0.0"
 
 #include <array>
 #include <cstddef>

@@ -45,7 +45,7 @@ or derivatives are admitted by generating a release.
 Maintainers can check every listed archive file against its source bytes:
 
 ```sh
-python3 tools/generate_build_inventory.py --check --archive path/to/libdxfrw-2.0.0.tar.gz
+python3 tools/generate_build_inventory.py --check --archive path/to/libdxfrw-3.0.0.tar.gz
 ```
 
 GNU `make distcheck` additionally exercises a read-only-source VPATH build,

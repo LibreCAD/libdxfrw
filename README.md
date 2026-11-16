@@ -2,13 +2,16 @@ libdxfrw ![Build status](https://api.travis-ci.org/LibreCAD/libdxfrw.svg?branch=
 ==========
 
 libdxfrw is LibreCAD's C++17 library for reading and writing ASCII and binary
-DXF, with DWG reader/writer and raw-carrier preservation paths. The 2.0.0
-release is an ABI boundary: it keeps the historical callback surface usable,
-but consumers should rebuild against the installed package.
+DXF, with DWG reader/writer and raw-carrier preservation paths. The 3.0.0
+package is an ABI boundary from 2.x: public class layouts have changed, so
+consumers must rebuild against the installed package. The shared-library major,
+Windows DLL name, and CMake package major distinguish it from the 2.x library. Existing 2D
+consumer source compatibility remains a separate qualification target.
 
-New DXF files identify this degree-valued group-52/53 writer as version 2.0.1,
+New DXF files identify this degree-valued group-52/53 writer as version 3.0.0,
 so consumers can distinguish its group-52 units from legacy writers that may
-use the same 2.0.0 version comment for raw-radian values.
+use the 2.0.0 version comment for raw-radian values. Version 2.0.1 also used
+degree-valued output.
 
 The public `DRW_Hatch::angle` and `DRW_Hatch::PatternLine::angle` fields use
 radians, advertised by `DRW_HATCH_ANGLE_RADIANS == 1`. DXF group codes 52/53
@@ -29,12 +32,12 @@ LibreCAD's bundled `libraries/libdxfrw/` tree remains a consumer snapshot update
 
 ## Build and install
 
-CMake is the supported 2.x build (CMake 3.28 or newer, C++17). The Conan 2
+CMake is the supported 3.x build (CMake 3.28 or newer, C++17). The Conan 2
 recipe consumes the same canonical source manifest and disables tests and
 documentation for a small package build. Autotools source releases use the same
 source/header inventory and provide a pkg-config install; see
 [source release instructions](docs/SOURCE_RELEASE.md). The historical MinGW
-project files remain reference material.
+project files are deprecated and remain reference material.
 
 ```sh
 cmake -S . -B build
@@ -74,7 +77,7 @@ python3 tools/check_staged_package.py --prefix /absolute/runtime-prefix \
 
 For Conan 2, create the package directly from a checkout:
 
-`conan create . --name libdxfrw --version 2.0.1 -s compiler.cppstd=17 -o '&:shared=False'`
+`conan create . --name libdxfrw --version 3.0.0 -s compiler.cppstd=17 -o '&:shared=False'`
 
 The package requires an explicit C++17-or-newer compiler profile. `conan create`
 also builds and, when runnable, executes the fixture-free `test_package`

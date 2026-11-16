@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.28)
 
 cmake_policy(SET CMP0048 NEW)
-project(DXFRW VERSION 2.0.1)
+project(DXFRW VERSION 3.0.0)
 
 # set preferred cache variables
 option(LIBDXFRW_BUILD_LIBRARY "Build the libdxfrw library" ON)
@@ -97,6 +97,12 @@ if(LIBDXFRW_BUILD_LIBRARY)
         SOVERSION "${PROJECT_VERSION_MAJOR}"
         EXPORT_NAME libdxfrw
     )
+    if(WIN32 AND BUILD_SHARED_LIBS)
+        # Windows does not use SONAME when loading a DLL. Give each ABI major
+        # a distinct runtime name so an old executable cannot load it by name.
+        set_target_properties(dxfrw PROPERTIES
+            RUNTIME_OUTPUT_NAME "dxfrw-${PROJECT_VERSION_MAJOR}")
+    endif()
     target_compile_features(dxfrw PUBLIC cxx_std_17)
     target_compile_options(dxfrw PRIVATE ${LIBDXFRW_WARNING_FLAGS})
     target_link_libraries(dxfrw PUBLIC Threads::Threads)

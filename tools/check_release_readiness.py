@@ -15,7 +15,7 @@ from pathlib import Path
 import sys
 
 sys.path.insert(0, str(Path(__file__).parent))
-from update_upgrade_plan import rows, validate  # noqa: E402
+from update_upgrade_plan import HISTORY_RELATIVE, ledger_rows, validate  # noqa: E402
 from check_support_matrix import MatrixError, validate_matrix  # noqa: E402
 
 
@@ -38,7 +38,7 @@ DOCUMENTATION_REQUIREMENTS = {
     "README.md": (
         "C++17",
         "CMake 3.28",
-        "CMake is the supported 2.x build",
+        "CMake is the supported 3.x build",
         "LIBDXFRW_BUILD_TESTS=ON",
         "deprecated",
     ),
@@ -71,13 +71,13 @@ def validate_documentation(root: Path) -> None:
                 (path, ", ".join(missing)))
 
 
-def validate_release(plan_path: Path, mapping_path: Path, registry_path: Path, manifest_path: Path, support_matrix_path: Path) -> None:
-    validate_documentation(plan_path.parent)
-    plan_text = plan_path.read_text(encoding="utf-8")
-    diagnostics = validate(plan_text)
+def validate_ledger(plan_text: str, root: Path) -> None:
+    if not (root / HISTORY_RELATIVE).is_file():
+        raise ReleaseError("archived plan history is missing")
+    diagnostics = validate(plan_text, history_root=root)
     if diagnostics:
         raise ReleaseError("plan validation: " + "; ".join(diagnostics))
-    parsed = rows(plan_text)
+    parsed = ledger_rows(plan_text, root)
     slices = {row.ident: row for row in parsed if row.kind == "slice"}
     parents = {row.ident: row for row in parsed if row.kind == "parent"}
     children = {row.ident: row for row in parsed if row.kind == "child"}
@@ -102,6 +102,12 @@ def validate_release(plan_path: Path, mapping_path: Path, registry_path: Path, m
         if row.fields[4] not in {"COMMITTED", "SUPERSEDED"})
     if missing_children:
         raise ReleaseError("children are not committed: %s" % ", ".join(missing_children))
+
+
+def validate_release(plan_path: Path, mapping_path: Path, registry_path: Path, manifest_path: Path, support_matrix_path: Path) -> None:
+    validate_documentation(plan_path.parent)
+    plan_text = plan_path.read_text(encoding="utf-8")
+    validate_ledger(plan_text, plan_path.parent)
     mapping_document = read_json(mapping_path)
     mapping = mapping_document.get("mapping", {})
     mapping_rows = mapping.get("rows")
@@ -136,8 +142,35 @@ def validate_release(plan_path: Path, mapping_path: Path, registry_path: Path, m
 
 
 def self_test() -> None:
+    from tempfile import TemporaryDirectory
     assert Counter(["dxfRW", "dwgRW", "dxfRW"])["dxfRW"] == 2
     assert len(DOCUMENTATION_REQUIREMENTS) == 2
+    head = ("<!-- UPGRADE_PROGRESS_START -->\n"
+            "| Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |\n"
+            "| --- | --- | --- | --- | --- | --- | --- |\n")
+    end = "<!-- UPGRADE_PROGRESS_END -->\n"
+    active = head + "| S01 | A1 | S00 | COMMITTED | gate | ok | none |\n" + end
+    archived = head + "| S00 | A0 | none | COMMITTED | gate | ok | S01 |\n" + end
+    with TemporaryDirectory() as directory:
+        root = Path(directory)
+        history = root / HISTORY_RELATIVE
+        history.parent.mkdir(parents=True)
+        history.write_text(archived, encoding="utf-8")
+        validate_ledger(active, root)
+        history.write_text(archived.replace("COMMITTED", "VERIFIED"), encoding="utf-8")
+        try:
+            validate_ledger(active, root)
+        except ReleaseError as exc:
+            assert "slices are not committed: S00" in str(exc)
+        else:
+            raise AssertionError("uncommitted archived slice passed release gate")
+        history.unlink()
+        try:
+            validate_ledger(active, root)
+        except ReleaseError as exc:
+            assert "history is missing" in str(exc)
+        else:
+            raise AssertionError("missing history passed release gate")
     print("check_release_readiness self-test: PASS")
 
 

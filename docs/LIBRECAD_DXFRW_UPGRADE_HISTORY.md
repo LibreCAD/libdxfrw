@@ -311,4 +311,21 @@ test change the digest to
 `087456dce91e58e8f497d13df750316a50eb7d980a8c79b2b40c6eaa8f630294`; the
 three native receipts and `parity-fast` must be refreshed on this candidate.
 
+
+### S21 — committed AC1021 WIPEOUTVARIABLES profile
+
+| Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |
+| --- | --- | --- | --- | --- | --- | --- |
+| S21 | E1S: AC1021 direct-NOD WIPEOUTVARIABLES graph and output profile | S20B | COMMITTED | locally generated AC1021 DWG source capture; exact object-data/handle boundary from the AC1021 object-size field; typed owner/reactor role rejection; ASCII/Binary retry and readback; adjacent revision compatibility controls; updater and fixture policy | All 15 WIPEOUTVARIABLES focused CTests pass, including AC1018/21/24/27/32 profiles, nested refusal, role-corruption refusal, retry, and ASCII/Binary readback. AC1021 direct-NOD output now emits `ACAD_WIPEOUT_VARS` and reads back with exact owner/reactor graph. `update_upgrade_plan.py --check`, fixture admission self-test, external-fixture-hook self-test, and `git diff --check` pass. No drawing fixture was added and no claim is promoted. | committed in 5cbb259c; subsequent inventory refresh is archived in S22 |
+
+| Parent item | Slice | Dependencies | Execution state | Claim/evidence | Scope / current evidence |
+| --- | --- | --- | --- | --- | --- |
+| E1S | S21 | E1R | COMMITTED | EXPERIMENTAL | Extend the already-supported same-revision direct-NOD WIPEOUTVARIABLES profile to AC1021 with independent exact frame-span and role validation, rollback/retry, ASCII/Binary readback, and bounded compatibility controls. All 15 WIPEOUTVARIABLES focused CTests pass; plan and fixture self-checks pass. The AC1021 addition is a bounded candidate and does not promote a support claim. |
+
+| Child item | Parent / slice | WP/Phase references | Dependencies | Execution state | Claim/evidence | Direct gate | Evidence / unblocks |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| E1S.1 | E1S / S21 | Decode AC1021 object-data boundary and exact WIPEOUTVARIABLES output span | E1R.1 | COMMITTED | EXPERIMENTAL | generated AC1021 direct-NOD CTest; exact frame/source-role mutation rejection; ASCII/Binary output readback; plan updater and fixture policy | `dwg2dxf_wipeoutvariables_ac1021_direct_nod` and the full 15-test WIPEOUTVARIABLES family pass. The wire matcher independently checks the AC1021 BitShort class type, declared RL object-data boundary, common header fields, exact display-frame span, trailing owner/reactor roles, and zero padding. The source-role tests mutate the retained owner and reactor roles and require refusal; same-adapter retry plus ASCII/Binary readback pass. The NOD serializer now includes AC1021 in the same bounded `ACAD_WIPEOUT_VARS` route. Plan updater, fixture admission, and external-fixture-hook self-tests pass. No fixture or support claim was added. |
+
+Implementation committed as `5cbb259c`; the 14 adapter and CLI WIPEOUTVARIABLES controls passed again on 2026-11-16. This records a bounded implementation, not broader support qualification.
+
 <!-- UPGRADE_PROGRESS_END -->

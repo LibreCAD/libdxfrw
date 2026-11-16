@@ -107,9 +107,10 @@ def parse_dependencies(value: str) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()]
 
 
-def validate(text: str, repo: Path | None = None) -> list[str]:
+def validate(text: str, repo: Path | None = None, *,
+             history_root: Path | None = None) -> list[str]:
     diagnostics: list[str] = []
-    parsed = ledger_rows(text, repo)
+    parsed = ledger_rows(text, history_root if history_root is not None else repo)
     slices = {row.ident: row for row in parsed if row.kind == "slice"}
     parents = {row.ident: row for row in parsed if row.kind == "parent"}
     children = {row.ident: row for row in parsed if row.kind == "child"}
@@ -308,6 +309,21 @@ def self_test() -> None:
         changed = path.read_text(encoding="utf-8")
         assert "| A0.1 | A0 / S00 | WP0 | none | VERIFIED |" in changed
         assert changed.startswith("prefix\n") and changed.endswith("suffix\n")
+        active = (f"{START}\n"
+                  "| Slice | Plan items | Dependencies | State | Required gates | Evidence / decision | Unblocks / next |\n"
+                  "| --- | --- | --- | --- | --- | --- | --- |\n"
+                  "| S01 | A1 | S00 | PLANNED | gate | pending | none |\n"
+                  f"{END}\n")
+        history_root = Path(directory) / "history-check"
+        history = history_root / HISTORY_RELATIVE
+        history.parent.mkdir(parents=True)
+        history.write_text(sample, encoding="utf-8")
+        assert any("unknown slice dependency S00" in error for error in validate(active))
+        assert not validate(active, history_root=history_root)
+        history.write_text(sample.replace("| S00 | A0 | none | COMMITTED |",
+                                          "| S00 | A0 | none | INVALID |"), encoding="utf-8")
+        assert any("invalid slice state" in error
+                   for error in validate(active, history_root=history_root))
         # A prepared slice is reversible only through its explicit marker.
         prepared = sample.replace("| S00 | A0 | none | COMMITTED |",
                                   "| S00 | A0 | none | VERIFIED |")

@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([libdxfrw], [2.0.0], [https://sourceforge.net/projects/libdxfrw/])
+AC_INIT([libdxfrw], [3.0.0], [https://sourceforge.net/projects/libdxfrw/])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror dist-bzip2 subdir-objects])
 AC_CONFIG_SRCDIR([src/drw_interface.h])
 
@@ -14,7 +14,7 @@ LT_INIT
 AC_CONFIG_MACRO_DIR([m4])
 
 # Match the public ABI major used by CMake's SOVERSION.
-LIBDXFRW_ABI_MAJOR=2
+LIBDXFRW_ABI_MAJOR=3
 AC_SUBST([LIBDXFRW_ABI_MAJOR])
 
 # Check the required language/library without running target executables.

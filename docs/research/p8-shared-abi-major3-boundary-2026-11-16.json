@@ -1,0 +1,74 @@
+{
+  "date": "2026-11-16",
+  "scope": "Protect the current development package's shared-library ABI boundary and restore source-only release-plan validation",
+  "baseline": {
+    "ref": "origin/master",
+    "commit": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "project_version": "2.0.0",
+    "release_status": "GitHub releases API returned an empty release list; this is an origin/master package baseline, not a claim of a published release.",
+    "candidate_parent": "152e72874c6e02182aaa76b2fef743fec8dc34d4"
+  },
+  "layout_probe": {
+    "platform": "macOS 27.2.1 arm64, Apple clang 21.0.0, C++17",
+    "probe_sha256": "7e4a84e46fe9f67abb4edcbb64b3156f827ffd910406a75a1cd517616319e5e9",
+    "origin_vs_candidate_size_bytes": {
+      "DRW_Entity": [
+        640,
+        744
+      ],
+      "DRW_Line": [
+        728,
+        832
+      ],
+      "DRW_Viewport": [
+        1160,
+        1312
+      ],
+      "DRW_Layer": [
+        408,
+        576
+      ],
+      "DRW_Header": [
+        312,
+        616
+      ],
+      "DRW_Material": [
+        304,
+        2032
+      ],
+      "dxfRW": [
+        1384,
+        4576
+      ],
+      "dwgR": [
+        1008,
+        1472
+      ],
+      "dwgRW": [
+        1008,
+        1472
+      ]
+    },
+    "conclusion": "These measured public-layout differences disprove binary compatibility on this platform. Equal interface object size alone does not prove vtable or ABI compatibility.",
+    "probe": "tools/probe_public_abi_layout.cpp"
+  },
+  "changes": [
+    "Assign development package version 3.0.0 and ABI major 3 consistently to CMake, DRW_VERSION, Autotools and Conan.",
+    "Keep CMake SameMajorVersion package selection; name the shared Windows runtime dxfrw-3 so old binaries do not select it by the former DLL name. Static Windows artifact naming remains unchanged.",
+    "Remove the LibreCAD source-checker's explicit clang resource include, which moved builtin headers ahead of libc++ and broke include_next. Add a real compiler self-test when a c++ compiler is available.",
+    "Resolve release-plan dependencies against archived history, require that history, and check active and archived row states. Move the committed S21 WIPEOUTVARIABLES rows into history after current focused tests pass."
+  ],
+  "validation": {
+    "macos_shared": "PASS: clean Release shared build/install, libdxfrw.3.0.0.dylib SHA-256 4fbe360e5e014ad09dc2cfbf2a5a97f4d9839f9a6d1e26fd9a2f5acd913b432d; install name @rpath/libdxfrw.3.dylib; independently built installed-package consumer runs and links to that name; no major-2 dylib installed.",
+    "version_selection": "PASS: prior candidate 2.0.1 package accepted a 2.0.0 CMake CONFIG request; new 3.0.0 package rejects it, and accepts a 3.0.0 request.",
+    "package": "PASS: staged package CONFIG, MODULE, pkg-config, negative selection and relocated-prefix-with-spaces checks.",
+    "librecad_source": "PASS: syntax-only compile of /Users/dli/dev/LibreCAD/librecad/src/lib/filters/rs_filterdxfrw.cpp, SHA-256 2c06a8873753f798489561ee4d9fc0390314d88685292218750c4acb2d13fe51, against installed headers and without bundled libdxfrw paths. This is a dirty local checkout at 078aac8922874eddd7fa46590b5f306e3aee6423; its compile database was adapted from a separate local worktree and a conflicting explicit Xcode SDK include removed. This is a source check, not a clean app build or runtime test.",
+    "windows": "PASS for CMake generation only: a simulated Windows target generates dxfrw-3.dll and dxfrw.lib. No Windows binary was built or run by this check.",
+    "fast": "PASS: 14/14 rebuilt dwg2dxf WIPEOUTVARIABLES controls, version-surface, release-plan-history, qualification-workflow and package-checker self-tests; source-only release-readiness audit passes with no promoted source-only claims."
+  },
+  "open": [
+    "The previously verified LibreCAD system-package integration requires find_package(libdxfrw 2.0 CONFIG REQUIRED); update it to major 3 and rebuild and requalify both LibreCAD and LibreCAD_3.",
+    "An unrelated offset-development LibreCAD worktree references intern/drw_textcodec.h, which is not an installed public header; its first probe also had mixed SDK include paths. Choose a supported downstream integration before qualifying it.",
+    "Obtain native Linux and Windows shared-library builds, consumer checks, ABI/toolchain comparison, and current-source hosted receipts. No broad binary compatibility, release readiness, semantic support, or external-gate promotion follows from the local probes."
+  ]
+}
