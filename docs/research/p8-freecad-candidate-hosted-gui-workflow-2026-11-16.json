@@ -13,10 +13,14 @@
     "Local macOS Cocoa GUI smoke passed with requested and observed Qt backend matching.",
     "The guarded GUI runner previously rejected mismatched source/build and missing-result controls."
   ],
-  "status": "PREPARED_NOT_RUN",
+  "status": "DISPATCHED; RESULTS PENDING",
   "limitations": [
-    "The hosted GUI jobs have not run yet; neither Linux nor Windows GUI behavior is qualified by this workflow.",
+    "The hosted GUI jobs have been dispatched but have not completed; neither Linux nor Windows GUI behavior is yet qualified.",
     "Linux uses a virtual X display. Actual Qt platform is recorded; these are view-property checks, not pixel-rendering proof.",
     "The source and module identity checks do not alone establish build provenance or independent semantic support."
-  ]
+  ],
+  "dispatch": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43853176191",
+    "commit": "f425a6be"
+  }
 }

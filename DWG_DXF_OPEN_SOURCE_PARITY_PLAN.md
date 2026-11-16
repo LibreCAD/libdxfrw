@@ -137,8 +137,9 @@ check, not as a substitute for full GUI or rendering qualification. The
 the source, build, executable and loaded modules; its macOS smoke and negative
 checks pass ([receipt](docs/research/p8-freecad-candidate-gui-runner-2026-11-16.json)).
 An opt-in hosted GUI mode now builds the required GUI resources and runs that
-smoke on a Linux virtual display or a Windows runner; dispatch it and record
-the reported Qt backend. The hosted GUI mode has only passed static validation.
+smoke on a Linux virtual display or a Windows runner. The run has been
+dispatched; record each result and its Qt backend when it completes
+([receipt](docs/research/p8-freecad-candidate-hosted-gui-workflow-2026-11-16.json)).
 Native GUI behavior, independent semantics and upstream integration remain open.
 
 ### Next LibreCAD integration work
