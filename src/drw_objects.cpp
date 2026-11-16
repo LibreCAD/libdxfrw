@@ -526,7 +526,7 @@ bool objectBodyFitsSize(std::uint64_t bodyBitOffset,
 
 std::uint64_t currentObjectDwgBit(const dwgBuffer *buf);
 
-#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+#if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE)
 void traceAc1021MLineStyleSpan(std::uint32_t handle, DRW::Version version,
                                const char *stream, const char *field,
                                std::uint64_t startBit,
@@ -556,6 +556,36 @@ void traceAc1021MLineStyleState(std::uint32_t handle, DRW::Version version,
     traceAc1021MLineStyleSpan(__VA_ARGS__)
 #define DRW_MLINESTYLE_TRACE_STATE(...) \
     traceAc1021MLineStyleState(__VA_ARGS__)
+#elif defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
+void traceAc1027MLineStyleSpan(std::uint32_t handle, DRW::Version version,
+                               const char *stream, const char *field,
+                               std::uint64_t startBit,
+                               std::uint64_t endBit,
+                               int rawCode = -1,
+                               std::uint32_t target = 0u) {
+    if (version != DRW::AC1027 || handle != 0x18u)
+        return;
+    std::cerr << "DRW_MLINESTYLE_SPAN handle=24 version=AC1027 stream="
+              << stream << " field=" << field << " start=" << startBit
+              << " end=" << endBit;
+    if (rawCode >= 0)
+        std::cerr << " rawCode=" << rawCode << " target=" << target;
+    std::cerr << '\n';
+}
+
+void traceAc1027MLineStyleState(std::uint32_t handle, DRW::Version version,
+                                const char *field, std::uint32_t value) {
+    if (version != DRW::AC1027 || handle != 0x18u)
+        return;
+    std::cerr << "DRW_MLINESTYLE_STATE handle=24 version=AC1027 field="
+              << field << " value=" << value << '\n';
+}
+#define DRW_MLINESTYLE_TRACE_BEGIN(name, buffer) \
+    const std::uint64_t name = currentObjectDwgBit(buffer)
+#define DRW_MLINESTYLE_TRACE_SPAN(...) \
+    traceAc1027MLineStyleSpan(__VA_ARGS__)
+#define DRW_MLINESTYLE_TRACE_STATE(...) \
+    traceAc1027MLineStyleState(__VA_ARGS__)
 #else
 #define DRW_MLINESTYLE_TRACE_BEGIN(name, buffer) ((void)0)
 #define DRW_MLINESTYLE_TRACE_SPAN(...) ((void)0)
@@ -789,14 +819,14 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
         return false;
 
     dwgHandle parentH;
-#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+#if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
     const std::uint64_t parentStartBit = currentObjectDwgBit(&probe);
 #endif
     if (!readBoundedObjectHandle(probe, baseHandle, true, parentH,
                                  handleEndBit))
         return false;
-#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
-    traceAc1021MLineStyleSpan(baseHandle, version, "handle", "ownerhandle",
+#if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
+    DRW_MLINESTYLE_TRACE_SPAN(baseHandle, version, "handle", "ownerhandle",
                               parentStartBit, currentObjectDwgBit(&probe),
                               parentH.rawCode, parentH.ref);
 #endif
@@ -833,16 +863,16 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
     }
     for (std::int32_t i = 0; i < numReactors; ++i) {
         dwgHandle reactor;
-#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+#if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
         const std::uint64_t reactorStartBit = currentObjectDwgBit(&probe);
 #endif
         if (!readBoundedObjectHandle(probe, baseHandle, false, reactor,
                                      handleEndBit))
             return false;
-#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+#if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
         const std::string reactorField =
             "reactors[" + std::to_string(i) + "]";
-        traceAc1021MLineStyleSpan(baseHandle, version, "handle",
+        DRW_MLINESTYLE_TRACE_SPAN(baseHandle, version, "handle",
                                   reactorField.c_str(), reactorStartBit,
                                   currentObjectDwgBit(&probe), reactor.rawCode,
                                   reactor.ref);
@@ -859,14 +889,14 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
     std::uint32_t parsedXDictHandle = 0;
     if (xDictFlag != 1) {
         dwgHandle xDict;
-#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+#if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
         const std::uint64_t xdictStartBit = currentObjectDwgBit(&probe);
 #endif
         if (!readBoundedObjectHandle(probe, baseHandle, false, xDict,
                                      handleEndBit))
             return false;
-#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
-        traceAc1021MLineStyleSpan(baseHandle, version, "handle",
+#if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
+        DRW_MLINESTYLE_TRACE_SPAN(baseHandle, version, "handle",
                                   "xdictionary", xdictStartBit,
                                   currentObjectDwgBit(&probe), xDict.rawCode,
                                   xDict.ref);
@@ -22551,7 +22581,7 @@ bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
         DRW_MLINESTYLE_TRACE_BEGIN(elementOffsetStartBit, bodyBuf);
         if (!readDouble(e.offset))
             return fail();
-#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+#if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
         const std::string elementField =
             "element[" + std::to_string(i) + "].offset";
 #endif
@@ -22572,7 +22602,7 @@ bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
                                    &colorBookName, nullptr, &colorMethod,
                                    &colorFlags, &colorIndex))
             return fail();
-#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+#if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
         const std::string colorField =
             "element[" + std::to_string(i) + "].color";
         const std::string colorStringField = colorField + ".embedded";
@@ -22606,7 +22636,7 @@ bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
                                          parsedLinetypeIndex))
                 return fail();
             e.linetypeIndex = static_cast<int>(parsedLinetypeIndex);
-#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+#if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
             const std::string linetypeField =
                 "element[" + std::to_string(i) + "].lt.index";
 #endif
