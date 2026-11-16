@@ -41,6 +41,7 @@ EXTRA_DIST = \
     docs/patches/freecad-p8-default-mesh-color-consistency-2026-11-16.patch \
     docs/patches/freecad-p8-default-mesh-parent-aci-color-2026-11-16.patch \
     docs/patches/freecad-p8-default-mixed-face-no-color-2026-11-16.patch \
+    docs/patches/freecad-p8-default-mixed-vertex-no-color-2026-11-16.patch \
     docs/patches/freecad-p8-default-open-polygon-mesh-2026-11-15.patch \
     docs/patches/freecad-p8-default-planar-3dface-2026-11-15.patch \
     docs/patches/freecad-p8-default-polyface-uniform-face-aci-2026-11-16.patch \

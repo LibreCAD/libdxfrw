@@ -268,5 +268,6 @@
     "The downstream FreeCAD candidate is not merged; it must be integrated upstream.",
     "Mixed or ambiguous face colors still require refusal when color preservation is enabled. BYBLOCK and other unsupported attributes, mixed layers, nonplanar faces and hidden edges remain outside this profile.",
     "Native GUI property checks are not pixel rendering, independent producer semantics, or Linux/Windows qualification. No P4\u2013P9 phase gate or external support claim is promoted."
-  ]
+  ],
+  "probeEvolution": "The current reusable GUI probe adds coordinate-color cases requiring the thirteenth downstream patch; this receipt records the earlier twelve-patch candidate."
 }
