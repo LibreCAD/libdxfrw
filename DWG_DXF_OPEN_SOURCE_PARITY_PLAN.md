@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **690 completed implementation and qualification slices** and **32 remaining
+The plan records **691 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`690 / (690 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
+`691 / (691 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -132,7 +132,11 @@ The existing [GUI probe](tools/research/freecad_gui_mesh_probe.FCMacro) also has
 a locally validated ten-case `smoke` profile for faster focused view-property
 checks ([receipt](docs/research/p8-freecad-gui-smoke-profile-2026-11-16.json));
 its default remains the full set. Use the smoke profile as an early platform
-check, not as a substitute for full GUI or rendering qualification.
+check, not as a substitute for full GUI or rendering qualification. The
+[guarded GUI runner](tools/research/run_freecad_candidate_gui_probe.py) binds
+the source, build, executable and loaded modules; its macOS smoke and negative
+checks pass ([receipt](docs/research/p8-freecad-candidate-gui-runner-2026-11-16.json)).
+Run it on Linux and Windows with their display backends recorded.
 Native GUI behavior, independent semantics and upstream integration remain open.
 
 ### Next LibreCAD integration work

@@ -14,6 +14,7 @@ import ctypes
 import json
 import os
 from pathlib import Path
+import platform
 import runpy
 import sys
 import tempfile
@@ -275,6 +276,8 @@ def run():
                 finally:
                     App.closeDocument(doc.Name)
         result = {"ok": True, "profile": profile, "guiUp": App.GuiUp, "importModule": ImportGui.__file__,
+                  "executable": sys.executable, "platform": sys.platform, "machine": platform.machine(),
+                  "freecadVersion": list(App.Version()), "pythonVersion": sys.version,
                   "draftModule": Draft.__file__, "qtFrameworkImages": qt_frameworks,
                   "results": results}
     except Exception:

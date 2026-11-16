@@ -1248,6 +1248,7 @@ EXTRA_DIST = \
     tools/research/render_mtext_field_source.py \
     tools/research/replay_freecad_import_patches.py \
     tools/research/run_acsh_torus_source_probe.py \
+    tools/research/run_freecad_candidate_gui_probe.py \
     tools/research/run_freecad_candidate_probe.py \
     tools/research/tablegeometry_dwg_span_scan.cpp \
     tools/research/tablegeometry_physical_span_verify.py \
