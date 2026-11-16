@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-layer-control-source-binding-2026-11-15.patch",
+  "patchSha256": "4db105f447e83e72181a311d82bbbc79729055ef3478790171631c624a973660",
+  "implementation": "A twenty-fourth unmerged LibreCAD patch opts into the new bounded layer-control source handler, retains one bounded capture, latches duplicate/oversized/allocation failure, and invalidates the selected import-session seal on later capture. It correlates the control frame and publication with an exact coverage row and the separately verified extension dictionary whose parent is the control. It changes the existing DRW_Interface base from private to public so C++ cross-casting from the reader interface to the separate optional handler can work; it does not add a virtual to the upstream DRW_Interface or change exporter admission.",
+  "validation": [
+    "A standalone C++17 -Werror consumer on the tracked title-block DWG matched control 0x10 and dictionary 0x107, rejected crossed endpoints and a flipped wire-role bit, and invalidated a duplicate capture. It refused 90 injected verification allocations and one injected capture allocation; immediate retry succeeded.",
+    "A separate source test demonstrated that dynamic_cast from a private DRW_Interface base to a sibling optional handler fails, motivating the visibility change. The downstream patch applies after the previous 23; its macro-excluded metadata source compiles with older bundled headers.",
+    "Source-release inventory and 18 refusal controls pass with 1217 files; the 722-input implementation digest is unchanged. The clean installed-codec LibreCAD importer rebuild and committed fixture assertion are running, and no result is claimed yet."
+  ],
+  "limits": "This verifies the selected control/dictionary source edge only. It does not authenticate the producer, prove all control/version profiles, exclude unknown inbound references, complete the whole source graph, change export, establish native semantics or promote support claims. Bundled application compilation and other platforms remain to be qualified."
+}

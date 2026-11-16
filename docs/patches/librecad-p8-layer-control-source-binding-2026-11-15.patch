@@ -1,0 +1,182 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index 6b3072d..764e7b9 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -3634,7 +3634,43 @@ public:
+ #endif
+ #endif
+ 
++#if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++  // One optional, bounded source body; it is not export authority.
++  void observeAc1024LayerControlSource(
++      const DRW_DwgAc1024LayerControlSource &source) noexcept {
++    noteSelectedSourceCallback();
++    if (m_layerControlSourceCaptureFailed)
++      return;
++    const auto reject = [this]() noexcept {
++      m_layerControlSource.reset();
++      m_layerControlSourceCaptureFailed = true;
++    };
++    const auto &raw = source.m_raw;
++    if (m_layerControlSource || raw.m_handle == 0u || raw.m_handle == DRW::NoHandle
++        || raw.m_rawBytes.empty() || raw.m_rawBytes.size() > 4096u
++        || !raw.m_recordName.empty() || !raw.m_className.empty()
++        || !raw.m_classAppName.empty() || !raw.m_reactorHandles.empty()) {
++      reject();
++      return;
++    }
++    try {
++      m_layerControlSource = source;
++    } catch (...) {
++      reject();
++    }
++  }
++  bool ac1024LayerControlSourceCaptureFailed() const noexcept {
++    return m_layerControlSourceCaptureFailed;
++  }
++  bool matchesAc1024LayerControlExtensionSource(std::uint32_t controlHandle,
++      std::uint32_t dictionaryHandle) const noexcept;
++#endif
++
+   void clear() {
++#if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++    m_layerControlSource.reset();
++    m_layerControlSourceCaptureFailed = false;
++#endif
+ #if defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) || defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
+     m_selectedSourceCaptureOpen = false;
+     m_selectedSourceCaptureSealed = false;
+@@ -13628,6 +13664,9 @@ private:
+ #endif
+ #ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
+     complete = complete && !m_sortEntsSourceCaptureFailed;
++#endif
++#if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++    complete = complete && !m_layerControlSourceCaptureFailed;
+ #endif
+     m_selectedSourceCaptureOpen = false;
+     m_selectedSourceCaptureSealed = complete;
+@@ -13635,6 +13674,10 @@ private:
+   bool m_selectedSourceCaptureOpen = false;
+   bool m_selectedSourceCaptureSealed = false;
+ #endif
++#if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++  std::optional<DRW_DwgAc1024LayerControlSource> m_layerControlSource;
++  bool m_layerControlSourceCaptureFailed = false;
++#endif
+ 
+   DRW::Version m_sourceDwgVersion = DRW::UNKNOWNV;
+   std::vector<RawObjectRecord> m_rawObjects;
+diff --git a/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp b/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
+index 211a303..c5dacef 100644
+--- a/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
++++ b/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
+@@ -230,3 +230,35 @@ bool LC_DwgAdvancedMetadata::matchesSelectedAc1024SortEntsOwnerChain(
+   return matchingEntries == 1u;
+ }
+ #endif
++
++#if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++bool LC_DwgAdvancedMetadata::matchesAc1024LayerControlExtensionSource(
++    std::uint32_t controlHandle, std::uint32_t dictionaryHandle) const noexcept {
++  // Source correlation only. Full inbound edges and output remain unresolved.
++  if (!m_selectedSourceCaptureSealed || m_layerControlSourceCaptureFailed
++      || !m_layerControlSource || controlHandle == 0u || dictionaryHandle == 0u
++      || controlHandle == DRW::NoHandle || dictionaryHandle == DRW::NoHandle
++      || controlHandle == dictionaryHandle
++      || m_layerControlSource->m_raw.m_handle != controlHandle
++      || m_layerControlSource->m_raw.m_xDictHandle != dictionaryHandle
++      || !matchesAc1024DictionarySourceObservation(dictionaryHandle))
++    return false;
++  const DRW_DwgFramePublication *publication = nullptr;
++  const DRW_DwgFrameCoverageEntry *coverage = nullptr;
++  const DictionaryRecord *dictionary = nullptr;
++  for (const auto &item : m_dwgFramePublications)
++    if (item.m_handle == controlHandle) { if (publication) return false; publication = &item; }
++  for (const auto &item : m_dwgFrameCoverageReport.m_entries)
++    if (item.m_handle == controlHandle) { if (coverage) return false; coverage = &item; }
++  for (const auto &item : m_dictionaries)
++    if (item.handle == dictionaryHandle) { if (dictionary) return false; dictionary = &item; }
++  return publication && coverage && dictionary
++      && dictionary->parentHandle == controlHandle
++      && coverage->m_sourceOffset == publication->m_sourceOffset
++      && coverage->m_sourceMapOrdinal == publication->m_sourceMapOrdinal
++      && coverage->m_sourceOffsetSpace == publication->m_sourceOffsetSpace
++      && coverage->m_disposition == DRW_DwgFrameDisposition::Published
++      && coverage->m_publicationCount == 1u
++      && m_layerControlSource->matchesAc1024LayerControlFrame(*publication);
++}
++#endif
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.h b/librecad/src/lib/filters/rs_filterdxfrw.h
+index f5ffdf4..89db809 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.h
++++ b/librecad/src/lib/filters/rs_filterdxfrw.h
+@@ -1965,7 +1965,10 @@ class RsFilterDxfRwExposureTestAccess;
+  * @author Rallaz
+  */
+ class RS_FilterDXFRW : public RS_FilterInterface,
+-                       DRW_Interface
++                       public DRW_Interface
++#if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++    , public DRW_DwgAc1024LayerControlSourceHandler
++#endif
+ #ifdef DWGSUPPORT
+     ,
+                        private RS_FilterDXFRW_DwgWriteIdentityRegistry
+@@ -2176,6 +2179,10 @@ public:
+   void addObjectContextData(const DRW_ObjectContextData &data) override;
+   void addCellStyleMap(const DRW_CellStyleMap &data) override;
+   void addUnsupportedObject(const DRW_UnsupportedObject &data) override;
++#if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++  void addDwgAc1024LayerControlSource(
++      const DRW_DwgAc1024LayerControlSource &data) noexcept override;
++#endif
+   void addDwgFramePublication(const DRW_DwgFramePublication &data) override;
+   void
+   addDwgDictionaryMembership(const DRW_DwgDictionaryMembership &data) override;
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index 9c48636..e5a8e2f 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -10895,6 +10895,14 @@ void RS_FilterDXFRW::addUnsupportedObject(const DRW_UnsupportedObject &data) {
+       static_cast<int>(data.m_rawBytes.size()));
+ }
+ 
++#if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++void RS_FilterDXFRW::addDwgAc1024LayerControlSource(
++    const DRW_DwgAc1024LayerControlSource &data) noexcept {
++  if (m_graphic)
++    m_graphic->dwgAdvancedMetadata().observeAc1024LayerControlSource(data);
++}
++#endif
++
+ void RS_FilterDXFRW::addDwgFramePublication(
+     const DRW_DwgFramePublication &data) {
+   if (m_graphic != nullptr) {
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 9d32426..b712a60 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9641,6 +9641,12 @@ TEST_CASE("Empty AC1024 sort tables match live adapter source observations",
+     REQUIRE(metadata.emptySortEntsSourceObservations().count(handle) == 1u);
+     CHECK(metadata.matchesAc1024EmptySortEntsSourceObservation(handle));
+   }
++#if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++  REQUIRE_FALSE(metadata.ac1024LayerControlSourceCaptureFailed());
++  REQUIRE(metadata.matchesAc1024LayerControlExtensionSource(0x10u, 0x107u));
++  CHECK_FALSE(metadata.matchesAc1024LayerControlExtensionSource(0x10u, 0xF2u));
++  CHECK_FALSE(metadata.matchesAc1024LayerControlExtensionSource(0x11u, 0x107u));
++#endif
+   const std::uint32_t blocks[] = {0x2u, 0x20A8u, 0x127u, 0x225Bu};
+   const std::uint32_t dictionaries[] = {0xF2u, 0x2120u, 0x21CDu, 0x22D3u};
+   const std::uint32_t tables[] = {0xF3u, 0x2121u, 0x21D3u, 0x22D4u};
+@@ -9658,6 +9664,9 @@ TEST_CASE("Empty AC1024 sort tables match live adapter source observations",
+   CHECK(named("AcDbDynamicBlockRoundTripPurgePreventer") == 1);
+   constexpr std::uint32_t target = 0x2121u;
+   metadata.setSourceDwgVersion(DRW::AC1027);
++#if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++  CHECK_FALSE(metadata.matchesAc1024LayerControlExtensionSource(0x10u, 0x107u));
++#endif
+   CHECK_FALSE(metadata.selectedDwgSourceCaptureSessionSealed());
+   CHECK_FALSE(metadata.matchesSelectedAc1024SortEntsOwnerChain(0x20A8u, 0x2120u, target));
+   CHECK_FALSE(metadata.matchesAc1024EmptySortEntsSourceObservation(target));
