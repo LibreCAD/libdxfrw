@@ -62096,6 +62096,19 @@ void testLegacyTableCellBorderOverrides(TestContext& t) {
     allEdgesCell->m_borders[3].m_lineWeight = 31;
     allEdgesData.mBlock->ent.push_back(allEdgesTable.release());
     dx_iface allEdgesExporter;
+    const std::string invalidEdgeSentinel = "prior invalid table border destination\n";
+    for (const bool binary : {false, true}) {
+        const auto& target = binary ? binaryOutput : output;
+        { std::ofstream file(target, std::ios::binary | std::ios::trunc); file << invalidEdgeSentinel; }
+        const bool invalidWeightRefused = !allEdgesExporter.fileExport(
+            target.string(), DRW::AC1018, binary, &allEdgesData, false);
+        std::ifstream invalidWeightFile(target, std::ios::binary);
+        const std::string invalidWeightBytes{std::istreambuf_iterator<char>(invalidWeightFile), {}};
+        t.expect(invalidWeightRefused && invalidWeightBytes == invalidEdgeSentinel
+                     && allEdgesCell->m_borders[3].m_lineWeight == 31,
+                 "AC1018 invalid left-border lineweight refuses without mutation");
+    }
+    allEdgesCell->m_borders[3].m_lineWeight = 35;
     const bool allEdgesAsciiExported = allEdgesExporter.fileExport(
         output.string(), DRW::AC1018, false, &allEdgesData, false);
     groups.clear();
@@ -62114,7 +62127,7 @@ void testLegacyTableCellBorderOverrides(TestContext& t) {
         && groupNumber(groups, 66, 30)
         && groupNumber(groups, 276, 30)
         && groupNumber(groups, 68, 31)
-        && groupNumber(groups, 278, 31)
+        && groupNumber(groups, 278, 35)
         && std::none_of(groups.begin(), groups.end(),
             [](const auto& group) {
                 return group.first == 286 || group.first == 288;
@@ -62138,7 +62151,7 @@ void testLegacyTableCellBorderOverrides(TestContext& t) {
         && allEdgesBinaryCell->m_edgeFlags == 0x0F
         && allEdgesBinaryCell->m_textHeight == 4.0;
     const std::array<int, 4> allEdgesColors = {{63, 22, 30, 31}};
-    const std::array<int, 4> allEdgesLineweights = {{40, 20, 30, 31}};
+    const std::array<int, 4> allEdgesLineweights = {{40, 20, 30, 35}};
     const std::array<bool, 4> allEdgesVisibility = {{false, true, true, true}};
     if (allEdgesBinaryFields) {
         for (std::size_t edge = 0u; edge < allEdgesColors.size(); ++edge) {
