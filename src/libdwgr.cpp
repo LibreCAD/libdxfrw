@@ -2123,6 +2123,14 @@ bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
             "dwg-file-header",
             "DWG file header generation failed");
     }
+    if (ok && (ver == DRW::AC1021 || ver == DRW::AC1024 || ver == DRW::AC1027)
+        && dynamic_cast<DRW_DwgCanonicalLayerProvider*>(iface) != nullptr) {
+        auto* canonicalWriter = dynamic_cast<dwgWriter15*>(writer.get());
+        if (canonicalWriter == nullptr || !canonicalWriter->freezeCanonicalLayerNameMode()) {
+            ok = false;
+            recordEmitStageFailure("dwg-layer-name-mode", "DWG layer name mode could not be frozen");
+        }
+    }
     if (ok && !writer->writeDwgHeader()) {
         ok = false;
         recordEmitStageFailure(
@@ -4107,7 +4115,8 @@ bool dwgRW::addLayer(DRW_Layer *ent) {
             std::uint32_t stagedPlotDictionary = 0u, stagedPlotPlaceholder = 0u;
             const auto& unknown = ent->unknownHandle;
             if ((version != DRW::AC1024 && !r2007 && !r2013)
-                || (ent->name != "0" && ent->name != "Defpoints")
+                || !w->canonicalLayerNameValid(ent->name)
+                || !w->canonicalLayerNameAvailable(ent->name)
                 || unknown.ref != 0u || unknown.ref64 != 0u || unknown.size != 0u
                 || (unknown.code != 0u && unknown.code != DRW::DwgHardPointer)
                 || (unknown.rawCode != 0u && unknown.rawCode != DRW::DwgHardPointer)
@@ -4147,6 +4156,10 @@ bool dwgRW::addLayer(DRW_Layer *ent) {
                 handle = 0u;
             }
         } else {
+            if (w->hasCanonicalLayers() && !w->canonicalLayerNameAvailable(ent->name)) {
+                markDwgWriteFailure();
+                return recordWriteResult(WriteSkipKind::TableRecord, false);
+            }
             handle = w->addLayer(*ent);
         }
     } catch (...) {

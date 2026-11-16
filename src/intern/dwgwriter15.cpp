@@ -3703,9 +3703,15 @@ bool dwgWriter15::validateDwgNamedObjectDictionaryEntries() const {
     }
 
     if (!m_canonicalLayerHandles.empty()) {
+        // Other layers may otherwise collide with selected names after CAD
+        // case folding or trimming, even when their byte spellings differ.
+        if ((m_haveLayer0 && !canonicalLayerNameValid(m_layer0.name))
+            || std::any_of(m_pendingLayers.begin(), m_pendingLayers.end(),
+                [this](const auto& layer) { return !canonicalLayerNameValid(layer.second.name); }))
+            return false;
         if ((m_version != DRW::AC1021 && m_version != DRW::AC1024
              && m_version != DRW::AC1027)
-            || m_canonicalLayerHandles.size() > 2u
+            || m_canonicalLayerHandles.size() > dwgSafety::MaxOwnedObjectCount
             || !m_canonicalPlotDictionarySeen || !m_canonicalPlaceholderSeen
             || m_canonicalPlotTarget == 0u || m_canonicalPlotDictionary == 0u
             || m_canonicalPlaceholderOwner != m_canonicalPlotDictionary
@@ -3868,8 +3874,8 @@ bool dwgWriter15::emitLayerRecord(std::uint32_t handle, const DRW_Layer& lay) {
         return false;
 
     if (!finishTableRecord(handle)) return false;
-    if (std::find(m_canonicalLayerHandles.begin(), m_canonicalLayerHandles.end(), handle)
-        != m_canonicalLayerHandles.end()) {
+    if (std::binary_search(m_canonicalLayerHandles.begin(),
+                           m_canonicalLayerHandles.end(), handle)) {
         const std::array<std::pair<std::uint8_t, std::uint64_t>, 5> expected{{
             {DRW::DwgSoftPointer, DRW::DwgLayerControlHandle},
             {DRW::DwgHardPointer, 0u}, {DRW::DwgHardPointer, m_canonicalPlotTarget},
@@ -4117,7 +4123,8 @@ bool dwgWriter15::writeAcDbPlaceholder(
         return false;
     }
     if (m_canonicalPlotTarget != 0u && object.handle == m_canonicalPlotTarget) {
-        const bool reactorProfile = m_version == DRW::AC1021;
+        const bool reactorProfile = m_version == DRW::AC1021
+            || (m_version == DRW::AC1024 && m_writingDefaultPlotStyleGraph);
         const std::array<std::pair<std::uint8_t, std::uint64_t>, 1> expected{{
             {DRW::DwgSoftPointer, object.parentHandle}}};
         const std::array<std::pair<std::uint8_t, std::uint64_t>, 2> expectedR2007{{
@@ -5283,24 +5290,21 @@ bool dwgWriter15::rejectDefaultDwgMaterialFrameConflicts() {
             const bool layerEdge = m_currentHandle == DRW::DwgLayer0Handle
                 && token.reference == m_defaultMaterialHandles[3]
                 && token.code == DRW::DwgHardPointer;
-            // AC1021/AC1027 additionally require this queued layer to be
-            // selected by the bounded canonical-layer opt-in. Other frames
-            // remain unable to reference the staged Global material.
-            const bool selectedCanonicalLayer =
-                (m_version == DRW::AC1021 || m_version == DRW::AC1027)
-                && std::find(m_canonicalLayerHandles.begin(),
-                             m_canonicalLayerHandles.end(), m_currentHandle)
-                    != m_canonicalLayerHandles.end();
-            const bool queuedLayerEdge = (m_version == DRW::AC1024
-                                           || selectedCanonicalLayer)
-                && &buffer == &m_objectHandles
+            // Selected layers are checked against their exact emitted tail
+            // later. The older AC1024 route also permits its queued layers.
+            const bool selectedCanonicalLayer = std::binary_search(
+                m_canonicalLayerHandles.begin(), m_canonicalLayerHandles.end(),
+                m_currentHandle);
+            const bool queuedLayerEdge = &buffer == &m_objectHandles
                 && token.reference == m_defaultMaterialHandles[3]
                 && token.code == DRW::DwgHardPointer
-                && std::any_of(m_pendingLayers.begin(), m_pendingLayers.end(),
-                    [this](const auto& layer) {
-                        return layer.first == m_currentHandle
-                            && layer.second.materialHandle.ref == m_defaultMaterialHandles[3];
-                    });
+                && (selectedCanonicalLayer
+                    || (m_version == DRW::AC1024
+                        && std::any_of(m_pendingLayers.begin(), m_pendingLayers.end(),
+                            [this](const auto& layer) {
+                                return layer.first == m_currentHandle
+                                    && layer.second.materialHandle.ref == m_defaultMaterialHandles[3];
+                            })));
             if (queuedLayerEdge && ++queuedLayerMaterialReferences != 1u)
                 conflict = true;
             if (!nodEdge && !layerEdge && !queuedLayerEdge) conflict = true;
@@ -6613,7 +6617,8 @@ bool dwgWriter15::writeDictionaryWithDefault(const DRW_DictionaryWithDefault& di
         return false;
     }
     if (m_canonicalPlotTarget != 0u && object.m_defaultEntryHandle == m_canonicalPlotTarget) {
-        const bool reactorProfile = m_version == DRW::AC1021;
+        const bool reactorProfile = m_version == DRW::AC1021
+            || (m_version == DRW::AC1024 && m_writingDefaultPlotStyleGraph);
         const std::array<std::pair<std::uint8_t, std::uint64_t>, 3> expected{{
             {DRW::DwgSoftPointer, DRW::DwgNamedObjectsDictionaryHandle},
             {DRW::DwgSoftOwnership, m_canonicalPlotTarget},
@@ -7347,16 +7352,49 @@ std::uint32_t dwgWriter15::addLType(const DRW_LType& lt) {
     return h;
 }
 
+bool dwgWriter15::freezeCanonicalLayerNameMode() noexcept {
+    std::uint32_t flags = 0u;
+    if (m_header == nullptr || !m_header->encodeDwgHeaderFlags(flags)) return false;
+    m_canonicalLayerExtendedNames = (flags & 0x0800u) != 0u;
+    m_canonicalLayerNameModeFrozen = true;
+    return true;
+}
+
+bool dwgWriter15::canonicalLayerNameValid(const std::string& name) const noexcept {
+    if (!m_canonicalLayerNameModeFrozen) return false;
+    const std::size_t maximum = m_canonicalLayerExtendedNames ? 255u : 31u;
+    if (name.empty() || name.size() > maximum || name.front() == ' '
+        || name.back() == ' ') return false;
+    for (const unsigned char c : name) {
+        const bool alphanumeric = (c >= 'A' && c <= 'Z')
+            || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
+        if (c >= 'a' && c <= 'z'
+            && std::toupper(c) != static_cast<int>(c - 'a' + 'A')) return false;
+        if (alphanumeric || c == '_' || c == '-' || c == '$') continue;
+        if (!m_canonicalLayerExtendedNames || c < 0x20u || c > 0x7eu
+            || std::strchr("<>/\\\":;?*|='", c) != nullptr) return false;
+    }
+    return true;
+}
+
+bool dwgWriter15::canonicalLayerNameAvailable(const std::string& name) const {
+    const std::string upper = toUpperCase(name);
+    if (upper == "0") return !m_haveLayer0;
+    return m_writingCtx.layerMap.find(upper) == m_writingCtx.layerMap.end();
+}
+
 bool dwgWriter15::bindCanonicalLayer(std::uint32_t layer, std::uint32_t plot) {
     if ((m_version != DRW::AC1021 && m_version != DRW::AC1024
          && m_version != DRW::AC1027) || m_dwgTableRecordsComplete
         || layer == 0u || layer == DRW::NoHandle || plot == 0u || plot == DRW::NoHandle
         || (m_canonicalPlotTarget != 0u && m_canonicalPlotTarget != plot)
-        || m_canonicalLayerHandles.size() >= 2u
-        || std::find(m_canonicalLayerHandles.begin(), m_canonicalLayerHandles.end(), layer)
-            != m_canonicalLayerHandles.end()) return false;
+        || m_canonicalLayerHandles.size() >= dwgSafety::MaxOwnedObjectCount)
+        return false;
+    const auto pos = std::lower_bound(m_canonicalLayerHandles.begin(),
+                                      m_canonicalLayerHandles.end(), layer);
+    if (pos != m_canonicalLayerHandles.end() && *pos == layer) return false;
     try {
-        m_canonicalLayerHandles.push_back(layer);
+        m_canonicalLayerHandles.insert(pos, layer);
         m_canonicalPlotTarget = plot;
         return true;
     } catch (...) { return false; }

@@ -121,6 +121,10 @@ public:
         return m_defaultMaterialHandles;
     }
     bool defaultDwgMaterialGraphActive() const { return m_defaultMaterialHandles[0] != 0; }
+    bool freezeCanonicalLayerNameMode() noexcept;
+    bool canonicalLayerNameValid(const std::string& name) const noexcept;
+    bool canonicalLayerNameAvailable(const std::string& name) const;
+    bool hasCanonicalLayers() const noexcept { return !m_canonicalLayerHandles.empty(); }
     bool bindCanonicalLayer(std::uint32_t layer, std::uint32_t plot);
     bool rejectDefaultDwgMaterialFrameConflicts();
     void latchDefaultDwgMaterialConflict() { m_defaultMaterialConflict = true; }
@@ -750,6 +754,8 @@ protected:
     bool m_dwgNamedObjectDictionaryComplete {false};
     std::uint32_t m_plotSettingsDictionaryHandle {0};
     std::vector<std::uint32_t> m_canonicalLayerHandles;
+    bool m_canonicalLayerNameModeFrozen {false};
+    bool m_canonicalLayerExtendedNames {false};
     std::uint32_t m_canonicalPlotTarget {0};
     std::uint32_t m_canonicalPlotDictionary {0};
     std::uint32_t m_canonicalPlaceholderOwner {0};

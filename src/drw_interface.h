@@ -1153,9 +1153,10 @@ public:
  * authoring. Returning true requests the witnessed missing-extension flag and
  * hard-pointer null xref; AC1027 also requests a hard-pointer trailing null.
  * The caller must establish that the layer is newly authored. The bounded
- * profile accepts layers named 0 or Defpoints, with staged Global material and
- * a Normal plot-style graph (the staged default graph is required for AC1021
- * and AC1027). Its versioned emitted roles, NOD root
+ * profile accepts unique ASCII names valid under the current $EXTNAMES mode,
+ * with staged Global material and a Normal plot-style graph (the staged
+ * default graph is required for AC1021 and AC1027). Unicode name collation
+ * is not qualified by this opt-in. Its versioned emitted roles, NOD root
  * and placeholder owner are checked before publication. The caller must not
  * opt in imported source-preservation layers; retained DWG link evidence and
  * incompatible common data are refused. This interface is separate from

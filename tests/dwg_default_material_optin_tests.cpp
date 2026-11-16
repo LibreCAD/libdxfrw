@@ -1265,7 +1265,7 @@ struct CanonicalR2013Adapter final : Adapter, DRW_DwgCanonicalLayerProvider {
     bool wantsDwgCanonicalLayerNulls(const DRW_Layer&) const override { return true; }
     void writeLayers() override {
         DRW_Layer layer;
-        layer.name = fault == 5 ? "unsupported" : "0";
+        layer.name = fault == 5 ? "bad:name" : "0";
         layer.materialHandle.ref = fault == 4 ? 0xB200u : handles[3];
         layer.plotStyleHandle.ref = fault == 3 ? 0u : plotStylePlaceholder;
         if (fault == 1) layer.unknownHandle.ref = 0xB201u;
@@ -1347,7 +1347,7 @@ struct CanonicalMultiAdapter final : Adapter, DRW_DwgCanonicalLayerProvider {
         accepted = false;
         for (int index = 0; index < 2; ++index) {
             DRW_Layer layer;
-            layer.name = index == 0 ? "0" : (fault == 5 ? "unsupported" : "Defpoints");
+            layer.name = index == 0 ? "0" : (fault == 5 ? "bad:name" : "Defpoints");
             layer.materialHandle.ref = index == 1 && fault == 4 ? 0xB200u : handles[3];
             layer.plotStyleHandle.ref = index == 1 && fault == 3 ? 0u : plotStylePlaceholder;
             if (index == 1 && fault == 1) layer.unknownHandle.ref = 0xB201u;
@@ -1421,6 +1421,160 @@ bool canonicalMultiLayer(const std::filesystem::path& path,
         { std::ofstream f(path, std::ios::binary | std::ios::trunc); f << "prior destination"; }
         adapter.fault = fault;
         if (write() || adapter.accepted || !adapter.callerUnchanged) return false;
+        { std::ifstream f(path, std::ios::binary);
+          if (std::string(std::istreambuf_iterator<char>(f), {}) != "prior destination") return false; }
+        adapter.fault = 0;
+        if (!write() || !adapter.accepted || !adapter.callerUnchanged || !verify()) return false;
+    }
+    return true;
+}
+struct CanonicalBulkAdapter final : Adapter, DRW_DwgCanonicalLayerProvider {
+    using Adapter::Adapter;
+    bool wantsDwgCanonicalLayerNulls(const DRW_Layer& layer) const override {
+        return !(fault == 8 && layer.name == "COLLISION")
+            && !(fault == 12 && layer.name == "collision")
+            && !((fault == 9 || fault == 10) && layer.name == u8"K")
+            && !((fault == 13 || fault == 14) && layer.name == "K ");
+    }
+    void writeLTypes() override {
+        Adapter::writeLTypes();
+        if (fault == 11 && header != nullptr) header->addInt("$EXTNAMES", 1, 70);
+        if (mutateHeaderToLegacy && header != nullptr) header->addInt("$EXTNAMES", 0, 70);
+    }
+    void writeHeader(DRW_Header& value) override {
+        Adapter::writeHeader(value);
+        value.addInt("$EXTNAMES", extended ? 1 : 0, 70);
+    }
+    std::vector<std::string> names() const {
+        if (fault != 0) {
+            std::vector<std::string> value{"0", "Defpoints"};
+            switch (fault) {
+            case 1: value.push_back(""); break;
+            case 2: value.push_back("bad:name"); break;
+            case 3: value.push_back(u8"café"); break;
+            case 4: value.push_back(std::string(32, 'A')); break;
+            case 5: value.push_back(std::string(256, 'A')); break;
+            case 6: value.push_back("Case_Test"); value.push_back("case_test"); break;
+            case 7: value.push_back(" trailing "); break;
+            case 8: value.push_back("COLLISION"); value.push_back("collision"); break;
+            case 9: value.push_back("K"); value.push_back(u8"K"); break;
+            case 10: value.push_back(u8"K"); value.push_back("K"); break;
+            case 11: value.push_back(std::string(32, 'A')); break;
+            case 12: value.push_back("COLLISION"); value.push_back("collision"); break;
+            case 13: value.push_back("K"); value.push_back("K "); break;
+            case 14: value.push_back("K "); value.push_back("K"); break;
+            default: break;
+            }
+            return value;
+        }
+        std::vector<std::string> value{"Defpoints", "CUSTOM-3D", std::string(31, 'Q')};
+        if (!extended) value.insert(value.begin(), "0");
+        if (extended) { value.push_back(std::string(255, 'R')); value.push_back("Named 3D.Layer"); }
+        for (int i = 0; i < 130; ++i) value.push_back("P6_LAYER_" + std::to_string(i));
+        if (extended) value.push_back("0"); // Exercise sorted handle insertion.
+        return value;
+    }
+    void writeLayers() override {
+        accepted = false;
+        callerUnchanged = true;
+        allocationTriggered = false;
+        for (const auto& name : names()) {
+            DRW_Layer layer;
+            layer.name = name;
+            const bool nonCanonicalControl = ((fault == 9 || fault == 10) && name == u8"K")
+                || ((fault == 13 || fault == 14) && name == "K ");
+            const std::uint32_t material = nonCanonicalControl ? 0u : handles[3];
+            layer.materialHandle.ref = material;
+            layer.plotStyleHandle.ref = plotStylePlaceholder;
+            const bool inject = fault == 15 && name == "Defpoints";
+            bool added = false;
+            if (inject) failAfter = 0;
+            try { added = output.addLayer(&layer); }
+            catch (const std::bad_alloc&) { added = false; }
+            if (inject) { allocationTriggered = failAfter < 0; failAfter = -1; }
+            callerUnchanged = callerUnchanged && layer.name == name
+                && layer.extensionDictionaryFlag() == 0u
+                && layer.xrefBlockHandle.code == 0u
+                && layer.unknownHandle.code == 0u
+                && layer.materialHandle.ref == material
+                && layer.plotStyleHandle.ref == plotStylePlaceholder;
+            if (!added) { output.markDwgWriteFailure(); return; }
+        }
+        accepted = true;
+    }
+    bool extended = false;
+    bool mutateHeaderToLegacy = false;
+    int fault = 0;
+    bool accepted = false;
+    bool callerUnchanged = false;
+    bool allocationTriggered = false;
+};
+
+bool canonicalBulkLayers(const std::filesystem::path& path,
+                         DRW::Version version, bool extended, bool keep) {
+    dwgRW output(path.string().c_str());
+    CanonicalBulkAdapter adapter(output);
+    adapter.version = version;
+    adapter.extended = extended;
+    const auto verify = [&]() {
+        struct LayerCapture final : LC3CompatCheck {
+            void addHeader(const DRW_Header* value) override {
+                const auto it = value->vars.find("$EXTNAMES");
+                if (it != value->vars.end() && it->second != nullptr
+                    && it->second->type() == DRW_Variant::INTEGER)
+                    extnames = it->second->content.i;
+            }
+            void addLayer(const DRW_Layer& value) override { layers.push_back(value); }
+            std::vector<DRW_Layer> layers;
+            int extnames = -1;
+        } capture;
+        dwgR reader(path.string().c_str());
+        const auto expected = adapter.names();
+        if (!reader.read(&capture, false) || capture.layers.size() != expected.size()
+            || capture.extnames != (extended ? 1 : 0)) return false;
+        for (const auto& name : expected) {
+            const auto found = std::find_if(capture.layers.begin(), capture.layers.end(),
+                [&name](const DRW_Layer& layer) { return layer.name == name; });
+            if (found == capture.layers.end() || found->extensionDictionaryFlag() != 1u
+                || found->xrefBlockHandle.rawCode != DRW::DwgHardPointer
+                || found->xrefBlockHandle.ref != 0u
+                || found->plotStyleHandle.rawCode != DRW::DwgHardPointer
+                || found->plotStyleHandle.ref != adapter.plotStylePlaceholder
+                || found->materialHandle.rawCode != DRW::DwgHardPointer
+                || found->materialHandle.ref != adapter.handles[3]
+                || found->lTypeH.rawCode != DRW::DwgHardPointer || found->lTypeH.ref == 0u
+                || (version == DRW::AC1027
+                    && (found->unknownHandle.rawCode != DRW::DwgHardPointer
+                        || found->unknownHandle.ref != 0u))) return false;
+        }
+        return inspect(path.string(), adapter.handles, false, version,
+                       adapter.plotStylePlaceholder);
+    };
+    const auto write = [&]() { return output.write(&adapter, version, true); };
+    if (!write() || !adapter.accepted || !adapter.callerUnchanged || !verify()) {
+        std::cerr << "canonical bulk layers failed version=" << int(version)
+                  << " extended=" << extended << " code=" << output.getLastDiagnostic().code << '\n';
+        return false;
+    }
+    if (keep) {
+        const std::string name = "canonical-bulk-" + std::to_string(int(version))
+            + (extended ? "-extended.dwg" : "-legacy.dwg");
+        std::filesystem::copy_file(path, path.parent_path() / name);
+    }
+    if (extended) {
+        adapter.mutateHeaderToLegacy = true;
+        if (!write() || !adapter.accepted || !adapter.callerUnchanged || !verify()) return false;
+        adapter.mutateHeaderToLegacy = false;
+    }
+    const std::vector<int> faults = extended
+        ? std::vector<int>{1, 2, 3, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15}
+        : std::vector<int>{1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    for (const int fault : faults) {
+        { std::ofstream f(path, std::ios::binary | std::ios::trunc); f << "prior destination"; }
+        adapter.fault = fault;
+        const bool lateGraphRefusal = fault == 9 || fault == 10 || fault == 13 || fault == 14;
+        if (write() || adapter.accepted != lateGraphRefusal || !adapter.callerUnchanged
+            || (fault == 15 && !adapter.allocationTriggered)) return false;
         { std::ifstream f(path, std::ios::binary);
           if (std::string(std::istreambuf_iterator<char>(f), {}) != "prior destination") return false; }
         adapter.fault = 0;
@@ -1758,6 +1912,15 @@ int main(int argc,char**argv) {
                 ? "canonical-multi-r2007-test.dwg" : "canonical-multi-r2013-test.dwg");
             if (!canonicalMultiLayer(probe, version, keep)) {
                 std::cerr << "canonical two-layer controls failed version=" << int(version) << '\n';
+                return 1;
+            }
+        }
+        for (const bool extended : {false, true}) {
+            const auto probe = dir / ("canonical-bulk-test-" + std::to_string(int(version))
+                + (extended ? "-extended.dwg" : "-legacy.dwg"));
+            if (!canonicalBulkLayers(probe, version, extended, keep)) {
+                std::cerr << "canonical bulk controls failed version=" << int(version)
+                          << " extended=" << extended << '\n';
                 return 1;
             }
         }

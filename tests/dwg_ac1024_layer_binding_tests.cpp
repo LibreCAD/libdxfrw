@@ -158,7 +158,7 @@ public:
             if (incompatible == 1) layer.xrefBlockHandle.ref = 0xB200u;
             if (incompatible == 2) layer.setDwgCommonLinkTailValidated(true);
             if (incompatible == 3) layer.handlePlotS = "BAD";
-            if (incompatible == 4) layer.name = "Other";
+            if (incompatible == 4) layer.name = "bad:name";
             if (incompatible == 5) layer.materialHandle.ref ^= 1u;
             if (incompatible == 6) layer.unknownHandle.ref = 0xB201u;
             if (incompatible == 7) layer.unknownHandle.code = DRW::DwgHardPointer;
@@ -170,7 +170,7 @@ public:
                     && layer.xrefBlockHandle.ref == (incompatible == 1 ? 0xB200u : 0u)
                     && layer.hasDwgCommonLinkTail() == (incompatible == 2)
                     && layer.handlePlotS == (incompatible == 3 ? "BAD" : "")
-                    && layer.name == (incompatible == 4 ? "Other" : "0")
+                    && layer.name == (incompatible == 4 ? "bad:name" : "0")
                     && layer.materialHandle.ref == (incompatible == 5 ? (global_ ^ 1u) : global_)
                     && layer.unknownHandle.ref == (incompatible == 6 ? 0xB201u : 0u)
                     && layer.unknownHandle.code == (incompatible == 7 ? DRW::DwgHardPointer : 0u)
