@@ -1,0 +1,55 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index 07b9d29..1360a27 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -3588,9 +3588,10 @@ public:
+         || !table.m_sortHandles.empty() || !table.m_entityHandles.empty()
+         || !table.appData.empty() || !table.extData.empty()
+         || !table.pendingAppIdResolutions.empty() || !table.pendingLayerRefResolutions.empty()
+-        || table.reactorCount() != 1 || table.reactorHandles.size() != 1u
++        || table.reactorCount() < 0 || table.reactorCount() > 1
++        || table.reactorHandles.size() != static_cast<std::size_t>(table.reactorCount())
+         || table.parentHandle == 0u || table.parentHandle == DRW::NoHandle
+-        || table.reactorHandles[0] != table.parentHandle
++        || (table.reactorCount() == 1 && table.reactorHandles[0] != table.parentHandle)
+         || table.extensionDictionaryFlag() != 1u || table.xDictHandle != 0u
+         || table.hasDataStorageBinaryData()
+         || table.m_blockOwnerHandle == 0u || table.m_blockOwnerHandle == DRW::NoHandle)
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 047f9e2..aee59cc 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9721,6 +9721,33 @@ TEST_CASE("Empty AC1024 sort tables match live adapter source observations",
+ }
+ #endif
+ 
++#if defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++TEST_CASE("ODA generated empty sort table without reactors retains source chain",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_ODA_GENERATED_SORTENTS_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_ODA_GENERATED_SORTENTS_FIXTURE to a locally generated ODA AC1024 DWG");
++  REQUIRE(std::filesystem::exists(fixture));
++  ensureSettings(); RS_Graphic graphic; RS_FilterDXFRW reader;
++  REQUIRE(reader.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  auto &md = graphic.dwgAdvancedMetadata();
++  REQUIRE(md.selectedDwgSourceCaptureSessionSealed());
++  REQUIRE_FALSE(md.sortEntsSourceCaptureFailed());
++  REQUIRE(md.emptySortEntsSourceObservations().count(0xB100u) == 1u);
++  CHECK(md.emptySortEntsSourceObservations().at(0xB100u).reactorCount() == 0);
++  CHECK(md.matchesAc1024EmptySortEntsSourceObservation(0xB100u));
++  CHECK(md.matchesSelectedAc1024SortEntsOwnerChain(0x30u, 0xB003u, 0xB100u));
++  CHECK_FALSE(md.matchesSelectedAc1024SortEntsOwnerChain(0x30u, 0xB003u, 0xB200u));
++  const auto duplicate = md.emptySortEntsSourceObservations().at(0xB100u);
++  md.observeEmptySortEntsSource(duplicate);
++  CHECK(md.sortEntsSourceCaptureFailed());
++  CHECK_FALSE(md.selectedDwgSourceCaptureSessionSealed());
++  md.clear();
++  REQUIRE(reader.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  CHECK(graphic.dwgAdvancedMetadata().matchesSelectedAc1024SortEntsOwnerChain(0x30u, 0xB003u, 0xB100u));
++}
++#endif
++
+ template <typename T, typename = void>
+ struct HasBlockRecordReadCallback : std::false_type {};
+ template <typename T>
