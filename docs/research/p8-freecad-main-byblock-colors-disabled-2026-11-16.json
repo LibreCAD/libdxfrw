@@ -655,5 +655,5 @@
     "finding": "Autodesk says coordinate-vertex entity properties should match their parent and calls mismatches corrupt. Cases with parent/vertex color differences exercise tolerant recovery when colors are disabled, not a conforming producer profile. The all-BYBLOCK controls match parent and coordinate colors. Face colors may legitimately differ; layer visibility has separate constraints.",
     "facePropertiesAndVisibility": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-Core/files/GUID-4B0667EF-D8E3-4BD2-A3EE-06CFF164A0A6.htm"
   },
-  "probeEvolution": "The current GUI probe includes later frozen-layer controls requiring the seventeenth downstream patch; observations in this receipt describe its earlier candidate."
+  "probeEvolution": "The current GUI probe includes later layer-color range controls requiring the eighteenth downstream patch; observations in this receipt describe its earlier candidate."
 }

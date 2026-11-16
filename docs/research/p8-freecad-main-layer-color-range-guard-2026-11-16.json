@@ -1,0 +1,1326 @@
+{
+  "date": "2026-11-16",
+  "scope": "FreeCAD DXF layer color range guard and off/on sign retention.",
+  "sourceBase": "FreeCAD d956ec561639cfa83f755504b1b3358ea799428e plus seventeen ordered unmerged importer patches.",
+  "candidateCommit": "6a5a812",
+  "patch": "docs/patches/freecad-p8-layer-color-range-guard-2026-11-16.patch",
+  "reference": "https://help.autodesk.com/cloudhelp/2018/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm",
+  "runtimeSha256": {
+    "/private/tmp/freecad-main-d956-source/src/Mod/Import/App/dxf/dxf.cpp": "f338831b404265e2636f961e2eb2afd26f17cbf2d5acfecb4a6fe85171f921f0",
+    "/private/tmp/freecad-main-d956-build/Mod/Import/Import.so": "023c1c5069301c13cfd556865623382b524c1d8e574781cb98213e2e9edc3d8e",
+    "/private/tmp/freecad-main-gui-config-20261116/Mod/Import/ImportGui.so": "37018ce9f51efe6a2a939a19961ef7d5969b3d642a5063461e37c6bf07c5b4e7",
+    "/private/tmp/freecad-main-gui-config-20261116/Mod/Import/Import.so": "ff6155c45f53e5f3b2ad9e2816f8628d5c76de6b316bb96c873996a601cb99eb"
+  },
+  "behavior": {
+    "before": "Out-of-range integer layer colors were accepted without diagnostic; the Layer constructor would negate INT_MIN, which overflows signed int.",
+    "after": "Before layer creation, values below -255 or above 256 are reported and replaced with signed ACI 7, preserving off/on state. Existing handling of 0 and 256 is deliberately unchanged and not qualified as a supported producer profile."
+  },
+  "validation": {
+    "headless": "Eight signed-range cases pass, including INT_MIN, -256, -255, 0, 255, 256, 257 and INT_MAX, diagnostics and off-state warning, with successive valid imports in the same document.",
+    "gui": "Fifty-eight native macOS ARM64 GUI controls pass; extreme negative and positive colors use the ACI-7 fallback, retain off/on state, report the invalid color, and preserve both 2D and 3D geometry. An ungrouped off case reports both range and visibility loss.",
+    "patchReplay": "The unidiff-zero patch applies to the clean first-seventeen candidate and reproduces byte-identical source and test files.",
+    "fixtures": "Controls are generated in temporary directories; no drawings are committed.",
+    "logs": [
+      "/private/tmp/freecad-polyface-layer-20261116/layer-color-range-before.log",
+      "/private/tmp/freecad-polyface-layer-20261116/layer-color-range-after.log",
+      "/private/tmp/freecad-polyface-layer-20261116/gui-layer-color-range-final.log"
+    ]
+  },
+  "guiObservation": [
+    {
+      "case": "polyface",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "Polyface"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "polygon",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "PolygonMesh"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "mixed",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYFACE unsupported or invalid profile": [
+          [
+            64,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "nested",
+      "detail": {
+        "groups": {
+          "0": [
+            "Link_INNER",
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYFACE nondefault layer in block": [
+          [
+            78,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "nested_polygon",
+      "detail": {
+        "groups": {
+          "0": [
+            "Link_INNER",
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYGON MESH nondefault layer in block": [
+          [
+            78,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "nested_nolayers",
+      "detail": {
+        "area": 6.0,
+        "bounds": [
+          1.0,
+          2.0,
+          5.0,
+          5.0
+        ],
+        "followingLineLength": 2.0,
+        "link": "Link_INNER",
+        "scale": 1.0
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "nested_polygon_nolayers",
+      "detail": {
+        "area": 12.0,
+        "bounds": [
+          1.0,
+          2.0,
+          5.0,
+          5.0
+        ],
+        "followingLineLength": 2.0,
+        "link": "Link_INNER",
+        "scale": 1.0
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "nested_inches_nolayers",
+      "detail": {
+        "area": 3870.96,
+        "bounds": [
+          25.4,
+          50.8,
+          127.0,
+          126.99999999999999
+        ],
+        "followingLineLength": 50.799999999999955,
+        "link": "Link_INNER",
+        "scale": 25.4
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "nested_polygon_inches_nolayers",
+      "detail": {
+        "area": 7741.919999999997,
+        "bounds": [
+          25.4,
+          50.8,
+          127.0,
+          126.99999999999999
+        ],
+        "followingLineLength": 50.799999999999955,
+        "link": "Link_INNER",
+        "scale": 25.4
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "vertex_polyface_nocolor",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "Polyface"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "vertex_polygon_nocolor",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "PolygonMesh"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "vertex_polyface_color",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYFACE unsupported or invalid profile": [
+          [
+            64,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "vertex_polygon_color",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYGON MESH unsupported or invalid profile": [
+          [
+            64,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "byblock_parent_polyface_nocolor",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "Polyface"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "byblock_parent_polyface_color",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYFACE unsupported or invalid profile": [
+          [
+            64,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "byblock_parent_polygon_nocolor",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "PolygonMesh"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "byblock_parent_polygon_color",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYGON MESH unsupported or invalid profile": [
+          [
+            64,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "byblock_vertex_polyface_nocolor",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "Polyface"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "byblock_vertex_polyface_color",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYFACE unsupported or invalid profile": [
+          [
+            64,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "byblock_vertex_polygon_nocolor",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "PolygonMesh"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "byblock_vertex_polygon_color",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYGON MESH unsupported or invalid profile": [
+          [
+            64,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "byblock_face_polyface_nocolor",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "Polyface"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "byblock_face_polyface_color",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYFACE unsupported or invalid profile": [
+          [
+            64,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "byblock_all_polyface_nocolor",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "Polyface"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "byblock_all_polyface_color",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYFACE unsupported or invalid profile": [
+          [
+            64,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "byblock_all_polygon_nocolor",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "PolygonMesh"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "byblock_all_polygon_color",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYGON MESH unsupported or invalid profile": [
+          [
+            64,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "nested_byblock_parent_nolayers",
+      "detail": {
+        "area": 6.0,
+        "bounds": [
+          1.0,
+          2.0,
+          5.0,
+          5.0
+        ],
+        "followingLineLength": 2.0,
+        "link": "Link_INNER",
+        "scale": 1.0
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "nested_byblock_vertex_nolayers",
+      "detail": {
+        "area": 6.0,
+        "bounds": [
+          1.0,
+          2.0,
+          5.0,
+          5.0
+        ],
+        "followingLineLength": 2.0,
+        "link": "Link_INNER",
+        "scale": 1.0
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "nested_byblock_face_nolayers",
+      "detail": {
+        "area": 6.0,
+        "bounds": [
+          1.0,
+          2.0,
+          5.0,
+          5.0
+        ],
+        "followingLineLength": 2.0,
+        "link": "Link_INNER",
+        "scale": 1.0
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "nested_byblock_all_nolayers",
+      "detail": {
+        "area": 6.0,
+        "bounds": [
+          1.0,
+          2.0,
+          5.0,
+          5.0
+        ],
+        "followingLineLength": 2.0,
+        "link": "Link_INNER",
+        "scale": 1.0
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_on_1",
+      "detail": {
+        "aci": 1,
+        "colorsAfterShow": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "initialVisible": true
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_off_1",
+      "detail": {
+        "aci": -1,
+        "colorsAfterShow": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "initialVisible": false
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_on_2",
+      "detail": {
+        "aci": 2,
+        "colorsAfterShow": [
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "initialVisible": true
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_off_2",
+      "detail": {
+        "aci": -2,
+        "colorsAfterShow": [
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "initialVisible": false
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_on_7",
+      "detail": {
+        "aci": 7,
+        "colorsAfterShow": [
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ]
+        ],
+        "initialVisible": true
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_off_7",
+      "detail": {
+        "aci": -7,
+        "colorsAfterShow": [
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ]
+        ],
+        "initialVisible": false
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_on_10",
+      "detail": {
+        "aci": 10,
+        "colorsAfterShow": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "initialVisible": true
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_off_10",
+      "detail": {
+        "aci": -10,
+        "colorsAfterShow": [
+          [
+            1.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "initialVisible": false
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_on_250",
+      "detail": {
+        "aci": 250,
+        "colorsAfterShow": [
+          [
+            0.20000000298023224,
+            0.20000000298023224,
+            0.20000000298023224,
+            1.0
+          ],
+          [
+            0.20000000298023224,
+            0.20000000298023224,
+            0.20000000298023224,
+            1.0
+          ],
+          [
+            0.20000000298023224,
+            0.20000000298023224,
+            0.20000000298023224,
+            1.0
+          ]
+        ],
+        "initialVisible": true
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_off_250",
+      "detail": {
+        "aci": -250,
+        "colorsAfterShow": [
+          [
+            0.20000000298023224,
+            0.20000000298023224,
+            0.20000000298023224,
+            1.0
+          ],
+          [
+            0.20000000298023224,
+            0.20000000298023224,
+            0.20000000298023224,
+            1.0
+          ],
+          [
+            0.20000000298023224,
+            0.20000000298023224,
+            0.20000000298023224,
+            1.0
+          ]
+        ],
+        "initialVisible": false
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_on_255",
+      "detail": {
+        "aci": 255,
+        "colorsAfterShow": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "initialVisible": true
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_off_255",
+      "detail": {
+        "aci": -255,
+        "colorsAfterShow": [
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ]
+        ],
+        "initialVisible": false
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_on_2_nogroups",
+      "detail": {
+        "aci": 2,
+        "flags": 0,
+        "initialVisible": true,
+        "offVisibilityReported": false
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_off_2_nogroups",
+      "detail": {
+        "aci": -2,
+        "flags": 0,
+        "initialVisible": true,
+        "offVisibilityReported": true
+      },
+      "unsupported": {
+        "Off-layer visibility without layer grouping": [
+          [
+            64,
+            "A"
+          ],
+          [
+            132,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_frozen_2",
+      "detail": {
+        "aci": 2,
+        "colorsAfterShow": [
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "initialVisible": false
+      },
+      "unsupported": {
+        "Frozen layers": [
+          [
+            0,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_newviewport_2",
+      "detail": {
+        "aci": 2,
+        "colorsAfterShow": [
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "initialVisible": true
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "layer_frozenoff_2",
+      "detail": {
+        "aci": -2,
+        "colorsAfterShow": [
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ]
+        ],
+        "initialVisible": false
+      },
+      "unsupported": {
+        "Frozen layers": [
+          [
+            0,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_frozen_2_nogroups",
+      "detail": {
+        "aci": 2,
+        "flags": 1,
+        "initialVisible": true,
+        "offVisibilityReported": false
+      },
+      "unsupported": {
+        "Frozen layers": [
+          [
+            0,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_frozenoff_2_nogroups",
+      "detail": {
+        "aci": -2,
+        "flags": 1,
+        "initialVisible": true,
+        "offVisibilityReported": true
+      },
+      "unsupported": {
+        "Frozen layers": [
+          [
+            0,
+            ""
+          ]
+        ],
+        "Off-layer visibility without layer grouping": [
+          [
+            64,
+            "A"
+          ],
+          [
+            132,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_invalidnegative_256",
+      "detail": {
+        "aci": -256,
+        "colorsAfterShow": [
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ]
+        ],
+        "initialVisible": false
+      },
+      "unsupported": {
+        "Layer color index out of range": [
+          [
+            0,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_invalidpositive_257",
+      "detail": {
+        "aci": 257,
+        "colorsAfterShow": [
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ]
+        ],
+        "initialVisible": true
+      },
+      "unsupported": {
+        "Layer color index out of range": [
+          [
+            0,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_invalidnegative_2147483648",
+      "detail": {
+        "aci": -2147483648,
+        "colorsAfterShow": [
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ]
+        ],
+        "initialVisible": false
+      },
+      "unsupported": {
+        "Layer color index out of range": [
+          [
+            0,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_invalidpositive_2147483647",
+      "detail": {
+        "aci": 2147483647,
+        "colorsAfterShow": [
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ],
+          [
+            0.5,
+            0.5,
+            0.5,
+            1.0
+          ]
+        ],
+        "initialVisible": true
+      },
+      "unsupported": {
+        "Layer color index out of range": [
+          [
+            0,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "layer_invalidnegative_2147483648_nogroups",
+      "detail": {
+        "aci": -2147483648,
+        "flags": 0,
+        "initialVisible": true,
+        "offVisibilityReported": true
+      },
+      "unsupported": {
+        "Layer color index out of range": [
+          [
+            0,
+            ""
+          ]
+        ],
+        "Off-layer visibility without layer grouping": [
+          [
+            64,
+            "A"
+          ],
+          [
+            132,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "color",
+      "detail": {
+        "followingLineColor": [
+          0.0,
+          1.0,
+          0.0,
+          1.0
+        ],
+        "meshColors": [
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "color_mixed",
+      "detail": {
+        "followingLineColor": [
+          0.0,
+          1.0,
+          0.0,
+          1.0
+        ],
+        "meshColors": [
+          [
+            1.0,
+            1.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "unsupported": {
+        "POLYFACE unsupported or invalid profile": [
+          [
+            20,
+            ""
+          ]
+        ]
+      }
+    },
+    {
+      "case": "color_mixed_nocolor",
+      "detail": {
+        "followingLineColor": [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "meshColors": [
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "unsupported": {}
+    }
+  ],
+  "limits": [
+    "The eighteen downstream FreeCAD patches are unmerged.",
+    "ACI 7 is a reported fallback, not preservation of the malformed color. Frozen, viewport, ungrouped and block visibility gates remain open.",
+    "No full rendering, independent producer semantics, Linux/Windows qualification, phase gate or external-only support claim is established."
+  ]
+}

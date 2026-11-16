@@ -98,10 +98,14 @@ def run():
                          "byblock_all_polygon_nocolor", "byblock_all_polygon_color",
                          "nested_byblock_parent_nolayers", "nested_byblock_vertex_nolayers",
                          "nested_byblock_face_nolayers", "nested_byblock_all_nolayers",
-                         "layer_on_1", "layer_off_1", "layer_on_2", "layer_off_2", "layer_on_10", "layer_off_10",
+                         "layer_on_1", "layer_off_1", "layer_on_2", "layer_off_2", "layer_on_7", "layer_off_7",
+                         "layer_on_10", "layer_off_10",
                          "layer_on_250", "layer_off_250", "layer_on_255", "layer_off_255",
                          "layer_on_2_nogroups", "layer_off_2_nogroups", "layer_frozen_2", "layer_newviewport_2",
                          "layer_frozenoff_2", "layer_frozen_2_nogroups", "layer_frozenoff_2_nogroups",
+                         "layer_invalidnegative_256", "layer_invalidpositive_257",
+                         "layer_invalidnegative_2147483648", "layer_invalidpositive_2147483647",
+                         "layer_invalidnegative_2147483648_nogroups",
                          "color", "color_mixed",
                          "color_mixed_nocolor"):
                 is_color = case.startswith("color")
@@ -129,7 +133,7 @@ def run():
                                 else controls["drawing"](drawing_case, 1 if inches else 4, is_vertex, byblock_at))
                 if is_layer:
                     mode = case.split("_")[1]
-                    aci = int(case.split("_")[2]) * (-1 if mode in ("off", "frozenoff") else 1)
+                    aci = int(case.split("_")[2]) * (-1 if mode in ("off", "frozenoff", "invalidnegative") else 1)
                     flags = 1 if mode in ("frozen", "frozenoff") else 2 if mode == "newviewport" else 0
                     layer_tag = "0\nLAYER\n2\nMESH\n70\n0\n62\n1\n"
                     assert drawing_text.count(layer_tag) == 1
@@ -149,8 +153,10 @@ def run():
                     assert len(lines) == 1, (case, [o.Name for o in shapes])
                     if is_layer:
                         meshes = [obj for obj in shapes if obj.Name.startswith("Polyface")]
-                        initial = mode in ("on", "newviewport")
+                        initial = mode in ("on", "newviewport", "invalidpositive")
+                        invalid_color = mode in ("invalidnegative", "invalidpositive")
                         assert len(meshes) == 1
+                        assert ("Layer color index out of range" in stats["unsupportedFeatures"]) == invalid_color
                         if no_layers:
                             reason = "Off-layer visibility without layer grouping"
                             assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
@@ -165,15 +171,15 @@ def run():
                                          and getattr(getattr(obj, "Proxy", None), "Type", None) == "Layer")
                             assert set(layer.Group) == {meshes[0], lines[0]}
                             assert ("Frozen layers" in stats["unsupportedFeatures"]) == bool(flags & 1)
-                            assert set(stats["unsupportedFeatures"]) <= {"Frozen layers"}
+                            assert set(stats["unsupportedFeatures"]) <= {"Frozen layers", "Layer color index out of range"}
                             assert layer.ViewObject.Visibility == initial
                             assert meshes[0].ViewObject.Visibility == initial and lines[0].ViewObject.Visibility == initial
                             layer.ViewObject.Visibility = True
                             assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
                             colors = (tuple(layer.ViewObject.LineColor), tuple(lines[0].ViewObject.LineColor),
                                       tuple(meshes[0].ViewObject.ShapeColor))
-                            index = abs(aci)
-                            if initial:
+                            index = 7 if invalid_color else abs(aci)
+                            if initial and not invalid_color:
                                 layer_colors[index] = colors
                             else:
                                 assert colors == layer_colors[index], (case, colors, layer_colors[index])

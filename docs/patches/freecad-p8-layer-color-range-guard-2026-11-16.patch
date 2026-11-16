@@ -1,0 +1,41 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+index db6bf9c..e49887f 100644
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -3576,0 +3577,6 @@ bool CDxfRead::ReadLayer()
++    // Avoid negating INT_MIN and feeding out-of-range values to the color
++    // conversion. Keep the off/on sign while reporting the substituted ACI.
++    if (layerColor < -255 || layerColor > 256) {
++        UnsupportedFeature("Layer color index out of range");
++        layerColor = layerColor < 0 ? -7 : 7;
++    }
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index de7cd3f..be0df66 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -53,0 +54,25 @@ class TestImportDXF(TestImportBase):
++    def test_out_of_range_layer_colors_report_and_keep_off_state(self):
++        """Reject extreme layer color semantics without overflowing or losing the sign."""
++        invalid_reason = "Layer color index out of range"
++        off_reason = "Off-layer visibility without layer grouping"
++        cases = ((-2147483648, True), (-256, True), (-255, False),
++                 (0, False), (255, False), (256, False), (257, True), (2147483647, True))
++        for color, invalid in cases:
++            with self.subTest(color=color):
++                tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                        (0, "ENDSEC"), (0, "SECTION"), (2, "TABLES"), (0, "TABLE"),
++                        (2, "LAYER"), (70, 1), (0, "LAYER"), (2, "TEST"), (70, 0),
++                        (62, color), (6, "CONTINUOUS"), (0, "ENDTAB"), (0, "ENDSEC"),
++                        (0, "SECTION"), (2, "ENTITIES"), (0, "LINE"), (8, "TEST"),
++                        (10, 0), (20, 0), (30, 0), (11, 2), (21, 0), (31, 0), (0, "ENDSEC"), (0, "EOF")]
++                path = os.path.join(self.temp_dir, f"layer-color-{color}.dxf")
++                with open(path, "w", encoding="ascii", newline="\n") as stream:
++                    stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                previous = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                objects = [obj for obj in self.document.Objects if obj not in previous
++                           and obj.isDerivedFrom("Part::Feature")]
++                self.assertEqual(len(objects), 1)
++                self.assertEqual(invalid_reason in stats["unsupportedFeatures"], invalid)
++                self.assertEqual(off_reason in stats["unsupportedFeatures"], color < 0)
++
