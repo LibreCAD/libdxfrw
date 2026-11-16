@@ -226,7 +226,13 @@ Native GUI behavior, independent semantics and upstream integration remain open.
   The broader installed-codec version selector independently has four failing
   cases (nine assertions), including dangling references and export refusals;
   the unchanged pre-guard filter reproduces them. The bundled selector passes.
-  Trace and fix those failures before broadening compatibility claims.
+  Six dangling-reference assertions share a specific cause: generated layer 0
+  points by group 390 to F, while no F record exists in the selected AC1015–
+  AC1032 outputs. The ordinary writer inserts F without generating or reserving
+  its graph target. Design a collision-safe default plot-style graph, preserving
+  caller-supplied graphs and verifying output roles and readback, then diagnose
+  the two remaining export-refusal failures before broadening claims
+  ([trace receipt](docs/research/p8-librecad-installed-default-plotstyle-orphan-2026-11-16.json)).
   The local metadata bridge now retains the current codec's MLINESTYLE CMC
   fields, so unsupported colors are refused instead of silently normalized;
   ordinary ByLayer and bundled-codec controls pass. Qualify actual producer
