@@ -526,6 +526,42 @@ bool objectBodyFitsSize(std::uint64_t bodyBitOffset,
 
 std::uint64_t currentObjectDwgBit(const dwgBuffer *buf);
 
+#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+void traceAc1021MLineStyleSpan(std::uint32_t handle, DRW::Version version,
+                               const char *stream, const char *field,
+                               std::uint64_t startBit,
+                               std::uint64_t endBit,
+                               int rawCode = -1,
+                               std::uint32_t target = 0u) {
+    if (version != DRW::AC1021 || handle != 0x18u)
+        return;
+    std::cerr << "DRW_MLINESTYLE_SPAN handle=24 version=AC1021 stream="
+              << stream << " field=" << field << " start=" << startBit
+              << " end=" << endBit;
+    if (rawCode >= 0)
+        std::cerr << " rawCode=" << rawCode << " target=" << target;
+    std::cerr << '\n';
+}
+
+void traceAc1021MLineStyleState(std::uint32_t handle, DRW::Version version,
+                                const char *field, std::uint32_t value) {
+    if (version != DRW::AC1021 || handle != 0x18u)
+        return;
+    std::cerr << "DRW_MLINESTYLE_STATE handle=24 version=AC1021 field="
+              << field << " value=" << value << '\n';
+}
+#define DRW_MLINESTYLE_TRACE_BEGIN(name, buffer) \
+    const std::uint64_t name = currentObjectDwgBit(buffer)
+#define DRW_MLINESTYLE_TRACE_SPAN(...) \
+    traceAc1021MLineStyleSpan(__VA_ARGS__)
+#define DRW_MLINESTYLE_TRACE_STATE(...) \
+    traceAc1021MLineStyleState(__VA_ARGS__)
+#else
+#define DRW_MLINESTYLE_TRACE_BEGIN(name, buffer) ((void)0)
+#define DRW_MLINESTYLE_TRACE_SPAN(...) ((void)0)
+#define DRW_MLINESTYLE_TRACE_STATE(...) ((void)0)
+#endif
+
 // Resolve the body/string split of an R2007+ object body.
 //
 // From R2007 a DWG object stores its strings in a separate stream whose bounds
@@ -753,9 +789,17 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
         return false;
 
     dwgHandle parentH;
+#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+    const std::uint64_t parentStartBit = currentObjectDwgBit(&probe);
+#endif
     if (!readBoundedObjectHandle(probe, baseHandle, true, parentH,
                                  handleEndBit))
         return false;
+#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+    traceAc1021MLineStyleSpan(baseHandle, version, "handle", "ownerhandle",
+                              parentStartBit, currentObjectDwgBit(&probe),
+                              parentH.rawCode, parentH.ref);
+#endif
     const auto hasRole = [](const dwgHandle& handle, std::uint8_t role,
                             bool offsetField) {
         // Null handles are canonically encoded with code zero. Some producers
@@ -789,9 +833,20 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
     }
     for (std::int32_t i = 0; i < numReactors; ++i) {
         dwgHandle reactor;
+#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+        const std::uint64_t reactorStartBit = currentObjectDwgBit(&probe);
+#endif
         if (!readBoundedObjectHandle(probe, baseHandle, false, reactor,
                                      handleEndBit))
             return false;
+#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+        const std::string reactorField =
+            "reactors[" + std::to_string(i) + "]";
+        traceAc1021MLineStyleSpan(baseHandle, version, "handle",
+                                  reactorField.c_str(), reactorStartBit,
+                                  currentObjectDwgBit(&probe), reactor.rawCode,
+                                  reactor.ref);
+#endif
         if (validateRoles
             && !hasRole(reactor, DRW::DwgSoftPointer, false)) {
             DRW_DBG("Common object reactor role mismatch: raw code ");
@@ -804,9 +859,18 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
     std::uint32_t parsedXDictHandle = 0;
     if (xDictFlag != 1) {
         dwgHandle xDict;
+#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+        const std::uint64_t xdictStartBit = currentObjectDwgBit(&probe);
+#endif
         if (!readBoundedObjectHandle(probe, baseHandle, false, xDict,
                                      handleEndBit))
             return false;
+#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+        traceAc1021MLineStyleSpan(baseHandle, version, "handle",
+                                  "xdictionary", xdictStartBit,
+                                  currentObjectDwgBit(&probe), xDict.rawCode,
+                                  xDict.ref);
+#endif
         if (validateRoles
             && !hasRole(xDict, DRW::DwgHardOwnership, false)) {
             DRW_DBG("Common object xdictionary role mismatch: raw code ");
@@ -22420,9 +22484,22 @@ bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
         return readBitDoubleWithinBody(bodyBuf, version, bodyEnd, value)
             && std::isfinite(value);
     };
-    if (!readText(parsed.name) || !readText(parsed.description)
-        || !readShort(parsed.flags))
+    DRW_MLINESTYLE_TRACE_BEGIN(nameStartBit, bodySBuf);
+    if (!readText(parsed.name))
         return fail();
+    DRW_MLINESTYLE_TRACE_SPAN(parsed.handle, version, "string", "name",
+                              nameStartBit, currentObjectDwgBit(bodySBuf));
+    DRW_MLINESTYLE_TRACE_BEGIN(descriptionStartBit, bodySBuf);
+    if (!readText(parsed.description))
+        return fail();
+    DRW_MLINESTYLE_TRACE_SPAN(parsed.handle, version, "string", "description",
+                              descriptionStartBit,
+                              currentObjectDwgBit(bodySBuf));
+    DRW_MLINESTYLE_TRACE_BEGIN(flagsStartBit, bodyBuf);
+    if (!readShort(parsed.flags))
+        return fail();
+    DRW_MLINESTYLE_TRACE_SPAN(parsed.handle, version, "body", "flags",
+                              flagsStartBit, currentObjectDwgBit(bodyBuf));
 
     std::int32_t fillRgb = -1;
     UTF8STRING fillName, fillBook;
@@ -22430,18 +22507,37 @@ bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
     std::uint8_t fillFlags = 0;
     std::uint16_t fillIndex = 0;
     std::uint32_t parsedFillColorValue = 0;
+    DRW_MLINESTYLE_TRACE_BEGIN(fillBodyStartBit, bodyBuf);
+    DRW_MLINESTYLE_TRACE_BEGIN(fillStringStartBit, bodySBuf);
     if (!readCmColorWithinBounds(bodyBuf, bodySBuf, version, bodyEnd, stringEnd,
                                parsedFillColorValue, &fillRgb, &fillName,
                                &fillBook, nullptr, &fillMethod, &fillFlags,
                                &fillIndex))
         return fail();
+    DRW_MLINESTYLE_TRACE_SPAN(parsed.handle, version, "body", "fill_color",
+                              fillBodyStartBit, currentObjectDwgBit(bodyBuf));
+    DRW_MLINESTYLE_TRACE_SPAN(parsed.handle, version, "string",
+                              "fill_color.embedded", fillStringStartBit,
+                              currentObjectDwgBit(bodySBuf));
     const int parsedFillColor = static_cast<int>(parsedFillColorValue);
     double parsedStartAngle = 0.0;
     double parsedEndAngle = 0.0;
     std::uint8_t numLines = 0;
-    if (!readDouble(parsedStartAngle) || !readDouble(parsedEndAngle)
-        || !readRawCharWithinBody(bodyBuf, version, bodyEnd, numLines))
+    DRW_MLINESTYLE_TRACE_BEGIN(startAngleStartBit, bodyBuf);
+    if (!readDouble(parsedStartAngle))
         return fail();
+    DRW_MLINESTYLE_TRACE_SPAN(parsed.handle, version, "body", "start_angle",
+                              startAngleStartBit, currentObjectDwgBit(bodyBuf));
+    DRW_MLINESTYLE_TRACE_BEGIN(endAngleStartBit, bodyBuf);
+    if (!readDouble(parsedEndAngle))
+        return fail();
+    DRW_MLINESTYLE_TRACE_SPAN(parsed.handle, version, "body", "end_angle",
+                              endAngleStartBit, currentObjectDwgBit(bodyBuf));
+    DRW_MLINESTYLE_TRACE_BEGIN(numLinesStartBit, bodyBuf);
+    if (!readRawCharWithinBody(bodyBuf, version, bodyEnd, numLines))
+        return fail();
+    DRW_MLINESTYLE_TRACE_SPAN(parsed.handle, version, "body", "num_lines",
+                              numLinesStartBit, currentObjectDwgBit(bodyBuf));
     DRW_DBG("mlinestyle name: "); DRW_DBG(parsed.name);
     DRW_DBG(" desc: "); DRW_DBG(parsed.description);
     DRW_DBG(" flags: "); DRW_DBG(parsed.flags);
@@ -22452,20 +22548,41 @@ bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
         return fail();
     for (std::uint32_t i = 0; i < numLines; ++i) {
         DRW_MLineElement e;
+        DRW_MLINESTYLE_TRACE_BEGIN(elementOffsetStartBit, bodyBuf);
         if (!readDouble(e.offset))
             return fail();
+#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+        const std::string elementField =
+            "element[" + std::to_string(i) + "].offset";
+#endif
+        DRW_MLINESTYLE_TRACE_SPAN(parsed.handle, version, "body",
+                                  elementField.c_str(), elementOffsetStartBit,
+                                  currentObjectDwgBit(bodyBuf));
         std::int32_t elRgb = -1;
         UTF8STRING colorName, colorBookName;
         std::uint8_t colorMethod = 0;
         std::uint8_t colorFlags = 0;
         std::uint16_t colorIndex = 0;
         std::uint32_t elementColorValue = 0;
+        DRW_MLINESTYLE_TRACE_BEGIN(colorBodyStartBit, bodyBuf);
+        DRW_MLINESTYLE_TRACE_BEGIN(colorStringStartBit, bodySBuf);
         if (!readCmColorWithinBounds(bodyBuf, bodySBuf, version, bodyEnd,
                                      stringEnd,
                                    elementColorValue, &elRgb, &colorName,
                                    &colorBookName, nullptr, &colorMethod,
                                    &colorFlags, &colorIndex))
             return fail();
+#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+        const std::string colorField =
+            "element[" + std::to_string(i) + "].color";
+        const std::string colorStringField = colorField + ".embedded";
+#endif
+        DRW_MLINESTYLE_TRACE_SPAN(parsed.handle, version, "body",
+                                  colorField.c_str(), colorBodyStartBit,
+                                  currentObjectDwgBit(bodyBuf));
+        DRW_MLINESTYLE_TRACE_SPAN(parsed.handle, version, "string",
+                                  colorStringField.c_str(), colorStringStartBit,
+                                  currentObjectDwgBit(bodySBuf));
         e.color = static_cast<int>(elementColorValue);
         e.color24 = elRgb;
         e.colorMethod = colorMethod;
@@ -22484,10 +22601,19 @@ bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
         // BYBLOCK(32766)-style sentinels. The R2018+ handle read is 0B.4b.
         if (version < DRW::AC1032) {  // pre-R2018
             std::int32_t parsedLinetypeIndex = 0;
+            DRW_MLINESTYLE_TRACE_BEGIN(linetypeIndexStartBit, bodyBuf);
             if (!readSBitShortWithinBody(bodyBuf, version, bodyEnd,
                                          parsedLinetypeIndex))
                 return fail();
             e.linetypeIndex = static_cast<int>(parsedLinetypeIndex);
+#ifdef DRW_DWG_MLINESTYLE_SPAN_TRACE
+            const std::string linetypeField =
+                "element[" + std::to_string(i) + "].lt.index";
+#endif
+            DRW_MLINESTYLE_TRACE_SPAN(parsed.handle, version, "body",
+                                      linetypeField.c_str(),
+                                      linetypeIndexStartBit,
+                                      currentObjectDwgBit(bodyBuf));
         }
         parsedElements.push_back(std::move(e));
     }
@@ -22507,6 +22633,8 @@ bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
     if (!hBuf->isGood()
         || !parsed.readDwgObjectCommonHandles(version, hBuf, &parsedParentHandle, &parsedReactors, &parsedXDictHandle))
         return fail();
+    DRW_MLINESTYLE_TRACE_STATE(parsed.handle, version, "xdictionary_missing",
+                               static_cast<std::uint32_t>(parsed.xDictFlag));
     std::vector<DRW_DwgSubrecordRange> parsedLinetypeHandleSpans;
     if (version >= DRW::AC1032) {  // R2018+: linetypes are handles
         if (!DRW::reserve(parsedLinetypeHandleSpans,
@@ -22573,6 +22701,10 @@ bool DRW_MLineStyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_
         return fail();
     }
 }
+
+#undef DRW_MLINESTYLE_TRACE_BEGIN
+#undef DRW_MLINESTYLE_TRACE_SPAN
+#undef DRW_MLINESTYLE_TRACE_STATE
 
 // MLINESTYLE fixed object type 73. Inverse of parseDwg above:
 // name/description strings, scalar fields, element bodies, common object
