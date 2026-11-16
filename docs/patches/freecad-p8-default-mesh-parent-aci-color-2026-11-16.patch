@@ -1,0 +1,219 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+index a06657f..3183f5e 100644
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -1320 +1320,2 @@ void ImpExpDxfRead::OnReadBoundedMesh(
+-    bool polygonMesh
++    bool polygonMesh,
++    bool hasExplicitColor
+@@ -1325,0 +1327,7 @@ void ImpExpDxfRead::OnReadBoundedMesh(
++    // Fused block composition discards per-child color overrides.
++    if (m_preserveColors && hasExplicitColor
++        && dynamic_cast<BlockDefinitionCollector*>(Collector) != nullptr) {
++        if (polygonMesh) UnsupportedFeature("POLYGON MESH explicit color in block");
++        else UnsupportedFeature("POLYFACE explicit color in block");
++        return;
++    }
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.h b/src/Mod/Import/App/dxf/ImpExpDxf.h
+index 9517ad0..726f71e 100644
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.h
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.h
+@@ -82 +82,2 @@ public:
+-        bool polygonMesh
++        bool polygonMesh,
++        bool hasExplicitColor
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+index 3545e7b..d980dfb 100644
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2420,2 +2420,2 @@ bool CDxfRead::ReadBoundedMesh(
+-    const std::string& parentLayer, bool polygonMesh, int mCount, int nCount,
+-    bool closedM, bool closedN
++    const std::string& parentLayer, bool hasExplicitColor, bool polygonMesh,
++    int mCount, int nCount, bool closedM, bool closedN
+@@ -2625 +2625 @@ bool CDxfRead::ReadBoundedMesh(
+-    OnReadBoundedMesh(vertices, faces, polygonMesh);
++    OnReadBoundedMesh(vertices, faces, polygonMesh, hasExplicitColor);
+@@ -2638,0 +2639,2 @@ bool CDxfRead::ReadPolyLine()
++    bool colorSeen = false;
++    int parentColor = -1;
+@@ -2662,0 +2665,6 @@ bool CDxfRead::ReadPolyLine()
++            case 62:
++                if (colorSeen) polyfaceProfile = false;
++                colorSeen = true;
++                ProcessPolyfaceInteger(this, &parentColor);
++                if (parentColor < 1 || parentColor > 256) polyfaceProfile = false;
++                break;
+@@ -2720 +2728,2 @@ bool CDxfRead::ReadPolyLine()
+-        return ReadBoundedMesh(valid, parentHandle, containerHandle, polyfaceLayer, polygonMesh, mCount, nCount,
++        return ReadBoundedMesh(valid, parentHandle, containerHandle, polyfaceLayer,
++                               colorSeen && parentColor != 256, polygonMesh, mCount, nCount,
+diff --git a/src/Mod/Import/App/dxf/dxf.h b/src/Mod/Import/App/dxf/dxf.h
+index b8b5d96..d758f95 100644
+--- a/src/Mod/Import/App/dxf/dxf.h
++++ b/src/Mod/Import/App/dxf/dxf.h
+@@ -663,2 +663,2 @@ private:
+-        const std::string& parentLayer, bool polygonMesh, int mCount, int nCount,
+-        bool closedM, bool closedN
++        const std::string& parentLayer, bool hasExplicitColor, bool polygonMesh,
++        int mCount, int nCount, bool closedM, bool closedN
+@@ -962 +962,2 @@ public:
+-        bool /*polygonMesh*/
++        bool /*polygonMesh*/,
++        bool /*hasExplicitColor*/
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index 60d8cf2..108ebe9 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -296 +296 @@ class TestImportDXF(TestImportBase):
+-            ("face_layer", False, 0), ("parent_color", False, 0),
++            ("face_layer", False, 0), ("parent_color", True, 1),
+@@ -766,0 +767,148 @@ class TestImportDXF(TestImportBase):
++
++    def test_bounded_mesh_parent_aci_color_disposition(self):
++        """Accept bounded parent ACI colors while refusing ambiguous values."""
++        options = FreeCAD.ParamGet(self.option_source)
++        options.SetBool("dxfGetOriginalColors", True)
++        cases = [("red", [1], True), ("yellow", [2], True), ("bylayer", [256], True),
++                 ("byblock", [0], False), ("negative", [-1], False),
++                 ("oversized", [257], False), ("malformed", ["1junk"], False),
++                 ("duplicate", [1, 2], False)]
++        for polygon, (name, colors, accepted) in [(p, c) for p in (False, True) for c in cases]:
++            with self.subTest(polygon=polygon, color=name):
++                tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                        (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                        (0, "SECTION"), (2, "ENTITIES"), (0, "POLYLINE"),
++                        (8, "0"), (66, 1), (70, 16 if polygon else 64)]
++                tags.extend((62, value) for value in colors)
++                coords = ((0, 0), (0, 3), (4, 0), (4, 3)) if polygon else ((0, 0), (4, 0), (0, 3))
++                if polygon:
++                    tags.extend([(71, 2), (72, 2)])
++                for x, y in coords:
++                    tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 0),
++                                 (70, 64 if polygon else 192)])
++                if not polygon:
++                    tags.extend([(0, "VERTEX"), (8, "0"), (10, 0), (20, 0), (30, 0), (70, 128),
++                                 (71, 1), (72, 2), (73, 3)])
++                tags.extend([(0, "SEQEND"), (8, "0"),
++                             (0, "LINE"), (8, "0"), (10, 10), (20, 0), (30, 0),
++                             (11, 12), (21, 0), (31, 0), (0, "ENDSEC"), (0, "EOF")])
++                path = os.path.join(self.temp_dir, f"mesh-color-{polygon}-{name}.dxf")
++                with open(path, "w", encoding="ascii", newline="\n") as stream:
++                    stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                previous = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                objects = [obj for obj in self.document.Objects if obj not in previous
++                           and obj.isDerivedFrom("Part::Feature")]
++                meshes = [obj for obj in objects if obj.Name.startswith("PolygonMesh" if polygon else "Polyface")]
++                lines = [obj for obj in objects if obj.Name.startswith("Shape")]
++                self.assertEqual(len(lines), 1)
++                self.assertEqual(len(meshes), int(accepted))
++                if accepted:
++                    self.assertEqual(stats["unsupportedFeatures"], {})
++                    self.assertAlmostEqual(meshes[0].Shape.Area, 12.0 if polygon else 6.0)
++                else:
++                    self.assertIn(("POLYGON MESH" if polygon else "POLYFACE") + " unsupported or invalid profile",
++                                  stats["unsupportedFeatures"])
++
++    def test_bounded_mesh_aci_colors_remain_distinct_in_fused_mode(self):
++        """Parent ACI colors remain distinct when collecting fused geometry."""
++        options = FreeCAD.ParamGet(self.option_source)
++        options.SetInt("DxfImportMode", 3)
++        for first, second, preserve, expected in ((1, 2, True, 2), (1, 1, True, 1),
++                                                  (1, 2, False, 1)):
++            with self.subTest(first=first, second=second, preserve=preserve):
++                options.SetBool("dxfGetOriginalColors", preserve)
++                tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                        (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                        (0, "SECTION"), (2, "ENTITIES")]
++                for offset, color in ((0, first), (10, second)):
++                    tags.extend([(0, "POLYLINE"), (8, "0"), (66, 1), (70, 64), (62, color)])
++                    for x, y in ((offset, 0), (offset + 4, 0), (offset, 3)):
++                        tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 0), (70, 192)])
++                    tags.extend([(0, "VERTEX"), (8, "0"), (10, 0), (20, 0), (30, 0),
++                                 (70, 128), (71, 1), (72, 2), (73, 3), (0, "SEQEND"), (8, "0")])
++                tags.extend([(0, "ENDSEC"), (0, "EOF")])
++                path = os.path.join(self.temp_dir, f"mesh-fused-{first}-{second}-{preserve}.dxf")
++                with open(path, "w", encoding="ascii", newline="\n") as stream:
++                    stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                previous = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                objects = [obj for obj in self.document.Objects if obj not in previous
++                           and obj.isDerivedFrom("Part::Feature") and not obj.Shape.isNull()]
++                self.assertEqual(stats["unsupportedFeatures"], {})
++                self.assertEqual(len(objects), expected)
++                self.assertAlmostEqual(sum(obj.Shape.Area for obj in objects), 12.0)
++
++    def test_bounded_mesh_explicit_color_in_block_disposition(self):
++        """Refuse block color overrides when the user requests color preservation."""
++        options = FreeCAD.ParamGet(self.option_source)
++        for polygon, color, preserve in ((p, c, v) for p in (False, True)
++                                         for c in (1, 256) for v in (False, True)):
++            with self.subTest(polygon=polygon, color=color, preserve=preserve):
++                options.SetBool("dxfGetOriginalColors", preserve)
++                tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                        (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                        (0, "SECTION"), (2, "BLOCKS"), (0, "BLOCK"), (8, "0"),
++                        (2, "INNER"), (70, 0), (10, 0), (20, 0), (30, 0),
++                        (0, "POLYLINE"), (5, "A"), (8, "0"), (66, 1),
++                        (70, 16 if polygon else 64), (62, color)]
++                coords = ((0, 0), (0, 3), (4, 0), (4, 3)) if polygon else ((0, 0), (4, 0), (0, 3))
++                if polygon:
++                    tags.extend([(71, 2), (72, 2)])
++                for x, y in coords:
++                    tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 0),
++                                 (70, 64 if polygon else 192)])
++                if not polygon:
++                    tags.extend([(0, "VERTEX"), (8, "0"), (10, 0), (20, 0), (30, 0),
++                                 (70, 128), (71, 1), (72, 2), (73, 3)])
++                tags.extend([(0, "SEQEND"), (8, "0"), (0, "ENDBLK"), (8, "0"), (0, "ENDSEC"),
++                             (0, "SECTION"), (2, "ENTITIES"), (0, "INSERT"), (8, "0"),
++                             (2, "INNER"), (10, 1), (20, 2), (30, 0),
++                             (0, "LINE"), (8, "0"), (10, 10), (20, 0), (30, 0),
++                             (11, 12), (21, 0), (31, 0), (0, "ENDSEC"), (0, "EOF")])
++                path = os.path.join(self.temp_dir, f"block-color-{polygon}-{color}-{preserve}.dxf")
++                with open(path, "w", encoding="ascii", newline="\n") as stream:
++                    stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                previous = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                objects = [obj for obj in self.document.Objects if obj not in previous]
++                lines = [obj for obj in objects if obj.Name.startswith("Shape")
++                         and hasattr(obj, "Shape") and len(obj.Shape.Edges) == 1]
++                self.assertEqual(len(lines), 1)
++                refused = preserve and color != 256
++                reason = ("POLYGON MESH" if polygon else "POLYFACE") + " explicit color in block"
++                self.assertEqual(reason in stats["unsupportedFeatures"], refused)
++                links = [obj for obj in objects if obj.Name.startswith("Link_INNER")]
++                if refused:
++                    self.assertFalse(any(not link.Shape.isNull() and link.Shape.Faces for link in links))
++                else:
++                    self.assertEqual(len(links), 1)
++                    self.assertAlmostEqual(links[0].Shape.Area, 12.0 if polygon else 6.0)
++
++    def test_bounded_mesh_invalid_color_then_valid_same_file(self):
++        """An invalid color cannot leak geometry or stop the following mesh."""
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                (0, "SECTION"), (2, "ENTITIES")]
++        for offset, colors in ((0, (1, 2)), (10, (1,))):
++            tags.extend([(0, "POLYLINE"), (8, "0"), (66, 1), (70, 64)])
++            tags.extend((62, color) for color in colors)
++            for x, y in ((offset, 0), (offset + 4, 0), (offset, 3)):
++                tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 0), (70, 192)])
++            tags.extend([(0, "VERTEX"), (8, "0"), (10, 0), (20, 0), (30, 0),
++                         (70, 128), (71, 1), (72, 2), (73, 3), (0, "SEQEND"), (8, "0")])
++        tags.extend([(0, "LINE"), (8, "0"), (10, 20), (20, 0), (30, 0),
++                     (11, 22), (21, 0), (31, 0), (0, "ENDSEC"), (0, "EOF")])
++        path = os.path.join(self.temp_dir, "mesh-color-recovery.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        previous = set(self.document.Objects)
++        stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++        objects = [obj for obj in self.document.Objects if obj not in previous
++                   and obj.isDerivedFrom("Part::Feature")]
++        meshes = [obj for obj in objects if obj.Name.startswith("Polyface")]
++        lines = [obj for obj in objects if obj.Name.startswith("Shape")]
++        self.assertEqual(len(meshes), 1)
++        self.assertEqual(len(lines), 1)
++        self.assertAlmostEqual(meshes[0].Shape.Area, 6.0)
++        self.assertEqual(len(stats["unsupportedFeatures"]["POLYFACE unsupported or invalid profile"]), 1)

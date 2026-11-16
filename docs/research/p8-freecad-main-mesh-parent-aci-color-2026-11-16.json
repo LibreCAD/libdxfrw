@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-16",
+  "scope": "Unmerged ninth ordered FreeCAD default DXF importer patch: bounded POLYFACE and polygon meshes with parent ACI color.",
+  "base": "FreeCAD d956ec561639cfa83f755504b1b3358ea799428e with eight preceding ordered importer patches, including mandatory block-layer correction.",
+  "localSparseCandidateCommit": "3a3ea8bfa127b50c94d07a222a849a8a19da0368",
+  "patch": "docs/patches/freecad-p8-default-mesh-parent-aci-color-2026-11-16.patch",
+  "patchSha256": "c4c18a8b8838274080efc2504c0235b0f92c1a88caf0461cb89a0b01d0f58c99",
+  "reference": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+  "change": "Admit one parent group 62 ACI value 1\u2013255 or explicit BYLAYER 256 for bounded meshes; preserve it through existing common attributes. Reject duplicates, malformed, negative, out-of-range and BYBLOCK values. With color preservation enabled, refuse explicit ACI mesh colors in block definitions because fused block composition drops child colors. Per-face styles remain refused.",
+  "baseline": "Generated parent-color POLYFACE and polygon-mesh controls were refused by the preceding importer.",
+  "validation": {
+    "focused": "Seven FreeCAD importer tests pass on macOS ARM64. Direct tests cover both mesh types, admitted and rejected ACI values, following LINE and recovery after duplicate color; block tests cover both mesh types, color-preservation on/off, explicit/BYLAYER and no leaked faces. Existing layer and bounded mesh regression controls pass.",
+    "fusedGrouping": "For two generated meshes, differing ACI colors create two groups when colors are preserved; identical colors or disabled color preservation create one group. Total area remains 12 square millimetres.",
+    "peer": "Separately ezdxf 1.4.4 generated same/different-color POLYFACE drawings reproduce the same grouping and geometric results.",
+    "replay": "Zero-context patch applies with git apply --unidiff-zero after the preceding eight patches; all four source files and test file match the tested candidate.",
+    "logs": [
+      "/private/tmp/freecad-polyface-layer-20261116/color-before.log",
+      "/private/tmp/freecad-polyface-layer-20261116/color-final2.log",
+      "/private/tmp/freecad-polyface-layer-20261116/color-peer.log"
+    ]
+  },
+  "scratchHashes": {
+    "color-same.dxf": "f5212b70ad1266325ffdb2135a6cd8251bdd30aa23ea6c4777188c3bcd867071",
+    "color-different.dxf": "588a20e7d126aa24839ebaf2e6c9ecd15b8dfb12b7118c5cb86a6cd61294f283"
+  },
+  "limits": [
+    "Only headless grouping and geometry are verified; GUI appearance, native Draft, other platforms and native producer semantics remain open.",
+    "Block explicit colors are refused when preserving colors; face-specific styles, BYBLOCK, truecolor, hidden edges, smoothing and nonplanar faces remain unsupported.",
+    "No drawing fixture is committed; no phase gate or external-only support claim is promoted."
+  ]
+}
