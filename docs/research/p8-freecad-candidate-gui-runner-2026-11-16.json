@@ -10,8 +10,8 @@
   "freecadSha256": "eaef0a9296bfb569011e08d6f07f60896932e90c27868055eb85b34244c97694",
   "importGuiSha256": "b05c7cfec8b6b070fef5f2a57002e5da78839ca45908d495ca339d448ae52c74",
   "draftSha256": "72c03a089baca13a55d7f3051988005c3e1005b532b3944b279d407dc122a9a9",
-  "macroSha256": "4ab3f1f789582deaa7172ba8fe24d3f732d422cf152548cfae588cacc16f470b",
-  "qtPlatformRequested": null,
+  "macroSha256": "2334d23f02faf59292fa7814bf9094579200e280260ce022f45b3d2a4706b7d5",
+  "qtPlatformRequested": "cocoa",
   "platform": "darwin",
   "machine": "arm64",
   "guiUp": 1,
@@ -32,12 +32,14 @@
     "All ten GUI view-property cases passed in a real local FreeCAD GUI process.",
     "A fake executable without a result marker was refused.",
     "A build paired with a different source root was refused.",
-    "A real GUI retry passed after the negative controls."
+    "A real GUI retry passed after the negative controls.",
+    "The native macOS GUI smoke passed with the requested and observed Cocoa Qt platform."
   ],
   "limitations": [
     "The successful native source was archive-extracted; optional Git-base verification was not used.",
     "Git-base verification, when used, covers HEAD and tracked changed paths, not ignored or untracked files, submodules or complete build provenance.",
     "Qt display backend and producer interoperability must be recorded separately on other platforms.",
     "This does not prove rendered pixels or broad DWG/DXF support."
-  ]
+  ],
+  "qtPlatformObserved": "cocoa"
 }

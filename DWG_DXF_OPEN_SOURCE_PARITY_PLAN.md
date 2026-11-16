@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **691 completed implementation and qualification slices** and **32 remaining
+The plan records **692 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`691 / (691 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
+`692 / (692 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -136,7 +136,9 @@ check, not as a substitute for full GUI or rendering qualification. The
 [guarded GUI runner](tools/research/run_freecad_candidate_gui_probe.py) binds
 the source, build, executable and loaded modules; its macOS smoke and negative
 checks pass ([receipt](docs/research/p8-freecad-candidate-gui-runner-2026-11-16.json)).
-Run it on Linux and Windows with their display backends recorded.
+An opt-in hosted GUI mode now builds the required GUI resources and runs that
+smoke on a Linux virtual display or a Windows runner; dispatch it and record
+the reported Qt backend. The hosted GUI mode has only passed static validation.
 Native GUI behavior, independent semantics and upstream integration remain open.
 
 ### Next LibreCAD integration work

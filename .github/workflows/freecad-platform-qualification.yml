@@ -8,6 +8,11 @@ on:
         required: false
         type: boolean
         default: false
+      candidate_gui:
+        description: Also build and smoke-test the candidate GUI (virtual display on Linux)
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
       - 'codex/freecad-platform-qualification-*'
@@ -17,7 +22,7 @@ permissions:
 
 jobs:
   linux-freecad:
-    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.candidate }}
+    if: ${{ github.event_name != 'workflow_dispatch' || !(inputs.candidate || inputs.candidate_gui) }}
     name: FreeCAD 1.1.4 / Linux x86_64
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -99,7 +104,7 @@ jobs:
           retention-days: 14
 
   windows-freecad:
-    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.candidate }}
+    if: ${{ github.event_name != 'workflow_dispatch' || !(inputs.candidate || inputs.candidate_gui) }}
     name: FreeCAD 1.1.4 / Windows x64
     runs-on: windows-2022
     timeout-minutes: 60
@@ -194,7 +199,7 @@ jobs:
           retention-days: 14
 
   candidate-headless:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.candidate }}
+    if: ${{ github.event_name == 'workflow_dispatch' && (inputs.candidate || inputs.candidate_gui) }}
     name: FreeCAD candidate headless / ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -252,6 +257,8 @@ jobs:
       - name: Build and probe the candidate
         shell: pwsh
         working-directory: _freecad_candidate
+        env:
+          CANDIDATE_GUI: ${{ inputs.candidate_gui }}
         run: |
           $ErrorActionPreference = 'Stop'
           $build = Join-Path $env:RUNNER_TEMP 'freecad-candidate-build'
@@ -262,6 +269,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Candidate configuration failed' }
           pixi run cmake --build $build --parallel 2 --target FreeCADMainCmd Import ImportScripts ImportPy Part PartScripts
           if ($LASTEXITCODE -ne 0) { throw 'Candidate build failed' }
+          if ($env:CANDIDATE_GUI -eq 'true') {
+            pixi run cmake --build $build --parallel 2 --target FreeCADMain ImportGui pivy_coin MaterialLib MaterialModelLib AppearanceLib MaterialScripts
+            if ($LASTEXITCODE -ne 0) { throw 'Candidate GUI build failed' }
+          }
           $name = if ($env:RUNNER_OS -eq 'Windows') { 'FreeCADCmd.exe' } else { 'FreeCADCmd' }
           $command = Join-Path (Join-Path $build 'bin') $name
           $source = Join-Path $env:GITHUB_WORKSPACE '_freecad_candidate'
@@ -271,6 +282,29 @@ jobs:
             --source-archive $archive --expected-source-commit 157bfcb7462a733b03a7d041aeaa79fee7aff7a3 `
             --require-git-base --source-root $source --build-root $build --freecadcmd $command --output-dir $evidence
           if ($LASTEXITCODE -ne 0) { throw 'Candidate headless probe failed' }
+
+      - name: Probe candidate GUI view properties
+        if: ${{ inputs.candidate_gui }}
+        shell: pwsh
+        working-directory: _freecad_candidate
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $build = Join-Path $env:RUNNER_TEMP 'freecad-candidate-build'
+          $name = if ($env:RUNNER_OS -eq 'Windows') { 'FreeCAD.exe' } else { 'FreeCAD' }
+          $command = Join-Path (Join-Path $build 'bin') $name
+          $runner = Join-Path $env:GITHUB_WORKSPACE 'tools/research/run_freecad_candidate_gui_probe.py'
+          $source = Join-Path $env:GITHUB_WORKSPACE '_freecad_candidate'
+          $archive = Join-Path $env:RUNNER_TEMP 'freecad-157.tar.gz'
+          $evidence = Join-Path $env:RUNNER_TEMP 'freecad-candidate-evidence'
+          $probeArgs = @($runner, '--source-archive', $archive, '--expected-source-commit', '157bfcb7462a733b03a7d041aeaa79fee7aff7a3',
+                         '--require-git-base', '--source-root', $source, '--build-root', $build, '--freecad', $command, '--output-dir', $evidence)
+          if ($env:RUNNER_OS -eq 'Linux') {
+            if (-not (Get-Command xvfb-run -ErrorAction SilentlyContinue)) { throw 'xvfb-run is required for the Linux GUI smoke test' }
+            xvfb-run -a pixi run python @probeArgs
+          } else {
+            pixi run python @probeArgs
+          }
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate GUI smoke probe failed' }
 
       - name: Preserve candidate evidence
         if: always()

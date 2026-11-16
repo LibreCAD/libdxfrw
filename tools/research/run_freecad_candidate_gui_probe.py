@@ -107,6 +107,8 @@ def main():
             raise RuntimeError("FreeCAD loaded Draft from a different source")
         if report.get("platform") != sys.platform or common.machine_name(report.get("machine", "")) != common.machine_name(platform.machine()):
             raise RuntimeError("FreeCAD GUI platform or architecture differs from the host")
+        if not report.get("qtPlatform") or (args.qt_platform and report["qtPlatform"] != args.qt_platform):
+            raise RuntimeError("FreeCAD GUI did not report the expected Qt platform")
         receipt = {"ok": True, "scope": "focused GUI view-property checks; no pixel-rendering claim",
                    "sourceReplay": source_receipt, "gitBaseVerified": git_base_verified,
                    "cmakeSourceRoot": homes[0], "cmakeCacheSha256": common.digest(cache),

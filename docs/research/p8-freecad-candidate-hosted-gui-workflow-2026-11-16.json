@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-16",
+  "scope": "Opt-in hosted candidate GUI build and ten-case view-property smoke.",
+  "workflow": ".github/workflows/freecad-platform-qualification.yml",
+  "dispatchInput": "candidate_gui=true",
+  "platforms": [
+    "ubuntu-24.04 with xvfb-run",
+    "windows-2022 with runner display"
+  ],
+  "sourceCommit": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+  "checks": [
+    "actionlint passed.",
+    "Local macOS Cocoa GUI smoke passed with requested and observed Qt backend matching.",
+    "The guarded GUI runner previously rejected mismatched source/build and missing-result controls."
+  ],
+  "status": "PREPARED_NOT_RUN",
+  "limitations": [
+    "The hosted GUI jobs have not run yet; neither Linux nor Windows GUI behavior is qualified by this workflow.",
+    "Linux uses a virtual X display. Actual Qt platform is recorded; these are view-property checks, not pixel-rendering proof.",
+    "The source and module identity checks do not alone establish build provenance or independent semantic support."
+  ]
+}

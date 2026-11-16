@@ -27,7 +27,7 @@ for name in ("FREECAD_PYSIDE_DIR", "FREECAD_3RDPARTY_DIR", "FREECAD_DRAFT_MODULE
         sys.path.insert(0, os.environ[name])
 
 import FreeCAD as App
-from PySide import QtCore
+from PySide import QtCore, QtGui
 
 
 def color_drawing(mixed):
@@ -278,6 +278,7 @@ def run():
         result = {"ok": True, "profile": profile, "guiUp": App.GuiUp, "importModule": ImportGui.__file__,
                   "executable": sys.executable, "platform": sys.platform, "machine": platform.machine(),
                   "freecadVersion": list(App.Version()), "pythonVersion": sys.version,
+                  "qtPlatform": QtGui.QGuiApplication.platformName(),
                   "draftModule": Draft.__file__, "qtFrameworkImages": qt_frameworks,
                   "results": results}
     except Exception:
