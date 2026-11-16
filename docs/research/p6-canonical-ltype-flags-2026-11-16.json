@@ -14,5 +14,6 @@
     "The LibreCAD check reused previously compiled consumer objects and was not a clean consumer rebuild; the optional ODA fixture case was not run.",
     "This slice preserves flag values only. Canonical descriptions and nonempty patterns may still be replaced by built-in values and need separate disposition.",
     "Generated codec readback does not establish independent producer semantics or whole-document support."
-  ]
+  ],
+  "followUp": "Nonempty or inconsistent canonical pattern state is now refused; see p6-canonical-ltype-pattern-refusal-2026-11-16.json. Description preservation remains open."
 }

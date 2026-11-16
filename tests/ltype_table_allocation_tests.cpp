@@ -167,6 +167,35 @@ bool canonicalFlags(const std::filesystem::path& directory) {
                 { std::ofstream out(path, std::ios::binary | std::ios::trunc); out << sentinel; }
                 dxfRW codec(path.string().c_str());
                 CanonicalLTypeExport candidate(codec, name);
+                for (unsigned fault = 0; fault != 6; ++fault) {
+                    candidate.row = clean.row;
+                    if (fault == 0) candidate.row.size = 1;
+                    if (fault == 1) candidate.row.length = 1.0;
+                    if (fault == 2) candidate.row.alignment = 'B';
+                    if (fault == 3) candidate.row.path.push_back(1.0);
+                    if (fault == 4) candidate.row.segments.emplace_back();
+                    if (fault == 5) candidate.row.shapeHandles.push_back(0x123u);
+                    const DRW_LType before = candidate.row;
+                    std::string current;
+                    { std::ofstream out(path, std::ios::binary | std::ios::trunc); out << sentinel; }
+                    if (codec.write(&candidate, version, binary) || candidate.accepted
+                        || !readBytes(path, current) || current != sentinel
+                        || candidate.row.size != before.size || candidate.row.length != before.length
+                        || candidate.row.alignment != before.alignment || candidate.row.path != before.path
+                        || candidate.row.segments.size() != before.segments.size()
+                        || candidate.row.shapeHandles != before.shapeHandles)
+                        return false;
+                    codec.setCanonicalLineTypeMetadata({before});
+                    candidate.row = clean.row;
+                    if (codec.write(&candidate, version, binary)
+                        || !readBytes(path, current) || current != sentinel)
+                        return false;
+                    codec.setCanonicalLineTypeMetadata(std::vector<DRW_LType>{});
+                    if (!codec.write(&candidate, version, binary) || !candidate.accepted
+                        || !readBytes(path, current) || current != expected)
+                        return false;
+                }
+                { std::ofstream out(path, std::ios::binary | std::ios::trunc); out << sentinel; }
                 candidate.row.flags = 64;
                 std::string current;
                 if (codec.write(&candidate, version, binary) || candidate.accepted

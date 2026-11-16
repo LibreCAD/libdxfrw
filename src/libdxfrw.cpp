@@ -7731,6 +7731,11 @@ bool dxfRW::writeLineType(DRW_LType *ent){
     const std::string strname = dxfSymbolNameKey(ent->name);
     //do not write linetypes handled by library
     if (strname == "BYLAYER" || strname == "BYBLOCK" || strname == "CONTINUOUS") {
+        // These fixed rows have no pattern. The callback comes after their
+        // emission, so a supplied pattern cannot be preserved on this route.
+        if (ent->size != 0 || ent->length != 0.0 || ent->alignment != 'A'
+            || !ent->path.empty() || !ent->segments.empty() || !ent->shapeHandles.empty())
+            return failDxfWrite();
         RecordStateScope state(*this, ent);
         const auto cached = std::find_if(
             m_canonicalLineTypeMetadata.cbegin(),
@@ -18469,6 +18474,9 @@ bool dxfRW::writeTables(const char** outputStage) {
             continue;
         if (lineType.flags < 0 || (lineType.flags & ~0x70) != 0
             || ((lineType.flags & 0x20) != 0 && (lineType.flags & 0x10) == 0))
+            return failDxfWrite();
+        if (lineType.size != 0 || lineType.length != 0.0 || lineType.alignment != 'A'
+            || !lineType.path.empty() || !lineType.segments.empty() || !lineType.shapeHandles.empty())
             return failDxfWrite();
         const std::string key = dxfSymbolNameKey(lineType.name);
         if (!mandatoryLinetypes.emplace(key, &lineType).second

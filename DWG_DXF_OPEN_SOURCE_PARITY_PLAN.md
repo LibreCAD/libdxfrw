@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **695 completed implementation and qualification slices** and **32 remaining
+The plan records **696 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`695 / (695 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
+`696 / (696 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -90,8 +90,11 @@ retry, readback and source-alias checks pass
 Predeclared canonical LTYPE flags now survive output; nondefault flags arriving
 only after the fixed row was written refuse atomically
 ([receipt](docs/research/p6-canonical-ltype-flags-2026-11-16.json)). Canonical
-descriptions and nonempty patterns can still be replaced by built-in values;
-audit source semantics and add a preservation route or explicit disposition.
+pattern state is now refused rather than discarded, whether supplied in a
+callback or predeclared metadata
+([receipt](docs/research/p6-canonical-ltype-pattern-refusal-2026-11-16.json)).
+Canonical descriptions can still be replaced by built-in values; audit source
+semantics and add a preservation route or explicit disposition.
 Continue the remaining public-writer and compound-route census.
 
 For FreeCAD integration, replay the complete ordered downstream chain with

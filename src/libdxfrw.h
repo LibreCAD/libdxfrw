@@ -427,6 +427,8 @@ public:
     /// finalizeDxfWrite runs after emission, before publication; facade record
     /// writes and output setup mutations are rejected in that final phase.
     [[nodiscard]] bool write(DRW_Interface *interface_, DRW::Version ver, bool bin);
+    /// Mandatory BYBLOCK/BYLAYER/CONTINUOUS rows have no pattern. Nonempty or
+    /// inconsistent pattern state is refused rather than discarded.
     bool writeLineType(DRW_LType *ent);
     bool writeDictionary(DRW_Dictionary *ent);
     bool writeDictionaryWithDefault(DRW_DictionaryWithDefault *ent);
