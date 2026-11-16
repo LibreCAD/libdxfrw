@@ -2163,6 +2163,7 @@ public:
   DwgObjectMap remainingMap; // debug-only unconsumed records
   std::vector<DRW_UnsupportedObject> m_deferredRawObjects;
   std::vector<DRW_DwgFramePublication> m_deferredTableFramePublications;
+  std::optional<DRW_DwgAc1024LayerControlSource> m_ac1024LayerControlSource;
   std::unordered_map<std::uint32_t, DRW_LType *> ltypemap;
   std::unordered_map<std::uint32_t, DRW_Layer *> layermap;
   /// Layer names in declared LAYER_CONTROL slot order, retaining null slots;

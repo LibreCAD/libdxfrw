@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **607 completed implementation and qualification slices** and **32 remaining
+The plan records **608 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`607 / (607 + 32) = 95.0%`. The previous 28-package denominator was stale; a recount
+`608 / (608 + 32) = 95.0%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -194,9 +194,11 @@ The importer verification now passes. The full source graph instead refuses
 LAYER_CONTROL `0x10`: its receipt says common links are not applicable while it
 carries extension dictionary `0x107`. LibreDWG independently confirms the hard-owner
 edge and dictionary parent ([control blocker and implementation steps](docs/research/p8-title-layer-control-extension-graph-blocker-2026-11-15.json)).
-Capture and validate the control frame and handle roles without changing the
-existing interface vtable or publication layout; bind an optional proof to the
-source transaction and graph, prove the dictionary endpoint, and retest before
+An opt-in source handler now captures the CRC-checked AC1024 control body
+without changing the existing interface vtable or publication layout; a focused
+test decodes its handle roles ([capture receipt](docs/research/p8-ac1024-layer-control-source-capture-2026-11-15.json)).
+Implement a bounded consumer-callable verifier for those roles, bind the proof
+to the source transaction and graph, prove the dictionary endpoint, and retest before
 freezing membership and inbound references
 ([carrier receipt](docs/research/p8-librecad-title-block-source-receipts-2026-11-15.json),
 [verifier receipt](docs/research/p8-ac1024-dictionary-source-verifier-2026-11-15.json)). Stage

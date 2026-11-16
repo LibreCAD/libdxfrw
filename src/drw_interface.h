@@ -16,6 +16,7 @@
 // Allows consumers that also support older bundled forks to declare this
 // optional callback with an override specifier only when it exists.
 #define LIBDXFRW_HAS_BLOCK_RECORD_CALLBACK 1
+#define LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE 1
 
 // Preserve a caller's X11 None macro while declaring all header enums.
 #if defined(None)
@@ -1105,6 +1106,14 @@ public:
   virtual ~DRW_DwgAc1024LayerSourceHandler() = default;
   virtual void addDwgAc1024LayerSource(
       const DRW_DwgAc1024LayerSource& source) noexcept = 0;
+};
+
+//! Optional provisional control-frame observation; DRW_Interface is unchanged.
+class DRW_DwgAc1024LayerControlSourceHandler {
+public:
+  virtual ~DRW_DwgAc1024LayerControlSourceHandler() = default;
+  virtual void addDwgAc1024LayerControlSource(
+      const DRW_DwgAc1024LayerControlSource& source) noexcept = 0;
 };
 
 /** Optional source-slot metadata for decoding DWG proxy graphic resources.

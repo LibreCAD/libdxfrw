@@ -8175,6 +8175,7 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
   m_verifiedTableCacheSources.clear();
   m_verifiedTableCacheSourceBytes = 0u;
   m_verifiedTableCacheSourceFailed = false;
+  m_ac1024LayerControlSource.reset();
   bool ret = true;
   bool ret2 = true;
   objHandle oc;
@@ -8216,6 +8217,7 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
     m_ltypeNameOrder.clear();
     m_deferredRawObjects.clear();
     m_deferredTableFramePublications.clear();
+    m_ac1024LayerControlSource.reset();
     m_danglingBlockRecords.clear();
   };
   const auto eraseObject = [&](DwgObjectMap::iterator it) {
@@ -8430,6 +8432,40 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
       }
       publication.m_carrier = DRW_DwgFramePublication::Carrier::Control;
       stagedTableFramePublications.push_back(std::move(publication));
+      // Capture only for a consumer that explicitly opts in. This is an
+      // advisory CRC-checked source body; any capture failure leaves the
+      // existing table read unchanged and provides no proof.
+      if (version == DRW::AC1024
+          && descriptor.controlType == DRW::DwgLayerControlObjectType
+          && control.extensionDictionaryFlag() == 0u
+          && control.xDictHandle != 0u && parent != nullptr && parent->iface != nullptr
+          && dynamic_cast<DRW_DwgAc1024LayerControlSourceHandler *>(parent->iface)) {
+        try {
+          constexpr std::size_t maxSourceBytes = 4096u;
+          dwgBuffer probe = dbuf->forkIndependent();
+          DwgObjectFrame frame;
+          if (sourceIt->source.offset == object.loc
+              && frame.readAt(probe, version, object.loc)
+              && !frame.body().empty() && frame.body().size() <= maxSourceBytes) {
+            DRW_DwgAc1024LayerControlSource candidate;
+            candidate.m_sourceOffset = sourceIt->source.offset;
+            candidate.m_sourceMapOrdinal = sourceIt->source.ordinal;
+            candidate.m_sourceOffsetSpace = sourceIt->source.offsetSpace;
+            candidate.m_raw.m_version = version;
+            candidate.m_raw.m_objectType = descriptor.controlType;
+            candidate.m_raw.m_handle = object.handle;
+            candidate.m_raw.m_xDictFlag = control.extensionDictionaryFlag();
+            candidate.m_raw.m_xDictHandle = control.xDictHandle;
+            candidate.m_raw.m_bodyBitSize = frame.bodyBitSize();
+            candidate.m_raw.m_objectOffset = object.loc;
+            candidate.m_raw.m_objectSize = static_cast<std::uint32_t>(frame.body().size());
+            candidate.m_raw.m_rawBytes = std::move(frame.body());
+            m_ac1024LayerControlSource = std::move(candidate);
+          }
+        } catch (...) {
+          m_ac1024LayerControlSource.reset();
+        }
+      }
       if (version == DRW::AC1018 &&
           (descriptor.controlType == DRW::DwgLTypeControlObjectType ||
            descriptor.controlType == DRW::DwgStyleControlObjectType)) {
@@ -9395,6 +9431,11 @@ bool dwgReader::publishDeferredTableFramePublications(DRW_Interface &intfa) {
       return false;
   }
   m_deferredTableFramePublications.clear();
+  if (m_ac1024LayerControlSource) {
+    if (auto *sink = dynamic_cast<DRW_DwgAc1024LayerControlSourceHandler *>(&intfa))
+      sink->addDwgAc1024LayerControlSource(*m_ac1024LayerControlSource);
+    m_ac1024LayerControlSource.reset();
+  }
   return true;
 }
 

@@ -769,6 +769,15 @@ struct DRW_DwgAc1024LayerSource {
   DRW_DwgFrameOffsetSpace m_sourceOffsetSpace{DRW_DwgFrameOffsetSpace::Unknown};
 };
 
+//! Provisional CRC-checked AC1024 LAYER_CONTROL body for an opt-in reader.
+//! The H role and source graph still require independent verification.
+struct DRW_DwgAc1024LayerControlSource {
+  DRW_UnsupportedObject m_raw;
+  std::uint32_t m_sourceOffset{0u};
+  std::uint64_t m_sourceMapOrdinal{0u};
+  DRW_DwgFrameOffsetSpace m_sourceOffsetSpace{DRW_DwgFrameOffsetSpace::Unknown};
+};
+
 //! Reader disposition of one HANDLE-map source frame.
 //!
 //! Pending, Deferred, and Staged are transient. Unresolved is assigned only by
