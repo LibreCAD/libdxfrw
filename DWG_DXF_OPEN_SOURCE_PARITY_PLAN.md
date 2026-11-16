@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **651 completed implementation and qualification slices** and **32 remaining
+The plan records **652 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`651 / (651 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
+`652 / (652 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -97,8 +97,13 @@ created locally from scratch for the specific control.
   AC1032 in both source encodings and with both codecs. A locally authored,
   ODA-converted AC1012 pair now passes focused ASCII/Binary LTYPE import with
   both codecs. The installed codec refuses this full drawing during OBJECTS
-  emission; preserve all records while isolating and fixing the refusal. The
-  bundled codec passes selected LTYPE/LINE re-export checks, not full graph
+  emission. A scratch owner-resolution probe advances past the standard
+  MLINESTYLE, but the resulting output reports 65 omitted source objects; do not
+  land that shortcut until source-to-output ownership and all required records
+  close. Compare original and emitted object identities and dependencies, then
+  fix the mapping with refusal/retry and independent graph readback controls
+  ([graph receipt](docs/research/p8-librecad-r13-object-graph-boundary-2026-11-16.json)).
+  The bundled codec passes selected LTYPE/LINE re-export checks, not full graph
   qualification. Diagnostic propagation, destination preservation and retry
   pass ([R13 receipt](docs/research/p8-librecad-r13-dxf-diagnostic-2026-11-16.json)).
   Qualify complex records, additional independent producers and native behavior;
