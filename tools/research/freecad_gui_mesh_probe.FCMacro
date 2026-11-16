@@ -7,6 +7,7 @@ Set FREECAD_PART_MODULE_DIR, FREECAD_DRAFT_MODULE_DIR, FREECAD_3RDPARTY_DIR,
 and FREECAD_PYSIDE_DIR when these modules are not installed in the build.
 The build also needs its MaterialLib, MaterialModelLib and AppearanceLib
 resources. A successful run prints FREECAD_GUI_MESH_PROBE with ok=true.
+Set FREECAD_GUI_MESH_PROFILE=smoke for a focused subset; the default is full.
 This checks view-provider properties, not visual rendering or platform parity.
 """
 import ctypes
@@ -85,7 +86,7 @@ def run():
         results = []
         layer_colors = {}
         with tempfile.TemporaryDirectory(prefix="freecad-gui-mesh-probe-") as scratch:
-            for case in ("polyface", "polygon", "mixed", "nested", "nested_polygon",
+            cases = ("polyface", "polygon", "mixed", "nested", "nested_polygon",
                          "nested_nolayers", "nested_polygon_nolayers", "nested_inches_nolayers",
                          "nested_polygon_inches_nolayers", "vertex_polyface_nocolor", "vertex_polygon_nocolor",
                          "vertex_polyface_color", "vertex_polygon_color",
@@ -110,7 +111,18 @@ def run():
                          "layer_syntaxdupepositive_1", "layer_syntaxnegoverflow_1", "layer_syntaxposoverflow_1",
                          "layer_syntaxnegative_1_nogroups", "layer_syntaxformfeed_1", "layer_syntaxverticaldup_1",
                          "color", "color_mixed",
-                         "color_mixed_nocolor"):
+                         "color_mixed_nocolor")
+            profile = os.environ.get("FREECAD_GUI_MESH_PROFILE", "full")
+            if profile == "smoke":
+                selected = {"polyface", "polygon", "mixed", "nested_nolayers",
+                            "layer_on_2", "layer_off_2", "layer_frozen_2",
+                            "color", "color_mixed", "color_mixed_nocolor"}
+                cases = tuple(case for case in cases if case in selected)
+                if set(cases) != selected:
+                    raise RuntimeError("The GUI smoke profile references an unknown case")
+            elif profile != "full":
+                raise RuntimeError("Unknown GUI mesh profile: " + profile)
+            for case in cases:
                 is_color = case.startswith("color")
                 is_vertex = case.startswith("vertex_")
                 is_byblock = case.startswith("byblock_")
@@ -262,7 +274,7 @@ def run():
                                     "unsupported": stats["unsupportedFeatures"]})
                 finally:
                     App.closeDocument(doc.Name)
-        result = {"ok": True, "guiUp": App.GuiUp, "importModule": ImportGui.__file__,
+        result = {"ok": True, "profile": profile, "guiUp": App.GuiUp, "importModule": ImportGui.__file__,
                   "draftModule": Draft.__file__, "qtFrameworkImages": qt_frameworks,
                   "results": results}
     except Exception:

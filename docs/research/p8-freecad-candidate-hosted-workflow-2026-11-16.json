@@ -96,7 +96,44 @@
       "failures": 0,
       "errors": 0,
       "guiUp": 0,
-      "submoduleStatusSha256": "513a9d2a445fe55ca7812eb6563fe44d6958307f2d21ea92a8b223000120c773"
+      "submoduleStatusSha256": "513a9d2a445fe55ca7812eb6563fe44d6958307f2d21ea92a8b223000120c773",
+      "patchedSourceSha256": {
+        "src/Mod/Import/App/dxf/ImpExpDxf.cpp": "46a7b9f0f72d80bf4df6584e458ae48ddd24354c01a889964679468c017b6583",
+        "src/Mod/Import/App/dxf/ImpExpDxf.h": "c9c95156d7c2b8b4e8e10d4bfaae996baafb32a9a3a6b96c8d3d3878590de6f2",
+        "src/Mod/Import/App/dxf/dxf.cpp": "b40d3fbab00ec760229e775aafec5f29466c42de5505a50a0719b2866d74c934",
+        "src/Mod/Import/App/dxf/dxf.h": "9afc81e16bc7c06fddf67fea70c8790afdc02027146c7c16a631676e3be4c34f",
+        "src/Mod/Import/importtests/TestImportDXF.py": "d07db2e046bc934f0220d5cdffe9080d2bb8807a9245f27b32a5b4a375188402"
+      },
+      "submodules": [
+        {
+          "commit": "543d0dd3fe966ddf20e884b44e5fdbf12cb43784",
+          "path": "src/3rdParty/GSL"
+        },
+        {
+          "commit": "4be80eef02a3486cda0d78f3ccbb308d207a9639",
+          "path": "src/3rdParty/OndselSolver"
+        },
+        {
+          "commit": "dc05ca0469f2b3b10ea4a93b468d95b5a5374bac",
+          "path": "src/3rdParty/coin"
+        },
+        {
+          "commit": "118ac5a21bcf57f0f90e2b0e681c9dcbf07074c2",
+          "path": "src/3rdParty/coin/cpack.d"
+        },
+        {
+          "commit": "6217657eef6aec24a0e4ecea4695031c1a622cf3",
+          "path": "src/3rdParty/coin/docs/doxygen-awesome"
+        },
+        {
+          "commit": "515f038d32f163a976acd8a8cd9e8d26e1d0b884",
+          "path": "src/3rdParty/pivy"
+        },
+        {
+          "commit": "745c1b1ebc8bc684439210c5fa237d2c6287153b",
+          "path": "src/Mod/AddonManager"
+        }
+      ]
     }
   }
 }
