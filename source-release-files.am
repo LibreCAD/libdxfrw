@@ -1155,6 +1155,7 @@ EXTRA_DIST = \
     tools/probe_pdf_underlay_rotation.cpp \
     tools/probe_polyline_cross_scope.cpp \
     tools/probe_polyline_cross_version.cpp \
+    tools/probe_public_abi_layout.cpp \
     tools/probe_r12_ellipse_wrap_consumer.cpp \
     tools/probe_rastervariables_ac1018_frame1_source.cpp \
     tools/probe_rastervariables_ac1018_source.cpp \

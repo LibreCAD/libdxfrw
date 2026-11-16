@@ -1,0 +1,6 @@
+{
+  "date": "2026-11-16",
+  "failure": "Hosted fast run 43876883762 at 0eeec30f failed the source-release inventory check because the newly tracked tools/probe_public_abi_layout.cpp was not listed in source-release-files.am or source-release-files.txt. The earlier local check ran before that file was staged and therefore did not see it.",
+  "repair": "Regenerate both source-release inventories after the probe is tracked. No code or support claims change.",
+  "validation": "generate_build_inventory.py --check and --self-test pass with 1278 released files and 18 negative controls. Hosted qualification must be rerun on the resulting commit."
+}
