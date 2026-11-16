@@ -8,7 +8,7 @@
     "A standalone C++17 -Werror adapter-callback harness on the tracked AC1024 title fixture reported the original graph refusal InvalidControlReceipt at control 0x10. With the verified edge it built a complete graph over the existing receipt model: 522 nodes and 1147 edges. A flipped hard-owner role caused the diagnostic graph to retain the original refusal.",
     "Across 3994 calibrated graph allocation sites, nine sampled failures were refused and each immediately retried successfully. These are sampled graph failures, not an exhaustive allocation proof. Existing control binding tests separately covered 90 verifier allocation offsets.",
     "The patch applies after the first 24 and the older bundled-codec metadata translation unit compiles with the feature excluded. Source-release inventory and 18 refusal controls pass with 1218 files and unchanged 722-input digest.",
-    "The installed-codec LibreCAD importer is rebuilding with a committed fixture assertion for the explicit control-to-dictionary edge and unverified-session refusal; its result remains pending."
+    "The installed-codec LibreCAD importer rebuilt and all three focused CTests passed (1.21 seconds). The title-fixture case passed 107 assertions, including the explicit control-to-dictionary edge, the unchanged baseline refusal and refusal after session invalidation."
   ],
   "limits": "Complete means complete under the existing modeled receipt graph, not complete knowledge of hidden raw-body references, independent source authenticity, full DWG semantics, safe export, native application acceptance, or a support claim. The new entry point is diagnostic and never called by the exporter."
 }

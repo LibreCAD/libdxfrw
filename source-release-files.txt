@@ -1045,6 +1045,7 @@ tools/geodata_mesh_physical_probe.py
 tools/geodata_mixed_text_probe.py
 tools/geodata_north_witness.py
 tools/geodata_physical_v3_probe.py
+tools/inspect_libredwg_inbound_candidates.py
 tools/j256_external_line_peer_probe.py
 tools/j260_shared_corpus_successor.py
 tools/j268_scratch_baseline.patch

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **612 completed implementation and qualification slices** and **32 remaining
+The plan records **613 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`612 / (612 + 32) = 95.0%`. The previous 28-package denominator was stale; a recount
+`613 / (613 + 32) = 95.0%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -207,8 +207,13 @@ A twenty-fifth unmerged patch adds a diagnostic-only graph path for the verified
 control edge. The title source now builds its modeled 522-node/1,147-edge
 receipt graph, while a mutated role still refuses
 ([graph receipt](docs/research/p8-librecad-selected-control-diagnostic-graph-2026-11-15.json)).
-Finish importer verification and assess hidden raw-body references before
-freezing membership and inbound references
+The LibreCAD importer test now passes. A reusable LibreDWG JSON census finds only
+the four expected dictionary candidate references, but four objects retain
+6,692 unknown bits and one XRECORD has binary data; absence of hidden inbound
+references remains unproven ([census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json)).
+Prefer preserving the named tables and their references where the writer can
+prove mapped block, dictionary and output closure; otherwise keep the strict
+refusal. Freeze membership and inbound references before any omission
 ([carrier receipt](docs/research/p8-librecad-title-block-source-receipts-2026-11-15.json),
 [verifier receipt](docs/research/p8-ac1024-dictionary-source-verifier-2026-11-15.json)). Stage
 only validated empty named-table omission, and prove remaining dictionary graph,
