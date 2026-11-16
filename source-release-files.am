@@ -87,6 +87,7 @@ EXTRA_DIST = \
     docs/patches/librecad3-p8-legacy-layer-lineweight-2026-11-16.patch \
     docs/patches/librecad3-p8-mleader-import-loss-2026-11-16.patch \
     docs/patches/librecad3-p8-mline-import-loss-2026-11-16.patch \
+    docs/patches/librecad3-p8-modeler-import-loss-2026-11-16.patch \
     docs/patches/librecad3-p8-mpolygon-offset-preservation-2026-11-15.patch \
     docs/patches/librecad3-p8-mpolygon-projection-warning-2026-11-15.patch \
     docs/patches/librecad3-p8-mpolygon-rotation-preservation-2026-11-15.patch \
