@@ -15,7 +15,7 @@
   "validation": {
     "focused": "Five focused FreeCAD importer tests pass on macOS ARM64, including new generated polyface/polygon controls with layers disabled and a headless Draft test double enabled. Matching-layer geometry and layer group membership are checked; mixed vertex or SEQEND layers are refused and following LINE retained. Existing bounded polyface, closed mesh and recovery tests pass.",
     "peerGenerated": "ezdxf 1.4.4 generated same-layer POLYFACE and polygon meshes import with areas 6 and 12 square millimetres, while mixed layers are refused.",
-    "nested": "ezdxf-generated nested block profiles in inches and millimetres match analytically computed outer-link vertices and areas after two rotations; no unsupported feature reported.",
+    "nested": "With layer preservation disabled, ezdxf-generated nested block profiles in inches and millimetres match analytically computed outer-link vertices and areas after two rotations; no unsupported feature reported. With layer preservation enabled, a later review found child layer membership was lost; apply the mandatory block-layer refusal correction.",
     "replay": "Zero-context patch applies with git apply --unidiff-zero after the six-patch baseline; source and test files match the tested candidate byte-for-byte.",
     "logs": [
       "/private/tmp/freecad-polyface-layer-20261116/tests-group2.log",
@@ -32,6 +32,7 @@
   "limits": [
     "Local sparse candidate and downstream patch remain unmerged; exact-string layer matching intentionally rejects differing case or mixed-layer records.",
     "Layer-group assertions use a headless Draft test double because this FreeCAD build lacks Python Qt bindings; real GUI, native Draft, Linux/Windows and visual appearance are not qualified.",
-    "Per-face styling, invisible edges, nonplanar faces, smoothing and other unsupported metadata remain refused. No generated drawing is committed, and no support claim or phase gate is promoted."
+    "Per-face styling, invisible edges, nonplanar faces, smoothing and other unsupported metadata remain refused. No generated drawing is committed, and no support claim or phase gate is promoted.",
+    "The initial shared-layer patch must be followed by freecad-p8-default-block-mesh-layer-refusal-2026-11-16.patch; do not use it alone for layer-preserving block imports."
   ]
 }
