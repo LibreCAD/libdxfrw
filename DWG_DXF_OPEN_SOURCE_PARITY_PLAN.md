@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **611 completed implementation and qualification slices** and **32 remaining
+The plan records **612 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`611 / (611 + 32) = 95.0%`. The previous 28-package denominator was stale; a recount
+`612 / (612 + 32) = 95.0%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -202,9 +202,12 @@ publication identity with mutation and failure/retry controls
 ([verifier receipt](docs/research/p8-ac1024-layer-control-source-verifier-2026-11-15.json)). The feature macro now lives in the evidence data header, so consumers see it consistently ([header receipt](docs/research/p8-layer-control-feature-header-consistency-2026-11-15.json)).
 A twenty-fourth unmerged consumer patch binds the selected control proof to the
 import session, publication, coverage and verified dictionary endpoint; its
-standalone role-mutation and failure/retry checks pass, while the importer build
-is running ([binding receipt](docs/research/p8-librecad-layer-control-source-binding-2026-11-15.json)).
-Use this proof for a source-graph extension edge and retest before
+standalone role-mutation and failure/retry checks and importer test pass ([binding receipt](docs/research/p8-librecad-layer-control-source-binding-2026-11-15.json)).
+A twenty-fifth unmerged patch adds a diagnostic-only graph path for the verified
+control edge. The title source now builds its modeled 522-node/1,147-edge
+receipt graph, while a mutated role still refuses
+([graph receipt](docs/research/p8-librecad-selected-control-diagnostic-graph-2026-11-15.json)).
+Finish importer verification and assess hidden raw-body references before
 freezing membership and inbound references
 ([carrier receipt](docs/research/p8-librecad-title-block-source-receipts-2026-11-15.json),
 [verifier receipt](docs/research/p8-ac1024-dictionary-source-verifier-2026-11-15.json)). Stage
