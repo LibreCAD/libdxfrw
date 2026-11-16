@@ -8085,6 +8085,11 @@ bool dxfRW::writeTextstyle(DRW_Textstyle *ent){
         m_writeError = true;
         return false;
     }
+    // R12 has no standalone font-family projection. Only the recognized ACAD
+    // font XDATA can carry a nondefault value through the legacy path.
+    if (version <= DRW::AC1009 && ent->fontFamily != 0
+        && dxfStyleFont::flags(ent->extData) == nullptr)
+        return failDxfWrite();
     RecordStateScope state(*this, static_cast<DRW_TableEntry*>(ent));
     DxfWriterRecordScope record(*writer);
     bool result = true;

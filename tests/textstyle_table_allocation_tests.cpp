@@ -195,6 +195,83 @@ bool allocationSweep(const std::filesystem::path& directory) {
     }
     return true;
 }
+
+class FontReader final : public LC3CompatCheck {
+public:
+    void addTextStyle(const DRW_Textstyle& value) override {
+        if (value.name == "STYLEFONT") styles.push_back(value);
+    }
+    std::vector<DRW_Textstyle> styles;
+};
+
+bool legacyFontProjectionGuard(const std::filesystem::path& directory) {
+    const auto path = directory / "style-font-legacy.dxf";
+    const std::string prior = "previous destination bytes\n";
+    for (const bool binary : {false, true}) {
+        dxfRW codec(path.string().c_str());
+        Export exporter(codec);
+        exporter.style.name = "STYLEFONT";
+        exporter.style.fontFamily = 50331682;
+        const DRW_Textstyle original(exporter.style);
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            output << prior;
+            if (!output) return false;
+        }
+        const bool wrote = codec.write(&exporter, DRW::AC1009, binary);
+        std::string current;
+        if (wrote || exporter.accepted
+            || !sameTextstyle(exporter.style, original, false)
+            || !readBytes(path, current) || current != prior) {
+            std::cerr << "STYLE font flags lost on R12 export: binary=" << binary << '\n';
+            return false;
+        }
+        if (!codec.write(&exporter, DRW::AC1015, binary) || !exporter.accepted
+            || !sameTextstyle(exporter.style, original, false))
+            return false;
+        FontReader modern; dxfRW modernReader(path.string().c_str());
+        if (!modernReader.read(&modern, false) || modern.styles.size() != 1u
+            || modern.styles.front().fontFamily != original.fontFamily)
+            return false;
+        exporter.style.fontFamily = 0;
+        if (!codec.write(&exporter, DRW::AC1009, binary) || !exporter.accepted)
+            return false;
+        FontReader plain; dxfRW plainReader(path.string().c_str());
+        if (!plainReader.read(&plain, false) || plain.styles.size() != 1u
+            || plain.styles.front().fontFamily != 0)
+            return false;
+        exporter.style.fontFamily = original.fontFamily;
+        exporter.style.extData.push_back(new DRW_Variant(1001, std::string("UNRELATED")));
+        exporter.style.extData.push_back(new DRW_Variant(1071, 42));
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            output << prior;
+            if (!output) return false;
+        }
+        if (codec.write(&exporter, DRW::AC1009, binary) || exporter.accepted
+            || exporter.style.fontFamily != original.fontFamily
+            || exporter.style.extData.size() != 2u
+            || exporter.style.extData[0]->code() != 1001
+            || *exporter.style.extData[0]->content.s != "UNRELATED"
+            || exporter.style.extData[1]->i_val() != 42
+            || !readBytes(path, current) || current != prior)
+            return false;
+        exporter.style = original;
+        exporter.style.extData.push_back(new DRW_Variant(1001, std::string("ACAD")));
+        exporter.style.extData.push_back(new DRW_Variant(1000, std::string("SampleFont")));
+        exporter.style.extData.push_back(new DRW_Variant(1071, 42));
+        if (!codec.write(&exporter, DRW::AC1009, binary) || !exporter.accepted
+            || exporter.style.extData.size() != 3u
+            || exporter.style.extData[2]->i_val() != 42)
+            return false;
+        FontReader metadata; dxfRW metadataReader(path.string().c_str());
+        if (!metadataReader.read(&metadata, false) || metadata.styles.size() != 1u
+            || metadata.styles.front().fontFamily != original.fontFamily)
+            return false;
+    }
+    return true;
+}
+
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -234,5 +311,5 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return allocationSweep(directory) ? 0 : 2;
+    return legacyFontProjectionGuard(directory) && allocationSweep(directory) ? 0 : 2;
 }
