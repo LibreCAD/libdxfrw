@@ -1,0 +1,216 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index aac8995..453a757 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -47,0 +48,2 @@ option(WITH_PERSISTENCE "Build dxf/dwg support" ON)
++option(LIBRECAD_USE_SYSTEM_LIBDXFRW
++    "Use an installed libdxfrw 3.x instead of the pinned codec" OFF)
+@@ -383,0 +386,7 @@ endif()
++# Resolve an optional installed codec before lckernel configures its build
++# version information. The default continues to use the pinned submodule.
++if(WITH_PERSISTENCE AND LIBRECAD_USE_SYSTEM_LIBDXFRW)
++    find_package(libdxfrw 3.0 CONFIG REQUIRED)
++    add_library(dxfrw ALIAS libdxfrw::libdxfrw)
++endif()
++
+@@ -394 +403 @@ add_subdirectory("lcscripting")
+-if(WITH_PERSISTENCE)
++if(WITH_PERSISTENCE AND NOT LIBRECAD_USE_SYSTEM_LIBDXFRW)
+@@ -406,3 +414,0 @@ if(WITH_PERSISTENCE)
+-    if(NOT MSVC)
+-        target_compile_options(dxfrw PRIVATE -Wno-error)
+-    endif()
+@@ -410,0 +417,2 @@ if(WITH_PERSISTENCE)
++endif()
++if(WITH_PERSISTENCE)
+@@ -620,5 +628,28 @@ if(APPLE AND WITH_PYTHONSCRIPT AND TARGET Python::Python)
+-            get_target_property(LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY
+-                dxfrw LIBRARY_OUTPUT_DIRECTORY)
+-            if(NOT LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY)
+-                set(LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY
+-                    "${CMAKE_BINARY_DIR}/third_party/libdxfrw")
++            if(LIBRECAD_USE_SYSTEM_LIBDXFRW)
++                get_target_property(_lc_dxfrw_configs dxfrw IMPORTED_CONFIGURATIONS)
++                foreach(_lc_dxfrw_config IN LISTS _lc_dxfrw_configs)
++                    string(TOUPPER "${_lc_dxfrw_config}" _lc_dxfrw_config_upper)
++                    get_target_property(_lc_dxfrw_location dxfrw
++                        "IMPORTED_LOCATION_${_lc_dxfrw_config_upper}")
++                    if(_lc_dxfrw_location AND EXISTS "${_lc_dxfrw_location}")
++                        get_filename_component(LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY
++                            "${_lc_dxfrw_location}" DIRECTORY)
++                        break()
++                    endif()
++                endforeach()
++                if(NOT LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY)
++                    get_target_property(_lc_dxfrw_location dxfrw IMPORTED_LOCATION)
++                    if(_lc_dxfrw_location AND EXISTS "${_lc_dxfrw_location}")
++                        get_filename_component(LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY
++                            "${_lc_dxfrw_location}" DIRECTORY)
++                    else()
++                        message(FATAL_ERROR "Cannot find installed libdxfrw runtime for staging")
++                    endif()
++                endif()
++            else()
++                get_target_property(LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY
++                    dxfrw LIBRARY_OUTPUT_DIRECTORY)
++                if(NOT LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY)
++                    set(LC_PYTHON_DEPENDENCY_SEARCH_DIRECTORY
++                        "${CMAKE_BINARY_DIR}/third_party/libdxfrw")
++                endif()
+diff --git a/README.md b/README.md
+index 7f3462b..e2d3aac 100644
+--- a/README.md
++++ b/README.md
+@@ -102,0 +103 @@ Common CMake options are:
++| `LIBRECAD_USE_SYSTEM_LIBDXFRW` | `OFF` | Link an installed libdxfrw 3.x package instead of building the pinned codec; rebuild LibreCAD_3 for the new ABI. |
+@@ -110,0 +112,4 @@ Common CMake options are:
++The installed-codec option requires the libdxfrw 3.x CMake package in
++`CMAKE_PREFIX_PATH`. Keep the pinned submodule checkout available for its
++source license and optional DWG test fixtures; it is not linked in this mode.
++
+diff --git a/lckernel/CMakeLists.txt b/lckernel/CMakeLists.txt
+index 5261566..ac5519b 100644
+--- a/lckernel/CMakeLists.txt
++++ b/lckernel/CMakeLists.txt
+@@ -280,0 +281,10 @@ endif()
++# Installed packages do not export a target VERSION property or a source Git
++# revision. Preserve the package version and do not label it as the submodule.
++if(WITH_PERSISTENCE AND LIBRECAD_USE_SYSTEM_LIBDXFRW)
++    set(_lc_dxfrw_build_version "${libdxfrw_VERSION}")
++    set(_lc_dxfrw_build_provider "system")
++else()
++    set(_lc_dxfrw_build_version "$<IF:$<TARGET_EXISTS:dxfrw>,$<TARGET_PROPERTY:dxfrw,VERSION>,>")
++    set(_lc_dxfrw_build_provider "bundled")
++endif()
++
+@@ -289 +299,2 @@ add_custom_command(
+-                "-DLIBDXFRW_BUILD_VERSION=$<IF:$<TARGET_EXISTS:dxfrw>,$<TARGET_PROPERTY:dxfrw,VERSION>,>"
++                "-DLIBDXFRW_BUILD_VERSION=${_lc_dxfrw_build_version}"
++                "-DLIBDXFRW_BUILD_PROVIDER=${_lc_dxfrw_build_provider}"
+diff --git a/lckernel/cmake/SetBuildInfo.cmake b/lckernel/cmake/SetBuildInfo.cmake
+index 2841709..2212e89 100644
+--- a/lckernel/cmake/SetBuildInfo.cmake
++++ b/lckernel/cmake/SetBuildInfo.cmake
+@@ -29,7 +29,23 @@ endif()
+-execute_process(
+-        COMMAND git rev-parse --short HEAD
+-        OUTPUT_VARIABLE LIBDXFRW_GIT_COMMIT
+-        OUTPUT_STRIP_TRAILING_WHITESPACE
+-        ERROR_QUIET
+-        WORKING_DIRECTORY ${DIR}/../third_party/libdxfrw
+-)
++if(NOT LIBDXFRW_BUILD_PROVIDER STREQUAL "system")
++    set(_dxfrw_source "${DIR}/../third_party/libdxfrw")
++    if(IS_DIRECTORY "${_dxfrw_source}")
++        execute_process(
++                COMMAND git rev-parse --show-toplevel
++                OUTPUT_VARIABLE _dxfrw_git_root
++                OUTPUT_STRIP_TRAILING_WHITESPACE
++                ERROR_QUIET
++                WORKING_DIRECTORY "${_dxfrw_source}")
++        if(_dxfrw_git_root)
++            file(REAL_PATH "${_dxfrw_source}" _dxfrw_source_real)
++            file(REAL_PATH "${_dxfrw_git_root}" _dxfrw_git_root_real)
++            if(_dxfrw_source_real STREQUAL _dxfrw_git_root_real)
++                execute_process(
++                        COMMAND git rev-parse --short HEAD
++                        OUTPUT_VARIABLE LIBDXFRW_GIT_COMMIT
++                        OUTPUT_STRIP_TRAILING_WHITESPACE
++                        ERROR_QUIET
++                        WORKING_DIRECTORY "${_dxfrw_source}")
++            endif()
++        endif()
++    endif()
++endif()
+diff --git a/persistence/file.h b/persistence/file.h
+index 318a244..3f3c207 100644
+--- a/persistence/file.h
++++ b/persistence/file.h
+@@ -102,3 +102,3 @@ public:
+-     *         the library refused -- or that the file exists without records
+-     *         this revision cannot carry. exportFile distinguishes the two and
+-     *         names what was left out.
++     *         the library refused -- or that the file exists with records or
++     *         fields omitted or converted for the target revision. exportFile
++     *         distinguishes the two and describes the loss.
+diff --git a/persistence/libdxfrw/dxfimpl.cpp b/persistence/libdxfrw/dxfimpl.cpp
+index 5284126..345e195 100644
+--- a/persistence/libdxfrw/dxfimpl.cpp
++++ b/persistence/libdxfrw/dxfimpl.cpp
+@@ -2347,0 +2348,3 @@ void DXFimpl::writeLTypes() {
++    // The library supplies canonical ByLayer/ByBlock rows with empty
++    // descriptions. Do not carry CONTINUOUS's description into those rows.
++    ltype.desc.clear();
+diff --git a/unittest/persistence/dxfroundtriptest.cpp b/unittest/persistence/dxfroundtriptest.cpp
+index 874764b..8eb84da 100644
+--- a/unittest/persistence/dxfroundtriptest.cpp
++++ b/unittest/persistence/dxfroundtriptest.cpp
+@@ -629 +629 @@ TEST(DxfRoundTripTest, EveryAdvertisedSaveTypeProducesAFile) {
+-        const bool saved = lc::persistence::File::save(doc, path, type);
++        const auto saved = lc::persistence::File::exportFile(doc, path, type);
+@@ -631 +631 @@ TEST(DxfRoundTripTest, EveryAdvertisedSaveTypeProducesAFile) {
+-        if (!saved) {
++        if (!saved.ok) {
+@@ -633,2 +633 @@ TEST(DxfRoundTripTest, EveryAdvertisedSaveTypeProducesAFile) {
+-            // drawing, R12 included.  A refusal must also leave nothing
+-            // behind, not a truncated file.
++            // drawing, R12 included. A write failure leaves no truncated file.
+@@ -641,0 +641,11 @@ TEST(DxfRoundTripTest, EveryAdvertisedSaveTypeProducesAFile) {
++        const bool legacy = type == lc::persistence::File::LIBDXFRW_DXF_R12
++            || type == lc::persistence::File::LIBDXFRW_DXF_R14
++            || type == lc::persistence::File::LIBDXFRW_DXB_R12
++            || type == lc::persistence::File::LIBDXFRW_DXB_R14;
++        EXPECT_TRUE(saved.loss.droppedByType.empty()) << advertised.second;
++        if (legacy) {
++            ASSERT_EQ(saved.loss.notes.size(), 1u) << advertised.second;
++            EXPECT_NE(saved.loss.notes.front().find("Layer lineweights"), std::string::npos);
++        } else {
++            EXPECT_TRUE(saved.loss.empty()) << advertised.second;
++        }
+@@ -1403,2 +1413,14 @@ TEST(DxfRoundTripTest, RoundTripIsStable) {
+-            ASSERT_TRUE(lc::persistence::File::save(carried, path, type))
+-                << name << " hop " << hop;
++            const auto saved = lc::persistence::File::exportFile(carried, path, type);
++            ASSERT_TRUE(saved.ok) << name << " hop " << hop;
++            EXPECT_TRUE(saved.loss.droppedByType.empty()) << name << " hop " << hop;
++            const bool legacy = type == lc::persistence::File::LIBDXFRW_DXF_R12
++                || type == lc::persistence::File::LIBDXFRW_DXF_R14
++                || type == lc::persistence::File::LIBDXFRW_DXB_R12
++                || type == lc::persistence::File::LIBDXFRW_DXB_R14;
++            if (legacy) {
++                ASSERT_EQ(saved.loss.notes.size(), 1u) << name << " hop " << hop;
++                EXPECT_NE(saved.loss.notes.front().find("Layer lineweights"), std::string::npos)
++                    << name << " hop " << hop;
++            } else {
++                EXPECT_TRUE(saved.loss.empty()) << name << " hop " << hop;
++            }
+@@ -3202,0 +3225,29 @@ TEST(DxfRoundTripTest, DrawingUnitsSurviveASave) {
++// The legacy bool API reports a lossy write as false even though it publishes
++// a file; exportFile is the API for distinguishing that case from failure.
++// NOLINTNEXTLINE(readability-identifier-naming)
++TEST(DxfRoundTripTest, LegacyLayerLossAndBoolSaveAreDistinguishable) {
++    auto doc = newDocument();
++    auto layer = std::make_shared<lc::meta::Layer>(
++        "A", lc::meta::MetaLineWidthByValue(0.25), lc::Color(255, 255, 255, 255));
++    std::make_shared<lc::operation::AddLayer>(doc, layer)->execute();
++    insertThroughBuilder(doc, {std::make_shared<lc::entity::Line>(
++        lc::geo::Coordinate(0, 0, 0), lc::geo::Coordinate(4, 3, 0), layer)});
++    const auto detailedPath = uniqueTmpDxf("layer-loss-detail");
++    const auto boolPath = uniqueTmpDxf("layer-loss-bool");
++    const auto result = lc::persistence::File::exportFile(
++        doc, detailedPath, lc::persistence::File::LIBDXFRW_DXF_R12);
++    ASSERT_TRUE(result.ok);
++    ASSERT_EQ(result.loss.notes.size(), 1u);
++    EXPECT_NE(result.loss.notes.front().find("Layer lineweights"), std::string::npos);
++    EXPECT_TRUE(result.loss.droppedByType.empty());
++    EXPECT_FALSE(lc::persistence::File::save(
++        doc, boolPath, lc::persistence::File::LIBDXFRW_DXF_R12));
++    ASSERT_TRUE(boost::filesystem::exists(boolPath));
++    auto reopened = newDocument();
++    ASSERT_TRUE(lc::persistence::File::importFile(
++        reopened, boolPath, lc::persistence::File::Library::LIBDXFRW).ok);
++    EXPECT_EQ(entitiesInDocument(reopened)["Line"], 1u);
++    boost::filesystem::remove(detailedPath);
++    boost::filesystem::remove(boolPath);
++}
++
