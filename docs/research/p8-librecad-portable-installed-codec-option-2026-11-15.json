@@ -8,7 +8,7 @@
   "validation": [
     "macOS ARM64: using the option, the full default application/helper build succeeded in the existing clean-source qualification build directory after reconfiguration from an earlier temporary overlay and a full rebuild of affected objects.",
     "The application link command names the staged static archive 719521dae87b5da63ab9bc2fb68cd2cfe70172ba30027d1f35a40428fc6e5224; the LibreCAD archive has none of the checked bundled drw_entities, drw_objects, drw_base, libdxfrw, libdwgr or dwgbuffer object members.",
-    "The installed-mode application converts the tracked AC1021 lineweights sample; it safely refuses the independently diagnosed AC1024 title-block sample for the R2010 output profile.",
+    "The installed-mode application converts the workspace-local AC1021 lineweights sample; it safely refuses the independently diagnosed AC1024 title-block sample for the R2010 output profile.",
     "The default bundled mode configures with BUILD_TESTS=ON; its focused LTYPE selector passes 17/17 and the five PR #3269 tests pass.",
     "System mode with BUILD_TESTS=ON refuses with the explicit test-internals diagnostic; a required package disabled at configuration also refuses. Forward/reverse patch checks pass on the ordered chain."
   ],

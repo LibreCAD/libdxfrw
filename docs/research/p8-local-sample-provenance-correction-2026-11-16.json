@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-16",
+  "scope": "Correct historical local-fixture provenance, without changing test observations or promoting claims.",
+  "repositoryHead": "93ede70e418b17fbc3fe2741ad61c23469c5c8cf",
+  "originMasterObserved": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+  "samples": [
+    {
+      "path": "tests/samples/AC1021/lineweights.dwg",
+      "sha256": "ad2656f141675aeda06ede347f8921516700b60a0f5ba17af042419be5397b4d",
+      "gitStatus": "untracked"
+    },
+    {
+      "path": "tests/samples/AC1024/title_block-iso.dwg",
+      "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+      "gitStatus": "untracked"
+    }
+  ],
+  "verification": "git status --short --ignored reports ?? for both; git ls-files reports neither. No source-repository provenance was established.",
+  "correctedReceipts": [
+    "docs/research/p8-ac1024-layer-control-source-verifier-2026-11-15.json",
+    "docs/research/p8-librecad-source-capture-session-2026-11-15.json",
+    "docs/research/p8-librecad-empty-sortents-source-correlation-2026-11-15.json",
+    "docs/research/p8-librecad-sortents-owner-chain-2026-11-15.json",
+    "docs/research/p8-dwg-block-preview-delivery-2026-11-15.json",
+    "docs/research/p8-ac1024-layer-control-source-capture-2026-11-15.json",
+    "docs/research/p8-librecad-portable-installed-codec-option-2026-11-15.json",
+    "docs/research/p8-librecad-installed-codec-helpers-2026-11-15.json",
+    "docs/research/p8-librecad-clean-bundled-full-patch-chain-tests-2026-11-15.json",
+    "docs/research/p8-librecad-selected-control-diagnostic-graph-2026-11-15.json",
+    "docs/research/p8-librecad-layer-control-source-binding-2026-11-15.json",
+    "docs/research/p8-librecad-empty-xrecord-dxf-output-2026-11-15.json",
+    "docs/research/p8-librecad-portable-installed-clean-build-2026-11-15.json"
+  ],
+  "limits": "These observations do not establish independent source provenance, reproducibility from a clean clone, native semantic support, or any phase or external gate. No drawing is added or committed."
+}

@@ -9,7 +9,7 @@
   "validation": [
     "Fresh configuration and full default build, including the application and standalone helpers, passed.",
     "The application link command names the staged upstream static archive. Inspection of liblibrecad_lib.a found no members named drw_entities, drw_objects, drw_base, libdxfrw, libdwgr or dwgbuffer.",
-    "The application converts the tracked AC1021 lineweights DWG headlessly to a nonempty DXF. It returns failure and creates no output for the tracked AC1024 title-block R2010 case, matching the separately documented representation gates."
+    "The application converts the workspace-local AC1021 lineweights DWG headlessly to a nonempty DXF. It returns failure and creates no output for the workspace-local AC1024 title-block R2010 case, matching the separately documented representation gates."
   ],
   "limits": "The downstream patch chain is unmerged. BUILD_TESTS=ON intentionally refuses in installed mode until private test dependencies are removed or safely supplied. This is one static macOS build and two narrow command-line controls, not GUI, shared linking, other-platform or semantic-parity qualification. Outputs remain scratch-only. No phase gate or support claim is promoted."
 }

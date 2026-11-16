@@ -2,7 +2,7 @@
   "date": "2026-11-15",
   "scope": "Opt-in provisional CRC-checked AC1024 LAYER_CONTROL source body when an extension dictionary is present.",
   "implementation": "A separate DRW_DwgAc1024LayerControlSourceHandler interface receives the bounded body and object-map identity after table-frame publication. It adds no virtual function to DRW_Interface and changes no existing public structure layout. The reader captures only for opt-in consumers, limits the frame to 4096 bytes, uses an independent buffer cursor, and discards capture on failure or table rollback without changing the ordinary read. The callback is provisional until the rest of the read and source coverage finish.",
-  "authority": "ODA Open Design Specification v5.4.1 section 20.4.53; LibreDWG 0.14 independently identifies the tracked title fixture control 0x10, xdictionary 0x107 and layer 0x4. No existing parseDwg body was changed.",
+  "authority": "ODA Open Design Specification v5.4.1 section 20.4.53; LibreDWG 0.14 independently identifies the workspace-local title fixture control 0x10, xdictionary 0x107 and layer 0x4. No existing parseDwg body was changed.",
   "validation": [
     "A focused CTest captures the existing title-block fixture and independently decodes its control handle stream: null soft-pointer owner, hard-owner dictionary 0x107 and soft-owner layer 0x4. It compares publication identity and requires finalized coverage.",
     "An AC1021 input produces no AC1024 control callback, an existing consumer without the separate optional interface still reads the source, and a handler-simulated allocation failure leaves the read successful and permits a fresh-reader retry. Reader-internal capture allocation failures are caught but were not individually injected in this slice.",

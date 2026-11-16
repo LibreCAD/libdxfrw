@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **642 completed implementation and qualification slices** and **32 remaining
+The plan records **643 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`642 / (642 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
+`643 / (643 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -26,6 +26,11 @@ correlation, not output or full-drawing qualification
 The disputed AC1021 LTYPE-control fixture and the remaining fast-test strategy
 are documented in the [source disagreement receipt](docs/research/p6-librecad-ordinary-ac1021-ltype-control-disagreement-2026-11-15.json)
 and [writer test index](docs/research/p6-dxf-public-writer-test-mention-index-2026-11-15.json).
+
+The AC1021 lineweights and AC1024 title-block drawings used in earlier local
+checks are workspace-local, untracked files; their upstream provenance is not
+established by those checks. Their hashes and corrected prior receipts are
+recorded in the [sample provenance correction](docs/research/p8-local-sample-provenance-correction-2026-11-16.json).
 
 ## Authority and completion gates
 
