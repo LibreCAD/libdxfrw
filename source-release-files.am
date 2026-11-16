@@ -39,6 +39,7 @@ EXTRA_DIST = \
     docs/patches/freecad-p8-default-closed-polygon-mesh-2026-11-15.patch \
     docs/patches/freecad-p8-default-open-polygon-mesh-2026-11-15.patch \
     docs/patches/freecad-p8-default-planar-3dface-2026-11-15.patch \
+    docs/patches/freecad-p8-default-shared-mesh-layer-2026-11-16.patch \
     docs/patches/freecad-p8-default-solid-ocs-2026-11-15.patch \
     docs/patches/freecad-p8-legacy-dxf-block-3dface-2026-11-15.patch \
     docs/patches/freecad-p8-legacy-dxf-surface-mesh-unit-scaling-2026-11-15.patch \

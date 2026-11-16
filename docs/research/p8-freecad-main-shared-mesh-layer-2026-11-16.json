@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-16",
+  "scope": "Unmerged seventh ordered FreeCAD default DXF importer patch: bounded POLYFACE and polygon meshes on a common nondefault layer.",
+  "base": "FreeCAD d956ec561639cfa83f755504b1b3358ea799428e with the six previous default-importer patches applied.",
+  "localSparseCandidateCommit": "11df7415e0b942c2c1ce7a9bb49a23b2611822da",
+  "patch": "docs/patches/freecad-p8-default-shared-mesh-layer-2026-11-16.patch",
+  "patchSha256": "896182ca2a2c765b19a279dfd3f7273e1198e4ce705b0e8b0ceb2ecd81ee97aa",
+  "change": "Accept a nonempty parent layer only when every vertex and any explicit SEQEND layer exactly match it; retain parent common attributes for the collector. Mixed layers remain refused without partial mesh output.",
+  "references": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-0741E831-599E-4CBF-91E1-8ADBCFD6556D.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-96B6288E-F413-46C0-968A-A314171C0AAE.htm"
+  ],
+  "baseline": "An independently ezdxf-generated POLYFACE with parent, vertices, face and SEQEND on MESH was refused by the previous candidate; following LINE was retained.",
+  "validation": {
+    "focused": "Five focused FreeCAD importer tests pass on macOS ARM64, including new generated polyface/polygon controls with layers disabled and a headless Draft test double enabled. Matching-layer geometry and layer group membership are checked; mixed vertex or SEQEND layers are refused and following LINE retained. Existing bounded polyface, closed mesh and recovery tests pass.",
+    "peerGenerated": "ezdxf 1.4.4 generated same-layer POLYFACE and polygon meshes import with areas 6 and 12 square millimetres, while mixed layers are refused.",
+    "nested": "ezdxf-generated nested block profiles in inches and millimetres match analytically computed outer-link vertices and areas after two rotations; no unsupported feature reported.",
+    "replay": "Zero-context patch applies with git apply --unidiff-zero after the six-patch baseline; source and test files match the tested candidate byte-for-byte.",
+    "logs": [
+      "/private/tmp/freecad-polyface-layer-20261116/tests-group2.log",
+      "/private/tmp/freecad-polyface-layer-20261116/probe3.log",
+      "/private/tmp/freecad-polyface-layer-20261116/nested.log"
+    ]
+  },
+  "scratchHashes": {
+    "same.dxf": "832ec820e43b8ac1fdb30dec70fc00d8fc03ed39970a5fa62d29e08af9f190c8",
+    "polygon.dxf": "7ca0f86203d3219936e568ee9e2b9885efd7dc357bb9a4e59022e37f60bc6dc6",
+    "nested-1.dxf": "8e5084d683a733bacf46a67993180d48ececdf8dd313af9c26529299a64ad135",
+    "nested-4.dxf": "ad5790850cdf2adf7654a2e01268dbd596a2e39bdd052cda701917127b3df3c2"
+  },
+  "limits": [
+    "Local sparse candidate and downstream patch remain unmerged; exact-string layer matching intentionally rejects differing case or mixed-layer records.",
+    "Layer-group assertions use a headless Draft test double because this FreeCAD build lacks Python Qt bindings; real GUI, native Draft, Linux/Windows and visual appearance are not qualified.",
+    "Per-face styling, invisible edges, nonplanar faces, smoothing and other unsupported metadata remain refused. No generated drawing is committed, and no support claim or phase gate is promoted."
+  ]
+}

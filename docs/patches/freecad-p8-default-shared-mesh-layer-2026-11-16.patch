@@ -1,0 +1,115 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+index d9efd8a..3545e7b 100644
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2420 +2420,2 @@ bool CDxfRead::ReadBoundedMesh(
+-    bool polygonMesh, int mCount, int nCount, bool closedM, bool closedN
++    const std::string& parentLayer, bool polygonMesh, int mCount, int nCount,
++    bool closedM, bool closedN
+@@ -2505 +2506 @@ bool CDxfRead::ReadBoundedMesh(
+-        if (layer != "0" || (ownerSeen && (canonicalOwner.empty()
++        if (layer != parentLayer || (ownerSeen && (canonicalOwner.empty()
+@@ -2560 +2561 @@ bool CDxfRead::ReadBoundedMesh(
+-                    if (seqendLayerSeen || m_record_data != "0") profileValid = false;
++                    if (seqendLayerSeen || m_record_data != parentLayer) profileValid = false;
+@@ -2702 +2703 @@ bool CDxfRead::ReadPolyLine()
+-    polyfaceProfile = polyfaceProfile && polyfaceLayer == "0";
++    polyfaceProfile = polyfaceProfile && !polyfaceLayer.empty();
+@@ -2719 +2720 @@ bool CDxfRead::ReadPolyLine()
+-        return ReadBoundedMesh(valid, parentHandle, containerHandle, polygonMesh, mCount, nCount,
++        return ReadBoundedMesh(valid, parentHandle, containerHandle, polyfaceLayer, polygonMesh, mCount, nCount,
+diff --git a/src/Mod/Import/App/dxf/dxf.h b/src/Mod/Import/App/dxf/dxf.h
+index 7312a2e..b8b5d96 100644
+--- a/src/Mod/Import/App/dxf/dxf.h
++++ b/src/Mod/Import/App/dxf/dxf.h
+@@ -663 +663,2 @@ private:
+-        bool polygonMesh, int mCount, int nCount, bool closedM, bool closedN
++        const std::string& parentLayer, bool polygonMesh, int mCount, int nCount,
++        bool closedM, bool closedN
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index 924a9cf..053cf24 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -616,0 +617,82 @@ class TestImportDXF(TestImportBase):
++
++    def test_bounded_mesh_common_nondefault_layer(self):
++        """Retain a common mesh layer and reject mixed child layers."""
++        import sys
++        import types
++
++        # This headless double supplies only the Draft layer object contract.
++        # Actual Draft/GUI behavior is covered separately by native tests.
++        draft = types.ModuleType("Draft")
++        layer_objects = {}
++        def make_layer(name, *args):
++            layer = self.document.addObject("App::FeaturePython", "TestLayer")
++            layer.Label = name
++            layer.addProperty("App::PropertyLinkListHidden", "Group")
++            layer_objects[name] = layer
++            return layer
++        draft.make_layer = make_layer
++        old_draft = sys.modules.get("Draft")
++        sys.modules["Draft"] = draft
++        try:
++            modes = (False,) if FreeCAD.GuiUp else (False, True)
++            for polygon, variant in ((False, "same"), (True, "same"),
++                                     (False, "vertex_other"), (False, "seqend_other"),
++                                     (False, "zero_child")):
++                for preserve in modes:
++                    with self.subTest(polygon=polygon, variant=variant, preserve=preserve):
++                        options = FreeCAD.ParamGet(self.option_source)
++                        options.SetBool("dxfUseDraftVisGroups", preserve)
++                        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"),
++                                (1, "AC1021"), (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
++                                (0, "SECTION"), (2, "TABLES"), (0, "TABLE"), (2, "LAYER"), (70, 3)]
++                        for layer in ("0", "MESH", "OTHER"):
++                            tags.extend([(0, "LAYER"), (2, layer), (70, 0), (62, 1), (6, "CONTINUOUS")])
++                        tags.extend([(0, "ENDTAB"), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES"),
++                                     (0, "POLYLINE"), (5, "A"), (8, "MESH"), (66, 1),
++                                     (70, 16 if polygon else 64)])
++                        coords = [(0, 0, 0), (0, 3, 0), (4, 0, 0), (4, 3, 0)]
++                        if polygon:
++                            tags.extend([(71, 2), (72, 2)])
++                        else:
++                            coords = coords[:3]
++                        for index, (x, y, z) in enumerate(coords):
++                            layer = "0" if variant == "zero_child" and index == 0 else "MESH"
++                            tags.extend([(0, "VERTEX"), (8, layer), (10, x), (20, y), (30, z),
++                                         (70, 64 if polygon else 192)])
++                        if not polygon:
++                            layer = "OTHER" if variant == "vertex_other" else "MESH"
++                            tags.extend([(0, "VERTEX"), (8, layer), (10, 0), (20, 0), (30, 0),
++                                         (70, 128), (71, 1), (72, 2), (73, 3)])
++                        tags.extend([(0, "SEQEND"), (8, "OTHER" if variant == "seqend_other" else "MESH"),
++                                     (0, "LINE"), (8, "0"), (10, 10), (20, 0), (30, 0),
++                                     (11, 12), (21, 0), (31, 0), (0, "ENDSEC"), (0, "EOF")])
++                        path = os.path.join(self.temp_dir, f"mesh-layer-{polygon}-{variant}-{preserve}.dxf")
++                        with open(path, "w", encoding="ascii", newline="\n") as stream:
++                            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                        previous = set(self.document.Objects)
++                        layer_objects.clear()
++                        stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                        objects = [obj for obj in self.document.Objects if obj not in previous
++                                   and obj.isDerivedFrom("Part::Feature")]
++                        meshes = [obj for obj in objects if obj.Name.startswith("PolygonMesh" if polygon else "Polyface")]
++                        lines = [obj for obj in objects if obj.Name.startswith("Shape")]
++                        self.assertEqual(len(lines), 1)
++                        self.assertEqual(len(meshes), int(variant == "same"))
++                        if variant == "same":
++                            self.assertEqual(stats["unsupportedFeatures"], {})
++                            self.assertEqual(len(meshes[0].Shape.Faces), 1)
++                            self.assertAlmostEqual(meshes[0].Shape.Area, 12.0 if polygon else 6.0)
++                            if preserve:
++                                self.assertEqual(meshes[0].OriginalLayer, "MESH")
++                                self.assertEqual(lines[0].OriginalLayer, "0")
++                                self.assertIn("MESH", layer_objects)
++                                self.assertIn("0", layer_objects)
++                                self.assertIn(meshes[0], layer_objects["MESH"].Group)
++                                self.assertIn(lines[0], layer_objects["0"].Group)
++                        else:
++                            self.assertIn("POLYFACE unsupported or invalid profile", stats["unsupportedFeatures"])
++        finally:
++            if old_draft is None:
++                del sys.modules["Draft"]
++            else:
++                sys.modules["Draft"] = old_draft
