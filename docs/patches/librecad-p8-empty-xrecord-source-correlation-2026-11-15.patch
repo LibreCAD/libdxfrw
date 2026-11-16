@@ -1,0 +1,257 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index 2b9fc6e..e3668b9 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -3656,6 +3656,55 @@ public:
+ #endif
+ #endif
+ 
++#if defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++  // Frozen typed source observation; never sufficient to authorize output.
++  void observeEmptyXRecordSource(const DRW_XRecord &record) noexcept {
++    noteSelectedSourceCallback();
++    constexpr std::size_t maxRecords = 100000u;
++    constexpr std::size_t maxBytes = 32u * 1024u * 1024u;
++    if (m_emptyXRecordSourceCaptureFailed)
++      return;
++    if (record.tType != DRW::XRECORD || !record.name.empty() || record.flags != 0
++        || record.m_cloning != 0 || !record.m_values.empty()
++        || !record.m_handleValues.empty() || !record.m_dataEntries.empty()
++        || record.m_rawDataValid || !record.m_rawData.empty()
++        || record.hasDwgRawDataSourceRecord() || !record.appData.empty()
++        || !record.extData.empty() || !record.pendingAppIdResolutions.empty()
++        || !record.pendingLayerRefResolutions.empty() || record.reactorCount() != 0
++        || !record.reactorHandles.empty() || record.extensionDictionaryFlag() != 1u
++        || record.xDictHandle != 0u || record.hasDataStorageBinaryData()
++        || !record.hasDwgCommonLinkTail() || record.parentHandle == 0u
++        || record.parentHandle == DRW::NoHandle)
++      return;
++    const auto reject = [this]() noexcept {
++      m_emptyXRecordSources.clear();
++      m_emptyXRecordSourceCaptureFailed = true;
++    };
++    if (record.handle == 0u || record.handle == DRW::NoHandle
++        || m_emptyXRecordSources.size() >= maxRecords
++        || m_emptyXRecordSources.size() >= maxBytes / sizeof(DRW_XRecord)) {
++      reject();
++      return;
++    }
++    try {
++      if (!m_emptyXRecordSources.emplace(record.handle, record).second)
++        reject();
++    } catch (...) {
++      reject();
++    }
++  }
++  const std::map<std::uint32_t, DRW_XRecord> &
++  emptyXRecordSourceObservations() const noexcept { return m_emptyXRecordSources; }
++  bool emptyXRecordSourceCaptureFailed() const noexcept {
++    return m_emptyXRecordSourceCaptureFailed;
++  }
++  bool matchesAc1024EmptyXRecordSourceObservation(std::uint32_t handle) const noexcept;
++#ifdef LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY
++  bool matchesSelectedAc1024EmptyXRecordDictionary(std::uint32_t dictionary,
++      const std::string &entryName, std::uint32_t xrecord) const noexcept;
++#endif
++#endif
++
+ #if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
+   // One optional, bounded source body; it is not export authority.
+   void observeAc1024LayerControlSource(
+@@ -3697,6 +3746,10 @@ public:
+     m_selectedSourceCaptureOpen = false;
+     m_selectedSourceCaptureSealed = false;
+ #endif
++#if defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++    m_emptyXRecordSources.clear();
++    m_emptyXRecordSourceCaptureFailed = false;
++#endif
+ #ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
+     m_sortEntsSources.clear();
+     m_sortEntsSourceBytes = 0u;
+@@ -5825,6 +5878,9 @@ public:
+   }
+ 
+   void addXRecord(const DRW_XRecord &xrecord) {
++#if defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++    observeEmptyXRecordSource(xrecord);
++#endif
+     XRecordRecord record;
+     record.handle = xrecord.handle;
+     record.parentHandle = xrecord.parentHandle;
+@@ -13719,6 +13775,9 @@ private:
+ #ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
+     complete = complete && !m_sortEntsSourceCaptureFailed;
+ #endif
++#if defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++    complete = complete && !m_emptyXRecordSourceCaptureFailed;
++#endif
+ #if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
+     complete = complete && !m_layerControlSourceCaptureFailed;
+ #endif
+@@ -13728,6 +13787,10 @@ private:
+   bool m_selectedSourceCaptureOpen = false;
+   bool m_selectedSourceCaptureSealed = false;
+ #endif
++#if defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++  std::map<std::uint32_t, DRW_XRecord> m_emptyXRecordSources;
++  bool m_emptyXRecordSourceCaptureFailed = false;
++#endif
+ #if defined(LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
+   std::optional<DRW_DwgAc1024LayerControlSource> m_layerControlSource;
+   bool m_layerControlSourceCaptureFailed = false;
+diff --git a/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp b/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
+index c5dacef..0a197ed 100644
+--- a/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
++++ b/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
+@@ -107,6 +107,88 @@ bool LC_DwgAdvancedMetadata::matchesAc1024DictionarySourceObservation(
+ }
+ #endif
+ 
++#if defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++bool LC_DwgAdvancedMetadata::matchesAc1024EmptyXRecordSourceObservation(
++    std::uint32_t handle) const noexcept {
++  // Selected source correlation only: this does not authorize any output.
++  if (m_sourceDwgVersion != DRW::AC1024 || !m_dwgFramePublicationCoverageComplete
++      || !m_dwgFramePublicationConflicts.empty() || m_emptyXRecordSourceCaptureFailed)
++    return false;
++  const auto snapshotIt = m_emptyXRecordSources.find(handle);
++  if (snapshotIt == m_emptyXRecordSources.end())
++    return false;
++  const auto &snapshot = snapshotIt->second;
++  const XRecordRecord *current = nullptr;
++  const RawObjectRecord *raw = nullptr;
++  const DRW_DwgFramePublication *publication = nullptr;
++  const DRW_DwgFrameCoverageEntry *coverage = nullptr;
++  for (const auto &item : m_xrecords)
++    if (item.handle == handle) { if (current) return false; current = &item; }
++  for (const auto &item : m_rawObjects)
++    if (item.handle == handle) { if (raw) return false; raw = &item; }
++  for (const auto &item : m_dwgFramePublications)
++    if (item.m_handle == handle) { if (publication) return false; publication = &item; }
++  for (const auto &item : m_dwgFrameCoverageReport.m_entries)
++    if (item.m_handle == handle) { if (coverage) return false; coverage = &item; }
++  if (!current || !raw || !publication || !coverage
++      || coverage->m_sourceOffset != publication->m_sourceOffset
++      || coverage->m_sourceMapOrdinal != publication->m_sourceMapOrdinal
++      || coverage->m_sourceOffsetSpace != publication->m_sourceOffsetSpace
++      || coverage->m_disposition != DRW_DwgFrameDisposition::Published
++      || coverage->m_publicationCount != 1u || raw->rawBytes.empty()
++      || raw->rawBytes.size() > 4096u || !raw->commonHandleDataValidated
++      || current->replayState != ReplayState::ReplayAllowed
++      || raw->replayState != ReplayState::ReplayAllowed
++      || current->handle != snapshot.handle || current->parentHandle != snapshot.parentHandle
++      || current->cloning != snapshot.m_cloning || !current->values.empty()
++      || !current->handleValues.empty() || !current->dataEntries.empty()
++      || current->rawDataValid || !current->rawData.empty()
++      || !current->appData.empty() || !current->extData.empty()
++      || current->reactorHandles != snapshot.reactorHandles
++      || current->xDictHandle != snapshot.xDictHandle
++      || current->numReactors != snapshot.reactorCount()
++      || current->xDictFlag != snapshot.extensionDictionaryFlag()
++      || current->hasDsData != snapshot.hasDataStorageBinaryData())
++    return false;
++  try {
++    const auto source = sourceObject(*raw);
++    return snapshot.matchesAc1024EmptyDwgFrame(source, *publication);
++  } catch (...) {
++    return false;
++  }
++}
++
++bool LC_DwgAdvancedMetadata::matchesSelectedAc1024EmptyXRecordDictionary(
++    std::uint32_t dictionaryHandle, const std::string &entryName,
++    std::uint32_t xrecordHandle) const noexcept {
++  // An imported source relationship, not graph closure or permission to write.
++  if (!m_selectedSourceCaptureSealed || entryName.empty()
++      || dictionaryHandle == 0u || dictionaryHandle == DRW::NoHandle
++      || xrecordHandle == 0u || xrecordHandle == DRW::NoHandle
++      || dictionaryHandle == xrecordHandle
++      || !matchesAc1024DictionarySourceObservation(dictionaryHandle)
++      || !matchesAc1024EmptyXRecordSourceObservation(xrecordHandle))
++    return false;
++  const DictionaryRecord *dictionary = nullptr;
++  const XRecordRecord *xrecord = nullptr;
++  for (const auto &item : m_dictionaries)
++    if (item.handle == dictionaryHandle) { if (dictionary) return false; dictionary = &item; }
++  for (const auto &item : m_xrecords)
++    if (item.handle == xrecordHandle) { if (xrecord) return false; xrecord = &item; }
++  if (!dictionary || !xrecord || xrecord->parentHandle != dictionaryHandle)
++    return false;
++  std::size_t matches = 0u;
++  for (const auto &entry : dictionary->entries) {
++    if (entry.name == entryName || entry.handle == xrecordHandle) {
++      if (entry.name != entryName || entry.handle != xrecordHandle)
++        return false;
++      ++matches;
++    }
++  }
++  return matches == 1u;
++}
++#endif
++
+ #ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
+ bool LC_DwgAdvancedMetadata::matchesAc1024EmptySortEntsSourceObservation(
+     std::uint32_t handle) const noexcept {
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 344aa01..7ade964 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9748,6 +9748,57 @@ TEST_CASE("ODA generated empty sort table without reactors retains source chain"
+ }
+ #endif
+ 
++#if defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
++TEST_CASE("ODA generated empty XRECORD retains selected dictionary source",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_ODA_GENERATED_SORTENTS_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_ODA_GENERATED_SORTENTS_FIXTURE to a locally generated ODA AC1024 DWG");
++  REQUIRE(std::filesystem::exists(fixture));
++  ensureSettings(); RS_Graphic graphic; RS_FilterDXFRW reader;
++  REQUIRE(reader.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  auto &md = graphic.dwgAdvancedMetadata();
++  REQUIRE(md.selectedDwgSourceCaptureSessionSealed());
++  REQUIRE_FALSE(md.emptyXRecordSourceCaptureFailed());
++  REQUIRE(md.emptyXRecordSourceObservations().count(0xB200u) == 1u);
++  REQUIRE(md.matchesAc1024EmptyXRecordSourceObservation(0xB200u));
++  REQUIRE(md.matchesSelectedAc1024EmptyXRecordDictionary(0xB003u, "OTHER", 0xB200u));
++  CHECK_FALSE(md.matchesSelectedAc1024EmptyXRecordDictionary(0xB003u, "ACAD_SORTENTS", 0xB200u));
++  CHECK_FALSE(md.matchesSelectedAc1024EmptyXRecordDictionary(0xB004u, "OTHER", 0xB200u));
++  auto &dictionaries = const_cast<std::vector<LC_DwgAdvancedMetadata::DictionaryRecord>&>(md.dictionaries());
++  const auto dictionary = std::find_if(dictionaries.begin(), dictionaries.end(), [](const auto &d) { return d.handle == 0xB003u; });
++  REQUIRE(dictionary != dictionaries.end());
++  const auto entry = std::find_if(dictionary->entries.begin(), dictionary->entries.end(), [](const auto &e) { return e.name == "OTHER"; });
++  REQUIRE(entry != dictionary->entries.end());
++  entry->handle ^= 1u;
++  CHECK_FALSE(md.matchesSelectedAc1024EmptyXRecordDictionary(0xB003u, "OTHER", 0xB200u));
++  entry->handle ^= 1u;
++  CHECK(md.matchesSelectedAc1024EmptyXRecordDictionary(0xB003u, "OTHER", 0xB200u));
++  auto &records = const_cast<std::vector<LC_DwgAdvancedMetadata::XRecordRecord>&>(md.xrecords());
++  const auto it = std::find_if(records.begin(), records.end(), [](const auto &x) { return x.handle == 0xB200u; });
++  REQUIRE(it != records.end());
++  it->cloning = 1;
++  CHECK_FALSE(md.matchesAc1024EmptyXRecordSourceObservation(0xB200u));
++  it->cloning = 0;
++  CHECK(md.matchesSelectedAc1024EmptyXRecordDictionary(0xB003u, "OTHER", 0xB200u));
++  auto &raws = const_cast<std::vector<LC_DwgAdvancedMetadata::RawObjectRecord>&>(md.rawObjects());
++  const auto raw = std::find_if(raws.begin(), raws.end(), [](const auto &x) { return x.handle == 0xB200u; });
++  REQUIRE(raw != raws.end()); REQUIRE_FALSE(raw->rawBytes.empty());
++  raw->rawBytes.back() ^= 0x10u;
++  CHECK_FALSE(md.matchesSelectedAc1024EmptyXRecordDictionary(0xB003u, "OTHER", 0xB200u));
++  raw->rawBytes.back() ^= 0x10u;
++  CHECK(md.matchesSelectedAc1024EmptyXRecordDictionary(0xB003u, "OTHER", 0xB200u));
++  const auto duplicate = md.emptyXRecordSourceObservations().at(0xB200u);
++  md.observeEmptyXRecordSource(duplicate);
++  CHECK(md.emptyXRecordSourceCaptureFailed());
++  CHECK_FALSE(md.selectedDwgSourceCaptureSessionSealed());
++  CHECK_FALSE(md.matchesSelectedAc1024EmptyXRecordDictionary(0xB003u, "OTHER", 0xB200u));
++  md.clear();
++  REQUIRE(reader.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  CHECK(md.matchesSelectedAc1024EmptyXRecordDictionary(0xB003u, "OTHER", 0xB200u));
++}
++#endif
++
+ #if defined(LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS) && defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY)
+ TEST_CASE("Explicit named block sort export preserves verified source chain",
+           "[dwg][roundtrip][sortentssource][source]") {

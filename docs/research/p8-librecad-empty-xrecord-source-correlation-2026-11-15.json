@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-empty-xrecord-source-correlation-2026-11-15.patch",
+  "patchSha256": "d30d130ea7fb4bef990c8c7190dab93b47fec4f737bf9b241e6716141d2f2fa5",
+  "implementation": "The twenty-eighth unmerged LibreCAD patch captures bounded immutable empty XRECORD typed observations, latches duplicate/allocation failure, includes the capture in the selected import-session seal, and correlates a unique live XRECORD, raw frame, publication, coverage entry and verified owning dictionary membership. It does not enable XRECORD output.",
+  "validation": [
+    "A standalone installed-codec consumer matched the locally authored ODA AC1024 source dictionary B003 / OTHER / XRECORD B200 relationship. All 112 calibrated allocation failures refused and each immediately retried successfully; a capture allocation failure latched, cleared and retried. Duplicate capture invalidated the source session.",
+    "The actual LibreCAD importer test passed 21 assertions covering the sealed source, wrong dictionary/name, changed dictionary entry, changed XRECORD and wire owner, duplicate invalidation and same-filter reimport. All three installed-codec focused CTests passed.",
+    "The patch applies after the prior 27 patches and the macro-excluded older bundled-codec filter compile check passes. Source-release inventory passes with 1224 files and 18 refusal controls; the 724-input implementation digest remains 64a2959853ace89b7d87ce130bdedda8c2a6f64aaec1cb203295dfe1b3220d83."
+  ],
+  "limits": "Only the selected source relationship of one locally generated ODA file is observed. The session seal covers selected callbacks, not all possible live edits; graph closure, empty-XRECORD output, native CAD acceptance, title-block data and broader support claims remain open. No drawing fixture is committed."
+}

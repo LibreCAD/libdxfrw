@@ -51,6 +51,7 @@ EXTRA_DIST = \
     docs/patches/librecad-p8-dictionary-source-observation-2026-11-15.patch \
     docs/patches/librecad-p8-dimassoc-field-mapping-2026-11-15.patch \
     docs/patches/librecad-p8-empty-sortents-source-correlation-2026-11-15.patch \
+    docs/patches/librecad-p8-empty-xrecord-source-correlation-2026-11-15.patch \
     docs/patches/librecad-p8-experimental-named-sortents-optin-2026-11-15.patch \
     docs/patches/librecad-p8-installed-codec-cmake-option-2026-11-15.patch \
     docs/patches/librecad-p8-installed-codec-helper-compat-2026-11-15.patch \
