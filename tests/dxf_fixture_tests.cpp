@@ -20540,17 +20540,18 @@ void testPlotCustomDpiAdmission(TestContext& t) {
         }
 
         void writeObjects() override {
-            // Make the record reachable through a defined named dictionary.
-            // Reserving only the owner leaves the leaf reservation/allocation
-            // itself observable at the typed writer's admission boundary.
+            // A source-identified leaf can be linked through the dictionary.
+            // An anonymous leaf has no known target until it has been emitted;
+            // leave it unlinked instead of guessing from the high-water mark.
             if (!dxfW->reserveHandle(0x900u))
                 return;
-            emittedHandle = inputHandle != 0 ? inputHandle : dxfW->highWaterHandle();
+            emittedHandle = inputHandle;
             DRW_Dictionary dictionary;
             dictionary.handle = 0x900u;
             dictionary.parentHandle = 0xCu;
             dictionary.hardOwner = 1;
-            dictionary.m_entries.push_back({"DPI_CONTROL", emittedHandle});
+            if (inputHandle != 0u)
+                dictionary.m_entries.push_back({"DPI_CONTROL", emittedHandle});
             dictionaryWritten = dxfW->writeDictionary(&dictionary);
             before = dxfW->highWaterHandle();
             objectWritten = layoutObject ? dxfW->writeLayout(&layout)
@@ -20672,6 +20673,16 @@ void testPlotCustomDpiAdmission(TestContext& t) {
                             // Custom minimum on inactive metadata.
                             const int wireDpi = binary && expectedDpi == 32768 ? -32768 : expectedDpi;
                             if (record != records.end()) {
+                                if (handle == 0u) {
+                                    try {
+                                        adapter.emittedHandle = static_cast<std::uint32_t>(
+                                            std::stoul(groupValue(record->groups, 5), nullptr, 16));
+                                    } catch (const std::exception&) {
+                                        adapter.emittedHandle = 0u;
+                                    }
+                                    t.expect(adapter.emittedHandle != 0u,
+                                             "anonymous plot output has an emitted handle");
+                                }
                                 t.expect(emitted
                                     ? groupValue(record->groups, 77) == std::to_string(resolution)
                                         && groupValue(record->groups, 78) == std::to_string(wireDpi)
@@ -20708,9 +20719,10 @@ void testPlotCustomDpiAdmission(TestContext& t) {
                             const auto owner = std::find_if(reader.dictionaries.begin(), reader.dictionaries.end(),
                                 [](const auto& value) { return value.handle == 0x900u; });
                             t.expect(owner != reader.dictionaries.end() && owner->parentHandle == 0xCu
-                                         && owner->m_entries.size() == 1
-                                         && owner->m_entries.front().m_handle == adapter.emittedHandle,
-                                     "plot DPI control has a defined root-owned dictionary edge");
+                                         && (handle == 0u ? owner->m_entries.empty()
+                                             : owner->m_entries.size() == 1
+                                                 && owner->m_entries.front().m_handle == adapter.emittedHandle),
+                                     "plot DPI control keeps its defined dictionary and known edge");
                             t.expect(decoded.mBlock->ent.size() == 2
                                          && decoded.mBlock->ent.back()->eType == DRW::LINE
                                          && static_cast<const DRW_Line*>(decoded.mBlock->ent.back())->basePoint.x == 34,
@@ -63462,10 +63474,10 @@ void testInsertChildHandleRollback(TestContext& t) {
                         second->appData.front().push_back(DRW_Variant(102, std::string("}")));
                     t.expect(codec.write(&adapter, version, binary),
                              "same INSERT writer succeeds after correcting only the late child error");
-                    t.expect(insert->attlist == children && insert->handle != 0xA100u
-                                 && first->handle != 0xA101u && second->handle != 0xA102u
+                    t.expect(insert->attlist == children && insert->handle == 0xA100u
+                                 && first->handle == 0xA101u && second->handle == 0xA102u
                                  && marker(*first) == "first-xdata" && marker(*second) == "second-xdata",
-                             "successful INSERT retains minted-child assignment and caller metadata");
+                             "successful INSERT preserves caller source handles and metadata");
                     adapter.dxfW = nullptr;
                     dx_data decoded;
                     dx_iface reader;
@@ -63479,6 +63491,8 @@ void testInsertChildHandleRollback(TestContext& t) {
                                  && marker(*decoded.mBlock->ent.back()) == "next-xdata",
                              "INSERT retry retains parent, child count and following record boundaries");
                     if (!readInsert) continue;
+                    t.expect(readInsert->handle == codec.remapEntityHandle(0xA100u),
+                             "INSERT readback handle matches the emitted source mapping");
                     for (std::size_t index = 0; index < readInsert->attlist.size(); ++index) {
                         const auto& child = readInsert->attlist[index];
                         const bool last = index + 1u == readInsert->attlist.size();
@@ -63488,6 +63502,9 @@ void testInsertChildHandleRollback(TestContext& t) {
                                      && child->extData.back()->i_val() == -7
                                      && child->appData.size() == 1u,
                                  "INSERT retry preserves ordered child owners and distinct metadata");
+                        if (!alias && child)
+                            t.expect(child->handle == codec.remapEntityHandle(last ? 0xA102u : 0xA101u),
+                                     "ATTRIB readback handle matches the emitted source mapping");
                     }
                     // Repeated pointers are rollback robustness controls,
                     // not a valid-source graph qualification denominator.
@@ -65477,7 +65494,9 @@ void testDxfConsumerFinalization(TestContext& t) {
                 prefix.parentHandle = unresolvedOwner ? 0xDEADu : 0;
                 prefix.secPoint = {1, 2, 3};
                 prefixResult = dxfW->writeLine(&prefix);
-                prefixHandle = prefix.handle;
+                test.expect(prefix.handle == 0xB100u,
+                            "successful prefix retains its caller source handle");
+                prefixHandle = dxfW->remapEntityHandle(0xB100u);
             }
             prefixExpired = true;
             if (earlyFailure)
@@ -67612,6 +67631,11 @@ bool runTemporary() {
 }
 
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--plot-custom-dpi-admission") {
+        TestContext context;
+        testPlotCustomDpiAdmission(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--dynamic-table-capacity-matrix") {
         TestContext context;
         testDynamicTableCapacityMatrix(context);

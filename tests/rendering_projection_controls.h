@@ -179,12 +179,15 @@ Tags completePreset(unsigned kind,unsigned variant) {
 }
 struct Writer : dx_iface {
     dx_data data;dxfRW& output;DRW_RenderSettings value;bool wrote=false;
-    Writer(dxfRW& target,const DRW_RenderSettings& model):output(target),value(model){cData=&data;currentBlock=data.mBlock;}
+    Writer(dxfRW& target,const DRW_RenderSettings& model):output(target),value(model){dxfW=&target;cData=&data;currentBlock=data.mBlock;}
     void writeHeader(DRW_Header& h)override{h.vars.clear();}
     void writeBlocks()override{}void writeBlockRecords()override{}void writeEntities()override{}
     void writeLTypes()override{}void writeLayers()override{}void writeTextstyles()override{}
     void writeVports()override{}void writeDimstyles()override{}void writeAppId()override{}
     void writeObjects()override{wrote=output.writeRenderSettings(&value,value.m_kind==DRW_RenderSettings::RapidRT?"RAPIDRTRENDERSETTINGS":"MENTALRAYRENDERSETTINGS");}
+    // This control exercises the direct record writer, not dx_iface's
+    // whole-document export transaction and its graph-finalization gates.
+    bool finalizeDxfWrite() override { return true; }
 };
 bool sameProjection(const DRW_RenderSettings& a,const DRW_RenderSettings& b) {
     return a.m_kind==b.m_kind&&a.m_classVersion==b.m_classVersion&&a.m_name==b.m_name

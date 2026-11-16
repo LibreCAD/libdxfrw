@@ -64,6 +64,6 @@
     "fast": "https://github.com/dxli/libdxfrw/actions/runs/43865527188",
     "freecadRelease": "https://github.com/dxli/libdxfrw/actions/runs/43865527092",
     "native": "https://github.com/dxli/libdxfrw/actions/runs/43865527078",
-    "status": "All three were started after the VPORT fix; no result is assumed."
+    "status": "FreeCAD release Linux and Windows jobs PASSED; native Linux PASSED; fast and native Windows/macOS are running at the listed revision."
   }
 }
