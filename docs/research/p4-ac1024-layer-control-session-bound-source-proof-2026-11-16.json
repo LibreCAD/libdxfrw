@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-layer-control-session-bound-source-proof-2026-11-16",
+  "date": "2026-11-16",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P4-A",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/title_block-iso.dwg",
+    "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+    "revision": "AC1024",
+    "provenanceLimit": "This is the existing workspace source used by prior P4/P8 receipts. No DWG or DXF fixture was added or committed by this slice."
+  },
+  "specification": {
+    "authority": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.53 LAYER CONTROL (50)",
+    "roles": {
+      "owner": "null soft pointer",
+      "extensionDictionary": "hard owner when the missing-dictionary flag is zero",
+      "layerMembers": "soft owner handles"
+    }
+  },
+  "independentObservation": {
+    "tool": "LibreDWG 0.14 JSON",
+    "controlHandle": "0x10",
+    "extensionDictionaryHandle": "0x107",
+    "layerMemberHandles": ["0x4"],
+    "dictionaryParent": "0x10",
+    "dictionaryEntry": {"name": "ACAD_LAYERSTATES", "handle": "0x108"}
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.h",
+      "dwg2dxf/dx_iface.cpp",
+      "tests/CMakeLists.txt",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "dx_iface now receives the optional CRC-checked AC1024 LAYER_CONTROL source-frame observation and keeps it in private adapter-session state. It binds the frame bytes and independently decoded handle roles to the unique control publication, exact import generation, source-map ordinal, offset space, and dictionary handle. The proof is not stored in dx_data, does not alter DRW_Interface, and does not authorize graph traversal or output.",
+    "focusedSelector": "dwg2dxf_ac1024_layer_control_source_session"
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j 4: PASS",
+    "sourceTestBuild": "cmake --build build --target libdxfrw_dwg_ac1024_layer_control_source_tests -j 4: PASS",
+    "focusedCtest": {
+      "command": "ctest --test-dir build -R '^(libdxfrw_dwg_ac1024_layer_control_source|dwg2dxf_ac1024_layer_control_source_session)$' --output-on-failure",
+      "result": "PASS 2/2 in 0.52 seconds"
+    },
+    "checks": [
+      "Same adapter and import generation accept the exact 0x10 frame/publication and 0x107 dictionary relation.",
+      "A second adapter instance and a stale generation do not accept the session proof.",
+      "The existing parser-level source test continues to pass its physical frame, role mutation, truncation, allocation failure, and retry controls."
+    ]
+  },
+  "limits": [
+    "This is source-span and handle-role evidence for one AC1024 input, not complete extension-graph closure or DXF output proof.",
+    "The captured source frame remains session evidence only; no output route or support claim is promoted.",
+    "The next P4-A slice must bind this proof to graph admission, compare dictionary 0x107 typed/raw bodies and inbound references, and preserve non-sort entries and dependencies."
+  ]
+}

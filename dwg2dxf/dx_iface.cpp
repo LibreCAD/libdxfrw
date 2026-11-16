@@ -28586,6 +28586,73 @@ void dx_iface::addDwgAc1024LayerSource(
     }
 }
 
+void dx_iface::addDwgAc1024LayerControlSource(
+        const DRW_DwgAc1024LayerControlSource& source) noexcept {
+    const auto reject = [this]() noexcept {
+        m_dwgLayerControlSourceProof.reset();
+        m_dwgLayerControlSourceOwner = cData;
+        m_dwgLayerControlSourceGeneration =
+            cData == nullptr ? 0u : cData->importGeneration;
+        m_dwgLayerControlSourceCaptureFailed = true;
+    };
+    if (cData == nullptr || typeid(*this) != typeid(dx_iface)
+        || source.m_raw.m_version != DRW::AC1024
+        || cData->sourceFormat != dx_source_format::DWG
+        || m_classEvidenceReadData != cData || !m_classEvidenceReadAttempt
+        || cData->m_classEvidenceOwner != this
+        || cData->m_classEvidenceAttempt != m_classEvidenceReadAttempt
+        || cData->importGeneration != cData->m_classEvidenceGeneration
+        || cData->m_dwgLayerControlCaptureFailed
+        || !cData->m_dwgLayerControlPublicationSeen
+        || cData->m_dwgLayerControlGeneration != cData->importGeneration
+        || source.m_raw.m_rawBytes.empty()
+        || source.m_raw.m_rawBytes.size() > 4096u
+        || source.m_raw.m_objectSize != source.m_raw.m_rawBytes.size()
+        || source.m_sourceOffset != source.m_raw.m_objectOffset
+        || (source.m_sourceOffsetSpace
+                != DRW_DwgFrameOffsetSpace::PhysicalFile
+            && source.m_sourceOffsetSpace
+                != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+        || !source.matchesAc1024LayerControlFrame(
+            cData->m_dwgLayerControlPublication)) {
+        reject();
+        return;
+    }
+    if (m_dwgLayerControlSourceOwner == cData
+        && m_dwgLayerControlSourceGeneration == cData->importGeneration
+        && (m_dwgLayerControlSourceProof.has_value()
+            || m_dwgLayerControlSourceCaptureFailed)) {
+        reject();
+        return;
+    }
+    try {
+        m_dwgLayerControlSourceProof = source;
+        m_dwgLayerControlSourceOwner = cData;
+        m_dwgLayerControlSourceGeneration = cData->importGeneration;
+        m_dwgLayerControlSourceCaptureFailed = false;
+    } catch (...) {
+        reject();
+    }
+}
+
+bool dx_iface::hasCurrentDwgLayerControlSourceProof(
+        const dx_data& data) const noexcept {
+    if (data.sourceFormat != dx_source_format::DWG
+        || data.sourceVersion != DRW::AC1024
+        || data.importGeneration == 0u
+        || m_dwgLayerControlSourceCaptureFailed
+        || m_dwgLayerControlSourceOwner != &data
+        || m_dwgLayerControlSourceGeneration != data.importGeneration
+        || !m_dwgLayerControlSourceProof.has_value()
+        || !data.m_dwgLayerControlPublicationSeen
+        || data.m_dwgLayerControlGeneration != data.importGeneration)
+        return false;
+    const DRW_DwgAc1024LayerControlSource& source =
+        *m_dwgLayerControlSourceProof;
+    return source.matchesAc1024LayerControlFrame(
+        data.m_dwgLayerControlPublication);
+}
+
 void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
     if (cData == nullptr || !cData->dwgReadOutcome.attempted)
         return;
@@ -76483,6 +76550,10 @@ bool validateNamedObjectRootForExport(const dx_data& data,
 
 bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
                           DRW::DxfCodePagePolicy codePagePolicy){
+    m_dwgLayerControlSourceProof.reset();
+    m_dwgLayerControlSourceOwner = nullptr;
+    m_dwgLayerControlSourceGeneration = 0u;
+    m_dwgLayerControlSourceCaptureFailed = false;
     if (m_verifiedXRecordReadData) {
         m_verifiedXRecordFailed = true;
         m_verifiedXRecordReadData->m_verifiedXRecordSource.reset();

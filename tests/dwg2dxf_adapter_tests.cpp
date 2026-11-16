@@ -191,6 +191,11 @@ public:
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static bool hasCurrentDwgLayerControlSourceProof(
+            const dx_iface& iface, const dx_data& data) noexcept {
+        return iface.hasCurrentDwgLayerControlSourceProof(data);
+    }
+
     // Synthetic receipt for profile-guard controls; physical-source tests
     // separately prove that real captured frames match their typed payloads.
     static void seedVisualStyleProfileFrame(dx_data& data,
@@ -21661,6 +21666,58 @@ bool dwgLayerTableControlDictionaryCapture() {
                  DRW::DwgLayerControlHandle, {0x10u}, false, false,
                  actualControl, actualDictionary))
         return fail("LAYER_CONTROL XDictionary aliasing its owner was accepted");
+    return true;
+}
+
+bool ac1024LayerControlAdapterSessionProof(const std::string& sourcePath) {
+    dx_iface adapter;
+    dx_data source;
+    if (!adapter.fileImport(sourcePath, &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024)
+        return fail("AC1024 layer-control adapter source could not be imported");
+
+    std::uint32_t controlHandle = 0u;
+    std::uint32_t dictionaryHandle = 0u;
+    if (!source.getLayerTableControlExtensionDictionary(
+            controlHandle, dictionaryHandle)
+        || controlHandle != 0x10u || dictionaryHandle != 0x107u
+        || !DxIfaceStandardDwgCaptureTestAccess::
+            hasCurrentDwgLayerControlSourceProof(adapter, source))
+        return fail("AC1024 layer-control source proof did not bind to its publication");
+
+    const DRW_Dictionary* extension = nullptr;
+    for (const DRW_Dictionary& candidate : source.dictionaries) {
+        if (candidate.handle != dictionaryHandle)
+            continue;
+        if (extension != nullptr)
+            return fail("AC1024 layer-control extension dictionary is ambiguous");
+        extension = &candidate;
+    }
+    if (extension == nullptr || extension->parentHandle != controlHandle
+        || std::count_if(extension->m_entries.begin(), extension->m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_LAYERSTATES"
+                    && entry.m_handle == 0x108u;
+            }) != 1)
+        return fail("AC1024 layer-control proof did not match dictionary 0x107");
+
+    dx_iface otherAdapter;
+    if (DxIfaceStandardDwgCaptureTestAccess::
+            hasCurrentDwgLayerControlSourceProof(otherAdapter, source))
+        return fail("AC1024 layer-control proof escaped its adapter session");
+
+    const std::uint64_t generation = source.importGeneration;
+    ++source.importGeneration;
+    const bool staleAccepted = DxIfaceStandardDwgCaptureTestAccess::
+        hasCurrentDwgLayerControlSourceProof(adapter, source);
+    source.importGeneration = generation;
+    if (staleAccepted
+        || !DxIfaceStandardDwgCaptureTestAccess::
+            hasCurrentDwgLayerControlSourceProof(adapter, source))
+        return fail("AC1024 layer-control proof ignored import-generation changes");
+
+    std::cout << "AC1024 LAYER_CONTROL frame proof is bound to the exact adapter session, publication, and dictionary edge\n";
     return true;
 }
 
@@ -90644,6 +90701,9 @@ int main(int argc, char** argv) {
     if (argc == 2
         && std::string(argv[1]) == "--table-base-style-id-dxf-refusal")
         return tableBaseStyleIdDxfRefusal() ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--layer-control-source-session")
+        return ac1024LayerControlAdapterSessionProof(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--sortents-adapter")
         return sortEntsAdapter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--visual-style-import-evidence") {

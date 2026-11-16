@@ -654,6 +654,12 @@ add_test(NAME libdxfrw_dwg_ac1024_layer_control_source
         ${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1021/lineweights.dwg)
 set_tests_properties(libdxfrw_dwg_ac1024_layer_control_source PROPERTIES
     LABELS "fast;dwg;layer;control;source" TIMEOUT 30)
+add_test(NAME dwg2dxf_ac1024_layer_control_source_session
+    COMMAND libdxfrw_dwg2dxf_adapter_tests
+        --layer-control-source-session
+        ${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1024/title_block-iso.dwg)
+set_tests_properties(dwg2dxf_ac1024_layer_control_source_session PROPERTIES
+    LABELS "fast;dwg;layer;control;adapter;source" TIMEOUT 45)
 
 add_executable(libdxfrw_dxf_empty_named_sortents_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_empty_named_sortents_tests.cpp)

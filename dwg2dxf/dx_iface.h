@@ -44,6 +44,7 @@ namespace blockref_source_relation { struct Result; }
 #include <iostream>
 #include <iosfwd>
 #include <limits>
+#include <optional>
 #include <string_view>
 #include <type_traits>
 #include <typeinfo>
@@ -56,7 +57,7 @@ class DxIfaceExtensionGraphTestAccess;
 class DxIfaceTableSourceTestAccess;
 class DxIfaceDwgLtypeControlOutputTestAccess;
 
-class dx_iface : public DRW_Interface, public DRW_DxfClassSourceHandler, public DRW_DwgHeaderMaterialSourceHandler, public DRW_DwgAc1024LayerSourceHandler, public DRW_DwgProxyGraphicsResourceOrderHandler, public DRW_UnmodeledDxfObjectHandler,
+class dx_iface : public DRW_Interface, public DRW_DxfClassSourceHandler, public DRW_DwgHeaderMaterialSourceHandler, public DRW_DwgAc1024LayerSourceHandler, public DRW_DwgAc1024LayerControlSourceHandler, public DRW_DwgProxyGraphicsResourceOrderHandler, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DwgDbColorEedSourceHandler,
                  public DRW_DwgClassSourceHandler, public DRW_DxfTableSourceHandler,
                  public DRW_DxfSymbolSourceHandler, public DRW_DxfRootDictionarySourceHandler,
@@ -781,6 +782,8 @@ public:
 //reader part, stores all in class dx_data
     //header
     void addDwgAc1024LayerSource(const DRW_DwgAc1024LayerSource& source) noexcept override;
+    void addDwgAc1024LayerControlSource(
+        const DRW_DwgAc1024LayerControlSource& source) noexcept override;
     void addDwgAc1027DefaultLayerSource(const DRW_DwgAc1027LayerSource& source) noexcept override {
         if (!cData || typeid(*this) != typeid(dx_iface) || source.m_raw.m_version != DRW::AC1027
             || cData->sourceFormat != dx_source_format::DWG
@@ -4862,6 +4865,13 @@ private:
     const dx_data* m_extensionDictionaryOwnerSourceOwner{nullptr};
     std::uint64_t m_extensionDictionaryOwnerSourceGeneration{0u};
     bool hasUnchangedExtensionDictionaryOwnerSources() const noexcept;
+    bool hasCurrentDwgLayerControlSourceProof(
+        const dx_data& data) const noexcept;
+    std::optional<DRW_DwgAc1024LayerControlSource>
+        m_dwgLayerControlSourceProof;
+    const dx_data* m_dwgLayerControlSourceOwner{nullptr};
+    std::uint64_t m_dwgLayerControlSourceGeneration{0u};
+    bool m_dwgLayerControlSourceCaptureFailed{false};
     bool hasUnchangedDynamicBlockOutputProfile() const noexcept;
 
     std::vector<std::uint32_t> m_extensionDictionaryHandles;
