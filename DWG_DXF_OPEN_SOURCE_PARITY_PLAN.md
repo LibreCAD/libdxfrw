@@ -57,37 +57,107 @@ remain in `docs/research/` when needed to avoid repeating work.
   and [3D plan](DWG_DXF_3D_SUPPORT_PLAN.md). A source-only result or external
   advisory result does not promote a claim.
 
-## Execution order — one short slice at a time
+## Execution order — shortest evidence-bearing slices first
 
-The registry below defines each package's exit evidence. This order is only a
-scheduling guide; a waiting package never blocks the next local slice.
+The registry below is the package exit checklist; this queue is the immediate
+work order. Finish and commit one slice at a time. A waiting witness never
+blocks another locally executable slice.
 
-1. **P6-D span-oracle probe (30-minute cap).** Use the existing hash-bound
-   AC1021 MLINESTYLE source and ODA §20.4.73. Check whether LibreDWG or a
-   separate bit-level decoder can independently report start/end positions for
-   the body stream, string stream, and common handle stream. If yes, add the
-   test-only comparator and controls. If no, file the missing-oracle condition
-   and immediately move on; do not invent expected spans from libdxfrw's own
-   parser.
-2. **P8-D1 current LibreCAD 2D check.** In a fresh disposable current-head
-   checkout, reuse matching focused receipts and exercise one actual 2D
-   edit/save/reopen. The old LibreCAD scratch checkout is dirty and is not a
-   qualification base; preserve it.
-3. **P8-D2 current LibreCAD_3 MPOLYGON check.** Refresh a clean current-head
-   checkout, apply-check/rebase the existing patch chain, then build and run
-   only affected persistence selectors. Exercise one supported edit/save/reopen
-   and verify subtype/fields plus the existing reported fallback for an
-   unsupported edit. Keep this evidence separate from P8-D1.
-4. **P6-G only on a concrete gap.** Recent bounded transaction checks are
-   complete. Resume only when a specific public writer/overload lacks a
-   rollback, caller-state, corrected-retry, or typed-readback assertion. Do not
-   run a generic audit or regenerate route inventories.
-5. **Then choose the next independently ready source profile.** Reuse prior
-   searches, write only the missing witness/condition, and immediately return
-   to the queue. Do not batch unrelated fields or wait for an external
-   platform.
-6. **Late integration:** P8-A/B/C/E/F/G and P7-H run after candidate behavior
-   stabilizes. P9 stays external-only and cannot block implementation.
+1. **P6-D — finish the AC1021 span comparator.** Start with the captured
+   independent LibreDWG output for hash-bound MLINESTYLE handle `0x18`, type
+   73. Serialize that peer capture and its provenance into a receipt; keep
+   body, string, and handle coordinates distinct. Then add a test-only observer
+   in `DRW_MLineStyle::parseDwg`, gated by
+   `DRW_DWG_MLINESTYLE_SPAN_TRACE`, and
+   `tools/research/verify_ac1021_mlinestyle_peer_spans.py` to compare observed
+   spans against that receipt. Keep the observer out of public headers and
+   normal builds. Add a shifted-span negative control and reuse
+   `dwg2dxf_mline_style_typed_capture_limits` for truncation coverage.
+   Compare every observed field to ODA §20.4.73. Change production decoding
+   only if the independent spans show a mismatch. If coordinate normalization
+   cannot be justified from the captured evidence, record that exact gap and
+   move on rather than guessing.
+2. **P8-D1 — current LibreCAD 2D save/reopen.** Refresh a clean disposable
+   LibreCAD checkout at its current master; record source/build identity; reuse
+   only receipts with matching identities; exercise one existing 2D profile
+   through edit, save, and reopen. Preserve the dirty scratch checkout already
+   noted below. Keep this slice's evidence and commit separate from P8-D2.
+3. **P8-D2 — current LibreCAD_3 MPOLYGON save/reopen.** Refresh a clean
+   current-head checkout, apply-check the existing patch chain, and build only
+   the affected targets. Run the affected persistence selectors, then exercise
+   one supported edit/save/reopen and one unsupported edit. Check stored
+   subtype/fields and the reported fallback. Reuse the existing boundary,
+   offset, rotation, and loss-reporting receipts; rerun only a selector whose
+   source/build identity differs. Keep this slice separate from P8-D1.
+4. **P6-G — conditional transaction gap only.** Do not schedule it unless a
+   concrete public writer/overload gap surfaces during implementation or
+   review. Add only the missing rollback, caller-state, corrected same-writer
+   retry, or typed-readback assertion for that named route. Do not rescan the
+   completed route inventory.
+5. **Next source-backed slice — choose once, then execute.** From existing
+   receipts and locally available source files, select the smallest profile
+   that has (a) exact source bytes, (b) a named field/reference gap, and (c) an
+   existing focused selector or a narrow hand-encoded control. Cap candidate
+   selection at one 15-minute pass. If any prerequisite is absent, record the
+   exact missing witness/condition in that package row and immediately take
+   the next eligible slice. Do not repeat corpus searches, bundle unrelated
+   fields, or wait for platform qualification.
+6. **Late integration:** run P8-A/B/C/E/F/G and P7-H only after the relevant
+   candidate behavior stabilizes. Keep P9 external-only and non-blocking.
+
+P6-D peer-span inputs for the comparator (half-open bit intervals; preserve
+stream labels rather than flattening them):
+
+| Stream | Field | Expected bit interval |
+|---|---|---:|
+| Body | flags | `[71,73)` |
+| Body | fill CMC | `[73,117)` |
+| Body | start angle | `[117,183)` |
+| Body | end angle | `[183,249)` |
+| Body | element count | `[249,257)` |
+| Body | element 0 offset / CMC / linetype index | `[257,323)` / `[323,367)` / `[367,385)` |
+| Body | element 1 offset / CMC / linetype index | `[385,387)` / `[387,431)` / `[431,449)` |
+| String | name / description | `[449,587)` / `[587,589)` |
+| Handle | owner / reactor 0 | `[606,614)` / `[614,630)` |
+
+The peer reports empty embedded-string intervals for both CMC values at
+`[589,589)`. Do not infer a missing field from apparent gaps between these
+stream-local intervals; the receipt must document the coordinate basis,
+object framing, and final two frame-padding bits. The source is
+`~/doc/dwg/blocks_and_tables_-_imperial.dwg` with SHA-256
+`3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07`. Bind the
+receipt at
+`docs/research/p6-ac1021-mlinestyle-physical-peer-spans-2026-11-16.json` to
+LibreDWG source commit `6d6a33987a1a97095b069c799c3d8a793320f812`, instrumented
+peer binary SHA-256
+`5b17350f9f3ad8c6e4f05f17cffb08e57fe333173ae53576484dc7cf7620ed9d`, minJSON
+SHA-256 `4c98746c33c42d76a939ffa0a303885a4f7f78ec9781872482d8fdf8250ffc23`, and
+trace SHA-256 `c8889f5fc733d2ad352e94caf540b098b0591e9a1dbbdbf08ac77562aea02e5b`.
+The peer's decompressed-section `Address: 325391` and an earlier receipt's
+`sourceOffset: 325389` use different coordinate bases; do not equate them.
+The source object is type 73, handle `0x18`, size 79 bytes (632 bits), with
+`bitsize=606`; the reader reports owner `0x17`, reactor 0 `0x17`, name
+`STANDARD`, empty description, flags 0, BYLAYER colors, two elements, offsets
+3.5 and 0, and linetype index 32767 for both. The receipt must resolve the
+coordinate meaning of `bitsize` and document any absent XDictionary or
+additional reactor fields from the peer output. These values are comparator
+input, not a production support claim.
+
+### Readiness and slice discipline
+
+- `READY_*` is the only state that enters the immediate queue. Complete that
+  bounded slice before promoting another one.
+- For each `WAITING_*` row, check its named receipts and local source once. If
+  the exact witness or platform condition is absent, record that precise
+  condition and park the row; do not repeat discovery or begin speculative
+  parser edits.
+- `DEPENDS_ON_*` rows open only after the stated parent evidence is committed.
+  `INTEGRATION_GATE` rows stay out of the fast path until candidate behavior is
+  stable. A blocked row never blocks the next queue entry.
+- After each slice commit, report the behavior/evidence added, focused
+  validation, remaining package count, and next slice; update the plan in the
+  same commit. Keep full-suite validation at composed integration/release
+  checkpoints as described above.
 
 Dependencies: P5-B follows P5-A; P5-D follows a matching R24 TABLE profile;
 P5-E/F reuse it only where the same source binds; P7-C follows P7-A/B; and
@@ -149,10 +219,10 @@ claims; do not turn them into one broad package.
 | P6-A / WAITING_FOR_OBJECTARX_WITNESS | Obtain version-bound ObjectARX create/setAt/save/reopen and remove/erase/clone/WBLOCK observations for IMAGEDEF. Existing role receipt is context only: docs/research/p6-imagedef-objectarx-parent-role-boundary-2026-11-14.json. | Owner, dictionary membership, reactor, and image links agree with independent output/readback. |
 | P6-B / WAITING_FOR_PERSUBENTMGR_SOURCE | Capture one PERSUBENTMGR with typed members, owner, and dependencies. | Independent semantics, closed output route and readback; unknown members stay raw or refused. |
 | P6-C / WAITING_FOR_TYPED_GRAPH_SOURCE | Resume only when a source-bound typed TABLECONTENT/DATATABLE graph appears or the disputed AC1027/AC1032 field spans are resolved. The reviewed profile screen found AC1021 with no TABLECONTENT, AC1027 with unresolved body/string/handle spans, and AC1032 retained raw-only. Do not spend more time replaying those sources or promote generated writer controls to source evidence. | Bind root, child, owner, and reference to exact source spans, then qualify strict ASCII/Binary output and fresh typed readback for one edge. |
-| P6-D / NEXT_AC1021_MLINESTYLE_SPANS | For the hash-bound AC1021 source `blocks_and_tables_-_imperial.dwg` (SHA-256 `3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07`), map exact stream-relative spans for MLINESTYLE handle 0x18/type 73: name/description in the string stream; flags, fill CMC, both angles, element count, and each element's offset/CMC/linetype index in the body stream; then common owner/reactor/XDictionary roles in the handle stream. Reuse semantic values from the [AC1021 differential receipt](docs/research/p6-ac1021-imperial-mlinestyle-physical-field-differential-2026-11-14.json); they are not a span oracle. | Independently instrument a bit-level decoder and compare its stream-relative spans with a test-only libdxfrw observer; include shifted-span/truncation controls. Do not change public API or production decoding unless a source-backed mismatch is found. Run `dwg2dxf_mline_style_typed_capture_limits`. If no independent oracle is available in the 30-minute probe, mark waiting and continue to P8-D1. Other versions, output, references, MLINE geometry, and native meaning remain open. |
+| P6-D / READY_FOR_SPAN_COMPARATOR | For the hash-bound AC1021 source `blocks_and_tables_-_imperial.dwg` (SHA-256 `3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07`), use the captured independent LibreDWG spans in the execution-order contract above. Reuse semantic values from the [AC1021 differential receipt](docs/research/p6-ac1021-imperial-mlinestyle-physical-field-differential-2026-11-14.json); they are not a span oracle. | Commit the peer-span provenance receipt, compare each stream interval with a test-only libdxfrw observer, and prove shifted-span rejection plus truncation handling. Run `dwg2dxf_mline_style_typed_capture_limits`. No public API or production change unless a source-backed mismatch appears. Other versions, output, graph closure, MLINE geometry, and native meaning remain separate open work. |
 | P6-E / WAITING_FOR_HEADER_SPAN_WITNESS | Choose one already mapped source profile (AC1027 Cover or AC1024 mesh) and resolve only that HEADER envelope/suffix, including lengths, CRC, sentinels, trailers, and every unclaimed byte. | Every byte in the chosen profile has a versioned source-backed disposition; unexplained tails remain refused. The existing receipts report 731 unclaimed Cover bytes and 739 mesh bytes; process one profile per slice (docs/research/p6-ac1027-cover-header-suffix-logical-span-2026-11-12.json; docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json). |
 | P6-F / WAITING_FOR_ELIGIBLE_LEGACY_INPUT | Resume only when a hash-bound AC1012/AC1014 input passes structural/object/reference gates and reaches the output gate with an eligible recoverable entity failure. | Strict refusal preserves the destination; partial ASCII/Binary output proves later-entity readback and corrected retry. Do not weaken exact-version or bounded-frame gates. The libdxfrw DWG writer does not generate AC1012/AC1014; see the [disposition receipt](docs/research/p6-cli-legacy-ac1012-ac1014-partial-disposition-2026-11-16.json). |
-| P6-G / WAITING_FOR_CONCRETE_GAP | No uncovered writer route is selected. Resume only if a specific public writer/overload lacks an assertion for destination rollback, caller-owned state, corrected same-writer retry, or typed readback. | Add one focused test/receipt for that exact route; otherwise keep parked. Do not repeat completed route checks, rerun the broad inventory, or promote source/graph/native support from transaction tests. |
+| P6-G / WAITING_FOR_CONCRETE_GAP | No uncovered writer route is selected. Resume only when a named public writer/overload is shown to lack an assertion for destination rollback, caller-owned state, corrected same-writer retry, or typed readback. | Add one focused test/receipt for that exact route; otherwise keep parked. Do not rerun the broad inventory or promote source/graph/native support from transaction tests. |
 
 Selection prompts include DIMASSOC/XREF graphs; 3D positions, OCS, splines,
 clipping, mesh/hidden-edge fields; units, lineweights, BYLAYER/BYBLOCK;
@@ -189,17 +259,14 @@ locally evidenced packages.
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation stabilizes. | Reproducible commands and immutable source/tool/platform/runtime identity. |
 | P8-B / INTEGRATION_GATE | Refresh FreeCAD main and qualify selected Linux open/insert profiles using the actual converter/importer. | Exact binaries/modules, operation/settings/geometry, and independent semantics. |
 | P8-C / INTEGRATION_GATE | Qualify only the selected profiles on Windows through its actual converter/importer. | Windows runtime identity, open/insert semantics, and no fallback ambiguity. |
-| P8-D / NEXT_AFTER_CLEAN_HEAD_REFRESH | Split into two commits: P8-D1 is the current LibreCAD 2D saved-edit check; P8-D2 is current LibreCAD_3 MPOLYGON patch integration. The warning, offset-space, and planar-rotation behavior already has focused scratch tests; do not reimplement or replay those tests on their recorded base. Reuse the [boundary correction](docs/research/p8-librecad3-mpolygon-boundary-and-subtype-2026-11-15.json), [offset preservation](docs/research/p8-librecad3-mpolygon-offset-preservation-2026-11-15.json), [rotation preservation](docs/research/p8-librecad3-mpolygon-rotation-preservation-2026-11-15.json), and [loss reporting](docs/research/p8-librecad3-mpolygon-projection-warning-2026-11-15.json) receipts. | P8-D1: current-head LibreCAD build and actual 2D edit/save/reopen. P8-D2: current-head LibreCAD_3 build, affected persistence selectors, and one supported MPOLYGON edit/save/reopen; verify subtype/fields and reported fallback for an unsupported edit. Keep consumer, library, ABI, and platform results separate. |
+| P8-D / NEXT_AFTER_CLEAN_HEAD_REFRESH | Split into two commits: P8-D1 is the current LibreCAD 2D saved-edit check; P8-D2 is current LibreCAD_3 MPOLYGON patch integration. Reuse the [boundary correction](docs/research/p8-librecad3-mpolygon-boundary-and-subtype-2026-11-15.json), [offset preservation](docs/research/p8-librecad3-mpolygon-offset-preservation-2026-11-15.json), [rotation preservation](docs/research/p8-librecad3-mpolygon-rotation-preservation-2026-11-15.json), and [loss reporting](docs/research/p8-librecad3-mpolygon-projection-warning-2026-11-15.json) receipts only as prior evidence; they do not qualify a refreshed consumer head. | P8-D1: current-head LibreCAD build and actual 2D edit/save/reopen. P8-D2: current-head LibreCAD_3 build, affected persistence selectors, and one supported MPOLYGON edit/save/reopen; verify subtype/fields and reported fallback for an unsupported edit. Keep consumer, library, ABI, and platform results separate. |
 | P8-E / INTEGRATION_GATE | Compare public symbols/class layouts with the release baseline; build clean static/shared consumers and relocatable packages. | ABI/SONAME, relocation, loaded-library checks on required platforms, and explicit rebuild requirements. |
 | P8-F / INTEGRATION_GATE | Inspect current required CI and source-release/packaging lanes; repair or formally disposition exclusions. | Source-matched required jobs green or formally dispositioned. |
 | P8-G / INTEGRATION_GATE | Set supported platforms, consumers, and release thresholds from completed evidence. | Evidence-backed support matrix with no required red job or advertised unqualified route. |
 
-P8-D order: (1) refresh current consumer heads in disposable checkouts; (2)
-finish P8-D1 independently; (3) apply-check the existing LibreCAD_3 patch chain
-and compare its exact base; (4) reuse focused test results when all source/build
-identities match, otherwise run only the affected selectors; (5) finish P8-D2.
-Expand only on a concrete failure. Earlier PR #3269 and R12/R14 focused checks
-are completed baseline evidence.
+Keep P8-D1 and P8-D2 receipts and commits separate. Reuse the recorded PR #3269
+and R12/R14 focused checks only for their exact source/build identities; expand
+validation only after a concrete failure.
 Preserve LibreCAD's R13 raw-carrier refusal until owner/remap namespace and all
 65 omitted records close. Keep FreeCAD's nonplanar 3DFACE, hidden-edge,
 smoothing, mixed-color/layer, nested-block, persistence, and legacy importer
