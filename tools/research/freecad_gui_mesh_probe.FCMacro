@@ -108,7 +108,7 @@ def run():
                          "layer_invalidnegative_2147483648_nogroups",
                          "layer_syntaxnegative_1", "layer_syntaxpositive_1", "layer_syntaxdupenegative_1",
                          "layer_syntaxdupepositive_1", "layer_syntaxnegoverflow_1", "layer_syntaxposoverflow_1",
-                         "layer_syntaxnegative_1_nogroups",
+                         "layer_syntaxnegative_1_nogroups", "layer_syntaxformfeed_1", "layer_syntaxverticaldup_1",
                          "color", "color_mixed",
                          "color_mixed_nocolor"):
                 is_color = case.startswith("color")
@@ -140,10 +140,11 @@ def run():
                     flags = 1 if mode in ("frozen", "frozenoff") else 2 if mode == "newviewport" else 0
                     syntax_values = {"syntaxnegative": ("-oops",), "syntaxpositive": ("2junk",),
                                      "syntaxdupenegative": ("-2", "2"), "syntaxdupepositive": ("2", "1"),
-                                     "syntaxnegoverflow": ("-2147483649",), "syntaxposoverflow": ("2147483648",)}
+                                     "syntaxnegoverflow": ("-2147483649",), "syntaxposoverflow": ("2147483648",),
+                                     "syntaxformfeed": ("\f-oops",), "syntaxverticaldup": ("\v-2", "2")}
                     raw_colors = syntax_values.get(mode, (str(aci),))
                     if mode in syntax_values:
-                        aci = -7 if any(value.startswith("-") for value in raw_colors) else 7
+                        aci = -7 if any(value.lstrip(" \t\r\n\v\f").startswith("-") for value in raw_colors) else 7
                     layer_tag = "0\nLAYER\n2\nMESH\n70\n0\n62\n1\n"
                     assert drawing_text.count(layer_tag) == 1
                     color_tags = "".join(f"62\n{value}\n" for value in raw_colors)

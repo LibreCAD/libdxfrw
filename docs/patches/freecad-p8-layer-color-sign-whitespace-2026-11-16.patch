@@ -1,0 +1,15 @@
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+index 099c7c8..8641af3 100644
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -3578 +3578 @@ bool CDxfRead::ReadLayer()
+-            const auto first = m_record_data.find_first_not_of(" \t\r\n");
++            const auto first = m_record_data.find_first_not_of(" \t\r\n\v\f");
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index 028ea5c..3d2ffc4 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -61 +61,2 @@ class TestImportDXF(TestImportBase):
+-                 (("2", "1"), True, False), (("-2", "2"), True, True))
++                 (("2", "1"), True, False), (("-2", "2"), True, True),
++                 (("\v-2", "2"), True, True), (("\f-oops",), True, True))

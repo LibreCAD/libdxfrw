@@ -270,5 +270,7 @@
     "The nineteen downstream FreeCAD patches are unmerged.",
     "Signed ACI 7 is an explicitly reported fallback; a leading negative sign conservatively chooses off for malformed or conflicting inputs, not a claim that the source has valid semantics.",
     "Frozen, viewport, ungrouped and block visibility, platform qualification, phase gates and external-only support claims remain open."
-  ]
+  ],
+  "probeEvolution": "The reusable GUI probe may require later downstream patches; observations here describe the candidate identified in this receipt. See the current plan for patch order.",
+  "supersededBoundary": "The later sign-whitespace patch handles vertical tab and form feed before malformed negative values."
 }
