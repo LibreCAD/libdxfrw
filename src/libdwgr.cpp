@@ -4102,7 +4102,16 @@ bool dwgRW::addLayer(DRW_Layer *ent) {
             const auto& xref = ent->xrefBlockHandle;
             std::uint32_t material = 0u, plot = 0u;
             bool hasMaterial = false, hasPlot = false;
-            if (version != DRW::AC1024 || (ent->name != "0" && ent->name != "Defpoints")
+            const bool r2013 = version == DRW::AC1027;
+            std::uint32_t stagedPlotDictionary = 0u, stagedPlotPlaceholder = 0u;
+            const auto& unknown = ent->unknownHandle;
+            if ((version != DRW::AC1024 && !r2013)
+                || (r2013 ? ent->name != "0"
+                          : (ent->name != "0" && ent->name != "Defpoints"))
+                || (r2013 && (unknown.ref != 0u || unknown.ref64 != 0u
+                              || unknown.size != 0u
+                              || (unknown.code != 0u && unknown.code != DRW::DwgHardPointer)
+                              || (unknown.rawCode != 0u && unknown.rawCode != DRW::DwgHardPointer)))
                 || ent->hasDwgCommonLinkTail()
                 || !ent->dwgHandleFieldSpans().empty()
                 || ent->reactorCount() != 0 || !ent->reactorHandles.empty()
@@ -4115,6 +4124,10 @@ bool dwgRW::addLayer(DRW_Layer *ent) {
                 || (xref.rawCode != 0u && xref.rawCode != DRW::DwgHardPointer)
                 || !ent->getDxfMaterialHandle(material, hasMaterial) || !hasMaterial
                 || !ent->getDxfPlotStyleHandle(plot, hasPlot) || !hasPlot
+                || (r2013 && (!w->defaultDwgPlotStyleGraphHandles(
+                                  stagedPlotDictionary, stagedPlotPlaceholder)
+                              || stagedPlotDictionary == 0u
+                              || stagedPlotPlaceholder != plot))
                 || material == 0u || material == DRW::NoHandle
                 || plot == 0u || plot == DRW::NoHandle || material == plot
                 || material != ent->materialHandle.ref || plot != ent->plotStyleHandle.ref
@@ -4126,6 +4139,8 @@ bool dwgRW::addLayer(DRW_Layer *ent) {
             DRW_Layer canonical(*ent);
             canonical.setDwgCommonObjectState(0, 1u, false);
             canonical.xrefBlockHandle.code = DRW::DwgHardPointer;
+            if (r2013)
+                canonical.unknownHandle.code = DRW::DwgHardPointer;
             handle = w->addLayer(canonical);
             if (handle != 0u && !w->bindCanonicalLayer(handle, plot)) {
                 markDwgWriteFailure();

@@ -1149,12 +1149,13 @@ public:
   }
 };
 
-/** Optional, per-layer opt-in for source-independent AC1024 authoring.
+/** Optional, per-layer opt-in for source-independent AC1024/AC1027 authoring.
  * Returning true requests the witnessed missing-extension-dictionary flag and
- * hard-pointer null xref for that layer. The caller must establish that the
- * layer is newly authored. The bounded profile accepts only layers named 0 or
- * Defpoints, the staged Global material from DRW_DwgDefaultMaterialProvider,
- * and a no-reactor Normal plot-style graph; its emitted handle roles, NOD root
+ * hard-pointer null xref; AC1027 also requests a hard-pointer trailing null.
+ * The caller must establish that the layer is newly authored. The bounded
+ * profile accepts layers named 0 or Defpoints in AC1024 and layer 0 only in
+ * AC1027, with staged Global material and a no-reactor Normal plot-style graph
+ * (the staged default graph is required for AC1027). Its emitted roles, NOD root
  * and placeholder owner are checked before publication. The caller must not
  * opt in imported source-preservation layers; retained DWG link evidence and
  * incompatible common data are refused. This interface is separate from
@@ -1167,7 +1168,8 @@ public:
   }
 };
 
-/** Explicit opt-in for the witnessed AC1021 and AC1024 default material graphs.
+/** Explicit opt-in for the witnessed AC1021, AC1024 and AC1027 default
+ * material graphs. AC1027 also requires the staged default plot-style graph.
  * Callers with an existing ACAD_MATERIAL graph must omit this opt-in; an
  * existing or later conflicting registration causes the output to fail.
  * Only internally synthesized layer 0 is bound to Global. Caller layers

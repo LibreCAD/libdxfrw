@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-15",
+  "scope": "Explicit source-independent AC1027 layer-0 normalization for the already staged default Global material and Normal plot-style graphs. Existing AC1024 behavior and consumers without the optional provider remain unchanged.",
+  "implementation": [
+    "DRW_DwgCanonicalLayerProvider now also admits only AC1027 layer 0 whose caller affirms new authorship, whose material targets the staged Global material, whose plotstyle targets the staged default placeholder, and whose common state, xref and unknown trailing handle are unambiguous nulls. The writer copies the caller layer, sets the missing extension flag and typed-null xref and trailing hard pointer, and does not modify those caller fields.",
+    "Before publication the staged six-handle layer tail is checked against the exact version and target identities; the no-reactor Normal dictionary, placeholder owner, NOD entry, unique frames and material graph must close. AC1027 accepts at most one selected layer; other names, captured source state, incompatible nulls, mismatched graphs or references are refused. No DRW_Interface virtual or public object data layout changes."
+  ],
+  "validation": [
+    "The existing fast default-material selector runs the AC1027 positive profile and eight separate faults: nonnull trailing reference, wrong trailing role, missing plotstyle, wrong material, unsupported layer name, nonnull xref, wide trailing reference and wrong raw trailing role. Each failure preserves preexisting destination bytes and caller fields and is followed by a successful retry on the same writer with fresh libdxfrw graph and exact role readback.",
+    "Fast selectors for material, plotstyle, AC1024 layer binding and AC1018+ layer handle vectors pass; the LC3 compatibility target builds. Existing generated AC1024 graph, rollback and retry tests remain intact.",
+    "The final opt-in-generated AC1027 DWG has SHA-256 1168bf23d7f8a4df8755eec7f8528c0d18626f2a38a18f532b5541fb2c231e86. Its ODA File Converter 27.1.0 ACAD2013 DXF output has SHA-256 66071c2bdd165ca9d8dda90fae0932b624be46ec14c2e8ede81af3503fbdf499, with no .err; ezdxf 1.4.5 finds layer 0 linked to Global MATERIAL 0x35 and ACDBPLACEHOLDER 0x31 owned by dictionary 0x30, and one LINE.",
+    "LibreDWG 0.14 independently reads the generated AC1027 source: layer 0 has missing-extension flag 1, xref H5 null, plot H5 0x31, material H5 0x35, linetype H5 0x11 and trailing visualstyle H5 null. Its NOD points to the Normal dictionary 0x30 and material dictionary 0x32, with the Normal entry/default both targeting 0x31 and Global entry targeting 0x35.",
+    "Reproduce the generated drawing using build-gcc/tests/libdxfrw_dwg_default_material_optin_tests --keep, convert canonical-layer-ac1027.dwg with ODA and run dwgread -O minJSON on the same file. All drawings are created locally at runtime and no fixture is committed."
+  ],
+  "experimentalMatrix": {
+    "method": "One locally generated supplied layer 0 plus staged material and plotstyle graphs. Flags 1=missing-xdictionary only, 2=typed xref only, 3=both, 7=both plus typed trailing null. Separate from the opt-in admission test; inspect actual DXF or .err.",
+    "AC1021": "flags 1/2 fail at LAYER in ODA; 3/7 convert with one LINE and both layer graph references",
+    "AC1024": "flags 1/2 fail at LAYER in ODA; 3/7 convert with one LINE and both layer graph references",
+    "AC1027": "flags 1/2/3 fail at LAYER in ODA; 7 converts with one LINE and both layer graph references",
+    "inputSha256": {
+      "single-1021-1.dwg": "2c4779c3661ffe0d42f7a0a82058172bb6e3ad6a1270834df5568da0e9fc8d7f",
+      "single-1021-2.dwg": "767691c47301df434a97c60106b3ef09b0ebbe4a07d03718b6fbbe0d99e995d9",
+      "single-1021-3.dwg": "0cb6b08868b826693af3aa09366b93b09719f1e0db06753b2c421d662a23516c",
+      "single-1021-7.dwg": "0cb6b08868b826693af3aa09366b93b09719f1e0db06753b2c421d662a23516c",
+      "single-1024-1.dwg": "1839c345793f3d1d297192a67c3321026434fd477d1aaf6c7528a9df01b97928",
+      "single-1024-2.dwg": "08b863cb00b139e6e6ec602afb11856ed2a40f1186266bca3ac1dc9ecfaa9190",
+      "single-1024-3.dwg": "e52c75382748abae468739565d7bc87395690cdca848caac68d895d044cfe075",
+      "single-1024-7.dwg": "e52c75382748abae468739565d7bc87395690cdca848caac68d895d044cfe075",
+      "single-1027-1.dwg": "69d3fa53268149eba25d0bb9c4ee83c0b58ecaf9cdaebbe208797c9e52fdd04f",
+      "single-1027-2.dwg": "fde8448a9c9b728e257f3a04a95b0028f18f32b208384c89648052e119e0050e",
+      "single-1027-3.dwg": "047c755101eec47e053ad449af7d4b36f313a2964b820bb5cf2466bc348dc350",
+      "single-1027-7.dwg": "1168bf23d7f8a4df8755eec7f8528c0d18626f2a38a18f532b5541fb2c231e86"
+    },
+    "limits": "One generated source profile and one converter version; earlier warnings in rejected files prevent attributing every failure exclusively to the final LAYER error. A second authored layer failed local AC1021 and AC1027 table emission; no multi-layer admission was added."
+  },
+  "implementationDigestSha256": "125f5dbed32ec529297a5d58be6cebc65e21ad37b612172c283aafb56099582a",
+  "limits": "This opt-in is not general AC1027 writer support. Imported-layer replay, additional layers and producer variations, arbitrary references, visualstyle semantics, material/plot rendering and native platform qualification remain open. The six external-only items stay DEFERRED_EXTERNAL; no format support claim or phase gate is promoted."
+}

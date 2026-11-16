@@ -55,9 +55,10 @@ constexpr int kDwgBlockRecordFlagsMask = 0x7Fu;
 
 template <std::size_t N>
 bool canonicalHandleTailMatches(const DRW::DwgObjectFrameReceipt& frame,
-    std::uint32_t handle, std::uint16_t objectType,
+    DRW::Version version, std::uint32_t handle, std::uint16_t objectType,
     const std::array<std::pair<std::uint8_t, std::uint64_t>, N>& expected) {
-    if (!frame.valid || frame.version != DRW::AC1024 || frame.objectHandle != handle
+    if (!frame.valid || (version != DRW::AC1024 && version != DRW::AC1027)
+        || frame.version != version || frame.objectHandle != handle
         || frame.classNumber != objectType)
         return false;
     std::size_t index = 0u;
@@ -3694,7 +3695,8 @@ bool dwgWriter15::validateDwgNamedObjectDictionaryEntries() const {
     }
 
     if (!m_canonicalLayerHandles.empty()) {
-        if (m_version != DRW::AC1024 || m_canonicalLayerHandles.size() > 2u
+        if ((m_version != DRW::AC1024 && m_version != DRW::AC1027)
+            || m_canonicalLayerHandles.size() > (m_version == DRW::AC1027 ? 1u : 2u)
             || !m_canonicalPlotDictionarySeen || !m_canonicalPlaceholderSeen
             || m_canonicalPlotTarget == 0u || m_canonicalPlotDictionary == 0u
             || m_canonicalPlaceholderOwner != m_canonicalPlotDictionary
@@ -3864,8 +3866,17 @@ bool dwgWriter15::emitLayerRecord(std::uint32_t handle, const DRW_Layer& lay) {
             {DRW::DwgHardPointer, 0u}, {DRW::DwgHardPointer, m_canonicalPlotTarget},
             {DRW::DwgHardPointer, m_defaultMaterialHandles[3]},
             {DRW::DwgHardPointer, layerCopy.lTypeH.ref}}};
-        if (!canonicalHandleTailMatches(m_lastDwgObjectFrame, handle, DRW::DwgLayerObjectType, expected))
+        if (m_version == DRW::AC1027) {
+            const std::array<std::pair<std::uint8_t, std::uint64_t>, 6> expectedR2013{{
+                expected[0], expected[1], expected[2], expected[3], expected[4],
+                {DRW::DwgHardPointer, 0u}}};
+            if (!canonicalHandleTailMatches(m_lastDwgObjectFrame, m_version, handle,
+                                            DRW::DwgLayerObjectType, expectedR2013))
+                return false;
+        } else if (!canonicalHandleTailMatches(m_lastDwgObjectFrame, m_version, handle,
+                                               DRW::DwgLayerObjectType, expected)) {
             return false;
+        }
     }
     return true;
 }
@@ -4105,7 +4116,7 @@ bool dwgWriter15::writeAcDbPlaceholder(
             || object.hasDataStorageBinaryData() || !object.appData.empty()
             || !object.extData.empty() || !object.pendingAppIdResolutions.empty()
             || !object.pendingLayerRefResolutions.empty()
-            || !canonicalHandleTailMatches(m_lastDwgObjectFrame, object.handle,
+            || !canonicalHandleTailMatches(m_lastDwgObjectFrame, m_version, object.handle,
                                            dwgObjType::ACDBPLACEHOLDER, expected))
             return false;
         m_canonicalPlaceholderOwner = object.parentHandle;
@@ -6592,7 +6603,7 @@ bool dwgWriter15::writeDictionaryWithDefault(const DRW_DictionaryWithDefault& di
             || object.xDictHandle != 0u || object.hasDataStorageBinaryData()
             || !object.appData.empty() || !object.extData.empty()
             || !object.pendingAppIdResolutions.empty() || !object.pendingLayerRefResolutions.empty()
-            || !canonicalHandleTailMatches(m_lastDwgObjectFrame, object.handle,
+            || !canonicalHandleTailMatches(m_lastDwgObjectFrame, m_version, object.handle,
                 typedDwgClassNum("AcDbDictionaryWithDefault", "ACDBDICTIONARYWDFLT",
                                  DRW_DictionaryWithDefault::kDwgClassNum), expected))
             return false;
@@ -7300,10 +7311,11 @@ std::uint32_t dwgWriter15::addLType(const DRW_LType& lt) {
 }
 
 bool dwgWriter15::bindCanonicalLayer(std::uint32_t layer, std::uint32_t plot) {
-    if (m_version != DRW::AC1024 || m_dwgTableRecordsComplete
+    if ((m_version != DRW::AC1024 && m_version != DRW::AC1027)
+        || m_dwgTableRecordsComplete
         || layer == 0u || layer == DRW::NoHandle || plot == 0u || plot == DRW::NoHandle
         || (m_canonicalPlotTarget != 0u && m_canonicalPlotTarget != plot)
-        || m_canonicalLayerHandles.size() >= 2u
+        || m_canonicalLayerHandles.size() >= (m_version == DRW::AC1027 ? 1u : 2u)
         || std::find(m_canonicalLayerHandles.begin(), m_canonicalLayerHandles.end(), layer)
             != m_canonicalLayerHandles.end()) return false;
     try {

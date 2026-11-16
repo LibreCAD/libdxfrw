@@ -1260,6 +1260,85 @@ bool ac1027MaterialDirectEncoderAllocationSweep(
               << sources.size() << " source records and 5 stream layouts\n";
     return true;
 }
+struct CanonicalR2013Adapter final : Adapter, DRW_DwgCanonicalLayerProvider {
+    using Adapter::Adapter;
+    bool wantsDwgCanonicalLayerNulls(const DRW_Layer&) const override { return true; }
+    void writeLayers() override {
+        DRW_Layer layer;
+        layer.name = fault == 5 ? "Defpoints" : "0";
+        layer.materialHandle.ref = fault == 4 ? 0xB200u : handles[3];
+        layer.plotStyleHandle.ref = fault == 3 ? 0u : plotStylePlaceholder;
+        if (fault == 1) layer.unknownHandle.ref = 0xB201u;
+        if (fault == 2) layer.unknownHandle.code = DRW::DwgSoftPointer;
+        if (fault == 6) layer.xrefBlockHandle.ref = 0xB202u;
+        if (fault == 7) layer.unknownHandle.ref64 = std::uint64_t{1} << 40;
+        if (fault == 8) layer.unknownHandle.rawCode = DRW::DwgSoftPointer;
+        const auto originalUnknown = layer.unknownHandle;
+        const auto originalXref = layer.xrefBlockHandle;
+        accepted = output.addLayer(&layer);
+        callerUnchanged = layer.extensionDictionaryFlag() == 0u
+            && layer.unknownHandle.ref == originalUnknown.ref
+            && layer.unknownHandle.ref64 == originalUnknown.ref64
+            && layer.unknownHandle.code == originalUnknown.code
+            && layer.unknownHandle.rawCode == originalUnknown.rawCode
+            && layer.xrefBlockHandle.ref == originalXref.ref
+            && layer.xrefBlockHandle.code == originalXref.code;
+        if (!accepted) output.markDwgWriteFailure();
+    }
+    int fault = 0;
+    bool accepted = false;
+    bool callerUnchanged = false;
+};
+
+bool canonicalR2013Layer(const std::filesystem::path& path, bool keep) {
+    dwgRW output(path.string().c_str());
+    CanonicalR2013Adapter adapter(output);
+    adapter.version = DRW::AC1027;
+    const auto verify = [&]() {
+        struct LayerCapture final : LC3CompatCheck {
+            void addLayer(const DRW_Layer& value) override {
+                if (value.name == "0") { layer = value; ++count; }
+            }
+            DRW_Layer layer;
+            unsigned count = 0u;
+        } capture;
+        dwgR reader(path.string().c_str());
+        return reader.read(&capture, false) && capture.count == 1u
+            && capture.layer.extensionDictionaryFlag() == 1u
+            && capture.layer.xrefBlockHandle.rawCode == DRW::DwgHardPointer
+            && capture.layer.xrefBlockHandle.ref == 0u
+            && capture.layer.plotStyleHandle.rawCode == DRW::DwgHardPointer
+            && capture.layer.plotStyleHandle.ref == adapter.plotStylePlaceholder
+            && capture.layer.materialHandle.rawCode == DRW::DwgHardPointer
+            && capture.layer.materialHandle.ref == adapter.handles[3]
+            && capture.layer.lTypeH.rawCode == DRW::DwgHardPointer
+            && capture.layer.lTypeH.ref != 0u
+            && capture.layer.unknownHandle.rawCode == DRW::DwgHardPointer
+            && capture.layer.unknownHandle.ref == 0u
+            && inspect(path.string(), adapter.handles, false, DRW::AC1027,
+                       adapter.plotStylePlaceholder);
+    };
+    const auto write = [&]() {
+        return output.write(&adapter, DRW::AC1027, true);
+    };
+    if (!write() || !adapter.accepted || !adapter.callerUnchanged || !verify()) {
+        std::cerr << "AC1027 canonical layer output/readback failed: "
+                  << output.getLastDiagnostic().code << '\n';
+        return false;
+    }
+    if (keep)
+        std::filesystem::copy_file(path, path.parent_path() / "canonical-layer-ac1027.dwg");
+    for (int fault = 1; fault <= 8; ++fault) {
+        { std::ofstream f(path, std::ios::binary | std::ios::trunc); f << "prior destination"; }
+        adapter.fault = fault;
+        if (write() || adapter.accepted || !adapter.callerUnchanged) return false;
+        { std::ifstream f(path, std::ios::binary);
+          if (std::string(std::istreambuf_iterator<char>(f), {}) != "prior destination") return false; }
+        adapter.fault = 0;
+        if (!write() || !adapter.accepted || !adapter.callerUnchanged || !verify()) return false;
+    }
+    return true;
+}
 } // namespace
 
 bool ac1027DefaultMaterialReplayAllocationSweep(
@@ -1590,6 +1669,10 @@ int main(int argc,char**argv) {
             if (!output.write(&adapter, version, true) || !inspect(path, adapter.handles, false, version)) return 1;
         }
         if (version == DRW::AC1027) {
+            if (!canonicalR2013Layer(dir / "canonical-r2013-test.dwg", keep)) {
+                std::cerr << "AC1027 canonical layer controls failed\n";
+                return 1;
+            }
             adapter.plotEnabled=false;
             {std::ofstream f(path,std::ios::binary);f<<"prior destination";}
             if (output.write(&adapter,version,true)) return 1;
