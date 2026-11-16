@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **731 completed implementation and qualification slices** and **32 remaining
+The plan records **732 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`731 / (731 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
+`732 / (732 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -217,9 +217,16 @@ Native GUI behavior, independent semantics and upstream integration remain open.
   dictionary membership, owner roles, alias collisions and all required
   records through independent graph readback before enabling output
   ([graph receipt](docs/research/p8-librecad-r13-object-graph-boundary-2026-11-16.json)).
-  The bundled codec passes selected LTYPE/LINE re-export checks, not full graph
-  qualification. Diagnostic propagation, destination preservation and retry
-  pass ([R13 receipt](docs/research/p8-librecad-r13-dxf-diagnostic-2026-11-16.json)).
+  A new conservative R13 raw-carrier guard now refuses unqualified cross-version
+  exports before replacing the destination on both codecs; generated object,
+  entity and section controls and the ASCII/Binary input pair pass failure and
+  retry checks. Earlier bundled selective re-export results predate this guard.
+  It does not resolve the owner remap or preserve the 65 omitted objects
+  ([guard receipt](docs/research/p8-librecad-r13-raw-conversion-guard-2026-11-16.json)).
+  The broader installed-codec version selector independently has four failing
+  cases (nine assertions), including dangling references and export refusals;
+  the unchanged pre-guard filter reproduces them. The bundled selector passes.
+  Trace and fix those failures before broadening compatibility claims.
   The local metadata bridge now retains the current codec's MLINESTYLE CMC
   fields, so unsupported colors are refused instead of silently normalized;
   ordinary ByLayer and bundled-codec controls pass. Qualify actual producer
@@ -374,6 +381,7 @@ Then apply [the binary LTYPE consumer test](docs/patches/librecad-p8-binary-ltyp
 [the DXF diagnostic/R13 test](docs/patches/librecad-p8-dxf-write-diagnostic-r13-2026-11-16.patch),
 and [MLINESTYLE CMC retention](docs/patches/librecad-p8-mlinestyle-cmc-retention-2026-11-16.patch),
 then [the ABI-3 package and missing-source fix](docs/patches/librecad-p8-abi3-complete-source-2026-11-16.patch),
+then [the R13 raw-conversion guard](docs/patches/librecad-p8-r13-raw-conversion-guard-2026-11-16.patch),
 in order with `git apply --unidiff-zero`. The prior local candidate
 `014075bb1b7548e76b242e1bc0f1217ce8a83ba4` is based on LibreCAD master
 `b007bff6e798425aa14ae507f7e884db68916e88`; all 42 patches replay in order on
@@ -385,8 +393,8 @@ GUI and cross-platform qualification remain open
 The cumulative changes plus the ABI-3 fix also replay cleanly against
 `d40f178b9708b54ad34b15f721d22abb2315aa2b`; all 20 affected source files
 match the built candidate. Local commit `fe1fea1c2aad9534a687378808d3bdbb11b07f15`
-on `codex/libdxfrw-abi3-integration-20261116` records that complete candidate
-on current master; it is unmerged and has not been published
+records that baseline; the R13 guard continues the same local branch through
+`6c0a9e08736ff143419ae939e87f32739efc12d7`. It is unmerged and unpublished
 ([receipt](docs/research/p8-librecad-abi3-clean-consumer-2026-11-16.json)).
 
 For MPOLYGON, retain the consumer's opt-in polyline policy; independently

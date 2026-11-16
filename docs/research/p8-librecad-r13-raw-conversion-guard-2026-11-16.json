@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-16",
+  "scope": "LibreCAD refuse unqualified cross-version R13 raw record conversion before publication",
+  "consumer_master": "d40f178b9708b54ad34b15f721d22abb2315aa2b",
+  "local_candidate_branch": "codex/libdxfrw-abi3-integration-20261116",
+  "local_candidate_parent": "fe1fea1c2aad9534a687378808d3bdbb11b07f15",
+  "local_candidate_commit": "6c0a9e08736ff143419ae939e87f32739efc12d7",
+  "patch": "docs/patches/librecad-p8-r13-raw-conversion-guard-2026-11-16.patch",
+  "patch_sha256": "2cfaa3421348bcd493f8e026fce168dd5f9f1250e3f75d481f427b5bfbf26a81",
+  "finding": "Generated in-memory R13 raw OBJECTS, ENTITIES and section carriers were each omitted during R14 export; before this guard the filter returned success and replaced an existing destination. A handle-matched typed candidate is not a source-field equivalence or graph-closure receipt.",
+  "change": "Before invoking the writer, reject cross-version exports that contain any R13 raw object, entity or section, including those with a possible typed replacement. Report a specific reason and leave the destination untouched. This conservative gate applies only to R13 raw carriers with a different target version; it is not an R13 writer or graph-preserving implementation.",
+  "verification": {
+    "red": "Installed ABI-3 generated controls reproduced success, source-record omission and destination replacement for all three carrier kinds before the fix.",
+    "green": "On macOS ARM64 both installed ABI-3 and bundled codec builds pass the focused in-memory matrix: three carrier kinds, four target versions (R14/R2000/R2007/R2018), existing and absent destinations, same-filter clean retry and successful output (204 assertions). The exact locally authored and ODA-converted R13 ASCII/Binary pair is hash-bound below; installed and bundled r13-selected tests pass 230 and 246 assertions respectively and check specific R13 diagnostics, destination preservation and retry. LibreCAD output in this path is ASCII. No drawing fixtures were committed.",
+    "samples": {
+      "/private/tmp/librecad-p8-r13-recipe-20261116/ascii/source.dxf": "38e9ba8ec2bb5299c07d8caea09a316c9ba1e2d9ff16a1ae6b7d59500bb38293",
+      "/private/tmp/librecad-p8-r13-recipe-20261116/binary/source.dxf": "6aabd42b600b641dbf92a4a7ced8a45f2105ed13a110d4887e0901a44b74ba0b"
+    },
+    "broader_version_check": "The installed-codec [filter][version] selector has 5 cases: 1 passed and 4 failed (9 failing assertions; dangling reference assertions in AC1015-AC1032 plus old-version and live-identity export failures). Rebuilding the unchanged candidate filter and rerunning reproduced the exact same 4 failing cases and 9 assertions. Bundled selector passed 8 cases / 118 assertions. These are open installed-codec compatibility defects, not evidence that the new R13 guard caused them.",
+    "logs": [
+      "/private/tmp/lc-r13-guard-red.log",
+      "/private/tmp/lc-r13-guard-final-system.log",
+      "/private/tmp/lc-r13-guard-producer-bundled.log",
+      "/private/tmp/lc-r13-guard-nonr13-system.log",
+      "/private/tmp/lc-r13-version-baseline.log",
+      "/private/tmp/lc-r13-guard-nonr13-bundled.log"
+    ]
+  },
+  "limits": "The fix is a fail-closed boundary, not preservation of the 65 omitted sample records or a fix for double-remapped MLINESTYLE ownership. Source payloads with UNKNOWNV or typed-only data are not covered by this R13-raw gate. Full graph closure, independent semantic readback, native UI and other platform qualification remain open. The local LibreCAD candidate and patch are unmerged and unpublished; apply with git apply --unidiff-zero after the prior ordered candidate patches."
+}

@@ -1,0 +1,115 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 3beb3b1..1ace5ac 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -4063 +4063,2 @@ if (LIBRECAD_BUILD_SYSTEM_CODEC_TESTS)
+-        librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp)
++        librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++        librecad/src/lib/filters/tests/lc_export_commit_tests.cpp)
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index 1e732af..96fd69e 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -12649,0 +12650 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
++    std::size_t unqualifiedR13Records = 0;
+@@ -12651,0 +12653,2 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
++        if (o.m_version == DRW::AC1012)
++          ++unqualifiedR13Records;
+@@ -12664,0 +12668,2 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
++        if (e.m_version == DRW::AC1012)
++          ++unqualifiedR13Records;
+@@ -12688 +12693 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+-      if (replaysInDxfExport(section.m_version))
++      if (replaysInDxfExport(section.m_version)) {
+@@ -12690 +12695,3 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+-      else
++      } else {
++        if (section.m_version == DRW::AC1012)
++          ++unqualifiedR13Records;
+@@ -12691,0 +12699,12 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
++      }
++    }
++    // An R13 raw record has no qualified cross-version replay or equivalent
++    // typed-output receipt. A matching handle alone does not prove that the
++    // replacement preserves the record or its dependencies. Refuse before
++    // write() can replace the destination, even if a typed candidate exists.
++    if (unqualifiedR13Records != 0) {
++      m_writeFailed = true;
++      m_errorCode = DRW::BAD_UNKNOWN;
++      m_exportFailureDetail = QObject::tr(
++          "Cannot convert this R13 DXF because its retained records cannot yet be preserved in the selected version.");
++      return false;
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 5c95588..09cd4a4 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -11542,0 +11543 @@ TEST_CASE("R13 DXF imports an editable line type from ODA",
++      CHECK(exporter.exportReport().contains(QStringLiteral("R13")));
+diff --git a/librecad/src/lib/filters/tests/lc_export_commit_tests.cpp b/librecad/src/lib/filters/tests/lc_export_commit_tests.cpp
+index 9d62a34..3f88e43 100644
+--- a/librecad/src/lib/filters/tests/lc_export_commit_tests.cpp
++++ b/librecad/src/lib/filters/tests/lc_export_commit_tests.cpp
+@@ -45,0 +46 @@
++#include "rs_layer.h"
+@@ -256,0 +258,61 @@ TEST_CASE("a refused DWG export creates no file and keeps an existing one", "[dw
++
++TEST_CASE("R13 raw source records are not silently dropped on conversion",
++          "[dxf][r13][export-commit][raw-source]") {
++    lc::test::ensureSettings();
++    const lc::test::QuietLog quiet;
++    for (int kind = 0; kind < 3; ++kind) {
++        for (const auto target :
++             {RS2::FormatDXFRW14, RS2::FormatDXFRW2000, RS2::FormatDXFRW, RS2::FormatDXFRW2018}) {
++            for (const bool existing : {false, true}) {
++                CAPTURE(kind, target, existing);
++                const lc::test::OutputDirectory out("r13_raw_conversion");
++                const auto file = out.file("drawing.dxf");
++                const std::string before = existing ? putExistingContent(file) : std::string();
++                RS_Graphic graphic;
++                fill(graphic, 1);
++                graphic.addVariable("$INSUNITS", 0, 70);
++                REQUIRE(graphic.findLayer("0") != nullptr);
++                RS_Pen pen = graphic.findLayer("0")->getPen();
++                pen.setWidth(RS2::WidthDefault);
++                graphic.findLayer("0")->setPen(pen);
++                if (kind == 2) {
++                    DRW_RawDxfSection section;
++                    section.m_name = "CUSTOM_R13_SECTION";
++                    section.m_version = DRW::AC1012;
++                    section.m_groups.emplace_back(1, std::string{"source data"});
++                    graphic.dwgAdvancedMetadata().addRawDxfSection(section);
++                } else {
++                    DRW_RawDxfObject raw;
++                    raw.name = kind == 0 ? "CUSTOM_R13_OBJECT" : "CUSTOM_R13_ENTITY";
++                    raw.handle = static_cast<std::uint32_t>(0xA0 + kind);
++                    raw.m_version = DRW::AC1012;
++                    raw.groups.emplace_back(5, std::string{kind == 0 ? "A0" : "A1"});
++                    raw.groups.emplace_back(1, std::string{"source data"});
++                    if (kind == 0)
++                        graphic.dwgAdvancedMetadata().addRawDxfObject(raw);
++                    else
++                        graphic.dwgAdvancedMetadata().addRawDxfEntity(raw);
++                }
++                RS_FilterDXFRW filter;
++                CHECK_FALSE(filter.fileExport(graphic, lc::test::toQString(file), target));
++                CHECK(filter.exportReport().contains(QStringLiteral("R13")));
++                if (existing) {
++                    CHECK(sameBytes(file, before));
++                    CHECK(out.entries() == std::vector<std::string>{"drawing.dxf"});
++                } else {
++                    CHECK(out.entries().empty());
++                }
++                RS_Graphic clean;
++                fill(clean, 1);
++                clean.addVariable("$INSUNITS", 0, 70);
++                REQUIRE(clean.findLayer("0") != nullptr);
++                clean.findLayer("0")->setPen(pen);
++                const bool retried = filter.fileExport(clean, lc::test::toQString(file), target);
++                INFO(filter.exportReport().toStdString());
++                CHECK(retried);
++                CHECK_FALSE(sameBytes(file, before));
++                CHECK(out.entries() == std::vector<std::string>{"drawing.dxf"});
++            }
++        }
++    }
++}
