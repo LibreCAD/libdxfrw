@@ -44,6 +44,17 @@ public:
     }
 };
 
+class ExplicitDefaultExport final : public LC3CompatCheck {
+public:
+    explicit ExplicitDefaultExport(dxfRW& output) : output(output) {
+        layer.name = "Explicit default plot style";
+        layer.handlePlotS = "F";
+    }
+    dxfRW& output;
+    DRW_Layer layer;
+    void writeLayers() override { (void)output.writeLayer(&layer); }
+};
+
 class AliasExport final : public LC3CompatCheck {
 public:
     explicit AliasExport(dxfRW& output) : output(output) {
@@ -124,6 +135,44 @@ int main(int argc, char** argv) {
                 if (argc == 3) {
                     const auto evidence = std::filesystem::path(argv[2])
                         / (std::to_string(static_cast<int>(version))
+                           + (binary ? "-binary-" : "-ascii-")
+                           + std::to_string(reserveMask) + ".dxf");
+                    std::filesystem::copy_file(path, evidence,
+                        std::filesystem::copy_options::overwrite_existing);
+                }
+            }
+        }
+    }
+    // Explicit source F cannot silently name an unrelated or absent object
+    // if reservations force the generated Normal placeholder elsewhere.
+    for (const auto version : {DRW::AC1015, DRW::AC1018, DRW::AC1021,
+                               DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        for (bool binary : {false, true}) {
+            for (unsigned reserveMask : {0u, 1u, 2u, 3u}) {
+                dxfRW output(path.string().c_str());
+                ExplicitDefaultExport adapter(output);
+                if (((reserveMask & 1u) && !output.reserveHandle(0xEu))
+                    || ((reserveMask & 2u) && !output.reserveHandle(0xFu))) return 1;
+                { std::ofstream sentinel(path, std::ios::binary); sentinel << "previous file"; }
+                const bool written = output.write(&adapter, version, binary);
+                if (reserveMask == 0u) {
+                    if (!written || !checkGraph(path, 0u, 0u)) return 1;
+                } else {
+                    if (written || bytes(path) != "previous file") {
+                        std::cerr << "explicit plot-style F did not refuse relocated target: version="
+                                  << version << " binary=" << binary
+                                  << " reserveMask=" << reserveMask << '\n';
+                        return 1;
+                    }
+                    // The same writer remains reusable after correction.
+                    adapter.layer.handlePlotS.clear();
+                    if (!output.write(&adapter, version, binary)
+                        || !checkGraph(path, (reserveMask & 1u) ? 0xEu : 0u,
+                                       (reserveMask & 2u) ? 0xFu : 0u)) return 1;
+                }
+                if (argc == 3) {
+                    const auto evidence = std::filesystem::path(argv[2])
+                        / ("explicit-" + std::to_string(static_cast<int>(version))
                            + (binary ? "-binary-" : "-ascii-")
                            + std::to_string(reserveMask) + ".dxf");
                     std::filesystem::copy_file(path, evidence,

@@ -8180,8 +8180,12 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
                     write(writer->writeString(390, "0"));
                 } else if (sourcePlotStyle == 0x0Fu
                            && !m_referenceResolver) {
-                    // F is the conventional default Normal PlotStyleName
-                    // placeholder used by ordinary DXF table writers.
+                    // F is a source handle, not a symbolic default. If the
+                    // generated Normal placeholder moved, F cannot resolve
+                    // to it without an independently proven source mapping.
+                    if (m_dxfDefaultPlotPlaceholder != 0u
+                        && m_dxfDefaultPlotPlaceholder != 0x0Fu)
+                        return failDxfWrite();
                     write(writer->writeString(390, "F"));
                 } else {
                     // A nondefault group-390 value is a graph edge. Do not

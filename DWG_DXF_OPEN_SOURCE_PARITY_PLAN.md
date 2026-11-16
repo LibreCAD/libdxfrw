@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **734 completed implementation and qualification slices** and **32 remaining
+The plan records **735 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`734 / (734 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
+`735 / (735 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -226,7 +226,12 @@ Native GUI behavior, independent semantics and upstream integration remain open.
   The ordinary installed-codec output generates a collision-safe default
   plot-style dictionary and placeholder when no caller root is supplied. Its
   six-version ASCII/Binary graph passes independent ezdxf readback and the
-  whole-write allocation sweep. A subsequent consumer patch fixes live/raw
+  whole-write allocation sweep. Explicit source F now refuses atomically when
+  handle reservations move the generated default, avoiding a dangling or
+  misdirected layer hard pointer; same-writer correction and independent
+  readback pass across six versions and both encodings
+  ([receipt](docs/research/p8-explicit-layer-plotstyle-f-collision-2026-11-16.json)).
+  A subsequent consumer patch fixes live/raw
   identity collisions and GROUP reference mapping, and aligns typed-object
   planning, dictionary entries, emission and omission reporting with each
   codec's version gates. The previously failing installed-codec version selector
