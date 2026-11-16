@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **623 completed implementation and qualification slices** and **32 remaining
+The plan records **624 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`623 / (623 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
+`624 / (624 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -106,7 +106,9 @@ created locally from scratch for the specific control.
   readback ([receipt](docs/research/p8-librecad-named-block-units-2026-11-15.json)).
   The DWG reader now delivers BLOCK_HEADER preview bytes to the block callback
   ([receipt](docs/research/p8-dwg-block-preview-delivery-2026-11-15.json));
-  qualify the actual LibreCAD import and guarded output. Qualify nonempty
+  the actual LibreCAD title import now preserves that preview
+  ([consumer test](docs/research/p8-librecad-dwg-block-preview-import-2026-11-15.json)).
+  Qualify guarded preview output. Qualify nonempty
   XRECORD data, other unit values and remaining nondefault block properties
   without dropping dependencies. Unknown inbound references
   and dynamic-block objects remain
@@ -135,7 +137,8 @@ suffix `-2026-11-15.patch`, rebasing as needed against the consumer head:
 `librecad-p8-selected-control-diagnostic-graph`, `librecad-p8-zero-reactor-sortents-source`,
 `librecad-p8-experimental-named-sortents-optin`,
 `librecad-p8-empty-xrecord-source-correlation`,
-`librecad-p8-empty-xrecord-dxf-output`, `librecad-p8-named-block-units`.
+`librecad-p8-empty-xrecord-dxf-output`, `librecad-p8-named-block-units`,
+`librecad-p8-dwg-block-preview-import-test`.
 The tested base is `8a82e35965d8d56a8f8608abd739fbb2c0de2f3e`.
 
 For MPOLYGON, retain the consumer's opt-in polyline policy; independently

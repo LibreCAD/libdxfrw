@@ -1,0 +1,31 @@
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 0c9d779..21016e9 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9962,6 +9962,26 @@ TEST_CASE("Named block export preserves source millimetre units",
+     std::filesystem::remove(path);
+ }
+ 
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY
++TEST_CASE("DWG title block preview reaches the LibreCAD block model",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_AC1024_SORTENTS_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_AC1024_SORTENTS_FIXTURE to the tracked title drawing");
++  ensureSettings(); RS_Graphic graphic; RS_FilterDXFRW filter;
++  REQUIRE(filter.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  const RS_Block *block = nullptr;
++  for (unsigned i = 0; i < graphic.countBlocks(); ++i)
++    if (graphic.blockAt(i)->getName() == QStringLiteral("Title_Block-ISO")) block = graphic.blockAt(i);
++  REQUIRE(block != nullptr);
++  CHECK(block->sourceHandle() == 0x127u);
++  REQUIRE(block->getPreviewData().size() == 2088u);
++  std::uint64_t hash = 14695981039346656037ull;
++  for (const auto byte : block->getPreviewData()) { hash ^= byte; hash *= 1099511628211ull; }
++  CHECK(hash == 0xf881aec25d524b4full);
++}
++#endif
++
+ TEST_CASE("Named block export keeps the complex title source protected",
+           "[dwg][roundtrip][sortentssource][source]") {
+   const char *fixture = std::getenv("LIBRECAD_AC1024_SORTENTS_FIXTURE");
