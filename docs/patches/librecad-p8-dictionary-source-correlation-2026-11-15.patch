@@ -1,0 +1,181 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index 77c936c..75fcb14 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -3562,6 +3562,7 @@ public:
+ 
+   const std::map<std::uint32_t, DRW_Dictionary> &
+   dictionarySourceObservations() const noexcept { return m_dictionarySources; }
++  bool matchesAc1024DictionarySourceObservation(std::uint32_t handle) const noexcept;
+   bool dictionarySourceCaptureFailed() const noexcept {
+     return m_dictionarySourceCaptureFailed;
+   }
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 9d1f158..659f1e1 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9567,6 +9567,48 @@ TEST_CASE("Dictionary source observations retain typed values and reject ambigui
+   metadata.clear();
+   CHECK_FALSE(metadata.dictionarySourceCaptureFailed());
+ }
++
++TEST_CASE("AC1024 dictionary source observations match live adapter receipts",
++          "[dwg][roundtrip][dictionarysource][source]") {
++  ensureSettings();
++  const auto path = std::string(LIBRECAD_TEST_DIR) + "/mpolygon/oda_solid_ac1024.dwg";
++  REQUIRE(std::filesystem::exists(path));
++  RS_Graphic graphic;
++  RS_FilterDXFRW reader;
++  const auto import = [&] {
++    return reader.fileImport(graphic, QString::fromStdString(path), RS2::FormatDWG);
++  };
++  REQUIRE(import());
++  auto &metadata = graphic.dwgAdvancedMetadata();
++  REQUIRE(metadata.sourceDwgVersion() == DRW::AC1024);
++  REQUIRE(metadata.dwgFramePublicationCoverageComplete());
++  REQUIRE_FALSE(metadata.dictionarySourceCaptureFailed());
++  constexpr std::uint32_t target = 0xBu;
++  REQUIRE(metadata.matchesAc1024DictionarySourceObservation(target));
++  metadata.setSourceDwgVersion(DRW::AC1027);
++  CHECK_FALSE(metadata.matchesAc1024DictionarySourceObservation(target));
++  metadata.setSourceDwgVersion(DRW::AC1024);
++  CHECK(metadata.matchesAc1024DictionarySourceObservation(target));
++  const auto goodReport = metadata.dwgFrameCoverageReport();
++  auto badReport = goodReport;
++  for (auto &entry : badReport.m_entries)
++    if (entry.m_handle == target) ++entry.m_sourceMapOrdinal;
++  metadata.addDwgFrameCoverageReport(badReport);
++  CHECK_FALSE(metadata.matchesAc1024DictionarySourceObservation(target));
++  metadata.addDwgFrameCoverageReport(goodReport);
++  CHECK(metadata.matchesAc1024DictionarySourceObservation(target));
++  const auto &memberships = metadata.dwgDictionaryMemberships();
++  const auto found = std::find_if(memberships.begin(), memberships.end(),
++      [](const auto &entry) { return entry.m_dictionaryHandle == target; });
++  REQUIRE(found != memberships.end());
++  const auto duplicate = *found;
++  metadata.addDwgDictionaryMembership(duplicate);
++  CHECK_FALSE(metadata.matchesAc1024DictionarySourceObservation(target));
++  metadata.clear();
++  CHECK_FALSE(metadata.matchesAc1024DictionarySourceObservation(target));
++  REQUIRE(import());
++  CHECK(graphic.dwgAdvancedMetadata().matchesAc1024DictionarySourceObservation(target));
++}
+ #endif
+ 
+ template <typename T, typename = void>
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 22c8c01..d551622 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1151,6 +1151,7 @@ set (SHARED_SOURCES
+      librecad/src/lib/filters/rs_filtercxf.cpp
+      librecad/src/lib/filters/rs_filterdxf1.cpp
+      librecad/src/lib/filters/rs_filterdxf1.h
++     librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
+      librecad/src/lib/filters/rs_filterdxfrw.cpp
+      librecad/src/lib/filters/rs_filterdxfrw.h
+      librecad/src/lib/filters/rs_filterinterface.h
+diff --git a/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp b/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
+new file mode 100644
+index 0000000..b210b84
+--- /dev/null
++++ b/librecad/src/lib/engine/document/lc_dwg_dictionary_source.cpp
+@@ -0,0 +1,98 @@
++/****************************************************************************
++** Source correlation for selected AC1024 dictionaries.
++** Copyright (C) 2026 LibreCAD (librecad.org)
++** SPDX-License-Identifier: GPL-2.0-or-later
++****************************************************************************/
++#include "lc_dwgadvancedmetadata.h"
++
++#ifdef LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY
++bool LC_DwgAdvancedMetadata::matchesAc1024DictionarySourceObservation(
++    std::uint32_t handle) const noexcept {
++  // This correlates observations; it does not establish import generation,
++  // graph closure, authentic producer data, CRCs or permission to export.
++  if (m_sourceDwgVersion != DRW::AC1024 || !m_dwgFramePublicationCoverageComplete
++      || !m_dwgFramePublicationConflicts.empty() || m_dictionarySourceCaptureFailed)
++    return false;
++  const auto snapshotIt = m_dictionarySources.find(handle);
++  if (snapshotIt == m_dictionarySources.end())
++    return false;
++  const auto &snapshot = snapshotIt->second;
++  const DictionaryRecord *current = nullptr;
++  const RawObjectRecord *raw = nullptr;
++  const DRW_DwgFramePublication *publication = nullptr;
++  const DRW_DwgDictionaryMembership *membership = nullptr;
++  const DRW_DwgFrameCoverageEntry *coverage = nullptr;
++  for (const auto &item : m_dictionaries)
++    if (item.handle == handle) { if (current) return false; current = &item; }
++  for (const auto &item : m_rawObjects)
++    if (item.handle == handle) { if (raw) return false; raw = &item; }
++  for (const auto &item : m_dwgFramePublications)
++    if (item.m_handle == handle) { if (publication) return false; publication = &item; }
++  for (const auto &item : m_dwgDictionaryMemberships)
++    if (item.m_dictionaryHandle == handle) { if (membership) return false; membership = &item; }
++  for (const auto &item : m_dwgFrameCoverageReport.m_entries)
++    if (item.m_handle == handle) { if (coverage) return false; coverage = &item; }
++  if (!current || !raw || !publication || !membership || !coverage
++      || coverage->m_sourceOffset != publication->m_sourceOffset
++      || coverage->m_sourceMapOrdinal != publication->m_sourceMapOrdinal
++      || coverage->m_sourceOffsetSpace != publication->m_sourceOffsetSpace
++      || coverage->m_disposition != DRW_DwgFrameDisposition::Published
++      || coverage->m_publicationCount != 1u
++      || raw->rawBytes.empty() || raw->rawBytes.size() > 4u * 1024u * 1024u
++      || current->replayState != ReplayState::ReplayAllowed
++      || raw->replayState != ReplayState::ReplayAllowed
++      || !raw->commonHandleDataValidated
++      || current->handle != snapshot.handle
++      || current->parentHandle != snapshot.parentHandle
++      || current->cloning != snapshot.cloning || current->hardOwner != snapshot.hardOwner
++      || current->name != snapshot.name || current->countCap
++      || !current->appData.empty() || !current->extData.empty()
++      || current->reactorHandles != snapshot.reactorHandles
++      || current->xDictHandle != snapshot.xDictHandle
++      || current->numReactors != snapshot.reactorCount()
++      || current->xDictFlag != snapshot.extensionDictionaryFlag()
++      || current->hasDsData != snapshot.hasDataStorageBinaryData()
++      || current->typedPayloadComplete != snapshot.hasCompleteDwgEntries()
++      || current->entries.size() != snapshot.m_entries.size())
++    return false;
++  for (std::size_t i = 0; i < current->entries.size(); ++i)
++    if (current->entries[i].name != snapshot.m_entries[i].m_name
++        || current->entries[i].handle != snapshot.m_entries[i].m_handle)
++      return false;
++  try {
++    DRW_UnsupportedObject source;
++    source.m_version = raw->version;
++    source.m_objectType = raw->objectType;
++    source.m_handle = raw->handle;
++    source.m_parentHandle = raw->parentHandle;
++    source.setCommonLinkEvidence(raw->commonLinkEvidence);
++    source.m_reactorHandles = raw->reactorHandles;
++    source.m_xDictHandle = raw->xDictHandle;
++    source.m_numReactors = raw->numReactors;
++    source.m_xDictFlag = raw->xDictFlag;
++    source.m_blockOwnerHandle = raw->blockOwnerHandle;
++    source.m_bodyBitSize = raw->bodyBitSize;
++    source.m_objectOffset = raw->objectOffset;
++    source.m_objectSize = raw->objectSize;
++    source.m_isEntity = raw->isEntity;
++    source.m_isCustomClass = raw->isCustomClass;
++    source.m_hasDataStorage = raw->hasDataStorage;
++    source.m_hasClassDefinition = raw->hasClassDefinition;
++    source.m_classProxyFlag = raw->classProxyFlag;
++    source.m_classAppName = raw->classAppName;
++    source.m_classWasProxy = raw->classWasProxy;
++    source.m_classEntityFlagRaw = raw->classEntityFlagRaw;
++    source.m_classDwgVersion = raw->classDwgVersion;
++    source.m_classMaintenanceVersion = raw->classMaintenanceVersion;
++    source.m_classUnknown1 = raw->classUnknown1;
++    source.m_classUnknown2 = raw->classUnknown2;
++    source.m_recordName = raw->recordName;
++    source.m_className = raw->className;
++    source.m_rawBytes = raw->rawBytes;
++    source.m_typedPayloadValidated = raw->typedPayloadValidated;
++    return snapshot.matchesAc1024DwgFrame(source, *publication, *membership);
++  } catch (...) {
++    return false;
++  }
++}
++#endif

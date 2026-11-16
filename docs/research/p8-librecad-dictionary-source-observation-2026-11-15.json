@@ -10,7 +10,7 @@
     "On the existing libdxfrw AC1024 title-block DWG it retained eight eligible typed dictionaries; all three named-block dictionaries 22D3, 21CD and 2120 matched their independently captured raw frame, publication, and membership through matchesAc1024DwgFrame. This scratch harness did not test the LibreCAD application adapter.",
     "Older bundled-codec headers passed a C++17 -Werror syntax control; the new observation code is feature-macro excluded. The ordered patch applied and reverse-checked cleanly after the preceding 18 patches.",
     "Source-release inventory and its 18 refusal controls passed with 1210 release files; the implementation digest remains c668c708cbf212bd3fe75a330c2f459867901dbd2e8cf8e0c87f03b8c308677b.",
-    "A clean installed-codec application and focused test rebuild is in progress; the committed tests have not yet been run in that application build."
+    "The clean installed-codec application test target rebuilt after the final header revision and all three focused CTests passed (0.92 seconds), including the new snapshot controls."
   ],
   "limits": "Source observations and helper agreement do not establish authentic producer data, frame CRC, immutable import generation, full source graph or safe output. Live LibreCAD metadata is not yet compared with this snapshot, and the exporter is unchanged. Broader platforms and native semantic qualification remain open."
 }

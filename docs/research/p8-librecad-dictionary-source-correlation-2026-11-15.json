@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-dictionary-source-correlation-2026-11-15.patch",
+  "patchSha256": "5cf77c2fb88e49251c44c369d5aaa3b6cacceaa8a3f6ac7d19bbee5ecb9cc54e",
+  "implementation": "An unmerged downstream helper correlates a selected frozen dictionary to one live dictionary, one raw frame, one publication, one membership and one exact published coverage row. It rejects duplicate identities, modified represented live fields, replay-invalidated records, wrong source version, incomplete coverage, missing source material and raw bodies over 4 MiB. It reparses the raw source with the upstream bounded verifier, catches allocation exceptions, and does not alter or authorize output.",
+  "validation": [
+    "A scratch C++17 -Werror source-callback harness against the current installed verifier library matched 36 typed dictionaries in LibreCAD mpolygon/oda_solid_ac1024.dwg and eight in the existing libdxfrw title_block-iso.dwg. Both tests refuse wrong version, incomplete coverage and duplicate membership, and accept again after restoring valid state.",
+    "A second harness on the LibreCAD fixture independently perturbed typed cloning, raw bytes, publication ordinal and membership, rejecting all four. It injected failures at each of 41 allocating operations in the selected correlation and required refusal followed by successful immediate retry.",
+    "The downstream patch forward- and reverse-checks in order after the nineteenth patch. The new translation unit compiles with the older bundled codec, where the feature macro excludes the helper.",
+    "Source-release inventory: 1211 released files; generator, 18 refusal controls and qualification digest check pass.",
+    "An installed-codec LibreCAD application rebuild and its committed physical fixture integration test are running; their result is not yet claimed."
+  ],
+  "limits": "These are local, non-authenticating source correlations, not a frozen import-generation proof, unknown-reference exclusion, complete dictionary or SORTENTSTABLE graph closure, output admission, native semantics or platform qualification. The patch is unmerged and the existing exporter is unchanged."
+}
