@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-16",
+  "consumerRepository": "LibreCAD/LibreCAD_3",
+  "consumerBase": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+  "localCandidateCommit": "9081afb693be28933fb3c1355b52ef506340949a",
+  "pinnedLibdxfrwCommit": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+  "change": "Count each non-null unsupported WIPEOUT callback as import loss.",
+  "reproduction": "Before fix the generated minimal DXF successfully imported one LINE and one WIPEOUT but did not report WIPEOUT loss.",
+  "controls": {
+    "ezdxfVersion": "1.4.4",
+    "converter": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "files": {
+      "dxf": {
+        "path": "/private/tmp/lc3-wipeout-generator-final-20261116/wipeout.dxf",
+        "sha256": "5605e321eca24d2b026c680e59b38bcd3186a64670a83e12dff9ac006dc796ae"
+      },
+      "dwg": {
+        "path": "/private/tmp/lc3-wipeout-generator-final-20261116/dwg/wipeout.dwg",
+        "sha256": "8933ab613f0e9d0360a5bd9d6e7c671cfc97511f7f1712a1b00868b4a0007213"
+      },
+      "lineOnlyDxf": {
+        "path": "/private/tmp/lc3-wipeout-generator-final-20261116/line.dxf",
+        "sha256": "6823a8457fdc163e41bf82a031c97d17ab05c503e5bf4d185306292158073ea1"
+      },
+      "producerDxf": {
+        "path": "/private/tmp/lc3-wipeout-generator-final-20261116/source/wipeout.dxf",
+        "sha256": "84a46750e110971d3cedd9feb11869e65aab7c9f8eabcb5a43542dfdd2c93a00"
+      }
+    }
+  },
+  "test": "On macOS ARM64 four focused tests pass for each separately installed current and pinned codec. The optional integration test reads generated LINE + WIPEOUT DXF and ODA-converted AC1024 DWG, checks one WIPEOUT loss and one retained LINE, and checks a LINE-only DXF does not report WIPEOUT. MLINE, MPOLYGON and legacy-layer tests also pass.",
+  "logs": [
+    "/private/tmp/lc3-wipeout-current-test.log",
+    "/private/tmp/lc3-wipeout-pinned-test.log"
+  ],
+  "replay": "Patch applied in order to the prior candidate replay and both changed files matched the committed consumer candidate.",
+  "limits": "Local unmerged candidate only. This reports omitted geometry; it does not implement WIPEOUT rendering or editing. Native GUI, other platforms and broader format qualification remain open. No drawing fixture is committed; no phase gate or external-only support claim is promoted."
+}

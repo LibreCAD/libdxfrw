@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Generate temporary DXF/DWG LINE + MLINE controls for LibreCAD_3.
+"""Generate temporary DXF/DWG LINE + MLINE or WIPEOUT controls for LibreCAD_3.
 
 Requires ezdxf and ODA File Converter. Output must be a new directory outside
-this repository. The minimized DXF avoids unrelated unsupported OBJECTS while
-retaining a valid STANDARD MLINESTYLE dictionary and original entity records.
+this repository. The minimized DXF avoids unrelated unsupported OBJECTS; MLINE controls retain
+a valid STANDARD MLINESTYLE dictionary. Entity records come from ezdxf.
 """
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--odafc', type=Path, required=True)
+    parser.add_argument('--entity', choices=('mline', 'wipeout'), default='mline')
     args = parser.parse_args()
     import ezdxf
 
@@ -35,12 +36,15 @@ def main() -> None:
     doc = ezdxf.new('R2010')
     model = doc.modelspace()
     model.add_line((0, 0), (5, 0))
-    model.add_mline([(0, 2), (5, 2)], dxfattribs={'style_name': 'STANDARD'})
-    source = source_dir / 'mline.dxf'
+    if args.entity == 'mline':
+        model.add_mline([(0, 2), (5, 2)], dxfattribs={'style_name': 'STANDARD'})
+    else:
+        model.add_wipeout([(0, 2), (3, 2), (3, 4), (0, 4)])
+    source = source_dir / (args.entity + '.dxf')
     doc.saveas(source)
     subprocess.run([str(converter), str(source_dir), str(dwg_dir),
                     'ACAD2010', 'DWG', '0', '1'], check=True)
-    dwg = dwg_dir / 'mline.dwg'
+    dwg = dwg_dir / (args.entity + '.dwg')
     if dwg.read_bytes()[:6] != b'AC1024':
         raise ValueError('converter did not produce an AC1024 DWG')
 
@@ -56,9 +60,12 @@ def main() -> None:
             raise ValueError('entity section missing a record boundary')
         records[-1].append((code, value))
     selected = {record[0][1]: record for record in records}
-    if set(selected) != {'LINE', 'MLINE'} or len(records) != 2:
+    kind = args.entity.upper()
+    if set(selected) != {'LINE', kind} or len(records) != 2:
         raise ValueError('unexpected generated entity records')
-    style = next(value for code, value in selected['MLINE'] if code == '340')
+    style = next((value for code, value in selected[kind] if code == '340'), '')
+    if kind == 'MLINE' and not style:
+        raise ValueError('generated MLINE has no style handle')
     header = [('0', 'SECTION'), ('2', 'HEADER'), ('9', '$ACADVER'), ('1', 'AC1015'),
               ('0', 'ENDSEC'), ('0', 'SECTION'), ('2', 'ENTITIES')]
     end_entities = [('0', 'ENDSEC')]
@@ -77,8 +84,9 @@ def main() -> None:
         audit = ezdxf.readfile(path).audit()
         if audit.has_errors or audit.has_fixes:
             raise ValueError(f'generated DXF did not pass ezdxf audit: {path}')
-    dxf, line = root / 'mline.dxf', root / 'line.dxf'
-    write(dxf, header + selected['LINE'] + selected['MLINE'] + end_entities + objects)
+    dxf, line = root / (args.entity + '.dxf'), root / 'line.dxf'
+    write(dxf, header + selected['LINE'] + selected[kind] + end_entities
+          + (objects if kind == 'MLINE' else []))
     write(line, header + selected['LINE'] + end_entities)
     paths = {'dxf': dxf, 'dwg': dwg, 'lineOnlyDxf': line, 'producerDxf': source}
     receipt = {'ezdxfVersion': ezdxf.__version__, 'converter': str(converter),
@@ -86,7 +94,7 @@ def main() -> None:
                          for key, path in paths.items()}}
     (root / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
     print(json.dumps(receipt, indent=2))
-    print('Set LC3_MLINE_DXF, LC3_MLINE_DWG, and LC3_LINE_DXF to the generated paths.')
+    print(f'Set LC3_{kind}_DXF, LC3_{kind}_DWG, and LC3_LINE_DXF to the generated paths.')
 
 
 if __name__ == '__main__':

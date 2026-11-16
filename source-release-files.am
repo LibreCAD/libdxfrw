@@ -89,6 +89,7 @@ EXTRA_DIST = \
     docs/patches/librecad3-p8-mpolygon-offset-preservation-2026-11-15.patch \
     docs/patches/librecad3-p8-mpolygon-projection-warning-2026-11-15.patch \
     docs/patches/librecad3-p8-mpolygon-rotation-preservation-2026-11-15.patch \
+    docs/patches/librecad3-p8-wipeout-import-loss-2026-11-16.patch \
     docs/research/visualstyle-slot-evidence-grades-2026-10-16.json \
     docs/research/visualstyle-slot-map-readiness-2026-10-15.json \
     dwg2dxf/CMakeLists.txt \
