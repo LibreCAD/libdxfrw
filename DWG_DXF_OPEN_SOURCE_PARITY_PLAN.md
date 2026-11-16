@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **637 completed implementation and qualification slices** and **32 remaining
+The plan records **638 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`637 / (637 + 32) = 95.2%`. The previous 28-package denominator was stale; a recount
+`638 / (638 + 32) = 95.2%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -233,8 +233,14 @@ plot-style dictionary and placeholder, NOD root and reciprocal ownership before
 publication; graph failures and in-attempt retries are covered. ODA and LibreDWG
 verify the selected graph. The independent page-size disagreement has been
 resolved for this uncompressed control; retain separate compressed-page and
-producer qualification. Investigate basic generated drawings lacking reference
-graphs and remaining versions before broadening writer support
+producer qualification. A source-bound AC1027 LAYER trailing hard-pointer
+null now retains its typed code on encoding; AC1032 generated controls and
+transaction retry also pass. This closes no whole-drawing writer gate
+([receipt](docs/research/p6-ac1027-layer-trailing-typed-null-2026-11-15.json)).
+A fresh generated default-plotstyle matrix converts with ODA for AC1015 and
+AC1018, but AC1021–AC1032 still fail at LAYER after earlier object warnings;
+continue isolating the modern container, default graphs and remaining versions
+before broadening writer support
 ([header receipt](docs/research/p6-ac1018-ac1024-repeated-file-header-2026-11-15.json),
 [layer experiment](docs/research/p6-ac1024-authored-layer-null-matrix-2026-11-15.json)).
 

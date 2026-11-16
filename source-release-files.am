@@ -1213,6 +1213,7 @@ EXTRA_DIST = \
     tools/research/p5_table_root_xrecord_candidate_probe.cpp \
     tools/research/p5_xrecord_codepage45_verify.py \
     tools/research/p5_xrecord_codepage_capture.cpp \
+    tools/research/probe_ac1027_layer_typed_null.cpp \
     tools/research/render_mtext_field_source.py \
     tools/research/run_acsh_torus_source_probe.py \
     tools/research/tablegeometry_dwg_span_scan.cpp \

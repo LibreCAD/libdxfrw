@@ -877,7 +877,8 @@ bool makeAc1018PlusLayerHandleFrame(DRW::Version version,
                                     LayerHandleFrame& frame,
                                     bool includeBodyTargets = true,
                                     DRW_LW_Conv::lineWidth lineWeight =
-                                        DRW_LW_Conv::widthDefault) {
+                                        DRW_LW_Conv::widthDefault,
+                                    bool typedUnknownNull = false) {
     if (version < DRW::AC1018)
         return false;
     DRW_Layer layer;
@@ -892,6 +893,10 @@ bool makeAc1018PlusLayerHandleFrame(DRW::Version version,
             layer.materialHandle.ref = 0x41u;
         if (version >= DRW::AC1027)
             layer.unknownHandle.ref = 0x61u;
+    }
+    if (typedUnknownNull && version >= DRW::AC1027) {
+        layer.unknownHandle.ref = 0u;
+        layer.unknownHandle.code = DRW::DwgHardPointer;
     }
     dwgBufferW body, strings, handles;
     if (!layer.encodeDwg(version, &body, &strings, &handles))
@@ -19543,6 +19548,7 @@ void testAc1018PlusLayerBodyHandleRoles(TestContext& t) {
         case DRW::AC1021: return "AC1021";
         case DRW::AC1024: return "AC1024";
         case DRW::AC1027: return "AC1027";
+        case DRW::AC1032: return "AC1032";
         default: return "unexpected-version";
         }
     };
@@ -19556,7 +19562,8 @@ void testAc1018PlusLayerBodyHandleRoles(TestContext& t) {
     };
 
     for (const DRW::Version version : {DRW::AC1018, DRW::AC1021,
-                                       DRW::AC1024, DRW::AC1027}) {
+                                       DRW::AC1024, DRW::AC1027,
+                                       DRW::AC1032}) {
         std::vector<std::string> roles{"xrefBlock", "plotStyle"};
         std::vector<std::uint32_t> targets{0x21u, 0x31u};
         if (version > DRW::AC1018) {
@@ -19648,6 +19655,48 @@ void testAc1018PlusLayerBodyHandleRoles(TestContext& t) {
         }
         t.expect(nullProfile, std::string("LAYER ") + versionName(version)
                      + " accepts canonical null references with exact spans");
+
+        if (version >= DRW::AC1027) {
+            LayerHandleFrame typedNullFrame;
+            LayerHandleRoleProbe typedNullLayer;
+            const bool typedNullRead = makeAc1018PlusLayerHandleFrame(
+                version, typedNullFrame, true, DRW_LW_Conv::widthDefault, true)
+                && parse(version, typedNullLayer, typedNullFrame.bytes,
+                         typedNullFrame.handleBits);
+            t.expect(typedNullRead && typedNullLayer.unknownHandle.ref == 0u
+                         && typedNullLayer.unknownHandle.rawCode == DRW::DwgHardPointer
+                         && typedNullLayer.lTypeH.ref == 0x51u
+                         && !typedNullLayer.dwgHandleFieldSpans().empty()
+                         && typedNullLayer.dwgHandleFieldSpans().back().m_bitSize == 8u,
+                     std::string(versionName(version))
+                         + " LAYER preserves an explicitly typed trailing null");
+            if (typedNullRead) {
+                dwgBufferW body, strings, handles;
+                body.putRawChar8(0x11u);
+                strings.putRawChar8(0x22u);
+                handles.putRawChar8(0x33u);
+                const auto priorBody = body.data();
+                const auto priorStrings = strings.data();
+                const auto priorHandles = handles.data();
+                const auto priorColor = typedNullLayer.color;
+                typedNullLayer.color = 257;
+                const bool rejected = !typedNullLayer.encodeDwg(
+                    version, &body, &strings, &handles);
+                t.expect(rejected && body.data() == priorBody
+                             && strings.data() == priorStrings
+                             && handles.data() == priorHandles
+                             && typedNullLayer.unknownHandle.rawCode == DRW::DwgHardPointer,
+                         std::string(versionName(version))
+                             + " invalid LAYER rolls back typed-null output");
+                typedNullLayer.color = priorColor;
+                const bool reencoded = typedNullLayer.encodeDwg(
+                    version, &body, &strings, &handles);
+                t.expect(reencoded && handles.data().size() > priorHandles.size()
+                             && handles.data().back() == 0x50u,
+                         std::string("parsed ") + versionName(version)
+                             + " LAYER retries with trailing hard-pointer null");
+            }
+        }
 
         for (std::size_t index = 0u; index < roles.size(); ++index) {
             std::vector<std::uint8_t> invalidBytes = validFrame.bytes;

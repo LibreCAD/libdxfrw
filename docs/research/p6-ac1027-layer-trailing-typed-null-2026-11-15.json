@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-15",
+  "scope": "Preserve the explicitly typed null of the R2013+ LAYER trailing hard-pointer field during DWG encoding; no object graph or version support claim is added.",
+  "authority": [
+    "ODA Open Design Specification v5.4.1 sections 2.13 and 20.4.54 describe the hard-pointer role and handle encodings.",
+    "The existing source-span receipt docs/research/p6-ac1018plus-layer-body-handle-role-spans-2026-11-09.json records the physical AC1027 Cover LAYER 0 trailing raw code 5, target 0, and a preceding nonzero linetype hard pointer."
+  ],
+  "implementation": [
+    "When the trailing AC1027+ handle has ref=0, ref64=0 and an explicit hard-pointer code, retain code 5 instead of normalizing it to the untyped null code 0. Nonzero references and default untyped nulls keep their prior behavior; the existing synthetic AC1027 handling is unchanged.",
+    "No public class layout or interface virtual changed. This preserves the encoded null role; it does not establish semantics of the unknown target, graph closure or whole-file support."
+  ],
+  "validation": [
+    "Before the fix, the focused test failed both the typed-null decode and subsequent re-encode checks. After the fix, generated AC1027/AC1032 controls preserve the 0x50 trailing handle byte and preceding linetype; an invalid-color attempt leaves caller and all three output buffers unchanged and the corrected same-buffer retry succeeds. Existing nonzero and canonical null vectors also pass.",
+    "The existing local Cover.dwg source (SHA-256 3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42) was read and its layer 0x10 re-encoded. The source trailing handle was code 5/target 0 and the output ended with 0x50. Reproduce with: /usr/bin/g++ -std=gnu++17 -O0 -I src -I tests tools/research/probe_ac1027_layer_typed_null.cpp build-gcc/libdxfrw.a -o <scratch-probe>; <scratch-probe> <Cover.dwg>.",
+    "The fast LAYER handle-role selector, AC1024 layer binding, and default plotstyle/material transaction selectors pass; the legacy LC3 consumer compatibility target builds. The source file was not committed and no new DWG/DXF fixtures were added."
+  ],
+  "independentWriterMatrix": {
+    "inputs": "Fresh locally generated default-plotstyle opt-in single-LINE controls, after rebuilding the writer test; ODA File Converter 27.1.0, ACAD2013 DXF, no audit. Individual output files and .err files checked; process exit alone is not proof.",
+    "AC1015": "produced DXF without .err",
+    "AC1018": "produced DXF without .err",
+    "AC1021_AC1024_AC1027_AC1032": "no DXF; object warnings followed by AcDbLayerTableRecord(0x12) improper-read/recovery error",
+    "limits": "This is the generated default-plotstyle profile, not the separate two-layer material/plotstyle profile that already converts at AC1024. Earlier warnings prevent attributing the failures solely to the final LAYER error. An attempted AC1021 manual-graph profile failed the local writer before OBJECTS and was not peer-qualified.",
+    "inputSha256": {
+      "probe-13.dwg": "5ceadce975118bd4e46974a507d0d93375db6eac2b01e85eb1170c4b6161f686",
+      "probe-14.dwg": "9b19e59f9c9553ec01030efebc44237cea1d73d50684dfe418eb32a8d5ce41f2",
+      "probe-15.dwg": "d53be31021c6b1dea712d0df1bf2b20d4993922b96adb8931f4825dbab53f71a",
+      "probe-16.dwg": "7c7bececc830b46e803215ff3ae22291640e199a976e03f3ffb24795055efd45",
+      "probe-17.dwg": "03b205f6d9ff21eae43fee98457e373be2b93bc55ff43746c1f8d431af3f8f2b",
+      "probe-18.dwg": "9b56eb5deb58e01dc67e79efec5bc84c203b336d38bf710bf19c4f61578f58f3"
+    },
+    "successfulDxfSha256": {
+      "probe-13.dxf": "518ff7d9fc2fc9560faa21e5a3aea7219b555a084ea569873fa1fab9122013b6",
+      "probe-14.dxf": "5b006e8cef170417291ddf0830e75620d467fb860aadafedc970d653abce7a26"
+    }
+  },
+  "implementationDigestSha256": "b0300c0854670a66f9bdec90bcf934f83dc95d6b5b8ba01388277221f9c3e643",
+  "remaining": "Qualify whole-document identity/ownership and independent interoperability by producer and revision; preserve the existing unsupported paths. P4\u2013P8 remain open and J256/J260/J268/J284/J293/J295 remain DEFERRED_EXTERNAL."
+}

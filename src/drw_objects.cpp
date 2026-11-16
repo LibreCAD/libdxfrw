@@ -9208,7 +9208,12 @@ bool DRW_Layer::encodeDwgForWriter(DRW::Version version, dwgBufferW *buf,
         hb->putHandle(makeRefW(lTypeH.ref, DRW::DwgHardPointer));
         if (version >= DRW::AC1027) {
             auto unknown = makeRefW(unknownHandle.ref, DRW::DwgHardPointer);
-            if (version == DRW::AC1027 && typedLegacyNulls && unknown.ref == 0u)
+            // Preserve an explicitly typed null from a parsed or authored
+            // trailing hard pointer, as for the xref field above.
+            if (unknown.ref == 0u
+                && ((version == DRW::AC1027 && typedLegacyNulls)
+                    || (unknownHandle.ref64 == 0u
+                        && unknownHandle.code == DRW::DwgHardPointer)))
                 unknown.code = DRW::DwgHardPointer;
             hb->putHandle(unknown);
         }
