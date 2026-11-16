@@ -19,8 +19,10 @@
     "logs": [
       "/private/tmp/freecad-polyface-layer-20261116/color-consistency-before.log",
       "/private/tmp/freecad-polyface-layer-20261116/color-consistency-final.log",
-      "/private/tmp/freecad-polyface-layer-20261116/color-consistent-peer-final.log"
-    ]
+      "/private/tmp/freecad-polyface-layer-20261116/color-consistent-peer-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/color-mismatch-peer-final.log"
+    ],
+    "peerRefusal": "The original ezdxf parent-only color files are refused for both same/different colors with preservation enabled or disabled; no mesh geometry leaks."
   },
   "scratchHashes": {
     "color-consistent-same.dxf": "c97e81f743ce159fbfff2270d19919b43c869e001c5d5af00dd0534126f983ad",
