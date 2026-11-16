@@ -27,5 +27,6 @@
     },
     "checks": "Both receipts report version 2.0 rejected, 3.0 accepted, old runtime name absent, and the installed library loaded."
   },
-  "limits": "This probe tests package selection and actual shared-library loading, not full C++ ABI compatibility, drawing semantics, app integration, or release readiness. No support claim is promoted."
+  "limits": "This probe tests package selection and actual shared-library loading, not full C++ ABI compatibility, drawing semantics, app integration, or release readiness. No support claim is promoted.",
+  "cadence": "Branch push runs are limited to shared-package code, build configuration, or probe changes; workflow_dispatch remains available after integration. Documentation-only commits do not repeat the shared builds."
 }

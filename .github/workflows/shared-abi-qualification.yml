@@ -4,6 +4,14 @@ on:
   push:
     branches:
       - 'codex/freecad-platform-qualification-*'
+    paths:
+      - '.github/workflows/shared-abi-qualification.yml'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+      - 'libdxfrw.pc.in'
+      - 'libdxfrw_sources.cmake'
+      - 'src/**'
+      - 'tools/probe_shared_abi_package.py'
   workflow_dispatch:
 
 permissions:
