@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-16",
+  "failure": "Hosted native Linux at 6bbf3ccd refused before focused tests because the frozen broad CTest inventory omitted the newly registered plot test.",
+  "failedRun": "https://github.com/dxli/libdxfrw/actions/runs/43868332258",
+  "repair": "Configured a clean git-archive checkout of committed source 0830a5437444099ec24cb54d2d5f5474501ce3bc with the exact fixed hosted profile and used the supported freeze-inventory command.",
+  "inventory": {
+    "previousCount": 1379,
+    "newCount": 1381,
+    "added": [
+      "libdxfrw_plot_custom_dpi_admission",
+      "libdxfrw_sparse_material_control_groups"
+    ],
+    "removed": [],
+    "nameDigest": "bc9b7bbb470d956b9850257be2cc2fff062a727bd1127100d18869077ac1314f",
+    "generatedAtCommit": "0830a5437444099ec24cb54d2d5f5474501ce3bc"
+  },
+  "crossCheck": "The failed Linux runner artifact listed 1380 tests; the frozen inventory adds only the subsequently registered sparse MATERIAL test and removes none.",
+  "validation": [
+    "Required-test and workflow contracts and both self-tests pass.",
+    "Implementation digest refreshed from a clean index matching 5993 staged tracked entries. Claim statuses and receipt references remain unchanged."
+  ],
+  "limitations": [
+    "The failed hosted job did not execute focused tests. Rerun the fixed revision on each required platform; the inventory and contract checks do not promote support claims."
+  ],
+  "implementationDigestSha256": "8d4c0427339ca2a9e8572b5db49ecb803030009618761d0b4f2d5489c9542fc8"
+}

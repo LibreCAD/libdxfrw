@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **710 completed implementation and qualification slices** and **32 remaining
+The plan records **711 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`710 / (710 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
+`711 / (711 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -113,7 +113,7 @@ tested flag values, and header warnings limit the result to this field
 The VPORT writer now preserves named configurations written before `*ACTIVE`, repeated configuration rows and their order, and synthesizes a default active row only when needed; unnamed-active legacy callers remain supported ([receipt](docs/research/p6-vport-configuration-name-preservation-2026-11-16.json)). Focused hosted [fast](https://github.com/dxli/libdxfrw/actions/runs/43865527188), [FreeCAD](https://github.com/dxli/libdxfrw/actions/runs/43865527092) and [native](https://github.com/dxli/libdxfrw/actions/runs/43865527078) checks passed at `6592270a`: fast, FreeCAD Linux/Windows and native Linux/Windows/macOS. Later test-only and documentation commits require their own source-matched qualification. Native tiled viewport behavior remains open.
 The aggregate DXF fixture executable remains red with 16 assertions. The XDATA direct-codec selector passes ([receipt](docs/research/p8-fixture-xdata-codec-scope-2026-11-16.json)); a bounded AC1021 sparse MATERIAL reader now restores the original raw control-group fixture while keeping typed output refused ([receipt](docs/research/p6-ac1021-minimal-sparse-material-channel-read-2026-11-16.json)). Continue investigating VIEWPORT/VisualStyle, SORTENTSTABLE, proxy and table-border failures without assuming they are harmless. The distinct MATERIAL normal-boundaries and sparse-raw tests also fail against the pre-change baseline and remain open ([receipt](docs/research/p8-fixture-harness-source-identity-repairs-2026-11-16.json)).
 The generated VIEWPORT shade-plot fixture exposes an unresolved compatibility conflict: Autodesk DXF documents group-170 modes 0–3, while ObjectARX defines VisualStyle/RenderPreset modes and the adapter expects 4/5; the typed DXF writer rejects them. Obtain producer-bound ASCII/Binary wire evidence before reconciling mode/handle admission and target closure ([research and implementation steps](docs/research/p6-viewport-shadeplot-dxf-objectarx-conflict-2026-11-16.json)). Keep existing refusal gates in place.
-Hosted native qualification at `6bbf3ccd` failed before tests because the frozen CTest inventory omitted the newly registered plot selector. Freeze the clean hosted-profile inventory including both new selectors, verify the contract and refresh the implementation digest before rerunning.
+Hosted native qualification at `6bbf3ccd` failed before tests because the frozen CTest inventory omitted the newly registered plot selector. The clean hosted-profile inventory now includes both new selectors, matches the failed Linux runner apart from the subsequently added sparse-material test, and passes contract checks ([receipt](docs/research/p8-native-inventory-plot-material-repair-2026-11-16.json)); rerun hosted qualification at the repaired revision.
 Continue the remaining public-writer and compound-route census.
 
 For FreeCAD integration, replay the complete ordered downstream chain with
