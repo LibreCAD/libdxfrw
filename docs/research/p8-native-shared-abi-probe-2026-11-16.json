@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-16",
+  "scope": "Repeatable installed shared-package version and loaded-library boundary check",
+  "probe": "tools/probe_shared_abi_package.py",
+  "workflow": ".github/workflows/shared-abi-qualification.yml",
+  "checks": [
+    "Require the ABI-3 shared runtime to exist and the old ABI runtime name to be absent from a fresh install.",
+    "Reject an installed CMake CONFIG request for version 2.0 and accept version 3.0.",
+    "Build and run an independent C++ consumer and compare the loaded runtime's canonical path with the installed library; record its SHA-256."
+  ],
+  "local": "PASS on macOS ARM64 with the clean shared 3.0.0 install; loaded libdxfrw.3.0.0.dylib SHA-256 4fbe360e5e014ad09dc2cfbf2a5a97f4d9839f9a6d1e26fd9a2f5acd913b432d. Workflow passed actionlint.",
+  "hosted": "Linux and Windows jobs are prepared but not yet run on this revision.",
+  "limits": "This probe tests package selection and actual shared-library loading, not full C++ ABI compatibility, drawing semantics, app integration, or release readiness. No support claim is promoted."
+}

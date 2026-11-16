@@ -1,0 +1,56 @@
+name: libdxfrw shared ABI boundary
+
+on:
+  push:
+    branches:
+      - 'codex/freecad-platform-qualification-*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  shared-package:
+    name: shared package / ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-gcc
+            runner: ubuntu-24.04
+            python: python3
+          - platform: windows-msvc
+            runner: windows-2022
+            python: python
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Configure shared library
+        run: >-
+          cmake -S . -B shared-build
+          -DCMAKE_BUILD_TYPE=Release
+          -DBUILD_SHARED_LIBS=ON
+          -DLIBDXFRW_BUILD_DOC=OFF
+          -DLIBDXFRW_BUILD_DWG2DXF=OFF
+          -DLIBDXFRW_BUILD_TESTS=OFF
+          -DCMAKE_INSTALL_PREFIX="${{ runner.temp }}/libdxfrw-shared"
+      - name: Build and install shared library
+        run: >-
+          cmake --build shared-build --config Release --parallel 2 --target dxfrw
+          && cmake --install shared-build --config Release
+      - name: Check version selection and loaded runtime
+        run: >-
+          ${{ matrix.python }} -B tools/probe_shared_abi_package.py
+          --prefix "${{ runner.temp }}/libdxfrw-shared"
+          --output shared-evidence/receipt.json
+      - name: Upload shared package evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: shared-abi-${{ matrix.platform }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: shared-evidence/receipt.json
+          if-no-files-found: error
+          retention-days: 30

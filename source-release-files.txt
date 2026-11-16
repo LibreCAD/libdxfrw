@@ -2,6 +2,7 @@
 .github/workflows/build.yml
 .github/workflows/freecad-platform-qualification.yml
 .github/workflows/parity-fast.yml
+.github/workflows/shared-abi-qualification.yml
 .gitignore
 .travis.yml
 AUTHORS
@@ -1162,6 +1163,7 @@ tools/probe_rastervariables_ac1032_frame1_source.cpp
 tools/probe_sectionobject_411_legacy.cpp
 tools/probe_sectionobject_411_loss.cpp
 tools/probe_sectionobject_counts.cpp
+tools/probe_shared_abi_package.py
 tools/probe_solid_trace_triangle_elevation.cpp
 tools/probe_sparse_material_adapter.cpp
 tools/probe_sparse_material_source.cpp
