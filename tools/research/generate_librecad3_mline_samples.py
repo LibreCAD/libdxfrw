@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate temporary DXF/DWG LINE + MLINE or WIPEOUT controls for LibreCAD_3.
+"""Generate temporary DXF/DWG LINE + MLINE, WIPEOUT, or MULTILEADER controls for LibreCAD_3.
 
 Requires ezdxf and ODA File Converter. Output must be a new directory outside
 this repository. The minimized DXF avoids unrelated unsupported OBJECTS; MLINE controls retain
@@ -18,7 +18,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--odafc', type=Path, required=True)
-    parser.add_argument('--entity', choices=('mline', 'wipeout'), default='mline')
+    parser.add_argument('--entity', choices=('mline', 'wipeout', 'mleader'), default='mline')
     args = parser.parse_args()
     import ezdxf
 
@@ -33,13 +33,20 @@ def main() -> None:
     source_dir, dwg_dir = root / 'source', root / 'dwg'
     source_dir.mkdir()
     dwg_dir.mkdir()
-    doc = ezdxf.new('R2010')
+    doc = ezdxf.new('R2010', setup=args.entity == 'mleader')
     model = doc.modelspace()
     model.add_line((0, 0), (5, 0))
     if args.entity == 'mline':
         model.add_mline([(0, 2), (5, 2)], dxfattribs={'style_name': 'STANDARD'})
-    else:
+    elif args.entity == 'wipeout':
         model.add_wipeout([(0, 2), (3, 2), (3, 4), (0, 4)])
+    else:
+        from ezdxf.math import Vec2
+        from ezdxf.render import ConnectionSide
+        builder = model.add_multileader_mtext()
+        builder.set_content('test')
+        builder.add_leader_line(ConnectionSide.left, [Vec2(0, 2), Vec2(2, 2)])
+        builder.build(Vec2(3, 2))
     source = source_dir / (args.entity + '.dxf')
     doc.saveas(source)
     subprocess.run([str(converter), str(source_dir), str(dwg_dir),
@@ -60,7 +67,7 @@ def main() -> None:
             raise ValueError('entity section missing a record boundary')
         records[-1].append((code, value))
     selected = {record[0][1]: record for record in records}
-    kind = args.entity.upper()
+    kind = 'MULTILEADER' if args.entity == 'mleader' else args.entity.upper()
     if set(selected) != {'LINE', kind} or len(records) != 2:
         raise ValueError('unexpected generated entity records')
     style = next((value for code, value in selected[kind] if code == '340'), '')
@@ -68,6 +75,8 @@ def main() -> None:
         raise ValueError('generated MLINE has no style handle')
     header = [('0', 'SECTION'), ('2', 'HEADER'), ('9', '$ACADVER'), ('1', 'AC1015'),
               ('0', 'ENDSEC'), ('0', 'SECTION'), ('2', 'ENTITIES')]
+    if kind == 'MULTILEADER':
+        header[3] = ('1', 'AC1024')
     end_entities = [('0', 'ENDSEC')]
     # The source's STANDARD style uses these offsets, color and angles.
     objects = [('0', 'SECTION'), ('2', 'OBJECTS'),
@@ -94,7 +103,8 @@ def main() -> None:
                          for key, path in paths.items()}}
     (root / 'receipt.json').write_text(json.dumps(receipt, indent=2) + '\n')
     print(json.dumps(receipt, indent=2))
-    print(f'Set LC3_{kind}_DXF, LC3_{kind}_DWG, and LC3_LINE_DXF to the generated paths.')
+    variable = args.entity.upper()
+    print(f'Set LC3_{variable}_DXF, LC3_{variable}_DWG, and LC3_LINE_DXF to the generated paths.')
 
 
 if __name__ == '__main__':
