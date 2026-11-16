@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **718 completed implementation and qualification slices** and **32 remaining
+The plan records **719 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`718 / (718 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
+`719 / (719 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -186,6 +186,15 @@ Native GUI behavior, independent semantics and upstream integration remain open.
   Both installed-upstream and bundled-codec focused macOS tests now pass on
   the full local patch chain, including R12/R14 units refusal and retry
   ([receipt](docs/research/p8-librecad-current-master-bundled-2026-11-16.json)).
+  The ABI-3 follow-up restores a required dictionary-source translation unit
+  that was untracked in the prior candidate, requires the installed 3.x
+  package, and passes a clean macOS shared-codec build and 48 focused test
+  cases (5,362 assertions, no skips); the old 2.0.1 package is refused. The
+  cumulative candidate and follow-up replay against current master
+  `d40f178b9708b54ad34b15f721d22abb2315aa2b`, whose intervening changes affect
+  only MSIX workflow/docs. Bundled mode configures and the restored source
+  compiles, but its full rebuild and platform matrix remain open
+  ([receipt](docs/research/p8-librecad-abi3-clean-consumer-2026-11-16.json)).
   The installed mode still lacks the full BUILD_TESTS suite; GUI remains open.
   Current LibreCAD save routing always chooses ASCII DXF. Generated simple
   LTYPE/LINE inputs pass actual LibreCAD import, editing, ASCII export and
@@ -349,7 +358,8 @@ suffix `-2026-11-15.patch`, rebasing as needed against the consumer head:
 Then apply [the binary LTYPE consumer test](docs/patches/librecad-p8-binary-ltype-import-2026-11-16.patch)
 [the DXF diagnostic/R13 test](docs/patches/librecad-p8-dxf-write-diagnostic-r13-2026-11-16.patch),
 and [MLINESTYLE CMC retention](docs/patches/librecad-p8-mlinestyle-cmc-retention-2026-11-16.patch),
-in order with `git apply --unidiff-zero`. The current local candidate
+then [the ABI-3 package and missing-source fix](docs/patches/librecad-p8-abi3-complete-source-2026-11-16.patch),
+in order with `git apply --unidiff-zero`. The prior local candidate
 `014075bb1b7548e76b242e1bc0f1217ce8a83ba4` is based on LibreCAD master
 `b007bff6e798425aa14ae507f7e884db68916e88`; all 42 patches replay in order on
 that base. Its macOS installed-codec focus tests pass,
@@ -357,6 +367,9 @@ including all 24 source-graph cases with scratch controls; the clean bundled
 focus and R12/R14 unit-refusal controls also pass. Integration, full-suite,
 GUI and cross-platform qualification remain open
 ([receipt](docs/research/p8-librecad-current-master-integration-2026-11-16.json)).
+The cumulative changes plus the ABI-3 fix also replay cleanly against
+`d40f178b9708b54ad34b15f721d22abb2315aa2b`; all 20 affected source files
+match the built candidate ([receipt](docs/research/p8-librecad-abi3-clean-consumer-2026-11-16.json)).
 
 For MPOLYGON, retain the consumer's opt-in polyline policy; independently
 qualify ELLIPSE/SPLINE paths, raw replay, populated trailer semantics and mixed
