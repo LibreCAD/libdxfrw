@@ -290,7 +290,7 @@
     "linuxFreecad": "PASSED 16/16 generated CLI, installed converter and FreeCAD 1.1.4 open/insert checks, including optional legacy profile.",
     "windowsFreecad": "PASSED 17/17 generated CLI, installed converter and FreeCAD 1.1.4 open/insert checks, including optional legacy profile.",
     "fastRun": "https://github.com/dxli/libdxfrw/actions/runs/43862739444",
-    "fastStatus": "RUNNING",
+    "fastStatus": "PASSED fast regressions at 65aefd2c",
     "nativeRun": "https://github.com/dxli/libdxfrw/actions/runs/43862739412",
     "linuxNative": "Attempt 1 FAILED before checkout after three GitHub HTTPS connection timeouts; no source compiled or tests run. Attempt 2 is running.",
     "windowsNative": "PASSED focused job",
