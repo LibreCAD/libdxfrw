@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **625 completed implementation and qualification slices** and **32 remaining
+The plan records **626 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`625 / (625 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
+`626 / (626 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -110,8 +110,12 @@ created locally from scratch for the specific control.
   ([consumer test](docs/research/p8-librecad-dwg-block-preview-import-2026-11-15.json)).
   One bounded generated preview now passes guarded consumer output and peer
   readback ([receipt](docs/research/p8-librecad-named-block-preview-output-2026-11-15.json));
-  qualify other preview profiles and native rendering. Qualify nonempty
-  XRECORD data, other unit values and remaining nondefault block properties
+  qualify other preview profiles and native rendering. One source-owned,
+  unchanged planar LINE now passes the guarded nonempty-block output gate with
+  staged owner/identity proof and peer readback
+  ([receipt](docs/research/p8-librecad-named-block-single-line-output-2026-11-15.json));
+  qualify other entity types, multi-entity membership and richer geometry.
+  Qualify nonempty XRECORD data, other unit values and remaining block properties
   without dropping dependencies. Unknown inbound references
   and dynamic-block objects remain
   unresolved; do not omit source records to pass a gate ([source census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json),
@@ -141,7 +145,8 @@ suffix `-2026-11-15.patch`, rebasing as needed against the consumer head:
 `librecad-p8-empty-xrecord-source-correlation`,
 `librecad-p8-empty-xrecord-dxf-output`, `librecad-p8-named-block-units`,
 `librecad-p8-dwg-block-preview-import-test`,
-`librecad-p8-named-block-preview-output`.
+`librecad-p8-named-block-preview-output`,
+`librecad-p8-named-block-single-line-output`.
 The tested base is `8a82e35965d8d56a8f8608abd739fbb2c0de2f3e`.
 
 For MPOLYGON, retain the consumer's opt-in polyline policy; independently

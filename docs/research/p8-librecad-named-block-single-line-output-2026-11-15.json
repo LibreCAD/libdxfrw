@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-named-block-single-line-output-2026-11-15.patch",
+  "patchSha256": "bbcd54891e1225f341829f54a699c5b426a80c854843c9f893568c77f18b3575",
+  "implementation": "The thirty-third unmerged LibreCAD patch extends the default-off AC1024 named-block SORTENTSTABLE path to one unchanged, planar, default-style LINE. Bounded immutable block-record and typed-LINE observations match source entity membership, source publication/coverage and the current block model. During finalization the writer must identify one staged LINE in BLOCKS with the correct emitted BLOCK_RECORD owner or the transaction refuses publication. Richer source attributes, edited geometry, ambiguous membership and nonplanar lines remain refused.",
+  "validation": [
+    "A locally authored DXF with one planar line was converted by ODA to an AC1024 source DWG SHA-256 968d5f7cb409f94b76461fef3f09f8f1ebdf36b84f5667a79a68de92d5621a1d. LibreDWG independently reports the LINE owned by block 30 with start (1,2,0), end (3,4,0), and matching BLOCK_HEADER membership.",
+    "The actual LibreCAD test passed 24 assertions, including wrong source-handle and changed-geometry refusal with destination preservation, same-filter retry, and fresh readback of the line and sort table. A locally generated nonplanar control DWG SHA-256 cf403a68c04de0c63c48957e1f8e3bee9c7ed0e00c75bbe2156d20098662ca3a is independently decoded by LibreDWG with Z=3 and Z=5, and the LibreCAD refusal test passed 6 assertions.",
+    "A standalone consumer verified the source membership and wrong-handle refusal; injected source-snapshot allocation failure latched and recovered on reset/retry. All three installed-codec focused CTests pass, including the previous empty-record, units, preview and title-refusal controls.",
+    "LibreCAD ASCII DXF SHA-256 81ea9c2caf272677a36a28d64fe1a750283e712c42213ed8cd7826e95bc6b09e contains LINE B017 owned by block B16B with the original planar coordinates and the expected dictionary/sort-table chain. ezdxf reports zero audit errors/fixes. ODA conversion through DWG and back yields DXF SHA-256 942242e66bd80d775c34b618be65040db20e8d43874df761d8c73a053da70b17; LibreDWG independently confirms the intermediate LINE owner and coordinates and ezdxf confirms the output links with a clean audit.",
+    "The patch applies after the prior 32 patches and the older bundled-codec filter compiles. Source-release inventory passes with 1230 files and 18 refusal controls; the 725-input implementation digest remains d2fbf3b7e98738e05bc8f6a097b74ee429b43f58bcc8988a7bc92e6554a539c7."
+  ],
+  "limits": "This is one locally authored, one-LINE AC1024 source and ASCII DXF target. The option is default-off and programmatic. It does not qualify other entity kinds, multiple entities, modified source geometry, nondefault style or 3D LINE data, the complex title block, native AutoCAD/FreeCAD semantics, general graph closure or support claims. No drawing fixture was committed."
+}
