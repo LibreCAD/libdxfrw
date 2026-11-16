@@ -6635,6 +6635,27 @@ void testSortEntsPaperLayoutOwnership(TestContext& t) {
                 std::istreambuf_iterator<char>()};
             return !exported && contents == "existing layout destination";
         };
+        t.expect(rejected() && source.sortEntsTables.size() == 2u
+                     && source.sortEntsTables.back().m_entityHandles
+                         == std::vector<std::uint32_t>{0x711u}
+                     && source.sortEntsTables.back().m_sortHandles
+                         == std::vector<std::uint32_t>{1u},
+                 "nonempty additional paper-space sort table refuses without losing source or destination");
+        // Continue testing the qualified canonical paper-space graph after
+        // the caller explicitly removes the unsupported second table.
+        source.sortEntsTables.pop_back();
+        source.rawSortEntsTables.pop_back();
+        source.dictionaries.remove_if([](const DRW_Dictionary& value) {
+            return value.handle == 0xA101u;
+        });
+        const auto secondOwner = std::find_if(source.blockRecords.begin(),
+            source.blockRecords.end(), [](const DRW_Block_Record& value) {
+                return value.handle == 0x603u;
+            });
+        t.expect(secondOwner != source.blockRecords.end(),
+                 "second paper-space block remains available for corrected retry");
+        if (secondOwner == source.blockRecords.end()) continue;
+        secondOwner->xDictHandle = 0u;
         source.sortEntsTables.front().m_entityHandles.front() = 0x711u;
         source.rawSortEntsTables.front() = rawTable(source.sortEntsTables.front());
         t.expect(rejected(),
@@ -6644,8 +6665,8 @@ void testSortEntsPaperLayoutOwnership(TestContext& t) {
 
         t.expect(exporter.fileExport(output.string(), DRW::AC1027, binary,
                                      &source, false),
-                 "corrected two-layout SORTENTSTABLE graph retries successfully");
-        t.expect(source.sortEntsTables.size() == 2u
+                 "corrected canonical paper-space SORTENTSTABLE graph retries successfully");
+        t.expect(source.sortEntsTables.size() == 1u
                      && source.sortEntsTables.front().m_entityHandles.size() == 2u
                      && source.sortEntsTables.front().m_sortHandles
                          == std::vector<std::uint32_t>{0u, 0u},
@@ -6653,14 +6674,15 @@ void testSortEntsPaperLayoutOwnership(TestContext& t) {
         dx_data readback;
         dx_iface reader;
         const bool reread = reader.fileImport(output.string(), &readback, false);
-        t.expect(reread && readback.sortEntsTables.size() == 2u,
-                 "ASCII and binary two-layout SORTENTSTABLE output re-imports");
-        if (!reread || readback.sortEntsTables.size() != 2u)
+        t.expect(reread && readback.sortEntsTables.size() == 1u
+                     && readback.layouts.size() == 3u,
+                 "ASCII and binary corrected output re-imports the sort table and both layouts");
+        if (!reread || readback.sortEntsTables.size() != 1u)
             continue;
 
         bool closed = true;
-        for (const auto& expected : std::array<std::pair<const char*, std::uint32_t>, 2>{
-                 std::make_pair("Sheet A", 0u), std::make_pair("Sheet B", 1u)}) {
+        for (const auto& expected : std::array<std::pair<const char*, std::uint32_t>, 1>{
+                 std::make_pair("Sheet A", 0u)}) {
             const auto layout = std::find_if(readback.layouts.begin(),
                 readback.layouts.end(), [&expected](const DRW_Layout& value) {
                     return value.name == expected.first;
@@ -6757,7 +6779,7 @@ void testSortEntsPaperLayoutOwnership(TestContext& t) {
             closed = closed && closedThis;
         }
         t.expect(closed,
-                 "each paper-layout sort table, entity, block record and dictionary re-imports closed");
+                 "canonical paper-layout sort table, entity, block record and dictionary re-import closed");
     }
 }
 
@@ -67849,6 +67871,11 @@ bool runTemporary() {
 }
 
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--sortents-paper-layout-ownership") {
+        TestContext context;
+        testSortEntsPaperLayoutOwnership(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--raw-control-groups") {
         TestContext context;
         testRawControls(context);

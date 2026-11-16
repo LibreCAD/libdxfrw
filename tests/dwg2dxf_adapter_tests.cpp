@@ -84293,9 +84293,31 @@ bool sortEntsAdapter(const std::filesystem::path& prefix) {
         source.sortEntsTables.push_back(table);
         source.rawSortEntsTables.push_back(makeRaw(table));
 
+        {
+            std::ofstream sentinel(output, std::ios::binary | std::ios::trunc);
+            sentinel << "existing named sort destination";
+        }
+        if (converter.fileExport(output.string(), DRW::AC1027, binary,
+                                 &source, false))
+            return fail("nonempty named-block SORTENTSTABLE was silently omitted");
+        {
+            std::ifstream preserved(output, std::ios::binary);
+            const std::string bytes{std::istreambuf_iterator<char>(preserved), {}};
+            if (bytes != "existing named sort destination"
+                || source.sortEntsTables.front().m_entityHandles
+                    != std::vector<std::uint32_t>{0x100u}
+                || source.sortEntsTables.front().m_sortHandles
+                    != std::vector<std::uint32_t>{0u})
+                return fail("named-block refusal changed caller or destination");
+        }
+        // Explicitly clear the unsupported ordering pair before retrying the
+        // already-qualified empty named-block projection.
+        source.sortEntsTables.front().m_entityHandles.clear();
+        source.sortEntsTables.front().m_sortHandles.clear();
+        source.rawSortEntsTables.front() = makeRaw(source.sortEntsTables.front());
         if (!converter.fileExport(output.string(), DRW::AC1027, binary,
                                   &source, false))
-            return fail("unsupported named-block SORTENTSTABLE prevented partial output");
+            return fail("corrected empty named-block SORTENTSTABLE retry failed");
 
         dx_data readback;
         dx_iface reader;
@@ -84337,6 +84359,7 @@ bool sortEntsAdapter(const std::filesystem::path& prefix) {
         source.sortEntsTables.front().parentHandle = 0x203u;
         source.sortEntsTables.front().m_blockOwnerHandle = 0x500u;
         source.sortEntsTables.front().m_entityHandles = {0x101u};
+        source.sortEntsTables.front().m_sortHandles = {0u};
         source.rawSortEntsTables.front() = makeRaw(
             source.sortEntsTables.front());
         {

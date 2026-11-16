@@ -74366,9 +74366,14 @@ bool dx_iface::validateSortEntsGraph(const dx_data& data, bool debug) {
             const DRW_Block_Record& record = *owner->second;
             const std::string ownerName = layoutSymbolKey(record.name);
             if (ownerName != "*MODEL_SPACE" && ownerName != "*PAPER_SPACE") {
-                // Autodesk's SORTENTSTABLE group-330 owner domain is limited
-                // to the two paper/model-space BLOCK_RECORDs. Retain the
-                // source record for diagnostics, but remove its table entry
+                // Dropping nonempty ordering pairs changes draw order, even
+                // when the owner is an additional paper-space layout. Only
+                // the bounded empty-table projection below can be a no-op.
+                if (!table.m_entityHandles.empty())
+                    return reject();
+                // This output profile only qualifies the canonical two
+                // model/paper-space BLOCK_RECORD names. Retain the source
+                // record for diagnostics, but remove its table entry
                 // from the emitted extension dictionary so output has no
                 // dangling reference to an intentionally omitted table.
                 const auto dictionary = dictionaries.find(table.parentHandle);

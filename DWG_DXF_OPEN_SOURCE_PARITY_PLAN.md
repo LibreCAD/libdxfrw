@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **713 completed implementation and qualification slices** and **32 remaining
+The plan records **714 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`713 / (713 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
+`714 / (714 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -111,11 +111,12 @@ descriptions from ASCII and Binary input; its output did not distinguish the
 tested flag values, and header warnings limit the result to this field
 ([peer receipt](docs/research/p6-canonical-ltype-libredwg-peer-2026-11-16.json)).
 The VPORT writer now preserves named configurations written before `*ACTIVE`, repeated configuration rows and their order, and synthesizes a default active row only when needed; unnamed-active legacy callers remain supported ([receipt](docs/research/p6-vport-configuration-name-preservation-2026-11-16.json)). Focused hosted [fast](https://github.com/dxli/libdxfrw/actions/runs/43865527188), [FreeCAD](https://github.com/dxli/libdxfrw/actions/runs/43865527092) and [native](https://github.com/dxli/libdxfrw/actions/runs/43865527078) checks passed at `6592270a`: fast, FreeCAD Linux/Windows and native Linux/Windows/macOS. Later test-only and documentation commits require their own source-matched qualification. Native tiled viewport behavior remains open.
-The aggregate DXF fixture executable remains red; its latest run had 16 assertions before subsequently passing proxy-boundary and TABLE border-selector corrections. The XDATA direct-codec selector passes ([receipt](docs/research/p8-fixture-xdata-codec-scope-2026-11-16.json)); a bounded AC1021 sparse MATERIAL reader now restores the original raw control-group fixture while keeping typed output refused ([receipt](docs/research/p6-ac1021-minimal-sparse-material-channel-read-2026-11-16.json)). Continue investigating VIEWPORT/VisualStyle, SORTENTSTABLE, proxy and table-border failures without assuming they are harmless. The distinct MATERIAL normal-boundaries and sparse-raw tests also fail against the pre-change baseline and remain open ([receipt](docs/research/p8-fixture-harness-source-identity-repairs-2026-11-16.json)).
+The aggregate DXF fixture executable remains red: its latest run reports 11 VIEWPORT/VisualStyle assertions after the proxy, TABLE border and SORTENTSTABLE fixes. The XDATA direct-codec selector passes ([receipt](docs/research/p8-fixture-xdata-codec-scope-2026-11-16.json)); a bounded AC1021 sparse MATERIAL reader now restores the original raw control-group fixture while keeping typed output refused ([receipt](docs/research/p6-ac1021-minimal-sparse-material-channel-read-2026-11-16.json)). Continue investigating the remaining failures without assuming they are harmless. The distinct MATERIAL normal-boundaries and sparse-raw tests also fail against the pre-change baseline and remain open ([receipt](docs/research/p8-fixture-harness-source-identity-repairs-2026-11-16.json)).
 The generated VIEWPORT shade-plot fixture exposes an unresolved compatibility conflict: Autodesk DXF documents group-170 modes 0–3, while ObjectARX defines VisualStyle/RenderPreset modes and the adapter expects 4/5; the typed DXF writer rejects them. Obtain producer-bound ASCII/Binary wire evidence before reconciling mode/handle admission and target closure ([research and implementation steps](docs/research/p6-viewport-shadeplot-dxf-objectarx-conflict-2026-11-16.json)). Keep existing refusal gates in place.
 Hosted native qualification at `6bbf3ccd` failed before tests because the frozen CTest inventory omitted the newly registered plot selector. The clean hosted-profile inventory now includes both new selectors, matches the failed Linux runner apart from the subsequently added sparse-material test, and passes contract checks ([receipt](docs/research/p8-native-inventory-plot-material-repair-2026-11-16.json)); rerun hosted qualification at the repaired revision.
 The generic typed proxy replay gate again refuses recognized control chunks, including indexed layer/linetype resources, unless a separate qualified route applies; caller-supplied and parsed-DXF refusal, rollback and retry controls pass ([receipt](docs/research/p6-proxy-replay-control-boundary-2026-11-16.json)). Specialized TABLE and LIGHT controls remain passing.
 The AC1018 four-edge TABLE control now tests rejected lineweight 31 and corrected supported lineweight 35, including atomic refusal and ASCII/Binary readback ([receipt](docs/research/p5-table-border-lineweight-fixture-correction-2026-11-16.json)). Native TABLE semantics remain open.
+Nonempty SORTENTSTABLEs owned by named blocks or additional paper-space layouts now refuse atomically instead of silently losing draw order; the previously qualified empty-table projection remains available. ASCII/Binary rollback and same-adapter retry pass ([receipt](docs/research/p4-sortents-noncanonical-nonempty-refusal-2026-11-16.json)). Qualifying numbered-layout output still needs producer-bound wire, owner/graph and independent readback evidence.
 Continue the remaining public-writer and compound-route census.
 
 For FreeCAD integration, replay the complete ordered downstream chain with
@@ -1892,9 +1893,10 @@ with the focused refusal selector. See the [AC1024 frame receipt](docs/research/
 the [DXF scalar-domain receipt](docs/research/p4-rastervariables-dxf-scalar-domain-2026-11-05.json),
 and [DWG writer receipt](docs/research/p4-rastervariables-dwg-scalar-domain-2026-11-05.json).
 
-**SORTENTSTABLE owner-scope restriction:** Autodesk's DXF definition limits the
-owner reference to `*MODEL_SPACE` or `*PAPER_SPACE`. Physical AC1024 testing
-therefore qualifies the Model/Paper Space table only; named-block tables remain
+**SORTENTSTABLE owner-scope restriction:** Autodesk's DXF definition names
+`*MODEL_SPACE` and `*PAPER_SPACE` for the owner reference; Autodesk also documents
+numbered paper-space blocks for additional layouts. Physical AC1024 testing
+qualifies only the two canonical names; numbered-layout and named-block tables remain
 unqualified even when their source graph and emitted bytes are internally
 consistent. The previous multi-table output receipt records physical output
 evidence, but its named-block callbacks are not eligible DXF support claims

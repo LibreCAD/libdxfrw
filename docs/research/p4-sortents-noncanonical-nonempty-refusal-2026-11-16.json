@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-16",
+  "scope": "Strict DXF adapter output for noncanonical SORTENTSTABLE owners",
+  "problem": "Nonempty ordering pairs on a named block or additional paper-space layout were silently projected away while export reported success, losing draw order.",
+  "change": "Refuse nonempty noncanonical-owner tables before projection. Keep the existing bounded projection for empty tables and retain the established canonical model-space and paper-space paths.",
+  "references": [
+    {"url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-462F4378-F850-4E89-90F2-3C1880F55779.htm", "relevance": "SORTENTSTABLE group-330 owner describes canonical model-space and paper-space block records."},
+    {"url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-66D32572-005A-4E23-8B8B-8726E8C14302.htm", "relevance": "BLOCK naming includes numbered paper-space blocks for additional layouts."},
+    {"url": "https://help.autodesk.com/cloudhelp/2023/KOR/AutoCAD-ActiveX-Reference/files/GUID-E6F7B03B-F5CC-4A18-9C48-BBF1D32A31FD.htm", "relevance": "Block object documentation identifies numbered paper-space layout blocks."}
+  ],
+  "validation": {
+    "paper_layout_selector": "PASS: ASCII and binary nonempty additional-layout refusal preserves destination and caller-owned pairs; after explicit source correction, same-adapter retry retains canonical paper-space order and fresh readback.",
+    "named_block_selector": "PASS: nonempty named-block refusal preserves state; explicitly empty retry retains the qualified no-op projection.",
+    "focused_ctest": "PASS: sortents adapter, empty named sortents, proxy graphic loss policy and sparse material control groups, 4/4.",
+    "address_sanitizer": "PASS: paper-layout selector using ASan debug build.",
+    "aggregate_dxf_fixtures": "FAIL: 11 remaining assertions concerning VIEWPORT/VisualStyle; no remaining SORTENTSTABLE assertions in this run."
+  },
+  "limitations": "The cited documents do not establish SORTENTSTABLE wire encoding or complete output semantics for numbered layouts. Producer-bound evidence, owner/graph closure and independent semantic readback remain required before enabling that profile. No broad support claim or external gate is promoted."
+}
