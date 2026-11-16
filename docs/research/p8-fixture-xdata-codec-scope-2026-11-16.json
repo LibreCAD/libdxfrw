@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-16",
+  "scope": "Generated direct dxfRW XDATA/APPID structural validation test.",
+  "finding": "The valid direct-writer profile emitted its entity but dx_iface whole-document finalization rejected an adapter that never prepared a whole-document export transaction. Negative codec cases already failed before finalization.",
+  "change": "The direct codec test uses the DRW_Interface default success behavior for consumer finalization; no production code or whole-document graph-validation gate changed.",
+  "checks": [
+    "The focused --xdata-appid-structure-validation selector passes all valid and malformed ASCII/Binary controls, missing/duplicate registration controls, preserved-destination refusal, and corrected same-writer retry.",
+    "Before this repair, the most recent aggregate fixture executable had 25 failed assertions; five were in this XDATA selector. The aggregate was not rerun after the repair.",
+    "The implementation digest was refreshed from an exact 5990-entry staged index; no support claim statuses or receipt references changed."
+  ],
+  "limitations": [
+    "These controls validate codec XDATA structure, registration, atomic refusal and readback only. They do not qualify the dx_iface graph finalizer, whole drawing completeness, or native semantics."
+  ],
+  "implementationDigestSha256": "3f1e51aed859f314b01f037b57c2a6b6b8cdc1d8ade63fe9b5eb1f3c2a391719"
+}

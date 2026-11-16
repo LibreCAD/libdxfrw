@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **707 completed implementation and qualification slices** and **32 remaining
+The plan records **708 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`707 / (707 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
+`708 / (708 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -111,7 +111,7 @@ descriptions from ASCII and Binary input; its output did not distinguish the
 tested flag values, and header warnings limit the result to this field
 ([peer receipt](docs/research/p6-canonical-ltype-libredwg-peer-2026-11-16.json)).
 The VPORT writer now preserves named configurations written before `*ACTIVE`, repeated configuration rows and their order, and synthesizes a default active row only when needed; unnamed-active legacy callers remain supported ([receipt](docs/research/p6-vport-configuration-name-preservation-2026-11-16.json)). Focused hosted [fast](https://github.com/dxli/libdxfrw/actions/runs/43865527188), [FreeCAD](https://github.com/dxli/libdxfrw/actions/runs/43865527092) and [native](https://github.com/dxli/libdxfrw/actions/runs/43865527078) checks run at `6592270a`; FreeCAD Linux/Windows and native Linux passed, with the other jobs still running. Native tiled viewport behavior remains open.
-The aggregate DXF fixture executable remains red: its latest run had 41 failed assertions before a subsequently passing INSERT-focused correction. Four stale harness controls now pass individually; continue investigating the remaining XDATA, VIEWPORT/VisualStyle, SORTENTSTABLE, proxy, raw-control and table-border failures without assuming they are harmless ([receipt](docs/research/p8-fixture-harness-source-identity-repairs-2026-11-16.json)).
+The aggregate DXF fixture executable remains red: its latest run had 25 failed assertions. The XDATA direct-codec selector has since passed after a scope correction ([receipt](docs/research/p8-fixture-xdata-codec-scope-2026-11-16.json)); the aggregate has not yet been rerun. Continue investigating the VIEWPORT/VisualStyle, SORTENTSTABLE, proxy, raw-control and table-border failures without assuming they are harmless ([receipt](docs/research/p8-fixture-harness-source-identity-repairs-2026-11-16.json)).
 Continue the remaining public-writer and compound-route census.
 
 For FreeCAD integration, replay the complete ordered downstream chain with

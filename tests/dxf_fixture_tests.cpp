@@ -31382,6 +31382,10 @@ void testDxfXdataStructureValidation(TestContext& t) {
             header.vars.clear();
         }
 
+        // This control exercises the codec's XDATA and APPID checks directly;
+        // it does not prepare dx_iface's whole-document graph transaction.
+        bool finalizeDxfWrite() override { return true; }
+
         void writeEntities() override {
             DRW_Line line;
             line.layer = "0";
