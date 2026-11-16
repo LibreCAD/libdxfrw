@@ -45,6 +45,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <utility>
 #include <vector>
@@ -278,6 +279,19 @@ enum class dx_source_format : std::uint8_t {
     Unknown,
     DXF,
     DWG
+};
+
+// Source-wire observation only. A missing R13/R14 plain-DICTIONARY field is
+// not the same thing as an explicitly stored cloning value of zero.
+enum class dx_dwgDictionaryCloningPresence : std::uint8_t {
+    Unknown, Absent, Present
+};
+struct dx_dwgDictionaryCloningSource {
+    dx_dwgDictionaryCloningPresence presence{
+        dx_dwgDictionaryCloningPresence::Unknown};
+    DRW::Version version{DRW::UNKNOWNV};
+    std::optional<int> sourceValue;
+    bool currentValueMatchesBaseline{false};
 };
 
 // Converter-private source families. These are callback/model identities,
@@ -1745,6 +1759,12 @@ public:
     bool hasCompleteDwgDictionaryEntry(std::uint32_t dictionaryHandle,
                                        const char* entryName,
                                        std::uint32_t targetHandle) const noexcept;
+    // Reads an import-bound plain-DICTIONARY field-presence observation.
+    // Value equality cannot detect a caller assigning the same value, and the
+    // result does not choose a DXF default or qualify graph/output semantics.
+    bool getDwgDictionaryCloningSource(
+        std::uint32_t dictionaryHandle,
+        dx_dwgDictionaryCloningSource& observation) const noexcept;
     // Returns an import-matched dictionary's common owner handle only when its
     // common-link evidence and typed/raw dictionary payload both agree.
     bool getCompleteDwgDictionaryOwner(std::uint32_t dictionaryHandle,

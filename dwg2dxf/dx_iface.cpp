@@ -71873,6 +71873,80 @@ void dx_iface::addRawDxfSection(const DRW_RawDxfSection& section) {
     }
 }
 
+bool dx_data::getDwgDictionaryCloningSource(
+        std::uint32_t dictionaryHandle,
+        dx_dwgDictionaryCloningSource& observation) const noexcept {
+    observation = {};
+    if (dictionaryHandle == 0u || dictionaryHandle == DRW::NoHandle
+        || sourceFormat != dx_source_format::DWG || importGeneration == 0u
+        || !dwgReadOutcome.attempted || !dwgReadOutcome.operationSucceeded
+        || sourceVersion != dwgReadOutcome.sourceVersion
+        || m_standardDwgObjectCaptureFailed || m_standardDwgObjectPayloadFailed)
+        return false;
+    switch (sourceVersion) {
+    case DRW::AC1012: case DRW::AC1014: case DRW::AC1015:
+    case DRW::AC1018: case DRW::AC1021: case DRW::AC1024:
+    case DRW::AC1027: case DRW::AC1032:
+        break;
+    default:
+        return false;
+    }
+    const auto found = m_standardDwgObjectFrames.find(
+        {importGeneration, dictionaryHandle});
+    if (found == m_standardDwgObjectFrames.end())
+        return false;
+    const StandardDwgObjectFrame& frame = found->second;
+    const auto* baseline = dynamic_cast<const DRW_Dictionary*>(
+        frame.typedBaseline.get());
+    const auto& publication = frame.publication;
+    const auto& membership = frame.dictionaryMembership;
+    if (frame.generation != importGeneration || frame.raw.m_version != sourceVersion
+        || frame.raw.m_handle != dictionaryHandle
+        || frame.raw.m_objectType != dwgObjType::DICTIONARY
+        || frame.raw.m_isEntity || frame.raw.m_isCustomClass
+        || !frame.publicationSeen || !frame.membershipSeen
+        || !frame.sourceProfileBound || !frame.payloadMatched || frame.opaquePayload
+        || baseline == nullptr || baseline->tType != DRW::DICTIONARY
+        || baseline->handle != dictionaryHandle || !baseline->hasCompleteDwgEntries()
+        || !publication.m_hasSourceLocation || publication.m_version != sourceVersion
+        || publication.m_handle != dictionaryHandle || publication.m_isEntity
+        || publication.m_isCustomClass || publication.m_resolvedType != dwgObjType::DICTIONARY
+        || publication.m_encodedType != dwgObjType::DICTIONARY
+        || publication.m_sourceOffset != frame.raw.m_objectOffset
+        || (publication.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+            && publication.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+        || publication.m_carrier != DRW_DwgFramePublication::Carrier::TypedAndRaw
+        || !membership.m_complete || !membership.m_hasSourceLocation
+        || membership.m_version != sourceVersion
+        || membership.m_dictionaryHandle != dictionaryHandle
+        || membership.m_sourceOffset != publication.m_sourceOffset
+        || membership.m_sourceMapOrdinal != publication.m_sourceMapOrdinal
+        || membership.m_sourceOffsetSpace != publication.m_sourceOffsetSpace)
+        return false;
+    const DRW_Dictionary* current = nullptr;
+    if (hasNamedObjectDictionary && namedObjectDictionary.handle == dictionaryHandle)
+        current = &namedObjectDictionary;
+    for (const DRW_Dictionary& candidate : dictionaries) {
+        if (candidate.handle != dictionaryHandle)
+            continue;
+        if (current != nullptr)
+            return false;
+        current = &candidate;
+    }
+    if (current == nullptr || current->tType != DRW::DICTIONARY)
+        return false;
+    const bool present = sourceVersion > DRW::AC1014;
+    if (!present && baseline->cloning != 0)
+        return false;
+    observation.presence = present ? dx_dwgDictionaryCloningPresence::Present
+                                   : dx_dwgDictionaryCloningPresence::Absent;
+    observation.version = sourceVersion;
+    if (present)
+        observation.sourceValue = baseline->cloning;
+    observation.currentValueMatchesBaseline = current->cloning == baseline->cloning;
+    return true;
+}
+
 bool dx_data::hasCompleteDwgDictionaryEntry(
         std::uint32_t dictionaryHandle, const char* entryName,
         std::uint32_t targetHandle) const noexcept {

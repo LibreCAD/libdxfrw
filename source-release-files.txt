@@ -546,6 +546,7 @@ tests/dwg_default_material_libredwg.py
 tests/dwg_default_material_optin_tests.cpp
 tests/dwg_default_plotstyle_libredwg.py
 tests/dwg_default_plotstyle_optin_tests.cpp
+tests/dwg_dictionary_cloning_source_tests.cpp
 tests/dwg_ellipse_geometry_reader_tests.cpp
 tests/dwg_ellipse_wcs_test.h
 tests/dwg_entity_table_ref_diagnostic_tests.cpp
@@ -679,7 +680,10 @@ tests/fixtures/dwg/ac1015_mesh_freecad_control.dwgadd
 tests/fixtures/dwg/ac1015_pface_freecad_control.dwgadd
 tests/fixtures/dwg/ac1015_pface_multiface_freecad_control.dwgadd
 tests/fixtures/dwg/create_oblique_arc_circle_freecad_control.c
+tests/fixtures/dwg/generated-dictionary-zero-ac1015.dwg
 tests/fixtures/dwg/large_radial.dwg
+tests/fixtures/dwg/librecad-layer-flags-ac1012.dwg
+tests/fixtures/dwg/librecad-layer-flags-ac1014.dwg
 tests/fixtures/dwg/mpolygon_solid.dwg
 tests/fixtures/dwg/ordinary_enc_AC1015.dwg
 tests/fixtures/dwg/ordinary_enc_AC1018.dwg

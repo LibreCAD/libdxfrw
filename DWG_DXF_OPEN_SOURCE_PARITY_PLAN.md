@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **635 completed implementation and qualification slices** and **32 remaining
+The plan records **636 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`635 / (635 + 32) = 95.2%`. The previous 28-package denominator was stale; a recount
+`636 / (636 + 32) = 95.2%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -175,10 +175,12 @@ DIMASSOC raw replay and native associative behavior also remain open
 Keep strict `DeclaredUtf8` source admission closed pending its evidence gate.
 
 **P6-D next packet — legacy DICTIONARY cloning semantics.** Audit existing modern DXF output and, before expanding admission of
-AC1012/AC1014 source dictionaries, distinguish a cloning
-field absent from the DWG from a caller-authored or source-present zero without
-breaking existing consumer ABI. Map the absent case only after establishing the
-versioned behavior; preserve explicit edits and prove NOD and nested dictionary
+AC1012/AC1014 source dictionaries, use the source-bound cloning-presence
+observation ([receipt](docs/research/p6-dwg-dictionary-cloning-source-presence-2026-11-15.json))
+and preserve caller intent. A direct assignment of the same public scalar
+cannot be detected; require an explicit choice or leave that case
+unqualified. Map the absent case only after establishing the versioned behavior;
+prove NOD and nested dictionary
 output, membership roles, source mutation refusal, same-writer retry and
 ASCII/Binary readback. ODA emits group 281 = 1 for the independently generated
 AC1012 control while LibreDWG omits the group; ezdxf assigns 1 when it is absent.

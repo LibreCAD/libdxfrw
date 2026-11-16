@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-15",
+  "scope": "Expose source-bound cloning-field presence for plain DWG DICTIONARY records inside the dwg2dxf adapter, without changing output admission or the public libdxfrw class layout.",
+  "implementation": [
+    "The observation returns Absent with no source value for AC1012/AC1014 plain dictionaries, and Present with the captured scalar for AC1015\u2013AC1032. It is available only for a successful current DWG import with a unique live dictionary, matching raw frame, publication, complete membership, source profile and reparsed typed baseline. DICTIONARYWDFLT is excluded.",
+    "The immutable source result reports whether the current scalar equals the import baseline. A same-value direct assignment cannot be distinguished from no assignment; the result does not establish user intent, dictionary graph closure, an output default or native clone semantics. Unknown and stale queries clear their result.",
+    "No public DRW_Interface virtual, installed libdxfrw data-class member or object layout changed; existing DXF/DWG serialization and support-claim policy are untouched."
+  ],
+  "fixtureProvenance": [
+    {
+      "file": "tests/fixtures/dwg/librecad-layer-flags-ac1012.dwg",
+      "sha256": "9a76043eff102f1ad3620b7c3f2d548fd9312ea43b6c5be16d6d684e4f3cbe3d",
+      "origin": "LibreCAD/LibreCAD tracked fixture at commit c7af688a7a8d341a0511dd627afb8ef76086ec9e; LibreCAD test describes ODA-generated R13."
+    },
+    {
+      "file": "tests/fixtures/dwg/librecad-layer-flags-ac1014.dwg",
+      "sha256": "e7c158fb85460dc0c56aef7d37f9ac89bea185ee759f99407b7a5a852b6c8a0a",
+      "origin": "LibreCAD/LibreCAD tracked fixture at the same commit; LibreCAD test describes ODA-generated R14."
+    },
+    {
+      "file": "tests/fixtures/dwg/generated-dictionary-zero-ac1015.dwg",
+      "sha256": "b3a69d0382d4f9b76e1e5f70adff1cf11219704da42a5a53fe3325284f20fa20",
+      "origin": "Created locally from scratch with ezdxf 1.4.5: new R2000 drawing, one LINE, NOD and ACAD_MLINESTYLE dictionary cloning=0; ODA File Converter 27.1 converted the generated DXF to ACAD2000 DWG. LibreDWG 0.14 independently reports cloning=0 for both handles 0xA and 0x10."
+    },
+    {
+      "file": "tests/fixtures/dwg/mpolygon_solid.dwg",
+      "sha256": "66a171c55bc90fdd0764ad3556ec786503666a30a4473a637d168a01979ffc29",
+      "origin": "Previously tracked libdxfrw fixture; tests the present value 1 in AC1032."
+    }
+  ],
+  "validation": [
+    "Focused CTest libdxfrw_dwg_dictionary_cloning_source passes: R13/R14 report Absent, generated R2000 reports Present 0, and tracked R2018 reports Present 1 for NOD and nested dictionary. It tests modified and restored scalar, duplicate live handles, stale generation, changed source format/version, failed read state and invalid-handle reset.",
+    "The two LibreCAD fixtures and the locally authored generated DWG satisfy the authorized fixture policy; no external or unidentified drawing was committed. Source inventory passes with 1240 files and 18 refusal self-tests. Clean hosted configuration lists 1379 CTests, exactly matching the updated frozen test-name inventory.",
+    "Implementation digest 47795f636e191afd5e251d4363aab5b405ba5222d3491ab3c4890a356cab3b71 covers 729 inputs. Qualification workflow self-test passes.",
+    "Independent ODA R2000 DWG-to-DXF conversion changed the explicit-zero source dictionaries to group 281=1; this is an observed discrepancy, not evidence that their values are equivalent."
+  ],
+  "limits": "This is source-presence and current-value evidence, not a native clone-behavior verdict or output qualification. Same-valued caller assignments are not observable. ODA/LibreDWG projection disagreement, recursive graph closure, MLINESTYLE admission and the six external-only dispositions remain open; no support claim or phase gate is promoted."
+}
