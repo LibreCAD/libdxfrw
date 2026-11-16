@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **682 completed implementation and qualification slices** and **32 remaining
+The plan records **683 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`682 / (682 + 32) = 95.5%`. The previous 28-package denominator was stale; a recount
+`683 / (683 + 32) = 95.5%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -106,7 +106,12 @@ checks replayed source files, the loaded importer and ten headless tests; it
 passes on macOS ARM64 ([receipt](docs/research/p8-freecad-candidate-portable-headless-probe-2026-11-16.json)).
 Use it for a separately dispatched Linux and Windows candidate build, with a
 checkout pinned to the same upstream commit, verified submodules and a build
-outside the source tree. The optional Git check verifies HEAD and tracked
+outside the source tree. The [candidate application helper](tools/research/apply_freecad_import_candidate.py)
+applies the chain to a clean disposable checkout and restores original file
+bytes on ordinary failures; its failure and retry controls pass locally
+([receipt](docs/research/p8-freecad-candidate-application-rollback-2026-11-16.json)).
+Use disposable checkouts: it cannot recover from abrupt termination or protect
+against concurrent changes. The optional Git check verifies HEAD and tracked
 changed paths only; it does not authenticate untracked or ignored files,
 submodules or build provenance. Preserve build logs and record these identities
 separately. Native GUI behavior, independent semantics and upstream integration

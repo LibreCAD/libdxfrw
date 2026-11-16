@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-16",
+  "scope": "Apply twenty FreeCAD candidate importer patches to a clean disposable checkout, with ordinary-failure rollback and retry.",
+  "sourceCommit": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+  "sourceArchiveSha256": "5ba6c1409d59405dfdb0ddac9922633171b6d9117e9776913b3ca0888b3870f4",
+  "platform": "macOS ARM64",
+  "checks": [
+    "Applied all twenty patches to a clean disposable Git worktree and matched the five files against the independent archive replay.",
+    "A checkout with tracked modifications was refused before application.",
+    "Injected an error at the fifth patch check after four earlier patches; byte snapshots were restored, Git status was clean, and an uninjected retry applied all twenty patches and matched replay.",
+    "Python syntax compilation passed."
+  ],
+  "finding": "Reversing zero-context patches did not preserve the original header line endings byte-for-byte. The implementation restores saved original bytes on ordinary failure and checks them after restoration.",
+  "limitations": [
+    "The checkout must be disposable and not modified concurrently. Abrupt termination and I/O failures can prevent complete recovery; incomplete restoration is reported.",
+    "Ignored files and submodule content are not verified.",
+    "Only macOS was tested; Linux and Windows build and runtime qualification remains open.",
+    "Source replay and application are not independent semantic or GUI evidence."
+  ]
+}
