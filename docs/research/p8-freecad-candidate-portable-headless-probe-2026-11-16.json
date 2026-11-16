@@ -1,0 +1,65 @@
+{
+  "date": "2026-11-16",
+  "scope": "Portable focused headless probe and source/runtime identity guards, exercised on macOS ARM64 only.",
+  "sourceCommit": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+  "sourceArchiveSha256": "5ba6c1409d59405dfdb0ddac9922633171b6d9117e9776913b3ca0888b3870f4",
+  "sourceReplay": {
+    "patchCount": 20,
+    "candidateCompared": true,
+    "outputSha256": {
+      "src/Mod/Import/App/dxf/ImpExpDxf.cpp": "46a7b9f0f72d80bf4df6584e458ae48ddd24354c01a889964679468c017b6583",
+      "src/Mod/Import/App/dxf/ImpExpDxf.h": "c9c95156d7c2b8b4e8e10d4bfaae996baafb32a9a3a6b96c8d3d3878590de6f2",
+      "src/Mod/Import/App/dxf/dxf.cpp": "b40d3fbab00ec760229e775aafec5f29466c42de5505a50a0719b2866d74c934",
+      "src/Mod/Import/App/dxf/dxf.h": "9afc81e16bc7c06fddf67fea70c8790afdc02027146c7c16a631676e3be4c34f",
+      "src/Mod/Import/importtests/TestImportDXF.py": "d07db2e046bc934f0220d5cdffe9080d2bb8807a9245f27b32a5b4a375188402"
+    }
+  },
+  "nativeRun": {
+    "ok": true,
+    "platform": "darwin",
+    "machine": "arm64",
+    "pythonVersion": "3.12.16 (main, Oct 25 2026, 18:24:37) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "freecadVersion": [
+      "27",
+      "1",
+      "0",
+      "Unknown",
+      "Unknown",
+      "Unknown"
+    ],
+    "guiUp": 0,
+    "tests": [
+      "test_read_lines",
+      "test_dimension_ocs_orientation_axes",
+      "test_read_solid_ocs_vertices",
+      "test_classic_polyline_header_flags_and_mesh_disposition",
+      "test_bounded_polyface_geometry_and_rejections",
+      "test_bounded_polygon_mesh_grid_and_rejections",
+      "test_off_layer_without_grouping_reports_visibility_loss",
+      "test_frozen_layer_without_grouping_remains_reported",
+      "test_out_of_range_layer_colors_report_and_keep_off_state",
+      "test_malformed_layer_colors_report_and_keep_off_state"
+    ],
+    "testsRun": 10,
+    "skipped": 0,
+    "failures": 0,
+    "errors": 0,
+    "freecadcmdSha256": "65692d75f7ef51e7ccdfeafb42d0b07588b50ad47f774d0fdaea655eaf42c96f",
+    "importModuleSha256": "ccbe2615668b6783ad47da0fc41c541d6e08abb4cba30e085795a8938a06df29",
+    "probeSha256": "75d69cf492f7aa410590438beb0cec9a739799fd5a040ab745d97a04cde2e240",
+    "gitBaseVerified": false
+  },
+  "guardChecks": [
+    "Wrong expected source commit refused.",
+    "Executable outside build root refused.",
+    "A fake executable without a result marker refused.",
+    "Git-base check accepted the correct base and five patched paths before refusing a fake runtime.",
+    "Correct source and real runtime retry passed."
+  ],
+  "limitations": [
+    "The native runtime source was archive-extracted, so the optional Git-base check was not enabled for the passing runtime run.",
+    "The optional Git-base check covers HEAD and tracked changed paths only, not untracked or ignored files, submodules, or build provenance.",
+    "These focused tests do not prove Linux or Windows behavior, GUI rendering, independent producer semantics, or broad format support.",
+    "The candidate downstream FreeCAD patches are not upstream merged."
+  ]
+}

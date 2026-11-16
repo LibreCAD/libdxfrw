@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **681 completed implementation and qualification slices** and **32 remaining
+The plan records **682 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`681 / (681 + 32) = 95.5%`. The previous 28-package denominator was stale; a recount
+`682 / (682 + 32) = 95.5%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -101,6 +101,16 @@ GUI controls, two downstream GUI tests and eight focused headless tests
 ([native receipt](docs/research/p8-freecad-current-native-candidate-2026-11-16.json)).
 Repeat against the eventual integration target and extend to required platforms
 and independent semantics; the candidate remains unmerged.
+The portable [candidate probe](tools/research/run_freecad_candidate_probe.py)
+checks replayed source files, the loaded importer and ten headless tests; it
+passes on macOS ARM64 ([receipt](docs/research/p8-freecad-candidate-portable-headless-probe-2026-11-16.json)).
+Use it for a separately dispatched Linux and Windows candidate build, with a
+checkout pinned to the same upstream commit, verified submodules and a build
+outside the source tree. The optional Git check verifies HEAD and tracked
+changed paths only; it does not authenticate untracked or ignored files,
+submodules or build provenance. Preserve build logs and record these identities
+separately. Native GUI behavior, independent semantics and upstream integration
+remain open.
 
 ### Next LibreCAD integration work
 
