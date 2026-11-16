@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **703 completed implementation and qualification slices** and **32 remaining
+The plan records **704 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`703 / (703 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
+`704 / (704 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -87,7 +87,7 @@ For P6-G, the fixed `ACAD` APPID route now backpatches source flags and refuses
 other metadata it cannot emit. The first refusal-only flag guard broke ordinary
 generated DWG handoff; the fix passes focused rollback/readback and local
 FreeCAD open/insert controls
-([regression receipt](docs/research/p6-canonical-acad-appid-flags-backpatch-2026-11-16.json)). LibreDWG accepts the six generated outputs, but its flag observation is identical for a zero-flag control; independent flag semantics remain open.
+([regression receipt](docs/research/p6-canonical-acad-appid-flags-backpatch-2026-11-16.json)). LibreDWG accepts the six generated outputs, but its flag observation is identical for a zero-flag control. The independent ezdxf reader distinguishes the emitted 64 flags from the zero control in all six outputs; native flag semantics remain open.
 The implementation digest is refreshed without changing claim statuses;
 the replacement [fast](https://github.com/dxli/libdxfrw/actions/runs/43862739444), [native](https://github.com/dxli/libdxfrw/actions/runs/43862739412) and [FreeCAD release](https://github.com/dxli/libdxfrw/actions/runs/43862739438) qualification jobs are running at `65aefd2c`; inspect and disposition their results.
 Predeclared canonical LTYPE flags now survive output; nondefault flags arriving

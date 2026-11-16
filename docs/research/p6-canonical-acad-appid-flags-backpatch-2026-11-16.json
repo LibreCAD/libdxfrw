@@ -59,5 +59,12 @@
     "result": "All six conversions and JSON readbacks returned success and contained one ACAD APPID with is_xref_ref=1. Each conversion emitted two Unknown HEADER.DIMLDRBLK STANDARD warnings. Converter and reader share the LibreDWG implementation.",
     "negativeControl": "A scratch ASCII derivative changed only ACAD group 70 from 64 to 0; it also returned is_xref_ref=1, so the observed field cannot distinguish the flag values and does not independently verify preservation.",
     "scope": "Peer acceptance of generated outputs only; neither whole-drawing compatibility nor independent flag semantics is established. No sample files were committed."
+  },
+  "independentDxfReader": {
+    "tool": "ezdxf 1.4.5 readfile and APPID dxf.flags",
+    "inputs": "The same six hash-bound locally generated DXF outputs listed under peerAcceptance, from AC1021/AC1024/AC1032 DWG sources in ASCII and binary encodings.",
+    "result": "All six independently read ACAD flags=64; a scratch ASCII control derived from AC1021 with only group 70 changed to 0 independently read flags=0.",
+    "controlSha256": "ad9c83f0853eff2ca4809be6925f8de0256de1a51c9b8a461cbdce262b2d8e55",
+    "scope": "Independent decoder observation of the emitted field for these generated files only; no native interpretation, complete drawing behavior, or support claim is established."
   }
 }
