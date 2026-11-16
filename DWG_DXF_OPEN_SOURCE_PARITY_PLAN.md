@@ -93,6 +93,8 @@ only after the fixed row was written refuse atomically
 pattern state is now refused rather than discarded, whether supplied in a
 callback or predeclared metadata
 ([receipt](docs/research/p6-canonical-ltype-pattern-refusal-2026-11-16.json)).
+The relinked LibreCAD PR #3269-focused test also passes with these changes;
+broader LibreCAD integration remains open.
 Canonical descriptions can still be replaced by built-in values; audit source
 semantics and add a preservation route or explicit disposition.
 Continue the remaining public-writer and compound-route census.
