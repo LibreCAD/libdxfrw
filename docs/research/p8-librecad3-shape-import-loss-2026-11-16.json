@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-16",
+  "consumerRepository": "LibreCAD/LibreCAD_3",
+  "consumerBase": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+  "localCandidateCommit": "990c7202cd79396382671b056f83464cc9fd0cce",
+  "pinnedLibdxfrwCommit": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+  "change": "Count unsupported SHAPE callbacks as import loss.",
+  "reproduction": "A locally generated minimal DXF containing a LINE and SHAPE imported successfully but did not report the omitted SHAPE before this change.",
+  "test": "On macOS ARM64 five focused tests pass for each separately installed current and pinned codec. A runtime-generated DXF checks one SHAPE loss and one retained LINE. Underlay, modeler, MPOLYGON and legacy-layer controls also pass.",
+  "logs": [
+    "/private/tmp/lc3-shape-current-test.log",
+    "/private/tmp/lc3-shape-pinned-test.log"
+  ],
+  "replay": "Patch applied in order to the prior candidate replay and both changed files matched the committed consumer candidate.",
+  "limits": "The test omits the SHX definition and checks callback handling only. This reports omitted entities; it does not qualify SHX lookup, rendering, native applications or DWG import. Local consumer candidate is unmerged; no drawing fixture, phase gate or external-only support claim is promoted."
+}

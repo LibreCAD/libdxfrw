@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **658 completed implementation and qualification slices** and **32 remaining
+The plan records **659 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`658 / (658 + 32) = 95.4%`. The previous 28-package denominator was stale; a recount
+`659 / (659 + 32) = 95.4%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -181,10 +181,10 @@ created locally from scratch for the specific control.
   in the GUI and across platforms; retain PR #3269's broader ASCII/Binary and
   platform controls. Qualify LibreCAD_3 with a clean link, runtime import/export
   and the required ABI and platform matrix. LibreCAD_3's local candidate
-  `44f1e4b1c9fcb7b3c3fd57570dc354b0f3319a65` combines the three MPOLYGON
+  `990c7202cd79396382671b056f83464cc9fd0cce` combines the three MPOLYGON
   patches with the adapter and unit test from open PR #456 at
   `7e81275b71038d4a42fa580842e661ddcee7adbf`, followed by
-  [the legacy-layer loss patch](docs/patches/librecad3-p8-legacy-layer-lineweight-2026-11-16.patch) and [MLINE import loss reporting](docs/patches/librecad3-p8-mline-import-loss-2026-11-16.patch), then [WIPEOUT import loss reporting](docs/patches/librecad3-p8-wipeout-import-loss-2026-11-16.patch), then [MULTILEADER import loss reporting](docs/patches/librecad3-p8-mleader-import-loss-2026-11-16.patch), then [modeler geometry import loss reporting](docs/patches/librecad3-p8-modeler-import-loss-2026-11-16.patch), then [underlay import loss reporting](docs/patches/librecad3-p8-underlay-import-loss-2026-11-16.patch).
+  [the legacy-layer loss patch](docs/patches/librecad3-p8-legacy-layer-lineweight-2026-11-16.patch) and [MLINE import loss reporting](docs/patches/librecad3-p8-mline-import-loss-2026-11-16.patch), then [WIPEOUT import loss reporting](docs/patches/librecad3-p8-wipeout-import-loss-2026-11-16.patch), then [MULTILEADER import loss reporting](docs/patches/librecad3-p8-mleader-import-loss-2026-11-16.patch), then [modeler geometry import loss reporting](docs/patches/librecad3-p8-modeler-import-loss-2026-11-16.patch), then [underlay import loss reporting](docs/patches/librecad3-p8-underlay-import-loss-2026-11-16.patch), then [SHAPE import loss reporting](docs/patches/librecad3-p8-shape-import-loss-2026-11-16.patch).
   Apply only those two PR #456 source/test paths from its pinned diff; its full
   diff does not apply cleanly to current master. The current installed-codec
   focus passes R12/R14 ASCII/Binary readback and explicit loss reporting with
@@ -216,6 +216,9 @@ created locally from scratch for the specific control.
   ([receipt](docs/research/p8-librecad3-underlay-import-loss-2026-11-16.json)).
   Referenced files and definitions are absent in this callback-only control;
   it does not qualify underlay rendering, external files or DWG import.
+  A runtime-generated DXF control checks SHAPE loss accounting and ordinary
+  LINE retention with both codecs ([receipt](docs/research/p8-librecad3-shape-import-loss-2026-11-16.json)).
+  The absent SHX file and consumer rendering remain unqualified.
   A bool-only save still reports failure after a lossy write; resolve the UI
   and provenance treatment of default layer widths before claiming full save
   compatibility ([receipt](docs/research/p8-librecad3-legacy-layer-lineweight-2026-11-16.json)).

@@ -89,6 +89,7 @@ docs/patches/librecad3-p8-modeler-import-loss-2026-11-16.patch
 docs/patches/librecad3-p8-mpolygon-offset-preservation-2026-11-15.patch
 docs/patches/librecad3-p8-mpolygon-projection-warning-2026-11-15.patch
 docs/patches/librecad3-p8-mpolygon-rotation-preservation-2026-11-15.patch
+docs/patches/librecad3-p8-shape-import-loss-2026-11-16.patch
 docs/patches/librecad3-p8-underlay-import-loss-2026-11-16.patch
 docs/patches/librecad3-p8-wipeout-import-loss-2026-11-16.patch
 docs/research/visualstyle-slot-evidence-grades-2026-10-16.json

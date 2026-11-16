@@ -1,0 +1,44 @@
+diff --git a/persistence/libdxfrw/dxfimpl.h b/persistence/libdxfrw/dxfimpl.h
+index 5245282..2f455bc 100644
+--- a/persistence/libdxfrw/dxfimpl.h
++++ b/persistence/libdxfrw/dxfimpl.h
+@@ -148,0 +149,5 @@ public:
++    void addShape(const DRW_Shape& data) override {
++        (void)data;
++        recordLoss("SHAPE");
++    }
++
+diff --git a/unittest/persistence/dwgimporttest.cpp b/unittest/persistence/dwgimporttest.cpp
+index bb2508d..2dd4d4a 100644
+--- a/unittest/persistence/dwgimporttest.cpp
++++ b/unittest/persistence/dwgimporttest.cpp
+@@ -1116,0 +1117,29 @@ TEST(DwgImportTest, UnderlayLossIsReportedForDxf) {
++
++// The SHX definition is deliberately absent; this checks the SHAPE callback.
++TEST(DwgImportTest, ShapeLossIsReportedForDxf) {
++    const std::string path = (boost::filesystem::temp_directory_path() /
++        boost::filesystem::unique_path("lc3-shape-%%%%%%%%.dxf")).string();
++    {
++        std::ofstream file(path, std::ios::binary);
++        ASSERT_TRUE(file.good());
++        file << "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1024\n0\nENDSEC\n"
++                "0\nSECTION\n2\nENTITIES\n0\nLINE\n8\n0\n"
++                "10\n0\n20\n0\n30\n0\n11\n5\n21\n0\n31\n0\n"
++                "0\nSHAPE\n8\n0\n100\nAcDbEntity\n100\nAcDbShape\n"
++                "10\n1\n20\n2\n30\n0\n40\n1\n2\nSAMPLE\n"
++                "0\nENDSEC\n0\nEOF\n";
++        ASSERT_TRUE(file.good());
++    }
++    auto doc = newDwgDocument();
++    const auto result = lc::persistence::File::importFile(
++        doc, path, lc::persistence::File::Library::LIBDXFRW);
++    boost::filesystem::remove(path);
++    ASSERT_TRUE(result.ok);
++    const auto dropped = result.loss.droppedByType.find("SHAPE");
++    ASSERT_NE(dropped, result.loss.droppedByType.end());
++    EXPECT_EQ(dropped->second, 1u);
++    std::size_t lines = 0;
++    for (const auto& entity : doc->entityContainer().asVector())
++        if (std::dynamic_pointer_cast<const lc::entity::Line>(entity)) ++lines;
++    EXPECT_EQ(lines, 1u);
++}
