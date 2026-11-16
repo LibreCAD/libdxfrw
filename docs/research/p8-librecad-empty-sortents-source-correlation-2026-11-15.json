@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-empty-sortents-source-correlation-2026-11-15.patch",
+  "patchSha256": "7c813658f877672dfca1ccd01ebff5fad8dfdc3d740248f93b5dba52186d79a5",
+  "implementation": "A twenty-first unmerged LibreCAD patch retains bounded copies of the selected empty SORTENTSTABLE profile and correlates each with its live metadata, unique raw source frame, publication, membership and exact published coverage row using the upstream verifier. Duplicate/invalid identities, budget overflow and capture exceptions clear and latch the observation set; clear resets it. A shared raw reconstruction also replaces the equivalent previous dictionary helper code. No exporter decision changes.",
+  "validation": [
+    "A standalone C++17 -Werror adapter-callback harness linked against the installed current library (static archive SHA-256 ded2090ca37bfa2e8540bc7569a00240ceba1a92de21c931adb47c6e2afdd550). All four tables in the tracked libdxfrw AC1024 title block correlate, including the model-space table. Wrong version, altered coverage, duplicate membership and duplicate capture are refused, with reset/retry.",
+    "The harness forced failure at all 172 correlation allocations and both capture allocations, requiring refusal and successful immediate retry. A separate same-header and same-library dictionary harness still matched all 36 eligible dictionaries in LibreCAD mpolygon/oda_solid_ac1024.dwg and passed negative/retry controls.",
+    "The patch applies and reverse-checks after the previous 20; its source compiles against the older bundled codec with the feature macro absent. A committed optional importer test uses the existing libdxfrw title fixture via LIBRECAD_AC1024_SORTENTS_FIXTURE, avoiding any new DWG fixture.",
+    "Source-release inventory is 1213 files; generator, 18 refusal controls and the 721-input implementation digest pass. The installed-codec application rebuild and optional fixture integration test are running, not yet claimed."
+  ],
+  "limits": "This is only source correlation. It does not establish import generation, independently authenticate class data, prove all inbound references, close dictionary/block graphs, authorize dropping any table, establish native semantic parity, or promote a support claim."
+}
