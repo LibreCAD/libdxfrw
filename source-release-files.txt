@@ -41,6 +41,7 @@ docs/patches/freecad-p8-default-solid-ocs-2026-11-15.patch
 docs/patches/freecad-p8-legacy-dxf-block-3dface-2026-11-15.patch
 docs/patches/freecad-p8-legacy-dxf-surface-mesh-unit-scaling-2026-11-15.patch
 docs/patches/librecad-p8-associative-prefix-compat-2026-11-15.patch
+docs/patches/librecad-p8-binary-ltype-import-2026-11-16.patch
 docs/patches/librecad-p8-block-record-link-observation-2026-11-15.patch
 docs/patches/librecad-p8-canonical-ltype-metadata-2026-11-15.patch
 docs/patches/librecad-p8-canonical-ltype-policy-test-2026-11-15.patch

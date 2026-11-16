@@ -1,0 +1,77 @@
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index ed8b725..8d907d5 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -11407,0 +11408,72 @@ const char *const kChangedDefinitionFixture =
++// Generate both encodings through the public codec, then exercise the actual
++// LibreCAD adapter and its edited-LTYPE export path. No drawing fixture is kept.
++TEST_CASE("Binary DXF imports an editable line type definition",
++          "[dxf][roundtrip][filter][ltype][linetype][binary]") {
++  class GeneratedWriter final : public RS_FilterDXFRW {
++  public:
++    dxfRW *codec = nullptr;
++    bool ok = true;
++    void writeHeader(DRW_Header &) override {}
++    void writeBlocks() override {}
++    void writeBlockRecords() override {}
++    void writeLayers() override {}
++    void writeTextstyles() override {}
++    void writeVports() override {}
++    void writeViews() override {}
++    void writeUCSs() override {}
++    void writeDimstyles() override {}
++    void writeObjects() override {}
++    void writeAppId() override {}
++    void writeLTypes() override {
++      DRW_LType type;
++      type.name = "VENDOR_BINARY";
++      type.desc = "Binary marks";
++      type.size = 2;
++      type.length = 15.0;
++      type.path = {10.0, -5.0};
++      ok = codec->writeLineType(&type) && ok;
++    }
++    void writeEntities() override {
++      DRW_Line line;
++      line.layer = "0";
++      line.lineType = "VENDOR_BINARY";
++      line.basePoint = DRW_Coord(0.0, 0.0, 0.0);
++      line.secPoint = DRW_Coord(20.0, 0.0, 0.0);
++      ok = codec->writeLine(&line) && ok;
++    }
++  };
++  ensureSettings();
++  for (const bool binary : {false, true}) {
++    const std::string src = tmpFile(binary ? "ltype_binary_in.dxf" : "ltype_ascii_in.dxf");
++    const std::string out = tmpFile(binary ? "ltype_binary_out.dxf" : "ltype_ascii_out.dxf");
++    GeneratedWriter generated;
++    dxfRW codec(src.c_str());
++    generated.codec = &codec;
++    REQUIRE(codec.write(&generated, DRW::AC1021, binary));
++    REQUIRE(generated.ok);
++    std::ifstream input(src, std::ios::binary);
++    const std::string bytes(std::istreambuf_iterator<char>(input), {});
++    CHECK((bytes.compare(0, 18, "AutoCAD Binary DXF") == 0) == binary);
++    RS_Graphic graphic;
++    REQUIRE(importFile(graphic, src));
++    LC_LineType *entry = graphic.findLineType(QStringLiteral("VENDOR_BINARY"));
++    REQUIRE(entry != nullptr);
++    REQUIRE(entry->pattern == std::vector<double>{10.0, -5.0});
++    REQUIRE(entry->description == QStringLiteral("Binary marks"));
++    entry->pattern = {20.0, -10.0};
++    entry->description = QStringLiteral("Edited marks");
++    REQUIRE(exportAs(graphic, out));
++    CHECK(ltypeRecordsSpelt(out, "VENDOR_BINARY") == Records{{20.0, -10.0}});
++    CHECK(recordGroupValues(out, "LINE", "6") ==
++          std::vector<std::string>{"VENDOR_BINARY"});
++    RS_Graphic back;
++    REQUIRE(importFile(back, out));
++    const LC_LineType *saved = importedEntry(back, "VENDOR_BINARY");
++    REQUIRE(saved != nullptr);
++    CHECK(saved->pattern == std::vector<double>{20.0, -10.0});
++    CHECK(saved->description == QStringLiteral("Edited marks"));
++    std::filesystem::remove(src);
++    std::filesystem::remove(out);
++  }
++}
++

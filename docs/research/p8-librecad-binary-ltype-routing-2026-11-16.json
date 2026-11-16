@@ -10,5 +10,6 @@
   "logs": [
     "/private/tmp/librecad-p8-rebased-bundled-binary-ltype.log"
   ],
-  "limits": "LibreCAD binary DXF import, PR #3269 behavior on binary inputs, and any new binary-export UI remain unqualified. Standalone codec tests do not establish consumer behavior. No new support claim or phase gate is promoted; no drawing fixture was committed."
+  "limits": "LibreCAD binary DXF import, PR #3269 behavior on binary inputs, and any new binary-export UI remain unqualified. Standalone codec tests do not establish consumer behavior. No new support claim or phase gate is promoted; no drawing fixture was committed.",
+  "followUp": "The later p8-librecad-binary-ltype-consumer-2026-11-16.json qualifies one generated AC1021 consumer import/edit/ASCII-output profile; broader binary claims remain open."
 }
