@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **622 completed implementation and qualification slices** and **32 remaining
+The plan records **623 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`622 / (622 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
+`623 / (623 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -104,8 +104,11 @@ created locally from scratch for the specific control.
   controls ([receipt](docs/research/p8-librecad-empty-xrecord-dxf-output-2026-11-15.json)).
   The selected unchanged units=4 block profile also passes independent
   readback ([receipt](docs/research/p8-librecad-named-block-units-2026-11-15.json)).
-  Qualify nonempty XRECORD data, other unit values and remaining nondefault
-  block properties without dropping dependencies. Unknown inbound references
+  The DWG reader now delivers BLOCK_HEADER preview bytes to the block callback
+  ([receipt](docs/research/p8-dwg-block-preview-delivery-2026-11-15.json));
+  qualify the actual LibreCAD import and guarded output. Qualify nonempty
+  XRECORD data, other unit values and remaining nondefault block properties
+  without dropping dependencies. Unknown inbound references
   and dynamic-block objects remain
   unresolved; do not omit source records to pass a gate ([source census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json),
   [peer receipt](docs/research/p8-experimental-named-sortents-oda-roundtrip-2026-11-15.json)).

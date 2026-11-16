@@ -9727,7 +9727,18 @@ bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf,
     bk.flags = bkr->flags;
     bk.xrefUnloaded = bkr->xrefUnloaded;
     bk.insUnits = bkr->insUnits;
-    bk.xrefPath = bkr->xrefPath;
+    try {
+      bk.xrefPath = bkr->xrefPath;
+      // ODA 20.4.52 stores the preview on BLOCK_HEADER. Consumers receive
+      // it through the block callback as well as the block-record callback.
+      bk.previewData = bkr->previewData;
+    } catch (...) {
+      recordBlockFailure(*bkr, bkr->handle, dwgType::BLOCK,
+                         DwgEntityFailurePhase::BlockFinalize);
+      quarantineOwnedEntities(*bkr);
+      ret = false;
+      continue;
+    }
 
     if (auto *cacheSink =
             dynamic_cast<DwgVerifiedTableCacheSourceSink *>(&intfa)) {

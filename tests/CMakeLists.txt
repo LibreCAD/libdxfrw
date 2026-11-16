@@ -612,6 +612,15 @@ add_test(NAME libdxfrw_dwg_ac1024_dictionary_source_verify
 set_tests_properties(libdxfrw_dwg_ac1024_dictionary_source_verify PROPERTIES
     LABELS "fast;dwg;dictionary;source" TIMEOUT 30)
 
+add_executable(libdxfrw_dwg_block_preview_delivery_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dwg_block_preview_delivery_tests.cpp)
+target_compile_features(libdxfrw_dwg_block_preview_delivery_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dwg_block_preview_delivery_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dwg_block_preview_delivery_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_dwg_block_preview_delivery_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_dwg_block_preview_delivery
+    COMMAND libdxfrw_dwg_block_preview_delivery_tests ${CMAKE_CURRENT_SOURCE_DIR}/samples/AC1024/title_block-iso.dwg)
+set_tests_properties(libdxfrw_dwg_block_preview_delivery PROPERTIES LABELS "dwg;fast;block" TIMEOUT 30)
 add_executable(libdxfrw_dwg_ac1024_empty_xrecord_source_verify_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dwg_ac1024_empty_xrecord_source_verify_tests.cpp)
 target_compile_features(libdxfrw_dwg_ac1024_empty_xrecord_source_verify_tests PRIVATE cxx_std_17)

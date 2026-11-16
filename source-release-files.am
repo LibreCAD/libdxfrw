@@ -527,6 +527,7 @@ EXTRA_DIST = \
     tests/dwg_ac1027_empty_view_ucs_controls_tests.cpp \
     tests/dwg_ac1027_maintenance_header_tests.cpp \
     tests/dwg_ac1027_material_dictionary_wire_tests.cpp \
+    tests/dwg_block_preview_delivery_tests.cpp \
     tests/dwg_cellstylemap_ac1018_candidate_tests.cpp \
     tests/dwg_cellstylemap_reader_source_tests.cpp \
     tests/dwg_circle_arc_positive_radius_reader_tests.cpp \
