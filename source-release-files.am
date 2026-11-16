@@ -1155,6 +1155,7 @@ EXTRA_DIST = \
     tools/research/audit_ac1021_field_graph.py \
     tools/research/audit_ac1027_associative_constraints.py \
     tools/research/audit_ac1027_source_references.py \
+    tools/research/audit_dxf_dictionary_cloning.py \
     tools/research/audit_dxf_public_writer_test_mentions.py \
     tools/research/audit_libredwg_sortents_spans.py \
     tools/research/audit_mlinestyle_source_profile.py \

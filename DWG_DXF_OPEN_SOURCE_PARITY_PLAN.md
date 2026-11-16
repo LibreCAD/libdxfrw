@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **634 completed implementation and qualification slices** and **32 remaining
+The plan records **635 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`634 / (634 + 32) = 95.2%`. The previous 28-package denominator was stale; a recount
+`635 / (635 + 32) = 95.2%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -173,6 +173,20 @@ full-circle arcs before extending it ([projection receipt](docs/research/p8-mpol
 DIMASSOC raw replay and native associative behavior also remain open
 ([receipt](docs/research/p8-dimassoc-duplicate-body-fields-2026-11-15.json)).
 Keep strict `DeclaredUtf8` source admission closed pending its evidence gate.
+
+**P6-D next packet — legacy DICTIONARY cloning semantics.** Audit existing modern DXF output and, before expanding admission of
+AC1012/AC1014 source dictionaries, distinguish a cloning
+field absent from the DWG from a caller-authored or source-present zero without
+breaking existing consumer ABI. Map the absent case only after establishing the
+versioned behavior; preserve explicit edits and prove NOD and nested dictionary
+output, membership roles, source mutation refusal, same-writer retry and
+ASCII/Binary readback. ODA emits group 281 = 1 for the independently generated
+AC1012 control while LibreDWG omits the group; ezdxf assigns 1 when it is absent.
+The discarded candidate emitted explicit 0, whose documented meaning differs.
+The exact mapping and native clone behavior remain unresolved; retain the
+MLINESTYLE and whole-document gates until they are proven. Use the
+[reproducible field audit](tools/research/audit_dxf_dictionary_cloning.py) and
+[discrepancy receipt](docs/research/p6-ac1012-dictionary-cloning-boundary-2026-11-15.json).
 
 **P6-E adjacent packet — AC1024 full conversion.** The selected two-layer
 Global-material/Normal-plot-style profile now has source-bound staged output,
