@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-16",
+  "scope": "Generic typed DXF proxy replay for LINE, POINT, CIRCLE, ARC and ELLIPSE; specialized LIGHT and parsed-DWG TABLE/INSERT/MLEADER routes retain their distinct policies.",
+  "finding": "The existing primitive-only generic replay gate rejected unsupported chunks but did not reject recognized control chunks. After the decoder learned control opcodes, an indexed layer control followed by a primitive was accepted without source/target resource-order proof.",
+  "change": "The generic path now also requires zero recognized control chunks, restoring its existing primitive-only admission boundary. Specialized routes are not changed.",
+  "checks": [
+    "Focused proxy policy CTest passes caller-supplied layer, linetype and color-control refusal, parsed-DXF layer-control refusal across AC1021/AC1024 ASCII/Binary, preserved existing destination/caller bytes, and corrected same-codec primitive-only retry with fresh readback.",
+    "Existing specialized TABLE DWG proxy and LIGHT DXF proxy controls pass, as does the bounded sparse MATERIAL control: 4/4 focused CTests.",
+    "Before this fix the aggregate DXF fixture executable reported 16 failures including one indexed-proxy refusal. The affected selector now passes; the aggregate was not rerun for this slice.",
+    "Digest refreshed from a clean index matching 5994 staged tracked entries; no support claim status or receipt reference changed."
+  ],
+  "limits": [
+    "This does not qualify resource-bearing proxy replay or change dedicated remapping routes. It deliberately refuses recognized controls in the generic path until their complete output/resource semantics are proven.",
+    "Generated controls are not native rendering evidence and no drawings were committed."
+  ],
+  "implementationDigestSha256": "094459596c3c30b2aa7ea827a777369b7ea3d972f8368a6b2a906a3428d37b87"
+}

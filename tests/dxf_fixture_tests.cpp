@@ -66277,10 +66277,10 @@ std::string makeProxyCircleRecipeOfSize(std::size_t byteCount) {
     return bytes;
 }
 
-std::string makeProxyCircleRecipeWithLayerIndex() {
+std::string makeProxyCircleRecipeWithControl(std::uint32_t opcode) {
     std::string bytes(8u, '\0');
     appendLittleEndian32(bytes, 12u);
-    appendLittleEndian32(bytes, 16u); // OP_ATTRIBUTE_LAYER
+    appendLittleEndian32(bytes, opcode);
     appendLittleEndian32(bytes, 0u);
     const std::string circle = makeProxyCircleRecipe();
     bytes.append(circle.data() + 8u, circle.size() - 8u);
@@ -66706,6 +66706,34 @@ void testTypedProxyGraphicLossPolicy(TestContext& t) {
         return written && !writer->hasWriteError() && output.good();
     };
     for (const Profile& profile : profiles) {
+        for (const bool binary : {false, true}) {
+            const auto input = directory / (std::string("parsed-indexed-")
+                + profile.name + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            const auto output = directory / (std::string("parsed-indexed-output-")
+                + profile.name + (binary ? "-binary.dxf" : "-ascii.dxf"));
+            const std::string indexed = makeProxyCircleRecipeWithControl(16u);
+            dx_iface sourceReader;
+            dx_data data;
+            const bool imported = writeParsedSource(input, profile, binary, indexed)
+                && sourceReader.fileImport(input.string(), &data, false);
+            DRW_Line* line = imported && !data.mBlock->ent.empty()
+                ? dynamic_cast<DRW_Line*>(data.mBlock->ent.front()) : nullptr;
+            const bool authorized = line && line->authorizeProxyGraphicsReplay();
+            const std::string sentinel = "prior parsed indexed proxy destination\n";
+            { std::ofstream file(output, std::ios::binary); file << sentinel; }
+            dx_iface writer;
+            const bool exported = authorized && writer.fileExport(
+                output.string(), profile.version, binary, &data, false, false,
+                dx_dxfSourceTextPolicy::Compatible, DRW::DxfTextWritePolicy::Compatible,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved);
+            std::ifstream file(output, std::ios::binary);
+            const std::string bytes{std::istreambuf_iterator<char>(file), {}};
+            t.expect(authorized && !exported && bytes == sentinel
+                         && line->proxyGraphics == indexed,
+                     "parsed indexed proxy refuses atomically without changing caller bytes");
+        }
+    }
+    for (const Profile& profile : profiles) {
         for (const bool sourceBinary : {false, true}) {
             const std::string sourceEncoding = sourceBinary ? "binary" : "ascii";
             const auto input = directory
@@ -66977,8 +67005,50 @@ void testTypedProxyGraphicLossPolicy(TestContext& t) {
     expectStrictRefusal("wrong-codepage", DRW::AC1021, "ANSI_932", proxy,
                         false);
     expectStrictRefusal("stale-count", DRW::AC1021, {}, proxy, true);
-    expectStrictRefusal("indexed-resource", DRW::AC1021, {},
-                        makeProxyCircleRecipeWithLayerIndex(), false);
+    expectStrictRefusal("indexed-layer", DRW::AC1021, {},
+                        makeProxyCircleRecipeWithControl(16u), false);
+    expectStrictRefusal("indexed-linetype", DRW::AC1021, {},
+                        makeProxyCircleRecipeWithControl(18u), false);
+    expectStrictRefusal("color-control", DRW::AC1021, {},
+                        makeProxyCircleRecipeWithControl(14u), false);
+
+    // Exercise the generic codec route directly: an indexed stream must
+    // refuse atomically, and correcting the same caller permits a retry.
+    for (const bool binary : {false, true}) {
+        auto data = makeAuthorizedSource(DRW::AC1021, "ANSI_1252",
+                                         makeProxyCircleRecipeWithControl(16u));
+        DRW_Entity* entity = data->mBlock->ent.front();
+        const std::string original = entity->proxyGraphics;
+        const auto output = directory / (binary ? "proxy-control-retry-binary.dxf"
+                                                : "proxy-control-retry-ascii.dxf");
+        const std::string sentinel = "prior indexed proxy destination\n";
+        { std::ofstream file(output, std::ios::binary); file << sentinel; }
+        class DirectProxyWriter final : public dx_iface {
+        public:
+            bool finalizeDxfWrite() override { return true; }
+        } adapter;
+        dxfRW codec(output.string().c_str());
+        adapter.dxfW = &codec;
+        adapter.cData = data.get();
+        adapter.currentBlock = data->mBlock;
+        const bool refused = !codec.write(&adapter, DRW::AC1021, binary);
+        std::ifstream existing(output, std::ios::binary);
+        const std::string retained{std::istreambuf_iterator<char>(existing), {}};
+        t.expect(refused && retained == sentinel && entity->proxyGraphics == original
+                     && entity->numProxyGraph == static_cast<int>(original.size()),
+                 "indexed proxy control refuses without changing destination or caller");
+        existing.close();
+        entity->proxyGraphics = proxy;
+        entity->numProxyGraph = static_cast<int>(proxy.size());
+        const bool authorized = entity->authorizeProxyGraphicsReplay(DRW::AC1021, "ANSI_1252");
+        const bool written = authorized && codec.write(&adapter, DRW::AC1021, binary);
+        dx_iface reader;
+        dx_data readback;
+        const bool imported = written && reader.fileImport(output.string(), &readback, false);
+        t.expect(imported && !readback.mBlock->ent.empty()
+                     && readback.mBlock->ent.front()->proxyGraphics == proxy,
+                 "corrected primitive-only proxy retries and reads back unchanged");
+    }
 
     const auto expectClassScopeRefusal = [&](const std::string& typeName,
                                              const auto& createEntity,

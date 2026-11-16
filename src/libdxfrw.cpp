@@ -1165,6 +1165,7 @@ bool canReplayTypedProxyGraphics(const DRW_Entity& entity,
         DRW_ProxyGraphicDecoder::inspect(entity.proxyGraphics);
     return inspection.completed()
         && inspection.recognizedPrimitiveChunkCount != 0u
+        && inspection.recognizedControlChunkCount == 0u
         && inspection.skippedUnsupportedChunkCount == 0u
         && inspection.consumedByteCount == entity.proxyGraphics.size();
 }
