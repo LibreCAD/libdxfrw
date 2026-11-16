@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-16",
+  "scope": "Native macOS ARM64 headless FreeCAD Draft layer qualification for the local eleven-patch mesh importer candidate.",
+  "sourceBase": "FreeCAD d956ec561639cfa83f755504b1b3358ea799428e plus eleven ordered local importer patches.",
+  "runtime": {
+    "draftModule": "/private/tmp/freecad-main-d956-source/src/Mod/Draft/Draft.py",
+    "importModule": "/private/tmp/freecad-main-d956-build/Mod/Import/Import.so",
+    "machine": "arm64",
+    "pysideQtCore": "/private/tmp/freecad-pyside612-20261116/PySide6/QtCore.abi3.so",
+    "pysideVersion": "6.12.0",
+    "python": "3.12.16 (main, Oct 25 2026, 18:24:37) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "qtCoreImages": [
+      "/opt/homebrew/Cellar/qtbase/6.12.0_2/lib/QtCore.framework/Versions/A/QtCore"
+    ],
+    "runtimeQtVersion": "6.12.0",
+    "artifactSha256": {
+      "/private/tmp/freecad-main-d956-source/src/Mod/Draft/Draft.py": "72c03a089baca13a55d7f3051988005c3e1005b532b3944b279d407dc122a9a9",
+      "/private/tmp/freecad-pyside612-20261116/PySide6/QtCore.abi3.so": "1288c120342b8460a8829856a07abf2d7d63be8f72502c3dcffc146bb780cbec",
+      "/private/tmp/freecad-main-d956-build/Mod/Import/Import.so": "f1b81cb8b188653c05c2fc18a1bd4b2c68ef00d31423dbef8dd9908b945a963a",
+      "/private/tmp/freecad-pyside612-20261116/Draft_rc.py": "e8d2ed84e4b003fc8e3d5b7cec68207598ec2b7ad718de5a49d6c72f09a7e468"
+    }
+  },
+  "setup": [
+    "Install PySide6-Essentials 6.12.0, shiboken6 6.12.0 and typing_extensions 4.16.0 into a temporary directory.",
+    "Move only the temporary wheel's PySide6/Qt/lib directory aside so the already installed matching Homebrew Qt 6.12.0 frameworks resolve; keep the wheel contents available separately.",
+    "Generate Draft_rc.py from the same FreeCAD source Draft.qrc using Homebrew Qt 6.12 rcc -g python. Add the temporary package directory, FreeCAD Draft source and FreeCAD src/3rdParty directories via the probe's task-specific environment variables.",
+    "Verify dyld reports exactly one loaded QtCore framework, from /opt/homebrew; do not treat matching version strings alone as proof of a single runtime."
+  ],
+  "probe": "tools/research/freecad_real_draft_mesh_layer_probe.py",
+  "validation": {
+    "fixtureFree": "The committed probe creates DXF controls locally in a temporary directory and deletes them. Real Draft layer objects group a bounded POLYFACE and polygon mesh under MESH and the following LINE under layer 0; a mixed child layer and a nondefault mesh layer inside a block are explicitly refused.",
+    "independentGenerated": "Separately ezdxf-generated direct drawings show identical grouping, 6/12 square-millimetre areas and mixed-layer refusals. Generated nested inch and millimetre drawings both report the block-layer refusal.",
+    "logs": [
+      "/private/tmp/freecad-polyface-layer-20261116/real-draft-repro-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/real-draft-layer.log",
+      "/private/tmp/freecad-polyface-layer-20261116/real-draft-nested.log",
+      "/private/tmp/freecad-polyface-layer-20261116/real-draft-identity.log",
+      "/private/tmp/freecad-polyface-layer-20261116/pyside-install.log",
+      "/private/tmp/freecad-polyface-layer-20261116/typing-install.log"
+    ]
+  },
+  "limits": [
+    "This is real Draft layer construction in a BUILD_GUI=OFF headless process; it does not qualify GUI visibility, color appearance, native producer interpretation or other operating systems.",
+    "The block nondefault layer is refused rather than preserved; mixed layers and other unsupported styles remain open.",
+    "No drawing or third-party wheel is committed; no phase gate or external-only support claim is promoted."
+  ]
+}

@@ -23,5 +23,6 @@
     "The correction reports an unsupported profile rather than preserving nested custom-layer geometry.",
     "The Draft double tests layer grouping in headless mode; GUI, real Draft, other platforms and native producer semantics remain open.",
     "No fixture is committed, and no phase gate or external-only claim is promoted."
-  ]
+  ],
+  "followup": "A later headless run used the actual Draft module and one loaded Qt 6.12 framework: direct layer grouping and nested block refusal pass. See p8-freecad-main-real-draft-mesh-layers-2026-11-16.json. The original test-double evidence is unchanged; GUI remains unqualified."
 }

@@ -34,5 +34,6 @@
     "Layer-group assertions use a headless Draft test double because this FreeCAD build lacks Python Qt bindings; real GUI, native Draft, Linux/Windows and visual appearance are not qualified.",
     "Per-face styling, invisible edges, nonplanar faces, smoothing and other unsupported metadata remain refused. No generated drawing is committed, and no support claim or phase gate is promoted.",
     "The initial shared-layer patch must be followed by freecad-p8-default-block-mesh-layer-refusal-2026-11-16.patch; do not use it alone for layer-preserving block imports."
-  ]
+  ],
+  "followup": "A later headless run used the actual Draft module and one loaded Qt 6.12 framework: direct layer grouping and nested block refusal pass. See p8-freecad-main-real-draft-mesh-layers-2026-11-16.json. The original test-double evidence is unchanged; GUI remains unqualified."
 }
