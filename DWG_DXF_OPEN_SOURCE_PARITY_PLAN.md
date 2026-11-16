@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **617 completed implementation and qualification slices** and **32 remaining
+The plan records **618 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`617 / (617 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
+`618 / (618 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -89,9 +89,12 @@ created locally from scratch for the specific control.
   generated ODA/ezdxf evidence, but LibreDWG drops this record and Autodesk's
   DXF reference documents space owners only. Keep the default refusal and
   prove the specific consumer source-to-output chain, rollback and readback
-  before enabling any explicit consumer opt-in. Unknown inbound references and
-  dynamic-block objects remain unresolved; do not omit source records to pass
-  a gate ([source census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json),
+  before broadening the explicit programmatic opt-in. A narrow, unmerged
+  consumer patch now passes generated-source rollback/retry and ODA/ezdxf
+  readback; it refuses unhandled dictionary entries and nondefault source block
+  properties ([receipt](docs/research/p8-librecad-experimental-named-sortents-optin-2026-11-15.json)).
+  Unknown inbound references and dynamic-block objects remain unresolved; do
+  not omit source records to pass a gate ([source census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json),
   [peer receipt](docs/research/p8-experimental-named-sortents-oda-roundtrip-2026-11-15.json)).
 - Resolve the separate title-block MLEADERSTYLE version gate and then the next
   observed export gate, without dropping fields. Qualify the R12/R14 diagnostic
@@ -113,7 +116,8 @@ suffix `-2026-11-15.patch`, rebasing as needed against the consumer head:
 `librecad-p8-dictionary-source-observation`, `librecad-p8-dictionary-source-correlation`,
 `librecad-p8-empty-sortents-source-correlation`, `librecad-p8-source-capture-session`,
 `librecad-p8-sortents-owner-chain`, `librecad-p8-layer-control-source-binding`,
-`librecad-p8-selected-control-diagnostic-graph`, `librecad-p8-zero-reactor-sortents-source`.
+`librecad-p8-selected-control-diagnostic-graph`, `librecad-p8-zero-reactor-sortents-source`,
+`librecad-p8-experimental-named-sortents-optin`.
 The tested base is `8a82e35965d8d56a8f8608abd739fbb2c0de2f3e`.
 
 For MPOLYGON, retain the consumer's opt-in polyline policy; independently
