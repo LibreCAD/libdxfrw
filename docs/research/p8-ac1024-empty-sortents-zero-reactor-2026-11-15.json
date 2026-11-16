@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "problem": "The ODA-created AC1024 empty named-block SORTENTSTABLE has zero reactors, while the original title fixture has one parent-dictionary reactor. The earlier source verifier refused the ODA profile.",
+  "implementation": "Extend the source correlation only to accept either zero reactors or one reactor equal to the parent dictionary, with raw, publication and typed reactor count/vector equality and all previous frame, class, owner and empty-membership checks. No DWG parse body or export policy changes.",
+  "validation": [
+    "The standard fast CTest retains the four physical one-reactor title controls and additionally reparses a bounded zero-reactor object body generated locally from a handwritten DXF through ODA 27.1; no DWG/DXF fixture file was added. It refuses mismatched reactor count/vector and a changed owner wire bit.",
+    "An optional second test argument reads the locally generated complete ODA AC1024 DWG, matches the zero-reactor source frame and runs 37 calibrated allocation failure/refusal/immediate-retry controls plus changed wire owner, membership owner and reactor negatives. The original title source still passes 164 allocation failure/retry controls.",
+    "Four focused sort/control/transaction CTests pass. Source-release inventory remains 1220 files and the 723-input qualification digest passes."
+  ],
+  "odaDwgSha256": "02c8a7dc65d6517e57211adb596ce546130fb3ad651eada8363c1f2a496545e8",
+  "implementationDigestSha256": "53c54d443b8f6c3688c8312689e940203cc6fa401e77bf33f1593005a47e5eb6",
+  "limits": "The embedded generated object body is an encoder/decoder control and the optional ODA document is one independent producer witness. Neither proves general AC1024 named-block support, hidden references, graph closure, native AutoCAD/FreeCAD behavior or a support claim."
+}

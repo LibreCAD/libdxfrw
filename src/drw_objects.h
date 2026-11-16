@@ -4342,8 +4342,8 @@ public:
            m_sortHandles.size() == m_entityHandles.size();
   }
   bool finalizeDxf();
-  //! Correlate the selected empty AC1024 custom-class profile with its raw
-  //! frame and reader receipts. This is not class authentication, CRC,
+  //! Correlate selected empty AC1024 custom-class profiles (zero reactors or
+  //! one parent reactor) with their raw frame and reader receipts. This is not class authentication, CRC,
   //! graph closure, export admission or native semantic qualification.
   [[nodiscard]] bool matchesAc1024EmptyDwgFrame(
       const DRW_UnsupportedObject &raw,

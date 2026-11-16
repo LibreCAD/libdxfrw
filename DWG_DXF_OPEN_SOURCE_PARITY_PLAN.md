@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **615 completed implementation and qualification slices** and **32 remaining
+The plan records **616 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`615 / (615 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
+`616 / (616 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -176,7 +176,7 @@ LibreCAD importer integration test passes
 ([correlation receipt](docs/research/p8-librecad-dictionary-source-correlation-2026-11-15.json)).
 The upstream empty AC1024 SORTENTSTABLE verifier now reparses all four title
 frames and rejects changed wire owners; model-space remains a control
-([SORTENTSTABLE receipt](docs/research/p8-ac1024-empty-sortents-source-verifier-2026-11-15.json)).
+([SORTENTSTABLE receipt](docs/research/p8-ac1024-empty-sortents-source-verifier-2026-11-15.json)). The source verifier also accepts the independently ODA-generated zero-reactor profile with mutation and retry controls ([zero-reactor receipt](docs/research/p8-ac1024-empty-sortents-zero-reactor-2026-11-15.json)).
 A twenty-first unmerged consumer patch retains the selected typed SORTENTSTABLE
 baseline and correlates its unique source receipts; standalone title-fixture
 mutation and allocation-failure/retry controls and its optional application

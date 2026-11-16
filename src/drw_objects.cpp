@@ -13191,8 +13191,8 @@ bool DRW_SortEntsTable::matchesAc1024EmptyDwgFrame(
     const DRW_UnsupportedObject &raw,
     const DRW_DwgFramePublication &publication,
     const DRW_DwgSortEntsMembership &membership) const noexcept {
-    // Selected title-block profile: an empty table owned by an extension
-    // dictionary, with one reactor pointing back to that dictionary.
+    // Selected empty-table profiles: no reactors, or one reactor pointing
+    // back to the owning extension dictionary.
     constexpr std::size_t maxFrameBytes = 4u * 1024u * 1024u;
     if (raw.m_version != DRW::AC1024 || raw.m_objectType <= 499
         || raw.m_handle == 0u || raw.m_handle == DRW::NoHandle
@@ -13206,8 +13206,9 @@ bool DRW_SortEntsTable::matchesAc1024EmptyDwgFrame(
         || raw.m_objectOffset > (std::numeric_limits<std::uint32_t>::max)()
         || !raw.m_commonHandleDataValidated
         || !drwDwgCommonLinkEvidenceValidated(raw.m_commonLinkEvidence)
-        || raw.m_numReactors != 1 || raw.m_reactorHandles.size() != 1u
-        || raw.m_reactorHandles[0] != raw.m_parentHandle
+        || raw.m_numReactors < 0 || raw.m_numReactors > 1
+        || raw.m_reactorHandles.size() != static_cast<std::size_t>(raw.m_numReactors)
+        || (raw.m_numReactors == 1 && raw.m_reactorHandles[0] != raw.m_parentHandle)
         || raw.m_xDictFlag != 1u || raw.m_xDictHandle != 0u)
         return false;
     if (publication.m_version != raw.m_version
