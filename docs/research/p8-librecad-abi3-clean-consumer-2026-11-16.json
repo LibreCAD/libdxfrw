@@ -21,10 +21,16 @@
       "/private/tmp/librecad-abi3-bundled-configure.log",
       "/private/tmp/librecad-abi3-clean-build-j10.log",
       "/private/tmp/librecad-abi3-clean-tests-verbose.log",
-      "/private/tmp/librecad-abi3-ltype-no-skip.log"
-    ]
+      "/private/tmp/librecad-abi3-ltype-no-skip.log",
+      "/private/tmp/librecad-abi3-bundled-tests-configure.log",
+      "/private/tmp/librecad-abi3-bundled-build.log",
+      "/private/tmp/librecad-abi3-bundled-ltype.log",
+      "/private/tmp/librecad-abi3-bundled-pr3269.log",
+      "/private/tmp/librecad-abi3-bundled-legacy_units.log"
+    ],
+    "bundled": "PASS: clean macOS ARM64 Release librecad_tests target with BUILD_TESTS=ON and bundled codec. LTYPE: 29 cases/4321 assertions; PR #3269: 5/49; R12/R14 non-unitless refusal and unitless retry: 1/18. The hash-verified locally generated R13 ASCII/Binary pair was supplied, with no skips. The executable has no dynamic libdxfrw dependency."
   },
-  "limits": "No drawing files are committed. The local samples include a workspace-local title drawing of unestablished origin and do not establish producer-wide support. The full bundled-mode build and tests, full BUILD_TESTS suite, GUI, LibreCAD_3, native Linux/Windows and upstream integration remain open. No broad support claim or external gate is promoted.",
+  "limits": "No drawing files are committed. The local samples include a workspace-local title drawing of unestablished origin and do not establish producer-wide support. The full BUILD_TESTS suite, GUI, LibreCAD_3, native Linux/Windows and upstream integration remain open. No broad support claim or external gate is promoted.",
   "local_integration_candidate": {
     "commit": "fe1fea1c2aad9534a687378808d3bdbb11b07f15",
     "parent": "d40f178b9708b54ad34b15f721d22abb2315aa2b",

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **722 completed implementation and qualification slices** and **32 remaining
+The plan records **723 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`722 / (722 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
+`723 / (723 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -193,8 +193,9 @@ Native GUI behavior, independent semantics and upstream integration remain open.
   cases (5,362 assertions, no skips); the old 2.0.1 package is refused. The
   cumulative candidate and follow-up replay against current master
   `d40f178b9708b54ad34b15f721d22abb2315aa2b`, whose intervening changes affect
-  only MSIX workflow/docs. Bundled mode configures and the restored source
-  compiles, but its full rebuild and platform matrix remain open
+  only MSIX workflow/docs. A separate clean bundled-codec build passes 29
+  focused LTYPE cases, five PR #3269 cases and the R12/R14 unit-refusal and
+  retry control; the full suite and platform matrix remain open
   ([receipt](docs/research/p8-librecad-abi3-clean-consumer-2026-11-16.json)).
   The installed mode still lacks the full BUILD_TESTS suite; GUI remains open.
   Current LibreCAD save routing always chooses ASCII DXF. Generated simple
