@@ -1,0 +1,21 @@
+{
+  "date": "2026-11-16",
+  "scope": "Investigate failing generated VIEWPORT visual-style shade-plot controls.",
+  "authorities": {
+    "dxf": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm",
+    "objectArx": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-__OVERLOADED_setShadePlot_AcDbViewport.html",
+    "objectArxEnum": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_ShadePlotType.html"
+  },
+  "finding": "Autodesk DXF documents group 170 values 0\u20133 and optional group 333. ObjectARX Viewport shade-plot APIs expose additional VisualStyle and RenderPreset states whose IDs must target the corresponding object classes. The documents do not by themselves prove how those API states serialize in DXF group 170.",
+  "currentImplementation": "DRW_Viewport::validateDxf accepts typed output modes through 3, while dx_iface viewport graph preflight expects 4/5 for non-null shade-plot targets. Thus the adapter has a path the typed writer cannot emit; the generated mode-4 direct-writer fixture fails. DXF parser code retains the integer field, but this investigation does not establish acceptance of complete mode-4/5 source documents or native semantics.",
+  "requiredNextSteps": [
+    "Acquire an eligible AutoCAD-authored DXF ASCII/Binary or trustworthy independent producer pair with known setShadePlot VisualStyle and RenderPreset states and exact version; keep unlicensed samples out of the repository.",
+    "Compare literal 170/333 values and graph target types against the source application API or a truly independent native consumer; distinguish absent/null IDs, versions and target classes.",
+    "Reconcile tolerant import, typed writer admission and adapter target-graph closure from observed wire mapping, with unsupported cases failing atomically; cover correct/missing/wrong/ambiguous target, revision gates, rollback, same-writer retry and fresh readback.",
+    "Retain the current guard and failing test disposition until wire mapping is proven; no support claim may be promoted from ObjectARX enum values alone."
+  ],
+  "limits": [
+    "A generated mode-4 DXF and ObjectARX enum are not producer-authored wire evidence.",
+    "Other VisualStyle fixture failures may have additional causes and have not been attributed solely to this conflict."
+  ]
+}

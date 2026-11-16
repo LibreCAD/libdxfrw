@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **708 completed implementation and qualification slices** and **32 remaining
+The plan records **709 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`708 / (708 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
+`709 / (709 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -112,6 +112,7 @@ tested flag values, and header warnings limit the result to this field
 ([peer receipt](docs/research/p6-canonical-ltype-libredwg-peer-2026-11-16.json)).
 The VPORT writer now preserves named configurations written before `*ACTIVE`, repeated configuration rows and their order, and synthesizes a default active row only when needed; unnamed-active legacy callers remain supported ([receipt](docs/research/p6-vport-configuration-name-preservation-2026-11-16.json)). Focused hosted [fast](https://github.com/dxli/libdxfrw/actions/runs/43865527188), [FreeCAD](https://github.com/dxli/libdxfrw/actions/runs/43865527092) and [native](https://github.com/dxli/libdxfrw/actions/runs/43865527078) checks run at `6592270a`; FreeCAD Linux/Windows and native Linux passed, with the other jobs still running. Native tiled viewport behavior remains open.
 The aggregate DXF fixture executable remains red: its latest run had 25 failed assertions. The XDATA direct-codec selector has since passed after a scope correction ([receipt](docs/research/p8-fixture-xdata-codec-scope-2026-11-16.json)); the aggregate has not yet been rerun. Continue investigating the VIEWPORT/VisualStyle, SORTENTSTABLE, proxy, raw-control and table-border failures without assuming they are harmless ([receipt](docs/research/p8-fixture-harness-source-identity-repairs-2026-11-16.json)).
+The generated VIEWPORT shade-plot fixture exposes an unresolved compatibility conflict: Autodesk DXF documents group-170 modes 0–3, while ObjectARX defines VisualStyle/RenderPreset modes and the adapter expects 4/5; the typed DXF writer rejects them. Obtain producer-bound ASCII/Binary wire evidence before reconciling mode/handle admission and target closure ([research and implementation steps](docs/research/p6-viewport-shadeplot-dxf-objectarx-conflict-2026-11-16.json)). Keep existing refusal gates in place.
 Continue the remaining public-writer and compound-route census.
 
 For FreeCAD integration, replay the complete ordered downstream chain with
@@ -168,7 +169,7 @@ check, not as a substitute for full GUI or rendering qualification. The
 the source, build, executable and loaded modules; its macOS smoke and negative
 checks pass ([receipt](docs/research/p8-freecad-candidate-gui-runner-2026-11-16.json)).
 An opt-in hosted GUI mode builds the required GUI resources and runs that
-smoke on a Linux virtual display or a Windows runner. The first Linux and Windows runs built successfully and passed headless checks but lacked `Draft_rc` in the GUI probe; the workflow now builds Draft resources and the runner verifies their source. Separate [Linux](https://github.com/dxli/libdxfrw/actions/runs/43862782162) and [Windows](https://github.com/dxli/libdxfrw/actions/runs/43863359266) retries are running at `65aefd2c`. Inspect both results and record each Qt backend
+smoke on a Linux virtual display or a Windows runner. The first Linux and Windows runs built successfully and passed headless checks but lacked `Draft_rc` in the GUI probe; the workflow now builds Draft resources and the runner verifies their source. The [Linux retry](https://github.com/dxli/libdxfrw/actions/runs/43862782162) at `65aefd2c` passed ten GUI smoke cases on virtual-display `xcb`, with the Draft resource verified inside the build. The [Windows retry](https://github.com/dxli/libdxfrw/actions/runs/43863359266) remains running; inspect its Qt backend and result
 ([receipt](docs/research/p8-freecad-candidate-hosted-gui-workflow-2026-11-16.json)).
 Native GUI behavior, independent semantics and upstream integration remain open.
 
