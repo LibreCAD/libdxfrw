@@ -20,7 +20,8 @@
       "/private/tmp/freecad-polyface-layer-20261116/color-consistency-before.log",
       "/private/tmp/freecad-polyface-layer-20261116/color-consistency-final.log",
       "/private/tmp/freecad-polyface-layer-20261116/color-consistent-peer-final.log",
-      "/private/tmp/freecad-polyface-layer-20261116/color-mismatch-peer-final.log"
+      "/private/tmp/freecad-polyface-layer-20261116/color-mismatch-peer-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/color-modes.log"
     ],
     "peerRefusal": "The original ezdxf parent-only color files are refused for both same/different colors with preservation enabled or disabled; no mesh geometry leaks.",
     "independentPeerDisagreement": {
@@ -29,7 +30,8 @@
       "source": "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/render/polyline.py#L192-L224",
       "observation": "For the generated parent-only ACI 1 and 2 controls, the face records omit group 62 and report a default of 256, but virtual_entities emits 3DFACE colors 1 and 2 by combining parent properties with explicit face properties. Matching parent/face profiles produce the same virtual colors.",
       "disposition": "Keep parent-only profiles refused until native producer/renderer evidence resolves effective color inheritance; ezdxf behavior is independent implementation evidence, not a native semantic decision."
-    }
+    },
+    "importModes": "The matching-color ezdxf control also produces two 6-square-millimetre shapes and no unsupported record in each of the four FreeCAD import modes, with layers disabled and colors enabled. This is headless geometry only."
   },
   "scratchHashes": {
     "color-consistent-same.dxf": "c97e81f743ce159fbfff2270d19919b43c869e001c5d5af00dd0534126f983ad",
