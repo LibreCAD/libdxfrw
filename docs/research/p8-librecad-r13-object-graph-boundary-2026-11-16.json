@@ -18,7 +18,7 @@
     "Both original source file and installed archive were restored after instrumentation; all 47 archive object members match the original installation. No test drawing was committed."
   ],
   "nextSteps": [
-    "Capture exact source-to-output handle/owner mapping and resolver behavior, including the first rejected style and colliding source identities.",
+    "Capture the runtime owner resolver input and result to prove the suspected double mapping. The physical source/output dictionary path and source-handle-76 XRECORD collision are now established.",
     "Inventory all source records reported left out and their dependencies; preserve them through an admitted cross-version path or refuse publication without altering the destination.",
     "Only then land a bounded owner correction with tests for old and current codec contracts, alias collisions, failure/retry, and independent full graph readback."
   ],
@@ -29,5 +29,28 @@
     "/private/tmp/librecad-p8-r13-binding-trace.log",
     "/private/tmp/librecad-p8-r13-owner-graph.log"
   ],
-  "limits": "Source and generated outputs are scratch only. Selective successful re-export and reader audit do not prove full graph preservation, native behavior, version parity, or support; all phase and external gates remain unchanged."
+  "limits": "Source and generated outputs are scratch only. Selective successful re-export and reader audit do not prove full graph preservation, native behavior, version parity, or support; all phase and external gates remain unchanged.",
+  "selectedPhysicalGraph": {
+    "source": {
+      "rootDictionary": "A",
+      "dictionaryKey": "ACAD_MLINESTYLE",
+      "styleDictionary": "10",
+      "styleKey": "STANDARD",
+      "style": "22",
+      "styleOwner": "10",
+      "sourceHandle76": {
+        "type": "XRECORD",
+        "owner": "75"
+      }
+    },
+    "scratchOutput": {
+      "rootDictionary": "C",
+      "dictionaryKey": "ACAD_MLINESTYLE",
+      "styleDictionary": "76",
+      "styleKey": "STANDARD",
+      "style": "22",
+      "styleOwner": "76"
+    },
+    "interpretation": "The source and output graphs share the selected keyed style relationship, but source handle 76 is a different XRECORD. Treating output 76 as a source reference is therefore ambiguous and unsafe. Direct runtime tracing of the second resolution and full graph closure remain outstanding."
+  }
 }

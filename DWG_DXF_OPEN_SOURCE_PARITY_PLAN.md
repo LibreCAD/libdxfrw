@@ -100,8 +100,13 @@ created locally from scratch for the specific control.
   emission. A scratch owner-resolution probe advances past the standard
   MLINESTYLE, but the resulting output reports 65 omitted source objects; do not
   land that shortcut until source-to-output ownership and all required records
-  close. Compare original and emitted object identities and dependencies, then
-  fix the mapping with refusal/retry and independent graph readback controls
+  close. The source root `A` → `ACAD_MLINESTYLE` dictionary `10` → `STANDARD`
+  style `22` became output root `C` → dictionary `76` → style `22`; source
+  handle `76` independently names a dropped XRECORD. Distinguish source from
+  output handle namespaces, resolve the owner exactly once for each codec,
+  and retain or refuse the 65 cross-version omissions with rollback. Verify
+  dictionary membership, owner roles, alias collisions and all required
+  records through independent graph readback before enabling output
   ([graph receipt](docs/research/p8-librecad-r13-object-graph-boundary-2026-11-16.json)).
   The bundled codec passes selected LTYPE/LINE re-export checks, not full graph
   qualification. Diagnostic propagation, destination preservation and retry
