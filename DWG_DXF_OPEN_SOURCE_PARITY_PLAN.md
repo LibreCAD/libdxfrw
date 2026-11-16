@@ -20,11 +20,11 @@ its changed navigation and CAM files do not remove the need to replay and test
 the candidate against the new base ([upstream comparison](https://github.com/FreeCAD/FreeCAD/compare/157bfcb7462a733b03a7d041aeaa79fee7aff7a3...84e73f0188fb32bb1fffb8d4d1edb4135543ba18)).
 Recheck heads before integration.
 
-The historical ledger records **736 completed slices**. This revision lists
+The historical ledger records **737 completed slices**. This revision lists
 **33 open core packages**, including P4-A, which was open in the phase summary
 but missing from the prior 32-row count. P4-GROUP-01 is a subpacket of P4-A;
 it is not an additional package. Six P9 external dispositions are tracked
-separately. `736 / (736 + 33) = 95.7%` is only a count-based activity proxy
+separately. `737 / (737 + 33) = 95.7%` is only a count-based activity proxy
 that treats each remaining package as one minimum slice; the actual number and
 cost of remaining slices are unknown. It is **not** an estimate of effort or
 release readiness. All five core phase gates P4–P8 remain OPEN, and P9 remains
@@ -76,12 +76,12 @@ ready action, and continue without waiting for an unrelated platform or oracle.
 A package closes only when every stated exit condition passes; a completed
 subslice does not close its package.
 
-1. **Immediately ready local work:** select the next uncovered public writer
-   or CLI disposition from P6-G/P6-F and a concrete source or regression;
-   finish its parse/emit/reference/retry path. In parallel by dependency order,
-   rebase and integrate the pending consumer chains under P8-D. Continue the
-   caller-authored plot-style graph from the typed profile to supported raw and
-   real consumer paths; prove their exact source and output before promotion.
+1. **Immediately ready local work:** wire the bounded P6-G caller plot-style
+   graph through one existing source-aware `dx_iface` output route, then select
+   the next uncovered P6-F malformed OBJECTS disposition. Compare exact source
+   and emitted identities; keep unsupported graph shapes refused. In parallel
+   by dependency order, rebase and integrate the pending consumer chains under
+   P8-D; do not wait for platform qualification to advance local work.
 2. **Graph and version blockers:** use P4-A/P6-D/P6-E to make source records,
    ownership, HEADER bounds, and strict failure dispositions reliable. P4-B/C
    and P6-A/B require their specific source or independent semantic evidence;
@@ -100,17 +100,22 @@ subslice does not close its package.
 
 ## First execution briefs
 
-- **P6-G, caller plot-style source graph:** Start from
-  `src/libdxfrw.cpp`, `src/libdxfrw.h`,
-  `tests/dxf_default_plotstyle_graph_tests.cpp`, and
-  `tests/plotstyle_source_controls.h`. Capture an actual eligible raw
-  DICTIONARYWDFLT/placeholder pair and its selected root; bind source 340/350,
-  330 ownership and LAYER 390 before output. Extend the existing typed
-  declaration only where raw record identity, app data, remaps and dependencies
-  can be proven. Test missing/wrong-kind/duplicate targets, stale aliases,
-  rollback and retry, both encodings, and independent readback. First run
-  `libdxfrw_dxf_default_plotstyle_graph` and the existing source-profile
-  selector; add the affected adapter cohort once the route is connected.
+- **P6-G, caller plot-style source graph:** The writer now admits the exact
+  one-Normal graph through typed callbacks and a bounded raw callback profile;
+  reactor targets are remapped and closed before publication. Its six-version,
+  two-encoding, identity/remap controls, nine raw refusal/retry modes, ASan run
+  and 48-file ezdxf readback are in the
+  [raw caller graph receipt](docs/research/p8-caller-raw-plotstyle-default-graph-2026-11-16.json).
+  This is locally generated writer evidence, not source/consumer equivalence.
+  Next, follow one eligible existing AC1021 source through
+  `dx_iface::prepareDxfLayerPlot` and its actual `writeObjects` callback; bind
+  the selected root, typed dictionary and raw placeholder to declared output
+  handles without mutating `dx_data`. Reuse
+  `tests/plotstyle_source_controls.h` and its runtime-created source, compare
+  exact source/output handles, owners, reactors and LAYER 390 in both encodings,
+  then test destination preservation and same-adapter retry. Keep non-default
+  children, EED/XDATA, extension dictionaries, unknown app data and
+  producer/native plotting unqualified unless their complete edges close.
 - **P8-D, consumer replay:** Verify the ordered input hashes in the
   [patch index](docs/research/p8-unmerged-consumer-patch-index-2026-11-16.json),
   replay on disposable current checkouts, and compare all intended source files.
@@ -240,10 +245,11 @@ producer-backed layout explains them. The ODA AC1024 mesh witness has a
 CRC-valid envelope followed by 739 unclaimed bytes. Its varying suffix has not been shown disposable; retain
 strict refusal and resolve its origin before accepting it
 ([repeatability evidence](docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json)).
-For P6-G, extend the opt-in typed caller plot-style graph to raw carriers and
-actual consumers only after matching the root/default/Normal edges, class,
-owner and physical records; keep aliases and unproved source state refused
-([typed-profile receipt](docs/research/p8-caller-typed-plotstyle-default-graph-2026-11-16.json)).
+For P6-G, the one-Normal typed/raw writer projection is complete; the remaining
+consumer-bound step is defined in the first execution brief. Its limitations
+and scratch witnesses are in the
+[typed receipt](docs/research/p8-caller-typed-plotstyle-default-graph-2026-11-16.json)
+and [raw receipt](docs/research/p8-caller-raw-plotstyle-default-graph-2026-11-16.json).
 
 ### P7 — ACIS/ACDS and 3D meaning (8 packages)
 
@@ -372,4 +378,5 @@ skipped.
 6. Keep this plan as an execution queue, not a chronological implementation
    log. Update the 33-package count when a package closes or an omitted package
    is discovered; keep the historical completed-slice count and the count proxy
-   clearly separate from evidence-based phase completion.
+   clearly separate from evidence-based phase completion. The count proxy is
+   95.7% (`737 / (737 + 33)`), not effort or support progress.

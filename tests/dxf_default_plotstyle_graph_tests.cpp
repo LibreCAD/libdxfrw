@@ -56,6 +56,10 @@ public:
         explicitLayer.handlePlotS = "A1";
         placeholder.handle = 0xA1u;
         placeholder.parentHandle = 0xA0u;
+        placeholder.reactorHandles = {0xA0u};
+        placeholder.appData.push_back({{102, std::string("{ACAD_REACTORS")},
+                                       {330, std::string("A0")},
+                                       {102, std::string("}")}});
     }
     dxfRW& output;
     DRW_DictionaryWithDefault dictionary;
@@ -80,6 +84,90 @@ public:
         if (mode == Mode::WrongOwner) child.parentHandle = 0xC;
         if (mode != Mode::MissingDictionary) (void)output.writeDictionaryWithDefault(&dict);
         if (mode != Mode::MissingPlaceholder) (void)output.writeAcDbPlaceholder(&child);
+    }
+};
+
+class RawCallerGraphExport final : public LC3CompatCheck {
+public:
+    enum class Mode { Valid, WrongDictionaryOwner, WrongNormal,
+                      WrongDefault, ExtraEntry, WrongPlaceholderOwner,
+                      WrongReactor, UnknownApplication, DuplicateSelf,
+                      DuplicateReactor };
+    explicit RawCallerGraphExport(dxfRW& output) : output(output) {
+        layer.name = "Raw caller default";
+        explicitLayer.name = "Raw caller explicit";
+        explicitLayer.handlePlotS = "A1";
+        dictionary.name = "DICTIONARYWDFLT";
+        dictionary.handle = 0xA0u;
+        dictionary.parentHandle = 0xCu;
+        dictionary.groups = {{5, std::string("A0")},
+                             {330, std::string("C")},
+                             {100, std::string("AcDbDictionary")},
+                             {281, 1},
+                             {3, std::string("Normal")},
+                             {350, std::string("A1")},
+                             {100, std::string("AcDbDictionaryWithDefault")},
+                             {340, std::string("A1")}};
+        placeholder.name = "ACDBPLACEHOLDER";
+        placeholder.handle = 0xA1u;
+        placeholder.parentHandle = 0xA0u;
+        placeholder.groups = {{5, std::string("A1")},
+                              {102, std::string("{ACAD_REACTORS")},
+                              {330, std::string("A0")},
+                              {102, std::string("}")},
+                              {330, std::string("A0")}};
+    }
+    dxfRW& output;
+    DRW_RawDxfObject dictionary, placeholder;
+    DRW_Layer layer, explicitLayer;
+    Mode mode{Mode::Valid};
+    bool dictionaryWrite{false}, placeholderWrite{false};
+    void writeLayers() override {
+        (void)output.writeLayer(&layer);
+        (void)output.writeLayer(&explicitLayer);
+    }
+    void writeObjects() override {
+        DRW_RawDxfObject dict(dictionary), child(placeholder);
+        switch (mode) {
+        case Mode::WrongDictionaryOwner:
+            *dict.groups[1].content.s = "D";
+            dict.parentHandle = 0xDu;
+            break;
+        case Mode::WrongNormal:
+            *dict.groups[4].content.s = "Other";
+            break;
+        case Mode::WrongDefault:
+            *dict.groups[7].content.s = "A2";
+            break;
+        case Mode::ExtraEntry:
+            dict.groups.insert(dict.groups.begin() + 6,
+                               {3, std::string("Other")});
+            dict.groups.insert(dict.groups.begin() + 7,
+                               {350, std::string("A1")});
+            break;
+        case Mode::WrongPlaceholderOwner:
+            *child.groups.back().content.s = "C";
+            child.parentHandle = 0xCu;
+            break;
+        case Mode::WrongReactor:
+            *child.groups[2].content.s = "A2";
+            break;
+        case Mode::UnknownApplication:
+            *child.groups[1].content.s = "{UNKNOWN";
+            break;
+        case Mode::DuplicateSelf:
+            child.groups.insert(child.groups.begin() + 1,
+                                {5, std::string("A1")});
+            break;
+        case Mode::DuplicateReactor:
+            child.groups.insert(child.groups.begin() + 3,
+                                {330, std::string("A0")});
+            break;
+        case Mode::Valid:
+            break;
+        }
+        dictionaryWrite = output.writeRawDxfObject(&dict);
+        placeholderWrite = output.writeRawDxfObject(&child);
     }
 };
 
@@ -146,6 +234,45 @@ bool checkGraph(const std::filesystem::path& path, std::uint32_t forbiddenA,
             return false;
     }
     return !capture.layers.empty();
+}
+
+bool checkRawCallerGraph(const std::filesystem::path& path,
+                         std::uint32_t expectedDictionary,
+                         std::uint32_t expectedPlaceholder) {
+    if (!checkGraph(path, 0u, 0u)) return false;
+    dxfRW input(path.string().c_str());
+    Capture capture;
+    if (!input.read(&capture, false)) return false;
+    std::size_t placeholders = 0u;
+    bool reactorRemapped = false;
+    for (const auto& object : capture.objects) {
+        if (object.name != "ACDBPLACEHOLDER"
+            || object.handle != expectedPlaceholder)
+            continue;
+        ++placeholders;
+        bool inReactors = false;
+        unsigned reactorCount = 0u;
+        for (const auto& group : object.groups) {
+            if (group.code() == 102 && group.type() == DRW_Variant::STRING
+                && group.c_str() != nullptr) {
+                const std::string marker(group.c_str());
+                if (marker == "{ACAD_REACTORS") inReactors = true;
+                else if (marker == "}") inReactors = false;
+                continue;
+            }
+            if (inReactors && group.code() == 330
+                && group.type() == DRW_Variant::STRING
+                && group.c_str() != nullptr) {
+                std::uint32_t reactor = 0u;
+                try { reactor = static_cast<std::uint32_t>(std::stoul(group.c_str(), nullptr, 16)); }
+                catch (...) { return false; }
+                reactorRemapped = reactor == expectedDictionary;
+                ++reactorCount;
+            }
+        }
+        if (reactorCount != 1u) return false;
+    }
+    return placeholders == 1u && reactorRemapped;
 }
 }
 
@@ -252,7 +379,9 @@ int main(int argc, char** argv) {
                         || output.setDxfDefaultPlotStyleSourceHandles(0xA0u, 0u)
                         || output.setDxfDefaultPlotStyleSourceHandles(0xA0u, 0xA0u)
                         || !output.write(&adapter, version, binary)
-                        || !checkGraph(path, 0u, 0u)) {
+                        || !checkRawCallerGraph(path,
+                                remapped ? 0xB0u : 0xA0u,
+                                remapped ? 0xB1u : 0xA1u)) {
                         std::cerr << "caller plot-style graph failed: version=" << version
                                   << " binary=" << binary << " remapped=" << remapped << '\n';
                         return 1;
@@ -273,7 +402,10 @@ int main(int argc, char** argv) {
                             return 1;
                         }
                         adapter.mode = CallerGraphExport::Mode::Valid;
-                        if (!output.write(&adapter, version, binary) || !checkGraph(path, 0u, 0u)) return 1;
+                        if (!output.write(&adapter, version, binary)
+                            || !checkRawCallerGraph(path,
+                                    remapped ? 0xB0u : 0xA0u,
+                                    remapped ? 0xB1u : 0xA1u)) return 1;
                     }
                     if (argc == 3) {
                         const auto evidence = std::filesystem::path(argv[2])
@@ -288,6 +420,66 @@ int main(int argc, char** argv) {
                     LC3CompatCheck ordinary;
                     if (!output.write(&ordinary, version, binary)
                         || !checkGraph(path, 0u, 0u)) return 1;
+                }
+            }
+        }
+        // Raw callbacks preserve the same narrowly admitted graph only when
+        // every structural field and reference is proven. The ACAD_REACTORS
+        // group-330 is remapped separately from the required owner group-330.
+        for (const auto version : {DRW::AC1015, DRW::AC1018, DRW::AC1021,
+                                   DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+            for (bool binary : {false, true}) {
+                for (bool remapped : {false, true}) {
+                    dxfRW output(path.string().c_str());
+                    RawCallerGraphExport adapter(output);
+                    DRW_Class dictionaryClass, placeholderClass;
+                    if (!dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", dictionaryClass)
+                        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass)) return 1;
+                    dictionaryClass.instanceCount = placeholderClass.instanceCount = 1;
+                    output.setDxfClasses(std::vector<DRW_Class>{dictionaryClass, placeholderClass});
+                    output.setRootDictEntries({{"ACAD_PLOTSTYLENAME", remapped ? "B0" : "A0"}});
+                    if (remapped) output.setHandleRemap({{0xA0u, 0xB0u}, {0xA1u, 0xB1u}});
+                    if (!output.setDxfDefaultPlotStyleSourceHandles(0xA0u, 0xA1u)
+                        || !output.write(&adapter, version, binary)
+                        || !checkRawCallerGraph(path, remapped ? 0xB0u : 0xA0u,
+                                                remapped ? 0xB1u : 0xA1u)) {
+                        std::cerr << "raw caller plot-style graph failed: version=" << version
+                                  << " binary=" << binary << " remapped=" << remapped
+                                  << " dictionary=" << adapter.dictionaryWrite
+                                  << " placeholder=" << adapter.placeholderWrite << '\n';
+                        return 1;
+                    }
+                    for (const auto mode : {RawCallerGraphExport::Mode::WrongDictionaryOwner,
+                                             RawCallerGraphExport::Mode::WrongNormal,
+                                             RawCallerGraphExport::Mode::WrongDefault,
+                                             RawCallerGraphExport::Mode::ExtraEntry,
+                                             RawCallerGraphExport::Mode::WrongPlaceholderOwner,
+                                             RawCallerGraphExport::Mode::WrongReactor,
+                                             RawCallerGraphExport::Mode::UnknownApplication,
+                                             RawCallerGraphExport::Mode::DuplicateSelf,
+                                             RawCallerGraphExport::Mode::DuplicateReactor}) {
+                        adapter.mode = mode;
+                        { std::ofstream sentinel(path, std::ios::binary); sentinel << "previous file"; }
+                        if (output.write(&adapter, version, binary)
+                            || bytes(path) != "previous file") {
+                            std::cerr << "raw caller graph accepted invalid mode "
+                                      << static_cast<int>(mode) << '\n';
+                            return 1;
+                        }
+                        adapter.mode = RawCallerGraphExport::Mode::Valid;
+                        if (!output.write(&adapter, version, binary)
+                            || !checkRawCallerGraph(path,
+                                    remapped ? 0xB0u : 0xA0u,
+                                    remapped ? 0xB1u : 0xA1u)) return 1;
+                    }
+                    if (argc == 3) {
+                        const auto evidence = std::filesystem::path(argv[2])
+                            / ("raw-caller-" + std::to_string(static_cast<int>(version))
+                               + (binary ? "-binary-" : "-ascii-")
+                               + (remapped ? "remapped.dxf" : "identity.dxf"));
+                        std::filesystem::copy_file(path, evidence,
+                            std::filesystem::copy_options::overwrite_existing);
+                    }
                 }
             }
         }

@@ -5672,6 +5672,7 @@ void dxfRW::discardDxfWriteResults() noexcept {
     m_dxfCallerPlotPlaceholderTarget = 0u;
     m_dxfCallerPlotDictionaryWritten = false;
     m_dxfCallerPlotPlaceholderWritten = false;
+    m_dxfCallerPlotReactorTargets.clear();
     for (DRW_ImageDef *id : imageDef)
         delete id;
     imageDef.clear();
@@ -6291,6 +6292,11 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
             || !dxfWriteRecordHasOwner(m_dxfCallerPlotPlaceholderTarget,
                                        m_dxfCallerPlotDictionaryTarget)))
         return failWrite();
+    for (const std::uint32_t reactor : m_dxfCallerPlotReactorTargets) {
+        if (reactor == 0u || reactor == DRW::NoHandle
+            || writer->recordHandleCount(reactor) != 1u)
+            return failWrite();
+    }
     if (needsHeaderMaterialInventory
         && !dxfWriteRecordHasIdentity(headerMaterial, "MATERIAL", "OBJECTS"))
         return failWrite();
@@ -30983,6 +30989,160 @@ bool hasRawDxfSelfHandle(const DRW_RawDxfObject& object) {
     return false;
 }
 
+struct RawCallerPlotStyleRecord {
+    std::uint32_t self{0};
+    std::uint32_t owner{0};
+    std::uint32_t normal{0};
+    std::uint32_t defaultEntry{0};
+    std::vector<std::uint32_t> reactors;
+};
+
+bool rawCallerPlotHandle(const DRW_Variant& group, std::uint32_t& handle) {
+    if (group.type() != DRW_Variant::STRING || group.c_str() == nullptr)
+        return false;
+    std::uint64_t parsed = 0;
+    if (!parseRawDxfHandleLexeme(group.c_str(), parsed) || parsed == 0
+        || parsed > std::numeric_limits<std::uint32_t>::max())
+        return false;
+    handle = static_cast<std::uint32_t>(parsed);
+    return true;
+}
+
+// This is a deliberately small raw projection of the caller-authored
+// ACDBDICTIONARYWDFLT -> Normal -> ACDBPLACEHOLDER graph. Raw records outside
+// this exact profile remain transport-only and cannot satisfy the opt-in
+// writer declaration. In particular, do not guess at unknown subclasses,
+// dictionary children, XDATA, or extension-dictionary roles.
+bool inspectRawCallerPlotStyleRecord(
+        const DRW_RawDxfObject& object, bool dictionary,
+        RawCallerPlotStyleRecord& result) {
+    result = {};
+    if ((dictionary
+            ? !dxfKeywordEquals(object.name, "DICTIONARYWDFLT")
+                && !dxfKeywordEquals(object.name, "ACDBDICTIONARYWDFLT")
+            : !dxfKeywordEquals(object.name, "ACDBPLACEHOLDER"))
+        || object.groups.empty())
+        return false;
+
+    bool inReactors = false;
+    bool reactorsSeen = false;
+    bool sawSelf = false;
+    bool sawOwner = false;
+    bool sawDictionarySubclass = false;
+    bool sawDefaultSubclass = false;
+    bool sawCloning = false;
+    bool sawNormalName = false;
+    bool needNormalHandle = false;
+    bool sawNormalHandle = false;
+    bool sawDefaultHandle = false;
+    for (const DRW_Variant& group : object.groups) {
+        if (group.code() == 102) {
+            if (group.type() != DRW_Variant::STRING || group.c_str() == nullptr)
+                return false;
+            const std::string_view marker(group.c_str());
+            if (!inReactors && !reactorsSeen && sawSelf && !sawOwner
+                && !sawDictionarySubclass && marker == "{ACAD_REACTORS") {
+                inReactors = true;
+                reactorsSeen = true;
+                continue;
+            }
+            if (inReactors && marker == "}") {
+                inReactors = false;
+                continue;
+            }
+            return false;
+        }
+        if (inReactors) {
+            if (group.code() != 330)
+                return false;
+            std::uint32_t reactor = 0;
+            if (!rawCallerPlotHandle(group, reactor)
+                || std::find(result.reactors.begin(), result.reactors.end(), reactor)
+                    != result.reactors.end())
+                return false;
+            result.reactors.push_back(reactor);
+            continue;
+        }
+        if (needNormalHandle) {
+            if (group.code() != 350 || !rawCallerPlotHandle(group, result.normal))
+                return false;
+            needNormalHandle = false;
+            sawNormalHandle = true;
+            continue;
+        }
+        if (group.code() == 5) {
+            if (sawSelf || sawOwner || sawDictionarySubclass
+                || !rawCallerPlotHandle(group, result.self))
+                return false;
+            sawSelf = true;
+            continue;
+        }
+        if (group.code() == 330) {
+            if (!sawSelf || sawOwner || sawDictionarySubclass
+                || !rawCallerPlotHandle(group, result.owner))
+                return false;
+            sawOwner = true;
+            continue;
+        }
+        if (!dictionary) {
+            // ACDBPLACEHOLDER's admitted common data is exactly its identity,
+            // optional reactor list, and required owner.
+            return false;
+        }
+        if (group.code() == 100) {
+            if (group.type() != DRW_Variant::STRING || group.c_str() == nullptr)
+                return false;
+            if (!sawDictionarySubclass && sawSelf && sawOwner
+                && dxfKeywordEquals(group.c_str(), "AcDbDictionary")) {
+                sawDictionarySubclass = true;
+                continue;
+            }
+            if (sawDictionarySubclass && !sawDefaultSubclass
+                && sawCloning && sawNormalName && sawNormalHandle
+                && dxfKeywordEquals(group.c_str(), "AcDbDictionaryWithDefault")) {
+                sawDefaultSubclass = true;
+                continue;
+            }
+            return false;
+        }
+        if (sawDefaultSubclass) {
+            if (group.code() != 340 || sawDefaultHandle
+                || !rawCallerPlotHandle(group, result.defaultEntry))
+                return false;
+            sawDefaultHandle = true;
+            continue;
+        }
+        if (!sawDictionarySubclass)
+            return false;
+        if (group.code() == 281) {
+            if (sawCloning || group.type() != DRW_Variant::INTEGER
+                || group.i_val() < 0 || group.i_val() > 5)
+                return false;
+            sawCloning = true;
+        } else if (group.code() == 3) {
+            if (!sawCloning || sawNormalName || group.type() != DRW_Variant::STRING
+                || group.c_str() == nullptr
+                || !dxfKeywordEquals(group.c_str(), "Normal"))
+                return false;
+            sawNormalName = true;
+            needNormalHandle = true;
+        } else if (group.code() == 350) {
+            // All other named entries are deliberately outside this bounded
+            // raw profile; exactly one Normal edge is admitted.
+            return false;
+        } else {
+            return false;
+        }
+    }
+    const bool valid = !inReactors && sawSelf && sawOwner
+        && (dictionary
+            ? sawDictionarySubclass && sawDefaultSubclass && sawCloning
+                && sawNormalName && sawNormalHandle && sawDefaultHandle
+                && result.normal == result.defaultEntry
+            : true);
+    return valid;
+}
+
 bool parseDxfIntegerString(const std::string& text, std::int64_t minimum,
                            std::int64_t maximum) {
     const char* begin = text.data();
@@ -32928,6 +33088,70 @@ bool dxfRW::writeRawDxfObjectInternal(
         m_writeError = true;
         return false;
     }
+    const std::uint32_t emittedRawHandle = remapObjectHandle(obj->handle);
+    const bool rawDictionaryName = dxfKeywordEquals(obj->name, "DICTIONARYWDFLT")
+        || dxfKeywordEquals(obj->name, "ACDBDICTIONARYWDFLT");
+    const bool rawPlaceholderName = dxfKeywordEquals(obj->name, "ACDBPLACEHOLDER");
+    const bool selectedCallerPlotDictionary =
+        m_dxfCallerPlotDictionaryTarget != 0u
+        && (emittedRawHandle == m_dxfCallerPlotDictionaryTarget
+            || obj->handle == m_dxfCallerPlotDictionarySource);
+    const bool selectedCallerPlotPlaceholder =
+        m_dxfCallerPlotPlaceholderTarget != 0u
+        && (emittedRawHandle == m_dxfCallerPlotPlaceholderTarget
+            || obj->handle == m_dxfCallerPlotPlaceholderSource);
+    RawCallerPlotStyleRecord callerPlotRecord;
+    std::vector<std::uint32_t> callerPlotReactorTargets;
+    if (selectedCallerPlotDictionary || selectedCallerPlotPlaceholder) {
+        const bool dictionary = selectedCallerPlotDictionary;
+        const std::uint32_t expectedSource = dictionary
+            ? m_dxfCallerPlotDictionarySource
+            : m_dxfCallerPlotPlaceholderSource;
+        const std::uint32_t expectedTarget = dictionary
+            ? m_dxfCallerPlotDictionaryTarget
+            : m_dxfCallerPlotPlaceholderTarget;
+        if (selectedCallerPlotDictionary && selectedCallerPlotPlaceholder)
+            return failDxfWrite();
+        if (version <= DRW::AC1014 || obj->handle != expectedSource
+            || emittedRawHandle != expectedTarget
+            || !(dictionary ? rawDictionaryName : rawPlaceholderName)
+            || (dictionary ? m_dxfCallerPlotDictionaryWritten
+                           : m_dxfCallerPlotPlaceholderWritten)) {
+            return failDxfWrite();
+        }
+        if (!inspectRawCallerPlotStyleRecord(*obj, dictionary, callerPlotRecord)) {
+            return failDxfWrite();
+        }
+        if (callerPlotRecord.self != obj->handle
+            || callerPlotRecord.owner != obj->parentHandle)
+            return failDxfWrite();
+        if (dictionary) {
+            if (remapObjectHandle(callerPlotRecord.owner) != 0xCu
+                || callerPlotRecord.normal
+                    != m_dxfCallerPlotPlaceholderSource
+                || callerPlotRecord.defaultEntry
+                    != m_dxfCallerPlotPlaceholderSource
+                || remapObjectHandle(callerPlotRecord.normal)
+                    != m_dxfCallerPlotPlaceholderTarget
+                || remapObjectHandle(callerPlotRecord.defaultEntry)
+                    != m_dxfCallerPlotPlaceholderTarget)
+                return failDxfWrite();
+        } else if (remapObjectHandle(callerPlotRecord.owner)
+                       != m_dxfCallerPlotDictionaryTarget) {
+            return failDxfWrite();
+        }
+        try {
+            callerPlotReactorTargets.reserve(callerPlotRecord.reactors.size());
+            for (const std::uint32_t source : callerPlotRecord.reactors) {
+                const std::uint32_t target = remapObjectHandle(source);
+                if (target == 0u || target == DRW::NoHandle)
+                    return failDxfWrite();
+                callerPlotReactorTargets.push_back(target);
+            }
+        } catch (...) {
+            return failDxfWrite();
+        }
+    }
     std::size_t failedGroupIndex = obj->groups.size();
     if (!validateRawDxfGroups(obj->groups, obj->rawValues,
                               obj->hasRawValues, binFile,
@@ -33004,7 +33228,7 @@ bool dxfRW::writeRawDxfObjectInternal(
             return false;
         }
     }
-    auto writeString = [this](int code, const std::string &value) {
+    auto writeString = [this](int code, std::string_view value) {
         if (!writer->writeString(code, value)) {
             m_writeError = true;
             return false;
@@ -33012,9 +33236,12 @@ bool dxfRW::writeRawDxfObjectInternal(
         return true;
     };
     DxfWriterRecordScope record(*writer);
-    if (!writer->preflightOpaqueText(obj->name,
+    const std::string_view outputRecordName = selectedCallerPlotDictionary
+        ? std::string_view("ACDBDICTIONARYWDFLT")
+        : std::string_view(obj->name.data(), obj->name.size());
+    if (!writer->preflightOpaqueText(outputRecordName,
             obj->m_version >= DRW::AC1021 && version >= DRW::AC1021)
-        || !writeString(0, obj->name))
+        || !writeString(0, outputRecordName))
         return false;
     const std::uint32_t emittedOwner = ownerOverride == DRW::NoHandle
         ? static_cast<std::uint32_t>(DRW::NoHandle)
@@ -33053,6 +33280,21 @@ bool dxfRW::writeRawDxfObjectInternal(
     if (!preflightDxfWrite() || !record.commit()) {
         m_writeError = true;
         return false;
+    }
+    if (selectedCallerPlotDictionary || selectedCallerPlotPlaceholder) {
+        if (!bindDxfWriteSourceObjectHandle(obj->handle, emittedRawHandle))
+            return failDxfWrite();
+        try {
+            m_dxfCallerPlotReactorTargets.insert(
+                m_dxfCallerPlotReactorTargets.end(),
+                callerPlotReactorTargets.begin(), callerPlotReactorTargets.end());
+        } catch (...) {
+            return failDxfWrite();
+        }
+        if (selectedCallerPlotDictionary)
+            m_dxfCallerPlotDictionaryWritten = true;
+        else
+            m_dxfCallerPlotPlaceholderWritten = true;
     }
     return true;
 }
@@ -34175,6 +34417,7 @@ bool dxfRW::writeDictionaryWithDefault(DRW_DictionaryWithDefault *ent) {
 
     const bool selectedCallerPlot = m_dxfCallerPlotDictionaryTarget != 0u
         && handle == m_dxfCallerPlotDictionaryTarget;
+    std::vector<std::uint32_t> callerPlotReactors;
     if (selectedCallerPlot) {
         if (ent->handle != m_dxfCallerPlotDictionarySource
             || m_dxfCallerPlotDictionaryWritten
@@ -34189,6 +34432,17 @@ bool dxfRW::writeDictionaryWithDefault(DRW_DictionaryWithDefault *ent) {
             foundNormal = true;
         }
         if (!foundNormal) return failDxfWrite();
+        try {
+            callerPlotReactors.reserve(ent->reactorHandles.size());
+            for (const std::uint32_t source : ent->reactorHandles) {
+                const std::uint32_t target = remapObjectHandle(source);
+                if (target == 0u || target == DRW::NoHandle)
+                    return failDxfWrite();
+                callerPlotReactors.push_back(target);
+            }
+        } catch (...) {
+            return failDxfWrite();
+        }
     }
     RecordStateScope state(*this, ent);
     DxfWriterRecordScope record(*writer);
@@ -34223,7 +34477,16 @@ bool dxfRW::writeDictionaryWithDefault(DRW_DictionaryWithDefault *ent) {
         return false;
     }
     state.commit();
-    if (selectedCallerPlot) m_dxfCallerPlotDictionaryWritten = true;
+    if (selectedCallerPlot) {
+        try {
+            m_dxfCallerPlotReactorTargets.insert(
+                m_dxfCallerPlotReactorTargets.end(),
+                callerPlotReactors.begin(), callerPlotReactors.end());
+        } catch (...) {
+            return failDxfWrite();
+        }
+        m_dxfCallerPlotDictionaryWritten = true;
+    }
     return true;
 }
 
@@ -34247,10 +34510,24 @@ bool dxfRW::writeAcDbPlaceholder(DRW_AcDbPlaceholder *ent) {
 
     const bool selectedCallerPlot = m_dxfCallerPlotPlaceholderTarget != 0u
         && handle == m_dxfCallerPlotPlaceholderTarget;
+    std::vector<std::uint32_t> callerPlotReactors;
     if (selectedCallerPlot
         && (ent->handle != m_dxfCallerPlotPlaceholderSource
             || m_dxfCallerPlotPlaceholderWritten))
         return failDxfWrite();
+    if (selectedCallerPlot) {
+        try {
+            callerPlotReactors.reserve(ent->reactorHandles.size());
+            for (const std::uint32_t source : ent->reactorHandles) {
+                const std::uint32_t target = remapObjectHandle(source);
+                if (target == 0u || target == DRW::NoHandle)
+                    return failDxfWrite();
+                callerPlotReactors.push_back(target);
+            }
+        } catch (...) {
+            return failDxfWrite();
+        }
+    }
     RecordStateScope state(*this, ent);
     DxfWriterRecordScope record(*writer);
     if (!writer->writeString(0, "ACDBPLACEHOLDER")
@@ -34265,7 +34542,16 @@ bool dxfRW::writeAcDbPlaceholder(DRW_AcDbPlaceholder *ent) {
         return false;
     }
     state.commit();
-    if (selectedCallerPlot) m_dxfCallerPlotPlaceholderWritten = true;
+    if (selectedCallerPlot) {
+        try {
+            m_dxfCallerPlotReactorTargets.insert(
+                m_dxfCallerPlotReactorTargets.end(),
+                callerPlotReactors.begin(), callerPlotReactors.end());
+        } catch (...) {
+            return failDxfWrite();
+        }
+        m_dxfCallerPlotPlaceholderWritten = true;
+    }
     return true;
 }
 
