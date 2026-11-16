@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **646 completed implementation and qualification slices** and **32 remaining
+The plan records **647 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`646 / (646 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
+`647 / (647 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -156,7 +156,9 @@ created locally from scratch for the specific control.
   [the legacy-layer loss patch](docs/patches/librecad3-p8-legacy-layer-lineweight-2026-11-16.patch).
   Apply only those two PR #456 source/test paths from its pinned diff; its full
   diff does not apply cleanly to current master. The current installed-codec
-  focus passes R12/R14 ASCII/Binary readback and explicit loss reporting.
+  focus passes R12/R14 ASCII/Binary readback and explicit loss reporting with
+  both the current and separately installed pinned codec
+  ([pinned receipt](docs/research/p8-librecad3-legacy-layer-pinned-codec-2026-11-16.json)).
   A bool-only save still reports failure after a lossy write; resolve the UI
   and provenance treatment of default layer widths before claiming full save
   compatibility ([receipt](docs/research/p8-librecad3-legacy-layer-lineweight-2026-11-16.json)).
