@@ -215,6 +215,101 @@ const char* versionCode(DRW::Version version) {
     }
 }
 
+bool viewportNamesAndRetry(const std::filesystem::path& directory) {
+    class NamedExport final : public LC3CompatCheck {
+    public:
+        explicit NamedExport(dxfRW& output) : codec(output) {}
+        void writeHeader(DRW_Header&) override {}
+        void writeVports() override {
+            accepted = true;
+            for (auto& port : ports)
+                accepted = codec.writeVport(&port) && accepted;
+        }
+        bool finalizeDxfWrite() override { return accepted; }
+        dxfRW& codec;
+        std::vector<DRW_Vport> ports;
+        bool accepted = false;
+    };
+    const auto path = directory / "viewport-names.dxf";
+    const std::string sentinel = "prior viewport output\n";
+    for (const auto version : {DRW::AC1009, DRW::AC1014, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            for (int mode = 0; mode != 3; ++mode) {
+                dxfRW codec(path.string().c_str());
+                NamedExport output(codec);
+                const auto add = [&output](const std::string& name, double center) {
+                    DRW_Vport port;
+                    port.name = name;
+                    port.center.x = center;
+                    output.ports.push_back(port);
+                };
+                if (mode == 0) {
+                    add("NAMED_CONFIG", 12.0);
+                    add("*Active", 34.0);
+                    add("*ACTIVE", 56.0);
+                    add("NAMED_CONFIG", 78.0);
+                } else if (mode == 1) {
+                    add("NAMED_CONFIG", 12.0);
+                } else {
+                    add("", 90.0);
+                }
+                if (mode == 0) {
+                    { std::ofstream file(path, std::ios::binary | std::ios::trunc); file << sentinel; }
+                    output.ports[1].shadePlotMode = 99;
+                    std::string bytes;
+                    if (codec.write(&output, version, binary)
+                        || !readBytes(path, bytes) || bytes != sentinel
+                        || output.ports[0].name != "NAMED_CONFIG"
+                        || output.ports[1].name != "*Active"
+                        || output.ports[1].shadePlotMode != 99)
+                        return false;
+                    output.ports[1].shadePlotMode = 0;
+                }
+                if (!codec.write(&output, version, binary) || !output.accepted)
+                    return false;
+                if (mode == 0) {
+                    const auto cleanPath = directory / "viewport-names-clean.dxf";
+                    dxfRW cleanCodec(cleanPath.string().c_str());
+                    NamedExport clean(cleanCodec);
+                    clean.ports = output.ports;
+                    std::string actualBytes, cleanBytes;
+                    if (!cleanCodec.write(&clean, version, binary) || !clean.accepted
+                        || !readBytes(path, actualBytes)
+                        || !readBytes(cleanPath, cleanBytes)
+                        || actualBytes != cleanBytes)
+                        return false;
+                }
+                dxfRW input(path.string().c_str());
+                Reader reader;
+                if (!input.read(&reader, false)) return false;
+                if (mode == 0) {
+                    if (reader.vports.size() != 4u
+                        || reader.vports[0].name != "NAMED_CONFIG"
+                        || reader.vports[1].name != "*ACTIVE"
+                        || reader.vports[2].name != "*ACTIVE"
+                        || reader.vports[3].name != "NAMED_CONFIG"
+                        || reader.vports[0].center.x != 12.0
+                        || reader.vports[1].center.x != 34.0
+                        || reader.vports[2].center.x != 56.0
+                        || reader.vports[3].center.x != 78.0)
+                        return false;
+                } else if (mode == 1) {
+                    if (reader.vports.size() != 2u
+                        || reader.vports[0].name != "NAMED_CONFIG"
+                        || reader.vports[0].center.x != 12.0
+                        || reader.vports[1].name != "*ACTIVE")
+                        return false;
+                } else if (reader.vports.size() != 1u
+                           || reader.vports[0].name != "*ACTIVE"
+                           || reader.vports[0].center.x != 90.0) {
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
 bool allocationSweep(const std::filesystem::path& directory) {
     const auto path = directory / "vport-table-allocation.dxf";
     const std::string prior = "prior VPORT destination bytes\n";
@@ -320,5 +415,5 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return allocationSweep(directory) ? 0 : 2;
+    return viewportNamesAndRetry(directory) && allocationSweep(directory) ? 0 : 2;
 }

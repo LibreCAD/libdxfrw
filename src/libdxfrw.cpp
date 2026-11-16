@@ -8361,8 +8361,13 @@ bool dxfRW::writeVport(DRW_Vport *ent){
         return failDxfWrite();
     RecordStateScope state(*this, ent);
     DxfWriterRecordScope record(*writer);
-    const std::string emittedName = !dimstyleStd ? "*ACTIVE" : ent->name;
-    if (!dimstyleStd) {
+    // Preserve named configurations even if they precede the active one.
+    // An unnamed first active viewport remains a legacy shorthand used by
+    // callers that relied on the writer supplying the mandatory name.
+    const bool active = dxfSymbolNameKey(ent->name) == "*ACTIVE"
+        || (ent->name.empty() && !dimstyleStd);
+    const std::string emittedName = active && !dimstyleStd ? "*ACTIVE" : ent->name;
+    if (active) {
         dimstyleStd = true;
     }
     std::uint32_t allocatedHandle = 0;

@@ -29920,8 +29920,8 @@ void testDynamicTableCapacityMatrix(TestContext& t) {
                                            "CAPACITY_LTYPE"};
         const std::string standardName = profile.legacyNames
             ? "STANDARD" : "Standard";
-        expectCapacity("VPORT", {"VPORT", "VPORT"},
-                       {"*ACTIVE", "CAPACITY_VPORT_B"});
+        expectCapacity("VPORT", {"VPORT", "VPORT", "VPORT"},
+                       {"CAPACITY_VPORT_A", "CAPACITY_VPORT_B", "*ACTIVE"});
         expectCapacity("LTYPE",
                        {"LTYPE", "LTYPE", "LTYPE", "LTYPE"},
                        mandatoryLineTypes);
@@ -67612,6 +67612,11 @@ bool runTemporary() {
 }
 
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--dynamic-table-capacity-matrix") {
+        TestContext context;
+        testDynamicTableCapacityMatrix(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--mline-flag-edits")
         return mlineFlagEditControls::runTemporary() ? 0 : 1;
     if(argc==2&&std::string(argv[1])=="--visual-style-properties") {

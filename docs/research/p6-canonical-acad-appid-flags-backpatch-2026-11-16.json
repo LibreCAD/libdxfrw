@@ -288,12 +288,12 @@
     "revision": "65aefd2c2039c84407164b2dcf353eabc789d18b",
     "freecadReleaseRun": "https://github.com/dxli/libdxfrw/actions/runs/43862739438",
     "linuxFreecad": "PASSED 16/16 generated CLI, installed converter and FreeCAD 1.1.4 open/insert checks, including optional legacy profile.",
-    "windowsFreecad": "RUNNING",
+    "windowsFreecad": "PASSED 17/17 generated CLI, installed converter and FreeCAD 1.1.4 open/insert checks, including optional legacy profile.",
     "fastRun": "https://github.com/dxli/libdxfrw/actions/runs/43862739444",
     "fastStatus": "RUNNING",
     "nativeRun": "https://github.com/dxli/libdxfrw/actions/runs/43862739412",
-    "linuxNative": "FAILED before checkout after three GitHub HTTPS connection timeouts; no source compiled or tests run. Job-only retry was unavailable while the workflow remained in progress.",
-    "windowsNative": "RUNNING",
-    "macosNative": "QUEUED"
+    "linuxNative": "Attempt 1 FAILED before checkout after three GitHub HTTPS connection timeouts; no source compiled or tests run. Attempt 2 is running.",
+    "windowsNative": "PASSED focused job",
+    "macosNative": "Attempt 1 cancelled before allocation; attempt 2 queued."
   }
 }

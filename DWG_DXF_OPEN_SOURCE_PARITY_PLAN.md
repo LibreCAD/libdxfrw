@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **705 completed implementation and qualification slices** and **32 remaining
+The plan records **706 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`705 / (705 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
+`706 / (706 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -89,7 +89,7 @@ generated DWG handoff; the fix passes focused rollback/readback and local
 FreeCAD open/insert controls
 ([regression receipt](docs/research/p6-canonical-acad-appid-flags-backpatch-2026-11-16.json)). LibreDWG accepts the six generated outputs, but its flag observation is identical for a zero-flag control. The independent ezdxf reader distinguishes the emitted 64 flags from the zero control in all six outputs and reads all 48 generated version/encoding/flag combinations correctly; native flag semantics remain open.
 The implementation digest is refreshed without changing claim statuses;
-the replacement [fast](https://github.com/dxli/libdxfrw/actions/runs/43862739444), [native](https://github.com/dxli/libdxfrw/actions/runs/43862739412) and [FreeCAD release](https://github.com/dxli/libdxfrw/actions/runs/43862739438) qualification jobs run at `65aefd2c`. FreeCAD Linux passed 16/16; Windows and fast checks remain in progress. Native Linux failed before compilation after three checkout connection timeouts; retry that job when the workflow finishes (job-only rerun was unavailable while it was running). Native Windows is running and macOS is queued; inspect and disposition their results.
+the replacement [fast](https://github.com/dxli/libdxfrw/actions/runs/43862739444), [native](https://github.com/dxli/libdxfrw/actions/runs/43862739412) and [FreeCAD release](https://github.com/dxli/libdxfrw/actions/runs/43862739438) qualification jobs run at `65aefd2c`. FreeCAD Linux passed 16/16 and Windows passed 17/17; fast checks remain in progress. Native Linux failed before compilation after three checkout connection timeouts and macOS was cancelled before allocation; both were scheduled in attempt 2. Native Windows passed, Linux is retrying and macOS is queued; inspect and disposition their results.
 Predeclared canonical LTYPE flags now survive output; nondefault flags arriving
 only after the fixed row was written refuse atomically
 ([receipt](docs/research/p6-canonical-ltype-flags-2026-11-16.json)). Canonical
@@ -110,6 +110,7 @@ LibreDWG independently retained generated empty and nonempty CONTINUOUS
 descriptions from ASCII and Binary input; its output did not distinguish the
 tested flag values, and header warnings limit the result to this field
 ([peer receipt](docs/research/p6-canonical-ltype-libredwg-peer-2026-11-16.json)).
+The VPORT writer now preserves named configurations written before `*ACTIVE`, repeated configuration rows and their order, and synthesizes a default active row only when needed; unnamed-active legacy callers remain supported ([receipt](docs/research/p6-vport-configuration-name-preservation-2026-11-16.json)). Native tiled viewport behavior remains open.
 Continue the remaining public-writer and compound-route census.
 
 For FreeCAD integration, replay the complete ordered downstream chain with
