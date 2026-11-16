@@ -1191,7 +1191,8 @@ bool writeViewReferenceControl(const std::filesystem::path& path,
 bool writeVisualStyleRetentionControl(const std::filesystem::path& path,
                                       bool binary,
                                       bool includeVisualStyle = true,
-                                      const char* styleHandle = "701") {
+                                      const char* styleHandle = "701",
+                                      bool includeShadePlot = true) {
     std::ofstream output(path, std::ios::binary | std::ios::trunc);
     if (!output)
         return false;
@@ -1242,8 +1243,8 @@ bool writeVisualStyleRetentionControl(const std::filesystem::path& path,
                 && string(100, "AcDbViewport")
                 && writer->writeDouble(40, 10.0)
                 && writer->writeDouble(41, 10.0)
-                && writer->writeInt16(170, 4)
-                && string(333, styleHandle)))
+                && writer->writeInt16(170, includeShadePlot ? 4 : 0)
+                && (!includeShadePlot || string(333, styleHandle))))
         && string(0, "ENDSEC") && string(0, "SECTION")
         && string(2, "OBJECTS")
         && dictionary("B0", "0", true, includeVisualStyle)
@@ -4263,6 +4264,20 @@ void testViewportTypedHandleRemapping(TestContext& t) {
         writer.viewport.visualStyleHandle = 0x908u;
 
         dx_data source;
+        {
+            std::ofstream sentinel(output, std::ios::binary | std::ios::trunc);
+            sentinel << "viewport-mode-sentinel";
+        }
+        const bool invalidWritten = writer.fileExport(
+            output.string(), DRW::AC1024, binary, &source, false);
+        std::ifstream previous(output, std::ios::binary);
+        const std::string previousBytes((std::istreambuf_iterator<char>(previous)),
+                                        std::istreambuf_iterator<char>());
+        t.expect(!invalidWritten && previousBytes == "viewport-mode-sentinel",
+                 "unqualified VIEWPORT shade mode fails atomically");
+        writer.viewport.shadePlotMode = 0;
+        writer.viewport.shadePlotHandle = 0;
+        writer.emitted = false;
         const bool written = writer.fileExport(
             output.string(), DRW::AC1024, binary, &source, false);
         t.expect(written && writer.emitted,
@@ -4295,8 +4310,8 @@ void testViewportTypedHandleRemapping(TestContext& t) {
             && viewport->layerOverrideReferences[1].handle == 0xA02u
             && viewport->layerOverrideReferences[2].groupCode == 344
             && viewport->layerOverrideReferences[2].handle == 0xA03u
-            && viewport->shadePlotMode == 4
-            && viewport->shadePlotHandle == 0xA04u
+            && viewport->shadePlotMode == 0
+            && viewport->shadePlotHandle == 0u
             && viewport->clipBoundaryHandle == 0xA05u
             && viewport->namedUcsHandle == 0xA06u
             && viewport->baseUcsHandle == 0xA07u
@@ -7482,7 +7497,20 @@ void testVisualStyleRetention(TestContext& t) {
                        : std::string("visual-style-ascii"))
                + (sourceStyleHandle == 0x1Cu ? "-collision.dxf" : ".dxf"));
         t.expect(writeVisualStyleRetentionControl(path, binary, true,
-                                                  styleHandle),
+                                                  styleHandle, true),
+                 "generated unqualified VIEWPORT shade mode is available");
+        dx_data rejectedData;
+        dx_iface rejectingImporter;
+        dxfRW rejectingReader(path.string().c_str());
+        rejectingImporter.cData = &rejectedData;
+        rejectingImporter.currentBlock = rejectedData.mBlock;
+        t.expect(!rejectingReader.read(&rejectingImporter, false)
+                     && rejectedData.mBlock != nullptr
+                     && rejectedData.mBlock->ent.empty()
+                     && rejectedData.visualStyles.empty(),
+                 "unqualified mode-4 VIEWPORT is refused before graph publication");
+        t.expect(writeVisualStyleRetentionControl(path, binary, true,
+                                                  styleHandle, false),
                  "generated VisualStyle graph control is complete");
 
         dx_data data;
@@ -7561,12 +7589,12 @@ void testVisualStyleRetention(TestContext& t) {
                      && sourceVport != nullptr
                      && sourceVport->visualStyleHandle == sourceStyleHandle
                      && sourceViewport != nullptr
-                     && sourceViewport->shadePlotMode == 4
-                     && sourceViewport->shadePlotHandle == sourceStyleHandle
+                     && sourceViewport->shadePlotMode == 0
+                     && sourceViewport->shadePlotHandle == 0u
                      && headerReferencesRetained,
                  binary
-                     ? "binary input retains rooted VisualStyle plus VPORT and VIEWPORT edges"
-                     : "ASCII input retains rooted VisualStyle plus VPORT and VIEWPORT edges");
+                     ? "binary input retains rooted VisualStyle and VPORT edge"
+                     : "ASCII input retains rooted VisualStyle and VPORT edge");
 
         const auto exportedPath = directory
             / (binary ? "visual-style-export-binary.dxf"
@@ -7630,9 +7658,8 @@ void testVisualStyleRetention(TestContext& t) {
             && (sourceStyleHandle != 0x1Cu
                 || exportedVport->visualStyleHandle != sourceStyleHandle)
             && exportedViewport != nullptr
-            && exportedViewport->shadePlotMode == 4
-            && exportedViewport->shadePlotHandle
-                == verifiedData.visualStyles.front().handle
+            && exportedViewport->shadePlotMode == 0
+            && exportedViewport->shadePlotHandle == 0u
             && exportedStyleRoot
                 != verifiedData.namedObjectDictionary.m_entries.end()
             && std::any_of(verifiedData.dictionaries.begin(),
@@ -7646,8 +7673,8 @@ void testVisualStyleRetention(TestContext& t) {
                 });
         t.expect(emittedStyleTarget,
                  binary
-                     ? "binary adapter round-trip remaps VPORT code-348 and VIEWPORT shade edge to rooted VisualStyle"
-                     : "ASCII adapter round-trip remaps VPORT code-348 and VIEWPORT shade edge to rooted VisualStyle");
+                     ? "binary adapter round-trip remaps VPORT code-348 to rooted VisualStyle"
+                     : "ASCII adapter round-trip remaps VPORT code-348 to rooted VisualStyle");
 
         const auto noStylePath = directory
             / (binary ? "no-visual-style-binary.dxf"
@@ -7775,7 +7802,8 @@ void testVisualStyleRetention(TestContext& t) {
 
     const auto wrongClassPath = directory / "header-wrong-class-input.dxf";
     const auto wrongClassOutput = directory / "header-wrong-class-output.dxf";
-    t.expect(writeVisualStyleRetentionControl(wrongClassPath, false),
+    t.expect(writeVisualStyleRetentionControl(wrongClassPath, false, true,
+                                              "701", false),
              "generated wrong-class HEADER reference source is complete");
     dx_data wrongClassData;
     dx_iface wrongClassAdapter;
@@ -69126,7 +69154,7 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--viewport-shadeplot-style-closure") {
         TestContext context;
         testVisualStyleRetention(context);
-        std::cout << "VIEWPORT shade-plot VisualStyle closure: "
+        std::cout << "VIEWPORT mode-4 refusal and VPORT/HEADER VisualStyle closure: "
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
         return context.failures == 0 ? 0 : 1;
     }

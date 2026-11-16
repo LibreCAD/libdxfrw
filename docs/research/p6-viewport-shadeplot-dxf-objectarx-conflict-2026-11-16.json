@@ -7,7 +7,7 @@
     "objectArxEnum": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_ShadePlotType.html"
   },
   "finding": "Autodesk DXF documents group 170 values 0\u20133 and optional group 333. ObjectARX Viewport shade-plot APIs expose additional VisualStyle and RenderPreset states whose IDs must target the corresponding object classes. The documents do not by themselves prove how those API states serialize in DXF group 170.",
-  "currentImplementation": "DRW_Viewport::validateDxf accepts typed output modes through 3, while dx_iface viewport graph preflight expects 4/5 for non-null shade-plot targets. Thus the adapter has a path the typed writer cannot emit; the generated mode-4 direct-writer fixture fails. DXF parser code retains the integer field, but this investigation does not establish acceptance of complete mode-4/5 source documents or native semantics.",
+  "currentImplementation": "DRW_Viewport::validateDxf accepts typed output modes through 3, while dx_iface viewport graph preflight expects 4/5 for non-null shade-plot targets. The compound DXF decoder also calls validateDxf at the VIEWPORT boundary, so generated mode-4 input fails before its callback and before the subsequent OBJECTS section. The generated mode-4 direct-writer fixture likewise fails. Do not infer graph-closure behavior from these downstream assertions.",
   "requiredNextSteps": [
     "Acquire an eligible AutoCAD-authored DXF ASCII/Binary or trustworthy independent producer pair with known setShadePlot VisualStyle and RenderPreset states and exact version; keep unlicensed samples out of the repository.",
     "Compare literal 170/333 values and graph target types against the source application API or a truly independent native consumer; distinguish absent/null IDs, versions and target classes.",
@@ -17,5 +17,6 @@
   "limits": [
     "A generated mode-4 DXF and ObjectARX enum are not producer-authored wire evidence.",
     "Other VisualStyle fixture failures may have additional causes and have not been attributed solely to this conflict."
-  ]
+  ],
+  "controlSplit": "The independent VPORT/HEADER graph controls use a mode-0 VIEWPORT without shade target and pass; separate generated mode-4 input and output controls refuse. This does not qualify VIEWPORT shade-plot closure."
 }
