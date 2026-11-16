@@ -16,10 +16,14 @@ LibreCAD_3 master was 4fb48312708b39d499f7e6668104a3b54a8601c7; and FreeCAD main
 was 84e73f0188fb32bb1fffb8d4d1edb4135543ba18. These are snapshots, not current
 integration targets; refresh mutable heads before replay or qualification.
 
-**Current state:** 31 of 33 core packages remain open: P4-A/B/C (3), P5-A/B/D–H
-(7), P6-A–C/E–G (6), P7-A–H (8), and P8-A–G (7). Two packages are closed
-(6.1% by package count). This is a bookkeeping measure, not an effort or
-release readiness estimate. Six external dispositions remain
+**Current state:** 32 of 34 core packages remain open: P4-A/B/C (3), P5-A/B/D–H
+(7), P6-A–C/E–H (7), P7-A–H (8), and P8-A–G (7). Two packages are closed
+(P5-C and P6-D; 5.9% by package count). P6-D covered the bounded AC1021
+physical span comparison. Its receipt does not promote MLINESTYLE support; the
+remaining versioned output, graph, MLINE geometry, and native-semantic work is
+tracked separately as P6-H. The denominator increased from 33 to 34 to include
+that explicit follow-up. This count is bookkeeping, not an effort or
+release-readiness estimate. Six external dispositions remain
 `DEFERRED_EXTERNAL`.
 Completed packages and slices are not implementation tasks; their receipts
 remain in `docs/research/` when needed to avoid repeating work.
@@ -58,44 +62,111 @@ remain in `docs/research/` when needed to avoid repeating work.
   and [3D plan](DWG_DXF_3D_SUPPORT_PLAN.md). A source-only result or external
   advisory result does not promote a claim.
 
-## Execution order — shortest evidence-bearing slices first
+## Execution order — ready work first, blockers parked
 
 The registry below is the package exit checklist; this queue is the immediate
-work order. Finish and commit one slice at a time. A waiting witness never
-blocks another locally executable slice.
+work order. The only currently substantiated ready slices are the two consumer
+checks and the next source-bound MLINESTYLE profile below. Complete and commit
+one slice at a time. A waiting witness never blocks another locally executable
+slice.
 
-1. **P8-D1 — current LibreCAD 2D save/reopen.** Refresh a clean disposable
-   LibreCAD checkout at its current master; record source/build identity; reuse
-   only receipts with matching identities; exercise one existing 2D profile
-   through edit, save, and reopen. Preserve the dirty scratch checkout already
-   noted below. Keep this slice's evidence and commit separate from P8-D2.
-2. **P8-D2 — current LibreCAD_3 MPOLYGON save/reopen.** Refresh a clean
-   current-head checkout, apply-check the existing patch chain, and build only
-   the affected targets. Run the affected persistence selectors, then exercise
-   one supported edit/save/reopen and one unsupported edit. Check stored
-   subtype/fields and the reported fallback. Reuse the existing boundary,
-   offset, rotation, and loss-reporting receipts; rerun only a selector whose
-   source/build identity differs. Keep this slice separate from P8-D1.
-3. **P6-G — conditional transaction gap only.** Do not schedule it unless a
-   concrete public writer/overload gap surfaces during implementation or
-   review. Add only the missing rollback, caller-state, corrected same-writer
-   retry, or typed-readback assertion for that named route. Do not rescan the
-   completed route inventory.
-4. **Next source-backed slice — choose once, then execute.** From existing
-   receipts and locally available source files, select the smallest profile
-   that has (a) exact source bytes, (b) a named field/reference gap, and (c) an
-   existing focused selector or a narrow hand-encoded control. Cap candidate
-   selection at one 15-minute pass. If any prerequisite is absent, record the
-   exact missing witness/condition in that package row and immediately take
-   the next eligible slice. Do not repeat corpus searches, bundle unrelated
-   fields, or wait for platform qualification.
-5. **Late integration:** run P8-A/B/C/E/F/G and P7-H only after the relevant
-   candidate behavior stabilizes. Keep P9 external-only and non-blocking.
+1. **P8-D1 — LibreCAD 2D edit/save/reopen at current master.** Use a clean,
+   disposable checkout at `d40f178b9708b54ad34b15f721d22abb2315aa2b` (verified
+   against the public `master` ref on 2026-11-16); record clean status, build
+   options, executable hash, and loaded libdxfrw identity. Preserve the dirty
+   scratch checkouts listed below. Use a tracked minimal 2D DXF already in
+   LibreCAD/libdxfrw, or author a one-LINE DXF from scratch in scratch space.
+   In LibreCAD, translate the LINE by the fixed vector `(2,-3,0)`, save, close,
+   and reopen. Compare entity count/type, resulting endpoints, layer, linetype,
+   color, extrusion/OCS, units, and all unaffected records; hash the input and
+   output. Read the saved DXF with an independent reader for the same semantic
+   fields. A parser-only test or same-process reload is not GUI
+   edit/save/reopen qualification. Reuse a built binary only when its source
+   SHA and build configuration match; otherwise build the application target
+   once. If no clean GUI session is available after one bounded attempt, file
+   the exact blocker and move directly to P8-D2. Keep this receipt and commit
+   separate from P8-D2.
+2. **P8-D2 — LibreCAD_3 MPOLYGON persistence at current master.** Use a clean
+   checkout at `4fb48312708b39d499f7e6668104a3b54a8601c7` (verified against the
+   public `master` ref on 2026-11-16); preserve the dirty checkout. Apply-check
+   the existing patch chain against that exact base, then inspect the resulting
+   diff before building. Build only changed library/application targets and
+   run only the affected persistence selectors. The existing
+   `tests/fixtures/dwg/mpolygon_solid.dwg` is **not** a positive witness:
+   LibreDWG reports `num_paths: 0`, and libdxfrw observes zero loops. For the
+   positive case, use a repository-owned MPOLYGON with nonempty boundaries or
+   create a minimal boundary-bearing source from scratch in scratch space and
+   confirm its loops independently before import. Exercise one supported
+   edit/save/close/reopen; compare subtype, boundary topology, vertices/bulges,
+   fill, offsets, rotation, layer, and unchanged fields. Then exercise one
+   explicitly unsupported edit and verify its loss/refusal is visible before
+   save and does not masquerade as preserved geometry. The existing
+   loss-reporting receipt is only a transparency mitigation: it says
+   subtype/fill/offset are not yet preserved and that the warning does not
+   persist across sessions. Do not count it as completion. Implement the
+   missing model-to-DXF and reload preservation before running the positive
+   case; keep unsupported or still-lossy fields on an explicit refusal path.
+   Add only the affected fast persistence selectors, build only changed
+   targets, and reuse the boundary, offset, and rotation receipts for their
+   recorded operations and source identities. Keep P8-D2 separate from P8-D1.
+3. **P6-H1 — AC1027 MLINESTYLE physical spans.** Continue with the
+   exact AC1027 `Cover.dwg` profile (SHA-256
+   `3a6c23151ebec25320722f0ecaaf20a10073c60079d3616181395f1c73deee42`),
+   handle `0x18`, type 73, using ODA §20.4.73 and the existing semantic
+   differential receipt. Capture physical body/string/handle spans from a
+   source-distinct peer run; the existing semantic minJSON differential alone
+   is not a span oracle. Rebuild only the narrow peer and libdxfrw observer
+   targets, extend the verifier with a separate version/source binding rather
+   than weakening its AC1021 checks, and keep
+   `DRW_DWG_MLINESTYLE_SPAN_TRACE` out of normal builds. Run the focused
+   `dwg2dxf_mline_style_typed_capture_limits` selector for callback-retention
+   coverage and the span verifier's shifted-span negative control. Add a
+   generated parser boundary/truncation control only if a decoder boundary is
+   changed; the existing capture-limit selector is not wire-span proof. Change
+   production decoding only if physical evidence shows a mismatch. This is
+   the first of three P6-H slices; it does not close the output,
+   dependency, MLINE entity geometry, or native-appearance gates.
+4. **P6-H2 — MLINESTYLE/MLINE writer graph and readback.** Feed the selected
+   source-bound style and one MLINE reference through strict ASCII and Binary
+   output. Compare name/description, flags, fill, cap angles, ordered element
+   count/offset/color/linetype, MLINE geometry, dictionary key, owner/reactor
+   roles, and all dependencies against the source profile. Reopen each output
+   with an independent DXF reader and compare the same fields. If full-source
+   CLI output stops at unrelated proxy graphics, preserve that refusal and use
+   the narrowest existing writer/adapter control for the selected records; do
+   not bypass preflight or claim full-file conversion. Add rollback/retry
+   coverage only if the changed writer route lacks it.
+5. **P6-H3 — bounded native 2D MLINE semantics.** Reuse the exact clean
+   LibreCAD binary from P8-D1 if its source/configuration identity matches.
+   Open the H2 output and compare one source-bound MLINE's path, scale,
+   extrusion/direction, style offsets, and rendered boundaries. If the source
+   has no MLINE bound to this style, create a scratch control and label it
+   generated; it can verify the consumer path but cannot replace producer
+   semantics evidence.
+6. **P6-G — conditional transaction gap only.** Keep parked unless a concrete
+   public writer/overload gap surfaces during implementation or review. Add
+   only the missing rollback, caller-state, corrected same-writer retry, or
+   typed-readback assertion for that named route. Do not rescan the completed
+   route inventory.
+7. **After P6-H3 — one bounded readiness pass, then work.** If no new
+   `READY_*` slice is available, spend at most 15 minutes checking existing
+   receipts and local sources for an exact source/profile, a named field or
+   reference gap, and an existing fast selector or narrow control. Prefer a
+   source already on disk and a test already registered. If a prerequisite is
+   absent, record the exact missing witness/tool/platform and retrieval trigger
+   in that package row, mark it waiting, and immediately start the next ready
+   slice. Do not repeat broad corpus searches, bundle unrelated fields, or wait
+   for platform qualification.
+8. **Late integration:** once candidate behavior stabilizes, run P8-A/B/C/E/F/G
+   and P7-H in one composed integration/release checkpoint. Run only focused
+   affected selectors between checkpoints; keep P9 external-only and
+   non-blocking.
 
 ### Readiness and slice discipline
 
 - `READY_*` is the only state that enters the immediate queue. Complete that
-  bounded slice before promoting another one.
+  bounded slice before promoting another one. The current ordered queue is
+  P8-D1, P8-D2, then P6-H1/H2/H3; the remainder are parked or integration gates.
 - For each `WAITING_*` row, check its named receipts and local source once. If
   the exact witness or platform condition is absent, record that precise
   condition and park the row; do not repeat discovery or begin speculative
@@ -161,7 +232,7 @@ evaluation. Keep LIGHT/LIGHTLIST, SUN, materials, visual styles, backgrounds,
 plot settings, and viewport links as separate transport, graph, and appearance
 claims; do not turn them into one broad package.
 
-### P6 — version, no-loss, and public routes (6 open packages)
+### P6 — version, no-loss, and public routes (7 open packages)
 
 | ID | Remaining implementation | Package exit evidence |
 |---|---|---|
@@ -171,6 +242,7 @@ claims; do not turn them into one broad package.
 | P6-E / WAITING_FOR_HEADER_SPAN_WITNESS | Choose one already mapped source profile (AC1027 Cover or AC1024 mesh) and resolve only that HEADER envelope/suffix, including lengths, CRC, sentinels, trailers, and every unclaimed byte. | Every byte in the chosen profile has a versioned source-backed disposition; unexplained tails remain refused. The existing receipts report 731 unclaimed Cover bytes and 739 mesh bytes; process one profile per slice (docs/research/p6-ac1027-cover-header-suffix-logical-span-2026-11-12.json; docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json). |
 | P6-F / WAITING_FOR_ELIGIBLE_LEGACY_INPUT | Resume only when a hash-bound AC1012/AC1014 input passes structural/object/reference gates and reaches the output gate with an eligible recoverable entity failure. | Strict refusal preserves the destination; partial ASCII/Binary output proves later-entity readback and corrected retry. Do not weaken exact-version or bounded-frame gates. The libdxfrw DWG writer does not generate AC1012/AC1014; see the [disposition receipt](docs/research/p6-cli-legacy-ac1012-ac1014-partial-disposition-2026-11-16.json). |
 | P6-G / WAITING_FOR_CONCRETE_GAP | No uncovered writer route is selected. Resume only when a named public writer/overload is shown to lack an assertion for destination rollback, caller-owned state, corrected same-writer retry, or typed readback. | Add one focused test/receipt for that exact route; otherwise keep parked. Do not rerun the broad inventory or promote source/graph/native support from transaction tests. |
+| P6-H / NEXT_AC1027_MLINESTYLE_PROFILE | Complete three bounded follow-ups in order: H1, source-bound AC1027 physical spans for `Cover.dwg` handle `0x18`/type 73; H2, strict ASCII/Binary writer output and independent fresh readback for the selected MLINESTYLE/MLINE profile and its dictionary, owner, layer, and linetype dependencies; H3, compare the resulting MLINE geometry and appearance in a pinned LibreCAD build. Reuse `docs/research/p6-ac1027-cover-mlinestyle-physical-field-differential-2026-11-14.json` for the source hash and semantic values. Keep AC1021's completed span receipt as a separate profile; do not infer cross-version behavior from it. | ODA §20.4.73 field/span and handle-role agreement for the selected profile, no silent field loss, no dangling/aliased dependencies, independent ASCII/Binary readback, and bounded native 2D MLINE semantics. If full-source CLI output is refused by unrelated proxy carriers, retain that refusal and exercise the smallest isolated source-derived profile; do not promote full-file conversion. Other versions remain unqualified until separately bound. |
 
 Selection prompts include DIMASSOC/XREF graphs; 3D positions, OCS, splines,
 clipping, mesh/hidden-edge fields; units, lineweights, BYLAYER/BYBLOCK;
@@ -207,7 +279,7 @@ locally evidenced packages.
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation stabilizes. | Reproducible commands and immutable source/tool/platform/runtime identity. |
 | P8-B / INTEGRATION_GATE | Refresh FreeCAD main and qualify selected Linux open/insert profiles using the actual converter/importer. | Exact binaries/modules, operation/settings/geometry, and independent semantics. |
 | P8-C / INTEGRATION_GATE | Qualify only the selected profiles on Windows through its actual converter/importer. | Windows runtime identity, open/insert semantics, and no fallback ambiguity. |
-| P8-D / NEXT_AFTER_CLEAN_HEAD_REFRESH | Split into two commits: P8-D1 is the current LibreCAD 2D saved-edit check; P8-D2 is current LibreCAD_3 MPOLYGON patch integration. Reuse the [boundary correction](docs/research/p8-librecad3-mpolygon-boundary-and-subtype-2026-11-15.json), [offset preservation](docs/research/p8-librecad3-mpolygon-offset-preservation-2026-11-15.json), [rotation preservation](docs/research/p8-librecad3-mpolygon-rotation-preservation-2026-11-15.json), and [loss reporting](docs/research/p8-librecad3-mpolygon-projection-warning-2026-11-15.json) receipts only as prior evidence; they do not qualify a refreshed consumer head. | P8-D1: current-head LibreCAD build and actual 2D edit/save/reopen. P8-D2: current-head LibreCAD_3 build, affected persistence selectors, and one supported MPOLYGON edit/save/reopen; verify subtype/fields and reported fallback for an unsupported edit. Keep consumer, library, ABI, and platform results separate. |
+| P8-D / NEXT_CURRENT_HEAD_2D_THEN_MPOLYGON | Split into the ordered P8-D1 and P8-D2 slices above. Refresh clean current heads and preserve dirty checkouts. A prior consumer source/build receipt is reusable only when source, binary, configuration, fixture, and operation all match. The existing MPOLYGON DWG has zero paths and cannot be used for positive persistence evidence. | P8-D1: actual current-head LibreCAD 2D edit/save/close/reopen with independent semantic readback. P8-D2: current-head LibreCAD_3 MPOLYGON boundary-bearing edit/save/close/reopen, exact fields preserved, and a separate visible refusal/loss case. Keep consumer, library, ABI, and platform results separate. |
 | P8-E / INTEGRATION_GATE | Compare public symbols/class layouts with the release baseline; build clean static/shared consumers and relocatable packages. | ABI/SONAME, relocation, loaded-library checks on required platforms, and explicit rebuild requirements. |
 | P8-F / INTEGRATION_GATE | Inspect current required CI and source-release/packaging lanes; repair or formally disposition exclusions. | Source-matched required jobs green or formally dispositioned. |
 | P8-G / INTEGRATION_GATE | Set supported platforms, consumers, and release thresholds from completed evidence. | Evidence-backed support matrix with no required red job or advertised unqualified route. |
@@ -268,7 +340,9 @@ support claim.
    item. Report the commit, behavior, focused validation, open package count,
    and next action. Resolve routine blockers and continue; do not stop for an
    unrelated unavailable witness, tool, or platform.
-6. Keep the 33-package baseline separate from completed sub-slices. Remove a
+6. Keep the current 34-package baseline (the original 33 plus P6-H, added to
+   track MLINESTYLE follow-up scope explicitly) separate from completed
+   sub-slices. Remove a
    package ID only after its full exit evidence passes; remove a completed
    sub-slice from the action plan as soon as its receipt is filed. Do not
    calculate a progress percentage unless completed and remaining work use the
