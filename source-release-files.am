@@ -85,6 +85,7 @@ EXTRA_DIST = \
     docs/patches/librecad-p8-upstream-compat-2026-11-15.patch \
     docs/patches/librecad-p8-zero-reactor-sortents-source-2026-11-15.patch \
     docs/patches/librecad3-p8-legacy-layer-lineweight-2026-11-16.patch \
+    docs/patches/librecad3-p8-mline-import-loss-2026-11-16.patch \
     docs/patches/librecad3-p8-mpolygon-offset-preservation-2026-11-15.patch \
     docs/patches/librecad3-p8-mpolygon-projection-warning-2026-11-15.patch \
     docs/patches/librecad3-p8-mpolygon-rotation-preservation-2026-11-15.patch \
@@ -1178,6 +1179,7 @@ EXTRA_DIST = \
     tools/research/freecad_acis700_sat_probe.py \
     tools/research/freecad_imported_sat_torus_bound_probe.py \
     tools/research/freecad_torus_bound_probe.py \
+    tools/research/generate_librecad3_mline_samples.py \
     tools/research/generate_librecad_r13_ltype_samples.py \
     tools/research/inspect_mtext_field_freecad.FCMacro \
     tools/research/inventory_cover_peer_body_handles.py \

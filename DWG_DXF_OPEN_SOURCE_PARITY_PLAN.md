@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **653 completed implementation and qualification slices** and **32 remaining
+The plan records **654 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`653 / (653 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
+`654 / (654 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -181,15 +181,22 @@ created locally from scratch for the specific control.
   in the GUI and across platforms; retain PR #3269's broader ASCII/Binary and
   platform controls. Qualify LibreCAD_3 with a clean link, runtime import/export
   and the required ABI and platform matrix. LibreCAD_3's local candidate
-  `89f9657cc1ee92904626bdc4688cd2ba537d6d56` combines the three MPOLYGON
+  `d81ae3e1f0b489e3c03da83d292a4901f648b4d4` combines the three MPOLYGON
   patches with the adapter and unit test from open PR #456 at
   `7e81275b71038d4a42fa580842e661ddcee7adbf`, followed by
-  [the legacy-layer loss patch](docs/patches/librecad3-p8-legacy-layer-lineweight-2026-11-16.patch).
+  [the legacy-layer loss patch](docs/patches/librecad3-p8-legacy-layer-lineweight-2026-11-16.patch) and [MLINE import loss reporting](docs/patches/librecad3-p8-mline-import-loss-2026-11-16.patch).
   Apply only those two PR #456 source/test paths from its pinned diff; its full
   diff does not apply cleanly to current master. The current installed-codec
   focus passes R12/R14 ASCII/Binary readback and explicit loss reporting with
   both the current and separately installed pinned codec
   ([pinned receipt](docs/research/p8-librecad3-legacy-layer-pinned-codec-2026-11-16.json)).
+  Generated DXF and ODA-converted DWG controls confirm that unsupported MLINE
+  geometry is reported as loss with both current and pinned codecs, while an
+  ordinary LINE is retained and a line-only DXF raises no MLINE loss. Generate
+  scratch controls with `tools/research/generate_librecad3_mline_samples.py`;
+  the integration test requires the documented environment variables
+  ([receipt](docs/research/p8-librecad3-mline-import-loss-2026-11-16.json)).
+  This reports loss rather than providing MLINE geometry support.
   A bool-only save still reports failure after a lossy write; resolve the UI
   and provenance treatment of default layer widths before claiming full save
   compatibility ([receipt](docs/research/p8-librecad3-legacy-layer-lineweight-2026-11-16.json)).
