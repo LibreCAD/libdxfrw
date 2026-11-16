@@ -15,9 +15,9 @@
     "Existing push-triggered release qualification jobs remain enabled; candidate matrix is opt-in for dispatch.",
     "Candidate source application and headless runtime guards were separately exercised on macOS."
   ],
-  "status": "THREE DISPATCHES FAILED BEFORE BUILD; ATTRIBUTE-AWARE FIX REQUIRES HOSTED RETRY",
+  "status": "FOURTH DISPATCH SOURCE PREPARATION PASSED; BUILD AND PROBE PENDING",
   "limitations": [
-    "Three hosted candidate runs failed before build; the attribute-aware fix has not yet been tested on hosted platforms and neither platform is qualified.",
+    "Linux and Windows source preparation passed on the fourth hosted run, but builds and probes have not completed; neither platform is qualified.",
     "Submodule gitlink status is recorded; binary reproducibility, full build provenance and independent semantic support are not established.",
     "Headless checks do not establish native GUI rendering or complete DWG/DXF support.",
     "The downstream FreeCAD patch series remains unmerged."
@@ -49,5 +49,10 @@
     "url": "https://github.com/dxli/libdxfrw/actions/runs/43849052380",
     "commit": "7550a785",
     "outcome": "Archive replay passed, but applying the second patch to the full checkout failed on both hosts. The helper reported restoration of original bytes."
+  },
+  "fourthDispatch": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43849681525",
+    "commit": "cab8f700",
+    "outcome": "Linux and Windows source replay and candidate application passed; both jobs entered pinned-environment installation. Build and probe remain pending."
   }
 }

@@ -123,9 +123,10 @@ line-ending normalization, and FreeCAD's own attributes then prevented applying
 the same patch chain directly inside a full checkout. The helper now installs
 verified replay bytes after checking the original checkout files against the
 archive. A local checkout with those attributes passes injected installation
-failure, byte restoration and retry. Retry the hosted builds with diagnostics
-and the CMake source-directory identity check; candidate qualification remains
-unresolved.
+failure, byte restoration and retry. The fourth hosted dispatch has passed
+source preparation on Linux and Windows; both builds and the CMake
+source-directory identity checks are still pending. Candidate qualification
+remains unresolved.
 Native GUI behavior, independent semantics and upstream integration remain open.
 
 ### Next LibreCAD integration work
