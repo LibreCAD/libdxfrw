@@ -34715,6 +34715,9 @@ struct Direct:dx_iface {
     void writeHeader(DRW_Header& header)override{header.vars.clear();}
     void writeBlockRecords()override{}
     void writeObjects()override{written=dxfW->writeMaterial(&material);}
+    // This control calls dxfRW directly, without preparing dx_iface's
+    // whole-document graph transaction.
+    bool finalizeDxfWrite()override{return written;}
 };
 bool run(const std::filesystem::path& dir) {
     const auto input=dir/"input.dxf",output=dir/"output.dxf";

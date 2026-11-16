@@ -116,9 +116,13 @@ int main(){
   const auto dwgPath=dir/"out.dwg";{std::ofstream f(dwgPath);f<<"prior dwg";}
   const auto dwgName=dwgPath.string();dwgRW dwg(dwgName.c_str());DwgWriter dwgAdapter(dwg);dwgAdapter.value=original;
   if(dwg.write(&dwgAdapter,DRW::AC1027,true)||!dwgAdapter.registered||dwgAdapter.written||bytes(dwgPath)!="prior dwg")return 1;
+  // A fresh manually authored MATERIAL has no qualified modern DWG body.
+  // Exercise same-writer correction using the supported legacy codec instead.
+  dwgAdapter.registered=dwgAdapter.written=false;
+  if(dwg.write(&dwgAdapter,DRW::AC1018,true)||!dwgAdapter.registered||dwgAdapter.written||bytes(dwgPath)!="prior dwg")return 1;
   dwgAdapter.value.reset();dwgAdapter.value.handle=0xF000u;dwgAdapter.value.m_name="corrected";
   dwgAdapter.registered=dwgAdapter.written=false;
-  if(!dwg.write(&dwgAdapter,DRW::AC1027,true)||!dwgAdapter.registered||!dwgAdapter.written){std::cerr<<"DWG retry failed\n";return 1;}
+  if(!dwg.write(&dwgAdapter,DRW::AC1018,true)||!dwgAdapter.registered||!dwgAdapter.written){std::cerr<<"DWG retry failed\n";return 1;}
   if(!source(inputPath,binary,13,"ByBlock"))return 33;
   Reader ac1032;dxfRW ac1032Reader(inputName.c_str());
   if(!ac1032Reader.read(&ac1032,false)||ac1032.materials.size()!=2u
