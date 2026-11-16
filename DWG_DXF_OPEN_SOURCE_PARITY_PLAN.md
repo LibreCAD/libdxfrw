@@ -20,22 +20,26 @@ its changed navigation and CAM files do not remove the need to replay and test
 the candidate against the new base ([upstream comparison](https://github.com/FreeCAD/FreeCAD/compare/157bfcb7462a733b03a7d041aeaa79fee7aff7a3...84e73f0188fb32bb1fffb8d4d1edb4135543ba18)).
 Recheck heads before integration.
 
-The historical ledger records **737 completed slices**. This queue has **33
+The historical ledger records **738 completed slices**. This queue has **33
 open core packages**: P4-A/B/C (3), P5-A–H (8), P6-A–G (7), P7-A–H (8), and
 P8-A–G (7). P4-GROUP-01 is a subpacket of P4-A, not a package. Six P9 external
-dispositions are tracked separately. `737 / (737 + 33) = 95.7%` is only a
+dispositions are tracked separately. `738 / (738 + 33) = 95.7%` is only a
 count-based activity proxy that treats every remaining package as one minimum
 slice; the size and cost of remaining work are unknown. It is **not** an effort
 or release-readiness estimate. All five core phase gates P4–P8 remain OPEN;
 P9 remains DEFERRED_EXTERNAL, with **0 of 6 external dispositions resolved**.
 
-The bounded typed and raw caller plot-style writer projections, their
-rollback/retry controls and independent DXF readback are complete and removed
-from the action queue. Their receipts remain evidence for the next slice. The
-current checkout is at `3f7a40d5` (`Support bounded raw caller plot-style graph`);
-the first open implementation action is the adapter-bound AC1021 source path
-below. No package closes merely because one slice or an evidence acquisition
-task completes.
+The bounded typed/raw caller plot-style projections and the AC1021
+source-aware adapter export slice are complete and removed from the action
+queue. The adapter slice is recorded at `a2335810` in
+[its receipt](docs/research/p6g-ac1021-dx_iface-default-plotstyle-adapter-2026-11-16.json):
+it admits only the exact default-only source graph, normalizes conformant
+group-280 zero, refuses the nonzero variant atomically, retries through the
+same adapter, and passes ASCII/Binary libdxfrw plus ezdxf readback. It is local
+profile evidence only; it does not qualify producer-origin files, native
+plotting, other versions, or broader dictionary graphs. P6-G remains open for
+the next independently selected public-writer route. No package closes merely
+because one slice or evidence acquisition task completes.
 
 Completed actions are not part of this queue. Their receipts remain under
 `docs/research/`; the previous detailed plan is recoverable with
@@ -77,22 +81,26 @@ examples listed below.
 
 ## Implementation queue and dependency policy
 
-Take the first ready slice below, make one vertical change, then refresh this
-queue. A missing producer file, platform, or native application blocks only the
-profile that needs it; record the exact missing evidence and move to the next
-ready slice. Do not leave implementation idle while an unrelated gate is
-pending.
+Take the first ready local slice below, make one vertical change, then refresh
+this queue. Prefer a slice that reuses an existing source, test harness, and
+build target; do not start a corpus scan or full suite when a focused selector
+answers the question. A missing producer file, platform, or native application
+blocks only the profile that needs it; record the exact missing evidence and
+move to the next ready slice. Do not leave implementation idle while an
+unrelated gate is pending.
 
-| Order | Work packet | First bounded action | Dependency / scheduling rule |
+| Order | Work packet | Next bounded action | Ready check and fast exit |
 |---|---|---|---|
-| 1 | P6-G, caller plot-style adapter path | Trace the runtime-created AC1021 source in `tests/plotstyle_source_controls.h` through `prepareDxfLayerPlot`, `fileExport`, and `writeObjects`. Compare source dictionary tags with the bounded raw profile, especially group 280. Use typed serialization only if it preserves the modeled meaning and emits a conformant record; otherwise retain refusal for that source shape. Then prove exact root/owner/reactor/default/LAYER 390 mapping in ASCII and Binary, destination preservation, and same-adapter retry. | READY now. Reuse the completed typed/raw writer baseline and receipts. Keep the path narrowly gated and leave `dx_data` untouched. |
-| 2 | P6-F, strict/tolerant object disposition | From the current source/resource inventory, select the first uncompleted OBJECTS parser with an existing physical frame and a locally constructible malformed variant. Prove exact frame disposition, tolerant continuation, strict sentinel preservation, corrected retry, and fresh readback. | READY after the inventory check; if the chosen witness is ineligible, record why and select the next eligible frame. Run the owning selector, not the aggregate partial-read suite. |
-| 3 | P4-A, closed named-block SORTENTSTABLE | Extend the existing nonempty/named-block candidate by one dependency edge at a time: dictionary/XRECORD, inbound refs, units, preview, then mixed entities. Compare against the source census and bounded ODA output already in the receipts. | READY from existing evidence. Empty-table success is not evidence for this profile. Preserve strict refusal for unresolved targets and source blockers. |
-| 4 | P8-D, LibreCAD consumers | Refresh patch-index hashes and target heads; replay the ordered patches on disposable checkouts. Build installed-upstream and bundled-codec paths; run focused LTYPE, PR #3269, version, and R13 refusal/recovery selectors. | Independent of DWG source acquisition. Rebase before testing; retain 2D behavior and LibreCAD/LibreCAD_3 compatibility. |
-| 5 | P6-D/P6-E and remaining P4-A | Choose the smallest uncovered version/field or HEADER envelope with a physical source span. Write exact field/role and byte-accounting controls before changing parser/writer code. | Work only from eligible witnesses. A blocked AC1024 RTM case, missing target, or unexplained suffix stays refused; move to another ready profile. |
-| 6 | P5 and P7 feature profiles | Select one source-backed FIELD, TABLE, VIEWPORT, dynamic-constraint, or modeler profile; reuse the common graph/output/readback path and add only demonstrated semantics. | Source acquisition precedes implementation. P7 semantic/kernel work follows closure of its source graph; never block unrelated P5/P6/P8 work. |
-| 7 | P8-B/C/E/F, then P8-G | Rebase candidate importers onto current source, build the exact app/runtime, and run selected open/insert profiles; then qualify packaging/ABI/CI and set release policy from evidence. | Platform runs follow frozen implementation and inputs. P8-G is last and cannot waive red required jobs or unqualified routes. |
-| 8 | P9 external dispositions | Advance a J-item only when its exact successor lineage, source/profile, platform, and independent-semantics conditions become available. | DEFERRED_EXTERNAL; never block local slices and never promote support from advisory evidence. |
+| Order | Work packet | Next bounded action | Ready check and fast exit |
+|---|---|---|---|
+| 1 | P4-A, named-block SORTENTSTABLE | Add the existing candidate's dictionary/XRECORD closure and inbound references as one vertical slice; reuse the source census and bounded ODA output. | READY from existing evidence. Run the owning output/readback selector. Keep units, preview, and mixed entities for later slices; preserve refusal for unresolved targets. |
+| 2 | P6-G, public DXF writer routes | Refresh the public-writer mention index on the implementation HEAD with `python3 tools/research/audit_dxf_public_writer_test_mentions.py --output /tmp/p6-dxf-writer-index.json`, then inspect actual assertions. Choose one low-cost route that lacks a focused success/refusal/retry/readback control; reuse its local source and test executable. | READY locally. The index is only navigation; its whole-file allocation flag is not a coverage result. Do not repeat the completed default plot-style adapter slice. |
+| 3 | P6-F, CLI partial-read disposition | Use the existing P6-F receipts to identify the next missing source-revision/output-encoding cell. Prioritize AC1012/AC1014 CLI output/readback; use generated controls only where no eligible repository sample exists. | READY for bounded local controls. Run the owning selector; do not rerun the 900+ control aggregate absent a changed shared path. Profiles blocked by AC1027 source-reference closure remain reader-only. |
+| 4 | P8-D, LibreCAD consumers | Refresh patch-index hashes and target heads; replay only unmerged, relevant patches on disposable checkouts. Run focused LTYPE, PR #3269, version, and R13 refusal/recovery selectors. | READY independently of DWG sample acquisition. Rebase first; preserve both LibreCAD 2D and LibreCAD_3 behavior. |
+| 5 | P6-D/P6-E and remaining P4-A | Select the smallest uncovered version/field or HEADER envelope with a physical span; write exact field/role and byte-accounting controls before parser/writer edits. | Start only with an eligible witness. Keep the AC1024 RTM report, missing targets, and unexplained suffixes refused; switch to another READY slice if evidence is absent. |
+| 6 | P5/P7 source-backed profiles | Pick one acquired FIELD, TABLE, VIEWPORT, dynamic-constraint, or modeler source profile; reuse graph/output/readback infrastructure and implement only observed semantics. | Source acquisition precedes implementation. P7 kernel work follows graph closure; unrelated P5/P6/P8 work continues. |
+| 7 | P8-B/C/E/F, then P8-G | Rebase candidate importers, freeze exact application/runtime inputs, and qualify selected open/insert profiles; then resolve packaging, ABI, and required CI. | Platform work follows a frozen implementation. P8-G is last and cannot waive red jobs or unqualified routes. |
+| 8 | P9 external dispositions | Advance a J-item only when its exact successor lineage, source/profile, platform, and independent-semantics conditions become available. | DEFERRED_EXTERNAL; never block local slices or promote support from advisory evidence. |
 
 **Current consumer check:** LibreCAD_3 PR #456 is OPEN and CONFLICTING as of
 2026-11-16; its head is based on master `5cf435f4` and is `7e81275b`. Recheck
@@ -172,8 +180,8 @@ lighting/plotting as separate gates.
 | P6-C | Select an uncovered TABLECONTENT/DATATABLE graph and verify nested references and versioned writer behavior. | Every selected child, row and dependency resolves in fresh ASCII/Binary output; retained unknown state is not discarded. |
 | P6-D | Use the current source/feature census to identify one uncovered version/field pair that has a physical source span. Add one boundary control, implement only the missing parser/writer/disposition, and record the next pair without expanding scope mid-slice. | Per-profile typed/normalized/raw/refused/dropped classification, geometry and unit/OCS preservation, source and independent consumer evidence. The package closes only after its selected coverage matrix is complete. |
 | P6-E | Select an unbound HEADER envelope or suffix profile; map declared data, CRC, sentinels, trailer and unclaimed bytes. | Complete physical accounting and version-specific reason for every byte; unexplained suffixes remain refused. |
-| P6-F | Select the first uncompleted OBJECTS parser with a physical frame in the current inventory; create one bounded malformed variant locally and exercise the owning CLI route. | Exact frame accounting, tolerant continuation, strict destination preservation, partial-output disposition, fresh readback and corrected retry. |
-| P6-G | Wire the completed bounded one-Normal typed/raw graph through the existing source-aware `dx_iface` AC1021 export path. Resolve the source group-280 case explicitly: typed normalization must be proven conformant, otherwise refuse it. After that adapter slice, use the [public-writer test index](docs/research/p6-dxf-public-writer-test-mention-index-2026-11-16.json) to select the next uncovered writer route. | Source-to-output identity/reference fidelity, version gates, caller/destination rollback, same-adapter/writer retry and independent ASCII/Binary readback for each admitted profile. |
+| P6-F | Continue from the existing disposition receipts. Select the next missing revision/output cell, prioritizing AC1012/AC1014 CLI output/readback; add a generated malformed source only when the harness has no eligible frame. | Exact frame accounting, tolerant continuation, strict destination preservation, partial-output disposition, fresh readback and corrected retry for each admitted cell. Synthetic recovery controls alone do not establish semantic support. |
+| P6-G | Refresh the [public-writer test index](docs/research/p6-dxf-public-writer-test-mention-index-2026-11-16.json) against the implementation HEAD. Audit actual assertions for the lowest-cost route missing a focused success/refusal/retry/readback control; implement one route using existing local inputs and harnesses. The default-only AC1021 adapter profile is complete. | Source-to-output identity/reference fidelity, version gates, caller/destination rollback, same-adapter/writer retry and independent ASCII/Binary readback for each admitted profile. Index mentions alone do not satisfy this gate. |
 
 For P6-D, include legacy through current DWG/DXF revisions, 2D/3D entities,
 HATCH/MPOLYGON, SPLINE, MLINESTYLE, dimensions/text, IMAGE/UNDERLAY,
@@ -203,9 +211,20 @@ local and public AC1024 screens reach the CLASSES end; do not change the
 high-bit footer decoder based only on the historical report
 ([current corpus trace](docs/research/p6-ac1024-classes-current-corpus-trace-2026-11-12.json)).
 Keep the separate short-tail/LTYPE_CONTROL source refused until its own roles
-are proven. For P6-F, complete eligible AC1012/AC1014 DWG-source CLI
-output/readback and remaining partial-read profiles; do not infer these from
-DXF-only defaults.
+are proven. For P6-F, use the existing receipts as the completed-control
+inventory rather than replaying the full recovery matrix. Generated malformed
+MLINESTYLE/common-prologue recovery, skipped custom-class disposition across
+six source revisions, and SPATIAL_INDEX recovery for the admitted AC1015,
+AC1018, and AC1021 profiles already have focused receipts. AC1027
+source-reference closure remains a separate reader-only limitation. The next
+CLI gap is eligible AC1012/AC1014 DWG-source output/readback plus only those
+partial-read revision/encoding cells absent from the receipts. Reuse generated
+controls when no repository-owned producer sample exists. Do not rerun the
+aggregate partial-read suite unless shared behavior changed. See the
+[six-revision disposition receipt](docs/research/p6-cli-skipped-record-disposition-six-revisions-2026-11-14.json),
+[malformed-object receipt](docs/research/p6-cli-malformed-object-body-recovery-2026-11-14.json),
+[SPATIAL_INDEX receipt](docs/research/p6-cli-malformed-spatial-index-body-recovery-2026-11-15.json),
+and [mutation-boundary receipt](docs/research/p6-cli-object-body-mutation-boundary-2026-11-15.json).
 
 For P6-E, the AC1027 Cover source has 731 unexplained bytes after its HEADER
 end sentinel; retain them as unclaimed and keep strict output refused until a
@@ -214,8 +233,10 @@ CRC-valid envelope followed by 739 unclaimed bytes. Its varying suffix has not b
 strict refusal and resolve its origin before accepting it
 ([repeatability evidence](docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json)).
 For P6-G, the one-Normal typed/raw writer projection is complete and removed
-from the queue. The adapter-bound step is the first action in the implementation
-queue. Projection limits and scratch witnesses are in the
+from the queue. The AC1021 adapter-bound profile is also complete and is
+recorded in the [adapter receipt](docs/research/p6g-ac1021-dx_iface-default-plotstyle-adapter-2026-11-16.json).
+P6-G next selects one separate public-writer route from current assertions and
+the refreshed navigation index. Projection limits and scratch witnesses are in the
 [typed receipt](docs/research/p8-caller-typed-plotstyle-default-graph-2026-11-16.json)
 and [raw receipt](docs/research/p8-caller-raw-plotstyle-default-graph-2026-11-16.json).
 
@@ -353,6 +374,6 @@ skipped.
 7. Keep the queue separate from the historical ledger. A completed subslice is
    deleted immediately, but its package remains open until its exit evidence
    passes. Update the **33-package** count only when a package closes or a
-   missing package is identified. The **737** completed-slice ledger and 95.7%
-   count proxy (`737 / (737 + 33)`) are activity bookkeeping, not effort or
+   missing package is identified. The **738** completed-slice ledger and 95.7%
+   count proxy (`738 / (738 + 33)`) are activity bookkeeping, not effort or
    support-progress measures.
