@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **730 completed implementation and qualification slices** and **32 remaining
+The plan records **731 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`730 / (730 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
+`731 / (731 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -19,7 +19,7 @@ activity proxy, not as the percentage of package gates completed.
 
 The remaining consumer work includes integrating and qualifying the unmerged
 LibreCAD and LibreCAD_3 patches, preserving source-bound object graphs without
-loss, and native/platform verification. The LibreCAD_3 candidate now reports conversion of unrepresentable layer widths; both codec paths pass focused legacy/modern readback and retry controls ([receipt](docs/research/p8-librecad3-custom-layer-lineweight-loss-2026-11-16.json)). The subsequent entity-width patch reports unrepresentable or legacy-omitted widths and preserves modern representable/ByBlock readback ([receipt](docs/research/p8-librecad3-entity-lineweight-loss-2026-11-16.json)). Absent-legacy-width provenance remains unresolved. The focused installed-codec LibreCAD
+loss, and native/platform verification. The LibreCAD_3 candidate now reports conversion of unrepresentable layer widths; both codec paths pass focused legacy/modern readback and retry controls ([receipt](docs/research/p8-librecad3-custom-layer-lineweight-loss-2026-11-16.json)). The subsequent entity-width patch reports unrepresentable or legacy-omitted widths and preserves modern representable/ByBlock readback ([receipt](docs/research/p8-librecad3-entity-lineweight-loss-2026-11-16.json)). The selected absent-legacy and symbolic-default profiles now retain their distinction from explicit widths; the 0.25 mm display value is a fallback, and configurable defaults and other source profiles remain open ([receipt](docs/research/p8-librecad3-default-layer-lineweight-2026-11-16.json)). The focused installed-codec LibreCAD
 tests pass for the zero-reactor generated source profile; that is source
 correlation, not output or full-drawing qualification
 ([receipt](docs/research/p8-librecad-zero-reactor-sortents-source-2026-11-15.json)).
@@ -291,18 +291,19 @@ Native GUI behavior, independent semantics and upstream integration remain open.
   `990c7202cd79396382671b056f83464cc9fd0cce` combines the three MPOLYGON
   patches with the adapter and unit test from open PR #456 at
   `7e81275b71038d4a42fa580842e661ddcee7adbf`, followed by
-  [the legacy-layer loss patch](docs/patches/librecad3-p8-legacy-layer-lineweight-2026-11-16.patch) and [MLINE import loss reporting](docs/patches/librecad3-p8-mline-import-loss-2026-11-16.patch), then [WIPEOUT import loss reporting](docs/patches/librecad3-p8-wipeout-import-loss-2026-11-16.patch), then [MULTILEADER import loss reporting](docs/patches/librecad3-p8-mleader-import-loss-2026-11-16.patch), then [modeler geometry import loss reporting](docs/patches/librecad3-p8-modeler-import-loss-2026-11-16.patch), then [underlay import loss reporting](docs/patches/librecad3-p8-underlay-import-loss-2026-11-16.patch), then [SHAPE import loss reporting](docs/patches/librecad3-p8-shape-import-loss-2026-11-16.patch), followed by [the ABI-3 system-codec and LTYPE fix](docs/patches/librecad3-p8-abi3-system-codec-2026-11-16.patch).
-  That final patch adds an opt-in installed 3.x package while retaining the
+  [the legacy-layer loss patch](docs/patches/librecad3-p8-legacy-layer-lineweight-2026-11-16.patch) and [MLINE import loss reporting](docs/patches/librecad3-p8-mline-import-loss-2026-11-16.patch), then [WIPEOUT import loss reporting](docs/patches/librecad3-p8-wipeout-import-loss-2026-11-16.patch), then [MULTILEADER import loss reporting](docs/patches/librecad3-p8-mleader-import-loss-2026-11-16.patch), then [modeler geometry import loss reporting](docs/patches/librecad3-p8-modeler-import-loss-2026-11-16.patch), then [underlay import loss reporting](docs/patches/librecad3-p8-underlay-import-loss-2026-11-16.patch), then [SHAPE import loss reporting](docs/patches/librecad3-p8-shape-import-loss-2026-11-16.patch), followed by [the ABI-3 system-codec and LTYPE fix](docs/patches/librecad3-p8-abi3-system-codec-2026-11-16.patch), [custom layer-width loss reporting](docs/patches/librecad3-p8-unrepresentable-layer-width-2026-11-16.patch), [entity-width loss reporting](docs/patches/librecad3-p8-entity-lineweight-loss-2026-11-16.patch), and [default layer-width preservation](docs/patches/librecad3-p8-default-layer-lineweight-2026-11-16.patch). Apply the three latter patches with `git apply --unidiff-zero`.
+  The ABI-3 patch adds an opt-in installed 3.x package while retaining the
   pinned codec as default, fixes a canonical LTYPE description carry-over that
   broke 3.x saves, and makes the legacy lossy-write tests follow the documented
   bool-save contract. Fourteen focused persistence tests pass with each codec,
   including all advertised DXF save types and a 3D segment round-trip. The
   macOS Python-runtime staging now selects the imported codec for the active
   configuration; a generated two-location Debug/Release control passes. The
-  complete local candidate ends at `ae159e2358a6cee80b66dfbcd06b637e1d6a8e0e`
+  complete local candidate ends at `1ab08f5819f31053d5540b0c3e1259b865b8265d`
   on master `4fb48312708b39d499f7e6668104a3b54a8601c7`; it is not published
-  or merged. Default-lineweight source provenance, full GUI/install and native
-  platform qualification remain open
+  or merged. Selected default-lineweight import/export and layer-dialog controls
+  pass, while configurable defaults, full GUI/install and native platform
+  qualification remain open
   ([receipt](docs/research/p8-librecad3-abi3-system-codec-2026-11-16.json)).
   Apply only those two PR #456 source/test paths from its pinned diff; its full
   diff does not apply cleanly to current master. The current installed-codec
@@ -338,9 +339,9 @@ Native GUI behavior, independent semantics and upstream integration remain open.
   A runtime-generated DXF control checks SHAPE loss accounting and ordinary
   LINE retention with both codecs ([receipt](docs/research/p8-librecad3-shape-import-loss-2026-11-16.json)).
   The absent SHX file and consumer rendering remain unqualified.
-  A bool-only save still reports failure after a lossy write; resolve the UI
-  and provenance treatment of default layer widths before claiming full save
-  compatibility ([receipt](docs/research/p8-librecad3-legacy-layer-lineweight-2026-11-16.json)).
+  A bool-only save still reports failure after a lossy write; the selected
+  default-layer provenance and dialog behavior are fixed locally, but resolve
+  configurable defaults and the full save UI before claiming full compatibility ([receipt](docs/research/p8-librecad3-legacy-layer-lineweight-2026-11-16.json)).
 
 Apply these patches under `docs/patches/` in the following order, each with
 suffix `-2026-11-15.patch`, rebasing as needed against the consumer head:

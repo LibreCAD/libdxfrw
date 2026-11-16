@@ -1,0 +1,327 @@
+diff --git a/lcUI/dialogs/addlayerdialog.cpp b/lcUI/dialogs/addlayerdialog.cpp
+index 6138813..78c057c 100644
+--- a/lcUI/dialogs/addlayerdialog.cpp
++++ b/lcUI/dialogs/addlayerdialog.cpp
+@@ -19,0 +20,3 @@ AddLayerDialog::AddLayerDialog(lc::meta::Layer_CSPtr oldLayer, lc::storage::Docu
++    // Layer DEFAULT is distinct from an explicit 0.25 mm value.
++    lineWidthSelect->insertItem(0, tr("Default"));
++    lineWidthSelect->setCurrentIndex(0);
+@@ -34 +37,5 @@ AddLayerDialog::AddLayerDialog(lc::meta::Layer_CSPtr oldLayer, lc::storage::Docu
+-        lineWidthSelect->setWidth(std::make_shared<lc::meta::MetaLineWidthByValue>(_oldLayer->lineWidth()));
++        if (_oldLayer->usesDefaultLineWidth()) {
++            lineWidthSelect->setCurrentIndex(0);
++        } else {
++            lineWidthSelect->setWidth(std::make_shared<lc::meta::MetaLineWidthByValue>(_oldLayer->lineWidth()));
++        }
+@@ -60 +67,4 @@ void AddLayerDialog::accept() {
+-    auto lineWidth = std::dynamic_pointer_cast<const lc::meta::MetaLineWidthByValue>(lineWidthSelect->lineWidth());
++    const bool usesDefault = lineWidthSelect->currentIndex() == 0;
++    auto lineWidth = usesDefault
++        ? std::make_shared<const lc::meta::MetaLineWidthByValue>(0.25)
++        : std::dynamic_pointer_cast<const lc::meta::MetaLineWidthByValue>(lineWidthSelect->lineWidth());
+@@ -65,16 +75,8 @@ void AddLayerDialog::accept() {
+-    if(linePattern == nullptr) {
+-        layer = std::make_shared<const lc::meta::Layer>(
+-                    ui->name->text().toStdString(),
+-                    *lineWidth,
+-                    colorSelect->color()
+-                );
+-    }
+-    else {
+-        layer = std::make_shared<const lc::meta::Layer>(
+-                    ui->name->text().toStdString(),
+-                    *lineWidth,
+-                    colorSelect->color(),
+-                    linePattern,
+-                    false
+-                );
+-    }
++    layer = std::make_shared<const lc::meta::Layer>(
++                ui->name->text().toStdString(),
++                *lineWidth,
++                colorSelect->color(),
++                linePattern,
++                _oldLayer != nullptr && _oldLayer->isFrozen(),
++                usesDefault
++            );
+diff --git a/lcUI/widgets/layers.cpp b/lcUI/widgets/layers.cpp
+index 653efdf..2ab5e8c 100644
+--- a/lcUI/widgets/layers.cpp
++++ b/lcUI/widgets/layers.cpp
+@@ -102 +102,2 @@ void Layers::on_layerList_clicked(const QModelIndex& index) {
+-                            locked
++                            locked,
++                            layer->usesDefaultLineWidth()
+@@ -119 +120,2 @@ void Layers::changeLayerName(lc::meta::Layer_CSPtr& layer, const std::string& na
+-                        layer->isFrozen()
++                        layer->isFrozen(),
++                        layer->usesDefaultLineWidth()
+diff --git a/lckernel/cad/builders/layer.cpp b/lckernel/cad/builders/layer.cpp
+index 07532e1..09812fd 100644
+--- a/lckernel/cad/builders/layer.cpp
++++ b/lckernel/cad/builders/layer.cpp
+@@ -12 +12,2 @@ LayerBuilder::LayerBuilder() :
+-    _isFrozen(false) {
++    _isFrozen(false),
++    _usesDefaultLineWidth(false) {
+@@ -35,0 +37,4 @@ bool LayerBuilder::isFrozen() const {
++bool LayerBuilder::usesDefaultLineWidth() const {
++    return _usesDefaultLineWidth;
++}
++
+@@ -43,0 +49,6 @@ LayerBuilder* LayerBuilder::setLineWidth(const meta::MetaLineWidthByValue& lineW
++    _usesDefaultLineWidth = false;
++    return this;
++}
++
++LayerBuilder* LayerBuilder::setUsesDefaultLineWidth(bool usesDefault) {
++    _usesDefaultLineWidth = usesDefault;
+diff --git a/lckernel/cad/builders/layer.h b/lckernel/cad/builders/layer.h
+index cbc8ff6..1668f21 100644
+--- a/lckernel/cad/builders/layer.h
++++ b/lckernel/cad/builders/layer.h
+@@ -30,0 +31 @@ public:
++    bool usesDefaultLineWidth() const;
+@@ -33,0 +35 @@ public:
++    LayerBuilder* setUsesDefaultLineWidth(bool usesDefault);
+@@ -47,0 +50 @@ private:
++    bool _usesDefaultLineWidth;
+diff --git a/lckernel/cad/meta/layer.cpp b/lckernel/cad/meta/layer.cpp
+index 18d6b2f..ed32186 100644
+--- a/lckernel/cad/meta/layer.cpp
++++ b/lckernel/cad/meta/layer.cpp
+@@ -12,0 +13,8 @@ Layer::Layer(std::string name,
++    Layer(std::move(name), lineWidth, color, std::move(linepattern), frozen, false) {
++}
++
++Layer::Layer(std::string name,
++             const MetaLineWidthByValue& lineWidth,
++             const Color& color,
++             DxfLinePatternByValue_CSPtr linepattern,
++             bool frozen, bool usesDefaultLineWidth) :
+@@ -19 +27,2 @@ Layer::Layer(std::string name,
+-    _isFrozen(frozen) {
++    _isFrozen(frozen),
++    _usesDefaultLineWidth(usesDefaultLineWidth) {
+@@ -30 +39,2 @@ Layer::Layer(const builder::LayerBuilder& builder) :
+-    _isFrozen(builder.isFrozen()) {
++    _isFrozen(builder.isFrozen()),
++    _usesDefaultLineWidth(builder.usesDefaultLineWidth()) {
+@@ -40,0 +51,4 @@ MetaLineWidthByValue Layer::lineWidth() const {
++bool Layer::usesDefaultLineWidth() const {
++    return _usesDefaultLineWidth;
++}
++
+diff --git a/lckernel/cad/meta/layer.h b/lckernel/cad/meta/layer.h
+index 5fb5ac2..4fe1e68 100644
+--- a/lckernel/cad/meta/layer.h
++++ b/lckernel/cad/meta/layer.h
+@@ -23,0 +24,3 @@ public:
++    Layer(std::string name, const MetaLineWidthByValue& lineWidth,
++          const Color& color, DxfLinePatternByValue_CSPtr linepattern,
++          bool frozen, bool usesDefaultLineWidth);
+@@ -40,0 +44,3 @@ public:
++    // lineWidth() is the display fallback when the layer uses DXF DEFAULT.
++    bool usesDefaultLineWidth() const;
++
+@@ -60,0 +67 @@ private:
++    bool _usesDefaultLineWidth;
+diff --git a/persistence/libdxfrw/dxfimpl.cpp b/persistence/libdxfrw/dxfimpl.cpp
+index bc72e1b..e56db6b 100644
+--- a/persistence/libdxfrw/dxfimpl.cpp
++++ b/persistence/libdxfrw/dxfimpl.cpp
+@@ -687,0 +688 @@ void DXFimpl::addLayer(const DRW_Layer& data) {
++        const bool usesDefaultWidth = data.lWeight == DRW_LW_Conv::widthDefault;
+@@ -691 +692,4 @@ void DXFimpl::addLayer(const DRW_Layer& data) {
+-            lw = getLcLineWidth<lc::meta::MetaLineWidthByValue>(DRW_LW_Conv::lineWidth::width00);
++            // AutoCAD's initial DEFAULT is 0.25 mm. Preserve the symbolic
++            // value separately: another installation can choose a different default.
++            lw = std::make_shared<lc::meta::MetaLineWidthByValue>(
++                usesDefaultWidth ? 0.25 : 0.0);
+@@ -697 +701,2 @@ void DXFimpl::addLayer(const DRW_Layer& data) {
+-        auto layer = std::make_shared<lc::meta::Layer>(data.name, lw->width(), col->color(), lp, isFrozen);
++        auto layer = std::make_shared<lc::meta::Layer>(
++            data.name, lw->width(), col->color(), lp, isFrozen, usesDefaultWidth);
+@@ -1677 +1682,3 @@ void DXFimpl::writeLayer(const std::shared_ptr<const lc::meta::Layer>& layer) {
+-    if (lwIdx >= 0) {
++    if (layer->usesDefaultLineWidth()) {
++        lay.lWeight = DRW_LW_Conv::widthDefault;
++    } else if (lwIdx >= 0) {
+diff --git a/unittest/persistence/dxfroundtriptest.cpp b/unittest/persistence/dxfroundtriptest.cpp
+index 02d0368..0fe0dc1 100644
+--- a/unittest/persistence/dxfroundtriptest.cpp
++++ b/unittest/persistence/dxfroundtriptest.cpp
+@@ -1412,0 +1413,5 @@ TEST(DxfRoundTripTest, RoundTripIsStable) {
++            const auto savedLayers = carried->allLayers();
++            const bool hasExplicitLayerWidth = std::any_of(savedLayers.begin(), savedLayers.end(),
++                [](const decltype(*savedLayers.begin())& entry) {
++                    return !entry.second->usesDefaultLineWidth();
++                });
+@@ -1420 +1425 @@ TEST(DxfRoundTripTest, RoundTripIsStable) {
+-            if (legacy) {
++            if (legacy && hasExplicitLayerWidth) {
+@@ -3430,0 +3436,105 @@ TEST(DxfRoundTripTest, EntityLineweightLossIsReportedAndRepresentableWeightsRoun
++
++// A legacy LAYER has no group 370. Import should retain its default state,
++// rather than manufacture an explicit 0 mm width that then looks lost.
++// NOLINTNEXTLINE(readability-identifier-naming)
++TEST(DxfRoundTripTest, LegacyAbsentLayerLineweightRemainsDefault) {
++    const auto source = uniqueTmpDxf("legacy-default-layer-width");
++    {
++        std::ofstream file(source);
++        ASSERT_TRUE(file << "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1009\n0\nENDSEC\n"
++                         "0\nSECTION\n2\nTABLES\n0\nTABLE\n2\nLAYER\n70\n1\n"
++                         "0\nLAYER\n2\n0\n70\n0\n62\n7\n6\nCONTINUOUS\n"
++                         "0\nENDTAB\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n"
++                         "0\nLINE\n8\n0\n10\n0\n20\n0\n11\n4\n21\n3\n"
++                         "0\nENDSEC\n0\nEOF\n");
++    }
++    auto doc = newDocument();
++    ASSERT_TRUE(lc::persistence::File::importFile(
++        doc, source, lc::persistence::File::Library::LIBDXFRW).ok);
++    ASSERT_NE(doc->layerByName("0"), nullptr);
++    EXPECT_TRUE(doc->layerByName("0")->usesDefaultLineWidth());
++    EXPECT_DOUBLE_EQ(doc->layerByName("0")->lineWidth().width(), 0.25);
++    const lc::persistence::File::Type targets[] = {
++        lc::persistence::File::LIBDXFRW_DXF_R12,
++        lc::persistence::File::LIBDXFRW_DXF_R14,
++        lc::persistence::File::LIBDXFRW_DXB_R12,
++        lc::persistence::File::LIBDXFRW_DXB_R14,
++        lc::persistence::File::LIBDXFRW_DXF_R2000,
++        lc::persistence::File::LIBDXFRW_DXB_R2000};
++    for (const auto type : targets) {
++        const auto path = uniqueTmpDxf("legacy-default-layer-export");
++        const auto written = lc::persistence::File::exportFile(doc, path, type);
++        ASSERT_TRUE(written.ok) << static_cast<int>(type);
++        EXPECT_TRUE(written.loss.empty()) << static_cast<int>(type);
++        EXPECT_TRUE(lc::persistence::File::save(doc, path, type));
++        auto reopened = newDocument();
++        ASSERT_TRUE(lc::persistence::File::importFile(
++            reopened, path, lc::persistence::File::Library::LIBDXFRW).ok);
++        ASSERT_NE(reopened->layerByName("0"), nullptr);
++        EXPECT_TRUE(reopened->layerByName("0")->usesDefaultLineWidth());
++        EXPECT_DOUBLE_EQ(reopened->layerByName("0")->lineWidth().width(), 0.25);
++        EXPECT_EQ(entitiesInDocument(reopened)["Line"], 1u);
++        boost::filesystem::remove(path);
++    }
++    boost::filesystem::remove(source);
++}
++
++
++// NOLINTNEXTLINE(readability-identifier-naming)
++TEST(DxfRoundTripTest, DefaultAndExplicitLayerWidthsRemainDistinct) {
++    auto doc = newDocument();
++    auto layerDefault = std::make_shared<lc::meta::Layer>(
++        "DEFAULT_WIDTH", lc::meta::MetaLineWidthByValue(0.25),
++        lc::Color(255, 255, 255, 255), nullptr, false, true);
++    auto layerExplicit = std::make_shared<lc::meta::Layer>(
++        "EXPLICIT_WIDTH", lc::meta::MetaLineWidthByValue(0.25),
++        lc::Color(255, 255, 255, 255));
++    std::make_shared<lc::operation::AddLayer>(doc, layerDefault)->execute();
++    std::make_shared<lc::operation::AddLayer>(doc, layerExplicit)->execute();
++    lc::builder::LayerBuilder builder;
++    builder.setName("BUILT")->setLineWidth(lc::meta::MetaLineWidthByValue(0.25))
++        ->setUsesDefaultLineWidth(true);
++    EXPECT_TRUE(builder.build()->usesDefaultLineWidth());
++    builder.setLineWidth(lc::meta::MetaLineWidthByValue(0.25));
++    EXPECT_FALSE(builder.build()->usesDefaultLineWidth());
++    for (const auto type : {lc::persistence::File::LIBDXFRW_DXF_R2000,
++                            lc::persistence::File::LIBDXFRW_DXB_R2000}) {
++        const auto path = uniqueTmpDxf("default-explicit-layer");
++        const auto saved = lc::persistence::File::exportFile(doc, path, type);
++        ASSERT_TRUE(saved.ok);
++        EXPECT_TRUE(saved.loss.empty());
++        if (type == lc::persistence::File::LIBDXFRW_DXF_R2000) {
++            std::ifstream input(path);
++            std::string code, value, layerName;
++            bool inLayer = false;
++            std::map<std::string, int> weights;
++            while (std::getline(input, code) && std::getline(input, value)) {
++                if (!value.empty() && value.back() == '\r') value.pop_back();
++                const int group = std::stoi(code);
++                if (group == 0) {
++                    inLayer = value == "LAYER";
++                    layerName.clear();
++                } else if (inLayer && group == 2) {
++                    layerName = value;
++                } else if (inLayer && group == 370) {
++                    weights[layerName] = std::stoi(value);
++                }
++            }
++            ASSERT_EQ(weights.count("DEFAULT_WIDTH"), 1u);
++            ASSERT_EQ(weights.count("EXPLICIT_WIDTH"), 1u);
++            EXPECT_EQ(weights.at("DEFAULT_WIDTH"), -3);
++            EXPECT_EQ(weights.at("EXPLICIT_WIDTH"), 25);
++        }
++        auto reopened = newDocument();
++        ASSERT_TRUE(lc::persistence::File::importFile(
++            reopened, path, lc::persistence::File::Library::LIBDXFRW).ok);
++        ASSERT_NE(reopened->layerByName("DEFAULT_WIDTH"), nullptr);
++        ASSERT_NE(reopened->layerByName("EXPLICIT_WIDTH"), nullptr);
++        EXPECT_TRUE(reopened->layerByName("DEFAULT_WIDTH")->usesDefaultLineWidth());
++        EXPECT_FALSE(reopened->layerByName("EXPLICIT_WIDTH")->usesDefaultLineWidth());
++        EXPECT_DOUBLE_EQ(reopened->layerByName("DEFAULT_WIDTH")->lineWidth().width(), 0.25);
++        EXPECT_DOUBLE_EQ(reopened->layerByName("EXPLICIT_WIDTH")->lineWidth().width(), 0.25);
++        boost::filesystem::remove(path);
++    }
++}
++
+diff --git a/unittest/ui/testlayers.cpp b/unittest/ui/testlayers.cpp
+index 797cdae..7111d56 100644
+--- a/unittest/ui/testlayers.cpp
++++ b/unittest/ui/testlayers.cpp
+@@ -239,0 +240,54 @@ TEST(LayersTest, ButtonClickTest) {
++
++TEST(LayersTest, EditingKeepsOrChangesDefaultLineweightExplicitly) {
++    ensureUiApplication();
++    auto document = createDocument();
++    const auto color = lc::Color(255, 255, 255, 255);
++    const auto originalDefault = std::make_shared<const lc::meta::Layer>(
++        "DefaultLayer", lc::meta::MetaLineWidthByValue(0.25), color, nullptr, true, true);
++    const auto originalExplicit = std::make_shared<const lc::meta::Layer>(
++        "ExplicitLayer", lc::meta::MetaLineWidthByValue(0.25), color, nullptr, true, false);
++
++    auto edit = [&](lc::meta::Layer_CSPtr source, bool selectDefault) {
++        AddLayerDialogTest dialog(source, document);
++        lc::meta::Layer_CSPtr result;
++        QObject::connect(&dialog, &lc::ui::dialog::AddLayerDialog::editLayer,
++            [&](lc::meta::Layer_CSPtr, lc::meta::Layer_CSPtr changed) { result = changed; });
++        auto* selector = dialog.findChild<lc::ui::widgets::LineWidthSelect*>();
++        EXPECT_NE(selector, nullptr);
++        if (selector == nullptr) return result;
++        if (selectDefault) {
++            selector->setCurrentIndex(0);
++        } else {
++            selector->setWidth(std::make_shared<lc::meta::MetaLineWidthByValue>(0.25));
++        }
++        EXPECT_TRUE(QMetaObject::invokeMethod(&dialog, "accept"));
++        return result;
++    };
++
++    for (const auto& item : {std::make_pair(originalDefault, true),
++                             std::make_pair(originalDefault, false),
++                             std::make_pair(originalExplicit, true),
++                             std::make_pair(originalExplicit, false)}) {
++        auto result = edit(item.first, item.second);
++        ASSERT_NE(result, nullptr);
++        EXPECT_EQ(result->usesDefaultLineWidth(), item.second);
++        EXPECT_TRUE(result->isFrozen());
++        EXPECT_DOUBLE_EQ(result->lineWidth().width(), 0.25);
++    }
++}
++
++TEST(LayersTest, RenamingKeepsDefaultLineweight) {
++    ensureUiApplication();
++    lc::ui::CadMdiChild mdiChild;
++    mdiChild.newDocument();
++    LayersTest layers(&mdiChild);
++    auto original = std::make_shared<const lc::meta::Layer>(
++        "DefaultWidth", lc::meta::MetaLineWidthByValue(0.25),
++        lc::Color(255, 255, 255, 255), nullptr, false, true);
++    layers.addLayer(original);
++    layers.renameLayer("DefaultWidth", "RenamedDefault");
++    auto renamed = layers.layerByName("RenamedDefault");
++    ASSERT_NE(renamed, nullptr);
++    EXPECT_TRUE(renamed->usesDefaultLineWidth());
++    EXPECT_DOUBLE_EQ(renamed->lineWidth().width(), 0.25);
++}
