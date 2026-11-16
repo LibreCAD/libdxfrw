@@ -4893,8 +4893,8 @@ public:
   [[nodiscard]] bool hasDxfMaterialImplicitTail() const noexcept {
     return m_dxfMaterialImplicitTail && !m_dxfMaterialGenProcTableStarted;
   }
-  //! The sparse source profile contains an ambiguous field retained only in
-  //! its raw DXF record. Both typed encoders must refuse this state.
+  //! The sparse source profile contains fields or omissions that are only
+  //! qualified for raw DXF retention. Both typed encoders refuse this state.
   [[nodiscard]] bool requiresRawDxfMaterialReplay() const noexcept {
     return m_dxfMaterialImplicitTail && m_dxfMaterialGenProcTableStarted;
   }

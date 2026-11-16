@@ -28544,6 +28544,46 @@ bool dxfRW::processMaterial() {
     DRW_RawDxfObject raw;
     bool pendingSparseTail = false;
     bool pendingCompactTail = false;
+    bool pendingMinimalChannelTail = false;
+    // A bounded R2007 prefix with only common metadata and a material name
+    // makes a final group 94 unambiguous without guessing any map fields.
+    const auto isMinimalChannelPrefix = [&]() {
+        if (reader->getSourceVersion() != DRW::AC1021
+            || raw.handle == 0u || raw.parentHandle == 0u
+            || raw.handle == DRW::NoHandle || raw.parentHandle == DRW::NoHandle
+            || data.handle != raw.handle || data.parentHandle != raw.parentHandle
+            || data.m_name.empty())
+            return false;
+        unsigned depth = 0, handles = 0, owners = 0, subclasses = 0, names = 0;
+        for (const DRW_Variant& group : raw.groups) {
+            if (group.code() == 102) {
+                if (group.type() != DRW_Variant::STRING || group.content.s == nullptr)
+                    return false;
+                const std::string& text = *group.content.s;
+                if (!text.empty() && text.front() == '{'
+                    && depth < DRW::kMaxDxfApplicationGroupNesting) ++depth;
+                else if (text == "}" && depth != 0u) --depth;
+                else return false;
+            } else if (depth == 0u) {
+                switch (group.code()) {
+                case 5: ++handles; break;
+                case 330: ++owners; break;
+                case 100:
+                    if (group.type() != DRW_Variant::STRING || group.content.s == nullptr
+                        || *group.content.s != "AcDbMaterial") return false;
+                    ++subclasses;
+                    break;
+                case 1:
+                    if (subclasses != 1u) return false;
+                    ++names;
+                    break;
+                default: return false;
+                }
+            }
+        }
+        return depth == 0u && handles == 1u && owners == 1u
+            && subclasses == 1u && names == 1u;
+    };
     const auto isSparseProducerPrefix = [&]() {
         constexpr int codes[] = {5,102,330,102,330,100,1,71,91,72,273};
         if (reader->getSourceVersion() != DRW::AC1027 || raw.groups.size() != 11u
@@ -28624,6 +28664,13 @@ bool dxfRW::processMaterial() {
                 data.m_dxfMaterialGenProcTableStarted = true;
                 data.m_dxfMaterialImplicitTail = true;
             }
+            if (pendingMinimalChannelTail) {
+                // The omitted body has no qualified typed-output profile.
+                // Publish the known flag to readers while forcing both typed
+                // encoders to refuse this partial source representation.
+                data.m_dxfMaterialGenProcTableStarted = true;
+                data.m_dxfMaterialImplicitTail = true;
+            }
             DRW_DBG(nextentity); DRW_DBG("\n");
             iface->addMaterial(data);
             iface->addRawDxfObject(raw);  // no typed writer: raw re-emits on DXF->DXF
@@ -28639,8 +28686,17 @@ bool dxfRW::processMaterial() {
                 return setError(DRW::BAD_CODE_PARSED);
             continue;
         }
-        if (pendingSparseTail)
+        if (pendingSparseTail || pendingMinimalChannelTail)
             return setError(DRW::BAD_CODE_PARSED);
+        if (code == 94 && isMinimalChannelPrefix()) {
+            const std::int32_t channelFlags = reader->getInt32();
+            if (!captureRawGroup(raw, code, /*validateHandles=*/true))
+                return setError(DRW::BAD_CODE_PARSED);
+            data.m_channelFlags = channelFlags;
+            data.m_hasChannelFlags = true;
+            pendingMinimalChannelTail = true;
+            continue;
+        }
         if (code == 94 && reader->getInt32() == 127 && isCompactProducerPrefix()) {
             const auto* policy = dynamic_cast<const DRW_DxfSparseMaterialRawPolicy*>(iface);
             if (policy && policy->wantsDxfSparseMaterialRawCapture()) {

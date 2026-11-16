@@ -3389,6 +3389,10 @@ if(LIBDXFRW_BUILD_TESTS)
         COMMAND libdxfrw_dxf_fixture_tests --plot-custom-dpi-admission)
     set_tests_properties(libdxfrw_plot_custom_dpi_admission PROPERTIES
         LABELS "fast;dxf;plotsettings;writer;generated" TIMEOUT 30)
+    add_test(NAME libdxfrw_sparse_material_control_groups
+        COMMAND libdxfrw_dxf_fixture_tests --raw-control-groups)
+    set_tests_properties(libdxfrw_sparse_material_control_groups PROPERTIES
+        LABELS "fast;dxf;material;reader;retry" TIMEOUT 30)
     add_test(NAME libdxfrw_classic_vertex_xdata
         COMMAND libdxfrw_dxf_fixture_tests --classic-vertex-xdata)
     set_tests_properties(libdxfrw_classic_vertex_xdata PROPERTIES

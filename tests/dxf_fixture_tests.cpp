@@ -32935,7 +32935,8 @@ void testEed(TestContext& t) {
 void testRawControls(TestContext& t) {
     FixtureInterface interface_;
     dx_data data;
-    t.expect(importFixture("raw_control_groups_r2007.dxf", interface_, data),
+    const bool imported = importFixture("raw_control_groups_r2007.dxf", interface_, data);
+    t.expect(imported,
              "raw control-group fixture imports");
     t.expect(interface_.dictionaries.size() == 2,
              "raw control-group fixture publishes dictionary records");
@@ -32943,6 +32944,136 @@ void testRawControls(TestContext& t) {
              "raw control-group fixture publishes material records");
     t.expect(interface_.xrecords.size() == 1,
              "raw control-group fixture publishes xrecord record");
+    if (!imported) return;
+    const auto material = std::find_if(interface_.materials.begin(), interface_.materials.end(),
+        [](const DRW_Material& value) { return value.handle == 0x90u; });
+    const auto raw = std::find_if(interface_.rawObjects.begin(), interface_.rawObjects.end(),
+        [](const DRW_RawDxfObject& value) { return value.name == "MATERIAL" && value.handle == 0x90u; });
+    t.expect(material != interface_.materials.end() && material->m_hasChannelFlags
+                 && material->m_channelFlags == 7 && material->parentHandle == 0xCu,
+             "minimal sparse material publishes its channel flags and common owner");
+    if (material != interface_.materials.end()) {
+        t.expect(material->requiresRawDxfMaterialReplay(),
+                 "minimal sparse material remains explicitly raw-only for typed output");
+        struct MaterialEncodeProbe : DRW_Material {
+            explicit MaterialEncodeProbe(const DRW_Material& source) : DRW_Material(source) {}
+            using DRW_Material::encodeDwg;
+        } probe(*material);
+        for (const auto version : {DRW::AC1018, DRW::AC1027}) {
+            dwgBufferW body;
+            t.expect(!probe.encodeDwg(version, &body) && body.data().empty(),
+                     "minimal sparse material refuses typed DWG output without mutation");
+        }
+    }
+    if (raw != interface_.rawObjects.end()) {
+        const auto countCode = [&raw](int code) {
+            return std::count_if(raw->groups.begin(), raw->groups.end(),
+                                 [code](const DRW_Variant& value) { return value.code() == code; });
+        };
+        t.expect(countCode(102) == 8 && countCode(481) == 1 && countCode(94) == 1,
+                 "sparse material retains nested application, reactor, dictionary and channel groups");
+    } else {
+        t.expect(false, "sparse material publishes its raw source carrier");
+    }
+
+    std::ifstream source(fixturePath("raw_control_groups_r2007.dxf"), std::ios::binary);
+    const std::string original{std::istreambuf_iterator<char>(source), {}};
+    std::string altered = original;
+    const std::string terminal = "\n94\n7\n0\n";
+    const auto position = altered.find(terminal);
+    t.expect(position != std::string::npos, "sparse material test locates its terminal flag");
+    if (position == std::string::npos) return;
+    altered.replace(position, terminal.size(), "\n94\n7\n90\n1\n0\n");
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-sparse-material-retry-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code error; std::filesystem::remove(path, error); }
+    } cleanup{path};
+    if (material != interface_.materials.end()) {
+        class DirectMaterialWriter final : public dx_iface {
+        public:
+            DirectMaterialWriter(dxfRW& output, const DRW_Material& source)
+                : codec(output), value(source) {
+                dxfW = &codec; cData = &data; currentBlock = data.mBlock;
+            }
+            void writeObjects() override { accepted = codec.writeMaterial(&value); }
+            bool finalizeDxfWrite() override { return accepted; }
+            dxfRW& codec;
+            dx_data data;
+            DRW_Material value;
+            bool accepted = false;
+        };
+        for (const bool binary : {false, true}) {
+            const std::string sentinel = "prior sparse material destination\n";
+            { std::ofstream file(path, std::ios::binary | std::ios::trunc); file << sentinel; }
+            dxfRW writer(path.string().c_str());
+            DirectMaterialWriter adapter(writer, *material);
+            const bool written = writer.write(&adapter, DRW::AC1021, binary);
+            std::ifstream file(path, std::ios::binary);
+            const std::string bytes{std::istreambuf_iterator<char>(file), {}};
+            t.expect(!written && !adapter.accepted && bytes == sentinel
+                         && adapter.value.requiresRawDxfMaterialReplay()
+                         && adapter.value.m_channelFlags == 7,
+                     "minimal sparse material refuses typed DXF output atomically");
+        }
+    }
+    { std::ofstream file(path, std::ios::binary); file << altered; }
+    dxfRW codec(path.string().c_str());
+    FixtureInterface rejected;
+    dx_data rejectedData;
+    rejected.attach(&rejectedData);
+    t.expect(!codec.read(&rejected, false) && rejected.materials.empty(),
+             "nonterminal sparse channel flag refuses before material publication");
+    { std::ofstream file(path, std::ios::binary | std::ios::trunc); file << original; }
+    FixtureInterface retried;
+    dx_data retriedData;
+    retried.attach(&retriedData);
+    t.expect(codec.read(&retried, false) && retried.materials.size() == 2u
+                 && retried.materials.front().m_channelFlags == 7,
+             "same reader retries the corrected sparse material source");
+
+    for (const bool binary : {false, true}) {
+        const auto generate = [binary](bool trailingField) {
+            std::ostringstream output(std::ios::out | std::ios::binary);
+            if (binary) output.write("AutoCAD Binary DXF\r\n\032\0", 22);
+            std::unique_ptr<dxfWriter> writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+            bool ok = writer->writeString(0, "SECTION") && writer->writeString(2, "HEADER")
+                && writer->writeString(9, "$ACADVER") && writer->writeString(1, "AC1021")
+                && writer->writeString(0, "ENDSEC") && writer->writeString(0, "SECTION")
+                && writer->writeString(2, "OBJECTS") && writer->writeString(0, "MATERIAL")
+                && writer->writeString(5, "90") && writer->writeString(330, "C")
+                && writer->writeString(102, "{GENERATED") && writer->writeString(1, "value")
+                && writer->writeString(102, "}") && writer->writeString(100, "AcDbMaterial")
+                && writer->writeString(1, "GENERATED") && writer->writeInt32(94, 7);
+            if (trailingField) ok = writer->writeInt32(90, 1) && ok;
+            ok = writer->writeString(0, "ENDSEC") && writer->writeString(0, "EOF") && ok;
+            return ok ? output.str() : std::string{};
+        };
+        const std::string badBytes = generate(true), goodBytes = generate(false);
+        t.expect(!badBytes.empty() && !goodBytes.empty(), "generated sparse material wire is available");
+        if (badBytes.empty() || goodBytes.empty()) continue;
+        { std::ofstream file(path, std::ios::binary | std::ios::trunc); file << badBytes; }
+        dxfRW generatedCodec(path.string().c_str());
+        FixtureInterface bad;
+        dx_data badData;
+        bad.attach(&badData);
+        t.expect(!generatedCodec.read(&bad, false) && bad.materials.empty(),
+                 "generated sparse material with a trailing field refuses before callback");
+        { std::ofstream file(path, std::ios::binary | std::ios::trunc); file << goodBytes; }
+        FixtureInterface good;
+        dx_data goodData;
+        good.attach(&goodData);
+        t.expect(generatedCodec.read(&good, false) && good.materials.size() == 1u
+                     && good.materials.front().m_hasChannelFlags
+                     && good.materials.front().m_channelFlags == 7
+                     && good.materials.front().requiresRawDxfMaterialReplay()
+                     && good.rawObjects.size() == 1u,
+                 "generated ASCII/binary sparse material retries with typed and raw callbacks");
+    }
 }
 
 bool writeMaterialColorValue(dxfWriter& writer, int code,
@@ -67635,6 +67766,11 @@ bool runTemporary() {
 }
 
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--raw-control-groups") {
+        TestContext context;
+        testRawControls(context);
+        return context.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--plot-custom-dpi-admission") {
         TestContext context;
         testPlotCustomDpiAdmission(context);
