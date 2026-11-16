@@ -40,8 +40,8 @@ import Import
 
 
 def drawing(case: str) -> str:
-    polygon = case == "polygon"
-    nested = case == "nested"
+    polygon = case in ("polygon", "nested_polygon")
+    nested = case in ("nested", "nested_polygon")
     tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
             (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"),
             (0, "SECTION"), (2, "TABLES"), (0, "TABLE"), (2, "LAYER"), (70, 3)]

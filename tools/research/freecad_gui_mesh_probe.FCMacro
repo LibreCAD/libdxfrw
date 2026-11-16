@@ -84,13 +84,16 @@ def run():
         source = "User parameter:BaseApp/Preferences/Mod/Import/" + option_name
         results = []
         with tempfile.TemporaryDirectory(prefix="freecad-gui-mesh-probe-") as scratch:
-            for case in ("polyface", "polygon", "mixed", "nested", "color", "color_mixed"):
+            for case in ("polyface", "polygon", "mixed", "nested", "nested_polygon",
+                         "nested_nolayers", "nested_polygon_nolayers", "color", "color_mixed"):
                 is_color = case.startswith("color")
-                options.SetBool("dxfUseDraftVisGroups", not is_color)
+                no_layers = is_color or case.endswith("_nolayers")
+                options.SetBool("dxfUseDraftVisGroups", not no_layers)
                 options.SetBool("dxfGetOriginalColors", is_color)
                 path = Path(scratch) / (case + ".dxf")
+                drawing_case = case[:-len("_nolayers")] if case.endswith("_nolayers") else case
                 path.write_text(color_drawing(case == "color_mixed") if is_color
-                                else controls["drawing"](case), encoding="ascii")
+                                else controls["drawing"](drawing_case), encoding="ascii")
                 doc = App.newDocument("GuiMeshProbe")
                 try:
                     stats = ImportGui.readDXF(str(path), doc.Name, True, source)
@@ -112,6 +115,17 @@ def run():
                             assert not stats["unsupportedFeatures"]
                         detail = {"meshColors": [list(m.ViewObject.ShapeColor) for m in meshes],
                                   "followingLineColor": list(lines[0].ViewObject.LineColor)}
+                    elif case.endswith("_nolayers"):
+                        links = [obj for obj in shapes if obj.TypeId == "App::Link"]
+                        assert len(links) == 1 and links[0].ViewObject.Visibility
+                        assert lines[0].ViewObject.Visibility and not stats["unsupportedFeatures"]
+                        assert len(links[0].Shape.Faces) == 1
+                        assert abs(links[0].Shape.Area - (12 if case.startswith("nested_polygon") else 6)) < 1e-9
+                        bounds = links[0].Shape.BoundBox
+                        assert all(abs(a - b) < 1e-9 for a, b in zip(
+                            (bounds.XMin, bounds.YMin, bounds.XMax, bounds.YMax), (1, 2, 5, 5)))
+                        detail = {"link": links[0].Name, "area": links[0].Shape.Area,
+                                  "bounds": [bounds.XMin, bounds.YMin, bounds.XMax, bounds.YMax]}
                     else:
                         groups = {obj.Label: [member.Name for member in obj.Group]
                                   for obj in doc.Objects if hasattr(obj, "Group")
@@ -135,6 +149,7 @@ def run():
                             assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
                         else:
                             reason = ("POLYFACE nondefault layer in block" if case == "nested"
+                                      else "POLYGON MESH nondefault layer in block" if case == "nested_polygon"
                                       else "POLYFACE unsupported or invalid profile")
                             assert reason in stats["unsupportedFeatures"] and not groups["MESH"]
                         detail = {"groups": groups}

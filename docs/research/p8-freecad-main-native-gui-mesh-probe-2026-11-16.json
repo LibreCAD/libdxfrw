@@ -132,6 +132,55 @@
       }
     },
     {
+      "case": "nested_polygon",
+      "detail": {
+        "groups": {
+          "0": [
+            "Link_INNER",
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYGON MESH nondefault layer in block": [
+          [
+            78,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "nested_nolayers",
+      "detail": {
+        "area": 6.0,
+        "bounds": [
+          1.0,
+          2.0,
+          5.0,
+          5.0
+        ],
+        "link": "Link_INNER"
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "nested_polygon_nolayers",
+      "detail": {
+        "area": 12.0,
+        "bounds": [
+          1.0,
+          2.0,
+          5.0,
+          5.0
+        ],
+        "link": "Link_INNER"
+      },
+      "unsupported": {}
+    },
+    {
       "case": "color",
       "detail": {
         "followingLineColor": [
@@ -186,13 +235,15 @@
     }
   ],
   "validation": {
-    "positive": "Six GUI ImportGui controls pass with real Draft: two bounded meshes grouped on their source layer; mixed child layer and nondefault block layer refused with following LINE preserved; uniform face ACI applied to both mesh view providers; mixed face ACIs refused while a following valid mesh and green LINE remain correct.",
+    "positive": "Nine native GUI ImportGui controls pass with real Draft: direct bounded polyface and polygon meshes group on their source layer; mixed child layers and both nondefault mesh types inside blocks are refused when layers are preserved; both nested mesh types instead produce visible links with correct translated bounds and area when layer preservation is disabled; uniform face ACI applies to both mesh view providers; mixed face ACIs are refused while a following valid mesh and green LINE remain correct.",
     "negative": "A nonexistent control-module directory yields ok=false and FileNotFoundError; process exit alone is not a passing result.",
     "fixtures": "All DXF controls are generated from scratch in a temporary directory and removed; no DWG/DXF fixtures are committed.",
     "logs": [
       "/private/tmp/freecad-polyface-layer-20261116/gui-full-probe-final2.log",
       "/private/tmp/freecad-polyface-layer-20261116/gui-full-probe-negative.log",
-      "/private/tmp/freecad-polyface-layer-20261116/gui-visibility-final.log"
+      "/private/tmp/freecad-polyface-layer-20261116/gui-visibility-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/gui-nested-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/headless-after-nested.log"
     ],
     "layerVisibility": "For both bounded direct mesh types, programmatically hiding and showing the real Draft MESH layer toggles its mesh view-provider visibility while an unrelated layer-0 LINE remains visible; restoration succeeds in the same document."
   },
