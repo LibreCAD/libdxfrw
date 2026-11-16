@@ -17,5 +17,46 @@
     "The unnamed viewport shorthand is a compatibility convention; named viewports no longer become active merely because they are written first.",
     "No DXF or DWG fixtures were committed."
   ],
-  "implementationDigestSha256": "7debc48faefabedca480c847f745c1aacec9f800aadcd64c07be278d418ed1ed"
+  "implementationDigestSha256": "7debc48faefabedca480c847f745c1aacec9f800aadcd64c07be278d418ed1ed",
+  "independentPeerMatrix": {
+    "reader": "ezdxf 1.4.5",
+    "producer": "Scratch C++ generator linked against fixed libdxfrw, using two named and two active VPORT records.",
+    "versions": [
+      "AC1009",
+      "AC1014",
+      "AC1032"
+    ],
+    "encodings": [
+      "ascii",
+      "binary"
+    ],
+    "result": "All six outputs contain both NAMED_CONFIG records with centers 12 and 78 and both *ACTIVE records with centers 34 and 56. The peer preserves order within each name group but groups records by name during iteration, so this does not independently verify inter-group order.",
+    "inputs": [
+      {
+        "name": "AC1009-ascii.dxf",
+        "sha256": "c0d70b53dbe2ec38aeda57424ffa21ffcd93d7bcae74cd6d012e5420e667cf55"
+      },
+      {
+        "name": "AC1009-binary.dxf",
+        "sha256": "63c68739c58fbdcc47b61306fa1943aeb5592bb65ab3ba5861c929a557b6cbe8"
+      },
+      {
+        "name": "AC1014-ascii.dxf",
+        "sha256": "3d35fb0234c3b8dbd62cc2655bd7590c8685190a00de735c26ee08a242c8b9fb"
+      },
+      {
+        "name": "AC1014-binary.dxf",
+        "sha256": "48d209d71aa46c69ce3f14018c31836996f39d6a83a5277ff2ce567d1d059bb5"
+      },
+      {
+        "name": "AC1032-ascii.dxf",
+        "sha256": "3513ee6fb6b82daca174c58b244b4a63f78f57ee5f2903e2fe477a529c16990b"
+      },
+      {
+        "name": "AC1032-binary.dxf",
+        "sha256": "27db5b920c477c9804b2105f8385642624eb47d94815caffea329831b419d2ab"
+      }
+    ],
+    "scope": "Independent DXF field decoding only; no native viewport rendering or semantics and no committed fixtures."
+  }
 }
