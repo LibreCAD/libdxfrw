@@ -19,5 +19,6 @@
     "/private/tmp/librecad-p8-binary-fast-system.log",
     "/private/tmp/librecad-p8-binary-fast-bundled.log"
   ],
-  "limits": "Same-library generated AC1021 inputs and one simple explicit LTYPE/LINE do not establish independent producer semantics, complex LTYPE or other version coverage, binary output, GUI or non-macOS behavior. The consumer candidate remains unmerged. No phase gate or support claim is promoted."
+  "limits": "Same-library generated AC1021 inputs and one simple explicit LTYPE/LINE do not establish independent producer semantics, complex LTYPE or other version coverage, binary output, GUI or non-macOS behavior. The consumer candidate remains unmerged. No phase gate or support claim is promoted.",
+  "followUp": "The test patch was subsequently expanded to eight source revisions; its historical hash and candidate commit describe the earlier single-version run. See p8-librecad-binary-ltype-versions-2026-11-16.json for the updated patch hash and candidate."
 }
