@@ -191,11 +191,13 @@
     "fixtures": "All DXF controls are generated from scratch in a temporary directory and removed; no DWG/DXF fixtures are committed.",
     "logs": [
       "/private/tmp/freecad-polyface-layer-20261116/gui-full-probe-final2.log",
-      "/private/tmp/freecad-polyface-layer-20261116/gui-full-probe-negative.log"
-    ]
+      "/private/tmp/freecad-polyface-layer-20261116/gui-full-probe-negative.log",
+      "/private/tmp/freecad-polyface-layer-20261116/gui-visibility-final.log"
+    ],
+    "layerVisibility": "For both bounded direct mesh types, programmatically hiding and showing the real Draft MESH layer toggles its mesh view-provider visibility while an unrelated layer-0 LINE remains visible; restoration succeeds in the same document."
   },
   "limits": [
-    "The probe checks document and view-provider properties; it does not independently inspect pixels, visibility interaction or an external producer interpretation.",
+    "The probe checks document, view-provider properties and programmatic layer hide/show; it does not independently inspect pixels, manual GUI interaction or an external producer interpretation.",
     "macOS ARM64 only; Linux and Windows GUI qualification, broader profiles, geometry and import semantics remain open.",
     "The downstream FreeCAD patch chain is unmerged. No P4\u2013P9 phase gate or external-only support claim is promoted."
   ]

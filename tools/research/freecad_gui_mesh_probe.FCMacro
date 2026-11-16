@@ -125,6 +125,14 @@ def run():
                             assert len(meshes[0].Shape.Faces) == 1
                             assert abs(meshes[0].Shape.Area - (6 if case == "polyface" else 12)) < 1e-9
                             assert not stats["unsupportedFeatures"]
+                            layer = next(obj for obj in doc.Objects if obj.Label == "MESH"
+                                         and getattr(getattr(obj, "Proxy", None), "Type", None) == "Layer")
+                            assert layer.ViewObject.Visibility and meshes[0].ViewObject.Visibility
+                            assert lines[0].ViewObject.Visibility
+                            layer.ViewObject.Visibility = False
+                            assert not meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
+                            layer.ViewObject.Visibility = True
+                            assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
                         else:
                             reason = ("POLYFACE nondefault layer in block" if case == "nested"
                                       else "POLYFACE unsupported or invalid profile")
