@@ -166,9 +166,7 @@ check, not as a substitute for full GUI or rendering qualification. The
 the source, build, executable and loaded modules; its macOS smoke and negative
 checks pass ([receipt](docs/research/p8-freecad-candidate-gui-runner-2026-11-16.json)).
 An opt-in hosted GUI mode builds the required GUI resources and runs that
-smoke on a Linux virtual display or a Windows runner. The first Linux run built
-successfully but lacked `Draft_rc`; the workflow now builds Draft resources and
-the runner verifies their source. A [Linux-only retry](https://github.com/dxli/libdxfrw/actions/runs/43862782162) is running at `65aefd2c`; the previous Windows candidate build continues. Inspect both results and record each Qt backend
+smoke on a Linux virtual display or a Windows runner. The first Linux and Windows runs built successfully and passed headless checks but lacked `Draft_rc` in the GUI probe; the workflow now builds Draft resources and the runner verifies their source. Separate [Linux](https://github.com/dxli/libdxfrw/actions/runs/43862782162) and [Windows](https://github.com/dxli/libdxfrw/actions/runs/43863359266) retries are running at `65aefd2c`. Inspect both results and record each Qt backend
 ([receipt](docs/research/p8-freecad-candidate-hosted-gui-workflow-2026-11-16.json)).
 Native GUI behavior, independent semantics and upstream integration remain open.
 

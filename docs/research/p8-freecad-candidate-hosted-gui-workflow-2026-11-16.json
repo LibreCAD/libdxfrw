@@ -13,9 +13,9 @@
     "Local macOS Cocoa GUI smoke passed with requested and observed Qt backend matching.",
     "The guarded GUI runner previously rejected mismatched source/build and missing-result controls."
   ],
-  "status": "LINUX GUI FAILED ON MISSING DRAFT RESOURCE; WINDOWS RUNNING; FIX PREPARED",
+  "status": "BOTH GUI JOBS FAILED ON MISSING DRAFT RESOURCE; SEPARATE RETRIES RUNNING",
   "limitations": [
-    "Linux GUI failed on the first run, Windows is still running, and the resource fix has not yet run on hosted platforms.",
+    "The first Linux and Windows GUI smoke jobs failed on missing Draft_rc; the fix has not yet completed hosted qualification.",
     "Linux uses a virtual X display. Actual Qt platform is recorded; these are view-property checks, not pixel-rendering proof.",
     "The source and module identity checks do not alone establish build provenance or independent semantic support."
   ],
@@ -25,6 +25,10 @@
     "linux": {
       "jobUrl": "https://github.com/dxli/libdxfrw/actions/runs/43853176191/job/133250687246",
       "outcome": "Candidate build and headless probe passed; GUI smoke failed importing Draft_rc because the Draft resource target was not built."
+    },
+    "windows": {
+      "jobUrl": "https://github.com/dxli/libdxfrw/actions/runs/43853176191/job/133250687746",
+      "outcome": "Candidate build and headless probe passed; GUI smoke failed importing Draft_rc, the same missing resource as Linux."
     }
   },
   "followUp": [
@@ -39,6 +43,13 @@
     "commit": "65aefd2c2039c84407164b2dcf353eabc789d18b",
     "platform": "ubuntu-24.04",
     "status": "RUNNING",
-    "note": "The dispatched matrix selected only Linux; the earlier Windows job remains in progress."
+    "note": "The dispatched matrix selected only Linux."
+  },
+  "windowsRetry": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43863359266",
+    "commit": "65aefd2c2039c84407164b2dcf353eabc789d18b",
+    "platform": "windows-2022",
+    "status": "RUNNING",
+    "note": "Separate retry after the original Windows GUI job failed on the same missing Draft_rc resource."
   }
 }
