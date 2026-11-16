@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **719 completed implementation and qualification slices** and **32 remaining
+The plan records **720 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`719 / (719 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
+`720 / (720 + 32) = 95.7%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -175,7 +175,7 @@ check, not as a substitute for full GUI or rendering qualification. The
 the source, build, executable and loaded modules; its macOS smoke and negative
 checks pass ([receipt](docs/research/p8-freecad-candidate-gui-runner-2026-11-16.json)).
 An opt-in hosted GUI mode builds the required GUI resources and runs that
-smoke on a Linux virtual display or a Windows runner. The first Linux and Windows runs built successfully and passed headless checks but lacked `Draft_rc` in the GUI probe; the workflow now builds Draft resources and the runner verifies their source. The [Linux retry](https://github.com/dxli/libdxfrw/actions/runs/43862782162) at `65aefd2c` passed ten GUI smoke cases on virtual-display `xcb`, with the Draft resource verified inside the build. The [Windows retry](https://github.com/dxli/libdxfrw/actions/runs/43863359266) remains running; inspect its Qt backend and result
+smoke on a Linux virtual display or a Windows runner. The first Linux and Windows runs built successfully and passed headless checks but lacked `Draft_rc` in the GUI probe; the workflow now builds Draft resources and the runner verifies their source. The [Linux retry](https://github.com/dxli/libdxfrw/actions/runs/43862782162) at `65aefd2c` passed ten GUI smoke cases on virtual-display `xcb`, with the Draft resource verified inside the build. The [Windows retry](https://github.com/dxli/libdxfrw/actions/runs/43863359266) passed ten headless tests and ten GUI view-property cases, with Qt's `windows` backend and the Draft resource from the selected build
 ([receipt](docs/research/p8-freecad-candidate-hosted-gui-workflow-2026-11-16.json)).
 Native GUI behavior, independent semantics and upstream integration remain open.
 

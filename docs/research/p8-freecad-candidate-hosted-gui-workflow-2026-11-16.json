@@ -13,9 +13,9 @@
     "Local macOS Cocoa GUI smoke passed with requested and observed Qt backend matching.",
     "The guarded GUI runner previously rejected mismatched source/build and missing-result controls."
   ],
-  "status": "LINUX GUI RETRY PASSED; WINDOWS GUI RETRY RUNNING",
+  "status": "LINUX AND WINDOWS GUI RETRIES PASSED",
   "limitations": [
-    "The first Linux and Windows GUI smoke jobs failed on missing Draft_rc; the fixed Linux retry passed, and the fixed Windows retry is running.",
+    "The first Linux and Windows GUI jobs failed on missing Draft_rc; both fixed retries now pass.",
     "Linux uses a virtual X display. Actual Qt platform is recorded; these are view-property checks, not pixel-rendering proof.",
     "The source and module identity checks do not alone establish build provenance or independent semantic support."
   ],
@@ -36,7 +36,7 @@
     "Local macOS resource-aware smoke passed on retry; the first process reported all smoke checks passed but aborted during shutdown and was correctly rejected.",
     "A Draft resource loaded from a different directory was refused.",
     "actionlint and Python syntax checks passed.",
-    "The candidate_platform dispatch choice permits a Linux-only retry while the existing Windows build continues; both platforms remain the default. The matrix expression passed actionlint and awaits hosted execution."
+    "The candidate_platform dispatch choice permits a Linux-only retry while the existing Windows build continues; both platforms remain the default. The platform-specific Linux and Windows retries both passed."
   ],
   "retry": {
     "url": "https://github.com/dxli/libdxfrw/actions/runs/43862782162",
@@ -55,7 +55,17 @@
     "url": "https://github.com/dxli/libdxfrw/actions/runs/43863359266",
     "commit": "65aefd2c2039c84407164b2dcf353eabc789d18b",
     "platform": "windows-2022",
-    "status": "RUNNING",
-    "note": "Separate retry after the original Windows GUI job failed on the same missing Draft_rc resource."
+    "status": "PASSED",
+    "note": "The pinned 20-patch candidate passed 10 headless tests with no skips and 10 GUI view-property cases on Windows; the actual Qt backend was windows and Draft_rc came from the selected build. This is not pixel-rendering or upstream integration proof.",
+    "jobUrl": "https://github.com/dxli/libdxfrw/actions/runs/43863359266/job/133285576245",
+    "qtPlatform": "windows",
+    "guiUp": 1,
+    "guiCases": 10,
+    "headlessTests": 10,
+    "headlessSkipped": 0,
+    "draftResourceWithinBuild": true,
+    "draftResourceSha256": "5d486e2e1b06d2bd7a46fb7839eca80dd54d518cca808c818b88bf91e9f80478",
+    "guiReceiptSha256": "30045b4af9a6cfc264854f4b4b24d8b3dbe00e9190c949903b7aa5560dd8deb8",
+    "headlessReceiptSha256": "7f12139f34214bc0053c263c04adb466b5f0e566e40938faf08227f694206509"
   }
 }
