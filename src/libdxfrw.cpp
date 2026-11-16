@@ -7917,6 +7917,8 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
         || (hasMaterial && version < DRW::AC1021)
         || (ent->color24 >= 0 && version <= DRW::AC1015)
         || (!ent->colorName.empty() && version <= DRW::AC1015)
+        // R13/R14 DWG VIEW records lack both fields; an ODA R14
+        // DXF-to-DWG roundtrip also drops them. Refuse their loss.
         || (version <= DRW::AC1014
             && (!ent->plotF
                 || ent->lWeight != DRW_LW_Conv::widthDefault
@@ -9248,7 +9250,8 @@ bool dxfRW::writeView(DRW_View *ent){
         // Do not reject ordinary no-UCS records because the model's legacy
         // default orthographic type is nonzero; the field is not serialized.
         || (!ent->hasUCS && hasUcsReferences)
-        || (ent->hasUCS && version <= DRW::AC1009)
+        || (version <= DRW::AC1014
+            && (ent->hasUCS || ent->renderMode != 0u))
         || (ent->hasUCS
             && (ent->ucsOrthoType < 0 || ent->ucsOrthoType > 6))
         || (ent->baseUCS_ID != 0 && ent->ucsOrthoType == 0)

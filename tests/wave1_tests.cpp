@@ -1814,6 +1814,11 @@ void testViewFlagWireKinds(TestContext& t) {
                 view.cameraPlottable = version > DRW::AC1018 && !hasUcs;
                 view.ucsOrigin = DRW_Coord(11.0, 12.0, 13.0);
                 view.m_brightness = version > DRW::AC1018 ? 1.25 : 0.0;
+                if (version == DRW::AC1014 && hasUcs) {
+                    t.expect(!owner.writeView(&view) && output.str().empty(),
+                             "R14 VIEW refuses an associated UCS it cannot preserve");
+                    continue;
+                }
                 t.expect(owner.writeView(&view)
                              && owner.writer->writeString(0, "ENDTAB"),
                          "VIEW flag sentinel writes without a full document");

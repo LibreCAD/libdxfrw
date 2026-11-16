@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-15",
+  "scope": "Prevent loss of nondefault VIEW render mode and associated UCS when exporting to R12/R14.",
+  "authority": {
+    "autodeskViewTable": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm",
+    "odaSpecification": "Open Design Specification for .dwg files v5.4.1 section 20.4.60 lists VIEW render mode and associated UCS fields for R2000 onward. This DWG layout does not alone establish every possible DXF extension.",
+    "independentBoundary": "ODA File Converter 27.1 accepted generated R14 ASCII/Binary DXF with VIEW group 281=2 but dropped that mode on R14 DWG\u2192DXF. A separate generated R14 source with group 72=1 and UCS origin/axes/elevation lost the associated UCS fields on the same route. Legacy names were normalized by the converter."
+  },
+  "reproduction": "Before the guard, R12 silently omitted the nondefault mode; R14 emitted newer groups which the independently observed R14 route discarded.",
+  "change": "Refuse a nondefault render mode or associated UCS for R12/R14; default legacy VIEWs remain writable. Existing modern output remains unchanged.",
+  "validation": [
+    "Generated R12 and R14 ASCII/Binary controls exercise the two profiles separately, check destination and modeled caller-field preservation, retry with the same writer at R2000, fresh typed readback, and successful corrected legacy retry. The existing seven-version VIEW allocation sweep and UCS allocation sweep pass.",
+    "For both R2000 ASCII and Binary, ODA DWG\u2192DXF roundtrips retained render mode 2 or associated UCS flag, origin, orthographic type and elevation 8.5. ezdxf tokenization confirms the emitted and returned group values. This is selected-field interoperability evidence only.",
+    "The existing VIEW flag wire control now explicitly expects R14 associated-UCS refusal; the focused wave1 CTest and VIEW allocation CTest pass, with later versions retaining ASCII/Binary group-width and following-field checks. Implementation digest is fd68d24f73777e2d56b8518997605d6b0ec44ebad276fc7bec054d8e4952e69e over 725 inputs; source inventory remains 1235 files."
+  ],
+  "limits": "The R14 result is an observed ODA interoperability boundary, not a proof about every third-party DXF extension or native AutoCAD release. This change intentionally refuses potentially lossy legacy output. No native semantic claim, fixture commit, format-support claim, or phase-gate promotion follows."
+}

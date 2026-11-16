@@ -43,13 +43,15 @@ DRW_View makeView(DRW::Version version, bool modernExtras = false,
     view.backClippingPlaneOffset = 100.0;
     view.twistAngle = 12.5;
     view.viewMode = 3;
-    view.renderMode = 2;
-    view.hasUCS = true;
-    view.ucsOrigin = DRW_Coord(1.0, 2.0, 3.0);
-    view.ucsXAxis = DRW_Coord(1.0, 0.0, 0.0);
-    view.ucsYAxis = DRW_Coord(0.0, 1.0, 0.0);
-    view.ucsOrthoType = 4;
-    view.ucsElevation = 8.5;
+    if (version > DRW::AC1014) {
+        view.renderMode = 2;
+        view.hasUCS = true;
+        view.ucsOrigin = DRW_Coord(1.0, 2.0, 3.0);
+        view.ucsXAxis = DRW_Coord(1.0, 0.0, 0.0);
+        view.ucsYAxis = DRW_Coord(0.0, 1.0, 0.0);
+        view.ucsOrthoType = 4;
+        view.ucsElevation = 8.5;
+    }
     view.cameraPlottable = camera;
     if (version > DRW::AC1018 || modernExtras) {
         view.m_useDefaultLights = false;
@@ -397,6 +399,67 @@ bool lossAvoidanceControls(const std::filesystem::path& directory) {
                directory, "resource-refs", DRW::AC1018, DRW::AC1021,
                false, false, true);
 }
+
+// R12/R14 VIEW records cannot retain the R2000 render-mode and associated
+// UCS fields in a native drawing. Refuse both profiles before downgrading.
+bool viewLegacyLossGuard(const std::filesystem::path& directory) {
+    const auto path = directory / "view-legacy-loss.dxf";
+    const std::string prior = "previous destination bytes\n";
+    constexpr std::array<DRW::Version, 2> legacy{{DRW::AC1009, DRW::AC1014}};
+    for (const auto target : legacy) {
+      for (const bool ucs : {false, true}) {
+        for (const bool binary : {false, true}) {
+            dxfRW codec(path.string().c_str());
+            Export exporter(codec, DRW::AC1015);
+            exporter.view.hasUCS = ucs;
+            if (ucs) exporter.view.renderMode = 0u;
+            const DRW_View original(exporter.view);
+            {
+                std::ofstream output(path, std::ios::binary | std::ios::trunc);
+                output << prior;
+                if (!output) return false;
+            }
+            const bool wrote = codec.write(&exporter, target, binary);
+            std::string current;
+            if (wrote || exporter.accepted || exporter.view.hasUCS != ucs
+                || exporter.view.renderMode != original.renderMode
+                || exporter.view.handle != original.handle
+                || exporter.view.ucsElevation != original.ucsElevation
+                || !readBytes(path, current) || current != prior) {
+                std::cerr << "nondefault VIEW state lost on legacy export: version="
+                          << static_cast<int>(target) << " ucs=" << ucs
+                          << " binary=" << binary << '\n';
+                return false;
+            }
+            if (!codec.write(&exporter, DRW::AC1015, binary) || !exporter.accepted
+                || exporter.view.handle != original.handle
+                || exporter.view.hasUCS != ucs
+                || exporter.view.renderMode != original.renderMode
+                || exporter.view.ucsElevation != original.ucsElevation)
+                return false;
+            Reader modern;
+            dxfRW modernReader(path.string().c_str());
+            if (!modernReader.read(&modern, false) || modern.views.size() != 1u
+                || modern.views.front().renderMode != original.renderMode
+                || modern.views.front().hasUCS != ucs
+                || (ucs && modern.views.front().ucsElevation != original.ucsElevation))
+                return false;
+            exporter.view.renderMode = 0u;
+            exporter.view.hasUCS = false;
+            if (!codec.write(&exporter, target, binary) || !exporter.accepted)
+                return false;
+            Reader legacyRead;
+            dxfRW legacyReader(path.string().c_str());
+            if (!legacyReader.read(&legacyRead, false) || legacyRead.views.size() != 1u
+                || legacyRead.views.front().renderMode != 0u
+                || legacyRead.views.front().hasUCS)
+                return false;
+        }
+      }
+    }
+    return true;
+}
+
 } // namespace
 
 void* operator new(std::size_t size) {
@@ -437,6 +500,7 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return allocationSweep(directory) && lossAvoidanceControls(directory)
+    return viewLegacyLossGuard(directory) && allocationSweep(directory)
+        && lossAvoidanceControls(directory)
         ? 0 : 2;
 }
