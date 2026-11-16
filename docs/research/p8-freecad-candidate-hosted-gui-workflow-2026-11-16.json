@@ -33,5 +33,12 @@
     "A Draft resource loaded from a different directory was refused.",
     "actionlint and Python syntax checks passed.",
     "The candidate_platform dispatch choice permits a Linux-only retry while the existing Windows build continues; both platforms remain the default. The matrix expression passed actionlint and awaits hosted execution."
-  ]
+  ],
+  "retry": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43862782162",
+    "commit": "65aefd2c2039c84407164b2dcf353eabc789d18b",
+    "platform": "ubuntu-24.04",
+    "status": "RUNNING",
+    "note": "The dispatched matrix selected only Linux; the earlier Windows job remains in progress."
+  }
 }

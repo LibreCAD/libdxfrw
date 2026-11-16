@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **701 completed implementation and qualification slices** and **32 remaining
+The plan records **702 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`701 / (701 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
+`702 / (702 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -89,7 +89,7 @@ generated DWG handoff; the fix passes focused rollback/readback and local
 FreeCAD open/insert controls
 ([regression receipt](docs/research/p6-canonical-acad-appid-flags-backpatch-2026-11-16.json)).
 The implementation digest is refreshed without changing claim statuses;
-rerun the failed hosted fast, native and FreeCAD qualification jobs.
+the replacement [fast](https://github.com/dxli/libdxfrw/actions/runs/43862739444), [native](https://github.com/dxli/libdxfrw/actions/runs/43862739412) and [FreeCAD release](https://github.com/dxli/libdxfrw/actions/runs/43862739438) qualification jobs are running at `65aefd2c`; inspect and disposition their results.
 Predeclared canonical LTYPE flags now survive output; nondefault flags arriving
 only after the fixed row was written refuse atomically
 ([receipt](docs/research/p6-canonical-ltype-flags-2026-11-16.json)). Canonical
@@ -168,7 +168,7 @@ checks pass ([receipt](docs/research/p8-freecad-candidate-gui-runner-2026-11-16.
 An opt-in hosted GUI mode builds the required GUI resources and runs that
 smoke on a Linux virtual display or a Windows runner. The first Linux run built
 successfully but lacked `Draft_rc`; the workflow now builds Draft resources and
-the runner verifies their source. Retry Linux and record each Qt backend
+the runner verifies their source. A [Linux-only retry](https://github.com/dxli/libdxfrw/actions/runs/43862782162) is running at `65aefd2c`; the previous Windows candidate build continues. Inspect both results and record each Qt backend
 ([receipt](docs/research/p8-freecad-candidate-hosted-gui-workflow-2026-11-16.json)).
 Native GUI behavior, independent semantics and upstream integration remain open.
 
