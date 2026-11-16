@@ -4,7 +4,8 @@
 This is a source-application check, not a build or interoperability claim. It
 reads five files from a hash-bound FreeCAD source archive into a disposable
 directory, applies the patches there and optionally compares the result with a
-local candidate checkout. It never changes the archive or candidate checkout.
+local candidate checkout, or exports to an explicitly supplied empty directory.
+It never changes the archive or candidate checkout.
 Update PATCHES in order whenever the downstream chain changes.
 """
 import argparse
@@ -64,6 +65,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-archive", required=True, type=Path)
     parser.add_argument("--candidate-root", type=Path)
+    parser.add_argument("--output-dir", type=Path,
+                        help="copy the verified files to an existing empty directory")
     parser.add_argument("--patch-dir", type=Path,
                         default=Path(__file__).resolve().parents[2] / "docs" / "patches")
     args = parser.parse_args()
@@ -111,6 +114,15 @@ def main():
             for relative, expected in output_hashes.items():
                 if digest(args.candidate_root / relative) != expected:
                     raise ValueError("candidate file differs from replay: " + relative)
+        if args.output_dir:
+            destination = args.output_dir.resolve(strict=True)
+            if not destination.is_dir() or any(destination.iterdir()):
+                raise ValueError("output directory must exist and be empty")
+            for relative in FILES:
+                target = destination / relative
+                target.parent.mkdir(parents=True, exist_ok=True)
+                with target.open("xb") as stream:
+                    stream.write((root / relative).read_bytes())
         print(json.dumps({"sourceCommit": source_commit, "archiveSha256": archive_hash,
                           "patchCount": len(PATCHES), "patchSha256": patch_hashes,
                           "outputSha256": output_hashes,

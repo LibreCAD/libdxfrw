@@ -2,7 +2,7 @@
 """Apply the replayed FreeCAD candidate to a clean disposable Git checkout.
 
 This modifies the selected checkout. It checks the pinned archive and tracked
-base, restricts every patch to the five importer files, and restores their
+base, installs only the five replayed importer files, and restores their
 original bytes on an ordinary failure. Use a disposable checkout: abrupt
 termination, concurrent edits, ignored files and submodules are not covered.
 """
@@ -11,6 +11,8 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import tarfile
+import tempfile
 
 import replay_freecad_import_patches as replay
 
@@ -27,12 +29,18 @@ def main():
     parser.add_argument("--patch-dir", type=Path,
                         default=Path(__file__).resolve().parents[2] / "docs" / "patches")
     args = parser.parse_args()
+    with tempfile.TemporaryDirectory(prefix="freecad-candidate-output-") as temp:
+        apply_candidate(args, Path(temp))
+
+
+def apply_candidate(args, output):
     root = args.source_root.resolve(strict=True)
     archive = args.source_archive.resolve(strict=True)
     patch_dir = args.patch_dir.resolve(strict=True)
     replay_args = [sys.executable, str(Path(replay.__file__).resolve()),
                    "--source-archive", str(archive), "--patch-dir", str(patch_dir)]
-    prepared = subprocess.run(replay_args, capture_output=True, text=True, check=False)
+    prepared = subprocess.run(replay_args + ["--output-dir", str(output)],
+                              capture_output=True, text=True, check=False)
     if prepared.returncode:
         raise RuntimeError("candidate source replay failed:\n" + prepared.stderr.strip())
     expected = json.loads(prepared.stdout)
@@ -48,17 +56,15 @@ def main():
         if not item.is_file() or item.is_symlink():
             raise ValueError("candidate source must be a regular file: " + relative)
         originals[relative] = item.read_bytes()
-    for name in replay.PATCHES:
-        patch = patch_dir / name
-        output = git(root, "apply", "--numstat", "-z", str(patch)).stdout
-        paths = [row.split("\t", 2)[-1] for row in output.split("\0") if row]
-        if not paths or any(path not in replay.FILES for path in paths):
-            raise ValueError("patch touches an unexpected path: " + name)
+    with tarfile.open(archive, "r:gz") as source_archive:
+        for relative, contents in originals.items():
+            member = source_archive.getmember("FreeCAD-" + expected["sourceCommit"] + "/" + relative)
+            source_file = source_archive.extractfile(member)
+            if source_file is None or source_file.read() != contents:
+                raise ValueError("checkout source differs from archive: " + relative)
     try:
-        for name in replay.PATCHES:
-            patch = patch_dir / name
-            git(root, "apply", "--unidiff-zero", "--check", str(patch))
-            git(root, "apply", "--unidiff-zero", str(patch))
+        for relative in replay.FILES:
+            (root / relative).write_bytes((output / relative).read_bytes())
         compared = subprocess.run(replay_args + ["--candidate-root", str(root)],
                                   capture_output=True, text=True, check=False)
         if compared.returncode:

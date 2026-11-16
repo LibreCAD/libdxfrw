@@ -15,9 +15,9 @@
     "Existing push-triggered release qualification jobs remain enabled; candidate matrix is opt-in for dispatch.",
     "Candidate source application and headless runtime guards were separately exercised on macOS."
   ],
-  "status": "TWO_DISPATCHES_FAILED_BEFORE_BUILD; LINE_ENDING_FIX REQUIRES HOSTED RETRY",
+  "status": "THREE DISPATCHES FAILED BEFORE BUILD; ATTRIBUTE-AWARE FIX REQUIRES HOSTED RETRY",
   "limitations": [
-    "Two hosted candidate runs failed before build; the explicit line-ending fix has not yet been tested on hosted platforms and neither platform is qualified.",
+    "Three hosted candidate runs failed before build; the attribute-aware fix has not yet been tested on hosted platforms and neither platform is qualified.",
     "Submodule gitlink status is recorded; binary reproducibility, full build provenance and independent semantic support are not established.",
     "Headless checks do not establish native GUI rendering or complete DWG/DXF support.",
     "The downstream FreeCAD patch series remains unmerged."
@@ -33,12 +33,21 @@
     "actionlint and Python syntax checks pass.",
     "The public codeload archive downloaded locally matched the previously pinned SHA-256; the hosted download hash was not recorded by the first dispatch.",
     "With global and system Git config disabled, the previous replay failed at the same second patch. Explicit core.autocrlf=input now makes replay and clean-worktree application pass with exact expected output hashes.",
-    "With global and system Git config disabled, injected fifth-patch failure restored the original bytes and a clean retry passed."
+    "With global and system Git config disabled, injected fifth-patch failure restored the original bytes and a clean retry passed.",
+    "A disposable checkout including the exact FreeCAD attributes file reproduced the direct-application failure.",
+    "The helper now checks clean source bytes against the pinned archive, installs only five files produced by isolated replay, and compares the result with a second replay. On the attributes checkout it passed with global and system Git configuration disabled.",
+    "An injected failure during file installation restored all five original byte sequences, and a retry passed on the same attributes checkout.",
+    "Replay refuses a nonempty export directory without modifying its sentinel."
   ],
   "secondDispatch": {
     "url": "https://github.com/dxli/libdxfrw/actions/runs/43848459758",
     "commit": "61343ece",
     "outcome": "Both OS jobs failed applying the second patch to dxf.h during archive replay. The archive hash check had passed."
   },
-  "rootCause": "The archive header contains CRLF; the ordered patches depend on core.autocrlf=input to normalize intermediate content. The initial local tests inherited that user setting; hosted clean configurations did not."
+  "rootCause": "Archive replay required core.autocrlf=input. The full FreeCAD checkout also has src/Mod/.gitattributes marking Import/** -text, which prevents the same intermediate normalization during direct git apply. Earlier local sparse worktrees omitted that attributes file.",
+  "thirdDispatch": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43849052380",
+    "commit": "7550a785",
+    "outcome": "Archive replay passed, but applying the second patch to the full checkout failed on both hosts. The helper reported restoration of original bytes."
+  }
 }
