@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **620 completed implementation and qualification slices** and **32 remaining
+The plan records **621 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`620 / (620 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
+`621 / (621 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -99,8 +99,11 @@ created locally from scratch for the specific control.
   a further unmerged consumer patch now binds a frozen typed snapshot to its
   selected import session, publication, coverage and dictionary membership
   ([receipt](docs/research/p8-librecad-empty-xrecord-source-correlation-2026-11-15.json)).
-  Prove actual empty-XRECORD output and destination preservation/retry with both
-  dictionary entries. Unknown inbound references and dynamic-block objects remain
+  A further default-off consumer patch preserves both the selected empty
+  XRECORD and sort-table entries with ODA/ezdxf readback and refusal/retry
+  controls ([receipt](docs/research/p8-librecad-empty-xrecord-dxf-output-2026-11-15.json)).
+  Qualify nonempty XRECORD data and nondefault block properties without dropping
+  dependencies. Unknown inbound references and dynamic-block objects remain
   unresolved; do not omit source records to pass a gate ([source census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json),
   [peer receipt](docs/research/p8-experimental-named-sortents-oda-roundtrip-2026-11-15.json)).
 - Resolve the separate title-block MLEADERSTYLE version gate and then the next
@@ -125,7 +128,8 @@ suffix `-2026-11-15.patch`, rebasing as needed against the consumer head:
 `librecad-p8-sortents-owner-chain`, `librecad-p8-layer-control-source-binding`,
 `librecad-p8-selected-control-diagnostic-graph`, `librecad-p8-zero-reactor-sortents-source`,
 `librecad-p8-experimental-named-sortents-optin`,
-`librecad-p8-empty-xrecord-source-correlation`.
+`librecad-p8-empty-xrecord-source-correlation`,
+`librecad-p8-empty-xrecord-dxf-output`.
 The tested base is `8a82e35965d8d56a8f8608abd739fbb2c0de2f3e`.
 
 For MPOLYGON, retain the consumer's opt-in polyline policy; independently
