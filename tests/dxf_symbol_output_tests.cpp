@@ -1183,10 +1183,11 @@ void testCanonicalLtypeDescriptionAdapter(TestContext& test) {
     } cleanup{path};
     for (const auto version : {DRW::AC1009, DRW::AC1014, DRW::AC1032}) {
         for (const bool binary : {false, true}) {
+          for (const auto& description : {std::string("Source \xC3\xA9"), std::string()}) {
             dx_data source;
             DRW_LType original;
             original.name = "CONTINUOUS";
-            original.desc = "Source \xC3\xA9";
+            original.desc = description;
             original.flags = 64;
             original.handle = 0xD731u;
             source.lineTypes.push_back(original);
@@ -1206,6 +1207,7 @@ void testCanonicalLtypeDescriptionAdapter(TestContext& test) {
                 && source.lineTypes.front().desc == original.desc
                 && source.lineTypes.front().flags == original.flags,
                 "dwg2dxf retains predeclared canonical LTYPE description and flags");
+          }
         }
     }
 }

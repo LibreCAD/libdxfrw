@@ -18514,7 +18514,7 @@ bool dxfRW::writeTables(const char** outputStage) {
         const char* name, const char* fallback) {
         const auto found = mandatoryLinetypes.find(name);
         return writer->writeUtf8String(3,
-            found != mandatoryLinetypes.end() && !found->second->desc.empty()
+            found != mandatoryLinetypes.end()
                 ? std::string_view(found->second->desc) : std::string_view(fallback));
     };
     writer->writeString(0, "TABLE");

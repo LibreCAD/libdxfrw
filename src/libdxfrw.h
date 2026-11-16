@@ -1024,10 +1024,10 @@ public:
      * canonical rows can be emitted before the LTYPE table is closed. The
      * registered flags are authoritative: a nonzero callback flag must match
      * them, while a zero callback flag leaves the registered flags intact.
-     * Nonempty registered descriptions are authoritative too; callback
-     * defaults leave them intact. An empty description selects the built-in
-     * default, including "Solid line" for CONTINUOUS. Without a registered
-     * row, nondefault flags or descriptions fail the write. */
+     * Registered descriptions are authoritative, including empty strings;
+     * callback defaults leave them intact. Without a registered row, the
+     * built-in description is used, and nondefault flags or descriptions
+     * fail the write. */
     void setCanonicalLineTypeMetadata(
         const std::vector<DRW_LType> &lineTypes);
     void setCanonicalLineTypeMetadata(std::vector<DRW_LType>&& lineTypes);

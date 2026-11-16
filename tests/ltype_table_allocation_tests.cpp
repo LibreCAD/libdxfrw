@@ -202,6 +202,25 @@ bool canonicalDescriptions(const std::filesystem::path& directory) {
                 if (!codec.write(&candidate, version, binary) || !candidate.accepted
                     || !readBytes(path, current) || current != seeded)
                     return false;
+                candidate.row.desc.clear();
+                codec.setCanonicalLineTypeMetadata({candidate.row});
+                if (!codec.write(&candidate, version, binary) || !candidate.accepted)
+                    return false;
+                dxfRW emptyCodec(path.string().c_str());
+                CanonicalLTypeReader emptyReader(wireName);
+                if (!emptyCodec.read(&emptyReader, false) || emptyReader.count != 1u
+                    || !emptyReader.description.empty())
+                    return false;
+                // A default callback also leaves the explicitly registered
+                // empty description authoritative.
+                candidate.row.desc = clean.row.desc;
+                if (!codec.write(&candidate, version, binary) || !candidate.accepted)
+                    return false;
+                dxfRW defaultCodec(path.string().c_str());
+                CanonicalLTypeReader defaultReader(wireName);
+                if (!defaultCodec.read(&defaultReader, false) || defaultReader.count != 1u
+                    || !defaultReader.description.empty())
+                    return false;
             }
         }
     }

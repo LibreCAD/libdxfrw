@@ -88043,7 +88043,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         // Use the base copy contract: extData owns raw pointers and must be
         // cloned, not assigned as a plain vector. The codec only needs the
         // table-entry metadata and the description, not linetype pattern or
-        // parser payloads. Nonempty descriptions can then be emitted with the
+        // parser payloads. Descriptions can then be emitted with the
         // mandatory rows before the callback runs.
         DRW_LType metadata;
         static_cast<DRW_TableEntry&>(metadata) =

@@ -16,5 +16,5 @@
     "Generated codec readback does not establish independent producer semantics or whole-document support."
   ],
   "followUp": "Nonempty or inconsistent canonical pattern state is now refused; see p6-canonical-ltype-pattern-refusal-2026-11-16.json. Description preservation remains open.",
-  "descriptionFollowUp": "Predeclared nonempty descriptions are now retained; explicitly empty CONTINUOUS descriptions remain ambiguous. See p6-canonical-ltype-descriptions-2026-11-16.json."
+  "descriptionFollowUp": "Predeclared descriptions, including empty, are now retained. An unseeded empty CONTINUOUS callback selects the built-in default; see p6-canonical-ltype-descriptions-2026-11-16.json."
 }

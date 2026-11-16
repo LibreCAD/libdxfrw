@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **697 completed implementation and qualification slices** and **32 remaining
+The plan records **698 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`697 / (697 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
+`698 / (698 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -95,11 +95,12 @@ callback or predeclared metadata
 ([receipt](docs/research/p6-canonical-ltype-pattern-refusal-2026-11-16.json)).
 The relinked LibreCAD PR #3269-focused test also passes with these changes;
 broader LibreCAD integration remains open.
-Predeclared nonempty canonical descriptions now round-trip through `dwg2dxf`,
-and unseeded custom descriptions refuse atomically
-([receipt](docs/research/p6-canonical-ltype-descriptions-2026-11-16.json)). An
-explicitly empty CONTINUOUS description remains indistinguishable from an
-unspecified default and still emits `Solid line`; resolve that representation.
+Predeclared canonical descriptions, including an explicitly empty CONTINUOUS
+description, now round-trip through `dwg2dxf`; unseeded custom descriptions
+refuse atomically ([receipt](docs/research/p6-canonical-ltype-descriptions-2026-11-16.json)).
+Without predeclaration, an empty CONTINUOUS callback selects the built-in
+`Solid line` description, so callers needing explicit empty output must
+predeclare it.
 Continue the remaining public-writer and compound-route census.
 
 For FreeCAD integration, replay the complete ordered downstream chain with
