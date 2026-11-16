@@ -3514,6 +3514,11 @@ const std::vector<std::pair<std::string, std::string>>* dxfRW::dxfWriteRootEntri
     return m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen && writer != nullptr ? &m_rootDictEntries : nullptr;
 }
 
+std::uint32_t dxfRW::dxfWriteDefaultPlotStyleDictionaryHandle() const noexcept {
+    return m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen && writer != nullptr
+        ? m_dxfDefaultPlotDictionary : 0u;
+}
+
 std::uint32_t dxfRW::dxfWriteImageDictionaryHandle() const noexcept {
     return m_dxfWriteAttemptActive && m_dxfGroupPlanFrozen && writer != nullptr ? m_plannedImageDictionaryHandle : 0u;
 }

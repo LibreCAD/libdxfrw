@@ -23,9 +23,14 @@
     "tool": "LibreDWG 0.14 JSON",
     "controlHandle": "0x10",
     "extensionDictionaryHandle": "0x107",
-    "layerMemberHandles": ["0x4"],
+    "layerMemberHandles": [
+      "0x4"
+    ],
     "dictionaryParent": "0x10",
-    "dictionaryEntry": {"name": "ACAD_LAYERSTATES", "handle": "0x108"}
+    "dictionaryEntry": {
+      "name": "ACAD_LAYERSTATES",
+      "handle": "0x108"
+    }
   },
   "implementation": {
     "files": [
@@ -50,9 +55,76 @@
       "The existing parser-level source test continues to pass its physical frame, role mutation, truncation, allocation failure, and retry controls."
     ]
   },
+  "adapterIntegrationFollowup": {
+    "date": "2026-11-16",
+    "sourceProfiles": [
+      {
+        "path": "tests/samples/AC1024/title_block-iso.dwg",
+        "sha256": "b874d82c5ee04f8a4fa6e907408c4ed770ee8208740fe4e1eb0f96fb2f793bc2",
+        "publishedLayerMembers": 1
+      },
+      {
+        "path": "tests/samples/AC1024/mechanical_example-imperial.dwg",
+        "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "publishedLayerMembers": 6,
+        "provenanceLimit": "Existing local input; untracked and not committed."
+      }
+    ],
+    "change": "Generalized the physical AC1024 LAYER_CONTROL frame matcher from exactly one layer member to the bounded ordered publication list. It independently checks every member handle and soft-owner role. The adapter-session control now validates SORTENTSTABLE preflight before rooted graph traversal, then verifies same-adapter graph admission and foreign-adapter rejection. The generated NOD writer inspector also accounts for the default ACAD_PLOTSTYLENAME dictionary. The AC1024 default-layer inspector is now gated by its two-layer profile so it cannot reject a different six-layer source that happens to share material/default-dictionary counts.",
+    "validation": {
+      "build": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j 4: PASS",
+      "focusedCtest": {
+        "command": "ctest --test-dir build -R '^(libdxfrw_dwg_ac1024_layer_control_source|dwg2dxf_ac1024_layer_control_source_session|libdxfrw_sortents_adapter|libdxfrw_extension_dictionary_owner_graphs)$' --output-on-failure",
+        "result": "PASS 4/4"
+      },
+      "physicalSortents": {
+        "command": "build/tests/libdxfrw_dwg2dxf_adapter_tests --sortents-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg",
+        "result": "PASS; ASCII and Binary export/readback preserve the 88 ordered pairs, owner/dictionary roles, atomic refusal, and corrected same-adapter retry."
+      },
+      "sessionProof": "The one-member title-block and six-member mechanical sources both pass the current-session proof and rooted graph admission controls."
+    },
+    "limits": [
+      "These results do not close the broader P4-A package or promote any support claim.",
+      "The mechanical source is an existing untracked input and remains outside Git.",
+      "The generated NOD inspection correction proves writer-field accounting only; it is not independent application readback."
+    ],
+    "supportClaimEffect": "none"
+  },
+  "graphAdmissionCompatibilityFollowup": {
+    "date": "2026-11-16",
+    "change": "Added a focused policy control to dwgLayerTableControlDictionaryCapture() and reused its existing CTest. No production change was required.",
+    "cases": {
+      "ac1024NoCapturedControl": "Extension graph preparation succeeds for the empty synthetic AC1024 policy profile; no LAYER_CONTROL source-frame proof is demanded when no control was captured.",
+      "ac1024ZeroXDictionary": "A structurally valid synthetic AC1024 LAYER_CONTROL with one correctly owned LAYER and zero XDictionary handle passes graph preparation without session proof.",
+      "ac1021NoCapturedControl": "The non-AC1024 profile continues to prepare without entering the AC1024 guard.",
+      "ac1024NonNullForeignAdapter": "A non-null XDictionary under an adapter without the source-frame session proof is refused with the exact AC1024 LAYER_CONTROL proof diagnostic.",
+      "ac1024SameAdapter": "The existing physical source-session selector continues to pass the proof-owning adapter case."
+    },
+    "validation": {
+      "build": "cmake --build build --target libdxfrw_dwg2dxf_adapter_tests -j 4: PASS",
+      "focusedCtest": {
+        "command": "ctest --test-dir build -R '^(dwg2dxf_dwg_layer_table_control_dictionary|dwg2dxf_ac1024_layer_control_source_session|libdxfrw_extension_dictionary_owner_graphs|libdxfrw_sortents_adapter)$' --output-on-failure",
+        "result": "PASS 4/4 in 0.86 seconds"
+      }
+    },
+    "limits": [
+      "No authentic null-XDictionary DWG witness was available; the null/absent cases are synthetic policy controls only.",
+      "This does not qualify broader AC1024 source, extension graph, named-block SORTENTSTABLE, or consumer behavior.",
+      "No support claim is promoted and no DWG/DXF fixture was added."
+    ],
+    "supportClaimEffect": "none"
+  },
   "limits": [
-    "This is source-span and handle-role evidence for one AC1024 input, not complete extension-graph closure or DXF output proof.",
-    "The captured source frame remains session evidence only; no output route or support claim is promoted.",
-    "The next P4-A slice must bind this proof to graph admission, compare dictionary 0x107 typed/raw bodies and inbound references, and preserve non-sort entries and dependencies."
-  ]
+    "The source-frame observation is profile-specific evidence, not producer authentication or independent semantic qualification.",
+    "The adapter integration follow-up closes graph admission and physical Model/Paper Space SORTENTSTABLE output only for the named AC1024 profiles. It does not establish all P4-A profiles or general DWG/DXF support.",
+    "Nonempty named-block SORTENTSTABLE output remains refused under the documented DXF owner schema. GROUP EED codepage-zero, empty-name AC1015 STYLE, and historical missing-target profiles remain separate strict-refusal cases pending their own evidence."
+  ],
+  "verificationRefresh": {
+    "date": "2026-11-16",
+    "repositoryHead": "e5da0e2f",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_ac1024_layer_control_source_tests -j4: PASS",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_ac1024_layer_control_source|dwg2dxf_ac1024_layer_control_source_session|dwg2dxf_dwg_layer_table_control_dictionary|libdxfrw_extension_dictionary_owner_graphs|libdxfrw_sortents_adapter)$' --output-on-failure: PASS 5/5 (0.46 sec)",
+    "physicalSortents": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --sortents-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg: PASS; 88 ordered pairs, owner/dictionary roles, null-sort fallback, atomic refusal, corrected same-adapter retry, and readback.",
+    "fixturePolicy": "The input remained an existing untracked local sample and was not staged or committed."
+  }
 }

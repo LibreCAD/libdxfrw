@@ -826,6 +826,7 @@ public:
     // phase or after write returns. Boolean selects ACAD_GROUP.
     const DRW_Dictionary* dxfWriteGeneratedRootSource(bool groups) const noexcept;
     const std::vector<std::pair<std::string, std::string>>* dxfWriteRootEntries() const noexcept;
+    std::uint32_t dxfWriteDefaultPlotStyleDictionaryHandle() const noexcept;
     std::uint32_t dxfWriteImageDictionaryHandle() const noexcept;
     /*!< Register source handles for complete TABLESTYLE raw records that the
      * same writer callback will emit. A TABLE's 342 reference is accepted only

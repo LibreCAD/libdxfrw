@@ -9823,6 +9823,18 @@ bool dx_iface::hasUnchangedExtensionDictionaryOwnerSources() const noexcept {
             != m_extensionDictionaryOwnerSourceGeneration)
         return false;
     try {
+        const bool hasLayerControlOwnerSource = std::any_of(
+            m_extensionDictionaryOwnerSources.begin(),
+            m_extensionDictionaryOwnerSources.end(),
+            [](const ExtensionDictionaryOwnerSource& source) {
+                return source.kind
+                    == ExtensionDictionaryOwnerSource::Kind::LayerTableControl;
+            });
+        if (hasLayerControlOwnerSource
+            && data->sourceFormat == dx_source_format::DWG
+            && data->sourceVersion == DRW::AC1024
+            && !hasCurrentDwgLayerControlSourceProof(*data))
+            return false;
         std::vector<ExtensionDictionaryOwnerSource> current;
         current.reserve(m_extensionDictionaryOwnerSources.size());
         const auto append = [&current, this](
@@ -10159,6 +10171,20 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
     };
     if (data == nullptr)
         return reject();
+
+    if (data->sourceFormat == dx_source_format::DWG
+        && data->sourceVersion == DRW::AC1024) {
+        std::uint32_t controlHandle = 0u;
+        std::uint32_t dictionaryHandle = 0u;
+        if (!data->getLayerTableControlExtensionDictionary(
+                controlHandle, dictionaryHandle))
+            return reject(ExtensionGraphFailure::InvalidGraph,
+                "Layer TABLE control identity or LAYER membership is incomplete");
+        if (dictionaryHandle != 0u
+            && !hasCurrentDwgLayerControlSourceProof(*data))
+            return reject(ExtensionGraphFailure::InvalidGraph,
+                "AC1024 LAYER_CONTROL XDictionary requires the current adapter-session source-frame proof");
+    }
 
     if (data->sourceFormat == dx_source_format::DWG
         && data->importGeneration != 0u) {
@@ -47821,6 +47847,12 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
             if (!groups) {
                 diagnosticStage = "NOD expected-entry census";
                 if (!select("ACAD_GROUP", 0xDu)) return false;
+                const auto plotStyleDictionary =
+                    dxfW->dxfWriteDefaultPlotStyleDictionaryHandle();
+                if (plotStyleDictionary
+                    && !select("ACAD_PLOTSTYLENAME",
+                               plotStyleDictionary))
+                    return false;
                 const auto image = dxfW->dxfWriteImageDictionaryHandle();
                 if (image && !select("ACAD_IMAGE_DICT", image)) return false;
                 for (const auto& root : *roots) {
@@ -47880,8 +47912,16 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
                         return true;
                     };
                     while (!input.done()) {
-                        if (!input.next(token)) return false;
+                        diagnosticStage = groups ? "GROUPS staged physical fields"
+                                                 : "NOD staged physical fields";
+                        if (!input.next(token)) {
+                            diagnosticStage = groups ? "GROUPS malformed staged token"
+                                                     : "NOD malformed staged token";
+                            return false;
+                        }
                         if (token.code == 102) {
+                            diagnosticStage = groups ? "GROUPS staged application group"
+                                                     : "NOD staged application group";
                             if (classes || xdata) return false;
                             if (!token.text.empty() && token.text.front() == '{') {
                                 if (++depth > DRW::kMaxDxfApplicationGroupNesting) return false;
@@ -47898,6 +47938,8 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
                         }
                         std::uint32_t value = 0u;
                         if (depth) {
+                            diagnosticStage = groups ? "GROUPS staged handle group"
+                                                     : "NOD staged handle group";
                             if (app == "ACAD_REACTORS") {
                                 if (depth != 1u || token.code != 330 || reactor >= frozen->reactorHandles.size()
                                     || !dx_raster_output::integer(token.text, value, 16) || !reference(frozen->reactorHandles[reactor++], value)) return false;
@@ -47907,23 +47949,58 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
                             }
                             continue;
                         }
-                        if (token.code >= 1000) { if (!classes || pending || (!xdata && token.code != 1001)) return false; xdata = true; continue; }
-                        if (xdata) return false;
+                        if (token.code >= 1000) {
+                            diagnosticStage = groups ? "GROUPS staged XDATA"
+                                                     : "NOD staged XDATA";
+                            if (!classes || pending || (!xdata && token.code != 1001)) return false;
+                            xdata = true;
+                            continue;
+                        }
+                        if (xdata) {
+                            diagnosticStage = groups ? "GROUPS unexpected field after XDATA"
+                                                     : "NOD unexpected field after XDATA";
+                            return false;
+                        }
                         if (!classes && token.code == 5) {
+                            diagnosticStage = groups ? "GROUPS staged self handle"
+                                                     : "NOD staged self handle";
                             if (++selves != 1u || !dx_raster_output::integer(token.text, value, 16) || value != proof.emitted) return false;
                         } else if (!classes && token.code == 330) {
+                            diagnosticStage = groups ? "GROUPS staged owner handle"
+                                                     : "NOD staged owner handle";
                             if (++owners != 1u || !dx_raster_output::integer(token.text, value, 16) || value != proof.owner) return false;
                         } else if (token.code == 100) {
+                            diagnosticStage = groups ? "GROUPS staged class marker"
+                                                     : "NOD staged class marker";
                             if (++classes != 1u || token.text != "AcDbDictionary") return false;
                         } else if (classes && token.code == 280 && !pending) {
+                            diagnosticStage = groups ? "GROUPS staged hard-owner flag"
+                                                     : "NOD staged hard-owner flag";
                             if (++hard != 1u || token.number != frozen->hardOwner) return false;
                         } else if (classes && token.code == 281 && !pending) {
+                            diagnosticStage = groups ? "GROUPS staged cloning flag"
+                                                     : "NOD staged cloning flag";
                             if (++cloning != 1u || token.number != frozen->cloning) return false;
-                        } else if (classes && token.code == 3 && !pending && entry < expected.size()) pending = true;
+                        } else if (classes && token.code == 3 && !pending && entry < expected.size()) {
+                            diagnosticStage = groups ? "GROUPS staged entry key"
+                                                     : "NOD staged entry key";
+                            pending = true;
+                        }
                         else if (pending && entry < expected.size() && token.code == expected[entry].role) {
+                            diagnosticStage = groups ? "GROUPS staged entry reference"
+                                                     : "NOD staged entry reference";
                             if (!dx_raster_output::integer(token.text, value, 16) || value != expected[entry].target) return false;
                             proof.references.push_back(value); ++entry; pending = false;
-                        } else return false;
+                        } else {
+                            diagnosticStage = std::string(groups
+                                ? "GROUPS unexpected staged code "
+                                : "NOD unexpected staged code ")
+                                + std::to_string(token.code) + " at entry "
+                                + std::to_string(entry) + " pending="
+                                + std::to_string(pending) + " text="
+                                + std::string(token.text);
+                            return false;
+                        }
                     }
                     return !depth && !pending && selves == 1u && owners == 1u && classes == 1u && hard == 1u && cloning == 1u
                         && entry == expected.size() && reactors == (frozen->reactorHandles.empty() ? 0u : 1u) && extensions == (frozen->xDictHandle ? 1u : 0u);
@@ -91782,6 +91859,7 @@ bool dx_iface::usesAc1024DefaultLayersProfile() const noexcept {
     return cData && hasStrictDxfExportLease(cData)
         && cData->sourceFormat == dx_source_format::DWG
         && cData->sourceVersion == DRW::AC1024
+        && cData->layers.size() == 2u
         && m_extensionMaterialSources.size() == 3u
         && m_dwgDictionaryDefaultOutputSources.size() == 1u;
 }

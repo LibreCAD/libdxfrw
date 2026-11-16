@@ -15790,9 +15790,8 @@ bool DRW_DwgAc1024LayerControlSource::matchesAc1024LayerControlFrame(
       || publication.m_numReactors != 0 || !publication.m_reactorHandles.empty()
       || publication.m_xDictFlag != raw.m_xDictFlag
       || publication.m_xDictHandle != raw.m_xDictHandle
-      || publication.m_controlHandles.size() != 1u
-      || publication.m_controlHandles.front() == 0u
-      || publication.m_controlHandles.front() == DRW::NoHandle)
+      || publication.m_controlHandles.size()
+          > static_cast<std::size_t>(dwgSafety::MaxOwnedObjectCount))
     return false;
   try {
     DRW_TextCodec codec;
@@ -15809,9 +15808,8 @@ bool DRW_DwgAc1024LayerControlSource::matchesAc1024LayerControlFrame(
         || parsed.extensionDictionaryFlag() != 0u || parsed.xDictHandle != raw.m_xDictHandle
         || parsed.hasDataStorageBinaryData() || !parsed.appData.empty() || !parsed.extData.empty()
         || !parsed.pendingAppIdResolutions.empty() || !parsed.pendingLayerRefResolutions.empty()
-        || parsed.orderedHandleSlots.size() != 1u || parsed.orderedHandleRoles.size() != 1u
-        || parsed.orderedHandleSlots.front() != publication.m_controlHandles.front()
-        || parsed.orderedHandleRoles.front() != DRW::DwgSoftOwnership)
+        || parsed.orderedHandleSlots != publication.m_controlHandles
+        || parsed.orderedHandleRoles.size() != publication.m_controlHandles.size())
       return false;
     // Independently inspect the raw role nibbles: the ordinary control
     // parser retains the xdictionary value but does not validate its role.
@@ -15822,16 +15820,30 @@ bool DRW_DwgAc1024LayerControlSource::matchesAc1024LayerControlFrame(
     handles.setBitPos(static_cast<std::uint8_t>(start & 7u));
     const dwgHandle owner = handles.getHandle();
     const dwgHandle dictionary = handles.getHandle();
-    const dwgHandle layer = handles.getHandle();
+    if (!handles.isGood() || owner.code != DRW::DwgSoftPointer
+        || owner.size != 0u || owner.ref != 0u
+        || owner.ref64 != 0u
+        || dictionary.code != DRW::DwgHardOwnership
+        || dictionary.ref != raw.m_xDictHandle
+        || dictionary.ref64 != raw.m_xDictHandle)
+      return false;
+    for (std::size_t i = 0u;
+         i < publication.m_controlHandles.size(); ++i) {
+      const std::uint32_t expected = publication.m_controlHandles[i];
+      if (expected == 0u || expected == DRW::NoHandle
+          || parsed.orderedHandleRoles[i] != DRW::DwgSoftOwnership)
+        return false;
+      const dwgHandle layer = handles.getHandle();
+      if (!handles.isGood() || layer.code != DRW::DwgSoftOwnership
+          || layer.rawCode != DRW::DwgSoftOwnership
+          || layer.ref != expected || layer.ref64 != expected)
+        return false;
+    }
     const std::uint64_t end = static_cast<std::uint64_t>(handles.getPosition()) * 8u
         + handles.getBitPos();
     return handles.isGood() && end <= total && total - end <= 7u
-        && owner.code == DRW::DwgSoftPointer && owner.size == 0u && owner.ref == 0u
-        && dictionary.code == DRW::DwgHardOwnership && dictionary.ref == raw.m_xDictHandle
-        && dictionary.ref64 == raw.m_xDictHandle
-        && layer.code == DRW::DwgSoftOwnership
-        && layer.ref == publication.m_controlHandles.front()
-        && layer.ref64 == publication.m_controlHandles.front();
+        && owner.rawCode == DRW::DwgSoftPointer
+        && dictionary.rawCode == DRW::DwgHardOwnership;
   } catch (...) {
     return false;
   }

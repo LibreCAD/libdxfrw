@@ -100,6 +100,9 @@ public:
         return interface_.prepareExtensionObjectGraph(
             &data, includeNamedObjectRoot);
     }
+    static bool validateSortEnts(dx_iface& interface_, const dx_data& data) {
+        return interface_.validateSortEntsGraph(data, true);
+    }
     static bool seedDimensionAssociationFrame(
             dx_data& data, const DRW_DimensionAssociation& association) {
         const dx_data::StandardDwgFrameKey key{
@@ -133,6 +136,13 @@ public:
 
     static const std::string& failureDetail(const dx_iface& interface_) {
         return interface_.m_extensionGraphFailureDetail;
+    }
+
+    static bool extensionDictionaryQueued(const dx_iface& interface_,
+                                          std::uint32_t handle) {
+        return std::find(interface_.m_extensionDictionaryHandles.begin(),
+                         interface_.m_extensionDictionaryHandles.end(), handle)
+            != interface_.m_extensionDictionaryHandles.end();
     }
 
     static bool materialSourcesUnchanged(const dx_iface& interface_) {
@@ -194,6 +204,23 @@ public:
     static bool hasCurrentDwgLayerControlSourceProof(
             const dx_iface& iface, const dx_data& data) noexcept {
         return iface.hasCurrentDwgLayerControlSourceProof(data);
+    }
+    static std::uint8_t layerControlXDictFlag(const dx_data& data) noexcept {
+        return data.m_dwgLayerControlPublication.m_xDictFlag;
+    }
+    static std::size_t layerControlPublishedMemberCount(
+            const dx_data& data) noexcept {
+        return data.m_dwgLayerControlPublication.m_controlHandles.size();
+    }
+    static bool layerControlPublicationSeen(const dx_data& data) noexcept {
+        return data.m_dwgLayerControlPublicationSeen;
+    }
+    static bool layerControlCaptureFailed(const dx_data& data) noexcept {
+        return data.m_dwgLayerControlCaptureFailed;
+    }
+    static bool layerControlSessionCaptureFailed(
+            const dx_iface& iface) noexcept {
+        return iface.m_dwgLayerControlSourceCaptureFailed;
     }
 
     // Synthetic receipt for profile-guard controls; physical-source tests
@@ -21666,6 +21693,96 @@ bool dwgLayerTableControlDictionaryCapture() {
                  DRW::DwgLayerControlHandle, {0x10u}, false, false,
                  actualControl, actualDictionary))
         return fail("LAYER_CONTROL XDictionary aliasing its owner was accepted");
+
+    const auto prepareWithoutControl = [](DRW::Version version,
+                                          const char* profile) {
+        dx_data data;
+        dx_iface iface;
+        iface.cData = &data;
+        data.sourceFormat = dx_source_format::DWG;
+        data.sourceVersion = version;
+        data.importGeneration = 7u;
+        data.dwgReadOutcome.attempted = true;
+        data.dwgReadOutcome.sourceVersion = version;
+        data.dwgReadOutcome.operationSucceeded = true;
+        if (!DxIfaceExtensionGraphTestAccess::prepare(iface, data, false)) {
+            std::cerr << "LAYER_CONTROL " << profile
+                      << " graph preparation failed: "
+                      << DxIfaceExtensionGraphTestAccess::failureDetail(iface)
+                      << '\n';
+            return false;
+        }
+        return true;
+    };
+    if (!prepareWithoutControl(DRW::AC1024, "AC1024 absent-control"))
+        return fail("AC1024 absent-control graph policy changed");
+    if (!prepareWithoutControl(DRW::AC1021, "AC1021 non-regression"))
+        return fail("AC1021 graph preparation regressed");
+
+    dx_data zeroXDictData;
+    dx_iface zeroXDictIface;
+    zeroXDictIface.cData = &zeroXDictData;
+    zeroXDictData.sourceFormat = dx_source_format::DWG;
+    zeroXDictData.sourceVersion = DRW::AC1024;
+    zeroXDictData.importGeneration = 7u;
+    zeroXDictData.dwgReadOutcome.attempted = true;
+    zeroXDictData.dwgReadOutcome.sourceVersion = DRW::AC1024;
+    zeroXDictData.dwgReadOutcome.operationSucceeded = true;
+    DRW_Layer zeroXDictLayer;
+    zeroXDictLayer.handle = 0x10u;
+    zeroXDictLayer.parentHandle = DRW::DwgLayerControlHandle;
+    zeroXDictData.layers.push_back(zeroXDictLayer);
+    DRW_DwgFramePublication zeroXDictControl;
+    zeroXDictControl.m_version = DRW::AC1024;
+    zeroXDictControl.m_handle = DRW::DwgLayerControlHandle;
+    zeroXDictControl.m_sourceOffset = 0x80u;
+    zeroXDictControl.m_sourceMapOrdinal = 4u;
+    zeroXDictControl.m_sourceOffsetSpace =
+        DRW_DwgFrameOffsetSpace::PhysicalFile;
+    zeroXDictControl.m_hasSourceLocation = true;
+    zeroXDictControl.m_encodedType = DRW::DwgLayerControlObjectType;
+    zeroXDictControl.m_resolvedType = DRW::DwgLayerControlObjectType;
+    zeroXDictControl.m_recordName = "LAYER_CONTROL";
+    zeroXDictControl.m_commonLinkEvidence =
+        DRW_DwgCommonLinkEvidence::NotApplicable;
+    zeroXDictControl.m_controlHandles = {zeroXDictLayer.handle};
+    zeroXDictControl.m_carrier =
+        DRW_DwgFramePublication::Carrier::Control;
+    zeroXDictIface.addDwgFramePublication(zeroXDictControl);
+    zeroXDictData.dwgReadOutcome.operationSucceeded = true;
+    if (!zeroXDictData.getLayerTableControlExtensionDictionary(
+            actualControl, actualDictionary)
+        || actualControl != DRW::DwgLayerControlHandle
+        || actualDictionary != 0u
+        || !DxIfaceExtensionGraphTestAccess::prepare(
+            zeroXDictIface, zeroXDictData, false))
+        return fail("valid AC1024 zero-XDictionary graph policy changed: "
+            + DxIfaceExtensionGraphTestAccess::failureDetail(zeroXDictIface));
+
+    dx_data nonNullXDictData;
+    dx_iface foreignXDictIface;
+    foreignXDictIface.cData = &nonNullXDictData;
+    nonNullXDictData.sourceFormat = dx_source_format::DWG;
+    nonNullXDictData.sourceVersion = DRW::AC1024;
+    nonNullXDictData.importGeneration = 7u;
+    nonNullXDictData.dwgReadOutcome.attempted = true;
+    nonNullXDictData.dwgReadOutcome.sourceVersion = DRW::AC1024;
+    nonNullXDictData.dwgReadOutcome.operationSucceeded = true;
+    DRW_Layer nonNullXDictLayer;
+    nonNullXDictLayer.handle = 0x10u;
+    nonNullXDictLayer.parentHandle = DRW::DwgLayerControlHandle;
+    nonNullXDictData.layers.push_back(nonNullXDictLayer);
+    DRW_DwgFramePublication nonNullXDictControl = zeroXDictControl;
+    nonNullXDictControl.m_xDictFlag = 1u;
+    nonNullXDictControl.m_xDictHandle = 0x2A2u;
+    foreignXDictIface.addDwgFramePublication(nonNullXDictControl);
+    nonNullXDictData.dwgReadOutcome.operationSucceeded = true;
+    if (DxIfaceExtensionGraphTestAccess::prepare(
+            foreignXDictIface, nonNullXDictData, false)
+        || DxIfaceExtensionGraphTestAccess::failureDetail(foreignXDictIface)
+            .find("AC1024 LAYER_CONTROL XDictionary requires the current adapter-session source-frame proof")
+            == std::string::npos)
+        return fail("non-null AC1024 LAYER_CONTROL XDictionary lost its adapter-session proof gate");
     return true;
 }
 
@@ -21681,10 +21798,15 @@ bool ac1024LayerControlAdapterSessionProof(const std::string& sourcePath) {
     std::uint32_t dictionaryHandle = 0u;
     if (!source.getLayerTableControlExtensionDictionary(
             controlHandle, dictionaryHandle)
-        || controlHandle != 0x10u || dictionaryHandle != 0x107u
+        || controlHandle == 0u || dictionaryHandle == 0u
         || !DxIfaceStandardDwgCaptureTestAccess::
             hasCurrentDwgLayerControlSourceProof(adapter, source))
         return fail("AC1024 layer-control source proof did not bind to its publication");
+    const std::size_t layerMemberCount =
+        DxIfaceStandardDwgCaptureTestAccess::
+            layerControlPublishedMemberCount(source);
+    if (layerMemberCount == 0u || layerMemberCount != source.layers.size())
+        return fail("AC1024 layer-control proof did not bind every published layer member");
 
     const DRW_Dictionary* extension = nullptr;
     for (const DRW_Dictionary& candidate : source.dictionaries) {
@@ -21698,14 +21820,42 @@ bool ac1024LayerControlAdapterSessionProof(const std::string& sourcePath) {
         || std::count_if(extension->m_entries.begin(), extension->m_entries.end(),
             [](const DRW_Dictionary::Entry& entry) {
                 return entry.m_name == "ACAD_LAYERSTATES"
-                    && entry.m_handle == 0x108u;
+                    && entry.m_handle != 0u && entry.m_handle != DRW::NoHandle;
             }) != 1)
-        return fail("AC1024 layer-control proof did not match dictionary 0x107");
+        return fail("AC1024 layer-control proof did not match its unique ACAD_LAYERSTATES dictionary entry");
 
     dx_iface otherAdapter;
     if (DxIfaceStandardDwgCaptureTestAccess::
             hasCurrentDwgLayerControlSourceProof(otherAdapter, source))
         return fail("AC1024 layer-control proof escaped its adapter session");
+
+    adapter.cData = &source;
+    otherAdapter.cData = &source;
+    const bool otherGraphAccepted =
+        DxIfaceExtensionGraphTestAccess::prepare(otherAdapter, source, false);
+    const std::string requiredProofFailure =
+        "AC1024 LAYER_CONTROL XDictionary requires the current adapter-session source-frame proof";
+    if (otherGraphAccepted
+        || DxIfaceExtensionGraphTestAccess::failureDetail(otherAdapter)
+            .find(requiredProofFailure) == std::string::npos)
+        return fail("AC1024 LAYER_CONTROL graph admission did not reject a foreign adapter at the hard-owner edge: "
+            + DxIfaceExtensionGraphTestAccess::failureDetail(otherAdapter));
+
+    const bool sameGraphAccepted =
+        DxIfaceExtensionGraphTestAccess::validateSortEnts(adapter, source)
+        && DxIfaceExtensionGraphTestAccess::prepare(adapter, source, true);
+    if (!sameGraphAccepted
+        && DxIfaceExtensionGraphTestAccess::failureDetail(adapter)
+            .find(requiredProofFailure) != std::string::npos)
+        return fail("AC1024 LAYER_CONTROL graph admission rejected its source-owning adapter");
+    if (sameGraphAccepted
+        && !DxIfaceExtensionGraphTestAccess::extensionDictionaryQueued(
+            adapter, dictionaryHandle))
+        return fail("AC1024 LAYER_CONTROL proof admitted without queuing DICTIONARY 0x107");
+    if (!sameGraphAccepted)
+        std::cout << "AC1024 LAYER_CONTROL source proof passed graph admission; later blocker: "
+                  << DxIfaceExtensionGraphTestAccess::failureDetail(adapter)
+                  << '\n';
 
     const std::uint64_t generation = source.importGeneration;
     ++source.importGeneration;
@@ -21717,7 +21867,8 @@ bool ac1024LayerControlAdapterSessionProof(const std::string& sourcePath) {
             hasCurrentDwgLayerControlSourceProof(adapter, source))
         return fail("AC1024 layer-control proof ignored import-generation changes");
 
-    std::cout << "AC1024 LAYER_CONTROL frame proof is bound to the exact adapter session, publication, and dictionary edge\n";
+    std::cout << "AC1024 LAYER_CONTROL frame proof is bound to the exact adapter session, publication, and dictionary edge ("
+              << layerMemberCount << " layer members)\n";
     return true;
 }
 
@@ -53015,6 +53166,32 @@ bool physicalSortEntsOutputReadback(
             && source.sourceVersion != DRW::AC1024)
         || source.sortEntsTables.size() != 1u)
         return fail("physical SORTENTSTABLE source is outside the single-record census");
+    if (source.sourceVersion == DRW::AC1024) {
+        std::uint32_t controlHandle = 0u;
+        std::uint32_t dictionaryHandle = 0u;
+        if (!source.getLayerTableControlExtensionDictionary(
+                controlHandle, dictionaryHandle)
+            || (dictionaryHandle != 0u
+                && !DxIfaceStandardDwgCaptureTestAccess::
+                    hasCurrentDwgLayerControlSourceProof(
+                        sourceReader, source)))
+            return fail("physical AC1024 SORTENTSTABLE source has no matching LAYER_CONTROL session proof: seen="
+                + std::to_string(DxIfaceStandardDwgCaptureTestAccess::
+                    layerControlPublicationSeen(source))
+                + " flag=" + std::to_string(DxIfaceStandardDwgCaptureTestAccess::
+                    layerControlXDictFlag(source))
+                + " captureFailed=" + std::to_string(
+                    DxIfaceStandardDwgCaptureTestAccess::
+                        layerControlCaptureFailed(source))
+                + " sessionCaptureFailed=" + std::to_string(
+                    DxIfaceStandardDwgCaptureTestAccess::
+                        layerControlSessionCaptureFailed(sourceReader))
+                + " control="
+                + std::to_string(controlHandle) + " dictionary="
+                + std::to_string(dictionaryHandle) + " members="
+                + std::to_string(DxIfaceStandardDwgCaptureTestAccess::
+                    layerControlPublishedMemberCount(source)));
+    }
     if (source.sourceVersion == DRW::AC1021) {
         const DRW_SortEntsTable& table = source.sortEntsTables.front();
         const DRW_DwgSortEntsMembership* membership =
@@ -53459,10 +53636,10 @@ bool physicalSortEntsOutputReadback(
             if (!existing || !(existing << sentinel))
                 return fail("could not seed physical SORTENTSTABLE destination sentinel");
         }
-        dx_iface writer;
+        dx_iface& writer = sourceReader;
         const auto exportPartial = [&]() {
             return writer.fileExport(
-                outputPath.string(), DRW::AC1024, binary, &source, false, true,
+                outputPath.string(), DRW::AC1024, binary, &source, true, true,
                 dx_dxfSourceTextPolicy::RequireValidSource,
                 DRW::DxfTextWritePolicy::RequireLossless,
                 dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
@@ -53496,8 +53673,40 @@ bool physicalSortEntsOutputReadback(
                 source, source.importGeneration, sourceDictionary->handle)
                 != dictionaryQualifiedBeforeFailure)
             return fail("invalid physical SORTENTSTABLE target was not refused atomically");
-        if (!exportPartial())
-            return fail("corrected physical SORTENTSTABLE could not retry on the same adapter");
+        if (!exportPartial()) {
+            const auto& retryMembership = source.dwgSortEntsMemberships.front();
+            std::size_t mismatchCount = 0u;
+            std::size_t firstMismatch = mutableTable.m_entityHandles.size();
+            for (std::size_t index = 0u;
+                 index < retryMembership.m_entries.size()
+                    && index < mutableTable.m_entityHandles.size()
+                    && index < mutableTable.m_sortHandles.size(); ++index) {
+                const auto& entry = retryMembership.m_entries[index];
+                if (entry.m_entityHandle != mutableTable.m_entityHandles[index]
+                    || entry.m_sortHandle != mutableTable.m_sortHandles[index]) {
+                    if (firstMismatch == mutableTable.m_entityHandles.size())
+                        firstMismatch = index;
+                    ++mismatchCount;
+                }
+            }
+            return fail("corrected physical SORTENTSTABLE could not retry on the same adapter: table-pairs="
+                + std::to_string(mutableTable.m_entityHandles.size()) + "/"
+                + std::to_string(mutableTable.m_sortHandles.size()) + " receipt="
+                + std::to_string(retryMembership.m_entries.size()) + " first-entity="
+                + std::to_string(mutableTable.m_entityHandles.empty() ? 0u
+                    : mutableTable.m_entityHandles.front()) + "/"
+                + std::to_string(retryMembership.m_entries.empty() ? 0u
+                    : retryMembership.m_entries.front().m_entityHandle) + " first-sort="
+                + std::to_string(mutableTable.m_sortHandles.empty() ? 0u
+                    : mutableTable.m_sortHandles.front()) + "/"
+                + std::to_string(retryMembership.m_entries.empty() ? 0u
+                    : retryMembership.m_entries.front().m_sortHandle)
+                + " owner=" + std::to_string(mutableTable.m_blockOwnerHandle)
+                + "/" + std::to_string(retryMembership.m_blockOwnerHandle)
+                + " receipt-handle=" + std::to_string(retryMembership.m_tableHandle)
+                + " mismatch-count=" + std::to_string(mismatchCount)
+                + " first-mismatch=" + std::to_string(firstMismatch));
+        }
         if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
                 source, source.importGeneration, sourceTable.handle)
             || !DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
@@ -83692,8 +83901,9 @@ bool extensionDictionaryOwnerGraphs() {
         dx_iface writer;
         populate(source, writer);
         if (!writer.fileExport(output.string(), DRW::AC1027, binary,
-                               &source, false))
-            return fail("entity, LAYER and LAYOUT extension dictionary closure failed");
+                               &source, true))
+            return fail("entity, LAYER and LAYOUT extension dictionary closure failed: "
+                + DxIfaceExtensionGraphTestAccess::failureDetail(writer));
 
         dx_iface reader;
         dx_data readback;

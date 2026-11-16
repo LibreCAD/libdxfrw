@@ -774,13 +774,14 @@ struct DRW_DwgAc1024LayerSource {
 struct DRW_DwgFramePublication;
 
 //! Provisional CRC-checked AC1024 LAYER_CONTROL body for an opt-in reader.
-//! The H role and source graph still require independent verification.
+//! Every published non-null layer member must match the source body. The H
+//! roles and source graph still require independent verification.
 struct DRW_DwgAc1024LayerControlSource {
   DRW_UnsupportedObject m_raw;
   std::uint32_t m_sourceOffset{0u};
   std::uint64_t m_sourceMapOrdinal{0u};
   DRW_DwgFrameOffsetSpace m_sourceOffsetSpace{DRW_DwgFrameOffsetSpace::Unknown};
-  //! Match a narrow no-EED, one-layer profile and its exact source receipt.
+  //! Match a bounded no-EED profile and its exact source receipt/publication.
   //! This does not authenticate the source or authorize graph/output changes.
   [[nodiscard]] bool matchesAc1024LayerControlFrame(
       const DRW_DwgFramePublication &publication) const noexcept;
