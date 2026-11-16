@@ -1,0 +1,13 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-source-capture-session-2026-11-15.patch",
+  "patchSha256": "189e567afadff0789d5d80679123b9b440a9c09dc44b84f57856de81b1ed222c",
+  "implementation": "A twenty-second unmerged LibreCAD patch starts a private selected-source callback capture immediately before each DWG read, after metadata clear, and seals it only after successful AC1024 import with complete nonconflicting frame coverage and successful dictionary/sort observation capture. The relevant later callback additions and source-version changes invalidate the seal; clear and failed imports leave it unset. The seal is correlation context only and is not used by the exporter.",
+  "validation": [
+    "A C++17 -Werror source-callback harness read the tracked title fixture and checked that one successful session seals and both the dictionary and SORTENTSTABLE source verifiers match. Wrong/restored version, duplicate later membership, clear and failed completion invalidate the seal; new successful imports reseal.",
+    "The patch applies in order after the first 21 patches; the macro-excluded source compiles against the older bundled codec. Source-release inventory and 18 refusal controls pass with 1214 files; the 721-input implementation digest is unchanged.",
+    "The installed-codec LibreCAD application integration rebuild is running. Its committed importer tests cover seal, version change, failed open and reimport; results are not yet claimed."
+  ],
+  "limits": "The seal records a successfully finalized selected-callback session. It is not source authentication, an immutable generation identifier across copied documents, a universal edit detector, proof of class coverage or complete inbound references, graph closure, output permission, native semantic parity or a support claim. Per-record comparison and all downstream graph/output gates remain mandatory."
+}
