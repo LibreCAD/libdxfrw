@@ -57,6 +57,7 @@ library_include_HEADERS = \
     drw_dxf_extrusion.h \
     drw_header.h \
     drw_interface.h \
+    drw_dxf_capabilities.h \
     drw_objects.h \
     libdwgr.h \
     libdxfrw.h

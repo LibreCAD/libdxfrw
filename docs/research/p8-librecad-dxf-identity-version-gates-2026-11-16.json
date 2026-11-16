@@ -1,0 +1,42 @@
+{
+  "date": "2026-11-16",
+  "scope": "Focused LibreCAD DXF integration with bundled codec and selected installed libdxfrw ABI 3 codec",
+  "consumer_replay_base": "6c0a9e08736ff143419ae939e87f32739efc12d7",
+  "consumer_replay_commit": "66ab31a2eb9d018224d3e6fea3999d673b78b3b2",
+  "consumer_patch": {
+    "path": "docs/patches/librecad-p8-dxf-identity-version-gates-2026-11-16.patch",
+    "sha256": "c3f12f6382568ba2ad27e43c9c350f93fc0ecaa3ef1e1180c58a6cc2cc5557a0",
+    "reverse_apply_check": "PASS"
+  },
+  "installed_codec": {
+    "path": "/private/tmp/libdxfrw-default-plotstyle-install-20261116/lib/libdxfrw.3.0.0.dylib",
+    "sha256": "17465558aff27e84f1b68e9fef0c6aada421bd74d6cd0c3aa18cb4576ed73a28",
+    "loaded_path_confirmed_with_dyld": true,
+    "field_minimum": "AC1018",
+    "capability_header_sha256": "f98ac3029375f1e5abcb28e721c95a330e07f19079b237a848da14fc84c8931c"
+  },
+  "bundled_codec_field_minimum": "AC1015",
+  "changes": [
+    "Keep unique live entity references when an omitted raw carrier has the same source handle.",
+    "Explicitly map reserved GROUP handles so reactor references and emitted identities agree.",
+    "Apply codec-specific FIELD and FIELDLIST version gates consistently to planning, dictionary membership and emission; gate MLEADERSTYLE and EVALUATION_GRAPH emission.",
+    "Report omitted typed-only objects and suppress their dangling references; same-filter retry retains the object at a supported target version."
+  ],
+  "tests": {
+    "installed_filter_version": "PASS: 6 cases, 125 assertions",
+    "bundled_filter_version": "PASS: 9 cases, 134 assertions",
+    "installed_r13": "PASS: 2 cases, 230 assertions",
+    "bundled_r13": "PASS: 3 cases, 246 assertions",
+    "installed_ltype_and_pr3269": "PASS: 2 selected CTests",
+    "installed_group_load_probe": "PASS: 1 case, 6 assertions",
+    "r2000_graph": "No dangling references in generated control; bundled retains FIELD and FIELDLIST, installed omits them with target-specific planning."
+  },
+  "limitations": [
+    "Consumer patch is an unmerged local replay; integration into LibreCAD master remains open.",
+    "Checks are focused macOS results, not the full consumer suite or native Linux/Windows qualification.",
+    "Caller-provided plot-style root and broader source graph qualification remain open.",
+    "R13 raw-carrier conversion guard remains in force.",
+    "No independent external semantic evidence or support claim is promoted."
+  ],
+  "fixtures": "Generated transient outputs only; no DWG/DXF fixture files committed."
+}

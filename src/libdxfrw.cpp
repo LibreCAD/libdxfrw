@@ -13,6 +13,7 @@
 
 
 #include "libdxfrw.h"
+#include "drw_dxf_capabilities.h"
 #include <cerrno>
 #include <cctype>
 #include <charconv>
@@ -37071,7 +37072,7 @@ bool dxfRW::writeSortEntsTable(DRW_SortEntsTable *ent) {
 // references, cached value string, and child value records preserved by the
 // typed FIELD model.
 bool dxfRW::writeField(DRW_Field *ent) {
-    if (version < DRW::AC1018)
+    if (version < LIBDXFRW_DXF_FIELD_MINIMUM_VERSION)
         return rejectUnsupportedDxfWrite("FIELD");
     if (!preflightDxfWrite())
         return false;
@@ -37216,7 +37217,7 @@ bool dxfRW::writeField(DRW_Field *ent) {
 
 // FIELDLIST (AcDbIdSet / AcDbFieldList, custom class).
 bool dxfRW::writeFieldList(DRW_FieldList *ent) {
-    if (version < DRW::AC1018)
+    if (version < LIBDXFRW_DXF_FIELD_MINIMUM_VERSION)
         return rejectUnsupportedDxfWrite("FIELDLIST");
     if (!preflightTableEntry(ent))
         return false;

@@ -66,6 +66,7 @@ docs/patches/librecad-p8-dictionary-source-correlation-2026-11-15.patch
 docs/patches/librecad-p8-dictionary-source-observation-2026-11-15.patch
 docs/patches/librecad-p8-dimassoc-field-mapping-2026-11-15.patch
 docs/patches/librecad-p8-dwg-block-preview-import-test-2026-11-15.patch
+docs/patches/librecad-p8-dxf-identity-version-gates-2026-11-16.patch
 docs/patches/librecad-p8-dxf-write-diagnostic-r13-2026-11-16.patch
 docs/patches/librecad-p8-empty-sortents-source-correlation-2026-11-15.patch
 docs/patches/librecad-p8-empty-xrecord-dxf-output-2026-11-15.patch
@@ -304,6 +305,7 @@ src/drw_classes.cpp
 src/drw_classes.h
 src/drw_datastorage.cpp
 src/drw_datastorage.h
+src/drw_dxf_capabilities.h
 src/drw_dxf_extrusion.h
 src/drw_entities.cpp
 src/drw_entities.h

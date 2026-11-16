@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **733 completed implementation and qualification slices** and **32 remaining
+The plan records **734 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`733 / (733 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
+`734 / (734 + 32) = 95.8%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -223,16 +223,18 @@ Native GUI behavior, independent semantics and upstream integration remain open.
   retry checks. Earlier bundled selective re-export results predate this guard.
   It does not resolve the owner remap or preserve the 65 omitted objects
   ([guard receipt](docs/research/p8-librecad-r13-raw-conversion-guard-2026-11-16.json)).
-  The broader installed-codec version selector independently has four failing
-  cases (nine assertions), including dangling references and export refusals;
-  the unchanged pre-guard filter reproduces them. The bundled selector passes.
-  The ordinary installed-codec output now generates a collision-safe default
+  The ordinary installed-codec output generates a collision-safe default
   plot-style dictionary and placeholder when no caller root is supplied. Its
   six-version ASCII/Binary graph passes independent ezdxf readback and the
-  whole-write allocation sweep; the LibreCAD version selector improved from
-  four failing cases / nine assertions to two / two. The remaining caller-root
-  default-pointer and source-graph cases still need proof; diagnose the two
-  export refusals and native plotting before broadening claims
+  whole-write allocation sweep. A subsequent consumer patch fixes live/raw
+  identity collisions and GROUP reference mapping, and aligns typed-object
+  planning, dictionary entries, emission and omission reporting with each
+  codec's version gates. The previously failing installed-codec version selector
+  now passes 6 cases / 125 assertions; the bundled selector passes 9 / 134.
+  The typed-only omission and same-filter retry control passes both codecs.
+  Integrate this local patch and qualify the remaining caller-root default
+  pointer, source graphs and native plotting before broadening claims
+  ([identity and version-gate receipt](docs/research/p8-librecad-dxf-identity-version-gates-2026-11-16.json))
   ([trace](docs/research/p8-librecad-installed-default-plotstyle-orphan-2026-11-16.json),
   [fix receipt](docs/research/p8-dxf-default-plotstyle-generated-graph-2026-11-16.json)).
   The local metadata bridge now retains the current codec's MLINESTYLE CMC
@@ -390,6 +392,7 @@ Then apply [the binary LTYPE consumer test](docs/patches/librecad-p8-binary-ltyp
 and [MLINESTYLE CMC retention](docs/patches/librecad-p8-mlinestyle-cmc-retention-2026-11-16.patch),
 then [the ABI-3 package and missing-source fix](docs/patches/librecad-p8-abi3-complete-source-2026-11-16.patch),
 then [the R13 raw-conversion guard](docs/patches/librecad-p8-r13-raw-conversion-guard-2026-11-16.patch),
+then [the identity and typed-object version gates](docs/patches/librecad-p8-dxf-identity-version-gates-2026-11-16.patch),
 in order with `git apply --unidiff-zero`. The prior local candidate
 `014075bb1b7548e76b242e1bc0f1217ce8a83ba4` is based on LibreCAD master
 `b007bff6e798425aa14ae507f7e884db68916e88`; all 42 patches replay in order on
@@ -402,7 +405,9 @@ The cumulative changes plus the ABI-3 fix also replay cleanly against
 `d40f178b9708b54ad34b15f721d22abb2315aa2b`; all 20 affected source files
 match the built candidate. Local commit `fe1fea1c2aad9534a687378808d3bdbb11b07f15`
 records that baseline; the R13 guard continues the same local branch through
-`6c0a9e08736ff143419ae939e87f32739efc12d7`. It is unmerged and unpublished
+`6c0a9e08736ff143419ae939e87f32739efc12d7`, followed by the identity and
+version-gate patch at `66ab31a2eb9d018224d3e6fea3999d673b78b3b2`. This chain is
+unmerged and unpublished
 ([receipt](docs/research/p8-librecad-abi3-clean-consumer-2026-11-16.json)).
 
 For MPOLYGON, retain the consumer's opt-in polyline policy; independently
