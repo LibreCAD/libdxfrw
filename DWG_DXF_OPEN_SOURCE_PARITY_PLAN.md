@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **699 completed implementation and qualification slices** and **32 remaining
+The plan records **700 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`699 / (699 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
+`700 / (700 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -103,6 +103,10 @@ Without predeclaration, an empty CONTINUOUS callback selects the built-in
 predeclare it. Predeclared application data, XDATA and pending reference
 state are now compared by value before accepting the callback
 ([receipt](docs/research/p6-canonical-ltype-metadata-mutation-2026-11-16.json)).
+LibreDWG independently retained generated empty and nonempty CONTINUOUS
+descriptions from ASCII and Binary input; its output did not distinguish the
+tested flag values, and header warnings limit the result to this field
+([peer receipt](docs/research/p6-canonical-ltype-libredwg-peer-2026-11-16.json)).
 Continue the remaining public-writer and compound-route census.
 
 For FreeCAD integration, replay the complete ordered downstream chain with
