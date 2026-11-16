@@ -15,6 +15,8 @@
 #ifndef DRW_OBJECTS_H
 #define DRW_OBJECTS_H
 
+#define LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY 1
+
 // X11's object-like None macro must not alter public enum definitions.
 // Save it locally; callers retain their exact macro after this header.
 // Coverage reason enums provide NoReason as their macro-safe zero spelling.
@@ -3733,6 +3735,14 @@ public:
         && m_dxfRetainedEntryNameBytes == other.m_dxfRetainedEntryNameBytes;
   }
   [[nodiscard]] bool isDwgPayloadValid(DRW::Version version) const noexcept;
+  //! Reparse and compare the bounded, no-EED/no-reactor AC1024 fixed
+  //! DICTIONARY profile against its raw frame and parser receipts. This is
+  //! correlation evidence only: it does not establish source authenticity,
+  //! whole-frame CRC, graph closure, output eligibility or native semantics.
+  [[nodiscard]] bool matchesAc1024DwgFrame(
+      const DRW_UnsupportedObject &raw,
+      const DRW_DwgFramePublication &publication,
+      const DRW_DwgDictionaryMembership &membership) const noexcept;
   //! DWG DICTIONARY itemhandles are always encoded as soft-owner references;
   //! hardOwner controls the DXF entry ownership policy, not the DWG wire code.
   [[nodiscard]] std::uint8_t dwgItemHandleCode() const noexcept;
