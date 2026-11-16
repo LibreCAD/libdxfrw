@@ -61,6 +61,7 @@ EXTRA_DIST = \
     docs/patches/librecad-p8-mpolygon-hatch-test-type-2026-11-15.patch \
     docs/patches/librecad-p8-mpolygon-policy-2026-11-15.patch \
     docs/patches/librecad-p8-mtext-column-extents-2026-11-15.patch \
+    docs/patches/librecad-p8-sortents-owner-chain-2026-11-15.patch \
     docs/patches/librecad-p8-source-capture-session-2026-11-15.patch \
     docs/patches/librecad-p8-test-api-compat-2026-11-15.patch \
     docs/patches/librecad-p8-upstream-compat-2026-11-15.patch \

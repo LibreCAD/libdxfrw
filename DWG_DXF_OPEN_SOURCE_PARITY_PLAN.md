@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **605 completed implementation and qualification slices** and **32 remaining
+The plan records **606 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`605 / (605 + 32) = 95.0%`. The previous 28-package denominator was stale; a recount
+`606 / (606 + 32) = 95.0%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -184,9 +184,13 @@ integration test pass
 ([consumer receipt](docs/research/p8-librecad-empty-sortents-source-correlation-2026-11-15.json)).
 A twenty-second unmerged patch seals the selected callback session after one
 successful AC1024 import and invalidates it on later selected callbacks; this is
-not a universal edit detector or graph proof, and importer tests are running
+not a universal edit detector or graph proof, and importer tests pass
 ([session receipt](docs/research/p8-librecad-source-capture-session-2026-11-15.json)).
-Bind the session to per-record decisions and freeze membership and inbound references
+A twenty-third unmerged patch correlates the block, dictionary and sort-table
+source chain under that session, retaining the dictionary's other entries;
+all four real chains and 60 crossed controls pass in a standalone harness
+([chain receipt](docs/research/p8-librecad-sortents-owner-chain-2026-11-15.json)).
+Finish importer verification, freeze membership and inbound references
 ([carrier receipt](docs/research/p8-librecad-title-block-source-receipts-2026-11-15.json),
 [verifier receipt](docs/research/p8-ac1024-dictionary-source-verifier-2026-11-15.json)). Stage
 only validated empty named-table omission, and prove remaining dictionary graph,
