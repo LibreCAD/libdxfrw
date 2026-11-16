@@ -48,20 +48,29 @@ def main() -> int:
     contents = {path: strip_comments(path.read_text(encoding="utf-8", errors="replace"))
                 for path in test_sources}
 
+    references_by_method: dict[str, dict[Path, dict[str, int]]] = {
+        name: {} for name in declarations
+    }
+    call_pattern = re.compile(r"\b(write[A-Z][A-Za-z0-9_]*)\s*\(")
+    for path, source in contents.items():
+        line = 1
+        previous = 0
+        for match in call_pattern.finditer(source):
+            name = match.group(1)
+            if name not in references_by_method:
+                continue
+            line += source.count("\n", previous, match.start())
+            previous = match.start()
+            references_by_file = references_by_method[name]
+            if path not in references_by_file:
+                references_by_file[path] = {"line": line, "occurrences": 0}
+            references_by_file[path]["occurrences"] += 1
+
     rows = []
     for name, declaration_lines in sorted(declarations.items()):
-        references_by_file: dict[Path, dict[str, int]] = {}
-        call_pattern = re.compile(r"\b" + re.escape(name) + r"\s*\(")
-        for path, source in contents.items():
-            for match in call_pattern.finditer(source):
-                reference = references_by_file.setdefault(path, {
-                    "line": source[:match.start()].count("\n") + 1,
-                    "occurrences": 0,
-                })
-                reference["occurrences"] += 1
         references = [
             {"file": path.relative_to(args.root).as_posix(), **reference}
-            for path, reference in sorted(references_by_file.items())
+            for path, reference in sorted(references_by_method[name].items())
         ]
         rows.append({
             "method": name,

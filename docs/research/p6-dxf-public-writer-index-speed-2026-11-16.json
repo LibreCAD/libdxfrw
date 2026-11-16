@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-16",
+  "scope": "Single-pass public DXF writer test-mention index and refreshed navigation data.",
+  "sourceHead": "0ecb587cb4bd9f248ff4e267dc7bd7d191afe7b6",
+  "scriptSha256": "20aead6a63596323e78467df8063d37ba56620c0235dfb33e10bead87497344e",
+  "index": "docs/research/p6-dxf-public-writer-test-mention-index-2026-11-16.json",
+  "validation": {
+    "wholeCorpus": "Original and one-pass indexer produced exactly equal JSON on the same current test-source corpus, including 114 methods and all reference lines and counts.",
+    "synthetic": "Separate temporary Git repository controls passed overloaded declarations, comments, multiline calls, names with shared prefixes, unreferenced and private methods, and first-line/occurrence counts.",
+    "timing": "One local run while a separate GUI build was active took 29.44 seconds for the original and 0.42 seconds for the single-pass indexer; timing is illustrative, not a guaranteed speedup.",
+    "specializedTests": "The whole-file allocation-test flag is not a coverage verdict: DATATABLE and raw-object overrides have separate allocation and rollback/retry/readback tests."
+  },
+  "limits": [
+    "Textual references are navigation only and do not prove execution, rollback, retry, readback, versions, graph closure or native semantics.",
+    "The optimization preserves the existing comment-stripping semantics rather than claiming full C++ lexical analysis.",
+    "No P6 package or phase gate is closed by this index."
+  ]
+}
