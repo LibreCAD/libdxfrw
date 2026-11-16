@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-16",
+  "scope": "Opt-in hosted Linux and Windows build and focused headless probe for the pinned downstream FreeCAD importer candidate.",
+  "freecadCommit": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+  "archiveSha256": "5ba6c1409d59405dfdb0ddac9922633171b6d9117e9776913b3ca0888b3870f4",
+  "workflow": ".github/workflows/freecad-platform-qualification.yml",
+  "dispatchInput": "candidate=true",
+  "platforms": [
+    "ubuntu-24.04",
+    "windows-2022"
+  ],
+  "environment": "FreeCAD upstream Pixi release presets, upstream-pinned setup-pixi action and Pixi version, locked environment",
+  "checks": [
+    "actionlint .github/workflows/freecad-platform-qualification.yml passed.",
+    "Existing push-triggered release qualification jobs remain enabled; candidate matrix is opt-in for dispatch.",
+    "Candidate source application and headless runtime guards were separately exercised on macOS."
+  ],
+  "status": "PREPARED_NOT_RUN",
+  "limitations": [
+    "Neither hosted candidate build nor focused probe has run yet; platform behavior remains unqualified.",
+    "Submodule gitlink status is recorded; binary reproducibility, full build provenance and independent semantic support are not established.",
+    "Headless checks do not establish native GUI rendering or complete DWG/DXF support.",
+    "The downstream FreeCAD patch series remains unmerged."
+  ]
+}

@@ -2,6 +2,12 @@ name: FreeCAD native platform qualification
 
 on:
   workflow_dispatch:
+    inputs:
+      candidate:
+        description: Build and probe the pinned downstream FreeCAD candidate
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
       - 'codex/freecad-platform-qualification-*'
@@ -11,6 +17,7 @@ permissions:
 
 jobs:
   linux-freecad:
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.candidate }}
     name: FreeCAD 1.1.4 / Linux x86_64
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -92,6 +99,7 @@ jobs:
           retention-days: 14
 
   windows-freecad:
+    if: ${{ github.event_name != 'workflow_dispatch' || !inputs.candidate }}
     name: FreeCAD 1.1.4 / Windows x64
     runs-on: windows-2022
     timeout-minutes: 60
@@ -182,5 +190,92 @@ jobs:
         with:
           name: freecad-platform-windows-${{ github.run_id }}-${{ github.run_attempt }}
           path: build/Testing/Temporary/LastTest.log
+          if-no-files-found: warn
+          retention-days: 14
+
+  candidate-headless:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.candidate }}
+    name: FreeCAD candidate headless / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 180
+    steps:
+      - name: Check out libdxfrw qualification tools
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Use repository line endings for the candidate checkout
+        shell: pwsh
+        run: |
+          git config --global core.autocrlf false
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot configure checkout line endings' }
+
+      - name: Check out pinned FreeCAD and submodules
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: FreeCAD/FreeCAD
+          ref: 157bfcb7462a733b03a7d041aeaa79fee7aff7a3
+          path: _freecad_candidate
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Verify source and apply candidate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $source = Join-Path $env:GITHUB_WORKSPACE '_freecad_candidate'
+          $evidence = Join-Path $env:RUNNER_TEMP 'freecad-candidate-evidence'
+          New-Item -ItemType Directory -Force -Path $evidence | Out-Null
+          $modules = @(git -C $source submodule status --recursive)
+          if ($LASTEXITCODE -ne 0 -or $modules.Count -lt 5 -or @($modules | Where-Object { $_ -match '^[-+U]' }).Count -ne 0) {
+            throw 'FreeCAD submodules do not match their recorded gitlinks'
+          }
+          $modules | Out-File -FilePath (Join-Path $evidence 'submodules.txt') -Encoding utf8
+          $archive = Join-Path $env:RUNNER_TEMP 'freecad-157.tar.gz'
+          Invoke-WebRequest -Uri 'https://codeload.github.com/FreeCAD/FreeCAD/tar.gz/157bfcb7462a733b03a7d041aeaa79fee7aff7a3' -OutFile $archive
+          python (Join-Path $env:GITHUB_WORKSPACE 'tools/research/apply_freecad_import_candidate.py') --source-root $source --source-archive $archive
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate replay or application failed' }
+
+      - name: Install pinned FreeCAD build environment
+        uses: prefix-dev/setup-pixi@ad1da6449d9e506fd127fd67ab2d054a769f6a94 # v0.11.2
+        with:
+          pixi-version: v0.82.1
+          working-directory: _freecad_candidate
+          cache: false
+          locked: true
+
+      - name: Build and probe the candidate
+        shell: pwsh
+        working-directory: _freecad_candidate
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $build = Join-Path $env:RUNNER_TEMP 'freecad-candidate-build'
+          $preset = if ($env:RUNNER_OS -eq 'Windows') { 'conda-windows-release' } else { 'conda-linux-release' }
+          $configureArgs = @('--preset', $preset, '-B', $build)
+          if ($env:RUNNER_OS -eq 'Windows') { $configureArgs += @('-DCMAKE_GENERATOR_PLATFORM=', '-DCMAKE_GENERATOR_TOOLSET=') }
+          pixi run cmake @configureArgs
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate configuration failed' }
+          pixi run cmake --build $build --parallel 2 --target FreeCADMainCmd Import ImportScripts ImportPy Part PartScripts
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate build failed' }
+          $name = if ($env:RUNNER_OS -eq 'Windows') { 'FreeCADCmd.exe' } else { 'FreeCADCmd' }
+          $command = Join-Path (Join-Path $build 'bin') $name
+          $source = Join-Path $env:GITHUB_WORKSPACE '_freecad_candidate'
+          $archive = Join-Path $env:RUNNER_TEMP 'freecad-157.tar.gz'
+          $evidence = Join-Path $env:RUNNER_TEMP 'freecad-candidate-evidence'
+          pixi run python (Join-Path $env:GITHUB_WORKSPACE 'tools/research/run_freecad_candidate_probe.py') `
+            --source-archive $archive --expected-source-commit 157bfcb7462a733b03a7d041aeaa79fee7aff7a3 `
+            --require-git-base --source-root $source --build-root $build --freecadcmd $command --output-dir $evidence
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate headless probe failed' }
+
+      - name: Preserve candidate evidence
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: freecad-candidate-${{ matrix.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/freecad-candidate-evidence
           if-no-files-found: warn
           retention-days: 14

@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **683 completed implementation and qualification slices** and **32 remaining
+The plan records **684 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`683 / (683 + 32) = 95.5%`. The previous 28-package denominator was stale; a recount
+`684 / (684 + 32) = 95.5%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -114,8 +114,12 @@ Use disposable checkouts: it cannot recover from abrupt termination or protect
 against concurrent changes. The optional Git check verifies HEAD and tracked
 changed paths only; it does not authenticate untracked or ignored files,
 submodules or build provenance. Preserve build logs and record these identities
-separately. Native GUI behavior, independent semantics and upstream integration
-remain open.
+separately. The existing platform workflow now has an opt-in candidate matrix
+for the two hosted systems, with a pinned upstream checkout, recursive gitlink
+check, locked Pixi environment, focused build and probe; dispatch it and address
+the actual platform results ([workflow receipt](docs/research/p8-freecad-candidate-hosted-workflow-2026-11-16.json)).
+The workflow has passed static validation but has not yet run for this candidate.
+Native GUI behavior, independent semantics and upstream integration remain open.
 
 ### Next LibreCAD integration work
 
