@@ -16,13 +16,15 @@ LibreCAD_3 master was 4fb48312708b39d499f7e6668104a3b54a8601c7; and FreeCAD main
 was 84e73f0188fb32bb1fffb8d4d1edb4135543ba18. These are snapshots, not current
 integration targets; refresh mutable heads before replay or qualification.
 
-**Current state:** 33 core packages remain open: P4-A/B/C (3), P5-A–H (8),
-P6-A–G (7), P7-A–H (8), and P8-A–G (7). Package closure for this registry is
-0/33 (0%); this counts closed package entries only and is not an estimate of
-effort. Fine-grained progress cannot be calculated because the historical
-sub-slice ledger and remaining package registry use different units. Six
-external dispositions remain `DEFERRED_EXTERNAL`. Completed actions are
-omitted below; their receipts remain in `docs/research/` for evidence lookup.
+**Current state:** 32 core packages remain open: P4-A/B/C (3), P5-A/B/D–H (7),
+P6-A–G (7), P7-A–H (8), and P8-A–G (7). One of the 33 tracked packages is
+closed (3.0% by package count): P5-C's source-field profile for one
+ODA-produced AC1018 simple TABLE. This is a bookkeeping measure, not an effort
+or release-readiness estimate. Fine-grained progress cannot be calculated
+because the historical sub-slice ledger and remaining package registry use
+different units. Six external dispositions remain `DEFERRED_EXTERNAL`.
+Completed actions are omitted below; their receipts remain in `docs/research/`
+for evidence lookup.
 
 ## Rules for evidence and implementation
 
@@ -68,11 +70,10 @@ behavior stabilizes.
 
 | Lane / order | Bounded action | Speed rule / exit |
 |---|---|---|
-| READY 1 — P5-C | Use the existing ODA-converted AC1018 simple-table profile in [the physical-peer receipt](docs/research/p5-ac1018-oda-table-physical-peer-profile-2026-11-09.json); select one unresolved field or graph question from its source-bound spans. | Keep the AC1027-DXF→ODA-AC1018-DWG provenance explicit; this is not a native AutoCAD witness. Map only the selected field and its source/peer value, then implement only a demonstrated parser/output disposition gap. |
+| READY 1 — P7-E | Reuse the existing scratch-only ACIS-21800 box and make one real CAD Assistant import/measurement attempt if the verified official ARM64 app artifact remains accessible. | Use the author's 5×7×11 ACIS model-unit manifest; capture solid import, body count, and available bounds/area/volume. Do not infer physical units from `$INSUNITS`. CAD Assistant has a parser distinct from libdxfrw but shares OCCT kernel lineage with FreeCAD, so this is not independent-kernel evidence. Reuse the existing isolated `ezdxf` environment only. If import or measurement is unavailable, record the exact limit and continue; no reinstall, download, or dependency changes. |
 | READY 2 — P6-D | Select one source-span-bound version/field gap from current receipts and implement one bounded disposition change. | One field and version boundary, no new witness hunt or multi-field bundle. Require the existing focused target and an independent expected value; otherwise mark only that candidate waiting and immediately continue. |
-| READY 3 — P7-E | Generate one scratch-only ACIS-21800 box with `tools/create_acis218_mesh_witness.py`, then make one CAD Assistant import attempt only if the verified official ARM64 app artifact is already local. | Use the manifest's author-known 5×7×11 ACIS model-unit bounds and metrics; do not infer physical units from `$INSUNITS`. Capture actual solid import and available bounds/area/volume. CAD Assistant has a parser distinct from libdxfrw but shares OCCT kernel lineage with FreeCAD; this is not independent-kernel evidence. Reuse an existing isolated `ezdxf` environment only; if a required local tool is absent, record the exact gap and continue. Do not download/install an app or alter project dependencies. |
-| READY 4 — P8-D | Refresh LibreCAD/LibreCAD_3 heads and live PR state; qualify only the remaining distinct consumer paths in disposable checkouts. | PR #3269 is merged and its focused LTYPE and R12/R14 refusal/retry cases already pass in the current consumer receipt; do not replay or count it as remaining work. Next verify one saved LibreCAD 2D edit and one LibreCAD_3 MPOLYGON edit/save/readback path. Keep consumer results distinct and preserve established insertion-unit behavior. |
-| READY 5 — P6-G | Resume the public-writer transaction audit only for a concrete uncovered route. The bounded pass found no missing assertion in [raw-object overrides](docs/research/p6-dxf-raw-object-multi-int32-override-allocation-rollback-retry-2026-11-13.json), [SUN owner overrides](docs/research/p6-dxf-sun-owner-override-allocation-rollback-retry-2026-11-13.json), [DATATABLE](docs/research/p6-dxf-datatable-objects-allocation-rollback-retry-2026-11-12.json), [XRECORD DWG](docs/research/p6-dxf-xrecord-dwg-compatibility-allocation-rollback-retry-2026-11-13.json), [XRECORD LayerState](docs/research/p6-dxf-xrecord-layerstate-compatibility-allocation-rollback-retry-2026-11-13.json), the [configured-resolver two-argument PROXY_ENTITY overload](docs/research/p6-dxf-proxy-entity-configured-resolver-two-arg-allocation-rollback-retry-2026-11-16.json), and the [AC1018 TABLE block-cell group-179=0 route](docs/research/p6-dxf-table-block-cell-zero-count-allocation-rollback-retry-2026-11-16.json). | Do not repeat those profiles or regenerate the mention index. Inspect at most two new candidates per pass; stop at the first exact missing assertion. If both are covered, record “no gap found” and move to the next READY package. |
+| READY 3 — P8-D | Refresh LibreCAD/LibreCAD_3 heads and live PR state; qualify only the remaining distinct consumer paths in disposable checkouts. | PR #3269 is merged and its focused LTYPE and R12/R14 refusal/retry cases already pass in the current consumer receipt; do not replay or count it as remaining work. Next verify one saved LibreCAD 2D edit and one LibreCAD_3 MPOLYGON edit/save/readback path. Keep consumer results distinct and preserve established insertion-unit behavior. |
+| READY 4 — P6-G | Resume the public-writer transaction audit only for a concrete uncovered route. The bounded pass found no missing assertion in [raw-object overrides](docs/research/p6-dxf-raw-object-multi-int32-override-allocation-rollback-retry-2026-11-13.json), [SUN owner overrides](docs/research/p6-dxf-sun-owner-override-allocation-rollback-retry-2026-11-13.json), [DATATABLE](docs/research/p6-dxf-datatable-objects-allocation-rollback-retry-2026-11-12.json), [XRECORD DWG](docs/research/p6-dxf-xrecord-dwg-compatibility-allocation-rollback-retry-2026-11-13.json), [XRECORD LayerState](docs/research/p6-dxf-xrecord-layerstate-compatibility-allocation-rollback-retry-2026-11-13.json), [configured-resolver two-argument PROXY_ENTITY](docs/research/p6-dxf-proxy-entity-configured-resolver-two-arg-allocation-rollback-retry-2026-11-16.json), [AC1018 TABLE block-cell group-179=0](docs/research/p6-dxf-table-block-cell-zero-count-allocation-rollback-retry-2026-11-16.json), [BLOCKREPRESENTATION_DATA](docs/research/p6-dxf-blockrepresentation-objects-allocation-rollback-retry-2026-11-12.json), and [FIELD/path/PARTIALVIEWINGINDEX routes](docs/research/p6-dxf-field-path-partial-viewing-index-version-matrix-allocation-2026-11-13.json). | Do not repeat those profiles or regenerate the mention index. Inspect at most two new candidates per pass; stop at the first exact missing assertion. If both are covered, record “no gap found” and move to the next READY package. |
 | PARKED — witness-bound packages | P4-B/C, P5-A/B/D/E/F/G/H, P6-A/B/C/E/F, and P7-A/B/C/D/F/G. | Record one exact acquisition or dependency condition per package. Do not repeat broad searches. Resume only on matching producer/version/profile evidence; meanwhile continue the READY lane. |
 | LATE — P8 integration/release | P8-A/B/C/E/F/G. | Run once the candidate behavior stabilizes; pin source, build, binaries, modules, platform, and operation. P9 remains external-only and never blocks this queue. |
 
@@ -109,18 +110,25 @@ P4-C references: [captured entity](docs/research/p4-ac1027-sweep-embedded-lwpoly
 and [suffix probe](docs/research/p4-ac1027-sweep-embedded-lwpolyline-boundary-2026-11-09.json);
 neither resolves the suffix.
 
-### P5 — FIELD, TABLE, rendering, and constraints (8 open packages)
+### P5 — FIELD, TABLE, rendering, and constraints (7 open packages)
 
 | ID | Remaining implementation | Package exit evidence |
 |---|---|---|
 | P5-A / WAITING_FOR_FIELD_SOURCE | Bind one producer FIELD/FIELDLIST root, membership, and exact source text; name producer/version and text-bearing field before parser edits. | Physical spans and nested handle roles plus independently evaluated or producer-authored values. |
 | P5-B / DEPENDS_ON_P5-A | Close the typed FIELD/FIELDLIST graph from A's exact source, including `_text` nested values, unsupported tokens, and references. | Strict ASCII/Binary output, independent fresh readback, rollback/retry, and graph equivalence. |
-| P5-C / NEXT_PROFILE_CANDIDATE | Bind the strongest existing producer TABLE source and map only the source spans needed by the first selected P5-D/E/F question. | Record producer/version/hash and typed/normalized/raw/refused/dropped disposition for those fields. Do not census the whole TABLE; make no code change until one concrete gap and its fast selector are identified. |
 | P5-D / WAITING_FOR_BOUND_R24_TABLE | Close one R24 TABLECONTENT graph: owner, CELLSTYLEMAP, rows/columns, cell dependencies, and emitted handles. Reuse P5-C only if source/version bindings match. | No dangling or aliased nodes; fresh ASCII/Binary readback and refusal/retry. |
-| P5-E / DEPENDS_ON_P5-C,D | Resolve Content Format/CELLSTYLEMAP meaning from independent or native evidence; implement only demonstrated states. | Matching semantic values/rendering for the selected producer; unknown states retained or refused. |
-| P5-F / DEPENDS_ON_P5-C | Trace TABLE layer overrides through parse, storage, write, and consumer display using the same bound producer profile. | Source/value/precedence matrix and native appearance for that profile. |
+| P5-E / WAITING_FOR_MATCHING_R24_PROFILE | Resolve Content Format/CELLSTYLEMAP meaning from independent or native evidence for a matching R24 TABLE/TABLECONTENT source; the closed AC1018 P5-C profile is out of revision scope. | Matching semantic values/rendering for the selected producer; unknown states retained or refused. |
+| P5-F / WAITING_FOR_LAYER_OVERRIDE_PROFILE | Trace TABLE layer overrides through parse, storage, write, and consumer display using one source profile that actually contains the override. The AC1018 P5-C receipt does not bind such a field. | Source/value/precedence matrix and native appearance for that profile. |
 | P5-G / WAITING_FOR_CONSTRAINT_MODEL | Bind one producer-authored dynamic-constraint model with known parameters and dependencies; do not substitute a synthetic self-consistency case. | Independent evaluation and dependency closure, or explicit lossless refusal. |
 | P5-H / WAITING_FOR_NATIVE_VIEWPORT_PAIR | Resolve VIEWPORT group-91 type/range from native ASCII/Binary pairs; check shade-plot modes and handle roles. | Literal type/range agreement, malformed controls, closed targets, and native rendering; generated values alone do not prove modes 4/5. |
+
+P5-C is closed for one exact profile: the [ODA-produced AC1018 simple TABLE
+receipt](docs/research/p5-ac1018-oda-table-physical-peer-profile-2026-11-09.json)
+binds producer operation and hashes, physical field/subrecord spans, typed
+content, and peer-observed anonymous-block geometry. Its HEADER warning still
+refuses whole-file export; its single converted profile proves neither native
+AutoCAD behavior nor general TABLE support. P5-D/E/F remain separate and do not
+inherit this receipt.
 
 Reuse the VIEWPORT conflict analysis
 (docs/research/p6-viewport-shadeplot-dxf-objectarx-conflict-2026-11-16.json)
