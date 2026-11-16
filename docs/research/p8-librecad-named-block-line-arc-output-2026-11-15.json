@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-named-block-line-arc-output-2026-11-15.patch",
+  "patchSha256": "5eac9b5c202eb251b3544506171d55624474ca84e109661a9c0295953de1e5d4",
+  "scope": "The thirty-seventh unmerged LibreCAD consumer patch adds unchanged default-style planar ARC sources to the explicit default-off bounded named-block path, with source publication, ordered membership, exact geometry and angles, and staged output owner/type checks.",
+  "validation": [
+    "The ODA DWG specification section 20.4.18 defines ARC type 17, center, radius, thickness, extrusion and start/end angles. LibreDWG independently confirms type 17, source owner and the 30-to-120-degree angles in locally authored, ODA-converted AC1024 source SHA-256 c77c7cee2c11555a6fd133388e58b98665343df46e2e111281d8b6a694c47c69; the nonplanar control SHA-256 is 2ac225165ee605e0c6bfc1727c3515f81ab43531b9d475257a42e1bf6695ef7b.",
+    "The actual LibreCAD mixed LINE/ARC import/export test passed 32 assertions, including radius-edit refusal, destination preservation, same-filter retry and angle-edit refusal. The nonplanar ARC refusal test passed 7 assertions. A separate snapshot allocation-failure control passes reset/retry, and all three focused installed-codec CTests pass with previous profile fixtures.",
+    "LibreCAD output SHA-256 8cd782593d7dfedf50e8e07e1ec589f9430304fdd0d68313c2b19ab6e3130a9c was converted by ODA to DWG 2120c6072296bbbbdde2433095f55374983d24d919c7c40ce09ae261cfe374ef and back to DXF 0385479e79e7211e3fcad5a586a18385fbc83ddd64d6d99e9a3e26c370c118dc. Independent LibreDWG confirms intermediate geometry, angles and owner relationships; ezdxf confirms final geometry, angles, entity owners and zero audit errors/fixes.",
+    "The patch applies after the prior 36 and reverse-checks against both consumer trees. The older bundled-codec filter compiles. Source-release inventory passes with 1234 files and 18 refusal controls; the 725-input implementation digest remains d2fbf3b7e98738e05bc8f6a097b74ee429b43f58bcc8988a7bc92e6554a539c7."
+  ],
+  "limits": "The independent witness covers one generated mixed LINE/ARC AC1024-to-ASCII-DXF example. Exact angle comparison intentionally refuses edits, including cases where LibreCAD normalizes a restored angle to a different floating-point value. The option remains default-off; other geometry, angles and producers, nonplanar content, styles, native applications and whole-document closure remain open. No drawing fixture is committed and no support claim is promoted."
+}

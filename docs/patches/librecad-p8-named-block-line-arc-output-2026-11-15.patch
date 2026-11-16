@@ -1,0 +1,205 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index 69e942ae..f2381e54 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -3453,6 +3453,7 @@ public:
+     std::shared_ptr<const DRW_Block_Record> boundedEntitySource;
+     std::map<std::uint32_t, std::shared_ptr<const DRW_Line>> boundedLineSources;
+     std::map<std::uint32_t, std::shared_ptr<const DRW_Circle>> boundedCircleSources;
++    std::map<std::uint32_t, std::shared_ptr<const DRW_Arc>> boundedArcSources;
+ #endif
+     bool hasUnsupportedOutputState = false;
+     std::string name;
+@@ -3598,9 +3599,10 @@ public:
+       auto &destination = observation.*member;
+       if (value.handle == 0u || value.handle == DRW::NoHandle
+           || observation.boundedLineSources.size() + observation.boundedCircleSources.size()
+-                 >= observation.sourceEntityCount
++                 + observation.boundedArcSources.size() >= observation.sourceEntityCount
+           || observation.boundedLineSources.count(value.handle) != 0u
+           || observation.boundedCircleSources.count(value.handle) != 0u
++          || observation.boundedArcSources.count(value.handle) != 0u
+           || m_blockRecordLinkBytes > maxBytes - charge
+           || !destination.emplace(value.handle, std::make_shared<const T>(value)).second) {
+         m_blockRecordLinks.clear(); m_blockRecordLinkBytes = 0u;
+@@ -3628,6 +3630,14 @@ public:
+       return;
+     retainSelectedBoundedBlockPoint(circle, &BlockRecordLinkObservation::boundedCircleSources);
+   }
++  void observeSelectedBoundedBlockArc(const DRW_Arc &arc) noexcept {
++    noteSelectedSourceCallback();
++    if (arc.eType != DRW::ARC || !selectedPlainPlanarPoint(arc)
++        || !std::isfinite(arc.radious) || arc.radious <= 0.0
++        || !std::isfinite(arc.staangle) || !std::isfinite(arc.endangle))
++      return;
++    retainSelectedBoundedBlockPoint(arc, &BlockRecordLinkObservation::boundedArcSources);
++  }
+ #endif
+ 
+   const std::map<std::uint32_t, BlockRecordLinkObservation> &
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index f9ab0349..d4f6ebeb 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -7096,6 +7096,10 @@ void RS_FilterDXFRW::addCircle(const DRW_Circle &data) {
+  * @param data
+  */
+ void RS_FilterDXFRW::addArc(const DRW_Arc &data) {
++#if defined(LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS) && defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY)
++  if (m_graphic)
++    m_graphic->dwgAdvancedMetadata().observeSelectedBoundedBlockArc(data);
++#endif
+   RS_DEBUG->print("RS_FilterDXF::addArc");
+   if (!canCreatePlanarEntity(data, "addArc"))
+     return;
+@@ -11700,7 +11704,7 @@ double RS_FilterDXFRW::importedHatchAngle(double drwAngle, bool legacyRadians,
+  * @param type
+  */
+ #if defined(LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS) && defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY) && defined(LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY)
+-// Bounded source-owned planar LINE/CIRCLE profiles. Each staged output
++// Bounded source-owned planar LINE/CIRCLE/ARC profiles. Each staged output
+ // identity is checked during finalization.
+ static bool selectedSourceEntities(RS_Graphic &graphic, std::uint32_t blockHandle,
+     std::vector<std::pair<std::uint32_t, const char *>> &entities, std::string &blockName) noexcept {
+@@ -11710,7 +11714,7 @@ static bool selectedSourceEntities(RS_Graphic &graphic, std::uint32_t blockHandl
+     if (found == metadata.blockRecordLinks().end() || found->second.sourceEntityCount == 0u
+         || found->second.sourceEntityCount > 128u || !found->second.boundedEntitySource
+         || found->second.boundedLineSources.size() + found->second.boundedCircleSources.size()
+-               != found->second.sourceEntityCount)
++               + found->second.boundedArcSources.size() != found->second.sourceEntityCount)
+       return false;
+     const auto &source = found->second;
+     const RS_Block *block = nullptr;
+@@ -11764,6 +11768,17 @@ static bool selectedSourceEntities(RS_Graphic &graphic, std::uint32_t blockHandl
+             || current->getRadius() != circle.radious)
+           return false;
+         original = &circle; dxfType = "CIRCLE"; dwgType = 18;
++      } else if (entity->rtti() == RS2::EntityArc) {
++        const auto it = source.boundedArcSources.find(entity->sourceHandle());
++        if (it == source.boundedArcSources.end() || !it->second) return false;
++        const auto *current = static_cast<const RS_Arc *>(entity);
++        const auto &arc = *it->second;
++        if (current->getCenter().x != arc.basePoint.x
++            || current->getCenter().y != arc.basePoint.y
++            || current->getRadius() != arc.radious || current->isReversed()
++            || current->getAngle1() != arc.staangle || current->getAngle2() != arc.endangle)
++          return false;
++        original = &arc; dxfType = "ARC"; dwgType = 17;
+       } else {
+         return false;
+       }
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index f6b35831..4d102114 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -75,6 +75,7 @@
+ #include "rs_entity.h"
+ #include "rs_block.h"
+ #include "rs_circle.h"
++#include "rs_arc.h"
+ #include "rs_layer.h"
+ #include "rs_leader.h"
+ #include "rs_line.h"
+@@ -10027,6 +10028,72 @@ TEST_CASE("Named block export preserves one verified source line",
+ #endif
+ 
+ #ifdef LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY
++TEST_CASE("Named block export preserves verified LINE and ARC",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_LINE_ARC_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_ODA_NAMED_BLOCK_LINE_ARC_FIXTURE to a locally generated ODA AC1024 DWG");
++  ensureSettings(); RS_Graphic graphic; RS_FilterDXFRW filter;
++  REQUIRE(filter.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  const auto &metadata = graphic.dwgAdvancedMetadata();
++  REQUIRE(metadata.matchesSelectedAc1024SortEntsOwnerChain(0x30u, 0xB003u, 0xB100u));
++  const auto &observation = metadata.blockRecordLinks().at(0x30u);
++  REQUIRE(observation.sourceEntityCount == 2u);
++  REQUIRE(observation.boundedLineSources.size() == 1u);
++  REQUIRE(observation.boundedArcSources.size() == 1u);
++  RS_Block *block = nullptr;
++  for (unsigned i = 0; i < graphic.countBlocks(); ++i)
++    if (graphic.blockAt(i)->getName() == QStringLiteral("Named")) block = graphic.blockAt(i);
++  REQUIRE(block != nullptr);
++  lc::LC_ContainerTraverser walk{*block, RS2::ResolveNone};
++  RS_Entity *first = walk.first(); RS_Entity *second = walk.next();
++  REQUIRE(first != nullptr); REQUIRE(second != nullptr); REQUIRE(walk.next() == nullptr);
++  REQUIRE(first->rtti() == RS2::EntityLine); REQUIRE(second->rtti() == RS2::EntityArc);
++  auto *circle = static_cast<RS_Arc *>(second);
++  REQUIRE(circle->getRadius() == Catch::Approx(2.5));
++  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(true));
++  const char *keep = std::getenv("LIBRECAD_KEEP_NAMED_BLOCK_LINE_ARC_DXF");
++  const std::string path = keep && *keep ? keep : tmpFile("named_sort_line_arc.dxf");
++  const std::string sentinel = "previous destination\n";
++  writeText(path, sentinel);
++  circle->setRadius(3.0);
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(path);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  circle->setRadius(2.5);
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  RS_Graphic reread; RS_FilterDXFRW rereader;
++  REQUIRE(rereader.fileImport(reread, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  const RS_Block *readBlock = nullptr;
++  for (unsigned i = 0; i < reread.countBlocks(); ++i)
++    if (reread.blockAt(i)->getName() == QStringLiteral("Named")) readBlock = reread.blockAt(i);
++  REQUIRE(readBlock != nullptr);
++  lc::LC_ContainerTraverser readWalk{*readBlock, RS2::ResolveNone};
++  const auto *outLine = readWalk.first(); const auto *outArc = readWalk.next();
++  REQUIRE(outLine != nullptr); REQUIRE(outArc != nullptr); REQUIRE(readWalk.next() == nullptr);
++  REQUIRE(outLine->rtti() == RS2::EntityLine); REQUIRE(outArc->rtti() == RS2::EntityArc);
++  const auto *result = static_cast<const RS_Arc *>(outArc);
++  CHECK(result->getCenter().x == Catch::Approx(5.0));
++  CHECK(result->getCenter().y == Catch::Approx(6.0));
++  CHECK(result->getRadius() == Catch::Approx(2.5));
++  CHECK(result->getAngle1() == Catch::Approx(0.5235987755983));
++  CHECK(result->getAngle2() == Catch::Approx(2.0943951023932));
++  CHECK_FALSE(result->isReversed());
++  REQUIRE(reread.dwgAdvancedMetadata().sortEntsTables().size() == 1u);
++  const std::string anglePath = tmpFile("named_sort_arc_angle_refusal.dxf");
++  writeText(anglePath, sentinel);
++  circle->setAngle1(circle->getAngle1() + 0.1);
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(anglePath), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(anglePath);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  std::filesystem::remove(anglePath);
++  if (!(keep && *keep)) std::filesystem::remove(path);
++}
++
+ TEST_CASE("Named block export preserves verified LINE and CIRCLE",
+           "[dwg][roundtrip][sortentssource][source]") {
+   const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_LINE_CIRCLE_FIXTURE");
+@@ -10081,6 +10148,29 @@ TEST_CASE("Named block export preserves verified LINE and CIRCLE",
+   if (!(keep && *keep)) std::filesystem::remove(path);
+ }
+ 
++TEST_CASE("Named block export refuses an unqualified nonplanar ARC",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_ARC_3D_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_ODA_NAMED_BLOCK_ARC_3D_FIXTURE to a locally generated ODA AC1024 DWG");
++  ensureSettings(); RS_Graphic graphic; RS_FilterDXFRW filter;
++  REQUIRE(filter.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  const auto &observation = graphic.dwgAdvancedMetadata().blockRecordLinks().at(0x30u);
++  REQUIRE(observation.sourceEntityCount == 2u);
++  CHECK(observation.boundedLineSources.size() == 1u);
++  CHECK(observation.boundedArcSources.empty());
++  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(true));
++  const std::string path = tmpFile("named_sort_arc_3d_refusal.dxf");
++  const std::string sentinel = "previous destination\n";
++  writeText(path, sentinel);
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(path);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  std::filesystem::remove(path);
++}
++
+ TEST_CASE("Named block export refuses an unqualified nonplanar CIRCLE",
+           "[dwg][roundtrip][sortentssource][source]") {
+   const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_CIRCLE_3D_FIXTURE");
