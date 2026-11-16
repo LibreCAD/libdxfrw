@@ -54,7 +54,8 @@
     "Executable outside build root refused.",
     "A fake executable without a result marker refused.",
     "Git-base check accepted the correct base and five patched paths before refusing a fake runtime.",
-    "Correct source and real runtime retry passed."
+    "Correct source and real runtime retry passed.",
+    "A synthetic timed-out executable failed closed while retaining its partial stdout and stderr in the run directory."
   ],
   "limitations": [
     "The native runtime source was archive-extracted, so the optional Git-base check was not enabled for the passing runtime run.",

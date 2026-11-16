@@ -44,6 +44,12 @@ def machine_name(value):
     return {"amd64": "x86_64", "x64": "x86_64", "aarch64": "arm64"}.get(value, value)
 
 
+def log_text(value):
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value or ""
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-archive", required=True, type=Path)
@@ -97,10 +103,15 @@ def main():
         spec.loader.exec_module(definition)
         env = os.environ.copy()
         env["FREECAD_CANDIDATE_SOURCE_ROOT"] = str(source)
-        proc = subprocess.run([str(command), "--user-cfg", str(run_dir / "user.cfg"),
-                               "--system-cfg", str(run_dir / "system.cfg"), str(PROBE)],
-                              cwd=run_dir, env=env, capture_output=True, text=True,
-                              errors="replace", timeout=args.timeout, check=False)
+        try:
+            proc = subprocess.run([str(command), "--user-cfg", str(run_dir / "user.cfg"),
+                                   "--system-cfg", str(run_dir / "system.cfg"), str(PROBE)],
+                                  cwd=run_dir, env=env, capture_output=True, text=True,
+                                  errors="replace", timeout=args.timeout, check=False)
+        except subprocess.TimeoutExpired as exc:
+            (run_dir / "stdout.log").write_text(log_text(exc.stdout), encoding="utf-8")
+            (run_dir / "stderr.log").write_text(log_text(exc.stderr), encoding="utf-8")
+            raise RuntimeError("FreeCADCmd timed out; partial output was preserved") from exc
         (run_dir / "stdout.log").write_text(proc.stdout, encoding="utf-8")
         (run_dir / "stderr.log").write_text(proc.stderr, encoding="utf-8")
         markers = [line.split(MARKER, 1)[1] for line in proc.stdout.splitlines() if MARKER in line]
