@@ -1,6 +1,6 @@
 {
   "date": "2026-11-16",
-  "scope": "FreeCAD bounded polyface and polygon mesh coordinate-vertex colors when color preservation is disabled.",
+  "scope": "Tolerant recovery of bounded polyface and polygon mesh coordinate-vertex color mismatches when color preservation is disabled.",
   "sourceBase": "FreeCAD d956ec561639cfa83f755504b1b3358ea799428e plus the first twelve ordered unmerged importer patches.",
   "candidateCommit": "1d2d244",
   "patch": "docs/patches/freecad-p8-default-mixed-vertex-no-color-2026-11-16.patch",
@@ -11,8 +11,8 @@
     "/private/tmp/freecad-main-gui-config-20261116/Mod/Import/Import.so": "94a4fb253fb7aff46ce8dfca6dae93ea431df86c626a9c88224910e5bb2e74d9"
   },
   "behavior": {
-    "before": "A valid different or BYLAYER coordinate-vertex ACI was refused even when colors were disabled for both bounded mesh types.",
-    "after": "When colors are explicitly disabled, valid coordinate-vertex ACI differences do not discard bounded mesh geometry. When colors are preserved, mismatches remain refused. BYBLOCK and duplicate color tags remain refused in either mode; a following valid mesh and LINE survive."
+    "before": "A different or BYLAYER coordinate-vertex ACI was refused even when colors were disabled for both bounded mesh types.",
+    "after": "When colors are explicitly disabled, syntactically valid coordinate-vertex ACI differences do not discard bounded mesh geometry. When colors are preserved, mismatches remain refused. BYBLOCK and duplicate color tags remain refused in either mode; a following valid mesh and LINE survive."
   },
   "validation": {
     "headless": "One parameterized test passes 16 combinations: polyface/polygon, preserve colors on/off, mixed/BYLAYER/BYBLOCK/duplicate, with same-file recovery. The previous 16 face-color/invalid-index dispositions pass again.",
@@ -337,8 +337,14 @@
   "limits": [
     "The downstream FreeCAD patch chain is unmerged and requires integration.",
     "Mixed coordinate colors still refuse with color preservation enabled; malformed styles, BYBLOCK, mixed layers, nonplanar geometry and hidden edges remain outside this profile.",
-    "Native GUI properties do not establish pixel rendering, external producer semantics or Linux/Windows qualification; no phase gate or external-only support claim is promoted."
+    "Native GUI properties do not establish pixel rendering, external producer semantics or Linux/Windows qualification; no phase gate or external-only support claim is promoted.",
+    "A syntactically valid ACI does not make a parent/coordinate mismatch a conforming AutoCAD source; no producer support claim follows from this recovery."
   ],
   "supersededBoundary": "The later BYBLOCK colors-disabled patch accepts group 62 value 0 only when source colors are disabled; this receipt records the earlier refusal.",
-  "probeEvolution": "The current reusable GUI probe includes later BYBLOCK cases requiring the fourteenth downstream patch; the observations here describe the earlier candidate."
+  "probeEvolution": "The current reusable GUI probe includes later BYBLOCK cases requiring the fourteenth downstream patch; the observations here describe the earlier candidate.",
+  "sourceConformance": {
+    "polyface": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PolyFaceMeshVertex.html",
+    "polygon": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PolygonMeshVertex.html",
+    "finding": "Autodesk describes parent/coordinate-vertex property mismatches as corrupt; these are tolerant-recovery controls and do not qualify a conforming producer profile."
+  }
 }

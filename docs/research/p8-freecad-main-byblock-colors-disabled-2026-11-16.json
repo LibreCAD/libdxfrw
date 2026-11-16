@@ -17,14 +17,15 @@
   },
   "validation": {
     "headless": "Three targeted tests pass 48 preserve-on/off parameter combinations covering polyface and polygon parent/vertex values, polyface face values, malformed and duplicate tags, invalid indices and same-file recovery. The earlier source differs from the final build only by explanatory comments.",
-    "gui": "Twenty-nine native macOS ARM64 GUI controls pass, including parent, coordinate and face BYBLOCK direct profiles, preservation-on refusal and translated nested polyface cases with colors and layers disabled.",
+    "gui": "Thirty-four native macOS ARM64 GUI controls pass, including conforming all-BYBLOCK polyface and polygon direct profiles and a nested polyface with colors/layers disabled; parent/vertex mismatch controls are tolerant-import tests rather than conforming source witnesses.",
     "patchReplay": "The unidiff-zero patch applies to the clean first-thirteen candidate and produces byte-identical tested source and test files.",
     "fixtures": "Generated DXF controls are temporary and not committed.",
     "logs": [
       "/private/tmp/freecad-polyface-layer-20261116/byblock-before.log",
       "/private/tmp/freecad-polyface-layer-20261116/byblock-after.log",
       "/private/tmp/freecad-polyface-layer-20261116/gui-byblock-nested-final.log",
-      "/private/tmp/freecad-polyface-layer-20261116/headless-after-byblock.log"
+      "/private/tmp/freecad-polyface-layer-20261116/headless-after-byblock.log",
+      "/private/tmp/freecad-polyface-layer-20261116/gui-byblock-conforming-final.log"
     ]
   },
   "guiObservation": [
@@ -430,6 +431,76 @@
       }
     },
     {
+      "case": "byblock_all_polyface_nocolor",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "Polyface"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "byblock_all_polyface_color",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYFACE unsupported or invalid profile": [
+          [
+            64,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
+      "case": "byblock_all_polygon_nocolor",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [
+            "PolygonMesh"
+          ],
+          "OTHER": []
+        }
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "byblock_all_polygon_color",
+      "detail": {
+        "groups": {
+          "0": [
+            "Shape"
+          ],
+          "MESH": [],
+          "OTHER": []
+        }
+      },
+      "unsupported": {
+        "POLYGON MESH unsupported or invalid profile": [
+          [
+            64,
+            "A"
+          ]
+        ]
+      }
+    },
+    {
       "case": "nested_byblock_parent_nolayers",
       "detail": {
         "area": 6.0,
@@ -463,6 +534,22 @@
     },
     {
       "case": "nested_byblock_face_nolayers",
+      "detail": {
+        "area": 6.0,
+        "bounds": [
+          1.0,
+          2.0,
+          5.0,
+          5.0
+        ],
+        "followingLineLength": 2.0,
+        "link": "Link_INNER",
+        "scale": 1.0
+      },
+      "unsupported": {}
+    },
+    {
+      "case": "nested_byblock_all_nolayers",
       "detail": {
         "area": 6.0,
         "bounds": [
@@ -561,5 +648,11 @@
     "The fourteen downstream FreeCAD patches are unmerged.",
     "BYBLOCK with preserved colors, other visibility encodings, mixed layers, nonplanar geometry, hidden edges and unsupported attributes remain refused or unqualified.",
     "Native GUI properties do not establish pixel rendering, external producer semantics or Linux/Windows qualification. No phase gate or external-only support claim is promoted."
-  ]
+  ],
+  "sourceConformance": {
+    "polyfaceCoordinateVertices": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PolyFaceMeshVertex.html",
+    "polygonCoordinateVertices": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_PolygonMeshVertex.html",
+    "finding": "Autodesk says coordinate-vertex entity properties should match their parent and calls mismatches corrupt. Cases with parent/vertex color differences exercise tolerant recovery when colors are disabled, not a conforming producer profile. The all-BYBLOCK controls match parent and coordinate colors. Face colors may legitimately differ; layer visibility has separate constraints.",
+    "facePropertiesAndVisibility": "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-Core/files/GUID-4B0667EF-D8E3-4BD2-A3EE-06CFF164A0A6.htm"
+  }
 }

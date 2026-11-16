@@ -93,8 +93,10 @@ def run():
                          "byblock_vertex_polyface_nocolor", "byblock_vertex_polyface_color",
                          "byblock_vertex_polygon_nocolor", "byblock_vertex_polygon_color",
                          "byblock_face_polyface_nocolor", "byblock_face_polyface_color",
+                         "byblock_all_polyface_nocolor", "byblock_all_polyface_color",
+                         "byblock_all_polygon_nocolor", "byblock_all_polygon_color",
                          "nested_byblock_parent_nolayers", "nested_byblock_vertex_nolayers",
-                         "nested_byblock_face_nolayers", "color", "color_mixed",
+                         "nested_byblock_face_nolayers", "nested_byblock_all_nolayers", "color", "color_mixed",
                          "color_mixed_nocolor"):
                 is_color = case.startswith("color")
                 is_vertex = case.startswith("vertex_")
