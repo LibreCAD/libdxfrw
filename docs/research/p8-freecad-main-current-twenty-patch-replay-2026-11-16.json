@@ -68,5 +68,6 @@
     "commits": 20,
     "worktree": "clean, sparse checkout of the five affected files",
     "qualification": "All five candidate files match replay and the previously tested candidate; this sparse checkout is for source review and is not a native build."
-  }
+  },
+  "subsequentQualification": "A later fresh macOS ARM64 GUI/headless build of this current source and candidate passed focused tests; see p8-freecad-current-native-candidate-2026-11-16.json. Other platforms and broader gates remain open."
 }
