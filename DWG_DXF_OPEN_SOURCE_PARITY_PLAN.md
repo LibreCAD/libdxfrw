@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **613 completed implementation and qualification slices** and **32 remaining
+The plan records **614 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`613 / (613 + 32) = 95.0%`. The previous 28-package denominator was stale; a recount
+`614 / (614 + 32) = 95.0%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -211,9 +211,14 @@ The LibreCAD importer test now passes. A reusable LibreDWG JSON census finds onl
 the four expected dictionary candidate references, but four objects retain
 6,692 unknown bits and one XRECORD has binary data; absence of hidden inbound
 references remains unproven ([census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json)).
-Prefer preserving the named tables and their references where the writer can
-prove mapped block, dictionary and output closure; otherwise keep the strict
-refusal. Freeze membership and inbound references before any omission
+The DXF writer now has an explicitly experimental opt-in for preserving an
+empty named-block table when its emitted block and dictionary graph matches;
+default and legacy consumers still refuse it. Generated ASCII/Binary roundtrips,
+rollback/retry and ezdxf semantic readback pass; Autodesk documents only space
+owners and LibreDWG drops the table on conversion, so native and consumer
+qualification remain open ([experimental writer receipt](docs/research/p8-experimental-empty-named-sortents-dxf-2026-11-15.json)).
+Keep the default refusal and do not enable the extension implicitly in LibreCAD.
+Prove consumer source/output closure and provide an explicit opt-in before use; Freeze membership and inbound references before any omission
 ([carrier receipt](docs/research/p8-librecad-title-block-source-receipts-2026-11-15.json),
 [verifier receipt](docs/research/p8-ac1024-dictionary-source-verifier-2026-11-15.json)). Stage
 only validated empty named-table omission, and prove remaining dictionary graph,

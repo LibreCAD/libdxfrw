@@ -603,6 +603,7 @@ EXTRA_DIST = \
     tests/dxf_dictionary_late_hardowner_tests.cpp \
     tests/dxf_dimension_oblique_tests.cpp \
     tests/dxf_ellipse_extreme_axis_tests.cpp \
+    tests/dxf_empty_named_sortents_tests.cpp \
     tests/dxf_entity_identity_test_helpers.h \
     tests/dxf_field_mtext_tests.cpp \
     tests/dxf_fixture_tests.cpp \

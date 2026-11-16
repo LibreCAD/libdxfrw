@@ -36683,12 +36683,84 @@ bool dxfRW::writeSortEntsTable(DRW_SortEntsTable *ent) {
         return failDxfWrite();
     if (owner != DRW::DxfModelSpaceBlockRecordHandle
         && owner != DRW::DxfPaperSpaceBlockRecordHandle) {
-        recordOperationDiagnostic(DRW::OperationPhase::Objects,
-            DRW::OperationCause::ValidationFailure,
-            "sortents-owner-space",
-            "SORTENTSTABLE owner is not a Model/Paper Space BLOCK_RECORD",
-            0, false, static_cast<std::uint32_t>(ent->m_blockOwnerHandle), true);
-        return failDxfWrite();
+        // An empty named-block table is safe to preserve only when the
+        // caller supplied a unique source BLOCK_RECORD and its already
+        // emitted extension dictionary names this exact output table. The
+        // block definition must also have completed in this write attempt.
+        // Nonempty named tables still need per-entity ownership proof.
+        const auto *provider =
+            dynamic_cast<const DRW_DxfEmptyNamedSortEntsProvider *>(iface);
+        if (provider == nullptr || !provider->allowDxfEmptyNamedSortEnts()) {
+            recordOperationDiagnostic(DRW::OperationPhase::Objects,
+                DRW::OperationCause::ValidationFailure,
+                "sortents-owner-space",
+                "SORTENTSTABLE owner is not a Model/Paper Space BLOCK_RECORD",
+                0, false, static_cast<std::uint32_t>(ent->m_blockOwnerHandle), true);
+            return failDxfWrite();
+        }
+        bool namedProof = false;
+        // Keep the per-record scan bounded; larger profiles remain refused.
+        constexpr std::size_t maxNamedProofRecords = 128u;
+        if (m_sourceBlockRecords.size() > maxNamedProofRecords
+            || m_namedDictObjects.size() > maxNamedProofRecords)
+            return failDxfWrite();
+        try {
+            const DRW_Block_Record *source = nullptr;
+            for (const auto &candidate : m_sourceBlockRecords) {
+                if (candidate.handle != ent->m_blockOwnerHandle)
+                    continue;
+                if (source != nullptr)
+                    return failDxfWrite();
+                source = &candidate;
+            }
+            const auto sourceName =
+                m_sourceBlockRecordNamesByHandle.find(ent->m_blockOwnerHandle);
+            if (block != m_sourceBlockRecordHandles.end() && source != nullptr
+                && sourceName != m_sourceBlockRecordNamesByHandle.end()
+                && m_requireResolvedBlockOwners && m_dxfBlockSectionComplete
+                && m_emittedDxfBlockBodyNames.count(sourceName->second) == 1u
+                && ent->m_entityHandles.empty() && source->xDictHandle != 0u) {
+                const std::uint32_t expectedDictionary =
+                    remapObjectHandle(source->xDictHandle);
+                const std::uint32_t requestedDictionary = remapObjectHandle(
+                    static_cast<std::uint32_t>(ent->parentHandle));
+                const DRW_Dictionary *dictionary = nullptr;
+                for (const auto &candidate : m_namedDictObjects) {
+                    if (remapObjectHandle(candidate.handle) != expectedDictionary)
+                        continue;
+                    if (dictionary != nullptr)
+                        return failDxfWrite();
+                    dictionary = &candidate;
+                }
+                if (dictionary != nullptr && expectedDictionary != 0u
+                    && requestedDictionary == expectedDictionary
+                    && remapObjectHandle(static_cast<std::uint32_t>(
+                           dictionary->parentHandle)) == owner) {
+                    const auto emitted = m_writingContext.sourceHandleToWrittenObjectMap.find(
+                        dictionary->handle);
+                    std::size_t matches = 0u;
+                    for (const auto &entry : dictionary->m_entries) {
+                        if (entry.m_name != "ACAD_SORTENTS")
+                            continue;
+                        if (remapObjectHandle(entry.m_handle) != self)
+                            return failDxfWrite();
+                        ++matches;
+                    }
+                    namedProof = emitted != m_writingContext.sourceHandleToWrittenObjectMap.end()
+                        && emitted->second == expectedDictionary && matches == 1u;
+                }
+            }
+        } catch (...) {
+            return failDxfWrite();
+        }
+        if (!namedProof) {
+            recordOperationDiagnostic(DRW::OperationPhase::Objects,
+                DRW::OperationCause::ValidationFailure,
+                "sortents-owner-space",
+                "SORTENTSTABLE named-block source graph is not proven",
+                0, false, static_cast<std::uint32_t>(ent->m_blockOwnerHandle), true);
+            return failDxfWrite();
+        }
     }
 
     DxfWriterRecordScope record(*writer);

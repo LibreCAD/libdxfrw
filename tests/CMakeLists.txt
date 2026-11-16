@@ -637,6 +637,17 @@ add_test(NAME libdxfrw_dwg_ac1024_layer_control_source
 set_tests_properties(libdxfrw_dwg_ac1024_layer_control_source PROPERTIES
     LABELS "fast;dwg;layer;control;source" TIMEOUT 30)
 
+add_executable(libdxfrw_dxf_empty_named_sortents_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dxf_empty_named_sortents_tests.cpp)
+target_compile_features(libdxfrw_dxf_empty_named_sortents_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dxf_empty_named_sortents_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dxf_empty_named_sortents_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_dxf_empty_named_sortents_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_dxf_empty_named_sortents
+    COMMAND libdxfrw_dxf_empty_named_sortents_tests)
+set_tests_properties(libdxfrw_dxf_empty_named_sortents PROPERTIES
+    LABELS "fast;dxf;sortents;transaction" TIMEOUT 30)
+
 add_executable(libdxfrw_dwg_ac1024_layer_binding_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dwg_ac1024_layer_binding_tests.cpp
     ${_libdxfrw_test_adapter_source})

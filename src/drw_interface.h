@@ -16,6 +16,7 @@
 // Allows consumers that also support older bundled forks to declare this
 // optional callback with an override specifier only when it exists.
 #define LIBDXFRW_HAS_BLOCK_RECORD_CALLBACK 1
+#define LIBDXFRW_HAS_EXPERIMENTAL_EMPTY_NAMED_SORTENTS 1
 
 // Preserve a caller's X11 None macro while declaring all header enums.
 #if defined(None)
@@ -1105,6 +1106,16 @@ public:
   virtual ~DRW_DwgAc1024LayerSourceHandler() = default;
   virtual void addDwgAc1024LayerSource(
       const DRW_DwgAc1024LayerSource& source) noexcept = 0;
+};
+
+//! Explicit experimental DXF extension for preserving empty named-block
+//! SORTENTSTABLE records. Autodesk's published DXF reference limits their
+//! owner field to model/paper space. Default readers/writers remain strict;
+//! opting in does not establish native application interoperability.
+class DRW_DxfEmptyNamedSortEntsProvider {
+public:
+  virtual ~DRW_DxfEmptyNamedSortEntsProvider() = default;
+  virtual bool allowDxfEmptyNamedSortEnts() const noexcept = 0;
 };
 
 //! Optional provisional control-frame observation; DRW_Interface is unchanged.
