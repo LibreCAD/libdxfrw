@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **614 completed implementation and qualification slices** and **32 remaining
+The plan records **615 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`614 / (614 + 32) = 95.0%`. The previous 28-package denominator was stale; a recount
+`615 / (615 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -217,6 +217,10 @@ default and legacy consumers still refuse it. Generated ASCII/Binary roundtrips,
 rollback/retry and ezdxf semantic readback pass; Autodesk documents only space
 owners and LibreDWG drops the table on conversion, so native and consumer
 qualification remain open ([experimental writer receipt](docs/research/p8-experimental-empty-named-sortents-dxf-2026-11-15.json)).
+ODA 27.1.0 independently round-tripped both generated encodings through DWG
+and preserved the block/dictionary/sort/XRECORD links with zero ezdxf audit fixes;
+this is one generated profile, not native AutoCAD/FreeCAD qualification
+([ODA receipt](docs/research/p8-experimental-named-sortents-oda-roundtrip-2026-11-15.json)).
 Keep the default refusal and do not enable the extension implicitly in LibreCAD.
 Prove consumer source/output closure and provide an explicit opt-in before use; Freeze membership and inbound references before any omission
 ([carrier receipt](docs/research/p8-librecad-title-block-source-receipts-2026-11-15.json),
