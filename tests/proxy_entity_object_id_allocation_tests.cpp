@@ -108,12 +108,19 @@ DRW_Class makeProxyClass() {
 class Export final : public dx_iface {
 public:
     explicit Export(dxfRW& codec, bool explicitResolver = true,
-                    bool includeObjectIds = true)
+                    bool includeObjectIds = true,
+                    bool configuredResolver = false)
         : codec(codec), proxy(makeProxy(includeObjectIds)),
           useExplicitResolver(explicitResolver) {
         cData = &storage;
         currentBlock = storage.mBlock;
         dxfW = &codec;
+        if (configuredResolver) {
+            codec.setReferenceResolver([](std::uint32_t source) {
+                return source >= 0xD7D0u && source < 0xD7D8u
+                    ? 0xE100u + (source - 0xD7D0u) : 0u;
+            });
+        }
     }
 
     void writeEntities() override {
@@ -189,6 +196,7 @@ bool readbackMatches(const std::filesystem::path& path,
 
 bool runProfile(const std::filesystem::path& directory,
                 bool explicitResolver, bool includeObjectIds,
+                bool configuredResolver,
                 const char* outputName, const char* profileName) {
     const auto fail = [profileName](const char* message) {
         std::cerr << "PROXY_ENTITY " << profileName << " allocation retry: "
@@ -214,7 +222,8 @@ bool runProfile(const std::filesystem::path& directory,
         {
             dxfRW codec(output.string().c_str());
             codec.setDxfClasses(std::vector<DRW_Class>{makeProxyClass()});
-            Export exporter(codec, explicitResolver, includeObjectIds);
+            Export exporter(codec, explicitResolver, includeObjectIds,
+                            configuredResolver);
             exporter.failAt = 1000000;
             const bool wrote = codec.write(&exporter, version.first, binary);
             if (!wrote || !exporter.accepted
@@ -237,7 +246,8 @@ bool runProfile(const std::filesystem::path& directory,
             }
             dxfRW codec(output.string().c_str());
             codec.setDxfClasses(std::vector<DRW_Class>{makeProxyClass()});
-            Export exporter(codec, explicitResolver, includeObjectIds);
+            Export exporter(codec, explicitResolver, includeObjectIds,
+                            configuredResolver);
             const DRW_ProxyEntity source = exporter.proxy;
             exporter.failAt = offset;
             const bool wrote = codec.write(&exporter, version.first, binary);
@@ -278,11 +288,15 @@ bool runProfile(const std::filesystem::path& directory,
 }
 
 bool run(const std::filesystem::path& directory) {
-    return runProfile(directory, true, true, "proxy-entity-object-ids",
+    return runProfile(directory, true, true, false,
+                      "proxy-entity-object-ids",
                       "object-ID")
-        && runProfile(directory, false, false,
+        && runProfile(directory, false, false, false,
                       "proxy-entity-default-overload",
-                      "two-argument overload");
+                      "two-argument overload without object IDs")
+        && runProfile(directory, false, true, true,
+                      "proxy-entity-default-overload-object-ids",
+                      "two-argument overload with configured resolver");
 }
 } // namespace
 

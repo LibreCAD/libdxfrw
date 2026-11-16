@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-dxf-proxy-entity-configured-resolver-two-arg-allocation-rollback-retry-2026-11-16",
+  "date": "2026-11-16",
+  "status": "PASS_GENERATED_CONFIGURED_RESOLVER_TWO_ARGUMENT_PROXY_ENTITY_TRANSACTION",
+  "supportClaimEffect": "none",
+  "scope": "Exercise the public two-argument dxfRW::writeProxyEntity overload with nonempty object-ID references resolved through dxfRW::setReferenceResolver, including allocation rollback, same-codec retry, and typed readback.",
+  "source": {
+    "kind": "deterministic locally-authored in-memory DRW_ProxyEntity",
+    "profile": "AC1024 typed AcDbProxyEntity, class ordinal 500, bounded 19-bit entity payload, eight group-330 object-ID references, configured codec resolver maps source 0xD7D0..0xD7D7 to output 0xE100..0xE107.",
+    "fixtureFilesAdded": 0
+  },
+  "implementation": {
+    "files": [
+      "tests/proxy_entity_object_id_allocation_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p6-dxf-proxy-entity-configured-resolver-two-arg-allocation-rollback-retry-2026-11-16.json"
+    ],
+    "productionCodeChanged": false,
+    "change": "Extended the existing allocation transaction harness with the previously uncovered two-argument overload case where object-ID references are present and the codec owns the configured resolver.",
+    "method": "Run the generated proxy through AC1018, AC1021, AC1024, AC1027, and AC1032 in ASCII and Binary. Inject std::bad_alloc at each reached callback allocation, require source record and destination sentinel preservation, retry using the same dxfRW codec, compare retry bytes to clean output, and verify typed proxy fields and all emitted reference handles through a fresh reader."
+  },
+  "validation": {
+    "build": "cmake --build build --target libdxfrw_proxy_entity_object_id_allocation_tests -j 4: PASS",
+    "focusedCTest": "ctest --test-dir build -R '^libdxfrw_proxy_entity_object_id_allocation$' --output-on-failure: PASS 1/1 in 3.48 seconds",
+    "coverage": "The selector retains the explicit-resolver/nonempty-ID and two-argument/empty-ID profiles and adds the two-argument/configured-resolver/nonempty-ID profile. All measured allocation offsets in each profile pass rollback, same-codec byte-identical retry, and fresh typed readback."
+  },
+  "limitations": [
+    "The source is generated in memory; this does not establish producer prevalence or original DWG/DXF field provenance.",
+    "The reference handles are checked as emitted and read back, but the referenced target objects are not part of this generated profile, so graph closure is not established.",
+    "This does not qualify proxy native semantics, unsupported payload variants, or overall proxy support. No support claim is promoted."
+  ],
+  "planImpact": {
+    "completedSlice": "The configured-codec-resolver path of the public two-argument PROXY_ENTITY writer overload with a nonempty object-ID list, including allocation rollback, same-codec retry, and typed readback.",
+    "remainingP6G": "Continue the indexed public-writer inventory; select the next assertion gap only after checking its route-specific tests and receipts.",
+    "phaseStatusesChanged": false
+  },
+  "nextAction": "Select one next locally actionable P6-G route; do not repeat this PROXY_ENTITY profile or infer target graph closure from the emitted handles.",
+  "verificationRefresh": {
+    "date": "2026-11-16",
+    "repositoryHead": "cc1592be",
+    "build": "cmake --build build-gcc --target libdxfrw_proxy_entity_object_id_allocation_tests libdxfrw_table_content_dxf_tests -j4: PASS",
+    "focusedCtest": "ctest --test-dir build-gcc -R '^(libdxfrw_proxy_entity_object_id_allocation|libdxfrw_table_legacy_presence_allocation)$' --output-on-failure: PASS 2/2 (1.58 sec)",
+    "profileResult": "Configured-resolver two-argument profile passed as part of the focused selector rerun; no fixture files added."
+  }
+}
