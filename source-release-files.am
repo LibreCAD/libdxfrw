@@ -62,6 +62,7 @@ EXTRA_DIST = \
     docs/patches/librecad-p8-layer-control-source-binding-2026-11-15.patch \
     docs/patches/librecad-p8-legacy-dxf-lineweight-diagnostic-2026-11-15.patch \
     docs/patches/librecad-p8-ltype-semantic-golden-2026-11-15.patch \
+    docs/patches/librecad-p8-mleaderstyle-version-diagnostic-2026-11-15.patch \
     docs/patches/librecad-p8-mpolygon-annotation-test-2026-11-15.patch \
     docs/patches/librecad-p8-mpolygon-hatch-test-type-2026-11-15.patch \
     docs/patches/librecad-p8-mpolygon-policy-2026-11-15.patch \

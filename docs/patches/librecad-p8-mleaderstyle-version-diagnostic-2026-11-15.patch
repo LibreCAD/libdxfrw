@@ -1,0 +1,71 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -4083,0 +4084,3 @@
++    add_test(NAME librecad_system_codec_mleaderstyle
++             COMMAND librecad_system_codec_tests
++             "DXF 2007 reports unrepresentable multileader attachments")
+@@ -4085,0 +4089 @@
++        librecad_system_codec_mleaderstyle
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -27483 +27483,12 @@
+-      noteDxfWrite(m_dxfW->writeMLeaderStyle(&style));
++      const bool alreadyFailed = m_writeFailed;
++      const bool written = m_dxfW->writeMLeaderStyle(&style);
++      if (!written && !alreadyFailed && m_exportFailureDetail.isEmpty()
++          && m_version == 1021
++          && (style.attachmentDirection != 0 || style.topAttachment != 0
++              || style.bottomAttachment != 0)) {
++        m_exportFailureDetail = QObject::tr(
++            "DXF 2007 cannot store all attachment settings of multileader "
++            "style %1. Try DXF 2010 or a newer version.",
++            "RS_FilterDXFRW").arg(QString::fromUtf8(style.name.c_str()));
++      }
++      noteDxfWrite(written);
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9486,0 +9487,44 @@
++TEST_CASE("DXF 2007 reports unrepresentable multileader attachments",
++          "[dxf][roundtrip][filter][mleaderstyle]") {
++  if (!HasCanonicalLTypeMetadataForGolden<dxfRW>::value)
++    return; // The bundled codec has no matching version refusal.
++  ensureSettings();
++  RS_Graphic graphic;
++  graphic.initForNewDocument();
++  DRW_MLeaderStyle style;
++  style.handle = 0xE0u;
++  style.parentHandle = 0x70u;
++  style.name = "STYLE-A";
++  style.topAttachment = 9;
++  style.bottomAttachment = 9;
++  auto &metadata = graphic.dwgAdvancedMetadata();
++  metadata.addMLeaderStyle(style);
++  DRW_Dictionary dictionary;
++  dictionary.handle = 0x70u;
++  dictionary.parentHandle = 0xCu;
++  dictionary.name = "ACAD_MLEADERSTYLE";
++  dictionary.m_entries.push_back({"STYLE-A", 0xE0u});
++  metadata.addDictionary(dictionary);
++  const std::string out = tmpFile("mleader_attachment_version_report.dxf");
++  writeText(out, "previous destination\n");
++  RS_FilterDXFRW filter;
++  REQUIRE_FALSE(filter.fileExport(graphic, QString::fromStdString(out),
++                                  RS2::FormatDXFRW));
++  CHECK(textWithoutCR(out) == "previous destination\n");
++  const QString reason = QObject::tr(
++      "DXF 2007 cannot store all attachment settings of multileader "
++      "style %1. Try DXF 2010 or a newer version.",
++      "RS_FilterDXFRW").arg(QStringLiteral("STYLE-A"));
++  CHECK(filter.lastError() == reason);
++  REQUIRE(metadata.mleaderStyles().size() == 1u);
++  CHECK(metadata.mleaderStyles().front().topAttachment == 9);
++  CHECK(metadata.mleaderStyles().front().bottomAttachment == 9);
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(out),
++                            RS2::FormatDXFRW2010));
++  CHECK(recordGroupValues(out, "MLEADERSTYLE", "272") ==
++        std::vector<std::string>{"9"});
++  CHECK(recordGroupValues(out, "MLEADERSTYLE", "273") ==
++        std::vector<std::string>{"9"});
++  std::filesystem::remove(out);
++}
++

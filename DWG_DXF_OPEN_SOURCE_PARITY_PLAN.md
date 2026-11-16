@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **636 completed implementation and qualification slices** and **32 remaining
+The plan records **637 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`636 / (636 + 32) = 95.2%`. The previous 28-package denominator was stale; a recount
+`637 / (637 + 32) = 95.2%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -134,7 +134,12 @@ created locally from scratch for the specific control.
   unresolved; do not omit source records to pass a gate ([source census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json),
   [peer receipt](docs/research/p8-experimental-named-sortents-oda-roundtrip-2026-11-15.json)).
 - Resolve the separate title-block MLEADERSTYLE version gate and then the next
-  observed export gate, without dropping fields. Qualify the R12/R14 diagnostic
+  observed export gate, without dropping fields. A consumer patch now reports
+  the affected style when R2007 cannot represent R2010 attachment data; a
+  generated source preserves the destination and retries successfully at R2010
+  ([receipt](docs/research/p8-librecad-mleaderstyle-version-diagnostic-2026-11-15.json)).
+  This diagnostic does not close the title drawing's graph or native gates.
+  Qualify the R12/R14 diagnostic
   in the GUI and across platforms; retain PR #3269's broader ASCII/Binary and
   platform controls. Qualify LibreCAD_3 with a clean link, runtime import/export
   and the required ABI and platform matrix.
@@ -164,7 +169,8 @@ suffix `-2026-11-15.patch`, rebasing as needed against the consumer head:
 `librecad-p8-named-block-line-boundary-test`,
 `librecad-p8-named-block-line-circle-output`,
 `librecad-p8-named-block-line-arc-output`,
-`librecad-p8-named-block-arc-wrap-test`.
+`librecad-p8-named-block-arc-wrap-test`,
+`librecad-p8-mleaderstyle-version-diagnostic`.
 The tested base is `8a82e35965d8d56a8f8608abd739fbb2c0de2f3e`.
 
 For MPOLYGON, retain the consumer's opt-in polyline policy; independently
