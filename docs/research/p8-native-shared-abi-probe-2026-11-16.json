@@ -9,6 +9,23 @@
     "Build and run an independent C++ consumer and compare the loaded runtime's canonical path with the installed library; record its SHA-256."
   ],
   "local": "PASS on macOS ARM64 with the clean shared 3.0.0 install; loaded libdxfrw.3.0.0.dylib SHA-256 4fbe360e5e014ad09dc2cfbf2a5a97f4d9839f9a6d1e26fd9a2f5acd913b432d. Workflow passed actionlint.",
-  "hosted": "Linux and Windows jobs are prepared but not yet run on this revision.",
+  "hosted": {
+    "run": "https://github.com/dxli/libdxfrw/actions/runs/43880983700",
+    "source_commit": "b8db0d8e9961443c2eb4b1d8f39e06e095635a1e",
+    "result": "PASS",
+    "linux": {
+      "platform": "ubuntu-24.04",
+      "loaded": "libdxfrw.so.3.0.0",
+      "library_sha256": "707c1485750ad5cdae776bd6cba7e62456b9b8e4ddf30a700916cc56565c14e1",
+      "receipt_sha256": "0701f37a64d400e6355cdbf0ec1c59f628e22c5a09fb0da4ced5125eb69f68a7"
+    },
+    "windows": {
+      "platform": "windows-2022",
+      "loaded": "dxfrw-3.dll",
+      "library_sha256": "bd1df889a1f066d105991efc175669496f504c17070e0ac2ae5dc8e678ce8b32",
+      "receipt_sha256": "7b56d191949aff37e707d0b0a3d049ede066b2943638d3f53555a7bea51a30eb"
+    },
+    "checks": "Both receipts report version 2.0 rejected, 3.0 accepted, old runtime name absent, and the installed library loaded."
+  },
   "limits": "This probe tests package selection and actual shared-library loading, not full C++ ABI compatibility, drawing semantics, app integration, or release readiness. No support claim is promoted."
 }
