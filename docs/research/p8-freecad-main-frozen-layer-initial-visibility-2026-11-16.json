@@ -1105,5 +1105,5 @@
     "Only initial visibility of direct grouped geometry is checked. A Draft visibility toggle is not full frozen/thawed state. Frozen layers remain reported unsupported; viewport-specific, nested block, ungrouped and durable-state behavior remain open.",
     "GUI properties do not establish pixel rendering, independent producer semantics or Linux/Windows qualification. No phase gate or external-only support claim is promoted."
   ],
-  "probeEvolution": "The current GUI probe includes later layer-color range controls requiring the eighteenth downstream patch; observations in this receipt describe its earlier candidate."
+  "probeEvolution": "The reusable GUI probe may require later downstream patches; observations here describe the candidate identified in this receipt. See the current plan for patch order."
 }

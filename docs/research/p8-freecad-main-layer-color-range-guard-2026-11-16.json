@@ -1322,5 +1322,6 @@
     "The eighteen downstream FreeCAD patches are unmerged.",
     "ACI 7 is a reported fallback, not preservation of the malformed color. Frozen, viewport, ungrouped and block visibility gates remain open.",
     "No full rendering, independent producer semantics, Linux/Windows qualification, phase gate or external-only support claim is established."
-  ]
+  ],
+  "probeEvolution": "The reusable GUI probe may require later downstream patches; observations here describe the candidate identified in this receipt. See the current plan for patch order."
 }

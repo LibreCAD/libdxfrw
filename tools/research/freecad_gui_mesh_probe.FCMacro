@@ -106,6 +106,9 @@ def run():
                          "layer_invalidnegative_256", "layer_invalidpositive_257",
                          "layer_invalidnegative_2147483648", "layer_invalidpositive_2147483647",
                          "layer_invalidnegative_2147483648_nogroups",
+                         "layer_syntaxnegative_1", "layer_syntaxpositive_1", "layer_syntaxdupenegative_1",
+                         "layer_syntaxdupepositive_1", "layer_syntaxnegoverflow_1", "layer_syntaxposoverflow_1",
+                         "layer_syntaxnegative_1_nogroups",
                          "color", "color_mixed",
                          "color_mixed_nocolor"):
                 is_color = case.startswith("color")
@@ -135,9 +138,16 @@ def run():
                     mode = case.split("_")[1]
                     aci = int(case.split("_")[2]) * (-1 if mode in ("off", "frozenoff", "invalidnegative") else 1)
                     flags = 1 if mode in ("frozen", "frozenoff") else 2 if mode == "newviewport" else 0
+                    syntax_values = {"syntaxnegative": ("-oops",), "syntaxpositive": ("2junk",),
+                                     "syntaxdupenegative": ("-2", "2"), "syntaxdupepositive": ("2", "1"),
+                                     "syntaxnegoverflow": ("-2147483649",), "syntaxposoverflow": ("2147483648",)}
+                    raw_colors = syntax_values.get(mode, (str(aci),))
+                    if mode in syntax_values:
+                        aci = -7 if any(value.startswith("-") for value in raw_colors) else 7
                     layer_tag = "0\nLAYER\n2\nMESH\n70\n0\n62\n1\n"
                     assert drawing_text.count(layer_tag) == 1
-                    drawing_text = drawing_text.replace(layer_tag, f"0\nLAYER\n2\nMESH\n70\n{flags}\n62\n{aci}\n")
+                    color_tags = "".join(f"62\n{value}\n" for value in raw_colors)
+                    drawing_text = drawing_text.replace(layer_tag, f"0\nLAYER\n2\nMESH\n70\n{flags}\n{color_tags}")
                     line_tag = "0\nLINE\n8\n0\n"
                     assert drawing_text.count(line_tag) == 1
                     drawing_text = drawing_text.replace(line_tag, "0\nLINE\n8\nMESH\n")
@@ -153,10 +163,12 @@ def run():
                     assert len(lines) == 1, (case, [o.Name for o in shapes])
                     if is_layer:
                         meshes = [obj for obj in shapes if obj.Name.startswith("Polyface")]
-                        initial = mode in ("on", "newviewport", "invalidpositive")
+                        initial = aci >= 0 and mode not in ("frozen", "frozenoff")
                         invalid_color = mode in ("invalidnegative", "invalidpositive")
+                        invalid_syntax = mode in syntax_values
                         assert len(meshes) == 1
                         assert ("Layer color index out of range" in stats["unsupportedFeatures"]) == invalid_color
+                        assert ("Invalid or duplicate layer color" in stats["unsupportedFeatures"]) == invalid_syntax
                         if no_layers:
                             reason = "Off-layer visibility without layer grouping"
                             assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
@@ -171,15 +183,16 @@ def run():
                                          and getattr(getattr(obj, "Proxy", None), "Type", None) == "Layer")
                             assert set(layer.Group) == {meshes[0], lines[0]}
                             assert ("Frozen layers" in stats["unsupportedFeatures"]) == bool(flags & 1)
-                            assert set(stats["unsupportedFeatures"]) <= {"Frozen layers", "Layer color index out of range"}
+                            assert set(stats["unsupportedFeatures"]) <= {"Frozen layers", "Layer color index out of range",
+                                                                         "Invalid or duplicate layer color"}
                             assert layer.ViewObject.Visibility == initial
                             assert meshes[0].ViewObject.Visibility == initial and lines[0].ViewObject.Visibility == initial
                             layer.ViewObject.Visibility = True
                             assert meshes[0].ViewObject.Visibility and lines[0].ViewObject.Visibility
                             colors = (tuple(layer.ViewObject.LineColor), tuple(lines[0].ViewObject.LineColor),
                                       tuple(meshes[0].ViewObject.ShapeColor))
-                            index = 7 if invalid_color else abs(aci)
-                            if initial and not invalid_color:
+                            index = 7 if invalid_color or invalid_syntax else abs(aci)
+                            if initial and not invalid_color and not invalid_syntax:
                                 layer_colors[index] = colors
                             else:
                                 assert colors == layer_colors[index], (case, colors, layer_colors[index])

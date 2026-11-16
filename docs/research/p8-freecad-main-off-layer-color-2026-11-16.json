@@ -931,5 +931,5 @@
     "Frozen layers are separately reported unsupported by the candidate and are not fixed by off-layer handling.",
     "GUI properties are not pixel rendering, full producer interoperability, or Linux/Windows platform qualification; no phase gate or external-only support claim is promoted."
   ],
-  "probeEvolution": "The current GUI probe includes later layer-color range controls requiring the eighteenth downstream patch; observations in this receipt describe its earlier candidate."
+  "probeEvolution": "The reusable GUI probe may require later downstream patches; observations here describe the candidate identified in this receipt. See the current plan for patch order."
 }
