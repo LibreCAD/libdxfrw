@@ -89,7 +89,10 @@ def main():
         for name in PATCHES:
             patch = patch_dir / name
             patch_hashes[name] = digest(patch)
-            proc = subprocess.run(["git", "apply", "--unidiff-zero", str(patch)], cwd=root,
+            # The upstream header contains CRLF bytes, while this patch chain
+            # was produced with input normalization. Do not depend on the
+            # caller's global core.autocrlf setting.
+            proc = subprocess.run(["git", "-c", "core.autocrlf=input", "apply", "--unidiff-zero", str(patch)], cwd=root,
                                   capture_output=True, text=True, check=False)
             if proc.returncode:
                 raise RuntimeError("patch failed: " + name + "\n" + proc.stderr.strip())

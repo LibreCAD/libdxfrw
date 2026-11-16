@@ -16,7 +16,7 @@ import replay_freecad_import_patches as replay
 
 
 def git(root, *args, check=True):
-    return subprocess.run(["git", "-C", str(root), *args], capture_output=True,
+    return subprocess.run(["git", "-c", "core.autocrlf=input", "-C", str(root), *args], capture_output=True,
                           text=True, check=check)
 
 
