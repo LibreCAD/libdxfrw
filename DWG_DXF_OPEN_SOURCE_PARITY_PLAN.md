@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **624 completed implementation and qualification slices** and **32 remaining
+The plan records **625 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`624 / (624 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
+`625 / (625 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -91,8 +91,8 @@ created locally from scratch for the specific control.
   prove the specific consumer source-to-output chain, rollback and readback
   before broadening the explicit programmatic opt-in. A narrow, unmerged
   consumer patch now passes generated-source rollback/retry and ODA/ezdxf
-  readback; it refuses unhandled dictionary entries and nondefault source block
-  properties ([receipt](docs/research/p8-librecad-experimental-named-sortents-optin-2026-11-15.json)).
+  readback; unverified dictionary entries and block properties remain refused
+  ([receipt](docs/research/p8-librecad-experimental-named-sortents-optin-2026-11-15.json)).
   A bounded empty AC1024 XRECORD source verifier now matches the generated
   extra dependency with independent LibreDWG observation and failure/retry
   controls ([receipt](docs/research/p8-ac1024-empty-xrecord-source-verifier-2026-11-15.json));
@@ -108,7 +108,9 @@ created locally from scratch for the specific control.
   ([receipt](docs/research/p8-dwg-block-preview-delivery-2026-11-15.json));
   the actual LibreCAD title import now preserves that preview
   ([consumer test](docs/research/p8-librecad-dwg-block-preview-import-2026-11-15.json)).
-  Qualify guarded preview output. Qualify nonempty
+  One bounded generated preview now passes guarded consumer output and peer
+  readback ([receipt](docs/research/p8-librecad-named-block-preview-output-2026-11-15.json));
+  qualify other preview profiles and native rendering. Qualify nonempty
   XRECORD data, other unit values and remaining nondefault block properties
   without dropping dependencies. Unknown inbound references
   and dynamic-block objects remain
@@ -138,7 +140,8 @@ suffix `-2026-11-15.patch`, rebasing as needed against the consumer head:
 `librecad-p8-experimental-named-sortents-optin`,
 `librecad-p8-empty-xrecord-source-correlation`,
 `librecad-p8-empty-xrecord-dxf-output`, `librecad-p8-named-block-units`,
-`librecad-p8-dwg-block-preview-import-test`.
+`librecad-p8-dwg-block-preview-import-test`,
+`librecad-p8-named-block-preview-output`.
 The tested base is `8a82e35965d8d56a8f8608abd739fbb2c0de2f3e`.
 
 For MPOLYGON, retain the consumer's opt-in polyline policy; independently

@@ -1,0 +1,144 @@
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index 540e5e9..660e782 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -3447,6 +3447,7 @@ public:
+     std::uint32_t layoutHandle = 0;
+     std::size_t sourceEntityCount = 0u;
+     int insertionUnits = 0;
++    std::vector<std::uint8_t> previewData;
+     bool hasUnsupportedOutputState = false;
+     std::string name;
+     std::vector<std::uint32_t> reactorHandles;
+@@ -3474,8 +3475,18 @@ public:
+       reject();
+       return;
+     }
++    // Large previews remain unsupported; avoid copying them into this
++    // selected-source observation while retaining the ordinary import.
++#ifdef LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY
++    constexpr std::size_t maxPreview = 4096u;
++    const std::size_t previewBytes = record.previewData.size() <= maxPreview
++        ? record.previewData.size() : 0u;
++#else
++    constexpr std::size_t previewBytes = 0u;
++#endif
+     const std::size_t estimate = sizeof(BlockRecordLinkObservation)
+-        + record.name.size() + record.reactorHandles.size() * sizeof(std::uint32_t);
++        + record.name.size() + record.reactorHandles.size() * sizeof(std::uint32_t)
++        + previewBytes;
+     if (estimate > maxBytes || m_blockRecordLinkBytes > maxBytes - estimate) {
+       reject();
+       return;
+@@ -3488,6 +3499,8 @@ public:
+       observed.layoutHandle = record.layoutHandle;
+       observed.insertionUnits = record.insUnits;
+ #if defined(LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY)
++      if (record.previewData.size() <= maxPreview)
++        observed.previewData = record.previewData;
+       observed.sourceEntityCount = record.entityMapCount();
+       observed.hasUnsupportedOutputState =
+           (record.flags & ~64) != 0 || (record.insUnits != 0 && record.insUnits != 4)
+@@ -3495,7 +3508,7 @@ public:
+           || record.xrefBlockHandle.ref != 0u || record.xrefBlockHandle.ref64 != 0u
+           || record.basePoint.x != 0.0 || record.basePoint.y != 0.0
+           || record.basePoint.z != 0.0 || !record.xrefPath.empty()
+-          || !record.description.empty() || !record.previewData.empty()
++          || !record.description.empty() || record.previewData.size() > maxPreview
+           || !record.canExplode || record.blockScaling != 0u
+           || !record.appData.empty() || !record.extData.empty()
+           || !record.pendingAppIdResolutions.empty()
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index 494c0cb..9c7eff3 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -12342,9 +12342,9 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+             || (observed.extensionDictionaryHandle != 0u
+                 && experimentalSortDictionaryOwners.count(observed.extensionDictionaryHandle) == 0u))
+           return refuseExperimentalSort();
+-        if (observed.insertionUnits == 4) {
+-          // Only an unchanged, uniquely matched named block is admitted for
+-          // the independently observed millimetres source profile.
++        if (observed.insertionUnits == 4 || !observed.previewData.empty()) {
++          // Nondefault units and bounded preview bytes require an unchanged,
++          // uniquely matched named block from the selected source.
+           const RS_Block *matched = nullptr;
+           const QString sourceName = QString::fromUtf8(observed.name.c_str());
+           for (unsigned i = 0; i < m_graphic->countBlocks(); ++i) {
+@@ -12355,7 +12355,8 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+             matched = candidate;
+           }
+           if (matched == nullptr || matched->sourceHandle() != observed.handle
+-              || matched->getInsertionUnits() != observed.insertionUnits)
++              || matched->getInsertionUnits() != observed.insertionUnits
++              || matched->getPreviewData() != observed.previewData)
+             return refuseExperimentalSort();
+         }
+         if (observed.layoutHandle != 0u) {
+diff --git a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+index 21016e9..428a984 100644
+--- a/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp
+@@ -9962,6 +9962,51 @@ TEST_CASE("Named block export preserves source millimetre units",
+     std::filesystem::remove(path);
+ }
+ 
++TEST_CASE("Named block export preserves a bounded source preview",
++          "[dwg][roundtrip][sortentssource][source]") {
++  const char *fixture = std::getenv("LIBRECAD_ODA_NAMED_BLOCK_PREVIEW_FIXTURE");
++  if (fixture == nullptr || *fixture == '\0')
++    SKIP("Set LIBRECAD_ODA_NAMED_BLOCK_PREVIEW_FIXTURE to a locally generated ODA AC1024 DWG");
++  ensureSettings(); RS_Graphic graphic; RS_FilterDXFRW filter;
++  REQUIRE(filter.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
++  const auto &md = graphic.dwgAdvancedMetadata();
++  REQUIRE(md.matchesSelectedAc1024SortEntsOwnerChain(0x30u, 0xB003u, 0xB100u));
++  RS_Block *block = nullptr;
++  for (unsigned i = 0; i < graphic.countBlocks(); ++i)
++    if (graphic.blockAt(i)->getName() == QStringLiteral("Named")) block = graphic.blockAt(i);
++  REQUIRE(block != nullptr);
++  const auto original = block->getPreviewData();
++  REQUIRE(original.size() == 56u);
++  REQUIRE(md.blockRecordLinks().at(0x30u).previewData == original);
++  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(true));
++  const char *keepPath = std::getenv("LIBRECAD_KEEP_NAMED_BLOCK_PREVIEW_DXF");
++  const std::string path = keepPath && *keepPath ? keepPath : tmpFile("named_sort_preview.dxf");
++  const std::string sentinel = "previous destination\n";
++  writeText(path, sentinel);
++  auto changed = original; changed.back() ^= 1u; block->setPreviewData(changed);
++  CHECK_FALSE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  {
++    std::ifstream saved(path);
++    CHECK(std::string(std::istreambuf_iterator<char>(saved), {}) == sentinel);
++  }
++  block->setPreviewData(original);
++  REQUIRE(filter.fileExport(graphic, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  RS_Graphic reread; RS_FilterDXFRW rereader;
++  REQUIRE(rereader.fileImport(reread, QString::fromStdString(path), RS2::FormatDXFRW2010));
++  const RS_Block *readBlock = nullptr;
++  for (unsigned i = 0; i < reread.countBlocks(); ++i)
++    if (reread.blockAt(i)->getName() == QStringLiteral("Named")) readBlock = reread.blockAt(i);
++  REQUIRE(readBlock != nullptr);
++  CHECK(readBlock->getPreviewData() == original);
++  REQUIRE(reread.dwgAdvancedMetadata().sortEntsTables().size() == 1u);
++  const auto &sort = reread.dwgAdvancedMetadata().sortEntsTables().front();
++  const auto observed = reread.dwgAdvancedMetadata().blockRecordLinks().find(sort.blockOwnerHandle);
++  REQUIRE(observed != reread.dwgAdvancedMetadata().blockRecordLinks().end());
++  CHECK(observed->second.previewData == original);
++  if (!(keepPath && *keepPath))
++    std::filesystem::remove(path);
++}
++
+ #ifdef LIBDXFRW_HAS_AC1024_EMPTY_XRECORD_SOURCE_VERIFY
+ TEST_CASE("DWG title block preview reaches the LibreCAD block model",
+           "[dwg][roundtrip][sortentssource][source]") {
+@@ -10024,7 +10069,9 @@ TEST_CASE("Block source observations refuse unsupported output properties",
+   CHECK(metadata.blockRecordLinks().at(record.handle).insertionUnits == 4);
+   record.insUnits = 5; CHECK(observedUnsupported()); record.insUnits = 0;
+   record.flags = 1; CHECK(observedUnsupported()); record.flags = 0;
+-  record.previewData.push_back(1u); CHECK(observedUnsupported()); record.previewData.clear();
++  record.previewData.push_back(1u); CHECK_FALSE(observedUnsupported());
++  CHECK(metadata.blockRecordLinks().at(record.handle).previewData == record.previewData);
++  record.previewData.assign(4097u, 1u); CHECK(observedUnsupported()); record.previewData.clear();
+   record.insertHandles.push_back(0x456u); CHECK(observedUnsupported()); record.insertHandles.clear();
+   CHECK_FALSE(observedUnsupported());
+ }

@@ -5,6 +5,7 @@
   "implementation": "Copy the parsed BLOCK_HEADER preview into DRW_Block before either callback path. If copying the path or preview throws, record the block failure and quarantine its owned frames before publishing a partial block; normal reader failure handling remains in force.",
   "validation": [
     "The tracked tests/samples/AC1024/title_block-iso.dwg fixture now delivers the exact 2088-byte BLOCK_HEADER preview in the matching Title_Block-ISO block callback.",
+    "LibreDWG 0.14 independently decoded the tracked title BLOCK_HEADER preview to the same 2088 bytes; their SHA-256 is 29ae0eca6a21524edf193a0be8bfcf03deb498e0035537f78f8d4262bf8d5243.",
     "The focused test injects failures into all eight allocations of the 2088-byte size observed while reading the fixture, refuses any delivered block with a missing/different preview, and verifies a clean read immediately after every failure.",
     "Three focused block/XRECORD/SORTENTSTABLE CTests pass; the LibreCAD_3 compatibility compile target also builds.",
     "Source-release inventory passes with 1227 files and 18 refusal controls. Hosted-profile CTest inventory increases from 1377 to 1378 with exactly this test; the 725-input implementation digest is d2fbf3b7e98738e05bc8f6a097b74ee429b43f58bcc8988a7bc92e6554a539c7."
