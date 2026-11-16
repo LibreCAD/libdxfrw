@@ -203,16 +203,16 @@ jobs:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 180
     steps:
-      - name: Check out libdxfrw qualification tools
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Use repository line endings for the candidate checkout
+      - name: Use repository line endings for both checkouts
         shell: pwsh
         run: |
           git config --global core.autocrlf false
           if ($LASTEXITCODE -ne 0) { throw 'Cannot configure checkout line endings' }
+
+      - name: Check out libdxfrw qualification tools
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Check out pinned FreeCAD and submodules
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -237,6 +237,7 @@ jobs:
           $modules | Out-File -FilePath (Join-Path $evidence 'submodules.txt') -Encoding utf8
           $archive = Join-Path $env:RUNNER_TEMP 'freecad-157.tar.gz'
           Invoke-WebRequest -Uri 'https://codeload.github.com/FreeCAD/FreeCAD/tar.gz/157bfcb7462a733b03a7d041aeaa79fee7aff7a3' -OutFile $archive
+          (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant() | Out-File -FilePath (Join-Path $evidence 'archive-sha256.txt') -Encoding utf8
           python (Join-Path $env:GITHUB_WORKSPACE 'tools/research/apply_freecad_import_candidate.py') --source-root $source --source-archive $archive
           if ($LASTEXITCODE -ne 0) { throw 'Candidate replay or application failed' }
 

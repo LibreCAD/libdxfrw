@@ -67,6 +67,12 @@ def main():
         command = args.freecadcmd.resolve(strict=True)
         if not command.is_file() or not within(command, build):
             raise ValueError("FreeCADCmd must be a file inside the selected build root")
+        cache = build / "CMakeCache.txt"
+        prefix = "CMAKE_HOME_DIRECTORY:INTERNAL="
+        homes = [line[len(prefix):] for line in cache.read_text(encoding="utf-8", errors="replace").splitlines()
+                 if line.startswith(prefix)]
+        if len(homes) != 1 or Path(homes[0]).resolve(strict=True) != source:
+            raise ValueError("FreeCAD build was not configured from the selected candidate source")
         replay = subprocess.run([sys.executable, str(REPLAY), "--source-archive", str(args.source_archive),
                                  "--candidate-root", str(source)], capture_output=True, text=True,
                                 timeout=args.timeout, check=False)
@@ -116,6 +122,7 @@ def main():
             raise RuntimeError("FreeCAD platform or architecture differs from the host")
         receipt = {"ok": True, "scope": "focused headless candidate checks only",
                    "sourceReplay": source_receipt, "gitBaseVerified": git_base_verified, "buildRoot": str(build),
+                   "cmakeSourceRoot": homes[0], "cmakeCacheSha256": digest(cache),
                    "freecadcmd": str(command), "freecadcmdSha256": digest(command),
                    "importModule": str(importer), "importModuleSha256": digest(importer),
                    "probeSha256": digest(PROBE), "report": report}

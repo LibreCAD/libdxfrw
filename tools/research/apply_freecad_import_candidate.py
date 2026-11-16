@@ -32,7 +32,9 @@ def main():
     patch_dir = args.patch_dir.resolve(strict=True)
     replay_args = [sys.executable, str(Path(replay.__file__).resolve()),
                    "--source-archive", str(archive), "--patch-dir", str(patch_dir)]
-    prepared = subprocess.run(replay_args, capture_output=True, text=True, check=True)
+    prepared = subprocess.run(replay_args, capture_output=True, text=True, check=False)
+    if prepared.returncode:
+        raise RuntimeError("candidate source replay failed:\n" + prepared.stderr.strip())
     expected = json.loads(prepared.stdout)
     if Path(git(root, "rev-parse", "--show-toplevel").stdout.strip()).resolve() != root:
         raise ValueError("source root must be the Git worktree root")
@@ -58,7 +60,9 @@ def main():
             git(root, "apply", "--unidiff-zero", "--check", str(patch))
             git(root, "apply", "--unidiff-zero", str(patch))
         compared = subprocess.run(replay_args + ["--candidate-root", str(root)],
-                                  capture_output=True, text=True, check=True)
+                                  capture_output=True, text=True, check=False)
+        if compared.returncode:
+            raise RuntimeError("candidate comparison failed:\n" + compared.stderr.strip())
         result = json.loads(compared.stdout)
         changed = set(git(root, "diff", "--name-only", "HEAD", "--ignore-submodules=all").stdout.splitlines())
         if changed != set(replay.FILES):

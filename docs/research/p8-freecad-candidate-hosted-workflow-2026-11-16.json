@@ -15,11 +15,22 @@
     "Existing push-triggered release qualification jobs remain enabled; candidate matrix is opt-in for dispatch.",
     "Candidate source application and headless runtime guards were separately exercised on macOS."
   ],
-  "status": "PREPARED_NOT_RUN",
+  "status": "FIRST_DISPATCH_FAILED_BEFORE_BUILD; RETRY_REQUIRED",
   "limitations": [
-    "Neither hosted candidate build nor focused probe has run yet; platform behavior remains unqualified.",
+    "The first hosted candidate run failed before build; neither platform is qualified. A retry with diagnostic output and recorded archive hash is needed.",
     "Submodule gitlink status is recorded; binary reproducibility, full build provenance and independent semantic support are not established.",
     "Headless checks do not establish native GUI rendering or complete DWG/DXF support.",
     "The downstream FreeCAD patch series remains unmerged."
+  ],
+  "firstDispatch": {
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/43847823489",
+    "commit": "a72e440a9c8c6c99fa46d118aa4913ba6d7d1308",
+    "outcome": "Both OS jobs failed in source replay before build. The application helper captured the underlying error and did not expose it, so its cause is not established."
+  },
+  "followupChecks": [
+    "The application helper now includes replay stderr on failure; a wrong archive produces its specific hash-mismatch diagnostic.",
+    "CMakeCache source identity rejects a candidate source paired with a different build; the matching macOS source/build passes all ten headless tests.",
+    "actionlint and Python syntax checks pass.",
+    "The public codeload archive downloaded locally matched the previously pinned SHA-256; the hosted download hash was not recorded by the first dispatch."
   ]
 }
