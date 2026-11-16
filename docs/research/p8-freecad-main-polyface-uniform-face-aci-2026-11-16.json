@@ -18,7 +18,8 @@
     "logs": [
       "/private/tmp/freecad-polyface-layer-20261116/face-color-before.log",
       "/private/tmp/freecad-polyface-layer-20261116/face-color-final.log",
-      "/private/tmp/freecad-polyface-layer-20261116/face-peer.log"
+      "/private/tmp/freecad-polyface-layer-20261116/face-peer.log",
+      "/private/tmp/freecad-polyface-layer-20261116/runtime-identity.log"
     ]
   },
   "scratchHashes": {
@@ -29,5 +30,25 @@
     "One uniform face ACI per polyface only; distinct face colors within one mesh, different face layers, BYBLOCK, truecolor, color books, invisible edges and nonplanar faces remain refused.",
     "Headless geometry and fused grouping are verified; GUI color rendering, full native producer semantics, other platforms and block-color preservation remain open.",
     "No generated fixture is committed; no phase gate or external-only support claim is promoted."
-  ]
+  ],
+  "runtimeIdentity": {
+    "freecad": [
+      "27",
+      "1",
+      "0",
+      "Unknown",
+      "Unknown",
+      "Unknown"
+    ],
+    "importModule": "/private/tmp/freecad-main-d956-build/Mod/Import/Import.so",
+    "machine": "arm64",
+    "partModule": "/private/tmp/freecad-main-d956-build/Mod/Part/Part.so",
+    "python": "3.12.16 (main, Oct 25 2026, 18:24:37) [Clang 21.0.0 (clang-2100.3.34.2)]",
+    "artifactSha256": {
+      "/private/tmp/freecad-main-d956-build/bin/FreeCADCmd": "baf12d27145100714e25c71e535ebde99092199196b917ecd940ab02345193a4",
+      "/private/tmp/freecad-main-d956-build/Mod/Import/Import.so": "f1b81cb8b188653c05c2fc18a1bd4b2c68ef00d31423dbef8dd9908b945a963a",
+      "/private/tmp/freecad-main-d956-build/Mod/Part/Part.so": "c6540a3a7c7e53176a8e74a640522e653b371755634f0c58281b7bc098a07f08"
+    },
+    "build": "macOS ARM64, Release, BUILD_GUI=OFF, AppleClang 21, OpenCASCADE 7.9.3"
+  }
 }
