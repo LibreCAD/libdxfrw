@@ -20,15 +20,22 @@ its changed navigation and CAM files do not remove the need to replay and test
 the candidate against the new base ([upstream comparison](https://github.com/FreeCAD/FreeCAD/compare/157bfcb7462a733b03a7d041aeaa79fee7aff7a3...84e73f0188fb32bb1fffb8d4d1edb4135543ba18)).
 Recheck heads before integration.
 
-The historical ledger records **737 completed slices**. This revision lists
-**33 open core packages**, including P4-A, which was open in the phase summary
-but missing from the prior 32-row count. P4-GROUP-01 is a subpacket of P4-A;
-it is not an additional package. Six P9 external dispositions are tracked
-separately. `737 / (737 + 33) = 95.7%` is only a count-based activity proxy
-that treats each remaining package as one minimum slice; the actual number and
-cost of remaining slices are unknown. It is **not** an estimate of effort or
-release readiness. All five core phase gates P4–P8 remain OPEN, and P9 remains
-DEFERRED_EXTERNAL: **0 of 6 phase gates complete**.
+The historical ledger records **737 completed slices**. This queue has **33
+open core packages**: P4-A/B/C (3), P5-A–H (8), P6-A–G (7), P7-A–H (8), and
+P8-A–G (7). P4-GROUP-01 is a subpacket of P4-A, not a package. Six P9 external
+dispositions are tracked separately. `737 / (737 + 33) = 95.7%` is only a
+count-based activity proxy that treats every remaining package as one minimum
+slice; the size and cost of remaining work are unknown. It is **not** an effort
+or release-readiness estimate. All five core phase gates P4–P8 remain OPEN;
+P9 remains DEFERRED_EXTERNAL, with **0 of 6 external dispositions resolved**.
+
+The bounded typed and raw caller plot-style writer projections, their
+rollback/retry controls and independent DXF readback are complete and removed
+from the action queue. Their receipts remain evidence for the next slice. The
+current checkout is at `3f7a40d5` (`Support bounded raw caller plot-style graph`);
+the first open implementation action is the adapter-bound AC1021 source path
+below. No package closes merely because one slice or an evidence acquisition
+task completes.
 
 Completed actions are not part of this queue. Their receipts remain under
 `docs/research/`; the previous detailed plan is recoverable with
@@ -68,73 +75,31 @@ examples listed below.
   and [3D plan](DWG_DXF_3D_SUPPORT_PLAN.md) are authoritative alongside this
   queue. No source-only or external advisory result promotes a claim by itself.
 
-## Execution order
+## Implementation queue and dependency policy
 
-Work in small vertical slices, not one entire phase at a time. After every
-slice, update its receipt and this queue, commit, report the hash and next
-ready action, and continue without waiting for an unrelated platform or oracle.
-A package closes only when every stated exit condition passes; a completed
-subslice does not close its package.
+Take the first ready slice below, make one vertical change, then refresh this
+queue. A missing producer file, platform, or native application blocks only the
+profile that needs it; record the exact missing evidence and move to the next
+ready slice. Do not leave implementation idle while an unrelated gate is
+pending.
 
-1. **Immediately ready local work:** wire the bounded P6-G caller plot-style
-   graph through one existing source-aware `dx_iface` output route, then select
-   the next uncovered P6-F malformed OBJECTS disposition. Compare exact source
-   and emitted identities; keep unsupported graph shapes refused. In parallel
-   by dependency order, rebase and integrate the pending consumer chains under
-   P8-D; do not wait for platform qualification to advance local work.
-2. **Graph and version blockers:** use P4-A/P6-D/P6-E to make source records,
-   ownership, HEADER bounds, and strict failure dispositions reliable. P4-B/C
-   and P6-A/B require their specific source or independent semantic evidence;
-   leave their current gates intact while another ready item proceeds.
-3. **Feature closure:** use the same source-to-output graph and exact record
-   projections for P5 FIELD/TABLE/VIEWPORT and P7 modeler work. Do not build
-   separate frameworks for each subcase or repeat a source profile already
-   qualified for the same input, operation, code, and tool digest.
-4. **Consumer/platform closure:** replay the pending LibreCAD, LibreCAD_3,
-   FreeCAD main, and FreeCAD legacy changes; qualify exact application builds
-   and actual runtime modules on their required platforms (P8). Schedule native
-   and independent runs after their implementation and inputs are frozen.
-5. **External evidence and release:** advance P9 when an eligible new source,
-   platform, or semantics route becomes available. Keep the six external
-   dispositions separate from support promotion and from unrelated local work.
+| Order | Work packet | First bounded action | Dependency / scheduling rule |
+|---|---|---|---|
+| 1 | P6-G, caller plot-style adapter path | Trace the runtime-created AC1021 source in `tests/plotstyle_source_controls.h` through `prepareDxfLayerPlot`, `fileExport`, and `writeObjects`. Compare source dictionary tags with the bounded raw profile, especially group 280. Use typed serialization only if it preserves the modeled meaning and emits a conformant record; otherwise retain refusal for that source shape. Then prove exact root/owner/reactor/default/LAYER 390 mapping in ASCII and Binary, destination preservation, and same-adapter retry. | READY now. Reuse the completed typed/raw writer baseline and receipts. Keep the path narrowly gated and leave `dx_data` untouched. |
+| 2 | P6-F, strict/tolerant object disposition | From the current source/resource inventory, select the first uncompleted OBJECTS parser with an existing physical frame and a locally constructible malformed variant. Prove exact frame disposition, tolerant continuation, strict sentinel preservation, corrected retry, and fresh readback. | READY after the inventory check; if the chosen witness is ineligible, record why and select the next eligible frame. Run the owning selector, not the aggregate partial-read suite. |
+| 3 | P4-A, closed named-block SORTENTSTABLE | Extend the existing nonempty/named-block candidate by one dependency edge at a time: dictionary/XRECORD, inbound refs, units, preview, then mixed entities. Compare against the source census and bounded ODA output already in the receipts. | READY from existing evidence. Empty-table success is not evidence for this profile. Preserve strict refusal for unresolved targets and source blockers. |
+| 4 | P8-D, LibreCAD consumers | Refresh patch-index hashes and target heads; replay the ordered patches on disposable checkouts. Build installed-upstream and bundled-codec paths; run focused LTYPE, PR #3269, version, and R13 refusal/recovery selectors. | Independent of DWG source acquisition. Rebase before testing; retain 2D behavior and LibreCAD/LibreCAD_3 compatibility. |
+| 5 | P6-D/P6-E and remaining P4-A | Choose the smallest uncovered version/field or HEADER envelope with a physical source span. Write exact field/role and byte-accounting controls before changing parser/writer code. | Work only from eligible witnesses. A blocked AC1024 RTM case, missing target, or unexplained suffix stays refused; move to another ready profile. |
+| 6 | P5 and P7 feature profiles | Select one source-backed FIELD, TABLE, VIEWPORT, dynamic-constraint, or modeler profile; reuse the common graph/output/readback path and add only demonstrated semantics. | Source acquisition precedes implementation. P7 semantic/kernel work follows closure of its source graph; never block unrelated P5/P6/P8 work. |
+| 7 | P8-B/C/E/F, then P8-G | Rebase candidate importers onto current source, build the exact app/runtime, and run selected open/insert profiles; then qualify packaging/ABI/CI and set release policy from evidence. | Platform runs follow frozen implementation and inputs. P8-G is last and cannot waive red required jobs or unqualified routes. |
+| 8 | P9 external dispositions | Advance a J-item only when its exact successor lineage, source/profile, platform, and independent-semantics conditions become available. | DEFERRED_EXTERNAL; never block local slices and never promote support from advisory evidence. |
 
-## First execution briefs
-
-- **P6-G, caller plot-style source graph:** The writer now admits the exact
-  one-Normal graph through typed callbacks and a bounded raw callback profile;
-  reactor targets are remapped and closed before publication. Its six-version,
-  two-encoding, identity/remap controls, nine raw refusal/retry modes, ASan run
-  and 48-file ezdxf readback are in the
-  [raw caller graph receipt](docs/research/p8-caller-raw-plotstyle-default-graph-2026-11-16.json).
-  This is locally generated writer evidence, not source/consumer equivalence.
-  Next, follow one eligible existing AC1021 source through
-  `dx_iface::prepareDxfLayerPlot` and its actual `writeObjects` callback; bind
-  the selected root, typed dictionary and raw placeholder to declared output
-  handles without mutating `dx_data`. Reuse
-  `tests/plotstyle_source_controls.h` and its runtime-created source, compare
-  exact source/output handles, owners, reactors and LAYER 390 in both encodings,
-  then test destination preservation and same-adapter retry. Keep non-default
-  children, EED/XDATA, extension dictionaries, unknown app data and
-  producer/native plotting unqualified unless their complete edges close.
-- **P8-D, consumer replay:** Verify the ordered input hashes in the
-  [patch index](docs/research/p8-unmerged-consumer-patch-index-2026-11-16.json),
-  replay on disposable current checkouts, and compare all intended source files.
-  For LibreCAD, build the installed 3.x and bundled targets, then run the
-  LTYPE, PR #3269, version and R13 focused selectors. For LibreCAD_3, replay
-  the indexed three patches, the two pinned PR paths and remaining patches;
-  build both codec configurations and run the focused persistence tests before
-  broader GUI/platform work.
-- **P6-F, CLI disposition:** Choose the next parser with a physical frame in
-  the current source/resource inventory; create one bounded malformed variant
-  locally. Check tolerant continuation and exact frame disposition first, then
-  strict output sentinel, partial-mode decision, corrected retry and readback.
-  Run the owning selector; use the aggregate partial-read suite only at an
-  integration checkpoint.
-- **P8-B/C, current FreeCAD:** Compare the current five importer files and
-  build inputs to the tested 20-patch base; verify a new archive digest before
-  extending the replay helper. Rebuild the affected native candidate, record
-  loaded modules, then use the GUI smoke profile before expanding selected
-  open/insert and independent geometry cases.
+**Current consumer check:** LibreCAD_3 PR #456 is OPEN and CONFLICTING as of
+2026-11-16; its head is based on master `5cf435f4` and is `7e81275b`. Recheck
+live state, rebase the intended unit/loss change and resolve conflicts before
+replay; do not treat the PR's existing local results as current-base
+qualification. Refresh all other patch-index hashes and target heads when
+starting P8-D.
 
 ## Open implementation packets
 
@@ -146,7 +111,7 @@ necessary but not by itself sufficient for the parent phase.
 
 | ID | Next implementation slice | Package exit evidence |
 | --- | --- | --- |
-| P4-A | Pick one currently refused original source graph, publish exact source-frame and callback identities, close required owner/reactor/reference roles, and implement its bounded output projection. Include P4-GROUP-01 and the known strict-source blockers below. | All required original bodies and dependencies for each admitted profile are classified and close through strict output, fresh readback, and independent semantics; unqualified profiles remain explicit. |
+| P4-A | Extend the existing nonempty/named-block SORTENTSTABLE candidate one closed dependency at a time, starting with dictionary/XRECORD and inbound references. Keep the three source/native blockers below as independent evidence tasks. | Each admitted profile has exact source-frame/callback identities, closed owner/reactor/reference roles, strict output, fresh readback, and independent semantics; unqualified profiles remain explicit. |
 | P4-B | Obtain a source-bound AC1032 associative-network class-version-2 frame; map versioned fields/spans against ODA before implementing a bounded decoder. | Complete field/order/handle-role and following-record boundary proof, negative/truncation tests, output graph and independent producer/consumer evidence. |
 | P4-C | Obtain an AC1027 Sweep frame with suffix and embedded entity; compare version boundaries and retain unknown bytes until their roles are proven. | Exact ordered spans and parent/embedded-entity roles, truncation/following-frame alignment, round trip, and independent semantic evidence. |
 
@@ -167,11 +132,14 @@ necessary but not by itself sufficient for the parent phase.
    integrity rows. Repair each independently; do not whitelist linetype order
    or suppress a raw callback to manufacture closure. See the
    [AC1021 refusal recheck](docs/research/p4-libreCAD-ac1021-strict-refusal-recheck-2026-11-07.json).
-4. Finish remaining nonempty/named-block SORTENTSTABLE and dictionary/XRECORD
-   dependencies, inbound references, units, preview and mixed entity content.
-   Reuse the [source census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json)
-   and [bounded output evidence](docs/research/p8-experimental-named-sortents-oda-roundtrip-2026-11-15.json);
-   do not extrapolate the empty-table projection.
+4. Continue the READY implementation path: first prove dictionary/XRECORD and
+   inbound-reference closure for the existing nonempty/named-block candidate;
+   then add units, preview, and mixed entity content as separate slices. Reuse
+   the [source census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json)
+   and [bounded output evidence](docs/research/p8-experimental-named-sortents-oda-roundtrip-2026-11-15.json).
+   Do not repeat the empty-table projection or treat it as proof for named
+   blocks. The GROUP codepage-zero, empty STYLE name, and historical missing-
+   target cases stay evidence-gated; their refusal must not block this path.
 
 ### P5 — FIELD, TABLE, rendering and constraints (8 packages)
 
@@ -202,10 +170,10 @@ lighting/plotting as separate gates.
 | P6-A | Obtain version-bound ObjectARX create/setAt/save/reopen and removal/erase/clone/WBLOCK observations for the selected IMAGEDEF profile. | Owner, dictionary membership, reactor and image links agree with independent output/readback; current [role evidence](docs/research/p6-imagedef-objectarx-parent-role-boundary-2026-11-14.json) alone cannot promote strict support. |
 | P6-B | Capture a PERSUBENTMGR source with known typed members, owner and dependencies. | Independently mapped semantics, closed output route and readback; unknown members stay raw/refused. |
 | P6-C | Select an uncovered TABLECONTENT/DATATABLE graph and verify nested references and versioned writer behavior. | Every selected child, row and dependency resolves in fresh ASCII/Binary output; retained unknown state is not discarded. |
-| P6-D | Use the current source/feature census to select the next uncovered version and field family. Implement only the missing parser, writer or disposition with a real boundary witness. | Per-version typed/normalized/raw/refused/dropped classification, geometry and unit/OCS preservation, source and independent consumer evidence. |
+| P6-D | Use the current source/feature census to identify one uncovered version/field pair that has a physical source span. Add one boundary control, implement only the missing parser/writer/disposition, and record the next pair without expanding scope mid-slice. | Per-profile typed/normalized/raw/refused/dropped classification, geometry and unit/OCS preservation, source and independent consumer evidence. The package closes only after its selected coverage matrix is complete. |
 | P6-E | Select an unbound HEADER envelope or suffix profile; map declared data, CRC, sentinels, trailer and unclaimed bytes. | Complete physical accounting and version-specific reason for every byte; unexplained suffixes remain refused. |
-| P6-F | Select the next malformed OBJECTS parser from the resource inventory and construct a bounded negative witness. | Exact frame accounting, tolerant continuation, strict destination preservation, partial-output disposition, fresh readback and retry. |
-| P6-G | Use the [public-writer test index](docs/research/p6-dxf-public-writer-test-mention-index-2026-11-16.json) to choose the next uncovered route, overload or compound builder. | Version gates, field/reference fidelity, caller/destination rollback, same-writer retry and independent ASCII/Binary readback for every admitted route. |
+| P6-F | Select the first uncompleted OBJECTS parser with a physical frame in the current inventory; create one bounded malformed variant locally and exercise the owning CLI route. | Exact frame accounting, tolerant continuation, strict destination preservation, partial-output disposition, fresh readback and corrected retry. |
+| P6-G | Wire the completed bounded one-Normal typed/raw graph through the existing source-aware `dx_iface` AC1021 export path. Resolve the source group-280 case explicitly: typed normalization must be proven conformant, otherwise refuse it. After that adapter slice, use the [public-writer test index](docs/research/p6-dxf-public-writer-test-mention-index-2026-11-16.json) to select the next uncovered writer route. | Source-to-output identity/reference fidelity, version gates, caller/destination rollback, same-adapter/writer retry and independent ASCII/Binary readback for each admitted profile. |
 
 For P6-D, include legacy through current DWG/DXF revisions, 2D/3D entities,
 HATCH/MPOLYGON, SPLINE, MLINESTYLE, dimensions/text, IMAGE/UNDERLAY,
@@ -245,9 +213,9 @@ producer-backed layout explains them. The ODA AC1024 mesh witness has a
 CRC-valid envelope followed by 739 unclaimed bytes. Its varying suffix has not been shown disposable; retain
 strict refusal and resolve its origin before accepting it
 ([repeatability evidence](docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json)).
-For P6-G, the one-Normal typed/raw writer projection is complete; the remaining
-consumer-bound step is defined in the first execution brief. Its limitations
-and scratch witnesses are in the
+For P6-G, the one-Normal typed/raw writer projection is complete and removed
+from the queue. The adapter-bound step is the first action in the implementation
+queue. Projection limits and scratch witnesses are in the
 [typed receipt](docs/research/p8-caller-typed-plotstyle-default-graph-2026-11-16.json)
 and [raw receipt](docs/research/p8-caller-raw-plotstyle-default-graph-2026-11-16.json).
 
@@ -293,12 +261,15 @@ configuration and platform match; bind each claim separately.
 
 1. Use the [ordered patch index](docs/research/p8-unmerged-consumer-patch-index-2026-11-16.json),
    which records paths, hashes, tested bases and the exact LibreCAD_3 PR paths.
-   All these changes are still unmerged. Apply each chain to a disposable
-   current checkout, resolve actual conflicts, compare the intended source
-   files, and build before considering a PR or merge. Do not apply unrelated
-   PR #456 files or its fixture changes. [PR #456](https://github.com/LibreCAD/LibreCAD_3/pull/456)
-   was OPEN and CONFLICTING at the last check; recheck its live state before
-   integration.
+   Treat its state as a snapshot: check each commit/PR against its current
+   target, remove work already merged, then replay only remaining relevant
+   changes on disposable current checkouts. Resolve actual conflicts, compare
+   intended source files, and build before proposing integration. For
+   [PR #456](https://github.com/LibreCAD/LibreCAD_3/pull/456), retain the
+   indexed R12/R14 unit-version gate and explicit insertion-unit loss behavior;
+   omit unrelated changes and do not introduce downloaded fixture files. PR
+   #456 was OPEN and CONFLICTING on 2026-11-16, so recheck and rebase before
+   replay.
 2. For LibreCAD, preserve the R13 raw-carrier refusal until the source
    owner/remap namespace and all 65 omitted records close; do not replace it
    with a partial conversion. Verify installed-upstream and bundled-codec
@@ -311,12 +282,12 @@ configuration and platform match; bind each claim separately.
 4. For FreeCAD main, use the attribute-aware
    [application helper](tools/research/apply_freecad_import_candidate.py),
    [replay tool](tools/research/replay_freecad_import_patches.py) and
-   [candidate probe](tools/research/run_freecad_candidate_probe.py). The tested
-   base is three commits behind current main. Check the five replayed source
-   files and submodule/build inputs against that head; the helper accepts only
-   pinned archive digests, so add a separately verified current archive binding
-   or rebase the patches when files differ. Bind new binaries/modules before
-   reusing any result. Finish nonplanar 3DFACE, hidden
+   [candidate probe](tools/research/run_freecad_candidate_probe.py). Re-read
+   current main and compare all five replayed source files plus submodule/build
+   inputs with the indexed tested base. The helper accepts only pinned archive
+   digests, so add a separately verified current archive binding or rebase the
+   patches when files differ. Bind new binaries/modules before reusing results.
+   Finish nonplanar 3DFACE, hidden
    edges, mesh smoothing, mixed face colors/layers, nested-block layering,
    visibility/frozen-layer durability and native rendering. Maintain refusal
    where preservation is not demonstrated.
@@ -350,33 +321,38 @@ skipped.
 
 ## Fast implementation and self-updating rules
 
-1. Before editing, write a brief slice note: exact failing witness or uncovered
-   route, source/tool/version and identity, reused code and receipt, expected
-   source and output fields, owning fast test, rollback/retry check and exit
-   condition. Check for a newer source-matched result first. If it already
-   passes at the required evidence level, remove only that completed action.
-2. During the edit loop, build the touched target and run its focused selector.
-   Use literal field/handle controls and the smallest version/encoding boundary
-   that discriminates the change. Rebuild every affected static-linked test
-   executable; an unchanged test source does not make an old binary current.
-3. At slice readiness run the smallest affected cohort, real CLI/fresh readback
-   for serializer changes, independent reader checks where relevant, and the
-   affected ASan selector once for changed bounds, ownership, lifetime or
-   handles. Avoid exhaustive allocation sweeps when focused reached-failure and
-   retry controls cover the changed path; escalate on a new failure or concern.
-4. Reserve full suites, complete platform matrices, release archives and broad
-   corpus runs for composed integration, release or support-promotion
-   checkpoints. Reuse a prior result only when its exact source, inputs, tool,
-   configuration and operation still match; never rewrite a historical hash to
-   imply a later HEAD was qualified.
-5. After each implementation item, update its receipt, delete the completed
-   action from this file, refine dependent packets and select the next ready
-   local action. After each slice commit report the hash, behavior, focused
-   validation and next packet. Resolve routine issues autonomously and keep
-   working; a missing external tool or witness is not a reason to stop other
-   ready work. Ask only for genuinely missing information or required approval.
-6. Keep this plan as an execution queue, not a chronological implementation
-   log. Update the 33-package count when a package closes or an omitted package
-   is discovered; keep the historical completed-slice count and the count proxy
-   clearly separate from evidence-based phase completion. The count proxy is
-   95.7% (`737 / (737 + 33)`), not effort or support progress.
+1. Keep each implementation slice to one behavior and one source/profile. Before
+   editing, record its witness hash, producer/version, existing code/receipt,
+   exact source and output fields, owning fast selector, rollback/retry check,
+   and exit condition. First check whether newer source-matched evidence already
+   closes it; remove only work that meets the required evidence level.
+2. If an input or platform is missing, turn that blocker into a bounded evidence
+   task: name the requested file/profile, source and version, allowed acquisition
+   path, and exact evidence needed. Leave the support claim unchanged and move
+   to the next READY slice; do not wait on unrelated blockers.
+3. During implementation, build the touched target and run its focused selector.
+   Use the smallest literal field/handle and version/encoding controls that
+   distinguish the change. Rebuild affected static-linked test executables;
+   unchanged test source does not mean its binary contains the latest code.
+4. At slice readiness, run only the smallest affected cohort, real CLI/fresh
+   readback for serializer changes, and independent-reader checks where
+   relevant. Run the affected ASan selector once when bounds, ownership,
+   lifetime, or handles changed. Prefer reached-failure plus retry controls over
+   exhaustive allocation sweeps; expand only when a failure or new risk points
+   to a gap.
+5. Run full suites, broad corpora, full platform matrices, and release archives
+   at composed integration/release checkpoints, not after every package or
+   slice. Reuse a result only when source, inputs, tools, configuration, and
+   operation match exactly; never rewrite an old hash to qualify a newer HEAD.
+6. After every committed slice, update its receipt and this queue, delete that
+   completed action, refine dependent actions, and choose the next READY local
+   slice. Report the commit, behavior, focused validation, open package count,
+   and next action. If routine troubleshooting is needed, resolve it and
+   continue; never stop implementation just because one witness, tool, or
+   platform is unavailable.
+7. Keep the queue separate from the historical ledger. A completed subslice is
+   deleted immediately, but its package remains open until its exit evidence
+   passes. Update the **33-package** count only when a package closes or a
+   missing package is identified. The **737** completed-slice ledger and 95.7%
+   count proxy (`737 / (737 + 33)`) are activity bookkeeping, not effort or
+   support-progress measures.
