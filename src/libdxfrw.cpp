@@ -774,7 +774,7 @@ bool hasTypedProxyGraphics(const DRW_Entity& entity) noexcept {
 // DRW_Variant exposes its content pointer publicly. A consumer can redirect
 // it away from its owned storage, in which case its copy constructor's owned
 // value may differ. Refuse such a lossy snapshot rather than serialize it.
-bool sameLightListVariant(const DRW_Variant& a, const DRW_Variant& b) {
+bool sameDxfTableVariant(const DRW_Variant& a, const DRW_Variant& b) {
     if (a.code() != b.code() || a.type() != b.type()
         || a.isLayerRef() != b.isLayerRef()) return false;
     switch (a.type()) {
@@ -791,7 +791,7 @@ bool sameLightListVariant(const DRW_Variant& a, const DRW_Variant& b) {
     default: return false;
     }
 }
-bool sameLightListSnapshot(const DRW_LightList& original, const DRW_LightList& copy) {
+bool sameDxfTableEntryApplicationData(const DRW_TableEntry& original, const DRW_TableEntry& copy) {
     if (original.appData.size() != copy.appData.size()
         || original.extData.size() != copy.extData.size()) return false;
     auto left = original.appData.cbegin();
@@ -800,14 +800,29 @@ bool sameLightListSnapshot(const DRW_LightList& original, const DRW_LightList& c
         if (left->size() != right->size()) return false;
         auto a = left->cbegin(); auto b = right->cbegin();
         for (; a != left->cend(); ++a, ++b)
-            if (!sameLightListVariant(*a, *b)) return false;
+            if (!sameDxfTableVariant(*a, *b)) return false;
     }
     for (std::size_t i = 0; i < original.extData.size(); ++i) {
         const auto* a = original.extData[i]; const auto* b = copy.extData[i];
         if ((a == nullptr) != (b == nullptr)
-            || (a && !sameLightListVariant(*a, *b))) return false;
+            || (a && !sameDxfTableVariant(*a, *b))) return false;
     }
     return true;
+}
+
+bool samePendingDxfTableReferences(const DRW_TableEntry& left, const DRW_TableEntry& right) {
+    const auto same = [](const std::vector<DRW_TableEntry::PendingHandleRef>& a,
+                         const std::vector<DRW_TableEntry::PendingHandleRef>& b) {
+        if (a.size() != b.size()) return false;
+        for (std::size_t i = 0; i < a.size(); ++i) {
+            if (a[i].indexInExtData != b[i].indexInExtData
+                || a[i].handleRef != b[i].handleRef || a[i].rawHandleRef != b[i].rawHandleRef
+                || a[i].useRawHandleRef != b[i].useRawHandleRef) return false;
+        }
+        return true;
+    };
+    return same(left.pendingAppIdResolutions, right.pendingAppIdResolutions)
+        && same(left.pendingLayerRefResolutions, right.pendingLayerRefResolutions);
 }
 
 // Resolver callbacks may mutate their caller-owned LIGHTLIST. Keep the
@@ -7765,8 +7780,10 @@ bool dxfRW::writeLineType(DRW_LType *ent){
             && (cached->handle != ent->handle
                 || cached->xDictHandle != ent->xDictHandle
                 || cached->reactorHandles != ent->reactorHandles
-                || cached->appData.size() != ent->appData.size()
-                || cached->extData.size() != ent->extData.size())) {
+                || cached->reactorCount() != ent->reactorCount()
+                || cached->extensionDictionaryFlag() != ent->extensionDictionaryFlag()
+                || !sameDxfTableEntryApplicationData(*cached, *ent)
+                || !samePendingDxfTableReferences(*cached, *ent))) {
             m_writeError = true;
             return false;
         }
@@ -37604,7 +37621,7 @@ bool dxfRW::writeLightList(DRW_LightList *ent) {
     std::unique_ptr<DRW_LightList> snapshot;
     if (m_referenceResolver) {
         snapshot = std::make_unique<DRW_LightList>(*ent);
-        if (!sameLightListSnapshot(*ent, *snapshot)) return failDxfWrite();
+        if (!sameDxfTableEntryApplicationData(*ent, *snapshot)) return failDxfWrite();
         ent = snapshot.get();
     }
     LightListResolverScope resolverScope(this);

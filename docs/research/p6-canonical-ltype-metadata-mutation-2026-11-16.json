@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-16",
+  "scope": "Prevent stale predeclared canonical LTYPE metadata from silently replacing edited callback metadata.",
+  "finding": "The prior callback check compared application-data and XDATA container sizes only. A changed application-data value with the same group/item counts was accepted while the previously emitted metadata remained unchanged.",
+  "change": "Compare application-data and XDATA typed values, reactor count, extension-dictionary flag, and pending APPID/LAYER reference fields against the predeclared snapshot. Preserve the existing LIGHTLIST snapshot behavior through the shared comparator.",
+  "checks": [
+    "AC1014 and AC1032 ASCII/Binary controls confirm application-data and XDATA readback.",
+    "Same-length text edits, added pending APPID/LAYER references and changed common-object state refuse without changing the existing destination; restoring the original row permits a byte-identical same-writer retry.",
+    "Focused CTests for LTYPE allocation, APPID allocation, source-table identities and LIGHTLIST resolver snapshots passed 4/4; the final equal-length mutation control also passed.",
+    "Relinked LibreCAD system-codec LTYPE tests passed 17 cases and 4135 assertions with one ODA-fixture case skipped; PR #3269 tests passed 5 cases and 49 assertions."
+  ],
+  "limitations": [
+    "The LibreCAD check reused compiled consumer objects rather than a clean consumer rebuild.",
+    "The comparator covers the modeled emitted variant values and pending-reference fields; it is not independent proof of producer semantics or complete source graph closure."
+  ]
+}

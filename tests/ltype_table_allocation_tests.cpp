@@ -144,13 +144,63 @@ class CanonicalLTypeReader final : public LC3CompatCheck {
 public:
     explicit CanonicalLTypeReader(std::string expectedName) : name(std::move(expectedName)) {}
     void addLType(const DRW_LType& row) override {
-        if (row.name == name) { ++count; flags = row.flags; description = row.desc; }
+        if (row.name == name) { ++count; flags = row.flags; description = row.desc; value = row; }
     }
     std::string name;
     unsigned count = 0;
     int flags = -1;
     std::string description;
+    DRW_LType value;
 };
+
+bool canonicalMetadataMutation(const std::filesystem::path& directory) {
+    const auto path = directory / "canonical-ltype-metadata.dxf";
+    for (const auto version : {DRW::AC1014, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            dxfRW codec(path.string().c_str());
+            CanonicalLTypeExport candidate(codec, "CONTINUOUS");
+            candidate.row.appData.push_back({{102, std::string("{CANON_META")},
+                {1, std::string("before")}, {102, std::string("}")}});
+            candidate.row.extData.push_back(new DRW_Variant(1001, std::string("ACAD")));
+            candidate.row.extData.push_back(new DRW_Variant(1000, std::string("before")));
+            const DRW_LType original = candidate.row;
+            codec.setCanonicalLineTypeMetadata({original});
+            if (!codec.write(&candidate, version, binary) || !candidate.accepted)
+                return false;
+            std::string expected;
+            if (!readBytes(path, expected)) return false;
+            dxfRW readerCodec(path.string().c_str());
+            CanonicalLTypeReader reader("Continuous");
+            if (!readerCodec.read(&reader, false) || reader.count != 1u
+                || reader.value.appData.size() != 1u || reader.value.appData.front().size() != 3u
+                || reader.value.extData.size() != 2u
+                || std::next(reader.value.appData.front().cbegin())->c_str() == nullptr
+                || reader.value.extData[1] == nullptr || reader.value.extData[1]->c_str() == nullptr
+                || std::string(std::next(reader.value.appData.front().cbegin())->c_str()) != "before"
+                || std::string(reader.value.extData[1]->c_str()) != "before")
+                return false;
+            for (unsigned fault = 0; fault != 6; ++fault) {
+                if (fault == 0) std::next(candidate.row.appData.front().begin())->addString(1, "after!");
+                if (fault == 1) candidate.row.extData[1]->addString(1000, "after!");
+                if (fault == 2) candidate.row.pendingAppIdResolutions.push_back({});
+                if (fault == 3) candidate.row.pendingLayerRefResolutions.push_back({});
+                if (fault == 4) candidate.row.setDwgCommonObjectState(1, 0u, false);
+                if (fault == 5) candidate.row.setDwgCommonObjectState(0, 1u, false);
+                std::string current;
+                if (codec.write(&candidate, version, binary) || candidate.accepted
+                    || !readBytes(path, current) || current != expected) {
+                    std::cerr << "same-size canonical LTYPE metadata mutation was not refused: " << fault << '\n';
+                    return false;
+                }
+                candidate.row = original;
+                if (!codec.write(&candidate, version, binary) || !candidate.accepted
+                    || !readBytes(path, current) || current != expected)
+                    return false;
+            }
+        }
+    }
+    return true;
+}
 
 bool canonicalDescriptions(const std::filesystem::path& directory) {
     const auto path = directory / "canonical-ltype-description.dxf";
@@ -600,7 +650,8 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return canonicalDescriptions(directory) && canonicalFlags(directory) && allocationSweep(directory)
+    return canonicalMetadataMutation(directory) && canonicalDescriptions(directory)
+            && canonicalFlags(directory) && allocationSweep(directory)
             && editedImportedRecordRoundTrip(directory)
         ? 0 : 2;
 }
