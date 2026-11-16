@@ -1,0 +1,72 @@
+{
+  "date": "2026-11-16",
+  "scope": "Recheck and replay the downstream FreeCAD importer chain against the current FreeCAD main source.",
+  "previousCommit": "d956ec561639cfa83f755504b1b3358ea799428e",
+  "currentCommit": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+  "upstreamCommit": "https://github.com/FreeCAD/FreeCAD/commit/157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+  "archiveSha256": {
+    "previous": "29bdfe30632e084c0b6d015a1258f0ff75b8ed84fca660cec4e74fd4e2604bb9",
+    "current": "5ba6c1409d59405dfdb0ddac9922633171b6d9117e9776913b3ca0888b3870f4"
+  },
+  "sourceFilesIdenticalSha256": {
+    "src/Mod/Import/App/dxf/ImpExpDxf.cpp": "1ac20cf94009eb1bcb77ad6810a300beba121cf83f0f72dc716d5c7ebe012de1",
+    "src/Mod/Import/App/dxf/ImpExpDxf.h": "78837710df4088378312a3d780cbf0f6f6a387b04d8b1a440e1c5ef51cc79401",
+    "src/Mod/Import/App/dxf/dxf.cpp": "5c39159b5b881508ff64af9c5c31807bbc69e84038322a928222fc01e83fa442",
+    "src/Mod/Import/App/dxf/dxf.h": "18229993625e2e487db8c477cbfbd1d1cf847a5068b30223ed913691c64dc352",
+    "src/Mod/Import/importtests/TestImportDXF.py": "eaa569e260bad4982856d6a5140c9f5dfe188a9813d73a4c99d95d164af44add"
+  },
+  "result": {
+    "archiveSha256": "5ba6c1409d59405dfdb0ddac9922633171b6d9117e9776913b3ca0888b3870f4",
+    "candidateCompared": true,
+    "outputSha256": {
+      "src/Mod/Import/App/dxf/ImpExpDxf.cpp": "46a7b9f0f72d80bf4df6584e458ae48ddd24354c01a889964679468c017b6583",
+      "src/Mod/Import/App/dxf/ImpExpDxf.h": "c9c95156d7c2b8b4e8e10d4bfaae996baafb32a9a3a6b96c8d3d3878590de6f2",
+      "src/Mod/Import/App/dxf/dxf.cpp": "b40d3fbab00ec760229e775aafec5f29466c42de5505a50a0719b2866d74c934",
+      "src/Mod/Import/App/dxf/dxf.h": "9afc81e16bc7c06fddf67fea70c8790afdc02027146c7c16a631676e3be4c34f",
+      "src/Mod/Import/importtests/TestImportDXF.py": "d07db2e046bc934f0220d5cdffe9080d2bb8807a9245f27b32a5b4a375188402"
+    },
+    "patchCount": 20,
+    "patchSha256": {
+      "freecad-p8-default-block-mesh-layer-refusal-2026-11-16.patch": "e92d49db45e97e0461527b8befcdfa840ff9d0ef4691a74749561f3103b7f1a0",
+      "freecad-p8-default-bounded-polyface-2026-11-15.patch": "00d4b7d2726ca966b958a99b8a8daf0cbecc6a0c3168fa142f814ff92d62be94",
+      "freecad-p8-default-byblock-no-color-2026-11-16.patch": "795d338ad345b8f8b9abb136cb35368c53f8a59906af1fe9fcb4145ffac9fef4",
+      "freecad-p8-default-classic-polyline-flags-2026-11-15.patch": "f75cb36627c11b0d7fd0e767ace0295794f849b506ca2bbedfad7dac8af91171",
+      "freecad-p8-default-closed-polygon-mesh-2026-11-15.patch": "7f9ebc63c8c24e16dddaa777b2a8109246554dbbef560523a04d6622f262acf9",
+      "freecad-p8-default-mesh-color-consistency-2026-11-16.patch": "1c0311d8f372ee847f36dbd8ef1fec9aa2d0c5937b6a84784e3757d7e08dbe7b",
+      "freecad-p8-default-mesh-parent-aci-color-2026-11-16.patch": "c4c18a8b8838274080efc2504c0235b0f92c1a88caf0461cb89a0b01d0f58c99",
+      "freecad-p8-default-mixed-face-no-color-2026-11-16.patch": "a23c01a7c689d5f57b85728e43bc2a6a2be7d7a2d1bf0b8ebcd6dc57d54c4a5f",
+      "freecad-p8-default-mixed-vertex-no-color-2026-11-16.patch": "49352dcb3229e63c3868f9c891205bbdff1de1a40b968158ff8188505648540f",
+      "freecad-p8-default-off-layer-color-2026-11-16.patch": "0c5dba58c4dc71131af167bd762f15494d3fbef16ff2be925d0cebee7acf03a1",
+      "freecad-p8-default-open-polygon-mesh-2026-11-15.patch": "3599ace1f32303f4e217e8b94161fa8c5074cef9f3bd84b5facb84fc89a2577b",
+      "freecad-p8-default-planar-3dface-2026-11-15.patch": "3b24105425e1aa0b12e48f8b5345a90658cce734c33503cc8655b13d7720b62e",
+      "freecad-p8-default-polyface-uniform-face-aci-2026-11-16.patch": "fd41a7e3522534678c49ec0b3abaf46f283d3d0ef0ab15a3e5656667801613f0",
+      "freecad-p8-default-shared-mesh-layer-2026-11-16.patch": "896182ca2a2c765b19a279dfd3f7273e1198e4ce705b0e8b0ceb2ecd81ee97aa",
+      "freecad-p8-default-solid-ocs-2026-11-15.patch": "1baee1cb2f749d026438e8b71ef605324feb19fc5aaede0ca364fc5f9ff8aa41",
+      "freecad-p8-frozen-layer-initial-visibility-2026-11-16.patch": "6740957c9d37a00ab5dcad0e1e411b71698c27424719fb39b041052dec59e06e",
+      "freecad-p8-layer-color-range-guard-2026-11-16.patch": "be4b70f3057688f30f83f6f19e15c844743d9ba147277c95196cb868d319b9e5",
+      "freecad-p8-layer-color-sign-whitespace-2026-11-16.patch": "e5e498de12cb2fb6b313d571ce9a5c122f152c98155ad9066d5e970f4456e4e8",
+      "freecad-p8-layer-color-syntax-guard-2026-11-16.patch": "cd1d2169ea1c73188dee10450916134aede068f0614a52f9aaadd33030fb3ac1",
+      "freecad-p8-off-layer-no-group-diagnostic-2026-11-16.patch": "c3d21819b49bdb93564153e4e359ff35efb219655bdd3829bfb97d4abb5f8872"
+    },
+    "sourceCommit": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3"
+  },
+  "validation": {
+    "upstreamDelta": "The current commit is one child of the previous baseline and lists 220 modified src/App files. Their bodies match after stripping leading comments and the generated lexer embedded copyright header; this is a source comparison, not a current-commit build.",
+    "replay": "All twenty patches apply to both hash-bound archives; resulting five files match the same local candidate byte for byte. Corrupt patch, wrong archive and an unexpected file are refused; corrected retries pass.",
+    "libdxfrwBase": "At this check, LibreCAD/libdxfrw master and the local origin/master merge base both equal d68fb1ed937ad2a74a54f6208277ec10a1b031b0."
+  },
+  "limits": [
+    "The native FreeCAD runtime was built from the previous source revision; rebuild and rerun native checks on the actual integration target before claiming current-commit qualification.",
+    "The FreeCAD patches remain unmerged; other platform and consumer qualification, all phase gates and external-only support claims remain open.",
+    "Source archives remain temporary and no DWG/DXF fixtures are committed."
+  ],
+  "gitCandidate": {
+    "path": "/private/tmp/freecad-current-157-integration",
+    "branch": "codex/dxf-consumer-parity-20261116",
+    "head": "a9bf9c8259b094f7922ff104b9de563a8a1b1d5f",
+    "base": "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+    "commits": 20,
+    "worktree": "clean, sparse checkout of the five affected files",
+    "qualification": "All five candidate files match replay and the previously tested candidate; this sparse checkout is for source review and is not a native build."
+  }
+}

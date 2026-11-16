@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **678 completed implementation and qualification slices** and **32 remaining
+The plan records **679 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`678 / (678 + 32) = 95.5%`. The previous 28-package denominator was stale; a recount
+`679 / (679 + 32) = 95.5%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -89,8 +89,15 @@ hash-bound source archive; use `--candidate-root` to compare all five resulting
 files with a candidate checkout. Corrupt patches, a wrong archive, unexpected
 files and mismatched candidates fail closed, and corrected retries pass
 ([receipt](docs/research/p8-freecad-main-twenty-patch-replay-2026-11-16.json)).
-Rebase against the actual target and run fresh build and consumer checks; source
-replay alone is not integration or native qualification.
+The chain also replays against FreeCAD main `157bfcb7462a733b03a7d041aeaa79fee7aff7a3`:
+the five affected source files match the previously tested baseline, and the
+one intervening upstream commit changes App copyright headers
+([current-source receipt](docs/research/p8-freecad-main-current-twenty-patch-replay-2026-11-16.json)).
+A clean sparse local review candidate at
+`/private/tmp/freecad-current-157-integration` has all 20 slices as separate
+commits on that upstream base, ending at `a9bf9c8259b094f7922ff104b9de563a8a1b1d5f`.
+Run fresh build and consumer checks on the actual integration target; source
+replay and the sparse candidate are not native qualification.
 
 ### Next LibreCAD integration work
 

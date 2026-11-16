@@ -2,7 +2,7 @@
 """Replay the ordered FreeCAD importer candidate against its source archive.
 
 This is a source-application check, not a build or interoperability claim. It
-reads five files from the hash-bound FreeCAD source archive into a disposable
+reads five files from a hash-bound FreeCAD source archive into a disposable
 directory, applies the patches there and optionally compares the result with a
 local candidate checkout. It never changes the archive or candidate checkout.
 Update PATCHES in order whenever the downstream chain changes.
@@ -15,8 +15,12 @@ import subprocess
 import tarfile
 import tempfile
 
-BASE_COMMIT = "d956ec561639cfa83f755504b1b3358ea799428e"
-ARCHIVE_SHA256 = "29bdfe30632e084c0b6d015a1258f0ff75b8ed84fca660cec4e74fd4e2604bb9"
+ARCHIVES = {
+    "29bdfe30632e084c0b6d015a1258f0ff75b8ed84fca660cec4e74fd4e2604bb9":
+        "d956ec561639cfa83f755504b1b3358ea799428e",
+    "5ba6c1409d59405dfdb0ddac9922633171b6d9117e9776913b3ca0888b3870f4":
+        "157bfcb7462a733b03a7d041aeaa79fee7aff7a3",
+}
 FILES = (
     "src/Mod/Import/App/dxf/ImpExpDxf.cpp",
     "src/Mod/Import/App/dxf/ImpExpDxf.h",
@@ -63,15 +67,17 @@ def main():
     parser.add_argument("--patch-dir", type=Path,
                         default=Path(__file__).resolve().parents[2] / "docs" / "patches")
     args = parser.parse_args()
-    if digest(args.source_archive) != ARCHIVE_SHA256:
-        raise ValueError("FreeCAD source archive SHA-256 does not match the recorded baseline")
+    archive_hash = digest(args.source_archive)
+    source_commit = ARCHIVES.get(archive_hash)
+    if source_commit is None:
+        raise ValueError("FreeCAD source archive SHA-256 does not match a recorded baseline")
     patch_dir = args.patch_dir.resolve()
     patch_hashes = {}
     with tempfile.TemporaryDirectory(prefix="freecad-patch-replay-") as temp:
         root = Path(temp)
         with tarfile.open(args.source_archive, "r:gz") as archive:
             for relative in FILES:
-                member = archive.getmember("FreeCAD-" + BASE_COMMIT + "/" + relative)
+                member = archive.getmember("FreeCAD-" + source_commit + "/" + relative)
                 if not member.isfile() or member.size > 20 * 1024 * 1024:
                     raise ValueError("unexpected archive entry: " + relative)
                 source = archive.extractfile(member)
@@ -102,7 +108,7 @@ def main():
             for relative, expected in output_hashes.items():
                 if digest(args.candidate_root / relative) != expected:
                     raise ValueError("candidate file differs from replay: " + relative)
-        print(json.dumps({"sourceCommit": BASE_COMMIT, "archiveSha256": ARCHIVE_SHA256,
+        print(json.dumps({"sourceCommit": source_commit, "archiveSha256": archive_hash,
                           "patchCount": len(PATCHES), "patchSha256": patch_hashes,
                           "outputSha256": output_hashes,
                           "candidateCompared": args.candidate_root is not None}, sort_keys=True))
