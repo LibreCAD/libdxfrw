@@ -110,7 +110,7 @@ LibreDWG independently retained generated empty and nonempty CONTINUOUS
 descriptions from ASCII and Binary input; its output did not distinguish the
 tested flag values, and header warnings limit the result to this field
 ([peer receipt](docs/research/p6-canonical-ltype-libredwg-peer-2026-11-16.json)).
-The VPORT writer now preserves named configurations written before `*ACTIVE`, repeated configuration rows and their order, and synthesizes a default active row only when needed; unnamed-active legacy callers remain supported ([receipt](docs/research/p6-vport-configuration-name-preservation-2026-11-16.json)). Native tiled viewport behavior remains open.
+The VPORT writer now preserves named configurations written before `*ACTIVE`, repeated configuration rows and their order, and synthesizes a default active row only when needed; unnamed-active legacy callers remain supported ([receipt](docs/research/p6-vport-configuration-name-preservation-2026-11-16.json)). Focused hosted [fast](https://github.com/dxli/libdxfrw/actions/runs/43865527188), [FreeCAD](https://github.com/dxli/libdxfrw/actions/runs/43865527092) and [native](https://github.com/dxli/libdxfrw/actions/runs/43865527078) checks run at `6592270a`; inspect results. Native tiled viewport behavior remains open.
 Continue the remaining public-writer and compound-route census.
 
 For FreeCAD integration, replay the complete ordered downstream chain with

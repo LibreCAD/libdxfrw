@@ -58,5 +58,12 @@
       }
     ],
     "scope": "Independent DXF field decoding only; no native viewport rendering or semantics and no committed fixtures."
+  },
+  "hostedQualification": {
+    "revision": "6592270a19e8bb8506d8567421d9b004eb1172ac",
+    "fast": "https://github.com/dxli/libdxfrw/actions/runs/43865527188",
+    "freecadRelease": "https://github.com/dxli/libdxfrw/actions/runs/43865527092",
+    "native": "https://github.com/dxli/libdxfrw/actions/runs/43865527078",
+    "status": "All three were started after the VPORT fix; no result is assumed."
   }
 }
