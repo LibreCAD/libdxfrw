@@ -7738,6 +7738,12 @@ bool dxfRW::writeLineType(DRW_LType *ent){
             [&strname](const DRW_LType& candidate) {
                 return dxfSymbolNameKey(candidate.name) == strname;
             });
+        // The fixed row was emitted before this callback. Nondefault flags
+        // can be retained only when supplied in the predeclared metadata.
+        if (ent->flags != 0
+            && (cached == m_canonicalLineTypeMetadata.cend()
+                || cached->flags != ent->flags))
+            return failDxfWrite();
         const bool hasMetadata = !ent->appData.empty() || !ent->extData.empty()
             || !ent->reactorHandles.empty() || ent->xDictHandle != 0;
         if (hasMetadata && cached == m_canonicalLineTypeMetadata.cend()) {
@@ -18461,6 +18467,9 @@ bool dxfRW::writeTables(const char** outputStage) {
         const std::uint32_t fixedHandle = mandatoryHandle(lineType.name);
         if (fixedHandle == 0)
             continue;
+        if (lineType.flags < 0 || (lineType.flags & ~0x70) != 0
+            || ((lineType.flags & 0x20) != 0 && (lineType.flags & 0x10) == 0))
+            return failDxfWrite();
         const std::string key = dxfSymbolNameKey(lineType.name);
         if (!mandatoryLinetypes.emplace(key, &lineType).second
             || (lineType.handle != 0
@@ -18482,6 +18491,10 @@ bool dxfRW::writeTables(const char** outputStage) {
         return found == mandatoryLinetypes.end()
             || found->second->extData.empty()
             || writeExtData(found->second->extData);
+    };
+    const auto mandatoryFlags = [&mandatoryLinetypes](const char* name) {
+        const auto found = mandatoryLinetypes.find(name);
+        return found == mandatoryLinetypes.end() ? 0 : found->second->flags;
     };
     writer->writeString(0, "TABLE");
     writer->writeString(2, "LTYPE");
@@ -18512,7 +18525,7 @@ bool dxfRW::writeTables(const char** outputStage) {
         writer->writeString(2, "ByBlock");
     } else
         writer->writeString(2, "BYBLOCK");
-    writer->writeInt16(70, 0);
+    writer->writeInt16(70, mandatoryFlags("BYBLOCK"));
     writer->writeString(3, "");
     writer->writeInt16(72, 65);
     writer->writeInt16(73, 0);
@@ -18537,7 +18550,7 @@ bool dxfRW::writeTables(const char** outputStage) {
         writer->writeString(2, "ByLayer");
     } else
         writer->writeString(2, "BYLAYER");
-    writer->writeInt16(70, 0);
+    writer->writeInt16(70, mandatoryFlags("BYLAYER"));
     writer->writeString(3, "");
     writer->writeInt16(72, 65);
     writer->writeInt16(73, 0);
@@ -18563,7 +18576,7 @@ bool dxfRW::writeTables(const char** outputStage) {
     } else {
         writer->writeString(2, "CONTINUOUS");
     }
-    writer->writeInt16(70, 0);
+    writer->writeInt16(70, mandatoryFlags("CONTINUOUS"));
     writer->writeString(3, "Solid line");
     writer->writeInt16(72, 65);
     writer->writeInt16(73, 0);

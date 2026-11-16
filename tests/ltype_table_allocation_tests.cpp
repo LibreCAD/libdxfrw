@@ -123,6 +123,118 @@ public:
     bool accepted = false;
 };
 
+bool readBytes(const std::filesystem::path& path, std::string& bytes);
+
+class CanonicalLTypeExport final : public LC3CompatCheck {
+public:
+    CanonicalLTypeExport(dxfRW& writer, const std::string& name) : codec(writer) {
+        row.name = name;
+        row.handle = 0xD731u;
+        if (name == "CONTINUOUS") row.desc = "Solid line";
+    }
+    void writeHeader(DRW_Header&) override {}
+    void writeLTypes() override { accepted = codec.writeLineType(&row); }
+    bool finalizeDxfWrite() override { return accepted; }
+    dxfRW& codec;
+    DRW_LType row;
+    bool accepted = false;
+};
+
+class CanonicalLTypeReader final : public LC3CompatCheck {
+public:
+    explicit CanonicalLTypeReader(std::string expectedName) : name(std::move(expectedName)) {}
+    void addLType(const DRW_LType& row) override {
+        if (row.name == name) { ++count; flags = row.flags; }
+    }
+    std::string name;
+    unsigned count = 0;
+    int flags = -1;
+};
+
+bool canonicalFlags(const std::filesystem::path& directory) {
+    const auto path = directory / "canonical-ltype-flags.dxf";
+    const auto cleanPath = directory / "canonical-ltype-clean.dxf";
+    const std::string sentinel = "prior canonical linetype output\n";
+    for (const auto version : {DRW::AC1009, DRW::AC1014, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            for (const std::string name : {"BYBLOCK", "BYLAYER", "CONTINUOUS"}) {
+                dxfRW cleanCodec(cleanPath.string().c_str());
+                CanonicalLTypeExport clean(cleanCodec, name);
+                if (!cleanCodec.write(&clean, version, binary) || !clean.accepted)
+                    return false;
+                std::string expected;
+                if (!readBytes(cleanPath, expected)) return false;
+                { std::ofstream out(path, std::ios::binary | std::ios::trunc); out << sentinel; }
+                dxfRW codec(path.string().c_str());
+                CanonicalLTypeExport candidate(codec, name);
+                candidate.row.flags = 64;
+                std::string current;
+                if (codec.write(&candidate, version, binary) || candidate.accepted
+                    || candidate.row.flags != 64 || !readBytes(path, current) || current != sentinel) {
+                    std::cerr << "unseeded canonical LTYPE flags were not refused: " << name << '\n';
+                    return false;
+                }
+                candidate.row.flags = 0;
+                if (!codec.write(&candidate, version, binary) || !candidate.accepted
+                    || !readBytes(path, current) || current != expected)
+                    return false;
+                candidate.row.flags = 64;
+                codec.setCanonicalLineTypeMetadata({candidate.row});
+                if (!codec.write(&candidate, version, binary) || !candidate.accepted)
+                    return false;
+                const std::string wireName = version == DRW::AC1009 ? name
+                    : name == "BYBLOCK" ? "ByBlock" : name == "BYLAYER" ? "ByLayer" : "Continuous";
+                dxfRW readerCodec(path.string().c_str());
+                CanonicalLTypeReader reader(wireName);
+                if (!readerCodec.read(&reader, false) || reader.count != 1u || reader.flags != 64)
+                    return false;
+                std::string seeded;
+                if (!readBytes(path, seeded)) return false;
+                for (const int flags : {16, 48, 80, 112}) {
+                    candidate.row.flags = flags;
+                    codec.setCanonicalLineTypeMetadata({candidate.row});
+                    if (!codec.write(&candidate, version, binary) || !candidate.accepted)
+                        return false;
+                    dxfRW variantCodec(path.string().c_str());
+                    CanonicalLTypeReader variant(wireName);
+                    if (!variantCodec.read(&variant, false) || variant.count != 1u || variant.flags != flags)
+                        return false;
+                }
+                candidate.row.flags = 64;
+                codec.setCanonicalLineTypeMetadata({candidate.row});
+                if (!codec.write(&candidate, version, binary) || !candidate.accepted
+                    || !readBytes(path, current) || current != seeded)
+                    return false;
+                // Predeclared metadata is authoritative when an adapter
+                // supplies the ordinary default canonical callback row.
+                candidate.row.flags = 0;
+                if (!codec.write(&candidate, version, binary) || !candidate.accepted
+                    || !readBytes(path, current) || current != seeded)
+                    return false;
+                candidate.row.flags = 16;
+                if (codec.write(&candidate, version, binary) || candidate.accepted
+                    || candidate.row.flags != 16 || !readBytes(path, current) || current != seeded)
+                    return false;
+                candidate.row.flags = 64;
+                if (!codec.write(&candidate, version, binary) || !candidate.accepted
+                    || !readBytes(path, current) || current != seeded)
+                    return false;
+                candidate.row.flags = 32; // Resolved-xref bit without xref bit.
+                codec.setCanonicalLineTypeMetadata({candidate.row});
+                if (codec.write(&candidate, version, binary)
+                    || !readBytes(path, current) || current != seeded)
+                    return false;
+                candidate.row.flags = 64;
+                codec.setCanonicalLineTypeMetadata({candidate.row});
+                if (!codec.write(&candidate, version, binary) || !candidate.accepted
+                    || !readBytes(path, current) || current != seeded)
+                    return false;
+            }
+        }
+    }
+    return true;
+}
+
 class EditedExport final : public LC3CompatCheck {
 public:
     EditedExport(dxfRW& codec, const DRW_LType& lineType)
@@ -383,7 +495,7 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return allocationSweep(directory)
+    return canonicalFlags(directory) && allocationSweep(directory)
             && editedImportedRecordRoundTrip(directory)
         ? 0 : 2;
 }

@@ -1019,7 +1019,10 @@ public:
     void setSourceBlockRecords(std::vector<DRW_Block_Record>&& records,
                                bool requireResolvedOwners = false);
     /*!< Register source linetypes so metadata attached to the three mandatory
-     * canonical rows can be emitted before the LTYPE table is closed. */
+     * canonical rows can be emitted before the LTYPE table is closed. The
+     * registered flags are authoritative: a nonzero callback flag must match
+     * them, while a zero callback flag leaves the registered flags intact.
+     * Without a registered row, nonzero callback flags fail the write. */
     void setCanonicalLineTypeMetadata(
         const std::vector<DRW_LType> &lineTypes);
     void setCanonicalLineTypeMetadata(std::vector<DRW_LType>&& lineTypes);

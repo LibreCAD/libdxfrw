@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **694 completed implementation and qualification slices** and **32 remaining
+The plan records **695 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`694 / (694 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
+`695 / (695 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -87,6 +87,11 @@ For P6-G, the fixed `ACAD` APPID route now refuses source flags or metadata it
 cannot emit instead of silently dropping them; focused rollback, same-writer
 retry, readback and source-alias checks pass
 ([receipt](docs/research/p6-canonical-acad-appid-metadata-refusal-2026-11-16.json)).
+Predeclared canonical LTYPE flags now survive output; nondefault flags arriving
+only after the fixed row was written refuse atomically
+([receipt](docs/research/p6-canonical-ltype-flags-2026-11-16.json)). Canonical
+descriptions and nonempty patterns can still be replaced by built-in values;
+audit source semantics and add a preservation route or explicit disposition.
 Continue the remaining public-writer and compound-route census.
 
 For FreeCAD integration, replay the complete ordered downstream chain with
