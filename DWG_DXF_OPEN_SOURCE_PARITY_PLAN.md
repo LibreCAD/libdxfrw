@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **627 completed implementation and qualification slices** and **32 remaining
+The plan records **628 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`627 / (627 + 32) = 95.1%`. The previous 28-package denominator was stale; a recount
+`628 / (628 + 32) = 95.2%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -117,7 +117,9 @@ created locally from scratch for the specific control.
   Ordered bounded LINE membership now has two-line and combined units/preview
   peer controls, with per-line staged owner/identity checks
   ([receipt](docs/research/p8-librecad-named-block-multi-line-output-2026-11-15.json));
-  qualify larger counts, other entity types and richer geometry. Qualify nonempty XRECORD data, other unit values and remaining block properties
+  a 128-line peer roundtrip and 129-line transactional refusal now pass
+  ([boundary receipt](docs/research/p8-librecad-named-block-line-boundary-2026-11-15.json)).
+  Qualify other entity types and richer geometry. Qualify nonempty XRECORD data, other unit values and remaining block properties
   without dropping dependencies. Unknown inbound references
   and dynamic-block objects remain
   unresolved; do not omit source records to pass a gate ([source census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json),
@@ -149,7 +151,8 @@ suffix `-2026-11-15.patch`, rebasing as needed against the consumer head:
 `librecad-p8-dwg-block-preview-import-test`,
 `librecad-p8-named-block-preview-output`,
 `librecad-p8-named-block-single-line-output`,
-`librecad-p8-named-block-multi-line-output`.
+`librecad-p8-named-block-multi-line-output`,
+`librecad-p8-named-block-line-boundary-test`.
 The tested base is `8a82e35965d8d56a8f8608abd739fbb2c0de2f3e`.
 
 For MPOLYGON, retain the consumer's opt-in polyline policy; independently
