@@ -1,0 +1,18 @@
+{
+  "date": "2026-11-16",
+  "scope": "Prevent silent loss of nondefault metadata on the synthesized canonical ACAD APPID during DXF output.",
+  "finding": "The streaming writer emits ACAD with flags 0 and no metadata before the APPID callback. Previously it accepted a callback row with flags 16 and omitted the flag; the focused test reproduced the failure before the fix.",
+  "change": "Refuse canonical ACAD rows containing nonzero flags, application data, XDATA, reactor handles or counts, an extension-dictionary handle, or unresolved APPID/LAYER references. Keep the ordinary empty canonical alias and its existing source-handle binding.",
+  "checks": [
+    "Generated AC1009, AC1014 and AC1032 ASCII and Binary controls cover eight nondefault states.",
+    "For each control, destination bytes and caller state survive refusal; the same writer retries with default metadata and produces baseline-identical output.",
+    "Fresh readback confirms one ACAD APPID with flags 0 after retry.",
+    "The existing source-table identity test passes, including the fixed ACAD handle binding.",
+    "Focused CTest: libdxfrw_appid_table_allocation and libdxfrw_dxf_source_table_identities, 2/2 passed."
+  ],
+  "limitations": [
+    "This prevents silent metadata loss; it does not implement preservation of nondefault ACAD APPID metadata.",
+    "These generated controls are not independent producer or consumer semantic qualification.",
+    "Other writer families and whole-document graph closure remain open."
+  ]
+}

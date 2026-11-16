@@ -78,8 +78,35 @@ public:
     std::vector<DRW_AppId> appIds;
 };
 
+class CanonicalExport final : public LC3CompatCheck {
+public:
+    explicit CanonicalExport(dxfRW& codec) : codec(codec) {
+        app.name = "ACAD";
+        app.handle = 0xD751u;
+    }
+    void writeHeader(DRW_Header&) override {}
+    void writeAppId() override { accepted = codec.writeAppId(&app); }
+    bool finalizeDxfWrite() override { return accepted; }
+    dxfRW& codec;
+    DRW_AppId app;
+    bool accepted = false;
+};
+
+class CanonicalReader final : public LC3CompatCheck {
+public:
+    void addAppId(const DRW_AppId& app) override {
+        if (app.name == "ACAD") {
+            ++count;
+            flags = app.flags;
+        }
+    }
+    unsigned count = 0;
+    int flags = -1;
+};
+
 const char* versionCode(DRW::Version version) {
     switch (version) {
+    case DRW::AC1009: return "AC1009";
     case DRW::AC1014: return "AC1014";
     case DRW::AC1015: return "AC1015";
     case DRW::AC1018: return "AC1018";
@@ -106,6 +133,73 @@ bool readbackMatches(const std::filesystem::path& path) {
     const DRW_AppId expected = makeAppId();
     return codec.read(&reader, false) && reader.appIds.size() == 1u
         && sameAppId(reader.appIds.front(), expected, true);
+}
+
+bool canonicalMetadataRefusalRetry(const std::filesystem::path& directory) {
+    const auto path = directory / "canonical-appid.dxf";
+    const auto cleanPath = directory / "canonical-appid-clean.dxf";
+    const std::string prior = "prior canonical APPID destination\n";
+    for (const auto version : {DRW::AC1009, DRW::AC1014, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            dxfRW cleanCodec(cleanPath.string().c_str());
+            CanonicalExport clean(cleanCodec);
+            if (!cleanCodec.write(&clean, version, binary) || !clean.accepted)
+                return false;
+            std::string expected;
+            if (!readBytes(cleanPath, expected)) return false;
+            for (unsigned fault = 0; fault != 8; ++fault) {
+                { std::ofstream output(path, std::ios::binary | std::ios::trunc); output << prior; }
+                dxfRW codec(path.string().c_str());
+                CanonicalExport exporter(codec);
+                if (fault == 0) exporter.app.flags = 16;
+                if (fault == 1) exporter.app.appData.push_back({
+                    {102, std::string("{CANONICAL_META")}, {1, std::string("value")},
+                    {102, std::string("}")}});
+                if (fault == 2) {
+                    exporter.app.extData.push_back(new DRW_Variant(1001, std::string("ACAD")));
+                    exporter.app.extData.push_back(new DRW_Variant(1000, std::string("value")));
+                }
+                if (fault == 3) exporter.app.reactorHandles.push_back(0x123u);
+                if (fault == 4) exporter.app.xDictHandle = 0x123u;
+                if (fault == 5) exporter.app.pendingAppIdResolutions.push_back({});
+                if (fault == 6) exporter.app.pendingLayerRefResolutions.push_back({});
+                if (fault == 7) exporter.app.setDwgCommonObjectState(1, 0u, false);
+                const auto beforeFlags = exporter.app.flags;
+                const auto beforeAppData = exporter.app.appData.size();
+                const auto beforeExtData = exporter.app.extData.size();
+                const auto beforeReactors = exporter.app.reactorHandles.size();
+                const auto beforeXDict = exporter.app.xDictHandle;
+                const auto beforePendingApp = exporter.app.pendingAppIdResolutions.size();
+                const auto beforePendingLayer = exporter.app.pendingLayerRefResolutions.size();
+                const auto beforeReactorCount = exporter.app.reactorCount();
+                std::string current;
+                if (codec.write(&exporter, version, binary) || exporter.accepted
+                    || !readBytes(path, current) || current != prior
+                    || exporter.app.flags != beforeFlags || exporter.app.appData.size() != beforeAppData
+                    || exporter.app.extData.size() != beforeExtData
+                    || exporter.app.reactorHandles.size() != beforeReactors
+                    || exporter.app.xDictHandle != beforeXDict
+                    || exporter.app.pendingAppIdResolutions.size() != beforePendingApp
+                    || exporter.app.pendingLayerRefResolutions.size() != beforePendingLayer
+                    || exporter.app.reactorCount() != beforeReactorCount) {
+                    std::cerr << "canonical APPID metadata was not refused: version="
+                              << versionCode(version) << " binary=" << binary << " fault=" << fault << '\n';
+                    return false;
+                }
+                exporter.app = clean.app;
+                if (!codec.write(&exporter, version, binary) || !exporter.accepted
+                    || !readBytes(path, current) || current != expected) {
+                    std::cerr << "canonical APPID retry failed\n";
+                    return false;
+                }
+                dxfRW readerCodec(path.string().c_str());
+                CanonicalReader reader;
+                if (!readerCodec.read(&reader, false) || reader.count != 1u || reader.flags != 0)
+                    return false;
+            }
+        }
+    }
+    return true;
 }
 
 bool allocationSweep(const std::filesystem::path& directory) {
@@ -278,6 +372,6 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return allocationSweep(directory)
+    return canonicalMetadataRefusalRetry(directory) && allocationSweep(directory)
         && unknownGroup71RefusalRetry(directory) ? 0 : 2;
 }

@@ -9571,6 +9571,14 @@ bool dxfRW::writeAppId(DRW_AppId *ent){
     // The built-in is serialized by writeTables before this callback. Bind
     // only that actual route, never a synthetic row requested elsewhere.
     if (strname == "ACAD") {
+        // The already-written built-in has flags=0 and no metadata. Reusing
+        // it for a source row with additional state would silently drop that
+        // state; the streaming callback cannot amend the committed row.
+        if (ent->flags != 0 || !ent->appData.empty() || !ent->extData.empty()
+            || !ent->reactorHandles.empty() || ent->reactorCount() != 0
+            || ent->xDictHandle != 0 || !ent->pendingAppIdResolutions.empty()
+            || !ent->pendingLayerRefResolutions.empty())
+            return failDxfWrite();
         if (version <= DRW::AC1009 || ent->handle == 0u || ent->handle == DRW::NoHandle)
             return true;
         if (m_registeredDxfXdataAppIds.count("ACAD") != 1u) return failDxfWrite();
