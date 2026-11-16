@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-15)
 
-The plan records **600 completed implementation and qualification slices** and **32 remaining
+The plan records **601 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`600 / (600 + 32) = 94.9%`. The previous 28-package denominator was stale; a recount
+`601 / (601 + 32) = 94.9%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -165,9 +165,13 @@ callbacks; its named DICTIONARY and SORTENTSTABLE frames are retained. Correlate
 the block observations with their typed publications and common links, and bind
 the import generation. A bounded public verifier now reparses the three AC1024
 dictionary raw frames against typed and membership receipts, with mutation and
-allocation-failure retry controls; it does not authorize output. Wire that
-verifier into the consumer after retaining the full typed baseline, separately
-verify SORTENTSTABLE raw frames, and freeze membership and inbound references
+allocation-failure retry controls; it does not authorize output. A nineteenth unmerged consumer patch now retains a bounded typed baseline for
+this profile, and a scratch source-callback harness matches the three title
+dictionaries against the upstream verifier; the application rebuild is pending
+([observation receipt](docs/research/p8-librecad-dictionary-source-observation-2026-11-15.json)).
+Wire verification to the live consumer metadata with unique receipts and import
+generation, separately verify SORTENTSTABLE raw frames, and freeze membership
+and inbound references
 ([carrier receipt](docs/research/p8-librecad-title-block-source-receipts-2026-11-15.json),
 [verifier receipt](docs/research/p8-ac1024-dictionary-source-verifier-2026-11-15.json)). Stage
 only validated empty named-table omission, and prove remaining dictionary graph,
