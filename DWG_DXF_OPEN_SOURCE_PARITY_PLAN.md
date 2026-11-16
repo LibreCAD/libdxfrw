@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **647 completed implementation and qualification slices** and **32 remaining
+The plan records **648 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`647 / (647 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
+`648 / (648 + 32) = 95.3%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -91,6 +91,11 @@ created locally from scratch for the specific control.
   the full local patch chain, including R12/R14 units refusal and retry
   ([receipt](docs/research/p8-librecad-current-master-bundled-2026-11-16.json)).
   The installed mode still lacks the full BUILD_TESTS suite; GUI remains open.
+  Current LibreCAD save routing always chooses ASCII DXF. Binary LTYPE codec
+  controls pass for both the bundled codec and standalone library, but they do
+  not exercise LibreCAD's binary import adapter; qualify that path separately.
+  A LibreCAD binary-export UI is additional work, not an existing save route
+  ([routing receipt](docs/research/p8-librecad-binary-ltype-routing-2026-11-16.json)).
 - Preserve the AC1024 title drawing's named-block SORTENTSTABLE and every
   dictionary dependency. The separately opted-in experimental codec path has
   generated ODA/ezdxf evidence, but LibreDWG drops this record and Autodesk's

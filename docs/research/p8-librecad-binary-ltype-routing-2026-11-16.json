@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-16",
+  "consumerBase": "b007bff6e798425aa14ae507f7e884db68916e88",
+  "localCandidateCommit": "1894f6b8cfbab32417b75db2153b10f9f7f81cb9",
+  "sourceInspection": "LibreCAD RS_FilterDXFRW::fileExport hardcodes const bool binary = false for DXF; RS2::FormatType has revision options but no binary DXF target. Its file import calls dxfRW::read for normal filesystem paths. This inspection does not establish binary import success.",
+  "validation": [
+    "On the fresh bundled macOS candidate, DXF LTYPE preserves complex segment payloads passes 176 assertions across its ASCII/Binary generated codec variants. This is a direct codec test, not a LibreCAD import/export adapter test.",
+    "At standalone libdxfrw source 93ede70e418b17fbc3fe2741ad61c23469c5c8cf, the focused LTYPE alignment domain and R12 complex-LTYPE refusal/retry CTests pass. Their generated controls include both ASCII and Binary, destination preservation and retry."
+  ],
+  "logs": [
+    "/private/tmp/librecad-p8-rebased-bundled-binary-ltype.log"
+  ],
+  "limits": "LibreCAD binary DXF import, PR #3269 behavior on binary inputs, and any new binary-export UI remain unqualified. Standalone codec tests do not establish consumer behavior. No new support claim or phase gate is promoted; no drawing fixture was committed."
+}
