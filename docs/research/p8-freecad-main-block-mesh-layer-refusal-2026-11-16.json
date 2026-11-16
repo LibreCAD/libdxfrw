@@ -13,8 +13,11 @@
     "logs": [
       "/private/tmp/freecad-polyface-layer-20261116/nested-layers.log",
       "/private/tmp/freecad-polyface-layer-20261116/block-before.log",
-      "/private/tmp/freecad-polyface-layer-20261116/block-final.log"
-    ]
+      "/private/tmp/freecad-polyface-layer-20261116/block-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/nested-layers-corrected.log",
+      "/private/tmp/freecad-polyface-layer-20261116/nested-corrected.log"
+    ],
+    "generatedNested": "After the correction, independently ezdxf-generated nested inch and millimetre profiles explicitly report the custom-layer refusal when layer preservation is enabled. With layer preservation disabled, the outer link retains the analytically expected transformed vertices and areas."
   },
   "limits": [
     "The correction reports an unsupported profile rather than preserving nested custom-layer geometry.",
