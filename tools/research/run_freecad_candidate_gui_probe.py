@@ -33,6 +33,8 @@ def main():
     parser.add_argument("--freecad", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--pyside-dir", type=Path)
+    parser.add_argument("--draft-resource-dir", type=Path,
+                        help="explicit resource directory; defaults to the selected build's Mod/Draft")
     parser.add_argument("--qt-platform", help="optional Qt platform plugin, e.g. offscreen")
     parser.add_argument("--timeout", type=int, default=600)
     args = parser.parse_args()
@@ -45,6 +47,7 @@ def main():
         source = args.source_root.resolve(strict=True)
         build = args.build_root.resolve(strict=True)
         command = args.freecad.resolve(strict=True)
+        resource_root = (args.draft_resource_dir or (build / "Mod" / "Draft")).resolve(strict=True)
         if not command.is_file() or not common.within(command, build):
             raise ValueError("FreeCAD GUI executable must be inside the build root")
         cache = build / "CMakeCache.txt"
@@ -73,6 +76,7 @@ def main():
         env = os.environ.copy()
         env.update({"FREECAD_RESEARCH_TOOLS_DIR": str(HERE), "FREECAD_GUI_MESH_PROFILE": "smoke",
                     "FREECAD_3RDPARTY_DIR": str(source / "src" / "3rdParty"),
+                    "FREECAD_DRAFT_RESOURCE_DIR": str(resource_root),
                     "FREECAD_DRAFT_MODULE_DIR": str(source / "src" / "Mod" / "Draft"),
                     "FREECAD_PART_MODULE_DIR": str(source / "src" / "Mod" / "Part")})
         if args.pyside_dir:
@@ -100,11 +104,14 @@ def main():
             raise RuntimeError("FreeCAD GUI did not complete the exact smoke profile")
         importer = Path(report.get("importModule") or "").resolve(strict=True)
         draft = Path(report.get("draftModule") or "").resolve(strict=True)
+        draft_resource = Path(report.get("draftResourceModule") or "").resolve(strict=True)
         executable = Path(report.get("executable") or "").resolve(strict=True)
         if executable != command or not importer.is_file() or not common.within(importer, build):
             raise RuntimeError("FreeCAD GUI executable or ImportGui module differs from the build")
         if draft != (source / "src" / "Mod" / "Draft" / "Draft.py").resolve(strict=True):
             raise RuntimeError("FreeCAD loaded Draft from a different source")
+        if not draft_resource.is_file() or not common.within(draft_resource, resource_root):
+            raise RuntimeError("FreeCAD loaded Draft resources outside the selected resource directory")
         if report.get("platform") != sys.platform or common.machine_name(report.get("machine", "")) != common.machine_name(platform.machine()):
             raise RuntimeError("FreeCAD GUI platform or architecture differs from the host")
         if not report.get("qtPlatform") or (args.qt_platform and report["qtPlatform"] != args.qt_platform):
@@ -113,7 +120,8 @@ def main():
                    "sourceReplay": source_receipt, "gitBaseVerified": git_base_verified,
                    "cmakeSourceRoot": homes[0], "cmakeCacheSha256": common.digest(cache),
                    "freecadSha256": common.digest(command), "importGuiSha256": common.digest(importer),
-                   "draftSha256": common.digest(draft), "macroSha256": common.digest(MACRO),
+                   "draftSha256": common.digest(draft), "draftResourceSha256": common.digest(draft_resource),
+                   "draftResourceWithinBuild": common.within(draft_resource, build), "macroSha256": common.digest(MACRO),
                    "qtPlatformRequested": args.qt_platform, "report": report}
     except Exception as exc:
         receipt = {"ok": False, "error": str(exc)}

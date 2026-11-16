@@ -13,14 +13,25 @@
     "Local macOS Cocoa GUI smoke passed with requested and observed Qt backend matching.",
     "The guarded GUI runner previously rejected mismatched source/build and missing-result controls."
   ],
-  "status": "DISPATCHED; RESULTS PENDING",
+  "status": "LINUX GUI FAILED ON MISSING DRAFT RESOURCE; WINDOWS RUNNING; FIX PREPARED",
   "limitations": [
-    "The hosted GUI jobs have been dispatched but have not completed; neither Linux nor Windows GUI behavior is yet qualified.",
+    "Linux GUI failed on the first run, Windows is still running, and the resource fix has not yet run on hosted platforms.",
     "Linux uses a virtual X display. Actual Qt platform is recorded; these are view-property checks, not pixel-rendering proof.",
     "The source and module identity checks do not alone establish build provenance or independent semantic support."
   ],
   "dispatch": {
     "url": "https://github.com/dxli/libdxfrw/actions/runs/43853176191",
-    "commit": "f425a6be"
-  }
+    "commit": "f425a6be",
+    "linux": {
+      "jobUrl": "https://github.com/dxli/libdxfrw/actions/runs/43853176191/job/133250687246",
+      "outcome": "Candidate build and headless probe passed; GUI smoke failed importing Draft_rc because the Draft resource target was not built."
+    }
+  },
+  "followUp": [
+    "The GUI workflow now builds Draft and DraftUtils and the runner verifies the loaded Draft resource is inside its selected resource directory.",
+    "Local macOS resource-aware smoke passed on retry; the first process reported all smoke checks passed but aborted during shutdown and was correctly rejected.",
+    "A Draft resource loaded from a different directory was refused.",
+    "actionlint and Python syntax checks passed.",
+    "The candidate_platform dispatch choice permits a Linux-only retry while the existing Windows build continues; both platforms remain the default. The matrix expression passed actionlint and awaits hosted execution."
+  ]
 }

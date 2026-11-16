@@ -21,7 +21,7 @@ import tempfile
 import traceback
 import uuid
 
-for name in ("FREECAD_PYSIDE_DIR", "FREECAD_3RDPARTY_DIR", "FREECAD_DRAFT_MODULE_DIR",
+for name in ("FREECAD_PYSIDE_DIR", "FREECAD_3RDPARTY_DIR", "FREECAD_DRAFT_RESOURCE_DIR", "FREECAD_DRAFT_MODULE_DIR",
              "FREECAD_PART_MODULE_DIR", "FREECAD_RESEARCH_TOOLS_DIR"):
     if os.environ.get(name):
         sys.path.insert(0, os.environ[name])
@@ -279,6 +279,7 @@ def run():
                   "executable": sys.executable, "platform": sys.platform, "machine": platform.machine(),
                   "freecadVersion": list(App.Version()), "pythonVersion": sys.version,
                   "qtPlatform": QtGui.QGuiApplication.platformName(),
+                  "draftResourceModule": getattr(sys.modules.get("Draft_rc"), "__file__", None),
                   "draftModule": Draft.__file__, "qtFrameworkImages": qt_frameworks,
                   "results": results}
     except Exception:

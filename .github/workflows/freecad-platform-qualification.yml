@@ -13,6 +13,15 @@ on:
         required: false
         type: boolean
         default: false
+      candidate_platform:
+        description: Candidate platforms to build
+        required: false
+        type: choice
+        options:
+          - both
+          - linux
+          - windows
+        default: both
   push:
     branches:
       - 'codex/freecad-platform-qualification-*'
@@ -204,7 +213,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, windows-2022]
+        os: ${{ fromJSON(inputs.candidate_platform == 'linux' && '["ubuntu-24.04"]' || inputs.candidate_platform == 'windows' && '["windows-2022"]' || '["ubuntu-24.04","windows-2022"]') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 180
     steps:
@@ -270,7 +279,7 @@ jobs:
           pixi run cmake --build $build --parallel 2 --target FreeCADMainCmd Import ImportScripts ImportPy Part PartScripts
           if ($LASTEXITCODE -ne 0) { throw 'Candidate build failed' }
           if ($env:CANDIDATE_GUI -eq 'true') {
-            pixi run cmake --build $build --parallel 2 --target FreeCADMain ImportGui pivy_coin MaterialLib MaterialModelLib AppearanceLib MaterialScripts
+            pixi run cmake --build $build --parallel 2 --target FreeCADMain ImportGui pivy_coin MaterialLib MaterialModelLib AppearanceLib MaterialScripts Draft DraftUtils
             if ($LASTEXITCODE -ne 0) { throw 'Candidate GUI build failed' }
           }
           $name = if ($env:RUNNER_OS -eq 'Windows') { 'FreeCADCmd.exe' } else { 'FreeCADCmd' }
