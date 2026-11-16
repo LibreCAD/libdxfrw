@@ -42,5 +42,6 @@
     "Only headless grouping and geometry are checked; native GUI appearance and other platforms remain unqualified.",
     "No generated fixture is committed; no phase gate or external-only claim is promoted.",
     "The bounded equality check is deliberately conservative; the effective color of an omitted face group 62 is disputed by ezdxf virtual-face inheritance and still requires native evidence."
-  ]
+  ],
+  "followup": "The next ordered uniform-face ACI patch admits a shared explicit face ACI that differs from the parent, based on Autodesk PFACE semantics and ezdxf virtual-face agreement. Coordinate vertices must still match their parent; mixed face colors and the omitted-face-color ambiguity remain refused."
 }

@@ -1,0 +1,33 @@
+{
+  "date": "2026-11-16",
+  "scope": "Unmerged eleventh ordered FreeCAD default DXF importer patch: a uniform explicit ACI override across polyface faces.",
+  "base": "FreeCAD d956ec561639cfa83f755504b1b3358ea799428e with ten preceding ordered patches, including parent/child color consistency and block safeguards.",
+  "localSparseCandidateCommit": "721e3e2f5140da067e66ec3377896cb9dc461d27",
+  "patch": "docs/patches/freecad-p8-default-polyface-uniform-face-aci-2026-11-16.patch",
+  "patchSha256": "fd41a7e3522534678c49ec0b3abaf46f283d3d0ef0ab15a3e5656667801613f0",
+  "references": [
+    "https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-Core/files/GUID-4B0667EF-D8E3-4BD2-A3EE-06CFF164A0A6.htm",
+    "https://github.com/mozman/ezdxf/blob/dd7f6cc34983fdbf0b2b910f2497e0720d06dd16/src/ezdxf/render/polyline.py#L192-L224"
+  ],
+  "change": "Allow a polyface whose coordinate vertices match the parent and whose faces all carry the same explicit ACI, even when that ACI differs from the parent. Build one complete compound before publishing it; temporarily apply the face ACI to the collector and restore the parent color afterward. Refuse mixed face colors, ambiguous BYLAYER faces under an explicitly colored parent, other unsupported state and explicit colors in blocks when color preservation is enabled.",
+  "baseline": "The prior consistency patch refused source-bound controls whose face ACI differed from the parent.",
+  "validation": {
+    "focused": "Ten targeted FreeCAD importer tests pass on macOS ARM64, covering uniform explicit face override, fused grouping, mixed/ambiguous refusal, same-file recovery without leaked faces, parent/child consistency, both mesh types and block safeguards.",
+    "peer": "Separately ezdxf-generated files with matching parent/coordinate-vertex colors and explicit face colors agree with ezdxf virtual-face colors. When colors are preserved, meshes with the same face ACI group together even when parents differ, and meshes with different face ACIs remain separate; disabling colors groups them. Total area is 12 square millimetres.",
+    "replay": "Zero-context patch applies with git apply --unidiff-zero after the previous ten patches; four source files and test file match the tested candidate byte-for-byte.",
+    "logs": [
+      "/private/tmp/freecad-polyface-layer-20261116/face-color-before.log",
+      "/private/tmp/freecad-polyface-layer-20261116/face-color-final.log",
+      "/private/tmp/freecad-polyface-layer-20261116/face-peer.log"
+    ]
+  },
+  "scratchHashes": {
+    "face-peer-same.dxf": "d429730c04e60651b1c52ba254e3d348191383c35b2d44dd8de98dab92cde4d0",
+    "face-peer-different.dxf": "f8f55d46531330f98a4658d4726d25444a7a1b929c7bfea3eb66de2c7e87ecd2"
+  },
+  "limits": [
+    "One uniform face ACI per polyface only; distinct face colors within one mesh, different face layers, BYBLOCK, truecolor, color books, invisible edges and nonplanar faces remain refused.",
+    "Headless geometry and fused grouping are verified; GUI color rendering, full native producer semantics, other platforms and block-color preservation remain open.",
+    "No generated fixture is committed; no phase gate or external-only support claim is promoted."
+  ]
+}

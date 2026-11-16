@@ -1,0 +1,186 @@
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.cpp b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+index 3183f5e..4e7f6a2 100644
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.cpp
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.cpp
+@@ -1321 +1321,2 @@ void ImpExpDxfRead::OnReadBoundedMesh(
+-    bool hasExplicitColor
++    bool hasExplicitColor,
++    int faceColorOverride
+@@ -1367,0 +1369,8 @@ void ImpExpDxfRead::OnReadBoundedMesh(
++        struct RestoreColor {
++            ColorIndex_t& value;
++            ColorIndex_t original;
++            ~RestoreColor() { value = original; }
++        } restoreColor{m_entityAttributes.m_Color, m_entityAttributes.m_Color};
++        if (m_preserveColors && faceColorOverride != 0) {
++            m_entityAttributes.m_Color = faceColorOverride;
++        }
+diff --git a/src/Mod/Import/App/dxf/ImpExpDxf.h b/src/Mod/Import/App/dxf/ImpExpDxf.h
+index 726f71e..3df9e97 100644
+--- a/src/Mod/Import/App/dxf/ImpExpDxf.h
++++ b/src/Mod/Import/App/dxf/ImpExpDxf.h
+@@ -83 +83,2 @@ public:
+-        bool hasExplicitColor
++        bool hasExplicitColor,
++        int faceColorOverride
+diff --git a/src/Mod/Import/App/dxf/dxf.cpp b/src/Mod/Import/App/dxf/dxf.cpp
+index ba771cc..1a6aa04 100644
+--- a/src/Mod/Import/App/dxf/dxf.cpp
++++ b/src/Mod/Import/App/dxf/dxf.cpp
+@@ -2443,0 +2444 @@ bool CDxfRead::ReadBoundedMesh(
++    int uniformFaceColor = -1;
+@@ -2511,4 +2511,0 @@ bool CDxfRead::ReadBoundedMesh(
+-        // Coordinate vertices share the parent's properties; face records can
+-        // carry distinct colors. This bounded profile accepts only explicit
+-        // equality, interpreting an omitted group 62 as BYLAYER.
+-        if ((vertexColor == -1 ? 256 : vertexColor) != parentColor) profileValid = false;
+@@ -2528,0 +2526,2 @@ bool CDxfRead::ReadBoundedMesh(
++            // Coordinate vertices share the parent mesh's color properties.
++            if ((vertexColor == -1 ? 256 : vertexColor) != parentColor) profileValid = false;
+@@ -2537,0 +2537,7 @@ bool CDxfRead::ReadBoundedMesh(
++            // A face may explicitly override its parent's color. This profile
++            // emits one compound, so all face colors must agree. An omitted or
++            // BYLAYER face on an explicitly colored parent remains ambiguous.
++            const int faceColor = vertexColor == -1 ? 256 : vertexColor;
++            if (faceColor == 256 && parentColor != 256) profileValid = false;
++            if (uniformFaceColor == -1) uniformFaceColor = faceColor;
++            else if (uniformFaceColor != faceColor) profileValid = false;
+@@ -2634 +2640,4 @@ bool CDxfRead::ReadBoundedMesh(
+-    OnReadBoundedMesh(vertices, faces, polygonMesh, parentColor != 256);
++    const int faceColorOverride = uniformFaceColor > 0 && uniformFaceColor != 256
++        && uniformFaceColor != parentColor ? uniformFaceColor : 0;
++    OnReadBoundedMesh(vertices, faces, polygonMesh,
++                      parentColor != 256 || faceColorOverride != 0, faceColorOverride);
+diff --git a/src/Mod/Import/App/dxf/dxf.h b/src/Mod/Import/App/dxf/dxf.h
+index 68cf865..6e8b4fc 100644
+--- a/src/Mod/Import/App/dxf/dxf.h
++++ b/src/Mod/Import/App/dxf/dxf.h
+@@ -963 +963,2 @@ public:
+-        bool /*hasExplicitColor*/
++        bool /*hasExplicitColor*/,
++        int /*faceColorOverride*/
+diff --git a/src/Mod/Import/importtests/TestImportDXF.py b/src/Mod/Import/importtests/TestImportDXF.py
+index c7868b6..25868b0 100644
+--- a/src/Mod/Import/importtests/TestImportDXF.py
++++ b/src/Mod/Import/importtests/TestImportDXF.py
+@@ -295 +295 @@ class TestImportDXF(TestImportBase):
+-            ("nonplanar", False, 0), ("nonplanar_second", False, 0), ("face_color", False, 0),
++            ("nonplanar", False, 0), ("nonplanar_second", False, 0), ("face_color", True, 1),
+@@ -781,0 +782,2 @@ class TestImportDXF(TestImportBase):
++                if name == "face_mismatch":
++                    accepted = True  # one face with an explicit, uniform override
+@@ -857,3 +859,4 @@ class TestImportDXF(TestImportBase):
+-        for polygon, color, preserve in ((p, c, v) for p in (False, True)
+-                                         for c in (1, 256) for v in (False, True)):
+-            with self.subTest(polygon=polygon, color=color, preserve=preserve):
++        cases = [(p, c, c, v) for p in (False, True) for c in (1, 256) for v in (False, True)]
++        cases += [(False, 256, 2, False), (False, 256, 2, True)]
++        for polygon, color, face_color, preserve in cases:
++            with self.subTest(polygon=polygon, color=color, face_color=face_color, preserve=preserve):
+@@ -877 +880 @@ class TestImportDXF(TestImportBase):
+-                    if color != 256: tags.append((62, color))
++                    if face_color != 256: tags.append((62, face_color))
+@@ -883 +886 @@ class TestImportDXF(TestImportBase):
+-                path = os.path.join(self.temp_dir, f"block-color-{polygon}-{color}-{preserve}.dxf")
++                path = os.path.join(self.temp_dir, f"block-color-{polygon}-{color}-{face_color}-{preserve}.dxf")
+@@ -892 +895 @@ class TestImportDXF(TestImportBase):
+-                refused = preserve and color != 256
++                refused = preserve and (color != 256 or face_color != 256)
+@@ -929,0 +933,97 @@ class TestImportDXF(TestImportBase):
++
++    def test_bounded_polyface_uniform_face_aci_override(self):
++        """Admit one explicit face color; refuse mixed or ambiguous faces."""
++        options = FreeCAD.ParamGet(self.option_source)
++        options.SetBool("dxfGetOriginalColors", True)
++        cases = [("uniform", (2, 2), True), ("mixed", (2, 3), False),
++                 ("ambiguous", (2, None), False), ("bylayer", (2, 256), False)]
++        for name, face_colors, accepted in cases:
++            with self.subTest(profile=name):
++                tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                        (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"),
++                        (2, "ENTITIES"), (0, "POLYLINE"), (8, "0"), (66, 1), (70, 64), (62, 1)]
++                for x, y in ((0, 0), (4, 0), (4, 3), (0, 3)):
++                    tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 0), (70, 192), (62, 1)])
++                for indices, color in zip(((1, 2, 3), (1, 3, 4)), face_colors):
++                    tags.extend([(0, "VERTEX"), (8, "0"), (10, 0), (20, 0), (30, 0), (70, 128)])
++                    tags.extend((71 + index, value) for index, value in enumerate(indices))
++                    if color is not None: tags.append((62, color))
++                tags.extend([(0, "SEQEND"), (8, "0"), (0, "LINE"), (8, "0"),
++                             (10, 10), (20, 0), (30, 0), (11, 12), (21, 0), (31, 0),
++                             (0, "ENDSEC"), (0, "EOF")])
++                path = os.path.join(self.temp_dir, f"uniform-face-color-{name}.dxf")
++                with open(path, "w", encoding="ascii", newline="\n") as stream:
++                    stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                previous = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                objects = [obj for obj in self.document.Objects if obj not in previous
++                           and obj.isDerivedFrom("Part::Feature")]
++                meshes = [obj for obj in objects if obj.Name.startswith("Polyface")]
++                lines = [obj for obj in objects if obj.Name.startswith("Shape")]
++                self.assertEqual(len(lines), 1)
++                self.assertEqual(len(meshes), int(accepted))
++                if accepted:
++                    self.assertEqual(stats["unsupportedFeatures"], {})
++                    self.assertEqual(len(meshes[0].Shape.Faces), 2)
++                    self.assertAlmostEqual(meshes[0].Shape.Area, 12.0)
++                else:
++                    self.assertIn("POLYFACE unsupported or invalid profile", stats["unsupportedFeatures"])
++
++    def test_bounded_polyface_face_aci_controls_fused_group(self):
++        """The face ACI, rather than the mesh header ACI, groups geometry."""
++        options = FreeCAD.ParamGet(self.option_source)
++        options.SetInt("DxfImportMode", 3)
++        for preserve in (False, True):
++            with self.subTest(preserve=preserve):
++                options.SetBool("dxfGetOriginalColors", preserve)
++                tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                        (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")]
++                # Both faces are ACI 2 even though the first parent is ACI 1.
++                for offset, parent_color in ((0, 1), (10, 2)):
++                    tags.extend([(0, "POLYLINE"), (8, "0"), (66, 1), (70, 64), (62, parent_color)])
++                    for x, y in ((offset, 0), (offset + 4, 0), (offset, 3)):
++                        tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 0),
++                                     (70, 192), (62, parent_color)])
++                    tags.extend([(0, "VERTEX"), (8, "0"), (10, 0), (20, 0), (30, 0),
++                                 (70, 128), (71, 1), (72, 2), (73, 3), (62, 2),
++                                 (0, "SEQEND"), (8, "0")])
++                tags.extend([(0, "ENDSEC"), (0, "EOF")])
++                path = os.path.join(self.temp_dir, f"face-color-group-{preserve}.dxf")
++                with open(path, "w", encoding="ascii", newline="\n") as stream:
++                    stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++                previous = set(self.document.Objects)
++                stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++                objects = [obj for obj in self.document.Objects if obj not in previous
++                           and obj.isDerivedFrom("Part::Feature") and not obj.Shape.isNull()]
++                self.assertEqual(stats["unsupportedFeatures"], {})
++                self.assertEqual(len(objects), 1)
++                self.assertAlmostEqual(objects[0].Shape.Area, 12.0)
++
++    def test_bounded_polyface_mixed_color_then_valid_same_file(self):
++        """A mixed-color refusal must not leak faces or affect a following mesh."""
++        tags = [(0, "SECTION"), (2, "HEADER"), (9, "$ACADVER"), (1, "AC1021"),
++                (9, "$INSUNITS"), (70, 4), (0, "ENDSEC"), (0, "SECTION"), (2, "ENTITIES")]
++        for offset, colors in ((0, (2, 3)), (10, (2, 2))):
++            tags.extend([(0, "POLYLINE"), (8, "0"), (66, 1), (70, 64), (62, 1)])
++            for x, y in ((offset, 0), (offset + 4, 0), (offset + 4, 3), (offset, 3)):
++                tags.extend([(0, "VERTEX"), (8, "0"), (10, x), (20, y), (30, 0), (70, 192), (62, 1)])
++            for indices, color in zip(((1, 2, 3), (1, 3, 4)), colors):
++                tags.extend([(0, "VERTEX"), (8, "0"), (10, 0), (20, 0), (30, 0), (70, 128), (62, color)])
++                tags.extend((71 + index, value) for index, value in enumerate(indices))
++            tags.extend([(0, "SEQEND"), (8, "0")])
++        tags.extend([(0, "LINE"), (8, "0"), (10, 20), (20, 0), (30, 0),
++                     (11, 22), (21, 0), (31, 0), (0, "ENDSEC"), (0, "EOF")])
++        path = os.path.join(self.temp_dir, "face-color-recovery.dxf")
++        with open(path, "w", encoding="ascii", newline="\n") as stream:
++            stream.write("".join(f"{code}\n{value}\n" for code, value in tags))
++        previous = set(self.document.Objects)
++        stats = Import.readDXF(path, self.document.Name, True, self.option_source)
++        objects = [obj for obj in self.document.Objects if obj not in previous
++                   and obj.isDerivedFrom("Part::Feature")]
++        meshes = [obj for obj in objects if obj.Name.startswith("Polyface")]
++        lines = [obj for obj in objects if obj.Name.startswith("Shape")]
++        self.assertEqual(len(meshes), 1)
++        self.assertEqual(len(lines), 1)
++        self.assertEqual(len(meshes[0].Shape.Faces), 2)
++        self.assertAlmostEqual(meshes[0].Shape.Area, 12.0)
++        self.assertEqual(len(stats["unsupportedFeatures"]["POLYFACE unsupported or invalid profile"]), 1)
