@@ -17,76 +17,15 @@ evidence record. The remaining count is derived from the 32 OPEN P4–P8 rows be
 sub-slices do not retire their parent package until its full exit gate passes. Treat the percentage as a rough equal-weight
 activity proxy, not as the percentage of package gates completed.
 
-For P8-A/P8-D, an incremental macOS LibreCAD consumer links the separately
-installed static archive and passes the selected DXF checks. A public legacy
-codepage bridge and a local LibreCAD patch remove the SHP/JWW dependency on
-the uninstalled codec header; selected JWW and SHP import tests pass after the
-LibreCAD library rebuilds against installed headers and archive, while the
-older bundled-codec path still compiles. The patch remains unmerged. A clean
-current-master application with all 14 local patches and bundled codec
-builds, passes 17 LTYPE cases and all five PR #3269 cases, and converts two
-tracked DWGs in headless smoke. The refusal-specific test returns early for
-the older lossy bundled writer. A clean installed-upstream CMake build with the unmerged helper and portable
-build-option patches builds the full default target from a fresh build directory
-and links the separately installed archive ([clean-build receipt](docs/research/p8-librecad-portable-installed-clean-build-2026-11-15.json)); the two helpers compile and
-run against both codecs. The optional installed mode rejects the full BUILD_TESTS suite because it
-requires noninstalled codec internals. An eighteenth unmerged patch adds three
-focused public-header CTests, all passing, without that suite
-([receipt](docs/research/p8-librecad-installed-codec-public-tests-2026-11-15.json)). Integrating
-the options, enabling broader tests safely, GUI behavior and broader qualification
-remain open ([helper receipt](docs/research/p8-librecad-installed-codec-helpers-2026-11-15.json),
-[build-option receipt](docs/research/p8-librecad-portable-installed-codec-option-2026-11-15.json)). The clean installed-upstream application
-refuses the tracked AC1024 title block for R2007 and R2010: the first reported
-callbacks identify nondefault R2010 MLEADERSTYLE attachments and empty named-block
-SORTENTSTABLEs, respectively. Validate and close their source graphs without
-dropping data ([title-block gate](docs/research/p8-librecad-ac1024-title-export-gates-2026-11-15.json)).
-([bundled application receipt](docs/research/p8-librecad-clean-bundled-app-smoke-2026-11-15.json),
-[full-chain tests](docs/research/p8-librecad-clean-bundled-full-patch-chain-tests-2026-11-15.json))
-([receipt](docs/research/p8-librecad-installed-static-link-2026-11-15.json)).
-The [codepage receipt](docs/research/p8-librecad-installed-legacy-codepage-2026-11-15.json)
-records the behavior and package-linked test limits.
-The local LibreCAD patch set also repairs the bundled writer's complex LTYPE
-STYLE reference remapping, including identical source/output handles, and
-corrects the test's missing STYLE targets. ASCII/Binary retry and fresh
-readback pass, but the patch remains unmerged. The policy-aware metadata test
-passes against upstream. A further unmerged test patch compares the historical
-LTYPE fields and reference roles while accounting for table count, handle and
-numeric serialization differences; the upstream selector now passes all 16 cases.
-R12 still refuses a new document with explicit layer lineweight; the policy test
-checks destination preservation and same-filter retry with a representable value.
-A separate unmerged consumer patch reports the affected layer and actionable
-R12/R14 alternatives through the filter, file I/O and save failure status;
-the upstream-linked selector passes 17/17, including reset and retry
-([remap receipt](docs/research/p8-bundled-complex-ltype-style-remap-2026-11-15.json),
-[policy receipt](docs/research/p8-canonical-ltype-policy-consumer-test-2026-11-15.json),
-[semantic golden receipt](docs/research/p8-librecad-ltype-semantic-golden-2026-11-15.json),
-[diagnostic receipt](docs/research/p8-librecad-legacy-lineweight-refusal-diagnostic-2026-11-15.json)).
-The first hosted run at `70e8f034` exposed a stale frozen CTest inventory.
-After regeneration, native focused qualification at `c5b3f5b4` passes 7/7
-on Linux, macOS and Windows; the limited generated FreeCAD profile passes
-10/10 on Linux and 11/11 on Windows. The hosted fast lane passes seven
-executables and 44/45 CTests, with the optional OS-locale test skipped.
-Broader consumer and semantic gates
-remain open ([inventory repair](docs/research/p8-native-inventory-codepage-regeneration-2026-11-15.json),
-[hosted receipt](docs/research/p8-hosted-native-freecad-codepage-fix-2026-11-15.json)).
-LibreCAD_3 has three ordered, unmerged downstream patches. They report projection
-loss, apply MPOLYGON offsets, and preserve a bounded simple polygon through
-planar translations and rotations with the newer library. The older pinned codec
-uses a reported HATCH fallback. Non-default planes, non-rigid edits, richer paths,
-native rendering, integration and other platforms remain open
-([receipt](docs/research/p8-librecad3-mpolygon-rotation-preservation-2026-11-15.json)).
-
-The LibreCAD `ordinary_enc_AC1021.dwg` fixture fails libdxfrw at its LTYPE
-control; LibreDWG reads it but ODA rejects it with object-read errors. Treat
-this as a disputed source until a valid independent witness and exact wire
-boundary are established, not as evidence for softening the table parse
-([receipt](docs/research/p6-librecad-ordinary-ac1021-ltype-control-disagreement-2026-11-15.json)).
-
-For P6-F and P6-G, use the remaining scope and evidence links in the package
-rows below. The [public-writer test index](docs/research/p6-dxf-public-writer-test-mention-index-2026-11-15.json)
-is a navigation aid, not proof of rollback or version coverage. For fast
-iteration use the dedicated CTests registered for each profile; run the
-partial-read aggregate only when its broader boundary changes.
+The remaining consumer work includes integrating and qualifying the unmerged
+LibreCAD and LibreCAD_3 patches, preserving source-bound object graphs without
+loss, and native/platform verification. The focused installed-codec LibreCAD
+tests pass for the zero-reactor generated source profile; that is source
+correlation, not output or full-drawing qualification
+([receipt](docs/research/p8-librecad-zero-reactor-sortents-source-2026-11-15.json)).
+The disputed AC1021 LTYPE-control fixture and the remaining fast-test strategy
+are documented in the [source disagreement receipt](docs/research/p6-librecad-ordinary-ac1021-ltype-control-disagreement-2026-11-15.json)
+and [writer test index](docs/research/p6-dxf-public-writer-test-mention-index-2026-11-15.json).
 
 ## Authority and completion gates
 
@@ -141,120 +80,41 @@ created locally from scratch for the specific control.
 
 ### Next LibreCAD integration work
 
-The local LibreCAD branch has 12 unmerged commits based on `8a82e359` and six
-additional unmerged patches; apply the corresponding
-`docs/patches/librecad-p8-*.patch` files in order,
-then integrate and qualify the portable installed-upstream build option. The
-sixteenth patch replaces the temporary overlay; a fresh system-mode build passes
-the default application and helper targets but currently rejects the full BUILD_TESTS suite.
-The eighteenth patch adds an opt-in public-header focused test target
-([clean build](docs/research/p8-librecad-portable-installed-clean-build-2026-11-15.json),
-[focused tests](docs/research/p8-librecad-installed-codec-public-tests-2026-11-15.json)). The bundled build, focused LTYPE/PR #3269 tests and two narrow headless
-conversions pass with all 14 patches; qualify other platforms. The modified upstream-linked LTYPE selector passes after the semantic golden
-and diagnostic patches. Close the title-block MLEADERSTYLE version gate and
-source-bound empty SORTENTSTABLE graph/output closure, then test the next actual
-gate. LibreDWG independently identifies all four table/block/dictionary chains;
-the named title-block dictionary has two other entries that must remain. The upstream interface now advertises its existing optional BLOCK_RECORD
-callback through a feature macro so consumers can use a checked override while
-remaining compatible with older bundled headers. The seventeenth unmerged
-consumer patch now retains bounded, ambiguity-checked copies of BLOCK_RECORD
-links as correlation evidence; title-source, R14/R2004 and bundled controls
-pass, without changing export ([feature receipt](docs/research/p8-block-record-optional-callback-feature-2026-11-15.json),
-[observation receipt](docs/research/p8-librecad-block-record-link-observation-2026-11-15.json)). The title witness publishes typed BLOCK_RECORD receipts but no raw BLOCK_RECORD
-callbacks; its named DICTIONARY and SORTENTSTABLE frames are retained. Correlate
-the block observations with their typed publications and common links, and bind
-the import generation. A bounded public verifier now reparses the three AC1024
-dictionary raw frames against typed and membership receipts, with mutation and
-allocation-failure retry controls; it does not authorize output. A nineteenth unmerged consumer patch now retains a bounded typed baseline for
-this profile, and a scratch source-callback harness matches the three title
-dictionaries against the upstream verifier; the installed-codec focused CTests pass
-([observation receipt](docs/research/p8-librecad-dictionary-source-observation-2026-11-15.json)).
-A twentieth unmerged patch correlates each selected live dictionary with its
-frozen typed observation, raw frame, unique publication, membership and coverage
-row; scratch mutation, allocation-failure and retry checks pass. The actual
-LibreCAD importer integration test passes
-([correlation receipt](docs/research/p8-librecad-dictionary-source-correlation-2026-11-15.json)).
-The upstream empty AC1024 SORTENTSTABLE verifier now reparses all four title
-frames and rejects changed wire owners; model-space remains a control
-([SORTENTSTABLE receipt](docs/research/p8-ac1024-empty-sortents-source-verifier-2026-11-15.json)). The source verifier also accepts the independently ODA-generated zero-reactor profile with mutation and retry controls ([zero-reactor receipt](docs/research/p8-ac1024-empty-sortents-zero-reactor-2026-11-15.json)). A twenty-sixth unmerged consumer patch retains the zero-reactor source baseline; standalone chain verification passes and the optional application test is running ([consumer receipt](docs/research/p8-librecad-zero-reactor-sortents-source-2026-11-15.json)).
-A twenty-first unmerged consumer patch retains the selected typed SORTENTSTABLE
-baseline and correlates its unique source receipts; standalone title-fixture
-mutation and allocation-failure/retry controls and its optional application
-integration test pass
-([consumer receipt](docs/research/p8-librecad-empty-sortents-source-correlation-2026-11-15.json)).
-A twenty-second unmerged patch seals the selected callback session after one
-successful AC1024 import and invalidates it on later selected callbacks; this is
-not a universal edit detector or graph proof, and importer tests pass
-([session receipt](docs/research/p8-librecad-source-capture-session-2026-11-15.json)).
-A twenty-third unmerged patch correlates the block, dictionary and sort-table
-source chain under that session, retaining the dictionary's other entries;
-all four real chains and 60 crossed controls pass in a standalone harness
-([chain receipt](docs/research/p8-librecad-sortents-owner-chain-2026-11-15.json)).
-The importer verification now passes. The full source graph instead refuses
-LAYER_CONTROL `0x10`: its receipt says common links are not applicable while it
-carries extension dictionary `0x107`. LibreDWG independently confirms the hard-owner
-edge and dictionary parent ([control blocker and implementation steps](docs/research/p8-title-layer-control-extension-graph-blocker-2026-11-15.json)).
-An opt-in source handler now captures the CRC-checked AC1024 control body
-without changing the existing interface vtable or publication layout; a focused
-test decodes its handle roles ([capture receipt](docs/research/p8-ac1024-layer-control-source-capture-2026-11-15.json)).
-A bounded verifier now rechecks the selected one-layer profile, raw H roles and
-publication identity with mutation and failure/retry controls
-([verifier receipt](docs/research/p8-ac1024-layer-control-source-verifier-2026-11-15.json)). The feature macro now lives in the evidence data header, so consumers see it consistently ([header receipt](docs/research/p8-layer-control-feature-header-consistency-2026-11-15.json)).
-A twenty-fourth unmerged consumer patch binds the selected control proof to the
-import session, publication, coverage and verified dictionary endpoint; its
-standalone role-mutation and failure/retry checks and importer test pass ([binding receipt](docs/research/p8-librecad-layer-control-source-binding-2026-11-15.json)).
-A twenty-fifth unmerged patch adds a diagnostic-only graph path for the verified
-control edge. The title source now builds its modeled 522-node/1,147-edge
-receipt graph, while a mutated role still refuses
-([graph receipt](docs/research/p8-librecad-selected-control-diagnostic-graph-2026-11-15.json)).
-The LibreCAD importer test now passes. A reusable LibreDWG JSON census finds only
-the four expected dictionary candidate references, but four objects retain
-6,692 unknown bits and one XRECORD has binary data; absence of hidden inbound
-references remains unproven ([census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json)).
-The DXF writer now has an explicitly experimental opt-in for preserving an
-empty named-block table when its emitted block and dictionary graph matches;
-default and legacy consumers still refuse it. Generated ASCII/Binary roundtrips,
-rollback/retry and ezdxf semantic readback pass; Autodesk documents only space
-owners and LibreDWG drops the table on conversion, so native and consumer
-qualification remain open ([experimental writer receipt](docs/research/p8-experimental-empty-named-sortents-dxf-2026-11-15.json)).
-ODA 27.1.0 independently round-tripped both generated encodings through DWG
-and preserved the block/dictionary/sort/XRECORD links with zero ezdxf audit fixes;
-this is one generated profile, not native AutoCAD/FreeCAD qualification
-([ODA receipt](docs/research/p8-experimental-named-sortents-oda-roundtrip-2026-11-15.json)).
-Keep the default refusal and do not enable the extension implicitly in LibreCAD.
-Prove consumer source/output closure and provide an explicit opt-in before use; Freeze membership and inbound references before any omission
-([carrier receipt](docs/research/p8-librecad-title-block-source-receipts-2026-11-15.json),
-[verifier receipt](docs/research/p8-ac1024-dictionary-source-verifier-2026-11-15.json)). Stage
-only validated empty named-table omission, and prove remaining dictionary graph,
-output readback and failure/retry ([diagnosis](docs/research/p8-librecad-ac1024-title-export-gates-2026-11-15.json),
-[graph census](docs/research/p8-librecad-title-sortents-independent-graph-2026-11-15.json)). Validate the R12/R14 failure message in the GUI and
-on bundled/other-platform consumers without silently losing data. All five
-original PR #3269 cases now pass in the modified upstream-linked macOS test
-build; retain broader ASCII/Binary and platform controls
-([receipt](docs/research/p8-librecad-pr3269-upstream-focus-2026-11-15.json)). Qualify LibreCAD_3 through a
-clean link and runtime import/export, then run the required ABI and platform
-matrix ([current diagnosis](docs/research/p8-canonical-ltype-policy-consumer-test-2026-11-15.json)).
+- Integrate the ordered, unmerged LibreCAD consumer patches against current
+  master, qualify both installed-upstream and bundled-codec paths, and extend
+  focused tests to the necessary native and platform matrix. The installed
+  mode still lacks the full BUILD_TESTS suite; GUI behavior remains open.
+- Preserve the AC1024 title drawing's named-block SORTENTSTABLE and every
+  dictionary dependency. The separately opted-in experimental codec path has
+  generated ODA/ezdxf evidence, but LibreDWG drops this record and Autodesk's
+  DXF reference documents space owners only. Keep the default refusal and
+  prove the specific consumer source-to-output chain, rollback and readback
+  before enabling any explicit consumer opt-in. Unknown inbound references and
+  dynamic-block objects remain unresolved; do not omit source records to pass
+  a gate ([source census](docs/research/p8-title-sortents-inbound-candidate-census-2026-11-15.json),
+  [peer receipt](docs/research/p8-experimental-named-sortents-oda-roundtrip-2026-11-15.json)).
+- Resolve the separate title-block MLEADERSTYLE version gate and then the next
+  observed export gate, without dropping fields. Qualify the R12/R14 diagnostic
+  in the GUI and across platforms; retain PR #3269's broader ASCII/Binary and
+  platform controls. Qualify LibreCAD_3 with a clean link, runtime import/export
+  and the required ABI and platform matrix.
 
-Apply the patches in this order (all under `docs/patches/`, with suffix
-`-2026-11-15.patch`): `librecad-p8-upstream-compat`,
-`librecad-p8-test-api-compat`, `librecad-p8-mpolygon-annotation-test`,
-`librecad-p8-mpolygon-hatch-test-type`, `librecad-p8-dimassoc-field-mapping`,
-`librecad-p8-mpolygon-policy`, `librecad-p8-mtext-column-extents`,
-`librecad-p8-associative-prefix-compat`, `librecad-p8-canonical-ltype-metadata`,
-`librecad-p8-installed-legacy-codepage`, `librecad-p8-complex-ltype-style-remap`,
-and `librecad-p8-canonical-ltype-policy-test`, and
-`librecad-p8-ltype-semantic-golden`, and
-`librecad-p8-legacy-dxf-lineweight-diagnostic`, and
-`librecad-p8-installed-codec-helper-compat`, and
-`librecad-p8-installed-codec-cmake-option`, and
-`librecad-p8-block-record-link-observation`, and
-`librecad-p8-installed-codec-public-tests`. Rebase and resolve against the
-consumer head if it advances; the pinned base still matched LibreCAD master
-when checked on 2026-11-15. The first 12
-apply in that order at the pinned base and reproduce the local consumer tree;
-the thirteenth applies on that result and reproduces the tested file; the
-fourteenth through eighteenth also pass forward/reverse checks on the same ordered chain
-([receipt](docs/research/p8-librecad-patch-chain-verification-2026-11-15.json)).
+Apply these patches under `docs/patches/` in the following order, each with
+suffix `-2026-11-15.patch`, rebasing as needed against the consumer head:
+`librecad-p8-upstream-compat`, `librecad-p8-test-api-compat`,
+`librecad-p8-mpolygon-annotation-test`, `librecad-p8-mpolygon-hatch-test-type`,
+`librecad-p8-dimassoc-field-mapping`, `librecad-p8-mpolygon-policy`,
+`librecad-p8-mtext-column-extents`, `librecad-p8-associative-prefix-compat`,
+`librecad-p8-canonical-ltype-metadata`, `librecad-p8-installed-legacy-codepage`,
+`librecad-p8-complex-ltype-style-remap`, `librecad-p8-canonical-ltype-policy-test`,
+`librecad-p8-ltype-semantic-golden`, `librecad-p8-legacy-dxf-lineweight-diagnostic`,
+`librecad-p8-installed-codec-helper-compat`, `librecad-p8-installed-codec-cmake-option`,
+`librecad-p8-block-record-link-observation`, `librecad-p8-installed-codec-public-tests`,
+`librecad-p8-dictionary-source-observation`, `librecad-p8-dictionary-source-correlation`,
+`librecad-p8-empty-sortents-source-correlation`, `librecad-p8-source-capture-session`,
+`librecad-p8-sortents-owner-chain`, `librecad-p8-layer-control-source-binding`,
+`librecad-p8-selected-control-diagnostic-graph`, `librecad-p8-zero-reactor-sortents-source`.
+The tested base is `8a82e35965d8d56a8f8608abd739fbb2c0de2f3e`.
 
 For MPOLYGON, retain the consumer's opt-in polyline policy; independently
 qualify ELLIPSE/SPLINE paths, raw replay, populated trailer semantics and mixed

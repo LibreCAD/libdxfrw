@@ -7,7 +7,7 @@
   "validation": [
     "A standalone C++17 -Werror consumer imported the locally generated ODA AC1024 drawing (DWG SHA-256 02c8a7dc65d6517e57211adb596ce546130fb3ad651eada8363c1f2a496545e8). Its sealed source snapshot matched the zero-reactor sort table B100 and exact block 30 / dictionary B003 owner chain; a crossed target was refused.",
     "The patch applies after the previous 25, and its macro-excluded metadata source compiles with older bundled headers. Source-release inventory and 18 refusal controls pass with 1221 files; the 723-input implementation digest is unchanged.",
-    "The installed-codec LibreCAD application rebuild and optional ODA-fixture importer/duplicate/reset/retry test are running; no application result is claimed yet."
+    "The installed-codec LibreCAD focused CTests passed 3/3; the optional ODA-fixture importer test passed all 13 assertions, including the exact source chain, duplicate invalidation and same-filter reset/reimport."
   ],
   "limits": "This is selected source correlation for one locally generated ODA file, not whole-document closure, output admission, native AutoCAD/FreeCAD qualification or a support claim. The ODA fixture is local and is not committed."
 }
