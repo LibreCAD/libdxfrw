@@ -251,7 +251,7 @@ index 659f1e1..d1c385e 100644
 +          "[dwg][roundtrip][sortentssource][source]") {
 +  const char *fixture = std::getenv("LIBRECAD_AC1024_SORTENTS_FIXTURE");
 +  if (fixture == nullptr || *fixture == '\0')
-+    SKIP("Set LIBRECAD_AC1024_SORTENTS_FIXTURE to libdxfrw's tracked title_block-iso.dwg");
++    SKIP("Set LIBRECAD_AC1024_SORTENTS_FIXTURE to a locally available AC1024 title_block-iso.dwg");
 +  REQUIRE(std::filesystem::exists(fixture));
 +  ensureSettings();
 +  RS_Graphic graphic;

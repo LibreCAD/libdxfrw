@@ -208,7 +208,7 @@ index 7ade964f..9a7461a6 100644
 +          "[dwg][roundtrip][sortentssource][source]") {
 +  const char *fixture = std::getenv("LIBRECAD_AC1024_SORTENTS_FIXTURE");
 +  if (fixture == nullptr || *fixture == '\0')
-+    SKIP("Set LIBRECAD_AC1024_SORTENTS_FIXTURE to the tracked AC1024 title drawing");
++    SKIP("Set LIBRECAD_AC1024_SORTENTS_FIXTURE to a locally available AC1024 title drawing");
 +  ensureSettings(); RS_Graphic graphic; RS_FilterDXFRW filter;
 +  REQUIRE(filter.fileImport(graphic, QString::fromUtf8(fixture), RS2::FormatDWG));
 +  REQUIRE(filter.setExperimentalEmptyNamedSortEnts(true));
