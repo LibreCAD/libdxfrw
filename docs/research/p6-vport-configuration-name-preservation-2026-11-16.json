@@ -64,6 +64,6 @@
     "fast": "https://github.com/dxli/libdxfrw/actions/runs/43865527188",
     "freecadRelease": "https://github.com/dxli/libdxfrw/actions/runs/43865527092",
     "native": "https://github.com/dxli/libdxfrw/actions/runs/43865527078",
-    "status": "FreeCAD release Linux and Windows jobs PASSED; native Linux PASSED; fast and native Windows/macOS are running at the listed revision."
+    "status": "PASSED at the listed revision: fast regressions, FreeCAD release Linux/Windows, and all focused native Linux/Windows/macOS jobs. Later test-only and documentation commits are not covered by these run identities."
   }
 }
