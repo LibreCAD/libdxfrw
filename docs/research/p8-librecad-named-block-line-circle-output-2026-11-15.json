@@ -1,0 +1,14 @@
+{
+  "date": "2026-11-15",
+  "consumerBase": "8a82e35965d8d56a8f8608abd739fbb2c0de2f3e",
+  "patch": "docs/patches/librecad-p8-named-block-line-circle-output-2026-11-15.patch",
+  "patchSha256": "551d18fd6499035dd4cf8a616fbfed2aeeed86f69a6522e85e82a942ce1ee6e9",
+  "scope": "The thirty-sixth unmerged LibreCAD consumer patch extends the explicit default-off bounded named-block path to unchanged default-style planar CIRCLEs mixed with LINEs, with original ordered membership, type, source and staged output-owner checks.",
+  "validation": [
+    "Locally authored source DXFs were converted by ODA into AC1024 DWGs: mixed LINE/CIRCLE SHA-256 76e5db811599924d4eae260eff8f5d93ab64c10aae56083d9dcaefa053e4c2a7 and nonplanar CIRCLE SHA-256 15f4cc62bd3847d3308c2e963d90dc80715e7f777bf517df0da8221345080cde. LibreDWG independently corroborates the mixed source types, geometry and block ownership.",
+    "Actual LibreCAD importer/exporter tests passed 27 mixed-profile assertions including edited-radius refusal, destination preservation and same-filter retry, and 7 nonplanar refusal assertions. A separate source-snapshot allocation-failure control confirms latch, reset and retry. The three focused installed-codec CTests pass including existing LINE boundary controls.",
+    "LibreCAD output SHA-256 1f14fa51130ccf577625128d80797f2c49b5ed23929b4b863f3339a03c368152 was converted by ODA to intermediate DWG 0274cc4747013150583679f859e3a7589713f77463d4a462cdc29f9b257b8aab and back to DXF 1cc08000c1083e2582b8cc32dfa5c2961c0d538de3f804909d56f7a5b64a238b. Independent LibreDWG checks the intermediate geometry, entity owners and sort owner; ezdxf verifies final geometry, entity owners and zero audit errors/fixes.",
+    "The patch applies after the prior 35 and reverse-checks against both application trees. The older bundled-codec filter compiles. Source-release inventory passes with 1233 files and 18 refusal controls; the 725-input implementation digest remains d2fbf3b7e98738e05bc8f6a097b74ee429b43f58bcc8988a7bc92e6554a539c7."
+  ],
+  "limits": "Only the generated AC1024 mixed LINE/CIRCLE profile and ASCII-DXF path were independently exercised; behavior is default-off and limited to unchanged default-style planar entities. Other geometry, styles, nonplanar data, native applications and whole-document closure remain open. No drawing fixture is committed and no support claim is promoted."
+}
