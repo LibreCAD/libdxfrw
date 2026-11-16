@@ -16,7 +16,6 @@
 // Allows consumers that also support older bundled forks to declare this
 // optional callback with an override specifier only when it exists.
 #define LIBDXFRW_HAS_BLOCK_RECORD_CALLBACK 1
-#define LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE 1
 
 // Preserve a caller's X11 None macro while declaring all header enums.
 #if defined(None)

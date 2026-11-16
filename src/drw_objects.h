@@ -16,6 +16,7 @@
 #define DRW_OBJECTS_H
 
 #define LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY 1
+#define LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE 1
 #define LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY 1
 
 // X11's object-like None macro must not alter public enum definitions.

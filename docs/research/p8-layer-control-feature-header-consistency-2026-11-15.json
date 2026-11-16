@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-15",
+  "problem": "The AC1024 layer-control feature macro was declared only by drw_interface.h although the source evidence type is declared in drw_objects.h. Consumers including the data header first could compile metadata with inconsistent conditional layouts.",
+  "fix": "Declare LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE in drw_objects.h, before the source type, and remove its redundant interface-header definition. No data layout or interface virtual changes.",
+  "validation": [
+    "A drw_objects.h-only C++17 compile with -Wall -Wextra -pedantic -Werror requires the macro and instantiates the source type. The focused source test also checks the feature before including the interface adapter.",
+    "The focused AC1024 control CTest and LibreCAD_3-compatible compile target pass. Source-release inventory remains 1216 files; the 722-input implementation digest is verified."
+  ],
+  "implementationDigestSha256": "7379f7f314272ece265809f7ad078e6ae0ccab5b5c459554e700099fe860ad03",
+  "limits": "The macro advertises API availability only; it does not validate a source, guarantee ABI between different library builds, or promote a support claim."
+}

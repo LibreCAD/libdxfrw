@@ -1,5 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Provisional source-body observation; this is not graph/output authorization.
+#include "drw_objects.h"
+#ifndef LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE
+#error The source data header must advertise its optional capture interface
+#endif
 #include "lc3_compat_check.cpp"
 #include "libdwgr.h"
 #include "intern/dwgbuffer.h"
