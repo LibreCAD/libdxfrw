@@ -14,5 +14,6 @@
     "Canonical LTYPE description preservation remains unresolved.",
     "The LibreCAD check reused compiled consumer objects rather than a clean consumer build.",
     "These are generated controls and do not establish independent producer semantics."
-  ]
+  ],
+  "descriptionFollowUp": "Predeclared nonempty descriptions are now retained; explicitly empty CONTINUOUS descriptions remain ambiguous. See p6-canonical-ltype-descriptions-2026-11-16.json."
 }

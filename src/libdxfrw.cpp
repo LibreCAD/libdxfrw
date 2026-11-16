@@ -7749,6 +7749,12 @@ bool dxfRW::writeLineType(DRW_LType *ent){
             && (cached == m_canonicalLineTypeMetadata.cend()
                 || cached->flags != ent->flags))
             return failDxfWrite();
+        const std::string_view defaultDescription = strname == "CONTINUOUS"
+            ? std::string_view("Solid line") : std::string_view{};
+        if (!ent->desc.empty() && std::string_view(ent->desc) != defaultDescription
+            && (cached == m_canonicalLineTypeMetadata.cend()
+                || cached->desc != ent->desc))
+            return failDxfWrite();
         const bool hasMetadata = !ent->appData.empty() || !ent->extData.empty()
             || !ent->reactorHandles.empty() || ent->xDictHandle != 0;
         if (hasMetadata && cached == m_canonicalLineTypeMetadata.cend()) {
@@ -18504,6 +18510,13 @@ bool dxfRW::writeTables(const char** outputStage) {
         const auto found = mandatoryLinetypes.find(name);
         return found == mandatoryLinetypes.end() ? 0 : found->second->flags;
     };
+    const auto writeMandatoryDescription = [this, &mandatoryLinetypes](
+        const char* name, const char* fallback) {
+        const auto found = mandatoryLinetypes.find(name);
+        return writer->writeUtf8String(3,
+            found != mandatoryLinetypes.end() && !found->second->desc.empty()
+                ? std::string_view(found->second->desc) : std::string_view(fallback));
+    };
     writer->writeString(0, "TABLE");
     writer->writeString(2, "LTYPE");
     if (version > DRW::AC1009) {
@@ -18534,7 +18547,7 @@ bool dxfRW::writeTables(const char** outputStage) {
     } else
         writer->writeString(2, "BYBLOCK");
     writer->writeInt16(70, mandatoryFlags("BYBLOCK"));
-    writer->writeString(3, "");
+    if (!writeMandatoryDescription("BYBLOCK", "")) return false;
     writer->writeInt16(72, 65);
     writer->writeInt16(73, 0);
     writer->writeDouble(40, 0.0);
@@ -18559,7 +18572,7 @@ bool dxfRW::writeTables(const char** outputStage) {
     } else
         writer->writeString(2, "BYLAYER");
     writer->writeInt16(70, mandatoryFlags("BYLAYER"));
-    writer->writeString(3, "");
+    if (!writeMandatoryDescription("BYLAYER", "")) return false;
     writer->writeInt16(72, 65);
     writer->writeInt16(73, 0);
     writer->writeDouble(40, 0.0);
@@ -18585,7 +18598,7 @@ bool dxfRW::writeTables(const char** outputStage) {
         writer->writeString(2, "CONTINUOUS");
     }
     writer->writeInt16(70, mandatoryFlags("CONTINUOUS"));
-    writer->writeString(3, "Solid line");
+    if (!writeMandatoryDescription("CONTINUOUS", "Solid line")) return false;
     writer->writeInt16(72, 65);
     writer->writeInt16(73, 0);
     writer->writeDouble(40, 0.0);

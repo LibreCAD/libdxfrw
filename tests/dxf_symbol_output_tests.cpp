@@ -1173,6 +1173,43 @@ void testSymbolNameWireInspection(TestContext& t) {
     std::cout << "Symbol-name wire cells=" << cells << " bounded refusals=" << limitsChecked << '\n';
 }
 
+void testCanonicalLtypeDescriptionAdapter(TestContext& test) {
+    const auto path = std::filesystem::temp_directory_path()
+        / ("canonical-ltype-adapter-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup {
+        std::filesystem::path path;
+        ~Cleanup() { std::error_code ignored; std::filesystem::remove(path, ignored); }
+    } cleanup{path};
+    for (const auto version : {DRW::AC1009, DRW::AC1014, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            dx_data source;
+            DRW_LType original;
+            original.name = "CONTINUOUS";
+            original.desc = "Source \xC3\xA9";
+            original.flags = 64;
+            original.handle = 0xD731u;
+            source.lineTypes.push_back(original);
+            dx_iface writer;
+            const bool written = writer.fileExport(path.string(), version, binary, &source, false);
+            dx_data output;
+            dx_iface reader;
+            const bool read = written && reader.fileImport(path.string(), &output, false);
+            unsigned found = 0;
+            bool matches = true;
+            for (const DRW_LType& row : output.lineTypes) {
+                if (row.name != "CONTINUOUS" && row.name != "Continuous") continue;
+                ++found;
+                matches = matches && row.flags == original.flags && row.desc == original.desc;
+            }
+            test.expect(written && read && found == 1u && matches
+                && source.lineTypes.front().desc == original.desc
+                && source.lineTypes.front().flags == original.flags,
+                "dwg2dxf retains predeclared canonical LTYPE description and flags");
+        }
+    }
+}
+
 } // namespace
 int main(int argc, char** argv) {
     TestContext context;
@@ -1186,6 +1223,7 @@ int main(int argc, char** argv) {
         testDxfSourceTableIdentities(context);
         testDxfSourceLinetypeTargets(context);
         testDwgLtypeControlOutputBinding(context);
+        testCanonicalLtypeDescriptionAdapter(context);
     }
     if (argc == 1 || (argc == 2 && std::string(argv[1]) == "--symbol-unicode-keys"))
         testSymbolUnicodeKeys(context);

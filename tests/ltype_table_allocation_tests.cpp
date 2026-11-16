@@ -144,12 +144,69 @@ class CanonicalLTypeReader final : public LC3CompatCheck {
 public:
     explicit CanonicalLTypeReader(std::string expectedName) : name(std::move(expectedName)) {}
     void addLType(const DRW_LType& row) override {
-        if (row.name == name) { ++count; flags = row.flags; }
+        if (row.name == name) { ++count; flags = row.flags; description = row.desc; }
     }
     std::string name;
     unsigned count = 0;
     int flags = -1;
+    std::string description;
 };
+
+bool canonicalDescriptions(const std::filesystem::path& directory) {
+    const auto path = directory / "canonical-ltype-description.dxf";
+    const auto cleanPath = directory / "canonical-ltype-description-clean.dxf";
+    const std::string sentinel = "prior canonical description output\n";
+    const std::string description = "Source \xC3\xA9";
+    for (const auto version : {DRW::AC1009, DRW::AC1014, DRW::AC1032}) {
+        for (const bool binary : {false, true}) {
+            for (const std::string name : {"BYBLOCK", "BYLAYER", "CONTINUOUS"}) {
+                dxfRW cleanCodec(cleanPath.string().c_str());
+                CanonicalLTypeExport clean(cleanCodec, name);
+                if (!cleanCodec.write(&clean, version, binary) || !clean.accepted)
+                    return false;
+                std::string expected;
+                if (!readBytes(cleanPath, expected)) return false;
+                { std::ofstream out(path, std::ios::binary | std::ios::trunc); out << sentinel; }
+                dxfRW codec(path.string().c_str());
+                CanonicalLTypeExport candidate(codec, name);
+                candidate.row.desc = description;
+                std::string current;
+                if (codec.write(&candidate, version, binary) || candidate.accepted
+                    || candidate.row.desc != description || !readBytes(path, current) || current != sentinel)
+                    return false;
+                candidate.row.desc = clean.row.desc;
+                if (!codec.write(&candidate, version, binary) || !candidate.accepted
+                    || !readBytes(path, current) || current != expected)
+                    return false;
+                candidate.row.desc = description;
+                codec.setCanonicalLineTypeMetadata({candidate.row});
+                if (!codec.write(&candidate, version, binary) || !candidate.accepted)
+                    return false;
+                const std::string wireName = version == DRW::AC1009 ? name
+                    : name == "BYBLOCK" ? "ByBlock" : name == "BYLAYER" ? "ByLayer" : "Continuous";
+                dxfRW readerCodec(path.string().c_str());
+                CanonicalLTypeReader reader(wireName);
+                if (!readerCodec.read(&reader, false) || reader.count != 1u || reader.description != description)
+                    return false;
+                std::string seeded;
+                if (!readBytes(path, seeded)) return false;
+                candidate.row.desc = "Changed after predeclaration";
+                if (codec.write(&candidate, version, binary) || candidate.accepted
+                    || !readBytes(path, current) || current != seeded)
+                    return false;
+                candidate.row.desc = clean.row.desc;
+                if (!codec.write(&candidate, version, binary) || !candidate.accepted
+                    || !readBytes(path, current) || current != seeded)
+                    return false;
+                candidate.row.desc = description;
+                if (!codec.write(&candidate, version, binary) || !candidate.accepted
+                    || !readBytes(path, current) || current != seeded)
+                    return false;
+            }
+        }
+    }
+    return true;
+}
 
 bool canonicalFlags(const std::filesystem::path& directory) {
     const auto path = directory / "canonical-ltype-flags.dxf";
@@ -524,7 +581,7 @@ int main() {
             std::filesystem::remove_all(path, error);
         }
     } cleanup{directory};
-    return canonicalFlags(directory) && allocationSweep(directory)
+    return canonicalDescriptions(directory) && canonicalFlags(directory) && allocationSweep(directory)
             && editedImportedRecordRoundTrip(directory)
         ? 0 : 2;
 }

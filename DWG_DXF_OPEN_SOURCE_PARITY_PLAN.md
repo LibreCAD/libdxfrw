@@ -2,9 +2,9 @@
 
 ## Progress estimate (2026-11-16)
 
-The plan records **696 completed implementation and qualification slices** and **32 remaining
+The plan records **697 completed implementation and qualification slices** and **32 remaining
 core work packages** in the inventory below. The equal-weight count estimate is
-`696 / (696 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
+`697 / (697 + 32) = 95.6%`. The previous 28-package denominator was stale; a recount
 of the OPEN P4–P8 inventory rows yields 32. This is a count-based progress measure, not an
 effort-weighted estimate: the work packages vary in size, and phase gates remain
 open until their full evidence criteria pass. P9's six deferred external-only
@@ -95,8 +95,11 @@ callback or predeclared metadata
 ([receipt](docs/research/p6-canonical-ltype-pattern-refusal-2026-11-16.json)).
 The relinked LibreCAD PR #3269-focused test also passes with these changes;
 broader LibreCAD integration remains open.
-Canonical descriptions can still be replaced by built-in values; audit source
-semantics and add a preservation route or explicit disposition.
+Predeclared nonempty canonical descriptions now round-trip through `dwg2dxf`,
+and unseeded custom descriptions refuse atomically
+([receipt](docs/research/p6-canonical-ltype-descriptions-2026-11-16.json)). An
+explicitly empty CONTINUOUS description remains indistinguishable from an
+unspecified default and still emits `Solid line`; resolve that representation.
 Continue the remaining public-writer and compound-route census.
 
 For FreeCAD integration, replay the complete ordered downstream chain with
