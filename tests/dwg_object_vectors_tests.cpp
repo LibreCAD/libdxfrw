@@ -14917,12 +14917,13 @@ void testR2007TableCellTypeReaderVectors(TestContext& t) {
         ? &table.m_content.m_rows.front().m_cells.front() : nullptr;
     t.expect(cellColorOverrideRead && cellColorOverrideInput.isGood()
                  && table.m_hasSemanticContent
-                 && !table.m_semanticContentComplete
+                 && table.m_semanticContentComplete
                  && cellColorOverrideCell != nullptr
                  && cellColorOverrideCell->m_overrideFlags == 0x00000004u
+                 && cellColorOverrideCell->m_fillColorRgb == 256
                  && cursorBit(cellColorOverrideInput)
                      == cellColorOverrideFrame.tableDataEndBit,
-             "unretained AC1021 TABLE cell CMC override remains structurally parsed but is not marked semantically complete");
+             "profile-qualified AC1021 TABLE cell ByLayer CMC override is retained with complete semantics");
 
     R2007TableFrame tableColorOverrideFrame;
     const bool tableColorOverrideBuilt = makeR2007TableFrame(

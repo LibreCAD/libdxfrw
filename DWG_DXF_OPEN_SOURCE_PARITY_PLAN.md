@@ -19,13 +19,17 @@ libdxfrw and LibreCAD origin/master heads above were re-checked and unchanged;
 LibreCAD PR #3269 is merged as `4060fb6bb` and is contained in that LibreCAD head.
 
 **Progress on 2026-11-17:** 5 of 33 required package gates are closed (15.2%);
-28 remain. The activity count is 39 of 70 complete (55.7%): 5 closed gates +
-34 completed non-gate slices, out of 33 gates + 34 completed slices + three
-remaining platform/UI phases. The latest completed slice implements bounded
-AC1021 AppInfo classification and routes only the source-attributed AutoCAD
-2007 profile toward the legacy TABLE parser; its receipt records the focused
-tests and the whole-drawing proxy-graphics refusal. P5-I remains open for
-TABLE field-span, output, and independent readback proof. The remaining 31 items are
+28 remain. The activity count is 40 of 71 complete (56.3%): 5 closed gates +
+35 completed non-gate slices, out of 33 gates + 35 completed slices + three
+remaining platform/UI phases. The latest completed slice retains documented
+text-cell overrides only for the classified AutoCAD 2007 profile; five focused
+selectors pass. The exact source still exposes a cell-alignment discrepancy:
+ODA specifies raw RS, while libdxfrw's raw read is 42049 and the bounded
+BitShort candidate is 6; ACadSharp reads the same two cells as MiddleRight (6).
+The peer result does not override ODA, so those cells remain incomplete and
+P5-I remains open for field-span, output, and independent readback proof. See
+the [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json).
+The remaining 31 items are
 the 28 open gates plus native Linux and Windows 3D qualification and combined
 LibreCAD 2 / LibreCAD_3 GUI qualification. This equal-weight activity count
 tracks plan items, not effort or support breadth; use the 5/33 gate rate for
@@ -47,14 +51,18 @@ A waiting source or environment blocks only its own profile. Implement the
 first ready profile now and run the integration wave once after local slices
 stabilize.
 
-1. **Continue P5-I at TABLE field-span proof.** The bounded AppInfo classifier
-   now identifies the exact Autodesk sample as AutoCAD 2007 and routes its
-   TABLEs through the legacy parser; its [implementation receipt](docs/research/p5-ac1021-appinfo-profile-classifier-2026-11-17.json)
-   records five passing focused selectors. The sample's source, release, ODA
+1. **Continue P5-I at the alignment boundary.** The bounded AppInfo classifier
+   identifies the exact Autodesk sample as AutoCAD 2007; documented text-cell
+   overrides are now retained for that profile. Five focused selectors pass.
+   The [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json)
+   binds the unresolved cells and records independent peer readback. The
+   sample's source, release, ODA
    authority, and independent cell values are in the
    [source-attribution receipt](docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json)
    and [peer-schema screen](docs/research/p5-ac1021-table-peer-schema-screen-2026-11-17.json).
-   Next bind actual TABLE cell/value spans, handle roles, counts, overrides,
+   First resolve raw RS=42049 against the BitShort=6 candidate using source
+   field-boundary evidence; preserve incomplete semantics while it is open.
+   Then bind remaining TABLE cell/value spans, handle roles, counts, overrides,
    and following-object boundaries. Keep missing, unknown, malformed, or
    contradictory metadata semantically incomplete with anonymous-block
    fallback. The whole sample still refuses strict output for two unrelated
@@ -183,7 +191,7 @@ readback. Each gate adds only its package-specific evidence.
 |---|---|---|
 | Desktop session | P8-D, P6-H | Resume P8-D only after AppKit application registration and pasteboard access work. Retry ODA only after a verifiable bundle launches. Keep both drawings in scratch. |
 | AC1024 capture | P5-D/E/F, P7-D, P6-A | Capture one source/session once; implement P5-D first, and close E/F only for present state. Take P7-D/P6-A only if their exact ACIS/lifecycle profiles are available. |
-| AC1021 TABLE | P5-I | Continue with source-bound cell/value spans, handle roles, override tails, and following-record boundaries. The [classifier receipt](docs/research/p5-ac1021-appinfo-profile-classifier-2026-11-17.json) proves the exact AutoCAD 2007 profile is selected; other AC1021 profiles stay incomplete and keep anonymous-block fallback. Whole-source export currently stops on two proxy graphics, so qualify selected TABLE output separately. |
+| AC1021 TABLE | P5-I | Resolve the source-bound raw-RS 42049 versus BitShort 6 alignment conflict first; ACadSharp reads MiddleRight (6), but peer agreement cannot overrule ODA §20.4.96.1. See the [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json). Then bind remaining cell/value spans, roles, counts, override tails, and following-record boundaries. The bounded classifier and documented text-cell override retention apply only to the exact AutoCAD 2007 profile; other AC1021 profiles stay incomplete with anonymous-block fallback. Whole-source export currently stops on two proxy graphics, so qualify selected TABLE output separately. |
 | AC1027 capture | P4-C, P7-C | Capture Sweep+matching DXF and shell mapping as distinct profiles. Do not repeat closed P7-B AcDs work. |
 | AC1032 capture | P4-B, P6-C | Capture DWG API state for each profile; paired DXF is not a substitute. |
 | Source/authority waitlist | P5-A/B/G/H, P6-B/E/F, P7-G | Admit only the named source or authority. Implement each qualifying arrival immediately; a missing witness blocks only its own gate. |
@@ -215,7 +223,7 @@ profile-specific semantic proof.
 | P5-F / DEPENDS_ON_P5-D_PROFILE | Reuse P5-D only if it contains TABLE layer overrides; otherwise capture only this state in that producer session. | Trace parse/storage/write/display precedence and compare with native appearance. |
 | P5-G / WAITING_FOR_CONSTRAINT_MODEL | Capture one producer-authored dynamic-constraint model with known parameters and dependencies. | Prove independent evaluation and graph closure, or explicitly refuse lossless output. Generated self-consistency is insufficient. |
 | P5-H / WAITING_FOR_NATIVE_VIEWPORT_PAIR | Capture a native AutoCAD ASCII/Binary pair with known VisualStyle/RenderPreset shade-plot state and target objects. Group 91 is settled as a soft pointer; unresolved fields are group 170 modes 4/5 and group 333 target classes. Reuse the [conflict analysis](docs/research/p6-viewport-shadeplot-dxf-objectarx-conflict-2026-11-16.json) instead of repeating group-91 research. | Prove exact values/target roles and fresh typed readback. Null, wrong-kind, missing, or ambiguous targets must refuse atomically; corrected same-writer retry and native rendering must pass. |
-| P5-I / IMPLEMENTING_AUTOCAD_2007_TABLE_FIELDS | Use the exact Autodesk sample and the [source-attribution receipt](docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json): AC1021 header; coherent AppInfo says AutoCAD product version 17.0; Autodesk maps 17.0s to AutoCAD 2007; ODA §20.4.96.1 documents the one-text-or-one-block 2007 cell layout; ACadSharp independently reads both tables' cell values. The [peer screen](docs/research/p5-ac1021-table-peer-schema-screen-2026-11-17.json) remains a peer-only caveat, not wire authority. The bounded internal AppInfo classifier and profile routing are implemented with five focused selectors passing; see the [slice receipt](docs/research/p5-ac1021-appinfo-profile-classifier-2026-11-17.json). | Trace actual cell/value spans, content and override fields, string/handle roles, cell counts, and following-object boundary. Type only the exact AutoCAD 2007 profile; missing, malformed, contradictory, AutoCAD 2008/2009, or unknown product metadata stays semantically incomplete with anonymous-block fallback. Add profile-aware unknown-source and truncation/wrong-role/boundary controls; prove rollback and corrected same-writer retry. The whole-source strict export currently fails on two typed proxy graphics, so prove selected-table strict ASCII/Binary output and fresh ACadSharp readback without masking that unrelated gate. Keep whole-drawing FIELD/FIELDLIST refusal under P5-A/B. Close only after source cell meanings and output/readback are complete; do not claim generic AC1021 coverage. |
+| P5-I / IMPLEMENTING_AUTOCAD_2007_TABLE_FIELDS | Use the exact Autodesk sample and the [source-attribution receipt](docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json): AC1021 header; coherent AppInfo says AutoCAD product version 17.0; Autodesk maps 17.0s to AutoCAD 2007; ODA §20.4.96.1 documents the one-text-or-one-block 2007 cell layout; ACadSharp independently reads both tables' cell values. The [peer screen](docs/research/p5-ac1021-table-peer-schema-screen-2026-11-17.json) remains a peer-only caveat, not wire authority. The bounded internal AppInfo classifier and documented text-cell override retention are implemented; focused selectors pass. See the [classifier receipt](docs/research/p5-ac1021-appinfo-profile-classifier-2026-11-17.json) and [override/alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json). | First resolve the exact source's raw-RS alignment 42049 against its BitShort candidate 6 using source field-boundary evidence; ACadSharp's independent MiddleRight (6) readback is not wire authority. Keep those cells incomplete until resolved. Then bind all cell/value/string/handle spans, counts, remaining overrides, and following-object boundary. Type only the exact AutoCAD 2007 profile; missing, malformed, contradictory, AutoCAD 2008/2009, or unknown product metadata stays semantically incomplete with anonymous-block fallback. Add profile-aware unknown-source and truncation/wrong-role/boundary controls; prove rollback and corrected same-writer retry. Whole-source strict export currently fails on two typed proxy graphics, so prove selected-table strict ASCII/Binary output and fresh ACadSharp readback separately. Keep whole-drawing FIELD/FIELDLIST refusal under P5-A/B. Close only after source cell meanings and output/readback are complete; do not claim generic AC1021 coverage. |
 
 ### P6 — version, no-loss, and public routes (6 open)
 

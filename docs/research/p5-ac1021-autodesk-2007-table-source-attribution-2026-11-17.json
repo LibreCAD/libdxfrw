@@ -72,9 +72,14 @@
       {
         "receipt": "docs/research/p5-ac1021-appinfo-profile-classifier-2026-11-17.json",
         "result": "The exact source is classified as AutoCAD 2007; unknown or malformed metadata remains unqualified. Focused generated classifier and TABLE selectors pass."
+      },
+      {
+        "receipt": "docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json",
+        "result": "Documented text-cell overrides are retained for the exact profile. Two final-row alignment values remain incomplete pending resolution of the raw-RS versus BitShort boundary conflict."
       }
     ],
     "orderedSteps": [
+      "Resolve the exact source's raw-RS alignment 42049 versus BitShort candidate 6 at cells [8,0] and [9,0] with source field-boundary evidence. ACadSharp reads the candidate meaning as MiddleRight, but peer semantics cannot overrule ODA §20.4.96.1.",
       "For the exact AutoCAD 2007 profile, trace and bind each cell's type, value span, style/string fields, handle roles, cell count, TABLE override tail, and following-object boundary against ODA §20.4.96.1 and the source. Keep all other AC1021 releases semantically incomplete and retain the anonymous-block display fallback.",
       "Add profile-aware unknown-source, truncation, wrong-role, and boundary controls. Do not commit the Autodesk DWG or derived fixtures.",
       "Prove failure preserves state and corrected same-writer retry; verify strict selected-table ASCII/Binary output and fresh ACadSharp readback. The whole source currently refuses strict output for two typed proxy graphics, so qualify selected TABLE output separately. Keep unrelated whole-drawing FIELD/FIELDLIST refusal attributed to its own open gates."

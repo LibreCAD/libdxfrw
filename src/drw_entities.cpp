@@ -4332,7 +4332,8 @@ bool readTableCmColor(DRW::Version version, dwgBuffer *buf,
     return true;
 }
 
-bool parseR2007TableCellOverrides(DRW::Version version, dwgBuffer *buf,
+bool parseR2007TableCellOverrides(DRW::Version version,
+                                  bool autoCad2007Profile, dwgBuffer *buf,
                                   dwgBuffer *strBuf, dwgBuffer *hdlBuf,
                                   DRW_TableCell& cell,
                                   bool& semanticComplete,
@@ -4357,9 +4358,9 @@ bool parseR2007TableCellOverrides(DRW::Version version, dwgBuffer *buf,
             return false;
         return false;
     }
-    // ODA §20.4.96.1 specifies the AC1018 text-cell field order. Retain the
-    // text-height and four physical-edge color/lineweight/visibility fields
-    // only when every selected value has a typed representation.
+    // ODA §20.4.96.1 specifies this cell override field order. Retain typed
+    // overrides for AC1018 and for the exact classified AutoCAD 2007 profile;
+    // later or unknown AC1021 producers remain semantically gated.
     constexpr std::array<std::uint32_t, 4> borderColorFlags = {{
         0x00000040u, 0x00000080u, 0x00000100u, 0x00000200u
     }};
@@ -4386,8 +4387,14 @@ bool parseR2007TableCellOverrides(DRW::Version version, dwgBuffer *buf,
     const bool legacyAc1018CellOverrideProfile = version == DRW::AC1018
         && cell.m_type == 1 && cell.m_overrideFlags != 0u
         && (cell.m_overrideFlags & ~representableOverrideFlags) == 0u;
+    const bool autoCad2007CellOverrideProfile = version == DRW::AC1021
+        && autoCad2007Profile && cell.m_type == 1u
+        && cell.m_overrideFlags != 0u
+        && (cell.m_overrideFlags & ~representableOverrideFlags) == 0u;
+    const bool retainKnownCellOverrides = legacyAc1018CellOverrideProfile
+        || autoCad2007CellOverrideProfile;
     if (cell.m_overrideFlags != 0u
-        && !legacyAc1018CellOverrideProfile
+        && !retainKnownCellOverrides
         && !ac1021TextAlignmentProfile)
         semanticComplete = false;
 
@@ -4415,7 +4422,7 @@ bool parseR2007TableCellOverrides(DRW::Version version, dwgBuffer *buf,
                                           alignment)) {
             return false;
         }
-        if (legacyAc1018CellOverrideProfile
+        if (retainKnownCellOverrides
             || ac1021TextAlignmentProfile) {
             cell.m_textAlignment = static_cast<int>(alignment);
             if (alignment < 1u || alignment > 9u)
@@ -4429,7 +4436,7 @@ bool parseR2007TableCellOverrides(DRW::Version version, dwgBuffer *buf,
         // ODA §20.4.96.1 stores "background fill none" in DWG, while
         // DRW_TableCell::m_backgroundEnabled follows DXF group 283's
         // background-enabled polarity. Translate between the two meanings.
-        if (legacyAc1018CellOverrideProfile)
+        if (retainKnownCellOverrides)
             cell.m_backgroundEnabled = !fillNone;
     }
     const auto readIndexedCellColor = [&](int& destination) {
@@ -4446,7 +4453,7 @@ bool parseR2007TableCellOverrides(DRW::Version version, dwgBuffer *buf,
                                 &bookName, bounds.stringEndBit, &method,
                                 &colorFlags, &index))
             return false;
-        if (legacyAc1018CellOverrideProfile) {
+        if (retainKnownCellOverrides) {
             const bool indexedColor = colorFlags == 0u && index == 0u
                 && rgb24 == -1 && !hasRgbColor && colorName.empty()
                 && bookName.empty()
@@ -4473,21 +4480,21 @@ bool parseR2007TableCellOverrides(DRW::Version version, dwgBuffer *buf,
                 hdlBuf, bounds.handleEndBit, DRW::DwgHardPointer,
                 textStyleHandle, "cell-text-style-override", buf, strBuf))
             return false;
-        if (legacyAc1018CellOverrideProfile)
+        if (retainKnownCellOverrides)
             cell.m_textStyleOverrideHandle = textStyleHandle;
     }
     if (cell.m_overrideFlags & 0x00020) {
         double textHeight = 0.0;
         if (!readBoundedBitDouble(*buf, bounds.bodyEndBit, textHeight))
             return false;
-        if (legacyAc1018CellOverrideProfile) {
+        if (retainKnownCellOverrides) {
             cell.m_textHeight = textHeight;
             if (!std::isfinite(textHeight) || textHeight <= 0.0)
                 semanticComplete = false;
         }
     }
     const auto parseBorderColor = [&](std::size_t edge) {
-        if (legacyAc1018CellOverrideProfile) {
+        if (retainKnownCellOverrides) {
             std::uint32_t color = 0;
             std::int32_t rgb24 = -1;
             bool hasRgbColor = false;
@@ -4525,7 +4532,7 @@ bool parseR2007TableCellOverrides(DRW::Version version, dwgBuffer *buf,
         std::uint16_t lineWeight = 0;
         if (!readBoundedBitShort(*buf, bounds.bodyEndBit, lineWeight))
             return false;
-        if (legacyAc1018CellOverrideProfile) {
+        if (retainKnownCellOverrides) {
             cell.m_borders[edge].m_lineWeight = static_cast<int>(lineWeight);
             if (lineWeight > 32767u)
                 semanticComplete = false;
@@ -4536,7 +4543,7 @@ bool parseR2007TableCellOverrides(DRW::Version version, dwgBuffer *buf,
         std::uint16_t visibility = 0;
         if (!readBoundedBitShort(*buf, bounds.bodyEndBit, visibility))
             return false;
-        if (legacyAc1018CellOverrideProfile) {
+        if (retainKnownCellOverrides) {
             if (visibility <= 1u) {
                 cell.m_borders[edge].m_visible = visibility == 1u;
                 cell.m_borders[edge].m_hasDxfVisibility = true;
@@ -4558,7 +4565,7 @@ bool parseR2007TableCellOverrides(DRW::Version version, dwgBuffer *buf,
             return false;
     }
 
-    if (legacyAc1018CellOverrideProfile) {
+    if (retainKnownCellOverrides) {
         int expectedEdgeFlags = 0;
         for (std::size_t edge = 0u; edge < borderColorFlags.size(); ++edge) {
             if ((cell.m_overrideFlags & (borderColorFlags[edge]
@@ -4582,7 +4589,8 @@ bool parseR2007TableCellOverrides(DRW::Version version, dwgBuffer *buf,
     return good;
 }
 
-bool parseR2007TableCell(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
+bool parseR2007TableCell(DRW::Version version, bool autoCad2007Profile,
+                         dwgBuffer *buf, dwgBuffer *strBuf,
                          dwgBuffer *hdlBuf, DRW_TableCell& cell,
                          bool& semanticComplete,
                          std::vector<DRW_DwgSubrecordRange> *ranges,
@@ -4669,7 +4677,8 @@ bool parseR2007TableCell(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf
     if (!readBoundedBit(*buf, bounds.bodyEndBit, hasOverrides))
         return false;
     if (hasOverrides
-        && !parseR2007TableCellOverrides(version, buf, strBuf, hdlBuf, cell,
+        && !parseR2007TableCellOverrides(version, autoCad2007Profile,
+                                         buf, strBuf, hdlBuf, cell,
                                          semanticComplete, ranges, bounds))
         return false;
 
@@ -17678,11 +17687,11 @@ bool DRW_Table::parseDwgWithR21Profile(DRW::Version version, dwgBuffer *buf,
     bool cellsParseComplete = true;
     for (std::uint32_t row = 0; row < rows && cellsParseComplete; ++row) {
         for (std::uint32_t column = 0; column < columns; ++column) {
-            if (!parseR2007TableCell(version, buf, cellStrBuf, &hBuff,
-                                     m_content.m_rows[row].m_cells[column],
-                                     m_semanticContentComplete,
-                                     &m_content.m_subrecordRanges,
-                                     tableBounds)) {
+            if (!parseR2007TableCell(
+                    version, autoCad2007Profile, buf, cellStrBuf, &hBuff,
+                    m_content.m_rows[row].m_cells[column],
+                    m_semanticContentComplete, &m_content.m_subrecordRanges,
+                    tableBounds)) {
                 cellsParseComplete = false;
                 m_semanticContentComplete = false;
                 break;
