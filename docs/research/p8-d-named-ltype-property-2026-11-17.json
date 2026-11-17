@@ -39,8 +39,33 @@
   "guiQualificationReadiness": {
     "status": "WAITING_FOR_FUNCTIONAL_AQUA_GUI",
     "observedAt": "2026-11-17",
-    "evidence": "The user reported starting an Aqua unlock. The configured LibreCAD GUI target was built successfully. LaunchServices then returned kLSNoExecutableErr for the .app bundle even though Contents/MacOS/LibreCAD exists. Directly launching that executable aborted with SIGABRT during AppKit/HIServices application registration after pasteboard and com.apple.hiservices-xpcservice errors; the crash log is /private/tmp/librecad-p8d-build-20261117/LibreCAD.app/Contents/MacOS/LibreCAD.1183.1794943046.crash.log. After the user reported the session unlocked, a fresh `open -n /private/tmp/librecad-p8d-build-20261117/LibreCAD.app` attempt still returned LaunchServices kLSNoExecutableErr (-10827). The shell could not inspect running processes because sysmond/sysmon was unavailable. No GUI test interaction ran.",
-    "retryWhen": "Retry only after LaunchServices can open the built .app normally and pasteboard/XPC registration works. Unlocking alone did not change the observed launch failure. Do not repeat the same launch attempt while the failure is unchanged."
+    "evidence": "The user said they would unlock the session. After that response, direct execution of the existing Contents/MacOS/LibreCAD binary produced only `sysmon request failed with error: sysmond service not found`; a screen capture failed with `could not create image from display`, and process inspection remains unavailable. Earlier attempts returned LaunchServices kLSNoExecutableErr (-10827) or aborted during AppKit/HIServices registration with pasteboard XPC errors. No usable desktop, app window, or GUI test interaction was observed.",
+    "retryWhen": "Resume only after the exact built candidate opens with working pasteboard/XPC registration and the display can be captured. The latest unlock-triggered retry reproduced LaunchServices -10827, pasteboard/HIServices failure, and no display; do not repeat until one of those conditions changes.",
+    "retryHistory": [
+      {
+        "date": "2026-11-17",
+        "trigger": "The user reported another attempt to unlock the Mac session.",
+        "candidate": {
+          "path": "/private/tmp/librecad-p8d-build-20261117/LibreCAD.app",
+          "commit": "d9c0ae435ed5892611d6bec3c628033004dbcaf4"
+        },
+        "attempts": [
+          {
+            "command": "open -n /private/tmp/librecad-p8d-build-20261117/LibreCAD.app",
+            "result": "LaunchServices kLSNoExecutableErr (-10827), although Contents/MacOS/LibreCAD exists."
+          },
+          {
+            "command": "/private/tmp/librecad-p8d-build-20261117/LibreCAD.app/Contents/MacOS/LibreCAD",
+            "result": "Exit 134 / SIGABRT; pasteboard creation failed for clipboard and find (-4960), then com.apple.hiservices-xpcservice connection invalid. Crash log: /private/tmp/librecad-p8d-build-20261117/LibreCAD.app/Contents/MacOS/LibreCAD.54229.1794949356.crash.log."
+          },
+          {
+            "command": "screencapture -x /private/tmp/p8d-candidate-unlocked.png",
+            "result": "could not create image from display"
+          }
+        ],
+        "outcome": "Unlocking did not expose a capturable Aqua display or working app/pasteboard registration in this execution environment. No GUI interaction or support qualification ran."
+      }
+    ]
   },
   "gate_disposition": {
     "gate": "P8-D",

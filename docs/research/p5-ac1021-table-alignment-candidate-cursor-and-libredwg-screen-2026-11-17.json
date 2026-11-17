@@ -1,0 +1,107 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 AutoCAD 2007 TABLE alignment cursor and LibreDWG screen",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "scope": "Refine the existing P5-I raw-RS versus BitShort conflict with source-bound parser cursor observations and a read-only LibreDWG screen. This does not establish independent wire spans or TABLE-to-FIELD links.",
+  "source": {
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "headerVersion": "AC1021",
+    "producer": "AutoCAD 2007, per the existing source-attribution receipt",
+    "fixtureDisposition": "The exact file was read from the existing local sample inventory. No DWG/DXF fixture was added or changed in the repository."
+  },
+  "alignmentCursorTrace": {
+    "diagnosticLog": "/private/tmp/p5i-table-span-diagnostic.log",
+    "diagnosticLogSha256": "db94c18876dabc39d100de4409904847070c8a5ec8dbd5f347ce1502789eda91",
+    "method": "Temporary DRW_DBG cursor markers around the existing bounded TABLE parser. Instrumentation was removed from src/drw_entities.cpp after capture; the tracked code was not changed by this diagnostic.",
+    "records": [
+      {
+        "tableHandle": "0x2856e",
+        "cell": [
+          8,
+          0
+        ],
+        "alignmentStartBit": 278632,
+        "rawRs": 42049,
+        "rawRsEndBit": 278648,
+        "bitShortCandidate": 6,
+        "bitShortCandidateEndBit": 278642,
+        "candidateUnknownBlSpan": [
+          278642,
+          278644
+        ],
+        "candidateCadValueSpan": [
+          278644,
+          279084
+        ],
+        "candidateCadValue": {
+          "flags": 6,
+          "dataType": 512,
+          "unitType": 0,
+          "text": "ESTIMATED COST OF DOORS"
+        }
+      },
+      {
+        "tableHandle": "0x2a974",
+        "cell": [
+          9,
+          0
+        ],
+        "alignmentStartBit": 312813,
+        "rawRs": 42049,
+        "rawRsEndBit": 312829,
+        "bitShortCandidate": 6,
+        "bitShortCandidateEndBit": 312823,
+        "candidateUnknownBlSpan": [
+          312823,
+          312825
+        ],
+        "candidateCadValueSpan": [
+          312825,
+          313297
+        ],
+        "candidateCadValue": {
+          "flags": 6,
+          "dataType": 512,
+          "unitType": 0,
+          "text": "ESTIMATED COST OF WINDOWS"
+        }
+      }
+    ],
+    "observation": "The parser's BitShort candidate consumes 10 bits from the recorded alignment start; the ODA-specified raw RS consumes 16 bits, a six-bit difference. Under the candidate cursor the next BL and CadValue parse to expected strings and typed metadata.",
+    "limitation": "These are offsets from libdxfrw's own parser cursor, not independently extracted source-field spans. Candidate-path decoding and expected text do not prove the BitShort wire layout. ODA v5.4.1 \u00a720.4.96.1 remains the authority for RS unless a version-qualified primary/source-bound witness establishes the actual boundary."
+  },
+  "libreDwgPeerScreen": {
+    "tool": "installed dwgread 0.14",
+    "command": "dwgread -O JSON -o /private/tmp/libredwg-ac1021-table.json tests/samples/AC1021/blocks_and_tables_-_metric.dwg",
+    "exitCode": 0,
+    "outputSha256": "4232f2a397ab6658facc1493e6fc78a87b7f3953a60e9a48160e110fa6dc632e",
+    "outputSizeBytes": 4640844,
+    "objects": [
+      {
+        "handle": "0x2856e",
+        "type": 506,
+        "bitsize": 286123,
+        "unknownBitsBytes": 2884
+      },
+      {
+        "handle": "0x2a974",
+        "type": 506,
+        "bitsize": 320756,
+        "unknownBitsBytes": 3124
+      }
+    ],
+    "fieldCensus": {
+      "FIELD": 162,
+      "FIELDLIST": 1,
+      "fieldListReferences": 162
+    },
+    "result": "LibreDWG emits both ACAD_TABLE entities but leaves their cell data in unknown_bits and exposes no cell alignment or TABLE-to-FIELD links. The FIELD/FIELDLIST counts and owner graph do not qualify P5-A. Its local source at commit 6d6a33987a1a97095b069c799c3d8a793320f812 declares the alignment as SUB_FIELD_RS in src/dwg2.spec, but that source profile does not decode these records."
+  },
+  "disposition": {
+    "P5I": "OPEN; preserve semantically incomplete cells and anonymous-block fallback. Do not rerun the same parser candidate or LibreDWG JSON screen absent a changed source or tool.",
+    "P5A": "Not activated from this sample; actual table-to-field relationships, physical links, and known field values were not established.",
+    "supportClaims": "None promoted."
+  },
+  "nextEvidence": "Obtain an independent decode exposing the exact decoded TABLE object-body cursor/field span, or a version-qualified Autodesk/ObjectARX trace for these cells. Otherwise retain the current fail-closed semantic disposition and work other admitted profiles."
+}

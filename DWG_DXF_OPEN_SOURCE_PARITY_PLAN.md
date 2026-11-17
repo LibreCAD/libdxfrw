@@ -19,102 +19,80 @@ libdxfrw and LibreCAD origin/master heads above were re-checked and unchanged;
 LibreCAD PR #3269 is merged as `4060fb6bb` and is contained in that LibreCAD head.
 
 **Progress on 2026-11-17:** 5 of 33 required package gates are closed (15.2%);
-28 remain. The activity count is 40 of 71 complete (56.3%): 5 closed gates +
-35 completed non-gate slices, out of 33 gates + 35 completed slices + three
-remaining platform/UI phases. The latest completed slice retains documented
-text-cell overrides only for the classified AutoCAD 2007 profile; five focused
-selectors pass. The exact source still exposes a cell-alignment discrepancy:
-ODA specifies raw RS, while libdxfrw's raw read is 42049 and the bounded
-BitShort candidate is 6; ACadSharp reads the same two cells as MiddleRight (6).
-The peer result does not override ODA, so those cells remain incomplete and
-P5-I remains open for field-span, output, and independent readback proof. See
-the [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json).
-The remaining 31 items are
-the 28 open gates plus native Linux and Windows 3D qualification and combined
-LibreCAD 2 / LibreCAD_3 GUI qualification. This equal-weight activity count
-tracks plan items, not effort or support breadth; use the 5/33 gate rate for
-package readiness. A prior implementation slice separates the signed
-32-bit ID domain from the 64 MiB payload-size limit for DXF EXTRUDED/SWEPT
-surfaces and adds generated ASCII/Binary controls; it closes no package gate
-or support claim; see the [slice receipt](docs/research/local-dxf-modeler-surface-id-domain-2026-11-17.json).
-The latest gate closed remains P7-B's bounded R2013 AcDs structural profile,
-proven by its linked receipt. Completed actions are retained in receipts and
-omitted from the active queue. P6-G is conditional, P7-E optional, and six
-DEFERRED_EXTERNAL dispositions are advisory, excluded from the count, and
-cannot promote support claims.
+28 remain. The activity count is 40 of 68 complete (58.8%): 5 closed gates
+and 35 completed implementation/research slices, out of 33 gates and 35
+recorded slices. The 28 remaining counted items are the open gates. A
+completed slice can advance a gate that remains open, so this equal-weight
+activity count measures work items rather than unique outcomes or support
+breadth; use 5/33 for package readiness. Native Linux, native Windows, and
+LibreCAD GUI qualification are already inside P8-B/C/D and are not counted a
+second time. Completed actions have been
+removed from the active queue; receipts preserve the evidence needed to avoid
+repeating them.
+The current local lane is P5-I: bounded AutoCAD 2007 AppInfo classification
+and documented text-cell override retention are complete. The two source
+cells with alignment overrides remain incomplete: ODA specifies raw RS, the
+libdxfrw raw read is 42049, the bounded BitShort candidate is 6, and ACadSharp
+reads MiddleRight (6). A temporary parser-cursor trace found the candidate
+path starts the next CadValue six bits earlier and decodes the expected text,
+but that is parser self-consistency, not an independent source-span proof.
+LibreDWG 0.14 also leaves these TABLE cell bodies in `unknown_bits`; neither
+peer result overrides ODA. See the [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json)
+and [cursor/peer screen](docs/research/p5-ac1021-table-alignment-candidate-cursor-and-libredwg-screen-2026-11-17.json).
+No gate or implementation slice closed in this update, so the activity count
+remains 40/68 and package readiness remains 5/33.
+P6-G is conditional, P7-E optional, and six DEFERRED_EXTERNAL dispositions
+are advisory, excluded from the count, and cannot promote support claims.
 
 ## Execution order
 
-Completed implementation and research steps have been removed from the active
-queue; receipts remain only where they prove a gate or prevent repeated work.
-A waiting source or environment blocks only its own profile. Implement the
-first ready profile now and run the integration wave once after local slices
-stabilize.
+Completed implementation/research actions are absent from this sequence;
+their receipts are linked only where they prevent repeated work. The only
+profile with a local source and active parser work is P5-I. Other source,
+authority, and environment waits block only their own profiles.
 
-1. **Continue P5-I at the alignment boundary.** The bounded AppInfo classifier
-   identifies the exact Autodesk sample as AutoCAD 2007; documented text-cell
-   overrides are now retained for that profile. Five focused selectors pass.
-   The [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json)
-   binds the unresolved cells and records independent peer readback. The
-   sample's source, release, ODA
-   authority, and independent cell values are in the
-   [source-attribution receipt](docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json)
-   and [peer-schema screen](docs/research/p5-ac1021-table-peer-schema-screen-2026-11-17.json).
-   First resolve raw RS=42049 against the BitShort=6 candidate using source
-   field-boundary evidence; preserve incomplete semantics while it is open.
-   Then bind remaining TABLE cell/value spans, handle roles, counts, overrides,
-   and following-object boundaries. Keep missing, unknown, malformed, or
-   contradictory metadata semantically incomplete with anonymous-block
-   fallback. The whole sample still refuses strict output for two unrelated
-   typed proxy graphics; prove a selected TABLE route independently. Do not
-   wait for GUI checks or other source captures.
-2. **Reuse each producer source once.** Hash it once, then capture only present
-   state:
-   - **AC1021 AutoCAD 2007:** continue P5-I. Screen the same source for P5-A
-     only if actual TABLE-to-FIELD links and known field values are proven;
-     class-instance counts alone do not qualify FIELD support. AutoCAD
-     2008/2009 cell layouts remain unresolved.
-   - **AC1024:** P5-D TABLE values, format, linked objects, and appearance;
-     P5-E/F only when matching content-format or layer-override state occurs;
-     P7-D ACIS 21500 only when that exact profile is present.
-   - **AC1027:** P4-C Sweep plus matching DXF; P7-C shell fields and the
-     following-handle boundary. P7-B's bounded AcDs structure/record-link
-     profile is closed; see the [closure receipt](docs/research/p7-ac1027-oda-section24-record-model-crosswalk-2026-11-17.json).
-     Keep the profiles separate even when captured in one session.
-   - **AC1032:** P4-B associative-network top-level/nested API state and P6-C
-     TABLE cell/format state. A paired DXF cannot substitute for DWG API state.
-   - **Other producer opportunities:** P5-A/B, P5-G/H, P6-A/B/E/F, and P7-G
-     only from their named source or authority. Do not repeat broad searches or
-     create unrelated content to fill a capture batch.
-   Start the first qualifying slice without waiting for the rest of a batch.
-   If one capture fails, record its changed-state trigger and move to another
-   ready lane.
-3. **Use one short vertical implementation loop per profile.** Bind source
-   hash, producer/build, version, type trace, field spans, handle roles, and
-   following-record boundary; reconcile only those fields with ODA. Make the
-   smallest parser/model/graph/writer change, add one discriminating malformed
-   control, prove rollback and corrected same-writer retry, then check strict
-   output and fresh independent readback. Add native semantic proof only where
-   required for the claim. Follow real dependencies: P5-A → P5-B; P5-D →
-   P5-E/F; P7-C/D → P7-F after an output-capable profile and independent reader
-   are available. P7-B supplies only the bounded AcDs frame and handle link.
-4. **Retry environment-bound work only after its trigger changes; freeze last.**
-   P8-D's local selector code and fast tests are complete. After the user said
-   they would unlock the Mac, direct launch emitted `sysmon request failed
-   with error: sysmond service not found`, screen capture returned `could not
-   create image from display`, and no UI interaction was possible. Resume when
-   a capturable Aqua display and normal app/pasteboard registration are
-   available; then run the Move/Copy action-boundary, named-LTYPE
-   save/reopen/render, and LibreCAD_3 MPOLYGON GUI/readback checks. Retry P6-H
-   only after ODA supplies a verifiable bundle; reuse the existing hash-bound
-   scratch MLINE. Do not regenerate it or repeat unchanged launch attempts.
-   Once admitted profiles stabilize, freeze source, build, package, executable,
-   and loaded modules. Run native Linux and Windows FreeCAD 2D checks and each
-   admitted source-derived profile; add 3D only for P7-admitted profiles.
-   Capture shared/static manifests, relocation, runtime identity, and
-   source-matched Linux/macOS/Windows CI on that candidate. Refresh required
-   checks only for the same source. Close P8-A/B/C/E/F, complete P7-H where
-   applicable, then set release thresholds and update the support matrix
+1. **Finish the admitted AutoCAD 2007 TABLE profile (P5-I).** Use the exact
+   source and [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json).
+   First trace the alignment field's actual bit position and next-field
+   boundary against ODA §20.4.96.1. Do not select RS or BitShort by peer
+   agreement; keep the affected cells incomplete if the boundary remains
+   unproven. In the same trace, bind cell/value/string/handle spans, counts,
+   remaining overrides, and the next object boundary for both TABLE records.
+   Add only missing profile-aware unknown/truncation/wrong-role/boundary and
+   rollback/retry controls; classifier and documented text-override controls
+   are already complete. Then prove selected-TABLE strict ASCII/Binary output
+   and fresh ACadSharp readback. The whole drawing's two unrelated typed proxy
+   graphics remain outside this gate. Close P5-I only when source semantics,
+   graph closure, failure/retry, output, and readback are all evidenced.
+2. **Reuse the same source opportunistically.** While the AutoCAD 2007 TABLE
+   trace is open, screen it for P5-A only if actual TABLE-to-FIELD links,
+   field spans, and known values can be bound. Counts of FIELD/FIELDLIST
+   classes alone do not qualify; do not delay P5-I or implement FIELD without
+   that evidence. AutoCAD 2008/2009 remain a separate unresolved profile.
+3. **Start the next admitted profile immediately.** Use the packet overview
+   and gate tables below to select a source that has actually arrived. Hash it
+   once; capture only state present in that producer session. Keep AC1024 TABLE,
+   AC1027 Sweep/shell, AC1032 associative-network/TABLE, and other profiles
+   separate even if captured together. Do not wait for a complete capture
+   batch. For each admitted profile, follow the shared short loop: exact source
+   and ODA span map → smallest parser/model/graph/writer change → one
+   discriminating failure control and corrected retry → strict output and
+   fresh independent readback → native semantic check only where required.
+4. **Resume waits only after their trigger changes.** P8-D's selector work is
+   complete, but the latest unlock-triggered retry of the exact candidate
+   returned LaunchServices -10827, pasteboard/HIServices errors, and no
+   capturable display; retry GUI actions only after app registration and
+   display access work. Retry P6-H only
+   after ODA provides a verifiable converter bundle; reuse its existing
+   hash-bound MLINE source. Close P8-D after its GUI checks pass. Continue other
+   local/source-ready work while either wait remains.
+5. **Freeze and qualify once.** After admitted local profiles stabilize,
+   freeze the source, build, package, executable, and loaded modules. Run native
+   Linux and Windows FreeCAD 2D checks for every admitted profile, add 3D only
+   for P7-admitted profiles, and collect shared/static manifests, relocation,
+   runtime identity, and source-matched platform CI on the same candidate.
+   Close P8-A/B/C/E/F and applicable P7-H after the changed-trigger P8-D GUI
+   gate closes, then set release thresholds and update the support matrix
    (P8-G). Hosted CI remains subject to the owner's existing go-ahead.
 
 ## Evidence policy and per-slice loop
@@ -161,10 +139,13 @@ stabilize.
   after code changes. Add ASan only for bounds, ownership, lifetime, or handle
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
-- Count one unit for each of the 32 package gates, 32 completed non-gate slices,
-  and three remaining platform/UI phases. A partial implementation does not
-  close a gate. Recount only when a gate, slice, or phase changes; the snapshot
-  above is the single current estimate.
+- Count the 33 package gates and each implementation/research slice once; the
+  current ledger has 35 recorded slices (68 items total). Linux, Windows, and
+  GUI outcomes belong to P8-B/C/D and are not separate progress units. A
+  partial implementation slice earns activity progress but does not close its
+  package gate; after each commit, report both states. Recount when a gate
+  closes or a newly scoped slice is committed; the snapshot above is the
+  current equal-weight activity estimate.
 
 Keep claims closed under [the support policy](docs/UPGRADE_SUPPORT.md),
 [route matrix](metadata/support-matrix-v1.json),
@@ -179,6 +160,7 @@ Only the following 28 open package gates are active; completed actions have
 been removed. This queue groups shared prerequisites first; detailed gate
 criteria follow in the subsystem tables. The group counts reconcile to 28.
 Readiness labels describe scheduling only, never support:
+`ACTIVE_*` means source-backed local work can proceed;
 `WAITING_*` needs the named source, authority, or environment;
 `DEPENDS_ON_*` needs an earlier slice; `INTEGRATION_GATE` waits for the
 candidate freeze. Common implementation-slice exit is: focused build and
@@ -187,15 +169,13 @@ corrected retry succeeds. A raw-only route must preserve its exact source and
 strictly refuse output; an output-capable route must also pass fresh independent
 readback. Each gate adds only its package-specific evidence.
 
-| Execution packet | Gates | Start condition and speed rule |
+| Priority packet | Gates | Start condition and speed rule |
 |---|---|---|
-| Desktop session | P8-D, P6-H | Resume P8-D only after AppKit application registration and pasteboard access work. Retry ODA only after a verifiable bundle launches. Keep both drawings in scratch. |
-| AC1024 capture | P5-D/E/F, P7-D, P6-A | Capture one source/session once; implement P5-D first, and close E/F only for present state. Take P7-D/P6-A only if their exact ACIS/lifecycle profiles are available. |
-| AC1021 TABLE | P5-I | Resolve the source-bound raw-RS 42049 versus BitShort 6 alignment conflict first; ACadSharp reads MiddleRight (6), but peer agreement cannot overrule ODA §20.4.96.1. See the [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json). Then bind remaining cell/value spans, roles, counts, override tails, and following-record boundaries. The bounded classifier and documented text-cell override retention apply only to the exact AutoCAD 2007 profile; other AC1021 profiles stay incomplete with anonymous-block fallback. Whole-source export currently stops on two proxy graphics, so qualify selected TABLE output separately. |
-| AC1027 capture | P4-C, P7-C | Capture Sweep+matching DXF and shell mapping as distinct profiles. Do not repeat closed P7-B AcDs work. |
-| AC1032 capture | P4-B, P6-C | Capture DWG API state for each profile; paired DXF is not a substitute. |
-| Source/authority waitlist | P5-A/B/G/H, P6-B/E/F, P7-G | Admit only the named source or authority. Implement each qualifying arrival immediately; a missing witness blocks only its own gate. |
-| Frozen integration | P7-F/H, P8-A/B/C/E/F/G | P7-F/H follow profile admission. Freeze once, run Linux/Windows native consumer and package checks on that candidate, then close release thresholds. |
+| 1 — Local implementation | P5-I; conditional P5-A source screen | Continue P5-I from its alignment boundary. Reuse the same Autodesk source for P5-A only if links/spans/known values are present. This is the only current source-backed parser lane. |
+| 2 — Producer capture batches | P5-D/E/F, P6-A, P4-C, P7-C, P4-B, P6-C | Capture each producer/session once and implement the first qualifying profile immediately. See gate rows for exact source requirements; paired DXF alone does not qualify DWG API state. |
+| 3 — Named authority/source waits | P5-B/G/H, P6-B/E/F, P7-D/G and remaining dependent gates | Do not repeat broad scans. Resume only on the listed source, versioned authority, or independent reader arriving; keep unrelated work moving. |
+| 4 — Changed-trigger environment waits | P8-D, P6-H | P8-D requires a working Aqua app/pasteboard/display; P6-H requires a verifiable ODA bundle. Keep drawings in scratch. |
+| 5 — Frozen integration | P7-F/H, P8-A/B/C/E/F/G | Freeze once after profile admission; run Linux/Windows native consumer and package checks against that same candidate, then close thresholds. |
 
 When a witness arrives, capture the actual type and reader trace first; use
 those to locate the `readDwgEntity`/`readDwgObject` dispatch and matching
@@ -223,7 +203,7 @@ profile-specific semantic proof.
 | P5-F / DEPENDS_ON_P5-D_PROFILE | Reuse P5-D only if it contains TABLE layer overrides; otherwise capture only this state in that producer session. | Trace parse/storage/write/display precedence and compare with native appearance. |
 | P5-G / WAITING_FOR_CONSTRAINT_MODEL | Capture one producer-authored dynamic-constraint model with known parameters and dependencies. | Prove independent evaluation and graph closure, or explicitly refuse lossless output. Generated self-consistency is insufficient. |
 | P5-H / WAITING_FOR_NATIVE_VIEWPORT_PAIR | Capture a native AutoCAD ASCII/Binary pair with known VisualStyle/RenderPreset shade-plot state and target objects. Group 91 is settled as a soft pointer; unresolved fields are group 170 modes 4/5 and group 333 target classes. Reuse the [conflict analysis](docs/research/p6-viewport-shadeplot-dxf-objectarx-conflict-2026-11-16.json) instead of repeating group-91 research. | Prove exact values/target roles and fresh typed readback. Null, wrong-kind, missing, or ambiguous targets must refuse atomically; corrected same-writer retry and native rendering must pass. |
-| P5-I / IMPLEMENTING_AUTOCAD_2007_TABLE_FIELDS | Use the exact Autodesk sample and the [source-attribution receipt](docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json): AC1021 header; coherent AppInfo says AutoCAD product version 17.0; Autodesk maps 17.0s to AutoCAD 2007; ODA §20.4.96.1 documents the one-text-or-one-block 2007 cell layout; ACadSharp independently reads both tables' cell values. The [peer screen](docs/research/p5-ac1021-table-peer-schema-screen-2026-11-17.json) remains a peer-only caveat, not wire authority. The bounded internal AppInfo classifier and documented text-cell override retention are implemented; focused selectors pass. See the [classifier receipt](docs/research/p5-ac1021-appinfo-profile-classifier-2026-11-17.json) and [override/alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json). | First resolve the exact source's raw-RS alignment 42049 against its BitShort candidate 6 using source field-boundary evidence; ACadSharp's independent MiddleRight (6) readback is not wire authority. Keep those cells incomplete until resolved. Then bind all cell/value/string/handle spans, counts, remaining overrides, and following-object boundary. Type only the exact AutoCAD 2007 profile; missing, malformed, contradictory, AutoCAD 2008/2009, or unknown product metadata stays semantically incomplete with anonymous-block fallback. Add profile-aware unknown-source and truncation/wrong-role/boundary controls; prove rollback and corrected same-writer retry. Whole-source strict export currently fails on two typed proxy graphics, so prove selected-table strict ASCII/Binary output and fresh ACadSharp readback separately. Keep whole-drawing FIELD/FIELDLIST refusal under P5-A/B. Close only after source cell meanings and output/readback are complete; do not claim generic AC1021 coverage. |
+| P5-I / ACTIVE_ALIGNMENT_AND_SPAN_PROOF | Use the exact Autodesk sample and its [source-attribution receipt](docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json); the bounded AutoCAD 2007 profile route and documented text-cell overrides are already implemented. The [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json) and [cursor/peer screen](docs/research/p5-ac1021-table-alignment-candidate-cursor-and-libredwg-screen-2026-11-17.json) contain all existing trace and reader observations. | The parser trace narrows the candidate cursor to a six-bit difference: BitShort consumes 10 bits and lands on the expected CadValue; ODA specifies RS (16 bits). This is not independent span proof. LibreDWG 0.14 leaves the TABLE cell bodies unknown, so do not repeat that peer scan or count FIELD/FIELDLIST instances as P5-A evidence. Next obtain an independent decoded-object-body cursor/field-span evidence or version-qualified Autodesk/ObjectARX trace; otherwise retain incomplete semantics and anonymous-block fallback. Once the boundary is independently resolved, bind remaining cell/value/string/handle spans, counts, overrides, and following-object boundary for both records. Reuse existing generated unknown/truncation/rollback/retry controls; add only demonstrated gaps. Then prove selected-TABLE strict ASCII/Binary output and fresh independent readback; the two unrelated typed proxy graphics keep whole-drawing export outside this gate. Do not generalize beyond the classified AutoCAD 2007 profile. |
 
 ### P6 — version, no-loss, and public routes (6 open)
 
@@ -273,7 +253,7 @@ AC1027 ordinary drawings deferred until source-reference closure.
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation profiles stabilize. Reuse [macOS package evidence](docs/research/p8-macos-package-baseline-2026-11-17.json) only while its inputs match. | Record reproducible commands and immutable identities. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. |
 | P8-B / WAITING_FOR_FREEZE | On the frozen candidate, run native Linux FreeCAD qualification for 2D and every admitted source-derived profile. Add AC1027/AC1032 3D only after P7 admission. Earlier generated 2D results in the [platform receipt](docs/research/p8-freecad-linux-windows-generated-pass-2026-11-15.json) are historical controls only. | Record runner, FreeCAD/converter/modules, settings, exact `open()`/`insert()` handoff, runtime identity, and independent semantics per profile. No cross-compilation or ambiguous fallback. |
 | P8-C / WAITING_FOR_FREEZE | Run the same frozen workflow on native Windows; reuse earlier path-with-spaces/Unicode and generated 2D checks only as historical controls. The tracked `ordinary_enc_AC1027.dwg` still fails before publication; see [preflight receipt](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json). | Use the same evidence fields as P8-B. Keep ordinary AC1027 deferred until source-reference closure. |
-| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | After the user reported the session unlocked, retrying `open -n` still returned LaunchServices `kLSNoExecutableErr` (`-10827`); no interactive check ran. The earlier direct launch also aborted during AppKit/HIServices registration with pasteboard XPC errors. See the [receipt](docs/research/p8-d-named-ltype-property-2026-11-17.json). Unlocking alone did not clear app registration. Resume only when the built bundle opens normally and pasteboard access works. Then record Move/Copy action-boundary values, named-LTYPE save/reopen/render, and LibreCAD_3 MPOLYGON GUI save/reopen plus pinned ezdxf 1.4.5 readback. |
+| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | Following the latest user unlock attempt, retrying the exact P8-D candidate still returns LaunchServices `kLSNoExecutableErr` (`-10827`); direct execution aborts on pasteboard/HIServices XPC errors and `screencapture` reports no display. See the [receipt](docs/research/p8-d-named-ltype-property-2026-11-17.json). Resume only after the app/pasteboard registration works and the display is capturable. Then record Move/Copy action-boundary values, named-LTYPE save/reopen/render, and LibreCAD_3 MPOLYGON GUI save/reopen plus pinned ezdxf 1.4.5 readback. Continue local work while this gate waits. |
 | P8-E / INTEGRATION_GATE | During P8-B/C, collect native Linux/Windows shared/static manifests, relocation, and loaded runtime identities. Reuse the [macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json); repeat macOS only if candidate inputs change. | Verify package contents and shared/static relocation for each platform. |
 | P8-F / WAITING_FOR_SOURCE_MATCHED_CI | Reuse the [CI root-cause receipt](docs/research/p8-pr106-native-ci-root-cause-2026-11-17.json); rerun local diagnosis only if candidate inputs change. | Close on source-matched Linux/macOS/Windows results and current required-check/branch-protection state. Hosted CI remains subject to the owner's existing go-ahead. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
