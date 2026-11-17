@@ -5,28 +5,28 @@
   "candidate": {
     "repository": "LibreCAD/LibreCAD",
     "branch": "codex/p8d-named-linetype-property",
-    "commit": "6c100d894",
+    "commit": "d9c0ae435",
     "base": "3ad089398976feb96ee01b8dee006c141edd8d3e (current local origin/master reference)",
     "checkout": "/private/tmp/librecad-p8d-current-20261117"
   },
   "behavior": {
     "property": "Entity Line Type",
-    "implementation": "Expose exact names from the drawing LTYPE table; append exact current names for all selected entities when a name has no table row; set only the pen LTYPE name. The headless regression creates the actual property combo and selects the imported name through its QComboBox index.",
+    "implementation": "Expose exact names from the drawing LTYPE table; append exact current names for all selected entities when a name has no table row; set only the pen LTYPE name. The single-selection regression selects through the configured combo; the mixed-selection regression creates the row view through the property view factory and drives the real LC_PropertyViewMultiple event wrapper before selecting the missing name.",
     "compatibility": "Keep seeded canonical choices, including DASHED, and preserve pen color and width.",
     "consumer_effect": "Entity properties can display and select imported nonstandard LTYPE names without reducing existing built-in choices."
   },
   "validation": {
     "configure": "cmake -S . -B /private/tmp/librecad-p8d-build-20261117 -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON",
-    "build": "cmake --build /private/tmp/librecad-p8d-build-20261117 --target librecad_tests -j4",
+    "build": "cmake --build /private/tmp/librecad-p8d-build-20261117 --target librecad_tests -j2",
     "selector": "./librecad_tests 'Entity properties display and change imported named linetypes,Entity properties retain a named linetype missing from the drawing table,A new drawing writes the built-in LTYPE table as before' --reporter compact",
-    "result": "PASS: 71 assertions across 3 test cases.",
+    "result": "PASS: 76 assertions across 3 test cases.",
     "covered": [
       "Import a scratch-authored AC1027 ASCII DXF with VENDOR_BINARY and VENDOR_OTHER table rows and a VENDOR_BINARY LINE.",
       "Property descriptor exposes DASHED and both exact imported custom names.",
       "Create the configured entity property QComboBox, select VENDOR_OTHER by its exact item, and apply the edit, preserving color and lineweight.",
       "Undo restores VENDOR_BINARY and redo restores VENDOR_OTHER.",
       "Export and fresh-import; verify entity group 6 resolves to VENDOR_OTHER, the LTYPE pattern is [6,-3], and color/lineweight remain unchanged.",
-      "In a mixed selection, select another entity's current non-table name from the actual combo and verify the selected set receives it."
+      "In a mixed selection, run the row's actual view factory and LC_PropertyViewMultiple event wrapper, select another entity's current non-table name from the created combo, and verify the selected set receives it."
     ],
     "fixture_policy": "The DXF input is generated from scratch inside the test's QTemporaryDir. No downloaded or repository fixture was added.",
     "diff_check": "PASS"
