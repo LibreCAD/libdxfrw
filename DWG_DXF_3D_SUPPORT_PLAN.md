@@ -79,6 +79,14 @@ added. See the [parity-plan implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PL
 
 # DWG/DXF 3D Support Review and Fix Plan
 
+> **Active implementation queue:** [`DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md`](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md)
+> is the current source of truth for remaining actions, readiness, package
+> counts, and next slices. This document retains detailed specification
+> research and dated implementation evidence. Those dated entries are
+> historical snapshots, not open work; use the current registry and receipts
+> to decide what remains. Do not restart a completed slice unless new evidence
+> identifies a regression or a changed profile.
+
 **Latest local S3.7c cone-face normal slice (2026-10-21; parser-fed generated fast slice, uncommitted):** added a local differential normal for the cone evaluator, including elliptic ratio and nappe sign, then applied retained face sense. Parser-fed circular/elliptic cases, reversed sense, negative nappe, and singular-apex refusal pass the focused graph-preservation CTest. It does not qualify native ACIS parameter/orientation semantics, trims, B-rep validity, or consumers. [Parity-plan implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-cone-face-normal-2026-10-21-parser-fed-generated-fast-slice-uncommitted).
 
 **Latest local S3.7c plane-face normal slice (2026-10-21; parser-fed generated fast slice, uncommitted):** added a helper to normalize the decoded plane normal and apply the retained face-sense flag. Parser-fed forward/reversed face checks and generated wrong-type, degenerate, non-finite, and unknown-sense refusals pass the focused graph-preservation CTest. This does not qualify native ACIS orientation semantics, trimmed faces, B-rep validity, or consumer support. [Parity-plan implementation record](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#implementation-progress-s37c-plane-face-normal-2026-10-21-parser-fed-generated-fast-slice-uncommitted).
