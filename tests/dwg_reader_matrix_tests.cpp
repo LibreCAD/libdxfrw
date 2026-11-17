@@ -12142,7 +12142,8 @@ enum class GeneratedTableContentRoleFailure {
     None,
     ContentTextStyle,
     BorderLineType,
-    CellContentReference
+    CellContentReference,
+    TableFieldReference
 };
 
 bool appendGeneratedBits(dwgBufferW& destination,
@@ -12239,7 +12240,8 @@ bool makeGeneratedR24TableContentObject(
     bool includeCellStyleData = false,
     GeneratedTableContentRoleFailure wrongRole =
         GeneratedTableContentRoleFailure::None,
-    std::int32_t cellContentType = 1) {
+    std::int32_t cellContentType = 1,
+    bool includeTableFieldReference = false) {
     constexpr DRW::Version version = DRW::AC1032;
     DRW_TextCodec codec;
     codec.setVersion(version, false);
@@ -12334,7 +12336,8 @@ bool makeGeneratedR24TableContentObject(
     body.putBitShort(0u);
     body.putBitLong(0); // row style ID
     body.putBitDouble(1.0); // row height
-    body.putBitLong(0); // no field references
+    body.putBitLong(includeTableFieldReference ? 1 : 0);
+    // Number of table-level field references.
     body.putBitLong(1); // no table style payload
     body.putBitShort(0u);
     body.putBitLong(0); // no merged ranges
@@ -12391,6 +12394,16 @@ bool makeGeneratedR24TableContentObject(
                 == GeneratedTableContentRoleFailure::BorderLineType
             ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
         handles.putHandle(borderLineTypeHandle); // cell-style border linetype
+    }
+    if (includeTableFieldReference) {
+        dwgHandle fieldReference;
+        fieldReference.code = wrongRole
+                == GeneratedTableContentRoleFailure::TableFieldReference
+            ? DRW::DwgHardPointer : DRW::DwgHardOwnership;
+        fieldReference.size = 2u;
+        fieldReference.ref = 0xE708u;
+        fieldReference.ref64 = fieldReference.ref;
+        handles.putHandle(fieldReference); // table-level FIELD list
     }
     dwgHandle tableStyleHandle;
     tableStyleHandle.code = wrongTableStyleRole
@@ -17295,6 +17308,45 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
         };
         checkCellContentHandleRole(2, "FIELD content reference");
         checkCellContentHandleRole(4, "block content reference");
+
+        GeneratedTableContentObject wrongFieldOwnerObject;
+        GeneratedTableContentObject validFieldOwnerObject;
+        const bool fieldOwnerControlsBuilt =
+            makeGeneratedR24TableContentObject(
+                0xE708u, false, wrongFieldOwnerObject, false, false,
+                GeneratedTableContentRoleFailure::TableFieldReference,
+                1, true)
+            && makeGeneratedR24TableContentObject(
+                0xE709u, false, validFieldOwnerObject, false, false,
+                GeneratedTableContentRoleFailure::None, 1, true);
+        TestableTableContentObject fieldOwnerRetry;
+        bool fieldOwnerRejectedAndReset = false;
+        bool fieldOwnerValidRetry = false;
+        if (fieldOwnerControlsBuilt) {
+            dwgBuffer wrongFieldOwnerInput(
+                wrongFieldOwnerObject.payload.data(),
+                wrongFieldOwnerObject.payload.size(), &codec);
+            fieldOwnerRejectedAndReset = !fieldOwnerRetry.parseDwg(
+                    DRW::AC1032, &wrongFieldOwnerInput,
+                    wrongFieldOwnerObject.handleBits)
+                && !fieldOwnerRetry.m_parseComplete
+                && !fieldOwnerRetry.m_semanticContentComplete
+                && fieldOwnerRetry.m_content.m_rows.empty()
+                && fieldOwnerRetry.m_content.m_fieldHandles.empty();
+            dwgBuffer validFieldOwnerInput(
+                validFieldOwnerObject.payload.data(),
+                validFieldOwnerObject.payload.size(), &codec);
+            fieldOwnerValidRetry = fieldOwnerRejectedAndReset
+                && fieldOwnerRetry.parseDwg(
+                    DRW::AC1032, &validFieldOwnerInput,
+                    validFieldOwnerObject.handleBits)
+                && fieldOwnerRetry.m_parseComplete
+                && fieldOwnerRetry.m_content.m_fieldHandles
+                    == std::vector<std::uint32_t>{0xE708u};
+        }
+        t.expect(fieldOwnerControlsBuilt && fieldOwnerRejectedAndReset
+                     && fieldOwnerValidRetry,
+                 "TABLECONTENT table-level FIELD hard-owner role rolls back and retries on the same parser");
 
         std::vector<std::uint8_t> detachedFrame, sentinelFrame;
         const bool wrapped = wrapGeneratedR24Object(

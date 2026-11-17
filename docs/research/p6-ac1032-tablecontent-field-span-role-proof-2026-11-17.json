@@ -16,7 +16,7 @@
     "sections": [
       {
         "section": "§20.4.97",
-        "rule": "TABLECONTENT's final table-style reference is a hard pointer; field-reference and content-reference fields are separately modeled."
+        "rule": "TABLECONTENT's final table-style reference and cell FIELD/block references are hard pointers; the separate table-level FIELD-reference list contains hard-owner handles."
       },
       {
         "section": "§20.4.99",
@@ -83,16 +83,16 @@
   },
   "implementation": {
     "behavior": "Require hard-pointer roles for TABLECONTENT text style, border linetype, and final table-style slots. Preserve the AC1032 body-string fallback as raw-only and semantic-incomplete.",
-    "generatedControl": "In-memory AC1032 TABLECONTENT controls reject soft-pointer encodings in the final table-style, cell-style content text-style, border-linetype, FIELD-reference, and block-content-reference hard-pointer slots. Each failure clears parser semantic state and the same parser instance accepts a corrected control with valid hard-pointer encodings. Both content-reference types are generated separately; assertions verify the retained type and handle. Style-data retry remains semantic-incomplete because the style payload is not modeled. These controls prove role enforcement only, not target closure or TABLE semantics. No DWG/DXF fixture file is added.",
+    "generatedControl": "In-memory AC1032 TABLECONTENT controls reject soft-pointer encodings in the final table-style, cell-style content text-style, border-linetype, cell FIELD-reference, and block-content-reference hard-pointer slots. A separate table-level FIELD list control rejects a hard pointer where ODA requires a hard owner. Each failure clears parser semantic state and the same parser instance accepts a corrected control with the required role. Both cell content-reference types are generated separately; assertions verify retained type and handle, and the table-level retry verifies the retained field-handle list. Style-data retry remains semantic-incomplete because the style payload is not modeled. These controls prove role enforcement only, not target closure or TABLE semantics. No DWG/DXF fixture file is added.",
     "sourceFile": "src/drw_entities.cpp",
     "sourceSha256": "51da91df59c9c68d25e428922b7435d91bf5fc8a03501a860d51efa64bd55706",
     "testFile": "tests/dwg_reader_matrix_tests.cpp",
-    "testFileSha256": "db6ae4a57f3be029bb74c95d6013eb41fc826a5f7e3f154ba6fd9b7ddbd0e126"
+    "testFileSha256": "0f5f611773d427c6212aa3dc5d780098a336d79f6fd1248feaaede64253ba301"
   },
   "validation": {
     "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j4",
     "focusedTest": "ctest --test-dir build-gcc -R dwg_reader_matrix --output-on-failure",
-    "focusedTestResult": "passed in 0.66s after generated FIELD/block content-reference role controls; rollback and corrected same-parser retry passed for both content types",
+    "focusedTestResult": "passed in 0.65s after generated cell FIELD/block content-reference and table-level FIELD-reference controls; rollback and corrected same-parser retries passed",
     "cliResult": "182 source frames published with zero entity/object parse failures. Strict output was refused before publication because two HEADER integrity warnings remain (offsets 16 and 830) and 739 bytes remain unclaimed. No output DXF was produced."
   },
   "remaining": [
