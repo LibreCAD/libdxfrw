@@ -14824,8 +14824,8 @@ bool runStandardDwgGroupMetadataControls(const std::filesystem::path& parent) {
         }
         for (const auto target : {DRW::AC1018, DRW::AC1032}) for (const bool binary : {false, true}) {
             const auto output = scratch / ("output-" + std::to_string(cells++) + ".dxf");
-            if (version == DRW::AC1027) {
-                const std::string sentinel = "AC1027_GROUP_SOURCE_GUARD_SENTINEL";
+            if (version == DRW::AC1027 || target < version) {
+                const std::string sentinel = "UNSUPPORTED_GROUP_PROFILE_SENTINEL";
                 { std::ofstream prior(output, std::ios::binary); prior << sentinel; }
                 const bool refused = !exporter.fileExport(
                     output.string(), target, binary, &data, false, true,
@@ -14837,8 +14837,9 @@ bool runStandardDwgGroupMetadataControls(const std::filesystem::path& parent) {
                 const std::string bytes((std::istreambuf_iterator<char>(retained)),
                                          std::istreambuf_iterator<char>());
                 expect(refused && bytes == sentinel,
-                       "AC1027 GROUP metadata export remains atomically refused by the source-reference guard",
+                       "Unqualified AC1027 or down-version GROUP metadata export refuses atomically",
                        failures);
+                ++outputRefusals;
                 continue;
             }
             const bool wrote = exporter.fileExport(output.string(), target, binary, &data, false, true,
@@ -15065,16 +15066,49 @@ bool runRootedStandardDwgOutputProofControls(const std::filesystem::path& parent
             std::ifstream retained(output, std::ios::binary);
             const std::string oldBytes((std::istreambuf_iterator<char>(retained)), std::istreambuf_iterator<char>());
             retained.close();
-            expect(!strict && oldBytes == sentinel && Access::output(exporter, 0u, false),
-                   "Rooted field proof alone does not bypass default strict composed qualification", failures);
+            const bool supportedStrictProfile = target == DRW::AC1032
+                && (sourceVersion == DRW::AC1021
+                    || sourceVersion == DRW::AC1024
+                    || sourceVersion == DRW::AC1032);
+            if (supportedStrictProfile) {
+                expect(strict && Access::output(exporter, 4u, true),
+                       "Fully qualified modern rooted profile passes default strict output gate", failures);
+            } else {
+                expect(!strict && oldBytes == sentinel
+                           && Access::output(exporter, 0u, false),
+                       "Unqualified rooted profile preserves destination under default strict gate", failures);
+            }
+            std::ifstream beforePartial(output, std::ios::binary);
+            const std::string bytesBeforePartial(
+                (std::istreambuf_iterator<char>(beforePartial)),
+                std::istreambuf_iterator<char>());
+            beforePartial.close();
             const bool wrote = exporter.fileExport(output.string(), target, binary, &data, false, true,
                 dx_dxfSourceTextPolicy::Compatible, DRW::DxfTextWritePolicy::Compatible,
                 dx_dxfProxyGraphicsPolicy::Compatible, dx_dwgReadCompletenessPolicy::AllowPartial);
             // Modern frames also close the actual TABLES name/identity tuple;
             // this is still not whole-layer/CMC or import-retention evidence.
-            const std::size_t matched = sourceVersion > DRW::AC1018 ? 4u : 0u;
-            if (!expect(wrote && Access::output(exporter, matched, true),
-                    "Actual standard-object fields/edges qualify only with validated source-frame link evidence", failures)) continue;
+            const bool supportedPartialProfile =
+                sourceVersion <= DRW::AC1018
+                || (sourceVersion > DRW::AC1018
+                    && sourceVersion != DRW::AC1027
+                    && target >= sourceVersion);
+            const std::size_t matched = sourceVersion == DRW::AC1015 ? 2u
+                : sourceVersion > DRW::AC1018 ? 4u : 0u;
+            if (supportedPartialProfile) {
+                if (!expect(wrote && Access::output(exporter, matched, true),
+                        "Bounded rooted profile output proves every admitted source frame", failures)) continue;
+            } else {
+                std::ifstream afterPartial(output, std::ios::binary);
+                const std::string retainedBytes(
+                    (std::istreambuf_iterator<char>(afterPartial)),
+                    std::istreambuf_iterator<char>());
+                afterPartial.close();
+                expect(!wrote && retainedBytes == bytesBeforePartial
+                           && Access::output(exporter, 0u, false),
+                       "Unsupported source/target profile refuses without replacing prior output", failures);
+                continue;
+            }
             if (sourceVersion == DRW::AC1021 && target == DRW::AC1032) {
                 // Evidence-fault injection, not a malformed external drawing:
                 // identical modeled output must not launder known source loss.

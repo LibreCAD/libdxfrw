@@ -14088,23 +14088,31 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
       return parsed;
     };
     const DRW::Version sourceVersion = version;
-    const auto publishLegacyDictionaryGroupLinks =
+    const auto publishDictionaryGroupLinks =
         [sourceVersion, &commonObject, &publication, &obj](
             const DRW_TableEntry& entry) {
-          if (sourceVersion != DRW::AC1012
-              && sourceVersion != DRW::AC1014)
+          const bool legacyInline = sourceVersion == DRW::AC1012
+              || sourceVersion == DRW::AC1014;
+          const bool modernBound = sourceVersion > DRW::AC1018;
+          if (!legacyInline && !modernBound)
             return true;
           if (!entry.hasDwgCommonLinkTail() || entry.handle != obj.handle
               || entry.reactorCount() != commonObject.reactorCount()
               || entry.extensionDictionaryFlag()
                   != commonObject.extensionDictionaryFlag())
             return false;
+          if (modernBound
+              && (entry.parentHandle != commonObject.parentHandle
+                  || entry.reactorHandles != commonObject.reactorHandles
+                  || entry.xDictHandle != commonObject.xDictHandle))
+            return false;
 
-          // In R13/R14 the shared object prologue carries the reactor count,
-          // while DICTIONARY/GROUP parse the bounded inline common-handle
-          // sequence as part of their typed payload. Publish those captured
-          // values only after the class parser has validated its full counted
-          // entry/member list and the handle roles.
+          // In R13/R14, DICTIONARY/GROUP parse the inline common-handle
+          // sequence as part of their typed payload. R2007+ exposes the
+          // common links in the shared handle stream as well as in the typed
+          // record; require exact agreement before publishing either view.
+          // In both cases, wait until the class parser has validated its full
+          // counted entry/member list and handle roles.
           commonObject.parentHandle = entry.parentHandle;
           commonObject.reactorHandles = entry.reactorHandles;
           commonObject.xDictHandle = entry.xDictHandle;
@@ -14115,7 +14123,7 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
           publication.m_parentHandle = entry.parentHandle;
           publication.m_reactorHandles = entry.reactorHandles;
           publication.m_xDictHandle = entry.xDictHandle;
-          DRW_DBG("Legacy DICTIONARY/GROUP common links qualified for handle ");
+          DRW_DBG("DICTIONARY/GROUP common links qualified for handle ");
           DRW_DBGH(entry.handle);
           DRW_DBG(" reactors=");
           DRW_DBG(entry.reactorCount());
@@ -14146,7 +14154,7 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
         DRW_Dictionary e;
         ret = parseTableEntry(e);
         if (ret)
-          ret = publishLegacyDictionaryGroupLinks(e);
+          ret = publishDictionaryGroupLinks(e);
         if (ret) {
           if (e.hasCompleteDwgEntries()) {
             DRW_DwgDictionaryMembership receipt;
@@ -14189,7 +14197,7 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
         DRW_Group e;
         ret = parseTableEntry(e);
         if (ret)
-          ret = publishLegacyDictionaryGroupLinks(e);
+          ret = publishDictionaryGroupLinks(e);
         if (ret) {
           if (!e.hasCompleteDwgEntityHandles()) {
             ret = failReceiptPreflight();

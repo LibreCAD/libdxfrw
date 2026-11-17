@@ -11403,11 +11403,14 @@ bool DRW_Dictionary::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
     m_entries = std::move(entries);
     m_dwgEntriesComplete = true;
     // R13/R14 DICTIONARY has an inline object-size boundary followed by the
-    // common links and a counted item-handle list. The list and every link
-    // have been decoded within this isolated object frame, with common-link
-    // roles checked by readDwgObjectCommonHandles.
-    commonLinkTailValidated = version == DRW::AC1012
-        || version == DRW::AC1014;
+    // common links and a counted item-handle list. R2007+ has a separately
+    // bounded handle stream. In both layouts the common links and every item
+    // handle have been decoded within this object frame, and their roles have
+    // been checked by readDwgObjectCommonHandles / the item-handle checks.
+    // Keep the intervening R2000/R2004 layouts unqualified until their tail
+    // boundary has equivalent evidence.
+    commonLinkTailValidated = version > DRW::AC1018
+        || version == DRW::AC1012 || version == DRW::AC1014;
     DRW_DBG("dictionary entries: "); DRW_DBG(static_cast<int>(m_entries.size())); DRW_DBG("\n");
     return true;
     } catch (...) {
@@ -26838,10 +26841,13 @@ bool DRW_Group::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
     reactorHandles = std::move(parsedReactors);
     xDictHandle = parsedXDictHandle;
     // R13/R14 GROUP's ordered member list follows the common handle prefix in
-    // the object-size-bounded inline stream. Publish link evidence only after
-    // the full declared member list has passed its hard-pointer role checks.
-    commonLinkTailValidated = version == DRW::AC1012
-        || version == DRW::AC1014;
+    // the object-size-bounded inline stream. R2007+ stores the same common
+    // links and member handles in its separately bounded handle stream.
+    // Publish link evidence only after the full declared member list has
+    // passed its hard-pointer role checks. Keep the intervening R2000/R2004
+    // layouts unqualified until their tail boundary has equivalent evidence.
+    commonLinkTailValidated = version > DRW::AC1018
+        || version == DRW::AC1012 || version == DRW::AC1014;
 
     DRW_DBG("GROUP description='"); DRW_DBG(m_description.c_str());
     DRW_DBG("' handles="); DRW_DBG(static_cast<int>(m_entityHandles.size())); DRW_DBG("\n");

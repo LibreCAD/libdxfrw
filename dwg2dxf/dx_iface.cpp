@@ -49167,30 +49167,8 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
                 && qualifiedOutputNames;
             // Unknown/opaque carriers and unmodeled source state are not
             // upgraded by a successful typed projection/readback.
-            if (!standardOutputCandidate) {
-                if (m_debugDwgOutputQualification
-                    && findOmittedSortEntsOwner(frame.raw.m_handle)
-                        != m_dwgOmittedSortEntsOutputSources.end())
-                    std::cerr
-                        << "SORTENTSTABLE owner DICTIONARY excluded from "
-                           "standard output proof: handle="
-                        << frame.raw.m_handle
-                        << " baseline=" << (frame.typedBaseline != nullptr)
-                        << " payload=" << frame.payloadMatched
-                        << " opaque=" << frame.opaquePayload
-                        << " text="
-                        << frame.hasNoObservedTextDecodeIssues()
-                        << " common="
-                        << drwDwgCommonLinkEvidenceValidated(
-                               frame.raw.m_commonLinkEvidence)
-                        << " common-evidence="
-                        << static_cast<int>(frame.raw.m_commonLinkEvidence)
-                        << " cp-present=" << frame.sourceCodePageFieldPresent
-                        << " cp-recognized="
-                        << frame.sourceCodePageRecognized
-                        << " output-names=" << qualifiedOutputNames << '\n';
+            if (!standardOutputCandidate)
                 continue;
-            }
             const auto found = context->sourceHandleToWrittenObjectMap.find(source.first.second);
             std::uint32_t emitted = 0u;
             if (found != context->sourceHandleToWrittenObjectMap.end()) {
@@ -49349,7 +49327,49 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
                             *expected, actual, mapper, proof.references,
                             verifyLayer);
                     }
-                } else {
+                } else if constexpr (std::is_same<Record, DRW_Dictionary>::value) {
+                    const auto* expected =
+                        static_cast<const Record*>(comparisonSource);
+                    matched = expected && dx_standard_output::equal(
+                        *expected, actual, mapper, proof.references,
+                        verifyLayer);
+                    // The generated NOD has a separate exact output proof
+                    // for its intentional DXF projection (for example, the
+                    // default ACAD_PLOTSTYLENAME edge). Reuse that proof for
+                    // this one root DICTIONARY after verifying the callback
+                    // baseline is still the same source model. Other
+                    // DICTIONARYs continue to require direct model equality.
+                    const auto* namedObjectDictionary =
+                        cData->hasNamedObjectDictionary
+                            ? &cData->namedObjectDictionary : nullptr;
+                    if (!matched && source != nullptr
+                        && comparisonSource == source
+                        && frame.raw.m_handle
+                            == cData->namedObjectDictionary.handle
+                        && namedObjectDictionary != nullptr) {
+                        const GeneratedRootOutputProof* rootProof = nullptr;
+                        bool duplicateRootProof = false;
+                        for (const auto& candidate :
+                             m_generatedRootOutputProofs) {
+                            if (candidate.groups
+                                || candidate.source != frame.raw.m_handle)
+                                continue;
+                            if (rootProof != nullptr) {
+                                duplicateRootProof = true;
+                                break;
+                            }
+                            rootProof = &candidate;
+                        }
+                        matched = !duplicateRootProof && rootProof != nullptr
+                            && rootProof->emitted == shape.handle
+                            && rootProof->owner == actual.parentHandle
+                            && rootProof->commonCompared
+                            && standardDwgModelsEqual(
+                                *source, *namedObjectDictionary,
+                                cData->sourceVersion,
+                                dwgObjType::DICTIONARY);
+                    }
+                } else if constexpr (std::is_same<Record, DRW_Group>::value) {
                     const auto* expected =
                         static_cast<const Record*>(comparisonSource);
                     matched = expected && dx_standard_output::equal(
@@ -89676,9 +89696,6 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 && !inspectDxfAssociativeReplay(
                     view, debug || requireResolvedOwners))
                 return reject("DXF associative typed/raw staged-body replay");
-            if (!cData->m_standardDwgObjectFrames.empty()
-                && !inspectStandardDwgOutput(view))
-                return reject("standard DWG object frame");
             if (cData->sourceFormat == dx_source_format::DWG
                 && cData->dwgReadOutcome.attempted
                 && !inspectDwgPlotSettingsOutput(view))
@@ -89692,9 +89709,16 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 return reject("VIEWPORT extension XRECORD physical source/output binding");
             if (needsRasterOutput && !inspectRasterOutput(view))
                 return reject("raster objects");
+            // Inspect the generated root projection before generic standard
+            // object comparison. The NOD's exact source-to-output projection
+            // is then available to qualify its one intentionally generated
+            // root record without weakening other DICTIONARY comparisons.
             if (needsGeneratedRoots
                 && !inspectGeneratedRootOutput(view))
                 return reject("generated NOD roots");
+            if (!cData->m_standardDwgObjectFrames.empty()
+                && !inspectStandardDwgOutput(view))
+                return reject("standard DWG object frame");
             return true;
         })) {
         delete dxfW; dxfW = nullptr; return false;

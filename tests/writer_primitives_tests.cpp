@@ -403,6 +403,28 @@ void testModernDictionaryStreamBoundary(TestContext& t) {
                             "R2007 dictionary has exact MS/body/CRC framing");
                         continue;
                     }
+                    DictionaryParseProbe parsedDictionary;
+                    dwgBuffer parseBody(
+                        bytes.data() + prefixBytes,
+                        static_cast<std::size_t>(frameBytes), &codec);
+                    const bool parsed = parsedDictionary.parseDwg(
+                        version, &parseBody, handleBits);
+                    t.expect(parsed && parsedDictionary.hasCompleteDwgEntries()
+                                 && parsedDictionary.m_entries.size()
+                                     == (hasSecondEntry ? 2u : 1u)
+                                 && parsedDictionary.hasDwgCommonLinkTail(),
+                             "R2007+ dictionary validates its bounded common-link tail");
+                    if (frameBytes > 1) {
+                        DictionaryParseProbe truncatedDictionary;
+                        dwgBuffer truncatedBody(
+                            bytes.data() + prefixBytes,
+                            static_cast<std::size_t>(frameBytes - 1), &codec);
+                        t.expect(!truncatedDictionary.parseDwg(
+                                     version, &truncatedBody, handleBits)
+                                     && !truncatedDictionary.hasCompleteDwgEntries()
+                                     && !truncatedDictionary.hasDwgCommonLinkTail(),
+                                 "truncated R2007+ dictionary does not validate links");
+                    }
                     dwgBuffer body(bytes.data() + prefixBytes,
                                    static_cast<std::size_t>(frameBytes),
                                    &codec);

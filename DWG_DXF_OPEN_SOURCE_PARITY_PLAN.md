@@ -17,19 +17,17 @@ LibreCAD_3 master was 4fb48312708b39d499f7e6668104a3b54a8601c7; and FreeCAD main
 was 84e73f0188fb32bb1fffb8d4d1edb4135543ba18. These are snapshots, not current
 integration targets; refresh mutable heads before replay or qualification.
 
-**Current state (2026-11-17):** 32 required package gates; 3 closed
-(P5-C, P6-D, P7-A), 29 open (9.4% package completion). The slice estimate is
-13/45 complete (28.9%), with 32 remaining: the 29 package gates and three split
-phases—P8-B Linux baseline/3D, P8-C Windows baseline/3D, and P8-D GUI checks
-(D1 and D2 must both pass). P8-B0 local AC1032 converter admission and the
-CLASSES low-size writer correction are complete and removed from the active
-queue; neither closes P8-B or P8-C.
-The estimate counts slices equally and does not weight complexity. P6-D is
-limited to AC1021 MLINESTYLE physical spans; P7-A is limited to the exact
-AC1027 association and history/evaluation-reference graph. Neither closure
-promotes a broad support claim. P6-G is a conditional reopen trigger; P7-E is
-optional; both are outside the count. Six external dispositions remain
-`DEFERRED_EXTERNAL` and cannot promote support claims.
+**Current state (2026-11-17):** 32 required package gates; 4 closed, 28 open
+(12.5% package completion). The implementation-slice estimate is 15/46 complete
+(32.6%), with 31 remaining: the 28 open package gates and three split phases—
+P8-B Linux baseline/3D, P8-C Windows baseline/3D, and P8-D GUI checks (D1 and
+D2 must both pass). Closed gates remain limited to their receipts and do not
+promote broad support claims. One closure is a bounded strict-refusal outcome
+for SORTENTSTABLE owner profiles without a valid DXF mapping; it does not enable
+those profiles. The estimate counts slices equally and does not weight
+complexity. P6-G is a conditional reopen trigger; P7-E is optional; both are
+outside the count. Six external dispositions remain `DEFERRED_EXTERNAL` and
+cannot promote support claims.
 
 The generated AC1032 primitive source (SHA-256
 `bf0aefacdfe7f9999ae32f30ff31df9015fb4706d7b1045225258f92774ae300`) now
@@ -38,23 +36,14 @@ LibreDWG and read back; checks recovered the generated NOD default-plot-style
 edge, dictionary ownership/references, 3D LINE endpoints, and 3DFACE vertices.
 LibreDWG reported two conversion warnings (`HEADER.DIMLDRBLK` and a handle
 code mismatch); the readback proves only the named fields, not full DXF
-compatibility.
-The current installed converter identity after the CLASSES writer correction
-is SHA-256
+compatibility. The current installed converter identity is SHA-256
 `c9cbe735291d9e8b329ad3300fc354d704bd2e94bc9bc3f2b3f419947c4f81be`; the
 strict DXF hash was
 `793748e5656c1573f657eac96bf473ebf9595148d32e21980d9e9afc6bd0d556`.
-This closes only P8-B0's local output/readback phase. It does not qualify a
-FreeCAD platform or a broad AC1032 profile. The local FreeCAD 1.1.4 ARM64
-launch failed before application startup because its Qt build requires NEON;
-P8-B/C still require native Linux/Windows runs.
-
-The CLASSES low-size correction is recorded in
-[`p8-ac1027-ac1032-classes-low-size-writer-boundary-2026-11-17.json`](docs/research/p8-ac1027-ac1032-classes-low-size-writer-boundary-2026-11-17.json).
-The regenerated AC1032 trace has `classesCrcMismatch=0` and no CLASSES
-page-range warning. Its remaining offset-16 HEADER size difference
-(497/501) reflects the optional R2018 high-size word and is nonfatal for this
-exact profile.
+This proves strict output/readback for the named generated fields only; it does
+not qualify a FreeCAD platform or a broad AC1032 profile. The local FreeCAD
+1.1.4 ARM64 launch failed before application startup because its Qt build
+requires NEON; P8-B/C still require native Linux/Windows runs.
 
 ## Rules for evidence and implementation
 
@@ -95,72 +84,84 @@ exact profile.
   and [3D plan](DWG_DXF_3D_SUPPORT_PLAN.md). A source-only result or external
   advisory result does not promote a claim.
 
-## Execution queue — short local fix, batched evidence, parallel acceptance
+## Fast implementation order
 
-The 29 package rows below remain the support checklist. The three counted
-split phases are P8-B, P8-C, and P8-D; P8-B0 and the CLASSES writer correction
-are complete and removed from the active queue. Start independent platform
-and witness work as soon as their prerequisites are ready.
+The active registry below contains only the 28 open package gates. Run ready
+work immediately; a waiting source, authority, runner, or GUI session never
+blocks another lane. Remove each completed action from the active queue after
+its receipt is filed.
 
-### 1. Start native FreeCAD 2D qualification on both platforms
+### 1. Start with the next locally executable slice
 
-P8-B (Linux) and P8-C (Windows) can use generated AC1021, AC1024, and now
-AC1032 2D profiles. Run `Draft.importDWG.open()` and `insert()` on native
-runners; reuse path-with-spaces and Unicode controls. Capture converter,
-FreeCAD, Python/module, configuration, and handoff identities once per
-platform. Add 3D only after its P7 source profile is admitted. Keep the tracked
-ordinary AC1027 file refused until its source-reference gate closes. If a
-runner is unavailable, record its exact dispatch condition once and continue
-the local and witness lanes.
+Choose the first package whose exact source/profile and focused selector are
+available. Bind only the fields, graph edges, versions, and output route that
+the evidence supports. Build the touched target once and run its owning fast
+selectors together. If no package is locally executable, do one bounded
+proof-preparation action from the relevant row, record the missing prerequisite,
+then move to the next row. If every package row is waiting, continue the next
+already-defined local implementation slice in
+[`DWG_DXF_3D_SUPPORT_PLAN.md`](DWG_DXF_3D_SUPPORT_PLAN.md) and return when a
+stated source, authority, or platform trigger changes. Do not invent a new
+profile or repeat a corpus scan, login, or failed tool launch without a changed
+condition.
 
-### 2. Batch witness acquisition by producer and format
+### 2. Batch acquisition to avoid repeated setup
 
-Ask for one bounded AutoCAD/ObjectARX authoring session that captures separate
-profiles for P4-A named-block SORTENTSTABLE ownership, P5-A FIELD values,
-P5-G dynamic constraints, P5-H VIEWPORT shade-plot state, and P6-A IMAGEDEF
-lifecycle. Reuse one session only when it actually contains each requested
-object/state; preserve separate receipts and package exit checks. This avoids
-repeated setup without merging distinct support claims.
+Use three bounded acquisition batches while keeping the package evidence
+separate:
 
-Acquire one matching R24 TABLE/TABLECONTENT profile for P5-D/E/F. Prefer a
-source containing CELLSTYLEMAP, content formatting, and a layer override so a
-single discovery pass can serve all three packages; still close each package
-separately. Reopen P6-C only if new ODA/versioned authority or a
-source-distinct decoder resolves its AC1032 inline-cell boundary and accounts
-for its unclaimed bytes. The competing parses in its receipt are not a basis
-for a parser change.
+1. In one AutoCAD/ObjectARX session, capture distinct P5-A FIELD, P5-G dynamic
+   constraint, P5-H VIEWPORT shade-plot, and P6-A IMAGEDEF profiles. Record the
+   release, API operations, saved source hashes, and expected values for each.
+2. Acquire one matching R24 TABLE/TABLECONTENT source for P5-D/E/F, preferably
+   with CELLSTYLEMAP, content formatting, and a layer override. Use that source
+   only for the behaviors it actually contains; close each package separately.
+3. Batch requests for P4-B AC1032 associative-network class version 2, P4-C
+   AC1027 Sweep with a nonzero suffix, P6-B PERSUBENTMGR, P6-F eligible
+   AC1012/AC1014 partial output, P7-B an unqualified AcDs version, P7-D the
+   ACIS 21500 header authority, and P7-G a trim/periodic-surface/spline
+   profile. Reuse existing searches and request only these named witnesses.
 
-For remaining DWG witnesses, request only the named profile: P4-B AC1032
-associative-network class version 2; P4-C AC1027 Sweep with nonzero suffix;
-P6-B PERSUBENTMGR; P6-E the AC1024 mesh post-sentinel bytes; P6-F an eligible
-AC1012/AC1014 partial-output case; and P7-B/D/G their versioned AcDs, ACIS
-21500, and trim witnesses. Do not repeat broad corpus searches. If the exact
-source or authority is unavailable, keep that row waiting and proceed with
-another ready item.
+P6-C and P6-E have no productive local rescan. Reopen them only when new
+primary/versioned authority or a source-distinct discriminator can resolve the
+AC1032 inline-cell boundary or AC1024 mesh post-sentinel bytes. P7-C uses its
+existing exact AC1027 source and projection harness when authority for groups
+290/2 and handles `0x176`, `0x2E1`, and `0x37D` becomes available. Do not repeat
+the rejected same-name peer search. P7-F follows P7-B–D and requires a
+qualified independent geometry reader; P7-H follows P7-B/D/F/G. P7-E is
+optional and cannot satisfy that reader gate.
 
-P7-C is source-bound and waits only for its exact ODA DXF or a new authoritative
-source for group 290/group 2 and handles `0x176`, `0x2E1`, and `0x37D`; use the
-existing projection harness once that evidence arrives. P7-F depends on P7-B
-through P7-D plus a qualified independent geometry reader; P7-H follows
-P7-B/D/F/G. P7-E remains optional and cannot substitute for the independent
-reader.
+### 3. Implement each admitted profile in one bounded slice
 
-### 3. Batch GUI acceptance, then freeze release evidence
+For source-bound parser/writer slices, use this order: source and version
+binding; field spans and handle roles; typed projection and recursive
+dependencies; strict output admission and staged-byte inspection;
+refusal/rollback and corrected same-writer retry; fresh independent readback;
+native meaning when that package requires it. Keep unknown fields raw or refuse
+them. A shared source can remove repeated acquisition, but it cannot merge
+package exit checks. Stop the slice at the first unsupported field or reference
+and keep the behavior fail-closed. Consumer and release rows use their own
+runtime identity, operation, persistence, and package checks below.
 
-When the desktop session is usable, run P6-H MLINE and P8-D1 LINE in one
-LibreCAD 2 session, then P8-D2 MPOLYGON in one LibreCAD_3 session. Use the
-existing source-derived profiles and independent reader; create no new fixture
-for these checks. After source and semantic profiles stabilize, complete
-P8-A candidate freeze, P8-E ABI/package checks, and P8-F required CI/source
-release checks. Set P8-G support thresholds only from admitted evidence. Keep
-P9 external-only and non-promoting.
+### 4. Run consumer checks as soon as their prerequisites are ready
 
-Dependencies: P5-B follows P5-A; P5-D/E/F may share one matching R24 TABLE
-profile but retain separate exit evidence; P7-C follows the closed P7-A
-AC1027 profile and does not wait for the separate-version P7-B gate; P7-F
-follows P7-B–D plus an available qualified independent reader; and P7-H
-follows P7-B–D/F/G. P7-E is optional and cannot satisfy the independent-reader
-gate.
+For P8-B/Linux and P8-C/Windows, first run generated AC1021, AC1024, and AC1032
+2D profiles through `Draft.importDWG.open()` and `insert()`, reusing existing
+path-with-spaces and Unicode controls. Capture runtime identities once per
+platform; add only 3D profiles admitted by P7. Keep
+`ordinary_enc_AC1027.dwg` refused until its source-reference gate closes. Try
+dispatch once after runner, authorization, or network state changes; record a
+failed condition and continue locally.
+
+When GUI sessions are available, run P6-H MLINE and P8-D1 LINE in one LibreCAD
+2 session, then P8-D2 MPOLYGON in one LibreCAD_3 session. Reuse existing
+source-derived profiles and the independent reader; add no fixture.
+
+### 5. Freeze release evidence last
+
+After source and semantic profiles stabilize, complete P8-A candidate freeze,
+P8-E ABI/package checks, P8-F required CI/source-release checks, then set P8-G
+thresholds from admitted evidence. P9 stays external-only and non-promoting.
 
 ## Open package registry
 
@@ -176,13 +177,12 @@ condition; `DEPENDS_ON_*` requires the named earlier slice; and
 never blocks the active queue. Completed sub-slices remain only in their
 receipts, not in the remaining-action text.
 
-### P4 — source bodies and graph closure (3 open packages)
+### P4 — source bodies and graph closure (2 open packages)
 
 | ID / state | Remaining implementation | Package exit evidence |
 |---|---|---|
-| P4-A / WAITING_FOR_DXF_OWNER_PROFILE | Resolve a valid DXF owner mapping for nonempty named-block SORTENTSTABLEs. Reopen only when authoritative DXF representation or independently verified consumer behavior supplies a valid mapping; never invent an owner or infer semantics from self-round-trip. Existing Model/Paper Space source-session and empty-table proofs do not answer this mapping. | Owner schema and target identity agree in strict ASCII/Binary output and fresh readback; unsupported mappings remain refused. No support claim is promoted. |
 | P4-B / WAITING_FOR_WITNESS | Bind one AC1032 associative-network class-version-2 frame. Reuse existing search results; obtain source bytes and compare each field/span and handle role to ODA before decoder edits. | Ordered fields, version boundary, roles, following-record boundary, truncation/refusal controls, graph closure, and producer/consumer evidence. |
-| P4-C / WAITING_FOR_WITNESS | Resolve the AC1027 Sweep suffix using the captured embedded-entity probe; obtain a Sweep frame with a nonzero suffix. Do not repeat broad corpus discovery or infer padding. | Parent/child spans and roles, following-frame alignment, malformed controls, round trip, and independent semantics. |
+| P4-C / WAITING_FOR_WITNESS | Resolve the AC1027 Sweep suffix using the captured embedded-entity probe. Obtain one exact Sweep frame with a nonzero suffix from an existing eligible source or a bounded producer request; do not repeat broad corpus discovery or infer padding. | Parent/child spans and roles, following-frame alignment, malformed controls, round trip, and independent semantics. |
 
 P4-C references: [captured entity](docs/research/p4-ac1027-sweep-embedded-lwpolyline-capture-2026-11-10.json)
 and [suffix probe](docs/research/p4-ac1027-sweep-embedded-lwpolyline-boundary-2026-11-09.json);
@@ -273,7 +273,7 @@ configuration/operation.
 
 ## P9 — external-only dispositions
 
-These six items remain DEFERRED_EXTERNAL and non-promoting. The successor
+These six items remain `DEFERRED_EXTERNAL` and non-promoting. The successor
 registry at metadata/external-evidence-resolution-v1.json controls lineage and
 admissibility. No process result, peer agreement, or skipped test changes a
 support claim.
@@ -309,16 +309,16 @@ support claim.
    matrices, and release archives belong at composed integration/release
    checkpoints, not after every slice.
 5. After each committed slice, update its receipt and this plan, delete that
-   completed action, refine dependent slices, and select the next local READY
-   item. If none is immediately ready, advance one bounded local acquisition or
-   proof-preparation task and continue; never wait for an unrelated unavailable
-   witness, tool, or platform. Report the commit, behavior, focused validation,
+   completed action, refine dependent slices, and immediately continue with the
+   next local READY item. If none is immediately ready, advance one bounded
+   local acquisition or proof-preparation task and continue; never stop for an
+   unrelated unavailable witness, tool, or platform. Report the commit,
+   behavior, focused validation, completed/total slice count and percentage,
    open package count, and next action.
-6. Count progress against the 32 required package gates listed above: 3
-   closed, 29 open (9.4% package completion). Separately count 13/45
-   implementation slices complete (28.9%), with 32 remaining: the 29 package
+6. Count progress against the 32 required package gates listed above: 4
+   closed, 28 open (12.5% package completion). Separately count 15/46
+   implementation slices complete (32.6%), with 31 remaining: the 28 package
    gates plus P8-B, P8-C, and P8-D (D1 and D2 count together and both must
-   pass). P8-B0 and the CLASSES writer correction are complete and excluded
-   from remaining work. These scope fractions do not weight complexity. Remove
-   a package only after its full exit evidence passes; delete each completed
-   sub-slice from the active queue as soon as its receipt is filed.
+   pass). These scope fractions do not weight complexity. Remove a package
+   only after its full exit evidence passes; delete each completed sub-slice
+   from the active queue as soon as its receipt is filed.
