@@ -92,7 +92,7 @@
     "reason": "The normative specification bounds the modeler wrapper and ordinary entity layout but does not resolve the embedded source's exact AC1027 spans or suffix. Transferring ordinary-entity fields or calling the remaining bits padding would be speculative.",
     "currentBehavior": "Preserve the embedded payload and suffix; keep strict Sweep output refused."
   },
-  "nextAction": "Request one provenance-bound AC1027 AutoCAD/ObjectARX- or ODA-authored drawing containing a deliberately simple Sweep and its matching DXF. Record producer/build, exact version, hashes, Sweep handle, profile/path geometry, group-310 payload, declared lengths, and embedded boundaries. Compare only that bound source with ODA and the current probe. Do not repeat catalog/history searches or alter the parser from generated logs or the older Surface profile.",
+  "nextAction": "The Autodesk Community AutoCAD 2016 Sweep candidate remains unavailable: the official attachment endpoint returned HTTP 403 and zero bytes. Do not retry that route or infer DWG version/contents from the post. Request the original file directly or resume only if a new accessible artifact route appears; then record producer/build, exact version, hashes, Sweep handle, profile/path geometry, group-310 payload, declared lengths, and embedded boundaries before comparing it with ODA and the current probe.",
   "validation": {
     "specTitleAndVersion": "PASS; title page identifies ODA Open Design Specification v5.4.1.",
     "specSha256": "PASS; local copy hash matches 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7.",
@@ -134,6 +134,46 @@
       }
     ],
     "result": "No eligible AC1027 Sweep source or matching DXF was recovered. No further broad/catalog/history search is justified from these leads.",
+    "supportClaimEffect": "none"
+  },
+  "attachmentRetrievalFollowUp": {
+    "date": "2026-11-17",
+    "source": {
+      "title": "Sweep results in a self intersecting body",
+      "url": "https://forums.autodesk.com/t5/autocad-forum/sweep-results-in-a-self-intersecting-body/m-p/9438279/highlight/true",
+      "producerClaim": "The original poster says they are using AutoCAD 2016 and describes sweeping a circle and polygon along a path.",
+      "attachmentName": "Sweep Error.dwg",
+      "versionStatus": "unverified; post date and AutoCAD 2016 claim do not prove the attachment is AC1027",
+      "apiStateStatus": "unknown; post text does not establish persistent SWEEP history or the relevant source object state"
+    },
+    "retrieval": {
+      "endpoint": "https://forums.autodesk.com/autodesk/attachments/autodesk/autocad-forum-en/9437189/1/Sweep%20Error.dwg",
+      "method": "Direct request to the apparent public Autodesk Community attachment path; no challenge bypass attempted.",
+      "httpStatus": 403,
+      "finalUrl": "https://forums.autodesk.com:443/t5/errors/FilterErrorHandlerPage",
+      "bytesReceived": 0,
+      "workspaceArtifactCreated": false
+    },
+    "decision": "Candidate is a provenance lead only. No bytes, hash, DWG magic, or matching DXF were obtained; it cannot qualify P4-C.",
+    "retryTrigger": "Original file supplied directly or a new accessible official artifact route appears.",
+    "supportClaimEffect": "none"
+  },
+  "versionedDxfSchemaFollowUp": {
+    "date": "2026-11-17",
+    "authority": {
+      "title": "AutoCAD 2013 DXF Reference",
+      "url": "https://images.autodesk.com/adsk/files/autocad_2013_pdf_dxf_reference_enu.pdf",
+      "printedPages": [152, 153],
+      "versionRelevance": "AutoCAD 2013 / R2013 DXF; use as expected-output schema only after source version is verified."
+    },
+    "sweptSurfaceFields": [
+      "AcDbSweptSurface subclass",
+      "sweep entity ID; bounded binary-data size and data",
+      "path entity ID; bounded proprietary-data size and data",
+      "sweep/path transforms, draft, twist, scale and alignment values",
+      "solid flag (group 290), alignment option (group 70), align-start/bank/base-point/transforms-computed flags, and twist reference vector"
+    ],
+    "conclusion": "This primary document clarifies the R2013 SweptSurface DXF projection and its type-specific group roles. It does not describe the DWG AcDbShSweepBase embedded LWPOLYLINE encoding, physical suffix, DWG handle roles, or following-frame boundary; P4-C remains open.",
     "supportClaimEffect": "none"
   }
 }
