@@ -175,5 +175,65 @@
     ],
     "result": "No source-distinct public AC1024 DWG with producer-bound TABLE API state, expected values, and paired output was located in this pass. Documentation confirms the native API but does not close the source gate.",
     "decision": "P5-D remains PRODUCER_WITNESS_NEEDED. Do not repeat this search without a new repository, artifact location, or producer source. SupportClaimEffect: none."
+  },
+  "odaConverterRecheck": {
+    "date": "2026-11-17",
+    "version": "ODA File Converter 27.1.0 ARM64",
+    "command": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter -h",
+    "exitCode": 134,
+    "result": "Aborted during PasteBoard/XPC initialization before argument handling or conversion: clipboard and find pasteboard errors [-4960], followed by invalid com.apple.hiservices-xpcservice connection.",
+    "qualification": "No independent ODA conversion/readback obtained. Do not retry until the pasteboard/XPC environment actually changes."
+  },
+  "libredwgPeerConversion": {
+    "date": "2026-11-17",
+    "producer": "GNU LibreDWG dwgread 0.14",
+    "input": {
+      "repository": "https://github.com/DomCR/ACadSharp",
+      "path": "samples/sample_AC1024.dwg",
+      "sha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce"
+    },
+    "command": "dwgread -v2 -O DXF -o /private/tmp/ACadSharp_sample_AC1024_libredwg.dxf /Users/dli/dev/ACadSharp/samples/sample_AC1024.dwg",
+    "exitCode": 0,
+    "output": {
+      "path": "/private/tmp/ACadSharp_sample_AC1024_libredwg.dxf",
+      "sha256": "90d6af28b9afb957017d13156ab7272920e44db95b4bf8667e0b8c211386bc9c",
+      "sizeBytes": 3221624
+    },
+    "log": {
+      "path": "/private/tmp/ACadSharp_sample_AC1024_libredwg.log",
+      "sha256": "c8976a94c8b3a8bfc8f2f8fdabc50464d76eff20959ad8ff349976077d5ac482"
+    },
+    "observations": {
+      "r2010Warnings": [
+        "TODO TABLESTYLE r2010+ missing fields",
+        "TODO TABLE r2010+ (2 occurrences)"
+      ],
+      "acadTableMarkers": [
+        {
+          "handle": null,
+          "nextRecord": "LINE"
+        },
+        {
+          "handle": null,
+          "nextRecord": "LWPOLYLINE"
+        }
+      ],
+      "matchingCellStringsExportedAsMtext": [
+        {
+          "text": "Table sample",
+          "outputHandle": "0x572",
+          "owner": "0x570"
+        },
+        {
+          "text": "Hello this is a title",
+          "outputHandle": "0xA37",
+          "owner": "0xA36"
+        }
+      ],
+      "pairedDxfValues": "Both strings occur in the source repository paired ASCII DXF at source table handles 0x528 and 0xA35."
+    },
+    "limits": "The peer DXF has no populated ACAD_TABLE record for either table; the group-0 ACAD_TABLE markers are immediately followed by unrelated group-0 entity records. Exported MTEXT strings are not bound to the source table identities or full cell graph. The peer emits an explicit R2010 TABLE/TABLESTYLE TODO, so this is not independent TABLE semantic readback or a support qualification.",
+    "supportClaimEffect": "none",
+    "repositoryPolicy": "The third-party source and generated peer DXF remain outside this repository."
   }
 }

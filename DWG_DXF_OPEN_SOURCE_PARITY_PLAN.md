@@ -46,11 +46,16 @@ receipts. Do not repeat those completed scans; the clean R2018 source and suffix
 disposition remain open.
 
 **Current external blockers:** the 2026-11-17 `gh auth status` check still
-reports an invalid token and `api.github.com` DNS failure. Earlier local checks
-found FreeCAD 1.1.4 ARM64 unable to start because Qt requires NEON, and ODA File
-Converter 27.1.0 aborting on macOS pasteboard/XPC before conversion. Retry each
-only after its named environment changes. Native Linux/Windows package and
-runtime evidence remains open; see the [macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json)
+reports an invalid token and `api.github.com` DNS failure. A fresh ODA File
+Converter 27.1.0 `-h` attempt after the unlock request still exits 134 during
+PasteBoard/XPC initialization; do not retry until clipboard/XPC access works.
+GNU LibreDWG 0.14 converts the AC1024 sample but emits empty ACAD_TABLE markers,
+exploded MTEXT, and explicit R2010 TABLE/TABLESTYLE TODO warnings; see the
+[P5-D triage](docs/research/p5-ac1024-table-source-triage-2026-11-17.json).
+That peer result is not TABLE semantic readback. Earlier local checks found
+FreeCAD 1.1.4 ARM64 unable to start because Qt requires NEON. Native
+Linux/Windows package and runtime evidence remains open; see the
+[macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json)
 for the already-completed platform scope.
 
 ## Evidence and implementation rules
@@ -170,7 +175,7 @@ readback. Rows add the package-specific evidence required to close a gate.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P5-D / PRODUCER_WITNESS_NEEDED | Acquire producer-bound AC1024 TABLE API state with known values and field/handle roles. The current compatibility route and limits are in the [cursor receipt](docs/research/p5-ac1024-table-body-string-cursor-reconciliation-2026-11-17.json) and [source triage](docs/research/p5-ac1024-table-source-triage-2026-11-17.json). The new public-source screen found API documentation but no qualifying artifact; do not repeat it without a new source location. | Keep ODA detached-TV primary; the observed fallback remains raw-retaining, semantic-incomplete, and strict-output-refused. Close only with producer-bound spans/roles, table graph closure, strict ASCII/Binary output, independent readback, public-boundary refusal atomicity/retry, and native appearance. Embedded AutoCAD metadata is unsigned and does not establish original API state. The Autodesk Metric sample is AC1021, not a substitute. |
+| P5-D / PRODUCER_WITNESS_NEEDED | Acquire producer-bound AC1024 TABLE API state with known values and field/handle roles. The public API-doc screen found no qualifying artifact; LibreDWG 0.14's export has empty ACAD_TABLE markers and R2010 TODO warnings, so it is not a semantic oracle. See the [source triage](docs/research/p5-ac1024-table-source-triage-2026-11-17.json); do not repeat either screen without a new source/tool state. | Keep ODA detached-TV primary; the observed fallback remains raw-retaining, semantic-incomplete, and strict-output-refused. Close only with producer-bound spans/roles, table graph closure, strict ASCII/Binary output, independent readback, public-boundary refusal atomicity/retry, and native appearance. Embedded AutoCAD metadata is unsigned and does not establish original API state. The Autodesk Metric sample is AC1021, not a substitute. |
 | P5-A / WAITING_FOR_PRODUCER_FIELD_SPANS | Acquire a native AutoCAD/ObjectARX FIELD with known text/value, or a stronger producer-bound public input. The cached unknown-producer source and patched ACadRust derivative are not physical evidence; see [source/cache audit](docs/research/p5-mtext-fieldlist-source-cache-2026-11-15.json). | Bind physical spans, handle roles, source text, and independent evaluation or producer-authored expected value before parser changes. |
 | P5-B / DEPENDS_ON_P5-A | Use P5-A's exact source to close FIELD/FIELDLIST, including nested `_text`, tokens, and references. The generated AC1021 ASCII/Binary control proves version selection only. | Complete typed dependency graph, strict ASCII/Binary output, fresh independent readback, rollback/retry, and graph equivalence. |
 | P5-E / DEPENDS_ON_P5-D_PROFILE | Reuse the admitted P5-D source only if it contains Content Format/CELLSTYLEMAP values; otherwise capture only that missing state in the same release session. | Bind formatting meaning to independent/native expected values; preserve or refuse unknown states. |
