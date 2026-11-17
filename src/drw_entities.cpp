@@ -28485,13 +28485,15 @@ bool DRW_ExtrudedSurface::parseCode(
             return DRW_Surface::parseCode(code, reader);
         {
             const std::int32_t value = reader->getInt32();
-            if (value < 0 || static_cast<std::size_t>(value) >
-                                 DRW::kMaxDxfBinaryPayloadBytes)
+            if (value < 0)
                 return false;
             if (!m_dxfClassIdSeen) {
                 classId = static_cast<std::uint32_t>(value);
                 m_dxfClassIdSeen = true;
             } else if (!m_dxfDataSizeSeen) {
+                if (static_cast<std::size_t>(value) >
+                    DRW::kMaxDxfBinaryPayloadBytes)
+                    return false;
                 m_dxfDeclaredDataSize = static_cast<std::uint32_t>(value);
                 m_dxfDataSizeSeen = true;
             } else {
@@ -28663,13 +28665,15 @@ bool DRW_SweptSurface::parseCode(
         m_dxfTypedFieldSeen = true;
         {
             const std::int32_t value = reader->getInt32();
-            if (value < 0 || static_cast<std::size_t>(value) >
-                                 DRW::kMaxDxfBinaryPayloadBytes)
+            if (value < 0)
                 return false;
             if (!m_dxfSweepEntityIdSeen) {
                 sweepEntityId = static_cast<std::uint32_t>(value);
                 m_dxfSweepEntityIdSeen = true;
             } else if (!m_dxfSweepDataSizeSeen) {
+                if (static_cast<std::size_t>(value) >
+                    DRW::kMaxDxfBinaryPayloadBytes)
+                    return false;
                 m_dxfSweepDataSize = static_cast<std::uint32_t>(value);
                 m_dxfSweepDataSizeSeen = true;
             } else if (!m_dxfPathEntityIdSeen
@@ -28678,6 +28682,9 @@ bool DRW_SweptSurface::parseCode(
                 m_dxfPathEntityIdSeen = true;
             } else if (!m_dxfPathDataSizeSeen
                        && m_dxfPathEntityIdSeen) {
+                if (static_cast<std::size_t>(value) >
+                    DRW::kMaxDxfBinaryPayloadBytes)
+                    return false;
                 m_dxfPathDataSize = static_cast<std::uint32_t>(value);
                 m_dxfPathDataSizeSeen = true;
             } else {

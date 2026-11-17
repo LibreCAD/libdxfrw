@@ -21361,6 +21361,101 @@ void testDxfGroup310DirectDecode(TestContext& t) {
                      && swept.pathData == pathPayload && swept.finalizeDxf(),
                  encoding + " SWEPTSURFACE routes direct group-310 decode into the declared sweep/path payloads");
 
+        const std::int32_t largeSurfaceId = static_cast<std::int32_t>(
+            DRW::kMaxDxfBinaryPayloadBytes + 1u);
+        const std::string extrudedLargeIdInput = makeDxf(
+            binary, [&](dxfWriter& writer) {
+                return writer.writeString(100, "AcDbExtrudedSurface")
+                    && writer.writeInt32(90, largeSurfaceId)
+                    && writer.writeInt32(90, 0);
+            });
+        ExposedExtrudedSurface extrudedLargeId;
+        const bool extrudedLargeIdParsed = !extrudedLargeIdInput.empty()
+            && parseGeneratedDxfUntilFollowing(
+                extrudedLargeId, extrudedLargeIdInput, binary);
+        t.expect(extrudedLargeIdParsed
+                     && extrudedLargeId.classId
+                         == static_cast<std::uint32_t>(largeSurfaceId)
+                     && extrudedLargeId.finalizeDxf(),
+                 encoding + " EXTRUDEDSURFACE accepts a 32-bit class ID above the binary-payload limit");
+
+        const std::string revolvedLargeIdInput = makeDxf(
+            binary, [&](dxfWriter& writer) {
+                return writer.writeString(100, "AcDbRevolvedSurface")
+                    && writer.writeInt32(90, largeSurfaceId)
+                    && writer.writeInt32(90, 0);
+            });
+        ExposedRevolvedSurface revolvedLargeId;
+        const bool revolvedLargeIdParsed = !revolvedLargeIdInput.empty()
+            && parseGeneratedDxfUntilFollowing(
+                revolvedLargeId, revolvedLargeIdInput, binary);
+        t.expect(revolvedLargeIdParsed
+                     && revolvedLargeId.id
+                         == static_cast<std::uint32_t>(largeSurfaceId)
+                     && revolvedLargeId.finalizeDxf(),
+                 encoding + " REVOLVEDSURFACE retains the full entity-ID domain");
+
+        const std::string sweptLargeIdsInput = makeDxf(
+            binary, [&](dxfWriter& writer) {
+                return writer.writeString(100, "AcDbSweptSurface")
+                    && writer.writeInt32(90, largeSurfaceId)
+                    && writer.writeInt32(90, 0)
+                    && writer.writeInt32(90, largeSurfaceId + 1)
+                    && writer.writeInt32(90, 0);
+            });
+        ExposedSweptSurface sweptLargeIds;
+        const bool sweptLargeIdsParsed = !sweptLargeIdsInput.empty()
+            && parseGeneratedDxfUntilFollowing(
+                sweptLargeIds, sweptLargeIdsInput, binary);
+        t.expect(sweptLargeIdsParsed
+                     && sweptLargeIds.sweepEntityId
+                         == static_cast<std::uint32_t>(largeSurfaceId)
+                     && sweptLargeIds.pathEntityId
+                         == static_cast<std::uint32_t>(largeSurfaceId + 1)
+                     && sweptLargeIds.finalizeDxf(),
+                 encoding + " SWEPTSURFACE accepts full-width sweep/path IDs above the binary-payload limit");
+
+        const std::string oversizedExtrudedSizeInput = makeDxf(
+            binary, [&](dxfWriter& writer) {
+                return writer.writeString(100, "AcDbExtrudedSurface")
+                    && writer.writeInt32(90, 1)
+                    && writer.writeInt32(90, largeSurfaceId);
+            });
+        ExposedExtrudedSurface oversizedExtrudedSize;
+        t.expect(!oversizedExtrudedSizeInput.empty()
+                     && !parseGeneratedDxfUntilFollowing(
+                         oversizedExtrudedSize,
+                         oversizedExtrudedSizeInput, binary),
+                 encoding + " EXTRUDEDSURFACE still bounds its declared binary payload size");
+
+        const std::string oversizedSweptSweepSizeInput = makeDxf(
+            binary, [&](dxfWriter& writer) {
+                return writer.writeString(100, "AcDbSweptSurface")
+                    && writer.writeInt32(90, 1)
+                    && writer.writeInt32(90, largeSurfaceId);
+            });
+        ExposedSweptSurface oversizedSweptSweepSize;
+        t.expect(!oversizedSweptSweepSizeInput.empty()
+                     && !parseGeneratedDxfUntilFollowing(
+                         oversizedSweptSweepSize,
+                         oversizedSweptSweepSizeInput, binary),
+                 encoding + " SWEPTSURFACE still bounds its declared sweep payload size");
+
+        const std::string oversizedSweptPathSizeInput = makeDxf(
+            binary, [&](dxfWriter& writer) {
+                return writer.writeString(100, "AcDbSweptSurface")
+                    && writer.writeInt32(90, 1)
+                    && writer.writeInt32(90, 0)
+                    && writer.writeInt32(90, 2)
+                    && writer.writeInt32(90, largeSurfaceId);
+            });
+        ExposedSweptSurface oversizedSweptPathSize;
+        t.expect(!oversizedSweptPathSizeInput.empty()
+                     && !parseGeneratedDxfUntilFollowing(
+                         oversizedSweptPathSize,
+                         oversizedSweptPathSizeInput, binary),
+                 encoding + " SWEPTSURFACE still bounds its declared path payload size");
+
         const std::string loftedInput = makeDxf(binary, [&](dxfWriter& writer) {
             return writer.writeString(100, "AcDbLoftedSurface")
                 && writer.writeInt32(90, 7)
