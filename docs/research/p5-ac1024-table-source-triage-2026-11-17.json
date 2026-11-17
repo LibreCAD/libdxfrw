@@ -152,5 +152,28 @@
       ]
     },
     "tailPolicy": "Detached string stream: zero-only footer/alignment tail bounded to 14 bits. Handle stream: 0-7 residual bits retained as opaque raw frame data; the observed candidates leave 3 and 7 bits. Do not describe this tail as padding or assign meaning without independent source-bound evidence."
+  },
+  "publicSourceFollowUp": {
+    "date": "2026-11-17",
+    "scope": "Search for an alternative public AC1024 TABLE artifact with producer-bound ObjectARX/API state after the local raw-retention slice.",
+    "sources": [
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table.html",
+        "finding": "Autodesk documents the managed Table wrapper over AcDbTable, its 3D planar placement, style/size/geometry setup, and text or block cell contents.",
+        "limit": "API documentation supplies no hash-bound AC1024 DWG, field spans, or original API state for a public artifact."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbTable__generateLayout.html",
+        "finding": "Autodesk documents generateLayout as computing in-memory geometry from definition data/style; the table block is created when posted and closed.",
+        "limit": "This does not identify the serialized AC1024 TABLECONTENT body/string/handle layout or qualify any sample file."
+      }
+    ],
+    "queries": [
+      "AutoCAD ObjectARX AcDbTable sample DWG AC1024 source code create table",
+      "AutoCAD AcDbTable GitHub DWG sample",
+      "ACAD_TABLE ObjectARX sample artifact with known API state"
+    ],
+    "result": "No source-distinct public AC1024 DWG with producer-bound TABLE API state, expected values, and paired output was located in this pass. Documentation confirms the native API but does not close the source gate.",
+    "decision": "P5-D remains PRODUCER_WITNESS_NEEDED. Do not repeat this search without a new repository, artifact location, or producer source. SupportClaimEffect: none."
   }
 }
