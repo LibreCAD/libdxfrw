@@ -53,18 +53,17 @@ in receipts and removed from this queue. Work is grouped by what can run now,
 shared producer sessions, then one final consumer/package freeze. A waiting
 source, GUI, or tool blocks only its own profile.
 
-1. **P8-F — resolve CI failures on the local candidate.** The latest inspected
-   PR #106 run (`43343401825`, PR head `42148ef3`) is behind this local branch;
-   its diagnostics are leads, not current failures. It showed a fast build
-   option self-test failing when tests configure with `dwg2dxf` disabled, a
-   Linux `-Werror=type-limits` failure in the table class-number path, a macOS
-   frozen CTest inventory mismatch, and a Windows compile failure whose first
-   compiler error still needs extraction. First reproduce only the fast
-   configure and compile failures on the current tree. Fix any that remain
-   with the smallest change and run their owning fast checks. Then inspect the
-   exact macOS inventory delta and first Windows diagnostic; don't change
-   timeouts or dispatch hosted CI until the local cause is known. Preserve the
-   existing no-dispatch rule; continue the other steps meanwhile.
+1. **P8-F — finish local CI corrections; keep hosted qualification open.**
+   The old PR #106 failures are now diagnosed and the locally actionable ones
+   are fixed: tests-on/CLI-off CMake configure succeeds; the table class-number
+   warning is absent from current code; the MSVC LWPOLYLINE lambda issue is
+   fixed in commit `4570bc97`; and the clean hosted-profile inventory now
+   matches the regenerated 1,386-test manifest. See the [CI diagnosis
+   receipt](docs/research/p8-pr106-native-ci-root-cause-2026-11-17.json). The
+   old run is from PR head `42148ef3`, so it cannot qualify this candidate.
+   Keep P8-F open for source-matched Linux/macOS/Windows qualification and
+   branch-protection/required-check inspection. Do not dispatch hosted CI
+   without the owner's go-ahead; continue other local implementation work.
 2. **P8-D — finish consumer behavior from the existing scratch evidence.** The
    [GUI receipt](docs/research/p8-librecad2-ltype-gui-roundtrip-2026-11-17.json)
    now includes focused action/checkbox diagnostics: 131 assertions across 10
@@ -289,7 +288,7 @@ external kernel or app blocks only that profile.
 | P8-C / WAITING_FOR_FREEZE | Use the same frozen-candidate workflow wave as P8-B; reuse the earlier path-with-spaces/Unicode and 2D baseline results only as historical controls. Add source-derived profiles and AC1027/AC1032 3D only after their evidence gates close. Keep ordinary AC1027 deferred until source-reference closure. | Record runner, FreeCAD/converter/module versions, settings, exact handoff, package/runtime identity, and independent semantics. Cross-compilation and ambiguous fallback do not count. |
 | P8-D / IN_PROGRESS | PR #3269 is merged as `4060fb6bb` and contained in LibreCAD origin/master `3ad089398`. The [GUI receipt](docs/research/p8-librecad2-ltype-gui-roundtrip-2026-11-17.json) records ASCII/binary no-op persistence and visible dashes; its scratch action controls now pass 131 assertions across 10 Move/Copy cases, and the adapter selector passes 400 assertions with false flags. These controls show the Move/Copy code path preserves the name when flags are false, so no code fix is justified by the earlier GUI output until live action values are captured. The Properties panel's inability to show/select the imported name is independently observed; implement named-LTYPE property support with a fast import/select/export/readback regression. Then verify the controlled move and GUI save/reopen/rendering. LibreCAD_3 MPOLYGON headless integration passes; native GUI save/reopen remains. Run pinned ezdxf 1.4.5 on final consumer outputs once. No new fixtures. |
 | P8-E / INTEGRATION_GATE | macOS shared/static package manifests and static relocation are already recorded in the [package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json). Collect only native Linux and Windows shared/static manifests, relocation, and runtime identity during the P8-B/C frozen-candidate wave. | Record package contents and loaded-library identity per distributed platform; verify shared/static relocation. Do not repeat macOS checks unless candidate inputs change. |
-| P8-F / READY_FOR_LOCAL_REPRODUCTION | The inspected PR #106 run `43343401825` belongs to the older PR head `42148ef3`, not this local candidate. It identified four lane failures: tests-only CMake generation references `dwg2dxf` with the CLI disabled; Linux has a `-Werror=type-limits` error in the table class-number path; macOS reports a frozen CTest inventory mismatch; the first Windows compiler error is not yet extracted. Treat all as stale until reproduced. The 2026-11-16 cancellation (`43880983294`) remains historical only. | Reproduce fast configure/compile issues on current source first and fix only active causes. Then capture the exact macOS inventory delta and first Windows diagnostic. Verify each fix with its owning fast local check. At freeze/release, require source-matched green or formally dispositioned lanes and capture branch-protection/required-check state. Do not alter timeouts from the older logs. |
+| P8-F / WAITING_FOR_SOURCE_MATCHED_CI | The old PR #106 run `43343401825` (head `42148ef3`) is historical. Its tests-on/CLI-off configure failure does not reproduce; its `oType <= 0x7FFF` warning is absent from current source; its MSVC C3493 LWPOLYLINE lambda failure is fixed in commit `4570bc97`; and the five-test CTest inventory delta is corrected in the [CI receipt](docs/research/p8-pr106-native-ci-root-cause-2026-11-17.json). Do not repeat those old diagnostics. | Keep the gate open until a source-matched candidate passes Linux/macOS/Windows qualification and current required-check/branch-protection state is recorded. No hosted run has been dispatched; follow the existing owner go-ahead rule. Other implementation slices remain runnable. |
 | P8-G / INTEGRATION_GATE | Set consumer/platform support and release thresholds from closed evidence. | Publish an evidence-backed support matrix with no required red job or advertised unqualified route. |
 
 Keep consumer, source, and build receipts separate. Preserve LibreCAD's R13

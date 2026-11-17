@@ -1,0 +1,61 @@
+{
+  "date": "2026-11-17",
+  "scope": "Local diagnosis and correction of historical PR #106 native-qualification failures",
+  "historical_run": {
+    "run_id": 43343401825,
+    "pr_head": "42148ef3a6b4e8b6c9624b32d2e6e0b3f6980ead",
+    "merge_commit": "28baeb0fc031192c06fb57e5315e011dd4c25e45",
+    "source_matches_current_candidate": false,
+    "job_ids": {
+      "fast_regressions": 131616883220,
+      "linux": 131617021132,
+      "macos": 131617021216,
+      "windows": 131617021063
+    }
+  },
+  "findings": {
+    "fast_build_options": {
+      "historical_failure": "Tests-on / dwg2dxf-off CMake generation referenced the missing dwg2dxf target.",
+      "current_check": "The same configuration succeeds on the current clean source checkout.",
+      "disposition": "Not reproducible on the current candidate."
+    },
+    "linux_type_limits": {
+      "historical_failure": "GCC 13 rejected oType <= 0x7FFF in DRW_Table::getDwgClassNum because oType is int16_t and the upper-bound comparison is always true.",
+      "current_source": "getDwgClassNum checks the meaningful lower bound only; the historical upper-bound comparison is absent.",
+      "local_build": "The current dxfrw library builds with AppleClang and -Werror. No GCC 13 toolchain is installed locally.",
+      "disposition": "Current source no longer contains the reported comparison; exact GCC 13 qualification remains for hosted CI."
+    },
+    "windows_lambda_capture": {
+      "historical_failure": "MSVC C3493 rejected countMask, grouped, and sawOptional references inside the LWPOLYLINE vertexForField lambda; later C2064/C2737/C3536 diagnostics were cascades.",
+      "fix_commit": "4570bc979d75575168ac390d891a0c8de54fd5ee",
+      "fix": "Moved the masks to anonymous-namespace constexpr constants so the lambda uses namespace-scope values without captures.",
+      "focused_validation": "PASS: libdxfrw_dxf_lwpoly_wcs_vertices built and its focused CTest passed 1/1 under AppleClang.",
+      "disposition": "The diagnosed source issue is fixed; MSVC hosted confirmation remains open."
+    },
+    "macos_inventory": {
+      "historical_log": "The old macOS job reported that live CTest inventory differed from the frozen broad inventory; the log did not print the names.",
+      "current_clean_checkout": {
+        "profile": "Ninja, clang/clang++, Release, BUILD_SHARED_LIBS=OFF, docs=OFF, dwg2dxf=ON, tests=ON, qualification=OFF, long_fuzz=OFF",
+        "old_frozen_count": 1381,
+        "live_count": 1386,
+        "missing": [],
+        "new_tests": [
+          "dwg2dxf_ac1024_layer_control_source_session",
+          "libdxfrw_dwg_classes_high_size_writer_boundary",
+          "libdxfrw_dxf_default_plotstyle_graph",
+          "libdxfrw_plotstyle_default_adapter_output",
+          "libdxfrw_table_ac1024_observed_body_string_raw_only"
+        ]
+      },
+      "fix": "Regenerated metadata/qualification-required-tests-v1.json with tools/run_native_qualification.py freeze-inventory at the current source commit.",
+      "validation": "PASS: exact hosted-profile CTest names match the regenerated 1386-name manifest; tools/check_qualification_workflow.py passes.",
+      "disposition": "The current inventory is internally aligned. The archived old-run artifact names were not independently extracted, so no claim is made that its specific delta was identical."
+    }
+  },
+  "current_hosted_qualification": {
+    "run_performed": false,
+    "reason": "Plan requires owner go-ahead before dispatching a hosted workflow.",
+    "required_to_close_p8_f": "Run source-matched Linux, macOS, and Windows qualification on the updated candidate; inspect required-check and branch-protection state."
+  },
+  "support_claim_effect": "No support claim is promoted."
+}
