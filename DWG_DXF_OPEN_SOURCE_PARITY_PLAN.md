@@ -19,30 +19,31 @@ libdxfrw and LibreCAD origin/master heads above were re-checked and unchanged;
 LibreCAD PR #3269 is merged as `4060fb6bb` and is contained in that LibreCAD head.
 
 **Progress on 2026-11-17:** 5 of 33 required package gates are closed (15.2%);
-28 remain. The activity count is 41 of 70 complete (58.6%): 5 closed gates
-and 36 completed implementation/research slices, out of 33 gates, 36 recorded
-slices, and one newly admitted local implementation slice. The 29 remaining
-counted items are the 28 open package gates plus that one local slice. A
-completed slice can advance a gate that remains open, so this equal-weight
-activity count measures work items rather than unique outcomes or support
-breadth; use 5/33 for package readiness. Native Linux, native Windows, and
-LibreCAD GUI qualification are already inside P8-B/C/D and are not counted a
-second time. Completed actions have been
+28 remain. The activity count is 42 of 70 complete (60.0%): 5 closed gates
+and 37 completed implementation/research slices, out of 33 gates, 36 recorded
+slices, and one admitted local implementation slice. The 28 remaining counted
+items are the 28 open package gates. A completed slice can advance a gate that
+remains open, so this equal-weight activity count measures work items rather
+than unique outcomes or support breadth; use 5/33 for package readiness.
+Native Linux, native Windows, and LibreCAD GUI qualification are already
+inside P8-B/C/D and are not counted a second time. Completed actions have been
 removed from the active queue; receipts preserve the evidence needed to avoid
 repeating them.
-The latest committed local integration slice keeps the AC1024
-LAYER_CONTROL source-frame proof in the same `dx_iface` session from CLI import
-through export; see the [session-continuity receipt](docs/research/p4-ac1024-layer-control-cli-session-continuity-2026-11-17.json).
-The proof now passes on the mechanical sample, which then remains correctly
-refused by a separate ACAD_SCALELIST snapshot mismatch. This correction closes
-no package gate and promotes no support claim. The most advanced source-backed
-profile, P5-I, now waits for independent span evidence; its existing parser
-cursor and peer screens are complete and must not be repeated. A separate
-local CLI follow-up is ready: identify the exact ACAD_SCALELIST source-snapshot
-predicate refusing the same AC1024 mechanical sample after the session-proof
-correction. The existing selected-SCALE physical selector passes, so compare
-that profile with full-drawing source state before deciding whether the refusal
-is correct or exposes a bounded implementation gap. For P5-I, bounded
+The latest local slices preserve the AC1024 LAYER_CONTROL source-frame proof
+through CLI export (S23) and correct the rooted ACAD_SCALELIST common-link
+admission check (S24). The source's decoded DICTIONARY common links are marked
+validated only after parsing and role checks; the writer now requires that
+validation. The physical selector confirms all 17 SCALE records, dictionary
+membership, owner/reactor links, typed/raw fields, destination-preserving
+refusal, same-writer retry, and fresh readback. Strict CLI no longer rejects at
+ACAD_SCALELIST; the LayerStates profile independently skips this source
+because its root precondition is absent, then strict finalization stops at
+225/228 opaque DWG callbacks. The three unqualified records are listed in the
+[SCALE receipt](docs/research/p4-ac1024-scalelist-common-link-tail-output-2026-11-17.json).
+Neither slice closes a package gate or promotes a support claim. The most
+advanced source-backed profile, P5-I, waits for independent span evidence; its
+existing parser cursor and peer screens are complete and must not be repeated.
+For P5-I, bounded
 AutoCAD 2007 AppInfo classification and documented text-cell override
 retention are complete. The two source
 cells with alignment overrides remain incomplete: ODA specifies raw RS, the
@@ -53,32 +54,19 @@ but that is parser self-consistency, not an independent source-span proof.
 LibreDWG 0.14 also leaves these TABLE cell bodies in `unknown_bits`; neither
 peer result overrides ODA. See the [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json)
 and [cursor/peer screen](docs/research/p5-ac1021-table-alignment-candidate-cursor-and-libredwg-screen-2026-11-17.json).
-Slice S23 records the CLI session-continuity correction; no package gate
-closed. Activity progress is 41/70 and package readiness remains 5/33. The
-AC1024 SCALE diagnostic is one remaining implementation slice, not a new
-package gate.
+Slices S23 and S24 are complete; activity progress is 42/70 and package
+readiness remains 5/33.
 P6-G is conditional, P7-E optional, and six DEFERRED_EXTERNAL dispositions
 are advisory, excluded from the count, and cannot promote support claims.
 
 ## Execution order
 
 Completed implementation/research actions are absent from this sequence;
-their receipts are linked only where they prevent repeated work. The active
-local slice is bounded L1 AC1024 SCALE diagnosis below. P5-I has a local source
-but waits on independent span evidence; other source, authority, and
-environment waits block only their own profiles.
+their receipts are linked only where they prevent repeated work. P5-I has a
+local source but waits on independent span evidence; other source, authority,
+and environment waits block only their own profiles.
 
-1. **Resolve the newly observed AC1024 SCALE snapshot refusal.** Follow the
-   one-slice sub-plan below. The existing physical selected-SCALE output
-   receipt passes for this source, while full strict CLI output reaches a
-   different `ACAD_SCALELIST` snapshot rejection after the LAYER_CONTROL proof
-   succeeds. First expose the exact failed predicate in debug diagnostics, then
-   compare full source state with the existing selector's admitted projection.
-   Do not relax the profile or treat selected-object output as whole-drawing
-   evidence. Close the slice with either a source-backed bounded fix and
-   failure/retry/readback controls, or a precise fail-closed reason and an
-   explicit evidence wait.
-2. **Resume P5-I only on new independent span evidence.** Use the exact source
+1. **Resume P5-I only on new independent span evidence.** Use the exact source
    and [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json).
    The existing ODA, candidate cursor, ACadSharp, and LibreDWG observations
    are recorded. Do not repeat peer scans or choose RS/BitShort by agreement.
@@ -89,7 +77,7 @@ environment waits block only their own profiles.
    strict ASCII/Binary output and fresh ACadSharp readback. The unrelated typed
    proxy graphics remain outside P5-I. Keep P5-A conditional on actual linked
    FIELD spans and known values; class counts alone do not activate it.
-3. **Start the next admitted profile immediately.** Use the packet overview
+2. **Start the next admitted profile immediately.** Use the packet overview
    and gate tables below to select a source that has actually arrived. Hash it
    once; capture only state present in that producer session. Keep AC1024 TABLE,
    AC1027 Sweep/shell, AC1032 associative-network/TABLE, and other profiles
@@ -98,15 +86,14 @@ environment waits block only their own profiles.
    and ODA span map → smallest parser/model/graph/writer change → one
    discriminating failure control and corrected retry → strict output and
    fresh independent readback → native semantic check only where required.
-4. **Resume waits only after their trigger changes.** P8-D's selector work is
-   complete, but the latest unlock-triggered retry of the exact candidate
-   returned LaunchServices -10827, pasteboard/HIServices errors, and no
-   capturable display; retry GUI actions only after app registration and
-   display access work. Retry P6-H only
+3. **Resume waits only after their trigger changes.** P8-D's selector work is
+   complete. After the latest user-reported unlock, the exact candidate still
+   returns LaunchServices -10827 and screen capture still reports no display;
+   retry GUI actions after app registration and display access work. Retry P6-H only
    after ODA provides a verifiable converter bundle; reuse its existing
    hash-bound MLINE source. Close P8-D after its GUI checks pass. Continue other
    local/source-ready work while either wait remains.
-5. **Freeze and qualify once.** After admitted local profiles stabilize,
+4. **Freeze and qualify once.** After admitted local profiles stabilize,
    freeze the source, build, package, executable, and loaded modules. Run native
    Linux and Windows FreeCAD 2D checks for every admitted profile, add 3D only
    for P7-admitted profiles, and collect shared/static manifests, relocation,
@@ -114,32 +101,6 @@ environment waits block only their own profiles.
    Close P8-A/B/C/E/F and applicable P7-H after the changed-trigger P8-D GUI
    gate closes, then set release thresholds and update the support matrix
    (P8-G). Hosted CI remains subject to the owner's existing go-ahead.
-
-### One active local diagnostic slice
-
-**L1 — AC1024 ACAD_SCALELIST source-snapshot refusal.** This is one remaining
-implementation/research slice, not a new package gate. Use the existing local
-AC1024 mechanical source with SHA-256
-`854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858`; do not
-copy it into `tests/` or commit it. The selected-SCALE physical output selector
-passes, while strict CLI preflight rejects the ACAD_SCALELIST owner/entries
-snapshot after S23 preserves the separate LAYER_CONTROL session proof.
-
-1. Add debug-only reason granularity to the combined predicate in
-   `prepareDwgScales`; keep admission behavior unchanged.
-2. Run the existing selected-SCALE physical selector and full CLI once each on
-   the same source. Compare NOD root, dictionary owner/flags/common fields,
-   entry count/membership, and imported typed `scales`; identify the first
-   exact mismatch.
-3. Read the relevant ODA section and use primary or independent source decode
-   for any ambiguous field. If the source is outside the current profile,
-   retain refusal and record that exact reason. If it is in-profile and the
-   implementation is wrong, fix only that mapping and add the smallest
-   generated negative plus refusal/rollback, corrected retry, and fresh
-   readback controls.
-4. Build touched targets once and run only the SCALE physical selector,
-   owning fast selectors, and this one source CLI. Do not run a full suite or
-   infer whole-drawing success from selected-profile output.
 
 ## Evidence policy and per-slice loop
 
@@ -218,12 +179,11 @@ readback. Each gate adds only its package-specific evidence.
 
 | Priority packet | Work items | Start condition and speed rule |
 |---|---|---|
-| 1 — Ready local diagnostic | L1 AC1024 SCALE snapshot (one slice, not a package gate) | Name the exact source predicate first. Reuse the existing selector, sample hash, and receipt; do not add fixtures or broaden output from a partial graph. |
-| 2 — Independent evidence wait | P5-I; conditional P5-A | P5-I waits for independent alignment/boundary evidence. Reuse the recorded source and traces. Activate P5-A only if linked FIELD spans and known values are established. |
-| 3 — Producer capture batches | P5-D/E/F, P6-A, P4-C, P7-C, P4-B, P6-C | Capture each producer/session once and implement the first qualifying profile immediately. See gate rows for exact source requirements; paired DXF alone does not qualify DWG API state. |
-| 4 — Named authority/source waits | P5-B/G/H, P6-B/E/F, P7-D/G and remaining dependent gates | Do not repeat broad scans. Resume only on the listed source, versioned authority, or independent reader arriving; keep unrelated work moving. |
-| 5 — Changed-trigger environment waits | P8-D, P6-H | P8-D requires working Aqua app/pasteboard/display; P6-H requires a verifiable ODA bundle. Keep drawings in scratch. |
-| 6 — Frozen integration | P7-F/H, P8-A/B/C/E/F/G | Freeze once after profile admission; run Linux/Windows native consumer and package checks against that same candidate, then close thresholds. |
+| 1 — Independent evidence wait | P5-I; conditional P5-A | P5-I waits for independent alignment/boundary evidence. Reuse the recorded source and traces. Activate P5-A only if linked FIELD spans and known values are established. |
+| 2 — Producer capture batches | P5-D/E/F, P6-A, P4-C, P7-C, P4-B, P6-C | Capture each producer/session once and implement the first qualifying profile immediately. See gate rows for exact source requirements; paired DXF alone does not qualify DWG API state. |
+| 3 — Named authority/source waits | P5-B/G/H, P6-B/E/F, P7-D/G and remaining dependent gates | Do not repeat broad scans. Resume only on the listed source, versioned authority, or independent reader arriving; keep unrelated work moving. |
+| 4 — Changed-trigger environment waits | P8-D, P6-H | P8-D requires working Aqua app/pasteboard/display; P6-H requires a verifiable ODA bundle. Keep drawings in scratch. |
+| 5 — Frozen integration | P7-F/H, P8-A/B/C/E/F/G | Freeze once after profile admission; run Linux/Windows native consumer and package checks against that same candidate, then close thresholds. |
 
 When a witness arrives, capture the actual type and reader trace first; use
 those to locate the `readDwgEntity`/`readDwgObject` dispatch and matching
@@ -301,7 +261,7 @@ AC1027 ordinary drawings deferred until source-reference closure.
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation profiles stabilize. Reuse [macOS package evidence](docs/research/p8-macos-package-baseline-2026-11-17.json) only while its inputs match. | Record reproducible commands and immutable identities. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. |
 | P8-B / WAITING_FOR_FREEZE | On the frozen candidate, run native Linux FreeCAD qualification for 2D and every admitted source-derived profile. Add AC1027/AC1032 3D only after P7 admission. Earlier generated 2D results in the [platform receipt](docs/research/p8-freecad-linux-windows-generated-pass-2026-11-15.json) are historical controls only. | Record runner, FreeCAD/converter/modules, settings, exact `open()`/`insert()` handoff, runtime identity, and independent semantics per profile. No cross-compilation or ambiguous fallback. |
 | P8-C / WAITING_FOR_FREEZE | Run the same frozen workflow on native Windows; reuse earlier path-with-spaces/Unicode and generated 2D checks only as historical controls. The tracked `ordinary_enc_AC1027.dwg` still fails before publication; see [preflight receipt](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json). | Use the same evidence fields as P8-B. Keep ordinary AC1027 deferred until source-reference closure. |
-| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | Following the latest user unlock attempt, retrying the exact P8-D candidate still returns LaunchServices `kLSNoExecutableErr` (`-10827`); direct execution aborts on pasteboard/HIServices XPC errors and `screencapture` reports no display. See the [receipt](docs/research/p8-d-named-ltype-property-2026-11-17.json). Resume only after the app/pasteboard registration works and the display is capturable. Then record Move/Copy action-boundary values, named-LTYPE save/reopen/render, and LibreCAD_3 MPOLYGON GUI save/reopen plus pinned ezdxf 1.4.5 readback. Continue local work while this gate waits. |
+| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | After the latest user-reported unlock, `open -n` on the exact candidate still returns LaunchServices `kLSNoExecutableErr` (`-10827`), and `screencapture` still reports no display. See the [receipt](docs/research/p8-d-named-ltype-property-2026-11-17.json). Resume only after app registration/pasteboard works and the display is capturable. Then record Move/Copy action-boundary values, named-LTYPE save/reopen/render, and LibreCAD_3 MPOLYGON GUI save/reopen plus pinned ezdxf 1.4.5 readback. Continue local work while this gate waits. |
 | P8-E / INTEGRATION_GATE | During P8-B/C, collect native Linux/Windows shared/static manifests, relocation, and loaded runtime identities. Reuse the [macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json); repeat macOS only if candidate inputs change. | Verify package contents and shared/static relocation for each platform. |
 | P8-F / WAITING_FOR_SOURCE_MATCHED_CI | Reuse the [CI root-cause receipt](docs/research/p8-pr106-native-ci-root-cause-2026-11-17.json); rerun local diagnosis only if candidate inputs change. | Close on source-matched Linux/macOS/Windows results and current required-check/branch-protection state. Hosted CI remains subject to the owner's existing go-ahead. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |

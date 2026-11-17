@@ -33847,20 +33847,32 @@ bool dx_iface::prepareDwgScales(DRW::Version version,
                 return reject("ACAD_SCALELIST dictionary handle is ambiguous");
             scaleDictionary = &dictionary;
         }
-        if (scaleDictionary == nullptr
-            || scaleDictionary->parentHandle != nodHandle
-            || scaleDictionary->flags != 0
-            || scaleDictionary->countCap
-            || !scaleDictionary->hasCompleteDwgEntries()
-            || scaleDictionary->hasDataStorageBinaryData()
-            || scaleDictionary->hasDwgCommonLinkTail()
-            || scaleDictionary->xDictHandle != 0u
-            || !scaleDictionary->appData.empty()
-            || !scaleDictionary->extData.empty()
-            || !scaleDictionary->pendingAppIdResolutions.empty()
-            || !scaleDictionary->pendingLayerRefResolutions.empty()
-            || scaleDictionary->m_entries.size() != cData->scales.size())
-            return reject("ACAD_SCALELIST dictionary owner or entries mismatch");
+        if (scaleDictionary == nullptr)
+            return reject("ACAD_SCALELIST dictionary is missing");
+        if (scaleDictionary->parentHandle != nodHandle)
+            return reject("ACAD_SCALELIST dictionary parent is not the NOD");
+        if (scaleDictionary->flags != 0)
+            return reject("ACAD_SCALELIST dictionary flags are unsupported");
+        if (scaleDictionary->countCap)
+            return reject("ACAD_SCALELIST dictionary has a capped entry count");
+        if (!scaleDictionary->hasCompleteDwgEntries())
+            return reject("ACAD_SCALELIST dictionary membership is incomplete");
+        if (scaleDictionary->hasDataStorageBinaryData())
+            return reject("ACAD_SCALELIST dictionary has DataStorage payload");
+        if (!scaleDictionary->hasDwgCommonLinkTail())
+            return reject("ACAD_SCALELIST dictionary common links were not validated");
+        if (scaleDictionary->xDictHandle != 0u)
+            return reject("ACAD_SCALELIST dictionary has an extension dictionary");
+        if (!scaleDictionary->appData.empty())
+            return reject("ACAD_SCALELIST dictionary has application data");
+        if (!scaleDictionary->extData.empty())
+            return reject("ACAD_SCALELIST dictionary has extended data");
+        if (!scaleDictionary->pendingAppIdResolutions.empty())
+            return reject("ACAD_SCALELIST dictionary has unresolved APPID references");
+        if (!scaleDictionary->pendingLayerRefResolutions.empty())
+            return reject("ACAD_SCALELIST dictionary has unresolved LAYER references");
+        if (scaleDictionary->m_entries.size() != cData->scales.size())
+            return reject("ACAD_SCALELIST entry count differs from typed SCALE count");
 
         std::unordered_set<std::uint32_t> selected;
         selected.reserve(m_extensionScaleHandles.size());
@@ -34308,11 +34320,16 @@ bool dx_iface::inspectDwgScales(
     };
     if (m_dwgScaleOutputSources.empty())
         return true;
-    if (m_dwgScalesInspected || dxfW == nullptr
-        || view.version != m_dwgScaleTargetVersion
-        || view.binary != m_dwgScaleOutputBinary
-        || !hasUnchangedDwgScales())
-        return reject("source snapshot or output format changed");
+    if (m_dwgScalesInspected)
+        return reject("OBJECTS proof was already consumed");
+    if (dxfW == nullptr)
+        return reject("DXF writer is unavailable");
+    if (view.version != m_dwgScaleTargetVersion)
+        return reject("OBJECTS view version differs from prepared target");
+    if (view.binary != m_dwgScaleOutputBinary)
+        return reject("OBJECTS view encoding differs from prepared target");
+    if (!hasUnchangedDwgScales())
+        return reject("source snapshot changed after preparation");
     try {
         const auto map = [this](std::uint32_t source,
                                 std::uint32_t& output) {

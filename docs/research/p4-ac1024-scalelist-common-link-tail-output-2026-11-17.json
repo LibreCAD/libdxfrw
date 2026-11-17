@@ -1,0 +1,69 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-scalelist-common-link-tail-output-2026-11-17",
+  "date": "2026-11-17",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md P4-A AC1024 ACAD_SCALELIST continuation",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "revision": "AC1024",
+    "provenanceLimit": "Existing local sample outside the repository. It was used in scratch-only CLI and selector runs; it was not staged or committed."
+  },
+  "authority": {
+    "title": "Open Design Specification for .dwg files",
+    "edition": "ODA v5.4.1",
+    "section": "20.4.44 DICTIONARY",
+    "url": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "relevantRoles": "The dictionary parent is a soft relative pointer, reactors are soft pointers, xdicobjhandle is a hard owner, and itemhandles are soft owners."
+  },
+  "finding": {
+    "before": "After S23 preserved the LAYER_CONTROL proof through CLI export, strict preflight rejected the rooted ACAD_SCALELIST dictionary. The selected physical SCALE helper had been misread as generating its input; it is a readback-only selector and requires an already-created output file.",
+    "cause": "The DICTIONARY parser marks its common-link tail validated only after decoding the common handles and all counted item handles within the object frame and checking their roles. prepareDwgScales rejected a dictionary when this validation marker was present, inverting the fail-closed predicate.",
+    "after": "SCALE output preparation now requires hasDwgCommonLinkTail(). Debug diagnostics distinguish the preparation and output-snapshot rejection conditions. Strict CLI no longer rejects at ACAD_SCALELIST. The LayerStates profile separately skips this source because its root precondition is absent; strict finalization then refuses at the opaque-callback completeness boundary."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/LIBRECAD_DXFRW_UPGRADE_HISTORY.md"
+    ],
+    "productionChange": "Require the validated DICTIONARY common-link tail when admitting the source-bound ACAD_SCALELIST graph. Preserve strict output refusal for dictionaries whose link tail was not decoded and role-checked.",
+    "diagnosticChange": "Split combined SCALE snapshot and OBJECTS-view checks into reason-specific debug messages.",
+    "selectorChange": "Import the physical source through one dx_iface, project only its rooted 17-record SCALE profile, verify a supplied DXF, inject a post-OBJECTS source mutation, assert destination preservation, restore the model, retry with the same writer, and freshly reimport the result."
+  },
+  "validation": {
+    "builds": [
+      {
+        "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "PASS"
+      },
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf -j2",
+        "result": "PASS"
+      }
+    ],
+    "partialCliOutput": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg --allow-partial-dwg-read -y -v2010 /private/tmp/ac1024-class-triage-2026-11-17/mechanical-l1-fixed-partial.dxf",
+      "result": "PASS; used only as an explicit partial-conversion output input for the selected-profile physical readback; this does not establish whole-drawing completeness.",
+      "outputSha256": "4a54959d4fa51d82dedd286754c1d5a9728944172e632bbedbccb5882e6a47f1"
+    },
+    "physicalSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --scale-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg /private/tmp/ac1024-class-triage-2026-11-17/mechanical-l1-fixed-partial.dxf",
+      "result": "PASS. The selected route freshly reads 17 SCALE identities, ACAD_SCALELIST NOD membership/order, dictionary owner, one reactor per SCALE, and exact typed/raw flag, name, paper units, drawing units, and unit-scale fields.",
+      "failureAndRetry": "A late post-OBJECTS paperUnits mutation is rejected as a changed source snapshot. The preexisting destination sentinel remains byte-identical. Restoring the source model and retrying on the same writer succeeds; fresh reimport validates the complete selected profile."
+    },
+    "strictCli": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/ac1024-class-triage-2026-11-17/mechanical-l1-strict.dxf",
+      "result": "EXPECTED_FAIL_CLOSED. No ACAD_SCALELIST snapshot rejection occurs. The LayerStates profile skips this source because its LAYER_CONTROL root precondition is absent. Strict finalization stops at opaque DWG callback completeness: 225/228 qualified. Unqualified callbacks are handle 0x24/type 73, 0x34/type 82, and 0x89/type 82. No strict output file is published.",
+      "wholeDrawingClaim": "none"
+    }
+  },
+  "limits": [
+    "The physical selector proves only the selected SCALE graph and its emitted DXF representation; it is not whole-drawing conversion evidence.",
+    "The three remaining opaque callbacks still block strict AC1024 output.",
+    "No repository DWG/DXF fixture was added, and no broad DWG/DXF or FreeCAD support claim is promoted."
+  ],
+  "next": "P5-I remains open for independent source-span evidence; proceed with other admitted source-ready profiles without repeating the completed SCALE diagnosis."
+}

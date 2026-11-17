@@ -51677,6 +51677,23 @@ bool readbackPhysicalVisualStyleOutput(const std::filesystem::path& path) {
 
 bool readbackPhysicalScaleOutput(const std::filesystem::path& sourcePath,
                                  const std::filesystem::path& outputPath) {
+    class LateScaleMutation final : public dx_iface {
+    public:
+        bool mutateAfterObjects{false};
+        std::uint32_t targetHandle{0u};
+        void writeObjects() override {
+            dx_iface::writeObjects();
+            if (!mutateAfterObjects || cData == nullptr)
+                return;
+            const auto scale = std::find_if(
+                cData->scales.begin(), cData->scales.end(),
+                [this](const DRW_Scale& value) {
+                    return value.handle == targetHandle;
+                });
+            if (scale != cData->scales.end())
+                scale->paperUnits += 0.125;
+        }
+    };
     dx_iface sourceReader;
     dx_data source;
     if (!sourceReader.fileImport(sourcePath.string(), &source, false)
@@ -51715,6 +51732,37 @@ bool readbackPhysicalScaleOutput(const std::filesystem::path& sourcePath,
             != source.namedObjectDictionary.handle
         || sourceDictionary->m_entries.size() != source.scales.size())
         return fail("physical source ACAD_SCALELIST dictionary is incomplete");
+
+    dx_data selected;
+    selected.sourceFormat = source.sourceFormat;
+    selected.sourceVersion = source.sourceVersion;
+    selected.importGeneration = source.importGeneration;
+    selected.dwgReadOutcome = source.dwgReadOutcome;
+    selected.namedObjectDictionary = source.namedObjectDictionary;
+    selected.namedObjectDictionary.m_entries.erase(
+        std::remove_if(selected.namedObjectDictionary.m_entries.begin(),
+            selected.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name != "ACAD_SCALELIST";
+            }), selected.namedObjectDictionary.m_entries.end());
+    selected.hasNamedObjectDictionary = true;
+    selected.dictionaries.push_back(*sourceDictionary);
+    selected.scales = source.scales;
+    selected.namedResourceImport = source.namedResourceImport;
+    selected.namedResourceImport.scaleRange = {0u, selected.scales.size()};
+    selected.namedResourceImport.dictionaryVarRange = {0u, 0u};
+    selected.namedResourceImport.mLineStyleRange = {0u, 0u};
+    selected.namedResourceImport.mLeaderStyleRange = {0u, 0u};
+    selected.namedResourceImport.rawRange = {0u, 0u};
+    selected.namedResourceTypedRetainedRecords = selected.scales.size();
+    selected.namedResourceTypedRetainedBytes =
+        source.namedResourceTypedRetainedBytes;
+    selected.namedResourceImport.typedRetainedRecords =
+        selected.namedResourceTypedRetainedRecords;
+    selected.namedResourceImport.typedRetainedBytes =
+        selected.namedResourceTypedRetainedBytes;
+    if (!selected.hasSingleSuccessfulNamedResourceImport())
+        return fail("selected physical SCALE graph lost its source import profile");
 
     const auto verifyOutput = [&](const std::filesystem::path& path) {
         dx_iface outputReader;
@@ -51817,55 +51865,43 @@ bool readbackPhysicalScaleOutput(const std::filesystem::path& sourcePath,
     if (!verifyOutput(outputPath))
         return false;
 
-    class LateScaleMutation final : public dx_iface {
-    public:
-        bool mutateAfterObjects{false};
-        std::uint32_t targetHandle{0u};
-        void writeObjects() override {
-            dx_iface::writeObjects();
-            if (!mutateAfterObjects || cData == nullptr)
-                return;
-            const auto scale = std::find_if(
-                cData->scales.begin(), cData->scales.end(),
-                [this](const DRW_Scale& value) {
-                    return value.handle == targetHandle;
-                });
-            if (scale != cData->scales.end())
-                scale->paperUnits += 0.125;
-        }
-    };
     const std::filesystem::path retryPath = outputPath.string() + ".retry.dxf";
     const std::string sentinel = "SCALE destination sentinel\n";
     { std::ofstream existing(retryPath, std::ios::binary | std::ios::trunc);
       existing << sentinel; }
-    const DRW_Scale sourceScale = source.scales.front();
+    const DRW_Scale sourceScale = selected.scales.front();
+    std::vector<std::uint32_t> scaleHandles;
+    for (const DRW_Scale& scale : selected.scales)
+        scaleHandles.push_back(scale.handle);
     LateScaleMutation writer;
     writer.targetHandle = sourceScale.handle;
+    DxIfaceStandardDwgCaptureTestAccess::setScaleExtensionHandles(
+        writer, scaleHandles);
     writer.mutateAfterObjects = true;
-    const auto exportPartial = [&writer, &source, &retryPath]() {
+    const auto exportSelected = [&writer, &selected, &retryPath]() {
         return writer.fileExport(
-            retryPath.string(), DRW::AC1024, false, &source, false, true,
-            dx_dxfSourceTextPolicy::RequireValidSource,
-            DRW::DxfTextWritePolicy::RequireLossless,
-            dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
-            dx_dwgReadCompletenessPolicy::AllowPartial);
+            retryPath.string(), DRW::AC1024, false, &selected, true, false,
+            dx_dxfSourceTextPolicy::Compatible,
+            DRW::DxfTextWritePolicy::Compatible,
+            dx_dxfProxyGraphicsPolicy::Compatible,
+            dx_dwgReadCompletenessPolicy::Legacy);
     };
-    if (exportPartial())
+    if (exportSelected())
         return fail("late physical SCALE source mutation was accepted");
     { std::ifstream preserved(retryPath, std::ios::binary);
       const std::string bytes{std::istreambuf_iterator<char>(preserved), {}};
       if (bytes != sentinel)
           return fail("rejected physical SCALE mutation replaced the destination"); }
     const auto restored = std::find_if(
-        source.scales.begin(), source.scales.end(),
+        selected.scales.begin(), selected.scales.end(),
         [&sourceScale](const DRW_Scale& value) {
             return value.handle == sourceScale.handle;
         });
-    if (restored == source.scales.end())
+    if (restored == selected.scales.end())
         return fail("physical SCALE mutation target disappeared");
     *restored = sourceScale;
     writer.mutateAfterObjects = false;
-    if (!exportPartial() || !verifyOutput(retryPath))
+    if (!exportSelected() || !verifyOutput(retryPath))
         return fail("restored physical SCALE source could not retry and read back");
 
     std::cerr << "Physical SCALE file proof passed: 17 identities, rooted "

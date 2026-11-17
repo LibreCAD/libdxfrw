@@ -40,7 +40,7 @@
     "status": "WAITING_FOR_FUNCTIONAL_AQUA_GUI",
     "observedAt": "2026-11-17",
     "evidence": "The user said they would unlock the session. After that response, direct execution of the existing Contents/MacOS/LibreCAD binary produced only `sysmon request failed with error: sysmond service not found`; a screen capture failed with `could not create image from display`, and process inspection remains unavailable. Earlier attempts returned LaunchServices kLSNoExecutableErr (-10827) or aborted during AppKit/HIServices registration with pasteboard XPC errors. No usable desktop, app window, or GUI test interaction was observed.",
-    "retryWhen": "Resume only after the exact built candidate opens with working pasteboard/XPC registration and the display can be captured. The latest unlock-triggered retry reproduced LaunchServices -10827, pasteboard/HIServices failure, and no display; do not repeat until one of those conditions changes.",
+    "retryWhen": "Resume only after the exact built candidate opens with working pasteboard/XPC registration and the display can be captured. The latest user-reported unlock retry reproduced LaunchServices -10827 and no display; do not repeat until app registration or display access changes.",
     "retryHistory": [
       {
         "date": "2026-11-17",
@@ -64,6 +64,25 @@
           }
         ],
         "outcome": "Unlocking did not expose a capturable Aqua display or working app/pasteboard registration in this execution environment. No GUI interaction or support qualification ran."
+      },
+      {
+        "date": "2026-11-17",
+        "trigger": "The user reported unlocking the macOS session again.",
+        "candidate": {
+          "path": "/private/tmp/librecad-p8d-build-20261117/LibreCAD.app",
+          "commit": "d9c0ae435ed5892611d6bec3c628033004dbcaf4"
+        },
+        "attempts": [
+          {
+            "command": "open -n /private/tmp/librecad-p8d-build-20261117/LibreCAD.app",
+            "result": "LaunchServices kLSNoExecutableErr (-10827)."
+          },
+          {
+            "command": "screencapture -x /private/tmp/p8d-candidate-unlocked-2026-11-17.png",
+            "result": "could not create image from display."
+          }
+        ],
+        "outcome": "The unlock report did not change app registration or expose a capturable Aqua display. No GUI interaction or P8-D qualification ran."
       }
     ]
   },
