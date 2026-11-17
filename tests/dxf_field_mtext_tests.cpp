@@ -9,6 +9,7 @@
 #include <iterator>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace {
 struct Capture final : LC3CompatCheck {
@@ -20,6 +21,26 @@ struct Exporter final : LC3CompatCheck {
     void writeObjects() override { ok = out.writeField(&field); }
     bool finalizeDxfWrite() override { return ok; }
     dxfRW& out; DRW_Field field; bool ok = false;
+};
+struct FieldGraphWriter final : LC3CompatCheck {
+    explicit FieldGraphWriter(dxfRW& output) : out(output) {}
+    void writeObjects() override {
+        ok = out.writeField(&root) && out.writeField(&child)
+            && out.writeField(&objectTarget) && out.writeFieldList(&list);
+    }
+    bool finalizeDxfWrite() override { return ok; }
+    dxfRW& out;
+    DRW_Field root;
+    DRW_Field child;
+    DRW_Field objectTarget;
+    DRW_FieldList list;
+    bool ok = false;
+};
+struct FieldGraphCapture final : LC3CompatCheck {
+    void addField(const DRW_Field& value) override { fields.push_back(value); }
+    void addFieldList(const DRW_FieldList& value) override { lists.push_back(value); }
+    std::vector<DRW_Field> fields;
+    std::vector<DRW_FieldList> lists;
 };
 bool create(const std::filesystem::path& path, bool binary, bool mtext,
             bool lateEvaluator, const std::string& text,
@@ -94,6 +115,61 @@ bool matches(const Capture& capture, const std::string& expected) {
         && f.m_valueString == expected && f.m_value.m_value.type() == DRW_Variant::STRING
         && f.m_value.m_value.content.s != nullptr
         && *f.m_value.m_value.content.s == expected;
+}
+bool verifyFieldReferenceResolver(const std::filesystem::path& path) {
+    dxfRW output(path.string().c_str());
+    FieldGraphWriter graph(output);
+    graph.root.handle = 0x3Au;
+    graph.root.m_evaluatorId = "_text";
+    graph.root.m_fieldCode = "root field";
+    graph.root.m_childHandles = {0x2Cu};
+    graph.root.m_objectHandles = {0x2Eu};
+
+    DRW_Field::ChildValue handleValue;
+    handleValue.m_key = "ACFD_FIELD_HANDLE";
+    handleValue.m_value.m_dataType = 64;
+    handleValue.m_value.m_handle = 0x2Cu;
+    handleValue.m_value.m_value.addInt(330, 0x2C);
+    graph.root.m_childValues.push_back(handleValue);
+
+    graph.child.handle = 0x3Cu;
+    graph.child.m_evaluatorId = "_text";
+    graph.child.m_fieldCode = "child target";
+    graph.objectTarget.handle = 0x3Eu;
+    graph.objectTarget.m_evaluatorId = "_text";
+    graph.objectTarget.m_fieldCode = "object target";
+    graph.list.handle = 0x2Bu;
+    graph.list.m_fieldHandles = {0x2Au};
+
+    output.setReferenceResolver([](std::uint32_t handle) {
+        return handle >= 0x2Au && handle <= 0x2Eu ? handle + 0x10u : handle;
+    });
+    DRW_Class fieldClass;
+    if (!dxfRW::dxfClassForRecordName("FIELD", fieldClass)) return false;
+    fieldClass.instanceCount = 3;
+    DRW_Class fieldListClass;
+    if (!dxfRW::dxfClassForRecordName("FIELDLIST", fieldListClass)) return false;
+    fieldListClass.instanceCount = 1;
+    output.setDxfClasses({fieldClass, fieldListClass});
+    if (!output.write(&graph, DRW::AC1021, false) || !graph.ok) return false;
+
+    dxfRW input(path.string().c_str());
+    FieldGraphCapture capture;
+    if (!input.read(&capture, false) || capture.fields.size() != 3u
+        || capture.lists.size() != 1u)
+        return false;
+    const DRW_Field& root = capture.fields.front();
+    const DRW_CadValue& resolvedValue = root.m_childValues.front().m_value;
+    return root.handle == 0x3Au
+        && root.m_childHandles == std::vector<std::uint32_t>{0x3Cu}
+        && root.m_objectHandles == std::vector<std::uint32_t>{0x3Eu}
+        && resolvedValue.m_handle == 0x3Cu
+        && resolvedValue.m_value.type() == DRW_Variant::INTEGER
+        && resolvedValue.m_value.i_val() == 0x3C
+        && capture.fields[1].handle == 0x3Cu
+        && capture.fields[2].handle == 0x3Eu
+        && capture.lists.front().m_fieldHandles
+            == std::vector<std::uint32_t>{0x3Au};
 }
 }
 
@@ -265,6 +341,11 @@ int main(int argc, char** argv) {
         if (!retry.read(&corrected,false) || !matches(corrected,"A^ B")) {
             std::cerr << "corrected FIELD retry failed\n"; return 1;
         }
+    }
+    const auto references = dir / "reference-resolved.dxf";
+    if (!verifyFieldReferenceResolver(references)) {
+        std::cerr << "FIELD/FIELDLIST reference resolver output/readback failed\n";
+        return 1;
     }
     std::cout << "_text FIELD expression/value/cache and retry PASS\n";
 }

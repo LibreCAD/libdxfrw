@@ -6693,6 +6693,24 @@ bool dxfRW::rejectUnsupportedDxfWrite(const char* recordName) noexcept {
                                     "not in this DXF version");
 }
 
+bool dxfRW::leaveOutUnsupportedDxfWrite(const char* recordName) noexcept {
+    if (!m_dxfWriteAttemptActive || recordName == nullptr) {
+        m_writeError = true;
+        return false;
+    }
+    try {
+        const std::string label = std::string(recordName)
+            + " (not in this DXF version)";
+        std::size_t& count = m_leftOut[label];
+        if (count != std::numeric_limits<std::size_t>::max())
+            ++count;
+        return true;
+    } catch (...) {
+        m_writeError = true;
+        return false;
+    }
+}
+
 bool dxfRW::rejectDxfWriteWithReason(const char* recordName,
                                      const char* reason) noexcept {
     m_writeError = true;
@@ -37480,7 +37498,7 @@ bool dxfRW::writeSortEntsTable(DRW_SortEntsTable *ent) {
 // typed FIELD model.
 bool dxfRW::writeField(DRW_Field *ent) {
     if (version < LIBDXFRW_DXF_FIELD_MINIMUM_VERSION)
-        return rejectUnsupportedDxfWrite("FIELD");
+        return leaveOutUnsupportedDxfWrite("FIELD");
     if (!preflightDxfWrite())
         return false;
     if (ent == nullptr || writer == nullptr) {
@@ -37504,15 +37522,16 @@ bool dxfRW::writeField(DRW_Field *ent) {
     const std::uint32_t sourceHandle = ent->handle;
     const std::uint32_t emittedHandle = remapObjectHandle(sourceHandle);
     const auto remapHandle = [this](std::uint32_t handle) {
-        return remapObjectHandle(handle);
+        return m_referenceResolver ? resolveReference(handle)
+                                   : remapObjectHandle(handle);
     };
     DRW_CadValue fieldValue = ent->m_value;
     if (version > DRW::AC1018 && fieldValue.m_formatString.empty())
         fieldValue.m_formatString = ent->m_formatString;
-    const auto hasValidOutputReference = [this](std::uint32_t source) {
+    const auto hasValidOutputReference = [&remapHandle](std::uint32_t source) {
         if (source == 0u || source == DRW::NoHandle)
             return false;
-        const std::uint32_t emitted = remapObjectHandle(source);
+        const std::uint32_t emitted = remapHandle(source);
         return emitted != 0u && emitted != DRW::NoHandle;
     };
     const auto hasValidFieldValueReference =
@@ -37625,17 +37644,22 @@ bool dxfRW::writeField(DRW_Field *ent) {
 // FIELDLIST (AcDbIdSet / AcDbFieldList, custom class).
 bool dxfRW::writeFieldList(DRW_FieldList *ent) {
     if (version < LIBDXFRW_DXF_FIELD_MINIMUM_VERSION)
-        return rejectUnsupportedDxfWrite("FIELDLIST");
+        return leaveOutUnsupportedDxfWrite("FIELDLIST");
     if (!preflightTableEntry(ent))
         return false;
     if (ent == nullptr || writer == nullptr || !canWriteDxfFieldList(*ent)) {
         m_writeError = true;
         return false;
     }
-    const auto hasValidOutputReference = [this](std::uint32_t source) {
+    const auto remapFieldReference = [this](std::uint32_t source) {
+        return m_referenceResolver ? resolveReference(source)
+                                   : remapObjectHandle(source);
+    };
+    const auto hasValidOutputReference = [&remapFieldReference](
+            std::uint32_t source) {
         if (source == 0u || source == DRW::NoHandle)
             return false;
-        const std::uint32_t emitted = remapObjectHandle(source);
+        const std::uint32_t emitted = remapFieldReference(source);
         return emitted != 0u && emitted != DRW::NoHandle;
     };
     if (!std::all_of(ent->m_fieldHandles.begin(), ent->m_fieldHandles.end(),
@@ -37660,7 +37684,7 @@ bool dxfRW::writeFieldList(DRW_FieldList *ent) {
     if (written && ent->m_unknown != 0)
         written = writer->writeBool(290, true);
     for (std::uint32_t field : ent->m_fieldHandles)
-        written = written && writeString(330, toHexStr(remapObjectHandle(field)));
+        written = written && writeString(330, toHexStr(remapFieldReference(field)));
     written = written && writeString(100, "AcDbFieldList");
     if (!written || (!ent->extData.empty() && !writeExtData(ent->extData))) {
         return false;

@@ -1350,11 +1350,11 @@ public:
     //! finalizeDxfWrite; the facade cannot guard writes through caller aliases.
     DRW_WritingContext* getWritingContext() { return &m_writingContext; }
     /** Return target-version omissions observed during the most recent
-     * admitted write attempt. Unsupported target records still make write()
-     * fail and are never silently published as a lossy file; their counts are
-     * retained for diagnostics after failure. The map object is owned by this
-     * codec and lives until destruction; its contents reset at the beginning
-     * of the next admitted write attempt. This is not thread-safe. */
+     * admitted write attempt. Most unsupported records make write() fail;
+     * explicitly skippable records may be omitted with a count so consumers
+     * can report the loss. The map object is owned by this codec and lives
+     * until destruction; its contents reset at the beginning of the next
+     * admitted write attempt. This is not thread-safe. */
     const std::map<std::string, std::size_t>& leftOut() const {
         return m_leftOut;
     }
@@ -1728,6 +1728,7 @@ public:
     // recordName is supplied only for a known target-version limitation; the
     // attempted omission is counted, but the standalone writer remains strict.
     bool rejectUnsupportedDxfWrite(const char* recordName = nullptr) noexcept;
+    bool leaveOutUnsupportedDxfWrite(const char* recordName) noexcept;
     bool rejectDxfWriteWithReason(const char* recordName,
                                   const char* reason) noexcept;
     bool failDxfWrite() noexcept;
