@@ -39,11 +39,37 @@
     "log": "/private/tmp/p6h-oda-launch-after-unlock-20261117.log",
     "output_witness": false
   },
+  "launchservices_bundle_probe": {
+    "date": "2026-11-17",
+    "source_sha256_rechecked": "6fede7d730a2de2189b9749591e090f8e3cc22830d6efaa9f8d6e80da343ebb1",
+    "launchservices_job": {
+      "label": "gui/502/application.ODAFileConverter.59716274.59716279",
+      "state": "running",
+      "pid": 1424,
+      "started_suspended": true,
+      "last_exit": "never exited"
+    },
+    "bundle_open": {
+      "command": "open -a /Applications/ODAFileConverter.app",
+      "result": "LaunchServices rejected the bundle with NSOSStatusErrorDomain Code=-10827 (kLSNoExecutableErr), although Contents/MacOS/ODAFileConverter exists and is executable."
+    },
+    "signature_check": {
+      "command": "codesign --verify --deep --strict --verbose=2 /Applications/ODAFileConverter.app",
+      "result": "invalid signature (code or signature have been modified); In architecture: arm64"
+    },
+    "accessibility_probe": {
+      "command": "System Events query for the ODAFileConverter process name and frontmost state",
+      "result": "AppleScript returned error -10827; no usable UI state was established."
+    },
+    "conversion_attempted": false,
+    "interpretation": "The launchd application job alone is not a normal usable launch: it is started suspended, LaunchServices rejects the bundle, and signature verification fails. This is an installation/bundle blocker, not evidence about MLINE parsing.",
+    "output_witness": false
+  },
   "disposition": {
     "gate": "P6-H",
-    "status": "WAITING_FOR_MACOS_CONVERTER_SESSION",
-    "unblock_condition": "ODA File Converter launches normally in the macOS session.",
-    "next_action": "Do not retry again until a normal ODA launch is observed. Once launch succeeds, convert the exact existing scratch source once; do not regenerate it or add either file to repository fixtures.",
+    "status": "WAITING_FOR_VALID_MACOS_CONVERTER_INSTALLATION",
+    "unblock_condition": "A valid official macOS ARM64 ODA bundle passes signature verification and opens through LaunchServices in a usable session.",
+    "next_action": "Do not retry conversion until the installed bundle passes codesign verification and LaunchServices starts it unsuspended. Then convert the exact existing scratch source once; do not regenerate it or add either file to repository fixtures.",
     "support_claim_effect": "none"
   }
 }
