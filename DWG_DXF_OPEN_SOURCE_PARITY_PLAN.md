@@ -49,10 +49,11 @@ waiting source, application, or hosted runner blocks only its named profile.
    consumer outputs. Keep generated drawings in scratch.
 2. **P6-H — perform one conditional converter retry.** Reuse the exact
    scratch MLINE source/hash in the [attempt receipt](docs/research/p6-h-scratch-mline-source-attempt-2026-11-17.json).
-   First confirm ODA File Converter launches in the current macOS session; if
-   it does, retry conversion once and capture the resulting AC1018 profile. If
-   the app still aborts, update only this wait condition and move on. Never
-   regenerate or commit the source.
+   The latest launch probe still aborts with pasteboard/XPC errors, so do
+   not retry it again in the unchanged session. Once the application launches
+   normally, convert this exact source once and capture the AC1018 profile. This
+   wait blocks only P6-H; continue other runnable slices. Never regenerate or
+   commit the source.
 3. **Batch source-bound evidence, without repeating completed research.** For
    each available producer/build, capture only profiles present in that
    release, recording the exact source/API state and hashing each source once.
