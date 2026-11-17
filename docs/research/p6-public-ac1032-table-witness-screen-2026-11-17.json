@@ -13,8 +13,8 @@
     ],
     "downloadAttempt": {
       "url": "https://download.autodesk.com/us/samplefiles/acad/blocks_and_tables_-_imperial.dwg",
-      "destination": "/private/tmp/blocks_and_tables_imperial.dwg",
-      "result": "Not downloaded: curl failed with 'Could not resolve host: download.autodesk.com'. No file was added to the repository."
+      "destination": "/private/tmp/blocks_and_tables_-_imperial.dwg",
+      "result": "Fetched once after an approved network retry; 227008 bytes, SHA-256 3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07. Header is AC1021 (R2007), so it fails the P5-D AC1024 requirement. Per the stop condition, TABLECONTENT/CELLSTYLEMAP profile was not inspected. Kept outside the repository; no fixture was added."
     }
   },
   "candidates": [
@@ -26,8 +26,15 @@
         "Blocks and Tables (Metric), 253 KB"
       ],
       "known": "Autodesk describes these as sample files applicable to AutoCAD 2010 and later. A separate public Autodesk University handout names the imperial file in an AutoCAD 2010 workflow.",
-      "unresolved": "The exact DWG magic/version, actual TABLECONTENT/CELLSTYLEMAP profile, and expected table values are not established from the page. The file could be a bounded P5-D candidate only after download, header inspection, and field-profile/semantics checks. It is not an AC1032 witness by this evidence.",
-      "disposition": "Candidate only; no support promotion. Retry one direct fetch after DNS works, then accept for P5-D only if it meets the exact R24 gate."
+      "observedFile": {
+        "name": "Blocks and Tables (Imperial)",
+        "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+        "sizeBytes": 227008,
+        "magic": "AC1021",
+        "detectedRelease": "R2007"
+      },
+      "unresolved": "The TABLECONTENT/CELLSTYLEMAP profile and expected table values were intentionally not inspected after the file failed the required AC1024 version gate. The file is not an AC1032 witness.",
+      "disposition": "Exclude for P5-D: AC1021 is below its AC1024 requirement. Stop; do not fetch or scan again. Use the bundled producer session. No support promotion."
     },
     {
       "name": "ACadSharp samples/sample_AC1032.dwg",
@@ -48,9 +55,9 @@
       "disposition": "Useful semantic lead only; not an acquirable source witness from the public record. No contact was made."
     }
   ],
-  "result": "No eligible public AC1032 TABLE witness was found in this bounded search. The Autodesk sample set may reduce P5-D acquisition work after a one-time exact file/profile check. The ACadSharp AC1032 sample and the reported CadCraft columns sample cannot satisfy P6-C.",
+  "result": "No eligible public AC1032 TABLE witness was found. The Autodesk Blocks and Tables Imperial sample is AC1021, so it cannot satisfy P5-D's AC1024 gate; its profile was not inspected. The ACadSharp AC1032 sample and the reported CadCraft columns sample cannot satisfy P6-C.",
   "planEffect": {
-    "completedAction": "Screened the named public AC1032 TABLE candidates and recorded exclusions and one R24 candidate.",
-    "remainingAction": "If DNS returns, fetch the official Autodesk sample once and check its header plus TABLECONTENT/CELLSTYLEMAP fields for P5-D. For P6-C, use the bundled producer acquisition for a clean AC1032 TABLE with known expected values; otherwise remain raw-only and fail closed."
+    "completedAction": "Screened the named public TABLE candidates, fetched the Autodesk Imperial sample once, recorded its AC1021 header and excluded it for P5-D, and preserved the ACadSharp/CadCraft exclusions.",
+    "remainingAction": "Use the bundled producer session for an AC1024 TABLE source and for a clean AC1032 TABLE with known expected values. Until P6-C has a clean admissible source, retain raw-only behavior and fail closed."
   }
 }

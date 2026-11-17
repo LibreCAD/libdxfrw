@@ -17,10 +17,10 @@ LibreCAD origin/master head was `3ad089398976feb96ee01b8dee006c141edd8d3e`
 refresh mutable heads before integration or qualification.
 
 **Progress on 2026-11-17:** 4 of 32 required package gates are closed (12.5%);
-28 remain. The activity-based estimate is 28 of 59 slices complete (47.5%),
+28 remain. The activity-based estimate is 29 of 60 slices complete (48.3%),
 with 31 remaining: those 28 gates plus AC1027/AC1032 3D qualification on Linux,
 the same 3D phase on Windows, and the combined LibreCAD 2 / LibreCAD_3 GUI phase.
-The 59-unit count comprises the 32 package gates, 24 completed non-gate slices,
+The 60-unit count comprises the 32 package gates, 25 completed non-gate slices,
 and these 3 split phases. It weights slices equally and is not an effort or
 support estimate. Completed actions are deleted from the queue; their receipts
 and commits remain the record. P6-G is a conditional trigger and P7-E optional;
@@ -60,14 +60,14 @@ slice; it proves the role check only and leaves FIELD target resolution,
 ownership closure, and TABLE output open. Package-gate completion remains 4/32.
 
 The [bounded public-source screen](docs/research/p6-public-ac1032-table-witness-screen-2026-11-17.json)
-found no eligible public AC1032 TABLE witness. Autodesk's official Blocks and
-Tables sample set is a possible P5-D source, but its exact file version and
-TABLECONTENT/CELLSTYLEMAP profile are unverified; direct download currently
-fails because `download.autodesk.com` does not resolve in this environment.
-The ACadSharp `sample_AC1032.dwg` is excluded because its DxfWriter does not
-emit ACAD_TABLE, and the public CadCraft `columns-sample.dwg` report says the
-file has no ACAD_TABLE. At that point, this bounded source-screen slice raised
-the estimate to 26/57; it closed no package gate and made no support claim.
+found no eligible public AC1032 TABLE witness. The Autodesk Blocks and Tables
+Imperial sample was fetched once outside the repository; its AC1021 magic fails
+P5-D's AC1024 requirement, so its table profile was not inspected. Do not fetch
+or scan it again; use the bundled producer session. The ACadSharp
+`sample_AC1032.dwg` is excluded because its DxfWriter does not emit ACAD_TABLE,
+and the public CadCraft `columns-sample.dwg` report says the file has no
+ACAD_TABLE. The Autodesk header check completes one source-screen slice and
+closes no package gate.
 
 The latest evidence still leaves P4-B/P4-C source-bound wire fields open. P8-E
 still needs native Linux and Windows package/runtime receipts. The exact macOS
@@ -131,13 +131,11 @@ Schedule work in these batches to amortize builds and source acquisition. A
 blocked profile never pauses other ready work. The completed TABLE reference
 census is removed from this queue; see its receipt above.
 
-1. **One bundled producer acquisition — P5-A/B/D/E/F/G/H, P6-A/C.** If
-   network access returns, make one short check of Autodesk's official Blocks
-   and Tables sample for P5-D: confirm AC1024 magic and TABLECONTENT plus
-   CELLSTYLEMAP. Stop after this check if fetch/version/profile fails and use
-   the producer session for P5-D; if it passes, capture expected values
-   independently before semantic work. This sample cannot satisfy P6-C. In
-   either case prepare one AutoCAD/ObjectARX session for a clean, hash-bound
+1. **One bundled producer acquisition — P5-A/B/D/E/F/G/H, P6-A/C.** The
+   Autodesk Blocks and Tables Imperial candidate was checked once and is
+   AC1021, so it fails P5-D's AC1024 requirement. Do not fetch or inspect it
+   further; use the producer session for P5-D. This sample cannot satisfy
+   P6-C. Prepare one AutoCAD/ObjectARX session for a clean, hash-bound
    R2018 TABLE with known
    values and native appearance, FIELD text/value and dependencies, the missing
    R24 TABLE formatting/layer profile if needed, one dynamic-constraint model,
@@ -211,7 +209,7 @@ specific evidence required to close the gate.
 |---|---|---|
 | P5-A / WAITING_FOR_PRODUCER_FIELD_SPANS | Acquire a native AutoCAD/ObjectARX FIELD with known text/value, or a stronger producer-bound public input. The cached unknown-producer source and patched ACadRust derivative are not physical evidence; see [source/cache audit](docs/research/p5-mtext-fieldlist-source-cache-2026-11-15.json). | Bind physical spans, handle roles, source text, and independent evaluation or producer-authored expected value before parser changes. |
 | P5-B / DEPENDS_ON_P5-A | Use P5-A's exact source to close FIELD/FIELDLIST, including nested `_text`, tokens, and references. The generated AC1021 ASCII/Binary control proves version selection only. | Complete typed dependency graph, strict ASCII/Binary output, fresh independent readback, rollback/retry, and graph equivalence. |
-| P5-D / WAITING_FOR_BOUND_R24_TABLE | If DNS returns, screen Autodesk's official Blocks and Tables sample once: require AC1024 magic, TABLECONTENT, and CELLSTYLEMAP; otherwise stop and use the bundled producer session. Capture expected values independently before semantic work. Do not reuse the AC1018 simple TABLE, ACadSharp writer-generated AC1032 sample, or damaged AC1032 diagnostic candidate as proof; see the [source screen](docs/research/p6-public-ac1032-table-witness-screen-2026-11-17.json). | Close owner, rows/columns, cell dependencies, and emitted handles with no dangling/aliased nodes; prove fresh ASCII/Binary readback and refusal/retry. The Autodesk sample is a candidate only until its version and exact profile are verified. |
+| P5-D / WAITING_FOR_BUNDLED_PRODUCER_SESSION | Autodesk's official Blocks and Tables Imperial sample was checked once and is AC1021 (R2007), below this gate's AC1024 requirement. It was not profile-scanned; do not fetch it again. Capture the needed R24 TABLE source and expected values in the bundled AutoCAD/ObjectARX session. See the [source screen](docs/research/p6-public-ac1032-table-witness-screen-2026-11-17.json). | Close owner, rows/columns, cell dependencies, and emitted handles with no dangling/aliased nodes; prove fresh ASCII/Binary readback and refusal/retry. |
 | P5-E / WAITING_FOR_MATCHING_R24_PROFILE | Reuse the P5-D source only if it contains Content Format/CELLSTYLEMAP values; otherwise request the missing matching profile. | Bind formatting meaning to independent/native expected values; preserve or refuse unknown states. |
 | P5-F / WAITING_FOR_LAYER_OVERRIDE_PROFILE | Reuse the P5-D source only if it contains TABLE layer overrides; otherwise request a source that does. | Trace parse/storage/write/display precedence and compare source values with native appearance. |
 | P5-G / WAITING_FOR_CONSTRAINT_MODEL | Capture one producer-authored dynamic-constraint model with known parameters and dependencies during the shared producer session. | Independent evaluation and dependency closure, or explicit lossless refusal. A generated self-consistency case cannot close this gate. |
@@ -277,7 +275,7 @@ and operation.
 ## P9 — external-only dispositions
 
 These six IDs remain `DEFERRED_EXTERNAL`; the successor registry controls
-lineage and admissibility. They are advisory, excluded from the 59-slice
+lineage and admissibility. They are advisory, excluded from the 60-slice
 implementation estimate, and cannot promote support claims.
 
 | ID | Remaining bounded action |
@@ -308,7 +306,7 @@ implementation estimate, and cannot promote support claims.
    behavior, focused validation, completed/total slice estimate, open gate
    count, and next action; then continue without waiting for unrelated
    external work.
-5. Current count: 59 activity slices, 28 complete (47.5%), 31 remaining;
+5. Current count: 60 activity slices, 29 complete (48.3%), 31 remaining;
    package completion is separately 4/32 gates (12.5%). Keep the denominator
    equal to the 32 package gates, completed non-gate slices, and 3 split
    platform/UI phases. Recount whenever a gate, completed slice, or phase is
