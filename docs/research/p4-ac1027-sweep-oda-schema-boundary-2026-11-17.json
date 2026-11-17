@@ -15,7 +15,10 @@
     "sections": [
       {
         "section": "20.4.85 LWPLINE (varies)",
-        "printedPages": [212, 213],
+        "printedPages": [
+          212,
+          213
+        ],
         "normativeObservations": [
           "The ordinary entity field sequence starts at group 70 flags and includes version/flag-gated optional fields.",
           "For R2000+, the first vertex is 2RD and subsequent X/Y coordinates are DD values relative to the previous point.",
@@ -24,7 +27,10 @@
       },
       {
         "section": "2.12 Object type: LWPOLYLINE 33",
-        "printedPages": [276, 277],
+        "printedPages": [
+          276,
+          277
+        ],
         "normativeObservations": [
           "The modeler subentity begins with an RL byte count followed by a B byte block excluding common entity data.",
           "The B block is described as starting at LWPOLYLINE flags (BS) and ending at the width array (BD).",
@@ -35,7 +41,12 @@
     ]
   },
   "capturedCandidate": {
-    "path": "/private/tmp/example_2013.dwg",
+    "path": {
+      "subentityType": 77,
+      "declaredBits": 480,
+      "candidateConsumedBits": 478,
+      "unclassifiedSuffixBits": "00"
+    },
     "version": "AC1027",
     "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
     "provenance": "Public LibreDWG corpus sample; producer lineage is not authenticated.",
@@ -45,12 +56,6 @@
       "declaredBits": 744,
       "candidateConsumedBits": 740,
       "unclassifiedSuffixBits": "1100"
-    },
-    "path": {
-      "subentityType": 77,
-      "declaredBits": 480,
-      "candidateConsumedBits": 478,
-      "unclassifiedSuffixBits": "00"
     },
     "captureReceipt": "docs/research/p4-ac1027-sweep-embedded-lwpolyline-capture-2026-11-10.json"
   },
@@ -64,7 +69,7 @@
         "observation": "The catalog says the samples apply to AutoCAD 2010 and later and lists visualization and mechanical examples, but it does not identify a Sweep entity, exact saved DWG version, or object-level contents."
       },
       {
-        "title": "Fillet with decreasing radius? — Autodesk Community, message 5",
+        "title": "Fillet with decreasing radius? \u2014 Autodesk Community, message 5",
         "url": "https://forums.autodesk.com/t5/autocad-forum/fillet-with-decreasing-radius/m-p/7309763",
         "author": "BeKirra",
         "posted": "2017-08-15",
@@ -87,18 +92,48 @@
     "reason": "The normative specification bounds the modeler wrapper and ordinary entity layout but does not resolve the embedded source's exact AC1027 spans or suffix. Transferring ordinary-entity fields or calling the remaining bits padding would be speculative.",
     "currentBehavior": "Preserve the embedded payload and suffix; keep strict Sweep output refused."
   },
-  "nextAction": "Try one accessible direct attachment route for the exact Autodesk Community file named above. If its bytes remain unavailable or the header is not AC1027, request one AutoCAD/ObjectARX- or ODA-authored AC1027 drawing containing a deliberately simple Sweep and its matching DXF. Record producer/build, exact version, file hashes, Sweep handle, profile/path geometry, group-310 payload, declared byte lengths, and both embedded boundaries. Compare only this bound source with ODA and the current probe; do not start another broad corpus search.",
+  "nextAction": "Request one provenance-bound AC1027 AutoCAD/ObjectARX- or ODA-authored drawing containing a deliberately simple Sweep and its matching DXF. Record producer/build, exact version, hashes, Sweep handle, profile/path geometry, group-310 payload, declared lengths, and embedded boundaries. Compare only that bound source with ODA and the current probe. Do not repeat catalog/history searches or alter the parser from generated logs or the older Surface profile.",
   "validation": {
     "specTitleAndVersion": "PASS; title page identifies ODA Open Design Specification v5.4.1.",
     "specSha256": "PASS; local copy hash matches 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7.",
     "codeChanged": false,
     "testsRun": false,
-    "fixturesAdded": false
+    "fixturesAdded": false,
+    "historicalArtifactRecoveryCheck": "PASS: bounded GitHub path-history and mirror-directory checks plus exact attachment search; no AC1027 source bytes or version were recovered."
   },
   "limitations": [
     "The local specification copy is not the canonical filename/path from AGENTS.md, although its title page and hash were verified; keep that provenance limit recorded.",
     "The community attachment is user-provided and its DWG bytes/version could not be obtained through the Cloudflare-protected page; it remains a lead, not physical evidence.",
     "The existing sample remains unverified-producer evidence and cannot qualify the embedded suffix or Sweep semantics.",
-    "This receipt closes only the bounded ODA schema comparison; P4-C remains open and no support claim is promoted."
-  ]
+    "This receipt closes only the bounded ODA schema comparison; P4-C remains open and no support claim is promoted.",
+    "LibreDWG SWEPTSURFACE .pi diagnostics reference 2004 and 2018 Surface.dxf files, but these generated logs do not establish source provenance or provide the 2018 source bytes; the mirrored 2004 source is not the AC1027 gate."
+  ],
+  "historicalArtifactRecoveryCheck": {
+    "date": "2026-11-17",
+    "scope": "One bounded recovery pass for the LibreDWG Surface.dxf inputs cited by its generated SWEPTSURFACE diagnostics, plus the exact Autodesk Community attachment lead.",
+    "sources": [
+      {
+        "url": "https://raw.githubusercontent.com/LibreDWG/libredwg/a5fdc8ef80c675b3a36dbefd11a902e9e3bfff9f/examples/SWEPTSURFACE.pi",
+        "observation": "Generated parser input references at lines 8-11 identify test/test-data/2004/Surface.dxf (Version=2004); lines 214-217 identify test/test-data/2018/Surface.dxf (Version=2018). The .pi is a peer-generated diagnostic, not either source drawing."
+      },
+      {
+        "url": "https://api.github.com/repos/LibreDWG/libredwg/commits?path=test/test-data/2018/Surface.dxf&per_page=10",
+        "observation": "GitHub REST path history returned an empty list; no source artifact was recovered from this path."
+      },
+      {
+        "url": "https://api.github.com/repos/mlightcad/libredwg-web/contents/test/test-data/2018",
+        "observation": "The current mirror directory listing contains no Surface.dxf or Surface.dwg. It contains unrelated 2018 drawings, including Dynblocks."
+      },
+      {
+        "url": "https://api.github.com/repos/mlightcad/libredwg-web/contents/test/test-data/2004",
+        "observation": "The mirror lists Surface.dxf (658329 bytes, Git blob SHA cf8c6734602eff261b7599f103d03c10459218ba) and Surface.dwg. The bytes were not retrieved; the older directory/profile cannot qualify the AC1027 gate."
+      },
+      {
+        "url": "https://forums.autodesk.com/t5/autocad-forum/fillet-with-decreasing-radius/m-p/7309763",
+        "observation": "Search still indexes the exact attachment name and author description. The browser fetch returned a cache miss and exposed no direct attachment URL or bytes; the prior direct read returned a Cloudflare challenge."
+      }
+    ],
+    "result": "No eligible AC1027 Sweep source or matching DXF was recovered. No further broad/catalog/history search is justified from these leads.",
+    "supportClaimEffect": "none"
+  }
 }
