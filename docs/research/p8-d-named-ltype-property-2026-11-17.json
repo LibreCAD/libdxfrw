@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-17",
+  "profile": "P8-D LibreCAD 2 entity Properties named-LTYPE selector",
+  "status": "IMPLEMENTED_LOCALLY; PACKAGE_GATE_OPEN",
+  "candidate": {
+    "repository": "LibreCAD/LibreCAD",
+    "branch": "codex/p8d-named-linetype-property",
+    "commit": "530c73486",
+    "base": "3ad089398976feb96ee01b8dee006c141edd8d3e (current local origin/master reference)",
+    "checkout": "/private/tmp/librecad-p8d-current-20261117"
+  },
+  "behavior": {
+    "property": "Entity Line Type",
+    "implementation": "Expose exact names from the drawing LTYPE table; append exact current names for all selected entities when a name has no table row; set only the pen LTYPE name.",
+    "compatibility": "Keep seeded canonical choices, including DASHED, and preserve pen color and width.",
+    "consumer_effect": "Entity properties can display and select imported nonstandard LTYPE names without reducing existing built-in choices."
+  },
+  "validation": {
+    "configure": "cmake -S . -B /private/tmp/librecad-p8d-build-20261117 -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON",
+    "build": "cmake --build /private/tmp/librecad-p8d-build-20261117 --target librecad_tests -j4",
+    "selector": "./librecad_tests 'Entity properties display and change imported named linetypes,Entity properties retain a named linetype missing from the drawing table,A new drawing writes the built-in LTYPE table as before' --reporter compact",
+    "result": "PASS: 58 assertions across 3 test cases.",
+    "covered": [
+      "Import a scratch-authored AC1027 ASCII DXF with VENDOR_BINARY and VENDOR_OTHER table rows and a VENDOR_BINARY LINE.",
+      "Property descriptor exposes DASHED and both exact imported custom names.",
+      "Apply VENDOR_OTHER through the entity property, preserving color and lineweight.",
+      "Export and fresh-import; verify entity group 6 resolves to VENDOR_OTHER, the LTYPE pattern is [6,-3], and color/lineweight remain unchanged.",
+      "In a mixed selection, a selected entity's current non-table name remains an available choice."
+    ],
+    "fixture_policy": "The DXF input is generated from scratch inside the test's QTemporaryDir. No downloaded or repository fixture was added.",
+    "diff_check": "PASS"
+  },
+  "not_proved": [
+    "The live Move/Copy GUI action delivered both false override values at its action boundary.",
+    "An edited GUI drawing preserves and visibly renders the selected custom pattern after save and fresh reopen.",
+    "Native LibreCAD_3 MPOLYGON GUI save/reopen or pinned ezdxf 1.4.5 acceptance."
+  ],
+  "gate_disposition": {
+    "gate": "P8-D",
+    "status": "OPEN",
+    "does_not_promote_support_claims": true
+  },
+  "next_slice": "Continue P8-D at the live consumer boundary: record the two Move/Copy options, then perform one controlled move and verify edited property selection, save/reopen, and rendering. Proceed to LibreCAD_3 MPOLYGON GUI round trip and pinned ezdxf readback afterward."
+}
