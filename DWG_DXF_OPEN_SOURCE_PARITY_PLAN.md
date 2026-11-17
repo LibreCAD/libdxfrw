@@ -17,32 +17,42 @@ LibreCAD_3 master was 4fb48312708b39d499f7e6668104a3b54a8601c7; and FreeCAD main
 was 84e73f0188fb32bb1fffb8d4d1edb4135543ba18. These are snapshots, not current
 integration targets; refresh mutable heads before replay or qualification.
 
-**Current state (2026-11-16):** 32 required package gates; 3 closed
-(P5-C, P6-D, P7-A), 29 open. Package closure is 3/32 (9.4%). The slice-count
-estimate is 9 completed of 42 identified slices (21.4%): the 9 include the 3
-closed packages and 6 separately receipted sub-slices; the 33 remaining are
-the 29 open package gates plus four explicitly split phases (P7-C generated
-control, P8-B baseline/3D, P8-C baseline/3D, and P8-D1/D2). Treat slices as
-equal count units; this estimate does not weight complexity and may change if
-implementation reveals a necessary separate commit. P6-D is limited to AC1021
-MLINESTYLE physical spans; P7-A is limited to the exact AC1027 association and
+**Current state (2026-11-16):** 33 required package gates; 3 closed
+(P5-C, P6-D, P7-A), 30 open. Package closure is 3/33 (9.1%). P6-G is active
+again because the recent raw-override receipt is limited to one refusal
+profile and the public-writer inventory still needs assertion-level
+reconciliation. The slice-count
+estimate is 10 completed of 44 identified slices (22.7%): the 10 include the
+3 closed packages and 7 separately receipted sub-slices. The 34 remaining are
+the 30 open package gates plus four split phases (P6-C0 AC1032 read blocker,
+P8-B baseline/3D, P8-C baseline/3D, and P8-D1/D2). The estimate counts slices
+equally, does not weight complexity, and changes only when a new required
+slice is identified or one closes. P6-D is limited to AC1021 MLINESTYLE
+physical spans; P7-A is limited to the exact AC1027 association and
 history/evaluation-reference graph.
-Neither closure promotes a broad support claim. P6-G remains a conditional
-reopen trigger; P7-E is optional; both are outside the count. Closed work stays
-in its receipts rather than being repeated as remaining plan tasks. Six
-external dispositions remain `DEFERRED_EXTERNAL` and cannot promote support
-claims.
+Neither closure promotes a broad support claim. P7-E remains optional and
+outside the count. Closed work stays in its receipts rather than being
+repeated as remaining plan tasks. Six external dispositions remain
+`DEFERRED_EXTERNAL` and cannot promote support claims.
 
-P7-C is the first local implementation slice. The whole-file CLI stopped at
-strict preflight before the existing ACDSDATA/modeler writer ran, and the DWG
-parser does not supply the R2013+ DXF shell fields. The ODA probe failed at
-macOS pasteboard/XPC startup. A public same-name LibreDWG DXF was screened:
-it has no groups 1/3/310 modeler payload for the selected entities, its pair
-provenance is unverified, and LibreDWG's local JSON observation conflicts on
-the revision fields. It cannot supply group 290/group 2 mapping. Do not repeat
-the prior hash search or use this DXF as a field oracle. The exact gate and ODA
-retry condition are in
+P7-C's generated writer-control sub-slice is complete; its six fast selectors
+pass and are recorded in
+[`p7-ac1027-generated-shell-payload-control-2026-11-16.json`](docs/research/p7-ac1027-generated-shell-payload-control-2026-11-16.json).
+The source-bound P7-C gate remains open: whole-file CLI preflight stopped
+before the writer ran, and the DWG parser does not provide the R2013+ DXF
+shell fields. The ODA probe failed at macOS pasteboard/XPC startup. A public
+same-name LibreDWG DXF lacks the selected modeler payload, has unverified pair
+provenance, and conflicts on revision fields; it is excluded as a field
+oracle. Do not repeat the hash search. Exact source handles and the one-time
+ODA retry condition remain in
 [`p7-ac1027-dxf-output-gate-2026-11-16.json`](docs/research/p7-ac1027-dxf-output-gate-2026-11-16.json).
+
+The current AC1032 ACAD_TABLE candidate has a separate first-read blocker:
+`MENTALRAYRENDERSETTINGS` at observed handle `0x7B` (type 509 in that exact
+source) fails before strict output. Resolve that body against ODA v5.4.1 and
+the pinned source frame before treating the candidate as a TABLE witness; the
+receipt is [`p6-ac1032-acad-table-cells-reader-baseline-2026-11-07.json`](docs/research/p6-ac1032-acad-table-cells-reader-baseline-2026-11-07.json).
+This is a local, bounded P6-C0 slice, not a TABLE-content or support result.
 
 ## Rules for evidence and implementation
 
@@ -81,61 +91,92 @@ retry condition are in
   and [3D plan](DWG_DXF_3D_SUPPORT_PLAN.md). A source-only result or external
   advisory result does not promote a claim.
 
-## Execution order — short local slices, shared witness intake, integration last
+## Execution order — local routes first, shared witnesses next, integration last
 
-The registry is the full 29-gate remaining checklist. Schedule by readiness,
-not package number. A missing witness or platform parks only its dependent
-slice. After each slice, update the receipt and this queue before moving on.
+The registry is the full 30-package checklist. Schedule by the next concrete
+dependency, not package number. A missing witness, GUI, or native runner parks
+only its dependent slice. Completed route and generated-control slices are
+deleted from this queue; their receipts remain the exact-scope evidence.
 
-1. **P7-C serializer preparation (local, now).** Reuse the closed P7-A source
-graph and existing ACDSDATA projection. Inspect the narrowest writer seam and
-add a generated-control check for group 290/group 2, payload length, readback,
-failure rollback, and corrected same-writer retry if it can run without
-weakening preflight. Do not assign guessed values to the real source or change
-`parseDwg`. This is plumbing evidence only and does not close P7-C. Once exact
-source fields/defaults are bound, replace the generated-only assertion with a
-source-bound selected-profile check. Keep whole-file CLI refusal intact and
-add no downloaded or provenance-unclear fixtures.
+1. **P6-G: reconcile and continue the public-writer route audit.** The refreshed
+index [`p6-dxf-public-writer-test-mention-index-2026-11-16.json`](docs/research/p6-dxf-public-writer-test-mention-index-2026-11-16.json)
+is pinned to commit `dfe6b98b`; it finds 114 methods, 120 declarations, no
+method without a test-source mention, and 39 methods without a textual
+reference in the whole-file allocation test. These are triage counts, not
+coverage results. Inspect the candidate method body, exact assertions, and
+matching receipts; skip routes already fully proven. The raw XRECORD
+string/Int32 override refusal receipt covers invalid-type rollback at AC1024
+and positive allocation/readback profiles at seven revisions, so do not repeat
+it. Select the cheapest confirmed gap with a locally generated input and an
+existing fast target, then cover that route's measured failure points,
+destination/caller rollback, same-writer byte-identical retry, and fresh
+ASCII/Binary readback. Close P6-G only after every public route in scope maps
+to a route-specific proof or an explicit no-transaction disposition.
 
-2. **Start FreeCAD 2D baselines independently of 3D.** P8-B0 and P8-C0 use the
-already-tracked `ordinary_enc_AC1027.dwg` for one native Linux/Windows
-`Draft.importDWG.open()` and `insert()` pair through installed `dwg2dxf`. Pin
-source, executable, argv, output handoff, runtime, and expected 2D geometry.
-Run each platform once when its native runner is available. These runs are
-early diagnostics; P8-B/C close only after selected P7 3D profiles are
-accepted. Do not wait for P7 to start the baseline.
+2. **P6-C0: trace the known AC1032 read blocker.** Use the exact
+`acad_table_cells.dwg` source (SHA-256
+`1b719034b3d65a66830db64ae65662f0c9249f8f05ce906d212f7ffd4b34473c`) and
+failed frame recorded in the ACAD_TABLE baseline receipt. Read the applicable
+ODA v5.4.1 object layout, trace the bounded body and following boundary, and
+change the parser only if the source bytes prove a field/layout discrepancy.
+Add the smallest locally authored frame control for the proven boundary and
+run the owning parser selector plus the strict source diagnostic. Keep the
+external source in place; do not copy it into the repository. Clearing this
+obstruction only makes the candidate inspectable; it does not close P6-C or
+prove TABLECONTENT semantics. If ODA rules out a parser change, file the
+bounded disposition and advance immediately; P6-G is the local fallback.
 
-3. **Batch native CAD checks by application.** For LibreCAD 2, combine P6-H's
-MLINE display/edit/save/reopen with P8-D1's LINE translate/save/reopen in one
-session. For LibreCAD_3, run P8-D2's MPOLYGON save/reopen separately. The
-2026-11-16 LibreCAD 2 launch failed before GUI startup on pasteboard/XPC; do
-not retry its checks until an interactive session is available. Record one
-readiness result per app/session, then continue headless work.
+3. **Decide whether the cleared AC1032 candidate is usable for P6-C.** Inspect
+its exact root, child, owner, and reference spans once. Reuse it only if the
+source actually contains the typed graph and its version matches the selected
+profile. Otherwise keep P6-C waiting and acquire one matching R24
+TABLE/TABLECONTENT witness for P5-D/E/F (and P6-C only if the profile also
+matches). The previous negative screen is not repeated. Bind source hash,
+producer/version, record classes, references, and operations once; implement
+root/edge closure, cell-format meaning, and layer-override precedence as
+separate fast-tested slices over that shared profile.
 
-4. **Acquire one R24 TABLE/TABLECONTENT candidate for P5-D/E/F and P6-C.**
-The previous screen found no eligible source. Do not repeat it until a new
-candidate is identified. On intake, bind exact file hash, producer/version,
-record classes, references, and operation once. Then implement P6-C's typed
-root/edge route, P5-D's closed graph, P5-E's cell-format semantics, and P5-F's
-layer-override precedence as separate fast-tested slices against that same
-profile.
+4. **Resume P7-C only when source authority changes.** The generated exact
+group/readback, refusal, rollback, retry, and payload controls are complete.
+Recover the exact prior ODA DXF only if a new artifact location is identified,
+or retry ODA once after desktop/tool availability changes. Bind authoritative
+group 290/group 2 values and defaults for handles `0x176`, `0x2E1`, and
+`0x37D`; then run one source-bound selected-profile writer/readback/rollback/
+retry harness. Until then preserve whole-file CLI refusal and move to the next
+local slice.
 
-5. **Run one-pass witness intake for the other waiting packages.** Group by
-evidence to avoid duplicate searching: (a) DWG physical spans and producer
-profiles—P4-B/C, P5-A/G, P6-A/B/E/F, P7-B/D/G; (b) DXF owner/API semantics—P4-A
-and P5-H. For each candidate, record hash, producer/version, target records,
-and exact missing fields before any parser edit. Reuse the existing ODA and
-source screens. If unavailable, write one bounded acquisition condition and
-switch to another local serializer, adapter, or consumer slice; never infer
-bytes, treat generated controls as source evidence, or wait idle.
+5. **Run FreeCAD's existing generated native baselines when dispatch is
+available.** The tracked ordinary AC1027 file is not currently a usable
+baseline: strict preflight refuses it before publishing DXF, as recorded in
+[`p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json`](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json).
+Use the existing workflow's generated AC1021 LINE/primitives and AC1024/AC1032
+primitive profiles for early native `Draft.importDWG.open()` and `insert()`
+handoff on Linux and Windows. Run each native workflow once, record its exact
+source/build/runtime and output handoff, and keep later 3D acceptance limited
+to P7-admitted profiles. Do not block local work on workflow access.
 
-6. **Freeze and close integration after implementations stabilize.** Pin the
-final source/build/runtime once for P8-A; finish P8-E ABI/package checks, P8-F
-current CI/source-release lanes, and P8-G support-matrix thresholds. Re-run
-P8-B/C on this candidate with only the 3D profiles admitted by P7. Run P7-F
-when P7-B/C/D provide an analytic profile and an independent reader; run P7-H
-after P7-B–D/F/G qualify its selected profile. Keep P9 external-only and
-non-promoting.
+6. **Batch application-level CAD checks.** In one LibreCAD 2 session combine
+P6-H's MLINE display/edit/save/reopen with P8-D1's LINE translate/save/reopen.
+The bounded MLINE source selection found no complete local read with an MLINE
+parser call; do not repeat that screen. For LibreCAD_3, run P8-D2's MPOLYGON
+save/reopen separately. The 2026-11-16 LibreCAD 2 launch failed before GUI
+startup on pasteboard/XPC; retry only after the interactive environment
+changes. Continue headless slices while either GUI is unavailable.
+
+7. **Take one grouped witness pass for remaining packages.** Group by proof to
+avoid duplicate searches: (a) DWG physical spans and producer profiles—P4-B/C,
+P5-A/G, P6-A/B/E/F, P7-B/D/G; (b) DXF owner/API semantics—P4-A and P5-H. For
+each new candidate, record exact hash, producer/version, target records, and
+missing fields before parser edits. Reuse the existing screens; if no eligible
+source is found, write one bounded acquisition condition and switch to another
+local parser, serializer, adapter, or consumer slice.
+
+8. **Freeze integration after implementation stabilizes.** Pin source/build/
+runtime for P8-A; finish P8-E ABI/package checks, P8-F current CI/source-release
+lanes, and P8-G evidence-backed support thresholds. Re-run P8-B/C with only
+the 3D profiles admitted by P7. Run P7-F after P7-B/C/D provide an analytic
+profile and independent reader; run P7-H after P7-B–D/F/G qualify its selected
+profile. Keep P9 external-only and non-promoting.
 
 P7-E remains optional: CAD Assistant/ezdxf shares OCCT lineage with FreeCAD
 and cannot replace independent-kernel evidence. P7-F must use a qualified
@@ -219,21 +260,22 @@ evaluation. Keep LIGHT/LIGHTLIST, SUN, materials, visual styles, backgrounds,
 plot settings, and viewport links as separate transport, graph, and appearance
 claims; do not turn them into one broad package.
 
-### P6 — version, no-loss, and public routes (6 open packages)
+### P6 — version, no-loss, and public routes (7 open packages)
 
 | ID | Remaining implementation | Package exit evidence |
 |---|---|---|
 | P6-A / WAITING_FOR_OBJECTARX_WITNESS | Obtain version-bound ObjectARX create/setAt/save/reopen and remove/erase/clone/WBLOCK observations for IMAGEDEF. Existing role receipt is context only: docs/research/p6-imagedef-objectarx-parent-role-boundary-2026-11-14.json. | Owner, dictionary membership, reactor, and image links agree with independent output/readback. |
 | P6-B / WAITING_FOR_PERSUBENTMGR_SOURCE | Capture one PERSUBENTMGR with typed members, owner, and dependencies. | Independent semantics, closed output route and readback; unknown members stay raw or refused. |
-| P6-C / WAITING_FOR_TYPED_GRAPH_SOURCE | Resume only when a source-bound typed TABLECONTENT/DATATABLE graph appears or the disputed AC1027/AC1032 field spans are resolved. The reviewed profile screen found AC1021 with no TABLECONTENT, AC1027 with unresolved body/string/handle spans, and AC1032 retained raw-only. Do not spend more time replaying those sources or promote generated writer controls to source evidence. | Bind root, child, owner, and reference to exact source spans, then qualify strict ASCII/Binary output and fresh typed readback for one edge. |
+| P6-C / READY_FOR_LOCAL_OBSTRUCTION_TRACE; WAITING_FOR_TYPED_GRAPH_SOURCE | First clear the known AC1032 candidate obstruction from [`p6-ac1032-acad-table-cells-reader-baseline-2026-11-07.json`](docs/research/p6-ac1032-acad-table-cells-reader-baseline-2026-11-07.json): source `acad_table_cells.dwg`, SHA-256 `1b719034b3d65a66830db64ae65662f0c9249f8f05ce906d212f7ffd4b34473c`; observed `MENTALRAYRENDERSETTINGS` handle `0x7B`, type 509, currently fails before strict output. This P6-C0 frame trace is separate from TABLE semantics. Then inspect that same source once for a typed TABLECONTENT/DATATABLE root and edge. Reuse it only if exact record/version match; otherwise keep P6-C waiting and acquire one eligible R24 profile. The earlier AC1021/AC1027/AC1032 screen is not repeated. | ODA/source-bound body span, following-record boundary, generated truncation/sentinel control, and focused strict-read result; then exact table root/child/owner/reference spans, strict ASCII/Binary output, and fresh typed readback for one edge. |
 | P6-E / WAITING_FOR_POST_SENTINEL_AUTHORITY | The AC1024 mesh profile is already mapped through the envelope, CRC, and end sentinel. Its 739-byte post-sentinel suffix changes on repeated ODA saves; the existing receipt does not prove padding or harmlessness. Resolve this one selected profile from authoritative source/layout evidence or a discriminating producer-bound trace; do not rescan both profiles or discard bytes as padding. | Every byte in the selected profile has a versioned, source-backed disposition and strict parse/refusal controls. Until then preserve the current fail-closed behavior. Receipt: [`p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json`](docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json). |
 | P6-F / WAITING_FOR_ELIGIBLE_LEGACY_INPUT | Resume only when a hash-bound AC1012/AC1014 input passes structural/object/reference gates and reaches the output gate with an eligible recoverable entity failure. | Strict refusal preserves the destination; partial ASCII/Binary output proves later-entity readback and corrected retry. Do not weaken exact-version or bounded-frame gates. The libdxfrw DWG writer does not generate AC1012/AC1014; see the [disposition receipt](docs/research/p6-cli-legacy-ac1012-ac1014-partial-disposition-2026-11-16.json). |
-| P6-H / WAITING_FOR_GUI_NATIVE_MLINE | After an interactive LibreCAD 2 session is available, display/edit/save/close/reopen the same source-derived AC1018 MLINE. Compare saved color, style, and geometry with an independent reader. Reuse the selected output/readback/rollback/retry receipt; do not repeat that work. The 2026-11-16 launch failed before GUI startup on pasteboard/XPC, so do not retry without an environment change. | LibreCAD 2 preserves the selected MLINE appearance and saved semantics. This package does not qualify full source graph closure, whole-file conversion, or AC1027 output. |
+| P6-G / READY_FOR_INDEXED_ROUTE_AUDIT | Continue the public DXF writer audit from the current [mention index](docs/research/p6-dxf-public-writer-test-mention-index-2026-11-16.json), pinned to `dfe6b98b`. It lists 114 methods and 39 without a whole-file allocation-test mention; neither count proves coverage. Inspect assertions and receipts for the next candidate, then add one focused generated transaction profile only for a confirmed gap. The latest [raw XRECORD override receipt](docs/research/p6g-raw-dxf-object-override-refusal-retry-2026-11-16.json) closes that invalid-type rollback profile at AC1024 and positive allocation/readback at seven revisions; do not repeat it. | Reconcile every in-scope public route with assertion-level success/refusal, destination and caller-state rollback, same-writer retry, and fresh readback at the applicable version/encoding; explicitly disposition routes that do not need separate transaction coverage. A method mention alone does not close a route. |
+| P6-H / WAITING_FOR_GUI_NATIVE_MLINE | After an interactive LibreCAD 2 session is available, display/edit/save/close/reopen one source-derived AC1018 MLINE and compare saved color, style, and geometry with an independent reader. Reuse the selected output/readback/rollback/retry receipt. The bounded [`p6-local-mline-source-selection-2026-11-16.json`](docs/research/p6-local-mline-source-selection-2026-11-16.json) screen found no complete local read with an MLINE parser call; do not repeat it. The 2026-11-16 GUI launch failed before startup on pasteboard/XPC; retry only after the interactive environment changes. | LibreCAD 2 preserves the selected MLINE appearance and saved semantics. This package does not qualify full source graph closure, whole-file conversion, or AC1027 output. |
 
-P6-G is a reopen trigger, not a current package: the route inventory found no
-specific writer/overload missing rollback, caller-state, retry, or readback
-coverage. Reopen it only when a named gap is observed; do not repeat the broad
-inventory in the meantime.
+P6-G is active because recent raw-override evidence is limited to its named
+profile and the public-writer index remains a navigation aid. Do not treat its
+39-method count as 39 uncovered failures, or route-level test-source
+references as completed transaction proof.
 
 Selection prompts include DIMASSOC/XREF graphs; 3D positions, OCS, splines,
 clipping, mesh/hidden-edge fields; units, lineweights, BYLAYER/BYBLOCK;
@@ -249,7 +291,7 @@ do not rerun covered matrices.
 | ID | Remaining implementation | Package exit evidence |
 |---|---|---|
 | P7-B / WAITING_FOR_VERSIONED_ACDS_PROFILE | Map one unqualified AcDs version's framing/index/suffix/prototype with ODA and a source-distinct physical peer. | Exact bounded spans, versioned lengths, malformed/truncation/retry controls. |
-| P7-C / READY_FOR_GENERATED_WRITER_CONTROL; WAITING_FOR_SOURCE_QUALIFICATION | First inspect the existing writer seam. If reachable without relaxing preflight, add one generated-control assertion for groups 290/2, payload length, typed readback, rollback, and corrected retry. This tests plumbing only. A same-name public candidate ([LibreDWG DXF](https://github.com/LibreDWG/libredwg/blob/ebbefbf870006db9d4bc116276ab5466170bc74f/test/test-data/example_2013.dxf), blob SHA-1 `e8c0f7254b02c3e036d6ceacbbbfaa60b9d06563`, 850618 bytes) is excluded: pair provenance is unverified, selected entities have no groups 1/3/310 payload, and LibreDWG's minJSON field observations conflict with the DXF values. Do not repeat the prior local hash search or use that peer as a field oracle. The missing source gate is authoritative group 290/group 2 mapping for handles `0x176`, `0x2E1`, and `0x37D`; the ODA probe may be retried once after desktop/tool availability changes. Then exercise the existing ACDSDATA projection with a source-bound selected-profile writer/readback harness and rollback/retry. Keep whole-file CLI refusal and source fixture policy unchanged. Receipt: [`p7-ac1027-dxf-output-gate-2026-11-16.json`](docs/research/p7-ac1027-dxf-output-gate-2026-11-16.json). | Selected records agree with source/ODA mapping for type, owner `0x1F`, shell fields, payload bytes, and 3DSOLID history `0x2E4` in fresh typed DXF readback. No graph orphan/duplicate or geometry/support claim. |
+| P7-C / WAITING_FOR_SOURCE_QUALIFICATION | Generated writer controls are complete; do not repeat them. See [`p7-ac1027-generated-shell-payload-control-2026-11-16.json`](docs/research/p7-ac1027-generated-shell-payload-control-2026-11-16.json) for exact generated group output, combined shell/payload readback, refusal, rollback, retry, and six passing fast selectors. The remaining source gate is authoritative group 290/group 2 mapping and defaults for handles `0x176`, `0x2E1`, and `0x37D`. Recover the prior ODA DXF only if a new artifact location is identified, or retry ODA once after desktop/tool availability changes. Then exercise the existing ACDSDATA projection with a source-bound selected-profile writer/readback harness. Keep whole-file CLI refusal and fixture policy unchanged. Context and rejected same-name peer are recorded in [`p7-ac1027-dxf-output-gate-2026-11-16.json`](docs/research/p7-ac1027-dxf-output-gate-2026-11-16.json). | Selected records agree with source/ODA mapping for type, owner `0x1F`, shell fields, payload bytes, and 3DSOLID history `0x2E4` in fresh typed DXF readback. No graph orphan/duplicate or geometry/support claim. |
 | P7-D / WAITING_FOR_ACIS_21500_HEADER_WORD_AUTHORITY | For the pinned AC1024/ACIS 21500 profile, resolve the third header word using a version-qualified primary field map or an independent decoder on the exact same payload. Reuse the [cross-version authority screen](docs/research/p7-ac1024-21500-header-third-word-cross-version-authority-screen-2026-11-13.json) and [local header profile](docs/research/p7-acis-21500-local-header-profile-screen-2026-11-12.json); do not repeat generic searches or infer geometry from framing. | Exact header/entity field map, bounded truncation and sentinel controls, then analytic values matching an independent reader. |
 | P7-F / DEPENDS_ON_P7_B_TO_D_AND_INDEPENDENT_READER | Extend one accepted analytic profile through nested blocks, units, placement, and transforms. | Independent transform-chain and dimension comparison at stated tolerance; if no qualified reader is available, record that exact gate and continue another package. |
 | P7-G / WAITING_FOR_TRIM_WITNESS | Add one witnessed trim, periodic-surface, or spline profile per slice. | Independent kernel evaluation and boundary comparison; unmodeled trims refuse. |
@@ -267,8 +309,8 @@ package count. A missing external kernel or app blocks only its profile.
 | ID / state | Remaining implementation | Package exit evidence |
 |---|---|---|
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation stabilizes. | Reproducible commands and immutable source/tool/platform/runtime identity. |
-| P8-B / READY_BASELINE_ON_NATIVE_LINUX; FINAL_INTEGRATION_GATE | B0: run the tracked `ordinary_enc_AC1027.dwg` through installed libdxfrw `dwg2dxf`, then one native Linux `Draft.importDWG.open()` and `insert()` pair. B1: add only source-bound 3D profiles admitted by P7 after their gates pass. Capture exact executable/hash/argv/output handoff and expected geometry; no fallback ambiguity. | Linux OS/FreeCAD/converter/module identities, settings, independent output semantics, 2D baseline plus selected admitted 3D profiles. Do not use cross-compilation as platform evidence. |
-| P8-C / READY_BASELINE_ON_NATIVE_WINDOWS; FINAL_INTEGRATION_GATE | C0: run the tracked baseline through the actual native Windows converter, then one `Draft.importDWG.open()` and `insert()` pair. C1: add only source-bound 3D profiles admitted by P7. Include path-with-spaces and Unicode-path checks; capture exact executable/hash/argv/output handoff. | Windows runtime identity, no fallback ambiguity, 2D baseline plus selected admitted 3D profiles. Do not use cross-compilation as platform evidence. |
+| P8-B / READY_FOR_GENERATED_NATIVE_BASELINE; FINAL_INTEGRATION_GATE | Use the existing workflow's generated AC1021 LINE/primitives and AC1024/AC1032 primitive profiles for native Linux `Draft.importDWG.open()` and `insert()` handoff. The tracked `ordinary_enc_AC1027.dwg` is strictly refused before DXF publication (receipt: [`p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json`](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json)); do not retry until its source-reference gate closes. Add only source-bound 3D profiles admitted by P7. | Linux OS/FreeCAD/converter/module identities, settings, independent output semantics, generated 2D baseline plus selected admitted 3D profiles. No fallback ambiguity or cross-compilation as platform evidence. |
+| P8-C / READY_FOR_GENERATED_NATIVE_BASELINE; FINAL_INTEGRATION_GATE | Use the same generated AC1021/AC1024/AC1032 workflow controls on native Windows, including existing path-with-spaces and Unicode-path checks. Defer the tracked ordinary AC1027 source until source-reference closure. Add only P7-admitted 3D profiles. | Windows runtime identity, independent output semantics, generated 2D baseline plus selected admitted 3D profiles. No fallback ambiguity or cross-compilation as platform evidence. |
 | P8-D / WAITING_FOR_GUI_D1_D2 | D1: LibreCAD 2 LINE translate/save/reopen. D2: LibreCAD_3 MPOLYGON save/reopen. Use the clean source/build identities and installed independent reader; run one session per application when available. No new DWG/DXF fixture is needed. | Compare saved/reopened records and geometry with the independent reader. |
 | P8-E / INTEGRATION_GATE | Compare public symbols/class layouts with the release baseline; build clean static/shared consumers and relocatable packages. | ABI/SONAME, relocation, loaded-library checks on required platforms, and explicit rebuild requirements. |
 | P8-F / INTEGRATION_GATE | Inspect current required CI and source-release/packaging lanes; repair or formally disposition exclusions. | Source-matched required jobs green or formally dispositioned. |
@@ -306,11 +348,13 @@ support claim.
 2. Prefer existing receipts and locally authored controls. Limit inventory or
    corpus search to one focused pass. If no matching witness is found, write a
    bounded witness task and immediately take another READY slice.
-3. During implementation, build only the touched target and run its focused
-   selector. Use the smallest literal field/handle and version/encoding
-   controls that distinguish the change. Rebuild statically linked test
-   executables. Add ASan only when bounds, ownership, lifetime, or handles
-   changed; run the affected selector once.
+3. During implementation, finish the slice edits, build only the touched
+   target once, then run all owning fast selectors in one CTest invocation.
+   Use the smallest literal field/handle and version/encoding controls that
+   distinguish the change. Rebuild statically linked test executables. Reuse
+   existing diagnostics first; add narrow diagnostics only when a failed
+   predicate is otherwise hidden. Add ASan only when bounds, ownership,
+   lifetime, or handles changed; run the affected selector once.
 4. At slice exit, run the smallest affected cohort and real CLI/fresh readback
    for serializer changes. Expand validation only when a failure or new risk
    points to a specific missing check. Full suites, broad corpora, platform
@@ -322,9 +366,10 @@ support claim.
    proof-preparation task and continue; never wait for an unrelated unavailable
    witness, tool, or platform. Report the commit, behavior, focused validation,
    open package count, and next action.
-6. Count progress against the 32 required package gates listed above (the
-   former 34-item baseline minus the empty P6-G trigger and optional P7-E
-   comparison): 3 closed, 29 open (9.4% package completion). This is a scope
-   fraction, not an effort estimate. Remove a package from the remaining
-   registry only after its full exit evidence passes, and delete a completed
-   sub-slice from the active steps as soon as its receipt is filed.
+6. Count progress against the 33 required package gates listed above (the
+   former 34-item baseline minus optional P7-E): 3 closed, 30 open (9.1%
+   package completion). Separately count 10/44 implementation slices complete
+   (22.7%), with 34 remaining: the 30 package gates plus P6-C0 and the three
+   P8 split phases. This scope fraction does not weight complexity. Remove a
+   package only after its full exit evidence passes; delete each completed
+   sub-slice from the active queue as soon as its receipt is filed.

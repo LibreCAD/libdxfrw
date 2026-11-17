@@ -1,0 +1,55 @@
+{
+  "id": "p6-cli-legacy-ac1012-ac1014-partial-disposition-2026-11-16",
+  "date": "2026-11-16",
+  "scope": "Bounded investigation of whether the existing partial-DWG-read CLI contract can be exercised for AC1012 and AC1014 inputs without weakening source-version, bounded-frame, object, or reference checks.",
+  "completedInvestigation": [
+    {
+      "check": "Built-in generated-source coverage",
+      "evidence": "tests/dwg_local_roundtrip_tests.cpp --generate-cli-partial-read-source accepts AC1015, AC1018, AC1021, AC1024, AC1027, and AC1032 only. It cannot create an AC1012/AC1014 source for this contract."
+    },
+    {
+      "check": "DWG writer version gate",
+      "evidence": "libdxfrw dwgRW::write rejects versions below AC1015 with DRW::BAD_VERSION. Its DWG writer cannot produce an AC1012/AC1014 test source."
+    },
+    {
+      "check": "DXF target mapping",
+      "evidence": "The CLI default target maps AC1012 to AC1014 and AC1014 to AC1014. A target version mapping alone does not make the source eligible for partial publication."
+    },
+    {
+      "check": "Scratch generation via external LibreDWG",
+      "evidence": "A minimal hand-authored DXF was rejected as too small. A larger LibreDWG-generated R14 file and a LibreDWG round trip of a local R14 input did not pass libdxfrw's reader/handle checks, so neither is an eligible recovery witness. All generated files remained in scratch."
+    }
+  ],
+  "localInputs": [
+    {
+      "path": "/Users/dli/doc/dwg3/example_r13.dwg",
+      "version": "AC1012",
+      "sha256": "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89",
+      "observation": "Strict conversion refused. Explicit-partial reading found 1 entity and 18 object parse failures across 5785 source frames (5766 published, 19 failed), then refused output because typed DWG ModelDocViewStyle serialization requires the exact DWG source version. No eligible partial DXF was published."
+    },
+    {
+      "path": "/Users/dli/doc/dwg3/example_r14.dwg",
+      "version": "AC1014",
+      "sha256": "aec626c5680584c763418497495950089854ff9682af36076851fd793d9e2c0b",
+      "observation": "Strict conversion refused. Explicit-partial reading found 2 entity and 5 object parse failures across 832 source frames (826 published, 6 failed), then refused output because bounded frame dispositions were not finalized. No eligible partial DXF was published."
+    },
+    {
+      "path": "/Users/dli/doc/dwg5/line_R14.dwg",
+      "version": "AC1014",
+      "sha256": "4ae12afb4052f1be913003b84021054c0e07b08e6aef5e430bf523c6f85c0903",
+      "observation": "Strict conversion refused after two object parse failures. Explicit-partial reading had 292 source frames, 290 published, and 2 failed, with no unresolved references; output was still refused because bounded frame dispositions were not finalized."
+    }
+  ],
+  "disposition": {
+    "completed": "The local generator/version-gate audit and bounded legacy-input screen are complete and removed from the active queue.",
+    "stillOpen": "The AC1012/AC1014 partial-read/output contract remains open. Current observations do not establish a safely publishable partial result or prove later-record recovery for these revisions.",
+    "resumeWhen": "A hash-bound AC1012/AC1014 source reaches the output gate with only eligible recoverable entity failures and closed object/reference dependencies, or a new independently valid local source-generation path becomes available.",
+    "safety": "Do not weaken exact-version serialization, bounded-frame disposition, or object/reference closure gates. Do not commit downloaded or third-party test drawings."
+  },
+  "limitations": [
+    "These local inputs are not repository fixtures and are not being promoted as support evidence.",
+    "This investigation does not qualify AC1012/AC1014 parser correctness, output compatibility, native semantics, or cross-platform behavior.",
+    "Strict destination preservation and corrected same-writer retry remain required for any future eligible recovery case."
+  ],
+  "nextAction": "Continue the locally ready P6-G public-writer route audit using the refreshed mention index; resume this row only when the stated eligible-source condition is met."
+}

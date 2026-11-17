@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p7-ac1027-generated-shell-payload-control-2026-11-16",
+  "date": "2026-11-16",
+  "status": "GENERATED_WRITER_CONTROLS_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Close the local generated-control preparation sub-slice for the AC1027 ACDSDATA/modeler DXF writer without assigning source values to any physical DWG.",
+  "generatedInputs": {
+    "authorship": "Constructed in memory by tests; no DWG/DXF fixture was added.",
+    "versions": ["AC1027", "AC1032"],
+    "encodings": ["ASCII", "Binary"],
+    "modelerShell": {
+      "group290": 0,
+      "group2": "{00000000-0000-0000-0000-000000000000}",
+      "presence": "Both fields are explicitly marked present by the generated source helper."
+    },
+    "sabPayloadBytes": 31
+  },
+  "coveredBehavior": [
+    "The modeler writer matrix checks ordered group 290 and group 2 output and typed readback for generated R2013+ ASCII/Binary modeler records.",
+    "The combined ACDSDATA projection carries explicit shell metadata and a 31-byte SAB payload through AC1027/AC1032 ASCII/Binary export, fresh typed readback, graph checks, and DXF-origin re-export/readback.",
+    "Schema/shell omissions and mismatches preserve an existing destination, then pass corrected retry through the same writer object in ASCII and Binary controls.",
+    "Existing AC1027 short-SAB and AC1032 paged-payload controls retain refusal, rollback, and corrected retry behavior."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 2",
+    "ctest": "ctest --test-dir build-gcc -R 'dwg2dxf_modeler_dxf_writer_matrix|libdxfrw_acds_schema_shell_guards|dwg2dxf_modeler_acds_r2013plus_projection|dwg2dxf_modeler_acds_block_projection|dwg2dxf_modeler_acds_blob_projection|dwg2dxf_modeler_acds_blob_faults' --output-on-failure",
+    "result": "6/6 passed; 0.79 seconds total",
+    "test_source_sha256": "23ad1f69e146dde30d8d7c0b373cd00e8cd930aefcbd8a9b5c42c40c44765a15",
+    "writer_matrix_source_sha256": "d4fb6ee07813be6162aef6bb9dc40492ba3302e608f9c208127ad659a0058d4f",
+    "test_binary_sha256": "e1259460670085b59e1748bd8de8880b2ccac4fd96c1b8c2cc46d3a4cadd5fad",
+    "repositoryHead": "dfe6b98bd7bbc343fd2c8fa08668798776f2fdaa"
+  },
+  "remainingGate": "Obtain authoritative group 290/group 2 values and defaults for AC1027 source handles 0x176, 0x2E1, and 0x37D; then run one source-bound selected-profile writer/readback/rollback/retry check.",
+  "limitations": [
+    "Generated controls establish writer mechanics only and do not prove physical DWG field mapping or source defaults.",
+    "No source support claim, geometry claim, or whole-file CLI qualification follows.",
+    "The ordinary AC1027 whole-file CLI remains strictly refused while source references are unqualified."
+  ]
+}

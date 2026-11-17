@@ -77,7 +77,7 @@
         },
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 6156,
+          "line": 6279,
           "occurrences": 8
         },
         {
@@ -528,7 +528,7 @@
         },
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 13037,
+          "line": 13160,
           "occurrences": 1
         },
         {
@@ -574,7 +574,7 @@
         },
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 13038,
+          "line": 13161,
           "occurrences": 1
         },
         {
@@ -613,7 +613,7 @@
         },
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 13024,
+          "line": 13147,
           "occurrences": 2
         },
         {
@@ -659,7 +659,7 @@
         },
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 12869,
+          "line": 12992,
           "occurrences": 1
         },
         {
@@ -701,7 +701,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 73791,
+          "line": 74461,
           "occurrences": 2
         },
         {
@@ -881,7 +881,7 @@
         },
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 87921,
+          "line": 88592,
           "occurrences": 2
         },
         {
@@ -932,7 +932,7 @@
         },
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 5961,
+          "line": 6084,
           "occurrences": 24
         },
         {
@@ -1135,12 +1135,12 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 85780,
+          "line": 86451,
           "occurrences": 1
         },
         {
           "file": "tests/dwg_local_roundtrip_tests.cpp",
-          "line": 33904,
+          "line": 33924,
           "occurrences": 5
         },
         {
@@ -1243,7 +1243,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 12343,
+          "line": 12466,
           "occurrences": 11
         },
         {
@@ -1408,7 +1408,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 86201,
+          "line": 86872,
           "occurrences": 1
         },
         {
@@ -1561,7 +1561,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 27204,
+          "line": 27451,
           "occurrences": 1
         },
         {
@@ -1593,7 +1593,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 5952,
+          "line": 6075,
           "occurrences": 8
         },
         {
@@ -1644,7 +1644,7 @@
         },
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 13046,
+          "line": 13169,
           "occurrences": 1
         },
         {
@@ -1828,7 +1828,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 85968,
+          "line": 86639,
           "occurrences": 1
         },
         {
@@ -1859,7 +1859,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 29998,
+          "line": 30245,
           "occurrences": 1
         },
         {
@@ -1941,7 +1941,7 @@
         },
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 8694,
+          "line": 8817,
           "occurrences": 1
         },
         {
@@ -2326,7 +2326,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg_local_roundtrip_tests.cpp",
-          "line": 35926,
+          "line": 35946,
           "occurrences": 4
         },
         {
@@ -2438,7 +2438,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 8768,
+          "line": 8891,
           "occurrences": 1
         },
         {
@@ -2494,7 +2494,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 27202,
+          "line": 27449,
           "occurrences": 1
         },
         {
@@ -2530,7 +2530,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 27208,
+          "line": 27455,
           "occurrences": 1
         },
         {
@@ -3163,12 +3163,12 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 29679,
+          "line": 29926,
           "occurrences": 1
         },
         {
           "file": "tests/proxy_entity_object_id_allocation_tests.cpp",
-          "line": 125,
+          "line": 132,
           "occurrences": 2
         }
       ]
@@ -3220,7 +3220,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 86708,
+          "line": 87379,
           "occurrences": 1
         },
         {
@@ -3256,7 +3256,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 7139,
+          "line": 7262,
           "occurrences": 1
         },
         {
@@ -3308,7 +3308,7 @@
         },
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 7142,
+          "line": 7265,
           "occurrences": 9
         },
         {
@@ -3841,7 +3841,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg_local_roundtrip_tests.cpp",
-          "line": 29757,
+          "line": 29777,
           "occurrences": 1
         },
         {
@@ -3903,7 +3903,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 27206,
+          "line": 27453,
           "occurrences": 1
         },
         {
@@ -4090,7 +4090,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 20101,
+          "line": 20224,
           "occurrences": 2
         },
         {
@@ -4187,7 +4187,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 85595,
+          "line": 86266,
           "occurrences": 1
         },
         {
@@ -4491,7 +4491,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 87401,
+          "line": 88072,
           "occurrences": 1
         },
         {
@@ -4527,7 +4527,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 5726,
+          "line": 5849,
           "occurrences": 18
         },
         {
@@ -4643,7 +4643,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 8512,
+          "line": 8635,
           "occurrences": 1
         },
         {
@@ -4664,7 +4664,7 @@
       "test_source_references": [
         {
           "file": "tests/dwg2dxf_adapter_tests.cpp",
-          "line": 59645,
+          "line": 59950,
           "occurrences": 1
         },
         {
@@ -4750,7 +4750,7 @@
   ],
   "public_writer_declaration_count": 120,
   "public_writer_method_count": 114,
-  "repository_head": "071ab11a3efbe930283ed55aab026062c59dc10b",
+  "repository_head": "dfe6b98bd7bbc343fd2c8fa08668798776f2fdaa",
   "schema": "libdxfrw.public-writer-test-mention-index.v1",
   "scope": "Textual source index only; mentions do not prove assertions, rollback, retry, readback, version coverage, or semantics."
 }

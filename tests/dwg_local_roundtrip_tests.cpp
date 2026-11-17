@@ -21175,11 +21175,13 @@ bool runDxfAcdsDataStorageProjection(
                                               && group.i_val() == 0;
                                       }) == 1;
                        });
-    const std::array<std::pair<const char*, int>, 4> expectedClasses {{
+    const std::array<std::pair<const char*, int>, 6> expectedClasses {{
         {"ACSH_HISTORY_CLASS", 1},
         {"ACAD_EVALUATION_GRAPH", 1},
         {"ACSH_CONE_CLASS", 1},
-        {"MATERIAL", 3}
+        {"MATERIAL", 3},
+        {"ACDBDICTIONARYWDFLT", 1},
+        {"ACDBPLACEHOLDER", 1}
     }};
     bool classesMatch = imported.dxfClasses.size() == expectedClasses.size();
     if (classesMatch) {
@@ -21226,7 +21228,13 @@ bool runDxfAcdsDataStorageProjection(
         && importedModeler->handle != sourceHandle
         && importedModeler->space == (paperSpaceModeler
             ? DRW::PaperSpace : DRW::ModelSpace)
-        && importedModeler->m_historyHandle == 0x20Eu;
+        && importedModeler->m_historyHandle == 0x20Eu
+        && importedModeler->m_hasDxfModelerFlag
+        && importedModeler->m_dxfModelerFlag
+            == sourceModeler->m_dxfModelerFlag
+        && importedModeler->m_hasDxfModelerUid
+        && importedModeler->m_dxfModelerUid
+            == sourceModeler->m_dxfModelerUid;
     bool result = modelerMetadataMatch && neighborLineMatch && schemaMatch
         && classesMatch && exactWire && payloadRecordMatch
         && imported.proxyObjects.size() == 3u
@@ -21238,6 +21246,12 @@ bool runDxfAcdsDataStorageProjection(
                   << " read=" << readOk
                   << " modeler=" << (importedModeler != nullptr)
                   << " modelerMetadata=" << modelerMetadataMatch
+                  << " modelerShellFlagPresent="
+                  << (importedModeler != nullptr
+                      && importedModeler->m_hasDxfModelerFlag)
+                  << " modelerShellUidPresent="
+                  << (importedModeler != nullptr
+                      && importedModeler->m_hasDxfModelerUid)
                   << " neighbor=" << neighborLineMatch
                   << " section=" << hasSection
                   << " schema=" << schemaMatch
@@ -21350,7 +21364,13 @@ bool runDxfAcdsDataStorageProjection(
                  ++index) {
                 const DRW_Class& before = imported.dxfClasses[index];
                 const DRW_Class& after = replayed.dxfClasses[index];
-                if (before.recName != after.recName
+                // The standard dictionary-with-default class is emitted
+                // with ACDB prefix and accepted by the reader without it.
+                const bool dictionaryWithDefaultAlias =
+                    before.recName == "ACDBDICTIONARYWDFLT"
+                    && after.recName == "DICTIONARYWDFLT";
+                if ((before.recName != after.recName
+                     && !dictionaryWithDefaultAlias)
                     || before.className != after.className
                     || before.instanceCount != after.instanceCount
                     || before.wasaProxyFlag != after.wasaProxyFlag) {
