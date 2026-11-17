@@ -36,10 +36,16 @@
     "An edited GUI drawing preserves and visibly renders the selected custom pattern after save and fresh reopen.",
     "Native LibreCAD_3 MPOLYGON GUI save/reopen or pinned ezdxf 1.4.5 acceptance."
   ],
+  "guiQualificationReadiness": {
+    "status": "WAITING_FOR_UNLOCKED_CONSOLE_SESSION",
+    "observedAt": "2026-11-17",
+    "evidence": "Read-only launchctl print gui/502 reports CGSSessionScreenIsLocked=Yes for the active Aqua session.",
+    "retryWhen": "Recheck the same Aqua session after it is unlocked; do not relaunch GUI-dependent qualification while the lock state is unchanged."
+  },
   "gate_disposition": {
     "gate": "P8-D",
     "status": "OPEN",
     "does_not_promote_support_claims": true
   },
-  "next_slice": "Continue P8-D at the native consumer boundary: record the two Move/Copy options, then perform one controlled move and verify the edited name and dash pattern after GUI save/reopen. Proceed to LibreCAD_3 MPOLYGON GUI round trip and pinned ezdxf readback afterward."
+  "next_slice": "After the active Aqua session is unlocked, run the native GUI checks: record both Move/Copy options at the action boundary; perform one controlled move; verify edited named-LTYPE save/reopen/render; then run LibreCAD_3 MPOLYGON GUI save/reopen and pinned ezdxf 1.4.5 readback. Until unlock, continue independent source/profile work."
 }
