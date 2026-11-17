@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1032 TABLECONTENT reference and source-frame graph census",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/Users/dli/dev/dwg-parser/tests/fixtures/committed/encoding/acad_table_cells.dwg",
+    "sha256": "1b719034b3d65a66830db64ae65662f0c9249f8f05ce906d212f7ffd4b34473c",
+    "version": "AC1032",
+    "provenance": "The external source repository identifies an ACAD_TABLE scaffold from an ezdxf MIT fixture, with locally authored cell text, saved by ODA File Converter as R2018. The file was read in place and was not copied into libdxfrw. It is not a native AutoCAD/ObjectARX witness."
+  },
+  "capture": {
+    "tool": "tools/research/p6_ac1032_tablecontent_graph_capture.cpp",
+    "toolSha256": "830f522a32e5b948b8827553c645a6982d96ad6eec27220122b0dbec08c95d69",
+    "buildCommand": "/usr/bin/g++ -O3 -DNDEBUG -std=c++17 -Wall -Wextra -pedantic -Werror -I/Users/dli/dev/libdxfrw/dwg2dxf -I/Users/dli/dev/libdxfrw/src -I/Users/dli/dev/libdxfrw -I/Users/dli/dev/libdxfrw/src/intern tools/research/p6_ac1032_tablecontent_graph_capture.cpp build-gcc/dwg2dxf/CMakeFiles/dwg2dxf.dir/dx_iface.cpp.o build-gcc/libdxfrw.a -o /private/tmp/p6_ac1032_tablecontent_graph_capture",
+    "runCommand": "/private/tmp/p6_ac1032_tablecontent_graph_capture /Users/dli/dev/dwg-parser/tests/fixtures/committed/encoding/acad_table_cells.dwg",
+    "binarySha256": "0dc06788cb78718490bf327fab82500aee7edfe192f3e425f1017e3f48605d61",
+    "outputPath": "/private/tmp/p6-ac1032-tablecontent-graph-probe-2026-11-17.txt",
+    "outputSha256": "7423a8779fd7c4219eb4ad0b5b6e83a8be1f6e85f2ccd53884d911df6cea1299",
+    "result": "Reader import completed with 182 published source frames and zero entity/object parse failures. All printed object-map offsets are decoded-buffer offsets, not physical file offsets."
+  },
+  "resolvedReferences": {
+    "tableStyle": {
+      "tableHandle": "0xcf",
+      "tableStyleAndContentStyleHandle": "0x6b",
+      "rootDictionary": "NOD 0x0c entry ACAD_TABLESTYLE -> dictionary 0x6a",
+      "dictionary": "0x6a owner 0x0c, entry Standard -> 0x6b, reactor 0x0c",
+      "tableStyle": "0x6b is AcDbTableStyle Standard, owner 0x6a, reactors 0x6a and 0xcf, with three R24 cell styles",
+      "resourceReferences": "All three cell styles use text style 0x11 (Standard, arial.ttf); each has six border linetype references to 0x14 (ByBlock). Both targets were published as typed source frames."
+    },
+    "blockCell": {
+      "tableCell": "row 4, column 4, content item 0, content type 4 (block)",
+      "target": "0x10b is BLOCK_RECORD B1, owner 0x01, with three entity members",
+      "blockReachability": "The parser published complete reachability for BLOCK_RECORD 0x10b, BLOCK 0x10f, ENDBLK 0x110, and members 0x10c, 0x10d, 0x10e.",
+      "nestedUse": "B1 has one reverse insert handle 0xdb. INSERT 0xdb is owned by BLOCK_RECORD 0xd0 (*T2) and points to B1. BLOCK_RECORD 0xd0 has complete reachability for its 28 member entities."
+    },
+    "tableGraphicsBlock": {
+      "tableName": "*T2",
+      "blockRecord": "0xd0 is BLOCK_RECORD *T2, owner 0x01; its reverse insert list contains table 0xcf.",
+      "reachability": "The parser published complete reachability for BLOCK_RECORD 0xd0, BLOCK 0xe2, ENDBLK 0xe3, and 28 member entities."
+    }
+  },
+  "unresolved": {
+    "tableOwner": "TABLE 0xcf has parentHandle 0 and m_ownerBlockRecordHandle 0. Its frame reports common-link evidence ValidatedAbsent. The *T2 BLOCK_RECORD reverse insert list contains 0xcf, but this does not identify the table's own owner. Resolve whether the missing owner is permitted for this version/profile or obtain a clean matching source.",
+    "sourceIntegrity": "The same source still has HEADER integrity rows at file offsets 16 (expected 808, observed 812) and 830 (expected 830, observed 1569), plus 739 unclaimed bytes.",
+    "semantics": "This is an in-tree reader callback/source-frame census, not an independent semantic decoder. It does not authorize typed output, strict whole-file conversion, rendering, or support claims."
+  },
+  "planEffect": {
+    "completedAction": "Resolve the direct TABLESTYLE and block-cell references and enumerate their parser-published source-frame closure for this exact source.",
+    "remainingAction": "Keep the AC1032 body-string candidate raw-only. Obtain primary/versioned authority or a clean matching source that resolves TABLE ownership and the selected TABLECONTENT profile; separately disposition the source integrity rows/suffix. Continue with independent plan work while waiting."
+  }
+}
