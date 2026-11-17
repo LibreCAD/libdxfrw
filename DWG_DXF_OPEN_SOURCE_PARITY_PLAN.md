@@ -19,9 +19,9 @@ libdxfrw and LibreCAD origin/master heads above were re-checked and unchanged;
 LibreCAD PR #3269 is merged as `4060fb6bb` and is contained in that LibreCAD head.
 
 **Progress on 2026-11-17:** 5 of 33 required package gates are closed (15.2%);
-28 remain. The activity count is 45 of 73 complete (61.6%): 5 closed gates
-and 40 completed implementation/research slices, out of 33 gates, 39 recorded
-slices, and one admitted local implementation slice. The 28 remaining counted
+28 remain. The activity count is 46 of 74 complete (62.2%): 5 closed gates
+and 41 completed implementation/research slices, out of 33 gates, 40 recorded
+slices, and one admitted local implementation/research slice. The 28 remaining counted
 items are the 28 open package gates. A completed slice can advance a gate that
 remains open, so this equal-weight activity count measures work items rather
 than unique outcomes or support breadth; use 5/33 for package readiness.
@@ -49,6 +49,13 @@ historical SCALE, MLINESTYLE, and LAYOUT evidence is preserved in their
 [SCALE receipt](docs/research/p4-ac1024-scalelist-common-link-tail-output-2026-11-17.json),
 [MLINESTYLE receipt](docs/research/p4-ac1024-mlinestyle-common-link-tail-output-2026-11-17.json),
 and [LAYOUT receipt](docs/research/p4-ac1024-layout-dictionary-common-link-tail-strict-output-2026-11-17.json).
+An S28 independent peer screen tried LibreDWG 0.14 `dxf2dwg` on that exact
+scratch output. It refused at SORTENTSTABLE handle mapping and
+ACDBASSOCVALUEDEPENDENCY parsing. A structural scan found no duplicate
+primary object handles; Autodesk defines SORTENTSTABLE group 331 as entity
+targets and repeated group 5 values as sort handles. The peer error therefore
+does not establish that the DXF is malformed, and the output remains without
+independent semantic acceptance. See the [S28 receipt](docs/research/p8-libredwg-ac1024-strict-dxf-peer-screen-2026-11-17.json).
 These implementation/research slices do not close a package gate or promote a
 support claim. Native consumer acceptance and independent whole-drawing
 semantics remain separate. The most advanced source-backed profile, P5-I,
@@ -68,7 +75,7 @@ before reaching the cells. Neither route supplies the disputed spans or
 overrides ODA. See the [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json),
 [cursor/peer screen](docs/research/p5-ac1021-table-alignment-candidate-cursor-and-libredwg-screen-2026-11-17.json),
 and [debug-class screen](docs/research/p5-ac1021-table-libredwg-debug-class-span-screen-2026-11-17.json).
-Slices S23 through S27 are complete; activity progress is 45/73 and package
+Slices S23 through S28 are complete; activity progress is 46/74 and package
 readiness remains 5/33.
 P6-G is conditional, P7-E optional, and six DEFERRED_EXTERNAL dispositions
 are advisory, excluded from the count, and cannot promote support claims.
@@ -163,9 +170,9 @@ and environment waits block only their own profiles.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 33 package gates and each implementation/research slice once; the
-  current ledger has 36 completed slices plus one admitted local slice (70
-  counted items total). Linux, Windows, and GUI outcomes belong to P8-B/C/D and
-  are not separate progress units. A
+  current ledger has 40 recorded completed slices plus one admitted local
+  slice (74 counted items total). Linux, Windows, and GUI outcomes belong to
+  P8-B/C/D and are not separate progress units. A
   partial implementation slice earns activity progress but does not close its
   package gate; after each commit, report both states. Recount when a gate
   closes or a newly scoped slice is committed; the snapshot above is the
