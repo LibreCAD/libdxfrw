@@ -71,32 +71,32 @@
       {
         "slot": "cell-content-reference",
         "handle": "0x10b",
-        "targetObjectIdentity": "unresolved"
+        "targetObjectIdentity": "BLOCK_RECORD B1, owner 0x01, with three reachable entity members; see docs/research/p6-ac1032-tablecontent-reference-graph-census-2026-11-17.json"
       },
       {
         "slot": "table-style",
         "handle": "0x6b",
-        "targetObjectIdentity": "unresolved"
+        "targetObjectIdentity": "TABLESTYLE Standard, owner dictionary 0x6a; its text-style and linetype dependencies resolve to typed frames; see docs/research/p6-ac1032-tablecontent-reference-graph-census-2026-11-17.json"
       }
     ],
     "qualificationLimit": "The trace proves encoded role codes and spans for this single ODA-exported profile. It does not prove reference-target classes, ownership closure, or native TABLE semantics."
   },
   "implementation": {
     "behavior": "Require hard-pointer roles for TABLECONTENT text style, border linetype, and final table-style slots. Preserve the AC1032 body-string fallback as raw-only and semantic-incomplete.",
-    "generatedControl": "An in-memory AC1032 TABLECONTENT with a soft-pointer final table-style slot is rejected with empty parser state. The same parser instance then accepts the corrected hard-pointer detached-TV control; no DWG/DXF fixture file is added.",
+    "generatedControl": "In-memory AC1032 TABLECONTENT controls reject soft-pointer encodings in the final table-style, cell-style content text-style, and border-linetype hard-pointer slots. Each failure clears parser semantic state and the same parser instance accepts a corrected control with valid hard-pointer encodings. Style-data retry remains semantic-incomplete because the style payload is not modeled. No DWG/DXF fixture file is added.",
     "sourceFile": "src/drw_entities.cpp",
     "sourceSha256": "51da91df59c9c68d25e428922b7435d91bf5fc8a03501a860d51efa64bd55706",
     "testFile": "tests/dwg_reader_matrix_tests.cpp",
-    "testFileSha256": "6c74493a04f2161e7f8dab490c6e48017b1a3c6e02a19fa844ff57808e8d97e2"
+    "testFileSha256": "6ac4b859cb95c403b24d279dc24650b8f7afc18c7dadb7187ee32df2fe209110"
   },
   "validation": {
     "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j4",
     "focusedTest": "ctest --test-dir build-gcc -R dwg_reader_matrix --output-on-failure",
-    "focusedTestResult": "passed in 0.64s",
+    "focusedTestResult": "passed in 0.66s",
     "cliResult": "182 source frames published with zero entity/object parse failures. Strict output was refused before publication because two HEADER integrity warnings remain (offsets 16 and 830) and 739 bytes remain unclaimed. No output DXF was produced."
   },
   "remaining": [
-    "Resolve TABLESTYLE 0x6b, content reference 0x10b, owners, and any other non-null TABLE dependencies against source object frames.",
+    "The parser-published graph census resolves the observed TABLESTYLE 0x6b and content reference 0x10b; this is source-frame evidence, not independent semantic proof. The source TABLE 0xcf has a validated-absent owner link, compatible with the generic optional owner reference in ODA v5.4.1 §20.4.2; do not synthesize an owner edge.",
     "Independently disposition the HEADER integrity rows and 739-byte suffix, or acquire a clean matching source; do not infer padding.",
     "Acquire a second matching producer-bound profile or versioned authority before expanding the parser/layout claim.",
     "Typed consumer/output support, strict ASCII/Binary write and fresh independent readback, refusal atomicity, corrected retry, and native TABLE semantics remain open."

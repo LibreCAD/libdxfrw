@@ -12138,6 +12138,12 @@ struct GeneratedTableContentObject {
     std::uint64_t objectEndBit{0};
 };
 
+enum class GeneratedTableContentRoleFailure {
+    None,
+    ContentTextStyle,
+    BorderLineType
+};
+
 bool appendGeneratedBits(dwgBufferW& destination,
                          const dwgBufferW& source) {
     dwgBuffer reader(source.data().data(), source.data().size());
@@ -12228,15 +12234,18 @@ bool makeGeneratedR24TableStyleObject(std::uint32_t handle,
 bool makeGeneratedR24TableContentObject(
     std::uint32_t handle, bool bodyByteCountCarrier,
     GeneratedTableContentObject& result,
-    bool wrongTableStyleRole = false) {
+    bool wrongTableStyleRole = false,
+    bool includeCellStyleData = false,
+    GeneratedTableContentRoleFailure wrongRole =
+        GeneratedTableContentRoleFailure::None) {
     constexpr DRW::Version version = DRW::AC1032;
     DRW_TextCodec codec;
     codec.setVersion(version, false);
     dwgBufferW object(&codec), body(&codec), strings(&codec), handles(&codec);
 
-    // The table/cell strings are emitted in the order consumed by
-    // parseTableContent/parseTableCell. The value carrier is the only field
-    // that differs between the two local ambiguity controls.
+    // Keep table/cell strings in parseTableContent/parseTableCell order. The
+    // local controls can add a style-data payload and mutate one handle role;
+    // the value-carrier switch remains independent of those variations.
     strings.putVariableText(version, "Generated table");
     strings.putVariableText(version, "");
     body.putBitLong(1); // one column
@@ -12279,8 +12288,38 @@ bool makeGeneratedR24TableContentObject(
     strings.putVariableText(version, bodyByteCountCarrier ? "Body" : "Detached");
     body.putBitLong(0); // no attributes
     body.putBitShort(0u); // no content format override
-    body.putBitLong(1); // no cell style payload
-    body.putBitShort(0u);
+    body.putBitLong(1); // cell-style type
+    body.putBitShort(includeCellStyleData ? 1u : 0u);
+    if (includeCellStyleData) {
+        const auto putByLayerCmc = [&body]() {
+            body.putBitShort(0u);
+            body.putBitLong(static_cast<std::int32_t>(0xC0000000u));
+            body.putRawChar8(0u);
+        };
+        body.putBitLong(0); // property override flags
+        body.putBitLong(0); // merge flags
+        putByLayerCmc(); // background color
+        body.putBitLong(0); // content layout
+        body.putBitLong(0); // content-format property override flags
+        body.putBitLong(0); // content-format property flags
+        body.putBitLong(0); // value data type
+        body.putBitLong(0); // value unit type
+        strings.putVariableText(version, "Style format");
+        body.putBitDouble(0.0); // rotation
+        body.putBitDouble(1.0); // block scale
+        body.putBitLong(0); // alignment
+        putByLayerCmc(); // content color
+        body.putBitDouble(2.5); // text height
+        body.putBitShort(0u); // no margin overrides
+        body.putBitLong(1); // one border
+        body.putBitLong(1); // nonzero edge flags
+        body.putBitLong(0); // border property overrides
+        body.putBitLong(1); // border type
+        putByLayerCmc(); // border color
+        body.putBitLong(0); // lineweight
+        body.putBitLong(0); // visible
+        body.putBitDouble(0.0); // double-line spacing
+    }
     body.putBitLong(0); // cell style ID
     body.putBitLong(0); // no cell geometry
 
@@ -12326,6 +12365,18 @@ bool makeGeneratedR24TableContentObject(
     dwgHandle nullHandle;
     nullHandle.code = DRW::DwgNullReference;
     handles.putHandle(nullHandle); // owner
+    if (includeCellStyleData) {
+        dwgHandle textStyleHandle;
+        textStyleHandle.code = wrongRole
+                == GeneratedTableContentRoleFailure::ContentTextStyle
+            ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
+        handles.putHandle(textStyleHandle); // cell-style content text style
+        dwgHandle borderLineTypeHandle;
+        borderLineTypeHandle.code = wrongRole
+                == GeneratedTableContentRoleFailure::BorderLineType
+            ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
+        handles.putHandle(borderLineTypeHandle); // cell-style border linetype
+    }
     dwgHandle tableStyleHandle;
     tableStyleHandle.code = wrongTableStyleRole
         ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
@@ -17140,6 +17191,48 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
             && roleRetry.m_content.m_rows.size() == 1u;
         t.expect(wrongRoleRefused && correctedRoleRetry,
                  "TABLECONTENT rejects a wrong final table-style role, rolls back, and retries on the same parser");
+
+        const auto checkStyleHandleRole = [&codec, &t](
+            GeneratedTableContentRoleFailure failure,
+            const char* label) {
+            GeneratedTableContentObject wrongObject;
+            GeneratedTableContentObject validObject;
+            const bool controlsBuilt = makeGeneratedR24TableContentObject(
+                    0xE703u, false, wrongObject, false, true, failure)
+                && makeGeneratedR24TableContentObject(
+                    0xE704u, false, validObject, false, true);
+            TestableTableContentObject parser;
+            bool rejectedAndReset = false;
+            bool validRetry = false;
+            if (controlsBuilt) {
+                dwgBuffer wrongInput(wrongObject.payload.data(),
+                                     wrongObject.payload.size(), &codec);
+                rejectedAndReset = !parser.parseDwg(
+                        DRW::AC1032, &wrongInput, wrongObject.handleBits)
+                    && !parser.m_parseComplete
+                    && !parser.m_semanticContentComplete
+                    && parser.m_content.m_rows.empty();
+                dwgBuffer validInput(validObject.payload.data(),
+                                     validObject.payload.size(), &codec);
+                validRetry = rejectedAndReset
+                    && parser.parseDwg(DRW::AC1032, &validInput,
+                                       validObject.handleBits)
+                    && parser.m_parseComplete
+                    && !parser.m_semanticContentComplete
+                    && parser.m_content.m_rows.size() == 1u
+                    && parser.m_content.m_rows[0].m_cells.size() == 1u;
+            }
+            const std::string message = std::string("TABLECONTENT ")
+                + label + " wrong-role reference rolls back and retries on the same parser";
+            t.expect(controlsBuilt && rejectedAndReset && validRetry, message);
+            return controlsBuilt && rejectedAndReset && validRetry;
+        };
+        checkStyleHandleRole(
+            GeneratedTableContentRoleFailure::ContentTextStyle,
+            "cell-style text-style");
+        checkStyleHandleRole(
+            GeneratedTableContentRoleFailure::BorderLineType,
+            "cell-style border-linetype");
 
         std::vector<std::uint8_t> detachedFrame, sentinelFrame;
         const bool wrapped = wrapGeneratedR24Object(
