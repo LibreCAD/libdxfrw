@@ -1,0 +1,86 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1024 TABLE body-string cursor reconciliation",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "scope": "Compare the ordinary ODA-layout parser path with a diagnostic byte-counted-body-string hypothesis on two TABLE records in the existing hash-bound AC1024 candidate. This closes only the local cursor-comparison action; it does not select a wire profile, change parser behavior, or qualify TABLE output.",
+  "authority": {
+    "primary": "ODA Open Design Specification v5.4.1 §§20.4.96.2, 20.4.97, and 20.4.99",
+    "specifiedProfile": "For AC1024, TABLECONTENT is embedded in ACAD_TABLE; a type-4 CadValue string uses TV, with R2007+ text in the detached string stream.",
+    "conflict": "The diagnostic body-byte-counted string hypothesis aligns the observed candidate cursors but conflicts with the specified type-4 detached-TV layout. ODA remains authoritative until an erratum or independent source-bound explanation resolves the conflict."
+  },
+  "source": {
+    "repository": "https://github.com/DomCR/ACadSharp",
+    "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "dwgPath": "samples/sample_AC1024.dwg",
+    "dwgSha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
+    "pairedAsciiDxfSha256": "c97e857047ad4cecd84754ea1a8638e47508e339fd489f1e895ee7332127b372",
+    "pairedBinaryDxfSha256": "6a99aed5d669235a12f592d5cce426c6fba29b5462bae8d76f98187a2fdda22f",
+    "provenanceLimit": "The checked-in SAVEAS script records the intended output versions but does not establish the executing application/build or base-drawing authoring/API state. The DXF pair is a semantic comparator, not a byte-identical encoding of the DWG cell stream."
+  },
+  "diagnosticRun": {
+    "repositoryRevision": "56c42180",
+    "workingTreeFile": "src/drw_entities.cpp",
+    "workingTreeFileSha256": "072e8dc434d15a538cc709cecafb6f7423a0d7bda17b7df869fb1e2caf228f",
+    "buildTarget": "dwg2dxf",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1024.dwg -y -d -v2010 /private/tmp/ACadSharp_sample_AC1024-candidate-full.dxf",
+    "tracePath": "/private/tmp/ACadSharp_sample_AC1024-candidate-full.log",
+    "traceSha256": "874276864c9b40782810b6d7b08554f471307e68752d1ecfc20ba0c9184edf5b",
+    "pathBehavior": "The primary ODA-layout path remains unchanged and fails closed on the candidate's decoded attribute-count/handle-role tail. The alternate interpretation ran on independent debug-only cursors and was not published."
+  },
+  "candidateInterpretation": {
+    "entityHandle": "0x528",
+    "rows": 7,
+    "columns": 3,
+    "bodyStringByteCount": 26,
+    "bodyPayloadBits": [39138, 39356],
+    "decodedText": "Table sample",
+    "unitType": 0,
+    "attributeCount": 0,
+    "contentBodyEndBit": 91678,
+    "declaredBodyEndBit": 91678,
+    "detachedStringEndBit": 105076,
+    "declaredStringEndBit": 105076,
+    "handleEndBit": 107213,
+    "declaredHandleEndBit": 107216,
+    "r2010Postamble": {
+      "complete": true,
+      "tableFlags": 22,
+      "breakFlag": 0,
+      "rowRangeCount": 1,
+      "bodyEndBit": 91678
+    },
+    "pairedDxfSemanticMatch": "The paired ASCII DXF has a 7x3 ACAD_TABLE at handle 0x528 and first-cell value 'Table sample' with zero attributes."
+  },
+  "secondCandidateInterpretation": {
+    "entityHandle": "0xa35",
+    "rows": 4,
+    "columns": 5,
+    "bodyStringByteCount": 44,
+    "bodyPayloadBits": [52234, 52596],
+    "decodedText": "Hello this is a title",
+    "unitType": 0,
+    "attributeCount": 0,
+    "contentBodyEndBit": 74052,
+    "declaredBodyEndBit": 74052,
+    "detachedStringEndBit": 87824,
+    "declaredStringEndBit": 87824,
+    "handleEndBit": 88441,
+    "declaredHandleEndBit": 88448,
+    "r2010Postamble": {
+      "complete": true,
+      "tableFlags": 6,
+      "breakFlag": 0,
+      "rowRangeCount": 1,
+      "bodyEndBit": 74052
+    },
+    "pairedDxfSemanticMatch": "The paired ASCII DXF has a 4x5 ACAD_TABLE at handle 0xa35 and first-cell value 'Hello this is a title' with zero attributes."
+  },
+  "limits": {
+    "semanticComplete": false,
+    "strictOutput": "The whole-file CLI still refused before publication because standalone OBJECTCONTEXTDATA has no qualified replay path.",
+    "producerIndependent": false,
+    "supportClaimEffect": "none"
+  },
+  "result": "The alternate interpretation reaches the declared body/string boundaries and the handle-stream byte boundary for both TABLE records after each R2010 postamble, with selected text matching paired-DXF semantics. This is strong local alignment evidence, not independent proof of the alternate wire layout. Keep the parser fail-closed and obtain authoritative clarification or a source-distinct producer-bound AC1024 TABLE witness before implementation. No fixture was added."
+}
