@@ -39,13 +39,13 @@
   "guiQualificationReadiness": {
     "status": "WAITING_FOR_FUNCTIONAL_AQUA_GUI",
     "observedAt": "2026-11-17",
-    "evidence": "The user reported starting an Aqua unlock. The configured LibreCAD GUI target was built successfully. LaunchServices then returned kLSNoExecutableErr for the .app bundle even though Contents/MacOS/LibreCAD exists. Directly launching that executable aborted with SIGABRT during AppKit/HIServices application registration after pasteboard and com.apple.hiservices-xpcservice errors; the crash log is /private/tmp/librecad-p8d-build-20261117/LibreCAD.app/Contents/MacOS/LibreCAD.1183.1794943046.crash.log. No GUI test interaction ran.",
-    "retryWhen": "Retry only after a normal interactive Aqua app launch succeeds and pasteboard/XPC registration is available. Do not repeat the same launch attempt while the observed failure is unchanged."
+    "evidence": "The user reported starting an Aqua unlock. The configured LibreCAD GUI target was built successfully. LaunchServices then returned kLSNoExecutableErr for the .app bundle even though Contents/MacOS/LibreCAD exists. Directly launching that executable aborted with SIGABRT during AppKit/HIServices application registration after pasteboard and com.apple.hiservices-xpcservice errors; the crash log is /private/tmp/librecad-p8d-build-20261117/LibreCAD.app/Contents/MacOS/LibreCAD.1183.1794943046.crash.log. After the user reported the session unlocked, a fresh `open -n /private/tmp/librecad-p8d-build-20261117/LibreCAD.app` attempt still returned LaunchServices kLSNoExecutableErr (-10827). The shell could not inspect running processes because sysmond/sysmon was unavailable. No GUI test interaction ran.",
+    "retryWhen": "Retry only after LaunchServices can open the built .app normally and pasteboard/XPC registration works. Unlocking alone did not change the observed launch failure. Do not repeat the same launch attempt while the failure is unchanged."
   },
   "gate_disposition": {
     "gate": "P8-D",
     "status": "OPEN",
     "does_not_promote_support_claims": true
   },
-  "next_slice": "After the active Aqua session is unlocked, run the native GUI checks: record both Move/Copy options at the action boundary; perform one controlled move; verify edited named-LTYPE save/reopen/render; then run LibreCAD_3 MPOLYGON GUI save/reopen and pinned ezdxf 1.4.5 readback. Until unlock, continue independent source/profile work."
+  "next_slice": "When a normal Aqua launch works, run the native GUI checks: record both Move/Copy options at the action boundary; perform one controlled move; verify edited named-LTYPE save/reopen/render; then run LibreCAD_3 MPOLYGON GUI save/reopen and pinned ezdxf 1.4.5 readback. Until then, continue independent source/profile work."
 }

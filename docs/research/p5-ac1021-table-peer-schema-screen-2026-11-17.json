@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 TABLE peer-schema screen",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "scope": "Check whether current open-source reader implementations independently resolve the AC1021 TABLE cell schema gap, and refine the P5-I evidence threshold without using peer code as wire authority.",
+  "primaryAuthority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.96.1",
+    "note": "ODA remains authoritative. The reviewed section does not settle the AutoCAD 2008 TABLE cell change; do not import a peer mapping as a substitute."
+  },
+  "peers": [
+    {
+      "repository": "DomCR/ACadSharp",
+      "source": "https://raw.githubusercontent.com/DomCR/ACadSharp/master/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Entities.cs",
+      "observed": "2026-11-17; mutable master URL, source commit not pinned",
+      "observations": [
+        "readTableCellData comments that AutoCAD 2008 changed the cell schema and marks that change TODO.",
+        "The same method decodes the pre-2010 inline cell path, so the code is an implementation lead but does not establish a correct AC1021 2008/2009 mapping.",
+        "readTableEntity uses a distinct R2010+ TABLECONTENT path; the older path is labeled Until R2007, which does not by itself identify the exact producer release of an AC1021 file."
+      ],
+      "testSource": "https://github.com/DomCR/ACadSharp/blob/master/src/ACadSharp.Tests/IO/TableEntityTests.cs",
+      "testLimit": "The test loads the repository's DWG/DXF sample sets and asserts one table's values, but does not bind the asserted case to a filename, source hash, producer release, or AC1021 version. It is not an independent AC1021 witness."
+    },
+    {
+      "repository": "DomCR/ACadSharp",
+      "source": "https://github.com/DomCR/ACadSharp/pull/1040",
+      "observed": "Merged 2026-05-02",
+      "observations": [
+        "The merged change adds TableEntity DWG writer support and serialization refactoring.",
+        "A merged writer implementation is useful for locating field families, but the PR does not bind the unresolved 2008 cell-change schema to a producer-versioned source/API witness."
+      ]
+    }
+  ],
+  "inputBinding": {
+    "sourceReceipt": "docs/research/p5-autodesk-metric-table-ac1021-screen-2026-11-17.json",
+    "exactHeaderVersion": "AC1021",
+    "producerRelease": "unknown; AC1021 alone does not distinguish AutoCAD 2007, 2008, or 2009",
+    "records": ["0x2856e", "0x2a974"],
+    "currentBehavior": "Anonymous-block geometry is retained; semantic tails remain incomplete."
+  },
+  "decision": {
+    "status": "WAITING_FOR_AC1021_TABLE_SCHEMA_WITNESS",
+    "nextEvidence": "Primary versioned wire authority or a producer-bound API/source capture that identifies one exact AutoCAD release and known cell values.",
+    "implementationRule": "Split by proven release only when evidence demonstrates distinct layouts. For the admitted profile, bind field spans, types, handle roles, cell counts, and next-record boundary before coding; preserve unknown data or refuse strict output.",
+    "supportClaimEffect": "none",
+    "repeatPolicy": "Do not repeat generic peer searches, re-download the Autodesk sample, or infer semantics from CadValue traces or paired geometry."
+  }
+}
