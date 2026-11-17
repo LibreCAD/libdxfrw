@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1027-sweep-oda-schema-boundary-2026-11-17",
+  "date": "2026-11-17",
+  "status": "NORMATIVE_WRAPPER_BOUND_CANDIDATE_FOUND_BYTES_UNAVAILABLE",
+  "supportClaimEffect": "none",
+  "authority": {
+    "title": "Open Design Specification for .dwg files",
+    "version": "5.4.1",
+    "publisher": "Open Design Alliance",
+    "url": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "localCopy": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "titlePageVerified": true,
+    "sections": [
+      {
+        "section": "20.4.85 LWPLINE (varies)",
+        "printedPages": [212, 213],
+        "normativeObservations": [
+          "The ordinary entity field sequence starts at group 70 flags and includes version/flag-gated optional fields.",
+          "For R2000+, the first vertex is 2RD and subsequent X/Y coordinates are DD values relative to the previous point.",
+          "Bulges, R2010+ vertex identifiers, and widths are separate conditional arrays."
+        ]
+      },
+      {
+        "section": "2.12 Object type: LWPOLYLINE 33",
+        "printedPages": [276, 277],
+        "normativeObservations": [
+          "The modeler subentity begins with an RL byte count followed by a B byte block excluding common entity data.",
+          "The B block is described as starting at LWPOLYLINE flags (BS) and ending at the width array (BD).",
+          "Three RC fields follow and are each labeled unknown byte.",
+          "This wrapper description does not specify the embedded block's complete AC1027 field encoding or explain the observed non-byte suffix."
+        ]
+      }
+    ]
+  },
+  "capturedCandidate": {
+    "path": "/private/tmp/example_2013.dwg",
+    "version": "AC1027",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "provenance": "Public LibreDWG corpus sample; producer lineage is not authenticated.",
+    "sweepHandle": "0x2e2",
+    "profile": {
+      "subentityType": 77,
+      "declaredBits": 744,
+      "candidateConsumedBits": 740,
+      "unclassifiedSuffixBits": "1100"
+    },
+    "path": {
+      "subentityType": 77,
+      "declaredBits": 480,
+      "candidateConsumedBits": 478,
+      "unclassifiedSuffixBits": "00"
+    },
+    "captureReceipt": "docs/research/p4-ac1027-sweep-embedded-lwpolyline-capture-2026-11-10.json"
+  },
+  "boundedPublicSearch": {
+    "searchedOn": "2026-11-17",
+    "scope": "One pass over Autodesk's official sample catalog plus one exact Autodesk Community Sweep attachment candidate.",
+    "sources": [
+      {
+        "title": "AutoCAD Sample Files",
+        "url": "https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/6XGQklp3ZcBFqljLPjrnQ9.html",
+        "observation": "The catalog says the samples apply to AutoCAD 2010 and later and lists visualization and mechanical examples, but it does not identify a Sweep entity, exact saved DWG version, or object-level contents."
+      },
+      {
+        "title": "Fillet with decreasing radius? — Autodesk Community, message 5",
+        "url": "https://forums.autodesk.com/t5/autocad-forum/fillet-with-decreasing-radius/m-p/7309763",
+        "author": "BeKirra",
+        "posted": "2017-08-15",
+        "attachmentName": "Sweep Sample (scale 0.2).dwg",
+        "authorDescription": "The author says they used SWEEP with scale 0.2 and that the drawing shows the profile and path beside the swept model.",
+        "retrieval": "Direct read-only page fetch returned HTTP 403 with a Cloudflare challenge. The attachment bytes, hash, and DWG version were not retrieved."
+      }
+    ],
+    "result": "A plausible source-specific candidate exists, but it is not an eligible witness until its exact bytes, hash, and AC1027 version are verified. Do not repeat the catalog search or attempt to bypass the site challenge; use an accessible direct attachment route or request the file."
+  },
+  "peerHypothesis": {
+    "source": "ACadRust embedded-entity reader cited by docs/research/p4-ac1027-sweep-embedded-lwpolyline-boundary-2026-11-09.json",
+    "hypothesis": "The embedded LWPOLYLINE candidate decodes every vertex as raw XY doubles.",
+    "evidenceClass": "peer implementation only",
+    "limit": "ODA's ordinary R2000+ LWPOLYLINE layout uses delta-coded coordinates after the first vertex; the modeler type-33 wrapper does not establish that ordinary layout applies to the embedded bytes. Neither source explains the captured 4-bit profile suffix."
+  },
+  "decision": {
+    "parserChange": false,
+    "outputAdmission": false,
+    "reason": "The normative specification bounds the modeler wrapper and ordinary entity layout but does not resolve the embedded source's exact AC1027 spans or suffix. Transferring ordinary-entity fields or calling the remaining bits padding would be speculative.",
+    "currentBehavior": "Preserve the embedded payload and suffix; keep strict Sweep output refused."
+  },
+  "nextAction": "Try one accessible direct attachment route for the exact Autodesk Community file named above. If its bytes remain unavailable or the header is not AC1027, request one AutoCAD/ObjectARX- or ODA-authored AC1027 drawing containing a deliberately simple Sweep and its matching DXF. Record producer/build, exact version, file hashes, Sweep handle, profile/path geometry, group-310 payload, declared byte lengths, and both embedded boundaries. Compare only this bound source with ODA and the current probe; do not start another broad corpus search.",
+  "validation": {
+    "specTitleAndVersion": "PASS; title page identifies ODA Open Design Specification v5.4.1.",
+    "specSha256": "PASS; local copy hash matches 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7.",
+    "codeChanged": false,
+    "testsRun": false,
+    "fixturesAdded": false
+  },
+  "limitations": [
+    "The local specification copy is not the canonical filename/path from AGENTS.md, although its title page and hash were verified; keep that provenance limit recorded.",
+    "The community attachment is user-provided and its DWG bytes/version could not be obtained through the Cloudflare-protected page; it remains a lead, not physical evidence.",
+    "The existing sample remains unverified-producer evidence and cannot qualify the embedded suffix or Sweep semantics.",
+    "This receipt closes only the bounded ODA schema comparison; P4-C remains open and no support claim is promoted."
+  ]
+}

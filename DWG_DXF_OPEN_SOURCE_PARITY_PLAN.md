@@ -19,18 +19,20 @@ integration targets; refresh mutable heads before replay or qualification.
 
 **Current state (2026-11-17):** 32 required package gates; 4 closed, 28 open
 (12.5% package completion). Against the previous 17/48 slice baseline, this
-update recognizes three more completed slices: FIELD/FIELDLIST resolver and
-older-version omission compatibility, current-target LibreCAD replay, and the
-macOS candidate package manifest/relocation check. The count is now 20/51
-complete (39.2%), with 31 remaining: the 28 open package
+update recognizes four more completed work slices: FIELD/FIELDLIST resolver
+and older-version omission compatibility, current-target LibreCAD replay,
+macOS candidate package manifest/relocation check, and the bounded ODA schema
+review for P4-C. The work-slice count is now 21/52 complete (40.4%), with 31 remaining:
+the 28 open package
 gates and three split phases—
 P8-B Linux baseline/3D, P8-C Windows baseline/3D, and P8-D GUI checks (D1 and
-D2 must both pass). Five preparation/implementation slices are complete: the
+D2 must both pass). Six preparation/implementation slices are complete: the
 ABI-3 CMake handoff; version-aware FIELD decoder fix; FIELD/FIELDLIST resolver
 and older-version omission compatibility; current-target LibreCAD system-package
-replay; and macOS shared/static package manifest and relocation proof. P8-E
-remains open because Linux and Windows package manifests and native platform
-receipts are not yet frozen. Closed
+replay; macOS shared/static package manifest and relocation proof; and the
+bounded ODA schema review for P4-C. P4-C remains open for a producer-bound
+source pair. P8-E remains open because Linux and Windows package manifests and
+native platform receipts are not yet frozen. Closed
 gates remain limited to their receipts and do not promote broad support claims.
 One closure is a bounded strict-refusal outcome
 for SORTENTSTABLE owner profiles without a valid DXF mapping; it does not enable
@@ -204,11 +206,13 @@ receipts, not in the remaining-action text.
 | ID / state | Remaining implementation | Package exit evidence |
 |---|---|---|
 | P4-B / WAITING_FOR_WITNESS | Bind one AC1032 associative-network class-version-2 frame. Reuse existing search results; obtain source bytes and compare each field/span and handle role to ODA before decoder edits. | Ordered fields, version boundary, roles, following-record boundary, truncation/refusal controls, graph closure, and producer/consumer evidence. |
-| P4-C / WAITING_FOR_WITNESS | Resolve the AC1027 Sweep suffix using the captured embedded-entity probe. Obtain one exact Sweep frame with a nonzero suffix from an existing eligible source or a bounded producer request; do not repeat broad corpus discovery or infer padding. | Parent/child spans and roles, following-frame alignment, malformed controls, round trip, and independent semantics. |
+| P4-C / WAITING_FOR_WITNESS | Keep the captured suffix raw and strict output refused. The bounded ODA comparison ([receipt](docs/research/p4-ac1027-sweep-oda-schema-boundary-2026-11-17.json)) confirms the ordinary R2000+ LWPOLYLINE field sequence but does not bind it to modeler subentity type 33. A promising Autodesk Community attachment is named `Sweep Sample (scale 0.2).dwg`; its author says it contains a scaled Sweep and the profile/path, but the thread page returns Cloudflare 403, so the attachment bytes and saved version remain unverified. Try one accessible route for this exact attachment; if unavailable or not AC1027, request a provenance-bound AutoCAD/ODA AC1027 Sweep and matching DXF with known geometry. Do not repeat catalog/broad corpus searches or infer padding. | Hash-bound AC1027 source/output, parent/child field spans and handle roles, following-frame alignment, malformed controls, strict output/readback, and independent geometry semantics. |
 
-P4-C references: [captured entity](docs/research/p4-ac1027-sweep-embedded-lwpolyline-capture-2026-11-10.json)
-and [suffix probe](docs/research/p4-ac1027-sweep-embedded-lwpolyline-boundary-2026-11-09.json);
-neither resolves the suffix.
+P4-C references: [captured entity](docs/research/p4-ac1027-sweep-embedded-lwpolyline-capture-2026-11-10.json),
+[suffix probe](docs/research/p4-ac1027-sweep-embedded-lwpolyline-boundary-2026-11-09.json),
+and the [ODA schema boundary review](docs/research/p4-ac1027-sweep-oda-schema-boundary-2026-11-17.json).
+The review narrows the wire question and identifies one community sample lead,
+but its attachment is unavailable and neither action resolves the suffix.
 
 ### P5 — FIELD, TABLE, rendering, and constraints (7 open packages)
 
@@ -338,11 +342,11 @@ support claim.
    behavior, focused validation, completed/total slice count and percentage,
    open package count, and next action.
 6. Count progress against the 32 required package gates listed above: 4
-   closed, 28 open (12.5% package completion). The current implementation
-   count is 20/51 complete (39.2%), with 31 remaining: the 28 package
-   gates plus P8-B 3D, P8-C 3D, and the joint P8-D1/D2 GUI phase. The five
-   recently completed preparation/implementation slices are listed in the
-   progress snapshot; none closes its package gate. The count is an activity
+   closed, 28 open (12.5% package completion). The current work-slice
+   count is 21/52 complete (40.4%), with 31 remaining: the 28 package
+   gates plus P8-B 3D, P8-C 3D, and the joint P8-D1/D2 GUI phase. The six
+   named preparation, research, and implementation slices are listed in
+   the progress snapshot; none closes its package gate. The count is an activity
    proxy, not effort-weighted. Close a package only after its full exit
    evidence passes; delete each completed sub-slice from the active queue as
    soon as its receipt is filed.
