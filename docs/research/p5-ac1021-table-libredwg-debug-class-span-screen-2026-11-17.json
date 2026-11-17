@@ -1,0 +1,90 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 TABLE LibreDWG debug-class span screen",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "qualificationEligible": false,
+  "scope": "Check whether a debug-class LibreDWG build can independently expose AC1021 TABLE cell-alignment and following-field spans for the already classified AutoCAD 2007 source. This is a bounded negative result; no parser or support claim changes follow.",
+  "source": {
+    "path": "/Users/dli/dev/libdxfrw/tests/samples/AC1021/blocks_and_tables_-_metric.dwg",
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "revision": "AC1021",
+    "producer": "AutoCAD 2007, per docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json",
+    "tableRecords": [
+      { "handle": "0x2856e", "rows": 9, "columns": 9 },
+      { "handle": "0x2a974", "rows": 10, "columns": 9 }
+    ],
+    "fixtureDisposition": "Read from the existing local sample path. No DWG/DXF fixture was added, modified, or staged."
+  },
+  "authority": {
+    "title": "Open Design Specification for .dwg files",
+    "edition": "ODA v5.4.1",
+    "section": "20.4.96.1",
+    "localPdf": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "url": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "relevantField": "Cell alignment is specified as raw RS when cell-override flag bit 0x01 is set."
+  },
+  "reader": {
+    "project": "LibreDWG",
+    "version": "0.14",
+    "sourceRevision": "6d6a33987a1a97095b069c799c3d8a793320f812, as pinned in the preceding AC1021 peer-screen receipt",
+    "sourceTree": "/private/tmp/libredwg-span-oracle-20261116",
+    "sourceFile": "src/dwg2.spec",
+    "sourceFileSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+    "debugClassRoute": "TABLE is listed as a DEBUG_CLASSES entity. The source decoder uses the TABLE field sequence under DEBUG_CLASSES and declares the cell alignment as SUB_FIELD_RS.",
+    "build": {
+      "configureCommand": "/private/tmp/libredwg-span-oracle-20261116/configure --enable-debug --disable-shared --prefix=/private/tmp/libredwg-debug-table-install",
+      "makeCommand": "make -j2",
+      "configureExitCode": 0,
+      "makeExitCode": 0,
+      "dwgreadPath": "/private/tmp/libredwg-debug-table-build/programs/dwgread",
+      "dwgreadSha256": "4b7ba55150119a28312d010234a5f9ae530701a1bea4e1566dc49a110f2658ae"
+    }
+  },
+  "run": {
+    "command": "./programs/dwgread -v4 -O JSON -o /private/tmp/libredwg-ac1021-table-debug.json /Users/dli/dev/libdxfrw/tests/samples/AC1021/blocks_and_tables_-_metric.dwg > /private/tmp/libredwg-ac1021-table-debug.log 2>&1",
+    "exitCode": 0,
+    "logPath": "/private/tmp/libredwg-ac1021-table-debug.log",
+    "logSha256": "b967b47bd76740fd25490797a4d57a6345b68ded26721734fa6a9fdd31b66691",
+    "jsonPath": "/private/tmp/libredwg-ac1021-table-debug.json",
+    "jsonSha256": "08908eb1f7480224583cd9a4c9235e6dc86a6ea34dcb6962d4f01f9823f2dad1",
+    "observations": [
+      {
+        "handle": "0x2856e",
+        "objectAddress": 190881,
+        "objectSizeBytes": 35882,
+        "objectBitsize": 286123,
+        "commonSizeBits": 263972,
+        "unknownBits": 23066,
+        "flagForTableValue": 164,
+        "decodedColumns": 1,
+        "decodedRows": 3220961795,
+        "result": "Decoder reports Invalid TABLE.num_rows before decoding cells."
+      },
+      {
+        "handle": "0x2a974",
+        "objectAddress": 226769,
+        "objectSizeBytes": 40223,
+        "objectBitsize": 320756,
+        "commonSizeBits": 296772,
+        "unknownBits": 24994,
+        "flagForTableValue": 164,
+        "decodedColumns": 1,
+        "decodedRows": 3666849024,
+        "result": "Decoder reports Invalid TABLE.num_rows before decoding cells."
+      }
+    ],
+    "failureBoundary": "The trace reaches a candidate TABLE prefix and then rejects the row count in both objects. It emits no cell count, alignment value, cell-tail cursor, or following-field/object boundary. The zero exit status only means dwgread completed its report; the TABLE decode itself did not complete."
+  },
+  "assessment": {
+    "finding": "Enabling LibreDWG debug classes is a distinct reader-mode probe, but this build does not provide usable independent TABLE spans for the exact source. Its failure occurs before the disputed alignment fields and cannot choose raw RS or the libdxfrw BitShort compatibility candidate.",
+    "relationshipToPriorEvidence": "This does not repeat the installed LibreDWG 0.14 JSON-only screen: it builds the pinned source with DEBUG_CLASSES and records its decoder's first field failure. It also does not turn the decoder's SUB_FIELD_RS declaration into evidence that the source bytes use RS at the candidate boundary.",
+    "limits": [
+      "The source-bound TABLE bodies and ODA field order remain unresolved at the disputed cells.",
+      "No TABLE-to-FIELD link, selected-TABLE output, independent readback, or native meaning proof is added.",
+      "The source stays outside a repository fixture commit; the receipt and scratch reader artifacts are diagnostic only."
+    ],
+    "nextEvidence": "Resume P5-I only when a changed independent reader/source can decode these same TABLE objects through both disputed alignment fields and the following CadValue boundary, or a version-qualified Autodesk/ObjectARX trace supplies those spans. Do not repeat the same LibreDWG debug build without a new reader revision or source."
+  }
+}

@@ -19,8 +19,8 @@ libdxfrw and LibreCAD origin/master heads above were re-checked and unchanged;
 LibreCAD PR #3269 is merged as `4060fb6bb` and is contained in that LibreCAD head.
 
 **Progress on 2026-11-17:** 5 of 33 required package gates are closed (15.2%);
-28 remain. The activity count is 42 of 70 complete (60.0%): 5 closed gates
-and 37 completed implementation/research slices, out of 33 gates, 36 recorded
+28 remain. The activity count is 43 of 71 complete (60.6%): 5 closed gates
+and 38 completed implementation/research slices, out of 33 gates, 37 recorded
 slices, and one admitted local implementation slice. The 28 remaining counted
 items are the 28 open package gates. A completed slice can advance a gate that
 remains open, so this equal-weight activity count measures work items rather
@@ -30,8 +30,10 @@ inside P8-B/C/D and are not counted a second time. Completed actions have been
 removed from the active queue; receipts preserve the evidence needed to avoid
 repeating them.
 The latest local slices preserve the AC1024 LAYER_CONTROL source-frame proof
-through CLI export (S23) and correct the rooted ACAD_SCALELIST common-link
-admission check (S24). The source's decoded DICTIONARY common links are marked
+through CLI export (S23), correct the rooted ACAD_SCALELIST common-link
+admission check (S24), and screen a separate LibreDWG debug-class TABLE decode
+route (S25). The debug reader rejects both TABLE row counts before reaching
+their cells; it supplies no independent alignment span. The source's decoded DICTIONARY common links are marked
 validated only after parsing and role checks; the writer now requires that
 validation. The physical selector confirms all 17 SCALE records, dictionary
 membership, owner/reactor links, typed/raw fields, destination-preserving
@@ -40,7 +42,7 @@ ACAD_SCALELIST; the LayerStates profile independently skips this source
 because its root precondition is absent, then strict finalization stops at
 225/228 opaque DWG callbacks. The three unqualified records are listed in the
 [SCALE receipt](docs/research/p4-ac1024-scalelist-common-link-tail-output-2026-11-17.json).
-Neither slice closes a package gate or promotes a support claim. The most
+These implementation/research slices do not close a package gate or promote a support claim. The most
 advanced source-backed profile, P5-I, waits for independent span evidence; its
 existing parser cursor and peer screens are complete and must not be repeated.
 For P5-I, bounded
@@ -51,10 +53,13 @@ libdxfrw raw read is 42049, the bounded BitShort candidate is 6, and ACadSharp
 reads MiddleRight (6). A temporary parser-cursor trace found the candidate
 path starts the next CadValue six bits earlier and decodes the expected text,
 but that is parser self-consistency, not an independent source-span proof.
-LibreDWG 0.14 also leaves these TABLE cell bodies in `unknown_bits`; neither
-peer result overrides ODA. See the [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json)
-and [cursor/peer screen](docs/research/p5-ac1021-table-alignment-candidate-cursor-and-libredwg-screen-2026-11-17.json).
-Slices S23 and S24 are complete; activity progress is 42/70 and package
+The installed LibreDWG 0.14 JSON route leaves these TABLE cell bodies in
+`unknown_bits`; a separate `--enable-debug` build rejects both row counts
+before reaching the cells. Neither route supplies the disputed spans or
+overrides ODA. See the [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json),
+[cursor/peer screen](docs/research/p5-ac1021-table-alignment-candidate-cursor-and-libredwg-screen-2026-11-17.json),
+and [debug-class screen](docs/research/p5-ac1021-table-libredwg-debug-class-span-screen-2026-11-17.json).
+Slices S23, S24, and S25 are complete; activity progress is 43/71 and package
 readiness remains 5/33.
 P6-G is conditional, P7-E optional, and six DEFERRED_EXTERNAL dispositions
 are advisory, excluded from the count, and cannot promote support claims.
@@ -68,8 +73,10 @@ and environment waits block only their own profiles.
 
 1. **Resume P5-I only on new independent span evidence.** Use the exact source
    and [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json).
-   The existing ODA, candidate cursor, ACadSharp, and LibreDWG observations
-   are recorded. Do not repeat peer scans or choose RS/BitShort by agreement.
+   The ODA, candidate cursor, ACadSharp, standard LibreDWG, and separate
+   debug-class LibreDWG observations are recorded; the debug route stops at
+   invalid row counts before the cells. Do not repeat these scans or choose
+   RS/BitShort by agreement.
    New independent source-body cursor/span evidence or a version-qualified
    producer trace must bind the alignment and following-field boundary for
    both TABLE records. Then bind remaining cell/value/string/handle spans and
@@ -211,7 +218,7 @@ profile-specific semantic proof.
 | P5-F / DEPENDS_ON_P5-D_PROFILE | Reuse P5-D only if it contains TABLE layer overrides; otherwise capture only this state in that producer session. | Trace parse/storage/write/display precedence and compare with native appearance. |
 | P5-G / WAITING_FOR_CONSTRAINT_MODEL | Capture one producer-authored dynamic-constraint model with known parameters and dependencies. | Prove independent evaluation and graph closure, or explicitly refuse lossless output. Generated self-consistency is insufficient. |
 | P5-H / WAITING_FOR_NATIVE_VIEWPORT_PAIR | Capture a native AutoCAD ASCII/Binary pair with known VisualStyle/RenderPreset shade-plot state and target objects. Group 91 is settled as a soft pointer; unresolved fields are group 170 modes 4/5 and group 333 target classes. Reuse the [conflict analysis](docs/research/p6-viewport-shadeplot-dxf-objectarx-conflict-2026-11-16.json) instead of repeating group-91 research. | Prove exact values/target roles and fresh typed readback. Null, wrong-kind, missing, or ambiguous targets must refuse atomically; corrected same-writer retry and native rendering must pass. |
-| P5-I / WAITING_FOR_INDEPENDENT_SPAN_PROOF | Use the exact Autodesk sample and its [source-attribution receipt](docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json); the bounded AutoCAD 2007 profile route and documented text-cell overrides are already implemented. The [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json) and [cursor/peer screen](docs/research/p5-ac1021-table-alignment-candidate-cursor-and-libredwg-screen-2026-11-17.json) contain completed trace/reader observations. | No parser change until new independent source-body cursor/span evidence or a version-qualified Autodesk/ObjectARX trace binds the candidate alignment and following-field boundary. Existing ODA, ACadSharp, and LibreDWG results are insufficient; do not repeat them or infer P5-A from class counts. When new evidence arrives, bind remaining cell/value/string/handle spans, counts, overrides, and both following-object boundaries; reuse existing malformed/rollback/retry controls and then prove selected-TABLE strict ASCII/Binary output plus fresh independent readback. Keep affected semantics incomplete until then; the unrelated typed proxy graphics stay outside this gate. Do not generalize beyond the classified AutoCAD 2007 profile. |
+| P5-I / WAITING_FOR_INDEPENDENT_SPAN_PROOF | Use the exact Autodesk sample and its [source-attribution receipt](docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json); the bounded AutoCAD 2007 profile route and documented text-cell overrides are already implemented. The [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json), [cursor/peer screen](docs/research/p5-ac1021-table-alignment-candidate-cursor-and-libredwg-screen-2026-11-17.json), and [LibreDWG debug-class screen](docs/research/p5-ac1021-table-libredwg-debug-class-span-screen-2026-11-17.json) record completed observations; the debug decoder fails at the row count before reaching cells. | No parser change until new independent source-body cursor/span evidence or a version-qualified Autodesk/ObjectARX trace binds the candidate alignment and following-field boundary. Existing ODA, ACadSharp, and both LibreDWG modes are insufficient; do not repeat them or infer P5-A from class counts. When new evidence arrives, bind remaining cell/value/string/handle spans, counts, overrides, and both following-object boundaries; reuse existing malformed/rollback/retry controls and then prove selected-TABLE strict ASCII/Binary output plus fresh independent readback. Keep affected semantics incomplete until then; the unrelated typed proxy graphics stay outside this gate. Do not generalize beyond the classified AutoCAD 2007 profile. |
 
 ### P6 — version, no-loss, and public routes (6 open)
 
