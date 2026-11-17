@@ -5256,7 +5256,11 @@ bool parseTableCell(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
             if (!DRW::reserve(cell.m_attributes,
                               static_cast<int>(attributeTotal)))
                 return false;
-            DRW_DBG("TABLE cell attributes retained; semantic writer profile remains incomplete\n");
+            DRW_DBG("TABLE cell attributes retained; count/bodyBit/stringBit/handleBit=");
+            DRW_DBG(numAttrs); DRW_DBG("/"); DRW_DBG(currentDwgBit(buf));
+            DRW_DBG("/"); DRW_DBG(textBuf ? currentDwgBit(textBuf) : 0);
+            DRW_DBG("/"); DRW_DBG(hdlBuf ? currentDwgBit(hdlBuf) : 0);
+            DRW_DBG("; semantic writer profile remains incomplete\n");
             semanticComplete = false;
         }
         for (std::uint32_t attr = 0; attr < numAttrs; ++attr) {
