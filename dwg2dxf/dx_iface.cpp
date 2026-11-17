@@ -37318,10 +37318,13 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
             && cData->sourceVersion != DRW::AC1018
             && cData->sourceVersion != DRW::AC1021
             && cData->sourceVersion != DRW::AC1024
+            && cData->sourceVersion != DRW::AC1027
             && cData->sourceVersion != DRW::AC1032)
         || (version != DRW::AC1024
             && !(cData->sourceVersion == DRW::AC1021
                 && version == DRW::AC1021)
+            && !(cData->sourceVersion == DRW::AC1027
+                && version == DRW::AC1027)
             && !(cData->sourceVersion == DRW::AC1032
                 && version == DRW::AC1032))
         || m_extensionMLineStyleHandles.empty())
@@ -37337,8 +37340,10 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         || !cData->hasSingleSuccessfulNamedResourceImport())
         return true;
     const DRW_MLineStyle& style = cData->mLineStyles.front();
-    const bool expectedStyleName = cData->sourceVersion == DRW::AC1015
-        ? style.name == "Standard" : style.name == "STANDARD";
+    const bool expectedStyleName =
+        (cData->sourceVersion == DRW::AC1015
+         || cData->sourceVersion == DRW::AC1027)
+            ? style.name == "Standard" : style.name == "STANDARD";
     if (!expectedStyleName || style.elements.size() != 2u
         || style.flags != 0 || !style.description.empty()
         || style.handle != m_extensionMLineStyleHandles.front()
@@ -37355,6 +37360,16 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         || style.fillColorDwgIndex != 0u
         || !std::isfinite(style.startAngle)
         || !std::isfinite(style.endAngle))
+        return true;
+    // AC1027 output qualification is bounded to the peer-differenced Cover
+    // MLINESTYLE profile: handle 0x18, owner 0x17, two BYLAYER elements.
+    if (cData->sourceVersion == DRW::AC1027
+        && (style.handle != 0x18u || style.parentHandle != 0x17u
+            || style.name != "Standard" || style.flags != 0
+            || !style.description.empty()
+            || style.startAngle != 90.0 || style.endAngle != 90.0
+            || style.elements[0].offset != 0.5
+            || style.elements[1].offset != -0.5))
         return true;
     std::vector<std::pair<std::uint32_t, std::string>> linetypeDependencies;
     for (const DRW_MLineElement& element : style.elements) {
@@ -37531,6 +37546,7 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
             && cData->sourceVersion != DRW::AC1018
             && cData->sourceVersion != DRW::AC1021
             && cData->sourceVersion != DRW::AC1024
+            && cData->sourceVersion != DRW::AC1027
             && cData->sourceVersion != DRW::AC1032)
         || !cData->hasSingleSuccessfulNamedResourceImport()
         || cData->mLineStyles.size() != m_dwgMLineStyleOutputSources.size()
@@ -37715,6 +37731,8 @@ bool dx_iface::inspectDwgMLineStyles(
         && (view.version == DRW::AC1024
             || (cData->sourceVersion == DRW::AC1021
                 && view.version == DRW::AC1021)
+            || (cData->sourceVersion == DRW::AC1027
+                && view.version == DRW::AC1027)
             || (cData->sourceVersion == DRW::AC1032
                 && view.version == DRW::AC1032));
     if (dxfW == nullptr || cData == nullptr || !supportedVersion

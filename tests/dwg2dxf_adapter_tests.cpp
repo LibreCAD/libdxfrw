@@ -1330,14 +1330,16 @@ public:
             && projection.hasCompleteDwgLineTypeControlMembership();
     }
 
-    static bool selectPhysicalAc1021MLineStyleGraph(
+    static bool selectPhysicalMLineStyleGraph(
             const dx_data& source, dx_data& projection) {
         if (source.sourceFormat != dx_source_format::DWG
-            || source.sourceVersion != DRW::AC1021
+            || (source.sourceVersion != DRW::AC1021
+                && source.sourceVersion != DRW::AC1027)
             || source.importGeneration == 0u
             || source.mLineStyles.size() != 1u
             || !source.hasNamedObjectDictionary)
             return false;
+        const bool ac1027Profile = source.sourceVersion == DRW::AC1027;
         const DRW_MLineStyle& style = source.mLineStyles.front();
         const DRW_Dictionary* owner = nullptr;
         for (const DRW_Dictionary& candidate : source.dictionaries) {
@@ -1361,7 +1363,8 @@ public:
         const auto styleFrame = source.m_opaqueDwgSourceFrames.find(styleKey);
         const auto ownerFrame = source.m_standardDwgObjectFrames.find(ownerKey);
         if (style.handle != 0x18u || style.parentHandle != 0x17u
-            || style.xDictHandle != 0u || style.name != "STANDARD"
+            || style.xDictHandle != 0u
+            || style.name != (ac1027Profile ? "Standard" : "STANDARD")
             || style.flags != 0 || !style.description.empty()
             || style.elements.size() != 2u || owner == nullptr
             || owner->parentHandle != source.namedObjectDictionary.handle
@@ -1384,7 +1387,7 @@ public:
             || styleFrame->second.m_handle != style.handle
             || styleFrame->second.m_objectType != 73
             || styleFrame->second.m_isEntity
-            || styleFrame->second.m_version != DRW::AC1021
+            || styleFrame->second.m_version != source.sourceVersion
             || ownerFrame == source.m_standardDwgObjectFrames.end()
             || ownerFrame->second.raw.m_handle != owner->handle
             || ownerFrame->second.raw.m_objectType != dwgObjType::DICTIONARY
@@ -64790,19 +64793,22 @@ bool physicalAc1021CellStyleMapSourceProbe(
     return true;
 }
 
-bool physicalAc1021MLineStyleSourceProbe(
+bool physicalMLineStyleSourceProbe(
         const std::filesystem::path& sourcePath,
-        bool sameVersionOutput = false) {
-    const DRW::Version targetVersion = sameVersionOutput
-        ? DRW::AC1021 : DRW::AC1024;
+        bool sameVersionOutput = false,
+        const std::filesystem::path& retainedOutputDirectory = {}) {
     dx_iface reader;
     dx_data data;
     if (!reader.fileImport(sourcePath.string(), &data, false)
         || data.sourceFormat != dx_source_format::DWG
-        || data.sourceVersion != DRW::AC1021
+        || (data.sourceVersion != DRW::AC1021
+            && data.sourceVersion != DRW::AC1027)
         || data.mLineStyles.size() != 1u
         || !data.hasNamedObjectDictionary)
-        return fail("physical AC1021 MLINESTYLE source inventory changed");
+        return fail("physical MLINESTYLE source inventory is outside the admitted AC1021/AC1027 profile");
+    const bool ac1027Profile = data.sourceVersion == DRW::AC1027;
+    const DRW::Version targetVersion = ac1027Profile ? DRW::AC1027
+        : sameVersionOutput ? DRW::AC1021 : DRW::AC1024;
     const DRW_MLineStyle& style = data.mLineStyles.front();
     const auto dictionaryByHandle = [&data](std::uint32_t handle)
             -> const DRW_Dictionary* {
@@ -64919,22 +64925,27 @@ bool physicalAc1021MLineStyleSourceProbe(
               << " outputDiagnostic=" << diagnostic.str() << '\n';
     dx_data selected;
     if (!DxIfaceStandardDwgCaptureTestAccess::
-            selectPhysicalAc1021MLineStyleGraph(data, selected))
-        return fail("physical AC1021 MLINESTYLE graph could not be projected");
+            selectPhysicalMLineStyleGraph(data, selected))
+        return fail("physical MLINESTYLE source graph could not be projected");
     for (const bool binary : {false, true}) {
+        const auto nonce = std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count());
         const std::filesystem::path selectedPath =
-            std::filesystem::temp_directory_path()
-            / ("libdxfrw-ac1021-mline-style-selected-"
-               + std::to_string(std::chrono::steady_clock::now()
-                                    .time_since_epoch().count())
+            (retainedOutputDirectory.empty()
+                ? std::filesystem::temp_directory_path()
+                : retainedOutputDirectory)
+            / ("libdxfrw-mline-style-selected-" + nonce
                + (binary ? "-binary.dxf" : "-ascii.dxf"));
         struct Cleanup {
             std::filesystem::path path;
+            bool remove{true};
             ~Cleanup() {
-                std::error_code ignored;
-                std::filesystem::remove(path, ignored);
+                if (remove) {
+                    std::error_code ignored;
+                    std::filesystem::remove(path, ignored);
+                }
             }
-        } selectedCleanup{selectedPath};
+        } selectedCleanup{selectedPath, retainedOutputDirectory.empty()};
         dx_iface selectedWriter;
         const std::string sentinel =
             "preserve physical AC1021 MLINESTYLE destination\n";
@@ -64942,7 +64953,7 @@ bool physicalAc1021MLineStyleSourceProbe(
             std::ofstream existing(selectedPath,
                                    std::ios::binary | std::ios::trunc);
             if (!existing || !(existing << sentinel))
-                return fail("could not seed physical AC1021 MLINESTYLE destination");
+            return fail("could not seed physical MLINESTYLE destination");
         }
         const std::uint16_t originalFillIndex =
             selected.mLineStyles.front().fillColorDwgIndex;
@@ -64956,9 +64967,16 @@ bool physicalAc1021MLineStyleSourceProbe(
             } redirect{std::cerr.rdbuf(selectedDiagnostic.rdbuf())};
             selectedOutput = selectedWriter.fileExport(
                 selectedPath.string(), targetVersion, binary, &selected,
-                true, true, dx_dxfSourceTextPolicy::Compatible,
-                DRW::DxfTextWritePolicy::Compatible,
-                dx_dxfProxyGraphicsPolicy::Compatible,
+                true, true,
+                ac1027Profile
+                    ? dx_dxfSourceTextPolicy::RequireValidSource
+                    : dx_dxfSourceTextPolicy::Compatible,
+                ac1027Profile
+                    ? DRW::DxfTextWritePolicy::RequireLossless
+                    : DRW::DxfTextWritePolicy::Compatible,
+                ac1027Profile
+                    ? dx_dxfProxyGraphicsPolicy::FailIfNotPreserved
+                    : dx_dxfProxyGraphicsPolicy::Compatible,
                 dx_dwgReadCompletenessPolicy::AllowPartial);
         }
         std::ifstream rejectedInput(selectedPath, std::ios::binary);
@@ -64976,9 +64994,16 @@ bool physicalAc1021MLineStyleSourceProbe(
             } redirect{std::cerr.rdbuf(selectedDiagnostic.rdbuf())};
             selectedOutput = selectedWriter.fileExport(
                 selectedPath.string(), targetVersion, binary, &selected,
-                true, true, dx_dxfSourceTextPolicy::Compatible,
-                DRW::DxfTextWritePolicy::Compatible,
-                dx_dxfProxyGraphicsPolicy::Compatible,
+                true, true,
+                ac1027Profile
+                    ? dx_dxfSourceTextPolicy::RequireValidSource
+                    : dx_dxfSourceTextPolicy::Compatible,
+                ac1027Profile
+                    ? DRW::DxfTextWritePolicy::RequireLossless
+                    : DRW::DxfTextWritePolicy::Compatible,
+                ac1027Profile
+                    ? dx_dxfProxyGraphicsPolicy::FailIfNotPreserved
+                    : dx_dxfProxyGraphicsPolicy::Compatible,
                 dx_dwgReadCompletenessPolicy::AllowPartial);
         }
         const bool selectedQualified =
@@ -64986,7 +65011,7 @@ bool physicalAc1021MLineStyleSourceProbe(
                 selected, selected.importGeneration, style.handle);
         if (!selectedOutput || !selectedQualified) {
             std::cerr << selectedDiagnostic.str();
-            return fail("physical AC1021 MLINESTYLE selected output failed: "
+            return fail("physical MLINESTYLE selected output failed: "
                 + selectedWriter.extensionGraphFailureDetail());
         }
         dx_iface outputReader;
@@ -65096,11 +65121,15 @@ bool physicalAc1021MLineStyleSourceProbe(
                           << outputOwner->reactorHandles.size();
             }
             std::cerr << '\n';
-            return fail("physical AC1021 MLINESTYLE selected output readback changed the exact graph");
+            return fail("physical MLINESTYLE selected output readback changed the exact graph");
         }
-        std::cout << "Physical AC1021 MLINESTYLE "
+        std::cout << "Physical "
+                  << (ac1027Profile ? "AC1027" : "AC1021")
+                  << " MLINESTYLE "
                   << (binary ? "Binary" : "ASCII")
                   << " selected output/readback passed with source-frame qualification.\n";
+        if (!retainedOutputDirectory.empty())
+            std::cout << "retainedOutput=" << selectedPath.string() << '\n';
     }
     return true;
 }
@@ -90117,10 +90146,16 @@ int main(int argc, char** argv) {
         return physicalAc1021CellStyleMapSourceProbe(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--mline-style-ac1021-selected-output")
-        return physicalAc1021MLineStyleSourceProbe(argv[2]) ? 0 : 1;
+        return physicalMLineStyleSourceProbe(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--mline-style-ac1021-same-version-selected-output")
-        return physicalAc1021MLineStyleSourceProbe(argv[2], true) ? 0 : 1;
+        return physicalMLineStyleSourceProbe(argv[2], true) ? 0 : 1;
+    if (argc == 4
+        && std::string(argv[1]) == "--mline-style-ac1027-selected-output")
+        return physicalMLineStyleSourceProbe(argv[2], false, argv[3]) ? 0 : 1;
+    if (argc == 4
+        && std::string(argv[1]) == "--mline-style-ac1027-selected-output")
+        return physicalMLineStyleSourceProbe(argv[2], false, argv[3]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--tablestyle-ac1021-physical-selected-output")
         return physicalAc1021TableStyleSelectedOutput(argv[2]) ? 0 : 1;

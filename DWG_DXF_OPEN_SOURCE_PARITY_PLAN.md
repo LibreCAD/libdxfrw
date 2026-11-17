@@ -19,11 +19,12 @@ integration targets; refresh mutable heads before replay or qualification.
 
 **Current state (2026-11-16):** 32 of 34 core packages remain open: P4-A/B/C
 (3), P5-A/B/D–H (7), P6-A–C/E–H (7), P7-A–H (8), and P8-A–G (7). P5-C and
-P6-D are closed. P6-D proves only the bounded AC1021 MLINESTYLE physical spans;
-P6-H1's AC1027 physical field spans are now closed as a sub-slice, while
-versioned output, graph closure, MLINE semantics, and consumer integration stay
-open under P6-H/P8-D. Bounded forward-STYLE identity and named MLINESTYLE
-linetype fixes are implemented and have focused local/consumer receipts; they
+P6-D are closed; P6-D proves only the bounded AC1021 MLINESTYLE physical spans.
+P6-H1's AC1027 source spans and P6-H2's selected style-graph output/readback
+are closed sub-slices; full source graph closure, producer-bound MLINE
+semantics, and consumer integration stay open under P6-H/P8-D. Bounded
+forward-STYLE identity and named MLINESTYLE linetype fixes are implemented and
+have focused local/consumer receipts; they
 are removed from the action queue and do not close P8-D integration. P8-D3 has
 now been replayed and focused-tested on LibreCAD `origin/master` `d40f178`; its
 clean local candidate is recorded in
@@ -74,48 +75,41 @@ available as evidence and to prevent repeated work.
 ## Execution order — short vertical slices, shared blockers batched
 
 The package registry below is the exit checklist. Completed sub-slices are not
-queued again. P6-H1's AC1027 physical-span proof is closed by
-[`p6-ac1027-cover-mlinestyle-physical-field-span-proof-2026-11-16.json`](docs/research/p6-ac1027-cover-mlinestyle-physical-field-span-proof-2026-11-16.json).
-The bounded forward-STYLE identity and canonical MLINESTYLE-linetype behavior
-are closed by the receipts listed under P8-D. P8-D3's rebase/build work is
-complete and is evidence only, not a remaining action. Queue order prioritizes
-work executable from existing source evidence, then batches shared GUI setup.
+queued again. P6-H1's physical field spans and P6-H2's selected style-graph
+writer proof are closed by
+[`p6-ac1027-cover-mlinestyle-selected-writer-readback-2026-11-16.json`](docs/research/p6-ac1027-cover-mlinestyle-selected-writer-readback-2026-11-16.json).
+P8-D3's rebase/build work is also complete and is evidence only. Bounded
+forward-STYLE identity and canonical MLINESTYLE-linetype behavior remain closed
+by the receipts listed under P8-D. The next queue prioritizes locally
+executable source work and batches shared GUI setup.
 
-1. **P6-H2 — strict MLINESTYLE output and readback.** Reuse the AC1027
-   `Cover.dwg` spans and handle-role map from P6-H1; do not repeat its parser
-   trace or corpus search. First check the existing indexed receipts for a
-   producer-bound MLINE whose style handle resolves to this style. If none is
-   present, proceed with the source-derived MLINESTYLE profile and use a locally
-   authored MLINE only for writer-mechanics controls. Build one field and
-   dependency ledger, then exercise strict ASCII and Binary output through the
-   existing adapter/writer routes. Compare represented CMC components, angles,
-   flags, ordered offsets, linetype identities, dictionary membership,
-   owner/reactor roles, and layer/linetype dependencies. Reopen with the
-   already-installed independent DXF reader and compare typed values and
-   reference roles. Add only a missing transaction assertion for rollback,
-   same-writer retry, or fresh readback. Preserve unrelated full-source proxy
-   refusal. Generated entities prove writer mechanics only; they do not close
-   producer semantics or native appearance. Keep AC1021 as a separate profile.
-2. **Next locally READY source-bound slice — one bounded selection pass.**
-   After H2, search existing plan receipts and already-local sources once for
-   an exact producer/version witness with the smallest unresolved field or
-   graph edge and an existing fast selector. Cap this pass at 15 minutes. Start
-   the first matching implementation/proof slice immediately. If none matches,
-   make one bounded local proof/acquisition tool for the highest-priority
-   waiting profile. End with either a named slice or a reusable local tool and
-   a precise missing-evidence trigger. Do not rerun completed corpus screens,
-   duplicate covered matrices, or make speculative decoder changes.
-3. **P6-H3 and P8-D1/D2 — one interactive qualification block.** Do not retry
-   GUI launch while the recorded pasteboard/XPC failure remains. When
-   interactive launch works, use clean, source/configuration-bound binaries
-   and perform each check once: LibreCAD 2 LINE translate/save/close/reopen;
-   LibreCAD 3 MPOLYGON open/save/reopen; and, after H2, one source-bound MLINE
-   display/edit/save/reopen if such an input exists. Compare saved records and
-   geometry with the already-installed independent reader. Until GUI launch is
-   available, keep advancing the next local READY slice; this wait does not
-   block implementation. Scratch inputs must be authored locally, and no new
-   DWG/DXF fixtures are committed. If no source-bound MLINE exists, keep its
-   producer-semantic gate open even if a generated display control passes.
+1. **Next locally READY source-bound slice — one bounded selection pass.**
+   Search existing plan receipts and already-local sources once for an exact
+   producer/version witness with the smallest unresolved field or graph edge
+   and an existing fast selector. Cap this pass at 15 minutes. Start the first
+   matching implementation/proof slice immediately. If none matches, make one
+   bounded local proof/acquisition tool for the highest-priority waiting
+   profile. End with either a named slice or reusable local tool and a precise
+   missing-evidence trigger. Do not rerun completed corpus screens, duplicate
+   covered matrices, or make speculative decoder changes.
+2. **P8-D1/D2 — one interactive qualification block when launch works.** Do not
+   retry GUI launch while the recorded pasteboard/XPC failure remains. When
+   available, use clean source/configuration-bound binaries and perform once:
+   LibreCAD 2 LINE translate/save/close/reopen and LibreCAD 3 MPOLYGON
+   open/save/reopen. Compare saved records and geometry with the installed
+   independent reader. If unavailable, keep advancing local READY work; the
+   GUI wait never blocks implementation. Scratch inputs must be locally
+   authored, and no new DWG/DXF fixtures are committed.
+3. **P6-H2-MLINE and P6-H3 — resume only with a producer-bound MLINE witness.**
+   The selected AC1027 MLINESTYLE graph writer/readback slice is complete; do
+   not repeat it. Cover binds the style but contains no MLINE that references
+   it. Reopen this source-semantic slice only when an already-local or newly
+   eligible source binds that entity to the style. Then compare its path, scale,
+   extrusion/direction, vertex arrays, and style/owner references through strict
+   ASCII/Binary output, independent readback, and one native LibreCAD edit/save
+   check. Existing generated controls may establish writer mechanics only. If
+   no witness is available, leave these gates waiting and continue another
+   READY slice.
 4. **P6-G — conditional single-route check.** Reopen only for a named public
    writer/overload route that lacks rollback, caller-state preservation,
    corrected same-writer retry, or typed readback. Add that one assertion and
@@ -124,21 +118,21 @@ work executable from existing source evidence, then batches shared GUI setup.
    and P7-H at one composed integration/release checkpoint. Use affected fast
    selectors between checkpoints; keep P9 external-only and non-blocking.
 
-For H2, source-derived style and graph checks are the minimum sub-slice exit;
-do not hold them for an MLINE witness. If an eligible entity source is found,
-extend the same ledger and independent readback to its path, scale,
-extrusion/direction, and vertex data. Cover currently binds a style but not an
-MLINE referencing it.
+P6-H2's selected profile is explicitly narrower than full-file conversion:
+the source-derived MLINESTYLE, its `ACAD_MLINESTYLE` root edge, owner dictionary,
+`Standard` entry, and owner/reactor roles are qualified. The test projection
+omits unrelated NOD siblings and does not assert whole-source closure. The peer
+readback downconverts to AC1018; this does not qualify AC1027 DWG output.
 
 ### Readiness and slice discipline
 
-- Immediate order: complete P6-H2 from the existing AC1027 Cover source
-  proof. P8-D3 is replayed and focused-qualified on `d40f…`; its local commit
-  chain and test identities are in the D3 receipt. P6-H1 and bounded P8-D4
-  behavior stay closed and are not repeated. After H2, make one bounded
-  source-selection pass and start the next locally READY slice. Batch P6-H3
-  with P8-D1/D2 only when GUI launch works; continue local work meanwhile.
-  P6-G remains conditional and integration gates stay late.
+- Immediate order: make one bounded source-selection pass and start its
+  first locally READY slice. P6-H1 and the P6-H2 selected style-graph proof
+  are closed; the H2 MLINE and H3 native gates wait for a producer-bound entity
+  source. P8-D3 is replayed and focused-qualified on `d40f…`; its local commit
+  chain and test identities are receipted. P8-D1/D2 run once GUI launch works,
+  while local work continues. P6-G remains conditional and integration gates
+  stay late.
 - For each `WAITING_*` row, consult its named receipt and local source once. If
   the exact witness/tool/platform is absent, record the retrieval or activation
   trigger and move to a locally executable proof-preparation or implementation
@@ -214,7 +208,7 @@ claims; do not turn them into one broad package.
 | P6-E / WAITING_FOR_HEADER_SPAN_WITNESS | Choose one already mapped source profile (AC1027 Cover or AC1024 mesh) and resolve only that HEADER envelope/suffix, including lengths, CRC, sentinels, trailers, and every unclaimed byte. | Every byte in the chosen profile has a versioned source-backed disposition; unexplained tails remain refused. The existing receipts report 731 unclaimed Cover bytes and 739 mesh bytes; process one profile per slice (docs/research/p6-ac1027-cover-header-suffix-logical-span-2026-11-12.json; docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json). |
 | P6-F / WAITING_FOR_ELIGIBLE_LEGACY_INPUT | Resume only when a hash-bound AC1012/AC1014 input passes structural/object/reference gates and reaches the output gate with an eligible recoverable entity failure. | Strict refusal preserves the destination; partial ASCII/Binary output proves later-entity readback and corrected retry. Do not weaken exact-version or bounded-frame gates. The libdxfrw DWG writer does not generate AC1012/AC1014; see the [disposition receipt](docs/research/p6-cli-legacy-ac1012-ac1014-partial-disposition-2026-11-16.json). |
 | P6-G / WAITING_FOR_CONCRETE_GAP | No uncovered writer route is selected. Resume only when a named public writer/overload is shown to lack an assertion for destination rollback, caller-owned state, corrected same-writer retry, or typed readback. | Add one focused test/receipt for that exact route; otherwise keep parked. Do not rerun the broad inventory or promote source/graph/native support from transaction tests. |
-| P6-H / READY_P6_H2 | H1's AC1027 `Cover.dwg` physical field/string/handle spans are closed by `docs/research/p6-ac1027-cover-mlinestyle-physical-field-span-proof-2026-11-16.json`; its focused `dwg2dxf_mline_style_typed_capture_limits` selector passes. H2 now qualifies strict ASCII/Binary output and independent readback for that source-derived style and its dictionary/owner/reactor/layer/linetype dependencies. Cover does not bind an MLINE entity referencing the style; use a separate producer-bound MLINE profile if already available, or a scratch MLINE only for writer-mechanics controls. H3 qualifies source-bound geometry/appearance in LibreCAD; generated controls alone do not close producer semantics. Keep AC1021 as a separate version profile. | ODA §20.4.73 spans and handle roles; no silent field loss or dangling/aliased dependency; strict ASCII/Binary output and independent readback for the style; source-bound MLINE geometry and bounded native 2D appearance where an eligible entity source exists. Preserve unrelated full-source proxy refusal and do not promote full-file conversion. Other versions remain unqualified until separately bound. |
+| P6-H / WAITING_FOR_SOURCE_BOUND_MLINE | H1 source spans and H2 selected AC1027 style-graph output/readback are complete; see `docs/research/p6-ac1027-cover-mlinestyle-physical-field-span-proof-2026-11-16.json` and `docs/research/p6-ac1027-cover-mlinestyle-selected-writer-readback-2026-11-16.json`. H2 proves strict ASCII/Binary output, destination rollback, corrected same-writer retry, typed readback, and LibreDWG semantic readback for the source-derived style plus `ACAD_MLINESTYLE` owner/entry/reactor graph. Cover has no MLINE referencing the style. Resume MLINE path/scale/extrusion/vertex output and H3 native appearance only when a producer-bound entity source is available; generated controls prove mechanics only. Keep AC1021 separate. | Source-bound entity geometry and style reference survive output/readback; native LibreCAD 2D behavior is checked on that same profile. Full source closure and full-file conversion remain unqualified. |
 
 Selection prompts include DIMASSOC/XREF graphs; 3D positions, OCS, splines,
 clipping, mesh/hidden-edge fields; units, lineweights, BYLAYER/BYBLOCK;
