@@ -17,10 +17,10 @@ LibreCAD origin/master head was `3ad089398976feb96ee01b8dee006c141edd8d3e`
 refresh mutable heads before integration or qualification.
 
 **Progress on 2026-11-17:** 4 of 32 required package gates are closed (12.5%);
-28 remain. The activity-based estimate is 29 of 60 slices complete (48.3%),
+28 remain. The activity-based estimate is 30 of 61 slices complete (49.2%),
 with 31 remaining: those 28 gates plus AC1027/AC1032 3D qualification on Linux,
 the same 3D phase on Windows, and the combined LibreCAD 2 / LibreCAD_3 GUI phase.
-The 60-unit count comprises the 32 package gates, 25 completed non-gate slices,
+The 61-unit count comprises the 32 package gates, 26 completed non-gate slices,
 and these 3 split phases. It weights slices equally and is not an effort or
 support estimate. Completed actions are deleted from the queue; their receipts
 and commits remain the record. P6-G is a conditional trigger and P7-E optional;
@@ -68,6 +68,17 @@ or scan it again; use the bundled producer session. The ACadSharp
 and the public CadCraft `columns-sample.dwg` report says the file has no
 ACAD_TABLE. The Autodesk header check completes one source-screen slice and
 closes no package gate.
+
+A separate hash-bound AC1024 candidate is available from the ACadSharp sample
+corpus, with paired ASCII/Binary DXFs and a tracked `SAVEAS 2010` script. Its
+paired ASCII DXF binds `ACAD_TABLE` 0x528 (7 rows by 3 columns) and a
+`CELLSTYLEMAP` record; see the [AC1024 triage receipt](docs/research/p5-ac1024-table-source-triage-2026-11-17.json).
+The script does not establish the actual AutoCAD build or input authoring, so
+use this pair for local span reconciliation only. The current reader completes
+CLASSES and publishes all 923 source frames, but the first TABLE cell's
+ATTDEF handle check fails and strict output later refuses standalone
+OBJECTCONTEXTDATA. This candidate adds one completed non-gate slice, closes no
+package gate, and does not promote support.
 
 The latest evidence still leaves P4-B/P4-C source-bound wire fields open. P8-E
 still needs native Linux and Windows package/runtime receipts. The exact macOS
@@ -131,11 +142,14 @@ Schedule work in these batches to amortize builds and source acquisition. A
 blocked profile never pauses other ready work. The completed TABLE reference
 census is removed from this queue; see its receipt above.
 
-1. **One bundled producer acquisition — P5-A/B/D/E/F/G/H, P6-A/C.** The
-   Autodesk Blocks and Tables Imperial candidate was checked once and is
-   AC1021, so it fails P5-D's AC1024 requirement. Do not fetch or inspect it
-   further; use the producer session for P5-D. This sample cannot satisfy
-   P6-C. Prepare one AutoCAD/ObjectARX session for a clean, hash-bound
+1. **One bundled producer acquisition — P5-A/B/D/E/F/G/H, P6-A/C.** First use
+   the hash-bound AC1024 ACadSharp pair for P5-D's local body/string/handle
+   span reconciliation; it has TABLE and CELLSTYLEMAP DXF records but its
+   exact producer build and original API state are unknown. Keep it candidate-
+   only and do not change the parser until the spans align with ODA. Do not
+   fetch the Autodesk Imperial file again: its AC1021 header fails the gate.
+   Prepare one AutoCAD/ObjectARX session for missing producer/API provenance
+   and a clean, hash-bound
    R2018 TABLE with known
    values and native appearance, FIELD text/value and dependencies, the missing
    R24 TABLE formatting/layer profile if needed, one dynamic-constraint model,
@@ -209,7 +223,7 @@ specific evidence required to close the gate.
 |---|---|---|
 | P5-A / WAITING_FOR_PRODUCER_FIELD_SPANS | Acquire a native AutoCAD/ObjectARX FIELD with known text/value, or a stronger producer-bound public input. The cached unknown-producer source and patched ACadRust derivative are not physical evidence; see [source/cache audit](docs/research/p5-mtext-fieldlist-source-cache-2026-11-15.json). | Bind physical spans, handle roles, source text, and independent evaluation or producer-authored expected value before parser changes. |
 | P5-B / DEPENDS_ON_P5-A | Use P5-A's exact source to close FIELD/FIELDLIST, including nested `_text`, tokens, and references. The generated AC1021 ASCII/Binary control proves version selection only. | Complete typed dependency graph, strict ASCII/Binary output, fresh independent readback, rollback/retry, and graph equivalence. |
-| P5-D / WAITING_FOR_BUNDLED_PRODUCER_SESSION | Autodesk's official Blocks and Tables Imperial sample was checked once and is AC1021 (R2007), below this gate's AC1024 requirement. It was not profile-scanned; do not fetch it again. Capture the needed R24 TABLE source and expected values in the bundled AutoCAD/ObjectARX session. See the [source screen](docs/research/p6-public-ac1032-table-witness-screen-2026-11-17.json). | Close owner, rows/columns, cell dependencies, and emitted handles with no dangling/aliased nodes; prove fresh ASCII/Binary readback and refusal/retry. |
+| P5-D / READY_LOCAL_SPAN_RECONCILIATION | Start with the hash-bound [AC1024 sample pair](docs/research/p5-ac1024-table-source-triage-2026-11-17.json), not a new download. Match DWG ACAD_TABLE 0x528 to its paired ASCII/Binary records, then reconcile the first-cell body/string/handle spans and ATTDEF target against ODA §20.4.96.2/§20.4.97. ODA requires a soft pointer here; the observed code-5/reference-0 is not a producer exception until preceding spans prove alignment. Keep source provenance candidate-only: the checked-in SAVEAS script does not name its execution build or base drawing origin. The Autodesk Imperial sample was checked once and is AC1021; do not fetch it again. | Close owner, rows/columns, cell dependencies, and emitted handles with no dangling/aliased nodes; prove fresh ASCII/Binary output/readback, refusal atomicity, corrected retry, and independent/native table semantics. |
 | P5-E / WAITING_FOR_MATCHING_R24_PROFILE | Reuse the P5-D source only if it contains Content Format/CELLSTYLEMAP values; otherwise request the missing matching profile. | Bind formatting meaning to independent/native expected values; preserve or refuse unknown states. |
 | P5-F / WAITING_FOR_LAYER_OVERRIDE_PROFILE | Reuse the P5-D source only if it contains TABLE layer overrides; otherwise request a source that does. | Trace parse/storage/write/display precedence and compare source values with native appearance. |
 | P5-G / WAITING_FOR_CONSTRAINT_MODEL | Capture one producer-authored dynamic-constraint model with known parameters and dependencies during the shared producer session. | Independent evaluation and dependency closure, or explicit lossless refusal. A generated self-consistency case cannot close this gate. |
@@ -275,7 +289,7 @@ and operation.
 ## P9 — external-only dispositions
 
 These six IDs remain `DEFERRED_EXTERNAL`; the successor registry controls
-lineage and admissibility. They are advisory, excluded from the 60-slice
+lineage and admissibility. They are advisory, excluded from the 61-slice
 implementation estimate, and cannot promote support claims.
 
 | ID | Remaining bounded action |
@@ -306,7 +320,7 @@ implementation estimate, and cannot promote support claims.
    behavior, focused validation, completed/total slice estimate, open gate
    count, and next action; then continue without waiting for unrelated
    external work.
-5. Current count: 60 activity slices, 29 complete (48.3%), 31 remaining;
+5. Current count: 61 activity slices, 30 complete (49.2%), 31 remaining;
    package completion is separately 4/32 gates (12.5%). Keep the denominator
    equal to the 32 package gates, completed non-gate slices, and 3 split
    platform/UI phases. Recount whenever a gate, completed slice, or phase is
