@@ -20,6 +20,7 @@
 #include "../libdwgr.h"
 #include "drw_textcodec.h"
 #include "dwgbuffer.h"
+#include "dwgappinfo.h"
 #include "dwgobjectframe.h"
 #include "dwg_xrecord_verified_source.h"
 #include "dwgsafety.h"
@@ -2333,6 +2334,10 @@ protected:
   std::unique_ptr<dwgBuffer> fileBuf;
   dwgRW *parent{nullptr};
   DRW::Version version{DRW::UNKNOWNV};
+  // AC1021 spans multiple AutoCAD releases. Unknown producer metadata must
+  // not select the pre-2008 TABLE cell layout.
+  dwgAppInfo::R21ProducerProfile m_dwgTableProducerProfile{
+      dwgAppInfo::R21ProducerProfile::Unknown};
 
   // A compound child owns its parsed representation, coverage receipt, and
   // detached source node together until one parent reaches a terminal result.
@@ -2464,6 +2469,20 @@ private:
   template <class T>
   bool entryParse(T &e, dwgBuffer &buff, std::uint32_t bs, bool &ret) {
     ret = e.parseDwg(version, &buff, bs);
+    return finishEntryParse(e, buff, ret);
+  }
+
+  bool entryParse(DRW_Table &e, dwgBuffer &buff, std::uint32_t bs,
+                  bool &ret) {
+    ret = e.parseDwgWithR21Profile(
+        version, &buff, bs,
+        m_dwgTableProducerProfile
+            == dwgAppInfo::R21ProducerProfile::AutoCAD2007);
+    return finishEntryParse(e, buff, ret);
+  }
+
+  template <class T>
+  bool finishEntryParse(T &e, dwgBuffer &buff, bool &ret) {
     // Some legacy object parsers return true after an optional/common
     // handle helper has failed.  The bounded frame cursor is authoritative
     // for structural validity; never publish such a partially parsed

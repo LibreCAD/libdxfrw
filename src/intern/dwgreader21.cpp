@@ -1472,6 +1472,26 @@ bool dwgReader21::readFileHeader() {
 
 bool dwgReader21::readDwgHeader(DRW_Header& hdr){
     DRW_DBG("\ndwgReader21::readDwgHeader\n");
+    m_dwgTableProducerProfile = dwgAppInfo::R21ProducerProfile::Unknown;
+    const auto appInfoIt = sections.find(secEnum::APPINFO);
+    if (appInfoIt != sections.end()
+        && appInfoIt->second.name == "AcDb:AppInfo"
+        && appInfoIt->second.size > 0u
+        && appInfoIt->second.size <= 64u * 1024u
+        && appInfoIt->second.size <= std::numeric_limits<int>::max()) {
+        std::vector<std::uint8_t> appInfoData;
+        if (DRW::resize(appInfoData,
+                        static_cast<int>(appInfoIt->second.size))
+            && parseDataPage(appInfoIt->second, appInfoData.data())) {
+            m_dwgTableProducerProfile = dwgAppInfo::classifyR21Producer(
+                appInfoData.data(), appInfoData.size());
+        }
+    }
+    DRW_DBG("AC1021 TABLE producer profile: ");
+    DRW_DBG(m_dwgTableProducerProfile
+                == dwgAppInfo::R21ProducerProfile::AutoCAD2007
+            ? "AutoCAD 2007\n" : "unknown\n");
+
     const auto recordFailure = [&](DwgIntegrityCheckKind kind,
                                    std::int32_t sectionId = -1) {
         recordIntegrityDiagnostic(

@@ -17218,7 +17218,17 @@ bool DRW_Table::encodeDwgWithExtension(DRW::Version version, dwgBufferW *buf,
     return true;
 }
 
-bool DRW_Table::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs){
+bool DRW_Table::parseDwg(DRW::Version version, dwgBuffer *buf,
+                         std::uint32_t bs) {
+    // Keep the direct codec entry point available for explicit legacy-layout
+    // vectors. The file reader uses parseDwgWithR21Profile after classifying
+    // source metadata, and is the only path that can select an unknown profile.
+    return parseDwgWithR21Profile(version, buf, bs, true);
+}
+
+bool DRW_Table::parseDwgWithR21Profile(DRW::Version version, dwgBuffer *buf,
+                                       std::uint32_t bs,
+                                       bool autoCad2007Profile) {
     resetDwgState();
     auto fail = [this, buf]() {
         if (buf != nullptr)
@@ -17354,6 +17364,15 @@ bool DRW_Table::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
     zscale = parsedZScale;
     angle = parsedAngle;
     extPoint = parsedExtPoint;
+
+    if (version == DRW::AC1021 && !autoCad2007Profile) {
+        // AC1021 also covers AutoCAD 2008/2009, whose changed cell schema is
+        // unresolved in ODA §20.4.96.1. Keep the INSERT geometry and common
+        // links for 2D consumers; leave the TABLE body on its raw fallback.
+        m_hasSemanticContent = true;
+        m_semanticContentComplete = false;
+        return commit();
+    }
 
     if (version >= DRW::AC1024) {
         // ODA v5.4.1 §20.4.96.2 documents these R2010+ fields as unknown

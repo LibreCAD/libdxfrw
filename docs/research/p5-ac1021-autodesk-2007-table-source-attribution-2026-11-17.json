@@ -1,0 +1,92 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Autodesk AC1021 TABLE sample source attribution and bounded implementation readiness",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "scope": "Determine whether the existing Autodesk-hosted AC1021 TABLE sample can qualify one precise producer-release profile for P5-I, and define the smallest safe implementation path without promoting generic AC1021 support.",
+  "source": {
+    "path": "/private/tmp/autodesk_blocks_and_tables_metric.dwg",
+    "officialIndex": "https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/6XGQklp3ZcBFqljLPjrnQ9.html",
+    "downloadUrl": "https://download.autodesk.com/us/samplefiles/acad/blocks_and_tables_-_metric.dwg",
+    "sizeBytes": 258848,
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "headerVersion": "AC1021"
+  },
+  "producerAttribution": {
+    "method": "Embedded AcDb:AppInfo metadata extracted from the exact source by GNU LibreDWG 0.14 using `dwgread -O minJSON`; corroborated by SummaryInfo and FileDepList metadata.",
+    "extractionPath": "/private/tmp/autodesk_blocks_and_tables_metric.minjson",
+    "extractionSha256": "8947d321b784a3eab81a7fe1336c19fde04f37588ce476d7546e7eef3fd42a3f",
+    "fields": {
+      "AppInfo.version": "17.0.48.0",
+      "AppInfo.product_info.name": "AutoCAD",
+      "AppInfo.product_info.registry_version": "17.0",
+      "AppInfo.product_info.build_version": "A.48.0",
+      "AppInfo.product_info.install_id_string": "ACAD-5001:409",
+      "SummaryInfo.LASTSAVEDBY": "Autodesk",
+      "FileDepList.firstFile.filepath": "C:\\Program Files\\AutoCAD 2007\\fonts\\"
+    },
+    "primaryMapping": "Autodesk ACADVER documentation maps product version 17.0s to AutoCAD 2007: https://help.autodesk.com/cloudhelp/2019/ENU/AutoCAD-Core/files/GUID-793238B6-F8B8-4D20-BB3A-001700AECD75.htm",
+    "conclusion": "The source is an Autodesk-published AC1021 drawing whose embedded product metadata identifies AutoCAD 2007. AC1021 alone covers later releases too; this embedded release evidence is required to select the bounded profile.",
+    "limit": "The exact AppInfo section is now decoded by libdxfrw's bounded classifier; see the linked implementation receipt. This establishes only the producer profile. TABLE field spans, graph closure, output, fresh readback, and native meaning remain open."
+  },
+  "primaryLayoutAuthority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "documentSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      {
+        "section": "16.2",
+        "use": "R21-R27 AppInfo layout for implementing a strictly bounded metadata classifier."
+      },
+      {
+        "section": "20.4.96.1",
+        "use": "Specifies the TABLE format until R21 and states that AutoCAD 2007 cells contain either one text or one block; the AutoCAD 2008 change is explicitly unresolved in the specification."
+      }
+    ],
+    "boundary": "This authority supports the AutoCAD 2007 legacy cell profile only. It does not define the changed AutoCAD 2008 TABLE cell layout."
+  },
+  "independentSemanticReadback": {
+    "reader": "DomCR/ACadSharp",
+    "sourceCommit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "assembly": "/Users/dli/dev/ACadSharp/src/ACadSharp/bin/Release/net9.0/ACadSharp.dll",
+    "assemblySha256": "99f24d71403ecdbda2272473ebd995d5d2e773b4a6e887bcdb404293cbf18b77",
+    "outputPath": "/private/tmp/acadsharp-autodesk-table-output.txt",
+    "outputSha256": "6069633fe984a476433706c5053745accbf7be52da3d60226a3aa6b67541f799",
+    "tables": [
+      {
+        "handle": "0x2856e",
+        "size": "9 rows x 9 columns",
+        "knownValues": ["DOOR SCHEDULE", "SYM.", "WIDTH", "HEIGHT", "STYLE", "REF#", "MANUFACTURER", "QTY", "COST", "TOTAL", "TWO PANEL", "TRU STYLE", "189.00"]
+      },
+      {
+        "handle": "0x2a974",
+        "size": "10 rows x 9 columns",
+        "knownValues": ["WINDOW SCHEDULE", "SYM.", "WIDTH", "HEIGHT", "STYLE", "REF#", "MANUFACTURER", "Quantity", "COST", "TOTAL", "CASEMENT", "ANDERSEN", "249.00"]
+      }
+    ],
+    "limit": "This is an independent typed-value readback for the exact source. ACadSharp remains a peer implementation, not DWG wire-layout authority; do not use peer agreement to settle 2008/2009 layouts."
+  },
+  "implementationReadiness": {
+    "status": "IMPLEMENTING_AUTOCAD_2007_TABLE_PROFILE",
+    "currentCodeConstraint": "DRW::Version AC1021 alone does not distinguish AutoCAD 2007 from 2008/2009. A bounded AppInfo classifier and internal profile route are implemented; TABLE field-span and output proof remain open.",
+    "completedSlices": [
+      {
+        "receipt": "docs/research/p5-ac1021-appinfo-profile-classifier-2026-11-17.json",
+        "result": "The exact source is classified as AutoCAD 2007; unknown or malformed metadata remains unqualified. Focused generated classifier and TABLE selectors pass."
+      }
+    ],
+    "orderedSteps": [
+      "For the exact AutoCAD 2007 profile, trace and bind each cell's type, value span, style/string fields, handle roles, cell count, TABLE override tail, and following-object boundary against ODA §20.4.96.1 and the source. Keep all other AC1021 releases semantically incomplete and retain the anonymous-block display fallback.",
+      "Add profile-aware unknown-source, truncation, wrong-role, and boundary controls. Do not commit the Autodesk DWG or derived fixtures.",
+      "Prove failure preserves state and corrected same-writer retry; verify strict selected-table ASCII/Binary output and fresh ACadSharp readback. The whole source currently refuses strict output for two typed proxy graphics, so qualify selected TABLE output separately. Keep unrelated whole-drawing FIELD/FIELDLIST refusal attributed to its own open gates."
+    ],
+    "fastSelectors": [
+      "libdxfrw_dwg_appinfo_profile",
+      "libdxfrw_dwg_table_cell_overrides",
+      "libdxfrw_table_dwg_codec_allocation_retry",
+      "libdxfrw_table_cell_general_value_format_flag",
+      "libdxfrw_table_cadvalue_string"
+    ],
+    "closureStillRequires": "Source-span and graph-role proof, successful strict output/readback for the selected TABLE profile, 2D fallback preservation, and independent cell-meaning comparison. No AC1021-wide support claim follows from this source."
+  },
+  "nextAction": "Continue with source-bound AutoCAD 2007 TABLE field-span and following-object proof. Do not wait for the GUI session or for unrelated AC1024/AC1027/AC1032 witnesses."
+}

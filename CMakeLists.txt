@@ -2047,6 +2047,15 @@ if(LIBDXFRW_BUILD_TESTS)
     add_test(NAME libdxfrw_writer_primitives
         COMMAND libdxfrw_writer_primitives_tests)
 
+    add_executable(libdxfrw_dwg_appinfo_profile_tests
+        tests/dwg_appinfo_profile_tests.cpp)
+    target_compile_features(libdxfrw_dwg_appinfo_profile_tests
+        PRIVATE cxx_std_14)
+    add_test(NAME libdxfrw_dwg_appinfo_profile
+        COMMAND libdxfrw_dwg_appinfo_profile_tests)
+    set_tests_properties(libdxfrw_dwg_appinfo_profile PROPERTIES
+        LABELS "fast;dwg;generated;metadata" TIMEOUT 10)
+
     add_executable(libdxfrw_dwg_object_vectors_tests
         tests/dwg_object_vectors_tests.cpp)
     target_compile_features(libdxfrw_dwg_object_vectors_tests PRIVATE cxx_std_17)
