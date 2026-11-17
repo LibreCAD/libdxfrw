@@ -48,6 +48,10 @@
 #include "intern/dwgsafety.h"
 
 namespace {
+constexpr std::uint32_t lwpolylineCountMask = 0x3FFFFFFFu;
+constexpr std::uint32_t lwpolylineGrouped = 0x80000000u;
+constexpr std::uint32_t lwpolylineSawOptional = 0x40000000u;
+
 struct TableContentCandidateTrace {
     DwgTableContentAc1018Candidate::Result* result{nullptr};
     std::size_t textBytes{0u};
@@ -17931,21 +17935,18 @@ bool DRW_LWPolyline::parseCode(int code, const std::unique_ptr<dxfReader>& reade
     // vertex records bind optional fields to the most recent group 10. Retain
     // the historical ordinal-array route for grouped coordinates detected
     // before any optional vertex field has been seen.
-    static constexpr std::uint32_t countMask = 0x3FFFFFFFu;
-    static constexpr std::uint32_t grouped = 0x80000000u;
-    static constexpr std::uint32_t sawOptional = 0x40000000u;
     auto& xState = m_dxfVertexFieldCounts[0];
-    const auto xCount = [&]() { return xState & countMask; };
+    const auto xCount = [&]() { return xState & lwpolylineCountMask; };
     const auto yCount = m_dxfVertexFieldCounts[1];
     const bool groupedCoordinates = (code == 10 && xCount() > yCount)
         || (code == 20 && yCount >= xCount());
-    if ((xState & sawOptional) == 0u) {
+    if ((xState & lwpolylineSawOptional) == 0u) {
         if (groupedCoordinates)
-            xState |= grouped;
+            xState |= lwpolylineGrouped;
         if ((code == 40 || code == 41 || code == 42 || code == 91)
             && xCount() == 0u)
-            xState |= grouped;
-    } else if ((xState & grouped) == 0u && groupedCoordinates) {
+            xState |= lwpolylineGrouped;
+    } else if ((xState & lwpolylineGrouped) == 0u && groupedCoordinates) {
         // The stream has already committed to interleaved vertex values;
         // a later grouped coordinate sequence has no unambiguous binding.
         return false;
@@ -17955,7 +17956,8 @@ bool DRW_LWPolyline::parseCode(int code, const std::unique_ptr<dxfReader>& reade
         if (field >= m_dxfVertexFieldCounts.size())
             return nullptr;
         std::uint32_t& state = m_dxfVertexFieldCounts[field];
-        const std::uint32_t occurrence = field == 0u ? state & countMask : state;
+        const std::uint32_t occurrence = field == 0u
+            ? state & lwpolylineCountMask : state;
         if (occurrence >= static_cast<std::uint32_t>(kMaxLWPolylineVertices)
             || (m_dxfVertexCountSeen
                 && occurrence >= static_cast<std::uint32_t>(vertexnum)))
@@ -17967,8 +17969,10 @@ bool DRW_LWPolyline::parseCode(int code, const std::unique_ptr<dxfReader>& reade
             && vertlist.size()
                 >= static_cast<std::size_t>(kMaxLWPolylineVertices))
             return nullptr;
-        const std::uint32_t xCount = m_dxfVertexFieldCounts[0] & countMask;
-        const bool ordinal = (m_dxfVertexFieldCounts[0] & grouped) != 0u;
+        const std::uint32_t xCount = m_dxfVertexFieldCounts[0]
+            & lwpolylineCountMask;
+        const bool ordinal = (m_dxfVertexFieldCounts[0]
+            & lwpolylineGrouped) != 0u;
         if (field >= 2u && !ordinal && xCount != 0u && state == xCount)
             return nullptr; // Duplicate optional field on this vertex.
         const std::size_t index = field >= 2u && !ordinal && xCount != 0u
@@ -17987,13 +17991,13 @@ bool DRW_LWPolyline::parseCode(int code, const std::unique_ptr<dxfReader>& reade
             }
         }
         if (field == 0u)
-            state = (state & ~countMask) | (occurrence + 1u);
+            state = (state & ~lwpolylineCountMask) | (occurrence + 1u);
         else if (field >= 2u && !ordinal && xCount != 0u)
             state = xCount; // One-based index of the last bound vertex.
         else
             ++state;
         if (field >= 2u)
-            m_dxfVertexFieldCounts[0] |= sawOptional;
+            m_dxfVertexFieldCounts[0] |= lwpolylineSawOptional;
         vertex = vertlist[index];
         return vertex;
     };
@@ -18056,7 +18060,8 @@ bool DRW_LWPolyline::parseCode(int code, const std::unique_ptr<dxfReader>& reade
             || std::any_of(m_dxfVertexFieldCounts.cbegin(),
                            m_dxfVertexFieldCounts.cend(),
                            [this](std::uint32_t count) {
-                               return (count & countMask) > static_cast<std::uint32_t>(vertexnum);
+                               return (count & lwpolylineCountMask)
+                                   > static_cast<std::uint32_t>(vertexnum);
                            }))
             return false;
         m_dxfVertexCountSeen = true;
