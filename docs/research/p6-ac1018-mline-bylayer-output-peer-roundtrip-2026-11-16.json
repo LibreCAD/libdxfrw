@@ -1,0 +1,149 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1018-mline-bylayer-output-peer-roundtrip-2026-11-16",
+  "date": "2026-11-16",
+  "status": "DXF_BYLAYER_OUTPUT_MATCHES_AUTODESK; LIBREDWG_0_14_ROUNDTRIP_NONPRESERVING",
+  "supportClaimEffect": "none",
+  "scope": "Resolve the MLINESTYLE fill/element color difference seen when selected AC1018 libdxfrw DXF output is converted and read back by LibreDWG 0.14.",
+  "source": {
+    "repository": "LibreDWG",
+    "path": "test/test-data/2004/Multiline.dwg",
+    "repositoryHead": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "blob": "81dc671a57dab755de5584fc607f445f21dfc244",
+    "version": "AC1018",
+    "sha256": "4b0aa7336fbf71491653fdcf3f8fa58d325817fa1997987e4896275d5392f544",
+    "pairedAutoCADVlaDumpSha256": "806e75865dd3df002da13bf0bd1048314d84e92a768bdb3c89a7f88aaaeee430",
+    "originalMinJsonSha256": "d1ab01435a291f297fa2f8ae110f171a99cc6086392184bb29f9e24c4a502513",
+    "originalMlineStyle": {
+      "fillColor": 256,
+      "fillColorMethod": "0xc0",
+      "elementColors": [
+        256,
+        256
+      ],
+      "elementColorMethods": [
+        "0xc0",
+        "0xc0"
+      ],
+      "elementLinetypeIndex": 32767
+    }
+  },
+  "libdxfrw": {
+    "repositoryHead": "5bc16025ec99f7c3bdd3119262cbe1f823dd4366",
+    "testTarget": "libdxfrw_dwg2dxf_adapter_tests",
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "buildResult": "PASS",
+    "focusedCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --mline-ac1018-selected-output /private/tmp/p6-mline-peer-sample-20261116/Multiline.dwg /private/tmp/p6-mline-peer-sample-20261116/selected-output-layerdeps",
+    "focusedResult": "PASS: ASCII and Binary selected output/readback; sentinel rollback and corrected same-writer retry",
+    "testExecutableSha256": "b0139d0fe1687a7da17210aaa7121ad622760ef57bcd883c497e038a7ae6dd96",
+    "asciiOutput": {
+      "path": "/private/tmp/p6-mline-peer-sample-20261116/selected-output-layerdeps/libdxfrw-mline-ac1018-ascii.dxf",
+      "sha256": "dd7b814c5314bebddb19c9e2f9ea02afc551dd361a7b5e4f892e0b56cab360b9",
+      "mlineStyleGroup62": [
+        256,
+        256,
+        256
+      ],
+      "elementGroup6": [
+        "BYLAYER",
+        "BYLAYER"
+      ],
+      "group420": []
+    },
+    "binaryOutput": {
+      "path": "/private/tmp/p6-mline-peer-sample-20261116/selected-output-layerdeps/libdxfrw-mline-ac1018-binary.dxf",
+      "sha256": "6aa63d331b627c32f38aaf6ecac6e8e862dbc4d7370b033df798e001512af750",
+      "freshTypedReadback": "PASS: fill color 256, two element colors 256, BYLAYER linetypes"
+    },
+    "sourceComparison": {
+      "semanticReceiptPath": "/private/tmp/p6-mline-peer-sample-20261116/semantic-receipt-current.json",
+      "semanticReceiptSha256": "ab8a7622bbc90dd4dc29911fefd1001d66f368657fd40fe36c552a03f2d7658f",
+      "result": "PASS",
+      "checksPassed": 76,
+      "checksTotal": 76,
+      "scope": "bounded MLINE geometry/style binding and AutoCAD VLA property comparisons; color equivalence is independently gated below",
+      "verifierPath": "tools/research/verify_ac1018_mline_source.py",
+      "verifierSha256": "0326cb3654304c6fd8255f4842c270d7d6f6b1fba33831e202fb0629ac8e3eef",
+      "peerReaderVersion": "dwgread 0.14"
+    }
+  },
+  "libreDwgPeer": {
+    "toolVersion": "0.14",
+    "dxf2dwgSha256": "d8d27fed5519b67b977170093f3e3d2cd2aeae086ba2db75b5ded2faf2ec31e8",
+    "dwgreadSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "asciiAndBinaryConversion": {
+      "result": "SUCCESS",
+      "outputDwgSha256": "cd46b30fe0d9306cd574ea1a6d8644c101df5491bacd1506a8fb76e7862c565d",
+      "minJsonSha256": "d8b55d67b11628f10e2be68cd011be820a453da601e0f57c07607c2732281a5e",
+      "minJsonColorMethod": "0xc2 for fill and both elements",
+      "command": "/opt/homebrew/bin/dxf2dwg --as r2004 -y -o OUTPUT.dwg INPUT.dxf",
+      "readbackCommand": "/opt/homebrew/bin/dwgread -O minJSON OUTPUT.dwg -o OUTPUT.json"
+    },
+    "peerDxfExports": {
+      "sourceDwgToDxf": {
+        "path": "/private/tmp/p6-mline-peer-sample-20261116/libredwg-source-export.dxf",
+        "sha256": "582f3ab05eacb6e209d89e679b36407df57b006a0ebecfbfa9b04a1570ac89ba",
+        "mlineStyleGroup62": [
+          0,
+          0,
+          0
+        ],
+        "group420": [],
+        "command": "/opt/homebrew/bin/dwgread -O DXF Multiline.dwg -o libredwg-source-export.dxf"
+      },
+      "convertedPeerDwgToDxf": {
+        "path": "/private/tmp/p6-mline-peer-sample-20261116/libredwg-peer-ascii-oda-style.dxf",
+        "sha256": "56b0c7b7789956b8a88a6eb801a92e2a626d34059ca5bb2bcb313e93860b5cff",
+        "mlineStyleGroup62": [
+          0,
+          0,
+          0
+        ],
+        "mlineStyleGroup420": [
+          3254779904,
+          3254779904,
+          3254779904
+        ],
+        "command": "/opt/homebrew/bin/dwgread -O DXF libredwg-peer-ascii.dwg -o libredwg-peer-ascii-oda-style.dxf"
+      }
+    },
+    "implementationObservations": [
+      "src/in_dxf.c:dxf_set_CMC_index maps DXF index 256 to method 0xc2.",
+      "include/dwg.h names method 0xc0 BYLAYER and method 0xc2 ACI.",
+      "The peer's own DWG-to-DXF conversions emit MLINESTYLE group 62 values 0 for the physical source and selected output; the selected output additionally emits 0xc2000000 in group 420."
+    ],
+    "sourceReview": {
+      "repositoryHead": "6d6a33987a1a97095b069c799c3d8a793320f812",
+      "repositoryPath": "/Users/dli/dev/libredwg",
+      "binaryBuildProvenance": "not bound to this checkout; findings below are corroborative source observations, while the stated output behavior is bound directly to binary hashes and generated files"
+    }
+  },
+  "authorities": [
+    {
+      "title": "Autodesk MLINESTYLE DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-3EC12E5B-F5F6-484D-880F-D69EBE186D79.htm",
+      "relevantRule": "MLINESTYLE group 62 is the fill color integer (default 256); element group 62 is the element color integer (default 0)."
+    },
+    {
+      "title": "Autodesk common DXF group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3610039E-27D1-4E23-B6D3-7E60B22BB5BD.htm",
+      "relevantRule": "For group 62, 0 means BYBLOCK and 256 means BYLAYER. Group 420 is a 24-bit RGB value; its high byte is always zero."
+    },
+    {
+      "title": "Autodesk ObjectARX ColorMethod",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcCmEntityColor__ColorMethod.html",
+      "relevantRule": "AcCmEntityColor::kByLayer is 0xc0; kByACI follows at 0xc3."
+    },
+    {
+      "title": "Autodesk AcCmColor::setColorIndex",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcCmColor__setColorIndex_Adesk__UInt16.html",
+      "relevantRule": "Color index 256 is special and means use the referenced LayerTableRecord color."
+    }
+  ],
+  "interpretation": {
+    "libdxfrwOutput": "The emitted MLINESTYLE group 62 values of 256 encode the source's BYLAYER fill and element colors according to Autodesk's DXF reference. Fresh ASCII and Binary libdxfrw readback preserves the same color indices. No libdxfrw color-writer defect is demonstrated.",
+    "peerLimit": "LibreDWG 0.14 converts the selected output to a different CMC representation and its DXF exporter writes group 62 as 0, with an out-of-range packed CMC value in group 420 on the selected output. Its color readback therefore cannot adjudicate this selected DXF field for this profile.",
+    "remaining": "The selected writer, rollback/retry, and typed-readback sub-slice is complete. Native LibreCAD display/edit/save/reopen remains open. This receipt promotes no format or consumer support claim."
+  },
+  "fixturePolicy": "All DWG and DXF inputs and generated outputs remain in scratch; no drawing fixture is added to the repository."
+}

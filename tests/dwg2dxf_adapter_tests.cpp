@@ -1333,7 +1333,8 @@ public:
     static bool selectPhysicalMLineStyleGraph(
             const dx_data& source, dx_data& projection) {
         if (source.sourceFormat != dx_source_format::DWG
-            || (source.sourceVersion != DRW::AC1021
+            || (source.sourceVersion != DRW::AC1018
+                && source.sourceVersion != DRW::AC1021
                 && source.sourceVersion != DRW::AC1027)
             || source.importGeneration == 0u
             || source.mLineStyles.size() != 1u
@@ -1426,6 +1427,54 @@ public:
         projection.dictionaries.push_back(*owner);
         projection.mLineStyles.push_back(style);
         projection.lineTypes = source.lineTypes;
+        std::vector<std::uint32_t> selectedLayerDictionaryHandles;
+        if (source.sourceVersion == DRW::AC1018) {
+            if (source.layers.size() != 1u
+                || source.layers.front().name != "0"
+                || source.layers.front().handle != 0x10u
+                || source.layers.front().parentHandle == 0u
+                || source.layers.front().xDictHandle != 0xE6u)
+                return false;
+            std::uint32_t layerControlHandle = 0u;
+            std::uint32_t layerControlDictionary = 0u;
+            if (!source.getLayerTableControlExtensionDictionary(
+                    layerControlHandle, layerControlDictionary)
+                || layerControlHandle != source.layers.front().parentHandle)
+                return false;
+            if (source.layers.front().xDictHandle == 0u
+                || source.layers.front().xDictHandle == DRW::NoHandle
+                || layerControlDictionary == 0u
+                || layerControlDictionary == DRW::NoHandle)
+                return false;
+            selectedLayerDictionaryHandles.push_back(
+                source.layers.front().xDictHandle);
+            selectedLayerDictionaryHandles.push_back(layerControlDictionary);
+            const DRW_Dictionary* layerControlExtension = nullptr;
+            for (const DRW_Dictionary& dictionary : source.dictionaries) {
+                if (dictionary.handle != layerControlDictionary)
+                    continue;
+                if (layerControlExtension != nullptr)
+                    return false;
+                layerControlExtension = &dictionary;
+            }
+            if (layerControlExtension == nullptr
+                || layerControlExtension->parentHandle != layerControlHandle
+                || layerControlExtension->m_entries.size() != 1u
+                || layerControlExtension->m_entries.front().m_name
+                    != "ACAD_LAYERSTATES")
+                return false;
+            selectedLayerDictionaryHandles.push_back(
+                layerControlExtension->m_entries.front().m_handle);
+            projection.layers.push_back(source.layers.front());
+            projection.m_dwgLayerControlPublication =
+                source.m_dwgLayerControlPublication;
+            projection.m_dwgLayerControlGeneration =
+                source.m_dwgLayerControlGeneration;
+            projection.m_dwgLayerControlPublicationSeen =
+                source.m_dwgLayerControlPublicationSeen;
+            projection.m_dwgLayerControlCaptureFailed =
+                source.m_dwgLayerControlCaptureFailed;
+        }
         projection.basicTableCaptureFailed = source.basicTableCaptureFailed;
         projection.basicTableRetainedRecords =
             source.basicTableRetainedRecords;
@@ -1484,6 +1533,50 @@ public:
             projection.m_standardDwgObjectOrdinals.emplace(*ownerOrdinal);
         projection.m_standardDwgObjectRetainedBytes =
             ownerFrame->second.raw.m_rawBytes.size();
+        for (const std::uint32_t handle : selectedLayerDictionaryHandles) {
+            const auto dictionary = std::find_if(
+                source.dictionaries.begin(), source.dictionaries.end(),
+                [handle](const DRW_Dictionary& candidate) {
+                    return candidate.handle == handle;
+                });
+            if (dictionary == source.dictionaries.end()
+                || std::find_if(std::next(dictionary), source.dictionaries.end(),
+                    [handle](const DRW_Dictionary& candidate) {
+                        return candidate.handle == handle;
+                    }) != source.dictionaries.end()
+                || dictionary->handle == style.parentHandle
+                || dictionary->handle == 0u
+                || dictionary->handle == DRW::NoHandle
+                || dictionary->parentHandle == 0u
+                || dictionary->parentHandle == DRW::NoHandle
+                || std::any_of(projection.dictionaries.begin(),
+                    projection.dictionaries.end(),
+                    [handle](const DRW_Dictionary& candidate) {
+                        return candidate.handle == handle;
+                    }))
+                return false;
+            const dx_data::StandardDwgFrameKey key{
+                source.importGeneration, handle};
+            const auto frame = source.m_standardDwgObjectFrames.find(key);
+            if (frame == source.m_standardDwgObjectFrames.end()
+                || !frame->second.payloadMatched
+                || frame->second.raw.m_handle != handle
+                || frame->second.raw.m_objectType != dwgObjType::DICTIONARY
+                || frame->second.raw.m_isEntity
+                || !projection.m_standardDwgObjectFrames.emplace(*frame).second)
+                return false;
+            projection.dictionaries.push_back(*dictionary);
+            projection.m_standardDwgObjectRetainedBytes +=
+                frame->second.raw.m_rawBytes.size();
+            const auto ordinal = source.m_standardDwgObjectOrdinals.find(key);
+            if (ordinal != source.m_standardDwgObjectOrdinals.end())
+                projection.m_standardDwgObjectOrdinals.emplace(*ordinal);
+        }
+        projection.dictionaryRetainedRecords = projection.dictionaries.size();
+        projection.dictionaryRetainedEntries = 0u;
+        for (const DRW_Dictionary& dictionary : projection.dictionaries)
+            projection.dictionaryRetainedEntries +=
+                dictionary.m_entries.size();
         projection.m_standardDwgObjectMembershipEntries =
             source.m_standardDwgObjectMembershipEntries;
         projection.m_standardDwgObjectCaptureFailed = false;
@@ -64801,13 +64894,16 @@ bool physicalMLineStyleSourceProbe(
     dx_data data;
     if (!reader.fileImport(sourcePath.string(), &data, false)
         || data.sourceFormat != dx_source_format::DWG
-        || (data.sourceVersion != DRW::AC1021
+        || (data.sourceVersion != DRW::AC1018
+            && data.sourceVersion != DRW::AC1021
             && data.sourceVersion != DRW::AC1027)
         || data.mLineStyles.size() != 1u
         || !data.hasNamedObjectDictionary)
         return fail("physical MLINESTYLE source inventory is outside the admitted AC1021/AC1027 profile");
     const bool ac1027Profile = data.sourceVersion == DRW::AC1027;
-    const DRW::Version targetVersion = ac1027Profile ? DRW::AC1027
+    const bool ac1018Profile = data.sourceVersion == DRW::AC1018;
+    const DRW::Version targetVersion = ac1018Profile ? DRW::AC1018
+        : ac1027Profile ? DRW::AC1027
         : sameVersionOutput ? DRW::AC1021 : DRW::AC1024;
     const DRW_MLineStyle& style = data.mLineStyles.front();
     const auto dictionaryByHandle = [&data](std::uint32_t handle)
@@ -65124,12 +65220,348 @@ bool physicalMLineStyleSourceProbe(
             return fail("physical MLINESTYLE selected output readback changed the exact graph");
         }
         std::cout << "Physical "
-                  << (ac1027Profile ? "AC1027" : "AC1021")
+                  << (ac1018Profile ? "AC1018"
+                      : ac1027Profile ? "AC1027" : "AC1021")
                   << " MLINESTYLE "
                   << (binary ? "Binary" : "ASCII")
                   << " selected output/readback passed with source-frame qualification.\n";
         if (!retainedOutputDirectory.empty())
             std::cout << "retainedOutput=" << selectedPath.string() << '\n';
+    }
+    return true;
+}
+
+bool physicalAc1018MLineSourceProbe(
+        const std::filesystem::path& sourcePath) {
+    dx_iface reader;
+    dx_data data;
+    if (!reader.fileImport(sourcePath.string(), &data, false)
+        || data.sourceFormat != dx_source_format::DWG
+        || data.sourceVersion != DRW::AC1018)
+        return fail("physical MLINE source is outside the AC1018 profile");
+
+    std::vector<const DRW_MLine*> mlines;
+    const dx_ifaceBlock* mlineContainer = nullptr;
+    const auto collect = [&mlines, &mlineContainer](const dx_ifaceBlock* block) {
+        if (block == nullptr)
+            return;
+        for (const DRW_Entity* entity : block->ent) {
+            if (entity != nullptr && entity->eType == DRW::MLINE) {
+                const auto* mline = dynamic_cast<const DRW_MLine*>(entity);
+                if (mline != nullptr) {
+                    mlines.push_back(mline);
+                    mlineContainer = block;
+                }
+            }
+        }
+    };
+    collect(data.mBlock);
+    for (const dx_ifaceBlock* block : data.blocks)
+        collect(block);
+    if (mlines.size() != 1u || mlines.front()->handle != 0x1BDu
+        || mlines.front()->styleHandle != 0x18u
+        || mlines.front()->numLines != 2u || mlines.front()->numVerts != 6u
+        || mlines.front()->vertlist.size() != 6u
+        || data.mLineStyles.size() != 1u
+        || data.mLineStyles.front().handle != 0x18u
+        || data.mLineStyles.front().name != "STANDARD"
+        || data.mLineStyles.front().elements.size() != 2u)
+        return fail("physical AC1018 MLINE source identity or style binding changed");
+
+    const DRW_MLine& mline = *mlines.front();
+    const auto point = [](std::ostream& out, const DRW_Coord& value) {
+        out << '[' << value.x << ',' << value.y << ',' << value.z << ']';
+    };
+    std::cout << std::setprecision(17)
+              << "{\"schema\":\"libdxfrw.ac1018-mline-source-probe.v1\","
+              << "\"version\":\"AC1018\",\"mlineCount\":1,\"mline\":{"
+              << "\"handle\":" << mline.handle
+              << ",\"owner\":" << mline.parentHandle
+              << ",\"containerHandle\":"
+              << (mlineContainer == nullptr ? 0u : mlineContainer->handle)
+              << ",\"containerName\":\""
+              << (mlineContainer == nullptr ? std::string{} : mlineContainer->name)
+              << "\""
+              << ",\"layer\":\"" << mline.layer << "\""
+              << ",\"styleHandle\":" << mline.styleHandle
+              << ",\"scale\":" << mline.scale
+              << ",\"justification\":"
+              << static_cast<unsigned>(mline.justification)
+              << ",\"basePoint\":";
+    point(std::cout, mline.basePoint);
+    std::cout << ",\"extrusion\":";
+    point(std::cout, mline.extPoint);
+    std::cout << ",\"flags\":" << mline.openClosed
+              << ",\"numLines\":" << static_cast<unsigned>(mline.numLines)
+              << ",\"vertices\":[";
+    for (std::size_t vertexIndex = 0u;
+         vertexIndex < mline.vertlist.size(); ++vertexIndex) {
+        if (vertexIndex != 0u)
+            std::cout << ',';
+        const DRW_MLineVertex& vertex = mline.vertlist[vertexIndex];
+        std::cout << "{\"position\":";
+        point(std::cout, vertex.position);
+        std::cout << ",\"vertexDirection\":";
+        point(std::cout, vertex.vertexDir);
+        std::cout << ",\"miterDirection\":";
+        point(std::cout, vertex.miterDir);
+        std::cout << ",\"lines\":[";
+        for (std::size_t lineIndex = 0u;
+             lineIndex < vertex.segParms.size(); ++lineIndex) {
+            if (lineIndex != 0u)
+                std::cout << ',';
+            std::cout << "{\"segmentParameters\":[";
+            for (std::size_t parameter = 0u;
+                 parameter < vertex.segParms[lineIndex].size(); ++parameter) {
+                if (parameter != 0u)
+                    std::cout << ',';
+                std::cout << vertex.segParms[lineIndex][parameter];
+            }
+            std::cout << "],\"areaFillParameters\":[";
+            for (std::size_t parameter = 0u;
+                 parameter < vertex.areaFillParms[lineIndex].size(); ++parameter) {
+                if (parameter != 0u)
+                    std::cout << ',';
+                std::cout << vertex.areaFillParms[lineIndex][parameter];
+            }
+            std::cout << "]}";
+        }
+        std::cout << "]}";
+    }
+    const DRW_MLineStyle& style = data.mLineStyles.front();
+    std::cout << "]},\"style\":{\"handle\":" << style.handle
+              << ",\"owner\":" << style.parentHandle
+              << ",\"name\":\"" << style.name << "\",\"flags\":"
+              << style.flags << ",\"fillColor\":" << style.fillColor
+              << ",\"startAngle\":" << style.startAngle
+              << ",\"endAngle\":" << style.endAngle
+              << ",\"elements\":[";
+    for (std::size_t index = 0u; index < style.elements.size(); ++index) {
+        if (index != 0u)
+            std::cout << ',';
+        const DRW_MLineElement& element = style.elements[index];
+        std::cout << "{\"offset\":" << element.offset
+                  << ",\"color\":" << element.color
+                  << ",\"linetypeIndex\":" << element.linetypeIndex
+                  << '}';
+    }
+    std::cout << "]}}\n";
+    return true;
+}
+
+bool physicalAc1018MLineSelectedOutput(
+        const std::filesystem::path& sourcePath,
+        const std::filesystem::path& outputDirectory) {
+    dx_iface sourceReader;
+    dx_data source;
+    if (!sourceReader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1018
+        || source.mLineStyles.size() != 1u)
+        return fail("physical AC1018 MLINE source or style is outside the selected profile");
+
+    const DRW_MLine* sourceMline = nullptr;
+    const auto findMline = [&sourceMline](const dx_ifaceBlock* block) {
+        if (block == nullptr)
+            return;
+        for (const DRW_Entity* entity : block->ent) {
+            if (entity == nullptr || entity->eType != DRW::MLINE)
+                continue;
+            const auto* candidate = dynamic_cast<const DRW_MLine*>(entity);
+            if (candidate == nullptr || sourceMline != nullptr) {
+                sourceMline = nullptr;
+                return;
+            }
+            sourceMline = candidate;
+        }
+    };
+    findMline(source.mBlock);
+    if (sourceMline == nullptr || sourceMline->handle != 0x1BDu
+        || sourceMline->styleHandle != source.mLineStyles.front().handle
+        || sourceMline->styleHandle != 0x18u
+        || sourceMline->numLines != 2u || sourceMline->numVerts != 6u
+        || sourceMline->vertlist.size() != 6u)
+        return fail("physical AC1018 model-space MLINE source identity changed");
+    const DRW_MLineStyle& sourceStyle = source.mLineStyles.front();
+    if (sourceStyle.fillColor != 256
+        || sourceStyle.fillColorMethod != 0xC0u
+        || sourceStyle.fillColor24 != -1
+        || sourceStyle.elements.size() != 2u
+        || std::any_of(sourceStyle.elements.cbegin(),
+                       sourceStyle.elements.cend(),
+            [](const DRW_MLineElement& element) {
+                return element.color != 256 || element.colorMethod != 0xC0u
+                    || element.color24 != -1
+                    || element.linetypeIndex != 32767;
+            }))
+        return fail("physical AC1018 MLINESTYLE is not the expected BYLAYER color profile");
+    for (const dx_ifaceBlock* block : source.blocks) {
+        if (block == nullptr)
+            continue;
+        for (const DRW_Entity* entity : block->ent)
+            if (entity != nullptr && entity->eType == DRW::MLINE)
+                return fail("physical AC1018 source has an MLINE outside model space");
+    }
+
+    dx_data selected;
+    if (!DxIfaceStandardDwgCaptureTestAccess::
+            selectPhysicalMLineStyleGraph(source, selected))
+        return fail("physical AC1018 MLINESTYLE dependency graph could not be selected");
+    std::unique_ptr<DRW_MLine> selectedOwner(new DRW_MLine(*sourceMline));
+    DRW_MLine* selectedMline = selectedOwner.get();
+    selected.mBlock->ent.push_back(selectedMline);
+    selectedOwner.release();
+    std::error_code directoryError;
+    std::filesystem::create_directories(outputDirectory, directoryError);
+    if (directoryError)
+        return fail("could not create physical AC1018 MLINE output directory");
+
+    const auto close = [](double lhs, double rhs) {
+        return std::isfinite(lhs) && std::isfinite(rhs)
+            && std::fabs(lhs - rhs)
+                <= 1e-11 * std::max({1.0, std::fabs(lhs), std::fabs(rhs)});
+    };
+    const auto pointEqual = [&close](const DRW_Coord& lhs,
+                                     const DRW_Coord& rhs) {
+        return close(lhs.x, rhs.x) && close(lhs.y, rhs.y)
+            && close(lhs.z, rhs.z);
+    };
+    const auto geometryEqual = [&close, &pointEqual](const DRW_MLine& lhs,
+                                                      const DRW_MLine& rhs) {
+        if (!close(lhs.scale, rhs.scale)
+            || lhs.justification != rhs.justification
+            || !pointEqual(lhs.basePoint, rhs.basePoint)
+            || !pointEqual(lhs.extPoint, rhs.extPoint)
+            || lhs.openClosed != rhs.openClosed
+            || lhs.numLines != rhs.numLines || lhs.numVerts != rhs.numVerts
+            || lhs.vertlist.size() != rhs.vertlist.size())
+            return false;
+        for (std::size_t vertex = 0u; vertex < lhs.vertlist.size(); ++vertex) {
+            const DRW_MLineVertex& a = lhs.vertlist[vertex];
+            const DRW_MLineVertex& b = rhs.vertlist[vertex];
+            if (!pointEqual(a.position, b.position)
+                || !pointEqual(a.vertexDir, b.vertexDir)
+                || !pointEqual(a.miterDir, b.miterDir)
+                || a.segParms.size() != b.segParms.size()
+                || a.areaFillParms.size() != b.areaFillParms.size())
+                return false;
+            for (std::size_t line = 0u; line < a.segParms.size(); ++line) {
+                if (a.segParms[line].size() != b.segParms[line].size()
+                    || a.areaFillParms[line].size() != b.areaFillParms[line].size())
+                    return false;
+                for (std::size_t index = 0u;
+                     index < a.segParms[line].size(); ++index)
+                    if (!close(a.segParms[line][index], b.segParms[line][index]))
+                        return false;
+                for (std::size_t index = 0u;
+                     index < a.areaFillParms[line].size(); ++index)
+                    if (!close(a.areaFillParms[line][index], b.areaFillParms[line][index]))
+                        return false;
+            }
+        }
+        return true;
+    };
+
+    for (const bool binary : {false, true}) {
+        const std::filesystem::path outputPath = outputDirectory
+            / (binary ? "libdxfrw-mline-ac1018-binary.dxf"
+                      : "libdxfrw-mline-ac1018-ascii.dxf");
+        const std::string sentinel = "preserve physical AC1018 MLINE destination\n";
+        {
+            std::ofstream existing(outputPath,
+                                   std::ios::binary | std::ios::trunc);
+            if (!existing || !(existing << sentinel))
+                return fail("could not seed physical AC1018 MLINE destination");
+        }
+        dx_iface writer;
+        const double originalScale = selectedMline->scale;
+        selectedMline->scale = std::numeric_limits<double>::quiet_NaN();
+        std::ostringstream diagnostic;
+        bool exported = false;
+        {
+            struct Redirect {
+                std::streambuf* old;
+                ~Redirect() { std::cerr.rdbuf(old); }
+            } redirect{std::cerr.rdbuf(diagnostic.rdbuf())};
+            exported = writer.fileExport(
+                outputPath.string(), DRW::AC1018, binary, &selected,
+                true, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::Compatible,
+                dx_dxfProxyGraphicsPolicy::Compatible,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        }
+        std::ifstream failedOutput(outputPath, std::ios::binary);
+        const std::string preserved{
+            std::istreambuf_iterator<char>(failedOutput), {}};
+        selectedMline->scale = originalScale;
+        if (exported || preserved != sentinel)
+            return fail("invalid physical AC1018 MLINE was not refused atomically");
+
+        diagnostic.str("");
+        diagnostic.clear();
+        {
+            struct Redirect {
+                std::streambuf* old;
+                ~Redirect() { std::cerr.rdbuf(old); }
+            } redirect{std::cerr.rdbuf(diagnostic.rdbuf())};
+            exported = writer.fileExport(
+                outputPath.string(), DRW::AC1018, binary, &selected,
+                true, true, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::Compatible,
+                dx_dxfProxyGraphicsPolicy::Compatible,
+                dx_dwgReadCompletenessPolicy::AllowPartial);
+        }
+        if (!exported) {
+            std::cerr << diagnostic.str();
+            return fail("corrected physical AC1018 MLINE could not retry on the same writer");
+        }
+
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(outputPath.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF
+            || output.sourceVersion != DRW::AC1018
+            || output.mLineStyles.size() != 1u
+            || output.mLineStyles.front().handle != 0x18u
+            || output.mLineStyles.front().name != "STANDARD")
+            return fail("physical AC1018 MLINE output failed fresh style readback");
+        const DRW_MLineStyle& outputStyle = output.mLineStyles.front();
+        if (outputStyle.fillColor != sourceStyle.fillColor
+            || outputStyle.fillColor24 != -1
+            || outputStyle.elements.size() != sourceStyle.elements.size())
+            return fail("physical AC1018 MLINESTYLE color indices changed on output readback");
+        for (std::size_t index = 0u; index < sourceStyle.elements.size(); ++index) {
+            const DRW_MLineElement& expected = sourceStyle.elements[index];
+            const DRW_MLineElement& actual = outputStyle.elements[index];
+            if (actual.color != expected.color || actual.color24 != -1
+                || actual.offset != expected.offset
+                || actual.linetype != "BYLAYER")
+                return fail("physical AC1018 MLINESTYLE element color or linetype changed on output readback");
+        }
+        const DRW_MLine* outputMline = nullptr;
+        std::size_t outputCount = 0u;
+        for (const DRW_Entity* entity : output.mBlock->ent) {
+            if (entity == nullptr || entity->eType != DRW::MLINE)
+                continue;
+            const auto* candidate = dynamic_cast<const DRW_MLine*>(entity);
+            if (candidate == nullptr)
+                return fail("physical AC1018 MLINE output lost its typed entity");
+            outputMline = candidate;
+            ++outputCount;
+        }
+        if (outputCount != 1u || outputMline == nullptr
+            || outputMline->handle == 0u
+            || outputMline->handle == DRW::NoHandle
+            || outputMline->layer != sourceMline->layer
+            || outputMline->styleHandle != 0x18u
+            || outputMline->styleName != "STANDARD"
+            || outputMline->space != sourceMline->space
+            || !geometryEqual(*sourceMline, *outputMline))
+            return fail("physical AC1018 MLINE source geometry or style reference changed on readback");
+        std::cout << "Physical AC1018 MLINE "
+                  << (binary ? "Binary" : "ASCII")
+                  << " selected output/readback passed; rollback and same-writer retry passed.\n"
+                  << "retainedOutput=" << outputPath.string() << '\n';
     }
     return true;
 }
@@ -90147,6 +90579,12 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--mline-style-ac1021-selected-output")
         return physicalMLineStyleSourceProbe(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--mline-ac1018-source-probe")
+        return physicalAc1018MLineSourceProbe(argv[2]) ? 0 : 1;
+    if (argc == 4
+        && std::string(argv[1]) == "--mline-ac1018-selected-output")
+        return physicalAc1018MLineSelectedOutput(argv[2], argv[3]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--mline-style-ac1021-same-version-selected-output")
         return physicalMLineStyleSourceProbe(argv[2], true) ? 0 : 1;
