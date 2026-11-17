@@ -19,16 +19,18 @@ integration targets; refresh mutable heads before replay or qualification.
 
 **Current state (2026-11-17):** 32 required package gates; 4 closed, 28 open
 (12.5% package completion). Against the previous 17/48 slice baseline, this
-update recognizes two more completed slices: FIELD/FIELDLIST resolver and
-older-version omission compatibility, and the current-target LibreCAD replay.
-The count is now 19/50 complete (38.0%), with 31 remaining: the 28 open package
+update recognizes three more completed slices: FIELD/FIELDLIST resolver and
+older-version omission compatibility, current-target LibreCAD replay, and the
+macOS candidate package manifest/relocation check. The count is now 20/51
+complete (39.2%), with 31 remaining: the 28 open package
 gates and three split phases—
 P8-B Linux baseline/3D, P8-C Windows baseline/3D, and P8-D GUI checks (D1 and
-D2 must both pass). Four preparation/implementation slices are complete: the
-ABI-3 CMake handoff, the version-aware FIELD decoder fix, FIELD/FIELDLIST
-reference-resolver and older-version omission compatibility, and the current-
-target LibreCAD system-package replay. P8-E remains open because its complete
-installed-package manifest and native platform receipts are not yet frozen. Closed
+D2 must both pass). Five preparation/implementation slices are complete: the
+ABI-3 CMake handoff; version-aware FIELD decoder fix; FIELD/FIELDLIST resolver
+and older-version omission compatibility; current-target LibreCAD system-package
+replay; and macOS shared/static package manifest and relocation proof. P8-E
+remains open because Linux and Windows package manifests and native platform
+receipts are not yet frozen. Closed
 gates remain limited to their receipts and do not promote broad support claims.
 One closure is a bounded strict-refusal outcome
 for SORTENTSTABLE owner profiles without a valid DXF mapping; it does not enable
@@ -99,7 +101,7 @@ three remaining slices are P8-B 3D, P8-C 3D, and the joint P8-D1/D2 GUI phase.
 Completed work has been removed from the queue; its exact scope remains in the
 receipts. A wait blocks only the dependent slice.
 
-### A. Close the local package bookkeeping first
+### A. Reuse the frozen macOS package baseline
 
 The current-target LibreCAD system-package replay is complete on the isolated
 LibreCAD `origin/master` snapshot `3ad089398976feb96ee01b8dee006c141edd8d3e`.
@@ -112,14 +114,16 @@ producer semantics or GUI evidence. The [receipt](docs/research/p8-macos-package
 has the full replay record. Do not repeat this build or run unless the
 candidate changes.
 
-The only immediate P8-E local action is to freeze one manifest for installed
-headers, library files, ABI major/SONAME, relocation identity, and shared/static
-package contents. Generate fresh shared and static installs from the same
-candidate; record a sorted SHA-256 inventory of headers, CMake/pkg-config files,
-and libraries. Check the shared library identity/dependencies with `otool -D`
-and `otool -L`, then use the existing staged-package relocation smoke for the
-moved static prefix. Preserve the documented 2.0.0-to-3.0.0 consumer rebuild
-and C++17 requirements. Do not downgrade to C++14; both source trees use C++17.
+The macOS shared/static installed-file manifest is complete for this candidate.
+It records every installed file and symlink, header/config/library hashes,
+ABI-3 dylib install ID and dependencies, and the exact dylib loaded by the
+current-target LibreCAD run. The rebuilt static archive passed the existing
+staged-package relocation smoke at a path with spaces and retained its hash.
+See the [package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json).
+Do not repeat these package checks unless the candidate changes. Keep P8-E open
+for the equivalent native Linux/Windows manifests and runtime receipts. Preserve
+the documented 2.0.0-to-3.0.0 consumer rebuild and C++17 requirements; do not
+downgrade to C++14.
 
 ### B. Start one shared native CI wave when authentication/network permits
 
@@ -278,7 +282,7 @@ package count. A missing external kernel or app blocks only its profile.
 | P8-B / WAITING_FOR_NATIVE_LINUX_RUNNER_AND_GITHUB_DISPATCH; AC1021/AC1024/AC1032_2D_PROFILE_READY; 3D_DEPENDS_ON_P7; FINAL_INTEGRATION_GATE | In the shared native CI wave, qualify generated AC1021/AC1024/AC1032 2D profiles first; run 3D only for P7-admitted profiles. The tracked `ordinary_enc_AC1027.dwg` is refused before DXF publication (receipt: [`p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json`](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json)); wait for its source-reference gate before retry. | Linux/FreeCAD/converter/module identities, settings, exact `open()`/`insert()` handoff, and independent semantics per admitted phase. No fallback ambiguity or cross-compilation as platform evidence. |
 | P8-C / WAITING_FOR_NATIVE_WINDOWS_RUNNER_AND_GITHUB_DISPATCH; AC1021/AC1024/AC1032_2D_PROFILE_READY; 3D_DEPENDS_ON_P7; FINAL_INTEGRATION_GATE | In the same shared native CI wave, qualify generated AC1021/AC1024/AC1032 2D profiles, including existing path-with-spaces and Unicode checks; run 3D only for P7-admitted profiles. Defer the tracked ordinary AC1027 source until source-reference closure. | Windows/FreeCAD/converter/module identities, settings, exact `open()`/`insert()` handoff, and independent semantics per admitted phase. No fallback ambiguity or cross-compilation as platform evidence. |
 | P8-D / WAITING_FOR_GUI_D1_D2 | D1: LibreCAD 2 LINE translate/save/reopen. D2: LibreCAD_3 MPOLYGON save/reopen. Use the clean source/build identities and installed independent reader; run one session per application when available. No new DWG/DXF fixture is needed. | Compare saved/reopened records and geometry with the independent reader. |
-| P8-E / INTEGRATION_GATE | Freeze the installed header/library hash manifest, ABI major/SONAME, relocation identity, and shared/static package contents for the candidate. Current-target filter compile and 180-assertion system fast replay already pass on macOS; reuse that receipt unless the candidate changes. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. | Candidate package manifest and loaded-library identity are recorded for each distributed platform; shared/static package contents and relocation are verified; consumer rebuild requirement is documented. |
+| P8-E / INTEGRATION_GATE | macOS candidate shared/static installed-file manifest, ABI-3 dylib identity, current-target runtime path, and static relocation smoke are complete; reuse the receipt unless the candidate changes. Collect equivalent native Linux/Windows manifests and relocation/runtime identity in the shared CI wave. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. | Candidate package manifest and loaded-library identity are recorded for each distributed platform; shared/static package contents and relocation are verified; consumer rebuild requirement is documented. |
 | P8-F / INTEGRATION_GATE | Obtain current branch-protection/required-check state where accessible, then confirm required source-matched jobs are green or formally dispositioned at release. Reopen the local workflow/target audit only if workflow files change. | Current required CI and source-release lanes covered by tracked checks, with required branch-protection state recorded where available. Existing local workflow and macOS package evidence is in the linked receipt; it does not close the gate. |
 | P8-G / INTEGRATION_GATE | Set supported platforms, consumers, and release thresholds from completed evidence. | Evidence-backed support matrix with no required red job or advertised unqualified route. |
 
@@ -335,8 +339,8 @@ support claim.
    open package count, and next action.
 6. Count progress against the 32 required package gates listed above: 4
    closed, 28 open (12.5% package completion). The current implementation
-   count is 19/50 complete (38.0%), with 31 remaining: the 28 package
-   gates plus P8-B 3D, P8-C 3D, and the joint P8-D1/D2 GUI phase. The four
+   count is 20/51 complete (39.2%), with 31 remaining: the 28 package
+   gates plus P8-B 3D, P8-C 3D, and the joint P8-D1/D2 GUI phase. The five
    recently completed preparation/implementation slices are listed in the
    progress snapshot; none closes its package gate. The count is an activity
    proxy, not effort-weighted. Close a package only after its full exit
