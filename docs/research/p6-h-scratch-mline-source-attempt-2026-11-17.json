@@ -65,11 +65,33 @@
     "interpretation": "The launchd application job alone is not a normal usable launch: it is started suspended, LaunchServices rejects the bundle, and signature verification fails. This is an installation/bundle blocker, not evidence about MLINE parsing.",
     "output_witness": false
   },
+  "official_current_arm64_package_probe": {
+    "date": "2026-11-17",
+    "source_page": "https://www.opendesign.com/guestfiles/oda_file_converter",
+    "source_page_observation": "ODA lists 27.10 (released 2026-10-30) and macOS 13.0+ arm64 downloads.",
+    "dmg": {
+      "path": "/private/tmp/ODAFileConverter_QT6_macOsX_arm64_27.10.dmg",
+      "sha256": "ae694b8292a7c9de3a3257950a8e29d5be91251edcec125885c586929119a849",
+      "hdiutil_verify": "valid image checksum",
+      "embedded_app_version": "27.10.0.0",
+      "embedded_app_codesign": "invalid signature (code or signature have been modified); Authority unavailable; Info.plist not bound",
+      "executed": false
+    },
+    "pkg": {
+      "path": "/private/tmp/ODAFileConverter_QT6_macOsX_arm64_27.10.pkg",
+      "sha256": "01494f75dbbd3816850d6115b9b0036068cc0e43cc2da25edcfa37bb97f4d486",
+      "pkgutil_check_signature": "invalid signature",
+      "installed": false
+    },
+    "conversion_attempted": false,
+    "interpretation": "The official download page supplies both macOS ARM64 package formats, but neither current 27.10 artifact passes local publisher-signature verification. The DMG container checksum is valid; this does not validate its app code signature. Do not execute or install either artifact, and do not infer anything about MLINE parsing.",
+    "output_witness": false
+  },
   "disposition": {
     "gate": "P6-H",
     "status": "WAITING_FOR_VALID_MACOS_CONVERTER_INSTALLATION",
-    "unblock_condition": "A valid official macOS ARM64 ODA bundle passes signature verification and opens through LaunchServices in a usable session.",
-    "next_action": "Do not retry conversion until the installed bundle passes codesign verification and LaunchServices starts it unsuspended. Then convert the exact existing scratch source once; do not regenerate it or add either file to repository fixtures.",
+    "unblock_condition": "ODA publishes an official macOS ARM64 bundle whose package/app signatures verify and whose app opens through LaunchServices in a usable session.",
+    "next_action": "Do not execute or install the currently downloaded 27.10 artifacts, and do not retry conversion, until ODA provides a verifiable bundle that opens normally. Then convert the exact existing scratch source once; do not regenerate it or add either file to repository fixtures.",
     "support_claim_effect": "none"
   }
 }
