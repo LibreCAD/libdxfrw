@@ -28,11 +28,22 @@
     "log": "/private/tmp/p6h-oda-launch-20261117.log",
     "output_witness": false
   },
+  "post_unlock_launch_probe": {
+    "date": "2026-11-17",
+    "trigger": "The user reported unlocking the macOS session after the prior failed launch probe.",
+    "sessionStateObservation": "launchctl print gui/502 no longer exposed CGSSessionScreenIsLocked; the GUI state could not be independently confirmed from this shell.",
+    "source_sha256_rechecked": "6fede7d730a2de2189b9749591e090f8e3cc22830d6efaa9f8d6e80da343ebb1",
+    "launch_probe": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter --help",
+    "return_code": 134,
+    "result": "The app aborted before conversion; its log again reports pasteboard [-4960] for clipboard/find and invalid hiservices XPC connections.",
+    "log": "/private/tmp/p6h-oda-launch-after-unlock-20261117.log",
+    "output_witness": false
+  },
   "disposition": {
     "gate": "P6-H",
     "status": "WAITING_FOR_MACOS_CONVERTER_SESSION",
     "unblock_condition": "ODA File Converter launches normally in the macOS session.",
-    "next_action": "Do not retry again unless the session state changes. Once launch succeeds, convert the exact existing scratch source once; do not regenerate it or add either file to repository fixtures.",
+    "next_action": "Do not retry again until a normal ODA launch is observed. Once launch succeeds, convert the exact existing scratch source once; do not regenerate it or add either file to repository fixtures.",
     "support_claim_effect": "none"
   }
 }
