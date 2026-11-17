@@ -17163,13 +17163,23 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
         TestableTableContentObject parsed;
         dwgBuffer input(bodyStringObject.payload.data(),
                         bodyStringObject.payload.size(), &codec);
-        const bool refusedAlternate = !parsed.parseDwg(
-            DRW::AC1032, &input, bodyStringObject.handleBits)
-            && !parsed.m_parseComplete
+        const bool acceptedObservedLayout = parsed.parseDwg(
+                DRW::AC1032, &input, bodyStringObject.handleBits)
+            && parsed.m_parseComplete
             && !parsed.m_semanticContentComplete
-            && parsed.m_content.m_rows.empty();
-        t.expect(refusedAlternate,
-                 "body-byte-count TABLECONTENT remains refused by the detached-TV production parser");
+            && parsed.m_content.m_rows.size() == 1u
+            && parsed.m_content.m_rows[0].m_cells.size() == 1u
+            && parsed.m_content.m_rows[0].m_cells[0].m_contents.size() == 1u
+            && std::string(parsed.m_content.m_rows[0].m_cells[0]
+                               .m_contents[0].m_value.m_value.c_str()) == "Body";
+        t.expect(acceptedObservedLayout,
+                 "AC1032 body-byte-count CADVALUE is boundedly decoded without semantic output qualification");
+        if (!acceptedObservedLayout) {
+            std::cerr << "AC1032 observed body-string decode: parseComplete="
+                      << parsed.m_parseComplete << " semanticComplete="
+                      << parsed.m_semanticContentComplete << " rows="
+                      << parsed.m_content.m_rows.size() << '\n';
+        }
 
         std::vector<std::uint8_t> truncatedBody = bodyStringObject.payload;
         if (!truncatedBody.empty())

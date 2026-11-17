@@ -1667,9 +1667,13 @@ struct TableDwgBounds {
     std::uint64_t handleEndBit = std::numeric_limits<std::uint64_t>::max();
 };
 
-// A debug-only alternate decoder used after AC1032 TABLECONTENT failure to
-// measure the disputed body-string candidate. It never supplies published
-// object state or output bytes.
+enum class TableCadValueStringLayout {
+    SpecificationTv,
+    Ac1032ObservedBodyByteCount
+};
+
+// Retained for the debug-only diagnostic branch below. Normal parser calls
+// select a layout explicitly and never use this switch to publish semantics.
 thread_local bool tableCadValueBodyStringProbe = false;
 thread_local bool tableContentObjectHandleTraceActive = false;
 
@@ -4034,7 +4038,9 @@ bool hasDocumentedTableCadValueUnits(const DRW_CadValue& value) {
 
 bool readTableCadValue(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
                        dwgBuffer *hdlBuf, DRW_CadValue& value,
-                       const TableDwgBounds& bounds) {
+                       const TableDwgBounds& bounds,
+                       TableCadValueStringLayout stringLayout =
+                           TableCadValueStringLayout::SpecificationTv) {
     if (version > DRW::AC1018) {
         if (!readBoundedBitLong(*buf, bounds.bodyEndBit, value.m_formatFlags))
             return false;
@@ -4073,7 +4079,9 @@ bool readTableCadValue(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
             break;
         }
         case 4: {
-            if (tableCadValueBodyStringProbe) {
+            if (tableCadValueBodyStringProbe
+                || stringLayout == TableCadValueStringLayout::
+                    Ac1032ObservedBodyByteCount) {
                 if (!readTableValueBytes(
                         buf, bounds.bodyEndBit, value.m_rawData,
                         "TABLE candidate string byte payload"))
@@ -4093,7 +4101,8 @@ bool readTableCadValue(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
                 value.m_value.addString(1, std::move(text));
                 break;
             }
-            if (version == DRW::AC1032)
+            if (version == DRW::AC1032
+                && tableContentObjectHandleTraceActive)
                 traceTableBodyStringCandidate(version, buf, strBuf, hdlBuf,
                                                bounds);
             // The traced R21 flags-4/6 producer profile stores a BL byte count
@@ -4251,7 +4260,9 @@ bool readTableCadValue(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
 
 bool skipTableCustomData(DRW::Version version, dwgBuffer *buf,
                          dwgBuffer *strBuf, dwgBuffer *hdlBuf,
-                         const TableDwgBounds& bounds) {
+                         const TableDwgBounds& bounds,
+                         TableCadValueStringLayout stringLayout =
+                             TableCadValueStringLayout::SpecificationTv) {
     dwgBuffer *textBuf = strBuf ? strBuf : buf;
     UTF8STRING key = readTableText(
         version, textBuf, tableTextEndBit(buf, textBuf, bounds));
@@ -4261,7 +4272,7 @@ bool skipTableCustomData(DRW::Version version, dwgBuffer *buf,
     }
     DRW_CadValue value;
     const bool good = readTableCadValue(version, buf, strBuf, hdlBuf, value,
-                                        bounds);
+                                        bounds, stringLayout);
     if (!good) {
         DRW_DBG("TABLE custom data key failed: "); DRW_DBG(key.c_str()); DRW_DBG("\n");
     }
@@ -5068,7 +5079,9 @@ bool parseTableCell(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
                     dwgBuffer *hdlBuf, DRW_TableCell& cell,
                     bool& semanticComplete,
                     std::vector<DRW_DwgSubrecordRange> *ranges,
-                    const TableDwgBounds& bounds) {
+                    const TableDwgBounds& bounds,
+                    TableCadValueStringLayout stringLayout =
+                        TableCadValueStringLayout::SpecificationTv) {
     dwgBuffer *textBuf = strBuf ? strBuf : buf;
     if (!readBoundedBitLong(*buf, bounds.bodyEndBit, cell.m_flags))
         return false;
@@ -5099,7 +5112,8 @@ bool parseTableCell(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
     if (customData != 0 || customItems != 0)
         semanticComplete = false;
     for (std::uint32_t i = 0; i < customItems; ++i) {
-        if (!skipTableCustomData(version, buf, strBuf, hdlBuf, bounds)) {
+        if (!skipTableCustomData(version, buf, strBuf, hdlBuf, bounds,
+                                 stringLayout)) {
             DRW_DBG("TABLE cell custom data parse incomplete\n");
             return false;
         }
@@ -5166,7 +5180,7 @@ bool parseTableCell(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
         }
         if (content.m_type == 1) {
             if (!readTableCadValue(version, buf, strBuf, hdlBuf,
-                                   content.m_value, bounds)) {
+                                   content.m_value, bounds, stringLayout)) {
                 DRW_DBG("TABLE cell value parse incomplete\n");
                 return false;
             }
@@ -5469,7 +5483,9 @@ bool projectTableMergedRanges(DRW_TableContent& content) {
 bool parseTableContent(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
                        dwgBuffer *hdlBuf, DRW_TableContent& content,
                        bool& semanticComplete,
-                       const TableDwgBounds& bounds) {
+                       const TableDwgBounds& bounds,
+                       TableCadValueStringLayout stringLayout =
+                           TableCadValueStringLayout::SpecificationTv) {
     semanticComplete = true;
     dwgBuffer *textBuf = strBuf ? strBuf : buf;
     const std::uint64_t textEndBit = tableTextEndBit(buf, textBuf, bounds);
@@ -5509,7 +5525,8 @@ bool parseTableContent(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
         if (customData != 0 || customItems != 0)
             semanticComplete = false;
         for (std::uint32_t i = 0; i < customItems; ++i) {
-            if (!skipTableCustomData(version, buf, strBuf, hdlBuf, bounds)) {
+            if (!skipTableCustomData(version, buf, strBuf, hdlBuf, bounds,
+                                     stringLayout)) {
                 DRW_DBG("TABLECONTENT column custom data parse incomplete\n");
                 return false;
             }
@@ -5569,7 +5586,8 @@ bool parseTableContent(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
             DRW_TableCell cell;
             if (!parseTableCell(version, buf, strBuf, hdlBuf, cell,
                                 semanticComplete,
-                                &content.m_subrecordRanges, bounds)) {
+                                &content.m_subrecordRanges, bounds,
+                                stringLayout)) {
                 DRW_DBG("TABLECONTENT cell parse incomplete at row "); DRW_DBG(rowIndex);
                 DRW_DBG(" cell "); DRW_DBG(cellIndex); DRW_DBG("\n");
                 return false;
@@ -5590,7 +5608,8 @@ bool parseTableContent(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
         if (customData != 0 || customItems != 0)
             semanticComplete = false;
         for (std::uint32_t i = 0; i < customItems; ++i) {
-            if (!skipTableCustomData(version, buf, strBuf, hdlBuf, bounds)) {
+            if (!skipTableCustomData(version, buf, strBuf, hdlBuf, bounds,
+                                     stringLayout)) {
                 DRW_DBG("TABLECONTENT row custom data parse incomplete\n");
                 return false;
             }
@@ -5682,6 +5701,76 @@ bool parseTableContent(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
         semanticComplete = false;
     }
     return good;
+}
+
+bool parseTableContentWithObservedAc1032Fallback(
+        DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
+        dwgBuffer *hdlBuf, DRW_TableContent& content,
+        bool& semanticComplete, const TableDwgBounds& bounds,
+        bool *usedObservedLayout = nullptr) {
+    if (usedObservedLayout != nullptr)
+        *usedObservedLayout = false;
+    if (buf == nullptr || strBuf == nullptr || hdlBuf == nullptr)
+        return false;
+
+    dwgBuffer tvBody = buf->forkIndependent();
+    dwgBuffer tvStrings = strBuf->forkIndependent();
+    dwgBuffer tvHandles = hdlBuf->forkIndependent();
+    DRW_TableContent tvContent;
+    bool tvSemanticComplete = false;
+    const bool tvParsed = parseTableContent(
+        version, &tvBody, &tvStrings, &tvHandles, tvContent,
+        tvSemanticComplete, bounds,
+        TableCadValueStringLayout::SpecificationTv);
+    const bool tvBounded = tvParsed && tvBody.isGood() && tvStrings.isGood()
+        && tvHandles.isGood()
+        && currentDwgBit(&tvBody) <= bounds.bodyEndBit
+        && currentDwgBit(&tvStrings) <= bounds.stringEndBit
+        && currentDwgBit(&tvHandles) <= bounds.handleEndBit;
+    if (tvBounded) {
+        *buf = tvBody;
+        *strBuf = tvStrings;
+        *hdlBuf = tvHandles;
+        content = std::move(tvContent);
+        semanticComplete = tvSemanticComplete;
+        return true;
+    }
+
+    // ODA v5.4.1 §20.4.99 specifies kString as TV. ACadSharp 3.6.15
+    // independently decodes one hash-bound ODA AC1032 TABLE source with a
+    // body BL byte count followed by bytes instead. Keep this compatibility
+    // path restricted to AC1032 and only use it when the specified layout
+    // cannot parse. Its semantics remain incomplete until a matching
+    // producer/version profile is qualified against strict output/readback.
+    if (version != DRW::AC1032)
+        return false;
+
+    dwgBuffer bodyBytes = buf->forkIndependent();
+    dwgBuffer bodyStrings = strBuf->forkIndependent();
+    dwgBuffer bodyHandles = hdlBuf->forkIndependent();
+    DRW_TableContent bodyContent;
+    bool bodySemanticComplete = false;
+    const bool bodyParsed = parseTableContent(
+        version, &bodyBytes, &bodyStrings, &bodyHandles, bodyContent,
+        bodySemanticComplete, bounds,
+        TableCadValueStringLayout::Ac1032ObservedBodyByteCount);
+    const bool bodyBounded = bodyParsed && bodyBytes.isGood()
+        && bodyStrings.isGood() && bodyHandles.isGood()
+        && currentDwgBit(&bodyBytes) <= bounds.bodyEndBit
+        && currentDwgBit(&bodyStrings) <= bounds.stringEndBit
+        && currentDwgBit(&bodyHandles) <= bounds.handleEndBit;
+    if (!bodyBounded)
+        return false;
+
+    *buf = bodyBytes;
+    *strBuf = bodyStrings;
+    *hdlBuf = bodyHandles;
+    content = std::move(bodyContent);
+    semanticComplete = false;
+    if (usedObservedLayout != nullptr)
+        *usedObservedLayout = true;
+    DRW_DBG("Accepted bounded AC1032 TABLECONTENT body-string parse; semantic output remains incomplete\n");
+    return true;
 }
 
 std::shared_ptr<DRW_Entity> cloneHatchBoundaryEntity(
@@ -17112,12 +17201,13 @@ bool DRW_Table::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
         tableBounds.handleEndBit = handleEndBit;
         DRW_TableContent parsedContent;
         bool parsedSemanticComplete = false;
-        const bool parsedContentComplete = parseTableContent(
+        bool usedObservedAc1032Layout = false;
+        const bool parsedContentComplete =
+            parseTableContentWithObservedAc1032Fallback(
             version, &contentBuf, &contentStringBuf, &contentHandleBuf,
-            parsedContent, parsedSemanticComplete, tableBounds);
-        m_semanticContentComplete = parsedContentComplete
-            && parsedSemanticComplete;
-        if (!m_semanticContentComplete || !contentBuf.isGood()
+            parsedContent, parsedSemanticComplete, tableBounds,
+            &usedObservedAc1032Layout);
+        if (!parsedContentComplete || !contentBuf.isGood()
             || !contentStringBuf.isGood() || !contentHandleBuf.isGood()) {
             // The frame, entity prefix, and common handles remain valid. Keep
             // the typed table shell and allow the raw DWG frame to preserve
@@ -17130,9 +17220,11 @@ bool DRW_Table::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
         hBuff = contentHandleBuf;
         m_content = std::move(parsedContent);
         m_tableStyleHandle = m_content.m_tableStyleHandle;
+        m_semanticContentComplete = parsedSemanticComplete
+            && !usedObservedAc1032Layout;
         if (!buf->isGood() || !sBuf->isGood() || !hBuff.isGood())
             return fail();
-        if (!m_semanticContentComplete) {
+        if (!m_semanticContentComplete && !usedObservedAc1032Layout) {
             DRW_DBG("TABLECONTENT parse incomplete; anonymous block insert kept\n");
             return commit();
         }
@@ -17418,9 +17510,11 @@ bool DRW_TableContentObject::parseDwg(DRW::Version version, dwgBuffer *buf, std:
     dwgBuffer candidateBody = *bodyBuf;
     dwgBuffer candidateStrings = *sBuf;
     dwgBuffer candidateHandles = hBuff;
-    const bool parseComplete = parseTableContent(
+    bool usedObservedAc1032Layout = false;
+    const bool parseComplete = parseTableContentWithObservedAc1032Fallback(
         version, bodyBuf, sBuf, &hBuff, parsedContent,
-        semanticContentComplete, tableBounds);
+        semanticContentComplete, tableBounds,
+        &usedObservedAc1032Layout);
     if (!parseComplete && runBodyStringProbe) {
         DRW_TableContent candidateContent;
         bool candidateSemanticComplete = false;
@@ -17549,7 +17643,8 @@ bool DRW_TableContentObject::parseDwg(DRW::Version version, dwgBuffer *buf, std:
 
     m_content = std::move(parsedContent);
     m_parseComplete = true;
-    m_semanticContentComplete = semanticContentComplete;
+    m_semanticContentComplete = semanticContentComplete
+        && !usedObservedAc1032Layout;
     parentHandle = parsedParentHandle;
     reactorHandles = std::move(parsedReactors);
     xDictHandle = parsedXDictHandle;
