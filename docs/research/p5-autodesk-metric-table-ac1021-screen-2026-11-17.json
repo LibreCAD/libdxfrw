@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Autodesk Blocks and Tables Metric sample version screen",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "scope": "Screen a distinct Autodesk-hosted Blocks and Tables Metric sample as a possible P5-D source. Reject it for AC1024 qualification after checking its exact file version and current TABLE read behavior.",
+  "discovery": {
+    "officialIndex": "https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/6XGQklp3ZcBFqljLPjrnQ9.html",
+    "indexDescription": "Autodesk lists Blocks and Tables (Metric) as a DWG sample in the AutoCAD 2010-and-later sample set.",
+    "downloadUrl": "https://download.autodesk.com/us/samplefiles/acad/blocks_and_tables_-_metric.dwg"
+  },
+  "source": {
+    "temporaryPath": "/private/tmp/autodesk_blocks_and_tables_metric.dwg",
+    "sizeBytes": 258848,
+    "sha256": "7d5507ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "exactHeaderVersion": "AC1021",
+    "interpretation": "The public Autodesk index does not establish the exact DWG version; the first six file bytes do. AC1021 is outside the requested AC1024 profile."
+  },
+  "readObservation": {
+    "reader": "libdxfrw working-tree dwg2dxf debug build",
+    "logPath": "/private/tmp/autodesk_blocks_and_tables_metric.log",
+    "logSha256": "eda8049de54d282fb6bc2dfac84e9e38869aa2db5f753fa317a05744f4af739b",
+    "sourceVersion": "AC1021",
+    "tables": [
+      {
+        "handle": "0x2856e",
+        "observation": "AcDbTable class resolved; R2007 TABLE cell parse incomplete; anonymous block insert retained."
+      },
+      {
+        "handle": "0x2a974",
+        "observation": "AcDbTable class resolved; R2007 TABLE cell parse incomplete; anonymous block insert retained."
+      }
+    ],
+    "entityParseFailures": 0,
+    "strictOutput": "Refused before publication because FIELD/FIELDLIST carriers have no qualified DXF serializer."
+  },
+  "result": "This distinct official sample confirms that the Autodesk catalog includes TABLE drawings, but this artifact is AC1021 and both TABLE semantic tails remain incomplete in the current reader. It is not a P5-D AC1024 witness and does not resolve the AC1024 body-string versus detached-TV conflict. It was downloaded to /private/tmp only and is not a repository fixture. Do not fetch it again for P5-D."
+}
