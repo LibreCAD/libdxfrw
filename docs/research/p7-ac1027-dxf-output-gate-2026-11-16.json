@@ -1,0 +1,79 @@
+{
+  "id": "p7-ac1027-dxf-output-gate-2026-11-16",
+  "date": "2026-11-16",
+  "status": "WAITING_FOR_SOURCE_QUALIFIED_R2013_DXF_SHELL_AND_ACDS_EMISSION",
+  "supportClaimEffect": "none",
+  "scope": "Attempt the first current-reader DWG-to-DXF output check for the three source/ODA-bound AC1027 modeler entities and identify the exact serializer gates. No code was changed and no DXF was published.",
+  "source": {
+    "path": "/Users/dli/doc/dwg3/example_2013.dwg",
+    "sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "version": "AC1027",
+    "p7a_closure_receipt": "docs/research/p7-ac1027-current-reader-graph-closure-2026-11-16.json",
+    "prior_oda_payload_receipt": "docs/research/p7-ac1027-physical-modeler-acds-sab-oda-byte-join-2026-11-03.json"
+  },
+  "prior_oda_artifact_recovery": {
+    "expected_dxf_sha256": "fb361cc2ed1517e1828a03bc8bda995ca577179dc1cefa5cf57fcf9b042ecb75",
+    "search_roots": ["/private/tmp", "/Users/dli/doc", "/Users/dli/dev/libdxfrw"],
+    "file_types": [".dxf", ".dxf.gz"],
+    "result": "No matching artifact found in the searched roots on 2026-11-16. Do not repeat this scan unless a new artifact location is identified."
+  },
+  "strict_libdxfrw_attempt": {
+    "executable": "build-gcc/dwg2dxf/dwg2dxf",
+    "executable_sha256": "50d289c2ecdc510f7356cfb40f41303a0e3974102d8fd66cc7a79ce1b4de8d0f",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg3/example_2013.dwg -o /private/tmp/libdxfrw-p7c-ac1027-20261116/example_2013.dxf -v2013 -y",
+    "exit_code": 1,
+    "observed_read": {
+      "operation_succeeded": true,
+      "entity_parse_failures": 0,
+      "object_parse_failures": 0,
+      "data_storage_link_failures": 0,
+      "data_storage_orphan_records": 0,
+      "unqualified_source_observations": "Two skipped custom classes, two unsupported objects, a Header CRC discrepancy (expected 852, observed 856), and repeated LTYPE_CONTROL integrity diagnostics were reported."
+    },
+    "output_preflight": "DXF export preflight failed: AC1027 DWG source references are not fully qualified",
+    "publication": "The output directory remained empty; conversion stopped during output preparation. Strict refusal was preserved."
+  },
+  "serializer_gates": {
+    "dxf_shell_fields": {
+      "writer": "dxfRW::writeModelerGeometry requires both explicit R2013+ modeler shell fields before writing an AcDs SAB carrier: group 290 and group 2.",
+      "dwg_reader": "DRW_ModelerGeometry::resetDwgState clears m_hasDxfModelerFlag and m_hasDxfModelerUid. In the current source, assignments are in parseCode for DXF groups 290 and 2; the DWG parser does not populate them.",
+      "writer_source_sha256": "3a2a8d4873c8084ca435875c0b1c4f53d4c52c5a39973585653c7cedb9f67053",
+      "entity_source_sha256": "59cfef124221da298f73aece879a83c7cef4cec35a174d96606666c3d6204b4f"
+    },
+    "acds_section": {
+      "writer_gate": "hasQualifiedR2013PlusAcdsRecord accepts a modeler only when an AC1027/AC1032 ACDSDATA section contains the matching schema-1 ASM_Data record, handle key, declared byte length, and exact SAB payload.",
+      "existing_projection": "dx_iface::appendAcdsDataSection already builds a bounded R2013+ ACDSDATA projection from a qualified typed DataStorage section. It checks the full schema fingerprint, exact linked modeler records, marker spans, owner/handle identity, thumbnail disposition, and record census before adding the section. The serializer path is present and must be exercised; it is not the missing implementation identified by this attempt.",
+      "strict_control_flow": "The AC1027 m_unqualifiedAc1027DwgImport guard rejects whole-file CLI output at dwg2dxf/dx_iface.cpp:84947, before appendAcdsDataSection is called at line 88234. Therefore this failed CLI attempt did not exercise the AcDs projection or modeler writer.",
+      "writer_source_sha256": "3a2a8d4873c8084ca435875c0b1c4f53d4c52c5a39973585653c7cedb9f67053",
+      "adapter_source": "dwg2dxf/dx_iface.cpp",
+      "adapter_source_sha256": "461e45b6b206feb7c6c7320ae88257f1bae1eddd03ba59a964eb5bee0ff9da23"
+    },
+    "primary_reference": {
+      "title": "Autodesk 3DSOLID (DXF) reference",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-19AB1C40-0BE0-4F32-BCAB-04B37044A0D3.htm",
+      "observation": "The public table lists the modeler subclass, group 70, SAT groups 1/3, and history group 350. It does not define the additional group-290/group-2 shell values used by this R2013+ path and cannot justify a default for them."
+    }
+  },
+  "oda_shell_field_attempt": {
+    "application": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "version": "27.1.0.0",
+    "executable_sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "command": "ODAFileConverter /private/tmp/libdxfrw-p7c-oda-shell-20261116/input /private/tmp/libdxfrw-p7c-oda-shell-20261116/output ACAD2013 DXF 0 0",
+    "input_sha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "exit_code": 134,
+    "error": "PasteBoard errors creating clipboard/find pasteboards, followed by an invalid com.apple.hiservices-xpcservice connection.",
+    "output": "No ODA DXF was created. Do not retry until the desktop session/tool availability changes; do not fill the shell fields with guessed values."
+  },
+  "next_unblock": [
+    "The exact prior ODA DXF hash was searched under /private/tmp, /Users/dli/doc, and the repository with no match. Do not repeat that scan; recover it only if a new artifact location is identified, or make one same-source ODA conversion after the desktop session/tool is usable. Extract groups 290 and 2 for the three bound handles.",
+    "Use a source/ODA-bound shell mapping or keep refusing unknown shell fields.",
+    "Exercise the existing appendAcdsDataSection plus modeler writer using a source-bound selected-profile harness. Keep the separate whole-file CLI refusal unchanged; no support claim follows from a selected-fragment harness.",
+    "Add only the smallest source-bound writer/readback assertion needed for that harness and run its fast selector. Require strict destination rollback and corrected retry on failure."
+  ],
+  "limitations": [
+    "The ODA shell-field probe was blocked by macOS pasteboard/XPC errors; no independent 290/2 values were captured.",
+    "The existing ODA receipt binds modeler payload bytes and the 3DSOLID history handle, but it does not bind R2013+ shell fields.",
+    "The current CLI preflight failure is a source/reference qualification stop; it occurs before the existing ACDSDATA projection and modeler serializer.",
+    "No downloaded or user DWG/DXF fixture was added; outputs and the copied exact input remain under /private/tmp."
+  ]
+}

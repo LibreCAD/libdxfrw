@@ -49,9 +49,18 @@ is recorded in
 Six external dispositions remain `DEFERRED_EXTERNAL` and cannot promote
 support claims. Completed actions have been removed from the work queue;
 receipts remain as evidence and to prevent repeated work.
-The next source-ready slice is P7-C: write and read back the three already
-bound AC1027 modeler entities and their history reference. Reuse the pinned
-source and existing ODA join; do not repeat the physical source/ODA analysis.
+P7-C remains the first local output gate, but its whole-file CLI attempt
+stopped at strict preflight before the ACDSDATA/modeler writer ran. The exact
+gate is recorded in
+[`p7-ac1027-dxf-output-gate-2026-11-16.json`](docs/research/p7-ac1027-dxf-output-gate-2026-11-16.json):
+source-wide AC1027 reference qualification is incomplete, the DWG parser does
+not supply the R2013+ DXF shell fields, and the one ODA shell-field probe
+failed at macOS pasteboard/XPC startup. The existing typed ACDSDATA projection
+is present; exercise it with a selected-profile writer harness after the shell
+evidence is available. The prior ODA DXF's pinned SHA-256 was searched under
+`/private/tmp`, `~/doc`, and this repository with no match; do not repeat that
+scan unless a new location is identified. Retry ODA once only after the app
+session/tool is usable. Do not weaken whole-file refusal.
 
 ## Rules for evidence and implementation
 
@@ -90,7 +99,7 @@ source and existing ODA join; do not repeat the physical source/ODA analysis.
   and [3D plan](DWG_DXF_3D_SUPPORT_PLAN.md). A source-only result or external
   advisory result does not promote a claim.
 
-## Execution order — local slices first, integrations last
+## Execution order — unblock once, batch related work, integrate last
 
 The registry below is the complete required package-exit checklist. Closed
 actions are removed from the active queue; receipts remain as evidence. Run
@@ -99,44 +108,45 @@ and move on when its required source, authority, or platform is unavailable.
 The 29/32 figure counts package exits, not work or effort. The conditional
 P6-G audit and optional P7-E comparison are tracked outside this count.
 
-1. **P7-C — qualify DXF output for the exact AC1027 graph already bound by
-   P7-A.** Use the hash-pinned input and prior ODA mapping in
-   [`p7-ac1027-physical-modeler-acds-sab-oda-byte-join-2026-11-03.json`](docs/research/p7-ac1027-physical-modeler-acds-sab-oda-byte-join-2026-11-03.json)
-   and the closure receipt linked above. Run one current `dwg2dxf` conversion
-   into scratch, then one fresh typed DXF readback. Compare only handles
-   `0x176`, `0x2E1`, and `0x37D`: entity type/handle, model-space owner
-   `0x1F`, `AcDbModelerGeometry`, exact group-310 payloads, and the `0x2E1`
-   history reference `0x2E4`. Account for the unrelated thumbnail record
-   separately; do not treat it as a modeler-graph orphan. If unrelated source
-   records prevent whole-file conversion, keep strict refusal and add only a
-   focused assertion to the existing graph-preservation target for these
-   selected rows. Run its fast selector once; do not rerun ODA or add the
-   source/output as fixtures. Close only this exact output/readback profile;
-   no geometry or broad support claim follows.
-2. **P6-H and P8-D — batch native GUI checks after one readiness probe.** Use
+1. **P7-C — finish the selected AC1027 DXF output gate without relaxing the
+   whole-file CLI policy.** Reuse the hash-pinned source and ODA payload join
+   from the P7-A receipts. The current CLI attempt stopped at
+   `m_unqualifiedAc1027DwgImport` before `appendAcdsDataSection`, so it did not
+   test the existing ACDSDATA projection or modeler writer. The missing wire
+   evidence is group 290 and group 2 for handles `0x176`, `0x2E1`, and
+   `0x37D`. Bind those values to DWG source fields or authoritative
+   exact-profile defaults; do not copy ODA values into a general parser
+   without that link. Then add a narrow source-bound selected-profile harness
+   for the existing projection/writer, fresh typed DXF readback, and strict
+   failure rollback/corrected retry. Keep global CLI refusal intact, account
+   for the thumbnail separately, and add no source/output fixtures. No
+   geometry or broad support claim follows. The failed ODA attempt is already
+   recorded; retry only after the desktop session/tool changes, otherwise
+   advance.
+2. **Batch P6-H and P8-D native GUI checks after one readiness probe.** Use
    LibreCAD 2 for source-derived MLINE display/edit/save/reopen and P8-D1 LINE
    translate/save/reopen. Use a separate LibreCAD_3 run for P8-D2 MPOLYGON
-   save/reopen. Compare each saved result with its independent reader. The
-   current tool set exposes no GUI-control tool; when native GUI control is
-   available, make one launch/readiness check and batch the available runs. If
-   it is unavailable, record the exact gate and continue with step 3; retry
-   only after the environment changes. MLINE output, rollback, retry, and
-   typed readback are already complete and are not repeated. P8-D3's focused
-   qualification is complete for its recorded local candidate; it is not an
-   open validation slice.
-3. **Bind shared source profiles once, then close only the matching rows.**
-   Search once for an R24 TABLECONTENT/DATATABLE source that can feed P5-D/E/F
-   and P6-C; share evidence only when version, class, and operation match.
-   Keep FIELD graph/semantics (P5-A/B), constraints (P5-G), and viewport
-   rendering (P5-H) separate. Do not replay the completed FIELD/TABLE screens
-   or count generated controls as producer evidence.
-4. **Run one bounded readiness pass for the remaining source/authority gates.**
-   Reuse each linked receipt and name the exact missing input: P4-B/C, P5-A/G/H,
-   P6-A/B/E/F, P7-B/D/G. For example, P6-E remains blocked on authority for
-   the changing 739-byte AC1024 post-sentinel suffix; P7-B needs a
-   source-distinct AcDs profile; P7-D needs authority for the third ACIS 21500
-   header word. Do not repeat broad corpus searches, infer unknown bytes as
-   padding, weaken refusal, or edit a DWG parser from peer-only guesses.
+   save/reopen. Compare each saved result with its independent reader. If GUI
+   control is unavailable, record the exact result once and advance; do not
+   retry until the environment changes. MLINE output, rollback, retry, and
+   typed readback are complete and are not repeated. P8-D3's focused
+   qualification is complete for its recorded local candidate and is removed
+   from the active queue.
+3. **Share one matching R24 TABLE source across P5-D/E/F and P6-C.** Search
+   once when a new candidate is available; collect exact class/version and
+   operation matches before sharing evidence. Implement and close each row
+   separately. The existing source screen found no eligible witness, so do
+   not repeat it without a new candidate.
+4. **Advance the shortest newly actionable source/authority slice.** Reuse the
+   linked receipts and request only the missing item for P4-A/B/C, P5-A/B/G/H,
+   P6-A/B/C/E/F, and P7-B/D/G. P6-E needs authority for the changing 739-byte
+   AC1024 post-sentinel suffix; P7-B needs a source-distinct AcDs profile;
+   P7-D needs version-specific authority for the ACIS 21500 third header word.
+   Keep generated controls as fast implementation checks, not producer
+   evidence. Do not repeat completed screens, infer padding, weaken refusal,
+   or edit a DWG parser from peer-only guesses. If no new source or authority
+   is available, continue local proof preparation against the existing
+   source/receipt instead of waiting or repeating an unsuccessful search.
 5. **Freeze and integrate once source-bound slices stabilize.** Complete P8-A,
    P8-E/F/G on one immutable candidate, then run the native Linux and Windows
    FreeCAD `Draft.importDWG.open()` and `insert()` pairs in P8-B/C, starting
@@ -261,7 +271,7 @@ do not rerun covered matrices.
 | ID | Remaining implementation | Package exit evidence |
 |---|---|---|
 | P7-B / WAITING_FOR_VERSIONED_ACDS_PROFILE | Map one unqualified AcDs version's framing/index/suffix/prototype with ODA and a source-distinct physical peer. | Exact bounded spans, versioned lengths, malformed/truncation/retry controls. |
-| P7-C / READY_FOR_AC1027_DXF_OUTPUT | Use the source and ODA mapping in the P7-A receipts. Make one scratch `dwg2dxf` conversion and one fresh typed DXF readback; compare only handles `0x176`, `0x2E1`, and `0x37D` for type, model-space owner `0x1F`, `AcDbModelerGeometry`, exact group-310 payload, and `0x2E1` history reference `0x2E4`. Account for the separate thumbnail record. If unrelated source failures prevent whole-file conversion, add only the smallest focused writer/readback assertion to the existing graph-preservation target and preserve strict refusal. | Selected records and references agree with the hash-bound source/ODA map in strict output and fresh typed readback; no selected graph orphan or duplicate. No geometry/support claim follows. |
+| P7-C / WAITING_FOR_SOURCE_QUALIFIED_R2013_DXF_SHELL | The whole-file CLI attempt stopped at the strict source-reference guard before the existing `appendAcdsDataSection` and modeler writer ran. The typed AcDs projection already checks the schema fingerprint, every source record, exact modeler links, and thumbnail disposition. `DRW_ModelerGeometry::parseDwg` does not supply the R2013+ DXF shell fields required by the writer. The exact prior ODA DXF SHA-256 (`fb361cc2ed1517e1828a03bc8bda995ca577179dc1cefa5cf57fcf9b042ecb75`) was not found in the recorded local roots; recover it only from a newly identified location or make one same-source ODA conversion after the desktop session/tool is usable. Bind groups 290 and 2 for handles `0x176`, `0x2E1`, and `0x37D` to source fields or authoritative exact-profile defaults. Then add a narrow selected-profile writer/readback assertion with rollback/retry; keep global CLI refusal. Receipt: [`p7-ac1027-dxf-output-gate-2026-11-16.json`](docs/research/p7-ac1027-dxf-output-gate-2026-11-16.json). | Selected records agree with the source/ODA map for type, owner `0x1F`, modeler shell fields, payload bytes, and 3DSOLID history `0x2E4` in fresh typed DXF readback. No selected graph orphan/duplicate or geometry/support claim. |
 | P7-D / WAITING_FOR_ACIS_21500_HEADER_WORD_AUTHORITY | For the pinned AC1024/ACIS 21500 profile, resolve the third header word using a version-qualified primary field map or an independent decoder on the exact same payload. Reuse the [cross-version authority screen](docs/research/p7-ac1024-21500-header-third-word-cross-version-authority-screen-2026-11-13.json) and [local header profile](docs/research/p7-acis-21500-local-header-profile-screen-2026-11-12.json); do not repeat generic searches or infer geometry from framing. | Exact header/entity field map, bounded truncation and sentinel controls, then analytic values matching an independent reader. |
 | P7-F / DEPENDS_ON_P7_B_TO_D_AND_INDEPENDENT_READER | Extend one accepted analytic profile through nested blocks, units, placement, and transforms. | Independent transform-chain and dimension comparison at stated tolerance; if no qualified reader is available, record that exact gate and continue another package. |
 | P7-G / WAITING_FOR_TRIM_WITNESS | Add one witnessed trim, periodic-surface, or spline profile per slice. | Independent kernel evaluation and boundary comparison; unmodeled trims refuse. |
