@@ -35,12 +35,13 @@ reorders and narrows the remaining work but closes no gate, so the counts remain
 Scratch ASCII and binary DXF inputs both load, save, and reopen with the custom
 LTYPE table and LINE group 6 intact; the unedited line visibly draws the
 expected dash pattern. The Properties panel labels it `Continuous` and does
-not expose the imported name. Moving the LINE by `(5,0)` changes group 6 to
-`ByLayer`, even with current-attribute and current-layer overrides disabled;
-the LTYPE table itself remains and the displayed line falls back to its layer
-style. This is a consumer edit-preservation defect, not a closed GUI gate. The
-exact reproduction and immutable identities are in the
-[P8-D GUI receipt](docs/research/p8-librecad2-ltype-gui-roundtrip-2026-11-17.json).
+not expose the imported name. Two GUI move attempts wrote group 6 as `ByLayer`;
+the second showed both override checkboxes unchecked, but their action values
+were not independently confirmed. A separate scratch adapter control passed
+400 assertions and preserved the custom name/fold ID through
+`RS_Modification::move()` with both flags false. This narrows the unresolved
+behavior to the GUI action/property route; it does not establish that the GUI
+attempt used false flags. See the [P8-D GUI receipt](docs/research/p8-librecad2-ltype-gui-roundtrip-2026-11-17.json).
 
 ## Execution order (2026-11-17)
 
@@ -50,36 +51,35 @@ exit criteria. Receipts hold completed research; completed scans and controls
 are not active work. Run the next locally executable action, mark only its
 dependent gate waiting when an input is absent, and continue to the next action.
 
-1. **P8-D — repair LibreCAD 2 custom-LTYPE edit preservation, then finish the
-   consumer round trips.** The clean GUI build and ASCII/binary no-op import,
-   save, and reopen are recorded in the [P8-D GUI receipt](docs/research/p8-librecad2-ltype-gui-roundtrip-2026-11-17.json);
-   do not repeat them for unchanged inputs. The receipt shows that moving one
-   LINE changes group 6 from `VENDOR_BINARY` to `ByLayer`, even with both
-   Move/Copy override checkboxes off, while retaining the LTYPE table. The
-   unedited line renders its dash pattern but the Properties panel says
-   `Continuous`. First trace `setEntityAttributes()`, `lineTypeNameToWrite()`,
-   the `RS_Pen` custom-name/fold ID, the property control, and the
-   `RS_Modification::move()` clone path. Implement the smallest consumer fix
-   that keeps an imported custom LTYPE name editable/visible and preserves its
-   pattern through a geometry edit; add a fast adapter regression for import,
-   move, export, fresh readback, and corrected retry. Then rebuild the GUI
-   target once and repeat the exact move with overrides off. Require the
-   property/rendering to show the custom pattern and the saved LINE group 6 to
-   remain `VENDOR_BINARY`. The GUI has no
-   LTYPE-definition editor; pattern/description editing is covered by the
-   focused PR #3269 adapter test. Continue with LibreCAD_3 MPOLYGON
-   save/reopen. Read both consumer outputs with pinned ezdxf 1.4.5; if absent,
-   use a temporary isolated environment rather than a project dependency. Do
-   not add repository fixtures. Complete the bounded P6-H scratch-source screen
-   only if its candidate is ready; it must not delay this fix.
-2. **P8-F — diagnose the native-qualification CI lane locally.** Inspect the
+1. **P8-D1 — finish the LibreCAD 2 edit-preservation fix.** Reuse the clean
+   build, ASCII/binary no-op round trips, and direct adapter control in the
+   [P8-D GUI receipt](docs/research/p8-librecad2-ltype-gui-roundtrip-2026-11-17.json);
+   do not repeat them on unchanged inputs. First confirm the Move/Copy action's
+   two option values at the action/slot boundary, then reproduce `[0,0]` to
+   `[5,0]`. The direct `RS_Modification::move(..., false, false)` path already
+   preserves `VENDOR_BINARY`; do not re-investigate generic clone behavior
+   unless the controlled GUI reproduction contradicts that result. Add the
+   owning fast adapter regression to the LibreCAD candidate, covering import,
+   move, export, fresh readback, and corrected retry. Fix only the confirmed
+   action/property boundary so the named type and pattern survive editing and
+   remain usable in the Properties panel. Do not build an LTYPE-definition
+   editor; PR #3269 covers pattern/description editing. Rebuild the GUI target
+   once after the fix and verify the move/save/reopen plus rendering.
+2. **P6-H — run the one-pass scratch MLINE source screen.** The bounded source
+   inventory is complete and has no ready DWG witness. Use one locally authored
+   MLINE/MLINESTYLE DXF, convert once with ODA 27.1 to AC1018, hash both files,
+   and check the parser route plus independent values. Keep the pair under
+   scratch storage. If it is ineligible, record why, return P6-H to
+   `WAITING_FOR_SOURCE_WITNESS`, and continue; it must not hold P8-D or any
+   other slice.
+3. **P8-F — diagnose the native-qualification CI lane locally.** Inspect the
    source-matched logs and workflow stages for the recorded failures; identify
    the first reproducible cause, make the smallest workflow/build fix, and run
    its owning fast local checks. The recorded 2026-11-16 run is evidence, not a
    current failure diagnosis. Do not dispatch a GitHub workflow without the
    owner's go-ahead. Continue other local work while dispatch authorization is
    pending.
-3. **Producer capture — collect exact missing API state in release/version
+4. **Producer capture — collect exact missing API state in release/version
    batches.** The registry lists the individual fields and gates. Group capture
    by the same producer build and DWG release: FIELD/TABLE/rendering/constraint
    cases (P5), IMAGEDEF/PERSUBENTMGR/TABLE cases (P6), and associative-network/
@@ -87,13 +87,20 @@ dependent gate waiting when an input is absent, and continue to the next action.
    state separate; do not combine unlike versions into one claimed profile.
    Ask only for facts absent from the linked receipt. If the producer session
    is unavailable, record that once and proceed.
-4. **Independent authority/source waits — no repeated broad searches.** Resume
+5. **Independent authority/source waits — no repeated broad searches.** Resume
    P6-E only with versioned byte authority or a source-bound pre-compression
    trace; P6-F only with a hash-bound legacy input having recoverable entity
    failures and closed dependencies; P7-D only with the ACIS 21500 field map or
    independent same-payload decode. P7-B/C/G use the exact versioned witnesses
    in the registry. Keep their routes fail-closed while waiting.
-5. **Implement each admitted profile immediately, then freeze once.** Bind the
+6. **Finish the remaining consumer checks on the fixed candidate.** The
+   LibreCAD_3 MPOLYGON integration already passes its focused headless
+   selectors; native GUI save/reopen remains open. Repeat the MPOLYGON GUI
+   round trip once on the candidate if the desktop session is available. Run
+   pinned ezdxf 1.4.5 readback once against each final consumer output; reuse
+   historical peer results only when source, output, and operation hashes
+   match. No new repository fixtures.
+7. **Implement each admitted profile immediately, then freeze once.** Bind the
    evidence to the actual dispatch/type and parser path, implement one bounded
    route, run its owning fast selectors and required refusal/retry/readback
    controls, and update status before taking the next ready slice. Once feature
@@ -269,8 +276,7 @@ external kernel or app blocks only that profile.
 | P8-A / INTEGRATION_GATE | After feature slices stabilize, freeze candidate source, build, installed package, executable, and loaded modules. Reuse [macOS package evidence](docs/research/p8-macos-package-baseline-2026-11-17.json) only while its candidate inputs remain unchanged. | Record reproducible commands and immutable source/tool/platform/runtime identities. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. |
 | P8-B / WAITING_FOR_FREEZE | Reuse the generated 2D baseline in [the Linux/Windows receipt](docs/research/p8-freecad-linux-windows-generated-pass-2026-11-15.json), which passed on an earlier source identity. At the frozen candidate, run one Linux qualification wave for 2D plus every admitted source-derived profile; add AC1027/AC1032 3D only after P7 admission. The tracked `ordinary_enc_AC1027.dwg` remains refused before DXF publication; see [preflight receipt](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json). | Record runner, FreeCAD/converter/module versions, settings, exact `open()`/`insert()` handoff, package/runtime identity, and independent semantics per admitted profile. Cross-compilation and ambiguous fallback do not count. |
 | P8-C / WAITING_FOR_FREEZE | Use the same frozen-candidate workflow wave as P8-B; reuse the earlier path-with-spaces/Unicode and 2D baseline results only as historical controls. Add source-derived profiles and AC1027/AC1032 3D only after their evidence gates close. Keep ordinary AC1027 deferred until source-reference closure. | Record runner, FreeCAD/converter/module versions, settings, exact handoff, package/runtime identity, and independent semantics. Cross-compilation and ambiguous fallback do not count. |
-| P8-D / IN_PROGRESS | PR #3269 is merged as `4060fb6bb` and contained in LibreCAD origin/master `3ad089398`; focused tests and the clean GUI build are complete for unchanged inputs. The [P8-D GUI receipt](docs/research/p8-librecad2-ltype-gui-roundtrip-2026-11-17.json) proves no-op ASCII/binary persistence and visible dashes, but the Properties panel says `Continuous`; Move/Copy changes group 6 to `ByLayer` even with both override options disabled. Trace `setEntityAttributes()`, `RS_Pen` custom-name/fold-ID handling, the property control, clone/move, and `lineTypeNameToWrite()`. Preserve and expose the custom name across a move; add one owning fast adapter regression for import, move, export, fresh readback, and corrected retry. Rebuild LibreCAD 2 once and repeat the exact move/save/reopen. Then complete LibreCAD_3 MPOLYGON save/reopen and pinned ezdxf 1.4.5 readback for both consumers. Keep the LTYPE-definition editor out of scope; pattern/description editing is covered by the focused PR #3269 adapter test. Do not add fixtures. |
-| P8-E / INTEGRATION_GATE | macOS shared/static package manifests and static relocation are already recorded in the [package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json). Collect only native Linux and Windows shared/static manifests, relocation, and runtime identity during the P8-B/C frozen-candidate wave. | Record package contents and loaded-library identity per distributed platform; verify shared/static relocation. Do not repeat macOS checks unless candidate inputs change. |
+| P8-D / IN_PROGRESS | PR #3269 is merged as `4060fb6bb` and contained in LibreCAD origin/master `3ad089398`; focused tests and the clean GUI build are complete for unchanged inputs. The [P8-D GUI receipt](docs/research/p8-librecad2-ltype-gui-roundtrip-2026-11-17.json) records no-op ASCII/binary persistence and visible dashes. The GUI Move/Copy loss is real, but the unchecked state of the second attempt was not verified at the action boundary; a direct scratch adapter control passes with both flags false. Confirm action values, add that import/move/export/readback/retry regression to the LibreCAD candidate, and fix the smallest confirmed GUI action/property issue. Then verify the edited line renders and retains `VENDOR_BINARY` after save/reopen. LibreCAD_3 MPOLYGON focused headless integration already passes; only native GUI save/reopen remains. Run pinned ezdxf 1.4.5 against final consumer outputs once. No new fixtures. |
 | P8-E / INTEGRATION_GATE | macOS shared/static package manifests and static relocation are already recorded in the [package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json). Collect only native Linux and Windows shared/static manifests, relocation, and runtime identity during the P8-B/C frozen-candidate wave. | Record package contents and loaded-library identity per distributed platform; verify shared/static relocation. Do not repeat macOS checks unless candidate inputs change. |
 | P8-F / READY_FOR_LOCAL_ROOT_CAUSE | Inspect the latest source-matched "libdxfrw native qualification" run and compare with the 2026-11-16 sample (`43880983294`: macOS focused job cancelled after about 15 minutes; broad/fuzz stages skipped). The earlier 6/8 failure count is a historical signal, not a current diagnosis. Identify the first failed or stalled stage before changing workflow timeouts, targets, or resource use. | Apply only the evidenced workflow/build correction; verify its owning fast local checks. At freeze/release, require source-matched green or formally dispositioned lanes and capture branch-protection/required-check state. Do not dispatch a hosted run without the owner's go-ahead; keep other work moving meanwhile. |
 | P8-G / INTEGRATION_GATE | Set consumer/platform support and release thresholds from closed evidence. | Publish an evidence-backed support matrix with no required red job or advertised unqualified route. |
