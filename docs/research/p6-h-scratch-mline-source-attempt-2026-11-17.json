@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-17",
+  "scope": "One scratch-only attempt to convert a locally authored MLINE DXF to AC1018 for a parser-source screen",
+  "source": {
+    "path": "/private/tmp/p6h-mline-screen-20261117/scratch_mline_ac1027.dxf",
+    "created_from_scratch": true,
+    "sha256": "6fede7d730a2de2189b9749591e090f8e3cc22830d6efaa9f8d6e80da343ebb1",
+    "pair_count": 220,
+    "contains": ["MLINE", "MLINESTYLE"]
+  },
+  "converter": {
+    "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "version": "27.1.0.0",
+    "requested_target": "AC1018 / AutoCAD 2004 DWG"
+  },
+  "result": {
+    "conversion_started": false,
+    "process_return_code": -6,
+    "failure": "The converter aborted before conversion with macOS pasteboard/XPC errors, including pasteboard error [-4960].",
+    "output_witness": false
+  },
+  "disposition": {
+    "gate": "P6-H",
+    "status": "WAITING_FOR_MACOS_CONVERTER_SESSION",
+    "unblock_condition": "ODA File Converter can launch and complete a conversion in the current macOS session.",
+    "next_action": "Retry conversion once using this exact scratch source and hash; do not regenerate it or add either file to repository fixtures.",
+    "support_claim_effect": "none"
+  }
+}

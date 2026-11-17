@@ -97,6 +97,28 @@
     "proved": "Direct RS_Modification::move with both current-attribute and current-layer flags false preserves the custom line-type name and fold ID through export.",
     "not_proved": "The Move/Copy GUI action passed false option values, the property panel can select arbitrary imported names, or GUI save/reopen preserves the name after editing."
   },
+  "scratch_action_control": {
+    "checkout": "/private/tmp/librecad-p8-d40f-20261116",
+    "build_directory": "/private/tmp/librecad-p8-d40f-build-20261116",
+    "changes": "Temporary, uncommitted scratch tests only; no LibreCAD candidate source was changed.",
+    "selectors": [
+      "/private/tmp/librecad-p8-d40f-build-20261116/librecad_tests '[modify][move]' --reporter compact",
+      "/private/tmp/librecad-p8-d40f-build-20261116/librecad_tests '[dxf][roundtrip][filter][ltype][linetype][binary]' --reporter compact"
+    ],
+    "results": [
+      "PASS: 131 assertions across 10 move/action test cases, including the full Move/Copy apply path with both override flags false and simulated checkbox clicks updating action flags.",
+      "PASS: 400 assertions; 2 binary LTYPE cases, 1 passed and 1 environment-dependent R13 case skipped."
+    ],
+    "proved": [
+      "With both override flags false, the Move/Copy action and RS_Modification path retain VENDOR_BINARY and its nonzero fold ID through the edited document path.",
+      "Clicking the two option checkboxes updates the corresponding action flags in the focused widget/action test."
+    ],
+    "not_proved": [
+      "The earlier interactive GUI attempt actually delivered false flags at the action boundary.",
+      "The Properties panel can display or select an imported nonstandard LTYPE.",
+      "Edited GUI output preserves the named LTYPE through save and fresh reopen."
+    ]
+  },
   "gate_disposition": {
     "gate": "P8-D",
     "status": "OPEN",
@@ -104,10 +126,10 @@
     "does_not_promote_support_claims": true
   },
   "next_slice": [
-    "Confirm both Move/Copy option values at the action/slot boundary, then repeat the move. The direct false-flags adapter route is already shown to preserve the name and fold ID; focus further tracing on the GUI action/property path unless the controlled GUI result contradicts this.",
-    "Promote the scratch adapter control into the owning LibreCAD candidate regression for import, move, export, fresh readback, and corrected retry. Fix only the confirmed action/property loss and preserve the imported name for edited entities.",
-    "Rebuild the GUI target once after the fix and repeat the move/save/reopen control with verified option values.",
-    "Then complete the native LibreCAD_3 MPOLYGON GUI save/reopen; its focused headless integration selectors already pass. Run pinned ezdxf 1.4.5 readback against the final consumer outputs before closing P8-D."
+    "When GUI automation is runnable, record both Move/Copy action option values at the action boundary and repeat the [0,0] to [5,0] move once. The false-flags action and adapter paths already pass focused scratch controls; only fix a divergence reproduced at this boundary.",
+    "Implement entity Properties display and selection for imported named LTYPE values in the LibreCAD candidate, with a fast import/select/export/fresh-readback regression. Do not duplicate PR #3269's pattern/description editor.",
+    "Rebuild the GUI target once after the property change; verify named-reference persistence and visible pattern after move, save, and reopen.",
+    "Complete the native LibreCAD_3 MPOLYGON GUI save/reopen and run pinned ezdxf 1.4.5 against final consumer outputs before closing P8-D."
   ],
   "screenshots": [
     "/private/tmp/librecad-p8d-20261117/screen-ascii-open.png",
