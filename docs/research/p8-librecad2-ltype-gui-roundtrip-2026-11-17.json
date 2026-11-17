@@ -1,0 +1,110 @@
+{
+  "date": "2026-11-17",
+  "scope": "LibreCAD 2 scratch DXF import, save, reopen, and LINE move behavior",
+  "fixture_policy": "All drawings were generated from scratch by the existing libdxfrw public writer test and kept under /private/tmp. No DWG/DXF fixture was added to the repository.",
+  "source_generation": {
+    "existing_test": "LibreCAD/librecad/src/lib/filters/tests/dxf_roundtrip_tests.cpp: Binary DXF imports an editable line type definition",
+    "focused_test_result": "The existing focused test had passed 256 assertions before this GUI run; no test source was changed for the GUI run.",
+    "ascii": {
+      "path": "/private/tmp/librecad-p8d-20261117/ltype_source_ascii.dxf",
+      "sha256": "fef8b488a495dcc2a85fd7084f63e58a11177118555fa50efe9d5559171b26dc"
+    },
+    "binary": {
+      "path": "/private/tmp/librecad-p8d-20261117/ltype_source_binary.dxf",
+      "sha256": "1f13d1355311f993eb1919f0dcc52452485fa449722626e2449151b57f475bfc"
+    },
+    "expected_ltype": {
+      "name": "VENDOR_BINARY",
+      "description": "Binary marks",
+      "length": 15.0,
+      "pattern": [10.0, -5.0],
+      "pattern_flags": [0, 0]
+    },
+    "expected_entity": {
+      "type": "LINE",
+      "group_6_linetype": "VENDOR_BINARY",
+      "start": [0.0, 0.0],
+      "end": [20.0, 0.0]
+    }
+  },
+  "consumer_build": {
+    "repository": "LibreCAD/LibreCAD",
+    "commit": "28c032977a8f852306853b0e28ac9c2b303099fc",
+    "worktree_clean": true,
+    "version_shown_by_gui": "LibreCAD-2 2.2.2.6-alpha",
+    "build_command": "cmake --build /private/tmp/librecad-p8-d40f-build-20261116 --target librecad -j4",
+    "executable": "/private/tmp/librecad-p8-d40f-build-20261116/LibreCAD.app/Contents/MacOS/LibreCAD",
+    "executable_sha256": "05213d1ed2555632dd0384b49a5c656aa3cfb7038fe230649d9dd31a6996c2ea"
+  },
+  "results": [
+    {
+      "operation": "ASCII import, Save As, and GUI reopen",
+      "result": "loaded and reopened",
+      "output": "/private/tmp/librecad-p8d-20261117/ltype_ascii_gui_saved.dxf",
+      "output_sha256": "518c48585f226a8143031783c579bc264d8c52d2cfc76f30a6ae998086327fa7",
+      "ltype_preserved": true,
+      "line_group_6_preserved": true
+    },
+    {
+      "operation": "Binary import, Save As to ASCII, and GUI reopen",
+      "result": "loaded and reopened",
+      "output": "/private/tmp/librecad-p8d-20261117/ltype_binary_gui_saved.dxf",
+      "output_sha256": "518c48585f226a8143031783c579bc264d8c52d2cfc76f30a6ae998086327fa7",
+      "ltype_preserved": true,
+      "line_group_6_preserved": true
+    },
+    {
+      "operation": "Move/Copy from [0,0] to [5,0] with Use Current Attributes and Use Current Layer enabled",
+      "result": "geometry moved; custom entity linetype reference lost",
+      "output": "/private/tmp/librecad-p8d-20261117/ltype_binary_gui_moved.dxf",
+      "output_sha256": "f7ba493a22168bb9b85c4526702f55b485475b8e62aeea7b17a6fd445353362b",
+      "line": {
+        "start": [5.0, 0.0],
+        "end": [25.0, 0.0],
+        "group_6_linetype": "ByLayer"
+      },
+      "ltype_table_preserved": true
+    },
+    {
+      "operation": "Move/Copy from [0,0] to [5,0] with both override options disabled",
+      "result": "same output as enabled-options run",
+      "output": "/private/tmp/librecad-p8d-20261117/ltype_binary_gui_move_preserve.dxf",
+      "output_sha256": "f7ba493a22168bb9b85c4526702f55b485475b8e62aeea7b17a6fd445353362b",
+      "line": {
+        "start": [5.0, 0.0],
+        "end": [25.0, 0.0],
+        "group_6_linetype": "ByLayer"
+      },
+      "ltype_table_preserved": true
+    },
+    {
+      "operation": "Fresh GUI reopen of moved output",
+      "result": "loaded; Properties reports By Layer",
+      "input": "/private/tmp/librecad-p8d-20261117/ltype_binary_gui_move_preserve.dxf"
+    }
+  ],
+  "interpretation": [
+    "An unedited GUI round trip preserves the custom LTYPE definition and LINE group 6 for both ASCII and binary source files.",
+    "The unedited VENDOR_BINARY line visibly renders its [10,-5] dash pattern. The Properties panel still labels the selected entity Continuous, and its standard linetype control does not expose the imported custom name.",
+    "Moving the LINE loses group 6 even when both current-attribute and current-layer overrides are disabled. The moved output retains the LTYPE table but writes the entity reference as ByLayer; after reopen the entity uses the layer style. No-op save/reopen evidence cannot close the edit-preservation requirement."
+  ],
+  "gate_disposition": {
+    "gate": "P8-D",
+    "status": "OPEN",
+    "reason": "LibreCAD 2 edit/reopen changes the entity linetype reference, the Properties panel does not expose the imported name, and LibreCAD_3 MPOLYGON GUI round trip plus pinned ezdxf readback remain incomplete.",
+    "does_not_promote_support_claims": true
+  },
+  "next_slice": [
+    "Trace RS_FilterDXFRW::setEntityAttributes and lineTypeNameToWrite, RS_Pen custom-name/fold-ID state, the linetype property control, and RS_Modification::move/getClone. Current source shows import writes the name through RS_Pen::setLineTypeName; export uses the custom name only when getLineTypeFoldId() is nonzero; Move/Copy clones the entity then translates it. The exact point where this state disappears is not yet established.",
+    "Implement the smallest consumer-boundary fix that preserves and exposes the named custom LTYPE on the entity through a geometry edit, or explicitly refuse an edit that would discard it.",
+    "Add the owning fast adapter regression for import, move, export, fresh readback, and corrected retry; rebuild the GUI target once and repeat the exact GUI move/save/reopen control.",
+    "Then finish LibreCAD_3 MPOLYGON save/reopen and pinned ezdxf 1.4.5 readback before closing P8-D."
+  ],
+  "screenshots": [
+    "/private/tmp/librecad-p8d-20261117/screen-ascii-open.png",
+    "/private/tmp/librecad-p8d-20261117/screen-after-esc.png",
+    "/private/tmp/librecad-p8d-20261117/screen-ascii-reopen.png",
+    "/private/tmp/librecad-p8d-20261117/screen-binary-attributes.png",
+    "/private/tmp/librecad-p8d-20261117/screen-move-reopened.png"
+  ]
+}
