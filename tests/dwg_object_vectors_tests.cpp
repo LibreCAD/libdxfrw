@@ -28,8 +28,10 @@
 #include "intern/dxfwriter.h"
 #include "intern/dwgreader.h"
 #include "intern/dwgwriter27.h"
+#include "intern/dwgwriter32.h"
 #include "intern/dwg_fixed_handles.h"
 #include "intern/dwgutil.h"
+#include "dx_dwg_class_section_wire.h"
 #include "intern/dwgvaluekind.h"
 #include "intern/dxftransparency.h"
 #include "intern/drw_textcodec.h"
@@ -10380,6 +10382,107 @@ bool makeR2007TableFrame(std::uint16_t cellType, R2007TableFrame& frame,
 std::uint64_t cursorBit(const dwgBuffer& buffer) {
     return static_cast<std::uint64_t>(buffer.getPosition()) * 8u
         + buffer.getBitPos();
+}
+
+template <class Writer>
+class DwgClassesSectionWriterProbe final : public Writer {
+public:
+    using Writer::Writer;
+
+    bool writeClassesSection(std::vector<std::uint8_t>& section) {
+        if (!this->validateDwgClassInstanceCounts()
+            || !this->prepareDwgClassManifest()
+            || !this->writeDwgClasses())
+            return false;
+        const auto offset = this->m_sectionOffsets.find(recno::CLASSES);
+        const auto size = this->m_sectionSizes.find(recno::CLASSES);
+        if (!this->m_buf.isGood() || offset == this->m_sectionOffsets.end()
+            || size == this->m_sectionSizes.end() || offset->second != 0u
+            || size->second != this->m_buf.size())
+            return false;
+        section.assign(this->m_buf.data().begin(), this->m_buf.data().end());
+        return true;
+    }
+};
+
+template <class Writer>
+void testDwgClassesHighSizeVersion(TestContext& t,
+                                   unsigned revision,
+                                   bool expectedHighSize) {
+    DRW_Header header;
+    DwgClassesSectionWriterProbe<Writer> writer(nullptr, &header);
+    std::vector<std::uint8_t> section;
+    const bool written = writer.writeClassesSection(section);
+    t.expect(written && section.size() >= 46u,
+             "generated CLASSES section is complete for its writer version");
+    if (!written || section.size() < 46u)
+        return;
+
+    dx_class_wire::SectionProfile profile;
+    profile.revision = revision;
+    profile.maintenance = expectedHighSize ? 4u : 0u;
+    profile.trailer = dx_class_wire::Trailer::ProducerBitLong;
+    profile.sizeLayout = expectedHighSize
+        ? dx_class_wire::ClassSizeLayout::ExcludesHighWord
+        : dx_class_wire::ClassSizeLayout::IncludesHighWord;
+    profile.highSizeRule = dx_class_wire::ClassHighSizeRule::R2018Always;
+    profile.tail = dx_class_wire::ClassTail::BeforeEight;
+    profile.scalarByteAlignment = true;
+
+    const auto proof = dx_class_wire::observeSection(
+        section.data(), section.size(), profile);
+    const std::uint32_t encodedLowSize =
+        static_cast<std::uint32_t>(section[16u])
+        | (static_cast<std::uint32_t>(section[17u]) << 8u)
+        | (static_cast<std::uint32_t>(section[18u]) << 16u)
+        | (static_cast<std::uint32_t>(section[19u]) << 24u);
+    const std::uint32_t encodedHighSize = expectedHighSize
+        ? static_cast<std::uint32_t>(section[20u])
+            | (static_cast<std::uint32_t>(section[21u]) << 8u)
+            | (static_cast<std::uint32_t>(section[22u]) << 16u)
+            | (static_cast<std::uint32_t>(section[23u]) << 24u)
+        : 0u;
+    const std::size_t dataStart = 20u + (expectedHighSize ? 4u : 0u);
+    const std::size_t expectedCrc = section.size()
+        - 2u - dwgSpec::kClassesUnknownTailBytes - 16u;
+    const bool independentlyObserved =
+        proof.status == dx_class_wire::Status::Observed
+        && proof.highSizePresent == expectedHighSize
+        && proof.sizeField == encodedLowSize
+        && proof.crcByte == expectedCrc
+        && expectedCrc == dataStart + encodedLowSize
+        && proof.crcMatches && proof.sentinelByte
+            == expectedCrc + 2u + dwgSpec::kClassesUnknownTailBytes
+        && proof.sectionEndByte == section.size();
+    const bool librarySentinelsMatch =
+        proof.status == dx_class_wire::Status::Observed
+        && proof.sentinelByte <= section.size()
+        && section.size() - proof.sentinelByte >= 16u
+        && std::equal(dwgSentinels::CLASSES_BEGIN,
+                      dwgSentinels::CLASSES_BEGIN + 16, section.begin())
+        && std::equal(dwgSentinels::CLASSES_END,
+                      dwgSentinels::CLASSES_END + 16,
+                      section.begin()
+                          + static_cast<std::ptrdiff_t>(proof.sentinelByte));
+    const bool highSizeMatches = !expectedHighSize || encodedHighSize == 0u;
+
+    bool truncationsRejected = true;
+    for (std::size_t prefixSize = 0u;
+         prefixSize < section.size() && truncationsRejected;
+         ++prefixSize) {
+        truncationsRejected = dx_class_wire::observeSection(
+            section.data(), prefixSize, profile).status
+            != dx_class_wire::Status::Observed;
+    }
+    t.expect(independentlyObserved && librarySentinelsMatch
+                 && highSizeMatches && truncationsRejected,
+             "CLASSES low size excludes the optional high-size word and preserves CRC, tail, sentinel, and truncation boundaries");
+}
+
+void testDwgClassesHighSizeWriterBoundary(TestContext& t) {
+    testDwgClassesHighSizeVersion<dwgWriter24>(t, 2010u, false);
+    testDwgClassesHighSizeVersion<dwgWriter27>(t, 2013u, true);
+    testDwgClassesHighSizeVersion<dwgWriter32>(t, 2018u, true);
 }
 
 void testR2007TableCellTypeReaderVectors(TestContext& t) {
@@ -31442,6 +31545,15 @@ int main(int argc, char** argv) {
         TestContext context;
         testR2007TableCellTypeReaderVectors(context);
         std::cout << "AC1018/AC1021 TABLE cell override vectors: "
+                  << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--dwg-classes-high-size-writer-boundary") {
+        TestContext context;
+        testDwgClassesHighSizeWriterBoundary(context);
+        std::cout << "AC1024/AC1027/AC1032 CLASSES size boundary: "
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
         return context.failures == 0 ? 0 : 1;
     }

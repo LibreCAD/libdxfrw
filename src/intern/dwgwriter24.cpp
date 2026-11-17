@@ -254,10 +254,21 @@ bool dwgWriter24::writeDwgClasses() {
 
     m_buf.alignToByte();
 
-    // The RL covers the payload up to, but not including, the CRC.
-    std::uint32_t payloadSize =
-        static_cast<std::uint32_t>(m_buf.size()) - static_cast<std::uint32_t>(sizeOffset + 4);
-    m_buf.patchRawLong32(sizeOffset, payloadSize);
+    // The low RL counts the class data through the byte before the CRC.
+    // R2007+ stores an optional high-size RL immediately after it, so exclude
+    // that word from the low count (ODA 10.2; the reader locates the CRC from
+    // the end of the complete size prefix).
+    const std::size_t lowSizePrefixBytes = sizeof(std::uint32_t)
+        + (hasHSize ? sizeof(std::uint32_t) : 0u);
+    if (sizeOffset > m_buf.size()
+        || m_buf.size() - sizeOffset < lowSizePrefixBytes)
+        return false;
+    const std::size_t payloadSize = m_buf.size()
+        - sizeOffset - lowSizePrefixBytes;
+    if (payloadSize > std::numeric_limits<std::uint32_t>::max())
+        return false;
+    m_buf.patchRawLong32(sizeOffset,
+                         static_cast<std::uint32_t>(payloadSize));
 
     const std::uint16_t crc = m_buf.crc16(0xC0C1, sectionStart + 16, m_buf.size());
     m_buf.putRawShort16(crc);

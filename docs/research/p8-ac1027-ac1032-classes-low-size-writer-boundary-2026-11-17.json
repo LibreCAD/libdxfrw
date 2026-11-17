@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-17",
+  "slice": "AC1027/AC1032 CLASSES low-size boundary",
+  "scope": "Generated CLASSES sections from the AC1024, AC1027, and AC1032 libdxfrw writers only.",
+  "source": {
+    "generator": "tests/dwg_local_roundtrip_tests.cpp --generate-freecad-primitives-source",
+    "version": "AC1032",
+    "sha256": "7df817c97a68064cf2df6823ca5b4a1b0b6c47b427d66de8d8fb5bc77fcd69f8",
+    "storage": "Scratch under /private/tmp; not added to the repository."
+  },
+  "authority": {
+    "document": "Open Design Specification for .dwg files",
+    "version": "5.4.1",
+    "sections": ["10.1", "10.2"],
+    "copy": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "note": "Section 10.2 places the optional high-size RL after the low-size field and defines the low size over the class data area; section 10.1 describes the CRC and R18+ tail."
+  },
+  "change": {
+    "file": "src/intern/dwgwriter24.cpp",
+    "detail": "Compute the low-size count from the end of the complete size prefix. For AC1027/AC1032 this excludes the optional high-size RL; AC1024 retains its four-byte size prefix. Reject impossible prefix bounds and values larger than uint32_t before patching."
+  },
+  "wireProof": {
+    "test": "libdxfrw_dwg_classes_high_size_writer_boundary",
+    "versions": ["AC1024", "AC1027", "AC1032"],
+    "checks": [
+      "low-size field resolves to the CRC byte for the explicit profile",
+      "high-size word presence and zero value",
+      "independent CRC and eight-byte pre-sentinel tail",
+      "library begin/end sentinels and exact section end",
+      "every strict prefix truncation is refused by the independent observer"
+    ],
+    "observer": "dx_dwg_class_section_wire.h"
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests dwg2dxf libdxfrw_dwg_local_roundtrip -j2",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dwg_classes_high_size_writer_boundary|libdxfrw_class_section_independent_wire)$' --output-on-failure",
+      "result": "PASS (2/2)"
+    },
+    {
+      "command": "build-gcc/dwg2dxf '/private/tmp/libdxfrw-classes-writer AC1032 primitives.dwg' -y -d -o /private/tmp/libdxfrw-classes-writer-AC1032.dxf",
+      "result": "PASS; conversion succeeded, classesCrcMismatch=0, no CLASSES page-range warning; one informational HEADER compatibility row remains (offset 16, expected 497, observed 501).",
+      "inputSha256": "7df817c97a68064cf2df6823ca5b4a1b0b6c47b427d66de8d8fb5bc77fcd69f8",
+      "outputSha256": "793748e5656c1573f657eac96bf473ebf9595148d32e21980d9e9afc6bd0d556",
+      "logSha256": "14b2c642ded3f7051267d3a799b44885b0c3430b6b525d8f2233c6fe527b3218"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_freecad_generated_ac1032_primitives_open$' --output-on-failure",
+      "result": "Strict installed-converter preflight passed and wrote the same DXF hash above. FreeCAD then failed to start because the installed Qt build requires NEON; no application import occurred.",
+      "installedDwg2dxfSha256": "c9cbe735291d9e8b329ad3300fc354d704bd2e94bc9bc3f2b3f419947c4f81be"
+    }
+  ],
+  "limits": [
+    "The generated profile proves only these writer versions and section fields; it is not independent producer evidence or broad DWG support qualification.",
+    "The FreeCAD platform gate remains open; the local ARM64 application could not launch."
+  ],
+  "supportClaim": "unchanged"
+}

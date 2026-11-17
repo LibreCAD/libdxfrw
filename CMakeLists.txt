@@ -2047,7 +2047,8 @@ if(LIBDXFRW_BUILD_TESTS)
     target_compile_features(libdxfrw_dwg_object_vectors_tests PRIVATE cxx_std_17)
     target_include_directories(libdxfrw_dwg_object_vectors_tests PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/intern)
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/intern
+        ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf)
     target_link_libraries(libdxfrw_dwg_object_vectors_tests PRIVATE dxfrw)
     add_test(NAME libdxfrw_dwg_object_vectors
         COMMAND libdxfrw_dwg_object_vectors_tests)
@@ -2113,6 +2114,12 @@ if(LIBDXFRW_BUILD_TESTS)
     set_tests_properties(libdxfrw_dwg_table_cell_overrides PROPERTIES
         LABELS "fast;dwg;object-vectors;table;generated;transaction"
         TIMEOUT 15)
+    add_test(NAME libdxfrw_dwg_classes_high_size_writer_boundary
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --dwg-classes-high-size-writer-boundary)
+    set_tests_properties(libdxfrw_dwg_classes_high_size_writer_boundary
+        PROPERTIES LABELS "fast;dwg;classes;writer;generated;independent"
+                   TIMEOUT 30)
     add_executable(libdxfrw_table_dwg_codec_allocation_tests
         tests/table_dwg_codec_allocation_tests.cpp)
     target_compile_features(libdxfrw_table_dwg_codec_allocation_tests
