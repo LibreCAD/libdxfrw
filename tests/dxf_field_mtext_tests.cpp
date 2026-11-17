@@ -60,6 +60,34 @@ bool create(const std::filesystem::path& path, bool binary, bool mtext,
     w->writeString(0,"ENDSEC"); w->writeString(0,"EOF");
     return !w->hasWriteError() && stream.good();
 }
+bool createSuppressedChildValue(const std::filesystem::path& path, bool binary) {
+    std::ofstream stream(path, std::ios::binary | std::ios::trunc);
+    if (!stream) return false;
+    if (binary) stream.write("AutoCAD Binary DXF\r\n\x1a\0", 22);
+    std::unique_ptr<dxfWriter> w = binary
+        ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+        : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+    w->setVersion("AC1021", true);
+    w->writeString(0, "SECTION"); w->writeString(2, "HEADER");
+    w->writeString(9, "$ACADVER"); w->writeString(1, "AC1021");
+    w->writeString(0, "ENDSEC"); w->writeString(0, "SECTION");
+    w->writeString(2, "OBJECTS"); w->writeString(0, "FIELD");
+    w->writeString(5, "50"); w->writeString(330, "C");
+    w->writeString(100, "AcDbField"); w->writeString(1, "_text");
+    w->writeString(2, "field expression");
+    w->writeInt32(90, 0); w->writeInt32(97, 0);
+    w->writeInt32(91, 0); w->writeInt32(92, 0);
+    w->writeInt32(94, 0); w->writeInt32(95, 0); w->writeInt32(96, 0);
+    w->writeString(300, ""); w->writeInt32(93, 1);
+    w->writeString(6, "ACFD_FIELD_VALUE");
+    w->writeInt32(93, 1); // R2007+ general-format flag suppresses typed payload.
+    w->writeInt32(90, 4); // String value type remains present.
+    w->writeString(300, "drawing.dwg"); w->writeInt32(94, 0);
+    w->writeString(302, ""); w->writeString(304, "ACVALUE_END");
+    w->writeString(301, "drawing.dwg"); w->writeInt32(98, 11);
+    w->writeString(0, "ENDSEC"); w->writeString(0, "EOF");
+    return !w->hasWriteError() && stream.good();
+}
 bool matches(const Capture& capture, const std::string& expected) {
     const auto& f = capture.field;
     return capture.count == 1 && f.m_fieldCode == expected
@@ -107,6 +135,25 @@ int main(int argc, char** argv) {
     struct Cleanup { std::filesystem::path p; bool remove; ~Cleanup() {
         if (remove) { std::error_code ec; std::filesystem::remove_all(p, ec); }
     }} cleanup{dir, argc == 1};
+    for (bool binary : {false, true}) {
+        const auto path = dir / (binary ? "suppressed-child-b.dxf"
+                                        : "suppressed-child-a.dxf");
+        if (!createSuppressedChildValue(path, binary)) return 1;
+        dxfRW reader(path.string().c_str()); Capture capture;
+        if (!reader.read(&capture, false) || capture.count != 1
+            || capture.field.m_childValues.size() != 1u) {
+            std::cerr << "versioned FIELD child payload suppression failed\n";
+            return 1;
+        }
+        const DRW_CadValue& value = capture.field.m_childValues.front().m_value;
+        if (value.m_formatFlags != 1 || value.m_dataType != 4
+            || value.m_value.type() != DRW_Variant::INVALID
+            || value.m_formatString != "drawing.dwg"
+            || !value.m_valueString.empty()) {
+            std::cerr << "versioned FIELD child payload disposition changed\n";
+            return 1;
+        }
+    }
     const std::string text = std::string(246u,'A') + "\\S1^ 2;^Iitem";
     for (bool binary : {false,true}) {
         const auto source = dir / (binary?"source-b.dxf":"source-a.dxf");

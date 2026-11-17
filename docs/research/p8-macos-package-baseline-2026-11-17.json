@@ -32,6 +32,104 @@
     ],
     "interpretation": "Selected class layouts differ substantially, confirming that the 2.0.0 to 3.0.0 ABI break is real. DRW_Interface has the same object size, which does not prove vtable compatibility. This selected type list is not a complete ABI report."
   },
+  "libreCad3SourceCompatibility": {
+    "source": "tests/lc3_compat_check.cpp",
+    "command": "/usr/bin/c++ -std=c++17 -Wall -Wextra -Werror -Isrc -Isrc/intern -c tests/lc3_compat_check.cpp -o <tmp>/lc3_compat_check.o",
+    "result": "PASS",
+    "scope": "Compile-only LibreCAD_3-style public callback/field surface; does not prove installed package use or GUI/runtime behavior."
+  },
+  "libreCadSystemPackage": {
+    "handoffReceipt": "metadata/librecad-system-package-handoff.md",
+    "targetCommit": "3c7785ebbcbfc8f3c8f79dbba093aff09cdec753",
+    "integrationCommit": "6969e0a003414f9a7084349ac54bc2b32515e16b",
+    "requestedPackageMajor": 2,
+    "candidatePackageMajor": 3,
+    "status": "SCRATCH_SYSTEM_FAST_PASS_CURRENT_TARGET_OPEN",
+    "reason": "The pinned integration requested ABI major 2. Its initial FIELD run failed on unversioned/incomplete generated vectors; an isolated ABI-3 successor passes after scratch-only vector corrections, but it is based on an older target and does not establish current system-package compatibility.",
+    "localRequalificationCommit": "592b474a453cdf967e37b495bdf1750b0b79ffc1",
+    "localRequalificationBase": "6969e0a003414f9a7084349ac54bc2b32515e16b",
+    "localRequalificationScope": "Isolated clean LibreCAD integration clone in /private/tmp/librecad-system-package-p8e; does not modify the user's LibreCAD checkout or establish compatibility with a refreshed upstream target.",
+    "configure": {
+      "command": "cmake -S . -B <build> -DLIBRECAD_USE_SYSTEM_LIBDXFRW=ON -Dlibdxfrw_DIR=<installed-3.0-package>/lib/cmake/libdxfrw -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=ON",
+      "result": "PASS",
+      "package": "installed ABI-3 shared package; library SHA-256 3b4600d28fe33bb2c8a80ef7274cbad1b22115735e40e4fc79fb205382b6a396"
+    },
+    "builds": [
+      {
+        "target": "librecad_filter_compile_check",
+        "result": "PASS",
+        "scope": "Compile-only filter target; one non-fatal enum-switch warning in LibreCAD's advanced metadata header."
+      },
+      {
+        "target": "libdxfrw_system_fast_tests",
+        "result": "PASS",
+        "scope": "Consumer test executable compiled and linked against the installed package; test cases were not implied by this build result."
+      }
+    ],
+    "focusedTestRun": {
+      "command": "QT_QPA_PLATFORM=offscreen <build>/libdxfrw_system_fast_tests [field] --reporter console",
+      "result": "FAIL",
+      "testCases": {"total": 8, "passed": 4, "failed": 4},
+      "assertions": {"total": 44, "passed": 38, "failed": 6},
+      "failedBehaviors": [
+        "The FIELD/FIELDLIST read fragment has no HEADER/$ACADVER, so it cannot identify the version required to interpret its R2007+ payload-suppression flags.",
+        "The alleged successful full-file writer vector contains a null FIELDLIST member and references child/handle objects that it never emits, so it is not graph-closed.",
+        "Three outer-write refusal assertions use an interface whose finalizeDxfWrite() retains the default success result instead of propagating the low-level refusal."
+      ],
+      "interpretation": "This initial run used unversioned/incomplete generated vectors. One parser defect was isolated and fixed in the candidate below. The test vectors also omitted graph dependencies and did not propagate failures through finalizeDxfWrite(). They do not establish independent FIELD producer semantics or close P5-A/P5-B."
+    },
+    "runtimeLinkageInspection": {
+      "command": "otool -L <build>/libdxfrw_system_fast_tests; otool -l <build>/libdxfrw_system_fast_tests",
+      "result": "PASS",
+      "evidence": "The executable links libdxfrw.3.dylib and records the installed package lib directory as LC_RPATH; runtime loaded-path identity was not separately captured for this initial failing run."
+    },
+    "fieldVersionFixCandidate": {
+      "baseCommit": "599cf88e63222f93d6863836afa255d9b4aa59ef",
+      "workingTreeChanges": [
+        "src/libdxfrw.cpp: processField constructs dxfField::Decoder with reader->getVersion(), because the façade version member is assigned only after processDxf() completes.",
+        "tests/dxf_field_mtext_tests.cpp: add a locally generated versioned AC1021 child-value suppression control for ASCII and Binary."
+      ],
+      "sharedBuild": {
+        "configuration": "Release",
+        "buildSharedLibs": true,
+        "buildDwg2Dxf": false,
+        "buildTests": true,
+        "buildCommand": "cmake --build <build> --target dxfrw libdxfrw_dxf_field_mtext_tests --parallel 4",
+        "installPrefix": "/private/tmp/libdxfrw-field-prefix",
+        "library": "/private/tmp/libdxfrw-field-prefix/lib/libdxfrw.3.0.0.dylib",
+        "librarySha256": "243d07a3c814a3c91650b59427dd62ba7073e58ea47a4b0f80c1bf5ddabf9525"
+      },
+      "focusedTest": {
+        "command": "ctest --test-dir <build> -R '^libdxfrw_dxf_field_mtext$' --output-on-failure",
+        "result": "PASS",
+        "elapsedSeconds": 0.32,
+        "scope": "Locally generated AC1021 ASCII/Binary FIELD child payload-suppression control plus existing _text FIELD fast controls."
+      }
+    },
+    "correctedScratchLibreCadFastRun": {
+      "baseCommit": "6969e0a003414f9a7084349ac54bc2b32515e16b",
+      "tree": "/private/tmp/librecad-system-package-p8e",
+      "correctionsNotCommitted": true,
+      "corrections": [
+        "Add HEADER/$ACADVER AC1021 to the version-dependent FIELD input vector.",
+        "Make the output vector graph-closed, remove its null FIELDLIST member, and correct CadValue flags and handle value.",
+        "Override finalizeDxfWrite() in the consumer test emitter to propagate low-level writer refusal."
+      ],
+      "buildTargets": [
+        {"target": "librecad_filter_compile_check", "result": "PASS"},
+        {"target": "libdxfrw_system_fast_tests", "result": "PASS"}
+      ],
+      "testCommand": "QT_QPA_PLATFORM=offscreen <build>/libdxfrw_system_fast_tests --reporter compact",
+      "testResult": {"result": "PASS", "testCases": 12, "assertions": 176},
+      "loadedLibrary": "/private/tmp/libdxfrw-field-prefix/lib/libdxfrw.3.0.0.dylib",
+      "loadedLibrarySha256": "243d07a3c814a3c91650b59427dd62ba7073e58ea47a4b0f80c1bf5ddabf9525",
+      "runtimeIdentityCommand": "DYLD_PRINT_LIBRARIES=1 QT_QPA_PLATFORM=offscreen <build>/libdxfrw_system_fast_tests --reporter compact",
+      "limitations": [
+        "The corrected test changes are scratch-only and must be replayed against a refreshed LibreCAD target before system-package compatibility is claimed.",
+        "This does not prove native LibreCAD GUI behavior or independent FIELD producer semantics."
+      ]
+    }
+  },
   "ciChange": {
     "file": ".github/workflows/shared-abi-qualification.yml",
     "sha256": "92497cc2610b67991b09086a8200e84bbfd31d7d6211b265af37daed9a53fedd",
@@ -83,11 +181,15 @@
     "proves": [
       "The macOS shared library builds and installs with the versioned ABI-3 filename.",
       "A fresh shared consumer rejects package version 2.0 and accepts 3.0, then loads the exact installed runtime.",
-      "The macOS staged static package is consumable through CMake and pkg-config and relocates with a stable archive."
+      "The macOS staged static package is consumable through CMake and pkg-config and relocates with a stable archive.",
+      "The LibreCAD_3-style compile-only compatibility surface still compiles against the current public headers.",
+      "The candidate FIELD reader uses the version parsed from the current DXF HEADER during OBJECTS parsing, with an ASCII/Binary AC1021 generated control passing.",
+      "A clean scratch LibreCAD system-package consumer build and fast run pass against the candidate ABI-3 dylib after correcting the test vectors; the test changes are not yet in a refreshed upstream integration target."
     ],
     "doesNotProve": [
       "Full symbol-by-symbol or class-layout ABI equivalence to another 3.x release.",
-      "LibreCAD or LibreCAD_3 source/runtime compatibility.",
+      "A current LibreCAD system-package build on a refreshed upstream target; the passing consumer test uses an older isolated clone and uncommitted test corrections.",
+      "LibreCAD or LibreCAD_3 GUI/runtime behavior.",
       "DWG/DXF semantic support or FreeCAD behavior.",
       "Linux/Windows shared-package runtime qualification or release completion of P8-E/P8-F."
     ],

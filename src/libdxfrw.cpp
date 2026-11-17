@@ -30253,7 +30253,11 @@ bool dxfRW::processField() {
     DRW_RawDxfObject raw;
     if (!copyRawDxfCarrierName(raw, nextentity))
         return setError(DRW::BAD_CODE_PARSED);
-    dxfField::Decoder decoder(field,version);
+    // read() assigns the façade's version only after processDxf() completes.
+    // Use the version already parsed from HEADER so versioned FIELD payload
+    // rules are applied while OBJECTS is being decoded.
+    dxfField::Decoder decoder(
+        field, static_cast<DRW::Version>(reader->getVersion()));
     while (reader->readRec(&code)) {
         DRW_DBG(code); DRW_DBG("\n");
         if (!decoder.beforeRecord(code,reader))

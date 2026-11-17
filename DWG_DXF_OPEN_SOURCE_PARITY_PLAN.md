@@ -18,11 +18,15 @@ was 84e73f0188fb32bb1fffb8d4d1edb4135543ba18. These are snapshots, not current
 integration targets; refresh mutable heads before replay or qualification.
 
 **Current state (2026-11-17):** 32 required package gates; 4 closed, 28 open
-(12.5% package completion). The implementation-slice estimate is 15/46 complete
-(32.6%), with 31 remaining: the 28 open package gates and three split phases—
+(12.5% package completion). The implementation-slice estimate is 17/48 complete
+(35.4%), with 31 remaining: the 28 open package gates and three split phases—
 P8-B Linux baseline/3D, P8-C Windows baseline/3D, and P8-D GUI checks (D1 and
-D2 must both pass). Closed gates remain limited to their receipts and do not
-promote broad support claims. One closure is a bounded strict-refusal outcome
+D2 must both pass). Two preparation slices are complete: the ABI-3 CMake handoff
+in the clean integration clone and the version-aware DXF FIELD decoder fix.
+P8-E remains open because the passing LibreCAD system-package fast run used
+locally corrected test vectors and an unrefreshed integration base. Closed
+gates remain limited to their receipts and do not promote broad support claims.
+One closure is a bounded strict-refusal outcome
 for SORTENTSTABLE owner profiles without a valid DXF mapping; it does not enable
 those profiles. The estimate counts slices equally and does not weight
 complexity. P6-G is a conditional reopen trigger; P7-E is optional; both are
@@ -84,125 +88,112 @@ requires NEON; P8-B/C still require native Linux/Windows runs.
   and [3D plan](DWG_DXF_3D_SUPPORT_PLAN.md). A source-only result or external
   advisory result does not promote a claim.
 
-## Fast implementation order
+## Execution order for the remaining work
 
-The active registry below contains only the 28 open package gates. Completed
-actions are removed from that queue when their receipt is filed; receipts and
-the progress ledger remain as history. A missing witness, authority, runner, or
-GUI session blocks only its dependent row.
+The registry below is the complete active queue: 28 open package gates. The
+three separately counted P8 phases remain P8-B 3D, P8-C 3D, and the joint
+P8-D1/D2 GUI phase. Completed slices are removed from this queue and retained
+only in receipts. Each waiting condition blocks only its dependent slice.
 
-### 1. Use the locally actionable integration lane first
+### 1. Finish the local P8-E consumer replay
 
-While producer evidence is pending, advance local work with the shortest
-feedback loop:
+The ABI-3 version requirement is committed in clean integration clone commit
+`592b474a453cdf967e37b495bdf1750b0b79ffc1`. The current libdxfrw source also
+fixes `processField()` to use the version already parsed by `dxfReader`; `read()`
+updates the façade's `version` member only after `processDxf()` returns. A new
+locally generated AC1021 control now passes for ASCII and Binary. The initial
+LibreCAD fast-test failures then exposed stale test contracts rather than more
+library defects: the input fragment lacked `$ACADVER`; the successful writer
+vector had an unclosed graph, a null FIELDLIST member, and inconsistent
+CadValue flags/handle state; and the refusal stub did not override the existing
+`finalizeDxfWrite()` contract.
 
-1. **P8-F local wiring audit — done 2026-11-17:** reviewed
-   `.github/workflows/parity-fast.yml`,
-   `.github/workflows/build.yml`,
-   `.github/workflows/shared-abi-qualification.yml`,
-   `.github/workflows/freecad-platform-qualification.yml`, and CMake's
-   `libdxfrw_release_readiness`/`libdxfrw_support_matrix` registrations. The
-   fast workflow covers push/PR/dispatch; the native qualification workflow
-   covers push/PR/dispatch/schedule; shared-ABI and FreeCAD platform jobs are
-   available by dispatch and their qualification branch path. The shared
-   package workflow initially omitted macOS even though Conan exposes a shared
-   option and the probe supports Darwin; the matrix now includes `macos-15`.
-   The local native shared and staged static package probes passed; exact scope
-   is in the [macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json).
-   No stale target was found. Remote branch-protection/required-check settings
-   are not represented in these files, so P8-F remains open for that state and
-   final source-matched job evidence. Do not repeat this local source audit
-   without a workflow change.
-2. **Next: finish the P8-E ABI baseline:** macOS shared-runtime and staged
-   static-package checks are complete in the receipt above. The selected
-   public-layout probe against `origin/master` 2.0.0 found substantial changes
-   in `DRW_Entity`, `DRW_Line`, `DRW_Viewport`, `DRW_Layer`, `DRW_Header`,
-   `DRW_Material`, `dxfRW`, `dwgR`, and `dwgRW`; `DRW_Interface` has equal
-   `sizeof`, which says nothing about vtable compatibility. The 2.0.0 to 3.0.0
-   ABI break is intentional and documented; consumers must rebuild. Do not
-   repeat this selected comparison. The remaining work is to freeze the full
-   3.0.0 public/export inventory and collect native Linux/Windows shared-package
-   receipts from the updated workflow. **Requirement mismatch to resolve before
-   release:** the task-supplied `AGENTS.md` describes C++14, but both current
-   `origin/master` and this branch set C++17, and the public headers use C++17
-   types such as `std::optional`. Do not claim C++14 compatibility or downgrade
-   the standard without a complete compatibility pass. Current evidence is not
-   full ABI equivalence and does not close P8-E. Repeat only affected checks
-   after candidate freeze.
-3. **P8-B/C 2D platform baseline:** dispatch the existing FreeCAD qualification
-   workflow on native Linux and Windows as soon as the runner is available.
-   Run generated AC1021/AC1024/AC1032 2D profiles first; these do not depend on
-   P7 or a 3D semantic witness. Keep the separately counted 3D phase gated on
-   profiles admitted by P7. Do not retry `ordinary_enc_AC1027.dwg` until its
-   source-reference gate closes.
+After correcting those vectors in the isolated clone, macOS configuration and
+the filter compile passed, the system fast executable compiled and linked, and
+all 176 assertions in 12 cases passed while loading the exact installed
+ABI-3 dylib. This is recorded in the [package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json).
+The test edits are scratch-only and the clone is based on the pinned older
+integration commit, so P8-E remains open. Next:
 
-These early P8-E/F checks are preparation only and do not change the 15/46
-slice or 4/32 package completion counts until their full exit evidence passes.
-If a local check finds a defect, make one bounded fix, build the touched target
-once, and run its owning focused selectors together. If these checks are
-already clean or waiting on a native host, take the next evidence-ready profile
-below; do not invent a parser profile or repeat a broad corpus search.
+1. Port the versioned input, graph-closed writer vector, and proper finalization
+   assertion into a clean LibreCAD worktree based on its current target. Keep
+   the null FIELDLIST read test as a separate read-only case.
+2. Reconfigure against the current libdxfrw ABI-3 package; rebuild only
+   `librecad_filter_compile_check` and `libdxfrw_system_fast_tests`; run the
+   latter once. Do not run the full LibreCAD suite.
+3. Freeze an installed-file/header hash manifest and collect native Linux,
+   macOS, and Windows shared-package receipts. Keep the explicit 2.0.0-to-3.0.0
+   consumer rebuild requirement.
 
-### 2. Capture witnesses in fewer setup sessions
+The generated FIELD control proves version selection only; it does not prove
+producer semantics or close P5-A/B. Keep the raw source profile, graph closure,
+and independent semantic gates separate.
 
-Batch source creation and tool setup, but keep each package's evidence and exit
-decision separate:
+The 2.0.0-to-3.0.0 ABI break is intentional; consumers must rebuild. The
+current source and origin/master both require C++17 and public headers use
+C++17 types such as `std::optional`; preserve that baseline and record the
+supplied C++14 description as inconsistent documentation. Do not downgrade
+the standard as part of this upgrade.
 
-1. In one AutoCAD/ObjectARX session, capture distinct P5-A FIELD, P5-G dynamic
-   constraint, P5-H VIEWPORT shade-plot, and P6-A IMAGEDEF profiles. For each,
-   save the exact API operations, release/build, source hash, expected values,
-   and create/set/remove/clone behavior required by that row.
-2. Acquire one matching R24 TABLE/TABLECONTENT source for P5-D/E/F, preferably
-   containing CELLSTYLEMAP, content formatting, and a layer override. Record
-   only fields actually present; close each package separately.
-3. Send one bounded request for the remaining named witnesses: P4-B AC1032
-   associative-network class version 2; P4-C AC1027 Sweep with a nonzero
-   suffix; P6-B PERSUBENTMGR; P6-F eligible AC1012/AC1014 partial output; P7-B
-   an unqualified AcDs version; P7-D ACIS 21500 header authority; and P7-G one
-   trim/periodic-surface/spline profile. Reuse recorded searches; request only
-   the exact missing bytes, version, or expected values.
+### 2. Launch one native CI wave when GitHub is reachable
 
-P6-C and P6-E have no productive local rescan. Reopen them only if new
-primary/versioned authority or a source-distinct discriminator can resolve the
-AC1032 inline-cell boundary or AC1024 mesh post-sentinel bytes. P7-C reuses its
-exact AC1027 source and projection harness only after authority resolves groups
-290/2 and handles `0x176`, `0x2E1`, and `0x37D`; do not repeat the rejected
-same-name peer search. P7-F follows P7-B–D and needs a qualified independent
-geometry reader. P7-H follows P7-B/D/F/G. P7-E is optional and cannot satisfy
-that reader gate.
+Last local prerequisite check (2026-11-17): `gh auth status` reports an
+invalid token and DNS failure for `api.github.com`; no dispatch was sent. Retry
+only after token or network state changes. Dispatch the existing
+`shared-abi-qualification.yml` and `freecad-platform-qualification.yml` once
+each on the candidate source. Record shared package/runtime identity once per
+runner and reuse it for P8-E and the matching P8-B/C receipt; keep each gate's
+exit criteria separate. Close generated AC1021/AC1024/AC1032 FreeCAD 2D
+baselines first, then run 3D only for P7-admitted profiles. Reuse existing
+path-with-spaces and Unicode checks. Do not retry `ordinary_enc_AC1027.dwg`
+until its source-reference gate closes, and do not count cross-compilation as
+platform evidence. Continue local source-bound work while jobs run or GitHub
+remains unavailable.
 
-### 3. Close one profile from source to output
+### 3. Capture missing source witnesses in shared setup sessions
 
-For each admitted source-bound parser/writer slice, follow this sequence:
-bind source/version → map field spans and handle roles → close typed projection
-and dependencies → inspect strict staged output → prove refusal/rollback and
-corrected same-writer retry → perform fresh independent readback → verify
-native meaning when required. Unknown fields stay raw or cause refusal. Stop at
-the first unsupported field/reference. Shared source creation avoids repeated
-setup but does not combine package exit criteria. Consumer rows use their own
-runtime identity, operation, persistence, and independent comparison.
+Use existing searches and request only the missing bytes, version, or expected
+values. Keep package exit criteria separate even when inputs are captured in
+one session:
 
-### 4. Run native consumer checks independently
+1. One AutoCAD/ObjectARX session: P5-A FIELD, P5-G dynamic constraint, P5-H
+   VIEWPORT shade-plot, and P6-A IMAGEDEF. Record API operations, release/build,
+   hash, expected values, and create/set/remove/clone behavior for each.
+2. One matching R24 TABLE/TABLECONTENT source for P5-D/E/F, preferably with
+   CELLSTYLEMAP, content formatting, and a layer override. Record only fields
+   actually present.
+3. One bounded request/search pass for P4-B AC1032 associative-network class
+   version 2; P4-C AC1027 Sweep with a nonzero suffix; P6-B PERSUBENTMGR;
+   P6-F eligible AC1012/AC1014 partial output; P7-B an unqualified AcDs
+   version; P7-D ACIS 21500 header authority; and P7-G one trim, periodic
+   surface, or spline profile.
 
-P8-B Linux and P8-C Windows each have two phases: the generated 2D baseline can
-close independently; the 3D phase follows only for P7-admitted profiles. Save
-runtime, FreeCAD, converter, loaded-module, and output identities once per
-platform. Require exact `open()` and `insert()` handoffs, independent output
-semantics, and existing path-with-spaces/Unicode controls. Cross-compilation
-does not qualify a platform.
+Do not rescan P6-C or P6-E without new primary/versioned authority or a
+source-distinct discriminator. P7-C reuses its exact AC1027 source only after
+authority resolves groups 290/2 and handles `0x176`, `0x2E1`, and `0x37D`; do
+not repeat the rejected same-name peer search. P7-F follows P7-B–D and needs a
+qualified independent geometry reader. P7-H follows P7-B/D/F/G. P7-E is
+optional and cannot satisfy that reader gate.
 
-When a LibreCAD 2 GUI session is available, run P6-H MLINE and P8-D1 LINE in
-the same session. Run P8-D2 MPOLYGON in a LibreCAD_3 session independently; do
-not wait for one GUI application before scheduling the other. Both D checks
-remain required for P8-D closure. Reuse existing source-derived inputs and add
-no fixtures.
+### 4. Implement whichever source-bound profile becomes ready first
 
-### 5. Freeze and close release gates last
+For each admitted profile, use one slice: bind source/version → map every
+field span and handle role → close typed projection and dependencies → inspect
+strict staged output → prove refusal/rollback and corrected same-writer retry
+→ fresh independent readback → native meaning when required. Unknown fields
+stay raw or cause refusal. Stop at the first unsupported field/reference.
+Do not wait for another blocked package; take the next ready row. Respect
+explicit dependencies in the registry, especially P5-A before P5-B and
+P7-B/C/D before P7-F/H.
 
-After source and semantic profiles stabilize, freeze P8-A candidate source,
-build, installed package, executable, and loaded modules. Re-run only platform
-and package checks affected by that frozen candidate; close P8-E, P8-F, then
-set P8-G thresholds from admitted evidence. Keep P9 external-only and
+### 5. Share consumer sessions and freeze release evidence last
+
+When a LibreCAD 2 GUI session is available, qualify P6-H MLINE and P8-D1 LINE
+in that same session. Qualify P8-D2 MPOLYGON independently in LibreCAD_3; both
+must pass for P8-D. Reuse source-derived inputs and add no fixtures. After
+source profiles stabilize, freeze P8-A source/build/package/executable/module
+identities. Repeat only checks affected by the frozen candidate, close P8-E/F,
+then set P8-G thresholds from admitted evidence. Keep P9 external-only and
 non-promoting throughout.
 
 ## Open package registry
@@ -235,7 +226,7 @@ neither resolves the suffix.
 | ID | Remaining implementation | Package exit evidence |
 |---|---|---|
 | P5-A / WAITING_FOR_PRODUCER_FIELD_SPANS | Acquire one AutoCAD/ObjectARX-authored profile with known field text/value, or a stronger producer-bound public input, before changing the DWG parser. Do not treat the cached unknown-producer input or patched ACadRust derivative as physical field evidence. Context: [`p5-mtext-fieldlist-source-cache-2026-11-15.json`](docs/research/p5-mtext-fieldlist-source-cache-2026-11-15.json). | Hash-bound producer/version, physical field spans and handle roles, exact source text, and independent evaluation or producer-authored expected values. |
-| P5-B / DEPENDS_ON_P5-A | Close the typed FIELD/FIELDLIST graph from A's exact source, including `_text` nested values, unsupported tokens, and references. | Strict ASCII/Binary output, independent fresh readback, rollback/retry, and graph equivalence. |
+| P5-B / DEPENDS_ON_P5-A | Close the typed FIELD/FIELDLIST graph from A's exact source, including `_text` nested values, unsupported tokens, and references. The generated AC1021 ASCII/Binary control covers reader-version selection only; it does not prove source semantics or close this package. | Strict ASCII/Binary output, independent fresh readback, rollback/retry, and graph equivalence. |
 | P5-D / WAITING_FOR_BOUND_R24_TABLE | Close one R24 TABLECONTENT graph: owner, CELLSTYLEMAP, rows/columns, cell dependencies, and emitted handles. The AC1032 candidate now has a source-bound inline body, but its first cell is incomplete and strict output is refused; use only field/version spans it proves. The existing AC1018 simple TABLE profile does not bind this graph. Do not repeat the prior broad screen. | No dangling or aliased nodes; fresh ASCII/Binary readback and refusal/retry. Context: [`p5-tablecontent-existing-source-evidence-screen-2026-11-08.json`](docs/research/p5-tablecontent-existing-source-evidence-screen-2026-11-08.json) and [`p6-ac1032-inline-tablecontent-cell-boundary-screen-2026-11-16.json`](docs/research/p6-ac1032-inline-tablecontent-cell-boundary-screen-2026-11-16.json). |
 | P5-E / WAITING_FOR_MATCHING_R24_PROFILE | Resolve Content Format/CELLSTYLEMAP meaning from independent or native evidence for a matching R24 TABLE/TABLECONTENT source. | Matching semantic values/rendering for the selected producer; unknown states retained or refused. |
 | P5-F / WAITING_FOR_LAYER_OVERRIDE_PROFILE | Trace TABLE layer overrides through parse, storage, write, and consumer display using one source profile that actually contains the override. | Source/value/precedence matrix and native appearance for that profile. |
@@ -299,10 +290,10 @@ package count. A missing external kernel or app blocks only its profile.
 | ID / state | Remaining implementation | Package exit evidence |
 |---|---|---|
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation stabilizes. | Reproducible commands and immutable source/tool/platform/runtime identity. |
-| P8-B / WAITING_FOR_NATIVE_LINUX_RUNNER; AC1021/AC1024/AC1032_2D_PROFILE_READY; 3D_DEPENDS_ON_P7; FINAL_INTEGRATION_GATE | Dispatch the existing native workflow for generated AC1021/AC1024/AC1032 2D profiles first; close that baseline independently of P7. Run a separate 3D phase only for source-bound profiles admitted by P7. The tracked `ordinary_enc_AC1027.dwg` is strictly refused before DXF publication (receipt: [`p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json`](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json)); do not retry until its source-reference gate closes. | Linux/FreeCAD/converter/module identities, settings, exact `open()`/`insert()` handoff, and independent output semantics for each admitted phase. No fallback ambiguity or cross-compilation as platform evidence. |
-| P8-C / WAITING_FOR_NATIVE_WINDOWS_RUNNER; AC1021/AC1024/AC1032_2D_PROFILE_READY; 3D_DEPENDS_ON_P7; FINAL_INTEGRATION_GATE | Dispatch the existing native workflow for generated AC1021/AC1024/AC1032 2D profiles first, including existing path-with-spaces and Unicode-path checks; close that baseline independently of P7. Run a separate 3D phase only for source-bound profiles admitted by P7. Defer the tracked ordinary AC1027 source until source-reference closure. | Windows/FreeCAD/converter/module identities, settings, exact `open()`/`insert()` handoff, and independent output semantics for each admitted phase. No fallback ambiguity or cross-compilation as platform evidence. |
+| P8-B / WAITING_FOR_NATIVE_LINUX_RUNNER_AND_GITHUB_DISPATCH; AC1021/AC1024/AC1032_2D_PROFILE_READY; 3D_DEPENDS_ON_P7; FINAL_INTEGRATION_GATE | In the shared native CI wave, qualify generated AC1021/AC1024/AC1032 2D profiles first; run 3D only for P7-admitted profiles. The tracked `ordinary_enc_AC1027.dwg` is refused before DXF publication (receipt: [`p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json`](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json)); wait for its source-reference gate before retry. | Linux/FreeCAD/converter/module identities, settings, exact `open()`/`insert()` handoff, and independent semantics per admitted phase. No fallback ambiguity or cross-compilation as platform evidence. |
+| P8-C / WAITING_FOR_NATIVE_WINDOWS_RUNNER_AND_GITHUB_DISPATCH; AC1021/AC1024/AC1032_2D_PROFILE_READY; 3D_DEPENDS_ON_P7; FINAL_INTEGRATION_GATE | In the same shared native CI wave, qualify generated AC1021/AC1024/AC1032 2D profiles, including existing path-with-spaces and Unicode checks; run 3D only for P7-admitted profiles. Defer the tracked ordinary AC1027 source until source-reference closure. | Windows/FreeCAD/converter/module identities, settings, exact `open()`/`insert()` handoff, and independent semantics per admitted phase. No fallback ambiguity or cross-compilation as platform evidence. |
 | P8-D / WAITING_FOR_GUI_D1_D2 | D1: LibreCAD 2 LINE translate/save/reopen. D2: LibreCAD_3 MPOLYGON save/reopen. Use the clean source/build identities and installed independent reader; run one session per application when available. No new DWG/DXF fixture is needed. | Compare saved/reopened records and geometry with the independent reader. |
-| P8-E / INTEGRATION_GATE | Freeze a complete 3.0.0 public/export inventory; collect native Linux/Windows shared-package receipts from the updated workflow; resolve the supplied C++14 repository guidance versus the C++17 source/build baseline before making any language-standard claim. The documented 2.0.0-to-3.0.0 ABI break requires consumer rebuilds and is not a compatibility defect. After candidate freeze, repeat only affected platform checks. | Frozen 3.0.0 public/export baseline; resolved language-standard requirement; ABI/SONAME, relocation and loaded-library identities on each distributed artifact/platform; explicit rebuild requirements. Existing macOS evidence is limited to the linked receipt and does not close the gate. |
+| P8-E / INTEGRATION_GATE | Port the corrected local system-package test vectors to a clean LibreCAD worktree based on the current target and requalify against ABI 3. The older scratch clone passes 176 assertions after adding `$ACADVER`, closing emitted references, fixing CadValue state, and checking `finalizeDxfWrite()`; do not treat that scratch pass as current-target qualification. Candidate source and origin/master both use C++17; keep that baseline and do not downgrade for the inconsistent supplied C++14 note. Freeze an installed-file/header hash manifest; reuse shared-ABI workflow receipts rather than rerunning equivalent package checks. | Current-target LibreCAD filter compile and focused system fast tests pass while loading the exact installed ABI-3 package; installed-file/header manifest, ABI major/SONAME, relocation and loaded-library identity are recorded per distributed platform; explicit 2.0.0-to-3.0.0 consumer rebuild requirement is documented. |
 | P8-F / INTEGRATION_GATE | Obtain current branch-protection/required-check state where accessible, then confirm required source-matched jobs are green or formally dispositioned at release. Reopen the local workflow/target audit only if workflow files change. | Current required CI and source-release lanes covered by tracked checks, with required branch-protection state recorded where available. Existing local workflow and macOS package evidence is in the linked receipt; it does not close the gate. |
 | P8-G / INTEGRATION_GATE | Set supported platforms, consumers, and release thresholds from completed evidence. | Evidence-backed support matrix with no required red job or advertised unqualified route. |
 
@@ -358,9 +349,11 @@ support claim.
    behavior, focused validation, completed/total slice count and percentage,
    open package count, and next action.
 6. Count progress against the 32 required package gates listed above: 4
-   closed, 28 open (12.5% package completion). Separately count 15/46
-   implementation slices complete (32.6%), with 31 remaining: the 28 package
-   gates plus P8-B, P8-C, and P8-D (D1 and D2 count together and both must
-   pass). These scope fractions do not weight complexity. Remove a package
+   closed, 28 open (12.5% package completion). Separately count 17/48
+   implementation slices complete (35.4%), with 31 remaining: the 28 package
+   gates plus P8-B 3D, P8-C 3D, and the joint P8-D1/D2 GUI phase. The new
+   P8-E ABI-3 integration commit and P5-B version-aware parser correction are
+   completed slices; neither closes its package gate. These scope fractions do
+   not weight complexity. Remove a package
    only after its full exit evidence passes; delete each completed sub-slice
    from the active queue as soon as its receipt is filed.
