@@ -12141,7 +12141,8 @@ struct GeneratedTableContentObject {
 enum class GeneratedTableContentRoleFailure {
     None,
     ContentTextStyle,
-    BorderLineType
+    BorderLineType,
+    CellContentReference
 };
 
 bool appendGeneratedBits(dwgBufferW& destination,
@@ -12237,7 +12238,8 @@ bool makeGeneratedR24TableContentObject(
     bool wrongTableStyleRole = false,
     bool includeCellStyleData = false,
     GeneratedTableContentRoleFailure wrongRole =
-        GeneratedTableContentRoleFailure::None) {
+        GeneratedTableContentRoleFailure::None,
+    std::int32_t cellContentType = 1) {
     constexpr DRW::Version version = DRW::AC1032;
     DRW_TextCodec codec;
     codec.setVersion(version, false);
@@ -12265,27 +12267,30 @@ bool makeGeneratedR24TableContentObject(
     body.putBitLong(0); // cell custom item count
     body.putBitLong(0); // no linked data
     body.putBitLong(1); // one content
-    body.putBitLong(1); // kValue
-    body.putBitLong(0); // value format flags
-    body.putBitLong(4); // kString
-    if (bodyByteCountCarrier) {
-        // UTF-16LE "Body" plus its terminator; the active production parser
-        // deliberately does not enable this alternate interpretation.
-        body.putBitLong(10);
-        const std::uint8_t bodyString[] = {
-            static_cast<std::uint8_t>('B'), 0u,
-            static_cast<std::uint8_t>('o'), 0u,
-            static_cast<std::uint8_t>('d'), 0u,
-            static_cast<std::uint8_t>('y'), 0u, 0u, 0u};
-        for (const std::uint8_t byte : bodyString)
-            body.putRawChar8(byte);
-        strings.putVariableText(version, ""); // detached value slot
-    } else {
-        strings.putVariableText(version, "Detached");
+    body.putBitLong(cellContentType);
+    if (cellContentType == 1) {
+        body.putBitLong(0); // value format flags
+        body.putBitLong(4); // kString
+        if (bodyByteCountCarrier) {
+            // UTF-16LE "Body" plus its terminator; the active production
+            // parser deliberately does not enable this alternate reading.
+            body.putBitLong(10);
+            const std::uint8_t bodyString[] = {
+                static_cast<std::uint8_t>('B'), 0u,
+                static_cast<std::uint8_t>('o'), 0u,
+                static_cast<std::uint8_t>('d'), 0u,
+                static_cast<std::uint8_t>('y'), 0u, 0u, 0u};
+            for (const std::uint8_t byte : bodyString)
+                body.putRawChar8(byte);
+            strings.putVariableText(version, ""); // detached value slot
+        } else {
+            strings.putVariableText(version, "Detached");
+        }
+        body.putBitLong(0); // unit type
+        strings.putVariableText(version, ""); // format
+        strings.putVariableText(version, bodyByteCountCarrier
+            ? "Body" : "Detached");
     }
-    body.putBitLong(0); // unit type
-    strings.putVariableText(version, ""); // format
-    strings.putVariableText(version, bodyByteCountCarrier ? "Body" : "Detached");
     body.putBitLong(0); // no attributes
     body.putBitShort(0u); // no content format override
     body.putBitLong(1); // cell-style type
@@ -12365,6 +12370,16 @@ bool makeGeneratedR24TableContentObject(
     dwgHandle nullHandle;
     nullHandle.code = DRW::DwgNullReference;
     handles.putHandle(nullHandle); // owner
+    if (cellContentType == 2 || cellContentType == 4) {
+        dwgHandle contentReference;
+        contentReference.code = wrongRole
+                == GeneratedTableContentRoleFailure::CellContentReference
+            ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
+        contentReference.size = 2u;
+        contentReference.ref = 0xE705u;
+        contentReference.ref64 = contentReference.ref;
+        handles.putHandle(contentReference); // FIELD or block content
+    }
     if (includeCellStyleData) {
         dwgHandle textStyleHandle;
         textStyleHandle.code = wrongRole
@@ -17233,6 +17248,53 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
         checkStyleHandleRole(
             GeneratedTableContentRoleFailure::BorderLineType,
             "cell-style border-linetype");
+
+        const auto checkCellContentHandleRole = [&codec, &t](
+            std::int32_t contentType, const char* label) {
+            GeneratedTableContentObject wrongObject;
+            GeneratedTableContentObject validObject;
+            const bool controlsBuilt = makeGeneratedR24TableContentObject(
+                    0xE706u, false, wrongObject, false, false,
+                    GeneratedTableContentRoleFailure::CellContentReference,
+                    contentType)
+                && makeGeneratedR24TableContentObject(
+                    0xE707u, false, validObject, false, false,
+                    GeneratedTableContentRoleFailure::None, contentType);
+            TestableTableContentObject parser;
+            bool rejectedAndReset = false;
+            bool validRetry = false;
+            if (controlsBuilt) {
+                dwgBuffer wrongInput(wrongObject.payload.data(),
+                                     wrongObject.payload.size(), &codec);
+                rejectedAndReset = !parser.parseDwg(
+                        DRW::AC1032, &wrongInput, wrongObject.handleBits)
+                    && !parser.m_parseComplete
+                    && !parser.m_semanticContentComplete
+                    && parser.m_content.m_rows.empty();
+                dwgBuffer validInput(validObject.payload.data(),
+                                     validObject.payload.size(), &codec);
+                validRetry = rejectedAndReset
+                    && parser.parseDwg(DRW::AC1032, &validInput,
+                                       validObject.handleBits)
+                    && parser.m_parseComplete
+                    && parser.m_content.m_rows.size() == 1u
+                    && parser.m_content.m_rows[0].m_cells.size() == 1u
+                    && parser.m_content.m_rows[0].m_cells[0]
+                           .m_contents.size() == 1u
+                    && parser.m_content.m_rows[0].m_cells[0]
+                           .m_contents[0].m_type == contentType
+                    && parser.m_content.m_rows[0].m_cells[0]
+                           .m_contents[0].m_handle == 0xE705u;
+            }
+            const std::string message = std::string("TABLECONTENT ")
+                + label
+                + " hard-pointer role rolls back and retries on the same parser";
+            t.expect(controlsBuilt && rejectedAndReset && validRetry,
+                     message);
+            return controlsBuilt && rejectedAndReset && validRetry;
+        };
+        checkCellContentHandleRole(2, "FIELD content reference");
+        checkCellContentHandleRole(4, "block content reference");
 
         std::vector<std::uint8_t> detachedFrame, sentinelFrame;
         const bool wrapped = wrapGeneratedR24Object(

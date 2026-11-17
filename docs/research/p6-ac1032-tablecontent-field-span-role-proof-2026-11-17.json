@@ -83,16 +83,16 @@
   },
   "implementation": {
     "behavior": "Require hard-pointer roles for TABLECONTENT text style, border linetype, and final table-style slots. Preserve the AC1032 body-string fallback as raw-only and semantic-incomplete.",
-    "generatedControl": "In-memory AC1032 TABLECONTENT controls reject soft-pointer encodings in the final table-style, cell-style content text-style, and border-linetype hard-pointer slots. Each failure clears parser semantic state and the same parser instance accepts a corrected control with valid hard-pointer encodings. Style-data retry remains semantic-incomplete because the style payload is not modeled. No DWG/DXF fixture file is added.",
+    "generatedControl": "In-memory AC1032 TABLECONTENT controls reject soft-pointer encodings in the final table-style, cell-style content text-style, border-linetype, FIELD-reference, and block-content-reference hard-pointer slots. Each failure clears parser semantic state and the same parser instance accepts a corrected control with valid hard-pointer encodings. Both content-reference types are generated separately; assertions verify the retained type and handle. Style-data retry remains semantic-incomplete because the style payload is not modeled. These controls prove role enforcement only, not target closure or TABLE semantics. No DWG/DXF fixture file is added.",
     "sourceFile": "src/drw_entities.cpp",
     "sourceSha256": "51da91df59c9c68d25e428922b7435d91bf5fc8a03501a860d51efa64bd55706",
     "testFile": "tests/dwg_reader_matrix_tests.cpp",
-    "testFileSha256": "6ac4b859cb95c403b24d279dc24650b8f7afc18c7dadb7187ee32df2fe209110"
+    "testFileSha256": "db6ae4a57f3be029bb74c95d6013eb41fc826a5f7e3f154ba6fd9b7ddbd0e126"
   },
   "validation": {
     "build": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j4",
     "focusedTest": "ctest --test-dir build-gcc -R dwg_reader_matrix --output-on-failure",
-    "focusedTestResult": "passed in 0.66s",
+    "focusedTestResult": "passed in 0.66s after generated FIELD/block content-reference role controls; rollback and corrected same-parser retry passed for both content types",
     "cliResult": "182 source frames published with zero entity/object parse failures. Strict output was refused before publication because two HEADER integrity warnings remain (offsets 16 and 830) and 739 bytes remain unclaimed. No output DXF was produced."
   },
   "remaining": [

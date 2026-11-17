@@ -17,10 +17,10 @@ LibreCAD origin/master head was `3ad089398976feb96ee01b8dee006c141edd8d3e`
 refresh mutable heads before integration or qualification.
 
 **Progress on 2026-11-17:** 4 of 32 required package gates are closed (12.5%);
-28 remain. The activity-based estimate is 26 of 57 slices complete (45.6%),
+28 remain. The activity-based estimate is 27 of 58 slices complete (46.6%),
 with 31 remaining: those 28 gates plus AC1027/AC1032 3D qualification on Linux,
 the same 3D phase on Windows, and the combined LibreCAD 2 / LibreCAD_3 GUI phase.
-The 57-unit count comprises the 32 package gates, 22 completed non-gate slices,
+The 58-unit count comprises the 32 package gates, 23 completed non-gate slices,
 and these 3 split phases. It weights slices equally and is not an effort or
 support estimate. Completed actions are deleted from the queue; their receipts
 and commits remain the record. P6-G is a conditional trigger and P7-E optional;
@@ -44,12 +44,14 @@ resolves the source's TABLESTYLE, cell text-style/linetype, block-content, and
 block-membership references to parser-published frames. ODA v5.4.1 §20.4.2
 lists the common entity owner reference as optional, and §20.4.96.2 applies
 common entity data to R24+ TABLE; preserve TABLE `0xcf`'s validated-absent owner
-without inventing a link. A generated role-control slice now rejects soft-pointer
-encodings in the cell text-style and border-linetype hard-pointer slots, rolls
-back, and retries on the same parser. Together with the existing final
-table-style role control, progress at that stage was 25/56; the 4/32
-closed package-gate count is unchanged. Source integrity warnings, the unclaimed
-suffix, strict output/readback, and independent semantics remain open.
+without inventing a link. Generated controls reject soft-pointer encodings in
+the cell text-style, border-linetype, final table-style, FIELD-reference, and
+block-content-reference hard-pointer slots; each failure rolls back and retries
+on the same parser. These controls prove role enforcement only, not target
+closure or TABLE semantics. The new FIELD and block-content controls add one
+completed non-gate slice; package-gate completion remains 4/32. Source integrity
+warnings, the unclaimed suffix, strict output/readback, and independent
+semantics remain open.
 
 The [bounded public-source screen](docs/research/p6-public-ac1032-table-witness-screen-2026-11-17.json)
 found no eligible public AC1032 TABLE witness. Autodesk's official Blocks and
@@ -58,8 +60,8 @@ TABLECONTENT/CELLSTYLEMAP profile are unverified; direct download currently
 fails because `download.autodesk.com` does not resolve in this environment.
 The ACadSharp `sample_AC1032.dwg` is excluded because its DxfWriter does not
 emit ACAD_TABLE, and the public CadCraft `columns-sample.dwg` report says the
-file has no ACAD_TABLE. This bounded source-screen slice raises progress to
-26/57 only; it closes no package gate and makes no support claim.
+file has no ACAD_TABLE. At that point, this bounded source-screen slice raised
+the estimate to 26/57; it closed no package gate and made no support claim.
 
 The latest evidence still leaves P4-B/P4-C source-bound wire fields open. P8-E
 still needs native Linux and Windows package/runtime receipts. The exact macOS
@@ -215,7 +217,7 @@ specific evidence required to close the gate.
 |---|---|---|
 | P6-A / WAITING_FOR_OBJECTARX_WITNESS | In the shared producer session, record version-bound IMAGEDEF create/setAt/save/reopen and remove/erase/clone/WBLOCK behavior; the existing [role receipt](docs/research/p6-imagedef-objectarx-parent-role-boundary-2026-11-14.json) is context only. | Close owner, dictionary membership, reactor, and image links against independent output/readback. |
 | P6-B / WAITING_FOR_PERSUBENTMGR_SOURCE | Capture one PERSUBENTMGR with typed members, owner, and dependencies. | Close its typed/output route and independent semantics; unknown members stay raw or are refused. |
-| P6-C / AC1032_BODY_STRING_READER_ONLY | One hash-bound ODA R2018 export and ACadSharp 3.6.15 support a narrow body-byte-counted CADVALUE candidate; ODA v5.4.1 §20.4.99 TV remains primary. The local fallback stays AC1032-only, bounded, raw-only, and semantic-incomplete. Traces bind the first string body bits 31388..31494 and detached format/display spans; 275 selected reference slots are hard pointers. The completed graph census resolves TABLESTYLE `0x6b`, text-style/linetype resources, block content `0x10b`, and block members. ODA §20.4.2 marks the common entity owner ref optional; retain TABLE `0xcf`'s validated absence without synthesizing a link. Generated controls now reject soft-pointer encodings in the final table-style, cell text-style, and border-linetype hard-pointer slots; each rolls back and retries on the same parser. See the [decoder receipt](docs/research/p6-ac1032-inline-tablecontent-acadsharp-body-string-profile-2026-11-17.json), [span/role receipt](docs/research/p6-ac1032-tablecontent-field-span-role-proof-2026-11-17.json), [reference-graph receipt](docs/research/p6-ac1032-tablecontent-reference-graph-census-2026-11-17.json), and [public-source screen](docs/research/p6-public-ac1032-table-witness-screen-2026-11-17.json). Do not repeat the ACadSharp run, recensus resolved references, or reuse ACadSharp/CadCraft samples screened out there. | The bundled producer acquisition should provide one clean R2018 TABLE source with known values and expected native appearance. HEADER offsets 16/830 and the 739-byte suffix are specific to the existing ODA export; if they recur in the new source, disposition its exact spans before strict output. Until a clean semantic witness is admitted, retain raw-only, semantic-incomplete, and strict whole-file refusal. Typed output still needs the full selected profile, strict ASCII/Binary output, fresh independent readback, refusal atomicity, corrected retry, and independent/native semantics. The current ODA-exported sample and peer decoder do not promote support claims. |
+| P6-C / AC1032_BODY_STRING_READER_ONLY | One hash-bound ODA R2018 export and ACadSharp 3.6.15 support a narrow body-byte-counted CADVALUE candidate; ODA v5.4.1 §20.4.99 TV remains primary. The local fallback stays AC1032-only, bounded, raw-only, and semantic-incomplete. Traces bind the first string body bits 31388..31494 and detached format/display spans; 275 selected reference slots are hard pointers. The completed graph census resolves TABLESTYLE `0x6b`, text-style/linetype resources, block content `0x10b`, and block members. ODA §20.4.2 marks the common entity owner ref optional; retain TABLE `0xcf`'s validated absence without synthesizing a link. In-memory controls reject soft-pointer encodings in the final table-style, cell text-style, border-linetype, FIELD-reference, and block-content-reference hard-pointer slots; each rolls back and retries on the same parser. These controls prove role enforcement, not target closure or TABLE semantics. See the [decoder receipt](docs/research/p6-ac1032-inline-tablecontent-acadsharp-body-string-profile-2026-11-17.json), [span/role receipt](docs/research/p6-ac1032-tablecontent-field-span-role-proof-2026-11-17.json), [reference-graph receipt](docs/research/p6-ac1032-tablecontent-reference-graph-census-2026-11-17.json), and [public-source screen](docs/research/p6-public-ac1032-table-witness-screen-2026-11-17.json). Do not repeat the ACadSharp run, recensus resolved references, or reuse ACadSharp/CadCraft samples screened out there. | The bundled producer acquisition should provide one clean R2018 TABLE source with known values and expected native appearance. HEADER offsets 16/830 and the 739-byte suffix are specific to the existing ODA export; if they recur in the new source, disposition its exact spans before strict output. Until a clean semantic witness is admitted, retain raw-only, semantic-incomplete, and strict whole-file refusal. Typed output still needs the full selected profile, strict ASCII/Binary output, fresh independent readback, refusal atomicity, corrected retry, and independent/native semantics. The current ODA-exported sample and peer decoder do not promote support claims. |
 | P6-E / WAITING_FOR_POST_SENTINEL_AUTHORITY | For the selected AC1024 mesh profile, obtain versioned authority or a discriminating producer-bound trace for the 739-byte post-sentinel suffix. It changes across ODA saves; the [repeatability receipt](docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json) does not prove padding. | Give every byte a source-backed disposition and add strict parse/refusal controls. Preserve fail-closed behavior; do not rescan both profiles. |
 | P6-F / WAITING_FOR_ELIGIBLE_LEGACY_INPUT | Admit a hash-bound AC1012/AC1014 file through structural/object/reference gates that reaches output with an eligible recoverable entity failure. The writer does not generate these versions; see the [disposition receipt](docs/research/p6-cli-legacy-ac1012-ac1014-partial-disposition-2026-11-16.json). | Prove strict refusal preserves destination, then partial ASCII/Binary output, later-entity readback, and corrected retry. Do not relax exact-version or bounded-frame checks. |
 | P6-H / WAITING_FOR_GUI_NATIVE_MLINE | When LibreCAD 2 GUI can start, use one source-derived AC1018 MLINE. The bounded [local source screen](docs/research/p6-local-mline-source-selection-2026-11-16.json) found no complete local read with an MLINE parser call; do not repeat it. Last GUI startup failed on pasteboard/XPC. | Display/edit/save/close/reopen and compare color, style, and geometry with an independent reader. Reuse the selected output/readback/rollback/retry receipt. This does not qualify whole-file conversion or AC1027 output. |
@@ -269,7 +271,7 @@ and operation.
 ## P9 — external-only dispositions
 
 These six IDs remain `DEFERRED_EXTERNAL`; the successor registry controls
-lineage and admissibility. They are advisory, excluded from the 57-slice
+lineage and admissibility. They are advisory, excluded from the 58-slice
 implementation estimate, and cannot promote support claims.
 
 | ID | Remaining bounded action |
@@ -300,7 +302,7 @@ implementation estimate, and cannot promote support claims.
    behavior, focused validation, completed/total slice estimate, open gate
    count, and next action; then continue without waiting for unrelated
    external work.
-5. Current count: 57 activity slices, 26 complete (45.6%), 31 remaining;
+5. Current count: 58 activity slices, 27 complete (46.6%), 31 remaining;
    package completion is separately 4/32 gates (12.5%). Keep the denominator
    equal to the 32 package gates, completed non-gate slices, and 3 split
    platform/UI phases. Recount whenever a gate, completed slice, or phase is
