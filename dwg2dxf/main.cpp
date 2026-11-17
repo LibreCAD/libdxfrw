@@ -407,17 +407,20 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver,
     }
 
     //And write a dxf file
-    dx_iface output;
     // CLI complete-conversion admission is explicit and separate from owner
     // resolution and proxy-cache replay. Ordinary library exports retain the
     // compatibility policy for both.
-    badState = output.fileExport(outName, ver, binary, &fData, debug, true,
-                                 dx_dxfSourceTextPolicy::RequireValidSource,
-                                 DRW::DxfTextWritePolicy::RequireLossless,
-                                 dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
-                                 allowPartialDwgRead
-                                     ? dx_dwgReadCompletenessPolicy::AllowPartial
-                                     : dx_dwgReadCompletenessPolicy::RequireComplete);
+    // Keep import and export on the same adapter session. Some source-backed
+    // output profiles are intentionally bound to evidence captured by this
+    // exact adapter during fileImport; a fresh adapter cannot authenticate
+    // that evidence for fData.
+    badState = input.fileExport(outName, ver, binary, &fData, debug, true,
+                                dx_dxfSourceTextPolicy::RequireValidSource,
+                                DRW::DxfTextWritePolicy::RequireLossless,
+                                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                                allowPartialDwgRead
+                                    ? dx_dwgReadCompletenessPolicy::AllowPartial
+                                    : dx_dwgReadCompletenessPolicy::RequireComplete);
 
     return badState;
 }
