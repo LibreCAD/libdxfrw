@@ -1,0 +1,97 @@
+{
+  "schema": "libdxfrw-macos-package-baseline-v1",
+  "recordedAt": "2026-11-17",
+  "source": {
+    "commit": "eb30479516b6e8d27c8525c271bac97d9447645b",
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "sourceCodeChangesFromCommit": false
+  },
+  "originBaseline": {
+    "ref": "origin/master",
+    "commit": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "version": "2.0.0",
+    "cxxStandard": "C++17"
+  },
+  "publicLayoutProbe": {
+    "tool": "tools/probe_public_abi_layout.cpp",
+    "toolSha256": "7e4a84e46fe9f67abb4edcbb64b3156f827ffd910406a75a1cd517616319e5e9",
+    "compiler": "/usr/bin/c++ (AppleClang 21.0.0)",
+    "standard": "C++17 for both origin/master and current headers",
+    "commandPattern": "/usr/bin/c++ -std=c++17 -I<source>/src -I<source>/src/intern tools/probe_public_abi_layout.cpp -o <output>",
+    "comparison": [
+      {"type": "DRW_Interface", "2.0.0": 8, "3.0.0": 8, "alignment": 8},
+      {"type": "DRW_Entity", "2.0.0": 640, "3.0.0": 744, "alignment": 8},
+      {"type": "DRW_Line", "2.0.0": 728, "3.0.0": 832, "alignment": 8},
+      {"type": "DRW_Viewport", "2.0.0": 1160, "3.0.0": 1312, "alignment": 8},
+      {"type": "DRW_Layer", "2.0.0": 408, "3.0.0": 576, "alignment": 8},
+      {"type": "DRW_Header", "2.0.0": 312, "3.0.0": 616, "alignment": 8},
+      {"type": "DRW_Material", "2.0.0": 304, "3.0.0": 2032, "alignment": 8},
+      {"type": "dxfRW", "2.0.0": 1384, "3.0.0": 4656, "alignment": 8},
+      {"type": "dwgR", "2.0.0": 1008, "3.0.0": 1472, "alignment": 8},
+      {"type": "dwgRW", "2.0.0": 1008, "3.0.0": 1472, "alignment": 8}
+    ],
+    "interpretation": "Selected class layouts differ substantially, confirming that the 2.0.0 to 3.0.0 ABI break is real. DRW_Interface has the same object size, which does not prove vtable compatibility. This selected type list is not a complete ABI report."
+  },
+  "ciChange": {
+    "file": ".github/workflows/shared-abi-qualification.yml",
+    "sha256": "92497cc2610b67991b09086a8200e84bbfd31d7d6211b265af37daed9a53fedd",
+    "change": "Add native macos-15 / AppleClang shared-package job using the existing probe."
+  },
+  "host": {
+    "os": "macOS 27.2.1",
+    "kernel": "Darwin 27.2.0",
+    "architecture": "arm64",
+    "cmake": "4.4.5",
+    "compiler": "Apple clang 21.0.0 (clang-2100.3.34.2)"
+  },
+  "sharedPackage": {
+    "configuration": "Release",
+    "buildSharedLibs": true,
+    "buildDwg2Dxf": false,
+    "buildTests": false,
+    "target": "dxfrw",
+    "installPrefix": "/private/tmp/libdxfrw-shared-abi.4jNvll/prefix",
+    "loadedLibrary": "/private/tmp/libdxfrw-shared-abi.4jNvll/prefix/lib/libdxfrw.3.0.0.dylib",
+    "librarySha256": "3b4600d28fe33bb2c8a80ef7274cbad1b22115735e40e4fc79fb205382b6a396",
+    "probe": {
+      "version2Rejected": true,
+      "version3Accepted": true,
+      "oldRuntimeAbsent": true,
+      "loadedExactInstalledLibrary": true
+    }
+  },
+  "staticPackage": {
+    "configuration": "Release",
+    "buildSharedLibs": false,
+    "buildDwg2Dxf": false,
+    "buildTests": false,
+    "target": "dxfrw",
+    "installPrefix": "/private/tmp/libdxfrw-shared-abi.4jNvll/static-prefix",
+    "archive": "/private/tmp/libdxfrw-shared-abi.4jNvll/static-prefix/lib/libdxfrw.a",
+    "archiveSha256": "d4281f1b1d6cd2bcf365f3e36acc9c136c710249f0ba05342db301d074ad6d6a",
+    "relocatedArchiveSha256": "d4281f1b1d6cd2bcf365f3e36acc9c136c710249f0ba05342db301d074ad6d6a",
+    "command": "python3 -B tools/check_staged_package.py --prefix <tmp>/static-prefix --relocation-smoke",
+    "result": "PASS",
+    "checks": [
+      "Fresh staged static archive selected and hash-bound for CMake and pkg-config consumers.",
+      "Plain and override static pkg-config modes and missing-private-library negative controls pass.",
+      "CMake CONFIG and MODULE package requests pass their version, identity, boundary, and policy controls.",
+      "The moved prefix containing spaces builds relocated consumers with the same archive hash."
+    ]
+  },
+  "scope": {
+    "proves": [
+      "The macOS shared library builds and installs with the versioned ABI-3 filename.",
+      "A fresh shared consumer rejects package version 2.0 and accepts 3.0, then loads the exact installed runtime.",
+      "The macOS staged static package is consumable through CMake and pkg-config and relocates with a stable archive."
+    ],
+    "doesNotProve": [
+      "Full symbol-by-symbol or class-layout ABI equivalence to another 3.x release.",
+      "LibreCAD or LibreCAD_3 source/runtime compatibility.",
+      "DWG/DXF semantic support or FreeCAD behavior.",
+      "Linux/Windows shared-package runtime qualification or release completion of P8-E/P8-F."
+    ],
+    "fixturesAdded": false,
+    "supportClaimsPromoted": false
+  }
+}

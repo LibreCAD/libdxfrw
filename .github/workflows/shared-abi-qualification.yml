@@ -29,6 +29,9 @@ jobs:
           - platform: linux-gcc
             runner: ubuntu-24.04
             python: python3
+          - platform: macos-clang
+            runner: macos-15
+            python: python3
           - platform: windows-msvc
             runner: windows-2022
             python: python
