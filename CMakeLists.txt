@@ -2026,6 +2026,11 @@ if(LIBDXFRW_BUILD_TESTS)
     set_tests_properties(libdxfrw_datastorage_bounds PROPERTIES
         LABELS "fast;dwg;generated;datastorage"
         TIMEOUT 30)
+    add_test(NAME libdxfrw_datastorage_schema_profiles
+        COMMAND libdxfrw_graph_preservation_tests --datastorage-schema-profiles)
+    set_tests_properties(libdxfrw_datastorage_schema_profiles PROPERTIES
+        LABELS "fast;dwg;generated;datastorage"
+        TIMEOUT 30)
     add_test(NAME libdxfrw_proxy_subentity_markers
         COMMAND libdxfrw_graph_preservation_tests --proxy-subentity-markers)
     set_tests_properties(libdxfrw_proxy_subentity_markers PROPERTIES

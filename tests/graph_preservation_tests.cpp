@@ -14323,6 +14323,15 @@ void testDataStorageDefaultSchemaOnlySection(TestContext& t) {
                  && !rejectedMultiSegmentRoles.replayAllowed
                  && !selectedMultiSegmentCompatibility,
              "DataStorage rejects an out-of-segment multi-schdat schema root without selecting the compatibility profile");
+    const DRW_DataStorageSection correctedAc1027MultiSegmentRetry =
+        DRW_parseDataStorage(multiSegmentRoles, DRW::AC1027);
+    t.expect(correctedAc1027MultiSegmentRetry.structurallyValid
+                 && correctedAc1027MultiSegmentRetry.replayAllowed
+                 && correctedAc1027MultiSegmentRetry.schemaCount == 2u
+                 && correctedAc1027MultiSegmentRetry.schemas.size() == 2u
+                 && correctedAc1027MultiSegmentRetry.schemaUnknownProperties.size()
+                     == 2u,
+             "DataStorage accepts corrected AC1027 multi-schdat input after a malformed-profile refusal");
     const DRW_DataStorageSection rejectedMultiSegmentRolesAc1032 =
         DRW_parseDataStorage(malformedMultiSegmentRoles, DRW::AC1032);
     const bool selectedAc1032MultiSegmentCompatibility = std::any_of(
@@ -16675,6 +16684,17 @@ int main(int argc, char** argv) {
         std::cout << "DataStorage bounds tests: PASS\n";
         return 0;
     }
+    if (argc == 2
+        && std::string(argv[1]) == "--datastorage-schema-profiles") {
+        testDataStorageBlobPages(context);
+        if (context.failures != 0) {
+            std::cerr << context.failures
+                      << " DataStorage schema/profile assertion(s) failed\n";
+            return 1;
+        }
+        std::cout << "DataStorage schema/profile tests: PASS\n";
+        return 0;
+    }
     if (argc == 2 && std::string(argv[1]) == "--proxy-subentity-markers") {
         testProxyBounds(context);
         testProxySubentityMarkers(context);
@@ -16688,7 +16708,8 @@ int main(int argc, char** argv) {
     }
     if (argc != 1) {
         std::cerr << "Usage: libdxfrw_graph_preservation_tests"
-                     " [--datastorage-bounds|--proxy-subentity-markers]\n";
+                     " [--datastorage-bounds|--datastorage-schema-profiles"
+                     "|--proxy-subentity-markers]\n";
         return 2;
     }
     testFramePublicationContract(context);

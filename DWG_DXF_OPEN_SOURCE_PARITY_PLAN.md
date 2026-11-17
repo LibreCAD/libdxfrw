@@ -18,18 +18,19 @@ refresh mutable heads before integration or qualification. On 2026-11-17 the
 libdxfrw and LibreCAD origin/master heads above were re-checked and unchanged;
 LibreCAD PR #3269 is merged as `4060fb6bb` and is contained in that LibreCAD head.
 
-**Progress on 2026-11-17:** 4 of 32 required package gates are closed (12.5%);
-28 remain. The plan-item activity count is 34 of 65 complete (52.3%) = 4
-closed gates + 30 completed non-gate slices, out of 32 gates + 30 completed
-slices + three remaining platform/UI phases. The remaining 31 items are the
-28 open gates plus native Linux and Windows 3D qualification and combined
+**Progress on 2026-11-17:** 5 of 32 required package gates are closed (15.6%);
+27 remain. The plan-item activity count is 36 of 66 complete (54.5%) = 5
+closed gates + 31 completed non-gate slices, out of 32 gates + 31 completed
+slices + three remaining platform/UI phases. The remaining 30 items are the
+27 open gates plus native Linux and Windows 3D qualification and combined
 LibreCAD 2 / LibreCAD_3 GUI qualification. This equal-weight count tracks plan
-items, not effort or support breadth; use the 4/32 gate rate for package
-readiness. The latest completed slice records the bounded P4-C attachment
-failure and versioned R2013 DXF schema boundary; it does not close a gate.
-Completed actions are retained in receipts and omitted from the active queue.
-P6-G is conditional, P7-E optional, and six DEFERRED_EXTERNAL dispositions
-are advisory, excluded from the count, and cannot promote support claims.
+items, not effort or support breadth; use the 5/32 gate rate for package
+readiness. The latest completed slice maps the versioned R2013 AcDs structure
+to its record model and adds a focused malformed-refusal/corrected-retry
+selector; it closes P7-B's structural gate only. Completed actions are retained
+in receipts and omitted from the active queue. P6-G is conditional, P7-E
+optional, and six DEFERRED_EXTERNAL dispositions are advisory, excluded from
+the count, and cannot promote support claims.
 
 ## Fastest remaining route
 
@@ -53,8 +54,10 @@ at once, and keep independent profiles moving.
    - **AC1024:** P5-D TABLE values, format, linked objects, and appearance;
      P5-E/F only when matching content-format or layer-override state occurs;
      P7-D ACIS 21500 only when that exact profile is present.
-   - **AC1027:** P4-C Sweep plus matching DXF; P7-B AcDs framing/schema/index
-     and prototype relation; P7-C shell fields and following-handle boundary.
+   - **AC1027:** P4-C Sweep plus matching DXF; P7-C shell fields and
+     following-handle boundary. P7-B's bounded AcDs structure/record-link
+     profile is closed; see the [closure receipt](docs/research/p7-ac1027-oda-section24-record-model-crosswalk-2026-11-17.json)
+     and do not repeat that capture.
      Keep these as separate profiles even if captured in one session.
    - **AC1032:** P4-B associative-network top-level/nested API state and P6-C
      TABLE cell/format state. A paired DXF cannot substitute for DWG API state.
@@ -72,8 +75,9 @@ at once, and keep independent profiles moving.
    discriminating malformed control, prove rollback and corrected same-writer
    retry, then check strict output and fresh independent readback. Add native
    semantic proof where needed for the claim. Follow only real dependencies:
-   P5-A → P5-B; P5-D → P5-E/F; P7-B/C/D → P7-F when an independent reader is
-   available. A blocked profile never pauses another.
+   P5-A → P5-B; P5-D → P5-E/F; P7-C/D → P7-F when an output-capable profile
+   and independent reader are available. P7-B supplies the bounded AcDs frame
+   and handle link only. A blocked profile never pauses another.
 4. **Freeze once and run the composed qualification wave.** After admitted
    profiles stabilize, freeze source, build, package, executable, and loaded
    modules. On native Linux and Windows, qualify FreeCAD 2D and each admitted
@@ -129,7 +133,7 @@ to the owner's existing go-ahead.
   after code changes. Add ASan only for bounds, ownership, lifetime, or handle
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
-- Count one unit for each of the 32 package gates, 30 completed non-gate slices,
+- Count one unit for each of the 32 package gates, 31 completed non-gate slices,
   and three remaining platform/UI phases. A partial implementation does not
   close a gate. Recount only when a gate, slice, or phase changes; the snapshot
   above is the single current estimate.
@@ -143,7 +147,7 @@ promote support claims.
 
 ## Active package gates
 
-Only the following 28 open package gates are active; completed actions have
+Only the following 27 open package gates are active; completed actions have
 been removed. Follow the execution order above; the tables group gates by
 subsystem. Readiness labels describe scheduling only, never support:
 `WAITING_*` needs the named source, authority, or environment;
@@ -203,14 +207,13 @@ source/profile identifies a concrete gap. Keep the short-tail LTYPE_CONTROL
 fail-closed until versioned roles resolve; do not change AC1024 CLASSES from
 the stale RTM note without the exact failing input.
 
-### P7 — ACIS/ACDS and 3D meaning (6 open)
+### P7 — ACIS/ACDS and 3D meaning (5 open)
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P7-B / WAITING_FOR_VERSIONED_ACDS_PROFILE | Obtain a source-distinct, producer-bound AC1027 peer or primary versioned definition for the missing AcDs framing/schema/index/spans/suffix/prototype relation. Reuse the completed source comparison in the [graph closure receipt](docs/research/p7-ac1027-current-reader-graph-closure-2026-11-16.json); request only missing bindings. | Bind the versioned spans/index/prototype to the record model; add one discriminating truncation/refusal control and corrected retry. Keep framing, entity association, SAB meaning, and native acceptance separate. |
 | P7-C / WAITING_FOR_VERSIONED_SHELL_MAPPING | Resume only with version-qualified primary mapping for R2013+ DXF shell groups 290/2, or a source-distinct producer trace proving those spans and the following handle boundary. Reuse the [field/authority screen](docs/research/p7-ac1027-dxf-modeler-shell-field-map-2026-11-17.json): the AutoCAD 2013 reference documents group 290 on `AcDbSweptSurface`, not the observed 3DSOLID/REGION shell; do not transfer that meaning, repeat the ambiguous scan, or infer fields from ACDSDATA presence. | Use the existing ACDSDATA projection harness. Prove type, owner `0x1F`, shell fields, payload, and 3DSOLID history `0x2E4` through selected-profile output/readback with no orphan/duplicate. Keep whole-file CLI refusal. |
 | P7-D / WAITING_FOR_ACIS_21500_HEADER_WORD_AUTHORITY | For the pinned AC1024/ACIS 21500 profile, obtain a version-qualified primary field map or independent decode of the same payload. Reuse the [authority screen](docs/research/p7-ac1024-21500-header-third-word-cross-version-authority-screen-2026-11-13.json) and [local profile](docs/research/p7-acis-21500-local-header-profile-screen-2026-11-12.json); do not repeat generic searches. | Bind header/entity fields, add bounded sentinel controls, and compare analytic values with an independent reader. Framing alone is insufficient. |
-| P7-F / DEPENDS_ON_P7_B_TO_D_AND_INDEPENDENT_READER | After B/C/D admits a profile and an independent geometry reader is available, extend one analytic case through nested blocks, units, placement, and transforms. | Compare the transform chain and dimensions at stated tolerance. Record an unavailable reader as a profile wait and continue elsewhere. |
+| P7-F / DEPENDS_ON_P7_C_D_AND_INDEPENDENT_READER | After P7-C/D admits an output-capable profile and an independent geometry reader is available, extend one analytic case through nested blocks, units, placement, and transforms. P7-B supplies only the bounded AcDs frame/handle link. | Compare the transform chain and dimensions at stated tolerance. Record an unavailable reader as a profile wait and continue elsewhere. |
 | P7-G / WAITING_FOR_TRIM_WITNESS | Acquire one source-bound trim, periodic-surface, or spline profile. | Compare boundary and kernel evaluation independently; refuse unmodeled trims. |
 | P7-H / INTEGRATION_GATE | After profile admission and candidate freeze, run native modeler acceptance. | Pin application/build/modules/import operation and compare analytic/kernel semantics independently. |
 
