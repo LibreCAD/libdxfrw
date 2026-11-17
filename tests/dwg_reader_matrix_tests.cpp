@@ -12227,7 +12227,8 @@ bool makeGeneratedR24TableStyleObject(std::uint32_t handle,
 
 bool makeGeneratedR24TableContentObject(
     std::uint32_t handle, bool bodyByteCountCarrier,
-    GeneratedTableContentObject& result) {
+    GeneratedTableContentObject& result,
+    bool wrongTableStyleRole = false) {
     constexpr DRW::Version version = DRW::AC1032;
     DRW_TextCodec codec;
     codec.setVersion(version, false);
@@ -12325,7 +12326,10 @@ bool makeGeneratedR24TableContentObject(
     dwgHandle nullHandle;
     nullHandle.code = DRW::DwgNullReference;
     handles.putHandle(nullHandle); // owner
-    handles.putHandle(nullHandle); // final table-style reference
+    dwgHandle tableStyleHandle;
+    tableStyleHandle.code = wrongTableStyleRole
+        ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
+    handles.putHandle(tableStyleHandle); // final table-style reference
     handles.alignToByte();
     if (!object.isGood() || !handles.isGood()
         || handles.bitCount() > std::numeric_limits<std::uint32_t>::max())
@@ -17111,6 +17115,31 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
                       << " rows=" << parsed.m_content.m_rows.size()
                       << '\n';
         }
+
+        GeneratedTableContentObject wrongTableStyleRoleObject;
+        const bool wrongRoleBuilt = makeGeneratedR24TableContentObject(
+            0xE702u, false, wrongTableStyleRoleObject, true);
+        TestableTableContentObject roleRetry;
+        dwgBuffer wrongRoleInput(wrongTableStyleRoleObject.payload.data(),
+                                 wrongTableStyleRoleObject.payload.size(),
+                                 &codec);
+        const bool wrongRoleRefused = wrongRoleBuilt
+            && !roleRetry.parseDwg(DRW::AC1032, &wrongRoleInput,
+                                   wrongTableStyleRoleObject.handleBits)
+            && !roleRetry.m_parseComplete
+            && !roleRetry.m_semanticContentComplete
+            && roleRetry.m_content.m_rows.empty();
+        dwgBuffer correctRoleRetry(detachedValueObject.payload.data(),
+                                   detachedValueObject.payload.size(), &codec);
+        const bool correctedRoleRetry = wrongRoleRefused
+            && roleRetry.parseDwg(DRW::AC1032, &correctRoleRetry,
+                                  detachedValueObject.handleBits)
+            && roleRetry.m_parseComplete
+            && roleRetry.m_semanticContentComplete
+            && roleRetry.m_content.m_tableStyleHandle == 0u
+            && roleRetry.m_content.m_rows.size() == 1u;
+        t.expect(wrongRoleRefused && correctedRoleRetry,
+                 "TABLECONTENT rejects a wrong final table-style role, rolls back, and retries on the same parser");
 
         std::vector<std::uint8_t> detachedFrame, sentinelFrame;
         const bool wrapped = wrapGeneratedR24Object(

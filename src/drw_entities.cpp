@@ -3678,7 +3678,7 @@ void traceTableHandleSlot(const char *slot, const dwgBuffer *bodyBuf,
         using Kind=DwgTableContentAc1018Candidate::HandleKind;
         Kind kind=Kind::TableStyle;
         if (std::strcmp(slot,"content-format-text-style")==0) kind=Kind::TextStyle;
-        else if (std::strcmp(slot,"cell-style-text-style")==0) kind=Kind::BorderLinetype;
+        else if (std::strcmp(slot,"cell-style-linetype")==0) kind=Kind::BorderLinetype;
         else if (std::strcmp(slot,"table-style")!=0) trace.valid=false;
         if (!trace.result || trace.result->handleSpans.size()>=51u) trace.valid=false;
         if (trace.valid) {
@@ -4947,13 +4947,15 @@ bool skipTableContentFormat(DRW::Version version, dwgBuffer *buf,
     UTF8STRING name;
     UTF8STRING book;
     std::uint32_t color = 0;
+    std::uint32_t textStyleHandle = 0;
     if (!readBoundedCmColor(*buf, strBuf, bounds.bodyEndBit, version,
                             color, &rgb, nullptr, &name, &book,
                             bounds.stringEndBit)
+        // ODA v5.4.1 §20.4.101.3 defines group 340 as a hard pointer.
         || (hdlBuf != nullptr
-            && readTableHandle(hdlBuf, bounds.handleEndBit,
-                               "content-format-text-style", buf, strBuf) == 0
-            && !hdlBuf->isGood())
+            && !readTableHandleWithRole(
+                hdlBuf, bounds.handleEndBit, DRW::DwgHardPointer,
+                textStyleHandle, "content-format-text-style", buf, strBuf))
         || !skipTableBitDouble(*buf, bounds.bodyEndBit)) // text height
         return false;
     const bool good = buf->isGood() && (!strBuf || strBuf->isGood()) && (!hdlBuf || hdlBuf->isGood());
@@ -5045,14 +5047,16 @@ bool skipTableCellStyle(DRW::Version version, dwgBuffer *buf,
         if (!skipTableBitLong(*buf, bounds.bodyEndBit) // border overrides
             || !skipTableBitLong(*buf, bounds.bodyEndBit)) // border type
             return false;
+        std::uint32_t lineTypeHandle = 0;
         if (!readBoundedCmColor(*buf, strBuf, bounds.bodyEndBit, version,
                                 color, &rgb, nullptr, &name, &book,
                                 bounds.stringEndBit)
             || !skipTableBitLong(*buf, bounds.bodyEndBit) // border lineweight (§20.4.101.4)
             || (hdlBuf != nullptr
-                && readTableHandle(hdlBuf, bounds.handleEndBit,
-                                   "cell-style-text-style", buf, strBuf) == 0
-                && !hdlBuf->isGood())
+                // ODA v5.4.1 §20.4.101.4 defines group 340 as a hard pointer.
+                && !readTableHandleWithRole(
+                    hdlBuf, bounds.handleEndBit, DRW::DwgHardPointer,
+                    lineTypeHandle, "cell-style-linetype", buf, strBuf))
             || !skipTableBitLong(*buf, bounds.bodyEndBit) // visible/invisible
             || !skipTableBitDouble(*buf, bounds.bodyEndBit)) // double line spacing
             return false;
@@ -5690,8 +5694,12 @@ bool parseTableContent(DRW::Version version, dwgBuffer *buf, dwgBuffer *strBuf,
         content.m_mergedRanges.push_back(range);
     }
 
-    content.m_tableStyleHandle = readTableHandle(
-        hdlBuf, bounds.handleEndBit, "table-style", buf, strBuf);
+    // ODA v5.4.1 §20.4.97 defines the final TABLECONTENT style reference as
+    // group 340, a hard pointer. Keep the decoded target even when null.
+    if (!readTableHandleWithRole(
+            hdlBuf, bounds.handleEndBit, DRW::DwgHardPointer,
+            content.m_tableStyleHandle, "table-style", buf, strBuf))
+        return false;
     const bool good = buf->isGood() && (!strBuf || strBuf->isGood()) && (!hdlBuf || hdlBuf->isGood());
     if (!good)
         DRW_DBG("TABLECONTENT stream ended unexpectedly\n");
@@ -17202,11 +17210,17 @@ bool DRW_Table::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
         DRW_TableContent parsedContent;
         bool parsedSemanticComplete = false;
         bool usedObservedAc1032Layout = false;
-        const bool parsedContentComplete =
-            parseTableContentWithObservedAc1032Fallback(
-            version, &contentBuf, &contentStringBuf, &contentHandleBuf,
-            parsedContent, parsedSemanticComplete, tableBounds,
-            &usedObservedAc1032Layout);
+        const bool traceAc1032TableContent = version == DRW::AC1032
+            && DRW_DBGGL == DRW_dbg::Level::Debug;
+        bool parsedContentComplete = false;
+        {
+            TableContentObjectHandleTraceScope traceScope(
+                traceAc1032TableContent);
+            parsedContentComplete = parseTableContentWithObservedAc1032Fallback(
+                version, &contentBuf, &contentStringBuf, &contentHandleBuf,
+                parsedContent, parsedSemanticComplete, tableBounds,
+                &usedObservedAc1032Layout);
+        }
         if (!parsedContentComplete || !contentBuf.isGood()
             || !contentStringBuf.isGood() || !contentHandleBuf.isGood()) {
             // The frame, entity prefix, and common handles remain valid. Keep
