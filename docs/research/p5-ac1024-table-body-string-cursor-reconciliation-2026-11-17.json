@@ -3,7 +3,7 @@
   "title": "AC1024 TABLE body-string cursor reconciliation",
   "date": "2026-11-17",
   "supportClaimEffect": "none",
-  "scope": "Compare the ordinary ODA-layout parser path with a diagnostic byte-counted-body-string hypothesis on two TABLE records in the existing hash-bound AC1024 candidate. This closes only the local cursor-comparison action; it does not select a wire profile, change parser behavior, or qualify TABLE output.",
+  "scope": "Reconcile the specified ODA detached-TV path against a diagnostic body-byte-counted string hypothesis on two TABLE records in the existing hash-bound AC1024 candidate. This receipt records the completed local raw-retention compatibility slice and its bounded controls; it does not select a semantic wire profile or qualify TABLE output.",
   "authority": {
     "primary": "ODA Open Design Specification v5.4.1 §§20.4.96.2, 20.4.97, and 20.4.99",
     "specifiedProfile": "For AC1024, TABLECONTENT is embedded in ACAD_TABLE; a type-4 CadValue string uses TV, with R2007+ text in the detached string stream.",
@@ -16,24 +16,33 @@
     "dwgSha256": "53ecc28e54ff0bbfb022989c47fd1cb16eb07a98825309b66cdf316d900fe4ce",
     "pairedAsciiDxfSha256": "c97e857047ad4cecd84754ea1a8638e47508e339fd489f1e895ee7332127b372",
     "pairedBinaryDxfSha256": "6a99aed5d669235a12f592d5cce426c6fba29b5462bae8d76f98187a2fdda22f",
-    "provenanceLimit": "The checked-in SAVEAS script records the intended output versions but does not establish the executing application/build or base-drawing authoring/API state. The DXF pair is a semantic comparator, not a byte-identical encoding of the DWG cell stream."
+    "provenanceLimit": "The repository SAVEAS script records AC1024 DWG and paired ASCII/Binary DXF exports. LibreDWG 0.14 decodes embedded AppInfo identifying a Trusted DWG last saved by AutoCAD V.162.0.0(x64), registry 25.0, git commit fc6c3263b711efc32e02bf3ab5b7e250a860bd13. This is self-reported in-file metadata, not signed provenance; original table creation/API state remains unknown.",
+    "producerEvidence": {
+      "embeddedAppInfo": "Trusted DWG last saved by an Autodesk application; product AutoCAD; build V.162.0.0(x64); registry 25.0; git commit fc6c3263b711efc32e02bf3ab5b7e250a860bd13.",
+      "pairedSaveScript": "The ACadSharp repository save_samples.lsp issues SAVEAS 2010 for the DWG and separate ASCII/Binary DXF outputs.",
+      "limits": "The metadata is not signed and the base drawing/table authoring/API state is not known."
+    }
   },
   "diagnosticRun": {
     "repositoryRevision": "56c42180",
     "workingTreeFile": "src/drw_entities.cpp",
-    "workingTreeFileSha256": "072e8dc434d15a538cc709cecafb6f7423a0d7bda17b7df869fb1e2caf228f",
+    "workingTreeFileSha256": "07285e8dc434d15a538cc709cecafb6f7423a0d7bda17b7df869fb1e2caf228f",
     "buildTarget": "dwg2dxf",
     "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1024.dwg -y -d -v2010 /private/tmp/ACadSharp_sample_AC1024-candidate-full.dxf",
     "tracePath": "/private/tmp/ACadSharp_sample_AC1024-candidate-full.log",
     "traceSha256": "874276864c9b40782810b6d7b08554f471307e68752d1ecfc20ba0c9184edf5b",
-    "pathBehavior": "The primary ODA-layout path remains unchanged and fails closed on the candidate's decoded attribute-count/handle-role tail. The alternate interpretation ran on independent debug-only cursors and was not published."
+    "pathBehavior": "The primary ODA-layout path remains unchanged and fails closed on this candidate. The alternate interpretation initially ran only on independent diagnostic cursors.",
+    "scope": "Historical pre-implementation cursor comparison. The candidate interpretation ran on independent diagnostic cursors and was not published."
   },
   "candidateInterpretation": {
     "entityHandle": "0x528",
     "rows": 7,
     "columns": 3,
     "bodyStringByteCount": 26,
-    "bodyPayloadBits": [39138, 39356],
+    "bodyPayloadBits": [
+      39138,
+      39356
+    ],
     "decodedText": "Table sample",
     "unitType": 0,
     "attributeCount": 0,
@@ -57,7 +66,10 @@
     "rows": 4,
     "columns": 5,
     "bodyStringByteCount": 44,
-    "bodyPayloadBits": [52234, 52596],
+    "bodyPayloadBits": [
+      52234,
+      52596
+    ],
     "decodedText": "Hello this is a title",
     "unitType": 0,
     "attributeCount": 0,
@@ -78,9 +90,45 @@
   },
   "limits": {
     "semanticComplete": false,
-    "strictOutput": "The whole-file CLI still refused before publication because standalone OBJECTCONTEXTDATA has no qualified replay path.",
+    "strictOutput": "The whole-file CLI refused before publication because standalone OBJECTCONTEXTDATA has no qualified replay path; no DXF destination was created.",
     "producerIndependent": false,
-    "supportClaimEffect": "none"
+    "supportClaimEffect": "none",
+    "sourceProfile": "The final producer/writer profile is now identified as AutoCAD 2025 saving AC1024, based on the file AppInfo and repository save script. This is enough to bound a compatibility candidate, not to establish general AC1024 behavior."
   },
-  "result": "The alternate interpretation reaches the declared body/string boundaries and the handle-stream byte boundary for both TABLE records after each R2010 postamble, with selected text matching paired-DXF semantics. This is strong local alignment evidence, not independent proof of the alternate wire layout. Keep the parser fail-closed and obtain authoritative clarification or a source-distinct producer-bound AC1024 TABLE witness before implementation. No fixture was added."
+  "result": "The local AC1024 TABLE raw-retention slice is implemented and its seven focused generated-vector selectors pass. The source-bound ACadSharp sample reaches the bounded fallback for TABLE handles 0x528 and 0xa35, leaving respectively 3 and 7 untyped handle-stream bits. Paired DXFs match selected text, but ODA v5.4.1 §20.4.99 specifies detached TV for type-4 CadValue strings and remains authoritative. No cell semantics are published, strict output remains refused, and the separate OBJECTCONTEXTDATA blocker prevents whole-file conversion. This closes only the local reader sub-slice; producer-bound field/role evidence, graph closure, strict output, independent readback, and native appearance remain open. No fixture was added.",
+  "implementationRun": {
+    "repositoryRevision": "2232df5b",
+    "workingTreeFile": "src/drw_entities.cpp",
+    "workingTreeFileSha256": "20d46eb1455f4b299d7611467e4eb792e7cd2096993ef5f787139f0f3055dc69",
+    "buildTarget": "libdxfrw_dwg_object_vectors_tests and dwg2dxf",
+    "focusedTests": {
+      "command": "ctest --test-dir build-gcc -R 'libdxfrw_table_(ac1024_observed_body_string_raw_only|cadvalue_string|r2010_unknown_prefix_defaults|break_data_flag_domain|break_option_direction_domains|row_range_count_domain|content_style_id_domains)' --output-on-failure",
+      "passed": 7,
+      "failed": 0,
+      "elapsedSeconds": 0.06
+    },
+    "sampleRun": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1024.dwg -y -d -v2010 /private/tmp/ACadSharp_sample_AC1024-fallback.dxf",
+      "tracePath": "/private/tmp/ACadSharp_sample_AC1024-fallback.log",
+      "traceSha256": "44a1d08ed9e69ac22af0bc425f0ed8e15071b6afedd11877082e51c2b7e3f6a5",
+      "exitCode": 1,
+      "observedTables": [
+        {
+          "handle": "0x528",
+          "rows": 7,
+          "columns": 3,
+          "trailingHandleBits": 3
+        },
+        {
+          "handle": "0xa35",
+          "rows": 4,
+          "columns": 5,
+          "trailingHandleBits": 7
+        }
+      ],
+      "result": "Both bounded AC1024 body-string candidates reached raw-only retention; no cell or table-style semantics were published. The whole-file conversion refused before output because standalone OBJECTCONTEXTDATA has no qualified replay path; the destination DXF was not created."
+    },
+    "tailDisposition": "The detached string cursor accepts only zero footer/alignment bits within its 14-bit bound. The handle cursor may retain at most seven remaining bits as opaque source-frame data; the observed candidates leave 3 and 7 bits. These bits are not labeled padding or assigned semantics. This exception is safe only on the raw-retaining, semantic-incomplete path, which remains refused by strict output.",
+    "supportClaimEffect": "none"
+  }
 }

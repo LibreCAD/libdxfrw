@@ -17,27 +17,23 @@ LibreCAD origin/master head was `3ad089398976feb96ee01b8dee006c141edd8d3e`
 refresh mutable heads before integration or qualification.
 
 **Progress on 2026-11-17:** 4 of 32 required package gates are closed (12.5%);
-28 remain. The activity estimate is 32 of 63 slices complete (50.8%), with 31
+28 remain. The activity estimate is 33 of 64 slices complete (51.6%), with 31
 remaining: those 28 gates plus AC1027/AC1032 3D qualification on Linux, the same
 3D phase on Windows, and the combined LibreCAD 2 / LibreCAD_3 GUI phase. The
-63-unit count is 32 package gates, 28 completed non-gate slices, and these 3
+64-unit count is 32 package gates, 29 completed non-gate slices, and these 3
 split phases. Slices are equally weighted; this is neither an effort nor a
 support estimate. Completed actions are removed from the active queue; their
 evidence remains in receipts and commits. P6-G is conditional and P7-E optional;
 neither is counted. The six `DEFERRED_EXTERNAL` dispositions are advisory,
 excluded from the estimate, and cannot promote support claims.
 
-**Ready local work:** P5-D has a completed cursor comparison and evidence
-supporting a specific final writer profile, but its package gate remains open.
-The bounded body-byte-counted interpretation matches selected paired-DXF cell
-text and reaches the observed AC1024 body/string, handle, and no-break postamble
-bounds; it conflicts with ODA v5.4.1 §§20.4.97/20.4.99 and does not establish
-complete TABLE meaning. Receipts: [source triage](docs/research/p5-ac1024-table-source-triage-2026-11-17.json)
-and [cursor comparison](docs/research/p5-ac1024-table-body-string-cursor-reconciliation-2026-11-17.json).
-Implement only a bounded, raw-retaining, semantic-incomplete AC1024 fallback
-after the ODA path fails. It must not make strict output succeed or promote
-support. The separate [Autodesk Metric sample](docs/research/p5-autodesk-metric-table-ac1021-screen-2026-11-17.json)
-is AC1021, so it is not an AC1024 witness.
+**P5-D remains open:** the current AC1024 compatibility candidate is bounded,
+raw-retaining, semantic-incomplete, and strict-output-refused. Its source and
+limits are recorded in the [triage](docs/research/p5-ac1024-table-source-triage-2026-11-17.json)
+and [cursor](docs/research/p5-ac1024-table-body-string-cursor-reconciliation-2026-11-17.json)
+receipts. ODA v5.4.1 §20.4.99 remains authoritative for detached TV strings.
+The Autodesk Metric sample is AC1021 and cannot close the AC1024 gate. Do not
+repeat the completed local cursor scan or focused controls.
 
 **Existing P6-C boundary:** the AC1032 body-byte-counted route is bounded,
 raw-only, semantic-incomplete, and subject to strict whole-file refusal. Its
@@ -102,65 +98,50 @@ for the already-completed platform scope.
   and [3D plan](DWG_DXF_3D_SUPPORT_PLAN.md). External advisory results do not
   promote claims.
 
-## Execution lanes
+## Shortest-path execution order
 
-Run these lanes concurrently when their inputs are independent. A missing
-source, app, runner, or credential blocks only its own row.
+Prioritize admitted sources and ready local work. Missing sources, tools,
+runners, or credentials block only their own gate. Continue with the next ready
+slice and do not repeat searches whose inputs have not changed.
 
-1. **Now — finish the P5-D local reader slice.** Keep the ODA detached-TV
-   interpretation first. After it fails, try the observed AC1024 body-byte-count
-   profile on independent body/string/handle cursors. Require a complete bounded
-   TABLECONTENT parse and the observed no-break R2010 postamble; reject break
-   variants and any overrun. Keep the attempt isolated until all bounds pass.
-   On success, preserve the original frame/tail, label semantic completeness
-   false, and refuse strict output; do not expose the partial cells as complete
-   model data. Add locally generated in-memory success, exact-boundary,
-   truncation, wrong-role, failure-reset, and corrected same-parser retry
-   controls. Build the touched target once and run its owning fast selectors in
-   one invocation. This closes only the local reader sub-slice, not P5-D's
-   package gate.
-2. **Batch producer capture once.** In one release-bound AutoCAD/ObjectARX
-   session, create separate small drawings for the still-missing P5-A/B/D/E/F/G/H
-   and P6-A/B/C profiles. Capture only fields each row names: FIELD values and
-   references; TABLE values and optional formatting/layer overrides; dynamic
-   constraint dependencies; VIEWPORT shade-plot targets; IMAGEDEF lifecycle;
-   PERSUBENTMGR members; and a clean R2018 TABLE with known values and suffix
-   integrity. Record API calls, application/build, exact version, hashes, paired
-   DXFs, expected semantic values, and reopen results. Reuse an artifact only
-   where its bytes contain the required state. The existing ACadSharp TABLE
-   file lacks known authoring/API state, and Autodesk Imperial/Metric samples
-   are AC1021; neither closes an AC1024 producer gate.
-3. **Advance external source/authority rows without rescanning.** Request only
-   the named inputs in P4-B/C, P6-E/F, and P7-B/C/D/G. Use each linked receipt
-   as the search boundary; preserve negative findings and stop when the named
-   evidence is obtained. Record unavailable source/tool/runner states once,
-   leave only that row waiting, and continue another ready slice.
-4. **Implement each admitted profile in dependency order.** P5-A precedes
-   P5-B; P5-D precedes optional P5-E/F; P7-B/C/D precede P7-F and P7-H. For
-   each admitted source, freeze source/tool hashes and expected values, map
-   fields/roles and the next-record boundary, make the smallest typed-model or
-   callback change, then prove graph closure. Add focused malformed, wrong-role,
-   refusal-atomicity, rollback, and corrected retry controls. For profiles
-   eligible for output, prove strict ASCII/Binary serialization and fresh
-   independent readback; for intentionally raw-only profiles, prove exact raw
-   preservation and strict refusal instead. Add native semantics only after
-   source/profile closure. Commit one slice at a time and immediately update its
-   receipt, this plan, progress count, and next ready slice.
-5. **Freeze and qualify packages once.** After code slices settle, pin source,
-   build, package, executable, and loaded modules. At this frozen identity,
-   combine P8-B/C FreeCAD handoff with P8-E shared/static package and runtime
-   manifests. Reuse the existing generated 2D Linux/Windows results as baseline;
-   rerun them only for the frozen candidate, then add admitted source profiles.
-   Run 3D on each platform only after P7 admission. Dispatch shared ABI jobs
-   once after GitHub auth/network works. Keep ordinary AC1027 refused until
-   source-reference closure.
-6. **Run consumer GUI checks without cross-blocking.** In LibreCAD 2, qualify
-   the PR #3269 imported-LTYPE edit/save/close/reopen path and LINE
-   translate/save/reopen path together; compare the saved table/object graph
-   and geometry with independent readback. Add P6-H MLINE to that same session
-   only if its source witness is ready; it must not delay P8-D. Run the
-   LibreCAD_3 MPOLYGON save/reopen check in its own session. Close P8-F/G from
-   the frozen candidate's required-check, branch-protection, and evidence state.
+1. **Batch missing producer evidence into one session.** Capture one
+   FIELD/FIELDLIST source for P5-A/B; exact TABLE API state, values, roles, and
+   expected output for P5-D and, only if present, P5-E/F; then the missing
+   P5-G/H and P6-A/B/C states. Record only each gate's required API calls,
+   producer/build, version, hashes, field spans, references, expected values,
+   and reopen results. Reuse an artifact only when it contains the needed state.
+   Paired DXFs and embedded AppInfo do not prove original TABLE API state. Do
+   not repeat the completed P5-D cursor scan or controls. If the producer/tool
+   is unavailable, record that input once and continue with ready local work;
+   keep P5-D raw-only and strict-output-refused.
+2. **Implement the next source-ready local profile.** Skip gates waiting for
+   external inputs. Follow dependencies: P5-A before P5-B, P5-D before P5-E/F,
+   and P7-B/C/D before P7-F/H. For an admitted source, freeze hashes and
+   expected values, map spans/roles and next-record bounds, make the smallest
+   model/callback change, and prove graph closure with owning fast selectors.
+   Include malformed input, wrong-role, refusal atomicity, rollback, and
+   corrected retry controls; require independent readback and native meaning
+   before claiming output support. Commit one slice, update its receipt and
+   plan, then continue directly to the next ready slice.
+3. **Resolve only changed external blockers.** For P4-B/C, P6-E/F, and
+   P7-B/C/D/G, use the linked receipt as the search boundary. Request or retry
+   only the named source, authority, or environment input. Preserve negative
+   findings and record unavailable dependencies once. Do not repeat a search
+   until its source location, tool, runner, or authorization changes.
+4. **Freeze once, then qualify packages.** After implementation slices settle,
+   pin source, build, package, executable, and loaded modules. In one
+   frozen-candidate wave, combine P8-B/C FreeCAD handoff with P8-E shared/static
+   package and runtime manifests. Reuse existing generated 2D Linux/Windows
+   results as historical baselines; rerun only for the frozen candidate, then
+   add admitted source profiles. Run AC1027/AC1032 3D only after P7 admission.
+   Dispatch shared ABI jobs once network/auth works. Keep ordinary AC1027
+   refused until source-reference closure.
+5. **Batch consumer GUI checks by application.** In one LibreCAD 2 session,
+   qualify PR #3269 imported-LTYPE edit/save/close/reopen and LINE
+   translate/save/reopen; compare saved records and geometry with independent
+   readback. Add P6-H MLINE only if its witness is ready; it must not delay P8-D.
+   Run LibreCAD_3 MPOLYGON save/reopen separately. Close P8-F/G from the frozen
+   candidate's required-check, branch-protection, and evidence state.
 
 Do not add parser behavior from generated self-consistency or peer agreement.
 Use existing focused selectors first; full suites belong only at composed
@@ -189,7 +170,7 @@ readback. Rows add the package-specific evidence required to close a gate.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P5-D / READY_LOCAL_AC1024_PROFILE_FALLBACK | Implement the isolated fallback described in the [cursor receipt](docs/research/p5-ac1024-table-body-string-cursor-reconciliation-2026-11-17.json); source/profile limits are in the [triage receipt](docs/research/p5-ac1024-table-source-triage-2026-11-17.json). Embedded AppInfo and the repository SAVEAS script support attribution to an AutoCAD 2025-to-AC1024 final writer profile; metadata is unsigned and base TABLE API state is unknown. Keep ODA detached-TV primary. Retry the body-byte-counted candidate only after ODA fails, and accept only the bounded no-break profile. Keep its cell data unexposed as complete semantics, retain the source frame, and keep strict output refused. The [Autodesk Metric sample](docs/research/p5-autodesk-metric-table-ac1021-screen-2026-11-17.json) is AC1021 and is not a substitute. | First close the local reader sub-slice with generated success, exact-boundary, truncation, wrong-role, reset/rollback, and same-parser retry controls. The package gate remains open for producer-bound field/role evidence, table graph closure, strict ASCII/Binary output, independent readback, atomic refusal/retry, and native appearance. The fallback alone cannot promote support. |
+| P5-D / PRODUCER_WITNESS_NEEDED | Acquire producer-bound AC1024 TABLE API state with known values and field/handle roles. The current compatibility route and its limits are in the [cursor receipt](docs/research/p5-ac1024-table-body-string-cursor-reconciliation-2026-11-17.json) and [source triage](docs/research/p5-ac1024-table-source-triage-2026-11-17.json); do not repeat their completed local controls. | Keep ODA detached-TV primary; the observed fallback remains raw-retaining, semantic-incomplete, and strict-output-refused. Close only with producer-bound spans/roles, table graph closure, strict ASCII/Binary output, independent readback, public-boundary refusal atomicity/retry, and native appearance. Embedded AutoCAD metadata is unsigned and does not establish original API state. The Autodesk Metric sample is AC1021, not a substitute. |
 | P5-A / WAITING_FOR_PRODUCER_FIELD_SPANS | Acquire a native AutoCAD/ObjectARX FIELD with known text/value, or a stronger producer-bound public input. The cached unknown-producer source and patched ACadRust derivative are not physical evidence; see [source/cache audit](docs/research/p5-mtext-fieldlist-source-cache-2026-11-15.json). | Bind physical spans, handle roles, source text, and independent evaluation or producer-authored expected value before parser changes. |
 | P5-B / DEPENDS_ON_P5-A | Use P5-A's exact source to close FIELD/FIELDLIST, including nested `_text`, tokens, and references. The generated AC1021 ASCII/Binary control proves version selection only. | Complete typed dependency graph, strict ASCII/Binary output, fresh independent readback, rollback/retry, and graph equivalence. |
 | P5-E / DEPENDS_ON_P5-D_PROFILE | Reuse the admitted P5-D source only if it contains Content Format/CELLSTYLEMAP values; otherwise capture only that missing state in the same release session. | Bind formatting meaning to independent/native expected values; preserve or refuse unknown states. |
@@ -288,9 +269,9 @@ estimate, and cannot promote support claims.
    behavior, focused validation, completed/total slice estimate, open gate
    count, and next action; then continue without waiting for unrelated
    external work.
-5. Current count: 63 activity slices, 32 complete (50.8%), 31 remaining;
+5. Current count: 64 activity slices, 33 complete (51.6%), 31 remaining;
    package completion is separately 4/32 gates (12.5%). The denominator is the
-   32 package gates, 28 completed non-gate slices, and 3 split platform/UI
+   32 package gates, 29 completed non-gate slices, and 3 split platform/UI
    phases. This coarse estimate counts a package gate as one unit; commits to
    sub-slices are still reported after each commit but do not close that unit.
    Recount whenever a gate, completed slice, or phase is added, removed, or

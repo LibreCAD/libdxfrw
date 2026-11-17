@@ -25,8 +25,17 @@
       "script": "samples/sample_base/save_samples.lsp",
       "scriptSha256": "7cf09372fc29f8103a12a36ed57f54d2e96658e964a4b7d84ea2e4bfed07f9eb",
       "scriptCommit": "c30a97ce4697e649e562fbeb52057aa9f73f7744",
-      "observedRoute": "The script issues SAVEAS 2010 for sample_AC1024.dwg and separate SAVEAS 2010 ASCII and Binary DXF commands.",
-      "limit": "The exact execution application/build and the authoring provenance of the input sample_base.dwg are not established. Treat the pair as a source-triage candidate, not a native AutoCAD/ObjectARX semantic witness."
+      "observedRoute": "The repository LISP script issues SAVEAS 2010 for sample_AC1024.dwg and separate SAVEAS 2010 ASCII and Binary DXF commands. The embedded AppInfo identifies the DWG as a Trusted DWG last saved by AutoCAD build V.162.0.0(x64).",
+      "limit": "The final AutoCAD 2025 writer profile is identified by in-file AppInfo and the repository save script, but this metadata is not signed and the authoring/API state of the base drawing is not established. Paired DXFs provide expected saved semantics, not proof of the original TABLE API calls.",
+      "embeddedAppInfo": {
+        "reader": "GNU LibreDWG 0.14 JSON from the hash-bound DWG",
+        "trustText": "Autodesk DWG. This file is a Trusted DWG last saved by an Autodesk application or Autodesk licensed application.",
+        "product": "AutoCAD",
+        "build": "V.162.0.0(x64)",
+        "registryVersion": "25.0",
+        "gitCommitId": "fc6c3263b711efc32e02bf3ab5b7e250a860bd13",
+        "attestationLimit": "These are embedded source metadata fields, not a signed producer attestation."
+      }
     },
     "acquisition": {
       "temporaryPath": "/private/tmp/ACadSharp_sample_AC1024.dwg",
@@ -43,9 +52,15 @@
         "anonymousBlock": "*T9",
         "rows": 7,
         "columns": 3,
-        "selectedCellText": ["Table sample", "Text"]
+        "selectedCellText": [
+          "Table sample",
+          "Text"
+        ]
       },
-      "standaloneTableContentDxfRecords": ["0x747", "0x131E"],
+      "standaloneTableContentDxfRecords": [
+        "0x747",
+        "0x131E"
+      ],
       "cellStyleMap": {
         "handle": "0x130F",
         "extensionDictionaryEntry": "ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP",
@@ -91,11 +106,51 @@
       "strictOutput": "Refused before output because standalone DWG OBJECTCONTEXTDATA has no qualified replay path; no DXF was produced."
     }
   },
-  "conclusion": "This pair is a useful bounded AC1024 TABLE/CELLSTYLEMAP candidate for local source-span reconciliation. It does not reproduce the reported AC1024 CLASSES failure, and it cannot close P5-D while the producer/build/API provenance, exact DWG field spans, graph closure, strict output, and native semantics remain unqualified.",
+  "conclusion": "The local bounded raw-retention reader sub-slice is implemented and focused controls pass. Two TABLE candidates reach the selected body-string interpretation, but this conflicts with ODA v5.4.1 and exposes no typed table semantics. The paired sample still cannot be converted as a whole file because OBJECTCONTEXTDATA has no qualified replay path. The P5-D package gate remains open for producer-bound field/role evidence, graph closure, strict ASCII/Binary output, fresh independent readback, rollback/retry at the public writer boundary, and native appearance.",
   "next": [
-    "Use the matching AC1024 ASCII/Binary DXFs to bind TABLE handle 0x528, TABLECONTENT/CELLSTYLEMAP identities, expected row/cell values, and the exact failing ATTDEF target.",
-    "Independently reconcile the AC1024 embedded TABLE body, R2007+ string intervals, and handle-stream start to ODA v5.4.1 §20.4.96.2/§20.4.97 before changing the parser or its expected handle role.",
-    "Keep raw-only/refusal behavior until the exact source profile parses without guessed offsets; then prove graph closure, selected ASCII/Binary output, fresh readback, refusal atomicity, and corrected retry.",
-    "Obtain AutoCAD/ObjectARX or equivalent independent producer/API provenance and native table appearance before closing P5-D."
-  ]
+    "Keep the specified ODA detached-TV AC1024 path primary; keep the compatibility fallback AC1024-only, bounded, raw-retaining, semantic-incomplete, and strict-output-refused.",
+    "Do not repeat the completed parser controls or this candidate scan. Acquire only the missing producer-bound TABLE field/handle-role source with known API state and expected values; paired DXFs and embedded AppInfo are not sufficient.",
+    "If producer evidence becomes available, close physical field spans and reference roles before adding typed semantics; then prove complete graph closure, strict ASCII/Binary output, fresh independent readback, public-boundary refusal atomicity/retry, and native appearance.",
+    "Keep the external ACadSharp DWG/DXF pair outside the repository. No fixture was added."
+  ],
+  "rawOnlyCompatibilityRun": {
+    "repositoryRevision": "2232df5b",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/dev/ACadSharp/samples/sample_AC1024.dwg -y -d -v2010 /private/tmp/ACadSharp_sample_AC1024-fallback.dxf",
+    "tracePath": "/private/tmp/ACadSharp_sample_AC1024-fallback.log",
+    "traceSha256": "44a1d08ed9e69ac22af0bc425f0ed8e15071b6afedd11877082e51c2b7e3f6a5",
+    "exitCode": 1,
+    "result": {
+      "acceptedRawOnlyTables": [
+        {
+          "handle": "0x528",
+          "rows": 7,
+          "columns": 3,
+          "opaqueHandleTailBits": 3
+        },
+        {
+          "handle": "0xa35",
+          "rows": 4,
+          "columns": 5,
+          "opaqueHandleTailBits": 7
+        }
+      ],
+      "publishedTableSemantics": false,
+      "strictOutput": "Refused before output because standalone DWG OBJECTCONTEXTDATA has no qualified replay path; no DXF was produced.",
+      "supportClaimEffect": "none"
+    },
+    "focusedControls": {
+      "passed": 7,
+      "failed": 0,
+      "selectors": [
+        "libdxfrw_table_break_data_flag_domain",
+        "libdxfrw_table_break_option_direction_domains",
+        "libdxfrw_table_row_range_count_domain",
+        "libdxfrw_table_content_style_id_domains",
+        "libdxfrw_table_cadvalue_string",
+        "libdxfrw_table_ac1024_observed_body_string_raw_only",
+        "libdxfrw_table_r2010_unknown_prefix_defaults"
+      ]
+    },
+    "tailPolicy": "Detached string stream: zero-only footer/alignment tail bounded to 14 bits. Handle stream: 0-7 residual bits retained as opaque raw frame data; the observed candidates leave 3 and 7 bits. Do not describe this tail as padding or assign meaning without independent source-bound evidence."
+  }
 }

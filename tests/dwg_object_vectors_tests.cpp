@@ -16130,6 +16130,17 @@ void putR2010TableText(dwgBufferW& strings, const std::string& text) {
     strings.putRawChar8(0);
 }
 
+void putR2010BodyCountedTableText(dwgBufferW& body,
+                                  const std::string& text) {
+    body.putBitLong(static_cast<std::int32_t>((text.size() + 1u) * 2u));
+    for (unsigned char byte : text) {
+        body.putRawChar8(byte);
+        body.putRawChar8(0u);
+    }
+    body.putRawChar8(0u);
+    body.putRawChar8(0u);
+}
+
 bool makeR2010EmbeddedTableFrame(R2010EmbeddedTableFrame& frame,
                                 std::uint32_t columnCount = 1u,
                                 std::uint32_t rowCount = 1u,
@@ -16175,7 +16186,11 @@ bool makeR2010EmbeddedTableFrame(R2010EmbeddedTableFrame& frame,
                                 std::int32_t unknownR2013Flag = 0,
                                 DRW::Version version = DRW::AC1024,
                                 std::uint8_t unknownSoftPointerCode =
-                                    DRW::DwgSoftPointer) {
+                                    DRW::DwgSoftPointer,
+                                bool bodyCountedValueString = false,
+                                bool includeR2010Postamble = true,
+                                bool truncateR2010Postamble = false,
+                                bool includeTailSentinel = true) {
     constexpr std::uint32_t blockRecordHandle = 0xA600u;
     constexpr std::uint32_t tableStyleHandle = 0xA700u;
     const bool generalValue = valueDataType == 512;
@@ -16262,7 +16277,7 @@ bool makeR2010EmbeddedTableFrame(R2010EmbeddedTableFrame& frame,
             for (std::uint32_t column = 0; column < columnCount; ++column) {
                 putR2010TableText(strings, "Tooltip" + std::to_string(row)
                                   + "_" + std::to_string(column));
-                if (valueDataType == 4
+                if (valueDataType == 4 && !bodyCountedValueString
                     && testTableCadValueHasPayload(
                         version, valueFormatFlags, valueDataType))
                     putR2010TableText(strings, typedString);
@@ -16273,7 +16288,7 @@ bool makeR2010EmbeddedTableFrame(R2010EmbeddedTableFrame& frame,
     } else {
         putR2010TableText(strings, "Column2010");
         putR2010TableText(strings, "Tooltip2010");
-        if (valueDataType == 4
+        if (valueDataType == 4 && !bodyCountedValueString
             && testTableCadValueHasPayload(
                 version, valueFormatFlags, valueDataType))
             putR2010TableText(strings, typedString);
@@ -16329,6 +16344,11 @@ bool makeR2010EmbeddedTableFrame(R2010EmbeddedTableFrame& frame,
                         body.putRawChar8(0xB2);
                         body.putRawChar8(0xC3);
                         body.putRawChar8(0xD4);
+                    } else if (testTableCadValueHasPayload(
+                                   version, valueFormatFlags, valueDataType)
+                               && valueDataType == 4
+                               && bodyCountedValueString) {
+                        putR2010BodyCountedTableText(body, typedString);
                     } else if (testTableCadValueHasPayload(
                                    version, valueFormatFlags, valueDataType)
                                && valueDataType == 2) {
@@ -16427,6 +16447,11 @@ bool makeR2010EmbeddedTableFrame(R2010EmbeddedTableFrame& frame,
                     body.putRawChar8(0xB2);
                     body.putRawChar8(0xC3);
                     body.putRawChar8(0xD4);
+                } else if (testTableCadValueHasPayload(
+                               version, valueFormatFlags, valueDataType)
+                           && valueDataType == 4
+                           && bodyCountedValueString) {
+                    putR2010BodyCountedTableText(body, typedString);
                 } else if (testTableCadValueHasPayload(
                                version, valueFormatFlags, valueDataType)
                            && valueDataType == 2) {
@@ -16539,31 +16564,38 @@ bool makeR2010EmbeddedTableFrame(R2010EmbeddedTableFrame& frame,
         fieldReference.ref64 = fieldReference.ref;
         handles.putHandle(fieldReference);
     }
-    handles.putHandle(handle(tableStyleHandle)); // TABLECONTENT style handle
-    body.putBitShort(38); // R2010 table flags/default
-    body.put3BitDouble(DRW_Coord{1.0, 0.0, 0.0});
-    body.putBitLong(breakDataFlag); // has break data flag
-    if (breakDataFlag != 0) {
-        body.putBitLong(breakOptionFlags);
-        body.putBitLong(breakFlowDirection);
-        body.putBitDouble(2.0); // break spacing
-        body.putBitLong(0); // unknown flags
-        body.putBitLong(0); // unknown flags
-        body.putBitLong(manualPositionCount);
-        if (manualPositionCount == 1) {
-            body.put3BitDouble(DRW_Coord{0.5, 1.0, 2.0});
-            body.putBitDouble(3.5);
-            body.putBitLong(0); // opaque manual-position flags
+    dwgHandle tableStyle;
+    tableStyle.code = DRW::DwgHardPointer;
+    tableStyle.ref = tableStyleHandle;
+    tableStyle.ref64 = tableStyleHandle;
+    handles.putHandle(tableStyle); // TABLECONTENT style hard pointer
+    if (includeR2010Postamble) {
+        body.putBitShort(38); // R2010 table flags/default
+        body.put3BitDouble(DRW_Coord{1.0, 0.0, 0.0});
+        body.putBitLong(breakDataFlag); // has break data flag
+        if (breakDataFlag != 0) {
+            body.putBitLong(breakOptionFlags);
+            body.putBitLong(breakFlowDirection);
+            body.putBitDouble(2.0); // break spacing
+            body.putBitLong(0); // unknown flags
+            body.putBitLong(0); // unknown flags
+            body.putBitLong(manualPositionCount);
+            if (manualPositionCount == 1) {
+                body.put3BitDouble(DRW_Coord{0.5, 1.0, 2.0});
+                body.putBitDouble(3.5);
+                body.putBitLong(0); // opaque manual-position flags
+            }
+        }
+        body.putBitLong(rowRangeCount);
+        if (!truncateR2010Postamble && rowRangeCount == 1) {
+            body.put3BitDouble(DRW_Coord{0.0, 0.0, 0.0});
+            body.putBitLong(0); // row-range start
+            body.putBitLong(0); // row-range end
         }
     }
-    body.putBitLong(rowRangeCount);
-    if (rowRangeCount == 1) {
-        body.put3BitDouble(DRW_Coord{0.0, 0.0, 0.0});
-        body.putBitLong(0); // row-range start
-        body.putBitLong(0); // row-range end
-    }
     frame.tableDataEndBit = body.bitCount();
-    body.putBitLong(kTablePlacementTailSentinel);
+    if (includeTailSentinel)
+        body.putBitLong(kTablePlacementTailSentinel);
 
     if (!body.isGood() || !strings.isGood() || !handles.isGood())
         return false;
@@ -17891,7 +17923,15 @@ void testTableCadValueString(TestContext& t) {
                      && content->m_value.m_valueString == expected
                      && content->m_text == expected
                      && cursorBit(input) == ac1024Frame.tableDataEndBit,
-                 "AC1024 TABLE reads kString from the detached TV stream and preserves the following table-tail boundary");
+                 "AC1024 TABLE reads kString from the detached TV stream and preserves the following table-tail boundary (read="
+                     + std::to_string(read) + ", good="
+                     + std::to_string(input.isGood()) + ", semantic="
+                     + std::to_string(parsed.m_semanticContentComplete)
+                     + ", rows="
+                     + std::to_string(parsed.m_content.m_rows.size())
+                     + ", cursor=" + std::to_string(cursorBit(input))
+                     + ", expected="
+                     + std::to_string(ac1024Frame.tableDataEndBit) + ")");
     }
 }
 
@@ -18829,6 +18869,180 @@ void testR2010EmbeddedTableContentVector(TestContext& t) {
         "AC1024 TABLE over-limit cell attribute count rejection vector builds");
 }
 
+bool makeR2010ObservedBodyStringTableFrame(
+        R2010EmbeddedTableFrame& frame,
+        std::uint32_t fieldReferenceCount = 0u,
+        std::uint32_t fieldReferenceHandleCount = 0u,
+        std::uint8_t fieldReferenceHandleRole = DRW::DwgHardOwnership,
+        std::int32_t breakDataFlag = 0,
+        bool includePostamble = true,
+        bool truncatePostamble = false,
+        bool includeTailSentinel = true) {
+    return makeR2010EmbeddedTableFrame(
+        frame, 1u, 1u, 1u, 0u, 0u, 0u, 1u, 0u, 0u, 0, 0xA710u,
+        false, fieldReferenceCount, fieldReferenceHandleCount,
+        fieldReferenceHandleRole, TablePlacement{}, 0,
+        DRW::DwgHardPointer, false, {}, breakDataFlag, 0, 1, 1, 0, 0, 1,
+        1, 0, 4, DRW::DwgSoftPointer, TableContentStyleIds{}, 0u, 0u, 0,
+        true, 0, DRW::AC1024, DRW::DwgSoftPointer, true, includePostamble,
+        truncatePostamble, includeTailSentinel);
+}
+
+void testR2010ObservedBodyStringRawOnlyFallback(TestContext& t) {
+    DRW_TextCodec codec;
+    codec.setVersion(DRW::AC1024, false);
+
+    R2010EmbeddedTableFrame frame;
+    const bool built = makeR2010ObservedBodyStringTableFrame(frame);
+    t.expect(built,
+             "AC1024 observed body-string raw-retention vector builds");
+    if (!built)
+        return;
+
+    TableDwgCodecProbe table;
+    dwgBuffer input(frame.bytes.data(), frame.bytes.size(), &codec);
+    const bool parsed = table.parseDwg(
+        DRW::AC1024, &input, frame.handleBits);
+    t.expect(parsed && input.isGood() && table.m_hasSemanticContent
+                 && !table.m_semanticContentComplete
+                 && table.m_content.m_columns.empty()
+                 && table.m_content.m_rows.empty()
+                 && table.m_tableStyleHandle == 0u
+                 && cursorBit(input) == frame.tableDataEndBit,
+             "AC1024 observed body-string fallback keeps an incomplete raw-only shell and consumes the bounded postamble (parsed="
+                 + std::to_string(parsed) + ", good="
+                 + std::to_string(input.isGood()) + ", semantic="
+                 + std::to_string(table.m_semanticContentComplete)
+                 + ", rows="
+                 + std::to_string(table.m_content.m_rows.size())
+                 + ", style=" + std::to_string(table.m_tableStyleHandle)
+                 + ", cursor=" + std::to_string(cursorBit(input))
+                 + ", expected="
+                 + std::to_string(frame.tableDataEndBit) + ")");
+    if (parsed && cursorBit(input) == frame.tableDataEndBit) {
+        const std::int32_t sentinel = input.getBitLong();
+        t.expect(input.isGood() && sentinel == kTablePlacementTailSentinel,
+                 "AC1024 observed body-string fallback preserves the following tail sentinel");
+    }
+
+    dwgBufferW strictBody(&codec), strictStrings(&codec), strictHandles(&codec);
+    strictBody.putBit(1u);
+    strictStrings.putBit(0u);
+    strictHandles.putBit(1u);
+    const auto bodyBefore = strictBody.data();
+    const auto stringsBefore = strictStrings.data();
+    const auto handlesBefore = strictHandles.data();
+    const std::uint64_t bodyBitsBefore = strictBody.bitCount();
+    const std::uint64_t stringsBitsBefore = strictStrings.bitCount();
+    const std::uint64_t handlesBitsBefore = strictHandles.bitCount();
+    const bool strictEncoded = table.encodeDwg(
+        DRW::AC1024, &strictBody, 0u, &strictStrings, &strictHandles);
+    t.expect(!strictEncoded && strictBody.bitCount() == bodyBitsBefore
+                 && strictStrings.bitCount() == stringsBitsBefore
+                 && strictHandles.bitCount() == handlesBitsBefore
+                 && strictBody.data() == bodyBefore
+                 && strictStrings.data() == stringsBefore
+                 && strictHandles.data() == handlesBefore,
+             "AC1024 observed body-string fallback refuses strict output atomically");
+
+    TableDwgCodecProbe reused;
+    R2010EmbeddedTableFrame truncatedFrame;
+    const bool truncatedBuilt = makeR2010ObservedBodyStringTableFrame(
+        truncatedFrame, 0u, 0u, DRW::DwgHardOwnership, 0, true, true,
+        false);
+    t.expect(truncatedBuilt,
+             "AC1024 observed body-string truncated-postamble vector builds");
+    if (truncatedBuilt) {
+        dwgBuffer truncatedInput(truncatedFrame.bytes.data(),
+                                 truncatedFrame.bytes.size(), &codec);
+        const bool truncatedParsed = reused.parseDwg(
+            DRW::AC1024, &truncatedInput, truncatedFrame.handleBits);
+        t.expect(truncatedParsed && truncatedInput.isGood()
+                     && reused.m_hasSemanticContent
+                     && !reused.m_semanticContentComplete
+                     && reused.m_content.m_rows.empty()
+                     && cursorBit(truncatedInput)
+                         == truncatedFrame.tableContentStartBit,
+                 "AC1024 observed body-string fallback rolls back when the postamble is truncated");
+
+        R2010EmbeddedTableFrame retryFrame;
+        const bool retryBuilt = makeR2010ObservedBodyStringTableFrame(
+            retryFrame);
+        t.expect(retryBuilt,
+                 "AC1024 observed body-string corrected retry vector builds");
+        if (retryBuilt) {
+            dwgBuffer retryInput(retryFrame.bytes.data(),
+                                 retryFrame.bytes.size(), &codec);
+            const bool retryParsed = reused.parseDwg(
+                DRW::AC1024, &retryInput, retryFrame.handleBits);
+            t.expect(retryParsed && retryInput.isGood()
+                         && reused.m_hasSemanticContent
+                         && !reused.m_semanticContentComplete
+                         && reused.m_content.m_rows.empty()
+                         && cursorBit(retryInput) == retryFrame.tableDataEndBit,
+                     "AC1024 observed body-string corrected same-parser retry succeeds after rollback");
+        }
+    }
+
+    R2010EmbeddedTableFrame wrongRoleFrame;
+    const bool wrongRoleBuilt = makeR2010ObservedBodyStringTableFrame(
+        wrongRoleFrame, 1u, 1u, DRW::DwgSoftPointer);
+    t.expect(wrongRoleBuilt,
+             "AC1024 observed body-string wrong-field-role vector builds");
+    if (wrongRoleBuilt) {
+        dwgBuffer wrongRoleInput(wrongRoleFrame.bytes.data(),
+                                 wrongRoleFrame.bytes.size(), &codec);
+        const bool wrongRoleParsed = reused.parseDwg(
+            DRW::AC1024, &wrongRoleInput, wrongRoleFrame.handleBits);
+        t.expect(wrongRoleParsed && wrongRoleInput.isGood()
+                     && reused.m_hasSemanticContent
+                     && !reused.m_semanticContentComplete
+                     && reused.m_content.m_rows.empty()
+                     && cursorBit(wrongRoleInput)
+                         == wrongRoleFrame.tableContentStartBit,
+                 "AC1024 observed body-string fallback rejects a wrong field-reference role and commits only the prefix");
+
+        R2010EmbeddedTableFrame retryFrame;
+        const bool retryBuilt = makeR2010ObservedBodyStringTableFrame(
+            retryFrame);
+        t.expect(retryBuilt,
+                 "AC1024 observed body-string role-retry vector builds");
+        if (retryBuilt) {
+            dwgBuffer retryInput(retryFrame.bytes.data(),
+                                 retryFrame.bytes.size(), &codec);
+            const bool retryParsed = reused.parseDwg(
+                DRW::AC1024, &retryInput, retryFrame.handleBits);
+            t.expect(retryParsed && retryInput.isGood()
+                         && reused.m_hasSemanticContent
+                         && !reused.m_semanticContentComplete
+                         && reused.m_content.m_rows.empty()
+                         && cursorBit(retryInput) == retryFrame.tableDataEndBit,
+                     "AC1024 observed body-string same-parser retry succeeds after a wrong-role rejection");
+        }
+    }
+
+    R2010EmbeddedTableFrame breakFrame;
+    const bool breakBuilt = makeR2010ObservedBodyStringTableFrame(
+        breakFrame, 0u, 0u, DRW::DwgHardOwnership, 1);
+    t.expect(breakBuilt,
+             "AC1024 observed body-string break-postamble vector builds");
+    if (breakBuilt) {
+        dwgBuffer breakInput(breakFrame.bytes.data(), breakFrame.bytes.size(),
+                             &codec);
+        TableDwgCodecProbe breakTable;
+        const bool breakParsed = breakTable.parseDwg(
+            DRW::AC1024, &breakInput, breakFrame.handleBits);
+        t.expect(breakParsed && breakInput.isGood()
+                     && breakTable.m_hasSemanticContent
+                     && !breakTable.m_semanticContentComplete
+                     && breakTable.m_content.m_rows.empty()
+                     && cursorBit(breakInput)
+                         == breakFrame.tableContentStartBit,
+                 "AC1024 observed body-string fallback rejects break variants");
+    }
+
+}
+
 void testTableContentStyleIdDomains(TestContext& t) {
     R2007TableContentObjectFrame ac1021Frame;
     const bool ac1021Built = makeR2007TableContentObjectFrameWithStyleIds(
@@ -18999,7 +19213,17 @@ void testR2010TableUnknownPrefixDefaults(TestContext& t) {
                  profile + " TABLE unknown " + item.name
                      + (item.expectedComplete
                          ? " defaults preserve complete typed content"
-                         : " remains structurally readable and semantically incomplete"));
+                         : " remains structurally readable and semantically incomplete")
+                     + " (parsed=" + std::to_string(parsed)
+                     + ", good=" + std::to_string(input.isGood())
+                     + ", semantic="
+                     + std::to_string(table.m_semanticContentComplete)
+                     + ", rows="
+                     + std::to_string(table.m_content.m_rows.size())
+                     + ", columns="
+                     + std::to_string(table.m_content.m_columns.size())
+                     + ", tableStyle="
+                     + std::to_string(table.m_tableStyleHandle) + ")");
     }
 }
 
@@ -32260,6 +32484,15 @@ int main(int argc, char** argv) {
         testR2007TableContentObjectVector(context);
         testR2010EmbeddedTableContentVector(context);
         std::cout << "AC1021/AC1024 TABLECONTENT reference-role vectors: "
+                  << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--table-ac1024-observed-body-string-raw-only") {
+        TestContext context;
+        testR2010ObservedBodyStringRawOnlyFallback(context);
+        std::cout << "AC1024 TABLE observed body-string raw-only fallback: "
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
         return context.failures == 0 ? 0 : 1;
     }
