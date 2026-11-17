@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1032-assocnetwork-evidence-readiness-2026-11-17",
+  "date": "2026-11-17",
+  "status": "CANDIDATE_SPANS_AND_ROLE_AGREEMENT_RECHECKED_PRIMARY_LAYOUT_STILL_MISSING",
+  "supportClaimEffect": "none",
+  "question": "Does the current evidence justify changing AC1032 ACDBASSOCNETWORK class-version-2 parsing or marking the profile complete?",
+  "existingPhysicalCandidates": [
+    {
+      "path": "/Users/dli/dev/libredwg/test/test-data/example_2018.dwg",
+      "sha256": "7bc7721224003062b237845842b7a976e46771c37eba6833b9ed3712e7a5a65a",
+      "version": "AC1032",
+      "producerProvenance": "Not established.",
+      "objects": [
+        {
+          "handle": "0x390",
+          "classVersion": 2,
+          "actionPrefixBits": [48, 74],
+          "networkPrefixBits": [74, 99],
+          "baseActionIndex": 0,
+          "networkActionIndex": 1
+        },
+        {
+          "handle": "0x38e",
+          "classVersion": 2,
+          "actionPrefixBits": [48, 82],
+          "networkPrefixBits": [82, 107],
+          "baseActionIndex": 1,
+          "networkActionIndex": 1
+        }
+      ],
+      "sourceReceipt": "docs/research/p4-ac1032-assocnetwork-candidate-fields-2026-11-09.json"
+    },
+    {
+      "path": "/private/tmp/p4-autodesk-forum-constraints.dwg",
+      "sha256": "685bf22ed533121238c62c07357bf03fa6ddb40983cff7967c481fbb244b6b4f",
+      "version": "AC1032",
+      "provenance": "Autodesk ObjectARX forum attachment; embedded APPINFO reports AutoCAD 2024 build U.61.0.0(x64), not independently authenticated.",
+      "observedGraph": "Root and nested ACDBASSOCNETWORK records with class version 2, owner dictionaries, distinct base/network indexes, action membership, and mixed action ownership roles.",
+      "sourceReceipt": "docs/research/p4-ac1032-forum-associative-graph-closure-2026-11-11.json"
+    }
+  ],
+  "independentReaderEvidence": {
+    "reader": "ACadRust 0.6.8",
+    "comparisonReceipt": "docs/research/p4-ac1032-assocnetwork-acadrust-independent-reader-2026-11-13.json",
+    "agreement": "ACadRust and LibreDWG agree with the captured candidate versions, indexes, owners, action targets, and ownership roles for the listed records.",
+    "limit": "These peer readers are not producer provenance or authoritative wire specification; matching candidate decoders do not establish semantic truth."
+  },
+  "authorityCheck": {
+    "oda": {
+      "document": "Open Design Specification for .dwg files v5.4.1",
+      "localCopySha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "search": "The local text extraction contains no ACDBASSOCNETWORK class-specific schema entry.",
+      "effect": "No normative class-version-2 field order, span, or wire role is established."
+    },
+    "autodeskObjectArx": {
+      "classReference": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbAssocNetwork.html",
+      "ownershipReference": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbAssocNetwork__getInstanceFromObject_AcDbObjectId__bool_bool_AcString_.html",
+      "verifiedSemantics": [
+        "AcDbAssocNetwork is derived from AcDbAssocAction and organizes actions; a network may itself be an action in a hierarchy.",
+        "getInstanceFromObject describes storage through a subdictionary owned by an object's extension dictionary and optional top-level network registration."
+      ],
+      "effect": "These API pages corroborate runtime graph roles, not serialized class-version-2 bytes."
+    }
+  },
+  "decision": {
+    "newDecoderChange": false,
+    "markNetworkFieldsParsed": false,
+    "strictAc1032WriterAdmission": false,
+    "reason": "Physical candidates and independent readers already support bounded candidate spans and handle roles, but the provenance is unverified and ODA does not document this custom class layout. Re-running candidate corpus scans would not close the primary-layout or producer-semantic gap.",
+    "currentSafeState": "Retain the existing bounded candidates, keep m_networkFieldsParsed false for AC1032, and preserve strict output refusal."
+  },
+  "remainingAction": "Acquire one source-distinct, release-bound AutoCAD/ObjectARX or ODA AC1032 drawing with a deliberately simple top-level and nested associative network, API-known owners/actions, and a matching saved DXF or producer trace. Bind exact class-version-2 byte spans and following-record boundary to that source. If no primary wire schema or source with expected values is available, do not edit the parser; continue another ready package.",
+  "evidencePointers": [
+    "docs/research/p4-ac1032-assocnetwork-action-handle-role-guard-2026-11-10.json",
+    "docs/research/p4-ac1032-assocnetwork-autodesk-ownership-semantics-2026-11-09.json",
+    "docs/research/p4-ac1032-assocnetwork-dwg-rs-corpus-screen-2026-11-13.json",
+    "docs/research/p4-ac1032-assocnetwork-acadsharp-aec-sample-screen-2026-11-10.json",
+    "docs/research/p4-ac1032-assocnetwork-candidate-fields-2026-11-09.json",
+    "docs/research/p4-ac1032-assocnetwork-acadrust-independent-reader-2026-11-13.json",
+    "docs/research/p4-ac1032-forum-associative-graph-closure-2026-11-11.json"
+  ],
+  "validation": {
+    "codeChanged": false,
+    "testsRun": false,
+    "fixturesAdded": false,
+    "supportClaimPromoted": false
+  }
+}
