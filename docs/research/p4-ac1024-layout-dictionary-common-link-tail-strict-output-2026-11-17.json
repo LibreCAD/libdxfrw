@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p4-ac1024-layout-dictionary-common-link-tail-strict-output-2026-11-17",
+  "date": "2026-11-17",
+  "planOwner": "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md bounded AC1024 LAYOUT source/output profile",
+  "supportClaimEffect": "none",
+  "qualificationEligible": false,
+  "source": {
+    "path": "/Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "revision": "AC1024",
+    "profile": "Existing source receipt identifies the exact Model (DWG handle 0x22) and Layout1 (0x59), rooted ACAD_LAYOUT dictionary, reciprocal BLOCK_RECORD links, extension dictionaries/XRECORDs, and viewport targets: docs/research/p4-ac1024-layout-output-qualification-2026-10-31.json.",
+    "fixtureDisposition": "Read from the existing local corpus. No DWG/DXF fixture was added, modified, staged, or committed."
+  },
+  "authority": {
+    "title": "Open Design Specification for .dwg files",
+    "edition": "ODA v5.4.1",
+    "section": "20.4.44 DICTIONARY",
+    "url": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "scope": "Dictionary parent, reactor, extension-dictionary, and item references retain distinct handle roles. The local parser's common-link validation marker is set only after the bounded versioned tail and dictionary item handles pass decoding and role checks."
+  },
+  "finding": {
+    "before": "After S26, strict AC1024 conversion remained at 226/228 opaque callback qualifications. The debug finalizer printed remaining decimal handle values 34 and 89, corresponding to DWG handles 0x22 and 0x59 (Model and Layout1, type 82).",
+    "cause": "prepareDwgLayouts rejected the AC1024 ACAD_LAYOUT root dictionary and its per-layout extension dictionaries whenever hasDwgCommonLinkTail() was true. For AC1024, DICTIONARY parsing sets that marker after validating the common handle stream and counted entry-handle roles, so the unconditional false predicate blocked an already source-backed graph.",
+    "after": "The LAYOUT root and extension dictionary gates now require the common-link marker to equal the source-version expectation: false for the admitted AC1015/AC1018 legacy routes and true for AC1021/AC1024 R2007+ routes. Exact rooted keys, owner/reactor roles, LAYOUT fields, reciprocal BLOCK_RECORD links, extension XRECORDs, and viewport targets remain checked. The physical selector passes ASCII/Binary readback and same-adapter refusal/retry. Strict whole-file AC1024 conversion now exits successfully for this exact input."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/LIBRECAD_DXFRW_UPGRADE_HISTORY.md"
+    ],
+    "productionChange": "Use the parser's version-qualified DICTIONARY tail validation state for the rooted ACAD_LAYOUT dictionary and each admitted layout extension dictionary. Split the root marker from the other source-shape checks so debug mode reports its own gate.",
+    "selectorChange": "Run the physical LAYOUT output through the same importing dx_iface, as dwg2dxf does. Test a corrupted paper-space BLOCK_RECORD handle against a sentinel destination, restore it, retry on the same adapter, and freshly read back both layout records and the selected graph."
+  },
+  "validation": {
+    "builds": [
+      {
+        "command": "cmake --build build-gcc --target dwg2dxf libdxfrw_dwg2dxf_adapter_tests -j2",
+        "result": "PASS"
+      }
+    ],
+    "physicalSelector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-physical-output-readback /Users/dli/doc/dwg/mechanical_example-imperial.dwg",
+      "result": "PASS for ASCII and Binary. Fresh readback checks Model/Layout1 plot and layout fields, ACAD_LAYOUT membership, BLOCK_RECORD backlinks, extension dictionary/XRECORD ownership, and last-active target roles. The injected invalid BLOCK_RECORD handle is refused while preserving the sentinel; correcting it and retrying on the same adapter succeeds."
+    },
+    "strictCli": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/ac1024-s27-strict.dxf",
+      "result": "PASS; strict CLI exits 0 and publishes the DXF only after complete opaque-callback output qualification.",
+      "outputBytes": 449736,
+      "outputSha256": "4a54959d4fa51d82dedd286754c1d5a9728944172e632bbedbccb5882e6a47f1",
+      "disposition": "Scratch output only; not committed."
+    }
+  },
+  "limits": [
+    "This restores the exact previously source-profiled AC1024 Model/Layout1 graph; it does not qualify other LAYOUT profiles or other DWG versions.",
+    "The strict output is a local conversion result and has not been accepted by a native FreeCAD/LibreCAD GUI or independently evaluated for all drawing semantics.",
+    "No package gate or broad DWG/DXF support claim is promoted by this receipt."
+  ],
+  "next": "Continue the remaining active source, authority, independent-reader, and native-platform gates. Preserve the strict CLI fail-closed behavior for profiles that lack this exact source evidence."
+}

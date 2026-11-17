@@ -39174,6 +39174,8 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
         return skip("unique ACAD_LAYOUT NOD entry");
     const DRW_Dictionary* layoutDictionary =
         findDictionary(rootEntry->m_handle);
+    const bool expectedLayoutDictionaryCommonTail =
+        cData->sourceVersion > DRW::AC1018;
     if (layoutDictionary == nullptr || layoutDictionary->handle == 0u
         || layoutDictionary->handle == DRW::NoHandle
         || layoutDictionary->parentHandle != nod.handle
@@ -39184,12 +39186,18 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
         || !layoutDictionary->appData.empty()
         || !layoutDictionary->extData.empty()
         || layoutDictionary->hasDataStorageBinaryData()
-        || layoutDictionary->hasDwgCommonLinkTail()
         || !layoutDictionary->pendingAppIdResolutions.empty()
         || !layoutDictionary->pendingLayerRefResolutions.empty()
         || layoutDictionary->reactorHandles
             != std::vector<std::uint32_t>{nod.handle})
         return skip("ACAD_LAYOUT dictionary source role/shape");
+    // DICTIONARY parsing marks this tail validated only after the versioned
+    // common links and counted entry handles have been bounded and role
+    // checked. AC1015/AC1018 use the legacy unmarked path; AC1021/AC1024
+    // require the validated R2007+ marker.
+    if (layoutDictionary->hasDwgCommonLinkTail()
+            != expectedLayoutDictionaryCommonTail)
+        return skip("ACAD_LAYOUT dictionary common-link validation state");
 
     const std::vector<const char*> expected = ac1021LineweightsProfile
         ? std::vector<const char*>{
@@ -39567,6 +39575,7 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
                         || !extension->extData.empty()
                         || extension->hasDataStorageBinaryData()
                         || extension->hasDwgCommonLinkTail()
+                            != expectedLayoutDictionaryCommonTail
                         || !extension->pendingAppIdResolutions.empty()
                         || !extension->pendingLayerRefResolutions.empty()))) {
                 if (debug) {

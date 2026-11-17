@@ -22,7 +22,7 @@
     "before": "The physical AC1024 MLINESTYLE selector wrote the selected style but did not qualify its retained source frame. Strict CLI stopped at 225/228 opaque callbacks.",
     "cause": "prepareDwgMLineStyles treated hasDwgCommonLinkTail() == true as a profile rejection for every version. DRW_Dictionary::parseDwg sets this marker after the AC1021+ common links and counted item handles have been decoded within the frame and their roles checked. The predicate rejected successful validation.",
     "after": "Root-owner admission now requires the marker to match the source-version expectation: false for the admitted AC1015/AC1018 legacy profiles and true for source versions after AC1018. Exact NOD/root entry, owner, reactor, typed baseline, and source-frame checks remain in place. Debug export reports the specific MLINESTYLE profile gate when a bounded source is skipped.",
-    "strictCli": "Opaque output qualification advances from 225/228 to 226/228. Handles 0x34 and 0x89, both type 82, remain unqualified; strict output remains unpublished. This selected profile does not qualify whole-file AC1024 conversion."
+    "strictCli": "At the time of this slice, opaque output qualification advanced from 225/228 to 226/228. The debug finalizer printed remaining decimal handles 34 and 89, which are DWG handles 0x22/type 82 (Model) and 0x59/type 82 (Layout1); S27 subsequently qualified those bounded profiles and strict conversion of the exact source succeeded. This MLINESTYLE slice alone did not qualify whole-file AC1024 conversion."
   },
   "implementation": {
     "files": [
@@ -51,7 +51,7 @@
     },
     "strictCli": {
       "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/mechanical_example-imperial.dwg -y -d -v2010 /private/tmp/ac1024-mline-s26-strict-debug.dxf",
-      "result": "EXPECTED_FAIL_CLOSED; 226/228 opaque callbacks qualified. Remaining unqualified identities are handle 0x34/type 82 and handle 0x89/type 82. No strict DXF is published."
+      "result": "EXPECTED_FAIL_CLOSED at this historical S26 checkpoint; 226/228 opaque callbacks qualified. The debug finalizer printed decimal handles 34 and 89, which are DWG handles 0x22/type 82 (Model) and 0x59/type 82 (Layout1). S27 later qualified these exact rooted output profiles and strict conversion of the exact source succeeded."
     }
   },
   "limits": [
@@ -59,5 +59,5 @@
     "No broad AC1024 or whole-drawing support claim is promoted.",
     "No drawing fixture was committed."
   ],
-  "next": "Investigate handles 0x34/type 82 and 0x89/type 82 independently; keep strict AC1024 conversion fail-closed until both are source-bound and qualified."
+  "next": "S27 later qualified the exact rooted Model/Layout1 profiles on this source and enabled strict conversion. Continue the remaining independent-reader, native-consumer, and version/profile qualification gates; do not infer broad AC1024 support from this selected MLINESTYLE slice."
 }

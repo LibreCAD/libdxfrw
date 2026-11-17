@@ -58319,7 +58319,9 @@ bool physicalLayoutOutputReadback(
             if (!existing || !(existing << sentinel))
                 return fail("could not seed physical LAYOUT destination sentinel");
         }
-        dx_iface writer;
+        // The AC1024 LAYER_CONTROL frame is bound to the import adapter
+        // session, matching dwg2dxf's import-and-export flow.
+        dx_iface& writer = sourceReader;
         const auto exportPartial = [&]() {
             return writer.fileExport(
                 outputPath.string(), layoutTargetVersion, binary, &source, false, true,
