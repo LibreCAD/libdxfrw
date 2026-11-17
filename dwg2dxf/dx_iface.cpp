@@ -37328,6 +37328,12 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
     m_dwgMLineStyleOutputOwner = nullptr;
     m_dwgMLineStyleOutputGeneration = 0u;
     m_dwgMLineStylesInspected = false;
+    const auto skipProfile = [this](const char* reason) {
+        if (m_debugDwgOutputQualification)
+            std::cerr << "MLINESTYLE DWG output profile skipped: "
+                      << reason << '\n';
+        return true;
+    };
     if (cData == nullptr)
         return false;
     if (cData->sourceFormat != dx_source_format::DWG
@@ -37345,7 +37351,7 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
             && !(cData->sourceVersion == DRW::AC1032
                 && version == DRW::AC1032))
         || m_extensionMLineStyleHandles.empty())
-        return true;
+        return skipProfile("version or no selected source style");
 
     // Admit only the source-backed STANDARD profiles in the tracked
     // witnesses. AC1032 additionally binds every element handle to a unique
@@ -37355,7 +37361,7 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         || cData->mLineStyles.size() != 1u
         || !cData->hasNamedObjectDictionary
         || !cData->hasSingleSuccessfulNamedResourceImport())
-        return true;
+        return skipProfile("selected style census or import receipt");
     const DRW_MLineStyle& style = cData->mLineStyles.front();
     const bool expectedStyleName =
         (cData->sourceVersion == DRW::AC1015
@@ -37377,7 +37383,7 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         || style.fillColorDwgIndex != 0u
         || !std::isfinite(style.startAngle)
         || !std::isfinite(style.endAngle))
-        return true;
+        return skipProfile("STANDARD style typed fields");
     // AC1027 output qualification is bounded to the peer-differenced Cover
     // MLINESTYLE profile: handle 0x18, owner 0x17, two BYLAYER elements.
     if (cData->sourceVersion == DRW::AC1027
@@ -37387,7 +37393,7 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
             || style.startAngle != 90.0 || style.endAngle != 90.0
             || style.elements[0].offset != 0.5
             || style.elements[1].offset != -0.5))
-        return true;
+        return skipProfile("AC1027 peer-differenced body");
     std::vector<std::pair<std::uint32_t, std::string>> linetypeDependencies;
     for (const DRW_MLineElement& element : style.elements) {
         if (!std::isfinite(element.offset) || element.color != 256
@@ -37395,11 +37401,11 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
             || element.colorFlags != 0u || !element.colorName.empty()
             || !element.colorBookName.empty() || element.colorDwgIndex != 0u
             || !element.linetype.empty())
-            return true;
+            return skipProfile("element typed fields");
         if (cData->sourceVersion == DRW::AC1032) {
             if (element.linetypeHandle == 0u
                 || element.linetypeHandle == DRW::NoHandle)
-                return true;
+                return skipProfile("AC1032 element LTYPE handle");
             const auto lineType = std::find_if(
                 cData->lineTypes.begin(), cData->lineTypes.end(),
                 [&element](const DRW_LType& candidate) {
@@ -37413,7 +37419,7 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
                             return candidate.handle
                                 == element.linetypeHandle;
                         }) != 1u)
-                return true;
+                return skipProfile("AC1032 element ByLayer LTYPE source");
             const auto existing = std::find_if(
                 linetypeDependencies.begin(), linetypeDependencies.end(),
                 [&element](const auto& dependency) {
@@ -37423,10 +37429,10 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
                 linetypeDependencies.emplace_back(
                     element.linetypeHandle, lineType->name);
             else if (existing->second != lineType->name)
-                return true;
+                return skipProfile("duplicate AC1032 element LTYPE identity");
         } else if (element.linetypeIndex != 32767
                    || element.linetypeHandle != 0u) {
-            return true;
+            return skipProfile("legacy element ByLayer sentinel");
         }
     }
 
@@ -37461,12 +37467,12 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         || frame->second.m_version != cData->sourceVersion
         || frame->second.m_hasDataStorage
         || !frameLinksMatch)
-        return true;
+        return skipProfile("opaque MLINESTYLE source frame or common links");
 
     const DRW_Dictionary& nod = cData->namedObjectDictionary;
     if (nod.handle == 0u || nod.handle == DRW::NoHandle
         || nod.countCap || !nod.hasCompleteDwgEntries())
-        return true;
+        return skipProfile("NOD source shape");
     const auto rootEntry = std::find_if(
         nod.m_entries.begin(), nod.m_entries.end(),
         [](const DRW_Dictionary::Entry& entry) {
@@ -37477,15 +37483,17 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
             [](const DRW_Dictionary::Entry& entry) {
                 return entry.m_name == "ACAD_MLINESTYLE";
             }) != 1)
-        return true;
+        return skipProfile("NOD ACAD_MLINESTYLE root entry");
     const DRW_Dictionary* rootOwner = nullptr;
     for (const DRW_Dictionary& dictionary : cData->dictionaries) {
         if (dictionary.handle != rootEntry->m_handle)
             continue;
         if (rootOwner != nullptr)
-            return true;
+            return skipProfile("ambiguous ACAD_MLINESTYLE root owner");
         rootOwner = &dictionary;
     }
+    const bool expectedCommonLinkTail =
+        cData->sourceVersion > DRW::AC1018;
     if (rootOwner == nullptr || rootOwner->handle == 0u
         || rootOwner->handle == DRW::NoHandle
         || rootOwner->parentHandle != nod.handle || rootOwner->countCap
@@ -37494,7 +37502,7 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         || rootOwner->m_entries.size() != 1u
         || !rootOwner->appData.empty() || !rootOwner->extData.empty()
         || rootOwner->hasDataStorageBinaryData()
-        || rootOwner->hasDwgCommonLinkTail()
+        || rootOwner->hasDwgCommonLinkTail() != expectedCommonLinkTail
         || !rootOwner->pendingAppIdResolutions.empty()
         || !rootOwner->pendingLayerRefResolutions.empty()
         || rootOwner->m_entries.front().m_name != "Standard"
@@ -37508,8 +37516,9 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
             })
         || rootOwner->reactorHandles != std::vector<std::uint32_t>{nod.handle}
         || style.reactorHandles
-            != std::vector<std::uint32_t>{rootOwner->handle})
-        return true;
+            != std::vector<std::uint32_t>{rootOwner->handle}) {
+        return skipProfile("root owner DICTIONARY graph");
+    }
 
     const auto rootFrame = cData->m_standardDwgObjectFrames.find(
         {cData->importGeneration, rootOwner->handle});
@@ -37533,7 +37542,7 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         || !standardDwgModelsEqual(*rootFrameBaseline, *rootOwner,
                                    cData->sourceVersion,
                                    dwgObjType::DICTIONARY))
-        return true;
+        return skipProfile("root owner DICTIONARY source frame");
 
     try {
         m_dwgMLineStyleOutputSources.emplace(

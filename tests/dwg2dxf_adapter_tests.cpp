@@ -53771,7 +53771,7 @@ bool physicalSortEntsOutputReadback(
         dx_iface& writer = sourceReader;
         const auto exportPartial = [&]() {
             return writer.fileExport(
-                outputPath.string(), DRW::AC1024, binary, &source, true, true,
+                outputPath.string(), DRW::AC1024, binary, &source, false, true,
                 dx_dxfSourceTextPolicy::RequireValidSource,
                 DRW::DxfTextWritePolicy::RequireLossless,
                 dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
@@ -54996,7 +54996,9 @@ bool physicalMLineStyleOutputReadback(
             if (!existing || !(existing << sentinel))
                 return fail("could not seed physical MLINESTYLE destination sentinel");
         }
-        dx_iface writer;
+        // AC1024 LAYER_CONTROL source-frame proof belongs to the importing
+        // adapter session, matching dwg2dxf's import-and-export flow.
+        dx_iface& writer = sourceReader;
         const auto exportPartial = [&]() {
             return writer.fileExport(
                 outputPath.string(), DRW::AC1024, binary, &source, false, true,
@@ -55040,17 +55042,22 @@ bool physicalMLineStyleOutputReadback(
                     DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputHandleCount(writer))
                 + " unchanged=" + std::to_string(
                     DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputSourcesUnchanged(writer)));
-        if (!DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
-                source, source.importGeneration, sourceStyle.handle)
-            || !DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
-                source, source.importGeneration, sourceOwner->handle)) {
+        const bool styleOutputQualified =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceStyle.handle);
+        const bool ownerOutputQualified =
+            DxIfaceStandardDwgCaptureTestAccess::opaqueOutputQualified(
+                source, source.importGeneration, sourceOwner->handle);
+        if (!styleOutputQualified || !ownerOutputQualified) {
             return fail("physical MLINESTYLE output identity was not committed with the successful export: source-count="
                 + std::to_string(
                     DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputSourceCount(writer))
                 + " selected=" + std::to_string(
                     DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputHandleCount(writer))
                 + " unchanged=" + std::to_string(
-                    DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputSourcesUnchanged(writer)));
+                    DxIfaceStandardDwgCaptureTestAccess::mlineStyleOutputSourcesUnchanged(writer))
+                + " style-qualified=" + std::to_string(styleOutputQualified)
+                + " owner-qualified=" + std::to_string(ownerOutputQualified));
         }
         dx_iface outputReader;
         dx_data output;

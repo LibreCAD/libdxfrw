@@ -19,8 +19,8 @@ libdxfrw and LibreCAD origin/master heads above were re-checked and unchanged;
 LibreCAD PR #3269 is merged as `4060fb6bb` and is contained in that LibreCAD head.
 
 **Progress on 2026-11-17:** 5 of 33 required package gates are closed (15.2%);
-28 remain. The activity count is 43 of 71 complete (60.6%): 5 closed gates
-and 38 completed implementation/research slices, out of 33 gates, 37 recorded
+28 remain. The activity count is 44 of 72 complete (61.1%): 5 closed gates
+and 39 completed implementation/research slices, out of 33 gates, 38 recorded
 slices, and one admitted local implementation slice. The 28 remaining counted
 items are the 28 open package gates. A completed slice can advance a gate that
 remains open, so this equal-weight activity count measures work items rather
@@ -31,20 +31,23 @@ removed from the active queue; receipts preserve the evidence needed to avoid
 repeating them.
 The latest local slices preserve the AC1024 LAYER_CONTROL source-frame proof
 through CLI export (S23), correct the rooted ACAD_SCALELIST common-link
-admission check (S24), and screen a separate LibreDWG debug-class TABLE decode
-route (S25). The debug reader rejects both TABLE row counts before reaching
-their cells; it supplies no independent alignment span. The source's decoded DICTIONARY common links are marked
-validated only after parsing and role checks; the writer now requires that
-validation. The physical selector confirms all 17 SCALE records, dictionary
-membership, owner/reactor links, typed/raw fields, destination-preserving
-refusal, same-writer retry, and fresh readback. Strict CLI no longer rejects at
-ACAD_SCALELIST; the LayerStates profile independently skips this source
-because its root precondition is absent, then strict finalization stops at
-225/228 opaque DWG callbacks. The three unqualified records are listed in the
-[SCALE receipt](docs/research/p4-ac1024-scalelist-common-link-tail-output-2026-11-17.json).
-These implementation/research slices do not close a package gate or promote a support claim. The most
-advanced source-backed profile, P5-I, waits for independent span evidence; its
-existing parser cursor and peer screens are complete and must not be repeated.
+admission check (S24), screen a separate LibreDWG debug-class TABLE decode
+route (S25), and admit the source-backed AC1024 STANDARD MLINESTYLE graph
+(S26). The debug reader rejects both TABLE row counts before reaching their
+cells; it supplies no independent alignment span. The rooted DICTIONARY gates
+now require the version-appropriate common-link validation state. The SCALE
+selector confirms all 17 records and its owner/reactor graph, typed/raw fields,
+destination-preserving refusal, same-writer retry, and fresh readback. The
+MLINESTYLE selector confirms the source style/root graph and output identity,
+refusal/retry, and ASCII/Binary fresh readback. Strict CLI advances from
+225/228 to 226/228 opaque DWG callbacks; handles `0x34` and `0x89`, both type
+82, remain unqualified and no strict output is published. The historical SCALE
+result is preserved in its [receipt](docs/research/p4-ac1024-scalelist-common-link-tail-output-2026-11-17.json),
+and the current MLINESTYLE result is in its [receipt](docs/research/p4-ac1024-mlinestyle-common-link-tail-output-2026-11-17.json).
+These implementation/research slices do not close a package gate or promote a
+support claim. The most advanced source-backed profile, P5-I, waits for
+independent span evidence; its existing parser cursor and peer screens are
+complete and must not be repeated.
 For P5-I, bounded
 AutoCAD 2007 AppInfo classification and documented text-cell override
 retention are complete. The two source
@@ -59,8 +62,8 @@ before reaching the cells. Neither route supplies the disputed spans or
 overrides ODA. See the [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json),
 [cursor/peer screen](docs/research/p5-ac1021-table-alignment-candidate-cursor-and-libredwg-screen-2026-11-17.json),
 and [debug-class screen](docs/research/p5-ac1021-table-libredwg-debug-class-span-screen-2026-11-17.json).
-Slices S23, S24, and S25 are complete; activity progress is 43/71 and package
-readiness remains 5/33.
+Slices S23, S24, S25, and S26 are complete; activity progress is 44/72 and
+package readiness remains 5/33.
 P6-G is conditional, P7-E optional, and six DEFERRED_EXTERNAL dispositions
 are advisory, excluded from the count, and cannot promote support claims.
 
