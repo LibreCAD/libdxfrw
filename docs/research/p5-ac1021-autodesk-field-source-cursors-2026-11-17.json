@@ -1,0 +1,134 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Independent AC1021 AutoCAD 2007 FIELD/FIELDLIST source cursor spans",
+  "date": "2026-11-17",
+  "phase": "P5-A",
+  "supportClaimEffect": "none",
+  "scope": "Capture version-matched independent decoded-object addresses, FIELD body/string/handle cursors, FIELDLIST membership positions, and following-object map boundaries for the exact source-bound AutoCAD 2007 TABLE field graph screened in S29.",
+  "source": {
+    "path": "/private/tmp/autodesk_blocks_and_tables_metric.dwg",
+    "sizeBytes": 258848,
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "headerVersion": "AC1021",
+    "producerReceipt": "docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json",
+    "graphAndValueReceipt": "docs/research/p5-ac1021-autodesk-field-table-graph-screen-2026-11-17.json"
+  },
+  "independentDecoder": {
+    "name": "GNU LibreDWG dwgread",
+    "version": "0.14",
+    "executable": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -v5 -O minJSON /private/tmp/autodesk_blocks_and_tables_metric.dwg -o /dev/null",
+    "exitStatus": 0,
+    "tracePath": "/private/tmp/autodesk_blocks_and_tables_metric-v5.trace",
+    "traceBytes": 13696593,
+    "traceSha256": "63ddd4d10107303e84a826b5efb0fd63bd815ff7d1cee49880352736358fc0ea",
+    "coordinateSpace": "LibreDWG-decoded AcDb:AcDbObjects section/object-map addresses and object-local bit cursors; these are not physical compressed-file offsets."
+  },
+  "primaryAuthority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      {
+        "section": "20.1",
+        "use": "Common object record size, pre-handle body bit count, R2007 string-stream placement, handle-stream start, and object-map traversal."
+      },
+      {
+        "section": "20.4.76",
+        "use": "FIELD child/object counts, value sequence, child handles, object references, and handle roles."
+      },
+      {
+        "section": "20.4.77",
+        "use": "FIELDLIST owner and ordered soft-pointer member sequence."
+      },
+      {
+        "section": "20.4.99",
+        "use": "R2007 CadValue sequence and data types."
+      }
+    ]
+  },
+  "coverage": {
+    "decodedObjectFrames": 4408,
+    "uniqueObjectMapAddresses": 4408,
+    "allAddressOrderedTransitions": 4407,
+    "observedBytesBetweenDeclaredObjectSizeEndAndNextMapAddress": {
+      "4": 4403,
+      "6": 4
+    },
+    "fieldRecords": 162,
+    "fieldListRecords": 1,
+    "fieldListHandle": "0xdbd3",
+    "fieldRecordsWithObjectAddressSizeAndBodyBitCount": 162,
+    "fieldRecordsMatchingMinJsonAndLibdxfrwTraceHandlesAndBitSizes": 162,
+    "fieldRecordsWithNextObjectMapBoundary": 162,
+    "tableLinkedFieldRecordsWithIndividualCursorsAndNextBoundary": 30,
+    "boundaryNote": "The listed address spacing is observed in the decoded object-map coordinate space. The 4- or 6-byte separation is recorded without assigning meaning to those bytes beyond the size/boundary rule supplied by ODA §20.1."
+  },
+  "fieldListSpan": {
+    "handle": "0xdbd3",
+    "objectMapAddress": 347439,
+    "declaredObjectSizeBytes": 665,
+    "preHandleBodyBits": 99,
+    "handleStreamStart": "12.3",
+    "handleStreamEnd": "665.0",
+    "nextObjectMapAddress": 348108,
+    "memberCount": 162,
+    "uniqueMembers": 162,
+    "firstMemberCursor": "16.3",
+    "lastMemberCursor": "660.3",
+    "tableFieldMemberOrdinals": {
+      "doorTableInclusive": [56, 69],
+      "windowTableInclusive": [146, 161]
+    },
+    "memberRole": "ODA §20.4.77 H soft pointer (DXF group 330)."
+  },
+  "tableLinkedFieldObjectSpans": [
+    {"handle": "0x36768", "fieldListOrdinal": 56, "objectMapAddress": 487587, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 487726, "gapBytes": 4},
+    {"handle": "0x36769", "fieldListOrdinal": 57, "objectMapAddress": 508060, "sizeBytes": 164, "preHandleBits": 1302, "stringStreamMarker": "+1301 @162.5", "handleStream": "@162.6-@164.0", "nextObjectMapAddress": 508228, "gapBytes": 4},
+    {"handle": "0x36c17", "fieldListOrdinal": 58, "objectMapAddress": 487726, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 487865, "gapBytes": 4},
+    {"handle": "0x36c18", "fieldListOrdinal": 59, "objectMapAddress": 508228, "sizeBytes": 168, "preHandleBits": 1334, "stringStreamMarker": "+1333 @166.5", "handleStream": "@166.6-@168.0", "nextObjectMapAddress": 508400, "gapBytes": 4},
+    {"handle": "0x36c19", "fieldListOrdinal": 60, "objectMapAddress": 487865, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 488004, "gapBytes": 4},
+    {"handle": "0x36c1a", "fieldListOrdinal": 61, "objectMapAddress": 508400, "sizeBytes": 164, "preHandleBits": 1302, "stringStreamMarker": "+1301 @162.5", "handleStream": "@162.6-@164.0", "nextObjectMapAddress": 508568, "gapBytes": 4},
+    {"handle": "0x36c1b", "fieldListOrdinal": 62, "objectMapAddress": 488004, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 488143, "gapBytes": 4},
+    {"handle": "0x36c1c", "fieldListOrdinal": 63, "objectMapAddress": 508568, "sizeBytes": 164, "preHandleBits": 1302, "stringStreamMarker": "+1301 @162.5", "handleStream": "@162.6-@164.0", "nextObjectMapAddress": 508736, "gapBytes": 4},
+    {"handle": "0x36c1d", "fieldListOrdinal": 64, "objectMapAddress": 488143, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 488282, "gapBytes": 4},
+    {"handle": "0x36c1e", "fieldListOrdinal": 65, "objectMapAddress": 508736, "sizeBytes": 164, "preHandleBits": 1302, "stringStreamMarker": "+1301 @162.5", "handleStream": "@162.6-@164.0", "nextObjectMapAddress": 508904, "gapBytes": 4},
+    {"handle": "0x36c1f", "fieldListOrdinal": 66, "objectMapAddress": 488282, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 488421, "gapBytes": 4},
+    {"handle": "0x36c20", "fieldListOrdinal": 67, "objectMapAddress": 508904, "sizeBytes": 164, "preHandleBits": 1302, "stringStreamMarker": "+1301 @162.5", "handleStream": "@162.6-@164.0", "nextObjectMapAddress": 509072, "gapBytes": 4},
+    {"handle": "0x36f10", "fieldListOrdinal": 68, "objectMapAddress": 488421, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 488560, "gapBytes": 4},
+    {"handle": "0x36f11", "fieldListOrdinal": 69, "objectMapAddress": 509072, "sizeBytes": 178, "preHandleBits": 1414, "stringStreamMarker": "+1413 @176.5", "handleStream": "@176.6-@178.0", "nextObjectMapAddress": 509254, "gapBytes": 4},
+    {"handle": "0x3bbbd", "fieldListOrdinal": 146, "objectMapAddress": 488560, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 488699, "gapBytes": 4},
+    {"handle": "0x3bbbe", "fieldListOrdinal": 147, "objectMapAddress": 509254, "sizeBytes": 164, "preHandleBits": 1302, "stringStreamMarker": "+1301 @162.5", "handleStream": "@162.6-@164.0", "nextObjectMapAddress": 509422, "gapBytes": 4},
+    {"handle": "0x3c0d0", "fieldListOrdinal": 148, "objectMapAddress": 488699, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 488838, "gapBytes": 4},
+    {"handle": "0x3c0d1", "fieldListOrdinal": 149, "objectMapAddress": 509422, "sizeBytes": 168, "preHandleBits": 1334, "stringStreamMarker": "+1333 @166.5", "handleStream": "@166.6-@168.0", "nextObjectMapAddress": 509594, "gapBytes": 4},
+    {"handle": "0x3c0d2", "fieldListOrdinal": 150, "objectMapAddress": 488838, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 488977, "gapBytes": 4},
+    {"handle": "0x3c0d3", "fieldListOrdinal": 151, "objectMapAddress": 509594, "sizeBytes": 168, "preHandleBits": 1334, "stringStreamMarker": "+1333 @166.5", "handleStream": "@166.6-@168.0", "nextObjectMapAddress": 509766, "gapBytes": 4},
+    {"handle": "0x3c0d4", "fieldListOrdinal": 152, "objectMapAddress": 488977, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 489116, "gapBytes": 4},
+    {"handle": "0x3c0d5", "fieldListOrdinal": 153, "objectMapAddress": 509766, "sizeBytes": 168, "preHandleBits": 1334, "stringStreamMarker": "+1333 @166.5", "handleStream": "@166.6-@168.0", "nextObjectMapAddress": 509938, "gapBytes": 4},
+    {"handle": "0x3c0d6", "fieldListOrdinal": 154, "objectMapAddress": 489116, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 489255, "gapBytes": 4},
+    {"handle": "0x3c0d7", "fieldListOrdinal": 155, "objectMapAddress": 509938, "sizeBytes": 164, "preHandleBits": 1302, "stringStreamMarker": "+1301 @162.5", "handleStream": "@162.6-@164.0", "nextObjectMapAddress": 510106, "gapBytes": 4},
+    {"handle": "0x3c0d8", "fieldListOrdinal": 156, "objectMapAddress": 489255, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 489394, "gapBytes": 4},
+    {"handle": "0x3c0d9", "fieldListOrdinal": 157, "objectMapAddress": 510106, "sizeBytes": 164, "preHandleBits": 1302, "stringStreamMarker": "+1301 @162.5", "handleStream": "@162.6-@164.0", "nextObjectMapAddress": 510274, "gapBytes": 4},
+    {"handle": "0x3c0da", "fieldListOrdinal": 158, "objectMapAddress": 489394, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 489533, "gapBytes": 4},
+    {"handle": "0x3c0db", "fieldListOrdinal": 159, "objectMapAddress": 510274, "sizeBytes": 164, "preHandleBits": 1302, "stringStreamMarker": "+1301 @162.5", "handleStream": "@162.6-@164.0", "nextObjectMapAddress": 510442, "gapBytes": 4},
+    {"handle": "0x3c73f", "fieldListOrdinal": 160, "objectMapAddress": 489533, "sizeBytes": 135, "preHandleBits": 986, "stringStreamMarker": "+985 @123.1", "handleStream": "@123.2-@135.0", "nextObjectMapAddress": 489672, "gapBytes": 4},
+    {"handle": "0x3c740", "fieldListOrdinal": 161, "objectMapAddress": 510442, "sizeBytes": 178, "preHandleBits": 1414, "stringStreamMarker": "+1413 @176.5", "handleStream": "@176.6-@178.0", "nextObjectMapAddress": 510624, "gapBytes": 4}
+  ],
+  "result": {
+    "status": "PASS_FOR_BOUNDED_SOURCE_PROFILE",
+    "basis": "LibreDWG 0.14's version-matched verbose decoder reports all FIELD/FIELDLIST object records and cursor positions. The 15 table roots and 15 child fields have distinct source-map addresses, declared object sizes, pre-handle bit counts, string-stream markers, handle-stream bounds, and next-object addresses. FIELDLIST enumerates the same identities in ordered handle slots. S29 binds the owner graph and formula/cached-value relationships; the source spans now align with that graph.",
+    "p5aDisposition": "Close the P5-A source-span evidence gate for this AutoCAD 2007 table-field profile only."
+  },
+  "limits": [
+    "Offsets are in LibreDWG's decoded object-section/object-map coordinate space, not physical compressed DWG file offsets.",
+    "The observed 4- and 6-byte spacing is retained as a measured boundary fact; this receipt does not assign meaning to each spacer byte.",
+    "No native AutoCAD GUI evaluation/render/edit result is established.",
+    "No strict DXF FIELD/FIELDLIST graph output or independent DXF readback is established; P5-B remains open.",
+    "No support claim is promoted beyond the hash-bound AutoCAD 2007 source/profile."
+  ],
+  "implementationReadiness": {
+    "codeChange": "No parser or writer code changed in this slice. The existing typed FIELD/FIELDLIST readers and encoders are retained; use the cursor map to close only the missing source-profile output and graph behavior.",
+    "nextAction": "Implement the bounded P5-B source-profile graph/output route, reusing existing typed parser, serializer, rollback/retry selectors, and ACadSharp readback. Do not redo P5-A source acquisition or parser layout work.",
+    "fixturePolicy": "No DWG or DXF fixture or derivative was added to the repository."
+  }
+}
