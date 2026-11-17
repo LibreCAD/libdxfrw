@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Public AC1032 TABLE witness source screen",
+  "date": "2026-11-17",
+  "supportClaimEffect": "none",
+  "question": "Is there a public, provenance-bound AC1032 AutoCAD/ObjectARX TABLE drawing with independently known cell/style semantics that can replace the damaged ODA-exported candidate?",
+  "method": {
+    "searches": [
+      "AC1032 ACAD_TABLE TABLECONTENT DWG sample GitHub",
+      "R2018 TABLECONTENT .dwg fixture open source",
+      "ACAD_TABLE AC1032 dwg site:github.com",
+      "AcDbTableContent sample DWG AutoCAD 2018"
+    ],
+    "downloadAttempt": {
+      "url": "https://download.autodesk.com/us/samplefiles/acad/blocks_and_tables_-_imperial.dwg",
+      "destination": "/private/tmp/blocks_and_tables_imperial.dwg",
+      "result": "Not downloaded: curl failed with 'Could not resolve host: download.autodesk.com'. No file was added to the repository."
+    }
+  },
+  "candidates": [
+    {
+      "name": "Autodesk Blocks and Tables sample set",
+      "source": "https://www.autodesk.com/support/technical/article/caas/tsarticles/ts/6XGQklp3ZcBFqljLPjrnQ9.html",
+      "reportedFiles": [
+        "Blocks and Tables (Imperial), 222 KB",
+        "Blocks and Tables (Metric), 253 KB"
+      ],
+      "known": "Autodesk describes these as sample files applicable to AutoCAD 2010 and later. A separate public Autodesk University handout names the imperial file in an AutoCAD 2010 workflow.",
+      "unresolved": "The exact DWG magic/version, actual TABLECONTENT/CELLSTYLEMAP profile, and expected table values are not established from the page. The file could be a bounded P5-D candidate only after download, header inspection, and field-profile/semantics checks. It is not an AC1032 witness by this evidence.",
+      "disposition": "Candidate only; no support promotion. Retry one direct fetch after DNS works, then accept for P5-D only if it meets the exact R24 gate."
+    },
+    {
+      "name": "ACadSharp samples/sample_AC1032.dwg",
+      "source": "https://github.com/DomCR/ACadSharp/blob/master/samples/sample_AC1032.dwg",
+      "independentFinding": "The ACadSharp maintainer says its samples directory contains reader-test files (https://github.com/DomCR/ACadSharp/discussions/520). A later ACadSharp issue identifies sample_AC1032.dwg as written with DxfWriter and states that DxfWriter emits no ACAD_TABLE or TABLECONTENT (https://github.com/DomCR/ACadSharp/issues/1253).",
+      "disposition": "Exclude as an ACAD_TABLE source witness; do not repeat this candidate."
+    },
+    {
+      "name": "CadCraft columns-sample.dwg",
+      "source": "https://github.com/storytold/cadcraft/issues/1321",
+      "independentFinding": "The report identifies an AutoCAD 2024/R2018 sample but explicitly says the file has no ACAD_TABLE.",
+      "disposition": "Exclude for P6-C TABLE; do not repeat this candidate."
+    },
+    {
+      "name": "CadCraft AutoCAD luminaire schedule report",
+      "source": "https://github.com/storytold/cadcraft/issues/802",
+      "independentFinding": "The report describes a real AutoCAD TABLE and concrete rendering/value behavior, but the public issue page does not expose a sample DWG or a source download.",
+      "disposition": "Useful semantic lead only; not an acquirable source witness from the public record. No contact was made."
+    }
+  ],
+  "result": "No eligible public AC1032 TABLE witness was found in this bounded search. The Autodesk sample set may reduce P5-D acquisition work after a one-time exact file/profile check. The ACadSharp AC1032 sample and the reported CadCraft columns sample cannot satisfy P6-C.",
+  "planEffect": {
+    "completedAction": "Screened the named public AC1032 TABLE candidates and recorded exclusions and one R24 candidate.",
+    "remainingAction": "If DNS returns, fetch the official Autodesk sample once and check its header plus TABLECONTENT/CELLSTYLEMAP fields for P5-D. For P6-C, use the bundled producer acquisition for a clean AC1032 TABLE with known expected values; otherwise remain raw-only and fail closed."
+  }
+}
