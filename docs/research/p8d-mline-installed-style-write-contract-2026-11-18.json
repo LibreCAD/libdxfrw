@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-mline-installed-style-write-contract-2026-11-18",
+  "date": "2026-11-18",
+  "status": "INSTALLED_CODEC_CONTRACT_AND_FILTER_PARTIAL_LINK_VERIFIED",
+  "supportClaimEffect": "none",
+  "sourceHead": "1174f77538c3faef61d3f511fe87a4be491a157e",
+  "priorEvidence": "docs/research/p8d-mline-group41-composed-guards-2026-11-18.json",
+  "installedPackage": {
+    "builtFrom": "69679cac1c6539746e3a454ea5deebb3816e8d21",
+    "platform": "macOS arm64",
+    "runtime": "@rpath/libdxfrw.3.dylib",
+    "sha256": "7a0b42cdae111c7c63f121ab206427bd69a19bfb8953da7c9d32af36e89c3960",
+    "sourceMatch": "git diff --quiet 69679cac..1174f775 -- src CMakeLists.txt libdxfrw_sources.cmake cmake returned zero."
+  },
+  "installedCodecChecks": {
+    "cases": ["ASCII with remap", "ASCII with resolver", "Binary with remap", "Binary with resolver"],
+    "mapping": "The input source handle 1E emits group 340 = 190. Providing the already-mapped handle 190 emits group 340 = 290 under the supplied remap.",
+    "stagedBinding": "Read staged MLINE group 340 and both selected dictionary edges. Require root C ACAD_MLINESTYLE -> 400, dictionary 400 Standard -> 190, a unique MLINESTYLE at 190, and owners 400 -> C and 190 -> 400.",
+    "refusalAndRetry": "In each case the OBJECTS inspector rejects the second remap, missing MLINESTYLE, wrong provider type, and wrong Standard edge. Each rejection preserves the seeded destination and each correction succeeds on the same codec.",
+    "independentReadback": "ezdxf 1.4.5 observed the matching MLINE group 340, style object and ownership, both dictionary edges, and the tested group-41 pairs in each corrected output.",
+    "asciiOutputSha256": "898c64bc28908525d3ed1648db6816909272a7a3aaa67baaee4a3cb7afa976cf",
+    "binaryOutputSha256": "bf3b700151a22837bb9536abb2f85868898b4b55ad16d6b95a09581163dd2453"
+  },
+  "scratchArtifacts": {
+    "codecProbe": {
+      "root": "/private/tmp/libdxfrw-mline-installed-contract-20261118",
+      "probe.cpp": "d8d99189423f622ac3b5e5e007f8faabfeb5cca948c0841d24e2f0eacfcee9db",
+      "probe": "6ad8589b2037bbe419d43b5412b95cd3f4ec4e399492193197b5005491fdcbcb",
+      "result.log": "944d2204e85e23f38b530337ecd7ec66b027b16c7ddfa126cd4d72094a220ade"
+    },
+    "filterProbe": {
+      "root": "/private/tmp/librecad-mline-installed-filter-20261118",
+      "rs_filterdxfrw.cpp": "0ec94c44e5a61f074a9d7c66fd119518096e849d020de7e4e289d5a3c7a87db6",
+      "rs_filterdxfrw.h": "cd3cdd5906369cc97b8b65531706e34b1fca4c10fad9de570156afb1fac5a7e2",
+      "rs_filterdxfrw.o": "d35392cfde38d21c452ba6e1b12dbe579704198304f7366e064a6aa02b8cd395",
+      "probe.dylib": "7983bf6448326db5ba677c4627f30dde5f17680de58d9a923260f8b4068360c8",
+      "build.log": "d5cb3b676ba1b206f7fe28fb266995742a565df779aa34ab72cf93f431e52a7a"
+    }
+  },
+  "limits": [
+    "The composed filter was adjusted in scratch to pass the original style handle to the standalone codec. Its dependency file uses installed headers and the partial link binds libdxfrw.3.dylib. Qt and other LibreCAD symbols remain unresolved in the partial link. The build also reports an existing incomplete switch warning in lc_dwgadvancedmetadata.h.",
+    "The runtime tests use the standalone staged inspectors in an isolated adapter. The installed LibreCAD application, production filter staging hook, bundled write transaction, and native GUI require separate qualification.",
+    "The test covers the selected two-element planar MLINE and dictionary path. No drawing fixture or production patch is committed."
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-mline-bundled-staged-write-proof-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SCRATCH_ATOMIC_GATE_REPRODUCED_VERIFIER_REVIEW_FAILED",
+  "supportClaimEffect": "none",
+  "priorEvidence": "docs/research/p8d-mline-group41-composed-guards-2026-11-18.json",
+  "scope": "Selected planar STANDARD MLINE, existing LibreCAD bundled codec, ASCII output from ASCII and Binary input. The standalone installed codec uses separate staged inspectors.",
+  "hookedProof": {
+    "root": "/private/tmp/librecad-mline-staged-proof-20261118",
+    "candidateSha256": "013fce1991b549f55b0e3c3d0aa4e695be9f4476723b81793813d7358d2b7e6b",
+    "scannerSha256": "330b2bf80a00794330d1da903673ca57ba0e6e3d6f96b5dd8aaedcaf23ccadf4",
+    "archiveSha256": "2db22520660ea6f239050416b52bd2f7cf21f64e96d0478c0b1e7b160ce19062",
+    "runCommand": "python3 /private/tmp/librecad-mline-staged-proof-20261118/run_final.py",
+    "runLogSha256": "624dc639d23a9d8284efef644fc7bbe5095ac7c8f1ec5131b7e82b780e609a13",
+    "result": "A test-only hook alters the staged MLINESTYLE record type after writing. The bundled writeVerified transaction refuses before publishing, preserves the seeded destination, and succeeds on corrected same-filter retry for ASCII input, Binary input and the style handle collision variant."
+  },
+  "normalBuildReadback": {
+    "root": "/private/tmp/librecad-mline-staged-nohook-20261118",
+    "archiveSha256": "e6247952811a8a04bd9d10f568b272aab68f1584d2867e4d2d18bb8a537d53aa",
+    "runScriptSha256": "0971429b2b41ac39da37c6b6baeafcd767f44de6d33130364f77430ac69bc192",
+    "resultsSha256": "59371726390594ed23b5710d32f949f2d071d28c38d445900440692230f89a9d",
+    "result": "All three cases pass without the test hook. ezdxf 1.4.5 verifies the MLINE group 340 and matching unique STANDARD MLINESTYLE and dictionary path, flags and cardinalities, and positions, directions, group-41 pairs and derived intersections within 1e-12. The collision case resolves source 1E to emitted 190.",
+    "normalDxfSha256": "38d6e43f05304e56b77c7942b63119e4f1d0b477a1d4966f4dad1a12c37c734d",
+    "collisionDxfSha256": "cf721dec55685836dcaae7736d086f548e856161bed1f6e2c13bd20de55cb395"
+  },
+  "review": {
+    "reproducerRoot": "/private/tmp/mline-staged-review",
+    "reproCommand": "/private/tmp/librecad-mline-staged-proof-20261118/scan_test <mutated file> 1B9 18 17",
+    "acceptedMutations": {
+      "extra420.dxf": "2eb9f4573145ab24c1574a53672c47560be605c6336bb29eef5e01fc730ac9b9",
+      "fakefallback.dxf": "c492b03e604a84b72940cba047d097cae8974baf48223c07a499709cc8a5b5e7",
+      "alter41.dxf": "650b384d8657d8ddfab0e5eb33330337c7bbb7ca4470a9e1e5bfb1b3874909e9"
+    },
+    "findings": "The scanner ignores unlisted style fields, treats a substituted polyline with a removed style provider as an allowed fallback, and accepts an altered group-41 value. A missing or ambiguous source-to-output anchor can also be skipped, leaving the stage unverified."
+  },
+  "remaining": [
+    "Record the actual selected write decision and unique minted handle during emission. Require the resulting entity type, section, owner and complete projection in staged output. Keep the ordinary visible fallback independent of staged type inference.",
+    "Reject extra or malformed style fields and bound the scanner, then rerun the three bypass controls, stage publication, no-hook positives, independent readback and corrected retry before any production integration. Installed-filter integration and native GUI remain separate.",
+    "No prototype source or generated drawing fixture is committed."
+  ]
+}
