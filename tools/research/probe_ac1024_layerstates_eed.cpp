@@ -74,7 +74,8 @@ bool observeDictionary(const dx_data &data, const DictExpectation &expected,
     if (typed->m_entries[i].m_name != expected.items[i].first ||
         typed->m_entries[i].m_handle != expected.items[i].second)
       return false;
-  if (!typed->reactorHandles.empty() && typed->reactorHandles[0] != 0xD5u)
+  if (!typed->reactorHandles.empty() &&
+      typed->reactorHandles[0] != (expected.handle == 0x126u ? 0xCu : 0xD5u))
     return false;
 
   const auto total = static_cast<std::uint32_t>(bytes.size() * 8u);
@@ -166,7 +167,8 @@ bool observeDictionary(const dx_data &data, const DictExpectation &expected,
   if (!typed->reactorHandles.empty()) {
     const auto start = wire.pos;
     const auto reactor = detail::handle(wire, 4u, expected.handle);
-    if (!wire.good || reactor.role != 4u || reactor.value != 0xD5u ||
+    if (!wire.good || reactor.role != 4u ||
+        reactor.value != (expected.handle == 0x126u ? 0xCu : 0xD5u) ||
         wire.pos != start + 16u)
       return false;
     if (verbose)
@@ -186,7 +188,8 @@ bool observeDictionary(const dx_data &data, const DictExpectation &expected,
                 << item.value << std::dec;
   }
   const auto expectedEnd =
-      expected.handle == 0xD5u                                   ? 930u
+      expected.handle == 0x126u                                  ? 2236u
+      : expected.handle == 0xD5u                                 ? 930u
       : (expected.handle == 0x1B8u || expected.handle == 0x24Au) ? 494u
       : expected.handle == 0xEEu                                 ? 92u
                                                                  : 206u;
@@ -201,7 +204,7 @@ bool observeDictionary(const dx_data &data, const DictExpectation &expected,
 }
 
 bool testDictionaryFrames(const dx_data &data) {
-  const std::vector<DictExpectation> profiles{
+  std::vector<DictExpectation> profiles{
       {0xD5u,
        2u,
        858u,
@@ -230,6 +233,36 @@ bool testDictionaryFrames(const dx_data &data) {
        8u,
        1,
        {{"AcadLayerStateAnnoScale", 0x24Bu}}}};
+  const auto &nod = data.namedObjectDictionary;
+  if (!data.hasNamedObjectDictionary || nod.handle != 0xCu ||
+      nod.m_entries.size() != 16u || !nod.hasCompleteDwgEntries() ||
+      !DxIfaceStandardDwgCaptureTestAccess::frameBound(data, 0xCu) ||
+      nod.m_entries[12].m_name != "ACAD_SCALELIST" ||
+      nod.m_entries[12].m_handle != 0x126u ||
+      std::count_if(nod.m_entries.begin(), nod.m_entries.end(),
+                    [](const DRW_Dictionary::Entry &entry) {
+                      return entry.m_name == "ACAD_SCALELIST";
+                    }) != 1)
+    return false;
+  DictExpectation scaleList{0x126u, 0xCu, 1436u, 75u, 1344u, 4u, 0, {}};
+  for (unsigned i = 0u; i < 32u; ++i) {
+    std::string key;
+    key.push_back(static_cast<char>('A' + i / 10u));
+    key.push_back(static_cast<char>('0' + i % 10u));
+    const auto handle = 0x127u + i;
+    const auto matches = std::count_if(
+        data.scales.begin(), data.scales.end(),
+        [handle](const DRW_Scale &row) { return row.handle == handle; });
+    const auto row = std::find_if(
+        data.scales.begin(), data.scales.end(),
+        [handle](const DRW_Scale &value) { return value.handle == handle; });
+    if (matches != 1 || row == data.scales.end() || row->parentHandle != 0x126u)
+      return false;
+    scaleList.items.emplace_back(key, 0x127u + i);
+  }
+  profiles.push_back(std::move(scaleList));
+  std::cout
+      << "nod=c entry=12 name=ACAD_SCALELIST target=126 typed_scales=32\n";
   for (const auto &profile : profiles) {
     const auto *raw =
         DxIfaceStandardDwgCaptureTestAccess::frame(data, profile.handle);
@@ -251,9 +284,14 @@ bool testDictionaryFrames(const dx_data &data) {
     }
     if (!profile.items.empty()) {
       mutations.emplace_back("string-byte", profile.bodyFieldsEnd + 17u);
-      const std::vector<std::uint32_t> itemStarts =
+      std::vector<std::uint32_t> itemStarts =
           profile.handle == 0xD5u ? std::vector<std::uint32_t>{874u, 890u, 914u}
                                   : std::vector<std::uint32_t>{470u};
+      if (profile.handle == 0x126u) {
+        itemStarts.clear();
+        for (unsigned i = 0u; i < 32u; ++i)
+          itemStarts.push_back(1468u + 24u * i);
+      }
       for (auto start : itemStarts) {
         mutations.emplace_back("item-role", start + 1u);
         mutations.emplace_back("item-target", start + 15u);
@@ -539,6 +577,162 @@ bool testScale(const dx_data &data) {
   return true;
 }
 
+bool observePrimaryXrecord(const dx_data &data,
+                           const std::vector<std::uint8_t> &bytes,
+                           std::uint32_t handleBits, bool verbose) {
+  using namespace dx_raster_wire;
+  const DRW_XRecord *record = nullptr;
+  for (const auto &row : data.xRecords)
+    if (row.handle == 0x249u) {
+      if (record)
+        return false;
+      record = &row;
+    }
+  if (!record ||
+      !DxIfaceStandardDwgCaptureTestAccess::frameBound(data, 0x249u, 79) ||
+      record->parentHandle != 0x1B8u || record->xDictHandle != 0x24Au ||
+      record->reactorHandles != std::vector<std::uint32_t>{0x1B8u} ||
+      !record->appData.empty() || !record->extData.empty() ||
+      record->m_rawDataValid || record->m_cloning != 1 ||
+      record->m_dataEntries.size() != 11u ||
+      record->m_handleValues !=
+          std::vector<std::pair<int, std::uint32_t>>{{330, 0x10u},
+                                                     {331, 0x16u}} ||
+      bytes.empty() || bytes.size() > 1024u || handleBits >= bytes.size() * 8u)
+    return false;
+  const auto total = static_cast<std::uint32_t>(bytes.size() * 8u);
+  const auto bodyEnd = total - handleBits;
+  if (bodyEnd != 684u)
+    return false;
+  detail::Bits body{bytes.data(), 0u, bodyEnd};
+  const auto tag = body.take(2u);
+  const auto type = tag == 0u   ? body.take(8u)
+                    : tag == 1u ? body.take(8u) + 0x1f0u
+                                : body.little(2u);
+  const auto self = detail::handle(body, 0u, 0u, true);
+  if (!body.good || type != 79u || self.value != 0x249u ||
+      body.shortValue() != 0u || body.longValue() != 1u ||
+      body.take(1u) != 0u || body.longValue() != 77u || body.pos != 57u)
+    return false;
+  const std::uint32_t dataEnd = 673u;
+  const auto numeric = [&](std::size_t i, unsigned code, std::uint64_t expected,
+                           unsigned bytesToRead, bool isHandle) {
+    const auto &v = record->m_dataEntries[i];
+    if (body.pos > dataEnd || body.little(2u) != code ||
+        body.little(bytesToRead) != expected || !body.good ||
+        body.pos > dataEnd || v.code() != static_cast<int>(code))
+      return false;
+    if (isHandle)
+      return v.type() == DRW_Variant::INTEGER64 &&
+             static_cast<std::uint64_t>(v.i64_val()) == expected;
+    if (v.type() != DRW_Variant::INTEGER)
+      return false;
+    const auto signedExpected =
+        code == 370u  ? static_cast<std::int64_t>(expected) - 65536
+        : code == 92u ? static_cast<std::int64_t>(expected) - 4294967296LL
+                      : static_cast<std::int64_t>(expected);
+    return v.i_val() == signedExpected;
+  };
+  const auto text = [&](std::size_t i, unsigned code,
+                        const std::string &expected) {
+    const auto &v = record->m_dataEntries[i];
+    if (body.pos > dataEnd || body.little(2u) != code ||
+        body.little(2u) != expected.size())
+      return false;
+    for (unsigned char c : expected)
+      if (body.little(2u) != c)
+        return false;
+    return body.good && body.pos <= dataEnd &&
+           v.code() == static_cast<int>(code) &&
+           v.type() == DRW_Variant::STRING && v.content.s &&
+           *v.content.s == expected;
+  };
+  if (!numeric(0, 91u, 33280u, 4u, false) || !text(1, 301u, "") ||
+      !numeric(2, 290u, 0u, 1u, false) || !text(3, 302u, "0") ||
+      !numeric(4, 330u, 0x10u, 8u, true) || !numeric(5, 90u, 8u, 4u, false) ||
+      !numeric(6, 62u, 7u, 2u, false) || !numeric(7, 370u, 65533u, 2u, false) ||
+      !numeric(8, 331u, 0x16u, 8u, true) || !text(9, 1u, "Color_7") ||
+      !numeric(10, 92u, 3269980415u, 4u, false) || body.pos != dataEnd ||
+      body.shortValue() != 1u || !body.good || body.pos != 683u)
+    return false;
+  detail::Bits presence{bytes.data(), 683u, 684u};
+  if (presence.take(1u) != 0u || !presence.good)
+    return false;
+  detail::Bits wire{bytes.data(), 684u, total};
+  const auto owner = detail::handle(wire, 4u, 0x249u);
+  if (!wire.good || owner.role != 12u || owner.value != 0x1B8u ||
+      wire.pos != 700u)
+    return false;
+  const auto reactor = detail::handle(wire, 4u, 0x249u);
+  if (!wire.good || reactor.role != 4u || reactor.value != 0x1B8u ||
+      wire.pos != 724u)
+    return false;
+  const auto xdict = detail::handle(wire, 3u, 0x249u);
+  if (!wire.good || xdict.role != 3u || xdict.value != 0x24Au ||
+      wire.pos != 748u || wire.end - wire.pos >= 8u ||
+      !wire.skip(wire.end - wire.pos))
+    return false;
+  if (verbose)
+    std::cout << "xrecord=249 body=0:683 data=57:673 presence=683:684 "
+                 "owner=684:700 role=12 target=1b8 reactor=700:724 role=4 "
+                 "target=1b8 xdict=724:748 role=3 target=24a padding=748:752\n";
+  return true;
+}
+bool testPrimaryXrecord(const dx_data &data) {
+  const auto *raw = DxIfaceStandardDwgCaptureTestAccess::frame(data, 0x249u);
+  if (!raw ||
+      !observePrimaryXrecord(data, raw->m_rawBytes, raw->m_bodyBitSize, true))
+    return false;
+  const std::vector<std::pair<const char *, unsigned>> mutations{
+      {"self", 25u},
+      {"eed", 34u},
+      {"xdict-flag", 46u},
+      {"byte-count", 56u},
+      {"group-91", 73u},
+      {"group-301", 120u},
+      {"group-290", 150u},
+      {"group-302", 190u},
+      {"group-330-target", 248u},
+      {"group-90", 320u},
+      {"group-62", 355u},
+      {"group-370", 390u},
+      {"group-331-target", 450u},
+      {"group-1", 550u},
+      {"group-92", 660u},
+      {"cloning", 682u},
+      {"presence", 683u},
+      {"owner-role", 685u},
+      {"owner-target", 699u},
+      {"reactor-role", 701u},
+      {"reactor-target", 723u},
+      {"xdict-role", 725u},
+      {"xdict-target", 747u}};
+  for (const auto &mutation : mutations) {
+    auto changed = raw->m_rawBytes;
+    changed[mutation.second / 8u] ^=
+        static_cast<std::uint8_t>(1u << (7u - mutation.second % 8u));
+    if (observePrimaryXrecord(data, changed, raw->m_bodyBitSize, false) ||
+        !observePrimaryXrecord(data, raw->m_rawBytes, raw->m_bodyBitSize,
+                               false))
+      return false;
+    std::cout << "primary-negative=" << mutation.first
+              << " bit=" << mutation.second << " rejected=1 retry=1\n";
+  }
+  auto truncated = raw->m_rawBytes;
+  truncated.pop_back();
+  if (raw->m_bodyBitSize < 8u ||
+      observePrimaryXrecord(data, truncated, raw->m_bodyBitSize - 8u, false) ||
+      !observePrimaryXrecord(data, raw->m_rawBytes, raw->m_bodyBitSize, false))
+    return false;
+  auto appended = raw->m_rawBytes;
+  appended.push_back(0u);
+  if (observePrimaryXrecord(data, appended, raw->m_bodyBitSize + 8u, false))
+    return false;
+  std::cout << "primary-negative=truncated-handle-stream rejected=1 "
+               "retry=1\nprimary-negative=extra-handle-byte rejected=1\n";
+  return true;
+}
+
 int main(int argc, char **argv) {
   if (argc != 2)
     return 2;
@@ -707,5 +901,6 @@ int main(int argc, char **argv) {
   const bool retry = check(original, 174u);
   std::cout << "corrected_retry=" << retry << "\n";
   return !truncated || !retry || !testDictionaryFrames(data) ||
-         !testNestedXrecord(data) || !testScale(data);
+         !testNestedXrecord(data) || !testScale(data) ||
+         !testPrimaryXrecord(data);
 }

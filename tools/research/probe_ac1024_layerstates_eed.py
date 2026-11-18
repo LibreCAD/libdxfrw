@@ -6,6 +6,7 @@ probe is local research evidence, not a portable qualification or a fixture.
 """
 import argparse
 import hashlib
+import json
 from pathlib import Path
 import subprocess
 import tempfile
@@ -23,6 +24,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("source", type=Path)
     parser.add_argument("peer_trace", type=Path)
+    parser.add_argument("--peer-json", type=Path, help="pinned LibreDWG JSON; defaults to aerial-libredwg.json beside the trace")
     parser.add_argument("--build-dir", type=Path, default=ROOT / "build-gcc")
     parser.add_argument("--cxx", default="c++")
     args = parser.parse_args()
@@ -66,6 +68,14 @@ def main():
             "bitsize: 174", "has_strings: 0", "ownerhandle: (12.1.18) abs:D5",
             "reactors[0]: (4.1.D5) abs:D5", "numitems: 0"),
     }
+    scale_keys = [chr(ord("A") + i // 10) + str(i % 10) for i in range(32)]
+    profiles["0.2.126"] = (
+        "bitsize: 1436", "data_size: 1344/0x540", "EED[0] size: 0",
+        "num_reactors: 1", "is_xdic_missing: 1", "numitems: 32", "cloning: 1",
+        "is_hardowner: 0x0", "ownerhandle: (4.1.C) abs:C",
+        "reactors[0]: (4.1.C) abs:C") + tuple(
+            f'texts[{i}]: "{key}"' for i, key in enumerate(scale_keys)) + tuple(
+            f'itemhandles[{i}]: (2.2.{0x127+i:X}) abs:{0x127+i:X}' for i in range(32))
     for handle, tokens in profiles.items():
         position = text.find("handle: " + handle + " [H 5]")
         begin = text.rfind("< Next object:", 0, position)
@@ -78,6 +88,38 @@ def main():
         for token in tokens:
             if token not in peer_object:
                 raise SystemExit("independent dictionary evidence missing: " + handle + " " + token)
+    peer_json = args.peer_json.resolve() if args.peer_json else trace.parent / "aerial-libredwg.json"
+    if sha256(peer_json) != "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832":
+        raise SystemExit("independent LibreDWG JSON SHA-256 does not match")
+    peer_objects = json.loads(peer_json.read_text())["OBJECTS"]
+    nod = [obj for obj in peer_objects if obj.get("handle") == [0, 1, 12]]
+    scale_dict = [obj for obj in peer_objects if obj.get("handle") == [0, 2, 294]]
+    if (len(nod) != 1 or nod[0].get("object") != "DICTIONARY" or
+            nod[0].get("numitems") != 16 or
+            nod[0].get("items", {}).get("ACAD_SCALELIST") != [2, 2, 294, 294]):
+        raise SystemExit("independent NOD SCALELIST edge mismatch")
+    if len(scale_dict) != 1 or scale_dict[0].get("object") != "DICTIONARY" or scale_dict[0].get("numitems") != 32:
+        raise SystemExit("independent SCALELIST identity mismatch")
+    expected_items = [(key, [2, 2, 0x127 + i, 0x127 + i]) for i, key in enumerate(scale_keys)]
+    if list(scale_dict[0].get("items", {}).items()) != expected_items:
+        raise SystemExit("independent SCALELIST keys, roles or targets mismatch")
+    primary = [obj for obj in peer_objects if obj.get("handle") == [0, 2, 585]]
+    expected_xdata = [[91, 33280], [301, ""], [290, 0], [302, "0"], [330, 16],
+                      [90, 8], [62, 7], [370, -3], [331, 22], [1, "Color_7"],
+                      [92, -1024986881]]
+    if len(primary) != 1 or primary[0].get("object") != "XRECORD" or primary[0].get("bitsize") != 684 or primary[0].get("xdata_size") != 77 or primary[0].get("xdata") != expected_xdata or primary[0].get("cloning") != 1:
+        raise SystemExit("independent primary XRECORD JSON fields do not match")
+    primary_handle = text.find("handle: 0.2.249 [H 5]")
+    primary_start = text.rfind("< Next object:", 0, primary_handle)
+    primary_end = text.find("< Next object:", primary_handle)
+    if primary_handle < 0 or primary_start < 0 or primary_end < 0:
+        raise SystemExit("independent primary XRECORD boundaries are missing")
+    primary_section = text[primary_start:primary_end]
+    for token in ("Decode object XRECORD", "bitsize: 684", "has_strings: 0",
+                  "ownerhandle: (12.1.91) abs:1B8", "reactors[0]: (4.2.1B8) abs:1B8",
+                  "xdicobjhandle: (3.2.24A) abs:24A", "xdata_size: 77", "cloning: 1"):
+        if token not in primary_section:
+            raise SystemExit("independent primary XRECORD evidence missing: " + token)
     scale_handle = text.find("handle: 0.2.127 [H 5]")
     scale_start = text.rfind("< Next object:", 0, scale_handle)
     scale_end = text.find("< Next object:", scale_handle)
