@@ -1,6 +1,7 @@
 #include "dx_ac1027_material_wire.h"
 #include "dx_ac1024_renderglobal_wire.h"
 #include "dx_ac1024_mentalray_wire.h"
+#include "dx_ac1024_mleaderstyle_wire.h"
 #include "dx_ac1024_dictionaryvar_wire.h"
 #include "dx_ac1024_mlinestyle_wire.h"
 #include "dx_layerstates_dwg_wire.h"
@@ -507,9 +508,271 @@ bool checkAc1024MentalRayCompanionWire() {
       && !dx_ac1024_mentalray_wire::observeXrecord(raw,edited)
       && dx_ac1024_mentalray_wire::observeXrecord(raw,source);
 }
+bool checkAc1024MLeaderStyleWire() {
+  using namespace dx_ac1024_mleaderstyle_wire;
+  const auto h = [](BitWriter& b, unsigned role, unsigned value, unsigned n) {
+    b.bits((role << 4u) | n, 8u);
+    for (unsigned i = n; i > 0u; --i) {
+      b.bits((value >> ((i - 1u) * 8u)) & 255u, 8u);
+    }
+  };
+  const auto common = [&h](BitWriter& b, unsigned type, unsigned self) {
+    b.bits(type >= 496u ? 1u : 0u, 2u);
+    b.bits(type >= 496u ? type - 496u : type, 8u);
+    h(b, 0u, self, 2u);
+    b.bits(2u, 2u);
+    b.longValue(1u);
+    b.bits(1u, 1u);
+  };
+  const auto long32 = [](BitWriter& b, std::uint32_t v) {
+    b.bits(0u, 2u);
+    for (unsigned i = 0; i < 4u; ++i) {
+      b.bits((v >> (8u * i)) & 255u, 8u);
+    }
+  };
+  const auto bd = [](BitWriter& b, double v) {
+    if (v == 0.0) {
+      b.bits(2u, 2u);
+      return;
+    }
+    if (v == 1.0) {
+      b.bits(1u, 2u);
+      return;
+    }
+    b.bits(0u, 2u);
+    std::uint64_t u = 0;
+    std::memcpy(&u, &v, sizeof(u));
+    for (unsigned i = 0; i < 8u; ++i) {
+      b.bits((u >> (8u * i)) & 255u, 8u);
+    }
+  };
+  const auto cmc = [&long32](BitWriter& b) {
+    b.bits(2u, 2u);
+    long32(b, 0xc1000000u);
+    b.bits(0u, 8u);
+  };
+  for (const bool standard : {true, false}) {
+    const unsigned handle = standard ? 0x148u : 0x157u;
+    BitWriter b;
+    common(b, 513u, handle);
+    b.shortValue(2u);
+    b.shortValue(2u);
+    b.shortValue(1u);
+    b.bits(2u, 2u);
+    b.longValue(2u);
+    bd(b, 0.0);
+    bd(b, 0.0);
+    b.shortValue(1u);
+    cmc(b);
+    long32(b, 0xfffffffeu);
+    b.bits(1u, 1u);
+    bd(b, 0.09);
+    b.bits(1u, 1u);
+    bd(b, 0.36);
+    bd(b, 0.18);
+    b.shortValue(1u);
+    b.shortValue(1u);
+    b.shortValue(1u);
+    b.bits(2u, 2u);
+    cmc(b);
+    bd(b, 0.18);
+    b.bits(0u, 1u);
+    b.bits(0u, 1u);
+    bd(b, 0.18);
+    cmc(b);
+    bd(b, 1.0);
+    bd(b, 1.0);
+    bd(b, 1.0);
+    b.bits(1u, 1u);
+    bd(b, 0.0);
+    b.bits(1u, 1u);
+    b.bits(2u, 2u);
+    bd(b, 1.0);
+    b.bits(standard ? 0u : 1u, 1u);
+    b.bits(1u, 1u);
+    bd(b, 0.125);
+    b.bits(2u, 2u);
+    b.shortValue(9u);
+    b.shortValue(9u);
+    if (b.size() != 739u) {
+      return false;
+    }
+    b.shortValue(8u);
+    for (unsigned char c : std::string("Standard")) {
+      b.little16(c);
+    }
+    b.bits(2u, 2u);
+    b.little16(140u);
+    b.bits(1u, 1u);
+    if (standard) {
+      h(b, 8u, 0u, 0u);
+    } else {
+      h(b, 12u, 0x10u, 1u);
+    }
+    h(b, 4u, 0x147u, 2u);
+    h(b, 5u, 0x14u, 1u);
+    h(b, 5u, 0u, 0u);
+    h(b, 5u, 0x11u, 1u);
+    h(b, 5u, 0u, 0u);
+    const unsigned size = standard ? 122u : 123u;
+    if (b.size() != size * 8u) {
+      return false;
+    }
+    DRW_UnsupportedObject raw;
+    raw.m_version = DRW::AC1024;
+    raw.m_objectType = 513;
+    raw.m_handle = handle;
+    raw.m_parentHandle = 0x147u;
+    raw.m_numReactors = 1;
+    raw.m_reactorHandles = {0x147u};
+    raw.m_xDictFlag = 1u;
+    raw.m_isCustomClass = true;
+    raw.m_hasClassDefinition = true;
+    raw.m_recordName = "MLEADERSTYLE";
+    raw.m_className = "AcDbMLeaderStyle";
+    raw.m_classAppName = "ACDB_MLEADERSTYLE_CLASS";
+    raw.m_commonHandleDataValidated = true;
+    raw.m_commonLinkEvidence = DRW_DwgCommonLinkEvidence::Validated;
+    raw.m_objectSize = size;
+    raw.m_bodyBitSize = size * 8u - 896u;
+    raw.m_rawBytes = std::move(b).take();
+    DRW_MLeaderStyle s;
+    s.handle = handle;
+    s.parentHandle = 0x147u;
+    s.reactorHandles = {0x147u};
+    s.setDwgCommonObjectState(1, 1u, false);
+    s.styleVersion = 2;
+    s.contentType = 2;
+    s.drawMLeaderOrder = 1;
+    s.drawLeaderOrder = 0;
+    s.maxLeaderPoints = 2;
+    s.leaderType = 1;
+    s.leaderColor = 0;
+    s.leaderColorDwgMethod = 0xc1u;
+    s.leaderColorDwgMetadataPresent = true;
+    s.leaderLineWeight = -2;
+    s.landingEnabled = true;
+    s.landingGap = 0.09;
+    s.autoIncludeLanding = true;
+    s.landingDistance = 0.36;
+    s.description = "Standard";
+    s.arrowHeadSize = 0.18;
+    s.leftAttachment = 1;
+    s.rightAttachment = 1;
+    s.textAngleType = 1;
+    s.textAlignmentType = 0;
+    s.textColor = 0;
+    s.textColorDwgMethod = 0xc1u;
+    s.textColorDwgMetadataPresent = true;
+    s.textHeight = 0.18;
+    s.alignSpace = 0.18;
+    s.blockColor = 0;
+    s.blockColorDwgMethod = 0xc1u;
+    s.blockColorDwgMetadataPresent = true;
+    s.blockScaleEnabled = true;
+    s.blockRotationEnabled = true;
+    s.scaleFactor = 1;
+    s.propertyChanged = !standard;
+    s.isAnnotative = true;
+    s.breakSize = 0.125;
+    s.attachmentDirection = 0;
+    s.topAttachment = 9;
+    s.bottomAttachment = 9;
+    const auto typed = [](dwgHandle& target, unsigned n, unsigned ref) {
+      target.code = 5;
+      target.rawCode = 5;
+      target.size = n;
+      target.ref = ref;
+      target.ref64 = ref;
+    };
+    typed(s.leaderLineTypeHandle, 1, 0x14);
+    typed(s.arrowHeadBlockHandle, 0, 0);
+    typed(s.textStyleHandle, 1, 0x11);
+    typed(s.blockHandle, 0, 0);
+    if (!observeStyle(raw, s)) {
+      return false;
+    }
+    for (std::size_t bit = 0; bit < raw.m_rawBytes.size() * 8u; ++bit) {
+      auto x = raw;
+      x.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(1u << (7u - bit % 8u));
+      if (observeStyle(x, s)) {
+        return false;
+      }
+    }
+    auto truncated = raw;
+    truncated.m_rawBytes.pop_back();
+    auto edited = s;
+    edited.textHeight = 0.5;
+    if (observeStyle(truncated, s) || observeStyle(raw, edited) || !observeStyle(raw, s)) {
+      return false;
+    }
+  }
+  BitWriter b;
+  common(b, 42u, 0x147u);
+  b.longValue(2u);
+  b.shortValue(1u);
+  b.bits(0u, 8u);
+  for (const auto& name : {std::string("Annotative"), std::string("Standard")}) {
+    b.shortValue(static_cast<std::uint8_t>(name.size()));
+    for (unsigned char c : name) {
+      b.little16(c);
+    }
+  }
+  b.little16(308u);
+  b.bits(1u, 1u);
+  h(b, 4u, 0xcu, 1u);
+  h(b, 4u, 0xcu, 1u);
+  h(b, 2u, 0x157u, 2u);
+  h(b, 2u, 0x148u, 2u);
+  if (b.size() != 480u) {
+    return false;
+  }
+  DRW_UnsupportedObject raw;
+  raw.m_version = DRW::AC1024;
+  raw.m_objectType = 42;
+  raw.m_handle = 0x147u;
+  raw.m_parentHandle = 0xcu;
+  raw.m_numReactors = 1;
+  raw.m_reactorHandles = {0xcu};
+  raw.m_xDictFlag = 1u;
+  raw.m_commonHandleDataValidated = true;
+  raw.m_commonLinkEvidence = DRW_DwgCommonLinkEvidence::Validated;
+  raw.m_objectSize = 60u;
+  raw.m_bodyBitSize = 80u;
+  raw.m_rawBytes = std::move(b).take();
+  DRW_Dictionary d;
+  d.handle = 0x147u;
+  d.parentHandle = 0xcu;
+  d.reactorHandles = {0xcu};
+  d.setDwgCommonObjectState(1, 1u, false);
+  d.setDwgCommonLinkTailValidated(true);
+  d.cloning = 1;
+  d.hardOwner = 0;
+  d.m_entries.push_back({"Annotative", 0x157u});
+  d.m_entries.push_back({"Standard", 0x148u});
+  if (!observeDictionary(raw, d)) {
+    return false;
+  }
+  for (std::size_t bit = 0; bit < 480u; ++bit) {
+    auto x = raw;
+    x.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(1u << (7u - bit % 8u));
+    if (observeDictionary(x, d)) {
+      return false;
+    }
+  }
+  auto truncated = raw;
+  truncated.m_rawBytes.pop_back();
+  auto edited = d;
+  edited.m_entries[0].m_handle = 0x148u;
+  return !observeDictionary(truncated, d) && !observeDictionary(raw, edited) && observeDictionary(raw, d);
+}
 } // namespace
 
 int main() {
+  if (!checkAc1024MLeaderStyleWire()) {
+    std::cerr << "AC1024 MLEADERSTYLE source wire control failed\n";
+    return 1;
+  }
   if (!checkAc1024MentalRayCompanionWire()) {
     std::cerr << "AC1024 MentalRay companion wire control failed\n";
     return 1;

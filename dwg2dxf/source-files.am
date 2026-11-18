@@ -6,6 +6,7 @@ dwg2dxf_SOURCES = \
 dist_noinst_HEADERS = \
     dx_ac1024_dictionaryvar_wire.h \
     dx_ac1024_mentalray_wire.h \
+    dx_ac1024_mleaderstyle_wire.h \
     dx_ac1024_mlinestyle_wire.h \
     dx_ac1024_renderglobal_wire.h \
     dx_ac1027_layer_wire.h \

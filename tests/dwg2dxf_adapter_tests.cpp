@@ -3505,6 +3505,35 @@ public:
     static std::uint8_t& mentalRayWireAt(dx_data& data, std::uint32_t handle, std::size_t offset) {
         return data.m_opaqueDwgSourceFrames.at({data.importGeneration, handle}).m_rawBytes.at(offset);
     }
+    static bool prepareSelectedAerialMLeaders(dx_iface& iface, bool binary) {
+        iface.m_extensionMLeaderStyleHandles = {0x148u, 0x157u};
+        return iface.hasQualifiedAc1024DwgAerialMLeaderStyles()
+            && iface.prepareDxfMLeaderStyles(DRW::AC1024, binary,
+                                             DRW::DxfTextWritePolicy::Compatible);
+    }
+    static bool selectedAerialMLeaderClass(const dx_iface& iface, DRW_Class& row) {
+        return iface.hasQualifiedAc1024DwgAerialMLeaderStyles(&row);
+    }
+    static bool inspectSelectedAerialMLeaderTables(dx_iface& iface,
+            const dxfRW::DxfTablesWriteView& view) {
+        return iface.inspectAerialDwgMLeaderStyleTables(view);
+    }
+    static bool inspectSelectedAerialMLeaders(dx_iface& iface,
+            const dxfRW::DxfObjectsWriteView& view) {
+        return iface.inspectDwgMLeaderStyles(view) && iface.m_dwgMLeaderStylesInspected
+            && iface.inspectGeneratedRootOutput(view)
+            && iface.inspectStandardDwgOutput(view);
+    }
+    static bool finalizeSelectedAerialMLeaders(dx_iface& iface) {
+        return iface.m_dwgMLeaderStylesInspected
+            && iface.hasUnchangedDwgMLeaderStyleOutputSources()
+            && iface.finalizeStandardDwgOutputProofs()
+            && iface.finalizeGeneratedRootOutput()
+            && iface.finalizeAerialDwgMLeaderStyleOutput();
+    }
+    static std::uint8_t& aerialMLeaderWire(dx_data& data, std::uint32_t handle) {
+        return data.m_opaqueDwgSourceFrames.at({data.importGeneration, handle}).m_rawBytes.at(0u);
+    }
     static bool generatedRootsFinal(const dx_iface& iface, std::size_t count, bool published = false) {
         return iface.m_generatedRootOutputInspected && iface.m_generatedRootOutputFinalized
             && iface.m_generatedRootOutputProofs.size() == count && (!published || iface.m_generatedRootOutputPublished);
@@ -69185,6 +69214,122 @@ bool physicalMLeaderStyleOutputReadback(
         if (!seedDestination())
             return fail("could not seed physical MLEADERSTYLE destination sentinel");
 
+        // AC1024 layer-control source proof belongs to the importing adapter.
+        // Exercise its real export path separately; a derived foreign writer
+        // cannot carry that proof and cannot run the late-mutation hook.
+        if (source.sourceVersion == DRW::AC1024) {
+            const auto exportWith = [&](dx_iface& adapter) {
+                return adapter.fileExport(
+                    outputPath.string(), targetVersion, binary, outputSource,
+                    false, true, dx_dxfSourceTextPolicy::RequireValidSource,
+                    DRW::DxfTextWritePolicy::RequireLossless,
+                    dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                    dx_dwgReadCompletenessPolicy::AllowPartial);
+            };
+            dx_iface foreign;
+            if (exportWith(foreign) || !destinationEquals(sentinel)
+                || DxIfaceExtensionGraphTestAccess::failureDetail(foreign).find(
+                    "AC1024 LAYER_CONTROL XDictionary requires the current adapter-session source-frame proof")
+                    == std::string::npos)
+                return fail("foreign AC1024 MLEADERSTYLE adapter was not refused atomically at its source-proof gate");
+
+            auto mutableOwner = std::find_if(source.dictionaries.begin(),
+                source.dictionaries.end(), [&sourceOwner](
+                    const DRW_Dictionary& value) {
+                    return value.handle == sourceOwner.handle;
+                });
+            if (mutableOwner == source.dictionaries.end()
+                || mutableOwner->m_entries.size() < 2u)
+                return fail("physical AC1024 MLEADERSTYLE owner is incomplete");
+            const std::uint32_t originalHandle = mutableOwner->m_entries[0].m_handle;
+            mutableOwner->m_entries[0].m_handle = mutableOwner->m_entries[1].m_handle;
+            const bool aliasRefused = !exportWith(sourceReader)
+                && destinationEquals(sentinel);
+            mutableOwner->m_entries[0].m_handle = originalHandle;
+            if (!aliasRefused)
+                return fail("AC1024 MLEADERSTYLE owner alias was not refused atomically");
+            if (!exportWith(sourceReader))
+                return fail("corrected AC1024 MLEADERSTYLE graph could not retry on its importing adapter");
+            if (!mLeaderStyleOutputOmitsTableRecordFields(
+                    outputPath, binary, sourceOwners.size()))
+                return fail("AC1024 MLEADERSTYLE output emitted table-only groups");
+
+            dx_iface outputReader;
+            dx_data output;
+            StylesByHandle outputByHandle;
+            DictionariesByHandle outputDictionaries;
+            if (!outputReader.fileImport(outputPath.string(), &output, false)
+                || output.sourceFormat != dx_source_format::DXF
+                || output.sourceVersion != targetVersion
+                || !output.hasNamedObjectDictionary
+                || !indexStyles(output, outputByHandle)
+                || !indexDictionaries(output, outputDictionaries)
+                || outputByHandle.size() != sourceOwners.size())
+                return fail("AC1024 MLEADERSTYLE output failed fresh readback");
+            const auto root = std::find_if(
+                output.namedObjectDictionary.m_entries.begin(),
+                output.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_MLEADERSTYLE";
+                });
+            if (root == output.namedObjectDictionary.m_entries.end()
+                || std::count_if(output.namedObjectDictionary.m_entries.begin(),
+                    output.namedObjectDictionary.m_entries.end(),
+                    [](const DRW_Dictionary::Entry& entry) {
+                        return entry.m_name == "ACAD_MLEADERSTYLE";
+                    }) != 1)
+                return fail("AC1024 MLEADERSTYLE root key is missing or ambiguous");
+            const auto foundOwner = outputDictionaries.find(root->m_handle);
+            if (foundOwner == outputDictionaries.end()
+                || foundOwner->second == &output.namedObjectDictionary
+                || foundOwner->second->parentHandle != output.namedObjectDictionary.handle
+                || foundOwner->second->m_entries.size() != sourceOwners.size())
+                return fail("AC1024 MLEADERSTYLE output owner graph is incomplete");
+            std::set<std::uint32_t> identities;
+            for (const auto& item : sourceOwners) {
+                const StyleOwner& expected = item.second;
+                const auto& entries = foundOwner->second->m_entries;
+                const auto key = std::find_if(entries.begin(), entries.end(),
+                    [&expected](const DRW_Dictionary::Entry& entry) {
+                        return entry.m_name == expected.key;
+                    });
+                if (key == entries.end()
+                    || std::count_if(entries.begin(), entries.end(),
+                        [&expected](const DRW_Dictionary::Entry& entry) {
+                            return entry.m_name == expected.key;
+                        }) != 1
+                    || !identities.insert(key->m_handle).second)
+                    return fail("AC1024 MLEADERSTYLE output key is missing or ambiguous");
+                const auto style = outputByHandle.find(key->m_handle);
+                if (style == outputByHandle.end()
+                    || style->second->parentHandle != foundOwner->second->handle)
+                    return fail("AC1024 MLEADERSTYLE output key has the wrong owner");
+                dwgBufferW expectedBody, expectedStrings, expectedHandles;
+                dwgBufferW actualBody, actualStrings, actualHandles;
+                if (!expected.style->encodeDwg(targetVersion, &expectedBody,
+                        &expectedStrings, &expectedHandles)
+                    || !style->second->encodeDwg(targetVersion, &actualBody,
+                        &actualStrings, &actualHandles)
+                    || expectedBody.data() != actualBody.data()
+                    || expectedBody.bitPos() != actualBody.bitPos()
+                    || expectedStrings.data() != actualStrings.data()
+                    || expectedStrings.bitPos() != actualStrings.bitPos())
+                    return fail("AC1024 MLEADERSTYLE typed payload changed on readback");
+            }
+            const auto classCount = std::count_if(output.dxfClasses.begin(),
+                output.dxfClasses.end(), [&sourceOwners](const DRW_Class& row) {
+                    return row.recName == "MLEADERSTYLE"
+                        && row.className == "AcDbMLeaderStyle"
+                        && row.instanceCount == static_cast<int>(sourceOwners.size());
+                });
+            if (classCount != 1)
+                return fail("AC1024 MLEADERSTYLE CLASS count changed on readback");
+            std::cout << "AC1024 MLEADERSTYLE " << (binary ? "binary" : "ASCII")
+                      << " graph and typed readback passed; foreign adapter and"
+                         " owner alias refused; same-session retry passed.\n";
+            return true;
+        }
+
         class LateMLeaderStyleMutation final : public dx_iface {
         public:
             bool mutateAfterObjects{false};
@@ -92811,6 +92956,8 @@ int main(int argc, char** argv) {
         return physicalAc1024SelectedRenderGlobalWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-three-render-writer")
         return physicalAc1024SelectedThreeRendersWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-mleaderstyle-writer")
+        return physicalAc1024SelectedMLeaderStylesWriter(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-source-graph-context")
         return physicalAc1024LayerStatesSourceGraphContext(argv[2]) ? 0 : 1;

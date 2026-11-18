@@ -997,3 +997,195 @@ bool physicalAc1024SelectedThreeRendersWriter(const std::filesystem::path& sourc
     std::cerr << "AC1024 selected three-render graph passed seventeen refusal/retry controls in both encodings.\n";
     return true;
 }
+
+// Stages only the aerial MLEADERSTYLE root and its required symbol-table
+// targets from the original importer. This is not a whole-DWG export test.
+bool physicalAc1024SelectedMLeaderStylesWriter(const std::filesystem::path& sourcePath) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG || source.sourceVersion != DRW::AC1024
+        || !source.hasSingleSuccessfulNamedResourceImport() || !source.hasNamedObjectDictionary
+        || source.namedObjectDictionary.handle != 0xCu || source.mLeaderStyles.size() != 2u
+        || source.dictionaryWithDefaults.size() != 1u || source.placeholders.size() != 1u)
+        return fail("could not import the aerial MLEADERSTYLE witness");
+    const auto findHandle = [](auto& rows, std::uint32_t handle) {
+        return std::find_if(rows.begin(), rows.end(), [handle](const auto& value) {
+            return value.handle == handle;
+        });
+    };
+    const auto group = findHandle(source.dictionaries, 0xDu);
+    const auto owner = findHandle(source.dictionaries, 0x147u);
+    const auto lineType = findHandle(source.lineTypes, 0x14u);
+    const auto textStyle = findHandle(source.textStyles, 0x11u);
+    const auto sourceStyle = findHandle(source.mLeaderStyles, 0x148u);
+    if (group == source.dictionaries.end() || owner == source.dictionaries.end()
+        || lineType == source.lineTypes.end() || textStyle == source.textStyles.end()
+        || sourceStyle == source.mLeaderStyles.end() || lineType->name != "ByBlock"
+        || textStyle->name != "Standard" || owner->parentHandle != 0xCu
+        || owner->m_entries.size() != 2u)
+        return fail("aerial MLEADERSTYLE owner or symbol sources are missing");
+    for (const auto& expected : {std::make_pair("Standard", 0x148u),
+                                 std::make_pair("Annotative", 0x157u)}) {
+        const auto style = findHandle(source.mLeaderStyles, expected.second);
+        const auto entry = std::find_if(owner->m_entries.begin(), owner->m_entries.end(),
+            [&expected](const DRW_Dictionary::Entry& value) {
+                return value.m_name == expected.first && value.m_handle == expected.second;
+            });
+        if (style == source.mLeaderStyles.end() || entry == owner->m_entries.end()
+            || style->parentHandle != 0x147u || style->leaderLineTypeHandle.ref != 0x14u
+            || style->textStyleHandle.ref != 0x11u || style->arrowHeadBlockHandle.ref != 0u
+            || style->blockHandle.ref != 0u)
+            return fail("aerial MLEADERSTYLE membership or references differ from the witness");
+    }
+    class Writer final : public LayerStateTestWriter {
+    public:
+        dx_data blank;
+        DRW_LType lineType;
+        DRW_Textstyle textStyle;
+        DRW_Dictionary owner;
+        std::vector<DRW_MLeaderStyle> styles;
+        DRW_DictionaryWithDefault plot;
+        DRW_AcDbPlaceholder placeholder;
+        std::function<bool()> finalize;
+        void writeLTypes() override { (void)dxfW->writeLineType(&lineType); }
+        void writeTextstyles() override { (void)dxfW->writeTextstyle(&textStyle); }
+        void writeAppId() override {}
+        void writeObjects() override {
+            (void)dxfW->writeDictionaryWithDefault(&plot);
+            (void)dxfW->writeAcDbPlaceholder(&placeholder);
+            (void)dxfW->writeDictionary(&owner);
+            for (auto& value : styles) (void)dxfW->writeMLeaderStyle(&value);
+        }
+        bool finalizeDxfWrite() override { return finalize(); }
+    } writer;
+    writer.cData = &writer.blank;
+    writer.lineType = *lineType; writer.textStyle = *textStyle; writer.owner = *owner;
+    writer.styles.assign(source.mLeaderStyles.begin(), source.mLeaderStyles.end());
+    const auto writerStyle = findHandle(writer.styles, 0x148u);
+    if (writerStyle == writer.styles.end()) return fail("selected MLEADERSTYLE output model is missing");
+    const double originalWriterHeight = writerStyle->textHeight;
+    const double originalSourceHeight = sourceStyle->textHeight;
+    writer.plot = source.dictionaryWithDefaults.front();
+    if (writer.plot.m_entries.size() != 1u) return fail("missing Normal plot-style entry");
+    writer.plot.m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+    writer.placeholder = source.placeholders.front();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-selected-mleaderstyle-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error);
+    } } cleanup{path};
+    dxfRW codec(path.string().c_str());
+    Access::attachDxfWriter(reader, &codec); reader.cData = &source;
+    Access::attachDxfWriter(writer, &codec);
+    codec.setDxfWriteRecordInventoryEnabled(true);
+    codec.setCanonicalLineTypeMetadata({writer.lineType});
+    // ByBlock is a mandatory fixed DXF table row and stays at handle 0x14.
+    codec.setHandleRemap({{0x11u, 0xA011u}, {0x147u, 0xA147u},
+                          {0x148u, 0xA148u}, {0x157u, 0xA157u}});
+    codec.setRootDictEntries({{"ACAD_MLEADERSTYLE", "A147"}, {"ACAD_PLOTSTYLENAME", "E"}});
+    if (!codec.setGeneratedDictionarySourceHandles(0xCu, 0xDu)
+        || !codec.setGeneratedDictionarySourceRecords(
+            std::make_unique<DRW_Dictionary>(source.namedObjectDictionary),
+            std::make_unique<DRW_Dictionary>(*group))
+        || !codec.setDxfDefaultPlotStyleSourceHandles(0xEu, 0xFu))
+        return fail("could not set up selected MLEADERSTYLE roots");
+    DRW_Class styleClass, plotClass, placeholderClass;
+    if (!Access::selectedAerialMLeaderClass(reader, styleClass)
+        || !dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
+        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
+        return fail("missing selected MLEADERSTYLE CLASSES rows");
+    if (styleClass.proxyFlag != 4095) return fail("selected MLEADERSTYLE CLASS proxy flags changed");
+    styleClass.instanceCount = 2; plotClass.instanceCount = placeholderClass.instanceCount = 1;
+    codec.setDxfClasses({styleClass, plotClass, placeholderClass});
+    enum class Fault { None, Body, SameModelBody, WrongTarget, WrongRole, WrongStyleName, WrongStyleFont,
+                       FirstEarly, SecondEarly, OwnerEarly, FirstLate, SecondLate, OwnerLate };
+    Fault fault = Fault::None;
+    bool tablesStaged = false, staged = false, finalizing = false;
+    if (!codec.setDxfTablesWriteInspector([&](const auto& view) {
+        tablesStaged = true;
+        return Access::inspectSelectedAerialMLeaderTables(reader, view);
+    }) || !codec.setDxfObjectsWriteInspector([&](const auto& view) {
+        staged = true;
+        return codec.dxfWriteRecordHasIdentity(0x14u, "LTYPE", "TABLES")
+            && codec.dxfWriteRecordHasIdentity(0xA011u, "STYLE", "TABLES")
+            && Access::inspectSelectedAerialMLeaders(reader, view);
+    })) return fail("could not install selected MLEADERSTYLE inspector");
+    auto& firstWire = Access::aerialMLeaderWire(source, 0x148u);
+    auto& secondWire = Access::aerialMLeaderWire(source, 0x157u);
+    auto& ownerWire = Access::standardFrameTail(source, 0x147u);
+    writer.finalize = [&]() {
+        finalizing = true;
+        if (fault == Fault::FirstLate) firstWire ^= 0x80u;
+        if (fault == Fault::SecondLate) secondWire ^= 0x80u;
+        if (fault == Fault::OwnerLate) ownerWire ^= 1u;
+        const bool result = Access::finalizeSelectedAerialMLeaders(reader);
+        if (fault == Fault::FirstLate) firstWire ^= 0x80u;
+        if (fault == Fault::SecondLate) secondWire ^= 0x80u;
+        if (fault == Fault::OwnerLate) ownerWire ^= 1u;
+        return result;
+    };
+    const auto run = [&](bool binary) {
+        tablesStaged = staged = finalizing = false;
+        Access::resetRasterOutput(reader);
+        return Access::prepareSelectedAerialMLeaders(reader, binary)
+            && codec.write(&writer, DRW::AC1024, binary);
+    };
+    const std::string sentinel = "preserve selected MLEADERSTYLE destination\n";
+    for (const bool binary : {false, true}) {
+        if (!run(binary) || !tablesStaged || !staged || !finalizing)
+            return fail("selected MLEADERSTYLE baseline was rejected");
+        for (const Fault bad : {Fault::Body, Fault::SameModelBody, Fault::WrongTarget, Fault::WrongRole,
+                Fault::WrongStyleName, Fault::WrongStyleFont,
+                Fault::FirstEarly, Fault::SecondEarly, Fault::OwnerEarly,
+                Fault::FirstLate, Fault::SecondLate, Fault::OwnerLate}) {
+            fault = bad;
+            if (bad == Fault::Body || bad == Fault::SameModelBody) writerStyle->textHeight += 1.0;
+            if (bad == Fault::SameModelBody) sourceStyle->textHeight += 1.0;
+            if (bad == Fault::WrongTarget) writerStyle->textStyleHandle.ref = 0x14u;
+            if (bad == Fault::WrongRole)
+                writer.owner.m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::HardOwner;
+            if (bad == Fault::WrongStyleName) writer.textStyle.name = "AlteredStyle";
+            if (bad == Fault::WrongStyleFont) writer.textStyle.font = "altered-font.shx";
+            if (bad == Fault::FirstEarly) firstWire ^= 0x80u;
+            if (bad == Fault::SecondEarly) secondWire ^= 0x80u;
+            if (bad == Fault::OwnerEarly) ownerWire ^= 1u;
+            {
+                std::ofstream existing(path, std::ios::binary | std::ios::trunc);
+                if (!(existing << sentinel)) return fail("cannot seed selected MLEADERSTYLE destination");
+            }
+            const bool saved = run(binary);
+            if (bad == Fault::Body || bad == Fault::SameModelBody) writerStyle->textHeight = originalWriterHeight;
+            if (bad == Fault::SameModelBody) sourceStyle->textHeight = originalSourceHeight;
+            if (bad == Fault::WrongTarget) writerStyle->textStyleHandle.ref = 0x11u;
+            if (bad == Fault::WrongRole)
+                writer.owner.m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::Unspecified;
+            if (bad == Fault::WrongStyleName || bad == Fault::WrongStyleFont) writer.textStyle = *textStyle;
+            if (bad == Fault::FirstEarly) firstWire ^= 0x80u;
+            if (bad == Fault::SecondEarly) secondWire ^= 0x80u;
+            if (bad == Fault::OwnerEarly) ownerWire ^= 1u;
+            const bool early = bad == Fault::SameModelBody || bad == Fault::FirstEarly
+                || bad == Fault::SecondEarly || bad == Fault::OwnerEarly;
+            const bool late = bad == Fault::FirstLate || bad == Fault::SecondLate || bad == Fault::OwnerLate;
+            const bool stagedFault = bad == Fault::Body || bad == Fault::WrongTarget || bad == Fault::WrongRole;
+            const bool tableFault = bad == Fault::WrongStyleName || bad == Fault::WrongStyleFont;
+            fault = Fault::None;
+            std::ifstream existing(path, std::ios::binary);
+            if (saved || (early && staged) || (late && (!staged || !finalizing))
+                || (stagedFault && !staged)
+                || (tableFault && (!tablesStaged || staged || finalizing))
+                || std::string(std::istreambuf_iterator<char>(existing), {}) != sentinel) {
+                std::cerr << "MLEADERSTYLE fault=" << static_cast<int>(bad) << " binary=" << binary
+                          << " staged=" << staged << " finalizing=" << finalizing << '\n';
+                return fail("selected MLEADERSTYLE fault did not refuse atomically");
+            }
+            existing.close();
+            if (!run(binary) || !tablesStaged || !staged || !finalizing)
+                return fail("selected MLEADERSTYLE corrected retry failed");
+        }
+    }
+    std::cerr << "AC1024 selected MLEADERSTYLE passed twelve refusal/retry controls in both encodings.\n";
+    return true;
+}

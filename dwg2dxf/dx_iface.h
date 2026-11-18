@@ -4429,6 +4429,11 @@ private:
         std::uint64_t generation{0u};
         std::uint64_t attempt{0u};
     };
+    const DRW_UnsupportedObject* boundAc1024DwgClassObject(
+        const dx_data& data, std::uint32_t handle, const DwgClassObjectPublication& receipt,
+        DRW_Class* outputClass) const;
+    const DRW_UnsupportedObject* boundAc1024DwgStandardObject(
+        const dx_data& data, const DRW_TableEntry& live, int objectType) const;
     std::map<std::uint32_t, DwgClassObjectPublication>
         m_dwgLayerStateScalePublications;
     const dx_data* m_dwgLayerStateScaleSourceOwner{nullptr};
@@ -4685,6 +4690,20 @@ private:
     bool hasQualifiedAc1024DwgRenderSelection(const dx_data& data,
         DRW_Class* globalClass = nullptr, DRW_Class* mentalRayClass = nullptr) const noexcept;
     bool writeDwgRenderSettings();
+    std::array<DwgClassObjectPublication, 2> m_dwgAerialMLeaderPublications;
+    std::array<std::vector<std::uint8_t>, 2> m_dwgAerialMLeaderBodies;
+    std::optional<DRW_LType> m_dwgAerialMLeaderLType;
+    std::optional<DRW_Textstyle> m_dwgAerialMLeaderTextStyle;
+    const dx_data* m_dwgAerialMLeaderReadOwner{nullptr};
+    bool m_dwgAerialMLeaderTableCaptureFailed{false};
+    bool m_dwgAerialMLeaderSourceRecognized{false};
+    bool m_dwgAerialMLeaderProofRequired{false};
+    bool m_dwgAerialMLeaderTablesInspected{false};
+    void retainAerialDwgMLeaderPublication(const DRW_DwgFramePublication& event) noexcept;
+    void finishAerialDwgMLeaderSource() noexcept;
+    bool hasQualifiedAc1024DwgAerialMLeaderStyles(DRW_Class* outputClass = nullptr) const noexcept;
+    bool inspectAerialDwgMLeaderStyleTables(const dxfRW::DxfTablesWriteView& view) noexcept;
+    bool finalizeAerialDwgMLeaderStyleOutput() noexcept;
     bool inspectDwgRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool finalizeDwgRenderSettingsOutput() noexcept;
     struct DxfCommonReferenceSource {
