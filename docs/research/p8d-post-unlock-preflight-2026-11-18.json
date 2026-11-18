@@ -19,6 +19,11 @@
       "artifactCreated": false,
       "guiActionsAttempted": false
     },
+    "coreGraphicsDisplayState": {
+      "command": "swift -module-cache-path /private/tmp/swift-module-cache -e 'import CoreGraphics; var count: UInt32 = 0; let result = CGGetActiveDisplayList(0, nil, &count); print(\"first=\\(result) activeCount=\\(count)\")'",
+      "result": "CGGetActiveDisplayList returned CGError(rawValue: 0) with activeCount=0.",
+      "interpretation": "The current process sees no active Quartz display. This does not establish whether the user's physical login session is locked or whether TCC screen-capture permission is granted."
+    },
     "launchServices": [
       {
         "command": "open -Ra LibreCAD",
@@ -40,7 +45,7 @@
   "disposition": {
     "gate": "P8-D",
     "status": "WAITING_FOR_FUNCTIONAL_AQUA_GUI",
-    "nextTrigger": "A successful screen capture from the active desktop session; an unlock report without accessible display capture is not a retry trigger.",
+    "nextTrigger": "The current process reports at least one active Quartz display and screencapture successfully creates an image; an unlock report without those changed conditions is not a retry trigger.",
     "nextAction": "Once display capture works, launch the explicit LibreCAD 2 bundle path, complete the Move/Copy action-boundary and named-LTYPE checks, then run the LibreCAD_3 MPOLYGON round trip if that application becomes available."
   }
 }

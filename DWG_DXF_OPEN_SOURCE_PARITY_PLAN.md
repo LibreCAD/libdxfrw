@@ -15,17 +15,18 @@ The comparison baseline last checked on 2026-11-17 is libdxfrw
 integration or platform qualification.
 
 **Progress on 2026-11-18:** 6/33 package gates closed; 27 remain. The activity
-ledger is now 69/96 (71.9%): six closed gates and 63 completed implementation
+ledger is now 70/97 (72.2%): six closed gates and 64 completed implementation
 or research slices. S41/S42 screened and traced the local AC1021 PERSUBENTMGR
 candidate; S43 fixed incomplete-body status classification; S44 added a
 generated incomplete-tail regression and fast selector; S45 kept semantically
 incomplete TABLECONTENT bodies on the raw-only route; S46 screened the exact
-class's native creation route and retried the reported-unlock GUI preflight.
+class's native creation route and retried the reported-unlock GUI preflight;
+S47 queried CoreGraphics and found no active display visible to this process.
 The post-change CLI trace still stops output on the separate IMAGEDEF gate.
-None closes P6-B or promotes support. Readiness is measured by closed gates
-(18.2%), not the activity percentage. Native Linux, Windows, and GUI checks are
-counted only within P8-B/C/D. Recount after each committed slice or gate
-transition.
+None closes P6-B/P8-D or promotes support. Readiness is measured by closed
+gates (18.2%), not the activity percentage. Native Linux, Windows, and GUI
+checks are counted only within P8-B/C/D. Recount after each committed slice or
+gate transition.
 
 This file is the active execution queue, not a work diary. Completed slices
 and closed actions have been removed; their receipts are linked only where
@@ -84,10 +85,12 @@ move to the next independent packet without repeating unchanged scans.
 5. **Retry environment checks only after the named state changes.** Retry
    P6-H after ODA supplies a verifiably signed usable macOS converter. The
    P8-D retry after the user's reported unlock also failed to capture a display;
-   a LibreCAD 2 bundle exists at the path in its receipt, but Launch Services
-   cannot resolve it and no LibreCAD_3 bundle was found. Do not repeat the same
-   capture solely after another unlock report. Once capture succeeds, launch
-   the explicit LibreCAD 2 path and run the GUI checks in one pass.
+   CoreGraphics reports zero active displays to this process. A LibreCAD 2
+   bundle exists at the path in its receipt, but Launch Services cannot resolve
+   it and no LibreCAD_3 bundle was found. Do not retry only on another unlock
+   report. Resume after this process sees an active display and screen capture
+   succeeds; then launch the explicit LibreCAD 2 path and run GUI checks in one
+   pass.
 6. **Implement each admitted profile as a small committed slice.** Bind source
    spans and handle roles, make the smallest parser/model/graph/writer change,
    run the focused selector and touched-target build, exercise one
@@ -181,10 +184,12 @@ No open parser/writer gate has enough source evidence for a format change.
 P6-B has a bounded native API-state eligibility probe using S41-S44 and the
 S46 [creation-route screen](docs/research/p6-persubentmgr-native-api-eligibility-screen-2026-11-18.json);
 it is not permission to infer the disputed schema. The P8-D retry after the
-reported unlock still cannot capture a display; both attempts and the next
-trigger are recorded in the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json).
-Wait for successful display capture before GUI work. P6-H remains waiting for
-a verifiably signed, usable ODA bundle.
+reported unlock still cannot capture a display, and CoreGraphics reports no
+active display visible to this process. Both probes and the next trigger are
+recorded in the
+[preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json).
+Resume GUI work only after this process sees an active display and capture
+succeeds. P6-H remains waiting for a verifiably signed, usable ODA bundle.
 
 | Work packet | Gates | Fastest safe sequence |
 |---|---|---|
@@ -286,7 +291,7 @@ AC1027 ordinary drawings deferred until source-reference closure.
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation profiles stabilize. Reuse [macOS package evidence](docs/research/p8-macos-package-baseline-2026-11-17.json) only while its inputs match. | Record reproducible commands and immutable identities. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. |
 | P8-B / WAITING_FOR_FREEZE | On the frozen candidate, run native Linux FreeCAD qualification for 2D and every admitted source-derived profile. Add AC1027/AC1032 3D only after P7 admission. Earlier generated 2D results in the [platform receipt](docs/research/p8-freecad-linux-windows-generated-pass-2026-11-15.json) are historical controls only. | Record runner, FreeCAD/converter/modules, settings, exact `open()`/`insert()` handoff, runtime identity, and independent semantics per profile. No cross-compilation or ambiguous fallback. |
 | P8-C / WAITING_FOR_FREEZE | Run the same frozen workflow on native Windows; reuse earlier path-with-spaces/Unicode and generated 2D checks only as historical controls. The tracked `ordinary_enc_AC1027.dwg` still fails before publication; see [preflight receipt](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json). | Use the same evidence fields as P8-B. Keep ordinary AC1027 deferred until source-reference closure. |
-| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | A second screen-capture attempt after the user's reported unlock still fails with “could not create image from display.” Launch Services cannot resolve either app name, although a local LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`; no LibreCAD_3 bundle was found. See the [post-unlock receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). Wait for successful display capture; an unlock report alone is not a sufficient retry trigger. Then launch the explicit LibreCAD 2 bundle path and collect the remaining native action-boundary and LibreCAD_3 evidence. | When triggered, perform Move/Copy action-boundary capture, named-LTYPE save/reopen/render, and LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback in one GUI pass. This gate does not block Linux/Windows qualification. |
+| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | A second screen-capture attempt after the user's reported unlock still fails with “could not create image from display”; CoreGraphics reports `activeCount=0` for this process. This establishes that the process currently sees no active display, but does not diagnose the user's physical login state or macOS capture permissions. Launch Services cannot resolve either app name, although a local LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`; no LibreCAD_3 bundle was found. See the [post-unlock receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). Retry only after this process sees an active display and screen capture succeeds. Then launch the explicit LibreCAD 2 bundle path and collect the remaining native action-boundary and LibreCAD_3 evidence. | When triggered, perform Move/Copy action-boundary capture, named-LTYPE save/reopen/render, and LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback in one GUI pass. This gate does not block Linux/Windows qualification. |
 | P8-E / INTEGRATION_GATE | During P8-B/C, collect native Linux/Windows shared/static manifests, relocation, and loaded runtime identities. Reuse the [macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json); repeat macOS only if candidate inputs change. | Verify package contents and shared/static relocation for each platform. |
 | P8-F / WAITING_FOR_SOURCE_MATCHED_CI | Reuse the [CI root-cause receipt](docs/research/p8-pr106-native-ci-root-cause-2026-11-17.json); rerun local diagnosis only if candidate inputs change. | Close on source-matched Linux/macOS/Windows results and current required-check/branch-protection state. Hosted CI remains subject to the owner's existing go-ahead. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
