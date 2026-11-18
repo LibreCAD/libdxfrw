@@ -1,3 +1,4 @@
+#include "dx_layerstates_dwg_wire.h"
 #include "dx_iface.h"
 #include "dx_raster_dwg_wire.h"
 #include <algorithm>
@@ -316,6 +317,72 @@ bool testDictionaryFrames(const dx_data &data) {
     if (!raw || !observeDictionary(data, profile, raw->m_rawBytes,
                                    raw->m_bodyBitSize, true))
       return false;
+    const DRW_Dictionary *helperSource = nullptr;
+    if (profile.handle == 0xCu) helperSource = &data.namedObjectDictionary;
+    else for (const auto &row : data.dictionaries)
+        if (row.handle == profile.handle) helperSource = &row;
+    if (!helperSource) return false;
+    const auto helperCheck = [&](const std::vector<std::uint8_t> &bytes,
+                                 std::uint32_t handleBits, bool appOk, bool linkOk = true) {
+        auto input = *raw;
+        input.m_rawBytes = bytes;
+        input.m_objectSize = static_cast<std::uint32_t>(bytes.size());
+        input.m_bodyBitSize = handleBits;
+        return dx_layerstates_dwg_wire::observeDictionary(input, *helperSource,
+            [&](std::uint32_t handle, std::string_view name) noexcept {
+                const auto *app = DxIfaceStandardDwgCaptureTestAccess::app(data, handle);
+                return appOk && handle == 0x12u && name == "ACAD" && app
+                    && app->handle == handle && app->name == name
+                    && app->hasUnchangedDwgSourceName()
+                    && app->hasBoundDwgNameProfile(DRW::AC1024, "UTF-16")
+                    && !app->dwgNameDecodeIssues();
+            }, [&](dx_layerstates_dwg_wire::LinkKind kind, std::size_t index,
+                   std::uint8_t role, std::uint8_t length) noexcept {
+                using K = dx_layerstates_dwg_wire::LinkKind;
+                if (!linkOk) return false;
+                if (kind == K::Owner) {
+                    const auto expectedRole = profile.handle == 0x24Au ? 8u
+                        : (profile.handle == 0xEEu || profile.handle == 0xEDu) ? 12u : 4u;
+                    const auto expectedLength = (profile.handle == 0x24Au || profile.handle == 0xCu) ? 0u : 1u;
+                    return index == 0u && role == expectedRole && length == expectedLength;
+                }
+                if (kind == K::Reactor) return index == 0u && role == 4u && length == 1u;
+                return index < profile.items.size() && role == 2u
+                    && length == (profile.items[index].second <= 0xffu ? 1u : 2u);
+            });
+    };
+    if (!helperCheck(raw->m_rawBytes, raw->m_bodyBitSize, true)) {
+        std::cerr << "helper positive failed handle=" << std::hex << profile.handle << std::dec << "\n";
+        return false;
+    }
+    auto cappedSource = *helperSource;
+    cappedSource.countCap = DRW_DictionaryCountCap{};
+    const auto *uncappedSource = helperSource;
+    helperSource = &cappedSource;
+    const bool capAccepted = helperCheck(raw->m_rawBytes, raw->m_bodyBitSize, true);
+    helperSource = uncappedSource;
+    if (capAccepted || !helperCheck(raw->m_rawBytes, raw->m_bodyBitSize, true)) {
+        std::cerr << "helper accepted countCap or failed retry\n"; return false;
+    }
+    if (profile.handle == 0xEDu && helperCheck(raw->m_rawBytes, raw->m_bodyBitSize, false)) {
+        std::cerr << "helper accepted unbound APPID\n"; return false;
+    }
+    if (profile.handle == 0xEDu) {
+        for (const auto bit : {37u, 51u, 83u, 52u}) {
+            auto changed = raw->m_rawBytes;
+            changed[bit / 8u] ^= static_cast<std::uint8_t>(1u << (7u - bit % 8u));
+            if (helperCheck(changed, raw->m_bodyBitSize, true)
+                || !helperCheck(raw->m_rawBytes, raw->m_bodyBitSize, true)) {
+                std::cerr << "helper missed EED fault bit=" << bit << "\n";
+                return false;
+            }
+        }
+    }
+    if (helperCheck(raw->m_rawBytes, raw->m_bodyBitSize, true, false) ||
+        !helperCheck(raw->m_rawBytes, raw->m_bodyBitSize, true)) {
+      std::cerr << "helper accepted unqualified role policy or failed retry\n";
+      return false;
+    }
     // Every mutation affects a verified source bit and is followed by a retry.
     std::vector<std::pair<const char *, std::uint32_t>> mutations{
         {"body", profile.bodyFieldsEnd - 2u},
@@ -367,6 +434,13 @@ bool testDictionaryFrames(const dx_data &data) {
       auto changed = raw->m_rawBytes;
       changed[mutation.second / 8u] ^=
           static_cast<std::uint8_t>(1u << (7u - mutation.second % 8u));
+      if (helperCheck(changed, raw->m_bodyBitSize, true) ||
+          !helperCheck(raw->m_rawBytes, raw->m_bodyBitSize, true)) {
+        std::cerr << "helper accepted mutation or failed retry: " << mutation.first << " handle="
+                  << std::hex << profile.handle << std::dec
+                  << " bit=" << mutation.second << "\n";
+        return false;
+      }
       if (observeDictionary(data, profile, changed, raw->m_bodyBitSize,
                             false) ||
           !observeDictionary(data, profile, raw->m_rawBytes, raw->m_bodyBitSize,
@@ -392,6 +466,8 @@ bool testDictionaryFrames(const dx_data &data) {
     inserted[insertion / 8u] &=
         static_cast<std::uint8_t>(~(1u << (7u - insertion % 8u)));
     if (raw->m_bodyBitSize == 0u ||
+        helperCheck(inserted, raw->m_bodyBitSize - 1u, true) ||
+        !helperCheck(raw->m_rawBytes, raw->m_bodyBitSize, true) ||
         observeDictionary(data, profile, inserted, raw->m_bodyBitSize - 1u,
                           false) ||
         !observeDictionary(data, profile, raw->m_rawBytes, raw->m_bodyBitSize,
@@ -404,6 +480,8 @@ bool testDictionaryFrames(const dx_data &data) {
     auto truncatedFrame = raw->m_rawBytes;
     truncatedFrame.pop_back();
     if (raw->m_bodyBitSize < 8u ||
+        helperCheck(truncatedFrame, raw->m_bodyBitSize - 8u, true) ||
+        !helperCheck(raw->m_rawBytes, raw->m_bodyBitSize, true) ||
         observeDictionary(data, profile, truncatedFrame,
                           raw->m_bodyBitSize - 8u, false) ||
         !observeDictionary(data, profile, raw->m_rawBytes, raw->m_bodyBitSize,
@@ -414,7 +492,9 @@ bool testDictionaryFrames(const dx_data &data) {
               << " rejected=1 retry=1\n";
     auto appended = raw->m_rawBytes;
     appended.push_back(0u);
-    if (observeDictionary(data, profile, appended, raw->m_bodyBitSize + 8u,
+    if (helperCheck(appended, raw->m_bodyBitSize + 8u, true) ||
+        !helperCheck(raw->m_rawBytes, raw->m_bodyBitSize, true) ||
+        observeDictionary(data, profile, appended, raw->m_bodyBitSize + 8u,
                           false))
       return false;
     std::cout << "dictionary-negative=extra-handle-byte handle=" << std::hex

@@ -388,5 +388,40 @@
     "negativeControls": "56 NOD-only mutations cover each individual name, each item role and target, common body, string/footer, null-owner role/length, inserted body bit, truncated handle stream and appended handle byte. Original-byte retries follow all except the appended-byte control. An inserted-body-bit control changes the declared endpoint and fails the exact-profile endpoint check; it does not independently qualify an otherwise permitted hidden gap. These are not fileExport or destination-preservation tests.",
     "outputLogSha256": "5782dc0b44531fc9c32b30ab7c81ee9fe57479f54d0ed0f026baead33280aecd",
     "limits": "One hash-bound physical NOD source frame. Raw role-2 is a DWG wire finding, not proof that typed DXF group roles or staged-output transport match. The source typed baseline is required to exist but is not independently compared by this observer. The other NOD targets are identities only; their frames, behavior and output are not qualified. Strict export/rollback, native semantics, immutable same-import provenance and broader support remain open."
+  },
+  "disconnectedDictionaryWireHelper": {
+    "status": "SOURCE_ONLY_FOCUSED_PASS",
+    "supportClaimEffect": "none; the helper has no production output-admission call site",
+    "headAtRun": "31371e91b977829ac02a942b57504e4d75c39668",
+    "helper": "dwg2dxf/dx_layerstates_dwg_wire.h",
+    "helperSha256": "8b55901837a37dd715ebad0b2f107cc17c214953926185f0622af0f523dfd75d",
+    "probe": "tools/research/probe_ac1024_layerstates_eed.cpp",
+    "probeSha256": "6beb9bd484cbd0c4b7f57e88f3ff8e1e8ce9e10c41518b4551b6137c291a10b3",
+    "runner": "tools/research/probe_ac1024_layerstates_eed.py",
+    "runnerSha256": "2d962146cb862a5daeebf7ed2ba9db2d10753cf5a1a322e8818aece04ee9c667",
+    "command": "python3 tools/research/probe_ac1024_layerstates_eed.py tests/samples/AC1024/visualization_-_aerial.dwg /private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg-trace.log",
+    "sourceSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "peerTraceSha256": "9bead9945a7e9b78c541e73d9ab4c0fe461c8e3ba4105e95bcd3103fe7f9603c",
+    "peerJsonSha256": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832",
+    "build": {
+      "type": "incremental local build; no clean checkout or platform qualification",
+      "runnerBuildCommand": "cmake --build build-gcc --target libdxfrw_test_adapter -j2",
+      "linkedAdapterObjectSha256": "db49ac05d11f05b8bb9d5af463d0d5a37dd89ca1e8fa4c9b802cf482217b5fe5",
+      "linkedLibrarySha256": "7d9f57866a409f1461f8058bb9e7e00d80f5861f71c57890b9a5f766514a241a",
+      "compilerCommand": "c++ -std=c++17 -O0 -Wall -Wextra -pedantic -Werror (full arguments in runner)"
+    },
+    "result": "PASS: seven AC1024 DICTIONARY frames (0xC, 0xD5, 0x1B8, 0xEE, 0xED, 0x24A and 0x126) and existing 184 per-dictionary fault controls, including raw field/name/footer/role/target changes, inserted body bit, truncated handle stream and extra handle byte; original-byte helper retry succeeds. Additional controls reject countCap, a denied link policy, denied APPID verifier and four EED role/target/text/code mutations, followed by successful original-byte retries.",
+    "outputLogSha256": "6321754c44e1c2d5791064899da8d66aefcdfc29580519cb31fa9672cfbbc7ad",
+    "callerResponsibilities": [
+      "Independently bind source frame and typed model to the actual completed import and version-qualified source profile; ensure unique identities and full graph/dependency closure.",
+      "Supply a noexcept APPID verifier that proves unique APPID name from the same closed read and unchanged source; the probe callback only checks the pinned test snapshot.",
+      "Supply a noexcept link policy binding each owner/reactor/item role and encoded length to independent source evidence; a permissive callback does not qualify an output profile.",
+      "Inspect staged output and APPID table identity, test destination-preserving failure/retry, and complete external semantic qualification before enabling any route."
+    ],
+    "limits": [
+      "ASCII dictionary and EED text only; rejects high-bit string-size footer extension, xdictionary, storage, unqualified EED and capped entries.",
+      "Local witness and independently extracted peer evidence are not committed fixtures. The source observer neither proves all XRECORD/SCALE bodies nor validates DXF handle roles, remapping or whole-file conversion.",
+      "The per-mutation retries re-observe source bytes; they are not fileExport rollback or native consumer tests."
+    ]
   }
 }

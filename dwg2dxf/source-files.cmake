@@ -22,6 +22,7 @@ set(LIBDXFRW_CLI_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/dx_dwg_class_section_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_dwg_class_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_iface.h"
+    "${CMAKE_CURRENT_LIST_DIR}/dx_layerstates_dwg_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_layout_source_profile.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_attribute_compound_join.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_attribute_compound_profile.h"

@@ -38223,12 +38223,12 @@ bool dx_iface::prepareDwgLayerStateOutput(
     m_dwgLayerStateOutputSourceVersion = DRW::UNKNOWNV;
     m_dwgLayerStateOutputPrepared = false;
     m_dwgLayerStateOutputInspected = false;
-    bool ac1024OneRootLayerStatesCandidate = false;
-    const auto skip = [debug, &ac1024OneRootLayerStatesCandidate](const char* reason) {
+    bool ac1024LayerStatesCandidate = false;
+    const auto skip = [debug, &ac1024LayerStatesCandidate](const char* reason) {
         if (debug)
             std::cerr << "LayerStates DWG output profile skipped: " << reason
                       << '\n';
-        return !ac1024OneRootLayerStatesCandidate;
+        return !ac1024LayerStatesCandidate;
     };
     if (cData == nullptr)
         return false;
@@ -38277,10 +38277,15 @@ bool dx_iface::prepareDwgLayerStateOutput(
         return found;
     };
     const DRW_Dictionary* extension = uniqueDictionary(extensionHandle);
-    ac1024OneRootLayerStatesCandidate = sourceVersion == DRW::AC1024
-        && extension != nullptr && extension->m_entries.size() == 1u
-        && asciiIdentifierEquals(extension->m_entries.front().m_name,
-                                 "ACAD_LAYERSTATES");
+    // Named dictionaries are case-insensitive. An unqualified LayerStates
+    // source must not fall through to generic DICTIONARY output just because
+    // its case or graph shape lies outside a proven profile.
+    ac1024LayerStatesCandidate = sourceVersion == DRW::AC1024
+        && extension != nullptr
+        && std::any_of(extension->m_entries.begin(), extension->m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return asciiIdentifierEquals(entry.m_name, "ACAD_LAYERSTATES");
+            });
     const bool singleEmptyLayerStatesRoot = extension != nullptr
         && extension->m_entries.size() == 1u
         && (sourceVersion == DRW::AC1021 || sourceVersion == DRW::AC1024);

@@ -60147,6 +60147,112 @@ bool physicalAc1021EmptyLayerStateRootAdmission(
     return true;
 }
 
+bool physicalAc1024LayerStatesFallbackRefusal(
+        const std::filesystem::path& sourcePath) {
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024)
+        return fail("LayerStates fallback witness is not an AC1024 DWG");
+    std::uint32_t control = 0u, extensionHandle = 0u;
+    if (!source.getLayerTableControlExtensionDictionary(control, extensionHandle))
+        return fail("LayerStates fallback witness lacks its control edge");
+    DRW_Dictionary* extension = nullptr;
+    for (DRW_Dictionary& row : source.dictionaries) {
+        if (row.handle != extensionHandle)
+            continue;
+        if (extension != nullptr)
+            return fail("LayerStates fallback witness has duplicate roots");
+        extension = &row;
+    }
+    if (extension == nullptr || extension->m_entries.size() != 3u)
+        return fail("LayerStates fallback witness lacks its three roots");
+    const auto original = extension->m_entries;
+    const auto root = std::find_if(original.begin(), original.end(),
+        [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name == "ACAD_LAYERSTATES";
+        });
+    if (root == original.end())
+        return fail("LayerStates fallback witness lacks its named root");
+    const auto rootIndex = static_cast<std::size_t>(root - original.begin());
+    dx_iface preflight;
+    preflight.cData = &source;
+    const auto refused = [&]() {
+        return !DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
+            preflight, DRW::AC1024);
+    };
+    if (!refused())
+        return fail("unqualified three-root LayerStates source fell through");
+    for (const std::string& name : {std::string("acad_layerstates"),
+                                   std::string("AcAd_LayerStates")}) {
+        extension->m_entries = original;
+        extension->m_entries[rootIndex].m_name = name;
+        if (!refused())
+            return fail("case variant LayerStates source fell through");
+    }
+    extension->m_entries = original;
+    extension->m_entries.push_back(original.front());
+    if (!refused())
+        return fail("expanded LayerStates source fell through");
+    extension->m_entries = original;
+    extension->m_entries.erase(extension->m_entries.begin()
+        + static_cast<std::ptrdiff_t>((rootIndex + 1u) % original.size()));
+    if (!refused())
+        return fail("reduced LayerStates source fell through");
+    extension->m_entries = original;
+    extension->m_entries[rootIndex].m_name = "UNRELATED_ROOT";
+    if (!DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
+            preflight, DRW::AC1024))
+        return fail("unrelated extension was classified as LayerStates");
+    extension->m_entries = original;
+    if (!DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
+            preflight, DRW::AC1027))
+        return fail("cross-version preflight was affected by the AC1024 target guard");
+    const auto format = source.sourceFormat;
+    source.sourceFormat = dx_source_format::DXF;
+    if (!DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
+            preflight, DRW::AC1024))
+        return fail("DXF input was affected by the DWG fallback guard");
+    source.sourceFormat = format;
+    for (const bool binary : {false, true}) {
+        const auto output = std::filesystem::temp_directory_path()
+            / (std::string("libdxfrw-layerstates-fallback-refusal-")
+                + std::to_string(std::chrono::steady_clock::now()
+                    .time_since_epoch().count())
+                + (binary ? "-binary.dxf" : "-ascii.dxf"));
+        struct Cleanup {
+            std::filesystem::path path;
+            ~Cleanup() { std::error_code ignored; std::filesystem::remove(path, ignored); }
+        } cleanup{output};
+        const std::string sentinel = "LayerStates fallback destination sentinel\n";
+        { std::ofstream existing(output, std::ios::binary | std::ios::trunc);
+          if (!existing || !(existing << sentinel))
+              return fail("could not seed LayerStates fallback destination"); }
+        const auto exportSource = [&]() {
+            return reader.fileExport(output.string(), DRW::AC1024, binary,
+                &source, false, false, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::Compatible,
+                dx_dxfProxyGraphicsPolicy::Compatible,
+                dx_dwgReadCompletenessPolicy::RequireComplete);
+        };
+        const auto unchanged = [&]() {
+            std::ifstream input(output, std::ios::binary);
+            return std::string{std::istreambuf_iterator<char>(input), {}} == sentinel;
+        };
+        const auto ownerMode = extension->hardOwner;
+        extension->hardOwner = 0;
+        const bool invalidWrote = exportSource();
+        extension->hardOwner = ownerMode;
+        if (invalidWrote || !unchanged())
+            return fail("invalid LayerStates export did not preserve the destination");
+        if (exportSource() || !unchanged())
+            return fail("unqualified LayerStates retry did not preserve the destination");
+    }
+    std::cerr << "AC1024 LayerStates fallback classification controls passed.\n";
+    return true;
+}
+
 bool physicalLayerStateXrecordSourceAdmission(
         const std::filesystem::path& sourcePath) {
     dx_iface sourceReader;
@@ -92068,6 +92174,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--ac1021-recompose-data-physical-output-readback")
         return physicalAc1021RecomposeDataOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--layerstates-ac1024-fallback-refusal")
+        return physicalAc1024LayerStatesFallbackRefusal(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-xrecord-physical-source-admission")
         return physicalLayerStateXrecordSourceAdmission(argv[2]) ? 0 : 1;

@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-layerstates-unqualified-fallback-refusal-2026-11-18",
+  "date": "2026-11-18",
+  "implementationDigestSha256": "26b68253da4c55815475df468cf0f37213d78f23e5963f419d8ac235b246ddd8",
+  "status": "SCOPED_FAIL_CLOSED_GUARD_AND_PHYSICAL_CONTROLS",
+  "supportClaimEffect": "none",
+  "scope": "For AC1024 DWG input and AC1024 DXF target, classify any LAYER_CONTROL extension containing an ASCII case-insensitive ACAD_LAYERSTATES key as a LayerStates candidate, so unsupported versions of that graph cannot silently skip the LayerStates preflight and fall through to generic DICTIONARY output.",
+  "files": {
+    "dwg2dxf/dx_iface.cpp": "29d0aca6ea952f403b99898e346898f8585a993c121cd4e65c13d2914fb9a9cd",
+    "tests/dwg2dxf_adapter_tests.cpp": "a2a4962d29f552492e7c10eda5c23aa9c01a60ccd37f4525311084f5e88e04f0"
+  },
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false
+  },
+  "validation": {
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+      "result": "PASS with -Werror after correcting a test range-loop copy",
+      "executableSha256": "a0125b32e4ba8c8c2c6c374e6b9d134c30c98ca408f161fd66ca054b5924b93c"
+    },
+    "focused": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-fallback-refusal tests/samples/AC1024/visualization_-_aerial.dwg",
+      "result": "PASS: direct preflight rejects the witnessed three-root candidate and case, added-root and removed-root variations; an unrelated name retains the prior skip result; an AC1027 target and DXF source retain their prior early return. Strict whole-source ASCII and Binary fileExport reject a malformed root and then also reject the restored source through the same adapter, preserving the existing destination bytes on both attempts.",
+      "logSha256": "d6edbc4f620305d5eb0df3324c3069f054f493b1c4222986ac9df60b1f95b5a4"
+    },
+    "neighbor": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1024-output-readback tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+      "sourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+      "result": "PASS: the existing AC1024 one-root source-bound ASCII/Binary path, invalid-owner refusal, corrected retry and fresh typed readback.",
+      "logSha256": "13cd25ea00b6001bc760e2647286133b6b1270d5a6593c8ddb628e9a24bc5902"
+    },
+    "fastNeighbors": {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dictionary_item_wire_role|libdxfrw_dwg_group_dictionary_controls|libdxfrw_named_resource_import_evidence)$' --output-on-failure",
+      "result": "PASS 3/3"
+    }
+  },
+  "limits": [
+    "The new classification applies only when the source is DWG AC1024 and target is DXF AC1024; the existing early return for other target versions is unchanged and is not a safety proof for those targets.",
+    "The direct preflight mutations exercise classification without claiming each mutation represents a distinct physical producer sample. The whole-source export may refuse before the new classification, so those sentinel checks do not establish that the new guard caused that particular failure.",
+    "The restored three-root source still refuses; this test is not evidence of successful three-root output, graph closure, independent consumer readback or native LayerStates semantics.",
+    "The independent source-only wire observer, same-import APPID binding, source recheck and staged-output graph proof are not integrated into production admission by this slice.",
+    "No drawing fixture was added."
+  ]
+}

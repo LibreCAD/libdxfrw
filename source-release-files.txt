@@ -137,6 +137,7 @@ dwg2dxf/dx_dwg_class_section_wire.h
 dwg2dxf/dx_dwg_class_wire.h
 dwg2dxf/dx_iface.cpp
 dwg2dxf/dx_iface.h
+dwg2dxf/dx_layerstates_dwg_wire.h
 dwg2dxf/dx_layout_source_profile.h
 dwg2dxf/dx_legacy_attribute_compound_join.h
 dwg2dxf/dx_legacy_attribute_compound_profile.h
@@ -1259,6 +1260,8 @@ tools/research/p5_table_root_xrecord_candidate_probe.cpp
 tools/research/p5_xrecord_codepage45_verify.py
 tools/research/p5_xrecord_codepage_capture.cpp
 tools/research/p6_ac1032_tablecontent_graph_capture.cpp
+tools/research/probe_ac1024_layerstates_eed.cpp
+tools/research/probe_ac1024_layerstates_eed.py
 tools/research/probe_ac1027_layer_typed_null.cpp
 tools/research/render_mtext_field_source.py
 tools/research/replay_freecad_import_patches.py
