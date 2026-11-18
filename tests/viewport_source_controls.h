@@ -95,12 +95,16 @@ bool viewportSourceTests(const std::filesystem::path& dir) {
             else if(fault==13u){appendBlockFields(tags,"E801",{{1001,"REGISTERED_APP"},{1010,"1"}});}
             else if(fault==14u){tags[blockField(tags,"E801",90)].value="98304";viewportBodyAppend(tags,{{340,"701"}});}
             else if(fault==15u)viewportBodyAppend(tags,{{335,"E801"}});
-            else if(fault==16u){tags[blockField(tags,"E801",170)].value="4";}
+            else if(fault==16u){tags[blockField(tags,"E801",170)].value="4";parseFailure=true;}
             else if(fault==17u){for(unsigned i=0u;i<511u;++i)viewportBodyAppend(tags,{{331,"D301"}});parseFailure=true;}
             else if(fault==18u)tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(blockField(tags,"E801",30)));
             else tags[blockField(tags,"E801",292)].value="2";
             dx_data data;if(!writeBlockBinding(path,tags,encoding))return fail(__LINE__);const bool parsed=reader.fileImport(path.string(),&data,false);
             if(parsed==parseFailure||ready(data)){std::cerr<<"fault="<<fault<<" parsed="<<parsed<<'\n';diagnose(data);return fail(__LINE__);}if(fault==13u){if(!reader.pending)return fail(__LINE__);++pending;}
+            // Mode 4 is rejected at the typed entity boundary. Verify no
+            // VIEWPORT callback or completed dependency graph escaped, then
+            // use the same reader for the corrected retry below.
+            if(fault==16u&&(reader.callbacks!=0u||dx_iface::dependencyReport(data).state!=dx_iface::DependencyState::ImportFailed))return fail(__LINE__);
             if(!retry(reader))return fail(__LINE__);++refusals;}
         {auto tags=good;for(unsigned i=0u;i<510u;++i)viewportBodyAppend(tags,{{331,"D301"}});ViewportProbe reader;reader.blocks=blocks;dx_data data;
             if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||!ready(data)||!retry(reader))return fail(__LINE__);++limits;}
