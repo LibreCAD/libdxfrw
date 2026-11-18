@@ -103,6 +103,28 @@ def main():
     expected_items = [(key, [2, 2, 0x127 + i, 0x127 + i]) for i, key in enumerate(scale_keys)]
     if list(scale_dict[0].get("items", {}).items()) != expected_items:
         raise SystemExit("independent SCALELIST keys, roles or targets mismatch")
+    peer_scales = []
+    for handle in range(0x127, 0x147):
+        matches = [obj for obj in peer_objects if obj.get("handle") == [0, 2, handle]]
+        if len(matches) != 1:
+            raise SystemExit(f"independent SCALE {handle:X} identity is absent or duplicated")
+        scale = matches[0]
+        if (scale.get("object") != "SCALE" or scale.get("type") != 512 or
+                scale.get("_subclass") != "AcDbScale" or scale.get("flag") != 0 or
+                scale.get("is_xdic_missing") != 1 or not isinstance(scale.get("name"), str) or
+                not scale["name"] or not all(32 <= ord(ch) < 127 for ch in scale["name"]) or
+                not isinstance(scale.get("bitsize"), int) or not isinstance(scale.get("size"), int) or
+                scale["size"] > 1024 or not isinstance(scale.get("paper_units"), (int, float)) or
+                not isinstance(scale.get("drawing_units"), (int, float)) or
+                scale.get("is_unit_scale") not in (0, 1)):
+            raise SystemExit(f"independent SCALE {handle:X} shape is outside this observer")
+        owner = scale.get("ownerhandle")
+        reactors = scale.get("reactors")
+        expected_owner = [8, 0, 0, 0x126] if handle == 0x127 else [12, 1, handle - 0x126, 0x126]
+        if (owner != expected_owner or not isinstance(reactors, list) or
+                len(reactors) != 1 or reactors[0] != [4, 2, 0x126, 0x126]):
+            raise SystemExit(f"independent SCALE {handle:X} owner/reactor mismatch")
+        peer_scales.append((handle, scale, owner, reactors[0]))
     primary = [obj for obj in peer_objects if obj.get("handle") == [0, 2, 585]]
     expected_xdata = [[91, 33280], [301, ""], [290, 0], [302, "0"], [330, 16],
                       [90, 8], [62, 7], [370, -3], [331, 22], [1, "Color_7"],
@@ -161,13 +183,21 @@ def main():
         raise SystemExit("expected exactly one adapter object and libdxfrw.a")
     with tempfile.TemporaryDirectory(prefix="layerstates-eed-") as tmp:
         exe = Path(tmp) / "probe"
+        manifest = Path(tmp) / "peer-scales.txt"
+        lines = []
+        for handle, scale, owner, reactor in peer_scales:
+            lines.append(" ".join(map(str, (handle, scale["bitsize"], scale["size"],
+                owner[0], owner[1], owner[2], reactor[0], reactor[1], reactor[2]))) + " " +
+                json.dumps(scale["name"]) + " " + format(scale["paper_units"], ".17g") + " " +
+                format(scale["drawing_units"], ".17g") + " " + str(scale["is_unit_scale"]))
+        manifest.write_text("\n".join(lines) + "\n")
         subprocess.run([args.cxx, "-std=c++17", "-O0", "-Wall", "-Wextra", "-pedantic", "-Werror",
                         "-I", str(ROOT / "dwg2dxf"),
                         "-I", str(ROOT / "src"),
                         str(ROOT / "tools/research/probe_ac1024_layerstates_eed.cpp"),
                         str(objects[0]), str(build / "libdxfrw.a"), "-o", str(exe)],
                        cwd=ROOT, check=True)
-        subprocess.run([str(exe), str(source)], cwd=ROOT, check=True)
+        subprocess.run([str(exe), str(source), str(manifest)], cwd=ROOT, check=True)
     print("peer trace and source hashes, peer EED fields, and local controls: PASS")
 
 

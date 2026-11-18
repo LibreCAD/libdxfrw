@@ -1,8 +1,12 @@
 #include "dx_iface.h"
 #include "dx_raster_dwg_wire.h"
 #include <algorithm>
+#include <cmath>
+#include <cstring>
+#include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <string>
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
@@ -733,8 +737,213 @@ bool testPrimaryXrecord(const dx_data &data) {
   return true;
 }
 
+struct PeerScale {
+  std::uint32_t handle, bodyEnd, size, ownerRole, ownerLen, ownerRaw;
+  std::uint32_t reactorRole, reactorLen, reactorRaw;
+  std::string name;
+  double paper, drawing;
+  bool unit;
+};
+struct ScaleOffsets {
+  std::uint32_t paper, drawing, unit, name, footer, owner, reactor, reactorEnd;
+};
+
+bool observePeerScale(const dx_data &data, const PeerScale &peer,
+                      const std::vector<std::uint8_t> &bytes,
+                      std::uint32_t handleBits, ScaleOffsets &offsets,
+                      bool verbose) {
+  using namespace dx_raster_wire;
+  const auto *raw =
+      DxIfaceStandardDwgCaptureTestAccess::opaque(data, peer.handle);
+  const DRW_Scale *typed = nullptr;
+  for (const auto &row : data.scales)
+    if (row.handle == peer.handle) {
+      if (typed)
+        return false;
+      typed = &row;
+    }
+  if (!raw || !typed || raw->m_handle != peer.handle ||
+      raw->m_objectType != 512 || raw->m_version != DRW::AC1024 ||
+      raw->m_recordName != "SCALE" || raw->m_className != "AcDbScale" ||
+      raw->m_isEntity || raw->m_hasDataStorage ||
+      raw->m_objectSize != raw->m_rawBytes.size() ||
+      raw->m_objectSize != peer.size || typed->parentHandle != 0x126u ||
+      typed->xDictHandle != 0u ||
+      typed->reactorHandles != std::vector<std::uint32_t>{0x126u} ||
+      !typed->appData.empty() || !typed->extData.empty() || typed->flag != 0u ||
+      typed->name != peer.name || typed->paperUnits != peer.paper ||
+      typed->drawingUnits != peer.drawing || typed->isUnitScale != peer.unit ||
+      bytes.empty() || bytes.size() > 1024u || handleBits >= bytes.size() * 8u)
+    return false;
+  const auto total = static_cast<std::uint32_t>(bytes.size() * 8u);
+  const auto bodyEnd = total - handleBits;
+  if (bodyEnd != peer.bodyEnd || bodyEnd < 17u)
+    return false;
+  detail::Bits body{bytes.data(), 0u, bodyEnd};
+  const auto tag = body.take(2u);
+  const auto type = tag == 0u   ? body.take(8u)
+                    : tag == 1u ? body.take(8u) + 0x1f0u
+                                : body.little(2u);
+  const auto self = detail::handle(body, 0u, 0u, true);
+  if (!body.good || type != 512u || self.value != peer.handle ||
+      body.shortValue() != 0u || body.longValue() != 1u ||
+      body.take(1u) != 1u || body.shortValue() != 0u)
+    return false;
+  const auto bitDouble = [&](double expected) {
+    const auto code = body.take(2u);
+    double value = 0.0;
+    if (code == 1u)
+      value = 1.0;
+    else if (code == 2u)
+      value = 0.0;
+    else if (code == 0u) {
+      const std::uint64_t rawBits = body.little(8u);
+      static_assert(sizeof(value) == sizeof(rawBits), "64-bit double required");
+      std::memcpy(&value, &rawBits, sizeof(value));
+    } else
+      return false;
+    return body.good && std::isfinite(value) && value == expected;
+  };
+  offsets.paper = body.pos;
+  if (!bitDouble(peer.paper))
+    return false;
+  offsets.drawing = body.pos;
+  if (!bitDouble(peer.drawing))
+    return false;
+  offsets.unit = body.pos;
+  if (body.take(1u) != static_cast<unsigned>(peer.unit) || !body.good)
+    return false;
+  const auto stringStart = body.pos;
+  detail::Bits footer{bytes.data(), bodyEnd - 17u, bodyEnd - 1u};
+  const auto stringBits = footer.little(2u);
+  detail::Bits presence{bytes.data(), bodyEnd - 1u, bodyEnd};
+  if (!footer.good || stringBits > bodyEnd - 17u ||
+      stringStart != bodyEnd - 17u - stringBits || presence.take(1u) != 1u ||
+      !presence.good)
+    return false;
+  detail::Bits text{bytes.data(), stringStart, bodyEnd - 17u};
+  if (text.shortValue() != peer.name.size())
+    return false;
+  offsets.name = text.pos;
+  for (unsigned char c : peer.name)
+    if (text.little(2u) != c)
+      return false;
+  if (!text.good || text.pos != text.end)
+    return false;
+  offsets.footer = bodyEnd - 1u;
+  detail::Bits wire{bytes.data(), bodyEnd, total};
+  offsets.owner = wire.pos;
+  const auto owner = detail::handle(wire, 4u, peer.handle);
+  if (!wire.good || owner.role != peer.ownerRole ||
+      owner.length != peer.ownerLen || owner.value != 0x126u ||
+      (peer.ownerRole == 12u && peer.ownerRaw != peer.handle - 0x126u) ||
+      (peer.ownerRole == 8u && peer.ownerRaw != 0u))
+    return false;
+  offsets.reactor = wire.pos;
+  const auto reactor = detail::handle(wire, 4u, peer.handle);
+  if (!wire.good || reactor.role != peer.reactorRole ||
+      reactor.length != peer.reactorLen || reactor.value != peer.reactorRaw ||
+      reactor.value != 0x126u)
+    return false;
+  offsets.reactorEnd = wire.pos;
+  if (wire.end - wire.pos >= 8u || !wire.skip(wire.end - wire.pos) ||
+      !wire.good)
+    return false;
+  if (verbose)
+    std::cout << "scale-peer=" << std::hex << peer.handle << std::dec
+              << " body=0:" << stringStart << " strings=" << stringStart << ":"
+              << bodyEnd - 17u << " footer=" << bodyEnd - 17u << ":" << bodyEnd
+              << " owner=" << offsets.owner << ":" << offsets.reactor
+              << " reactor=" << offsets.reactor << ":" << offsets.reactorEnd
+              << " padding=" << offsets.reactorEnd << ":" << total
+              << " name=" << peer.name << " paper=" << peer.paper
+              << " drawing=" << peer.drawing << "\n";
+  return true;
+}
+
+bool testAllScales(const dx_data &data, const std::string &manifest) {
+  if (!std::numeric_limits<double>::is_iec559 || sizeof(double) != 8u)
+    return false;
+  std::ifstream input(manifest);
+  if (!input)
+    return false;
+  for (std::uint32_t index = 0u; index < 32u; ++index) {
+    PeerScale peer{};
+    if (!(input >> peer.handle >> peer.bodyEnd >> peer.size >> peer.ownerRole >>
+          peer.ownerLen >> peer.ownerRaw >> peer.reactorRole >>
+          peer.reactorLen >> peer.reactorRaw >> std::quoted(peer.name) >>
+          peer.paper >> peer.drawing >> peer.unit) ||
+        peer.handle != 0x127u + index || !std::isfinite(peer.paper) ||
+        !std::isfinite(peer.drawing) || peer.name.empty())
+      return false;
+    const auto *raw =
+        DxIfaceStandardDwgCaptureTestAccess::opaque(data, peer.handle);
+    ScaleOffsets offsets{};
+    if (!raw || !observePeerScale(data, peer, raw->m_rawBytes,
+                                  raw->m_bodyBitSize, offsets, true))
+      return false;
+    std::vector<std::pair<const char *, std::uint32_t>> mutations{
+        {"eed", 34u},
+        {"xdict-flag", 46u},
+        {"paper-bd", offsets.paper},
+        {"drawing-bd", offsets.drawing},
+        {"unit-flag", offsets.unit},
+        {"name", offsets.name + 7u},
+        {"footer-size", offsets.footer - 1u},
+        {"footer", offsets.footer},
+        {"owner-role", offsets.owner + 1u},
+        {"owner-target", peer.ownerRole == 8u ? 25u : offsets.owner + 15u},
+        {"reactor-role", offsets.reactor + 1u},
+        {"reactor-target", offsets.reactorEnd - 1u}};
+    dx_raster_wire::detail::Bits paperTag{raw->m_rawBytes.data(), offsets.paper,
+                                          offsets.paper + 2u};
+    dx_raster_wire::detail::Bits drawingTag{
+        raw->m_rawBytes.data(), offsets.drawing, offsets.drawing + 2u};
+    if (paperTag.take(2u) == 0u)
+      mutations.emplace_back("paper-bd-payload", offsets.paper + 9u);
+    if (drawingTag.take(2u) == 0u)
+      mutations.emplace_back("drawing-bd-payload", offsets.drawing + 9u);
+    for (const auto &mutation : mutations) {
+      auto changed = raw->m_rawBytes;
+      if (mutation.second >= changed.size() * 8u)
+        return false;
+      changed[mutation.second / 8u] ^=
+          static_cast<std::uint8_t>(1u << (7u - mutation.second % 8u));
+      ScaleOffsets ignored{};
+      if (observePeerScale(data, peer, changed, raw->m_bodyBitSize, ignored,
+                           false) ||
+          !observePeerScale(data, peer, raw->m_rawBytes, raw->m_bodyBitSize,
+                            ignored, false))
+        return false;
+      std::cout << "scale-peer-negative=" << mutation.first
+                << " handle=" << std::hex << peer.handle << std::dec
+                << " rejected=1 retry=1\n";
+    }
+    auto truncated = raw->m_rawBytes;
+    truncated.pop_back();
+    ScaleOffsets ignored{};
+    if (raw->m_bodyBitSize < 8u ||
+        observePeerScale(data, peer, truncated, raw->m_bodyBitSize - 8u,
+                         ignored, false) ||
+        !observePeerScale(data, peer, raw->m_rawBytes, raw->m_bodyBitSize,
+                          ignored, false))
+      return false;
+    auto appended = raw->m_rawBytes;
+    appended.push_back(0u);
+    if (observePeerScale(data, peer, appended, raw->m_bodyBitSize + 8u, ignored,
+                         false))
+      return false;
+    std::cout << "scale-peer-negative=truncated-handle-stream handle="
+              << std::hex << peer.handle << std::dec << " rejected=1 retry=1\n"
+              << "scale-peer-negative=extra-handle-byte handle=" << std::hex
+              << peer.handle << std::dec << " rejected=1\n";
+  }
+  input >> std::ws;
+  return input.eof();
+}
+
 int main(int argc, char **argv) {
-  if (argc != 2)
+  if (argc != 3)
     return 2;
   dx_iface iface;
   dx_data data;
@@ -902,5 +1111,5 @@ int main(int argc, char **argv) {
   std::cout << "corrected_retry=" << retry << "\n";
   return !truncated || !retry || !testDictionaryFrames(data) ||
          !testNestedXrecord(data) || !testScale(data) ||
-         !testPrimaryXrecord(data);
+         !testPrimaryXrecord(data) || !testAllScales(data, argv[2]);
 }
