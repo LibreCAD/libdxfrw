@@ -93,7 +93,7 @@
     "localDiagnostic": "unsupported FIELD CadValue format flags 17302012; child value payload unsupported",
     "localTrace": "/private/tmp/metric-tail-s34.trace",
     "independentMinJson": "The source-bound LibreDWG minJSON record has a third child value with format_flags=17302012, type=0, and a nonzero unit field.",
-    "boundaryStatus": "Candidate identity and the peer's first bad child are correlated, but libdxfrw's body/string cursor at that child and the peer's next-object map boundary are not yet recorded as a paired span. Bind those for this one record before any decoder change."
+    "boundaryStatus": "S35 subsequently paired the libdxfrw and LibreDWG cursors through this child's format flags and bound the address-sorted object-map successor. Both readers agree at bit 271; the unknown flags remain semantically unsupported. See docs/research/p5-ac1021-field-cursor-agreement-and-output-boundary-2026-11-17.json."
   },
   "decision": {
     "result": "TAIL_PATTERN_CLASSIFIED_BUT_SEMANTICS_UNRESOLVED",
@@ -113,10 +113,8 @@
       "Restore the baseline parser, rebuild dwg2dxf, and verify that strict conversion still fails closed without creating a DXF."
     ],
     "remaining": [
-      "For FIELD 0x3aaf0, bind the first-divergent body/string cursor, child-value span, raw flags payload, handle stream, and following-object map boundary against ODA and the source-bound LibreDWG record before trying one candidate decode.",
-      "If no bounded, authority-consistent decode succeeds, retain the 14 records raw-only and move to the one invalid-count record and the nine AcSm records without widening the source profile.",
       "Preserve all 162 FIELDLIST identities; strict output remains refused until every member has a lossless, graph-closed DXF disposition."
     ],
-    "nextAction": "Do not revisit the 258-bit tail absent new schema evidence. Use FIELD 0x3aaf0 as the next one-record cursor investigation; make no parser change until source spans and the following boundary agree."
+    "nextAction": "The planned FIELD 0x3aaf0 cursor follow-up and representative invalid-count checks were completed in S35. Do not repeat those scans or the 258-bit tail scan; keep P5-B waiting for authoritative carrier semantics or an independently validated lossless DXF representation."
   }
 }

@@ -1,0 +1,141 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 metric raw-only FIELD cursor agreement and output boundary",
+  "date": "2026-11-17",
+  "phase": "P5-B source-bound implementation readiness S35",
+  "supportClaimEffect": "none",
+  "scope": "Pair libdxfrw and LibreDWG cursors at representative unsupported AC1021 FIELD carriers, bind their object-map successors, and decide whether the remaining raw-only cases admit a safe local parser or output change.",
+  "source": {
+    "path": "/private/tmp/autodesk_blocks_and_tables_metric.dwg",
+    "sizeBytes": 258848,
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "version": "AC1021",
+    "producer": "AutoCAD 2007, AppInfo version 17.0.48.0",
+    "repositoryFixture": false,
+    "sourceReceipt": "docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json"
+  },
+  "primaryAuthority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["20.1", "20.4.76", "20.4.99"],
+    "limits": "§20.4.76 defines child-value count and order; §20.4.99 defines the CadValue flags/type fields and known payloads. The observed high format-flag value and out-of-range counts have no qualified semantic interpretation here."
+  },
+  "independentDecoder": {
+    "name": "GNU LibreDWG dwgread",
+    "version": "0.14",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -v5 -O minJSON /private/tmp/autodesk_blocks_and_tables_metric.dwg -o /dev/null",
+    "trace": "/private/tmp/autodesk_blocks_and_tables_metric-v5.trace",
+    "traceSha256": "63ddd4d10107303e84a826b5efb0fd63bd815ff7d1cee49880352736358fc0ea",
+    "coordinateSpace": "Decoded object-local bit cursors and decoded object-map addresses, not physical compressed-file offsets."
+  },
+  "localTargetedTrace": {
+    "method": "Temporary handle-filtered cursor diagnostics in DRW_Field::parseDwg; instrumentation was removed before the baseline rebuild.",
+    "trace": "/private/tmp/p5-field-s35-cursor3.trace",
+    "traceSha256": "dd28661d5560ed627faf6420b49f38bd5ac9039cc1ff0d228d687ae9ea0a10e7",
+    "baselineCommit": "d7889f6a",
+    "records": [
+      {
+        "handle": "0x3aaf0",
+        "evaluator": "AcObjProp.16.2",
+        "objectFrameBits": 3678,
+        "objectMapAddress": 510624,
+        "nextObjectMapAddress": 511089,
+        "addressSuccessorHandle": "0x3ab15",
+        "gapBytes": 4,
+        "child2FormatFlags": {
+          "localBodyBitBefore": 237,
+          "localBodyBitAfter": 271,
+          "localStringBitBefore": 3659,
+          "localStringBitAfter": 3659,
+          "value": 17302012,
+          "hex": "0x010801FC",
+          "localDecodeResult": "Unsupported"
+        },
+        "independentTrace": "LibreDWG logs child[2].value.format_flags=17302012 at @33.7 (bit 271) and data_type=0 at @34.1 (bit 273). This matches the libdxfrw cursor through the flags field. The peer's subsequent object in decode order is handle 0x3aaf1; its address is not the address-sorted object-map successor."
+      },
+      {
+        "handle": "0x3aabd",
+        "evaluator": "AcObjProp.16.2",
+        "objectFrameBits": 3664,
+        "objectSizeBytes": 459,
+        "objectMapAddress": 507597,
+        "nextObjectMapAddress": 508060,
+        "addressSuccessorHandle": "0x36769",
+        "gapBytes": 4,
+        "childValueCount": {
+          "localBodyBitBefore": 157,
+          "localBodyBitAfter": 191,
+          "localStringBit": 2911,
+          "localSignedValue": -536440826,
+          "wireUnsignedValue": 3758526470,
+          "independentTrace": "LibreDWG reads value_string_length=92 at @19.5 (bit 157) and child count 3758526470 at @23.7 (bit 191), then rejects the count."
+        }
+      },
+      {
+        "handle": "0x15c1f",
+        "evaluator": "AcSm",
+        "fieldCode": "\\AcSm ?View.ViewportScale \\f \"%lu4%pr8%ct2%qf2816 = 1'-0\\\"\"",
+        "objectFrameBits": 2874,
+        "objectSizeBytes": 361,
+        "objectMapAddress": 507232,
+        "nextObjectMapAddress": 507597,
+        "addressSuccessorHandle": "0x3aabd",
+        "gapBytes": 4,
+        "childValueCount": {
+          "localBodyBitAfter": 191,
+          "localStringBit": 2519,
+          "localValue": 1342607366,
+          "independentTrace": "LibreDWG reads child count 1342607366 at @23.7 (bit 191) and rejects it as out of range."
+        }
+      }
+    ]
+  },
+  "outputRouteReview": {
+    "currentDwgdxfGate": "dwg2dxf/dx_iface.cpp hasTableContentFieldOutputProfile and preflight reject DWG-origin FIELD/FIELDLIST carriers without an admitted serializer profile.",
+    "typedWriter": "src/libdxfrw.cpp dxfRW::writeField serializes the typed FIELD model; it has no qualified opaque DWG-frame-to-DXF fallback.",
+    "result": "The present strict writer has no lossless output route for these incomplete raw FIELDs. Adding a parser guess would not satisfy complete FIELDLIST preservation."
+  },
+  "baselineRecheck": {
+    "binary": "build-gcc/dwg2dxf/dwg2dxf",
+    "binarySha256": "9aa5f6bda39be8ec293e8207d97440546ee6311e1275eb6cd9d3306c4fef9279",
+    "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/autodesk_blocks_and_tables_metric.dwg -y -d -v2007 /private/tmp/p5-field-s35-baseline.dxf",
+    "exitStatus": 1,
+    "trace": "/private/tmp/p5-field-s35-baseline.trace",
+    "traceSha256": "bb53dcbb59512e6f93425c8a13844821da737c96dcd12eb1864f16a58310ce43",
+    "diagnosticCounts": {
+      "258BitTails": 42,
+      "unsupportedFormatFlags17302012": 14,
+      "outOfRangeChildValueCounts": 10,
+      "strictFieldSerializerRefusals": 1
+    },
+    "temporaryInstrumentationPresent": false,
+    "outputCreated": false
+  },
+  "decision": {
+    "result": "SOURCE_CURSORS_AGREE_NO_SAFE_PARSER_CHANGE",
+    "parserChange": "none",
+    "disposition": "Keep all 66 raw-only FIELDs incomplete and retain strict refusal: the representative flag record has no cursor shift through the unknown flag, and both readers encounter the same out-of-range count values in the representative AcObjProp.16.2 and AcSm records.",
+    "supportClaimEffect": "none"
+  },
+  "limits": [
+    "The peer cursor agreement identifies the observed bytes and counts; it does not assign a valid meaning to the unknown flags or invalid counts.",
+    "The representative records do not establish independent semantic decoding for the remaining raw-only FIELDs.",
+    "No strict DXF output, readback, native evaluation, parser change, test fixture, or support promotion resulted from this slice.",
+    "The existing adapter and typed DXF writer do not expose an opaque lossless DWG FIELD-to-DXF representation."
+  ],
+  "implementationReadiness": {
+    "closed": [
+      "Bind the local and independent body cursors through FIELD 0x3aaf0 child[2] format flags and its address-sorted object-map successor.",
+      "Confirm the source-bounded invalid child counts for FIELD 0x3aabd and AcSm FIELD 0x15c1f at matching local/peer cursors and next-object map boundaries.",
+      "Restore the uninstrumented reader, rebuild dwg2dxf, and verify baseline strict refusal with no output file."
+    ],
+    "remaining": [
+      "Resume P5-B only after authoritative decoding rules cover every remaining raw-only FIELD carrier, or a separately approved lossless DXF representation is defined and independently read back.",
+      "Then preserve all 162 FIELDLIST identities, close the embedded TABLE/MTEXT graph route, and prove strict ASCII/Binary output, rollback/refusal, same-adapter retry, and graph/value equivalence.",
+      "Continue the next admitted source/profile while P5-B waits; do not repeat the unchanged AutoCAD 2007 source scans or reinterpret unsupported peer values."
+    ],
+    "nextAction": "Move P5-B to a named evidence wait. Resume it only when a versioned FIELD schema/source witness or an independently validated lossless opaque DXF representation becomes available; continue with other ready plan work meanwhile."
+  }
+}
