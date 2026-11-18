@@ -1,0 +1,68 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8f-71fd-upstream-native-replay-2026-11-18",
+  "date": "2026-11-18",
+  "status": "CURRENT_DIGEST_FAST_AND_FOCUSED_NATIVE_PASSED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "4d054a406e80075b9f17d312ed45d2e15a8caeb6fbaf21b784c81aae0a4c09b5",
+  "implementationInputCount": 735,
+  "verifierSha256": "cc64ecedf9633cc74cab7ad3659b546f855769610828e3d9a81230de28db1455",
+  "upstream": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "focusedRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44386833974",
+    "runAttempt": 1,
+    "fastRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44386833953",
+    "fastResult": "SUCCESS. Fixture/source-release inventory, bounded build/source compatibility and required fast/CLI vectors passed. Optional source-release packaging job was skipped.",
+    "headSha": "71fd9592e9fd305b578194da70bcb5616af4f66c",
+    "baseSha": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "checkedOutMergeSha": "7f90a5d6c8586e9cf70aa7ce9d2fcc6b6ac3825e",
+    "mergeRef": "refs/pull/106/merge",
+    "platforms": {
+      "linux-gcc": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135108641454,
+        "artifactId": 14467633995,
+        "downloadedArchiveSha256": "784053159f21db28f4ea49e42ed7e1e8684cc9ee3dfbe8fde509f1ec972c0ba2",
+        "receiptContentSha256": "e48a8d270876d06c84a06cd33fc37abb3811f8272e87adda69f7c43d82fb602e",
+        "workflowApiSha256": "28b4c0435ed4b9a3cb9799b8a893037a72e028dba7622a1a1daee1088a1c9e2b"
+      },
+      "windows-msvc": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135108641581,
+        "artifactId": 14468334066,
+        "downloadedArchiveSha256": "fb09f8c8abf6681f994a65493cd2cad14aa2e653becf26bfa45f0a35c4b24d0d",
+        "receiptContentSha256": "9aea2dba614795a0d1b3fef0071fcdd63c125746dd79971100482f89997489b0",
+        "workflowApiSha256": "28b4c0435ed4b9a3cb9799b8a893037a72e028dba7622a1a1daee1088a1c9e2b"
+      },
+      "macos-clang": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135108641489,
+        "artifactId": 14469047889,
+        "downloadedArchiveSha256": "3cc41ce1b14a00b56fa45ff1f894faf7f7e35ccb4cf976bf0de7b298d77be41b",
+        "receiptContentSha256": "29a8cebd139bee77ab36398e9ee753ff8aede15cafcd1bb636bec4f59c5ce5a0",
+        "workflowApiSha256": "28b4c0435ed4b9a3cb9799b8a893037a72e028dba7622a1a1daee1088a1c9e2b"
+      }
+    },
+    "fastJobId": 135093578819
+  },
+  "liveVerification": {
+    "command": "python3 -B tools/verify_native_qualification_receipts.py --pre-native --live-token-env TASK_GH_TOKEN --root <scratch root> --status <scratch root>/status.json",
+    "result": "native qualification receipts: PASS (3 focused; 0 broad; 3 attempts)",
+    "scratchRoot": "/private/tmp/libdxfrw-p8f-71fd-live-evidence",
+    "statusSha256": "ce11ca0aadcd8033e49dc20c9c568dd2ab2e66da36eac3596182399274f71d5d",
+    "evidence": "GitHub API responses and ZIP bytes matched saved hashes. The verifier matched the workflow bytes, jobs/steps, artifact IDs, platform/toolchain, manifest and exact implementation digest. The current authenticated PR ref and ordered base/head parents matched the sealed checkout when checked.",
+    "apiResponseSha256": {
+      "run.json": "a15466d11a6bcbb0becd64c847cf63aba587e2a8778843cc19f863451ed869d2",
+      "jobs.json": "db1a716941d5e3c13116ede2699a832ee4ac1f4d5cfa1301fdef93fb478ce2de",
+      "artifacts.json": "428b675653767fa02392979913b07c5259be5c81cd819cbb66dbbd64ffec0040"
+    }
+  },
+  "limits": [
+    "The native evidence binds the recorded implementation digest and the tested PR merge checkout at the time of replay. The PR ref can move after publishing further commits.",
+    "Later plan, research and downstream patch files do not change the selected libdxfrw implementation inputs. Re-run the focused gate if selected inputs change.",
+    "This is focused native qualification only. Final broad/fuzz integration, native consumer GUI and producer-semantic gates remain open. The qualification status overlay and format claims were not promoted by this observation."
+  ]
+}
