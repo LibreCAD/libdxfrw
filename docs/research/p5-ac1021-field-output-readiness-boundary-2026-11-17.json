@@ -95,7 +95,7 @@
       "total": 66
     },
     "localParserSoftFallbacks": [
-      {"count": 42, "diagnostic": "FIELD has an unmodeled object-data tail; keeping raw shell; bits=258", "sourceFamily": "AcObjProp.16.2"},
+      {"count": 42, "diagnostic": "FIELD has an unmodeled object-data tail; keeping raw shell; bits=258", "sourceFamily": "AcObjProp.16.2 and AcObjProp", "sourceFamilyCounts": {"AcObjProp.16.2": 23, "AcObjProp": 19}, "classificationReceipt": "docs/research/p5-ac1021-metric-field-repeated-tail-2026-11-17.json"},
       {"count": 14, "diagnostic": "unsupported FIELD CadValue format flags: 17302012; child value payload unsupported", "sourceFamily": "AcObjProp.16.2"},
       {"count": 1, "diagnostic": "FIELD child value count out of range", "sourceFamily": "AcObjProp.16.2"},
       {"count": 9, "diagnostic": "FIELD child value count out of range", "sourceFamily": "AcSm"}

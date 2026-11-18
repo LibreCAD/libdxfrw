@@ -19,8 +19,8 @@ libdxfrw and LibreCAD origin/master heads above were re-checked and unchanged;
 LibreCAD PR #3269 is merged as `4060fb6bb` and is contained in that LibreCAD head.
 
 **Progress on 2026-11-17:** 6 of 33 required package gates are closed (18.2%);
-27 remain. The activity count is 51 of 78 complete (65.4%): 6 closed gates
-and 45 completed implementation/research slices, out of 33 gates and 45
+27 remain. The activity count is 53 of 80 complete (66.3%): 6 closed gates
+and 47 completed implementation/research slices, out of 33 gates and 47
 completed slices. The 27 remaining counted items are the 27 open package
 gates. A completed slice can advance a gate that remains open, so this
 equal-weight activity count measures work items rather than unique outcomes
@@ -89,6 +89,16 @@ bounded TV-candidate experiment did not complete the FIELD either. This does
 not establish the other encoding. Keep the current 2007 route, but do not
 generalize it to the architectural source. See the [S33 candidate
 screen](docs/research/p5-ac1021-acvar-group98-candidate-screen-2026-11-17.json).
+S34 measured the remaining body tail on the exact AutoCAD 2007 metric source.
+All 42 tail-bearing FIELDs (23 AcObjProp.16.2 and 19 AcObjProp) have the same
+258 bits: UTF-16LE `UpdatedDistance`, a zero code unit, then unexplained bits
+`10`. Their independently decoded FIELD expressions contain the same property
+name, but neither ODA §20.4.76/§20.4.99 nor LibreDWG assigns meaning to these
+extra body bits. The temporary trace code was removed, the baseline target
+rebuilt, and strict conversion still refuses without creating output. Keep
+these 42 records raw-only; do not infer a parser rule from repetition. The next
+candidate is metric FIELD 0x3aaf0, whose 3678-bit frame has a source-correlated
+child format-flags failure (17302012). See the [S34 receipt](docs/research/p5-ac1021-metric-field-repeated-tail-2026-11-17.json).
 These implementation/research slices do not close a package gate or promote a
 support claim. Native consumer acceptance and independent whole-drawing
 semantics remain separate. P5-A is closed for the bounded AutoCAD 2007
@@ -126,9 +136,9 @@ before reaching the cells. Neither route supplies the disputed spans or
 overrides ODA. See the [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json),
 [cursor/peer screen](docs/research/p5-ac1021-table-alignment-candidate-cursor-and-libredwg-screen-2026-11-17.json),
 and [debug-class screen](docs/research/p5-ac1021-table-libredwg-debug-class-span-screen-2026-11-17.json).
-Slices S23 through S33 are complete; activity progress is 52/79 (65.8%) and
-package readiness is 6/33 (18.2%). S32 and S33 are completed research slices;
-neither closes P5-B or promotes a support claim.
+Slices S23 through S34 are complete; activity progress is 53/80 (66.3%) and
+package readiness is 6/33 (18.2%). S32 through S34 are completed inventory or
+candidate research slices; none closes P5-B or promotes a support claim.
 P6-G is conditional, P7-E optional, and six DEFERRED_EXTERNAL dispositions
 are advisory, excluded from the count, and cannot promote support claims.
 
@@ -145,26 +155,29 @@ profiles.
    [S29 graph/value receipt](docs/research/p5-ac1021-autodesk-field-table-graph-screen-2026-11-17.json),
    [S30 cursor receipt](docs/research/p5-ac1021-autodesk-field-source-cursors-2026-11-17.json),
    [S31 output-readiness receipt](docs/research/p5-ac1021-field-output-readiness-boundary-2026-11-17.json),
-   and [S32 cross-source carrier inventory](docs/research/p5-ac1021-field-cross-source-carrier-inventory-2026-11-17.json).
+   [S32 cross-source carrier inventory](docs/research/p5-ac1021-field-cross-source-carrier-inventory-2026-11-17.json),
+   [S33 AcVar screen](docs/research/p5-ac1021-acvar-group98-candidate-screen-2026-11-17.json),
+   and [S34 repeated-tail screen](docs/research/p5-ac1021-metric-field-repeated-tail-2026-11-17.json).
    Do not repeat acquisition or cursor work for the selected 30 records. S32
    already maps evaluator families across the existing metric, imperial, and
    architectural sources; S33 also closes its unproductive AcVar/group-98
    experiment. Neither adds a prerequisite to the exact AutoCAD 2007 target.
-   Start with raw-only metric-source FIELD 0x3a5be (AcObjProp.16.2): bind the
-   existing 3366-bit object frame, 258-bit local body residual, independent
-   decoded values, and following FIELD 0x3a5bf against ODA §20.4.76/§20.4.99.
-   If the residual is still unmodeled, retain raw-only status and strict
-   refusal; do not guess an evaluator tail. Apply each proven correction to
-   this hash-bound source and only reuse it on another source when its complete
-   wire layout matches. Preserve all 162 metric-source FIELDLIST identities
-   and references; never prune unsupported members to force admission. AcVar
-   and imperial-only records do not block this profile. After complete
-   carrier coverage, add the AC1021 legacy embedded TABLE/MTEXT FIELD-index
-   and nested-dictionary publication route. Reuse the existing serializers
-   for already supported values. Close with complete source graph identity,
-   strict ASCII/Binary output, fresh ACadSharp readback, destination-preserving
-   refusal, same-adapter retry, and graph/value equivalence. Keep other AC1021
-   releases gated.
+   S34 closes the 258-bit tail inventory: all 42 occurrences are identical,
+   but their final two bits have no qualified meaning. Do not spend more time
+   on this class without new authority; retain these records raw-only. Next
+   bind only metric FIELD 0x3aaf0's first divergence: child[2] flags
+   17302012 (LibreDWG cursor @33.7, type 0 at @34.1) in its 3678-bit frame.
+   Pair the local body/string cursors with the peer trace and next-object map
+   boundary. Try one decode only if the spans and ODA
+   §20.4.76/§20.4.99 agree; otherwise keep that class raw-only and proceed to
+   the one invalid-count candidate and nine AcSm records. Keep this exact
+   hash-bound source as the scope. Preserve all 162 FIELDLIST identities and
+   references; never prune members. After every member has a lossless
+   representation, add the legacy embedded TABLE/MTEXT FIELD-index and
+   nested-dictionary publication route, then close strict ASCII/Binary output,
+   fresh ACadSharp graph/value readback, destination-preserving refusal,
+   same-adapter retry, and graph equivalence. AcVar and imperial-only records
+   do not block this profile; other AC1021 releases remain gated.
 2. **Resume P5-I only on new independent TABLE span evidence.** Use the exact source
    and [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json).
    The ODA, candidate cursor, ACadSharp, standard LibreDWG, and separate
@@ -249,7 +262,7 @@ profiles.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 33 package gates and each implementation/research slice once; the
-  current ledger has 43 recorded completed slices (76 counted items total).
+  current ledger has 47 recorded completed slices (80 counted items total).
   Linux, Windows, and GUI outcomes belong to
   P8-B/C/D and are not separate progress units. A
   partial implementation slice earns activity progress but does not close its
@@ -281,7 +294,7 @@ readback. Each gate adds only its package-specific evidence.
 
 | Priority packet | Work items | Start condition and speed rule |
 |---|---|---|
-| 1 — Source-bound implementation | P5-B | Work only on the hash-bound AutoCAD 2007 metric TABLE source. Start with raw-only AcObjProp.16.2 FIELD 0x3a5be and its 258-bit residual; preserve all 162 FIELDLIST members, then add the legacy TABLE/MTEXT graph bridge. Cross-source inventory and selected-record spans are complete; do not repeat them or pull AcVar/imperial-only carriers into this gate. |
+| 1 — Source-bound implementation | P5-B | Work only on the hash-bound AutoCAD 2007 metric TABLE source. Hold the 42 identical 258-bit tails raw-only; pair local and peer child[2] flag spans on FIELD 0x3aaf0 and its next-object map boundary, then move to the one invalid-count and nine AcSm records. Preserve all 162 FIELDLIST members. Add the legacy TABLE/MTEXT graph bridge only after every member has a lossless disposition. Do not repeat S29/S30 spans, S32 inventory, or S34 tail scan; do not pull AcVar/imperial-only carriers into this gate. |
 | 2 — Independent TABLE evidence wait | P5-I | Resume only when independent alignment/boundary evidence arrives. Reuse the recorded source and traces; do not select RS/BitShort by peer agreement. |
 | 3 — Producer capture batches | P5-D/E/F, P6-A, P4-C, P7-C, P4-B, P6-C | Capture each producer/session once and implement the first qualifying profile immediately. See gate rows for exact source requirements; paired DXF alone does not qualify DWG API state. |
 | 4 — Named authority/source waits | P5-G/H, P6-B/E/F, P7-D/G and remaining dependent gates | Do not repeat broad scans. Resume only on the listed source, versioned authority, or independent reader arriving; keep unrelated work moving. |
@@ -307,7 +320,7 @@ profile-specific semantic proof.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P5-B / ACTIVE_SOURCE_PROFILE_GRAPH_OUTPUT | S29/S30 close source graph/spans for 162 FIELD/FIELDLIST identities and 15 table-linked root/child pairs in the AutoCAD 2007 metric source. S31 shows why output is still correctly refused: 96 records are typed and 66 are raw-only (38 AcObjProp.16.2, 19 AcObjProp, 9 AcSm); all 162 FIELDLIST members are present. The exact TABLEs use embedded-block MTEXT/nested-dictionary links, not TABLECONTENT references. S32's imperial and architectural screens are cross-source inventory only; S33's AcVar/group-98 experiment was reverted and unresolved. Neither expands this target profile. The ODA/LibreDWG group-98 discrepancy stays bounded: current BL has cursor support for the selected 30 TABLE-linked records only. See the [S29 graph/value receipt](docs/research/p5-ac1021-autodesk-field-table-graph-screen-2026-11-17.json), [S30 cursor receipt](docs/research/p5-ac1021-autodesk-field-source-cursors-2026-11-17.json), [S31 readiness receipt](docs/research/p5-ac1021-field-output-readiness-boundary-2026-11-17.json), [S32 carrier inventory](docs/research/p5-ac1021-field-cross-source-carrier-inventory-2026-11-17.json), and [S33 group-98 screen](docs/research/p5-ac1021-acvar-group98-candidate-screen-2026-11-17.json). Do not repeat the existing source inventory or the selected 30 record spans. | Start with raw-only metric FIELD 0x3a5be (AcObjProp.16.2). Bind its 3366-bit object frame, 258-bit local residual, decoded values, and following FIELD 0x3a5bf to ODA §20.4.76/§20.4.99. Fix only a source-proven layout issue; if the residual remains unknown, retain raw-only status and strict refusal. Then handle the remaining metric AcObjProp.16.2, AcObjProp, and AcSm payloads by their actual source spans. AcVar and imperial-only records do not block this profile. Preserve all 162 FIELDLIST members and their references. Do not infer layout from evaluator IDs, batch fallbacks, prune members, or enable partial strict output. After complete carrier coverage, add the legacy embedded TABLE/MTEXT plus nested-dictionary graph publication bridge. Close full identity, strict ASCII/Binary output, fresh ACadSharp graph/value readback, destination-preserving refusal, and same-adapter retry. Keep other AC1021 releases gated. |
+| P5-B / ACTIVE_SOURCE_PROFILE_GRAPH_OUTPUT | S29/S30 close source graph/spans for 162 FIELD/FIELDLIST identities and 15 table-linked root/child pairs in the AutoCAD 2007 metric source. S31 shows why output is correctly refused: 96 records are typed and 66 raw-only; all 162 FIELDLIST members are present. The exact TABLEs use embedded-block MTEXT/nested-dictionary links, not TABLECONTENT references. S32's imperial/architectural inventory and S33's reverted AcVar/group-98 experiment add no prerequisite. S34 classifies 42 raw-only records (23 AcObjProp.16.2, 19 AcObjProp) with the same 258-bit tail, but the final two bits remain unexplained and the records stay raw-only. The other local fallback classes are 14 child-format-flag failures, one invalid child count, and nine AcSm child-count failures. Current BL group-98 evidence remains bounded to the selected 30 TABLE-linked records. See the [S29 graph/value receipt](docs/research/p5-ac1021-autodesk-field-table-graph-screen-2026-11-17.json), [S30 cursor receipt](docs/research/p5-ac1021-autodesk-field-source-cursors-2026-11-17.json), [S31 readiness receipt](docs/research/p5-ac1021-field-output-readiness-boundary-2026-11-17.json), [S32 carrier inventory](docs/research/p5-ac1021-field-cross-source-carrier-inventory-2026-11-17.json), [S33 group-98 screen](docs/research/p5-ac1021-acvar-group98-candidate-screen-2026-11-17.json), and [S34 repeated-tail screen](docs/research/p5-ac1021-metric-field-repeated-tail-2026-11-17.json). Do not repeat inventory, selected-record spans, or the unresolved 258-bit scan. | First pair libdxfrw's body/string cursor around FIELD 0x3aaf0 child[2].format_flags with the peer trace's flags=17302012 at @33.7, type=0 at @34.1, and the following-object map boundary. Attempt one decoder only if those spans and ODA §20.4.76/§20.4.99 agree; otherwise keep that carrier class raw-only and continue to the single invalid-count record and nine AcSm records. Do not infer from evaluator names or peer agreement, prune the 162 FIELDLIST members, or enable partial strict output. Once every member has a lossless representation, add the legacy embedded TABLE/MTEXT FIELD-index and nested-dictionary publication route, then close strict ASCII/Binary output, fresh ACadSharp graph/value readback, destination-preserving refusal, same-adapter retry, and graph/value equivalence. Keep AcVar and imperial-only carriers outside this exact profile; keep other AC1021 releases gated. |
 | P5-D / WAITING_FOR_AC1024_TABLE_WITNESS | Capture one producer-bound AC1024 TABLE with known cell values, format state, linked objects, and native appearance. The bounded [source triage](docs/research/p5-ac1024-table-source-triage-2026-11-17.json) and [writer-profile screen](docs/research/p5-ac1024-acadsharp-writer-profile-screen-2026-11-17.json) need no repeat absent a new source/tool. | Reconcile the source against ODA v5.4.1 §20.4.99; bind spans, roles, references, and next-record boundary before typed implementation. Close with wrong-role/truncation refusal, strict ASCII/Binary output, independent readback, atomic retry, and native appearance. Keep raw fallback strict-output-refused. |
 | P5-E / DEPENDS_ON_P5-D_PROFILE | Reuse P5-D only if it contains Content Format/CELLSTYLEMAP; otherwise capture only this state in that producer session. | Prove format meaning independently; preserve unknown values or refuse lossless output. |
 | P5-F / DEPENDS_ON_P5-D_PROFILE | Reuse P5-D only if it contains TABLE layer overrides; otherwise capture only this state in that producer session. | Trace parse/storage/write/display precedence and compare with native appearance. |
