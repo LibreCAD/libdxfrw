@@ -1,0 +1,185 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-sundemo-sortents-236-source-wire-2026-11-18",
+  "date": "2026-11-18",
+  "status": "EXACT_OPAQUE_FRAME_SOURCE_BITS_AND_INDEPENDENT_TRACE_MATCH",
+  "supportClaimEffect": "none",
+  "gateEffect": "Source-only selected frame evidence; no named-block DXF export or native semantic gate is opened.",
+  "source": {
+    "path": "/private/tmp/libdxfrw-p4d-oda-sundemo/source/sundemo.dwg",
+    "sha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+    "version": "AC1024",
+    "original": "/Users/dli/doc/dwg/visualization_-_sun_and_sky_demo.dwg",
+    "provenance": "Existing local corpus file; original producer and author are not independently authenticated. The source copy is scratch-only and read-only.",
+    "priorOdaOutputObservation": "docs/research/p4-ac1024-sundemo-named-sortents-oda-dxf-observation-2026-11-18.json"
+  },
+  "odaSpecification": {
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.93 SORTENTSTABLE; common non-entity header in section 20.1",
+    "scope": "Count and sort H values in data stream, common parent/reactor links, soft-pointer block owner and soft-pointer entity list in handle stream. Sort keys are values rather than necessarily object identities."
+  },
+  "extraction": {
+    "scratchSource": "/private/tmp/libdxfrw-p4d-oda-sundemo/sortents_raw.cpp",
+    "sourceSha256": "08a11c8ee789a8f377194094f3c0c1aa71b1c23879199fcbe5f03dbaf36b87ca",
+    "compileCommand": "c++ -std=c++17 -O0 -I dwg2dxf -I src /private/tmp/libdxfrw-p4d-oda-sundemo/sortents_raw.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /private/tmp/libdxfrw-p4d-oda-sundemo/sortents_raw",
+    "adapterObjectSha256": "d74f9cc57fb113a05a8e97ac451d3c7c1dc1813e90f1f1450fffe5941cbe54b4",
+    "libraryArchiveSha256": "7d9f57866a409f1461f8058bb9e7e00d80f5861f71c57890b9a5f766514a241a",
+    "extractorBinarySha256": "22e526ca93dc01cb7ad1cc339f576ab9b6c0e0161aca05bf82211c0ada43f3b7",
+    "runCommand": "/private/tmp/libdxfrw-p4d-oda-sundemo/sortents_raw > /private/tmp/libdxfrw-p4d-oda-sundemo/sortents-raw.out 2> /private/tmp/libdxfrw-p4d-oda-sundemo/sortents-raw.err",
+    "errorLogSha256": "03b61e04c3fdec8283d0afb452081ccd0d63d63c6e07fd305f9754fe21bcd51d",
+    "method": "Import the pinned drawing through dx_iface; test-only friend accesses m_opaqueDwgSourceFrames at (importGeneration, 0x236); write its m_rawBytes to a scratch file. The observation reports type 529, 46 object bytes, 214 handle-stream bits, parent 0x200, one reactor, class AcDbSortentsTable and no typed payload validation. It is an opaque raw carrier, not a completed typed source proof.",
+    "rawFrame": "/private/tmp/libdxfrw-p4d-oda-sundemo/sortents-236.bin",
+    "rawFrameSha256": "e7d559d47f3084d2b924e197bb7f77624d9d0456d3477d0c9bbd681b9e1c8c37"
+  },
+  "independentPeer": {
+    "tool": "GNU LibreDWG dwgread 0.14",
+    "executable": "/opt/homebrew/bin/dwgread",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -v5 -O minJSON -o /private/tmp/libdxfrw-p4d-oda-sundemo/sundemo-libredwg-trace.json /private/tmp/libdxfrw-p4d-oda-sundemo/source/sundemo.dwg > /private/tmp/libdxfrw-p4d-oda-sundemo/sundemo-libredwg-trace.stdout 2> /private/tmp/libdxfrw-p4d-oda-sundemo/sundemo-libredwg-trace.log",
+    "exit": 0,
+    "traceSha256": "44b9c4ac7e13e03e4245439af3aae77014783d3fd3acf18a7344779a89ac87a8",
+    "jsonSha256": "540f3848da35ff9302dac62b8d67c57a55c6b9c6651789a7a574d1ecdbc581eb",
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "bitObserver": {
+    "path": "/private/tmp/libdxfrw-p4d-oda-sundemo/sortents_236_bits.py",
+    "sha256": "7b8221f6d09c99cbb8f811bd03b31f99ef0aefee8363852029a914a1e2c976e6",
+    "command": "python3 /private/tmp/libdxfrw-p4d-oda-sundemo/sortents_236_bits.py > /private/tmp/libdxfrw-p4d-oda-sundemo/sortents-236-proof.json",
+    "proofSha256": "501a9b4619e768a706205dbe888208daf4fdae78e4d25f175011789b39644d23",
+    "algorithm": "Verify pinned SHA-256s of source, opaque raw frame and LibreDWG trace; isolate the peer 0x236 decoder block and assert its versioned field values, roles and start offsets. Independently read MSB-first bits of the 46-byte raw carrier: decode BOT type, self handle, empty EED, reactor count, xdict bit, BL count and six code-0 key handles; check no-string footer; decode relative parent, reactor, block owner and six role-4 entity handles with exact field endpoints. Compare every entity/key pair in source wire order with the peer. The matched ODA DXF pairing and block order are independently described in the prior ODA receipt.",
+    "proof": {
+      "sourceSha256": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881",
+      "frameSha256": "e7d559d47f3084d2b924e197bb7f77624d9d0456d3477d0c9bbd681b9e1c8c37",
+      "traceSha256": "44b9c4ac7e13e03e4245439af3aae77014783d3fd3acf18a7344779a89ac87a8",
+      "physicalFrameSizeBytes": 46,
+      "type": 529,
+      "bodyStart": 47,
+      "countSpan": [
+        47,
+        57
+      ],
+      "sortSpans": [
+        [
+          57,
+          73,
+          "A6"
+        ],
+        [
+          73,
+          89,
+          "A4"
+        ],
+        [
+          89,
+          105,
+          "A9"
+        ],
+        [
+          105,
+          121,
+          "A8"
+        ],
+        [
+          121,
+          137,
+          "A5"
+        ],
+        [
+          137,
+          153,
+          "A3"
+        ]
+      ],
+      "noStringFooter": [
+        153,
+        154
+      ],
+      "handleStream": [
+        154,
+        368
+      ],
+      "parent": [
+        154,
+        170,
+        "C.1.36",
+        "200"
+      ],
+      "reactor": [
+        170,
+        194,
+        "4.2.200",
+        "200"
+      ],
+      "blockOwner": [
+        194,
+        218,
+        "4.2.1FF",
+        "1FF"
+      ],
+      "entitySpans": [
+        [
+          218,
+          242,
+          "23C"
+        ],
+        [
+          242,
+          266,
+          "23A"
+        ],
+        [
+          266,
+          290,
+          "23F"
+        ],
+        [
+          290,
+          314,
+          "23D"
+        ],
+        [
+          314,
+          338,
+          "23B"
+        ],
+        [
+          338,
+          362,
+          "240"
+        ]
+      ],
+      "paddingBits": [
+        362,
+        368
+      ],
+      "mutationControls": 64,
+      "bytePrefixTruncationControls": 46,
+      "extraByteRefused": true,
+      "terminalPaddingMutationsAccepted": 6,
+      "scope": "Exact source-bound raw shape and peer field starts/roles only; terminal padding has no asserted semantics, no output or native behavior qualification."
+    }
+  },
+  "negativeControls": {
+    "fieldRoleAndValueSingleBitMutationsRejected": 64,
+    "bytePrefixTruncationsRejected": 46,
+    "extraByteRejected": true,
+    "terminalPaddingMutationsAccepted": 6,
+    "interpretation": "All 46 byte-prefix truncation controls are refused by the exact 46-byte frame-length condition; they do not independently prove a general dynamic-length parser. The six terminal bit changes are accepted intentionally because terminal padding contents have not been qualified as semantic data. No output or retry behavior was exercised."
+  },
+  "adjacentFrameBoundary": {
+    "independentTraceObservation": "LibreDWG v0.14 reports object-map record 195 at trace coordinate 418479, 46-byte body, valid CRC 2AE1 for 418479\u2013418529, then its next record 196 at coordinate 418531 with type 530 and handle 0x237.",
+    "limit": "These are peer decoder coordinates/CRC statements, not independently validated source-file physical offsets. The scratch raw-frame observer checks a fixed extracted payload only and does not decode the framing prefix, CRC, object map, or the following record itself. Thus a complete independently byte-bound adjacent-frame proof is not claimed."
+  },
+  "otherAttempt": {
+    "command": "python3 tools/research/audit_ac1027_source_references.py --executable build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --source /private/tmp/libdxfrw-p4d-oda-sundemo/source/sundemo.dwg",
+    "result": "FAIL: the generic source inventory reports source import/capture incomplete before a summary; this is not a pass. Its diagnostic independently printed the selected libdxfrw span row.",
+    "errorLog": "/private/tmp/libdxfrw-p4d-oda-sundemo/libdxfrw-source-inventory.err",
+    "errorLogSha256": "db0fcb3e2f55e26d5308c24710318c793a2c1227a7acf7b34e578a993dfa7ada"
+  },
+  "limits": [
+    "One exact unauthenticated AC1024 source and one opaque source frame; no broad version, class, graph, producer, native draw-order or output admission claim.",
+    "The source frame itself, output, peer traces and scratch tools are uncommitted and may be ephemeral. Pseudocode and hashes above document their roles; no drawing fixture was committed.",
+    "This does not validate named-block DXF schema acceptance, actual consumer ordering, unrelated dynamic-block dependencies, NOD closure, destination rollback or same-writer retries."
+  ]
+}
