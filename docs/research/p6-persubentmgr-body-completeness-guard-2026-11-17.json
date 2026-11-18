@@ -29,7 +29,7 @@
     },
     "broaderSelector": {
       "selector": "build-gcc/libdxfrw_dwg_reader_matrix_tests --persistent-manager-prefix-dispatch",
-      "result": "FAIL; the new incomplete-body-tail assertion did not report a failure, but three other assertions failed: AC1032 common-handle retry, AC1027 common-handle retry, and TABLECONTENT body-byte-count recovery. These are separately unresolved and prevent treating the combined selector as green."
+      "result": "PASS after S45. The first run exposed two test expectations that treated a softened record-level failure as a failed OBJECTS read, and one TABLECONTENT typed-callback leak for semantically incomplete content. S45 corrected the record-level expectations and guarded the TABLECONTENT callback; see docs/research/p5-tablecontent-semantic-incomplete-callback-guard-2026-11-18.json."
     },
     "postChangeSampleRun": {
       "date": "2026-11-18",

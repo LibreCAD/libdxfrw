@@ -15,14 +15,15 @@ The comparison baseline last checked on 2026-11-17 is libdxfrw
 integration or platform qualification.
 
 **Progress on 2026-11-18:** 6/33 package gates closed; 27 remain. The activity
-ledger is now 67/94 (71.3%): six closed gates and 61 completed implementation
+ledger is now 68/95 (71.6%): six closed gates and 62 completed implementation
 or research slices. S41/S42 screened and traced the local AC1021 PERSUBENTMGR
-candidate; S43 fixed the incomplete-body status classification; S44 added a
-generated incomplete-tail regression and fast selector. The post-change CLI
-trace still stops output on the separate IMAGEDEF gate. None closes P6-B or
-promotes support. Readiness is measured by closed gates (18.2%), not the
-activity percentage. Native Linux, Windows, and GUI checks are counted only
-within P8-B/C/D. Recount after each committed slice or gate transition.
+candidate; S43 fixed incomplete-body status classification; S44 added a
+generated incomplete-tail regression and fast selector; S45 kept semantically
+incomplete TABLECONTENT bodies on the raw-only route. The post-change CLI trace
+still stops output on the separate IMAGEDEF gate. None closes P6-B or promotes
+support. Readiness is measured by closed gates (18.2%), not the activity
+percentage. Native Linux, Windows, and GUI checks are counted only within
+P8-B/C/D. Recount after each committed slice or gate transition.
 
 This file is the active execution queue, not a work diary. Completed slices
 and closed actions have been removed; their receipts are linked only where
@@ -204,6 +205,11 @@ integration pass or a specific failure that expands risk.
 | P4-C / WAITING_FOR_AC1027_PRODUCER_WITNESS | Preferred source remains an AutoCAD 2013/ObjectARX-authored AC1027 drawing and matching R2013 DXF. If that host is unavailable, the documented APS fallback can use AutoCAD 2027's `Autodesk.AutoCAD+26_0` engine and save a separate current-producer profile as AC1027. Autodesk documents the `SweptSurface`/`SweepOptionsBuilder` APIs, AC1027 `Database.SaveAs`/`dxfOut`, and the cloud AppBundle/WorkItem route. See the [ObjectARX/API receipt](docs/research/p4-ac1027-sweep-oda-schema-boundary-2026-11-17.json) and [APS route receipt](docs/research/p4c-aps-autocad-ac1027-witness-route-2026-11-17.json). An APS job has service/quota requirements and may incur cost; do not submit one without authorized credentials and quota. | Generate one compact pair with a baseline/default sweep and one distinct non-default sweep. Capture engine/producer build, app-bundle hash and WorkItem ID, source entities/options before save and after reopening AC1027, handles, geometry, AC1027 magic and DXF `$ACADVER`. Keep the 2027-to-AC1027 profile distinct from AutoCAD 2013. Compare the paired DXF, ODA v5.4.1, and source-bound libdxfrw/LibreDWG traces to bind parent/child spans, embedded LWPOLYLINE body and suffix, handle roles, and next-frame alignment. API/header agreement or ODA round-trip alone cannot close physical spans. Preserve unknown suffix bytes and refuse strict output until spans resolve; then add only the missing truncation/wrong-role control, strict output/readback, corrected retry, and independent geometry check. If neither producer route is available, leave only this gate waiting and continue other work. |
 
 ### P5 — FIELD, TABLE, rendering, constraints (7 open)
+
+S45 fixes a callback-disposition leak for versioned raw-only TABLECONTENT
+profiles: a bounded parse with incomplete semantics now preserves only the raw
+frame. It does not establish the disputed standalone fields, TABLE inline
+layout, or producer semantics; see the [S45 receipt](docs/research/p5-tablecontent-semantic-incomplete-callback-guard-2026-11-18.json).
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|

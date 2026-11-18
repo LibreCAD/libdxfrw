@@ -16421,7 +16421,9 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
                 && truncatedSink.publications.size() == 1u
                 && truncatedSink.publications.front().m_handle
                     == ac1032Sentinel.handle;
-            const bool truncatedRejected = !truncatedRead
+            // Record-level parse failures are softened: the OBJECTS read
+            // itself completes while withholding the bad record.
+            const bool truncatedRejected = truncatedRead
                 && truncatedReader.objectFailures() == 1u
                 && sourceWithheld && sentinelSurvived;
 
@@ -16461,10 +16463,15 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
                 std::cerr << "AC1032 PERSUBENTMGR bounded-shell retry: truncatedRead="
                           << truncatedRead
                           << " failures=" << truncatedReader.objectFailures()
+                          << " sourceWithheld=" << sourceWithheld
+                          << " sentinelSurvived=" << sentinelSurvived
+                          << " truncatedRejected=" << truncatedRejected
                           << " raw=" << truncatedSink.raw.size()
                           << " publications=" << truncatedSink.publications.size()
                           << " correctedRead=" << correctedRead
                           << " correctedFailures=" << correctedReader.objectFailures()
+                          << " correctedRetry=" << correctedRetry
+                          << " correctedTyped=" << correctedSink.typed.size()
                           << " correctedRaw=" << correctedSink.raw.size()
                           << " correctedPublications=" << correctedSink.publications.size()
                           << '\n';
@@ -16744,7 +16751,9 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
                 && truncatedSink.publications.size() == 1u
                 && truncatedSink.publications.front().m_handle
                     == ac1027RawManagerNext.handle;
-            const bool truncatedRejected = !truncatedRead
+            // Record-level parse failures are softened: the OBJECTS read
+            // itself completes while withholding the bad record.
+            const bool truncatedRejected = truncatedRead
                 && truncatedReader.objectFailures() == 1u
                 && sourceWithheld && sentinelSurvived;
 
@@ -16771,12 +16780,15 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
                 std::cerr << "PERSUBENTMGR bounded-shell retry: truncatedRead="
                           << truncatedRead
                           << " failures=" << truncatedReader.objectFailures()
-                          << " raw=" << truncatedSink.raw.size()
-                          << " publications=" << truncatedSink.publications.size()
                           << " sourceWithheld=" << sourceWithheld
                           << " sentinelSurvived=" << sentinelSurvived
+                          << " truncatedRejected=" << truncatedRejected
+                          << " raw=" << truncatedSink.raw.size()
+                          << " publications=" << truncatedSink.publications.size()
                           << " correctedRead=" << correctedRead
                           << " correctedFailures=" << correctedReader.objectFailures()
+                          << " correctedRetry=" << correctedRetry
+                          << " correctedTyped=" << correctedSink.typed.size()
                           << " correctedRaw=" << correctedSink.raw.size()
                           << " correctedPublications=" << correctedSink.publications.size()
                           << '\n';
@@ -17575,6 +17587,19 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
                 && !rawCandidate->m_typedPayloadValidated;
             t.expect(recovered,
                      "body-byte-count candidate stays raw-only and following typed object still publishes");
+            if (!recovered) {
+                std::cerr << "TABLECONTENT raw-only recovery: read=" << read
+                          << " failures=" << reader.objectFailures()
+                          << " tableContent=" << sink.tableContent.size()
+                          << " typed=" << sink.typed.size()
+                          << " raw=" << sink.raw.size()
+                          << " publications=" << sink.publications.size()
+                          << " candidate=" << (rawCandidate != sink.raw.end());
+                if (rawCandidate != sink.raw.end())
+                    std::cerr << " candidateValidated="
+                              << rawCandidate->m_typedPayloadValidated;
+                std::cerr << '\n';
+            }
         }
     }
 }

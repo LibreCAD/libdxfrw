@@ -14950,7 +14950,14 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
               // fallback if this body fails typed decoding.
               dwgBuffer tableContentShellProbe = buff.forkIndependent();
               ret = parseTableEntry(e);
-              if (ret) {
+              // A bounded parser success may still leave semantic fields
+              // unmodeled. Keep those versioned raw-only profiles on the
+              // raw shelf until the TABLECONTENT value model is complete;
+              // see ODA v5.4.1 §20.4.97 for the standalone object fields.
+              const bool publishTypedTableContent = ret
+                  && (!tableContentRawOnlyProfile
+                      || e.m_semanticContentComplete);
+              if (publishTypedTableContent) {
                 intfa.addTableContent(e);
                 intfa.addUnsupportedObject(makeRawObject(oType, cit->second));
               } else if (tableContentRawOnlyProfile
