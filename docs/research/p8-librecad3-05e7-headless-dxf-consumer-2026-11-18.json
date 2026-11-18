@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-librecad3-05e7-headless-dxf-consumer-2026-11-18",
+  "date": "2026-11-18",
+  "status": "PATCHED_CANDIDATE_TWO_GENERATED_DXF_TESTS_PASS",
+  "supportClaimEffect": "none",
+  "gateEffect": "No broad native GUI, unmodified upstream consumer, or drawing support claim.",
+  "consumer": {
+    "repository": "LibreCAD/LibreCAD_3",
+    "candidateCommit": "1ab08f5819f31053d5540b0c3e1259b865b8265d",
+    "upstreamBase": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+    "scope": "Unmerged patched candidate with system ABI-3 integration; not unmodified upstream.",
+    "buildAndDependencies": "docs/research/p8-librecad3-05e7-patched-persistence-load-2026-11-18.json",
+    "testSource": "/private/tmp/librecad3-05e7-clean/unittest/persistence/dxfroundtriptest.cpp",
+    "testSourceSha256": "d763f164a92c3284973a7b53ce08d35ebaaf3f959d1bdcacb8764a68f3095f32",
+    "testSourceChanged": false
+  },
+  "codec": {
+    "commit": "69679cac1c6539746e3a454ea5deebb3816e8d21",
+    "implementationDigestSha256": "05e7cb3341469cc6fcf56c9928a5bb79d164de293334d5fc37c8817ef924fa02",
+    "loadedRuntime": "/private/tmp/libdxfrw-p8a-05e7-shared-prefix/lib/libdxfrw.3.0.0.dylib",
+    "loadedRuntimeSha256": "7a0b42cdae111c7c63f121ab206427bd69a19bfb8953da7c9d32af36e89c3960",
+    "runtimeObservation": "dyld image trace from the actual test process, with DYLD_LIBRARY_PATH, DYLD_FALLBACK_LIBRARY_PATH and DYLD_INSERT_LIBRARIES unset."
+  },
+  "environment": {
+    "os": "macOS 27.2.1 (26B131)",
+    "architecture": "arm64",
+    "compiler": "AppleClang 21.0.0.21000334",
+    "testFramework": "locally installed Google Test 1.18.0",
+    "dependencies": "locally installed Boost; no dependencies or fixture files downloaded."
+  },
+  "commands": {
+    "build": "/usr/bin/c++ -std=c++17 -O0 -Wno-missing-template-arg-list-after-template-kw -DBOOST_ALL_DYN_LINK -DUSE_DWG_IMPORT=1 -DUSE_PERSISTENCE=1 -DUNITTEST_FIXTURES_DIR=\\\"/private/tmp/librecad3-05e7-clean/unittest/persistence/fixtures\\\" -I/private/tmp/librecad3-05e7-clean -I/private/tmp/librecad3-05e7-clean/lckernel -I/private/tmp/librecad3-05e7-clean/lckernel/tinyspline/src -I/opt/homebrew/include/eigen3 -isystem /opt/homebrew/include /private/tmp/librecad3-05e7-clean/unittest/persistence/dxfroundtriptest.cpp -o /private/tmp/librecad3-05e7-focused-tests -Wl,-rpath,/private/tmp/librecad3-05e7-build/persistence -Wl,-rpath,/private/tmp/librecad3-05e7-build/lckernel /private/tmp/librecad3-05e7-build/persistence/libpersistence.dylib /private/tmp/librecad3-05e7-build/lckernel/liblckernel.dylib /opt/homebrew/lib/libgtest_main.a /opt/homebrew/lib/libgtest.a /opt/homebrew/lib/libboost_filesystem.dylib > /private/tmp/librecad3-05e7-focused-build.log 2>&1",
+    "run": "env -u DYLD_LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH -u DYLD_INSERT_LIBRARIES DYLD_PRINT_LIBRARIES=1 /private/tmp/librecad3-05e7-focused-tests --gtest_filter='DxfRoundTripTest.AsciiRoundTripStaysAscii:DxfRoundTripTest.ThreeDimensionalSegmentSurvivesRoundTrip' > /private/tmp/librecad3-05e7-focused-tests.log 2> /private/tmp/librecad3-05e7-focused-dyld.log"
+  },
+  "buildFlagProvenance": "The first direct compile omitted -Wno-missing-template-arg-list-after-template-kw and failed on the existing nano-signal-slot template syntax. The successful command uses the same specific flag as the candidate's existing CMake-generated focused-test flags; no -Wno-error flag was added. This builds the unchanged existing test source directly in scratch.",
+  "results": {
+    "testsPassed": 2,
+    "testsFailed": 0,
+    "testsSkipped": 0,
+    "tests": [
+      {
+        "name": "DxfRoundTripTest.AsciiRoundTripStaysAscii",
+        "scope": "Creates minimal 2D LINE ASCII DXFs for AC1009, AC1014, AC1015 and AC1027, opens and saves them, checks output remains ASCII and verifies expected layer-lineweight loss reporting for AC1009/AC1014. It does not reopen the saved output."
+      },
+      {
+        "name": "DxfRoundTripTest.ThreeDimensionalSegmentSurvivesRoundTrip",
+        "scope": "Creates a 3D LINE from (1,2,3) to (7,11,13), saves AC1015 DXF, reopens it, and checks all endpoints and z bounding-box values."
+      }
+    ],
+    "testBinary": "/private/tmp/librecad3-05e7-focused-tests",
+    "testBinarySha256": "f74f7a9be7c6dd6d8c134799a43b5f5869b905e2631d58325c3297ef4d885e74",
+    "buildLog": "/private/tmp/librecad3-05e7-focused-build.log",
+    "buildLogSha256": "e829c3ff34a5c499780941424117d05e32abd73f1373b5d14d6158a3e4a9aefc",
+    "testLog": "/private/tmp/librecad3-05e7-focused-tests.log",
+    "testLogSha256": "004323fad133e5dcf44bcb4c25055376f2a9ef0a92d0d67e9b5f0e2e2a5e0953",
+    "dyldLog": "/private/tmp/librecad3-05e7-focused-dyld.log",
+    "dyldLogSha256": "26def8f0b960649314eb2f80e64da93a1dcadf48a8d847485db237f8c3f26623"
+  },
+  "limits": [
+    "The 2D open/save and 3D save/reopen are separate tests; the 2D case does not prove reopen or full geometry preservation.",
+    "These generated files and tests do not establish native GUI behavior, external producer semantics, DWG support, full application behavior, complete ABI compatibility, or Linux/Windows qualification.",
+    "No GUI was launched; no fixture downloaded or committed; no user checkout or product source was modified. Scratch artifacts may be ephemeral."
+  ]
+}

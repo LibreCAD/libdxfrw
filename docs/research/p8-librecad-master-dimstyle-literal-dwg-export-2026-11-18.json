@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "LibreCAD master DXFRW default DIMSTYLE overload and DWG export",
+  "date": "2026-11-18",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "repository": "https://github.com/LibreCAD/LibreCAD",
+    "verifiedMasterCommit": "7396a1d4adefa4625b0388dee6b3493819fa8819",
+    "originalFilterSha256": "17f3f6782898081054adff58fd02da4ecbdd0e4d0d709174f3fafc9ad90a4be6",
+    "scope": "Disposable clean source clone in /private/tmp, with scratch system-package CMake integration and existing SHP/JWW public-codepage compatibility patch. The user's LibreCAD checkout is untouched.",
+    "scratchIntegrationPatch": "docs/patches/librecad-master-7396-shared-build-scratch-2026-11-18.patch",
+    "scratchIntegrationPatchSha256": "5a1179c6ac6c662887946be7a43009fc34837d90f19ee2530befdd4dde7fcdea",
+    "scratchIntegrationLimit": "The preserved scratch patch is a host-path-specific build override, not a proposed production integration; its CMake paths require adjustment elsewhere. It includes SHP/JWW changes from docs/patches/librecad-p8-installed-legacy-codepage-2026-11-15.patch (SHA-256 3194f32159efc5d289e501b555d4c1ddffa333e41bc7825f290bd603e7b6d907) and applies cleanly to the pristine 7396 index.",
+    "host": "macOS 27.2.1 build 26B131 ARM64; Apple clang 21.0.0; Qt 6.12.0; CMake 4.4.5"
+  },
+  "package": {
+    "libdxfrwCommit": "69679cac1c6539746e3a454ea5deebb3816e8d21",
+    "implementationDigestSha256": "05e7cb3341469cc6fcf56c9928a5bb79d164de293334d5fc37c8817ef924fa02",
+    "unmodifiedSharedLibrarySha256": "7a0b42cdae111c7c63f121ab206427bd69a19bfb8953da7c9d32af36e89c3960",
+    "loaderEvidence": "Original scratch full app SHA-256 1cc19bbd9fc1c16d0cb927a2ba0fb09e6fe23bb525faf1a82108c7ad9528641d ran its own headless dwg2dxf --help with loader overrides cleared; dyld recorded the private installed unmodified library. Loader log SHA-256 1d78160371e5335903d78cada9a83c01d203ab55d026682b68a394cd2c4d2504. The app was later rebuilt with diagnostic instrumentation and the one-line fix; it is a different binary."
+  },
+  "failure": {
+    "input": "Tracked tests/fixtures/dxf/ac1015_lwpolyline_freecad_control.dxf, SHA-256 ccc9d3c55e0860e93ab7e1cb3d7704221b2fdd8100c468012972d11c1b8760ed",
+    "command": "<built-LibreCAD> dxf2dwg --dwg-version r2000 -o <scratch>/fixture-output.dwg <tracked-control.dxf>",
+    "originalResult": "Exit 1, no output DWG; console reported failed export. A separately scratch-created minimal R2000 LINE DXF also failed, which alone is not a general format conclusion.",
+    "originalLogSha256": "9d9ef3e827464dd9d6656c5c433111c99f42ff390a4416153c6b89d72a34791a",
+    "sourceMatchedDiagnostic": "A scratch-only console warning and filter getLastDiagnostic print retained the original shared package and reproduced error 2 BAD_OPEN, code dwg-header-handseed, message DWG HEADER handseed finalization failed, filterFailed=0 and zero skips. BAD_OPEN alone does not identify an open failure.",
+    "sourceMatchedDiagnosticLogSha256": "9b0aad4e22f82148558e7401f1f98b5d04e9f2a130ef17904acbab6fabd3ac29",
+    "instrumentedLibraryDiagnostic": "A separate instrumented scratch dylib showed HEADER current-reference planning saw $DIMSTYLE with group 2 and DRW_Variant::INTEGER; the versioned writer requires a STRING. Instrumented dylib SHA-256 df9c716d29b8150094333ae4283236d0dee8216843afc2147f90fe624a66c3db, loader/diagnostic log SHA-256 2477521a70eb2623858ee4c04de50e66034bca7109b239163317c7575e653c9d. This debug dylib is not the source-matched package used for the successful retry.",
+    "cause": "RS_FilterDXFRW::fileImport passes the literal \"Standard\" to overloaded RS_Graphic::addVariable. The standard conversion from const char* to bool is preferred over conversion to QString, so the boolean overload stores an integer instead of the intended DIMSTYLE string."
+  },
+  "patch": {
+    "path": "docs/patches/librecad-dxfrw-default-dimstyle-qstring-2026-11-18.patch",
+    "sha256": "3eccdce3cd32b8fbc837485986513eb7fa973edc38e84ff7efaddc68c96174b7",
+    "change": "Only the confirmed DXFRW default is changed to QStringLiteral(\"Standard\"); writer validation remains intact. An existing DXF-to-DWG consumer test source gains a focused regression for the stored value, type, group, R2000 export and readback.",
+    "applyCheck": "git apply --cached --check against the clean LibreCAD master 7396 index: PASS. The patch has not been applied to the user's checkout or submitted upstream.",
+    "otherSites": "A literal-call search also found rs_filterdxf.cpp and rs_filterjww.cpp. Their paths were not dynamically demonstrated and are excluded from this narrowly scoped patch."
+  },
+  "correctedRetry": {
+    "consumerBinarySha256": "a7df54fa022bc52d7f90fceb9e33eb6ae148afe2eaa1e291ad2470f0d7ba854d",
+    "consumerInstrumentation": "The tested scratch app includes the one-line fix, warning-level console logging and a structured failure print, plus the separate system-package integration and SHP/JWW compatibility patch. Its complete scratch diff SHA-256 bab2745372b09c673648c27c2b61347ea7d6e493995cc99f0f7766d58181600a. The linked runtime is the uninstrumented shared package above.",
+    "result": "The original tracked control now converts to the same previously failing scratch destination with exit 0; output magic is AC1015. An intentionally missing DIMSTYLE control refused and preserved a seeded destination; a subsequent separate CLI invocation using the corrected tracked input wrote successfully to that same destination. This is separate-process retry, not same-adapter retry.",
+    "successLogSha256": "23bf4c8b5fe6e0ed34597f9d42baf12e1d52947cfc3819802c7d0e15cea012e3",
+    "negativeLogSha256": "8e9cdfd132312c784a4f7822b0d47663bb314ea68dd969f4b30c15d45afc09d7",
+    "retryLogSha256": "c302ae1e26054de90fab2904065fc17fec59b463312062bafa9b10056d7588a3",
+    "outputDwgSha256": "228d9bfbfbcb99c9093cc0872dc895ada8e04f04bbcc42bd0470a57edd87f213",
+    "independentReadback": "GNU LibreDWG dwgread 0.14 -O minJSON returned success and reports one LWPOLYLINE with the source-matching vertices (0,0), (4,0), (4,3), (0,3). JSON SHA-256 a5c5530a7d07843c2fa35a127a9bff3e1b555da98181fbaa824862fe4326b3d2. This is a selected geometry check, not complete semantic equivalence."
+  },
+  "automatedRegression": {
+    "source": "librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp",
+    "sourceSha256": "8b8daeb78cb6b80afa0f87d92eda0da04ceee6d3b943c93575444abfecaaef1c",
+    "scope": "Generated, locally constructed DXF without a DIMSTYLE header is imported through RS_FilterDXFRW. The test asserts the actual variable type is VariableString, group is 2 and value is Standard; it exports R2000 DWG, reimports it and checks the original LINE coordinates.",
+    "scratchBuild": "The existing full system-package candidate library was reused; a scratch-only micro target links the test translation unit, test settings isolation and Catch2 against that library and the uninstrumented shared libdxfrw package. This extra target is not part of the proposed patch.",
+    "buildCommand": "cmake --build /private/tmp/librecad-p8f-7396-full-build --target scratch_dimstyle_regression -j4",
+    "runCommand": "env -u DYLD_LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH /private/tmp/librecad-p8f-7396-full-build/scratch_dimstyle_regression '[dimstyle-default]' --reporter compact",
+    "red": "Before the later QFile portability-only change, restoring the original literal produced exit 42 and three failed assertions: integer rather than string type, missing Standard string, and refused DWG export. Log SHA-256 1340dfa0480922add66b80d533908f882c885dcac4ddb842d32db62c40ce82a6. The red run was not repeated after changing only test-file creation.",
+    "green": "After changing test-file creation to QFile, the QStringLiteral fix passed 15/15 assertions in one test case. Log SHA-256 b8034741828e596c21450dd194f3bb052cb96096e48c370a595cb76eada79ae6; executable SHA-256 f7a17cb9f45b4824f8f250f75b451aab5989a3fa963fc1cb799c3eb48bba144b.",
+    "limit": "QFile creates the input using its QString path; existing import/export helper conversions are unchanged, and Windows/non-ASCII temporary paths were not tested. The test uses a scratch integration candidate and same-library DWG readback; the separate independent LibreDWG check above uses the tracked LWPOLYLINE control. This is not a full consumer suite, GUI or same-adapter failure/retry test."
+  },
+  "limits": [
+    "One generated tracked input and one malformed scratch derivative; no new DWG/DXF fixture is committed.",
+    "No full native GUI, LibreCAD_3, Linux/Windows, downstream patch submission, broad application suite, same-adapter transaction or producer-authored DWG claim is established.",
+    "The separate two literal-overload call sites and other possible dynamic-string paths remain outside this result."
+  ]
+}
