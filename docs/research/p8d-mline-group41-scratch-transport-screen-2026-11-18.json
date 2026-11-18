@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-mline-group41-scratch-transport-screen-2026-11-18",
+  "date": "2026-11-18",
+  "status": "ADVISORY_POSITIVE_SAMPLE_WITH_RELEASE_BLOCKERS",
+  "supportClaimEffect": "none",
+  "scope": "Scratch-only experiment retaining the selected AC1018 planar MLINE group-41 profile through LibreCAD headless import and unchanged AC1018 ASCII export. No patch is released and no drawing is committed.",
+  "reference": "docs/research/p8d-mline-group41-implementation-readiness-2026-11-18.json",
+  "inputs": {
+    "sourceDwgSha256": "4b0aa7336fbf71491653fdcf3f8fa58d325817fa1997987e4896275d5392f544",
+    "ascii": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/selected-mline/libdxfrw-mline-ac1018-ascii.dxf",
+    "asciiSha256": "dd7b814c5314bebddb19c9e2f9ea02afc551dd361a7b5e4f892e0b56cab360b9",
+    "binary": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/selected-mline/libdxfrw-mline-ac1018-binary.dxf",
+    "binarySha256": "6aa63d331b627c32f38aaf6ecac6e8e862dbc4d7370b033df798e001512af750",
+    "profile": "One open, top-justified, six-vertex, two-element planar MLINE; scale=1, style STANDARD, unit miters, group-41 pairs [distance,0], empty group-42, no MLINE XDATA. Scope and per-vertex signed values are detailed in the reference receipt."
+  },
+  "prototype": {
+    "consumerBase": "LibreCAD scratch checkout d9c0ae435ed5892611d6bec3c628033004dbcaf4 with the independently reviewed deferred-style and closure scratch candidates applied",
+    "source": "/private/tmp/librecad-mline-group41-prototype/rs_filterdxfrw.cpp",
+    "sourceSha256": "9a42abb0c8a550809cb89cc836bfed2ee2532f899fb80bdf2e958a8cd7916e66",
+    "header": "/private/tmp/librecad-mline-group41-prototype/rs_filterdxfrw.h",
+    "headerSha256": "cd3cdd5906369cc97b8b65531706e34b1fca4c10fad9de570156afb1fac5a7e2",
+    "object": "/private/tmp/librecad-mline-group41-prototype/rs_filterdxfrw.cpp.o",
+    "objectSha256": "370adb1f10136ecfe1445fe839d5cf2d18fcdc34429bc305eff0638a95c748ce",
+    "isolatedArchive": "/private/tmp/librecad-mline-group41-prototype/liblibrecad_lib.a",
+    "archiveSha256": "1af42859ba8c4b545496ecaa182308467b4c0a4a24db61b6cf1f23e95e771c79",
+    "isolation": "Compiled only the prototype filter object using existing consumer librecad_lib compiler flags and replaced its member in a private copy of the matching closure archive; prototype header matches the closure header so no class layout changes are introduced. The normal shared archive was not modified.",
+    "sketch": "For one bounded late-style DXF profile, retain per-vertex direction and one two-value group-41 list per vertex and element. Emit per-vertex geometry using the first signed 41 without reapplying scale. Encode a separate LibreCAD_MLINE_V2 marker; validate fixed counts and fields for this profile and reconstruct group-41 pairs and directions only on AC1018 DXF export.",
+    "scopeLimitation": "The implementation is advisory and intentionally not a proposed or released patch; the safety and edit/identity cases listed below are unresolved."
+  },
+  "build": {
+    "compileCommand": "python3 /private/tmp/librecad-mline-group41-prototype/build.py",
+    "compileScriptSha256": "5a70347664e1e24bcef86c8d3eff3c41ec69d38d780ed8a2d75917c2e1b45d2b",
+    "linkCommand": "python3 /private/tmp/librecad-mline-group41-prototype/build_save_probe.py /private/tmp/librecad-mline-group41-prototype/liblibrecad_lib.a",
+    "linkScriptSha256": "1df951a5c4d62cdfa4ea45c0c75acb730b69ba8a8fda737d13b95947d63f4bab",
+    "probeSource": "/private/tmp/librecad-mline-group41-prototype/save_probe.cpp",
+    "probeSourceSha256": "e6b548d89cf3345bd927ba858ce415307bdcdf3684294867bc26c9b1a187a7e7",
+    "probeSha256": "3c12e2eb6472e4b1e0d8cbd9d875b93614efb58ee87e41e569c4524e5b38e91a"
+  },
+  "tested": {
+    "commands": [
+      "/private/tmp/librecad-mline-group41-prototype/save_probe /private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/selected-mline/libdxfrw-mline-ac1018-ascii.dxf /private/tmp/librecad-mline-group41-prototype/attempt2-ascii.dxf",
+      "/private/tmp/librecad-mline-group41-prototype/save_probe /private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/selected-mline/libdxfrw-mline-ac1018-binary.dxf /private/tmp/librecad-mline-group41-prototype/attempt2-binary.dxf",
+      "PYTHONPATH=/private/tmp/p8-ezdxf-oracle python3 /private/tmp/librecad-mline-group41-prototype/compare.py"
+    ],
+    "saveResults": "Each command returned 0; each imported two polylines, wrote AC1018 ASCII DXF, and fresh LibreCAD import returned two polylines. Both logs report a duplicate source handle shared by the projected entities, so reference behavior must not be inferred from the success status.",
+    "logs": {
+      "asciiSha256": "58e268cd12e8df35c747c360964f55fdf5aceb96d4032ee9e0abbe89fbcf29ef",
+      "binarySha256": "58e268cd12e8df35c747c360964f55fdf5aceb96d4032ee9e0abbe89fbcf29ef",
+      "comparisonSha256": "042b7369603697621f026563f2746b0fcfc877b8e387e8277914c46bbe8e0858"
+    },
+    "comparisonScriptSha256": "67eb7b630c195c43af684d424aa2aa1e655f5fcf80fe59c0e9987e25711055dc",
+    "independentReader": "ezdxf 1.4.5, loaded using PYTHONPATH=/private/tmp/p8-ezdxf-oracle",
+    "comparison": "Both fresh outputs contain exactly one MLINE with flags 1, no XDATA, scale 1, top justification and a group-340 reference resolving to the STANDARD MLINESTYLE with flags 0 and offsets +0.5/-0.5. All six vertex positions, six segment directions, six miter directions, 12 group-41 pairs and empty group-42 lists agree within the comparison tolerance 1e-12. Both fresh output byte hashes are b51962d2010d6246702ec77a8a6376b6d87119d3176969eb89a0f40bb317655f.",
+    "maxObservedErrors": {
+      "position": {
+        "absolute": 3.552713678800501e-15,
+        "ulp": 2
+      },
+      "segmentDirection": {
+        "absolute": 5.551115123125783e-17,
+        "ulp": 3
+      },
+      "miterDirection": {
+        "absolute": 5.551115123125783e-17,
+        "ulp": 1
+      },
+      "group41": {
+        "absolute": 4.440892098500626e-16,
+        "ulp": 2
+      }
+    },
+    "precisionLimit": "The existing ASCII writer changes some binary64 values by a few ULP. These outputs are tolerance-matched, not bit-exact. No global formatter was changed.",
+    "compiledGuardStatus": "The exact source and object hashes above include finite projected-coordinate, bounded V2 list parsing, and V2-to-V1 extra-field refusal changes. The two positive cases were rerun after those changes. No negative corruption, overflow, downgrade, style-edit or retry control was run for this prototype; static guards are not reported as tested."
+  },
+  "independentReviewBlockers": [
+    "Prove that the unique unchanged MLINESTYLE is the actual provider emitted by DXF, including raw/typed deduplication, style edits/deletion/duplicates, handle collision and remap; the one positive output does not establish that proof.",
+    "Require a source-backed direction/miter relationship and nondegenerate baseline; reject malformed zero/wrong directions, duplicate vertices, overflow and invalid topology with focused controls.",
+    "Before collapsing siblings into an MLINE, validate matching layer/pen/visibility and individually linear, finite, continuous segment endpoints. An edited sibling, arc replacing a segment or disconnected segment must remain visible fallback or strict refusal.",
+    "The input guard checks MLINE XDATA emptiness but does not yet prove absence or safe retention of arbitrary appData, reactors, extension dictionary/common references, owner/space state, or duplicated source-handle remaps. Source XDATA on other profiles is outside this screen.",
+    "Exercise V2 marker tampering/downgrade, extra unrelated APPID/XDATA, mismatched versions and unsupported targets, old v1 compatibility, import/save/reopen, seeded-destination safety and corrected same-filter retry. Verify fallback really retains unrelated data and registers APPID.",
+    "This selected profile has no cuts, fill or native caps and default 2D plane. Do not widen to 3D, non-default/negative scale, cuts, fills, transformed/cloned/edited sidecars or general versions without independent semantic and native evidence."
+  ],
+  "next": "Keep this prototype outside the release tree. First add focused negative tests for the four identity/topology/presentation/common-reference blockers and define a unique style-provider/remap invariant that can be checked on the actual output path; only integrate once each passes along with ASCII/Binary import, save/readback, refusal/retry and the stated precision policy.",
+  "limits": [
+    "The independent comparison measures structured serialized fields, not native AutoCAD interpretation or GUI rendering.",
+    "The local scratch paths are ephemeral. No external drawing fixture was added and no support claim was promoted."
+  ]
+}

@@ -32,6 +32,20 @@
       "/private/tmp/librecad-p8d-mline-closure-green.log": "265cf4334931eaee85c9fb86a5db671959262525743b0be3d76c2e187a9d4891",
       "/private/tmp/librecad-p8d-mline-closure-neighbors.log": "f9390f2e8a137ddb8e7f9571c669a73a6bef42b44815de36cefbdac6143102fa",
       "/private/tmp/librecad-p8d-mline-closure-probe.log": "59fad3189c68e08f20169d9a680aa50d2a3a16e8af71b84c1b329f4f2a23eca4"
+    },
+    "directCallback": {
+      "result": "417 focused assertions passed in a scratch-only test copy including an already-available style and immediate projection. Both setup encodings and all eight flag combinations give correct closure and segment counts.",
+      "testSourceSha256": "22b07848d15cf22496c09f8e79de998b7c22542d5b487c3e1b92ba9231b6480e",
+      "logSha256": "258becb86b1b9bd51ad8805f33fc2ddd3a3e1b98b03410f24a5897669eb09a07",
+      "scope": "Direct consumer callback exercise; no DWG source or native rendering."
+    },
+    "sanitizedLifetimeReplay": {
+      "command": "python3 -B /private/tmp/librecad-p8d-mline-sanitized-PDIW3n/build_run.py",
+      "instrumentation": "Clang 21 ASan/UBSan on the changed filter translation unit and headless test driver, in a private copy of the archive. Other vendor, consumer and codec objects were reused uninstrumented.",
+      "result": "PASS: all nine focused cases, including discarded *D, partial import, and filter reuse. Exit 0 with no sanitizer diagnostic in the recorded log.",
+      "buildScriptSha256": "7f477fb10fbf433765dc26177d1e1158af72486cdf26953a3007bfe2f2c0887c",
+      "exeSha256": "5c1d5982106595dba9f074b9568fb3bf173fda54b407ef2b7df89e9c5f118b5d",
+      "runLogSha256": "59fad3189c68e08f20169d9a680aa50d2a3a16e8af71b84c1b329f4f2a23eca4"
     }
   },
   "remaining": [
