@@ -1,0 +1,120 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-candidate-native-freecad-qualification-2026-11-18",
+  "date": "2026-11-18",
+  "title": "Source-matched native and FreeCAD qualification for the generated consumer profile",
+  "status": "NATIVE_AND_FREECAD_PROFILE_PASS_FAST_GATE_STILL_OPEN",
+  "candidate": {
+    "repository": "dxli/libdxfrw",
+    "commit": "f0f87e7f9f93a040e38da8ca6424ef55abcca76e",
+    "pullRequest": "LibreCAD/libdxfrw#106"
+  },
+  "supportClaimEffect": "none",
+  "packageGateEffect": "P8-B and P8-C closed for the exact generated consumer profile below; P8-F remains open because the fast regression job failed and branch-protection state is unavailable",
+  "activityLedgerEffect": "two package gates closed; no support claim promoted",
+  "nativeQualification": {
+    "runId": 44259323731,
+    "runUrl": "https://github.com/LibreCAD/libdxfrw/actions/runs/44259323731",
+    "workflowContract": "PASS",
+    "focusedChecksPerPlatform": 7,
+    "broadSuite": "skipped by the bounded focused profile",
+    "extendedFuzz": "skipped by the bounded focused profile",
+    "platforms": [
+      {
+        "name": "macos-clang",
+        "jobId": 134648682779,
+        "result": "PASS",
+        "receiptSha256": "8c5d064556f7c0cf2ab900031ff62df7da078ecb3673731a853190136f342b32"
+      },
+      {
+        "name": "windows-msvc",
+        "jobId": 134648682870,
+        "result": "PASS",
+        "receiptSha256": "52d5aa334160b94c88ebf413259feaa17d4ead8cf045fa8056260a54049f6e94"
+      },
+      {
+        "name": "linux-gcc",
+        "jobId": 134648682887,
+        "result": "PASS",
+        "receiptSha256": "9b2b9b066adeb592e5699a8ab7873c1738dd1c79ea2802503d35665f6b19c01a"
+      }
+    ]
+  },
+  "freecadConsumerQualification": {
+    "runId": 44259313393,
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44259313393",
+    "freecadVersion": "1.1.4",
+    "legacyDxfImporter": {
+      "repository": "yorikvanhavre/Draft-dxf-importer",
+      "commit": "e060ef0d8fe7143c2e0ce34734b686ba073f3cc1",
+      "reportedVersion": "v1.42 - 2023.12.04"
+    },
+    "platforms": [
+      {
+        "name": "Linux x86_64",
+        "jobId": 134648525788,
+        "result": "PASS",
+        "testsPassed": 16,
+        "testsFailed": 0,
+        "freecadAssetSha256": "f6dc6ba676e5ac96a565ebc8d657232f94c6158e85b4352141bd1a46f6b43434",
+        "installedDwg2dxfSha256": "bb255dcfd0e42f15e8c2e649a7c595ab06b5c156dcf1edb83318a4bfa8e7a722",
+        "artifactId": 14408270046,
+        "artifactSha256": "65e955649082d5d8ea5f7952f76c64e45372bd6fa91f71994fe82a043ac2d1d1"
+      },
+      {
+        "name": "Windows x64",
+        "jobId": 134648525333,
+        "result": "PASS",
+        "testsPassed": 17,
+        "testsFailed": 0,
+        "freecadAssetSha256": "4828741fc91ee37fafcdb97a1abacb18b04ba451ac4372d9ff7a7349b36f4d6d",
+        "installedDwg2dxfSha256": "0efa2f3b678ccb339813b8c4a1d3f28bc038017bb5fad6a567b61661e71cefb5",
+        "artifactId": 14408285068,
+        "artifactSha256": "44f1149a1a8b34c7c8dbd27b2d126633d0421f7ae5b8993e567be9aa3f41b927"
+      }
+    ],
+    "selectedControls": [
+      "FreeCAD CLI and installed converter compatibility",
+      "generated AC1021 LINE open/insert",
+      "generated AC1021, AC1024, and AC1032 primitive open/insert",
+      "generated AC1021, AC1024, and AC1032 legacy POLYFACE open/insert",
+      "Windows batch output names"
+    ],
+    "legacyImporterSemanticChecks": {
+      "polyfaceFacets": 2,
+      "polyfaceBounds": [121.0, 122.0, 1.0, 124.0, 126.0, 8.0],
+      "polyfaceFaceArea": 20.784609690826525,
+      "solidSurfaceArea": 12.0,
+      "threeDfaceSurfaceArea": 20.784609690826525,
+      "units": "generated controls assert $INSUNITS=4 and $MEASUREMENT=1"
+    },
+    "fixturePolicy": "The DWG/DXF controls are generated locally at runtime; no new drawing fixture was committed."
+  },
+  "boundedGateDecision": {
+    "closed": [
+      "P8-B: native Linux FreeCAD for this generated consumer profile",
+      "P8-C: native Windows FreeCAD for this generated consumer profile"
+    ],
+    "profileLimit": "These jobs establish handoff and consumer behavior for the listed locally generated controls. They do not establish producer-authored DWG wire semantics, broad source-file interoperability, or general 3D support. Newly admitted source-derived profiles require their own platform rows.",
+    "notClosed": ["P8-A", "P8-D", "P8-E", "P8-F", "P8-G"]
+  },
+  "branchProtection": {
+    "result": "PARTIAL_PROTECTION_SUMMARY_RECORDED",
+    "branch": "LibreCAD/libdxfrw:master",
+    "branchObject": {
+      "protected": true,
+      "protectionEnabled": true,
+      "requiredStatusChecksEnforcement": "everyone",
+      "requiredStatusCheckContextsReturned": [],
+      "requiredStatusChecksReturned": []
+    },
+    "rulesetsReturned": [],
+    "detailEndpoint": "The direct branch-protection endpoint returned HTTP 403 to the connected GitHub integration.",
+    "effect": "Record the observed summary without inferring that no checks are required. P8-F remains open for the fast regression; do not retry branch-protection reads unless the connection or permission state changes."
+  },
+  "limits": [
+    "Focused native and FreeCAD results apply only to the exact commit, builds, binaries, platform, and selected generated operations recorded above.",
+    "The native broad suite and extended fuzz jobs were intentionally skipped; a single broad integration pass remains for the frozen release candidate.",
+    "No support claim or DWG/DXF profile is promoted by these consumer and build checks."
+  ]
+}

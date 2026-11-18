@@ -14,33 +14,33 @@ The comparison baseline last checked on 2026-11-17 is libdxfrw
 `84e73f0188fb32bb1fffb8d4d1edb4135543ba18`. Refresh moving heads before
 integration or platform qualification.
 
-**Progress on 2026-11-18:** 6/33 package gates closed; 27 remain. The activity
-ledger is 78/105 (74.3%): six closed gates and 72 completed implementation or
-research slices. Gate readiness is 18.2%; activity progress does not imply
-support. The completed PERSUBENTMGR safety slice keeps class-specific DXF data
-raw-only; the issue #1021 sample-pair screen found no known nonzero member
-witness, so P6-B remains open. See the [raw-only disposition](docs/research/p6-persubentmgr-raw-only-dxf-disposition-2026-11-18.json)
-and [sample/API screen](docs/research/p6-persubentmgr-libredwg-issue-1021-corpus-screen-2026-11-17.json).
-The current candidate also passes the focused macOS FreeCAD AC1021/AC1024/AC1032
-open/insert smoke; it closes no native Linux/Windows package gate. See the
-[consumer receipt](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json).
-The source-matched fast CI run exposed one omitted private header in the source
-inventory. That correction passes locally. A subsequent focused macOS
-qualification stopped before running CTest cases because five recent test
-registration changes had left the frozen test-name inventory stale. The
-inventory is now regenerated from a clean tracked checkout with the hosted
-profile (1,389 names); the focused macOS run passed all seven checks. Receipt
-generation then exposed a stale implementation digest, now refreshed from the
-same clean tracked candidate. The [source-inventory receipt](docs/research/p8-fast-ci-dwgappinfo-source-inventory-fix-2026-11-18.json),
-[CTest-inventory receipt](docs/research/p8-current-native-inventory-realignment-2026-11-18.json),
-and [digest-refresh receipt](docs/research/p8-native-status-digest-refresh-2026-11-18.json)
-record the distinct causes. Source-matched reruns remain pending.
-After the user's latest reported unlock, a fresh `screencapture` attempt still
-failed and CoreGraphics reported zero active displays for this process. This
-does not establish the physical login state or capture permissions and closes
-no gate. The retry is recorded in the [P8-D preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json).
-Native Linux, Windows, and GUI outcomes count only within P8-B/C/D. Recount
-after each committed slice or gate transition.
+**Progress on 2026-11-18:** 8/33 package gates closed; 25 remain. The activity
+ledger is 80/105 (76.2%): eight closed gates and 72 completed implementation
+or research slices. Gate readiness is 24.2%; activity progress does not imply
+support. P8-B/C are closed only for the exact locally generated FreeCAD
+consumer profile in the [candidate qualification
+receipt](docs/research/p8-candidate-native-freecad-qualification-2026-11-18.json).
+The same source candidate passes seven focused native checks on Linux, macOS,
+and Windows. Native FreeCAD 1.1.4 passes 16/16 Linux and 17/17 Windows
+checks. These bounded results do not promote DWG/DXF support claims.
+
+The current source-matched fast workflow passes its source/build inventory and
+bounded target build, then fails 19 TABLE/TABLECONTENT assertions in
+`libdxfrw_dwg_object_vectors_tests`. This is the immediate actionable P8-F
+slice; the [failure receipt](docs/research/p8-fast-tablecontent-regression-2026-11-18.json)
+groups the assertions and defines the narrow repro. The upstream `master`
+branch object reports protection enabled and `required_status_checks` enforced
+for everyone, but returns no named contexts/checks; the detailed protection
+endpoint returns HTTP 403. Record that limit and do not block the local fix on
+another unchanged API read. The broad native suite and extended fuzz lane were
+skipped by the focused workflow and remain for one frozen integration pass.
+
+After the latest reported unlock, `screencapture` still fails and CoreGraphics
+reports zero active displays for this process. This does not establish the
+physical login state or capture permissions. Keep P8-D parked until the
+process sees an active display and capture succeeds; the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json)
+records the changed-state trigger. Recount after each committed slice or gate
+transition.
 
 This file is the active queue, not a work diary. Completed slices and closed
 actions are removed; receipts remain linked only to prevent repeated work or
@@ -51,35 +51,33 @@ to typed fields. The current peer mapping conflicts with unresolved issue
 The IMAGEDEF gate separately blocks strict whole-file output on the observed
 profile.
 
-P5-A remains closed only for its exact AutoCAD 2007 FIELD/FIELDLIST profile.
-P5-B and P5-I are separate evidence waits. The six `DEFERRED_EXTERNAL` IDs in
+P5-B and P5-I remain separate evidence waits. The six `DEFERRED_EXTERNAL` IDs in
 P9 remain advisory, are excluded from the counts, and cannot promote support
 claims.
 
 ## Fast execution order
 
-No open DWG-profile gate currently has enough source or authority to start a
-DWG parser or writer slice. P6-B protects the unresolved PERSUBENTMGR DXF body
-as raw data; the peer's group mapping is only a hypothesis. The queue separates
-work that can run now from source-dependent implementation and release checks.
-A wait parks only that profile. Do not repeat unchanged scans or treat a probe
-as support evidence.
+The latest CI result exposes one ready local slice even though the waiting DWG
+profiles still lack new producer or authority evidence. Repair the observed
+fast regression first; continue independent witness acquisition while that
+focused diagnosis proceeds. A wait parks only its profile. Do not repeat
+unchanged scans, passing platform jobs, or probes that cannot establish
+support.
 
 | Order | Packet | Gates | Fast path |
 |---|---|---|---|
-| 1 | Base 2D consumer qualification | P8-A/B/C/E | The current macOS FreeCAD AC1021/AC1024/AC1032 control is complete for this candidate; reuse its [receipt](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json) while identities match. Next run native Linux/Windows FreeCAD 2D checks without waiting for P7 3D evidence. Capture package/runtime identity in the same candidate pass and keep each exact candidate hash. |
-| 2 | Shared producer sessions | P5-D/E/F/G; P4-C/P5-H/P7-C; P4-B/P6-C; P6-A/P6-B | Group probes by the exact AutoCAD/ObjectARX release that can produce the needed state. Reuse a launch only when the version and API state match; retain separate source hashes, spans, roles, and semantic oracles. Implement each profile as soon as its own evidence is complete. |
-| 3 | Independent authority and source witnesses | P5-B/P5-I, P6-E/P6-F, P7-D/P7-G | Reuse completed receipts. Resume only on a qualifying FIELD route/schema, TABLE source spans, mesh-suffix authority, AC1012/AC1014 partial source, ACIS header map, or trimmed/periodic geometry witness. Do not repeat unchanged searches or scans. |
-| 4 | Changed-state tools and GUI | P6-H, P8-D | Retry P6-H only after a signed ODA bundle launches normally. Retry P8-D only after this process sees an active display and `screencapture` succeeds; then use explicit bundle paths and perform all pending GUI checks in one session. |
-| 5 | Source-derived 3D qualification | P7-F/P7-H; P8-B/C 3D profiles | Start only after P7-C/D admits the relevant output profile and an independent geometry reader is available. Reuse the same frozen source/build/runtime identities across each native platform. |
-| 6 | Final integration and release | P8-A/B/C/E/F/G | Freeze the final candidate after admitted implementation profiles stabilize; finish outstanding consumer, package/runtime, and source-matched CI rows. Reuse the [inventory correction receipt](docs/research/p8-fast-ci-dwgappinfo-source-inventory-fix-2026-11-18.json) rather than repeating its local diagnosis. Reuse evidence only when source, binary, configuration, platform, and operation match. |
+| 1 | Repair current fast regression | P8-F | Reproduce only `libdxfrw_dwg_object_vectors_tests` in the existing fast profile. Resolve the 19 TABLE/TABLECONTENT assertions in the [failure receipt](docs/research/p8-fast-tablecontent-regression-2026-11-18.json); verify each expected field against ODA v5.4.1 and linked source evidence before changing a parser. Build/run the owning vector target, then run the fast workflow once on the correction. |
+| 2 | Batch native producer captures by exact release | P4-B/C; P5-B/D/E/F/G/H/I; P6-A/B/C | Use one producer session per required release/API state. Batch P5-B + P5-I only in the same AC1021/AutoCAD 2007 session; batch P5-D + P5-E/F and, if version/state match, P5-H/P6-A in AC1024; batch P4-C + P7-C only when using the same AC1027 producer path; batch P4-B + P6-B only if one AC1032 host can create both exact states. Keep P6-C's AutoCAD 2021 TABLECONTENT profile distinct. Record each artifact's producer, API state, hash, spans, roles, and semantic oracle separately. |
+| 3 | Resume source/authority waits only on new evidence | P5-G/I; P6-E/F/H; P7-C/D/G | Reuse existing receipts. Resume only on the exact missing input: dynamic-constraint model, independent TABLE spans, mesh-suffix authority/trace, eligible AC1012/AC1014 partial source, valid signed ODA macOS converter, versioned ACIS header map, or source-bound trimmed/periodic geometry. Do not repeat generic searches. |
+| 4 | Implement each admitted profile immediately | All source-backed gates | Once one profile has sufficient source spans, roles, and independent meaning, make one narrow change; run the owning fast selectors and touched-target build; prove fail-closed behavior, rollback, destination preservation, corrected same-object retry, strict output, and fresh independent readback. Do not wait for other profiles. |
+| 5 | Close GUI and 3D consumer rows when their triggers are met | P7-F/H; P8-D | P8-D retries only after active display capture works; bundle the LibreCAD 2 GUI checks into one session. Start source-derived 3D checks only after P7-C/D admission and an independent geometry reader. The completed generated FreeCAD profile is recorded once in its receipt and is removed from the active queue. |
+| 6 | Freeze and release once admitted profiles stabilize | P8-A/E/F/G | Capture package/runtime manifests during the next required native Linux/Windows build, rather than scheduling a duplicate packaging run. Close P8-F after the fast blocker passes, source-matched native checks are green, and the required-check/branch-protection state is observable. Run the broad suite once for the frozen release candidate, then publish only the evidence-backed support matrix. |
 
-P8-B/C may collect and close their base-2D evidence before P7 is ready; P7 is
-a prerequisite only for the 3D profile rows. When a later profile changes the
-candidate, carry evidence forward only for identical source/build/runtime
-identities and rerun the affected focused consumer checks. Keep each P8 gate
-open until all profile rows advertised for that platform have matching
-evidence.
+P8-B/C's exact generated consumer profile is already closed and removed from
+the active gates. Any later admitted source-derived profile creates its own
+qualification row; P7 evidence is not inferred from generated consumer
+success. Reuse a receipt only when source, binary, configuration, platform,
+operation, and profile match.
 
 **Self-unblock after every slice or failed probe:** inspect existing receipts,
 local source/corpora, and current code first so completed work is not repeated.
@@ -131,6 +129,11 @@ failure that expands risk.
   observed failure and one changed-state trigger, mark only that profile
   waiting, and continue the next ready slice. Retry only after the trigger
   changes; do not repeat unchanged scans or controls.
+- For the current P8-F TABLE/TABLECONTENT failure, compare the parsed fields,
+  semantic-completeness flag, body cursor, and raw fallback with each failed
+  vector. If an expectation is stale, correct it with the relevant ODA/source
+  citation; if the parser is wrong, fix only the demonstrated boundary.
+  Preserve refusal, rollback, and raw retention.
 
 ### Slice, progress, and validation contract
 
@@ -148,9 +151,9 @@ failure that expands risk.
   gates; expand only when a failure or changed risk warrants it.
 - Count the 33 package gates and each implementation/research slice once. The
   current ledger is 72 completed slices plus 33 package gates = 105 counted
-  items; 6 gates plus 72 slices are complete (78/105, 74.3%). Native Linux,
-  Windows, and GUI outcomes belong to P8-B/C/D; the macOS smoke is one bounded
-  research slice and does not close a platform gate. A partial
+  items; 8 gates plus 72 slices are complete (80/105, 76.2%). The Linux and
+  Windows FreeCAD results close P8-B/C only for their exact generated profile;
+  GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package
   gate. After each committed slice or gate transition, recount both activity
   progress and gate readiness.
@@ -164,7 +167,7 @@ promote support claims.
 
 ## Active package gates
 
-Only the following 27 open package gates are active; completed actions have
+Only the following 25 open package gates are active; completed actions have
 been removed. Their execution order is in the table above; the subsystem
 tables give the exact entry evidence and exit criteria. Readiness labels
 describe scheduling only, never support:
@@ -177,12 +180,12 @@ corrected retry succeeds. A raw-only route must preserve its exact source and
 strictly refuse output; an output-capable route must also pass fresh independent
 readback. Each gate adds only its package-specific evidence.
 
-No open DWG parser/writer gate currently has enough source evidence for a
-DWG-format change. P6-B's native eligibility probe and source screens are
-complete; the remaining action is a full-AutoCAD exact-class/selected-path
-witness. The current open issue and conflicting peer mapping are summarized
-in the [PERSUBENTMGR raw-only receipt](docs/research/p6-persubentmgr-raw-only-dxf-disposition-2026-11-18.json);
-they do not close that gate. P8-D was retried after the latest reported
+No source-dependent DWG parser/writer gate currently has enough new evidence
+for a DWG-format change. P8-F does have one immediate local correction: the
+current fast failure in TABLE/TABLECONTENT vectors. The only remaining P6-B
+action is a full-AutoCAD exact-class/selected-path witness; retain the current
+raw-only disposition and reuse its [receipt](docs/research/p6-persubentmgr-raw-only-dxf-disposition-2026-11-18.json).
+P8-D was retried after the latest reported
 unlock, but capture still fails; the latest CoreGraphics probe for this process
 reported zero active displays. The retry is recorded in the preflight receipt.
 See the [PERSUBENTMGR creation-route
@@ -223,30 +226,6 @@ Versioned TABLECONTENT profiles whose semantics remain incomplete stay raw-only;
 | P6-F / WAITING_FOR_ELIGIBLE_PARTIAL_SOURCE | Reuse the [disposition](docs/research/p6-cli-legacy-ac1012-ac1014-partial-disposition-2026-11-16.json) and [candidate trace](docs/research/p6-ac1012-ac1014-lwpolyline-partial-candidate-screen-2026-11-17.json); scans are complete and no current source qualifies. | Resume only with an existing hash-bound AC1012/AC1014 source containing recoverable entity failures, closed object/backlink/reference dependencies, and later published frames. Prove destination preservation, partial ASCII/Binary output, fresh readback, and corrected retry; never weaken version/frame/reference checks or commit ODA derivatives. |
 | P6-H / WAITING_FOR_VALID_MACOS_CONVERTER_INSTALLATION | The exact scratch MLINE source remains hash-bound. The installed 27.1 app is suspended/unusable and fails strict signature verification. The official ODA page lists 27.10 for macOS ARM64, but its checksum-valid DMG contains an app with an invalid signature and the alternate PKG also fails signature verification. See the [attempt receipt](docs/research/p6-h-scratch-mline-source-attempt-2026-11-17.json). Do not execute/install those artifacts or retry conversion until ODA provides a verifiable bundle that opens normally. | With a valid usable launch, convert the exact source once; verify AC1018, parser route, and independent values, then complete the linked P8-D check. This does not qualify whole-file conversion or AC1027 output. |
 
-#### P6-B implementation packet
-
-1. Reuse the linked receipts; do not rerun corpus/peer scans or the local CLI
-   trace. entmakex is a candidate experiment, not proof that AutoCAD supports
-   exact-class creation or preserves meaningful selected-path state.
-2. In full AutoCAD, enumerate the exact class, verify owner and a deliberately
-   selected nonzero path after save/close/reopen, and record producer/API state.
-   Generic persistent-ID APIs and the similarly named manager class do not
-   qualify.
-3. If eligible, capture one compact source pair and bind class identity,
-   complete body spans, member meaning, handle roles, and next-object boundary
-   with versioned authority plus independent source-bound decoding. Keep
-   unresolved bytes raw.
-4. The unresolved class-specific DXF/DWG bodies remain raw-only. Once a native
-   exact-class witness and independent source evidence bind fields and roles,
-   implement only those proved fields/edges. Add the single distinguishing
-   truncation/wrong-role refusal, destination preservation, corrected retry,
-   strict output, fresh independent readback, and native confirmation. Qualify
-   only the captured release; otherwise park P6-B and continue the queue.
-
-P6-G is outside the required-gate count. Reopen only if review identifies a
-specific public signature/version/field route still missing rollback, retry,
-or readback; do not restart a generic writer inventory.
-
 Potential DIMASSOC/XREF, remaining 3D positions/OCS/splines, clipping/mesh,
 unit/lineweight, text/XDATA/EED/font, proxy identity, header dependencies, and
 CLI atomicity are backlog prompts only. Add one only after a bounded
@@ -271,35 +250,36 @@ acceptance separate. CAD Assistant/ezdxf shares OCCT lineage with FreeCAD and
 does not provide independent-kernel evidence. P7-E remains optional. A missing
 external kernel or app blocks only that profile.
 
-### P8 — consumers, packaging, release (7 open)
+### P8 — consumers, packaging, release (5 open)
 
-P8-B and P8-C share the same profile checklist but use separate native runners
-and runtime identities. Qualify the base 2D profile as soon as its candidate
-is pinned; add 3D rows only after P7 admission. Keep ordinary AC1027 drawings
-deferred until source-reference closure.
+P8-B/C are closed for the exact generated consumer profile in the [candidate
+qualification receipt](docs/research/p8-candidate-native-freecad-qualification-2026-11-18.json):
+FreeCAD 1.1.4 on native Linux and Windows passed the selected local controls.
+The optional legacy importer checked generated POLYFACE, SOLID, and 3DFACE
+geometry. These are consumer handoff controls, not producer-authored DWG wire
+evidence or general 3D support. No downloaded or third-party DWG/DXF fixture
+was committed. Add platform rows only when P4-P7 admits a new source-derived
+profile; do not rerun these exact controls without a changed input/runtime.
 
-The pinned [macOS FreeCAD smoke](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json)
-passes the generated AC1021 LINE and AC1021/AC1024/AC1032 primitive
-open/insert controls on the current candidate.
-Reuse it only while its source, converter, and FreeCAD identities match; it is
-not Linux or Windows evidence and does not promote 3DFACE/SOLID support.
+The earlier [macOS FreeCAD smoke](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json)
+remains a separate setup control and does not replace native Linux/Windows
+evidence. Keep ordinary AC1027 drawings deferred until source-reference
+closure.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation profiles stabilize. Reuse [macOS package evidence](docs/research/p8-macos-package-baseline-2026-11-17.json) only while its inputs match. | Record reproducible commands and immutable identities. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. |
-| P8-B / WAITING_FOR_FREEZE | Pin a candidate and run native Linux FreeCAD qualification for the base 2D profile; extend to each admitted source-derived profile as it becomes available. P7 admission is needed only for AC1027/AC1032 3D rows. The [macOS receipt](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json) is a setup control only, not Linux evidence. Earlier generated results in the [platform receipt](docs/research/p8-freecad-linux-windows-generated-pass-2026-11-15.json) are historical controls. | Record runner, FreeCAD/converter/modules, settings, exact `open()`/`insert()` handoff, runtime identity, and independent semantics per profile. No cross-compilation or ambiguous fallback. |
-| P8-C / WAITING_FOR_FREEZE | Run the same base-2D workflow on native Windows, then extend only to admitted profiles. Reuse earlier path-with-spaces/Unicode and generated 2D checks as historical controls. The tracked `ordinary_enc_AC1027.dwg` still fails before publication; see [preflight receipt](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json). | Use the same evidence fields as P8-B. Keep ordinary AC1027 deferred until source-reference closure. |
 | P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | After the user's latest reported unlock, `screencapture -x /private/tmp/libdxfrw-unlock-preflight-2026-11-18.png` still failed with “could not create image from display.” This does not establish physical login state or capture permissions. Launch Services cannot resolve either app; a LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`, and no LibreCAD_3 bundle was found. See the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). Do not retry until this process sees an active display and capture succeeds. | In one GUI session, launch LibreCAD 2 by its explicit bundle path and complete Move/Copy action-boundary, named-LTYPE save/reopen/render, and (if P6-H obtains a source-bound MLINE witness) MLINE display/edit/save/reopen. Then run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback if that app is available. This gate does not block Linux/Windows qualification. |
-| P8-E / INTEGRATION_GATE | During P8-B/C, collect native Linux/Windows shared/static manifests, relocation, and loaded runtime identities. Reuse the [macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json); repeat macOS only if candidate inputs change. | Verify package contents and shared/static relocation for each platform. |
-| P8-F / WAITING_FOR_SOURCE_MATCHED_CI | Reuse the [CI root-cause receipt](docs/research/p8-pr106-native-ci-root-cause-2026-11-17.json) for historical failures. The private-header and CTest-name inventories are corrected; focused macOS passed seven tests, then receipt emission found the frozen implementation digest stale. See the [source-inventory receipt](docs/research/p8-fast-ci-dwgappinfo-source-inventory-fix-2026-11-18.json), [CTest-inventory receipt](docs/research/p8-current-native-inventory-realignment-2026-11-18.json), and [digest-refresh receipt](docs/research/p8-native-status-digest-refresh-2026-11-18.json). Do not repeat these diagnoses. | Close only after required fast checks and source-matched native Linux/macOS/Windows checks pass on the corrected exact head and current branch-protection state is recorded. Hosted CI remains subject to the owner's existing go-ahead. |
+| P8-E / INTEGRATION_GATE | During the next required native Linux/Windows build, capture shared/static manifests, relocation, and loaded runtime identities. Reuse the [macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json); repeat macOS only if candidate inputs change. | Verify package contents and shared/static relocation for each platform. |
+| P8-F / WAITING_FOR_SOURCE_MATCHED_CI | Treat the corrected source inventory, 1,389-name CTest manifest, and implementation digest on `f0f87e7f` as frozen prerequisites; their receipts are references only. Focused native checks passed seven tests on Linux/macOS/Windows, and the FreeCAD platform result is in the [candidate receipt](docs/research/p8-candidate-native-freecad-qualification-2026-11-18.json). The only current fast repro is the 19 TABLE/TABLECONTENT vector failures in the [failure receipt](docs/research/p8-fast-tablecontent-regression-2026-11-18.json). The same receipt records the protected-master summary and the detail endpoint's 403. | Correct or justify the failing assertions, build/run the vector target, and rerun the fast workflow once. The branch object reported `protected=true`, enforcement `everyone`, and no named contexts/checks; do not infer more than this API result. Keep P8-F open until the fast blocker passes on the corrected source-matched candidate. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 
 Keep consumer, source, and build receipts separate. Preserve LibreCAD's R13
 raw-carrier refusal until owner/remap namespace and all 65 omitted records
-close. Keep FreeCAD nonplanar 3DFACE, hidden-edge, smoothing, mixed-color/layer,
-nested-block, persistence, and legacy importer unit/face cases in P8-B/C.
-Reuse runtime evidence only for its exact source, base, binary, configuration,
-and operation.
+close. Source-derived FreeCAD cases for nonplanar 3DFACE, hidden-edge,
+smoothing, mixed color/layer, nested blocks, persistence, and source-wire
+semantics remain deferred until their profiles are admitted. Reuse runtime
+evidence only for its exact source, base, binary, configuration, and operation.
 
 ## P9 — external-only dispositions
 

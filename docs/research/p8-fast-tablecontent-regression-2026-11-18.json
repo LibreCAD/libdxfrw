@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-fast-tablecontent-regression-2026-11-18",
+  "date": "2026-11-18",
+  "title": "Fast-regression failure in TABLE and TABLECONTENT DWG vectors",
+  "status": "FAILURE_REPRODUCED_ON_CURRENT_CANDIDATE",
+  "candidate": {
+    "repository": "dxli/libdxfrw",
+    "commit": "f0f87e7f9f93a040e38da8ca6424ef55abcca76e",
+    "pullRequest": "LibreCAD/libdxfrw#106"
+  },
+  "supportClaimEffect": "none",
+  "packageGateEffect": "P8-F remains open",
+  "activityLedgerEffect": "No new package gate closed; failure is the current P8-F blocker.",
+  "workflow": {
+    "name": "libdxfrw fast parity regressions",
+    "runId": 44259323444,
+    "runUrl": "https://github.com/LibreCAD/libdxfrw/actions/runs/44259323444",
+    "jobId": 134648676035,
+    "jobUrl": "https://github.com/LibreCAD/libdxfrw/actions/runs/44259323444/job/134648676035",
+    "runner": "GitHub Actions ubuntu-24.04"
+  },
+  "passedBeforeFailure": [
+    "source/build inventory check",
+    "ordinary regression configuration",
+    "bounded fast target build and source compatibility check"
+  ],
+  "failure": {
+    "step": "Run fast vectors and required CLI regressions",
+    "executable": "build/libdxfrw_dwg_object_vectors_tests",
+    "result": "19 assertion failures; the vector executable returned non-zero.",
+    "assertionGroups": [
+      "AC1021 TABLECONTENT: omitted content-format CMC and cell-style CMCs must remain semantically incomplete.",
+      "AC1021 TABLECONTENT: skipping complete styled borders must preserve alignment.",
+      "AC1024 TABLE: preserve the validated entity prefix while withholding incomplete or multi-content TABLECONTENT; distinguish a null DATALINK from malformed handle encoding.",
+      "AC1024 TABLE: withhold incomplete cell semantics for value-unit types 3, 5, 12, 16, 32, 65536, -1, and 2147483647.",
+      "AC1024 TABLE: kUnknown must withhold typed content without advancing the public body cursor into the optional content.",
+      "AC1024 TABLE: inverted, out-of-bounds, and overlapping merged ranges must withhold typed content and preserve cursor rollback."
+    ]
+  },
+  "sourceInspection": {
+    "testFile": "tests/dwg_object_vectors_tests.cpp",
+    "dispatchFile": "src/intern/dwgreader.cpp",
+    "codecFile": "src/drw_objects.cpp",
+    "scope": "Generated vector expectations exercise semantic-completeness signaling, raw-only dispatch, optional-content cursor boundaries, and merged-range validation. The exact cause has not yet been determined; the failure may be implementation behavior or an expectation that no longer matches the admitted field model."
+  },
+  "nextAction": [
+    "Reproduce only this vector target in the existing fast build profile and capture the actual parsed fields, completeness flags, and cursor at each failing assertion.",
+    "Compare each expected wire field with ODA v5.4.1 and the existing source-bound receipts before changing parsing; retain unknown or unproved CMC/value forms raw and fail closed.",
+    "Correct the narrow implementation defect or stale assertion group, then run the vector target and one source-matched fast-regression workflow. Do not rerun the already-passing focused native or FreeCAD jobs unless the changed source/runtime can affect them.",
+    "Continue unrelated producer/authority acquisition while this local vector diagnosis proceeds."
+  ],
+  "limits": [
+    "This generated-vector failure is not a producer-authored DWG witness and cannot establish wire semantics.",
+    "Do not weaken strict-output refusal, cursor rollback, destination preservation, or raw-retention behavior to make the vector pass.",
+    "The native focused three-platform run passed on this same candidate; that result does not override this fast-regression failure."
+  ]
+}

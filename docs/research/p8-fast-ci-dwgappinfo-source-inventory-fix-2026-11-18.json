@@ -3,7 +3,7 @@
   "id": "p8-fast-ci-dwgappinfo-source-inventory-fix-2026-11-18",
   "date": "2026-11-18",
   "title": "Fix missing private header in source/build inventory",
-  "status": "LOCAL_INVENTORY_FIXED_CI_RERUN_PENDING",
+  "status": "FIX_PUSHED_NATIVE_PASS_FAST_VECTOR_FAILURE_RECORDED",
   "supportClaimEffect": "none",
   "packageGateEffect": "none; P8-F remains open",
   "activityLedgerEffect": "one completed build-inventory correction slice; no package gate closed",
@@ -45,8 +45,9 @@
     "diffCheck": "PASS: git diff --check"
   },
   "pending": [
-    "Push the updated candidate to the PR and qualification refs; inspect source-matched fast parity and native FreeCAD Linux/Windows results.",
-    "P8-F remains open until required checks report on the corrected exact source head."
+    "The exact f0f87e7f source/build inventory check passed in fast workflow run 44259323444; its later TABLE/TABLECONTENT vector step failed with 19 assertions (see docs/research/p8-fast-tablecontent-regression-2026-11-18.json).",
+    "Native focused checks and native FreeCAD Linux/Windows jobs passed on f0f87e7f; see docs/research/p8-candidate-native-freecad-qualification-2026-11-18.json.",
+    "P8-F remains open until the fast regression is resolved; the observed upstream branch-protection summary is recorded in docs/research/p8-candidate-native-freecad-qualification-2026-11-18.json."
   ],
   "limits": [
     "This corrects the source/build inventory and packaging closure only; it does not establish DWG/DXF semantic support.",
