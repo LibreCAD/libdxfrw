@@ -3,25 +3,27 @@
   "id": "p8e-current-source-macos-installed-package-profile-2026-11-18",
   "date": "2026-11-18",
   "title": "Current-source macOS shared/static package install and relocation profile",
-  "status": "MACOS_LINUX_PASS_WINDOWS_PATH_CHECK_FIX_PENDING",
+  "status": "CLOSED_CURRENT_SOURCE_PROFILE_ALL_PLATFORMS_PASS",
   "supportClaimEffect": "none",
-  "sliceEffect": "One current-source macOS shared/static package-and-relocation slice completed; P8-E remains open.",
+  "sliceEffect": "The current-source shared/static package-and-relocation profile passed on Linux, macOS, and Windows; P8-E is closed for this package profile. Drawing semantics and complete ABI compatibility remain unqualified.",
   "source": {
     "librarySourceCommit": "f96f1408a695d1991f9ccf95c3ac943cff42423e",
     "librarySourceFilesChangedDuringBuild": false,
     "probe": "tools/probe_installed_package.py",
-    "probeSha256": "91fa28247485cbcd84343549846f6dcd7019733e44d9867fd4600b2333301332",
+    "probeSha256": "0e18002b7c3e434d64d2c1fc929212a7d5e2d9cc6f0e0d24eb934bf657c2690b",
     "workflow": ".github/workflows/shared-abi-qualification.yml (updated to capture shared and static profiles for the parity branch)",
     "platform": "macOS ARM64, AppleClang 21.0.0",
     "cmake": "cmake version 4.4.5",
     "configuration": "Release; C++17 consumer; docs, dwg2dxf, and project tests disabled."
   },
   "crossPlatformRun": {
-    "runId": 44292703471,
-    "sourceCommit": "469d5a57b719f130355050474715af70f155bd4e",
+    "runId": 44294866742,
+    "sourceCommit": "ddd3c967551e8a797aa54e8f37dc9808998c98ad",
+    "workflow": ".github/workflows/shared-abi-qualification.yml",
     "linux": {
       "status": "PASS",
-      "artifactId": 14421353417,
+      "jobId": 134769165706,
+      "artifactId": 14422707923,
       "profiles": {
         "shared": {
           "installedFiles": 28,
@@ -38,7 +40,9 @@
     },
     "macos": {
       "status": "PASS",
-      "artifactId": 14422154021,
+      "runner": "macos-15",
+      "jobId": 134769166075,
+      "artifactId": 14422928802,
       "profiles": {
         "shared": {
           "installedFiles": 28,
@@ -49,15 +53,33 @@
         "static": {
           "installedFiles": 26,
           "selectedTarget": "lib/libdxfrw.a",
-          "selectedTargetSha256": "b10af8e4d254b65968bd7bca4681fd0c07f97dbd4bb4b09eb864b624a602f715"
+          "selectedTargetSha256": "f1f318760526a9255664b53d421251d0e5ed379957fdf9e14b183743c444ded7"
         }
       }
     },
     "windows": {
-      "status": "BUILDS_PASS_PROBE_PATH_COMPARISON_FAILED",
-      "sharedProbeFailure": "consumer target resolves outside relocated prefix: C:/Users/runneradmin/AppData/Local/Temp/libdxfrw relocated package u5w4mdi3/relocated prefix/bin/dxfrw-3.dll",
-      "fix": "Resolve the selected imported target and relocated prefix before containment comparison; rerun is required.",
-      "fixedProbeSha256": "0e18002b7c3e434d64d2c1fc929212a7d5e2d9cc6f0e0d24eb934bf657c2690b"
+      "status": "PASS",
+      "jobId": 134769166376,
+      "artifactId": 14422594084,
+      "profiles": {
+        "shared": {
+          "installedFiles": 27,
+          "selectedTarget": "bin/dxfrw-3.dll",
+          "selectedTargetSha256": "eaf17ba46c8a9fca11996f0a82cfdeaece4f1e272d31e275e8989c691917ca18",
+          "loadedRuntimeSha256": "eaf17ba46c8a9fca11996f0a82cfdeaece4f1e272d31e275e8989c691917ca18"
+        },
+        "static": {
+          "installedFiles": 26,
+          "selectedTarget": "lib/dxfrw.lib",
+          "selectedTargetSha256": "f06c59ab6c504c4b71792db5d1aa669193340f27e0199eca8658ef51202e7028"
+        }
+      }
+    },
+    "previousWindowsFailure": {
+      "runId": 44292703471,
+      "sourceCommit": "469d5a57b719f130355050474715af70f155bd4e",
+      "failure": "Windows probe compared unresolved path spellings and rejected a target inside the relocated prefix; both package builds had succeeded.",
+      "resolution": "Resolve the selected imported target and relocated prefix before containment comparison."
     }
   },
   "profiles": {
@@ -387,7 +409,7 @@
   },
   "validation": {
     "result": "PASS for shared and static profiles.",
-    "sourceReleaseInventory": "Initial fast CI at 469d5a57 failed because tools/probe_installed_package.py was absent from the generated source-release manifests. Both manifests have been regenerated; tools/generate_build_inventory.py --check passes locally. Current-head CI must re-run before P8-E can close.",
+    "sourceReleaseInventory": "Initial fast CI at 469d5a57 failed because tools/probe_installed_package.py was absent from the generated source-release manifests. Both manifests have been regenerated; tools/generate_build_inventory.py --check passes locally.",
     "checks": [
       "Installed file inventory exactly matches the CMake install manifest; file hashes and symlink targets were recorded.",
       "The complete installed prefix was copied to a path containing spaces and its inventory matched the source prefix.",
@@ -399,14 +421,15 @@
     "projectTestSuitesRun": false
   },
   "decision": {
-    "P8E": "Keep open. This receipt closes only the current-source macOS shared/static package profile; native Linux and Windows package receipts are still required.",
-    "nextAction": "Rerun the shared-ABI workflow after the Windows path-comparison fix. Reuse passing Linux/macOS profiles from run 44292703471; require both Windows shared and static receipts before closing P8-E.",
-    "retryTrigger": "A failure in the current branch workflow or a change to library/package inputs; otherwise reuse this exact macOS profile."
+    "P8E": "Closed for the exact package profile at ddd3c967551e8a797aa54e8f37dc9808998c98ad; Linux, macOS, and Windows shared/static jobs passed. This does not establish complete ABI compatibility or drawing semantics.",
+    "nextAction": "Reuse these platform receipts while library and package inputs remain unchanged; evaluate P8-A and P8-G after the remaining admitted profiles stabilize.",
+    "retryTrigger": "A change to library/package inputs, toolchain profile, or qualification workflow."
   },
   "fixtureAdded": false,
   "planImpact": {
-    "completedSlice": "Current-source macOS shared/static installed-package manifests, ABI version selection, prefix relocation, and consumer/runtime identity were verified.",
-    "remainingGate": "P8-E awaits matching native Linux and Windows shared/static evidence.",
-    "activityProgressAfterSlice": "86/110 (78.2%); 9/33 package gates closed (27.3%)."
+    "completedSlice": "Current-source shared/static installed-package manifests, ABI version selection, prefix relocation, and consumer/runtime identity passed on Linux, macOS, and Windows.",
+    "closedGate": "P8-E closed for this exact package profile; no support claims were promoted.",
+    "remainingGate": "P8-E has no remaining action unless its named retry trigger changes.",
+    "activityProgressAfterSlice": "87/110 (79.1%); 10/33 package gates closed (30.3%)."
   }
 }

@@ -14,9 +14,9 @@ The comparison baseline last checked on 2026-11-17 is libdxfrw
 `84e73f0188fb32bb1fffb8d4d1edb4135543ba18`. Refresh moving heads before
 integration or platform qualification.
 
-**Progress on 2026-11-18:** 9/33 package gates closed; 24 remain. The activity
-ledger is 86/110 (78.2%): nine closed gates and 77 completed implementation
-or research slices. Gate readiness is 27.3%; activity progress does not imply
+**Progress on 2026-11-18:** 10/33 package gates closed; 23 remain. The activity
+ledger is 87/110 (79.1%): ten closed gates and 77 completed implementation
+or research slices. Gate readiness is 30.3%; activity progress does not imply
 support. The [fast-regression receipt](docs/research/p8-fast-tablecontent-regression-2026-11-18.json)
 records the exact implementation digest and passing fast plus three-platform
 native runs. P8-F is closed for that digest; the authenticated `master`
@@ -30,17 +30,13 @@ seven focused native checks pass on Linux, macOS, and Windows; FreeCAD 1.1.4
 passes 16/16 Linux and 17/17 Windows checks. These results do not qualify
 producer-authored DWG/DXF or promote general support claims.
 
-P8-E now has a current-source macOS ARM64 shared/static package slice: installed
-file inventories, ABI version selection, relocation, and consumer/runtime
-identity pass. The first cross-platform CI run also passed Linux shared/static;
-Windows exposed a path-containment check failure after both package builds, so
-the probe now resolves both paths before comparing them. The same run has now
-passed macOS shared/static as well; only Windows receipts remain open. See the
-[P8-E
-receipt](docs/research/p8e-current-source-macos-installed-package-profile-2026-11-18.json).
-The first fast CI check at `469d5a57` caught the new probe missing from the
-source-release inventory; both generated manifests are now refreshed and the
-inventory check passes. Recheck the current branch CI before closing P8-E.
+P8-E is closed for the current package profile: shared and static inventories,
+ABI selection, prefix relocation, and consumer/runtime identity pass on Linux,
+macOS, and Windows. The Windows path-comparison fix and all three platform
+receipts are recorded in the [P8-E receipt](docs/research/p8e-current-source-macos-installed-package-profile-2026-11-18.json).
+An earlier fast CI run caught the new probe missing from the source-release
+inventory; both generated manifests were refreshed and the inventory check
+passes. Package qualification does not promote drawing or ABI support claims.
 
 P8-D remains parked: the latest preflight found no active display for this
 process and screen capture failed. This does not establish the physical login
@@ -74,7 +70,7 @@ passing platform jobs, or probes that cannot establish support.
 | 2 | Resume bounded authority/source waits on changed evidence | P5-G/I; P6-E/F/H; P7-C/D/G | Reuse receipts. Resume only with the named missing input: constraint model, independent TABLE spans, mesh-suffix authority/trace, eligible AC1012/AC1014 partial source, verifiable ODA macOS converter, 21500-specific ACIS map, or source-bound trim/periodic geometry. Do not repeat generic searches. |
 | 3 | Implement at evidence admission, one profile per slice | All source-backed gates | Bind source spans/roles/meaning, implement the narrow change, run its owning fast selectors and touched-target build, then prove refusal, state/destination preservation, corrected same-object retry, strict output, and fresh independent readback as applicable. Commit/update receipt and queue before taking the next ready slice; do not wait for unrelated profiles. |
 | 4 | Run consumer checks only for admitted profiles | P7-F/H; P8-D | Retry P8-D after active-display capture works; batch LibreCAD 2 GUI actions in one session and LibreCAD_3 only if available. Start source-derived 3D checks after P7-C/D admission and independent-reader availability. Reuse exact generated FreeCAD P8-B/C results; do not rerun unchanged controls. |
-| 5 | Close package/platform gates and release once admitted profiles stabilize | P8-A/E/G | Use the updated shared-ABI workflow for current-source shared/static manifests, relocation, and runtime identity on all three native platforms; reuse the passing macOS profile unless its inputs change. Run the broad suite once for the frozen candidate, then publish only the evidence-backed support matrix. |
+| 5 | Close package/platform gates and release once admitted profiles stabilize | P8-A/G | Reuse the closed P8-E shared/static package receipts unless package inputs change. Run the broad suite once for the frozen candidate, then publish only the evidence-backed support matrix. |
 
 P8-B/C's exact generated consumer profile is already closed and removed from
 the active gates. Any later admitted source-derived profile creates its own
@@ -152,7 +148,7 @@ failure that expands risk.
   gates; expand only when a failure or changed risk warrants it.
 - Count the 33 package gates and each implementation/research slice once. The
   current ledger is 77 completed slices plus 33 package gates = 110 counted
-  items; 9 gates plus 77 slices are complete (86/110, 78.2%). The Linux and
+  items; 10 gates plus 77 slices are complete (87/110, 79.1%). The Linux and
   Windows FreeCAD results close P8-B/C only for their exact generated profile;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package
@@ -168,7 +164,7 @@ promote support claims.
 
 ## Active package gates
 
-Only the following 24 open package gates are active; completed actions have
+Only the following 23 open package gates are active; completed actions have
 been removed. Their execution order is in the table above; the subsystem
 tables give the exact entry evidence and exit criteria. Readiness labels
 describe scheduling only, never support:
@@ -272,7 +268,6 @@ closure.
 |---|---|---|
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation profiles stabilize. Reuse [macOS package evidence](docs/research/p8-macos-package-baseline-2026-11-17.json) only while its inputs match. | Record reproducible commands and immutable identities. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. |
 | P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | The latest preflight after the user's unlock report still cannot capture the display; the prior CoreGraphics probe saw `activeCount=0`. This does not establish physical login state or capture permissions. Launch Services cannot resolve either app; a LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`, and no LibreCAD_3 bundle was found. See the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). Retry only after this process sees an active display and capture succeeds. | In one GUI session, launch LibreCAD 2 by its explicit bundle path and complete Move/Copy action-boundary, named-LTYPE save/reopen/render, and (if P6-H obtains a source-bound MLINE witness) MLINE display/edit/save/reopen. Then run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback if that app is available. This gate does not block Linux/Windows qualification. |
-| P8-E / INTEGRATION_GATE | Current-source macOS ARM64 local profile and run 44292703471's Linux/macOS shared/static profiles pass. Windows builds/install succeeded, but the shared probe compared unresolved path spellings and stopped before static qualification. `tools/probe_installed_package.py` now resolves both paths before containment comparison. Re-run [.github/workflows/shared-abi-qualification.yml](.github/workflows/shared-abi-qualification.yml) on this change; see the [P8-E receipt](docs/research/p8e-current-source-macos-installed-package-profile-2026-11-18.json). | Verify package contents, relocation, and loaded shared-runtime identity for static/shared profiles on Linux, macOS, and Windows. Reuse existing Linux/macOS evidence unless their inputs change. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 
 Keep consumer, source, and build receipts separate. Preserve LibreCAD's R13
