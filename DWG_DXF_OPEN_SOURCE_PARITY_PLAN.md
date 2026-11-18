@@ -19,9 +19,9 @@ libdxfrw and LibreCAD origin/master heads above were re-checked and unchanged;
 LibreCAD PR #3269 is merged as `4060fb6bb` and is contained in that LibreCAD head.
 
 **Progress on 2026-11-17:** 6 of 33 required package gates are closed (18.2%);
-27 remain. After S8.2b/c/d, the activity count is 57 of 84 tracked items
-complete (67.9%): 6 closed gates and 51 completed implementation/research
-slices. The 27
+27 remain. After S8.2b/c/d and the P4-C ObjectARX API-route screen, the
+activity count is 58 of 85 tracked items complete (68.2%): 6 closed gates and
+52 completed implementation/research slices. The 27
 remaining counted items are the 27 open package gates. A completed slice can
 advance a gate that remains open, so this equal-weight activity count measures
 work items rather than unique outcomes or support breadth; use 6/33 for
@@ -30,11 +30,15 @@ Native Linux, native Windows, and LibreCAD GUI qualification are already
 inside P8-B/C/D and are not counted a second time. Completed actions have been
 removed from the active queue; receipts preserve the evidence needed to avoid
 repeating them.
-This snapshot was reconciled after the 2026-11-17 local slices S8.2b/c/d:
+This snapshot was reconciled after the 2026-11-17 local slices S8.2b/c/d and
+the bounded P4-C ObjectARX API-route screen in the linked [Sweep receipt](docs/research/p4-ac1027-sweep-oda-schema-boundary-2026-11-17.json):
 those method-level reservation, resolver, retry, and readback contracts are
 locally implemented, but they do not close a package gate. S8.2d corrects a
 test-helper boundary assumption only. Native consumer integration and GUI
 qualification remain open under P8; the 6/33 package count is unchanged.
+The P4-C screen identifies a version-matched witness-generation route, but no
+AutoCAD host or source drawing was available; P4-C remains waiting and no DWG
+wire or support claim is promoted.
 The S8.2d AC1027 BLOCK_CONTROL boundary selector now passes with the exact
 source-backed 53-bit handle suffix; this test-only slice changes no support
 claim. See [receipt](docs/research/p8-dwg-block-control-handle-bit-count-fast-slice-2026-11-17.json).
@@ -150,9 +154,10 @@ before reaching the cells. Neither route supplies the disputed spans or
 overrides ODA. See the [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json),
 [cursor/peer screen](docs/research/p5-ac1021-table-alignment-candidate-cursor-and-libredwg-screen-2026-11-17.json),
 and [debug-class screen](docs/research/p5-ac1021-table-libredwg-debug-class-span-screen-2026-11-17.json).
-Slices S23 through S35 are complete; activity progress is 54/81 (66.7%) and
-package readiness is 6/33 (18.2%). S32 through S35 are completed inventory or
-candidate research slices; none closes P5-B or promotes a support claim.
+At the S35 checkpoint, activity progress was 54/81 (66.7%) and package
+readiness was 6/33 (18.2%). That historical count is superseded by the current
+snapshot above. S32 through S35 are completed inventory or candidate research
+slices; none closes P5-B or promotes a support claim.
 P6-G is conditional, P7-E optional, and six DEFERRED_EXTERNAL dispositions
 are advisory, excluded from the count, and cannot promote support claims.
 
@@ -268,7 +273,7 @@ environment waits block only their own profiles.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 33 package gates and each implementation/research slice once; the
-  current ledger has 48 recorded completed slices (81 counted items total).
+  current ledger has 52 recorded completed slices (85 counted items total).
   Linux, Windows, and GUI outcomes belong to
   P8-B/C/D and are not separate progress units. A
   partial implementation slice earns activity progress but does not close its
@@ -330,7 +335,7 @@ integration pass or a specific failure that expands risk.
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
 | P4-B / WAITING_FOR_WITNESS | Request one source-distinct, release-bound AC1032 drawing with known top-level and nested associative-network API state, or primary versioned wire documentation. Reuse the [readiness audit](docs/research/p4-ac1032-assocnetwork-evidence-readiness-2026-11-17.json); peer agreement and frame candidates alone do not qualify. | Bind class-version-2 order/spans, handle roles, and following-record boundary. Add one discriminating truncation/refusal control; close nested graph and producer/consumer evidence. |
-| P4-C / WAITING_FOR_WITNESS | Request one provenance-bound AC1027 AutoCAD/ObjectARX or ODA SDK Sweep plus matching DXF. The Autodesk 2016 Community attachment lead returned 403/zero bytes; see the [schema and retrieval receipt](docs/research/p4-ac1027-sweep-oda-schema-boundary-2026-11-17.json). Resume only if the original file is supplied or a new accessible route appears. | Bind parent/child spans, embedded LWPOLYLINE suffix, handle roles, and next-frame alignment. Preserve unknown suffix bytes and refuse strict output until resolved; then prove malformed refusal, strict output/readback, and independent geometry semantics. |
+| P4-C / WAITING_FOR_AC1027_PRODUCER_WITNESS | Fastest admissible route: obtain one AutoCAD 2013/ObjectARX-authored AC1027 drawing and matching R2013 DXF. The Autodesk Community attachment still yielded 403/zero bytes. The new API-header screen shows `AcDbSweptSurface` can be created from explicit sweep/path entities and `AcDbSweepOptions`, then its source entities/options can be queried; this is a reproducible witness-generation route, not wire evidence. See the [Sweep receipt](docs/research/p4-ac1027-sweep-oda-schema-boundary-2026-11-17.json). | Keep the source compact: baseline/default and one distinct non-default sweep in the same drawing; record producer/build, API getter state before save and after reopen, entity handles, profile/path geometry, AC1027 magic, and both file hashes. Compare the paired DXF, ODA v5.4.1, and source-bound libdxfrw/LibreDWG traces to bind parent/child spans, embedded LWPOLYLINE body and suffix, handle roles, and next-frame alignment. API/header agreement or ODA round-trip alone cannot close physical spans. Preserve unknown suffix bytes and refuse strict output until spans resolve; then add only the missing truncation/wrong-role control, strict output/readback, corrected retry, and independent geometry check. If no AutoCAD 2013/ObjectARX host or authored pair is available, leave only this gate waiting and continue other work. |
 
 ### P5 — FIELD, TABLE, rendering, constraints (7 open)
 

@@ -10649,36 +10649,28 @@ The exact payload hashes, bytes, candidate field-order basis, decoded
 coordinates, prefix-consumption positions, and unknown suffix bits are
 recorded in the [research receipt](docs/research/p4-ac1027-sweep-embedded-lwpolyline-boundary-2026-11-09.json).
 
-**Next external evidence action — S2.3.9.4.38 (research/probe, not a parser
-rewrite):**
+**Historical external-evidence proposal — S2.3.9.4.38 (superseded):**
 
-1. Recheck that the desktop session is actually unlocked before invoking ODA.
-   The user said they were unlocking it, but the latest Computer Use inventory
-   still reports the Mac locked and native apps unavailable. Treat the external
-   retry as blocked on that observable state, not on the user's intent. Skip
-   this action without retry loops and continue the local queue; retry only
-   after a fresh inventory confirms the session is accessible.
-2. Once accessible, first verify the installed ODA executable can start. Then
-   use a locally-from-scratch, hash-recorded DXF with deliberately distinct
-   swept-surface scalar, flag, transform, profile/path, and reference values as
-   the source; have ODA produce AC1027 DWG and independently export that exact
-   DWG back to DXF. Keep both generated drawings under the build/temp area and
-   out of Git. Record executable/version, argv, return codes, hashes, and every
-   compared group/bit span in a receipt.
-3. Compare source DXF → produced DWG physical probe → ODA readback DXF. Require
-   all compared values and references to agree, no unexplained body bits, and
-   an independently checkable semantic result for the embedded profile/path
-   before considering any typed decode. Treat ODA's own roundtrip as a
-   producer/profile differential, not a second independent geometry oracle.
-   For a normative or semantic support claim, obtain an AutoCAD/ObjectARX or
-   independently implemented reader/kernel observation on the same hash-pinned
-   model; otherwise document the exact remaining gap and keep status partial.
-4. Only after field order, types, references, and body termination are
-   resolved, draft the smallest parser/test change. Reuse the existing
-   generated truncation/reset/retry and opaque-suffix tests; add only the
-   missing positive/negative cases. Run the affected `-Werror` target and
-   focused CTest, update this ledger/receipt, commit the bounded slice, report
-   the result, then immediately select the next ready item.
+This proposal is retained as history; the active readiness and next action are
+in [P4-C](DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md#p4--source-bodies-and-graph-closure-2-open).
+The proposed ODA File Converter authoring route is not currently usable: its
+installed candidate cannot launch in this desktop session, and the separately
+screened official package failed signature verification. Do not retry that
+route unless the P6-H trigger changes. A new ObjectARX API screen shows a
+version-matched AutoCAD 2013 host can author the AC1027 source and paired DXF;
+the API headers only expose a candidate way to set/query source state and do
+not establish DWG wire layout or close P4-C.
+
+Use the bounded sequence in P4-C: produce one baseline/default and one
+distinct non-default SweptSurface through AutoCAD 2013/ObjectARX, save the
+AC1027 DWG and matching R2013 DXF, record API state before save and after
+reopen, then bind the source's bytes, spans, roles, and following-frame
+boundary. Keep all drawings in scratch and out of Git. ODA's own round-trip,
+ObjectARX API state, and peer-reader agreement are each useful corroboration;
+none substitutes for physical source-span evidence or independent geometry
+semantics. Only after those exit conditions pass should the smallest parser
+change be made, with the existing generated truncation/reset/retry controls
+reused and only a missing discriminating control added.
 
 **Parallel local queue while the external gate is pending:** take the next
 ready P4/P6 item from the live ledger; prioritize narrow generated tests or

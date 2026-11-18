@@ -92,7 +92,7 @@
     "reason": "The normative specification bounds the modeler wrapper and ordinary entity layout but does not resolve the embedded source's exact AC1027 spans or suffix. Transferring ordinary-entity fields or calling the remaining bits padding would be speculative.",
     "currentBehavior": "Preserve the embedded payload and suffix; keep strict Sweep output refused."
   },
-  "nextAction": "The Autodesk Community AutoCAD 2016 Sweep candidate remains unavailable: the official attachment endpoint returned HTTP 403 and zero bytes. Do not retry that route or infer DWG version/contents from the post. Request the original file directly or resume only if a new accessible artifact route appears; then record producer/build, exact version, hashes, Sweep handle, profile/path geometry, group-310 payload, declared lengths, and embedded boundaries before comparing it with ODA and the current probe.",
+  "nextAction": "Do not repeat the Autodesk Community attachment/catalog scans. The new ObjectARX screen identifies a version-matched witness-generation route but produced no drawing. When an AutoCAD 2013/ObjectARX host or equivalent authored pair is available, capture a small AC1027 DWG plus matching R2013 DXF containing a default and a distinct non-default SweptSurface; record API getter state before save and after reopen, producer/build, handles, profile/path geometry, AC1027 magic, and hashes. Compare source-bound spans and following-frame alignment against ODA v5.4.1 and independent-reader cursors. Until those artifacts arrive, P4-C remains waiting; do not change parser/output admission.",
   "validation": {
     "specTitleAndVersion": "PASS; title page identifies ODA Open Design Specification v5.4.1.",
     "specSha256": "PASS; local copy hash matches 1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7.",
@@ -175,5 +175,45 @@
     ],
     "conclusion": "This primary document clarifies the R2013 SweptSurface DXF projection and its type-specific group roles. It does not describe the DWG AcDbShSweepBase embedded LWPOLYLINE encoding, physical suffix, DWG handle roles, or following-frame boundary; P4-C remains open.",
     "supportClaimEffect": "none"
+  },
+  "objectArxAuthoringRouteScreen": {
+    "date": "2026-11-17",
+    "status": "API_ROUTE_FOUND_WIRE_WITNESS_STILL_REQUIRED",
+    "sources": [
+      {
+        "title": "AcDbSweptSurface class, Autodesk ObjectARX 2018 reference",
+        "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDb_Classes.html",
+        "observation": "Autodesk documents AcDbSweptSurface and AcDbSweepOptions as ObjectARX classes; AcDb3dProfile is used by createSweptSurface()."
+      },
+      {
+        "title": "AcDbSweepOptions, Autodesk ObjectARX 2019 reference",
+        "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbSweepOptions.html",
+        "observation": "Autodesk describes sweep options as controlling resulting surface/solid shape and documents default option values."
+      },
+      {
+        "title": "AutoCAD 2013 ObjectARX SDK dbsweptsurf.h mirror",
+        "url": "https://github.com/kevinzhwl/ObjectARXCore/blob/ce09e150aa7d87675ca15c9416497c0487e3d4d4/2013/inc/dbsweptsurf.h",
+        "observation": "The versioned header exposes createSweptSurface(sweepEntity,pathEntity,options), getSweepEntity(), getPathEntity(), sweepProfile(), pathProfile(), getSweepOptions(), setSweepOptions(), getPathLength(), and DWG/DXF filer hooks. The header is a public repository mirror of Autodesk SDK material, not itself a DWG witness."
+      },
+      {
+        "title": "AutoCAD 2013 ObjectARX SDK dbSweepOptions.h mirror",
+        "url": "https://github.com/kevinzhwl/ObjectARXCore/blob/ce09e150aa7d87675ca15c9416497c0487e3d4d4/2013/inc/dbSweepOptions.h",
+        "observation": "The versioned header exposes getters/setters for draft and end distances, twist, scale, alignment, miter, align-start, base point, bank, self-intersection checking, twist reference vector, and sweep/path transforms."
+      },
+      {
+        "title": "SweptSurface.CreateSweptSurface Method, Autodesk Managed Reference 2024",
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_SweptSurface_CreateSweptSurface_Entity_Entity_Autodesk_AutoCAD_DatabaseServices_SweepOptions.html",
+        "observation": "Autodesk describes creating the surface by sweeping a curve, region, or planar surface along a curve path, with optional parameters supplied through sweep options. This corroborates the API concept but is not release-specific wire evidence."
+      }
+    ],
+    "fastestWitnessPlan": [
+      "Use AutoCAD 2013/ObjectARX to author one small AC1027 DWG and its matching R2013 DXF; do not use ODA File Converter as the producer while its local bundle is unusable/unverified.",
+      "Place a default-options surface and one surface with distinct non-default option values in the same drawing; use API getters before save and after reopen to record the exact source entities, path/profile, options, and handles.",
+      "Hash and retain both scratch files; verify AC1027 magic and producer build. Correlate the DXF values with ODA v5.4.1 plus source-bound libdxfrw and independent-reader cursors to identify embedded boundaries, physical suffix, handle roles, and next-frame alignment.",
+      "Treat API state, DXF values, ODA round-trip, and peer-reader agreement as separate corroboration. None alone proves DWG byte spans or geometry semantics. Preserve unresolved suffix bytes and keep strict output refused until all P4-C exit conditions pass."
+    ],
+    "decision": "This route improves implementation readiness by naming a version-matched, controllable producer and API state capture. No host, drawing, DWG bytes, or paired DXF was available in this research pass; P4-C remains waiting. No parser change or support promotion is justified.",
+    "supportClaimEffect": "none",
+    "retryTrigger": "Access to AutoCAD 2013/ObjectARX, or receipt of an equivalent provenance-bound AC1027 DWG plus matching R2013 DXF with known API state."
   }
 }
