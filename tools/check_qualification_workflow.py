@@ -31,7 +31,7 @@ from run_native_qualification import (  # noqa: E402
 
 CHECKOUT_SHA = "3d3c42e5aac5ba805825da76410c181273ba90b1"
 UPLOAD_SHA = "043fb46d1a93c77aae656e7c1c64a875d1fc6a0a"
-EXPECTED_WORKFLOW_SHA256 = "4aaa6948a41bbeeac139f4d1ab4f606997d5133f2f98db2f1a41b25f1a1d9ee8"
+EXPECTED_WORKFLOW_SHA256 = "9ff73f5845181504c46c621ded72895ca19de9974cd36417294f45db32c39497"
 ACTION_RE = re.compile(r"^\s*uses:\s*([^\s#]+)", re.MULTILINE)
 FULL_ACTION_RE = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+@[0-9a-f]{40}")
 EXPECTED_ACTIONS = {
@@ -300,6 +300,8 @@ def validate_workflow_text(text: str) -> None:
             "CI workflow contract must fail closed on an unfinalized inventory")
     require("tools/check_qualification_workflow.py" in contract,
             "workflow does not validate its own qualification contract")
+    require("tools/check_qualification_digest.py" in contract,
+            "workflow does not fail fast on a stale implementation digest")
 
     focused = jobs["native-focused"]
     validate_matrix(focused, "focused")

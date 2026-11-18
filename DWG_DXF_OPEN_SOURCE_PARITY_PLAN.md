@@ -18,26 +18,34 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 [baseline refresh receipt](docs/research/consumer-baseline-refresh-2026-11-18.json);
 refresh moving heads again before later integration or platform qualification.
 
-**Progress on 2026-11-18:** 10/33 package gates closed; 23 remain. The activity
-ledger is 89/112 (79.5%): ten closed gates and 79 completed implementation or
+**Progress on 2026-11-18:** 9/33 package gates closed; 24 remain. The activity
+ledger is 90/114 (78.9%): nine closed gates and 81 completed implementation or
 research slices. The P8-A package-probe preparation slice passed on the local
 macOS shared profile; its [receipt](docs/research/p8a-installed-cli-probe-preparation-2026-11-18.json)
 records the installed CLI hash, relocated usage-path launch, and exact loaded
-runtime identity. P8-A remains open until the final candidate profile passes
-on all three platforms. Gate readiness is 30.3%; activity progress does not
+runtime identity. A Windows shared-DLL link failure found by that workflow is
+fixed in `c77cad11`; its Linux shared/static package jobs and Windows shared
+build/install step pass, with the rest of that matrix still running. The Linux
+focused tests also pass on `c77cad11`, but receipt sealing found a stale status
+digest. The digest is refreshed and a pre-build digest check is added in the
+[refresh receipt](docs/research/p8-native-digest-preflight-refresh-2026-11-18.json);
+platform receipts still need rerunning. P8-A remains open until the final
+candidate passes all three platforms. Gate readiness is 27.3%; activity progress does not
 imply support. The [fast-regression receipt](docs/research/p8-fast-tablecontent-regression-2026-11-18.json)
 records the exact implementation digest and passing fast plus three-platform
-native runs. P8-F is closed for that digest; the authenticated `master`
+native runs. P8-F was closed for its recorded digest; later selected-input
+changes reopened it for the current digest. The authenticated `master`
 branch-policy read found strict up-to-date protection and no named required
 checks. The broad native suite and extended fuzz lane remain for the frozen
 integration pass.
 
-Ten package gates are closed and removed from the active queue. The latest
+Nine package gates are closed and removed from the active queue. The latest
 consumer and package closures are limited to the generated FreeCAD profile
 (P8-B/C; [receipt](docs/research/p8-candidate-native-freecad-qualification-2026-11-18.json)),
 the shared/static library package profile (P8-E;
 [receipt](docs/research/p8e-current-source-macos-installed-package-profile-2026-11-18.json)),
-and the pinned fast-regression digest (P8-F). None promotes drawing support.
+and the pinned fast-regression digest (P8-F) for its prior implementation
+digest. None promotes drawing support.
 
 P8-D remains waiting. After the latest reported unlock, this process still
 captured no desktop image and CoreGraphics reported `activeCount=0`; no GUI
@@ -61,7 +69,7 @@ excluded from the counts, and cannot promote support claims.
 
 ## Execution order and fast paths
 
-The active queue has 23 package gates (P4: 2, P5: 7, P6: 6, P7: 5, P8: 3).
+The active queue has 24 package gates (P4: 2, P5: 7, P6: 6, P7: 5, P8: 4).
 No new evidence currently admits a DWG parser/writer change. Start with the
 local package identity work below, then take the first eligible evidence packet;
 an unavailable producer, external authority, GUI, or converter parks only its
@@ -73,7 +81,7 @@ own profile.
 | 2 | Resume authority/source waits only on their named trigger | P5-B/G/I; P6-E/F/H; P7-C/D/G | Reuse linked receipts. Do one bounded primary/source-distinct search per changed trigger; stop when the required field, role, version, and following-record boundary remain unbound. Do not repeat generic peer scans, sample downloads, or failed converter launches. |
 | 3 | Implement immediately when one profile is admitted | All source-backed gates | Bind source spans, handle roles, and meaning; make one narrow parser/model/graph/writer change; run its owning fast selectors together with one touched-target build; prove relevant refusal, state/destination preservation, and corrected same-object retry; add strict output and fresh independent readback only for output-capable profiles. Commit the slice, update its receipt and this queue, remove the completed action, recount, then take the next ready gate. |
 | 4 | Qualify consumers only for admitted profiles | P7-F/H; P8-D | Reuse the exact generated FreeCAD P8-B/C profile. Start P7-F only after P7-C/D admission and an independent geometry reader. Batch LibreCAD 2 GUI actions in one accessible session; run LibreCAD_3 only if its application becomes available. |
-| 5 | Final release qualification | P8-A/G | Reuse the prepared package probe and local macOS result. After implementation profiles stabilize, run it on Linux, macOS, and Windows for the frozen source and record final source/build/package/runtime identities. Run the broad suite and extended fuzz lane once for that candidate; publish only the resulting evidence-backed support matrix. |
+| 5 | Final release qualification | P8-A/F/G | Reuse the prepared package probe and local macOS result. After implementation profiles stabilize, run package checks plus fast and focused-native lanes on Linux, macOS, and Windows for the frozen source and record final source/build/package/runtime identities. Run the broad suite and extended fuzz lane once for that candidate; publish only the resulting evidence-backed support matrix. |
 
 **Self-unblock after every slice or failed probe:** first inspect the linked
 receipt, current code, and local corpus. If a required input is missing, use
@@ -127,9 +135,10 @@ producer wire evidence or 3D semantic proof.
   observed failure and one changed-state trigger, mark only that profile
   waiting, and continue the next ready slice. Retry only after the trigger
   changes; do not repeat unchanged scans or controls.
-- Reuse the passing fast/native evidence for the exact P8-F implementation
-  digest; investigate a new source-matched failure only if a relevant selector
-  fails again or implementation inputs change.
+- Reuse fast/native evidence only for its exact P8-F implementation digest. Any
+  selected-input change reopens P8-F for the new digest; run the fast and
+  focused-native profiles once on the stabilized replacement source, not after
+  each unrelated metadata-only edit.
 
 ### Slice, progress, and validation contract
 
@@ -146,8 +155,8 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 33 package gates and each implementation/research slice once. The
-  current ledger is 79 completed slices plus 33 package gates = 112 counted
-  items; 10 gates plus 79 slices are complete (89/112, 79.5%). The Linux and
+  current ledger is 81 completed slices plus 33 package gates = 114 counted
+  items; 9 gates plus 81 slices are complete (90/114, 78.9%). The Linux and
   Windows FreeCAD results close P8-B/C only for their exact generated profile;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package
@@ -163,7 +172,7 @@ promote support claims.
 
 ## Active package gates
 
-Only the following 23 open package gates are active; completed actions have
+Only the following 24 open package gates are active; completed actions have
 been removed. Their execution order is in the table above; the subsystem
 tables give the exact entry evidence and exit criteria. Readiness labels
 describe scheduling only, never support:
@@ -239,20 +248,22 @@ acceptance separate. CAD Assistant/ezdxf shares OCCT lineage with FreeCAD and
 does not provide independent-kernel evidence. P7-E remains optional. A missing
 external kernel or app blocks only that profile.
 
-### P8 — consumers, packaging, release (3 open)
+### P8 — consumers, packaging, release (4 open)
 
-P8-B/C, P8-E, and P8-F are closed for their exact generated-consumer,
-shared/static-package, and fast-regression profiles. Their receipts are linked
-above; completed procedures are removed from this queue. Reuse these results
-without rerunning unless their source, binary, configuration, platform, or
-operation changes. The earlier [macOS FreeCAD smoke](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json)
+P8-B/C and P8-E are closed for their exact generated-consumer and shared/static
+package profiles. P8-F's earlier fast/native closure applies only to digest
+`5946b6c7aaaf2d8b8d829bd855a0aace6ed7c380fe5228b301c0458d7b2ab7f1`; selected
+inputs changed afterward, so P8-F is active again for the current digest. Reuse
+the other closed results unless their source, binary, configuration, platform,
+or operation changes. The earlier [macOS FreeCAD smoke](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json)
 is setup evidence only. Keep ordinary AC1027 drawings deferred until
 source-reference closure.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P8-A / INTEGRATION_GATE | The shared-package workflow now installs `dwg2dxf`; local macOS relocation, CLI usage, and loaded-runtime identity pass in the [probe-preparation receipt](docs/research/p8a-installed-cli-probe-preparation-2026-11-18.json). Reuse it without rerunning unless the workflow/probe inputs change. | On the final stabilized source, run the prepared profile on Linux, macOS, and Windows; pin source/code digest, configuration, installed inventory, CLI hash, and runtime module path/hash. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. This gate adds no drawing-support claim. |
+| P8-A / INTEGRATION_GATE | The shared-package workflow now installs `dwg2dxf`; local macOS relocation, CLI usage, and loaded-runtime identity pass in the [probe-preparation receipt](docs/research/p8a-installed-cli-probe-preparation-2026-11-18.json). Reuse it without rerunning unless the workflow/probe inputs change. Commit `c77cad11` explicitly exports/imports the shared debug atomic required by Windows CLI consumers; its touched local build passes. Linux shared/static jobs and the Windows shared build/install step pass on c77; remaining platform jobs are pending. | On the final stabilized source, run the prepared profile on Linux, macOS, and Windows; pin source/code digest, configuration, installed inventory, CLI hash, and runtime module path/hash. Close only after all three platform package jobs pass. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. This gate adds no drawing-support claim. |
 | P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | The latest preflight after the user's unlock report failed to capture an image; CoreGraphics returned `activeCount=0`. No GUI action was attempted. This does not establish physical login state or capture permissions. The LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`; no LibreCAD_3 bundle was found. See the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). Retry only after this process sees an active display and capture succeeds. | In one GUI session, launch LibreCAD 2 by its explicit bundle path and complete Move/Copy action-boundary, named-LTYPE save/reopen/render, and (if P6-H obtains a source-bound MLINE witness) MLINE display/edit/save/reopen. Then run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback if that application becomes available. This gate does not block Linux/Windows qualification. |
+| P8-F / ACTIVE_CURRENT_DIGEST_FAST_GATE | The earlier fast/native pass applies only to digest `5946b6c7aaaf2d8b8d829bd855a0aace6ed7c380fe5228b301c0458d7b2ab7f1`. Current digest `07d6d60c5a10a9404e536df31aa348d500730ac2402075d708971403d2b6b90a` is refreshed, and the [digest-preflight receipt](docs/research/p8-native-digest-preflight-refresh-2026-11-18.json) records why the c77 Linux tests could not seal. | After selected implementation inputs stabilize, run fast parity selectors and focused-native on Linux, macOS, and Windows once for this exact digest. Seal per-platform receipts and recheck branch policy. Keep broad/fuzz lanes for the final integration pass; this gate adds no drawing-support claim. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 
 Keep consumer, source, and build receipts separate. Preserve LibreCAD's R13

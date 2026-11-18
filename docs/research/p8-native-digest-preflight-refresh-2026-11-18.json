@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-native-digest-preflight-refresh-2026-11-18",
+  "date": "2026-11-18",
+  "title": "Refresh the native qualification digest and fail fast before platform builds",
+  "status": "DIGEST_REFRESHED_PREFLIGHT_ADDED_NATIVE_RERUN_PENDING",
+  "supportClaimEffect": "none",
+  "packageGateEffect": "P8-F is reopened for the current implementation digest; the previous close applies only to its recorded digest. P8-A remains open.",
+  "activityLedgerEffect": "One implementation/process slice completed; one additional activity item is counted. No package gate is closed.",
+  "trigger": {
+    "pullRequest": "LibreCAD/libdxfrw#106",
+    "headCommit": "c77cad11dc73ad92644c851da9357252e98dd52d",
+    "workflow": "libdxfrw native qualification",
+    "runId": 44305851305,
+    "job": "focused / linux-gcc",
+    "jobId": 134807249855
+  },
+  "finding": {
+    "qualification": "PASS: the focused Linux profile ran all seven selected tests.",
+    "receiptEmission": "FAIL: status overlay implementation digest is stale.",
+    "rootCause": "The frozen status overlay still named the implementation digest from before the Windows shared-DLL export change.",
+    "oldDigest": "5946b6c7aaaf2d8b8d829bd855a0aace6ed7c380fe5228b301c0458d7b2ab7f1"
+  },
+  "refresh": {
+    "candidateBaseCommit": "c77cad11dc73ad92644c851da9357252e98dd52d",
+    "additionalSelectedChanges": [
+      ".github/workflows/build.yml",
+      "tools/check_qualification_workflow.py"
+    ],
+    "algorithm": "sha256-git-blob-records-v1",
+    "inputCount": 733,
+    "implementationDigestSha256": "07d6d60c5a10a9404e536df31aa348d500730ac2402075d708971403d2b6b90a",
+    "provenance": "Computed in an isolated tracked clone from c77cad11 plus the two listed workflow/contract edits staged in that clone; unrelated untracked drawings and worktree files were excluded.",
+    "verification": "Copied the refreshed digest-excluded status overlay into that clone and ran python3 -B tools/check_qualification_digest.py; it passed for all 733 inputs.",
+    "statusChange": {
+      "file": "metadata/qualified-format-status-v1.json",
+      "field": "implementationDigestSha256",
+      "from": "5946b6c7aaaf2d8b8d829bd855a0aace6ed7c380fe5228b301c0458d7b2ab7f1",
+      "to": "07d6d60c5a10a9404e536df31aa348d500730ac2402075d708971403d2b6b90a",
+      "claimsDigestChanged": false,
+      "claimStatesChanged": false
+    }
+  },
+  "speedImprovement": {
+    "workflow": ".github/workflows/build.yml",
+    "change": "The lightweight workflow-contract job now checks the frozen implementation digest before any native platform matrix compiles.",
+    "contractPin": "tools/check_qualification_workflow.py pins the updated workflow SHA-256 and requires the digest preflight.",
+    "workflowSha256": "9ff73f5845181504c46c621ded72895ca19de9974cd36417294f45db32c39497",
+    "validation": [
+      "python3 -B tools/check_qualification_workflow.py --self-test: PASS",
+      "python3 -B tools/check_qualification_workflow.py: PASS",
+      "actionlint .github/workflows/build.yml: PASS",
+      "git diff --check: PASS"
+    ]
+  },
+  "pending": [
+    "Commit and push the digest refresh and preflight; rerun focused native qualification on this exact digest and require sealed receipts on Linux, macOS, and Windows.",
+    "Run the fast parity selectors on the same stabilized digest before reclosing P8-F; do not run the broad suite or extended fuzz lane for this metadata/workflow repair.",
+    "Finish the current-source P8-A package matrix on Linux, macOS, and Windows; the c77cad11 Linux shared/static jobs passed and its Windows shared build/install step passed, while remaining jobs were still running at receipt creation."
+  ],
+  "limits": [
+    "The digest refresh is repository-integrity evidence, not a support qualification.",
+    "The stale receipt did not indicate a native test failure; it prevented sealing the seven passing observations.",
+    "No drawing-support claim is promoted."
+  ]
+}

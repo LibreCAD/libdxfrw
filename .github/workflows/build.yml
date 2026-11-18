@@ -47,6 +47,9 @@ jobs:
           --workflow .github/workflows/build.yml
           --manifest metadata/qualification-required-tests-v1.json
 
+      - name: Check frozen implementation digest
+        run: python3 -B tools/check_qualification_digest.py
+
   native-focused:
     name: focused / ${{ matrix.platformKey }}
     needs: workflow-contract
