@@ -3782,7 +3782,9 @@ std::uint32_t dxfRW::highWaterHandle() const {
 }
 
 bool dxfRW::isReservedHandle(std::uint32_t h) const {
-    return m_handleAllocator->isExplicitlyReserved(h);
+    return m_handleAllocator->isExplicitlyReserved(h)
+        || (m_dxfWriteAttemptActive
+            && m_handleAllocator->isWriteReserved(h));
 }
 
 void dxfRW::setDebug(DRW::DebugLevel lvl){

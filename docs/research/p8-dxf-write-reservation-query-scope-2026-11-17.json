@@ -1,0 +1,60 @@
+{
+  "date": "2026-11-17",
+  "slice": "P8/S8.2b DXF consumer reservation-query scope",
+  "status": "IMPLEMENTED_LOCALLY",
+  "scope": {
+    "api": "dxfRW::isReservedHandle",
+    "contract": "Caller-owned reservations are visible at all times; reserveForWrite destinations are visible only during an active DXF write; handles minted by allocHandle/next remain excluded.",
+    "consumer": "LibreCAD filter reservation query used while preserving and reallocating source metadata handles."
+  },
+  "baseline": {
+    "test": "libdxfrw_dxf_consumer_write_facade",
+    "result": "FAIL before change: six assertions reported that planned BLOCK/ENDBLK destinations were hidden while minted BLOCK_RECORD handles remained excluded.",
+    "cause": "HandleAllocator stored next()-minted identities and reserveForWrite() destinations in one set, while the public query intentionally excluded minted handles."
+  },
+  "change": {
+    "files": [
+      "src/handle_allocator.h",
+      "src/libdxfrw.cpp",
+      "src/libdxfrw.h",
+      "tests/dxf_fixture_tests.cpp"
+    ],
+    "detail": "Track minted and write-planned handles separately. Keep allocator collision detection and high-water computation over both sets. Expose write-planned destinations from the facade only during the admitted write attempt; keep explicit caller reservations visible independently of write lifecycle."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check libdxfrw_dwg_local_roundtrip --parallel 4",
+      "result": "PASS"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dxf_consumer_write_facade$' --output-on-failure",
+      "result": "PASS (1/1; 0.34 s)",
+      "coverage": "Generated AC1009/AC1024 ASCII and binary writes; planned BLOCK/ENDBLK and minted BLOCK_RECORD/entity identities; finalization; failed write; corrected retry; explicit reservation persistence."
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_writer_primitives|libdxfrw_dxf_writer_emitted_handle_inventory)$' --output-on-failure",
+      "result": "PASS (2/2; 0.08 s)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_control_handle_slots$' --output-on-failure",
+      "result": "PASS (1/1)"
+    }
+  ],
+  "unresolvedCrossChecks": [
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_block_control_handle_boundary$' --output-on-failure",
+      "result": "FAIL (1/1); the same boundary test also fails in the pre-existing build/ executable. This is not a passing gate for this slice and remains untriaged."
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "FAIL (7 assertions covering generated ACDS modeler projection/typed BOX closure, EvaluationGraph output, and HATCH source-reference ordering). The same test passes in the older build/ executable; source/build baselines differ, so causality is unestablished and these cases remain open."
+    }
+  ],
+  "fixturePolicy": "All DXF test data is generated at runtime; no DWG/DXF fixture was added or committed.",
+  "limits": [
+    "The LibreCAD compatibility target is compile-time source compatibility, not a native GUI or binary-ABI result.",
+    "This closes only reservation-query semantics; broader consumer sequencing and integration remain separate gates.",
+    "No DWG/DXF family or version support claim is promoted."
+  ],
+  "supportClaim": "unchanged"
+}

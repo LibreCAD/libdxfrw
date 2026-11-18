@@ -93,11 +93,15 @@ public:
 
     /// Reserve a known output destination for the current write only. Unlike
     /// caller-owned reserve(), this planning fact expires at resetGenerated()
-    /// and must never be treated as proof that a record was emitted.
+    /// and must never be treated as proof that a record was emitted. Keep it
+    /// separate from next() handles so the consumer reservation query can
+    /// expose planned structural destinations without reporting every minted
+    /// entity handle as reserved.
     void reserveForWrite(std::uint32_t h) {
         if (h >= m_next && h == (std::numeric_limits<std::uint32_t>::max)())
             throw std::overflow_error("DWG/DXF handle allocator exhausted");
-        m_allocated.insert(h);
+        m_writeReserved.insert(h);
+        m_minted.erase(h);
     }
 
     /// Allocate the next unused handle ≥ `m_next`, skipping reserved.
@@ -112,16 +116,17 @@ public:
         if (m_next == (std::numeric_limits<std::uint32_t>::max)())
             throw std::overflow_error("DWG/DXF handle allocator exhausted");
         std::uint32_t h = m_next++;
-        m_allocated.insert(h);
+        m_minted.insert(h);
         return h;
     }
 
-    /// Reset minted/planned handles from the previous write while retaining explicit
-    /// source/raw reservations.  Failed allocations are not retained as
-    /// reservations across writes; within one write, callers never receive a
-    /// handle twice because `next()` is monotonic.
+    /// Reset minted/planned handles from the previous write while retaining
+    /// explicit source/raw reservations. Failed allocations are not retained
+    /// across writes; within one write, callers never receive a handle twice
+    /// because `next()` is monotonic.
     void resetGenerated() {
-        m_allocated.clear();
+        m_minted.clear();
+        m_writeReserved.clear();
         m_next = 0x30;
         if (!m_explicitReserved.empty()) {
             const auto highest = *m_explicitReserved.rbegin();
@@ -137,8 +142,20 @@ public:
         // A future remap destination must raise HANDSEED, not force all new
         // records above that destination. In particular FFFFFFFE leaves many
         // usable low handles even though its high-water mark is FFFFFFFF.
-        const std::uint32_t plannedNext = m_allocated.empty()
-            ? 0u : *m_allocated.rbegin() + 1u;
+        bool hasWriteAllocation = false;
+        std::uint32_t largestWriteHandle = 0u;
+        if (!m_minted.empty()) {
+            largestWriteHandle = *m_minted.rbegin();
+            hasWriteAllocation = true;
+        }
+        if (!m_writeReserved.empty()
+            && (!hasWriteAllocation
+                || *m_writeReserved.rbegin() > largestWriteHandle)) {
+            largestWriteHandle = *m_writeReserved.rbegin();
+            hasWriteAllocation = true;
+        }
+        const std::uint32_t plannedNext = hasWriteAllocation
+            ? largestWriteHandle + 1u : 0u;
         return m_next < plannedNext ? plannedNext : m_next;
     }
 
@@ -150,16 +167,25 @@ public:
         return m_explicitReserved.count(h) != 0;
     }
 
+    /// Write-scoped destinations supplied by reserveForWrite(); minted handles
+    /// from next() remain excluded.
+    bool isWriteReserved(std::uint32_t h) const {
+        return m_writeReserved.count(h) != 0;
+    }
+
 private:
     /// First candidate for user-allocated handles.  All canonical
     /// reserved handles are below 0x30, so seeding starts here.
     std::uint32_t m_next {0x30};
     bool isReserved(std::uint32_t h) const {
-        return m_explicitReserved.count(h) != 0 || m_allocated.count(h) != 0;
+        return m_explicitReserved.count(h) != 0
+            || m_minted.count(h) != 0
+            || m_writeReserved.count(h) != 0;
     }
 
     std::set<std::uint32_t> m_explicitReserved;
-    std::set<std::uint32_t> m_allocated;
+    std::set<std::uint32_t> m_minted;
+    std::set<std::uint32_t> m_writeReserved;
 };
 
 #endif // HANDLE_ALLOCATOR_H

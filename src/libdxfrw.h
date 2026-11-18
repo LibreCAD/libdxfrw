@@ -671,8 +671,9 @@ public:
      * reserved or minted so far). Used to populate $HANDSEED. Mirrors
      * dwgWriter::highWaterHandle. */
     std::uint32_t highWaterHandle() const;
-    //! Explicit allocator reservations, including codec-fixed/BLOCK ranges;
-    //! handles merely minted during a write are excluded.
+    //! Caller reservations and current-write planned destinations, including
+    //! codec-fixed/BLOCK ranges; handles merely minted during a write are
+    //! excluded. Write-scoped destinations are visible only during that write.
     bool isReservedHandle(std::uint32_t h) const;
     /*!< Register the CLASS records to emit in the DXF CLASSES section. The
      * filter supplies source definitions and recomputes instance counts from

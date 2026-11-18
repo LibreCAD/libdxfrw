@@ -31309,7 +31309,7 @@ void testExplicitReservationQuery(TestContext& t) {
                             && (modern ? (block != 0 && !dxfW->isReservedHandle(block)
                                 && dxfW->isReservedHandle(block + 1)
                                 && dxfW->isReservedHandle(block + 2)) : block == 0),
-                        "query includes internal fixed/BLOCK reservations but excludes minted BLOCK_RECORD");
+                        "query exposes fixed and planned BLOCK/ENDBLK handles but excludes the minted BLOCK_RECORD");
             generated = dxfW->allocHandle();
             DRW_Line line;
             line.secPoint = {1, 2, 3};
