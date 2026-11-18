@@ -7673,6 +7673,13 @@ public:
       copyPersistentFields(o);
       m_dxfPersistentSubentityBody = false;
       m_dxfPersistentSubentityClassValueCount = 0;
+      m_dxfPersistentStepsExpected = 0u;
+      m_dxfPersistentStepsRead = 0u;
+      m_dxfPersistentStepsComplete = false;
+      m_dxfPersistentSubentityCountSeen = false;
+      m_dxfPersistentSubentityIdsExpected = 0u;
+      m_dxfPersistentSubentityIdsRead = 0u;
+      m_dxfPersistentProjectionInvalid = false;
       m_dxfAssociativeGeomSubclass = 0;
       m_dxfAssociativeActionSubclass = false;
       m_dxfAssociativeNetworkSubclass = false;
@@ -7767,10 +7774,12 @@ public:
   std::int32_t m_networkActionIndex = 0;
   bool m_actionPrefixParsed = false;
   bool m_networkFieldsParsed = false;
-  // DXF PERSUBENTMGR stores associated subentities as repeated 330 handles.
-  // Keep these separate from the scalar vectors in the fixed DWG type 1313
-  // body; the dynamic DWG type 1248 remains an opaque shell.
+  // Candidate DXF projection of AcDbPersSubentManager's group-90 body. The
+  // values remain advisory: the complete raw DXF group stream is authoritative
+  // until source-bound semantics qualify this class. These are separate from
+  // the fixed DWG type 1313 body; dynamic DWG type 1248 remains an opaque shell.
   std::uint32_t m_persistentSubentityCount = 0;
+  bool m_persistentDxfProjectionComplete = false;
   std::vector<std::uint32_t> m_persistentSubentityHandles;
   std::uint32_t m_persistentUnknown0 = 0;
   std::uint32_t m_persistentUnknown2 = 0;
@@ -7893,6 +7902,8 @@ private:
     m_actionPrefixParsed = o.m_actionPrefixParsed;
     m_networkFieldsParsed = o.m_networkFieldsParsed;
     m_persistentSubentityCount = o.m_persistentSubentityCount;
+    m_persistentDxfProjectionComplete =
+        o.m_persistentDxfProjectionComplete;
     m_persistentSubentityHandles = o.m_persistentSubentityHandles;
     m_persistentUnknown0 = o.m_persistentUnknown0;
     m_persistentUnknown2 = o.m_persistentUnknown2;
@@ -7979,6 +7990,13 @@ private:
   }
   bool m_dxfPersistentSubentityBody = false;
   std::uint32_t m_dxfPersistentSubentityClassValueCount = 0;
+  std::size_t m_dxfPersistentStepsExpected = 0u;
+  std::size_t m_dxfPersistentStepsRead = 0u;
+  bool m_dxfPersistentStepsComplete = false;
+  bool m_dxfPersistentSubentityCountSeen = false;
+  std::size_t m_dxfPersistentSubentityIdsExpected = 0u;
+  std::size_t m_dxfPersistentSubentityIdsRead = 0u;
+  bool m_dxfPersistentProjectionInvalid = false;
   std::uint8_t m_dxfAssociativeGeomSubclass = 0;
   bool m_dxfAssociativeActionSubclass = false;
   bool m_dxfAssociativeNetworkSubclass = false;

@@ -2,7 +2,7 @@
   "schema": "libdxfrw-research-receipt-v1",
   "id": "p8d-post-unlock-preflight-2026-11-18",
   "date": "2026-11-18",
-  "title": "P8-D desktop preflight after reported unlock",
+  "title": "P8-D desktop preflight after repeated reported unlock",
   "status": "WAITING_FOR_ACCESSIBLE_DISPLAY_CAPTURE",
   "supportClaimEffect": "none",
   "trigger": "The user reported unlocking the macOS session after the previous P8-D preflight failed.",
@@ -19,10 +19,32 @@
       "artifactCreated": false,
       "guiActionsAttempted": false
     },
+    "retryAfterFurtherReportedUnlock": {
+      "trigger": "The user again reported unlocking the macOS session.",
+      "command": "screencapture -x /tmp/libdxfrw-unlock-check.png",
+      "result": "Failed: could not create image from display.",
+      "artifactCreated": false,
+      "guiActionsAttempted": false
+    },
     "coreGraphicsDisplayState": {
       "command": "swift -module-cache-path /private/tmp/swift-module-cache -e 'import CoreGraphics; var count: UInt32 = 0; let result = CGGetActiveDisplayList(0, nil, &count); print(\"first=\\(result) activeCount=\\(count)\")'",
       "result": "CGGetActiveDisplayList returned CGError(rawValue: 0) with activeCount=0.",
       "interpretation": "The current process sees no active Quartz display. This does not establish whether the user's physical login session is locked or whether TCC screen-capture permission is granted."
+    },
+    "coreGraphicsDisplayStateAfterFurtherUnlock": {
+      "command": "swift -module-cache-path /private/tmp/swift-module-cache -e 'import CoreGraphics; var count: UInt32 = 0; let result = CGGetActiveDisplayList(0, nil, &count); print(\"result=\\(result) activeCount=\\(count)\")'",
+      "result": "CGGetActiveDisplayList returned CGError(rawValue: 0) with activeCount=0.",
+      "interpretation": "The process still sees no active Quartz display after the further reported unlock. This does not diagnose the user's physical login state or screen-capture permissions."
+    },
+    "retryAfterLatestReportedUnlock": {
+      "trigger": "The user again reported unlocking the macOS session.",
+      "screenCaptureCommand": "screencapture -x /tmp/libdxfrw-unlock-check.png",
+      "screenCaptureResult": "Failed: could not create image from display; sysmond service not found.",
+      "coreGraphicsCommand": "swift -module-cache-path /private/tmp/swift-module-cache -e 'import CoreGraphics; var count: UInt32 = 0; let result = CGGetActiveDisplayList(0, nil, &count); print(\"result=\\(result) activeCount=\\(count)\")'",
+      "coreGraphicsResult": "CGGetActiveDisplayList returned CGError(rawValue: 0) with activeCount=0.",
+      "artifactCreated": false,
+      "interpretation": "This process still has no active Quartz display and cannot capture the desktop. The result does not establish whether the physical login session is locked.",
+      "guiActionsAttempted": false
     },
     "launchServices": [
       {

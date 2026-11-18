@@ -48528,48 +48528,92 @@ bool associativeDxfCallbackContract() {
         "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1027\n"
         "0\nENDSEC\n0\nSECTION\n2\nOBJECTS\n"
         "0\nACDBPERSSUBENTMANAGER\n5\n52\n330\n20\n"
-        "100\nAcDbPersSubentManager\n90\n5\n90\n2\n"
-        "330\n60\n330\n61\n0\nENDSEC\n0\nEOF\n";
-    const std::filesystem::path persistentSubentityPath =
-        directory / "persistent-subentity-manager.dxf";
-    {
-        std::ofstream output(persistentSubentityPath, std::ios::binary);
-        if (!output)
-            return fail("could not create generated persistent-subentity control");
-        output.write(persistentSubentityDrawing.data(),
-            static_cast<std::streamsize>(persistentSubentityDrawing.size()));
-        if (!output)
-            return fail("could not write generated persistent-subentity control");
+        "100\nAcDbPersSubentManager\n90\n5\n90\n0\n90\n2\n"
+        "90\n1\n90\n2\n90\n2\n90\n11\n90\n12\n"
+        "90\n2\n90\n21\n90\n22\n330\n60\n"
+        "0\nDICTIONARYVAR\n5\n53\n330\n20\n"
+        "100\nAcDbDictionaryVar\n280\n0\n"
+        "1\nPERSUBENT_FOLLOWING_SENTINEL\n"
+        "0\nENDSEC\n0\nEOF\n";
+    for (const bool binary : {false, true}) {
+        const std::filesystem::path persistentSubentityPath = directory
+            / (binary ? "persistent-subentity-manager.dxf" :
+                        "persistent-subentity-manager-ascii.dxf");
+        if (binary) {
+            if (!writeBinaryDxfControl(persistentSubentityPath.string(),
+                                       persistentSubentityDrawing))
+                return fail("could not write generated binary PERSUBENTMGR control");
+        } else {
+            std::ofstream output(persistentSubentityPath, std::ios::binary);
+            if (!output)
+                return fail("could not create generated PERSUBENTMGR control");
+            output.write(persistentSubentityDrawing.data(),
+                static_cast<std::streamsize>(persistentSubentityDrawing.size()));
+            if (!output)
+                return fail("could not write generated PERSUBENTMGR control");
+        }
+        dx_data persistentSubentityData;
+        CallbackProbe persistentSubentityProbe;
+        if (!persistentSubentityProbe.fileImport(
+                persistentSubentityPath.string(), &persistentSubentityData,
+                false)
+            || persistentSubentityProbe.associative.size() != 1u
+            || persistentSubentityProbe.associative.front().m_recordName
+                != "ACDBPERSSUBENTMANAGER"
+            || persistentSubentityProbe.associative.front().handle != 0x52u
+            || persistentSubentityProbe.associative.front().parentHandle != 0x20u
+            || persistentSubentityProbe.associative.front().m_classVersion != 5u
+            || persistentSubentityProbe.associative.front().m_persistentUnknown0
+                != 0u
+            || persistentSubentityProbe.associative.front().m_persistentUnknown2
+                != 2u
+            || persistentSubentityProbe.associative.front()
+                   .m_persistentAssocStepCount != 1u
+            || persistentSubentityProbe.associative.front()
+                   .m_persistentAssocSubentityCount != 2u
+            || persistentSubentityProbe.associative.front().m_persistentSteps
+                != std::vector<std::uint32_t>({11u, 12u})
+            || persistentSubentityProbe.associative.front()
+                   .m_persistentSubentityCount != 2u
+            || persistentSubentityProbe.associative.front()
+                   .m_persistentSubentityIds
+                != std::vector<std::uint32_t>({21u, 22u})
+            || !persistentSubentityProbe.associative.front()
+                   .m_persistentDxfProjectionComplete
+            || !persistentSubentityProbe.associative.front()
+                   .m_persistentSubentityHandles.empty()
+            || persistentSubentityData.associativeDxfImport.rawGroupCount != 15u
+            || persistentSubentityData.associativeDxfImport
+                   .unclassifiedHandleCodeGroups != 2u
+            || !persistentSubentityData.associativeDxfImport
+                   .handleCodeScanComplete
+            || !persistentSubentityData.associativeDxfImport.captureComplete
+            || persistentSubentityData.associativeObjects.size() != 1u
+            || persistentSubentityData.rawAssociativeObjects.size() != 1u
+            || persistentSubentityProbe.dictionaryVarCallbacks != 1u
+            || persistentSubentityData.dictionaryVars.size() != 1u
+            || persistentSubentityData.dictionaryVars.front().m_value
+                != "PERSUBENT_FOLLOWING_SENTINEL"
+            || !persistentSubentityData.associativeObjects.front()
+                   .m_persistentDxfProjectionComplete
+            || persistentSubentityData.rawAssociativeObjects.front().groups.size()
+                != 15u
+            || persistentSubentityData.rawAssociativeObjects.front().groups[1]
+                   .code() != 330
+            || persistentSubentityData.rawAssociativeObjects.front().groups[2]
+                   .code() != 100
+            || !std::all_of(
+                persistentSubentityData.rawAssociativeObjects.front().groups
+                    .begin() + 3,
+                persistentSubentityData.rawAssociativeObjects.front().groups
+                    .end() - 1,
+                [](const DRW_Variant& group) { return group.code() == 90; })
+            || persistentSubentityData.rawAssociativeObjects.front()
+                   .groups.back().code() != 330)
+            return fail(binary
+                ? "binary PERSUBENTMGR DXF projection or raw pair failed"
+                : "ASCII PERSUBENTMGR DXF projection or raw pair failed");
     }
-    dx_data persistentSubentityData;
-    CallbackProbe persistentSubentityProbe;
-    if (!persistentSubentityProbe.fileImport(
-            persistentSubentityPath.string(), &persistentSubentityData, false)
-        || persistentSubentityProbe.associative.size() != 1u
-        || persistentSubentityProbe.associative.front().m_recordName
-            != "ACDBPERSSUBENTMANAGER"
-        || persistentSubentityProbe.associative.front().handle != 0x52u
-        || persistentSubentityProbe.associative.front().parentHandle != 0x20u
-        || persistentSubentityProbe.associative.front().m_classVersion != 5u
-        || persistentSubentityProbe.associative.front().m_persistentSubentityCount
-            != 2u
-        || persistentSubentityProbe.associative.front()
-               .m_persistentSubentityHandles
-               != std::vector<std::uint32_t>({0x60u, 0x61u})
-        || persistentSubentityData.associativeDxfImport.rawGroupCount != 7u
-        || persistentSubentityData.associativeDxfImport
-               .unclassifiedHandleCodeGroups != 3u
-        || !persistentSubentityData.associativeDxfImport
-               .handleCodeScanComplete
-        || !persistentSubentityData.associativeDxfImport.captureComplete
-        || persistentSubentityData.associativeObjects.size() != 1u
-        || persistentSubentityData.rawAssociativeObjects.size() != 1u
-        || persistentSubentityData.associativeObjects.front().m_classVersion
-            != 5u
-        || persistentSubentityData.associativeObjects.front()
-               .m_persistentSubentityHandles
-               != std::vector<std::uint32_t>({0x60u, 0x61u}))
-        return fail("PERSUBENTMGR DXF subclass fields or opaque pair were not retained");
 
     const std::string geomDependencyDrawing =
         "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1027\n"
