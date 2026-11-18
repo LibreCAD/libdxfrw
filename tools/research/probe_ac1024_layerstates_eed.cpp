@@ -24,8 +24,8 @@ public:
       return false;
     const auto &frame = it->second;
     const auto &raw = frame.raw;
-    return frame.payloadMatched && frame.typedBaseline &&
-           !frame.opaquePayload && raw.m_handle == h &&
+    return frame.generation == d.importGeneration && frame.payloadMatched &&
+           frame.typedBaseline && !frame.opaquePayload && raw.m_handle == h &&
            raw.m_version == DRW::AC1024 && raw.m_objectType == objectType &&
            !raw.m_isEntity && !raw.m_hasDataStorage &&
            raw.m_objectSize == raw.m_rawBytes.size();
@@ -59,12 +59,19 @@ bool observeDictionary(const dx_data &data, const DictExpectation &expected,
   if (bytes.empty() || bytes.size() > 1024u || handleBits >= bytes.size() * 8u)
     return false;
   const DRW_Dictionary *typed = nullptr;
-  for (const auto &row : data.dictionaries)
-    if (row.handle == expected.handle) {
-      if (typed)
-        return false;
-      typed = &row;
-    }
+  if (expected.handle == 0xCu && data.hasNamedObjectDictionary) {
+    if (std::any_of(
+            data.dictionaries.begin(), data.dictionaries.end(),
+            [](const DRW_Dictionary &row) { return row.handle == 0xCu; }))
+      return false;
+    typed = &data.namedObjectDictionary;
+  } else
+    for (const auto &row : data.dictionaries)
+      if (row.handle == expected.handle) {
+        if (typed)
+          return false;
+        typed = &row;
+      }
   if (!typed ||
       !DxIfaceStandardDwgCaptureTestAccess::frameBound(data, expected.handle) ||
       typed->parentHandle != expected.parent || typed->xDictHandle != 0u ||
@@ -72,7 +79,10 @@ bool observeDictionary(const dx_data &data, const DictExpectation &expected,
       typed->hardOwner != expected.hardOwner ||
       typed->m_entries.size() != expected.items.size() ||
       typed->reactorHandles.size() !=
-          ((expected.handle == 0xD5u || expected.handle == 0x24Au) ? 0u : 1u))
+          ((expected.handle == 0xD5u || expected.handle == 0x24Au ||
+            expected.handle == 0xCu)
+               ? 0u
+               : 1u))
     return false;
   for (std::size_t i = 0; i < expected.items.size(); ++i)
     if (typed->m_entries[i].m_name != expected.items[i].first ||
@@ -140,12 +150,21 @@ bool observeDictionary(const dx_data &data, const DictExpectation &expected,
         stringBits > bodyEnd - 17u || body.pos != bodyEnd - 17u - stringBits)
       return false;
     detail::Bits text{bytes.data(), body.pos, bodyEnd - 17u};
+    std::size_t textIndex = 0u;
     for (const auto &entry : expected.items) {
+      const auto start = text.pos;
       if (text.shortValue() != entry.first.size())
         return false;
       for (unsigned char c : entry.first)
         if (text.little(2u) != c)
           return false;
+      if (expected.handle == 0xCu && textIndex == 12u &&
+          (start != 3235u || text.pos != 3469u))
+        return false;
+      if (expected.handle == 0xCu && verbose)
+        std::cout << "nod-string=" << textIndex << " span=" << start << ":"
+                  << text.pos << " name=" << entry.first << "\n";
+      ++textIndex;
     }
     if (!text.good || text.pos != text.end)
       return false;
@@ -157,7 +176,10 @@ bool observeDictionary(const dx_data &data, const DictExpectation &expected,
   const auto owner = detail::handle(wire, 4u, expected.handle);
   if (!wire.good || owner.role != expected.ownerRole ||
       owner.value != expected.parent ||
-      wire.pos != ownerStart + (expected.ownerRole == 8u ? 8u : 16u))
+      wire.pos !=
+          ownerStart + ((expected.ownerRole == 8u || expected.handle == 0xCu)
+                            ? 8u
+                            : 16u))
     return false;
   if (verbose)
     std::cout << "dictionary=" << std::hex << expected.handle << std::dec
@@ -178,21 +200,19 @@ bool observeDictionary(const dx_data &data, const DictExpectation &expected,
     if (verbose)
       std::cout << " reactor=" << start << ":" << wire.pos;
   }
-  std::size_t itemIndex = 0u;
   for (const auto &entry : expected.items) {
     const auto start = wire.pos;
     const auto item = detail::handle(wire, 2u, expected.handle);
     if (!wire.good || item.role != 2u || item.value != entry.second ||
-        wire.pos !=
-            start + ((expected.handle == 0xD5u && itemIndex != 1u) ? 16u : 24u))
+        wire.pos != start + (entry.second <= 0xFFu ? 16u : 24u))
       return false;
-    ++itemIndex;
     if (verbose)
       std::cout << " item=" << start << ":" << wire.pos << ":" << std::hex
                 << item.value << std::dec;
   }
   const auto expectedEnd =
-      expected.handle == 0x126u                                  ? 2236u
+      expected.handle == 0xCu                                    ? 4668u
+      : expected.handle == 0x126u                                ? 2236u
       : expected.handle == 0xD5u                                 ? 930u
       : (expected.handle == 0x1B8u || expected.handle == 0x24Au) ? 494u
       : expected.handle == 0xEEu                                 ? 92u
@@ -248,6 +268,29 @@ bool testDictionaryFrames(const dx_data &data) {
                       return entry.m_name == "ACAD_SCALELIST";
                     }) != 1)
     return false;
+  profiles.push_back({0xCu,
+                      0u,
+                      4364u,
+                      59u,
+                      4288u,
+                      4u,
+                      0,
+                      {{"ACAD_BACKGROUND", 0xAEu},
+                       {"ACAD_COLOR", 0x73u},
+                       {"ACAD_GROUP", 0xDu},
+                       {"ACAD_LAYOUT", 0x1Au},
+                       {"ACAD_MATERIAL", 0x72u},
+                       {"ACAD_MLEADERSTYLE", 0x147u},
+                       {"ACAD_MLINESTYLE", 0x17u},
+                       {"ACAD_PLOTSETTINGS", 0x19u},
+                       {"ACAD_PLOTSTYLENAME", 0xEu},
+                       {"ACAD_RENDER_ACTIVE_SETTINGS", 0x1CCu},
+                       {"ACAD_RENDER_GLOBAL", 0x237u},
+                       {"ACAD_RENDER_SETTINGS", 0x255u},
+                       {"ACAD_SCALELIST", 0x126u},
+                       {"ACAD_TABLESTYLE", 0x86u},
+                       {"ACAD_VISUALSTYLE", 0x99u},
+                       {"AcDbVariableDictionary", 0x66u}}});
   DictExpectation scaleList{0x126u, 0xCu, 1436u, 75u, 1344u, 4u, 0, {}};
   for (unsigned i = 0u; i < 32u; ++i) {
     std::string key;
@@ -278,11 +321,14 @@ bool testDictionaryFrames(const dx_data &data) {
         {"body", profile.bodyFieldsEnd - 2u},
         {"footer", profile.bodyEnd - 1u},
         {"owner-role", profile.bodyEnd + 1u}};
-    if (profile.handle != 0x24Au)
+    if (profile.handle == 0xCu)
+      mutations.emplace_back("owner-null-length", profile.bodyEnd + 7u);
+    else if (profile.handle != 0x24Au)
       mutations.emplace_back("owner-target", profile.bodyEnd + 15u);
     else
       mutations.emplace_back("self-handle-relative-owner-base", 25u);
-    if (profile.handle != 0xD5u && profile.handle != 0x24Au) {
+    if (profile.handle != 0xD5u && profile.handle != 0x24Au &&
+        profile.handle != 0xCu) {
       mutations.emplace_back("reactor-role", profile.bodyEnd + 17u);
       mutations.emplace_back("reactor-target", profile.bodyEnd + 31u);
     }
@@ -291,6 +337,22 @@ bool testDictionaryFrames(const dx_data &data) {
       std::vector<std::uint32_t> itemStarts =
           profile.handle == 0xD5u ? std::vector<std::uint32_t>{874u, 890u, 914u}
                                   : std::vector<std::uint32_t>{470u};
+      if (profile.handle == 0xCu) {
+        std::uint32_t stringCursor = 59u;
+        for (const auto &entry : profile.items) {
+          mutations.emplace_back("nod-string-byte", stringCursor + 17u);
+          stringCursor +=
+              10u + 16u * static_cast<std::uint32_t>(entry.first.size());
+        }
+        if (stringCursor != 4347u)
+          return false;
+        itemStarts.clear();
+        std::uint32_t cursor = 4372u;
+        for (const auto &entry : profile.items) {
+          itemStarts.push_back(cursor);
+          cursor += entry.second <= 0xFFu ? 16u : 24u;
+        }
+      }
       if (profile.handle == 0x126u) {
         itemStarts.clear();
         for (unsigned i = 0u; i < 32u; ++i)

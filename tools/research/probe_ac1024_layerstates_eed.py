@@ -68,6 +68,21 @@ def main():
             "bitsize: 174", "has_strings: 0", "ownerhandle: (12.1.18) abs:D5",
             "reactors[0]: (4.1.D5) abs:D5", "numitems: 0"),
     }
+    nod_items = [
+        ("ACAD_BACKGROUND", 0xAE), ("ACAD_COLOR", 0x73), ("ACAD_GROUP", 0xD),
+        ("ACAD_LAYOUT", 0x1A), ("ACAD_MATERIAL", 0x72), ("ACAD_MLEADERSTYLE", 0x147),
+        ("ACAD_MLINESTYLE", 0x17), ("ACAD_PLOTSETTINGS", 0x19),
+        ("ACAD_PLOTSTYLENAME", 0xE), ("ACAD_RENDER_ACTIVE_SETTINGS", 0x1CC),
+        ("ACAD_RENDER_GLOBAL", 0x237), ("ACAD_RENDER_SETTINGS", 0x255),
+        ("ACAD_SCALELIST", 0x126), ("ACAD_TABLESTYLE", 0x86),
+        ("ACAD_VISUALSTYLE", 0x99), ("AcDbVariableDictionary", 0x66)]
+    profiles["0.1.C"] = (
+        "bitsize: 4364", "data_size: 4288/0x10c0", "EED[0] size: 0",
+        "num_reactors: 0", "is_xdic_missing: 1", "ownerhandle: (4.0.0) abs:0",
+        "numitems: 16", "cloning: 1", "is_hardowner: 0x0") + tuple(
+            f'texts[{i}]: "{key}"' for i, (key, _) in enumerate(nod_items)) + tuple(
+            f'itemhandles[{i}]: (2.{1 if handle <= 0xFF else 2}.{handle:X}) abs:{handle:X}'
+            for i, (_, handle) in enumerate(nod_items))
     scale_keys = [chr(ord("A") + i // 10) + str(i % 10) for i in range(32)]
     profiles["0.2.126"] = (
         "bitsize: 1436", "data_size: 1344/0x540", "EED[0] size: 0",
@@ -95,8 +110,11 @@ def main():
     nod = [obj for obj in peer_objects if obj.get("handle") == [0, 1, 12]]
     scale_dict = [obj for obj in peer_objects if obj.get("handle") == [0, 2, 294]]
     if (len(nod) != 1 or nod[0].get("object") != "DICTIONARY" or
-            nod[0].get("numitems") != 16 or
-            nod[0].get("items", {}).get("ACAD_SCALELIST") != [2, 2, 294, 294]):
+            nod[0].get("numitems") != 16 or nod[0].get("bitsize") != 4364 or
+            nod[0].get("ownerhandle") != [4, 0, 0, 0] or
+            list(nod[0].get("items", {}).items()) != [
+                (key, [2, 1 if handle <= 0xFF else 2, handle, handle])
+                for key, handle in nod_items]):
         raise SystemExit("independent NOD SCALELIST edge mismatch")
     if len(scale_dict) != 1 or scale_dict[0].get("object") != "DICTIONARY" or scale_dict[0].get("numitems") != 32:
         raise SystemExit("independent SCALELIST identity mismatch")
