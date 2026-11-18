@@ -33430,6 +33430,29 @@ bool scaleFieldsEqual(const DRW_Scale& a, const DRW_Scale& b) noexcept {
         && a.isUnitScale == b.isUnitScale;
 }
 
+// Exact staged SCALE field and handle-role transport, shared by the existing
+// output inspector and source-bound dependency-view controls.
+template <class Mapper>
+bool scaleRawTransportEqual(const DRW_Scale& model, std::string_view body,
+        const dxfRW::DxfObjectsWriteView& view, Mapper& map) {
+    if (model.reactorHandles.size() != 1u) return false;
+    DRW_RawDxfObject expected;
+    expected.groups.emplace_back(5, proxyHandleString(model.handle));
+    expected.groups.emplace_back(102, "{ACAD_REACTORS");
+    expected.groups.emplace_back(330, proxyHandleString(model.reactorHandles.front()));
+    expected.groups.emplace_back(102, "}");
+    expected.groups.emplace_back(330, proxyHandleString(model.parentHandle));
+    expected.groups.emplace_back(100, "AcDbScale");
+    expected.groups.emplace_back(70, static_cast<std::int32_t>(model.flag));
+    expected.groups.emplace_back(300, model.name);
+    expected.groups.emplace_back(140, model.paperUnits);
+    expected.groups.emplace_back(141, model.drawingUnits);
+    expected.groups.emplace_back(290, model.isUnitScale ? 1 : 0);
+    return dx_standard_output::rawScalarTransportEqual(expected.groups, body,
+        view, map, false, DRW::kMaxDxfBinaryPayloadBytes, false,
+        dx_standard_output::RawHandleTransport::ObjectScopes);
+}
+
 // Known roles belong only to AcDbScale, not application payloads, another
 // subclass or XDATA. Validate physical widths before the owning parser can
 // narrow a short or collapse a Boolean. Unknown fields retain their order.
@@ -34516,31 +34539,7 @@ bool dx_iface::inspectDwgScales(
                     failureReason = "SCALE owner handle could not be mapped";
                     return false;
                 }
-                DRW_RawDxfObject expectedRaw;
-                expectedRaw.name = "SCALE";
-                expectedRaw.handle = model.handle;
-                expectedRaw.parentHandle = model.parentHandle;
-                expectedRaw.m_version = view.version;
-                expectedRaw.groups.emplace_back(
-                    5, proxyHandleString(model.handle));
-                expectedRaw.groups.emplace_back(102, "{ACAD_REACTORS");
-                expectedRaw.groups.emplace_back(
-                    330, proxyHandleString(model.reactorHandles.front()));
-                expectedRaw.groups.emplace_back(102, "}");
-                expectedRaw.groups.emplace_back(
-                    330, proxyHandleString(model.parentHandle));
-                expectedRaw.groups.emplace_back(100, "AcDbScale");
-                expectedRaw.groups.emplace_back(
-                    70, static_cast<std::int32_t>(model.flag));
-                expectedRaw.groups.emplace_back(300, model.name);
-                expectedRaw.groups.emplace_back(140, model.paperUnits);
-                expectedRaw.groups.emplace_back(141, model.drawingUnits);
-                expectedRaw.groups.emplace_back(
-                    290, model.isUnitScale ? 1 : 0);
-                if (!dx_standard_output::rawScalarTransportEqual(
-                        expectedRaw.groups, body, view, map, false,
-                        DRW::kMaxDxfBinaryPayloadBytes, false,
-                        dx_standard_output::RawHandleTransport::ObjectScopes)) {
+                if (!scaleRawTransportEqual(model, body, view, map)) {
                     failureReason = "SCALE raw DXF fields or handle roles differ";
                     return false;
                 }
@@ -38693,6 +38692,135 @@ bool dx_iface::hasConsistentAc1024LayerStateSourceGraph() const noexcept {
                     })) return false;
         }
         return true;
+    } catch (...) { return false; }
+}
+
+// Check only these source-bound dependency records in supplied section views.
+// Identity mappings are required; this does not inspect a writer ledger,
+// publish output, qualify the full NOD or admit a LayerStates export.
+bool dx_iface::inspectAc1024LayerStateDependencyViews(
+        const dxfRW::DxfTablesWriteView& tables,
+        const dxfRW::DxfObjectsWriteView& objects) const noexcept {
+    if (!cData || tables.version != DRW::AC1024 || objects.version != tables.version
+        || tables.binary != objects.binary
+        || tables.compatibilityProfile != objects.compatibilityProfile
+        || tables.codePage != objects.codePage
+        || !hasConsistentAc1024LayerStateSourceGraph()) return false;
+    try {
+        std::uint32_t control = 0u, extension = 0u;
+        if (!cData->getLayerTableControlExtensionDictionary(control, extension)) return false;
+        const auto dictionary = [&](std::uint32_t handle) -> const DRW_Dictionary* {
+            const DRW_Dictionary* found = nullptr;
+            for (const auto& row : cData->dictionaries) if (row.handle == handle) {
+                if (found) return nullptr;
+                found = &row;
+            }
+            return found;
+        };
+        const auto record = [&](std::uint32_t handle) -> const DRW_XRecord* {
+            const DRW_XRecord* found = nullptr;
+            for (const auto& row : cData->xRecords) if (row.handle == handle) {
+                if (found) return nullptr;
+                found = &row;
+            }
+            return found;
+        };
+        const auto* root = dictionary(extension);
+        if (!root || root->m_entries.size() != 3u) return false;
+        const auto* states = dictionary(root->m_entries[1].m_handle);
+        const auto* companion = dictionary(root->m_entries[2].m_handle);
+        if (!states || states->m_entries.size() != 1u || !companion) return false;
+        const auto* primary = record(states->m_entries[0].m_handle);
+        if (!primary) return false;
+        const auto* nestedDictionary = dictionary(primary->xDictHandle);
+        if (!nestedDictionary || nestedDictionary->m_entries.size() != 1u) return false;
+        const auto* nested = record(nestedDictionary->m_entries[0].m_handle);
+        if (!nested || nested->m_handleValues.size() != 1u
+            || nested->m_handleValues[0].first != 330) return false;
+        const auto scaleHandle = nested->m_handleValues[0].second;
+        const DRW_Scale* scale = nullptr;
+        for (const auto& row : cData->scales) if (row.handle == scaleHandle) {
+            if (scale) return false;
+            scale = &row;
+        }
+        const auto frame = cData->m_standardDwgObjectFrames.find(
+            {cData->importGeneration, companion->handle});
+        if (!scale || frame == cData->m_standardDwgObjectFrames.end()
+            || frame->second.appIdDependencies.size() != 1u) return false;
+        const auto app = frame->second.appIdDependencies.front();
+        if (!hasQualifiedDwgLayerStateAppId(app, "ACAD")) return false;
+        unsigned names = 0u, handles = 0u, matched = 0u;
+        if (!dx_symbol_output::inspect(tables, [&](const dx_symbol_output::NameRecord& row) {
+            if (row.handle == app) ++handles;
+            if (row.type == dx_symbol_output::Kind::AppId
+                && asciiIdentifierEquals(row.name, "ACAD")) {
+                ++names;
+                if (row.qualified && row.name == "ACAD" && row.handle == app
+                    && row.tableHandle != 0u && row.tableHandle != DRW::NoHandle
+                    && row.owner == row.tableHandle) ++matched;
+            }
+            return true;
+        }) || names != 1u || handles != 1u || matched != 1u) return false;
+        const auto identity = [](std::uint32_t source, std::uint32_t& output) {
+            output = source;
+            return true; // Zero denotes an absent optional reference.
+        };
+        auto map = identity;
+        std::string_view selectedName;
+        unsigned companions = 0u, dictionaries = 0u, records = 0u, scales = 0u;
+        const bool inspected = dx_standard_output::inspectSelected(objects,
+            [&](std::string_view name, std::uint32_t handle) {
+                selectedName = name;
+                return handle == companion->handle || handle == nestedDictionary->handle
+                    || handle == nested->handle || handle == scale->handle;
+            }, [&](const dx_standard_output::Shape& shape, std::string_view body) {
+                dx_standard_output::Decoder decoder(objects);
+                if (shape.handle == companion->handle) {
+                    if (++companions != 1u || selectedName != "DICTIONARY"
+                        || shape.kind != dx_standard_output::Family::Dictionary) return false;
+                    return decoder.decodeRecord<DRW_Dictionary>(body, [&](const DRW_Dictionary& actual) {
+                        std::vector<std::uint32_t> refs;
+                        return dx_standard_output::equal(*companion, actual, map, refs);
+                    });
+                }
+                if (shape.handle == nestedDictionary->handle) {
+                    if (++dictionaries != 1u || selectedName != "DICTIONARY"
+                        || shape.kind != dx_standard_output::Family::Dictionary) return false;
+                    return decoder.decodeRecord<DRW_Dictionary>(body, [&](const DRW_Dictionary& actual) {
+                        std::vector<std::uint32_t> refs;
+                        return dx_standard_output::equal(*nestedDictionary, actual, map, refs)
+                            && std::count(refs.begin(), refs.end(), nested->handle) == 1;
+                    });
+                }
+                if (shape.handle == nested->handle) {
+                    if (++records != 1u || selectedName != "XRECORD"
+                        || shape.kind != dx_standard_output::Family::Xrecord) return false;
+                    return decoder.decodeRecord<DRW_XRecord>(body, [&](const DRW_XRecord& actual) {
+                        std::vector<std::uint32_t> refs;
+                        return dx_standard_output::equal(*nested, actual, map, refs)
+                            && std::count(refs.begin(), refs.end(), scale->handle) == 1;
+                    });
+                }
+                if (shape.handle != scale->handle || ++scales != 1u
+                    || selectedName != "SCALE"
+                    || shape.kind != dx_standard_output::Family::Other
+                    || !scaleRawTransportEqual(*scale, body, objects, map)) return false;
+                DRW_Scale expected = *scale;
+                expected.setDwgCommonObjectState(0, 0u, false);
+                expected.setDwgCommonLinkTailValidated(false);
+                std::list<DRW_Variant> reactors;
+                reactors.emplace_back(102, UTF8STRING("ACAD_REACTORS"));
+                for (const auto handle : expected.reactorHandles)
+                    reactors.emplace_back(330, proxyHandleString(handle));
+                reactors.emplace_back(102, UTF8STRING("}"));
+                expected.appData.push_front(std::move(reactors));
+                return decoder.decodeRecord<DRW_Scale>(body, [&](const DRW_Scale& actual) {
+                    return standardDwgCommonEqual(expected, actual, objects.version)
+                        && scaleFieldsEqual(*scale, actual);
+                });
+            });
+        return inspected && companions == 1u && dictionaries == 1u
+            && records == 1u && scales == 1u;
     } catch (...) { return false; }
 }
 

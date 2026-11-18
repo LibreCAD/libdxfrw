@@ -1,0 +1,94 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-layerstates-xrecord370-producer-semantics-2026-11-18",
+  "date": "2026-11-18",
+  "status": "EXTERNAL_NATIVE_WITNESS_REQUIRED",
+  "supportClaimEffect": "none",
+  "question": "What does the selected AC1024 LayerStates XRECORD group 370=-3 prove, and what independent evidence is needed for DXF/native semantics?",
+  "sourceObservation": {
+    "drawing": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "provenance": "Existing local corpus; original author and producing release not independently authenticated. No drawing fixture or derivative was committed.",
+    "sourceGraph": "LAYER_CONTROL extension -> ACAD_LAYERSTATES -> ACAD_VIEWS_RenderView -> XRECORD 0x249; XRECORD xdict -> 0x24A -> XRECORD 0x24B -> SCALE 0x127. Source handles are witness identities only, not fixed format semantics.",
+    "primaryBody": "0x249 has 77 data bytes and 11 ordered values: 91=33280, 301=\"\", 290=0, 302=\"0\", 330=0x10, 90=8, 62=7, 370=-3, 331=0x16, 1=\"Color_7\", 92=-1024986881. The signed 16-bit wire representation of 370 is 0xFFFD.",
+    "priorReceipts": [
+      "docs/research/p4-ac1024-layerstates-xrecord-source-admission-2026-11-01.json",
+      "docs/research/p4-ac1024-three-root-layerstates-common-tail-investigation-2026-11-18.json"
+    ]
+  },
+  "specifications": [
+    {
+      "authority": "ODA Open Design Specification for .dwg files v5.4.1, local authoritative copy",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": "20.1 and 20.4.104",
+      "finding": "The XRECORD source data block is a bounded sequence of RS group indicators followed by corresponding values; common handles follow in the handle stream. This specifies wire carriers and ordering, not application-specific LayerStates meaning or AutoCAD DXF acceptance of group 370."
+    },
+    {
+      "authority": "Autodesk XRECORD DXF reference",
+      "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm",
+      "finding": "The documented application data range is 1\u2013369, excluding 5 and 105; group 370 lies outside this XRECORD-specific range."
+    },
+    {
+      "authority": "Autodesk ObjectARX XRECORD group codes",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-DevGuide/files/GUID-F8B4190D-CCC6-4CAB-BDAE-71A7094FB442.htm",
+      "finding": "The XRECORD group-code table ends at 360\u2013369. Codes 330\u2013339 are soft-pointer IDs and 360\u2013369 are hard-owner IDs; these documented ranges do not define group 370 as XRECORD application data."
+    },
+    {
+      "authority": "Autodesk general LineWeight enumeration",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_LineWeight.html",
+      "finding": "The general enumeration includes ByLineWeightDefault=-3. This does not establish that 370=-3 inside this proprietary LayerStates XRECORD is a lineweight field or that a named-view snapshot restores it."
+    },
+    {
+      "authority": "Autodesk named-view snapshot workflow",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/AutoCAD-DidYouKnow/files/GUID-727C5DD5-BE86-42C7-BA62-8B53A5432C4D.htm",
+      "finding": "A named view can save a layer snapshot; the documented view workflow restores on/off and thaw/freeze visibility, not locked state. It does not establish lineweight restoration by a named-view snapshot."
+    },
+    {
+      "authority": "Autodesk ObjectARX LayerStateManager",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-__MEMBERTYPE_Methods_AcDbLayerStateManager.html",
+      "finding": "The API provides state enumeration, mask/layer queries, comparison, saving and restoring. Use it to measure behavior separately from byte-level readback."
+    }
+  ],
+  "peerStatus": {
+    "tool": "LibreDWG dwgread 0.14",
+    "observation": "Independent pinned source trace and JSON report 370=-3 for the selected XRECORD; a prior independent LibreDWG DXF export also emitted that value. This corroborates a source/producer transport observation only.",
+    "reread": "A subsequent LibreDWG JSON reread returned ERROR 0x800; no independent reread success or native AutoCAD acceptance is claimed.",
+    "local": "Prior selected/projection ASCII/Binary libdxfrw write/readback was transport evidence only; the old three-root selector no longer passes current source guard. Current source-wire and graph predicates remain disconnected from output admission."
+  },
+  "nativeWitness": {
+    "hostPrerequisites": [
+      "A user-provided AutoCAD/ObjectARX-capable host, with release/year, exact operating system, selected DWG/DXF format version and locale recorded. A remote host additionally needs an authorized file-transfer/command channel; no credentials or secrets belong in this receipt.",
+      "A clean scratch workspace and a way to run a small ObjectARX or equivalent supported AutoCAD probe that enumerates named layer states and XRECORD result buffers. Pin host build and probe source/binary hashes."
+    ],
+    "pairedProducerProtocol": [
+      "On the host, create a drawing locally from scratch with at least two layers and controlled on/off, frozen/thawed, color, linetype and lineweight differences. Save a named view using Save Layer Snapshot with View. Record all explicit operations and resulting layer/view identifiers.",
+      "Save a native AC1024 DWG and an AutoCAD-produced 2010 DXF from the same recorded drawing state. Confirm actual headers/version; hash the files and host logs. Inspect the actual emitted dictionary key and group sequence rather than assuming the ACAD_VIEWS_ prefix or group-370 behavior.",
+      "Open the native DWG and DXF independently in AutoCAD, enumerate state names/masks and layer values, record any import warnings, and use documented view restoration to compare the visibility state before and after. Save/reopen and repeat. Preserve exact failures as negative evidence.",
+      "As a separate profile, save ordinary named layer states with lineweight default and a distinct explicit weight; perturb the setting, restore with a mask that includes lineweight, and measure actual results. Do not infer named-view snapshot lineweight semantics from this separate experiment.",
+      "When an output candidate is available, open both its ASCII and Binary DXF on the host, save/reopen and repeat the same checks. Independently compare ordered XRECORD group types, values, translated owner/reactor/xdict and LAYER/LTYPE/SCALE references with a native pair. Record unsupported group-370 handling or failed imports instead of normalizing them away."
+    ],
+    "target": "Producer-created named-view layer snapshot and any separately created ordinary state that actually contains the selected XRECORD group profile, with AC1024 format and native behavior captured. A different key, code set, or version is a separate profile.",
+    "promotionGate": "Require an exact producer/source profile, independently verified native output acceptance plus semantic before/after behavior for properties actually asserted. Do not generalize one witness, a libdxfrw roundtrip, or a LibreDWG export into a broad XRECORD or LayerStates claim."
+  },
+  "safeStagedControls": {
+    "existingSeam": "dxfRW::setDxfObjectsWriteInspector with DxfObjectsWriteView and the existing direct writer/sentinel patterns in tests/dwg2dxf_adapter_tests.cpp.",
+    "method": "Use the original importing adapter and data for real source-proof checks. For record-level staged inspection, copy the staged view bytes into a test-owned buffer, alter one selected group/role/target or remove it, and feed that view to the inspector; return false on rejection so the writer retains a seeded destination. Restore the source/view and retry through the same writer for ASCII and Binary.",
+    "scope": "This proves inspector decisions and transactional refusal for the tested staged view only. A synthetic view or force-enabled low-level writer is not production graph admission, independent readback, native LayerStates behavior, or whole-file completeness."
+  },
+  "hostApiFeasibility": {
+    "status": "DOCUMENTED_API_AVAILABLE_HOST_VERSION_UNVERIFIED",
+    "dxfOut": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbDatabase__dxfOut_ACHAR__int_AcDb__AcDbDwgVersion_bool.html",
+      "finding": "Autodesk documents AcDbDatabase::dxfOut with the 2010 version constant AcDb::kDHL_1024; precision 16 selects ASCII and precision -1 selects Binary DXF. Check the actual installed SDK release, enum spelling, host API availability and returned Acad::ErrorStatus before executing; the remote release is not yet known."
+    },
+    "xrecordRead": {
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbXrecord__rbChain_resbuf___AcDbDatabase__const.html",
+      "finding": "Autodesk documents AcDbXrecord::rbChain for reading a result-buffer list. Record its actual status and every returned code/value/translated object ID; a rejection, omitted value or inability to decode 370 is evidence, not a successful read."
+    },
+    "saveAs": {
+      "url": "https://help.autodesk.com/cloudhelp/2025/ENG/AutoCAD-Core/files/GUID-E2CEA3F2-43CA-41D0-A2C6-BACF2229715A.htm",
+      "finding": "Documented SAVEAS supports DWG and versioned ASCII/Binary DXF. Exact prompts and available historical formats must be verified for the provided host release."
+    },
+    "limits": "The documented workflow is feasible in principle, not yet verified on the user-provided remote host. No host details, access channel, credentials or command execution were requested or attempted."
+  }
+}

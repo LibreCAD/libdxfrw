@@ -2686,6 +2686,13 @@ public:
         return true;
     }
 
+    static bool inspectLayerStateDependencyViews(dx_iface& iface, dx_data& data,
+            const dxfRW::DxfTablesWriteView& tables,
+            const dxfRW::DxfObjectsWriteView& objects) {
+        iface.cData = &data;
+        return iface.inspectAc1024LayerStateDependencyViews(tables, objects);
+    }
+
     static bool layerStateSourceGraphControls(dx_iface& iface, dx_data& data) {
         iface.cData = &data;
         const auto qualified = [&]() { return iface.hasConsistentAc1024LayerStateSourceGraph(); };
@@ -60404,6 +60411,102 @@ bool physicalAc1021EmptyLayerStateRootAdmission(
     return true;
 }
 
+bool physicalAc1024LayerStatesDependencyViews(const std::filesystem::path& sourcePath) {
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false))
+        return fail("LayerStates dependency-view source import failed");
+    const auto scale = std::find_if(source.scales.begin(), source.scales.end(),
+        [](const DRW_Scale& row) { return row.handle == 0x127u; });
+    if (scale == source.scales.end()) return fail("source SCALE missing");
+    const auto buildTables = [](bool binary, int fault) {
+        std::ostringstream stream(std::ios::out | std::ios::binary);
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+        writer->setVersion("AC1024", true);
+        writer->writeString(0, "TABLE"); writer->writeString(2, "APPID");
+        writer->writeString(5, "9"); writer->writeString(330, "0");
+        writer->writeString(100, "AcDbSymbolTable"); writer->writeInt16(70, 2);
+        const auto row = [&](const char* handle, const char* name, const char* owner) {
+            writer->writeString(0, "APPID"); writer->writeString(5, handle);
+            writer->writeString(330, owner); writer->writeString(100, "AcDbSymbolTableRecord");
+            writer->writeString(100, "AcDbRegAppTableRecord"); writer->writeString(2, name);
+            writer->writeInt16(70, 0);
+        };
+        row(fault == 2 ? "13" : "12", fault == 1 ? "acad" : "ACAD", fault == 3 ? "A" : "9");
+        if (fault == 4) row("13", "ACAD", "9");
+        if (fault == 5) row("12", "OTHER", "9");
+        writer->writeString(0, "ENDTAB");
+        return stream.str();
+    };
+    const auto buildObjects = [&](bool binary, int fault) {
+        std::ostringstream stream(std::ios::out | std::ios::binary);
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&stream))
+            : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&stream));
+        writer->setVersion("AC1024", true);
+        const auto writeCompanion = [&]() {
+            writer->writeString(0, "DICTIONARY"); writer->writeString(5, "ED");
+            writer->writeString(102, "{ACAD_REACTORS"); writer->writeString(330, "D5");
+            writer->writeString(102, "}"); writer->writeString(330, "D5");
+            writer->writeString(100, "AcDbDictionary"); writer->writeInt16(280, 0);
+            writer->writeInt16(281, 1); writer->writeString(1001, fault == 8 ? "OTHER" : "ACAD");
+            writer->writeString(1000, fault == 9 ? "wrong" : "<All");
+        };
+        if (fault != 11) writeCompanion();
+        if (fault == 10) writeCompanion();
+        writer->writeString(0, "DICTIONARY"); writer->writeString(5, "24A");
+        writer->writeString(330, "249"); writer->writeString(100, "AcDbDictionary");
+        writer->writeInt16(280, 1); writer->writeInt16(281, 1);
+        writer->writeString(3, "AcadLayerStateAnnoScale");
+        writer->writeString(fault == 1 ? 350 : 360, "24B");
+        const auto writeNested = [&]() {
+            writer->writeString(0, "XRECORD"); writer->writeString(5, "24B");
+            writer->writeString(102, "{ACAD_REACTORS"); writer->writeString(330, "24A");
+            writer->writeString(102, "}"); writer->writeString(330, fault == 2 ? "249" : "24A");
+            writer->writeString(100, "AcDbXrecord"); writer->writeInt16(280, 1);
+            writer->writeString(330, fault == 3 ? "128" : "127");
+        };
+        writeNested();
+        if (fault == 6) writeNested();
+        if (fault != 7) {
+            writer->writeString(0, "SCALE"); writer->writeString(5, "127");
+            writer->writeString(102, "{ACAD_REACTORS");
+            writer->writeString(330, fault == 5 ? "125" : "126");
+            writer->writeString(102, "}"); writer->writeString(330, "126");
+            writer->writeString(100, "AcDbScale"); writer->writeInt16(70, scale->flag);
+            writer->writeString(300, fault == 4 ? "wrong" : scale->name);
+            writer->writeDouble(140, scale->paperUnits); writer->writeDouble(141, scale->drawingUnits);
+            writer->writeBool(290, scale->isUnitScale);
+        }
+        return stream.str();
+    };
+    for (bool binary : {false, true}) {
+        const auto tables = buildTables(binary, 0);
+        const auto objects = buildObjects(binary, 0);
+        const auto inspect = [&](const std::string& tableBytes, const std::string& objectBytes) {
+            const dxfRW::DxfTablesWriteView tableView{tableBytes, DRW::AC1024, binary,
+                "UTF-8", dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+            const dxfRW::DxfObjectsWriteView objectView{objectBytes, DRW::AC1024, binary,
+                "UTF-8", dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+            return DxIfaceStandardDwgCaptureTestAccess::inspectLayerStateDependencyViews(
+                reader, source, tableView, objectView);
+        };
+        if (!inspect(tables, objects)) return fail("valid LayerStates dependency views refused");
+        for (int fault = 1; fault <= 5; ++fault)
+            if (inspect(buildTables(binary, fault), objects) || !inspect(tables, objects))
+                return fail("APPID staged-view fault/retry failed");
+        for (int fault = 1; fault <= 11; ++fault)
+            if (inspect(tables, buildObjects(binary, fault)) || !inspect(tables, objects))
+                return fail("nested LayerStates staged-view fault/retry failed");
+        if (inspect(tables, objects.substr(0, objects.size() - 1u)) || !inspect(tables, objects))
+            return fail("truncated LayerStates dependency view passed");
+    }
+    std::cerr << "AC1024 LayerStates staged dependency-view controls passed (ASCII/Binary).\n";
+    return true;
+}
+
 bool physicalAc1024LayerStatesSourceGraphContext(const std::filesystem::path& sourcePath) {
     dx_iface reader;
     dx_data source;
@@ -92481,6 +92584,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--ac1021-recompose-data-physical-output-readback")
         return physicalAc1021RecomposeDataOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--layerstates-ac1024-dependency-views")
+        return physicalAc1024LayerStatesDependencyViews(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-source-graph-context")
         return physicalAc1024LayerStatesSourceGraphContext(argv[2]) ? 0 : 1;

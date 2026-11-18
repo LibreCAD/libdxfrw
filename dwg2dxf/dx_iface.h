@@ -4433,6 +4433,10 @@ private:
     // Source-only consistency for the witnessed AC1024 graph shape. It is
     // deliberately disconnected from export admission and staged DXF output.
     bool hasConsistentAc1024LayerStateSourceGraph() const noexcept;
+    // Independent section-view check; no writer-ledger or publication proof.
+    bool inspectAc1024LayerStateDependencyViews(
+        const dxfRW::DxfTablesWriteView& tables,
+        const dxfRW::DxfObjectsWriteView& objects) const noexcept;
     bool prepareDwgLayerStateOutput(DRW::Version targetVersion,
                                     bool debug) noexcept;
     bool isDwgLayerStateCompatibilityRecord(

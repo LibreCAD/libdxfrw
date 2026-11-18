@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-layerstates-staged-dependency-views-2026-11-18",
+  "date": "2026-11-18",
+  "status": "DISCONNECTED_SYNTHETIC_STAGED_VIEW_CONTROLS",
+  "supportClaimEffect": "none",
+  "baseCommit": "37a888f8",
+  "scope": "A private disconnected section-view check compares the original-import companion DICTIONARY EED with a matching APPID table row and compares the nested annotation DICTIONARY, XRECORD and its SCALE target to the original source using existing symbol and standard-object staged decoders and shared SCALE raw transport. It requires identity handle mapping. It does not alter output admission.",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false
+  },
+  "files": {
+    "dwg2dxf/dx_iface.cpp": "59261a15d2db84fc3a5dedb41e738c68f237b0c7e05f8fc39478aa0dce62ee6c",
+    "dwg2dxf/dx_iface.h": "adc10fa4d778ff69f409ae3546b564087a3083a33d45740318257145d27f41cb",
+    "tests/dwg2dxf_adapter_tests.cpp": "de19a0f23d4a3d6d39bafdad3bae16f29aa87b0678de49f8742e3cda2a129188"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "buildResult": "PASS",
+    "executableSha256": "790134bdef0e8ac9e9cefc633418518a5a938383a5b135d15df127c36d5daca2",
+    "selectors": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-dependency-views tests/samples/AC1024/visualization_-_aerial.dwg",
+        "result": "PASS: source-bound synthetic ASCII and binary section views; altered APPID name/handle/owner and duplicate rows, changed or absent/duplicated companion EED, wrong nested dictionary entry role, wrong XRECORD owner or target, changed/missing SCALE, duplicate XRECORD and truncated view are rejected and each restored view passes again on the same adapter/data.",
+        "log": "/private/tmp/layerstate-staged-dependency.log",
+        "logSha256": "1735e2ae549d98589f1036c68d98175ef58664b8d00ba183f81870b82307341c"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-source-graph-context tests/samples/AC1024/visualization_-_aerial.dwg",
+        "result": "PASS",
+        "logSha256": "f3a6e1298ff03d5be13e7169c397b17c67a3b371558a1b3d2d4caafbd049b0e9"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --scale-ac1021-physical-selected-graph /Users/dli/doc/dwg/children-room-decoration.dwg /private/tmp/layerstate-dependency-scale-ac1021",
+        "sourceSha256": "cbd57ef065341b81c1e5903fe13c48d9cf8ada22de11eb3d0838d78e6c1755ce",
+        "result": "PASS: selected physical SCALE graph, ASCII/Binary output/readback, late source-mutation rejection, destination preservation and same-writer retry.",
+        "logSha256": "a27e5bd3a8396efac237788e72d8612d5f7fbd30dfae8fd0c13f6a3df2dbc1be"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --scale-physical-output-readback tests/samples/AC1024/mechanical_example-imperial.dwg /private/tmp/ac1024-class-triage-2026-11-17/mechanical-l1-fixed-partial.dxf",
+        "sourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "preexistingDxfSha256": "4a54959d4fa51d82dedd286754c1d5a9728944172e632bbedbccb5882e6a47f1",
+        "result": "PASS: existing physical SCALE readback and its rollback/retry controls.",
+        "logSha256": "1add7b34025e04423a4e0d64262aac57facf478c09f941c5905cff57fc4412c4"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1024-output-readback tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+        "sourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "result": "PASS: existing one-root ASCII/Binary source, output/readback and retry control.",
+        "logSha256": "13cd25ea00b6001bc760e2647286133b6b1270d5a6593c8ddb628e9a24bc5902"
+      }
+    ]
+  },
+  "limits": [
+    "The new controls inspect in-memory synthetic section bodies; they do not call fileExport, test destination rollback, or establish native consumer acceptance for the three-root source.",
+    "The APPID row census covers recognized symbol rows only, not all table record types, and does not replace global writer-ledger uniqueness, source-to-output alias binding, or finalization evidence.",
+    "The check accepts identity mapping only. Differently mapped staged output, complete NOD target closure, selected graph output, full strict export and producer semantics remain unproved.",
+    "The original aerial witness still has an unrelated SUN owner obstruction before full output can be staged.",
+    "No external drawing fixture was added or committed."
+  ],
+  "independentReview": "Static review verified the absent-handle mapper, source-bound companion EED and table match, dictionary/XRECORD/SCALE transport checks, and mutation/retry controls within the synthetic-view scope."
+}
