@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-mline-librecad-closure-bit-fix-2026-11-18",
+  "date": "2026-11-18",
+  "status": "PATCH_READY_HEADLESS_CLOSURE_AND_FLAG_REDGREEN_PASSED",
+  "supportClaimEffect": "none",
+  "patch": {
+    "path": "docs/patches/librecad-mline-closure-bit-2026-11-18.patch",
+    "sha256": "a079bfd887c26a5f7be2845d2b9bcfa9a11a138fe608f61b3562efa99c09aa7c",
+    "applyAfter": "docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch",
+    "testedConsumerBase": "d9c0ae435ed5892611d6bec3c628033004dbcaf4",
+    "applicationCheck": "Incremental git apply passed after the timing patch on the clean d9c0ae435-based candidate and locally cached LibreCAD origin/master 7396a1d4adefa4625b0388dee6b3493819fa8819.",
+    "knownSourceSha256": {
+      "rs_filterdxfrw.cpp": "773183b70d0aa0b59f383d5ca4e4bc68ec2d79173e5ed346da6380ca6009d010",
+      "tests/mline_tests.cpp": "1304b97bbd586e1e18b290c7caba728d80e3e01d557c458643762051346dd357"
+    },
+    "greenArchiveSha256": "4caac6bbdf8f55928f460daa324cea44d55103255aea0b6bb0dfcf97e29c475a",
+    "behavior": "Interpret closure with group-71 mask 0x02 in immediate import, deferred import and sidecar geometry validation. Keep the full source flags. If visible polyline closure disagrees with the retained source flags, save the visible polylines rather than reconstruct an MLINE from incompatible metadata."
+  },
+  "authority": [
+    "Open Design Specification for .dwg files v5.4.1 section 20.4.50 lists Openclosed 1 for open and 3 for closed.",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm"
+  ],
+  "validation": {
+    "build": "cmake --build /private/tmp/librecad-p8d-build-20261117 --target librecad_lib -j4; focused standalone Catch2 link with current matching library and header.",
+    "selector": "DXF MLINE closure and cap flags survive the LibreCAD sidecar",
+    "red": "The timing-only archive and its matching header fail 48 of 305 assertions.",
+    "green": "305 assertions pass. ASCII and binary inputs cover open/closed plus both cap-suppression bits, exact preservation of flags on ASCII export/reopen, and visible-polyline output when closure mismatches.",
+    "neighbors": "138 assertions pass across the timing and low-level codec roundtrip cases. All nine physical, model/block order, discarded-block, partial-read and filter-reuse controls also pass after relinking.",
+    "logSha256": {
+      "/private/tmp/librecad-p8d-mline-closure-redtest/red.log": "e7ff7d797dd34aba9b7c76ad6f549e67f6a41b510158cf0f97d88fa696bb4652",
+      "/private/tmp/librecad-p8d-mline-closure-green.log": "265cf4334931eaee85c9fb86a5db671959262525743b0be3d76c2e187a9d4891",
+      "/private/tmp/librecad-p8d-mline-closure-neighbors.log": "f9390f2e8a137ddb8e7f9571c669a73a6bef42b44815de36cefbdac6143102fa",
+      "/private/tmp/librecad-p8d-mline-closure-probe.log": "59fad3189c68e08f20169d9a680aa50d2a3a16e8af71b84c1b329f4f2a23eca4"
+    }
+  },
+  "remaining": [
+    "Consumer patches are unmerged. Host GUI display and native CAD geometry remain unverified.",
+    "The tests preserve cap bits through ASCII output only. They do not verify visible cap geometry, authored miter/segment arrays, native rendering or binary export.",
+    "Continue the bounded group-41 retention and save/reopen slice in docs/research/p8d-mline-group41-implementation-readiness-2026-11-18.json. No new DWG/DXF fixture was committed."
+  ]
+}

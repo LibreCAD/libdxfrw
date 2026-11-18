@@ -1,0 +1,129 @@
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -7597,7 +7597,7 @@
+     pending.placeholders.reserve(data->numLines);
+     std::vector<std::unique_ptr<RS_Polyline>> prepared;
+     prepared.reserve(data->numLines);
+-    const bool closed = (data->openClosed & 0x1) != 0;
++    const bool closed = (data->openClosed & 0x2) != 0;
+     for (int i = 0; i < data->numLines; ++i) {
+       RS_PolylineData pd(RS_Vector{}, RS_Vector{}, closed);
+       auto polyline = std::make_unique<RS_Polyline>(m_currentContainer, pd);
+@@ -7667,7 +7667,7 @@
+   }
+
+   const QString mlineId = QStringLiteral("mline_%1").arg(data->handle);
+-  const bool closed = (data->openClosed & 0x1) != 0;
++  const bool closed = (data->openClosed & 0x2) != 0;
+
+   for (int i = 0; i < N; ++i) {
+     std::unique_ptr<RS_Polyline> owned;
+@@ -29931,7 +29931,7 @@
+   }
+
+   auto *polyline = static_cast<RS_Polyline *>(entry.entity);
+-  const bool closed = (anchor.openClosed & 0x1) != 0;
++  const bool closed = (anchor.openClosed & 0x2) != 0;
+   if (polyline->isClosed() != closed)
+     return false;
+   const std::vector<RS_Vector> visible = collectPolylineVertices(polyline);
+--- a/librecad/src/lib/filters/tests/mline_tests.cpp
++++ b/librecad/src/lib/filters/tests/mline_tests.cpp
+@@ -385,6 +385,97 @@
+   }
+ }
+
++TEST_CASE("DXF MLINE closure and cap flags survive the LibreCAD sidecar",
++          "[mline][filter][dxf_roundtrip]") {
++  lc::test::ensureSettings();
++  lc::test::QuietLog quiet;
++  QTemporaryDir temporary;
++  REQUIRE(temporary.isValid());
++  RS_FilterDXFRW filter;
++
++  class Capture : public MLineCapture {
++  public:
++    int polylines = 0;
++    void addLWPolyline(const DRW_LWPolyline &) override { ++polylines; }
++    void addPolyline(const DRW_Polyline &) override { ++polylines; }
++  };
++
++  // Bit 1 means closed; bits 2 and 3 independently suppress end caps.
++  for (const bool binary : {false, true}) {
++    for (const int flags : {1, 3, 5, 7, 9, 11, 13, 15}) {
++      CAPTURE(binary, flags);
++      const auto stem = QStringLiteral("closure-%1-%2").arg(binary).arg(flags);
++      const auto input = temporary.filePath(stem + QStringLiteral("-input.dxf"));
++      const auto output = temporary.filePath(stem + QStringLiteral("-output.dxf"));
++      const auto fallback = temporary.filePath(stem + QStringLiteral("-fallback.dxf"));
++      LateMLineStyleEmitter emitter;
++      emitter.style.handle = 0xD0u;
++      emitter.style.name = "WALLSTYLE";
++      emitter.style.elements.resize(2);
++      emitter.style.elements[0].offset = 0.5;
++      emitter.style.elements[1].offset = -0.5;
++      emitter.m_line.styleName = emitter.style.name;
++      emitter.m_line.styleHandle = emitter.style.handle;
++      emitter.m_line.openClosed = flags;
++      emitter.m_line.numLines = 2;
++      emitter.m_line.numVerts = 3;
++      for (const auto &point : {DRW_Coord(0.0, 0.0, 0.0),
++                                DRW_Coord(10.0, 0.0, 0.0),
++                                DRW_Coord(10.0, 10.0, 0.0)}) {
++        DRW_MLineVertex vertex;
++        vertex.position = point;
++        vertex.vertexDir = DRW_Coord(1.0, 0.0, 0.0);
++        vertex.miterDir = DRW_Coord(0.0, 1.0, 0.0);
++        vertex.segParms = {{0.0, 0.0}, {-1.0, 0.0}};
++        vertex.areaFillParms.resize(2);
++        emitter.m_line.vertlist.push_back(vertex);
++      }
++      {
++        const QByteArray name = input.toUtf8();
++        dxfRW writer(name.constData());
++        emitter.m_rw = &writer;
++        REQUIRE(writer.write(&emitter, DRW::AC1021, binary));
++      }
++
++      RS_Graphic drawing;
++      REQUIRE(filter.fileImport(drawing, input, RS2::FormatDXFRW));
++      REQUIRE(drawing.count() == 4);
++      const bool closed = (flags & 2) != 0;
++      for (const int index : {1, 2}) {
++        auto *polyline = dynamic_cast<RS_Polyline *>(drawing.entityAt(index));
++        REQUIRE(polyline != nullptr);
++        CHECK(polyline->isClosed() == closed);
++        CHECK(polyline->count() == (closed ? 3u : 2u));
++      }
++      REQUIRE(filter.fileExport(drawing, output, RS2::FormatDXFRW));
++      {
++        const QByteArray name = output.toUtf8();
++        dxfRW reader(name.constData());
++        Capture capture;
++        REQUIRE(reader.read(&capture, true));
++        REQUIRE(capture.m_callCount == 1);
++        CHECK(capture.m_captured.openClosed == flags);
++        CHECK(capture.m_captured.vertlist.size() == 3u);
++      }
++
++      // A legacy sidecar with incompatible visible closure must remain a
++      // polyline; silently rewriting its source flags would invent semantics.
++      auto *polyline = dynamic_cast<RS_Polyline *>(drawing.entityAt(1));
++      REQUIRE(polyline != nullptr);
++      polyline->setClosed(!closed);
++      REQUIRE(filter.fileExport(drawing, fallback, RS2::FormatDXFRW));
++      {
++        const QByteArray name = fallback.toUtf8();
++        dxfRW reader(name.constData());
++        Capture capture;
++        REQUIRE(reader.read(&capture, true));
++        CHECK(capture.m_callCount == 0);
++        CHECK(capture.polylines >= 2);
++      }
++    }
++  }
++}
++
+ TEST_CASE("DXF MLINE write emits expected codes", "[mline][dxf_roundtrip]") {
+   const auto path =
+       std::filesystem::temp_directory_path() / "librecad_mline_codes.dxf";
