@@ -19,8 +19,8 @@ libdxfrw and LibreCAD origin/master heads above were re-checked and unchanged;
 LibreCAD PR #3269 is merged as `4060fb6bb` and is contained in that LibreCAD head.
 
 **Progress on 2026-11-17:** 6 of 33 required package gates are closed (18.2%);
-27 remain. The activity count is 50 of 77 complete (64.9%): 6 closed gates
-and 44 completed implementation/research slices, out of 33 gates and 44
+27 remain. The activity count is 51 of 78 complete (65.4%): 6 closed gates
+and 45 completed implementation/research slices, out of 33 gates and 45
 completed slices. The 27 remaining counted items are the 27 open package
 gates. A completed slice can advance a gate that remains open, so this
 equal-weight activity count measures work items rather than unique outcomes
@@ -88,7 +88,15 @@ These implementation/research slices do not close a package gate or promote a
 support claim. Native consumer acceptance and independent whole-drawing
 semantics remain separate. P5-A is closed for the bounded AutoCAD 2007
 FIELD/FIELDLIST source-span profile; P5-B strict graph output remains open and
-requires complete carrier preservation before graph admission. P5-I
+requires complete carrier preservation before graph admission. S32 correlated
+raw-only FIELD callbacks with LibreDWG evaluator IDs in three existing AC1021
+sources. The raw-only families vary by source: AcObjProp/AcObjProp.16.2 and
+AcSm occur in more than one source, while the architectural source adds AcVar.
+This corrects S31's one-drawing fallback list; its counts were never an
+exhaustive AC1021 inventory. The screen establishes identity and evaluator
+coverage, not raw-only object spans or a parser change. See the [S32
+receipt](docs/research/p5-ac1021-field-cross-source-carrier-inventory-2026-11-17.json).
+P5-I
 separately waits for independent TABLE alignment spans; its existing cursor
 and peer screens are complete and must not be repeated.
 For P5-I, bounded
@@ -105,8 +113,9 @@ before reaching the cells. Neither route supplies the disputed spans or
 overrides ODA. See the [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json),
 [cursor/peer screen](docs/research/p5-ac1021-table-alignment-candidate-cursor-and-libredwg-screen-2026-11-17.json),
 and [debug-class screen](docs/research/p5-ac1021-table-libredwg-debug-class-span-screen-2026-11-17.json).
-Slices S23 through S31 are complete; activity progress is 50/77 and package
-readiness is 6/33.
+Slices S23 through S32 are complete; activity progress is 51/78 (65.4%) and
+package readiness is 6/33 (18.2%). S32 is one completed research slice; it
+does not close P5-B or promote a support claim.
 P6-G is conditional, P7-E optional, and six DEFERRED_EXTERNAL dispositions
 are advisory, excluded from the count, and cannot promote support claims.
 
@@ -122,19 +131,26 @@ profiles.
 1. **Implement P5-B for the bounded AutoCAD 2007 FIELD graph.** Reuse the
    [S29 graph/value receipt](docs/research/p5-ac1021-autodesk-field-table-graph-screen-2026-11-17.json),
    [S30 cursor receipt](docs/research/p5-ac1021-autodesk-field-source-cursors-2026-11-17.json),
-   and [S31 output-readiness receipt](docs/research/p5-ac1021-field-output-readiness-boundary-2026-11-17.json).
-   Do not repeat acquisition or cursor work for the selected 30 records. First
-   resolve and preserve the 66 raw-only FIELD members under ODA §20.4.99 and
-   their source spans, one bounded category per slice (42 AcObjProp.16.2
-   object-data tails, 14 unsupported child CadValue flags, one AcObjProp.16.2
-   child-count failure, and nine AcSm child-count failures). Preserve all 162
-   FIELDLIST identities and dependencies; never prune unsupported members to
-   force output admission. Then add the AC1021 legacy embedded TABLE/MTEXT
-   FIELD-index and nested-dictionary publication route. Reuse the existing
-   serializers for already supported values. Close with complete source graph
-   identity, strict ASCII/Binary output, fresh ACadSharp readback, destination-
-   preserving refusal, same-adapter retry, and graph/value equivalence. Keep
-   other AC1021 releases gated.
+   [S31 output-readiness receipt](docs/research/p5-ac1021-field-output-readiness-boundary-2026-11-17.json),
+   and [S32 cross-source carrier inventory](docs/research/p5-ac1021-field-cross-source-carrier-inventory-2026-11-17.json).
+   Do not repeat acquisition or cursor work for the selected 30 records. S32
+   already maps evaluator families and FIELDLIST counts across three existing
+   AC1021 sources; do not rerun those scans. Next, use the existing LibreDWG
+   trace machinery to bind one raw-only AcObjProp.16.2 object from the imperial
+   source to its body/string/handle cursors and next-object boundary, then
+   compare the first libdxfrw divergence with ODA §20.4.99. Implement only the
+   proven shared decoder correction, and immediately reuse it against matching
+   metric-source fields. Continue in short slices for the remaining AcObjProp,
+   AcSm, and AcVar records; source-specific fallback counts are not a closed
+   category list, and no category is eligible from evaluator name alone.
+   Preserve all 162 metric-source FIELDLIST identities and every reference;
+   never prune unsupported members to force output admission. After complete
+   carrier coverage, add the AC1021 legacy embedded TABLE/MTEXT FIELD-index
+   and nested-dictionary publication route. Reuse the existing serializers
+   for already supported values. Close with complete source graph identity,
+   strict ASCII/Binary output, fresh ACadSharp readback, destination-preserving
+   refusal, same-adapter retry, and graph/value equivalence. Keep other AC1021
+   releases gated.
 2. **Resume P5-I only on new independent TABLE span evidence.** Use the exact source
    and [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json).
    The ODA, candidate cursor, ACadSharp, standard LibreDWG, and separate
@@ -277,7 +293,7 @@ profile-specific semantic proof.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P5-B / ACTIVE_SOURCE_PROFILE_GRAPH_OUTPUT | S29/S30 close source graph/spans for 162 FIELD/FIELDLIST identities and 15 table-linked root/child pairs. S31 shows why output is still correctly refused: the adapter types 96 records and retains 66 raw-only AcObjProp/AcSm FIELDs; the FIELDLIST names all 162. The exact TABLEs use embedded-block MTEXT/nested-dictionary links, not TABLECONTENT references. S31 also records the known group-98 ODA table typo: retain the source-backed BL route pending any new contrary evidence. See the [S29 graph/value receipt](docs/research/p5-ac1021-autodesk-field-table-graph-screen-2026-11-17.json), [S30 cursor receipt](docs/research/p5-ac1021-autodesk-field-source-cursors-2026-11-17.json), and [S31 output-readiness receipt](docs/research/p5-ac1021-field-output-readiness-boundary-2026-11-17.json). Do not repeat selected-record source acquisition or spans. | Resolve the 66 raw-only records by the four receipt-counted categories using ODA and source-bounded evidence; preserve every FIELDLIST member and dependency. Then implement only the legacy embedded TABLE/MTEXT plus nested-dictionary graph publication bridge. Do not prune members or enable a partial strict profile. Close complete identity, ASCII/Binary output, fresh ACadSharp graph/value readback, destination-preserving refusal, and same-adapter retry. Keep other AC1021 releases gated. |
+| P5-B / ACTIVE_SOURCE_PROFILE_GRAPH_OUTPUT | S29/S30 close source graph/spans for 162 FIELD/FIELDLIST identities and 15 table-linked root/child pairs. S31 shows why output is still correctly refused: the adapter types 96 records and retains 66 raw-only AcObjProp/AcSm FIELDs; the FIELDLIST names all 162. S32 maps the same evaluator-to-carrier relationship in two more existing AC1021 sources: imperial has 56 raw-only AcObjProp.16.2 records; architectural has 32 AcSm and 5 AcVar. Across sources the raw-only families vary, so S31's four parser fallback counts are not an exhaustive AC1021 category list. The metric TABLEs use embedded-block MTEXT/nested-dictionary links, not TABLECONTENT references. S31 also records the known group-98 ODA table discrepancy; retain the source-backed BL route pending contrary source-bound evidence. See the [S29 graph/value receipt](docs/research/p5-ac1021-autodesk-field-table-graph-screen-2026-11-17.json), [S30 cursor receipt](docs/research/p5-ac1021-autodesk-field-source-cursors-2026-11-17.json), [S31 readiness receipt](docs/research/p5-ac1021-field-output-readiness-boundary-2026-11-17.json), and [S32 carrier inventory](docs/research/p5-ac1021-field-cross-source-carrier-inventory-2026-11-17.json). Do not repeat source inventory, metric selected-record acquisition, or spans. | Bind one raw-only imperial AcObjProp.16.2 object through independent body/string/handle cursors and its following-object boundary; use ODA §20.4.99 to identify the first libdxfrw divergence. Implement that narrow parser fix and reuse it on matching metric-source fields only where the observed layouts match. Then process the remaining AcObjProp, AcSm, and AcVar carriers by source-bounded payload, preserving every FIELDLIST member and dependency. Do not infer layout from evaluator IDs, batch parser fallbacks, prune members, or enable a partial strict profile. Only after complete carrier coverage add the legacy embedded TABLE/MTEXT plus nested-dictionary graph publication bridge. Close complete identity, strict ASCII/Binary output, fresh ACadSharp graph/value readback, destination-preserving refusal, and same-adapter retry. Keep other AC1021 releases gated. |
 | P5-D / WAITING_FOR_AC1024_TABLE_WITNESS | Capture one producer-bound AC1024 TABLE with known cell values, format state, linked objects, and native appearance. The bounded [source triage](docs/research/p5-ac1024-table-source-triage-2026-11-17.json) and [writer-profile screen](docs/research/p5-ac1024-acadsharp-writer-profile-screen-2026-11-17.json) need no repeat absent a new source/tool. | Reconcile the source against ODA v5.4.1 §20.4.99; bind spans, roles, references, and next-record boundary before typed implementation. Close with wrong-role/truncation refusal, strict ASCII/Binary output, independent readback, atomic retry, and native appearance. Keep raw fallback strict-output-refused. |
 | P5-E / DEPENDS_ON_P5-D_PROFILE | Reuse P5-D only if it contains Content Format/CELLSTYLEMAP; otherwise capture only this state in that producer session. | Prove format meaning independently; preserve unknown values or refuse lossless output. |
 | P5-F / DEPENDS_ON_P5-D_PROFILE | Reuse P5-D only if it contains TABLE layer overrides; otherwise capture only this state in that producer session. | Trace parse/storage/write/display precedence and compare with native appearance. |

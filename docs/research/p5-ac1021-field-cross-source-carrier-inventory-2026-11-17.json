@@ -1,0 +1,169 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 FIELD raw-carrier evaluator inventory across existing AutoCAD sources",
+  "date": "2026-11-17",
+  "phase": "P5-B",
+  "supportClaimEffect": "none",
+  "scope": "Correlate libdxfrw's current typed versus raw-only FIELD publication with independently decoded FIELD/FIELDLIST membership and evaluator IDs in three existing AC1021 sources. Identify the source-specific raw-carrier families that the next bounded implementation slices must preserve.",
+  "primaryAuthority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["20.1", "20.4.76", "20.4.77", "20.4.99"]
+  },
+  "independentDecoder": {
+    "name": "GNU LibreDWG dwgread minJSON",
+    "version": "0.14",
+    "executable": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "commandTemplate": "dwgread -v5 -O minJSON <source.dwg> -o <scratch.minjson>",
+    "exitStatus": 0
+  },
+  "localCarrierProbe": {
+    "source": "/private/tmp/field_carrier_diag.cpp",
+    "sourceSha256": "02fbf8cf409ad4119e6b5b764cc7990b89ffaaddd19bfe61a0347615447a1f4b",
+    "binary": "/private/tmp/field_carrier_diag",
+    "binarySha256": "b03cf8c5650778324a0f45af4e123672f6f615f14467dc9882d5b824a412a808",
+    "linkedDxIfaceObjectSha256": "720a3d90bb361da86bdf236f0df5171959fb7a9409bfd4c6c2eaf10f84c2843f",
+    "linkedLibdxfrwArchiveSha256": "6fcc9bfed8d29cda810bcc61a234836607540ace52a7f8aaecce817a8896c49d",
+    "method": "Count complete typed FIELD handles from dx_data and correlate the raw FIELD callbacks by handle. Match raw-only handles to LibreDWG minJSON FIELD evaluator IDs."
+  },
+  "sourceProfiles": [
+    {
+      "path": "/private/tmp/autodesk_blocks_and_tables_metric.dwg",
+      "sizeBytes": 258848,
+      "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+      "version": "AC1021",
+      "producer": "AutoCAD 2007, AppInfo 17.0.48.0",
+      "minJson": {
+        "path": "/private/tmp/autodesk_blocks_and_tables_metric.minjson",
+        "sha256": "8947d321b784a3eab81a7fe1336c19fde04f37588ce476d7546e7eef3fd42a3f",
+        "fieldFrames": 162,
+        "fieldListMembers": 162,
+        "evaluatorCounts": {"_text": 81, "AcExpr": 15, "AcObjProp.16.2": 38, "AcObjProp": 19, "AcSm": 9}
+      },
+      "localCarrierProbe": {
+        "path": "/private/tmp/field_carrier_diag",
+        "outputPath": "/private/tmp/metric_field_carriers_s32.txt",
+        "outputSha256": "d73f4f2ba27305dbff222e141e301aeb5aebe44986354a2dd0f3eef75ffad242",
+        "typedFields": 96,
+        "rawCallbacks": 162,
+        "rawOnly": 66,
+        "rawOnlyEvaluatorCounts": {"AcObjProp.16.2": 38, "AcObjProp": 19, "AcSm": 9}
+      },
+      "priorReceipt": "docs/research/p5-ac1021-field-output-readiness-boundary-2026-11-17.json"
+    },
+    {
+      "path": "/Users/dli/doc/dwg/blocks_and_tables_-_imperial.dwg",
+      "sizeBytes": 227008,
+      "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+      "version": "AC1021",
+      "producer": "AutoCAD 2007, AppInfo 17.0.48.0",
+      "minJson": {
+        "path": "/private/tmp/blocks-tables-imperial-cross-screen.minjson",
+        "sha256": "fa0a6a47d812fcc66659e56c17b7f6542dbf27a632af8cc5e3fbb94fc99c990d",
+        "tracePath": "/private/tmp/blocks-tables-imperial-cross-screen.trace",
+        "traceSha256": "175e1bee3c34168a7c03532df6ae95508c7847dcf617bd1336b24ce481dcddb9",
+        "fieldFrames": 142,
+        "fieldListMembers": 142,
+        "evaluatorCounts": {"_text": 71, "AcObjProp.16.2": 56, "AcExpr": 15}
+      },
+      "localCarrierProbe": {
+        "path": "/private/tmp/field_carrier_diag",
+        "command": "/private/tmp/field_carrier_diag /Users/dli/doc/dwg/blocks_and_tables_-_imperial.dwg",
+        "outputPath": "/private/tmp/imperial_field_carriers.txt",
+        "outputSha256": "335620885832c3b5861f236b6f02d8aad8491524e189c502671c1f9f964e7996",
+        "typedFields": 86,
+        "rawCallbacks": 142,
+        "rawOnly": 56,
+        "rawOnlyEvaluatorCounts": {"AcObjProp.16.2": 56}
+      },
+      "currentReaderTrace": {
+        "path": "/private/tmp/imperial-field-screen.trace",
+        "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/blocks_and_tables_-_imperial.dwg -y -d -v2007 /private/tmp/imperial-field-screen.dxf",
+        "sha256": "18fa3b0389bafdda556743eb6909b09450dece71a724ea2a4fac9c1a5e0ac6ca",
+        "dwg2dxfSha256": "9aa5f6bda39be8ec293e8207d97440546ee6311e1275eb6cd9d3306c4fef9279",
+        "exitStatus": 1,
+        "strictRefusal": "FIELD/FIELDLIST carriers have no qualified DXF serializer",
+        "outputCreated": false,
+        "diagnosticMessageCounts": {
+          "unsupported FIELD CadValue format flags": 13,
+          "FIELD child value payload unsupported": 13,
+          "FIELD child value count out of range": 1,
+          "FIELD has an unmodeled object-data tail": 42
+        }
+      }
+    },
+    {
+      "path": "/Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+      "sizeBytes": 188992,
+      "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+      "version": "AC1021",
+      "producer": "AutoCAD 2008, AppInfo 17.1.51.0",
+      "minJson": {
+        "path": "/private/tmp/architectural-annotation-cross-screen.minjson",
+        "sha256": "dd253499a7c54f72d60e4dd7896b1c20a2012e56dc248aa59d30374cca53fa01",
+        "tracePath": "/private/tmp/architectural-annotation-cross-screen.trace",
+        "traceSha256": "1118a4dfa5570ede39cc8f13826d30e74aadcaf5228ab6f074ad0d4b8337af6f",
+        "fieldFrames": 66,
+        "fieldListMembers": 66,
+        "evaluatorCounts": {"_text": 29, "AcSm": 32, "AcVar": 5}
+      },
+      "localCarrierProbe": {
+        "path": "/private/tmp/field_carrier_diag",
+        "command": "/private/tmp/field_carrier_diag /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+        "outputPath": "/private/tmp/architectural_field_carriers.txt",
+        "outputSha256": "b0dad4bc3ff9ff811805722c5eb2331707b744ef7648e6a5d742f41f922edd8d",
+        "typedFields": 29,
+        "rawCallbacks": 66,
+        "rawOnly": 37,
+        "rawOnlyEvaluatorCounts": {"AcSm": 32, "AcVar": 5}
+      },
+      "currentReaderTrace": {
+        "path": "/private/tmp/architectural-field-screen.trace",
+        "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg -y -d -v2007 /private/tmp/architectural-field-screen.dxf",
+        "sha256": "738fae4b65d8f5e12f7045cf325d4b573502199947d11cee909af24bbcf470ba",
+        "dwg2dxfSha256": "9aa5f6bda39be8ec293e8207d97440546ee6311e1275eb6cd9d3306c4fef9279",
+        "exitStatus": 1,
+        "strictRefusal": "FIELD/FIELDLIST carriers have no qualified DXF serializer",
+        "outputCreated": false,
+        "diagnosticMessageCounts": {
+          "unsupported FIELD CadValue format flags": 20,
+          "FIELD child value payload unsupported": 16,
+          "FIELD child value count out of range": 16,
+          "FIELD has an unmodeled object-data tail": 1
+        }
+      },
+      "previousScreen": "docs/research/p5-ac1021-architectural-field-current-reader-recheck-2026-11-11.json",
+      "recheckNote": "This reuses the same source hash as the 2026-11-11 screen. It refines evaluator-to-raw-only mapping and the current parser diagnostics; it is not a new producer source or independent wire-span evidence."
+    }
+  ],
+  "findings": {
+    "rawOnlyFamiliesVaryBySource": true,
+    "repeatedFamilies": {
+      "AcObjProp.16.2": "present among raw-only records in the metric source and all 56 raw-only records in the imperial source",
+      "AcSm": "present among raw-only records in the metric and architectural sources"
+    },
+    "additionalFamily": "AcVar appears among five architectural raw-only records.",
+    "decision": "S31's four parser-fallback counts describe one drawing only; they are not an exhaustive AC1021 FIELD category list. Inventory each raw-only FIELD by source profile and evaluator before selecting parser work. Prioritize a repeated family only after a representative object's source cursor and ODA layout explain its first decode divergence."
+  },
+  "limits": [
+    "Independent minJSON establishes object/evaluator inventory and FIELDLIST membership only; this receipt does not provide per-object body/string/handle cursor spans for raw-only carriers.",
+    "Parser diagnostic counts are emitted messages, not a one-to-one mapping to unique FIELD records; messages can overlap within one record.",
+    "The architectural drawing is a repeat of the same hash screened on 2026-11-11, not new producer evidence.",
+    "Neither source reached strict DXF output; no serializer eligibility, semantic FIELD evaluation, graph closure, fresh DXF readback, or native behavior is established.",
+    "All DWG and minJSON artifacts remain in existing user corpus or /private/tmp; no fixture or derivative was added to the repository."
+  ],
+  "implementationReadiness": {
+    "closed": [
+      "Map raw-only FIELD evaluator families in three existing AC1021 sources and verify all FIELDLIST member counts against independent minJSON.",
+      "Identify that AcObjProp.16.2 and AcSm recur across two sources, while AcVar appears in the architectural source."
+    ],
+    "remaining": [
+      "For one representative raw-only member of a repeated family, bind source object identity, body/string/handle cursor, and following-object boundary before changing the parser.",
+      "Decode and preserve every source FIELDLIST member, including AcObjProp, AcObjProp.16.2, AcSm, and AcVar payloads and references.",
+      "Only after complete carrier coverage, add the legacy embedded TABLE/MTEXT plus nested-dictionary publication bridge and close strict output/readback/failure/retry."
+    ],
+    "nextAction": "Use the existing LibreDWG source trace machinery to extract one raw-only AcObjProp.16.2 object's independent cursor and complete value/child layout from the imperial sample; compare its first libdxfrw mismatch against ODA §20.4.99. Reuse that root cause only where source profiles match."
+  }
+}
