@@ -53,7 +53,8 @@ passes on Linux and Windows with the corrected generator source. The latest
 source-matched [FreeCAD qualification](docs/research/p8-8c1c3d7a-freecad-native-qualification-2026-11-18.json)
 closes P8-B/C for the generated profile. A clean local macOS package profile
 and hosted Linux/Windows packages close P8-A for the tested inputs. P8-F
-remains open pending macOS focused-native and fast results. Gate readiness is 29.4%;
+remains open pending a sealed macOS focused-native receipt; fast parity has
+passed. Gate readiness is 29.4%;
 activity progress does not imply drawing support. The broad native suite and
 extended fuzz lane remain for the frozen integration pass.
 
@@ -91,7 +92,7 @@ own profile.
 | 2 | Resume authority/source waits only on their named trigger | P5-B/G/I; P6-E/F/H; P7-C/D/G | Reuse linked receipts. Do one bounded primary/source-distinct search per changed trigger; stop when the required field, role, version, and following-record boundary remain unbound. Do not repeat generic peer scans, sample downloads, or failed converter launches. |
 | 3 | Implement immediately when one profile is admitted | All source-backed gates | Bind source spans, handle roles, and meaning; make one narrow parser/model/graph/writer change; run its owning fast selectors together with one touched-target build; prove relevant refusal, state/destination preservation, and corrected same-object retry; add strict output and fresh independent readback only for output-capable profiles. Commit the slice, update its receipt and this queue, remove the completed action, recount, then take the next ready gate. |
 | 4 | Qualify consumers only for admitted profiles | P7-F/H; P8-D | Reuse the exact generated FreeCAD P8-B/C profile. Start P7-F only after P7-C/D admission and an independent geometry reader. Batch LibreCAD 2 GUI actions in one accessible session; run LibreCAD_3 only if its application becomes available. |
-| 5 | Final release qualification | P8-F/G | Finish the macOS focused-native profile; fast qualification remains running. Reuse P8-A/B/C/E only while their actual tested inputs remain unchanged. Record final source/build/package/runtime identities. Run the broad suite and extended fuzz lane once for the frozen candidate; publish only the resulting evidence-backed support matrix. |
+| 5 | Final release qualification | P8-F/G | Finish the macOS focused-native profile; fast qualification has passed for this digest. Reuse P8-A/B/C/E only while their actual tested inputs remain unchanged. Record final source/build/package/runtime identities. Run the broad suite and extended fuzz lane once for the frozen candidate; publish only the resulting evidence-backed support matrix. |
 
 **Self-unblock after every slice or failed probe:** first inspect the linked
 receipt, current code, and local corpus. If a required input is missing, use
@@ -276,7 +277,7 @@ source-reference closure.
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
 | P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | The latest preflight after the user's unlock report failed to capture an image; CoreGraphics returned `activeCount=0`. No GUI action was attempted. This does not establish physical login state or capture permissions. The LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`; no LibreCAD_3 bundle was found. See the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). An existing source-bound [MLINE candidate](docs/research/p8d-mline-source-bound-gui-candidate-2026-11-18.json) can support the GUI check after a clean current-source rebuild and regeneration; its incremental build provenance is uncertain. Retry the GUI only after an active display and successful capture. | In one GUI session, launch a provenance-bound LibreCAD 2 build and complete Move/Copy, named-LTYPE save/reopen/render, and the selected MLINE display/edit/save/reopen. Then run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback if that application becomes available. This gate does not block Linux/Windows qualification. |
-| P8-F / ACTIVE_CURRENT_DIGEST_FAST_GATE | Current digest `b784d8420cd193b671307a5f16bb53dfd3bdc11be5089c43b866129a3d1332f7` has sealed Linux/Windows focused receipts; macOS job 134927564189 is queued after a cancelled attempt. Fast parity is still running. See the [qualification receipt](docs/research/p8-8c1c3d7a-freecad-native-qualification-2026-11-18.json). | Finish fast parity and hosted macOS focused qualification for this digest; seal its receipt and recheck branch policy. Keep broad/fuzz lanes for the final integration pass. |
+| P8-F / ACTIVE_CURRENT_DIGEST_FAST_GATE | Current digest `b784d8420cd193b671307a5f16bb53dfd3bdc11be5089c43b866129a3d1332f7` has passing fast parity and sealed Linux/Windows focused receipts; macOS job 134927564189 is queued after a cancelled attempt. See the [qualification receipt](docs/research/p8-8c1c3d7a-freecad-native-qualification-2026-11-18.json). | Finish hosted macOS focused qualification for this digest; seal its receipt and recheck branch policy. Keep broad/fuzz lanes for the final integration pass. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 
 Keep consumer, source, and build receipts separate. Preserve LibreCAD's R13

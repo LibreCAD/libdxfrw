@@ -2,7 +2,7 @@
   "schema": "libdxfrw-research-receipt-v1",
   "id": "p8-8c1c3d7a-freecad-native-qualification-2026-11-18",
   "date": "2026-11-18",
-  "status": "FREECAD_LINUX_WINDOWS_PASS_NATIVE_MACOS_CANCELLED",
+  "status": "FAST_AND_LINUX_WINDOWS_PASS_MACOS_NATIVE_RETRY_QUEUED",
   "testedCommit": "8c1c3d7aec1599b952f25d0fd77dd8c73684065c",
   "implementationDigestSha256": "b784d8420cd193b671307a5f16bb53dfd3bdc11be5089c43b866129a3d1332f7",
   "supportClaimEffect": "none",
@@ -30,6 +30,12 @@
     "broadAndFuzz": "Skipped as planned.",
     "macosRetry": {"jobId": 134927564189, "statusAtReceipt": "QUEUED", "result": "No result or sealed receipt yet."},
     "gateEffect": "P8-F remains open until the exact implementation digest has a sealed passing macOS focused receipt and a passing fast profile, with branch policy rechecked."
+  },
+  "fastParity": {
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44336852648",
+    "jobId": 134915787117,
+    "result": "PASS: bounded fast regressions on tested commit 8c1c3d7a.",
+    "gateEffect": "The fast component passes for the recorded digest; P8-F still needs the hosted macOS focused receipt and branch-policy recheck."
   },
   "packageMatrix": {
     "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44336852326",
