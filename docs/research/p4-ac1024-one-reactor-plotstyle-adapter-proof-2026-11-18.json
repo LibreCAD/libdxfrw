@@ -29,12 +29,15 @@
       "visualization_-_sun_and_sky_demo.dwg": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881"
     },
     "compatibilityScreen": "Seven existing local AC1024 drawings with this exact C/E/F pair yielded identical dictionary and placeholder bodies. The mechanical drawing shares the source bytes. Its selected test hits the separate VIEWPORT extension XRECORD inspector, so a mechanical staged pass is unverified.",
+    "wholeSourceRefusal": "The original importing adapter and data refuse both complete drawings with resolved-owner checks and preserve the destination in both encodings. Aerial fails at SUN 24C owner mismatch (expected 242, observed 246). Sun-and-sky fails at SORTENTSTABLE BLOCK_RECORD/DICTIONARY resolution.",
     "logSha256": {
       "final-ctest.log": "0aae1ffeaf27ce6927fa0630eedd9c3676077091db05bb28ae2228f96edd628f",
       "final-peer.log": "5ce3853e20444fb909fe9d8e5724422764b05afe3b0957022e3722bd28e103c0",
       "visualization_-_aerial.graph.log": "1fe892bfdd7d457be066b971d457aa007ec47f934e888d80e0c7c22ae66e16e9",
       "visualization_-_sun_and_sky_demo.graph.log": "4e90a5e7374ec1fc5809a0261a2134aae2a90ff25693706a47a0c004941ef90e",
-      "mechanical_example-imperial.graph.log": "98ff05b2a94b02e7b7370d4e6d16f65f1c925b85761627da6e28af1b79f21a41"
+      "mechanical_example-imperial.graph.log": "98ff05b2a94b02e7b7370d4e6d16f65f1c925b85761627da6e28af1b79f21a41",
+      "visualization_-_aerial.whole.log": "29a6c5d65ff39dfa275a04beee073b736b488b87d7d4aefe26a6a91830a5068f",
+      "visualization_-_sun_and_sky_demo.whole.log": "d2f86855e1ca67e5b978692a58ceb102e2c1ab5bdc797c052931b1b2e980c9b9"
     }
   },
   "remaining": [

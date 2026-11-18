@@ -11,6 +11,16 @@
     "emptyTargets": {"ACAD_COLOR": "73", "ACAD_PLOTSETTINGS": "19"},
     "rawFrames": "Both type-42 dictionaries have a 12-byte body, the handle stream at bit 60, 36 declared handle bits, zero entries, cloning 1 and hard-owner flag 0. Parent and reactor each use absolute soft pointer code 4 length 1 and resolve C."
   },
+  "exactTailProof": {
+    "frames": "At logical object-section offsets 1093 (19) and 21685 (73), both owners occupy [60,76) and both reactors occupy [76,92). The exact source bits at [92,96) are 1111 in both frames.",
+    "peer": "LibreDWG 0.14 on the pinned source independently reports the handle/body boundaries, four residual bits, matching CRCs 8FEB and FCAB, and following indexed records 1A and 86. The actual residual bit values are observed from the captured source bytes.",
+    "controls": "The standalone exact-frame cursor rejects all 96 single-bit changes per record and accepts the original body again. The reusable generic LayerStates observer still skips residual bits.",
+    "captureSha256": "de8082947891354ca6ee9f202f1d00331a6acff75f10babb729647ea67d96f25",
+    "peerTraceExcerptSha256": "c7bcce85e7c8614469e4e802957f443a0e6e5a2565174aa33ff635e0371242bc",
+    "verifyScriptSha256": "2385f35737b4099f5c1550e54c2ef5b69cd6143380201bdd3ab9b006769598ec",
+    "wireProofSha256": "501c3e6bd21fd60a7d0e60083994cd424d0db0add6788520cbc915a90a09e607",
+    "scratchRoot": "/private/tmp/libdxfrw-p4-reactor-proof.8Vz9xQ"
+  },
   "stagedOutput": {
     "projection": "Admit five selected source roots for the scratch output and preserve their order. Retain GROUP, the ordered plot-style pair and all 32 scales from the previous projection. Bind ACAD_COLOR and ACAD_PLOTSETTINGS to unique staged dictionaries A073 and A019, with empty bodies, owner C and reactor C.",
     "faultControls": "Both encodings pass 20 injected refusals, seeded destination retention and corrected same-codec retries. The new controls include the wrong color owner/cloning, wrong plot-settings reactor or nonempty body, and a corrupted original color source frame.",
@@ -28,7 +38,7 @@
     "binarySha256": "14343dae92531215eeb579a40ffb08ad8054fc7ece8e9038f2180aebf082ab6b"
   },
   "remaining": [
-    "Integrate the two empty child dictionaries with the current adapter source selection and finalization after verifying the complete same-import proof.",
+    "Integrate the two empty children through an output selection that retains the original NOD and source publications. Queue them through the existing dictionary writer and require both owner/root ledger and source/output proofs at finalization, including a negative case changing the observed terminal bits.",
     "Eleven other original NOD edges, whole-file ownership, and native acceptance remain open."
   ]
 }
