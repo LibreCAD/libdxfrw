@@ -15,12 +15,15 @@ The comparison baseline last checked on 2026-11-17 is libdxfrw
 integration or platform qualification.
 
 **Progress on 2026-11-18:** 6/33 package gates closed; 27 remain. The activity
-ledger is 73/100 (73.0%): six closed gates and 67 completed implementation or
+ledger is 74/101 (73.3%): six closed gates and 68 completed implementation or
 research slices. Gate readiness is 18.2%; activity progress does not imply
 support. The completed PERSUBENTMGR safety slice keeps class-specific DXF data
 raw-only; the issue #1021 sample-pair screen found no known nonzero member
 witness, so P6-B remains open. See the [raw-only disposition](docs/research/p6-persubentmgr-raw-only-dxf-disposition-2026-11-18.json)
 and [sample/API screen](docs/research/p6-persubentmgr-libredwg-issue-1021-corpus-screen-2026-11-17.json).
+The current candidate also passes the focused macOS FreeCAD AC1021/AC1024/AC1032
+open/insert smoke; it closes no native Linux/Windows package gate. See the [consumer
+receipt](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json).
 After the user's latest reported unlock, `screencapture` still failed to create
 an image. This does not establish the physical login state or capture
 permissions and closes no gate. Native Linux, Windows, and GUI outcomes count
@@ -51,7 +54,7 @@ as support evidence.
 
 | Order | Packet | Gates | Fast path |
 |---|---|---|---|
-| 1 | Base 2D consumer qualification | P8-A/B/C/E | Pin the current base-2D candidate and its build/package identity; start native Linux/Windows FreeCAD 2D checks without waiting for P7 3D evidence. Capture package/runtime identity in the same candidate pass. Keep the exact candidate hash with each result. |
+| 1 | Base 2D consumer qualification | P8-A/B/C/E | The current macOS FreeCAD AC1021/AC1024/AC1032 control is complete for this candidate; reuse its [receipt](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json) while identities match. Next run native Linux/Windows FreeCAD 2D checks without waiting for P7 3D evidence. Capture package/runtime identity in the same candidate pass and keep each exact candidate hash. |
 | 2 | Shared producer sessions | P5-D/E/F/G; P4-C/P5-H/P7-C; P4-B/P6-C; P6-A/P6-B | Group probes by the exact AutoCAD/ObjectARX release that can produce the needed state. Reuse a launch only when the version and API state match; retain separate source hashes, spans, roles, and semantic oracles. Implement each profile as soon as its own evidence is complete. |
 | 3 | Independent authority and source witnesses | P5-B/P5-I, P6-E/P6-F, P7-D/P7-G | Reuse completed receipts. Resume only on a qualifying FIELD route/schema, TABLE source spans, mesh-suffix authority, AC1012/AC1014 partial source, ACIS header map, or trimmed/periodic geometry witness. Do not repeat unchanged searches or scans. |
 | 4 | Changed-state tools and GUI | P6-H, P8-D | Retry P6-H only after a signed ODA bundle launches normally. Retry P8-D only after this process sees an active display and `screencapture` succeeds; then use explicit bundle paths and perform all pending GUI checks in one session. |
@@ -131,9 +134,10 @@ failure that expands risk.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 33 package gates and each implementation/research slice once. The
-  current ledger is 67 completed slices plus 33 package gates = 100 counted
-  items; 6 gates plus 67 slices are complete (73/100, 73.0%). Linux, Windows,
-  and GUI outcomes belong to P8-B/C/D, not separate progress units. A partial
+  current ledger is 68 completed slices plus 33 package gates = 101 counted
+  items; 6 gates plus 68 slices are complete (74/101, 73.3%). Native Linux,
+  Windows, and GUI outcomes belong to P8-B/C/D; the macOS smoke is one bounded
+  research slice and does not close a platform gate. A partial
   implementation slice earns activity progress but does not close its package
   gate. After each committed slice or gate transition, recount both activity
   progress and gate readiness.
@@ -261,10 +265,16 @@ and runtime identities. Qualify the base 2D profile as soon as its candidate
 is pinned; add 3D rows only after P7 admission. Keep ordinary AC1027 drawings
 deferred until source-reference closure.
 
+The pinned [macOS FreeCAD smoke](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json)
+passes the generated AC1021 LINE and AC1021/AC1024/AC1032 primitive
+open/insert controls on the current candidate.
+Reuse it only while its source, converter, and FreeCAD identities match; it is
+not Linux or Windows evidence and does not promote 3DFACE/SOLID support.
+
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation profiles stabilize. Reuse [macOS package evidence](docs/research/p8-macos-package-baseline-2026-11-17.json) only while its inputs match. | Record reproducible commands and immutable identities. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. |
-| P8-B / WAITING_FOR_FREEZE | Pin a candidate and run native Linux FreeCAD qualification for the base 2D profile now; extend to each admitted source-derived profile as it becomes available. P7 admission is needed only for AC1027/AC1032 3D rows. Earlier generated 2D results in the [platform receipt](docs/research/p8-freecad-linux-windows-generated-pass-2026-11-15.json) are historical controls only. | Record runner, FreeCAD/converter/modules, settings, exact `open()`/`insert()` handoff, runtime identity, and independent semantics per profile. No cross-compilation or ambiguous fallback. |
+| P8-B / WAITING_FOR_FREEZE | Pin a candidate and run native Linux FreeCAD qualification for the base 2D profile; extend to each admitted source-derived profile as it becomes available. P7 admission is needed only for AC1027/AC1032 3D rows. The [macOS receipt](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json) is a setup control only, not Linux evidence. Earlier generated results in the [platform receipt](docs/research/p8-freecad-linux-windows-generated-pass-2026-11-15.json) are historical controls. | Record runner, FreeCAD/converter/modules, settings, exact `open()`/`insert()` handoff, runtime identity, and independent semantics per profile. No cross-compilation or ambiguous fallback. |
 | P8-C / WAITING_FOR_FREEZE | Run the same base-2D workflow on native Windows, then extend only to admitted profiles. Reuse earlier path-with-spaces/Unicode and generated 2D checks as historical controls. The tracked `ordinary_enc_AC1027.dwg` still fails before publication; see [preflight receipt](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json). | Use the same evidence fields as P8-B. Keep ordinary AC1027 deferred until source-reference closure. |
 | P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | After the user's latest reported unlock, `screencapture -x /private/tmp/libdxfrw-unlock-preflight-2026-11-18.png` still failed with “could not create image from display.” This does not establish physical login state or capture permissions. Launch Services cannot resolve either app; a LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`, and no LibreCAD_3 bundle was found. See the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). Do not retry until this process sees an active display and capture succeeds. | In one GUI session, launch LibreCAD 2 by its explicit bundle path and complete Move/Copy action-boundary, named-LTYPE save/reopen/render, and (if P6-H obtains a source-bound MLINE witness) MLINE display/edit/save/reopen. Then run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback if that app is available. This gate does not block Linux/Windows qualification. |
 | P8-E / INTEGRATION_GATE | During P8-B/C, collect native Linux/Windows shared/static manifests, relocation, and loaded runtime identities. Reuse the [macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json); repeat macOS only if candidate inputs change. | Verify package contents and shared/static relocation for each platform. |
