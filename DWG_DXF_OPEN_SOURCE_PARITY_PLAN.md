@@ -19,7 +19,7 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-18:** 10/34 package gates closed; 24 remain. The activity
-ledger is 114/138 (82.6%): ten closed gates and 104 completed implementation or
+ledger is 115/139 (82.7%): ten closed gates and 105 completed implementation or
 research slices. The [focused slice](docs/research/p6-raster-dimstyle-default-roundtrip-2026-11-18.json)
 fixes an AC1021 default plot dictionary reexport and a default BYBLOCK DIMSTYLE
 downgrade; five owning selectors pass. The following [source-identity selector
@@ -168,8 +168,8 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 34 package gates and each implementation/research slice once. The
-  current ledger is 104 completed slices plus 34 package gates = 138 counted
-  items; 10 gates plus 104 slices are complete (114/138, 82.6%). The Linux and
+  current ledger is 105 completed slices plus 34 package gates = 139 counted
+  items; 10 gates plus 105 slices are complete (115/139, 82.7%). The Linux and
   Windows FreeCAD results cover only their exact generated profile and binary;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package
@@ -278,7 +278,7 @@ external kernel or app blocks only that profile.
 A [reviewable LibreCAD consumer patch](docs/patches/librecad-dxfrw-default-dimstyle-qstring-2026-11-18.patch) fixes a confirmed
 `$DIMSTYLE` overload error; its focused regression fails before the fix and
 passes after it. The patch remains unmerged and must be integrated in the
-consumer separately; see the [receipt](docs/research/p8-librecad-master-dimstyle-literal-dwg-export-2026-11-18.json). The [LibreCAD_3 headless tests](docs/research/p8-librecad3-05e7-headless-dxf-consumer-2026-11-18.json) cover only the patched candidate and generated DXF profiles.
+consumer separately; see the [receipt](docs/research/p8-librecad-master-dimstyle-literal-dwg-export-2026-11-18.json). A separate [JWW patch](docs/patches/librecad-jww-default-dimstyle-qstring-2026-11-18.patch) fixes the same independently tested fallback defect; see its [receipt](docs/research/p8-librecad-master-jww-dimstyle-literal-2026-11-18.json). Neither patch is merged upstream. The [LibreCAD_3 headless tests](docs/research/p8-librecad3-05e7-headless-dxf-consumer-2026-11-18.json) cover only the patched candidate and generated DXF profiles.
 
 P8-A/B/C and P8-E are closed for the exact package and generated-consumer
 profiles linked above. Reopen them if relevant source, build, configuration or

@@ -1,0 +1,36 @@
+--- a/librecad/src/lib/filters/rs_filterjww.cpp
++++ b/librecad/src/lib/filters/rs_filterjww.cpp
+@@ -193,7 +193,7 @@
+         // add some variables that need to be there for JWW drawings:
+         if (graphic->getVariableString("$DIMSTYLE", "").isEmpty()) {
+                 RS_DEBUG->print("RS_FilterJWW::fileImport: adding DIMSTYLE");
+-                graphic->addVariable("$DIMSTYLE", "Standard", 2);
++                graphic->addVariable("$DIMSTYLE", QStringLiteral("Standard"), 2);
+                 RS_DEBUG->print("RS_FilterJWW::fileImport: adding DIMSTYLE: OK");
+         }
+         RS_DEBUG->print("RS_FilterJWW::fileImport: adding variables: OK");
+--- a/librecad/src/lib/filters/tests/jww_import_tests.cpp
++++ b/librecad/src/lib/filters/tests/jww_import_tests.cpp
+@@ -326,6 +326,22 @@
+ #endif
+
+ } // namespace
++
++TEST_CASE("JWW import stores its default DIMSTYLE as a string", "[jww-dimstyle]") {
++    ensureSettings();
++    const QString path = writeJww(QStringLiteral("dimstyle_fallback.jww"), "");
++    RS_Graphic graphic;
++    RS_FilterJWW filter;
++    const bool imported = filter.fileImport(graphic, path, RS2::FormatJWW);
++    QFile::remove(path);
++    REQUIRE(imported);
++    const auto& variables = graphic.getVariableDict();
++    const auto style = variables.constFind("$DIMSTYLE");
++    REQUIRE(style != variables.cend());
++    CHECK(style->getType() == RS2::VariableString);
++    CHECK(style->getCode() == 2);
++    CHECK(style->getString() == QStringLiteral("Standard"));
++}
+
+ TEST_CASE("A JWW file with a line imports", "[jww][import]") {
+     ensureSettings();

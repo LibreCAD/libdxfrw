@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "LibreCAD JWW default DIMSTYLE overload regression",
+  "date": "2026-11-18",
+  "supportClaimEffect": "none",
+  "source": {
+    "repository": "https://github.com/LibreCAD/LibreCAD",
+    "verifiedMasterCommit": "7396a1d4adefa4625b0388dee6b3493819fa8819",
+    "jwwFilterSha256": "6863e0ab26e92c7f487d7f216c87568ef6645697c97d52a8a35ef0bab35d8c88",
+    "method": "Disposable clean source clone in /private/tmp. The user's LibreCAD checkout was not modified."
+  },
+  "finding": "After a successful JWW import, when no DIMSTYLE string exists, the literal Standard is passed to overloaded RS_Graphic::addVariable. The const-char-pointer-to-bool standard conversion wins over constructing QString, so the fallback is stored as integer 1 rather than a group-2 string. This is independently demonstrated on the registered JWW path; it is distinct from the DXFRW fix.",
+  "control": {
+    "fixture": "Existing test helper writes a one-line version-600 JWW from scratch with JWWDocument::Save; the test imports it through RS_FilterJWW, deletes the temporary input, and asserts actual variable type, group and value. No JWW fixture is added to the repository.",
+    "build": "cmake --build /private/tmp/librecad-p8f-7396-full-build --target scratch_jww_dimstyle -j4",
+    "run": "env -u DYLD_LIBRARY_PATH -u DYLD_FALLBACK_LIBRARY_PATH /private/tmp/librecad-p8f-7396-full-build/scratch_jww_dimstyle '[jww-dimstyle]' --reporter compact",
+    "red": "With original JWW literal: import succeeds but the VariableString and Standard value assertions fail; 6 assertions pass and 2 fail, exit 42. Log SHA-256 473d0340a0117585a88ed296a774c7741359ddc0bf594b6abe9236a69af7e9bd.",
+    "green": "Changing only the fallback to QStringLiteral(\"Standard\") passes 8/8 assertions, exit 0. Log SHA-256 9d66ee552a2acf816ed7f0996459e7c7b17ae605a9122c932deef49d00d755a5; green test executable SHA-256 4d667203ccdff09d1a978cbabf14b5876c906700e93d99cb84af6af5ebdbe3f0."
+  },
+  "integration": {
+    "host": "macOS 27.2.1 build 26B131 ARM64, Apple clang 21.0.0, Qt 6.12.0",
+    "libdxfrwCommit": "69679cac1c6539746e3a454ea5deebb3816e8d21",
+    "implementationDigestSha256": "05e7cb3341469cc6fcf56c9928a5bb79d164de293334d5fc37c8817ef924fa02",
+    "installedSharedLibrarySha256": "7a0b42cdae111c7c63f121ab206427bd69a19bfb8953da7c9d32af36e89c3960",
+    "method": "Reuse the scratch system-package CMake override and the separate SHP/JWW public-codepage compatibility patch documented in p8-librecad-master-dimstyle-literal-dwg-export-2026-11-18.json; the candidate also contains the separate DXFRW correction and scratch diagnostics. A scratch-only micro test target reuses the application library; it is not part of the proposed patch."
+  },
+  "patch": {
+    "path": "docs/patches/librecad-jww-default-dimstyle-qstring-2026-11-18.patch",
+    "sha256": "d6f755a4a92cb5b3d8f88a720b3b19ad13a3e191dd9c971f2470e0ce1c0c842b",
+    "scope": "One JWW QStringLiteral correction plus a focused generated regression in existing jww_import_tests.cpp; no DXFRW patch or legacy DXF source change.",
+    "applyCheck": "git apply --cached --check against the pristine LibreCAD 7396 index: PASS. Not submitted upstream."
+  },
+  "legacyDxf": "The other matching literal is in RS_FilterDXF, whose source is absent from the current CMake application build and registered filter list; its old dl_dxf.h dependency was unavailable when a scratch test was attempted. Its static pattern alone is not evidence of an observable current application failure, so it is not changed here.",
+  "limits": [
+    "One generated JWW import and exact variable assertions; no downstream DWG export or independent application readback is claimed.",
+    "No Windows, non-ASCII path, native GUI, broad suite, producer-authored JWW, or general JWW support claim is established."
+  ]
+}
