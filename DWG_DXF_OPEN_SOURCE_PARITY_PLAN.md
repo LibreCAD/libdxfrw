@@ -242,8 +242,15 @@ environment waits block only their own profiles.
 - Treat parser, typed model, graph closure, strict output, independent readback,
   and native semantics as distinct gates. Unknown fields/references stay raw or
   cause refusal; generated self-consistency or peer agreement does not justify
-  parser changes. The AC1024 CLASSES RTM report stays dormant until its exact
-  failing source is available.
+  parser changes. Reuse the [nine-file corpus rerun](docs/research/p6-ac1024-classes-available-corpus-rerun-2026-11-05.json),
+  [high-size path recheck](docs/research/p6-ac1024-classes-high-bit-rtm-recheck-2026-11-08.json),
+  and [short-tail compatibility receipt](docs/research/p6-ac1024-classes-short-tail-compatibility-2026-11-12.json).
+  They show the nine currently available AC1024 samples pass the CLASSES stage;
+  the hash-bound, unprovenanced short-tail sample now reaches TABLES after its
+  sentinel policy fix. This does not resolve the separate six-of-ten AutoCAD
+  2010 RTM report. Keep that claim dormant until one of its exact failing
+  source hashes and producer/maintenance metadata are supplied; do not repeat
+  the available-corpus scan or infer a general CLASSES fix from these receipts.
 - Preserve LibreCAD 2D behavior and ABI; new `DRW_Interface` callbacks use
   default no-op implementations. Preserve 3D coordinates, OCS, transforms,
   units, geometry, block membership, identities, and dependent objects.
@@ -374,8 +381,10 @@ Potential DIMASSOC/XREF, remaining 3D positions/OCS/splines, clipping/mesh,
 unit/lineweight, text/XDATA/EED/font, proxy identity, header dependencies, and
 CLI atomicity are backlog prompts only. Add one only after a bounded
 source/profile identifies a concrete gap. Keep the short-tail LTYPE_CONTROL
-fail-closed until versioned roles resolve; do not change AC1024 CLASSES from
-the stale RTM note without the exact failing input.
+fail-closed until versioned roles resolve. Do not reopen AC1024 CLASSES or
+repeat its nine-file scan without the exact failing RTM input and producer
+metadata; the linked corpus and short-tail receipts do not qualify a broader
+layout change.
 
 ### P7 — ACIS/ACDS and 3D meaning (5 open)
 
