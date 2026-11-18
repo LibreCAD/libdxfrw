@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-persubentmgr-current-libredwg-source-screen-2026-11-18",
+  "date": "2026-11-18",
+  "title": "Current LibreDWG PERSUBENTMGR source and issue status screen",
+  "status": "NO_VALIDATED_INDEPENDENT_SCHEMA",
+  "supportClaimEffect": "none",
+  "scope": "Check current LibreDWG source and issue #1398 for a source-distinct, validated PERSUBENTMGR body map or semantic model. Keep this class separate from ASSOCPERSSUBENTMANAGER.",
+  "localCheckout": {
+    "repository": "/Users/dli/dev/libredwg",
+    "remote": "https://git.savannah.gnu.org/git/libredwg.git",
+    "head": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "headDate": "2026-04-09",
+    "checkedFilesClean": true,
+    "dwg2SpecSha256": "2bb3602b2867277868ebb488ea236b07d7cdf605128987f767114d68dd501499",
+    "observations": [
+      "src/dwg2.spec proposes class_version, unknown_0, unknown_2, numassocsteps, numassocsubents, num_steps and a BL steps vector, then num_subents and a BL subents vector.",
+      "The same block says coverage is limited and comments that the subentity record is not represented by the simple vector: 'nope: 3x BL and CALL_SUBENT'.",
+      "The local TODO classifies PERSUBENTMGR under fields specified but broken/untested."
+    ]
+  },
+  "currentUpstreamScreen": {
+    "dateChecked": "2026-11-18",
+    "sourceUrls": [
+      "https://raw.githubusercontent.com/LibreDWG/libredwg/master/src/dwg2.spec",
+      "https://raw.githubusercontent.com/LibreDWG/libredwg/master/doc/LibreDWG.texi"
+    ],
+    "revision": "Mutable master reference; the browser response did not expose a commit SHA.",
+    "observations": [
+      "The current upstream spec retains the same tentative BL/vector mapping and its limited-coverage and unresolved-subentity comments.",
+      "The current upstream manual lists PERSUBENTMGR in its Halfway category, not as complete support."
+    ]
+  },
+  "issue1398": {
+    "url": "https://github.com/LibreDWG/libredwg/issues/1398",
+    "stateAtCheck": "OPEN",
+    "latestVisibleRelevantComment": "2026-11-16",
+    "observations": [
+      "The issue author states that the observed 2,0,2,0,0,0 sequence does not establish the final num_subents location and lists multiple possible field assignments.",
+      "The Nov 16 proposed record/history structure is presented as an idea, without a matching producer/API-state witness or validated body spans.",
+      "The Aug 17 merged PR was clarified by the author as fixing the distinct ASSOCPERSSUBENTMANAGER class, not PERSUBENTMGR."
+    ]
+  },
+  "decision": "Current LibreDWG master is useful as a source-distinct candidate map, but its own code comments and documentation mark PERSUBENTMGR incomplete, and issue #1398 remains open. Neither the vector interpretation nor the newer record/history proposal is independent proof of physical DWG field spans or selected-member semantics. Keep libdxfrw's current bounded Partial/raw behavior and strict-output refusal.",
+  "next": "Do not implement the current peer mapping or issue proposal. Continue P6-B only when full AutoCAD/ObjectARX can establish exact AcDbPersSubentManager creation, owner, a selected nonzero path, and persistence after reopen; then bind the body spans and handle roles against ODA v5.4.1 and a source-bound independent decode.",
+  "codeChanged": false,
+  "testsRun": false,
+  "fixturesAdded": 0
+}
