@@ -1,4 +1,5 @@
 #include "dx_ac1027_material_wire.h"
+#include "dx_ac1024_mlinestyle_wire.h"
 #include "dx_layerstates_dwg_wire.h"
 
 #include <cstdint>
@@ -238,9 +239,98 @@ bool checkAc1024EmptyNodDictionary(std::uint8_t handle) {
     return false;
   return check(raw, source);
 }
+// Generated bit streams: these are controls, not physical source evidence.
+bool checkAc1024MLineStyleWire() {
+  const auto commonRaw = [](std::uint8_t handle, int type, std::uint32_t owner) {
+    DRW_UnsupportedObject raw;
+    raw.m_version = DRW::AC1024; raw.m_objectType = type; raw.m_handle = handle;
+    raw.m_parentHandle = owner; raw.m_numReactors = 1; raw.m_reactorHandles = {owner};
+    raw.m_xDictFlag = 1u; raw.m_commonHandleDataValidated = true;
+    raw.m_commonLinkEvidence = DRW_DwgCommonLinkEvidence::Validated;
+    return raw;
+  };
+  BitWriter dict;
+  dict.bits(0u,2u); dict.bits(42u,8u); dict.handle(0u,0x17u);
+  dict.bits(2u,2u); dict.longValue(1u); dict.bits(1u,1u); dict.longValue(1u);
+  dict.shortValue(1u); dict.bits(0u,8u); dict.shortValue(8u);
+  for (const char c : std::string("Standard")) dict.little16(static_cast<unsigned char>(c));
+  dict.little16(138u); dict.bits(1u,1u); dict.handle(12u,11u);
+  dict.handle(4u,0x0cu); dict.handle(2u,0x18u); dict.bits(3u,2u);
+  if (dict.size() != 272u) return false;
+  auto rootRaw = commonRaw(0x17u,42,0x0cu);
+  rootRaw.m_objectSize = 34u; rootRaw.m_bodyBitSize = 50u;
+  rootRaw.m_rawBytes = std::move(dict).take();
+  DRW_Dictionary root; root.handle=0x17u; root.parentHandle=0x0cu;
+  root.cloning=1; root.hardOwner=0; root.reactorHandles={0x0cu};
+  root.m_entries.push_back({"Standard",0x18u});
+  root.setDwgCommonObjectState(1,1u,false); root.setDwgCommonLinkTailValidated(true);
+  const auto rootCheck = [&](const DRW_UnsupportedObject& raw) {
+    return dx_ac1024_mlinestyle_wire::observeRoot(raw,root);
+  };
+  if (!rootCheck(rootRaw)) return false;
+  for (std::size_t bit=0; bit<272u; ++bit) {
+    auto changed=rootRaw; changed.m_rawBytes[bit/8u] ^= static_cast<std::uint8_t>(1u << (7u-bit%8u));
+    if (rootCheck(changed) || !rootCheck(rootRaw)) return false;
+  }
+  auto truncatedRoot=rootRaw; truncatedRoot.m_rawBytes.pop_back();
+  if (rootCheck(truncatedRoot)) return false;
+  auto changedRoot=root;
+  changedRoot.m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::HardOwner;
+  if (dx_ac1024_mlinestyle_wire::observeRoot(rootRaw,changedRoot)) return false;
+
+  BitWriter wire;
+  const auto little = [&wire](std::uint64_t x,unsigned n) {
+    for(unsigned i=0;i<n;++i) wire.bits((x>>(8u*i))&0xffu,8u);
+  };
+  const auto color = [&wire,&little]() {
+    wire.bits(2u,2u); wire.bits(0u,2u); little(0xc0000000u,4u); wire.bits(0u,8u);
+  };
+  const auto number = [&wire,&little](std::uint64_t bits) {
+    wire.bits(0u,2u); little(bits,8u);
+  };
+  const auto index = [&wire]() { wire.bits(0u,2u); wire.little16(32767u); };
+  wire.bits(0u,2u); wire.bits(73u,8u); wire.handle(0u,0x18u);
+  wire.bits(2u,2u); wire.longValue(1u); wire.bits(1u,1u); wire.bits(2u,2u);
+  color(); number(0x3ff921fb54442d18ULL); number(0x3ff921fb54442d18ULL);
+  wire.bits(2u,8u); number(0x3fe0000000000000ULL); color(); index();
+  number(0xbfe0000000000000ULL); color(); index();
+  wire.shortValue(8u); for(const char c : std::string("STANDARD")) wire.little16(static_cast<unsigned char>(c));
+  wire.bits(2u,2u); wire.little16(140u); wire.bits(1u,1u);
+  wire.bits(0x80u,8u); wire.handle(4u,0x17u); wire.bits(3u,2u);
+  if (wire.size()!=664u) return false;
+  auto raw=commonRaw(0x18u,73,0x17u); raw.m_objectSize=83u; raw.m_bodyBitSize=26u;
+  raw.m_rawBytes=std::move(wire).take();
+  DRW_MLineStyle style; style.handle=0x18u; style.parentHandle=0x17u; style.name="STANDARD";
+  style.reactorHandles={0x17u}; style.setDwgCommonObjectState(1,1u,false);
+  style.startAngle=90.0; style.endAngle=90.0; style.fillColor=256; style.fillColor24=-1;
+  style.fillColorMethod=192u;
+  for (int i=0;i<2;++i) { DRW_MLineElement e; e.offset=i==0?0.5:-0.5;
+    e.color=256; e.color24=-1; e.colorMethod=192u; e.linetypeIndex=32767;
+    style.elements.push_back(e); }
+  const auto check = [&](const DRW_UnsupportedObject& frame, const DRW_MLineStyle& model) {
+    return dx_ac1024_mlinestyle_wire::observeStyle(frame,model);
+  };
+  if (!check(raw,style)) return false;
+  for (std::size_t bit=0;bit<664u;++bit) {
+    auto changed=raw; changed.m_rawBytes[bit/8u] ^= static_cast<std::uint8_t>(1u<<(7u-bit%8u));
+    if (check(changed,style) || !check(raw,style)) return false;
+  }
+  auto truncated=raw; truncated.m_rawBytes.pop_back(); if(check(truncated,style)) return false;
+  auto extended=raw; extended.m_rawBytes.push_back(0xffu); ++extended.m_objectSize; extended.m_bodyBitSize+=8u;
+  if(check(extended,style)) return false;
+  auto changedStyle=style; changedStyle.elements[0].linetypeIndex=7;
+  if(check(raw,changedStyle)) return false;
+  changedStyle=style; changedStyle.reactorHandles.front()=0x0cu;
+  if(check(raw,changedStyle)) return false;
+  return check(raw,style);
+}
 } // namespace
 
 int main() {
+  if (!checkAc1024MLineStyleWire()) {
+    std::cerr << "AC1024 MLINESTYLE source wire control failed\n";
+    return 1;
+  }
   if (!checkAc1024EmptyNodDictionary(0x73u)
       || !checkAc1024EmptyNodDictionary(0x19u)) {
     std::cerr << "AC1024 empty NOD dictionary wire control failed\n";

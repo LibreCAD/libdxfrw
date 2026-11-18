@@ -34,6 +34,7 @@
 #include "intern/dwgreader.h"
 #include "intern/dwg_table_model_ac1018_candidate.h"
 #include "intern/dwg_table_projection_ac1018_candidate.h"
+#include "dx_ac1024_mlinestyle_wire.h"
 #include "dx_ac1027_plotstyle_wire.h"
 #include "dx_ac1027_material_wire.h"
 #include "dx_ac1027_layer_wire.h"
@@ -37612,11 +37613,16 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         return skipProfile("root owner DICTIONARY source frame");
 
     try {
+        const bool ac1024WireProof = cData->sourceVersion == DRW::AC1024
+            && nod.handle == 0xCu && rootOwner->handle == 0x17u && style.handle == 0x18u
+            && frame->second.m_objectSize == 83u && rootFrame->second.raw.m_objectSize == 34u
+            && style.startAngle == 90.0 && style.endAngle == 90.0
+            && style.elements[0].offset == 0.5 && style.elements[1].offset == -0.5;
         m_dwgMLineStyleOutputSources.emplace(
             style.handle,
             DwgMLineStyleOutputSource{
                 style, *rootOwner, nod.handle, nod.hardOwner, *rootEntry,
-                std::move(linetypeDependencies)});
+                std::move(linetypeDependencies), ac1024WireProof});
         m_dwgMLineStyleOutputOwner = cData;
         m_dwgMLineStyleOutputGeneration = cData->importGeneration;
         return hasUnchangedDwgMLineStyleOutputSources();
@@ -37801,6 +37807,22 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
                     *rootFrameBaseline, frozen->second.rootOwner,
                     cData->sourceVersion, dwgObjType::DICTIONARY))
                 return false;
+            if (frozen->second.ac1024WireProof) {
+                dx_dwgDictionaryCloningSource cloning;
+                if (!cData->hasCompleteDwgDictionaryEntry(
+                        nod.handle, "ACAD_MLINESTYLE", liveRoot->handle)
+                    || !cData->hasCompleteDwgDictionaryEntry(
+                        liveRoot->handle, "Standard", current.handle)
+                    || !cData->getDwgDictionaryCloningSource(liveRoot->handle, cloning)
+                    || !cloning.currentValueMatchesBaseline
+                    || cData->m_opaqueDwgSourceFrameIdentities.count(
+                        {cData->importGeneration, liveRoot->handle}) != 1u
+                    || cData->m_opaqueDwgSourceFrameIdentities.count(
+                        {cData->importGeneration, current.handle}) != 1u
+                    || !dx_ac1024_mlinestyle_wire::observeRoot(rootFrame->second.raw, *liveRoot)
+                    || !dx_ac1024_mlinestyle_wire::observeStyle(frame->second, current))
+                    return false;
+            }
         }
         return currentStyles.size()
             == m_dwgMLineStyleOutputSources.size();

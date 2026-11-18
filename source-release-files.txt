@@ -124,6 +124,7 @@ docs/research/visualstyle-slot-map-readiness-2026-10-15.json
 dwg2dxf/CMakeLists.txt
 dwg2dxf/Makefile.am
 dwg2dxf/dwg2dxf.1
+dwg2dxf/dx_ac1024_mlinestyle_wire.h
 dwg2dxf/dx_ac1027_layer_wire.h
 dwg2dxf/dx_ac1027_material_wire.h
 dwg2dxf/dx_ac1027_plotstyle_wire.h

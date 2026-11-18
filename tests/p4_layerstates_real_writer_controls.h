@@ -260,7 +260,8 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
     return true;
 }
 
-bool physicalAc1024EmptyNodWriter(const std::filesystem::path& sourcePath) {
+bool physicalAc1024EmptyNodWriter(const std::filesystem::path& sourcePath,
+                                bool withMLineStyle = false) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     dx_iface reader;
     dx_data source;
@@ -277,23 +278,33 @@ bool physicalAc1024EmptyNodWriter(const std::filesystem::path& sourcePath) {
     const auto group = find(0xDu);
     const auto color = find(0x73u);
     const auto plotSettings = find(0x19u);
+    const auto styleDictionary = find(0x17u);
     if (group == source.dictionaries.end() || color == source.dictionaries.end()
-        || plotSettings == source.dictionaries.end())
+        || plotSettings == source.dictionaries.end()
+        || (withMLineStyle && (styleDictionary == source.dictionaries.end()
+            || source.mLineStyles.size() != 1u)))
         return fail("missing empty NOD source dictionaries");
 
     class Writer final : public LayerStateTestWriter {
     public:
         dx_data blank;
         DRW_Dictionary color, plotSettings;
+        DRW_Dictionary styleDictionary;
+        DRW_MLineStyle style;
         DRW_DictionaryWithDefault plot;
         DRW_AcDbPlaceholder placeholder;
         std::function<bool()> finalize;
+        bool withMLineStyle{false};
         void writeAppId() override {}
         void writeObjects() override {
             (void)dxfW->writeDictionary(&color);
             (void)dxfW->writeDictionary(&plotSettings);
             (void)dxfW->writeDictionaryWithDefault(&plot);
             (void)dxfW->writeAcDbPlaceholder(&placeholder);
+            if (withMLineStyle) {
+                (void)dxfW->writeDictionary(&styleDictionary);
+                (void)dxfW->writeMLineStyle(&style);
+            }
         }
         bool finalizeDxfWrite() override { return finalize(); }
     } writer;
@@ -304,6 +315,11 @@ bool physicalAc1024EmptyNodWriter(const std::filesystem::path& sourcePath) {
     if (writer.plot.m_entries.size() != 1u) return fail("missing Normal plot-style entry");
     writer.plot.m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
     writer.placeholder = source.placeholders.front();
+    writer.withMLineStyle = withMLineStyle;
+    if (withMLineStyle) {
+        writer.styleDictionary = *styleDictionary;
+        writer.style = source.mLineStyles.front();
+    }
 
     const auto path = std::filesystem::temp_directory_path()
         / ("libdxfrw-empty-nod-writer-" + std::to_string(
@@ -316,9 +332,15 @@ bool physicalAc1024EmptyNodWriter(const std::filesystem::path& sourcePath) {
     for (auto* adapter : {&reader, &foreign, static_cast<dx_iface*>(&writer)})
         Access::attachDxfWriter(*adapter, &codec);
     codec.setDxfWriteRecordInventoryEnabled(true);
-    codec.setHandleRemap({{0x73u, 0xA073u}, {0x19u, 0xA019u}});
-    const std::vector<std::pair<std::string, std::string>> roots{
+    std::map<std::uint32_t, std::uint32_t> remap{{0x73u, 0xA073u}, {0x19u, 0xA019u}};
+    std::vector<std::pair<std::string, std::string>> roots{
         {"ACAD_COLOR", "A073"}, {"ACAD_PLOTSETTINGS", "A019"}, {"ACAD_PLOTSTYLENAME", "E"}};
+    if (withMLineStyle) {
+        remap.emplace(0x17u, 0xA017u);
+        remap.emplace(0x18u, 0xA018u);
+        roots.emplace_back("ACAD_MLINESTYLE", "A017");
+    }
+    codec.setHandleRemap(std::move(remap));
     codec.setRootDictEntries(roots);
     if (!codec.setGeneratedDictionarySourceHandles(0xCu, 0xDu)
         || !codec.setGeneratedDictionarySourceRecords(
@@ -334,19 +356,24 @@ bool physicalAc1024EmptyNodWriter(const std::filesystem::path& sourcePath) {
     codec.setDxfClasses({plotClass, placeholderClass});
 
     enum class Fault { None, SourceTail, WrongSession, MissingRoot, MissingBaseline,
-                       WrongBody, LateTail };
+                       WrongBody, LateTail, StyleSourceTail, StyleRootTail,
+                       WrongStyleBody, LateStyleTail };
     Fault fault = Fault::None;
     bool staged = false, finalizing = false;
     if (!codec.setDxfObjectsWriteInspector([&](const auto& view) {
         staged = true;
         auto& adapter = fault == Fault::WrongSession ? foreign : reader;
-        return Access::inspectEmptyNodChildren(adapter, source, view);
+        return (!withMLineStyle || Access::inspectSelectedNodMLineStyle(reader, view))
+            && Access::inspectEmptyNodChildren(adapter, source, view);
     })) return fail("could not set up selected NOD staging");
-    auto& tail = Access::emptyNodTail(source, 0x73u);
+    auto& tail = Access::standardFrameTail(source, 0x73u);
     writer.finalize = [&]() {
         finalizing = true;
         if (fault == Fault::LateTail) tail ^= 1u;
-        const bool result = Access::finalizeEmptyNodChildren(reader);
+        if (fault == Fault::LateStyleTail) Access::mlineStyleFrameTail(source) ^= 1u;
+        const bool result = (!withMLineStyle || Access::finalizeSelectedNodMLineStyle(reader))
+            && Access::finalizeEmptyNodChildren(reader);
+        if (fault == Fault::LateStyleTail) Access::mlineStyleFrameTail(source) ^= 1u;
         if (fault == Fault::LateTail) tail ^= 1u;
         return result;
     };
@@ -354,19 +381,34 @@ bool physicalAc1024EmptyNodWriter(const std::filesystem::path& sourcePath) {
         staged = finalizing = false;
         Access::resetRasterOutput(reader);
         Access::resetRasterOutput(foreign);
-        return codec.write(&writer, DRW::AC1024, binary);
+        return (!withMLineStyle || Access::prepareSelectedNodMLineStyle(reader))
+            && codec.write(&writer, DRW::AC1024, binary);
     };
+    const auto verified = [&]() {
+        return staged && finalizing && Access::emptyNodChildrenSelected(reader)
+            && (!withMLineStyle || Access::selectedNodMLineStyleProof(reader));
+    };
+    std::vector<Fault> faults{Fault::SourceTail, Fault::WrongSession, Fault::MissingRoot,
+                              Fault::MissingBaseline, Fault::WrongBody, Fault::LateTail};
+    if (withMLineStyle)
+        faults.insert(faults.end(), {Fault::StyleSourceTail, Fault::StyleRootTail,
+                                     Fault::WrongStyleBody, Fault::LateStyleTail});
     const std::string sentinel = "preserve empty NOD writer destination\n";
     for (const bool binary : {false, true}) {
-        if (!run(binary) || !staged || !finalizing || !Access::emptyNodChildrenSelected(reader))
+        if (!run(binary) || !verified())
             return fail("empty NOD production proof rejected the original source");
-        for (const auto bad : {Fault::SourceTail, Fault::WrongSession, Fault::MissingRoot,
-                               Fault::MissingBaseline, Fault::WrongBody, Fault::LateTail}) {
+        for (const auto bad : faults) {
             fault = bad;
             if (fault == Fault::SourceTail) tail ^= 1u;
-            if (fault == Fault::MissingRoot)
-                codec.setRootDictEntries({roots[0], roots[2]});
+            if (fault == Fault::MissingRoot) {
+                auto incomplete = roots;
+                incomplete.erase(incomplete.begin() + 1);
+                codec.setRootDictEntries(std::move(incomplete));
+            }
             if (fault == Fault::WrongBody) writer.color.cloning = 2;
+            if (fault == Fault::StyleSourceTail) Access::mlineStyleFrameTail(source) ^= 1u;
+            if (fault == Fault::StyleRootTail) Access::standardFrameTail(source, 0x17u) ^= 1u;
+            if (fault == Fault::WrongStyleBody) writer.style.elements.front().offset += 1.0;
             std::shared_ptr<const DRW_TableEntry> rootBaseline;
             if (fault == Fault::MissingBaseline
                 && !Access::replaceStandardDictionaryBaseline(source, 0xCu, nullptr, rootBaseline))
@@ -377,23 +419,36 @@ bool physicalAc1024EmptyNodWriter(const std::filesystem::path& sourcePath) {
             }
             const bool saved = run(binary);
             if (fault == Fault::SourceTail) tail ^= 1u;
+            if (fault == Fault::StyleSourceTail) Access::mlineStyleFrameTail(source) ^= 1u;
+            if (fault == Fault::StyleRootTail) Access::standardFrameTail(source, 0x17u) ^= 1u;
+            if (fault == Fault::WrongStyleBody) writer.style = source.mLineStyles.front();
             std::shared_ptr<const DRW_TableEntry> removed;
             if (fault == Fault::MissingBaseline
                 && !Access::replaceStandardDictionaryBaseline(source, 0xCu, rootBaseline, removed))
                 return fail("cannot restore the test NOD baseline");
             codec.setRootDictEntries(roots);
             writer.color = *color;
-            const bool shouldFinalize = fault == Fault::WrongBody || fault == Fault::LateTail;
+            const bool shouldStage = fault != Fault::StyleSourceTail
+                && fault != Fault::StyleRootTail
+                && !(withMLineStyle && fault == Fault::MissingBaseline);
+            const bool shouldFinalize = fault == Fault::WrongBody || fault == Fault::LateTail
+                || fault == Fault::LateStyleTail;
             fault = Fault::None;
             std::ifstream existing(path, std::ios::binary);
-            if (saved || !staged || finalizing != shouldFinalize
-                || std::string(std::istreambuf_iterator<char>(existing), {}) != sentinel)
+            if (saved || staged != shouldStage || finalizing != shouldFinalize
+                || std::string(std::istreambuf_iterator<char>(existing), {}) != sentinel) {
+                std::cerr << "selected NOD fault " << static_cast<int>(bad)
+                          << ", binary=" << binary << ", staged=" << staged
+                          << ", finalizing=" << finalizing << '\n';
                 return fail("empty NOD fault did not refuse in the expected stage");
+            }
             existing.close();
-            if (!run(binary) || !staged || !finalizing || !Access::emptyNodChildrenSelected(reader))
+            if (!run(binary) || !verified())
                 return fail("empty NOD corrected retry failed");
         }
     }
-    std::cerr << "AC1024 empty NOD production inspector and finalizer passed in both encodings.\n";
+    std::cerr << "AC1024 selected NOD production proof passed " << faults.size()
+              << " refusal-and-retry cases per encoding"
+              << (withMLineStyle ? " with MLINESTYLE.\n" : ".\n");
     return true;
 }

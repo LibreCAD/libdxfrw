@@ -3418,8 +3418,25 @@ public:
         return iface.finalizeStandardDwgOutputProofs()
             && iface.finalizeGeneratedRootOutput();
     }
-    static std::uint8_t& emptyNodTail(dx_data& data, std::uint32_t handle) {
+    static std::uint8_t& standardFrameTail(dx_data& data, std::uint32_t handle) {
         return data.m_standardDwgObjectFrames.at({data.importGeneration, handle}).raw.m_rawBytes.back();
+    }
+    static std::uint8_t& mlineStyleFrameTail(dx_data& data) {
+        return data.m_opaqueDwgSourceFrames.at({data.importGeneration, 0x18u}).m_rawBytes.back();
+    }
+    static bool prepareSelectedNodMLineStyle(dx_iface& iface) {
+        iface.m_extensionMLineStyleHandles = {0x18u};
+        return iface.prepareDwgMLineStyles(DRW::AC1024);
+    }
+    static bool inspectSelectedNodMLineStyle(dx_iface& iface, const dxfRW::DxfObjectsWriteView& view) {
+        return iface.inspectDwgMLineStyles(view, true);
+    }
+    static bool finalizeSelectedNodMLineStyle(const dx_iface& iface) {
+        return iface.m_dwgMLineStylesInspected && iface.hasUnchangedDwgMLineStyleOutputSources();
+    }
+    static bool selectedNodMLineStyleProof(const dx_iface& iface) {
+        const auto proof = iface.m_dwgMLineStyleOutputSources.find(0x18u);
+        return proof != iface.m_dwgMLineStyleOutputSources.end() && proof->second.ac1024WireProof;
     }
     static bool generatedRootsFinal(const dx_iface& iface, std::size_t count, bool published = false) {
         return iface.m_generatedRootOutputInspected && iface.m_generatedRootOutputFinalized
@@ -92719,6 +92736,8 @@ int main(int argc, char** argv) {
         return physicalAc1024LayerStatesRealWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--layerstates-ac1024-empty-nod-writer")
         return physicalAc1024EmptyNodWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--layerstates-ac1024-mlinestyle-writer")
+        return physicalAc1024EmptyNodWriter(argv[2], true) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-source-graph-context")
         return physicalAc1024LayerStatesSourceGraphContext(argv[2]) ? 0 : 1;

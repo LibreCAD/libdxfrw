@@ -4,6 +4,7 @@ dwg2dxf_SOURCES = \
     main.cpp \
     dx_batch_output_names.cpp
 dist_noinst_HEADERS = \
+    dx_ac1024_mlinestyle_wire.h \
     dx_ac1027_layer_wire.h \
     dx_ac1027_material_wire.h \
     dx_ac1027_plotstyle_wire.h \
