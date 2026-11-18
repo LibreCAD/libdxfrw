@@ -1189,6 +1189,7 @@ tools/probe_wipeout_ac1027_1032_frame1_source.cpp
 tools/probe_wipeout_ac1032_source.cpp
 tools/qualify_material_source_order.py
 tools/replay_dwg_legacy_extrusion.cpp
+tools/research/OBJECTARX_WITNESS_README.md
 tools/research/ac1021_mtext_field_census.cpp
 tools/research/ac1032_forum_assocnetwork_spans.py
 tools/research/ac1032_forum_constraint_group_spans.py
@@ -1222,6 +1223,8 @@ tools/research/generate_librecad_r13_ltype_samples.py
 tools/research/inspect_mtext_field_freecad.FCMacro
 tools/research/inventory_cover_peer_body_handles.py
 tools/research/mutate_ac1024_header_suffix_traced.py
+tools/research/objectarx_witness.lsp
+tools/research/objectarx_witness_scan.py
 tools/research/p4_forum_ltype_oda_compare.py
 tools/research/p5_ac1018_appid_sibling_scratch_instrument.py
 tools/research/p5_ac1018_cellstylemap_binding_probe.cpp
