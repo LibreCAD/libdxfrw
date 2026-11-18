@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8a-1aeca-linux-windows-package-qualification-2026-11-18",
+  "date": "2026-11-18",
+  "status": "LINUX_WINDOWS_PACKAGE_PROFILES_PASS",
+  "testedCommit": "1aeca7e9a8f9ee3814523c5e777ec1a134aeb193",
+  "implementationDigestSha256": "05e7cb3341469cc6fcf56c9928a5bb79d164de293334d5fc37c8817ef924fa02",
+  "sourceBinding": "The workflow checkout is the tested commit. Its frozen implementation digest was checked by the native qualification workflow; these package artifact receipts do not themselves embed that digest.",
+  "supportClaimEffect": "none",
+  "workflowUrl": "https://github.com/dxli/libdxfrw/actions/runs/44364605707",
+  "profiles": [
+    {
+      "platform": "linux-gcc",
+      "jobId": 135014868209,
+      "result": "PASS",
+      "artifactId": 14456334347,
+      "artifactSha256": "f0b23741c67ad0346bda188aa3f4e67948990270befa88d1d5582cdb682a4191",
+      "sharedReceiptSha256": "127d564ce9287b8935ed68dc44619e0be2de65ac122db1618e3ad83a945aa7c4",
+      "staticReceiptSha256": "1c198f8b1794777fd6743285402bc9b5fc6277b71f13501e181173d4fd7484d0",
+      "sharedFileCount": 30,
+      "staticFileCount": 26,
+      "sharedRuntimePath": "lib/libdxfrw.so.3.0.0",
+      "sharedRuntimeSha256": "f18d209dfb6edcd81bf5ae7e3c356bf78066938321c6d9cb9012bc079bafa014",
+      "staticArchiveSha256": "552db31fce9244c930ac5778148fc906f8e776b766b9d1d29dfba908ab09811b",
+      "relocatedCliSha256": "15dcd6aa2aec59e26e195eab9f06831934f3eeafcf579a3810cf989310409363"
+    },
+    {
+      "platform": "windows-msvc",
+      "jobId": 135014867293,
+      "result": "PASS",
+      "artifactId": 14455054884,
+      "artifactSha256": "3010de20dca384dd23275aa454042022011add056452749d95ac192a80cbdbe7",
+      "sharedReceiptSha256": "0cdc32b2478fe1c782a420523b8f901aafd62123e5a820f0fc347b552ea409e5",
+      "staticReceiptSha256": "335a4becc9807fb12798df7ea6aa20ae945728e6cf2dc05e3f9fede7833a2378",
+      "sharedFileCount": 29,
+      "staticFileCount": 26,
+      "sharedRuntimePath": "bin/dxfrw-3.dll",
+      "sharedRuntimeSha256": "37a901004c47194c74d7b2b8985e6e419b6859971f87240a7039e5b43fc99f69",
+      "staticArchiveSha256": "152ef5e8999555a32795fe9ed90d0fc250312a94927b1a0606ec775245a6c1ba",
+      "relocatedCliSha256": "0b3fbb2429ea8369fc7620256873a44cd05cd83a6b9cb4700935f10d8947223c"
+    }
+  ],
+  "verifiedScope": "Both downloaded artifact ZIP hashes match GitHub's recorded hashes. For each platform the shared and static receipts record install inventory and relocation matching, ABI version 2 rejection and version 3 acceptance, and a minimal relocated consumer. The shared consumer reports the selected loaded runtime path and hash. The shared installed CLI launches its usage path after relocation with known loader overrides cleared; the static profile does not install or test a CLI.",
+  "macos": "The hosted package job was cancelled while queued and is not evidence. Local macOS arm64 shared and static package profiles on the same implementation digest are recorded separately in p8a-macos-package-05e7-source-matched-2026-11-18.json.",
+  "gateEffect": "Together with the source-matched local macOS receipt, these results satisfy the current P8-A package profile for the recorded inputs and platforms; reassess on relevant source, build, configuration, toolchain or probe changes. Final stabilized release qualification remains a separate plan step.",
+  "limits": [
+    "CLI testing covers the usage launch; loaded runtime identity is observed in the relocated minimal consumer, not separately in the CLI.",
+    "These controls do not establish complete C++ ABI compatibility or drawing semantics."
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-25c60980-freecad-linux-qualification-2026-11-18",
+  "date": "2026-11-18",
+  "status": "LINUX_GENERATED_PROFILE_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "workflowCheckoutCommit": "25c60980c74bc45ca1e39b9fa25f5ec4858e731a",
+    "frozenImplementationDigestSha256": "05e7cb3341469cc6fcf56c9928a5bb79d164de293334d5fc37c8817ef924fa02",
+    "binding": "GitHub identifies the checkout commit on this workflow run; that commit's frozen status overlay names this digest. The native qualification contract on 1aeca7e9, with the same selected implementation inputs, independently checked the frozen digest. The FreeCAD artifact itself does not embed or independently recompute the implementation digest. Reassess if relevant implementation, workflow, build or consumer inputs change."
+  },
+  "linuxFreecad": {
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44367282730",
+    "jobId": 135024340998,
+    "result": "PASS 16/16: installed converter CLI and generated FreeCAD open/insert profile, including legacy polyface controls.",
+    "artifactUrl": "https://github.com/dxli/libdxfrw/actions/runs/44367282730/artifacts/14458501687",
+    "artifactId": 14458501687,
+    "artifactZipSha256": "75000ee93b2499847a69d701c2ab3d5cc9125ed1d4129983f23d6268452c8f98",
+    "artifactContents": "LastTest.log only",
+    "lastTestLogSha256": "1a8a640bcd88e42050d198c5d137aeb967c3d97ea8c9cc3f3bfafbf1ba930737",
+    "installedConverterSha256": "f63a81f9665655529920854030c01124206bccf86ad517d3cee41d90be62c7e8",
+    "consumer": "FreeCAD 1.1.4 Linux x86_64, revision 4fd3bf320d9566a27e60069fc8387448aaa3a094; pinned C++ DXF importer for the generated LINE and primitive assertions.",
+    "generatedAssertions": "Eight recorded assertions: open and insert for AC1021 LINE and AC1021/AC1024/AC1032 primitive drawings. Each identifies the installed converter hash, FreeCAD version, input and converted output hashes, and semantic observations. Paths include spaces and non-ASCII characters.",
+    "gateEffect": "P8-B can close for this Linux generated-profile integration on the bound source and binary identities, subject to final source and build-input reassessment; Windows qualification is separate."
+  },
+  "limits": [
+    "Generated controls and consumer handoff do not establish producer-authored DWG wire semantics or general 3D support.",
+    "The pinned FreeCAD C++ importer reports 3DFACE and SOLID unsupported; its observed polyface result is wireframe with the parent basepoint, not full face geometry. These outcomes are integration limits, not support claims.",
+    "This run is not a desktop GUI dispatch qualification, and supplies no Windows or macOS result."
+  ]
+}
