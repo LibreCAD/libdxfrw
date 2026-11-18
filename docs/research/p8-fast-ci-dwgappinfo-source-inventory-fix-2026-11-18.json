@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-fast-ci-dwgappinfo-source-inventory-fix-2026-11-18",
+  "date": "2026-11-18",
+  "title": "Fix missing private header in source/build inventory",
+  "status": "LOCAL_INVENTORY_FIXED_CI_RERUN_PENDING",
+  "supportClaimEffect": "none",
+  "packageGateEffect": "none; P8-F remains open",
+  "activityLedgerEffect": "one completed build-inventory correction slice; no package gate closed",
+  "gate": "P8-F (fast-regressions prerequisite)",
+  "triggeringCandidate": {
+    "commit": "be2173c0e03384e1f8c0dded1e72cded16bd64a7",
+    "pullRequest": "LibreCAD/libdxfrw#106",
+    "workflow": "libdxfrw fast parity regressions",
+    "runId": 44255481624,
+    "job": "fast-regressions",
+    "jobId": 134636051043,
+    "runner": "GitHub Actions ubuntu-24.04"
+  },
+  "failure": {
+    "step": "Build and source-release inventories",
+    "command": "python3 -B tools/generate_build_inventory.py --check && python3 -B tools/generate_build_inventory.py --self-test",
+    "result": "The self-test passed; --check failed with 'core CMake inventory differs from tracked sources/headers'.",
+    "localSetDifference": {
+      "trackedHeadersMissingFromCMake": ["src/intern/dwgappinfo.h"],
+      "otherCoreSourceOrHeaderDifferences": []
+    },
+    "cause": "src/intern/dwgreader.h includes dwgappinfo.h, but libdxfrw_sources.cmake did not classify that tracked internal header. The source-release inventories therefore omitted a build dependency."
+  },
+  "fix": {
+    "classification": "LIBDXFRW_PRIVATE_HEADERS",
+    "updatedFiles": [
+      "libdxfrw_sources.cmake",
+      "src/source-files.am",
+      "source-release-files.am",
+      "source-release-files.txt"
+    ],
+    "generationCommand": "python3 -B tools/generate_build_inventory.py --write",
+    "generatedReleaseFileCount": 1296,
+    "noTestFixturesAdded": true
+  },
+  "validation": {
+    "command": "python3 -B tools/generate_build_inventory.py --check",
+    "result": "PASS: 1296 released files; complete core/CLI sources and headers",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "pending": [
+    "Push the updated candidate to the PR and qualification refs; inspect source-matched fast parity and native FreeCAD Linux/Windows results.",
+    "P8-F remains open until required checks report on the corrected exact source head."
+  ],
+  "limits": [
+    "This corrects the source/build inventory and packaging closure only; it does not establish DWG/DXF semantic support.",
+    "No package gate is closed by the local inventory check."
+  ]
+}

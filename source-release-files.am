@@ -362,6 +362,7 @@ EXTRA_DIST = \
     src/intern/dwg_tablestyle_roundtrip_xrecord_ac1018_candidate.cpp \
     src/intern/dwg_tablestyle_roundtrip_xrecord_ac1018_candidate.h \
     src/intern/dwg_xrecord_verified_source.h \
+    src/intern/dwgappinfo.h \
     src/intern/dwgbuffer.cpp \
     src/intern/dwgbuffer.h \
     src/intern/dwgbufferw.cpp \
@@ -569,6 +570,7 @@ EXTRA_DIST = \
     tests/dwg_ac1027_empty_view_ucs_controls_tests.cpp \
     tests/dwg_ac1027_maintenance_header_tests.cpp \
     tests/dwg_ac1027_material_dictionary_wire_tests.cpp \
+    tests/dwg_appinfo_profile_tests.cpp \
     tests/dwg_block_preview_delivery_tests.cpp \
     tests/dwg_cellstylemap_ac1018_candidate_tests.cpp \
     tests/dwg_cellstylemap_reader_source_tests.cpp \
@@ -1257,6 +1259,7 @@ EXTRA_DIST = \
     tools/research/p5_table_root_xrecord_candidate_probe.cpp \
     tools/research/p5_xrecord_codepage45_verify.py \
     tools/research/p5_xrecord_codepage_capture.cpp \
+    tools/research/p6_ac1032_tablecontent_graph_capture.cpp \
     tools/research/probe_ac1027_layer_typed_null.cpp \
     tools/research/render_mtext_field_source.py \
     tools/research/replay_freecad_import_patches.py \
@@ -1266,8 +1269,12 @@ EXTRA_DIST = \
     tools/research/tablegeometry_dwg_span_scan.cpp \
     tools/research/tablegeometry_physical_span_verify.py \
     tools/research/test_decode_dxf_sat1.py \
+    tools/research/verify_ac1018_mline_source.py \
+    tools/research/verify_ac1021_mlinestyle_peer_spans.py \
     tools/research/verify_ac1024_civil_assoc_edge_profile.py \
+    tools/research/verify_ac1027_cover_mlinestyle_peer_readback.py \
     tools/research/verify_ac1027_material_graph_minjson.py \
+    tools/research/verify_ac1027_mlinestyle_peer_spans.py \
     tools/research/verify_cover_dictionary_edges.py \
     tools/research/verify_cover_tablestyle_raw_spans.py \
     tools/research/verify_libredwg_tablestyle_peer_tail.py \

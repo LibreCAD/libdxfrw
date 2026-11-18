@@ -86,6 +86,7 @@ set(LIBDXFRW_PRIVATE_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgheadersection.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgobjectframe.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwg_xrecord_verified_source.h"
+    "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgappinfo.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgreader.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgreader15.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dwgreader18.h"
