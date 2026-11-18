@@ -12,6 +12,7 @@ on:
       - 'libdxfrw.pc.in'
       - 'libdxfrw_sources.cmake'
       - 'src/**'
+      - 'dwg2dxf/**'
       - 'tools/probe_installed_package.py'
       - 'tools/probe_shared_abi_package.py'
   workflow_dispatch:
@@ -31,12 +32,15 @@ jobs:
           - platform: linux-gcc
             runner: ubuntu-24.04
             python: python3
+            cli: bin/dwg2dxf
           - platform: macos-clang
             runner: macos-15
             python: python3
+            cli: bin/dwg2dxf
           - platform: windows-msvc
             runner: windows-2022
             python: python
+            cli: bin/dwg2dxf.exe
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -48,12 +52,12 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release
           -DBUILD_SHARED_LIBS=ON
           -DLIBDXFRW_BUILD_DOC=OFF
-          -DLIBDXFRW_BUILD_DWG2DXF=OFF
+          -DLIBDXFRW_BUILD_DWG2DXF=ON
           -DLIBDXFRW_BUILD_TESTS=OFF
           -DCMAKE_INSTALL_PREFIX="${{ runner.temp }}/libdxfrw-shared"
-      - name: Build and install shared library
+      - name: Build and install shared package and CLI
         run: >-
-          cmake --build shared-build --config Release --parallel 2 --target dxfrw
+          cmake --build shared-build --config Release --parallel 2 --target dxfrw dwg2dxf
           && cmake --install shared-build --config Release
       - name: Configure static library
         run: >-
@@ -74,6 +78,7 @@ jobs:
           --kind shared
           --prefix "${{ runner.temp }}/libdxfrw-shared"
           --install-manifest shared-build/install_manifest.txt
+          --cli "${{ matrix.cli }}"
           --output shared-evidence/receipt.json
       - name: Check static package and relocation
         run: >-

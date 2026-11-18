@@ -172,6 +172,8 @@ def main() -> int:
     parser.add_argument("--kind", choices=("shared", "static"), required=True)
     parser.add_argument("--prefix", type=Path, required=True)
     parser.add_argument("--install-manifest", type=Path, required=True)
+    parser.add_argument("--cli", type=Path,
+                        help="installed dwg2dxf path, absolute or relative to the prefix")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
@@ -180,6 +182,22 @@ def main() -> int:
     original_files = assert_manifest_matches(prefix, manifest)
     if not original_files:
         raise RuntimeError("installed package is empty")
+    cli_relative: Path | None = None
+    if args.cli is not None:
+        if args.kind != "shared":
+            raise RuntimeError("the installed CLI check requires a shared package")
+        requested_cli = args.cli if args.cli.is_absolute() else prefix / args.cli
+        cli_path = requested_cli.resolve(strict=True)
+        if not cli_path.is_file():
+            raise RuntimeError("installed CLI is not a file: %s" % cli_path)
+        try:
+            cli_relative = cli_path.relative_to(prefix)
+        except ValueError as error:
+            raise RuntimeError("installed CLI escapes the package prefix: %s" %
+                               cli_path) from error
+        if cli_relative.as_posix() not in original_files:
+            raise RuntimeError("installed CLI is absent from the install manifest: %s" %
+                               cli_relative.as_posix())
 
     with TemporaryDirectory(prefix="libdxfrw relocated package ") as directory:
         root = Path(directory)
@@ -234,6 +252,40 @@ def main() -> int:
         else:
             run([str(binaries[0])], env=env)
 
+        cli_receipt = None
+        if cli_relative is not None:
+            relocated_cli = (relocated / cli_relative).resolve(strict=True)
+            cli_env = os.environ.copy()
+            # Exercise the installed RPATH / app-local DLL layout rather than
+            # allowing a developer loader override to rescue a broken package.
+            for variable in tuple(cli_env):
+                if variable.startswith("DYLD_"):
+                    cli_env.pop(variable, None)
+            for variable in ("LD_LIBRARY_PATH", "LD_PRELOAD", "LD_DEBUG",
+                             "LD_AUDIT", "LD_ORIGIN_PATH",
+                             "LD_TRACE_LOADED_OBJECTS"):
+                cli_env.pop(variable, None)
+            cli_run = run([str(relocated_cli)], env=cli_env,
+                          expect_success=False)
+            if cli_run.returncode != 1 or "Usage:" not in cli_run.stdout:
+                raise RuntimeError(
+                    "relocated dwg2dxf did not reach its expected usage path "
+                    "(exit %d): %s" % (cli_run.returncode, cli_run.stdout)
+                )
+            cli_receipt = {
+                "path": cli_relative.as_posix(),
+                "sha256": sha256(relocated_cli),
+                "relocatedExecution": True,
+                "usageOutputObserved": True,
+                "expectedUsageExitCode": 1,
+                "actualExitCode": cli_run.returncode,
+                "knownLoaderOverrideVariablesCleared": True,
+                "runtimeIdentity": (
+                    "The relocated shared consumer above reports the exact "
+                    "loaded dxfrw module path and hash."
+                ),
+            }
+
         receipt = {
             "schema": "libdxfrw-installed-package-receipt-v1",
             "kind": args.kind,
@@ -251,8 +303,9 @@ def main() -> int:
                 "path": selected_relative.as_posix(),
                 "sha256": sha256(loaded_path),
             } if loaded_path else None),
+            "installedCli": cli_receipt,
             "limitations": [
-                "Package selection, install inventory, relocation, and a minimal consumer only.",
+                "Package selection, install inventory, relocation, a minimal consumer, and the CLI usage path only.",
                 "Does not establish complete C++ ABI compatibility or drawing semantics.",
             ],
         }
@@ -262,7 +315,8 @@ def main() -> int:
     print(json.dumps({"kind": args.kind, "platform": sys.platform,
                       "installedFiles": len(original_files),
                       "selectedTarget": receipt["selectedTarget"],
-                      "loadedRuntime": receipt["loadedRuntime"]}, sort_keys=True))
+                      "loadedRuntime": receipt["loadedRuntime"],
+                      "installedCli": receipt["installedCli"]}, sort_keys=True))
     return 0
 
 

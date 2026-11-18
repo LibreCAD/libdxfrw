@@ -1,0 +1,75 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8a-installed-cli-probe-preparation-2026-11-18",
+  "date": "2026-11-18",
+  "title": "Installed dwg2dxf package probe preparation",
+  "status": "PROBE_IMPLEMENTED_MACOS_SHARED_PROFILE_PASS_CROSS_PLATFORM_PENDING",
+  "supportClaimEffect": "none",
+  "sliceEffect": "The shared package qualification now installs and runs the relocated dwg2dxf CLI. The local macOS shared profile passed. P8-A remains open until the final stabilized candidate has Linux, macOS, and Windows package/runtime identities.",
+  "activityLedgerEffect": "one implementation slice completed; no package gate closed",
+  "source": {
+    "branch": "codex/dwg-dxf-open-source-parity",
+    "baseCommit": "3b9dfc3476cb11e3679fd3cfa4f0535128338550",
+    "libraryCodeCommit": "f96f1408a695d1991f9ccf95c3ac943cff42423e",
+    "libraryCodeChangedDuringSlice": false,
+    "files": {
+      ".github/workflows/shared-abi-qualification.yml": "b46db8314e1edfa96eec0c8c5a76cc94bb3bd552f3662e24786bfbe1e3d27b43",
+      "tools/probe_installed_package.py": "7a7a6bb0c67e625c14ba71425c50b5eb7f3108f7d2a182759f89be368476ce1d"
+    }
+  },
+  "workflowChanges": [
+    "Build and install dwg2dxf with the shared package; leave the static package profile unchanged.",
+    "Include dwg2dxf source changes in the workflow path filter.",
+    "Extend the package probe to run the installed CLI from a relocated prefix with loader override variables cleared, verify its usage output and expected exit code, and record its SHA-256.",
+    "Reuse the existing relocated C++17 consumer's exact loaded dxfrw module path and SHA-256 as package runtime identity."
+  ],
+  "localMacosProfile": {
+    "platform": "darwin",
+    "architecture": "Apple Silicon host",
+    "compiler": "AppleClang 21.0.0.21000334",
+    "cmake": "4.4.5",
+    "configuration": "Release, shared library, docs/tests disabled, dwg2dxf enabled",
+    "commands": [
+      "cmake -S . -B /private/tmp/libdxfrw-p8a-shared-build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DLIBDXFRW_BUILD_DOC=OFF -DLIBDXFRW_BUILD_DWG2DXF=ON -DLIBDXFRW_BUILD_TESTS=OFF -DCMAKE_INSTALL_PREFIX=/private/tmp/libdxfrw-p8a-shared-prefix",
+      "cmake --build /private/tmp/libdxfrw-p8a-shared-build --config Release --parallel 2 --target dxfrw dwg2dxf",
+      "cmake --install /private/tmp/libdxfrw-p8a-shared-build --config Release",
+      "python3 -B tools/probe_installed_package.py --kind shared --prefix /private/tmp/libdxfrw-p8a-shared-prefix --install-manifest /private/tmp/libdxfrw-p8a-shared-build/install_manifest.txt --cli bin/dwg2dxf --output /private/tmp/libdxfrw-p8a-shared-evidence/receipt.json"
+    ],
+    "results": {
+      "workflowLint": "PASS (actionlint)",
+      "buildTargets": "PASS (dxfrw and dwg2dxf)",
+      "installedFiles": 30,
+      "relocatedPackageInventoryMatches": true,
+      "abiVersion2Rejected": true,
+      "abiVersion3Accepted": true,
+      "cli": {
+        "path": "bin/dwg2dxf",
+        "sha256": "ce49b5f7e8922ade39fdd3ca8efc1a054c7396ef17b50099b4e7b15979f7db66",
+        "relocatedExecution": true,
+        "usageOutputObserved": true,
+        "exitCode": 1,
+        "knownLoaderOverrideVariablesCleared": true
+      },
+      "runtime": {
+        "selectedTarget": "lib/libdxfrw.3.0.0.dylib",
+        "loadedPath": "lib/libdxfrw.3.0.0.dylib",
+        "sha256": "806b40011315459dab17e05ccc390514f262f5e4a2daf76efd893aaeaa398c3e"
+      },
+      "probeReceiptSha256": "ac7f865b5da34c452619e7fb4553872363aa73332acbe42870fc32f85c870dc4"
+    }
+  },
+  "limits": [
+    "This is local macOS shared-package evidence only; Linux and Windows workflow runs remain pending.",
+    "The package consumer reports the loaded library identity; the CLI check proves the installed executable launches from the relocated prefix with loader overrides cleared.",
+    "No broad project tests, DWG/DXF fixture tests, or drawing semantic claims are covered.",
+    "P8-A remains open until the package/runtime snapshot is repeated on the final stabilized candidate."
+  ],
+  "progressAfterSlice": {
+    "completedActivityItems": 89,
+    "totalActivityItems": 112,
+    "activityPercent": 79.5,
+    "closedPackageGates": 10,
+    "totalPackageGates": 33,
+    "gateReadinessPercent": 30.3
+  }
+}
