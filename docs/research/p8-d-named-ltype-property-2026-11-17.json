@@ -39,8 +39,8 @@
   "guiQualificationReadiness": {
     "status": "WAITING_FOR_FUNCTIONAL_AQUA_GUI",
     "observedAt": "2026-11-17",
-    "evidence": "The user said they would unlock the session. After that response, direct execution of the existing Contents/MacOS/LibreCAD binary produced only `sysmon request failed with error: sysmond service not found`; a screen capture failed with `could not create image from display`, and process inspection remains unavailable. Earlier attempts returned LaunchServices kLSNoExecutableErr (-10827) or aborted during AppKit/HIServices registration with pasteboard XPC errors. No usable desktop, app window, or GUI test interaction was observed.",
-    "retryWhen": "Resume only after the exact built candidate opens with working pasteboard/XPC registration and the display can be captured. The latest user-reported unlock retry reproduced LaunchServices -10827 and no display; do not repeat until app registration or display access changes.",
+    "evidence": "The user said they would unlock the session. After that response, direct execution of the existing Contents/MacOS/LibreCAD binary produced only `sysmon request failed with error: sysmond service not found`; a screen capture failed with `could not create image from display`, and process inspection remains unavailable. The latest lightweight probe ran `screencapture -x /private/tmp/libdxfrw-p8d-preflight.png` and again received `could not create image from display`; `open -Ra 'LibreCAD'` printed `Unable to find application named 'LibreCAD'`; `/Applications` contained only FreeCAD.app and ODAFileConverter.app. No app launch was attempted in this probe. Earlier attempts returned LaunchServices kLSNoExecutableErr (-10827) or aborted during AppKit/HIServices registration with pasteboard XPC errors. No usable desktop, app window, or GUI test interaction was observed.",
+    "retryWhen": "Resume only after the exact built candidate opens with working pasteboard/XPC registration and the display can be captured. The latest user-reported unlock retry still has no capturable display and no registered LibreCAD app; do not repeat until app registration or display access changes.",
     "retryHistory": [
       {
         "date": "2026-11-17",
@@ -83,6 +83,25 @@
           }
         ],
         "outcome": "The unlock report did not change app registration or expose a capturable Aqua display. No GUI interaction or P8-D qualification ran."
+      },
+      {
+        "date": "2026-11-17",
+        "trigger": "The user reported they would unlock the macOS session again.",
+        "attempts": [
+          {
+            "command": "screencapture -x /private/tmp/libdxfrw-p8d-preflight.png",
+            "result": "could not create image from display"
+          },
+          {
+            "command": "open -Ra 'LibreCAD'",
+            "result": "Unable to find application named 'LibreCAD'"
+          },
+          {
+            "command": "ls -1 /Applications",
+            "result": "FreeCAD.app and ODAFileConverter.app were listed; LibreCAD.app was absent"
+          }
+        ],
+        "outcome": "The lightweight preflight still found no capturable display and no registered LibreCAD application. No candidate launch or GUI qualification ran."
       }
     ]
   },

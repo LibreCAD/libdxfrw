@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-dwg-block-control-handle-bit-count-fast-slice-2026-11-17",
+  "date": "2026-11-17",
+  "status": "implemented_locally",
+  "supportClaimEffect": "none",
+  "scope": "Correct the shared generated-frame test helper for R2013+ DWG object handle sizes, then re-enable the AC1027 BLOCK_CONTROL boundary selector.",
+  "evidenceBasis": {
+    "authority": "ODA Open Design Specification v5.4.1 section 20.1: the R2010+ object handle-stream size is measured in bits and includes terminal padding.",
+    "sourceReceipt": "docs/research/p6-ac1027-empty-block-control-boundary-2026-11-04.json",
+    "sourceProfile": "The hash-bound AC1027 BLOCK_CONTROL profile has 35 data bits before its handle tokens, 48 token bits, and five terminal padding bits. Its UMC handle-size value is therefore 53, which is not byte-aligned."
+  },
+  "diagnosis": {
+    "failingSelector": "libdxfrw_dwg_block_control_handle_boundary",
+    "failure": "The test helper rejected every R2010+ handle-size value whose low three bits were nonzero. That byte-alignment assumption contradicted the source-backed AC1027 BLOCK_CONTROL profile.",
+    "instrumentedObservation": "The AC1027 writer published BLOCK_CONTROL handle 1 at object-map offset 7644; frame capture reached the generic alignment rejection. No production writer failure was observed."
+  },
+  "change": {
+    "file": "tests/dwg_local_roundtrip_tests.cpp",
+    "details": "Treat the UMC as a bit count, bound it by total object-body bits, and assert the exact AC1027 empty BLOCK_CONTROL frame has an 11-byte body, 53 handle bits, and handle-stream start bit 35.",
+    "sourceSha256": "ac9ed3867744e355432f14bf3bd85a1a04a4fc415de01b329ec0d733019c648c"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 4: PASS",
+    "selector": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_block_control_handle_boundary$' --output-on-failure: PASS, 1/1 in 0.29 s",
+    "diffCheck": "PASS"
+  },
+  "fixturePolicy": "No DWG/DXF fixture was added or committed; validation uses the runtime-generated writer control.",
+  "limits": "Test-only correction based on the exact source-bound AC1027 control profile. No writer, reader, parser, binary ABI, format-support, interoperability, or consumer claim changed."
+}

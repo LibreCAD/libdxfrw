@@ -19,8 +19,9 @@ libdxfrw and LibreCAD origin/master heads above were re-checked and unchanged;
 LibreCAD PR #3269 is merged as `4060fb6bb` and is contained in that LibreCAD head.
 
 **Progress on 2026-11-17:** 6 of 33 required package gates are closed (18.2%);
-27 remain. The activity count is 54 of 81 tracked items complete (66.7%):
-6 closed gates and 48 completed implementation/research slices. The 27
+27 remain. After S8.2b/c/d, the activity count is 57 of 84 tracked items
+complete (67.9%): 6 closed gates and 51 completed implementation/research
+slices. The 27
 remaining counted items are the 27 open package gates. A completed slice can
 advance a gate that remains open, so this equal-weight activity count measures
 work items rather than unique outcomes or support breadth; use 6/33 for
@@ -29,6 +30,14 @@ Native Linux, native Windows, and LibreCAD GUI qualification are already
 inside P8-B/C/D and are not counted a second time. Completed actions have been
 removed from the active queue; receipts preserve the evidence needed to avoid
 repeating them.
+This snapshot was reconciled after the 2026-11-17 local slices S8.2b/c/d:
+those method-level reservation, resolver, retry, and readback contracts are
+locally implemented, but they do not close a package gate. S8.2d corrects a
+test-helper boundary assumption only. Native consumer integration and GUI
+qualification remain open under P8; the 6/33 package count is unchanged.
+The S8.2d AC1027 BLOCK_CONTROL boundary selector now passes with the exact
+source-backed 53-bit handle suffix; this test-only slice changes no support
+claim. See [receipt](docs/research/p8-dwg-block-control-handle-bit-count-fast-slice-2026-11-17.json).
 The latest local slices preserve the AC1024 LAYER_CONTROL source-frame proof
 through CLI export (S23), correct the rooted ACAD_SCALELIST common-link
 admission check (S24), screen a separate LibreDWG debug-class TABLE decode
@@ -277,9 +286,9 @@ promote support claims.
 ## Active package gates
 
 Only the following 27 open package gates are active; completed actions have
-been removed. This queue groups shared prerequisites first; detailed gate
-criteria follow in the subsystem tables. The group counts reconcile to 27.
-Readiness labels describe scheduling only, never support:
+been removed. The queue below is ordered to reduce repeated producer setup and
+avoid redoing blocked evidence. Detailed gate criteria follow in the subsystem
+tables. Readiness labels describe scheduling only, never support:
 `ACTIVE_*` means source-backed local work can proceed;
 `WAITING_*` needs the named source, authority, or environment;
 `DEPENDS_ON_*` needs an earlier slice; `INTEGRATION_GATE` waits for the
@@ -289,22 +298,32 @@ corrected retry succeeds. A raw-only route must preserve its exact source and
 strictly refuse output; an output-capable route must also pass fresh independent
 readback. Each gate adds only its package-specific evidence.
 
-| Priority packet | Work items | Start condition and speed rule |
-|---|---|---|
-| 1 — FIELD evidence wait | P5-B | Resume only on versioned FIELD schema/source evidence or an independently validated lossless DXF representation. Keep the 42 unknown-tail records, 14 unsupported-flag records, one invalid-count record, and nine AcSm records raw-only; strict output remains refused. Do not repeat S29–S35 or alter the 162-member FIELDLIST. Continue another admitted profile while this gate waits. |
-| 2 — Independent TABLE evidence wait | P5-I | Resume only when independent alignment/boundary evidence arrives. Reuse the recorded source and traces; do not select RS/BitShort by peer agreement. |
-| 3 — Producer capture batches | P5-D/E/F, P6-A, P4-C, P7-C, P4-B, P6-C | Capture each producer/session once and implement the first qualifying profile immediately. See gate rows for exact source requirements; paired DXF alone does not qualify DWG API state. |
-| 4 — Named authority/source waits | P5-G/H, P6-B/E/F, P7-D/G and remaining dependent gates | Do not repeat broad scans. Resume only on the listed source, versioned authority, or independent reader arriving; keep unrelated work moving. |
-| 5 — Changed-trigger environment waits | P8-D, P6-H | P8-D requires working Aqua app/pasteboard/display; P6-H requires a verifiable ODA bundle. Keep drawings in scratch. |
-| 6 — Frozen integration | P7-F/H, P8-A/B/C/E/F/G | Freeze once after profile admission; run Linux/Windows native consumer and package checks against that same candidate, then close thresholds. |
+As of this reconciliation, none of the open parser/writer gates has a new
+source-qualified implementation slice ready. Do not make speculative format
+changes while those inputs are absent. The next useful local action is a cheap
+P8-D environment preflight only after the Aqua session/display state changes;
+if app launch or screen capture still fails, record that result once and move
+on. P6-H has the same changed-trigger rule for a verifiably signed, usable ODA
+bundle.
 
-When a witness arrives, capture the actual type and reader trace first; use
-those to locate the `readDwgEntity`/`readDwgObject` dispatch and matching
-`parseDwg` route. Update the public model, writer, or default-no-op interface
-callback only when the admitted profile requires it. Keep each parser change to
-one version/profile. The common exit above supplies the shared build, malformed
-input, graph, rollback/retry, output, and readback steps; each row adds only its
-profile-specific semantic proof.
+| Execution packet | Gates | Fastest safe sequence |
+|---|---|---|
+| 1 — Same-release producer sessions (9 gates) | P5-D/E/F, P4-C/P5-H/P7-C, P4-B/P6-C, P6-A | Capture multiple independent cases in one application launch only when the producer/version supports them: AC1024 TABLE plus Content Format/CELLSTYLEMAP/layer overrides; AC1027 Sweep plus shade-plot and modeler-shell cases; AC1032 associative-network plus TABLE; and IMAGEDEF lifecycle operations in one ObjectARX session. Preserve a separate hash, API-state record, source trace, and semantic oracle for each profile. A shared session saves setup time; it does not transfer evidence between versions or objects. Implement each profile as soon as its own exit evidence is complete. |
+| 2 — Authority and independent-span waits (4 gates) | P5-B/P5-I, P6-E, P7-D | Reuse the receipts listed in each gate. Resume only when the required versioned authority, independent field span, or eligible source arrives. Keep unsupported FIELD records raw-only and TABLE alignment unresolved; do not repeat peer scans or choose a layout by majority vote. |
+| 3 — Separate producer models (4 gates) | P5-G, P6-B, P6-F, P7-G | Request only the exact missing witness for each profile: dynamic constraints, PERSUBENTMGR, eligible AC1012/AC1014 partial-read source, or trim/periodic/spline geometry. Reuse existing scans; keep a blocked profile waiting while another witness is acquired. |
+| 4 — Changed-trigger environment checks (2 gates) | P8-D, P6-H | For P8-D, first confirm a working Aqua app registration, pasteboard, and capturable display; only then run the named-LTYPE and LibreCAD_3 MPOLYGON GUI operations. For P6-H, first verify the ODA bundle signature and normal launch, then convert the exact scratch source once. Keep all generated drawings in scratch. |
+| 5 — One frozen integration pass (8 gates) | P7-F/P7-H, P8-A/B/C/E/F/G | Freeze after admitted implementation profiles stabilize. Run native Linux/Windows consumer and package checks against that same candidate, collect runtime/module identities during those runs, resolve source-matched CI, then set release thresholds. Reuse matching existing receipts; do not repeat unaffected platforms or profiles. |
+
+The packets are disjoint and reconcile to all 27 open gates (9+4+4+2+8).
+
+When a packet waits, continue with another independent packet and record one
+changed-state trigger for resumption. For each admitted profile, use the same
+short loop: source trace and role map; smallest parser/model/writer slice; fast
+selector plus touched-target build; failure, rollback, and corrected retry;
+strict output and fresh independent readback where supported; commit; then
+update the receipt, remove the completed slice from the queue, and report the
+new progress and next ready packet. Reserve broad suites for the single frozen
+integration pass or a specific failure that expands risk.
 
 ### P4 — source bodies and graph closure (2 open)
 
@@ -373,7 +392,7 @@ AC1027 ordinary drawings deferred until source-reference closure.
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation profiles stabilize. Reuse [macOS package evidence](docs/research/p8-macos-package-baseline-2026-11-17.json) only while its inputs match. | Record reproducible commands and immutable identities. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. |
 | P8-B / WAITING_FOR_FREEZE | On the frozen candidate, run native Linux FreeCAD qualification for 2D and every admitted source-derived profile. Add AC1027/AC1032 3D only after P7 admission. Earlier generated 2D results in the [platform receipt](docs/research/p8-freecad-linux-windows-generated-pass-2026-11-15.json) are historical controls only. | Record runner, FreeCAD/converter/modules, settings, exact `open()`/`insert()` handoff, runtime identity, and independent semantics per profile. No cross-compilation or ambiguous fallback. |
 | P8-C / WAITING_FOR_FREEZE | Run the same frozen workflow on native Windows; reuse earlier path-with-spaces/Unicode and generated 2D checks only as historical controls. The tracked `ordinary_enc_AC1027.dwg` still fails before publication; see [preflight receipt](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json). | Use the same evidence fields as P8-B. Keep ordinary AC1027 deferred until source-reference closure. |
-| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | After the latest user-reported unlock, `open -n` on the exact candidate still returns LaunchServices `kLSNoExecutableErr` (`-10827`), and `screencapture` still reports no display. See the [receipt](docs/research/p8-d-named-ltype-property-2026-11-17.json). Resume only after app registration/pasteboard works and the display is capturable. Then record Move/Copy action-boundary values, named-LTYPE save/reopen/render, and LibreCAD_3 MPOLYGON GUI save/reopen plus pinned ezdxf 1.4.5 readback. Continue local work while this gate waits. |
+| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | After the latest user-reported unlock, the cheap preflight `screencapture -x /private/tmp/libdxfrw-p8d-preflight.png` still reports no display; `open -Ra 'LibreCAD'` cannot resolve an installed app, and `/Applications` lists only FreeCAD and ODA File Converter. No candidate was launched. See the [receipt](docs/research/p8-d-named-ltype-property-2026-11-17.json). Resume only after a registered LibreCAD app, working pasteboard, and capturable display are observable. Then record Move/Copy action-boundary values, named-LTYPE save/reopen/render, and LibreCAD_3 MPOLYGON GUI save/reopen plus pinned ezdxf 1.4.5 readback. Continue local work while this gate waits. |
 | P8-E / INTEGRATION_GATE | During P8-B/C, collect native Linux/Windows shared/static manifests, relocation, and loaded runtime identities. Reuse the [macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json); repeat macOS only if candidate inputs change. | Verify package contents and shared/static relocation for each platform. |
 | P8-F / WAITING_FOR_SOURCE_MATCHED_CI | Reuse the [CI root-cause receipt](docs/research/p8-pr106-native-ci-root-cause-2026-11-17.json); rerun local diagnosis only if candidate inputs change. | Close on source-matched Linux/macOS/Windows results and current required-check/branch-protection state. Hosted CI remains subject to the owner's existing go-ahead. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |

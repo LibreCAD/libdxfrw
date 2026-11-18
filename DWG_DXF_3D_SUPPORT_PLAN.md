@@ -1853,27 +1853,43 @@ near-polar bases and rotated bounds; uncalibrated derived peer projections
 cannot qualify3D geometry. These refinements require small local counters/
 analytic controls, not native evidence before safe local implementation.
 
-**Next local handoffs:** preserve the integrated API and its prerequisites.
-Numeric qualification admission is integrated with fresh eight-method/support/
-JSON/normalizer Python gates and122 bound inputs unchanged during that gate; it promotes no
-claim. Corrected FreeCAD preflight is also integrated:32 distinct mocked LINE
-controls, fresh Python discovery/override command roles and one actual main
-CLI CTest pass. The parity ledger binds its source/report; native selection,
-durable packets and platform execution remain open. HATCH pattern retention
-tests are also integrated with exact typed/physical tags and model/named
-owner checks; strict TU/DXF-local2/2/eight CLI handoffs pass without production
-changes. The complete portableb912a963→cb22907f configure-probe timeout chain
-is now integrated on c6c00c5. Ordinary self-test, one selected-compiler14-child
-profile, main reconfigure and actual CLI1/1 pass. Parity7AD binds exact source,
-helper/output hashes and non-skipped JUnit; the GNU-only first helper must not
-stand alone. No project library/full-suite rebuild, native/platform claim,
-registration/fixture/receipt change follows. Next7BE and consumer7AG.1c work
-remain independent of external qualification.
-External platform/ACIS qualification does not block these local
-steps. Broader geometry comparison must preserve pattern phase as well as
-HATCH boundary geometry, and a strict declared-encoding oracle profile is
-needed for literal legacy ASCII text. Neither requires new native tooling,
-an oracle upgrade or a full suite per field edit.
+**Local handoff reconciliation (2026-11-17):** numeric qualification
+admission is integrated with fresh eight-method/support/JSON/normalizer Python
+gates and the 122 bound inputs unchanged during that gate; it promotes no
+claim. Corrected FreeCAD preflight is integrated with 32 distinct mocked LINE
+controls, fresh Python discovery/override command roles, and one actual main
+CLI CTest pass. Native selection, durable packets, and platform execution
+remain open. The HATCH pattern-phase and boundary comparison is integrated
+with exact typed/physical tags and model/named-owner checks; its strict TU,
+DXF-local 2/2, and eight CLI handoffs passed without production changes. Do
+not keep these checks in the remaining queue.
+
+The portable `b912a963` to `cb22907f` configure-probe timeout chain is
+integrated on `c6c00c5`; its ordinary self-test, selected-compiler child
+profile, main reconfigure, and actual CLI 1/1 passed. Parity 7AD binds the
+exact source, helper/output hashes, and non-skipped JUnit; the GNU-only first
+helper is insufficient by itself. These checks require no project-library or
+full-suite rebuild, new registration, or fixture.
+
+`consumer7AG.1c` is complete for the local facade contracts: the current
+getters, reservation/remap APIs, resolver lifecycle, `leftOut`, and failure/
+retry behavior are covered by the fast DXF fixture suite. S8.2b/c further
+close reservation-query and default plot-style identity slices. Keep only
+actual LibreCAD/LibreCAD_3 build/read-save and native GUI integration in the
+remaining consumer work; those are tracked under P8 in the parity plan.
+
+The strict ezdxf 1.4.4 ASCII oracle for an authored legacy `ANSI_1252` literal
+byte is already recorded in the [2026-10-15 broader-conversion
+receipt](docs/research/broader-conversion-readiness-2026-10-15.json). Treat it
+as one bounded research profile, not current-source, producer-wide, or support
+qualification; do not repeat its broader probe without a changed source or
+oracle. `7BE.9d` remains a separate full-CLI/source-carrier gate: the later
+S8.13 and strict proxy-cache CLI slices test atomic refusal when tracked
+RTEXT/ARCTEXT/MPOLYGON inputs lack replayable carriers; they do not establish
+successful full-file conversion. That refusal slice is complete. Do not
+restart generic 7BE work until new source-bound VISUALSTYLE/proxy-carrier
+evidence changes the gate. None of these completed local checks closes native
+platform, ACIS, or external J qualification.
 
 S5.19/7Y.2a's ASCII precision repair is committed at `291858e`. S2.2.5a's
 modeler schema repair and generated matrix are implemented: version-matched
@@ -8989,8 +9005,9 @@ was launched, and no platform support claim changed.
 | S8.1 | COMMITTED | Added `docs/3D_CONSUMER_CONTRACT.md` mapping each in-scope family to public callbacks/fields, WCS/OCS/subtype/opaque handling, topology/transforms, default callbacks, and conservative copy/lifetime guidance. The source audit found `ext=false` is the required path for 3D adapters; `ext=true` mutates only selected entities under the legacy 2D extrusion option. Autodesk OCS/INSERT/SPLINE/3DFACE/POINT/LINE references anchor DXF coordinate claims; DWG coordinate semantics remain per-version unqualified. No API or format-support claim changed. |
 | S8.2 | COMMITTED | `cmake --build build --target lc3_compat_check --parallel 2` passed (exit 0); its static assertion verifies an older 2D-style `DRW_Interface` implementation remains concrete without overriding later optional callbacks. This is compile-time source-compatibility evidence, not a LibreCAD UI/runtime test or binary-ABI guarantee. No sibling checkout changes. |
 | S8.2a | COMMITTED | Extended the runtime-generated AC1027 ASCII/binary DXF consumer probe to read the same LWPOLYLINE with both `ext=false` and `ext=true`. For normal `(0,1,0)`, elevation `5`, and local points `(2,3)` / `(4,5)`, the unprojected callback preserves OCS/elevation fields, while the established extrusion path emits callback XY `(-2,5)` / `(-4,5)`; 3DFACE WCS corners remain unchanged. This is a focused regression for one legacy mode, not a claim of full LibreCAD runtime compatibility. No DWG parser or LibreCAD source changed; no fixtures were committed. |
-| S8.2b | IMPLEMENTED_LOCALLY | Fixed the reservation-query regression by separating `HandleAllocator` next()-minted handles from `reserveForWrite()` destinations. `dxfRW::isReservedHandle()` exposes caller reservations continuously and planned destinations only during an active DXF write; minted handles remain excluded. Generated AC1009/AC1024 ASCII/binary cases cover planned BLOCK/ENDBLK, minted BLOCK_RECORD/entity identities, finalization, failure, and corrected retry. Build targets `libdxfrw_dxf_fixture_tests`, `lc3_compat_check`, and `libdxfrw_dwg_local_roundtrip` pass. Focused facade CTest passes 1/1; emitted-handle inventory and writer-primitives pass 2/2. No fixture was added. Adjacent `libdxfrw_dwg_control_handle_slots` passes 1/1. `libdxfrw_dwg_block_control_handle_boundary` fails in both the rebuilt and pre-existing build executable, so that cross-check remains untriaged. The broader round-trip failures observed at this checkpoint were isolated and resolved in S8.2c; the current focused test now passes. This closes only the local reservation-query slice; native consumer integration, binary ABI, and format support claims remain unchanged. See [receipt](docs/research/p8-dxf-write-reservation-query-scope-2026-11-17.json). |
+| S8.2b | IMPLEMENTED_LOCALLY | Fixed the reservation-query regression by separating `HandleAllocator` next()-minted handles from `reserveForWrite()` destinations. `dxfRW::isReservedHandle()` exposes caller reservations continuously and planned destinations only during an active DXF write; minted handles remain excluded. Generated AC1009/AC1024 ASCII/binary cases cover planned BLOCK/ENDBLK, minted BLOCK_RECORD/entity identities, finalization, failure, and corrected retry. Build targets `libdxfrw_dxf_fixture_tests`, `lc3_compat_check`, and `libdxfrw_dwg_local_roundtrip` pass. Focused facade CTest passes 1/1; emitted-handle inventory and writer-primitives pass 2/2. No fixture was added. Adjacent `libdxfrw_dwg_control_handle_slots` passes 1/1. The separate AC1027 boundary-selector helper failure was the byte-alignment assumption corrected in S8.2d; the selector now passes 1/1. The broader round-trip failures observed at this checkpoint were isolated and resolved in S8.2c; the current focused test now passes. This closes only the local reservation-query slice; native consumer integration, binary ABI, and format support claims remain unchanged. See [receipt](docs/research/p8-dxf-write-reservation-query-scope-2026-11-17.json). |
 | S8.2c | IMPLEMENTED_LOCALLY | Fixed DXF re-export with an active reference resolver when a LAYER group-390 source handle `F` is explicitly resolved to the same identity. The writer now resolves it once, accepts identity only when output Normal remains `F` and no caller placeholder conflicts, and continues rejecting invalid results or targets that collide with either output placeholder. Updated generated ACDS/EvaluationGraph CLASSES expectations for the valid `ACDBDICTIONARYWDFLT` and `ACDBPLACEHOLDER` registrations; improved failure diagnostics. Build targets `libdxfrw_dwg_local_roundtrip`, `libdxfrw_dxf_fixture_tests`, and `lc3_compat_check` pass. Focused HATCH reference/path command passes in ASCII and binary; `libdxfrw_dwg_local_roundtrip` CTest passes 1/1 (1.80 s); DXF facade/inventory/writer CTests pass 3/3 (0.40 s). No fixture was added. Same-library generated DXF evidence only; no independent interoperability, native UI, ABI, or format-support claim. See [receipt](docs/research/p8-dxf-plotstyle-resolver-identity-2026-11-17.json). |
+| S8.2d | IMPLEMENTED_LOCALLY | Corrected the generated object-frame helper: R2010+ UMC is a bit count and may be unaligned. The exact source-backed empty AC1027 BLOCK_CONTROL profile requires an 11-byte body, a 53-bit handle suffix starting at bit 35, and five terminal pad bits. The helper now bounds the bit count without imposing byte alignment; the focused `libdxfrw_dwg_block_control_handle_boundary` CTest passes 1/1 after rebuilding its target. Test-only change; no fixture or production wire change. See [receipt](docs/research/p8-dwg-block-control-handle-bit-count-fast-slice-2026-11-17.json). |
 | S8.3 | COMMITTED | Added the standalone-only `libdxfrw_3d_consumer_probe` CTest, using `SemanticSink` as a headless consumer. It writes runtime-generated AC1027 ASCII and binary DXF, reads with `ext=false`, and checks callback delivery of 3DFACE XYZ/edge flags, 3D POLYLINE vertex Z, MESH XYZ/face-edge topology/creases, INSERT/MINSERT placement/scales/grid/OCS normal, SPLINE knots/control XYZ, LWPOLYLINE elevation/local XY/extrusion/bulge, and LOFTED surface typed fields plus a separately identified group-310 carrier. Added the missing LWPOLYLINE typed-field serialization to the semantic adapter. CTest probe passes 1/1; `libdxfrw_dwg_local_roundtrip` passes 1/1; `lc3_compat_check` builds. S8.2a additionally checks the same LWPOLYLINE legacy `ext=true` result in both DXF encodings. S8.3.1 extends the probe with typed ELLIPSE fields and checks WCS invariance in both modes. This is generated-DXF callback-delivery evidence only: it does not qualify third-party interoperability, DWG versions, surface evaluation, FreeCAD shape construction, or a renderer. No fixture files are committed. S8.4a supplies a separate narrow DWG read comparison; all other DWG consumer rows remain unqualified. |
 | S8.3.1 | COMMITTED | Extended `tests/semantic_differential_adapter.cpp` so `addEllipse` serializes center, WCS major axis, ratio, start/end parameters, and extrusion instead of only common entity fields. Added runtime-generated default-plane full and oblique-plane partial ELLIPSEs to the existing ASCII/binary consumer probe; assertions verify all six fields in `ext=false` and legacy `ext=true`, including a nonzero-Z center and a unit oblique normal perpendicular to the major axis. `cmake --build build --target libdxfrw_3d_consumer_probe --parallel 2` succeeded and `ctest --test-dir build -R '^libdxfrw_3d_consumer_probe$' --output-on-failure` passes 1/1. No DXF fixture was added. This is local writer/parser callback evidence only; it does not qualify independent interoperability, DWG ELLIPSE layouts, or FreeCAD shape semantics. |
 | S8.3.6 | COMMITTED | Added runtime-generated nested child/parent blocks: nonzero block base points; a rotated, nonuniformly scaled 2x2 child MINSERT; and a parent INSERT with nonuniform/mirrored scales and oblique OCS. The consumer assertions distinguish nested INSERT layers and check insertion points, extrusion, scales, angle, array dimensions/spacings, and child LINE local coordinates for ASCII/Binary DXF under `ext=false` and legacy `ext=true`. An independent 4x4 matrix calculation composes the authored child and parent transforms and checks expected nested WCS endpoints, including equivalence between OCS and legacy WCS insertion-point representations. The focused `libdxfrw_3d_consumer_probe` CTest passes 1/1. This is a generated model/callback consistency control, not an external DXF interoperability witness, DWG transform proof, MINSERT array expansion check, or native consumer qualification. No fixture file is committed. |

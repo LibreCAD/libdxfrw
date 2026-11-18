@@ -336,14 +336,18 @@ public:
             handleBits = prefix.getUModularChar();
         const std::size_t prefixBytes = prefix.getPosition();
         if (!prefix.isGood() || bodyLengthSigned <= 0
-            || prefixBytes == 0u
-            || (writer.m_version >= DRW::AC1024 && (handleBits & 7u) != 0u))
+            || prefixBytes == 0u)
             return false;
         const std::size_t bodyBytes =
             static_cast<std::size_t>(bodyLengthSigned);
         if (prefixBytes > remaining || bodyBytes > remaining - prefixBytes
-            || remaining - prefixBytes - bodyBytes < 2u)
+            || remaining - prefixBytes - bodyBytes < 2u
+            || (writer.m_version >= DRW::AC1024
+                && handleBits > static_cast<std::uint64_t>(bodyBytes) * 8u))
             return false;
+        // R2013+ UMC is a bit count, not a byte count. A source-backed empty
+        // AC1027 BLOCK_CONTROL starts its handle tokens at bit 35 and counts
+        // the five terminal pad bits, so its valid value is 53.
         const std::size_t frameSize = prefixBytes + bodyBytes + 2u;
         const std::size_t crcOffset = frameSize - 2u;
         dwgBuffer crcReader(
@@ -1236,6 +1240,9 @@ public:
             return false;
         const std::uint64_t start = version < DRW::AC1024
             ? body.getRawLong32() : static_cast<std::uint64_t>(bodyLength) * 8u - handleBits;
+        if (version == DRW::AC1027
+            && (bodyLength != 11 || handleBits != 53u || start != 35u))
+            return false;
         const dwgHandle own = body.getHandle();
         if (own.ref != DRW::DwgBlockControlHandle || body.getBitShort() != 0u
             || body.getBitLong() != 0)
