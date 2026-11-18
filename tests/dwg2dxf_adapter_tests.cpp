@@ -2734,6 +2734,17 @@ public:
         return found == data.m_standardDwgObjectFrames.end()
             ? nullptr : &found->second.raw;
     }
+    static bool replaceStandardDictionaryBaseline(
+            dx_data& data, std::uint32_t handle,
+            std::shared_ptr<const DRW_TableEntry> replacement,
+            std::shared_ptr<const DRW_TableEntry>& previous) {
+        const auto found = data.m_standardDwgObjectFrames.find(
+            {data.importGeneration, handle});
+        if (found == data.m_standardDwgObjectFrames.end()) return false;
+        previous = found->second.typedBaseline;
+        found->second.typedBaseline = std::move(replacement);
+        return true;
+    }
     static std::size_t standardSourceFrameCount(const dx_data& data) {
         return data.m_standardDwgObjectFrames.size();
     }
@@ -59640,8 +59651,15 @@ bool physicalAc1024EmptyLayerStateRootOutputReadback(
         source.dictionaries.end(), [states](const DRW_Dictionary& candidate) {
             return candidate.handle == states->handle;
         });
-    if (mutableStates == source.dictionaries.end())
-        return fail("empty LayerStates child dictionary is not mutable source data");
+    auto mutableExtension = std::find_if(source.dictionaries.begin(),
+        source.dictionaries.end(), [extension](const DRW_Dictionary& candidate) {
+            return candidate.handle == extension->handle;
+        });
+    if (mutableStates == source.dictionaries.end()
+        || mutableExtension == source.dictionaries.end()
+        || !mutableExtension->hasDwgCommonLinkTail()
+        || !mutableStates->hasDwgCommonLinkTail())
+        return fail("empty LayerStates source dictionaries lack validated common links");
     const auto* extensionFrame =
         DxIfaceStandardDwgCaptureTestAccess::standardSourceFrame(
             source, source.importGeneration, extension->handle);
@@ -59679,7 +59697,8 @@ bool physicalAc1024EmptyLayerStateRootOutputReadback(
             if (!existing || !(existing << sentinel))
                 return fail("could not seed empty LayerStates destination");
         }
-        dx_iface writer;
+        // The source-frame session belongs to the importing adapter.
+        dx_iface& writer = sourceReader;
         writer.cData = &source;
         if (!DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
                 writer, DRW::AC1024)
@@ -59692,6 +59711,222 @@ bool physicalAc1024EmptyLayerStateRootOutputReadback(
             || !DxIfaceStandardDwgCaptureTestAccess::layerStateDictionaryQueued(
                 writer, states->handle))
             return fail("one-root empty AC1024 LayerStates profile was not admitted");
+
+        // A missing common-link receipt is not an empty tail. Both records
+        // must retain their version-qualified source evidence.
+        for (DRW_Dictionary* record : {&*mutableExtension, &*mutableStates}) {
+            record->setDwgCommonLinkTailValidated(false);
+            const bool prepared =
+                DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
+                    writer, DRW::AC1024)
+                && DxIfaceStandardDwgCaptureTestAccess::layerStateOutputPrepared(writer);
+            const bool wrote = writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete);
+            record->setDwgCommonLinkTailValidated(true);
+            std::ifstream existing(outputPath, std::ios::binary);
+            const std::string retained{std::istreambuf_iterator<char>(existing), {}};
+            if (prepared || wrote || retained != sentinel)
+                return fail("unvalidated LayerStates common links did not refuse atomically");
+        }
+        // Keep the captured typed markers intact but extend each raw handle
+        // stream by a whole byte.  The independent terminal-span observer
+        // must reject it rather than treating an unknown byte as padding.
+        for (const DRW_UnsupportedObject* captured : {extensionFrame, statesFrame}) {
+            auto* raw = const_cast<DRW_UnsupportedObject*>(captured);
+            const auto originalSize = raw->m_objectSize;
+            const auto originalHandleBits = raw->m_bodyBitSize;
+            raw->m_rawBytes.push_back(0u);
+            ++raw->m_objectSize;
+            raw->m_bodyBitSize += 8u;
+            const bool prepared =
+                DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
+                    writer, DRW::AC1024)
+                && DxIfaceStandardDwgCaptureTestAccess::layerStateOutputPrepared(writer);
+            const bool wrote = writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete);
+            raw->m_rawBytes.pop_back();
+            raw->m_objectSize = originalSize;
+            raw->m_bodyBitSize = originalHandleBits;
+            std::ifstream existing(outputPath, std::ios::binary);
+            const std::string retained{std::istreambuf_iterator<char>(existing), {}};
+            if (prepared || wrote || retained != sentinel)
+                return fail("unmodeled LayerStates handle tail did not refuse atomically");
+        }
+
+        // Bit offsets below are bound to the independently traced physical
+        // AC1024 witness: root body 0..67, key 67..333, footer 333..350,
+        // handles 350..390; child body 0..67, footer 67..68, handles 68..100.
+        if (extensionFrame->m_handle != 0x2A2u || statesFrame->m_handle != 0x2A3u
+            || extensionFrame->m_rawBytes.size() != 49u || extensionFrame->m_bodyBitSize != 42u
+            || statesFrame->m_rawBytes.size() != 13u || statesFrame->m_bodyBitSize != 36u)
+            return fail("LayerStates physical source no longer matches the witnessed bit spans");
+        const auto setBits = [](std::vector<std::uint8_t>& bytes, std::size_t bit,
+                                unsigned count, std::uint32_t value) {
+            for (unsigned i = 0; i < count; ++i) {
+                const auto position = bit + i;
+                const auto mask = static_cast<std::uint8_t>(1u << (7u - position % 8u));
+                auto& byte = bytes.at(position / 8u);
+                byte = static_cast<std::uint8_t>((byte & ~mask)
+                    | (((value >> (count - i - 1u)) & 1u) ? mask : 0u));
+            }
+        };
+        const auto insertByte = [](const std::vector<std::uint8_t>& original,
+                                   std::size_t at) {
+            std::vector<std::uint8_t> result(original.size() + 1u, 0u);
+            for (std::size_t bit = 0; bit < original.size() * 8u; ++bit) {
+                const auto outputBit = bit < at ? bit : bit + 8u;
+                if ((original[bit / 8u] & (1u << (7u - bit % 8u))) != 0u)
+                    result[outputBit / 8u] |= static_cast<std::uint8_t>(
+                        1u << (7u - outputBit % 8u));
+            }
+            return result;
+        };
+        const auto rejectRaw = [&](const DRW_UnsupportedObject* captured,
+                                   const std::vector<std::uint8_t>& altered) {
+            auto* raw = const_cast<DRW_UnsupportedObject*>(captured);
+            const auto original = raw->m_rawBytes;
+            const auto originalSize = raw->m_objectSize;
+            raw->m_rawBytes = altered;
+            raw->m_objectSize = static_cast<std::uint32_t>(altered.size());
+            const bool prepared =
+                DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
+                    writer, DRW::AC1024)
+                && DxIfaceStandardDwgCaptureTestAccess::layerStateOutputPrepared(writer);
+            const bool wrote = writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete);
+            raw->m_rawBytes = original;
+            raw->m_objectSize = originalSize;
+            std::ifstream previous(outputPath, std::ios::binary);
+            const std::string retained{std::istreambuf_iterator<char>(previous), {}};
+            return !prepared && !wrote && retained == sentinel;
+        };
+        // Simulate an originally captured unsupported source, not merely an
+        // edit to an immutable baseline. The raw body, typed dictionary, and
+        // its test-only baseline are changed together before preflight.
+        const auto rejectOriginalCandidate = [&](DRW_Dictionary& record,
+                const DRW_UnsupportedObject* captured,
+                const DRW_Dictionary& changed,
+                const std::vector<std::uint8_t>& altered) {
+            auto* raw = const_cast<DRW_UnsupportedObject*>(captured);
+            const auto originalRecord = record;
+            const auto originalRaw = raw->m_rawBytes;
+            std::shared_ptr<const DRW_TableEntry> previousBaseline;
+            record = changed;
+            raw->m_rawBytes = altered;
+            if (!DxIfaceStandardDwgCaptureTestAccess::replaceStandardDictionaryBaseline(
+                    source, record.handle,
+                    std::make_shared<DRW_Dictionary>(record), previousBaseline)) {
+                record = originalRecord;
+                raw->m_rawBytes = originalRaw;
+                return false;
+            }
+            const bool accepted =
+                DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
+                    writer, DRW::AC1024);
+            const bool wrote = writer.fileExport(
+                outputPath.string(), DRW::AC1024, binary, &source, false, true,
+                dx_dxfSourceTextPolicy::RequireValidSource,
+                DRW::DxfTextWritePolicy::RequireLossless,
+                dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                dx_dwgReadCompletenessPolicy::RequireComplete);
+            std::shared_ptr<const DRW_TableEntry> replacedBaseline;
+            const bool restored = DxIfaceStandardDwgCaptureTestAccess::
+                replaceStandardDictionaryBaseline(source, originalRecord.handle,
+                    previousBaseline, replacedBaseline);
+            record = originalRecord;
+            raw->m_rawBytes = originalRaw;
+            std::ifstream previous(outputPath, std::ios::binary);
+            const std::string retained{std::istreambuf_iterator<char>(previous), {}};
+            return restored && !accepted && !wrote && retained == sentinel;
+        };
+        for (const std::string& name : {std::string("acad_layerstates"),
+                                        std::string("AcAd_LaYeRsTaTeS")}) {
+            auto changed = *mutableExtension;
+            changed.m_entries.front().m_name = name;
+            auto altered = extensionFrame->m_rawBytes;
+            for (std::size_t i = 0; i < name.size(); ++i)
+                setBits(altered, 77u + i * 16u, 8u,
+                        static_cast<unsigned char>(name[i]));
+            if (!rejectOriginalCandidate(*mutableExtension, extensionFrame,
+                                         changed, altered))
+                return fail("case-variant LayerStates root fell through to generic output");
+        }
+        for (auto pair : {std::make_pair(&*mutableExtension, extensionFrame),
+                          std::make_pair(&*mutableStates, statesFrame)}) {
+            for (unsigned field = 0u; field != 2u; ++field) {
+                auto changed = *pair.first;
+                auto altered = pair.second->m_rawBytes;
+                if (field == 0u) {
+                    changed.hardOwner = changed.hardOwner == 0 ? 1 : 0;
+                    setBits(altered, 59u, 8u, static_cast<std::uint32_t>(changed.hardOwner));
+                } else {
+                    changed.cloning = 2;
+                    setBits(altered, 51u, 8u, 2u);
+                }
+                if (!rejectOriginalCandidate(*pair.first, pair.second,
+                                             changed, altered))
+                    return fail("unsupported original LayerStates dictionary fell through to generic output");
+            }
+        }
+        struct WireFault {
+            const DRW_UnsupportedObject* frame;
+            std::size_t bit;
+            unsigned width;
+            std::uint32_t value;
+        };
+        const std::vector<WireFault> faults{
+            {extensionFrame, 350u, 4u, 2u}, {extensionFrame, 358u, 8u, 3u},
+            {extensionFrame, 366u, 4u, 3u}, {extensionFrame, 382u, 8u, 0xA4u},
+            {statesFrame, 68u, 4u, 3u}, {statesFrame, 68u, 4u, 6u},
+            {statesFrame, 76u, 4u, 2u}, {statesFrame, 92u, 8u, 0xA3u}
+        };
+        for (const auto& fault : faults) {
+            auto altered = fault.frame->m_rawBytes;
+            setBits(altered, fault.bit, fault.width, fault.value);
+            if (!rejectRaw(fault.frame, altered))
+                return fail("LayerStates owner/reactor/item wire corruption was accepted");
+        }
+        // Extra body bytes and an enlarged detached string stream must not be
+        // mistaken for modeled fields even while the handle stream is intact.
+        if (!rejectRaw(extensionFrame, insertByte(extensionFrame->m_rawBytes, 67u))
+            || !rejectRaw(statesFrame, insertByte(statesFrame->m_rawBytes, 67u)))
+            return fail("LayerStates unmodeled body gap was accepted");
+        auto stringGap = insertByte(extensionFrame->m_rawBytes, 333u);
+        setBits(stringGap, 341u, 8u, 0x12u); // 274-bit little-endian size
+        setBits(stringGap, 349u, 8u, 0x01u);
+        if (!rejectRaw(extensionFrame, stringGap))
+            return fail("LayerStates unmodeled string gap was accepted");
+        auto badFooter = extensionFrame->m_rawBytes;
+        setBits(badFooter, 333u, 8u, 0x0Bu); // 267 instead of 266 bits
+        if (!rejectRaw(extensionFrame, badFooter))
+            return fail("LayerStates mismatched string footer was accepted");
+
+        if (!DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
+                writer, DRW::AC1024)
+            || !DxIfaceStandardDwgCaptureTestAccess::layerStateOutputPrepared(writer))
+            return fail("LayerStates source did not restore after raw mutation controls");
+
+        auto* lateFrame = const_cast<DRW_UnsupportedObject*>(extensionFrame);
+        const auto originalWire = lateFrame->m_rawBytes;
+        setBits(lateFrame->m_rawBytes, 366u, 4u, 3u);
+        const bool unchangedWithCorruption =
+            DxIfaceStandardDwgCaptureTestAccess::layerStateSourceUnchanged(writer);
+        lateFrame->m_rawBytes = originalWire;
+        if (unchangedWithCorruption
+            || !DxIfaceStandardDwgCaptureTestAccess::layerStateSourceUnchanged(writer))
+            return fail("LayerStates post-prepare source recheck missed raw mutation or restoration");
 
         const std::uint32_t originalParent = mutableStates->parentHandle;
         mutableStates->parentHandle = DRW::NoHandle;

@@ -37,6 +37,7 @@
 #include "dx_ac1027_plotstyle_wire.h"
 #include "dx_ac1027_material_wire.h"
 #include "dx_ac1027_layer_wire.h"
+#include "dx_raster_dwg_wire.h"
 #include "dx_mline_dictionary_source_live.h"
 #include "dx_sunstudy_dxf_profile.h"
 #include "dx_mline_layer_source_live.h"
@@ -38121,6 +38122,99 @@ bool dx_iface::inspectDwgMLineStyles(
     }
 }
 
+namespace {
+bool ac1024EmptyLayerStateDictionaryWireComplete(
+        const DRW_UnsupportedObject& raw, const DRW_Dictionary& source) noexcept {
+    const std::uint32_t handle = source.handle;
+    // Independently decode the complete common and item handle
+    // stream, not just the typed parser's validation marker.  An
+    // extra byte or unsupported role must not become opaque output.
+    if (raw.m_rawBytes.empty() || raw.m_rawBytes.size() > 1024u
+        || raw.m_rawBytes.size() != raw.m_objectSize
+        || raw.m_bodyBitSize == 0u || raw.m_xDictFlag != 1u
+        || raw.m_xDictHandle != 0u || raw.m_hasDataStorage
+        || raw.m_parentHandle != source.parentHandle
+        || raw.m_numReactors < 0
+        || static_cast<std::size_t>(raw.m_numReactors)
+            != source.reactorHandles.size()
+        || raw.m_reactorHandles != source.reactorHandles)
+        return false;
+    const auto total = static_cast<std::uint32_t>(raw.m_rawBytes.size() * 8u);
+    if (raw.m_bodyBitSize >= total)
+        return false;
+    const auto bodyEnd = total - raw.m_bodyBitSize;
+    // Bind the entire body and detached string stream as well. A
+    // successful typed parse only establishes bounds, not exhaustion.
+    dx_raster_wire::detail::Bits body{raw.m_rawBytes.data(), 0u, bodyEnd};
+    const auto typeTag = body.take(2u);
+    const auto type = static_cast<std::uint32_t>(typeTag == 0u
+        ? body.take(8u) : typeTag == 1u ? body.take(8u) + 0x1f0u
+                                       : body.little(2u));
+    const auto self = dx_raster_wire::detail::handle(body, 0u, 0u, true);
+    if (!body.good || type != 42u || self.value != handle
+        || body.shortValue() != 0u
+        || body.longValue() != source.reactorHandles.size()
+        || body.take(1u) != 1u
+        || body.longValue() != source.m_entries.size()
+        || body.shortValue() != static_cast<std::uint32_t>(source.cloning)
+        || body.take(8u) != static_cast<std::uint32_t>(source.hardOwner)
+        || !body.good || bodyEnd < 1u)
+        return false;
+    dx_raster_wire::detail::Bits present{
+        raw.m_rawBytes.data(), bodyEnd - 1u, bodyEnd};
+    const bool hasStrings = present.take(1u) != 0u;
+    if (!present.good)
+        return false;
+    if (source.m_entries.empty()) {
+        if (hasStrings || body.pos != bodyEnd - 1u)
+            return false;
+    } else {
+        // The witnessed one-entry profile carries one UTF-16 key,
+        // a 16-bit string-size footer and the presence bit.
+        if (!hasStrings || source.m_entries.size() != 1u || bodyEnd < 17u)
+            return false;
+        dx_raster_wire::detail::Bits footer{
+            raw.m_rawBytes.data(), bodyEnd - 17u, bodyEnd - 1u};
+        const auto textBits = static_cast<std::uint32_t>(footer.little(2u));
+        if (!footer.good || (textBits & 0x8000u) != 0u
+            || textBits > bodyEnd - 17u
+            || body.pos != bodyEnd - 17u - textBits)
+            return false;
+        dx_raster_wire::detail::Bits text{
+            raw.m_rawBytes.data(), body.pos, bodyEnd - 17u};
+        const auto& name = source.m_entries.front().m_name;
+        if (text.shortValue() != name.size())
+            return false;
+        for (const unsigned char character : name)
+            if (text.little(2u) != character)
+                return false;
+        if (!text.good || text.pos != text.end)
+            return false;
+    }
+    dx_raster_wire::detail::Bits wire{
+        raw.m_rawBytes.data(), bodyEnd, total};
+    const auto owner = dx_raster_wire::detail::handle(wire, 4u, handle);
+    if (!wire.good || owner.value != source.parentHandle)
+        return false;
+    for (const auto reactor : source.reactorHandles) {
+        const auto token = dx_raster_wire::detail::handle(wire, 4u, handle);
+        if (!wire.good || token.value != reactor)
+            return false;
+    }
+    for (const auto& entry : source.m_entries) {
+        const auto token = dx_raster_wire::detail::handle(wire, 2u, handle);
+        if (!wire.good || token.role != 2u || token.value != entry.m_handle)
+            return false;
+    }
+    const auto padding = wire.end - wire.pos;
+    // ODA 20.1 specifies only byte-alignment padding. The physical
+    // profile has nonzero alignment bits; do not interpret them.
+    if (padding >= 8u || !wire.skip(padding) || !wire.good)
+        return false;
+    return true;
+}
+} // namespace
+
 bool dx_iface::prepareDwgLayerStateOutput(
         DRW::Version targetVersion, bool debug) noexcept {
     m_dwgLayerStateOutputSource = {};
@@ -38129,11 +38223,12 @@ bool dx_iface::prepareDwgLayerStateOutput(
     m_dwgLayerStateOutputSourceVersion = DRW::UNKNOWNV;
     m_dwgLayerStateOutputPrepared = false;
     m_dwgLayerStateOutputInspected = false;
-    const auto skip = [debug](const char* reason) {
+    bool ac1024OneRootLayerStatesCandidate = false;
+    const auto skip = [debug, &ac1024OneRootLayerStatesCandidate](const char* reason) {
         if (debug)
             std::cerr << "LayerStates DWG output profile skipped: " << reason
                       << '\n';
-        return true;
+        return !ac1024OneRootLayerStatesCandidate;
     };
     if (cData == nullptr)
         return false;
@@ -38182,9 +38277,19 @@ bool dx_iface::prepareDwgLayerStateOutput(
         return found;
     };
     const DRW_Dictionary* extension = uniqueDictionary(extensionHandle);
+    ac1024OneRootLayerStatesCandidate = sourceVersion == DRW::AC1024
+        && extension != nullptr && extension->m_entries.size() == 1u
+        && asciiIdentifierEquals(extension->m_entries.front().m_name,
+                                 "ACAD_LAYERSTATES");
     const bool singleEmptyLayerStatesRoot = extension != nullptr
         && extension->m_entries.size() == 1u
         && (sourceVersion == DRW::AC1021 || sourceVersion == DRW::AC1024);
+    // The source-bound AC1024 one-root profile uses the independently
+    // reconciled R2007+ common handle stream.  The marker is a validation
+    // receipt, not an additional opaque payload.  Preserve the existing
+    // boundaries for every other source/profile.
+    const bool expectsAc1024EmptyRootCommonLinks =
+        sourceVersion == DRW::AC1024 && singleEmptyLayerStatesRoot;
     const bool ac1021TwoRootProfile = sourceVersion == DRW::AC1021
         && extension != nullptr && extension->m_entries.size() == 2u;
     if (extension == nullptr || extension->handle != extensionHandle
@@ -38200,6 +38305,7 @@ bool dx_iface::prepareDwgLayerStateOutput(
         || extension->xDictHandle != 0u
         || extension->hasDataStorageBinaryData()
         || extension->hasDwgCommonLinkTail()
+            != expectsAc1024EmptyRootCommonLinks
         || !extension->pendingAppIdResolutions.empty()
         || !extension->pendingLayerRefResolutions.empty())
         return skip("LAYER_CONTROL extension dictionary is outside its versioned LayerStates root profile");
@@ -38227,6 +38333,7 @@ bool dx_iface::prepareDwgLayerStateOutput(
         || states->xDictHandle != 0u
         || states->hasDataStorageBinaryData()
         || states->hasDwgCommonLinkTail()
+            != expectsAc1024EmptyRootCommonLinks
         || !states->pendingAppIdResolutions.empty()
         || !states->pendingLayerRefResolutions.empty()
         || states->reactorHandles
@@ -38299,7 +38406,8 @@ bool dx_iface::prepareDwgLayerStateOutput(
             return skip("AC1024 LayerStates XRECORD contains an unqualified application group value");
     }
 
-    const auto hasDictionaryFrame = [this, sourceVersion](
+    const auto hasDictionaryFrame = [this, sourceVersion,
+                                     expectsAc1024EmptyRootCommonLinks](
             std::uint32_t handle, const DRW_Dictionary& source) {
         const dx_data::StandardDwgFrameKey key{
             cData->importGeneration, handle};
@@ -38335,6 +38443,10 @@ bool dx_iface::prepareDwgLayerStateOutput(
                 || expected.m_dxfHandleCode != actual.m_dxfHandleCode)
                 return false;
         }
+        if (expectsAc1024EmptyRootCommonLinks
+            && !ac1024EmptyLayerStateDictionaryWireComplete(
+                standard->second.raw, source))
+            return false;
         return true;
     };
     const auto hasXRecordFrame = [this, sourceVersion](
@@ -38398,8 +38510,13 @@ bool dx_iface::prepareDwgLayerStateOutput(
         || !hasDictionaryFrame(extensionHandle, *extension)
         || !hasDictionaryFrame(states->handle, *states)
         || (layerStateRecord != nullptr
-            && !hasXRecordFrame(*layerStateRecord)))
+            && !hasXRecordFrame(*layerStateRecord))) {
+        // A recognized AC1024 empty-root profile with incomplete source
+        // frames must not fall back to generic dictionary emission.
+        if (expectsAc1024EmptyRootCommonLinks)
+            return false;
         return skip("both dictionary callback identities must be source-bound");
+    }
 
     m_dwgLayerStateOutputSource.layerControlHandle = controlHandle;
     m_dwgLayerStateOutputSource.extensionDictionary = *extension;
@@ -38532,7 +38649,11 @@ bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
         }
         return true;
     };
-    const auto frameMatches = [this, sourceVersion, &sameDictionary](
+    const bool recheckAc1024EmptyRootWire = sourceVersion == DRW::AC1024
+        && m_dwgLayerStateOutputSource.extensionDictionary.m_entries.size() == 1u
+        && !m_dwgLayerStateOutputSource.hasLayerStateRecord;
+    const auto frameMatches = [this, sourceVersion, recheckAc1024EmptyRootWire,
+                               &sameDictionary](
                                   const DRW_Dictionary& source) {
         const dx_data::StandardDwgFrameKey key{
             cData->importGeneration, source.handle};
@@ -38550,7 +38671,10 @@ bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
             return false;
         const auto* baseline = dynamic_cast<const DRW_Dictionary*>(
             frame->second.typedBaseline.get());
-        return baseline != nullptr && sameDictionary(source, *baseline);
+        return baseline != nullptr && sameDictionary(source, *baseline)
+            && (!recheckAc1024EmptyRootWire
+                || ac1024EmptyLayerStateDictionaryWireComplete(
+                    frame->second.raw, source));
     };
     const auto xrecordFrameMatches = [this, sourceVersion](
             const DRW_XRecord& source) {

@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-layerstates-complete-wire-boundary-2026-11-18",
+  "date": "2026-11-18",
+  "implementationDigestSha256": "b784d8420cd193b671307a5f16bb53dfd3bdc11be5089c43b866129a3d1332f7",
+  "status": "PHYSICAL_SELECTED_PROFILE_AND_NEGATIVE_CONTROLS_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Restore the source-bound AC1024 one-root empty LayerStates profile after common-link evidence became a validated marker. The observer requires complete body, string and handle streams; unknown or incomplete data is refused.",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "fixtureDisposition": "Existing untracked local corpus file, read only. No drawing was added, staged, modified or committed.",
+    "priorProfile": "docs/research/p4-ac1024-empty-layerstates-root-output-2026-11-05.json"
+  },
+  "authority": {
+    "title": "Open Design Specification for .dwg files v5.4.1",
+    "localSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["2.12/2.13 bit and handle encodings", "20.1 common non-entity object format", "20.4.44 DICTIONARY"],
+    "notes": "Section 20.1 specifies the parent, reactor, optional extension dictionary, object-specific handle sequence, and byte-alignment padding; it does not require padding bits to be zero. Section 20.4.44 specifies counted names and item handles."
+  },
+  "independentPhysicalTrace": {
+    "tool": "GNU LibreDWG dwgread 0.14",
+    "command": "dwgread -v4 -O JSON -o /private/tmp/libdxfrw-layerstates-independent-trace-20261118.json tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+    "traceSha256": "e577f7f5ea8a5e8a86946a2d4c3b4eafe7f12c43ff9517dfe5cc914cde897c70",
+    "root": "DICTIONARY 0x2A2: 49 bytes, data end bit 350, one key ACAD_LAYERSTATES, parent token [4,1,2] -> 0x2, item token [2,2,0x2A3] -> 0x2A3, handle stream ends bit 390 with two alignment bits. Text footer reports 266 string bits; with the 16-bit size and presence bit, the witnessed text starts at bit 67.",
+    "child": "DICTIONARY 0x2A3: 13 bytes, data end bit 68, no string stream, no entries, parent token [8,0,0] -> 0x2A2, reactor token [4,2,0x2A2] -> 0x2A2, handle stream ends bit 100 with four alignment bits.",
+    "paddingNote": "The physical root's final byte is 0x8F, so its last two alignment bits are nonzero. They are consumed as the spec-defined byte-alignment remainder, not interpreted as data. A whole extra byte is refused."
+  },
+  "implementation": [
+    "For AC1024 only, recognize one-entry ACAD_LAYERSTATES candidates case-insensitively but retain exact uppercase and graph-profile admission; unsupported named candidates fail instead of falling back to generic dictionary emission.",
+    "Require validated common-link markers for both admitted dictionaries and a separate bounded observer of complete body, UTF-16 key/footer, owner/reactor/item roles and targets, and terminal alignment. Recheck the observer from the unchanged-source path used by staged output inspection.",
+    "The physical selector uses the original importing adapter session, as required by the LAYER_CONTROL source-frame proof. No other version/profile is newly admitted."
+  ],
+  "validation": {
+    "adapterBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "physicalCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1024-output-readback tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+    "physicalResult": "PASS: ASCII/Binary selected output, source-frame checks, destination-preserving refusals, restored same-adapter retry, fresh typed graph readback.",
+    "physicalLogSha256": "13cd25ea00b6001bc760e2647286133b6b1270d5a6593c8ddb628e9a24bc5902",
+    "negativeControls": [
+      "Both missing common-link markers and wrong child owner preserve the destination.",
+      "Eight independent handle token mutations test root owner/item and child owner/reactor roles and targets; extra terminal byte, extra root/child body byte, enlarged root string and mismatched footer are refused.",
+      "Test-only source-consistent raw/typed/baseline mutations for lowercase and mixed-case root keys and root/child hard-owner or cloning values refuse preflight and full output without replacing the destination.",
+      "Post-prepare raw mutation makes the unchanged-source recheck fail; restoration passes the recheck and the same adapter later exports/readbacks the original source."
+    ],
+    "generatedNeighborBuild": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_dwg_object_vectors_tests -j2",
+    "generatedNeighborControls": "PASS 3/3 after rebuilding statically linked targets on the final source: libdxfrw_dwg_group_dictionary_controls, libdxfrw_dictionary_item_wire_role, libdxfrw_named_resource_import_evidence."
+  },
+  "limits": [
+    "One physical drawing and one exact AC1024 empty one-root graph; no broader LayerStates, DWG version, or whole-file semantic claim is established.",
+    "The post-prepare direct recheck is not an end-to-end callback-stage mutation test: the AC1024 source-capture guard requires the exact dx_iface dynamic type, so the test does not substitute a subclass.",
+    "Other AC1024 target revisions and multi-entry roots are outside this bounded fix; pre-existing fallback routes need separate evidence.",
+    "Package, consumer, fast and native qualification must be refreshed for the changed source."
+  ]
+}
