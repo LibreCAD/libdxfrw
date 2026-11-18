@@ -28,10 +28,12 @@ The source-matched fast CI run exposed one omitted private header in the source
 inventory. The header is now classified and the generated manifests pass
 locally; the [CI-fix receipt](docs/research/p8-fast-ci-dwgappinfo-source-inventory-fix-2026-11-18.json)
 tracks the exact failure and the pending source-matched rerun.
-After the user's latest reported unlock, `screencapture` still failed to create
-an image. This does not establish the physical login state or capture
-permissions and closes no gate. Native Linux, Windows, and GUI outcomes count
-only within P8-B/C/D. Recount after each committed slice or gate transition.
+After the user's latest reported unlock, a fresh `screencapture` attempt still
+failed and CoreGraphics reported zero active displays for this process. This
+does not establish the physical login state or capture permissions and closes
+no gate. The retry is recorded in the [P8-D preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json).
+Native Linux, Windows, and GUI outcomes count only within P8-B/C/D. Recount
+after each committed slice or gate transition.
 
 This file is the active queue, not a work diary. Completed slices and closed
 actions are removed; receipts remain linked only to prevent repeated work or
@@ -174,8 +176,8 @@ complete; the remaining action is a full-AutoCAD exact-class/selected-path
 witness. The current open issue and conflicting peer mapping are summarized
 in the [PERSUBENTMGR raw-only receipt](docs/research/p6-persubentmgr-raw-only-dxf-disposition-2026-11-18.json);
 they do not close that gate. P8-D was retried after the latest reported
-unlock, but capture still fails; the previous CoreGraphics probe for this
-process reported no active display.
+unlock, but capture still fails; the latest CoreGraphics probe for this process
+reported zero active displays. The retry is recorded in the preflight receipt.
 See the [PERSUBENTMGR creation-route
 screen](docs/research/p6-persubentmgr-native-api-eligibility-screen-2026-11-18.json)
 and [P8-D preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json).
