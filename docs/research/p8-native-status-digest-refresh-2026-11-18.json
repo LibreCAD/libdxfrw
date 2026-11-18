@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-native-status-digest-refresh-2026-11-18",
+  "date": "2026-11-18",
+  "title": "Refresh the frozen implementation digest after focused qualification",
+  "status": "DIGEST_REFRESHED_CLEAN_CHECKOUT_VERIFIED_CI_RERUN_PENDING",
+  "supportClaimEffect": "none",
+  "packageGateEffect": "none; P8-F remains open",
+  "activityLedgerEffect": "one completed implementation-digest refresh slice; no package gate closed",
+  "trigger": {
+    "pullRequest": "LibreCAD/libdxfrw#106",
+    "workflow": "native qualification",
+    "runId": 44257901202,
+    "job": "focused / macos-clang",
+    "jobId": 134643973679,
+    "head": "0e01046c87a4f23a615b11e09cab35c31ffc1699"
+  },
+  "failure": {
+    "qualification": "PASS: focused macOS qualification ran all seven selected checks.",
+    "receiptEmission": "FAIL: status overlay implementation digest is stale.",
+    "rootCause": "The digest-excluded status overlay still contained a digest from before subsequent selected implementation/test inputs changed.",
+    "oldDigest": "519d449ae85091fb1f2ebbfa5a36deb04763a94f37b7263b3fc4d3a61e62483b"
+  },
+  "reproduction": {
+    "checkout": "clean tracked clone at 0e01046c87a4f23a615b11e09cab35c31ffc1699; local DWG/DXF samples and generated files excluded",
+    "command": "python3 -B tools/check_qualification_digest.py --json --skip-status",
+    "result": "PASS: implementation digest computed over 733 selected inputs",
+    "newDigest": "e70a3c8198b0dc1b915f957c88be05b873c16297b39789163022712cf695e11b",
+    "verificationCommand": "python3 -B tools/check_qualification_digest.py --json",
+    "verificationResult": "PASS in the clean tracked checkout after copying the refreshed status overlay."
+  },
+  "fix": {
+    "updatedFile": "metadata/qualified-format-status-v1.json",
+    "field": "implementationDigestSha256",
+    "oldValue": "519d449ae85091fb1f2ebbfa5a36deb04763a94f37b7263b3fc4d3a61e62483b",
+    "newValue": "e70a3c8198b0dc1b915f957c88be05b873c16297b39789163022712cf695e11b",
+    "claimsDigestChanged": false
+  },
+  "pending": [
+    "Push the refreshed status and receipt to the PR branch; rerun source-matched native receipt generation and verification.",
+    "Inspect fast regressions and FreeCAD Linux/Windows results on the same source candidate before closing P8-F."
+  ],
+  "limits": [
+    "A digest match is repository-integrity evidence, not a native receipt or support qualification.",
+    "The local root worktree contains unrelated untracked files inside selected input scopes; digest computation is therefore pinned to the clean tracked clone.",
+    "No support claim or package gate is promoted by the digest refresh."
+  ]
+}
