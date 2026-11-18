@@ -286,6 +286,8 @@ void testClassTextBitLengths(TestContext& t) {
             : version == DRW::AC1027 ? 2013u : 2018u;
         profile.maintenance = version == DRW::AC1027 ? 6u : 0u;
         profile.highSizeRule = wire::ClassHighSizeRule::R2018Always;
+        if (version == DRW::AC1027 || version >= DRW::AC1032)
+            profile.sizeLayout = wire::ClassSizeLayout::ExcludesHighWord;
         profile.trailer = wire::Trailer::ProducerBitLong;
         profile.tail = wire::ClassTail::BeforeEight;
         profile.requireTrueHeaderFlag = false; profile.scalarByteAlignment = true;
@@ -293,6 +295,13 @@ void testClassTextBitLengths(TestContext& t) {
         const auto proof = wire::observeSection(bytes.data(), bytes.size(), profile);
         t.expect(proof.status == wire::Status::Observed && proof.records == count && proof.crcMatches,
                  label + " independently framed with complete text consumption");
+        if (version == DRW::AC1027 || version >= DRW::AC1032) {
+            auto wrongSizeProfile = profile;
+            wrongSizeProfile.sizeLayout = wire::ClassSizeLayout::IncludesHighWord;
+            t.expect(wire::observeSection(bytes.data(), bytes.size(), wrongSizeProfile).status
+                         != wire::Status::Observed,
+                     label + " rejects the alternate high-size length profile");
+        }
         if (proof.status != wire::Status::Observed) continue;
         // TU includes one terminal NUL. BS256 uses only its two tag bits.
         const auto units = length + 1u;

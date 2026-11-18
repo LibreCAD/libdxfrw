@@ -2,8 +2,8 @@
   "schema": "libdxfrw-research-receipt-v1",
   "id": "p8-fast-tablecontent-regression-2026-11-18",
   "date": "2026-11-18",
-  "title": "Correct TABLE and TABLECONTENT DWG vector regressions",
-  "status": "LOCAL_CORRECTION_PASSED_HOSTED_FAST_CI_PENDING",
+  "title": "P8-F fast regression corrections and source-profile recheck",
+  "status": "LOCAL_CORRECTIONS_PASSED_HOSTED_FAST_CI_PENDING",
   "candidate": {
     "repository": "dxli/libdxfrw",
     "failureCommit": "f0f87e7f9f93a040e38da8ca6424ef55abcca76e",
@@ -12,7 +12,7 @@
   },
   "supportClaimEffect": "none",
   "packageGateEffect": "P8-F remains open until the corrected source-matched fast workflow passes.",
-  "activityLedgerEffect": "One implementation slice completed; no package gate closed. Activity progress is 81/106 (76.4%); gate readiness is 8/33 (24.2%).",
+  "activityLedgerEffect": "Two implementation/test-correction slices completed across the TABLE regression and the CLASSES observer-profile follow-up; no package gate closed. Activity progress is 82/107 (76.6%); gate readiness is 8/33 (24.2%).",
   "workflow": {
     "name": "libdxfrw fast parity regressions",
     "runId": 44259323444,
@@ -38,6 +38,15 @@
       "AC1024 TABLE: kUnknown must withhold typed content without advancing the public body cursor into the optional content.",
       "AC1024 TABLE: inverted, out-of-bounds, and overlapping merged ranges must withhold typed content and preserve cursor rollback."
     ]
+  },
+  "followupWorkflow": {
+    "head": "8f36d9abd30d819d01c65b94597c08daa624c9b5",
+    "runId": 44266356782,
+    "runUrl": "https://github.com/LibreCAD/libdxfrw/actions/runs/44266356782",
+    "jobId": 134671747433,
+    "jobUrl": "https://github.com/LibreCAD/libdxfrw/actions/runs/44266356782/job/134671747433",
+    "step": "Run fast vectors and required CLI regressions",
+    "result": "The corrected DWG object vectors passed; the next selector, libdxfrw_writer_version_matrix_tests, failed 65 CLASSES exact-text assertions. No native qualification job failed."
   },
   "localCorrection": {
     "commit": "a6fd3de1",
@@ -71,6 +80,23 @@
       "No native or broad suite was repeated."
     ]
   },
+  "localFollowup": {
+    "scope": "Test-profile correction only; no production DWG writer, reader, or observer behavior changed.",
+    "finding": "The AC1027 and AC1032 writer profiles place a high-size RL before the bitSize RL, while dwgWriter24::writeDwgClasses computes the low RL without that high-size word. The matrix had left the independent observer's IncludesHighWord default active, locating the CRC four bytes early and making its footer checks fail.",
+    "correction": "Select ExcludesHighWord for AC1027 and AC1032 in the generated-writer profile. Add a negative control requiring the IncludesHighWord alternative to refuse the same frames.",
+    "validation": {
+      "build": "cmake --build build --target libdxfrw_writer_version_matrix_tests --parallel 8",
+      "buildResult": "PASS",
+      "directSelector": "./build/libdxfrw_writer_version_matrix_tests",
+      "directSelectorResult": "PASS: 128 CLASSES exact-bit cases; 44 short and 68 extended footers; alignment mask 0x55; alternate high-size profiles refused.",
+      "diffCheck": "PASS"
+    },
+    "limits": [
+      "This resolves an incorrectly configured generated-output observer profile, not a production writer defect.",
+      "Hosted fast CI must be rerun on the corrected head before P8-F can close.",
+      "No full suite or native platform qualification was repeated because production code did not change."
+    ]
+  },
   "sourceInspection": {
     "testFile": "tests/dwg_object_vectors_tests.cpp",
     "dispatchFile": "src/intern/dwgreader.cpp",
@@ -78,7 +104,7 @@
     "scope": "The 19 assertions came from incomplete semantic projection being published for inline AC1024 TABLECONTENT, null pointer fields being rejected, and the cell-style parser consuming border fields unconditionally despite the ODA override mask. The sparse-border vector also emitted fields not selected by its mask; it now follows ODA's conditional field order."
   },
   "nextAction": [
-    "Refresh metadata/qualified-format-status-v1.json against the corrected source digest, then push the implementation, metadata, updated receipt, and plan to PR #106.",
+    "Refresh metadata/qualified-format-status-v1.json against the test-profile correction, then push the test, metadata, updated receipt, and plan to PR #106.",
     "Inspect the single automatically triggered source-matched fast workflow. If it passes, close the P8-F fast blocker; if it fails, fix the exact new failure and keep P8-F open.",
     "Do not rerun the already-passing focused native or FreeCAD jobs unless the changed source/runtime can affect them; continue unrelated producer/authority acquisition."
   ],
