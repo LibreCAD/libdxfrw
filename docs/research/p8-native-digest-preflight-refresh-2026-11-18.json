@@ -3,10 +3,10 @@
   "id": "p8-native-digest-preflight-refresh-2026-11-18",
   "date": "2026-11-18",
   "title": "Refresh the native qualification digest and fail fast before platform builds",
-  "status": "DIGEST_REFRESHED_PREFLIGHT_ADDED_NATIVE_RERUN_PENDING",
+  "status": "P8_A_CLOSED_FAST_PARITY_PASS_MACOS_NATIVE_RETRY_QUEUED",
   "supportClaimEffect": "none",
-  "packageGateEffect": "P8-F is reopened for the current implementation digest; the previous close applies only to its recorded digest. P8-A remains open.",
-  "activityLedgerEffect": "One implementation/process slice completed; one additional activity item is counted. No package gate is closed.",
+  "packageGateEffect": "P8-A is closed for the pinned package-input digest in the companion cross-platform package receipt. P8-F remains open for the current implementation digest; the prior P8-F close applies only to its recorded digest.",
+  "activityLedgerEffect": "P8-A closure updates the ledger to 10/33 package gates and 91/114 total items. No drawing-support claim changed.",
   "trigger": {
     "pullRequest": "LibreCAD/libdxfrw#106",
     "headCommit": "c77cad11dc73ad92644c851da9357252e98dd52d",
@@ -41,6 +41,23 @@
       "claimStatesChanged": false
     }
   },
+  "packageFollowup": {
+    "runId": 44305850606,
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44305850606",
+    "head": "c77cad11dc73ad92644c851da9357252e98dd52d",
+    "linuxGcc": "PASS: shared package, dwg2dxf relocation/runtime probe, static package, and package check.",
+    "windowsMsvc": "PASS: shared DLL plus dwg2dxf link/install/runtime probe, static package, and package check.",
+    "macosClang": "CANCELLED before job execution when the branch advanced to ac9b19cd; no macOS result was produced.",
+    "disposition": "At the time of this c77 run, the Windows linker fix was validated by the Windows shared and static package jobs, but P8-A remained open pending macOS. The later current-candidate package equivalence and macOS results close P8-A in the companion receipt."
+  },
+  "currentPackageGateClosure": {
+    "receipt": "docs/research/p8a-cross-platform-package-qualification-2026-11-18.json",
+    "candidateCommit": "ac9b19cd96c5f4560ed572b7f7d1580ebf07920c",
+    "packageInputDigestSha256": "08c340c1cda84d8d69254e3352393e7350496b50bb5650c89d30dac57e5c6bcd",
+    "macos": "Current-candidate clean-source shared and static install probes passed locally.",
+    "linuxWindows": "Hosted shared/static profiles passed on c77cad11; all 226 package-input Git blobs match the current candidate exactly.",
+    "result": "P8-A CLOSED; package qualification only, with no drawing-support claim."
+  },
   "speedImprovement": {
     "workflow": ".github/workflows/build.yml",
     "change": "The lightweight workflow-contract job now checks the frozen implementation digest before any native platform matrix compiles.",
@@ -53,10 +70,29 @@
       "git diff --check: PASS"
     ]
   },
+  "nativeRerunProgress": {
+    "runId": 44308899082,
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44308899082",
+    "head": "ac9b19cd96c5f4560ed572b7f7d1580ebf07920c",
+    "implementationDigestSha256": "07d6d60c5a10a9404e536df31aa348d500730ac2402075d708971403d2b6b90a",
+    "workflowContract": "PASS, including the new frozen-digest preflight.",
+    "linuxGcc": "PASS: all seven focused tests ran; immutable receipt emitted, sealed, uploaded, and verified.",
+    "windowsMsvc": "PASS: all seven focused tests ran; immutable receipt emitted, sealed, uploaded, and verified.",
+    "macosClang": "Job 134827013976 was cancelled while queued; single-job retry 134839933367 is queued in run attempt 3.",
+    "macosRetryJobId": 134839933367,
+    "broadAndFuzz": "Skipped as planned."
+  },
+  "fastParityFollowup": {
+    "runId": 44308898341,
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44308898341",
+    "head": "ac9b19cd96c5f4560ed572b7f7d1580ebf07920c",
+    "implementationDigestSha256": "07d6d60c5a10a9404e536df31aa348d500730ac2402075d708971403d2b6b90a",
+    "jobId": 134817574566,
+    "result": "PASS: bounded source inventory, configure/build, fast vectors, and required CLI regressions completed successfully.",
+    "disposition": "The fast-parity component of P8-F is satisfied for this digest; the macOS focused-native receipt remains pending."
+  },
   "pending": [
-    "Commit and push the digest refresh and preflight; rerun focused native qualification on this exact digest and require sealed receipts on Linux, macOS, and Windows.",
-    "Run the fast parity selectors on the same stabilized digest before reclosing P8-F; do not run the broad suite or extended fuzz lane for this metadata/workflow repair.",
-    "Finish the current-source P8-A package matrix on Linux, macOS, and Windows; the c77cad11 Linux shared/static jobs passed and its Windows shared build/install step passed, while remaining jobs were still running at receipt creation."
+    "Retry macOS focused-native qualification for digest 07d6d60c5a10a9404e536df31aa348d500730ac2402075d708971403d2b6b90a and require its sealed receipt before closing P8-F."
   ],
   "limits": [
     "The digest refresh is repository-integrity evidence, not a support qualification.",

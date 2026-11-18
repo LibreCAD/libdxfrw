@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8a-cross-platform-package-qualification-2026-11-18",
+  "date": "2026-11-18",
+  "title": "Cross-platform shared and static package qualification",
+  "status": "P8_A_CLOSED_PACKAGE_INPUTS_QUALIFIED_ALL_PLATFORMS",
+  "supportClaimEffect": "none",
+  "gateEffect": "P8-A CLOSED for the pinned package-input set. Shared/static installation and relocation pass on Linux, macOS, and Windows; the macOS profile was run from the current candidate commit and the Linux/Windows profile inputs are proven identical.",
+  "candidate": {
+    "currentCommit": "ac9b19cd96c5f4560ed572b7f7d1580ebf07920c",
+    "implementationDigestSha256": "07d6d60c5a10a9404e536df31aa348d500730ac2402075d708971403d2b6b90a",
+    "packageInputDigest": {
+      "algorithm": "sha256(sorted path NUL git-blob-id LF records)",
+      "fileCount": 226,
+      "sha256": "08c340c1cda84d8d69254e3352393e7350496b50bb5650c89d30dac57e5c6bcd",
+      "pathSet": [
+        ".github/workflows/shared-abi-qualification.yml",
+        "CMakeLists.txt",
+        "cmake/**",
+        "libdxfrw.pc.in",
+        "libdxfrw_sources.cmake",
+        "src/**",
+        "dwg2dxf/**",
+        "tools/probe_installed_package.py",
+        "tools/probe_shared_abi_package.py"
+      ]
+    }
+  },
+  "linuxWindowsHostedQualification": {
+    "runId": 44305850606,
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44305850606",
+    "testedCommit": "c77cad11dc73ad92644c851da9357252e98dd52d",
+    "packageInputDigest": "08c340c1cda84d8d69254e3352393e7350496b50bb5650c89d30dac57e5c6bcd",
+    "candidatePackageInputsIdentical": true,
+    "commitDifferencesOutsidePackageInputSet": [
+      ".github/workflows/build.yml",
+      "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+      "docs/research/p8-native-digest-preflight-refresh-2026-11-18.json",
+      "metadata/qualified-format-status-v1.json",
+      "tools/check_qualification_workflow.py"
+    ],
+    "linux": {
+      "jobId": 134807094635,
+      "result": "PASS: shared and static builds/installations, package inventory and relocation probes, plus installed CLI/runtime identity.",
+      "artifactId": 14428817292,
+      "artifactName": "shared-abi-linux-gcc-44305850606-1",
+      "artifactSha256": "f305fc2b2ad524edaf9506fb36e8d634475758aa4a82a87315e5f4d5b9a090ce"
+    },
+    "windows": {
+      "jobId": 134807094743,
+      "result": "PASS: shared DLL and static builds/installations, package inventory and relocation probes, installed CLI link/runtime identity.",
+      "artifactId": 14428762321,
+      "artifactName": "shared-abi-windows-msvc-44305850606-1",
+      "artifactSha256": "2d9da069f30f9b09c94c8028d18ee8030f81043f4c3e2d2089bb2c42cb2f0cbd"
+    }
+  },
+  "macosCurrentCandidateQualification": {
+    "testedCommit": "ac9b19cd96c5f4560ed572b7f7d1580ebf07920c",
+    "platform": "macOS 27.2.1 arm64",
+    "compiler": "Apple clang 21.0.0.21000334",
+    "cmake": "4.4.5",
+    "configuration": "Release; CMAKE_POLICY_VERSION_MINIMUM=3.5; docs and tests disabled; shared profile builds dxfrw and dwg2dxf; static profile builds dxfrw.",
+    "sourcePreparation": "Built from git archive of the pinned commit, excluding untracked worktree files.",
+    "shared": {
+      "result": "PASS",
+      "installedFiles": 30,
+      "relocatedFilesMatch": true,
+      "abiVersion2Rejected": true,
+      "abiVersion3Accepted": true,
+      "cliSha256": "831822fa961d731205a7c178130564991ebbc792c731aadb2bb1680f57f0c443",
+      "cliRelocatedExecution": true,
+      "cliUsageOutputObserved": true,
+      "cliExpectedAndActualExitCode": 1,
+      "knownLoaderOverrideVariablesCleared": true,
+      "loadedRuntimePath": "lib/libdxfrw.3.0.0.dylib",
+      "loadedRuntimeSha256": "806b40011315459dab17e05ccc390514f262f5e4a2daf76efd893aaeaa398c3e",
+      "installManifestSha256": "282ada4cc202721342b7987499b56789b388f38a67eacce04aefb68251743800"
+    },
+    "static": {
+      "result": "PASS",
+      "installedFiles": 26,
+      "relocatedFilesMatch": true,
+      "abiVersion2Rejected": true,
+      "abiVersion3Accepted": true,
+      "archivePath": "lib/libdxfrw.a",
+      "archiveSha256": "ad5ca5996a5b090166fb9ee4ed6233c94ea36c3c2eaaeedcf85362cfbb31dcd4",
+      "installManifestSha256": "cba074eb36e2c6671c6402f9d64d7bb9bff8670100ed285924c59ea677fbf157"
+    }
+  },
+  "queuedSupplementaryJob": {
+    "runId": 44305850606,
+    "jobId": 134835940788,
+    "name": "shared package / macos-clang",
+    "statusAtReceipt": "queued",
+    "disposition": "Not required for P8-A closure: current-candidate local macOS shared/static package receipts pass, and hosted Linux/Windows package inputs match the current candidate's 226-file package-input digest exactly."
+  },
+  "limitations": [
+    "This qualifies installation, package inventory, relocation, a minimal consumer, and the dwg2dxf usage launch path.",
+    "It does not establish complete C++ ABI compatibility or any DWG/DXF drawing-semantic support.",
+    "The macOS shared/static profile was run locally; Linux/Windows evidence is hosted CI for a package-input-identical commit."
+  ]
+}
