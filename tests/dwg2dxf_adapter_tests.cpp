@@ -2686,6 +2686,96 @@ public:
         return true;
     }
 
+    static bool layerStateSourceGraphControls(dx_iface& iface, dx_data& data) {
+        iface.cData = &data;
+        const auto qualified = [&]() { return iface.hasConsistentAc1024LayerStateSourceGraph(); };
+        if (!qualified()) { std::cerr << "source graph baseline failed\n"; return false; }
+        dx_iface other; other.cData = &data;
+        if (other.hasConsistentAc1024LayerStateSourceGraph()) return false;
+        const auto rejectAndRestore = [&](auto& field, const auto& bad) {
+            const auto saved = field;
+            field = bad;
+            const bool rejected = !qualified();
+            field = saved;
+            return rejected && qualified();
+        };
+        auto root = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
+            [](const DRW_Dictionary& d) { return d.handle == 0xd5u; });
+        auto state = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
+            [](const DRW_Dictionary& d) { return d.handle == 0x1b8u; });
+        auto record = std::find_if(data.xRecords.begin(), data.xRecords.end(),
+            [](const DRW_XRecord& r) { return r.handle == 0x249u; });
+        auto scale = std::find_if(data.scales.begin(), data.scales.end(),
+            [](const DRW_Scale& row) { return row.handle == 0x127u; });
+        auto app = std::find_if(data.appIds.begin(), data.appIds.end(),
+            [](const DRW_AppId& row) { return row.handle == 0x12u; });
+        if (root == data.dictionaries.end() || state == data.dictionaries.end()
+            || record == data.xRecords.end() || scale == data.scales.end()
+            || app == data.appIds.end() || root->m_entries.size() != 3u
+            || state->m_entries.empty() || record->m_handleValues.size() != 2u) return false;
+        if (!rejectAndRestore(root->m_entries[1].m_name, std::string("acad_layerstates"))
+            || !rejectAndRestore(root->m_entries[1].m_handle, std::uint32_t{0xedu})
+            || !rejectAndRestore(state->parentHandle, std::uint32_t{0xeeu})
+            || !rejectAndRestore(record->m_handleValues[0].second, std::uint32_t{0x11u})
+            || !rejectAndRestore(record->xDictHandle, std::uint32_t{0x24bu})
+            || !rejectAndRestore(scale->parentHandle, std::uint32_t{0x127u})
+            || !rejectAndRestore(app->name, std::string("OTHER"))) return false;
+        const auto badWire = [&](std::uint32_t handle, std::size_t bit, bool opaque) {
+            auto key = dx_data::StandardDwgFrameKey{data.importGeneration, handle};
+            auto standard = data.m_standardDwgObjectFrames.find(key);
+            auto scaleFrame = data.m_opaqueDwgSourceFrames.find(key);
+            DRW_UnsupportedObject* raw = opaque
+                ? (scaleFrame == data.m_opaqueDwgSourceFrames.end() ? nullptr : &scaleFrame->second)
+                : (standard == data.m_standardDwgObjectFrames.end() ? nullptr : &standard->second.raw);
+            if (!raw || bit / 8u >= raw->m_rawBytes.size()) return false;
+            auto& byte = raw->m_rawBytes[bit / 8u];
+            return rejectAndRestore(byte, static_cast<std::uint8_t>(byte ^ (0x80u >> (bit % 8u))));
+        };
+        if (!badWire(0xd5u, 859u, false) || !badWire(0xcu, 4597u, false)
+            || !badWire(0x249u, 248u, false) || !badWire(0x24bu, 80u, false)
+            || !badWire(0x127u, 49u, true)) return false;
+        auto captured = data.m_standardDwgObjectFrames.find({data.importGeneration, 0xd5u});
+        auto publication = iface.m_dwgLayerStateScalePublications.find(0x127u);
+        if (captured == data.m_standardDwgObjectFrames.end()
+            || publication == iface.m_dwgLayerStateScalePublications.end()) return false;
+        if (!rejectAndRestore(captured->second.sourceProfileBound, false)
+            || !rejectAndRestore(captured->second.publicationSeen, false)
+            || !rejectAndRestore(captured->second.publication.m_sourceMapOrdinal,
+                                 captured->second.publication.m_sourceMapOrdinal + 1u)
+            || !rejectAndRestore(captured->second.dictionaryMembership.m_complete, false)
+            || !rejectAndRestore(captured->second.textDecodeIssues, std::uint32_t{1u})
+            || !rejectAndRestore(publication->second.generation, data.importGeneration + 1u))
+            return false;
+        auto& pubOrdinal = captured->second.publication.m_sourceMapOrdinal;
+        auto& membershipOrdinal = captured->second.dictionaryMembership.m_sourceMapOrdinal;
+        const auto oldPubOrdinal = pubOrdinal;
+        const auto oldMembershipOrdinal = membershipOrdinal;
+        ++pubOrdinal;
+        ++membershipOrdinal;
+        const bool coupledOrdinalsRejected = !qualified();
+        pubOrdinal = oldPubOrdinal;
+        membershipOrdinal = oldMembershipOrdinal;
+        if (!coupledOrdinalsRejected || !qualified()) return false;
+        const auto duplicateScale = *scale;
+        data.scales.push_back(duplicateScale);
+        const bool duplicateScaleRejected = !qualified();
+        data.scales.pop_back();
+        if (!duplicateScaleRejected || !qualified()) return false;
+        auto layer = std::find_if(data.layers.begin(), data.layers.end(),
+            [](const DRW_Layer& row) { return row.handle == 0x10u; });
+        if (layer == data.layers.end()) return false;
+        auto duplicateLayer = *layer;
+        duplicateLayer.name = "other";
+        data.layers.push_back(duplicateLayer);
+        const bool duplicateLayerRejected = !qualified();
+        data.layers.pop_back();
+        if (!duplicateLayerRejected || !qualified()) return false;
+        data.dictionaries.push_back(*root);
+        const bool duplicateRejected = !qualified();
+        data.dictionaries.pop_back();
+        return duplicateRejected && qualified();
+    }
+
     static bool layerStateScaleClassContextControls(dx_iface& iface, dx_data& data) {
         iface.cData = &data;
         const auto key = dx_data::StandardDwgFrameKey{data.importGeneration, 0x127u};
@@ -60314,6 +60404,17 @@ bool physicalAc1021EmptyLayerStateRootAdmission(
     return true;
 }
 
+bool physicalAc1024LayerStatesSourceGraphContext(const std::filesystem::path& sourcePath) {
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false))
+        return fail("LayerStates source graph witness import failed");
+    if (!DxIfaceStandardDwgCaptureTestAccess::layerStateSourceGraphControls(reader, source))
+        return fail("LayerStates source graph controls failed");
+    std::cerr << "AC1024 LayerStates source graph mutation and retry controls passed.\n";
+    return true;
+}
+
 bool physicalAc1024LayerStatesAppIdContext(
         const std::filesystem::path& sourcePath) {
     dx_iface reader;
@@ -92380,6 +92481,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--ac1021-recompose-data-physical-output-readback")
         return physicalAc1021RecomposeDataOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--layerstates-ac1024-source-graph-context")
+        return physicalAc1024LayerStatesSourceGraphContext(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-appid-context")
         return physicalAc1024LayerStatesAppIdContext(argv[2]) ? 0 : 1;

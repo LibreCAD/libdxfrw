@@ -1,0 +1,66 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-layerstates-source-graph-context-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SOURCE_CONSISTENCY_ONLY_NO_OUTPUT_ADMISSION",
+  "supportClaimEffect": "none",
+  "baseCommit": "73ed9d9d",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false
+  },
+  "scope": "A private, disconnected AC1024 source-consistency predicate joins the original importing adapter and data, source-bound fixed-object frames and publication/membership identity, live graph and complete wire observers for seven dictionaries, two XRECORDs and 32 SCALEs, with same-read APPID and SCALE class predicates. It derives object identities from source edges, while retaining the independently observed role and field-shape constraints. It is not called by export admission.",
+  "files": {
+    "dwg2dxf/dx_iface.cpp": "74bb404a9582365d8dcdf56e70d594ced145ac4d7d4db74a2ed12a64b27d0a4c",
+    "dwg2dxf/dx_iface.h": "d7fe8c6ebc9eabcba4d3109c8a6d78df5cac8485c752a1a44e1e8efdee120e30",
+    "dwg2dxf/dx_layerstates_dwg_wire.h": "891646296ce71621a2f2a97a4d32d0442fdecf588c7957b64159bb97bd79d829",
+    "tests/dwg2dxf_adapter_tests.cpp": "7ddbf00ee7a091bff35b5a9c77cb0773215911c71af117464ee453c4edbc698b"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "buildResult": "PASS",
+    "executableSha256": "3e6f919b28b5dace2edc5195f741c9385f55ade5b27361456dd080f81763c650",
+    "selectors": [
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-source-graph-context tests/samples/AC1024/visualization_-_aerial.dwg",
+        "result": "PASS: original import qualifies; wrong adapter, graph field/target changes, five raw-wire corruptions, altered source publication/membership/text/generation, coupled publication and membership ordinal changes, duplicate SCALE, conflicting duplicate LAYER, and duplicate extension identity are rejected; each input is restored and retried on the same adapter/data.",
+        "log": "/private/tmp/layerstate-final-graph.log",
+        "logSha256": "f3a6e1298ff03d5be13e7169c397b17c67a3b371558a1b3d2d4caafbd049b0e9"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-appid-context tests/samples/AC1024/visualization_-_aerial.dwg",
+        "result": "PASS",
+        "log": "/private/tmp/layerstate-final-appid.log",
+        "logSha256": "c89d37ab1ba9dc11dabce449aacf9cc6cc847433963db6cad65da9a69ad890ae"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-scale-class-context tests/samples/AC1024/visualization_-_aerial.dwg",
+        "result": "PASS",
+        "log": "/private/tmp/layerstate-final-scale.log",
+        "logSha256": "01174540f2fc1010c924c56bf9296c8340f225957bc5694a8dc9e35a43c50dd2"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-fallback-refusal tests/samples/AC1024/visualization_-_aerial.dwg",
+        "result": "PASS",
+        "log": "/private/tmp/layerstate-final-fallback.log",
+        "logSha256": "d6edbc4f620305d5eb0df3324c3069f054f493b1c4222986ac9df60b1f95b5a4"
+      },
+      {
+        "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1024-output-readback tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+        "sourceSha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+        "result": "PASS: existing one-root ASCII/Binary readback, owner refusal and retry.",
+        "log": "/private/tmp/layerstate-final-one-root.log",
+        "logSha256": "13cd25ea00b6001bc760e2647286133b6b1270d5a6593c8ddb628e9a24bc5902"
+      }
+    ]
+  },
+  "limits": [
+    "Source-wire and typed model agreement is not independent producer-semantic qualification, and group 370 remains outside output admission.",
+    "The source graph is graph-derived but differently numbered source drawings have not been tested; no interoperability or broader version claim follows.",
+    "The NOD check proves the selected SCALELIST edge and complete source dictionary wire only, not other NOD targets.",
+    "No staged APPID identity, three-root output proof, complete full-file export or native semantic acceptance is established; the original aerial witness has a separate SUN owner obstruction.",
+    "No new external drawing fixture was added or committed."
+  ],
+  "independentReview": "Static review identified and verified bounds, source ordinal/location and membership binding, cross-family uniqueness and scope refinements; no remaining actionable issue was identified within the disconnected source-consistency scope."
+}

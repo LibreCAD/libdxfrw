@@ -4430,6 +4430,9 @@ private:
     // Source-only APPID dependency check; not an output admission proof.
     bool hasQualifiedDwgLayerStateAppId(std::uint32_t handle,
                                        std::string_view name) const noexcept;
+    // Source-only consistency for the witnessed AC1024 graph shape. It is
+    // deliberately disconnected from export admission and staged DXF output.
+    bool hasConsistentAc1024LayerStateSourceGraph() const noexcept;
     bool prepareDwgLayerStateOutput(DRW::Version targetVersion,
                                     bool debug) noexcept;
     bool isDwgLayerStateCompatibilityRecord(

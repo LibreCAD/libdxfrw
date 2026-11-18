@@ -38,6 +38,7 @@
 #include "dx_ac1027_material_wire.h"
 #include "dx_ac1027_layer_wire.h"
 #include "dx_raster_dwg_wire.h"
+#include "dx_layerstates_dwg_wire.h"
 #include "dx_mline_dictionary_source_live.h"
 #include "dx_sunstudy_dxf_profile.h"
 #include "dx_mline_layer_source_live.h"
@@ -38413,6 +38414,286 @@ bool dx_iface::hasQualifiedDwgLayerStateAppId(
     } catch (...) {
         return false;
     }
+}
+
+// Source consistency for the independently observed AC1024 graph shape. This
+// does not qualify producer semantics, unrelated NOD targets or staged output.
+bool dx_iface::hasConsistentAc1024LayerStateSourceGraph() const noexcept {
+    using K = dx_layerstates_dwg_wire::LinkKind;
+    if (!cData || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024 || !cData->importGeneration
+        || !hasCurrentDwgLayerControlSourceProof(*cData)) return false;
+    try {
+        const auto& data = *cData;
+        std::uint32_t control = 0u, extension = 0u;
+        if (!data.getLayerTableControlExtensionDictionary(control, extension)
+            || control == 0u || extension == 0u
+            || !data.hasNamedObjectDictionary || data.namedObjectDictionary.handle == 0u)
+            return false;
+        const auto dictionary = [&](std::uint32_t handle) -> const DRW_Dictionary* {
+            const DRW_Dictionary* found = handle == data.namedObjectDictionary.handle
+                ? &data.namedObjectDictionary : nullptr;
+            for (const auto& row : data.dictionaries) {
+                if (row.handle != handle) continue;
+                if (found) return nullptr;
+                found = &row;
+            }
+            return found;
+        };
+        const auto xrecord = [&](std::uint32_t handle) -> const DRW_XRecord* {
+            const DRW_XRecord* found = nullptr;
+            for (const auto& row : data.xRecords) {
+                if (row.handle != handle) continue;
+                if (found) return nullptr;
+                found = &row;
+            }
+            return found;
+        };
+        const auto* root = dictionary(extension);
+        const auto& nod = data.namedObjectDictionary;
+        if (!root || root->m_entries.size() != 3u
+            || root->m_entries[0].m_name != "ACAD_LAYERFILTERS"
+            || root->m_entries[1].m_name != "ACAD_LAYERSTATES"
+            || root->m_entries[2].m_name != "ACLYDICTIONARY") return false;
+        const auto filterHandle = root->m_entries[0].m_handle;
+        const auto stateHandle = root->m_entries[1].m_handle;
+        const auto companionHandle = root->m_entries[2].m_handle;
+        const auto* states = dictionary(stateHandle);
+        if (!states || states->m_entries.size() != 1u
+            || states->m_entries[0].m_name != "ACAD_VIEWS_RenderView") return false;
+        const auto primaryHandle = states->m_entries[0].m_handle;
+        const auto* primary = xrecord(primaryHandle);
+        if (!primary || primary->xDictHandle == 0u) return false;
+        const auto nestedDictionaryHandle = primary->xDictHandle;
+        const auto* nestedDictionary = dictionary(nestedDictionaryHandle);
+        if (!nestedDictionary || nestedDictionary->m_entries.size() != 1u
+            || nestedDictionary->m_entries[0].m_name != "AcadLayerStateAnnoScale") return false;
+        const auto nestedHandle = nestedDictionary->m_entries[0].m_handle;
+        const auto* nested = xrecord(nestedHandle);
+        if (!nested || nested->m_handleValues.size() != 1u
+            || nested->m_handleValues[0].first != 330) return false;
+        if (nod.m_entries.size() > 256u) return false;
+        std::uint32_t scaleListHandle = 0u;
+        for (const auto& item : nod.m_entries) {
+            if (asciiIdentifierEquals(item.m_name, "ACAD_SCALELIST")) {
+                if (scaleListHandle != 0u || item.m_name != "ACAD_SCALELIST") return false;
+                scaleListHandle = item.m_handle;
+            }
+        }
+        const auto* scaleList = dictionary(scaleListHandle);
+        if (!scaleList || scaleList->m_entries.size() != 32u
+            || nested->m_handleValues[0].second != scaleList->m_entries[0].m_handle)
+            return false;
+        std::set<std::uint32_t> selected{nod.handle, control, extension, filterHandle,
+            stateHandle, companionHandle, primaryHandle, nestedDictionaryHandle,
+            nestedHandle, scaleListHandle};
+        if (selected.size() != 10u || selected.count(0u) || selected.count(DRW::NoHandle))
+            return false;
+        const auto encodedLength = [](std::uint32_t value) noexcept {
+            unsigned length = 0u;
+            while (value) { ++length; value >>= 8u; }
+            return length;
+        };
+        const auto frame = [&](const DRW_TableEntry& model, int type)
+                -> const dx_data::StandardDwgObjectFrame* {
+            const auto key = dx_data::StandardDwgFrameKey{data.importGeneration, model.handle};
+            const auto at = data.m_standardDwgObjectFrames.find(key);
+            if (at == data.m_standardDwgObjectFrames.end()
+                || data.m_opaqueDwgSourceFrameIdentities.count(key) != 1u) return nullptr;
+            const auto& value = at->second;
+            const auto& pub = value.publication;
+            const auto ordinal = data.m_standardDwgObjectOrdinals.find(
+                {data.importGeneration, pub.m_sourceMapOrdinal});
+            const auto location = data.m_standardDwgObjectLocations.find(
+                {data.importGeneration, {pub.m_sourceOffsetSpace, pub.m_sourceOffset}});
+            if (ordinal == data.m_standardDwgObjectOrdinals.end()
+                || ordinal->second != model.handle
+                || location == data.m_standardDwgObjectLocations.end()
+                || location->second != model.handle) return nullptr;
+            if (value.generation != data.importGeneration || !value.payloadMatched
+                || !value.sourceProfileBound || !value.publicationSeen
+                || (type == dwgObjType::DICTIONARY && !value.membershipSeen)
+                || !value.hasNoObservedTextDecodeIssues()
+                || value.opaquePayload || !value.typedBaseline
+                || value.raw.m_handle != model.handle || value.raw.m_version != DRW::AC1024
+                || value.raw.m_objectType != type || value.raw.m_isEntity
+                || !pub.m_hasSourceLocation || pub.m_version != DRW::AC1024
+                || pub.m_handle != model.handle || pub.m_encodedType != type
+                || pub.m_resolvedType != type || pub.m_isEntity || pub.m_isCustomClass
+                || pub.m_classStreamOrdinal || pub.m_recordName != value.raw.m_recordName
+                || pub.m_className != value.raw.m_className || !pub.m_controlHandles.empty()
+                || pub.m_commonLinkEvidence != value.raw.m_commonLinkEvidence
+                || pub.m_commonHandleDataValidated != value.raw.m_commonHandleDataValidated
+                || pub.m_parentHandle != value.raw.m_parentHandle
+                || pub.m_reactorHandles != value.raw.m_reactorHandles
+                || pub.m_numReactors != value.raw.m_numReactors
+                || pub.m_xDictHandle != value.raw.m_xDictHandle
+                || pub.m_xDictFlag != value.raw.m_xDictFlag
+                || pub.m_sourceOffset != value.raw.m_objectOffset
+                || (pub.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+                    && pub.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+                || pub.m_carrier != DRW_DwgFramePublication::Carrier::TypedAndRaw
+                || !standardDwgModelsEqual(*value.typedBaseline, model, DRW::AC1024, type))
+                return nullptr;
+            return &value;
+        };
+        const auto checkDictionary = [&](std::uint32_t handle, std::uint32_t parent,
+                int hardOwner, const std::vector<std::pair<std::string, std::uint32_t>>& entries,
+                const std::vector<std::uint32_t>& reactors) {
+            const auto* model = dictionary(handle);
+            if (!model || model->parentHandle != parent || model->hardOwner != hardOwner
+                || model->cloning != 1 || model->reactorHandles != reactors
+                || model->m_entries.size() != entries.size()) return false;
+            for (std::size_t i = 0; i < entries.size(); ++i)
+                if (model->m_entries[i].m_name != entries[i].first
+                    || model->m_entries[i].m_handle != entries[i].second) return false;
+            if (handle != companionHandle && !model->extData.empty()) return false;
+            if (handle == companionHandle && (model->extData.size() != 2u
+                || !model->extData[0] || !model->extData[1]
+                || model->extData[0]->code() != 1001 || model->extData[1]->code() != 1000
+                || model->extData[0]->type() != DRW_Variant::STRING
+                || model->extData[1]->type() != DRW_Variant::STRING
+                || !model->extData[0]->content.s || !model->extData[1]->content.s
+                || *model->extData[0]->content.s != "ACAD"
+                || *model->extData[1]->content.s != "<All")) return false;
+            const auto* captured = frame(*model, dwgObjType::DICTIONARY);
+            if (!captured) return false;
+            const auto& membership = captured->dictionaryMembership;
+            const auto& pub = captured->publication;
+            if (!membership.m_complete || !membership.m_hasSourceLocation
+                || membership.m_version != DRW::AC1024
+                || membership.m_dictionaryHandle != handle
+                || membership.m_sourceOffset != pub.m_sourceOffset
+                || membership.m_sourceMapOrdinal != pub.m_sourceMapOrdinal
+                || membership.m_sourceOffsetSpace != pub.m_sourceOffsetSpace
+                || membership.m_entries.size() != entries.size()) return false;
+            for (std::size_t i = 0; i < entries.size(); ++i)
+                if (membership.m_entries[i].m_name != entries[i].first
+                    || membership.m_entries[i].m_handle != entries[i].second) return false;
+            return dx_layerstates_dwg_wire::observeDictionary(captured->raw, *model,
+                [this](std::uint32_t app, const std::string& name) noexcept {
+                    return hasQualifiedDwgLayerStateAppId(app, name);
+                }, [&](K kind, std::size_t index, std::uint8_t role, std::uint8_t length) noexcept {
+                    if (kind == K::Owner) {
+                        const unsigned expectedRole = handle == nestedDictionaryHandle ? 8u
+                            : (handle == filterHandle || handle == companionHandle) ? 12u : 4u;
+                        const unsigned expectedLength = handle == nestedDictionaryHandle ? 0u
+                            : (handle == filterHandle || handle == companionHandle) ? 1u
+                            : encodedLength(parent);
+                        return index == 0u && role == expectedRole && length == expectedLength;
+                    }
+                    if (kind == K::Reactor) return index == 0u && role == 4u
+                        && length == encodedLength(parent);
+                    return kind == K::Item && index < entries.size() && role == 2u
+                        && length == encodedLength(entries[index].second);
+                });
+        };
+        using Entry = std::pair<std::string, std::uint32_t>;
+        std::size_t nodNameBytes = 0u;
+        std::vector<Entry> nodEntries;
+        for (const auto& item : nod.m_entries) {
+            if (item.m_name.size() > 4096u - nodNameBytes) return false;
+            nodNameBytes += item.m_name.size();
+            nodEntries.emplace_back(item.m_name, item.m_handle);
+        }
+        std::vector<Entry> scales;
+        for (unsigned i = 0; i < 32u; ++i) {
+            std::string key;
+            key.push_back(static_cast<char>('A' + i / 10u));
+            key.push_back(static_cast<char>('0' + i % 10u));
+            const auto handle = scaleList->m_entries[i].m_handle;
+            if (!selected.insert(handle).second || handle == 0u || handle == DRW::NoHandle)
+                return false;
+            scales.emplace_back(key, handle);
+        }
+        if (!checkDictionary(nod.handle, 0u, 0, nodEntries, {})
+            || !checkDictionary(extension, control, 1, {{"ACAD_LAYERFILTERS",filterHandle},
+                {"ACAD_LAYERSTATES",stateHandle},{"ACLYDICTIONARY",companionHandle}}, {})
+            || !checkDictionary(stateHandle, extension, 0, {{"ACAD_VIEWS_RenderView",primaryHandle}}, {extension})
+            || !checkDictionary(filterHandle, extension, 0, {}, {extension})
+            || !checkDictionary(companionHandle, extension, 0, {}, {extension})
+            || !checkDictionary(nestedDictionaryHandle, primaryHandle, 1,
+                {{"AcadLayerStateAnnoScale",nestedHandle}}, {})
+            || !checkDictionary(scaleListHandle, nod.handle, 0, scales, {nod.handle})) return false;
+        const auto checkXrecord = [&](std::uint32_t handle, std::uint32_t parent,
+                                      std::uint32_t xdict) {
+            const auto* model = xrecord(handle);
+            if (!model || model->parentHandle != parent || model->xDictHandle != xdict
+                || model->reactorHandles != std::vector<std::uint32_t>{parent}
+                || !model->extData.empty() || !model->appData.empty()
+                || model->m_rawDataValid || model->m_cloning != 1) return false;
+            const auto* captured = frame(*model, dwgObjType::XRECORD);
+            if (!captured) return false;
+            return dx_layerstates_dwg_wire::observeXrecord(captured->raw, *model,
+                [&, handle, parent](K kind, std::size_t index, std::uint8_t role, std::uint8_t length) noexcept {
+                    if (index != 0u) return false;
+                    if (kind == K::Owner) return handle == nestedHandle
+                        ? role == 8u && length == 0u : role == 12u && length == 1u;
+                    if (kind == K::Reactor) return role == 4u && length == encodedLength(parent);
+                    return kind == K::XDictionary && handle == primaryHandle && role == 3u && length == encodedLength(xdict);
+                });
+        };
+        if (!primary || !nested || primary->m_dataEntries.size() != 11u
+            || primary->m_handleValues.size() != 2u
+            || primary->m_handleValues[0].first != 330 || primary->m_handleValues[1].first != 331
+            || nested->m_dataEntries.size() != 1u
+            || nested->m_handleValues[0].second != scales[0].second
+            || !checkXrecord(primaryHandle,stateHandle,nestedDictionaryHandle)
+            || !checkXrecord(nestedHandle,nestedDictionaryHandle,0u)) return false;
+        const int codes[] = {91,301,290,302,330,90,62,370,331,1,92};
+        for (std::size_t i = 0; i < 11u; ++i)
+            if (primary->m_dataEntries[i].code() != codes[i]) return false;
+        if (nested->m_dataEntries[0].code() != 330) return false;
+        const auto matchesHandle = [](const DRW_Variant& value, std::uint32_t handle) {
+            return value.type() == DRW_Variant::INTEGER64
+                && value.i64_val() >= 0 && static_cast<std::uint64_t>(value.i64_val()) == handle;
+        };
+        if (!matchesHandle(primary->m_dataEntries[4], primary->m_handleValues[0].second)
+            || !matchesHandle(primary->m_dataEntries[8], primary->m_handleValues[1].second)
+            || !matchesHandle(nested->m_dataEntries[0], nested->m_handleValues[0].second))
+            return false;
+        const auto layerHandle = primary->m_handleValues[0].second;
+        const auto ltypeHandle = primary->m_handleValues[1].second;
+        if (!layerHandle || !ltypeHandle || layerHandle == DRW::NoHandle
+            || ltypeHandle == DRW::NoHandle || !selected.insert(layerHandle).second
+            || !selected.insert(ltypeHandle).second) return false;
+        const DRW_Layer* layer = nullptr;
+        for (const auto& row : data.layers) if (row.handle == layerHandle) {
+            if (layer) return false;
+            layer = &row;
+        }
+        const DRW_LType* ltype = nullptr;
+        for (const auto& row : data.lineTypes) if (row.handle == ltypeHandle) {
+            if (ltype) return false;
+            ltype = &row;
+        }
+        if (!layer || layer->name != "0" || layer->parentHandle != control
+            || !ltype || ltype->name != "Continuous") return false;
+        if (data.scales.size() != scales.size()) return false;
+        for (unsigned i = 0; i < 32u; ++i) {
+            const auto handle = scales[i].second;
+            const DRW_Scale* model = nullptr;
+            for (const auto& row : data.scales) {
+                if (row.handle != handle) continue;
+                if (model) return false;
+                model = &row;
+            }
+            const auto at = data.m_opaqueDwgSourceFrames.find({data.importGeneration, handle});
+            if (!model || model->parentHandle != scaleListHandle
+                || model->reactorHandles != std::vector<std::uint32_t>{scaleListHandle}
+                || at == data.m_opaqueDwgSourceFrames.end()
+                || !dx_layerstates_dwg_wire::observeScale(at->second, *model,
+                    [this](const DRW_UnsupportedObject& raw) noexcept {
+                        return hasQualifiedDwgLayerStateScaleClass(raw);
+                    }, [&, i](K kind, std::size_t index, std::uint8_t role, std::uint8_t length) noexcept {
+                        if (index != 0u) return false;
+                        if (kind == K::Owner) return i == 0u ? role == 8u && length == 0u
+                                                               : role == 12u && length == 1u;
+                        return kind == K::Reactor && role == 4u && length == encodedLength(scaleListHandle);
+                    })) return false;
+        }
+        return true;
+    } catch (...) { return false; }
 }
 
 bool dx_iface::prepareDwgLayerStateOutput(
