@@ -10,7 +10,8 @@ public:
     auto it = d.m_standardDwgObjectFrames.find({d.importGeneration, h});
     return it == d.m_standardDwgObjectFrames.end() ? nullptr : &it->second.raw;
   }
-  static bool frameBound(const dx_data &d, std::uint32_t h) {
+  static bool frameBound(const dx_data &d, std::uint32_t h,
+                         int objectType = 42) {
     auto key = dx_data::StandardDwgFrameKey{d.importGeneration, h};
     auto it = d.m_standardDwgObjectFrames.find(key);
     if (d.importGeneration == 0u ||
@@ -21,9 +22,19 @@ public:
     const auto &raw = frame.raw;
     return frame.payloadMatched && frame.typedBaseline &&
            !frame.opaquePayload && raw.m_handle == h &&
-           raw.m_version == DRW::AC1024 && raw.m_objectType == 42 &&
+           raw.m_version == DRW::AC1024 && raw.m_objectType == objectType &&
            !raw.m_isEntity && !raw.m_hasDataStorage &&
            raw.m_objectSize == raw.m_rawBytes.size();
+  }
+  static const DRW_UnsupportedObject *opaque(const dx_data &d,
+                                             std::uint32_t h) {
+    auto key = dx_data::StandardDwgFrameKey{d.importGeneration, h};
+    auto it = d.m_opaqueDwgSourceFrames.find(key);
+    return d.importGeneration == 0u ||
+                   d.m_opaqueDwgSourceFrameIdentities.count(key) != 1u ||
+                   it == d.m_opaqueDwgSourceFrames.end()
+               ? nullptr
+               : &it->second;
   }
   static const DRW_AppId *app(const dx_data &d, std::uint32_t h) {
     auto it = d.m_standardDwgAppIdSources.find({d.importGeneration, h});
@@ -56,7 +67,8 @@ bool observeDictionary(const dx_data &data, const DictExpectation &expected,
       !typed->appData.empty() || typed->cloning != 1 ||
       typed->hardOwner != expected.hardOwner ||
       typed->m_entries.size() != expected.items.size() ||
-      typed->reactorHandles.size() != (expected.handle == 0xD5u ? 0u : 1u))
+      typed->reactorHandles.size() !=
+          ((expected.handle == 0xD5u || expected.handle == 0x24Au) ? 0u : 1u))
     return false;
   for (std::size_t i = 0; i < expected.items.size(); ++i)
     if (typed->m_entries[i].m_name != expected.items[i].first ||
@@ -139,7 +151,8 @@ bool observeDictionary(const dx_data &data, const DictExpectation &expected,
   const auto ownerStart = wire.pos;
   const auto owner = detail::handle(wire, 4u, expected.handle);
   if (!wire.good || owner.role != expected.ownerRole ||
-      owner.value != expected.parent || wire.pos != ownerStart + 16u)
+      owner.value != expected.parent ||
+      wire.pos != ownerStart + (expected.ownerRole == 8u ? 8u : 16u))
     return false;
   if (verbose)
     std::cout << "dictionary=" << std::hex << expected.handle << std::dec
@@ -172,10 +185,11 @@ bool observeDictionary(const dx_data &data, const DictExpectation &expected,
       std::cout << " item=" << start << ":" << wire.pos << ":" << std::hex
                 << item.value << std::dec;
   }
-  const auto expectedEnd = expected.handle == 0xD5u    ? 930u
-                           : expected.handle == 0x1B8u ? 494u
-                           : expected.handle == 0xEEu  ? 92u
-                                                       : 206u;
+  const auto expectedEnd =
+      expected.handle == 0xD5u                                   ? 930u
+      : (expected.handle == 0x1B8u || expected.handle == 0x24Au) ? 494u
+      : expected.handle == 0xEEu                                 ? 92u
+                                                                 : 206u;
   if (wire.pos != expectedEnd)
     return false;
   const auto padding = wire.end - wire.pos;
@@ -207,7 +221,15 @@ bool testDictionaryFrames(const dx_data &data) {
        0,
        {{"ACAD_VIEWS_RenderView", 0x249u}}},
       {0xEEu, 0xD5u, 60u, 59u, 0u, 12u, 0, {}},
-      {0xEDu, 0xD5u, 174u, 173u, 0u, 12u, 0, {}}};
+      {0xEDu, 0xD5u, 174u, 173u, 0u, 12u, 0, {}},
+      {0x24Au,
+       0x249u,
+       462u,
+       67u,
+       378u,
+       8u,
+       1,
+       {{"AcadLayerStateAnnoScale", 0x24Bu}}}};
   for (const auto &profile : profiles) {
     const auto *raw =
         DxIfaceStandardDwgCaptureTestAccess::frame(data, profile.handle);
@@ -218,9 +240,12 @@ bool testDictionaryFrames(const dx_data &data) {
     std::vector<std::pair<const char *, std::uint32_t>> mutations{
         {"body", profile.bodyFieldsEnd - 2u},
         {"footer", profile.bodyEnd - 1u},
-        {"owner-role", profile.bodyEnd + 1u},
-        {"owner-target", profile.bodyEnd + 15u}};
-    if (profile.handle != 0xD5u) {
+        {"owner-role", profile.bodyEnd + 1u}};
+    if (profile.handle != 0x24Au)
+      mutations.emplace_back("owner-target", profile.bodyEnd + 15u);
+    else
+      mutations.emplace_back("self-handle-relative-owner-base", 25u);
+    if (profile.handle != 0xD5u && profile.handle != 0x24Au) {
       mutations.emplace_back("reactor-role", profile.bodyEnd + 17u);
       mutations.emplace_back("reactor-target", profile.bodyEnd + 31u);
     }
@@ -291,6 +316,226 @@ bool testDictionaryFrames(const dx_data &data) {
     std::cout << "dictionary-negative=extra-handle-byte handle=" << std::hex
               << profile.handle << std::dec << " rejected=1\n";
   }
+  return true;
+}
+
+bool observeNestedXrecord(const dx_data &data,
+                          const std::vector<std::uint8_t> &bytes,
+                          std::uint32_t handleBits, bool verbose) {
+  using namespace dx_raster_wire;
+  const DRW_XRecord *record = nullptr;
+  for (const auto &row : data.xRecords)
+    if (row.handle == 0x24Bu) {
+      if (record)
+        return false;
+      record = &row;
+    }
+  if (!record ||
+      !DxIfaceStandardDwgCaptureTestAccess::frameBound(data, 0x24Bu, 79u) ||
+      record->parentHandle != 0x24Au || record->xDictHandle != 0u ||
+      !record->appData.empty() || !record->extData.empty() ||
+      record->reactorHandles != std::vector<std::uint32_t>{0x24Au} ||
+      record->m_rawDataValid || record->m_cloning != 1 ||
+      record->m_dataEntries.size() != 1u ||
+      record->m_dataEntries[0].code() != 330 ||
+      record->m_dataEntries[0].type() != DRW_Variant::INTEGER64 ||
+      record->m_dataEntries[0].i64_val() != 0x127 ||
+      record->m_handleValues.size() != 1u ||
+      record->m_handleValues[0] != std::make_pair(330, 0x127u) ||
+      bytes.empty() || bytes.size() > 1024u || handleBits >= bytes.size() * 8u)
+    return false;
+  const auto total = static_cast<std::uint32_t>(bytes.size() * 8u);
+  const auto bodyEnd = total - handleBits;
+  if (bodyEnd != 148u)
+    return false;
+  detail::Bits body{bytes.data(), 0u, bodyEnd};
+  const auto tag = body.take(2u);
+  const auto type = tag == 0u   ? body.take(8u)
+                    : tag == 1u ? body.take(8u) + 0x1f0u
+                                : body.little(2u);
+  const auto self = detail::handle(body, 0u, 0u, true);
+  if (!body.good || type != 79u || self.value != 0x24Bu ||
+      body.shortValue() != 0u || body.longValue() != 1u ||
+      body.take(1u) != 1u || body.longValue() != 10u)
+    return false;
+  const auto dataStart = body.pos;
+  if (dataStart != 57u || body.little(2u) != 330u || body.little(8u) != 0x127u)
+    return false;
+  const auto dataEnd = body.pos;
+  if (dataEnd != 137u || body.shortValue() != 1u || !body.good ||
+      body.pos != bodyEnd - 1u)
+    return false;
+  detail::Bits presence{bytes.data(), bodyEnd - 1u, bodyEnd};
+  if (presence.take(1u) != 0u || !presence.good)
+    return false;
+  detail::Bits wire{bytes.data(), bodyEnd, total};
+  const auto ownerStart = wire.pos;
+  const auto owner = detail::handle(wire, 4u, 0x24Bu);
+  if (!wire.good || owner.role != 8u || owner.value != 0x24Au ||
+      wire.pos != 156u)
+    return false;
+  const auto ownerEnd = wire.pos;
+  const auto reactor = detail::handle(wire, 4u, 0x24Bu);
+  if (!wire.good || reactor.role != 4u || reactor.value != 0x24Au ||
+      wire.pos != 180u)
+    return false;
+  const auto terminal = wire.pos;
+  if (wire.end - wire.pos >= 8u || !wire.skip(wire.end - wire.pos))
+    return false;
+  if (verbose)
+    std::cout << "xrecord=24b body=0:" << bodyEnd - 1u << " data=" << dataStart
+              << ":" << dataEnd << " presence=" << bodyEnd - 1u << ":"
+              << bodyEnd << " owner=" << ownerStart << ":" << ownerEnd
+              << " role=8 target=24a"
+              << " reactor=" << ownerEnd << ":" << terminal
+              << " role=4 target=24a"
+              << " padding=" << terminal << ":" << wire.end << "\n";
+  return true;
+}
+
+bool testNestedXrecord(const dx_data &data) {
+  const auto *raw = DxIfaceStandardDwgCaptureTestAccess::frame(data, 0x24Bu);
+  if (!raw ||
+      !observeNestedXrecord(data, raw->m_rawBytes, raw->m_bodyBitSize, true))
+    return false;
+  // Exact bit locations are fixed after a successful observation.
+  for (const auto &mutation : std::vector<std::pair<const char *, unsigned>>{
+           {"self", 25u},
+           {"eed", 34u},
+           {"xdict-flag", 46u},
+           {"byte-count", 56u},
+           {"data-group", 58u},
+           {"data-target", 80u},
+           {"cloning", 146u},
+           {"presence", 147u},
+           {"owner-role", 149u},
+           {"reactor-role", 157u},
+           {"reactor-target", 179u}}) {
+    auto changed = raw->m_rawBytes;
+    changed[mutation.second / 8u] ^=
+        static_cast<std::uint8_t>(1u << (7u - mutation.second % 8u));
+    if (observeNestedXrecord(data, changed, raw->m_bodyBitSize, false) ||
+        !observeNestedXrecord(data, raw->m_rawBytes, raw->m_bodyBitSize, false))
+      return false;
+    std::cout << "xrecord-negative=" << mutation.first
+              << " bit=" << mutation.second << " rejected=1 retry=1\n";
+  }
+  auto truncated = raw->m_rawBytes;
+  truncated.pop_back();
+  if (raw->m_bodyBitSize < 8u ||
+      observeNestedXrecord(data, truncated, raw->m_bodyBitSize - 8u, false) ||
+      !observeNestedXrecord(data, raw->m_rawBytes, raw->m_bodyBitSize, false))
+    return false;
+  auto appended = raw->m_rawBytes;
+  appended.push_back(0u);
+  if (observeNestedXrecord(data, appended, raw->m_bodyBitSize + 8u, false))
+    return false;
+  std::cout << "xrecord-negative=truncated-handle-stream rejected=1 retry=1\n"
+            << "xrecord-negative=extra-handle-byte rejected=1\n";
+  return true;
+}
+
+bool observeScale(const dx_data &data, const std::vector<std::uint8_t> &bytes,
+                  std::uint32_t handleBits, bool verbose) {
+  using namespace dx_raster_wire;
+  const auto *raw = DxIfaceStandardDwgCaptureTestAccess::opaque(data, 0x127u);
+  const DRW_Scale *typed = nullptr;
+  for (const auto &row : data.scales)
+    if (row.handle == 0x127u) {
+      if (typed)
+        return false;
+      typed = &row;
+    }
+  if (!raw || !typed || raw->m_handle != 0x127u || raw->m_objectType != 512 ||
+      raw->m_version != DRW::AC1024 || raw->m_recordName != "SCALE" ||
+      raw->m_className != "AcDbScale" || raw->m_isEntity ||
+      raw->m_hasDataStorage || raw->m_objectSize != raw->m_rawBytes.size() ||
+      typed->parentHandle != 0x126u || typed->xDictHandle != 0u ||
+      typed->reactorHandles != std::vector<std::uint32_t>{0x126u} ||
+      !typed->appData.empty() || !typed->extData.empty() || typed->flag != 0u ||
+      typed->name != "1:1" || typed->paperUnits != 1.0 ||
+      typed->drawingUnits != 1.0 || !typed->isUnitScale || bytes.empty() ||
+      bytes.size() > 1024u || handleBits >= bytes.size() * 8u)
+    return false;
+  const auto total = static_cast<std::uint32_t>(bytes.size() * 8u);
+  const auto bodyEnd = total - handleBits;
+  if (bodyEnd != 129u)
+    return false;
+  detail::Bits body{bytes.data(), 0u, bodyEnd};
+  const auto tag = body.take(2u);
+  const auto type = tag == 0u   ? body.take(8u)
+                    : tag == 1u ? body.take(8u) + 0x1f0u
+                                : body.little(2u);
+  const auto self = detail::handle(body, 0u, 0u, true);
+  if (!body.good || type != 512u || self.value != 0x127u ||
+      body.shortValue() != 0u || body.longValue() != 1u ||
+      body.take(1u) != 1u || body.shortValue() != 0u || body.take(2u) != 1u ||
+      body.take(2u) != 1u || body.take(1u) != 1u || !body.good ||
+      body.pos != 54u)
+    return false;
+  detail::Bits text{bytes.data(), 54u, 112u};
+  if (text.shortValue() != 3u || text.little(2u) != '1' ||
+      text.little(2u) != ':' || text.little(2u) != '1' || !text.good ||
+      text.pos != text.end)
+    return false;
+  detail::Bits footer{bytes.data(), 112u, 128u};
+  detail::Bits presence{bytes.data(), 128u, 129u};
+  if (footer.little(2u) != 58u || !footer.good || presence.take(1u) != 1u ||
+      !presence.good)
+    return false;
+  detail::Bits wire{bytes.data(), bodyEnd, total};
+  const auto owner = detail::handle(wire, 4u, 0x127u);
+  if (!wire.good || owner.role != 8u || owner.value != 0x126u ||
+      wire.pos != 137u)
+    return false;
+  const auto reactor = detail::handle(wire, 4u, 0x127u);
+  if (!wire.good || reactor.role != 4u || reactor.value != 0x126u ||
+      wire.pos != 161u)
+    return false;
+  if (wire.end - wire.pos >= 8u || !wire.skip(wire.end - wire.pos))
+    return false;
+  if (verbose)
+    std::cout << "scale=127 body=0:54 strings=54:112 footer=112:129 "
+                 "owner=129:137 role=8 target=126 reactor=137:161 role=4 "
+                 "target=126 padding=161:168\n";
+  return true;
+}
+bool testScale(const dx_data &data) {
+  const auto *raw = DxIfaceStandardDwgCaptureTestAccess::opaque(data, 0x127u);
+  if (!raw || !observeScale(data, raw->m_rawBytes, raw->m_bodyBitSize, true))
+    return false;
+  for (const auto &mutation : std::vector<std::pair<const char *, unsigned>>{
+           {"self", 25u},
+           {"flag", 48u},
+           {"paper-unit", 49u},
+           {"drawing-unit", 51u},
+           {"unit-flag", 53u},
+           {"name", 71u},
+           {"footer", 128u},
+           {"owner-role", 130u},
+           {"reactor-role", 138u},
+           {"reactor-target", 160u}}) {
+    auto changed = raw->m_rawBytes;
+    changed[mutation.second / 8u] ^=
+        static_cast<std::uint8_t>(1u << (7u - mutation.second % 8u));
+    if (observeScale(data, changed, raw->m_bodyBitSize, false) ||
+        !observeScale(data, raw->m_rawBytes, raw->m_bodyBitSize, false))
+      return false;
+    std::cout << "scale-negative=" << mutation.first
+              << " bit=" << mutation.second << " rejected=1 retry=1\n";
+  }
+  auto truncated = raw->m_rawBytes;
+  truncated.pop_back();
+  if (raw->m_bodyBitSize < 8u ||
+      observeScale(data, truncated, raw->m_bodyBitSize - 8u, false) ||
+      !observeScale(data, raw->m_rawBytes, raw->m_bodyBitSize, false))
+    return false;
+  auto appended = raw->m_rawBytes;
+  appended.push_back(0u);
+  if (observeScale(data, appended, raw->m_bodyBitSize + 8u, false))
+    return false;
+  std::cout << "scale-negative=truncated-handle-stream rejected=1 "
+               "retry=1\nscale-negative=extra-handle-byte rejected=1\n";
   return true;
 }
 
@@ -461,5 +706,6 @@ int main(int argc, char **argv) {
   std::cout << "negative=truncated rejected=" << truncated << "\n";
   const bool retry = check(original, 174u);
   std::cout << "corrected_retry=" << retry << "\n";
-  return !truncated || !retry || !testDictionaryFrames(data);
+  return !truncated || !retry || !testDictionaryFrames(data) ||
+         !testNestedXrecord(data) || !testScale(data);
 }

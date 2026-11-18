@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Probe four hash-bound AC1024 LayerStates dictionaries; never enables output.
+"""Probe hash-bound AC1024 LayerStates graph records; no output admission.
 
 Requires the local AC1024 corpus file and a LibreDWG 0.14 -v4 trace. The
 probe is local research evidence, not a portable qualification or a fixture.
@@ -57,6 +57,11 @@ def main():
         "0.1.EE": (
             "bitsize: 60", "has_strings: 0", "ownerhandle: (12.1.19) abs:D5",
             "reactors[0]: (4.1.D5) abs:D5", "numitems: 0"),
+        "0.2.24A": (
+            "bitsize: 462", "data_size: 378/0x17a", "EED[0] size: 0", "num_reactors: 0",
+            "is_xdic_missing: 1", "numitems: 1", "cloning: 1", "is_hardowner: 0x1",
+            "ownerhandle: (8.0.0) abs:249", 'texts[0]: "AcadLayerStateAnnoScale"',
+            'itemhandles[0]: (2.2.24B) abs:24B'),
         "0.1.ED": (
             "bitsize: 174", "has_strings: 0", "ownerhandle: (12.1.18) abs:D5",
             "reactors[0]: (4.1.D5) abs:D5", "numitems: 0"),
@@ -73,6 +78,30 @@ def main():
         for token in tokens:
             if token not in peer_object:
                 raise SystemExit("independent dictionary evidence missing: " + handle + " " + token)
+    scale_handle = text.find("handle: 0.2.127 [H 5]")
+    scale_start = text.rfind("< Next object:", 0, scale_handle)
+    scale_end = text.find("< Next object:", scale_handle)
+    if scale_handle < 0 or scale_start < 0 or scale_end < 0:
+        raise SystemExit("independent SCALE object boundaries are missing")
+    scale_section = text[scale_start:scale_end]
+    for token in ("Add object SCALE", "Type: 512", "bitsize: 129", "data_size: 58/0x3a",
+                  "EED[0] size: 0", "num_reactors: 1", "is_xdic_missing: 1",
+                  "ownerhandle: (8.0.0) abs:126", "reactors[0]: (4.2.126) abs:126",
+                  'flag: 0', 'name: "1:1"', 'paper_units: 1', 'drawing_units: 1',
+                  'is_unit_scale: 1'):
+        if token not in scale_section:
+            raise SystemExit("independent SCALE evidence missing: " + token)
+    xr_handle = text.find("handle: 0.2.24B [H 5]")
+    xr_start = text.rfind("< Next object:", 0, xr_handle)
+    xr_end = text.find("< Next object:", xr_handle)
+    if xr_handle < 0 or xr_start < 0 or xr_end < 0:
+        raise SystemExit("independent nested XRECORD boundaries are missing")
+    xr_section = text[xr_start:xr_end]
+    for token in ("Decode object XRECORD", "bitsize: 148", "has_strings: 0",
+                  "ownerhandle: (8.0.0) abs:24A", "reactors[0]: (4.2.24A) abs:24A",
+                  "xdata_size: 10", "xdata[0] type: 330", "xdata[0]: 127", "cloning: 1"):
+        if token not in xr_section:
+            raise SystemExit("independent nested XRECORD evidence missing: " + token)
     app_handle = text.find("handle: 0.1.12 [H 5]")
     app_start = text.rfind("< Next object:", 0, app_handle)
     app_end = text.find("< Next object:", app_handle)

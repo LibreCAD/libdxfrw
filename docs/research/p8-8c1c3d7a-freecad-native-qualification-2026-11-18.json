@@ -28,7 +28,7 @@
       {"platform": "macos-clang", "result": "CANCELLED after queuing; no focused test or sealed receipt", "jobId": 134915900084}
     ],
     "broadAndFuzz": "Skipped as planned.",
-    "macosRetry": {"jobId": 134927564189, "statusAtReceipt": "QUEUED", "result": "No result or sealed receipt yet."},
+    "macosRetry": {"jobId": 134927564189, "statusAtReceipt": "CANCELLED", "result": "Cancelled while queued; no runner, test result or sealed receipt."},
     "gateEffect": "P8-F remains open until the exact implementation digest has a sealed passing macOS focused receipt and a passing fast profile, with branch policy rechecked."
   },
   "fastParity": {

@@ -100,11 +100,11 @@
     "candidate": "dx_raster_wire::detail::eed in dwg2dxf/dx_raster_dwg_wire.h yields bounded APPID role/handle and exact EED item spans, including R2007+ UTF-16; inspectEed/captureEed in dx_iface.cpp show typed token matching and source-name dependency binding.",
     "criticalGaps": [
       "Integrate the exact-witness UTF-16 byte comparison and unique, unchanged APPID 0x12 source-name binding into the production profile with an appropriately source-bound read context; the research probe alone cannot qualify output.",
-      "Integrate and independently review the four-frame source-bound observer and refusal/retry controls in the production profile; standalone research spans alone do not authorize output.",
-      "Prove the existing XRECORD 0x249, extension dictionary 0x24A, nested XRECORD 0x24B, SCALE 0x127 and complete rooted ACAD_SCALELIST dependencies, as well as downstream source-session/projection evidence; four dictionaries alone are insufficient.",
+      "Integrate and independently review the five-frame source-bound dictionary observer and refusal/retry controls in the production profile; standalone research spans alone do not authorize output.",
+      "Prove primary XRECORD 0x249 and complete rooted ACAD_SCALELIST dictionary/32 scale dependencies, source-session/projection evidence and output remapping; observed nested dictionary 0x24A, XRECORD 0x24B and one SCALE 0x127 do not establish that graph.",
       "Unknown body, string or handle tails must remain refused, with malformed/truncated EED, wrong APPID/roles/targets, destination preservation and same-adapter retry controls."
     ],
-    "currentResult": "The bounded research probe matches the exact four dictionary body, EED, UTF-16 string, footer and ordered handle spans and roles against the live typed capture and independent LibreDWG trace. This remains separate from production output, whole-frame-baseline rechecks, the nested XRECORD/SCALE graph, end-to-end export rollback/retry and native consumer semantics. No guard or support claim is changed."
+    "currentResult": "Standalone probes match five dictionaries, nested XRECORD 0x24B and SCALE 0x127 body/string/handle spans against live typed capture and the pinned independent LibreDWG trace. This remains separate from production output, immutable baseline rechecks, primary XRECORD 0x249, all SCALELIST edges, end-to-end export rollback/retry and native consumer semantics. No guard or support claim is changed."
   },
   "limitations": [
     "Trace and raw-frame observer describe this one exact physical witness; they do not establish broad producer or version support.",
@@ -115,9 +115,9 @@
   ],
   "boundedEedProbe": {
     "runner": "tools/research/probe_ac1024_layerstates_eed.py",
-    "runnerSha256": "3aa222cdfc5292442419ebda47b97f8cab4ec15062bc6093b80ea992b3430520",
+    "runnerSha256": "b6fcd5153e10fc0fa22520286ca875f5d7936904023133787ebb42e07f78e544",
     "source": "tools/research/probe_ac1024_layerstates_eed.cpp",
-    "sourceSha256": "6589bc487d99758f42c4db8457dacece851759808fbef7e33333794a229216c0",
+    "sourceSha256": "82eccd7bf66fbd4f133e672ede62a84197bfb1dab337ebf447d0f5b4b339f040",
     "command": "python3 tools/research/probe_ac1024_layerstates_eed.py tests/samples/AC1024/visualization_-_aerial.dwg /private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg-trace.log",
     "result": "PASS: source and peer trace SHA-256 guard, independently decoded APPID 0x12 name ACAD and EED fields, matching live typed EED values, APPID role/handle/name and source-name snapshot, token spans and UTF-16 text bytes. Wrong handle role, wrong APPID, changed text, unknown code, and truncated EED are rejected; corrected retry succeeds. Hash guard rejects incorrect source and trace.",
     "spans": {
@@ -132,11 +132,11 @@
   "boundedDictionaryProbe": {
     "command": "python3 tools/research/probe_ac1024_layerstates_eed.py tests/samples/AC1024/visualization_-_aerial.dwg /private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg-trace.log",
     "source": "tools/research/probe_ac1024_layerstates_eed.cpp",
-    "sourceSha256": "6589bc487d99758f42c4db8457dacece851759808fbef7e33333794a229216c0",
+    "sourceSha256": "82eccd7bf66fbd4f133e672ede62a84197bfb1dab337ebf447d0f5b4b339f040",
     "runner": "tools/research/probe_ac1024_layerstates_eed.py",
-    "runnerSha256": "3aa222cdfc5292442419ebda47b97f8cab4ec15062bc6093b80ea992b3430520",
+    "runnerSha256": "b6fcd5153e10fc0fa22520286ca875f5d7936904023133787ebb42e07f78e544",
     "build": "The runner builds libdxfrw_test_adapter, then compiles a scratch executable with -Wall -Wextra -pedantic -Werror and links it to the built adapter and libdxfrw.",
-    "result": "PASS: captured raw bodies, detached UTF-16 names, string presence/size footer and ordered handle streams agree with the typed unique dictionaries and the independently decoded LibreDWG 0.14 trace. Four source frames are tested; this is a standalone research observer and does not relax any output guard.",
+    "result": "PASS: captured raw bodies, detached UTF-16 names, string presence/size footer and ordered handle streams agree with the typed unique dictionaries and the independently decoded LibreDWG 0.14 trace. Five source frames are tested; this is a standalone research observer and does not relax any output guard.",
     "bitSpans": {
       "0xD5": {
         "body": "0..59",
@@ -174,10 +174,20 @@
         "owner": "174..190 [role 12 -> 0xD5]",
         "reactor": "190..206 [role 4 -> 0xD5]",
         "padding": "206..208"
+      },
+      "0x24A": {
+        "body": "0..67",
+        "strings": "67..445 (AcadLayerStateAnnoScale)",
+        "footer": "445..462",
+        "owner": "462..470 [role 8 -> 0x249]",
+        "items": [
+          "470..494 [role 2 -> 0x24B]"
+        ],
+        "padding": "494..496"
       }
     },
-    "negativeControls": "44 dictionary mutations covering body, string byte, footer, owner/reactor/item role and target, inserted extra body bit, truncated handle stream and extra handle byte are rejected; original-byte retries succeed for all but the appended-byte case. The extra-body-bit mutation changes the declared body endpoint and is rejected by the fixed-profile endpoint check; it does not independently prove that an otherwise accepted length cannot hide a body gap. Separately, existing EED role/target/text/code/truncation controls pass. These are research-observer controls, not file-export destination or adapter retry tests.",
-    "outputLogSha256": "a5de30fae12ffdb55361f5d7b307d336acea14d7d3380ed7b5bef0620efeaab0",
+    "negativeControls": "54 dictionary mutations covering body, string byte, footer, owner/reactor/item role and target, inserted extra body bit, truncated handle stream and extra handle byte are rejected; original-byte retries succeed for all but the appended-byte case. The extra-body-bit mutation changes the declared body endpoint and is rejected by the fixed-profile endpoint check; it does not independently prove that an otherwise accepted length cannot hide a body gap. Separately, existing EED role/target/text/code/truncation controls pass. These are research-observer controls, not file-export destination or adapter retry tests.",
+    "outputLogSha256": "5472c995ffc4902f1a5247fb39acfb82ab444de7e830d808613f9c0b7f756f7e",
     "formatReference": {
       "title": "Open Design Specification for .dwg files v5.4.1",
       "localReference": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
@@ -187,6 +197,45 @@
         "20.4.44"
       ]
     },
-    "limits": "Fixed source hash and one exact graph only. The nested XRECORD 0x249 -> extension dictionary 0x24A -> XRECORD 0x24B -> SCALE 0x127 and rooted ACAD_SCALELIST dependencies are outside this observer; no full-profile graph closure or native LayerStates behavior is established. The live typed dictionary is checked against raw and peer; its captured typed baseline is checked for presence but not separately compared."
+    "limits": "Fixed source hash and one exact graph only. The primary XRECORD 0x249 and full ACAD_SCALELIST dependencies remain outside the dictionary observer. Separate research probes examine 0x24B and SCALE 0x127 but do not establish whole graph or native behavior. The live typed dictionary is checked against raw and peer; its captured typed baseline is checked for presence but not separately compared."
+  },
+  "boundedNestedXrecordProbe": {
+    "command": "python3 tools/research/probe_ac1024_layerstates_eed.py tests/samples/AC1024/visualization_-_aerial.dwg /private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg-trace.log",
+    "source": "tools/research/probe_ac1024_layerstates_eed.cpp",
+    "sourceSha256": "82eccd7bf66fbd4f133e672ede62a84197bfb1dab337ebf447d0f5b4b339f040",
+    "runner": "tools/research/probe_ac1024_layerstates_eed.py",
+    "runnerSha256": "b6fcd5153e10fc0fa22520286ca875f5d7936904023133787ebb42e07f78e544",
+    "independentReference": "Pinned LibreDWG 0.14 source trace and Open Design Specification v5.4.1 \u00a720.4.104; no claim about generic XRECORD support.",
+    "result": "PASS for one AC1024 nested XRECORD 0x24B: unique captured type 79 frame matches its live typed object, source owner/reactor and group-330 reference; observer requires exact body/data/terminal spans and independently checks the peer trace.",
+    "bitSpans": {
+      "commonAndPrefix": "0..57",
+      "data": "57..137, 16-bit group 330 followed by 64-bit little-endian value 0x127",
+      "cloning": "137..147",
+      "noStringBit": "147..148",
+      "owner": "148..156 [relative role 8 -> 0x24A]",
+      "reactor": "156..180 [role 4 -> 0x24A]",
+      "padding": "180..184"
+    },
+    "negativeControls": "13 controls: raw self, EED flag, xdictionary flag, data byte count, group code, referenced target, cloning, no-string bit, owner role, reactor role and target, truncated handle stream, and appended handle byte; original-byte retries succeed except appended-byte test. This is not a fileExport sentinel or same-adapter retry.",
+    "limits": "The code-330 payload points to 0x127. A separate bounded observer checks that individual SCALE frame, but neither observer establishes output reference remapping, all 32 rooted SCALELIST entries or whole-file output; the primary XRECORD 0x249 remains unproven."
+  },
+  "boundedScaleProbe": {
+    "command": "python3 tools/research/probe_ac1024_layerstates_eed.py tests/samples/AC1024/visualization_-_aerial.dwg /private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg-trace.log",
+    "source": "tools/research/probe_ac1024_layerstates_eed.cpp",
+    "sourceSha256": "82eccd7bf66fbd4f133e672ede62a84197bfb1dab337ebf447d0f5b4b339f040",
+    "runner": "tools/research/probe_ac1024_layerstates_eed.py",
+    "runnerSha256": "b6fcd5153e10fc0fa22520286ca875f5d7936904023133787ebb42e07f78e544",
+    "independentReference": "Pinned LibreDWG 0.14 source trace and Open Design Specification v5.4.1 \u00a720.4.92; fixed one-witness source type and no generic SCALE claim.",
+    "result": "PASS for one AC1024 SCALE 0x127: its captured opaque source frame, live typed fields, ODA layout and independent peer trace agree for name, units, unit flag, owner and reactor.",
+    "bitSpans": {
+      "body": "0..54, includes BD values 1 and 1 plus unit-scale bit",
+      "strings": "54..112, UTF-16 1:1",
+      "footer": "112..129",
+      "owner": "129..137 [relative role 8 -> 0x126]",
+      "reactor": "137..161 [role 4 -> 0x126]",
+      "padding": "161..168"
+    },
+    "negativeControls": "12 controls reject mutated self, flag, paper units, drawing units, unit flag, name, footer, owner role, reactor role, reactor target, truncated handle stream, and appended handle byte. Original-byte retry is checked for all except appended-byte case. These are observer controls, not end-to-end export or destination-preservation checks.",
+    "limits": "One physical SCALE frame only. Captured raw metadata and live typed fields are matched, but this does not independently establish immutable same-import class-row binding or output remapping. Primary XRECORD 0x249, the 0x126 SCALELIST dictionary and the other 31 SCALE records remain outside this proof; no graph closure, native evaluation or general support is claimed."
   }
 }
