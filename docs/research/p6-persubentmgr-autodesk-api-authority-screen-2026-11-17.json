@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-persubentmgr-autodesk-api-authority-screen-2026-11-17",
+  "date": "2026-11-17",
+  "title": "PERSUBENTMGR Autodesk API authority screen",
+  "status": "API_SEMANTICS_ONLY_NO_DWG_BODY_SCHEMA",
+  "supportClaimEffect": "none",
+  "scope": "Determine whether official Autodesk API documentation supplies enough authority to interpret the remaining PERSUBENTMGR body and implement a typed graph route.",
+  "sources": [
+    {
+      "authority": "Autodesk AutoCAD 2024 Managed Reference Guide",
+      "title": "AssocPersSubentityIdPE Class",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_AssocPersSubentityIdPE.html",
+      "observation": "Documents the AcDbAssocPersSubentIdPE protocol extension for persistent querying and manipulation of entity subentities, including common entity types.",
+      "limitation": "Does not document AcDbPersSubentManager field order, DWG encoding, stored member arrays, owner/reactor roles, or dependency graph semantics."
+    },
+    {
+      "authority": "Autodesk AutoCAD 2027 AutoLISP Reference",
+      "title": "entmod Function",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/AutoCAD-AutoLISP-Reference/files/GUID-C7D27797-247E-49B9-937C-0D8C58F4C832.htm",
+      "observation": "Lists AcDbPersSubentManager with DXF class name ACDBPERSSUBENTMANAGER.",
+      "limitation": "The class-name mapping does not establish the class-specific DWG wire schema or graph closure."
+    }
+  ],
+  "existingEvidenceReused": [
+    "docs/research/p6-persubentmgr-acadsharp-cross-version-dxf-wire-conflict-2026-11-09.json",
+    "docs/research/p6-persubentmgr-libreDWG-v5-boundary-traces-2026-11-09.json",
+    "docs/research/p6-ac1024-persubentmgr-raw-only-shell-recovery-2026-11-09.json",
+    "docs/research/p6-ac1027-persubentmgr-raw-only-shell-recovery-2026-11-08.json",
+    "docs/research/p6-ac1032-persubentmgr-raw-only-shell-recovery-2026-11-07.json"
+  ],
+  "decision": "Official API documentation clarifies the persistent-subentity identification concept, but does not resolve the class-specific DWG field spans, nonzero member representation, or graph dependencies. The existing ACadSharp SAVEAS corpus and independent peer traces remain bounded/partial and already have receipts; do not repeat them or treat peer agreement as schema proof.",
+  "next": "Obtain one producer-bound AutoCAD/ObjectARX source containing a deliberately selected, nonzero persistent subentity path on a known 3DSOLID or REGION, with matching versioned DXF and close/reopen API state. Bind typed member fields, owner/reactors, dependent target identities, full body span, handle roles, and following-object boundary before adding typed output. Keep unknown tails raw and strict output refused until independent readback and native semantics pass.",
+  "codeChanged": false,
+  "testsRun": false,
+  "fixturesAdded": 0
+}
