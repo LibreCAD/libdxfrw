@@ -24,6 +24,7 @@ import warnings
 import zipfile
 from pathlib import Path, PurePosixPath
 from typing import Any
+from unittest.mock import patch
 
 import emit_native_qualification_receipt as receipt_tool
 import run_native_qualification as native_runner
@@ -175,11 +176,13 @@ def fetch_authenticated(url: str, token: str) -> bytes:
         url,
         headers={
             "Accept": "application/vnd.github+json",
-            "Authorization": "Bearer " + token,
             "X-GitHub-Api-Version": "2022-11-28",
             "User-Agent": "libdxfrw-qualification-verifier-v1",
         },
     )
+    # GitHub's artifact endpoint redirects to a signed storage URL. The
+    # bearer credential is for the initial GitHub API request only.
+    request.add_unredirected_header("Authorization", "Bearer " + token)
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
             return response.read()
@@ -737,6 +740,15 @@ def _rewrite_zip(source: Path, mutation: str) -> Path:
 
 
 def self_test() -> None:
+    with patch.object(urllib.request, "urlopen") as open_request:
+        open_request.return_value.__enter__.return_value.read.return_value = b"archive"
+        assert fetch_authenticated("https://api.github.com/artifact", "test-token") == b"archive"
+        initial = open_request.call_args.args[0]
+        assert initial.get_header("Authorization") == "Bearer test-token"
+        redirected = urllib.request.HTTPRedirectHandler().redirect_request(
+            initial, None, 302, "Found", {}, "https://storage.example/artifact.zip",
+        )
+        assert not redirected.has_header("Authorization")
     with tempfile.TemporaryDirectory(prefix="libdxfrw-api-receipt-") as directory:
         root = Path(directory)
         status, ref, claims, contract_path, schema_path, inputs_path = _fixture(root)
