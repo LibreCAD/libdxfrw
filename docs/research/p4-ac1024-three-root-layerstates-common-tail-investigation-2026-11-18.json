@@ -1,0 +1,131 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-three-root-layerstates-common-tail-investigation-2026-11-18",
+  "date": "2026-11-18",
+  "head": "8c1c3d7aec1599b952f25d0fd77dd8c73684065c",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false
+  },
+  "selector": {
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-xrecord-physical-source-admission tests/samples/AC1024/visualization_-_aerial.dwg",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "exitCode": 1,
+    "failure": "source-qualified AC1024 LayerStates group-370 profile was not queued for output",
+    "temporaryDebugDiagnostic": "LayerStates DWG output profile skipped: LAYER_CONTROL extension dictionary is outside its versioned LayerStates root profile",
+    "diagnosis": "The typed extension 0xD5 has a validated common-link-tail marker, but the existing three-root profile requires that marker to be false. Other checked root profile fields were printed and matched. The same false-marker restriction appears in fe603f3e, before the one-root change. Debug-only test modifications were restored and the adapter rebuilt.",
+    "comparison": "The older p4-ac1024-layerstates-xrecord-source-admission-2026-11-01.json reports this exact source hash and selector passed; the present failure supersedes its claim for the current head. The moment and cause of the marker change are not established."
+  },
+  "independentTrace": {
+    "tool": "LibreDWG dwgread 0.14",
+    "executable": "/opt/homebrew/bin/dwgread",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -v4 -O JSON -o /private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg.json tests/samples/AC1024/visualization_-_aerial.dwg > /private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg-trace.log 2>&1",
+    "exitCode": 0,
+    "traceSha256": "9bead9945a7e9b78c541e73d9ab4c0fe461c8e3ba4105e95bcd3103fe7f9603c",
+    "observed": [
+      {
+        "handle": "0xD5",
+        "kind": "DICTIONARY",
+        "bodyEndBits": 858,
+        "stringBits": 782,
+        "parent": "0x2",
+        "entries": [
+          [
+            "ACAD_LAYERFILTERS",
+            "0xEE"
+          ],
+          [
+            "ACAD_LAYERSTATES",
+            "0x1B8"
+          ],
+          [
+            "ACLYDICTIONARY",
+            "0xED"
+          ]
+        ],
+        "itemRole": "2"
+      },
+      {
+        "handle": "0x1B8",
+        "kind": "DICTIONARY",
+        "bodyEndBits": 438,
+        "stringBits": 346,
+        "parent": "0xD5",
+        "reactors": [
+          "0xD5"
+        ],
+        "entries": [
+          [
+            "ACAD_VIEWS_RenderView",
+            "0x249"
+          ]
+        ],
+        "itemRole": "2"
+      },
+      {
+        "handle": "0xEE",
+        "kind": "DICTIONARY",
+        "bodyEndBits": 60,
+        "parent": "0xD5",
+        "reactors": [
+          "0xD5"
+        ],
+        "entries": [],
+        "eed": "none"
+      },
+      {
+        "handle": "0xED",
+        "kind": "DICTIONARY",
+        "bodyEndBits": 174,
+        "parent": "0xD5",
+        "reactors": [
+          "0xD5"
+        ],
+        "entries": [],
+        "eed": "11-byte chunk; APPID handle 0x12, code 0 UTF-16 value <All"
+      },
+      {
+        "handle": "0x249",
+        "kind": "XRECORD",
+        "bodyEndBits": 684,
+        "parent": "0x1B8",
+        "hasExtensionDictionary": true
+      }
+    ]
+  },
+  "reuseAssessment": {
+    "candidate": "dx_raster_wire::detail::eed in dwg2dxf/dx_raster_dwg_wire.h yields bounded APPID role/handle and exact EED item spans, including R2007+ UTF-16; inspectEed/captureEed in dx_iface.cpp show typed token matching and source-name dependency binding.",
+    "criticalGaps": [
+      "Integrate the exact-witness UTF-16 byte comparison and unique, unchanged APPID 0x12 source-name binding into the production profile with an appropriately source-bound read context; the research probe alone cannot qualify output.",
+      "The complete dictionary body/string/handle/footer boundaries and role values must be independently proven for all four source frames, including the EED-bearing companion.",
+      "The existing XRECORD, extension dictionary and nested SCALE/ACAD_SCALELIST output closure require their own preserved evidence; raw parse success alone is insufficient.",
+      "Unknown body, string or handle tails must remain refused, with malformed/truncated EED, wrong APPID/roles/targets, destination preservation and same-adapter retry controls."
+    ],
+    "currentResult": "The bounded research probe proves this witness\u2019s EED UTF-16 bytes and APPID 0x12 name/role/handle against the live typed capture and independent LibreDWG trace. That evidence is not integrated into production and does not prove complete dictionary frames or graph closure. No guard is relaxed, and no whole-profile output or semantic claim is made."
+  },
+  "limitations": [
+    "Trace describes this exact physical witness only; raw source bytes and independent complete terminal-span agreement have not yet been recorded for all four frames.",
+    "The previous multi-root projected-output result is historical and does not pass on the current head.",
+    "This is a test-only projected profile, not whole-source or native consumer semantics.",
+    "No external drawing fixture was committed."
+  ],
+  "boundedEedProbe": {
+    "runner": "tools/research/probe_ac1024_layerstates_eed.py",
+    "runnerSha256": "52c8b564d12e912a61d2341a9748b356dd6d82333c729b14ca10ef1c29d81842",
+    "source": "tools/research/probe_ac1024_layerstates_eed.cpp",
+    "sourceSha256": "39e7c7ce8d69b0c68d03a21beb8e18e6a6797fa074d6c11bf42fb0fcc677597a",
+    "command": "python3 tools/research/probe_ac1024_layerstates_eed.py tests/samples/AC1024/visualization_-_aerial.dwg /private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg-trace.log",
+    "result": "PASS: source and peer trace SHA-256 guard, independently decoded APPID 0x12 name ACAD and EED fields, matching live typed EED values, APPID role/handle/name and source-name snapshot, token spans and UTF-16 text bytes. Wrong handle role, wrong APPID, changed text, unknown code, and truncated EED are rejected; corrected retry succeeds. Hash guard rejects incorrect source and trace.",
+    "spans": {
+      "bodyEnd": 174,
+      "eed": "26..142",
+      "appidToken": "36..52",
+      "textToken": "52..140",
+      "textValue": "60..140"
+    },
+    "limits": "This is source-specific EED byte and APPID-name evidence. It is not end-to-end export refusal/retry, a full DICTIONARY frame or dependency graph proof, a native consumer test, or a profile admission. The live typed dictionary was matched; its captured typed baseline was checked for presence but not independently compared."
+  }
+}
