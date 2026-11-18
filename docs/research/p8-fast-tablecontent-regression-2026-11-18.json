@@ -69,6 +69,55 @@
       "result": "PASS: workflow contract, Linux GCC, macOS Clang, and Windows MSVC focused qualification; broad and extended lanes skipped."
     }
   },
+  "currentWorkflow": {
+    "head": "d9a42111b3857e505693bd156b5717653749d292",
+    "fastRunId": 44281248757,
+    "fastRunUrl": "https://github.com/LibreCAD/libdxfrw/actions/runs/44281248757",
+    "fastStatusAtReceiptUpdate": "success",
+    "fastJob": {
+      "name": "fast-regressions",
+      "status": "success",
+      "completedSteps": [
+        "workflow setup",
+        "byte-stable checkout",
+        "source checkout",
+        "fixture policy",
+        "source inventory",
+        "ordinary regression configuration",
+        "bounded fast targets and source compatibility build",
+        "fast vectors and required CLI regressions"
+      ],
+      "conclusion": "All required fast-regression steps passed."
+    },
+    "nativeRunId": 44281248595,
+    "nativeRunUrl": "https://github.com/LibreCAD/libdxfrw/actions/runs/44281248595",
+    "nativeStatusAtReceiptUpdate": "success",
+    "nativeJobs": {
+      "workflowContract": "PASS",
+      "linuxGcc": "PASS",
+      "windowsMsvc": "PASS",
+      "macosClang": "PASS",
+      "broadAndExtendedFuzz": "skipped"
+    },
+    "checkRunSummary": {
+      "total": 8,
+      "success": [
+        "fast-regressions",
+        "qualification workflow contract",
+        "focused / linux-gcc",
+        "focused / macos-clang",
+        "focused / windows-msvc"
+      ],
+      "skipped": [
+        "source-release",
+        "final broad",
+        "extended deterministic fuzz"
+      ]
+    },
+    "implementationDigest": "5946b6c7aaaf2d8b8d829bd855a0aace6ed7c380fe5228b301c0458d7b2ab7f1",
+    "branchProtection": "The summary reports enforcement but no named required contexts; the detailed endpoint returned 403. Keep P8-F open pending a readable required-check policy.",
+    "interpretation": "Fast and all focused native platform checks are source-matched to the unchanged implementation digest. Broad and extended fuzz jobs were deliberately skipped; no support claim or package gate is promoted by these runs."
+  },
   "latestLocalCorrection": {
     "commit": "85876393",
     "scope": "Fix the exact generated-output graph profile and the aggregate-count assumption in its modeler consumer probe; no DWG byte parser or support claim changed.",
@@ -151,8 +200,8 @@
     "scope": "The 19 assertions came from incomplete semantic projection being published for inline AC1024 TABLECONTENT, null pointer fields being rejected, and the cell-style parser consuming border fields unconditionally despite the ODA override mask. The sparse-border vector also emitted fields not selected by its mask; it now follows ODA's conditional field order."
   },
   "nextAction": [
-    "Push commit 85876393, the refreshed metadata/qualified-format-status-v1.json digest, this receipt, and the updated plan to PR #106.",
-    "Inspect the single automatically triggered source-matched fast workflow. If it passes, close the P8-F fast blocker; if it fails, fix the exact new failure and keep P8-F open.",
+    "Obtain the required-check policy from an account authorized to read branch protection or from a repository maintainer; the code check-run results are already recorded above.",
+    "Keep P8-F open only while required-check names are unobservable. Do not rerun passing fast/native jobs unless implementation inputs change or a named required check reports a failure.",
     "Do not rerun the already-passing focused native or FreeCAD jobs unless the changed source/runtime can affect them; continue unrelated producer/authority acquisition."
   ],
   "limits": [
