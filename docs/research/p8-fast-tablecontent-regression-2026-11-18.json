@@ -2,16 +2,17 @@
   "schema": "libdxfrw-research-receipt-v1",
   "id": "p8-fast-tablecontent-regression-2026-11-18",
   "date": "2026-11-18",
-  "title": "Fast-regression failure in TABLE and TABLECONTENT DWG vectors",
-  "status": "FAILURE_REPRODUCED_ON_CURRENT_CANDIDATE",
+  "title": "Correct TABLE and TABLECONTENT DWG vector regressions",
+  "status": "LOCAL_CORRECTION_PASSED_HOSTED_FAST_CI_PENDING",
   "candidate": {
     "repository": "dxli/libdxfrw",
-    "commit": "f0f87e7f9f93a040e38da8ca6424ef55abcca76e",
+    "failureCommit": "f0f87e7f9f93a040e38da8ca6424ef55abcca76e",
+    "correctedCommit": "a6fd3de1",
     "pullRequest": "LibreCAD/libdxfrw#106"
   },
   "supportClaimEffect": "none",
-  "packageGateEffect": "P8-F remains open",
-  "activityLedgerEffect": "No new package gate closed; failure is the current P8-F blocker.",
+  "packageGateEffect": "P8-F remains open until the corrected source-matched fast workflow passes.",
+  "activityLedgerEffect": "One implementation slice completed; no package gate closed. Activity progress is 81/106 (76.4%); gate readiness is 8/33 (24.2%).",
   "workflow": {
     "name": "libdxfrw fast parity regressions",
     "runId": 44259323444,
@@ -28,7 +29,7 @@
   "failure": {
     "step": "Run fast vectors and required CLI regressions",
     "executable": "build/libdxfrw_dwg_object_vectors_tests",
-    "result": "19 assertion failures; the vector executable returned non-zero.",
+    "result": "Historical failure: 19 assertion failures; the vector executable returned non-zero. The same focused target passes locally after the correction below.",
     "assertionGroups": [
       "AC1021 TABLECONTENT: omitted content-format CMC and cell-style CMCs must remain semantically incomplete.",
       "AC1021 TABLECONTENT: skipping complete styled borders must preserve alignment.",
@@ -38,17 +39,48 @@
       "AC1024 TABLE: inverted, out-of-bounds, and overlapping merged ranges must withhold typed content and preserve cursor rollback."
     ]
   },
+  "localCorrection": {
+    "commit": "a6fd3de1",
+    "behavior": [
+      "AC1024 inline TABLECONTENT that parses but has incomplete semantics now leaves the validated entity prefix committed and rolls body/string/handle cursors back to the optional-content boundary.",
+      "Null references with no target are accepted as null while non-null references still require the exact expected handle role.",
+      "TABLECONTENT cell-style border payloads are read conditionally by ODA v5.4.1 §20.4.101.4 override bits; unknown override bits fail closed.",
+      "The generated sparse-border vector now encodes only the fields selected by its 0x22 lineweight/double-spacing override mask."
+    ],
+    "sourceEvidence": [
+      "ODA v5.4.1 §20.4.97 defines TABLECONTENT rows, cells, contents, attributes, and trailing fields.",
+      "ODA v5.4.1 §20.4.99 limits documented unit types to 0, 1, 2, 4, and 8; other scalar values remain semantically incomplete.",
+      "ODA v5.4.1 §20.4.101.4 places border fields under property-override bits: type 0x01, color 0x08, lineweight 0x02, linetype 0x04, invisibility 0x10, and double spacing 0x20.",
+      "ODA v5.4.1 §2.13 defines typed handle relation codes and their counters; the shared bounded-role helper in this source accepts zero-target null references without relaxing non-null role validation."
+    ],
+    "validation": {
+      "build": "cmake --build build --target libdxfrw_dwg_object_vectors_tests --parallel 8",
+      "buildResult": "PASS",
+      "directVector": "./build/libdxfrw_dwg_object_vectors_tests",
+      "directVectorResult": "PASS: DWG object vectors",
+      "owningSelector": "ctest --test-dir build -R dwg_object_vectors --output-on-failure",
+      "owningSelectorResult": "PASS: 1/1",
+      "buildInventory": "python3 -B tools/generate_build_inventory.py --check",
+      "buildInventoryResult": "PASS: 1,296 released files",
+      "implementationDigest": "132293d7850eadba1c6ad3b6845391c5a059e80b0301066e4d6381d645919913",
+      "implementationDigestInputCount": 733,
+      "implementationDigestProvenance": "Clean tracked clone at corrected implementation commit a6fd3de1; untracked local DWG/DXF samples excluded."
+    },
+    "nonValidation": [
+      "Hosted corrected-head fast workflow has not yet run.",
+      "No native or broad suite was repeated."
+    ]
+  },
   "sourceInspection": {
     "testFile": "tests/dwg_object_vectors_tests.cpp",
     "dispatchFile": "src/intern/dwgreader.cpp",
     "codecFile": "src/drw_objects.cpp",
-    "scope": "Generated vector expectations exercise semantic-completeness signaling, raw-only dispatch, optional-content cursor boundaries, and merged-range validation. The exact cause has not yet been determined; the failure may be implementation behavior or an expectation that no longer matches the admitted field model."
+    "scope": "The 19 assertions came from incomplete semantic projection being published for inline AC1024 TABLECONTENT, null pointer fields being rejected, and the cell-style parser consuming border fields unconditionally despite the ODA override mask. The sparse-border vector also emitted fields not selected by its mask; it now follows ODA's conditional field order."
   },
   "nextAction": [
-    "Reproduce only this vector target in the existing fast build profile and capture the actual parsed fields, completeness flags, and cursor at each failing assertion.",
-    "Compare each expected wire field with ODA v5.4.1 and the existing source-bound receipts before changing parsing; retain unknown or unproved CMC/value forms raw and fail closed.",
-    "Correct the narrow implementation defect or stale assertion group, then run the vector target and one source-matched fast-regression workflow. Do not rerun the already-passing focused native or FreeCAD jobs unless the changed source/runtime can affect them.",
-    "Continue unrelated producer/authority acquisition while this local vector diagnosis proceeds."
+    "Refresh metadata/qualified-format-status-v1.json against the corrected source digest, then push the implementation, metadata, updated receipt, and plan to PR #106.",
+    "Inspect the single automatically triggered source-matched fast workflow. If it passes, close the P8-F fast blocker; if it fails, fix the exact new failure and keep P8-F open.",
+    "Do not rerun the already-passing focused native or FreeCAD jobs unless the changed source/runtime can affect them; continue unrelated producer/authority acquisition."
   ],
   "limits": [
     "This generated-vector failure is not a producer-authored DWG witness and cannot establish wire semantics.",

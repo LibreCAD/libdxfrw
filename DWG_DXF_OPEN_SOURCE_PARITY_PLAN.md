@@ -15,7 +15,7 @@ The comparison baseline last checked on 2026-11-17 is libdxfrw
 integration or platform qualification.
 
 **Progress on 2026-11-18:** 8/33 package gates closed; 25 remain. The activity
-ledger is 80/105 (76.2%): eight closed gates and 72 completed implementation
+ledger is 81/106 (76.4%): eight closed gates and 73 completed implementation
 or research slices. Gate readiness is 24.2%; activity progress does not imply
 support. P8-B/C are closed only for the exact locally generated FreeCAD
 consumer profile in the [candidate qualification
@@ -24,21 +24,29 @@ The same source candidate passes seven focused native checks on Linux, macOS,
 and Windows. Native FreeCAD 1.1.4 passes 16/16 Linux and 17/17 Windows
 checks. These bounded results do not promote DWG/DXF support claims.
 
-The current source-matched fast workflow passes its source/build inventory and
-bounded target build, then fails 19 TABLE/TABLECONTENT assertions in
-`libdxfrw_dwg_object_vectors_tests`. This is the immediate actionable P8-F
-slice; the [failure receipt](docs/research/p8-fast-tablecontent-regression-2026-11-18.json)
-groups the assertions and defines the narrow repro. The upstream `master`
-branch object reports protection enabled and `required_status_checks` enforced
-for everyone, but returns no named contexts/checks; the detailed protection
-endpoint returns HTTP 403. Record that limit and do not block the local fix on
-another unchanged API read. The broad native suite and extended fuzz lane were
-skipped by the focused workflow and remain for one frozen integration pass.
+The previous source-matched fast run on `f0f87e7f` passed inventory/build setup
+and failed 19 TABLE/TABLECONTENT assertions. The narrow correction is committed
+as `a6fd3de1`: inline TABLE content with incomplete semantics now rolls back to
+the validated entity prefix; null references are kept distinct from malformed
+handle streams; styled-border fields are consumed only when their ODA
+v5.4.1 §20.4.101.4 override bits select them. The generated sparse-border
+vector now follows that conditional wire layout. The touched target and owning
+CTest selector pass locally. The implementation digest was refreshed to
+`132293d7850eadba1c6ad3b6845391c5a059e80b0301066e4d6381d645919913` from a
+clean tracked clone. The [fast-regression receipt](docs/research/p8-fast-tablecontent-regression-2026-11-18.json)
+retains the old hosted failure and records local correction evidence. P8-F is
+still open until the updated PR head passes its source-matched fast workflow.
+The upstream `master` branch object reports protection enabled and
+`required_status_checks` enforced for everyone, but returns no named
+contexts/checks; the detailed protection endpoint returns HTTP 403. Record
+that limit and do not block the local correction on another unchanged API
+read. The broad native suite and extended fuzz lane were skipped by the
+focused workflow and remain for one frozen integration pass.
 
-After the latest reported unlock, `screencapture` still fails and CoreGraphics
-reports zero active displays for this process. This does not establish the
-physical login state or capture permissions. Keep P8-D parked until the
-process sees an active display and capture succeeds; the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json)
+After the latest reported unlock, `screencapture -x` still exits 1 for this
+process. This does not establish the physical login state or capture
+permissions. Keep P8-D parked until the process sees an active display and
+capture succeeds; the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json)
 records the changed-state trigger. Recount after each committed slice or gate
 transition.
 
@@ -57,16 +65,15 @@ claims.
 
 ## Fast execution order
 
-The latest CI result exposes one ready local slice even though the waiting DWG
-profiles still lack new producer or authority evidence. Repair the observed
-fast regression first; continue independent witness acquisition while that
-focused diagnosis proceeds. A wait parks only its profile. Do not repeat
-unchanged scans, passing platform jobs, or probes that cannot establish
-support.
+The TABLE/TABLECONTENT correction and its focused local validation are done.
+The next action is the one source-matched fast workflow on the corrected PR
+head; continue independent witness acquisition while it runs. A wait parks
+only its profile. Do not repeat unchanged scans, passing platform jobs, or
+probes that cannot establish support.
 
 | Order | Packet | Gates | Fast path |
 |---|---|---|---|
-| 1 | Repair current fast regression | P8-F | Reproduce only `libdxfrw_dwg_object_vectors_tests` in the existing fast profile. Resolve the 19 TABLE/TABLECONTENT assertions in the [failure receipt](docs/research/p8-fast-tablecontent-regression-2026-11-18.json); verify each expected field against ODA v5.4.1 and linked source evidence before changing a parser. Build/run the owning vector target, then run the fast workflow once on the correction. |
+| 1 | Close corrected fast-regression CI | P8-F | Push the corrected source and refreshed implementation digest, then inspect the one automatically triggered `libdxfrw fast parity regressions` run. The vector target and its owning CTest selector already pass locally; do not repeat platform or broad suites. If CI finds a new failure, diagnose that exact assertion and preserve raw fallback, cursor rollback, and strict-output refusal. |
 | 2 | Batch native producer captures by exact release | P4-B/C; P5-B/D/E/F/G/H/I; P6-A/B/C | Use one producer session per required release/API state. Batch P5-B + P5-I only in the same AC1021/AutoCAD 2007 session; batch P5-D + P5-E/F and, if version/state match, P5-H/P6-A in AC1024; batch P4-C + P7-C only when using the same AC1027 producer path; batch P4-B + P6-B only if one AC1032 host can create both exact states. Keep P6-C's AutoCAD 2021 TABLECONTENT profile distinct. Record each artifact's producer, API state, hash, spans, roles, and semantic oracle separately. |
 | 3 | Resume source/authority waits only on new evidence | P5-G/I; P6-E/F/H; P7-C/D/G | Reuse existing receipts. Resume only on the exact missing input: dynamic-constraint model, independent TABLE spans, mesh-suffix authority/trace, eligible AC1012/AC1014 partial source, valid signed ODA macOS converter, versioned ACIS header map, or source-bound trimmed/periodic geometry. Do not repeat generic searches. |
 | 4 | Implement each admitted profile immediately | All source-backed gates | Once one profile has sufficient source spans, roles, and independent meaning, make one narrow change; run the owning fast selectors and touched-target build; prove fail-closed behavior, rollback, destination preservation, corrected same-object retry, strict output, and fresh independent readback. Do not wait for other profiles. |
@@ -129,11 +136,11 @@ failure that expands risk.
   observed failure and one changed-state trigger, mark only that profile
   waiting, and continue the next ready slice. Retry only after the trigger
   changes; do not repeat unchanged scans or controls.
-- For the current P8-F TABLE/TABLECONTENT failure, compare the parsed fields,
-  semantic-completeness flag, body cursor, and raw fallback with each failed
-  vector. If an expectation is stale, correct it with the relevant ODA/source
-  citation; if the parser is wrong, fix only the demonstrated boundary.
-  Preserve refusal, rollback, and raw retention.
+- For P8-F, the local TABLE/TABLECONTENT correction is complete. Push its
+  implementation digest and inspect the source-matched fast result. If CI
+  exposes another failure, compare parsed fields, semantic completeness, body
+  cursor, and raw fallback against ODA/source evidence; preserve refusal,
+  rollback, and raw retention.
 
 ### Slice, progress, and validation contract
 
@@ -150,8 +157,8 @@ failure that expands risk.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 33 package gates and each implementation/research slice once. The
-  current ledger is 72 completed slices plus 33 package gates = 105 counted
-  items; 8 gates plus 72 slices are complete (80/105, 76.2%). The Linux and
+  current ledger is 73 completed slices plus 33 package gates = 106 counted
+  items; 8 gates plus 73 slices are complete (81/106, 76.4%). The Linux and
   Windows FreeCAD results close P8-B/C only for their exact generated profile;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package
@@ -269,9 +276,9 @@ closure.
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation profiles stabilize. Reuse [macOS package evidence](docs/research/p8-macos-package-baseline-2026-11-17.json) only while its inputs match. | Record reproducible commands and immutable identities. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. |
-| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | After the user's latest reported unlock, `screencapture -x /private/tmp/libdxfrw-unlock-preflight-2026-11-18.png` still failed with “could not create image from display.” This does not establish physical login state or capture permissions. Launch Services cannot resolve either app; a LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`, and no LibreCAD_3 bundle was found. See the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). Do not retry until this process sees an active display and capture succeeds. | In one GUI session, launch LibreCAD 2 by its explicit bundle path and complete Move/Copy action-boundary, named-LTYPE save/reopen/render, and (if P6-H obtains a source-bound MLINE witness) MLINE display/edit/save/reopen. Then run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback if that app is available. This gate does not block Linux/Windows qualification. |
+| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | Following the latest unlock report, a fresh `screencapture -x` preflight still exited 1. This does not establish physical login state or capture permissions. Launch Services cannot resolve either app; a LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`, and no LibreCAD_3 bundle was found. See the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). Do not retry until this process sees an active display and capture succeeds. | In one GUI session, launch LibreCAD 2 by its explicit bundle path and complete Move/Copy action-boundary, named-LTYPE save/reopen/render, and (if P6-H obtains a source-bound MLINE witness) MLINE display/edit/save/reopen. Then run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback if that app is available. This gate does not block Linux/Windows qualification. |
 | P8-E / INTEGRATION_GATE | During the next required native Linux/Windows build, capture shared/static manifests, relocation, and loaded runtime identities. Reuse the [macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json); repeat macOS only if candidate inputs change. | Verify package contents and shared/static relocation for each platform. |
-| P8-F / WAITING_FOR_SOURCE_MATCHED_CI | Treat the corrected source inventory, 1,389-name CTest manifest, and implementation digest on `f0f87e7f` as frozen prerequisites; their receipts are references only. Focused native checks passed seven tests on Linux/macOS/Windows, and the FreeCAD platform result is in the [candidate receipt](docs/research/p8-candidate-native-freecad-qualification-2026-11-18.json). The only current fast repro is the 19 TABLE/TABLECONTENT vector failures in the [failure receipt](docs/research/p8-fast-tablecontent-regression-2026-11-18.json). The same receipt records the protected-master summary and the detail endpoint's 403. | Correct or justify the failing assertions, build/run the vector target, and rerun the fast workflow once. The branch object reported `protected=true`, enforcement `everyone`, and no named contexts/checks; do not infer more than this API result. Keep P8-F open until the fast blocker passes on the corrected source-matched candidate. |
+| P8-F / WAITING_FOR_SOURCE_MATCHED_CI | The 1,389-name CTest manifest and prior source inventory remain valid. The implementation digest is refreshed for the correction in `a6fd3de1`; the exact value and clean-clone provenance are recorded in the [fast-regression receipt](docs/research/p8-fast-tablecontent-regression-2026-11-18.json). Focused native checks passed seven tests on Linux/macOS/Windows, and the FreeCAD platform result is in the [candidate receipt](docs/research/p8-candidate-native-freecad-qualification-2026-11-18.json). The prior `f0f87e7f` fast failure is historical; the corrected vector and owning CTest selector pass locally. The candidate receipt records protected `master` with enforcement `everyone` but no named contexts/checks; its detailed protection endpoint returned 403. | Push the corrected head and inspect the single fast workflow result. Keep P8-F open until that run passes and the current source-matched native status/required-check state is sufficiently observable; do not infer named requirements from the empty context response. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 
 Keep consumer, source, and build receipts separate. Preserve LibreCAD's R13
