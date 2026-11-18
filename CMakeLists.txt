@@ -102,6 +102,7 @@ if(LIBDXFRW_BUILD_LIBRARY)
         # a distinct runtime name so an old executable cannot load it by name.
         set_target_properties(dxfrw PROPERTIES
             RUNTIME_OUTPUT_NAME "dxfrw-${PROJECT_VERSION_MAJOR}")
+        target_compile_definitions(dxfrw PRIVATE LIBDXFRW_DRW_DBG_EXPORTS=1)
     endif()
     target_compile_features(dxfrw PUBLIC cxx_std_17)
     target_compile_options(dxfrw PRIVATE ${LIBDXFRW_WARNING_FLAGS})

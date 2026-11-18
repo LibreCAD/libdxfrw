@@ -22,6 +22,18 @@
 #include "../drw_base.h"
 //#include <iomanip>
 
+// The debug wrappers are inline in this private header and read one shared
+// atomic when dwg2dxf links against a Windows DLL.  Export/import that data
+// explicitly: CMake's automatic symbol export does not reliably include
+// private static data members referenced from another image.
+#if defined(_WIN32) && defined(LIBDXFRW_DRW_DBG_EXPORTS)
+#define LIBDXFRW_DRW_DBG_DATA __declspec(dllexport)
+#elif defined(_WIN32) && defined(LIBDXFRW_DRW_DBG_IMPORTS)
+#define LIBDXFRW_DRW_DBG_DATA __declspec(dllimport)
+#else
+#define LIBDXFRW_DRW_DBG_DATA
+#endif
+
 #define DRW_DBGSL(a) DRW_dbg::getInstance()->setLevel(a)
 #define DRW_DBGGL DRW_dbg::getInstance()->getLevel()
 // These route through static dbg* wrappers (below). The macro ARGUMENT is
@@ -145,11 +157,12 @@ private:
     std::shared_ptr<DRW::DebugPrinter> printerSnapshot() const;
     // A relaxed hint only: printerSnapshot verifies the authoritative level
     // under stateMutex. No printer lifetime or publication depends on it.
-    static std::atomic<bool> s_enabled;
+    LIBDXFRW_DRW_DBG_DATA static std::atomic<bool> s_enabled;
     mutable std::mutex stateMutex;
     Level level{Level::None};
     std::shared_ptr<DRW::DebugPrinter> debugPrinter;
 };
 
+#undef LIBDXFRW_DRW_DBG_DATA
 
 #endif // DRW_DBG_H
