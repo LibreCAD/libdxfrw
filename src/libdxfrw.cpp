@@ -6645,6 +6645,21 @@ void dxfRW::setDxfClasses(std::vector<DRW_Class>&& classes) {
     m_dxfClassesFrozen = false;
 }
 
+bool dxfRW::dxfWriteClassMatches(const DRW_Class& expected) const noexcept {
+    if (writer == nullptr || !m_dxfClassesFrozen || m_writeError)
+        return false;
+    return std::any_of(m_dxfClasses.begin(), m_dxfClasses.end(),
+        [&expected](const DRW_Class& actual) {
+            return actual.recName == expected.recName
+                && actual.className == expected.className
+                && actual.appName == expected.appName
+                && actual.proxyFlag == expected.proxyFlag
+                && actual.instanceCount == expected.instanceCount
+                && actual.wasaProxyFlag == expected.wasaProxyFlag
+                && actual.entityFlag == expected.entityFlag;
+        });
+}
+
 bool dxfRW::preflightDxfClasses() {
     // R12 has no CLASSES section; retain the supplied metadata for a later
     // version rather than rejecting an otherwise valid legacy export.

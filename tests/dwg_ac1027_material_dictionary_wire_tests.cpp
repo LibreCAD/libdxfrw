@@ -1,5 +1,6 @@
 #include "dx_ac1027_material_wire.h"
 #include "dx_ac1024_renderglobal_wire.h"
+#include "dx_ac1024_mentalray_wire.h"
 #include "dx_ac1024_dictionaryvar_wire.h"
 #include "dx_ac1024_mlinestyle_wire.h"
 #include "dx_layerstates_dwg_wire.h"
@@ -480,9 +481,39 @@ bool checkAc1024RenderGlobalWire() {
   auto xt=xr;xt.m_rawBytes.pop_back();if(observeXrecord(xt,x))return false;
   return observeGlobal(gr,g)&&observeDictionary(dr,d)&&observeXrecord(xr,x);
 }
+bool checkAc1024MentalRayCompanionWire() {
+  BitWriter w;
+  const auto h=[](BitWriter& b,unsigned role,unsigned value,unsigned n) {
+    b.bits((role<<4u)|n,8u);for(unsigned i=n;i>0u;--i)b.bits((value>>((i-1u)*8u))&255u,8u);
+  };
+  w.bits(0u,2u);w.bits(79u,8u);h(w,0u,0x1ceu,2u);w.bits(2u,2u);
+  w.longValue(1u);w.bits(1u,1u);w.longValue(12u);
+  for(unsigned i=0;i<3u;++i){w.little16(static_cast<std::uint16_t>(70u+i));w.little16(i==0u?2u:i==1u?4u:0u);}
+  w.shortValue(1u);w.bits(0u,1u);h(w,8u,0u,0u);h(w,4u,0x1cdu,2u);w.bits(15u,4u);
+  if(w.size()!=200u)return false;
+  DRW_UnsupportedObject raw;raw.m_version=DRW::AC1024;raw.m_objectType=79;raw.m_handle=0x1ceu;
+  raw.m_parentHandle=0x1cdu;raw.m_numReactors=1;raw.m_reactorHandles={0x1cdu};raw.m_xDictFlag=1u;
+  raw.m_commonHandleDataValidated=true;raw.m_commonLinkEvidence=DRW_DwgCommonLinkEvidence::Validated;
+  raw.m_objectSize=25u;raw.m_bodyBitSize=36u;raw.m_rawBytes=std::move(w).take();
+  DRW_XRecord source;source.handle=0x1ceu;source.parentHandle=0x1cdu;source.m_cloning=1;
+  source.reactorHandles={0x1cdu};source.setDwgCommonObjectState(1,1u,false);source.setDwgCommonLinkTailValidated(true);
+  for(int i=0;i<3;++i){const int value=i==0?2:i==1?4:0;source.m_values.emplace_back(70+i,value);source.m_dataEntries.emplace_back(70+i,value);}
+  if(!dx_ac1024_mentalray_wire::observeXrecord(raw,source))return false;
+  for(std::size_t bit=0;bit<200u;++bit){auto bad=raw;bad.m_rawBytes[bit/8u]^=static_cast<std::uint8_t>(1u<<(7u-bit%8u));
+    if(dx_ac1024_mentalray_wire::observeXrecord(bad,source)||!dx_ac1024_mentalray_wire::observeXrecord(raw,source))return false;}
+  auto truncated=raw;truncated.m_rawBytes.pop_back();
+  auto edited=source;edited.m_values[1]=DRW_Variant(71,5);
+  return !dx_ac1024_mentalray_wire::observeXrecord(truncated,source)
+      && !dx_ac1024_mentalray_wire::observeXrecord(raw,edited)
+      && dx_ac1024_mentalray_wire::observeXrecord(raw,source);
+}
 } // namespace
 
 int main() {
+  if (!checkAc1024MentalRayCompanionWire()) {
+    std::cerr << "AC1024 MentalRay companion wire control failed\n";
+    return 1;
+  }
   if (!checkAc1024RenderGlobalWire()) {
     std::cerr << "AC1024 RENDERGLOBAL source wire control failed\n";
     return 1;

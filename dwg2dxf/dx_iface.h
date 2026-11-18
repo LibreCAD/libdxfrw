@@ -2532,31 +2532,25 @@ public:
             dxfW->writeRawDxfObject(nullptr);
             return;
         }
-        std::unordered_set<std::uint32_t> renderSettingsHandles;
-        for (std::uint32_t handle : m_extensionRenderSettingsHandles) {
-            if (cData->sourceFormat == dx_source_format::DWG) {
-                if (handle != 0x237u || m_extensionRenderSettingsHandles.size() != 1u
-                    || cData->renderSettings.size() != 1u
-                    || !hasQualifiedAc1024DwgRenderGlobal(*cData)) {
+        if (cData->sourceFormat == dx_source_format::DWG) {
+            if (!m_extensionRenderSettingsHandles.empty() && !writeDwgRenderSettings())
+                return;
+        } else {
+            std::unordered_set<std::uint32_t> renderSettingsHandles;
+            for (std::uint32_t handle : m_extensionRenderSettingsHandles) {
+                std::size_t matches = 0;
+                for (DRW_RawDxfObject& object : cData->rawRenderSettingsObjects) {
+                    if (object.handle != handle)
+                        continue;
+                    ++matches;
+                    if (!writeDxfRenderPreset(object))
+                        return;
+                }
+                if (matches != 1u
+                    || !renderSettingsHandles.insert(handle).second) {
                     dxfW->writeRawDxfObject(nullptr);
                     return;
                 }
-                if (!dxfW->writeRenderSettings(&cData->renderSettings.front(), "RENDERGLOBAL"))
-                    return;
-                continue;
-            }
-            std::size_t matches = 0;
-            for (DRW_RawDxfObject& object : cData->rawRenderSettingsObjects) {
-                if (object.handle != handle)
-                    continue;
-                ++matches;
-                if (!writeDxfRenderPreset(object))
-                    return;
-            }
-            if (matches != 1u
-                || !renderSettingsHandles.insert(handle).second) {
-                dxfW->writeRawDxfObject(nullptr);
-                return;
             }
         }
         objectWritePhase = "background objects";
@@ -4676,13 +4670,23 @@ private:
     bool hasUnchangedDxfRenderPresetSources() const noexcept;
     bool writeDxfRenderPreset(DRW_RawDxfObject& raw);
     bool inspectDxfRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
-    DwgClassObjectPublication m_dwgRenderGlobalPublication;
-    const dx_data* m_dwgRenderGlobalReadOwner{nullptr};
-    bool m_dwgRenderGlobalInspected{false};
+    std::array<DwgClassObjectPublication, 3> m_dwgRenderPublications;
+    std::array<std::vector<std::uint8_t>, 3> m_dwgRenderBodyBaselines;
+    const dx_data* m_dwgRenderReadOwner{nullptr};
+    bool m_dwgRenderSettingsInspected{false};
+    const DRW_UnsupportedObject* boundAc1024DwgRenderClass(
+        const dx_data& data, std::size_t index, DRW_Class* outputClass) const;
+    const DRW_UnsupportedObject* boundAc1024DwgRenderCompanion(
+        const dx_data& data, const DRW_TableEntry& live, int objectType) const;
     bool hasQualifiedAc1024DwgRenderGlobal(const dx_data& data,
                                           DRW_Class* outputClass = nullptr) const noexcept;
-    bool inspectDwgRenderGlobalOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
-    bool finalizeDwgRenderGlobalOutput() noexcept;
+    bool hasQualifiedAc1024DwgMentalRay(const dx_data& data,
+                                       DRW_Class* outputClass = nullptr) const noexcept;
+    bool hasQualifiedAc1024DwgRenderSelection(const dx_data& data,
+        DRW_Class* globalClass = nullptr, DRW_Class* mentalRayClass = nullptr) const noexcept;
+    bool writeDwgRenderSettings();
+    bool inspectDwgRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
+    bool finalizeDwgRenderSettingsOutput() noexcept;
     struct DxfCommonReferenceSource {
         enum Kind { Entity, Child, BlockBegin, BlockEnd, Raw } kind{Entity};
         const DRW_Entity* entity{nullptr};

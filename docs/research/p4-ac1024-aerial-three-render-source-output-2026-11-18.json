@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-three-render-source-output-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SELECTED_THREE_RENDER_SOURCE_AND_STAGED_GRAPH_VERIFIED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "bb02327526b7634c2bfc5d66e924d4ee760477da39a653c1e2021a79b808ad26",
+  "source": {
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "basis": "docs/research/p4-ac1024-aerial-mentalray-source-staging-and-render-class-2026-11-18.json",
+    "scope": "AC1024 named-object roots for RENDERGLOBAL 237, active MentalRay 1CC and MentalRay preset dictionary 255. Their graph includes extension dictionaries 251/1CD, XRECORDs 252/1CE and preset 256."
+  },
+  "implementation": {
+    "sourceBinding": "The original importer retains 731 render body bytes across three exact frames. Require unchanged bytes, same-attempt publications, unique original CLASSES rows and source locations, complete dictionary memberships, typed values and observed common links.",
+    "output": "Use the existing extended MentalRay writer and the positional Global writer. Preserve source class proxy flags 1024. Require frozen output class counts of one Global and two MentalRay instances. Compare staged owners, reactor scopes, exact ordered bodies, both object-owned XRECORDs, 360 hard ownership and 350 soft ownership, then recheck source and remapped ledger identities at finalization.",
+    "observerSha256": "2a07df092aa1258efadd25df18cab350e19d19cc13bbdc9f4494336def54cb81"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_ac1027_material_dictionary_wire_tests -j 3",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-selected-three-render-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "refusalRetry": "Seventeen faults per encoding preserve a seeded destination and allow corrected same-codec retry. They include both MentalRay output bodies, changed source scalars, coordinated same-length raw/model name edit, wrong dictionary role, swapped XRECORD handles, wrong CLASSES flags and early/late mutations of the five MentalRay and companion frames.",
+    "compatibility": "The Global-only and DICTIONARYVAR physical selectors pass. Four focused CTests pass for rendering capture and owner order, DICTIONARYVAR graph, and the generated dictionary-wire control.",
+    "wireTests": "The new generated XRECORD test mutates every captured body bit and tests typed edits and truncation. A scratch source observer rejected all 7232 single-bit corruptions across the five MentalRay and companion frames.",
+    "independentReadback": "ezdxf 1.4.5 verifies all three remapped roots, dictionary roles, object owners, reactors, payload and both CLASSES entries in ASCII and binary. All four strings per record match the original UTF-8 hashes and UTF-16 lengths. All twelve doubles per MentalRay record match the independent source decode bit-for-bit. Independent ODA DXF differs by up to six representable double steps on the four rounded contrast values per record.",
+    "productionPreflight": "The production render graph validator accepts the original drawing with its three selected render identities. A strict whole-drawing fileExport call on the untouched source still refuses the SUN owner mismatch from VIEW 242 through SUN 24C to parent XRECORD 246 and preserves the existing destination.",
+    "releaseInventory": "1316 files. The qualification overlay covers 739 selected inputs and advertises zero routes.",
+    "scratchRoot": "/private/tmp/libdxfrw-three-render-final.TYlVfD",
+    "sha256": {
+      "selected.cpp": "ba6334991521c0390690e97d69aaed6375d419b2d4cf9adce416f1d75d82cb2b",
+      "selected.log": "94ef2531b831e704e6bc42ff8adcc2e92d8072ddc153e7d95701e36ef7716e1b",
+      "peer.py": "12516675ce29e8a2b0d90909c18db63968abaa6440412c3d060734c8ce84169e",
+      "peer.log": "960677ae1240806444d33f73efa1e3b4bc530472f562db88cd4abfc22096e316",
+      "selected-ascii.dxf": "b32abb3171d22ca71abeba4ab0a871afbee25348d88e9e2ea46dd35559974651",
+      "selected-binary.dxf": "f746eb53053544669a50979ec008681f567e1dc1d983f5aa035756835214c874",
+      "official-three.log": "94ef2531b831e704e6bc42ff8adcc2e92d8072ddc153e7d95701e36ef7716e1b",
+      "official-global.log": "11a6cdb133da47c9ff83b1dc457d8e18da0a21d175a83e5f21f5c056f212f3fb",
+      "official-dictionaryvar.log": "9758a0e152539fdc77eff4d55d92a35b492751afcce22df818dc62b819eb987f",
+      "full-source.cpp": "478c144f9c8a5211205c419ac28dbe714d4684cd5b46d9cfad83a63d360246ba",
+      "full-source.log": "c512d7582f552d47a7ddc4b9c6d9c20a48105097b6724300f287936eb8e634e9",
+      "peer-global.log": "380e30555304f1ae4ba73dc69d2e2cc63367bafb835729f6c6fa5dac8c77b272"
+    }
+  },
+  "remaining": "Whole-file graph closure and native rendering remain open. The witnessed SUN links disagree on ownership, and the alternate sun demo's named SORTENTSTABLE needs native draw-order evidence and closure of all extension dictionary siblings before strict output admission."
+}

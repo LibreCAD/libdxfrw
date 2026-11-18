@@ -3465,7 +3465,7 @@ public:
         iface.m_extensionRenderSettingsHandles = {0x237u};
         iface.m_extensionDictionaryHandles = {0x251u};
         iface.m_extensionXRecordHandles = {0x252u};
-        iface.m_dwgRenderGlobalInspected = false;
+        iface.m_dwgRenderSettingsInspected = false;
         return iface.hasQualifiedAc1024DwgRenderGlobal(data);
     }
     static bool selectedRenderGlobalClass(const dx_iface& iface, const dx_data& data, DRW_Class& row) {
@@ -3473,17 +3473,37 @@ public:
     }
     static bool inspectSelectedRenderGlobal(dx_iface& iface,
             const dxfRW::DxfObjectsWriteView& view) {
-        return iface.inspectDwgRenderGlobalOutput(view)
+        return iface.inspectDwgRenderSettingsOutput(view)
             && iface.inspectGeneratedRootOutput(view)
             && iface.inspectStandardDwgOutput(view);
     }
     static bool finalizeSelectedRenderGlobal(dx_iface& iface) {
         return iface.finalizeStandardDwgOutputProofs()
             && iface.finalizeGeneratedRootOutput()
-            && iface.finalizeDwgRenderGlobalOutput();
+            && iface.finalizeDwgRenderSettingsOutput();
     }
     static std::uint8_t& renderGlobalWire(dx_data& data) {
         return data.m_opaqueDwgSourceFrames.at({data.importGeneration, 0x237u}).m_rawBytes.at(16u);
+    }
+    static bool prepareSelectedThreeRenders(dx_iface& iface, const dx_data& data) {
+        iface.m_extensionRenderSettingsHandles = {0x1CCu, 0x237u, 0x256u};
+        iface.m_extensionDictionaryHandles = {0x1CDu, 0x251u, 0x255u};
+        iface.m_extensionXRecordHandles = {0x1CEu, 0x252u};
+        iface.m_dwgRenderSettingsInspected = false;
+        return iface.hasQualifiedAc1024DwgRenderGlobal(data)
+            && iface.hasQualifiedAc1024DwgMentalRay(data);
+    }
+    static bool selectedMentalRayClass(const dx_iface& iface, const dx_data& data, DRW_Class& row) {
+        return iface.hasQualifiedAc1024DwgMentalRay(data, &row);
+    }
+    static bool writeSelectedDwgRenders(dx_iface& iface) {
+        return iface.writeDwgRenderSettings();
+    }
+    static std::uint8_t& mentalRayWire(dx_data& data, std::uint32_t handle) {
+        return data.m_opaqueDwgSourceFrames.at({data.importGeneration, handle}).m_rawBytes.at(0u);
+    }
+    static std::uint8_t& mentalRayWireAt(dx_data& data, std::uint32_t handle, std::size_t offset) {
+        return data.m_opaqueDwgSourceFrames.at({data.importGeneration, handle}).m_rawBytes.at(offset);
     }
     static bool generatedRootsFinal(const dx_iface& iface, std::size_t count, bool published = false) {
         return iface.m_generatedRootOutputInspected && iface.m_generatedRootOutputFinalized
@@ -92789,6 +92809,8 @@ int main(int argc, char** argv) {
         return physicalAc1024SelectedDictionaryVarWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-renderglobal-writer")
         return physicalAc1024SelectedRenderGlobalWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-three-render-writer")
+        return physicalAc1024SelectedThreeRendersWriter(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-source-graph-context")
         return physicalAc1024LayerStatesSourceGraphContext(argv[2]) ? 0 : 1;

@@ -763,3 +763,237 @@ bool physicalAc1024SelectedRenderGlobalWriter(const std::filesystem::path& sourc
     std::cerr << "AC1024 selected RENDERGLOBAL passed nine refusal/retry controls in both encodings.\n";
     return true;
 }
+
+// The complete selected aerial render graph is staged from the same imported
+// data; this does not assert complete aerial DWG export or native rendering.
+bool physicalAc1024SelectedThreeRendersWriter(const std::filesystem::path& sourcePath) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG || source.sourceVersion != DRW::AC1024
+        || !source.hasSingleSuccessfulNamedResourceImport() || !source.hasNamedObjectDictionary
+        || source.renderSettings.size() != 3u || source.dictionaryWithDefaults.size() != 1u
+        || source.placeholders.size() != 1u)
+        return fail("could not import the selected aerial render witnesses");
+    const auto findHandle = [](auto& rows, std::uint32_t handle) {
+        return std::find_if(rows.begin(), rows.end(), [handle](const auto& value) {
+            return value.handle == handle;
+        });
+    };
+    const auto group = findHandle(source.dictionaries, 0xDu);
+    if (group == source.dictionaries.end()) return fail("aerial GROUP dictionary missing");
+    class Writer final : public LayerStateTestWriter {
+    public:
+        dx_data blank;
+        DRW_DictionaryWithDefault plot;
+        DRW_AcDbPlaceholder placeholder;
+        std::vector<DRW_RenderSettings> settings;
+        std::vector<DRW_Dictionary> dictionaries;
+        std::vector<DRW_XRecord> records;
+        std::function<bool()> writeSourceSettings;
+        bool writeFromSource{true};
+        std::function<bool()> finalize;
+        void writeAppId() override {}
+        void writeObjects() override {
+            (void)dxfW->writeDictionaryWithDefault(&plot);
+            (void)dxfW->writeAcDbPlaceholder(&placeholder);
+            if (writeFromSource) {
+                if (!writeSourceSettings()) return;
+            } else {
+                for (auto& value : settings)
+                    (void)dxfW->writeRenderSettings(&value, value.handle == 0x237u
+                        ? "RENDERGLOBAL" : "MENTALRAYRENDERSETTINGS");
+            }
+            for (auto& value : dictionaries) (void)dxfW->writeDictionary(&value);
+            for (auto& value : records) (void)dxfW->writeXRecord(&value);
+        }
+        bool finalizeDxfWrite() override { return finalize(); }
+    } writer;
+    writer.cData = &writer.blank;
+    writer.settings.assign(source.renderSettings.begin(), source.renderSettings.end());
+    for (const auto handle : {0x1CDu, 0x251u, 0x255u}) {
+        const auto row = findHandle(source.dictionaries, handle);
+        if (row == source.dictionaries.end()) return fail("selected render dictionary is missing");
+        writer.dictionaries.push_back(*row);
+    }
+    for (const auto handle : {0x1CEu, 0x252u}) {
+        const auto row = findHandle(source.xRecords, handle);
+        if (row == source.xRecords.end()) return fail("selected render XRECORD is missing");
+        writer.records.push_back(*row);
+    }
+    writer.plot = source.dictionaryWithDefaults.front();
+    if (writer.plot.m_entries.size() != 1u) return fail("missing Normal plot-style entry");
+    writer.plot.m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+    writer.placeholder = source.placeholders.front();
+    const auto sourceMental = std::find_if(source.renderSettings.begin(), source.renderSettings.end(),
+        [](const DRW_RenderSettings& value) { return value.handle == 0x1CCu; });
+    const auto writerMental = std::find_if(writer.settings.begin(), writer.settings.end(),
+        [](const DRW_RenderSettings& value) { return value.handle == 0x1CCu; });
+    const auto writerPreset = std::find_if(writer.settings.begin(), writer.settings.end(),
+        [](const DRW_RenderSettings& value) { return value.handle == 0x256u; });
+    const auto writerSettingsRoot = findHandle(writer.dictionaries, 0x255u);
+    if (sourceMental == source.renderSettings.end() || writerMental == writer.settings.end()
+        || writerPreset == writer.settings.end() || writerPreset->m_longs.size() < 4u
+        || sourceMental->m_longs.size() < 4u || writerMental->m_longs.size() < 4u
+        || sourceMental->m_strings.empty() || sourceMental->m_strings.front().empty()
+        || writerMental->m_strings.empty() || writerMental->m_strings.front().empty()
+        || sourceMental->m_name.empty() || writerMental->m_name.empty()
+        || writerSettingsRoot == writer.dictionaries.end() || writerSettingsRoot->m_entries.size() != 1u)
+        return fail("selected MentalRay source graph is incomplete");
+
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-selected-three-renders-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error);
+    } } cleanup{path};
+    dxfRW codec(path.string().c_str());
+    Access::attachDxfWriter(reader, &codec); reader.cData = &source;
+    Access::attachDxfWriter(writer, &codec);
+    codec.setDxfWriteRecordInventoryEnabled(true);
+    codec.setHandleRemap({{0x1CCu, 0xA1CCu}, {0x1CDu, 0xA1CDu}, {0x1CEu, 0xA1CEu},
+        {0x237u, 0xA237u}, {0x251u, 0xA251u}, {0x252u, 0xA252u},
+        {0x255u, 0xA255u}, {0x256u, 0xA256u}});
+    codec.setRootDictEntries({{"ACAD_RENDER_ACTIVE_SETTINGS", "A1CC"},
+        {"ACAD_RENDER_GLOBAL", "A237"}, {"ACAD_RENDER_SETTINGS", "A255"},
+        {"ACAD_PLOTSTYLENAME", "E"}});
+    if (!codec.setGeneratedDictionarySourceHandles(0xCu, 0xDu)
+        || !codec.setGeneratedDictionarySourceRecords(
+            std::make_unique<DRW_Dictionary>(source.namedObjectDictionary),
+            std::make_unique<DRW_Dictionary>(*group))
+        || !codec.setDxfDefaultPlotStyleSourceHandles(0xEu, 0xFu))
+        return fail("could not set up selected render roots");
+    DRW_Class globalClass, mentalClass, plotClass, placeholderClass;
+    if (!Access::selectedRenderGlobalClass(reader, source, globalClass)
+        || !Access::selectedMentalRayClass(reader, source, mentalClass)
+        || !dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
+        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
+        return fail("missing same-import selected render CLASSES rows");
+    if (globalClass.proxyFlag != 1024 || mentalClass.proxyFlag != 1024
+        || globalClass.instanceCount != 1 || mentalClass.instanceCount != 2)
+        return fail("selected render CLASSES flags differ from the source");
+    plotClass.instanceCount = placeholderClass.instanceCount = 1;
+    const std::vector<DRW_Class> classes{globalClass, mentalClass, plotClass, placeholderClass};
+    codec.setDxfClasses(classes);
+    enum class Fault { None, Body, PresetBody, SameModelBody, PairedName, WrongRole, SwappedRecords, WrongClass,
+        ActiveEarly, PresetEarly, DictionaryEarly, RecordEarly, RootEarly,
+        ActiveLate, PresetLate, DictionaryLate, RecordLate, RootLate };
+    Fault fault = Fault::None;
+    bool staged = false, finalizing = false;
+    if (!codec.setDxfObjectsWriteInspector([&](const auto& view) {
+        staged = true;
+        return Access::inspectSelectedRenderGlobal(reader, view);
+    })) return fail("could not set selected render inspector");
+    auto& activeWire = Access::mentalRayWire(source, 0x1CCu);
+    // First UTF-16 character of the captured 1CC name starts at bit 941;
+    // this bit changes its low ASCII byte while leaving the length unchanged.
+    auto& activeNameWire = Access::mentalRayWireAt(source, 0x1CCu, 118u);
+    auto& presetWire = Access::mentalRayWire(source, 0x256u);
+    auto& dictionaryWire = Access::standardFrameTail(source, 0x1CDu);
+    auto& recordWire = Access::standardFrameTail(source, 0x1CEu);
+    auto& rootWire = Access::standardFrameTail(source, 0x255u);
+    writer.writeSourceSettings = [&]() { return Access::writeSelectedDwgRenders(reader); };
+    writer.finalize = [&]() {
+        finalizing = true;
+        if (fault == Fault::ActiveLate) activeWire ^= 0x80u;
+        if (fault == Fault::PresetLate) presetWire ^= 0x80u;
+        if (fault == Fault::DictionaryLate) dictionaryWire ^= 1u;
+        if (fault == Fault::RecordLate) recordWire ^= 1u;
+        if (fault == Fault::RootLate) rootWire ^= 1u;
+        const bool result = Access::finalizeSelectedRenderGlobal(reader);
+        if (fault == Fault::ActiveLate) activeWire ^= 0x80u;
+        if (fault == Fault::PresetLate) presetWire ^= 0x80u;
+        if (fault == Fault::DictionaryLate) dictionaryWire ^= 1u;
+        if (fault == Fault::RecordLate) recordWire ^= 1u;
+        if (fault == Fault::RootLate) rootWire ^= 1u;
+        return result;
+    };
+    const auto run = [&](bool binary) {
+        staged = finalizing = false;
+        Access::resetRasterOutput(reader);
+        writer.writeFromSource = fault == Fault::None;
+        return Access::prepareSelectedThreeRenders(reader, source)
+            && codec.write(&writer, DRW::AC1024, binary);
+    };
+    const std::string sentinel = "preserve selected three-render destination\n";
+    for (const bool binary : {false, true}) {
+        if (!run(binary) || !staged || !finalizing)
+            return fail("selected three-render baseline was rejected");
+        for (const Fault bad : {Fault::Body, Fault::PresetBody, Fault::SameModelBody, Fault::PairedName, Fault::WrongRole,
+                Fault::SwappedRecords, Fault::WrongClass,
+                Fault::ActiveEarly, Fault::PresetEarly, Fault::DictionaryEarly,
+                Fault::RecordEarly, Fault::RootEarly,
+                Fault::ActiveLate, Fault::PresetLate, Fault::DictionaryLate,
+                Fault::RecordLate, Fault::RootLate}) {
+            fault = bad;
+            if (bad == Fault::Body || bad == Fault::SameModelBody) ++writerMental->m_longs[3];
+            if (bad == Fault::PresetBody) ++writerPreset->m_longs[3];
+            if (bad == Fault::SameModelBody) ++sourceMental->m_longs[3];
+            if (bad == Fault::PairedName) {
+                activeNameWire ^= 0x08u;
+                sourceMental->m_strings.front().front() ^= 1;
+                sourceMental->m_name.front() ^= 1;
+                writerMental->m_strings.front().front() ^= 1;
+                writerMental->m_name.front() ^= 1;
+            }
+            if (bad == Fault::WrongRole)
+                writerSettingsRoot->m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::HardOwner;
+            if (bad == Fault::SwappedRecords) std::swap(writer.records[0].handle, writer.records[1].handle);
+            if (bad == Fault::WrongClass) {
+                auto wrongClasses = classes; wrongClasses[1].proxyFlag ^= 1;
+                codec.setDxfClasses(wrongClasses);
+            }
+            if (bad == Fault::ActiveEarly) activeWire ^= 0x80u;
+            if (bad == Fault::PresetEarly) presetWire ^= 0x80u;
+            if (bad == Fault::DictionaryEarly) dictionaryWire ^= 1u;
+            if (bad == Fault::RecordEarly) recordWire ^= 1u;
+            if (bad == Fault::RootEarly) rootWire ^= 1u;
+            {
+                std::ofstream existing(path, std::ios::binary | std::ios::trunc);
+                if (!(existing << sentinel)) return fail("cannot seed selected render destination");
+            }
+            const bool saved = run(binary);
+            if (bad == Fault::Body || bad == Fault::SameModelBody) --writerMental->m_longs[3];
+            if (bad == Fault::PresetBody) --writerPreset->m_longs[3];
+            if (bad == Fault::SameModelBody) --sourceMental->m_longs[3];
+            if (bad == Fault::PairedName) {
+                activeNameWire ^= 0x08u;
+                sourceMental->m_strings.front().front() ^= 1;
+                sourceMental->m_name.front() ^= 1;
+                writerMental->m_strings.front().front() ^= 1;
+                writerMental->m_name.front() ^= 1;
+            }
+            if (bad == Fault::WrongRole)
+                writerSettingsRoot->m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::Unspecified;
+            if (bad == Fault::SwappedRecords) std::swap(writer.records[0].handle, writer.records[1].handle);
+            if (bad == Fault::WrongClass) codec.setDxfClasses(classes);
+            if (bad == Fault::ActiveEarly) activeWire ^= 0x80u;
+            if (bad == Fault::PresetEarly) presetWire ^= 0x80u;
+            if (bad == Fault::DictionaryEarly) dictionaryWire ^= 1u;
+            if (bad == Fault::RecordEarly) recordWire ^= 1u;
+            if (bad == Fault::RootEarly) rootWire ^= 1u;
+            const bool early = bad == Fault::SameModelBody || bad == Fault::PairedName || bad == Fault::ActiveEarly
+                || bad == Fault::PresetEarly || bad == Fault::DictionaryEarly
+                || bad == Fault::RecordEarly || bad == Fault::RootEarly;
+            const bool late = bad == Fault::ActiveLate || bad == Fault::PresetLate
+                || bad == Fault::DictionaryLate || bad == Fault::RecordLate || bad == Fault::RootLate;
+            const bool stagedFault = bad == Fault::Body || bad == Fault::PresetBody || bad == Fault::WrongRole
+                || bad == Fault::SwappedRecords;
+            fault = Fault::None;
+            std::ifstream existing(path, std::ios::binary);
+            if (saved || (early && staged) || (late && (!staged || !finalizing))
+                || (stagedFault && !staged)
+                || std::string(std::istreambuf_iterator<char>(existing), {}) != sentinel) {
+                std::cerr << "three-render fault=" << static_cast<int>(bad) << " binary=" << binary
+                          << " staged=" << staged << " finalizing=" << finalizing << '\n';
+                return fail("selected three-render fault did not refuse atomically");
+            }
+            existing.close();
+            if (!run(binary) || !staged || !finalizing)
+                return fail("selected three-render corrected retry failed");
+        }
+    }
+    std::cerr << "AC1024 selected three-render graph passed seventeen refusal/retry controls in both encodings.\n";
+    return true;
+}

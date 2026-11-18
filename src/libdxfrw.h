@@ -680,6 +680,9 @@ public:
      * raw and typed records selected for output. */
     void setDxfClasses(const std::vector<DRW_Class> &classes);
     void setDxfClasses(std::vector<DRW_Class>&& classes);
+    /** Check a unique CLASS entry in the frozen metadata of an active write.
+     * Available to staged inspectors and to finalizeDxfWrite(). */
+    bool dxfWriteClassMatches(const DRW_Class& expected) const noexcept;
     /** Default-off per-write admission. When enabled before a write, the
      * codec refuses if any raw section is present at its replay boundary or
      * after the finalization callback. This concerns only raw-section replay,
