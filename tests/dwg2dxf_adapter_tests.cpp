@@ -76306,8 +76306,8 @@ bool rootDictionaryVarWriterClosure(const std::filesystem::path& directory,
     dx_iface noncanonicalWriter;
     if (noncanonicalWriter.fileExport(noncanonicalOutput.string(),
             DRW::AC1027, binary, &noncanonical, false, true)
-        || noncanonicalWriter.extensionGraphFailureDetail()
-            != "DICTIONARYVAR records require the NOD AcDbVariableDictionary route")
+        || noncanonicalWriter.extensionGraphFailureDetail().find(
+            "DICTIONARYVAR records require the NOD AcDbVariableDictionary route: handle=") != 0)
         return fail("direct-NOD DICTIONARYVAR graph did not fail at the canonical-owner gate");
     std::ifstream noncanonicalInput(noncanonicalOutput, std::ios::binary);
     const std::string noncanonicalPreserved(

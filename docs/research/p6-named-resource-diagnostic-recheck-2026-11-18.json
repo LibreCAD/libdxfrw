@@ -1,0 +1,15 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-named-resource-diagnostic-recheck-2026-11-18",
+  "date": "2026-11-18",
+  "status": "FOCUSED_CONTROL_PASS",
+  "baseCommit": "b2a61d43865b0ab4054335eae7359a54ed3d8ca6",
+  "implementationDigestSha256": "75faced5e12d0762fe37ccdb9f190246f887f99c7bf9daf20e676c746d44216c",
+  "finding": "A historical libdxfrw_named_resource_import_evidence failure reproduced because the canonical-owner diagnostic now appends handle and owner details, while the control required the older exact string.",
+  "change": "Require the specific detailed canonical-owner diagnostic prefix ending in ': handle='; preserve the existing refusal and destination checks. No production code changed.",
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "test": "PASS 1/1: ctest --test-dir build-gcc -R '^libdxfrw_named_resource_import_evidence$' --output-on-failure"
+  },
+  "limits": ["No fixture was added and no drawing-support claim is promoted."]
+}
