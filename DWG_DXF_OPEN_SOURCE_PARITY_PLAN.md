@@ -15,7 +15,7 @@ The comparison baseline last checked on 2026-11-17 is libdxfrw
 integration or platform qualification.
 
 **Progress on 2026-11-18:** 6/33 package gates closed; 27 remain. The activity
-ledger is 75/102 (73.5%): six closed gates and 69 completed implementation or
+ledger is 76/103 (73.8%): six closed gates and 70 completed implementation or
 research slices. Gate readiness is 18.2%; activity progress does not imply
 support. The completed PERSUBENTMGR safety slice keeps class-specific DXF data
 raw-only; the issue #1021 sample-pair screen found no known nonzero member
@@ -25,9 +25,13 @@ The current candidate also passes the focused macOS FreeCAD AC1021/AC1024/AC1032
 open/insert smoke; it closes no native Linux/Windows package gate. See the
 [consumer receipt](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json).
 The source-matched fast CI run exposed one omitted private header in the source
-inventory. The header is now classified and the generated manifests pass
-locally; the [CI-fix receipt](docs/research/p8-fast-ci-dwgappinfo-source-inventory-fix-2026-11-18.json)
-tracks the exact failure and the pending source-matched rerun.
+inventory. That correction passes locally. A subsequent focused macOS
+qualification stopped before running CTest cases because five recent test
+registration changes had left the frozen test-name inventory stale. The
+inventory is now regenerated from a clean tracked checkout with the hosted
+profile (1,389 names); the [source-inventory receipt](docs/research/p8-fast-ci-dwgappinfo-source-inventory-fix-2026-11-18.json)
+and [CTest-inventory receipt](docs/research/p8-current-native-inventory-realignment-2026-11-18.json)
+record the separate causes. Source-matched reruns remain pending.
 After the user's latest reported unlock, a fresh `screencapture` attempt still
 failed and CoreGraphics reported zero active displays for this process. This
 does not establish the physical login state or capture permissions and closes
@@ -140,8 +144,8 @@ failure that expands risk.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 33 package gates and each implementation/research slice once. The
-  current ledger is 69 completed slices plus 33 package gates = 102 counted
-  items; 6 gates plus 69 slices are complete (75/102, 73.5%). Native Linux,
+  current ledger is 70 completed slices plus 33 package gates = 103 counted
+  items; 6 gates plus 70 slices are complete (76/103, 73.8%). Native Linux,
   Windows, and GUI outcomes belong to P8-B/C/D; the macOS smoke is one bounded
   research slice and does not close a platform gate. A partial
   implementation slice earns activity progress but does not close its package
@@ -284,7 +288,7 @@ not Linux or Windows evidence and does not promote 3DFACE/SOLID support.
 | P8-C / WAITING_FOR_FREEZE | Run the same base-2D workflow on native Windows, then extend only to admitted profiles. Reuse earlier path-with-spaces/Unicode and generated 2D checks as historical controls. The tracked `ordinary_enc_AC1027.dwg` still fails before publication; see [preflight receipt](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json). | Use the same evidence fields as P8-B. Keep ordinary AC1027 deferred until source-reference closure. |
 | P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | After the user's latest reported unlock, `screencapture -x /private/tmp/libdxfrw-unlock-preflight-2026-11-18.png` still failed with “could not create image from display.” This does not establish physical login state or capture permissions. Launch Services cannot resolve either app; a LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`, and no LibreCAD_3 bundle was found. See the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). Do not retry until this process sees an active display and capture succeeds. | In one GUI session, launch LibreCAD 2 by its explicit bundle path and complete Move/Copy action-boundary, named-LTYPE save/reopen/render, and (if P6-H obtains a source-bound MLINE witness) MLINE display/edit/save/reopen. Then run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback if that app is available. This gate does not block Linux/Windows qualification. |
 | P8-E / INTEGRATION_GATE | During P8-B/C, collect native Linux/Windows shared/static manifests, relocation, and loaded runtime identities. Reuse the [macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json); repeat macOS only if candidate inputs change. | Verify package contents and shared/static relocation for each platform. |
-| P8-F / WAITING_FOR_SOURCE_MATCHED_CI | Reuse the [CI root-cause receipt](docs/research/p8-pr106-native-ci-root-cause-2026-11-17.json) for prior failures. The latest fast run failed because `src/intern/dwgappinfo.h` was missing from `LIBDXFRW_PRIVATE_HEADERS`; the [correction receipt](docs/research/p8-fast-ci-dwgappinfo-source-inventory-fix-2026-11-18.json) records the generated-manifest fix. Do not repeat the unchanged local diagnosis. | Close only after required fast checks and source-matched native Linux/macOS/Windows checks pass on the corrected exact head and current branch-protection state is recorded. Hosted CI remains subject to the owner's existing go-ahead. |
+| P8-F / WAITING_FOR_SOURCE_MATCHED_CI | Reuse the [CI root-cause receipt](docs/research/p8-pr106-native-ci-root-cause-2026-11-17.json) for historical failures. The private-header source inventory is corrected; the latest focused macOS job then found a stale CTest name inventory and stopped before executing tests. Both fixes are recorded in the [source-inventory receipt](docs/research/p8-fast-ci-dwgappinfo-source-inventory-fix-2026-11-18.json) and [CTest-inventory receipt](docs/research/p8-current-native-inventory-realignment-2026-11-18.json). Do not repeat either unchanged diagnosis. | Close only after required fast checks and source-matched native Linux/macOS/Windows checks pass on the corrected exact head and current branch-protection state is recorded. Hosted CI remains subject to the owner's existing go-ahead. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 
 Keep consumer, source, and build receipts separate. Preserve LibreCAD's R13
