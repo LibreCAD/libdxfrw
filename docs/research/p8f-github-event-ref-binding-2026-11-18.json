@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8f-github-event-ref-binding-2026-11-18",
+  "date": "2026-11-18",
+  "status": "HISTORICAL_FOCUSED_LIVE_REPLAY_PASSED_CURRENT_DIGEST_PENDING",
+  "supportClaimEffect": "none",
+  "verifierSha256": "cc64ecedf9633cc74cab7ad3659b546f855769610828e3d9a81230de28db1455",
+  "implementationDigestSha256": "4d054a406e80075b9f17d312ed45d2e15a8caeb6fbaf21b784c81aae0a4c09b5",
+  "binding": {
+    "branchEvents": "Require the API head branch to form a valid full branch ref identical to the receipt ref, with checkout equal to the API head SHA. Reject unbound tag receipts.",
+    "pullRequestEvent": "Require a live authenticated current open PR and merge ref in the workflow repository. Bind exact head repository, branch, SHA and merge SHA; compare the commit parents in base/head order and recheck the mutable endpoints.",
+    "workflow": "Bind exact repository, workflow path and ref in the sealed workflowRef. If the attempt supplies ref or a path suffix, require agreement. Retain job, API replay, workflow bytes and archive checks."
+  },
+  "historicalReplay": {
+    "implementationDigestSha256": "05e7cb3341469cc6fcf56c9928a5bb79d164de293334d5fc37c8817ef924fa02",
+    "fastRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44379799777",
+    "focusedRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44379799922",
+    "attempt": 1,
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "receiptRef": "refs/pull/106/merge",
+    "headRepository": "dxli/libdxfrw",
+    "headBranch": "codex/dwg-dxf-open-source-parity",
+    "headSha": "48dda082e1f1e5ce2af0c8ac4a5470fab3ace240",
+    "baseSha": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "mergeSha": "9373ffcf6191a0f4b4b52c4136115d7bc9cb7d67",
+    "apiShape": "The upstream attempt supplies head_branch and head_repository, omits ref and has an empty pull_requests array. The authenticated PR, git/ref/pull/106/merge and git/commits endpoints supplied the separate origin checks.",
+    "result": "native qualification receipts: PASS (3 focused; 0 broad; 3 attempts)",
+    "receipts": {
+      "linux-gcc": {
+        "apiJobId": 135068693153,
+        "artifactId": 14463107708,
+        "receiptContentSha256": "d25366c49f51c79c0bd1fc46f643f9b7fca8f351c2ec7fe1c4d744f050e864bc",
+        "downloadedArchiveSha256": "c27cac44e7071aacebbdf0dc42ce2565aa92579a296b1f931753e8bea29c6d0f"
+      },
+      "windows-msvc": {
+        "apiJobId": 135068693260,
+        "artifactId": 14463148467,
+        "receiptContentSha256": "f5c533df5f7958738628e428672be6f23557f13cb55928732d638f7beb2000ef",
+        "downloadedArchiveSha256": "d45dcfd7844645411201a34d0d409f541741b329ae79b99d22bdb84f190d5c3c"
+      },
+      "macos-clang": {
+        "apiJobId": 135068693647,
+        "artifactId": 14466480250,
+        "receiptContentSha256": "2519e501ea20b412c59214e87501d3bd2c314fad418f8724d5a99359cbe41a72",
+        "downloadedArchiveSha256": "e481908b9b7b3e03139f0c59f9bd23b753195ec05522aebd2f184e6d004a112a"
+      }
+    }
+  },
+  "validation": [
+    "Verifier self-test passes. The controls cover missing attempt ref, optional ref/path conflicts, unsupported tag, different workflow repository, wrong PR identities/parents, moving ref and absent authentication.",
+    "Clean staged scratch checkout reproduces the new implementation digest over 735 inputs and passes the source-release inventory check (1310 released files)."
+  ],
+  "limits": [
+    "Live verification applies while the exact PR head/base/merge ref is current. Mutable endpoints are checked twice and can change after verification.",
+    "The successful replay covers only the historical implementation digest. The new verification and test inputs require fresh focused and fast results. Final broad/fuzz gates and consumer semantic evidence are separate."
+  ]
+}
