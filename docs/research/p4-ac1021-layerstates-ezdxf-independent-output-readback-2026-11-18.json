@@ -1,0 +1,162 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1021-layerstates-ezdxf-independent-output-readback-2026-11-18",
+  "date": "2026-11-18",
+  "status": "EZDXF_SELECTED_ASCII_BINARY_READBACK_PASS",
+  "supportClaimEffect": "none",
+  "gateEffect": "No broader native or cross-version support claim is established.",
+  "priorRepair": "docs/research/p4-ac1021-layerstates-two-root-wire-regression-repair-2026-11-18.json",
+  "source": {
+    "path": "/Users/dli/doc/dwg/truetype.dwg",
+    "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local drawing; source author and producer are unauthenticated."
+  },
+  "tool": {
+    "name": "ezdxf",
+    "version": "1.4.5",
+    "interpreter": "build/rpp5gh-evidence/peer/bin/python",
+    "script": "/private/tmp/layerstates_ac1021_ezdxf_probe.py",
+    "scriptSha256": "e8a849a18de8c960752db79006bbe4456846f131a6e98fdd59a37c3f99fd8898",
+    "command": "build/rpp5gh-evidence/peer/bin/python /private/tmp/layerstates_ac1021_ezdxf_probe.py /private/tmp/layerstates-ac1021-wire-strict/truetype-strict-ascii.dxf /private/tmp/layerstates-ac1021-wire-strict/truetype-strict-binary.dxf > /private/tmp/layerstates-ac1021-ezdxf.json 2> /private/tmp/layerstates-ac1021-ezdxf.err",
+    "resultPath": "/private/tmp/layerstates-ac1021-ezdxf.json",
+    "resultSha256": "43e3b36f9c40e5d557698047c33b229fbb3d99fd3df99d7bae6130d71f7f4d8f",
+    "stderrPath": "/private/tmp/layerstates-ac1021-ezdxf.err",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr": "empty"
+  },
+  "outputs": [
+    {
+      "encoding": "ASCII",
+      "path": "/private/tmp/layerstates-ac1021-wire-strict/truetype-strict-ascii.dxf",
+      "sha256": "6f7fdfdb2eade44f0c135f1cf7cd61053e3aa79f34a6f1bc9c4e9df071a3e5d4",
+      "dxfVersion": "AC1021",
+      "audit": {
+        "errors": 0,
+        "fixes": 0,
+        "errorMessages": [],
+        "fixMessages": []
+      }
+    },
+    {
+      "encoding": "Binary",
+      "path": "/private/tmp/layerstates-ac1021-wire-strict/truetype-strict-binary.dxf",
+      "sha256": "6f5db1de93103d91f854f4c0dc6af41a237c20c74deaed0399370dbd83c70f80",
+      "dxfVersion": "AC1021",
+      "audit": {
+        "errors": 0,
+        "fixes": 0,
+        "errorMessages": [],
+        "fixMessages": []
+      }
+    }
+  ],
+  "selectedGraph": {
+    "59B": {
+      "type": "DICTIONARY",
+      "owner": "2",
+      "reactors": [],
+      "entries": [
+        [
+          "ACAD_LAYERFILTERS",
+          "5E5"
+        ],
+        [
+          "ACAD_LAYERSTATES",
+          "59C"
+        ]
+      ]
+    },
+    "59C": {
+      "type": "DICTIONARY",
+      "owner": "59B",
+      "reactors": [
+        "59B"
+      ],
+      "entries": [
+        [
+          "ACAD_VIEWS_default",
+          "5E3"
+        ]
+      ]
+    },
+    "5E5": {
+      "type": "DICTIONARY",
+      "owner": "59B",
+      "reactors": [
+        "59B"
+      ],
+      "entries": []
+    },
+    "5E3": {
+      "type": "XRECORD",
+      "owner": "59C",
+      "reactors": [
+        "59C"
+      ],
+      "tagCount": 27,
+      "group370Values": [
+        -3,
+        -3,
+        -3,
+        -3
+      ],
+      "resolvedReferences": [
+        [
+          330,
+          "LAYER",
+          "Viewports",
+          "94F"
+        ],
+        [
+          331,
+          "LTYPE",
+          "Continuous",
+          "16"
+        ],
+        [
+          330,
+          "LAYER",
+          "Leader",
+          "94D"
+        ],
+        [
+          331,
+          "LTYPE",
+          "Hidden 2",
+          "94C"
+        ],
+        [
+          330,
+          "LAYER",
+          "Text",
+          "94E"
+        ],
+        [
+          331,
+          "LTYPE",
+          "Continuous",
+          "16"
+        ],
+        [
+          330,
+          "LAYER",
+          "0",
+          "10"
+        ],
+        [
+          331,
+          "LTYPE",
+          "Continuous",
+          "16"
+        ]
+      ]
+    }
+  },
+  "checks": "The probe asserts object types, dictionary entries and owners; XRECORD owner, total tag count 27, four group-370 values of -3, and ordered 330/331 references to expected live LAYER/LTYPE types and names. It records reactors and the complete tags; equality of the recorded selected-object structures asserts ASCII/Binary equality, including tag order and reactor values. The owner/reactor values listed here were observed for both outputs and match the prior source-profile evidence. Both independent parser audits returned zero errors and zero fixes.",
+  "limits": [
+    "The script does not independently compare every XRECORD tag with the original DWG source; its full tag sequence is only compared between the ASCII and binary outputs, with specific assertions stated above.",
+    "Independent parser acceptance and audit are structural evidence, not native LayerStates restore/evaluation semantics, general object support or AC1024 target output qualification.",
+    "The source, generated DXFs, probe and result are local and may be ephemeral; no DWG/DXF fixture or derivative was committed."
+  ]
+}

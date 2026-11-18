@@ -19,7 +19,7 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-18:** 10/34 package gates closed; 24 remain. The activity
-ledger is 112/136 (82.4%): ten closed gates and 102 completed implementation or
+ledger is 113/137 (82.5%): ten closed gates and 103 completed implementation or
 research slices. The [focused slice](docs/research/p6-raster-dimstyle-default-roundtrip-2026-11-18.json)
 fixes an AC1021 default plot dictionary reexport and a default BYBLOCK DIMSTYLE
 downgrade; five owning selectors pass. The following [source-identity selector
@@ -168,8 +168,8 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 34 package gates and each implementation/research slice once. The
-  current ledger is 102 completed slices plus 34 package gates = 136 counted
-  items; 10 gates plus 102 slices are complete (112/136, 82.4%). The Linux and
+  current ledger is 103 completed slices plus 34 package gates = 137 counted
+  items; 10 gates plus 103 slices are complete (113/137, 82.5%). The Linux and
   Windows FreeCAD results cover only their exact generated profile and binary;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package
@@ -215,7 +215,7 @@ their gate rows and receipts. Do not repeat unchanged attempts.
 
 AC1021 follow-ups in P4-D: the [two-root truetype repair](docs/research/p4-ac1021-layerstates-two-root-wire-regression-repair-2026-11-18.json)
 restores same-version selected and strict whole-source output for the witnessed
-profile. Its [independent review](docs/research/p4-ac1021-layerstates-independent-code-review-2026-11-18.json) records the intentional fail-closed behavior for unqualified recognized two-root sources, including partial exports. AC1021-to-AC1024 whole-source output remains blocked: the [DICTIONARYVAR
+profile. Its [independent review](docs/research/p4-ac1021-layerstates-independent-code-review-2026-11-18.json) records the intentional fail-closed behavior for unqualified recognized two-root sources, including partial exports. An [ezdxf readback](docs/research/p4-ac1021-layerstates-ezdxf-independent-output-readback-2026-11-18.json) validates the selected graph, reference targets and cross-encoding tag agreement without establishing native semantics. AC1021-to-AC1024 whole-source output remains blocked: the [DICTIONARYVAR
 profile](docs/research/p4-ac1021-ctablestyle-ac1024-crossversion-blocker-2026-11-18.json) needs its TABLESTYLE output join, while a diagnostic bypass reaches separate
 [VISUALSTYLE and LAYOUT restrictions](docs/research/p4-ac1021-visualstyle-ac1024-target-peer-mapping-2026-11-18.json). Native target evidence is needed before choosing VISUALSTYLE defaults; an [independent structural audit and API screen](docs/research/p4-ac1021-visualstyle-target-defaults-research-addendum-2026-11-18.json) does not resolve the operation or color semantics.
 The annotation selector remains blocked by a retained [LAYER → LTYPE → unnamed
