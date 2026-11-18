@@ -40,7 +40,7 @@
       "result": "PASS (1/1)"
     }
   ],
-  "unresolvedCrossChecks": [
+  "crossChecksAtTimeOfSlice": [
     {
       "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_block_control_handle_boundary$' --output-on-failure",
       "result": "FAIL (1/1); the same boundary test also fails in the pre-existing build/ executable. This is not a passing gate for this slice and remains untriaged."
@@ -50,6 +50,11 @@
       "result": "FAIL (7 assertions covering generated ACDS modeler projection/typed BOX closure, EvaluationGraph output, and HATCH source-reference ordering). The same test passes in the older build/ executable; source/build baselines differ, so causality is unestablished and these cases remain open."
     }
   ],
+  "followUp": {
+    "slice": "S8.2c",
+    "result": "The HATCH resolver failure was fixed and the remaining ACDS/EvaluationGraph failures were stale expected CLASSES inventories. The updated libdxfrw_dwg_local_roundtrip test now passes 1/1; see docs/research/p8-dxf-plotstyle-resolver-identity-2026-11-17.json.",
+    "stillOpen": "libdxfrw_dwg_block_control_handle_boundary remains failing in the current and pre-existing build executables; it is outside this DXF facade slice and has not been diagnosed."
+  },
   "fixturePolicy": "All DXF test data is generated at runtime; no DWG/DXF fixture was added or committed.",
   "limits": [
     "The LibreCAD compatibility target is compile-time source compatibility, not a native GUI or binary-ABI result.",

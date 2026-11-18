@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-17",
+  "slice": "P8/S8.2c DXF plot-style default identity under reference resolution",
+  "status": "IMPLEMENTED_LOCALLY",
+  "sourceProfile": {
+    "entityGraph": "Runtime-generated associative HATCH and boundary entities, read back and exported again through the dx_iface test adapter.",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "versions": ["AC1027"]
+  },
+  "failure": {
+    "reproduction": "The first write succeeded, import succeeded, then the second write failed in both encodings when the active resolver returned source identity F for each layer's group-390 plot-style reference.",
+    "cause": "The writer routed source handle F through the generic nondefault plot-style branch and rejected the resolver's final identity because F was also the output's valid Normal placeholder."
+  },
+  "change": {
+    "file": "src/libdxfrw.cpp",
+    "detail": "Resolve source F once. Permit an explicit identity result only if the generated default placeholder is still F and no caller placeholder conflicts. Treat a different resolved handle as a regular graph edge and continue rejecting null, invalid, or default-placeholder targets."
+  },
+  "validation": [
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip --parallel 4",
+      "result": "PASS"
+    },
+    {
+      "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-references /private/tmp",
+      "result": "PASS; generated HATCH reference/path controls cover ASCII and binary first-write/read-write paths, preplanning/resolver combinations, backward/detached forms, refusal and same-codec retry, plus patterned multi-path HATCH."
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
+      "result": "PASS (1/1; 1.80 s)"
+    }
+  ],
+  "testMaintenance": {
+    "detail": "Updated generated DXF class expectations to include ACDBDICTIONARYWDFLT and ACDBPLACEHOLDER emitted by the valid default plot-style graph. ACDS multi-projection, typed ACDS BOX, and EvaluationGraph readbacks now assert these registrations rather than treating them as unexpected extras.",
+    "failureDiagnostics": "Added case labels for HATCH primary, read/write, backward, rollback, and retry failures, and prints actual class rows when ACDS/EvaluationGraph assertions fail."
+  },
+  "fixturePolicy": "Vectors are generated at runtime and retained only under /private/tmp for this local run. No external or repository DWG/DXF fixture was added.",
+  "limits": [
+    "This resolves one default-placeholder identity path and updates local generated-output expectations; broader resolver coverage remains open.",
+    "The test is same-library DXF output/readback evidence, not independent CAD interoperability or native UI qualification.",
+    "No DWG/DXF family or version support claim is promoted."
+  ],
+  "supportClaim": "unchanged"
+}

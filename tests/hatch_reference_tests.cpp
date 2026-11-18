@@ -1575,22 +1575,39 @@ bool runHatchReferenceTests(const std::filesystem::path& parent, bool keepOutput
                 const auto path = directory / (std::to_string(binary) + '-' + std::to_string(first)
                     + '-' + std::to_string(resolver) + ".dxf");
                 auto source = drawing(first, true);
-                passed = write(path, *source, binary, true, resolver)
-                    && verify(path, true, false) && passed;
+                const bool firstPass = write(path, *source, binary, true, resolver)
+                    && verify(path, true, false);
+                if (!firstPass)
+                    std::cerr << "HATCH primary pass failed: binary=" << binary
+                              << " hatchFirst=" << first << " resolver=" << resolver << '\n';
+                passed = firstPass && passed;
                 dx_data imported;
                 dx_iface reader;
                 const auto second = directory / (path.stem().string() + "-second.dxf");
-                passed = reader.fileImport(path.string(), &imported, false)
-                    && write(second, imported, binary, true, resolver)
-                    && verify(second, true, false) && passed;
+                const bool importedOk = reader.fileImport(path.string(), &imported, false);
+                const bool secondWrite = importedOk
+                    && write(second, imported, binary, true, resolver);
+                const bool secondVerify = secondWrite && verify(second, true, false);
+                const bool secondPass = secondWrite && secondVerify;
+                if (!secondPass)
+                    std::cerr << "HATCH read/write pass failed: binary=" << binary
+                              << " hatchFirst=" << first << " resolver=" << resolver
+                              << " imported=" << importedOk
+                              << " wrote=" << secondWrite
+                              << " verified=" << secondVerify << '\n';
+                passed = secondPass && passed;
             }
         }
         for (bool detached : {false, true}) {
             const auto path = directory / ("backward-" + std::to_string(binary)
                 + '-' + std::to_string(detached) + ".dxf");
             auto source = drawing(false, false, detached);
-            passed = write(path, *source, binary, false, false)
-                && verify(path, false, detached) && passed;
+            const bool backwardPass = write(path, *source, binary, false, false)
+                && verify(path, false, detached);
+            if (!backwardPass)
+                std::cerr << "HATCH backward compatibility pass failed: binary="
+                          << binary << " detached=" << detached << '\n';
+            passed = backwardPass && passed;
         }
         for (bool nullReference : {false, true}) {
             const auto path = directory / ("reject-" + std::to_string(binary)
@@ -1607,10 +1624,20 @@ bool runHatchReferenceTests(const std::filesystem::path& parent, bool keepOutput
             std::ifstream input(path, std::ios::binary);
             const std::string bytes((std::istreambuf_iterator<char>(input)), {});
             input.close();
-            passed = rejected && bytes == sentinel && passed;
+            const bool refusalPass = rejected && bytes == sentinel;
+            if (!refusalPass)
+                std::cerr << "HATCH failed-write rollback failed: binary=" << binary
+                          << " nullReference=" << nullReference
+                          << " rejected=" << rejected
+                          << " destinationPreserved=" << (bytes == sentinel) << '\n';
+            passed = refusalPass && passed;
             source = drawing(true, true);
-            passed = emit(output, *source, binary, true, true)
-                && verify(path, true, false) && passed;
+            const bool retryPass = emit(output, *source, binary, true, true)
+                && verify(path, true, false);
+            if (!retryPass)
+                std::cerr << "HATCH corrected same-codec retry failed: binary="
+                          << binary << " nullReference=" << nullReference << '\n';
+            passed = retryPass && passed;
         }
     }
     const bool patternedAssociative =

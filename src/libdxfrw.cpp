@@ -8288,16 +8288,28 @@ bool dxfRW::writeLayer(DRW_Layer *ent){
                         && resolveReference(sourcePlotStyle) != m_dxfCallerPlotPlaceholderTarget)
                         return failDxfWrite();
                     write(writer->writeString(390, toHexStr(m_dxfCallerPlotPlaceholderTarget)));
-                } else if (sourcePlotStyle == 0x0Fu
-                           && !m_referenceResolver) {
-                    // F is a source handle, not a symbolic default. If the
-                    // generated Normal placeholder moved, F cannot resolve
-                    // to it without an independently proven source mapping.
-                    if ((m_dxfDefaultPlotPlaceholder != 0u
-                         && m_dxfDefaultPlotPlaceholder != 0x0Fu)
-                        || m_dxfCallerPlotPlaceholderTarget == 0x0Fu)
+                } else if (sourcePlotStyle == 0x0Fu) {
+                    // F is a source handle, not a symbolic default. An active
+                    // resolver may still explicitly preserve that identity;
+                    // accept it only when the output's Normal placeholder
+                    // also remains F. A changed target is an ordinary resolved
+                    // graph edge and must not collapse onto either default
+                    // placeholder.
+                    const std::uint32_t target = m_referenceResolver
+                        ? resolveReference(sourcePlotStyle) : sourcePlotStyle;
+                    if (target == 0u || target == DRW::NoHandle)
                         return failDxfWrite();
-                    write(writer->writeString(390, "F"));
+                    if (target == sourcePlotStyle) {
+                        if ((m_dxfDefaultPlotPlaceholder != 0u
+                             && m_dxfDefaultPlotPlaceholder != target)
+                            || m_dxfCallerPlotPlaceholderTarget == target)
+                            return failDxfWrite();
+                    } else if (target == m_dxfDefaultPlotPlaceholder
+                               || (m_dxfCallerPlotPlaceholderTarget != 0u
+                                   && target == m_dxfCallerPlotPlaceholderTarget)) {
+                        return failDxfWrite();
+                    }
+                    write(writer->writeString(390, toHexStr(target)));
                 } else {
                     // A nondefault group-390 value is a graph edge. Do not
                     // emit its source handle (or silently replace it with F)

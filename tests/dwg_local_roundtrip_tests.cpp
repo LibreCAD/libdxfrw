@@ -17668,10 +17668,11 @@ bool runDxfAcdsMultipleDataStorageProjection(
         && boxChunkLengths != observedChunks.end()
         && boxChunkLengths->second == std::vector<std::size_t>{127u, 127u, 2u};
 
-    const std::array<std::pair<const char*, int>, 5> expectedClasses{{
+    const std::array<std::pair<const char*, int>, 7> expectedClasses{{
         {"ACSH_HISTORY_CLASS", 2}, {"ACAD_EVALUATION_GRAPH", 2},
         {"ACSH_BOX_CLASS", 1}, {"ACSH_EXTRUSION_CLASS", 1},
-        {"MATERIAL", 3}}};
+        {"MATERIAL", 3}, {"ACDBDICTIONARYWDFLT", 1},
+        {"ACDBPLACEHOLDER", 1}}};
     bool classesMatch = imported.dxfClasses.size() == expectedClasses.size();
     if (classesMatch) {
         for (std::size_t index = 0; index < expectedClasses.size(); ++index) {
@@ -17714,6 +17715,12 @@ bool runDxfAcdsMultipleDataStorageProjection(
                 std::cerr << ' ' << static_cast<int>(entity->eType)
                           << ':' << entity->handle;
         }
+        std::cerr << '\n';
+        std::cerr << "ACDS multi-projection classes (" << imported.dxfClasses.size()
+                  << "):";
+        for (const DRW_Class& cls : imported.dxfClasses)
+            std::cerr << ' ' << cls.recName << '/' << cls.className
+                      << '/' << cls.instanceCount;
         std::cerr << '\n';
     }
     bool replayValid = false;
@@ -18637,6 +18644,8 @@ bool runDxfTypedAcdsPrimitiveRoundTrip(
         {torus ? "ACSH_TORUS_CLASS" : "ACSH_BOX_CLASS", 1}};
     if (!torus)
         expectedClasses.emplace_back("MATERIAL", 3);
+    expectedClasses.emplace_back("ACDBDICTIONARYWDFLT", 1);
+    expectedClasses.emplace_back("ACDBPLACEHOLDER", 1);
     bool classesMatch = imported.dxfClasses.size() == expectedClasses.size();
     if (classesMatch) {
         for (std::size_t index = 0; index < expectedClasses.size(); ++index) {
@@ -20758,9 +20767,13 @@ bool runDxfEvaluationGraphRoundTrip(
             break;
         }
     }
-    const bool classesMatch = imported.dxfClasses.size() == 1u
-        && imported.dxfClasses.front().recName == "ACAD_EVALUATION_GRAPH"
-        && imported.dxfClasses.front().instanceCount == 1;
+    const bool classesMatch = imported.dxfClasses.size() == 3u
+        && imported.dxfClasses[0].recName == "ACAD_EVALUATION_GRAPH"
+        && imported.dxfClasses[0].instanceCount == 1
+        && imported.dxfClasses[1].recName == "ACDBDICTIONARYWDFLT"
+        && imported.dxfClasses[1].instanceCount == 1
+        && imported.dxfClasses[2].recName == "ACDBPLACEHOLDER"
+        && imported.dxfClasses[2].instanceCount == 1;
     const bool graphMatch = imported.evaluationGraphs.size() == 1u
         && imported.evaluationGraphs.front().handle == graph.handle
         && imported.evaluationGraphs.front().parentHandle
@@ -20812,6 +20825,12 @@ bool runDxfEvaluationGraphRoundTrip(
             }
             std::cerr << '\n';
         }
+        std::cerr << "EvaluationGraph classes (" << imported.dxfClasses.size()
+                  << "):";
+        for (const DRW_Class& cls : imported.dxfClasses)
+            std::cerr << ' ' << cls.recName << '/' << cls.className
+                      << '/' << cls.instanceCount;
+        std::cerr << '\n';
     }
     return importedLine != nullptr && classesMatch && graphMatch
         && oldVersionRejected;
