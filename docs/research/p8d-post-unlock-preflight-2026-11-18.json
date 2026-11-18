@@ -103,6 +103,14 @@
       "artifactCreated": false,
       "guiActionsAttempted": false,
       "interpretation": "After the latest reported unlock, this process still sees no active Quartz display and cannot capture a desktop image. This does not establish physical login state or capture permissions."
+    },
+    "retryAfterCurrentUserMessage": {
+      "trigger": "The user said they would unlock the macOS session after the prior failed preflight; this records the report and does not independently establish session state.",
+      "screenCaptureCommand": "screencapture -x /private/tmp/libdxfrw-p8d-unlock-check.png",
+      "screenCaptureResult": "Failed: could not create image from display.",
+      "artifactCreated": false,
+      "guiActionsAttempted": false,
+      "interpretation": "The current process still cannot capture a desktop image. This does not establish the physical login state or capture permissions."
     }
   },
   "guiActionsAttempted": false,
