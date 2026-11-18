@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Probe one hash-bound AC1024 LayerStates companion; never enables output.
+"""Probe four hash-bound AC1024 LayerStates dictionaries; never enables output.
 
 Requires the local AC1024 corpus file and a LibreDWG 0.14 -v4 trace. The
 probe is local research evidence, not a portable qualification or a fixture.
@@ -44,6 +44,35 @@ def main():
                   'EED[0] code: 0 [RC], wstring: len=4 [RS] "<All"'):
         if token not in section:
             raise SystemExit("independent trace is missing expected EED: " + token)
+    profiles = {
+        "0.1.D5": (
+            "bitsize: 858", "data_size: 782/0x30e", "ownerhandle: (4.1.2) abs:2",
+            'texts[0]: "ACAD_LAYERFILTERS"', 'texts[1]: "ACAD_LAYERSTATES"',
+            'texts[2]: "ACLYDICTIONARY"', 'itemhandles[0]: (2.1.EE) abs:EE',
+            'itemhandles[1]: (2.2.1B8) abs:1B8', 'itemhandles[2]: (2.1.ED) abs:ED'),
+        "0.2.1B8": (
+            "bitsize: 438", "data_size: 346/0x15a", "ownerhandle: (4.1.D5) abs:D5",
+            "reactors[0]: (4.1.D5) abs:D5", 'texts[0]: "ACAD_VIEWS_RenderView"',
+            'itemhandles[0]: (2.2.249) abs:249'),
+        "0.1.EE": (
+            "bitsize: 60", "has_strings: 0", "ownerhandle: (12.1.19) abs:D5",
+            "reactors[0]: (4.1.D5) abs:D5", "numitems: 0"),
+        "0.1.ED": (
+            "bitsize: 174", "has_strings: 0", "ownerhandle: (12.1.18) abs:D5",
+            "reactors[0]: (4.1.D5) abs:D5", "numitems: 0"),
+    }
+    for handle, tokens in profiles.items():
+        position = text.find("handle: " + handle + " [H 5]")
+        begin = text.rfind("< Next object:", 0, position)
+        end = text.find("< Next object:", position)
+        if position < 0 or begin < 0 or end < 0:
+            raise SystemExit("independent dictionary object boundaries missing: " + handle)
+        peer_object = text[begin:end]
+        if "Decode object DICTIONARY" not in peer_object:
+            raise SystemExit("independent object is not DICTIONARY: " + handle)
+        for token in tokens:
+            if token not in peer_object:
+                raise SystemExit("independent dictionary evidence missing: " + handle + " " + token)
     app_handle = text.find("handle: 0.1.12 [H 5]")
     app_start = text.rfind("< Next object:", 0, app_handle)
     app_end = text.find("< Next object:", app_handle)

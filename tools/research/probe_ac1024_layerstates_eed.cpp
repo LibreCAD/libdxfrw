@@ -30,6 +30,270 @@ public:
     return it == d.m_standardDwgAppIdSources.end() ? nullptr : it->second.get();
   }
 };
+struct DictExpectation {
+  std::uint32_t handle, parent, bodyEnd, bodyFieldsEnd, stringBits;
+  unsigned ownerRole;
+  int hardOwner;
+  std::vector<std::pair<std::string, std::uint32_t>> items;
+};
+
+bool observeDictionary(const dx_data &data, const DictExpectation &expected,
+                       const std::vector<std::uint8_t> &bytes,
+                       std::uint32_t handleBits, bool verbose) {
+  using namespace dx_raster_wire;
+  if (bytes.empty() || bytes.size() > 1024u || handleBits >= bytes.size() * 8u)
+    return false;
+  const DRW_Dictionary *typed = nullptr;
+  for (const auto &row : data.dictionaries)
+    if (row.handle == expected.handle) {
+      if (typed)
+        return false;
+      typed = &row;
+    }
+  if (!typed ||
+      !DxIfaceStandardDwgCaptureTestAccess::frameBound(data, expected.handle) ||
+      typed->parentHandle != expected.parent || typed->xDictHandle != 0u ||
+      !typed->appData.empty() || typed->cloning != 1 ||
+      typed->hardOwner != expected.hardOwner ||
+      typed->m_entries.size() != expected.items.size() ||
+      typed->reactorHandles.size() != (expected.handle == 0xD5u ? 0u : 1u))
+    return false;
+  for (std::size_t i = 0; i < expected.items.size(); ++i)
+    if (typed->m_entries[i].m_name != expected.items[i].first ||
+        typed->m_entries[i].m_handle != expected.items[i].second)
+      return false;
+  if (!typed->reactorHandles.empty() && typed->reactorHandles[0] != 0xD5u)
+    return false;
+
+  const auto total = static_cast<std::uint32_t>(bytes.size() * 8u);
+  const auto bodyEnd = total - handleBits;
+  if (bodyEnd != expected.bodyEnd || bodyEnd < 1u)
+    return false;
+  detail::Bits body{bytes.data(), 0u, bodyEnd};
+  const auto tag = body.take(2u);
+  const auto type = tag == 0u   ? body.take(8u)
+                    : tag == 1u ? body.take(8u) + 0x1f0u
+                                : body.little(2u);
+  const auto self = detail::handle(body, 0u, 0u, true);
+  if (!body.good || type != 42u || self.value != expected.handle)
+    return false;
+  Proof eedProof;
+  auto visitEed = [&](const EedToken &token) noexcept {
+    if (expected.handle != 0xEDu || token.index >= typed->extData.size() ||
+        !typed->extData[token.index] ||
+        typed->extData[token.index]->code() != static_cast<int>(token.code) ||
+        typed->extData[token.index]->type() != DRW_Variant::STRING ||
+        !typed->extData[token.index]->content.s)
+      return false;
+    const auto &value = *typed->extData[token.index]->content.s;
+    if (token.index == 0u)
+      return token.code == 1001u && token.role == 5u && token.value == 0x12u &&
+             token.span.begin == 36u && token.span.end == 52u &&
+             value == "ACAD";
+    if (token.index != 1u || token.code != 1000u || value != "<All" ||
+        token.valueSpan.begin != 60u || token.valueSpan.end != 140u)
+      return false;
+    detail::Bits text{bytes.data(), token.valueSpan.begin, token.valueSpan.end};
+    if (text.little(2u) != value.size())
+      return false;
+    for (unsigned char c : value)
+      if (text.little(2u) != c)
+        return false;
+    return text.good && text.pos == text.end;
+  };
+  if (detail::eed(body, 2010u, eedProof, visitEed) != Status::Proven ||
+      eedProof.eedVariants != (expected.handle == 0xEDu ? 2u : 0u) ||
+      typed->extData.size() != eedProof.eedVariants)
+    return false;
+  if (body.longValue() != typed->reactorHandles.size() || body.take(1u) != 1u ||
+      body.longValue() != expected.items.size() || body.shortValue() != 1u ||
+      body.take(8u) != static_cast<unsigned>(expected.hardOwner) ||
+      !body.good || body.pos != expected.bodyFieldsEnd)
+    return false;
+  detail::Bits presence{bytes.data(), bodyEnd - 1u, bodyEnd};
+  const bool hasStrings = presence.take(1u) != 0u;
+  if (!presence.good || hasStrings != !expected.items.empty())
+    return false;
+  if (hasStrings) {
+    if (bodyEnd < 17u)
+      return false;
+    detail::Bits footer{bytes.data(), bodyEnd - 17u, bodyEnd - 1u};
+    const auto stringBits = footer.little(2u);
+    if (!footer.good || stringBits != expected.stringBits ||
+        stringBits > bodyEnd - 17u || body.pos != bodyEnd - 17u - stringBits)
+      return false;
+    detail::Bits text{bytes.data(), body.pos, bodyEnd - 17u};
+    for (const auto &entry : expected.items) {
+      if (text.shortValue() != entry.first.size())
+        return false;
+      for (unsigned char c : entry.first)
+        if (text.little(2u) != c)
+          return false;
+    }
+    if (!text.good || text.pos != text.end)
+      return false;
+  } else if (body.pos != bodyEnd - 1u || expected.stringBits != 0u) {
+    return false;
+  }
+  detail::Bits wire{bytes.data(), bodyEnd, total};
+  const auto ownerStart = wire.pos;
+  const auto owner = detail::handle(wire, 4u, expected.handle);
+  if (!wire.good || owner.role != expected.ownerRole ||
+      owner.value != expected.parent || wire.pos != ownerStart + 16u)
+    return false;
+  if (verbose)
+    std::cout << "dictionary=" << std::hex << expected.handle << std::dec
+              << " body=0:" << expected.bodyFieldsEnd
+              << " strings=" << expected.bodyFieldsEnd << ":"
+              << bodyEnd - (hasStrings ? 17u : 1u)
+              << " footer=" << bodyEnd - (hasStrings ? 17u : 1u) << ":"
+              << bodyEnd << " owner=" << ownerStart << ":" << wire.pos
+              << " role=" << unsigned(owner.role) << " target=" << std::hex
+              << owner.value << std::dec;
+  if (!typed->reactorHandles.empty()) {
+    const auto start = wire.pos;
+    const auto reactor = detail::handle(wire, 4u, expected.handle);
+    if (!wire.good || reactor.role != 4u || reactor.value != 0xD5u ||
+        wire.pos != start + 16u)
+      return false;
+    if (verbose)
+      std::cout << " reactor=" << start << ":" << wire.pos;
+  }
+  std::size_t itemIndex = 0u;
+  for (const auto &entry : expected.items) {
+    const auto start = wire.pos;
+    const auto item = detail::handle(wire, 2u, expected.handle);
+    if (!wire.good || item.role != 2u || item.value != entry.second ||
+        wire.pos !=
+            start + ((expected.handle == 0xD5u && itemIndex != 1u) ? 16u : 24u))
+      return false;
+    ++itemIndex;
+    if (verbose)
+      std::cout << " item=" << start << ":" << wire.pos << ":" << std::hex
+                << item.value << std::dec;
+  }
+  const auto expectedEnd = expected.handle == 0xD5u    ? 930u
+                           : expected.handle == 0x1B8u ? 494u
+                           : expected.handle == 0xEEu  ? 92u
+                                                       : 206u;
+  if (wire.pos != expectedEnd)
+    return false;
+  const auto padding = wire.end - wire.pos;
+  if (padding >= 8u)
+    return false;
+  if (verbose)
+    std::cout << " padding=" << wire.pos << ":" << wire.end << "\n";
+  return wire.skip(padding) && wire.good;
+}
+
+bool testDictionaryFrames(const dx_data &data) {
+  const std::vector<DictExpectation> profiles{
+      {0xD5u,
+       2u,
+       858u,
+       59u,
+       782u,
+       4u,
+       1,
+       {{"ACAD_LAYERFILTERS", 0xEEu},
+        {"ACAD_LAYERSTATES", 0x1B8u},
+        {"ACLYDICTIONARY", 0xEDu}}},
+      {0x1B8u,
+       0xD5u,
+       438u,
+       75u,
+       346u,
+       4u,
+       0,
+       {{"ACAD_VIEWS_RenderView", 0x249u}}},
+      {0xEEu, 0xD5u, 60u, 59u, 0u, 12u, 0, {}},
+      {0xEDu, 0xD5u, 174u, 173u, 0u, 12u, 0, {}}};
+  for (const auto &profile : profiles) {
+    const auto *raw =
+        DxIfaceStandardDwgCaptureTestAccess::frame(data, profile.handle);
+    if (!raw || !observeDictionary(data, profile, raw->m_rawBytes,
+                                   raw->m_bodyBitSize, true))
+      return false;
+    // Every mutation affects a verified source bit and is followed by a retry.
+    std::vector<std::pair<const char *, std::uint32_t>> mutations{
+        {"body", profile.bodyFieldsEnd - 2u},
+        {"footer", profile.bodyEnd - 1u},
+        {"owner-role", profile.bodyEnd + 1u},
+        {"owner-target", profile.bodyEnd + 15u}};
+    if (profile.handle != 0xD5u) {
+      mutations.emplace_back("reactor-role", profile.bodyEnd + 17u);
+      mutations.emplace_back("reactor-target", profile.bodyEnd + 31u);
+    }
+    if (!profile.items.empty()) {
+      mutations.emplace_back("string-byte", profile.bodyFieldsEnd + 17u);
+      const std::vector<std::uint32_t> itemStarts =
+          profile.handle == 0xD5u ? std::vector<std::uint32_t>{874u, 890u, 914u}
+                                  : std::vector<std::uint32_t>{470u};
+      for (auto start : itemStarts) {
+        mutations.emplace_back("item-role", start + 1u);
+        mutations.emplace_back("item-target", start + 15u);
+      }
+    }
+    for (const auto &mutation : mutations) {
+      auto changed = raw->m_rawBytes;
+      changed[mutation.second / 8u] ^=
+          static_cast<std::uint8_t>(1u << (7u - mutation.second % 8u));
+      if (observeDictionary(data, profile, changed, raw->m_bodyBitSize,
+                            false) ||
+          !observeDictionary(data, profile, raw->m_rawBytes, raw->m_bodyBitSize,
+                             false))
+        return false;
+      std::cout << "dictionary-negative=" << mutation.first
+                << " handle=" << std::hex << profile.handle << std::dec
+                << " bit=" << mutation.second << " rejected=1 retry=1\n";
+    }
+    // Insert an extra bit before the detached strings (or absent-string
+    // marker) and consume one padding bit, adjusting the declared body end.
+    // This is a research-only mutation; it must never widen source admission.
+    auto inserted = raw->m_rawBytes;
+    const auto insertion = profile.bodyFieldsEnd;
+    const auto totalBits = static_cast<std::uint32_t>(inserted.size() * 8u);
+    for (auto bit = totalBits - 1u; bit > insertion; --bit) {
+      const auto previous =
+          (inserted[(bit - 1u) / 8u] >> (7u - (bit - 1u) % 8u)) & 1u;
+      const auto mask = static_cast<std::uint8_t>(1u << (7u - bit % 8u));
+      inserted[bit / 8u] = static_cast<std::uint8_t>(
+          (inserted[bit / 8u] & ~mask) | (previous ? mask : 0u));
+    }
+    inserted[insertion / 8u] &=
+        static_cast<std::uint8_t>(~(1u << (7u - insertion % 8u)));
+    if (raw->m_bodyBitSize == 0u ||
+        observeDictionary(data, profile, inserted, raw->m_bodyBitSize - 1u,
+                          false) ||
+        !observeDictionary(data, profile, raw->m_rawBytes, raw->m_bodyBitSize,
+                           false))
+      return false;
+    std::cout << "dictionary-negative=extra-body-bit handle=" << std::hex
+              << profile.handle << std::dec << " rejected=1 retry=1\n";
+    // Cut the final object byte while keeping the same body boundary. This
+    // removes handle-stream bits, not merely the declared padding.
+    auto truncatedFrame = raw->m_rawBytes;
+    truncatedFrame.pop_back();
+    if (raw->m_bodyBitSize < 8u ||
+        observeDictionary(data, profile, truncatedFrame,
+                          raw->m_bodyBitSize - 8u, false) ||
+        !observeDictionary(data, profile, raw->m_rawBytes, raw->m_bodyBitSize,
+                           false))
+      return false;
+    std::cout << "dictionary-negative=truncated-handle-stream handle="
+              << std::hex << profile.handle << std::dec
+              << " rejected=1 retry=1\n";
+    auto appended = raw->m_rawBytes;
+    appended.push_back(0u);
+    if (observeDictionary(data, profile, appended, raw->m_bodyBitSize + 8u,
+                          false))
+      return false;
+    std::cout << "dictionary-negative=extra-handle-byte handle=" << std::hex
+              << profile.handle << std::dec << " rejected=1\n";
+  }
+  return true;
+}
+
 int main(int argc, char **argv) {
   if (argc != 2)
     return 2;
@@ -197,5 +461,5 @@ int main(int argc, char **argv) {
   std::cout << "negative=truncated rejected=" << truncated << "\n";
   const bool retry = check(original, 174u);
   std::cout << "corrected_retry=" << retry << "\n";
-  return !truncated || !retry;
+  return !truncated || !retry || !testDictionaryFrames(data);
 }

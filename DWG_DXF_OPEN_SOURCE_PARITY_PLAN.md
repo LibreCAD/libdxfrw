@@ -19,7 +19,7 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-18:** 10/34 package gates closed; 24 remain. The activity
-ledger is 97/121 (80.2%): ten closed gates and 87 completed implementation or
+ledger is 98/122 (80.3%): ten closed gates and 88 completed implementation or
 research slices. The [focused slice](docs/research/p6-raster-dimstyle-default-roundtrip-2026-11-18.json)
 fixes an AC1021 default plot dictionary reexport and a default BYBLOCK DIMSTYLE
 downgrade; five owning selectors pass. The following [source-identity selector
@@ -42,9 +42,10 @@ string, handle and alignment boundaries; physical output and refusal controls
 pass for both encodings. Broader profiles remain unqualified.
 Independent [ASCII/Binary readback](docs/research/p4-ac1024-layerstates-independent-output-and-crossversion-screen-2026-11-18.json)
 matches the selected one-root graph. The [three-root investigation](docs/research/p4-ac1024-three-root-layerstates-common-tail-investigation-2026-11-18.json)
-reproduced a previously passing source-profile refusal and binds one companion's
-EED text and APPID in a reusable probe; P4-D tracks its remaining complete
-frame and graph work without relaxing output.
+reproduced a previously passing source-profile refusal and binds all four
+dictionary frames, including one companion's EED text and APPID, in a
+standalone probe. P4-D tracks production integration and remaining nested
+graph work without relaxing output.
 The [package and FreeCAD receipt](docs/research/p8-package-freecad-7a12d-qualification-2026-11-18.json)
 records three-platform package passes and Linux/Windows FreeCAD passes on
 `7a12d6ef`. P8-E remains closed for unchanged library package inputs. A subsequent
@@ -81,7 +82,7 @@ excluded from the counts, and cannot promote support claims.
 ## Execution order and fast paths
 
 The active queue has 24 package gates (P4: 3, P5: 7, P6: 6, P7: 5, P8: 3).
-P4-D has a source-bound EED proof that can be extended to the remaining frames;
+P4-D has source-bound standalone proof for four dictionary frames;
 the other format gates await their stated evidence. Take the first eligible evidence packet;
 an unavailable producer, external authority, GUI, or converter parks only its
 own profile.
@@ -169,8 +170,8 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 34 package gates and each implementation/research slice once. The
-  current ledger is 87 completed slices plus 34 package gates = 121 counted
-  items; 10 gates plus 87 slices are complete (97/121, 80.2%). The Linux and
+  current ledger is 88 completed slices plus 34 package gates = 122 counted
+  items; 10 gates plus 88 slices are complete (98/122, 80.3%). The Linux and
   Windows FreeCAD results cover only their exact generated profile and binary;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package
@@ -199,8 +200,8 @@ corrected retry succeeds. A raw-only route must preserve its exact source and
 strictly refuse output; an output-capable route must also pass fresh independent
 readback. Each gate adds only its package-specific evidence.
 
-P4-D's EED evidence does not by itself admit multi-root output; close its other
-frame and dependency boundaries first. P6-B remains raw-only until a full-AutoCAD exact-class and
+P4-D's standalone dictionary evidence does not by itself admit multi-root
+output; integrate the proof and close its nested dependencies first. P6-B remains raw-only until a full-AutoCAD exact-class and
 selected-path witness exists; reuse its [disposition](docs/research/p6-persubentmgr-raw-only-dxf-disposition-2026-11-18.json)
 and [creation-route screen](docs/research/p6-persubentmgr-native-api-eligibility-screen-2026-11-18.json).
 P8-D and P6-H remain parked on their explicit environment/tool triggers; see
@@ -212,7 +213,7 @@ their gate rows and receipts. Do not repeat unchanged attempts.
 |---|---|---|
 | P4-B / WAITING_FOR_WITNESS | Request one source-distinct, release-bound AC1032 drawing with known top-level and nested associative-network API state, or primary versioned wire documentation. Reuse the [readiness audit](docs/research/p4-ac1032-assocnetwork-evidence-readiness-2026-11-17.json); peer agreement and frame candidates alone do not qualify. | Bind class-version-2 order/spans, handle roles, and following-record boundary. Add one discriminating truncation/refusal control; close nested graph and producer/consumer evidence. |
 | P4-C / WAITING_FOR_AC1027_PRODUCER_WITNESS | Preferred source remains an AutoCAD 2013/ObjectARX-authored AC1027 drawing and matching R2013 DXF. If that host is unavailable, the documented APS fallback can use AutoCAD 2027's `Autodesk.AutoCAD+26_0` engine and save a separate current-producer profile as AC1027. Autodesk documents the `SweptSurface`/`SweepOptionsBuilder` APIs, AC1027 `Database.SaveAs`/`dxfOut`, and the cloud AppBundle/WorkItem route. See the [ObjectARX/API receipt](docs/research/p4-ac1027-sweep-oda-schema-boundary-2026-11-17.json) and [APS route receipt](docs/research/p4c-aps-autocad-ac1027-witness-route-2026-11-17.json). An APS job has service/quota requirements and may incur cost; do not submit one without authorized credentials and quota. | Generate one compact pair with a baseline/default sweep and one distinct non-default sweep. Capture engine/producer build, app-bundle hash and WorkItem ID, source entities/options before save and after reopening AC1027, handles, geometry, AC1027 magic and DXF `$ACADVER`. Keep the 2027-to-AC1027 profile distinct from AutoCAD 2013. Compare the paired DXF, ODA v5.4.1, and source-bound libdxfrw/LibreDWG traces to bind parent/child spans, embedded LWPOLYLINE body and suffix, handle roles, and next-frame alignment. API/header agreement or ODA round-trip alone cannot close physical spans. Preserve unknown suffix bytes and refuse strict output until spans resolve; then add only the missing truncation/wrong-role control, strict output/readback, corrected retry, and independent geometry check. If neither producer route is available, leave only this gate waiting and continue other work. |
-| P4-D / ACTIVE_SOURCE_BOUND_WIRE_PROOF | A previously passing AC1024 three-root LayerStates selector now refuses its matched physical source because the versioned guard expects an absent common-link marker. The [investigation](docs/research/p4-ac1024-three-root-layerstates-common-tail-investigation-2026-11-18.json) pins the source, peer trace and four dictionary frames. A bounded [EED probe](tools/research/probe_ac1024_layerstates_eed.py) independently checks companion 0xED's UTF-16 value and APPID 0x12 with corruption controls; this is not full-frame proof. | Bind complete body, detached strings, footer, common/item handle roles and terminal boundaries for all four frames, including exact EED bytes and source APPID identity. Revalidate XRECORD, extension dictionary and nested SCALE graph. Add truncation, unknown-tail, wrong-role/target, source-consistency, destination-preservation and corrected retry controls before changing output admission; require ASCII/Binary selected output and independent readback. Keep other versions and broader LayerStates semantics unqualified. |
+| P4-D / ACTIVE_SOURCE_BOUND_WIRE_PROOF | A previously passing AC1024 three-root LayerStates selector now refuses its matched physical source because the versioned guard expects an absent common-link marker. The [investigation](docs/research/p4-ac1024-three-root-layerstates-common-tail-investigation-2026-11-18.json) and bounded [research probe](tools/research/probe_ac1024_layerstates_eed.py) bind all four dictionary bodies, detached strings, footer, handles and EED/APPID to the source and independent trace; 44 dictionary corruption controls pass. | Integrate and recheck that source-bound proof and the APPID snapshot in the same import session. Independently close XRECORD 0x249, extension dictionary 0x24A, XRECORD 0x24B, SCALE 0x127 and rooted ACAD_SCALELIST dependencies. Add source-consistency, destination-preservation and corrected retry controls before changing output admission; require ASCII/Binary selected output and independent readback. Keep other versions and broader LayerStates semantics unqualified. |
 
 ### P5 — FIELD, TABLE, rendering, constraints (7 open)
 
