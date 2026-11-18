@@ -160,10 +160,6 @@ before reaching the cells. Neither route supplies the disputed spans or
 overrides ODA. See the [alignment receipt](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json),
 [cursor/peer screen](docs/research/p5-ac1021-table-alignment-candidate-cursor-and-libredwg-screen-2026-11-17.json),
 and [debug-class screen](docs/research/p5-ac1021-table-libredwg-debug-class-span-screen-2026-11-17.json).
-At the S35 checkpoint, activity progress was 54/81 (66.7%) and package
-readiness was 6/33 (18.2%). That historical count is superseded by the current
-snapshot above. S32 through S35 are completed inventory or candidate research
-slices; none closes P5-B or promotes a support claim.
 P6-G is conditional, P7-E optional, and six DEFERRED_EXTERNAL dispositions
 are advisory, excluded from the count, and cannot promote support claims.
 
@@ -230,9 +226,12 @@ environment waits block only their own profiles.
    Linux and Windows FreeCAD 2D checks for every admitted profile, add 3D only
    for P7-admitted profiles, and collect shared/static manifests, relocation,
    runtime identity, and source-matched platform CI on the same candidate.
-   Close P8-A/B/C/E/F and applicable P7-H after the changed-trigger P8-D GUI
-   gate closes, then set release thresholds and update the support matrix
-   (P8-G). Hosted CI remains subject to the owner's existing go-ahead.
+   Close each integration gate as its own prerequisites are satisfied. P8-D's
+   unavailable Aqua GUI does not block Linux/Windows packaging, FreeCAD, or CI
+   work; record it as a release limitation until its app/display trigger
+   changes. Set release thresholds from the gates actually closed and update
+   the support matrix (P8-G). Hosted CI remains subject to the owner's existing
+   go-ahead.
 
 ## Evidence policy and per-slice loop
 
@@ -286,7 +285,8 @@ environment waits block only their own profiles.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 33 package gates and each implementation/research slice once; the
-  current ledger has 52 recorded completed slices (85 counted items total).
+  current ledger has 53 recorded completed slices (86 counted items total),
+  matching the 59/86 progress snapshot above.
   Linux, Windows, and GUI outcomes belong to
   P8-B/C/D and are not separate progress units. A
   partial implementation slice earns activity progress but does not close its
@@ -331,7 +331,7 @@ changed-trigger rule for a verifiably signed, usable ODA bundle.
 | 2 — Authority and independent-span waits (4 gates) | P5-B/P5-I, P6-E, P7-D | Reuse the receipts listed in each gate. Resume only when the required versioned authority, independent field span, or eligible source arrives. Keep unsupported FIELD records raw-only and TABLE alignment unresolved; do not repeat peer scans or choose a layout by majority vote. |
 | 3 — Separate producer models (4 gates) | P5-G, P6-B, P6-F, P7-G | Request only the exact missing witness for each profile: dynamic constraints, PERSUBENTMGR, eligible AC1012/AC1014 partial-read source, or trim/periodic/spline geometry. Reuse existing scans; keep a blocked profile waiting while another witness is acquired. |
 | 4 — Changed-trigger environment checks (2 gates) | P8-D, P6-H | For P8-D, first confirm a working Aqua app registration, pasteboard, and capturable display; only then run the named-LTYPE and LibreCAD_3 MPOLYGON GUI operations. For P6-H, first verify the ODA bundle signature and normal launch, then convert the exact scratch source once. Keep all generated drawings in scratch. |
-| 5 — One frozen integration pass (8 gates) | P7-F/P7-H, P8-A/B/C/E/F/G | Freeze after admitted implementation profiles stabilize. Run native Linux/Windows consumer and package checks against that same candidate, collect runtime/module identities during those runs, resolve source-matched CI, then set release thresholds. Reuse matching existing receipts; do not repeat unaffected platforms or profiles. |
+| 5 — One frozen integration pass (8 gates) | P7-F/P7-H, P8-A/B/C/E/F/G | Freeze after admitted implementation profiles stabilize. Run native Linux/Windows consumer and package checks against that same candidate, collect runtime/module identities during those runs, resolve source-matched CI, then set release thresholds. P8-D is independent and does not block this packet. Reuse matching existing receipts; do not repeat unaffected platforms or profiles. |
 
 The packets are disjoint and reconcile to all 27 open gates (9+4+4+2+8).
 
