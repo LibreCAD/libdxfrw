@@ -19,7 +19,7 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-18:** 12/34 package gates closed; 22 remain. The activity
-ledger is 136/158 (86.1%): twelve closed gates and 124 completed implementation or
+ledger is 137/159 (86.2%): twelve closed gates and 125 completed implementation or
 research slices. The [focused slice](docs/research/p6-raster-dimstyle-default-roundtrip-2026-11-18.json)
 fixes an AC1021 default plot dictionary reexport and a default BYBLOCK DIMSTYLE
 downgrade; five owning selectors pass. The following [source-identity selector
@@ -168,8 +168,8 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 34 package gates and each implementation/research slice once. The
-  current ledger counts 124 completed slices and 34 package gates. The slices
-  and twelve closed gates account for 136 of 158 counted items (86.1%). The Linux and
+  current ledger counts 125 completed slices and 34 package gates. The slices
+  and twelve closed gates account for 137 of 159 counted items (86.2%). The Linux and
   Windows FreeCAD results cover only their exact generated profile and binary;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package
@@ -296,7 +296,7 @@ source-reference closure.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P8-D / ACTIVE_MLINE_STAGE_GUARDS_AND_WAITING_FOR_AQUA | The unmerged [style-timing](docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch) and [closure-bit](docs/patches/librecad-mline-closure-bit-2026-11-18.patch) patches have focused headless controls. The [installed-codec proof](docs/research/p8d-mline-installed-style-write-contract-2026-11-18.json) establishes source-handle input, stage binding and atomic retry in four profiles. The [bundled transaction proof and review](docs/research/p8d-mline-bundled-staged-write-proof-2026-11-18.json) reproduces rollback with real staged output and exposes three accepted corruptions. | Record the actual emitted type and unique minted anchor during each selected write. Validate the complete staged MLINE projection and exact style fields, including the added-field, forged-fallback and changed-group-41 controls. Integrate the installed filter with its staged inspectors and test a complete app build. Resume GUI work after an active display and successful capture. The [latest preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json) could not capture. In one LibreCAD 2 session batch Move/Copy, named-LTYPE save/reopen/render and selected MLINE display/edit/save/reopen. Run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf when that bundle is available. |
+| P8-D / ACTIVE_MLINE_STAGE_GUARDS_AND_WAITING_FOR_AQUA | The unmerged [style-timing](docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch) and [closure-bit](docs/patches/librecad-mline-closure-bit-2026-11-18.patch) patches have focused headless controls. The [installed-codec proof](docs/research/p8d-mline-installed-style-write-contract-2026-11-18.json) establishes source-handle input, stage binding and atomic retry in four profiles. The [bundled transaction proof and review](docs/research/p8d-mline-bundled-staged-write-proof-2026-11-18.json) records twelve destination-preserving refusals and retries with the emitted MLINE bound to its complete selected projection. The scanner follow-up also refuses malformed root metadata and padded names. | Cap aggregate record allocations, compose the latest scanner with the write transaction, and rerun the focused atomic and no-hook controls before consumer integration. Integrate the installed filter with its staged inspectors and test a complete app build. Resume GUI work after an active display and successful capture. The [latest preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json) could not capture. In one LibreCAD 2 session batch Move/Copy, named-LTYPE save/reopen/render and selected MLINE display/edit/save/reopen. Run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf when that bundle is available. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 
 Keep consumer, source, and build receipts separate. Preserve LibreCAD's R13

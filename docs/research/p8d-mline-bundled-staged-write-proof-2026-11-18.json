@@ -2,7 +2,7 @@
   "schema": "libdxfrw-research-receipt-v1",
   "id": "p8d-mline-bundled-staged-write-proof-2026-11-18",
   "date": "2026-11-18",
-  "status": "SCRATCH_ATOMIC_GATE_REPRODUCED_VERIFIER_REVIEW_FAILED",
+  "status": "REVISED_SCRATCH_ATOMIC_GUARD_PASSED_FOCUSED_CASES",
   "supportClaimEffect": "none",
   "priorEvidence": "docs/research/p8d-mline-group41-composed-guards-2026-11-18.json",
   "scope": "Selected planar STANDARD MLINE, existing LibreCAD bundled codec, ASCII output from ASCII and Binary input. The standalone installed codec uses separate staged inspectors.",
@@ -34,9 +34,29 @@
     },
     "findings": "The scanner ignores unlisted style fields, treats a substituted polyline with a removed style provider as an allowed fallback, and accepts an altered group-41 value. A missing or ambiguous source-to-output anchor can also be skipped, leaving the stage unverified."
   },
+  "revisedScratch": {
+    "root": "/private/tmp/librecad-mline-staged-v2-20261118",
+    "candidateSha256": "4603ba6c66c1b1f961f459f4516d143252bf4f2345ef63991932d171f19dfebb",
+    "scannerSha256": "7af8c60803b28e667574bccb466dfdcb5647ac977525a941b3aac257f30131cc",
+    "testHookArchiveSha256": "d1738dd4df5add1cf66457cb346a1642f19c5fcfa2a009f423e69e9639aa9a8c",
+    "atomicLogSha256": "6698253a6e0c440ed01759b6de0ffa56cbc1590d1b0520ddc87b111c301ec6af",
+    "scannerLogSha256": "39f35e764c71669aca4fb331327b5cf01d2410fa5500f3da8cb8622f80f55281",
+    "existingProviderControlsLogSha256": "bf49729ef15aecdcaf173f68275764fd2234f9d84dde97e91aeced3df83d5b35",
+    "changedGuard": "Capture the selected MLINE and its emitted anchor during the write callback. Require the actual staged type, section, owner, common groups and ordered six-vertex model including group 41, and reject additional style fields. A separate visible-polyline fallback no longer substitutes for an expected emitted MLINE.",
+    "tested": "Twelve injected staged failures, covering a missing style provider, extra group 420, forged polyline fallback and altered group 41 across ASCII, Binary and the remap-collision inputs, refuse publication. Each retains seeded bytes and accepts corrected retry on the same filter. Direct scanner controls and fourteen neighboring provider/fallback checks also pass.",
+    "review": "The independent reviewer confirmed that the revised scratch scanner refuses the original three bypasses. The reviewer also reproduced accepted malformed generated-root owner, subclass, reactor and extra-field mutations, and padded group-2 identifiers. The 12 transaction cases qualify only the stated faults and profile."
+  },
+  "scannerOnlyFollowUp": {
+    "root": "/private/tmp/librecad-mline-staged-v3-20261118",
+    "scannerSha256": "a64dc6fb62a13bd1220ace72621fb5b6aa6da12e1ea95b1ecb9a050e95b5877b",
+    "scannerBinarySha256": "ad17debdd4a5d68f56a8407be22957ce123835cb8a399b942a7e966769b121e3",
+    "reviewLogSha256": "47aa3339bee902abb294fe270f0128ac7cc71d7b63e6e0bcdce6595ec06ccf9b",
+    "result": "The isolated scanner now requires the generated root's exact common metadata and preserves whitespace in string values. It accepts the unchanged stage and refuses nine physical-byte mutations: four root faults, two padded-name cases and the three original review cases.",
+    "scope": "This follow-up has only isolated scanner evidence. The twelve transactional refusals belong to the preceding scratch revision."
+  },
   "remaining": [
-    "Record the actual selected write decision and unique minted handle during emission. Require the resulting entity type, section, owner and complete projection in staged output. Keep the ordinary visible fallback independent of staged type inference.",
-    "Reject extra or malformed style fields and bound the scanner, then rerun the three bypass controls, stage publication, no-hook positives, independent readback and corrected retry before any production integration. Installed-filter integration and native GUI remain separate.",
+    "Before integration, cap aggregate allocations, compose the revised root and string checks with the write transaction, and replay the focused stage publication and same-filter retry cases. Test the revised no-hook build and exercise nested save context and representative unrelated records.",
+    "Integrate the installed filter's separate staged inspectors, build the complete app and verify native GUI behavior.",
     "No prototype source or generated drawing fixture is committed."
   ]
 }
