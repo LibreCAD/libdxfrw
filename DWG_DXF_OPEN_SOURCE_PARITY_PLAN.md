@@ -19,7 +19,7 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-18:** 11/34 package gates closed; 23 remain. The activity
-ledger is 122/145 (84.1%): eleven closed gates and 111 completed implementation or
+ledger is 123/146 (84.2%): eleven closed gates and 112 completed implementation or
 research slices. The [focused slice](docs/research/p6-raster-dimstyle-default-roundtrip-2026-11-18.json)
 fixes an AC1021 default plot dictionary reexport and a default BYBLOCK DIMSTYLE
 downgrade; five owning selectors pass. The following [source-identity selector
@@ -168,8 +168,8 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 34 package gates and each implementation/research slice once. The
-  current ledger is 111 completed slices plus 34 package gates = 145 counted
-  items; 11 gates plus 111 slices are complete (122/145, 84.1%). The Linux and
+  current ledger is 112 completed slices plus 34 package gates = 146 counted
+  items; 11 gates plus 112 slices are complete (123/146, 84.2%). The Linux and
   Windows FreeCAD results cover only their exact generated profile and binary;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package
@@ -292,7 +292,7 @@ source-reference closure.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | The latest preflight after the user's unlock report failed to capture an image; CoreGraphics returned `activeCount=0`. No GUI action was attempted. This does not establish physical login state or capture permissions. The LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`; no LibreCAD_3 bundle was found. See the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). An existing source-bound [MLINE candidate](docs/research/p8d-mline-source-bound-gui-candidate-2026-11-18.json) can support the GUI check after a clean current-source rebuild and regeneration; its incremental build provenance is uncertain. Retry the GUI only after an active display and successful capture. | In one GUI session, launch a provenance-bound LibreCAD 2 build and complete Move/Copy, named-LTYPE save/reopen/render, and the selected MLINE display/edit/save/reopen. Then run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback if that application becomes available. This gate does not block Linux/Windows qualification. |
+| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | The latest preflight after the user's unlock report failed to capture an image; CoreGraphics returned `activeCount=0`. No GUI action was attempted. This does not establish physical login state or capture permissions. The LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`; no LibreCAD_3 bundle was found. See the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). The [clean MLINE GUI input](docs/research/p8d-mline-clean-candidate-2026-11-18.json) is ready; bind actual LibreCAD application provenance when the GUI is accessible. Retry the GUI only after an active display and successful capture. | In one GUI session, launch a provenance-bound LibreCAD 2 build and complete Move/Copy, named-LTYPE save/reopen/render, and the selected MLINE display/edit/save/reopen. Then run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback if that application becomes available. This gate does not block Linux/Windows qualification. |
 | P8-F / ACTIVE_CURRENT_DIGEST_FAST_GATE | Digest `4d054a406e80075b9f17d312ed45d2e15a8caeb6fbaf21b784c81aae0a4c09b5` includes the real writer tests and the [GitHub event-ref verifier](docs/research/p8f-github-event-ref-binding-2026-11-18.json). The earlier `05e7cb33` passed the fast and all three focused-native jobs. Live verification matched the earlier PR checkout and three sealed receipts while its merge ref was current. That observation applies to the earlier digest only. | Run the fast and hosted focused-native profiles on the current digest. Verify the sealed Linux, Windows and macOS receipts live against the current PR merge ref and check branch policy. Reserve broad/fuzz lanes for the final integration pass. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 
