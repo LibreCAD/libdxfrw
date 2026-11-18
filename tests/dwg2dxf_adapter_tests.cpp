@@ -3468,6 +3468,9 @@ public:
         iface.m_dwgRenderGlobalInspected = false;
         return iface.hasQualifiedAc1024DwgRenderGlobal(data);
     }
+    static bool selectedRenderGlobalClass(const dx_iface& iface, const dx_data& data, DRW_Class& row) {
+        return iface.hasQualifiedAc1024DwgRenderGlobal(data, &row);
+    }
     static bool inspectSelectedRenderGlobal(dx_iface& iface,
             const dxfRW::DxfObjectsWriteView& view) {
         return iface.inspectDwgRenderGlobalOutput(view)

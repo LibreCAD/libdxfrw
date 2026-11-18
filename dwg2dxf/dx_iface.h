@@ -4679,7 +4679,8 @@ private:
     DwgClassObjectPublication m_dwgRenderGlobalPublication;
     const dx_data* m_dwgRenderGlobalReadOwner{nullptr};
     bool m_dwgRenderGlobalInspected{false};
-    bool hasQualifiedAc1024DwgRenderGlobal(const dx_data& data) const noexcept;
+    bool hasQualifiedAc1024DwgRenderGlobal(const dx_data& data,
+                                          DRW_Class* outputClass = nullptr) const noexcept;
     bool inspectDwgRenderGlobalOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool finalizeDwgRenderGlobalOutput() noexcept;
     struct DxfCommonReferenceSource {

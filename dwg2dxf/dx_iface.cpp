@@ -17967,7 +17967,8 @@ bool dx_iface::validateVisualStyleReferences(const dx_data& data,
     return true;
 }
 
-bool dx_iface::hasQualifiedAc1024DwgRenderGlobal(const dx_data& data) const noexcept {
+bool dx_iface::hasQualifiedAc1024DwgRenderGlobal(const dx_data& data,
+                                                DRW_Class* outputClass) const noexcept {
     const auto generation = data.importGeneration;
     const auto& receipt = m_dwgRenderGlobalPublication;
     const auto& pub = receipt.publication;
@@ -18048,7 +18049,7 @@ bool dx_iface::hasQualifiedAc1024DwgRenderGlobal(const dx_data& data) const noex
             || row.state != DRW_DwgClassCoverageState::Published
             || row.reason != DRW_DwgClassCoverageReason::NoReason
             || row.descriptor < 0 || !row.data.m_present || !row.strings.m_present
-            || row.proxy != raw.m_classProxyFlag || row.wasProxy != static_cast<int>(raw.m_classWasProxy)
+            || row.proxy != raw.m_classProxyFlag || row.wasProxy != 0 || raw.m_classWasProxy
             || row.itemClass != raw.m_classEntityFlagRaw || row.entity != 0
             || row.version != raw.m_classDwgVersion || row.maintenance != raw.m_classMaintenanceVersion
             || row.unknown1 != raw.m_classUnknown1 || row.unknown2 != raw.m_classUnknown2
@@ -18090,9 +18091,22 @@ bool dx_iface::hasQualifiedAc1024DwgRenderGlobal(const dx_data& data) const noex
         };
         const auto* rawDictionary = standard(*dictionary, dwgObjType::DICTIONARY);
         const auto* rawXrecord = standard(*xrecord, dwgObjType::XRECORD);
-        return rawDictionary && rawXrecord
-            && dx_ac1024_renderglobal_wire::observeDictionary(*rawDictionary, *dictionary)
-            && dx_ac1024_renderglobal_wire::observeXrecord(*rawXrecord, *xrecord);
+        if (!rawDictionary || !rawXrecord
+            || !dx_ac1024_renderglobal_wire::observeDictionary(*rawDictionary, *dictionary)
+            || !dx_ac1024_renderglobal_wire::observeXrecord(*rawXrecord, *xrecord))
+            return false;
+        if (outputClass != nullptr) {
+            DRW_Class selected;
+            selected.recName = raw.m_recordName;
+            selected.className = raw.m_className;
+            selected.appName = raw.m_classAppName;
+            selected.proxyFlag = row.proxy;
+            selected.instanceCount = 1;
+            selected.wasaProxyFlag = row.wasProxy;
+            selected.entityFlag = row.entity;
+            *outputClass = std::move(selected);
+        }
+        return true;
     } catch (...) { return false; }
 }
 
@@ -89190,13 +89204,17 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             std::vector<DRW_Class>& classes) {
         const auto registerClass = [&classes](const char* recordName,
                                                const char* className,
-                                               std::size_t count) {
+                                               std::size_t count,
+                                               const DRW_Class* source = nullptr) {
             if (count > static_cast<std::size_t>(
                     std::numeric_limits<int>::max()))
                 return false;
             DRW_Class canonical;
-            if (!dxfRW::dxfClassForRecordName(recordName, canonical)
-                || layoutSymbolKey(canonical.recName)
+            if (source != nullptr)
+                canonical = *source;
+            else if (!dxfRW::dxfClassForRecordName(recordName, canonical))
+                return false;
+            if (layoutSymbolKey(canonical.recName)
                     != layoutSymbolKey(recordName)
                 || layoutSymbolKey(canonical.className)
                     != layoutSymbolKey(className))
@@ -89247,6 +89265,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || !addMaterialHandles(m_dxfMaterialHandles)
             || !addMaterialHandles(m_extensionMaterialHandles))
             return false;
+        if (cData->sourceFormat == dx_source_format::DWG
+            && !m_extensionRenderSettingsHandles.empty()) {
+            DRW_Class source;
+            if (!hasQualifiedAc1024DwgRenderGlobal(*cData, &source)
+                || !registerClass("RENDERGLOBAL", "AcDbRenderGlobal", 1u, &source))
+                return false;
+        }
 
         return registerClass("MATERIAL", "AcDbMaterial",
                              materialHandles.size())
@@ -89271,8 +89296,6 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             && (cData->sourceFormat != dx_source_format::DWG
                 || (registerClass("GEODATA", "AcDbGeoData",
                                   m_extensionGeoDataHandles.size())
-                    && (m_extensionRenderSettingsHandles.empty()
-                        || registerClass("RENDERGLOBAL", "AcDbRenderGlobal", 1u))
                     && registerClass("RASTERVARIABLES",
                                      "AcDbRasterVariables",
                                      m_extensionRasterVariablesHandles.size())

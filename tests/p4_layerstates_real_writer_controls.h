@@ -673,7 +673,8 @@ bool physicalAc1024SelectedRenderGlobalWriter(const std::filesystem::path& sourc
         || !codec.setDxfDefaultPlotStyleSourceHandles(0xEu, 0xFu))
         return fail("could not set up selected RENDERGLOBAL roots");
     DRW_Class renderClass, plotClass, placeholderClass;
-    if (!dxfRW::dxfClassForRecordName("RENDERGLOBAL", renderClass)
+    if (!Access::selectedRenderGlobalClass(reader, source, renderClass)
+        || renderClass.proxyFlag != 1024 || renderClass.instanceCount != 1
         || !dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
         || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
         return fail("missing selected RENDERGLOBAL CLASSES rows");
@@ -711,6 +712,17 @@ bool physicalAc1024SelectedRenderGlobalWriter(const std::filesystem::path& sourc
     for (const bool binary : {false, true}) {
         if (!run(binary) || !staged || !finalizing)
             return fail("selected RENDERGLOBAL baseline was rejected");
+        dx_iface reopened;
+        dx_data output;
+        if (!reopened.fileImport(path.string(), &output, false)
+            || std::count_if(output.dxfClasses.begin(), output.dxfClasses.end(),
+                [&renderClass](const DRW_Class& row) {
+                    return row.recName == renderClass.recName
+                        && row.className == renderClass.className && row.appName == renderClass.appName
+                        && row.proxyFlag == renderClass.proxyFlag && row.instanceCount == renderClass.instanceCount
+                        && row.wasaProxyFlag == renderClass.wasaProxyFlag && row.entityFlag == renderClass.entityFlag;
+                }) != 1)
+            return fail("selected RENDERGLOBAL CLASSES row changed during publication");
         for (const Fault bad : {Fault::Body, Fault::Order, Fault::Owner,
                 Fault::GlobalEarly, Fault::DictionaryEarly, Fault::RecordEarly,
                 Fault::GlobalLate, Fault::DictionaryLate, Fault::RecordLate}) {
