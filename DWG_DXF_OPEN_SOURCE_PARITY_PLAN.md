@@ -305,11 +305,12 @@ readback. Each gate adds only its package-specific evidence.
 
 As of this reconciliation, none of the open parser/writer gates has a new
 source-qualified implementation slice ready. Do not make speculative format
-changes while those inputs are absent. The next useful local action is a cheap
-P8-D environment preflight only after the Aqua session/display state changes;
-if app launch or screen capture still fails, record that result once and move
-on. P6-H has the same changed-trigger rule for a verifiably signed, usable ODA
-bundle.
+changes while those inputs are absent. The user-reported unlock did not change
+the P8-D environment: screen capture still fails and LaunchServices cannot
+resolve LibreCAD. Keep P8-D in the trigger-based wait queue; do not repeat the
+preflight until display access or app registration changes. Continue with the
+next profile whose required source or authority arrives. P6-H has the same
+changed-trigger rule for a verifiably signed, usable ODA bundle.
 
 | Execution packet | Gates | Fastest safe sequence |
 |---|---|---|
@@ -402,7 +403,7 @@ AC1027 ordinary drawings deferred until source-reference closure.
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation profiles stabilize. Reuse [macOS package evidence](docs/research/p8-macos-package-baseline-2026-11-17.json) only while its inputs match. | Record reproducible commands and immutable identities. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. |
 | P8-B / WAITING_FOR_FREEZE | On the frozen candidate, run native Linux FreeCAD qualification for 2D and every admitted source-derived profile. Add AC1027/AC1032 3D only after P7 admission. Earlier generated 2D results in the [platform receipt](docs/research/p8-freecad-linux-windows-generated-pass-2026-11-15.json) are historical controls only. | Record runner, FreeCAD/converter/modules, settings, exact `open()`/`insert()` handoff, runtime identity, and independent semantics per profile. No cross-compilation or ambiguous fallback. |
 | P8-C / WAITING_FOR_FREEZE | Run the same frozen workflow on native Windows; reuse earlier path-with-spaces/Unicode and generated 2D checks only as historical controls. The tracked `ordinary_enc_AC1027.dwg` still fails before publication; see [preflight receipt](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json). | Use the same evidence fields as P8-B. Keep ordinary AC1027 deferred until source-reference closure. |
-| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | After the latest user-reported unlock, the cheap preflight `screencapture -x /private/tmp/libdxfrw-p8d-preflight.png` still reports no display; `open -Ra 'LibreCAD'` cannot resolve an installed app, and `/Applications` lists only FreeCAD and ODA File Converter. No candidate was launched. See the [receipt](docs/research/p8-d-named-ltype-property-2026-11-17.json). Resume only after a registered LibreCAD app, working pasteboard, and capturable display are observable. Then record Move/Copy action-boundary values, named-LTYPE save/reopen/render, and LibreCAD_3 MPOLYGON GUI save/reopen plus pinned ezdxf 1.4.5 readback. Continue local work while this gate waits. |
+| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | Earlier direct candidate launches returned LaunchServices -10827 or aborted during pasteboard/XPC setup. After the latest user-reported unlock, `screencapture -x /private/tmp/libdxfrw-p8d-preflight.png` still reports no display and `open -Ra 'LibreCAD'` cannot resolve the app name. `/Applications` has no `LibreCAD.app`; it contains many unrelated apps, including FreeCAD and ODA File Converter. No candidate was launched in this preflight. See the [receipt](docs/research/p8-d-named-ltype-property-2026-11-17.json). Resume only after a registered LibreCAD app, working pasteboard, and capturable display are observable. Then record Move/Copy action-boundary values, named-LTYPE save/reopen/render, and LibreCAD_3 MPOLYGON GUI save/reopen plus pinned ezdxf 1.4.5 readback. Continue local work while this gate waits. |
 | P8-E / INTEGRATION_GATE | During P8-B/C, collect native Linux/Windows shared/static manifests, relocation, and loaded runtime identities. Reuse the [macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json); repeat macOS only if candidate inputs change. | Verify package contents and shared/static relocation for each platform. |
 | P8-F / WAITING_FOR_SOURCE_MATCHED_CI | Reuse the [CI root-cause receipt](docs/research/p8-pr106-native-ci-root-cause-2026-11-17.json); rerun local diagnosis only if candidate inputs change. | Close on source-matched Linux/macOS/Windows results and current required-check/branch-protection state. Hosted CI remains subject to the owner's existing go-ahead. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
