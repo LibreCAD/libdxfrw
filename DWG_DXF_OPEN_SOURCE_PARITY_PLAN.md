@@ -132,9 +132,12 @@ producer wire evidence or 3D semantic proof.
   with the exact failing hash and producer/maintenance metadata; do not rerun
   the completed scans or infer a general fix. See the [S38
   recheck](docs/research/p6-ac1024-current-tree-classes-recheck-2026-11-17.json).
-- Preserve LibreCAD 2D behavior and ABI; new `DRW_Interface` callbacks use
-  default no-op implementations. Preserve 3D coordinates, OCS, transforms,
-  units, geometry, block membership, identities, and dependent objects.
+- Preserve LibreCAD 2D behavior and source compatibility where possible; new
+  `DRW_Interface` callbacks use default no-op implementations. The 3.0.0
+  public-layout and vtable changes require consumers to rebuild across the
+  2.x ABI boundary; default callbacks do not guarantee binary compatibility.
+  Preserve 3D coordinates, OCS, transforms, units, geometry, block membership,
+  identities, and dependent objects.
 - Every failure path preserves destination and caller-owned state; prove the
   corrected same-writer/adapter retry. Separate record rollback, whole-file
   publication, allocation failure, and application behavior.
