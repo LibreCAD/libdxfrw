@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-mline-librecad-deferred-style-fix-2026-11-18",
+  "date": "2026-11-18",
+  "status": "PATCH_READY_HEADLESS_REDGREEN_PASSED",
+  "supportClaimEffect": "none",
+  "patch": {
+    "path": "docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch",
+    "sha256": "70aa7b12f9b690ed42218eafbb09b28f426ca467fc1d57c6734ce2e8843b7a13",
+    "testedConsumerBase": "d9c0ae435ed5892611d6bec3c628033004dbcaf4",
+    "applicationCheck": "git apply --check passed against clean source extracted from the tested base and locally cached LibreCAD origin/master 7396a1d4adefa4625b0388dee6b3493819fa8819.",
+    "build": "cmake --build /private/tmp/librecad-p8d-build-20261117 --target librecad_lib -j4",
+    "buildResult": "PASS: existing candidate build rebuilt the changed header/source and dependent library objects; the original archive and header were saved separately for the red controls.",
+    "archiveSha256": "11c3efbb6c13069d45e91dbda8abe8526e9b965ad45ceacc87e065351d5ffed9",
+    "sourceSha256": {
+      "rs_filterdxfrw.cpp": "c42fa3130e03087c09470c07ab6f5d5d1c56c0c0eda9b733615df2af2c61e91c",
+      "rs_filterdxfrw.h": "cd3cdd5906369cc97b8b65531706e34b1fca4c10fad9de570156afb1fac5a7e2",
+      "tests/mline_tests.cpp": "5684737a56d37cebffde9329265832653928bb644718e8962a962bc47ee95970"
+    },
+    "behavior": "Keep existing entity slots and attributes for unresolved DXF MLINEs, complete style-based geometry on full and partial reads before INSERT expansion, verify explicit late style handles, retain fallback for missing/mismatched style, and cancel pending work before a discarded block is destroyed. Shared and bundled codec callback timing is unchanged."
+  },
+  "sourceBoundInputs": "docs/research/p8d-mline-clean-candidate-2026-11-18.json",
+  "controls": [
+    {
+      "selector": "DXF filter resolves a late MLINE style in source order",
+      "encodingAndFixtures": "Two encodings with six scratch-generated cases covering late style, missing style, wrong style handle, original model entity order and filter reuse.",
+      "red": "FAIL by design: 12 offset or geometry assertions failed, 115 passed.",
+      "green": "PASS: 127 assertions, one case.",
+      "compile": "python3 -B /private/tmp/libdxfrw-mline-red-20261118/build_catch.py red|green; compile only the changed test translation unit with the existing Catch2 target flags and link the matching old or rebuilt consumer archive.",
+      "redLogSha256": "801c713b0ccefd63deefb9aa6b4ac16f55e290d053387d2f37932f00c5fe14f0",
+      "greenLogSha256": "43a7219b8eb51fb4eb6135b65ca719e416d0d065d0bf3d2497deccdb6e17222a",
+      "redExecutableSha256": "01b120bd6f724ba553f9a689af273e926a7ee163752c56d54c4143a9a3a99a1f",
+      "greenExecutableSha256": "816807a56aa660e9ffe0b35400773d624d1689ff9910e1c17e35ca70312af08b"
+    },
+    {
+      "command": "/private/tmp/libdxfrw-mline-red-20261118/run.sh red|green",
+      "profiles": "Pinned selected ASCII/Binary, marked model/named-block order, missing/mismatched styles, discarded *D block, partial-before-OBJECTS import and same-filter retry. Compare selected vertices/XDATA with the existing style-projection formula.",
+      "red": "FAIL by design: 70 style-timing assertions fail, fallback and partial paths pass.",
+      "green": "PASS: nine cases and zero failures.",
+      "redLogSha256": "48f4145ca7ff79df1a642e6b16e1f099d8c925ec7814e837943375678e24b801",
+      "greenLogSha256": "eaf031dd3db0e811dc36a47eb1d82c3329638aa7ba7fa7a8e25fc79ec0345aa2",
+      "runnerSha256": "9f06b19befb5dd8cf2e3f386d55b63e316ba6728819b4d3a720687842b690e89"
+    }
+  ],
+  "remaining": [
+    "The patch is supplied for review and is not merged or pushed to LibreCAD. The red/green tests ran against the isolated d9c0ae435 candidate; apply-check on the origin/master snapshot is not an upstream build.",
+    "The separate group-71 open/closed treatment, authored per-vertex miter distances, and their effect on saved sidecars still need consumer changes and tests. GUI display/edit/save/reopen and native geometry remain open.",
+    "No drawing fixture was committed; no full suite or native platform claim was added. The libdxfrw qualification digest remains 4d054a406e80075b9f17d312ed45d2e15a8caeb6fbaf21b784c81aae0a4c09b5."
+  ]
+}
