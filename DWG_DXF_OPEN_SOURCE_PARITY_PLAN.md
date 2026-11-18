@@ -19,7 +19,7 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-18:** 10/34 package gates closed; 24 remain. The activity
-ledger is 111/135 (82.2%): ten closed gates and 101 completed implementation or
+ledger is 112/136 (82.4%): ten closed gates and 102 completed implementation or
 research slices. The [focused slice](docs/research/p6-raster-dimstyle-default-roundtrip-2026-11-18.json)
 fixes an AC1021 default plot dictionary reexport and a default BYBLOCK DIMSTYLE
 downgrade; five owning selectors pass. The following [source-identity selector
@@ -53,7 +53,7 @@ dictionary wire helper and reproducible seven-frame controls prepare P4-D
 integration without enabling output. The [source context and observers slice](docs/research/p4-ac1024-layerstates-source-observers-2026-11-18.json) adds XRECORD and SCALE source observers, and the [same-import APPID check](docs/research/p4-ac1024-layerstates-appid-same-import-context-2026-11-18.json) verifies the original adapter/data and name provenance. Both remain disconnected from output admission; focused corruption, retry and one-root regression controls pass. The [SCALE class-context slice](docs/research/p4-ac1024-layerstates-scale-class-source-2026-11-18.json) binds the same-read publication and CLASSES row for all 32 captured SCALE frames. A [targeted alternate-witness screen](docs/research/p4-ac1024-layerstates-alternative-witness-screen-2026-11-18.json) identified a sun-and-sky source that passes the aerial SUN blocker but refuses at a nonempty named-block SORTENTSTABLE; it cannot yet establish strict output.
 The current `05e7cb33` digest has passed the recorded Linux/Windows [package
 profiles](docs/research/p8a-1aeca-linux-windows-package-qualification-2026-11-18.json)
-and a clean local [macOS package profile](docs/research/p8a-macos-package-05e7-source-matched-2026-11-18.json), closing P8-A for those configurations. The pinned generated FreeCAD profile passed on [Linux](docs/research/p8-25c60980-freecad-linux-qualification-2026-11-18.json) and [Windows](docs/research/p8-25c60980-freecad-windows-qualification-2026-11-18.json), closing P8-B/C for those profiles. Fast and Linux/Windows focused-native checks pass on the same implementation digest; hosted macOS focused-native remains open. Gate readiness is 29.4%;
+and a clean local [macOS package profile](docs/research/p8a-macos-package-05e7-source-matched-2026-11-18.json), closing P8-A for those configurations. The pinned generated FreeCAD profile passed on [Linux](docs/research/p8-25c60980-freecad-linux-qualification-2026-11-18.json) and [Windows](docs/research/p8-25c60980-freecad-windows-qualification-2026-11-18.json), closing P8-B/C for those profiles. A [current LibreCAD master filter compile/link probe](docs/research/p8-librecad-master-7396-current-shared-filter-check-2026-11-18.json) and a [patched LibreCAD_3 candidate load smoke](docs/research/p8-librecad3-05e7-patched-persistence-load-2026-11-18.json) pass against the current shared library; neither is GUI or drawing qualification. Fast and Linux/Windows focused-native checks pass on the same implementation digest; hosted macOS focused-native remains open. Gate readiness is 29.4%;
 activity progress does not imply drawing support. The broad native suite and
 extended fuzz lane remain for the frozen integration pass.
 
@@ -168,8 +168,8 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 34 package gates and each implementation/research slice once. The
-  current ledger is 101 completed slices plus 34 package gates = 135 counted
-  items; 10 gates plus 101 slices are complete (111/135, 82.2%). The Linux and
+  current ledger is 102 completed slices plus 34 package gates = 136 counted
+  items; 10 gates plus 102 slices are complete (112/136, 82.4%). The Linux and
   Windows FreeCAD results cover only their exact generated profile and binary;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package

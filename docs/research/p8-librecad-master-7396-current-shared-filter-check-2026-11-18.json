@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Current LibreCAD master filter compile and shared-library symbol probe",
+  "date": "2026-11-18",
+  "supportClaimEffect": "none",
+  "sources": {
+    "librecad": {
+      "repository": "https://github.com/LibreCAD/LibreCAD",
+      "masterCommit": "7396a1d4adefa4625b0388dee6b3493819fa8819",
+      "source": "Clean local shared clone in /private/tmp, checked out detached at the GitHub-verified master commit. The user's checkout was not modified.",
+      "filterSourceSha256": "17f3f6782898081054adff58fd02da4ecbdd0e4d0d709174f3fafc9ad90a4be6"
+    },
+    "libdxfrw": {
+      "commit": "69679cac1c6539746e3a454ea5deebb3816e8d21",
+      "implementationDigestSha256": "05e7cb3341469cc6fcf56c9928a5bb79d164de293334d5fc37c8817ef924fa02",
+      "source": "Clean local shared clone; check_qualification_digest.py --skip-status verified 734 inputs."
+    }
+  },
+  "host": "macOS 27.2.1 build 26B131 ARM64; Apple clang 21.0.0 (clang-2100.3.34.2); CMake 4.4.5; Qt 6.12.0",
+  "package": {
+    "configure": "cmake -S <clean-libdxfrw> -B <scratch-package-build> -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DLIBDXFRW_BUILD_DOC=OFF -DLIBDXFRW_BUILD_TESTS=OFF -DLIBDXFRW_BUILD_DWG2DXF=OFF -DCMAKE_INSTALL_PREFIX=<scratch-install>",
+    "build": "cmake --build <scratch-package-build> --target install -j4",
+    "result": "PASS",
+    "installedRuntime": "lib/libdxfrw.3.0.0.dylib",
+    "installedRuntimeSha256": "7a0b42cdae111c7c63f121ab206427bd69a19bfb8953da7c9d32af36e89c3960"
+  },
+  "consumer": {
+    "scratchOverride": "In the scratch LibreCAD CMakeLists.txt only, replace the two bundled libdxfrw include paths with the installed package include and intern paths; add find_package(libdxfrw 3.0 CONFIG REQUIRED ... NO_DEFAULT_PATH) and link librecad_filter_compile_check privately to libdxfrw::libdxfrw. No LibreCAD C++ source changes. The older complete system-package patch did not apply cleanly to the current master and was not applied.",
+    "scratchOverrideDiffSha256": "b60906620363cb76f750f5fd71ca757877ac976c127e48901969bca54d1e2391",
+    "configure": "cmake -S <clean-librecad-with-scratch-override> -B <scratch-filter-build> -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF -DLIBRECAD_ENABLE_OPENTYPE=OFF",
+    "build": "cmake --build <scratch-filter-build> --target librecad_filter_compile_check -j4",
+    "result": "PASS: actual RS_FilterDXFRW translation unit compiled against installed headers; its dependency file contains no bundled libdxfrw source paths. One warning reports four associative-prefix enum values absent from LibreCAD's advanced-metadata mapper, previously documented by the consumer research.",
+    "objectSha256": "a7b6dc58c29bf0ad2d30e01fc17dd4f5de929132ed805ed3f294dd46a70b75b0",
+    "dependencyFileSha256": "fa9b0f0e5d9a148116302cd4c365f19d38cc79be0a831a23232895ddb481a747",
+    "flagsFileSha256": "d8fa4815c294755308d47d42dcc5182c5c5c9e783b786fac1bb3ceee7ef3923b"
+  },
+  "linkProbe": {
+    "command": "/usr/bin/c++ -dynamiclib -Wl,-undefined,dynamic_lookup <filter-object> -L<scratch-install>/lib -ldxfrw -o <scratch-filter-probe.dylib>",
+    "result": "PASS: otool -L records @rpath/libdxfrw.3.dylib; nm -m attributes 418 undefined references to libdxfrw. A demangled-name screen found no dynamically looked-up names beginning DRW_, dxfRW, dwgR, dwgRW, dwgBuffer or drw_. This is a prefix screen, not a proof of every symbol's library ownership.",
+    "probeSha256": "b204007be0678049ba4437766295913d0908af25e01e0f41543410bd2135d459",
+    "limit": "The link explicitly allows unresolved symbols for LibreCAD and Qt. It is not a full LibreCAD app link, loader execution, GUI test, installed system-package integration, ABI proof, or P8-D/P8-F completion."
+  },
+  "limits": [
+    "The shared library was built from the exact digest; native dwg2dxf adapter behavior is not exercised by the filter probe.",
+    "No application was launched and no display was required. No producer-wire, native LibreCAD behavior, platform-matrix or support claim is promoted."
+  ]
+}
