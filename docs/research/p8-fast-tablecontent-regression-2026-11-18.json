@@ -95,7 +95,11 @@
       "This resolves an incorrectly configured generated-output observer profile, not a production writer defect.",
       "Hosted fast CI must be rerun on the corrected head before P8-F can close.",
       "No full suite or native platform qualification was repeated because production code did not change."
-    ]
+    ],
+    "commit": "5f244cfb",
+    "implementationDigest": "e9ed8370fd963787c00e4e94c6eaef5fafdafb72ba9012269c03b4074532713c",
+    "implementationDigestInputCount": 733,
+    "implementationDigestProvenance": "Clean tracked clone at source commit 5f244cfb; unrelated untracked local samples excluded."
   },
   "sourceInspection": {
     "testFile": "tests/dwg_object_vectors_tests.cpp",
