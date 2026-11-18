@@ -34,6 +34,7 @@
 #include "intern/dwgreader.h"
 #include "intern/dwg_table_model_ac1018_candidate.h"
 #include "intern/dwg_table_projection_ac1018_candidate.h"
+#include "dx_ac1024_dictionaryvar_wire.h"
 #include "dx_ac1024_mlinestyle_wire.h"
 #include "dx_ac1027_plotstyle_wire.h"
 #include "dx_ac1027_material_wire.h"
@@ -33851,8 +33852,51 @@ bool dx_iface::hasUnchangedDwgDictionaryVars() const noexcept {
                 return false;
             ++foundDictionaries;
         }
-        return foundDictionaries
-            == m_dwgDictionaryVarOutputDictionaries.size();
+        if (foundDictionaries != m_dwgDictionaryVarOutputDictionaries.size())
+            return false;
+
+        // Only the exact witnessed AC1024 variable dictionary uses this wire
+        // proof. Select it from the frozen typed graph so changing or removing
+        // retained bytes during the transaction cannot bypass the recheck.
+        const auto owner = m_dwgDictionaryVarOutputDictionaries.find(0x66u);
+        if (sourceVersion != DRW::AC1024 || cData->namedObjectDictionary.handle != 0xCu
+            || m_dwgDictionaryVarOutputDictionaries.size() != 2u
+            || m_dwgDictionaryVarOutputSources.size() != 7u
+            || owner == m_dwgDictionaryVarOutputDictionaries.end()
+            || !dx_ac1024_dictionaryvar_wire::matchesProfile(owner->second)
+            || !std::all_of(m_dwgDictionaryVarOutputSources.begin(),
+                m_dwgDictionaryVarOutputSources.end(), [](const auto& item) {
+                    return dx_ac1024_dictionaryvar_wire::matchesProfile(item.second.model);
+                }))
+            return true;
+
+        const auto generation = cData->importGeneration;
+        const dx_data::StandardDwgFrameKey ownerKey{generation, owner->first};
+        dx_dwgDictionaryCloningSource cloning;
+        if (cData->dwgReadOutcome.opaqueSourceCaptureFailed
+            || !cData->hasCompleteDwgDictionaryEntry(0xCu, "AcDbVariableDictionary", owner->first)
+            || !cData->getDwgDictionaryCloningSource(owner->first, cloning)
+            || !cloning.currentValueMatchesBaseline
+            || cData->m_opaqueDwgSourceFrameIdentities.count(ownerKey) != 1u)
+            return false;
+
+        const auto& frame = cData->m_standardDwgObjectFrames.at(ownerKey);
+        if (!standardDwgModelsEqual(*frame.typedBaseline, owner->second,
+                                   sourceVersion, dwgObjType::DICTIONARY)
+            || !dx_ac1024_dictionaryvar_wire::observeRoot(frame.raw, owner->second))
+            return false;
+        for (const auto& entry : owner->second.m_entries) {
+            const dx_data::StandardDwgFrameKey key{generation, entry.m_handle};
+            const auto raw = cData->m_opaqueDwgSourceFrames.find(key);
+            const auto value = m_dwgDictionaryVarOutputSources.find(entry.m_handle);
+            if (!cData->hasCompleteDwgDictionaryEntry(owner->first, entry.m_name.c_str(), entry.m_handle)
+                || cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u
+                || raw == cData->m_opaqueDwgSourceFrames.end()
+                || value == m_dwgDictionaryVarOutputSources.end()
+                || !dx_ac1024_dictionaryvar_wire::observeVariable(raw->second, value->second.model))
+                return false;
+        }
+        return true;
     } catch (...) {
         return false;
     }

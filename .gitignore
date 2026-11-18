@@ -9,6 +9,7 @@ dwg2dxf
 # Keep the historical directory ignore, but expose new implementation sources.
 !/dwg2dxf/
 /dwg2dxf/*
+!/dwg2dxf/dx_ac1024_dictionaryvar_wire.h
 !/dwg2dxf/dx_ac1024_mlinestyle_wire.h
 !/dwg2dxf/dx_raster_dwg_wire.h
 !/dwg2dxf/dx_dwg_class_wire.h

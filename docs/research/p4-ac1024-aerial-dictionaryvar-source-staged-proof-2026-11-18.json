@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-dictionaryvar-source-staged-proof-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SELECTED_VARIABLE_DICTIONARY_SOURCE_AND_STAGED_OUTPUT_VERIFIED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "58bc2fe0065b02897310d34549dccfdf3adcfac12a47a9c389f31f159214cd76",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "priorEvidence": "docs/research/p4-ac1024-aerial-dictionaryvar-selected-wire-staging-2026-11-18.json"
+  },
+  "implementation": {
+    "profile": "The exact unedited AC1024 typed graph rooted at C via dictionary 66 and seven class-503 DICTIONARYVAR providers. The staged output maps the eight handles to distinct Axxx identities.",
+    "wireObserverSha256": "154890f405b2e526b026625e3aa570c8c8ce00c59299e151fccf6329e0991ea4",
+    "proof": "Require original NOD and owner membership publication, a same-generation dictionary baseline and unambiguous retained frame identities. Check exact fields, roles, string footer and terminal bits at preparation, during selected output inspection and immediately before publication. Reuse the existing mapped record proofs. Preserve the existing typed route for edits outside this exact source profile."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests libdxfrw_dwg_ac1027_material_dictionary_wire_tests -j 3",
+    "adapterExecutableSha256": "4abcafcddf3134d8b6c54eb12562e357b10dd655c48846dad043b2459f4386b1",
+    "generatedControls": "All 2648 single-bit corruptions across the eight generated bodies, truncated and extended bodies, typed mismatches and corrected retries were checked by the dictionary-wire test.",
+    "physicalSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-selected-dictionaryvar-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "physicalControls": [
+      "Owner raw type bit changed before preparation.",
+      "Child 313 owner-target bit 129 changed before preparation.",
+      "Changed staged value.",
+      "Owner raw type bit changed during finalization.",
+      "Child 313 owner-target bit 129 changed during finalization."
+    ],
+    "physicalResult": "All five controls refused with an unchanged seeded destination and corrected same-codec retry for ASCII and binary DXF. The original writer accepted the late child owner-target change and replaced the sentinel in both encodings.",
+    "focusedCtest": "7/7 for dictionaryvar or ac1027_material_dictionary_wire. The selected MLINESTYLE, empty NOD and SCALELIST physical controls also passed.",
+    "physicalLogSha256": {
+      "dictvar.log": "9758a0e152539fdc77eff4d55d92a35b492751afcce22df818dc62b819eb987f",
+      "empty.log": "118a9ac2ea2a0f463c1f10499ecb6dbe46b9c1bb63babcf1b74ef4b8fe36d421",
+      "mlinestyle.log": "b6555ba7ae55ace1c4ee2e3d30a4131fc9dec3b91f074c7c6c49b69f4ed9e3b1",
+      "scalelist.log": "97391051c739ea8fd19ea542d3970bbc88a4528d28ce20c10d31984882223d1c"
+    }
+  },
+  "peerReadback": {
+    "result": "ezdxf 1.4.5 raw tags preserve all seven values and schemas from the pinned LibreDWG decode, both levels of group-350 edges, and remapped common owners and reactors. A separate pre-transaction ASCII value edit passed the existing typed output path and read back as 15!.",
+    "odaDifferences": "ODA adds three keys and changes both style-name values from STANDARD to Standard. This adapter preserves the DWG values.",
+    "scratchRoot": "/private/tmp/p4-aerial-var-remap-review",
+    "sha256": {
+      "build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "edited.dxf": "a98a7aaccb1cdb3191b6d1a1da7fd809f7d27677298b725b96d506bb7fb4d5be",
+      "peer.log": "b0c676a0c63a6840cd57767abc2265de97d490f4d239826380e4798f2678c017",
+      "remap-ascii.dxf": "799ed027fbb572eabff451830e9e158e3a3f1b5135a10aeaffaa7603d9f23c0c",
+      "remap-binary.dxf": "8ccdf4bd8856079a10245a7d935b8af8d74c3bb3f6aadf23a4dc46bbd1685667",
+      "remap.dxf": "8ccdf4bd8856079a10245a7d935b8af8d74c3bb3f6aadf23a4dc46bbd1685667",
+      "run.log": "caf52a9c9953939f4955043a57e406b5c7a4534a137acec30ed16b1b25ccb28d",
+      "typed-edit-build.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "typed-edit.log": "486e711c4caa0021f9974e074b65bfc6cedfd1769aaed693a822bd498c269f91"
+    }
+  },
+  "limits": [
+    "The writer test projects one selected virtual root graph through the production inspectors. It also supplies GROUP and default plot dependencies. Whole-source graph closure, render and SUN ownership, and native semantics remain open.",
+    "The physical source is local and untracked. Hosted lanes can run the generated wire controls without that drawing."
+  ]
+}

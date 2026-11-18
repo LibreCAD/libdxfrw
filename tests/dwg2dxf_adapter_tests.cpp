@@ -3438,6 +3438,29 @@ public:
         const auto proof = iface.m_dwgMLineStyleOutputSources.find(0x18u);
         return proof != iface.m_dwgMLineStyleOutputSources.end() && proof->second.ac1024WireProof;
     }
+    static bool prepareSelectedNodDictionaryVars(dx_iface& iface, const dx_data& data, bool binary) {
+        iface.m_extensionDictionaryVarHandles.clear();
+        for (const auto& value : data.dictionaryVars)
+            iface.m_extensionDictionaryVarHandles.push_back(value.handle);
+        return iface.prepareDwgDictionaryVars(DRW::AC1024, binary, true);
+    }
+    static bool inspectSelectedNodDictionaryVars(dx_iface& iface,
+            const dxfRW::DxfObjectsWriteView& view) {
+        return iface.inspectDwgDictionaryVars(view, true)
+            && iface.inspectGeneratedRootOutput(view)
+            && iface.inspectStandardDwgOutput(view);
+    }
+    static bool finalizeSelectedNodDictionaryVars(dx_iface& iface) {
+        return iface.m_dwgDictionaryVarsInspected && iface.hasUnchangedDwgDictionaryVars()
+            && iface.finalizeStandardDwgOutputProofs()
+            && iface.finalizeGeneratedRootOutput();
+    }
+    static std::uint8_t& dictionaryVarOwnerWire(dx_data& data) {
+        return data.m_standardDwgObjectFrames.at({data.importGeneration, 0x66u}).raw.m_rawBytes.at(0u);
+    }
+    static std::uint8_t& dictionaryVarChildWire(dx_data& data) {
+        return data.m_opaqueDwgSourceFrames.at({data.importGeneration, 0x313u}).m_rawBytes.at(16u);
+    }
     static bool generatedRootsFinal(const dx_iface& iface, std::size_t count, bool published = false) {
         return iface.m_generatedRootOutputInspected && iface.m_generatedRootOutputFinalized
             && iface.m_generatedRootOutputProofs.size() == count && (!published || iface.m_generatedRootOutputPublished);
@@ -92738,6 +92761,8 @@ int main(int argc, char** argv) {
         return physicalAc1024EmptyNodWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--layerstates-ac1024-mlinestyle-writer")
         return physicalAc1024EmptyNodWriter(argv[2], true) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-dictionaryvar-writer")
+        return physicalAc1024SelectedDictionaryVarWriter(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-source-graph-context")
         return physicalAc1024LayerStatesSourceGraphContext(argv[2]) ? 0 : 1;

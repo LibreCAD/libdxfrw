@@ -452,3 +452,156 @@ bool physicalAc1024EmptyNodWriter(const std::filesystem::path& sourcePath,
               << (withMLineStyle ? " with MLINESTYLE.\n" : ".\n");
     return true;
 }
+
+// Test-only projection of the aerial NOD variable graph; this is not a
+// complete DWG export or a native consumer interoperability test.
+bool physicalAc1024SelectedDictionaryVarWriter(const std::filesystem::path& sourcePath) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || !source.hasSingleSuccessfulNamedResourceImport()
+        || !source.hasNamedObjectDictionary || source.namedObjectDictionary.handle != 0xCu
+        || source.dictionaryVars.size() != 7u
+        || source.dictionaryWithDefaults.size() != 1u || source.placeholders.size() != 1u)
+        return fail("could not import the aerial AC1024 variable dictionary witness");
+    const auto findDictionary = [&source](std::uint32_t handle) {
+        return std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
+            [handle](const DRW_Dictionary& row) { return row.handle == handle; });
+    };
+    const auto group = findDictionary(0xDu);
+    const auto owner = findDictionary(0x66u);
+    if (group == source.dictionaries.end() || owner == source.dictionaries.end()
+        || owner->parentHandle != 0xCu || owner->m_entries.size() != 7u)
+        return fail("aerial variable dictionary owner is missing");
+    const std::map<std::string, std::pair<std::uint32_t, std::string>> expected{
+        {"CANNOSCALE", {0x162u, "1:1"}}, {"CMLEADERSTYLE", {0x161u, "STANDARD"}},
+        {"CTABLESTYLE", {0x89u, "STANDARD"}}, {"DIMASSOC", {0x67u, "2"}},
+        {"HIDETEXT", {0x6Bu, "1"}}, {"LAYEREVAL", {0x312u, "1"}},
+        {"LAYERNOTIFY", {0x313u, "15"}}};
+    for (const auto& item : expected) {
+        const auto entry = std::find_if(owner->m_entries.begin(), owner->m_entries.end(),
+            [&item](const DRW_Dictionary::Entry& value) {
+                return value.m_name == item.first && value.m_handle == item.second.first;
+            });
+        const auto value = std::find_if(source.dictionaryVars.begin(), source.dictionaryVars.end(),
+            [&item](const DRW_DictionaryVar& row) { return row.handle == item.second.first; });
+        if (entry == owner->m_entries.end() || value == source.dictionaryVars.end()
+            || value->parentHandle != 0x66u || value->m_schema != 0
+            || value->m_value != item.second.second)
+            return fail("aerial variable dictionary contents differ from the witness");
+    }
+
+    class Writer final : public LayerStateTestWriter {
+    public:
+        dx_data blank;
+        DRW_Dictionary owner;
+        DRW_DictionaryWithDefault plot;
+        DRW_AcDbPlaceholder placeholder;
+        std::vector<DRW_DictionaryVar> vars;
+        std::function<bool()> finalize;
+        void writeAppId() override {}
+        void writeObjects() override {
+            (void)dxfW->writeDictionaryWithDefault(&plot);
+            (void)dxfW->writeAcDbPlaceholder(&placeholder);
+            (void)dxfW->writeDictionary(&owner);
+            for (auto& value : vars) (void)dxfW->writeDictionaryVar(&value);
+        }
+        bool finalizeDxfWrite() override { return finalize(); }
+    } writer;
+    writer.cData = &writer.blank;
+    writer.owner = *owner;
+    writer.plot = source.dictionaryWithDefaults.front();
+    if (writer.plot.m_entries.size() != 1u) return fail("missing Normal plot-style entry");
+    writer.plot.m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+    writer.placeholder = source.placeholders.front();
+    for (const auto& value : source.dictionaryVars) writer.vars.push_back(value);
+
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-selected-dictionaryvar-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error);
+    } } cleanup{path};
+    dxfRW codec(path.string().c_str());
+    Access::attachDxfWriter(reader, &codec);
+    reader.cData = &source;
+    Access::attachDxfWriter(writer, &codec);
+    codec.setDxfWriteRecordInventoryEnabled(true);
+    codec.setHandleRemap({{0x66u, 0xA066u}, {0x67u, 0xA067u}, {0x6Bu, 0xA06Bu},
+        {0x89u, 0xA089u}, {0x161u, 0xA161u}, {0x162u, 0xA162u},
+        {0x312u, 0xA312u}, {0x313u, 0xA313u}});
+    codec.setRootDictEntries({{"AcDbVariableDictionary", "A066"}, {"ACAD_PLOTSTYLENAME", "E"}});
+    if (!codec.setGeneratedDictionarySourceHandles(0xCu, 0xDu)
+        || !codec.setGeneratedDictionarySourceRecords(
+            std::make_unique<DRW_Dictionary>(source.namedObjectDictionary),
+            std::make_unique<DRW_Dictionary>(*group))
+        || !codec.setDxfDefaultPlotStyleSourceHandles(0xEu, 0xFu))
+        return fail("could not set up selected variable dictionary roots");
+    DRW_Class varClass, plotClass, placeholderClass;
+    if (!dxfRW::dxfClassForRecordName("DICTIONARYVAR", varClass)
+        || !dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
+        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
+        return fail("missing selected variable dictionary CLASSES rows");
+    varClass.instanceCount = 7; plotClass.instanceCount = placeholderClass.instanceCount = 1;
+    codec.setDxfClasses({varClass, plotClass, placeholderClass});
+
+    enum class Fault { None, OwnerEarly, ChildEarly, WrongBody, OwnerLate, ChildLate };
+    Fault fault = Fault::None;
+    bool staged = false, finalizing = false;
+    if (!codec.setDxfObjectsWriteInspector([&](const auto& view) {
+        staged = true;
+        return Access::inspectSelectedNodDictionaryVars(reader, view);
+    })) return fail("could not set selected variable dictionary inspector");
+    auto& ownerWire = Access::dictionaryVarOwnerWire(source);
+    auto& childWire = Access::dictionaryVarChildWire(source);
+    writer.finalize = [&]() {
+        finalizing = true;
+        if (fault == Fault::OwnerLate) ownerWire ^= 0x80u;
+        if (fault == Fault::ChildLate) childWire ^= 0x40u;
+        const bool result = Access::finalizeSelectedNodDictionaryVars(reader);
+        if (fault == Fault::OwnerLate) ownerWire ^= 0x80u;
+        if (fault == Fault::ChildLate) childWire ^= 0x40u;
+        return result;
+    };
+    const auto run = [&](bool binary) {
+        staged = finalizing = false;
+        Access::resetRasterOutput(reader);
+        return Access::prepareSelectedNodDictionaryVars(reader, source, binary)
+            && codec.write(&writer, DRW::AC1024, binary);
+    };
+    const std::string sentinel = "preserve selected variable dictionary destination\n";
+    for (const bool binary : {false, true}) {
+        if (!run(binary) || !staged || !finalizing)
+            return fail("selected variable dictionary baseline was rejected");
+        for (const Fault bad : {Fault::OwnerEarly, Fault::ChildEarly, Fault::WrongBody,
+                                Fault::OwnerLate, Fault::ChildLate}) {
+            fault = bad;
+            if (bad == Fault::OwnerEarly) ownerWire ^= 0x80u;
+            if (bad == Fault::ChildEarly) childWire ^= 0x40u;
+            if (bad == Fault::WrongBody) writer.vars.front().m_value += "!";
+            {
+                std::ofstream existing(path, std::ios::binary | std::ios::trunc);
+                if (!(existing << sentinel)) return fail("cannot seed selected variable destination");
+            }
+            const bool saved = run(binary);
+            if (bad == Fault::OwnerEarly) ownerWire ^= 0x80u;
+            if (bad == Fault::ChildEarly) childWire ^= 0x40u;
+            if (bad == Fault::WrongBody) writer.vars.front().m_value.pop_back();
+            const bool early = bad == Fault::OwnerEarly || bad == Fault::ChildEarly;
+            const bool late = bad == Fault::OwnerLate || bad == Fault::ChildLate;
+            fault = Fault::None;
+            std::ifstream existing(path, std::ios::binary);
+            if (saved || staged == early || finalizing != late
+                || std::string(std::istreambuf_iterator<char>(existing), {}) != sentinel)
+                return fail("selected variable dictionary fault did not refuse atomically");
+            existing.close();
+            if (!run(binary) || !staged || !finalizing)
+                return fail("selected variable dictionary corrected retry failed");
+        }
+    }
+    std::cerr << "AC1024 selected variable dictionary writer passed five refusal/retry controls in both encodings.\n";
+    return true;
+}
