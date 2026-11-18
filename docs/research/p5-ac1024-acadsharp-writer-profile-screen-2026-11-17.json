@@ -1,0 +1,51 @@
+{
+  "title": "AC1024 TABLE ACadSharp writer profile screen",
+  "date": "2026-11-17",
+  "scope": "Trace the pinned ACadSharp TABLE writer source to determine whether it independently emits the body-counted CadValue string shape observed in the bounded libdxfrw AC1024 fallback. This is peer implementation evidence only.",
+  "source": {
+    "repository": "/Users/dli/dev/ACadSharp",
+    "revision": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "commitDate": "2026-05-23",
+    "commitSubject": "Merge pull request #1090 from DomCR/feature/1080_built-in-arrowhead-blocks",
+    "files": [
+      {
+        "path": "src/ACadSharp/IO/DWG/DwgStreamWriters/DwgObjectWriter.Entities.cs",
+        "sha256": "39e84dfa598c2c7600828a736a960273600c217e5c8046d47a8d64adc8d163de",
+        "lines": "2285-2314, 2550-2560"
+      },
+      {
+        "path": "src/ACadSharp/IO/DWG/DwgStreamWriters/DwgObjectWriter.Objects.cs",
+        "sha256": "573b695bd1b9e0d0035f09c728ff3021cdad270a9171d68abce6332f554b32d5",
+        "lines": "163-203, 1355-1377"
+      },
+      {
+        "path": "src/ACadSharp/IO/DWG/DwgStreamWriters/DwgMergedStreamWriter.cs",
+        "sha256": "215d75bad5ecbcb898701d2558ddb9075859737dfc9118ec0e40703239d59c7b",
+        "lines": "119-146, 296-299"
+      },
+      {
+        "path": "src/ACadSharp/IO/DWG/DwgObjectWriter.cs",
+        "sha256": "c3cb9c48ca06b8c0fc4aef7cef3639403c2d90a1f093b55c251c83a121d4205a",
+        "lines": "1364-1371"
+      }
+    ]
+  },
+  "findings": [
+    "writeTableEntity calls writeTableContent for R2010 and later, including AC1024.",
+    "For CadValueType.String and CadValueType.General, writeCadValue calls writeStringCadValue. In the R2007+ branch, that method writes a BL byte count, UTF-16LE bytes, and a two-byte terminator through the merged writer's main stream.",
+    "DwgMergedStreamWriter routes WriteBitLong and WriteBytes to Main, while WriteVariableText routes to TextWriter. The inspected peer implementation therefore has an inline body-string writer profile distinct from its detached variable-text path."
+  ],
+  "localScratchControl": {
+    "path": "/private/tmp/acadsharp-ac1024-table-string.dwg",
+    "sha256": "5e6c7521402eb38d58477444f2ccf665adc4e3c60c95e6cf82ecd4d2d82343cb",
+    "observation": "The scratch AC1024 one-cell string TABLE was reopened by the ACadSharp reader as one row, one column, with its authored text.",
+    "limitations": [
+      "This generated control establishes only ACadSharp writer/reader consistency, not AutoCAD or ODA source semantics.",
+      "The generated sample is not a repository fixture and remains outside the repository.",
+      "The sample's VPORT writer comments identify Visual Style as a hard pointer and Sun as a hard owner, but the implementation emits soft-pointer codes for both. libdxfrw refuses the sample at that role mismatch.",
+      "LibreDWG 0.14 also reports invalid section accounting and R2010 TABLE/TABLESTYLE TODOs for this generated file; it is not independent TABLE semantic readback."
+    ]
+  },
+  "decision": "Corroborates an ACadSharp peer writer profile and explains a candidate body-string shape; it does not supersede ODA v5.4.1, establish AutoCAD API state, or promote P5-D. Keep the existing AC1024 route raw-retaining, semantic-incomplete, and strict-output-refused.",
+  "nextAction": "Do not spend another cycle on the same generated peer sample. Acquire a producer-bound AC1024 TABLE source with known API values and handle roles, or keep P5-D waiting."
+}
