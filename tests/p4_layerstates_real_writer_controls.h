@@ -605,3 +605,149 @@ bool physicalAc1024SelectedDictionaryVarWriter(const std::filesystem::path& sour
     std::cerr << "AC1024 selected variable dictionary writer passed five refusal/retry controls in both encodings.\n";
     return true;
 }
+
+// Direct selected-root transaction using the original importer and source data.
+// It does not assert that the complete aerial DWG can be exported.
+bool physicalAc1024SelectedRenderGlobalWriter(const std::filesystem::path& sourcePath) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG || source.sourceVersion != DRW::AC1024
+        || !source.hasSingleSuccessfulNamedResourceImport() || !source.hasNamedObjectDictionary
+        || source.dictionaryWithDefaults.size() != 1u || source.placeholders.size() != 1u)
+        return fail("could not import the aerial RENDERGLOBAL witness");
+    const auto dictionary = [&source](std::uint32_t handle) {
+        return std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
+            [handle](const DRW_Dictionary& value) { return value.handle == handle; });
+    };
+    const auto group = dictionary(0xDu), extension = dictionary(0x251u);
+    const auto global = std::find_if(source.renderSettings.begin(), source.renderSettings.end(),
+        [](const DRW_RenderSettings& value) { return value.handle == 0x237u; });
+    const auto record = std::find_if(source.xRecords.begin(), source.xRecords.end(),
+        [](const DRW_XRecord& value) { return value.handle == 0x252u; });
+    if (group == source.dictionaries.end() || extension == source.dictionaries.end()
+        || global == source.renderSettings.end() || record == source.xRecords.end())
+        return fail("aerial RENDERGLOBAL extension graph is absent");
+    class Writer final : public LayerStateTestWriter {
+    public:
+        dx_data blank;
+        DRW_RenderSettings global;
+        DRW_Dictionary extension;
+        DRW_XRecord record;
+        DRW_DictionaryWithDefault plot;
+        DRW_AcDbPlaceholder placeholder;
+        std::function<bool()> finalize;
+        void writeAppId() override {}
+        void writeObjects() override {
+            (void)dxfW->writeDictionaryWithDefault(&plot);
+            (void)dxfW->writeAcDbPlaceholder(&placeholder);
+            (void)dxfW->writeRenderSettings(&global, "RENDERGLOBAL");
+            (void)dxfW->writeDictionary(&extension);
+            (void)dxfW->writeXRecord(&record);
+        }
+        bool finalizeDxfWrite() override { return finalize(); }
+    } writer;
+    writer.cData = &writer.blank;
+    writer.global = *global; writer.extension = *extension; writer.record = *record;
+    writer.plot = source.dictionaryWithDefaults.front();
+    if (writer.plot.m_entries.size() != 1u) return fail("missing Normal plot-style entry");
+    writer.plot.m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+    writer.placeholder = source.placeholders.front();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-selected-renderglobal-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error);
+    } } cleanup{path};
+    dxfRW codec(path.string().c_str());
+    Access::attachDxfWriter(reader, &codec); reader.cData = &source;
+    Access::attachDxfWriter(writer, &codec);
+    codec.setDxfWriteRecordInventoryEnabled(true);
+    codec.setHandleRemap({{0x237u, 0xA237u}, {0x251u, 0xA251u}, {0x252u, 0xA252u}});
+    codec.setRootDictEntries({{"ACAD_RENDER_GLOBAL", "A237"}, {"ACAD_PLOTSTYLENAME", "E"}});
+    if (!codec.setGeneratedDictionarySourceHandles(0xCu, 0xDu)
+        || !codec.setGeneratedDictionarySourceRecords(
+            std::make_unique<DRW_Dictionary>(source.namedObjectDictionary),
+            std::make_unique<DRW_Dictionary>(*group))
+        || !codec.setDxfDefaultPlotStyleSourceHandles(0xEu, 0xFu))
+        return fail("could not set up selected RENDERGLOBAL roots");
+    DRW_Class renderClass, plotClass, placeholderClass;
+    if (!dxfRW::dxfClassForRecordName("RENDERGLOBAL", renderClass)
+        || !dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
+        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
+        return fail("missing selected RENDERGLOBAL CLASSES rows");
+    renderClass.instanceCount = plotClass.instanceCount = placeholderClass.instanceCount = 1;
+    codec.setDxfClasses({renderClass, plotClass, placeholderClass});
+    enum class Fault { None, Body, Order, Owner, GlobalEarly, DictionaryEarly, RecordEarly,
+                       GlobalLate, DictionaryLate, RecordLate };
+    Fault fault = Fault::None;
+    bool staged = false, finalizing = false;
+    if (!codec.setDxfObjectsWriteInspector([&](const auto& view) {
+        staged = true;
+        return Access::inspectSelectedRenderGlobal(reader, view);
+    })) return fail("could not install selected RENDERGLOBAL inspector");
+    auto& globalWire = Access::renderGlobalWire(source);
+    auto& dictionaryWire = Access::standardFrameTail(source, 0x251u);
+    auto& recordWire = Access::standardFrameTail(source, 0x252u);
+    writer.finalize = [&]() {
+        finalizing = true;
+        if (fault == Fault::GlobalLate) globalWire ^= 0x40u;
+        if (fault == Fault::DictionaryLate) dictionaryWire ^= 1u;
+        if (fault == Fault::RecordLate) recordWire ^= 1u;
+        const bool result = Access::finalizeSelectedRenderGlobal(reader);
+        if (fault == Fault::GlobalLate) globalWire ^= 0x40u;
+        if (fault == Fault::DictionaryLate) dictionaryWire ^= 1u;
+        if (fault == Fault::RecordLate) recordWire ^= 1u;
+        return result;
+    };
+    const auto run = [&](bool binary) {
+        staged = finalizing = false;
+        Access::resetRasterOutput(reader);
+        return Access::prepareSelectedRenderGlobal(reader, source)
+            && codec.write(&writer, DRW::AC1024, binary);
+    };
+    const std::string sentinel = "preserve selected RENDERGLOBAL destination\n";
+    for (const bool binary : {false, true}) {
+        if (!run(binary) || !staged || !finalizing)
+            return fail("selected RENDERGLOBAL baseline was rejected");
+        for (const Fault bad : {Fault::Body, Fault::Order, Fault::Owner,
+                Fault::GlobalEarly, Fault::DictionaryEarly, Fault::RecordEarly,
+                Fault::GlobalLate, Fault::DictionaryLate, Fault::RecordLate}) {
+            fault = bad;
+            if (bad == Fault::Body) ++writer.global.m_longs.at(3u);
+            if (bad == Fault::Order && !writer.global.setDwgRawData({0u}, 8u, DRW::AC1024))
+                return fail("cannot construct selected RENDERGLOBAL order fault");
+            if (bad == Fault::Owner) writer.global.parentHandle = 0xDu;
+            if (bad == Fault::GlobalEarly) globalWire ^= 0x40u;
+            if (bad == Fault::DictionaryEarly) dictionaryWire ^= 1u;
+            if (bad == Fault::RecordEarly) recordWire ^= 1u;
+            {
+                std::ofstream existing(path, std::ios::binary | std::ios::trunc);
+                if (!(existing << sentinel)) return fail("cannot seed selected RENDERGLOBAL destination");
+            }
+            const bool saved = run(binary);
+            if (bad == Fault::GlobalEarly) globalWire ^= 0x40u;
+            if (bad == Fault::DictionaryEarly) dictionaryWire ^= 1u;
+            if (bad == Fault::RecordEarly) recordWire ^= 1u;
+            writer.global = *global;
+            const bool early = bad == Fault::GlobalEarly || bad == Fault::DictionaryEarly
+                || bad == Fault::RecordEarly;
+            const bool late = bad == Fault::GlobalLate || bad == Fault::DictionaryLate
+                || bad == Fault::RecordLate;
+            fault = Fault::None;
+            std::ifstream existing(path, std::ios::binary);
+            if (saved || staged == early || finalizing != late
+                || std::string(std::istreambuf_iterator<char>(existing), {}) != sentinel) {
+                std::cerr << "RENDERGLOBAL fault=" << static_cast<int>(bad) << " binary=" << binary
+                          << " staged=" << staged << " finalizing=" << finalizing << '\n';
+                return fail("selected RENDERGLOBAL fault did not refuse atomically");
+            }
+            existing.close();
+            if (!run(binary) || !staged || !finalizing)
+                return fail("selected RENDERGLOBAL corrected retry failed");
+        }
+    }
+    std::cerr << "AC1024 selected RENDERGLOBAL passed nine refusal/retry controls in both encodings.\n";
+    return true;
+}

@@ -36,6 +36,7 @@
 #include "intern/dwg_table_projection_ac1018_candidate.h"
 #include "dx_ac1024_dictionaryvar_wire.h"
 #include "dx_ac1024_mlinestyle_wire.h"
+#include "dx_ac1024_renderglobal_wire.h"
 #include "dx_ac1027_plotstyle_wire.h"
 #include "dx_ac1027_material_wire.h"
 #include "dx_ac1027_layer_wire.h"
@@ -10023,6 +10024,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
     m_extensionWipeoutVariablesHandles.clear();
     m_extensionSunStudyHandles.clear();
     m_extensionRenderSettingsHandles.clear();
+    m_dwgRenderGlobalInspected = false;
     m_extensionGraphStats = {};
     m_extensionGraphFailure = ExtensionGraphFailure::None;
     m_extensionGraphFailureDetail.clear();
@@ -14004,19 +14006,25 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                                 ExtensionGraphFailure::InvalidGraph,
                                 "UNDERLAY definition has an invalid identity, kind, filename, or dictionary owner");
                     } else if (frame.renderSettings != nullptr) {
-                        const auto raw = rawRenderSettings.find(frame.handle);
-                        if (data->sourceFormat != dx_source_format::DXF)
-                            return reject(ExtensionGraphFailure::InvalidGraph,
-                                "RenderSettings replay requires a DXF source");
-                        if (raw == rawRenderSettings.end())
-                            return reject(ExtensionGraphFailure::InvalidGraph,
-                                "RenderSettings typed record has no raw carrier");
-                        if (raw->second->parentHandle != entry.parentHandle)
-                            return reject(ExtensionGraphFailure::InvalidGraph,
-                                "RenderSettings raw owner differs from typed owner");
-                        if (raw->second->m_version != data->sourceVersion)
-                            return reject(ExtensionGraphFailure::InvalidGraph,
-                                "RenderSettings raw version differs from source version");
+                        if (data->sourceFormat == dx_source_format::DWG) {
+                            if (frame.handle != 0x237u || !hasQualifiedAc1024DwgRenderGlobal(*data))
+                                return reject(ExtensionGraphFailure::InvalidGraph,
+                                    "RenderSettings lacks the witnessed AC1024 RENDERGLOBAL source graph");
+                        } else {
+                            const auto raw = rawRenderSettings.find(frame.handle);
+                            if (data->sourceFormat != dx_source_format::DXF)
+                                return reject(ExtensionGraphFailure::InvalidGraph,
+                                    "RenderSettings replay requires a DXF source");
+                            if (raw == rawRenderSettings.end())
+                                return reject(ExtensionGraphFailure::InvalidGraph,
+                                    "RenderSettings typed record has no raw carrier");
+                            if (raw->second->parentHandle != entry.parentHandle)
+                                return reject(ExtensionGraphFailure::InvalidGraph,
+                                    "RenderSettings raw owner differs from typed owner");
+                            if (raw->second->m_version != data->sourceVersion)
+                                return reject(ExtensionGraphFailure::InvalidGraph,
+                                    "RenderSettings raw version differs from source version");
+                        }
                     } else if (frame.associative != nullptr) {
                         // The source-bound associative profile was validated
                         // above. It has no separate raw TABLESTYLE companion.
@@ -14169,8 +14177,12 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                             && entry.reactorHandles.size() == 1u;
                         // Non-owning back-edges may refer to gray containment
                         // nodes. Both soft/hard dictionary entries remain owning.
+                        const bool renderGlobalNodReactor =
+                            frame.renderSettings != nullptr && frame.handle == 0x237u
+                            && data->sourceFormat == dx_source_format::DWG && reactor == 0xCu;
                         if (!directRasterVariablesNodReactor
                             && !directWipeoutVariablesNodReactor
+                            && !renderGlobalNodReactor
                             && linetypeHandles.count(reactor) == 0
                             && groupReferenceHandles.count(reactor) == 0
                             && imageDefinitionOwners.count(reactor) == 0
@@ -17955,6 +17967,135 @@ bool dx_iface::validateVisualStyleReferences(const dx_data& data,
     return true;
 }
 
+bool dx_iface::hasQualifiedAc1024DwgRenderGlobal(const dx_data& data) const noexcept {
+    const auto generation = data.importGeneration;
+    const auto& receipt = m_dwgRenderGlobalPublication;
+    const auto& pub = receipt.publication;
+    if (data.sourceFormat != dx_source_format::DWG || data.sourceVersion != DRW::AC1024
+        || generation == 0u || m_dwgRenderGlobalReadOwner != &data
+        || receipt.generation != generation || receipt.attempt == 0u
+        || !data.dwgReadOutcome.operationSucceeded || data.dwgReadOutcome.opaqueSourceCaptureFailed
+        || !data.hasNamedObjectDictionary || data.namedObjectDictionary.handle != 0xCu
+        || !data.hasCompleteDwgDictionaryEntry(0xCu, "ACAD_RENDER_GLOBAL", 0x237u)
+        || !data.hasCompleteDwgDictionaryEntry(0x251u, "ADSK_XREC_RENDERGLOBALINFO", 0x252u))
+        return false;
+
+    try {
+        const auto unique = [](const auto& models, std::uint32_t handle) {
+            using Model = typename std::decay_t<decltype(models)>::value_type;
+            const Model* found = nullptr;
+            for (const auto& model : models) {
+                if (model.handle != handle) continue;
+                if (found != nullptr) return static_cast<const Model*>(nullptr);
+                found = &model;
+            }
+            return found;
+        };
+        const auto& root = data.namedObjectDictionary;
+        const auto link = std::find_if(root.m_entries.begin(), root.m_entries.end(),
+            [](const auto& e) { return e.m_name == "ACAD_RENDER_GLOBAL" && e.m_handle == 0x237u; });
+        if (root.hardOwner != 0 || !root.hasCompleteDwgEntries() || link == root.m_entries.end()
+            || std::count_if(root.m_entries.begin(), root.m_entries.end(), [](const auto& e) {
+                return e.m_handle == 0x237u || asciiIdentifierEquals(e.m_name, "ACAD_RENDER_GLOBAL");
+            }) != 1)
+            return false;
+
+        const auto* global = unique(data.renderSettings, 0x237u);
+        const auto* dictionary = unique(data.dictionaries, 0x251u);
+        const auto* xrecord = unique(data.xRecords, 0x252u);
+        if (global == nullptr || dictionary == nullptr || xrecord == nullptr)
+            return false;
+        const dx_data::StandardDwgFrameKey globalKey{generation, global->handle};
+        const auto rawGlobal = data.m_opaqueDwgSourceFrames.find(globalKey);
+        if (rawGlobal == data.m_opaqueDwgSourceFrames.end()
+            || data.m_opaqueDwgSourceFrameIdentities.count(globalKey) != 1u
+            || !dx_ac1024_renderglobal_wire::observeGlobal(rawGlobal->second, *global))
+            return false;
+        const auto& raw = rawGlobal->second;
+        const auto type = raw.m_objectType;
+        if (pub.m_version != raw.m_version || pub.m_handle != raw.m_handle
+            || !pub.m_hasSourceLocation || pub.m_sourceOffset != raw.m_objectOffset
+            || (pub.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+                && pub.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+            || pub.m_encodedType != type || pub.m_resolvedType != type || pub.m_isEntity
+            || !pub.m_isCustomClass || !pub.m_classStreamOrdinal
+            || pub.m_carrier != DRW_DwgFramePublication::Carrier::TypedAndRaw
+            || pub.m_recordName != raw.m_recordName || pub.m_className != raw.m_className
+            || pub.m_commonLinkEvidence != raw.m_commonLinkEvidence
+            || pub.m_commonHandleDataValidated != raw.m_commonHandleDataValidated
+            || pub.m_parentHandle != raw.m_parentHandle || pub.m_reactorHandles != raw.m_reactorHandles
+            || pub.m_numReactors != raw.m_numReactors || pub.m_xDictFlag != raw.m_xDictFlag
+            || pub.m_xDictHandle != raw.m_xDictHandle)
+            return false;
+
+        const auto classIt = data.m_classEvidenceImports.find(generation);
+        if (classIt == data.m_classEvidenceImports.end())
+            return false;
+        const auto& table = classIt->second;
+        const auto& outcome = data.dwgReadOutcome;
+        const auto ordinal = *pub.m_classStreamOrdinal;
+        if (!table.closed || table.result.state != dx_class_evidence::State::Joined
+            || table.result.version != DRW::AC1024 || table.result.generation != generation
+            || table.result.attempt != receipt.attempt || !table.rows
+            || ordinal >= table.rows->entries.size()
+            || table.codePage != outcome.sourceCodePageId
+            || table.codePagePresent != outcome.sourceCodePageFieldPresent
+            || table.codePageRecognized != outcome.sourceCodePageRecognized)
+            return false;
+        const auto& rows = *table.rows;
+        const auto& row = rows.entries[static_cast<std::size_t>(ordinal)];
+        if (row.ordinal != ordinal || row.number != type
+            || row.state != DRW_DwgClassCoverageState::Published
+            || row.reason != DRW_DwgClassCoverageReason::NoReason
+            || row.descriptor < 0 || !row.data.m_present || !row.strings.m_present
+            || row.proxy != raw.m_classProxyFlag || row.wasProxy != static_cast<int>(raw.m_classWasProxy)
+            || row.itemClass != raw.m_classEntityFlagRaw || row.entity != 0
+            || row.version != raw.m_classDwgVersion || row.maintenance != raw.m_classMaintenanceVersion
+            || row.unknown1 != raw.m_classUnknown1 || row.unknown2 != raw.m_classUnknown2
+            || rows.name(row, 0u) != raw.m_classAppName || rows.name(row, 1u) != raw.m_className
+            || rows.name(row, 2u) != raw.m_recordName
+            || std::count_if(rows.entries.begin(), rows.entries.end(), [&](const auto& candidate) {
+                return candidate.number == type || rows.name(candidate, 1u) == raw.m_className
+                    || rows.name(candidate, 2u) == raw.m_recordName;
+            }) != 1)
+            return false;
+
+        const auto standard = [&](const DRW_TableEntry& live, int objectType)
+                -> const DRW_UnsupportedObject* {
+            const dx_data::StandardDwgFrameKey key{generation, live.handle};
+            const auto iter = data.m_standardDwgObjectFrames.find(key);
+            if (iter == data.m_standardDwgObjectFrames.end()
+                || data.m_opaqueDwgSourceFrameIdentities.count(key) != 1u)
+                return nullptr;
+            const auto& frame = iter->second;
+            const auto& publication = frame.publication;
+            const auto ordinalOwner = data.m_standardDwgObjectOrdinals.find(
+                {generation, publication.m_sourceMapOrdinal});
+            const auto locationOwner = data.m_standardDwgObjectLocations.find(
+                {generation, {publication.m_sourceOffsetSpace, publication.m_sourceOffset}});
+            if (frame.generation != generation || !frame.publicationSeen || !frame.sourceProfileBound
+                || !frame.payloadMatched || frame.opaquePayload || !frame.typedBaseline
+                || !frame.hasNoObservedTextDecodeIssues()
+                || !publication.m_hasSourceLocation
+                || publication.m_sourceMapOrdinal == pub.m_sourceMapOrdinal
+                || (publication.m_sourceOffsetSpace == pub.m_sourceOffsetSpace
+                    && publication.m_sourceOffset == pub.m_sourceOffset)
+                || ordinalOwner == data.m_standardDwgObjectOrdinals.end()
+                || ordinalOwner->second != live.handle
+                || locationOwner == data.m_standardDwgObjectLocations.end()
+                || locationOwner->second != live.handle
+                || !standardDwgModelsEqual(*frame.typedBaseline, live, DRW::AC1024, objectType))
+                return nullptr;
+            return &frame.raw;
+        };
+        const auto* rawDictionary = standard(*dictionary, dwgObjType::DICTIONARY);
+        const auto* rawXrecord = standard(*xrecord, dwgObjType::XRECORD);
+        return rawDictionary && rawXrecord
+            && dx_ac1024_renderglobal_wire::observeDictionary(*rawDictionary, *dictionary)
+            && dx_ac1024_renderglobal_wire::observeXrecord(*rawXrecord, *xrecord);
+    } catch (...) { return false; }
+}
+
 bool dx_iface::validateRenderSettingsGraph(const dx_data& data,
                                             DRW::Version targetVersion,
                                             const char** failure) const {
@@ -17991,6 +18132,15 @@ bool dx_iface::validateRenderSettingsGraph(const dx_data& data,
     if (data.renderSettings.empty() && data.rawRenderSettingsObjects.empty()
         && !hasViewportRenderPresetReference)
         return true;
+    if (data.sourceFormat == dx_source_format::DWG) {
+        if (targetVersion != DRW::AC1024 || hasViewportRenderPresetReference
+            || !data.rawRenderSettingsObjects.empty() || data.renderSettings.size() != 1u
+            || m_extensionRenderSettingsHandles.size() != 1u
+            || m_extensionRenderSettingsHandles.front() != 0x237u
+            || !hasQualifiedAc1024DwgRenderGlobal(data))
+            return reject("DWG render settings lack a complete AC1024 RENDERGLOBAL graph");
+        return true;
+    }
     if (data.sourceFormat != dx_source_format::DXF
         || data.sourceVersion != targetVersion
         || data.renderSettings.empty()
@@ -28779,7 +28929,7 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
             rejectScale();
         } else {
             try {
-                DwgLayerStateScalePublication receipt;
+                DwgClassObjectPublication receipt;
                 receipt.publication = data;
                 receipt.generation = cData->importGeneration;
                 receipt.attempt = m_classEvidenceReadAttempt;
@@ -28788,6 +28938,22 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
                         data.m_handle, std::move(receipt)).second)
                     rejectScale();
             } catch (...) { rejectScale(); }
+        }
+    }
+    if (data.m_version == DRW::AC1024 && data.m_handle == 0x237u
+        && (data.m_recordName == "RENDERGLOBAL" || data.m_className == "AcDbRenderGlobal")) {
+        const bool first = m_dwgRenderGlobalReadOwner == nullptr;
+        m_dwgRenderGlobalReadOwner = cData;
+        m_dwgRenderGlobalPublication = {};
+        if (first && typeid(*this) == typeid(dx_iface)
+            && m_classEvidenceReadData == cData && m_classEvidenceReadAttempt != 0u
+            && cData->m_classEvidenceOwner == this
+            && cData->m_classEvidenceAttempt == m_classEvidenceReadAttempt
+            && cData->m_classEvidenceGeneration == cData->importGeneration
+            && data.m_reactorHandles.size() == 1u && data.m_controlHandles.empty()) {
+            try {
+                m_dwgRenderGlobalPublication = {data, cData->importGeneration, m_classEvidenceReadAttempt};
+            } catch (...) { m_dwgRenderGlobalPublication = {}; }
         }
     }
     const auto index = static_cast<std::size_t>(data.m_carrier);
@@ -44942,9 +45108,112 @@ bool dx_iface::writeDxfRenderPreset(DRW_RawDxfObject& raw) {
     return dxfW->writeRawDxfObject(found == m_dxfRenderPresetSources.end() ? &raw : &found->second.output);
 }
 
+bool dx_iface::inspectDwgRenderGlobalOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
+    if (m_dwgRenderGlobalInspected || view.version != DRW::AC1024 || !cData || !dxfW
+        || m_extensionRenderSettingsHandles.size() != 1u
+        || m_extensionRenderSettingsHandles.front() != 0x237u
+        || !hasQualifiedAc1024DwgRenderGlobal(*cData))
+        return false;
+    try {
+        const auto* context = dxfW->getWritingContext();
+        if (context == nullptr) return false;
+        const auto map = [this, context](std::uint32_t source, std::uint32_t& emitted) {
+            if (context->ambiguousSourceHandles.count(source)) return false;
+            emitted = dxfW->remapHandle(source);
+            return emitted != 0u && emitted != DRW::NoHandle;
+        };
+        // Ordered bodies from the independently exported R2010 profile. Map
+        // object identities, owners and pointers, including references in
+        // application groups, before comparing staged bytes in either encoding.
+        struct Expected {
+            std::uint32_t source, emitted{0u};
+            const char* name;
+            std::vector<DRW_Variant> fields;
+        };
+        std::array<Expected, 3> expected{{
+            {0x237u, 0u, "RENDERGLOBAL",
+                {{5, "237"}, {102, "{ACAD_REACTORS"}, {330, "C"}, {102, "}"},
+                 {102, "{ACAD_XDICTIONARY"}, {360, "251"}, {102, "}"}, {330, "C"},
+                 {100, "AcDbRenderGlobal"}, {90, 2}, {90, 0}, {90, 0}, {290, 0},
+                 {1, ""}, {90, 640}, {90, 480}, {290, 1}, {290, 1}}},
+            {0x251u, 0u, "DICTIONARY",
+                {{5, "251"}, {330, "237"}, {100, "AcDbDictionary"}, {280, 1}, {281, 1},
+                 {3, "ADSK_XREC_RENDERGLOBALINFO"}, {360, "252"}}},
+            {0x252u, 0u, "XRECORD",
+                {{5, "252"}, {102, "{ACAD_REACTORS"}, {330, "251"}, {102, "}"},
+                 {330, "251"}, {100, "AcDbXrecord"}, {280, 1}, {70, 0}}}
+        }};
+        std::uint32_t root = 0u;
+        if (!map(0xCu, root)) return false;
+        std::set<std::uint32_t> candidates{root}, seen;
+        for (auto& record : expected)
+            if (!map(record.source, record.emitted) || !candidates.insert(record.emitted).second)
+                return false;
+        std::string_view name;
+        const bool inspected = dx_standard_output::inspectSelected(view,
+            [&](std::string_view recordName, std::uint32_t handle) {
+                name = recordName;
+                return candidates.count(handle) != 0u
+                    || asciiIdentifierEquals(recordName, "RENDERGLOBAL")
+                    || asciiIdentifierEquals(recordName, "ACDBRENDERGLOBAL");
+            },
+            [&](const auto& shape, std::string_view body) {
+                if (!seen.insert(shape.handle).second) return false;
+                if (shape.handle == root) {
+                    dx_standard_output::Decoder decoder(view);
+                    return name == "DICTIONARY" && shape.complete()
+                        && decoder.decodeRecord<DRW_Dictionary>(body, [&](const auto& dictionary) {
+                            return dictionary.parentHandle == 0u && dictionary.hardOwner == 0
+                                && std::count_if(dictionary.m_entries.begin(), dictionary.m_entries.end(),
+                                    [&](const auto& entry) {
+                                        return asciiIdentifierEquals(entry.m_name, "ACAD_RENDER_GLOBAL")
+                                            || entry.m_handle == expected.front().emitted;
+                                    }) == 1
+                                && std::any_of(dictionary.m_entries.begin(), dictionary.m_entries.end(),
+                                    [&](const auto& entry) {
+                                        return entry.m_name == "ACAD_RENDER_GLOBAL"
+                                            && entry.m_handle == expected.front().emitted
+                                            && entry.m_dxfHandleCode
+                                                == DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+                                    });
+                        });
+                }
+                const auto record = std::find_if(expected.begin(), expected.end(),
+                    [&](const Expected& candidate) { return candidate.emitted == shape.handle; });
+                return record != expected.end() && name == record->name
+                    && dx_standard_output::rawScalarTransportEqual(record->fields, body, view, map);
+            });
+        m_dwgRenderGlobalInspected = inspected && seen.size() == candidates.size();
+        return m_dwgRenderGlobalInspected;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::finalizeDwgRenderGlobalOutput() noexcept {
+    if (cData == nullptr || cData->sourceFormat != dx_source_format::DWG
+        || m_extensionRenderSettingsHandles.empty())
+        return true;
+    if (!dxfW || !m_dwgRenderGlobalInspected
+        || m_extensionRenderSettingsHandles.size() != 1u
+        || m_extensionRenderSettingsHandles.front() != 0x237u
+        || !hasQualifiedAc1024DwgRenderGlobal(*cData))
+        return false;
+    const auto root = dxfW->remapHandle(0xCu);
+    const auto global = dxfW->remapHandle(0x237u);
+    const auto dictionary = dxfW->remapHandle(0x251u);
+    const auto xrecord = dxfW->remapHandle(0x252u);
+    return dxfW->dxfWriteSourceObjectHasIdentity(0xCu, root, "DICTIONARY", "OBJECTS", 0u)
+        && dxfW->dxfWriteSourceObjectHasIdentity(0x237u, global, "RENDERGLOBAL", "OBJECTS", root)
+        && dxfW->dxfWriteSourceObjectHasIdentity(0x251u, dictionary, "DICTIONARY", "OBJECTS", global)
+        && dxfW->dxfWriteSourceObjectHasIdentity(0x252u, xrecord, "XRECORD", "OBJECTS", dictionary)
+        && recordOpaqueDwgOutputQualification(0x237u);
+}
+
 bool dx_iface::inspectDxfRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
     if (!cData || !dxfW) return false;
     const auto planned = m_extensionRenderSettingsHandles.size();
+    if (cData->sourceFormat == dx_source_format::DWG)
+        return planned == 0u ? cData->renderSettings.empty() && cData->rawRenderSettingsObjects.empty()
+                             : inspectDwgRenderGlobalOutput(view);
     if (cData->renderSettings.size() != planned || cData->rawRenderSettingsObjects.size() != planned) return false;
     if (!hasUnchangedDxfRenderPresetSources()) return false;
     if (!planned) return true;
@@ -77931,6 +78200,8 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     m_dwgLayerStateScalePublications.clear();
     m_dwgLayerStateScaleSourceOwner = nullptr;
     m_dwgLayerStateScaleCaptureFailed = false;
+    m_dwgRenderGlobalReadOwner = nullptr;
+    m_dwgRenderGlobalPublication = {};
     if (m_verifiedXRecordReadData) {
         m_verifiedXRecordFailed = true;
         m_verifiedXRecordReadData->m_verifiedXRecordSource.reset();
@@ -81565,6 +81836,8 @@ bool dx_iface::finalizeDxfWrite() {
         return failFinalization("DWG associative dimension dependencies");
     if (!finalizeGeneratedRootOutput())
         return failFinalization("generated root output binding");
+    if (!finalizeDwgRenderGlobalOutput())
+        return failFinalization("DWG RENDERGLOBAL source and output binding");
     finalizationPhase = "GEODATA graph output bindings";
     for (const DwgGeoDataGraphBinding& graph : m_dwgGeoDataGraphs) {
         if (dxfW == nullptr)
@@ -88998,6 +89271,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             && (cData->sourceFormat != dx_source_format::DWG
                 || (registerClass("GEODATA", "AcDbGeoData",
                                   m_extensionGeoDataHandles.size())
+                    && (m_extensionRenderSettingsHandles.empty()
+                        || registerClass("RENDERGLOBAL", "AcDbRenderGlobal", 1u))
                     && registerClass("RASTERVARIABLES",
                                      "AcDbRasterVariables",
                                      m_extensionRasterVariablesHandles.size())
@@ -91247,6 +91522,19 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             if (hasBackgroundRootEntries
                 && key == "ACAD_BACKGROUND")
                 continue;
+            if (cData->sourceFormat == dx_source_format::DWG
+                && key == "ACAD_RENDER_GLOBAL" && sourceEntry.m_handle == 0x237u
+                && m_extensionRenderSettingsHandles.size() == 1u
+                && m_extensionRenderSettingsHandles.front() == sourceEntry.m_handle) {
+                const auto emitted = dxfW->remapHandle(sourceEntry.m_handle);
+                if (emitted == 0u || emitted == DRW::NoHandle || !rootEntryNames.insert(key).second) {
+                    delete dxfW;
+                    dxfW = nullptr;
+                    return false;
+                }
+                rootEntries.emplace_back(sourceEntry.m_name, dxfW->toHexStrHandle(emitted));
+                continue;
+            }
             if (key == "ACAD_LAYOUT" || key == "ACAD_GROUP"
                 || (key == "ACAD_IMAGE_DICT" && sourceImageDictionary))
                 continue;

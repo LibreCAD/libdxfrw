@@ -2534,6 +2534,17 @@ public:
         }
         std::unordered_set<std::uint32_t> renderSettingsHandles;
         for (std::uint32_t handle : m_extensionRenderSettingsHandles) {
+            if (cData->sourceFormat == dx_source_format::DWG) {
+                if (handle != 0x237u || m_extensionRenderSettingsHandles.size() != 1u
+                    || cData->renderSettings.size() != 1u
+                    || !hasQualifiedAc1024DwgRenderGlobal(*cData)) {
+                    dxfW->writeRawDxfObject(nullptr);
+                    return;
+                }
+                if (!dxfW->writeRenderSettings(&cData->renderSettings.front(), "RENDERGLOBAL"))
+                    return;
+                continue;
+            }
             std::size_t matches = 0;
             for (DRW_RawDxfObject& object : cData->rawRenderSettingsObjects) {
                 if (object.handle != handle)
@@ -4418,13 +4429,13 @@ private:
     DRW::Version m_dwgLayerStateOutputSourceVersion{DRW::UNKNOWNV};
     bool m_dwgLayerStateOutputPrepared{false};
     bool m_dwgLayerStateOutputInspected{false};
-    // Source-only SCALE class/source receipt; not an output admission proof.
-    struct DwgLayerStateScalePublication {
+    // Class and frame publication recorded during the same DWG read.
+    struct DwgClassObjectPublication {
         DRW_DwgFramePublication publication;
         std::uint64_t generation{0u};
         std::uint64_t attempt{0u};
     };
-    std::map<std::uint32_t, DwgLayerStateScalePublication>
+    std::map<std::uint32_t, DwgClassObjectPublication>
         m_dwgLayerStateScalePublications;
     const dx_data* m_dwgLayerStateScaleSourceOwner{nullptr};
     bool m_dwgLayerStateScaleCaptureFailed{false};
@@ -4665,6 +4676,12 @@ private:
     bool hasUnchangedDxfRenderPresetSources() const noexcept;
     bool writeDxfRenderPreset(DRW_RawDxfObject& raw);
     bool inspectDxfRenderSettingsOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
+    DwgClassObjectPublication m_dwgRenderGlobalPublication;
+    const dx_data* m_dwgRenderGlobalReadOwner{nullptr};
+    bool m_dwgRenderGlobalInspected{false};
+    bool hasQualifiedAc1024DwgRenderGlobal(const dx_data& data) const noexcept;
+    bool inspectDwgRenderGlobalOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
+    bool finalizeDwgRenderGlobalOutput() noexcept;
     struct DxfCommonReferenceSource {
         enum Kind { Entity, Child, BlockBegin, BlockEnd, Raw } kind{Entity};
         const DRW_Entity* entity{nullptr};

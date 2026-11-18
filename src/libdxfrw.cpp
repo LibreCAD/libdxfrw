@@ -38927,7 +38927,13 @@ bool dxfRW::writeRenderSettings(DRW_RenderSettings *ent,
     if (!writeTableEntryAppData(*ent))
         return false;
     writeObjectOwner(static_cast<std::uint32_t>(ent->parentHandle));
-    if (preset || base) {
+    const bool globalWitness = version == DRW::AC1024
+        && dxfRenderSettings::isAc1024GlobalWitness(*ent)
+        && (dxfKeywordEquals(recordName, "RENDERGLOBAL")
+            || dxfKeywordEquals(recordName, "ACDBRENDERGLOBAL"));
+    if (globalWitness) {
+        dxfRenderSettings::writeAc1024GlobalWitness(*writer, *ent);
+    } else if (preset || base) {
         dxfRenderSettings::writePresetBody(*writer, *ent, profile);
     } else {
         switch (ent->m_kind) {

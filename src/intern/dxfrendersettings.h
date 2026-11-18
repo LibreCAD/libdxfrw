@@ -15,6 +15,31 @@
 namespace dxfRenderSettings {
 enum class PresetProfile { Unavailable, Base, RapidRT, LegacyMentalRay, ModernMentalRay, ExtendedMentalRay };
 
+// One independently observed AC1024 Global body. These fields are stored in
+// per-code vectors, but their DXF order interleaves the vectors. This does not
+// qualify other Global variants or the containing DWG object graph.
+inline bool isAc1024GlobalWitness(const DRW_RenderSettings& value) noexcept {
+    return value.m_kind == DRW_RenderSettings::Global && !value.hasDwgRawData()
+        && value.m_longs.size() == 5u && value.m_longs[0] == 2
+        && value.m_longs[1] == 0 && value.m_longs[2] == 0
+        && value.m_longs[3] == 640 && value.m_longs[4] == 480
+        && value.m_strings.size() == 1u && value.m_strings[0].empty()
+        && value.m_bools.size() == 3u && !value.m_bools[0]
+        && value.m_bools[1] && value.m_bools[2]
+        && value.m_shorts.empty() && value.m_bytes.empty() && value.m_doubles.empty();
+}
+
+inline void writeAc1024GlobalWitness(dxfWriter& writer, const DRW_RenderSettings& value) {
+    writer.writeString(100, "AcDbRenderGlobal");
+    for (std::size_t i = 0; i < 3u; ++i) writer.writeInt32(90, value.m_longs[i]);
+    writer.writeBool(290, value.m_bools[0]);
+    writer.writeUtf8String(1, value.m_strings[0]);
+    writer.writeInt32(90, value.m_longs[3]);
+    writer.writeInt32(90, value.m_longs[4]);
+    writer.writeBool(290, value.m_bools[1]);
+    writer.writeBool(290, value.m_bools[2]);
+}
+
 inline PresetProfile presetProfile(const DRW_RenderSettings& value) noexcept {
     if (value.hasDwgRawData() || !value.m_bytes.empty()) return PresetProfile::Unavailable;
     if (value.m_longs.empty() || (value.m_longs[0] != 1 && value.m_longs[0] != 2)) return PresetProfile::Unavailable;

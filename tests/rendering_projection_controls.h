@@ -184,7 +184,7 @@ struct Writer : dx_iface {
     void writeBlocks()override{}void writeBlockRecords()override{}void writeEntities()override{}
     void writeLTypes()override{}void writeLayers()override{}void writeTextstyles()override{}
     void writeVports()override{}void writeDimstyles()override{}void writeAppId()override{}
-    void writeObjects()override{wrote=output.writeRenderSettings(&value,value.m_kind==DRW_RenderSettings::RapidRT?"RAPIDRTRENDERSETTINGS":"MENTALRAYRENDERSETTINGS");}
+    void writeObjects()override{wrote=output.writeRenderSettings(&value,value.m_kind==DRW_RenderSettings::RapidRT?"RAPIDRTRENDERSETTINGS":value.m_kind==DRW_RenderSettings::Global?"RENDERGLOBAL":"MENTALRAYRENDERSETTINGS");}
     // This control exercises the direct record writer, not dx_iface's
     // whole-document export transaction and its graph-finalization gates.
     bool finalizeDxfWrite() override { return true; }
@@ -209,10 +209,12 @@ std::size_t writerControls(TestContext& test,const std::filesystem::path& path) 
         const auto model=original.values.front();dxfRW output(path.string().c_str());Writer writer(output,model);
         const auto checkOutput=[&]() {
             Probe reopened;dxfRW reader(path.string().c_str());
-            if(!reader.read(&reopened,false)||reopened.values.size()!=1u||reopened.raw.size()!=1u
+            if(!reader.read(&reopened,false)||reopened.values.size()!=1u
                 ||!sameProjection(model,reopened.values.front())||!sameProjection(model,writer.value))return false;
             auto begin=std::find_if(record.begin(),record.end(),[](const Tag& t){return t.code==100&&t.text=="AcDbRenderSettings";});
-            const auto& groups=reopened.raw.front().groups;
+            const auto matchingRaw=std::find_if(reopened.raw.begin(),reopened.raw.end(),[&](const DRW_RawDxfObject& value){return value.name==record.front().text;});
+            if(matchingRaw==reopened.raw.end()||std::count_if(reopened.raw.begin(),reopened.raw.end(),[&](const DRW_RawDxfObject& value){return value.name==record.front().text;})!=1)return false;
+            const auto& groups=matchingRaw->groups;
             auto body=std::find_if(groups.begin(),groups.end(),[](const DRW_Variant& v){return v.code()==100&&v.type()==DRW_Variant::STRING&&v.content.s&&*v.content.s=="AcDbRenderSettings";});
             if(static_cast<std::size_t>(std::distance(body,groups.end()))!=static_cast<std::size_t>(std::distance(begin,record.end())))return false;
             DRW_RawDxfObject raw;raw.name="BODY";raw.groups.assign(body,groups.end());Tags expected{{0,"BODY"}};expected.insert(expected.end(),begin,record.end());
@@ -244,6 +246,51 @@ std::size_t writerControls(TestContext& test,const std::filesystem::path& path) 
             writer.value=model;test.expect(output.write(&writer,DRW::AC1027,binary)&&writer.wrote&&checkOutput(),
                 "same writer accepts corrected preset after refusal");++controls;
         }
+    }
+    return controls;
+}
+std::size_t globalWitnessWriterControls(TestContext& test,const std::filesystem::path& path) {
+    // Literal order independently observed in the AC1024 aerial conversion.
+    const Tags record{{0,"RENDERGLOBAL"},{5,"E901"},{330,"C"},
+        {100,"AcDbRenderGlobal"},{90,"2"},{90,"0"},{90,"0"},{290,"0"},{1,""},
+        {90,"640"},{90,"480"},{290,"1"},{290,"1"}};
+    std::size_t controls=0u;
+    for (const bool binary : {false,true}) {
+        const auto input=wire(record,binary,"AC1024");
+        {std::ofstream file(path,std::ios::binary);file.write(input.data(),static_cast<std::streamsize>(input.size()));}
+        Probe original;dxfRW source(path.string().c_str());
+        const bool parsed=source.read(&original,false)&&original.values.size()==1u;
+        test.expect(parsed,"authored Global witness parses");if(!parsed)continue;
+        const auto model=original.values.front();
+        test.expect(dxfRenderSettings::isAc1024GlobalWitness(model),"authored Global witness has the exact admitted body");
+        dxfRW output(path.string().c_str());Writer writer(output,model);
+        const auto checkOutput=[&](const Tags& expected) {
+            Probe reopened;dxfRW reader(path.string().c_str());
+            if(!reader.read(&reopened,false)||reopened.values.size()!=1u
+                ||!sameProjection(writer.value,reopened.values.front()))return false;
+            const auto matchingRaw=std::find_if(reopened.raw.begin(),reopened.raw.end(),[](const DRW_RawDxfObject& value){return value.name=="RENDERGLOBAL";});
+            if(matchingRaw==reopened.raw.end()||std::count_if(reopened.raw.begin(),reopened.raw.end(),[](const DRW_RawDxfObject& value){return value.name=="RENDERGLOBAL";})!=1)return false;
+            const auto& groups=matchingRaw->groups;
+            const auto begin=std::find_if(groups.begin(),groups.end(),[](const DRW_Variant& v){
+                return v.code()==100&&v.type()==DRW_Variant::STRING&&v.content.s&&*v.content.s=="AcDbRenderGlobal";});
+            if(begin==groups.end())return false;
+            DRW_RawDxfObject raw;raw.name="BODY";raw.groups.assign(begin,groups.end());
+            return rawMatches(raw,expected);
+        };
+        const Tags positional{{0,"BODY"},{100,"AcDbRenderGlobal"},{90,"2"},{90,"0"},{90,"0"},
+            {290,"0"},{1,""},{90,"640"},{90,"480"},{290,"1"},{290,"1"}};
+        test.expect(output.write(&writer,DRW::AC1024,binary)&&writer.wrote&&checkOutput(positional),
+            "AC1024 Global witness writes independently observed interleaved fields");++controls;
+        const Tags legacy{{0,"BODY"},{100,"AcDbRenderGlobal"},{90,"2"},{90,"0"},{90,"0"},
+            {90,"640"},{90,"480"},{1,""},{290,"0"},{290,"1"},{290,"1"}};
+        test.expect(output.write(&writer,DRW::AC1027,binary)&&writer.wrote&&checkOutput(legacy),
+            "other target versions preserve the existing Global writer path");++controls;
+        writer.value.m_longs[3]=641;
+        const Tags edited{{0,"BODY"},{100,"AcDbRenderGlobal"},{90,"2"},{90,"0"},{90,"0"},
+            {90,"641"},{90,"480"},{1,""},{290,"0"},{290,"1"},{290,"1"}};
+        test.expect(!dxfRenderSettings::isAc1024GlobalWitness(writer.value)
+            &&output.write(&writer,DRW::AC1024,binary)&&writer.wrote&&checkOutput(edited),
+            "different Global values retain the existing writer path");++controls;
     }
     return controls;
 }
@@ -300,7 +347,7 @@ void run(TestContext& test) {
     try { (void)reused.readAscii(&throws,false,thrownText); } catch(const std::runtime_error&) {caught=true;}
     test.expect(caught&&throws.order=="T"&&throws.raw.empty(),"throwing typed rendering callback does not publish raw callback");
     Probe fixed;std::string fixedText=text;test.expect(reused.readAscii(&fixed,false,fixedText)&&matches(fixed,1u,0u),"same reader recovers after rendering callback throw");++corrected;
-    const auto written=writerControls(test,path);
+    const auto written=writerControls(test,path)+globalWitnessWriterControls(test,path);
     std::error_code ignored;std::filesystem::remove(path,ignored);
     const auto budgets=budgetControls(test);
     std::cout<<"Rendering projection profiles="<<profiles<<"; exact raw fields="<<rawFields<<"; scope controls="<<scoped<<"; exact/one-under ownership controls="<<budgets<<"; corrected retries="<<corrected<<"; public lifetimes="<<lifetimes<<"; typed writer/readback/refusal controls="<<written<<'\n';

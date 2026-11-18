@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-renderglobal-source-staged-proof-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SELECTED_SOURCE_CLASS_GRAPH_AND_STAGED_OUTPUT_VERIFIED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "62161135ed373bfc1cb630795aa2b5509fd74dd257c8b8c07011ee1b7bd69cf2",
+  "source": {
+    "profile": "Pinned AC1024 aerial DWG with NOD C \u2192 RENDERGLOBAL 237 \u2192 extension dictionary 251 \u2192 XRECORD 252.",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "wireAndOrderBasis": "docs/research/p4-ac1024-aerial-renderglobal-wire-order-2026-11-18.json"
+  },
+  "implementation": {
+    "source": "Bind the renderer frame's publication and unique CLASSES row to the same importing adapter, data and read attempt. Require both published memberships, both standard child frame indices, typed-to-raw correspondence and the received field and handle spans during preparation, inspection and finalization.",
+    "output": "Emit the independently observed positional body and retain the existing low-level writer for other targets and shapes. Inspect exact ordered fields, NOD soft-owner member, reactor and extension scopes, hard-owner dictionary member and XRECORD payload through distinct remapped output handles. Require the finalized owner and source identities before qualifying the renderer frame for the transaction.",
+    "sourceObserverSha256": "24a617924d5b3d97f3025e7e447adda0e3dbb9eaef495b28c6a37a14f67499db"
+  },
+  "validation": {
+    "focusedCTest": "8/8 rendering projection, owner order, immutable source, replay and generated wire tests. An additional 7/7 DictionaryVar and wire regressions passed on the first adapter build.",
+    "generatedNegativeControls": "896 single-bit mutations across the three generated body controls, truncation, extension and separately changed typed aliases, with unchanged source retries.",
+    "physicalSelector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-selected-renderglobal-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "physicalControls": "Nine refused faults per encoding preserve a seeded destination and allow corrected same-codec retry. The faults change a field, field order, owner, or one of the three captured source frames before staging or during finalization.",
+    "ordinalControl": "Changing the dictionary ordinal index to resolve to the XRECORD refused. Restoring it on the original import passed.",
+    "readback": "ezdxf 1.4.5 read both encodings and verified the exact ordered record, 350 root edge, 360 extension and member, XRECORD payload, mapped owners and reactors.",
+    "testCorrection": "The low-level rendering test now finds the exact rendering record among emitted raw objects. The writer also supplies a default plot-style dictionary and placeholder in these tests.",
+    "scratchRoot": "/private/tmp/libdxfrw-renderglobal-final.f7o87h",
+    "sha256": {
+      "renderglobal.log": "11a6cdb133da47c9ff83b1dc457d8e18da0a21d175a83e5f21f5c056f212f3fb",
+      "dictionaryvar.log": "9758a0e152539fdc77eff4d55d92a35b492751afcce22df818dc62b819eb987f",
+      "mlinestyle.log": "b6555ba7ae55ace1c4ee2e3d30a4131fc9dec3b91f074c7c6c49b69f4ed9e3b1",
+      "selected.cpp": "2bcd57b2e9c0cf1eeae20ccb07192fa3ccf94481a8cec746314e97e8592a5c7d",
+      "selected.log": "11a6cdb133da47c9ff83b1dc457d8e18da0a21d175a83e5f21f5c056f212f3fb",
+      "selected-ascii.dxf": "cae459e32a656fe4d0feb669b1f55884eb96950b245d1c1f355cfab0a0d3f097",
+      "selected-binary.dxf": "3c704b1cb42d0e5ba70a8c19732420aa96d4c844a8eb6f1b19e1cfcc0f9e05fb",
+      "gate.cpp": "26b6502d64cfb40ddeda870101bdf19a4246d5846984c577b8fe9020a6d3b560",
+      "gate.log": "c0de7c904ce73737bee612ef4c375161652cccca5e9cd5210405e149d98a632a",
+      "peer-readback.log": "d6817feeefc7c9e99b09e5964411eee324f6c7b1697e34ec62d0bdf0ac8326a5"
+    },
+    "peerScriptSha256": "517bf2201dd6cf9e61ea4282ee4f17c5d8fb422048d04ebfdd76c9b54a9a5d2c",
+    "inventory": "1315 released files. Qualification status verified against 738 implementation inputs, with 0 advertised routes."
+  },
+  "limits": [
+    "The physical control selects one render graph together with generated root dependencies. Whole-source strict export still refuses the original aerial drawing at SUN owner closure and preserves the existing destination.",
+    "The aerial file also contains two MentalRay records requiring independent source and graph proof before all three render settings can be emitted together. Native render behavior remains unqualified."
+  ]
+}

@@ -1,4 +1,5 @@
 #include "dx_ac1027_material_wire.h"
+#include "dx_ac1024_renderglobal_wire.h"
 #include "dx_ac1024_dictionaryvar_wire.h"
 #include "dx_ac1024_mlinestyle_wire.h"
 #include "dx_layerstates_dwg_wire.h"
@@ -397,9 +398,95 @@ bool checkAc1024DictionaryVarWire() {
   }
   return true;
 }
+// Generated exact source-layout controls; no drawing bytes are embedded.
+bool checkAc1024RenderGlobalWire() {
+  using namespace dx_ac1024_renderglobal_wire;
+  const auto h=[](BitWriter& w,std::uint8_t role,std::uint32_t value,std::uint8_t length) {
+    w.bits((role<<4u)|length,8u);
+    for(unsigned i=length;i>0u;--i)w.bits((value>>((i-1u)*8u))&0xffu,8u);
+  };
+  const auto common=[&h](BitWriter& w,int type,std::uint32_t self,int reactors,int xflag){
+    w.bits(type>=496?1u:0u,2u);w.bits(type>=496?type-496:type,8u);h(w,0u,self,2u);
+    w.bits(2u,2u);if(reactors)w.longValue(1u);else w.bits(2u,2u);w.bits(xflag,1u);
+  };
+  const auto long32=[](BitWriter& w,std::uint32_t value){w.bits(0u,2u);for(unsigned i=0;i<4u;++i)w.bits((value>>(8u*i))&0xffu,8u);};
+  const auto makeRaw=[](std::uint32_t self,int type,std::uint32_t owner,int reactors,int xflag){
+    DRW_UnsupportedObject raw;raw.m_version=DRW::AC1024;raw.m_handle=self;raw.m_objectType=type;
+    raw.m_parentHandle=owner;raw.m_numReactors=reactors;if(reactors)raw.m_reactorHandles={owner};
+    raw.m_xDictFlag=xflag;raw.m_commonHandleDataValidated=true;
+    raw.m_commonLinkEvidence=DRW_DwgCommonLinkEvidence::Validated;
+    if(type==521){raw.m_isCustomClass=true;raw.m_hasClassDefinition=true;
+      raw.m_recordName="RENDERGLOBAL";raw.m_className="AcDbRenderGlobal";raw.m_xDictHandle=0x251u;}
+    return raw;
+  };
+  BitWriter global;common(global,521,0x237u,1,0);global.longValue(2u);global.bits(2u,2u);
+  global.bits(2u,2u);global.bits(0u,1u);long32(global,640u);long32(global,480u);
+  global.bits(1u,1u);global.bits(1u,1u);global.bits(2u,2u);global.little16(2u);global.bits(1u,1u);
+  h(global,4u,0x0cu,1u);h(global,4u,0x0cu,1u);h(global,3u,0x251u,2u);global.bits(1u,1u);
+  if(global.size()!=208u)return false;
+  auto gr=makeRaw(0x237u,521,0x0cu,1,0);gr.m_objectSize=26u;gr.m_bodyBitSize=57u;gr.m_rawBytes=std::move(global).take();
+  DRW_RenderSettings g;g.handle=0x237u;g.parentHandle=0x0cu;g.m_kind=DRW_RenderSettings::Global;
+  g.reactorHandles={0x0cu};g.xDictHandle=0x251u;g.setDwgCommonObjectState(1,0u,false);
+  g.m_classVersion=2;g.m_longs={2,0,0,640,480};g.m_strings={""};g.m_bools={false,true,true};
+  if(!matchesProfile(g)||!observeGlobal(gr,g))return false;
+  for(std::size_t bit=0;bit<208u;++bit){auto bad=gr;bad.m_rawBytes[bit/8u]^=static_cast<std::uint8_t>(1u<<(7u-bit%8u));
+    if(observeGlobal(bad,g)||!observeGlobal(gr,g))return false;}
+  auto bg=g;bg.m_longs[3]=641;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_name="unexpected";if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_environmentImageFilename="unexpected";if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_description="unexpected";if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_displayIndex=1;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_fogEnabled=true;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_fogBackgroundEnabled=true;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_backfacesEnabled=true;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_environmentImageEnabled=true;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_hasPredefined=true;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_hasPredefinedPresent=true;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_fogColorR=1;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_fogColorG=1;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_fogColorB=1;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_fogDensityNear=1.0;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_fogDensityFar=1.0;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_fogDistanceNear=1.0;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.m_fogDistanceFar=1.0;if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  bg=g;bg.setDwgCommonLinkTailValidated(true);if(matchesProfile(bg)||observeGlobal(gr,bg))return false;
+  auto gt=gr;gt.m_rawBytes.pop_back();if(observeGlobal(gt,g))return false;
+
+  BitWriter dictionary;common(dictionary,42,0x251u,0,1);dictionary.longValue(1u);dictionary.shortValue(1u);dictionary.bits(1u,8u);
+  const std::string key="ADSK_XREC_RENDERGLOBALINFO";dictionary.shortValue(static_cast<std::uint8_t>(key.size()));
+  for(unsigned char c:key)dictionary.little16(c);dictionary.little16(426u);dictionary.bits(1u,1u);
+  h(dictionary,12u,0x1au,1u);h(dictionary,2u,0x252u,2u);dictionary.bits(3u,2u);
+  if(dictionary.size()!=552u)return false;
+  auto dr=makeRaw(0x251u,42,0x237u,0,1);dr.m_objectSize=69u;dr.m_bodyBitSize=42u;dr.m_rawBytes=std::move(dictionary).take();
+  DRW_Dictionary d;d.handle=0x251u;d.parentHandle=0x237u;d.cloning=1;d.hardOwner=1;
+  d.m_entries.push_back({key,0x252u});d.setDwgCommonObjectState(0,1u,false);d.setDwgCommonLinkTailValidated(true);
+  if(!matchesProfile(d)||!observeDictionary(dr,d))return false;
+  for(std::size_t bit=0;bit<552u;++bit){auto bad=dr;bad.m_rawBytes[bit/8u]^=static_cast<std::uint8_t>(1u<<(7u-bit%8u));
+    if(observeDictionary(bad,d)||!observeDictionary(dr,d))return false;}
+  auto bd=d;bd.m_entries.front().m_handle=0x253u;if(matchesProfile(bd)||observeDictionary(dr,bd))return false;
+  auto dt=dr;dt.m_rawBytes.pop_back();if(observeDictionary(dt,d))return false;
+
+  BitWriter record;common(record,79,0x252u,1,1);record.longValue(4u);record.little16(70u);record.little16(0u);
+  record.shortValue(1u);record.bits(0u,1u);h(record,8u,0u,0u);h(record,4u,0x251u,2u);record.bits(15u,4u);
+  if(record.size()!=136u)return false;
+  auto xr=makeRaw(0x252u,79,0x251u,1,1);xr.m_objectSize=17u;xr.m_bodyBitSize=36u;xr.m_rawBytes=std::move(record).take();
+  DRW_XRecord x;x.handle=0x252u;x.parentHandle=0x251u;x.m_cloning=1;x.reactorHandles={0x251u};
+  x.setDwgCommonObjectState(1,1u,false);x.setDwgCommonLinkTailValidated(true);
+  x.m_values.emplace_back(70,static_cast<std::int32_t>(0));x.m_dataEntries.emplace_back(70,static_cast<std::int32_t>(0));
+  if(!matchesProfile(x)||!observeXrecord(xr,x))return false;
+  for(std::size_t bit=0;bit<136u;++bit){auto bad=xr;bad.m_rawBytes[bit/8u]^=static_cast<std::uint8_t>(1u<<(7u-bit%8u));
+    if(observeXrecord(bad,x)||!observeXrecord(xr,x))return false;}
+  auto bx=x;bx.m_values.front()=DRW_Variant(70,static_cast<std::int32_t>(1));if(matchesProfile(bx)||observeXrecord(xr,bx))return false;
+  auto xt=xr;xt.m_rawBytes.pop_back();if(observeXrecord(xt,x))return false;
+  return observeGlobal(gr,g)&&observeDictionary(dr,d)&&observeXrecord(xr,x);
+}
 } // namespace
 
 int main() {
+  if (!checkAc1024RenderGlobalWire()) {
+    std::cerr << "AC1024 RENDERGLOBAL source wire control failed\n";
+    return 1;
+  }
   if (!checkAc1024DictionaryVarWire()) {
     std::cerr << "AC1024 DICTIONARYVAR source wire control failed\n";
     return 1;

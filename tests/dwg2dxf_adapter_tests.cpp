@@ -3461,6 +3461,27 @@ public:
     static std::uint8_t& dictionaryVarChildWire(dx_data& data) {
         return data.m_opaqueDwgSourceFrames.at({data.importGeneration, 0x313u}).m_rawBytes.at(16u);
     }
+    static bool prepareSelectedRenderGlobal(dx_iface& iface, const dx_data& data) {
+        iface.m_extensionRenderSettingsHandles = {0x237u};
+        iface.m_extensionDictionaryHandles = {0x251u};
+        iface.m_extensionXRecordHandles = {0x252u};
+        iface.m_dwgRenderGlobalInspected = false;
+        return iface.hasQualifiedAc1024DwgRenderGlobal(data);
+    }
+    static bool inspectSelectedRenderGlobal(dx_iface& iface,
+            const dxfRW::DxfObjectsWriteView& view) {
+        return iface.inspectDwgRenderGlobalOutput(view)
+            && iface.inspectGeneratedRootOutput(view)
+            && iface.inspectStandardDwgOutput(view);
+    }
+    static bool finalizeSelectedRenderGlobal(dx_iface& iface) {
+        return iface.finalizeStandardDwgOutputProofs()
+            && iface.finalizeGeneratedRootOutput()
+            && iface.finalizeDwgRenderGlobalOutput();
+    }
+    static std::uint8_t& renderGlobalWire(dx_data& data) {
+        return data.m_opaqueDwgSourceFrames.at({data.importGeneration, 0x237u}).m_rawBytes.at(16u);
+    }
     static bool generatedRootsFinal(const dx_iface& iface, std::size_t count, bool published = false) {
         return iface.m_generatedRootOutputInspected && iface.m_generatedRootOutputFinalized
             && iface.m_generatedRootOutputProofs.size() == count && (!published || iface.m_generatedRootOutputPublished);
@@ -92763,6 +92784,8 @@ int main(int argc, char** argv) {
         return physicalAc1024EmptyNodWriter(argv[2], true) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-dictionaryvar-writer")
         return physicalAc1024SelectedDictionaryVarWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-renderglobal-writer")
+        return physicalAc1024SelectedRenderGlobalWriter(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-source-graph-context")
         return physicalAc1024LayerStatesSourceGraphContext(argv[2]) ? 0 : 1;
