@@ -136,6 +136,13 @@ bool exactAc1027ClassSourceMatches(const dx_data& data, const DRW_UnsupportedObj
                                          count, DRW::AC1027);
 }
 
+bool usesAc1024ReactorPlotStyleProfile(const dx_data& data,
+        std::uint32_t dictionary, std::uint32_t placeholder) noexcept {
+    return data.sourceVersion == DRW::AC1024
+        && data.namedObjectDictionary.handle == DRW::DwgNamedObjectsDictionaryHandle
+        && dictionary == 0xEu && placeholder == 0xFu;
+}
+
 bool exactAc1021GeneratedDictionaryDefaultClass(
         const dx_data& data, std::uint32_t objectType,
         const char* recordName, const char* className) noexcept {
@@ -17607,6 +17614,15 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 && placeholder != placeholders.end()
                 && dictionary->second->reactorHandles.empty()
                 && placeholder->second->reactorHandles.empty();
+            // Apply the wire proof only to the witnessed pair shape. Other
+            // encodings still follow their existing selected-output checks.
+            const bool ac1024OneReactor = !ac1024NoReactors
+                && usesAc1024ReactorPlotStyleProfile(*data, dictionaryHandle,
+                                                     placeholderHandle)
+                && frame != data->m_opaqueDwgSourceFrames.end()
+                && placeholderFrame != data->m_opaqueDwgSourceFrames.end()
+                && dx_ac1024_plotstyle_wire::hasOneReactorSizedPair(
+                    frame->second, placeholderFrame->second);
             const DRW_Dictionary::Entry* rootEntry = nullptr;
             std::size_t rootMatches = 0u;
             for (const DRW_Dictionary::Entry& entry :
@@ -17692,6 +17708,9 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                             data->namedObjectDictionary.handle, placeholderHandle)
                         && dx_ac1024_plotstyle_wire::matches(placeholderFrame->second,
                             false, dictionaryHandle, placeholderHandle)))
+                && (!ac1024OneReactor
+                    || hasAc1024ReactorPlotStyleSource(*data, *dictionary->second,
+                                                      *placeholder->second))
                 && (data->sourceVersion != DRW::AC1027
                     || (dictionary->second->cloning == 1
                         && dictionary->second->hardOwner == 0
@@ -17717,6 +17736,7 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                     placeholderFrame->second.m_recordName;
                 source.placeholderClassName =
                     placeholderFrame->second.m_className;
+                source.ac1024OneReactorWireProof = ac1024OneReactor;
                 if (m_dwgDictionaryDefaultOutputSources.emplace(
                         dictionaryHandle, std::move(source)).second) {
                     m_dwgDictionaryDefaultOutputSourceOwner = data;
@@ -17726,10 +17746,12 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                         data->importGeneration;
                 }
             }
-            if (ac1024NoReactors
+            if ((ac1024NoReactors || ac1024OneReactor)
                 && m_dwgDictionaryDefaultOutputSources.count(dictionaryHandle) != 1u)
                 return reject(ExtensionGraphFailure::InvalidGraph,
-                    "AC1024 no-reactor plot-style source proof is incomplete");
+                    ac1024OneReactor
+                        ? "AC1024 one-reactor plot-style source proof is incomplete"
+                        : "AC1024 no-reactor plot-style source proof is incomplete");
         }
         m_extensionDictionaryOwnerSourceOwner = data;
         m_extensionDictionaryOwnerSourceGeneration = data->importGeneration;
@@ -55888,6 +55910,41 @@ bool dx_iface::inspectDwgSortEntsOutput(
     }
 }
 
+bool dx_iface::hasAc1024ReactorPlotStyleSource(const dx_data& data,
+        const DRW_DictionaryWithDefault& dictionary,
+        const DRW_AcDbPlaceholder& placeholder) noexcept {
+    const dx_data::StandardDwgFrameKey dictionaryKey{data.importGeneration, dictionary.handle};
+    const dx_data::StandardDwgFrameKey placeholderKey{data.importGeneration, placeholder.handle};
+    const auto dictFrame = data.m_opaqueDwgSourceFrames.find(dictionaryKey);
+    const auto placeFrame = data.m_opaqueDwgSourceFrames.find(placeholderKey);
+    return data.importGeneration != 0u
+        && dictionary.reactorCount() == 1 && placeholder.reactorCount() == 1
+        && dictionary.extensionDictionaryFlag() == 1u
+        && placeholder.extensionDictionaryFlag() == 1u
+        && !dictionary.hasDataStorageBinaryData()
+        && !placeholder.hasDataStorageBinaryData()
+        && dictionary.pendingAppIdResolutions.empty()
+        && dictionary.pendingLayerRefResolutions.empty()
+        && placeholder.pendingAppIdResolutions.empty()
+        && placeholder.pendingLayerRefResolutions.empty()
+        && dictionary.cloning == 1 && dictionary.hardOwner == 0
+        && dictFrame != data.m_opaqueDwgSourceFrames.end()
+        && placeFrame != data.m_opaqueDwgSourceFrames.end()
+        && data.m_opaqueDwgSourceFrameIdentities.count(dictionaryKey) == 1u
+        && data.m_opaqueDwgSourceFrameIdentities.count(placeholderKey) == 1u
+        && dictFrame->second.m_handle == dictionary.handle
+        && placeFrame->second.m_handle == placeholder.handle
+        && dictFrame->second.m_objectOffset != placeFrame->second.m_objectOffset
+        && exactModernClassSourceMatches(data, dictFrame->second,
+            "ACDBDICTIONARYWDFLT", "AcDbDictionaryWithDefault", 1, DRW::AC1024)
+        && exactAc1027ClassFrameCensus(data.m_opaqueDwgSourceFrames,
+            data.importGeneration, dictFrame->second, 1u)
+        && dx_ac1024_plotstyle_wire::matchesOneReactor(dictFrame->second, true,
+            data.namedObjectDictionary.handle, placeholder.handle)
+        && dx_ac1024_plotstyle_wire::matchesOneReactor(placeFrame->second, false,
+            dictionary.handle, placeholder.handle);
+}
+
 bool dx_iface::hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept {
     if (m_dwgDictionaryDefaultOutputSources.empty())
         return m_dwgDictionaryDefaultOutputSourceOwner == nullptr
@@ -56026,6 +56083,9 @@ bool dx_iface::hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept {
                     proof.dictionary.handle, proof.placeholder.handle))
                 return false;
         }
+        if (proof.ac1024OneReactorWireProof
+            && !hasAc1024ReactorPlotStyleSource(*cData, proof.dictionary, proof.placeholder))
+            return false;
         return (proof.objectType == 500
                 || (m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1027
                     && proof.objectType >= 500)

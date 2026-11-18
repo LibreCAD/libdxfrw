@@ -54,8 +54,19 @@
     "result": "The isolated scanner now requires the generated root's exact common metadata and preserves whitespace in string values. It accepts the unchanged stage and refuses nine physical-byte mutations: four root faults, two padded-name cases and the three original review cases.",
     "scope": "This follow-up has only isolated scanner evidence. The twelve transactional refusals belong to the preceding scratch revision."
   },
+  "boundedTransactionFollowUp": {
+    "root": "/private/tmp/librecad-mline-staged-v5-20261118",
+    "scannerSha256": "2c94b9fd223236bdc14f6751f1e5722b774741f671d10f9843efbe20af7b8872",
+    "noHookArchiveSha256": "654210733841b4b4edcf4c35a46a2476eedee91418ae66566346f17405399dc9",
+    "testHookArchiveSha256": "a7b8511fc757407002d7fd8c9e08ceb14787445984853b10152d1b2b137c7284",
+    "noHookReadbackSha256": "59371726390594ed23b5710d32f949f2d071d28c38d445900440692230f89a9d",
+    "atomicLogSha256": "6698253a6e0c440ed01759b6de0ffa56cbc1590d1b0520ddc87b111c301ec6af",
+    "unrelatedContentScannerLogSha256": "f8f24439a5b313f341901a99dae9034f3da57add8aabe7d7bfddb25b1c5d5e41",
+    "result": "Three no-hook selected import/save/reopen cases pass independent graph readback and geometry/group-41 comparison within 1e-12. The hook build refuses 12 injected staged faults, retains destination bytes and succeeds on corrected same-filter retry.",
+    "scope": "Separate scanner-only mutations with unrelated 6- and 12-vertex MLINEs and a four-element OTHER style now pass. The selected exact AC1018 ASCII-output scan bounds the staged file to 256 MiB, dictionary entries to 100,000 and aggregate keys to 4 MiB. Valid documents exceeding those bounds can still be refused."
+  },
   "remaining": [
-    "Before integration, cap aggregate allocations, compose the revised root and string checks with the write transaction, and replay the focused stage publication and same-filter retry cases. Test the revised no-hook build and exercise nested save context and representative unrelated records.",
+    "Carry the bounded prototype into a reviewable consumer patch. Verify unrelated MLINE/style handling through the complete bundled application and exercise nested save context and the intended disposition for files beyond the scratch scanner budgets.",
     "Integrate the installed filter's separate staged inspectors, build the complete app and verify native GUI behavior.",
     "No prototype source or generated drawing fixture is committed."
   ]

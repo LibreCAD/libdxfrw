@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-empty-nod-children-staging-2026-11-18",
+  "date": "2026-11-18",
+  "status": "FIVE_SELECTED_EDGES_STAGED_AND_INDEPENDENTLY_READ",
+  "supportClaimEffect": "none",
+  "priorEvidence": "docs/research/p4-ac1024-layerstates-source-nod-plotstyle-staging-2026-11-18.json",
+  "source": {
+    "name": "visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "emptyTargets": {"ACAD_COLOR": "73", "ACAD_PLOTSETTINGS": "19"},
+    "rawFrames": "Both type-42 dictionaries have a 12-byte body, the handle stream at bit 60, 36 declared handle bits, zero entries, cloning 1 and hard-owner flag 0. Parent and reactor each use absolute soft pointer code 4 length 1 and resolve C."
+  },
+  "stagedOutput": {
+    "projection": "Admit five selected source roots for the scratch output and preserve their order. Retain GROUP, the ordered plot-style pair and all 32 scales from the previous projection. Bind ACAD_COLOR and ACAD_PLOTSETTINGS to unique staged dictionaries A073 and A019, with empty bodies, owner C and reactor C.",
+    "faultControls": "Both encodings pass 20 injected refusals, seeded destination retention and corrected same-codec retries. The new controls include the wrong color owner/cloning, wrong plot-settings reactor or nonempty body, and a corrupted original color source frame.",
+    "peerControls": "ezdxf 1.4.5 reads the same ordering, selected root roles, and child and graph roles from the produced ASCII and Binary outputs and the prior official Linux ODA 27.10.0.0 output.",
+    "odaExportSha256": "911acff2824c5d75043a074381aea9d2274601ca62391b14786a224444f6c0eb"
+  },
+  "scratch": {
+    "root": "/private/tmp/p4-nod-empty-control",
+    "headerSha256": "5c4b25f85da1cdc6d792258b87e4801db6bd92b43ae2304661944a10af2c52e9",
+    "exeSha256": "493876b8043a2d8fd1b9bad3a158ddcf3b00a5c4d4bf84e5c400f72a04ee6c45",
+    "writerLogSha256": "8057493ed8d8471f0d063e48dc99906c5b46775cb1aedf28349102c4db89608a",
+    "peerScriptSha256": "ea5590fee20bf1ef08e0fea02ed61f32cf7ae37fc3eb24597f7f6e1c46f881c4",
+    "peerLogSha256": "ba67c40825d12de1bdd23b563e4df6e0b6dd9424fc25f951c7d6b4d8ac7fc327",
+    "asciiSha256": "3405ff8c193d8d76a7701f4d63d86a98d5bb976869e93e32d08e790db95e463a",
+    "binarySha256": "14343dae92531215eeb579a40ffb08ad8054fc7ece8e9038f2180aebf082ab6b"
+  },
+  "remaining": [
+    "Integrate the two empty child dictionaries with the current adapter source selection and finalization after verifying the complete same-import proof.",
+    "Eleven other original NOD edges, whole-file ownership, and native acceptance remain open."
+  ]
+}

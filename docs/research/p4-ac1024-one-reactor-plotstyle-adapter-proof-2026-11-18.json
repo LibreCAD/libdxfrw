@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-one-reactor-plotstyle-adapter-proof-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SELECTED_SOURCE_PAIR_BOUND_TO_STAGED_DXF",
+  "supportClaimEffect": "none",
+  "base": "5a4879822313682ce452d3191052438ae6aa6160",
+  "inputDigest": "70583336997c399cf44d304e2716d780181b1969a2f6c01b72a3688fe95bdd80",
+  "priorSourceProof": "docs/research/p4-ac1024-layerstates-source-nod-plotstyle-staging-2026-11-18.json",
+  "specification": {
+    "edition": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "review": "Reviewed handle codes, section 20.1 common non-entity fields, and sections 20.4.44 and 20.4.45 for dictionary handles and the distinct default hard pointer. The fixture-specific final two bits are observed in the pinned bytes."
+  },
+  "implementation": {
+    "scope": "AC1024 C/E/F, type-500 DICTIONARYWDFLT and fixed-type-80 PLACEHOLDER, one reciprocal reactor on each, and witnessed frame widths. Apply the existing typed and staged checks plus exact raw source and current class evidence.",
+    "preflight": "Require both original identities in the current import generation, one matching class row and captured class instance, relative owner and exact reactor/entry/default roles, complete string/handle spans, and the observed alignment. The attempted proof remains selected through finalization even if a staged mutation changes the frame shape.",
+    "output": "Use the existing DICTIONARYWDFLT and ACDBPLACEHOLDER output path. Its inspector checks the emitted root, dictionary and placeholder by their mapped identities and verifies the Normal entry at group 350, group 340 default, and both owner/reactor sets. Other source variants retain their existing admission paths.",
+    "visibility": "The change is confined to the CLI adapter and its tests. Public libdxfrw headers and codec APIs are unaffected."
+  },
+  "validation": {
+    "scratchRoot": "/private/tmp/libdxfrw-p4-reactor-proof.8Vz9xQ",
+    "focusedCTest": "Five owning plot-style/NOD selectors passed in 2.14 seconds, including the wire, selected graph, generated DWG default graph and DXF caller graph.",
+    "wire": "Generated one-reactor pair tests reject all 320 single-bit flips, one truncation per record, wrong raw reactor target and wrong DWG version, then match the unchanged bodies. Existing AC1024 and AC1027 no-reactor vectors pass.",
+    "projection": "The --physical-one-reactor check uses the captured pair and same-generation class and frame records from a real import in an isolated output projection. It passes ASCII and Binary staging, destination-preserving refusal for altered default/count/extension/type/placeholder reactor and late staged mutation, then succeeds after correction on the same writer.",
+    "independentReader": "ezdxf 1.4.5 raw tags separately verified the unique emitted root C, dictionary E and placeholder F, the exact group-350 and 340 references, and both owner/reactor bundles in four corrected outputs.",
+    "passingSources": {
+      "visualization_-_aerial.dwg": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+      "visualization_-_sun_and_sky_demo.dwg": "fad5a9f95ac72c1ef572b2b69f831ee08492135acd5da5ff76af01b2ec506881"
+    },
+    "compatibilityScreen": "Seven existing local AC1024 drawings with this exact C/E/F pair yielded identical dictionary and placeholder bodies. The mechanical drawing shares the source bytes. Its selected test hits the separate VIEWPORT extension XRECORD inspector, so a mechanical staged pass is unverified.",
+    "logSha256": {
+      "final-ctest.log": "0aae1ffeaf27ce6927fa0630eedd9c3676077091db05bb28ae2228f96edd628f",
+      "final-peer.log": "5ce3853e20444fb909fe9d8e5724422764b05afe3b0957022e3722bd28e103c0",
+      "visualization_-_aerial.graph.log": "1fe892bfdd7d457be066b971d457aa007ec47f934e888d80e0c7c22ae66e16e9",
+      "visualization_-_sun_and_sky_demo.graph.log": "4e90a5e7374ec1fc5809a0261a2134aae2a90ff25693706a47a0c004941ef90e",
+      "mechanical_example-imperial.graph.log": "98ff05b2a94b02e7b7370d4e6d16f65f1c925b85761627da6e28af1b79f21a41"
+    }
+  },
+  "remaining": [
+    "The test projection uses a separate data object with the selected imported pair and its original capture inventory. Whole-source admission and exact same-adapter LAYER_CONTROL proof stay separate.",
+    "Close the remaining original NOD children and the aerial SUN or alternate SORTENTSTABLE ownership paths. Native LayerStates restore remains pending.",
+    "No new DWG or DXF fixture was committed."
+  ]
+}

@@ -12,7 +12,7 @@
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
-    static bool select(const dx_data& source, dx_data& out) {
+    static bool select(const dx_data& source, dx_data& out, bool oneReactor) {
         if (source.sourceFormat != dx_source_format::DWG
             || source.sourceVersion != DRW::AC1024
             || !source.hasSingleSuccessfulDictionaryDefaultImport()
@@ -21,10 +21,18 @@ public:
             return false;
         const auto& dictionary = source.dictionaryWithDefaults.front();
         const auto& placeholder = source.placeholders.front();
-        if (!dictionary.reactorHandles.empty() || !placeholder.reactorHandles.empty()
-            || dictionary.m_entries.size() != 1u || dictionary.m_entries.front().m_name != "Normal"
+        if (dictionary.m_entries.size() != 1u || dictionary.m_entries.front().m_name != "Normal"
             || dictionary.m_entries.front().m_handle != placeholder.handle
             || dictionary.m_defaultEntryHandle != placeholder.handle) return false;
+        if (oneReactor) {
+            if (dictionary.handle != 0xEu || placeholder.handle != 0xFu
+                || dictionary.reactorHandles !=
+                    std::vector<std::uint32_t>{source.namedObjectDictionary.handle}
+                || placeholder.reactorHandles != std::vector<std::uint32_t>{dictionary.handle})
+                return false;
+        } else if (!dictionary.reactorHandles.empty() || !placeholder.reactorHandles.empty()) {
+            return false;
+        }
         out.sourceFormat = source.sourceFormat; out.sourceVersion = source.sourceVersion;
         out.importGeneration = source.importGeneration; out.dwgReadOutcome = source.dwgReadOutcome;
         out.headerC = source.headerC; out.lineTypes = source.lineTypes;
@@ -86,29 +94,34 @@ public:
     dwgRW& output; DRW_DictionaryWithDefault dictionary; DRW_AcDbPlaceholder placeholder;
     bool registered = false, written = false;
 };
-static bool verify(const std::filesystem::path& path) {
+static bool verify(const std::filesystem::path& path, bool oneReactor) {
     dx_data readback; dx_iface reader;
     if (!reader.fileImport(path.string(), &readback, false)
         || !readback.hasNamedObjectDictionary || readback.dictionaryWithDefaults.size() != 1u
         || readback.rawPlaceholders.size() != 1u) return false;
     const auto& d = readback.dictionaryWithDefaults.front();
     const auto& p = readback.rawPlaceholders.front();
+    const auto dictionaryReactors = oneReactor
+        ? std::vector<std::uint32_t>{readback.namedObjectDictionary.handle}
+        : std::vector<std::uint32_t>{};
     return std::count_if(readback.namedObjectDictionary.m_entries.begin(),
         readback.namedObjectDictionary.m_entries.end(), [&d](const auto& entry) {
             return entry.m_name == "ACAD_PLOTSTYLENAME" && entry.m_handle == d.handle;
         }) == 1 && d.m_entries.size() == 1u && d.m_entries.front().m_name == "Normal"
         && d.m_entries.front().m_handle == p.handle && d.m_defaultEntryHandle == p.handle
+        && d.m_entries.front().m_dxfHandleCode == DRW_Dictionary::Entry::DxfHandleCode::SoftOwner
         && d.parentHandle == readback.namedObjectDictionary.handle && p.parentHandle == d.handle
-        && d.reactorHandles.empty()
-        && std::none_of(p.groups.begin(), p.groups.end(), [](const DRW_Variant& group) {
+        && d.reactorHandles == dictionaryReactors
+        && std::count_if(p.groups.begin(), p.groups.end(), [](const DRW_Variant& group) {
             return group.code() == 102;
-        });
+        }) == (oneReactor ? 2 : 0);
 }
-static bool check(const std::filesystem::path& input, const std::filesystem::path& directory) {
+static bool check(const std::filesystem::path& input, const std::filesystem::path& directory,
+                  bool oneReactor = false) {
     dx_iface sourceReader; dx_data source;
     if (!sourceReader.fileImport(input.string(), &source, false)) return false;
     dx_data selected;
-    if (!DxIfaceStandardDwgCaptureTestAccess::select(source, selected)) {
+    if (!DxIfaceStandardDwgCaptureTestAccess::select(source, selected, oneReactor)) {
         std::cerr << "source plot-style projection failed\n"; return false;
     }
     std::filesystem::create_directories(directory);
@@ -134,7 +147,7 @@ static bool check(const std::filesystem::path& input, const std::filesystem::pat
             std::cerr << "selected plot-style export failed: " << writer.extensionGraphFailureDetail() << '\n';
             return false;
         }
-        if (!verify(output)) {
+        if (!verify(output, oneReactor)) {
             std::cerr << "selected plot-style readback failed\n";
             return false;
         }
@@ -150,27 +163,37 @@ static bool check(const std::filesystem::path& input, const std::filesystem::pat
         dict.m_defaultEntryHandle = 0u;
         if (!refuse()) { std::cerr << "changed default was not refused atomically\n"; return false; }
         dict.m_defaultEntryHandle = savedDefault;
-        dict.setDwgCommonObjectState(1, 1u, false);
+        const int reactorCount = oneReactor ? 1 : 0;
+        dict.setDwgCommonObjectState(1 - reactorCount, 1u, false);
         if (!refuse()) { std::cerr << "changed reactor count was not refused atomically\n"; return false; }
-        dict.setDwgCommonObjectState(0, 1u, false);
+        dict.setDwgCommonObjectState(reactorCount, 1u, false);
         auto& placeholder = selected.placeholders.front();
-        placeholder.setDwgCommonObjectState(0, 0u, false);
+        placeholder.setDwgCommonObjectState(reactorCount, 0u, false);
         if (!refuse()) { std::cerr << "changed extension flag was not refused atomically\n"; return false; }
-        placeholder.setDwgCommonObjectState(0, 1u, false);
+        placeholder.setDwgCommonObjectState(reactorCount, 1u, false);
         auto& raw = DxIfaceStandardDwgCaptureTestAccess::frame(selected, dict.handle);
         const auto savedByte = raw.m_rawBytes.front(); raw.m_rawBytes.front() ^= 0x80u;
         if (!refuse()) { std::cerr << "changed source frame was not refused atomically\n"; return false; }
         raw.m_rawBytes.front() = savedByte;
+        if (oneReactor) {
+            auto& companion = DxIfaceStandardDwgCaptureTestAccess::frame(selected, placeholder.handle);
+            // Flip the role of the reactor token while keeping its target.
+            companion.m_rawBytes.at(6) ^= 0x10u;
+            if (!refuse()) { std::cerr << "changed placeholder reactor role was not refused atomically\n"; return false; }
+            companion.m_rawBytes.at(6) ^= 0x10u;
+        }
         writer.mutate = true;
         if (!refuse()) { std::cerr << "late source mutation was not refused atomically\n"; return false; }
         raw.m_rawBytes.front() = savedByte;
         writer.mutate = false;
-        if (!run() || !verify(output)) { std::cerr << "restored plot-style retry failed\n"; return false; }
+        if (!run() || !verify(output, oneReactor)) { std::cerr << "restored plot-style retry failed\n"; return false; }
     }
     return true;
 }
 int main(int argc, char** argv) {
     if (argc == 4 && std::string(argv[1]) == "--physical") return check(argv[2], argv[3]) ? 0 : 1;
+    if (argc == 4 && std::string(argv[1]) == "--physical-one-reactor")
+        return check(argv[2], argv[3], true) ? 0 : 1;
     if (argc != 2) return 2;
     const std::filesystem::path root = argv[1]; std::filesystem::create_directories(root);
     const auto nonce = std::chrono::steady_clock::now().time_since_epoch().count();

@@ -5172,6 +5172,7 @@ private:
         int placeholderObjectType{0};
         std::string placeholderRecordName;
         std::string placeholderClassName;
+        bool ac1024OneReactorWireProof{false};
     };
     std::map<std::uint32_t, DwgDictionaryDefaultOutputSource>
         m_dwgDictionaryDefaultOutputSources;
@@ -5181,6 +5182,9 @@ private:
     bool m_ac1027DefaultLayerInspected = false;
     bool m_ac1024DefaultLayersInspected = false;
     bool m_dwgDictionaryDefaultOutputInspected{false};
+    static bool hasAc1024ReactorPlotStyleSource(const dx_data& data,
+        const DRW_DictionaryWithDefault& dictionary,
+        const DRW_AcDbPlaceholder& placeholder) noexcept;
     bool hasUnchangedDwgDictionaryDefaultOutputSources() const noexcept;
     bool inspectDwgDictionaryDefaultOutput(
         const dxfRW::DxfObjectsWriteView& view) noexcept;

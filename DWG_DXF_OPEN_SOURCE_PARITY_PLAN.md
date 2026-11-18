@@ -18,8 +18,8 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 [baseline refresh receipt](docs/research/consumer-baseline-refresh-2026-11-18.json);
 refresh moving heads again before later integration or platform qualification.
 
-**Progress on 2026-11-18:** 12/34 package gates closed; 22 remain. The activity
-ledger is 137/159 (86.2%): twelve closed gates and 125 completed implementation or
+**Progress on 2026-11-18:** 11/34 package gates closed; 23 remain. The activity
+ledger is 139/162 (85.8%): eleven closed gates and 128 completed implementation or
 research slices. The [focused slice](docs/research/p6-raster-dimstyle-default-roundtrip-2026-11-18.json)
 fixes an AC1021 default plot dictionary reexport and a default BYBLOCK DIMSTYLE
 downgrade; five owning selectors pass. The following [source-identity selector
@@ -53,7 +53,7 @@ dictionary wire helper and reproducible seven-frame controls prepare P4-D
 integration without enabling output. The [source context and observers slice](docs/research/p4-ac1024-layerstates-source-observers-2026-11-18.json) adds XRECORD and SCALE source observers, and the [same-import APPID check](docs/research/p4-ac1024-layerstates-appid-same-import-context-2026-11-18.json) verifies the original adapter/data and name provenance. Both remain disconnected from output admission; focused corruption, retry and one-root regression controls pass. The [SCALE class-context slice](docs/research/p4-ac1024-layerstates-scale-class-source-2026-11-18.json) binds the same-read publication and CLASSES row for all 32 captured SCALE frames. A [targeted alternate-witness screen](docs/research/p4-ac1024-layerstates-alternative-witness-screen-2026-11-18.json) identified a sun-and-sky source that passes the aerial SUN blocker but refuses at a nonempty named-block SORTENTSTABLE; it cannot yet establish strict output.
 The earlier `05e7cb33` digest passed the recorded Linux/Windows [package
 profiles](docs/research/p8a-1aeca-linux-windows-package-qualification-2026-11-18.json)
-and a clean local [macOS package profile](docs/research/p8a-macos-package-05e7-source-matched-2026-11-18.json), closing P8-A for those configurations. The pinned generated FreeCAD profile passed on [Linux](docs/research/p8-25c60980-freecad-linux-qualification-2026-11-18.json) and [Windows](docs/research/p8-25c60980-freecad-windows-qualification-2026-11-18.json), closing P8-B/C for those profiles. A [current LibreCAD master filter compile/link probe](docs/research/p8-librecad-master-7396-current-shared-filter-check-2026-11-18.json) and a [patched LibreCAD_3 candidate load smoke](docs/research/p8-librecad3-05e7-patched-persistence-load-2026-11-18.json) pass against the current shared library; neither is GUI or drawing qualification. The upstream fast and all three hosted focused-native jobs passed on that digest. The [event-specific ref verifier](docs/research/p8f-github-event-ref-binding-2026-11-18.json) verified the three sealed receipts live before the PR ref advanced. The [upstream fast and three focused-native results](docs/research/p8f-71fd-upstream-native-replay-2026-11-18.json) passed for digest `4d054a40`. Live replay verified all three artifacts and the tested PR merge ref. The [current upstream fast and focused-native replay](docs/research/p8f-1174-upstream-native-replay-2026-11-18.json) closes P8-F for digest `2243acdf` with seven tests per platform and live authentication of all three receipts. Gate readiness is 35.3%;
+and a clean local [macOS package profile](docs/research/p8a-macos-package-05e7-source-matched-2026-11-18.json), closing P8-A for those configurations. The pinned generated FreeCAD profile passed on [Linux](docs/research/p8-25c60980-freecad-linux-qualification-2026-11-18.json) and [Windows](docs/research/p8-25c60980-freecad-windows-qualification-2026-11-18.json), closing P8-B/C for those profiles. A [current LibreCAD master filter compile/link probe](docs/research/p8-librecad-master-7396-current-shared-filter-check-2026-11-18.json) and a [patched LibreCAD_3 candidate load smoke](docs/research/p8-librecad3-05e7-patched-persistence-load-2026-11-18.json) pass against the current shared library; neither is GUI or drawing qualification. The upstream fast and all three hosted focused-native jobs passed on that digest. The [event-specific ref verifier](docs/research/p8f-github-event-ref-binding-2026-11-18.json) verified the three sealed receipts live before the PR ref advanced. The [upstream fast and three focused-native results](docs/research/p8f-71fd-upstream-native-replay-2026-11-18.json) passed for digest `4d054a40`. Live replay verified all three artifacts and the tested PR merge ref. The [upstream fast and focused-native replay](docs/research/p8f-1174-upstream-native-replay-2026-11-18.json) closed P8-F for digest `2243acdf`. The one-reactor plot-style implementation selects digest `70583336` and reopens P8-F for the replacement digest. Gate readiness is 32.4%;
 activity progress does not imply drawing support. The broad native suite and
 extended fuzz lane remain for the frozen integration pass.
 
@@ -79,7 +79,7 @@ excluded from the counts, and cannot promote support claims.
 
 ## Execution order and fast paths
 
-The active queue has 22 package gates (P4 3, P5 7, P6 5, P7 5, P8 2).
+The active queue has 23 package gates (P4 3, P5 7, P6 5, P7 5, P8 3).
 P4-D has source-bound standalone dictionary, XRECORD and SCALE frame proofs;
 the other format gates await their stated evidence. Take the first eligible evidence packet;
 an unavailable producer, external authority, GUI, or converter parks only its
@@ -168,8 +168,8 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 34 package gates and each implementation/research slice once. The
-  current ledger counts 125 completed slices and 34 package gates. The slices
-  and twelve closed gates account for 137 of 159 counted items (86.2%). The Linux and
+  current ledger counts 128 completed slices and 34 package gates. The slices
+  and eleven closed gates account for 139 of 162 counted items (85.8%). The Linux and
   Windows FreeCAD results cover only their exact generated profile and binary;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package
@@ -185,7 +185,7 @@ promote support claims.
 
 ## Active package gates
 
-Only the following 22 open package gates are active; completed actions have
+Only the following 23 open package gates are active; completed actions have
 been removed. Their execution order is in the table above; the subsystem
 tables give the exact entry evidence and exit criteria. Readiness labels
 describe scheduling only, never support:
@@ -210,7 +210,7 @@ P8-D has local writer work available while GUI checks await a successful display
 |---|---|---|
 | P4-B / WAITING_FOR_WITNESS | Request one source-distinct, release-bound AC1032 drawing with known top-level and nested associative-network API state, or primary versioned wire documentation. Reuse the [readiness audit](docs/research/p4-ac1032-assocnetwork-evidence-readiness-2026-11-17.json); peer agreement and frame candidates alone do not qualify. | Bind class-version-2 order/spans, handle roles, and following-record boundary. Add one discriminating truncation/refusal control; close nested graph and producer/consumer evidence. |
 | P4-C / WAITING_FOR_AC1027_PRODUCER_WITNESS | Preferred source remains an AutoCAD 2013/ObjectARX-authored AC1027 drawing and matching R2013 DXF. If that host is unavailable, the documented APS fallback can use AutoCAD 2027's `Autodesk.AutoCAD+26_0` engine and save a separate current-producer profile as AC1027. Autodesk documents the `SweptSurface`/`SweepOptionsBuilder` APIs, AC1027 `Database.SaveAs`/`dxfOut`, and the cloud AppBundle/WorkItem route. See the [ObjectARX/API receipt](docs/research/p4-ac1027-sweep-oda-schema-boundary-2026-11-17.json) and [APS route receipt](docs/research/p4c-aps-autocad-ac1027-witness-route-2026-11-17.json). An APS job has service/quota requirements and may incur cost; do not submit one without authorized credentials and quota. A [managed witness packet](tools/research/P4C_SWEEP_WITNESS_README.md) is prepared for a matching AutoCAD 2024 Windows host. Its local [checks](docs/research/p4c-autocad-2024-managed-witness-packet-2026-11-18.json) cover syntax against stubs and helper controls. Its output would be a separate 2024-to-AC1027 profile; actual SDK build and host capture remain pending. | Generate one compact pair with a baseline/default sweep and one distinct non-default sweep. Capture the producer build and plug-in hash, source entities and options before save and after reopening AC1027, handles, geometry, AC1027 magic and DXF `$ACADVER`. Record the WorkItem ID for APS runs. Keep the 2027-to-AC1027 profile distinct from AutoCAD 2013. Compare the paired DXF, ODA v5.4.1, and source-bound libdxfrw/LibreDWG traces to bind parent/child spans, embedded LWPOLYLINE body and suffix, handle roles, and next-frame alignment. API/header agreement or ODA round-trip alone cannot close physical spans. Preserve unknown suffix bytes and refuse strict output until spans resolve; then add only the missing truncation/wrong-role control, strict output/readback, corrected retry, and independent geometry check. If neither producer route is available, leave only this gate waiting and continue other work. |
-| P4-D / ACTIVE_ONE_REACTOR_PLOTSTYLE_SOURCE_PROOF | The [aerial selected-root proof](docs/research/p4-ac1024-layerstates-source-nod-plotstyle-staging-2026-11-18.json) stages GROUP, PLOTSTYLENAME and SCALELIST with the full source NOD input. Each encoding passes 15 destination-preserving refusals and corrected retries. The same receipt binds E and F body and handle spans against LibreDWG and checks emitted roles against ODA DXF. | Implement the AC1024 one-reactor proof for same-import E and F, including relative owners, exact reactor, Normal entry, default reference and the observed two trailing bits. Gate conversion to group 350 on that proof and rerun selected writer/readback controls through the production adapter. Then close the 13 original unprojected roots, starting with the two empty dictionaries, and resolve aerial SUN ownership or the alternate named-block SORTENTSTABLE and 19 roots. Native [group-370 restore](docs/research/p4-layerstates-xrecord370-producer-semantics-2026-11-18.json) awaits the version-identified host. |
+| P4-D / ACTIVE_EMPTY_ROOT_SOURCE_ADMISSION | The [one-reactor plot-style implementation](docs/research/p4-ac1024-one-reactor-plotstyle-adapter-proof-2026-11-18.json) binds the exact AC1024 pair to its current class and source records, then rechecks it at staged output. Five focused tests and aerial and sun-and-sky selected ASCII/Binary export, refusal, retry and independent readback pass. The [five-edge staging probe](docs/research/p4-ac1024-aerial-empty-nod-children-staging-2026-11-18.json) adds exact empty COLOR and PLOTSETTINGS dictionaries with 20 fault/retry cases per encoding. | Integrate the two empty children with source selection and finalization using the proved owner/reactor spans. Reuse the existing root inspector and staged test. Close the eleven other original root edges, including two direct RENDER object targets, then resolve the aerial SUN owner or alternate SORTENTSTABLE and 19 roots before strict whole-file output. Native [group-370 restore](docs/research/p4-layerstates-xrecord370-producer-semantics-2026-11-18.json) awaits the version-identified host. |
 
 For the alternate sun-and-sky source, all six entity/key pairs and the
 12-member block order survive [ODA export](docs/research/p4-ac1024-sundemo-named-sortents-oda-dxf-observation-2026-11-18.json).
@@ -281,7 +281,7 @@ acceptance separate. CAD Assistant/ezdxf shares OCCT lineage with FreeCAD and
 does not provide independent-kernel evidence. P7-E remains optional. A missing
 external kernel or app blocks only that profile.
 
-### P8 — consumers, packaging, release (2 open)
+### P8 — consumers, packaging, release (3 open)
 
 A [reviewable LibreCAD consumer patch](docs/patches/librecad-dxfrw-default-dimstyle-qstring-2026-11-18.patch) fixes a confirmed
 `$DIMSTYLE` overload error; its focused regression fails before the fix and
@@ -290,13 +290,14 @@ consumer separately; see the [receipt](docs/research/p8-librecad-master-dimstyle
 
 P8-A/B/C and P8-E are closed for the exact package and generated-consumer
 profiles linked above. Reopen them if relevant source, build, configuration or
-consumer inputs change. P8-F is closed for the [exact focused-native digest](docs/research/p8f-1174-upstream-native-replay-2026-11-18.json) and reopens when selected inputs change. The earlier [macOS FreeCAD smoke](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json)
+consumer inputs change. P8-F is pending on the current implementation digest. The earlier [macOS FreeCAD smoke](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json)
 is setup evidence only. Keep ordinary AC1027 drawings deferred until
 source-reference closure.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P8-D / ACTIVE_MLINE_STAGE_GUARDS_AND_WAITING_FOR_AQUA | The unmerged [style-timing](docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch) and [closure-bit](docs/patches/librecad-mline-closure-bit-2026-11-18.patch) patches have focused headless controls. The [installed-codec proof](docs/research/p8d-mline-installed-style-write-contract-2026-11-18.json) establishes source-handle input, stage binding and atomic retry in four profiles. The [bundled transaction proof and review](docs/research/p8d-mline-bundled-staged-write-proof-2026-11-18.json) records twelve destination-preserving refusals and retries with the emitted MLINE bound to its complete selected projection. The scanner follow-up also refuses malformed root metadata and padded names. | Cap aggregate record allocations, compose the latest scanner with the write transaction, and rerun the focused atomic and no-hook controls before consumer integration. Integrate the installed filter with its staged inspectors and test a complete app build. Resume GUI work after an active display and successful capture. The [latest preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json) could not capture. In one LibreCAD 2 session batch Move/Copy, named-LTYPE save/reopen/render and selected MLINE display/edit/save/reopen. Run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf when that bundle is available. |
+| P8-D / ACTIVE_MLINE_CONSUMER_INTEGRATION_AND_WAITING_FOR_AQUA | The unmerged [style-timing](docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch) and [closure-bit](docs/patches/librecad-mline-closure-bit-2026-11-18.patch) patches have focused headless controls. The [installed-codec proof](docs/research/p8d-mline-installed-style-write-contract-2026-11-18.json) establishes source-handle input, stage binding and atomic retry. The [bounded bundled prototype](docs/research/p8d-mline-bundled-staged-write-proof-2026-11-18.json) now passes twelve refusals/retries and three no-hook readbacks. | Prepare the LibreCAD patch, check unrelated-record handling and budget disposition in a complete bundled build, then integrate the installed filter staged inspectors. Resume native GUI work after an active display and successful capture. The [latest preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json) could not capture. Batch Move/Copy, named-LTYPE save/reopen/render and selected MLINE display/edit/save/reopen. Run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf when that bundle is available. |
+| P8-F / WAITING_FOR_CURRENT_DIGEST_CI | Focused local and selected physical controls pass. The implementation digest is `70583336997c399cf44d304e2716d780181b1969a2f6c01b72a3688fe95bdd80`. | Run fast CI and authenticate the Linux, Windows and macOS focused receipts for the new digest. Keep the [earlier focused receipts](docs/research/p8f-1174-upstream-native-replay-2026-11-18.json) with their tested inputs. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 
 Keep consumer, source, and build receipts separate. Preserve LibreCAD's R13
