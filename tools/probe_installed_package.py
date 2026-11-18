@@ -201,12 +201,15 @@ def main() -> int:
         configure_consumer(relocated, args.kind, source, build, version="3.0")
         run(["cmake", "--build", str(build), "--config", "Release", "--parallel", "2"])
         target_file = (build / "selected-target.txt").read_text(encoding="utf-8").strip()
-        selected_unresolved = Path(target_file).absolute()
+        relocated_root = relocated.resolve(strict=True)
+        selected = Path(target_file).resolve(strict=True)
         try:
-            selected_relative = selected_unresolved.relative_to(relocated.absolute())
+            selected_relative = selected.relative_to(relocated_root)
         except ValueError as error:
-            raise RuntimeError("consumer target resolves outside relocated prefix: " + target_file) from error
-        selected = selected_unresolved.resolve(strict=True)
+            raise RuntimeError(
+                "consumer target resolves outside relocated prefix: %s (prefix %s)" %
+                (selected, relocated_root)
+            ) from error
 
         executable_name = ("installed_package_probe.exe" if os.name == "nt"
                            else "installed_package_probe")

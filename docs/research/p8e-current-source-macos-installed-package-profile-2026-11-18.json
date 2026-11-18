@@ -3,7 +3,7 @@
   "id": "p8e-current-source-macos-installed-package-profile-2026-11-18",
   "date": "2026-11-18",
   "title": "Current-source macOS shared/static package install and relocation profile",
-  "status": "MACOS_PACKAGE_PROFILE_PASS_LINUX_WINDOWS_PENDING",
+  "status": "MACOS_LINUX_PASS_WINDOWS_PATH_CHECK_FIX_PENDING",
   "supportClaimEffect": "none",
   "sliceEffect": "One current-source macOS shared/static package-and-relocation slice completed; P8-E remains open.",
   "source": {
@@ -15,6 +15,50 @@
     "platform": "macOS ARM64, AppleClang 21.0.0",
     "cmake": "cmake version 4.4.5",
     "configuration": "Release; C++17 consumer; docs, dwg2dxf, and project tests disabled."
+  },
+  "crossPlatformRun": {
+    "runId": 44292703471,
+    "sourceCommit": "469d5a57b719f130355050474715af70f155bd4e",
+    "linux": {
+      "status": "PASS",
+      "artifactId": 14421353417,
+      "profiles": {
+        "shared": {
+          "installedFiles": 28,
+          "selectedTarget": "lib/libdxfrw.so.3.0.0",
+          "selectedTargetSha256": "5971936b099fa1cdcea201082619bbaaaf49f8fbba267c93ae29556c3df924fb",
+          "loadedRuntimeSha256": "5971936b099fa1cdcea201082619bbaaaf49f8fbba267c93ae29556c3df924fb"
+        },
+        "static": {
+          "installedFiles": 26,
+          "selectedTarget": "lib/libdxfrw.a",
+          "selectedTargetSha256": "ba79b3e08d9ea884b95767cfcd0896e856b2a0321e5a25e86a5123a7061858e6"
+        }
+      }
+    },
+    "macos": {
+      "status": "PASS",
+      "artifactId": 14422154021,
+      "profiles": {
+        "shared": {
+          "installedFiles": 28,
+          "selectedTarget": "lib/libdxfrw.3.0.0.dylib",
+          "selectedTargetSha256": "b36a1d41e1d9925a4115c8b0d93e6cf28b353575820406d45a6d5d9b2ec14d26",
+          "loadedRuntimeSha256": "b36a1d41e1d9925a4115c8b0d93e6cf28b353575820406d45a6d5d9b2ec14d26"
+        },
+        "static": {
+          "installedFiles": 26,
+          "selectedTarget": "lib/libdxfrw.a",
+          "selectedTargetSha256": "b10af8e4d254b65968bd7bca4681fd0c07f97dbd4bb4b09eb864b624a602f715"
+        }
+      }
+    },
+    "windows": {
+      "status": "BUILDS_PASS_PROBE_PATH_COMPARISON_FAILED",
+      "sharedProbeFailure": "consumer target resolves outside relocated prefix: C:/Users/runneradmin/AppData/Local/Temp/libdxfrw relocated package u5w4mdi3/relocated prefix/bin/dxfrw-3.dll",
+      "fix": "Resolve the selected imported target and relocated prefix before containment comparison; rerun is required.",
+      "fixedProbeSha256": "0e18002b7c3e434d64d2c1fc929212a7d5e2d9cc6f0e0d24eb934bf657c2690b"
+    }
   },
   "profiles": {
     "shared": {
@@ -356,7 +400,7 @@
   },
   "decision": {
     "P8E": "Keep open. This receipt closes only the current-source macOS shared/static package profile; native Linux and Windows package receipts are still required.",
-    "nextAction": "Run the updated shared-ABI workflow on the current parity branch; it now builds and records both shared and static package profiles on Linux, macOS, and Windows.",
+    "nextAction": "Rerun the shared-ABI workflow after the Windows path-comparison fix. Reuse passing Linux/macOS profiles from run 44292703471; require both Windows shared and static receipts before closing P8-E.",
     "retryTrigger": "A failure in the current branch workflow or a change to library/package inputs; otherwise reuse this exact macOS profile."
   },
   "fixtureAdded": false,

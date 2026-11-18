@@ -32,7 +32,11 @@ producer-authored DWG/DXF or promote general support claims.
 
 P8-E now has a current-source macOS ARM64 shared/static package slice: installed
 file inventories, ABI version selection, relocation, and consumer/runtime
-identity pass. Linux and Windows package receipts remain open; see the [P8-E
+identity pass. The first cross-platform CI run also passed Linux shared/static;
+Windows exposed a path-containment check failure after both package builds, so
+the probe now resolves both paths before comparing them. The same run has now
+passed macOS shared/static as well; only Windows receipts remain open. See the
+[P8-E
 receipt](docs/research/p8e-current-source-macos-installed-package-profile-2026-11-18.json).
 The first fast CI check at `469d5a57` caught the new probe missing from the
 source-release inventory; both generated manifests are now refreshed and the
@@ -268,7 +272,7 @@ closure.
 |---|---|---|
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation profiles stabilize. Reuse [macOS package evidence](docs/research/p8-macos-package-baseline-2026-11-17.json) only while its inputs match. | Record reproducible commands and immutable identities. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. |
 | P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | The latest preflight after the user's unlock report still cannot capture the display; the prior CoreGraphics probe saw `activeCount=0`. This does not establish physical login state or capture permissions. Launch Services cannot resolve either app; a LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`, and no LibreCAD_3 bundle was found. See the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). Retry only after this process sees an active display and capture succeeds. | In one GUI session, launch LibreCAD 2 by its explicit bundle path and complete Move/Copy action-boundary, named-LTYPE save/reopen/render, and (if P6-H obtains a source-bound MLINE witness) MLINE display/edit/save/reopen. Then run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback if that app is available. This gate does not block Linux/Windows qualification. |
-| P8-E / INTEGRATION_GATE | The current-source macOS ARM64 shared/static package profile now passes install-manifest inventory, ABI version selection, relocation, and consumer/runtime identity checks; see the [P8-E receipt](docs/research/p8e-current-source-macos-installed-package-profile-2026-11-18.json). Run the updated [.github/workflows/shared-abi-qualification.yml](.github/workflows/shared-abi-qualification.yml) on the current parity branch to capture matching Linux and Windows profiles. Reuse macOS unless package inputs change. | Verify package contents, relocation, and loaded shared-runtime identity for static/shared profiles on Linux, macOS, and Windows. |
+| P8-E / INTEGRATION_GATE | Current-source macOS ARM64 local profile and run 44292703471's Linux/macOS shared/static profiles pass. Windows builds/install succeeded, but the shared probe compared unresolved path spellings and stopped before static qualification. `tools/probe_installed_package.py` now resolves both paths before containment comparison. Re-run [.github/workflows/shared-abi-qualification.yml](.github/workflows/shared-abi-qualification.yml) on this change; see the [P8-E receipt](docs/research/p8e-current-source-macos-installed-package-profile-2026-11-18.json). | Verify package contents, relocation, and loaded shared-runtime identity for static/shared profiles on Linux, macOS, and Windows. Reuse existing Linux/macOS evidence unless their inputs change. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 
 Keep consumer, source, and build receipts separate. Preserve LibreCAD's R13
