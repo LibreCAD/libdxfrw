@@ -343,6 +343,7 @@
   },
   "validation": {
     "result": "PASS for shared and static profiles.",
+    "sourceReleaseInventory": "Initial fast CI at 469d5a57 failed because tools/probe_installed_package.py was absent from the generated source-release manifests. Both manifests have been regenerated; tools/generate_build_inventory.py --check passes locally. Current-head CI must re-run before P8-E can close.",
     "checks": [
       "Installed file inventory exactly matches the CMake install manifest; file hashes and symlink targets were recorded.",
       "The complete installed prefix was copied to a path containing spaces and its inventory matched the source prefix.",

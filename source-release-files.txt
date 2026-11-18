@@ -1156,6 +1156,7 @@ tools/probe_dwg_vport.cpp
 tools/probe_dxf_lwpolyline_missing_y.cpp
 tools/probe_dxf_sparse_lwpolyline.cpp
 tools/probe_geodata_physical_capture.cpp
+tools/probe_installed_package.py
 tools/probe_librecad3_native_dxf.cpp
 tools/probe_light_dxf_421.cpp
 tools/probe_light_dxf_preview.cpp

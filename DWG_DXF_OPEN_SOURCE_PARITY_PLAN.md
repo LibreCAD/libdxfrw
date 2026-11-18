@@ -34,6 +34,9 @@ P8-E now has a current-source macOS ARM64 shared/static package slice: installed
 file inventories, ABI version selection, relocation, and consumer/runtime
 identity pass. Linux and Windows package receipts remain open; see the [P8-E
 receipt](docs/research/p8e-current-source-macos-installed-package-profile-2026-11-18.json).
+The first fast CI check at `469d5a57` caught the new probe missing from the
+source-release inventory; both generated manifests are now refreshed and the
+inventory check passes. Recheck the current branch CI before closing P8-E.
 
 P8-D remains parked: the latest preflight found no active display for this
 process and screen capture failed. This does not establish the physical login
