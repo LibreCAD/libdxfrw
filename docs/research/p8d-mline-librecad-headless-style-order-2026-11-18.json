@@ -1,0 +1,125 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-mline-librecad-headless-style-order-2026-11-18",
+  "date": "2026-11-18",
+  "status": "HEADLESS_STYLE_ORDER_DEFECT_REPRODUCED",
+  "supportClaimEffect": "none",
+  "scope": "Import the clean adapter-selected AC1018 MLINE output with the actual LibreCAD 2 RS_FilterDXFRW and inspect generated polyline geometry and XDATA; no graphical session or fixture commit.",
+  "input": {
+    "cleanBuildReceipt": "docs/research/p8d-mline-clean-candidate-2026-11-18.json",
+    "libdxfrwCommit": "71fd9592e9fd305b578194da70bcb5616af4f66c",
+    "implementationDigestSha256": "4d054a406e80075b9f17d312ed45d2e15a8caeb6fbaf21b784c81aae0a4c09b5",
+    "sourceDwgSha256": "4b0aa7336fbf71491653fdcf3f8fa58d325817fa1997987e4896275d5392f544",
+    "asciiPath": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/selected-mline/libdxfrw-mline-ac1018-ascii.dxf",
+    "asciiSha256": "dd7b814c5314bebddb19c9e2f9ea02afc551dd361a7b5e4f892e0b56cab360b9",
+    "binaryPath": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/selected-mline/libdxfrw-mline-ac1018-binary.dxf",
+    "binarySha256": "6aa63d331b627c32f38aaf6ecac6e8e862dbc4d7370b033df798e001512af750",
+    "inputProfile": "MLINE with six vertices, two lines, scale 1 and top justification 0. Referenced STANDARD style has offsets +0.5 and -0.5; OBJECTS follows ENTITIES."
+  },
+  "consumer": {
+    "sourceCheckout": "/private/tmp/librecad-p8d-current-20261117",
+    "sourceHead": "d9c0ae435ed5892611d6bec3c628033004dbcaf4",
+    "sourceStatus": "git status --short reported no tracked changes at observation",
+    "filterSourceSha256": "17f3f6782898081054adff58fd02da4ecbdd0e4d0d709174f3fafc9ad90a4be6",
+    "buildDirectory": "/private/tmp/librecad-p8d-build-20261117",
+    "staticLibrary": "liblibrecad_lib.a",
+    "staticLibrarySha256": "6cba7d5acb5981094aed225dbb9393dc4ca61663e8178dff8e5f943144446a25",
+    "buildFlagsSha256": "bf363dfd66cc20579da3b5e0c314a4a82ff0997a305b91678d74915055e7c49f",
+    "buildLinkCommandSha256": "9b7c8bd062807518b946e8e9004a0aba79794604630e775ff6286e7b5d00e4b3",
+    "releaseLabelObjectSha256": "3211050306a3942d132e3cf128fc45864190aefc67b8a60cecd605ec48846405",
+    "bindingLimit": "The probe links this existing static archive. Its bytes and clean source checkout were checked, but this test did not independently reproduce the archive build or establish the source state at its original compilation."
+  },
+  "probe": {
+    "source": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/mline_probe.cpp",
+    "sourceSha256": "668365174df638de83ada0cccaed0a65979810bbceadfd0f16faf8f7682b6e46",
+    "executable": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/mline_probe",
+    "executableSha256": "295ff16c174a53f9b47c62c6f044fb366e57bf0be4967bec022ac459634eb262",
+    "construction": "Compiled probe with the CXX_DEFINES, CXX_INCLUDES and CXX_FLAGS from the recorded librecad_tests flags.make; linked probe.o and the existing lc_release_label.cpp.o using the libraries and linker flags after -o from the recorded librecad_tests link.txt. The probe calls lc::test::ensureSettings, RS_FilterDXFRW::fileImport and inspects polyline starts, ends and LibreCAD_MLINE XDATA.",
+    "commandAscii": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/mline_probe /private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/selected-mline/libdxfrw-mline-ac1018-ascii.dxf",
+    "commandBinary": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/mline_probe /private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/selected-mline/libdxfrw-mline-ac1018-binary.dxf",
+    "asciiLog": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/probe-ascii.log",
+    "binaryLog": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/probe-binary.log",
+    "logSha256": "b7f3d1435833205acd626b5ce61f0131d23e98f4002f38e47ee7aac97a4a53eb",
+    "result": "Both imports exit 0 and produce two polylines with identical results; XDATA reports style STANDARD, scale 1, justification 0, element count 2 and offsets -0.5 and +0.5."
+  },
+  "geometry": {
+    "firstBaseline": [
+      9.155377412324583,
+      14.988961178345754
+    ],
+    "firstMiter": [
+      0.45923009906844525,
+      0.8883173510123431
+    ],
+    "observedStarts": [
+      [
+        8.92576236279036,
+        14.544802502839582
+      ],
+      [
+        9.384992461858806,
+        15.433119853851926
+      ]
+    ],
+    "expectedOffsets": [
+      0,
+      -1
+    ],
+    "expectedStarts": [
+      [
+        9.155377412324583,
+        14.988961178345754
+      ],
+      [
+        8.696147313256137,
+        14.10064382733341
+      ]
+    ],
+    "rationale": "The selected style offsets +0.5/-0.5, scale 1 and top justification give effective offsets 0/-1. The actual starts agree with the filter fallback offsets -0.5/+0.5."
+  },
+  "causalControl": {
+    "construction": "For diagnosis only, moved the unchanged complete OBJECTS section ahead of ENTITIES in an ASCII scratch copy; all other groups were retained. The changed ordering is not offered as a standards-compliant or interoperability fixture.",
+    "path": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/objects-before-entities-diagnostic.dxf",
+    "sha256": "4fc03665258fe2f11af899d78d3e1ac55cc7b365860b39f84b5dd151bcf11610",
+    "command": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/mline_probe /private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/objects-before-entities-diagnostic.dxf",
+    "log": "/private/tmp/libdxfrw-p8d-clean-71fd-brSlJu/probe-object-first.log",
+    "logSha256": "3208d0f177e55cb9be0a252b9421ab2054f1b6f238b27fa3b4f171892b49b209",
+    "result": "Import succeeds; reported XDATA offsets become 0 and -1 and first starts match the expected starts. This isolates style arrival order as the trigger for the existing archive under this control."
+  },
+  "limits": [
+    "Only one selected AC1018 two-element style and the existing macOS arm64 consumer archive were tested.",
+    "No GUI display, edit, save/reopen, native rendering or other consumer/platform was qualified.",
+    "No production code or source drawings were modified; the reordered drawing and outputs are scratch-only.",
+    "A clean consumer rebuild and targeted regression should bind any eventual fix to current source and cover style arrival order, fallback, both DXF encodings and roundtrip as applicable."
+  ],
+  "separateSourceFindings": {
+    "authority": [
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-590E8AE3-C6D9-4641-8485-D7B3693E432C.htm",
+      "https://help.autodesk.com/cloudhelp/2022/ENU/AutoCAD-Core/files/GUID-A6839A41-0D81-44F2-953A-220307F9380A.htm",
+      "ODA Open Design Specification for .dwg files v5.4.1 section 20.4.50"
+    ],
+    "closure": "The hash-bound selected DXF has group 71 = 1, which denotes an open MLINE with vertices. The current LibreCAD filter tests bit 0 for closure in import and sidecar qualification. DXF defines closure as bit 1; ODA lists DWG open 1 and closed 3.",
+    "miter": {
+      "secondElementFirstGroup41ByVertex": [
+        -1,
+        -1.153700119057325,
+        -1.8855118655290135,
+        -1.4075461468462933,
+        -1.3087884054041377,
+        -1
+      ],
+      "styleOnlyOffset": -1,
+      "thirdVertexStyleProjection": [
+        27.36625818476576,
+        14.83558175120182
+      ],
+      "thirdVertexAuthoredIntersection": [
+        26.985314623117176,
+        14.036198697321414
+      ],
+      "method": "Parse the six vertices of the hash-bound flat ASCII DXF and compute world XY positions from the baseline and normalized group-13 direction. The requested style defines nominal offset; the first group 41 per element supplies the signed distance to the actual miter intersection. The difference survives any fix that changes style arrival only."
+    },
+    "sameSignStyle": "Top and bottom reference the maximum and minimum actual element offsets respectively. Starting the extrema at zero fails for all-negative top or all-positive bottom styles. This is a code/spec observation; those styles are not tested by this physical input.",
+    "remaining": "Keep these consumer changes distinct from callback timing. Before native MLINE qualification, verify open and closed profiles, unchanged and edited sidecar behavior, renderer geometry, preserved supported parameter arrays and safe fallback for unsupported cuts/fills."
+  }
+}
