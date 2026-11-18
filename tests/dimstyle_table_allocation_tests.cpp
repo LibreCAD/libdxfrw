@@ -992,6 +992,34 @@ bool dimstyleTextFillColorDowngradeRetry(
                 return false;
             }
         }
+        // A DWG CMC can carry the documented default index 0 with explicit
+        // BYBLOCK method (0xC1). An older DXF has no DIMTFILLCLR field, but
+        // omitting this default is equivalent. Keep nondefault fill refused
+        // and verify atomic failure followed by the same-writer retry.
+        {
+            std::ofstream output(path, std::ios::binary | std::ios::trunc);
+            output << prior;
+            if (!output) return false;
+        }
+        dxfRW codec(path.string().c_str());
+        Export exporter(codec);
+        exporter.dimstyle.dimtfillclr = 0;
+        exporter.dimstyle.dimtfillclrMethod = 0xC1u;
+        exporter.dimstyle.dimtfill = 2;
+        if (codec.write(&exporter, DRW::AC1018, binary) || exporter.accepted)
+            return false;
+        std::string current;
+        if (!readBytes(path, current) || current != prior)
+            return false;
+        exporter.dimstyle.dimtfill = 0;
+        if (!codec.write(&exporter, DRW::AC1018, binary)
+            || !exporter.accepted || !readBytes(path, current)
+            || current != expectedBytes || !readbackMatches(path)
+            || exporter.dimstyle.dimtfillclrMethod != 0xC1u) {
+            std::cerr << "default BYBLOCK DIMTFILLCLR downgrade/retry failed: binary="
+                      << binary << '\n';
+            return false;
+        }
     }
     return true;
 }

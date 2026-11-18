@@ -92409,21 +92409,27 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
             // default soft-owner value and every other source field is covered
             // by the typed writer. Unknown groups, reactors, XDATA and xdicts
             // remain outside this adapter profile.
+            // The typed writer omits group 280 when hardOwner is its default
+            // zero. Accept that form as well as an explicit zero, while still
+            // requiring the exact remaining source projection.
+            const bool explicitHardOwner = rawDictionary.groups.size() == 9u;
+            const std::size_t shift = explicitHardOwner ? 1u : 0u;
             const bool conformantTypedProjection =
-                rawDictionary.groups.size() == 9u
+                (rawDictionary.groups.size() == 8u || explicitHardOwner)
                 && rawHandle(rawDictionary.groups[0], 5, dictionary.handle)
                 && rawHandle(rawDictionary.groups[1], 330,
                              cData->namedObjectDictionary.handle)
                 && rawString(rawDictionary.groups[2], 100,
                              "AcDbDictionary")
-                && rawInteger(rawDictionary.groups[3], 280, 0)
-                && rawInteger(rawDictionary.groups[4], 281,
+                && (!explicitHardOwner
+                    || rawInteger(rawDictionary.groups[3], 280, 0))
+                && rawInteger(rawDictionary.groups[3 + shift], 281,
                               dictionary.cloning)
-                && rawString(rawDictionary.groups[5], 3, "Normal")
-                && rawHandle(rawDictionary.groups[6], 350, 0xFu)
-                && rawString(rawDictionary.groups[7], 100,
+                && rawString(rawDictionary.groups[4 + shift], 3, "Normal")
+                && rawHandle(rawDictionary.groups[5 + shift], 350, 0xFu)
+                && rawString(rawDictionary.groups[6 + shift], 100,
                              "AcDbDictionaryWithDefault")
-                && rawHandle(rawDictionary.groups[8], 340, 0xFu)
+                && rawHandle(rawDictionary.groups[7 + shift], 340, 0xFu)
                 && dictionary.hardOwner == 0
                 && dictionary.extData.empty() && dictionary.appData.empty()
                 && dictionary.reactorHandles.empty()

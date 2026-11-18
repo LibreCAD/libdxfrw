@@ -6413,7 +6413,8 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
     unsigned rootedSources = 0u, rootedProjections = 0u, rootedRetries = 0u, rootedFreshRetries = 0u, cacheProjections = 0u;
     unsigned missingRowSources = 0u, missingRowProjections = 0u, missingRowRecoveries = 0u;
     unsigned ownerRoleRefusals = 0u;
-    unsigned entryClosureCells = 0u;
+    unsigned entryClosureCells = 0u, entryAc1027Refusals = 0u;
+    unsigned rootedAc1027Refusals = 0u;
     const auto rootedGraph = [](const dx_data& value) {
         if (value.images.size() != 1u || value.imageDefinitions.size() != 1u
             || value.imageDefinitionReactors.size() != 1u || !value.hasNamedObjectDictionary) return false;
@@ -6459,6 +6460,27 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
         dx_data value; dx_iface importer;
         return importer.fileImport(target.string(), &value, false) && rootedGraph(value)
             && Access::rasterOutputPublished(exporter, 2u, 1u);
+    };
+    const auto refuseUnqualifiedAc1027 = [&](dx_data& source, bool binary) {
+        const std::string sentinel = "AC1027_ROOTED_RASTER_DESTINATION";
+        {
+            std::ofstream prior(target, std::ios::binary | std::ios::trunc);
+            if (!(prior << sentinel)) return false;
+        }
+        std::ostringstream diagnostics;
+        bool wrote = false;
+        {
+            struct Redirect {
+                std::streambuf* old;
+                ~Redirect() { std::cerr.rdbuf(old); }
+            } redirect{std::cerr.rdbuf(diagnostics.rdbuf())};
+            wrote = write(source, binary);
+        }
+        std::ifstream prior(target, std::ios::binary);
+        const std::string actual((std::istreambuf_iterator<char>(prior)), {});
+        return !wrote && actual == sentinel
+            && diagnostics.str().find("AC1027 DWG source references are not fully qualified")
+                != std::string::npos;
     };
     for (auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) {
         if (commonHandleImportOnly && version < DRW::AC1021)
@@ -6527,6 +6549,14 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
                 || std::count_if(sourceDictionary->m_entries.begin(), sourceDictionary->m_entries.end(), [&](const auto& entry) {
                     return entry.m_name == "UNUSED_IMAGE" && entry.m_handle == unused->second.handle;
                 }) != 1) return fail("entry-closure diagnostic did not author a complete HEADER-rooted unused IMAGEDEF");
+            if (version == DRW::AC1027) {
+                for (const bool binary : {false, true}) {
+                    if (!refuseUnqualifiedAc1027(data, binary))
+                        return fail("unqualified AC1027 entry-closure source did not preserve the destination");
+                    ++entryAc1027Refusals;
+                }
+                continue;
+            }
             for (const bool binary : {false, true}) {
                 if (!write(data, binary)) return fail("entry-closure diagnostic could not project its baseline");
                 dx_data projected; dx_iface importer;
@@ -6561,6 +6591,14 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
                         + " reserved/authored/imported/ready/unchanged/graph=" + std::to_string(reserved) + "/"
                         + std::to_string(authoredCustom) + "/" + std::to_string(importedCustom) + "/" + std::to_string(ready)
                         + "/" + std::to_string(unchanged) + "/" + std::to_string(graph));
+                if (version == DRW::AC1027) {
+                    for (const bool binary : {false, true}) {
+                        if (!refuseUnqualifiedAc1027(selected, binary))
+                            return fail("unqualified AC1027 rooted custom source did not preserve the destination");
+                        ++rootedAc1027Refusals;
+                    }
+                    continue;
+                }
                 const auto bindings = Access::rasterClassSnapshot(selected, selected.importGeneration);
                 const auto charges = Access::rasterChargeSnapshot(selected);
                 Access::finishRaster(importer);
@@ -7092,8 +7130,10 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
         }
     }
     if (entryClosureOnly) {
-        if (entryClosureCells != 12u) return fail("entry-closure matrix skipped a revision/encoding");
-        std::cout << "Rooted mixed IMAGEDEF entry closure projections=" << entryClosureCells << "; semantic admission unchanged\n";
+        if (entryClosureCells != 10u || entryAc1027Refusals != 2u)
+            return fail("entry-closure matrix skipped a revision/encoding or AC1027 refusal");
+        std::cout << "Rooted mixed IMAGEDEF entry closure projections=" << entryClosureCells
+                  << " AC1027 refusals=" << entryAc1027Refusals << "; semantic admission unchanged\n";
         return true;
     }
     if (commonHandleImportOnly) {
@@ -7102,14 +7142,16 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
         return true;
     }
     if (rootedOnly) {
-        if (rootedSources != 24u || rootedProjections != 48u || rootedRetries != 624u || rootedFreshRetries != 48u || cacheProjections != 48u
-            || missingRowSources != 6u || missingRowProjections != 12u || missingRowRecoveries != 12u || ownerRoleRefusals != 12u)
+        if (rootedSources != 20u || rootedProjections != 40u || rootedRetries != 520u || rootedFreshRetries != 40u || cacheProjections != 40u
+            || missingRowSources != 5u || missingRowProjections != 10u || missingRowRecoveries != 10u || ownerRoleRefusals != 10u
+            || rootedAc1027Refusals != 8u)
             return fail("rooted custom IMAGEDEF matrix skipped a source/projection/retry");
         std::cout << "Rooted custom IMAGEDEF sources=" << rootedSources << " projections=" << rootedProjections
                   << " atomic refusal/restoration retries=" << rootedRetries << " fresh-import retries=" << rootedFreshRetries
                   << " cache-only projections=" << cacheProjections << " missing-row sources=" << missingRowSources
                   << " unknown-class projections=" << missingRowProjections << " class recovery projections=" << missingRowRecoveries
-                  << " owner-role refusal/fresh-import retries=" << ownerRoleRefusals << '\n';
+                  << " owner-role refusal/fresh-import retries=" << ownerRoleRefusals
+                  << " AC1027 refusals=" << rootedAc1027Refusals << '\n';
         return true;
     }
     if (historyOnly) {
@@ -9985,6 +10027,7 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false) {
         return nullptr;
     };
     unsigned cells = 0u, retries = 0u, lateRetries = 0u, freshRetries = 0u, importedSources = 0u, importedCells = 0u;
+    unsigned ac1027Refusals = 0u;
     unsigned importedRetries = 0u, importedLateRetries = 0u, compatibleCells = 0u, wireRetries = 0u, guardRetries = 0u, isolationCells = 0u, outputBudgets = 0u;
     for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (unsigned mode = 0u; mode != 3u; ++mode) {
         if (importedCommonOnly && (version != DRW::AC1032 || mode != 1u)) continue;
@@ -10055,7 +10098,45 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false) {
             return true;
         };
         for (const auto targetVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false, true}) {
-            if (!write(targetVersion, binary) || !check()) return fail("unselected/empty IMAGEDEF closure output/readback failed: " + std::to_string(mode));
+            if (version == DRW::AC1027) {
+                const std::string sentinel = "AC1027_UNSELECTED_RASTER_DESTINATION";
+                {
+                    std::ofstream prior(target, std::ios::binary | std::ios::trunc);
+                    if (!(prior << sentinel)) return fail("could not write AC1027 refusal sentinel");
+                }
+                std::ostringstream diagnostics;
+                bool wrote = false;
+                {
+                    struct Redirect {
+                        std::streambuf* old;
+                        ~Redirect() { std::cerr.rdbuf(old); }
+                    } redirect{std::cerr.rdbuf(diagnostics.rdbuf())};
+                    wrote = write(targetVersion, binary);
+                }
+                std::ifstream prior(target, std::ios::binary);
+                const std::string actual((std::istreambuf_iterator<char>(prior)), {});
+                if (wrote || actual != sentinel
+                    || diagnostics.str().find("AC1027 DWG source references are not fully qualified") == std::string::npos)
+                    return fail("AC1027 unselected image source bypassed atomic refusal");
+                ++ac1027Refusals;
+                continue;
+            }
+            if (!write(targetVersion, binary) || !check()) {
+                for (const auto& dim : data.dimStyles) {
+                    std::cerr << "dimension style=" << dim.name << " fx=" << dim.dimfxl
+                        << " jog=" << dim.dimjogang << " fill=" << dim.dimtfill
+                        << " fillclr=" << dim.dimtfillclr << " method="
+                        << static_cast<unsigned>(dim.dimtfillclrMethod)
+                        << " arc=" << dim.dimarcsym << " vars=" << dim.vars.size() << '\n';
+                    for (const auto& kv : dim.vars) if (kv.second)
+                        std::cerr << " dimvar=" << kv.first << " code=" << kv.second->code()
+                            << " type=" << kv.second->type() << '\n';
+                }
+                return fail("unselected/empty IMAGEDEF closure output/readback failed: mode="
+                    + std::to_string(mode) + " source=" + std::to_string(static_cast<int>(version)) + " target="
+                    + std::to_string(static_cast<int>(targetVersion))
+                    + " binary=" + std::to_string(binary));
+            }
             ++cells;
             if (importedCommonOnly) {
                 dx_data imported;
@@ -10293,9 +10374,10 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false) {
                   << " wire retries=" << wireRetries << " inspector retries=" << guardRetries << " isolation cells=" << isolationCells << " output budget controls=" << outputBudgets << '\n';
         return true;
     }
-    if (cells != 216u || retries != 22u || lateRetries != 4u || freshRetries != 2u) return fail("unselected dictionary closure matrix skipped a control");
+    if (cells != 180u || ac1027Refusals != 36u || retries != 22u || lateRetries != 4u || freshRetries != 2u)
+        return fail("unselected dictionary closure matrix skipped a control");
     std::cout << "Unselected/empty image dictionary projections=" << cells << " graph retry controls=" << retries << " late retries=" << lateRetries
-              << " fresh native retries=" << freshRetries << '\n';
+              << " fresh native retries=" << freshRetries << " AC1027 refusals=" << ac1027Refusals << '\n';
     return true;
 }
 
@@ -89827,9 +89909,48 @@ static bool dxfLayerDefaultPlotStyleGraph() {
             }))
         return fail("could not import the exact four-layer default-only source graph");
     dx_iface adapter;
+    if (!DxIfaceExtensionGraphTestAccess::prepare(adapter, data, true))
+        return fail("default-only extension graph preparation failed");
     if (!DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
             adapter, data, DRW::AC1021, true))
         return fail("exact default-only graph was refused");
+    // The dictionary writer omits its default hard-owner flag. Both that
+    // spelling and explicit zero must satisfy the same exact graph gate;
+    // a nonzero or duplicated flag must still fail and permit correction.
+    auto& rawPlot = data.rawDictionaryWithDefaults.front();
+    const DRW_RawDxfObject originalPlot = rawPlot;
+    auto hardOwner = std::find_if(rawPlot.groups.begin(), rawPlot.groups.end(),
+        [](const DRW_Variant& group) { return group.code() == 280; });
+    if (hardOwner == rawPlot.groups.end())
+        return fail("default plot dictionary flag was absent from the control");
+    const auto flagIndex = static_cast<std::size_t>(hardOwner - rawPlot.groups.begin());
+    hardOwner->addInt(280, 1);
+    if (DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
+            adapter, data, DRW::AC1021, true))
+        return fail("nonzero raw dictionary hard-owner flag was accepted");
+    rawPlot = originalPlot;
+    const DRW_Variant duplicateFlag = rawPlot.groups[flagIndex];
+    rawPlot.groups.insert(rawPlot.groups.begin() + flagIndex,
+                          duplicateFlag);
+    if (rawPlot.hasRawValues) {
+        const auto duplicateText = rawPlot.rawValues[flagIndex];
+        rawPlot.rawValues.insert(rawPlot.rawValues.begin() + flagIndex,
+                                 duplicateText);
+    }
+    if (DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
+            adapter, data, DRW::AC1021, true))
+        return fail("duplicate raw dictionary hard-owner flag was accepted");
+    rawPlot = originalPlot;
+    rawPlot.groups.erase(rawPlot.groups.begin() + flagIndex);
+    if (rawPlot.hasRawValues)
+        rawPlot.rawValues.erase(rawPlot.rawValues.begin() + flagIndex);
+    if (!DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
+            adapter, data, DRW::AC1021, true))
+        return fail("omitted default dictionary hard-owner flag was refused");
+    rawPlot = originalPlot;
+    if (!DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
+            adapter, data, DRW::AC1021, true))
+        return fail("restored dictionary hard-owner flag did not retry");
     const std::string original = data.layers.front().handlePlotS;
     data.layers.front().handlePlotS = "10";
     if (DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
@@ -89840,9 +89961,16 @@ static bool dxfLayerDefaultPlotStyleGraph() {
             adapter, data, DRW::AC1021, true))
         return fail("corrected default-only source did not recover");
     data.layers.front().handlePlotS = "0";
+    if (DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
+            adapter, data, DRW::AC1021, true))
+        return fail("a mixed null/default plot-style graph was accepted");
+    for (DRW_Layer& layer : data.layers)
+        layer.handlePlotS = "0";
     if (!DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
             adapter, data, DRW::AC1021, true))
-        return fail("an explicit null plot-style reference was refused");
+        return fail("an all-null plot-style profile was refused");
+    for (DRW_Layer& layer : data.layers)
+        layer.handlePlotS = original;
     data.layers.front().handlePlotS = "0G";
     if (DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
             adapter, data, DRW::AC1021, true))

@@ -8752,8 +8752,13 @@ bool dxfRW::writeDimstyle(DRW_Dimstyle *ent){
         return failDxfWrite();
     }
     const auto dimstyleTextFillColorIsDefault = [&]() {
+        // DWG CMC spells the same default ACI 0 as an explicit BYBLOCK
+        // method. DXF's untagged index 0 and that method are equivalent;
+        // neither carries a nondefault fill color into an older target.
         return ent->dimtfillclr == 0 && ent->dimtfillclrRgb == -1
-            && ent->dimtfillclrMethod == 0 && ent->dimtfillclrFlags == 0
+            && (ent->dimtfillclrMethod == 0
+                || ent->dimtfillclrMethod == dwgColor::BYBLOCK)
+            && ent->dimtfillclrFlags == 0
             && ent->dimtfillclrRawIndex == 0
             && ent->dimtfillclrName.empty()
             && ent->dimtfillclrBookName.empty();
