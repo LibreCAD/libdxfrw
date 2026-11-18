@@ -1,0 +1,103 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-persubentmgr-libredwg-issue-1021-corpus-screen-2026-11-17",
+  "date": "2026-11-17",
+  "title": "PERSUBENTMGR public corpus and ObjectARX API-route screen",
+  "status": "FIVE_AC1032_CASES_NO_SOURCE_KNOWN_NONZERO_MEMBER_WITNESS",
+  "supportClaimEffect": "none",
+  "scope": "Determine whether the public LibreDWG issue #1021 sample archive or issue #1398 Platte pair supplies a source-bound nonzero PERSUBENTMGR member, and identify a safe ObjectARX evidence route without treating a generic persistent-subentity API or whole-file parse as proof of this class schema.",
+  "sources": [
+    {
+      "authority": "LibreDWG GitHub issue #1021",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1021",
+      "observation": "The issue provides a public dev2.zip archive. Its Oct 2024 comment labels Platte.dwg, Stahl.dwg, Teile.dwg, test-trichter.dwg, and xx17.dwg as AC1032; the comment lists PERSUBENTMGR errors for Teile.dwg and xx17.dwg among several unrelated class/entity errors.",
+      "limitation": "The issue is a mixed APPID/DXF conversion report, not a class-format specification. The issue later says the reported APPID import failure was fixed by LibreDWG PR #1367; that does not resolve PERSUBENTMGR. The comment does not give independently verified per-file producer build metadata."
+    },
+    {
+      "authority": "LibreDWG GitHub issue #1398",
+      "url": "https://github.com/LibreDWG/libredwg/issues/1398",
+      "observation": "Links Platte.dwg.gz and two matching-name Platte DXFs, and includes a LibreDWG trace for handle 0x20C50 with class_version 2, unknown_0 0, unknown_2 2, and zero observed counts. On 2026-11-16 a maintainer proposed a possible nested record/history/data-values shape.",
+      "limitation": "The issue explicitly lacks a drawing with a different BL sequence and says the actual layout is unknown. The Nov 16 shape is a proposal only; neither the trace nor the proposal establishes nonzero member encoding or field roles."
+    },
+    {
+      "authority": "Autodesk AutoCAD 2026 Managed Reference Guide",
+      "title": "AssocGeomDependency.Subentity and PersistentSubentId properties",
+      "urls": [
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_AssocGeomDependency_Subentity.html",
+        "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_AssocGeomDependency_PersistentSubentId.html"
+      ],
+      "observation": "The Subentity property sets an internally held AssocPersSubentityId for a subentity on the dependency's target entity; PersistentSubentId exposes the internally held persistent identifier read-only.",
+      "limitation": "These properties document an associative geometry dependency's persistent-ID API. They do not establish that using this API writes the separate AcDbPersSubentManager / ACDBPERSSUBENTMANAGER class, nor do they define that class's DWG fields."
+    },
+    {
+      "authority": "Autodesk AutoCAD 2027 ObjectARX Reference Guide",
+      "title": "AcDbAssocActionBody::collectPersSubentNamingDataOverride",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbAssocActionBody__collectPersSubentNamingDataOverride_AcDbPersStepIdArray__AcDbPersSubentIdArray__const.html",
+      "observation": "The action body can reveal AcDbStepIds and AcDbPersSubentIds to AcDbAssocPersSubentManager.",
+      "limitation": "Autodesk marks this method internal-use-only, and AcDbAssocPersSubentManager is a different class from the target AcDbPersSubentManager. Do not treat this as a public constructor or wire-layout authority for ACDBPERSSUBENTMANAGER."
+    },
+    {
+      "authority": "Autodesk AutoCAD 2024 AutoLISP Reference",
+      "title": "entmake class-name and DXF-name table",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-AutoLISP-Reference/files/GUID-D47983BA-1E5D-417D-85B8-6F3DE5F506BA.htm",
+      "observation": "The class table lists AcDbPersSubentManager as ACDBPERSSUBENTMANAGER and separately lists AcDbAssocPersSubentManager as ACDBASSOCPERSSUBENTMANAGER.",
+      "limitation": "The names distinguish the classes but the page provides no body schema or supported native operation that creates a nonempty target manager."
+    }
+  ],
+  "sourceArtifacts": {
+    "storage": "All downloaded and decompressed artifacts remained under /private/tmp. No DWG, DXF, archive, or derivative was copied into this repository or committed.",
+    "archive": {
+      "path": "/private/tmp/libredwg-issue-1021-dev2.zip",
+      "bytes": 8998817,
+      "sha256": "1133872e6beda2cd8b92ee048c523bdf3a062e58b4170dc8e5215e67e70b60fa"
+    },
+    "dwgs": [
+      {"name": "Platte.dwg", "version": "AC1032", "bytes": 1570773, "sha256": "146c9fbc33a7b9636ea462f4b6b1476a1c73fcaebc3cbb173cdf81e7ce04c82c"},
+      {"name": "Stahl.dwg", "version": "AC1032", "bytes": 160644, "sha256": "5db4d7022d170ef3abc8428a2140a999edbc8abb78630380753f81a1845b72d6"},
+      {"name": "Teile.dwg", "version": "AC1032", "bytes": 4592254, "sha256": "0ef7c9c79e16a4a5e219cd9ac3fecbfe30c12dd2af5ba2d71ba99ec09cc79af3"},
+      {"name": "test-trichter.dwg", "version": "AC1032", "bytes": 3112523, "sha256": "34b7bf3f3bae90e38a184d66967764839cf230728ddc5dc8da563f97d48162f4"},
+      {"name": "xx17.dwg", "version": "AC1032", "bytes": 3033956, "sha256": "c1392c8efece0eeb3d228362c70b51c5f68cfab0d62709dedf1164f4e910046a"}
+    ],
+    "plattePair": [
+      {"name": "Platte.dwg.gz", "bytes": 1022318, "sha256": "a518357c67cac85c7acf75d060d6f0df17f3c8b5d11d67b83e95a1f63d099651", "uncompressedBytes": 1570773, "uncompressedSha256": "146c9fbc33a7b9636ea462f4b6b1476a1c73fcaebc3cbb173cdf81e7ce04c82c"},
+      {"name": "Platte-2019-obj.dxf.gz", "bytes": 1013572, "sha256": "619ea0a6d639b28a02fedc25f37bb3cb529fed39496c8a425c26ff207ddbf6e9", "uncompressedBytes": 12906547, "uncompressedSha256": "0da03ee6a6a64327b85d6324867865aaef4fb6726f1b76efd2a7de0f8639fe18", "acadver": "AC1032"},
+      {"name": "Platte-2027.dxf.gz", "bytes": 1074939, "sha256": "f826ffb1fa44ed3ae6a2d8ef1c39de35534016b11d5c5ba58755414e0a3656db", "uncompressedBytes": 13757546, "uncompressedSha256": "a977e267fe513f0f6ddbb935304a7e077d69d932546673b4294a5f14c83764d2", "acadver": "AC1032"}
+    ],
+    "platteDxfObservation": "Both DXFs contain the same PERSUBENTMGR handle 20C50, class AcDbPersSubentManager, two group-330 values C (the reactor and owner references in the DXF record), and group-90 values [2, 0, 2, 0, 0, 0]. That sequence alone does not establish the disputed field meanings or member graph. File labels do not establish the exact producer build."
+  },
+  "peerScreen": {
+    "tool": "LibreDWG dwgread 0.14",
+    "binaryPath": "/opt/homebrew/bin/dwgread",
+    "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -O minJSON <source.dwg>",
+    "result": "Exit 0 for all five files. Each output contains one PERSUBENTMGR record. Four whole-output files contain invalid UTF-8; test-trichter is UTF-8 but whole-document JSON parsing still fails. Conclusions below come only from the extracted target-object text, not from treating the full outputs as valid JSON documents.",
+    "targetObjectInterpretation": "LibreDWG 0.14 reports class_version=2, unknown_0=0, unknown_2=2, numassocsteps=0, numassocsubents=0, empty steps/subents, and 64 unknown bits with hex 40A40AA208620867 for each file. These are peer decoder interpretations, not independent DWG field-span proof.",
+    "objects": [
+      {"source": "Platte.dwg", "type": 546, "handle": "0x20C50", "size": 15, "bitsize": 85, "ownerhandle": [4, 1, 12, 12], "reactors": [[4, 1, 12, 12]], "outputBytes": 31257258, "outputSha256": "6ef7609e4d773e641871511b8a4bf5b07c0f12a56932878ec9da1c29876cd79f"},
+      {"source": "Stahl.dwg", "type": 570, "handle": "0x139A", "size": 14, "bitsize": 77, "ownerhandle": [4, 1, 12, 12], "reactors": [[4, 1, 12, 12]], "outputBytes": 1097344, "outputSha256": "fc8ab2ed93a363e8d84610909738c1e6025c87746f93b828ee6bb1064bc8a5fc"},
+      {"source": "Teile.dwg", "type": 767, "handle": "0x66C0", "size": 15, "bitsize": 85, "ownerhandle": [4, 1, 12, 12], "reactors": [[4, 1, 12, 12]], "outputBytes": 24062910, "outputSha256": "16503571108e8fe01a25461731874a0f92902e0c216bea9a5a3d637bdc24598e"},
+      {"source": "test-trichter.dwg", "type": 522, "handle": "0x68B", "size": 14, "bitsize": 77, "ownerhandle": [4, 1, 12, 12], "reactors": [[4, 1, 12, 12]], "outputBytes": 7054115, "outputSha256": "c5a657333e3aa151b3019fa25d9016b6647a12d8b7a26e119b2587daeaa80e43"},
+      {"source": "xx17.dwg", "type": 757, "handle": "0x303AF", "size": 16, "bitsize": 93, "ownerhandle": [4, 1, 12, 12], "reactors": [[4, 1, 12, 12]], "outputBytes": 9375022, "outputSha256": "9fee24503178552f5c28684f500dd917fb108e5c5bac8943afc143cc17a3313e"}
+    ]
+  },
+  "libdxfrwScreen": {
+    "binaryPath": "build-gcc/dwg2dxf/dwg2dxf",
+    "binarySha256": "b90b53e16f06dae5d995900acfce848943b0190ea4270f050282f6870aec1876",
+    "command": "dwg2dxf <source.dwg> -y -d -v2018 <scratch-output.dxf>",
+    "sourceTreeRevision": "b05cca27 (only documentation changes after this reader build)",
+    "result": "Each source reaches the existing bounded AC1032 raw-shell route. The parser reads the same five BL values [2, 0, 2, 0, 0], then proceeds into later object processing. The zero prefix is not interpreted as the disputed remaining body schema.",
+    "objects": [
+      {"source": "Platte.dwg", "blSpansStartEndLimit": [[56, 66, 84], [66, 68, 84], [68, 78, 84], [78, 80, 84], [80, 82, 84]], "coverage": "complete", "sourceFrames": 45932, "publishedFrames": 45932, "failedFrames": 0, "entityParseFailures": 0, "objectParseFailures": 0, "integrityWarnings": 1, "logBytes": 53590233, "logSha256": "045764006c4ba956a97ae1f014d0e8110a9701c7f7f5f84223a7d942c589fc9a"},
+      {"source": "Stahl.dwg", "blSpansStartEndLimit": [[48, 58, 76], [58, 60, 76], [60, 70, 76], [70, 72, 76], [72, 74, 76]], "coverage": "complete", "sourceFrames": 2260, "publishedFrames": 2260, "failedFrames": 0, "entityParseFailures": 0, "objectParseFailures": 0, "integrityWarnings": 5, "logBytes": 2761819, "logSha256": "319f9c36e84e5dba599f0f820c06a4ac65e5e4190369b4414b9f1628e8617b0d"},
+      {"source": "Teile.dwg", "blSpansStartEndLimit": [[56, 66, 84], [66, 68, 84], [68, 78, 84], [78, 80, 84], [80, 82, 84]], "coverage": "partial", "sourceFrames": 3515, "publishedFrames": 3513, "failedFrames": 2, "entityParseFailures": 0, "objectParseFailures": 2, "integrityWarnings": 16, "logBytes": 25522521, "logSha256": "f123fe9117c18884afe54aa115072c7ab49b6746cbd2ffe6ea9d90dbf36e0246"},
+      {"source": "test-trichter.dwg", "blSpansStartEndLimit": [[48, 58, 76], [58, 60, 76], [60, 70, 76], [70, 72, 76], [72, 74, 76]], "coverage": "partial", "sourceFrames": 349, "publishedFrames": 348, "failedFrames": 1, "entityParseFailures": 0, "objectParseFailures": 1, "integrityWarnings": 2, "logBytes": 812600, "logSha256": "ea7dc1c4a7b26a0b5247d7889e48a7b1913814f1fc28a09a323e42e589a83fee"},
+      {"source": "xx17.dwg", "blSpansStartEndLimit": [[64, 74, 92], [74, 76, 92], [76, 86, 92], [86, 88, 92], [88, 90, 92]], "coverage": "partial", "sourceFrames": 5767, "publishedFrames": 5764, "failedFrames": 3, "entityParseFailures": 3, "objectParseFailures": 0, "integrityWarnings": 16, "logBytes": 7519260, "logSha256": "22f7311e90bd8374fc9b8313c2ae8b49697741fd612ea067252f07f3eab2b793"}
+    ],
+    "strictCli": "Exit 1 and no output DXF for all five because whole-file strict-complete preflight rejects the source dispositions. This is not evidence that PERSUBENTMGR caused the other frame failures: Platte and Stahl have complete frame coverage but skipped custom/unsupported object instances; the other three additionally have the separate parse-failure totals recorded above."
+  },
+  "decision": "LibreDWG reports zero steps and zero subentities for all five DWGs, and the paired Platte DXFs show only the sequence [2, 0, 2, 0, 0, 0]. No producer API state proves that any file contains a selected nonzero member; the unknown 64-bit tail also remains uninterpreted. Autodesk documents ways to hold and query persistent subentity identifiers, but not a public route that proves creation or serialization of this exact manager class. Autodesk also distinguishes AcDbPersSubentManager from AcDbAssocPersSubentManager, so generic dependency examples cannot substitute. Therefore this corpus and API screen do not qualify as a nonzero selected-subentity witness and do not resolve the body-schema proposal. Record the screen as complete, do not download or scan these unchanged artifacts again, keep P6-B WAITING_FOR_NONEMPTY_PERSUBENTMGR_WITNESS, and preserve current raw/partial and strict-output-refused behavior.",
+  "next": "First identify a native AutoCAD/ObjectARX operation that writes the exact AcDbPersSubentManager / ACDBPERSSUBENTMANAGER class with a nonzero selected-subentity path; do not use a generic AssocGeomDependency alone as the generator. A quick object-class/API smoke check must confirm the exact manager class and that the persistent target path is tied to the native operation before producing a full pair. Then retain one hash-bound, producer/release-bound DWG/DXF pair with ObjectARX state before save and after close/reopen, target handle/path, manager handle, any exposed member references, owner/reactors, and dependent-target identity. Use AssocGeomDependency.Subentity/PersistentSubentId only where appropriate to record ID semantics, not to infer manager serialization. Bind exact body spans, member references, and next-object boundary against ODA v5.4.1 plus an independent decoder before implementation. One version's witness can establish only that profile; do not generalize it across AC1024/AC1027/AC1032.",
+  "codeChanged": false,
+  "testsRun": false,
+  "fixturesAdded": 0
+}

@@ -19,11 +19,12 @@ libdxfrw and LibreCAD origin/master heads above were re-checked and unchanged;
 LibreCAD PR #3269 is merged as `4060fb6bb` and is contained in that LibreCAD head.
 
 **Progress on 2026-11-17:** 6 of 33 required package gates are closed (18.2%);
-27 remain. After S8.2b/c/d, the P4-C ObjectARX plus APS witness-route screens,
-the bounded LibreDWG 0.14 AC1032 TABLE peer screen (S37), the current-tree
-AC1024 CLASSES report recheck (S38), and the PERSUBENTMGR Autodesk API
-authority screen (S39), the activity count is 62 of 89 tracked items complete
-(69.7%): 6 closed gates and 56 completed implementation/research slices. The 27
+27 remain. Following S8.2b/c/d, the P4-C ObjectARX plus APS witness-route
+screens, the bounded LibreDWG 0.14 AC1032 TABLE peer screen (S37), the
+current-tree AC1024 CLASSES report recheck (S38), the PERSUBENTMGR Autodesk
+API authority screen (S39), and the bounded S40 public corpus/API-route screen,
+the activity count is 63 of 90 tracked items complete (70.0%): 6 closed gates and
+57 completed implementation/research slices. The 27
 remaining counted items are the 27 open package gates. A completed slice can
 advance a gate that remains open, so this equal-weight activity count measures
 work items rather than unique outcomes or support breadth; use 6/33 for
@@ -70,6 +71,22 @@ dependency roles. The existing ACadSharp SAVEAS corpus, LibreDWG traces, and
 raw-only source profiles remain the only wire observations; do not repeat those
 scans or promote their disputed tails. P6-B still needs a producer-bound
 nonempty member witness. See the [authority-screen receipt](docs/research/p6-persubentmgr-autodesk-api-authority-screen-2026-11-17.json).
+S40 screened the public LibreDWG issue #1021 archive and the Platte DWG/DXF
+attachments linked from issue #1398. LibreDWG 0.14 reports zero steps and
+subentities in all five AC1032 DWGs; the Platte DXFs contain group-90 values
+`[2, 0, 2, 0, 0, 0]`. The local bounded shell route reads the prefix
+`[2, 0, 2, 0, 0]`, but the unknown tail and actual field meanings remain
+unresolved. No producer API state establishes a nonzero selected member.
+Autodesk documents associative persistent-ID access, but distinguishes
+`AcDbPersSubentManager` from `AcDbAssocPersSubentManager`; the generic dependency
+API and internal-only action-body collector do not prove that the exact target
+class was created. The Nov 16 nested-record proposal in #1398 remains a
+hypothesis. The local CLI's
+strict whole-file refusal is driven by incomplete source disposition and, on
+three files, separate entity/object failures; it does not show that
+PERSUBENTMGR caused those failures. No fixture or code was added, and P6-B
+remains waiting for a producer-bound nonzero selected-subentity case. Do not
+repeat this archive scan. See the [S40 receipt](docs/research/p6-persubentmgr-libredwg-issue-1021-corpus-screen-2026-11-17.json).
 The S8.2d AC1027 BLOCK_CONTROL boundary selector now passes with the exact
 source-backed 53-bit handle suffix; this test-only slice changes no support
 claim. See [receipt](docs/research/p8-dwg-block-control-handle-bit-count-fast-slice-2026-11-17.json).
@@ -313,8 +330,8 @@ environment waits block only their own profiles.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 33 package gates and each implementation/research slice once; the
-  current ledger has 56 recorded completed slices (89 counted items total),
-  matching the 62/89 progress snapshot above.
+  current ledger has 57 recorded completed slices (90 counted items total),
+  matching the 63/90 progress snapshot above.
   Linux, Windows, and GUI outcomes belong to
   P8-B/C/D and are not separate progress units. A
   partial implementation slice earns activity progress but does not close its
@@ -396,7 +413,7 @@ integration pass or a specific failure that expands risk.
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
 | P6-A / WAITING_FOR_OBJECTARX_WITNESS | In one producer session, record version-bound IMAGEDEF create/setAt/save/reopen plus remove/erase/clone/WBLOCK behavior. Reuse the [role receipt](docs/research/p6-imagedef-objectarx-parent-role-boundary-2026-11-14.json) as context. | Close owner, dictionary membership, reactor, and image links with independent output/readback. |
-| P6-B / WAITING_FOR_NONEMPTY_PERSUBENTMGR_WITNESS | Reuse the [ACadSharp cross-version conflict](docs/research/p6-persubentmgr-acadsharp-cross-version-dxf-wire-conflict-2026-11-09.json), [LibreDWG traces](docs/research/p6-persubentmgr-libreDWG-v5-boundary-traces-2026-11-09.json), and raw-only recovery receipts for [AC1024](docs/research/p6-ac1024-persubentmgr-raw-only-shell-recovery-2026-11-09.json), [AC1027](docs/research/p6-ac1027-persubentmgr-raw-only-shell-recovery-2026-11-08.json), and [AC1032](docs/research/p6-ac1032-persubentmgr-raw-only-shell-recovery-2026-11-07.json). They establish bounded frames and partial prefixes; the disputed body tail remains unresolved. Autodesk's [API reference](https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_AssocPersSubentityIdPE.html) documents persistent-ID querying/manipulation, not DWG layout. Do not repeat these scans. | Follow the P6-B implementation packet below; keep existing profiles raw/partial and strict-output-refused until the gates pass. |
+| P6-B / WAITING_FOR_NONEMPTY_PERSUBENTMGR_WITNESS | Reuse the [ACadSharp cross-version conflict](docs/research/p6-persubentmgr-acadsharp-cross-version-dxf-wire-conflict-2026-11-09.json), [LibreDWG traces](docs/research/p6-persubentmgr-libreDWG-v5-boundary-traces-2026-11-09.json), raw-only recovery receipts for [AC1024](docs/research/p6-ac1024-persubentmgr-raw-only-shell-recovery-2026-11-09.json), [AC1027](docs/research/p6-ac1027-persubentmgr-raw-only-shell-recovery-2026-11-08.json), and [AC1032](docs/research/p6-ac1032-persubentmgr-raw-only-shell-recovery-2026-11-07.json), plus the [S40 corpus/API-route screen](docs/research/p6-persubentmgr-libredwg-issue-1021-corpus-screen-2026-11-17.json). S40 found no producer-known nonzero selected-member case in the public five-file archive or Platte DXF pair. Autodesk's [Subentity](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_AssocGeomDependency_Subentity.html) and [persistent ID](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_AssocGeomDependency_PersistentSubentId.html) APIs describe generic ID access, not the target class's serialization; the [class table](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-AutoLISP-Reference/files/GUID-D47983BA-1E5D-417D-85B8-6F3DE5F506BA.htm) distinguishes `AcDbPersSubentManager` from `AcDbAssocPersSubentManager`. Do not repeat unchanged scans or implement the unverified #1398 schema proposal. | Follow the smaller P6-B source-capture packet below; keep current profiles raw/partial and strict-output-refused until the full evidence gate passes. |
 | P6-C / WAITING_FOR_PRODUCER_CELL_PROFILE | Keep the AC1032 compatibility path bounded, raw-retaining, semantic-incomplete, and strict-output-refused. Reuse the [AutoCAD 2021 candidate screen](docs/research/p6-ac1032-autocad2021-table-pair-screen-2026-11-17.json) and [LibreDWG 0.14 peer screen](docs/research/p6-ac1032-libredwg-tablecontent-peer-screen-2026-11-17.json); the HEADER reconciliation is complete, but producer API calls/state and independently decoded cell values are absent. The separate ODA scaffold exits with an explicit R2010+ TABLE TODO and unknown body; do not rerun it or infer semantics from it. | Request the AutoCAD 2021 TABLE API state and known cell/format values, or obtain primary/versioned authority or a source-distinct independently decoded matching profile. Then bind spans, roles, next-frame alignment, and graph closure; add only the needed malformed controls, strict output/readback, and native meaning checks. Do not infer semantics from a paired DXF or a peer's success status. |
 | P6-E / WAITING_FOR_SUFFIX_AUTHORITY | Reuse the [repeatability receipt](docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json): the AC1024 suffix changes across repeated saves, so a mesh-count comparison is not discriminating. | Resume only with versioned primary authority or a source-bound pre-compression trace. Bind fields/roles, then add only controls that distinguish that mapping. Keep strict refusal; never label the suffix padding or discard it. |
 | P6-F / WAITING_FOR_ELIGIBLE_PARTIAL_SOURCE | Reuse the [disposition](docs/research/p6-cli-legacy-ac1012-ac1014-partial-disposition-2026-11-16.json) and [candidate trace](docs/research/p6-ac1012-ac1014-lwpolyline-partial-candidate-screen-2026-11-17.json); scans are complete and no current source qualifies. | Resume only with an existing hash-bound AC1012/AC1014 source containing recoverable entity failures, closed object/backlink/reference dependencies, and later published frames. Prove destination preservation, partial ASCII/Binary output, fresh readback, and corrected retry; never weaken version/frame/reference checks or commit ODA derivatives. |
@@ -404,23 +421,43 @@ integration pass or a specific failure that expands risk.
 
 #### P6-B implementation packet
 
-1. Capture one AutoCAD/ObjectARX-authored source with a deliberately selected,
-   nonzero persistent subentity path on a known 3DSOLID or REGION. Record the
-   producer/build, selected entity and subentity path before save and after
-   close/reopen, and a matching versioned DXF. Capture the manager and member
-   handles, dictionary owner/reactors, and dependent target identity.
-2. Bind the class body bit span, member count/vector, common handle roles,
-   following-object boundary, and any opaque tail against ODA v5.4.1 and an
-   independent decoder. Determine whether this source resolves the existing
-   ACadRust/LibreDWG tail conflict; if it does not, retain the tail raw. Do not
-   infer fields from the cross-version SAVEAS sample.
-3. Implement only fields and graph edges established by that map. Preserve
-   unknown members raw and refuse strict output while any required field or
-   reference remains unresolved. Add the discriminating truncation/wrong-role
-   refusal and destination-preserving corrected retry.
-4. Close with strict ASCII and Binary output, fresh independent readback, and a
-   native semantic check against the captured subentity path. Keep all current
-   sample profiles raw/partial until this full exit evidence passes.
+1. Do not reacquire or rescan the issue #1021 archive or Platte pair. S40
+   records that LibreDWG decodes their manager counts as zero, while the
+   existing ACadSharp SAVEAS corpus and LibreDWG traces establish only disputed
+   prefixes. The receipt records the issue artifacts and hashes.
+2. Before making a full pair, identify a native AutoCAD/ObjectARX operation
+   that writes the exact target class `AcDbPersSubentManager` /
+   `ACDBPERSSUBENTMANAGER`. Do not treat generic `AssocGeomDependency.Subentity`
+   or `PersistentSubentId` access as proof that it created this manager:
+   Autodesk documents the separate `AcDbAssocPersSubentManager` class, and its
+   `AcDbAssocActionBody::collectPersSubentNamingDataOverride` hook is
+   internal-only. Run a cheap smoke check first: enumerate the saved database
+   for the exact target class and query the selected persistent path. If only
+   the similarly named associative manager appears, or the path cannot be
+   tied to the native operation, the capture is ineligible; stop before tracing.
+3. For an eligible operation, create one compact, producer/release-bound
+   DWG/DXF pair with a deliberately selected, nonzero path on a known
+   3DSOLID/REGION or other proven target. Record producer/build, target handle
+   and path, exact manager handle, any exposed member references,
+   owner/reactors, dependent-target identity, and API state before save and
+   after close/reopen. Reject immediately if the selection does not survive
+   reopen or cannot be tied to the exact manager profile.
+4. For the first eligible capture, bind the member/count fields, complete
+   body bit span, handle roles, and next-object boundary using ODA v5.4.1 plus
+   an independent decoder. Resolve the existing ACadRust/LibreDWG conflict;
+   if any tail remains ambiguous, preserve it raw and stop before typed
+   implementation. Treat the Nov 16 LibreDWG issue #1398 proposal as a search
+   hint only.
+5. Implement only the proven fields and graph edges. Keep unknown members raw
+   and strict output refused while required fields or references remain
+   unresolved. Add only the discriminating truncation/wrong-role control,
+   destination-preserving failure, and corrected same-writer retry.
+6. Close this release profile with strict ASCII and Binary output, fresh
+   independent readback, and native API confirmation of the same selected
+   subentity path. A witness for one release does not qualify AC1024, AC1027,
+   or AC1032 automatically; capture another version only when its profile is
+   scheduled for implementation. Keep every existing raw/partial profile
+   unchanged until its own evidence gate passes.
 
 P6-G is not a required gate. The existing [SUN explicit-owner override
 receipt](docs/research/p6-dxf-sun-owner-override-allocation-rollback-retry-2026-11-13.json)
