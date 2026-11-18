@@ -15889,6 +15889,100 @@ void testAssociativeConstraintGroupGenerated(TestContext& t) {
     }
 }
 
+void testPersistentManagerIncompleteBodyTail(TestContext& t) {
+    using namespace persistent_manager_test;
+
+    Options manager;
+    manager.classNumber = 601u;
+    manager.handle = 0xD63u;
+    manager.classVersion = 2;
+    manager.unknown0 = 0;
+    manager.unknown2 = 2;
+    manager.associationStepCount = 392;
+    manager.associationSubentities = 298;
+    manager.stepCount = 6;
+    manager.steps = {0, 7, 2, 0, 1, 1};
+    manager.hasSubentityCount = true;
+    manager.subentityCount = 0;
+    manager.opaqueBodyTailBits = 64u;
+    Options sentinel = manager;
+    sentinel.handle = 0xD64u;
+    sentinel.opaqueBodyTailBits = 0u;
+
+    Frame managerObject, sentinelObject;
+    std::vector<std::uint8_t> managerFrame, sentinelFrame;
+    const bool built = makeFrame(manager, managerObject)
+        && wrapFrame(manager, managerObject, managerFrame)
+        && makeFrame(sentinel, sentinelObject)
+        && wrapFrame(sentinel, sentinelObject, sentinelFrame);
+    t.expect(built,
+             "bounded PERSUBENTMGR suffix and following control are generated in memory");
+    if (!built)
+        return;
+
+    const auto sentinelOffset = static_cast<std::uint32_t>(managerFrame.size());
+    std::vector<std::uint8_t> bytes = managerFrame;
+    bytes.insert(bytes.end(), sentinelFrame.begin(), sentinelFrame.end());
+    PersistentManagerDispatchReader reader(
+        bytes, manager.version, manager.classNumber);
+    PersistentManagerDispatchSink sink;
+    const bool read = reader.readObjects(
+        bytes, manager.handle, sentinelOffset, sentinel.handle, sink);
+    const auto parsedManager = std::find_if(
+        sink.typed.begin(), sink.typed.end(), [&manager](
+            const DRW_AssociativeObject& object) {
+            return object.handle == manager.handle;
+        });
+    const auto parsedSentinel = std::find_if(
+        sink.typed.begin(), sink.typed.end(), [&sentinel](
+            const DRW_AssociativeObject& object) {
+            return object.handle == sentinel.handle;
+        });
+    const auto rawManager = std::find_if(
+        sink.raw.begin(), sink.raw.end(), [&manager](
+            const DRW_UnsupportedObject& object) {
+            return object.m_handle == manager.handle;
+        });
+    const auto managerPublication = std::find_if(
+        sink.publications.begin(), sink.publications.end(),
+        [&manager](const DRW_DwgFramePublication& publication) {
+            return publication.m_handle == manager.handle;
+        });
+    const auto sentinelPublication = std::find_if(
+        sink.publications.begin(), sink.publications.end(),
+        [&sentinel](const DRW_DwgFramePublication& publication) {
+            return publication.m_handle == sentinel.handle;
+        });
+    const bool partialBodyRetained = parsedManager != sink.typed.end()
+        && parsedManager->m_persistentAssocStepCount == 392u
+        && parsedManager->m_persistentAssocSubentityCount == 298u
+        && parsedManager->m_persistentSteps
+            == std::vector<std::uint32_t>{0u, 7u, 2u, 0u, 1u, 1u}
+        && parsedManager->m_prefixStatuses.size() == 1u
+        && parsedManager->m_prefixStatuses.front().m_status
+            == DRW_AssociativePrefixStatus::ParseStatus::Partial;
+    const bool opaqueCarrierRetained = rawManager != sink.raw.end()
+        && rawManager->m_rawBytes == managerObject.payload
+        && !rawManager->m_typedPayloadValidated
+        && managerPublication != sink.publications.end()
+        && managerPublication->m_carrier
+            == DRW_DwgFramePublication::Carrier::Raw;
+    const bool followingFrameRetained = parsedSentinel != sink.typed.end()
+        && parsedSentinel->m_prefixStatuses.size() == 1u
+        && parsedSentinel->m_prefixStatuses.front().m_status
+            == DRW_AssociativePrefixStatus::ParseStatus::Complete
+        && sentinelPublication != sink.publications.end()
+        && sentinelPublication->m_carrier
+            == DRW_DwgFramePublication::Carrier::TypedAndRaw;
+    const bool exactDisposition = read && reader.objectFailures() == 0u
+        && partialBodyRetained && opaqueCarrierRetained
+        && followingFrameRetained
+        && sink.typed.size() == 2u && sink.raw.size() == 2u
+        && sink.publications.size() == 2u;
+    t.expect(exactDisposition,
+             "unconsumed bounded body suffix remains unvalidated while the following complete frame publishes");
+}
+
 void testPersistentManagerPrefixDispatch(TestContext& t) {
     using namespace persistent_manager_test;
     for (const std::uint16_t ordinal : {601u, 667u}) {
@@ -23358,6 +23452,14 @@ int main(int argc, char** argv) {
     }
     if (argc == 3 && std::string(argv[1]) == "--persistent-manager-source-prefix")
         return runPersistentManagerSourcePrefix(argv[2]);
+    if (argc == 2
+        && std::string(argv[1]) == "--persistent-manager-incomplete-body-tail") {
+        TestContext focused;
+        testPersistentManagerIncompleteBodyTail(focused);
+        std::cout << "PERSUBENTMGR incomplete body-tail validation: "
+                  << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--persistent-manager-prefix-dispatch") {
         TestContext focused;
         testPersistentManagerPrefixDispatch(focused);

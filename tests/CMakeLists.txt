@@ -6142,6 +6142,12 @@ add_test(NAME libdxfrw_persistent_manager_prefix_dispatch
 set_tests_properties(libdxfrw_persistent_manager_prefix_dispatch PROPERTIES
     LABELS "fast;dwg;objects;associative;generated" TIMEOUT 15)
 
+add_test(NAME libdxfrw_persistent_manager_incomplete_body_tail
+    COMMAND libdxfrw_dwg_reader_matrix_tests
+        --persistent-manager-incomplete-body-tail)
+set_tests_properties(libdxfrw_persistent_manager_incomplete_body_tail PROPERTIES
+    LABELS "fast;dwg;objects;associative;generated" TIMEOUT 15)
+
 add_test(NAME libdxfrw_block_record_body_handle_roles
     COMMAND libdxfrw_dwg_reader_matrix_tests
         --block-record-body-handle-roles)

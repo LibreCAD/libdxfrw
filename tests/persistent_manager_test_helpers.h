@@ -26,6 +26,7 @@ struct Options {
     std::vector<std::int32_t> subentities;
     bool singleCountBit = false;
     bool invalidTwoBitTail = false;
+    std::uint32_t opaqueBodyTailBits = 0;
 };
 
 struct Frame {
@@ -86,6 +87,8 @@ inline bool makeFrame(const Options& options, Frame& frame) {
     }
     if (options.singleCountBit)
         object.putBit(1u); // Cannot borrow the following zero footer as BL0's second bit.
+    for (std::uint32_t bit = 0; bit < options.opaqueBodyTailBits; ++bit)
+        object.putBit(0u);
     frame.scalarEndBit = object.bitCount();
     object.putBit(0u); // ODA common OBJECT string-presence bit
     frame.objectEndBit = object.bitCount();

@@ -14,13 +14,15 @@ The comparison baseline last checked on 2026-11-17 is libdxfrw
 `84e73f0188fb32bb1fffb8d4d1edb4135543ba18`. Refresh moving heads before
 integration or platform qualification.
 
-**Progress on 2026-11-17:** 6/33 package gates closed; 27 remain. The activity
-ledger is now 66/93 (71.0%): six closed gates and 60 completed implementation
+**Progress on 2026-11-18:** 6/33 package gates closed; 27 remain. The activity
+ledger is now 67/94 (71.3%): six closed gates and 61 completed implementation
 or research slices. S41/S42 screened and traced the local AC1021 PERSUBENTMGR
-candidate; S43 fixed the incomplete-body status classification. None closes
-P6-B or promotes support. Readiness is measured by closed gates (18.2%), not
-the activity percentage. Native Linux, Windows, and GUI checks are counted
-only within P8-B/C/D. Recount after each committed slice or gate transition.
+candidate; S43 fixed the incomplete-body status classification; S44 added a
+generated incomplete-tail regression and fast selector. The post-change CLI
+trace still stops output on the separate IMAGEDEF gate. None closes P6-B or
+promotes support. Readiness is measured by closed gates (18.2%), not the
+activity percentage. Native Linux, Windows, and GUI checks are counted only
+within P8-B/C/D. Recount after each committed slice or gate transition.
 
 This file is the active execution queue, not a work diary. Completed slices
 and closed actions have been removed; their receipts are linked only where
@@ -45,7 +47,7 @@ claims.
 Use this order to reduce repeated setup. A wait blocks only its own profile;
 move to the next independent packet without repeating unchanged scans.
 
-1. **Run the P6-B native API-state eligibility probe.** Reuse S41-S43; do not
+1. **Run the P6-B native API-state eligibility probe.** Reuse S41-S44; do not
    repeat the corpus scan or local reader trace. Determine whether a supported
    AutoCAD/ObjectARX operation created the exact `AcDbPersSubentManager` class
    and whether its nonzero selected path survives reopen. Do not use generic
@@ -73,10 +75,11 @@ move to the next independent packet without repeating unchanged scans.
    choose a disputed layout by majority, or modify parsers while these inputs
    are absent.
 5. **Retry environment checks only after the named state changes.** Retry
-   P6-H after ODA supplies a verifiably signed usable macOS converter. After
-   the user's latest unlock report, the P8-D preflight still cannot capture a
-   display or resolve a registered LibreCAD app. Wait for app registration or
-   display access to change; then run the GUI checks in one pass.
+   P6-H after ODA supplies a verifiably signed usable macOS converter. The
+   2026-11-18 P8-D retry still cannot capture a display; a LibreCAD 2 bundle
+   exists at the path in its receipt, but Launch Services cannot resolve it
+   and no LibreCAD_3 bundle was found. Wait for successful display capture,
+   then launch the explicit LibreCAD 2 path and run the GUI checks in one pass.
 6. **Implement each admitted profile as a small committed slice.** Bind source
    spans and handle roles, make the smallest parser/model/graph/writer change,
    run the focused selector and touched-target build, exercise one
@@ -167,18 +170,19 @@ strictly refuse output; an output-capable route must also pass fresh independent
 readback. Each gate adds only its package-specific evidence.
 
 No open parser/writer gate has enough source evidence for a format change.
-P6-B has one ready, bounded native API-state eligibility probe using S41-S43;
-it is not permission to infer the disputed schema. The P8-D preflight after the user's latest unlock
-report still cannot capture a display or resolve a registered LibreCAD app;
-wait for app registration or display access to change before retrying. P6-H
-remains waiting for a verifiably signed, usable ODA bundle.
+P6-B has one ready, bounded native API-state eligibility probe using S41-S44;
+it is not permission to infer the disputed schema. The 2026-11-18 P8-D retry
+still cannot capture a display; its bundle and next trigger are recorded in
+the [post-unlock receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json).
+Wait for successful display capture before GUI work. P6-H remains waiting for
+a verifiably signed, usable ODA bundle.
 
 | Work packet | Gates | Fastest safe sequence |
 |---|---|---|
 | 1 — Producer-session bundles (9) | P5-D/E/F, P4-C/P5-H/P7-C, P4-B/P6-C, P6-A | Reuse one matching producer launch for each version family. Keep separate hashes, API state, spans, and semantic checks per profile. Start an admitted profile immediately; the bundle is an opportunity to save setup, not a dependency. |
 | 2 — Exact-class and separate-model witnesses (4) | P5-G, P6-B, P6-F, P7-G | Run the P6-B S41 eligibility probe first. Request only the missing dynamic-constraint, eligible partial-read, or trimmed/periodic geometry source for the others. Reuse completed scans. |
 | 3 — Authority and independent-span waits (4) | P5-B/P5-I, P6-E, P7-D | Resume only on the named schema, source-span, or pre-compression trace trigger. Keep unsupported FIELD records raw-only and disputed TABLE/mesh/ACIS fields unresolved. |
-| 4 — Changed-state environments (2) | P8-D, P6-H | Check P8-D once after the reported unlock; do GUI work only with an app, display, and pasteboard. Retry P6-H only after a verifiable ODA install is available. Keep generated files in scratch. |
+| 4 — Changed-state environments (2) | P8-D, P6-H | Retry P8-D only after display capture succeeds; launch the existing LibreCAD 2 bundle by explicit path. Retry P6-H only after a verifiable ODA install is available. Keep generated files in scratch. |
 | 5 — Frozen integration/release (8) | P7-F/P7-H, P8-A/B/C/E/F/G | Freeze one candidate, then run platform, consumer, package, runtime, and source-matched CI checks against it. Reuse matching receipts; do not repeat unaffected platforms or profiles. |
 
 The packets are disjoint and reconcile to all 27 open gates (9+4+4+2+8).
@@ -216,7 +220,7 @@ integration pass or a specific failure that expands risk.
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
 | P6-A / WAITING_FOR_OBJECTARX_WITNESS | In one producer session, record version-bound IMAGEDEF create/setAt/save/reopen plus remove/erase/clone/WBLOCK behavior. Reuse the [role receipt](docs/research/p6-imagedef-objectarx-parent-role-boundary-2026-11-14.json) as context. | Close owner, dictionary membership, reactor, and image links with independent output/readback. |
-| P6-B / WAITING_FOR_NONEMPTY_PERSUBENTMGR_WITNESS | Reuse the cross-version/raw-shell/S40 receipts and [S41 candidate](docs/research/p6-persubentmgr-ac1021-atmos-candidate-screen-2026-11-17.json), [S42 trace](docs/research/p6-persubentmgr-ac1021-atmos-libdxfrw-trace-2026-11-17.json), and [S43 status fix](docs/research/p6-persubentmgr-body-completeness-guard-2026-11-17.json). S42's source parses without object failures; its 205100-bit manager still has an unexplained tail after the decoded prefix. Strict whole-file output stops earlier on IMAGEDEF handle 0x7b. Producer/API state, physical tail fields, and selected-member semantics remain unproven. Do not repeat scans or implement issue #1398's hypothesis. | First get native API state tying an exact-class manager to a selected nonzero path. If eligible, capture one producer/release-bound pair and independently bind body fields, roles, and next-object boundary before coding. Otherwise stop this branch and retain raw/partial, strict-output-refused behavior. |
+| P6-B / WAITING_FOR_NONEMPTY_PERSUBENTMGR_WITNESS | Reuse the cross-version/raw-shell/S40 receipts and [S41 candidate](docs/research/p6-persubentmgr-ac1021-atmos-candidate-screen-2026-11-17.json), [S42 trace](docs/research/p6-persubentmgr-ac1021-atmos-libdxfrw-trace-2026-11-17.json), and [S43/S44 guard and regression receipt](docs/research/p6-persubentmgr-body-completeness-guard-2026-11-17.json). The post-S43 trace still leaves the 205100-bit manager tail uninterpreted; S44 proves an unconsumed bounded suffix remains Partial/raw and preserves the next frame. The local `dwg-writer` and `dwgTs` parsers both cite the same `parseObjects.ts` source and retain the tail as raw data, so they add no independent schema evidence; see the [local lineage screen](docs/research/p6-persubentmgr-local-port-lineage-screen-2026-11-18.json). Strict whole-file output stops earlier on IMAGEDEF handle 0x7b. Producer/API state, physical tail fields, and selected-member semantics remain unproven. Do not repeat scans or implement issue #1398's hypothesis. | First get native API state tying an exact-class manager to a selected nonzero path. If eligible, capture one producer/release-bound pair and independently bind body fields, roles, and next-object boundary before coding. Otherwise retain raw/partial, strict-output-refused behavior. |
 | P6-C / WAITING_FOR_PRODUCER_CELL_PROFILE | Keep the AC1032 compatibility path bounded, raw-retaining, semantic-incomplete, and strict-output-refused. Reuse the [AutoCAD 2021 candidate screen](docs/research/p6-ac1032-autocad2021-table-pair-screen-2026-11-17.json) and [LibreDWG 0.14 peer screen](docs/research/p6-ac1032-libredwg-tablecontent-peer-screen-2026-11-17.json); the HEADER reconciliation is complete, but producer API calls/state and independently decoded cell values are absent. The separate ODA scaffold exits with an explicit R2010+ TABLE TODO and unknown body; do not rerun it or infer semantics from it. | Request the AutoCAD 2021 TABLE API state and known cell/format values, or obtain primary/versioned authority or a source-distinct independently decoded matching profile. Then bind spans, roles, next-frame alignment, and graph closure; add only the needed malformed controls, strict output/readback, and native meaning checks. Do not infer semantics from a paired DXF or a peer's success status. |
 | P6-E / WAITING_FOR_SUFFIX_AUTHORITY | Reuse the [repeatability receipt](docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json): the AC1024 suffix changes across repeated saves, so a mesh-count comparison is not discriminating. | Resume only with versioned primary authority or a source-bound pre-compression trace. Bind fields/roles, then add only controls that distinguish that mapping. Keep strict refusal; never label the suffix padding or discard it. |
 | P6-F / WAITING_FOR_ELIGIBLE_PARTIAL_SOURCE | Reuse the [disposition](docs/research/p6-cli-legacy-ac1012-ac1014-partial-disposition-2026-11-16.json) and [candidate trace](docs/research/p6-ac1012-ac1014-lwpolyline-partial-candidate-screen-2026-11-17.json); scans are complete and no current source qualifies. | Resume only with an existing hash-bound AC1012/AC1014 source containing recoverable entity failures, closed object/backlink/reference dependencies, and later published frames. Prove destination preservation, partial ASCII/Binary output, fresh readback, and corrected retry; never weaken version/frame/reference checks or commit ODA derivatives. |
@@ -268,7 +272,7 @@ AC1027 ordinary drawings deferred until source-reference closure.
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation profiles stabilize. Reuse [macOS package evidence](docs/research/p8-macos-package-baseline-2026-11-17.json) only while its inputs match. | Record reproducible commands and immutable identities. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. |
 | P8-B / WAITING_FOR_FREEZE | On the frozen candidate, run native Linux FreeCAD qualification for 2D and every admitted source-derived profile. Add AC1027/AC1032 3D only after P7 admission. Earlier generated 2D results in the [platform receipt](docs/research/p8-freecad-linux-windows-generated-pass-2026-11-15.json) are historical controls only. | Record runner, FreeCAD/converter/modules, settings, exact `open()`/`insert()` handoff, runtime identity, and independent semantics per profile. No cross-compilation or ambiguous fallback. |
 | P8-C / WAITING_FOR_FREEZE | Run the same frozen workflow on native Windows; reuse earlier path-with-spaces/Unicode and generated 2D checks only as historical controls. The tracked `ordinary_enc_AC1027.dwg` still fails before publication; see [preflight receipt](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json). | Use the same evidence fields as P8-B. Keep ordinary AC1027 deferred until source-reference closure. |
-| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | The latest preflight after the user's unlock report still returned `could not create image from display`; `open -Ra 'LibreCAD'` returned `Unable to find application named 'LibreCAD'`. The prior receipt also records failed LaunchServices/pasteboard launches. Wait until display access or app registration changes; do not repeat the same preflight. | When triggered, perform Move/Copy action-boundary capture, named-LTYPE save/reopen/render, and LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback in one GUI pass. This gate does not block Linux/Windows qualification. |
+| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | The 2026-11-18 post-unlock preflight still cannot capture a display. Launch Services cannot resolve either app name, although a local LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`; no LibreCAD_3 bundle was found. See the [post-unlock receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). Wait for working display capture; then launch the explicit LibreCAD 2 bundle path and collect the remaining native action-boundary and LibreCAD_3 evidence. Do not repeat the unchanged screen-capture probe. | When triggered, perform Move/Copy action-boundary capture, named-LTYPE save/reopen/render, and LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback in one GUI pass. This gate does not block Linux/Windows qualification. |
 | P8-E / INTEGRATION_GATE | During P8-B/C, collect native Linux/Windows shared/static manifests, relocation, and loaded runtime identities. Reuse the [macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json); repeat macOS only if candidate inputs change. | Verify package contents and shared/static relocation for each platform. |
 | P8-F / WAITING_FOR_SOURCE_MATCHED_CI | Reuse the [CI root-cause receipt](docs/research/p8-pr106-native-ci-root-cause-2026-11-17.json); rerun local diagnosis only if candidate inputs change. | Close on source-matched Linux/macOS/Windows results and current required-check/branch-protection state. Hosted CI remains subject to the owner's existing go-ahead. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
