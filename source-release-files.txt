@@ -813,6 +813,7 @@ tests/nonfinite_dwg_line_wire.h
 tests/numeric_locale_tests.cpp
 tests/oTypes.md
 tests/object_physical_controls.h
+tests/p4_layerstates_real_writer_controls.h
 tests/partial_viewing_index_objects_allocation_tests.cpp
 tests/persistent_manager_test_helpers.h
 tests/plotsettings_objects_allocation_tests.cpp

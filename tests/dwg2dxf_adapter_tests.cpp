@@ -2693,6 +2693,11 @@ public:
         return iface.inspectAc1024LayerStateDependencyViews(tables, objects);
     }
 
+    static bool consistentLayerStateSourceGraph(dx_iface& iface, dx_data& data) {
+        iface.cData = &data;
+        return iface.hasConsistentAc1024LayerStateSourceGraph();
+    }
+
     static bool ac1021LayerStateWireControls(dx_iface& iface, dx_data& data) {
         iface.cData = &data;
         const auto prepare = [&]() {
@@ -60602,6 +60607,8 @@ bool physicalAc1024LayerStatesSourceGraphContext(const std::filesystem::path& so
     return true;
 }
 
+#include "p4_layerstates_real_writer_controls.h"
+
 bool physicalAc1024LayerStatesAppIdContext(
         const std::filesystem::path& sourcePath) {
     dx_iface reader;
@@ -92691,6 +92698,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-dependency-views")
         return physicalAc1024LayerStatesDependencyViews(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--layerstates-ac1024-real-writer")
+        return physicalAc1024LayerStatesRealWriter(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-source-graph-context")
         return physicalAc1024LayerStatesSourceGraphContext(argv[2]) ? 0 : 1;

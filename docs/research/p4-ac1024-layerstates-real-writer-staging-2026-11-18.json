@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-layerstates-real-writer-staging-2026-11-18",
+  "date": "2026-11-18",
+  "status": "REAL_WRITER_SELECTED_EDGE_CONTROLS_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false
+  },
+  "files": {
+    "tests/dwg2dxf_adapter_tests.cpp": "5981cdbcf811c30192755673219f51fcd74feab4f6fdecb2ff0d181ee9d25c53",
+    "tests/p4_layerstates_real_writer_controls.h": "e05290024335decaed8ec46bac1e20422b216c6dceab9d67f60431d7c5d54d30"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-real-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "executableSha256": "3ebacd72fafb9d134e4bf25fd678322fa65baace4c30dc607be8743aa0ed9d06",
+    "selectorLogSha256": "bd16cfd0f1a4d7da2199304debd4b88f3f88e65573f9bed7192be6f29fffc0ff",
+    "result": "PASS in ASCII and Binary. Seven faults: APPID name, companion cloning, wrong nested owner, SCALE units, wrong nested SCALE target, companion EED text, duplicate XRECORD. Every failure preserves a pre-existing destination and the corrected retry succeeds with the same codec. The sentinel read stream is closed before replacement.",
+    "neighborChecks": "Fallback refusal, original source-graph context and synthetic dependency-view selectors passed on the immediately preceding binary. The final changes close the sentinel stream and add SPDX; repeated only the owning real-writer selector."
+  },
+  "observations": [
+    "Verifies the existing source preflight on the same imported source adapter/data before and after staging and from the TABLES and OBJECTS callbacks.",
+    "The test adapter emits actual writer TABLES and OBJECTS section bytes. The inspectors bind the ACAD APPID table row, selected DICTIONARY/XRECORD/SCALE ledger identities and owners, companion EED text, and the nested dictionary/XRECORD/SCALE targets. For example, 0x24A, 0x24B and 0x127 stage as 0xA24A, 0xA24B and 0xA127."
+  ],
+  "limits": [
+    "Test-only selected-edge adapter. It copies the selected models from the bound import. It does not emit the other NOD roots or all parents and is not a complete dwg2dxf fileExport route.",
+    "The successful synthetic output is a staging control, not a complete graph, a producer witness, independent readback, or native group-370 acceptance.",
+    "Production source and AC1024 strict-output refusal remain unchanged."
+  ],
+  "next": "Bind the verified selected relationships to an admitted complete source graph at the production TABLES and OBJECTS callbacks and finalization. Verify that unrelated NOD and SUN or SORTENTSTABLE data is preserved and obtain native evidence before enabling the route."
+}
