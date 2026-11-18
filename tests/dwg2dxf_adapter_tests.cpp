@@ -2693,6 +2693,80 @@ public:
         return iface.inspectAc1024LayerStateDependencyViews(tables, objects);
     }
 
+    static bool ac1021LayerStateWireControls(dx_iface& iface, dx_data& data) {
+        iface.cData = &data;
+        const auto prepare = [&]() {
+            return iface.prepareDwgLayerStateOutput(DRW::AC1021, false)
+                && iface.m_dwgLayerStateOutputPrepared;
+        };
+        if (!prepare()) return false;
+        const auto mutateBit = [&](std::uint32_t handle, std::size_t bit) {
+            const auto at = data.m_standardDwgObjectFrames.find({data.importGeneration, handle});
+            if (at == data.m_standardDwgObjectFrames.end()
+                || bit / 8u >= at->second.raw.m_rawBytes.size()) return false;
+            auto& byte = at->second.raw.m_rawBytes[bit / 8u];
+            const auto saved = byte;
+            byte ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
+            const bool lateRefused = !iface.hasUnchangedDwgLayerStateOutputSource();
+            const bool refused = !iface.prepareDwgLayerStateOutput(DRW::AC1021, false);
+            byte = saved;
+            return lateRefused && refused && prepare();
+        };
+        const std::pair<std::uint32_t, std::size_t> faults[] = {
+            {0x59bu, 0u}, {0x59bu, 10u}, {0x59bu, 61u}, {0x59bu, 99u},
+            {0x59bu, 647u}, {0x59bu, 664u}, {0x59bu, 680u}, {0x59bu, 704u},
+            {0x59cu, 422u}, {0x59cu, 430u}, {0x59cu, 454u},
+            {0x5e5u, 99u}, {0x5e5u, 100u}, {0x5e5u, 116u},
+            {0x5e3u, 100u}, {0x5e3u, 1868u}, {0x5e3u, 1884u}};
+        for (const auto& fault : faults)
+            if (!mutateBit(fault.first, fault.second)) {
+                std::cerr << "AC1021 wire fault was not refused: " << std::hex
+                          << fault.first << std::dec << ":" << fault.second << '\n';
+                return false;
+            }
+        for (const auto handle : {0x59bu, 0x59cu, 0x5e5u, 0x5e3u}) {
+            const auto at = data.m_standardDwgObjectFrames.find({data.importGeneration, handle});
+            if (at == data.m_standardDwgObjectFrames.end()) return false;
+            auto& raw = at->second.raw;
+            const auto originalSize = raw.m_objectSize;
+            raw.m_rawBytes.push_back(0u); ++raw.m_objectSize;
+            const bool extraRejected = !iface.prepareDwgLayerStateOutput(DRW::AC1021, false);
+            raw.m_rawBytes.pop_back(); raw.m_objectSize = originalSize;
+            if (!extraRejected || !prepare()) return false;
+            const auto last = raw.m_rawBytes.back();
+            raw.m_rawBytes.pop_back(); --raw.m_objectSize;
+            const bool truncatedRejected = !iface.prepareDwgLayerStateOutput(DRW::AC1021, false);
+            raw.m_rawBytes.push_back(last); raw.m_objectSize = originalSize;
+            if (!truncatedRejected || !prepare()) return false;
+        }
+        auto root = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
+            [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0x59bu; });
+        if (root == data.dictionaries.end() || root->m_entries.size() != 2u) return false;
+        const auto entries = root->m_entries;
+        for (int fault = 0; fault < 3; ++fault) {
+            if (fault == 0) root->m_entries.pop_back();
+            else if (fault == 1) root->m_entries[1].m_name = "OTHER";
+            else root->m_entries.push_back({"OTHER", 0x1234u});
+            const bool refused = !iface.prepareDwgLayerStateOutput(DRW::AC1021, false);
+            root->m_entries = entries;
+            if (!refused || !prepare()) return false;
+        }
+        const auto originalDictionaries = data.dictionaries;
+        data.dictionaries.erase(root);
+        const bool missingRefused = !iface.prepareDwgLayerStateOutput(DRW::AC1021, false);
+        data.dictionaries = originalDictionaries;
+        if (!missingRefused || !prepare()) return false;
+        auto frame = data.m_standardDwgObjectFrames.find({data.importGeneration, 0x59bu});
+        if (frame == data.m_standardDwgObjectFrames.end()) return false;
+        auto& pub = frame->second.publication.m_sourceMapOrdinal;
+        auto& membership = frame->second.dictionaryMembership.m_sourceMapOrdinal;
+        const auto oldPub = pub, oldMembership = membership;
+        ++pub; ++membership;
+        const bool staleRefused = !iface.prepareDwgLayerStateOutput(DRW::AC1021, false);
+        pub = oldPub; membership = oldMembership;
+        return staleRefused && prepare();
+    }
+
     static bool layerStateSourceGraphControls(dx_iface& iface, dx_data& data) {
         iface.cData = &data;
         const auto qualified = [&]() { return iface.hasConsistentAc1024LayerStateSourceGraph(); };
@@ -60411,6 +60485,16 @@ bool physicalAc1021EmptyLayerStateRootAdmission(
     return true;
 }
 
+bool physicalAc1021LayerStateWireControls(const std::filesystem::path& sourcePath) {
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || !DxIfaceStandardDwgCaptureTestAccess::ac1021LayerStateWireControls(reader, source))
+        return fail("AC1021 LayerStates wire boundary controls failed");
+    std::cout << "AC1021 LayerStates complete wire and correction controls passed.\n";
+    return true;
+}
+
 bool physicalAc1024LayerStatesDependencyViews(const std::filesystem::path& sourcePath) {
     dx_iface reader;
     dx_data source;
@@ -61725,6 +61809,23 @@ bool physicalAc1021LayerStateViewXrecordOutputReadback(
                       << writer.extensionGraphFailureDetail() << '\n';
             return fail("AC1021 LayerStates XRECORD correction/retry or readback failed");
         }
+        auto mutableRoot = std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
+            [extensionHandle](const DRW_Dictionary& row) { return row.handle == extensionHandle; });
+        if (mutableRoot == source.dictionaries.end() || mutableRoot->m_entries.size() != 2u)
+            return fail("AC1021 LayerStates root disappeared before fallback control");
+        auto target = std::find_if(mutableRoot->m_entries.begin(), mutableRoot->m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) { return entry.m_name == "ACAD_LAYERSTATES"; });
+        if (target == mutableRoot->m_entries.end()) return fail("AC1021 LayerStates key missing");
+        { std::ofstream existing(outputPath, std::ios::binary | std::ios::trunc); existing << sentinel; }
+        const auto savedName = target->m_name;
+        target->m_name = "OTHER";
+        const bool rootRefused = !exportSource();
+        target->m_name = savedName;
+        std::ifstream retainedInput(outputPath, std::ios::binary);
+        const std::string retained{std::istreambuf_iterator<char>(retainedInput), {}};
+        retainedInput.close();
+        if (!rootRefused || retained != sentinel || !exportSource() || !verifyOutput(outputPath))
+            return fail("AC1021 changed LayerStates root did not preserve destination and retry");
     }
     std::cout << "Physical AC1021 LayerStates ACAD_VIEWS_default output/readback "
               << "PASS encodings=ASCII,Binary handles=4xLAYER,4xLTYPE "
@@ -92584,6 +92685,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--ac1021-recompose-data-physical-output-readback")
         return physicalAc1021RecomposeDataOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--layerstates-ac1021-wire-controls")
+        return physicalAc1021LayerStateWireControls(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-dependency-views")
         return physicalAc1024LayerStatesDependencyViews(argv[2]) ? 0 : 1;

@@ -4437,6 +4437,8 @@ private:
     bool inspectAc1024LayerStateDependencyViews(
         const dxfRW::DxfTablesWriteView& tables,
         const dxfRW::DxfObjectsWriteView& objects) const noexcept;
+    bool hasAc1021LayerStateFrameProvenance(const DRW_TableEntry& model,
+                                           int objectType) const noexcept;
     bool prepareDwgLayerStateOutput(DRW::Version targetVersion,
                                     bool debug) noexcept;
     bool isDwgLayerStateCompatibilityRecord(

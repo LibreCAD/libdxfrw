@@ -19,7 +19,7 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-18:** 7/34 package gates closed; 27 remain. The activity
-ledger is 105/132 (79.5%): seven closed gates and 98 completed implementation or
+ledger is 106/133 (79.7%): seven closed gates and 99 completed implementation or
 research slices. The [focused slice](docs/research/p6-raster-dimstyle-default-roundtrip-2026-11-18.json)
 fixes an AC1021 default plot dictionary reexport and a default BYBLOCK DIMSTYLE
 downgrade; five owning selectors pass. The following [source-identity selector
@@ -178,8 +178,8 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 34 package gates and each implementation/research slice once. The
-  current ledger is 98 completed slices plus 34 package gates = 132 counted
-  items; 7 gates plus 98 slices are complete (105/132, 79.5%). The Linux and
+  current ledger is 99 completed slices plus 34 package gates = 133 counted
+  items; 7 gates plus 99 slices are complete (106/133, 79.7%). The Linux and
   Windows FreeCAD results cover only their exact generated profile and binary;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package
@@ -223,13 +223,15 @@ their gate rows and receipts. Do not repeat unchanged attempts.
 | P4-C / WAITING_FOR_AC1027_PRODUCER_WITNESS | Preferred source remains an AutoCAD 2013/ObjectARX-authored AC1027 drawing and matching R2013 DXF. If that host is unavailable, the documented APS fallback can use AutoCAD 2027's `Autodesk.AutoCAD+26_0` engine and save a separate current-producer profile as AC1027. Autodesk documents the `SweptSurface`/`SweepOptionsBuilder` APIs, AC1027 `Database.SaveAs`/`dxfOut`, and the cloud AppBundle/WorkItem route. See the [ObjectARX/API receipt](docs/research/p4-ac1027-sweep-oda-schema-boundary-2026-11-17.json) and [APS route receipt](docs/research/p4c-aps-autocad-ac1027-witness-route-2026-11-17.json). An APS job has service/quota requirements and may incur cost; do not submit one without authorized credentials and quota. | Generate one compact pair with a baseline/default sweep and one distinct non-default sweep. Capture engine/producer build, app-bundle hash and WorkItem ID, source entities/options before save and after reopening AC1027, handles, geometry, AC1027 magic and DXF `$ACADVER`. Keep the 2027-to-AC1027 profile distinct from AutoCAD 2013. Compare the paired DXF, ODA v5.4.1, and source-bound libdxfrw/LibreDWG traces to bind parent/child spans, embedded LWPOLYLINE body and suffix, handle roles, and next-frame alignment. API/header agreement or ODA round-trip alone cannot close physical spans. Preserve unknown suffix bytes and refuse strict output until spans resolve; then add only the missing truncation/wrong-role control, strict output/readback, corrected retry, and independent geometry check. If neither producer route is available, leave only this gate waiting and continue other work. |
 | P4-D / ACTIVE_SOURCE_BOUND_WIRE_PROOF | A previously passing AC1024 three-root LayerStates selector now refuses its matched physical source. The [investigation](docs/research/p4-ac1024-three-root-layerstates-common-tail-investigation-2026-11-18.json) and bounded [research probe](tools/research/probe_ac1024_layerstates_eed.py) bind the dictionaries, both XRECORDs, all 32 SCALELIST links, all 32 SCALE bodies and the full NOD frame to the source and independent trace. Disconnected DICTIONARY, XRECORD and SCALE helpers pass source-frame and corruption controls, and the same-import ACAD APPID and SCALE class predicates pass physical provenance controls; unsupported named candidates now fail closed. The [source-graph preflight](docs/research/p4-ac1024-layerstates-source-graph-context-2026-11-18.json) joins these checks on the original importing adapter/data; it remains source-only. The [staged dependency controls](docs/research/p4-ac1024-layerstates-staged-dependency-views-2026-11-18.json) compare the companion EED/APPID and nested dictionary/XRECORD/SCALE in synthetic ASCII/Binary views; they do not prove the writer ledger, rollback or complete output. The [group-370 semantic review](docs/research/p4-layerstates-xrecord370-producer-semantics-2026-11-18.json) defines the needed native witness; the [host packet](tools/research/OBJECTARX_WITNESS_README.md) prepares scratch-only creation and raw observations, pending an accessible, version-identified host; see its [review receipt](docs/research/p4-objectarx-host-witness-packet-2026-11-18.json). Typed DXF roles, actual output transport and unrelated NOD targets remain unproved. | Integrate and recheck the source graph and dependency inspectors through actual staging and finalization; bind XRECORD object-ID dependencies, the writer ledger, selected NOD edge, emitted APPID table and SCALE graph without discarding other roots. For a full-source success, resolve the aerial SUN ownership conflict or the alternate sun-and-sky named-block SORTENTSTABLE and its 19 NOD roots using independent semantic evidence; do not drop unrelated source graph state. Add source-consistency, destination-preservation and corrected retry controls before changing output admission; require ASCII/Binary selected output and independent readback. Keep other versions and broader LayerStates semantics unqualified. |
 
-AC1021 LayerStates regression in P4-D: previously passing truetype and
-annotation selected-output controls now skip their source profile after the
-R2007+ DICTIONARY common-tail marker began being retained. Restore those routes
-only after independently checking their AC1021 body, string and role-sensitive
-handle spans; the marker alone is not wire proof. The annotation retry also
-fails at STYLE output and needs separate diagnosis. Keep whole-source annotation
-outside the selected profile until its unrelated MLEADER dependencies qualify.
+AC1021 follow-ups in P4-D: the [two-root truetype repair](docs/research/p4-ac1021-layerstates-two-root-wire-regression-repair-2026-11-18.json)
+restores same-version selected and strict whole-source output for the witnessed
+profile. AC1021-to-AC1024 whole-source output still stops at DICTIONARYVAR
+preflight; investigate that exact source before claiming cross-version output.
+The annotation selector remains blocked by a retained [LAYER → LTYPE → unnamed
+STYLE chain](docs/research/p4-ac1021-annotation-empty-layerstates-style-chain-2026-11-18.json);
+do not remove those records without complete dependency proof. Its whole-source
+MLEADER dependencies remain outside the selected profile. A [viewport recheck](docs/research/p4-ac1021-truetype-viewport-current-marker-selector-2026-11-18.json)
+passes through an alternate qualification path despite a skipped legacy NOD branch.
 
 ### P5 — FIELD, TABLE, rendering, constraints (7 open)
 

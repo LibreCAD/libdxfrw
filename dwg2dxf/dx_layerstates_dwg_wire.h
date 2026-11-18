@@ -29,8 +29,8 @@ enum class LinkKind { Owner, Reactor, Item, XDictionary };
 // witnessed role and encoded length for every owner, reactor and item. It
 // must not infer roles solely from the decoded targets or parser model.
 template <class AppIdSource, class LinkSource>
-bool observeDictionary(const DRW_UnsupportedObject &raw,
-                       const DRW_Dictionary &source,
+bool observeDictionaryForVersion(const DRW_UnsupportedObject &raw,
+                       const DRW_Dictionary &source, DRW::Version version,
                        AppIdSource appIdSource,
                        LinkSource linkSource) noexcept {
     using namespace dx_raster_wire;
@@ -39,7 +39,8 @@ bool observeDictionary(const DRW_UnsupportedObject &raw,
     static_assert(noexcept(linkSource(LinkKind::Owner, std::size_t{},
                                       std::uint8_t{}, std::uint8_t{})),
                   "link source verifier must not throw");
-    if (raw.m_version != DRW::AC1024 || raw.m_objectType != 42
+    if ((version != DRW::AC1021 && version != DRW::AC1024)
+        || raw.m_version != version || raw.m_objectType != 42
         || raw.m_handle != source.handle || source.handle == 0u
         || source.handle == DRW::NoHandle || source.tType != DRW::DICTIONARY
         || raw.m_isEntity
@@ -63,16 +64,24 @@ bool observeDictionary(const DRW_UnsupportedObject &raw,
         || source.cloning < 0 || source.cloning > 65535
         || source.m_entries.size() > 256u || source.reactorHandles.size() > 256u
         || raw.m_rawBytes.empty() || raw.m_rawBytes.size() > 4096u
-        || raw.m_rawBytes.size() != raw.m_objectSize || raw.m_bodyBitSize == 0u)
+        || raw.m_rawBytes.size() != raw.m_objectSize
+        || (version == DRW::AC1024 ? raw.m_bodyBitSize == 0u : raw.m_bodyBitSize != 0u))
         return false;
     const auto total = static_cast<std::uint32_t>(raw.m_rawBytes.size() * 8u);
-    if (raw.m_bodyBitSize >= total)
-        return false;
-    const auto bodyEnd = total - raw.m_bodyBitSize;
-    detail::Bits body{raw.m_rawBytes.data(), 0u, bodyEnd};
-    const auto tag = body.take(2u);
-    const auto type = tag == 0u ? body.take(8u)
-        : tag == 1u ? body.take(8u) + 0x1f0u : body.little(2u);
+    detail::Bits body{raw.m_rawBytes.data(), 0u, total};
+    std::uint32_t type = 0u, bodyEnd = 0u;
+    if (version == DRW::AC1021) {
+        type = body.shortValue();
+        bodyEnd = static_cast<std::uint32_t>(body.little(4u));
+    } else {
+        const auto tag = body.take(2u);
+        type = tag == 0u ? body.take(8u)
+            : tag == 1u ? body.take(8u) + 0x1f0u : body.little(2u);
+        if (raw.m_bodyBitSize >= total) return false;
+        bodyEnd = total - raw.m_bodyBitSize;
+    }
+    if (!body.good || bodyEnd <= body.pos || bodyEnd >= total) return false;
+    body.end = bodyEnd;
     const auto self = detail::handle(body, 0u, 0u, true);
     if (!body.good || type != 42u || self.value != source.handle)
         return false;
@@ -97,7 +106,7 @@ bool observeDictionary(const DRW_UnsupportedObject &raw,
             if (c > 0x7fu || text.little(2u) != c) return false;
         return text.good && text.pos == text.end;
     };
-    if (detail::eed(body, 2010u, proof, eed) != Status::Proven
+    if (detail::eed(body, version == DRW::AC1021 ? 2007u : 2010u, proof, eed) != Status::Proven
         || proof.eedVariants != source.extData.size()
         || body.longValue() != source.reactorHandles.size()
         || body.take(1u) != 1u || body.longValue() != source.m_entries.size()
@@ -153,18 +162,31 @@ bool observeDictionary(const DRW_UnsupportedObject &raw,
     return padding < 8u && wire.skip(padding) && wire.good;
 }
 
+template <class AppIdSource, class LinkSource>
+bool observeDictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& source,
+                       AppIdSource appIdSource, LinkSource linkSource) noexcept {
+    return observeDictionaryForVersion(raw, source, DRW::AC1024, appIdSource, linkSource);
+}
+template <class AppIdSource, class LinkSource>
+bool observeAc1021Dictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& source,
+                             AppIdSource appIdSource, LinkSource linkSource) noexcept {
+    return observeDictionaryForVersion(raw, source, DRW::AC1021, appIdSource, linkSource);
+}
+
 // Bounded AC1024 XRECORD observer for the selected LayerStates payload
 // vocabulary. This only verifies the ordered wire carriers; it does not
 // authorize the producer-specific group 370 compatibility route, compare
 // m_values, or prove source identity, dependencies or output transport.
 template <class LinkSource>
-bool observeXrecord(const DRW_UnsupportedObject &raw,
-                    const DRW_XRecord &source, LinkSource linkSource) noexcept {
+bool observeXrecordForVersion(const DRW_UnsupportedObject &raw,
+                    const DRW_XRecord &source, DRW::Version version,
+                    LinkSource linkSource) noexcept {
     using namespace dx_raster_wire;
     static_assert(noexcept(linkSource(LinkKind::Owner, std::size_t{},
                                       std::uint8_t{}, std::uint8_t{})),
                   "link source verifier must not throw");
-    if (raw.m_version != DRW::AC1024 || raw.m_objectType != 79
+    if ((version != DRW::AC1021 && version != DRW::AC1024)
+        || raw.m_version != version || raw.m_objectType != 79
         || raw.m_handle != source.handle || source.handle == 0u
         || source.handle == DRW::NoHandle || source.tType != DRW::XRECORD
         || raw.m_isEntity
@@ -188,15 +210,23 @@ bool observeXrecord(const DRW_UnsupportedObject &raw,
         || source.m_cloning < 0 || source.m_cloning > 65535
         || source.m_dataEntries.size() > 256u || raw.m_rawBytes.empty()
         || raw.m_rawBytes.size() > 4096u || raw.m_objectSize != raw.m_rawBytes.size()
-        || raw.m_bodyBitSize == 0u)
+        || (version == DRW::AC1024 ? raw.m_bodyBitSize == 0u : raw.m_bodyBitSize != 0u))
         return false;
     const auto total = static_cast<std::uint32_t>(raw.m_rawBytes.size() * 8u);
-    if (raw.m_bodyBitSize >= total) return false;
-    const auto bodyEnd = total - raw.m_bodyBitSize;
-    detail::Bits body{raw.m_rawBytes.data(), 0u, bodyEnd};
-    const auto tag = body.take(2u);
-    const auto type = tag == 0u ? body.take(8u)
-        : tag == 1u ? body.take(8u) + 0x1f0u : body.little(2u);
+    detail::Bits body{raw.m_rawBytes.data(), 0u, total};
+    std::uint32_t type = 0u, bodyEnd = 0u;
+    if (version == DRW::AC1021) {
+        type = body.shortValue();
+        bodyEnd = static_cast<std::uint32_t>(body.little(4u));
+    } else {
+        const auto tag = body.take(2u);
+        type = tag == 0u ? body.take(8u)
+            : tag == 1u ? body.take(8u) + 0x1f0u : body.little(2u);
+        if (raw.m_bodyBitSize >= total) return false;
+        bodyEnd = total - raw.m_bodyBitSize;
+    }
+    if (!body.good || bodyEnd <= body.pos || bodyEnd >= total) return false;
+    body.end = bodyEnd;
     const auto self = detail::handle(body, 0u, 0u, true);
     if (!body.good || type != 79u || self.value != source.handle
         || body.shortValue() != 0u
@@ -275,6 +305,17 @@ bool observeXrecord(const DRW_UnsupportedObject &raw,
     }
     const auto padding = wire.end - wire.pos;
     return padding < 8u && wire.skip(padding) && wire.good;
+}
+
+template <class LinkSource>
+bool observeXrecord(const DRW_UnsupportedObject& raw, const DRW_XRecord& source,
+                    LinkSource linkSource) noexcept {
+    return observeXrecordForVersion(raw, source, DRW::AC1024, linkSource);
+}
+template <class LinkSource>
+bool observeAc1021Xrecord(const DRW_UnsupportedObject& raw, const DRW_XRecord& source,
+                          LinkSource linkSource) noexcept {
+    return observeXrecordForVersion(raw, source, DRW::AC1021, linkSource);
 }
 
 // Bounded AC1024 SCALE observer. classSource must bind the exact raw frame,

@@ -38256,6 +38256,61 @@ bool ac1024EmptyLayerStateDictionaryWireComplete(
         return false;
     return true;
 }
+// The separately traced R2007 two-root source has these exact role/length
+// combinations. A complete body/string/footer and terminal handle scan is
+// required on every preparation and later source recheck.
+bool ac1021LayerStateDictionaryWireComplete(const DRW_UnsupportedObject& raw,
+        const DRW_Dictionary& source, std::uint32_t extension,
+        std::uint32_t states) noexcept {
+    using K = dx_layerstates_dwg_wire::LinkKind;
+    if (!source.extData.empty()) return false;
+    return dx_layerstates_dwg_wire::observeAc1021Dictionary(raw, source,
+        [](std::uint32_t, const std::string&) noexcept { return false; },
+        [&](K kind, std::size_t index, std::uint8_t role, std::uint8_t length) noexcept {
+            if (kind == K::Owner) {
+                const auto expectedRole = source.handle == extension ? 4u
+                    : source.handle == states ? 8u : 12u;
+                const auto expectedLength = source.handle == states ? 0u : 1u;
+                return index == 0u && role == expectedRole && length == expectedLength;
+            }
+            if (kind == K::Reactor) return index == 0u && role == 4u && length == 2u;
+            return kind == K::Item && index < source.m_entries.size()
+                && role == 2u && length == 2u;
+        });
+}
+
+bool ac1021LayerStateXrecordWireComplete(const DRW_UnsupportedObject& raw,
+        const DRW_XRecord& source) noexcept {
+    using K = dx_layerstates_dwg_wire::LinkKind;
+    // Restrict the producer-compatibility vocabulary to the independently
+    // observed named-view payload; this does not establish its semantics.
+    const auto& values = source.m_dataEntries;
+    if (values.size() != 27u || source.m_handleValues.size() != 8u) return false;
+    const auto integer = [&](std::size_t index, int code, int expected) {
+        return values[index].code() == code && values[index].type() == DRW_Variant::INTEGER
+            && values[index].i_val() == expected;
+    };
+    const auto text = [&](std::size_t index, int code, const char* expected) {
+        return values[index].code() == code && values[index].type() == DRW_Variant::STRING
+            && values[index].content.s && *values[index].content.s == expected;
+    };
+    if (!integer(0u, 91, 33791) || !text(1u, 301, "") || !integer(2u, 290, 0)) return false;
+    const int flags[] = {1,8,8,8};
+    const int colors[] = {7,1,5,7};
+    const char* names[] = {"Color_7","Color_1","Color_5","Color_7"};
+    for (std::size_t i = 0u; i < 4u; ++i) {
+        const auto at = 3u + 6u * i;
+        if (values[at].code() != 330 || !integer(at + 1u, 90, flags[i])
+            || !integer(at + 2u, 62, colors[i]) || !integer(at + 3u, 370, -3)
+            || values[at + 4u].code() != 331 || !text(at + 5u, 1, names[i])) return false;
+    }
+    return dx_layerstates_dwg_wire::observeAc1021Xrecord(raw, source,
+        [](K kind, std::size_t index, std::uint8_t role, std::uint8_t length) noexcept {
+            if (index != 0u) return false;
+            if (kind == K::Owner) return role == 12u && length == 1u;
+            return kind == K::Reactor && role == 4u && length == 2u;
+        });
+}
 } // namespace
 
 bool dx_iface::hasQualifiedDwgLayerStateScaleClass(
@@ -38824,6 +38879,66 @@ bool dx_iface::inspectAc1024LayerStateDependencyViews(
     } catch (...) { return false; }
 }
 
+// Revalidate the retained fixed-object publication and membership against
+// the same import generation before trusting the independent wire observer.
+bool dx_iface::hasAc1021LayerStateFrameProvenance(
+        const DRW_TableEntry& model, int objectType) const noexcept {
+    if (!cData || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1021 || !cData->importGeneration)
+        return false;
+    try {
+        const auto key = dx_data::StandardDwgFrameKey{cData->importGeneration, model.handle};
+        const auto at = cData->m_standardDwgObjectFrames.find(key);
+        if (at == cData->m_standardDwgObjectFrames.end()
+            || cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u) return false;
+        const auto& frame = at->second;
+        const auto& raw = frame.raw;
+        const auto& pub = frame.publication;
+        const auto ordinal = cData->m_standardDwgObjectOrdinals.find(
+            {cData->importGeneration, pub.m_sourceMapOrdinal});
+        const auto location = cData->m_standardDwgObjectLocations.find(
+            {cData->importGeneration, {pub.m_sourceOffsetSpace, pub.m_sourceOffset}});
+        if (frame.generation != cData->importGeneration || !frame.sourceProfileBound
+            || !frame.publicationSeen || !frame.payloadMatched || frame.opaquePayload
+            || !frame.hasNoObservedTextDecodeIssues() || !frame.typedBaseline
+            || !standardDwgModelsEqual(*frame.typedBaseline, model, DRW::AC1021, objectType)
+            || raw.m_version != DRW::AC1021 || raw.m_handle != model.handle
+            || raw.m_objectType != objectType || raw.m_isEntity
+            || !pub.m_hasSourceLocation || pub.m_version != DRW::AC1021
+            || pub.m_handle != model.handle || pub.m_encodedType != objectType
+            || pub.m_resolvedType != objectType || pub.m_isEntity || pub.m_isCustomClass
+            || pub.m_classStreamOrdinal || pub.m_recordName != raw.m_recordName
+            || pub.m_className != raw.m_className || !pub.m_controlHandles.empty()
+            || pub.m_sourceOffset != raw.m_objectOffset
+            || (pub.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+                && pub.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+            || pub.m_carrier != DRW_DwgFramePublication::Carrier::TypedAndRaw
+            || pub.m_commonLinkEvidence != raw.m_commonLinkEvidence
+            || pub.m_commonHandleDataValidated != raw.m_commonHandleDataValidated
+            || pub.m_parentHandle != raw.m_parentHandle || pub.m_reactorHandles != raw.m_reactorHandles
+            || pub.m_numReactors != raw.m_numReactors || pub.m_xDictFlag != raw.m_xDictFlag
+            || pub.m_xDictHandle != raw.m_xDictHandle
+            || ordinal == cData->m_standardDwgObjectOrdinals.end() || ordinal->second != model.handle
+            || location == cData->m_standardDwgObjectLocations.end() || location->second != model.handle)
+            return false;
+        if (objectType != dwgObjType::DICTIONARY) return objectType == dwgObjType::XRECORD;
+        const auto* dictionary = dynamic_cast<const DRW_Dictionary*>(&model);
+        const auto& membership = frame.dictionaryMembership;
+        if (!dictionary || !frame.membershipSeen || !membership.m_complete
+            || !membership.m_hasSourceLocation || membership.m_version != DRW::AC1021
+            || membership.m_dictionaryHandle != model.handle
+            || membership.m_sourceOffset != pub.m_sourceOffset
+            || membership.m_sourceMapOrdinal != pub.m_sourceMapOrdinal
+            || membership.m_sourceOffsetSpace != pub.m_sourceOffsetSpace
+            || membership.m_entries.size() != dictionary->m_entries.size()) return false;
+        for (std::size_t i = 0u; i < membership.m_entries.size(); ++i)
+            if (membership.m_entries[i].m_name != dictionary->m_entries[i].m_name
+                || membership.m_entries[i].m_handle != dictionary->m_entries[i].m_handle)
+                return false;
+        return true;
+    } catch (...) { return false; }
+}
+
 bool dx_iface::prepareDwgLayerStateOutput(
         DRW::Version targetVersion, bool debug) noexcept {
     m_dwgLayerStateOutputSource = {};
@@ -38833,11 +38948,12 @@ bool dx_iface::prepareDwgLayerStateOutput(
     m_dwgLayerStateOutputPrepared = false;
     m_dwgLayerStateOutputInspected = false;
     bool ac1024LayerStatesCandidate = false;
-    const auto skip = [debug, &ac1024LayerStatesCandidate](const char* reason) {
+    bool ac1021TwoRootCandidate = false;
+    const auto skip = [debug, &ac1024LayerStatesCandidate, &ac1021TwoRootCandidate](const char* reason) {
         if (debug)
             std::cerr << "LayerStates DWG output profile skipped: " << reason
                       << '\n';
-        return !ac1024LayerStatesCandidate;
+        return !ac1024LayerStatesCandidate && !ac1021TwoRootCandidate;
     };
     if (cData == nullptr)
         return false;
@@ -38886,7 +39002,21 @@ bool dx_iface::prepareDwgLayerStateOutput(
         return found;
     };
     const DRW_Dictionary* extension = uniqueDictionary(extensionHandle);
-    if (sourceVersion == DRW::AC1024 && extension == nullptr
+    // Recognize the imported two-root candidate from its immutable baseline
+    // even if the editable root was removed, renamed or given extra entries.
+    if (sourceVersion == DRW::AC1021 && cData->importGeneration != 0u) {
+        const auto frame = cData->m_standardDwgObjectFrames.find(
+            {cData->importGeneration, extensionHandle});
+        const auto* baseline = frame == cData->m_standardDwgObjectFrames.end()
+            ? nullptr : dynamic_cast<const DRW_Dictionary*>(frame->second.typedBaseline.get());
+        ac1021TwoRootCandidate = baseline && baseline->m_entries.size() == 2u
+            && std::any_of(baseline->m_entries.begin(), baseline->m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return asciiIdentifierEquals(entry.m_name, "ACAD_LAYERSTATES");
+                });
+    }
+    if ((sourceVersion == DRW::AC1024 || sourceVersion == DRW::AC1021)
+        && extension == nullptr
         && std::count_if(cData->dictionaries.begin(), cData->dictionaries.end(),
             [extensionHandle](const DRW_Dictionary& dictionary) {
                 return dictionary.handle == extensionHandle;
@@ -38912,6 +39042,13 @@ bool dx_iface::prepareDwgLayerStateOutput(
         sourceVersion == DRW::AC1024 && singleEmptyLayerStatesRoot;
     const bool ac1021TwoRootProfile = sourceVersion == DRW::AC1021
         && extension != nullptr && extension->m_entries.size() == 2u;
+    ac1021TwoRootCandidate = ac1021TwoRootCandidate || (ac1021TwoRootProfile
+        && std::any_of(extension->m_entries.begin(), extension->m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return asciiIdentifierEquals(entry.m_name, "ACAD_LAYERSTATES");
+            }));
+    const bool expectsCommonLinks = expectsAc1024EmptyRootCommonLinks
+        || ac1021TwoRootProfile;
     if (extension == nullptr || extension->handle != extensionHandle
         || extension->parentHandle != controlHandle
         || extension->hardOwner != 1 || extension->cloning != 1
@@ -38925,7 +39062,7 @@ bool dx_iface::prepareDwgLayerStateOutput(
         || extension->xDictHandle != 0u
         || extension->hasDataStorageBinaryData()
         || extension->hasDwgCommonLinkTail()
-            != expectsAc1024EmptyRootCommonLinks
+            != expectsCommonLinks
         || !extension->pendingAppIdResolutions.empty()
         || !extension->pendingLayerRefResolutions.empty())
         return skip("LAYER_CONTROL extension dictionary is outside its versioned LayerStates root profile");
@@ -38953,7 +39090,7 @@ bool dx_iface::prepareDwgLayerStateOutput(
         || states->xDictHandle != 0u
         || states->hasDataStorageBinaryData()
         || states->hasDwgCommonLinkTail()
-            != expectsAc1024EmptyRootCommonLinks
+            != expectsCommonLinks
         || !states->pendingAppIdResolutions.empty()
         || !states->pendingLayerRefResolutions.empty()
         || states->reactorHandles
@@ -39026,7 +39163,8 @@ bool dx_iface::prepareDwgLayerStateOutput(
             return skip("AC1024 LayerStates XRECORD contains an unqualified application group value");
     }
 
-    const auto hasDictionaryFrame = [this, sourceVersion,
+    const auto hasDictionaryFrame = [this, sourceVersion, ac1021TwoRootProfile,
+                                     extensionHandle, states,
                                      expectsAc1024EmptyRootCommonLinks](
             std::uint32_t handle, const DRW_Dictionary& source) {
         const dx_data::StandardDwgFrameKey key{
@@ -39065,11 +39203,15 @@ bool dx_iface::prepareDwgLayerStateOutput(
         }
         if (expectsAc1024EmptyRootCommonLinks
             && !ac1024EmptyLayerStateDictionaryWireComplete(
-                standard->second.raw, source))
+                standard->second.raw, source)) return false;
+        if (ac1021TwoRootProfile
+            && (!hasAc1021LayerStateFrameProvenance(source, dwgObjType::DICTIONARY)
+                || !ac1021LayerStateDictionaryWireComplete(
+                    standard->second.raw, source, extensionHandle, states->handle)))
             return false;
         return true;
     };
-    const auto hasXRecordFrame = [this, sourceVersion](
+    const auto hasXRecordFrame = [this, sourceVersion, ac1021TwoRootProfile](
             const DRW_XRecord& source) {
         const dx_data::StandardDwgFrameKey key{
             cData->importGeneration, source.handle};
@@ -39087,7 +39229,10 @@ bool dx_iface::prepareDwgLayerStateOutput(
             return false;
         return standardDwgModelsEqual(
             source, *standard->second.typedBaseline, sourceVersion,
-            dwgObjType::XRECORD);
+            dwgObjType::XRECORD)
+            && (!ac1021TwoRootProfile
+                || (hasAc1021LayerStateFrameProvenance(source, dwgObjType::XRECORD)
+                    && ac1021LayerStateXrecordWireComplete(standard->second.raw, source)));
     };
     std::vector<DRW_Dictionary> layerStateCompanions;
     if (sourceVersion == DRW::AC1021 || sourceVersion == DRW::AC1024) {
@@ -39111,7 +39256,7 @@ bool dx_iface::prepareDwgLayerStateOutput(
                 || !companion->m_entries.empty()
                 || companion->xDictHandle != 0u
                 || companion->hasDataStorageBinaryData()
-                || companion->hasDwgCommonLinkTail()
+                || companion->hasDwgCommonLinkTail() != ac1021TwoRootProfile
                 || !companion->pendingAppIdResolutions.empty()
                 || !companion->pendingLayerRefResolutions.empty()
                 || companion->reactorHandles
@@ -39272,8 +39417,11 @@ bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
     const bool recheckAc1024EmptyRootWire = sourceVersion == DRW::AC1024
         && m_dwgLayerStateOutputSource.extensionDictionary.m_entries.size() == 1u
         && !m_dwgLayerStateOutputSource.hasLayerStateRecord;
+    const bool recheckAc1021TwoRootWire = sourceVersion == DRW::AC1021
+        && m_dwgLayerStateOutputSource.extensionDictionary.m_entries.size() == 2u
+        && m_dwgLayerStateOutputSource.hasLayerStateRecord;
     const auto frameMatches = [this, sourceVersion, recheckAc1024EmptyRootWire,
-                               &sameDictionary](
+                               recheckAc1021TwoRootWire, extensionHandle, &sameDictionary](
                                   const DRW_Dictionary& source) {
         const dx_data::StandardDwgFrameKey key{
             cData->importGeneration, source.handle};
@@ -39293,10 +39441,13 @@ bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
             frame->second.typedBaseline.get());
         return baseline != nullptr && sameDictionary(source, *baseline)
             && (!recheckAc1024EmptyRootWire
-                || ac1024EmptyLayerStateDictionaryWireComplete(
-                    frame->second.raw, source));
+                || ac1024EmptyLayerStateDictionaryWireComplete(frame->second.raw, source))
+            && (!recheckAc1021TwoRootWire
+                || (hasAc1021LayerStateFrameProvenance(source, dwgObjType::DICTIONARY)
+                    && ac1021LayerStateDictionaryWireComplete(frame->second.raw, source,
+                        extensionHandle, m_dwgLayerStateOutputSource.layerStatesDictionary.handle)));
     };
-    const auto xrecordFrameMatches = [this, sourceVersion](
+    const auto xrecordFrameMatches = [this, sourceVersion, recheckAc1021TwoRootWire](
             const DRW_XRecord& source) {
         const dx_data::StandardDwgFrameKey key{
             cData->importGeneration, source.handle};
@@ -39312,8 +39463,10 @@ bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
             && frame->second.typedBaseline
             && !frame->second.opaquePayload
             && standardDwgModelsEqual(
-                source, *frame->second.typedBaseline, sourceVersion,
-                dwgObjType::XRECORD);
+                source, *frame->second.typedBaseline, sourceVersion, dwgObjType::XRECORD)
+            && (!recheckAc1021TwoRootWire
+                || (hasAc1021LayerStateFrameProvenance(source, dwgObjType::XRECORD)
+                    && ac1021LayerStateXrecordWireComplete(frame->second.raw, source)));
     };
     const DRW_Dictionary* extension = uniqueDictionary(extensionHandle);
     const DRW_Dictionary* states = uniqueDictionary(
