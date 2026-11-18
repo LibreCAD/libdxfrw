@@ -49,8 +49,10 @@
   "authorityCheck": {
     "oda": {
       "document": "Open Design Specification for .dwg files v5.4.1",
+      "localCopyPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
       "localCopySha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
-      "search": "The local text extraction contains no ACDBASSOCNETWORK class-specific schema entry.",
+      "recheckedAt": "2026-11-18",
+      "search": "The hash-matched local text extraction contains no ACDBASSOCNETWORK, AcDbAssocNetwork, AssocNetwork, or associative-network class entry. General uses of 'assoc' do not define the class-version-2 body.",
       "effect": "No normative class-version-2 field order, span, or wire role is established."
     },
     "autodeskObjectArx": {
