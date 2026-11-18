@@ -360,9 +360,14 @@ integration pass or a specific failure that expands risk.
 | P6-F / WAITING_FOR_ELIGIBLE_PARTIAL_SOURCE | Reuse the [disposition](docs/research/p6-cli-legacy-ac1012-ac1014-partial-disposition-2026-11-16.json) and [candidate trace](docs/research/p6-ac1012-ac1014-lwpolyline-partial-candidate-screen-2026-11-17.json); scans are complete and no current source qualifies. | Resume only with an existing hash-bound AC1012/AC1014 source containing recoverable entity failures, closed object/backlink/reference dependencies, and later published frames. Prove destination preservation, partial ASCII/Binary output, fresh readback, and corrected retry; never weaken version/frame/reference checks or commit ODA derivatives. |
 | P6-H / WAITING_FOR_VALID_MACOS_CONVERTER_INSTALLATION | The exact scratch MLINE source remains hash-bound. The installed 27.1 app is suspended/unusable and fails strict signature verification. The official ODA page lists 27.10 for macOS ARM64, but its checksum-valid DMG contains an app with an invalid signature and the alternate PKG also fails signature verification. See the [attempt receipt](docs/research/p6-h-scratch-mline-source-attempt-2026-11-17.json). Do not execute/install those artifacts or retry conversion until ODA provides a verifiable bundle that opens normally. | With a valid usable launch, convert the exact source once; verify AC1018, parser route, and independent values, then complete the linked P8-D check. This does not qualify whole-file conversion or AC1027 output. |
 
-P6-G is not a required gate. Reopen it only when review names one exact public
-signature/version/field route lacking rollback, same-writer retry, or readback
-assertions. Do not reopen the generic writer inventory without a specific gap.
+P6-G is not a required gate. The existing [SUN explicit-owner override
+receipt](docs/research/p6-dxf-sun-owner-override-allocation-rollback-retry-2026-11-13.json)
+records reached-allocation rollback, same-adapter byte-identical retry, and
+typed owner readback for its rooted VPORT/SUN profile across AC1021/AC1024/
+AC1027/AC1032 and ASCII/Binary. This generated-writer slice does not reopen
+P6-G or qualify other owners. Reopen only when review names one exact public
+signature/version/field route lacking rollback, retry, or readback; do not
+resume a generic writer inventory.
 
 Potential DIMASSOC/XREF, remaining 3D positions/OCS/splines, clipping/mesh,
 unit/lineweight, text/XDATA/EED/font, proxy identity, header dependencies, and

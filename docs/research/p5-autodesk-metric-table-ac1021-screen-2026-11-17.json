@@ -12,7 +12,7 @@
   "source": {
     "temporaryPath": "/private/tmp/autodesk_blocks_and_tables_metric.dwg",
     "sizeBytes": 258848,
-    "sha256": "7d5507ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
     "exactHeaderVersion": "AC1021",
     "interpretation": "The public Autodesk index does not establish the exact DWG version; the first six file bytes do. AC1021 is outside the requested AC1024 profile."
   },
@@ -34,5 +34,16 @@
     "entityParseFailures": 0,
     "strictOutput": "Refused before publication because FIELD/FIELDLIST carriers have no qualified DXF serializer."
   },
-  "result": "This distinct official sample confirms that the Autodesk catalog includes TABLE drawings, but this artifact is AC1021 and both TABLE semantic tails remain incomplete in the current reader. It is not a P5-D AC1024 witness and does not resolve the AC1024 body-string versus detached-TV conflict. It was downloaded to /private/tmp only and is not a repository fixture. Do not fetch it again for P5-D."
+  "result": "This distinct official sample confirms that the Autodesk catalog includes TABLE drawings, but this artifact is AC1021 and both TABLE semantic tails remain incomplete in the current reader. It is not a P5-D AC1024 witness and does not resolve the AC1024 body-string versus detached-TV conflict. It was downloaded to /private/tmp only and is not a repository fixture. Do not fetch it again for P5-D.",
+  "verificationRefresh": {
+    "date": "2026-11-17",
+    "method": "Rehashed the existing scratch file and existing parser log; no new download or conversion was performed.",
+    "sourceSha256Verified": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "sourceSizeBytesVerified": 258848,
+    "exactHeaderVerified": "AC1021",
+    "logSha256Verified": "eda8049de54d282fb6bc2dfac84e9e38869aa2db5f753fa317a05744f4af739b",
+    "logContains": ["TABLE handle 0x2856e", "TABLE handle 0x2a974"],
+    "finding": "The prior receipt digest had 56 hexadecimal characters and did not match the retained file. It has been corrected to the verified 64-character SHA-256.",
+    "supportClaimEffect": "none"
+  }
 }
