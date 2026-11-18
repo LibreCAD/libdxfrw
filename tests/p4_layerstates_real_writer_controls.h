@@ -17,17 +17,26 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
         [](const DRW_XRecord& row) { return row.handle == 0x24Bu; });
     const auto scale = std::find_if(source.scales.begin(), source.scales.end(),
         [](const DRW_Scale& row) { return row.handle == 0x127u; });
+    const auto scaleList = std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
+        [](const DRW_Dictionary& row) { return row.handle == 0x126u; });
+    const auto selectedRootCount = std::count_if(source.namedObjectDictionary.m_entries.begin(),
+        source.namedObjectDictionary.m_entries.end(), [](const auto& entry) {
+            return entry.m_name == "ACAD_SCALELIST" && entry.m_handle == 0x126u;
+        });
     if (app == source.appIds.end() || companion == source.dictionaries.end()
         || dictionary == source.dictionaries.end() || record == source.xRecords.end()
-        || scale == source.scales.end() || record->m_handleValues.size() != 1u)
+        || scale == source.scales.end() || scaleList == source.dictionaries.end()
+        || source.namedObjectDictionary.handle != 0xCu || selectedRootCount != 1
+        || source.scales.size() != 32u || scaleList->m_entries.size() != 32u
+        || record->m_handleValues.size() != 1u)
         return fail("LayerStates real writer selected source is absent");
     class SelectedWriter final : public dx_iface {
     public:
         dx_data blank;
         DRW_AppId app;
-        DRW_Dictionary companion, dictionary;
+        DRW_Dictionary companion, dictionary, scaleList;
         DRW_XRecord record;
-        DRW_Scale scale;
+        std::vector<DRW_Scale> scales;
         bool duplicateRecord {false};
         void writeHeader(DRW_Header& header) override { header.vars.clear(); }
         bool wantsDxfLayerTableControl() const override { return false; }
@@ -45,7 +54,8 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
             (void)dxfW->writeDictionary(&dictionary);
             (void)dxfW->writeXRecord(&record);
             if (duplicateRecord) (void)dxfW->writeXRecord(&record);
-            (void)dxfW->writeScale(&scale);
+            (void)dxfW->writeDictionary(&scaleList);
+            for (auto& item : scales) (void)dxfW->writeScale(&item);
         }
         bool finalizeDxfWrite() override { return true; }
     } selected;
@@ -59,9 +69,19 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
     dxfRW codec(path.string().c_str());
     selected.dxfW = &codec;
     codec.setDxfWriteRecordInventoryEnabled(true);
-    codec.setHandleRemap({{0xEDu, 0xA0EDu}, {0xD5u, 0xA0D5u},
+    std::map<std::uint32_t, std::uint32_t> mappings{{0xEDu, 0xA0EDu}, {0xD5u, 0xA0D5u},
         {0x24Au, 0xA24Au}, {0x24Bu, 0xA24Bu}, {0x127u, 0xA127u},
-        {0x249u, 0xA249u}, {0x126u, 0xA126u}});
+        {0x249u, 0xA249u}, {0x126u, 0xA126u}};
+    for (const auto& item : source.scales) mappings[item.handle] = 0xA000u + item.handle;
+    std::map<std::uint32_t, const DRW_Scale*> scalesByOutput;
+    for (const auto& item : source.scales) {
+        if (!scalesByOutput.emplace(mappings.at(item.handle), &item).second)
+            return fail("LayerStates SCALE output identities are ambiguous");
+    }
+    codec.setHandleRemap(mappings);
+    codec.setRootDictEntries({{"ACAD_SCALELIST", "A126"}});
+    if (!codec.setGeneratedDictionarySourceHandles(source.namedObjectDictionary.handle, 0u))
+        return fail("selected NOD source handle setup failed");
     bool tablesSeen = false, objectsSeen = false;
     const auto map = [&codec](std::uint32_t input, std::uint32_t& output) {
         output = input == 0u ? 0u : codec.remapHandle(input);
@@ -85,19 +105,49 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
         if (!tablesSeen || !Access::consistentLayerStateSourceGraph(reader, source)) return false;
         for (const auto& item : {std::make_pair(0xA0EDu, "DICTIONARY"),
                 std::make_pair(0xA24Au, "DICTIONARY"),
-                std::make_pair(0xA24Bu, "XRECORD"), std::make_pair(0xA127u, "SCALE")})
+                std::make_pair(0xA24Bu, "XRECORD"), std::make_pair(0xA127u, "SCALE"),
+                std::make_pair(0xA126u, "DICTIONARY"), std::make_pair(0xCu, "DICTIONARY")})
             if (codec.dxfWriteRecordHandleCount(item.first) != 1u
                 || !codec.dxfWriteRecordHasIdentity(item.first, item.second, "OBJECTS")) return false;
         if (!codec.dxfWriteRecordHasOwner(0xA0EDu, 0xA0D5u)
             || !codec.dxfWriteRecordHasOwner(0xA24Au, 0xA249u)
             || !codec.dxfWriteRecordHasOwner(0xA24Bu, 0xA24Au)
-            || !codec.dxfWriteRecordHasOwner(0xA127u, 0xA126u)) return false;
+            || !codec.dxfWriteRecordHasOwner(0xA127u, 0xA126u)
+            || !codec.dxfWriteRecordHasOwner(0xA126u, 0xCu)) return false;
+        for (const auto& item : source.scales) {
+            const auto emitted = codec.remapHandle(item.handle);
+            if (codec.dxfWriteRecordHandleCount(emitted) != 1u
+                || !codec.dxfWriteRecordHasIdentity(emitted, "SCALE", "OBJECTS")
+                || !codec.dxfWriteRecordHasOwner(emitted, 0xA126u)) return false;
+        }
         unsigned seenCompanion = 0u, seenDictionary = 0u, seenRecord = 0u, seenScale = 0u;
+        unsigned seenRoot = 0u, seenScaleList = 0u;
         return dx_standard_output::inspectSelected(view,
-            [](std::string_view, std::uint32_t h) {
-                return h == 0xA0EDu || h == 0xA24Au || h == 0xA24Bu || h == 0xA127u;
+            [&](std::string_view, std::uint32_t h) {
+                return h == 0xA0EDu || h == 0xA24Au || h == 0xA24Bu
+                    || h == 0xCu || h == 0xA126u || scalesByOutput.count(h) != 0u;
             }, [&](const dx_standard_output::Shape& shape, std::string_view body) {
                 dx_standard_output::Decoder decoder(view);
+                if (shape.handle == 0xCu) {
+                    if (++seenRoot != 1u) return false;
+                    return decoder.decodeRecord<DRW_Dictionary>(body, [&](const DRW_Dictionary& actual) {
+                        return std::count_if(actual.m_entries.begin(), actual.m_entries.end(), [](const auto& entry) {
+                            return entry.m_name == "ACAD_SCALELIST" && entry.m_handle == 0xA126u
+                                && entry.m_dxfHandleCode == DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+                        }) == 1;
+                    });
+                }
+                if (shape.handle == 0xA126u) {
+                    if (++seenScaleList != 1u) return false;
+                    return decoder.decodeRecord<DRW_Dictionary>(body, [&](const DRW_Dictionary& actual) {
+                        std::vector<std::uint32_t> refs;
+                        if (!dx_standard_output::equal(*scaleList, actual, map, refs)) return false;
+                        for (const auto& entry : scaleList->m_entries)
+                            if (std::count(refs.begin(), refs.end(), codec.remapHandle(entry.m_handle)) != 1)
+                                return false;
+                        return true;
+                    });
+                }
                 if (shape.handle == 0xA0EDu || shape.handle == 0xA24Au) {
                     const auto& expected = shape.handle == 0xA0EDu ? *companion : *dictionary;
                     auto& seen = shape.handle == 0xA0EDu ? seenCompanion : seenDictionary;
@@ -117,27 +167,36 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
                             && std::count(refs.begin(), refs.end(), 0xA127u) == 1;
                     });
                 }
-                if (++seenScale != 1u || shape.kind != dx_standard_output::Family::Other) return false;
+                ++seenScale;
+                if (shape.kind != dx_standard_output::Family::Other) return false;
+                const auto expected = scalesByOutput.find(shape.handle);
+                if (expected == scalesByOutput.end()) return false;
                 return decoder.decodeRecord<DRW_Scale>(body, [&](const DRW_Scale& actual) {
-                    return actual.handle == 0xA127u && actual.parentHandle == 0xA126u
-                        && actual.name == scale->name && actual.flag == scale->flag
-                        && actual.paperUnits == scale->paperUnits
-                        && actual.drawingUnits == scale->drawingUnits
-                        && actual.isUnitScale == scale->isUnitScale;
+                    return actual.handle == shape.handle && actual.parentHandle == 0xA126u
+                        && actual.reactorHandles == std::vector<std::uint32_t>{0xA126u}
+                        && actual.name == expected->second->name && actual.flag == expected->second->flag
+                        && actual.paperUnits == expected->second->paperUnits
+                        && actual.drawingUnits == expected->second->drawingUnits
+                        && actual.isUnitScale == expected->second->isUnitScale;
                 });
-            }) && seenCompanion == 1u && seenDictionary == 1u && seenRecord == 1u && seenScale == 1u;
+            }) && seenRoot == 1u && seenScaleList == 1u && seenCompanion == 1u
+                && seenDictionary == 1u && seenRecord == 1u && seenScale == 32u;
     })) return fail("LayerStates real writer inspector setup failed");
     const auto restore = [&] { selected.app = *app; selected.companion = *companion;
-        selected.dictionary = *dictionary; selected.record = *record; selected.scale = *scale;
+        selected.dictionary = *dictionary; selected.record = *record;
+        selected.scaleList = *scaleList;
+        selected.scales.assign(source.scales.begin(), source.scales.end());
+        codec.setRootDictEntries({{"ACAD_SCALELIST", "A126"}});
         selected.duplicateRecord = false; };
     const std::string sentinel = "selected LayerStates ledger sentinel\n";
     for (const bool binary : {false, true}) {
-        for (unsigned fault = 0u; fault != 7u; ++fault) {
+        for (unsigned fault = 0u; fault != 12u; ++fault) {
             restore(); tablesSeen = false; objectsSeen = false;
             if (fault == 0u) selected.app.name = "OTHER";
             if (fault == 1u) selected.companion.cloning = 2;
             if (fault == 2u) selected.record.parentHandle = 0x249u;
-            if (fault == 3u) selected.scale.paperUnits = 2.0;
+            if (fault == 3u) for (auto& item : selected.scales)
+                if (item.handle == 0x127u) item.paperUnits = 2.0;
             if (fault == 4u) {
                 auto value = std::find_if(selected.record.m_dataEntries.begin(),
                     selected.record.m_dataEntries.end(),
@@ -156,22 +215,38 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
                 **value = DRW_Variant(1000, std::string("wrong"));
             }
             if (fault == 6u) selected.duplicateRecord = true;
+            if (fault == 7u) codec.setRootDictEntries({{"ACAD_SCALELIST", "A128"}});
+            if (fault == 8u) selected.scaleList.m_entries.front().m_handle = 0xdeadbeefu;
+            if (fault == 9u) selected.scaleList.parentHandle = 0xD5u;
+            if (fault == 10u) for (auto& item : selected.scales)
+                if (item.handle == 0x145u) item.drawingUnits += 1.0;
+            if (fault == 11u) selected.scales.push_back(selected.scales.front());
             { std::ofstream existing(path, std::ios::binary | std::ios::trunc);
               if (!existing || !(existing << sentinel)) return fail("cannot seed selected ledger sentinel"); }
-            if (codec.write(&selected, DRW::AC1024, binary)) return fail("corrupt selected ledger output succeeded");
+            if (codec.write(&selected, DRW::AC1024, binary)) {
+                std::cerr << "LayerStates staged fault " << fault
+                          << ", binary=" << binary << '\n';
+                return fail("corrupt selected ledger output succeeded");
+            }
             {
                 std::ifstream existing(path, std::ios::binary);
                 if (std::string{std::istreambuf_iterator<char>(existing), {}} != sentinel
-                    || !tablesSeen || (fault != 0u && fault != 6u && !objectsSeen))
+                    || !tablesSeen || (fault != 0u && fault != 6u && fault != 11u && !objectsSeen)) {
+                    std::cerr << "LayerStates staged fault " << fault
+                              << ", binary=" << binary << '\n';
                     return fail("selected ledger refusal did not preserve destination or reach its inspector");
+                }
             }
             restore(); tablesSeen = false; objectsSeen = false;
-            if (!codec.write(&selected, DRW::AC1024, binary) || !tablesSeen || !objectsSeen)
+            if (!codec.write(&selected, DRW::AC1024, binary) || !tablesSeen || !objectsSeen) {
+                std::cerr << "LayerStates staged fault " << fault
+                          << ", binary=" << binary << '\n';
                 return fail("selected ledger restored same-writer retry failed");
+            }
         }
     }
     if (!Access::consistentLayerStateSourceGraph(reader, source))
         return fail("selected ledger test changed the original source graph");
-    std::cerr << "AC1024 selected LayerStates real writer ledger controls passed (ASCII/Binary).\n";
+    std::cerr << "AC1024 selected NOD/SCALELIST and 32 SCALE staged controls passed (ASCII/Binary, 12 faults each).\n";
     return true;
 }

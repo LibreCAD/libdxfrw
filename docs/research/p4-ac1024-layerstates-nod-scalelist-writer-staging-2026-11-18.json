@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-layerstates-nod-scalelist-writer-staging-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SELECTED_REAL_WRITER_STAGING_CONTROLS_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "scope": "One local physical AC1024 witness. The original importing adapter/data must pass its same-import LayerStates source-graph preflight before, during, and after staged output."
+  },
+  "implementation": {
+    "testHeader": "tests/p4_layerstates_real_writer_controls.h",
+    "testHeaderSha256": "abeac31af02f3e38c4ee5ee03fe27046758fc51ff9ab35240fdc2b2b171a5399",
+    "testDriverSha256": "5981cdbcf811c30192755673219f51fcd74feab4f6fdecb2ff0d181ee9d25c53",
+    "description": "The test-only adapter projects the selected source edges through real dxfRW TABLES and OBJECTS staging. It registers the source NOD handle for the generated root and selects ACAD_SCALELIST; the root record is regenerated, not a copy of the complete source NOD metadata. The SCALELIST dictionary and all 32 SCALE objects are copied from the same imported data."
+  },
+  "observations": [
+    "The actual staged output has one generated NOD 0xC with a selected ACAD_SCALELIST soft-owner entry targeting mapped dictionary 0xA126, and that dictionary has one output ledger identity with owner 0xC.",
+    "The staged SCALELIST is compared with its source dictionary using nonidentity handle mapping, including its ordered entries and common fields; each of the 32 mapped targets has one SCALE ledger identity and the mapped dictionary owner.",
+    "Each staged SCALE body is decoded and checked against its selected source name, flag, units, unit flag, mapped parent and reactor. The prior APPID, companion EED, nested dictionary and XRECORD-to-SCALE controls remain in the same writer staging test.",
+    "For each ASCII and Binary encoding, twelve distinct injected faults are refused while a pre-existing destination sentinel is preserved; after each fault the corrected data is written using the same codec. The five added faults change the NOD target, a SCALELIST member target, the SCALELIST owner, a nonselected SCALE's units, and duplicate a SCALE identity."
+  ],
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "buildExitCode": 0,
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-real-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "selectorExitCode": 0,
+    "selectorLogSha256": "97391051c739ea8fd19ea542d3970bbc88a4528d28ce20c10d31984882223d1c",
+    "executableSha256": "82446b69b4c02eec7d967e7f67b8314da89cf206d47547be0e7a4c7686277d55",
+    "linkedLibrarySha256": "7d9f57866a409f1461f8058bb9e7e00d80f5861f71c57890b9a5f766514a241a",
+    "linkedAdapterObjectSha256": "d74f9cc57fb113a05a8e97ac451d3c7c1dc1813e90f1f1450fffe5941cbe54b4"
+  },
+  "limits": [
+    "This is a selected source-projected staging control using a test adapter. It does not preserve or qualify the complete source NOD, unrelated roots, SUN, or a complete production fileExport graph.",
+    "The generated root entry's DXF soft-owner role is observed in this output; it does not by itself establish correspondence with every source DWG wire role.",
+    "The staging decoder is from the same implementation. Independent readback, native LayerStates semantics, full-source strict output and broader format support remain unqualified."
+  ]
+}
