@@ -20,9 +20,10 @@ LibreCAD PR #3269 is merged as `4060fb6bb` and is contained in that LibreCAD hea
 
 **Progress on 2026-11-17:** 6 of 33 required package gates are closed (18.2%);
 27 remain. After S8.2b/c/d, the P4-C ObjectARX plus APS witness-route screens,
-and the bounded LibreDWG 0.14 AC1032 TABLE peer screen (S37), the activity
-count is 60 of 87 tracked items complete (69.0%): 6 closed gates and 54
-completed implementation/research slices. The 27
+the bounded LibreDWG 0.14 AC1032 TABLE peer screen (S37), and the current-tree
+AC1024 CLASSES report recheck (S38), the activity count is 61 of 88 tracked
+items complete (69.3%): 6 closed gates and 55 completed implementation/research
+slices. The 27
 remaining counted items are the 27 open package gates. A completed slice can
 advance a gate that remains open, so this equal-weight activity count measures
 work items rather than unique outcomes or support breadth; use 6/33 for
@@ -52,6 +53,16 @@ JSON retains 86,163 table bits as unknown and supplies no usable row/cell
 values. This peer route cannot resolve P6-C's disputed CadValue layout and
 must not be used as semantic evidence. Do not repeat it for the unchanged
 source. See the [peer-screen receipt](docs/research/p6-ac1032-libredwg-tablecontent-peer-screen-2026-11-17.json).
+S38 rebuilt the current `dwg2dxf` and rechecked the nine hash-bound AC1024
+corpus inputs plus the short-tail control after the workspace guidance
+reported six CLASSES failures. All ten traces reach the
+`dwgReader24::readDwgClasses END` marker; nine finish with legacy error 0,
+while the short-tail control advances to `BAD_READ_TABLES` (error 9). None
+reproduces `BAD_READ_CLASSES` or the
+`strDataSize` high-bit failure. This does not disprove a failure in a distinct,
+unavailable AutoCAD 2010 RTM save; do not change the parser for these inputs or
+repeat this scan. Reopen only with the exact failing source hash and its
+producer/maintenance metadata. See the [current-tree receipt](docs/research/p6-ac1024-current-tree-classes-recheck-2026-11-17.json).
 The S8.2d AC1027 BLOCK_CONTROL boundary selector now passes with the exact
 source-backed 53-bit handle suffix; this test-only slice changes no support
 claim. See [receipt](docs/research/p8-dwg-block-control-handle-bit-count-fast-slice-2026-11-17.json).
@@ -257,12 +268,15 @@ environment waits block only their own profiles.
   parser changes. Reuse the [nine-file corpus rerun](docs/research/p6-ac1024-classes-available-corpus-rerun-2026-11-05.json),
   [high-size path recheck](docs/research/p6-ac1024-classes-high-bit-rtm-recheck-2026-11-08.json),
   and [short-tail compatibility receipt](docs/research/p6-ac1024-classes-short-tail-compatibility-2026-11-12.json).
-  They show the nine currently available AC1024 samples pass the CLASSES stage;
-  the hash-bound, unprovenanced short-tail sample now reaches TABLES after its
-  sentinel policy fix. This does not resolve the separate six-of-ten AutoCAD
-  2010 RTM report. Keep that claim dormant until one of its exact failing
-  source hashes and producer/maintenance metadata are supplied; do not repeat
-  the available-corpus scan or infer a general CLASSES fix from these receipts.
+  S38 rebuilt the current executable and rechecked those nine sources plus the
+  short-tail control: all ten reach the CLASSES end marker, nine report legacy
+  error 0, and the short-tail control reaches TABLES after its sentinel policy
+  fix. No source reproduces the reported CLASSES/high-bit failure. This still
+  does not resolve a distinct six-of-ten AutoCAD 2010 RTM report: keep it
+  dormant until an exact failing hash and producer/maintenance metadata are
+  supplied. Do not repeat the available-corpus scan or infer a general CLASSES
+  fix from these receipts; see the [S38 current-tree
+  recheck](docs/research/p6-ac1024-current-tree-classes-recheck-2026-11-17.json).
 - Preserve LibreCAD 2D behavior and ABI; new `DRW_Interface` callbacks use
   default no-op implementations. Preserve 3D coordinates, OCS, transforms,
   units, geometry, block membership, identities, and dependent objects.
@@ -292,8 +306,8 @@ environment waits block only their own profiles.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 33 package gates and each implementation/research slice once; the
-  current ledger has 54 recorded completed slices (87 counted items total),
-  matching the 60/87 progress snapshot above.
+  current ledger has 55 recorded completed slices (88 counted items total),
+  matching the 61/88 progress snapshot above.
   Linux, Windows, and GUI outcomes belong to
   P8-B/C/D and are not separate progress units. A
   partial implementation slice earns activity progress but does not close its
@@ -395,9 +409,9 @@ unit/lineweight, text/XDATA/EED/font, proxy identity, header dependencies, and
 CLI atomicity are backlog prompts only. Add one only after a bounded
 source/profile identifies a concrete gap. Keep the short-tail LTYPE_CONTROL
 fail-closed until versioned roles resolve. Do not reopen AC1024 CLASSES or
-repeat its nine-file scan without the exact failing RTM input and producer
-metadata; the linked corpus and short-tail receipts do not qualify a broader
-layout change.
+repeat its ten-input current-tree scan without the exact failing RTM input and
+producer metadata; the linked corpus, S38 recheck, and short-tail receipts do
+not qualify a broader layout change.
 
 ### P7 — ACIS/ACDS and 3D meaning (5 open)
 
