@@ -1,4 +1,5 @@
 #include "dx_ac1027_material_wire.h"
+#include "dx_layerstates_dwg_wire.h"
 
 #include <cstdint>
 #include <iostream>
@@ -139,9 +140,112 @@ bool matches(const std::vector<std::pair<std::string, std::uint8_t>> &entries,
   }
   return true;
 }
+
+// Generated independently from the selected AC1024 empty-dictionary wire
+// profile. No drawing or external fixture is required for this control.
+bool checkAc1024EmptyNodDictionary(std::uint8_t handle) {
+  BitWriter writer;
+  writer.bits(0u, 2u); writer.bits(42u, 8u);
+  writer.handle(0u, handle);
+  writer.bits(2u, 2u); // no EED
+  writer.longValue(1u); // one reactor
+  writer.bits(1u, 1u); // no extension dictionary
+  writer.bits(2u, 2u); // zero entries
+  writer.shortValue(1u); // cloning
+  writer.bits(0u, 8u); // not hard-owned
+  writer.bits(0u, 1u); // no detached string stream
+  writer.handle(4u, 0x0cu); // owner
+  writer.handle(4u, 0x0cu); // reactor
+  writer.bits(15u, 4u); // exact observed terminal bits, not a general rule
+  if (writer.size() != 96u)
+    return false;
+
+  DRW_Dictionary source;
+  source.handle = handle;
+  source.parentHandle = 0x0cu;
+  source.cloning = 1;
+  source.hardOwner = 0;
+  source.reactorHandles = {0x0cu};
+  source.setDwgCommonObjectState(1, 1u, false);
+  source.setDwgCommonLinkTailValidated(true);
+
+  DRW_UnsupportedObject raw;
+  raw.m_version = DRW::AC1024;
+  raw.m_objectType = 42;
+  raw.m_handle = handle;
+  raw.m_parentHandle = 0x0cu;
+  raw.m_numReactors = 1;
+  raw.m_reactorHandles = {0x0cu};
+  raw.m_xDictFlag = 1u;
+  raw.m_commonHandleDataValidated = true;
+  raw.m_commonLinkEvidence = DRW_DwgCommonLinkEvidence::Validated;
+  raw.m_objectSize = 12u;
+  raw.m_bodyBitSize = 36u;
+  raw.m_rawBytes = std::move(writer).take();
+  const auto check = [&](const DRW_UnsupportedObject& frame,
+                         const DRW_Dictionary& dictionary) {
+    return dx_layerstates_dwg_wire::observeAc1024EmptyNodDictionary(
+        frame, dictionary, 0x0cu);
+  };
+  if (!check(raw, source))
+    return false;
+  // Every physical bit, including each terminal bit, is bound in this profile.
+  for (std::size_t bit = 0; bit < raw.m_rawBytes.size() * 8u; ++bit) {
+    auto corrupt = raw;
+    corrupt.m_rawBytes[bit / 8u] ^=
+        static_cast<std::uint8_t>(1u << (7u - bit % 8u));
+    if (check(corrupt, source) || !check(raw, source))
+      return false;
+  }
+  auto truncated = raw;
+  truncated.m_rawBytes.pop_back();
+  if (check(truncated, source))
+    return false;
+  auto extended = raw;
+  extended.m_rawBytes.push_back(0xffu);
+  ++extended.m_objectSize;
+  extended.m_bodyBitSize += 8u;
+  if (check(extended, source))
+    return false;
+  auto wrongVersion = raw;
+  wrongVersion.m_version = DRW::AC1021;
+  if (check(wrongVersion, source))
+    return false;
+  auto wrongProof = raw;
+  wrongProof.m_commonLinkEvidence = DRW_DwgCommonLinkEvidence::Unknown;
+  if (check(wrongProof, source))
+    return false;
+  wrongProof = raw;
+  wrongProof.m_commonHandleDataValidated = false;
+  if (check(wrongProof, source))
+    return false;
+  wrongProof = raw;
+  wrongProof.m_xDictFlag = 0u;
+  if (check(wrongProof, source))
+    return false;
+  auto changed = source;
+  changed.reactorHandles.front() = 0x0du;
+  if (check(raw, changed))
+    return false;
+  changed = source;
+  changed.m_entries.push_back({"unexpected", 0x10u});
+  if (check(raw, changed))
+    return false;
+  changed = source;
+  changed.flags = 1u;
+  if (check(raw, changed)
+      || dx_layerstates_dwg_wire::observeAc1024EmptyNodDictionary(raw, source, 0x0du))
+    return false;
+  return check(raw, source);
+}
 } // namespace
 
 int main() {
+  if (!checkAc1024EmptyNodDictionary(0x73u)
+      || !checkAc1024EmptyNodDictionary(0x19u)) {
+    std::cerr << "AC1024 empty NOD dictionary wire control failed\n";
+    return 1;
+  }
   const std::vector<std::pair<std::string, std::uint8_t>> orderA{
       {"ByLayer", 68u}, {"ByBlock", 69u}, {"Global", 70u}};
   const std::vector<std::pair<std::string, std::uint8_t>> orderB{

@@ -3970,6 +3970,8 @@ private:
     std::size_t m_generatedRootOutputBytes{0u};
     std::size_t m_generatedRootOutputByteLimit{ImageDefinitionCaptureMaxRetainedBytes};
     bool m_generatedRootOutputInspected{false}, m_generatedRootOutputFinalized{false}, m_generatedRootOutputPublished{false};
+    bool m_ac1024EmptyNodChildrenSelected{false};
+    bool hasUnchangedAc1024EmptyNodChildren(bool final) const;
     bool inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
     bool hasUnchangedGeneratedRootSources(bool final) const;
     bool finalizeGeneratedRootOutput() noexcept;

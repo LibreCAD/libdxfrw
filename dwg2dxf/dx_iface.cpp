@@ -31745,6 +31745,7 @@ void dx_iface::resetStandardDwgOutputProofs() noexcept {
     std::vector<GeneratedRootOutputProof>().swap(m_generatedRootOutputProofs);
     m_generatedRootOutputBytes = 0u;
     m_generatedRootOutputInspected = m_generatedRootOutputFinalized = m_generatedRootOutputPublished = false;
+    m_ac1024EmptyNodChildrenSelected = false;
     std::vector<RasterOutputProof>().swap(m_rasterOutputProofs);
     std::vector<std::uint32_t>().swap(m_rasterDictionaryReferences); m_rasterDictionaryEmitted = 0u;
     m_rasterDictionaryCommonCompared = false;
@@ -48733,8 +48734,86 @@ bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) 
     } catch (...) { return false; }
 }
 
+namespace {
+constexpr std::array<std::pair<const char*, std::uint32_t>, 2> ac1024EmptyNodChildren{{
+    {"ACAD_COLOR", 0x73u},
+    {"ACAD_PLOTSETTINGS", 0x19u}
+}};
+
+bool hasAc1024EmptyNodPair(const DRW_Dictionary& root) {
+    return root.m_entries.size() == 16u
+        && std::all_of(ac1024EmptyNodChildren.begin(), ac1024EmptyNodChildren.end(),
+            [&root](const auto& child) {
+                return std::any_of(root.m_entries.begin(), root.m_entries.end(),
+                    [&child](const auto& entry) {
+                        return entry.m_name == child.first && entry.m_handle == child.second;
+                    });
+            });
+}
+}
+
+bool dx_iface::hasUnchangedAc1024EmptyNodChildren(bool final) const {
+    const auto& data = *cData;
+    const auto& nod = data.namedObjectDictionary;
+    const auto generation = data.importGeneration;
+    const auto rootFrame = data.m_standardDwgObjectFrames.find({generation, nod.handle});
+    const auto* original = rootFrame == data.m_standardDwgObjectFrames.end()
+        ? nullptr : dynamic_cast<const DRW_Dictionary*>(rootFrame->second.typedBaseline.get());
+    if (!hasCurrentDwgLayerControlSourceProof(data)
+        || !original || !hasAc1024EmptyNodPair(*original)
+        || !standardDwgModelsEqual(*original, nod,
+                                   DRW::AC1024, dwgObjType::DICTIONARY))
+        return false;
+    for (const auto& child : ac1024EmptyNodChildren) {
+        const auto handle = child.second;
+        if (!data.hasCompleteDwgDictionaryEntry(nod.handle, child.first, handle)
+            || std::count_if(nod.m_entries.begin(), nod.m_entries.end(),
+                [&child](const auto& entry) {
+                    return entry.m_handle == child.second
+                        || asciiIdentifierEquals(entry.m_name, child.first);
+                }) != 1)
+            return false;
+        dx_dwgDictionaryCloningSource cloning;
+        if (!data.getDwgDictionaryCloningSource(handle, cloning)
+            || !cloning.currentValueMatchesBaseline || cloning.sourceValue != 1)
+            return false;
+        const auto key = dx_data::StandardDwgFrameKey{generation, handle};
+        const auto& frame = data.m_standardDwgObjectFrames.at(key);
+        const auto& publication = frame.publication;
+        const auto ordinal = data.m_standardDwgObjectOrdinals.find(
+            {generation, publication.m_sourceMapOrdinal});
+        const auto location = data.m_standardDwgObjectLocations.find(
+            {generation, {publication.m_sourceOffsetSpace, publication.m_sourceOffset}});
+        const auto current = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
+            [handle](const DRW_Dictionary& dictionary) { return dictionary.handle == handle; });
+        if (!frame.dictionaryMembership.m_entries.empty()
+            || !frame.hasNoObservedTextDecodeIssues()
+            || data.m_opaqueDwgSourceFrameIdentities.count(key) != 1u
+            || ordinal == data.m_standardDwgObjectOrdinals.end() || ordinal->second != handle
+            || location == data.m_standardDwgObjectLocations.end() || location->second != handle
+            || current == data.dictionaries.end()
+            || !standardDwgModelsEqual(*frame.typedBaseline, *current,
+                                       DRW::AC1024, dwgObjType::DICTIONARY)
+            || !dx_layerstates_dwg_wire::observeAc1024EmptyNodDictionary(
+                frame.raw, *current, nod.handle))
+            return false;
+        if (!final) continue;
+        const auto proof = m_standardDwgOutputProofs.find(handle);
+        if (!m_standardDwgOutputFinalized || proof == m_standardDwgOutputProofs.end()
+            || proof->second.generation != generation
+            || proof->second.objectType != dwgObjType::DICTIONARY
+            || proof->second.owner != 0xCu || proof->second.identityOnlyDictionary
+            || !dxfW->dxfWriteSourceObjectHasIdentity(handle, proof->second.emitted,
+                                                "DICTIONARY", "OBJECTS", 0xCu))
+            return false;
+    }
+    return true;
+}
+
 bool dx_iface::hasUnchangedGeneratedRootSources(bool final) const {
     if (!cData || !dxfW) return false;
+    if (m_ac1024EmptyNodChildrenSelected && !hasUnchangedAc1024EmptyNodChildren(final))
+        return false;
     if (!validateNamedObjectRootForExport(*cData, "ACAD_GROUP")) return false;
     const auto header = cData->headerC.dwgNamedObjectDictionaryReference();
     if (header && (!DRW_Header::isUsableDwgNamedObjectDictionaryReference(*header)
@@ -48830,6 +48909,26 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
                 for (const auto& root : *roots) {
                     std::uint32_t target = 0u;
                     if (!dx_raster_output::integer(root.second, target, 16) || !select(root.first, target)) return false;
+                }
+                if (view.version == DRW::AC1024 && cData->sourceFormat == dx_source_format::DWG
+                    && cData->sourceVersion == DRW::AC1024 && frozen->handle == 0xCu) {
+                    const auto source = cData->m_standardDwgObjectFrames.find(
+                        {cData->importGeneration, frozen->handle});
+                    const auto* original = source == cData->m_standardDwgObjectFrames.end()
+                        ? nullptr : dynamic_cast<const DRW_Dictionary*>(
+                            source->second.typedBaseline.get());
+                    // The witness can be recognized from the frozen writer
+                    // request even when the independently captured baseline
+                    // is missing. The source check must then refuse it.
+                    if ((hasAc1024EmptyNodPair(*frozen) || (original && hasAc1024EmptyNodPair(*original)))
+                        && (keys.count(ac1024EmptyNodChildren[0].first)
+                            || keys.count(ac1024EmptyNodChildren[1].first))) {
+                        diagnosticStage = "AC1024 selected empty NOD child sources";
+                        if (!keys.count(ac1024EmptyNodChildren[0].first)
+                            || !keys.count(ac1024EmptyNodChildren[1].first))
+                            return false;
+                        m_ac1024EmptyNodChildrenSelected = true;
+                    }
                 }
             }
             const auto count = groups ? frozen->m_entries.size() : selected.size();

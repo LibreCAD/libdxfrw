@@ -3405,6 +3405,22 @@ public:
         return iface.m_rasterOutputFinalized && iface.m_rasterOutputProofs.size() == count && iface.m_rasterDictionaryCommonCompared;
     }
     static bool generatedRoots(dx_iface& iface, const dxfRW::DxfObjectsWriteView& view) { return iface.inspectGeneratedRootOutput(view); }
+    static bool inspectEmptyNodChildren(dx_iface& iface, dx_data& data,
+            const dxfRW::DxfObjectsWriteView& view) {
+        iface.cData = &data;
+        return iface.inspectGeneratedRootOutput(view)
+            && iface.inspectStandardDwgOutput(view);
+    }
+    static bool emptyNodChildrenSelected(const dx_iface& iface) {
+        return iface.m_ac1024EmptyNodChildrenSelected;
+    }
+    static bool finalizeEmptyNodChildren(dx_iface& iface) {
+        return iface.finalizeStandardDwgOutputProofs()
+            && iface.finalizeGeneratedRootOutput();
+    }
+    static std::uint8_t& emptyNodTail(dx_data& data, std::uint32_t handle) {
+        return data.m_standardDwgObjectFrames.at({data.importGeneration, handle}).raw.m_rawBytes.back();
+    }
     static bool generatedRootsFinal(const dx_iface& iface, std::size_t count, bool published = false) {
         return iface.m_generatedRootOutputInspected && iface.m_generatedRootOutputFinalized
             && iface.m_generatedRootOutputProofs.size() == count && (!published || iface.m_generatedRootOutputPublished);
@@ -92701,6 +92717,8 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-real-writer")
         return physicalAc1024LayerStatesRealWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--layerstates-ac1024-empty-nod-writer")
+        return physicalAc1024EmptyNodWriter(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-source-graph-context")
         return physicalAc1024LayerStatesSourceGraphContext(argv[2]) ? 0 : 1;

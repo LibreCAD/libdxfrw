@@ -1,4 +1,23 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
+class LayerStateTestWriter : public dx_iface {
+public:
+    void writeHeader(DRW_Header& header) override { header.vars.clear(); }
+    bool wantsDxfLayerTableControl() const override { return false; }
+    void writeVports() override {}
+    void writeLTypes() override {}
+    void writeLayers() override {
+        DRW_Layer layer;
+        layer.name = "0";
+        layer.handle = 0x10u;
+        (void)dxfW->writeLayer(&layer);
+    }
+    void writeTextstyles() override {}
+    void writeDimstyles() override {}
+    void writeBlockRecords() override {}
+    void writeBlocks() override {}
+    void writeEntities() override {}
+};
+
 // Test-only selected-edge staging: not a complete DWG export or NOD proof.
 bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
@@ -30,7 +49,7 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
         || source.scales.size() != 32u || scaleList->m_entries.size() != 32u
         || record->m_handleValues.size() != 1u)
         return fail("LayerStates real writer selected source is absent");
-    class SelectedWriter final : public dx_iface {
+    class SelectedWriter final : public LayerStateTestWriter {
     public:
         dx_data blank;
         DRW_AppId app;
@@ -38,16 +57,6 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
         DRW_XRecord record;
         std::vector<DRW_Scale> scales;
         bool duplicateRecord {false};
-        void writeHeader(DRW_Header& header) override { header.vars.clear(); }
-        bool wantsDxfLayerTableControl() const override { return false; }
-        void writeVports() override {}
-        void writeLTypes() override {}
-        void writeLayers() override { DRW_Layer layer; layer.name = "0"; layer.handle = 0x10u; (void)dxfW->writeLayer(&layer); }
-        void writeTextstyles() override {}
-        void writeDimstyles() override {}
-        void writeBlockRecords() override {}
-        void writeBlocks() override {}
-        void writeEntities() override {}
         void writeAppId() override { (void)dxfW->writeAppId(&app); }
         void writeObjects() override {
             (void)dxfW->writeDictionary(&companion);
@@ -248,5 +257,143 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
     if (!Access::consistentLayerStateSourceGraph(reader, source))
         return fail("selected ledger test changed the original source graph");
     std::cerr << "AC1024 selected NOD/SCALELIST and 32 SCALE staged controls passed (ASCII/Binary, 12 faults each).\n";
+    return true;
+}
+
+bool physicalAc1024EmptyNodWriter(const std::filesystem::path& sourcePath) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || !Access::consistentLayerStateSourceGraph(reader, source)
+        || source.dictionaryWithDefaults.size() != 1u
+        || source.placeholders.size() != 1u)
+        return fail("could not import the AC1024 empty NOD witness");
+
+    const auto find = [&source](std::uint32_t handle) {
+        return std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
+            [handle](const DRW_Dictionary& row) { return row.handle == handle; });
+    };
+    const auto group = find(0xDu);
+    const auto color = find(0x73u);
+    const auto plotSettings = find(0x19u);
+    if (group == source.dictionaries.end() || color == source.dictionaries.end()
+        || plotSettings == source.dictionaries.end())
+        return fail("missing empty NOD source dictionaries");
+
+    class Writer final : public LayerStateTestWriter {
+    public:
+        dx_data blank;
+        DRW_Dictionary color, plotSettings;
+        DRW_DictionaryWithDefault plot;
+        DRW_AcDbPlaceholder placeholder;
+        std::function<bool()> finalize;
+        void writeAppId() override {}
+        void writeObjects() override {
+            (void)dxfW->writeDictionary(&color);
+            (void)dxfW->writeDictionary(&plotSettings);
+            (void)dxfW->writeDictionaryWithDefault(&plot);
+            (void)dxfW->writeAcDbPlaceholder(&placeholder);
+        }
+        bool finalizeDxfWrite() override { return finalize(); }
+    } writer;
+    writer.cData = &writer.blank;
+    writer.color = *color;
+    writer.plotSettings = *plotSettings;
+    writer.plot = source.dictionaryWithDefaults.front();
+    if (writer.plot.m_entries.size() != 1u) return fail("missing Normal plot-style entry");
+    writer.plot.m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+    writer.placeholder = source.placeholders.front();
+
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-empty-nod-writer-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error);
+    } } cleanup{path};
+    dxfRW codec(path.string().c_str());
+    dx_iface foreign;
+    for (auto* adapter : {&reader, &foreign, static_cast<dx_iface*>(&writer)})
+        Access::attachDxfWriter(*adapter, &codec);
+    codec.setDxfWriteRecordInventoryEnabled(true);
+    codec.setHandleRemap({{0x73u, 0xA073u}, {0x19u, 0xA019u}});
+    const std::vector<std::pair<std::string, std::string>> roots{
+        {"ACAD_COLOR", "A073"}, {"ACAD_PLOTSETTINGS", "A019"}, {"ACAD_PLOTSTYLENAME", "E"}};
+    codec.setRootDictEntries(roots);
+    if (!codec.setGeneratedDictionarySourceHandles(0xCu, 0xDu)
+        || !codec.setGeneratedDictionarySourceRecords(
+            std::make_unique<DRW_Dictionary>(source.namedObjectDictionary),
+            std::make_unique<DRW_Dictionary>(*group))
+        || !codec.setDxfDefaultPlotStyleSourceHandles(0xEu, 0xFu))
+        return fail("could not set up the full NOD snapshot");
+    DRW_Class plotClass, placeholderClass;
+    if (!dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
+        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
+        return fail("missing plot-style CLASSES rows");
+    plotClass.instanceCount = placeholderClass.instanceCount = 1;
+    codec.setDxfClasses({plotClass, placeholderClass});
+
+    enum class Fault { None, SourceTail, WrongSession, MissingRoot, MissingBaseline,
+                       WrongBody, LateTail };
+    Fault fault = Fault::None;
+    bool staged = false, finalizing = false;
+    if (!codec.setDxfObjectsWriteInspector([&](const auto& view) {
+        staged = true;
+        auto& adapter = fault == Fault::WrongSession ? foreign : reader;
+        return Access::inspectEmptyNodChildren(adapter, source, view);
+    })) return fail("could not set up selected NOD staging");
+    auto& tail = Access::emptyNodTail(source, 0x73u);
+    writer.finalize = [&]() {
+        finalizing = true;
+        if (fault == Fault::LateTail) tail ^= 1u;
+        const bool result = Access::finalizeEmptyNodChildren(reader);
+        if (fault == Fault::LateTail) tail ^= 1u;
+        return result;
+    };
+    const auto run = [&](bool binary) {
+        staged = finalizing = false;
+        Access::resetRasterOutput(reader);
+        Access::resetRasterOutput(foreign);
+        return codec.write(&writer, DRW::AC1024, binary);
+    };
+    const std::string sentinel = "preserve empty NOD writer destination\n";
+    for (const bool binary : {false, true}) {
+        if (!run(binary) || !staged || !finalizing || !Access::emptyNodChildrenSelected(reader))
+            return fail("empty NOD production proof rejected the original source");
+        for (const auto bad : {Fault::SourceTail, Fault::WrongSession, Fault::MissingRoot,
+                               Fault::MissingBaseline, Fault::WrongBody, Fault::LateTail}) {
+            fault = bad;
+            if (fault == Fault::SourceTail) tail ^= 1u;
+            if (fault == Fault::MissingRoot)
+                codec.setRootDictEntries({roots[0], roots[2]});
+            if (fault == Fault::WrongBody) writer.color.cloning = 2;
+            std::shared_ptr<const DRW_TableEntry> rootBaseline;
+            if (fault == Fault::MissingBaseline
+                && !Access::replaceStandardDictionaryBaseline(source, 0xCu, nullptr, rootBaseline))
+                return fail("cannot remove the test NOD baseline");
+            {
+                std::ofstream existing(path, std::ios::binary | std::ios::trunc);
+                if (!(existing << sentinel)) return fail("cannot seed empty NOD destination");
+            }
+            const bool saved = run(binary);
+            if (fault == Fault::SourceTail) tail ^= 1u;
+            std::shared_ptr<const DRW_TableEntry> removed;
+            if (fault == Fault::MissingBaseline
+                && !Access::replaceStandardDictionaryBaseline(source, 0xCu, rootBaseline, removed))
+                return fail("cannot restore the test NOD baseline");
+            codec.setRootDictEntries(roots);
+            writer.color = *color;
+            const bool shouldFinalize = fault == Fault::WrongBody || fault == Fault::LateTail;
+            fault = Fault::None;
+            std::ifstream existing(path, std::ios::binary);
+            if (saved || !staged || finalizing != shouldFinalize
+                || std::string(std::istreambuf_iterator<char>(existing), {}) != sentinel)
+                return fail("empty NOD fault did not refuse in the expected stage");
+            existing.close();
+            if (!run(binary) || !staged || !finalizing || !Access::emptyNodChildrenSelected(reader))
+                return fail("empty NOD corrected retry failed");
+        }
+    }
+    std::cerr << "AC1024 empty NOD production inspector and finalizer passed in both encodings.\n";
     return true;
 }

@@ -167,6 +167,35 @@ bool observeDictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& s
                        AppIdSource appIdSource, LinkSource linkSource) noexcept {
     return observeDictionaryForVersion(raw, source, DRW::AC1024, appIdSource, linkSource);
 }
+
+// Source-wire proof for the two observed aerial AC1024 empty NOD children.
+// The final four set bits are accepted only for this exact frame shape;
+// they are not interpreted as a general DWG padding rule. The caller must
+// bind the same-import source publication, unique NOD edge, typed baseline,
+// and staged output before using this observation for qualification.
+inline bool observeAc1024EmptyNodDictionary(
+        const DRW_UnsupportedObject& raw, const DRW_Dictionary& source,
+        std::uint32_t nodHandle) noexcept {
+    if (nodHandle != 0xCu || (source.handle != 0x73u && source.handle != 0x19u)
+        || source.parentHandle != nodHandle || !source.name.empty()
+        || source.flags != 0u || source.reactorCount() != 1
+        || source.extensionDictionaryFlag() != 1u
+        || source.reactorHandles.size() != 1u
+        || source.reactorHandles.front() != nodHandle
+        || !source.m_entries.empty() || !source.extData.empty()
+        || source.cloning != 1 || source.hardOwner != 0
+        || raw.m_objectSize != 12u || raw.m_rawBytes.size() != 12u
+        || raw.m_bodyBitSize != 36u || (raw.m_rawBytes.back() & 0x0fu) != 0x0fu)
+        return false;
+    return observeDictionary(raw, source,
+        [](std::uint32_t, const std::string&) noexcept { return false; },
+        [](LinkKind kind, std::size_t index, std::uint8_t role,
+           std::uint8_t length) noexcept {
+            return index == 0u && role == 4u && length == 1u
+                && (kind == LinkKind::Owner || kind == LinkKind::Reactor);
+        });
+}
+
 template <class AppIdSource, class LinkSource>
 bool observeAc1021Dictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& source,
                              AppIdSource appIdSource, LinkSource linkSource) noexcept {
