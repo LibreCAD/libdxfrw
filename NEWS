@@ -4,6 +4,9 @@
   differ from the 2.x baseline. Consumers must rebuild against this package.
 * DWG, advanced DXF, and consumer qualifications remain subject to the
   evidence gates described in the current plan.
+* AC1021 DWG exports with a recognized two-root LayerStates graph fail
+  closed when its source or dependencies cannot be verified, including partial
+  exports; such files may previously have fallen back to generic output.
 
 2.0.0
 -----

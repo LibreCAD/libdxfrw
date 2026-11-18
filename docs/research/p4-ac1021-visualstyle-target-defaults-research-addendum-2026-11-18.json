@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1021-visualstyle-target-defaults-research-addendum-2026-11-18",
+  "date": "2026-11-18",
+  "status": "DEFERRED_NATIVE_VISUALSTYLE_OPERATION_AND_COLOR_WITNESS",
+  "supportClaimEffect": "none",
+  "extends": "docs/research/p4-ac1021-visualstyle-ac1024-target-peer-mapping-2026-11-18.json",
+  "scope": "One targeted pass for independent evidence on AC1021\u2192AC1024 VISUALSTYLE group-176/177 defaults, legacy fields and true-color fallback; existing production version gate is unchanged.",
+  "autodesk": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2017/ENU/OARXMAC-RefGuide/files/OREFMAC-AcGiVisualStyleOperations__Operation.html",
+      "finding": "The native visual-style operation enum distinguishes inherit, set, disable and enable; inherit has numeric value 0."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbVisualStyle__setTrait_AcGiVisualStyleProperties__Property_int_AcGiVisualStyleOperations__Operation.html",
+      "finding": "The native integer setTrait overload defaults its operation to kSet. This is not evidence that DXF group 176 encodes the same enum or that a converted 2007 style must use kSet."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-AutoLISP-Reference/files/GUID-D47983BA-1E5D-417D-85B8-6F3DE5F506BA.htm",
+      "finding": "The entity entmod documentation describes precedence for group 420 over group 62; it does not establish VISUALSTYLE object groups 421/63 or 424/66 precedence."
+    },
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-8A8BF2C4-FC56-44EC-A8C4-A60CE33A530C.htm",
+      "finding": "The public VISUALSTYLE reference describes group 421 and edge-style-apply 174 but does not supply an AC1021-to-AC1024 mapping for group 176/177 or the dropped legacy fields."
+    }
+  ],
+  "independentReaders": {
+    "ezdxf": {
+      "version": "1.4.5",
+      "command": "build/rpp5gh-evidence/peer/bin/python /private/tmp/visualstyle_ezdxf_structural_check.py /private/tmp/truetype-libredwg-target2010.dxf",
+      "scriptSha256": "67f66dd7c3e75b6a4a0cce851d095112663329f7addb10c797a829afa2e7182c",
+      "resultFile": "/private/tmp/visualstyle_ezdxf_structural_check.json",
+      "resultSha256": "8e0cabe92486e7de7ab43551ebb230da02cb7ffd73feac33a270931eca83a0fb",
+      "inputSha256": "eaeaafc859f7c36e1d862dbcbbdc496b37137f2bdbd7724c6e0178e9e97f2d27",
+      "result": "PASS structural read and audit: AC1024, 16 VISUALSTYLE records, 0 audit errors and 0 audit fixes. It does not compare native property operations, rendered behavior or full document semantics.",
+      "implementation": "Installed ezdxf entities/visualstyle.py SHA-256 445d5a19e95a19817ab531e7c373e8d6f2793ee82e43f0e6e9aead8684bf8090; its R2018 comments discuss group-176 delimiters, not an independently established 2007\u21922010 operation mapping.",
+      "palette": "Its colors.py SHA-256 2dc20b764a7ca766f9719f954974e46348595669a4ae8eb7dd4da512e0ed16fb maps ACI 7 to white, 8 to RGB 128/128/128 and 9 to RGB 192/192/192. The peer target-2010 ColorChange frame pairs C2808080 with ACI 9; the existing AC1024 builder chooses 7. This discrepancy does not decide actual VISUALSTYLE fallback or native rendering."
+    },
+    "acadsharp": {
+      "checkoutHead": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+      "dwgReader": "/Users/dli/dev/ACadSharp/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.cs",
+      "dwgReaderSha256": "d93c6c8a3f0554901a69c9bbb6490f95674c821c169da0ead33a99c162ffab69",
+      "dxfReader": "/Users/dli/dev/ACadSharp/src/ACadSharp/IO/DXF/DxfStreamReader/DxfObjectsSectionReader.cs",
+      "dxfReaderSha256": "20f0d8e4ad9c7d9d65d1ab03ea827dc30339b58c28dbaae1db61fcc5c889bec5",
+      "finding": "The inspected DWG reader marks VISUALSTYLE implementation incomplete, and the DXF reader explicitly skips 176 and 177. This checkout cannot independently validate those target field semantics."
+    }
+  },
+  "decision": "Keep the cross-version VISUALSTYLE gate closed. The LibreDWG observation of 176=0 and 177=2 is one implementation output; Autodesk operation defaults and entity color-precedence guidance do not establish that mapping, and an independent parser audit does not establish native semantics.",
+  "changedStateTrigger": "On the authorized remote AutoCAD/ObjectARX host, establish actual release/OS/SDK; then capture a hash-bound native 2007 source\u21922010 DXF export and reopen, recording each selected style property and its operation plus viewport bindings before/after. Include controlled nondefault operations, reserved/edge-apply and C2808080 color cases and verify target output, rejection/rollback and same-adapter retry. Alternatively provide equivalently authoritative versioned format semantics plus independent producer/consumer evidence. Do not retry ODA until the host session or headless environment changes.",
+  "limits": [
+    "No VISUALSTYLE output gate or support claim is widened.",
+    "No ODA retry was made in this research pass.",
+    "No production code or drawing fixture was changed or committed."
+  ]
+}
