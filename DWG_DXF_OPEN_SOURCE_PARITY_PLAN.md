@@ -19,7 +19,7 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-18:** 7/34 package gates closed; 27 remain. The activity
-ledger is 106/133 (79.7%): seven closed gates and 99 completed implementation or
+ledger is 107/134 (79.9%): seven closed gates and 100 completed implementation or
 research slices. The [focused slice](docs/research/p6-raster-dimstyle-default-roundtrip-2026-11-18.json)
 fixes an AC1021 default plot dictionary reexport and a default BYBLOCK DIMSTYLE
 downgrade; five owning selectors pass. The following [source-identity selector
@@ -178,8 +178,8 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 34 package gates and each implementation/research slice once. The
-  current ledger is 99 completed slices plus 34 package gates = 133 counted
-  items; 7 gates plus 99 slices are complete (106/133, 79.7%). The Linux and
+  current ledger is 100 completed slices plus 34 package gates = 134 counted
+  items; 7 gates plus 100 slices are complete (107/134, 79.9%). The Linux and
   Windows FreeCAD results cover only their exact generated profile and binary;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package
@@ -225,8 +225,9 @@ their gate rows and receipts. Do not repeat unchanged attempts.
 
 AC1021 follow-ups in P4-D: the [two-root truetype repair](docs/research/p4-ac1021-layerstates-two-root-wire-regression-repair-2026-11-18.json)
 restores same-version selected and strict whole-source output for the witnessed
-profile. AC1021-to-AC1024 whole-source output still stops at DICTIONARYVAR
-preflight; investigate that exact source before claiming cross-version output.
+profile. AC1021-to-AC1024 whole-source output remains blocked: the [DICTIONARYVAR
+profile](docs/research/p4-ac1021-ctablestyle-ac1024-crossversion-blocker-2026-11-18.json) needs its TABLESTYLE output join, while a diagnostic bypass reaches separate
+[VISUALSTYLE and LAYOUT restrictions](docs/research/p4-ac1021-visualstyle-ac1024-target-peer-mapping-2026-11-18.json). Native target evidence is needed before choosing VISUALSTYLE defaults.
 The annotation selector remains blocked by a retained [LAYER → LTYPE → unnamed
 STYLE chain](docs/research/p4-ac1021-annotation-empty-layerstates-style-chain-2026-11-18.json);
 do not remove those records without complete dependency proof. Its whole-source

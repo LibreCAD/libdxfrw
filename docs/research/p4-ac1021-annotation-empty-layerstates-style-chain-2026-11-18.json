@@ -38,5 +38,22 @@
     "testPolicy": "Do not change the historical selected projection until complete incoming-reference closure is proven for the layer, linetype, style and all other retained staged records; any narrowed test must explicitly document omitted rows and cannot imply full-document support.",
     "nextTrigger": "After independent AC1021 DICTIONARY body/string/handle-role proof and marker handling, instrument the exact first STYLE write refusal. If the selected source graph remains useful, prove all incoming references to candidate omitted rows over the actual projection, add atomic refusal/retry and both-encoding fresh readback, and retain the whole-source guard."
   },
-  "validation": "Read-only independent peer export and source/history review; no production code or source fixture modified. Full suite not run."
+  "validation": "Read-only independent peer export and source/history review; no production code or source fixture modified. Full suite not run.",
+  "addendum20261118": {
+    "question": "Can the original selected LayerStates source projection safely omit the complete LAYER-to-LTYPE-to-unnamed STYLE chain?",
+    "sourceControlGate": "No direct source-consistent omission is established. dx_data::getLayerTableControlExtensionDictionary requires the live DWG LAYER count to equal the same-import published LAYER_CONTROL handle count, with every source layer handle occurring uniquely and owned by that control. Erasing Arch_Section_Insul 0x3A7 therefore fails the existing original-control membership proof before LayerStates output. Removing only BATTING 0x363 or STYLE 0x3CD leaves a retained incoming reference. Mutating the source layer, fabricating membership or switching the source format to Unknown would create a different test projection and does not preserve the original source claim.",
+    "primaryReferences": [
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-EF68AF7C-13EF-45A1-8175-ED6CE66C8FC9.htm",
+        "finding": "STYLE flag 1 identifies a shape-file entry and group 3 carries its font filename. This documentation alone does not establish native acceptance of this exact empty-name source/target profile."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm",
+        "finding": "LTYPE group 74 bit 4 denotes an embedded shape, and group 340 points to its STYLE object."
+      }
+    ],
+    "relatedPeerEvidence": "The different AC1015 sample in p4-ac1015-entities3d-style-empty-name-oda-gui-2026-11-07.json produced an empty-name shape STYLE in ODA output, but its SHAPE entity was absent; that observation does not establish the current AC1021 shape-linetype graph or native semantics.",
+    "nextWitness": "Obtain a hash-bound, independently produced native AC1021 DWG and matching AC1021/AC1024 DXF with a layer using a shape-bearing linetype whose 340 targets an empty-name shape STYLE; record producer/version and source provenance. Independently inspect exact STYLE flag/name/font and every LTYPE segment/340, layer-to-LTYPE relation and output identity; open/reopen in a native consumer with the needed shape font and verify behavior. For this local source, an independently qualified same-source peer conversion and fresh consumer readback can also establish the physical graph and any omission/remapping, but unauthenticated input remains a provenance limit. Preserve rollback and same-adapter retry and both output encodings when implementing a narrowly qualified profile.",
+    "disposition": "Keep the original DWG export guard and source-control membership unchanged. An independently qualified shape-style output route is the useful path for retaining this entire original graph; a separately designed projection may be tested but cannot be described as preserving the original complete source control. No native, platform, producer-wide or support claim is promoted, and no DWG/DXF fixture is committed."
+  }
 }
