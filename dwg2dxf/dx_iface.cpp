@@ -48640,6 +48640,21 @@ bool dx_iface::inspectDxfSunStudyOutput(const dxfRW::DxfObjectsWriteView& view) 
             m_sunStudyRootSnapshot->m_entries.end(), [&](const auto& entry) { return entry.m_handle == source.parentHandle; });
         if (rootEntry == m_sunStudyRootSnapshot->m_entries.end() || m_sunStudyOwnerSnapshot->m_entries.size() != 1u)
             return false;
+        const auto sourceGroupEntry = std::find_if(m_sunStudyRootSnapshot->m_entries.begin(),
+            m_sunStudyRootSnapshot->m_entries.end(), [](const auto& entry) {
+                return asciiIdentifierEquals(entry.m_name, "ACAD_GROUP");
+            });
+        const auto sourcePlotStyleEntry = std::find_if(m_sunStudyRootSnapshot->m_entries.begin(),
+            m_sunStudyRootSnapshot->m_entries.end(), [](const auto& entry) {
+                return asciiIdentifierEquals(entry.m_name, "ACAD_PLOTSTYLENAME");
+            });
+        // The R2000+ writer synthesizes its standard ACAD_PLOTSTYLENAME
+        // dictionary edge when the source NOD does not carry one. Include that
+        // writer-owned edge in the exact root shape while keeping the
+        // SUNSTUDY owner and ACAD_GROUP checks tied to their expected handles.
+        const auto expectedRootEntries = m_sunStudyRootSnapshot->m_entries.size()
+            + (sourceGroupEntry == m_sunStudyRootSnapshot->m_entries.end() ? 1u : 0u)
+            + (sourcePlotStyleEntry == m_sunStudyRootSnapshot->m_entries.end() ? 1u : 0u);
         dx_standard_output::Decoder decoder(view);
         if (!decoder.good()) return false;
         std::size_t seen = 0u, rootSeen = 0u, ownerSeen = 0u, groupSeen = 0u;
@@ -48671,11 +48686,23 @@ bool dx_iface::inspectDxfSunStudyOutput(const dxfRW::DxfObjectsWriteView& view) 
                     return decoder.decodeRecord<DRW_Dictionary>(body, [&](const DRW_Dictionary& actual) {
                         const auto& expectedName = isRoot ? rootEntry->m_name : m_sunStudyOwnerSnapshot->m_entries.front().m_name;
                         const auto expectedTarget = isRoot ? owner : emitted;
+                        const auto plotStyleCount = std::count_if(actual.m_entries.begin(), actual.m_entries.end(),
+                            [](const auto& entry) { return asciiIdentifierEquals(entry.m_name, "ACAD_PLOTSTYLENAME"); });
+                        const bool plotStyleMatches = plotStyleCount == 1u
+                            && std::all_of(actual.m_entries.begin(), actual.m_entries.end(), [&](const auto& entry) {
+                                if (!asciiIdentifierEquals(entry.m_name, "ACAD_PLOTSTYLENAME")) return true;
+                                if (entry.m_handle == 0u || entry.m_handle == DRW::NoHandle
+                                    || entry.m_dxfHandleCode != DRW_Dictionary::Entry::DxfHandleCode::SoftOwner)
+                                    return false;
+                                return sourcePlotStyleEntry == m_sunStudyRootSnapshot->m_entries.end()
+                                    || entry.m_handle == dxfW->remapHandle(sourcePlotStyleEntry->m_handle);
+                            });
                         return actual.handle == shape.handle && actual.parentHandle == (isRoot ? 0u : root)
                             && actual.hardOwner == 0 && actual.cloning == 1
                             && actual.xDictHandle == 0u && actual.reactorHandles.empty()
                             && actual.appData.empty() && actual.extData.empty()
-                            && actual.m_entries.size() == (isRoot ? 2u : 1u)
+                            && actual.m_entries.size() == (isRoot ? expectedRootEntries : 1u)
+                            && (!isRoot || plotStyleMatches)
                             && (!isRoot || std::count_if(actual.m_entries.begin(), actual.m_entries.end(),
                                 [&](const auto& entry) { return entry.m_name == "ACAD_GROUP" && entry.m_handle == group
                                     && entry.m_dxfHandleCode == DRW_Dictionary::Entry::DxfHandleCode::SoftOwner; }) == 1)
@@ -73007,7 +73034,7 @@ bool dx_data::hasBoundDxfSunStudyGraph() const noexcept {
             || !hasNamedObjectDictionary || namedObjectDictionary.handle == 0u
             || namedObjectDictionary.handle == DRW::NoHandle
             || namedObjectDictionary.parentHandle != 0u
-            || (namedObjectDictionary.m_entries.size() != 1u && namedObjectDictionary.m_entries.size() != 2u)
+            || namedObjectDictionary.m_entries.empty() || namedObjectDictionary.m_entries.size() > 3u
             || !namedObjectDictionary.name.empty() || namedObjectDictionary.flags != 0u
             || namedObjectDictionary.hardOwner != 0 || namedObjectDictionary.cloning != 1
             || namedObjectDictionary.xDictHandle != 0u || !namedObjectDictionary.reactorHandles.empty()
@@ -73047,6 +73074,23 @@ bool dx_data::hasBoundDxfSunStudyGraph() const noexcept {
             return a.get() == b.get() && !a.owner_before(b) && !b.owner_before(a);
         };
         const auto& wholeInput = capture.wholeInput;
+        const bool hasRootPlotStyle = std::any_of(namedObjectDictionary.m_entries.begin(),
+            namedObjectDictionary.m_entries.end(), [](const auto& entry) {
+                return asciiIdentifierEquals(entry.m_name, "ACAD_PLOTSTYLENAME");
+            });
+        struct ExpectedClass {
+            const char* recordName;
+            const char* className;
+            const char* appName;
+            int proxyFlag;
+            int instanceCount;
+        };
+        static constexpr std::array<ExpectedClass, 3> expectedClasses{{
+            {"SUNSTUDY", "AcDbSunStudy", "SCENEOE", 1153, 1},
+            {"DICTIONARYWDFLT", "AcDbDictionaryWithDefault", "ObjectDBX Classes", 0, 1},
+            {"ACDBPLACEHOLDER", "AcDbPlaceHolder", "ObjectDBX Classes", 0, 1}
+        }};
+        const auto expectedClassCount = hasRootPlotStyle ? 3u : 1u;
         if (!capture.wholeSelected || !capture.wholePending || capture.wholeFailed
             || !capture.wholeFinished || !wholeInput || !sameOwner(wholeInput, capture.wholeInputOwner)
             || wholeInput->container != this || wholeInput->generation != importGeneration
@@ -73059,12 +73103,22 @@ bool dx_data::hasBoundDxfSunStudyGraph() const noexcept {
             || wholeInput->source->version() != sourceVersion
             || wholeInput->source->binary() != wholeInput->context.binary
             || wholeInput->source->fieldCount() > 1000000u || dxfClassCaptureFailed
-            || dxfClassRetainedRecords != 1u || dxfClasses.size() != 1u) return false;
-        const auto& cls = dxfClasses.front();
-        if (cls.recName != "SUNSTUDY" || cls.className != "AcDbSunStudy"
-            || cls.appName != "SCENEOE" || cls.proxyFlag != 1153
-            || cls.instanceCount != 1 || cls.wasaProxyFlag != 0 || cls.entityFlag != 0)
+            || dxfClassRetainedRecords != expectedClassCount
+            || dxfClasses.size() != expectedClassCount)
             return false;
+        // The writer alternates between these two public class-record names
+        // for AcDbDictionaryWithDefault on first and repeated output passes.
+        // Keep every remaining class field and the section ordering exact.
+        for (std::size_t index = 0u; index < expectedClassCount; ++index) {
+            const auto& actual = dxfClasses[index];
+            const auto& expected = expectedClasses[index];
+            const bool recordNameMatches = actual.recName == expected.recordName
+                || (index == 1u && actual.recName == "ACDBDICTIONARYWDFLT");
+            if (!recordNameMatches || actual.className != expected.className
+                || actual.appName != expected.appName || actual.proxyFlag != expected.proxyFlag
+                || actual.instanceCount != expected.instanceCount || actual.wasaProxyFlag != 0
+                || actual.entityFlag != 0) return false;
+        }
         const auto& whole = *wholeInput->source;
         const auto textField = [&](std::size_t index, int code, std::string_view value) {
             if (index >= whole.fieldCount()) return false;
@@ -73079,16 +73133,29 @@ bool dx_data::hasBoundDxfSunStudyGraph() const noexcept {
                 && f.kind == DxfReadRecordView::Integer && f.integer == value;
         };
         std::size_t classSections = 0u;
+        std::size_t classSectionStart = 0u;
         for (std::size_t i = 0u; i < whole.fieldCount(); ++i) {
             if (!textField(i, 0, "SECTION") || !textField(i + 1u, 2, "CLASSES")) continue;
             ++classSections;
-            if (!textField(i + 2u, 0, "CLASS") || !textField(i + 3u, 1, "SUNSTUDY")
-                || !textField(i + 4u, 2, "AcDbSunStudy") || !textField(i + 5u, 3, "SCENEOE")
-                || !intField(i + 6u, 90, 1153) || !intField(i + 7u, 91, 1)
-                || !intField(i + 8u, 280, 0) || !intField(i + 9u, 281, 0)
-                || !textField(i + 10u, 0, "ENDSEC")) return false;
+            classSectionStart = i;
         }
         if (classSections != 1u) return false;
+        std::size_t classField = classSectionStart + 2u;
+        for (std::size_t index = 0u; index < expectedClassCount; ++index) {
+            const auto& expected = expectedClasses[index];
+            const bool recordNameMatches = textField(classField + 1u, 1, expected.recordName)
+                || (index == 1u && textField(classField + 1u, 1, "ACDBDICTIONARYWDFLT"));
+            if (!textField(classField, 0, "CLASS")
+                || !recordNameMatches
+                || !textField(classField + 2u, 2, expected.className)
+                || !textField(classField + 3u, 3, expected.appName)
+                || !intField(classField + 4u, 90, expected.proxyFlag)
+                || !intField(classField + 5u, 91, expected.instanceCount)
+                || !intField(classField + 6u, 280, 0)
+                || !intField(classField + 7u, 281, 0)) return false;
+            classField += 8u;
+        }
+        if (!textField(classField, 0, "ENDSEC")) return false;
         const auto sourceMatches = [&](const DRW_Dictionary& live, bool root) {
             const auto found = capture.structuralInputs.find(live.handle);
             if (found == capture.structuralInputs.end() || !found->second) return false;
@@ -73107,32 +73174,67 @@ bool dx_data::hasBoundDxfSunStudyGraph() const noexcept {
                 && standardDwgModelsEqual(live, *original, sourceVersion, dwgObjType::DICTIONARY)
                 && dx_sunstudy_dxf_profile::matchesDictionary(*input->raw, *original);
         };
-        if (!sourceMatches(namedObjectDictionary, true) || !sourceMatches(*owner, false)) return false;
-        if (namedObjectDictionary.m_entries.size() == 2u) {
-            const auto& groupEntry = namedObjectDictionary.m_entries[1];
-            if (namedObjectDictionary.m_entries[0].m_handle != owner->handle
-                || groupEntry.m_name != "ACAD_GROUP"
-                || groupEntry.m_dxfHandleCode != DRW_Dictionary::Entry::DxfHandleCode::SoftOwner
-                || groupEntry.m_handle == 0u || groupEntry.m_handle == DRW::NoHandle
-                || groupEntry.m_handle == owner->handle || groupEntry.m_handle == study.handle
-                || groupEntry.m_handle == namedObjectDictionary.handle) return false;
-            const DRW_Dictionary* group = nullptr;
-            for (const auto& dictionary : dictionaries) {
-                if (dictionary.handle != groupEntry.m_handle) continue;
-                if (group) return false;
-                group = &dictionary;
+        const bool rootSourceMatches = sourceMatches(namedObjectDictionary, true);
+        const bool ownerSourceMatches = sourceMatches(*owner, false);
+        if (!rootSourceMatches || !ownerSourceMatches) return false;
+        std::size_t ownerEdges = 0u;
+        std::size_t groupEdges = 0u;
+        std::size_t plotStyleEdges = 0u;
+        for (const auto& entry : namedObjectDictionary.m_entries) {
+            if (entry.m_handle == owner->handle && !entry.m_name.empty()
+                && entry.m_name.size() <= 128u
+                && entry.m_dxfHandleCode == DRW_Dictionary::Entry::DxfHandleCode::SoftOwner) {
+                ++ownerEdges;
+                continue;
             }
-            if (!group || group->parentHandle != namedObjectDictionary.handle
-                || !group->m_entries.empty() || !group->name.empty() || group->flags != 0u
-                || group->hardOwner != 0 || group->cloning != 1 || group->xDictHandle != 0u
-                || !group->reactorHandles.empty() || !group->appData.empty() || !group->extData.empty()
-                || !sourceMatches(*group, false)) return false;
+            if (asciiIdentifierEquals(entry.m_name, "ACAD_GROUP")) {
+                ++groupEdges;
+                if (entry.m_dxfHandleCode != DRW_Dictionary::Entry::DxfHandleCode::SoftOwner
+                    || entry.m_handle == 0u || entry.m_handle == DRW::NoHandle
+                    || entry.m_handle == owner->handle || entry.m_handle == study.handle
+                    || entry.m_handle == namedObjectDictionary.handle) return false;
+                const DRW_Dictionary* group = nullptr;
+                for (const auto& dictionary : dictionaries) {
+                    if (dictionary.handle != entry.m_handle) continue;
+                    if (group) return false;
+                    group = &dictionary;
+                }
+                if (!group || group->parentHandle != namedObjectDictionary.handle
+                    || !group->m_entries.empty() || !group->name.empty() || group->flags != 0u
+                    || group->hardOwner != 0 || group->cloning != 1 || group->xDictHandle != 0u
+                    || !group->reactorHandles.empty() || !group->appData.empty() || !group->extData.empty()
+                    || !sourceMatches(*group, false)) return false;
+                continue;
+            }
+            if (asciiIdentifierEquals(entry.m_name, "ACAD_PLOTSTYLENAME")) {
+                ++plotStyleEdges;
+                if (entry.m_dxfHandleCode != DRW_Dictionary::Entry::DxfHandleCode::SoftOwner
+                    || entry.m_handle == 0u || entry.m_handle == DRW::NoHandle
+                    || entry.m_handle == owner->handle || entry.m_handle == study.handle
+                    || entry.m_handle == namedObjectDictionary.handle) return false;
+                const DRW_DictionaryWithDefault* plotDictionary = nullptr;
+                for (const auto& dictionary : dictionaryWithDefaults) {
+                    if (dictionary.handle != entry.m_handle) continue;
+                    if (plotDictionary) return false;
+                    plotDictionary = &dictionary;
+                }
+                if (!plotDictionary || plotDictionary->parentHandle != namedObjectDictionary.handle
+                    || plotDictionary->m_entries.size() != 1u
+                    || !plotDictionary->hasCompleteDxfPayload()
+                    || !asciiIdentifierEquals(plotDictionary->m_entries.front().m_name, "NORMAL")
+                    || plotDictionary->m_entries.front().m_handle == 0u
+                    || plotDictionary->m_entries.front().m_handle == DRW::NoHandle
+                    || plotDictionary->m_entries.front().m_handle != plotDictionary->m_defaultEntryHandle
+                    || plotDictionary->m_entries.front().m_dxfHandleCode
+                        != DRW_Dictionary::Entry::DxfHandleCode::SoftOwner
+                    || !hasSingleSuccessfulDictionaryDefaultImport()) return false;
+                continue;
+            }
+            return false;
         }
-        std::size_t roots = 0u;
-        for (const auto& entry : namedObjectDictionary.m_entries)
-            if (entry.m_handle == owner->handle && !entry.m_name.empty() && entry.m_name.size() <= 128u
-                && entry.m_dxfHandleCode == DRW_Dictionary::Entry::DxfHandleCode::SoftOwner) ++roots;
-        return roots == 1u;
+        const bool closedRoot = ownerEdges == 1u && groupEdges <= 1u && plotStyleEdges <= 1u
+            && namedObjectDictionary.m_entries.size() == 1u + groupEdges + plotStyleEdges;
+        return closedRoot;
     } catch (...) { return false; }
 }
 

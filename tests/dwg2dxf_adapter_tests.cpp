@@ -90116,13 +90116,30 @@ bool sunStudyDxfGraph(const std::string& source) {
         if (groupEntry == actual.namedObjectDictionary.m_entries.end()) return false;
         const auto group = std::find_if(actual.dictionaries.begin(), actual.dictionaries.end(),
             [&](const DRW_Dictionary& dictionary) { return dictionary.handle == groupEntry->m_handle; });
+        const auto plotStyleEntry = std::find_if(actual.namedObjectDictionary.m_entries.begin(),
+            actual.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) { return entry.m_name == "ACAD_PLOTSTYLENAME"; });
+        const auto plotStyle = plotStyleEntry == actual.namedObjectDictionary.m_entries.end()
+            ? actual.dictionaryWithDefaults.end()
+            : std::find_if(actual.dictionaryWithDefaults.begin(), actual.dictionaryWithDefaults.end(),
+                [&](const DRW_DictionaryWithDefault& dictionary) {
+                    return dictionary.handle == plotStyleEntry->m_handle;
+                });
         return owner != actual.dictionaries.end() && owner->parentHandle == actual.namedObjectDictionary.handle
-            && actual.namedObjectDictionary.m_entries.size() == 2u
+            && actual.namedObjectDictionary.m_entries.size() == 3u
             && std::count_if(actual.namedObjectDictionary.m_entries.begin(), actual.namedObjectDictionary.m_entries.end(),
                 [&](const DRW_Dictionary::Entry& entry) {
                     return entry.m_name == "MY_SUNSTUDIES" && entry.m_handle == owner->handle
                         && entry.m_dxfHandleCode == DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
                 }) == 1
+            && plotStyleEntry != actual.namedObjectDictionary.m_entries.end()
+            && plotStyleEntry->m_dxfHandleCode == DRW_Dictionary::Entry::DxfHandleCode::SoftOwner
+            && plotStyle != actual.dictionaryWithDefaults.end()
+            && plotStyle->parentHandle == actual.namedObjectDictionary.handle
+            && plotStyle->hasCompleteDxfPayload() && plotStyle->m_entries.size() == 1u
+            && plotStyle->m_entries.front().m_name == "Normal"
+            && plotStyle->m_entries.front().m_handle == plotStyle->m_defaultEntryHandle
+            && actual.hasSingleSuccessfulDictionaryDefaultImport()
             && groupEntry->m_dxfHandleCode == DRW_Dictionary::Entry::DxfHandleCode::SoftOwner
             && group != actual.dictionaries.end() && group->parentHandle == actual.namedObjectDictionary.handle
             && group->m_entries.empty() && group->handle != owner->handle && group->handle != study.handle
@@ -90179,7 +90196,7 @@ bool sunStudyDxfGraph(const std::string& source) {
         dx_data repeated; dx_iface repeatedReader;
         if (!repeatedReader.enableWholeDxfSourceObservation()
             || !repeatedReader.fileImport(output.string(), &repeated, false)
-            || repeated.namedObjectDictionary.m_entries.size() != 2u)
+            || repeated.namedObjectDictionary.m_entries.size() != 3u)
             return fail("SUNSTUDY emitted graph failed fresh source qualification");
         const auto repeatRoot = repeated.namedObjectDictionary;
         const auto repeatDictionaries = repeated.dictionaries;

@@ -5098,10 +5098,17 @@ bool runModelerCarrierProbe(bool binary) {
                 return false;
             }
         }
-        if (consumer.carriers.size() != 3) {
+        const auto modelerCarriers = std::count_if(
+            consumer.carriers.begin(), consumer.carriers.end(),
+            [](const CarrierRow& carrier) {
+                return carrier.source.find(
+                    "dxfModelerEntityInlinePayload") != std::string::npos;
+            });
+        if (modelerCarriers != 3) {
             std::cerr << "modeler carrier probe count mismatch: records="
                       << consumer.records.size() << ", carriers="
-                      << consumer.carriers.size() << '\n';
+                      << consumer.carriers.size() << ", inlineModelerCarriers="
+                      << modelerCarriers << '\n';
             return false;
         }
         return true;

@@ -12,8 +12,11 @@
 
 namespace dx_sunstudy_dxf_profile {
 inline bool matchesDictionary(const DRW_RawDxfObject& raw, const DRW_Dictionary& value) noexcept {
+    // A repeated writer pass may add the standard ACAD_GROUP and
+    // ACAD_PLOTSTYLENAME root edges alongside the SUNSTUDY dictionary edge.
+    // The adapter's graph gate validates the allowed names and targets.
     if (raw.name != "DICTIONARY" || raw.handle != value.handle || raw.parentHandle != value.parentHandle
-        || value.m_entries.size() > 2u) return false;
+        || value.m_entries.size() > 3u) return false;
     const auto& g = raw.groups;
     const auto handle = [](const DRW_Variant& item, int code, std::uint32_t expected) {
         std::uint64_t parsed = 0u;
