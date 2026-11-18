@@ -2686,6 +2686,87 @@ public:
         return true;
     }
 
+    static bool layerStateAppIdContextControls(dx_iface& iface, dx_data& data) {
+        iface.cData = &data;
+        const auto qualified = [&]() {
+            return iface.hasQualifiedDwgLayerStateAppId(0x12u, "ACAD");
+        };
+        if (!qualified()
+            || iface.hasQualifiedDwgLayerStateAppId(0x13u, "ACAD")
+            || iface.hasQualifiedDwgLayerStateAppId(0x12u, "acad"))
+            return false;
+        dx_iface other;
+        other.cData = &data;
+        if (other.hasQualifiedDwgLayerStateAppId(0x12u, "ACAD"))
+            return false;
+        const auto readAt = data.m_rasterDwgNameImports.find(data.importGeneration);
+        const auto classAt = data.m_classEvidenceImports.find(data.importGeneration);
+        const auto appAt = data.m_standardDwgAppIdSources.find(
+            {data.importGeneration, 0x12u});
+        if (readAt == data.m_rasterDwgNameImports.end() || !readAt->second
+            || classAt == data.m_classEvidenceImports.end()
+            || appAt == data.m_standardDwgAppIdSources.end() || !appAt->second)
+            return false;
+        auto& read = *readAt->second;
+        const auto eventAt = read.apps.find(0x12u);
+        if (eventAt == read.apps.end())
+            return false;
+        auto& event = eventAt->second;
+        const auto rejectAndRestore = [&](auto& field, const auto& bad) {
+            const auto saved = field;
+            field = bad;
+            const bool rejected = !qualified();
+            field = saved;
+            return rejected && qualified();
+        };
+        if (!rejectAndRestore(read.closed, false)
+            || !rejectAndRestore(read.valid, false)
+            || !rejectAndRestore(read.generation, read.generation + 1u)
+            || !rejectAndRestore(read.attempt, read.attempt + 1u)
+            || !rejectAndRestore(event.duplicate, true)
+            || !rejectAndRestore(event.name, std::string("WRONG"))
+            || !rejectAndRestore(classAt->second.closed, false)
+            || !rejectAndRestore(classAt->second.result.state,
+                                 dx_class_evidence::State::CaptureFailed)
+            || !rejectAndRestore(classAt->second.result.attempt,
+                                 classAt->second.result.attempt + 1u)
+            || !rejectAndRestore(classAt->second.codePage,
+                                 static_cast<std::uint16_t>(read.codePage + 1u)))
+            return false;
+        auto sourceName = event.source;
+        event.source.reset();
+        const bool missingEventRejected = !qualified();
+        event.source = std::move(sourceName);
+        if (!missingEventRejected || !qualified())
+            return false;
+        auto snapshot = appAt->second;
+        appAt->second.reset();
+        const bool missingSnapshotRejected = !qualified();
+        appAt->second = std::move(snapshot);
+        if (!missingSnapshotRejected || !qualified())
+            return false;
+        auto current = std::find_if(data.appIds.begin(), data.appIds.end(),
+            [](const DRW_AppId& row) { return row.handle == 0x12u; });
+        if (current == data.appIds.end())
+            return false;
+        if (!rejectAndRestore(current->name, std::string("WRONG"))
+            || !rejectAndRestore(current->handle, 0x13u))
+            return false;
+        const auto duplicate = *current;
+        data.appIds.push_back(duplicate);
+        const bool duplicateHandleRejected = !qualified();
+        data.appIds.pop_back();
+        if (!duplicateHandleRejected || !qualified())
+            return false;
+        auto duplicateName = duplicate;
+        duplicateName.handle = 0xdeadbeefu;
+        duplicateName.name = "acad";
+        data.appIds.push_back(std::move(duplicateName));
+        const bool duplicateNameRejected = !qualified();
+        data.appIds.pop_back();
+        return duplicateNameRejected && qualified();
+    }
+
     static bool prepareLayerStateOutput(dx_iface& iface,
                                         DRW::Version targetVersion) {
         return iface.prepareDwgLayerStateOutput(targetVersion, false);
@@ -60147,6 +60228,21 @@ bool physicalAc1021EmptyLayerStateRootAdmission(
     return true;
 }
 
+bool physicalAc1024LayerStatesAppIdContext(
+        const std::filesystem::path& sourcePath) {
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024)
+        return fail("LayerStates APPID context witness is not an AC1024 DWG");
+    if (!DxIfaceStandardDwgCaptureTestAccess::layerStateAppIdContextControls(
+            reader, source))
+        return fail("LayerStates APPID same-import context controls failed");
+    std::cerr << "AC1024 LayerStates APPID same-import controls passed.\n";
+    return true;
+}
+
 bool physicalAc1024LayerStatesFallbackRefusal(
         const std::filesystem::path& sourcePath) {
     dx_iface reader;
@@ -60249,6 +60345,12 @@ bool physicalAc1024LayerStatesFallbackRefusal(
         if (exportSource() || !unchanged())
             return fail("unqualified LayerStates retry did not preserve the destination");
     }
+    const DRW_Dictionary duplicateExtension = *extension;
+    source.dictionaries.push_back(duplicateExtension);
+    const bool duplicateRejected = refused();
+    source.dictionaries.pop_back();
+    if (!duplicateRejected || !refused())
+        return fail("ambiguous LayerStates extension did not fail closed and retry");
     std::cerr << "AC1024 LayerStates fallback classification controls passed.\n";
     return true;
 }
@@ -92174,6 +92276,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--ac1021-recompose-data-physical-output-readback")
         return physicalAc1021RecomposeDataOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--layerstates-ac1024-appid-context")
+        return physicalAc1024LayerStatesAppIdContext(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-fallback-refusal")
         return physicalAc1024LayerStatesFallbackRefusal(argv[2]) ? 0 : 1;

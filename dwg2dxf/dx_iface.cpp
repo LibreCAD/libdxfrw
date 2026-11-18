@@ -38215,6 +38215,72 @@ bool ac1024EmptyLayerStateDictionaryWireComplete(
 }
 } // namespace
 
+bool dx_iface::hasQualifiedDwgLayerStateAppId(
+        std::uint32_t handle, std::string_view name) const noexcept {
+    if (cData == nullptr || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024 || !cData->importGeneration
+        || handle == 0u || handle == DRW::NoHandle || name != "ACAD"
+        || !hasCurrentDwgLayerControlSourceProof(*cData))
+        return false;
+    try {
+        const auto generation = cData->importGeneration;
+        const auto readAt = cData->m_rasterDwgNameImports.find(generation);
+        const auto classAt = cData->m_classEvidenceImports.find(generation);
+        const auto sourceAt = cData->m_standardDwgAppIdSources.find(
+            {generation, handle});
+        if (readAt == cData->m_rasterDwgNameImports.end() || !readAt->second
+            || classAt == cData->m_classEvidenceImports.end()
+            || sourceAt == cData->m_standardDwgAppIdSources.end()
+            || !sourceAt->second)
+            return false;
+        const auto& read = *readAt->second;
+        const auto& classImport = classAt->second;
+        if (!read.closed || !read.valid || read.generation != generation
+            || !read.attempt || read.version != DRW::AC1024
+            || !classImport.closed
+            || classImport.result.state != dx_class_evidence::State::Joined
+            || classImport.result.generation != generation
+            || classImport.result.attempt != read.attempt
+            || classImport.result.version != DRW::AC1024
+            || classImport.codePage != read.codePage
+            || classImport.codePagePresent != read.codePagePresent
+            || classImport.codePageRecognized != read.codePageRecognized)
+            return false;
+        const auto eventAt = read.apps.find(handle);
+        if (eventAt == read.apps.end())
+            return false;
+        const auto& event = eventAt->second;
+        if (event.duplicate || event.handle != handle
+            || event.ordinal >= read.appEvents || read.layers.count(handle) != 0u
+            || std::string_view(event.name) != name
+            || !event.source || !event.source->matches(handle, event.name)
+            || !event.source->bound(DRW::AC1024, "UTF-16")
+            || event.source->decodeIssues() != 0u)
+            return false;
+        const DRW_AppId* live = nullptr;
+        std::size_t matchingNames = 0u;
+        for (const DRW_AppId& candidate : cData->appIds) {
+            if (asciiIdentifierEquals(candidate.name, name))
+                ++matchingNames;
+            if (candidate.handle != handle)
+                continue;
+            if (live != nullptr)
+                return false;
+            live = &candidate;
+        }
+        return live != nullptr && matchingNames == 1u && std::string_view(live->name) == name
+            && live->hasUnchangedDwgSourceName()
+            && live->hasBoundDwgNameProfile(DRW::AC1024, "UTF-16")
+            && live->dwgNameDecodeIssues() == 0u
+            && live->sameDwgNameSource(*sourceAt->second)
+            && sourceAt->second->handle == handle
+            && std::string_view(sourceAt->second->name) == name
+            && sourceAt->second->dwgNameSource() == event.source;
+    } catch (...) {
+        return false;
+    }
+}
+
 bool dx_iface::prepareDwgLayerStateOutput(
         DRW::Version targetVersion, bool debug) noexcept {
     m_dwgLayerStateOutputSource = {};
@@ -38277,6 +38343,12 @@ bool dx_iface::prepareDwgLayerStateOutput(
         return found;
     };
     const DRW_Dictionary* extension = uniqueDictionary(extensionHandle);
+    if (sourceVersion == DRW::AC1024 && extension == nullptr
+        && std::count_if(cData->dictionaries.begin(), cData->dictionaries.end(),
+            [extensionHandle](const DRW_Dictionary& dictionary) {
+                return dictionary.handle == extensionHandle;
+            }) > 1)
+        return false;
     // Named dictionaries are case-insensitive. An unqualified LayerStates
     // source must not fall through to generic DICTIONARY output just because
     // its case or graph shape lies outside a proven profile.

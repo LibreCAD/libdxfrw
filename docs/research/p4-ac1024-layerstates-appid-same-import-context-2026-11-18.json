@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-layerstates-appid-same-import-context-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SOURCE_ONLY_APPID_CONTEXT_PREDICATE_AND_CONTROLS",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false
+  },
+  "scope": "A private AC1024 source-only predicate checks one exact ACAD APPID dependency against the actual importing dx_iface and dx_data, a closed and valid same-generation name event, the corresponding joined class-read attempt/version/codepage, the immutable APPID source-name snapshot and a unique unchanged live APPID row. The helper is not connected to output admission.",
+  "files": {
+    "dwg2dxf/dx_iface.cpp": "6f69513983991971412218e3b334b74fa1bd5ef52fd5d976e0c56391dfe680da",
+    "dwg2dxf/dx_iface.h": "0cd576f23ee0f6b8c4edce5839bac3d615486d7e540a4dd936491b0fa15e7f66",
+    "tests/dwg2dxf_adapter_tests.cpp": "2061f66eb3bf7028f7dca610d80efac6655039526b5102f97d2e9cff6da0468a"
+  },
+  "evidence": {
+    "actualImport": "LAYER_CONTROL source proof bound to the original adapter/data; import generation 1, name-read attempt 1, closed/valid, AC1024, source codepage 30 recognized; APPID 0x12 is ACAD, nonduplicate, its immutable source matches handle/name and UTF-16 profile without decode issues. The joined class import has the same generation, attempt, version and codepage.",
+    "inputLogSha256": "190c9e07e693a064130f0eee182b108708927a41c464d9552d6ff62523f8252b",
+    "limits": "Single local witness and source-context evidence only; successful name binding is not source-object graph qualification, emitted APPID table proof, DXF semantic validation, or native interoperability."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "executableSha256": "3f07f02998f839cfc75202ab42a98824857e9cf59920c4e33fdc79a2e04bc981",
+    "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-appid-context tests/samples/AC1024/visualization_-_aerial.dwg",
+    "result": "PASS: correct source, handle and exact name qualify. Wrong adapter, handle/name, stale or unclosed read/class evidence, duplicate or changed event, missing source/snapshot, changed live name/handle and duplicate handle or case-insensitive name are refused; restoring each input requalifies using the same adapter/data.",
+    "logSha256": "c89d37ab1ba9dc11dabce449aacf9cc6cc847433963db6cad65da9a69ad890ae",
+    "additionalSelectors": [
+      "--layerstates-ac1024-fallback-refusal on the aerial witness: PASS, including duplicate extension identity and preserved destinations on refusal",
+      "--layerstates-empty-ac1024-output-readback on the mechanical witness: PASS for existing one-root ASCII/Binary behavior"
+    ]
+  },
+  "limits": [
+    "No production output is admitted by this predicate and no support claim is promoted.",
+    "Tests exercise the private source-only predicate directly; they do not establish staged APPID table identity, complete graph output or native semantic acceptance.",
+    "The source-consistent three-root full-export projection and successful retry remain open; the whole-source aerial witness is independently blocked by its unrelated SUN owner graph.",
+    "No external drawing fixture was added."
+  ]
+}

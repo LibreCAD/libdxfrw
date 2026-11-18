@@ -329,7 +329,7 @@ bool testDictionaryFrames(const dx_data &data) {
         input.m_objectSize = static_cast<std::uint32_t>(bytes.size());
         input.m_bodyBitSize = handleBits;
         return dx_layerstates_dwg_wire::observeDictionary(input, *helperSource,
-            [&](std::uint32_t handle, std::string_view name) noexcept {
+            [&](std::uint32_t handle, const std::string &name) noexcept {
                 const auto *app = DxIfaceStandardDwgCaptureTestAccess::app(data, handle);
                 return appOk && handle == 0x12u && name == "ACAD" && app
                     && app->handle == handle && app->name == name
@@ -577,11 +577,56 @@ bool observeNestedXrecord(const dx_data &data,
   return true;
 }
 
+// These role policies encode only the pinned peer trace. Production callers
+// must bind the live source/session and qualified profile independently.
+bool testSourceXrecord(const dx_data &data, std::uint32_t handle,
+                       const std::vector<std::uint8_t> &bytes,
+                       std::uint32_t handleBits, bool allowLinks,
+                       int metadataFault = 0) {
+  const auto *raw = DxIfaceStandardDwgCaptureTestAccess::frame(data, handle);
+  const DRW_XRecord *source = nullptr;
+  for (const auto &row : data.xRecords) {
+    if (row.handle != handle) continue;
+    if (source) return false;
+    source = &row;
+  }
+  if (!raw || !source) return false;
+  auto input = *raw;
+  input.m_rawBytes = bytes;
+  input.m_objectSize = static_cast<std::uint32_t>(bytes.size());
+  input.m_bodyBitSize = handleBits;
+  if (metadataFault == 1) input.m_isCustomClass = true;
+  if (metadataFault == 2) input.m_hasClassDefinition = true;
+  if (metadataFault == 3) input.m_commonHandleDataValidated = false;
+  if (metadataFault == 4) input.m_commonLinkEvidence = DRW_DwgCommonLinkEvidence::Unknown;
+  if (metadataFault == 5) input.m_className = "other";
+  return dx_layerstates_dwg_wire::observeXrecord(input, *source,
+      [&](dx_layerstates_dwg_wire::LinkKind kind, std::size_t index,
+          std::uint8_t role, std::uint8_t length) noexcept {
+        using K = dx_layerstates_dwg_wire::LinkKind;
+        if (!allowLinks || index != 0u) return false;
+        if (kind == K::Owner)
+          return handle == 0x24Bu ? role == 8u && length == 0u
+                                  : role == 12u && length == 1u;
+        if (kind == K::Reactor) return role == 4u && length == 2u;
+        if (kind == K::XDictionary)
+          return handle == 0x249u && role == 3u && length == 2u;
+        return false;
+      });
+}
+
 bool testNestedXrecord(const dx_data &data) {
   const auto *raw = DxIfaceStandardDwgCaptureTestAccess::frame(data, 0x24Bu);
   if (!raw ||
       !observeNestedXrecord(data, raw->m_rawBytes, raw->m_bodyBitSize, true))
     return false;
+  if (!testSourceXrecord(data, 0x24Bu, raw->m_rawBytes, raw->m_bodyBitSize, true)
+      || testSourceXrecord(data, 0x24Bu, raw->m_rawBytes, raw->m_bodyBitSize, false))
+    return false;
+  for (int fault = 1; fault <= 5; ++fault)
+    if (testSourceXrecord(data, 0x24Bu, raw->m_rawBytes, raw->m_bodyBitSize, true, fault)
+        || !testSourceXrecord(data, 0x24Bu, raw->m_rawBytes, raw->m_bodyBitSize, true))
+      return false;
   // Exact bit locations are fixed after a successful observation.
   for (const auto &mutation : std::vector<std::pair<const char *, unsigned>>{
            {"self", 25u},
@@ -598,7 +643,9 @@ bool testNestedXrecord(const dx_data &data) {
     auto changed = raw->m_rawBytes;
     changed[mutation.second / 8u] ^=
         static_cast<std::uint8_t>(1u << (7u - mutation.second % 8u));
-    if (observeNestedXrecord(data, changed, raw->m_bodyBitSize, false) ||
+    if (testSourceXrecord(data, 0x24Bu, changed, raw->m_bodyBitSize, true)
+        || !testSourceXrecord(data, 0x24Bu, raw->m_rawBytes, raw->m_bodyBitSize, true)
+        || observeNestedXrecord(data, changed, raw->m_bodyBitSize, false) ||
         !observeNestedXrecord(data, raw->m_rawBytes, raw->m_bodyBitSize, false))
       return false;
     std::cout << "xrecord-negative=" << mutation.first
@@ -607,12 +654,16 @@ bool testNestedXrecord(const dx_data &data) {
   auto truncated = raw->m_rawBytes;
   truncated.pop_back();
   if (raw->m_bodyBitSize < 8u ||
+      testSourceXrecord(data, 0x24Bu, truncated, raw->m_bodyBitSize - 8u, true) ||
+      !testSourceXrecord(data, 0x24Bu, raw->m_rawBytes, raw->m_bodyBitSize, true) ||
       observeNestedXrecord(data, truncated, raw->m_bodyBitSize - 8u, false) ||
       !observeNestedXrecord(data, raw->m_rawBytes, raw->m_bodyBitSize, false))
     return false;
   auto appended = raw->m_rawBytes;
   appended.push_back(0u);
-  if (observeNestedXrecord(data, appended, raw->m_bodyBitSize + 8u, false))
+  if (testSourceXrecord(data, 0x24Bu, appended, raw->m_bodyBitSize + 8u, true) ||
+      !testSourceXrecord(data, 0x24Bu, raw->m_rawBytes, raw->m_bodyBitSize, true) ||
+      observeNestedXrecord(data, appended, raw->m_bodyBitSize + 8u, false))
     return false;
   std::cout << "xrecord-negative=truncated-handle-stream rejected=1 retry=1\n"
             << "xrecord-negative=extra-handle-byte rejected=1\n";
@@ -829,6 +880,13 @@ bool testPrimaryXrecord(const dx_data &data) {
   if (!raw ||
       !observePrimaryXrecord(data, raw->m_rawBytes, raw->m_bodyBitSize, true))
     return false;
+  if (!testSourceXrecord(data, 0x249u, raw->m_rawBytes, raw->m_bodyBitSize, true)
+      || testSourceXrecord(data, 0x249u, raw->m_rawBytes, raw->m_bodyBitSize, false))
+    return false;
+  for (int fault = 1; fault <= 5; ++fault)
+    if (testSourceXrecord(data, 0x249u, raw->m_rawBytes, raw->m_bodyBitSize, true, fault)
+        || !testSourceXrecord(data, 0x249u, raw->m_rawBytes, raw->m_bodyBitSize, true))
+      return false;
   const std::vector<std::pair<const char *, unsigned>> mutations{
       {"self", 25u},
       {"eed", 34u},
@@ -857,7 +915,9 @@ bool testPrimaryXrecord(const dx_data &data) {
     auto changed = raw->m_rawBytes;
     changed[mutation.second / 8u] ^=
         static_cast<std::uint8_t>(1u << (7u - mutation.second % 8u));
-    if (observePrimaryXrecord(data, changed, raw->m_bodyBitSize, false) ||
+    if (testSourceXrecord(data, 0x249u, changed, raw->m_bodyBitSize, true)
+        || !testSourceXrecord(data, 0x249u, raw->m_rawBytes, raw->m_bodyBitSize, true)
+        || observePrimaryXrecord(data, changed, raw->m_bodyBitSize, false) ||
         !observePrimaryXrecord(data, raw->m_rawBytes, raw->m_bodyBitSize,
                                false))
       return false;
@@ -867,12 +927,16 @@ bool testPrimaryXrecord(const dx_data &data) {
   auto truncated = raw->m_rawBytes;
   truncated.pop_back();
   if (raw->m_bodyBitSize < 8u ||
+      testSourceXrecord(data, 0x249u, truncated, raw->m_bodyBitSize - 8u, true) ||
+      !testSourceXrecord(data, 0x249u, raw->m_rawBytes, raw->m_bodyBitSize, true) ||
       observePrimaryXrecord(data, truncated, raw->m_bodyBitSize - 8u, false) ||
       !observePrimaryXrecord(data, raw->m_rawBytes, raw->m_bodyBitSize, false))
     return false;
   auto appended = raw->m_rawBytes;
   appended.push_back(0u);
-  if (observePrimaryXrecord(data, appended, raw->m_bodyBitSize + 8u, false))
+  if (testSourceXrecord(data, 0x249u, appended, raw->m_bodyBitSize + 8u, true) ||
+      !testSourceXrecord(data, 0x249u, raw->m_rawBytes, raw->m_bodyBitSize, true) ||
+      observePrimaryXrecord(data, appended, raw->m_bodyBitSize + 8u, false))
     return false;
   std::cout << "primary-negative=truncated-handle-stream rejected=1 "
                "retry=1\nprimary-negative=extra-handle-byte rejected=1\n";
@@ -889,6 +953,44 @@ struct PeerScale {
 struct ScaleOffsets {
   std::uint32_t paper, drawing, unit, name, footer, owner, reactor, reactorEnd;
 };
+
+// Pinned-witness verifier only; production requires a closed same-read class
+// proof and a separately qualified graph/output profile.
+bool testSourceScale(const dx_data &data, const PeerScale &peer,
+                     const std::vector<std::uint8_t> &bytes,
+                     std::uint32_t handleBits, bool allowClass,
+                     bool allowLinks, int metadataFault = 0) {
+  const auto *raw = DxIfaceStandardDwgCaptureTestAccess::opaque(data, peer.handle);
+  const DRW_Scale *source = nullptr;
+  for (const auto &row : data.scales) {
+    if (row.handle != peer.handle) continue;
+    if (source) return false;
+    source = &row;
+  }
+  if (!raw || !source) return false;
+  auto input = *raw;
+  input.m_rawBytes = bytes;
+  input.m_objectSize = static_cast<std::uint32_t>(bytes.size());
+  input.m_bodyBitSize = handleBits;
+  if (metadataFault == 1) input.m_isCustomClass = false;
+  if (metadataFault == 2) input.m_hasClassDefinition = false;
+  if (metadataFault == 3) input.m_commonHandleDataValidated = false;
+  if (metadataFault == 4) input.m_commonLinkEvidence = DRW_DwgCommonLinkEvidence::Unknown;
+  if (metadataFault == 5) input.m_classAppName = "other";
+  return dx_layerstates_dwg_wire::observeScale(input, *source,
+      [&](std::uint32_t type, const std::string &app) noexcept {
+        return allowClass && type == 512u && app == "ObjectDBX Classes";
+      },
+      [&](dx_layerstates_dwg_wire::LinkKind kind, std::size_t index,
+          std::uint8_t role, std::uint8_t length) noexcept {
+        using K = dx_layerstates_dwg_wire::LinkKind;
+        if (!allowLinks || index != 0u) return false;
+        if (kind == K::Owner)
+          return role == peer.ownerRole && length == peer.ownerLen;
+        return kind == K::Reactor && role == peer.reactorRole
+            && length == peer.reactorLen;
+      });
+}
 
 bool observePeerScale(const dx_data &data, const PeerScale &peer,
                       const std::vector<std::uint8_t> &bytes,
@@ -1024,6 +1126,21 @@ bool testAllScales(const dx_data &data, const std::string &manifest) {
     if (!raw || !observePeerScale(data, peer, raw->m_rawBytes,
                                   raw->m_bodyBitSize, offsets, true))
       return false;
+    if (!testSourceScale(data, peer, raw->m_rawBytes, raw->m_bodyBitSize, true, true)
+        || testSourceScale(data, peer, raw->m_rawBytes, raw->m_bodyBitSize, false, true)
+        || testSourceScale(data, peer, raw->m_rawBytes, raw->m_bodyBitSize, true, false)) {
+      std::cerr << "source SCALE helper positive/policy failed handle=" << std::hex << peer.handle
+                << " custom=" << raw->m_isCustomClass << " class=" << raw->m_hasClassDefinition
+                << " rawlinks=" << raw->m_commonHandleDataValidated << " app=" << raw->m_classAppName
+                << std::dec << "\n";
+      return false;
+    }
+    for (int fault = 1; fault <= 5; ++fault)
+      if (testSourceScale(data, peer, raw->m_rawBytes, raw->m_bodyBitSize,
+                          true, true, fault) ||
+          !testSourceScale(data, peer, raw->m_rawBytes, raw->m_bodyBitSize,
+                           true, true))
+        return false;
     std::vector<std::pair<const char *, std::uint32_t>> mutations{
         {"eed", 34u},
         {"xdict-flag", 46u},
@@ -1052,7 +1169,9 @@ bool testAllScales(const dx_data &data, const std::string &manifest) {
       changed[mutation.second / 8u] ^=
           static_cast<std::uint8_t>(1u << (7u - mutation.second % 8u));
       ScaleOffsets ignored{};
-      if (observePeerScale(data, peer, changed, raw->m_bodyBitSize, ignored,
+      if (testSourceScale(data, peer, changed, raw->m_bodyBitSize, true, true) ||
+          !testSourceScale(data, peer, raw->m_rawBytes, raw->m_bodyBitSize, true, true) ||
+          observePeerScale(data, peer, changed, raw->m_bodyBitSize, ignored,
                            false) ||
           !observePeerScale(data, peer, raw->m_rawBytes, raw->m_bodyBitSize,
                             ignored, false))
@@ -1065,6 +1184,8 @@ bool testAllScales(const dx_data &data, const std::string &manifest) {
     truncated.pop_back();
     ScaleOffsets ignored{};
     if (raw->m_bodyBitSize < 8u ||
+        testSourceScale(data, peer, truncated, raw->m_bodyBitSize - 8u, true, true) ||
+        !testSourceScale(data, peer, raw->m_rawBytes, raw->m_bodyBitSize, true, true) ||
         observePeerScale(data, peer, truncated, raw->m_bodyBitSize - 8u,
                          ignored, false) ||
         !observePeerScale(data, peer, raw->m_rawBytes, raw->m_bodyBitSize,
@@ -1072,7 +1193,9 @@ bool testAllScales(const dx_data &data, const std::string &manifest) {
       return false;
     auto appended = raw->m_rawBytes;
     appended.push_back(0u);
-    if (observePeerScale(data, peer, appended, raw->m_bodyBitSize + 8u, ignored,
+    if (testSourceScale(data, peer, appended, raw->m_bodyBitSize + 8u, true, true) ||
+        !testSourceScale(data, peer, raw->m_rawBytes, raw->m_bodyBitSize, true, true) ||
+        observePeerScale(data, peer, appended, raw->m_bodyBitSize + 8u, ignored,
                          false))
       return false;
     std::cout << "scale-peer-negative=truncated-handle-stream handle="
