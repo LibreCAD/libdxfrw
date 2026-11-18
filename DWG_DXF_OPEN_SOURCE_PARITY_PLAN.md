@@ -7,15 +7,19 @@ preserving LibreCAD 2D consumers, enabling evidence-backed 3D use, and keeping
 dwg2dxf usable by FreeCAD. Support remains limited to qualified source,
 version, and operation profiles.
 
-The comparison baseline last checked on 2026-11-17 is libdxfrw
-`d68fb1ed937ad2a74a54f6208277ec10a1b031b0`, LibreCAD
-`3ad089398976feb96ee01b8dee006c141edd8d3e`, LibreCAD_3
-`4fb48312708b39d499f7e6668104a3b54a8601c7`, and FreeCAD
-`84e73f0188fb32bb1fffb8d4d1edb4135543ba18`. Refresh moving heads before
-integration or platform qualification.
+The comparison baseline refreshed on 2026-11-18 is libdxfrw `master`
+`d68fb1ed937ad2a74a54f6208277ec10a1b031b0`, LibreCAD `master`
+`4437cebb885533e19de2369cb7bc0abeea4ac3ca`, LibreCAD_3 `master`
+`4fb48312708b39d499f7e6668104a3b54a8601c7`, and FreeCAD `main`
+`51089c6d8e4d82e731e3810a8af1e23f6d23b095`. Since the previous comparison,
+LibreCAD's two commits touched CMake, angle formatting, and its tests; none
+changed the bundled `libraries/libdxfrw` or DXFRW adapter. A 13-commit FreeCAD
+path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
+[baseline refresh receipt](docs/research/consumer-baseline-refresh-2026-11-18.json);
+refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-18:** 10/33 package gates closed; 23 remain. The activity
-ledger is 87/110 (79.1%): ten closed gates and 77 completed implementation
+ledger is 88/111 (79.3%): ten closed gates and 78 completed implementation
 or research slices. Gate readiness is 30.3%; activity progress does not imply
 support. The [fast-regression receipt](docs/research/p8-fast-tablecontent-regression-2026-11-18.json)
 records the exact implementation digest and passing fast plus three-platform
@@ -147,8 +151,8 @@ failure that expands risk.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 33 package gates and each implementation/research slice once. The
-  current ledger is 77 completed slices plus 33 package gates = 110 counted
-  items; 10 gates plus 77 slices are complete (87/110, 79.1%). The Linux and
+  current ledger is 78 completed slices plus 33 package gates = 111 counted
+  items; 10 gates plus 78 slices are complete (88/111, 79.3%). The Linux and
   Windows FreeCAD results close P8-B/C only for their exact generated profile;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package

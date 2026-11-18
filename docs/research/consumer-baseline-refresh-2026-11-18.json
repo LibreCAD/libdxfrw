@@ -1,0 +1,88 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "consumer-baseline-refresh-2026-11-18",
+  "date": "2026-11-18",
+  "title": "Consumer repository baseline refresh for DWG/DXF parity plan",
+  "status": "BASELINES_REFRESHED_NO_RELEVANT_CONSUMER_DELTA_FOUND",
+  "supportClaimEffect": "none",
+  "sliceEffect": "One baseline-refresh research slice completed; no parser, writer, or support-claim changes admitted.",
+  "repositories": {
+    "libdxfrw": {
+      "branch": "master",
+      "sha": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+      "commitDate": "2026-10-13T00:12:29Z",
+      "method": "Fetched origin/master; it remains at the plan's previous baseline."
+    },
+    "LibreCAD": {
+      "branch": "master",
+      "previousSha": "3ad089398976feb96ee01b8dee006c141edd8d3e",
+      "currentSha": "4437cebb885533e19de2369cb7bc0abeea4ac3ca",
+      "currentCommitDate": "2026-11-18T07:13:37Z",
+      "commitsSincePreviousBaseline": 2,
+      "changedFiles": [
+        "CMakeLists.txt",
+        "librecad/src/lib/engine/rs_units.cpp",
+        "librecad/src/lib/engine/tests/rs_units_tests.cpp"
+      ],
+      "relevantConsumerPathsChanged": false,
+      "limitation": "The compare is commit-path evidence; it does not constitute a fresh runtime or bundled-library compatibility qualification."
+    },
+    "LibreCAD_3": {
+      "branch": "master",
+      "sha": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+      "commitDate": "2026-11-15T00:35:52Z",
+      "changedSincePreviousBaseline": false
+    },
+    "FreeCAD": {
+      "branch": "main",
+      "previousSha": "84e73f0188fb32bb1fffb8d4d1edb4135543ba18",
+      "currentSha": "51089c6d8e4d82e731e3810a8af1e23f6d23b095",
+      "currentCommitDate": "2026-11-17T19:28:54Z",
+      "commitsSincePreviousBaseline": 13,
+      "changedFiles": 239,
+      "filenameScreenPatterns": [
+        "import",
+        "dxf",
+        "dwg",
+        "cadformat",
+        "libdxfrw"
+      ],
+      "matchingPaths": 0,
+      "limitation": "A filename screen cannot prove behavior or exclude changes in generically named files; native FreeCAD qualification remains profile-bound."
+    }
+  },
+  "localProducerHostCheck": {
+    "searchedPaths": [
+      "/Applications",
+      "/Users/dli/Applications",
+      "/Users/dli/dev"
+    ],
+    "searchedFor": [
+      "AutoCAD application bundle",
+      "ObjectARX installation",
+      "acad or accoreconsole executable"
+    ],
+    "result": "No producer application, SDK directory, or command was found; matches were only existing research receipt filenames containing ObjectARX.",
+    "nextTrigger": "An authorized AutoCAD/ObjectARX host or a source-distinct, release-bound producer witness becomes available."
+  },
+  "decision": {
+    "parserOrWriterChange": false,
+    "nextPlanAction": "Keep source-dependent DWG gates waiting for their named producer or authority inputs; continue only when an input changes. P8-D also waits for active-display detection and successful capture.",
+    "supportClaimPromoted": false
+  },
+  "validation": {
+    "originMasterFetch": "PASS; origin/master remains at d68fb1ed937ad2a74a54f6208277ec10a1b031b0.",
+    "LibreCADCompare": "PASS; comparison from 3ad089398976feb96ee01b8dee006c141edd8d3e to 4437cebb885533e19de2369cb7bc0abeea4ac3ca listed three files and no bundled libdxfrw or DXFRW adapter path.",
+    "FreeCADCompare": "PASS; comparison from 84e73f0188fb32bb1fffb8d4d1edb4135543ba18 to 51089c6d8e4d82e731e3810a8af1e23f6d23b095 listed 239 files, none matching the stated import/DXF/DWG filename screen.",
+    "codeChanged": false,
+    "testsRun": false
+  },
+  "progressAfterSlice": {
+    "completedImplementationOrResearchSlices": 78,
+    "closedPackageGates": 10,
+    "openPackageGates": 23,
+    "countedItems": 111,
+    "completedItems": 88,
+    "percentage": "79.3%"
+  }
+}
