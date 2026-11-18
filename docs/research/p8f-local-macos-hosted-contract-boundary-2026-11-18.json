@@ -25,5 +25,16 @@
     "priorReceipt": "docs/research/p8-8c1c3d7a-freecad-native-qualification-2026-11-18.json",
     "priorReceiptScope": "Its clean local macOS results qualify the separate package profile for earlier package inputs; the same receipt leaves hosted focused-native macOS pending."
   },
-  "result": "NOT RUN: the local focused-native build cannot meet the requested hosted P8-F contract on this host. No platform gate, format claim, workflow result, status overlay, or branch policy is changed. Resume with a source-matched macos-15 hosted job and its sealed, API-verified receipt; local package or focused diagnostics must be reported separately."
+  "result": "NOT RUN: the local focused-native build cannot meet the requested hosted P8-F contract on this host. No platform gate, format claim, workflow result, status overlay, or branch policy is changed. Resume with a source-matched macos-15 hosted job and its sealed, API-verified receipt; local package or focused diagnostics must be reported separately.",
+  "hostedJob": {
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44364605636",
+    "jobUrl": "https://github.com/dxli/libdxfrw/actions/runs/44364605636/job/135015099791",
+    "jobId": 135015099791,
+    "sourceCommit": "1aeca7e9a8f9ee3814523c5e777ec1a134aeb193",
+    "conclusion": "cancelled",
+    "runnerId": 0,
+    "steps": 0,
+    "annotation": "GitHub reports that the hosted runner was not acquired after multiple attempts and that macOS ARM64 capacity constraints may lengthen queues. No runner started and no qualification result was produced.",
+    "nextTrigger": "Retry the source-matched job only after hosted macOS runner availability changes; do not substitute local results."
+  }
 }
