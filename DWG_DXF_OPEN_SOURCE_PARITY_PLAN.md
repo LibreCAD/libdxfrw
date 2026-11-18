@@ -15,15 +15,17 @@ The comparison baseline last checked on 2026-11-17 is libdxfrw
 integration or platform qualification.
 
 **Progress on 2026-11-18:** 6/33 package gates closed; 27 remain. The activity
-ledger is now 68/95 (71.6%): six closed gates and 62 completed implementation
+ledger is now 69/96 (71.9%): six closed gates and 63 completed implementation
 or research slices. S41/S42 screened and traced the local AC1021 PERSUBENTMGR
 candidate; S43 fixed incomplete-body status classification; S44 added a
 generated incomplete-tail regression and fast selector; S45 kept semantically
-incomplete TABLECONTENT bodies on the raw-only route. The post-change CLI trace
-still stops output on the separate IMAGEDEF gate. None closes P6-B or promotes
-support. Readiness is measured by closed gates (18.2%), not the activity
-percentage. Native Linux, Windows, and GUI checks are counted only within
-P8-B/C/D. Recount after each committed slice or gate transition.
+incomplete TABLECONTENT bodies on the raw-only route; S46 screened the exact
+class's native creation route and retried the reported-unlock GUI preflight.
+The post-change CLI trace still stops output on the separate IMAGEDEF gate.
+None closes P6-B or promotes support. Readiness is measured by closed gates
+(18.2%), not the activity percentage. Native Linux, Windows, and GUI checks are
+counted only within P8-B/C/D. Recount after each committed slice or gate
+transition.
 
 This file is the active execution queue, not a work diary. Completed slices
 and closed actions have been removed; their receipts are linked only where
@@ -49,12 +51,16 @@ Use this order to reduce repeated setup. A wait blocks only its own profile;
 move to the next independent packet without repeating unchanged scans.
 
 1. **Run the P6-B native API-state eligibility probe.** Reuse S41-S44; do not
-   repeat the corpus scan or local reader trace. Determine whether a supported
-   AutoCAD/ObjectARX operation created the exact `AcDbPersSubentManager` class
-   and whether its nonzero selected path survives reopen. Do not use generic
+   repeat the corpus scan or local reader trace. S46 found Autodesk's documented
+   `entmakex` as a test candidate: it can create nongraphical objects, but the
+   documentation only places this class in the AutoCAD LT unsupported list and
+   does not establish full-AutoCAD creation requirements or selected-path
+   semantics. No local AutoCAD/ObjectARX host or SDK was found. When a full
+   AutoCAD/ObjectARX host is available, test the exact class and verify a
+   deliberately selected nonzero path after close/reopen. Do not use generic
    associative persistent-ID APIs as a substitute. If class, operation, or
-   path cannot be tied together, stop this branch before further tracing or
-   schema coding and leave the profiles raw-only.
+   path cannot be tied together, leave the profiles raw-only and continue other
+   independent packets.
 2. **Capture producer-session bundles when a matching host/source is
    available.** In one launch where supported, capture AC1024 TABLE plus
    Content Format/CELLSTYLEMAP/layer overrides (P5-D/E/F); AC1027 Sweep,
@@ -77,10 +83,11 @@ move to the next independent packet without repeating unchanged scans.
    are absent.
 5. **Retry environment checks only after the named state changes.** Retry
    P6-H after ODA supplies a verifiably signed usable macOS converter. The
-   2026-11-18 P8-D retry still cannot capture a display; a LibreCAD 2 bundle
-   exists at the path in its receipt, but Launch Services cannot resolve it
-   and no LibreCAD_3 bundle was found. Wait for successful display capture,
-   then launch the explicit LibreCAD 2 path and run the GUI checks in one pass.
+   P8-D retry after the user's reported unlock also failed to capture a display;
+   a LibreCAD 2 bundle exists at the path in its receipt, but Launch Services
+   cannot resolve it and no LibreCAD_3 bundle was found. Do not repeat the same
+   capture solely after another unlock report. Once capture succeeds, launch
+   the explicit LibreCAD 2 path and run the GUI checks in one pass.
 6. **Implement each admitted profile as a small committed slice.** Bind source
    spans and handle roles, make the smallest parser/model/graph/writer change,
    run the focused selector and touched-target build, exercise one
@@ -171,10 +178,11 @@ strictly refuse output; an output-capable route must also pass fresh independent
 readback. Each gate adds only its package-specific evidence.
 
 No open parser/writer gate has enough source evidence for a format change.
-P6-B has one ready, bounded native API-state eligibility probe using S41-S44;
-it is not permission to infer the disputed schema. The 2026-11-18 P8-D retry
-still cannot capture a display; its bundle and next trigger are recorded in
-the [post-unlock receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json).
+P6-B has a bounded native API-state eligibility probe using S41-S44 and the
+S46 [creation-route screen](docs/research/p6-persubentmgr-native-api-eligibility-screen-2026-11-18.json);
+it is not permission to infer the disputed schema. The P8-D retry after the
+reported unlock still cannot capture a display; both attempts and the next
+trigger are recorded in the [preflight receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json).
 Wait for successful display capture before GUI work. P6-H remains waiting for
 a verifiably signed, usable ODA bundle.
 
@@ -226,7 +234,7 @@ layout, or producer semantics; see the [S45 receipt](docs/research/p5-tableconte
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
 | P6-A / WAITING_FOR_OBJECTARX_WITNESS | In one producer session, record version-bound IMAGEDEF create/setAt/save/reopen plus remove/erase/clone/WBLOCK behavior. Reuse the [role receipt](docs/research/p6-imagedef-objectarx-parent-role-boundary-2026-11-14.json) as context. | Close owner, dictionary membership, reactor, and image links with independent output/readback. |
-| P6-B / WAITING_FOR_NONEMPTY_PERSUBENTMGR_WITNESS | Reuse the cross-version/raw-shell/S40 receipts and [S41 candidate](docs/research/p6-persubentmgr-ac1021-atmos-candidate-screen-2026-11-17.json), [S42 trace](docs/research/p6-persubentmgr-ac1021-atmos-libdxfrw-trace-2026-11-17.json), and [S43/S44 guard and regression receipt](docs/research/p6-persubentmgr-body-completeness-guard-2026-11-17.json). The post-S43 trace still leaves the 205100-bit manager tail uninterpreted; S44 proves an unconsumed bounded suffix remains Partial/raw and preserves the next frame. The local `dwg-writer` and `dwgTs` parsers both cite the same `parseObjects.ts` source and retain the tail as raw data, so they add no independent schema evidence; see the [local lineage screen](docs/research/p6-persubentmgr-local-port-lineage-screen-2026-11-18.json). Strict whole-file output stops earlier on IMAGEDEF handle 0x7b. Producer/API state, physical tail fields, and selected-member semantics remain unproven. Do not repeat scans or implement issue #1398's hypothesis. | First get native API state tying an exact-class manager to a selected nonzero path. If eligible, capture one producer/release-bound pair and independently bind body fields, roles, and next-object boundary before coding. Otherwise retain raw/partial, strict-output-refused behavior. |
+| P6-B / WAITING_FOR_NONEMPTY_PERSUBENTMGR_WITNESS | Reuse the cross-version/raw-shell/S40 receipts and [S41 candidate](docs/research/p6-persubentmgr-ac1021-atmos-candidate-screen-2026-11-17.json), [S42 trace](docs/research/p6-persubentmgr-ac1021-atmos-libdxfrw-trace-2026-11-17.json), and [S43/S44 guard and regression receipt](docs/research/p6-persubentmgr-body-completeness-guard-2026-11-17.json). The post-S43 trace still leaves the 205100-bit manager tail uninterpreted; S44 proves an unconsumed bounded suffix remains Partial/raw and preserves the next frame. The local `dwg-writer` and `dwgTs` parsers both cite the same `parseObjects.ts` source and retain the tail as raw data, so they add no independent schema evidence; see the [local lineage screen](docs/research/p6-persubentmgr-local-port-lineage-screen-2026-11-18.json). S46 screened Autodesk's `entmakex` route and the local SDK/host search; it identifies a concrete full-AutoCAD experiment but proves neither exact-class construction nor selected-path semantics. See the [native API eligibility screen](docs/research/p6-persubentmgr-native-api-eligibility-screen-2026-11-18.json). Strict whole-file output stops earlier on IMAGEDEF handle 0x7b. Producer/API state, physical tail fields, and selected-member semantics remain unproven. Do not repeat scans or implement issue #1398's hypothesis. | When full AutoCAD/ObjectARX is available, test `entmakex` first as an experimental route; enumerate the exact class and verify an explicitly selected nonzero path and owner survive save/close/reopen. If eligible, capture one producer/release-bound pair and independently bind body fields, roles, and next-object boundary before coding. Otherwise retain raw/partial, strict-output-refused behavior. |
 | P6-C / WAITING_FOR_PRODUCER_CELL_PROFILE | Keep the AC1032 compatibility path bounded, raw-retaining, semantic-incomplete, and strict-output-refused. Reuse the [AutoCAD 2021 candidate screen](docs/research/p6-ac1032-autocad2021-table-pair-screen-2026-11-17.json) and [LibreDWG 0.14 peer screen](docs/research/p6-ac1032-libredwg-tablecontent-peer-screen-2026-11-17.json); the HEADER reconciliation is complete, but producer API calls/state and independently decoded cell values are absent. The separate ODA scaffold exits with an explicit R2010+ TABLE TODO and unknown body; do not rerun it or infer semantics from it. | Request the AutoCAD 2021 TABLE API state and known cell/format values, or obtain primary/versioned authority or a source-distinct independently decoded matching profile. Then bind spans, roles, next-frame alignment, and graph closure; add only the needed malformed controls, strict output/readback, and native meaning checks. Do not infer semantics from a paired DXF or a peer's success status. |
 | P6-E / WAITING_FOR_SUFFIX_AUTHORITY | Reuse the [repeatability receipt](docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json): the AC1024 suffix changes across repeated saves, so a mesh-count comparison is not discriminating. | Resume only with versioned primary authority or a source-bound pre-compression trace. Bind fields/roles, then add only controls that distinguish that mapping. Keep strict refusal; never label the suffix padding or discard it. |
 | P6-F / WAITING_FOR_ELIGIBLE_PARTIAL_SOURCE | Reuse the [disposition](docs/research/p6-cli-legacy-ac1012-ac1014-partial-disposition-2026-11-16.json) and [candidate trace](docs/research/p6-ac1012-ac1014-lwpolyline-partial-candidate-screen-2026-11-17.json); scans are complete and no current source qualifies. | Resume only with an existing hash-bound AC1012/AC1014 source containing recoverable entity failures, closed object/backlink/reference dependencies, and later published frames. Prove destination preservation, partial ASCII/Binary output, fresh readback, and corrected retry; never weaken version/frame/reference checks or commit ODA derivatives. |
@@ -235,7 +243,7 @@ layout, or producer semantics; see the [S45 receipt](docs/research/p5-tableconte
 #### P6-B implementation packet
 
 1. Reuse [S41](docs/research/p6-persubentmgr-ac1021-atmos-candidate-screen-2026-11-17.json), [S42](docs/research/p6-persubentmgr-ac1021-atmos-libdxfrw-trace-2026-11-17.json), and [S43](docs/research/p6-persubentmgr-body-completeness-guard-2026-11-17.json); do not repeat the #1021 archive/Platte scans or the local CLI trace. `ATMOS-DC22S.dwg` is a candidate from LibreDWG's corpus, but its exact producer/API state is unknown. S43 keeps unconsumed body tails partial and raw-unvalidated.
-2. The only next P6-B action is a native smoke check: identify a supported AutoCAD/ObjectARX operation that creates exactly `AcDbPersSubentManager`, enumerate that class after save, and verify a deliberately selected nonzero path survives close/reopen. Generic `AssocGeomDependency.Subentity` access or the similarly named `AcDbAssocPersSubentManager` is not sufficient. If this exact link cannot be shown, stop without implementing a schema.
+2. The only next P6-B action is a native smoke check. First try Autodesk-documented `entmakex` in full AutoCAD with the exact class name, then use ObjectARX if the object requires a typed API. `entmakex` is only a candidate: its AutoCAD LT exclusion list is not proof of full-AutoCAD creation or meaningful manager state. Assign a valid owner, enumerate the exact class after save, and verify a deliberately selected nonzero path survives close/reopen. Generic `AssocGeomDependency.Subentity` access or the similarly named `AcDbAssocPersSubentManager` is not sufficient. If this exact link cannot be shown, leave the schema unimplemented and continue other packets.
 3. If eligible, capture one compact DWG/DXF pair with producer/build, target and selected path, manager handle, member references, owner/reactors, and API state before save and after reopen. Resolve class identity, member meaning, full source span, handle roles, and following-object boundary using primary/versioned authority plus an independent decoder. Keep ambiguous bytes raw.
 4. Implement only proven fields/edges. Add one discriminating truncation/wrong-role refusal, destination-preserving failure, corrected same-writer retry, strict ASCII/Binary output, fresh independent readback, and native confirmation of the same selected path. A profile qualifies only its captured release; keep all other versions raw/partial until separately admitted.
 
@@ -278,7 +286,7 @@ AC1027 ordinary drawings deferred until source-reference closure.
 | P8-A / INTEGRATION_GATE | Freeze candidate source, build, installed package, executable, and loaded modules after implementation profiles stabilize. Reuse [macOS package evidence](docs/research/p8-macos-package-baseline-2026-11-17.json) only while its inputs match. | Record reproducible commands and immutable identities. Preserve the 2.0.0-to-3.0.0 consumer rebuild requirement and C++17 baseline. |
 | P8-B / WAITING_FOR_FREEZE | On the frozen candidate, run native Linux FreeCAD qualification for 2D and every admitted source-derived profile. Add AC1027/AC1032 3D only after P7 admission. Earlier generated 2D results in the [platform receipt](docs/research/p8-freecad-linux-windows-generated-pass-2026-11-15.json) are historical controls only. | Record runner, FreeCAD/converter/modules, settings, exact `open()`/`insert()` handoff, runtime identity, and independent semantics per profile. No cross-compilation or ambiguous fallback. |
 | P8-C / WAITING_FOR_FREEZE | Run the same frozen workflow on native Windows; reuse earlier path-with-spaces/Unicode and generated 2D checks only as historical controls. The tracked `ordinary_enc_AC1027.dwg` still fails before publication; see [preflight receipt](docs/research/p8-ordinary-enc-ac1027-cli-preflight-2026-11-16.json). | Use the same evidence fields as P8-B. Keep ordinary AC1027 deferred until source-reference closure. |
-| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | The 2026-11-18 post-unlock preflight still cannot capture a display. Launch Services cannot resolve either app name, although a local LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`; no LibreCAD_3 bundle was found. See the [post-unlock receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). Wait for working display capture; then launch the explicit LibreCAD 2 bundle path and collect the remaining native action-boundary and LibreCAD_3 evidence. Do not repeat the unchanged screen-capture probe. | When triggered, perform Move/Copy action-boundary capture, named-LTYPE save/reopen/render, and LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback in one GUI pass. This gate does not block Linux/Windows qualification. |
+| P8-D / WAITING_FOR_FUNCTIONAL_AQUA_GUI | A second screen-capture attempt after the user's reported unlock still fails with “could not create image from display.” Launch Services cannot resolve either app name, although a local LibreCAD 2 bundle exists at `/Users/dli/dev/LibreCAD/LibreCAD.app`; no LibreCAD_3 bundle was found. See the [post-unlock receipt](docs/research/p8d-post-unlock-preflight-2026-11-18.json). Wait for successful display capture; an unlock report alone is not a sufficient retry trigger. Then launch the explicit LibreCAD 2 bundle path and collect the remaining native action-boundary and LibreCAD_3 evidence. | When triggered, perform Move/Copy action-boundary capture, named-LTYPE save/reopen/render, and LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf readback in one GUI pass. This gate does not block Linux/Windows qualification. |
 | P8-E / INTEGRATION_GATE | During P8-B/C, collect native Linux/Windows shared/static manifests, relocation, and loaded runtime identities. Reuse the [macOS package receipt](docs/research/p8-macos-package-baseline-2026-11-17.json); repeat macOS only if candidate inputs change. | Verify package contents and shared/static relocation for each platform. |
 | P8-F / WAITING_FOR_SOURCE_MATCHED_CI | Reuse the [CI root-cause receipt](docs/research/p8-pr106-native-ci-root-cause-2026-11-17.json); rerun local diagnosis only if candidate inputs change. | Close on source-matched Linux/macOS/Windows results and current required-check/branch-protection state. Hosted CI remains subject to the owner's existing go-ahead. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |

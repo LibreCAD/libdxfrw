@@ -3,7 +3,7 @@
   "id": "p8d-post-unlock-preflight-2026-11-18",
   "date": "2026-11-18",
   "title": "P8-D desktop preflight after reported unlock",
-  "status": "WAITING_FOR_DISPLAY_CAPTURE",
+  "status": "WAITING_FOR_ACCESSIBLE_DISPLAY_CAPTURE",
   "supportClaimEffect": "none",
   "trigger": "The user reported unlocking the macOS session after the previous P8-D preflight failed.",
   "probes": {
@@ -11,6 +11,13 @@
       "command": "screencapture -x /private/tmp/p8d-unlocked-preflight.png",
       "result": "Failed: could not create image from display.",
       "artifactCreated": false
+    },
+    "retryAfterReportedUnlock": {
+      "trigger": "The user reported that the macOS session was being unlocked.",
+      "command": "screencapture -x /private/tmp/p8-unlock-retry.png",
+      "result": "Failed: could not create image from display.",
+      "artifactCreated": false,
+      "guiActionsAttempted": false
     },
     "launchServices": [
       {
@@ -33,7 +40,7 @@
   "disposition": {
     "gate": "P8-D",
     "status": "WAITING_FOR_FUNCTIONAL_AQUA_GUI",
-    "nextTrigger": "A successful screen capture from the active desktop session.",
+    "nextTrigger": "A successful screen capture from the active desktop session; an unlock report without accessible display capture is not a retry trigger.",
     "nextAction": "Once display capture works, launch the explicit LibreCAD 2 bundle path, complete the Move/Copy action-boundary and named-LTYPE checks, then run the LibreCAD_3 MPOLYGON round trip if that application becomes available."
   }
 }
