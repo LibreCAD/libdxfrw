@@ -2686,6 +2686,92 @@ public:
         return true;
     }
 
+    static bool layerStateScaleClassContextControls(dx_iface& iface, dx_data& data) {
+        iface.cData = &data;
+        const auto key = dx_data::StandardDwgFrameKey{data.importGeneration, 0x127u};
+        const auto rawAt = data.m_opaqueDwgSourceFrames.find(key);
+        const auto pubAt = iface.m_dwgLayerStateScalePublications.find(0x127u);
+        const auto classAt = data.m_classEvidenceImports.find(data.importGeneration);
+        if (rawAt == data.m_opaqueDwgSourceFrames.end()
+            || pubAt == iface.m_dwgLayerStateScalePublications.end()
+            || classAt == data.m_classEvidenceImports.end()) return false;
+        const auto qualified = [&]() {
+            return iface.hasQualifiedDwgLayerStateScaleClass(rawAt->second);
+        };
+        if (!qualified()) return false;
+        for (std::uint32_t handle = 0x127u; handle <= 0x146u; ++handle) {
+            const auto found = data.m_opaqueDwgSourceFrames.find({data.importGeneration, handle});
+            if (found == data.m_opaqueDwgSourceFrames.end()
+                || !iface.hasQualifiedDwgLayerStateScaleClass(found->second)) return false;
+        }
+        dx_iface other; other.cData = &data;
+        auto copied = rawAt->second;
+        if (other.hasQualifiedDwgLayerStateScaleClass(rawAt->second)
+            || iface.hasQualifiedDwgLayerStateScaleClass(copied)) return false;
+        const auto rejectAndRestore = [&](auto& field, const auto& bad) {
+            const auto saved = field; field = bad;
+            const bool rejected = !qualified(); field = saved;
+            return rejected && qualified();
+        };
+        auto& receipt = pubAt->second;
+        auto& pub = receipt.publication;
+        if (!rejectAndRestore(iface.m_dwgLayerStateScaleCaptureFailed, true)
+            || !rejectAndRestore(receipt.generation, receipt.generation + 1u)
+            || !rejectAndRestore(receipt.attempt, receipt.attempt + 1u)
+            || !rejectAndRestore(pub.m_encodedType, pub.m_encodedType + 1)
+            || !rejectAndRestore(pub.m_sourceOffset, pub.m_sourceOffset + 1u)
+            || !rejectAndRestore(pub.m_sourceOffsetSpace, DRW_DwgFrameOffsetSpace::Unknown)
+            || !rejectAndRestore(pub.m_numReactors, pub.m_numReactors + 1)
+            || !rejectAndRestore(pub.m_classStreamOrdinal,
+                                 std::optional<std::uint64_t>{999999u})
+            || !rejectAndRestore(pub.m_isEntity, true)
+            || !rejectAndRestore(rawAt->second.m_className, std::string("OtherClass"))
+            || !rejectAndRestore(rawAt->second.m_classAppName, std::string("OtherApp"))
+            || !rejectAndRestore(rawAt->second.m_classProxyFlag,
+                                 rawAt->second.m_classProxyFlag + 1)
+            || !rejectAndRestore(rawAt->second.m_classDwgVersion,
+                                 rawAt->second.m_classDwgVersion + 1)
+            || !rejectAndRestore(rawAt->second.m_classWasProxy,
+                                 !rawAt->second.m_classWasProxy)
+            || !rejectAndRestore(classAt->second.closed, false)
+            || !rejectAndRestore(classAt->second.result.attempt,
+                                 classAt->second.result.attempt + 1u)
+            || !rejectAndRestore(classAt->second.result.state,
+                                 dx_class_evidence::State::CaptureFailed)) return false;
+        auto rows = classAt->second.rows;
+        classAt->second.rows.reset();
+        const bool missingRowsRejected = !qualified();
+        classAt->second.rows = std::move(rows);
+        if (!missingRowsRejected || !qualified()) return false;
+        const auto originalRows = classAt->second.rows;
+        if (!originalRows || !pub.m_classStreamOrdinal
+            || *pub.m_classStreamOrdinal >= originalRows->entries.size()) return false;
+        auto badRows = std::make_shared<dx_class_evidence::Rows>(*originalRows);
+        badRows->entries[static_cast<std::size_t>(*pub.m_classStreamOrdinal)].names[0].offset
+            = badRows->text.size() + 1u;
+        classAt->second.rows = badRows;
+        const bool badNameSpanRejected = !qualified();
+        classAt->second.rows = originalRows;
+        if (!badNameSpanRejected || !qualified()) return false;
+        auto duplicate = receipt;
+        const auto inserted = iface.m_dwgLayerStateScalePublications.emplace(0xdeadbeefu, duplicate);
+        if (!inserted.second) return false;
+        const bool duplicateOrdinalRejected = !qualified();
+        iface.m_dwgLayerStateScalePublications.erase(inserted.first);
+        return duplicateOrdinalRejected && qualified();
+    }
+
+    static bool layerStateScaleClassResetControls(dx_iface& iface, dx_data& original) {
+        if (iface.m_dwgLayerStateScaleSourceOwner != &original
+            || iface.m_dwgLayerStateScalePublications.empty()) return false;
+        dx_data next;
+        const bool opened = iface.fileImport("/dev/null/libdxfrw-missing-scale.dwg", &next, false);
+        iface.cData = &original;
+        return !opened && iface.m_dwgLayerStateScalePublications.empty()
+            && iface.m_dwgLayerStateScaleSourceOwner == nullptr
+            && !iface.m_dwgLayerStateScaleCaptureFailed;
+    }
+
     static bool layerStateAppIdContextControls(dx_iface& iface, dx_data& data) {
         iface.cData = &data;
         const auto qualified = [&]() {
@@ -60243,6 +60329,24 @@ bool physicalAc1024LayerStatesAppIdContext(
     return true;
 }
 
+bool physicalAc1024LayerStatesScaleClassContext(
+        const std::filesystem::path& sourcePath) {
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024)
+        return fail("LayerStates SCALE class witness is not an AC1024 DWG");
+    if (!DxIfaceStandardDwgCaptureTestAccess::layerStateScaleClassContextControls(
+            reader, source))
+        return fail("same-import SCALE class source context was not qualified");
+    if (!DxIfaceStandardDwgCaptureTestAccess::layerStateScaleClassResetControls(
+            reader, source))
+        return fail("SCALE class source receipts survived a new import attempt");
+    std::cerr << "AC1024 LayerStates SCALE class same-import controls passed.\n";
+    return true;
+}
+
 bool physicalAc1024LayerStatesFallbackRefusal(
         const std::filesystem::path& sourcePath) {
     dx_iface reader;
@@ -92279,6 +92383,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-appid-context")
         return physicalAc1024LayerStatesAppIdContext(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--layerstates-ac1024-scale-class-context")
+        return physicalAc1024LayerStatesScaleClassContext(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-fallback-refusal")
         return physicalAc1024LayerStatesFallbackRefusal(argv[2]) ? 0 : 1;

@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-layerstates-scale-class-source-2026-11-18",
+  "date": "2026-11-18",
+  "headAtBuild": "93b9f46a65272c098dc40f36b3fc47f2e5999397",
+  "status": "SOURCE_ONLY_SAME_IMPORT_CLASS_JOIN_PASS",
+  "supportClaimEffect": "none; no LayerStates or SCALE output admission was enabled",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false
+  },
+  "independentEvidence": {
+    "priorReceipt": "docs/research/p4-ac1024-three-root-layerstates-common-tail-investigation-2026-11-18.json",
+    "peerTraceSha256": "9bead9945a7e9b78c541e73d9ab4c0fe461c8e3ba4105e95bcd3103fe7f9603c",
+    "peerJsonSha256": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832"
+  },
+  "implementation": [
+    "Capture bounded AC1024 SCALE typed-and-raw publication receipts only during the original adapter/data class-read attempt, retaining generation, attempt, source location and class-stream ordinal. Reject oversize/duplicate receipt sets and clear authority on each new import attempt.",
+    "The disconnected predicate binds the exact retained opaque frame address to its publication, original adapter/data, generation and closed joined immutable CLASSES row; compare type, ordinal, metadata flags, names, source offsets, common links and codepage, rejecting aliased class identities and SCALE publication locations/ordinals.",
+    "The source-only SCALE wire observer now passes the entire raw frame to its required class verifier. The research probe uses a test-only fixed witness verifier; it does not invoke the production same-import predicate as output admission."
+  ],
+  "validation": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "build": "PASS with incremental local build; clean checkout/platform qualification remains open",
+    "scaleCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-scale-class-context tests/samples/AC1024/visualization_-_aerial.dwg",
+    "scaleResult": "PASS: all 32 source frames join the original adapter/data same-import class receipt. Wrong adapter or copied raw frame, stale generation/attempt, modified publication type/offset/ordinal/reactor or class flags/names, missing or malformed class rows and duplicate source ordinal are refused; restored state succeeds. A new failed import attempt clears receipt authority.",
+    "scaleLogSha256": "01174540f2fc1010c924c56bf9296c8340f225957bc5694a8dc9e35a43c50dd2",
+    "appidCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-appid-context tests/samples/AC1024/visualization_-_aerial.dwg",
+    "appid": "PASS",
+    "appidLogSha256": "c89d37ab1ba9dc11dabce449aacf9cc6cc847433963db6cad65da9a69ad890ae",
+    "fallbackCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-fallback-refusal tests/samples/AC1024/visualization_-_aerial.dwg",
+    "fallback": "PASS",
+    "fallbackLogSha256": "d6edbc4f620305d5eb0df3324c3069f054f493b1c4222986ac9df60b1f95b5a4",
+    "emptyCommand": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-empty-ac1024-output-readback tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+    "empty": "PASS",
+    "emptyLogSha256": "13cd25ea00b6001bc760e2647286133b6b1270d5a6593c8ddb628e9a24bc5902",
+    "researchCommand": "python3 tools/research/probe_ac1024_layerstates_eed.py tests/samples/AC1024/visualization_-_aerial.dwg /private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg-trace.log --peer-json /private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg.json",
+    "research": "PASS: hash-bound source, peer trace/JSON and disconnected helper controls",
+    "researchLogSha256": "5782dc0b44531fc9c32b30ab7c81ee9fe57479f54d0ed0f026baead33280aecd",
+    "diffCheck": "PASS"
+  },
+  "artifacts": {
+    "dwg2dxf/dx_iface.cpp": "d1929540a68d5f974c39295816740e5467d125aaa2ede3a2f3e6f27323b6c922",
+    "dwg2dxf/dx_iface.h": "5e9c86a66b7d4d688be92bd60a6ac0673860d0157b64033b2ebe405d2a43bfb2",
+    "dwg2dxf/dx_layerstates_dwg_wire.h": "891646296ce71621a2f2a97a4d32d0442fdecf588c7957b64159bb97bd79d829",
+    "tests/dwg2dxf_adapter_tests.cpp": "430163453bb6148fbbaba091ec008c872e6e2ac6bcd3ddb4b7352dbff3d803fc",
+    "tools/research/probe_ac1024_layerstates_eed.cpp": "54a0cdf7732a30a45b8665b87a2599ef32c8b87d84020fceca13f3928c35df31",
+    "tools/research/probe_ac1024_layerstates_eed.py": "2d962146cb862a5daeebf7ed2ba9db2d10753cf5a1a322e8818aece04ee9c667",
+    "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests": "9aac1182a568ae3a0e193e038b38398cccae9ec3562ffa556b23974faef56f05",
+    "build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o": "77d60c27596537a03015d8b373b0c97bfbdad0874dbb687e74463c980fb77753",
+    "build-gcc/libdxfrw.a": "7d9f57866a409f1461f8058bb9e7e00d80f5861f71c57890b9a5f766514a241a"
+  },
+  "limits": [
+    "One AC1024 source witness and one same-import adapter/data context. This proves the retained source-to-class-row identity, not SCALE semantics or the complete LayerStates graph.",
+    "The same-import class predicate is not yet connected to the SCALE wire observer or to output admission. Body/link source proof, object-reference dependency closure, typed DXF roles, staged output inspection, destination-preserving export failure/retry and native consumer semantics remain separate.",
+    "The detached class-span and raw-field mutations test the predicate in isolation, not a mid-export mutation. No external fixture was added or committed.",
+    "The test callback for the standalone wire observer is an exact witness policy, not the same-import production class predicate."
+  ]
+}

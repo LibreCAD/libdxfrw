@@ -4415,6 +4415,18 @@ private:
     DRW::Version m_dwgLayerStateOutputSourceVersion{DRW::UNKNOWNV};
     bool m_dwgLayerStateOutputPrepared{false};
     bool m_dwgLayerStateOutputInspected{false};
+    // Source-only SCALE class/source receipt; not an output admission proof.
+    struct DwgLayerStateScalePublication {
+        DRW_DwgFramePublication publication;
+        std::uint64_t generation{0u};
+        std::uint64_t attempt{0u};
+    };
+    std::map<std::uint32_t, DwgLayerStateScalePublication>
+        m_dwgLayerStateScalePublications;
+    const dx_data* m_dwgLayerStateScaleSourceOwner{nullptr};
+    bool m_dwgLayerStateScaleCaptureFailed{false};
+    bool hasQualifiedDwgLayerStateScaleClass(
+        const DRW_UnsupportedObject& raw) const noexcept;
     // Source-only APPID dependency check; not an output admission proof.
     bool hasQualifiedDwgLayerStateAppId(std::uint32_t handle,
                                        std::string_view name) const noexcept;

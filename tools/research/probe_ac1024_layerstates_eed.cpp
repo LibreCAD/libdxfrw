@@ -978,8 +978,9 @@ bool testSourceScale(const dx_data &data, const PeerScale &peer,
   if (metadataFault == 4) input.m_commonLinkEvidence = DRW_DwgCommonLinkEvidence::Unknown;
   if (metadataFault == 5) input.m_classAppName = "other";
   return dx_layerstates_dwg_wire::observeScale(input, *source,
-      [&](std::uint32_t type, const std::string &app) noexcept {
-        return allowClass && type == 512u && app == "ObjectDBX Classes";
+      [&](const DRW_UnsupportedObject &frame) noexcept {
+        return allowClass && frame.m_objectType == 512u
+            && frame.m_classAppName == "ObjectDBX Classes";
       },
       [&](dx_layerstates_dwg_wire::LinkKind kind, std::size_t index,
           std::uint8_t role, std::uint8_t length) noexcept {

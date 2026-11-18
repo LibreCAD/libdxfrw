@@ -28722,6 +28722,49 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
             cData->m_ac1024LayerPublications.clear();
         }
     }
+    // Keep SCALE's publication only when it was observed in the actual active
+    // class-read attempt. A raw class name/generation alone cannot establish
+    // which CLASSES row this frame used. This receipt never admits output.
+    if (data.m_version == DRW::AC1024
+        && (data.m_recordName == "SCALE" || data.m_className == "AcDbScale")) {
+        const auto rejectScale = [this]() noexcept {
+            m_dwgLayerStateScaleCaptureFailed = true;
+            m_dwgLayerStateScalePublications.clear();
+        };
+        if (m_dwgLayerStateScaleCaptureFailed
+            || typeid(*this) != typeid(dx_iface)
+            || m_classEvidenceReadData != cData || !m_classEvidenceReadAttempt
+            || cData->m_classEvidenceOwner != this
+            || cData->m_classEvidenceAttempt != m_classEvidenceReadAttempt
+            || cData->m_classEvidenceGeneration != cData->importGeneration
+            || (m_dwgLayerStateScaleSourceOwner != nullptr
+                && m_dwgLayerStateScaleSourceOwner != cData)
+            || data.m_handle == 0u || !data.m_hasSourceLocation
+            || (data.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+                && data.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+            || data.m_numReactors < 0 || data.m_reactorHandles.size() > 16u
+            || static_cast<std::size_t>(data.m_numReactors) != data.m_reactorHandles.size()
+            || !data.m_controlHandles.empty()
+            || data.m_isEntity || !data.m_isCustomClass
+            || data.m_recordName != "SCALE" || data.m_className != "AcDbScale"
+            || data.m_carrier != DRW_DwgFramePublication::Carrier::TypedAndRaw
+            || data.m_encodedType < 500 || data.m_resolvedType != data.m_encodedType
+            || !data.m_classStreamOrdinal.has_value()
+            || m_dwgLayerStateScalePublications.size() >= 4096u) {
+            rejectScale();
+        } else {
+            try {
+                DwgLayerStateScalePublication receipt;
+                receipt.publication = data;
+                receipt.generation = cData->importGeneration;
+                receipt.attempt = m_classEvidenceReadAttempt;
+                m_dwgLayerStateScaleSourceOwner = cData;
+                if (!m_dwgLayerStateScalePublications.emplace(
+                        data.m_handle, std::move(receipt)).second)
+                    rejectScale();
+            } catch (...) { rejectScale(); }
+        }
+    }
     const auto index = static_cast<std::size_t>(data.m_carrier);
     if (index < cData->dwgReadOutcome.observedReceiptCarriers.size())
         countDwgReadCallback(cData->dwgReadOutcome.observedReceiptCarriers[index]);
@@ -38214,6 +38257,97 @@ bool ac1024EmptyLayerStateDictionaryWireComplete(
     return true;
 }
 } // namespace
+
+bool dx_iface::hasQualifiedDwgLayerStateScaleClass(
+        const DRW_UnsupportedObject& raw) const noexcept {
+    if (cData == nullptr || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024 || !cData->importGeneration
+        || m_dwgLayerStateScaleCaptureFailed
+        || m_dwgLayerStateScaleSourceOwner != cData
+        || !hasCurrentDwgLayerControlSourceProof(*cData)) return false;
+    try {
+        const auto generation = cData->importGeneration;
+        const auto captured = cData->m_opaqueDwgSourceFrames.find(
+            {generation, raw.m_handle});
+        const auto publication = m_dwgLayerStateScalePublications.find(raw.m_handle);
+        const auto classes = cData->m_classEvidenceImports.find(generation);
+        if (captured == cData->m_opaqueDwgSourceFrames.end()
+            || &captured->second != &raw
+            || cData->m_opaqueDwgSourceFrameIdentities.count({generation, raw.m_handle}) != 1u
+            || publication == m_dwgLayerStateScalePublications.end()
+            || classes == cData->m_classEvidenceImports.end()) return false;
+        const auto& receipt = publication->second;
+        const auto& pub = receipt.publication;
+        const auto& table = classes->second;
+        const auto& outcome = cData->dwgReadOutcome;
+        if (receipt.generation != generation || receipt.attempt == 0u
+            || !table.closed || table.result.state != dx_class_evidence::State::Joined
+            || table.result.generation != generation
+            || table.result.attempt != receipt.attempt
+            || table.result.version != DRW::AC1024 || !table.rows
+            || table.codePage != outcome.sourceCodePageId
+            || table.codePagePresent != outcome.sourceCodePageFieldPresent
+            || table.codePageRecognized != outcome.sourceCodePageRecognized
+            || raw.m_version != DRW::AC1024 || raw.m_handle == 0u
+            || raw.m_objectType < 500 || raw.m_isEntity || !raw.m_isCustomClass
+            || !raw.m_hasClassDefinition || raw.m_recordName != "SCALE"
+            || raw.m_className != "AcDbScale" || raw.m_hasDataStorage
+            || !raw.m_commonHandleDataValidated
+            || !drwDwgCommonLinkEvidenceValidated(raw.m_commonLinkEvidence)
+            || raw.m_objectSize != raw.m_rawBytes.size() || raw.m_rawBytes.empty()
+            || pub.m_version != raw.m_version || pub.m_handle != raw.m_handle
+            || !pub.m_hasSourceLocation || pub.m_sourceOffset != raw.m_objectOffset
+            || (pub.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+                && pub.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+            || pub.m_numReactors < 0 || pub.m_reactorHandles.size() > 16u
+            || static_cast<std::size_t>(pub.m_numReactors) != pub.m_reactorHandles.size()
+            || !pub.m_controlHandles.empty()
+            || pub.m_encodedType != raw.m_objectType || pub.m_resolvedType != raw.m_objectType
+            || pub.m_isEntity || !pub.m_isCustomClass
+            || pub.m_carrier != DRW_DwgFramePublication::Carrier::TypedAndRaw
+            || pub.m_recordName != raw.m_recordName || pub.m_className != raw.m_className
+            || pub.m_commonLinkEvidence != raw.m_commonLinkEvidence
+            || pub.m_commonHandleDataValidated != raw.m_commonHandleDataValidated
+            || pub.m_parentHandle != raw.m_parentHandle
+            || pub.m_reactorHandles != raw.m_reactorHandles
+            || pub.m_numReactors != raw.m_numReactors || pub.m_xDictFlag != raw.m_xDictFlag
+            || pub.m_xDictHandle != raw.m_xDictHandle || !pub.m_classStreamOrdinal
+            || *pub.m_classStreamOrdinal >= table.rows->entries.size()) return false;
+        for (const auto& candidate : m_dwgLayerStateScalePublications) {
+            if (candidate.first == raw.m_handle) continue;
+            const auto& other = candidate.second.publication;
+            if (candidate.second.generation != generation || candidate.second.attempt != receipt.attempt
+                || other.m_sourceMapOrdinal == pub.m_sourceMapOrdinal
+                || (other.m_sourceOffsetSpace == pub.m_sourceOffsetSpace
+                    && other.m_sourceOffset == pub.m_sourceOffset)) return false;
+        }
+        const auto ordinal = *pub.m_classStreamOrdinal;
+        const auto& row = table.rows->entries[static_cast<std::size_t>(ordinal)];
+        for (const auto& span : row.names)
+            if (span.offset > table.rows->text.size()
+                || span.size > table.rows->text.size() - span.offset) return false;
+        std::size_t matches = 0u;
+        for (const auto& candidate : table.rows->entries)
+            if (candidate.number == raw.m_objectType
+                || table.rows->name(candidate, 2u) == "SCALE"
+                || table.rows->name(candidate, 1u) == "AcDbScale") ++matches;
+        return matches == 1u && row.ordinal == ordinal && row.number == raw.m_objectType
+            && row.state == DRW_DwgClassCoverageState::Published
+            && row.reason == DRW_DwgClassCoverageReason::NoReason
+            && row.descriptor >= 0 && row.data.m_present && row.strings.m_present
+            && row.proxy == raw.m_classProxyFlag
+            && row.wasProxy == static_cast<int>(raw.m_classWasProxy)
+            && row.itemClass == raw.m_classEntityFlagRaw
+            && row.entity == static_cast<int>(raw.m_isEntity)
+            && row.entity == (row.itemClass == 0x1F2u ? 1 : 0)
+            && row.version == raw.m_classDwgVersion
+            && row.maintenance == raw.m_classMaintenanceVersion
+            && row.unknown1 == raw.m_classUnknown1 && row.unknown2 == raw.m_classUnknown2
+            && table.rows->name(row, 0u) == raw.m_classAppName
+            && table.rows->name(row, 1u) == raw.m_className
+            && table.rows->name(row, 2u) == raw.m_recordName;
+    } catch (...) { return false; }
+}
 
 bool dx_iface::hasQualifiedDwgLayerStateAppId(
         std::uint32_t handle, std::string_view name) const noexcept {
@@ -77007,6 +77141,9 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     m_dwgLayerControlSourceOwner = nullptr;
     m_dwgLayerControlSourceGeneration = 0u;
     m_dwgLayerControlSourceCaptureFailed = false;
+    m_dwgLayerStateScalePublications.clear();
+    m_dwgLayerStateScaleSourceOwner = nullptr;
+    m_dwgLayerStateScaleCaptureFailed = false;
     if (m_verifiedXRecordReadData) {
         m_verifiedXRecordFailed = true;
         m_verifiedXRecordReadData->m_verifiedXRecordSource.reset();

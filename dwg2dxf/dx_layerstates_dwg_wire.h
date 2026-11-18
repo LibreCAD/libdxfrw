@@ -277,8 +277,9 @@ bool observeXrecord(const DRW_UnsupportedObject &raw,
     return padding < 8u && wire.skip(padding) && wire.good;
 }
 
-// Bounded AC1024 SCALE observer. classSource must bind the numeric class type
-// and class identity/application to the same completed import; no class number
+// Bounded AC1024 SCALE observer. classSource must bind the exact raw frame,
+// numeric class type and class identity/application to the same completed
+// import; no class number
 // is assumed globally. The witnessed SCALE typed model does not carry the
 // dictionary's common-tail marker; validated raw evidence plus the complete
 // handle observer are required. Names are ASCII UTF-16 and EED/xdict refused.
@@ -287,8 +288,7 @@ template <class ClassSource, class LinkSource>
 bool observeScale(const DRW_UnsupportedObject &raw, const DRW_Scale &source,
                   ClassSource classSource, LinkSource linkSource) noexcept {
     using namespace dx_raster_wire;
-    static_assert(noexcept(classSource(std::uint32_t{},
-                                       std::declval<const std::string &>())),
+    static_assert(noexcept(classSource(std::declval<const DRW_UnsupportedObject &>())),
                   "class source verifier must not throw");
     static_assert(noexcept(linkSource(LinkKind::Owner, std::size_t{},
                                       std::uint8_t{}, std::uint8_t{})),
@@ -302,8 +302,7 @@ bool observeScale(const DRW_UnsupportedObject &raw, const DRW_Scale &source,
         || !raw.m_commonHandleDataValidated
         || !drwDwgCommonLinkEvidenceValidated(raw.m_commonLinkEvidence)
         || raw.m_recordName != "SCALE" || raw.m_className != "AcDbScale"
-        || !classSource(static_cast<std::uint32_t>(raw.m_objectType),
-                        raw.m_classAppName)
+        || !classSource(raw)
         || raw.m_hasDataStorage || raw.m_xDictFlag != 1u
         || raw.m_xDictHandle != 0u || source.xDictHandle != 0u
         || raw.m_parentHandle != source.parentHandle || raw.m_numReactors < 0
