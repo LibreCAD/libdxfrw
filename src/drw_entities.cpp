@@ -3750,7 +3750,17 @@ bool readTableHandleWithRole(dwgBuffer *hdlBuf, std::uint64_t endBit,
     dwgHandle handle;
     const bool decoded = readBoundedDwgHandle(
         probe, endBit, 0, false, handle);
-    const bool accepted = decoded && handle.code == expectedRole;
+    // A null handle has no target and may be encoded with the null relation
+    // code instead of the field's usual pointer role. Accept that canonical
+    // null while continuing to require the exact documented role for every
+    // non-null reference.
+    const bool nullReference = decoded && handle.ref64 == 0u
+        && handle.size == 0u
+        && (handle.code == DRW::DwgNullReference
+            || (handle.code >= DRW::DwgSoftOwnership
+                && handle.code <= DRW::DwgHardPointer));
+    const bool accepted = decoded
+        && (handle.code == expectedRole || nullReference);
     traceTableHandleSlot(slot, bodyBuf, strBuf, handleStart,
                          decoded ? &probe : hdlBuf,
                          decoded ? &handle : nullptr, expectedRole, accepted);
@@ -5060,21 +5070,37 @@ bool skipTableCellStyle(DRW::Version version, dwgBuffer *buf,
             return false;
         if (edgeFlags == 0)
             continue;
-        if (!skipTableBitLong(*buf, bounds.bodyEndBit) // border overrides
-            || !skipTableBitLong(*buf, bounds.bodyEndBit)) // border type
+        std::int32_t borderOverrides = 0;
+        if (!readBoundedBitLong(*buf, bounds.bodyEndBit, borderOverrides)
+            || borderOverrides < 0
+            || (static_cast<std::uint32_t>(borderOverrides) & ~0x3Fu) != 0u)
+            return false;
+        const std::uint32_t overrides =
+            static_cast<std::uint32_t>(borderOverrides);
+        if ((overrides & 0x01u) != 0u
+            && !skipTableBitLong(*buf, bounds.bodyEndBit)) // border type
             return false;
         std::uint32_t lineTypeHandle = 0;
-        if (!readBoundedCmColor(*buf, strBuf, bounds.bodyEndBit, version,
-                                color, &rgb, nullptr, &name, &book,
-                                bounds.stringEndBit)
-            || !skipTableBitLong(*buf, bounds.bodyEndBit) // border lineweight (§20.4.101.4)
-            || (hdlBuf != nullptr
+        if ((overrides & 0x08u) != 0u
+            && !readBoundedCmColor(*buf, strBuf, bounds.bodyEndBit, version,
+                                   color, &rgb, nullptr, &name, &book,
+                                   bounds.stringEndBit))
+            return false;
+        if ((overrides & 0x02u) != 0u
+            && !skipTableBitLong(*buf, bounds.bodyEndBit)) // lineweight
+            return false;
+        if ((overrides & 0x04u) != 0u
+            && (hdlBuf == nullptr
                 // ODA v5.4.1 §20.4.101.4 defines group 340 as a hard pointer.
-                && !readTableHandleWithRole(
+                || !readTableHandleWithRole(
                     hdlBuf, bounds.handleEndBit, DRW::DwgHardPointer,
-                    lineTypeHandle, "cell-style-linetype", buf, strBuf))
-            || !skipTableBitLong(*buf, bounds.bodyEndBit) // visible/invisible
-            || !skipTableBitDouble(*buf, bounds.bodyEndBit)) // double line spacing
+                    lineTypeHandle, "cell-style-linetype", buf, strBuf)))
+            return false;
+        if ((overrides & 0x10u) != 0u
+            && !skipTableBitLong(*buf, bounds.bodyEndBit)) // invisibility
+            return false;
+        if ((overrides & 0x20u) != 0u
+            && !skipTableBitDouble(*buf, bounds.bodyEndBit)) // double spacing
             return false;
     }
 
@@ -17475,6 +17501,17 @@ bool DRW_Table::parseDwgWithR21Profile(DRW::Version version, dwgBuffer *buf,
             // the typed table shell and allow the raw DWG frame to preserve
             // content that this reader does not yet model.
             m_semanticContentComplete = false;
+            return commit();
+        }
+        if (!parsedSemanticComplete && !usedObservedAc1032Layout
+            && !usedObservedAc1024RawOnlyLayout) {
+            // The TABLECONTENT parser can bound and retain a partial model,
+            // but the AC1024 inline entity callback must not publish that
+            // model as typed TABLE data. Keep the already validated entity
+            // prefix and leave all three optional-tail cursors untouched so
+            // the source frame remains available to raw preservation.
+            m_semanticContentComplete = false;
+            DRW_DBG("TABLECONTENT semantic projection incomplete; optional tail rolled back\n");
             return commit();
         }
         *buf = contentBuf;

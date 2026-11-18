@@ -15388,17 +15388,14 @@ bool makeR2007TableContentObjectFrame(R2007TableContentObjectFrame& frame,
         body.putBitShort(0); // no margin overrides
         body.putBitLong(hasCellStyleBorders ? 3 : 0);
         if (hasCellStyleBorders) {
-            // ODA §20.4.101.4: lineweight BL lies between border CMC and
-            // invisibility BL. Zero-edge slots have no trailing payload.
+            // ODA §20.4.101.4: each border payload includes only fields
+            // selected by its override flags. Exercise sparse 0x22 fields.
             for (int slot = 0; slot < 3; ++slot) {
                 body.putBitLong(slot == 1 ? 0 : slot == 0 ? 1 : 4);
                 if (slot == 1)
                     continue;
                 body.putBitLong(0x22); // lineweight + double-spacing overrides
-                body.putBitLong(slot == 0 ? 1 : 2); // border type
-                putByLayerCmc(body);
                 body.putBitLong(slot == 0 ? 129 : -2); // lineweight
-                body.putBitLong(slot == 0 ? 0 : 1); // invisibility
                 body.putBitDouble(slot == 0 ? 0.25 : 0.5);
             }
         }
@@ -15472,13 +15469,6 @@ bool makeR2007TableContentObjectFrame(R2007TableContentObjectFrame& frame,
         handles.putHandle(handle(0)); // null text-style hard pointer
     if (hasCellStyleData)
         handles.putHandle(handle(0)); // null style text-style hard pointer
-    if (hasCellStyleBorders) {
-        for (const std::uint32_t ref : {0xA722u, 0xA723u}) {
-            dwgHandle lineType = handle(ref);
-            lineType.code = DRW::DwgHardPointer;
-            handles.putHandle(lineType);
-        }
-    }
     if (valueDataType == 64
         && testTableCadValueHasPayload(version, valueFormatFlags, valueDataType)) {
         dwgHandle valueObjectId;
