@@ -18,8 +18,8 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 [baseline refresh receipt](docs/research/consumer-baseline-refresh-2026-11-18.json);
 refresh moving heads again before later integration or platform qualification.
 
-**Progress on 2026-11-18:** 10/34 package gates closed; 24 remain. The activity
-ledger is 115/139 (82.7%): ten closed gates and 105 completed implementation or
+**Progress on 2026-11-18:** 11/34 package gates closed; 23 remain. The activity
+ledger is 117/140 (83.6%): eleven closed gates and 106 completed implementation or
 research slices. The [focused slice](docs/research/p6-raster-dimstyle-default-roundtrip-2026-11-18.json)
 fixes an AC1021 default plot dictionary reexport and a default BYBLOCK DIMSTYLE
 downgrade; five owning selectors pass. The following [source-identity selector
@@ -53,7 +53,7 @@ dictionary wire helper and reproducible seven-frame controls prepare P4-D
 integration without enabling output. The [source context and observers slice](docs/research/p4-ac1024-layerstates-source-observers-2026-11-18.json) adds XRECORD and SCALE source observers, and the [same-import APPID check](docs/research/p4-ac1024-layerstates-appid-same-import-context-2026-11-18.json) verifies the original adapter/data and name provenance. Both remain disconnected from output admission; focused corruption, retry and one-root regression controls pass. The [SCALE class-context slice](docs/research/p4-ac1024-layerstates-scale-class-source-2026-11-18.json) binds the same-read publication and CLASSES row for all 32 captured SCALE frames. A [targeted alternate-witness screen](docs/research/p4-ac1024-layerstates-alternative-witness-screen-2026-11-18.json) identified a sun-and-sky source that passes the aerial SUN blocker but refuses at a nonempty named-block SORTENTSTABLE; it cannot yet establish strict output.
 The current `05e7cb33` digest has passed the recorded Linux/Windows [package
 profiles](docs/research/p8a-1aeca-linux-windows-package-qualification-2026-11-18.json)
-and a clean local [macOS package profile](docs/research/p8a-macos-package-05e7-source-matched-2026-11-18.json), closing P8-A for those configurations. The pinned generated FreeCAD profile passed on [Linux](docs/research/p8-25c60980-freecad-linux-qualification-2026-11-18.json) and [Windows](docs/research/p8-25c60980-freecad-windows-qualification-2026-11-18.json), closing P8-B/C for those profiles. A [current LibreCAD master filter compile/link probe](docs/research/p8-librecad-master-7396-current-shared-filter-check-2026-11-18.json) and a [patched LibreCAD_3 candidate load smoke](docs/research/p8-librecad3-05e7-patched-persistence-load-2026-11-18.json) pass against the current shared library; neither is GUI or drawing qualification. Fast and Linux/Windows focused-native checks pass on the same implementation digest; hosted macOS focused-native remains open. Gate readiness is 29.4%;
+and a clean local [macOS package profile](docs/research/p8a-macos-package-05e7-source-matched-2026-11-18.json), closing P8-A for those configurations. The pinned generated FreeCAD profile passed on [Linux](docs/research/p8-25c60980-freecad-linux-qualification-2026-11-18.json) and [Windows](docs/research/p8-25c60980-freecad-windows-qualification-2026-11-18.json), closing P8-B/C for those profiles. A [current LibreCAD master filter compile/link probe](docs/research/p8-librecad-master-7396-current-shared-filter-check-2026-11-18.json) and a [patched LibreCAD_3 candidate load smoke](docs/research/p8-librecad3-05e7-patched-persistence-load-2026-11-18.json) pass against the current shared library; neither is GUI or drawing qualification. Fast and Linux/Windows focused-native checks pass on the same implementation digest; hosted macOS focused-native remains open. Gate readiness is 32.4%;
 activity progress does not imply drawing support. The broad native suite and
 extended fuzz lane remain for the frozen integration pass.
 
@@ -79,7 +79,7 @@ excluded from the counts, and cannot promote support claims.
 
 ## Execution order and fast paths
 
-The active queue has 24 package gates (P4: 3, P5: 7, P6: 6, P7: 5, P8: 3).
+The active queue has 23 package gates (P4: 3, P5: 7, P6: 5, P7: 5, P8: 3).
 P4-D has source-bound standalone dictionary, XRECORD and SCALE frame proofs;
 the other format gates await their stated evidence. Take the first eligible evidence packet;
 an unavailable producer, external authority, GUI, or converter parks only its
@@ -88,7 +88,7 @@ own profile.
 | Order | Work packet | Included gates | Smallest useful result |
 |---|---|---|---|
 | 1 | Batch producer capture by exact release and state | P4-B/C; P5-B/D/E/F/G/H/I; P6-A/B/C; P7-C | Use one producer session/database only where the same build and save version can create the exact requested states: AC1021 P5-I with P5-B only if the unresolved FIELD carriers are represented; AC1024 P5-D with conditional P5-E/F plus compatible P5-G/H/P6-A states; AC1027 P4-C with P7-C only if one file contains both required shapes; AC1032 P4-B/P6-B with P6-C only if AutoCAD 2021 can create all exact states. Keep a separate receipt/profile for every state. P6-C remains an AutoCAD 2021 TABLECONTENT profile. A failed API creation parks only that gate. |
-| 2 | Resume authority/source waits only on their named trigger | P5-B/G/I; P6-E/F/H; P7-C/D/G | Reuse linked receipts. Do one bounded primary/source-distinct search per changed trigger; stop when the required field, role, version, and following-record boundary remain unbound. Do not repeat generic peer scans, sample downloads, or failed converter launches. |
+| 2 | Resume authority/source waits only on their named trigger | P5-B/G/I; P6-E/F; P7-C/D/G | Reuse linked receipts. Do one bounded primary/source-distinct search per changed trigger; stop when the required field, role, version, and following-record boundary remain unbound. Do not repeat generic peer scans, sample downloads, or failed converter launches. |
 | 3 | Implement immediately when one profile is admitted | All source-backed gates | Bind source spans, handle roles, and meaning; make one narrow parser/model/graph/writer change; run its owning fast selectors together with one touched-target build; prove relevant refusal, state/destination preservation, and corrected same-object retry; add strict output and fresh independent readback only for output-capable profiles. Commit the slice, update its receipt and this queue, remove the completed action, recount, then take the next ready gate. |
 | 4 | Qualify consumers only for admitted profiles | P7-F/H; P8-D | Reuse the exact generated FreeCAD P8-B/C profile. Start P7-F only after P7-C/D admission and an independent geometry reader. Batch LibreCAD 2 GUI actions in one accessible session; run LibreCAD_3 only if its application becomes available. |
 | 5 | Final release qualification | P8-F/G | Obtain the remaining hosted macOS focused-native evidence and recheck closed package/FreeCAD receipts against final inputs. Reuse P8-E only while its actual library package inputs remain unchanged. Run the broad suite and extended fuzz lane once for the frozen candidate; publish only the resulting evidence-backed support matrix. |
@@ -168,8 +168,8 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count the 34 package gates and each implementation/research slice once. The
-  current ledger is 105 completed slices plus 34 package gates = 139 counted
-  items; 10 gates plus 105 slices are complete (115/139, 82.7%). The Linux and
+  current ledger is 106 completed slices plus 34 package gates = 140 counted
+  items; 11 gates plus 106 slices are complete (117/140, 83.6%). The Linux and
   Windows FreeCAD results cover only their exact generated profile and binary;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package
@@ -185,7 +185,7 @@ promote support claims.
 
 ## Active package gates
 
-Only the following 24 open package gates are active; completed actions have
+Only the following 23 open package gates are active; completed actions have
 been removed. Their execution order is in the table above; the subsystem
 tables give the exact entry evidence and exit criteria. Readiness labels
 describe scheduling only, never support:
@@ -202,8 +202,7 @@ P4-D's standalone dictionary evidence does not by itself admit multi-root
 output; integrate the proof and close its nested dependencies first. P6-B remains raw-only until a full-AutoCAD exact-class and
 selected-path witness exists; reuse its [disposition](docs/research/p6-persubentmgr-raw-only-dxf-disposition-2026-11-18.json)
 and [creation-route screen](docs/research/p6-persubentmgr-native-api-eligibility-screen-2026-11-18.json).
-P8-D and P6-H remain parked on their explicit environment/tool triggers; see
-their gate rows and receipts. Do not repeat unchanged attempts.
+P8-D remains parked on its display trigger. The [P6-H converter receipt](docs/research/p6h-oda-linux-ac1018-mline-source-2026-11-18.json) records the exact scratch-source conversion and independently compared MLINE/MLINESTYLE readback through official ODA Linux 27.10. Keep the strict whole-file refusal and the separate P8-D native GUI check.
 
 ### P4 — source bodies and graph closure (3 open)
 
@@ -238,7 +237,7 @@ Versioned TABLECONTENT profiles whose semantics remain incomplete stay raw-only;
 | P5-H / WAITING_FOR_NATIVE_VIEWPORT_PAIR | Capture a native AutoCAD ASCII/Binary pair with known VisualStyle/RenderPreset shade-plot state and target objects. Group 91 is settled as a soft pointer; unresolved fields are group 170 modes 4/5 and group 333 target classes. Reuse the [conflict analysis](docs/research/p6-viewport-shadeplot-dxf-objectarx-conflict-2026-11-16.json) instead of repeating group-91 research. | Prove exact values/target roles and fresh typed readback. Null, wrong-kind, missing, or ambiguous targets must refuse atomically; corrected same-writer retry and native rendering must pass. |
 | P5-I / WAITING_FOR_INDEPENDENT_SPAN_PROOF | The exact AutoCAD 2007 TABLE profile is bounded, but the two alignment-override cell spans remain disputed. Reuse the [alignment conflict](docs/research/p5-ac1021-table-override-retention-and-alignment-conflict-2026-11-17.json) and [cursor/peer screen](docs/research/p5-ac1021-table-alignment-candidate-cursor-and-libredwg-screen-2026-11-17.json); existing ODA, ACadSharp, and LibreDWG routes do not bind the disputed fields. | No parser change until independent source-body spans or a version-qualified producer trace bind both cell fields and following-record boundaries. Then finish remaining cell/value/string/handle spans, reuse existing malformed/rollback/retry controls, and close selected-TABLE strict ASCII/Binary output plus fresh independent readback. Keep proxy graphics and other TABLE profiles out of scope. |
 
-### P6 — version, no-loss, and public routes (6 open)
+### P6 — version, no-loss, and public routes (5 open)
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
@@ -247,7 +246,6 @@ Versioned TABLECONTENT profiles whose semantics remain incomplete stay raw-only;
 | P6-C / WAITING_FOR_PRODUCER_CELL_PROFILE | Keep the AC1032 compatibility path bounded, raw-retaining, semantic-incomplete, and strict-output-refused. Reuse the [AutoCAD 2021 candidate screen](docs/research/p6-ac1032-autocad2021-table-pair-screen-2026-11-17.json) and [LibreDWG 0.14 peer screen](docs/research/p6-ac1032-libredwg-tablecontent-peer-screen-2026-11-17.json); the HEADER reconciliation is complete, but producer API calls/state and independently decoded cell values are absent. The separate ODA scaffold exits with an explicit R2010+ TABLE TODO and unknown body; do not rerun it or infer semantics from it. | Request the AutoCAD 2021 TABLE API state and known cell/format values, or obtain primary/versioned authority or a source-distinct independently decoded matching profile. Then bind spans, roles, next-frame alignment, and graph closure; add only the needed malformed controls, strict output/readback, and native meaning checks. Do not infer semantics from a paired DXF or a peer's success status. |
 | P6-E / WAITING_FOR_SUFFIX_AUTHORITY | Reuse the [repeatability receipt](docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json): the AC1024 suffix changes across repeated saves, so a mesh-count comparison is not discriminating. | Resume only with versioned primary authority or a source-bound pre-compression trace. Bind fields/roles, then add only controls that distinguish that mapping. Keep strict refusal; never label the suffix padding or discard it. |
 | P6-F / WAITING_FOR_ELIGIBLE_PARTIAL_SOURCE | Reuse the [disposition](docs/research/p6-cli-legacy-ac1012-ac1014-partial-disposition-2026-11-16.json) and [candidate trace](docs/research/p6-ac1012-ac1014-lwpolyline-partial-candidate-screen-2026-11-17.json); scans are complete and no current source qualifies. | Resume only with an existing hash-bound AC1012/AC1014 source containing recoverable entity failures, closed object/backlink/reference dependencies, and later published frames. Prove destination preservation, partial ASCII/Binary output, fresh readback, and corrected retry; never weaken version/frame/reference checks or commit ODA derivatives. |
-| P6-H / WAITING_FOR_VALID_MACOS_CONVERTER_INSTALLATION | The exact scratch MLINE source remains hash-bound. The installed 27.1 app is suspended/unusable and fails strict signature verification. The official ODA page lists 27.10 for macOS ARM64, but its checksum-valid DMG contains an app with an invalid signature and the alternate PKG also fails signature verification. See the [attempt receipt](docs/research/p6-h-scratch-mline-source-attempt-2026-11-17.json). Do not execute/install those artifacts or retry conversion until ODA provides a verifiable bundle that opens normally. | With a valid usable launch, convert the exact source once; verify AC1018, parser route, and independent values, then complete the linked P8-D check. This does not qualify whole-file conversion or AC1027 output. |
 
 Potential DIMASSOC/XREF, remaining 3D positions/OCS/splines, clipping/mesh,
 unit/lineweight, text/XDATA/EED/font, proxy identity, header dependencies, and
