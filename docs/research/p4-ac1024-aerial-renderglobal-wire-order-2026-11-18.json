@@ -1,0 +1,133 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-renderglobal-wire-order-2026-11-18",
+  "date": "2026-11-18",
+  "status": "EXACT_SOURCE_SPANS_BOUND_AND_LOW_LEVEL_ORDER_DIFFERENCE_REPRODUCED",
+  "supportClaimEffect": "none",
+  "source": {
+    "drawingSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "profile": "Aerial AC1024 RENDERGLOBAL 237, extension DICTIONARY 251, and XRECORD 252.",
+    "odaDxfSha256": "911acff2824c5d75043a074381aea9d2274601ca62391b14786a224444f6c0eb",
+    "libreDwgTraceSha256": "9bead9945a7e9b78c541e73d9ab4c0fe461c8e3ba4105e95bcd3103fe7f9603c",
+    "authority": "ODA 5.4.1 common, dictionary and XRECORD wire rules. The RENDERGLOBAL body was reconciled manually against the LibreDWG trace and then checked with a bounded independent cursor."
+  },
+  "physicalFrames": [
+    {
+      "handle": "237",
+      "encodedType": 521,
+      "bytes": 26,
+      "handleStartBit": 151,
+      "fields": "Type and common body occupy bits 0\u201347. The modeled class body occupies bits 47\u2013132. Empty TU and footer occupy bits 132\u2013151.",
+      "roles": "Owner 151\u2013167 and reactor 167\u2013183 use role 4 length 1 to C. Extension 183\u2013207 uses role 3 length 2 to 251. Observed terminal bit is 1."
+    },
+    {
+      "handle": "251",
+      "encodedType": 42,
+      "bytes": 69,
+      "handleStartBit": 510,
+      "fields": "Header and one-entry dictionary body occupy bits 0\u201367. Key ADSK_XREC_RENDERGLOBALINFO and footer occupy bits 67\u2013510. Cloning and hard-owner flags are 1.",
+      "roles": "Relative owner 510\u2013526 uses role 12 length 1 delta 1A to 237. The dictionary item 526\u2013550 uses role 2 length 2 to 252. Observed terminal bits are 11."
+    },
+    {
+      "handle": "252",
+      "encodedType": 79,
+      "bytes": 17,
+      "handleStartBit": 100,
+      "fields": "Group 70 short zero and cloning 1 precede the no-string footer at bit 99.",
+      "roles": "Relative owner 100\u2013108 uses role 8 to 251. Reactor 108\u2013132 uses role 4 length 2 to 251. Observed terminal bits are 1111."
+    }
+  ],
+  "serializedBody": {
+    "odaDxf": [
+      [
+        90,
+        2
+      ],
+      [
+        90,
+        0
+      ],
+      [
+        90,
+        0
+      ],
+      [
+        290,
+        0
+      ],
+      [
+        1,
+        ""
+      ],
+      [
+        90,
+        640
+      ],
+      [
+        90,
+        480
+      ],
+      [
+        290,
+        1
+      ],
+      [
+        290,
+        1
+      ]
+    ],
+    "genericDxf": [
+      [
+        90,
+        2
+      ],
+      [
+        90,
+        0
+      ],
+      [
+        90,
+        0
+      ],
+      [
+        90,
+        640
+      ],
+      [
+        90,
+        480
+      ],
+      [
+        1,
+        ""
+      ],
+      [
+        290,
+        0
+      ],
+      [
+        290,
+        1
+      ],
+      [
+        290,
+        1
+      ]
+    ],
+    "dependency": "ODA writes 360 for the extension dictionary and 360 for its hard-owned XRECORD member. Those DXF codes and the DWG role tokens were checked separately."
+  },
+  "verification": {
+    "command": "From the repository root, python3 -B /private/tmp/p4-aerial-render-global-proof/verify.py",
+    "result": "896 single-bit corruption controls refused, with unchanged frame retries. The scratch generic writer imports the original model and emits a different field order. It overrides finalization and does not publish a closed extension graph through the production route.",
+    "scratchRoot": "/private/tmp/p4-aerial-render-global-proof",
+    "sha256": {
+      "frames.txt": "a45c726645210586f034b7c6061866f9f02d930568c7c13331e151868aa025f8",
+      "verify.py": "f04644b3423da73458017470f5ca56bb34bad45d90e8e7c99cfd695058673003",
+      "verify.log": "893cee7dc4d73a2a364e606f5ac94429a0613c9c6b6d8477d3cca1aedf0bb273",
+      "generic_writer.cpp": "9e6fdb2f19e9661362015f402d91e080706bfca89ba15b2f30010b6227aa04bb",
+      "generic_writer.log": "154450f75021310365eb04554ce6921a41ed9088b70ec8d2168a3641d451b50f",
+      "generic.dxf": "22ebead87c4796260379f971708845906f1779a4f3d7d004d0b88566ce090ae8"
+    }
+  },
+  "remaining": "Add a source-bound positional writer and inspector for this profile. Bind the CLASSES row, NOD root, extension dictionary, XRECORD and staged record identities. Test remaps, atomic refusal, corrected retry and fresh independent readback. Keep native rendering and full-file export open."
+}
