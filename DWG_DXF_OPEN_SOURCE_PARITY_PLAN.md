@@ -19,9 +19,9 @@ libdxfrw and LibreCAD origin/master heads above were re-checked and unchanged;
 LibreCAD PR #3269 is merged as `4060fb6bb` and is contained in that LibreCAD head.
 
 **Progress on 2026-11-17:** 6 of 33 required package gates are closed (18.2%);
-27 remain. After S8.2b/c/d and the P4-C ObjectARX API-route screen, the
-activity count is 58 of 85 tracked items complete (68.2%): 6 closed gates and
-52 completed implementation/research slices. The 27
+27 remain. After S8.2b/c/d and the P4-C ObjectARX plus APS witness-route
+screens, the activity count is 59 of 86 tracked items complete (68.6%): 6
+closed gates and 53 completed implementation/research slices. The 27
 remaining counted items are the 27 open package gates. A completed slice can
 advance a gate that remains open, so this equal-weight activity count measures
 work items rather than unique outcomes or support breadth; use 6/33 for
@@ -39,6 +39,12 @@ qualification remain open under P8; the 6/33 package count is unchanged.
 The P4-C screen identifies a version-matched witness-generation route, but no
 AutoCAD host or source drawing was available; P4-C remains waiting and no DWG
 wire or support claim is promoted.
+S36 documents an APS fallback for generating a current AutoCAD producer's
+AC1027-format Sweep pair from a bounded .NET 10 AppBundle. Autodesk documents
+the Sweep API, AC1027 DWG/DXF save methods, and AutoCAD 2027 cloud engine. This
+is a separate producer profile, not an AutoCAD 2013 witness; APS credentials
+and authorized quota are absent, so no remote job was submitted. P4-C remains
+open. See the [route receipt](docs/research/p4c-aps-autocad-ac1027-witness-route-2026-11-17.json).
 The S8.2d AC1027 BLOCK_CONTROL boundary selector now passes with the exact
 source-backed 53-bit handle suffix; this test-only slice changes no support
 claim. See [receipt](docs/research/p8-dwg-block-control-handle-bit-count-fast-slice-2026-11-17.json).
@@ -343,7 +349,7 @@ integration pass or a specific failure that expands risk.
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
 | P4-B / WAITING_FOR_WITNESS | Request one source-distinct, release-bound AC1032 drawing with known top-level and nested associative-network API state, or primary versioned wire documentation. Reuse the [readiness audit](docs/research/p4-ac1032-assocnetwork-evidence-readiness-2026-11-17.json); peer agreement and frame candidates alone do not qualify. | Bind class-version-2 order/spans, handle roles, and following-record boundary. Add one discriminating truncation/refusal control; close nested graph and producer/consumer evidence. |
-| P4-C / WAITING_FOR_AC1027_PRODUCER_WITNESS | Fastest admissible route: obtain one AutoCAD 2013/ObjectARX-authored AC1027 drawing and matching R2013 DXF. The Autodesk Community attachment still yielded 403/zero bytes. The new API-header screen shows `AcDbSweptSurface` can be created from explicit sweep/path entities and `AcDbSweepOptions`, then its source entities/options can be queried; this is a reproducible witness-generation route, not wire evidence. See the [Sweep receipt](docs/research/p4-ac1027-sweep-oda-schema-boundary-2026-11-17.json). | Keep the source compact: baseline/default and one distinct non-default sweep in the same drawing; record producer/build, API getter state before save and after reopen, entity handles, profile/path geometry, AC1027 magic, and both file hashes. Compare the paired DXF, ODA v5.4.1, and source-bound libdxfrw/LibreDWG traces to bind parent/child spans, embedded LWPOLYLINE body and suffix, handle roles, and next-frame alignment. API/header agreement or ODA round-trip alone cannot close physical spans. Preserve unknown suffix bytes and refuse strict output until spans resolve; then add only the missing truncation/wrong-role control, strict output/readback, corrected retry, and independent geometry check. If no AutoCAD 2013/ObjectARX host or authored pair is available, leave only this gate waiting and continue other work. |
+| P4-C / WAITING_FOR_AC1027_PRODUCER_WITNESS | Preferred source remains an AutoCAD 2013/ObjectARX-authored AC1027 drawing and matching R2013 DXF. If that host is unavailable, the documented APS fallback can use AutoCAD 2027's `Autodesk.AutoCAD+26_0` engine and save a separate current-producer profile as AC1027. Autodesk documents the `SweptSurface`/`SweepOptionsBuilder` APIs, AC1027 `Database.SaveAs`/`dxfOut`, and the cloud AppBundle/WorkItem route. See the [ObjectARX/API receipt](docs/research/p4-ac1027-sweep-oda-schema-boundary-2026-11-17.json) and [APS route receipt](docs/research/p4c-aps-autocad-ac1027-witness-route-2026-11-17.json). An APS job has service/quota requirements and may incur cost; do not submit one without authorized credentials and quota. | Generate one compact pair with a baseline/default sweep and one distinct non-default sweep. Capture engine/producer build, app-bundle hash and WorkItem ID, source entities/options before save and after reopening AC1027, handles, geometry, AC1027 magic and DXF `$ACADVER`. Keep the 2027-to-AC1027 profile distinct from AutoCAD 2013. Compare the paired DXF, ODA v5.4.1, and source-bound libdxfrw/LibreDWG traces to bind parent/child spans, embedded LWPOLYLINE body and suffix, handle roles, and next-frame alignment. API/header agreement or ODA round-trip alone cannot close physical spans. Preserve unknown suffix bytes and refuse strict output until spans resolve; then add only the missing truncation/wrong-role control, strict output/readback, corrected retry, and independent geometry check. If neither producer route is available, leave only this gate waiting and continue other work. |
 
 ### P5 — FIELD, TABLE, rendering, constraints (7 open)
 
