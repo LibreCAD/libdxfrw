@@ -3158,11 +3158,10 @@ if(LIBDXFRW_BUILD_TESTS)
     set_tests_properties(libdxfrw_dxf_viewport_text_owner_budget PROPERTIES
         LABELS "fast;dxf;reader;viewport;resource-budget"
         TIMEOUT 10)
-    add_test(NAME libdxfrw_associative_subentity_handle_limit
-        COMMAND libdxfrw_hardening_tests
-            --dxf-associative-subentity-handle-limit)
-    set_tests_properties(libdxfrw_associative_subentity_handle_limit PROPERTIES
-        LABELS "fast;dxf;reader;associative;resource-budget"
+    add_test(NAME libdxfrw_persubentmgr_raw_only
+        COMMAND libdxfrw_hardening_tests --dxf-persubentmgr-raw-only)
+    set_tests_properties(libdxfrw_persubentmgr_raw_only PROPERTIES
+        LABELS "fast;dxf;reader;associative;raw-only"
         TIMEOUT 10)
     add_test(NAME libdxfrw_sectionobject_indicator_color_groups
         COMMAND libdxfrw_hardening_tests

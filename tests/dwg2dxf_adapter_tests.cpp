@@ -48562,24 +48562,22 @@ bool associativeDxfCallbackContract() {
                 != "ACDBPERSSUBENTMANAGER"
             || persistentSubentityProbe.associative.front().handle != 0x52u
             || persistentSubentityProbe.associative.front().parentHandle != 0x20u
-            || persistentSubentityProbe.associative.front().m_classVersion != 5u
+            || persistentSubentityProbe.associative.front().m_classVersion != 0u
             || persistentSubentityProbe.associative.front().m_persistentUnknown0
                 != 0u
             || persistentSubentityProbe.associative.front().m_persistentUnknown2
-                != 2u
+                != 0u
             || persistentSubentityProbe.associative.front()
-                   .m_persistentAssocStepCount != 1u
+                   .m_persistentAssocStepCount != 0u
             || persistentSubentityProbe.associative.front()
-                   .m_persistentAssocSubentityCount != 2u
+                   .m_persistentAssocSubentityCount != 0u
             || persistentSubentityProbe.associative.front().m_persistentSteps
-                != std::vector<std::uint32_t>({11u, 12u})
+                .size() != 0u
             || persistentSubentityProbe.associative.front()
-                   .m_persistentSubentityCount != 2u
+                   .m_persistentSubentityCount != 0u
             || persistentSubentityProbe.associative.front()
                    .m_persistentSubentityIds
-                != std::vector<std::uint32_t>({21u, 22u})
-            || !persistentSubentityProbe.associative.front()
-                   .m_persistentDxfProjectionComplete
+                .size() != 0u
             || !persistentSubentityProbe.associative.front()
                    .m_persistentSubentityHandles.empty()
             || persistentSubentityData.associativeDxfImport.rawGroupCount != 15u
@@ -48594,8 +48592,10 @@ bool associativeDxfCallbackContract() {
             || persistentSubentityData.dictionaryVars.size() != 1u
             || persistentSubentityData.dictionaryVars.front().m_value
                 != "PERSUBENT_FOLLOWING_SENTINEL"
-            || !persistentSubentityData.associativeObjects.front()
-                   .m_persistentDxfProjectionComplete
+            || persistentSubentityData.associativeObjects.front().m_classVersion
+                != 0u
+            || persistentSubentityData.associativeObjects.front().parentHandle
+                != 0x20u
             || persistentSubentityData.rawAssociativeObjects.front().groups.size()
                 != 15u
             || persistentSubentityData.rawAssociativeObjects.front().groups[1]

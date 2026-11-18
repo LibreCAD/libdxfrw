@@ -503,31 +503,31 @@ bool parseGeneratedDxfUntilFollowing(Entity& entity,
     return false;
 }
 
-void testAssociativePersistentSubentityHandleLimit(TestContext& t) {
-    std::string records = "100\nAcDbPersSubentManager\n";
-    const std::string oneHandle = "330\nA1\n";
-    records.reserve(records.size()
-                    + DRW::kMaxDxfRawRecordGroups * oneHandle.size());
-    for (std::size_t index = 0;
-         index < DRW::kMaxDxfRawRecordGroups; ++index)
-        records += oneHandle;
+void testAssociativePersistentSubentityRawOnly(TestContext& t) {
+    const std::string records =
+        "330\n20\n100\nAcDbPersSubentManager\n90\n7\n330\nA1\n";
+    ExposedAssociativeObject source("ACDBPERSSUBENTMANAGER");
+    t.expect(parseDxfRecords(source, records)
+                 && source.parentHandle == 0x20u
+                 && source.m_classVersion == 0u
+                 && source.m_persistentSubentityCount == 0u
+                 && source.m_persistentSubentityHandles.empty()
+                 && source.m_persistentSteps.empty()
+                 && source.m_persistentSubentityIds.empty(),
+             "unresolved PERSUBENTMGR DXF body stays untyped and preserves owner");
 
-    ExposedAssociativeObject atLimit("ACDBPERSSUBENTMANAGER");
-    t.expect(parseDxfRecords(atLimit, records)
-                 && atLimit.m_persistentSubentityHandles.size()
-                     == DRW::kMaxDxfRawRecordGroups
-                 && atLimit.m_persistentSubentityCount
-                     == DRW::kMaxDxfRawRecordGroups,
-             "PERSUBENTMGR accepts the bounded subentity-handle limit");
+    ExposedAssociativeObject copied(source);
+    t.expect(parseDxfRecords(copied, "330\nA2\n")
+                 && copied.parentHandle == 0xA2u
+                 && copied.m_persistentSubentityHandles.empty(),
+             "PERSUBENTMGR copy clears opaque-body parser state");
 
-    records += "330\nA2\n";
-    ExposedAssociativeObject overLimit("ACDBPERSSUBENTMANAGER");
-    t.expect(!parseDxfRecords(overLimit, records)
-                 && overLimit.m_persistentSubentityHandles.size()
-                     == DRW::kMaxDxfRawRecordGroups
-                 && overLimit.m_persistentSubentityCount
-                     == DRW::kMaxDxfRawRecordGroups,
-             "PERSUBENTMGR refuses a subentity handle beyond the bounded limit");
+    ExposedAssociativeObject assigned;
+    assigned = source;
+    t.expect(parseDxfRecords(assigned, "330\nA3\n")
+                 && assigned.parentHandle == 0xA3u
+                 && assigned.m_persistentSubentityHandles.empty(),
+             "PERSUBENTMGR assignment clears opaque-body parser state");
 }
 
 void testImageAdjustmentCarrierDomains(TestContext& t) {
@@ -4499,29 +4499,6 @@ void testPublicOwnershipContracts(TestContext& t) {
                  && assignedSectionView.m_identifierStyleHandle == 0xB1u
                  && assignedSectionView.m_arrowStartSymbolHandle == 0u,
              "SECTIONVIEWSTYLE assignment clears group parser state");
-
-    ExposedAssociativeObject partialAssociative("ACDBASSOCNETWORK");
-    t.expect(parseDxfRecords(partialAssociative,
-                             "100\nAcDbPersSubentManager\n90\n7\n330\nA1\n")
-                 && partialAssociative.m_classVersion == 7
-                 && partialAssociative.m_persistentSubentityHandles.size() == 1u
-                 && partialAssociative.m_persistentSubentityHandles.front()
-                        == 0xA1u,
-             "ASSOCIATIVEOBJECT parser state source setup");
-    ExposedAssociativeObject copiedAssociative(partialAssociative);
-    t.expect(parseDxfRecords(copiedAssociative, "330\nA2\n")
-                 && copiedAssociative.m_persistentSubentityHandles.size() == 1u
-                 && copiedAssociative.m_persistentSubentityHandles.front()
-                        == 0xA1u,
-             "ASSOCIATIVEOBJECT copy clears persistent-body parser state");
-    ExposedAssociativeObject assignedAssociative;
-    assignedAssociative = partialAssociative;
-    t.expect(parseDxfRecords(assignedAssociative, "330\nA3\n")
-                 && assignedAssociative.m_persistentSubentityHandles.size()
-                        == 1u
-                 && assignedAssociative.m_persistentSubentityHandles.front()
-                        == 0xA1u,
-             "ASSOCIATIVEOBJECT assignment clears persistent-body parser state");
 
     DRW_Dimension sourceDimension;
     sourceDimension.extData.push_back(
@@ -27531,16 +27508,15 @@ int main(int argc, char** argv) {
         return 0;
     }
     if (argc == 2
-        && std::string(argv[1])
-            == "--dxf-associative-subentity-handle-limit") {
+        && std::string(argv[1]) == "--dxf-persubentmgr-raw-only") {
         TestContext focused;
-        testAssociativePersistentSubentityHandleLimit(focused);
+        testAssociativePersistentSubentityRawOnly(focused);
         if (focused.failures != 0) {
             std::cerr << focused.failures
-                      << " associative subentity-handle assertion(s) failed\n";
+                      << " PERSUBENTMGR raw-only assertion(s) failed\n";
             return 1;
         }
-        std::cout << "associative subentity-handle limit: PASS\n";
+        std::cout << "PERSUBENTMGR raw-only disposition: PASS\n";
         return 0;
     }
     if (argc == 2
@@ -27796,7 +27772,7 @@ int main(int argc, char** argv) {
     TestContext context;
     testSectionSettingsDxfColorCode(context);
     testImageAdjustmentCarrierDomains(context);
-    testAssociativePersistentSubentityHandleLimit(context);
+    testAssociativePersistentSubentityRawOnly(context);
     testSpatialFilterDxfValidation(context);
     testDxfOperationAdmission(context);
     testDxfLinetypeDisplayScaleDomains(context);

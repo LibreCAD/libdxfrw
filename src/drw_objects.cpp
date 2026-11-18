@@ -30860,15 +30860,6 @@ void DRW_AssociativeObject::reset() {
     m_point = DRW_Coord();
     m_prefixStatuses.clear();
     m_dxfPersistentSubentityBody = false;
-    m_dxfPersistentSubentityClassValueCount = 0;
-    m_persistentDxfProjectionComplete = false;
-    m_dxfPersistentStepsExpected = 0u;
-    m_dxfPersistentStepsRead = 0u;
-    m_dxfPersistentStepsComplete = false;
-    m_dxfPersistentSubentityCountSeen = false;
-    m_dxfPersistentSubentityIdsExpected = 0u;
-    m_dxfPersistentSubentityIdsRead = 0u;
-    m_dxfPersistentProjectionInvalid = false;
     m_dxfAssociativeGeomSubclass = 0;
     m_dxfAssociativeActionSubclass = false;
     m_dxfAssociativeNetworkSubclass = false;
@@ -31133,25 +31124,7 @@ bool DRW_AssociativeObject::parseCode(
             return true;
         }
         if (subclass == "AcDbPersSubentManager") {
-            m_dxfAssociativeGeomSubclass = 0;
             m_dxfPersistentSubentityBody = true;
-            m_dxfPersistentSubentityClassValueCount = 0;
-            m_dxfPersistentStepsExpected = 0u;
-            m_dxfPersistentStepsRead = 0u;
-            m_dxfPersistentStepsComplete = false;
-            m_dxfPersistentSubentityCountSeen = false;
-            m_dxfPersistentSubentityIdsExpected = 0u;
-            m_dxfPersistentSubentityIdsRead = 0u;
-            m_dxfPersistentProjectionInvalid = false;
-            m_persistentDxfProjectionComplete = false;
-            m_persistentSubentityCount = 0u;
-            m_persistentSubentityHandles.clear();
-            m_persistentUnknown0 = 0u;
-            m_persistentUnknown2 = 0u;
-            m_persistentAssocStepCount = 0u;
-            m_persistentAssocSubentityCount = 0u;
-            m_persistentSteps.clear();
-            m_persistentSubentityIds.clear();
             return true;
         }
         return true;
@@ -32428,93 +32401,9 @@ bool DRW_AssociativeObject::parseCode(
         }
     }
     if (m_dxfPersistentSubentityBody) {
-        if (code != 90) {
-            // This source-derived projection expects only group-90 values.
-            // Keep other class-body groups in the raw record, without
-            // reclassifying them as common owner/reactor handles.
-            if (!m_persistentDxfProjectionComplete)
-                m_dxfPersistentProjectionInvalid = true;
-            return true;
-        }
-
-        const std::int32_t signedValue = reader->getInt32();
-        if (m_dxfPersistentProjectionInvalid) {
-            m_dxfPersistentProjectionInvalid = true;
-            m_persistentDxfProjectionComplete = false;
-            return true;
-        }
-        const std::uint32_t value = static_cast<std::uint32_t>(signedValue);
-        const std::uint32_t prefixIndex =
-            m_dxfPersistentSubentityClassValueCount++;
-        if (prefixIndex < 6u) {
-            switch (prefixIndex) {
-            case 0u:
-                if (signedValue < 0
-                    || value > std::numeric_limits<std::uint16_t>::max()) {
-                    m_dxfPersistentProjectionInvalid = true;
-                    return true;
-                }
-                m_classVersion = static_cast<std::uint16_t>(value);
-                break;
-            case 1u: m_persistentUnknown0 = value; break;
-            case 2u: m_persistentUnknown2 = value; break;
-            case 3u: m_persistentAssocStepCount = value; break;
-            case 4u: m_persistentAssocSubentityCount = value; break;
-            case 5u:
-                if (signedValue < 0
-                    || value > DRW::kMaxDxfRawRecordGroups) {
-                    m_dxfPersistentProjectionInvalid = true;
-                    return true;
-                }
-                m_dxfPersistentStepsExpected = value;
-                if (!DRW::reserve(m_persistentSteps,
-                                  static_cast<int>(value))) {
-                    m_dxfPersistentProjectionInvalid = true;
-                    return true;
-                }
-                m_dxfPersistentStepsComplete = value == 0u;
-                break;
-            default: break;
-            }
-            return true;
-        }
-
-        if (!m_dxfPersistentStepsComplete) {
-            m_persistentSteps.push_back(value);
-            ++m_dxfPersistentStepsRead;
-            if (m_dxfPersistentStepsRead == m_dxfPersistentStepsExpected)
-                m_dxfPersistentStepsComplete = true;
-            return true;
-        }
-
-        if (!m_dxfPersistentSubentityCountSeen) {
-            if (signedValue < 0
-                || value > DRW::kMaxDxfRawRecordGroups) {
-                m_dxfPersistentProjectionInvalid = true;
-                return true;
-            }
-            m_dxfPersistentSubentityCountSeen = true;
-            m_persistentSubentityCount = value;
-            m_dxfPersistentSubentityIdsExpected = value;
-            if (!DRW::reserve(m_persistentSubentityIds,
-                              static_cast<int>(value))) {
-                m_dxfPersistentProjectionInvalid = true;
-                return true;
-            }
-            m_persistentDxfProjectionComplete = value == 0u;
-            return true;
-        }
-
-        if (m_dxfPersistentSubentityIdsRead
-            < m_dxfPersistentSubentityIdsExpected) {
-            m_persistentSubentityIds.push_back(value);
-            ++m_dxfPersistentSubentityIdsRead;
-            if (m_dxfPersistentSubentityIdsRead
-                == m_dxfPersistentSubentityIdsExpected)
-                m_persistentDxfProjectionComplete = true;
-            return true;
-        }
-        // Unknown trailing group-90 values remain in the raw carrier.
+        // No source-qualified class schema is available. Leave group 90 and
+        // group 330 values to the exact raw-DXF carrier rather than assigning
+        // them as a class version or overwriting the common owner handle.
         return true;
     }
     return DRW_TableEntry::parseCode(code, reader);

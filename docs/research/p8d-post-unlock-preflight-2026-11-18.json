@@ -46,6 +46,14 @@
       "interpretation": "This process still has no active Quartz display and cannot capture the desktop. The result does not establish whether the physical login session is locked.",
       "guiActionsAttempted": false
     },
+    "retryAfterUserSaidWillUnlock": {
+      "trigger": "The user said they would unlock the session after the previous failed preflight; this records the user's report and does not independently establish session state.",
+      "screenCaptureCommand": "screencapture -x /private/tmp/libdxfrw-unlock-preflight-2026-11-18.png",
+      "screenCaptureResult": "Failed: could not create image from display.",
+      "artifactCreated": false,
+      "guiActionsAttempted": false,
+      "interpretation": "The current process still cannot capture a desktop image. This does not establish the physical login state or capture permissions."
+    },
     "launchServices": [
       {
         "command": "open -Ra LibreCAD",
