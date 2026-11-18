@@ -1,0 +1,104 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 AcVar FIELD group-98 and root-string candidate screen",
+  "date": "2026-11-17",
+  "phase": "P5-B profile boundary",
+  "supportClaimEffect": "none",
+  "scope": "Check whether a narrow AC1021 AcVar root-string decode can complete fields in the existing AutoCAD 2008 architectural source, and determine whether the observed child-count failure resolves the ODA-versus-LibreDWG group-98 type discrepancy.",
+  "source": {
+    "path": "/Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg",
+    "sizeBytes": 188992,
+    "sha256": "0e74f0aa84b1323c922345f067739c42ee26213dea010b407b87a94212271654",
+    "version": "AC1021",
+    "producer": "AutoCAD 2008, AppInfo 17.1.51.0",
+    "repositoryFixture": false,
+    "previousScreen": "docs/research/p5-ac1021-architectural-field-current-reader-recheck-2026-11-11.json"
+  },
+  "primaryAuthority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["20.1", "20.4.76", "20.4.99"],
+    "group98": "§20.4.76 lists FIELD value-string length as TV. §20.4.99 defines CadValue flags, type, and value payload."
+  },
+  "independentTrace": {
+    "tool": "GNU LibreDWG dwgread",
+    "version": "0.14",
+    "executableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "command": "dwgread -v5 -O minJSON /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg -o /private/tmp/architectural-annotation-cross-screen.minjson",
+    "trace": "/private/tmp/architectural-annotation-cross-screen.trace",
+    "traceSha256": "1118a4dfa5570ede39cc8f13826d30e74aadcaf5228ab6f074ad0d4b8337af6f",
+    "result": "For FIELD handle 0x2396, LibreDWG reads root flags 4 and type 4, reads group 98 as BL=4 at body cursor 19.5, then reports child count 1074221063 at cursor 23.7 as invalid. Its minJSON does not provide a decoded child-value list for this object."
+  },
+  "objectSpanObservation": {
+    "handle": "0x2396",
+    "minJsonObjectIndex": 2004,
+    "objectSizeBytes": 177,
+    "preHandleBodyBits": 1396,
+    "stringStreamMarker": "+1395 @174.3",
+    "handleStream": "@174.4-@177.0",
+    "ownerHandle": "0x2391",
+    "nextObjectHandle": "0x2397",
+    "nextObjectMapAddress": 150793,
+    "note": "These are LibreDWG decoded-object-map/cursor observations, not physical compressed-file offsets. They do not establish that either group-98 candidate is the correct wire parse."
+  },
+  "rootCadValue": {
+    "handle": "0x2396",
+    "evaluator": "AcVar",
+    "fieldCode": "\\AcVar Login \\f \"%tc4\"",
+    "formatFlags": 4,
+    "dataType": 4,
+    "typeSpecificPayloadExpectedByOda": "TV string because flags bit 1 (mask 0x01) is clear",
+    "libreDwgDecodedValue": {
+      "value": "%tc4",
+      "unitType": 18,
+      "formatString": "Autodesk",
+      "valueString": "Autodesk",
+      "outerValueString": "Variable",
+      "valueStringLength": 4
+    }
+  },
+  "localExperiment": {
+    "baselineSourceSha256": "4d34f5dd2e4225f7e9a7889bae1be3ed2c8fe3ff5ee7d283de191595e353d021",
+    "experimentalChange": "Temporarily accepted the observed AC1021 root CadValue profile flags=0x04/type=4 and tried bounded BL-versus-decimal-TV group-98 candidates. The field remained raw-only; neither candidate produced a complete bounded child-value payload on this source.",
+    "diagnosticBinary": "/private/tmp/field_carrier_diag_s33",
+    "diagnosticBinarySha256": "1691df0471760521df7d10528df24a10c3da12c67292a3b8dbc0daba9efab989",
+    "carrierOutput": "/private/tmp/architectural_field_carriers_s33.txt",
+    "carrierOutputSha256": "b0dad4bc3ff9ff811805722c5eb2331707b744ef7648e6a5d742f41f922edd8d",
+    "carrierResult": "typedFields=29; rawOnlyFields=37; unchanged from the baseline",
+    "strictTrace": "/private/tmp/architectural-field-s33-tv.trace",
+    "strictTraceSha256": "884fd62dbb1c014bd6cc33908f5dd7f0ca9eb129609f34e3aa2588b607e2bb71",
+    "strictCommand": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/architectural_-_annotation_scaling_and_multileaders.dwg -y -d -v2007 /private/tmp/architectural-field-s33-tv.dxf",
+    "strictExitStatus": 1,
+    "strictRefusal": "FIELD/FIELDLIST carriers have no qualified DXF serializer",
+    "outputCreated": false,
+    "disposition": "Reverted the experimental parser change. It did not recover a complete FIELD, did not resolve group-98 encoding, and is not retained as implementation."
+  },
+  "peerSourceCode": {
+    "path": "/Users/dli/dev/ACadSharp/src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Objects.cs",
+    "observation": "ACadSharp's FIELD reader also calls ReadBitLong for value-string length and child-value count. This is a source-code behavior comparison only; it is not an independent decode of this object and does not resolve the conflict."
+  },
+  "findings": {
+    "result": "UNRESOLVED_NO_PARSER_CHANGE",
+    "group98": "ODA v5.4.1 says TV; LibreDWG's historical source fix and the bounded AutoCAD 2007 S30 source profile use BL. The AutoCAD 2008 trace still produces an invalid child count under the BL route, while the local TV candidate did not produce a complete payload. Neither result establishes which encoding this object uses.",
+    "profileScope": "The five AcVar records belong to the architectural AutoCAD 2008 source, not the hash-bound AutoCAD 2007 TABLE graph. Their unresolved representation is not a prerequisite for the selected AutoCAD 2007 P5-B output profile.",
+    "decision": "Do not change the group-98 parser from this screen. Keep the AutoCAD 2007 BL evidence bounded to its source profile. Resolve the architectural source only with an independently decoded, source-bound candidate that yields complete values and following-object alignment."
+  },
+  "limits": [
+    "The architectural drawing is the same source hash screened on 2026-11-11, not new producer evidence.",
+    "LibreDWG and ACadSharp source both use BL for group 98; agreement between those implementations is not an independent wire proof.",
+    "The local experiment did not produce a typed AcVar record, strict DXF output, readback, or a support claim.",
+    "No test suite was run and no DWG/DXF fixture or derivative was added to the repository. The focused dwg2dxf target was rebuilt after reverting the experiment."
+  ],
+  "implementationReadiness": {
+    "closed": [
+      "Bound the failure to the existing AutoCAD 2008 AcVar FIELD 0x2396 after root CadValue decode, at the next child-count field.",
+      "Reject the unproductive root-flag/group-98 parser experiment and restore the prior source parser."
+    ],
+    "remaining": [
+      "Keep AcVar outside the exact AutoCAD 2007 TABLE P5-B prerequisite set.",
+      "For P5-B, begin from a raw-only AcObjProp/AcSm member in the metric source and map its residual body bits against ODA and the existing source trace before editing the parser.",
+      "Resolve the AutoCAD 2008 group-98 candidate only if that source profile is separately admitted."
+    ],
+    "nextAction": "Continue P5-B on the hash-bound AutoCAD 2007 metric source. Start with raw-only AcObjProp.16.2 FIELD 0x3a5be, whose 3366-bit frame, 258-bit local residual, decoded object-map position, and following FIELD 0x3a5bf are present in the existing metric trace. Preserve the full FIELDLIST and strict refusal until every member has a lossless output disposition."
+  }
+}
