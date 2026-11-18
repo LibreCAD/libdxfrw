@@ -1195,6 +1195,7 @@ EXTRA_DIST = \
     tools/qualify_material_source_order.py \
     tools/replay_dwg_legacy_extrusion.cpp \
     tools/research/OBJECTARX_WITNESS_README.md \
+    tools/research/P4C_SWEEP_WITNESS_README.md \
     tools/research/ac1021_mtext_field_census.cpp \
     tools/research/ac1032_forum_assocnetwork_spans.py \
     tools/research/ac1032_forum_constraint_group_spans.py \
@@ -1231,6 +1232,8 @@ EXTRA_DIST = \
     tools/research/objectarx_witness.lsp \
     tools/research/objectarx_witness_scan.py \
     tools/research/p4_forum_ltype_oda_compare.py \
+    tools/research/p4c_sweep_witness.cs \
+    tools/research/p4c_sweep_witness.csproj \
     tools/research/p5_ac1018_appid_sibling_scratch_instrument.py \
     tools/research/p5_ac1018_cellstylemap_binding_probe.cpp \
     tools/research/p5_ac1018_cellstylemap_candidate_live_probe.cpp \
