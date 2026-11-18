@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-tablestyle-historical-regression-recheck-2026-11-18",
+  "date": "2026-11-18",
+  "status": "CURRENT_TREE_FOCUSED_CONTROLS_PASS",
+  "sourceCommit": "7a12d6ef7d0e5da7b0398cc7ecffa1289ffc1038",
+  "supportClaimEffect": "none",
+  "historicalFinding": {
+    "receipt": "docs/research/p4-ac1024-tablestyle-output-proof-2026-10-31.json",
+    "result": "Three companion selectors failed in the earlier broad TABLESTYLE filter: identity domains, content-format enum domains, and nested raw net. Their baseline status was then unverified.",
+    "subsequentEvidence": [
+      "docs/research/p5-tablestyle-nested-raw-net-remapped-identity-fast-slice-2026-11-07.json records a later nested raw-net pass and continued failure of the identity and content-format selectors.",
+      "docs/research/p5-tablestyle-dwg-encoder-allocation-rollback-2026-11-10.json records a later content-format enum selector pass."
+    ]
+  },
+  "authorityConsulted": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.101.2, R24 TABLESTYLE format, documents cell style ID and class fields."
+  },
+  "recheck": {
+    "buildCommand": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2",
+    "buildResult": "PASS",
+    "testCommand": "ctest --test-dir build-gcc -R '^(libdxfrw_tablestyle_identity_domains|libdxfrw_tablestyle_content_format_enum_domains|libdxfrw_tablestyle_nested_raw_net)$' --output-on-failure",
+    "result": "PASS 3/3 on the current tree; identity domains 0.14 s, content-format enum domains 0.02 s, nested raw net 0.04 s."
+  },
+  "limits": [
+    "The selectors exercise generated codec and adapter controls, not independent producer wire semantics or native consumer behavior.",
+    "This recheck establishes no cause for the historical identity-domain failure and does not close a package gate or broaden TABLESTYLE support.",
+    "No production code or drawing fixture was changed."
+  ]
+}

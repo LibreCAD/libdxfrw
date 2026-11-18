@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8-package-freecad-7a12d-qualification-2026-11-18",
+  "date": "2026-11-18",
+  "testedCommit": "7a12d6ef7d0e5da7b0398cc7ecffa1289ffc1038",
+  "supportClaimEffect": "none",
+  "packageQualification": {
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44321448456",
+    "scope": "Release shared/static package install, relocation and consumer checks; shared profile includes installed dwg2dxf launch. Project tests are disabled.",
+    "probeResults": "All platforms matched relocated inventories, rejected ABI version 2, accepted version 3, launched the CLI with loader overrides cleared, and loaded the selected runtime in the relocated consumer.",
+    "platforms": [
+      {"platform": "macos-clang", "result": "PASS", "runtimePath": "lib/libdxfrw.3.0.0.dylib", "runtimeSha256": "c8ceeef5a0f8987a33a611c913b1a42036dce73153731cef50f1f0f8c206d934", "cliSha256": "966091b887cd1046f42bde26e87de01bf7416121eedd00bf3c91cc70db7c9eca", "jobId": 134861165142, "artifactId": 14436390805, "artifactSha256": "b068b75f7c6cc75b9e09222144cd7c53e2a79d058108e30c0e037a3b318a32ad"},
+      {"platform": "linux-gcc", "result": "PASS", "runtimePath": "lib/libdxfrw.so.3.0.0", "runtimeSha256": "f18d209dfb6edcd81bf5ae7e3c356bf78066938321c6d9cb9012bc079bafa014", "cliSha256": "099082950f04344590acdca174ae069cb7ce4a5e8af8050bbc42f5db808648ec", "jobId": 134861165984, "artifactId": 14435717900, "artifactSha256": "3619dde8e7883f76a5c85386993e6e0f7825b7097050efcbf2cbd9c5138fef9a"},
+      {"platform": "windows-msvc", "result": "PASS", "runtimePath": "bin/dxfrw-3.dll", "runtimeSha256": "21c58e46824108395256935643703a24f25b0f2d8744ff79c99be1aea1d9c69e", "cliSha256": "bd104b567839ba0ff7a70959fc82cd85bca9aec851e9994e7a60edcb91e229aa", "jobId": 134861165299, "artifactId": 14435647932, "artifactSha256": "5d4f618380f7e343809d9d02657a29aacbd5ddd51e5683033479cf7fa1b1a3fb"}
+    ],
+    "candidateEquivalence": "After 7a12d only tests/dwg2dxf_adapter_tests.cpp, tests/dwg_local_roundtrip_tests.cpp, the digest-excluded status overlay, plan, and research receipts change. The package workflow builds with LIBDXFRW_BUILD_TESTS=OFF; product, package, workflow and probe inputs are unchanged. Recheck full trees and actual inputs before any later reuse.",
+    "gateEffect": "P8-A and P8-E closed for this exact package profile and unchanged package inputs."
+  },
+  "freecadQualification": {
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44321585624",
+    "scope": "Pinned FreeCAD 1.1.4 generated handoff profile on exact tested commit; no producer-wire claim.",
+    "freecadRevision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "legacyImporterVersion": "v1.42",
+    "generatedAc1032PolyfaceSha256": "7df817c97a68064cf2df6823ca5b4a1b0b6c47b427d66de8d8fb5bc77fcd69f8",
+    "platforms": [
+      {"platform": "linux-x64", "result": "PASS 16/16", "installedConverterSha256": "78aee39bdab094ae5066538d6fd09ed8b0af97f29f7d8c36a6b77328cb5efeb7", "jobId": 134861660561, "artifactId": 14435089298, "artifactSha256": "3f4a2c8b554d2f8c7a00df2f9f6a294414ac8085677f246de4bf2109884027c7"},
+      {"platform": "windows-x64", "result": "PASS 17/17", "installedConverterSha256": "b97dfc12baa871009c2290ed6e9f22950215c7947d3fe938508aafa04fc567d7", "jobId": 134861659959, "artifactId": 14434694153, "artifactSha256": "70143cfc02d0a3f3af9d6cf9ca32dec97cec4db3294b385a01ad6f6cf403d3f8"}
+    ],
+    "candidateLimit": "The subsequent read-outcome test edit changes the generator executable's translation unit. The invoked generator paths and product sources are unchanged, but the 7a12 artifacts do not identify the later generator binary. P8-B/C stay open pending source-matched receipts."
+  },
+  "nativeFocused": {
+    "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44321448589",
+    "linuxAndWindows": "FAIL 6/7: libdxfrw_dwg_local_roundtrip stage 6 retained an obsolete default-color refusal expectation. The corrected selector and aggregate pass locally; repeat on hosted runners for the new digest.",
+    "linuxArtifactId": 14434933122,
+    "windowsArtifactId": 14436336623,
+    "gateEffect": "P8-F remains open."
+  },
+  "limits": [
+    "Package tests do not prove complete ABI compatibility or drawing semantics.",
+    "FreeCAD results cover only the stated generated profiles and tested binaries.",
+    "No new drawing-support claim is promoted."
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p6-image-source-identity-ac1027-guard-recheck-2026-11-18",
+  "date": "2026-11-18",
+  "status": "GENERATED_ADAPTER_CONTROLS_PASS",
+  "supportClaimEffect": "none",
+  "baseCommit": "7a12d6ef7d0e5da7b0398cc7ecffa1289ffc1038",
+  "implementationDigestSha256": "83b4bcae25a911bf758768ed9ff5a1a463e995ee50e95c63f511d849c38d8722",
+  "historicalFailure": {
+    "receipt": "docs/research/p4-ac1021-layout-physical-selected-output-2026-11-06.json",
+    "selector": "dwg2dxf_generated_image_dictionary_source_identity",
+    "finding": "The generated AC1027 source reached the existing unqualified-source reference guard, while the test expected successful whole-file output."
+  },
+  "change": {
+    "file": "tests/dwg2dxf_adapter_tests.cpp",
+    "behavior": "The two-source alias and extension-graph matrices assert the exact AC1027 source-reference refusal and unchanged destination. Other source versions continue to require successful projection/readback and source preservation.",
+    "faultCoverage": "The AC1027 raster wire faults are still observed and must invalidate source admission. Since the independent whole-source guard fires first for the corrected source, the test does not count these cases as raster-output-specific refusal/retry proof. Eligible versions still exercise those refusals and corrected output retries."
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedCommand": "ctest --test-dir build-gcc -R '^(dwg2dxf_generated_image_dictionary_source_identity|dwg2dxf_rooted_custom_imagedef|dwg2dxf_rooted_image_dictionary_closure|dwg2dxf_selected_raster_reactor_metadata)$' --output-on-failure",
+    "focusedResult": "PASS 4/4, 4.46 seconds.",
+    "directSelector": "PASS: build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --generated-image-dictionary-source-identity",
+    "counts": {
+      "aliasNativeProjections": 12,
+      "aliasAc1027AtomicRefusals": 4,
+      "extensionNativeProjections": 20,
+      "extensionAc1027AtomicRefusals": 4,
+      "extensionWireRefusalAndRetries": 90,
+      "extensionAc1027ObservedFaults": 9
+    }
+  },
+  "nativeReadOutcomeFollowup": {
+    "failedRun": "https://github.com/dxli/libdxfrw/actions/runs/44321448589",
+    "failedJobId": 134861426854,
+    "failedSelector": "libdxfrw_dwg_local_roundtrip",
+    "cause": "Its stage 6 still expected legacy output to reject the default BYBLOCK color after the preceding production fix made that exact default representable.",
+    "testChange": "Require AC1018 output and fresh readback for the default, then nondefault ACI refusal with destination preservation and corrected same-exporter retry. Preserve strict and partial AC1027 graph guard controls.",
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip -j2",
+    "validation": "PASS 2/2: ctest --test-dir build-gcc -R '^(libdxfrw_dwg_read_outcome_policy|libdxfrw_dwg_local_roundtrip)$' --output-on-failure."
+  },
+  "limits": [
+    "This changes test expectations only; no production codec or drawing fixture changed.",
+    "All drawings in these selectors are generated locally at runtime; no DWG or DXF fixture was added.",
+    "Generated controls do not establish independent producer semantics, native consumer acceptance, or AC1027 output qualification."
+  ]
+}

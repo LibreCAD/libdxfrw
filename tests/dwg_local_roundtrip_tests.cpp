@@ -30326,19 +30326,59 @@ bool runDwgReadOutcomeControls(const std::filesystem::path& directory) {
         }
         if (!requestedVersion) return false;
     }
-    // The AC1027 source's DIMSTYLE retains CMC fill-color metadata. A legacy
-    // output cannot silently discard that metadata, even for a partial read.
+    // The default BYBLOCK CMC color is equivalent to index zero and may be
+    // omitted by a legacy target. Nondefault color must still fail atomically.
     const auto legacyOutput = directory / "read-outcome-legacy-export.dxf";
     const std::string legacySentinel = "preserve unrepresentable DIMSTYLE\n";
-    { std::ofstream file(legacyOutput, std::ios::binary); file << legacySentinel; }
-    if (exporter.fileExport(legacyOutput.string(), DRW::AC1018, false,
-                            &exportData, false))
+    if (!exporter.fileExport(legacyOutput.string(), DRW::AC1018, false,
+                             &exportData, false))
         return false;
+    dx_data legacyReadback;
+    dx_iface legacyImporter;
+    if (!legacyImporter.fileImport(legacyOutput.string(), &legacyReadback, false)
+        || legacyReadback.dimStyles.empty()
+        || exportData.dwgReadOutcome.observations.entityParseFailures != 1)
+        return false;
+    {
+        std::ifstream exported(legacyOutput, std::ios::binary);
+        dxfReaderAscii tags(&exported);
+        bool requestedVersion = false;
+        int code = 0;
+        while (tags.readRec(&code)) {
+            if (code == 9 && tags.getString() == "$ACADVER") {
+                requestedVersion = tags.readRec(&code) && code == 1
+                    && tags.getString() == "AC1018";
+                break;
+            }
+        }
+        if (!requestedVersion) return false;
+    }
+    if (exportData.dimStyles.empty()) return false;
+    auto& dimstyle = exportData.dimStyles.front();
+    const int originalFillColor = dimstyle.dimtfillclr;
+    const auto originalFillMethod = dimstyle.dimtfillclrMethod;
+    dimstyle.dimtfillclr = 3;
+    dimstyle.dimtfillclrMethod = dwgColor::ACI;
+    { std::ofstream file(legacyOutput, std::ios::binary); file << legacySentinel; }
+    const bool nondefaultRejected = !exporter.fileExport(
+        legacyOutput.string(), DRW::AC1018, false, &exportData, false);
+    dimstyle.dimtfillclr = originalFillColor;
+    dimstyle.dimtfillclrMethod = originalFillMethod;
+    if (!nondefaultRejected) return false;
     {
         std::ifstream file(legacyOutput, std::ios::binary);
         if (std::string(std::istreambuf_iterator<char>(file), {}) != legacySentinel)
             return false;
     }
+    if (!exporter.fileExport(legacyOutput.string(), DRW::AC1018, false,
+                             &exportData, false)
+        || exportData.dwgReadOutcome.observations.entityParseFailures != 1)
+        return false;
+    dx_data legacyRetryReadback;
+    dx_iface legacyRetryImporter;
+    if (!legacyRetryImporter.fileImport(legacyOutput.string(), &legacyRetryReadback, false)
+        || legacyRetryReadback.dimStyles.empty())
+        return false;
     const auto strictOutput = directory / "read-outcome-strict-export.dxf";
     const std::string strictSentinel = "preserve strict complete destination\n";
     {

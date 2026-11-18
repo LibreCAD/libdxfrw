@@ -5914,6 +5914,7 @@ bool generatedImageDictionarySourceIdentity() {
         author.linkImage(&definition);
     }
     unsigned cells = 0u, reexports = 0u, nativeCells = 0u, refusals = 0u;
+    unsigned unqualifiedAc1027Refusals = 0u;
     for (const auto version : {DRW::AC1018, DRW::AC1032}) for (const bool binary : {false, true}) {
         exporter.dictionarySource = 0xB301u; exporter.firstSource = 0xB310u; exporter.secondSource = 0xB311u;
         exporter.identities = false;
@@ -6102,6 +6103,33 @@ bool generatedImageDictionarySourceIdentity() {
         exporter.firstSource = source.definitions[0]; exporter.secondSource = source.definitions[1];
         for (const auto target : {DRW::AC1018, DRW::AC1032}) for (const bool binary : {false, true}) {
             exporter.identities = false;
+            if (version == DRW::AC1027) {
+                const std::string sentinel = "AC1027_IMAGE_ALIAS_DESTINATION";
+                {
+                    std::ofstream prior(path, std::ios::binary | std::ios::trunc);
+                    if (!(prior << sentinel)) return fail("could not write AC1027 image-alias refusal sentinel");
+                }
+                std::ostringstream diagnostics;
+                bool wrote = false;
+                {
+                    struct Redirect {
+                        std::streambuf* old;
+                        ~Redirect() { std::cerr.rdbuf(old); }
+                    } redirect{std::cerr.rdbuf(diagnostics.rdbuf())};
+                    wrote = exporter.fileExport(path.string(), target, binary, &imported, false, true,
+                        dx_dxfSourceTextPolicy::Compatible, DRW::DxfTextWritePolicy::Compatible,
+                        dx_dxfProxyGraphicsPolicy::Compatible, dx_dwgReadCompletenessPolicy::AllowPartial);
+                }
+                std::ifstream previous(path, std::ios::binary);
+                const std::string retained((std::istreambuf_iterator<char>(previous)), {});
+                if (wrote || retained != sentinel || exporter.identities
+                    || !DxIfaceStandardDwgCaptureTestAccess::unchanged(importer)
+                    || diagnostics.str().find("AC1027 DWG source references are not fully qualified")
+                        == std::string::npos)
+                    return fail("unqualified AC1027 source-image aliases did not refuse atomically");
+                ++unqualifiedAc1027Refusals;
+                continue;
+            }
             if (!exporter.fileExport(path.string(), target, binary, &imported, false, true,
                     dx_dxfSourceTextPolicy::Compatible, DRW::DxfTextWritePolicy::Compatible,
                     dx_dxfProxyGraphicsPolicy::Compatible, dx_dwgReadCompletenessPolicy::AllowPartial)
@@ -6126,8 +6154,11 @@ bool generatedImageDictionarySourceIdentity() {
             ++nativeCells;
         }
     }
+    if (nativeCells != 12u || unqualifiedAc1027Refusals != 4u)
+        return fail("native source-image matrix skipped a projection or AC1027 refusal");
     std::cout << "Source-image dictionary identity cells=" << cells << " readback reexports=" << reexports
               << " native cells=" << nativeCells << " refusal/retries=" << refusals
+              << " AC1027 refusals=" << unqualifiedAc1027Refusals
               << " aggregate metadata bytes=" << metadataBudget << " cross-generation cells=2\n";
     return true;
 }
@@ -10827,6 +10858,7 @@ bool generatedImageDefinitionExtensions() {
     unsigned immutableRefusals = 0u;
     unsigned wireRefusals = 0u;
     unsigned permissiveRoleWitnesses = 0u;
+    unsigned unqualifiedAc1027Faults = 0u, unqualifiedAc1027Refusals = 0u;
     const auto write = [&](DRW::Version version, bool binary) {
         return exporter.fileExport(path.string(), version, binary, &data, false, true);
     };
@@ -11027,6 +11059,13 @@ bool generatedImageDefinitionExtensions() {
                 || DxIfaceStandardDwgCaptureTestAccess::rasterUnchanged(reader))
                 return fail("independent raster byte fault did not close source admission");
             if (reader.roleStillParsed) ++permissiveRoleWitnesses;
+            // The AC1027 whole-source guard rejects even the corrected input.
+            // Keep observing its byte faults, but do not count the outer guard
+            // as evidence that the raster output gate rejected those faults.
+            if (version == DRW::AC1027) {
+                ++unqualifiedAc1027Faults;
+                continue;
+            }
             for (const bool binary : {false, true}) {
                 const std::string sentinel = "RASTER_WIRE_ATOMIC_DESTINATION";
                 { std::ofstream prior(path, std::ios::binary); prior << sentinel; }
@@ -11172,6 +11211,33 @@ bool generatedImageDefinitionExtensions() {
             }
         }
         for (const auto target : {DRW::AC1018, DRW::AC1032}) for (const bool binary : {false, true}) {
+            if (version == DRW::AC1027) {
+                const std::string sentinel = "AC1027_IMAGE_EXTENSION_DESTINATION";
+                {
+                    std::ofstream prior(path, std::ios::binary | std::ios::trunc);
+                    if (!(prior << sentinel)) return fail("could not write AC1027 image-extension refusal sentinel");
+                }
+                std::ostringstream diagnostics;
+                bool wrote = false;
+                {
+                    struct Redirect {
+                        std::streambuf* old;
+                        ~Redirect() { std::cerr.rdbuf(old); }
+                    } redirect{std::cerr.rdbuf(diagnostics.rdbuf())};
+                    wrote = exporter.fileExport(path.string(), target, binary, &imported, false, true,
+                        dx_dxfSourceTextPolicy::Compatible, DRW::DxfTextWritePolicy::Compatible,
+                        dx_dxfProxyGraphicsPolicy::Compatible, dx_dwgReadCompletenessPolicy::AllowPartial);
+                }
+                std::ifstream prior(path, std::ios::binary);
+                const std::string retained((std::istreambuf_iterator<char>(prior)), {});
+                if (wrote || retained != sentinel
+                    || !DxIfaceStandardDwgCaptureTestAccess::unchanged(importer)
+                    || diagnostics.str().find("AC1027 DWG source references are not fully qualified")
+                        == std::string::npos)
+                    return fail("unqualified AC1027 image-extension source did not refuse atomically");
+                ++unqualifiedAc1027Refusals;
+                continue;
+            }
             const bool wrote = exporter.fileExport(path.string(), target, binary, &imported, false, true,
                     dx_dxfSourceTextPolicy::Compatible, DRW::DxfTextWritePolicy::Compatible,
                     dx_dxfProxyGraphicsPolicy::Compatible, dx_dwgReadCompletenessPolicy::AllowPartial);
@@ -11188,12 +11254,17 @@ bool generatedImageDefinitionExtensions() {
             ++nativeCells;
         }
     }
+    if (nativeCells != 20u || unqualifiedAc1027Refusals != 4u
+        || unqualifiedAc1027Faults == 0u)
+        return fail("native image-extension matrix skipped a projection or AC1027 refusal/fault");
     std::cout << "IMAGEDEF extension cells=" << cells << " refusal/retries=" << refusals
               << " exact-resource retries=" << resourceRefusals << " native cells=" << nativeCells
               << " readback reexports=" << reexports << " source-reactor refusal/retries=" << reactorRefusals
               << " immutable-source refusal/retries=" << immutableRefusals
               << " wire refusal/retries=" << wireRefusals
-              << " permissive-role witnesses=" << permissiveRoleWitnesses << '\n';
+              << " permissive-role witnesses=" << permissiveRoleWitnesses
+              << " AC1027 observed faults=" << unqualifiedAc1027Faults
+              << " AC1027 refusals=" << unqualifiedAc1027Refusals << '\n';
     return true;
 }
 
