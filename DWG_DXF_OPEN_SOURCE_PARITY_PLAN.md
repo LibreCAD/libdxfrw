@@ -27,8 +27,10 @@ runtime identity. A Windows shared-DLL link failure found by that workflow is
 fixed in `c77cad11`; its Linux and Windows shared/static package jobs pass.
 The c77 macOS package job was cancelled when the branch advanced to `ac9b19cd`;
 a clean macOS shared/static package run on `ac9b19cd` now passes. The hosted
-Linux/Windows jobs ran on c77, whose 226 package-input Git blobs are identical
-to the current candidate. See the [cross-platform package receipt](docs/research/p8a-cross-platform-package-qualification-2026-11-18.json).
+Linux/Windows jobs ran on c77. A full tree comparison identifies only five
+unrelated workflow, plan, receipt, and status changes to `ac9b19cd`; the
+corrected 228-file package fingerprint includes installed licenses and Git
+modes. See the [cross-platform package receipt](docs/research/p8a-cross-platform-package-qualification-2026-11-18.json).
 P8-A is closed for that exact package profile. The Linux
 focused tests also pass on `c77cad11`, but receipt sealing found a stale status
 digest. The digest is refreshed and a pre-build digest check is added in the
@@ -77,7 +79,7 @@ excluded from the counts, and cannot promote support claims.
 
 ## Execution order and fast paths
 
-The active queue has 24 package gates (P4: 2, P5: 7, P6: 6, P7: 5, P8: 4).
+The active queue has 23 package gates (P4: 2, P5: 7, P6: 6, P7: 5, P8: 3).
 No new evidence currently admits a DWG parser/writer change. Start with the
 local package identity work below, then take the first eligible evidence packet;
 an unavailable producer, external authority, GUI, or converter parks only its
@@ -89,7 +91,7 @@ own profile.
 | 2 | Resume authority/source waits only on their named trigger | P5-B/G/I; P6-E/F/H; P7-C/D/G | Reuse linked receipts. Do one bounded primary/source-distinct search per changed trigger; stop when the required field, role, version, and following-record boundary remain unbound. Do not repeat generic peer scans, sample downloads, or failed converter launches. |
 | 3 | Implement immediately when one profile is admitted | All source-backed gates | Bind source spans, handle roles, and meaning; make one narrow parser/model/graph/writer change; run its owning fast selectors together with one touched-target build; prove relevant refusal, state/destination preservation, and corrected same-object retry; add strict output and fresh independent readback only for output-capable profiles. Commit the slice, update its receipt and this queue, remove the completed action, recount, then take the next ready gate. |
 | 4 | Qualify consumers only for admitted profiles | P7-F/H; P8-D | Reuse the exact generated FreeCAD P8-B/C profile. Start P7-F only after P7-C/D admission and an independent geometry reader. Batch LibreCAD 2 GUI actions in one accessible session; run LibreCAD_3 only if its application becomes available. |
-| 5 | Final release qualification | P8-A/F/G | Reuse the prepared package probe and local macOS result. After implementation profiles stabilize, run package checks plus fast and focused-native lanes on Linux, macOS, and Windows for the frozen source and record final source/build/package/runtime identities. Run the broad suite and extended fuzz lane once for that candidate; publish only the resulting evidence-backed support matrix. |
+| 5 | Final release qualification | P8-F/G | Reuse P8-A's package receipts while their inputs remain unchanged. After implementation profiles stabilize, run fast and focused-native lanes on Linux, macOS, and Windows for the frozen source and record final source/build/package/runtime identities. Repeat package checks if their inputs change. Run the broad suite and extended fuzz lane once for that candidate; publish only the resulting evidence-backed support matrix. |
 
 **Self-unblock after every slice or failed probe:** first inspect the linked
 receipt, current code, and local corpus. If a required input is missing, use
@@ -258,9 +260,12 @@ external kernel or app blocks only that profile.
 
 ### P8 — consumers, packaging, release (3 open)
 
-P8-A is closed for the current 226-file package-input digest; its Linux/Windows
+P8-A is closed for the current package profile; its Linux/Windows
 hosted receipts and clean current-candidate macOS shared/static probes are
 summarized in the [cross-platform package receipt](docs/research/p8a-cross-platform-package-qualification-2026-11-18.json).
+Before reuse, compare full source trees and actual build/install inputs, Git
+modes, configuration, and tools; the selected 228-file digest alone does not
+prove that every dependency is unchanged.
 P8-B/C and P8-E are closed for their exact generated-consumer and shared/static
 package profiles. P8-F's earlier fast/native closure applies only to digest
 `5946b6c7aaaf2d8b8d829bd855a0aace6ed7c380fe5228b301c0458d7b2ab7f1`; selected

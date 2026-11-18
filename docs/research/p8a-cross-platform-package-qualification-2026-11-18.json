@@ -10,9 +10,10 @@
     "currentCommit": "ac9b19cd96c5f4560ed572b7f7d1580ebf07920c",
     "implementationDigestSha256": "07d6d60c5a10a9404e536df31aa348d500730ac2402075d708971403d2b6b90a",
     "packageInputDigest": {
-      "algorithm": "sha256(sorted path NUL git-blob-id LF records)",
-      "fileCount": 226,
-      "sha256": "08c340c1cda84d8d69254e3352393e7350496b50bb5650c89d30dac57e5c6bcd",
+      "algorithm": "sha256(sorted path NUL mode NUL type NUL git-blob-id LF records)",
+      "fileCount": 228,
+      "sha256": "144dc64972d6ca464ccaecea8c14f35f6ee016fbba43d1bc0483bc3aef94452f",
+      "correction": "The original 226-file fingerprint omitted two installed license files and did not encode Git mode/type. Full commit comparison confirmed the omitted files unchanged; this corrected fingerprint includes both files and modes/types. This manually selected set is not proof of all possible dependencies: compare the full trees, build/install inputs, configuration, and tools before reuse.",
       "pathSet": [
         ".github/workflows/shared-abi-qualification.yml",
         "CMakeLists.txt",
@@ -22,7 +23,9 @@
         "src/**",
         "dwg2dxf/**",
         "tools/probe_installed_package.py",
-        "tools/probe_shared_abi_package.py"
+        "tools/probe_shared_abi_package.py",
+        "COPYING",
+        "LICENSES/Unicode-3.0.txt"
       ]
     }
   },
@@ -30,7 +33,7 @@
     "runId": 44305850606,
     "runUrl": "https://github.com/dxli/libdxfrw/actions/runs/44305850606",
     "testedCommit": "c77cad11dc73ad92644c851da9357252e98dd52d",
-    "packageInputDigest": "08c340c1cda84d8d69254e3352393e7350496b50bb5650c89d30dac57e5c6bcd",
+    "packageInputDigest": "144dc64972d6ca464ccaecea8c14f35f6ee016fbba43d1bc0483bc3aef94452f",
     "candidatePackageInputsIdentical": true,
     "commitDifferencesOutsidePackageInputSet": [
       ".github/workflows/build.yml",
@@ -41,14 +44,14 @@
     ],
     "linux": {
       "jobId": 134807094635,
-      "result": "PASS: shared and static builds/installations, package inventory and relocation probes, plus installed CLI/runtime identity.",
+      "result": "PASS: shared and static builds/installations, package inventory and relocation probes, installed CLI launch, and relocated consumer runtime identity.",
       "artifactId": 14428817292,
       "artifactName": "shared-abi-linux-gcc-44305850606-1",
       "artifactSha256": "f305fc2b2ad524edaf9506fb36e8d634475758aa4a82a87315e5f4d5b9a090ce"
     },
     "windows": {
       "jobId": 134807094743,
-      "result": "PASS: shared DLL and static builds/installations, package inventory and relocation probes, installed CLI link/runtime identity.",
+      "result": "PASS: shared DLL and static builds/installations, package inventory and relocation probes, installed CLI link and launch, and relocated consumer runtime identity.",
       "artifactId": 14428762321,
       "artifactName": "shared-abi-windows-msvc-44305850606-1",
       "artifactSha256": "2d9da069f30f9b09c94c8028d18ee8030f81043f4c3e2d2089bb2c42cb2f0cbd"
@@ -91,8 +94,8 @@
     "runId": 44305850606,
     "jobId": 134835940788,
     "name": "shared package / macos-clang",
-    "statusAtReceipt": "queued",
-    "disposition": "Not required for P8-A closure: current-candidate local macOS shared/static package receipts pass, and hosted Linux/Windows package inputs match the current candidate's 226-file package-input digest exactly."
+    "statusAtReceipt": "cancelled after queuing",
+    "disposition": "Not required for P8-A closure: current-candidate local macOS shared/static package receipts pass, and hosted Linux/Windows package inputs match the current candidate's corrected 228-file package-input digest."
   },
   "limitations": [
     "This qualifies installation, package inventory, relocation, a minimal consumer, and the dwg2dxf usage launch path.",

@@ -53,9 +53,9 @@
   "currentPackageGateClosure": {
     "receipt": "docs/research/p8a-cross-platform-package-qualification-2026-11-18.json",
     "candidateCommit": "ac9b19cd96c5f4560ed572b7f7d1580ebf07920c",
-    "packageInputDigestSha256": "08c340c1cda84d8d69254e3352393e7350496b50bb5650c89d30dac57e5c6bcd",
+    "packageInputDigestSha256": "144dc64972d6ca464ccaecea8c14f35f6ee016fbba43d1bc0483bc3aef94452f",
     "macos": "Current-candidate clean-source shared and static install probes passed locally.",
-    "linuxWindows": "Hosted shared/static profiles passed on c77cad11; all 226 package-input Git blobs match the current candidate exactly.",
+    "linuxWindows": "Hosted shared/static profiles passed on c77cad11; a full-tree comparison finds only the five unrelated changes listed in the companion receipt. The corrected 228-file package fingerprint includes installed licenses and Git modes/types; it is not an exhaustive dependency proof.",
     "result": "P8-A CLOSED; package qualification only, with no drawing-support claim."
   },
   "speedImprovement": {
