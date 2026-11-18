@@ -21,12 +21,20 @@
       "result": "PASS"
     },
     {
+      "command": "cmake --build build-gcc --target libdxfrw_dxf_fixture_tests lc3_compat_check --parallel 4",
+      "result": "PASS"
+    },
+    {
       "command": "build-gcc/libdxfrw_dwg_local_roundtrip --hatch-references /private/tmp",
       "result": "PASS; generated HATCH reference/path controls cover ASCII and binary first-write/read-write paths, preplanning/resolver combinations, backward/detached forms, refusal and same-codec retry, plus patterned multi-path HATCH."
     },
     {
       "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_local_roundtrip$' --output-on-failure",
       "result": "PASS (1/1; 1.80 s)"
+    },
+    {
+      "command": "ctest --test-dir build-gcc -R '^(libdxfrw_dxf_consumer_write_facade|libdxfrw_dxf_writer_emitted_handle_inventory|libdxfrw_writer_primitives)$' --output-on-failure",
+      "result": "PASS (3/3; 0.40 s); includes resolver ordering/terminal mapping, duplicate-remap and conflict behavior, known group-102 references, XDATA 1005 literal zeros, omission reporting, and reservation-query contract."
     }
   ],
   "testMaintenance": {
