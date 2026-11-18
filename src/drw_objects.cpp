@@ -33712,10 +33712,18 @@ bool DRW_AssociativeObject::parseDwgConstraintCandidate(
                     || !readBodyVector(m_persistentSubentityIds, subentityCount)))
                 return fail();
             if (!abbreviatedAc1027OrAc1032Prefix) {
+                // Staying within the bounded body proves only that these
+                // fields did not overrun it. Mark the prefix complete only
+                // when the decoded fields consume the body; otherwise the
+                // remainder must stay an unvalidated opaque tail.
+                const bool bodyFullyConsumed =
+                    currentObjectDwgBit(buf) == bodyEndBit;
+                const bool completePrefix = bodyFits() && bodyFullyConsumed
+                    && !abbreviatedSourcePrefix;
                 appendPrefixStatus(
                     DRW_AssociativePrefixStatus::Kind::AcDbAssocActionBody,
                     prefixStartBit,
-                    bodyFits() && !abbreviatedSourcePrefix
+                    completePrefix
                         ? DRW_AssociativePrefixStatus::ParseStatus::Complete
                         : DRW_AssociativePrefixStatus::ParseStatus::Partial,
                     m_classVersion, 0,
