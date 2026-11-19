@@ -30,8 +30,9 @@ and SDK version, DLL hash, and the artifact transfer route.
 
 ## Create the baseline
 
-1. Create a new blank drawing. Keep a dedicated host-side scratch directory
-   outside the repository; use new, absolute paths for every output.
+1. Create a new blank drawing, save and reopen it so `DBMOD=0`, and keep Model
+   space empty. Use a dedicated host-side scratch directory outside the
+   repository and new, absolute paths for every output.
 2. Load the DLL with `NETLOAD` and run `DXFRW_P6A_CREATE`. It refuses a
    modified drawing, Model space with existing entities, or an existing image
    dictionary. It creates the scratch BMP with `FileMode.CreateNew`, registers
@@ -43,9 +44,10 @@ and SDK version, DLL hash, and the artifact transfer route.
    record any recovery/error messages. Run `DXFRW_P6A_REPORT` with a new
    report path. It records the drawing/BMP hashes and DWG magic, AutoCAD and
    assembly versions, `DBMOD`, the NOD/image-dictionary entry, IMAGEDEF owner,
-   source and active paths, persistent reactors, every RasterImage owner and
-   definition reference, each image's reactor owner, and whether that same
-   reactor appears in the IMAGEDEF persistent list. The report requires
+   source and active paths, the resolved raster-file hash, persistent
+   reactors, every RasterImage owner and definition reference, each image's
+   reactor owner, and whether that same reactor appears in the IMAGEDEF
+   persistent list. The report requires
    `DBMOD=0` and labels a broken or incomplete graph
    `INCOMPLETE_DO_NOT_QUALIFY`.
 4. Save a screenshot or operator note showing that the raster is visible.
@@ -86,6 +88,7 @@ Primary API references:
 
 - Autodesk [.NET raster image attach example](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-DevGuide-Managed/files/GUID-00A0BCD9-4519-4746-BC73-88544D75D789.htm)
 - Autodesk [.NET `RasterImageDef`](https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_RasterImageDef.html)
+- Autodesk [.NET `RasterImageDef` properties](https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_RasterImageDef.html)
 - Autodesk [.NET `RasterImage.AssociateRasterDef`](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_RasterImage_AssociateRasterDef_RasterImageDef.html)
 - Autodesk [.NET `RasterImage.ReactorId`](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_RasterImage_ReactorId.html)
 - Autodesk [.NET `DBObject.GetPersistentReactorIds`](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DBObject_GetPersistentReactorIds.html)

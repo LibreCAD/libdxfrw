@@ -27,6 +27,11 @@
       "observation": "The API exposes the persistent reactor collection for readback."
     },
     {
+      "title": "Autodesk RasterImageDef properties (.NET)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-__MEMBERTYPE_Properties_Autodesk_AutoCAD_DatabaseServices_RasterImageDef.html",
+      "observation": "The managed properties expose both the source file path and the active file path used by the image definition."
+    },
+    {
       "title": "Autodesk DBDictionary.Remove(ObjectId) (.NET)",
       "url": "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DBDictionary_Remove_ObjectId.html",
       "observation": "The dictionary entry can be removed by the stored object ID; native effects are captured by the host operation and reopen reports."
@@ -44,10 +49,10 @@
       "tools/research/P6A_IMAGEDEF_WITNESS_README.md"
     ],
     "baseline": "Creates a scratch-only 2x2 BMP from bytes authored in the managed command, registers one IMAGEDEF in ISM_RASTER_IMAGE_DICT, associates one RasterImage, and saves a new current-version DWG and receipt.",
-    "observer": "After close/reopen, reports file hashes, AutoCAD/assembly versions, DBMOD, NOD dictionary identity, IMAGEDEF owner/source/reactors, image owner/definition/reactor, and persistent-reactor membership. Requires DBMOD=0.",
+    "observer": "After close/reopen, reports DWG and resolved external BMP hashes, AutoCAD/assembly versions, DBMOD, NOD dictionary identity, IMAGEDEF owner/source/reactors, image owner/definition/reactor, and persistent-reactor membership. Requires DBMOD=0.",
     "isolatedOperations": [
       "DBDictionary.Remove(ObjectId) into a new derivative",
-      "RasterImageDef.Erase(true) into a separate new derivative",
+      "RasterImageDef.Erase(true) into a separate new derivative, with dependent image/reactor erased-state capture both before and after transaction completion",
       "AutoCAD COPY on a separate baseline copy",
       "AutoCAD WBLOCK on a separate baseline copy"
     ],

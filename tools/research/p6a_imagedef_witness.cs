@@ -77,6 +77,17 @@ namespace LibdxfrwWitness {
             }
         }
 
+        private static string ResolveImagePath(string candidate, string drawingPath) {
+            if (String.IsNullOrWhiteSpace(candidate)) return null;
+            try {
+                string path = Path.IsPathRooted(candidate)
+                    ? candidate : Path.Combine(Path.GetDirectoryName(drawingPath), candidate);
+                return Path.GetFullPath(path);
+            } catch {
+                return null;
+            }
+        }
+
         private static void WriteTinyBmp(string path) {
             // A 2x2, 24-bit BMP written from scratch; rows are bottom-up and padded to 4 bytes.
             using (var file = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
@@ -212,6 +223,39 @@ namespace LibdxfrwWitness {
             return false;
         }
 
+        private static List<Tuple<ObjectId, ObjectId>> FindRasterImageLinks(Database db,
+                                                                             Transaction tr,
+                                                                             ObjectId definitionId) {
+            var links = new List<Tuple<ObjectId, ObjectId>>();
+            BlockTable blockTable = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+            if (blockTable == null) return links;
+            foreach (ObjectId blockId in blockTable) {
+                BlockTableRecord block = tr.GetObject(blockId, OpenMode.ForRead) as BlockTableRecord;
+                if (block == null) continue;
+                foreach (ObjectId entityId in block) {
+                    if (entityId.IsErased) continue;
+                    RasterImage image = tr.GetObject(entityId, OpenMode.ForRead) as RasterImage;
+                    if (image != null && image.ImageDefId == definitionId)
+                        links.Add(Tuple.Create(image.ObjectId, image.ReactorId));
+                }
+            }
+            return links;
+        }
+
+        private static void LogLinkedImageStates(TextWriter writer, string prefix,
+                                                 List<Tuple<ObjectId, ObjectId>> links) {
+            Log(writer, prefix + ".count", links.Count);
+            for (int i = 0; i < links.Count; ++i) {
+                ObjectId imageId = links[i].Item1;
+                ObjectId reactorId = links[i].Item2;
+                Log(writer, prefix + "." + i + ".imageHandle", HandleText(imageId));
+                Log(writer, prefix + "." + i + ".imageErased", imageId.IsErased);
+                Log(writer, prefix + "." + i + ".reactorHandle", HandleText(reactorId));
+                Log(writer, prefix + "." + i + ".reactorErased",
+                    reactorId.IsNull || reactorId.IsErased);
+            }
+        }
+
         private static void LogReactors(TextWriter writer, string prefix, DBObject value, Transaction tr) {
             ObjectIdCollection reactors = value.GetPersistentReactorIds();
             Log(writer, prefix + ".persistentReactorCount", reactors.Count);
@@ -303,8 +347,24 @@ namespace LibdxfrwWitness {
                                         definition.GetPersistentReactorIds(), imageDictionaryId);
                                     Log(writer, "IMAGEDEF." + entry.m_key + ".dictionaryIsPersistentReactor",
                                         dictionaryIsPersistentReactor);
-                                    Log(writer, "IMAGEDEF." + entry.m_key + ".sourceFileName", definition.SourceFileName);
-                                    Log(writer, "IMAGEDEF." + entry.m_key + ".activeFileName", definition.ActiveFileName);
+                                    string sourceFileName = definition.SourceFileName;
+                                    string activeFileName = definition.ActiveFileName;
+                                    Log(writer, "IMAGEDEF." + entry.m_key + ".sourceFileName", sourceFileName);
+                                    Log(writer, "IMAGEDEF." + entry.m_key + ".activeFileName", activeFileName);
+                                    string imageFilePath = ResolveImagePath(activeFileName, drawingPath);
+                                    if (String.IsNullOrWhiteSpace(imageFilePath) || !File.Exists(imageFilePath))
+                                        imageFilePath = ResolveImagePath(sourceFileName, drawingPath);
+                                    bool imageFileExists = !String.IsNullOrWhiteSpace(imageFilePath)
+                                        && File.Exists(imageFilePath);
+                                    Log(writer, "IMAGEDEF." + entry.m_key + ".imageFilePathUsed", imageFilePath);
+                                    Log(writer, "IMAGEDEF." + entry.m_key + ".imageFileExists", imageFileExists);
+                                    if (imageFileExists) {
+                                        Log(writer, "IMAGEDEF." + entry.m_key + ".imageFileSha256", Sha256(imageFilePath));
+                                        Log(writer, "IMAGEDEF." + entry.m_key + ".imageFileBytes",
+                                            new FileInfo(imageFilePath).Length);
+                                    } else {
+                                        ++failures;
+                                    }
                                     Log(writer, "IMAGEDEF." + entry.m_key + ".isLoaded", definition.IsLoaded);
                                     LogReactors(writer, "IMAGEDEF." + entry.m_key, definition, tr);
                                     if (!ownerMatches || !dictionaryIsPersistentReactor) ++failures;
@@ -427,6 +487,7 @@ namespace LibdxfrwWitness {
                     Log(writer, "autocadAcadv", Convert.ToString(Application.GetSystemVariable("ACADVER"), CultureInfo.InvariantCulture));
                     Log(writer, "assemblyVersion", typeof(P6AImageDefWitness).Assembly.GetName().Version);
 
+                    List<Tuple<ObjectId, ObjectId>> linkedImages = null;
                     using (Transaction tr = db.TransactionManager.StartTransaction()) {
                         ObjectId imageDictionaryId = RasterImageDef.GetImageDictionary(db);
                         DBDictionary dictionary = imageDictionaryId.IsNull ? null
@@ -437,8 +498,10 @@ namespace LibdxfrwWitness {
                         } else {
                             ObjectId definitionId = dictionary.GetAt(EntryName);
                             RasterImageDef definition = tr.GetObject(definitionId, OpenMode.ForWrite) as RasterImageDef;
+                            linkedImages = FindRasterImageLinks(db, tr, definitionId);
                             Log(writer, "definitionHandle", HandleText(definitionId));
                             Log(writer, "definitionOwnerBefore", definition == null ? "<missing>" : HandleText(definition.OwnerId));
+                            LogLinkedImageStates(writer, "linkedImagesBefore", linkedImages);
                             if (definition == null) {
                                 Log(writer, "operationResult", "IMAGEDEF_ENTRY_WRONG_TYPE");
                                 ++mutationErrors;
@@ -461,15 +524,19 @@ namespace LibdxfrwWitness {
                                     } else {
                                         Log(writer, "definitionOwnerAfter", "<erased>");
                                     }
+                                    LogLinkedImageStates(writer, "linkedImagesAfter", linkedImages);
                                     tr.Commit();
                                 } catch (System.Exception ex) {
                                     tr.Abort();
                                     ++mutationErrors;
                                     Log(writer, "operationResult", "REFUSED_OR_FAILED:" + ex.GetType().Name);
+                                    LogLinkedImageStates(writer, "linkedImagesAfterRollback", linkedImages);
                                 }
                             }
                         }
                     }
+                    if (linkedImages != null)
+                        LogLinkedImageStates(writer, "linkedImagesAfterTransaction", linkedImages);
 
                     try {
                         db.SaveAs(outputPath, DwgVersion.Current);
