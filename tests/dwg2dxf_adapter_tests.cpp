@@ -206,6 +206,20 @@ public:
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static bool qualifiedAerialAdvMaterial(
+            const dx_iface& iface, const dx_data& data) noexcept {
+        return iface.hasQualifiedAc1024AerialAdvMaterial(data);
+    }
+    static bool writeXRecordWithSourceCompatibility(
+            dx_iface& iface, DRW_XRecord& record,
+            bool* useAdskMaterialCompatibility = nullptr) {
+        return iface.writeXRecordWithSourceCompatibility(
+            record, useAdskMaterialCompatibility);
+    }
+    static std::uint8_t& aerialAdvMaterialRawFirstByte(dx_data& data) {
+        return data.m_standardDwgObjectFrames.at(
+            {data.importGeneration, 0x2C4u}).raw.m_rawBytes.front();
+    }
     static bool hasCurrentDwgLayerControlSourceProof(
             const dx_iface& iface, const dx_data& data) noexcept {
         return iface.hasCurrentDwgLayerControlSourceProof(data);
@@ -61486,6 +61500,7 @@ bool physicalAc1024LayerStatesSourceGraphContext(const std::filesystem::path& so
 }
 
 #include "p4_layerstates_real_writer_controls.h"
+#include "p4_advmaterial_writer_controls.h"
 
 bool physicalAc1024LayerStatesAppIdContext(
         const std::filesystem::path& sourcePath) {
@@ -93751,6 +93766,8 @@ int main(int argc, char** argv) {
         return physicalAc1024SelectedByBlockMaterialWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-global-material-eed-writer")
         return physicalAc1024SelectedGlobalMaterialEedWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-advmaterial-writer")
+        return physicalAc1024SelectedAdvMaterialWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-tablestyle-writer")
         return physicalAc1024SelectedTableStyleWriter(argv[2]) ? 0 : 1;
     if (argc == 3

@@ -75,6 +75,13 @@ inline constexpr bool isDxfXRecordLayerStateCompatibilityCode(int code) {
     return code == 370;
 }
 
+// Autodesk extended-material XRECORD groups are outside the documented
+// application-code range. Keep the first source-bound AC1024 profile as a
+// separate opt-in set; this does not broaden ordinary XRECORD output.
+inline constexpr bool isDxfXRecordAdskMaterialCompatibilityCode(int code) {
+    return code >= 460 && code <= 464;
+}
+
 // The pinned LibreCAD tree predates the standalone safety correction for two
 // disputed ranges.  Keep that legacy interpretation available to an explicit
 // compatibility probe without changing the standalone-safe default used by

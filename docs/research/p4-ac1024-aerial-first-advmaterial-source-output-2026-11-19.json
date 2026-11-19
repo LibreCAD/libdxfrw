@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-first-advmaterial-source-output-2026-11-19",
+  "date": "2026-11-19",
+  "status": "SELECTED_ADVMATERIAL_ASCII_BINARY_OUTPUT_AND_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "profile": {
+      "material": "0x2C2",
+      "extensionDictionary": "0x2C3",
+      "advmaterialXrecord": "0x2C4",
+      "rootMaterialDictionary": "0x72",
+      "rootName": "Brass - Satin",
+      "appid": "ACAD"
+    },
+    "sourceEvidence": "The 0x2C4 raw-frame, same-import class publication, typed values and ADVMATERIAL edge qualify through the source-binding receipt. Output uses the exact XRECORD object stored in that same dx_data; a copied record cannot borrow the compatibility route."
+  },
+  "outputProfile": {
+    "target": "AC1024",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "handleMap": {
+      "0x72": "0xA072",
+      "0x2C2": "0xA2C2",
+      "0x2C3": "0xA2C3",
+      "0x2C4": "0xA2C4"
+    },
+    "graph": [
+      "NOD ACAD_MATERIAL -> dictionary 0xA072",
+      "dictionary entry Brass - Satin -> MATERIAL 0xA2C2",
+      "MATERIAL owner 0xA072; extension dictionary 0xA2C3",
+      "extension dictionary entry ADVMATERIAL -> XRECORD 0xA2C4",
+      "XRECORD owner and sole reactor -> 0xA2C3",
+      "the selected projection writes exactly one ACAD APPID row for retained EED"
+    ],
+    "fields": [
+      {"code": 460, "type": "double", "value": 100.0},
+      {"code": 461, "type": "double", "value": 100.0},
+      {"code": 462, "type": "double", "value": 100.0},
+      {"code": 463, "type": "double", "value": 100.0},
+      {"code": 290, "type": "integer/bool", "value": 1},
+      {"code": 270, "type": "integer", "value": 1},
+      {"code": 464, "type": "double", "value": 0.0},
+      {"code": 293, "type": "integer/bool", "value": 0},
+      {"code": 272, "type": "integer", "value": 3},
+      {"code": 273, "type": "integer", "value": 3}
+    ],
+    "compatibilityBoundary": "Only explicit AC1024 source-bound compatibility output admits groups 460-464, and only as finite doubles. The ordinary XRECORD application-code domain remains unchanged."
+  },
+  "validation": {
+    "regularBuild": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "asanBuild": "cmake --build build-asan-custom --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selector": "--ac1024-selected-advmaterial-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "result": "PASS in regular and AddressSanitizer builds. Fresh libdxfrw ASCII and Binary reimports match the selected root/owner/extension/XRECORD handles and roles, ACAD registration, and all ten ordered XRECORD values.",
+    "refusalAndRetry": [
+      "Changed typed group-460 value: compatibility proof rejected; standard XRECORD validation refused output; sentinel destination preserved; restored same-object retry and readback passed.",
+      "Changed source-frame bit: same-import proof rejected; standard XRECORD validation refused output; sentinel destination preserved; restored same-object retry and readback passed.",
+      "AC1027 target: AC1024 compatibility path not selected; standard XRECORD validation refused output; sentinel destination preserved; corrected AC1024 retry and readback passed."
+    ],
+    "scope": "One selected MATERIAL projection only. No external reader, Autodesk host, or independent semantic source was used. The source sample remains local and uncommitted; no DWG/DXF fixture was added."
+  },
+  "limits": [
+    "The exact source profile and output round trip do not establish Autodesk semantic meaning for the ADVMATERIAL fields.",
+    "The other five compact ADVMATERIAL records remain unbound for output.",
+    "DIFFUSE 0x2EE and BUMP 0x2F0 remain separate profiles because they also use groups 420 and 469.",
+    "This selected projection does not close the MATERIAL root or promote a support claim."
+  ]
+}

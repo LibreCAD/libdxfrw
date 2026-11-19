@@ -443,6 +443,10 @@ public:
     /// LayerStates XRECORD group-370 Int16 value. The adapter must first
     /// qualify the owning dictionary graph and exact source profile.
     bool writeXRecordLayerStateCompatibility(DRW_XRecord *ent);
+    /// Explicit source-bound AC1024 compatibility path for the first observed
+    /// ADVMATERIAL XRECORD profile (groups 460-464). The caller must validate
+    /// the exact source frame and owning extension-dictionary graph first.
+    bool writeXRecordAdskMaterialCompatibility(DRW_XRecord *ent);
     /// Emits the typed AcDbDataLink object profile. Referenced custom-data
     /// targets must already have a valid source-to-output handle mapping.
     bool writeDataLink(DRW_DataLink *ent);
@@ -1943,7 +1947,8 @@ private:
             int32Overrides = nullptr);
     bool writeXRecordInternal(DRW_XRecord *ent,
                               bool allowDwgCompatibilityCodes,
-                              bool allowLayerStateGroup370);
+                              bool allowLayerStateGroup370,
+                              bool allowAdskMaterialCompatibility);
     void beginDxfReadRetainedBudget();
     bool appendDxfReadHeaderComment(const std::string& comment);
     bool recordDxfTableRow() noexcept;

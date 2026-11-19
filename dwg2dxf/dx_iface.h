@@ -16,6 +16,7 @@
 #include "drw_interface.h"
 #include "libdxfrw.h"
 #include "dx_data.h"
+#include "dx_ac1024_aerial_advmaterial_wire.h"
 #include "intern/dxf_ac1027_bound_layer.h"
 #include "dx_mline_source_dependency.h"
 #include "intern/dxfcode.h"
@@ -2661,34 +2662,14 @@ public:
         for (std::uint32_t handle : m_extensionXRecordHandles) {
             for (DRW_XRecord& record : cData->xRecords) {
                 if (record.handle == handle) {
-                    const auto& values = record.m_dataEntries.empty()
-                        ? record.m_values : record.m_dataEntries;
-                    const bool hasDwgCompatibilityCode = std::any_of(
-                        values.cbegin(), values.cend(), [](const auto& value) {
-                            return isDxfXRecordDwgCompatibilityCode(
-                                value.code());
-                        });
-                    const bool hasLayerStateCompatibilityCode =
-                        std::any_of(values.cbegin(), values.cend(),
-                            [](const auto& value) {
-                                return isDxfXRecordLayerStateCompatibilityCode(
-                                    value.code());
-                            });
-                    const bool isSelectedLayerStateCompatibilityRecord =
-                        hasLayerStateCompatibilityCode
-                        && (isDwgLayerStateCompatibilityRecord(record)
-                            || isDxfLayerStateCompatibilityReplaySource(record));
-                    const bool useDwgCompatibility = hasDwgCompatibilityCode
-                        && !hasLayerStateCompatibilityCode
-                        && ((cData->sourceFormat == dx_source_format::DWG
-                             && cData->sourceVersion >= DRW::AC1021
-                             && cData->sourceVersion == dxfW->getVersion())
-                            || isDxfXRecordCompatibilityReplaySource(record));
-                    const bool written = isSelectedLayerStateCompatibilityRecord
-                        ? dxfW->writeXRecordLayerStateCompatibility(&record)
-                        : useDwgCompatibility
-                        ? dxfW->writeXRecordDwgCompatibility(&record)
-                        : dxfW->writeXRecord(&record);
+                    bool useAdskMaterialCompatibility = false;
+                    bool useDwgCompatibility = false;
+                    bool hasDwgCompatibilityCode = false;
+                    bool hasLayerStateCompatibilityCode = false;
+                    const bool written = writeXRecordWithSourceCompatibility(
+                        record, &useAdskMaterialCompatibility,
+                        &useDwgCompatibility, &hasDwgCompatibilityCode,
+                        &hasLayerStateCompatibilityCode);
                     if (!written) {
                         std::cerr << "XRECORD write failure: handle="
                                   << record.handle << " compatibility="
@@ -2701,6 +2682,8 @@ public:
                                   << (hasDwgCompatibilityCode ? 1 : 0)
                                   << " layerstate-370="
                                   << (hasLayerStateCompatibilityCode ? 1 : 0)
+                                  << " adsk-material="
+                                  << (useAdskMaterialCompatibility ? 1 : 0)
                                   << " raw-data-valid="
                                   << (record.m_rawDataValid ? 1 : 0)
                                   << " dwg-raw-source="
@@ -3651,6 +3634,72 @@ public:
     dx_ifaceBlock* currentBlock {nullptr};
 
 private:
+    bool writeXRecordWithSourceCompatibility(
+            DRW_XRecord& record,
+            bool* useAdskMaterialCompatibility = nullptr,
+            bool* useDwgCompatibilityOut = nullptr,
+            bool* hasDwgCompatibilityCodeOut = nullptr,
+            bool* hasLayerStateCompatibilityCodeOut = nullptr) {
+        if (dxfW == nullptr || cData == nullptr)
+            return false;
+        const auto& values = record.m_dataEntries.empty()
+            ? record.m_values : record.m_dataEntries;
+        const bool hasDwgCompatibilityCode = std::any_of(
+            values.cbegin(), values.cend(), [](const auto& value) {
+                return isDxfXRecordDwgCompatibilityCode(value.code());
+            });
+        const bool hasLayerStateCompatibilityCode = std::any_of(
+            values.cbegin(), values.cend(), [](const auto& value) {
+                return isDxfXRecordLayerStateCompatibilityCode(value.code());
+            });
+        const bool hasAdskMaterialCompatibilityCode = std::any_of(
+            values.cbegin(), values.cend(), [](const auto& value) {
+                return isDxfXRecordAdskMaterialCompatibilityCode(value.code());
+            });
+        const bool isSelectedLayerStateCompatibilityRecord =
+            hasLayerStateCompatibilityCode
+            && (isDwgLayerStateCompatibilityRecord(record)
+                || isDxfLayerStateCompatibilityReplaySource(record));
+        const bool useDwgCompatibility = hasDwgCompatibilityCode
+            && !hasLayerStateCompatibilityCode
+            && ((cData->sourceFormat == dx_source_format::DWG
+                 && cData->sourceVersion >= DRW::AC1021
+                 && cData->sourceVersion == dxfW->getVersion())
+                || isDxfXRecordCompatibilityReplaySource(record));
+        if (useDwgCompatibilityOut != nullptr)
+            *useDwgCompatibilityOut = useDwgCompatibility;
+        if (hasDwgCompatibilityCodeOut != nullptr)
+            *hasDwgCompatibilityCodeOut = hasDwgCompatibilityCode;
+        if (hasLayerStateCompatibilityCodeOut != nullptr)
+            *hasLayerStateCompatibilityCodeOut = hasLayerStateCompatibilityCode;
+        const auto qualifiedSourceRecord = std::find_if(
+            cData->xRecords.cbegin(), cData->xRecords.cend(),
+            [&record](const DRW_XRecord& candidate) {
+                return &candidate == &record
+                    && candidate.handle
+                        == dx_ac1024_aerial_advmaterial_wire::first.recordHandle;
+            });
+        const bool useAdsk = hasAdskMaterialCompatibilityCode
+            && !hasDwgCompatibilityCode
+            && !hasLayerStateCompatibilityCode
+            && record.handle
+                == dx_ac1024_aerial_advmaterial_wire::first.recordHandle
+            && qualifiedSourceRecord != cData->xRecords.cend()
+            && cData->sourceFormat == dx_source_format::DWG
+            && cData->sourceVersion == DRW::AC1024
+            && dxfW->getVersion() == DRW::AC1024
+            && hasQualifiedAc1024AerialAdvMaterial(*cData);
+        if (useAdskMaterialCompatibility != nullptr)
+            *useAdskMaterialCompatibility = useAdsk;
+        if (isSelectedLayerStateCompatibilityRecord)
+            return dxfW->writeXRecordLayerStateCompatibility(&record);
+        if (useDwgCompatibility)
+            return dxfW->writeXRecordDwgCompatibility(&record);
+        if (useAdsk)
+            return dxfW->writeXRecordAdskMaterialCompatibility(&record);
+        return dxfW->writeXRecord(&record);
+    }
+
     bool wantsVerifiedXRecord(std::uint32_t handle) const noexcept override;
     void verifiedXRecord(const DwgVerifiedXRecordTicket&) noexcept override;
     std::uint32_t verifiedTableEntitySelection() const noexcept override;
