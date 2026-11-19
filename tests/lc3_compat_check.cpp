@@ -55,6 +55,19 @@ namespace {
            associated.m_contentIndex == 2 && attributes.front().m_text == "A1";
 }
 
+[[maybe_unused]] bool libreCadTableContentInitialization() {
+    DRW_TableCellContent empty{};
+    DRW_TableCellContent typeOnly{1};
+    DRW_TableCellContent text{1, "text"};
+    DRW_TableCellContent value{1, "text", {}};
+    DRW_TableCellContent referenced{1, "text", {}, 0x123u};
+    std::vector<DRW_TableCellContent> contents;
+    contents.push_back({1, "text", {}, 0x123u});
+    return empty.m_type == 0 && typeOnly.m_type == 1 && text.m_text == "text" &&
+           value.m_text == "text" && referenced.m_handle == 0x123u &&
+           contents.front().m_handle == 0x123u;
+}
+
 static_assert(LIBDXFRW_HAS_BLOCK_RECORD_CALLBACK == 1,
               "BLOCK_RECORD callback feature macro is missing");
 static_assert(std::is_same<decltype(&DRW_Interface::addBlockRecord),

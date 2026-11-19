@@ -1926,6 +1926,14 @@ private:
 
 //! Minimal semantic payload for ACAD_TABLE / TABLECONTENT.
 struct DRW_TableCellContent {
+    DRW_TableCellContent() = default;
+    // Keep the bundled LibreCAD aggregate's source initialization forms.
+    DRW_TableCellContent(int type, UTF8STRING text = UTF8STRING(),
+                         DRW_CadValue value = DRW_CadValue(),
+                         std::uint32_t handle = 0)
+        : m_type(type), m_text(std::move(text)), m_value(std::move(value)),
+          m_handle(handle) {}
+
     int m_type = 0;          /*!< 1=value, 2=FIELD, 4=block */
     UTF8STRING m_text;
     DRW_CadValue m_value;

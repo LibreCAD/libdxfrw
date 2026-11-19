@@ -16670,6 +16670,33 @@ void testDataStorageCapabilities(TestContext& t) {
              "DataStorage capability rejects null identity");
 }
 
+void testLibreCadTableContentConstruction(TestContext& t) {
+    DRW_CadValue value;
+    value.m_dataType = 2;
+    value.m_valueString = "stored value";
+    value.m_rawData = {1, 2, 3};
+    std::vector<DRW_TableCellContent> contents;
+    contents.push_back({});
+    contents.push_back({1});
+    contents.push_back({1, "text"});
+    contents.push_back({1, "text", value});
+    contents.push_back({1, "text", value, 0x123u});
+    t.expect(contents.size() == 5 && contents[0].m_type == 0 &&
+                 contents[0].m_text.empty() && contents[0].m_handle == 0 &&
+                 contents[1].m_type == 1 && contents[1].m_text.empty() &&
+                 contents[2].m_text == "text" && contents[2].m_handle == 0 &&
+                 contents[3].m_value.m_dataType == 2 &&
+                 contents[3].m_value.m_valueString == "stored value" &&
+                 contents[4].m_value.m_rawData == std::vector<std::uint8_t>({1, 2, 3}) &&
+                 contents[4].m_handle == 0x123u,
+             "LibreCAD table content initialization preserves all fields");
+    DRW_TableCellContent copied = contents[4];
+    DRW_TableCellContent moved = std::move(copied);
+    t.expect(moved.m_handle == 0x123u && moved.m_value.m_valueString == "stored value" &&
+                 moved.m_value.m_rawData == std::vector<std::uint8_t>({1, 2, 3}),
+             "LibreCAD table content copy and move preserve values");
+}
+
 void testLibreCadTableAttributeConstruction(TestContext& t) {
     std::vector<DRW_TableCellAttribute> attributes;
     attributes.push_back({});
@@ -16915,6 +16942,7 @@ int main(int argc, char** argv) {
     testDataStorageBlobPages(context);
     testDataStorageRecordCountAlignmentAnchors(context);
     testDataStorageDefaultSchemaOnlySection(context);
+    testLibreCadTableContentConstruction(context);
     testLibreCadTableAttributeConstruction(context);
     testPlanarTrimLoops(context);
     testAcisBoundaries(context);
