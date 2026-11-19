@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1015-dictionary-eed-output-name-proof-2026-11-18",
+  "date": "2026-11-18",
+  "status": "R2000_DICTIONARY_EED_DEPENDENCY_QUALIFICATION_REPAIRED",
+  "supportClaimEffect": "none",
+  "baseline": "8843896e1f124c54ad71bbae1c17ea6b6169ed4a",
+  "implementationDigestSha256": "3a5d271c54671eb16adb9923307ae5d59ffd2717b0b897d4205ff6f55feda07f",
+  "scope": "Generated AC1015 DICTIONARY B010 with captured EED APPID STD_CHUNK_APP. TABLES used to skip collection of its APPID dependency because the raw frame lacks the separate common-link evidence accepted for newer releases. OBJECTS already recognized the narrowly matched typed payload and membership.",
+  "change": "Share the existing complete AC1015 DICTIONARY payload and matching membership predicate between TABLES and OBJECTS. The TABLES step still requires matched immutable typed/name evidence and staged APPID output. Other objects remain subject to the common-link gate.",
+  "validation": {
+    "red": "Final test object linked to an exact 8843896e adapter built in scratch with the matching header fails at the new complete R2000 DICTIONARY EED source qualification assertion.",
+    "green": [
+      "dwg2dxf_native_xrecord_binary_faults",
+      "dwg2dxf_standard_dwg_appid_dependencies",
+      "dwg2dxf_standard_dwg_layer_dependencies",
+      "dwg2dxf_standard_dwg_source_eed_text_observations",
+      "dwg2dxf_standard_dwg_object_payload_correlation"
+    ],
+    "faultRetry": "Missing, incomplete or misbound membership does not earn B010 output proof under AllowPartial. Edited live APPID refuses export and preserves the destination. All four restored retries qualify on the same writer.",
+    "neighbor": "AC1024 selected ByBlock MATERIAL still passes nine destination-preserving refusal/retry cases in each encoding.",
+    "sha256": {
+      "/private/tmp/p4-pre-fix-884/red.log": "249c503273a209cdd928325eb35dae3db7526fe501a6b7a6fdf61c795bc19bd1",
+      "/private/tmp/p4-a69b-xrecord-baseline/durable-focused-ctest.log": "100c3e286a0aacf69443ab4a42c6df414417ad84c8a1ca82a82ba4f3c00108c0",
+      "/private/tmp/p4-a69b-xrecord-baseline/legacy-fix-byblock-control.log": "6a829287d391b4d8a9ccfcb8133deb80af1886ef012e2558985516b7e2cda371",
+      "/private/tmp/p4-a69b-xrecord-baseline/remaining-transport.log": "3fa4c80b7942abc52032a73d957abe004bb920cb3f073a98b959947a7f5c687a"
+    }
+  },
+  "remainingControls": {
+    "transport": "The broader native XRECORD transport matrix now reaches a strict AC1021-to-AC1015 success that it expected to refuse. Exact pre-ByBlock a69b already accepts the same generated profile and finalizes all five output proofs. Across 168 strict profile cells, AC1021, AC1024 and AC1032 source cases accept; AC1015, AC1018 and AC1027 refuse. Preserve the test until the full matrix is reconciled with the intended contract. In particular, exact a69b also refuses 168 AC1027 AllowPartial scope/target/encoding combinations at payload length 128 and 60 across five lengths, independent of the dictionary APPID change.",
+    "ownedExtension": "A separate AC1015-to-AC1018 owned-extension run stops on the unrelated raw default-plot dictionary version guard before XRECORD output. Preserve that guard pending version-aware source/class and destination evidence."
+  }
+}

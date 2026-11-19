@@ -3400,6 +3400,12 @@ public:
     static bool standardOutputHas(const dx_iface& iface, std::uint32_t handle) {
         return iface.m_standardDwgOutputPublished && iface.m_standardDwgOutputFinalized && iface.m_standardDwgOutputProofs.count(handle) == 1u;
     }
+    static void setLegacyDictionaryMembershipFault(dx_data& data, unsigned mode, bool restore) {
+        auto& frame = data.m_standardDwgObjectFrames.at({data.importGeneration, 0xB010u});
+        if (mode == 0u) frame.membershipSeen = restore;
+        else if (mode == 1u) frame.dictionaryMembership.m_complete = restore;
+        else frame.dictionaryMembership.m_dictionaryHandle = restore ? 0xB010u : 0xB011u;
+    }
     static bool rasterDictionaryCommon(const dx_iface& iface) { return iface.m_rasterDictionaryCommonCompared; }
     static bool rasterFinal(const dx_iface& iface, std::size_t count) {
         return iface.m_rasterOutputFinalized && iface.m_rasterOutputProofs.size() == count && iface.m_rasterDictionaryCommonCompared;
@@ -9595,6 +9601,51 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
         const std::array<const DRW_TableEntry*,3> originals{{&*originalDictionary,&data.xRecords.front(),&data.groups.front()}};
         ++sources;
         MaterialFacade exporter;
+        if (probe == StandardDwgProbe::BinaryApplicationFaults
+            && version == DRW::AC1015 && scope == 6u) {
+            // The generated R2000 DICTIONARY has a captured EED APPID.
+            // Partial export may proceed without complete membership, but
+            // that source identity must not receive an output proof.
+            const auto writeLegacy = [&]() {
+                return exporter.fileExport(target.string(),DRW::AC1015,false,&data,false,true,
+                    dx_dxfSourceTextPolicy::Compatible,DRW::DxfTextWritePolicy::Compatible,
+                    dx_dxfProxyGraphicsPolicy::Compatible,dx_dwgReadCompletenessPolicy::AllowPartial);
+            };
+            if (!writeLegacy() || !Access::standardOutputHas(exporter,0xB010u))
+                return fail("complete R2000 DICTIONARY EED source did not qualify");
+            const std::string sentinel = "R2000_DICTIONARY_EED_DESTINATION";
+            const auto seed = [&]() {
+                std::ofstream out(target,std::ios::binary | std::ios::trunc);
+                return static_cast<bool>(out << sentinel);
+            };
+            const auto unchangedDestination = [&]() {
+                std::ifstream in(target,std::ios::binary);
+                return std::string(std::istreambuf_iterator<char>(in),{}) == sentinel;
+            };
+            for (unsigned mode = 0u; mode < 3u; ++mode) {
+                Access::setLegacyDictionaryMembershipFault(data,mode,false);
+                if (!seed()) return fail("could not seed R2000 dictionary destination");
+                const bool wrote = writeLegacy();
+                const bool qualified = Access::standardOutputHas(exporter,0xB010u);
+                const bool retained = wrote || unchangedDestination();
+                Access::setLegacyDictionaryMembershipFault(data,mode,true);
+                if (qualified || !retained || !writeLegacy()
+                    || !Access::standardOutputHas(exporter,0xB010u))
+                    return fail("R2000 dictionary incomplete membership qualified or failed retry");
+            }
+            const auto app = std::find_if(data.appIds.begin(),data.appIds.end(),[](const auto& value) {
+                return value.name == "STD_CHUNK_APP";
+            });
+            if (app == data.appIds.end()) return fail("R2000 dictionary source APPID is missing");
+            app->name += "_changed";
+            if (!seed()) return fail("could not seed R2000 APPID destination");
+            const bool wrote = writeLegacy();
+            const bool retained = unchangedDestination();
+            app->name = "STD_CHUNK_APP";
+            if (wrote || !retained || !writeLegacy()
+                || !Access::standardOutputHas(exporter,0xB010u))
+                return fail("R2000 dictionary changed APPID bypassed refusal or failed retry");
+        }
         if (!scopeFaultsOnly) for (const auto outputVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false,true}) {
             exporter.enabled = profileIsolation && modern && outputVersion > DRW::AC1018; exporter.emitted = false;
             if (outputVersion == DRW::AC1015) {

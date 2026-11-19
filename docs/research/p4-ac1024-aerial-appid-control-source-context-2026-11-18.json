@@ -1,0 +1,183 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-appid-control-source-context-2026-11-18",
+  "date": "2026-11-18",
+  "status": "bounded-source-research-only",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "DWG AC1024",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "provenance": "Existing aerial drawing in the local reference corpus. The source file is untracked. No drawing or extracted raw object is included in this receipt."
+  },
+  "authorities": [
+    {
+      "title": "Open Design Specification for .dwg files v5.4.1",
+      "sections": [
+        "2.12 object type",
+        "2.13 handles",
+        "20.1 common object fields",
+        "20.4.65 APPID_CONTROL",
+        "20.4.66 APPID",
+        "28 extended entity data"
+      ],
+      "role": "Version-specific frame fields and handle roles; not an output or consumer semantic witness."
+    },
+    {
+      "title": "LibreDWG pinned JSON and trace",
+      "role": "Independent peer decode of this source; see artifacts."
+    }
+  ],
+  "artifacts": {
+    "predicateSource": {
+      "path": "/private/tmp/p4-aerial-material-eed/appid_predicate.cpp",
+      "sha256": "568234ff01cfc4a9b35932aaa5c5f049462e86e0b0dd8083d1e2e1086368b9f2"
+    },
+    "predicateExecutable": {
+      "path": "/private/tmp/p4-aerial-material-eed/appid_predicate",
+      "sha256": "c30eb7e5128f5e361903b4e915dce40e7382ce7add5895849a40daf49ec443bc"
+    },
+    "predicateLog": {
+      "path": "/private/tmp/p4-aerial-material-eed/appid_predicate.log",
+      "sha256": "052aa29e2ef72833c264685a4f329bfd9c12a9b24d4d9103ff0fc1cf2b4a09ef"
+    },
+    "publicationSource": {
+      "path": "/private/tmp/p4-aerial-material-eed/table_publications.cpp",
+      "sha256": "a603cafa238ae12b83455963b26558379e95e13bfc03062a31badd8630b1839c"
+    },
+    "publicationExecutable": {
+      "path": "/private/tmp/p4-aerial-material-eed/table_publications",
+      "sha256": "b9640d14aa6c7725bb0bbe5a7f9a309c61495b4c127bf9ddfc25003ec7b3dea1"
+    },
+    "publicationLog": {
+      "path": "/private/tmp/p4-aerial-material-eed/table_publications.log",
+      "sha256": "b8c11156313a5bc476a70d55a78a3c952ab21ab87be2d1d792a3e8692a89d1b2"
+    },
+    "layerControlScratch": {
+      "path": "/private/tmp/p4-aerial-material-eed/layer-control.bin",
+      "sha256": "633f3b0471c0913ad934a8b527f5670fe10ba02091fbdcd7cd5e6cbadbd826e9"
+    },
+    "frozenHeader": {
+      "path": "/private/tmp/p4-aerial-material-eed/dx_iface.h",
+      "sha256": "654e005f1cec61790e39c98b48d180decb62b44fc3ace7e130e70112da7d34df"
+    },
+    "frozenAdapterObject": {
+      "path": "/private/tmp/p4-aerial-material-census/adapter-a69b.o",
+      "sha256": "3d69f4b585c770996ebc489d92e366c636fa925e79ebbfe8c77fe044af99408b"
+    },
+    "frozenLibraryArchive": {
+      "path": "/private/tmp/p4-aerial-material-census/libdxfrw.a",
+      "sha256": "008861d3d378e9fe2a6e0fcf40175a69647848c300033fa469db11ac207f5654"
+    },
+    "libreDwgJson": {
+      "path": "/private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg.json",
+      "sha256": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832"
+    },
+    "libreDwgTrace": {
+      "path": "/private/tmp/libdxfrw-layerstates-crossversion-20261118/aerial-libredwg-trace.log",
+      "sha256": "9bead9945a7e9b78c541e73d9ab4c0fe461c8e3ba4105e95bcd3103fe7f9603c"
+    }
+  },
+  "commands": [
+    "clang++ -std=c++17 -O1 -I /private/tmp/p4-aerial-material-eed -I src -I dwg2dxf /private/tmp/p4-aerial-material-eed/appid_predicate.cpp /private/tmp/p4-aerial-material-census/adapter-a69b.o /private/tmp/p4-aerial-material-census/libdxfrw.a -o /private/tmp/p4-aerial-material-eed/appid_predicate",
+    "/private/tmp/p4-aerial-material-eed/appid_predicate <existing pinned aerial source> > /private/tmp/p4-aerial-material-eed/appid_predicate.log 2>&1",
+    "clang++ -std=c++17 -O1 -I /private/tmp/p4-aerial-material-eed -I src -I dwg2dxf /private/tmp/p4-aerial-material-eed/table_publications.cpp /private/tmp/p4-aerial-material-census/adapter-a69b.o /private/tmp/p4-aerial-material-census/libdxfrw.a -o /private/tmp/p4-aerial-material-eed/table_publications",
+    "/private/tmp/p4-aerial-material-eed/table_publications <existing pinned aerial source> > /private/tmp/p4-aerial-material-eed/table_publications.log 2>&1"
+  ],
+  "peerAndPublication": {
+    "appid": {
+      "handle": "0x12",
+      "owner": "0x9",
+      "name": "ACAD",
+      "type": 67,
+      "objectBytes": 20,
+      "peerBodyBits": 132,
+      "nameStringBits": 74,
+      "ownerRole": 4,
+      "xrefRole": 5,
+      "peerCrc": "0x1CA3",
+      "publicationOffset": "0x50C9",
+      "publicationMapOrdinal": 15
+    },
+    "appidControl": {
+      "handle": "0x9",
+      "type": 66,
+      "objectBytes": 32,
+      "peerBodyBits": 42,
+      "entryCount": 9,
+      "ownerRole": 4,
+      "owner": "null",
+      "itemRole": 2,
+      "entries": [
+        "0x12",
+        "0xF8",
+        "0x14F",
+        "0x150",
+        "0x151",
+        "0x152",
+        "0x1A8",
+        "0x23B",
+        "0x2A3"
+      ],
+      "peerCrc": "0x9398",
+      "publicationOffset": "0x72",
+      "publicationMapOrdinal": 7
+    },
+    "layerControl": {
+      "handle": "0x2",
+      "type": 50,
+      "objectBytes": 11,
+      "peerBodyBits": 42,
+      "retainedHandleStreamBits": 46,
+      "bodyRange": "[0,42)",
+      "ownerRange": "[42,50)",
+      "ownerRole": 4,
+      "owner": "null",
+      "xdictionaryRange": "[50,66)",
+      "xdictionaryRole": 3,
+      "xdictionaryTarget": "0xD5",
+      "itemRange": "[66,82)",
+      "itemRole": 2,
+      "itemTarget": "0x10",
+      "tailRange": "[82,88)",
+      "tailBits": "111111",
+      "peerCrc": "0x95C4",
+      "publicationOffset": "0x16",
+      "publicationMapOrdinal": 1
+    },
+    "qualification": "APPID and APPID_CONTROL observations combine a separate observer import and pinned LibreDWG. The exact-type adapter passed the same-import name predicate in a different run. Publication offsets are decoded-buffer offsets."
+  },
+  "scratchRawFrames": {
+    "root": "/private/tmp/p4-appid-wire-capture",
+    "capture": "Scratch instrumentation exports the exact body after DwgObjectFrame::readAt validates the MS/UMC size, handle-bit prefix, section bounds and source CRC, followed by successful original typed parse and self identity. A separate verifier walks both buffers and compares the modeled fields, roles and extents against the pinned source trace and ODA v5.4.1.",
+    "control": "32 bytes. Data [0,42), null role-4 owner [42,50), nine role-2 members [50,250), observed terminal 111111 [250,256).",
+    "appid": "20 bytes. Prefix [0,41), ACAD UTF-16 field [41,115), 74-bit string footer [115,132), owner H(4,1,9) [132,148), null xref H(5,0,0) [148,156), observed terminal 1111 [156,160).",
+    "validation": "All 416 single-bit mutations, truncation and extension refused. Restored originals passed both frames.",
+    "sha256": {
+      "control.bin": "5deb919fb575f6746d1f170e89c2d20f3c8bc351467491d759661c6b64921de6",
+      "appid.bin": "a1271c8ea497ff7fc7af55d28521e86e8b509252398415d0cb6bb637cc0ac1dc",
+      "capture.log": "d186cfa94ea67817fa82427ac1fed376757665bf9edd5bdbe5e30b503a024279",
+      "dwgreader.cpp": "72b0cf9c4aa95bc00b0b0a8309f012d0b8b88c8aa4d81d660330b0a63fecfbff",
+      "verify.py": "0d4f602f249071da5b7dcf3298d4cd927794fb98cacc3112d610ae7d35106954",
+      "spans.json": "a172445d57dcdf9fe7307ecad9eeaf649e59d59a11c5000732bcef71bbec8f8c"
+    }
+  },
+  "predicateControls": {
+    "method": "Original exact dx_iface and original dx_data same-read import; each mutation restored before retry on the same adapter. Source/private fields accessed only in scratch friend test.",
+    "results": [
+      "APPID 0x12 ACAD and LAYER_CONTROL prerequisite: pass",
+      "wrong requested handle and wrong requested name: reject; original retry succeeds",
+      "different adapter: reject; original retry succeeds",
+      "live APPID name and handle mutations: reject; restore/retry succeeds",
+      "same-read event name, handle and duplicate mutations: reject; restore/retry succeeds",
+      "closed flag and read-attempt mutations: reject; restore/retry succeeds",
+      "LAYER_CONTROL raw owner-role mutation and absent retained proof: reject; restore/retry succeeds"
+    ],
+    "knownGap": "Changing the live APPID parent from 0x9 to 0xA leaves hasQualifiedDwgLayerStateAppId(0x12, ACAD) true. The predicate is a same-read APPID name/source identity proof and LAYER_CONTROL prerequisite; it does not establish APPID_CONTROL parent or membership. This observation alone is not a demonstrated exported-file failure."
+  },
+  "limitations": [
+    "Both original raw frames have scratch evidence. The production name source retains a decoded-name field, and the original adapter does not retain both raw frames and the APPID_CONTROL publication as one immutable same-read graph receipt.",
+    "The retained LAYER_CONTROL observer parses/checks fields and handle roles against its same-import publication; its current implementation permits up to seven terminal bits without checking their values. The exact terminal six one-bits are an observation of this source, not a generalized specification claim.",
+    "No MATERIAL graph admission, writer-ledger/output validation, APPID table emission, independent output readback or native consumer semantics were established. No support claim is promoted."
+  ],
+  "nextImplementation": "Capture the original same-read APPID_CONTROL publication and bounded raw frame, bind its generation, source location, cardinality, ordered unique soft-owner members and APPID 0x12 parent to the original typed name event; retain/recheck immutable APPID source state and add wrong owner/member/name, truncation, duplicate and restored-retry controls. Integrate with staged APPID output identity and MATERIAL source/output dependency guards before any output admission."
+}

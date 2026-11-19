@@ -19,7 +19,7 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-18:** 11/34 package gates closed; 23 remain. The activity
-ledger is 157/180 (87.2%) with eleven closed gates and 146 completed implementation or
+ledger is 159/182 (87.4%) with eleven closed gates and 148 completed implementation or
 research slices. The [focused slice](docs/research/p6-raster-dimstyle-default-roundtrip-2026-11-18.json)
 fixes an AC1021 default plot dictionary reexport and a default BYBLOCK DIMSTYLE
 downgrade; five owning selectors pass. The following [source-identity selector
@@ -234,12 +234,15 @@ P8-D has local writer work available while GUI checks await a successful display
   application-code domain stays 1–369. Peers agree on the eight sets of
   ordered values, with native interpretation still open. ODA omits all 36 TILE
   keys, so use the physical frames and the LibreDWG comparison for their input.
-- For seven MATERIALs with EED, bind the 20-byte application payload and
-  role-5 APPID `0x12` in the same import. Require an independently witnessed
-  APPID source name, one emitted `ACAD` row, and exact signed EED fields after
-  staged output remapping. Check the existing LayerStates predicate's
-  LAYER_CONTROL prerequisite before reuse. Run the role, APPID and value
-  mutations together with destination preservation and corrected retry.
+- For seven MATERIALs with EED, reuse the [same-import ACAD name and
+  LAYER_CONTROL evidence](docs/research/p4-ac1024-aerial-appid-control-source-context-2026-11-18.json).
+  Retain the witnessed APPID `0x12` and APPID_CONTROL `0x9` raw frames and
+  publication during the same production import. Bind the 20-byte application
+  payload and recheck their
+  parent, ordered membership and APPID name before writing. Require one
+  emitted `ACAD` row and the exact signed EED fields after remapping. Cover
+  wrong owner, member, name and payload with destination preservation and
+  corrected retry.
 
 Whole-source strict output requires resolving either the aerial SUN graph or
 the alternate named-block SORTENTSTABLE route. For SUN, obtain a native pair
@@ -262,11 +265,12 @@ agree on the XRECORD parent of SUN `0x24C`; ODA also reports a separate VIEW
 link. Obtain native `ownerId` and `sunId` behavior across save and reopen.
 Preserve both roles and strict refusal until that distinction is resolved.
 
-P4-D also carries three [older XRECORD controls](docs/research/p4-ac1024-aerial-byblock-material-source-output-2026-11-18.json)
-that reproduce on the pre-ByBlock commit. Diagnose the generated AC1015 B010
-source qualification and its retry together. Reproduce the AC1015-to-AC1018
-default-plot dictionary refusal separately, then verify the dictionary version
-boundary before rerunning owned-extension readback.
+Two [older XRECORD controls](docs/research/p4-ac1015-dictionary-eed-output-name-proof-2026-11-18.json)
+remain in P4-D. Reconcile the native transport matrix with the exact generated
+profiles that already pass strict output and with the AC1027 partial refusals.
+Resolve the AC1015-to-AC1018 raw default-plot dictionary boundary before
+rerunning owned-extension readback. The separate AC1015 B010 APPID dependency
+fix has a failing baseline, focused pass and restored-retry evidence.
 
 AC1021 follow-ups in P4-D: the [two-root truetype repair](docs/research/p4-ac1021-layerstates-two-root-wire-regression-repair-2026-11-18.json)
 restores same-version selected and strict whole-source output for the witnessed
@@ -343,7 +347,7 @@ source-reference closure.
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
 | P8-D / ACTIVE_MLINE_CONSUMER_INTEGRATION_AND_WAITING_FOR_AQUA | The unmerged [style-timing](docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch) and [closure-bit](docs/patches/librecad-mline-closure-bit-2026-11-18.patch) patches have focused headless controls. The [installed-codec proof](docs/research/p8d-mline-installed-style-write-contract-2026-11-18.json) establishes source-handle input, stage binding and atomic retry. The [bounded bundled prototype](docs/research/p8d-mline-bundled-staged-write-proof-2026-11-18.json) now passes twelve refusals/retries and three no-hook readbacks. | Prepare the LibreCAD patch, check unrelated-record handling and budget disposition in a complete bundled build, then integrate the installed filter staged inspectors. Resume native GUI work after an active display and successful capture. The [latest preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json) could not capture. Batch Move/Copy, named-LTYPE save/reopen/render and selected MLINE display/edit/save/reopen. Run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf when that bundle is available. |
-| P8-F / WAITING_FOR_CURRENT_DIGEST_CI | Local digest `5102afcd86c6155799119fca3fd95269c4fbe4eb32ea558dace7a2a02bee5ed6` passes its selected checks. The prior VISUALSTYLE digest `cdf5d6b6` passed both [fast CI and authenticated focused native CI](docs/research/p8f-a69b-upstream-native-replay-2026-11-18.json). | Run fast and all three focused-native jobs for `5102afcd` and authenticate the completed receipts at the live tested ref. Group related local implementation and evidence commits before the next push so the workflow does not cancel an almost-complete fast run. |
+| P8-F / WAITING_FOR_CURRENT_DIGEST_CI | Local digest `3a5d271c54671eb16adb9923307ae5d59ffd2717b0b897d4205ff6f55feda07f` passes its selected checks. The published ByBlock digest `5102afcd` has [fast](https://github.com/LibreCAD/libdxfrw/actions/runs/44434769606) and [focused native](https://github.com/LibreCAD/libdxfrw/actions/runs/44434769652) checks in flight. VISUALSTYLE `cdf5d6b6` passed both [fast CI and authenticated focused native CI](docs/research/p8f-a69b-upstream-native-replay-2026-11-18.json). | Verify the published receipts at the live tested ref before pushing `3a5d271c`, then qualify the new digest. Group related local implementation and evidence commits before pushing to avoid canceling a nearly complete fast run. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 
 Keep consumer, source, and build receipts separate. Preserve LibreCAD's R13

@@ -32423,6 +32423,22 @@ bool dx_iface::hasUnchangedDwgPlotSettingsSources() const noexcept {
     }
 }
 
+namespace {
+// Complete R2000 DICTIONARY captures retain common links in the matched typed
+// payload when separate raw-tail evidence is absent. Use the same complete
+// membership gate when collecting TABLES dependencies and inspecting the
+// corresponding staged OBJECTS record.
+template<class Frame>
+bool completeAc1015DictionaryPayload(const Frame& frame) noexcept {
+    return frame.raw.m_version == DRW::AC1015
+        && frame.raw.m_objectType == dwgObjType::DICTIONARY
+        && frame.payloadMatched && frame.membershipSeen
+        && frame.dictionaryMembership.m_complete
+        && frame.dictionaryMembership.m_version == frame.raw.m_version
+        && frame.dictionaryMembership.m_dictionaryHandle == frame.raw.m_handle;
+}
+} // namespace
+
 bool dx_iface::inspectStandardDwgTablesOutput(const dxfRW::DxfTablesWriteView& view) noexcept {
     if (!cData || !dxfW || m_standardDwgOutputNamesInspected) return false;
     m_standardDwgOutputNamesInspected = true;
@@ -32523,7 +32539,8 @@ bool dx_iface::inspectStandardDwgTablesOutput(const dxfRW::DxfTablesWriteView& v
             const auto& frame = source.second;
             if (!frame.payloadMatched || !frame.typedBaseline || frame.opaquePayload
                 || !frame.hasNoObservedTextDecodeIssues()
-                || !drwDwgCommonLinkEvidenceValidated(frame.raw.m_commonLinkEvidence)
+                || !(drwDwgCommonLinkEvidenceValidated(frame.raw.m_commonLinkEvidence)
+                     || completeAc1015DictionaryPayload(frame))
                 || (frame.sourceCodePageFieldPresent && !frame.sourceCodePageRecognized)) continue;
             for (const auto handle : frame.appIdDependencies)
                 if (!add(frame, handle, false, cData->m_standardDwgAppIdSources)) return fail();
@@ -51625,14 +51642,7 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
             // receipt have all matched. The output decoder below then checks
             // every emitted field, owner, and reference before qualification.
             const bool completeLegacyDictionaryPayload =
-                frame.raw.m_version == DRW::AC1015
-                && frame.raw.m_objectType == dwgObjType::DICTIONARY
-                && frame.payloadMatched && frame.membershipSeen
-                && frame.dictionaryMembership.m_complete
-                && frame.dictionaryMembership.m_version
-                    == frame.raw.m_version
-                && frame.dictionaryMembership.m_dictionaryHandle
-                    == frame.raw.m_handle;
+                completeAc1015DictionaryPayload(frame);
             const bool qualifiedOutputNames =
                 hasQualifiedStandardDwgOutputNames(
                     frame.generation, frame.raw.m_handle, false);
