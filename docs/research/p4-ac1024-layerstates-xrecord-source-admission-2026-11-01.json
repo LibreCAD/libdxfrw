@@ -93,5 +93,40 @@
     "The production LayerStates graph result is a test-only source projection; unrelated named-object roots, including the invalid SUN owner outlier, remain excluded and fail-closed.",
     "Fresh libdxfrw readback does not establish native LayerStates restoration/evaluation semantics or promote a support claim.",
     "No whole-source conversion or independent native LayerStates acceptance is claimed."
-  ]
+  ],
+  "current_recheck_2026_11_19": {
+    "head": "7153bcb0403a8c4a38ab2e9035e7c0a9dda59f68",
+    "scope": "Recheck the historical selected source-projection claim before capturing output for independent readback; historical results above describe their earlier binary and source state.",
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2: PASS (already up to date)",
+    "executable_sha256": "e6408e5542f6ef8f5e5848c8bfc1084b5af9847f33abf9bbcb6ed9b2a036888f",
+    "source_sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "observations": [
+      {
+        "selector": "--layerstates-xrecord-physical-source-admission",
+        "exit": 1,
+        "result": "Historical selector expects the three-root source-qualified group-370 profile to be queued; current prepareDwgLayerStateOutput refuses before output. No projected file was created.",
+        "log_sha256": "3b292fb4ba5fd17d9a7b26616d471278ef1a9f5b3e9a6002ae2107e0d7fbd921"
+      },
+      {
+        "selector": "--layerstates-ac1024-source-graph-context",
+        "exit": 0,
+        "result": "Same-import source-graph mutation and retry controls pass.",
+        "log_sha256": "f3a6e1298ff03d5be13e7169c397b17c67a3b371558a1b3d2d4caafbd049b0e9"
+      },
+      {
+        "selector": "--layerstates-ac1024-fallback-refusal",
+        "exit": 0,
+        "result": "Current unqualified three-root fallback refusal controls pass.",
+        "log_sha256": "d6edbc4f620305d5eb0df3324c3069f054f493b1c4222986ac9df60b1f95b5a4"
+      },
+      {
+        "selector": "--layerstates-ac1024-real-writer",
+        "exit": 0,
+        "result": "Test-adapter selected NOD/SCALELIST and 32 SCALE staged controls pass in both encodings, with 12 injected faults each.",
+        "log_sha256": "97391051c739ea8fd19ea542d3970bbc88a4528d28ce20c10d31984882223d1c"
+      }
+    ],
+    "interpretation": "The historical successful projected fileExport is not current evidence of admission. Do not weaken fallback refusal or treat the selected test-adapter staging as full production output. Reconcile complete graph, source provenance and output admission before updating the historical selector, then obtain fresh independent and native readback.",
+    "support_claim_effect": "none; no fixtures added"
+  }
 }
