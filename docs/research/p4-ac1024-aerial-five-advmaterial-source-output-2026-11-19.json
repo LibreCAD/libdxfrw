@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-five-advmaterial-source-output-2026-11-19",
+  "date": "2026-11-19",
+  "status": "FIVE_ADVMATERIAL_ASCII_BINARY_OUTPUT_AND_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing local aerial DWG; producer identity is not authenticated.",
+    "profiles": [
+      {"material": "0x2CC", "extensionDictionary": "0x2CD", "advmaterialXrecord": "0x2CE"},
+      {"material": "0x2D6", "extensionDictionary": "0x2D7", "advmaterialXrecord": "0x2D8"},
+      {"material": "0x2E0", "extensionDictionary": "0x2E1", "advmaterialXrecord": "0x2E2"},
+      {"material": "0x2EA", "extensionDictionary": "0x2EB", "advmaterialXrecord": "0x2EC"},
+      {"material": "0x32E", "extensionDictionary": "0x32F", "advmaterialXrecord": "0x330"}
+    ],
+    "sourceAdmission": "Every profile is qualified from same-import raw frame, class publication, typed values, parent/reactor handles and unique dictionary edges. The exact source XRECORD objects from that dx_data instance are passed to output."
+  },
+  "outputProfile": {
+    "target": "AC1024",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "handleMapping": "Each selected source handle is remapped to 0xA000 plus its source handle; root MATERIAL dictionary 0x72 maps to 0xA072.",
+    "graph": [
+      "NOD ACAD_MATERIAL -> dictionary 0xA072",
+      "Each original root key -> its remapped MATERIAL",
+      "Each MATERIAL owner -> 0xA072 and extension dictionary -> its remapped extension",
+      "Each extension dictionary's sole ADVMATERIAL entry -> its remapped XRECORD",
+      "Each XRECORD owner and sole reactor -> its remapped extension dictionary",
+      "Exactly one ACAD APPID is emitted for retained XRECORD EED"
+    ],
+    "orderedXrecordFields": [
+      {"code": 460, "type": "double", "value": 100.0},
+      {"code": 461, "type": "double", "value": 100.0},
+      {"code": 462, "type": "double", "value": 100.0},
+      {"code": 463, "type": "double", "value": 100.0},
+      {"code": 290, "type": "integer/bool", "value": 1},
+      {"code": 270, "type": "integer", "value": 1},
+      {"code": 464, "type": "double", "value": 0.0},
+      {"code": 293, "type": "integer/bool", "value": 0},
+      {"code": 272, "type": "integer", "value": 3},
+      {"code": 273, "type": "integer", "value": 3}
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-selected-five-advmaterial-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "result": "PASS. The five selected MATERIAL branches and their root, extension and XRECORD edges reimport with exact handles, roles, ACAD APPID and all ten ordered values in both encodings.",
+    "refusalRetry": [
+      "Mutating a selected typed group-460 value refuses output, preserves the sentinel destination, then passes after restoring the value and readback.",
+      "Mutating the final selected source frame refuses output, preserves the sentinel destination, then passes after restoring the byte and readback.",
+      "Requesting AC1027 output refuses the AC1024-only route, preserves the sentinel destination, then passes after retrying as AC1024."
+    ],
+    "fixturePolicy": "The existing local DWG remains untracked. The output DXFs are temporary and removed by the selector. No DWG or DXF fixture was committed."
+  },
+  "limits": [
+    "This is a selected five-branch projection, not full ACAD_MATERIAL-root admission.",
+    "The local source's producer is unauthenticated; the observed values have no independent Autodesk semantic interpretation.",
+    "This receipt does not promote a support claim.",
+    "DIFFUSE 0x2EE and BUMP 0x2F0 remain separate because they also carry groups 420 and 469."
+  ],
+  "nextAction": "Batch-stage the six source-qualified FBXASSET branches with the same atomic refusal, destination preservation, corrected retry and fresh ASCII/Binary readback gates."
+}

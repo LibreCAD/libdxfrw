@@ -93810,6 +93810,8 @@ int main(int argc, char** argv) {
         return physicalAc1024SelectedGlobalMaterialEedWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-advmaterial-writer")
         return physicalAc1024SelectedAdvMaterialWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-five-advmaterial-writer")
+        return physicalAc1024SelectedFiveAdvMaterialWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-tablestyle-writer")
         return physicalAc1024SelectedTableStyleWriter(argv[2]) ? 0 : 1;
     if (argc == 3
