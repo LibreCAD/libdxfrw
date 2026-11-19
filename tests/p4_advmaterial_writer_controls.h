@@ -530,3 +530,321 @@ bool physicalAc1024SelectedFiveAdvMaterialWriter(
     std::cerr << "AC1024 five-profile ADVMATERIAL batch passed refusal/retry and readback in ASCII and Binary.\n";
     return true;
 }
+
+bool physicalAc1024SelectedSixFbxAssetWriter(
+        const std::filesystem::path& sourcePath) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    dx_iface sourceIface;
+    dx_data source;
+    if (!sourceIface.fileImport(sourcePath.string(), &source, false)
+        || !Access::aerialFbxAssetSourceControls(sourceIface, source))
+        return fail("AC1024 FBXASSET source profiles are not qualified");
+
+    const auto findHandle = [](auto& rows, std::uint32_t handle) {
+        return std::find_if(rows.begin(), rows.end(), [handle](const auto& row) {
+            return row.handle == handle;
+        });
+    };
+    const auto& profiles = dx_ac1024_aerial_fbxasset_wire::profiles;
+    auto owner = findHandle(source.dictionaries, 0x72u);
+    auto group = findHandle(source.dictionaries, 0xDu);
+    auto appId = findHandle(source.appIds, 0x12u);
+    if (owner == source.dictionaries.end() || group == source.dictionaries.end()
+        || appId == source.appIds.end() || appId->name != "ACAD"
+        || source.dictionaryWithDefaults.size() != 1u
+        || source.placeholders.size() != 1u)
+        return fail("AC1024 FBXASSET selected dependencies are missing");
+
+    std::vector<DRW_Dictionary::Entry> rootEntries;
+    std::vector<DRW_Material*> materials;
+    std::vector<DRW_Dictionary> extensions;
+    std::vector<DRW_XRecord*> records;
+    std::map<std::uint32_t, std::uint32_t> remap{{0x72u, 0xA072u}};
+    for (const auto& profile : profiles) {
+        auto material = findHandle(source.materials, profile.materialHandle);
+        auto extension = findHandle(source.dictionaries, profile.extensionHandle);
+        auto record = findHandle(source.xRecords, profile.recordHandle);
+        if (material == source.materials.end()
+            || extension == source.dictionaries.end()
+            || record == source.xRecords.end()
+            || material->parentHandle != owner->handle
+            || material->xDictHandle != profile.extensionHandle
+            || extension->parentHandle != profile.materialHandle
+            || record->parentHandle != profile.extensionHandle
+            || record->m_dataEntries.size() != profile.entryCount
+            || record->m_values.size() != profile.entryCount
+            || material->extData.empty())
+            return fail("an FBXASSET selected source graph differs from its profile");
+        const auto rootEdge = std::count_if(owner->m_entries.begin(),
+            owner->m_entries.end(), [&profile](const auto& entry) {
+                return entry.m_handle == profile.materialHandle;
+            });
+        const auto fbxEdge = std::count_if(extension->m_entries.begin(),
+            extension->m_entries.end(), [&profile](const auto& entry) {
+                return entry.m_name == "FBXASSET"
+                    && entry.m_handle == profile.recordHandle;
+            });
+        if (rootEdge != 1 || fbxEdge != 1)
+            return fail("an FBXASSET source dictionary edge is ambiguous");
+        std::copy_if(owner->m_entries.begin(), owner->m_entries.end(),
+            std::back_inserter(rootEntries), [&profile](const auto& entry) {
+                return entry.m_handle == profile.materialHandle;
+            });
+        materials.push_back(&*material);
+        DRW_Dictionary selectedExtension = *extension;
+        selectedExtension.m_entries.erase(std::remove_if(
+            selectedExtension.m_entries.begin(), selectedExtension.m_entries.end(),
+            [&profile](const auto& entry) {
+                return entry.m_name != "FBXASSET"
+                    || entry.m_handle != profile.recordHandle;
+            }), selectedExtension.m_entries.end());
+        extensions.push_back(std::move(selectedExtension));
+        records.push_back(&*record);
+        remap.emplace(profile.materialHandle, 0xA000u + profile.materialHandle);
+        remap.emplace(profile.extensionHandle, 0xA000u + profile.extensionHandle);
+        remap.emplace(profile.recordHandle, 0xA000u + profile.recordHandle);
+    }
+    if (rootEntries.size() != profiles.size())
+        return fail("six-profile FBXASSET root projection is incomplete");
+
+    class SelectedWriter final : public LayerStateTestWriter {
+    public:
+        dx_data blank;
+        DRW_AppId appId;
+        DRW_Dictionary owner;
+        DRW_DictionaryWithDefault plot;
+        DRW_AcDbPlaceholder placeholder;
+        std::vector<DRW_Material*> materials;
+        std::vector<DRW_Dictionary> extensions;
+        std::vector<DRW_XRecord*> records;
+        bool dependenciesOk{false};
+        void writeAppId() override { (void)dxfW->writeAppId(&appId); }
+        bool finalizeDxfWrite() override { return true; }
+        void writeObjects() override {
+            dependenciesOk = dxfW->writeDictionaryWithDefault(&plot)
+                && dxfW->writeAcDbPlaceholder(&placeholder)
+                && dxfW->writeDictionary(&owner);
+            for (auto& extension : extensions)
+                dependenciesOk = dxfW->writeDictionary(&extension)
+                    && dependenciesOk;
+            for (auto* material : materials)
+                dependenciesOk = dxfW->writeMaterial(material)
+                    && dependenciesOk;
+            for (auto* record : records)
+                dependenciesOk = dxfW->writeXRecord(record)
+                    && dependenciesOk;
+        }
+    } writer;
+    writer.cData = &writer.blank;
+    writer.appId = *appId;
+    writer.owner = *owner;
+    writer.owner.m_entries = rootEntries;
+    writer.materials = materials;
+    writer.extensions = extensions;
+    writer.records = records;
+    writer.plot = source.dictionaryWithDefaults.front();
+    if (writer.plot.m_entries.size() != 1u)
+        return fail("selected FBXASSET plot-style dictionary is not singular");
+    writer.plot.m_entries.front().m_dxfHandleCode =
+        DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+    writer.placeholder = source.placeholders.front();
+
+    const auto output = std::filesystem::temp_directory_path()
+        / ("libdxfrw-p4-six-fbxasset-output-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error);
+    }} cleanup{output};
+    dxfRW codec(output.string().c_str());
+    sourceIface.dxfW = &codec;
+    writer.dxfW = &codec;
+    codec.setDxfWriteRecordInventoryEnabled(true);
+    codec.setHandleRemap(remap);
+    codec.setRootDictEntries({{"ACAD_MATERIAL", "A072"},
+                              {"ACAD_PLOTSTYLENAME", "E"}});
+    if (!codec.setGeneratedDictionarySourceHandles(0xCu, 0xDu)
+        || !codec.setGeneratedDictionarySourceRecords(
+            std::make_unique<DRW_Dictionary>(source.namedObjectDictionary),
+            std::make_unique<DRW_Dictionary>(*group))
+        || !codec.setDxfDefaultPlotStyleSourceHandles(0xEu, 0xFu))
+        return fail("could not prepare six-profile FBXASSET roots");
+    DRW_Class materialClass, plotClass, placeholderClass;
+    if (!dxfRW::dxfClassForRecordName("MATERIAL", materialClass)
+        || !dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
+        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
+        return fail("could not prepare six-profile FBXASSET classes");
+    materialClass.instanceCount = static_cast<int>(materials.size());
+    plotClass.instanceCount = placeholderClass.instanceCount = 1;
+    codec.setDxfClasses({materialClass, plotClass, placeholderClass});
+
+    const auto sameVariant = [](const DRW_Variant& left,
+                                const DRW_Variant& right) {
+        if (left.code() != right.code() || left.type() != right.type())
+            return false;
+        switch (left.type()) {
+        case DRW_Variant::INTEGER: return left.i_val() == right.i_val();
+        case DRW_Variant::INTEGER64: return left.i64_val() == right.i64_val();
+        case DRW_Variant::DOUBLE: return left.d_val() == right.d_val();
+        case DRW_Variant::STRING:
+            return left.content.s != nullptr && right.content.s != nullptr
+                && *left.content.s == *right.content.s;
+        case DRW_Variant::BINARY:
+            return left.binary() != nullptr && right.binary() != nullptr
+                && *left.binary() == *right.binary();
+        case DRW_Variant::COORD: {
+            const auto* a = left.coord();
+            const auto* b = right.coord();
+            return a != nullptr && b != nullptr && a->x == b->x
+                && a->y == b->y && a->z == b->z;
+        }
+        default: return false;
+        }
+    };
+    const auto allQualified = [&]() {
+        return Access::qualifiedAerialFbxAssets(sourceIface, source);
+    };
+    const auto readback = [&]() {
+        const auto report = [](const char* reason) {
+            std::cerr << "FBXASSET readback: " << reason << '\n';
+            return false;
+        };
+        dx_iface reopened;
+        dx_data actual;
+        if (!reopened.fileImport(output.string(), &actual, false)
+            || !actual.hasNamedObjectDictionary
+            || std::count_if(actual.namedObjectDictionary.m_entries.begin(),
+                actual.namedObjectDictionary.m_entries.end(), [](const auto& entry) {
+                    return entry.m_name == "ACAD_MATERIAL"
+                        && entry.m_handle == 0xA072u;
+                }) != 1
+            || std::count_if(actual.appIds.begin(), actual.appIds.end(),
+                [](const DRW_AppId& row) { return row.name == "ACAD"; }) != 1)
+            return report("NOD or ACAD APPID");
+        const auto outOwner = findHandle(actual.dictionaries, 0xA072u);
+        if (outOwner == actual.dictionaries.end()
+            || outOwner->parentHandle != 0xCu
+            || outOwner->m_entries.size() != profiles.size())
+            return report("selected MATERIAL owner dictionary");
+        for (std::size_t index = 0u; index < profiles.size(); ++index) {
+            const auto& profile = profiles[index];
+            const auto materialOut = 0xA000u + profile.materialHandle;
+            const auto extensionOut = 0xA000u + profile.extensionHandle;
+            const auto recordOut = 0xA000u + profile.recordHandle;
+            const auto outMaterial = findHandle(actual.materials, materialOut);
+            const auto outExtension = findHandle(actual.dictionaries, extensionOut);
+            const auto outRecord = findHandle(actual.xRecords, recordOut);
+            const auto& expectedMaterial = *materials[index];
+            const auto& expectedRecord = *records[index];
+            const auto rootEdge = std::count_if(outOwner->m_entries.begin(),
+                outOwner->m_entries.end(), [&](const auto& entry) {
+                    return entry.m_name == rootEntries[index].m_name
+                        && entry.m_handle == materialOut;
+                });
+            if (outMaterial == actual.materials.end()
+                || outExtension == actual.dictionaries.end()
+                || outRecord == actual.xRecords.end()
+                || rootEdge != 1 || outMaterial->parentHandle != 0xA072u
+                || outMaterial->xDictHandle != extensionOut
+                || outMaterial->m_name != expectedMaterial.m_name
+                || outMaterial->extData.size() != expectedMaterial.extData.size()
+                || outExtension->parentHandle != materialOut
+                || outExtension->m_entries.size() != 1u
+                || outExtension->m_entries.front().m_name != "FBXASSET"
+                || outExtension->m_entries.front().m_handle != recordOut
+                || outRecord->parentHandle != extensionOut
+                || outRecord->reactorHandles.size() != 1u
+                || outRecord->reactorHandles.front() != extensionOut
+                || outRecord->m_cloning != expectedRecord.m_cloning
+                || outRecord->m_dataEntries.size() != expectedRecord.m_dataEntries.size()
+                || outRecord->m_values.size() != expectedRecord.m_values.size())
+            {
+                std::cerr << "FBXASSET readback profile=" << index
+                          << " material=" << (outMaterial != actual.materials.end())
+                          << " extension=" << (outExtension != actual.dictionaries.end())
+                          << " record=" << (outRecord != actual.xRecords.end())
+                          << " rootEdge=" << rootEdge;
+                if (outMaterial != actual.materials.end())
+                    std::cerr << " parent=" << outMaterial->parentHandle
+                              << " xdict=" << outMaterial->xDictHandle
+                              << " eed=" << outMaterial->extData.size();
+                if (outExtension != actual.dictionaries.end())
+                    std::cerr << " extParent=" << outExtension->parentHandle
+                              << " extEntries=" << outExtension->m_entries.size();
+                if (outRecord != actual.xRecords.end())
+                    std::cerr << " recParent=" << outRecord->parentHandle
+                              << " reactors=" << outRecord->reactorHandles.size()
+                              << " data=" << outRecord->m_dataEntries.size()
+                              << " values=" << outRecord->m_values.size();
+                std::cerr << '\n';
+                return false;
+            }
+            for (std::size_t value = 0u;
+                 value < expectedMaterial.extData.size(); ++value)
+                if (expectedMaterial.extData[value] == nullptr
+                    || outMaterial->extData[value] == nullptr
+                    || !sameVariant(*expectedMaterial.extData[value],
+                                    *outMaterial->extData[value]))
+                    return report("MATERIAL EED value");
+            for (std::size_t value = 0u;
+                 value < expectedRecord.m_dataEntries.size(); ++value)
+                if (!sameVariant(expectedRecord.m_dataEntries[value],
+                                 outRecord->m_dataEntries[value])
+                    || !sameVariant(expectedRecord.m_values[value],
+                                    outRecord->m_values[value]))
+                    return report("XRECORD value");
+        }
+        return true;
+    };
+    const auto write = [&](DRW::Version version, bool binary) {
+        writer.dependenciesOk = false;
+        if (version != DRW::AC1024 || !allQualified())
+            return false;
+        return codec.write(&writer, version, binary)
+            && writer.dependenciesOk;
+    };
+    const std::string sentinel = "preserve six-profile FBXASSET destination\n";
+    for (const bool binary : {false, true}) {
+        const bool wrote = write(DRW::AC1024, binary);
+        const bool reopened = wrote && readback();
+        if (!wrote || !reopened) {
+            std::cerr << "six-profile FBXASSET baseline binary=" << binary
+                      << " wrote=" << wrote << " dependencies="
+                      << writer.dependenciesOk << " readback=" << reopened << '\n';
+            return fail("six-profile FBXASSET baseline/readback failed");
+        }
+        const auto refuseAndRetry = [&](const std::function<void()>& corrupt,
+                                        const std::function<void()>& restore,
+                                        DRW::Version version = DRW::AC1024) {
+            {
+                std::ofstream file(output, std::ios::binary | std::ios::trunc);
+                if (!(file << sentinel)) return false;
+            }
+            corrupt();
+            const bool saved = write(version, binary);
+            restore();
+            std::ifstream file(output, std::ios::binary);
+            const std::string preserved(std::istreambuf_iterator<char>(file), {});
+            file.close();
+            return !saved && preserved == sentinel && allQualified()
+                && write(DRW::AC1024, binary) && readback();
+        };
+        const std::size_t valueProfile = 3u;
+        const auto savedValue = records[valueProfile]->m_dataEntries.front();
+        if (!refuseAndRetry(
+                [&] { records[valueProfile]->m_dataEntries.front()
+                    = DRW_Variant(70, records[valueProfile]->m_dataEntries.front().i_val() + 1); },
+                [&] { records[valueProfile]->m_dataEntries.front() = savedValue; }))
+            return fail("six-profile FBXASSET typed-value refusal/retry failed");
+
+        auto& raw = Access::aerialAdvMaterialRawFrame(
+            source, profiles.back().recordHandle).m_rawBytes.front();
+        const auto savedByte = raw;
+        if (!refuseAndRetry([&] { raw ^= 0x80u; }, [&] { raw = savedByte; }))
+            return fail("six-profile FBXASSET source-frame refusal/retry failed");
+
+        if (!refuseAndRetry([] {}, [] {}, DRW::AC1027))
+            return fail("six-profile FBXASSET wrong-version refusal/retry failed");
+    }
+    std::cerr << "AC1024 six-profile FBXASSET batch passed refusal/retry and readback in ASCII and Binary.\n";
+    return true;
+}

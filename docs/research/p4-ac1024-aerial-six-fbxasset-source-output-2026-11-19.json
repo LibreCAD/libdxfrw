@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-six-fbxasset-source-output-2026-11-19",
+  "date": "2026-11-19",
+  "status": "SIX_FBXASSET_ASCII_BINARY_OUTPUT_AND_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing local aerial DWG; producer identity is not authenticated.",
+    "profiles": [
+      {"material": "0x2C2", "extensionDictionary": "0x2C3", "fbxassetXrecord": "0x2C5", "entries": 292, "binaryChunks": 288, "binaryBytes": 36566},
+      {"material": "0x2CC", "extensionDictionary": "0x2CD", "fbxassetXrecord": "0x2CF", "entries": 297, "binaryChunks": 293, "binaryBytes": 37106},
+      {"material": "0x2D6", "extensionDictionary": "0x2D7", "fbxassetXrecord": "0x2D9", "entries": 315, "binaryChunks": 311, "binaryBytes": 39446},
+      {"material": "0x2E0", "extensionDictionary": "0x2E1", "fbxassetXrecord": "0x2E3", "entries": 259, "binaryChunks": 255, "binaryBytes": 32328},
+      {"material": "0x2EA", "extensionDictionary": "0x2EB", "fbxassetXrecord": "0x2ED", "entries": 416, "binaryChunks": 412, "binaryBytes": 52235},
+      {"material": "0x32E", "extensionDictionary": "0x32F", "fbxassetXrecord": "0x331", "entries": 200, "binaryChunks": 196, "binaryBytes": 24861}
+    ],
+    "sourceAdmission": "One same-import predicate qualifies all six standard-object raw spans, same-import class publications, ordered typed lists, full source graphs and handle roles. Each output uses the exact six MATERIAL and XRECORD objects from that dx_data instance."
+  },
+  "outputProfile": {
+    "target": "AC1024",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "totalXrecordEntries": 1779,
+    "totalBinaryPayloadBytes": 222542,
+    "handleMapping": "Each selected source handle maps to 0xA000 plus its source handle; source root MATERIAL dictionary 0x72 maps to 0xA072.",
+    "graph": [
+      "NOD ACAD_MATERIAL -> dictionary 0xA072 with the six selected original MATERIAL keys",
+      "Each MATERIAL owner -> 0xA072 and extension dictionary -> remapped source extension",
+      "Each projected extension dictionary contains exactly its qualified FBXASSET entry",
+      "Each XRECORD owner and sole reactor -> its remapped extension dictionary",
+      "Each copied MATERIAL retains its ordered EED values and exactly one ACAD APPID row is emitted"
+    ],
+    "readback": "Fresh libdxfrw imports compare all six remapped owner/extension/reactor graphs, every MATERIAL EED variant, and every ordered XRECORD entry and binary byte in both m_dataEntries and m_values."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-selected-six-fbxasset-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "result": "PASS. The six-branch selected transaction writes and freshly reimports in ASCII and Binary with exact graph roles, ACAD APPID, MATERIAL EED, XRECORD values and 222542 binary payload bytes.",
+    "refusalRetry": [
+      "Changing a typed group-70 value in one record rejects the all-six source proof, preserves the sentinel destination, then succeeds after restoration and fresh readback.",
+      "Changing the raw frame for XRECORD 0x331 rejects the source proof, preserves the sentinel destination, then succeeds after restoration and fresh readback.",
+      "Requesting AC1027 output refuses this AC1024-only selected profile, preserves the sentinel destination, then succeeds after retrying AC1024."
+    ],
+    "fixturePolicy": "The existing local DWG remains untracked. Output DXFs are temporary and removed by the selector. No DWG or DXF fixture was committed."
+  },
+  "limits": [
+    "This is a six-branch selected projection; each extension dictionary omits its unselected sibling edges to prevent dangling references.",
+    "Output proof does not close all MATERIAL dependencies, BACKGROUND, or LAYOUT graphs.",
+    "The source producer is unauthenticated; FBX/texture semantic meaning and external consumer acceptance remain unproved.",
+    "This evidence does not promote a support claim."
+  ],
+  "nextAction": "Batch-stage the 36 source-qualified TILE branches with exact values and handle roles, atomic refusal, destination preservation, corrected retry and ASCII/Binary readback; then compose the complete MATERIAL graph."
+}

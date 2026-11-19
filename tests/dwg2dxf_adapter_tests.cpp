@@ -3412,6 +3412,11 @@ public:
         return typedDictionaryRejected && qualified();
     }
 
+    static bool qualifiedAerialFbxAssets(dx_iface& iface, dx_data& data) {
+        iface.cData = &data;
+        return iface.hasQualifiedAc1024AerialFbxAssetFrames(data);
+    }
+
     static bool aerialFbxAssetSourceControls(dx_iface& iface, dx_data& data) {
         iface.cData = &data;
         const auto qualified = [&]() {
@@ -93812,6 +93817,8 @@ int main(int argc, char** argv) {
         return physicalAc1024SelectedAdvMaterialWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-five-advmaterial-writer")
         return physicalAc1024SelectedFiveAdvMaterialWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-six-fbxasset-writer")
+        return physicalAc1024SelectedSixFbxAssetWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-tablestyle-writer")
         return physicalAc1024SelectedTableStyleWriter(argv[2]) ? 0 : 1;
     if (argc == 3
