@@ -22215,6 +22215,11 @@ bool makeEncodedDimensionAssociationMultiHandleFrame(
 }
 
 void testDimensionAssociationMultiHandleDwgEncoder(TestContext& t) {
+    const DRW_DimensionAssociationOsnapRef legacyAggregate{
+        "AcDbOsnapPointRef", 0u, 0x3Fu};
+    t.expect(legacyAggregate.m_objectHandle == 0x3Fu,
+             "DIMASSOC OSNAP ref preserves its legacy aggregate prefix");
+
     DimensionAssociationFrame frame;
     const bool built = makeEncodedDimensionAssociationMultiHandleFrame(frame);
     t.expect(built,

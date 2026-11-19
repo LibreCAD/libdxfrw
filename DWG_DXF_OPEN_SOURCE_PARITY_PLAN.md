@@ -18,16 +18,21 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 [baseline refresh receipt](docs/research/consumer-baseline-refresh-2026-11-18.json);
 refresh moving heads again before later integration or platform qualification.
 
-**Progress on 2026-11-19:** 11/34 package gates closed; 23 remain. The activity
-ledger is 187/188 (99.5%) with eleven closed gates and 176 completed implementation or
-research slices. The newest P8-D slice adds an eager cached-style identity regression
-and a test-only adapter for upstream `dxfWriter`/DIMASSOC field changes.
-The style, closure and test-API patches apply sequentially to a clean LibreCAD
-`078aac892287` archive. With current upstream libdxfrw sources overlaid, the macOS
-ARM64 app target builds, all 596 assertions across nine MLINE cases pass, and the
-DXF fast target builds; its combined MLINE/MLINESTYLE/DIMASSOC selection passes 42
-assertions in five cases. The complete suite remains open for unrelated API
-mismatches. See the
+**Progress on 2026-11-19:** 11/34 package gates closed; 23 remain. The
+implementation/research activity estimate is 177/178 slices (99.4%), with
+`P8-D-API-COMPAT` completed and `P8-D-OUTPUT-BUDGET` the next local slice;
+package-gate readiness is tracked
+separately at 11/34 (32.4%). The latest P8-D compatibility slice restores the
+historical DIMASSOC OSNAP aggregate prefix and completes the deprecated `dwgR`
+read/diagnostic forwarding surface. A focused standalone DIMASSOC vector passes.
+The four consumer patches apply sequentially to an isolated LibreCAD
+`078aac892287` archive. With current upstream libdxfrw overlaid, the macOS ARM64
+app and DXF fast targets build; the combined MLINE/MLINESTYLE/DIMASSOC selector
+passes 42 assertions in five cases, and the focused MLINE target passes 596
+assertions in nine cases. `librecad_tests` remains incompatible with upstream
+because `dwg_safety_tests.cpp` probes LibreCAD-fork-only internal hooks. That
+white-box target is not a P8-D acceptance gate; use the app and focused DXF fast
+tests, and retain the full suite for the matching bundled-fork build. See the
 [style-handle review](docs/research/p8d-mline-style-handle-review-2026-11-19.json).
 The prior AC1024 null-background candidate screen remains linked below; it did not
 admit LAYOUT output. The P4-D output gate remains open. The [same-import APPID source-capture slice](docs/research/p4-ac1024-aerial-material-appid-same-import-raw-capture-2026-11-18.json)
@@ -200,10 +205,11 @@ producer wire evidence or 3D semantic proof.
   after code changes. Add ASan only for bounds, ownership, lifetime, or handle
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
-- Count the 34 package gates and each implementation/research slice once. The
-  current ledger counts 154 completed slices and 34 package gates. The slices
-  and eleven closed gates account for 165 of 188 counted items (87.8%). The Linux and
-  Windows FreeCAD results cover only their exact generated profile and binary;
+- Count implementation/research slices and package-gate readiness separately.
+  The activity estimate is 177 completed slices out of 178 currently counted
+  slices (99.4%); `P8-D-OUTPUT-BUDGET` is the remaining active local slice.
+  Gate readiness is 11/34 (32.4%), with 23 gates open. The Linux and Windows
+  FreeCAD results cover only their exact generated profile and binary;
   GUI outcomes remain in P8-D. A partial
   implementation slice earns activity progress but does not close its package
   gate. After each committed slice or gate transition, recount both activity
@@ -364,7 +370,7 @@ source-reference closure.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P8-D / ACTIVE_MLINE_CONSUMER_INTEGRATION_AND_WAITING_FOR_AQUA | The unmerged [style-timing patch](docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch), [closure-bit patch](docs/patches/librecad-mline-closure-bit-2026-11-18.patch) and [test API adapter](docs/patches/librecad-dxf-fast-test-upstream-api-2026-11-19.patch) have focused headless controls. The [style-handle review](docs/research/p8d-mline-style-handle-review-2026-11-19.json) includes an eager cached-provider wrong-handle regression; all MLINE callbacks require the source style handle to match. All three patches apply sequentially to a clean archive at LibreCAD `078aac892287`. With current upstream libdxfrw sources overlaid, macOS ARM64 `librecad` builds and the isolated MLINE target passes 596 assertions in nine cases, including marker entities before/after the MLINE and cached wrong-handle fallback. The DXF fast target builds after the test-only API adapter; its combined MLINE/MLINESTYLE/DIMASSOC selector passes 42 assertions in five cases. The complete `librecad_tests` target still fails on fork-only `dwgR` APIs and unrelated narrowing errors; the bundled-fork attempt fails before the filter compile on four missing associative-prefix enum values. These blockers occur outside the changed MLINE filter; the shared LibreCAD checkout was not modified. The [installed-codec proof](docs/research/p8d-mline-installed-style-write-contract-2026-11-18.json) establishes source-handle input, stage binding and atomic retry. The [bounded bundled prototype](docs/research/p8d-mline-bundled-staged-write-proof-2026-11-18.json) passes twelve refusals/retries and three no-hook readbacks. | Investigate the remaining full-suite API mismatches in an isolated overlay, then verify output-budget disposition before integrating the installed filter staged inspectors. Keep full-suite qualification open until these checks pass. Resume native GUI work after an active display and successful capture; the [latest preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json) could not capture. Batch Move/Copy, named-LTYPE save/reopen/render and selected MLINE display/edit/save/reopen. Run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf when that bundle is available. |
+| P8-D / ACTIVE_MLINE_CONSUMER_INTEGRATION_AND_WAITING_FOR_AQUA | The unmerged [style-timing patch](docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch), [closure-bit patch](docs/patches/librecad-mline-closure-bit-2026-11-18.patch), [DXF fast-test adapter](docs/patches/librecad-dxf-fast-test-upstream-api-2026-11-19.patch), and [DWG full-test adapter](docs/patches/librecad-dwg-fulltest-upstream-api-2026-11-19.patch) have focused headless controls. The [style-handle review](docs/research/p8d-mline-style-handle-review-2026-11-19.json) includes an eager cached-provider wrong-handle regression; all MLINE callbacks require a matching source style handle. All four patches apply sequentially to an isolated LibreCAD `078aac892287` archive. The public `DRW_DimensionAssociationOsnapRef` aggregate prefix is source-compatible again, and `dwgR` forwards the reader and diagnostic methods exposed by `dwgRW`. The macOS ARM64 app target builds; the isolated MLINE target passes 596 assertions in nine cases, and the DXF fast target passes 42 assertions in five MLINE/MLINESTYLE/DIMASSOC cases. The standalone DIMASSOC vector and AC1018/AC1024 readback selector pass. A full `librecad_tests` compile was investigated after the simple API/narrowing mismatches were repaired; it stops in `dwg_safety_tests.cpp` on fork-private internals (`m_dwgWriteExplicitLinks`, `DwgBlockWalkOutcome`, group-owner/SEQEND/dangling-record helpers, and `leftOut`). Do not add stubs or port that large white-box suite merely to make the upstream overlay compile; keep the matching full suite on the bundled-fork profile. The shared LibreCAD checkout was not modified. The [installed-codec proof](docs/research/p8d-mline-installed-style-write-contract-2026-11-18.json) establishes source-handle input, stage binding and atomic retry. The [bounded bundled prototype](docs/research/p8d-mline-bundled-staged-write-proof-2026-11-18.json) passes twelve refusals/retries and three no-hook readbacks. | **Next local slice `P8-D-OUTPUT-BUDGET`:** resolve the scratch scanner's 256 MiB file, 100,000 dictionary-entry, and 4 MiB aggregate-key bounds against the intended consumer behavior; add only locally generated boundary controls, then carry the bounded installed-filter staged inspectors into the reviewable consumer patch and build the app once. Keep P8-D open. Resume native GUI checks after this process can capture an active display; batch Move/Copy, named-LTYPE save/reopen/render, and selected MLINE display/edit/save/reopen. Run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf when that bundle is available. |
 | P8-F / WAITING_FOR_CURRENT_DIGEST_CI | The selected local checks and frozen support guard pass for implementation digest `2e563ed8c4438f74a2b32b37bd779c4d7ce2119b79f1f8edca31e33da9b30e9f` (743 inputs). Earlier digest `3a5d271c` passed its selected checks; ByBlock `5102afcd` passed [fast CI and authenticated focused native CI](docs/research/p8f-8843-upstream-native-replay-2026-11-18.json), as did VISUALSTYLE `cdf5d6b6`. | Run fast and all three focused-native jobs for `2e563ed8` and authenticate completed receipts at the live tested ref. Group related local implementation and evidence commits before pushing to avoid canceling a nearly complete fast run. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 

@@ -7061,12 +7061,14 @@ public:
 struct DRW_DimensionAssociationOsnapRef {
   UTF8STRING m_className;
   std::uint8_t m_objectOsnapType = 0;
+  // Preserve the original three-field aggregate prefix used by downstream
+  // consumers: class name, OSNAP type, then the primary object handle.
+  std::uint32_t m_objectHandle = 0;
   bool m_hasObjectOsnapType = false;
   // DIMASSOC may identify a main geometric object through multiple handles.
   // Keep the first value mirrored in m_objectHandle for source compatibility
   // with existing clients that consume the historical scalar field.
   std::vector<std::uint32_t> m_objectHandles;
-  std::uint32_t m_objectHandle = 0;
   bool m_hasSubentType = false;
   std::int32_t m_subentType = 0;
   bool m_hasGsMarker = false;

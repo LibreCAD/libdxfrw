@@ -1096,6 +1096,16 @@ public:
     bool read(DRW_Interface *interface_, bool ext) {
         return implementation.read(interface_, ext);
     }
+    bool readBuffer(const std::uint8_t *data, std::uint64_t size,
+                    DRW_Interface *interface_, bool ext) {
+        return implementation.readBuffer(data, size, interface_, ext);
+    }
+    void setDwgReadObjectBudget(std::size_t maxObjects) noexcept {
+        implementation.setDwgReadObjectBudget(maxObjects);
+    }
+    std::size_t dwgReadObjectBudget() const noexcept {
+        return implementation.dwgReadObjectBudget();
+    }
     bool getPreview() { return implementation.getPreview(); }
     DRW::Version getVersion() const { return implementation.getVersion(); }
     DRW::error getError() const { return implementation.getError(); }
@@ -1112,6 +1122,9 @@ public:
     DRW_OperationDiagnostic getLastDiagnostic() const {
         return implementation.getLastDiagnostic();
     }
+    std::vector<DwgIntegrityDiagnostic> getIntegrityDiagnostics() const {
+        return implementation.getIntegrityDiagnostics();
+    }
     size_t getEntityParseFailures() const {
         return implementation.getEntityParseFailures();
     }
@@ -1120,6 +1133,40 @@ public:
     }
     size_t getOrphanedEntities() const {
         return implementation.getOrphanedEntities();
+    }
+    /// Keep the deprecated façade's read/diagnostic API aligned with dwgRW.
+    size_t getObjectParseFailures() const {
+        return implementation.getObjectParseFailures();
+    }
+    size_t getClassesCrcMismatch() const {
+        return implementation.getClassesCrcMismatch();
+    }
+    size_t getR2007CrcMismatch() const {
+        return implementation.getR2007CrcMismatch();
+    }
+    size_t getR2004CrcMismatch() const {
+        return implementation.getR2004CrcMismatch();
+    }
+    size_t getDataStorageLinkFailures() const {
+        return implementation.getDataStorageLinkFailures();
+    }
+    size_t getDataStorageOrphanRecords() const {
+        return implementation.getDataStorageOrphanRecords();
+    }
+    std::size_t getIntegrityDiagnosticsDropped() const {
+        return implementation.getIntegrityDiagnosticsDropped();
+    }
+    DwgReadObservations getReadObservations() const noexcept {
+        return implementation.getReadObservations();
+    }
+    size_t getDecodedProxyPrimitives() const {
+        return implementation.getDecodedProxyPrimitives();
+    }
+    const std::vector<std::string>& getLayerNameOrder() const {
+        return implementation.getLayerNameOrder();
+    }
+    const std::vector<std::string>& getLtypeNameOrder() const {
+        return implementation.getLtypeNameOrder();
     }
     std::unordered_map<std::string, size_t> getSkippedCustomClasses() const {
         return implementation.getSkippedCustomClasses();

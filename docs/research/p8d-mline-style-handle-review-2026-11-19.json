@@ -2,9 +2,9 @@
   "schema": "libdxfrw-research-receipt-v1",
   "id": "p8d-mline-style-handle-review-2026-11-19",
   "date": "2026-11-19",
-  "status": "PATCH_CORRECTED_AND_FOCUSED_RUNTIME_VERIFIED",
+  "status": "PATCHES_AND_FOCUSED_CONSUMER_GATES_VERIFIED",
   "supportClaimEffect": "none",
-  "scope": "Review and validate the pending LibreCAD MLINE style-timing patch for same-name style-handle mismatches before integrating it into the consumer.",
+  "scope": "Review the LibreCAD MLINE style-timing patch, restore upstream source compatibility for public DIMASSOC OSNAP aggregate initialization and the deprecated dwgR read facade, and bound consumer validation to relevant fast gates.",
   "consumerHead": "078aac892287",
   "finding": {
     "failurePath": "The first patch revision compared styleHandle with the cached MLINESTYLE handle only when late-style placeholders were supplied. If a same-named style was already cached when an MLINE callback arrived, the ordinary projection path could use that style despite a different nonzero source handle. The queue predicate also did not classify a cached handle mismatch as unresolved.",
@@ -16,20 +16,25 @@
     "queuePredicate": "When deferred import is active, a cached same-name style with a different nonzero, non-NoHandle source handle now enters the pending queue along with missing or cardinality-mismatched styles.",
     "projectionGuard": "The style-handle equality check now applies whenever projection considers a cached style, both for direct callbacks and deferred placeholders.",
     "cachedStyleRegression": "The filter regression now moves the MLINESTYLE OBJECTS section before ENTITIES in an ASCII DXF, so the style is cached before the MLINE callback. A different nonzero source handle must produce fallback offsets. The existing late-style test covers matched, missing and wrong-handle styles in ASCII and Binary DXF.",
-    "testEmitter": "The direct DXF MLINE test emitter now writes the MLINESTYLE object referenced by each MLINE, satisfying the current strict writer contract and keeping the pre-existing writer cases valid."
+    "testEmitter": "The direct DXF MLINE test emitter now writes the MLINESTYLE object referenced by each MLINE, satisfying the current strict writer contract and keeping the pre-existing writer cases valid.",
+    "publicSourceCompatibility": "DRW_DimensionAssociationOsnapRef again starts with its historical class-name, OSNAP-type, and primary-handle aggregate fields. New metadata follows that prefix; a generated vector assertion checks that a legacy {class, type, handle} initializer still selects the handle field.",
+    "deprecatedReaderFacade": "dwgR now forwards readBuffer, the object budget, and the read-side diagnostics available on dwgRW, including data-storage and bounded integrity observations. The forwarding methods do not add virtuals or data members."
   },
   "validation": {
-    "head": "PASS: all three patches apply sequentially to a fresh archive of LibreCAD 078aac892287; the resulting filter and test files match the isolated build tree.",
+    "head": "PASS: the MLINE style, closure-bit, DXF fast-test API, and DWG full-test API patches apply sequentially after the first three patches on the isolated LibreCAD 078aac892287 archive; the shared checkout was not modified.",
     "worktree": "The shared LibreCAD checkout was not modified; all patch application and builds ran under /private/tmp.",
     "applicationBuild": "PASS: macOS ARM64 librecad_lib and librecad app targets build with current upstream libdxfrw sources overlaid in the isolated LibreCAD archive.",
     "focusedMlineTests": "PASS: isolated mline_tests.cpp target; [mline] selector passes 596 assertions in 9 test cases, including the eager cached-style mismatch case and the ASCII/Binary deferred-style profiles.",
-    "consumerTestApiPatch": "PASS: the test-only std::string_view override and explicit DIMASSOC OSNAP field construction apply after the MLINE style and closure patches. The DIMASSOC checks now assert represented fields, use group 71 for rotated-type overflow, and reject an out-of-range subentity field; all four patched files byte-match the isolated working build tree.",
+    "consumerTestApiPatch": "PASS: the test-only std::string_view override and explicit DIMASSOC OSNAP field construction apply after the MLINE style and closure patches. The DIMASSOC checks assert represented fields, use group 71 for rotated-type overflow, and reject an out-of-range subentity field.",
+    "consumerDwgTestApiPatch": "PASS: the rollback test initializer and assertions apply against the current four-field PendingHandleRef writer API; this is test-only adaptation and does not alter DWG behavior.",
     "dxfFastTarget": "PASS: librecad_dxf_fast_tests builds with the test API patch. The combined [mline],[mlinestyle],[dimassoc] selector passes 42 assertions in five cases.",
-    "fullConsumerTests": "BLOCKED BY API DIVERGENCE: the complete librecad_tests target does not compile against current upstream libdxfrw because LibreCAD tests reference fork-only dwgR inspection APIs and contain unrelated narrowing errors. A separate bundled-fork attempt fails earlier on four associative-prefix enum values missing from that fork.",
+    "upstreamAppTarget": "PASS: macOS ARM64 librecad builds against the overlaid current upstream headers and sources.",
+    "upstreamObjectVector": "PASS: standalone libdxfrw_dwg_object_vectors_tests --dimassoc-dwg-detail-readback, including legacy aggregate-prefix mapping and AC1018/AC1024 readback controls.",
+    "fullConsumerTests": "NOT AN UPSTREAM ACCEPTANCE GATE: after fixing the public aggregate narrowing and forwarding the read facade APIs, the isolated librecad_tests compile reaches dwg_safety_tests.cpp and fails on LibreCAD-fork-only white-box hooks: DRW_Entity::m_dwgWriteExplicitLinks, dwgReader::DwgBlockWalkOutcome, group-owner/SEQEND/dangling-record helpers, and the fork writer leftOut view. Do not port or stub these internal test seams merely to compile the upstream overlay. Keep the complete suite for the matching bundled-fork build; use the built app plus librecad_dxf_fast_tests for this P8-D consumer check.",
     "fixtures": "No DWG/DXF fixture files were added to the repository; generated DXFs use QTemporaryDir or existing temporary paths."
   },
   "remaining": [
-    "Resolve the complete librecad_tests API mismatches in an isolated overlay, then verify output-budget disposition in a consistent consumer build.",
+    "Verify output-budget disposition in the same isolated upstream consumer profile, then integrate the staged inspectors only after that gate passes.",
     "Keep native GUI qualification waiting for an active display; this review does not promote consumer or DWG support."
   ]
 }
