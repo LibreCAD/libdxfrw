@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-first-advmaterial-source-binding-2026-11-19",
+  "date": "2026-11-19",
+  "status": "FIRST_ADVMATERIAL_SOURCE_PROFILE_BOUND",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "profile": {"material": "0x2C2", "extension": "0x2C3", "advmaterial": "0x2C4"},
+    "frameBytes": 81,
+    "frameSha256": "b57a7c7c5df21f53dae7efefefc87b6ec937ecd0a6a551bc5c85faf0cd30d485",
+    "provenance": "Existing local aerial DWG; producer identity is not authenticated. The pinned LibreDWG JSON agrees on all ten ordered values and the parent/reactor handle targets.",
+    "specification": {
+      "title": "Open Design Specification for .dwg files, v5.4.1",
+      "section": "20.4.104 XRECORD",
+      "url": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+      "use": "The section defines the AcDbXrecord data block as RS DXF-group indicators followed by typed values, and describes the body boundary, cloning field and common handle stream."
+    }
+  },
+  "wireProfile": {
+    "objectType": 79,
+    "version": "AC1024",
+    "bodyTailBits": 36,
+    "dataLengthBytes": 68,
+    "dataStartBit": 57,
+    "dataEndBit": 601,
+    "footer": "compressed BS value 1 then cloning bit 0; object body ends at bit 612",
+    "commonHandleTail": {
+      "spanBits": [612, 648],
+      "owner": "H(role=8,length=0), relative offset resolves to extension 0x2C3",
+      "reactor": "H(role=4,length=2), absolute handle 0x2C3",
+      "padding": "1111"
+    },
+    "fields": [
+      {"code": 460, "type": "double", "value": 100.0},
+      {"code": 461, "type": "double", "value": 100.0},
+      {"code": 462, "type": "double", "value": 100.0},
+      {"code": 463, "type": "double", "value": 100.0},
+      {"code": 290, "type": "boolean", "value": 1},
+      {"code": 270, "type": "int16", "value": 1},
+      {"code": 464, "type": "double", "value": 0.0},
+      {"code": 293, "type": "boolean", "value": 0},
+      {"code": 272, "type": "int16", "value": 3},
+      {"code": 273, "type": "int16", "value": 3}
+    ],
+    "wireWidths": "Groups 460–463 and 464 carry raw 64-bit doubles; groups 290 and 293 carry one raw byte each; groups 270, 272 and 273 carry two-byte integers. Every group indicator and value is compared against both ordered same-import typed lists."
+  },
+  "binding": {
+    "identity": "The unique MATERIAL 0x2C2, complete extension dictionary 0x2C3 and XRECORD 0x2C4 are joined to same-import source publications by generation, handle, source location and ordinal. The raw frame must match the captured type/profile, immutable typed baseline, payload-matched status and original publication.",
+    "graph": "The exact unique ADVMATERIAL key points to 0x2C4; the MATERIAL owns extension 0x2C3, which owns the XRECORD. The six MATERIAL EED and 36 TILE source branches must already qualify.",
+    "scope": "This binds one source profile for a future explicit DXF compatibility route. It does not establish ADVMATERIAL field semantics, output support or MATERIAL-root closure."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-material-appid-source-capture tests/samples/AC1024/visualization_-_aerial.dwg",
+    "result": "PASS. The owning selector binds ADVMATERIAL 0x2C4 in the same import as its source dictionary and MATERIAL.",
+    "controls": "Header, data-start, payload and owner-link bit mutations reject and recover. Publication-offset, failed-capture, changed typed double, parent-handle and dictionary-target mutations reject and recover. A foreign adapter cannot reuse the proof.",
+    "sourceFixture": "The selector uses an existing untracked local sample. No DWG or DXF fixture was added."
+  },
+  "implementation": {
+    "observerHeaderSha256": "158cdcdc6596a388e16f1540c0cb49ec44f68d21bf6e8424f3f0f451dae0438b",
+    "adapterCppSha256": "5c1dc845537ed63888a6fd9380400731d7bd5977824f41552ed17bd46be51f5a",
+    "adapterHeaderSha256": "c155af42a2069682d29cee34de15d3f50cf8ca19a4c857f79d920506976ff0cc",
+    "selectorTestsSha256": "9b4196e9a95fb242dcb79da0ba06bd754b0c23707cdd4f6c299e4fd0dcd81a0d"
+  },
+  "limits": [
+    "Only profile 0x2C4 is bound in this slice; the other five compact ADVMATERIAL records and DIFFUSE/BUMP remain open.",
+    "Groups 460–464 remain a source-bound compatibility observation. No Autodesk native semantic interpretation has been established.",
+    "No DXF write, refusal/retry transaction, or independent readback was performed in this slice."
+  ]
+}

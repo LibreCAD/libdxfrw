@@ -23,6 +23,7 @@
 #include "dx_ac1024_material_eed_wire.h"
 #include "dx_ac1024_aerial_tile_wire.h"
 #include "dx_ac1024_aerial_fbxasset_wire.h"
+#include "dx_ac1024_aerial_advmaterial_wire.h"
 #include "independent_dxf_scalar_walker.h"
 
 #include <algorithm>
@@ -3466,6 +3467,89 @@ public:
                 return false;
         }
         return qualified();
+    }
+
+    static bool aerialAdvMaterialSourceControls(dx_iface& iface,
+                                                dx_data& data) {
+        iface.cData = &data;
+        const auto qualified = [&]() {
+            return iface.hasQualifiedAc1024AerialAdvMaterial(data);
+        };
+        if (!qualified()) {
+            std::cerr << "first MATERIAL ADVMATERIAL source was not qualified\n";
+            return false;
+        }
+        dx_iface other;
+        other.cData = &data;
+        if (other.hasQualifiedAc1024AerialAdvMaterial(data))
+            return false;
+
+        const auto& profile = dx_ac1024_aerial_advmaterial_wire::first;
+        auto& frame = data.m_standardDwgObjectFrames.at(
+            {data.importGeneration, profile.recordHandle});
+        auto recordAt = std::find_if(data.xRecords.begin(), data.xRecords.end(),
+            [](const DRW_XRecord& item) {
+                return item.handle
+                    == dx_ac1024_aerial_advmaterial_wire::first.recordHandle;
+            });
+        auto extensionAt = std::find_if(data.dictionaries.begin(),
+            data.dictionaries.end(), [](const DRW_Dictionary& item) {
+                return item.handle
+                    == dx_ac1024_aerial_advmaterial_wire::first.extensionHandle;
+            });
+        if (recordAt == data.xRecords.end()
+            || extensionAt == data.dictionaries.end())
+            return false;
+        auto& record = *recordAt;
+        for (const std::uint32_t bit : {0u, 57u, 64u, 600u, 612u}) {
+            frame.raw.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(
+                1u << (7u - bit % 8u));
+            const bool rejected = !dx_ac1024_aerial_advmaterial_wire::observe(
+                frame.raw, record, profile);
+            frame.raw.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(
+                1u << (7u - bit % 8u));
+            if (!rejected || !dx_ac1024_aerial_advmaterial_wire::observe(
+                    frame.raw, record, profile))
+                return false;
+        }
+
+        const auto sourceOffset = frame.publication.m_sourceOffset;
+        ++frame.publication.m_sourceOffset;
+        const bool publicationRejected = !qualified();
+        frame.publication.m_sourceOffset = sourceOffset;
+        if (!publicationRejected || !qualified())
+            return false;
+        const bool payloadMatched = frame.payloadMatched;
+        frame.payloadMatched = false;
+        const bool failedCaptureRejected = !qualified();
+        frame.payloadMatched = payloadMatched;
+        if (!failedCaptureRejected || !qualified())
+            return false;
+
+        const auto originalValue = record.m_values.front();
+        record.m_values.front() = DRW_Variant(460, 99.0);
+        const bool typedValueRejected = !qualified();
+        record.m_values.front() = originalValue;
+        if (!typedValueRejected || !qualified())
+            return false;
+        const auto originalParent = record.parentHandle;
+        record.parentHandle ^= 1u;
+        const bool parentRejected = !qualified();
+        record.parentHandle = originalParent;
+        if (!parentRejected || !qualified())
+            return false;
+
+        auto entry = std::find_if(extensionAt->m_entries.begin(),
+            extensionAt->m_entries.end(), [](const DRW_Dictionary::Entry& row) {
+                return row.m_name == "ADVMATERIAL";
+            });
+        if (entry == extensionAt->m_entries.end())
+            return false;
+        const auto target = entry->m_handle;
+        entry->m_handle ^= 1u;
+        const bool graphTargetRejected = !qualified();
+        entry->m_handle = target;
+        return graphTargetRejected && qualified();
     }
 
     static bool writeAerialMaterialAppIdSourceFrames(
@@ -61441,12 +61525,15 @@ bool physicalAc1024MaterialAppIdSourceCapture(
     if (!DxIfaceStandardDwgCaptureTestAccess::aerialTileSourceControls(
             reader, source)
         || !DxIfaceStandardDwgCaptureTestAccess::aerialFbxAssetSourceControls(
+            reader, source)
+        || !DxIfaceStandardDwgCaptureTestAccess::aerialAdvMaterialSourceControls(
             reader, source))
-        return fail("MATERIAL TILE/FBXASSET same-import source binding controls failed");
+        return fail("MATERIAL TILE/FBXASSET/ADVMATERIAL same-import source binding controls failed");
     if (!DxIfaceStandardDwgCaptureTestAccess::writeAerialMaterialAppIdSourceFrames(
             reader))
         return fail("MATERIAL APPID raw frame capture failed");
-    std::cerr << "AC1024 APPID, all seven MATERIAL EED, 36 TILE and six FBXASSET "
+    std::cerr << "AC1024 APPID, all seven MATERIAL EED, 36 TILE, six FBXASSET and "
+                 "the first ADVMATERIAL "
                  "source-frame identity, span, graph, mutation, and retry controls passed.\n";
     return true;
 }
