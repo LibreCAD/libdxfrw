@@ -93819,6 +93819,8 @@ int main(int argc, char** argv) {
         return physicalAc1024SelectedFiveAdvMaterialWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-six-fbxasset-writer")
         return physicalAc1024SelectedSixFbxAssetWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-36-tile-writer")
+        return physicalAc1024SelectedThirtySixTileWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-tablestyle-writer")
         return physicalAc1024SelectedTableStyleWriter(argv[2]) ? 0 : 1;
     if (argc == 3

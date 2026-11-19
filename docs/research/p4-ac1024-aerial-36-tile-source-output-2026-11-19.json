@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-36-tile-source-output-2026-11-19",
+  "date": "2026-11-19",
+  "status": "THIRTY_SIX_TILE_ASCII_BINARY_OUTPUT_AND_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing local aerial DWG; producer identity is not authenticated.",
+    "materialProfiles": [
+      {"material": "0x2C2", "extension": "0x2C3", "tiles": ["0x2C6", "0x2C7", "0x2C8", "0x2C9", "0x2CA", "0x2CB"]},
+      {"material": "0x2CC", "extension": "0x2CD", "tiles": ["0x2D0", "0x2D1", "0x2D2", "0x2D3", "0x2D4", "0x2D5"]},
+      {"material": "0x2D6", "extension": "0x2D7", "tiles": ["0x2DA", "0x2DB", "0x2DC", "0x2DD", "0x2DE", "0x2DF"]},
+      {"material": "0x2E0", "extension": "0x2E1", "tiles": ["0x2E4", "0x2E5", "0x2E6", "0x2E7", "0x2E8", "0x2E9"]},
+      {"material": "0x2EA", "extension": "0x2EB", "tiles": ["0x2EF", "0x2F1", "0x2F2", "0x2F3", "0x2F4", "0x2F5"]},
+      {"material": "0x32E", "extension": "0x32F", "tiles": ["0x332", "0x333", "0x334", "0x335", "0x336", "0x337"]}
+    ],
+    "sourceAdmission": "All 36 same-import XRECORD spans, typed fields and owner/reactor roles are qualified together with each full source extension dictionary and MATERIAL. The exact source records from that dx_data are passed to the selected writer."
+  },
+  "outputProfile": {
+    "target": "AC1024",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "graph": [
+      "NOD ACAD_MATERIAL -> remapped dictionary 0xA072 with six selected original MATERIAL keys",
+      "Each MATERIAL retains its remapped extension dictionary and original EED",
+      "Each projected extension dictionary contains exactly its six TILE entries",
+      "The 36 TILE keys map to their remapped XRECORDs; each record owner and sole reactor maps to that extension dictionary",
+      "One ACAD APPID row is emitted for the six retained MATERIAL EED payloads"
+    ],
+    "fields": [
+      {"code": 270, "type": "integer", "value": 1},
+      {"code": 271, "type": "integer", "value": 1}
+    ],
+    "recordCount": 36,
+    "fieldCount": 72
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-selected-36-tile-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "result": "PASS. Fresh libdxfrw reimports match six root/material/extension graphs, all 36 named TILE edges, every owner/reactor role, both exact ordered fields and all MATERIAL EED values in ASCII and Binary.",
+    "refusalRetry": [
+      "Changing a typed group-270 value refuses the source profile, preserves the destination sentinel, then succeeds after restoration and readback.",
+      "Changing the raw frame for XRECORD 0x337 refuses the source profile, preserves the destination sentinel, then succeeds after restoration and readback.",
+      "Requesting AC1027 output refuses the AC1024-only profile, preserves the destination sentinel, then succeeds after the AC1024 retry."
+    ],
+    "fixturePolicy": "The existing local DWG remains untracked. Output DXFs are temporary and removed by the selector. No DWG or DXF fixture was committed."
+  },
+  "limits": [
+    "This is a selected six-MATERIAL projection. Each extension dictionary omits unselected sibling edges, including FBXASSET, ADVMATERIAL and wider DIFFUSE/BUMP profiles.",
+    "The source producer is unauthenticated; texture interpretation and independent native consumer acceptance are unproved.",
+    "This evidence does not close the MATERIAL root or promote a support claim."
+  ],
+  "nextAction": "Source-bind and output-qualify the wider DIFFUSE 0x2EE and BUMP 0x2F0 XRECORD profiles, then compose complete MATERIAL extension dictionaries and root dependencies."
+}
