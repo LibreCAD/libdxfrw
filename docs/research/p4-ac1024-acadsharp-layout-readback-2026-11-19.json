@@ -30,6 +30,20 @@
     "readbackOutputSha256": "820d262ed8273596f9c0156aef7b52a9625125cbc2ca5b675e73020c17953438",
     "result": "Both ASCII and Binary DXF outputs load. ACAD_LAYOUT contains Layout1 (handle 0x59) and Model (0x22); both retain owner 0x1A, flags 1, tab orders 1 and 0, and extension dictionaries 0x2A7 and 0x108D. The associated blocks resolve to *Paper_Space and *Model_Space; Layout1 has viewport entities 0x22E2 and 0x22E3 in both outputs."
   },
+  "binaryWireAudit": {
+    "tool": "tools/research/audit_binary_dxf_layout_nod.py",
+    "toolSha256": "4841056c852c30031cdde781fdbc261679a970b3c9bed90f28e87c637d97f3e3",
+    "reportPath": "/private/tmp/p4d-binary-dxf-audit.json",
+    "reportSha256": "ef11409c3ba1be10c94f9d91afb9ca72d51ea0f0cea2a08fa4095af694bbe518",
+    "crosscheckPath": "/private/tmp/p4d-binary-dxf-crosscheck.json",
+    "crosscheckSha256": "ca2da7cf313f854cfe4e1044b2e3607a0f3004e3866d3d2e6425b6cfea1c7491",
+    "decodedGroupValuePairs": 20220,
+    "rootNodEntries": 15,
+    "rootNodTargetsResolved": 15,
+    "unresolvedRootEntries": [],
+    "duplicateNonNullHandles": [],
+    "result": "PASS: The focused auditor decodes the complete Binary DXF stream, resolves all 15 root entries and reports no duplicate non-null handles. Binary NOD names and target handles exactly match the local source peer's 15-entry map, including ACAD_PLOTSTYLENAME -> 0xE. The Model LAYOUT group 331 is 0x2292 and resolves to VPORT *ACTIVE; Layout1 group 331 is 0x22E2 and resolves to a VIEWPORT entity owned by *Paper_Space block record 0x1E. Source DWG targets are VPORT *Active 0x94 and VIEWPORT 0x28B respectively. Autodesk's ObjectARX type rule confirms the Model/paper-space target classes."
+  },
   "primaryTypeReferences": [
     {
       "source": "Autodesk ObjectARX Active Viewport documentation",
@@ -65,15 +79,15 @@
       "acadsharpAsciiAndBinaryDxfModelCount": 16,
       "acadsharpDefaultEntries": ["ACAD_IMAGE_DICT", "ACAD_PDFDEFINITIONS"],
       "acadsharpOutputModelOmission": "ACAD_PLOTSTYLENAME",
-      "status": "ACadSharp inserts default root entries and omits ACAD_PLOTSTYLENAME from its DXF object model even though the existing raw ASCII output comparison finds that key. Its object-model counts are not a faithful NOD parity oracle. Binary NOD semantics remain unqualified."
+      "status": "ACadSharp inserts default root entries and omits ACAD_PLOTSTYLENAME from its DXF object model even though the raw ASCII comparison and the focused Binary wire audit both find the key. Its object-model counts are not a faithful NOD parity oracle."
     }
   },
   "limitations": [
     "This is partial independent semantic readback, not full object-graph closure or native AutoCAD/LibreCAD acceptance.",
     "The local sample has unauthenticated producer provenance and is not committed as a fixture.",
-    "Only the existing raw ASCII comparison checks the exact 15-entry NOD map; ACadSharp does not preserve the required root semantics, and Binary NOD exactness remains open.",
-    "ACadSharp reads both encodings but its object model does not expose the group-331 target handle; direct Binary group-331 value extraction remains open.",
+    "The focused Binary wire audit validates serialized group/value structure, not AutoCAD or another CAD application's semantic import behavior.",
+    "ACadSharp reads both encodings but its object model does not expose the group-331 target handle; raw Binary values and target classes are recorded by the focused audit tool.",
     "No DWG/DXF fixtures or generated outputs were committed; generated outputs remain in /private/tmp."
   ],
-  "next": "Use one focused independent Binary DXF parser or a matching AutoCAD/ObjectARX reopen witness to verify the two group-331 handle values and exact NOD membership, especially ACAD_PLOTSTYLENAME. Preserve source/output handles and target classes, keep P4-D open, and do not promote support from this local profile."
+  "next": "Use the remote AutoCAD/ObjectARX host to open the exact ASCII and Binary outputs and query NOD membership, both layouts, associated blocks, and viewport target classes. Record release/build, OS, SDK, file digests, API results, and artifact return route. Keep P4-D open until native semantic and consumer checks pass; this local profile does not promote general support."
 }
