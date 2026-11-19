@@ -206,6 +206,9 @@ public:
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static void setPlotSourceCaptureFailure(dx_data& data,bool value) noexcept {
+        data.m_tableDxfSource.plotSourceCaptureFailed=value;
+    }
     static bool legacyPlotLayerIsIsolated(const dx_data& data) noexcept {
         const auto& source=data.m_tableDxfSource;
         const auto resource=source.resources.find(0x10u);
@@ -9805,7 +9808,7 @@ bool multipleSelectedXrecords(bool faultsOnly = false, bool branches = false) {
     return true;
 }
 
-bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly = false) {
+bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly = false, bool legacyOutputOnly = false) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
     std::filesystem::path directory;
@@ -9855,6 +9858,11 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
     class Exporter final : public dx_iface {
     public:
         std::function<void()> afterObjects,beforeFinalize;
+        bool injectUnexpectedLayer{false}, injectedLayerWritten{false};
+        void writeLayers() override {
+            dx_iface::writeLayers();
+            if(injectUnexpectedLayer) {DRW_Layer extra;extra.name="UNEXPECTED_LAYER";injectedLayerWritten=dxfW->writeLayer(&extra);}
+        }
         void writeObjects() override { dx_iface::writeObjects(); if (afterObjects) afterObjects(); }
         bool finalizeDxfWrite() override { if (beforeFinalize) beforeFinalize(); return dx_iface::finalizeDxfWrite(); }
     };
@@ -9936,10 +9944,32 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
         }
         return true;
     };
+    const auto checkLegacyPlotOutput = [](const dx_data& value) {
+        if(!value.hasNamedObjectDictionary || value.dictionaryWithDefaults.size()!=1u || value.rawPlaceholders.size()!=1u
+            || value.layers.size()!=1u || value.dxfClasses.size()!=2u) return false;
+        const auto& dictionary=value.dictionaryWithDefaults.front();const auto& placeholder=value.rawPlaceholders.front();
+        unsigned rootEdges=0u;
+        for(const auto& entry:value.namedObjectDictionary.m_entries)
+            if(entry.m_name=="ACAD_PLOTSTYLENAME" && entry.m_handle==dictionary.handle)++rootEdges;
+        std::uint32_t layerTarget=0u;const auto& text=value.layers.front().handlePlotS;
+        const auto parsed=std::from_chars(text.data(),text.data()+text.size(),layerTarget,16);
+        if(rootEdges!=1u || dictionary.parentHandle!=value.namedObjectDictionary.handle
+            || dictionary.m_entries.size()!=1u || dictionary.m_entries.front().m_name!="Normal"
+            || dictionary.m_entries.front().m_handle!=placeholder.handle || dictionary.m_defaultEntryHandle!=placeholder.handle
+            || placeholder.parentHandle!=dictionary.handle || text.empty() || parsed.ec!=std::errc{}
+            || parsed.ptr!=text.data()+text.size() || layerTarget!=placeholder.handle) return false;
+        unsigned seen=0u;
+        for(const auto& cls:value.dxfClasses) {
+            if(cls.recName!="ACDBDICTIONARYWDFLT" && cls.recName!="ACDBPLACEHOLDER")return false;
+            if(cls.instanceCount!=1 || cls.proxyFlag || cls.wasaProxyFlag || cls.entityFlag) return false;
+            ++seen;
+        }
+        return seen==2u && value.dxfClasses[0].recName!=value.dxfClasses[1].recName;
+    };
     unsigned sources = 0u, exports = 0u, reexports = 0u, strict = 0u, preflightRetries = 0u, lateRetries = 0u, snapshotBudgets = 0u, edgeBudgets = 0u;
     for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (unsigned format = 0u; format != 3u; ++format) {
         const bool native = format == 2u;
-        if (plotSourceOnly && (version != DRW::AC1015 || native)) continue;
+        if ((plotSourceOnly || legacyOutputOnly) && (version != DRW::AC1015 || native)) continue;
         if (faultsOnly && (native ? version != DRW::AC1015 && version != DRW::AC1032 : version != DRW::AC1032)) continue;
         sourceHasCustomMetadata = !native;
         dxfRW dxfCodec(dxf.string().c_str()); dwgRW dwgCodec(dwg.string().c_str());
@@ -10023,6 +10053,43 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
             data.layers.push_back(data.layers.front());if(!rejectLiveLayer())return fail("extra layer was accepted");
             std::ifstream input(dxf,std::ios::binary);
             std::string bytes((std::istreambuf_iterator<char>(input)),std::istreambuf_iterator<char>());
+            if(format==0u) {
+                // Derive a second generated input with no caller plot graph.
+                // The legacy writer must still synthesize its normal default.
+                std::istringstream lines(bytes);std::vector<std::pair<std::string,std::string>> groups;
+                std::string code,value;while(std::getline(lines,code)&&std::getline(lines,value))groups.emplace_back(code,value);
+                const auto trim=[](const std::string& s) {const auto first=s.find_first_not_of(" \t\r");
+                    const auto last=s.find_last_not_of(" \t\r");return first==std::string::npos?std::string{}:s.substr(first,last-first+1u);};
+                std::string section,without;unsigned removed=0u;
+                for(std::size_t i=0u;i<groups.size();) {
+                    const auto current=trim(groups[i].first),name=trim(groups[i].second);
+                    if(current=="0" && name=="SECTION" && i+1u<groups.size())section=trim(groups[i+1u].second);
+                    if(current=="0" && ((section=="CLASSES" && name=="CLASS")
+                        ||(section=="OBJECTS" && (name=="ACDBDICTIONARYWDFLT" || name=="ACDBPLACEHOLDER")))) {
+                        auto end=i+1u;while(end<groups.size() && trim(groups[end].first)!="0")++end;
+                        bool drop=section=="OBJECTS";
+                        for(auto j=i;j<end;++j)if(trim(groups[j].first)=="1"
+                            &&(trim(groups[j].second)=="ACDBDICTIONARYWDFLT" || trim(groups[j].second)=="ACDBPLACEHOLDER"))drop=true;
+                        if(drop){++removed;i=end;continue;}
+                    }
+                    if(section=="OBJECTS" && current=="3" && name=="ACAD_PLOTSTYLENAME") {
+                        if(i+1u>=groups.size() || trim(groups[i+1u].first)!="350")return fail("plot-root removal boundary failed");
+                        ++removed;i+=2u;continue;
+                    }
+                    without+=groups[i].first+"\n"+groups[i].second+"\n";++i;
+                }
+                if(removed!=5u)return fail("generated no-plot source was not constructed exactly");
+                {std::ofstream f(target,std::ios::binary);f<<without;}
+                dx_data noPlot;dx_iface noPlotReader;
+                if(!noPlotReader.fileImport(target.string(),&noPlot,false)
+                    || dx_iface::plotStyleSourceReport(noPlot).records!=0u) return fail("generated no-plot source did not import");
+                Exporter noPlotWriter;
+                if(!noPlotWriter.fileExport(target.string(),DRW::AC1018,false,&noPlot,false,true))
+                    return fail("no-plot AC1015 source lost its existing export path");
+                dx_data actual;dx_iface reader;
+                if(!reader.fileImport(target.string(),&actual,false) || !check(actual,false) || !checkLegacyPlotOutput(actual))
+                    return fail("no-plot AC1015 output did not read back");
+            }
             {
                 std::string alteredLayer=bytes;
                 const auto layerName=alteredLayer.find("AcDbLayerTableRecord");
@@ -10063,13 +10130,64 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
             const auto rejected = dx_iface::plotStyleSourceReport(altered);
             if (rejected.defaultTarget != 0u || rejected.ownerTargetsResolved || rejected.outputEligible)
                 return fail("altered default plot root earned graph or output qualification");
-            const std::string sentinel = "AC1015_CROSS_VERSION_PLOT_REMAINS_REFUSED";
-            { std::ofstream prior(target,std::ios::binary); prior << sentinel; }
-            Exporter refused;
-            const bool wrote = refused.fileExport(target.string(),DRW::AC1018,format == 1u,&data,false,true);
-            std::ifstream prior(target,std::ios::binary);
-            const std::string retained((std::istreambuf_iterator<char>(prior)),std::istreambuf_iterator<char>());
-            if (wrote || retained != sentinel) return fail("source-only plot capture admitted cross-version output");
+            const std::string sentinel = "AC1015_DEFAULT_PLOT_ATOMIC_DESTINATION";
+            Exporter exporter;
+            const auto seed = [&]() {std::ofstream prior(target,std::ios::binary);prior << sentinel;};
+            const auto preserved = [&]() {std::ifstream prior(target,std::ios::binary);
+                return std::string((std::istreambuf_iterator<char>(prior)),std::istreambuf_iterator<char>())==sentinel;};
+            const auto restore = [&]() {data.dxfClasses=originalClasses;data.layers=originalLayers;
+                data.namedObjectDictionary=originalRoot;data.dictionaryWithDefaults=originalTyped;
+                data.rawDictionaryWithDefaults=originalRaw;data.rawPlaceholders=originalPlace;};
+            unsigned retries=0u;
+            for(const auto outputVersion:{DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032})
+            for(const bool binary:{false,true})for(unsigned mode=0u;mode!=9u;++mode) {
+                const auto mutate=[&]() {
+                    switch(mode%5u) {
+                    case 0u:data.dxfClasses[0].proxyFlag=1;break;
+                    case 1u:data.layers.front().handlePlotS="E";break;
+                    case 2u:data.rawPlaceholders.front().groups.pop_back();break;
+                    case 3u:data.dictionaryWithDefaults.front().m_defaultEntryHandle=0xEu;break;
+                    case 4u:data.namedObjectDictionary.m_entries.front().m_handle^=1u;break;
+                    }
+                };
+                if(mode<5u)mutate();
+                else if(mode==5u || mode==7u)exporter.afterObjects=mutate;
+                else exporter.beforeFinalize=mutate;
+                seed();
+                if(exporter.fileExport(target.string(),outputVersion,binary,&data,false,true) || !preserved())
+                    return fail("changed default-plot source did not preserve the destination");
+                restore();exporter.afterObjects={};exporter.beforeFinalize={};
+                if(!exporter.fileExport(target.string(),outputVersion,binary,&data,false,true))
+                    return fail("corrected default-plot source did not retry");
+                dx_data actual;dx_iface reader;
+                if(!reader.fileImport(target.string(),&actual,false) || !check(actual,false) || !checkLegacyPlotOutput(actual))
+                    return fail("corrected default-plot output did not read back");
+                ++retries;
+            }
+            if(retries!=90u)return fail("default-plot failure/retry matrix skipped a case");
+            seed();Access::setPlotSourceCaptureFailure(data,true);
+            const bool acceptedFailedCapture=exporter.fileExport(target.string(),DRW::AC1018,false,&data,false,true);
+            Access::setPlotSourceCaptureFailure(data,false);
+            if(acceptedFailedCapture || !preserved())return fail("failed plot capture did not preserve the destination");
+            if(!exporter.fileExport(target.string(),DRW::AC1018,false,&data,false,true))return fail("plot capture retry failed");
+            for(const auto outputVersion:{DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032})
+            for(const bool binary:{false,true}) {
+                seed();exporter.injectUnexpectedLayer=true;exporter.injectedLayerWritten=false;
+                if(exporter.fileExport(target.string(),outputVersion,binary,&data,false,true)
+                    || !exporter.injectedLayerWritten || !preserved())
+                    return fail("unexpected staged LAYER did not preserve the destination");
+                exporter.injectUnexpectedLayer=false;
+                if(!exporter.fileExport(target.string(),outputVersion,binary,&data,false,true))
+                    return fail("staged LAYER rejection did not retry");
+                dx_data actual;dx_iface reader;
+                if(!reader.fileImport(target.string(),&actual,false) || !check(actual,false) || !checkLegacyPlotOutput(actual))
+                    return fail("staged LAYER retry did not read back");
+            }
+            for(const auto unsupported:{std::make_pair(DRW::AC1018,false),std::make_pair(DRW::AC1014,true)}) {
+                seed();
+                if(exporter.fileExport(target.string(),unsupported.first,format==1u,&data,false,unsupported.second) || !preserved())
+                    return fail("unqualified default-plot path did not preserve the destination");
+            }
             dx_data restored;
             if (!importer.fileImport(dxf.string(),&restored,false)
                 || dx_iface::plotStyleSourceReport(restored).defaultTarget != 0xFu)
@@ -10113,7 +10231,9 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
             }
             ++exports;
             dx_data actual; dx_iface reader;
-            if (!reader.fileImport(target.string(),&actual,false) || !exporter.fileExport(target.string(),outputVersion,!binary,&actual,false,true)
+            if (!reader.fileImport(target.string(),&actual,false)
+                || (legacyOutputOnly&&outputVersion!=DRW::AC1015&&!checkLegacyPlotOutput(actual))
+                || !exporter.fileExport(target.string(),outputVersion,!binary,&actual,false,true)
                 || !readback() || !check(data,true) || (native && !Access::unchanged(importer))) return fail("XRECORD extension actual-import reexport failed");
             ++reexports;
         }
@@ -10195,6 +10315,8 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
             return fail("XRECORD extension snapshots remained retained after write attempt");
     }
     if (plotSourceOnly) return sources == 2u || fail("AC1015 default plot source capture skipped an encoding");
+    if (legacyOutputOnly) return (sources==2u && exports==24u && reexports==24u)
+        || fail("AC1015 default-plot output matrix skipped a cell");
     if (sources != (faultsOnly ? 4u : 18u) || exports != (faultsOnly ? 0u : 216u) || reexports != (faultsOnly ? 0u : 216u)
         || strict != (faultsOnly ? 0u : 12u) || preflightRetries != (faultsOnly ? 96u : 0u) || lateRetries != (faultsOnly ? 128u : 0u)
         || snapshotBudgets != (faultsOnly ? 16u : 0u) || edgeBudgets != (faultsOnly ? 8u : 0u)) return fail("XRECORD extension matrix skipped a cell");
@@ -94036,7 +94158,8 @@ int main(int argc, char** argv) {
     if (argc == 2 && std::string(argv[1]) == "--xrecord-owned-extension")
         return xrecordOwnedExtensionClosure() ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--xrecord-owned-defaultplot-source-probe")
-        return xrecordOwnedExtensionClosure(false, true) ? 0 : 1;
+        return xrecordOwnedExtensionClosure(false, true)
+            && xrecordOwnedExtensionClosure(false, false, true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--xrecord-owned-extension-faults")
         return xrecordOwnedExtensionClosure(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--branched-xrecord-common-faults")

@@ -83622,6 +83622,7 @@ bool dx_iface::finalizeDxfWrite() {
             || dxfW->dxfWriteRecordHandleCount(owner) != 1u
             || !dxfW->dxfWriteRecordHasIdentity(owner, "DICTIONARY", "OBJECTS")) return false;
     }
+    if (!finalizeLegacyPlot()) return failFinalization("legacy default plot source and output");
     if (!validateDxfBlockRecordInsertReferences(true))
         return failFinalization("BLOCK_RECORD INSERT references");
     if (!finalizeDwgLineTypeControlOutput())
@@ -93379,7 +93380,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || m_dwgAerialMLeaderProofRequired
             || needsAerialTableStyleOutput
             || m_dwgLtypeControlOutputRequired
-            || m_dxfLayerMaterialState.active || !m_dxfMLineLinetypes.empty()
+            || m_dxfLayerMaterialState.active || m_dxfLayerMaterialState.legacyPlotCrossVersion || !m_dxfMLineLinetypes.empty()
             || needsDwgLayoutsOutput || !m_dwgGeoDataGraphs.empty() || usesAc1027DefaultLayerProfile() || usesAc1024DefaultLayersProfile()) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames, needsRawEntityNameReferences, needsLayerControlOutput, needsAerialGlobalMaterialEedOutput, needsDwgLayoutsOutput, debug, requireResolvedOwners, &reportPreflightFailure](const auto& view) {
             if (!inspectAerialDwgMLeaderStyleTables(view)) {
                 reportPreflightFailure("DWG MLEADERSTYLE table dependencies");
@@ -93405,7 +93406,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 reportPreflightFailure("GEODATA table-row identity");
                 return false;
             }
-            if (!inspectDxfLayerMaterials(view) || !inspectAc1027DefaultLayerOutput(view)
+            if (!inspectLegacyPlotTables(view) || !inspectDxfLayerMaterials(view) || !inspectAc1027DefaultLayerOutput(view)
                 || !inspectAc1024DefaultLayersOutput(view)) {
                 reportPreflightFailure(
                     "LAYER material or source-bound default-layer output proof");
@@ -93487,7 +93488,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             || !m_dxfAssociativeValueSources.empty()
             || needsDwgBlockRepresentationDataOutput
             || needsDwgDynamicBlockOutput
-            || needsDxfDynamicReplay || needsDxfAssociativeReplay)
+            || needsDxfDynamicReplay || needsDxfAssociativeReplay || m_dxfLayerMaterialState.legacyPlotCrossVersion)
         && !dxfW->setDxfObjectsWriteInspector([this, needsRasterOutput, needsGeneratedRoots, needsShadeOutput, needsVisualStyleOutput, needsDwgDictionaryVarOutput, needsDwgScaleOutput, needsDwgMLeaderStyleOutput, needsDwgMLineStyleOutput, needsDwgLayoutsOutput, needsDwgLayerStateOutput, needsDwgAssociativeVariableOutput, needsDwgAssociativeDimensionDependencyOutput, needsDwgBlockRepresentationDataOutput, needsDwgDynamicBlockOutput, needsDxfDynamicReplay, needsDxfAssociativeReplay, debug, requireResolvedOwners](const auto& view) {
             const auto reject = [debug, requireResolvedOwners](
                     const char* stage) {
@@ -93509,7 +93510,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 return reject("render settings");
             if (!inspectDxfMaterialOutput(view))
                 return reject("MATERIAL");
-            if (!inspectDxfLayerPlotObjects(view))
+            if (!inspectLegacyPlotObjects(view) || !inspectDxfLayerPlotObjects(view))
                 return reject("LAYER plotstyle graph");
             if (!inspectDwgTableStylesOutput(view))
                 return reject("TABLESTYLE DWG physical source/output binding");
@@ -96090,10 +96091,176 @@ bool repeatDictionarySource(const DRW_RawDxfObject& raw,const DRW_Dictionary& mo
 }
 }
 
+namespace {
+bool legacyPlotHandle(const dx_standard_output::RecordCursor::Token& token, int code, std::uint32_t expected) {
+    if(token.code!=code || token.text.empty() || token.text.size()>8u)return false;
+    std::uint32_t value=0u;const auto p=std::from_chars(token.text.data(),token.text.data()+token.text.size(),value,16);
+    return p.ec==std::errc{} && p.ptr==token.text.data()+token.text.size() && value==expected;
+}
+bool legacyPlotInt(const dx_standard_output::RecordCursor::Token& token,int code,int expected,bool binary) {
+    if(token.code!=code)return false;
+    if(binary) {
+        if(token.text.size()==1u)return static_cast<unsigned char>(token.text[0])==expected;
+        if(token.text.size()!=2u)return false;
+        const auto bits=static_cast<unsigned char>(token.text[0]) | (static_cast<unsigned char>(token.text[1])<<8u);
+        return (bits>=0x8000 ? bits-0x10000 : bits)==expected;
+    }
+    auto value=token.text;while(!value.empty() && value.front()==' ')value.remove_prefix(1u);
+    while(!value.empty() && value.back()==' ')value.remove_suffix(1u);
+    int parsed=0;const auto p=std::from_chars(value.data(),value.data()+value.size(),parsed);
+    return !value.empty() && p.ec==std::errc{} && p.ptr==value.data()+value.size() && parsed==expected;
+}
+}
+
+bool dx_iface::hasUnchangedLegacyPlot() const noexcept {
+    const auto& state=m_dxfLayerMaterialState;
+    if(!state.legacyPlotCrossVersion)return true;
+    if(!cData || cData!=state.owner || cData->importGeneration!=state.generation || cData->sourceFormat!=dx_source_format::DXF
+        ||cData->sourceVersion!=DRW::AC1015 ||state.defaultPlotDictionarySource!=0xEu ||state.defaultPlotPlaceholderSource!=0xFu
+        ||(state.legacyPlotTargetVersion!=DRW::AC1018 && state.legacyPlotTargetVersion!=DRW::AC1021
+            &&state.legacyPlotTargetVersion!=DRW::AC1024 && state.legacyPlotTargetVersion!=DRW::AC1027
+            &&state.legacyPlotTargetVersion!=DRW::AC1032))return false;
+    const auto r=plotStyleSourceReport(*cData);
+    return r.originalSourcesMatched&&r.legacyClassRowsMatched&&r.legacyLiveClassesMatched
+        &&r.legacyBodiesMatched&&r.legacyLiveBodiesMatched&&r.legacyLayerMatched&&r.legacyLiveLayerMatched;
+}
+
+bool dx_iface::inspectLegacyPlotTables(const dxfRW::DxfTablesWriteView& view) noexcept {
+    auto& state=m_dxfLayerMaterialState;if(!state.legacyPlotCrossVersion)return true;
+    if(!hasUnchangedLegacyPlot()||!dxfW||state.legacyTablesInspected||view.version!=state.legacyPlotTargetVersion)return false;
+    try {
+        const auto target=dxfW->remapHandle(0xFu);if(!target||target==DRW::NoHandle)return false;
+        unsigned layers=0u;
+        const bool good=dx_standard_output::inspectSelected(view,[](std::string_view name,std::uint32_t){return name=="LAYER";},
+            [&](const auto& shape,std::string_view body) {
+                if(++layers!=1u||shape.handle!=0x10u)return false;
+                dx_standard_output::RecordCursor c(body,view);dx_standard_output::RecordCursor::Token t;unsigned n=0u;
+                while(!c.done()) {
+                    if(!c.next(t))return false;
+                    switch(n++) {
+                    case 0:if(!legacyPlotHandle(t,5,0x10u))return false;break;
+                    case 1:if(!legacyPlotHandle(t,330,2u))return false;break;
+                    case 2:if(t.code!=100||t.text!="AcDbSymbolTableRecord")return false;break;
+                    case 3:if(t.code!=100||t.text!="AcDbLayerTableRecord")return false;break;
+                    case 4:if(t.code!=2||t.text!="0")return false;break;
+                    case 5:if(!legacyPlotInt(t,70,0,view.binary))return false;break;
+                    case 6:if(!legacyPlotInt(t,62,7,view.binary))return false;break;
+                    case 7:if(t.code!=6||t.text!="CONTINUOUS")return false;break;
+                    case 8:if(!legacyPlotInt(t,290,1,view.binary))return false;break;
+                    case 9:if(!legacyPlotInt(t,370,-3,view.binary))return false;break;
+                    case 10:if(!legacyPlotHandle(t,390,target))return false;break;
+                    default:return false;
+                    }
+                }
+                return n==11u;
+            });
+        if(!good||layers!=1u)return false;
+        state.legacyTablesInspected=true;
+        return true;
+    } catch (...) {return false;}
+}
+
+bool dx_iface::inspectLegacyPlotObjects(const dxfRW::DxfObjectsWriteView& view) noexcept {
+    auto& state=m_dxfLayerMaterialState;if(!state.legacyPlotCrossVersion)return true;
+    if(!hasUnchangedLegacyPlot()||!dxfW||state.legacyObjectsInspected||view.version!=state.legacyPlotTargetVersion)return false;
+    try {
+        const auto root=dxfW->remapHandle(0xCu), dict=dxfW->remapHandle(0xEu), place=dxfW->remapHandle(0xFu);
+        if(!root||!dict||!place||root==dict||root==place||dict==place)return false;
+        unsigned roots=0u,dicts=0u,places=0u;bool names=true;
+        const bool good=dx_standard_output::inspectSelected(view,[&](std::string_view name,std::uint32_t h) {
+            if(h==root && name!="DICTIONARY")names=false;
+            if(h==dict && name!="ACDBDICTIONARYWDFLT")names=false;
+            if(h==place && name!="ACDBPLACEHOLDER")names=false;
+            return h==root||h==dict||h==place;
+        },[&](const auto& shape,std::string_view body) {
+            dx_standard_output::RecordCursor c(body,view);dx_standard_output::RecordCursor::Token t;unsigned n=0u;
+            if(shape.handle==root) {
+                if(++roots!=1u)return false;
+                std::string_view key;unsigned owner=0u,edge=0u;
+                while(!c.done()) {
+                    if(!c.next(t)||t.code==102||t.code>=1000)return false;
+                    if(t.code==330){if(++owner!=1u||!legacyPlotHandle(t,330,0u))return false;}
+                    else if(t.code==3){if(!key.empty())return false;key=t.text;}
+                    else if(t.code==350){if(key.empty())return false;if(key=="ACAD_PLOTSTYLENAME") {if(++edge!=1u||!legacyPlotHandle(t,350,dict))return false;}key={};}
+                    else if(t.code!=5&&t.code!=100&&t.code!=280&&t.code!=281)return false;
+                }
+                return key.empty()&&owner==1u&&edge==1u;
+            }
+            if(shape.handle==dict) {
+                if(++dicts!=1u)return false;
+                while(!c.done()) {
+                    if(!c.next(t))return false;
+                    switch(n++) {
+                    case 0:if(!legacyPlotHandle(t,5,dict))return false;break;
+                    case 1:if(!legacyPlotHandle(t,330,root))return false;break;
+                    case 2:if(t.code!=100||t.text!="AcDbDictionary")return false;break;
+                    case 3:if(!legacyPlotInt(t,281,1,view.binary))return false;break;
+                    case 4:if(t.code!=3||t.text!="Normal")return false;break;
+                    case 5:if(!legacyPlotHandle(t,350,place))return false;break;
+                    case 6:if(t.code!=100||t.text!="AcDbDictionaryWithDefault")return false;break;
+                    case 7:if(!legacyPlotHandle(t,340,place))return false;break;
+                    default:return false;
+                    }
+                }
+                return n==8u;
+            }
+            if(shape.handle==place) {
+                if(++places!=1u)return false;
+                while(!c.done()) {
+                    if(!c.next(t))return false;
+                    if(n==0u&&!legacyPlotHandle(t,5,place))return false;
+                    if(n==1u&&!legacyPlotHandle(t,330,dict))return false;
+                    if(++n>2u)return false;
+                }
+                return n==2u;
+            }
+            return false;
+        });
+        if(!good||!names||roots!=1u||dicts!=1u||places!=1u)return false;
+        state.legacyObjectsInspected=true;return true;
+    } catch (...) {return false;}
+}
+
+bool dx_iface::finalizeLegacyPlot() const noexcept {
+    const auto& state=m_dxfLayerMaterialState;if(!state.legacyPlotCrossVersion)return true;
+    if(!hasUnchangedLegacyPlot()||!dxfW||!state.legacyTablesInspected||!state.legacyObjectsInspected)return false;
+    try {
+        const auto root=dxfW->remapHandle(0xCu), dict=dxfW->remapHandle(0xEu), place=dxfW->remapHandle(0xFu);
+        DRW_Class dictionaryClass,placeholderClass;
+        if(!dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT",dictionaryClass)
+            ||!dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER",placeholderClass))return false;
+        dictionaryClass.instanceCount=1;placeholderClass.instanceCount=1;
+        return dxfW->dxfWriteClassMatches(dictionaryClass)&&dxfW->dxfWriteClassMatches(placeholderClass)
+            &&dxfW->dxfWriteSourceObjectHasIdentity(0xEu,dict,"ACDBDICTIONARYWDFLT","OBJECTS",root)
+            &&dxfW->dxfWriteSourceObjectHasIdentity(0xFu,place,"ACDBPLACEHOLDER","OBJECTS",dict)
+            &&dxfW->dxfWriteRecordHandleCount(root)==1u&&dxfW->dxfWriteRecordHandleCount(dict)==1u
+            &&dxfW->dxfWriteRecordHandleCount(place)==1u
+            &&dxfW->dxfWriteRecordHasIdentity(0x10u,"LAYER","TABLES")&&dxfW->dxfWriteRecordHasOwner(0x10u,2u);
+    } catch (...) {return false;}
+}
+
 bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
     auto& state = m_dxfLayerMaterialState;
     if (!strict || !cData || cData->sourceFormat != dx_source_format::DXF) return true;
     try {
+        // Admit only the generated, source-bound R2000 default plot graph to
+        // the checked R2004+ targets. Unrelated drawings keep their path.
+        if (cData->sourceVersion==DRW::AC1015 && (version==DRW::AC1018 || version==DRW::AC1021
+            ||version==DRW::AC1024 ||version==DRW::AC1027 ||version==DRW::AC1032)) {
+            const auto source=plotStyleSourceReport(*cData);
+            const bool hasPlotGraph=source.records || !cData->dictionaryWithDefaults.empty()
+                || !cData->rawDictionaryWithDefaults.empty() || !cData->rawPlaceholders.empty()
+                || !cData->placeholders.empty() || (cData->hasNamedObjectDictionary
+                    &&std::any_of(cData->namedObjectDictionary.m_entries.begin(),cData->namedObjectDictionary.m_entries.end(),
+                        [](const auto& entry){return asciiIdentifierEquals(entry.m_name,"ACAD_PLOTSTYLENAME");}));
+            if(hasPlotGraph) {
+                if(!source.originalSourcesMatched || !source.legacyClassRowsMatched || !source.legacyLiveClassesMatched
+                    || !source.legacyBodiesMatched || !source.legacyLiveBodiesMatched || !source.legacyLayerMatched || !source.legacyLiveLayerMatched)
+                    return false;
+                state.legacyPlotCrossVersion=true;state.legacyPlotTargetVersion=version;state.defaultPlotSourceActive=true;
+                state.defaultPlotDictionarySource=0xEu;state.defaultPlotPlaceholderSource=0xFu;return true;
+            }
+        }
         // A layer group-390 value of F is the DXF null/default plot-style
         // reference. If every imported layer uses that value, preserve the
         // references as an exact default-only source profile. The associated

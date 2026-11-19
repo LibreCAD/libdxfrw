@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1015-generated-defaultplot-crossversion-output-2026-11-19",
+  "date": "2026-11-19",
+  "status": "GENERATED_SELECTED_PROFILE_OUTPUT_AND_PEER_READBACK",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "53077a6b6db8e97c9d01ea5150fde7831af2e11de737fe57f216da707084ffb9",
+  "scope": "Strict adapter output of the exact locally generated AC1015 default-plot graph to AC1018, AC1021, AC1024, AC1027 and AC1032 DXF, with ASCII and binary source and target encodings. This is not general DWG/DXF parity or native producer semantics.",
+  "implementation": [
+    "Bind the source and live CLASS pair, root, exact dictionary/placeholder bodies and single LAYER to the same import before selecting the profile.",
+    "Emit the selected dictionary and placeholder through typed writers; inspect the staged LAYER fields, root edge, object fields and remapped references.",
+    "At finalization, recheck the source/live state, staged inspection receipts, target CLASS identities/counts and emitted object/owner identities before atomic publication.",
+    "Leave the existing no-plot-graph route and generic cross-version raw carrier refusal unchanged."
+  ],
+  "validation": {
+    "focusedBuild": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedCtests": "PASS (5 selected adapter/graph/XRECORD tests; 4.42 seconds total)",
+    "ownedXrecordSubset": "PASS: two generated AC1015 source encodings, six target versions including same-version AC1015, two target encodings, 24 exports and 24 opposite-encoding re-exports with XRECORD graph readback.",
+    "faults": "180 mutation/refusal/retry cases across source, target version and target encoding; 20 extra staged-LAYER refusal/retry cases; two capture-failure/refusal/retry cases. The existing no-plot-graph source export is checked.",
+    "unqualifiedRoutes": "Nonstrict cross-version output and the AC1014 downgrade refuse while preserving the prior destination.",
+    "remainingFullSelector": "REFUSED: first remaining cell is AC1018 source to AC1015 ASCII target during dictionary-with-default OBJECTS emission.",
+    "remainingLogSha256": "29c5ff9eaff7d25c81b7a161d7f3e6cf25ab55ecb7ea28882b47bc6573c89f64"
+  },
+  "independentReadback": {
+    "tool": "ezdxf 1.4.5",
+    "result": "PASS on 20 generated outputs: target version, NOD/dictionary/placeholder identities and owners, Normal and default references, layer 0 plot target, and two CLASS instance counts.",
+    "script": "/private/tmp/p4-cv-proto/verify-wide-ezdxf.py",
+    "scriptSha256": "2ef34b5441719c9542defbdb42fea06062d002ea0e130f787d894eadde54f1c6",
+    "logSha256": "1a382e4c4b83c992c693e91965adf91eea50c297163023ef4e9f85563dbed8cb",
+    "probeSha256": "e3ea7b5b992d25cc3a5d770563b4429879e2ef4f2bf8630c82a6f9e936043c73",
+    "generatorSha256": "43ebbc8bc7146e9712ebb3bd3203ec5c00bedf906d10874cbc249f750c0174aa",
+    "limits": "These source files were created locally by the in-tree writer; ezdxf is independent readback, not an independent native producer or semantic witness. No generated DXF/DWG is committed."
+  },
+  "limits": [
+    "The profile requires the original generated handles C/E/F and LAYER 10 owned by 2, one exact LAYER, two original CLASS rows and the observed exact field shapes. Unknown, changed, extra or ambiguous source fields fail closed.",
+    "Only strict adapter output is admitted; general compatibility, nonidentity-remap behavior, external native semantic acceptance and unsupported source/target profiles remain unqualified.",
+    "The complete owned-extension matrix remains open and P8-F must be replayed for the new digest."
+  ]
+}

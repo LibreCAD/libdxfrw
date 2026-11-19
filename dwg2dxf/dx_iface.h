@@ -1990,6 +1990,7 @@ public:
                 return true;
             };
         for (auto& layer : cData->layers) {
+            if (!hasUnchangedLegacyPlot()) { dxfW->writeLayer(nullptr); return; }
             if (!checkDxfLayerMaterial(layer)) { dxfW->writeLayer(nullptr); return; }
             if (m_dxfLayerMaterialState.plotActive) {
                 if (!hasUnchangedDxfLayerPlot()) { dxfW->writeLayer(nullptr); return; }
@@ -2323,6 +2324,7 @@ public:
         std::unordered_set<std::uint32_t> dictionaryWithDefaultHandles;
         std::unordered_set<std::uint32_t> placeholderHandles;
         objectWritePhase = "dictionary-with-default records";
+        if (!hasUnchangedLegacyPlot()) { dxfW->writeRawDxfObject(nullptr); return; }
         for (const std::uint32_t handle :
              m_extensionDictionaryWithDefaultHandles) {
             std::size_t rawMatches = 0;
@@ -2395,6 +2397,9 @@ public:
                 if (rawMatches != 0u || typedMatches != 1u || typed == nullptr
                     || !dxfW->writeAcDbPlaceholder(typed))
                     return;
+            } else if (m_dxfLayerMaterialState.legacyPlotCrossVersion && rawMatches == 1u && typedMatches == 0u && raw != nullptr) {
+                DRW_AcDbPlaceholder projected; projected.handle=raw->handle; projected.parentHandle=raw->parentHandle;
+                if (!dxfW->writeAcDbPlaceholder(&projected)) return;
             } else if (rawMatches != 1u || typedMatches != 0u || raw == nullptr
                        || !dxfW->writeRawDxfObject(raw)) {
                 dxfW->writeRawDxfObject(nullptr);
@@ -4770,6 +4775,8 @@ private:
         bool active{false}, inspected{false};
         bool plotActive{false}, plotObjectsInspected{false};
         std::uint32_t plotTarget{0u}, plotOwner{0u};
+        bool legacyPlotCrossVersion{false}, legacyTablesInspected{false}, legacyObjectsInspected{false};
+        DRW::Version legacyPlotTargetVersion{DRW::UNKNOWNV};
         bool defaultPlotSourceActive{false};
         std::uint32_t defaultPlotDictionarySource{0u};
         std::uint32_t defaultPlotPlaceholderSource{0u};
@@ -4778,11 +4785,16 @@ private:
             decltype(providers){}.swap(providers);
             owner=nullptr; generation=0u; version=DRW::UNKNOWNV;
             bytes=0u; active=false; inspected=false; plotActive=false; plotObjectsInspected=false; plotTarget=plotOwner=0u;
-            defaultPlotSourceActive=false; defaultPlotDictionarySource=0u;
+            legacyPlotCrossVersion=legacyTablesInspected=legacyObjectsInspected=false;
+            legacyPlotTargetVersion=DRW::UNKNOWNV;defaultPlotSourceActive=false; defaultPlotDictionarySource=0u;
             defaultPlotPlaceholderSource=0u;
         }
     } m_dxfLayerMaterialState;
     bool prepareDxfLayerMaterials(DRW::Version) noexcept;
+    bool hasUnchangedLegacyPlot() const noexcept;
+    bool inspectLegacyPlotTables(const dxfRW::DxfTablesWriteView&) noexcept;
+    bool inspectLegacyPlotObjects(const dxfRW::DxfObjectsWriteView&) noexcept;
+    bool finalizeLegacyPlot() const noexcept;
     bool prepareDxfLayerPlot(DRW::Version, bool) noexcept;
     bool hasUnchangedDxfLayerPlot() const noexcept;
     bool inspectDxfLayerPlotObjects(const dxfRW::DxfObjectsWriteView&) noexcept;
