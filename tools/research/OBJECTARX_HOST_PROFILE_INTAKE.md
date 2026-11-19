@@ -1,9 +1,17 @@
 # Remote AutoCAD/ObjectARX host profile
 
 Collect this profile once before preparing host-specific witness work. It lets
-the P4-B, P4-C, P4-D and P6-A packets be selected without repeatedly asking for
-the same machine details. This is an intake checklist only; it does not connect
-to the host, run AutoCAD, or transfer files.
+the P4-B, P4-C, P4-D, P5-D and P6-A packets be selected without repeatedly
+asking for the same machine details. This is an intake checklist only; it does
+not connect to the host, run AutoCAD, or transfer files.
+
+## Current intake status
+
+The user has confirmed that a remote ObjectARX host is available. The AutoCAD
+release/build, Windows version, SDK/toolchain, and artifact-return route have
+not yet been identified. The P5-D TABLE packet additionally needs AutoCAD
+2024 Windows x64 with .NET Framework 4.8, or a profile-specific review before
+it is built on a different release.
 
 ## Host details to return
 
