@@ -73,7 +73,15 @@
       "addressSanitizer": "Graph-preservation CTest PASS 1/1",
       "testFileSha256": "ae516daf4afe6f2db368ae03916044e2e1a18884e51b1d82a322d9b078455fba",
       "implementationDigestSha256": "799ffdb8364af3b2a581d041ede24a74361bfd0bfba33f4a6ef4367044f80328",
-      "limit": "The supporting libdxfrw implementation is unchanged; native CI qualification must be rebound because the selected regression test is part of the implementation digest."
+      "limit": "The supporting libdxfrw implementation is unchanged; native CI qualification must be rebound because the selected regression test is part of the implementation digest.",
+      "discriminatingControl": {
+        "method": "Compile a scratch-only copy of the classifier with the two numeric edge caps changed from 128 to 129; leave the test unchanged. The control expects exactly one failing assertion and exits zero only for that result.",
+        "result": "PASS: only the 129-edge refusal assertion fails with the raised cap; the 128-edge success and all other controls remain passing. This demonstrates that the generated 129-edge input reaches the cap rather than an unrelated rejection.",
+        "modifiedSourceSha256": "4f3d2869e6d0fbb30c4bd5bb94c11dd4bf55db772889afb40c1c70ca04c7e9e3",
+        "testSourceSha256": "ed26811106d97cb049b7da00b3effe9e8ab1b401ea322ca99a232b6b5d41727d",
+        "binarySha256": "fbde17b528b7e3ebd0c532ad057095eeaca00d88fe51e892b47f21dd0bdd96ae",
+        "limit": "Scratch fault injection, no production code or fixture modified."
+      }
     }
   },
   "limitations": [

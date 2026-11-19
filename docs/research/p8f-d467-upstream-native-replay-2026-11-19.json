@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8f-d467-upstream-native-replay-2026-11-19",
+  "date": "2026-11-19",
+  "status": "CURRENT_DIGEST_FAST_AND_FOCUSED_NATIVE_PASSED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "799ffdb8364af3b2a581d041ede24a74361bfd0bfba33f4a6ef4367044f80328",
+  "implementationInputCount": 750,
+  "upstream": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "focusedRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44608881149",
+    "fastRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44608881142",
+    "runAttempt": 1,
+    "fastJobId": 135859992660,
+    "fastResult": "PASS: seven executables plus 45 required CTests; the optional numeric process locale case was skipped.",
+    "fastLogSha256": "af2c263eaa51ede3e6bf1eb4eaceecd638328e954ca8588d876a44f2cbe53f5d",
+    "headSha": "d467bba398e5223852e4b25906ab07fe685c7ec5",
+    "checkedOutMergeSha": "d994e4a225db0af02c1f480bd36517e851225ae0",
+    "mergeRef": "refs/pull/106/merge",
+    "platforms": {
+      "linux-gcc": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135859965044,
+        "artifactId": 14571312436,
+        "downloadedArchiveSha256": "fcdb81c46363b2b9fd6eb047b7f2aca96f4f8a26e75aa3a4550c9caa11fee0d8",
+        "receiptContentSha256": "d11ba51e79baf7295b7c70f3d035c87857ab674286a0232aef7b722d83424016"
+      },
+      "macos-clang": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135859964894,
+        "artifactId": 14572042685,
+        "downloadedArchiveSha256": "032014bb73ac963a5aa86598fdebfb5a6af47b81c51c816a8d67e8b47494f45a",
+        "receiptContentSha256": "662c577ec7d7571e1a43387be19ad0564cb603585273271d988a31815f761cc3"
+      },
+      "windows-msvc": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135859965003,
+        "artifactId": 14572498444,
+        "downloadedArchiveSha256": "8f6fa533a8134f40dfff98fb4e3bfad65ecb7f28b54edf170db5a81eb628cb06",
+        "receiptContentSha256": "93ea4696cc664c1bc70684be900328d5f93e141e7e87bd02b4262faeecf73e8f"
+      }
+    }
+  },
+  "liveVerification": {
+    "command": "python3 -B tools/verify_native_qualification_receipts.py --pre-native --live-token-env TASK_GH_TOKEN --root <scratch root> --status <scratch root>/status.json",
+    "result": "PASS: 3 focused receipts; 0 broad; 3 attempts. Authenticated live API and ZIP contents matched saved evidence, selected implementation digest, workflow, and current PR merge ref.",
+    "scratchRoot": "/private/tmp/p7g-planar-source/native-verification-budget",
+    "verifierSha256": "cc64ecedf9633cc74cab7ad3659b546f855769610828e3d9a81230de28db1455",
+    "statusSha256": "d8b161d2681cd6684decfbc709d94aa91febb07c904d1134ccdc58328bc669d0",
+    "apiResponseSha256": {
+      "run.json": "27359d48646f86b58aa55177cac3d9c66ca5de763cf3ad1b8cdba6743b9171ab",
+      "jobs.json": "682b77dfdc4b4c33bca8fe4080cfa5b933b5aaac6a9e44f595bc124c96cdfc68",
+      "artifacts.json": "02d929af9de5230d85e698d8a0780fe22afdd025e30f7c854ea90bea8212cd8f"
+    }
+  },
+  "limits": [
+    "Metadata-only later commits may move the PR ref; the tested merge and selected implementation digest are recorded.",
+    "Broad/fuzz, native consumer GUI, native producer semantics, and support qualification remain open."
+  ]
+}
