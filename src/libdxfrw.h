@@ -447,6 +447,10 @@ public:
     /// ADVMATERIAL XRECORD profile (groups 460-464). The caller must validate
     /// the exact source frame and owning extension-dictionary graph first.
     bool writeXRecordAdskMaterialCompatibility(DRW_XRecord *ent);
+    /// Explicit source-bound AC1024 compatibility path for the aerial
+    /// DIFFUSE/BUMP material XRECORD profiles (group 420 Int32 and group 469
+    /// Double). Ordinary XRECORD output remains within its standard domain.
+    bool writeXRecordAdskMaterialWideCompatibility(DRW_XRecord *ent);
     /// Emits the typed AcDbDataLink object profile. Referenced custom-data
     /// targets must already have a valid source-to-output handle mapping.
     bool writeDataLink(DRW_DataLink *ent);
@@ -1948,7 +1952,8 @@ private:
     bool writeXRecordInternal(DRW_XRecord *ent,
                               bool allowDwgCompatibilityCodes,
                               bool allowLayerStateGroup370,
-                              bool allowAdskMaterialCompatibility);
+                              bool allowAdskMaterialCompatibility,
+                              bool allowAdskMaterialWideCompatibility);
     void beginDxfReadRetainedBudget();
     bool appendDxfReadHeaderComment(const std::string& comment);
     bool recordDxfTableRow() noexcept;

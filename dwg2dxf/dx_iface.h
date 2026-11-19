@@ -17,6 +17,7 @@
 #include "libdxfrw.h"
 #include "dx_data.h"
 #include "dx_ac1024_aerial_advmaterial_wire.h"
+#include "dx_ac1024_aerial_material_wide_wire.h"
 #include "intern/dxf_ac1027_bound_layer.h"
 #include "dx_mline_source_dependency.h"
 #include "intern/dxfcode.h"
@@ -3639,7 +3640,8 @@ private:
             bool* useAdskMaterialCompatibility = nullptr,
             bool* useDwgCompatibilityOut = nullptr,
             bool* hasDwgCompatibilityCodeOut = nullptr,
-            bool* hasLayerStateCompatibilityCodeOut = nullptr) {
+            bool* hasLayerStateCompatibilityCodeOut = nullptr,
+            bool* useAdskMaterialWideCompatibilityOut = nullptr) {
         if (dxfW == nullptr || cData == nullptr)
             return false;
         const auto& values = record.m_dataEntries.empty()
@@ -3655,6 +3657,10 @@ private:
         const bool hasAdskMaterialCompatibilityCode = std::any_of(
             values.cbegin(), values.cend(), [](const auto& value) {
                 return isDxfXRecordAdskMaterialCompatibilityCode(value.code());
+            });
+        const bool hasAdskMaterialWideCompatibilityCode = std::any_of(
+            values.cbegin(), values.cend(), [](const auto& value) {
+                return isDxfXRecordAdskMaterialWideCompatibilityCode(value.code());
             });
         const bool isSelectedLayerStateCompatibilityRecord =
             hasLayerStateCompatibilityCode
@@ -3692,14 +3698,36 @@ private:
             && cData->sourceVersion == DRW::AC1024
             && dxfW->getVersion() == DRW::AC1024
             && hasQualifiedAc1024AerialAdvMaterial(*cData, *profile);
+        const auto wideProfile = std::find_if(
+            dx_ac1024_aerial_material_wide_wire::profiles.cbegin(),
+            dx_ac1024_aerial_material_wide_wire::profiles.cend(),
+            [&record](const auto& candidate) {
+                return candidate.recordHandle == record.handle;
+            });
+        const auto wideProfileEnd =
+            dx_ac1024_aerial_material_wide_wire::profiles.cend();
+        const bool useAdskWide = hasAdskMaterialWideCompatibilityCode
+            && !hasAdskMaterialCompatibilityCode
+            && !hasDwgCompatibilityCode
+            && !hasLayerStateCompatibilityCode
+            && wideProfile != wideProfileEnd
+            && qualifiedSourceRecord != cData->xRecords.cend()
+            && cData->sourceFormat == dx_source_format::DWG
+            && cData->sourceVersion == DRW::AC1024
+            && dxfW->getVersion() == DRW::AC1024
+            && hasQualifiedAc1024AerialDiffuseBump(*cData);
         if (useAdskMaterialCompatibility != nullptr)
             *useAdskMaterialCompatibility = useAdsk;
+        if (useAdskMaterialWideCompatibilityOut != nullptr)
+            *useAdskMaterialWideCompatibilityOut = useAdskWide;
         if (isSelectedLayerStateCompatibilityRecord)
             return dxfW->writeXRecordLayerStateCompatibility(&record);
         if (useDwgCompatibility)
             return dxfW->writeXRecordDwgCompatibility(&record);
         if (useAdsk)
             return dxfW->writeXRecordAdskMaterialCompatibility(&record);
+        if (useAdskWide)
+            return dxfW->writeXRecordAdskMaterialWideCompatibility(&record);
         return dxfW->writeXRecord(&record);
     }
 
@@ -4689,6 +4717,8 @@ private:
         const dx_data&,
         const dx_ac1024_aerial_advmaterial_wire::Profile& =
             dx_ac1024_aerial_advmaterial_wire::first) const noexcept;
+    bool hasQualifiedAc1024AerialDiffuseBump(
+        const dx_data&) const noexcept;
     bool requiresAc1024AerialGlobalMaterialEedOutput() const noexcept;
     bool inspectAc1024AerialGlobalMaterialEedTables(
         const dxfRW::DxfTablesWriteView&) noexcept;

@@ -1,0 +1,74 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-diffuse-bump-source-output-2026-11-19",
+  "date": "2026-11-19",
+  "status": "DIFFUSE_BUMP_ASCII_BINARY_OUTPUT_REFUSAL_AND_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing local aerial DWG; producer identity is not authenticated.",
+    "profiles": [
+      {
+        "material": "0x2EA",
+        "extension": "0x2EB",
+        "key": "DIFFUSE",
+        "record": "0x2EE",
+        "frameBytes": 2904,
+        "bodyBitSize": 44,
+        "rawFnv1a64": "56f72ea4c964a5bf",
+        "rawSha256": "5bdd1365d5b88a096c3f625365ddfb275988106c7a58e4ab232653518d05f61e",
+        "typedCanonicalBytes": 2825,
+        "typedCanonicalSha256": "a83aec7a12fa83370002bcd4118aad8bac57e72af3863d2edeefdb269689fb52"
+      },
+      {
+        "material": "0x2EA",
+        "extension": "0x2EB",
+        "key": "BUMP",
+        "record": "0x2F0",
+        "frameBytes": 2924,
+        "bodyBitSize": 44,
+        "rawFnv1a64": "76cca7b44a4e1250",
+        "rawSha256": "6d47bf350ad80e94200c2a9f8449ae2a429dfe00eeeb3aa62064145d5c913568",
+        "typedCanonicalBytes": 2835,
+        "typedCanonicalSha256": "42b35944af54922b15eec1649beb1dc3436315f8535430e437e00ab9c99e82f5"
+      }
+    ],
+    "sourceAdmission": "The same-import AC1024 adapter binds each exact standard-object frame to its typed XRECORD, common owner/reactor fields, MATERIAL 0x2EA and extension dictionary 0x2EB. Both records contain 172 ordered values; the ordered code/type fingerprint is d92b916a1d51c6e5. Counts by group are 300:84, 301:5, 271:13, 62:2, 420:2, 291:2, 292:11, and 469:53. Group 420 is Int32; group 469 is finite Double. This binds the observed local profile and does not establish Autodesk field semantics."
+  },
+  "outputProfile": {
+    "target": "AC1024",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "graph": [
+      "NOD ACAD_MATERIAL points to remapped MATERIAL dictionary 0xA072.",
+      "MATERIAL 0xA2EA retains its source EED and points to extension dictionary 0xA2EB.",
+      "The projected extension dictionary contains exactly DIFFUSE -> 0xA2EE and BUMP -> 0xA2F0.",
+      "Both XRECORDs retain their ordered typed values, owner and sole reactor mapped to 0xA2EB.",
+      "The required ACAD APPID row and default plot-style dependencies are emitted."
+    ],
+    "recordCount": 2,
+    "fieldCount": 344,
+    "wideFields": [
+      {"code": 420, "type": "Int32", "countPerRecord": 2},
+      {"code": 469, "type": "finite Double", "countPerRecord": 53}
+    ]
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-selected-diffuse-bump-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "result": "PASS. Fresh libdxfrw reimports match both dictionary edges, record owner/reactor roles, all 344 ordered typed values, MATERIAL EED, ACAD APPID and the selected root/extension graph in ASCII and Binary.",
+    "refusalRetry": [
+      "Changing a group-420 value in each source record refuses source qualification, preserves the destination sentinel, then succeeds after restoration and readback in both encodings.",
+      "Changing a byte in the BUMP raw source frame refuses source qualification, preserves the destination sentinel, then succeeds after restoration and readback in both encodings.",
+      "Requesting AC1027 output refuses the AC1024-only source route, preserves the destination sentinel, then succeeds after the AC1024 retry and readback in both encodings."
+    ],
+    "fixturePolicy": "The existing local DWG remains untracked. Output DXFs are temporary and removed by the selector. No test drawing fixture was added or committed."
+  },
+  "limits": [
+    "This is a selected projection with two extension-dictionary edges; other source siblings are omitted, so it does not close the MATERIAL root.",
+    "The exact profile and local reimport do not provide independent AutoCAD/ObjectARX semantic interpretation or native consumer acceptance.",
+    "The source producer is unauthenticated; no general DIFFUSE/BUMP support claim is established."
+  ],
+  "nextAction": "Compose the full selected MATERIAL extension graph from the now-output-qualified child profiles, audit unmodeled sibling edges, and keep strict full-root admission gated on complete dependency/source evidence."
+}

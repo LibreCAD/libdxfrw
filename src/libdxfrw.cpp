@@ -34617,25 +34617,30 @@ bool dxfRW::writeAcDbPlaceholder(DRW_AcDbPlaceholder *ent) {
 }
 
 bool dxfRW::writeXRecord(DRW_XRecord *ent) {
-    return writeXRecordInternal(ent, false, false, false);
+    return writeXRecordInternal(ent, false, false, false, false);
 }
 
 bool dxfRW::writeXRecordDwgCompatibility(DRW_XRecord *ent) {
-    return writeXRecordInternal(ent, true, false, false);
+    return writeXRecordInternal(ent, true, false, false, false);
 }
 
 bool dxfRW::writeXRecordLayerStateCompatibility(DRW_XRecord *ent) {
-    return writeXRecordInternal(ent, false, true, false);
+    return writeXRecordInternal(ent, false, true, false, false);
 }
 
 bool dxfRW::writeXRecordAdskMaterialCompatibility(DRW_XRecord *ent) {
-    return writeXRecordInternal(ent, false, false, true);
+    return writeXRecordInternal(ent, false, false, true, false);
+}
+
+bool dxfRW::writeXRecordAdskMaterialWideCompatibility(DRW_XRecord *ent) {
+    return writeXRecordInternal(ent, false, false, false, true);
 }
 
 bool dxfRW::writeXRecordInternal(
         DRW_XRecord *ent, bool allowDwgCompatibilityCodes,
         bool allowLayerStateGroup370,
-        bool allowAdskMaterialCompatibility) {
+        bool allowAdskMaterialCompatibility,
+        bool allowAdskMaterialWideCompatibility) {
     if (!preflightDxfWrite())
         return false;
     if (ent != nullptr && !ent->hasExactDxfCoordinateTuples()) {
@@ -34673,7 +34678,8 @@ bool dxfRW::writeXRecordInternal(
     const auto invalidApplicationCode = [this, ent,
             allowDwgCompatibilityCodes,
             allowLayerStateGroup370,
-            allowAdskMaterialCompatibility](int code) {
+            allowAdskMaterialCompatibility,
+            allowAdskMaterialWideCompatibility](int code) {
         if (isDxfXRecordApplicationCode(code)
             || (allowDwgCompatibilityCodes
                 && version >= DRW::AC1021
@@ -34683,14 +34689,17 @@ bool dxfRW::writeXRecordInternal(
                 && isDxfXRecordLayerStateCompatibilityCode(code))
             || (allowAdskMaterialCompatibility
                 && version == DRW::AC1024
-                && isDxfXRecordAdskMaterialCompatibilityCode(code)))
+                && isDxfXRecordAdskMaterialCompatibilityCode(code))
+            || (allowAdskMaterialWideCompatibility
+                && version == DRW::AC1024
+                && isDxfXRecordAdskMaterialWideCompatibilityCode(code)))
             return false;
         DRW_DBG("XRECORD rejected application group code=");
         DRW_DBG(code);
         DRW_DBG("\n");
         recordOperationDiagnostic(DRW::OperationPhase::Validation,
             DRW::OperationCause::ValidationFailure, "xrecord-application-code-domain",
-            "XRECORD values require groups 1..369 except 5/105; groups 1070/1071 need explicit AC1021+ DWG compatibility, group 370 needs a source-bound LayerStates route, and groups 460-464 need a source-bound AC1024 ADVMATERIAL route",
+            "XRECORD values require groups 1..369 except 5/105; groups 1070/1071 need explicit AC1021+ DWG compatibility, group 370 needs a source-bound LayerStates route, groups 460-464 need a source-bound AC1024 ADVMATERIAL route, and groups 420/469 need a source-bound AC1024 DIFFUSE/BUMP route",
             0, false, ent != nullptr ? ent->handle : 0u,
             ent != nullptr);
         m_writeError = true;
@@ -34742,6 +34751,21 @@ bool dxfRW::writeXRecordInternal(
                 DRW::OperationCause::ValidationFailure,
                 "xrecord-adsk-material-compatibility-value-kind",
                 "the source-bound AC1024 ADVMATERIAL profile requires finite Double groups 460-464");
+            m_writeError = true;
+            return false;
+        }
+        if (isDxfXRecordAdskMaterialWideCompatibilityCode(value.code())
+            && allowAdskMaterialWideCompatibility
+            && (version != DRW::AC1024
+                || (value.code() == 420
+                    && value.type() != DRW_Variant::INTEGER)
+                || (value.code() == 469
+                    && (value.type() != DRW_Variant::DOUBLE
+                        || !std::isfinite(value.d_val()))))) {
+            recordOperationDiagnostic(DRW::OperationPhase::Validation,
+                DRW::OperationCause::ValidationFailure,
+                "xrecord-adsk-material-wide-compatibility-value-kind",
+                "the source-bound AC1024 DIFFUSE/BUMP profile requires Int32 group 420 and finite Double group 469");
             m_writeError = true;
             return false;
         }

@@ -1162,3 +1162,261 @@ bool physicalAc1024SelectedThirtySixTileWriter(
     std::cerr << "AC1024 36-TILE batch passed refusal/retry and readback in ASCII and Binary.\n";
     return true;
 }
+
+bool physicalAc1024SelectedDiffuseBumpWriter(
+        const std::filesystem::path& sourcePath) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    dx_iface sourceIface;
+    dx_data source;
+    if (!sourceIface.fileImport(sourcePath.string(), &source, false)
+        || !Access::qualifiedAerialDiffuseBump(sourceIface, source))
+        return fail("AC1024 DIFFUSE/BUMP source profiles are not qualified");
+    const auto findHandle = [](auto& rows, std::uint32_t handle) {
+        return std::find_if(rows.begin(), rows.end(), [handle](const auto& row) {
+            return row.handle == handle;
+        });
+    };
+    auto root = findHandle(source.dictionaries, 0x72u);
+    auto group = findHandle(source.dictionaries, 0xDu);
+    auto material = findHandle(source.materials, 0x2EAu);
+    auto extension = findHandle(source.dictionaries, 0x2EBu);
+    auto appId = findHandle(source.appIds, 0x12u);
+    std::array<DRW_XRecord*, 2> records{};
+    const auto& profiles = dx_ac1024_aerial_material_wide_wire::profiles;
+    for (std::size_t index = 0u; index < profiles.size(); ++index) {
+        auto record = findHandle(source.xRecords, profiles[index].recordHandle);
+        if (record == source.xRecords.end())
+            return fail("AC1024 DIFFUSE/BUMP XRECORD is missing");
+        records[index] = &*record;
+    }
+    if (root == source.dictionaries.end() || group == source.dictionaries.end()
+        || material == source.materials.end()
+        || extension == source.dictionaries.end()
+        || appId == source.appIds.end() || appId->name != "ACAD"
+        || source.dictionaryWithDefaults.size() != 1u
+        || source.placeholders.size() != 1u
+        || material->parentHandle != root->handle
+        || material->xDictHandle != extension->handle
+        || material->extData.empty() || extension->parentHandle != material->handle)
+        return fail("AC1024 DIFFUSE/BUMP output dependencies are missing");
+    std::vector<DRW_Dictionary::Entry> rootEntries;
+    std::copy_if(root->m_entries.begin(), root->m_entries.end(),
+        std::back_inserter(rootEntries), [](const auto& entry) {
+            return entry.m_handle == 0x2EAu;
+        });
+    if (rootEntries.size() != 1u)
+        return fail("DIFFUSE/BUMP MATERIAL root entry is ambiguous");
+    DRW_Dictionary selectedExtension = *extension;
+    selectedExtension.m_entries.erase(std::remove_if(
+        selectedExtension.m_entries.begin(), selectedExtension.m_entries.end(),
+        [&](const auto& entry) {
+            return !std::any_of(profiles.begin(), profiles.end(),
+                [&](const auto& profile) {
+                    return entry.m_name == profile.dictionaryKey
+                        && entry.m_handle == profile.recordHandle;
+                });
+        }), selectedExtension.m_entries.end());
+    if (selectedExtension.m_entries.size() != profiles.size())
+        return fail("DIFFUSE/BUMP extension projection is incomplete");
+
+    class SelectedWriter final : public LayerStateTestWriter {
+    public:
+        dx_data blank;
+        DRW_AppId appId;
+        DRW_Dictionary owner, extension;
+        DRW_DictionaryWithDefault plot;
+        DRW_AcDbPlaceholder placeholder;
+        DRW_Material material;
+        std::array<DRW_XRecord*, 2> records{};
+        dx_iface* sourceIface{nullptr};
+        bool dependenciesOk{false};
+        bool routesOk{false};
+        void writeAppId() override { (void)dxfW->writeAppId(&appId); }
+        bool finalizeDxfWrite() override { return true; }
+        void writeObjects() override {
+            dependenciesOk = dxfW->writeDictionaryWithDefault(&plot)
+                && dxfW->writeAcDbPlaceholder(&placeholder)
+                && dxfW->writeDictionary(&owner)
+                && dxfW->writeDictionary(&extension)
+                && dxfW->writeMaterial(&material);
+            routesOk = true;
+            for (auto* record : records) {
+                bool wideRoute = false;
+                const bool written = Access::writeXRecordWithSourceCompatibility(
+                    *sourceIface, *record, nullptr, &wideRoute);
+                routesOk = routesOk && wideRoute;
+                dependenciesOk = written && dependenciesOk;
+            }
+        }
+    } writer;
+    writer.cData = &writer.blank;
+    writer.sourceIface = &sourceIface;
+    writer.appId = *appId;
+    writer.owner = *root;
+    writer.owner.m_entries = rootEntries;
+    writer.extension = std::move(selectedExtension);
+    writer.material = *material;
+    writer.records = records;
+    writer.plot = source.dictionaryWithDefaults.front();
+    if (writer.plot.m_entries.size() != 1u)
+        return fail("DIFFUSE/BUMP plot-style dictionary is not singular");
+    writer.plot.m_entries.front().m_dxfHandleCode =
+        DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+    writer.placeholder = source.placeholders.front();
+
+    const auto output = std::filesystem::temp_directory_path()
+        / ("libdxfrw-p4-diffuse-bump-output-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error);
+    }} cleanup{output};
+    dxfRW codec(output.string().c_str());
+    sourceIface.dxfW = &codec;
+    writer.dxfW = &codec;
+    codec.setDxfWriteRecordInventoryEnabled(true);
+    codec.setHandleRemap({{0x72u, 0xA072u}, {0x2EAu, 0xA2EAu},
+                          {0x2EBu, 0xA2EBu}, {0x2EEu, 0xA2EEu},
+                          {0x2F0u, 0xA2F0u}});
+    codec.setRootDictEntries({{"ACAD_MATERIAL", "A072"},
+                              {"ACAD_PLOTSTYLENAME", "E"}});
+    if (!codec.setGeneratedDictionarySourceHandles(0xCu, 0xDu)
+        || !codec.setGeneratedDictionarySourceRecords(
+            std::make_unique<DRW_Dictionary>(source.namedObjectDictionary),
+            std::make_unique<DRW_Dictionary>(*group))
+        || !codec.setDxfDefaultPlotStyleSourceHandles(0xEu, 0xFu))
+        return fail("could not prepare DIFFUSE/BUMP output roots");
+    DRW_Class materialClass, plotClass, placeholderClass;
+    if (!dxfRW::dxfClassForRecordName("MATERIAL", materialClass)
+        || !dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
+        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
+        return fail("could not prepare DIFFUSE/BUMP output classes");
+    materialClass.instanceCount = plotClass.instanceCount
+        = placeholderClass.instanceCount = 1;
+    codec.setDxfClasses({materialClass, plotClass, placeholderClass});
+
+    const auto sameVariant = [](const DRW_Variant& left,
+                                const DRW_Variant& right) {
+        if (left.code() != right.code() || left.type() != right.type())
+            return false;
+        switch (left.type()) {
+        case DRW_Variant::STRING:
+            return left.content.s != nullptr && right.content.s != nullptr
+                && *left.content.s == *right.content.s;
+        case DRW_Variant::INTEGER: return left.i_val() == right.i_val();
+        case DRW_Variant::DOUBLE: return left.d_val() == right.d_val();
+        default: return false;
+        }
+    };
+    const auto allQualified = [&]() {
+        return Access::qualifiedAerialDiffuseBump(sourceIface, source);
+    };
+    const auto readback = [&]() {
+        dx_iface reopened;
+        dx_data actual;
+        if (!reopened.fileImport(output.string(), &actual, false)
+            || !actual.hasNamedObjectDictionary
+            || std::count_if(actual.namedObjectDictionary.m_entries.begin(),
+                actual.namedObjectDictionary.m_entries.end(), [](const auto& entry) {
+                    return entry.m_name == "ACAD_MATERIAL"
+                        && entry.m_handle == 0xA072u;
+                }) != 1
+            || std::count_if(actual.appIds.begin(), actual.appIds.end(),
+                [](const DRW_AppId& row) { return row.name == "ACAD"; }) != 1)
+            return false;
+        const auto outMaterial = findHandle(actual.materials, 0xA2EAu);
+        const auto outExtension = findHandle(actual.dictionaries, 0xA2EBu);
+        const auto outRoot = findHandle(actual.dictionaries, 0xA072u);
+        if (outMaterial == actual.materials.end()
+            || outExtension == actual.dictionaries.end()
+            || outRoot == actual.dictionaries.end()
+            || outMaterial->m_name != material->m_name
+            || outMaterial->parentHandle != 0xA072u
+            || outMaterial->xDictHandle != 0xA2EBu
+            || outMaterial->extData.size() != material->extData.size()
+            || outExtension->parentHandle != 0xA2EAu
+            || outExtension->m_entries.size() != profiles.size())
+            return false;
+        for (std::size_t index = 0u; index < material->extData.size(); ++index)
+            if (material->extData[index] == nullptr
+                || outMaterial->extData[index] == nullptr
+                || !sameVariant(*material->extData[index],
+                                *outMaterial->extData[index]))
+                return false;
+        for (std::size_t index = 0u; index < profiles.size(); ++index) {
+            const auto& profile = profiles[index];
+            const auto recordHandle = 0xA000u + profile.recordHandle;
+            const auto edge = std::count_if(outExtension->m_entries.begin(),
+                outExtension->m_entries.end(), [&profile, recordHandle](const auto& row) {
+                    return row.m_name == profile.dictionaryKey
+                        && row.m_handle == recordHandle;
+                });
+            const auto outRecord = findHandle(actual.xRecords, recordHandle);
+            const auto& expected = *records[index];
+            if (edge != 1 || outRecord == actual.xRecords.end()
+                || outRecord->parentHandle != 0xA2EBu
+                || outRecord->reactorHandles.size() != 1u
+                || outRecord->reactorHandles.front() != 0xA2EBu
+                || outRecord->m_dataEntries.size() != expected.m_dataEntries.size()
+                || outRecord->m_values.size() != expected.m_values.size())
+                return false;
+            for (std::size_t field = 0u; field < expected.m_dataEntries.size(); ++field)
+                if (!sameVariant(expected.m_dataEntries[field],
+                                 outRecord->m_dataEntries[field])
+                    || !sameVariant(expected.m_values[field],
+                                    outRecord->m_values[field]))
+                    return false;
+        }
+        return true;
+    };
+    const auto write = [&](DRW::Version version, bool binary) {
+        writer.dependenciesOk = writer.routesOk = false;
+        return codec.write(&writer, version, binary)
+            && writer.dependenciesOk && writer.routesOk;
+    };
+    const std::string sentinel = "preserve DIFFUSE/BUMP destination\n";
+    for (const bool binary : {false, true}) {
+        if (!write(DRW::AC1024, binary) || !readback())
+            return fail("DIFFUSE/BUMP baseline/readback failed");
+        const auto refuseAndRetry = [&](const std::function<void()>& corrupt,
+                                        const std::function<void()>& restore,
+                                        DRW::Version version = DRW::AC1024) {
+            {
+                std::ofstream file(output, std::ios::binary | std::ios::trunc);
+                if (!(file << sentinel)) return false;
+            }
+            corrupt();
+            const bool saved = write(version, binary);
+            restore();
+            std::ifstream file(output, std::ios::binary);
+            const std::string preserved(std::istreambuf_iterator<char>(file), {});
+            file.close();
+            return !saved && !writer.routesOk && preserved == sentinel
+                && allQualified() && write(DRW::AC1024, binary) && readback();
+        };
+        for (std::size_t index = 0u; index < records.size(); ++index) {
+            auto& record = *records[index];
+            const auto field = std::find_if(record.m_dataEntries.begin(),
+                record.m_dataEntries.end(), [](const auto& value) {
+                    return value.code() == 420;
+                });
+            if (field == record.m_dataEntries.end())
+                return fail("DIFFUSE/BUMP Int32 group 420 is missing");
+            const auto savedValue = *field;
+            if (!refuseAndRetry(
+                    [field] {
+                        *field = DRW_Variant(420, field->i_val() + 1);
+                    },
+                    [field, savedValue] { *field = savedValue; }))
+                return fail("DIFFUSE/BUMP typed-value refusal/retry failed");
+        }
+        auto& raw = Access::aerialAdvMaterialRawFrame(
+            source, profiles.back().recordHandle).m_rawBytes.front();
+        const auto savedByte = raw;
+        if (!refuseAndRetry([&] { raw ^= 0x80u; }, [&] { raw = savedByte; }))
+            return fail("DIFFUSE/BUMP raw-frame refusal/retry failed");
+        if (!refuseAndRetry([] {}, [] {}, DRW::AC1027))
+            return fail("DIFFUSE/BUMP target-version refusal/retry failed");
+    }
+    std::cerr << "AC1024 DIFFUSE/BUMP profiles passed ASCII/Binary output, refusal and retry.\n";
+    return true;
+}

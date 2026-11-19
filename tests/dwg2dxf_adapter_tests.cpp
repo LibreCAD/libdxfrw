@@ -214,9 +214,15 @@ public:
     }
     static bool writeXRecordWithSourceCompatibility(
             dx_iface& iface, DRW_XRecord& record,
-            bool* useAdskMaterialCompatibility = nullptr) {
+            bool* useAdskMaterialCompatibility = nullptr,
+            bool* useAdskMaterialWideCompatibility = nullptr) {
         return iface.writeXRecordWithSourceCompatibility(
-            record, useAdskMaterialCompatibility);
+            record, useAdskMaterialCompatibility, nullptr, nullptr, nullptr,
+            useAdskMaterialWideCompatibility);
+    }
+    static bool qualifiedAerialDiffuseBump(
+            const dx_iface& iface, const dx_data& data) noexcept {
+        return iface.hasQualifiedAc1024AerialDiffuseBump(data);
     }
     static std::uint8_t& aerialAdvMaterialRawFirstByte(dx_data& data) {
         return data.m_standardDwgObjectFrames.at(
@@ -93821,6 +93827,8 @@ int main(int argc, char** argv) {
         return physicalAc1024SelectedSixFbxAssetWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-36-tile-writer")
         return physicalAc1024SelectedThirtySixTileWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-diffuse-bump-writer")
+        return physicalAc1024SelectedDiffuseBumpWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-tablestyle-writer")
         return physicalAc1024SelectedTableStyleWriter(argv[2]) ? 0 : 1;
     if (argc == 3

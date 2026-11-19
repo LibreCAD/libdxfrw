@@ -45216,6 +45216,57 @@ bool dx_iface::hasQualifiedAc1024AerialAdvMaterial(
     }
 }
 
+bool dx_iface::hasQualifiedAc1024AerialDiffuseBump(
+        const dx_data& data) const noexcept {
+    if (&data != cData || typeid(*this) != typeid(dx_iface)
+        || data.sourceFormat != dx_source_format::DWG
+        || data.sourceVersion != DRW::AC1024 || data.importGeneration == 0u
+        || !hasQualifiedAc1024AerialOtherMaterialEed(data, 0x2EAu)
+        || !hasQualifiedAc1024AerialTileFrames(data))
+        return false;
+    try {
+        const auto* root = uniqueDwgSourceRecord(data.dictionaries, 0x72u);
+        const auto* material = uniqueDwgSourceRecord(data.materials, 0x2EAu);
+        const auto* extension = uniqueDwgSourceRecord(data.dictionaries, 0x2EBu);
+        if (root == nullptr || material == nullptr || extension == nullptr
+            || root->parentHandle != 0xCu
+            || material->parentHandle != root->handle
+            || material->xDictHandle != extension->handle
+            || extension->parentHandle != material->handle
+            || extension->m_entries.size() != 10u
+            || !data.hasCompleteDwgDictionaryEntry(
+                root->handle, material->m_name.c_str(), material->handle))
+            return false;
+        for (const auto& profile :
+             dx_ac1024_aerial_material_wide_wire::profiles) {
+            const auto* record = uniqueDwgSourceRecord(
+                data.xRecords, profile.recordHandle);
+            if (record == nullptr || record->parentHandle != extension->handle
+                || !data.hasCompleteDwgDictionaryEntry(
+                    extension->handle, profile.dictionaryKey,
+                    profile.recordHandle))
+                return false;
+            const auto named = std::count_if(extension->m_entries.begin(),
+                extension->m_entries.end(), [&profile](const auto& entry) {
+                    return entry.m_name == profile.dictionaryKey;
+                });
+            const auto targeted = std::count_if(extension->m_entries.begin(),
+                extension->m_entries.end(), [&profile](const auto& entry) {
+                    return entry.m_handle == profile.recordHandle;
+                });
+            const auto* raw = boundAc1024DwgStandardObject(
+                data, *record, dwgObjType::XRECORD);
+            if (named != 1u || targeted != 1u || raw == nullptr
+                || !dx_ac1024_aerial_material_wide_wire::observe(
+                    *raw, *record, profile))
+                return false;
+        }
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
 bool dx_iface::requiresAc1024AerialGlobalMaterialEedOutput() const noexcept {
     return cData != nullptr && cData->sourceFormat == dx_source_format::DWG
         && cData->sourceVersion == DRW::AC1024

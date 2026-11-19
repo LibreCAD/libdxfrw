@@ -82,6 +82,13 @@ inline constexpr bool isDxfXRecordAdskMaterialCompatibilityCode(int code) {
     return code >= 460 && code <= 464;
 }
 
+// Two AC1024 aerial-material XRECORD profiles carry group 420 Int32 and
+// group 469 Double values. Keep them distinct from ADVMATERIAL's 460-464
+// profile and admit them only through source-bound material output.
+inline constexpr bool isDxfXRecordAdskMaterialWideCompatibilityCode(int code) {
+    return code == 420 || code == 469;
+}
+
 // The pinned LibreCAD tree predates the standalone safety correction for two
 // disputed ranges.  Keep that legacy interpretation available to an explicit
 // compatibility probe without changing the standalone-safe default used by
