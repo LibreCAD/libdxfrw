@@ -19,7 +19,7 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-19:** 12/34 package gates closed; 22 remain. The
-implementation/research activity estimate is 195/195 tracked slices (100.0%);
+implementation/research activity estimate is 196/196 tracked slices (100.0%);
 external qualification gates remain separate and open. The latest fast-CI run
 found a stale AC1021 diagnostic-count assertion: 26 integrity rows minus 16
 retained rows means 10 omitted rows. The assertion is corrected. On digest
@@ -147,6 +147,12 @@ layer-state and named-block draw-order observations; it is not IMAGEDEF
 evidence. The managed sweep packet is relevant only to the matching AC1027
 profile. Continue local work while these host details are pending.
 
+The [aerial SUN observer](tools/research/P4D_AERIAL_SUN_OBSERVER.md) is prepared
+for the exact AC1024 source and ODA DXF. Its stub-only syntax build passed; an
+actual AutoCAD SDK build and native observations remain pending. Compare the
+native VIEW/SUN/XRECORD ownership and open warnings before altering the current
+fail-closed SUN owner check.
+
 The Aqua GUI portion of P8-D remains waiting. After the latest reported unlock, this process still
 captured no desktop image and CoreGraphics reported `activeCount=0`; no GUI
 actions were attempted. This does not establish physical login state. Resume
@@ -258,7 +264,7 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count implementation/research slices and package-gate readiness separately.
-  The activity estimate is 195 completed slices out of 195 currently counted
+  The activity estimate is 196 completed slices out of 196 currently counted
   slices (100.0%); the shared host-intake and P4-D/P6-A host-packet preparation
   slices, the P5-D packet preparation slice, and its source-release inventory
   repair are complete. Native AutoCAD builds and captures remain unqualified.

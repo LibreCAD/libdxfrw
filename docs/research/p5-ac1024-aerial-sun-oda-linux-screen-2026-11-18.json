@@ -129,5 +129,22 @@
   "otherAerialDependencies": {
     "layerStates": "This same aerial source has three LAYER_CONTROL extension roots and ACAD_VIEWS_RenderView XRECORD group-370 data, as recorded in docs/research/p4-ac1024-layerstates-alternative-witness-screen-2026-11-18.json. The current plan keeps source graph, emitted ledger/dependency closure and independent native semantics open. Removing the SUN refusal alone cannot qualify full-source LayerStates output.",
     "scope": "No new scan or test of the current complete aerial output was performed, and this receipt does not identify every remaining issue."
+  },
+  "nativeObserverPreparation": {
+    "date": "2026-11-19",
+    "purpose": "Prepare a hash-gated native observation of the exact source DWG and its existing ODA DXF without modifying them.",
+    "files": {
+      "tools/research/P4D_AERIAL_SUN_OBSERVER.md": "a3c37abcb29d2799cc2152582319d78d8af147e21113a09d9424f615c65f5bec",
+      "tools/research/p4d_aerial_sun_observer.cs": "d9f0d98453e7c43a8c5a16c28eb1d704a43fbfe693c09ee0aff2ff65f82ea0b4",
+      "tools/research/p4d_aerial_sun_observer.csproj": "da91b7542bba429cb70ccf5ff87668b045f85190d5b22eda31b8eb724fff6659"
+    },
+    "apiReferences": [
+      "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-CF3094AB-ECA9-43C1-8075-7791AC84F97C.htm",
+      "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_AbstractViewTableRecord_SunId.html",
+      "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Xrecord.html"
+    ],
+    "validation": "PASS: both exact input files exist and match their recorded SHA-256. Syntax-only .NET 10 build against hand-written API stubs passed with zero warnings; stubs do not verify AutoCAD SDK compatibility.",
+    "limits": "Not built against Autodesk assemblies and not executed in AutoCAD. AutoCAD may repair, normalize or renumber objects on open. Unchanged file hashes and DBMOD=0 are required; native graph, rendering and close/reopen qualification remain pending. No sample drawing committed.",
+    "next": "After host intake, review and build only on the matching AutoCAD 2024 Windows profile, run on both exact files, then compare native ownership, references, XRECORD typed data and warnings with source evidence before any output mapping."
   }
 }

@@ -1218,6 +1218,7 @@ EXTRA_DIST = \
     tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md \
     tools/research/OBJECTARX_WITNESS_README.md \
     tools/research/P4C_SWEEP_WITNESS_README.md \
+    tools/research/P4D_AERIAL_SUN_OBSERVER.md \
     tools/research/P4D_LAYOUT_REOPEN_README.md \
     tools/research/P5D_AC1024_TABLE_WITNESS_README.md \
     tools/research/P6A_IMAGEDEF_WITNESS_README.md \
@@ -1262,6 +1263,8 @@ EXTRA_DIST = \
     tools/research/p4_forum_ltype_oda_compare.py \
     tools/research/p4c_sweep_witness.cs \
     tools/research/p4c_sweep_witness.csproj \
+    tools/research/p4d_aerial_sun_observer.cs \
+    tools/research/p4d_aerial_sun_observer.csproj \
     tools/research/p4d_layout_reopen.cs \
     tools/research/p4d_layout_reopen.csproj \
     tools/research/p5_ac1018_appid_sibling_scratch_instrument.py \
