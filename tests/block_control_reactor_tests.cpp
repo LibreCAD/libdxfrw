@@ -241,14 +241,25 @@ int main() {
 
     for (const DRW::Version version : {DRW::AC1021, DRW::AC1027}) {
         const auto historical = historicalAppIdControl(version);
+        const bool expectsHistoricalFallback = version == DRW::AC1021;
         require(!historical.bytes.empty(),
                 "failed to build generated historical APPID_CONTROL frame");
         require(parse(c, version, historical),
                 "bounded historical APPID_CONTROL frame rejected");
-        require(c.historicalAppIdControlRead
-                    && c.orderedHandleSlots.size() == 1u
-                    && c.unclaimedObjectDataBits
-                        == historical.expectedUnclaimedBits,
+        const bool historicalFieldsMatch =
+            c.historicalAppIdControlRead == expectsHistoricalFallback
+            && c.orderedHandleSlots.size() == 1u
+            && c.unclaimedObjectDataBits == historical.expectedUnclaimedBits;
+        if (!historicalFieldsMatch) {
+            std::cerr << "historical APPID_CONTROL mismatch: version="
+                      << static_cast<int>(version)
+                      << " retained=" << c.historicalAppIdControlRead
+                      << " handles=" << c.orderedHandleSlots.size()
+                      << " unclaimed=" << c.unclaimedObjectDataBits
+                      << " expected=" << historical.expectedUnclaimedBits
+                      << '\n';
+        }
+        require(historicalFieldsMatch,
                 "historical APPID_CONTROL fields or suffix disposition changed");
 
         auto truncated = historical;
@@ -258,7 +269,7 @@ int main() {
         assertReset(c);
         require(parse(c, version, historical),
                 "historical APPID_CONTROL retry after truncation failed");
-        require(c.historicalAppIdControlRead
+        require(c.historicalAppIdControlRead == expectsHistoricalFallback
                     && c.orderedHandleSlots.size() == 1u,
                 "historical APPID_CONTROL retry changed parsed state");
     }
