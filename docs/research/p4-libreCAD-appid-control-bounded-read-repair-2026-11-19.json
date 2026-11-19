@@ -26,7 +26,7 @@
     "legacyReadPolicy": "The historical source fixtures are tolerated with the prior bounded BitShort interpretation only for the exact profile above; this is not normative conformance or writer qualification."
   },
   "observations": {
-    "AC1021": "The identified frame is consumed without an unclaimed object-data suffix.",
+    "AC1021": "The tracked historical fixture produces no APPID_CONTROL unclaimed-data diagnostic. Generated inline controls separately verify the parser's exact tail-bit accounting and retry behavior.",
     "AC1027": "The bounded reader preserves the historical import and records 173 unclaimed object-data bits as TableControlUnclaimedData severity Error. Strict output remains refused for this source disposition.",
     "fixturePolicy": "No DWG or DXF fixture was added or modified."
   },
@@ -40,6 +40,14 @@
       "result": "PASS: 2/2 tests; fixture regression 0.21 s and reader matrix 0.67 s."
     },
     {
+      "command": "cmake --build build-gcc --target libdxfrw_block_control_reactor_tests --parallel 4 && ctest --test-dir build-gcc -R '^libdxfrw_dwg_block_control_reactors$' --output-on-failure",
+      "result": "PASS: generated AC1021/AC1027 historical APPID_CONTROL controls cover accepted bounded frames, exact tail-bit accounting, truncation reset and corrected retry; an AC1027 five-bit suffix remains observable."
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_fixture_tests libdxfrw_dwg_reader_matrix_tests libdxfrw_block_control_reactor_tests --parallel 4 && ctest --test-dir build-gcc -R '^(libdxfrw_dwg_fixtures|libdxfrw_dwg_reader_matrix|libdxfrw_dwg_block_control_reactors)$' --output-on-failure",
+      "result": "PASS: 3/3 focused selectors after adding generated failure/reset/retry controls."
+    },
+    {
       "command": "git diff --check",
       "result": "PASS."
     }
@@ -49,17 +57,19 @@
       "src/intern/dwgreader.cpp",
       "src/intern/dwgreader.h",
       "src/libdwgr.h",
-      "tests/dwg_fixture_tests.cpp"
+      "tests/dwg_fixture_tests.cpp",
+      "tests/block_control_reactor_tests.cpp"
     ],
     "sha256": {
       "src/intern/dwgreader.cpp": "78e5ea372daef8b976f8831cfe02f9a60d45a3f65cee592f1b29f8a5b2a43dc9",
       "src/intern/dwgreader.h": "1f27499abd20871090b7179656757591ca477819a15ea4e663fea66f2e263d19",
       "src/libdwgr.h": "5d432362d4c5ef3cd109651793d3657eb8ef9f9834aca2b32582d962cbd64a14",
-      "tests/dwg_fixture_tests.cpp": "7985d050c35070792b40917da003f401f4a70ee010fb01c017c1fd2614ff7956"
+      "tests/dwg_fixture_tests.cpp": "7985d050c35070792b40917da003f401f4a70ee010fb01c017c1fd2614ff7956",
+      "tests/block_control_reactor_tests.cpp": "709a03ee098f7a7e1018746f86ecb9e843b85f9d5658c6efac9a48e2f7b80f13"
     },
-    "qualificationDigestSha256": "450212f3a68bbcd810f983cc72bebd5db1edaa525ce52de18de23b4cf32f82f6",
+    "qualificationDigestSha256": "da0eb3c8f150671e160a1fe68f070bad3360fc427ed38dd5f5330fdacf1adfa9",
     "qualificationInputCount": 750,
-    "behavior": "Record any unclaimed bits from the narrow historical APPID_CONTROL path as a new integrity error; preserve existing enum values by appending the new kind. The AC1027 regression test requires the 173-bit suffix to remain output-blocking."
+    "behavior": "Record unclaimed bits from the narrow historical APPID_CONTROL path as a new integrity error; preserve existing enum values by appending the new kind. The tracked AC1027 regression requires its 173-bit suffix to remain output-blocking. Generated AC1021/AC1027 frame controls verify suffix accounting, truncation reset, and successful retry on the same parsed object."
   },
   "remaining": [
     "Run fresh fast and focused-native CI against the repaired implementation digest and current PR head.",

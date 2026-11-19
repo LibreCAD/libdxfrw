@@ -95,9 +95,78 @@ bool parse(DRW_ObjControl& control, const DetachedFrame& f) {
     dwgBuffer b(f.bytes.data(), f.bytes.size());
     return control.parseDwg(DRW::AC1032, &b, f.handleBits);
 }
+struct HistoricalAppIdFrame {
+    std::vector<std::uint8_t> bytes;
+    std::uint32_t handleBits{0};
+    std::uint32_t expectedUnclaimedBits{0};
+};
+HistoricalAppIdFrame historicalAppIdControl(
+    DRW::Version version, std::uint32_t unclaimedObjectDataBits = 0u) {
+    dwgBufferW body;
+    body.putObjType(version, DRW::DwgAppIdControlObjectType);
+    std::uint64_t objectSizeBit = 0;
+    if (version == DRW::AC1021) {
+        objectSizeBit = body.bitCount();
+        body.putRawLong32(0u); // Patched to the complete historical inline frame.
+    }
+    put(body, 0u, DRW::DwgAppIdControlHandle);
+    body.putBitShort(0u); // No EED.
+    body.putBitLong(0); // No reactors.
+    body.putBit(0u); // No extension dictionary.
+    if (version > DRW::AC1024)
+        body.putBit(0u); // No R2013+ data-storage payload.
+    body.putBitShort(1u); // Historical APPID_CONTROL count is BS.
+    body.putBit(0u); // No detached strings.
+
+    if (version > DRW::AC1021) {
+        for (std::uint32_t bit = 0; bit < unclaimedObjectDataBits; ++bit)
+            body.putBit((bit & 1u) != 0u);
+    } else if (unclaimedObjectDataBits != 0u) {
+        return {};
+    }
+    const std::uint64_t objectDataEndBit = body.bitCount();
+    put(body, DRW::DwgSoftPointer, 0u); // Control owner.
+    put(body, DRW::DwgHardOwnership, 0u); // Null XDictionary.
+    put(body, DRW::DwgSoftOwnership, 0x12u); // One APPID table record.
+    const std::uint64_t handlesEndBit = body.bitCount();
+    body.alignToByte();
+    if (!body.isGood())
+        return {};
+
+    HistoricalAppIdFrame result;
+    result.bytes = body.data();
+    const std::uint64_t totalBits = result.bytes.size() * 8u;
+    if (version == DRW::AC1021) {
+        if (totalBits > std::numeric_limits<std::uint32_t>::max())
+            return {};
+        body.patchRawLong32AtBit(
+            objectSizeBit, static_cast<std::uint32_t>(totalBits));
+        result.bytes = body.data();
+        result.expectedUnclaimedBits = static_cast<std::uint32_t>(
+            totalBits - handlesEndBit);
+    } else {
+        if (totalBits < objectDataEndBit
+            || totalBits - objectDataEndBit
+                > std::numeric_limits<std::uint32_t>::max())
+            return {};
+        result.handleBits = static_cast<std::uint32_t>(
+            totalBits - objectDataEndBit);
+        result.expectedUnclaimedBits = unclaimedObjectDataBits;
+    }
+    return result;
+}
+bool parse(DRW_ObjControl& control, DRW::Version version,
+           const HistoricalAppIdFrame& f) {
+    if (f.bytes.empty())
+        return false;
+    dwgBuffer body(f.bytes.data(), f.bytes.size());
+    return control.parseDwg(version, &body, f.handleBits);
+}
 void assertReset(const DRW_ObjControl& c) {
     require(c.reactorCount() == 0 && c.reactorHandles.empty() && c.orderedHandleSlots.empty()
-            && c.handlesList.empty() && c.phantomHandles.empty() && c.xDictHandle == 0,
+            && c.handlesList.empty() && c.phantomHandles.empty() && c.xDictHandle == 0
+            && !c.historicalAppIdControlRead
+            && c.unclaimedObjectDataBits == 0u,
             "failure did not reset control");
 }
 void replaceByte(Frame& f, std::size_t bit, std::uint8_t value) {
@@ -169,5 +238,36 @@ int main() {
     require(c.reactorHandles.empty()
                 && c.orderedHandleSlots == std::vector<std::uint32_t>({0x57}),
             "AC1032 zero-reactor control altered its table entry");
+
+    for (const DRW::Version version : {DRW::AC1021, DRW::AC1027}) {
+        const auto historical = historicalAppIdControl(version);
+        require(!historical.bytes.empty(),
+                "failed to build generated historical APPID_CONTROL frame");
+        require(parse(c, version, historical),
+                "bounded historical APPID_CONTROL frame rejected");
+        require(c.historicalAppIdControlRead
+                    && c.orderedHandleSlots.size() == 1u
+                    && c.unclaimedObjectDataBits
+                        == historical.expectedUnclaimedBits,
+                "historical APPID_CONTROL fields or suffix disposition changed");
+
+        auto truncated = historical;
+        truncated.bytes.pop_back();
+        require(!parse(c, version, truncated),
+                "truncated historical APPID_CONTROL frame accepted");
+        assertReset(c);
+        require(parse(c, version, historical),
+                "historical APPID_CONTROL retry after truncation failed");
+        require(c.historicalAppIdControlRead
+                    && c.orderedHandleSlots.size() == 1u,
+                "historical APPID_CONTROL retry changed parsed state");
+    }
+    const auto suffixedHistoricalAppId =
+        historicalAppIdControl(DRW::AC1027, 5u);
+    require(!suffixedHistoricalAppId.bytes.empty()
+                && parse(c, DRW::AC1027, suffixedHistoricalAppId)
+                && c.historicalAppIdControlRead
+                && c.unclaimedObjectDataBits == 5u,
+            "historical AC1027 APPID_CONTROL suffix was not retained as unclaimed");
     return 0;
 }
