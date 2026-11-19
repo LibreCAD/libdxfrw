@@ -240,5 +240,93 @@
       "No DWG/DXF fixture committed."
     ],
     "supportClaimEffect": "none"
+  },
+  "sameImportGraphRecheck": {
+    "date": "2026-11-19",
+    "head": "0360270871cf773e35efc84a8fc6d7730ac8cefa",
+    "scope": "Compare current local adapter observations from the same hashed DWG against the existing independent LibreDWG source graph and previously hash-bound ODA DXF comparison.",
+    "scratchProbe": {
+      "source": "/private/tmp/p4-sundemo-object-frame/graph.cpp",
+      "sourceSha256": "5e029f8dba50a8340aa2ddd36b9e2020ecc02db6bf666b362eaab2ae79b15b7b",
+      "binarySha256": "64c831a8a2e1f51bdf150548a33ca2043c9855fad38dffbb019ed84ed4cb0d42",
+      "outputSha256": "a7bd9194deae5d3feaa2db287516c613e35ce26f2d37d61d070fc032b90ab322",
+      "compile": "c++ -std=c++17 -O0 -I dwg2dxf -I src /private/tmp/p4-sundemo-object-frame/graph.cpp build-gcc/tests/CMakeFiles/libdxfrw_test_adapter.dir/__/dwg2dxf/dx_iface.cpp.o build-gcc/libdxfrw.a -o /private/tmp/p4-sundemo-object-frame/graph",
+      "run": "/private/tmp/p4-sundemo-object-frame/graph /private/tmp/libdxfrw-p4d-oda-sundemo/source/sundemo.dwg"
+    },
+    "comparisonSha256": "94d1019f6c8aef2cb33655060f38860898e329ca43f522a3352c4b0dabc34591",
+    "sourcePeerSha256": "927532c12a638243569383294047109c142d242240dc05279e15e1f5b87454c9",
+    "odaComparisonSha256": "f45457c53d2091127e74d785301b20ec3c3a894ee45f6a14411737e51ddfbc26",
+    "observed": "Imported typed table and ordered six-pair parser receipt match LibreDWG and the bound source frame. BLOCK_RECORD 0x1FF has extension dictionary 0x200; dictionary entries bind SORTENTSTABLE 0x236 and sibling EVALUATION_GRAPH 0x201 and DYNAMICBLOCKPURGEPREVENTER 0x237. All 12 source block entities and their owner 0x1FF match the peer; all six explicit pairs target those entities. The existing ODA output comparison matches source pair set and entity traversal order.",
+    "keyCensus": {
+      "entities": 12,
+      "explicitPairs": 6,
+      "implicitEntityHandleKeys": 6,
+      "keysUnique": true,
+      "increasingNumericKeys": [
+        {
+          "entity": "240",
+          "key": "A3",
+          "origin": "explicit"
+        },
+        {
+          "entity": "23A",
+          "key": "A4",
+          "origin": "explicit"
+        },
+        {
+          "entity": "23B",
+          "key": "A5",
+          "origin": "explicit"
+        },
+        {
+          "entity": "23C",
+          "key": "A6",
+          "origin": "explicit"
+        },
+        {
+          "entity": "23D",
+          "key": "A8",
+          "origin": "explicit"
+        },
+        {
+          "entity": "23F",
+          "key": "A9",
+          "origin": "explicit"
+        },
+        {
+          "entity": "239",
+          "key": "239",
+          "origin": "implicit"
+        },
+        {
+          "entity": "23E",
+          "key": "23E",
+          "origin": "implicit"
+        },
+        {
+          "entity": "241",
+          "key": "241",
+          "origin": "implicit"
+        },
+        {
+          "entity": "242",
+          "key": "242",
+          "origin": "implicit"
+        },
+        {
+          "entity": "243",
+          "key": "243",
+          "origin": "implicit"
+        },
+        {
+          "entity": "244",
+          "key": "244",
+          "origin": "implicit"
+        }
+      ]
+    },
+    "interpretation": "The key census supplies an exact input for a future native getFullDrawOrder comparison; it is not an observation of actual AutoCAD drawing order and does not prove named-block DXF acceptance or sufficient dynamic-block graph closure.",
+    "limits": "Local sample producer identity is unauthenticated. The selected import is not an immutable production source capability; frame/class/dictionary/block and all dependent siblings must be bound in the same import before output admission. Native semantic comparison, staged ASCII/Binary output, destination-preserving failure/retry, fresh independent readback and full-document closure remain open. No fixture committed.",
+    "supportClaimEffect": "none"
   }
 }
