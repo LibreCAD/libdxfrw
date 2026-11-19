@@ -4607,9 +4607,22 @@ private:
         std::optional<DRW_Material> material;
         std::array<std::vector<std::uint8_t>, 4> bodies;
     };
+    struct AerialDwgGlobalMaterialEedSource {
+        DwgClassObjectPublication frame;
+        const dx_data* owner{nullptr};
+        std::optional<DRW_Material> material;
+        std::vector<std::uint8_t> body;
+        bool captureFailed{false};
+    };
+    AerialDwgGlobalMaterialEedSource m_dwgAerialGlobalMaterialEed;
     AerialDwgByBlockMaterialSource m_dwgAerialByBlockMaterial;
     AerialDwgByBlockMaterialSource m_dwgAerialByLayerMaterial;
     bool m_dwgAerialByBlockMaterialInspected{false};
+    void retainAerialDwgGlobalMaterialEedPublication(
+        const DRW_DwgFramePublication&) noexcept;
+    void finishAerialDwgGlobalMaterialEedSource() noexcept;
+    bool hasQualifiedAc1024AerialGlobalMaterialEed(
+        const dx_data&) const noexcept;
     void retainAerialDwgByBlockMaterialPublication(const DRW_DwgFramePublication&) noexcept;
     void finishAerialDwgByBlockMaterialSource() noexcept;
     bool requiresAc1024AerialDwgByBlockMaterialProof(const dx_data&, std::uint32_t materialHandle = 0x97u) const noexcept;

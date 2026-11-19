@@ -35,6 +35,7 @@
 #include "intern/dwg_table_model_ac1018_candidate.h"
 #include "intern/dwg_table_projection_ac1018_candidate.h"
 #include "dx_ac1024_byblock_material_wire.h"
+#include "dx_ac1024_material_eed_wire.h"
 #include "dx_ac1024_dictionaryvar_wire.h"
 #include "dx_ac1024_mentalray_wire.h"
 #include "dx_ac1024_mleaderstyle_wire.h"
@@ -29442,6 +29443,7 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
     if (cData == nullptr || !cData->dwgReadOutcome.attempted)
         return;
     retainAerialMaterialAppIdPublication(data);
+    retainAerialDwgGlobalMaterialEedPublication(data);
     retainAerialDwgMLeaderPublication(data);
     retainAerialDwgTableStylePublication(data);
     retainAerialDwgVisualStylePublication(data);
@@ -44790,6 +44792,116 @@ bool dx_iface::hasUnchangedDxfMaterialSources() const noexcept {
         }
         return true;
     } catch (...) { return false; }
+}
+
+void dx_iface::retainAerialDwgGlobalMaterialEedPublication(
+        const DRW_DwgFramePublication& event) noexcept {
+    if (event.m_version != DRW::AC1024 || event.m_handle != 0x98u
+        || (event.m_recordName != "MATERIAL"
+            && event.m_className != "AcDbMaterial")
+        || typeid(*this) != typeid(dx_iface) || cData == nullptr
+        || m_classEvidenceReadData != cData
+        || m_classEvidenceReadAttempt == 0u
+        || cData->m_classEvidenceOwner != this
+        || cData->m_classEvidenceAttempt != m_classEvidenceReadAttempt
+        || cData->m_classEvidenceGeneration != cData->importGeneration)
+        return;
+    auto& proof = m_dwgAerialGlobalMaterialEed;
+    if (proof.frame.generation != 0u || proof.captureFailed) {
+        proof = {};
+        proof.captureFailed = true;
+        return;
+    }
+    const bool valid = event.m_hasSourceLocation
+        && (event.m_sourceOffsetSpace == DRW_DwgFrameOffsetSpace::PhysicalFile
+            || event.m_sourceOffsetSpace
+                == DRW_DwgFrameOffsetSpace::DecodedBuffer)
+        && event.m_recordName == "MATERIAL"
+        && event.m_className == "AcDbMaterial"
+        && event.m_encodedType == 505 && event.m_resolvedType == 505
+        && !event.m_isEntity && event.m_isCustomClass
+        && event.m_carrier
+            == DRW_DwgFramePublication::Carrier::TypedAndRaw
+        && event.m_classStreamOrdinal.has_value()
+        && event.m_controlHandles.empty();
+    if (!valid) {
+        proof.captureFailed = true;
+        return;
+    }
+    try {
+        proof.owner = cData;
+        proof.frame.publication = event;
+        proof.frame.generation = cData->importGeneration;
+        proof.frame.attempt = m_classEvidenceReadAttempt;
+    } catch (...) {
+        proof = {};
+        proof.captureFailed = true;
+    }
+}
+
+void dx_iface::finishAerialDwgGlobalMaterialEedSource() noexcept {
+    auto& proof = m_dwgAerialGlobalMaterialEed;
+    if (cData == nullptr || typeid(*this) != typeid(dx_iface)
+        || proof.captureFailed || proof.owner != cData
+        || proof.frame.generation != cData->importGeneration
+        || proof.frame.attempt == 0u
+        || proof.frame.attempt != aerialMaterialAppIdClassAttempt())
+        return;
+    try {
+        const auto* material = uniqueDwgSourceRecord(cData->materials, 0x98u);
+        if (material == nullptr)
+            return;
+        const auto* raw = boundAc1024DwgClassObject(
+            *cData, 0x98u, proof.frame, nullptr);
+        if (raw == nullptr
+            || !dx_ac1024_material_eed_wire::observeGlobal(
+                *raw, *material,
+                [this](std::uint32_t handle,
+                       std::string_view name) noexcept {
+                    return hasQualifiedDwgStandardAppIdSource(handle, name);
+                }))
+            return;
+        proof.material = *material;
+        proof.body = raw->m_rawBytes;
+    } catch (...) {
+        proof.material.reset();
+        proof.body.clear();
+        proof.captureFailed = true;
+    }
+}
+
+bool dx_iface::hasQualifiedAc1024AerialGlobalMaterialEed(
+        const dx_data& data) const noexcept {
+    const auto& proof = m_dwgAerialGlobalMaterialEed;
+    if (&data != cData || typeid(*this) != typeid(dx_iface)
+        || proof.captureFailed || proof.owner != &data
+        || data.sourceFormat != dx_source_format::DWG
+        || data.sourceVersion != DRW::AC1024
+        || data.importGeneration == 0u
+        || proof.frame.generation != data.importGeneration
+        || proof.frame.attempt == 0u
+        || proof.frame.attempt != aerialMaterialAppIdClassAttempt()
+        || !proof.material || proof.body.empty()
+        || !hasQualifiedAerialMaterialAppIdSource())
+        return false;
+    try {
+        const auto* material = uniqueDwgSourceRecord(data.materials, 0x98u);
+        const auto* raw = boundAc1024DwgClassObject(
+            data, 0x98u, proof.frame, nullptr);
+        return material != nullptr && raw != nullptr
+            && proof.body == raw->m_rawBytes
+            && dxfMaterial::sameState(*proof.material, *material)
+            && standardDwgCommonEqual(*proof.material, *material,
+                                      DRW::AC1024)
+            && dx_ac1024_material_eed_wire::observeGlobal(
+                *raw, *material,
+                [this](std::uint32_t handle,
+                       std::string_view name) noexcept {
+                    return hasQualifiedDwgStandardAppIdSource(handle, name);
+                });
+    } catch (...) {
+        return false;
+    }
 }
 
 void dx_iface::retainAerialDwgByBlockMaterialPublication(const DRW_DwgFramePublication& event) noexcept {
@@ -79656,6 +79768,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
                           DRW::DxfCodePagePolicy codePagePolicy){
     m_dwgAerialMaterialAppId = {};
     m_dwgAerialMaterialAppIdControl = {};
+    m_dwgAerialGlobalMaterialEed = {};
     m_dwgLayerControlSourceProof.reset();
     m_dwgLayerControlSourceOwner = nullptr;
     m_dwgLayerControlSourceGeneration = 0u;
@@ -80271,6 +80384,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
             finishAerialDwgTableStyleSource();
             finishAerialDwgVisualStyleSource();
             finishAerialDwgByBlockMaterialSource();
+            finishAerialDwgGlobalMaterialEedSource();
         }
         if (!success) {
             std::cout << "DWG file error: format " << dwg.getVersion() << " error " << dwg.getError() << std::endl;

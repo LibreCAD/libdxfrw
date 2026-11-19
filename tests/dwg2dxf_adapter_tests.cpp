@@ -3129,6 +3129,105 @@ public:
             && qualified();
     }
 
+    static bool aerialGlobalMaterialEedSourceControls(dx_iface& iface,
+                                                       dx_data& data) {
+        iface.cData = &data;
+        const auto qualified = [&]() {
+            return iface.hasQualifiedAc1024AerialGlobalMaterialEed(data);
+        };
+        if (!qualified()) {
+            const auto& proof = iface.m_dwgAerialGlobalMaterialEed;
+            const auto material = std::find_if(data.materials.begin(),
+                data.materials.end(), [](const DRW_Material& row) {
+                    return row.handle == 0x98u;
+                });
+            const auto raw = data.m_opaqueDwgSourceFrames.find(
+                {data.importGeneration, 0x98u});
+            std::cerr << "Global MATERIAL EED source failed: owner="
+                      << (proof.owner == &data) << " generation="
+                      << proof.frame.generation << '/' << data.importGeneration
+                      << " attempt=" << proof.frame.attempt
+                      << " failed=" << proof.captureFailed
+                      << " material=" << (material != data.materials.end())
+                      << " eed=" << (material == data.materials.end()
+                          ? 0u : material->extData.size())
+                      << " raw=" << (raw != data.m_opaqueDwgSourceFrames.end())
+                      << " appid=" << iface.hasQualifiedAerialMaterialAppIdSource()
+                      << " standardAppid="
+                      << iface.hasQualifiedDwgStandardAppIdSource(0x12u, "ACAD")
+                      << '\n';
+            return false;
+        }
+        dx_iface other;
+        other.cData = &data;
+        if (other.hasQualifiedAc1024AerialGlobalMaterialEed(data))
+            return false;
+
+        const auto key = dx_data::StandardDwgFrameKey{
+            data.importGeneration, 0x98u};
+        const auto rawAt = data.m_opaqueDwgSourceFrames.find(key);
+        auto material = std::find_if(data.materials.begin(), data.materials.end(),
+            [](const DRW_Material& row) { return row.handle == 0x98u; });
+        if (rawAt == data.m_opaqueDwgSourceFrames.end()
+            || material == data.materials.end() || material->extData.size() != 7u)
+            return false;
+
+        auto& raw = rawAt->second;
+        for (std::uint32_t bit = 26u; bit < 214u; ++bit) {
+            raw.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(
+                1u << (7u - bit % 8u));
+            const bool rejected = !qualified();
+            raw.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(
+                1u << (7u - bit % 8u));
+            if (!rejected || !qualified()) {
+                std::cerr << "Global MATERIAL EED bit control failed at bit "
+                          << bit << " rejected=" << rejected << '\n';
+                return false;
+            }
+        }
+
+        DRW_Variant savedValue = *material->extData[1];
+        *material->extData[1] = DRW_Variant(1070, std::int32_t{9});
+        const bool typedValueRejected = !qualified();
+        *material->extData[1] = savedValue;
+        if (!typedValueRejected || !qualified()) {
+            std::cerr << "Global MATERIAL typed EED control failed: rejected="
+                      << typedValueRejected << '\n';
+            return false;
+        }
+
+        const auto appId = std::find_if(data.appIds.begin(), data.appIds.end(),
+            [](const DRW_AppId& row) { return row.handle == 0x12u; });
+        if (appId == data.appIds.end())
+            return false;
+        const std::string originalName = appId->name;
+        appId->name = "BROKEN";
+        const bool appIdNameRejected = !qualified();
+        appId->name = originalName;
+        if (!appIdNameRejected || !qualified()) {
+            std::cerr << "Global MATERIAL APPID name control failed: rejected="
+                      << appIdNameRejected << '\n';
+            return false;
+        }
+
+        auto& receipt = iface.m_dwgAerialGlobalMaterialEed;
+        const auto originalOffset = receipt.frame.publication.m_sourceOffset;
+        ++receipt.frame.publication.m_sourceOffset;
+        const bool publicationRejected = !qualified();
+        receipt.frame.publication.m_sourceOffset = originalOffset;
+        if (!publicationRejected || !qualified()) {
+            std::cerr << "Global MATERIAL publication control failed: rejected="
+                      << publicationRejected << '\n';
+            return false;
+        }
+
+        const bool oldFailed = receipt.captureFailed;
+        receipt.captureFailed = true;
+        const bool failedReceiptRejected = !qualified();
+        receipt.captureFailed = oldFailed;
+        return failedReceiptRejected && qualified();
+    }
+
     static bool writeAerialMaterialAppIdSourceFrames(
             const dx_iface& iface) {
         const char* prefix = std::getenv("LIBDXFRW_APPID_RESEARCH_CAPTURE");
@@ -61040,9 +61139,11 @@ bool physicalAc1024MaterialAppIdSourceCapture(
         return fail("MATERIAL APPID source witness is not an AC1024 DWG");
     if (!DxIfaceStandardDwgCaptureTestAccess::aerialMaterialAppIdSourceControls(
             reader, source)
+        || !DxIfaceStandardDwgCaptureTestAccess::aerialGlobalMaterialEedSourceControls(
+            reader, source)
         || !DxIfaceStandardDwgCaptureTestAccess::writeAerialMaterialAppIdSourceFrames(
             reader))
-        return fail("MATERIAL APPID same-import source capture controls failed");
+        return fail("MATERIAL APPID/EED same-import source capture controls failed");
     std::cerr << "AC1024 MATERIAL APPID 0x12 and APPID_CONTROL 0x09 source-frame "
                  "identity and retry controls passed.\n";
     return true;

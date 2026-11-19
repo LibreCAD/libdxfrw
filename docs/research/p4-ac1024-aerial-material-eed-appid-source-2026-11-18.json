@@ -2,7 +2,7 @@
   "schema": "libdxfrw-research-receipt-v1",
   "id": "p4-ac1024-aerial-material-eed-appid-source-2026-11-18",
   "date": "2026-11-18",
-  "status": "SOURCE_EED_APPID_PEER_CENSUS_STAGED_OUTPUT_PENDING",
+  "status": "GLOBAL_EED_SAME_IMPORT_SOURCE_BOUND_OUTPUT_STAGING_PENDING",
   "supportClaimEffect": "none",
   "source": {
     "format": "AC1024",
@@ -157,6 +157,13 @@
     "negativeControls": "PASS 1,316 individual EED-bit flips rejected, with an original-frame retry for each source record. These are scratch decoder controls, not production observer/transaction tests.",
     "otherMaterialRecords": "ByBlock 0x97 and ByLayer 0x96 have no EED in the pinned source and ODA output."
   },
+  "productionSourceBinding": {
+    "observer": "dwg2dxf/dx_ac1024_material_eed_wire.h::observeGlobal",
+    "binding": "The AC1024 Global MATERIAL frame at handle 0x98 is bound to its same-import typed frame publication and completed CLASSES attempt. Its APPID token is checked through the same-import, uniquely named ACAD APPID 0x12 proof. The independent observer checks the one 20-byte EED chunk, all six typed item codes and values, the 188-bit source span [26,214), and agreement with the seven typed variants.",
+    "adapterReceipt": "dx_iface retains the source publication, typed MATERIAL snapshot and raw frame bytes only after the source observer succeeds. Requalification requires the same adapter/data owner, import generation, joined class attempt, APPID evidence, unchanged raw frame and unchanged typed model.",
+    "focusedControls": "The existing --ac1024-material-appid-source-capture selector flips each of the 188 EED bits, changes the typed EED value, changes the APPID name, changes the bound source offset, and injects a failed capture receipt. Each mutation is refused and the corrected source is accepted again.",
+    "result": "PASS for the local existing AC1024 source and the exact Global MATERIAL EED profile only. No output, root graph, producer authentication or support claim is established."
+  },
   "scratchEvidence": {
     "root": "/private/tmp/p4-aerial-material-eed",
     "sha256": {
@@ -173,14 +180,14 @@
     "privacy": "Source frames remain in scratch; no source drawing, texture path or fixture was committed."
   },
   "nextImplementation": [
-    "Implement a bounded EED observer for the witnessed 20-byte variant with role-5 APPID and exact signed values; bind each material frame and typed model to immutable same-import publication and class evidence.",
-    "Bind APPID 0x12/ACAD through the same completed import, unique name and handle, and source name/decode receipt. The existing hasQualifiedDwgLayerStateAppId predicate provides a reusable evidence shape but also requires the LAYER_CONTROL source proof, so check that prerequisite rather than silently assuming it.",
     "At real TABLES/OBJECTS staging and finalization require one emitted APPID identity, exact EED groups and remapped roles; add original-frame/model/appid corruption, atomic destination preservation and corrected same-writer retry in ASCII/Binary.",
     "Qualify seven material bodies and descendants separately. This EED evidence does not admit a complete MATERIAL root."
   ],
   "limitations": [
     "APPID own raw body and independent source name wire are not established here.",
-    "No production source code, writer admission or output claims changed.",
+    "Only the Global MATERIAL EED profile is source-bound by production code. The other six EED-bearing MATERIALs remain at census-only evidence; this does not admit a MATERIAL root/output profile.",
+    "No writer admission or output qualification changed.",
     "ODA output and LibreDWG are external software observations; no native MATERIAL, texture or FBX semantic qualification is established."
-  ]
+  ],
+  "next": "At paired real TABLES and OBJECTS staging, require exactly one remapped APPID 0x12/ACAD row and the Global MATERIAL EED values from this retained source proof in ASCII and Binary; verify output readback, refusal, destination preservation and corrected retry. Then bind the other six EED-bearing MATERIALs without admitting the full root. Keep native producer provenance and full MATERIAL graph/output qualification open."
 }
