@@ -1228,6 +1228,7 @@ tools/research/ac1032_forum_constraint_registry_spans.py
 tools/research/acadrust_constraint_group_probe.rs
 tools/research/apply_freecad_import_candidate.py
 tools/research/audit_ac1021_field_graph.py
+tools/research/audit_ac1024_sortents_boundary.py
 tools/research/audit_ac1027_associative_constraints.py
 tools/research/audit_ac1027_source_references.py
 tools/research/audit_binary_dxf_layout_nod.py
@@ -1244,6 +1245,7 @@ tools/research/check_mpolygon_projection_ezdxf.py
 tools/research/create_ac1021_field_derivative.py
 tools/research/decode_ac1024_appid_frames.py
 tools/research/decode_dxf_sat1.py
+tools/research/dwg_ac1024_object_section_probe.cpp
 tools/research/dwg_ac1032_object_section_probe.cpp
 tools/research/freecad_acis700_sat_probe.py
 tools/research/freecad_candidate_headless_probe.py

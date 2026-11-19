@@ -168,7 +168,7 @@
     "interpretation": "All 46 byte-prefix truncation controls are refused by the exact 46-byte frame-length condition; they do not independently prove a general dynamic-length parser. The six terminal bit changes are accepted intentionally because terminal padding contents have not been qualified as semantic data. No output or retry behavior was exercised."
   },
   "adjacentFrameBoundary": {
-    "independentTraceObservation": "LibreDWG v0.14 reports object-map record 195 at trace coordinate 418479, 46-byte body, valid CRC 2AE1 for 418479\u2013418529, then its next record 196 at coordinate 418531 with type 530 and handle 0x237.",
+    "independentTraceObservation": "LibreDWG v0.14 reports object-map record 195 at trace coordinate 418479, 46-byte body, valid CRC 2AE1 for 418479–418529, then its next record 196 at coordinate 418531 with type 530 and handle 0x237.",
     "limit": "These are peer decoder coordinates/CRC statements, not independently validated source-file physical offsets. The scratch raw-frame observer checks a fixed extracted payload only and does not decode the framing prefix, CRC, object map, or the following record itself. Thus a complete independently byte-bound adjacent-frame proof is not claimed."
   },
   "otherAttempt": {
@@ -181,5 +181,64 @@
     "One exact unauthenticated AC1024 source and one opaque source frame; no broad version, class, graph, producer, native draw-order or output admission claim.",
     "The source frame itself, output, peer traces and scratch tools are uncommitted and may be ephemeral. Pseudocode and hashes above document their roles; no drawing fixture was committed.",
     "This does not validate named-block DXF schema acceptance, actual consumer ordering, unrelated dynamic-block dependencies, NOD closure, destination rollback or same-writer retries."
-  ]
+  ],
+  "decodedSectionBoundaryRecheck": {
+    "date": "2026-11-19",
+    "scope": "Bind the selected 0x236 raw body and immediately adjacent 0x237 frame to the same decoded OBJECTS section, then independently walk their prefixes and CRCs. The decoder is shared with libdxfrw.",
+    "extractor": {
+      "path": "tools/research/dwg_ac1024_object_section_probe.cpp",
+      "sha256": "18e7b1dfaae1697725d54da6491ac6aeb609d357491c1c632e1fc68e9fea08e0",
+      "compile": "c++ -std=c++17 -O0 -I src tools/research/dwg_ac1024_object_section_probe.cpp build-gcc/libdxfrw.a -o /private/tmp/p4-sundemo-object-frame/extract-tracked",
+      "command": "/private/tmp/p4-sundemo-object-frame/extract-tracked /private/tmp/libdxfrw-p4d-oda-sundemo/source/sundemo.dwg /private/tmp/p4-sundemo-object-frame/objects-tracked.bin",
+      "linked_archive_sha256": "5f2a5d816b8d0eb816defc359766ab5d974f889117a20329ad6d2172abc75f8d",
+      "binary_sha256": "c9da8306b75c52cc1cab59ed5281d7432fbcdeff58e1046de1573ff8fde7e893",
+      "result": "PASS"
+    },
+    "auditor": {
+      "path": "tools/research/audit_ac1024_sortents_boundary.py",
+      "sha256": "eb3e3ae4813cfec8a29ec4e0ae8f9cde077d10f114967144981f6812beb32f70",
+      "command": "python3 -B -O tools/research/audit_ac1024_sortents_boundary.py /private/tmp/libdxfrw-p4d-oda-sundemo/source/sundemo.dwg /private/tmp/p4-sundemo-object-frame/objects-tracked.bin /private/tmp/libdxfrw-p4d-oda-sundemo/sortents-236.bin /private/tmp/libdxfrw-p4d-oda-sundemo/sundemo-libredwg-trace.log",
+      "result": "PASS; explicit checks remain active under Python -O; rejects 10 selected frame-byte mutations and all 73 byte-prefix truncations across both frames.",
+      "output_sha256": "fd2ea55f2b924854a1e4640ce264988f49629ae0bd4b9876b5775e84201eae36",
+      "decoded_section_sha256": "8797ff454e743a063270cebdd51f669e6920157da9c1ab316c00c968bff64f7f",
+      "section_bytes": 787599,
+      "frames": [
+        {
+          "frame_start": 418479,
+          "prefix_bytes": 4,
+          "body_start": 418483,
+          "body_size": 46,
+          "handle_bits": 214,
+          "object_data_bits": 154,
+          "body_end": 418529,
+          "crc": "0x2ae1",
+          "next_frame_start": 418531,
+          "type": 529,
+          "self_handle": "0x236",
+          "body_sha256": "e7d559d47f3084d2b924e197bb7f77624d9d0456d3477d0c9bbd681b9e1c8c37"
+        },
+        {
+          "frame_start": 418531,
+          "prefix_bytes": 3,
+          "body_start": 418534,
+          "body_size": 16,
+          "handle_bits": 70,
+          "object_data_bits": 58,
+          "body_end": 418550,
+          "crc": "0x79c1",
+          "next_frame_start": 418552,
+          "type": 530,
+          "self_handle": "0x237",
+          "body_sha256": "cf29429e11fe5f7e3fed1d905a81b20f11889fa4bb743165b9a70af6f48da8b8"
+        }
+      ]
+    },
+    "interpretation": "The first body is byte-identical to the previously bound opaque frame. Its CRC, adjacent frame start, next object header/self handle and second CRC match the independent LibreDWG trace. Offsets are within the decoded section, not original-file byte offsets.",
+    "limitations": [
+      "No independent compressed-section decoder or direct physical offset mapping.",
+      "No proof of unmodeled fields in object 0x237, native draw-order semantics, named-block DXF acceptance, whole-document graph closure, output/readback, failure/retry, or producer provenance.",
+      "No DWG/DXF fixture committed."
+    ],
+    "supportClaimEffect": "none"
+  }
 }

@@ -19,7 +19,7 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-19:** 12/34 package gates closed; 22 remain. The
-implementation/research activity estimate is 196/196 tracked slices (100.0%);
+implementation/research activity estimate is 197/197 tracked slices (100.0%);
 external qualification gates remain separate and open. The latest fast-CI run
 found a stale AC1021 diagnostic-count assertion: 26 integrity rows minus 16
 retained rows means 10 omitted rows. The assertion is corrected. On digest
@@ -264,7 +264,7 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count implementation/research slices and package-gate readiness separately.
-  The activity estimate is 196 completed slices out of 196 currently counted
+  The activity estimate is 197 completed slices out of 197 currently counted
   slices (100.0%); the shared host-intake and P4-D/P6-A host-packet preparation
   slices, the P5-D packet preparation slice, and its source-release inventory
   repair are complete. Native AutoCAD builds and captures remain unqualified.
@@ -310,7 +310,12 @@ found the historical projected-output selector now refuses before writing, while
 the same-import source-graph, fallback-refusal and test-adapter writer-staging
 selectors pass. Treat the earlier production-projection result as historical;
 reconcile complete-graph admission before updating that selector or attempting
-independent readback. P6-B remains raw-only until a full-AutoCAD exact-class and
+independent readback. For the alternate sun-and-sky source, the [SORTENTSTABLE
+receipt](docs/research/p4-ac1024-sundemo-sortents-236-source-wire-2026-11-18.json)
+now binds its frame and following object to the decoded OBJECTS section and
+checks both CRCs against LibreDWG. The section decoder is shared with libdxfrw;
+named-block semantics, native acceptance and complete output remain open.
+P6-B remains raw-only until a full-AutoCAD exact-class and
 selected-path witness exists; reuse its [disposition](docs/research/p6-persubentmgr-raw-only-dxf-disposition-2026-11-18.json)
 and [creation-route screen](docs/research/p6-persubentmgr-native-api-eligibility-screen-2026-11-18.json).
 The local P8-D staged-inspector/writer slice is complete; remaining P8-D work is native GUI and consumer qualification after an accessible display is available. The [P6-H converter receipt](docs/research/p6h-oda-linux-ac1018-mline-source-2026-11-18.json) records the exact scratch-source conversion and independently compared MLINE/MLINESTYLE readback through official ODA Linux 27.10. Keep the strict whole-file refusal and the separate P8-D native GUI check.
