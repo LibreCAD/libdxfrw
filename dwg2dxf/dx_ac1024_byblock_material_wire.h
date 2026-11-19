@@ -68,19 +68,22 @@ inline bool mapper(Bits& b, Bits& strings, double blend, std::uint8_t source, co
 } // namespace detail
 inline bool observeMaterial(const DRW_UnsupportedObject& raw, const DRW_Material& m) noexcept {
     using namespace dx_raster_wire;
-    if (m.tType != DRW::MATERIAL || m.handle != 0x97u || m.parentHandle != 0x72u || !m.name.empty()
+    const bool byLayer = m.handle == 0x96u;
+    if (!byLayer && m.handle != 0x97u) return false;
+    const auto extensionHandle = byLayer ? 0x297u : 0x295u;
+    if (m.tType != DRW::MATERIAL || m.parentHandle != 0x72u || !m.name.empty()
         || m.flags != 0u || m.reactorCount() != 1 || m.reactorHandles.size() != 1u
-        || m.reactorHandles[0] != 0x72u || m.extensionDictionaryFlag() != 0u || m.xDictHandle != 0x295u
+        || m.reactorHandles[0] != 0x72u || m.extensionDictionaryFlag() != 0u || m.xDictHandle != extensionHandle
         || m.hasDataStorageBinaryData() || m.hasDwgCommonLinkTail() || !m.appData.empty()
         || !m.extData.empty() || !m.pendingAppIdResolutions.empty() || !m.pendingLayerRefResolutions.empty()
         || !m.hasCompleteDwgSemanticFields() || !m.hasDwgRawData() || m.dwgRawDataVersion() != DRW::AC1024
-        || m.dwgRawDataBitSize() != 516u || m.dwgRawData().size() != 65u || m.m_name != "ByBlock"
+        || m.dwgRawDataBitSize() != 516u || m.dwgRawData().size() != 65u || m.m_name != (byLayer ? "ByLayer" : "ByBlock")
         || !m.m_description.empty() || raw.m_version != DRW::AC1024 || raw.m_objectType != 505u
         || raw.m_handle != m.handle || raw.m_isEntity || !raw.m_isCustomClass || !raw.m_hasClassDefinition
         || raw.m_recordName != "MATERIAL" || raw.m_className != "AcDbMaterial"
         || raw.m_classAppName != "ObjectDBX Classes" || raw.m_parentHandle != 0x72u
         || raw.m_numReactors != 1 || raw.m_reactorHandles != m.reactorHandles || raw.m_xDictFlag != 0u
-        || raw.m_xDictHandle != 0x295u || raw.m_hasDataStorage || !raw.m_commonHandleDataValidated
+        || raw.m_xDictHandle != extensionHandle || raw.m_hasDataStorage || !raw.m_commonHandleDataValidated
         || !drwDwgCommonLinkEvidenceValidated(raw.m_commonLinkEvidence) || raw.m_objectSize != 96u
         || raw.m_rawBytes.size() != 96u || raw.m_bodyBitSize != 62u) {
         return false;
@@ -90,7 +93,7 @@ inline bool observeMaterial(const DRW_UnsupportedObject& raw, const DRW_Material
         return false;
     }
     const auto self = dx_raster_wire::detail::handle(b, 0u, 0u, true);
-    if (self.role != 0u || self.length != 1u || self.value != 0x97u || b.shortValue() != 0u
+    if (self.role != 0u || self.length != 1u || self.value != m.handle || b.shortValue() != 0u
         || b.longValue() != 1u || b.take(1u) != 0u || !b.good || b.pos != 39u) {
         return false;
     }
@@ -146,16 +149,17 @@ inline bool observeMaterial(const DRW_UnsupportedObject& raw, const DRW_Material
     const auto extension = detail::handle(links, 3u, m.handle);
     return links.good && owner.role == 12u && owner.length == 1u && owner.value == 0x72u
            && reactor.role == 4u && reactor.length == 1u && reactor.value == 0x72u && extension.role == 3u
-           && extension.length == 2u && extension.value == 0x295u && links.take(6u) == 63u && links.good
+           && extension.length == 2u && extension.value == extensionHandle && links.take(6u) == 63u && links.good
            && links.pos == links.end;
 }
 inline bool observeDictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& source) noexcept {
     using dx_layerstates_dwg_wire::LinkKind;
     const bool root = source.handle == 0x72u;
-    if (!root && source.handle != 0x295u) {
+    const bool byLayer = source.handle == 0x297u;
+    if (!root && !byLayer && source.handle != 0x295u) {
         return false;
     }
-    const std::uint32_t owner = root ? 0xcu : 0x97u;
+    const std::uint32_t owner = root ? 0xcu : (byLayer ? 0x96u : 0x97u);
     if (source.tType != DRW::DICTIONARY || source.parentHandle != owner || !source.name.empty()
         || source.flags != 0u || source.reactorCount() != (root ? 1 : 0)
         || source.reactorHandles.size() != (root ? 1u : 0u) || (root && source.reactorHandles[0] != owner)
@@ -176,7 +180,7 @@ inline bool observeDictionary(const DRW_UnsupportedObject& raw, const DRW_Dictio
                                              0x32eu, 0x2d6u, 0x2e0u, 0x2eau};
     for (std::size_t i = 0; i < source.m_entries.size(); ++i) {
         const auto& e = source.m_entries[i];
-        if (e.m_name != (root ? names[i] : "FBXASSET") || e.m_handle != (root ? targets[i] : 0x296u)
+        if (e.m_name != (root ? names[i] : "FBXASSET") || e.m_handle != (root ? targets[i] : (byLayer ? 0x298u : 0x296u))
             || e.m_dxfHandleCode != DRW_Dictionary::Entry::DxfHandleCode::Unspecified) {
             return false;
         }
@@ -193,9 +197,15 @@ inline bool observeDictionary(const DRW_UnsupportedObject& raw, const DRW_Dictio
 }
 inline bool observeXRecord(const DRW_UnsupportedObject& raw, const DRW_XRecord& source) noexcept {
     using namespace dx_raster_wire;
-    if (source.tType != DRW::XRECORD || source.handle != 0x296u || source.parentHandle != 0x295u
+    const bool byLayer = source.handle == 0x298u;
+    if (!byLayer && source.handle != 0x296u) return false;
+    const auto extensionHandle = byLayer ? 0x297u : 0x295u;
+    const std::uint32_t size = byLayer ? 24613u : 24611u;
+    const std::uint32_t payloadEnd = byLayer ? 196857u : 196841u;
+    const std::uint32_t handleStart = byLayer ? 196868u : 196852u;
+    if (source.tType != DRW::XRECORD || source.parentHandle != extensionHandle
         || !source.name.empty() || source.flags != 0u || source.reactorCount() != 1
-        || source.reactorHandles.size() != 1u || source.reactorHandles[0] != 0x295u
+        || source.reactorHandles.size() != 1u || source.reactorHandles[0] != extensionHandle
         || source.extensionDictionaryFlag() != 1u || source.xDictHandle != 0u
         || source.hasDataStorageBinaryData() || !source.hasDwgCommonLinkTail() || !source.appData.empty()
         || !source.extData.empty() || !source.pendingAppIdResolutions.empty()
@@ -205,23 +215,23 @@ inline bool observeXRecord(const DRW_UnsupportedObject& raw, const DRW_XRecord& 
         || source.m_dataEntries.size() != 193u || raw.m_version != DRW::AC1024 || raw.m_objectType != 79u
         || raw.m_handle != source.handle || raw.m_isEntity || raw.m_isCustomClass
         || raw.m_hasClassDefinition || !raw.m_recordName.empty() || !raw.m_className.empty()
-        || !raw.m_classAppName.empty() || raw.m_parentHandle != 0x295u || raw.m_numReactors != 1
+        || !raw.m_classAppName.empty() || raw.m_parentHandle != extensionHandle || raw.m_numReactors != 1
         || raw.m_reactorHandles != source.reactorHandles || raw.m_xDictFlag != 1u || raw.m_xDictHandle != 0u
         || raw.m_hasDataStorage || !raw.m_commonHandleDataValidated
-        || !drwDwgCommonLinkEvidenceValidated(raw.m_commonLinkEvidence) || raw.m_objectSize != 24611u
-        || raw.m_rawBytes.size() != 24611u || raw.m_bodyBitSize != 36u) {
+        || !drwDwgCommonLinkEvidenceValidated(raw.m_commonLinkEvidence) || raw.m_objectSize != size
+        || raw.m_rawBytes.size() != size || raw.m_bodyBitSize != 36u) {
         return false;
     }
-    detail::Bits body{raw.m_rawBytes.data(), 0u, 196852u};
+    detail::Bits body{raw.m_rawBytes.data(), 0u, handleStart};
     if (body.take(2u) != 0u || body.take(8u) != 79u) {
         return false;
     }
     const auto self = detail::handle(body, 0u, 0u, true);
-    if (self.role != 0u || self.length != 2u || self.value != 0x296u || body.shortValue() != 0u
-        || body.longValue() != 1u || body.take(1u) != 1u || body.longValue() != 24595u || body.pos != 81u) {
+    if (self.role != 0u || self.length != 2u || self.value != source.handle || body.shortValue() != 0u
+        || body.longValue() != 1u || body.take(1u) != 1u || body.longValue() != (byLayer ? 24597u : 24595u) || body.pos != 81u) {
         return false;
     }
-    detail::Bits payload{raw.m_rawBytes.data(), 81u, 196841u};
+    detail::Bits payload{raw.m_rawBytes.data(), 81u, payloadEnd};
     const auto clean = [](const DRW_Variant& v) noexcept {
         return !v.dwgCmColorValue() && !v.isLayerRef() && !v.rawDwgLayerReference();
     };
@@ -252,7 +262,7 @@ inline bool observeXRecord(const DRW_UnsupportedObject& raw, const DRW_XRecord& 
                 }
             }
         } else {
-            const std::size_t length = i == 192u ? 62u : 127u;
+            const std::size_t length = i == 192u ? (byLayer ? 64u : 62u) : 127u;
             if (a.type() != DRW_Variant::BINARY || b.type() != DRW_Variant::BINARY || !a.binary()
                 || !b.binary() || a.binary()->size() != length || b.binary()->size() != length
                 || payload.take(8u) != length) {
@@ -271,15 +281,15 @@ inline bool observeXRecord(const DRW_UnsupportedObject& raw, const DRW_XRecord& 
     if (!payload.good || payload.pos != payload.end) {
         return false;
     }
-    body.pos = 196841u;
+    body.pos = payloadEnd;
     if (body.shortValue() != 1u || body.take(1u) != 0u || !body.good || body.pos != body.end) {
         return false;
     }
-    detail::Bits links{raw.m_rawBytes.data(), 196852u, 196888u};
+    detail::Bits links{raw.m_rawBytes.data(), handleStart, size * 8u};
     const auto owner = detail::handle(links, 4u, source.handle);
     const auto reactor = detail::handle(links, 4u, source.handle);
-    return links.good && owner.role == 8u && owner.length == 0u && owner.value == 0x295u
-           && reactor.role == 4u && reactor.length == 2u && reactor.value == 0x295u && links.take(4u) == 15u
+    return links.good && owner.role == 8u && owner.length == 0u && owner.value == extensionHandle
+           && reactor.role == 4u && reactor.length == 2u && reactor.value == extensionHandle && links.take(4u) == 15u
            && links.good && links.pos == links.end;
 }
 } // namespace dx_ac1024_byblock_material_wire

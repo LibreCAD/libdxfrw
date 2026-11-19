@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-bylayer-material-source-output-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SELECTED_BYLAYER_MATERIAL_FBXASSET_SOURCE_AND_STAGED_GRAPH_VERIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "basis": "docs/research/p4-ac1024-aerial-default-material-neighbors-2026-11-18.json",
+    "frames": {
+      "0x72": {"bytes": 272, "sha256": "6a20e00498234966e6d6a44f9d7f5d83bf9b7f192e8e45b3bdd9c9ab5f029f54"},
+      "0x96": {"bytes": 96, "sha256": "d4d2d81e5b9ec70575ab97f1dcf55a27e897d2f42524c418fbe46b2989beb576"},
+      "0x297": {"bytes": 33, "sha256": "c0976668b1daffef5098f7c98f8ec04912a816a6fcf18e37217b13a64a8bc971"},
+      "0x298": {"bytes": 24613, "sha256": "59d3594ee546e4fa61087b2171599311d2375662fa7a1e877860136add231d98"}
+    },
+    "scope": "The selected one-member graph is the ByLayer branch of the nine-member ACAD_MATERIAL dictionary: 0xC → 0x72 → 0x96 → 0x297 → 0x298. The XRECORD has 193 ordered entries, 189 binary chunks totaling 23,940 bytes.",
+    "class": "The original same-import class evidence binds MATERIAL / AcDbMaterial / ObjectDBX Classes and one selected output instance.",
+    "chunkConcatSha256": "bfe20bb6a59973251950a7c93e9d58557ece6f770ded9a22b83464804a41fab1"
+  },
+  "transaction": {
+    "sourceBinding": "Same import generation, original MATERIAL publication, the complete root and extension dictionary memberships, all four distinct source frames, and immutable copies of the selected bodies.",
+    "projection": "The original nine-member dictionary remains intact for the import. The selected output projection emits only ByLayer and FBXASSET while preserving the original typed source objects.",
+    "inspection": "The staged OBJECTS proof checks remapped NOD and material owners, the FBXASSET dictionary role, XRECORD owner/reactor fields, the selected CLASS instance, all 143 typed MATERIAL body fields and all 193 ordered XRECORD entries.",
+    "limits": "This selected graph does not qualify the full nine-member MATERIAL dictionary, the Global EED path, native material appearance, textures, FBX interpretation, or full drawing export."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j 4",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-selected-bylayer-material-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "controls": "Nine seeded-destination fault/refusal controls per ASCII and Binary. Every restored same-codec retry succeeds. The adjacent selected ByBlock profile also passes nine controls in each encoding.",
+    "independentReadback": "ezdxf 1.4.5 reopens both selected outputs and checks the remapped NOD→ByLayer MATERIAL→FBXASSET graph, exact ordered body groups, all 143 material fields, all 193 XRECORD entries and all 189 binary chunk boundaries and bytes against the pinned peer and ODA DXF.",
+    "scratchRoot": "/private/tmp/p4-aerial-material-census",
+    "sha256": {
+      "selectorLog": "539a8e31171d23c6d2d7237df844262264867d87fbfac32904efcf6ae6f483b7",
+      "readbackScript": "28ffc67ea58271458ac845cd13944e38bf837113568924a2cdc92996a1c8c2f1",
+      "readbackLog": "e87fce17cb68012c14c26fc93a9b3a63300c75e88d6ff650b85b32e888e2f10a",
+      "asciiDxf": "464d8ce02e7a8c47dc51ad3c714297731a8677bdcc3edb5486921a62ee4d947b",
+      "binaryDxf": "f1d9987c74bffe5e45677b887dc676ab4bf40848a0a4e9c8e0f01b792a5b6ce7"
+    }
+  },
+  "next": "Capture original APPID_CONTROL 0x9 and APPID 0x12 publication and raw frames as immutable same-import evidence. Then source-bind Global's EED and stage its APPID row and values. Batch the remaining TILE and FBXASSET branches while retaining native appearance and complete root gates."
+}

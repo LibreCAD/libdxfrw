@@ -4599,14 +4599,15 @@ private:
         std::array<std::vector<std::uint8_t>, 4> bodies;
     };
     AerialDwgByBlockMaterialSource m_dwgAerialByBlockMaterial;
+    AerialDwgByBlockMaterialSource m_dwgAerialByLayerMaterial;
     bool m_dwgAerialByBlockMaterialInspected{false};
     void retainAerialDwgByBlockMaterialPublication(const DRW_DwgFramePublication&) noexcept;
     void finishAerialDwgByBlockMaterialSource() noexcept;
-    bool requiresAc1024AerialDwgByBlockMaterialProof(const dx_data&) const noexcept;
+    bool requiresAc1024AerialDwgByBlockMaterialProof(const dx_data&, std::uint32_t materialHandle = 0x97u) const noexcept;
     std::array<const DRW_UnsupportedObject*, 4> boundAerialDwgByBlockMaterialFrames(
         const dx_data&, const DRW_Material&, DRW_Class*) const;
     bool hasQualifiedAc1024AerialDwgByBlockMaterial(const dx_data&,
-        DRW_Class* outputClass = nullptr) const noexcept;
+        DRW_Class* outputClass = nullptr, std::uint32_t materialHandle = 0x97u) const noexcept;
     bool inspectAc1024AerialDwgByBlockMaterial(const dxfRW::DxfObjectsWriteView&) noexcept;
     bool finalizeAc1024AerialDwgByBlockMaterial() const noexcept;
     struct DxfHeaderMaterialState {
