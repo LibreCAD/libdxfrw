@@ -19,8 +19,9 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-19:** 12/34 package gates closed; 22 remain. The
-implementation/research activity estimate is 198/198 tracked slices (100.0%);
-external qualification gates remain separate and open. The latest fast-CI run
+historical activity count records 198 completed implementation/research
+slices; the number of remaining slices is not yet known, so it cannot support
+a completion percentage. Gate readiness is 12/34 (35.3%). The latest fast-CI run
 found a stale AC1021 diagnostic-count assertion: 26 integrity rows minus 16
 retained rows means 10 omitted rows. The assertion is corrected. On digest
 `482f6cff10cc1735ea3cea4c6b4e319e8ff27bacb82a93752884ef44ff96a086`, fast CI
@@ -54,8 +55,7 @@ that Model-space active viewport references use `AcDbViewportTableRecord`
 while paper-space references use `AcDbViewport`, matching the source and both
 output encodings. P4-D now waits for native reopen and semantic/consumer
 qualification through the remote host. Package-gate readiness
-is tracked separately at 12/34 (35.3%); activity progress does not imply
-support qualification. The
+is tracked at 12/34 (35.3%); this count does not imply support qualification. The
 latest
 P8-D compatibility slice restores the
 historical DIMASSOC OSNAP aggregate prefix and completes the deprecated `dwgR`
@@ -127,7 +127,7 @@ integration without enabling output. The [source context and observers slice](do
 The earlier `05e7cb33` digest passed the recorded Linux/Windows [package
 profiles](docs/research/p8a-1aeca-linux-windows-package-qualification-2026-11-18.json)
 and a clean local [macOS package profile](docs/research/p8a-macos-package-05e7-source-matched-2026-11-18.json), closing P8-A for those configurations. The pinned generated FreeCAD profile passed on [Linux](docs/research/p8-25c60980-freecad-linux-qualification-2026-11-18.json) and [Windows](docs/research/p8-25c60980-freecad-windows-qualification-2026-11-18.json), closing P8-B/C for those profiles. A [current LibreCAD master filter compile/link probe](docs/research/p8-librecad-master-7396-current-shared-filter-check-2026-11-18.json) and a [patched LibreCAD_3 candidate load smoke](docs/research/p8-librecad3-05e7-patched-persistence-load-2026-11-18.json) pass against the current shared library; neither is GUI or drawing qualification. The upstream fast and all three hosted focused-native jobs passed on that digest. The [event-specific ref verifier](docs/research/p8f-github-event-ref-binding-2026-11-18.json) verified the three sealed receipts live before the PR ref advanced. The [upstream fast and three focused-native results](docs/research/p8f-71fd-upstream-native-replay-2026-11-18.json) passed for digest `4d054a40`. Live replay verified all three artifacts and the tested PR merge ref. The [upstream fast and focused-native replay](docs/research/p8f-1174-upstream-native-replay-2026-11-18.json) closed P8-F for digest `2243acdf`. The [one-reactor implementation replay](docs/research/p8f-08d32-upstream-native-replay-2026-11-18.json) closed P8-F for digest `70583336` with green upstream fast CI and three authenticated native receipts. The [empty-dictionary implementation replay](docs/research/p8f-ea87-upstream-native-replay-2026-11-18.json) verified the upstream fast and three focused-native jobs for digest `72ac2942`. The [MLINESTYLE implementation replay](docs/research/p8f-d28d-upstream-native-replay-2026-11-18.json) verified fast CI and all three focused-native jobs for `6d8f5978`. The subsequent DICTIONARYVAR digest `58bc2fe0` passed [fast CI](https://github.com/LibreCAD/libdxfrw/actions/runs/44415744067) and all [three authenticated focused-native checks](docs/research/p8f-5003-upstream-native-replay-2026-11-18.json). The RENDERGLOBAL digest `577e1880` passed fast CI and all three [authenticated focused-native checks](docs/research/p8f-9bbb-upstream-native-replay-2026-11-18.json). The three-render writer digest `bb023275` passed fast CI and all three [authenticated focused-native checks](docs/research/p8f-a8e3261-upstream-native-replay-2026-11-18.json). Gate readiness was 32.4% before P8-F closed and is now 35.3%;
-activity progress does not imply drawing support. The broad native suite and
+gate readiness does not imply drawing support. The broad native suite and
 extended fuzz lane remain for the frozen integration pass.
 
 The user has identified a remote ObjectARX host as available. Its AutoCAD
@@ -270,10 +270,11 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count implementation/research slices and package-gate readiness separately.
-  The activity estimate is 198 completed slices out of 198 currently counted
-  slices (100.0%); the shared host-intake and P4-D/P6-A host-packet preparation
-  slices, the P5-D packet preparation slice, and its source-release inventory
-  repair are complete. Native AutoCAD builds and captures remain unqualified.
+  The historical ledger records 198 completed slices. Remaining work cannot be
+  counted accurately as slices until the external source profiles are known;
+  do not divide by only the completed slices or present 100% as completion.
+  The 22 open gates are not interchangeable with slices and can require several
+  slices each. Native AutoCAD builds and captures remain unqualified.
   Use the [P4-D observer packet](tools/research/P4D_LAYOUT_REOPEN_README.md),
   [P5-D witness packet](tools/research/P5D_AC1024_TABLE_WITNESS_README.md),
   and [P6-A witness packet](tools/research/P6A_IMAGEDEF_WITNESS_README.md)
@@ -284,9 +285,10 @@ producer wire evidence or 3D semantic proof.
   Gate readiness is 12/34 (35.3%), with 22 gates open. The Linux and Windows
   FreeCAD results cover only their exact generated profile and binary;
   GUI outcomes remain in P8-D. A partial
-  implementation slice earns activity progress but does not close its package
-  gate. After each committed slice or gate transition, recount both activity
-  progress and gate readiness.
+  implementation slice does not close its package gate by itself. After each
+  committed slice or gate transition, update the activity ledger and recount
+  gate readiness. Publish a slice-based completion estimate only when the
+  remaining slices have been enumerated with a defensible scope.
 
 Keep claims closed under [the support policy](docs/UPGRADE_SUPPORT.md),
 [route matrix](metadata/support-matrix-v1.json),
