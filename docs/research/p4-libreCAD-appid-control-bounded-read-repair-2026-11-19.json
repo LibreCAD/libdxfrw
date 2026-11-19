@@ -81,6 +81,10 @@
     {
       "command": "cmake --build build --config Release --parallel 2 --target dwg2dxf; python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build/dwg2dxf/dwg2dxf --historical-ac1021-only",
       "result": "PASS after correcting the expected extractionOmitted value from 9 to 10. The exact tracked AC1021 strict-refusal control still checks all four role rows, the separate LTYPE role error, strict-complete refusal, and destination/source preservation. No fixture changed."
+    },
+    {
+      "command": "GitHub Actions focused-native run 44564025121 and fast parity run 44564025101 on PR head ea9e22c1336f05caf1db280843431ab631665e52; checked-out merge 3a3eabcfd0e52d69c0cd21f4d09dae8aa402bf62; implementation digest 482f6cff10cc1735ea3cea4c6b4e319e8ff27bacb82a93752884ef44ff96a086",
+      "result": "Fast CI passed all 45 required CTests (one platform-locale case skipped by design); dwg2dxf_cli_contract passed. Linux and Windows focused-native each passed 7/7 tests with receipt sealing, upload and post-upload enforcement. Receipt hashes: Linux 955d377e9b867ef17e7777a2bde52a50ea9efdaed1b029d1dae2572ab66e733c; Windows 0685a9878a95c34fca97b971166390ac3d89500c09442b00046e1fcab2c38a90. Artifact IDs/digests: Linux 14549669990 / 52e91c4a404baf3529d505ade5be4da8684207862513bccea3b87d1ff910234f; Windows 14550314485 / 311953a148a2fb123fd2d30ea1dddf1cdcc4fcaffbd00412c4fc371ea4b72243. The macOS job was cancelled while queued, so the native workflow concluded failure despite the other platform passes. The GitHub integration denied a single-job rerun with HTTP 403 (Resource not accessible by integration). Retain P8-F until a fresh exact-digest native run passes macOS too; no code or claim issue was observed."
     }
   ],
   "implementation": {
@@ -106,7 +110,7 @@
     "behavior": "Use the normal boundary-checked AC1027 APPID_CONTROL count and valid absent-string footer first. Only when that exact interpretation fails, admit the narrow historical BS profile and report unclaimed object-data bits as an integrity error; the historical AC1027 173-bit suffix remains strict-output-blocking."
   },
   "remaining": [
-    "Run fresh fast and focused-native CI against digest 482f6cff10cc1735ea3cea4c6b4e319e8ff27bacb82a93752884ef44ff96a086 after the historical AC1021 assertion repair.",
+    "Fast CI and Linux/Windows focused-native passed on digest 482f6cff10cc1735ea3cea4c6b4e319e8ff27bacb82a93752884ef44ff96a086, but macOS was cancelled while queued. A single-job rerun was rejected with HTTP 403; retrigger the focused matrix through the authorized PR branch update and require macOS receipt enforcement before closing P8-F.",
     "Keep remote ObjectARX producer and native consumer gates open until the host product/build, Windows version, SDK/toolchain and artifact-return route are recorded and their exact witness packets run.",
     "Do not promote DWG/DXF support claims from this compatibility repair or its parser tests."
   ]
