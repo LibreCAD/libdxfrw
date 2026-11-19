@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-tablestyle-source-boundary-2026-11-18",
+  "date": "2026-11-18",
+  "status": "DICTIONARY_WIRE_VERIFIED_TABLESTYLE_REPEATED_CELL_PREFIX_OBSERVED",
+  "supportClaimEffect": "none",
+  "source": {
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "adapterHead": "34eab33767fb32f6c8661b7a4321b8abc253c638",
+    "scope": "AC1024 aerial NOD C, dictionary 86, TABLESTYLE 87 and its empty extension dictionary 238.",
+    "peerJsonSha256": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832",
+    "peerTraceSha256": "9bead9945a7e9b78c541e73d9ab4c0fe461c8e3ba4105e95bcd3103fe7f9603c",
+    "layoutReference": "ODA DWG v5.4.1 sections 20.1, 20.4.44 and 20.4.101.2–.4"
+  },
+  "frames": [
+    {
+      "handle": "86",
+      "bytes": 34,
+      "sha256": "22784350f16cdb2059d1dabf95ab06c9201335fe14ed5083c58470dd11ab903c",
+      "body": "Scalars [0,67); UTF-16 Standard [67,205); footer [205,222).",
+      "handleStream": "Owner and reactor H(4,1,C); Standard item H(2,1,87); exact terminal bits 11."
+    },
+    {
+      "handle": "238",
+      "bytes": 10,
+      "sha256": "7ef4ca99a9a06670fb0fd06282a714665ccf5b1811d022b78da48090e8b6669a",
+      "body": "Empty dictionary body [0,59); absent-string bit [59,60); hardOwner 1; zero reactors.",
+      "handleStream": "Owner H(4,1,87); exact terminal bits 1111."
+    },
+    {
+      "handle": "87",
+      "bytes": 837,
+      "sha256": "fe042e8776e3ab819db111ee0d577f7154f967d56e5a23f675f2bf8da1f8907b",
+      "body": "Scalars [0,5867); detached strings [5867,6421); footer [6421,6438). First TABLE cell reaches bit 737, including ID [717,727) and class [727,737). Repeat count 3 occupies [737,747).",
+      "handleStream": "258 bits begin at 6438; common owner H(8,0) resolves to 86, reactor H(4,1,86), extension H(3,2,238). First table-cell format handle H(5,0,0) occupies [6494,6502); the first override STYLE handle H(5,1,11) is at [6502,6518). A terminal 11 is observed at [6694,6696); remaining role assignments are open."
+    }
+  ],
+  "discriminator": "Reading the first repeated cell directly at 747 as described by ODA gives type 1 and invalid data flags 5. The physical stream instead has a leading BL=1 at [747,757), then type BL=5 at [757,767) and data flags BS=1 at [767,777). LibreDWG reports this first prefix as unknown_bl3=1. The current parser reads a prefix. Its meaning and the subsequent two cell/border bodies still need proof.",
+  "outputGap": "The current AC1024 staged TABLESTYLE inspector checks only that the body is nonempty. An independent ODA conversion writes an extension dictionary 36A with canonical CELLSTYLEMAP 36B in place of the original empty extension dictionary 238. Establish a lossless target graph mapping before admitting selected output. The generic inspection decoder also bypasses finalizeDxfNestedStyles(). For the staged proof, use a TABLESTYLE decoder that finalizes the nested parser and compare the versioned cells, borders and remapped STYLE/LTYPE roles after documented output normalization.",
+  "validation": {
+    "commands": [
+      "python3 -B /private/tmp/p4-aerial-tablestyle-wire/verify.py",
+      "python3 -B /private/tmp/p4-aerial-tablestyle-wire/trace_first.py"
+    ],
+    "result": "Full bounds, body/footer and roles independently checked for both dictionaries. All 352 single-bit mutations refused, plus truncation and append with restored retries. First TABLE cell and first repeated prefix checked independently. No source or staged gate for the full 87 frame closed.",
+    "scratchRoot": "/private/tmp/p4-aerial-tablestyle-wire",
+    "sha256": {
+      "capture.cpp": "d4cf752c376442b8f5336d5c0b2e325f25c7700b9e21c84120615e2724d87683",
+      "capture.log": "066cdf21fdecec66a0cc75a0d209abb7de13991b2508d80138dfa8216e686f4b",
+      "aerial.frames": "49e4bbc4ac654883c7421bc62f5d3f30c73e822416243dd36d01f53a5c360124",
+      "verify.py": "8d8089bee09747bcd1402fed5d3c9e6a706150592a5741972a1bfcf6199eca46",
+      "verify.log": "a911e6d39cba033e4f31764eaec5fe266ec17406542ca7470968b0fb947eacbe",
+      "spans.json": "c8718af944c70f007e0bcfaaded1fc9a90bd132e8061188fba0cfa5fb4bdae30",
+      "trace_first.py": "c7ecefac81e5db25f0c9dbbdb2026cc323ac3361a3f68f6b3707fff603551d33",
+      "trace_first.log": "0acee87ce66717075fb321eb989680ff367a1ac55a93610322bea6131bb468dc",
+      "first-cell-spans.json": "bbdbe88f002dcef3febbdac548539ea559a227d0051cc3abded418a4f741c80e"
+    }
+  }
+}
