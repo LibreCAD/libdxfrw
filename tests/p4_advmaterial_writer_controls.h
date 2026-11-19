@@ -2119,8 +2119,8 @@ bool physicalAc1024CompleteMaterialRootWriter(
     for (const bool binary : {false, true}) {
         if (!write(DRW::AC1024, binary) || !readback())
             return fail("complete MATERIAL root ASCII/Binary output or readback failed");
-        for (const auto request : {std::pair<std::uint32_t, int>{0x2ECu, 460},
-                                   {0x2EDu, 70}, {0x2EFu, 270}, {0x2EEu, 420}}) {
+        for (const auto& request : {std::pair<std::uint32_t, int>{0x2ECu, 460},
+                                    {0x2EDu, 70}, {0x2EFu, 270}, {0x2EEu, 420}}) {
             auto record = findHandle(source.xRecords, request.first);
             if (record == source.xRecords.end())
                 return fail("complete MATERIAL root mutation record is missing");
