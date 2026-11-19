@@ -158,6 +158,26 @@ bool hasRoleMismatch(const dx_data& data, DwgIntegrityCheckKind kind,
     return false;
 }
 
+bool hasUnclaimedAppIdControlData(const dx_data& data) {
+    const auto& integrity = data.dwgReadOutcome.observations.integrity;
+    for (std::size_t index = 0;
+         index < std::min(integrity.retained, integrity.rows.size()); ++index) {
+        const DwgReadIntegrityObservation& row = integrity.rows[index];
+        if (row.kind != DwgIntegrityCheckKind::TableControlUnclaimedData
+            || row.severity != DwgIntegritySeverity::Error
+            || !row.hasExpected || !row.hasObserved || row.expected != 0u
+            || row.observed == 0u
+            || row.sectionName.length != sizeof("APPID_CONTROL") - 1u)
+            continue;
+        const std::string name(
+            reinterpret_cast<const char*>(row.sectionName.bytes.data()),
+            row.sectionName.length);
+        if (name == "APPID_CONTROL")
+            return true;
+    }
+    return false;
+}
+
 bool hasHistoricalAc1021BlockBodyRoles(const dx_data& data) {
     const DRW_Block_Record* source = nullptr;
     for (const DRW_Block_Record& record : data.blockRecords) {
@@ -230,6 +250,10 @@ void testOrdinaryEncoding(TestContext& t, const char* name,
                  "historical ENC LTYPE member roles remain diagnostic");
         t.expect(hasControlRoleDiagnostic(data, "BLOCK_CONTROL"),
                  "historical ENC BLOCK member roles remain diagnostic");
+    }
+    if (data.sourceVersion == DRW::AC1027) {
+        t.expect(hasUnclaimedAppIdControlData(data),
+                 "historical AC1027 APPID_CONTROL suffix remains an output-blocking integrity error");
     }
     if (data.sourceVersion == DRW::AC1021) {
         t.expect(hasHistoricalAc1021BlockBodyRoles(data),

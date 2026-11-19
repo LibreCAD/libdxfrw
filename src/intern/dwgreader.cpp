@@ -9258,6 +9258,15 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
     DRW_DBG("\n");
     DRW_ObjControl appIdControl;
     ret2 = parseControl(oc, kAppIdTable, appIdControl);
+    if (ret2 && appIdControl.historicalAppIdControlRead
+        && appIdControl.unclaimedObjectDataBits != 0u) {
+      recordIntegrityDiagnostic(
+          DwgIntegritySeverity::Error, offsetSpace,
+          DwgIntegrityPhase::SectionParser,
+          DwgIntegrityCheckKind::TableControlUnclaimedData, secEnum::OBJECTS,
+          -1, "APPID_CONTROL", 0u, false, oc.loc, true, oc.handle, true,
+          0u, appIdControl.unclaimedObjectDataBits, true);
+    }
     ret2 = ret2 && claimControlHandles(appIdControl);
     ret2 = ret2 && stageControlReceipt(oc, kAppIdTable, appIdControl);
     if (!ret2) {
@@ -15992,6 +16001,20 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       version == DRW::AC1021 && oType == DRW::DwgLTypeControlObjectType
       && handle == DRW::DwgLtypeControlHandle && objSize == totalBits
       && xDictFlag == 0 && numReactors == 0 && extData.empty();
+  // Historical LibreCAD ENC fixtures carry APPID_CONTROL data in bounded
+  // frames whose declared object-data size does not match the modern strict
+  // count boundary. Keep the fallback limited to the known root control and
+  // its empty common prefix; strict output receives an unclaimed-data error.
+  const bool historicalAppIdControlProfile =
+      oType == DRW::DwgAppIdControlObjectType
+      && handle == DRW::DwgAppIdControlHandle
+      && (version == DRW::AC1021 || version == DRW::AC1027)
+      && numReactors == 0 && xDictFlag == 0 && extData.empty()
+      && !hasDataStorageBinaryData()
+      && ((version == DRW::AC1021 && objSize == totalBits)
+          || (version == DRW::AC1027 && objSize != 0
+              && objSize < totalBits && bs == totalBits - objSize));
+  bool usedHistoricalAppIdControlProfile = false;
   if (version > DRW::AC1021) {
     const std::uint64_t totalBits =
         static_cast<std::uint64_t>(buf->size()) * 8u;
@@ -16031,7 +16054,14 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       oType == DRW::DwgAppIdControlObjectType && objSize != 0
       && (version == DRW::AC1024 || version == DRW::AC1027
           || version == DRW::AC1032);
-  if (boundaryCheckedLtype || boundaryCheckedAppId) {
+  if (historicalAppIdControlProfile) {
+    // Preserve the pre-boundary-check reader for the identified LibreCAD
+    // source profile. The count and each H remain frame-bounded; any object
+    // data not explained by the fields we consume is reported below and
+    // keeps strict output closed.
+    countRead = readControlBitShort(*buf, bodyEndBit, rawNumEntries);
+    usedHistoricalAppIdControlProfile = countRead;
+  } else if (boundaryCheckedLtype || boundaryCheckedAppId) {
     // ODA §20.4.57 specifies BL. The previous writer used BS; extended
     // forms are accepted only when their complete fixed writer graph agrees.
     const bool detached = version > DRW::AC1021
@@ -16357,7 +16387,7 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
     bool stringBit = false;
     if (!readControlBit(*buf, bodyEndBit, stringBit)
         || ((legacyR2007InlineBlockControl || boundaryCheckedLtype
-             || boundaryCheckedAppId)
+             || boundaryCheckedAppId || usedHistoricalAppIdControlProfile)
             && stringBit))
       return fail();
     DRW_DBG(" string bit for  v2007+: ");
@@ -16521,6 +16551,16 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
     }
     if (!hBuf->isGood())
       return fail();
+  }
+  if (usedHistoricalAppIdControlProfile) {
+    std::uint64_t dataEndBit = 0;
+    if (!controlCurrentBit(*buf, dataEndBit) || dataEndBit > bodyEndBit
+        || bodyEndBit - dataEndBit
+               > std::numeric_limits<std::uint32_t>::max())
+      return fail();
+    historicalAppIdControlRead = true;
+    unclaimedObjectDataBits = static_cast<std::uint32_t>(
+        bodyEndBit - dataEndBit);
   }
   handlesList = std::move(parsedHandles);
   phantomHandles = std::move(parsedPhantoms);

@@ -1128,6 +1128,8 @@ public:
     phantomHandles.clear();
     orderedHandleSlots.clear();
     orderedHandleRoles.clear();
+    historicalAppIdControlRead = false;
+    unclaimedObjectDataBits = 0;
   }
   bool parseDwg(DRW::Version version, dwgBuffer *buf,
                 std::uint32_t bs = 0) override;
@@ -1139,6 +1141,11 @@ public:
   // Original four-bit H codes for orderedHandleSlots. Offset references are
   // normalized in dwgHandle::code, so retain rawCode for source graph checks.
   std::vector<std::uint8_t> orderedHandleRoles;
+  // Narrow tolerant read profile for historical LibreCAD APPID_CONTROL
+  // frames. Any object-data bits left outside the understood fields are
+  // surfaced as an integrity error by readDwgTables.
+  bool historicalAppIdControlRead{false};
+  std::uint32_t unclaimedObjectDataBits{0};
 };
 
 class DwgCodePageTestAccess;

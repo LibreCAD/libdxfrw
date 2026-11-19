@@ -200,7 +200,11 @@ enum class DwgIntegrityCheckKind : std::uint8_t {
     /// A legacy AC1021 BLOCK_HEADER-to-BLOCK handle uses a soft pointer where
     /// the ODA role is hard ownership. It is retained for tolerant reading but
     /// remains a strict-output integrity error.
-    BlockRecordBodyHandleRole
+    BlockRecordBodyHandleRole,
+    /// A bounded historical table-control object contains data bits after its
+    /// understood count/flags. The read is retained for compatibility, while
+    /// strict output remains refused until those bits have a source profile.
+    TableControlUnclaimedData
 };
 
 /// Version of the field and enum contract carried by DwgIntegrityDiagnostic.
