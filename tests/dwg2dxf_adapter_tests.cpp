@@ -9950,10 +9950,28 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
             const auto source = dx_iface::plotStyleSourceReport(data);
             if (dx_iface::identitySourceReport(data).state != dx_iface::IdentitySourceState::NotCaptured
                 || dx_iface::structuralSourceReport(data).state != dx_iface::StructuralSourceState::NotCaptured
-                || !source.originalSourcesMatched || !source.legacyClassRowsMatched || source.records != 2u || source.bodyMatched != 2u
+                || !source.originalSourcesMatched || !source.legacyClassRowsMatched || !source.legacyLiveClassesMatched
+                || source.records != 2u || source.bodyMatched != 2u
                 || source.originsBound != 2u || source.namedTargets != 1u || source.defaultTarget != 0xFu
                 || source.ownerTargetsResolved || source.outputEligible)
                 return fail("AC1015 default plot source capture did not bind the isolated graph");
+            const auto originalClasses=data.dxfClasses;
+            const auto rejectLiveClasses=[&]() {
+                const auto report=dx_iface::plotStyleSourceReport(data);
+                const bool rejected=report.legacyClassRowsMatched&&!report.legacyLiveClassesMatched&&!report.outputEligible;
+                data.dxfClasses=originalClasses;
+                return rejected&&dx_iface::plotStyleSourceReport(data).legacyLiveClassesMatched;
+            };
+            data.dxfClasses[0].recName="OTHER";if(!rejectLiveClasses())return fail("changed CLASS record name was accepted");
+            data.dxfClasses[0].className="Other";if(!rejectLiveClasses())return fail("changed CLASS name was accepted");
+            data.dxfClasses[0].appName="Other";if(!rejectLiveClasses())return fail("changed CLASS application was accepted");
+            data.dxfClasses[0].proxyFlag=1;if(!rejectLiveClasses())return fail("changed CLASS proxy flags were accepted");
+            data.dxfClasses[0].instanceCount=1;if(!rejectLiveClasses())return fail("changed CLASS count was accepted");
+            data.dxfClasses[0].wasaProxyFlag=1;if(!rejectLiveClasses())return fail("changed CLASS zombie flag was accepted");
+            data.dxfClasses[0].entityFlag=1;if(!rejectLiveClasses())return fail("changed CLASS entity flag was accepted");
+            data.dxfClasses[1]=data.dxfClasses[0];if(!rejectLiveClasses())return fail("duplicate CLASS row was accepted");
+            data.dxfClasses.pop_back();if(!rejectLiveClasses())return fail("missing CLASS row was accepted");
+            data.dxfClasses.push_back(originalClasses[0]);if(!rejectLiveClasses())return fail("extra CLASS row was accepted");
             std::ifstream input(dxf,std::ios::binary);
             std::string bytes((std::istreambuf_iterator<char>(input)),std::istreambuf_iterator<char>());
             {

@@ -277,6 +277,19 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
         r.legacyClassRowsMatched=sections.size()<=64u && std::count_if(sections.begin(),sections.end(),[](const auto& section) {
             return section.kind==DRW_DxfIdentitySource::Section::Classes;
         })==1;
+        if(r.legacyClassRowsMatched && !data.dxfClassCaptureFailed && data.dxfClassRetainedRecords==2u && data.dxfClasses.size()==2u) {
+            const char* records[]={"ACDBDICTIONARYWDFLT","ACDBPLACEHOLDER"};
+            const char* names[]={"AcDbDictionaryWithDefault","AcDbPlaceHolder"};
+            std::array<bool,2> seen{{false,false}};bool valid=true;
+            for(const auto& value:data.dxfClasses) {
+                unsigned index=2u;for(unsigned i=0u;i<2u;++i)if(value.recName==records[i])index=i;
+                if(index==2u || seen[index]) {valid=false;break;}
+                seen[index]=true;
+                if(value.className!=names[index] || value.appName!="ObjectDBX Classes" || value.proxyFlag!=0
+                    ||value.instanceCount!=0 ||value.wasaProxyFlag!=0 ||value.entityFlag!=0) {valid=false;break;}
+            }
+            r.legacyLiveClassesMatched=valid&&seen[0]&&seen[1];
+        }
     }
     return r;
 }
