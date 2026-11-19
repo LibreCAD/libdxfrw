@@ -219,5 +219,28 @@
     "Retained solid-history/asmheader records remain undecoded and their effects on source geometry and placement are unproven. The observed source coordinate frame and mm assumptions are not independently tied to native DWG world placement.",
     "An exploratory default-view 1024-grid BRL-CAD volume was 150825 mm\u00b3 versus OCCT/analytic 4243.18 mm\u00b3 with only 88 hits; a 4096\u00b2 cropped run was stopped after several minutes and produced no result. These are not agreement and no source-volume claim is made.",
     "Only selected rays and one source-associated solid are checked; REGIONs, global validity, self-intersection, native rendering, arbitrary files, platforms and whole-document replay remain open. No DWG/DXF/SAB/STEP fixture or application binary is committed."
-  ]
+  ],
+  "currentLibdxfrwPlanarLoopRecheck": {
+    "date": "2026-11-19",
+    "head": "524e49d941a14d4402f3f3a3f5a84d0ce34bc68d",
+    "sourceDwgSha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "sourceRecordPayloadSha256": "5ca4756434d068b932ac6e0100e5ff07eae36c7eed29a43367eeff8113cca0ec",
+    "sourceProbe": "build-gcc/libdxfrw_ac1027_acds_source_probe",
+    "sourceProbeSha256": "1d9add20aedb1c05752ee17e61cad4ba98cc7a8800bdfe78573ea3f2942bdf96",
+    "sourceLogSha256": "90c476904a81b91e158d9e8192616a4161f6a7f0b2a5542309edecc1007f0595",
+    "librarySha256": "5f2a5d816b8d0eb816defc359766ab5d974f889117a20329ad6d2172abc75f8d",
+    "scratchProbe": {
+      "source": "/private/tmp/p7g-planar-source/probe.cpp",
+      "sourceSha256": "59ec968b8c63bc8901087edda7f0b40b736cbb8a70b9758577ebdb486fa06c36",
+      "binarySha256": "8f9591bc83f0db7e12b191c29ad49882952fca92c6f7f3685da38e3f48e0d0e1",
+      "outputSha256": "f8e283861cb2bb51e2086d6b91e2c39d50a6f9b72b6715a299993be2b71232f1",
+      "comparisonScript": "/private/tmp/p7g-planar-source/compare.py",
+      "comparisonScriptSha256": "4b478e4455072e51b6f9d3b3b2f6bcf61983e5c4fb47201660a382117ae923dd",
+      "comparisonOutputSha256": "90ec88a994c5266dbb09af20598f8a48faac8163e172f81b6b4b019e4f94ccba"
+    },
+    "observations": "Fresh source probe recovers the exact SAB bytes. Current parser reports complete SAB 21800 with 135 records and one projected body with 8 planar faces, 18 edges, 12 vertices, and 10 closed connected loops. Face 42 is at z=4 with two oppositely oriented triangular loops; all hole vertices lie inside the outer loop. Independent scratch polygon arithmetic using projected loop vertices reproduces all eight previously recorded BRL-CAD hit/miss observations: six rim hits, hole miss and outside miss. Point-to-boundary margins exceed 0.124999 mm for these probes.",
+    "limits": "This compares libdxfrw source projection against a previously observed BRL-CAD ray result on an OCCT-generated, normalized STEP intermediary. It is not a native DWG/ACIS producer oracle, independent original-source decoder, proof of modeler containment flags, or general trim/pcurve support. No libdxfrw trimmed-face classifier was used; no producer-geometry or application support claim follows. All source and derived drawings and payloads remain scratch-only.",
+    "nextAction": "Implement a bounded planar-straight-loop classifier or equivalent trim operation with explicit tolerance and fail-closed handling of malformed, intersecting, ambiguous, nonplanar, curved, pcurve-bearing, or unsupported containment profiles. Independently check this exact hole/rim profile, boundary, off-plane, invalid topology and corrected retry; preserve raw data. Do not change 3D support claims until profile and consumer gates are satisfied.",
+    "supportClaimEffect": "none"
+  }
 }
