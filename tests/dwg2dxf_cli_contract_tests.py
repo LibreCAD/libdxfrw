@@ -3006,7 +3006,7 @@ def check_historical_ac1021_role_refusal(converter, root):
             or b"sourceDwgIntegrityRetainedRows=16" not in result.stderr
             or b"sourceDwgIntegrityErrorsAmongRetained=7" not in result.stderr
             or b"sourceDwgIntegrityWarningsAmongRetained=9" not in result.stderr
-            or b"sourceDwgIntegrityExtractionOmitted=9" not in result.stderr
+            or b"sourceDwgIntegrityExtractionOmitted=10" not in result.stderr
             or b"sourceDwgIntegrityUpstreamDroppedLowerBound=0" not in result.stderr
             or b"sourceDwgIntegrityAggregateSaturated=false" not in result.stderr
             or len(role_rows) != 4

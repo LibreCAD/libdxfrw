@@ -73,6 +73,14 @@
     {
       "command": "GitHub Actions fast parity run 44554412763 on head 739884369a7613b08b6fbacf190bbaf55f8a63ce",
       "result": "FAIL during compilation before tests: GCC 13 -Werror=range-loop-construct at tests/p4_advmaterial_writer_controls.h:2122 copied a pair from a fixed initializer list. Changed the loop variable to const auto&; the new implementation digest requires fresh fast and focused-native CI."
+    },
+    {
+      "command": "GitHub Actions focused-native run 44559207086 and fast parity run 44559207089 on PR head d69109e83e777a2776944771d8c9a3b8dcee569a; checked-out merge 802071d921fea0a2d9c0fc06309624d086262dce; implementation digest 150b3e950db4c8851de1dc9f66ff03bca04defd420e6d8733c863058580f558a",
+      "result": "Focused native passed on Linux, macOS and Windows (7/7 tests each), with successful receipt sealing, upload and post-upload enforcement. Receipt SHA-256 values: Linux b51a349530e1e583f420f23ae7c73f831e4ca77a30eaeda4965c38754a602ac9; Windows 8acce2dbf573a1ac94913ea1d2b14482754d5a04e5178566cc0d8b579d0b773e; macOS dce08cc1bd46d7033d6139123df8ba1c0b21ea664bdd36b39786078b99b75a50. Artifact IDs/digests: Linux 14550665115 / 576c53a7227bc75b78f48e945043650fa77ba603a65250a0cb7e357e7d2a915a; Windows 14549301281 / 6666e20e496409d17e1462eb9ef435efeb3a579609290151a3afb67dd9db6872; macOS 14548332140 / f36636d721229021c3dc1134c9c595415a2bc19d915d190a1b333578635600eb. Fast build succeeded and 44/45 tests passed; the sole failure was a stale historical AC1021 assertion expecting 9 omitted integrity rows, although the receipt correctly reports 26 source rows, 16 retained rows and 10 omitted rows. The historical role defects remained visible and strict output preserved its destination. This was a test expectation defect; no parser relaxation or support promotion is justified."
+    },
+    {
+      "command": "cmake --build build --config Release --parallel 2 --target dwg2dxf; python3 -B tests/dwg2dxf_cli_contract_tests.py --converter build/dwg2dxf/dwg2dxf --historical-ac1021-only",
+      "result": "PASS after correcting the expected extractionOmitted value from 9 to 10. The exact tracked AC1021 strict-refusal control still checks all four role rows, the separate LTYPE role error, strict-complete refusal, and destination/source preservation. No fixture changed."
     }
   ],
   "implementation": {
@@ -81,7 +89,8 @@
       "src/intern/dwgreader.h",
       "src/libdwgr.h",
       "tests/dwg_fixture_tests.cpp",
-      "tests/block_control_reactor_tests.cpp"
+      "tests/block_control_reactor_tests.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py"
     ],
     "sha256": {
       "src/intern/dwgreader.cpp": "7117424575e413b1e5774a5a9a471ebfcc347d68cf0a81760f6c46b00ef07f1e",
@@ -89,14 +98,15 @@
       "src/libdwgr.h": "5d432362d4c5ef3cd109651793d3657eb8ef9f9834aca2b32582d962cbd64a14",
       "tests/dwg_fixture_tests.cpp": "de039fba4af25ea3e4922e6e23d14c4157dea2c68b6390578f9066d12de2db51",
       "tests/block_control_reactor_tests.cpp": "58ba0b95cd337478725674308f7ab57c84d322b0f085bfa80e18161e619c41e1",
+      "tests/dwg2dxf_cli_contract_tests.py": "0da04b46642df618e431651811c6e4fb93e4182b1a13e1ad74c16df52f98bb4f",
       "tests/p4_advmaterial_writer_controls.h": "d3ef4d80cf5a4cc5a66e6a6084113d3460fb2d1eee96656c0ac6f6a5882cff66"
     },
-    "qualificationDigestSha256": "150b3e950db4c8851de1dc9f66ff03bca04defd420e6d8733c863058580f558a",
+    "qualificationDigestSha256": "482f6cff10cc1735ea3cea4c6b4e319e8ff27bacb82a93752884ef44ff96a086",
     "qualificationInputCount": 750,
     "behavior": "Use the normal boundary-checked AC1027 APPID_CONTROL count and valid absent-string footer first. Only when that exact interpretation fails, admit the narrow historical BS profile and report unclaimed object-data bits as an integrity error; the historical AC1027 173-bit suffix remains strict-output-blocking."
   },
   "remaining": [
-    "Run fresh fast and focused-native CI against the post-Werror-fix implementation digest and latest PR head.",
+    "Run fresh fast and focused-native CI against digest 482f6cff10cc1735ea3cea4c6b4e319e8ff27bacb82a93752884ef44ff96a086 after the historical AC1021 assertion repair.",
     "Keep remote ObjectARX producer and native consumer gates open until the host product/build, Windows version, SDK/toolchain and artifact-return route are recorded and their exact witness packets run.",
     "Do not promote DWG/DXF support claims from this compatibility repair or its parser tests."
   ]
