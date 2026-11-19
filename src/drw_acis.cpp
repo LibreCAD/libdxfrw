@@ -5606,6 +5606,272 @@ bool drw_pointWithinToleranceOfAcisPlaneSurface(
     return true;
 }
 
+namespace {
+struct PlanarLoopPoint {
+    long double x, y;
+};
+
+long double planarCross(const PlanarLoopPoint& a, const PlanarLoopPoint& b,
+                        const PlanarLoopPoint& c) noexcept {
+    return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+}
+
+long double planarSegmentDistance(const PlanarLoopPoint& a, const PlanarLoopPoint& b,
+                                  const PlanarLoopPoint& p) noexcept {
+    const long double dx = b.x - a.x, dy = b.y - a.y;
+    const long double n = dx * dx + dy * dy;
+    if (!(n > 0) || !std::isfinite(n))
+        return std::numeric_limits<long double>::quiet_NaN();
+    const long double t =
+        std::max(0.L, std::min(1.L, ((p.x - a.x) * dx + (p.y - a.y) * dy) / n));
+    return std::hypot(p.x - a.x - t * dx, p.y - a.y - t * dy);
+}
+
+bool planarSegmentsConflict(const PlanarLoopPoint& a, const PlanarLoopPoint& b,
+                            const PlanarLoopPoint& c, const PlanarLoopPoint& d,
+                            long double tolerance) noexcept {
+    const long double x = planarCross(a, b, c), y = planarCross(a, b, d);
+    const long double z = planarCross(c, d, a), w = planarCross(c, d, b);
+    if (!std::isfinite(x) || !std::isfinite(y) || !std::isfinite(z) || !std::isfinite(w))
+        return true;
+    if (((x > 0 && y < 0) || (x < 0 && y > 0)) && ((z > 0 && w < 0) || (z < 0 && w > 0)))
+        return true;
+    const long double ds[] = {
+        planarSegmentDistance(a, b, c), planarSegmentDistance(a, b, d),
+        planarSegmentDistance(c, d, a), planarSegmentDistance(c, d, b)};
+    for (long double distance : ds)
+        if (!std::isfinite(distance) || distance <= tolerance)
+            return true;
+    return false;
+}
+
+bool planarInside(const std::vector<PlanarLoopPoint>& ring, const PlanarLoopPoint& p,
+                  bool& result) noexcept {
+    bool inside = false;
+    for (std::size_t i = 0; i < ring.size(); ++i) {
+        const auto& a = ring[i];
+        const auto& b = ring[(i + 1) % ring.size()];
+        if ((a.y > p.y) != (b.y > p.y)) {
+            const long double x = a.x + (p.y - a.y) * (b.x - a.x) / (b.y - a.y);
+            if (!std::isfinite(x))
+                return false;
+            if (p.x < x)
+                inside = !inside;
+        }
+    }
+    result = inside;
+    return true;
+}
+} // namespace
+
+bool drw_classifyAcisPlanarLoops(const DRW_AcisFace& face, const DRW_AcisBrep& brep,
+                                 const DRW_Coord& point, double tolerance,
+                                 DRW_AcisPlanarLoopLocation& location) noexcept {
+    try {
+        if (!std::isfinite(tolerance) || tolerance < 0 || face.loops.empty() ||
+            face.loops.size() > 2 || brep.edges.size() > 4096 ||
+            brep.vertices.size() > 4096 || !face.hasDoubleSided || face.doubleSided ||
+            !face.hasLoopChainObservation || !face.loopChainNullTerminated ||
+            face.loopChainCycleDetected || face.loopChainUnclassifiedNextLinkCount != 0 ||
+            face.firstRepeatedLoopChainNodeIndex != -1 ||
+            face.firstUnclassifiedLoopNextNodeIndex != -1 ||
+            !face.hasLoopUseIndexObservation || !face.loopUseIndexCoversParsedLoops ||
+            face.loopUseIndexUnclassifiedLoopCount != 0 ||
+            face.firstUnclassifiedLoopOwnerNodeIndex != -1 ||
+            !face.faceLoopChainMatchesUseIndex ||
+            face.loopNextNodeIndices.size() != face.loops.size() ||
+            face.loopUseNodeIndices.size() != face.loops.size())
+            return false;
+        for (std::size_t i = 0; i < face.loops.size(); ++i) {
+            const int next = i + 1 < face.loops.size() ? face.loops[i + 1].nodeIndex : -1;
+            if (face.loopNextNodeIndices[i] != next ||
+                std::count(face.loopUseNodeIndices.begin(), face.loopUseNodeIndices.end(),
+                           face.loops[i].nodeIndex) != 1)
+                return false;
+        }
+        DRW_Coord normal;
+        double planeDistance = 0;
+        if (!acisPlaneUnitNormal(face, normal) ||
+            !drw_pointWithinToleranceOfAcisPlaneSurface(face, point, tolerance,
+                                                        planeDistance))
+            return false;
+        DRW_Coord projectedQuery;
+        if (!drw_projectPointToAcisPlaneSurface(face, point, projectedQuery))
+            return false;
+        const double ax = std::fabs(normal.x), ay = std::fabs(normal.y),
+                     az = std::fabs(normal.z);
+        const int drop = ax >= ay && ax >= az ? 0 : (ay >= az ? 1 : 2);
+        const auto project = [&](const DRW_Coord& p) -> PlanarLoopPoint {
+            if (drop == 0)
+                return {static_cast<long double>(p.y) - face.p0.y,
+                        static_cast<long double>(p.z) - face.p0.z};
+            if (drop == 1)
+                return {static_cast<long double>(p.x) - face.p0.x,
+                        static_cast<long double>(p.z) - face.p0.z};
+            return {static_cast<long double>(p.x) - face.p0.x,
+                    static_cast<long double>(p.y) - face.p0.y};
+        };
+        const PlanarLoopPoint query = project(projectedQuery);
+        if (!std::isfinite(query.x) || !std::isfinite(query.y))
+            return false;
+        std::vector<std::vector<PlanarLoopPoint>> rings;
+        std::set<int> usedEdges;
+        std::set<int> usedCoedges;
+        bool onBoundary = false;
+        std::size_t total = 0;
+        for (const auto& loop : face.loops) {
+            const std::size_t n = loop.coedgeEdgeNodeIndices.size();
+            if (n < 3 || n > 128 || total > 128 - n || loop.nodeIndex < 0 ||
+                loop.coedgeCount != static_cast<int>(n) || !loop.hasCoedgeRingClosure ||
+                !loop.coedgeRingClosed || !loop.coedgeLinksReciprocal ||
+                !loop.hasCoedgeEndpointChainObservation ||
+                !loop.coedgeEndpointChainContinuous ||
+                loop.coedgeEndpointDiscontinuityCount != 0 ||
+                loop.firstCoedgeEndpointDiscontinuityNodeIndex != -1 ||
+                !loop.hasCoedgeUseIndexObservation ||
+                !loop.coedgeUseIndexCoversParsedCoedges ||
+                loop.coedgeUseIndexUnclassifiedCoedgeCount != 0 ||
+                loop.firstUnclassifiedCoedgeOwnerNodeIndex != -1 ||
+                !loop.coedgeChainMatchesUseIndex || loop.coedgeUseNodeIndices.size() != n ||
+                loop.coedgeNodeIndices.size() != n ||
+                loop.coedgeNextNodeIndices.size() != n ||
+                loop.coedgePreviousNodeIndices.size() != n ||
+                loop.coedgeLoopNodeIndices.size() != n ||
+                loop.coedgeSenseFlags.size() != n ||
+                loop.coedgePCurveNodeIndices.size() != n ||
+                loop.coedgeOrientedStartVertexNodeIndices.size() != n ||
+                loop.coedgeOrientedEndVertexNodeIndices.size() != n)
+                return false;
+            total += n;
+            std::vector<PlanarLoopPoint> ring;
+            for (std::size_t i = 0; i < n; ++i) {
+                if (loop.coedgePCurveNodeIndices[i] != -1 ||
+                    loop.coedgeEdgeNodeIndices[i] < 0 || loop.coedgeNodeIndices[i] < 0 ||
+                    std::count(loop.coedgeUseNodeIndices.begin(),
+                               loop.coedgeUseNodeIndices.end(),
+                               loop.coedgeNodeIndices[i]) != 1 ||
+                    !usedCoedges.insert(loop.coedgeNodeIndices[i]).second ||
+                    loop.coedgeLoopNodeIndices[i] != loop.nodeIndex ||
+                    loop.coedgeNextNodeIndices[i] !=
+                        loop.coedgeNodeIndices[(i + 1) % n] ||
+                    loop.coedgePreviousNodeIndices[i] !=
+                        loop.coedgeNodeIndices[(i + n - 1) % n] ||
+                    !usedEdges.insert(loop.coedgeEdgeNodeIndices[i]).second ||
+                    loop.coedgeOrientedEndVertexNodeIndices[i] !=
+                        loop.coedgeOrientedStartVertexNodeIndices[(i + 1) % n])
+                    return false;
+                const DRW_AcisEdge* edge = nullptr;
+                for (const auto& candidate : brep.edges) {
+                    if (candidate.nodeIndex == loop.coedgeEdgeNodeIndices[i]) {
+                        if (edge)
+                            return false;
+                        edge = &candidate;
+                    }
+                }
+                if (!edge || !edge->hasCurve ||
+                    edge->curveType != DRW_AcisCurve::Straight)
+                    return false;
+                const auto sense = loop.coedgeSenseFlags[i];
+                const int start =
+                    sense == 0 ? edge->startVertexNodeIndex : edge->endVertexNodeIndex;
+                const int end =
+                    sense == 0 ? edge->endVertexNodeIndex : edge->startVertexNodeIndex;
+                if ((sense != 0 && sense != 1) || start < 0 || end < 0 || start == end ||
+                    start != loop.coedgeOrientedStartVertexNodeIndices[i] ||
+                    end != loop.coedgeOrientedEndVertexNodeIndices[i])
+                    return false;
+                DRW_Coord a, b;
+                if (!drw_evaluateAcisStraightCoedge(*edge, sense, 0, tolerance, a) ||
+                    !drw_evaluateAcisStraightCoedge(*edge, sense, 1, tolerance, b) ||
+                    !drw_pointWithinToleranceOfAcisPlaneSurface(face, a, tolerance,
+                                                                planeDistance) ||
+                    !drw_pointWithinToleranceOfAcisPlaneSurface(face, b, tolerance,
+                                                                planeDistance))
+                    return false;
+                const auto matchesVertex = [&](int index, const DRW_Coord& value) {
+                    const DRW_AcisVertex* vertex = nullptr;
+                    for (const auto& candidate : brep.vertices)
+                        if (candidate.nodeIndex == index) {
+                            if (vertex)
+                                return false;
+                            vertex = &candidate;
+                        }
+                    if (!vertex || !vertex->valid || !isFinite(vertex->point))
+                        return false;
+                    const double dx = vertex->point.x - value.x,
+                                 dy = vertex->point.y - value.y;
+                    const double dz = vertex->point.z - value.z;
+                    const double distance = std::hypot(std::hypot(dx, dy), dz);
+                    return std::isfinite(distance) && distance <= tolerance;
+                };
+                if (!matchesVertex(start, a) || !matchesVertex(end, b))
+                    return false;
+                const auto q = project(a);
+                if (!std::isfinite(q.x) || !std::isfinite(q.y))
+                    return false;
+                ring.push_back(q);
+                double parameter = 0;
+                DRW_Coord nearest;
+                if (!drw_projectPointToAcisStraightEdge(*edge, point, tolerance,
+                                                       parameter, nearest))
+                    return false;
+                const long double dx = static_cast<long double>(point.x) - nearest.x;
+                const long double dy = static_cast<long double>(point.y) - nearest.y;
+                const long double dz = static_cast<long double>(point.z) - nearest.z;
+                const long double distance = std::hypot(std::hypot(dx, dy), dz);
+                if (!std::isfinite(distance))
+                    return false;
+                if (distance <= tolerance)
+                    onBoundary = true;
+            }
+            for (std::size_t i = 0; i < n; ++i) {
+                const auto& a = ring[i];
+                const auto& b = ring[(i + 1) % n];
+                const auto& c = ring[(i + 2) % n];
+                const long double cross = planarCross(a, b, c);
+                const long double distance = planarSegmentDistance(a, b, c);
+                if (!std::isfinite(cross) || cross == 0 || !std::isfinite(distance) ||
+                    distance <= tolerance)
+                    return false;
+                for (std::size_t j = i + 1; j < n; ++j) {
+                    if (j == i + 1 || (i == 0 && j == n - 1))
+                        continue;
+                    if (planarSegmentsConflict(a, b, ring[j], ring[(j + 1) % n],
+                                               tolerance))
+                        return false;
+                }
+            }
+            rings.push_back(std::move(ring));
+        }
+        std::size_t outer = 0;
+        if (rings.size() == 2) {
+            for (std::size_t i = 0; i < rings[0].size(); ++i)
+                for (std::size_t j = 0; j < rings[1].size(); ++j)
+                    if (planarSegmentsConflict(
+                            rings[0][i], rings[0][(i + 1) % rings[0].size()], rings[1][j],
+                            rings[1][(j + 1) % rings[1].size()], tolerance))
+                        return false;
+            bool aInB = false, bInA = false;
+            if (!planarInside(rings[0], rings[1][0], bInA) ||
+                !planarInside(rings[1], rings[0][0], aInB) || aInB == bInA)
+                return false;
+            outer = aInB ? 1 : 0;
+        }
+        bool inOuter = false, inHole = false;
+        if (!planarInside(rings[outer], query, inOuter))
+            return false;
+        if (rings.size() == 2 && !planarInside(rings[1 - outer], query, inHole))
+            return false;
+        location = onBoundary
+                       ? DRW_AcisPlanarLoopLocation::Boundary
+                       : (inOuter && !inHole ? DRW_AcisPlanarLoopLocation::Inside
+                                             : DRW_AcisPlanarLoopLocation::Outside);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
 bool drw_projectPointToAcisPlaneSurface(
     const DRW_AcisFace& face, const DRW_Coord& point,
     DRW_Coord& projectedPoint) noexcept {

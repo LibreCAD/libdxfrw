@@ -16670,6 +16670,164 @@ void testDataStorageCapabilities(TestContext& t) {
              "DataStorage capability rejects null identity");
 }
 
+void testPlanarTrimLoops(TestContext& t) {
+    DRW_AcisBrep brep;
+    DRW_AcisFace face;
+    face.hasSurface = true;
+    face.surfaceType = DRW_AcisSurface::Plane;
+    face.p0 = DRW_Coord(0, 0, 0);
+    face.p1 = DRW_Coord(0, 0, 1);
+    face.hasDoubleSided = true;
+    face.doubleSided = false;
+    face.hasLoopChainObservation = true;
+    face.loopChainNullTerminated = true;
+    face.hasLoopUseIndexObservation = true;
+    face.loopUseIndexCoversParsedLoops = true;
+    face.faceLoopChainMatchesUseIndex = true;
+    const auto addRing = [&](const std::vector<DRW_Coord>& points, int base) {
+        if (face.loops.empty()) {
+            face.loopNextNodeIndices.clear();
+            face.loopUseNodeIndices.clear();
+        } else {
+            face.loopNextNodeIndices.back() = base;
+        }
+        face.loopNextNodeIndices.push_back(-1);
+        face.loopUseNodeIndices.push_back(base);
+        DRW_AcisFaceLoop loop;
+        loop.nodeIndex = base;
+        loop.hasCoedgeRingClosure = true;
+        loop.coedgeRingClosed = true;
+        loop.coedgeLinksReciprocal = true;
+        loop.hasCoedgeEndpointChainObservation = true;
+        loop.coedgeEndpointChainContinuous = true;
+        loop.hasCoedgeUseIndexObservation = true;
+        loop.coedgeUseIndexCoversParsedCoedges = true;
+        loop.coedgeChainMatchesUseIndex = true;
+        const int n = static_cast<int>(points.size());
+        loop.coedgeCount = n;
+        for (int i = 0; i < n; ++i) {
+            DRW_AcisVertex vertex;
+            vertex.nodeIndex = base + 100 + i;
+            vertex.point = points[i];
+            vertex.valid = true;
+            brep.vertices.push_back(vertex);
+            DRW_AcisEdge edge;
+            edge.nodeIndex = base + 200 + i;
+            edge.startVertexNodeIndex = base + 100 + i;
+            edge.endVertexNodeIndex = base + 100 + (i + 1) % n;
+            edge.hasCurve = true;
+            edge.curveType = DRW_AcisCurve::Straight;
+            edge.hasStart = true;
+            edge.hasEnd = true;
+            edge.start = points[i];
+            edge.end = points[(i + 1) % n];
+            edge.p0 = edge.start;
+            edge.p1 = DRW_Coord(edge.end.x - edge.start.x, edge.end.y - edge.start.y,
+                                edge.end.z - edge.start.z);
+            brep.edges.push_back(edge);
+            loop.coedgeNodeIndices.push_back(base + 300 + i);
+            loop.coedgeUseNodeIndices.push_back(base + 300 + i);
+            loop.coedgeNextNodeIndices.push_back(base + 300 + (i + 1) % n);
+            loop.coedgePreviousNodeIndices.push_back(base + 300 + (i + n - 1) % n);
+            loop.coedgeLoopNodeIndices.push_back(base);
+            loop.coedgeEdgeNodeIndices.push_back(edge.nodeIndex);
+            loop.coedgeSenseFlags.push_back(0);
+            loop.coedgePCurveNodeIndices.push_back(-1);
+            loop.coedgeOrientedStartVertexNodeIndices.push_back(
+                edge.startVertexNodeIndex);
+            loop.coedgeOrientedEndVertexNodeIndices.push_back(edge.endVertexNodeIndex);
+        }
+        face.loops.push_back(loop);
+    };
+    addRing({{0, 0, 0}, {10, 0, 0}, {0, 10, 0}}, 1000);
+    addRing({{1, 1, 0}, {1, 2, 0}, {2, 1, 0}}, 2000);
+    const double tol = 1e-8;
+    DRW_AcisPlanarLoopLocation result = DRW_AcisPlanarLoopLocation::Outside;
+    const auto check = [&](const DRW_Coord& p, DRW_AcisPlanarLoopLocation expected,
+                           const char* label) {
+        result = DRW_AcisPlanarLoopLocation::Outside;
+        t.expect(drw_classifyAcisPlanarLoops(face, brep, p, tol, result) &&
+                     result == expected,
+                 label);
+    };
+    check({3, 3, 0}, DRW_AcisPlanarLoopLocation::Inside, "planar trim material");
+    check({1.2, 1.2, 0}, DRW_AcisPlanarLoopLocation::Outside, "planar trim hole");
+    check({8, 8, 0}, DRW_AcisPlanarLoopLocation::Outside, "planar trim outside");
+    check({1, 1.5, 0}, DRW_AcisPlanarLoopLocation::Boundary, "planar trim hole boundary");
+    check({5, 0, 0}, DRW_AcisPlanarLoopLocation::Boundary, "planar trim outer boundary");
+    check({5, -tol / 2, 0}, DRW_AcisPlanarLoopLocation::Boundary,
+          "planar trim boundary tolerance");
+    check({5, -2 * tol, 0}, DRW_AcisPlanarLoopLocation::Outside,
+          "planar trim outside boundary tolerance");
+    std::swap(face.loops[0], face.loops[1]);
+    face.loopNextNodeIndices[0] = face.loops[1].nodeIndex;
+    check({3, 3, 0}, DRW_AcisPlanarLoopLocation::Inside,
+          "planar trim accepts hole before outer ring");
+    check({1.2, 1.2, 0}, DRW_AcisPlanarLoopLocation::Outside,
+          "planar trim identifies reordered hole");
+    std::swap(face.loops[0], face.loops[1]);
+    face.loopNextNodeIndices[0] = face.loops[1].nodeIndex;
+    result = DRW_AcisPlanarLoopLocation::Inside;
+    const DRW_AcisFaceLoop retainedHole = face.loops.back();
+    face.loops.pop_back();
+    t.expect(!drw_classifyAcisPlanarLoops(face, brep, {3, 3, 0}, tol, result) &&
+                 result == DRW_AcisPlanarLoopLocation::Inside,
+             "missing hole refuses and preserves result");
+    face.loops.push_back(retainedHole);
+    t.expect(!drw_classifyAcisPlanarLoops(face, brep, {3, 3, 1}, tol, result) &&
+                 result == DRW_AcisPlanarLoopLocation::Inside,
+             "off-plane refusal preserves result");
+    face.loops[0].coedgePCurveNodeIndices[0] = 42;
+    t.expect(!drw_classifyAcisPlanarLoops(face, brep, {3, 3, 0}, tol, result) &&
+                 result == DRW_AcisPlanarLoopLocation::Inside,
+             "pcurve refusal preserves result");
+    face.loops[0].coedgePCurveNodeIndices[0] = -1;
+    face.loops[0].coedgeNextNodeIndices[0] = -1;
+    t.expect(!drw_classifyAcisPlanarLoops(face, brep, {3, 3, 0}, tol, result),
+             "broken loop refuses");
+    face.loops[0].coedgeNextNodeIndices[0] = face.loops[0].coedgeNodeIndices[1];
+    brep.vertices[0].point.x = 0.1;
+    t.expect(!drw_classifyAcisPlanarLoops(face, brep, {3, 3, 0}, tol, result),
+             "vertex mismatch refuses");
+    brep.vertices[0].point.x = 0;
+    check({3, 3, 0}, DRW_AcisPlanarLoopLocation::Inside, "same-object corrected retry");
+    brep.edges[0].curveType = DRW_AcisCurve::Ellipse;
+    t.expect(!drw_classifyAcisPlanarLoops(face, brep, {3, 3, 0}, tol, result),
+             "curved edge refuses");
+    brep.edges[0].curveType = DRW_AcisCurve::Straight;
+    face.doubleSided = true;
+    t.expect(!drw_classifyAcisPlanarLoops(face, brep, {3, 3, 0}, tol, result),
+             "double-sided face refuses");
+    face.doubleSided = false;
+    t.expect(!drw_classifyAcisPlanarLoops(
+                 face, brep, {3, 3, 0}, std::numeric_limits<double>::infinity(), result),
+             "nonfinite tolerance refuses");
+    face.loops.clear();
+    brep.edges.clear();
+    brep.vertices.clear();
+    addRing({{0, 0, 0}, {5, 5, 0}, {0, 5, 0}, {5, 0, 0}}, 3000);
+    t.expect(!drw_classifyAcisPlanarLoops(face, brep, {1, 1, 0}, tol, result),
+             "self-intersecting ring refuses");
+    face.loops.clear();
+    brep.edges.clear();
+    brep.vertices.clear();
+    addRing({{0, 0, 0}, {5, 0, 0}, {0, 5, 0}}, 4000);
+    addRing({{10, 10, 0}, {12, 10, 0}, {10, 12, 0}}, 5000);
+    t.expect(!drw_classifyAcisPlanarLoops(face, brep, {1, 1, 0}, tol, result),
+             "disjoint rings refuse");
+    face.loops.clear();
+    brep.edges.clear();
+    brep.vertices.clear();
+    addRing({{0, 0, 0}, {5, 0, 0}, {0, 5, 0}}, 6000);
+    addRing({{0, 0, 0}, {1, 0, 0}, {0, 1, 0}}, 7000);
+    t.expect(!drw_classifyAcisPlanarLoops(face, brep, {1, 1, 0}, tol, result),
+             "touching rings refuse");
+    face.loops.resize(1);
+    face.loops[0].coedgeEdgeNodeIndices.resize(129);
+    t.expect(!drw_classifyAcisPlanarLoops(face, brep, {1, 1, 0}, tol, result),
+             "loop edge budget refuses");
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -16717,6 +16875,7 @@ int main(int argc, char** argv) {
     testDataStorageBlobPages(context);
     testDataStorageRecordCountAlignmentAnchors(context);
     testDataStorageDefaultSchemaOnlySection(context);
+    testPlanarTrimLoops(context);
     testAcisBoundaries(context);
     testAcisWireframeHeaderProjection(context);
     testAcis21800ProfileFraming(context);

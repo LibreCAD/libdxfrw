@@ -1966,6 +1966,25 @@ LIBDXFRW_EXPORT bool drw_projectPointToAcisPlaneSurface(
     const DRW_AcisFace& face, const DRW_Coord& point,
     DRW_Coord& projectedPoint) noexcept;
 
+//! Classification against an explicitly bounded planar loop projection.
+enum class DRW_AcisPlanarLoopLocation { Outside, Inside, Boundary };
+
+//! Classify a point against one simple straight-edged loop, optionally with
+//! one strictly nested simple hole. The complete face-to-loop chain and its
+//! parsed-model use index must agree. Each coedge ring and its use index must
+//! agree; coedges must be closed, continuous, straight and free of pcurves.
+//! At most 128 loop edges and 4096 projected edges and vertices are accepted.
+//! The supplied finite nonnegative tolerance applies to the plane, edge endpoints and
+//! boundary distance. Collinear consecutive edges, intersections, touching
+//! rings, ambiguous containment, off-plane queries and unsupported data fail
+//! without changing `location`.
+//! This operates on raw projected coordinates and does not apply placement,
+//! units, modeler containment flags, or establish ACIS/B-rep validity.
+LIBDXFRW_EXPORT bool drw_classifyAcisPlanarLoops(
+    const DRW_AcisFace& face, const DRW_AcisBrep& brep,
+    const DRW_Coord& point, double tolerance,
+    DRW_AcisPlanarLoopLocation& location) noexcept;
+
 //! Return the unit normal of a decoded plane, adjusted by its retained
 //! face-sense flag. The plane normal is constant over its untrimmed surface;
 //! this does not apply trims, placement, units, containment, or B-rep checks.

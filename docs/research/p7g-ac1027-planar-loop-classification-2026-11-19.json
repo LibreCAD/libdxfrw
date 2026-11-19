@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "date": "2026-11-19",
+  "id": "p7g-ac1027-planar-loop-classification-2026-11-19",
+  "status": "CLOSED_SELECTED_PLANAR_LOOP_PROFILE_ONLY",
+  "supportClaimEffect": "none",
+  "source": {
+    "dwgSha256": "ce80953e4881899cde8c42b97919feb2697259554ca54dc4005b19068a12c18f",
+    "entity": "AC1027 3DSOLID 0x2E1",
+    "sabSha256": "5ca4756434d068b932ac6e0100e5ff07eae36c7eed29a43367eeff8113cca0ec",
+    "producer": "unknown",
+    "priorSourceAndOdaBinding": "docs/research/p7-ac1027-current-reader-graph-closure-2026-11-16.json"
+  },
+  "implementation": {
+    "api": "drw_classifyAcisPlanarLoops",
+    "files": [
+      "src/drw_acis.h",
+      "src/drw_acis.cpp",
+      "tests/graph_preservation_tests.cpp"
+    ],
+    "input": "A complete projected single-sided planar face with one simple straight-edged loop and at most one strictly nested hole, no pcurves, bounded edge and vertex counts, and mutually consistent chain/use identities.",
+    "behavior": "Classifies in raw coordinates as inside, outside or boundary with explicit tolerance; validates connectivity, identities, finite endpoints, coplanarity, curve/vertex consistency, nonintersecting rings and nesting. Unsupported, invalid, ambiguous, off-plane or resource-exceeding inputs refuse without changing the output. Does not apply transform, units, ACIS containment flags, or general B-rep semantics.",
+    "hashes": {
+      "src/drw_acis.cpp": "42b0e48ea5a2e44f29671c0b05100942a0562778350e959c7e6cfac3bca5090a",
+      "src/drw_acis.h": "4d3fc62570393a876408dca7deb4f66dbfc2fad7c2073f74fec0a99d134e03a6",
+      "tests/graph_preservation_tests.cpp": "473881b7eb593c83d6d5b4a43fc483bbfa4ac8815dc3bfe835beeb16ae407464"
+    }
+  },
+  "independentEvidence": {
+    "reader": "cq-acis 0.3.12 official macOS ARM64 wheel",
+    "wheelSha256": "94204f623d752e7dacf494bf631551277a985acbeb612ee3a24464ea0f0daab5",
+    "comparisonScript": "/private/tmp/p7g-planar-source/compare-peer.py",
+    "comparisonScriptSha256": "1e435fd2761aa77eb2e6407322c1c80e112319150097b54bbfe4cd48ef53a283",
+    "comparisonOutputSha256": "ef8f2097b52d17e853e8b9252c12d26f3bd26e7ccc66dadf3bf0374d40935a9c",
+    "result": "The independent decoder matches all 8 faces, 10 ordered loops, 36 oriented coedges and the identities and coordinates of their 12 distinct vertices to 1e-10; no selected coedge has a pcurve and all supporting curves are straight.",
+    "kernel": "Prior BRL-CAD 7.24 selected-ray observations on an OCCT-generated normalized STEP intermediary: six rim hits and hole/outside misses; source helper agrees. This is an independent geometry kernel but not an independent source-native modeler or unmodified boundary bridge.",
+    "kernelReceipt": "docs/research/p7-ac1027-sab-brlcad-ray-crosscheck-2026-11-04.json"
+  },
+  "validation": {
+    "normal": "cmake --build build-gcc --target libdxfrw_graph_preservation_tests -j2; ctest --test-dir build-gcc -R ^libdxfrw_graph_preservation$ --output-on-failure: PASS 1/1",
+    "addressSanitizer": "cmake --build build-asan-custom --target libdxfrw_graph_preservation_tests -j2; ctest --test-dir build-asan-custom -R ^libdxfrw_graph_preservation$ --output-on-failure: PASS 1/1",
+    "controls": "Generated triangle/hole, outer/hole boundary, boundary tolerance, reordered loops, off-plane, missing loop, pcurve, broken ring, vertex mismatch, curved edge, double-sided face, nonfinite tolerance, self-intersection, disjoint/touching rings, loop budget, and corrected retry.",
+    "sourceProbe": "/private/tmp/p7g-planar-source/classify.cpp",
+    "sourceProbeSha256": "fff426d12eeec218b7deb714e12584e8a8fa4dc6f9d8b4605c5cd3956b8f9997",
+    "sourceProbeBinarySha256": "a18e8b388762701e5517c7cfc33991a5d26ceff4f39fd113dd815f4c57fdfe73",
+    "sourceProbeResult": "8 peer ray classifications and one source edge midpoint pass; pcurve mutation refuses without changing result; corrected same-object retry passes.",
+    "fixturePolicy": "No drawing, SAB, peer binary or derived fixture committed.",
+    "digest": "The normal workspace has unrelated untracked in-scope artifacts. An isolated Git index created from git archive HEAD, overlaid with the three selected code/test files and the status overlay, passes tools/check_qualification_digest.py for 750 inputs and the recorded digest; no user files were removed."
+  },
+  "limitations": [
+    "This closes P7-G only for the selected source-associated straight-planar boundary utility profile, not DWG 3D output, native producer/consumer support, arbitrary polygon robustness, native kernel trim semantics, curves, pcurves, multiple holes, or general ACIS support.",
+    "BRL-CAD receives an OCCT-generated STEP conversion with independently classified outer-bound labels; native ACIS semantics and the effect of retained unknown source attributes remain unresolved.",
+    "The digest changed; P8-F is reopened for its new fast and focused-native evidence."
+  ],
+  "implementationDigestSha256": "8a04e81c8769baacea08336a6535415a99b4cfb549761558a7e6644682359386"
+}
