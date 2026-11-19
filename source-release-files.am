@@ -1219,6 +1219,7 @@ EXTRA_DIST = \
     tools/research/OBJECTARX_WITNESS_README.md \
     tools/research/P4C_SWEEP_WITNESS_README.md \
     tools/research/P4D_LAYOUT_REOPEN_README.md \
+    tools/research/P5D_AC1024_TABLE_WITNESS_README.md \
     tools/research/P6A_IMAGEDEF_WITNESS_README.md \
     tools/research/ac1021_mtext_field_census.cpp \
     tools/research/ac1032_forum_assocnetwork_spans.py \
@@ -1298,6 +1299,8 @@ EXTRA_DIST = \
     tools/research/p5_table_root_xrecord_candidate_probe.cpp \
     tools/research/p5_xrecord_codepage45_verify.py \
     tools/research/p5_xrecord_codepage_capture.cpp \
+    tools/research/p5d_ac1024_table_witness.cs \
+    tools/research/p5d_ac1024_table_witness.csproj \
     tools/research/p6_ac1032_tablecontent_graph_capture.cpp \
     tools/research/p6a_imagedef_witness.cs \
     tools/research/p6a_imagedef_witness.csproj \

@@ -19,7 +19,7 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-19:** 12/34 package gates closed; 22 remain. The
-implementation/research activity estimate is 191/191 tracked slices (100.0%);
+implementation/research activity estimate is 193/193 tracked slices (100.0%);
 external qualification gates remain separate and open. The latest fast-CI run
 found a stale AC1021 diagnostic-count assertion: 26 integrity rows minus 16
 retained rows means 10 omitted rows. The assertion is corrected. On digest
@@ -35,6 +35,10 @@ Windows x64 with .NET Framework 4.8 until reviewed against the actual host.
 Host release/build, Windows version, SDK/toolchain and artifact-return route
 are still pending; none of these packets has been built with Autodesk
 assemblies or run in AutoCAD.
+The first hosted fast run after adding P5-D caught the source-release manifests
+missing the new packet. The generated manifests now include its README, source,
+project and shared host intake; the focused inventory check passes locally.
+Hosted verification is pending on the follow-up commit.
 `P8-D-API-COMPAT`, `P8-D-OUTPUT-BUDGET-REVIEW`, the bounded MLINE
 staged-inspector port, the P4-D local null-background candidate screen, and a
 bounded ACadSharp readback of the selected candidate in ASCII and Binary DXF
@@ -245,10 +249,10 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count implementation/research slices and package-gate readiness separately.
-  The activity estimate is 192 completed slices out of 192 currently counted
+  The activity estimate is 193 completed slices out of 193 currently counted
   slices (100.0%); the shared host-intake and P4-D/P6-A host-packet preparation
-  slices and the P5-D packet preparation slice are complete. Native AutoCAD
-  builds and captures remain unqualified.
+  slices, the P5-D packet preparation slice, and its source-release inventory
+  repair are complete. Native AutoCAD builds and captures remain unqualified.
   Use the [P4-D observer packet](tools/research/P4D_LAYOUT_REOPEN_README.md),
   [P5-D witness packet](tools/research/P5D_AC1024_TABLE_WITNESS_README.md),
   and [P6-A witness packet](tools/research/P6A_IMAGEDEF_WITNESS_README.md)
