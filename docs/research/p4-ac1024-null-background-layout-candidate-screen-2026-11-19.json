@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-null-background-layout-candidate-screen-2026-11-19",
+  "date": "2026-11-19",
+  "status": "LOCAL_TRIAGE_ONLY_NOT_ADMITTED",
+  "supportClaimEffect": "none",
+  "purpose": "Screen the local AC1024 corpus for a null-background alternative to the aerial LAYOUT projection blocker without weakening graph closure or dropping unrelated source content.",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_conference_room.dwg",
+    "sha256": "0579e4b5746593ff41d9326e488b1faddc0f7cc10e7db5317fc1d5b86f0132c4",
+    "provenance": "Local untracked corpus input; provenance was not established by this screen.",
+    "fixtureDisposition": "Not added to or committed in the repository."
+  },
+  "method": {
+    "class": "Read-only diagnostic probes linked against the current build; no file was rewritten.",
+    "layoutProbeSourceSha256": "1452ac9f1da5b4526b42bbcf3c06ae80de6b57190be3a4b8f2dc44dabcce1527",
+    "inventoryProbeSourceSha256": "1216547cc788d3aaacb1439062cf12036550bbdd3ec7f6c1bce08e2d41974965",
+    "limitation": "The temporary probe sources are not repository tools, so these observations are triage evidence and are not independently reproducible from a clean checkout."
+  },
+  "observations": {
+    "version": "AC1024",
+    "semanticCoverage": "partial-observed",
+    "objectParseFailures": 3,
+    "entityParseFailures": 0,
+    "publishedFrames": 607,
+    "layouts": [
+      { "handle": "0x22", "name": "Model", "blockRecord": "0x1f", "extensionDictionary": "0xf5c", "lastActiveViewport": "0x94" },
+      { "handle": "0x59", "name": "Layout1", "blockRecord": "0x58", "extensionDictionary": "none" },
+      { "handle": "0x5e", "name": "Layout2", "blockRecord": "0x5d", "extensionDictionary": "none" }
+    ],
+    "modelExtension": {
+      "handle": "0xf5c",
+      "parent": "0x22",
+      "hardOwner": 1,
+      "entry": { "name": "ADSK_XREC_LAYOUTTHUMBNAIL", "target": "0xf5d" },
+      "xrecord": { "parent": "0xf5c", "reactorCount": 1, "entryCount": 1073, "valueCount": 1073, "handleValueCount": 0 }
+    },
+    "viewport": { "handle": "0x94", "background": "0", "sun": "0x314" },
+    "sun": { "handle": "0x314", "parent": "0x94" },
+    "blockInventory": {
+      "blockRecords": 4,
+      "blocks": 4,
+      "modelSpaceEntities": 52,
+      "nonLayoutBlock": { "name": "Fluorescent Fixture", "entities": 5, "blockRecord": "0xe4a", "extensionDictionary": "0xea0" },
+      "modelSpaceBlockRecordExtensionDictionary": "0x148",
+      "dictionaryCount": 54,
+      "xrecordCount": 111
+    }
+  },
+  "disposition": {
+    "reason": "The null VPORT background removes the specific aerial blocker, but this input has three object parse failures and its graph is larger than the current selected-projection helper. Producing a quick projection would require resolving model entities, the extra populated block, additional block-record dictionaries, and remaining references. Dropping or emptying those source objects is not an acceptable shortcut.",
+    "implementation": "No production code or tests changed in this screen. The current DWG-origin ACAD_BACKGROUND refusal remains intact.",
+    "nextTrigger": "Resume this LAYOUT route only with a complete source profile whose retained block/object dependencies can be closed, or a separately qualified ACAD_BACKGROUND writer. Use the remote ObjectARX host only after its release/build and operator-run transfer route are identified; do not assume it supplies this exact AC1024 profile."
+  }
+}
