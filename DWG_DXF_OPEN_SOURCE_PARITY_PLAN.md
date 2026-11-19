@@ -412,7 +412,7 @@ acceptance separate. CAD Assistant/ezdxf shares OCCT lineage with FreeCAD and
 does not provide independent-kernel evidence. P7-E remains optional. A missing
 external kernel or app blocks only that profile.
 
-### P8 — consumers, packaging, release (3 open)
+### P8 — consumers, packaging, release (2 open)
 
 A [reviewable LibreCAD consumer patch](docs/patches/librecad-dxfrw-default-dimstyle-qstring-2026-11-18.patch) fixes a confirmed
 `$DIMSTYLE` overload error; its focused regression fails before the fix and
