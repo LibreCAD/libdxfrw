@@ -224,6 +224,21 @@ public:
             const dx_iface& iface, const dx_data& data) noexcept {
         return iface.hasQualifiedAc1024AerialDiffuseBump(data);
     }
+    static bool qualifiedAerialMaterialAppId(dx_iface& iface,
+                                             dx_data& data) noexcept {
+        iface.cData = &data;
+        return iface.hasQualifiedAerialMaterialAppIdSource();
+    }
+    static bool qualifiedAerialOtherMaterialEed(
+            dx_iface& iface, dx_data& data, std::uint32_t handle) noexcept {
+        iface.cData = &data;
+        return iface.hasQualifiedAc1024AerialOtherMaterialEed(data, handle);
+    }
+    static bool qualifiedAerialGlobalMaterialEed(
+            dx_iface& iface, dx_data& data) noexcept {
+        iface.cData = &data;
+        return iface.hasQualifiedAc1024AerialGlobalMaterialEed(data);
+    }
     static std::uint8_t& aerialAdvMaterialRawFirstByte(dx_data& data) {
         return data.m_standardDwgObjectFrames.at(
             {data.importGeneration, 0x2C4u}).raw.m_rawBytes.front();
@@ -93831,6 +93846,8 @@ int main(int argc, char** argv) {
         return physicalAc1024SelectedDiffuseBumpWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-complete-material-branch-writer")
         return physicalAc1024CompleteMaterialBranchWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-complete-material-root-writer")
+        return physicalAc1024CompleteMaterialRootWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-tablestyle-writer")
         return physicalAc1024SelectedTableStyleWriter(argv[2]) ? 0 : 1;
     if (argc == 3

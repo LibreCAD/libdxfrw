@@ -1731,3 +1731,423 @@ bool physicalAc1024CompleteMaterialBranchWriter(
     std::cerr << "AC1024 complete MATERIAL branch passed 10-edge ASCII/Binary output, readback, refusal and retry.\n";
     return true;
 }
+
+bool physicalAc1024CompleteMaterialRootWriter(
+        const std::filesystem::path& sourcePath) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    struct MaterialProfile {
+        const char* name;
+        std::uint32_t handle;
+        std::uint32_t extension;
+    };
+    struct ChildProfile {
+        std::uint32_t extension;
+        std::uint32_t handle;
+        const char* key;
+    };
+    constexpr std::array<MaterialProfile, 9> profiles{{
+        {"Brass - Satin 1", 0x2C2u, 0x2C3u},
+        {"Bronze - Satin 1", 0x2CCu, 0x2CDu},
+        {"ByBlock", 0x97u, 0x295u},
+        {"ByLayer", 0x96u, 0x297u},
+        {"Global", 0x98u, 0x290u},
+        {"Indoor Pool", 0x32Eu, 0x32Fu},
+        {"Plate - Blue", 0x2D6u, 0x2D7u},
+        {"Plate - Riveted Flat Gray", 0x2E0u, 0x2E1u},
+        {"Rust - Heavy", 0x2EAu, 0x2EBu}
+    }};
+    dx_iface sourceIface;
+    dx_data source;
+    if (!sourceIface.fileImport(sourcePath.string(), &source, false))
+        return fail("complete AC1024 MATERIAL root import failed");
+
+    std::vector<ChildProfile> children;
+    children.reserve(53u);
+    children.push_back({0x295u, 0x296u, "FBXASSET"});
+    children.push_back({0x297u, 0x298u, "FBXASSET"});
+    children.push_back({0x290u, 0x291u, "FBXASSET"});
+    for (const auto& profile : dx_ac1024_aerial_fbxasset_wire::profiles)
+        children.push_back({profile.extensionHandle, profile.recordHandle,
+                            "FBXASSET"});
+    for (const auto& profile : dx_ac1024_aerial_advmaterial_wire::profiles)
+        children.push_back({profile.extensionHandle, profile.recordHandle,
+                            "ADVMATERIAL"});
+    for (const auto& profile : dx_ac1024_aerial_tile_wire::materials)
+        for (std::size_t index = 0u;
+             index < dx_ac1024_aerial_tile_wire::keys.size(); ++index)
+            children.push_back({profile.extensionHandle,
+                profile.tileHandles[index], dx_ac1024_aerial_tile_wire::keys[index]});
+    for (const auto& profile : dx_ac1024_aerial_material_wide_wire::profiles)
+        children.push_back({profile.extensionHandle, profile.recordHandle,
+                            profile.dictionaryKey});
+    if (children.size() != 53u)
+        return fail("complete MATERIAL root child inventory count changed");
+
+    const auto findHandle = [](auto& rows, std::uint32_t handle) {
+        return std::find_if(rows.begin(), rows.end(), [handle](const auto& row) {
+            return row.handle == handle;
+        });
+    };
+    auto root = findHandle(source.dictionaries, 0x72u);
+    auto group = findHandle(source.dictionaries, 0xDu);
+    auto appId = findHandle(source.appIds, 0x12u);
+    if (root == source.dictionaries.end() || group == source.dictionaries.end()
+        || appId == source.appIds.end() || appId->name != "ACAD"
+        || root->parentHandle != 0xCu || root->m_entries.size() != profiles.size()
+        || source.materials.size() < profiles.size()
+        || source.dictionaryWithDefaults.size() != 1u
+        || source.placeholders.size() != 1u)
+        return fail("complete AC1024 MATERIAL root dependencies are incomplete");
+
+    std::vector<DRW_Material*> materials;
+    std::vector<DRW_Dictionary> extensions;
+    std::vector<DRW_XRecord*> records;
+    std::map<std::uint32_t, std::uint32_t> remap{{0x72u, 0xA072u}};
+    for (const auto& profile : profiles) {
+        auto material = findHandle(source.materials, profile.handle);
+        auto extension = findHandle(source.dictionaries, profile.extension);
+        if (material == source.materials.end()
+            || extension == source.dictionaries.end()
+            || material->m_name != profile.name
+            || material->parentHandle != root->handle
+            || material->xDictHandle != extension->handle
+            || extension->parentHandle != material->handle)
+            return fail("a complete MATERIAL root child has invalid owner identity");
+        const auto rootEdges = std::count_if(root->m_entries.begin(),
+            root->m_entries.end(), [&profile](const auto& entry) {
+                return entry.m_name == profile.name
+                    && entry.m_handle == profile.handle;
+            });
+        const auto expectedChildCount = static_cast<std::size_t>(std::count_if(children.begin(),
+            children.end(), [&profile](const auto& child) {
+                return child.extension == profile.extension;
+            }));
+        if (rootEdges != 1
+            || extension->m_entries.size() != expectedChildCount)
+            return fail("a complete MATERIAL root or extension edge is ambiguous");
+        materials.push_back(&*material);
+        extensions.push_back(*extension);
+        remap.emplace(profile.handle, 0xA000u + profile.handle);
+        remap.emplace(profile.extension, 0xA000u + profile.extension);
+    }
+    std::set<std::uint32_t> seenChildren;
+    std::size_t sourceFieldCount = 0u;
+    for (const auto& child : children) {
+        auto extension = findHandle(source.dictionaries, child.extension);
+        auto record = findHandle(source.xRecords, child.handle);
+        if (extension == source.dictionaries.end()
+            || record == source.xRecords.end()
+            || !seenChildren.insert(child.handle).second
+            || record->tType != DRW::XRECORD
+            || record->parentHandle != child.extension
+            || record->reactorHandles.size() != 1u
+            || record->reactorHandles.front() != child.extension
+            || record->m_dataEntries.empty()
+            || record->m_dataEntries.size() != record->m_values.size()
+            || std::count_if(extension->m_entries.begin(), extension->m_entries.end(),
+                [&child](const auto& edge) {
+                    return edge.m_name == child.key
+                        && edge.m_handle == child.handle;
+                }) != 1)
+            return fail("a complete MATERIAL child record or dictionary edge is invalid");
+        records.push_back(&*record);
+        sourceFieldCount += record->m_dataEntries.size();
+        remap.emplace(child.handle, 0xA000u + child.handle);
+    }
+    if (records.size() != 53u || sourceFieldCount != 2834u)
+        return fail("complete MATERIAL root XRECORD totals changed");
+
+    const auto sameClass = [](const DRW_Class& left, const DRW_Class& right) {
+        return left.recName == right.recName
+            && left.className == right.className
+            && left.appName == right.appName
+            && left.proxyFlag == right.proxyFlag
+            && left.entityFlag == right.entityFlag
+            && left.wasaProxyFlag == right.wasaProxyFlag;
+    };
+    const auto allQualified = [&]() {
+        if (!Access::qualifiedAerialMaterialAppId(sourceIface, source)
+            || !Access::qualifiedAerialGlobalMaterialEed(sourceIface, source)
+            || !Access::qualifiedAerialFbxAssets(sourceIface, source)
+            || !Access::qualifiedAerialDiffuseBump(sourceIface, source))
+            return false;
+        for (const auto handle : {0x2C2u, 0x2CCu, 0x2D6u, 0x2E0u,
+                                  0x2EAu, 0x32Eu})
+            if (!Access::qualifiedAerialOtherMaterialEed(
+                    sourceIface, source, handle))
+                return false;
+        for (const auto& profile : dx_ac1024_aerial_advmaterial_wire::profiles)
+            if (!Access::qualifiedAerialAdvMaterial(
+                    sourceIface, source, profile))
+                return false;
+        DRW_Class byBlock, byLayer, global;
+        return Access::selectedAerialByBlockClass(
+                sourceIface, source, byBlock, 0x97u)
+            && Access::selectedAerialByBlockClass(
+                sourceIface, source, byLayer, 0x96u)
+            && Access::selectedAerialGlobalMaterialEedClass(
+                sourceIface, source, global)
+            && sameClass(byBlock, byLayer) && sameClass(byBlock, global);
+    };
+    if (!allQualified())
+        return fail("complete AC1024 MATERIAL root source profiles are not qualified");
+
+    class SelectedWriter final : public LayerStateTestWriter {
+    public:
+        dx_data blank;
+        DRW_AppId appId;
+        DRW_Dictionary owner;
+        std::vector<DRW_Dictionary> extensions;
+        DRW_DictionaryWithDefault plot;
+        DRW_AcDbPlaceholder placeholder;
+        std::vector<DRW_Material*> materials;
+        std::vector<DRW_XRecord*> records;
+        dx_iface* sourceIface{nullptr};
+        std::function<bool()> allQualified;
+        bool dependenciesOk{false};
+        bool routesOk{false};
+        void writeAppId() override { (void)dxfW->writeAppId(&appId); }
+        bool finalizeDxfWrite() override { return true; }
+        void writeObjects() override {
+            dependenciesOk = allQualified()
+                && dxfW->writeDictionaryWithDefault(&plot)
+                && dxfW->writeAcDbPlaceholder(&placeholder)
+                && dxfW->writeDictionary(&owner);
+            for (auto& extension : extensions)
+                dependenciesOk = dxfW->writeDictionary(&extension)
+                    && dependenciesOk;
+            for (auto* material : materials)
+                dependenciesOk = dxfW->writeMaterial(material)
+                    && dependenciesOk;
+            routesOk = true;
+            for (auto* record : records) {
+                bool advRoute = false;
+                bool wideRoute = false;
+                const bool written = Access::writeXRecordWithSourceCompatibility(
+                    *sourceIface, *record, &advRoute, &wideRoute);
+                const bool expectedAdv =
+                    dx_ac1024_aerial_advmaterial_wire::profiles.end()
+                    != std::find_if(
+                        dx_ac1024_aerial_advmaterial_wire::profiles.begin(),
+                        dx_ac1024_aerial_advmaterial_wire::profiles.end(),
+                        [record](const auto& profile) {
+                            return profile.recordHandle == record->handle;
+                        });
+                const bool expectedWide = std::any_of(
+                    dx_ac1024_aerial_material_wide_wire::profiles.begin(),
+                    dx_ac1024_aerial_material_wide_wire::profiles.end(),
+                    [record](const auto& profile) {
+                        return profile.recordHandle == record->handle;
+                    });
+                routesOk = routesOk && advRoute == expectedAdv
+                    && wideRoute == expectedWide;
+                dependenciesOk = written && dependenciesOk;
+            }
+        }
+    } writer;
+    writer.cData = &writer.blank;
+    writer.appId = *appId;
+    writer.owner = *root;
+    writer.extensions = extensions;
+    writer.materials = materials;
+    writer.records = records;
+    writer.sourceIface = &sourceIface;
+    writer.allQualified = allQualified;
+    writer.plot = source.dictionaryWithDefaults.front();
+    if (writer.plot.m_entries.size() != 1u)
+        return fail("complete MATERIAL root plot-style dictionary is not singular");
+    writer.plot.m_entries.front().m_dxfHandleCode =
+        DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+    writer.placeholder = source.placeholders.front();
+
+    const auto output = std::filesystem::temp_directory_path()
+        / ("libdxfrw-p4-complete-material-root-output-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error);
+    }} cleanup{output};
+    dxfRW codec(output.string().c_str());
+    sourceIface.dxfW = &codec;
+    writer.dxfW = &codec;
+    codec.setDxfWriteRecordInventoryEnabled(true);
+    codec.setHandleRemap(remap);
+    codec.setRootDictEntries({{"ACAD_MATERIAL", "A072"},
+                              {"ACAD_PLOTSTYLENAME", "E"}});
+    if (!codec.setGeneratedDictionarySourceHandles(0xCu, 0xDu)
+        || !codec.setGeneratedDictionarySourceRecords(
+            std::make_unique<DRW_Dictionary>(source.namedObjectDictionary),
+            std::make_unique<DRW_Dictionary>(*group))
+        || !codec.setDxfDefaultPlotStyleSourceHandles(0xEu, 0xFu))
+        return fail("could not prepare complete MATERIAL root dependencies");
+    DRW_Class materialClass, plotClass, placeholderClass;
+    if (!Access::selectedAerialByBlockClass(
+            sourceIface, source, materialClass, 0x97u)
+        || !dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
+        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
+        return fail("could not prepare complete MATERIAL root classes");
+    materialClass.instanceCount = static_cast<int>(materials.size());
+    plotClass.instanceCount = placeholderClass.instanceCount = 1;
+    codec.setDxfClasses({materialClass, plotClass, placeholderClass});
+
+    const auto sameVariant = [](const DRW_Variant& left,
+                                const DRW_Variant& right) {
+        if (left.code() != right.code() || left.type() != right.type())
+            return false;
+        switch (left.type()) {
+        case DRW_Variant::INTEGER: return left.i_val() == right.i_val();
+        case DRW_Variant::INTEGER64: return left.i64_val() == right.i64_val();
+        case DRW_Variant::DOUBLE: return left.d_val() == right.d_val();
+        case DRW_Variant::STRING:
+            return left.content.s != nullptr && right.content.s != nullptr
+                && *left.content.s == *right.content.s;
+        case DRW_Variant::BINARY:
+            return left.binary() != nullptr && right.binary() != nullptr
+                && *left.binary() == *right.binary();
+        case DRW_Variant::COORD: {
+            const auto* a = left.coord();
+            const auto* b = right.coord();
+            return a != nullptr && b != nullptr && a->x == b->x
+                && a->y == b->y && a->z == b->z;
+        }
+        default: return false;
+        }
+    };
+    const auto readback = [&]() {
+        dx_iface reopened;
+        dx_data actual;
+        if (!reopened.fileImport(output.string(), &actual, false)
+            || !actual.hasNamedObjectDictionary
+            || std::count_if(actual.namedObjectDictionary.m_entries.begin(),
+                actual.namedObjectDictionary.m_entries.end(), [](const auto& entry) {
+                    return entry.m_name == "ACAD_MATERIAL"
+                        && entry.m_handle == 0xA072u;
+                }) != 1
+            || std::count_if(actual.appIds.begin(), actual.appIds.end(),
+                [](const DRW_AppId& row) { return row.name == "ACAD"; }) != 1)
+            return false;
+        const auto outRoot = findHandle(actual.dictionaries, 0xA072u);
+        if (outRoot == actual.dictionaries.end()
+            || outRoot->m_entries.size() != profiles.size())
+            return false;
+        for (std::size_t index = 0u; index < profiles.size(); ++index) {
+            const auto& profile = profiles[index];
+            const auto& expected = *materials[index];
+            const auto outputHandle = 0xA000u + profile.handle;
+            const auto outputExtension = 0xA000u + profile.extension;
+            const auto rootEdges = std::count_if(outRoot->m_entries.begin(),
+                outRoot->m_entries.end(), [&profile, outputHandle](const auto& edge) {
+                    return edge.m_name == profile.name
+                        && edge.m_handle == outputHandle;
+                });
+            const auto outMaterial = findHandle(actual.materials, outputHandle);
+            const auto outExtension = findHandle(actual.dictionaries, outputExtension);
+            const auto expectedExtEntries = static_cast<std::size_t>(std::count_if(children.begin(),
+                children.end(), [&profile](const auto& child) {
+                    return child.extension == profile.extension;
+                }));
+            if (rootEdges != 1 || outMaterial == actual.materials.end()
+                || outExtension == actual.dictionaries.end()
+                || outMaterial->parentHandle != 0xA072u
+                || outMaterial->xDictHandle != outputExtension
+                || outMaterial->m_name != expected.m_name
+                || !dxfMaterial::sameBodyState(expected, *outMaterial)
+                || outMaterial->extData.size() != expected.extData.size()
+                || outExtension->parentHandle != outputHandle
+                || outExtension->m_entries.size() != expectedExtEntries)
+                return false;
+            for (std::size_t field = 0u; field < expected.extData.size(); ++field)
+                if (expected.extData[field] == nullptr
+                    || outMaterial->extData[field] == nullptr
+                    || !sameVariant(*expected.extData[field],
+                                    *outMaterial->extData[field]))
+                    return false;
+        }
+        std::size_t readbackFields = 0u;
+        for (std::size_t index = 0u; index < children.size(); ++index) {
+            const auto& child = children[index];
+            const auto outputHandle = 0xA000u + child.handle;
+            const auto outputExtension = 0xA000u + child.extension;
+            const auto outExtension = findHandle(actual.dictionaries, outputExtension);
+            const auto outRecord = findHandle(actual.xRecords, outputHandle);
+            const auto& expected = *records[index];
+            const auto edgeCount = outExtension == actual.dictionaries.end() ? 0
+                : std::count_if(outExtension->m_entries.begin(),
+                    outExtension->m_entries.end(), [&child, outputHandle](const auto& edge) {
+                        return edge.m_name == child.key
+                            && edge.m_handle == outputHandle;
+                    });
+            if (edgeCount != 1 || outRecord == actual.xRecords.end()
+                || outRecord->parentHandle != outputExtension
+                || outRecord->reactorHandles.size() != 1u
+                || outRecord->reactorHandles.front() != outputExtension
+                || outRecord->m_dataEntries.size() != expected.m_dataEntries.size()
+                || outRecord->m_values.size() != expected.m_values.size())
+                return false;
+            for (std::size_t field = 0u; field < expected.m_dataEntries.size(); ++field)
+                if (!sameVariant(expected.m_dataEntries[field],
+                                 outRecord->m_dataEntries[field])
+                    || !sameVariant(expected.m_values[field],
+                                    outRecord->m_values[field]))
+                    return false;
+            readbackFields += outRecord->m_dataEntries.size();
+        }
+        return readbackFields == 2834u;
+    };
+    const auto write = [&](DRW::Version version, bool binary) {
+        writer.dependenciesOk = writer.routesOk = false;
+        return allQualified() && codec.write(&writer, version, binary)
+            && writer.dependenciesOk && writer.routesOk;
+    };
+    const auto refuseAndRetry = [&](bool binary,
+                                    const std::function<void()>& corrupt,
+                                    const std::function<void()>& restore,
+                                    DRW::Version version = DRW::AC1024) {
+        const std::string sentinel = "preserve complete MATERIAL root output\n";
+        {
+            std::ofstream file(output, std::ios::binary | std::ios::trunc);
+            if (!(file << sentinel)) return false;
+        }
+        corrupt();
+        const bool saved = write(version, binary);
+        restore();
+        std::ifstream file(output, std::ios::binary);
+        const std::string preserved(std::istreambuf_iterator<char>(file), {});
+        file.close();
+        return !saved && preserved == sentinel && allQualified()
+            && write(DRW::AC1024, binary) && readback();
+    };
+    for (const bool binary : {false, true}) {
+        if (!write(DRW::AC1024, binary) || !readback())
+            return fail("complete MATERIAL root ASCII/Binary output or readback failed");
+        for (const auto request : {std::pair<std::uint32_t, int>{0x2ECu, 460},
+                                   {0x2EDu, 70}, {0x2EFu, 270}, {0x2EEu, 420}}) {
+            auto record = findHandle(source.xRecords, request.first);
+            if (record == source.xRecords.end())
+                return fail("complete MATERIAL root mutation record is missing");
+            auto field = std::find_if(record->m_dataEntries.begin(),
+                record->m_dataEntries.end(), [&request](const auto& value) {
+                    return value.code() == request.second;
+                });
+            if (field == record->m_dataEntries.end())
+                return fail("complete MATERIAL root mutation field is missing");
+            const auto savedValue = *field;
+            const auto changedValue = field->type() == DRW_Variant::INTEGER
+                ? DRW_Variant(field->code(), field->i_val() + 1)
+                : DRW_Variant(field->code(), field->d_val() + 1.0);
+            if (!refuseAndRetry(binary,
+                    [field, changedValue] { *field = changedValue; },
+                    [field, savedValue] { *field = savedValue; }))
+                return fail("complete MATERIAL root typed refusal/retry failed");
+        }
+        auto& raw = Access::aerialAdvMaterialRawFrame(source, 0x2F0u)
+                        .m_rawBytes.front();
+        const auto savedByte = raw;
+        if (!refuseAndRetry(binary, [&] { raw ^= 0x80u; },
+                [&] { raw = savedByte; }))
+            return fail("complete MATERIAL root raw-frame refusal/retry failed");
+        if (!refuseAndRetry(binary, [] {}, [] {}, DRW::AC1027))
+            return fail("complete MATERIAL root wrong-version refusal/retry failed");
+    }
+    std::cerr << "AC1024 complete ACAD_MATERIAL root passed 9-root/9-extension/53-record ASCII/Binary output, readback, refusal and retry.\n";
+    return true;
+}
