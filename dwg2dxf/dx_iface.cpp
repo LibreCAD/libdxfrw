@@ -68198,14 +68198,17 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
     try {
         // fileImport publishes data.sourceVersion only after read() returns.
         // During callbacks use the already delivered declared HEADER context.
-        // The generated AC1015 default-plot profile uses the root C. Decode
-        // its original bytes under the source codec; no output is admitted by
-        // this source-only replay.
+        // The generated AC1015 default-plot profile uses the root C and its
+        // LAYER consumers. Decode original bytes under the source codec; no
+        // output is admitted by this source-only replay.
         const bool legacyRoot=dictionary&&raw.m_version==DRW::AC1015&&raw.handle==0xCu&&raw.parentHandle==0u;
+        const bool legacyLayer=layer&&raw.m_version==DRW::AC1015
+            &&raw.handle==0x10u&&raw.parentHandle==2u&&raw.groups.size()==11u;
+        const bool legacyProfile=legacyRoot||legacyLayer;
         dxfRW::DxfReadContext legacyContext;
         if (raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
-            || (!legacyRoot&&(raw.m_version<DRW::AC1021 || raw.m_version>DRW::AC1032))
-            || (legacyRoot&&(!source.entitiesReadInput||!source.entitiesReadInput->getDxfReadContext(legacyContext)
+            || (!legacyProfile&&(raw.m_version<DRW::AC1021 || raw.m_version>DRW::AC1032))
+            || (legacyProfile&&(!source.entitiesReadInput||!source.entitiesReadInput->getDxfReadContext(legacyContext)
                 ||legacyContext.sourceVersion!=DRW::AC1015||legacyContext.codecVersion!=DRW::AC1015
                 ||legacyContext.binary==raw.hasRawValues))) return;
         std::string body;
@@ -68216,13 +68219,13 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
             source.resourceProofCaptureFailed=true;return;
         }
         dxfRW::DxfObjectsWriteView view{};view.bytes=body;view.version=raw.m_version;
-        view.binary=!raw.hasRawValues;view.codePage=legacyRoot?legacyContext.codecCodePage:"UTF-8";
-        if(legacyRoot)view.compatibilityProfile=legacyContext.compatibilityProfile;
+        view.binary=!raw.hasRawValues;view.codePage=legacyProfile?legacyContext.codecCodePage:"UTF-8";
+        if(legacyProfile)view.compatibilityProfile=legacyContext.compatibilityProfile;
         dx_standard_output::InputBuffer buffer(body);std::istream input(&buffer);
         auto budget=std::make_shared<DxfReadRetainedBudget>(source.maxResourceProofBytes);
         auto reader=dx_standard_output::readerFor(input,view,budget);
         if (!reader) return;
-        if(legacyRoot){reader->setDxfTextEncoding(legacyContext.textEncoding);reader->setDxfCodePagePolicy(legacyContext.codePagePolicy);}
+        if(legacyProfile){reader->setDxfTextEncoding(legacyContext.textEncoding);reader->setDxfCodePagePolicy(legacyContext.codePagePolicy);}
         reader->setTypedVariantNodeBudget(source.maxResourceProofWork);
         const auto replayBudgetFailure=[&]() {
             if(budget->exceeded()||reader->typedVariantNodeBudgetExceeded())source.resourceProofCaptureFailed=true;
@@ -68331,6 +68334,9 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
         else if(layer||appid){if(!namespaceSourceReferences(raw,layer,references))return;}
         else if(text || line) {if(!symbolSourceReferences(raw,line,references))return;}
         else if (!tableResourceSourceReferences(raw,style,references)) return;
+        // This AC1015 replay is reserved for the default-plot observer. Do
+        // not set the general resource-match or reference flags.
+        if(legacyLayer){resource.legacyPlotLayerRawTypedMatched=true;return;}
         if(style && std::count_if(references.begin(),references.end(),[](const auto& ref){return ref.kind==dx_tableResourceRole::TextStyleName;})
             !=static_cast<std::ptrdiff_t>(nameKeys.size()))return;
         resource.references=std::move(references);
@@ -68749,8 +68755,11 @@ void dx_iface::observeResourceOrigin(const DRW_TableEntry* model,const DRW_RawDx
   if (view.kind > dxfRW::DxfResourceSourceView::Kind::AppId)
     return;
   if (!s.entitiesReadInput->getDxfReadContext(live) ||
-      live.sourceVersion < DRW::AC1021 || live.sourceVersion > DRW::AC1032)
+      (!(live.sourceVersion==DRW::AC1015 && view.kind==V::Kind::Layer)
+       && (live.sourceVersion < DRW::AC1021 || live.sourceVersion > DRW::AC1032)))
     return;
+  if(live.sourceVersion==DRW::AC1015 && (!view.source || view.source->handle!=0x10u
+      ||view.source->parentHandle!=2u ||view.source->groups.size()!=11u))return;
   const bool symbol = view.kind >= V::Kind::TextStyle;
   const bool first = symbol ? (model && raw) : (model && !raw);
   const auto phase = model && raw ? V::Phase::Source
@@ -68821,11 +68830,16 @@ void dx_iface::observeResourceOrigin(const DRW_TableEntry* model,const DRW_RawDx
 void dx_iface::finishResourceOrigins(dx_data& data) noexcept {
     auto& s=data.m_tableDxfSource;if(s.resourceOriginCaptureFailed)return;
     const bool ready=identitySourceReport(data).state==IdentitySourceState::NamespaceReady;
+    const bool legacyReady=data.sourceVersion==DRW::AC1015
+        &&identitySourceReportInternal(data,true).state==IdentitySourceState::NamespaceReady;
     try {for(const auto& item:s.resourceOriginInputs) {
         using A=dx_data::TableDxfSourceCapture::ResourceOriginAudit;A audit;audit.input=item.second;audit.identities=s.identityAudit;audit.index=s.resourceOriginAuditOwners.size();
         audit.stateComplete=!item.second->state.first&&!item.second->state.second&&item.second->payloadComplete;
-        const auto resource=s.resources.find(item.first);audit.bodyMatched=resource!=s.resources.end()&&resource->second.rawTypedMatched&&!resource->second.rawTypedMismatch;
-        if(ready) {
+        const auto resource=s.resources.find(item.first);
+        const bool legacyLayer=legacyReady&&item.second->kind==dxfRW::DxfResourceSourceView::Kind::Layer;
+        audit.bodyMatched=resource!=s.resources.end()&&resource->second.rawTypedMatched&&!resource->second.rawTypedMismatch;
+        audit.legacyPlotLayerBodyMatched=legacyLayer&&resource!=s.resources.end()&&resource->second.legacyPlotLayerRawTypedMatched;
+        if(ready||legacyLayer) {
             const auto id=s.identityAudit->identities.find(item.first);const auto& source=*s.identityInput->source;
             if(id!=s.identityAudit->identities.end()&&id->second<source.records.size()) {
                 const auto& p=source.records[id->second];
@@ -68836,7 +68850,10 @@ void dx_iface::finishResourceOrigins(dx_data& data) noexcept {
                     &&asciiIdentifierEquals(source.records[p.table].tableName,p.name)&&owner!=s.identityAudit->identities.end()&&owner->second==p.table;
                 if(p.section<source.sections.size()&&(symbol?(table&&source.sections[p.section].kind==DRW_DxfIdentitySource::Section::Tables):
                     (p.kind==DRW_DxfIdentitySource::Kind::Object&&source.sections[p.section].kind==DRW_DxfIdentitySource::Section::Objects))&&resourceOriginName(item.second->kind,p.name)
-                    &&item.second->paired&&audit.bodyMatched&&audit.stateComplete){audit.physical=id->second;audit.originBound=true;}
+                    &&item.second->paired&&(legacyLayer?audit.legacyPlotLayerBodyMatched:audit.bodyMatched)&&audit.stateComplete){
+                        audit.physical=id->second;
+                        if(legacyLayer)audit.legacyPlotLayerOriginBound=true;else audit.originBound=true;
+                    }
             }
         }
         auto saved=std::make_shared<const A>(std::move(audit));s.resourceOriginAudits.emplace(item.first,saved);s.resourceOriginAuditOwners.push_back(std::move(saved));
@@ -68848,6 +68865,9 @@ dx_iface::ResourceOriginReport dx_iface::resourceOriginReport(const dx_data& dat
     if(!s.generation||data.sourceFormat!=dx_source_format::DXF)return r;
     if(!s.closed){r.state=S::Reading;return r;}if(!s.successful){r.state=S::ImportFailed;return r;}
     if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput){r.state=S::ContextMismatch;return r;}
+    // Keep the general legacy resource-origin report unchanged. AC1015 LAYER
+    // rows are visible only through the isolated default-plot observer.
+    if(data.sourceVersion==DRW::AC1015){r=ResourceOriginReport{};r.state=S::NoOrigins;return r;}
     if(s.resourceOriginCaptureFailed||!s.resourceOriginPending.empty()||(r.records&&(s.resourceCaptureFailed||s.resourceProofCaptureFailed))){r.state=S::CaptureFailed;return r;}
     if(s.resourceOriginInputs.size()!=s.resourceOriginAudits.size()||s.resourceOriginInputOwners.size()!=s.resourceOriginInputs.size()
         ||s.resourceOriginAuditOwners.size()!=s.resourceOriginInputs.size()){r.state=S::CaptureFailed;return r;}

@@ -1956,6 +1956,7 @@ private:
             std::vector<UTF8STRING> referenceNameKeys;
             bool invalidTextStyleName{false};
             bool rawTypedMatched{false}, rawTypedMismatch{false};
+            bool legacyPlotLayerRawTypedMatched{false};
             bool awaitingSymbol{false};
         };
         std::map<std::uint32_t,Resource> resources;
@@ -2469,6 +2470,7 @@ private:
         struct ResourceOriginAudit {
             std::shared_ptr<const ResourceOriginInput> input;std::shared_ptr<const IdentityAudit> identities;
             std::size_t index{0},physical{DRW_DxfIdentitySource::None};bool bodyMatched{false},stateComplete{false},originBound{false};
+            bool legacyPlotLayerBodyMatched{false},legacyPlotLayerOriginBound{false};
         };
         std::map<std::uint32_t,ResourceOriginPending> resourceOriginPending;
         std::map<std::uint32_t,std::shared_ptr<const ResourceOriginInput>> resourceOriginInputs;

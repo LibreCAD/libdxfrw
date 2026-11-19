@@ -367,7 +367,8 @@ public:
         std::size_t records{0},physicalRecords{0},dictionaries{0},placeholders{0},bodyMatched{0},originsBound{0},plotTargets{0},namedTargets{0},bytes{0},work{0};
         std::uint32_t defaultTarget{0};
         bool originalSourcesMatched{false},legacyClassRowsMatched{false},legacyLiveClassesMatched{false};
-        bool legacyBodiesMatched{false},legacyLiveBodiesMatched{false},ownerTargetsResolved{false},outputEligible{false};
+        bool legacyBodiesMatched{false},legacyLiveBodiesMatched{false},legacyLayerMatched{false},legacyLiveLayerMatched{false};
+        bool ownerTargetsResolved{false},outputEligible{false};
     };
     static PlotSourceReport plotStyleSourceReport(const dx_data&) noexcept;
     using DependencyState=dx_data::TableDxfSourceCapture::DependencyAudit::State;

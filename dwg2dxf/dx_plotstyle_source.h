@@ -251,7 +251,8 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
     if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput){r.state=S::ContextMismatch;return r;}
     if(s.plotSourceCaptureFailed||!s.plotSourcePending.empty()
         ||(data.sourceVersion==DRW::AC1015&&(s.structuralCaptureFailed||s.resourceCaptureFailed
-            ||s.resourceProofCaptureFailed||!s.structuralPending.empty()))){r.state=S::CaptureFailed;return r;}
+            ||s.resourceProofCaptureFailed||s.resourceOriginCaptureFailed||!s.resourceOriginPending.empty()
+            ||!s.structuralPending.empty()))){r.state=S::CaptureFailed;return r;}
     const auto& a=s.plotSourceAudit;if(!a)return r;
     const auto same=[](const auto& x,const auto& y){return x.get()==y.get()&&!x.owner_before(y)&&!y.owner_before(x);};
     if(!same(a,s.plotSourceOwner)||a->container!=&data||a->generation!=s.generation||a->containerId!=data.m_entitiesContainerIdentity.value
@@ -337,5 +338,55 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
             }
         }
     } catch (...) { r.legacyBodiesMatched=false;r.legacyLiveBodiesMatched=false; }
+    // The selected source has exactly one physical LAYER and one plot-style
+    // reference. This comparison still grants no object or output authority.
+    if(data.sourceVersion==DRW::AC1015 && r.legacyBodiesMatched && s.identityInput && s.identityInput->source
+        &&s.identityInput->source->records.size()<=4096u && s.resourceOriginRecords==1u
+        &&s.resourceOriginInputs.size()==1u && s.resourceOriginAudits.size()==1u
+        &&s.resourceOriginInputOwners.size()==1u && s.resourceOriginAuditOwners.size()==1u) try {
+        const auto& physical=s.identityInput->source->records;
+        const auto count=std::count_if(physical.begin(),physical.end(),[](const auto& row) {
+            return row.kind==DRW_DxfIdentitySource::Kind::TableRecord && asciiIdentifierEquals(row.name,"LAYER");
+        });
+        const auto& audit=s.resourceOriginAudits.begin()->second;
+        const auto input=s.resourceOriginInputs.begin();
+        const auto resource=s.resources.find(input->first);
+        if(count==1 && audit && audit->input && audit->input->raw && audit->input->sourceModel
+            &&input->first==0x10u && s.resourceOriginAudits.begin()->first==input->first
+            &&same(audit->input,input->second) && resource!=s.resources.end()
+            &&resource->second.family==dx_tableResourceFamily::Layer && resource->second.legacyPlotLayerRawTypedMatched
+            &&same(audit->input->raw,resource->second.raw) && same(audit->input->model,resource->second.model)
+            &&audit->input->context && audit->input->context->captured
+            &&audit->input->context->sourceVersion==DRW::AC1015 && audit->input->context->codecVersion==DRW::AC1015
+            &&audit->input->context->binary!=audit->input->raw->hasRawValues && audit->input->raw->m_version==DRW::AC1015
+            &&audit->physical<physical.size()
+            &&audit->input->kind==dxfRW::DxfResourceSourceView::Kind::Layer && audit->input->paired
+            &&audit->legacyPlotLayerOriginBound&&audit->legacyPlotLayerBodyMatched&&audit->stateComplete
+            &&audit->input->index==0u&&audit->index==0u&&same(audit,s.resourceOriginAuditOwners[0])
+            &&same(audit->input,s.resourceOriginInputOwners[0])&&same(audit->identities,s.identityAudit)
+            &&audit->input->container==&data&&audit->input->generation==s.generation
+            &&audit->input->containerId==data.m_entitiesContainerIdentity.value) {
+            const auto* layer=dynamic_cast<const DRW_Layer*>(audit->input->sourceModel.get());
+            const auto& raw=*audit->input->raw;
+            const auto handle=[](const DRW_Variant& v,int code,std::uint32_t expected) {
+                std::uint64_t actual=0u;return v.code()==code&&dx_standard_output::handleValue(v,actual)&&actual==expected;
+            };
+            const auto text=[](const DRW_Variant& v,int code,std::string_view expected) {
+                return v.code()==code&&v.type()==DRW_Variant::STRING&&dx_attdef_source::text(v)==expected;
+            };
+            const auto integer=[](const DRW_Variant& v,int code,int expected) {
+                return v.code()==code&&v.type()==DRW_Variant::INTEGER&&v.i_val()==expected;
+            };
+            r.legacyLayerMatched=layer&&raw.name=="LAYER"&&raw.handle==0x10u&&raw.parentHandle==2u
+                &&raw.groups.size()==11u&&handle(raw.groups[0],5,0x10u)&&handle(raw.groups[1],330,2u)
+                &&text(raw.groups[2],100,"AcDbSymbolTableRecord")&&text(raw.groups[3],100,"AcDbLayerTableRecord")
+                &&text(raw.groups[4],2,"0")&&integer(raw.groups[5],70,0)&&integer(raw.groups[6],62,7)
+                &&text(raw.groups[7],6,"CONTINUOUS")&&integer(raw.groups[8],290,1)
+                &&integer(raw.groups[9],370,-3)&&handle(raw.groups[10],390,0xFu)
+                &&layer->handle==0x10u&&layer->parentHandle==2u&&layer->handlePlotS=="F";
+            if(r.legacyLayerMatched && data.layers.size()==1u)
+                r.legacyLiveLayerMatched=layerSourceEqual(*layer,data.layers.front(),DRW::AC1015);
+        }
+    } catch (...) {r.legacyLayerMatched=false;r.legacyLiveLayerMatched=false;}
     return r;
 }

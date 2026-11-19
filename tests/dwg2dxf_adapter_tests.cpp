@@ -206,6 +206,15 @@ public:
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static bool legacyPlotLayerIsIsolated(const dx_data& data) noexcept {
+        const auto& source=data.m_tableDxfSource;
+        const auto resource=source.resources.find(0x10u);
+        const auto audit=source.resourceOriginAudits.find(0x10u);
+        return resource!=source.resources.end() && audit!=source.resourceOriginAudits.end() && audit->second
+            &&resource->second.legacyPlotLayerRawTypedMatched && !resource->second.rawTypedMatched
+            &&resource->second.rawTypedMismatch && audit->second->legacyPlotLayerBodyMatched
+            &&audit->second->legacyPlotLayerOriginBound && !audit->second->bodyMatched && !audit->second->originBound;
+    }
     static bool prepareDwgLayoutSource(dx_iface& iface, dx_data& data,
                                        DRW::Version version,
                                        bool debug = false) noexcept {
@@ -9952,6 +9961,7 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
                 || dx_iface::structuralSourceReport(data).state != dx_iface::StructuralSourceState::NotCaptured
                 || !source.originalSourcesMatched || !source.legacyClassRowsMatched || !source.legacyLiveClassesMatched
                 || !source.legacyBodiesMatched || !source.legacyLiveBodiesMatched
+                || !source.legacyLayerMatched || !source.legacyLiveLayerMatched || !Access::legacyPlotLayerIsIsolated(data)
                 || source.records != 2u || source.bodyMatched != 2u
                 || source.originsBound != 2u || source.namedTargets != 1u || source.defaultTarget != 0xFu
                 || source.ownerTargetsResolved || source.outputEligible)
@@ -9998,8 +10008,35 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
             if(!rejectLiveBodies())return fail("duplicate raw default dictionary was accepted");
             data.rawPlaceholders.clear();
             if(!rejectLiveBodies())return fail("missing raw placeholder was accepted");
+            if(dx_iface::resourceOriginReport(data).state!=dx_iface::ResourceOriginState::NoOrigins)
+                return fail("legacy plot layer observation changed the general resource-origin report");
+            const auto originalLayers=data.layers;
+            const auto rejectLiveLayer=[&]() {
+                const auto report=dx_iface::plotStyleSourceReport(data);
+                const bool rejected=report.legacyLayerMatched&&!report.legacyLiveLayerMatched&&!report.outputEligible;
+                data.layers=originalLayers;
+                return rejected&&dx_iface::plotStyleSourceReport(data).legacyLiveLayerMatched;
+            };
+            data.layers.front().handlePlotS="E";if(!rejectLiveLayer())return fail("changed layer plot target was accepted");
+            data.layers.front().color=1;if(!rejectLiveLayer())return fail("changed layer color was accepted");
+            data.layers.clear();if(!rejectLiveLayer())return fail("missing layer was accepted");
+            data.layers.push_back(data.layers.front());if(!rejectLiveLayer())return fail("extra layer was accepted");
             std::ifstream input(dxf,std::ios::binary);
             std::string bytes((std::istreambuf_iterator<char>(input)),std::istreambuf_iterator<char>());
+            {
+                std::string alteredLayer=bytes;
+                const auto layerName=alteredLayer.find("AcDbLayerTableRecord");
+                const auto marker=format==0u?std::string("\n390\nF\n"):std::string("\x86\x01",2u)+"F"+std::string(1u,'\0');
+                const auto at=layerName==std::string::npos?std::string::npos:alteredLayer.find(marker,layerName);
+                if(at==std::string::npos)return fail("generated layer plot reference was not found");
+                alteredLayer[at+(format==0u?5u:2u)]='E';
+                {std::ofstream changed(target,std::ios::binary);changed.write(alteredLayer.data(),static_cast<std::streamsize>(alteredLayer.size()));}
+                dx_data changedLayer;dx_iface layerImporter;
+                if(!layerImporter.fileImport(target.string(),&changedLayer,false))return fail("changed layer source failed to import");
+                const auto report=dx_iface::plotStyleSourceReport(changedLayer);
+                if(!report.legacyBodiesMatched||report.legacyLayerMatched||report.legacyLiveLayerMatched||report.outputEligible)
+                    return fail("changed source layer target earned the default-plot profile");
+            }
             {
                 std::string alteredClass = bytes;
                 const auto className = alteredClass.find("AcDbDictionaryWithDefault");
