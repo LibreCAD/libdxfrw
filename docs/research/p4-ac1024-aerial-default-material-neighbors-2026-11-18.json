@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-default-material-neighbors-2026-11-18",
+  "date": "2026-11-18",
+  "status": "BYLAYER_AND_GLOBAL_MATERIAL_SOURCE_GRAPHS_VERIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "libreDwgJsonSha256": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832",
+    "odaAsciiDxfSha256": "911acff2824c5d75043a074381aea9d2274601ca62391b14786a224444f6c0eb",
+    "basis": "Original local reference, pinned peer and prior independent ByBlock observer. Byte and field proof only. Source CAD files and extracts remain untracked."
+  },
+  "common": "Both MATERIAL scalar bodies are bit-identical to the 516-bit ByBlock body, and the pinned LibreDWG material fields agree apart from name, identity, frame dimensions and Global EED. Both extension dictionaries have one FBXASSET child, cloning 1 and hard-owner flag 1. Each XRECORD contains 193 ordered values with 189 binary chunks, checked against all source bytes and the ODA DXF. First 188 chunks are 127 bytes. ODA emits group 360 for the FBXASSET link; the actual DWG item is role 2 and uses the dictionary's hard-owner flag.",
+  "profiles": [
+    {
+      "name": "ByLayer",
+      "sourcePath": "0xC -> 0x72 -> 0x96 -> 0x297 -> 0x298",
+      "material": {"bytes": 96, "scalarBits": [39, 555], "stringBits": [555, 689], "handleStart": 706, "sha256": "d4d2d81e5b9ec70575ab97f1dcf55a27e897d2f42524c418fbe46b2989beb576"},
+      "extension": {"bytes": 33, "handleStart": 222, "sha256": "c0976668b1daffef5098f7c98f8ec04912a816a6fcf18e37217b13a64a8bc971"},
+      "xrecord": {"bytes": 24613, "payloadBits": [81, 196857], "handleStart": 196868, "first70": 1, "binaryBytes": 23940, "lastChunkBytes": 64, "sha256": "59d3594ee546e4fa61087b2171599311d2375662fa7a1e877860136add231d98", "binarySha256": "bfe20bb6a59973251950a7c93e9d58557ece6f770ded9a22b83464804a41fab1"}
+    },
+    {
+      "name": "Global",
+      "sourcePath": "0xC -> 0x72 -> 0x98 -> 0x290 -> 0x291",
+      "material": {"bytes": 117, "scalarBits": [225, 741], "stringBits": [741, 859], "handleStart": 876, "eedBits": [26, 214], "sha256": "c5c510cfaa05123453e26c52032995fd4ae10a4553ec263f9ccf75e1f7ad9c6e"},
+      "extension": {"bytes": 33, "handleStart": 222, "sha256": "3a82201908092c32fadd92ab5bbc21d337df25e4a952814e5bd11bb5d7da354b"},
+      "xrecord": {"bytes": 24609, "payloadBits": [81, 196825], "handleStart": 196836, "first70": 0, "binaryBytes": 23936, "lastChunkBytes": 60, "sha256": "c406a4bcc71e71ceaa7a1044a4c82f91607668febf1467dce9eb82d2eb10a5c7", "binarySha256": "9d7c30d7b4b708b59166ad8dcaa0aff9ff5ecc5d18c64b4fae9853754a555480"}
+    }
+  ],
+  "validation": {
+    "result": "All six original frames, exact record roles, scalar/string boundaries, terminal padding, and both ordered binary application payloads matched. The independent verifier refused 91 targeted bit/length changes and accepted all six after restoration.",
+    "scratchRoot": "/private/tmp/p4-aerial-material-census",
+    "sha256": {
+      "default_material_neighbors.py": "781999a52d09e4d60e1470aac746d77162c451e25c01cdd110de6bb03bd4299a",
+      "default-material-neighbor-spans.json": "5d6c4d3a7c3724a8f31238e87ba52a34495e202ab16fcaeb482aff70e905ca89",
+      "default-material-neighbor.log": "9209aca0cf097627d24cdaa89dd3a6d756047827fe5cf3714c8a84e53a1fa06b"
+    }
+  },
+  "next": "Reuse the ByBlock scalar and FBXASSET readers with a single bounded per-profile table. First exercise ByLayer in the existing selected ASCII/Binary transaction with exact original-body and staged payload checks. Add Global once the original ACAD APPID ownership/membership and emitted TABLES identity are captured, then check the signed EED alongside the FBXASSET payload. Whole MATERIAL root and native appearance remain open."
+}
