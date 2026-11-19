@@ -165,7 +165,7 @@ excluded from the counts, and cannot promote support claims.
 
 ## Execution order and fast paths
 
-The active queue has 23 package gates (P4 3, P5 7, P6 5, P7 5, P8 3).
+The active queue has 22 open package gates (P4 3, P5 7, P6 5, P7 5, P8 2).
 P4-D has source-bound standalone dictionary, XRECORD and SCALE frame proofs;
 the other format gates await their stated evidence. Take the first eligible evidence packet;
 an unavailable producer, external authority, GUI, or converter parks only its
