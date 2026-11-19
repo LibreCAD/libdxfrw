@@ -42,7 +42,9 @@ jobs:
 
   fast-regressions:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    # The bounded lane still builds several large translation units. Leave
+    # enough headroom for its tests; native qualification keeps Release flags.
+    timeout-minutes: 40
     steps:
       - name: Configure byte-stable checkout
         run: >-
@@ -71,7 +73,8 @@ jobs:
         run: >-
           cmake -S . -B build -G Ninja
           -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13
-          -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF
+          -DCMAKE_BUILD_TYPE=Release '-DCMAKE_CXX_FLAGS_RELEASE=-O1 -DNDEBUG'
+          -DBUILD_SHARED_LIBS=OFF
           -DLIBDXFRW_BUILD_DOC=OFF -DLIBDXFRW_BUILD_DWG2DXF=ON
           -DLIBDXFRW_BUILD_TESTS=ON -DLIBDXFRW_BUILD_QUALIFICATION=OFF
           -DLIBDXFRW_BUILD_LONG_FUZZ=OFF

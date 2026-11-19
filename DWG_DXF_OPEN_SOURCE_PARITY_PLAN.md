@@ -19,7 +19,7 @@ Refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-19:** 12/34 package gates closed; 22 remain. The
 historical activity count records 198 completed implementation/research
-slices, followed by six compatibility slices (204 total); the number of remaining slices is not yet known, so it cannot support
+slices, followed by seven implementation and compatibility slices (205 total); the number of remaining slices is not yet known, so it cannot support
 a completion percentage. Gate readiness is 12/34 (35.3%). An earlier fast-CI run
 found a stale AC1021 diagnostic-count assertion: 26 integrity rows minus 16
 retained rows means 10 omitted rows. The assertion is corrected. On digest
@@ -28,7 +28,7 @@ passed all 45 required CTests (one locale case skipped by design), and the
 Linux, macOS and Windows focused-native jobs each passed 7/7 with sealed,
 uploaded and enforced receipts. The repair receipt records exact job IDs,
 merge ref, receipt hashes and artifact digests; P8-F was closed for that digest.
-The corrected edge-budget regression passed the [fast and focused-native replay](docs/research/p8f-d467-upstream-native-replay-2026-11-19.json). The subsequent table and range aggregate-compatibility fixes change selected code and tests, reopening P8-F.
+The corrected edge-budget regression passed the [fast and focused-native replay](docs/research/p8f-d467-upstream-native-replay-2026-11-19.json). The subsequent consumer-compatibility fixes and XRECORD regression repair change selected code and tests, reopening P8-F. The fast CI run for the prior digest hit its 25-minute job timeout after the build finished; the disposable fast lane now uses O1 with NDEBUG and a 40-minute ceiling, while native qualification retains its release configuration.
 The shared remote ObjectARX host intake and the hash-gated P4-D, P5-D, and P6-A
 native observer/witness packets are prepared. P5-D now authors a known 4×3
 TABLE with a block cell, one nonconstant ATTDEF, and a distinct non-default
@@ -270,7 +270,7 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count implementation/research slices and package-gate readiness separately.
-  The historical ledger records 198 completed slices; six subsequent compatibility slices bring the count to 204. Remaining work cannot be
+  The historical ledger records 198 completed slices; seven subsequent implementation and compatibility slices bring the count to 205. Remaining work cannot be
   counted accurately as slices until the external source profiles are known;
   do not divide by only the completed slices or present 100% as completion.
   The 22 open gates are not interchangeable with slices and can require several
@@ -374,10 +374,7 @@ agree on the XRECORD parent of SUN `0x24C`; ODA also reports a separate VIEW
 link. Obtain native `ownerId` and `sunId` behavior across save and reopen.
 Preserve both roles and strict refusal until that distinction is resolved.
 
-Two [older XRECORD controls](docs/research/p4-ac1015-dictionary-eed-output-name-proof-2026-11-18.json)
-remain in P4-D. Reconcile the native transport matrix with the exact generated
-profiles that already pass strict output and with the AC1027 partial refusals.
-For the [generated default-plot boundary](docs/research/p4-generated-defaultplot-crossversion-boundary-2026-11-18.json),
+The [XRECORD transport matrix](docs/research/p4-xrecord-transport-matrix-reconciliation-2026-11-19.json) now checks the admitted generated profiles by strict readback and checks destination-preserving AC1027 partial refusal. The remaining older XRECORD control is the owned-extension profile. For the [generated default-plot boundary](docs/research/p4-generated-defaultplot-crossversion-boundary-2026-11-18.json),
 match the original NOD edge, eight dictionary groups, two placeholder groups
 and R2000 CLASS pair. Emit and inspect the exact typed AC1018 graph and its
 instance counts before rerunning the owned-extension selector. Retain the
@@ -454,14 +451,14 @@ consumer separately; see the [receipt](docs/research/p8-librecad-master-dimstyle
 
 P8-A/B/C and P8-E are closed for the exact package and generated-consumer
 profiles linked above. Reopen them if relevant source, build, configuration or
-consumer inputs change. P8-F was closed for digest `799ffdb8364af3b2a581d041ede24a74361bfd0bfba33f4a6ef4367044f80328` by the [authenticated replay](docs/research/p8f-d467-upstream-native-replay-2026-11-19.json). The table and range initialization compatibility fixes change the digest to `09b961f58cacf8e13dcad4db196e82aed3c6a1a9fbfd3d8fe49d5abcd1987a82` and reopens P8-F. The earlier [macOS FreeCAD smoke](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json)
+consumer inputs change. P8-F was closed for digest `799ffdb8364af3b2a581d041ede24a74361bfd0bfba33f4a6ef4367044f80328` by the [authenticated replay](docs/research/p8f-d467-upstream-native-replay-2026-11-19.json). The compatibility and XRECORD regression changes set the digest to `fb90c50087e53c909ebe522ef0e1797ec56fea3db668ba870561a39b6cd74b3d` and reopens P8-F. The earlier [macOS FreeCAD smoke](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json)
 is setup evidence only. Keep ordinary AC1027 drawings deferred until
 source-reference closure.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
 | P8-D / WAITING_FOR_GUI_AND_EXTERNAL_CONSUMER_QUALIFICATION | The unmerged [style-timing patch](docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch), [closure-bit patch](docs/patches/librecad-mline-closure-bit-2026-11-18.patch), [DXF fast-test adapter](docs/patches/librecad-dxf-fast-test-upstream-api-2026-11-19.patch), [DWG full-test adapter](docs/patches/librecad-dwg-fulltest-upstream-api-2026-11-19.patch), and new [bounded staged-inspector patch](docs/patches/librecad-p8d-mline-staged-inspector-2026-11-19.patch) apply sequentially to an isolated LibreCAD `078aac892287` archive when paired with the current libdxfrw source overlay. The [staged-inspector receipt](docs/research/p8d-mline-staged-inspector-port-2026-11-19.json) records the app build plus 42 DXF fast assertions and 596 focused MLINE assertions. The patch validates the closed staged ASCII output for the selected AC1018 MLINE profile through `dxfRW::writeVerified`; it does not establish general or Binary MLINE support. The public `DRW_DimensionAssociationOsnapRef` aggregate prefix is source-compatible again, and `dwgR` forwards the reader and diagnostic methods exposed by `dwgRW`. A full `librecad_tests` compile was investigated after the simple API/narrowing mismatches were repaired; it stops in `dwg_safety_tests.cpp` on fork-private internals (`m_dwgWriteExplicitLinks`, `DwgBlockWalkOutcome`, group-owner/SEQEND/dangling-record helpers, and `leftOut`). Do not add stubs or port that large white-box suite merely to make the upstream overlay compile; keep the matching full suite on the bundled-fork profile. The shared LibreCAD checkout was not modified. The [installed-codec proof](docs/research/p8d-mline-installed-style-write-contract-2026-11-18.json), [bounded bundled prototype](docs/research/p8d-mline-bundled-staged-write-proof-2026-11-18.json), and [output-budget controls](docs/research/p8d-mline-staged-output-budget-controls-2026-11-19.json) remain linked as component evidence. | The local staged-inspector port is complete. Keep P8-D open for native GUI save/reopen/render/edit checks (batch Move/Copy, named-LTYPE render, and selected MLINE display/edit/save/reopen), LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf when available, and current-consumer integration. The remote ObjectARX host does not replace these LibreCAD GUI and current-consumer checks; obtain actual GUI save/reopen/render/edit evidence before closing the gate. Do not promote support from the headless patch tests. |
-| P8-F / WAITING_FOR_NATIVE_CI | Run fast and focused Linux/macOS/Windows checks on the exact PR merge ref for digest `09b961f58cacf8e13dcad4db196e82aed3c6a1a9fbfd3d8fe49d5abcd1987a82`. | Verify uploaded receipts against the live PR head, merge ref and digest; do not promote support claims from CI alone. |
+| P8-F / WAITING_FOR_NATIVE_CI | Run fast and focused Linux/macOS/Windows checks on the exact PR merge ref for digest `fb90c50087e53c909ebe522ef0e1797ec56fea3db668ba870561a39b6cd74b3d`. | Verify uploaded receipts against the live PR head, merge ref and digest; do not promote support claims from CI alone. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 
 Keep consumer, source, and build receipts separate. Preserve LibreCAD's R13

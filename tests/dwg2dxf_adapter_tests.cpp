@@ -10523,7 +10523,7 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
             if (!dx_standard_output::valueEqual(values[n],record.m_dataEntries[n],identity,references)) return false;
         return true;
     };
-    unsigned sources = 0u, projections = 0u, closedLegacy = 0u, transportFaultRetries = 0u, strictRefusals = 0u, materialCells = 0u, reexports = 0u, lateRetries = 0u;
+    unsigned sources = 0u, projections = 0u, closedLegacy = 0u, transportFaultRetries = 0u, strictRefusals = 0u, strictQualified = 0u, partialRefusals = 0u, materialCells = 0u, reexports = 0u, lateRetries = 0u;
     const bool compact = profileIsolation || applicationScopes || binaryApplication || coordinateApplication;
     const auto sizes = compact ? std::vector<unsigned>{128u} : std::vector<unsigned>{0u,127u,128u,254u,255u};
     const auto scopes = coordinateApplication ? std::vector<unsigned>{13u} : binaryApplication ? std::vector<unsigned>{6u,7u,8u,9u,10u,11u,12u} : applicationScopes ? std::vector<unsigned>{1u,2u,3u,4u,5u} : std::vector<unsigned>{0u};
@@ -10596,11 +10596,49 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
             if (outputVersion == DRW::AC1015) {
                 const std::string sentinel = "STANDARD_NATIVE_TRANSPORT_STRICT_GATE_STAYS_CLOSED";
                 { std::ofstream prior(target,std::ios::binary); prior << sentinel; }
-                if (exporter.fileExport(target.string(),outputVersion,binary,&data,false,true)) return fail("standard chunk modeled proof bypassed strict admission");
+                const bool wrote = exporter.fileExport(target.string(),outputVersion,binary,&data,false,true);
+                const bool admitted = version == DRW::AC1021 || version == DRW::AC1024 || version == DRW::AC1032;
+                if (wrote != admitted) return fail("standard chunk strict admission changed for the generated source profile");
+                if (!wrote) {
+                    std::ifstream prior(target,std::ios::binary);
+                    const std::string retained((std::istreambuf_iterator<char>(prior)),std::istreambuf_iterator<char>());
+                    if (retained != sentinel) return fail("standard chunk strict refusal replaced destination");
+                    ++strictRefusals;
+                } else {
+                    for (const auto handle : {0xB010u,0xB020u,0xB030u})
+                        if (!Access::standardOutputHas(exporter,handle)) return fail("strict XRECORD output lost a source proof");
+                    dx_data actual; dx_iface reader;
+                    if (!reader.fileImport(target.string(),&actual,false) || actual.groups.size() != 1u || actual.xRecords.size() != 1u)
+                        return fail("strict XRECORD output could not be read back");
+                    const auto dictionary = std::find_if(actual.dictionaries.begin(),actual.dictionaries.end(),[](const auto& value) {
+                        return value.m_entries.size() == 1u && value.m_entries.front().m_name == "STD_XRECORD";
+                    });
+                    if (dictionary == actual.dictionaries.end() || dictionary->m_entries.front().m_handle != actual.xRecords.front().handle
+                        || actual.xRecords.front().parentHandle != dictionary->handle
+                        || !applicationEqual(actual.xRecords.front(),scope,actual.groups.front().handle,true))
+                        return fail("strict XRECORD output changed its graph or application values");
+                    const std::array<const DRW_TableEntry*,3> decoded{{&*dictionary,&actual.xRecords.front(),&actual.groups.front()}};
+                    for (std::size_t family = 0u; family < decoded.size(); ++family) {
+                        auto unusedMap = [](std::uint32_t, std::uint32_t&) { return false; };
+                        dx_standard_output::NoLayerReferences noLayers;
+                        std::vector<std::uint32_t> references;
+                        if (!dx_standard_output::extendedDataTransportEqual(*originals[family],*decoded[family],unusedMap,references,noLayers)
+                            || !references.empty()) return fail("strict XRECORD output changed its common XDATA");
+                    }
+                    ++strictQualified;
+                }
+            }
+            if (version == DRW::AC1027) {
+                const std::string sentinel = "STANDARD_NATIVE_TRANSPORT_PARTIAL_GATE_STAYS_CLOSED";
+                { std::ofstream prior(target,std::ios::binary); prior << sentinel; }
+                const bool wrote = exporter.fileExport(target.string(),outputVersion,binary,&data,false,true,
+                    dx_dxfSourceTextPolicy::Compatible,DRW::DxfTextWritePolicy::Compatible,
+                    dx_dxfProxyGraphicsPolicy::Compatible,dx_dwgReadCompletenessPolicy::AllowPartial);
                 std::ifstream prior(target,std::ios::binary);
                 const std::string retained((std::istreambuf_iterator<char>(prior)),std::istreambuf_iterator<char>());
-                if (retained != sentinel) return fail("standard chunk strict refusal replaced destination");
-                ++strictRefusals;
+                if (wrote || retained != sentinel) return fail("unqualified AC1027 partial export replaced destination");
+                ++partialRefusals;
+                continue;
             }
             if (!exporter.fileExport(target.string(),outputVersion,binary,&data,false,true,
                     dx_dxfSourceTextPolicy::Compatible,DRW::DxfTextWritePolicy::Compatible,
@@ -10746,14 +10784,16 @@ bool standardDwgBinaryTransport(StandardDwgProbe probe = StandardDwgProbe::Binar
         }
     }
     if (sources != (scopeFaultsOnly ? coordinateApplication ? 2u : binaryApplication ? 14u : 10u : binaryApplication ? 42u : profileIsolation || coordinateApplication ? 6u : 30u)
-        || projections != (scopeFaultsOnly ? 0u : binaryApplication ? 504u : profileIsolation || coordinateApplication ? 72u : 360u)
-        || closedLegacy != (scopeFaultsOnly ? 0u : binaryApplication ? 168u : profileIsolation || coordinateApplication ? 24u : 120u) || transportFaultRetries != (compact ? 0u : 2160u)
-        || strictRefusals != (scopeFaultsOnly ? 0u : binaryApplication ? 84u : profileIsolation || coordinateApplication ? 12u : 60u) || materialCells != (profileIsolation ? 32u : 0u)
-        || reexports != (scopeFaultsOnly ? 0u : binaryApplication ? 504u : coordinateApplication ? 72u : applicationScopes ? 360u : 0u)
+        || projections != (scopeFaultsOnly ? 0u : binaryApplication ? 420u : profileIsolation || coordinateApplication ? 60u : 300u)
+        || closedLegacy != (scopeFaultsOnly ? 0u : binaryApplication ? 168u : profileIsolation || coordinateApplication ? 24u : 120u) || transportFaultRetries != (compact ? 0u : 1620u)
+        || strictRefusals != (scopeFaultsOnly ? 0u : binaryApplication ? 42u : profileIsolation || coordinateApplication ? 6u : 30u)
+        || strictQualified != strictRefusals || partialRefusals != (scopeFaultsOnly ? 0u : binaryApplication ? 84u : profileIsolation || coordinateApplication ? 12u : 60u) || materialCells != (profileIsolation ? 24u : 0u)
+        || reexports != (scopeFaultsOnly ? 0u : binaryApplication ? 420u : coordinateApplication ? 60u : applicationScopes ? 300u : 0u)
         || lateRetries != (scopeFaultsOnly ? coordinateApplication ? 16u : binaryApplication ? 112u : 80u : 0u))
         return fail("standard chunk source matrix skipped a cell");
     std::cout << "Standard native chunk sources=" << sources << " projections=" << projections << " legacy unqualified cells=" << closedLegacy
         << " copied-readback comparison fault/restoration retries=" << transportFaultRetries << " strict refusals=" << strictRefusals
+        << " strict readbacks=" << strictQualified << " AC1027 partial refusals=" << partialRefusals
         << " actual MATERIAL companion/readback cells=" << materialCells << " application-scope reexports=" << reexports << " late-source retries=" << lateRetries << '\n';
     return true;
 }
