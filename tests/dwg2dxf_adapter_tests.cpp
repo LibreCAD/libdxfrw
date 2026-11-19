@@ -9951,6 +9951,7 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
             if (dx_iface::identitySourceReport(data).state != dx_iface::IdentitySourceState::NotCaptured
                 || dx_iface::structuralSourceReport(data).state != dx_iface::StructuralSourceState::NotCaptured
                 || !source.originalSourcesMatched || !source.legacyClassRowsMatched || !source.legacyLiveClassesMatched
+                || !source.legacyBodiesMatched || !source.legacyLiveBodiesMatched
                 || source.records != 2u || source.bodyMatched != 2u
                 || source.originsBound != 2u || source.namedTargets != 1u || source.defaultTarget != 0xFu
                 || source.ownerTargetsResolved || source.outputEligible)
@@ -9972,6 +9973,31 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
             data.dxfClasses[1]=data.dxfClasses[0];if(!rejectLiveClasses())return fail("duplicate CLASS row was accepted");
             data.dxfClasses.pop_back();if(!rejectLiveClasses())return fail("missing CLASS row was accepted");
             data.dxfClasses.push_back(originalClasses[0]);if(!rejectLiveClasses())return fail("extra CLASS row was accepted");
+            const auto originalRoot=data.namedObjectDictionary;
+            const auto originalTyped=data.dictionaryWithDefaults;
+            const auto originalRaw=data.rawDictionaryWithDefaults;
+            const auto originalPlace=data.rawPlaceholders;
+            const auto rejectLiveBodies=[&]() {
+                const auto report=dx_iface::plotStyleSourceReport(data);
+                const bool rejected=report.legacyBodiesMatched&&!report.legacyLiveBodiesMatched&&!report.outputEligible;
+                data.namedObjectDictionary=originalRoot;data.dictionaryWithDefaults=originalTyped;
+                data.rawDictionaryWithDefaults=originalRaw;data.rawPlaceholders=originalPlace;
+                return rejected&&dx_iface::plotStyleSourceReport(data).legacyLiveBodiesMatched;
+            };
+            data.namedObjectDictionary.m_entries.front().m_handle^=1u;
+            if(!rejectLiveBodies())return fail("changed root dictionary edge was accepted");
+            data.dictionaryWithDefaults.front().m_defaultEntryHandle^=1u;
+            if(!rejectLiveBodies())return fail("changed typed default target was accepted");
+            data.dictionaryWithDefaults.front().cloning=2;
+            if(!rejectLiveBodies())return fail("changed typed cloning flag was accepted");
+            data.rawDictionaryWithDefaults.front().groups.pop_back();
+            if(!rejectLiveBodies())return fail("changed raw default dictionary was accepted");
+            data.rawPlaceholders.front().groups.pop_back();
+            if(!rejectLiveBodies())return fail("changed raw placeholder was accepted");
+            data.rawDictionaryWithDefaults.push_back(data.rawDictionaryWithDefaults.front());
+            if(!rejectLiveBodies())return fail("duplicate raw default dictionary was accepted");
+            data.rawPlaceholders.clear();
+            if(!rejectLiveBodies())return fail("missing raw placeholder was accepted");
             std::ifstream input(dxf,std::ios::binary);
             std::string bytes((std::istreambuf_iterator<char>(input)),std::istreambuf_iterator<char>());
             {

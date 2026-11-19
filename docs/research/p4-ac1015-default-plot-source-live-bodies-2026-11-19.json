@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "scope": "Generated AC1015 default-plot source and live object shape; no output authority",
+  "implementationDigestSha256": "12fac2973b50080118420aec03dbae638edbb80e0c4a13c883c0ec259429652a",
+  "provenance": "Both source formats are generated from scratch in temporary directories. No DWG or DXF fixture is committed.",
+  "sourceObservation": [
+    "Requires the same-import root C and selected dictionary E and placeholder F, their captured body/identity proofs, and the original NOD plot-style edge.",
+    "Matches exactly the eight dictionary groups and two placeholder groups, including owner, Normal membership and default-target roles, and compares typed dictionary state.",
+    "Compares live root, typed dictionary and both raw carriers with the captured originals; this does not establish LAYER consumer closure or permission to write."
+  ],
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j2",
+    "focusedCtests": "PASS (5: default plot source probe and graph, XRECORD binary transport and faults, and standard DWG profile isolation)",
+    "faults": "Changed live root edge, typed default and cloning, truncated dictionary and placeholder carriers, duplicate dictionary and missing placeholder each refuse and recover after restoration in ASCII and binary.",
+    "scratchSourceChecks": "Generated ASCII and binary separate scratch imports reported exact source and live body matches."
+  },
+  "limits": [
+    "This narrow same-writer generated profile does not establish a native producer wire layout or application semantics.",
+    "Layer source/live association, immutable per-write snapshots, target CLASS counts, staged graph/output verification, rollback/retry and independent readback remain open.",
+    "Cross-version output is still refused and no support claim is promoted. P8-F remains open for the new digest."
+  ]
+}

@@ -291,5 +291,51 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
             r.legacyLiveClassesMatched=valid&&seen[0]&&seen[1];
         }
     }
+    // The exact generated R2000 default-plot object shape is source evidence,
+    // not permission to export. Preserve every modeled and raw source field
+    // for the later transactional writer and its staged output proof.
+    if(data.sourceVersion==DRW::AC1015 && r.originalSourcesMatched && a->root && a->root->input
+        &&a->root->input->model && a->dictionary==0xEu && a->defaultTarget==0xFu
+        &&a->namedTargets==1u && a->records.size()==2u) try {
+        const auto dictionary=a->records.find(a->dictionary), placeholder=a->records.find(a->defaultTarget);
+        if(dictionary!=a->records.end() && placeholder!=a->records.end() && dictionary->second && placeholder->second
+            &&dictionary->second->input && placeholder->second->input && dictionary->second->input->raw
+            &&placeholder->second->input->raw && dictionary->second->input->model) {
+            const auto& raw=*dictionary->second->input->raw;const auto& place=*placeholder->second->input->raw;
+            const auto& model=*dictionary->second->input->model;
+            const auto handle=[](const DRW_Variant& v,int code,std::uint32_t expected) {
+                std::uint64_t actual=0u;return v.code()==code&&dx_standard_output::handleValue(v,actual)&&actual==expected;
+            };
+            const auto text=[](const DRW_Variant& v,int code,std::string_view expected) {
+                return v.code()==code&&v.type()==DRW_Variant::STRING&&dx_attdef_source::text(v)==expected;
+            };
+            const auto integer=[](const DRW_Variant& v,int code,int expected) {
+                return v.code()==code&&v.type()==DRW_Variant::INTEGER&&v.i_val()==expected;
+            };
+            const auto* root=dynamic_cast<const DRW_Dictionary*>(a->root->input->model.get());
+            r.legacyBodiesMatched=root&&root->handle==0xCu&&!root->parentHandle
+                &&raw.name=="ACDBDICTIONARYWDFLT"&&raw.handle==0xEu&&raw.parentHandle==root->handle
+                &&raw.groups.size()==8u&&handle(raw.groups[0],5,0xEu)&&handle(raw.groups[1],330,0xCu)
+                &&text(raw.groups[2],100,"AcDbDictionary")&&integer(raw.groups[3],281,1)
+                &&text(raw.groups[4],3,"Normal")&&handle(raw.groups[5],350,0xFu)
+                &&text(raw.groups[6],100,"AcDbDictionaryWithDefault")&&handle(raw.groups[7],340,0xFu)
+                &&place.name=="ACDBPLACEHOLDER"&&place.handle==0xFu&&place.parentHandle==0xEu
+                &&place.groups.size()==2u&&handle(place.groups[0],5,0xFu)&&handle(place.groups[1],330,0xEu)
+                &&model.handle==0xEu&&model.parentHandle==0xCu&&model.hardOwner==0&&model.cloning==1
+                &&model.m_defaultEntryHandle==0xFu&&model.m_entries.size()==1u&&model.m_entries[0].m_name=="Normal"
+                &&model.m_entries[0].m_handle==0xFu&&model.m_entries[0].m_dxfHandleCode==DRW_Dictionary::Entry::DxfHandleCode::SoftOwner
+                &&model.hasCompleteDxfPayload()&&model.extData.empty()&&model.appData.empty()
+                &&model.reactorHandles.empty()&&!model.xDictHandle;
+            if(r.legacyBodiesMatched && data.hasNamedObjectDictionary && root->m_entries.size()<=64u
+                &&data.dictionaryWithDefaults.size()==1u && data.rawDictionaryWithDefaults.size()==1u
+                &&data.rawPlaceholders.size()==1u && data.placeholders.empty()
+                &&data.hasSingleSuccessfulDictionaryDefaultImport()) {
+                r.legacyLiveBodiesMatched=mlineDictionaryKeysEqual(*root,data.namedObjectDictionary,{},DRW::AC1015)
+                    &&plotSourceModelsEqual(model,data.dictionaryWithDefaults.front(),DRW::AC1015)
+                    &&retainedRawDxfObjectsEqual(raw,data.rawDictionaryWithDefaults.front())
+                    &&retainedRawDxfObjectsEqual(place,data.rawPlaceholders.front());
+            }
+        }
+    } catch (...) { r.legacyBodiesMatched=false;r.legacyLiveBodiesMatched=false; }
     return r;
 }
