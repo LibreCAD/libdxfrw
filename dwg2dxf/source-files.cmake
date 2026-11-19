@@ -12,6 +12,7 @@ set(LIBDXFRW_CLI_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1024_mlinestyle_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1024_renderglobal_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1024_tablestyle_wire.h"
+    "${CMAKE_CURRENT_LIST_DIR}/dx_ac1024_visualstyle_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1027_layer_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1027_material_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1027_plotstyle_wire.h"

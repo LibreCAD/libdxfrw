@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-visualstyle-source-output-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SELECTED_VISUALSTYLE_SOURCE_AND_STAGED_GRAPH_VERIFIED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "cdf5d6b6db47465c65225aee7d45ebda04ec8cd2900532522893caa219e61f75",
+  "source": {
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "scope": "Aerial AC1024 NOD C, owner dictionary 99 and all 27 original VISUALSTYLE records.",
+    "class": "The same successful read publishes encoded class 506 VISUALSTYLE / AcDbVisualStyle / ObjectDBX Classes. Its declaration is joined to each record and checked against the emitted class with a selected instance count of 27.",
+    "wire": "ODA v5.4.1 common framing and dictionary §20.4.44 plus a separate body decoder and the pinned LibreDWG trace. All 28 scalar/companion slots, five CMC fields, detached UTF-16 description, footer and exact owner/reactor terminal positions are checked for each frame. Class frames are 103–149 bytes. The 604-byte owner dictionary has body [0,67), strings [67,4257), footer [4257,4274), common owner/reactor to C, 27 role-2 items and six terminal one bits. No source style has an extension-dictionary handle.",
+    "anonymousKey": "The dictionary key *A1 targets source handle 19A and its description remains *."
+  },
+  "transaction": {
+    "sourceBinding": "Recognize the imported 27-member graph before testing physical evidence. Bind the original importer and generation, distinct frame ordinals/locations, class provenance, immutable complete bytes and typed models. The candidate cannot fall back to a typed-only proof.",
+    "staged": "Compare the original class, NOD key and child dictionary order, owners/reactors, all remapped dictionary entry roles, and every emitted style field before publishing. The source bytes are checked again at finalization.",
+    "observerSha256": "de03ec0af118d2e64e6e6ac384940e50ab7f5bcb66e3ffbffd20500a650db549"
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests dwg2dxf -j 3",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-selected-visualstyle-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "wireControls": "All 32,656 single-bit corruptions plus 138 targeted truncation, extension, and typed-model/role changes were refused. Restored originals succeeded.",
+    "faultRetry": "Seven cases per encoding cover staged key, role and description changes, plus early and late raw source-style and dictionary faults. Each refuses at the expected phase, preserves the destination and allows corrected retry with the same codec.",
+    "independentReadback": "ezdxf 1.4.5 verified selected OBJECTS identities, rooted membership and all 27 ordered key/role pairs; each child has owner/reactor A099, and the map preserves *A1 to A19A with description *. Compared all 28 projected fields and ordered companions and the five color roles against independent peer values. The readback rejected a malformed subclass and a changed NOD key before accepting the unchanged pair again.",
+    "releaseInventory": "1319 released files, 742 selected inputs, zero advertised routes.",
+    "scratchRoot": "/private/tmp/p4-aerial-visualstyle-wire",
+    "sha256": {
+      "capture.cpp": "523a6cd331a9c29c2b01958e02f2cd5296da7114d9dec7441731572a1d42f21d",
+      "capture.log": "f1f451a30f9f2b09d6dd5c0c7ce374393279dcd8dcc4e10858b2496a2b14a8f4",
+      "control.cpp": "f118f4cf29a1f9ed072443a36878ed40dd4fa610f57ed1a2d7337d5c95400f3f",
+      "control.log": "a7881178b6c65e6cce175df1bf5240411b99681fd63eeb2be4b4cea14dd50c14",
+      "dictionary-spans.json": "c40482bd3ef06e045cc48faecd5984e352d298004197521ffce872739c1dfe7c",
+      "focused-ctest.log": "e413e755247c21a18ff865e106b13e9014290986adcbffebf293f89826ed522c",
+      "frames.txt": "4b047f9fd72735efde13bb28829a283027130bd4726810d806e692f82a7d3f59",
+      "full-source.log": "c512d7582f552d47a7ddc4b9c6d9c20a48105097b6724300f287936eb8e634e9",
+      "official-selector.log": "353443681d8ddcadc4f43de81bbb264e9d74a37cbbdbc5dca6e594f0bd4a00a5",
+      "readback.log": "d728547d952800b85725edcbfe9e7b8318bf96a60e12f63141e62492acf104fe",
+      "readback_selected.py": "805203f292a7847a1d80520f1c1e0799c98ac912a7f6c1f0b6bbdac43818708f",
+      "selected-ascii.dxf": "268c6278f690b1db86d372ad4f8378343d8b5cda7661ca9fa49d7af20ce0441f",
+      "selected-binary.dxf": "117c2857f657d0346c377523a2dddb5f90d2495f0b6c97c7deedb6b60ead2a53",
+      "selected.cpp": "59fca9afda0fca8c59231cc6636ee9c273a8137d69d7d1562e8476e3fd9b7bbd",
+      "selected.log": "de60f7cff76534512b286b779d8620e239a59932a697c7352441a83f588b6dd2",
+      "spans.json": "73a7d068f989d59e95ad36256d69f883c5b3131ba1e21741eed3af127d67ff7a",
+      "verify.py": "327cc6138e4131d46d3069071b83a03be5272a40f8f361c94f9a5348bb364f4a"
+    },
+    "focused": "PASS 13/13. ctest --test-dir build-gcc -R visual_style|visualstyle|tablestyle_(r24_typed_writer|source_proof) --output-on-failure -j 4. Includes AC1021 and non-aerial AC1024 writer profiles, color/source replay, graph and TABLESTYLE controls.",
+    "wholeSource": "The full original drawing still refuses strict output at the SUN owner mismatch from VIEW 242 through SUN 24C to common parent XRECORD 246, preserving the existing destination."
+  },
+  "limits": [
+    "The ODA DXF generates extension dictionaries for all 27 styles. Its ACI fallback is 8 on five C2 true-color fields for which the selected writer emits 7. The packed RGB and companion values agree; native rendering equivalence remains open.",
+    "The helper observes the source wire; the immutable full typed baseline additionally guards model fields with no representation in the observed wire.",
+    "The selected transaction does not close strict whole-file export or unrelated root and native GUI qualification."
+  ]
+}

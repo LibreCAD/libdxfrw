@@ -1368,3 +1368,175 @@ bool physicalAc1024SelectedTableStyleWriter(const std::filesystem::path& sourceP
     std::cerr << "AC1024 selected TABLESTYLE passed ten refusal/retry controls in both encodings.\n";
     return true;
 }
+
+// Stages the original aerial VISUALSTYLE root; this is not a whole-DWG export.
+bool physicalAc1024SelectedVisualStyleWriter(const std::filesystem::path& sourcePath) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG || source.sourceVersion != DRW::AC1024
+        || !source.hasSingleSuccessfulNamedResourceImport() || !source.hasNamedObjectDictionary
+        || source.namedObjectDictionary.handle != 0xCu || source.visualStyles.size() != 27u
+        || source.dictionaryWithDefaults.size() != 1u || source.placeholders.size() != 1u)
+        return fail("could not import aerial VISUALSTYLE witness");
+    const auto findHandle = [](auto& rows, std::uint32_t handle) {
+        return std::find_if(rows.begin(), rows.end(), [handle](const auto& value) {
+            return value.handle == handle;
+        });
+    };
+    const auto group = findHandle(source.dictionaries, 0xDu);
+    const auto owner = findHandle(source.dictionaries, 0x99u);
+    if (group == source.dictionaries.end() || owner == source.dictionaries.end()
+        || owner->parentHandle != 0xCu || owner->m_entries.size() != source.visualStyles.size())
+        return fail("aerial VISUALSTYLE owner graph is incomplete");
+    if (std::count_if(owner->m_entries.begin(), owner->m_entries.end(), [](const auto& entry) {
+            return entry.m_name == "*A1" && entry.m_handle == 0x19Au;
+        }) != 1)
+        return fail("aerial VISUALSTYLE anonymous dictionary key changed");
+
+    class Writer final : public LayerStateTestWriter {
+    public:
+        dx_data blank;
+        DRW_Dictionary owner;
+        std::vector<DRW_VisualStyle> styles;
+        DRW_DictionaryWithDefault plot;
+        DRW_AcDbPlaceholder placeholder;
+        std::function<bool(const DRW_VisualStyle&)> emit;
+        std::function<bool()> finalize;
+        void writeAppId() override {}
+        void writeObjects() override {
+            (void)dxfW->writeDictionaryWithDefault(&plot);
+            (void)dxfW->writeAcDbPlaceholder(&placeholder);
+            (void)dxfW->writeDictionary(&owner);
+            for (const auto& value : styles) {
+                if (!emit(value)) {
+                    (void)dxfW->writeRawDxfObject(nullptr);
+                    return;
+                }
+            }
+        }
+        bool finalizeDxfWrite() override { return finalize(); }
+    } writer;
+    writer.cData = &writer.blank;
+    writer.owner = *owner;
+    writer.styles.assign(source.visualStyles.begin(), source.visualStyles.end());
+    std::set<std::uint32_t> identities;
+    for (const auto& value : source.visualStyles) {
+        if (value.parentHandle != 0x99u || !identities.insert(value.handle).second
+            || std::count_if(owner->m_entries.begin(), owner->m_entries.end(),
+                [&value](const auto& entry) { return entry.m_handle == value.handle; }) != 1)
+            return fail("aerial VISUALSTYLE identity is not uniquely owned");
+        if (value.xDictHandle != 0u)
+            return fail("aerial VISUALSTYLE source unexpectedly has an extension dictionary");
+    }
+    writer.plot = source.dictionaryWithDefaults.front();
+    if (writer.plot.m_entries.size() != 1u) return fail("missing Normal plot-style entry");
+    writer.plot.m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+    writer.placeholder = source.placeholders.front();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-selected-visualstyle-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error);
+    } } cleanup{path};
+    dxfRW codec(path.string().c_str());
+    Access::attachDxfWriter(reader, &codec); reader.cData = &source;
+    Access::attachDxfWriter(writer, &codec);
+    writer.emit = [&](const DRW_VisualStyle& value) {
+        return Access::writeSelectedAerialVisualStyle(reader, value);
+    };
+    codec.setDxfWriteRecordInventoryEnabled(true);
+    std::map<std::uint32_t, std::uint32_t> remap{{0x99u, 0xA099u}};
+    for (const auto& value : writer.styles) remap.emplace(value.handle, 0xA000u + value.handle);
+    codec.setHandleRemap(remap);
+    codec.setRootDictEntries({{"ACAD_VISUALSTYLE", "A099"}, {"ACAD_PLOTSTYLENAME", "E"}});
+    if (!codec.setGeneratedDictionarySourceHandles(0xCu, 0xDu)
+        || !codec.setGeneratedDictionarySourceRecords(
+            std::make_unique<DRW_Dictionary>(source.namedObjectDictionary),
+            std::make_unique<DRW_Dictionary>(*group))
+        || !codec.setDxfDefaultPlotStyleSourceHandles(0xEu, 0xFu))
+        return fail("could not set up selected VISUALSTYLE roots");
+    DRW_Class styleClass, plotClass, placeholderClass;
+    if (!Access::selectedAerialVisualStyleClass(reader, source, styleClass)
+        || !dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
+        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
+        return fail("missing selected VISUALSTYLE classes");
+    styleClass.instanceCount = 27; plotClass.instanceCount = placeholderClass.instanceCount = 1;
+    codec.setDxfClasses({styleClass, plotClass, placeholderClass});
+    enum class Fault { None, Key, Role, Scalar, StyleEarly, OwnerEarly, StyleLate, OwnerLate };
+    Fault fault = Fault::None;
+    bool staged = false, finalizing = false, altered = false;
+    if (!codec.setDxfObjectsWriteInspector([&](const auto& view) {
+        staged = true;
+        if (fault == Fault::Scalar) {
+            std::string bytes(view.bytes);
+            const auto start = bytes.find("AcDbVisualStyle");
+            const auto at = start == std::string::npos ? std::string::npos
+                : bytes.find("2dWireframe", start);
+            if (at == std::string::npos) return false;
+            bytes[at] = '3'; altered = true;
+            auto changed = view; changed.bytes = bytes;
+            return Access::inspectSelectedAerialVisualStyles(reader, changed);
+        }
+        return Access::inspectSelectedAerialVisualStyles(reader, view);
+    })) return fail("could not install selected VISUALSTYLE inspector");
+    auto& styleWire = Access::aerialMLeaderWire(source, 0x19Au);
+    auto& ownerWire = Access::standardFrameTail(source, 0x99u);
+    writer.finalize = [&]() {
+        finalizing = true;
+        if (fault == Fault::StyleLate) styleWire ^= 0x80u;
+        if (fault == Fault::OwnerLate) ownerWire ^= 1u;
+        const bool result = Access::finalizeSelectedAerialVisualStyles(reader);
+        if (fault == Fault::StyleLate) styleWire ^= 0x80u;
+        if (fault == Fault::OwnerLate) ownerWire ^= 1u;
+        return result;
+    };
+    const auto run = [&](bool binary) {
+        staged = finalizing = altered = false;
+        Access::resetRasterOutput(reader);
+        Access::attachDxfWriter(reader, nullptr);
+        const bool prepared = Access::prepareSelectedAerialVisualStyles(reader, source, binary);
+        Access::attachDxfWriter(reader, &codec);
+        return prepared && codec.write(&writer, DRW::AC1024, binary);
+    };
+    const std::string sentinel = "preserve selected VISUALSTYLE destination\n";
+    for (const bool binary : {false, true}) {
+        if (!run(binary) || !staged || !finalizing)
+            return fail("selected VISUALSTYLE baseline was rejected");
+        for (const Fault bad : {Fault::Key, Fault::Role, Fault::Scalar,
+                Fault::StyleEarly, Fault::OwnerEarly, Fault::StyleLate, Fault::OwnerLate}) {
+            fault = bad;
+            if (bad == Fault::Key) writer.owner.m_entries.front().m_name += "_altered";
+            if (bad == Fault::Role) writer.owner.m_entries.front().m_dxfHandleCode =
+                DRW_Dictionary::Entry::DxfHandleCode::HardOwner;
+            if (bad == Fault::StyleEarly) styleWire ^= 0x80u;
+            if (bad == Fault::OwnerEarly) ownerWire ^= 1u;
+            {
+                std::ofstream existing(path, std::ios::binary | std::ios::trunc);
+                if (!(existing << sentinel)) return fail("cannot seed VISUALSTYLE destination");
+            }
+            const bool saved = run(binary);
+            writer.owner = *owner;
+            if (bad == Fault::StyleEarly) styleWire ^= 0x80u;
+            if (bad == Fault::OwnerEarly) ownerWire ^= 1u;
+            const bool early = bad == Fault::StyleEarly || bad == Fault::OwnerEarly;
+            const bool late = bad == Fault::StyleLate || bad == Fault::OwnerLate;
+            const bool stagedFault = bad == Fault::Key || bad == Fault::Role || bad == Fault::Scalar;
+            fault = Fault::None;
+            std::ifstream existing(path, std::ios::binary);
+            if (saved || (early && staged) || (late && (!staged || !finalizing))
+                || (stagedFault && !staged) || (bad == Fault::Scalar && !altered)
+                || std::string(std::istreambuf_iterator<char>(existing), {}) != sentinel) {
+                std::cerr << "VISUALSTYLE fault=" << static_cast<int>(bad) << " binary=" << binary
+                          << " staged=" << staged << " finalizing=" << finalizing << '\n';
+                return fail("selected VISUALSTYLE fault did not refuse atomically");
+            }
+            existing.close();
+            if (!run(binary) || !staged || !finalizing)
+                return fail("selected VISUALSTYLE corrected retry failed");
+        }
+    }
+    std::cerr << "AC1024 selected VISUALSTYLE passed seven refusal/retry controls in both encodings.\n";
+    return true;
+}

@@ -3573,6 +3573,38 @@ public:
     static std::uint8_t& aerialMLeaderWire(dx_data& data, std::uint32_t handle) {
         return data.m_opaqueDwgSourceFrames.at({data.importGeneration, handle}).m_rawBytes.at(0u);
     }
+    static bool prepareSelectedAerialVisualStyles(dx_iface& iface,
+            const dx_data& data, bool binary) {
+        iface.m_extensionVisualStyleHandles.clear();
+        iface.m_extensionDictionaryHandles = {0x99u};
+        iface.m_extensionXRecordHandles.clear();
+        for (const auto& style : data.visualStyles) {
+            if (style.xDictHandle != 0u) return false;
+            iface.m_extensionVisualStyleHandles.push_back(style.handle);
+        }
+        return iface.hasQualifiedAc1024AerialDwgVisualStyles(data)
+            && iface.prepareDxfVisualStyles(DRW::AC1024, binary);
+    }
+    static bool selectedAerialVisualStyleClass(const dx_iface& iface,
+            const dx_data& data, DRW_Class& row) {
+        return iface.hasQualifiedAc1024AerialDwgVisualStyles(data, &row);
+    }
+    static bool writeSelectedAerialVisualStyle(dx_iface& iface,
+            const DRW_VisualStyle& style) {
+        return iface.writeVisualStyleRaw(nullptr, &style);
+    }
+    static bool inspectSelectedAerialVisualStyles(dx_iface& iface,
+            const dxfRW::DxfObjectsWriteView& view) {
+        return iface.inspectDxfVisualStyles(view, true)
+            && iface.inspectGeneratedRootOutput(view)
+            && iface.inspectStandardDwgOutput(view);
+    }
+    static bool finalizeSelectedAerialVisualStyles(dx_iface& iface) {
+        return iface.m_dxfVisualStylesInspected
+            && iface.hasUnchangedDxfVisualStyles()
+            && iface.finalizeStandardDwgOutputProofs()
+            && iface.finalizeGeneratedRootOutput();
+    }
     static bool generatedRootsFinal(const dx_iface& iface, std::size_t count, bool published = false) {
         return iface.m_generatedRootOutputInspected && iface.m_generatedRootOutputFinalized
             && iface.m_generatedRootOutputProofs.size() == count && (!published || iface.m_generatedRootOutputPublished);
@@ -92997,6 +93029,8 @@ int main(int argc, char** argv) {
         return physicalAc1024SelectedThreeRendersWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-mleaderstyle-writer")
         return physicalAc1024SelectedMLeaderStylesWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-visualstyle-writer")
+        return physicalAc1024SelectedVisualStyleWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-tablestyle-writer")
         return physicalAc1024SelectedTableStyleWriter(argv[2]) ? 0 : 1;
     if (argc == 3

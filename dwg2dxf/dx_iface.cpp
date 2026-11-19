@@ -40,6 +40,7 @@
 #include "dx_ac1024_mlinestyle_wire.h"
 #include "dx_ac1024_renderglobal_wire.h"
 #include "dx_ac1024_tablestyle_wire.h"
+#include "dx_ac1024_visualstyle_wire.h"
 #include "dx_ac1027_plotstyle_wire.h"
 #include "dx_ac1027_material_wire.h"
 #include "dx_ac1027_layer_wire.h"
@@ -24384,6 +24385,139 @@ bool visualStyleModelEqual(const DRW_VisualStyle& lhs,
 
 } // namespace
 
+namespace {
+constexpr std::uint32_t kAerialVisualStyleDictionary = 0x99u;
+constexpr std::size_t kAerialVisualStyleCount = 27u;
+}
+
+void dx_iface::retainAerialDwgVisualStylePublication(const DRW_DwgFramePublication& event) noexcept {
+    if (event.m_version != DRW::AC1024 || event.m_parentHandle != kAerialVisualStyleDictionary
+        || (event.m_recordName != "VISUALSTYLE" && event.m_className != "AcDbVisualStyle")
+        || typeid(*this) != typeid(dx_iface) || cData == nullptr
+        || m_classEvidenceReadData != cData || m_classEvidenceReadAttempt == 0u
+        || cData->m_classEvidenceOwner != this
+        || cData->m_classEvidenceAttempt != m_classEvidenceReadAttempt
+        || cData->m_classEvidenceGeneration != cData->importGeneration
+        || m_dwgAerialVisualStyleCaptureFailed)
+        return;
+    try {
+        if (m_dwgAerialVisualStyleSources.size() < kAerialVisualStyleCount
+            && event.m_handle != 0u && event.m_handle != DRW::NoHandle
+            && event.m_recordName == "VISUALSTYLE" && event.m_className == "AcDbVisualStyle"
+            && event.m_controlHandles.empty()) {
+            AerialDwgVisualStyleSource source;
+            source.frame = {event, cData->importGeneration, m_classEvidenceReadAttempt};
+            if (m_dwgAerialVisualStyleSources.emplace(event.m_handle, std::move(source)).second)
+                return;
+        }
+    } catch (...) {}
+    m_dwgAerialVisualStyleCaptureFailed = true;
+    m_dwgAerialVisualStyleSources.clear();
+}
+
+bool dx_iface::requiresAc1024AerialDwgVisualStyleProof(const dx_data& data) const noexcept {
+    if (data.sourceFormat != dx_source_format::DWG || data.sourceVersion != DRW::AC1024)
+        return false;
+    if (m_dwgAerialVisualStyleReadOwner == &data)
+        return true;
+    const auto& nod = data.namedObjectDictionary;
+    if (!data.hasNamedObjectDictionary || nod.handle != 0xCu
+        || data.visualStyles.size() != kAerialVisualStyleCount
+        || std::none_of(nod.m_entries.begin(), nod.m_entries.end(), [](const auto& entry) {
+            return entry.m_name == "ACAD_VISUALSTYLE" && entry.m_handle == kAerialVisualStyleDictionary;
+        }))
+        return false;
+    const auto* dictionary = uniqueDwgSourceRecord(data.dictionaries, kAerialVisualStyleDictionary);
+    return dictionary && std::any_of(dictionary->m_entries.begin(), dictionary->m_entries.end(),
+        [](const auto& entry) { return entry.m_name == "*A1" && entry.m_handle == 0x19Au; });
+}
+
+void dx_iface::finishAerialDwgVisualStyleSource() noexcept {
+    if (cData == nullptr || typeid(*this) != typeid(dx_iface)
+        || !requiresAc1024AerialDwgVisualStyleProof(*cData)) {
+        m_dwgAerialVisualStyleSources.clear();
+        return;
+    }
+    // A recognized graph with missing source evidence cannot use the older
+    // typed-only write proof. Keep the importer binding even in that case.
+    m_dwgAerialVisualStyleReadOwner = cData;
+    try {
+        const auto* dictionary = uniqueDwgSourceRecord(cData->dictionaries, kAerialVisualStyleDictionary);
+        if (!dictionary || m_dwgAerialVisualStyleCaptureFailed
+            || m_dwgAerialVisualStyleSources.size() != kAerialVisualStyleCount)
+            return;
+        const auto* rawDictionary = boundAc1024DwgStandardObject(*cData, *dictionary, dwgObjType::DICTIONARY);
+        if (!rawDictionary || !dx_ac1024_visualstyle_wire::observeDictionary(*rawDictionary, *dictionary))
+            return;
+        m_dwgAerialVisualStyleDictionaryBody = rawDictionary->m_rawBytes;
+        for (const auto& style : cData->visualStyles) {
+            auto source = m_dwgAerialVisualStyleSources.find(style.handle);
+            if (source == m_dwgAerialVisualStyleSources.end() || source->second.model)
+                return;
+            const auto* raw = boundAc1024DwgClassObject(*cData, style.handle, source->second.frame, nullptr);
+            if (!raw || !dx_ac1024_visualstyle_wire::observeStyle(*raw, style))
+                return;
+            source->second.model = style;
+            source->second.body = raw->m_rawBytes;
+        }
+    } catch (...) { m_dwgAerialVisualStyleCaptureFailed = true; }
+}
+
+bool dx_iface::hasQualifiedAc1024AerialDwgVisualStyles(const dx_data& data,
+                                                       DRW_Class* outputClass) const noexcept {
+    if (m_dwgAerialVisualStyleReadOwner != &data || m_dwgAerialVisualStyleCaptureFailed
+        || data.visualStyles.size() != kAerialVisualStyleCount
+        || m_dwgAerialVisualStyleSources.size() != kAerialVisualStyleCount)
+        return false;
+    try {
+        const auto* dictionary = uniqueDwgSourceRecord(data.dictionaries, kAerialVisualStyleDictionary);
+        if (!dictionary || dictionary->parentHandle != 0xCu || dictionary->hardOwner != 0
+            || dictionary->m_entries.size() != kAerialVisualStyleCount
+            || !hasAc1024DwgRootMember(data, "ACAD_VISUALSTYLE", kAerialVisualStyleDictionary)
+            || !data.hasCompleteDwgDictionaryEntry(kAerialVisualStyleDictionary, "*A1", 0x19Au))
+            return false;
+        const auto* rawDictionary = boundAc1024DwgStandardObject(data, *dictionary, dwgObjType::DICTIONARY);
+        if (!rawDictionary || m_dwgAerialVisualStyleDictionaryBody.empty()
+            || rawDictionary->m_rawBytes != m_dwgAerialVisualStyleDictionaryBody)
+            return false;
+        const auto& dictionaryEvent = data.m_standardDwgObjectFrames.at(
+            {data.importGeneration, kAerialVisualStyleDictionary}).publication;
+        const auto classOrdinal = m_dwgAerialVisualStyleSources.begin()->second.frame.publication.m_classStreamOrdinal;
+        std::set<std::uint64_t> ordinals{dictionaryEvent.m_sourceMapOrdinal};
+        std::set<std::pair<DRW_DwgFrameOffsetSpace, std::uint64_t>> locations{
+            {dictionaryEvent.m_sourceOffsetSpace, dictionaryEvent.m_sourceOffset}};
+        std::set<std::string_view> names;
+        std::set<std::uint32_t> members;
+        DRW_Class row;
+        for (const auto& entry : dictionary->m_entries) {
+            const auto* style = uniqueDwgSourceRecord(data.visualStyles, entry.m_handle);
+            const auto source = m_dwgAerialVisualStyleSources.find(entry.m_handle);
+            if (!style || source == m_dwgAerialVisualStyleSources.end() || !source->second.model
+                || entry.m_name.empty() || !names.insert(entry.m_name).second
+                || !members.insert(entry.m_handle).second
+                || style->parentHandle != kAerialVisualStyleDictionary || style->xDictHandle != 0u
+                || (entry.m_handle == 0x19Au && (entry.m_name != "*A1" || style->desc != "*"))
+                || !visualStyleModelEqual(*source->second.model, *style, DRW::AC1024))
+                return false;
+            const auto& receipt = source->second.frame;
+            const auto& event = receipt.publication;
+            const auto* raw = boundAc1024DwgClassObject(data, entry.m_handle, receipt, &row);
+            if (!raw || raw->m_objectType != 506u || raw->m_recordName != "VISUALSTYLE"
+                || raw->m_className != "AcDbVisualStyle" || raw->m_classAppName != "ObjectDBX Classes"
+                || source->second.body.empty() || raw->m_rawBytes != source->second.body
+                || !classOrdinal || classOrdinal != event.m_classStreamOrdinal
+                || !ordinals.insert(event.m_sourceMapOrdinal).second
+                || !locations.emplace(event.m_sourceOffsetSpace, event.m_sourceOffset).second)
+                return false;
+        }
+        if (outputClass) {
+            row.instanceCount = static_cast<int>(kAerialVisualStyleCount);
+            *outputClass = std::move(row);
+        }
+        return true;
+    } catch (...) { return false; }
+}
+
 bool dx_iface::prepareDxfVisualStyles(DRW::Version version,
                                      bool binary) noexcept {
     m_dxfVisualStyles.clear();
@@ -24400,6 +24534,8 @@ bool dx_iface::prepareDxfVisualStyles(DRW::Version version,
         return true;
     if (version != cData->sourceVersion
         || !cData->hasCompleteDwgVisualStyleSourceProfile()
+        || (requiresAc1024AerialDwgVisualStyleProof(*cData)
+            && !hasQualifiedAc1024AerialDwgVisualStyles(*cData))
         || m_extensionVisualStyleHandles.size() != cData->visualStyles.size()
         || m_extensionVisualStyleHandles.size()
             > dx_data::kMaxVisualStyleTypedRetainedRecords)
@@ -24469,6 +24605,8 @@ bool dx_iface::hasUnchangedDxfVisualStyles() const noexcept {
         || (cData->sourceVersion != DRW::AC1021
             && cData->sourceVersion != DRW::AC1024)
         || !cData->hasCompleteDwgVisualStyleSourceProfile()
+        || (requiresAc1024AerialDwgVisualStyleProof(*cData)
+            && !hasQualifiedAc1024AerialDwgVisualStyles(*cData))
         || cData->visualStyles.size() != m_dxfVisualStyles.size()
         || m_extensionVisualStyleHandles.size() != m_dxfVisualStyles.size()
         || m_dxfVisualStyleOutputBytes
@@ -24558,17 +24696,77 @@ bool dx_iface::inspectDxfVisualStyles(
         if (expected.size() != m_dxfVisualStyles.size())
             return false;
 
+        const DRW_Dictionary* aerialDictionary = nullptr;
+        std::uint32_t emittedDictionary = 0u, emittedNod = 0u;
+        if (requiresAc1024AerialDwgVisualStyleProof(*cData)) {
+            DRW_Class row;
+            aerialDictionary = uniqueDwgSourceRecord(cData->dictionaries, kAerialVisualStyleDictionary);
+            if (!aerialDictionary || !hasQualifiedAc1024AerialDwgVisualStyles(*cData, &row)
+                || !dxfW->dxfWriteClassMatches(row)
+                || !map(aerialDictionary->handle, emittedDictionary)
+                || !map(cData->namedObjectDictionary.handle, emittedNod)
+                || emittedDictionary == emittedNod
+                || expected.count(emittedDictionary) != 0u || expected.count(emittedNod) != 0u
+                || !dxfW->dxfWriteRecordHasIdentity(emittedNod, "DICTIONARY", "OBJECTS"))
+                return reject("source CLASS or emitted dictionary identity changed");
+        }
+        bool dictionarySeen = false, nodSeen = false;
         std::unordered_set<std::uint32_t> seen;
         bool namesMatch = true;
         const bool inspected = dx_standard_output::inspectSelected(
             view,
             [&](std::string_view name, std::uint32_t handle) {
+                if (aerialDictionary && (handle == emittedDictionary || handle == emittedNod)) {
+                    namesMatch = namesMatch && name == "DICTIONARY";
+                    return true;
+                }
                 const bool selected = expected.count(handle) != 0u;
                 if (selected && name != "VISUALSTYLE")
                     namesMatch = false;
                 return selected;
             },
             [&](const auto& shape, std::string_view body) {
+                if (aerialDictionary && (shape.handle == emittedDictionary || shape.handle == emittedNod)) {
+                    if (shape.kind != dx_standard_output::Family::Dictionary)
+                        return false;
+                    dx_standard_output::Decoder decoder(view);
+                    return decoder.decodeRecord<DRW_Dictionary>(body, [&](const DRW_Dictionary& actual) {
+                        using Role = DRW_Dictionary::Entry::DxfHandleCode;
+                        if (!actual.hasCompleteDxfEntries() || actual.handle != shape.handle || actual.hardOwner != 0)
+                            return false;
+                        if (shape.handle == emittedNod) {
+                            if (nodSeen || actual.parentHandle != 0u)
+                                return false;
+                            nodSeen = true;
+                            std::size_t matches = 0u;
+                            for (const auto& entry : actual.m_entries) {
+                                if (entry.m_handle != emittedDictionary
+                                    && !asciiIdentifierEquals(entry.m_name, "ACAD_VISUALSTYLE"))
+                                    continue;
+                                if (entry.m_name != "ACAD_VISUALSTYLE" || entry.m_handle != emittedDictionary
+                                    || entry.m_dxfHandleCode != Role::SoftOwner)
+                                    return false;
+                                ++matches;
+                            }
+                            return matches == 1u;
+                        }
+                        if (dictionarySeen || actual.parentHandle != emittedNod
+                            || actual.cloning != aerialDictionary->cloning || actual.xDictHandle != 0u
+                            || actual.reactorHandles.size() != 1u || actual.reactorHandles.front() != emittedNod
+                            || actual.m_entries.size() != aerialDictionary->m_entries.size())
+                            return false;
+                        dictionarySeen = true;
+                        for (std::size_t index = 0u; index < actual.m_entries.size(); ++index) {
+                            const auto& source = aerialDictionary->m_entries[index];
+                            const auto& entry = actual.m_entries[index];
+                            std::uint32_t emitted = 0u;
+                            if (!map(source.m_handle, emitted) || entry.m_handle != emitted
+                                || entry.m_name != source.m_name || entry.m_dxfHandleCode != Role::SoftOwner)
+                                return false;
+                        }
+                        return true;
+                    });
+                }
                 const auto found = expected.find(shape.handle);
                 if (found == expected.end()
                     || !seen.insert(shape.handle).second
@@ -24625,7 +24823,8 @@ bool dx_iface::inspectDxfVisualStyles(
                 return decoded;
             });
         m_dxfVisualStylesInspected = inspected && namesMatch
-            && seen.size() == expected.size();
+            && seen.size() == expected.size()
+            && (!aerialDictionary || (dictionarySeen && nodSeen));
         if (!m_dxfVisualStylesInspected)
             return reject("staged style set is incomplete or record names differ");
         if (debug) {
@@ -29026,6 +29225,7 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
         return;
     retainAerialDwgMLeaderPublication(data);
     retainAerialDwgTableStylePublication(data);
+    retainAerialDwgVisualStylePublication(data);
     if (typeid(*this) == typeid(dx_iface) && m_classEvidenceReadData == cData
         && m_classEvidenceReadAttempt && cData->importGeneration == cData->m_classEvidenceGeneration
         && data.m_version == DRW::AC1027 && data.m_encodedType == 51) {
@@ -78968,6 +79168,10 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     m_dwgAerialTableStyleBody.clear();
     m_dwgAerialTableStyleReadOwner = nullptr;
     m_dwgAerialTableStyleTablesInspected = false;
+    m_dwgAerialVisualStyleSources.clear();
+    m_dwgAerialVisualStyleDictionaryBody.clear();
+    m_dwgAerialVisualStyleReadOwner = nullptr;
+    m_dwgAerialVisualStyleCaptureFailed = false;
     m_dwgAerialMLeaderReadOwner = nullptr;
     m_dwgAerialMLeaderTableCaptureFailed = false;
     m_dwgAerialMLeaderSourceRecognized = false;
@@ -79554,6 +79758,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         if (success && dwg.getError() == DRW::BAD_NONE) {
             finishAerialDwgMLeaderSource();
             finishAerialDwgTableStyleSource();
+            finishAerialDwgVisualStyleSource();
         }
         if (!success) {
             std::cout << "DWG file error: format " << dwg.getVersion() << " error " << dwg.getError() << std::endl;
@@ -90047,6 +90252,12 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             DRW_Class tableStyleClass;
             if (!hasQualifiedAc1024AerialDwgTableStyle(*cData, &tableStyleClass)
                 || !registerClass("TABLESTYLE", "AcDbTableStyle", 1u, &tableStyleClass))
+                return false;
+        }
+        if (!m_dxfVisualStyles.empty() && requiresAc1024AerialDwgVisualStyleProof(*cData)) {
+            DRW_Class visualStyleClass;
+            if (!hasQualifiedAc1024AerialDwgVisualStyles(*cData, &visualStyleClass)
+                || !registerClass("VISUALSTYLE", "AcDbVisualStyle", kAerialVisualStyleCount, &visualStyleClass))
                 return false;
         }
 

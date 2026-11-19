@@ -4653,6 +4653,20 @@ private:
     bool m_dxfVisualStyleOutputBinary{false};
     bool m_dxfVisualStylesInspected{false};
     std::size_t m_dxfVisualStyleOutputBytes{0u};
+    struct AerialDwgVisualStyleSource {
+        DwgClassObjectPublication frame;
+        std::optional<DRW_VisualStyle> model;
+        std::vector<std::uint8_t> body;
+    };
+    std::map<std::uint32_t, AerialDwgVisualStyleSource> m_dwgAerialVisualStyleSources;
+    std::vector<std::uint8_t> m_dwgAerialVisualStyleDictionaryBody;
+    const dx_data* m_dwgAerialVisualStyleReadOwner{nullptr};
+    bool m_dwgAerialVisualStyleCaptureFailed{false};
+    void retainAerialDwgVisualStylePublication(const DRW_DwgFramePublication& event) noexcept;
+    void finishAerialDwgVisualStyleSource() noexcept;
+    bool requiresAc1024AerialDwgVisualStyleProof(const dx_data& data) const noexcept;
+    bool hasQualifiedAc1024AerialDwgVisualStyles(const dx_data& data,
+        DRW_Class* outputClass = nullptr) const noexcept;
     bool prepareDxfVisualStyles(DRW::Version version, bool binary) noexcept;
     bool hasUnchangedDxfVisualStyles() const noexcept;
     bool inspectDxfVisualStyles(const dxfRW::DxfObjectsWriteView&,

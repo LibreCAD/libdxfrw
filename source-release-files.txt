@@ -130,6 +130,7 @@ dwg2dxf/dx_ac1024_mleaderstyle_wire.h
 dwg2dxf/dx_ac1024_mlinestyle_wire.h
 dwg2dxf/dx_ac1024_renderglobal_wire.h
 dwg2dxf/dx_ac1024_tablestyle_wire.h
+dwg2dxf/dx_ac1024_visualstyle_wire.h
 dwg2dxf/dx_ac1027_layer_wire.h
 dwg2dxf/dx_ac1027_material_wire.h
 dwg2dxf/dx_ac1027_plotstyle_wire.h
