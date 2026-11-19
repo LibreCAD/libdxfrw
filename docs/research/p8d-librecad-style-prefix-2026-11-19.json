@@ -1,0 +1,15 @@
+{
+  "date": "2026-11-19",
+  "scope": "Restore LibreCAD list initialization for DRW_MLineElement and DRW_ModelDocViewStyle.",
+  "librecad_master": "deaedc327850349ceb9b4825b3efcc68ac2a52eb",
+  "implementation_digest_sha256": "b3e953ae5c329e2f5b7d4b8266ca879946c95ce6f5eea5b1e7ce3a10310c7602",
+  "evidence": [
+    "A scratch probe with complete legacy field prefixes compiled against LibreCAD bundled headers but failed against upstream before this change; after the change it compiled and ran successfully.",
+    "The focused graph-preservation CTest passed field and default-value assertions; lc3_compat_check built and LibreCAD metadata source compiled against current headers."
+  ],
+  "limitations": [
+    "These constructors preserve covered source brace forms, not aggregate type traits, structured bindings, or ABI compatibility.",
+    "Remaining six identified types still require compatibility work.",
+    "Hosted checks for this digest are pending."
+  ]
+}

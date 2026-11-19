@@ -16670,6 +16670,26 @@ void testDataStorageCapabilities(TestContext& t) {
              "DataStorage capability rejects null identity");
 }
 
+void testLibreCadStyleConstruction(TestContext& t) {
+    std::vector<DRW_MLineElement> elements;
+    elements.push_back({});
+    elements.push_back({2.0, 6});
+    elements.push_back({1.5, 7, 0x123456, 3, 0x33u, "DASH"});
+    const DRW_ModelDocViewStyle style{2u, "description", true, "name", 4u};
+    const DRW_ModelDocViewStyle partial{2u};
+    t.expect(elements[0].color == 256 && elements[1].offset == 2.0 &&
+                 elements[1].color == 6 && elements[1].linetypeIndex == -1 &&
+                 elements[2].color24 == 0x123456 && elements[2].linetypeIndex == 3 &&
+                 elements[2].linetypeHandle == 0x33u && elements[2].linetype == "DASH" &&
+                 elements[2].colorMethod == 0 && elements[2].colorName.empty(),
+             "LibreCAD MLINE element initialization preserves fields and defaults");
+    t.expect(style.m_modelDocClassVersion == 2u && style.m_description == "description" &&
+                 style.m_modifiedForRecompute && style.m_displayName == "name" &&
+                 style.m_viewStyleFlags == 4u && partial.m_description.empty() &&
+                 !partial.m_modifiedForRecompute && partial.m_viewStyleFlags == 0u,
+             "LibreCAD model document style initialization preserves fields and defaults");
+}
+
 void testLibreCadRangeConstruction(TestContext& t) {
     const DRW_DwgSubrecordRange span{"span", 7u, 9u, DRW::AC1032, 1u, false};
     const DRW_DwgSubrecordRange extendedSpan{"span", 7u, 9u, DRW::AC1032, 1u, false, 4u};
@@ -16963,6 +16983,7 @@ int main(int argc, char** argv) {
     testDataStorageBlobPages(context);
     testDataStorageRecordCountAlignmentAnchors(context);
     testDataStorageDefaultSchemaOnlySection(context);
+    testLibreCadStyleConstruction(context);
     testLibreCadRangeConstruction(context);
     testLibreCadTableContentConstruction(context);
     testLibreCadTableAttributeConstruction(context);

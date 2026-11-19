@@ -6515,6 +6515,16 @@ public:
 
 //! One parallel line element within a MLineStyle (ODA §19.4.73).
 struct DRW_MLineElement {
+  DRW_MLineElement() = default;
+  // Preserve the field order used by LibreCAD's aggregate initializer.
+  DRW_MLineElement(double initialOffset, int initialColor = 256,
+                   int initialColor24 = -1, int initialLinetypeIndex = -1,
+                   std::uint32_t initialLinetypeHandle = 0,
+                   UTF8STRING initialLinetype = UTF8STRING())
+      : offset(initialOffset), color(initialColor), color24(initialColor24),
+        linetypeIndex(initialLinetypeIndex), linetypeHandle(initialLinetypeHandle),
+        linetype(std::move(initialLinetype)) {}
+
   double offset = 0.0; /*!< BD — perpendicular offset from centerline */
   int color = 256;     /*!< CMC index — 256 = ByLayer */
   int color24 = -1;    /*!< true-color RGB (-1 = none) */
@@ -8616,6 +8626,17 @@ public:
 
 //! Common AcDbModelDocViewStyle header shared by detail/section view styles.
 struct DRW_ModelDocViewStyle {
+  DRW_ModelDocViewStyle() = default;
+  // Preserve the field order used by LibreCAD's aggregate initializer.
+  DRW_ModelDocViewStyle(std::uint16_t classVersion,
+                        UTF8STRING description = UTF8STRING(),
+                        bool modifiedForRecompute = false,
+                        UTF8STRING displayName = UTF8STRING(),
+                        std::uint32_t viewStyleFlags = 0)
+      : m_modelDocClassVersion(classVersion), m_description(std::move(description)),
+        m_modifiedForRecompute(modifiedForRecompute), m_displayName(std::move(displayName)),
+        m_viewStyleFlags(viewStyleFlags) {}
+
   std::uint16_t m_modelDocClassVersion =
       0;                               /*!< DXF 70, AcDbModelDocViewStyle */
   UTF8STRING m_description;            /*!< DXF 3 */
