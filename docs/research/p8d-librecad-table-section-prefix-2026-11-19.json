@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-19",
+  "scope": "Restore legacy field-order brace initialization for six public table and section types.",
+  "librecad_master": "deaedc327850349ceb9b4825b3efcc68ac2a52eb",
+  "implementation_digest_sha256": "d5d8740c0514ab8737a0f5128c35c3e49f183ed021a5cc332cef4855f0f3eca5",
+  "types": [
+    "DRW_TableCell",
+    "DRW_SectionGeometrySettings",
+    "DRW_SectionTypeSettings",
+    "DRW_TableStyleCellStyle",
+    "DRW_TableStyleContentFormat",
+    "DRW_TableStyleRowStyle"
+  ],
+  "evidence": [
+    "The same full-prefix scratch program compiled and ran against bundled LibreCAD headers; it failed to compile against upstream before this change and passed after.",
+    "Focused graph-preservation CTest passed field order, defaults, vector insertion and nested-value checks; lc3_compat_check built.",
+    "Current LibreCAD metadata source compiled with current upstream headers."
+  ],
+  "limitations": [
+    "Tested list construction is restored; aggregate type traits, structured bindings and ABI are not guaranteed.",
+    "Other ACIS and object aggregate prefix differences remain under investigation.",
+    "Hosted checks for this digest are pending."
+  ]
+}

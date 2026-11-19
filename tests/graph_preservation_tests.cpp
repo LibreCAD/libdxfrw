@@ -16670,6 +16670,35 @@ void testDataStorageCapabilities(TestContext& t) {
              "DataStorage capability rejects null identity");
 }
 
+void testLibreCadAggregatePrefixConstruction(TestContext& t) {
+    const DRW_TableCell cell{1, 2, 3, true, false, 6, 7, 8.0, "tip", 10, 11, 12u,
+        13u, 14u, 15u, 16u, 17., 18., 19., 20u, 21u, 22u, {}, {}, 25., 26., 27.,
+        28., {}, {}, 31, 32u, 33, 34u, true, 36, 37., {}};
+    const DRW_SectionGeometrySettings geometry{1, 2, 3, 4, 5, true, "layer", "line",
+        9., "plot", 11, 12u, 13u, 14u, "hatch", 16., 17., 18.};
+    const DRW_SectionTypeSettings section{1, 2, 3, {4u, 5u}, 6u, "out", 7, {geometry}};
+    const DRW_TableStyleContentFormat format{1u, 2u, 3, 4, "fmt", 6., 7., 8, 9, 10u, 11.};
+    const DRW_TableStyleCellStyle style{1, true, 3u, 4u, 5, 6u, format, 8,
+        9., 10., 11., 12., 13., 14., 15, 16, "name", {}};
+    const DRW_TableStyleRowStyle row{1u, 2., 3, 4, 5, true, 7, 8, "fmt", {}};
+    std::vector<DRW_TableCell> cells;
+    cells.push_back({1, 2, 3});
+    t.expect(cell.m_toolTip == "tip" && cell.m_styleId == 10 && cell.m_blockHandle == 16u &&
+                 cell.m_blockScale == 17. && cell.m_backgroundEnabled && cell.m_textHeight == 37. &&
+                 cell.m_textStyleName.empty() && cell.m_overrideStyleType == 1 &&
+                 cells.front().m_edgeFlags == 3 && cells.front().m_blockScale == 1.,
+             "LibreCAD table-cell aggregate prefix preserves values and defaults");
+    t.expect(geometry.m_layer == "layer" && geometry.m_hatchPattern == "hatch" &&
+                 geometry.m_hatchScale == 18. && section.m_sourceHandles.size() == 2u &&
+                 section.m_geometry.size() == 1u && section.m_destinationFile == "out",
+             "LibreCAD section aggregate prefixes preserve nested values");
+    t.expect(format.m_textStyleHandle == 10u && format.m_textHeight == 11. &&
+                 style.m_contentLayout == 6u && style.m_contentFormat.m_textStyleHandle == 10u &&
+                 style.m_name == "name" && row.m_textStyleHandle == 1u &&
+                 row.m_valueUnitType == 8 && row.m_valueFormatString == "fmt",
+             "LibreCAD table-style aggregate prefixes preserve nested values");
+}
+
 void testLibreCadStyleConstruction(TestContext& t) {
     std::vector<DRW_MLineElement> elements;
     elements.push_back({});
@@ -16983,6 +17012,7 @@ int main(int argc, char** argv) {
     testDataStorageBlobPages(context);
     testDataStorageRecordCountAlignmentAnchors(context);
     testDataStorageDefaultSchemaOnlySection(context);
+    testLibreCadAggregatePrefixConstruction(context);
     testLibreCadStyleConstruction(context);
     testLibreCadRangeConstruction(context);
     testLibreCadTableContentConstruction(context);

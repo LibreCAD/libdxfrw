@@ -5738,6 +5738,46 @@ private:
 };
 
 struct DRW_SectionGeometrySettings {
+  DRW_SectionGeometrySettings() = default;
+  // Preserve the field order used by LibreCAD's aggregate initializer.
+  DRW_SectionGeometrySettings(
+      std::int32_t initialNumGeometries,
+      std::int32_t initialHexIndex = 0,
+      std::int32_t initialFlags = 0,
+      std::int32_t initialColor = 256,
+      std::int32_t initialRgbColor = 0,
+      bool initialHasRgbColor = false,
+      UTF8STRING initialLayer = {},
+      UTF8STRING initialLineType = {},
+      double initialLineTypeScale = 1.0,
+      UTF8STRING initialPlotStyle = {},
+      std::int32_t initialLineWeight = -1,
+      std::uint16_t initialFaceTransparency = 0,
+      std::uint16_t initialEdgeTransparency = 0,
+      std::uint16_t initialHatchType = 0,
+      UTF8STRING initialHatchPattern = "SOLID",
+      double initialHatchAngle = 0.0,
+      double initialHatchSpacing = 1.0,
+      double initialHatchScale = 1.0)
+      : m_numGeometries(initialNumGeometries),
+        m_hexIndex(initialHexIndex),
+        m_flags(initialFlags),
+        m_color(initialColor),
+        m_rgbColor(initialRgbColor),
+        m_hasRgbColor(initialHasRgbColor),
+        m_layer(std::move(initialLayer)),
+        m_lineType(std::move(initialLineType)),
+        m_lineTypeScale(initialLineTypeScale),
+        m_plotStyle(std::move(initialPlotStyle)),
+        m_lineWeight(initialLineWeight),
+        m_faceTransparency(initialFaceTransparency),
+        m_edgeTransparency(initialEdgeTransparency),
+        m_hatchType(initialHatchType),
+        m_hatchPattern(std::move(initialHatchPattern)),
+        m_hatchAngle(initialHatchAngle),
+        m_hatchSpacing(initialHatchSpacing),
+        m_hatchScale(initialHatchScale) {}
+
   std::int32_t m_numGeometries = 0;
   std::int32_t m_hexIndex = 0;
   std::int32_t m_flags = 0;
@@ -5775,6 +5815,26 @@ private:
 };
 
 struct DRW_SectionTypeSettings {
+  DRW_SectionTypeSettings() = default;
+  // Preserve the field order used by LibreCAD's aggregate initializer.
+  DRW_SectionTypeSettings(
+      std::int32_t initialType,
+      std::int32_t initialGeneration = 0,
+      std::int32_t initialNumSources = 0,
+      std::vector<std::uint32_t> initialSourceHandles = {},
+      std::uint32_t initialDestinationBlockHandle = 0,
+      UTF8STRING initialDestinationFile = {},
+      std::int32_t initialNumGeometrySettings = 0,
+      std::vector<DRW_SectionGeometrySettings> initialGeometry = {})
+      : m_type(initialType),
+        m_generation(initialGeneration),
+        m_numSources(initialNumSources),
+        m_sourceHandles(std::move(initialSourceHandles)),
+        m_destinationBlockHandle(initialDestinationBlockHandle),
+        m_destinationFile(std::move(initialDestinationFile)),
+        m_numGeometrySettings(initialNumGeometrySettings),
+        m_geometry(std::move(initialGeometry)) {}
+
   std::int32_t m_type = 0;
   std::int32_t m_generation = 0;
   std::int32_t m_numSources = 0;
@@ -6011,6 +6071,32 @@ struct DRW_TableStyleBorder {
 };
 
 struct DRW_TableStyleContentFormat {
+  DRW_TableStyleContentFormat() = default;
+  // Preserve the field order used by LibreCAD's aggregate initializer.
+  DRW_TableStyleContentFormat(
+      std::uint32_t initialPropertyOverrideFlags,
+      std::uint32_t initialPropertyFlags = 0,
+      int initialValueDataType = 0,
+      int initialValueUnitType = 0,
+      UTF8STRING initialValueFormatString = {},
+      double initialRotation = 0.0,
+      double initialBlockScale = 1.0,
+      int initialCellAlignment = 0,
+      int initialContentColor = 0,
+      std::uint32_t initialTextStyleHandle = 0,
+      double initialTextHeight = 0.0)
+      : m_propertyOverrideFlags(initialPropertyOverrideFlags),
+        m_propertyFlags(initialPropertyFlags),
+        m_valueDataType(initialValueDataType),
+        m_valueUnitType(initialValueUnitType),
+        m_valueFormatString(std::move(initialValueFormatString)),
+        m_rotation(initialRotation),
+        m_blockScale(initialBlockScale),
+        m_cellAlignment(initialCellAlignment),
+        m_contentColor(initialContentColor),
+        m_textStyleHandle(initialTextStyleHandle),
+        m_textHeight(initialTextHeight) {}
+
   std::uint32_t m_propertyOverrideFlags = 0;
   std::uint32_t m_propertyFlags = 0;
   int m_valueDataType = 0;
@@ -6031,6 +6117,46 @@ private:
 };
 
 struct DRW_TableStyleCellStyle {
+  DRW_TableStyleCellStyle() = default;
+  // Preserve the field order used by LibreCAD's aggregate initializer.
+  DRW_TableStyleCellStyle(
+      int initialType,
+      bool initialHasData = false,
+      std::uint32_t initialPropertyOverrideFlags = 0,
+      std::uint32_t initialMergeFlags = 0,
+      int initialBackgroundColor = 0,
+      std::uint32_t initialContentLayout = 0,
+      DRW_TableStyleContentFormat initialContentFormat = {},
+      int initialMarginOverrideFlags = 0,
+      double initialVerticalMargin = 0.0,
+      double initialHorizontalMargin = 0.0,
+      double initialBottomMargin = 0.0,
+      double initialRightMargin = 0.0,
+      double initialMarginHorizontalSpacing = 0.0,
+      double initialMarginVerticalSpacing = 0.0,
+      int initialId = 0,
+      int initialStyleClass = 0,
+      UTF8STRING initialName = {},
+      std::vector<DRW_TableStyleBorder> initialBorders = {})
+      : m_type(initialType),
+        m_hasData(initialHasData),
+        m_propertyOverrideFlags(initialPropertyOverrideFlags),
+        m_mergeFlags(initialMergeFlags),
+        m_backgroundColor(initialBackgroundColor),
+        m_contentLayout(initialContentLayout),
+        m_contentFormat(std::move(initialContentFormat)),
+        m_marginOverrideFlags(initialMarginOverrideFlags),
+        m_verticalMargin(initialVerticalMargin),
+        m_horizontalMargin(initialHorizontalMargin),
+        m_bottomMargin(initialBottomMargin),
+        m_rightMargin(initialRightMargin),
+        m_marginHorizontalSpacing(initialMarginHorizontalSpacing),
+        m_marginVerticalSpacing(initialMarginVerticalSpacing),
+        m_id(initialId),
+        m_styleClass(initialStyleClass),
+        m_name(std::move(initialName)),
+        m_borders(std::move(initialBorders)) {}
+
   int m_type = 0;
   bool m_hasData = false;
   std::uint32_t m_propertyOverrideFlags = 0;
@@ -6058,6 +6184,30 @@ private:
 };
 
 struct DRW_TableStyleRowStyle {
+  DRW_TableStyleRowStyle() = default;
+  // Preserve the field order used by LibreCAD's aggregate initializer.
+  DRW_TableStyleRowStyle(
+      std::uint32_t initialTextStyleHandle,
+      double initialTextHeight = 0.0,
+      int initialTextAlignment = 0,
+      int initialTextColor = 0,
+      int initialFillColor = 0,
+      bool initialHasBackgroundColor = false,
+      int initialValueDataType = 0,
+      int initialValueUnitType = 0,
+      UTF8STRING initialValueFormatString = {},
+      std::vector<DRW_TableStyleBorder> initialBorders = {})
+      : m_textStyleHandle(initialTextStyleHandle),
+        m_textHeight(initialTextHeight),
+        m_textAlignment(initialTextAlignment),
+        m_textColor(initialTextColor),
+        m_fillColor(initialFillColor),
+        m_hasBackgroundColor(initialHasBackgroundColor),
+        m_valueDataType(initialValueDataType),
+        m_valueUnitType(initialValueUnitType),
+        m_valueFormatString(std::move(initialValueFormatString)),
+        m_borders(std::move(initialBorders)) {}
+
   UTF8STRING m_textStyleName;
   std::uint32_t m_textStyleHandle = 0;
   double m_textHeight = 0.0;
