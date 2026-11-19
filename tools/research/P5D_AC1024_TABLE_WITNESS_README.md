@@ -5,8 +5,9 @@ TABLE profile. It creates a 4×3 table with fixed text cells and a block-content
 cell containing one nonconstant ATTDEF with a non-default cell value, uniform
 row/column dimensions, the database's current table style, and an anonymous
 table block. It saves an AC1024 DWG, reopens that DWG in a read-only database to
-emit ASCII and Binary DXF, and records hashes and handles. It does not modify
-the library, add a fixture, transfer files, or qualify TABLE support by itself.
+request AC1024 ASCII and Binary DXF explicitly, and records hashes and handles.
+It does not modify the library, add a fixture, transfer files, or qualify TABLE
+support by itself.
 
 The packet currently targets **full AutoCAD 2024 on Windows x64 and .NET
 Framework 4.8**. The remote host is available, but its product release/build,
@@ -54,7 +55,11 @@ heights to 6.0 and column widths to 32.0. It records TABLE, owner, style, and
 generated block handles plus the plugin and output hashes. An exception,
 wrong DWG magic, missing output, or missing receipt is
 `INCOMPLETE_DO_NOT_QUALIFY`; preserve partial output and retry only in a new
-directory.
+directory. The command checks the DWG magic, but does not independently check
+either DXF version marker. Inspect `$ACADVER` in **each** emitted DXF with an
+independent reader that supports its encoding, and require `AC1024`; record the
+reader/version and results. A missing or different marker makes the capture
+incomplete even if the creation log reports success.
 
 ## Native reopen evidence
 
@@ -104,4 +109,4 @@ reviewed if the remote host is another release.
 [`Table.GenerateLayout`](https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table_GenerateLayout.html),
 [`Table.Cells`](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table_Cells.html) and [`Cell.TextString`](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Cell_TextString.html),
 [`Database.SaveAs`](https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_SaveAs_string_DwgVersion.html),
-and [`Database.DxfOut`](https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_DxfOut_string_int__MarshalAsUnmanagedType_U1__bool.html).
+and [`Database.DxfOut` with an explicit version](https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_DxfOut_string_int_DwgVersion.html).

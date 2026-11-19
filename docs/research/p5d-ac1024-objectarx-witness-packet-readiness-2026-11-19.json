@@ -160,5 +160,14 @@
     "Build and run the packet on the checked host profile; capture the AC1024 DWG, paired ASCII/Binary DXFs, creation receipt, three close/reopen reports, and appearance observation as scratch artifacts only.",
     "Use the known block BTR, single ATTDEF, and distinct value to reconcile ODA v5.4.1 §20.4.97 field spans, actual handle roles, references, and following-record boundary against source-bound traces before typed parser changes.",
     "Keep P5-D open and strict output refused until physical source proof, graph closure, strict output/readback, refusal/atomicity/retry, and native appearance gates pass."
-  ]
+  ],
+  "explicitDxfVersionCorrection": {
+    "date": "2026-11-19",
+    "reason": "The previous bool DxfOut overload did not explicitly request a target version; reloading an AC1024 DWG alone was not proof of the emitted DXF version.",
+    "sourceSha256": "300447c2763e5c31d9e5c45de7a10960e5156992b070593b571f9a758892e5d7",
+    "readmeSha256": "0e10c859ef54fcd6012d812dfa7e8c7170954f1ac1e85d4f6d78b7a353b0479b",
+    "change": "Use DxfOut(path, precision, DwgVersion.AC1024) for both ASCII and Binary; log the requested version and require independent marker verification.",
+    "authority": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_DxfOut_string_int_DwgVersion.html",
+    "limits": "SDK build and AutoCAD execution not run; requested version is not proof of emitted markers. The earlier packet hashes and inventory receipt above are historical."
+  }
 }

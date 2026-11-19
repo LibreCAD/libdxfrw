@@ -179,11 +179,11 @@ namespace LibdxfrwWitness {
                 }
 
                 db.SaveAs(dwgPath, DwgVersion.AC1024);
-                // Reopen the saved AC1024 source so DxfOut uses that source database's version.
+                // Export from the saved source and request AC1024 explicitly for both encodings.
                 using (var saved = new Database(false, true)) {
                     saved.ReadDwgFile(dwgPath, FileOpenMode.OpenForReadAndAllShare, true, "");
-                    saved.DxfOut(asciiPath, 16, false);
-                    saved.DxfOut(binaryPath, -1, false);
+                    saved.DxfOut(asciiPath, 16, DwgVersion.AC1024);
+                    saved.DxfOut(binaryPath, -1, DwgVersion.AC1024);
                 }
 
                 string magic = ReadMagic(dwgPath);
@@ -218,6 +218,8 @@ namespace LibdxfrwWitness {
                             Log(writer, "cell[" + row + "," + column + "]", Values[row, column]);
                     Log(writer, "dwgPath", Path.GetFileName(dwgPath));
                     Log(writer, "dwgMagic", magic);
+                    Log(writer, "requestedDxfVersion", "AC1024");
+                    Log(writer, "dxfVersionVerification", "REQUIRED_FOR_BOTH_OUTPUTS");
                     Log(writer, "dwgSha256", Sha256(dwgPath));
                     Log(writer, "asciiDxfSha256", Sha256(asciiPath));
                     Log(writer, "binaryDxfSha256", Sha256(binaryPath));
