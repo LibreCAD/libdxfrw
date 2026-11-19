@@ -147,6 +147,12 @@ layer-state and named-block draw-order observations; it is not IMAGEDEF
 evidence. The managed sweep packet is relevant only to the matching AC1027
 profile. Continue local work while these host details are pending.
 
+The alternate named-block graph has now been compared against LibreDWG: all 52
+node records, 116 edge records, and referenced dynamic-object identities match;
+the 11 dynamic-class bodies and native draw order remain unqualified. Retain
+the named-block output refusal until those and complete graph/output gates are
+satisfied. See the [source receipt](docs/research/p4-ac1024-sundemo-sortents-236-source-wire-2026-11-18.json).
+
 The [aerial SUN observer](tools/research/P4D_AERIAL_SUN_OBSERVER.md) is prepared
 for the exact AC1024 source and ODA DXF. Its stub-only syntax build passed; an
 actual AutoCAD SDK build and native observations remain pending. Compare the

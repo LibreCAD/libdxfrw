@@ -168,7 +168,7 @@
     "interpretation": "All 46 byte-prefix truncation controls are refused by the exact 46-byte frame-length condition; they do not independently prove a general dynamic-length parser. The six terminal bit changes are accepted intentionally because terminal padding contents have not been qualified as semantic data. No output or retry behavior was exercised."
   },
   "adjacentFrameBoundary": {
-    "independentTraceObservation": "LibreDWG v0.14 reports object-map record 195 at trace coordinate 418479, 46-byte body, valid CRC 2AE1 for 418479–418529, then its next record 196 at coordinate 418531 with type 530 and handle 0x237.",
+    "independentTraceObservation": "LibreDWG v0.14 reports object-map record 195 at trace coordinate 418479, 46-byte body, valid CRC 2AE1 for 418479\u2013418529, then its next record 196 at coordinate 418531 with type 530 and handle 0x237.",
     "limit": "These are peer decoder coordinates/CRC statements, not independently validated source-file physical offsets. The scratch raw-frame observer checks a fixed extracted payload only and does not decode the framing prefix, CRC, object map, or the following record itself. Thus a complete independently byte-bound adjacent-frame proof is not claimed."
   },
   "otherAttempt": {
@@ -327,6 +327,36 @@
     },
     "interpretation": "The key census supplies an exact input for a future native getFullDrawOrder comparison; it is not an observation of actual AutoCAD drawing order and does not prove named-block DXF acceptance or sufficient dynamic-block graph closure.",
     "limits": "Local sample producer identity is unauthenticated. The selected import is not an immutable production source capability; frame/class/dictionary/block and all dependent siblings must be bound in the same import before output admission. Native semantic comparison, staged ASCII/Binary output, destination-preserving failure/retry, fresh independent readback and full-document closure remain open. No fixture committed.",
+    "supportClaimEffect": "none"
+  },
+  "dynamicSiblingRecheck": {
+    "date": "2026-11-19",
+    "head": "a457ad937",
+    "scope": "Same DWG import graph and dynamic-object identity compared field by field with the existing GNU LibreDWG trace. This is not independent native semantic or output proof.",
+    "probe": {
+      "source": "/private/tmp/p4-sundemo-object-frame/dynamic.cpp",
+      "sourceSha256": "933e8092a376c36787ceba47070c123a936873041187b4fd2dae4c18a70c3c6f",
+      "binarySha256": "af0c69899ff5b3207f67197f011d3fa8efa6fa287fa0281ef2f58de43bd2d38c",
+      "outputSha256": "b77ae8f8cd907f8cd310a5ba08164bf008c7b65a9bd64ab66628a1d55846121a",
+      "comparisonScript": "/private/tmp/p4-sundemo-object-frame/compare-dynamic.py",
+      "comparisonScriptSha256": "c4c3d3a5df3115276fcb4179299d8bc3349279d45eef58d4eae35d0f446cb527",
+      "comparisonOutputSha256": "180002f3f2bc33fa1343b8f1b3cb1465ce9e31a3c0b2d4739d3b63efbf2085b2",
+      "peerTraceSha256": "540f3848da35ff9302dac62b8d67c57a55c6b9c6651789a7a574d1ecdbc581eb"
+    },
+    "observed": {
+      "graphHandle": "201",
+      "owner": "200",
+      "firstNodeId": 91,
+      "firstNodeIdCopy": 91,
+      "orderedNodeRecordsMatched": 52,
+      "orderedEdgeRecordsMatched": 116,
+      "referencedObjectIdentitiesMatched": 52,
+      "objectClassCount": 11,
+      "objectParseFlags": "All 52 referenced objects reported eval-expression parsed and body fully decoded by the library; this is its own status, not an independent comparison of each object body.",
+      "purgePreventer": "Object 237 reports owner 200, flag 1 and block 1FF.",
+      "peerGraphUnknownBitsReported": 23129
+    },
+    "limits": "Only graph node and edge modeled fields and dynamic object identities/owners were peer-compared. The 11 class bodies, native dynamic behavior, draw order, complete source spans and strict ASCII/Binary output remain unqualified. LibreDWG reports unknown bits; the meaning or coverage of that field was not established. Preserve the noncanonical named-block output refusal. No fixture committed.",
     "supportClaimEffect": "none"
   }
 }
