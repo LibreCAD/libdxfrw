@@ -59,7 +59,7 @@ class DxIfaceExtensionGraphTestAccess;
 class DxIfaceTableSourceTestAccess;
 class DxIfaceDwgLtypeControlOutputTestAccess;
 
-class dx_iface : public DRW_Interface, public DRW_DxfClassSourceHandler, public DRW_DwgHeaderMaterialSourceHandler, public DRW_DwgAc1024LayerSourceHandler, public DRW_DwgAc1024LayerControlSourceHandler, public DRW_DwgAc1024AppIdSourceHandler, public DRW_DwgProxyGraphicsResourceOrderHandler, public DRW_UnmodeledDxfObjectHandler,
+class dx_iface : public DRW_Interface, public DRW_DxfClassSourceHandler, public DRW_DxfClassShapeHandler, public DRW_DwgHeaderMaterialSourceHandler, public DRW_DwgAc1024LayerSourceHandler, public DRW_DwgAc1024LayerControlSourceHandler, public DRW_DwgAc1024AppIdSourceHandler, public DRW_DwgProxyGraphicsResourceOrderHandler, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DwgDbColorEedSourceHandler,
                  public DRW_DwgClassSourceHandler, public DRW_DxfTableSourceHandler,
                  public DRW_DxfSymbolSourceHandler, public DRW_DxfRootDictionarySourceHandler,
@@ -366,7 +366,7 @@ public:
         PlotSourceState state{PlotSourceState::NotCaptured};
         std::size_t records{0},physicalRecords{0},dictionaries{0},placeholders{0},bodyMatched{0},originsBound{0},plotTargets{0},namedTargets{0},bytes{0},work{0};
         std::uint32_t defaultTarget{0};
-        bool originalSourcesMatched{false},ownerTargetsResolved{false},outputEligible{false};
+        bool originalSourcesMatched{false},legacyClassRowsMatched{false},ownerTargetsResolved{false},outputEligible{false};
     };
     static PlotSourceReport plotStyleSourceReport(const dx_data&) noexcept;
     using DependencyState=dx_data::TableDxfSourceCapture::DependencyAudit::State;
@@ -869,6 +869,8 @@ public:
     void addDxfClass(const DRW_Class& data) override;
     bool wantsDxfClassSource() const noexcept override { return typeid(*this)==typeid(dx_iface) && tableSourceCaptureOpen(); }
     void addDxfClassSource(const DRW_Class&, bool) noexcept override;
+    bool wantsDxfClassShape() const noexcept override { return typeid(*this)==typeid(dx_iface) && tableSourceCaptureOpen(); }
+    void addDxfClassShape(const DRW_Class&, bool, InstanceCountShape) noexcept override;
     void addDwgClassCoverageReport(const DRW_DwgClassCoverageReport& data) override;
     bool wantsDwgClassSource() const override { return true; }
     void addDwgClassSourceReport(const DRW_DwgClassSourceReport& data) noexcept override;

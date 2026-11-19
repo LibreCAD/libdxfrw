@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "date": "2026-11-19",
+  "scope": "AC1015 default-plot generated source CLASS-shape observation and hosted inventory repair",
+  "implementationDigestSha256": "c5d77a31375dc9c2ac675a25d2ac2e713125f3a1f47b2322ab2ce0cbc56c893b",
+  "sourceProvenance": "The owning test generates ASCII and binary DXF sources from scratch in temporary directories. No drawing fixtures are added.",
+  "observation": [
+    "A separate optional CLASS-shape handler records whether group 91 was absent, present or unavailable without adding a virtual slot to DRW_Interface or its existing CLASS source handler.",
+    "The default-plot observer checks the canonical AC1015 dictionary-with-default and placeholder class pair, requires one bounded CLASS section, and rejects unknown, extra, duplicate, noncanonical or explicit-count rows.",
+    "In both generated encodings, inserting group 91 with value zero leaves import possible but causes CLASS-shape qualification to refuse. The source observer still does not authorize output."
+  ],
+  "validation": {
+    "adapterSelectors": {
+      "result": "PASS",
+      "count": 5,
+      "tests": [
+        "dwg2dxf_xrecord_owned_defaultplot_source_probe",
+        "dwg2dxf_native_xrecord_binary_transport",
+        "dwg2dxf_native_xrecord_binary_faults",
+        "dwg2dxf_standard_dwg_profile_isolation",
+        "dwg2dxf_default_plotstyle_layer_graph"
+      ]
+    },
+    "parserRetainedTextBudget": "PASS",
+    "qualificationWorkflowContract": "PASS",
+    "qualificationWorkflowSelfTest": "PASS",
+    "nativeQualificationRunnerSelfTest": "PASS",
+    "qualifiedFormatSupport": "PASS (15 claims, 2 candidate routes, 0 advertised)",
+    "classParserAndWireCensus": "PASS (3 tests; census covers AC1014/AC1015/AC1018/AC1024 ASCII and binary)"
+  },
+  "hostedInventoryRepair": {
+    "priorHead": "99cf08cc45e7a2d8dee0e97efb5ac63ba7144979",
+    "nativeRun": 44629126651,
+    "fastRun": 44629126616,
+    "fastResult": "PASS in 11 minutes 42 seconds",
+    "nativeFailure": "Linux, macOS and Windows stopped before test execution because the new probe was absent from the frozen broad inventory.",
+    "hostedArtifactComparison": "Linux metadata artifact contained exactly one additional test, dwg2dxf_xrecord_owned_defaultplot_source_probe, and no missing tests.",
+    "updatedCount": 1390,
+    "updatedNameDigest": "83252385e84a32d86d7002305d752293a09c880d4248d1f24ef1c32c40d0d8a2",
+    "focusedMembership": "Unchanged: seven tests. The full hosted inventory validates using the existing qualification validator.",
+    "rerun": "Required for the new implementation and contract digest; no native receipt or platform pass is claimed.",
+    "preflight": "A configure-only check now verifies exact inventory names, digest and focused label membership before the fast build; clean configuration PASS, synthetic stale inventory rejected.",
+    "classCensus": "The existing wire census now includes the automatically emitted default-plot CLASS pair for R2000+ and is included in the fast lane."
+  },
+  "limits": [
+    "This is generated source observation, not native producer or independent semantic evidence.",
+    "Before output admission, bind class and exact dictionary/placeholder source observations to immutable live-state and per-attempt checks, verify staged output and target class counts, and exercise failure preservation and retry.",
+    "Cross-version output remains refused and all unqualified support claims remain unchanged."
+  ]
+}

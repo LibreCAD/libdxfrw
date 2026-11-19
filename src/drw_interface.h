@@ -1260,6 +1260,19 @@ public:
   virtual void addDxfClassSource(const DRW_Class&, bool allGroupsKnown) noexcept = 0;
 };
 
+/** Optional CLASS wire-shape observation. A missing instance-count group is
+ * distinguishable from an explicit zero; neither value grants write authority.
+ * This is a separate interface and adds no slot to DRW_Interface or the
+ * existing CLASS source handler. */
+class DRW_DxfClassShapeHandler {
+public:
+  enum class InstanceCountShape { Unavailable, Absent, Present };
+  virtual ~DRW_DxfClassShapeHandler() = default;
+  virtual bool wantsDxfClassShape() const noexcept { return false; }
+  virtual void addDxfClassShape(const DRW_Class&, bool allGroupsKnown,
+                                InstanceCountShape) noexcept = 0;
+};
+
 /** Opt-in complete STYLE/LTYPE source rows. Separate from DRW_Interface's
  * established vtable. Selection is latched per symbol-table batch; default
  * false performs no raw copy or raw-variant charging. Rows are delivered only

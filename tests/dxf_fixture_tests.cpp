@@ -30337,6 +30337,23 @@ void testClassesWireCensus(TestContext& t) {
             expected.emplace_back(91, "0");
         expected.emplace_back(280, "0");
         expected.emplace_back(281, "0");
+        // R2000+ output also owns the default plot-style dictionary and its
+        // placeholder. Their CLASS rows are emitted after the caller class.
+        if (profile.version >= DRW::AC1015) {
+            for (const auto& entry : {std::pair<const char*, const char*>{
+                    "ACDBDICTIONARYWDFLT", "AcDbDictionaryWithDefault"},
+                    {"ACDBPLACEHOLDER", "AcDbPlaceHolder"}}) {
+                expected.emplace_back(0, "CLASS");
+                expected.emplace_back(1, entry.first);
+                expected.emplace_back(2, entry.second);
+                expected.emplace_back(3, "ObjectDBX Classes");
+                expected.emplace_back(90, "0");
+                if (profile.version > DRW::AC1015)
+                    expected.emplace_back(91, "1");
+                expected.emplace_back(280, "0");
+                expected.emplace_back(281, "0");
+            }
+        }
         t.expect(scanned && tags == expected,
                  (std::string(profile.name)
                   + " emits the exact ordered CLASSES group sequence")

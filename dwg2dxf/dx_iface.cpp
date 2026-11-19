@@ -70238,6 +70238,28 @@ void dx_iface::addDxfClassSource(const DRW_Class& value, bool known) noexcept {
        || value.wasaProxyFlag!=0 || value.instanceCount!=counts[index]) source.repeatClassValid=false;
 }
 
+void dx_iface::addDxfClassShape(const DRW_Class& value, bool known, InstanceCountShape countShape) noexcept {
+    if (!cData || typeid(*this)!=typeid(dx_iface) || !tableSourceCaptureOpen()) return;
+    auto& source=cData->m_tableDxfSource;
+    dxfRW::DxfReadContext live;
+    if(!source.entitiesReadInput || !source.entitiesReadInput->getDxfReadContext(live)) {
+        source.legacyPlotClassValid=false;return;
+    }
+    if(live.sourceVersion!=DRW::AC1015)return;
+    if(live.codecVersion!=DRW::AC1015 || ++source.legacyPlotClassCount>2u) {
+        source.legacyPlotClassValid=false;return;
+    }
+    const char* records[]={"ACDBDICTIONARYWDFLT","ACDBPLACEHOLDER"};
+    const char* names[]={"AcDbDictionaryWithDefault","AcDbPlaceHolder"};
+    unsigned index=2u;
+    for(unsigned i=0u;i<2u;++i)if(value.recName==records[i])index=i;
+    if(index==2u || source.legacyPlotClassSeen[index]) {source.legacyPlotClassValid=false;return;}
+    source.legacyPlotClassSeen[index]=true;
+    if(!known || countShape!=InstanceCountShape::Absent || value.className!=names[index] || value.appName!="ObjectDBX Classes"
+        || value.proxyFlag!=0 || value.instanceCount!=0 || value.wasaProxyFlag!=0 || value.entityFlag!=0)
+        source.legacyPlotClassValid=false;
+}
+
 void dx_iface::addDxfClass(const DRW_Class& data) {
     retainDxfClassTyped(cData, data);
 }

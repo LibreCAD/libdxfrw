@@ -20781,7 +20781,10 @@ bool dxfRW::processClasses() {
     std::vector<DRW_Class> pendingClasses;
     auto* classSource = dynamic_cast<DRW_DxfClassSourceHandler*>(iface);
     if (classSource && !classSource->wantsDxfClassSource()) classSource = nullptr;
+    auto* classShape = dynamic_cast<DRW_DxfClassShapeHandler*>(iface);
+    if (classShape && !classShape->wantsDxfClassShape()) classShape = nullptr;
     std::array<bool,3> pendingClassKnown{{false,false,false}};
+    std::array<bool,3> pendingClassHasInstanceCount{{false,false,false}};
     bool classKnown = true;
     DxfReadRetainedReservation classTextReservation(
         reader->retainedByteBudget(), 0u);
@@ -20829,8 +20832,10 @@ bool dxfRW::processClasses() {
         // temporarily duplicate its three retained strings without charging
         // those bytes to the aggregate retained-text budget.
         pendingClasses.push_back(std::move(cls));
-        if (classSource && pendingClasses.size() <= pendingClassKnown.size())
+        if ((classSource || classShape) && pendingClasses.size() <= pendingClassKnown.size()) {
             pendingClassKnown[pendingClasses.size()-1u] = classKnown;
+            pendingClassHasInstanceCount[pendingClasses.size()-1u] = hasInstanceCount;
+        }
         cls = DRW_Class{};
         return true;
     };
@@ -20859,6 +20864,11 @@ bool dxfRW::processClasses() {
                 for (std::size_t i = 0u; i < pendingClasses.size(); ++i) {
                     if (classSource) classSource->addDxfClassSource(pendingClasses[i],
                         i < pendingClassKnown.size() && pendingClassKnown[i]);
+                    if (classShape) classShape->addDxfClassShape(pendingClasses[i],
+                        i < pendingClassKnown.size() && pendingClassKnown[i],
+                        i >= pendingClassHasInstanceCount.size() ? DRW_DxfClassShapeHandler::InstanceCountShape::Unavailable
+                            : pendingClassHasInstanceCount[i] ? DRW_DxfClassShapeHandler::InstanceCountShape::Present
+                            : DRW_DxfClassShapeHandler::InstanceCountShape::Absent);
                     iface->addDxfClass(pendingClasses[i]);
                 }
                 return true;

@@ -9950,12 +9950,27 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
             const auto source = dx_iface::plotStyleSourceReport(data);
             if (dx_iface::identitySourceReport(data).state != dx_iface::IdentitySourceState::NotCaptured
                 || dx_iface::structuralSourceReport(data).state != dx_iface::StructuralSourceState::NotCaptured
-                || !source.originalSourcesMatched || source.records != 2u || source.bodyMatched != 2u
+                || !source.originalSourcesMatched || !source.legacyClassRowsMatched || source.records != 2u || source.bodyMatched != 2u
                 || source.originsBound != 2u || source.namedTargets != 1u || source.defaultTarget != 0xFu
                 || source.ownerTargetsResolved || source.outputEligible)
                 return fail("AC1015 default plot source capture did not bind the isolated graph");
             std::ifstream input(dxf,std::ios::binary);
             std::string bytes((std::istreambuf_iterator<char>(input)),std::istreambuf_iterator<char>());
+            {
+                std::string alteredClass = bytes;
+                const auto className = alteredClass.find("AcDbDictionaryWithDefault");
+                const auto flag = className == std::string::npos ? std::string::npos
+                    : alteredClass.find(format == 0u ? std::string("\n280\n") : std::string("\x18\x01\0\0",4u),className);
+                if (flag == std::string::npos) return fail("generated CLASS group boundary was not found");
+                if (format == 0u) alteredClass.insert(flag + 1u," 91\n        0\n");
+                else alteredClass.insert(flag,std::string("\x5b\0\0\0\0\0",6u));
+                { std::ofstream changed(target,std::ios::binary); changed.write(alteredClass.data(),static_cast<std::streamsize>(alteredClass.size())); }
+                dx_data alteredClassData; dx_iface classImporter;
+                if (!classImporter.fileImport(target.string(),&alteredClassData,false)) return fail("explicit-zero CLASS source failed to import");
+                const auto classReport = dx_iface::plotStyleSourceReport(alteredClassData);
+                if (!classReport.originalSourcesMatched || classReport.legacyClassRowsMatched || classReport.outputEligible)
+                    return fail("explicit-zero AC1015 CLASS count earned source-shape qualification");
+            }
             const std::string key = "ACAD_PLOTSTYLENAME";
             const auto at = bytes.find(key);
             if (at == std::string::npos || bytes.find(key,at + 1u) != std::string::npos)

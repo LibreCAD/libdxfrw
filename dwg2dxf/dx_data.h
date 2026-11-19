@@ -1886,6 +1886,9 @@ private:
         std::array<bool,3> repeatClassSeen{{false,false,false}};
         std::size_t repeatClassCount{0u};
         bool repeatClassValid{true};
+        std::array<bool,2> legacyPlotClassSeen{{false,false}};
+        std::size_t legacyPlotClassCount{0u};
+        bool legacyPlotClassValid{true};
         struct Table {
             Table(const DRW_Table& model, const DRW_RawDxfObject& source)
                 : typed(model), raw(source) {}

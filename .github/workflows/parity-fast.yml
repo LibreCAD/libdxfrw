@@ -80,6 +80,9 @@ jobs:
           -DLIBDXFRW_BUILD_LONG_FUZZ=OFF
           -DLIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE=OFF
 
+      - name: Check frozen CTest inventory before building
+        run: python3 -B tools/run_native_qualification.py check-inventory --build-dir build
+
       - name: Build bounded fast targets and source compatibility check
         run: >-
           cmake --build build --config Release --parallel 2 --target

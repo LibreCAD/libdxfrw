@@ -270,5 +270,13 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
         if(row->input->dictionary)++r.dictionaries;else ++r.placeholders;if(row->bodyMatched)++r.bodyMatched;if(row->originBound)++r.originsBound;
     }
     r.state=a->state;r.physicalRecords=a->physicalRecords;r.plotTargets=a->plotTargets.size();r.namedTargets=a->namedTargets;r.defaultTarget=a->defaultTarget;
-    r.originalSourcesMatched=r.state==S::SourcesReady&&r.records&&r.records==r.bodyMatched&&r.records==r.originsBound;return r;
+    r.originalSourcesMatched=r.state==S::SourcesReady&&r.records&&r.records==r.bodyMatched&&r.records==r.originsBound;
+    if(data.sourceVersion==DRW::AC1015 && s.legacyPlotClassValid && s.legacyPlotClassCount==2u
+        &&s.legacyPlotClassSeen[0]&&s.legacyPlotClassSeen[1]&&s.identityInput&&s.identityInput->source) {
+        const auto& sections=s.identityInput->source->sections;
+        r.legacyClassRowsMatched=sections.size()<=64u && std::count_if(sections.begin(),sections.end(),[](const auto& section) {
+            return section.kind==DRW_DxfIdentitySource::Section::Classes;
+        })==1;
+    }
+    return r;
 }
