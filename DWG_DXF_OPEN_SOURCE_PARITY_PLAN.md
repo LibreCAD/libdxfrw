@@ -18,10 +18,10 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 [baseline refresh receipt](docs/research/consumer-baseline-refresh-2026-11-18.json);
 refresh moving heads again before later integration or platform qualification.
 
-**Progress on 2026-11-19:** 12/34 package gates closed; 22 remain. The
+**Progress on 2026-11-19:** 13/34 package gates closed; 21 remain. The
 historical activity count records 198 completed implementation/research
 slices; the number of remaining slices is not yet known, so it cannot support
-a completion percentage. Gate readiness is 12/34 (35.3%). The latest fast-CI run
+a completion percentage. Gate readiness is 13/34 (38.2%). An earlier fast-CI run
 found a stale AC1021 diagnostic-count assertion: 26 integrity rows minus 16
 retained rows means 10 omitted rows. The assertion is corrected. On digest
 `482f6cff10cc1735ea3cea4c6b4e319e8ff27bacb82a93752884ef44ff96a086`, fast CI
@@ -29,8 +29,7 @@ passed all 45 required CTests (one locale case skipped by design), and the
 Linux, macOS and Windows focused-native jobs each passed 7/7 with sealed,
 uploaded and enforced receipts. The repair receipt records exact job IDs,
 merge ref, receipt hashes and artifact digests; P8-F was closed for that digest.
-The planar-loop code changes the implementation digest and reopens P8-F; its
-new fast and focused-native checks are pending.
+The planar-loop code changed the digest; its [fast and focused-native replay](docs/research/p8f-d25f-upstream-native-replay-2026-11-19.json) now closes P8-F for the new digest.
 The shared remote ObjectARX host intake and the hash-gated P4-D, P5-D, and P6-A
 native observer/witness packets are prepared. P5-D now authors a known 4×3
 TABLE with a block cell, one nonconstant ATTDEF, and a distinct non-default
@@ -46,7 +45,7 @@ encodings and file hashes; it does not qualify TABLE semantics.
 The first hosted fast run after adding P5-D caught the source-release manifests
 missing the new packet. The generated manifests now include its README, source,
 project and shared host intake; the focused inventory check passes locally.
-Hosted verification is pending on the follow-up commit.
+The later hosted fast job passed the source-release inventory check.
 `P8-D-API-COMPAT`, `P8-D-OUTPUT-BUDGET-REVIEW`, the bounded MLINE
 staged-inspector port, the P4-D local null-background candidate screen, and a
 bounded ACadSharp readback of the selected candidate in ASCII and Binary DXF
@@ -57,7 +56,7 @@ that Model-space active viewport references use `AcDbViewportTableRecord`
 while paper-space references use `AcDbViewport`, matching the source and both
 output encodings. P4-D now waits for native reopen and semantic/consumer
 qualification through the remote host. Package-gate readiness
-is tracked at 12/34 (35.3%); this count does not imply support qualification. The
+is tracked at 13/34 (38.2%); this count does not imply support qualification. The
 latest
 P8-D compatibility slice restores the
 historical DIMASSOC OSNAP aggregate prefix and completes the deprecated `dwgR`
@@ -128,8 +127,8 @@ dictionary wire helper and reproducible seven-frame controls prepare P4-D
 integration without enabling output. The [source context and observers slice](docs/research/p4-ac1024-layerstates-source-observers-2026-11-18.json) adds XRECORD and SCALE source observers, and the [same-import APPID check](docs/research/p4-ac1024-layerstates-appid-same-import-context-2026-11-18.json) verifies the original adapter/data and name provenance. Both remain disconnected from output admission; focused corruption, retry and one-root regression controls pass. The [SCALE class-context slice](docs/research/p4-ac1024-layerstates-scale-class-source-2026-11-18.json) binds the same-read publication and CLASSES row for all 32 captured SCALE frames. A [targeted alternate-witness screen](docs/research/p4-ac1024-layerstates-alternative-witness-screen-2026-11-18.json) identified a sun-and-sky source that passes the aerial SUN blocker but refuses at a nonempty named-block SORTENTSTABLE; it cannot yet establish strict output.
 The earlier `05e7cb33` digest passed the recorded Linux/Windows [package
 profiles](docs/research/p8a-1aeca-linux-windows-package-qualification-2026-11-18.json)
-and a clean local [macOS package profile](docs/research/p8a-macos-package-05e7-source-matched-2026-11-18.json), closing P8-A for those configurations. The pinned generated FreeCAD profile passed on [Linux](docs/research/p8-25c60980-freecad-linux-qualification-2026-11-18.json) and [Windows](docs/research/p8-25c60980-freecad-windows-qualification-2026-11-18.json), closing P8-B/C for those profiles. A [current LibreCAD master filter compile/link probe](docs/research/p8-librecad-master-7396-current-shared-filter-check-2026-11-18.json) and a [patched LibreCAD_3 candidate load smoke](docs/research/p8-librecad3-05e7-patched-persistence-load-2026-11-18.json) pass against the current shared library; neither is GUI or drawing qualification. The upstream fast and all three hosted focused-native jobs passed on that digest. The [event-specific ref verifier](docs/research/p8f-github-event-ref-binding-2026-11-18.json) verified the three sealed receipts live before the PR ref advanced. The [upstream fast and three focused-native results](docs/research/p8f-71fd-upstream-native-replay-2026-11-18.json) passed for digest `4d054a40`. Live replay verified all three artifacts and the tested PR merge ref. The [upstream fast and focused-native replay](docs/research/p8f-1174-upstream-native-replay-2026-11-18.json) closed P8-F for digest `2243acdf`. The [one-reactor implementation replay](docs/research/p8f-08d32-upstream-native-replay-2026-11-18.json) closed P8-F for digest `70583336` with green upstream fast CI and three authenticated native receipts. The [empty-dictionary implementation replay](docs/research/p8f-ea87-upstream-native-replay-2026-11-18.json) verified the upstream fast and three focused-native jobs for digest `72ac2942`. The [MLINESTYLE implementation replay](docs/research/p8f-d28d-upstream-native-replay-2026-11-18.json) verified fast CI and all three focused-native jobs for `6d8f5978`. The subsequent DICTIONARYVAR digest `58bc2fe0` passed [fast CI](https://github.com/LibreCAD/libdxfrw/actions/runs/44415744067) and all [three authenticated focused-native checks](docs/research/p8f-5003-upstream-native-replay-2026-11-18.json). The RENDERGLOBAL digest `577e1880` passed fast CI and all three [authenticated focused-native checks](docs/research/p8f-9bbb-upstream-native-replay-2026-11-18.json). The three-render writer digest `bb023275` passed fast CI and all three [authenticated focused-native checks](docs/research/p8f-a8e3261-upstream-native-replay-2026-11-18.json). Gate readiness was 32.4% before P8-F closed and is now 35.3%;
-gate readiness does not imply drawing support. The broad native suite and
+and a clean local [macOS package profile](docs/research/p8a-macos-package-05e7-source-matched-2026-11-18.json), closing P8-A for those configurations. The pinned generated FreeCAD profile passed on [Linux](docs/research/p8-25c60980-freecad-linux-qualification-2026-11-18.json) and [Windows](docs/research/p8-25c60980-freecad-windows-qualification-2026-11-18.json), closing P8-B/C for those profiles. A [current LibreCAD master filter compile/link probe](docs/research/p8-librecad-master-7396-current-shared-filter-check-2026-11-18.json) and a [patched LibreCAD_3 candidate load smoke](docs/research/p8-librecad3-05e7-patched-persistence-load-2026-11-18.json) pass against the current shared library; neither is GUI or drawing qualification. The upstream fast and all three hosted focused-native jobs passed on that digest. The [event-specific ref verifier](docs/research/p8f-github-event-ref-binding-2026-11-18.json) verified the three sealed receipts live before the PR ref advanced. The [upstream fast and three focused-native results](docs/research/p8f-71fd-upstream-native-replay-2026-11-18.json) passed for digest `4d054a40`. Live replay verified all three artifacts and the tested PR merge ref. The [upstream fast and focused-native replay](docs/research/p8f-1174-upstream-native-replay-2026-11-18.json) closed P8-F for digest `2243acdf`. The [one-reactor implementation replay](docs/research/p8f-08d32-upstream-native-replay-2026-11-18.json) closed P8-F for digest `70583336` with green upstream fast CI and three authenticated native receipts. The [empty-dictionary implementation replay](docs/research/p8f-ea87-upstream-native-replay-2026-11-18.json) verified the upstream fast and three focused-native jobs for digest `72ac2942`. The [MLINESTYLE implementation replay](docs/research/p8f-d28d-upstream-native-replay-2026-11-18.json) verified fast CI and all three focused-native jobs for `6d8f5978`. The subsequent DICTIONARYVAR digest `58bc2fe0` passed [fast CI](https://github.com/LibreCAD/libdxfrw/actions/runs/44415744067) and all [three authenticated focused-native checks](docs/research/p8f-5003-upstream-native-replay-2026-11-18.json). The RENDERGLOBAL digest `577e1880` passed fast CI and all three [authenticated focused-native checks](docs/research/p8f-9bbb-upstream-native-replay-2026-11-18.json). The three-render writer digest `bb023275` passed fast CI and all three [authenticated focused-native checks](docs/research/p8f-a8e3261-upstream-native-replay-2026-11-18.json). Earlier readiness was 32.4% before a prior P8-F closure; it is now 38.2%.
+Gate readiness does not imply drawing support. The broad native suite and
 extended fuzz lane remain for the frozen integration pass.
 
 The user has identified a remote ObjectARX host as available. Its AutoCAD
@@ -183,7 +182,7 @@ excluded from the counts, and cannot promote support claims.
 
 ## Execution order and fast paths
 
-The active queue has 22 open package gates (P4 3, P5 7, P6 5, P7 4, P8 3).
+The active queue has 21 open package gates (P4 3, P5 7, P6 5, P7 4, P8 2).
 P4-D has source-bound standalone dictionary, XRECORD and SCALE frame proofs;
 the other format gates await their stated evidence. Take the first eligible evidence packet;
 an unavailable producer, external authority, GUI, or converter parks only its
@@ -275,7 +274,7 @@ producer wire evidence or 3D semantic proof.
   The historical ledger records 198 completed slices. Remaining work cannot be
   counted accurately as slices until the external source profiles are known;
   do not divide by only the completed slices or present 100% as completion.
-  The 22 open gates are not interchangeable with slices and can require several
+  The 21 open gates are not interchangeable with slices and can require several
   slices each. Native AutoCAD builds and captures remain unqualified.
   Use the [P4-D observer packet](tools/research/P4D_LAYOUT_REOPEN_README.md),
   [P5-D witness packet](tools/research/P5D_AC1024_TABLE_WITNESS_README.md),
@@ -284,7 +283,7 @@ producer wire evidence or 3D semantic proof.
   The [output-budget receipt](docs/research/p8d-mline-staged-output-budget-controls-2026-11-19.json)
   resolves scratch caps and records boundary refusal, destination preservation
   and same-filter retry evidence.
-  Gate readiness is 12/34 (35.3%), with 22 gates open. The Linux and Windows
+  Gate readiness is 13/34 (38.2%), with 21 gates open. The Linux and Windows
   FreeCAD results cover only their exact generated profile and binary;
   GUI outcomes remain in P8-D. A partial
   implementation slice does not close its package gate by itself. After each
@@ -301,7 +300,7 @@ promote support claims.
 
 ## Active package gates
 
-Only the following 22 open package gates are active; completed actions have
+Only the following 21 open package gates are active; completed actions have
 been removed. Their execution order is in the table above; the subsystem
 tables give the exact entry evidence and exit criteria. Readiness labels
 describe scheduling only, never support:
@@ -445,7 +444,7 @@ acceptance separate. CAD Assistant/ezdxf shares OCCT lineage with FreeCAD and
 does not provide independent-kernel evidence. P7-E remains optional. A missing
 external kernel or app blocks only that profile.
 
-### P8 — consumers, packaging, release (3 open)
+### P8 — consumers, packaging, release (2 open)
 
 A [reviewable LibreCAD consumer patch](docs/patches/librecad-dxfrw-default-dimstyle-qstring-2026-11-18.patch) fixes a confirmed
 `$DIMSTYLE` overload error; its focused regression fails before the fix and
@@ -454,17 +453,13 @@ consumer separately; see the [receipt](docs/research/p8-librecad-master-dimstyle
 
 P8-A/B/C and P8-E are closed for the exact package and generated-consumer
 profiles linked above. Reopen them if relevant source, build, configuration or
-consumer inputs change. P8-F previously closed for implementation digest
-`482f6cff10cc1735ea3cea4c6b4e319e8ff27bacb82a93752884ef44ff96a086`;
-the [planar-loop implementation](docs/research/p7g-ac1027-planar-loop-classification-2026-11-19.json) changes that digest and reopens P8-F.
-The [prior repair receipt](docs/research/p4-libreCAD-appid-control-bounded-read-repair-2026-11-19.json) does not qualify the new digest. The earlier [macOS FreeCAD smoke](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json)
+consumer inputs change. P8-F is closed for digest `8a04e81c8769baacea08336a6535415a99b4cfb549761558a7e6644682359386` by the [authenticated replay](docs/research/p8f-d25f-upstream-native-replay-2026-11-19.json). Reopen it if a selected implementation input changes. The earlier [macOS FreeCAD smoke](docs/research/p8-macos-freecad-generated-ac1021-consumer-smoke-2026-11-18.json)
 is setup evidence only. Keep ordinary AC1027 drawings deferred until
 source-reference closure.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
 | P8-D / WAITING_FOR_GUI_AND_EXTERNAL_CONSUMER_QUALIFICATION | The unmerged [style-timing patch](docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch), [closure-bit patch](docs/patches/librecad-mline-closure-bit-2026-11-18.patch), [DXF fast-test adapter](docs/patches/librecad-dxf-fast-test-upstream-api-2026-11-19.patch), [DWG full-test adapter](docs/patches/librecad-dwg-fulltest-upstream-api-2026-11-19.patch), and new [bounded staged-inspector patch](docs/patches/librecad-p8d-mline-staged-inspector-2026-11-19.patch) apply sequentially to an isolated LibreCAD `078aac892287` archive when paired with the current libdxfrw source overlay. The [staged-inspector receipt](docs/research/p8d-mline-staged-inspector-port-2026-11-19.json) records the app build plus 42 DXF fast assertions and 596 focused MLINE assertions. The patch validates the closed staged ASCII output for the selected AC1018 MLINE profile through `dxfRW::writeVerified`; it does not establish general or Binary MLINE support. The public `DRW_DimensionAssociationOsnapRef` aggregate prefix is source-compatible again, and `dwgR` forwards the reader and diagnostic methods exposed by `dwgRW`. A full `librecad_tests` compile was investigated after the simple API/narrowing mismatches were repaired; it stops in `dwg_safety_tests.cpp` on fork-private internals (`m_dwgWriteExplicitLinks`, `DwgBlockWalkOutcome`, group-owner/SEQEND/dangling-record helpers, and `leftOut`). Do not add stubs or port that large white-box suite merely to make the upstream overlay compile; keep the matching full suite on the bundled-fork profile. The shared LibreCAD checkout was not modified. The [installed-codec proof](docs/research/p8d-mline-installed-style-write-contract-2026-11-18.json), [bounded bundled prototype](docs/research/p8d-mline-bundled-staged-write-proof-2026-11-18.json), and [output-budget controls](docs/research/p8d-mline-staged-output-budget-controls-2026-11-19.json) remain linked as component evidence. | The local staged-inspector port is complete. Keep P8-D open for native GUI save/reopen/render/edit checks (batch Move/Copy, named-LTYPE render, and selected MLINE display/edit/save/reopen), LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf when available, and current-consumer integration. The remote ObjectARX host does not replace these LibreCAD GUI and current-consumer checks; obtain actual GUI save/reopen/render/edit evidence before closing the gate. Do not promote support from the headless patch tests. |
-| P8-F / WAITING_FOR_NATIVE_CI | The implementation digest is `8a04e81c8769baacea08336a6535415a99b4cfb549761558a7e6644682359386`. Push the committed code after the current PR checks finish; run the fast suite and the focused Linux/macOS/Windows qualification on its exact PR merge ref. | Verify the sealed, uploaded receipts and all required results for this digest; keep support claims unchanged until their separate evidence gates close. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 
 Keep consumer, source, and build receipts separate. Preserve LibreCAD's R13
