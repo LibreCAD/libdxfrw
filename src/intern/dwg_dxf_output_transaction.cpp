@@ -614,6 +614,20 @@ bool DwgDxfOutputTransaction::publish() {
 }
 
 bool DwgDxfOutputTransaction::commit() {
+    return commitImpl(nullptr, nullptr);
+}
+
+bool DwgDxfOutputTransaction::commitVerified(
+    StagedFileVerifier verifier, void* context) {
+    if (!verifier) {
+        abort();
+        return false;
+    }
+    return commitImpl(verifier, context);
+}
+
+bool DwgDxfOutputTransaction::commitImpl(
+    StagedFileVerifier verifier, void* context) {
     if (m_committed || !m_stream.is_open())
         return false;
     m_stream.flush();
@@ -642,6 +656,19 @@ bool DwgDxfOutputTransaction::commit() {
     if (m_stream.fail()) {
         abort();
         return false;
+    }
+    if (verifier) {
+        bool accepted = false;
+        try {
+            accepted = verifier(m_temporary, context);
+        } catch (...) {
+            // A semantic verifier must not publish when it throws.
+        }
+        if (!accepted || !temporaryIdentityMatches()
+            || !directoryIdentityMatchesPath() || !targetSnapshotMatches()) {
+            abort();
+            return false;
+        }
     }
 #if defined(_WIN32)
     // MoveFileExW cannot replace a pathname while the CRT descriptor created

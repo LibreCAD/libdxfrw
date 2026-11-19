@@ -691,6 +691,25 @@ std::size_t transactionTemporaryCount(const std::filesystem::path& target) {
     return transactionTemporaryPaths(target).size();
 }
 
+struct StagedVerificationProbe {
+    bool accept {false};
+    bool throwException {false};
+    bool called {false};
+    std::string contents;
+};
+
+bool inspectStagedTransactionFile(const std::filesystem::path& path,
+                                  void* opaque) {
+    auto* probe = static_cast<StagedVerificationProbe*>(opaque);
+    probe->called = true;
+    if (probe->throwException)
+        throw 1;
+    std::ifstream input(path, std::ios::binary);
+    probe->contents.assign(std::istreambuf_iterator<char>(input),
+                           std::istreambuf_iterator<char>());
+    return probe->accept;
+}
+
 void testOutputTransactionPublicationAndRollback(TestContext& t) {
     const std::filesystem::path target = transactionTestPath("publish");
     std::error_code ignored;
@@ -718,6 +737,57 @@ void testOutputTransactionPublicationAndRollback(TestContext& t) {
              "committed output transaction atomically publishes content");
     t.expect(transactionTemporaryCount(target) == 0,
              "committed output transaction leaves no temporary file");
+
+    {
+        StagedVerificationProbe probe;
+        probe.accept = true;
+        DwgDxfOutputTransaction transaction(target.string(), std::ios::binary);
+        t.expect(transaction.open(),
+                 "verified output transaction opens an exclusive temporary");
+        transaction.stream() << "verified";
+        t.expect(transaction.commitVerified(&inspectStagedTransactionFile,
+                                            &probe)
+                     && probe.called && probe.contents == "verified",
+                 "verified commit inspects the closed staged file before publish");
+    }
+    {
+        StagedVerificationProbe probe;
+        DwgDxfOutputTransaction transaction(target.string(), std::ios::binary);
+        t.expect(transaction.open(),
+                 "rejected verified transaction opens a temporary");
+        transaction.stream() << "rejected";
+        t.expect(!transaction.commitVerified(&inspectStagedTransactionFile,
+                                             &probe)
+                     && probe.called,
+                 "verified commit refuses a negative verifier result");
+        std::ifstream current(target, std::ios::binary);
+        const std::string currentContents(
+            (std::istreambuf_iterator<char>(current)),
+            std::istreambuf_iterator<char>());
+        t.expect(currentContents == "verified"
+                     && transactionTemporaryCount(target) == 0,
+                 "verified rejection preserves destination and removes stage");
+    }
+    {
+        StagedVerificationProbe probe;
+        probe.accept = true;
+        probe.throwException = true;
+        DwgDxfOutputTransaction transaction(target.string(), std::ios::binary);
+        t.expect(transaction.open(),
+                 "throwing verified transaction opens a temporary");
+        transaction.stream() << "throwing";
+        t.expect(!transaction.commitVerified(&inspectStagedTransactionFile,
+                                             &probe)
+                     && probe.called,
+                 "verified commit catches verifier exceptions and refuses");
+        std::ifstream current(target, std::ios::binary);
+        const std::string currentContents(
+            (std::istreambuf_iterator<char>(current)),
+            std::istreambuf_iterator<char>());
+        t.expect(currentContents == "verified"
+                     && transactionTemporaryCount(target) == 0,
+                 "verifier exception preserves destination and removes stage");
+    }
 
     {
         DwgDxfOutputTransaction first(target.string(), std::ios::binary);

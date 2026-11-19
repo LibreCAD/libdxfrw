@@ -18,6 +18,7 @@ public:
   dxfRW *codec = nullptr;
   int mode = 0;
   int classesRead = 0;
+  bool customClassRead = false;
   bool attempted = false, receipt = false;
   static DRW_RawDxfSection raw() {
     DRW_RawDxfSection s;
@@ -43,7 +44,10 @@ public:
     return true;
   }
   void addHeader(const DRW_Header *) override {}
-  void addDxfClass(const DRW_Class &) override { ++classesRead; }
+  void addDxfClass(const DRW_Class &data) override {
+    ++classesRead;
+    customClassRead = customClassRead || data.recName == "TEST_CUSTOM_RECORD";
+  }
   void addLType(const DRW_LType &) override {}
   void addLayer(const DRW_Layer &) override {}
   void addDimStyle(const DRW_Dimstyle &) override {}
@@ -113,6 +117,20 @@ static std::string read(const std::string &p) {
 static void sentinel(const std::string &p) {
   std::ofstream f(p, std::ios::binary);
   f << "sentinel";
+}
+struct StagedFileProbe {
+  bool accept = false;
+  bool throwException = false;
+  bool called = false;
+  std::string stagedBytes;
+};
+static bool verifyStagedFile(const std::filesystem::path &path, void *opaque) {
+  auto *probe = static_cast<StagedFileProbe *>(opaque);
+  probe->called = true;
+  if (probe->throwException)
+    throw 1;
+  probe->stagedBytes = read(path.string());
+  return probe->accept && !probe->stagedBytes.empty();
 }
 int main() {
   std::error_code error;
@@ -273,12 +291,40 @@ int main() {
     dxfRW readbackCodec(path.c_str());
     Bare readback;
     if (!readbackCodec.read(&readback, false)
-        || readback.classesRead != 1) {
+        || readback.classesRead != 3 || !readback.customClassRead) {
       std::cerr << "staged output readback failed for binary=" << binary
                 << " classes=" << readback.classesRead
                 << "\n";
       return 11;
     }
+  }
+  dxfRW verifiedCodec(path.c_str());
+  Bare verifiedWriter;
+  verifiedWriter.codec = &verifiedCodec;
+  for (bool binary : {false, true}) {
+    StagedFileProbe reject;
+    sentinel(path);
+    if (verifiedCodec.writeVerified(&verifiedWriter, DRW::AC1027, binary,
+                                   &verifyStagedFile, &reject) ||
+        !reject.called || reject.stagedBytes.empty() ||
+        read(path) != "sentinel")
+      return 14;
+    ++checks;
+
+    StagedFileProbe accept;
+    accept.accept = true;
+    if (!verifiedCodec.writeVerified(&verifiedWriter, DRW::AC1027, binary,
+                                    &verifyStagedFile, &accept) ||
+        !accept.called || accept.stagedBytes.empty() || read(path).empty())
+      return 15;
+    ++checks;
+
+    sentinel(path);
+    if (verifiedCodec.writeVerified(&verifiedWriter, DRW::AC1027, binary,
+                                   nullptr, nullptr) ||
+        read(path) != "sentinel")
+      return 16;
+    ++checks;
   }
   std::cout << "raw-section guard checks=" << checks << " ASCII/binary pass\n";
 }

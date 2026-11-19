@@ -47,6 +47,11 @@ public:
     /** Flush and compare a bounded byte range in the owned temporary file. */
     bool verifyRange(std::streamoff offset, std::string_view expected);
     bool commit();
+    /// Verify the closed temporary before atomic publication. The callback
+    /// must remain read-only. A false result or exception aborts the
+    /// transaction and preserves the destination.
+    using StagedFileVerifier = bool (*)(const std::filesystem::path&, void*);
+    bool commitVerified(StagedFileVerifier verifier, void* context);
     void abort() noexcept;
 
     [[nodiscard]] bool isOpen() const noexcept { return m_stream.is_open(); }
@@ -67,6 +72,7 @@ private:
     };
 
     bool createExclusiveTemporary();
+    bool commitImpl(StagedFileVerifier verifier, void* context);
     bool captureTargetSnapshot() noexcept;
     bool targetSnapshotMatches() const noexcept;
     bool temporaryIdentityMatches() const noexcept;

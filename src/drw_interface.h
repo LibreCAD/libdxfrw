@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <filesystem>
 #include <limits>
 #include <memory>
 #include <string>
@@ -45,6 +46,11 @@
 
 class DRW_Class;
 class DRW_Attdef;
+
+/// Verifies a closed DXF temporary before atomic publication. The callback
+/// must inspect synchronously and remain read-only; rejection or an exception
+/// preserves the previous destination.
+using DRW_StagedFileVerifier = bool (*)(const std::filesystem::path&, void*);
 
 /**
  * Abstract class (interface) for communicate dxfReader with the application.

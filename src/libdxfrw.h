@@ -427,6 +427,13 @@ public:
     /// finalizeDxfWrite runs after emission, before publication; facade record
     /// writes and output setup mutations are rejected in that final phase.
     [[nodiscard]] bool write(DRW_Interface *interface_, DRW::Version ver, bool bin);
+    /** Write to a private temporary, then synchronously verify it before
+     * atomic publication. The verifier must remain read-only. A null verifier
+     * is rejected; callback rejection or exception preserves the previous
+     * destination. Ordinary write has no additional consumer verifier. */
+    [[nodiscard]] bool writeVerified(DRW_Interface *interface_, DRW::Version ver,
+                                     bool bin, DRW_StagedFileVerifier verifier,
+                                     void* context);
     /// Mandatory BYBLOCK/BYLAYER/CONTINUOUS rows have no pattern. Nonempty or
     /// inconsistent pattern state is refused rather than discarded.
     bool writeLineType(DRW_LType *ent);
@@ -1917,6 +1924,8 @@ private:
     void recordInvalidRawHandleDiagnostic();
 
 private:
+    bool writeImpl(DRW_Interface *interface_, DRW::Version ver, bool bin,
+                   DRW_StagedFileVerifier verifier, void* context);
     bool writeTables(const char** outputStage);
     bool writeRawDxfGroupsInternal(
         const std::vector<DRW_Variant>& groups,

@@ -5728,6 +5728,19 @@ void dxfRW::resetDxfWriteSession() {
 }
 
 bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
+    return writeImpl(interface_, ver, bin, nullptr, nullptr);
+}
+
+bool dxfRW::writeVerified(DRW_Interface *interface_, DRW::Version ver,
+                         bool bin, DRW_StagedFileVerifier verifier,
+                         void* context) {
+    if (!verifier)
+        return setError(DRW::BAD_OPEN);
+    return writeImpl(interface_, ver, bin, verifier, context);
+}
+
+bool dxfRW::writeImpl(DRW_Interface *interface_, DRW::Version ver, bool bin,
+                      DRW_StagedFileVerifier verifier, void* context) {
     WholeOperationScope operation(*this);
     if (!operation.admitted())
         return false;
@@ -6325,10 +6338,19 @@ bool dxfRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
         return setError(DRW::BAD_OPEN);
     }
     outputStage = "atomic output commit";
-    if (!output.commit()) {
+    const bool committed = verifier
+        ? output.commitVerified(verifier, context)
+        : output.commit();
+    if (!committed) {
         recordOperationDiagnostic(
-            DRW::OperationPhase::Commit, DRW::OperationCause::CommitFailure,
-            "commit-failure", "DXF output could not be published");
+            verifier ? DRW::OperationPhase::Validation
+                     : DRW::OperationPhase::Commit,
+            verifier ? DRW::OperationCause::ValidationFailure
+                     : DRW::OperationCause::CommitFailure,
+            verifier ? "staged-output-verification-failed" : "commit-failure",
+            verifier
+                ? "staged DXF verification or atomic publication failed"
+                : "DXF output could not be published");
         output.abort();
         writer.reset();
         m_writeError = true;
