@@ -1,0 +1,1270 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-material-tile-source-binding-2026-11-19",
+  "date": "2026-11-19",
+  "status": "ALL_36_TILE_FRAMES_SAME_IMPORT_SOURCE_BOUND",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "provenance": "Existing local aerial sample; producer authentication is not established. Source-frame census and independent cursor trace are recorded in p4-ac1024-aerial-byblock-material-source-output-2026-11-18.json.",
+    "peer": "Pinned LibreDWG object JSON agrees on all 36 XRECORD values and owner/reactor targets. ODA 27.10 omits these TILE keys."
+  },
+  "wireProfile": {
+    "recordType": 79,
+    "frameBytes": 22,
+    "bodyBits": [
+      0,
+      132
+    ],
+    "objectBits": [
+      0,
+      176
+    ],
+    "eedChunks": 0,
+    "reactorCountBL": 1,
+    "missingXDictionaryBit": 1,
+    "payloadBytesBL": 8,
+    "fields": [
+      {
+        "name": "typeTag",
+        "bits": [
+          0,
+          2
+        ]
+      },
+      {
+        "name": "type",
+        "bits": [
+          2,
+          10
+        ]
+      },
+      {
+        "name": "self",
+        "bits": [
+          10,
+          34
+        ]
+      },
+      {
+        "name": "eedZero",
+        "bits": [
+          34,
+          36
+        ]
+      },
+      {
+        "name": "reactorCount",
+        "bits": [
+          36,
+          46
+        ]
+      },
+      {
+        "name": "missingXDictionary",
+        "bits": [
+          46,
+          47
+        ]
+      },
+      {
+        "name": "payloadLength",
+        "bits": [
+          47,
+          57
+        ]
+      },
+      {
+        "name": "group270",
+        "bits": [
+          57,
+          73
+        ]
+      },
+      {
+        "name": "value270",
+        "bits": [
+          73,
+          89
+        ]
+      },
+      {
+        "name": "group271",
+        "bits": [
+          89,
+          105
+        ]
+      },
+      {
+        "name": "value271",
+        "bits": [
+          105,
+          121
+        ]
+      },
+      {
+        "name": "cloning",
+        "bits": [
+          121,
+          131
+        ]
+      },
+      {
+        "name": "stringFooterAbsent",
+        "bits": [
+          131,
+          132
+        ]
+      },
+      {
+        "name": "owner",
+        "bits": [
+          132,
+          148
+        ]
+      },
+      {
+        "name": "reactor",
+        "bits": [
+          148,
+          172
+        ]
+      },
+      {
+        "name": "terminal",
+        "bits": [
+          172,
+          176
+        ]
+      }
+    ],
+    "dictionaryProfiles": [
+      {
+        "handles": [
+          "0x2c3",
+          "0x2cd",
+          "0x2d7",
+          "0x2e1",
+          "0x32f"
+        ],
+        "bytes": 224,
+        "bodyBitSize": 204,
+        "entryCount": 8,
+        "ownerRole": "H(8,0,0), resolved relative to dictionary handle as the material handle",
+        "tileItemRole": "H(2,2,absolute XRECORD handle)",
+        "terminalBits": "1111"
+      },
+      {
+        "handles": [
+          "0x2eb"
+        ],
+        "bytes": 254,
+        "bodyBitSize": 248,
+        "entryCount": 10,
+        "ownerRole": "H(8,0,0), resolved relative to dictionary handle as the material handle",
+        "tileItemRole": "H(2,2,absolute XRECORD handle)",
+        "terminalBits": "none"
+      }
+    ]
+  },
+  "profiles": [
+    {
+      "handle": "0x2c6",
+      "material": "0x2c2",
+      "extensionDictionary": "0x2c3",
+      "key": "DIFFUSETILE",
+      "bytes": 22,
+      "frameSha256": "dde2aa264c740a5e401ba3ad102404900c97e9578d874518921805b59a593dc3",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2c7",
+      "material": "0x2c2",
+      "extensionDictionary": "0x2c3",
+      "key": "BUMPTILE",
+      "bytes": 22,
+      "frameSha256": "0007bda5d4f771eca53838f47cb733a3ec107f9a6d0bd9ec970fe1edbd8115a6",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2c8",
+      "material": "0x2c2",
+      "extensionDictionary": "0x2c3",
+      "key": "OPACITYTILE",
+      "bytes": 22,
+      "frameSha256": "b0c4f6136c242775873e02e2a805cf9f70639a37d7ee14b3564bbccb6eb3e318",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2c9",
+      "material": "0x2c2",
+      "extensionDictionary": "0x2c3",
+      "key": "SPECULARTILE",
+      "bytes": 22,
+      "frameSha256": "3dc5a3f1f6c33d8d12e0d52c5fe40806cf5d8857e630e74e1f1338d43033756e",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2ca",
+      "material": "0x2c2",
+      "extensionDictionary": "0x2c3",
+      "key": "REFLECTIONTILE",
+      "bytes": 22,
+      "frameSha256": "e7b48f6856f955784856335101164c46b7482097f97991530c7f6832e3076513",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2cb",
+      "material": "0x2c2",
+      "extensionDictionary": "0x2c3",
+      "key": "REFRACTIONTILE",
+      "bytes": 22,
+      "frameSha256": "acf6ce709a5dfeb788986ba903cb42cf453233698ca27390656c0156cf30450b",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2d0",
+      "material": "0x2cc",
+      "extensionDictionary": "0x2cd",
+      "key": "DIFFUSETILE",
+      "bytes": 22,
+      "frameSha256": "02dacf15b2a274880a52eef7bc6947c3a7c9361f308eda46167b9059d5162cbf",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2d1",
+      "material": "0x2cc",
+      "extensionDictionary": "0x2cd",
+      "key": "BUMPTILE",
+      "bytes": 22,
+      "frameSha256": "ffc8b40c04c71d771796100ff3737257e13624c176afd98bc2db250a2e759c3d",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2d2",
+      "material": "0x2cc",
+      "extensionDictionary": "0x2cd",
+      "key": "OPACITYTILE",
+      "bytes": 22,
+      "frameSha256": "7f893bbbca47122f8e910f5c0733d7cd32b951cba727c59ecfc391b8cbca4d43",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2d3",
+      "material": "0x2cc",
+      "extensionDictionary": "0x2cd",
+      "key": "SPECULARTILE",
+      "bytes": 22,
+      "frameSha256": "ccd36d6b33591d6a0e6380d81337b53144f9a1de57866b3529ddd12f97176594",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2d4",
+      "material": "0x2cc",
+      "extensionDictionary": "0x2cd",
+      "key": "REFLECTIONTILE",
+      "bytes": 22,
+      "frameSha256": "32d27a6838c9b11c4ac2cede6cce01f2ed35eba831f6688be14e28fce91bb2ce",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2d5",
+      "material": "0x2cc",
+      "extensionDictionary": "0x2cd",
+      "key": "REFRACTIONTILE",
+      "bytes": 22,
+      "frameSha256": "c0d0d81d52cfcdd17db5240fc95ce522a7f337dd024b28544db69ba1d4fba097",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2da",
+      "material": "0x2d6",
+      "extensionDictionary": "0x2d7",
+      "key": "DIFFUSETILE",
+      "bytes": 22,
+      "frameSha256": "d01ee638e69ce52b5e5df1b6ff222650e253244e8d315270703c348325219e1c",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2db",
+      "material": "0x2d6",
+      "extensionDictionary": "0x2d7",
+      "key": "BUMPTILE",
+      "bytes": 22,
+      "frameSha256": "dce74379471c84170dea372543f2e98e10711ff4c23b93ca4ebac639effd55a5",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2dc",
+      "material": "0x2d6",
+      "extensionDictionary": "0x2d7",
+      "key": "OPACITYTILE",
+      "bytes": 22,
+      "frameSha256": "37ef2c8f46bf6ff7c0e5c78242d30516086d2d4c2b2ea8907ae5365cb16e2659",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2dd",
+      "material": "0x2d6",
+      "extensionDictionary": "0x2d7",
+      "key": "SPECULARTILE",
+      "bytes": 22,
+      "frameSha256": "23ab1e102ded0d032042b451cc3e923edccd760147030468bdfd086adb971dcb",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2de",
+      "material": "0x2d6",
+      "extensionDictionary": "0x2d7",
+      "key": "REFLECTIONTILE",
+      "bytes": 22,
+      "frameSha256": "1e40be8d08d2b5e20e67313de1a6500fbb1ccf1efa11eecc639a3af47e8790a1",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2df",
+      "material": "0x2d6",
+      "extensionDictionary": "0x2d7",
+      "key": "REFRACTIONTILE",
+      "bytes": 22,
+      "frameSha256": "20bab24d5c3254feaae115af8af9da2d0219892dd805d158ae242b43bb9533b4",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2e4",
+      "material": "0x2e0",
+      "extensionDictionary": "0x2e1",
+      "key": "DIFFUSETILE",
+      "bytes": 22,
+      "frameSha256": "0e81cb691e2e051beb06a94074784ff854af59615c858ff21b681da7ddf60d96",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2e5",
+      "material": "0x2e0",
+      "extensionDictionary": "0x2e1",
+      "key": "BUMPTILE",
+      "bytes": 22,
+      "frameSha256": "c45709938dc363fbe00ed3852ca830f672bcaca9e2aec7fed7fd56752d7cf7f0",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2e6",
+      "material": "0x2e0",
+      "extensionDictionary": "0x2e1",
+      "key": "OPACITYTILE",
+      "bytes": 22,
+      "frameSha256": "72a807e922fc9894c60b39898481820923046d9cc9ecf00f4bec8404451312a6",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2e7",
+      "material": "0x2e0",
+      "extensionDictionary": "0x2e1",
+      "key": "SPECULARTILE",
+      "bytes": 22,
+      "frameSha256": "3174ebe1c9a9f86c1b8c0540f56e84f8fea38cc20fb532c9c2315af0033c0cb6",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2e8",
+      "material": "0x2e0",
+      "extensionDictionary": "0x2e1",
+      "key": "REFLECTIONTILE",
+      "bytes": 22,
+      "frameSha256": "96a1967e0ec7980485021e418e442b3aa9684b076c1a61cbe414037f4d92e9c7",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2e9",
+      "material": "0x2e0",
+      "extensionDictionary": "0x2e1",
+      "key": "REFRACTIONTILE",
+      "bytes": 22,
+      "frameSha256": "308dafb00a9fb096001e210799e2abc012b37bf2002765e97ee4a1ef947e9148",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2ef",
+      "material": "0x2ea",
+      "extensionDictionary": "0x2eb",
+      "key": "DIFFUSETILE",
+      "bytes": 22,
+      "frameSha256": "b58af634059678836991fd89117436af874c5ffed5e75305961df53f7571bb49",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2f1",
+      "material": "0x2ea",
+      "extensionDictionary": "0x2eb",
+      "key": "BUMPTILE",
+      "bytes": 22,
+      "frameSha256": "04ffe16c0ae4c37b661a5b15ac849ca5c5e6b1442fab62eda97d6c88fb3341e2",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2f2",
+      "material": "0x2ea",
+      "extensionDictionary": "0x2eb",
+      "key": "OPACITYTILE",
+      "bytes": 22,
+      "frameSha256": "fb9a7085717536bec6f08ae08a4a307b3f372ff6da030c0ddfffa428bbecca56",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2f3",
+      "material": "0x2ea",
+      "extensionDictionary": "0x2eb",
+      "key": "SPECULARTILE",
+      "bytes": 22,
+      "frameSha256": "4812e4449895f82e092dcae981cf0048213f0b3b67f7df71cd5b61b7dba605f6",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2f4",
+      "material": "0x2ea",
+      "extensionDictionary": "0x2eb",
+      "key": "REFLECTIONTILE",
+      "bytes": 22,
+      "frameSha256": "567cc70ba94250abd590282df6d798b0b3759ede40de515ace212aebd6a8589f",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x2f5",
+      "material": "0x2ea",
+      "extensionDictionary": "0x2eb",
+      "key": "REFRACTIONTILE",
+      "bytes": 22,
+      "frameSha256": "7e2111bf26251329177727ace46c462321e0e5b18df2d4d4b12459620a90b0a9",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x332",
+      "material": "0x32e",
+      "extensionDictionary": "0x32f",
+      "key": "DIFFUSETILE",
+      "bytes": 22,
+      "frameSha256": "3933205ce78c6510fe1ec979e3c31f606416d580216fc09e89e3986e0aee11c6",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x333",
+      "material": "0x32e",
+      "extensionDictionary": "0x32f",
+      "key": "BUMPTILE",
+      "bytes": 22,
+      "frameSha256": "70ddf2752392af9ef6a1985763119b96374aef706d7b793ef12be7020271b913",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x334",
+      "material": "0x32e",
+      "extensionDictionary": "0x32f",
+      "key": "OPACITYTILE",
+      "bytes": 22,
+      "frameSha256": "fe020efa537b106fea13f4debbbe42966b712b68c0a5a61673138b50726e4e02",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x335",
+      "material": "0x32e",
+      "extensionDictionary": "0x32f",
+      "key": "SPECULARTILE",
+      "bytes": 22,
+      "frameSha256": "2cac76540e6cfeb4c93f6272c97c96b0acc12a7a2a1bcda726ae0c0c93fdeba3",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x336",
+      "material": "0x32e",
+      "extensionDictionary": "0x32f",
+      "key": "REFLECTIONTILE",
+      "bytes": 22,
+      "frameSha256": "3d9f82106061d3280236976904cff9f87d39512b3880449fffc805249ff149d0",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    },
+    {
+      "handle": "0x337",
+      "material": "0x32e",
+      "extensionDictionary": "0x32f",
+      "key": "REFRACTIONTILE",
+      "bytes": 22,
+      "frameSha256": "62f06c72a63fa6ebb7a3f8f0b8b1f8de1fb32d29f1954c040ad748d880d194ed",
+      "objectBitSpan": [
+        0,
+        176
+      ],
+      "bodyBitSpan": [
+        0,
+        132
+      ],
+      "dataPairs": [
+        [
+          270,
+          1
+        ],
+        [
+          271,
+          1
+        ]
+      ],
+      "cloning": 1,
+      "ownerHandleRole": "H(12,1,delta-to-extension-dictionary)",
+      "reactorHandleRole": "H(4,2,absolute-extension-dictionary)",
+      "terminalBits": "1111"
+    }
+  ],
+  "implementation": {
+    "observer": "dwg2dxf/dx_ac1024_aerial_tile_wire.h independently checks every XRECORD body field, exact BL/BS choices, payload codes/values, owner and reactor roles, four terminal bits, and typed DRW_XRecord equality. The extension-dictionary observer verifies the same-read dictionary body, complete membership and all six TILE name/handle edges.",
+    "binding": "dx_iface::hasQualifiedAc1024AerialTileFrames binds the six MATERIAL profiles to their extension dictionaries and 36 TILE standard-object publications in one import generation. Each MATERIAL is independently source-bound through its same-import EED/class proof; standard frame qualification rechecks publication identity, raw frame, typed baseline, complete dictionary edge and unique source handles.",
+    "scope": "Input source binding only. No TILE or full MATERIAL graph output is admitted."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-material-appid-source-capture tests/samples/AC1024/visualization_-_aerial.dwg",
+    "result": "PASS. The same-import APPID, all seven MATERIAL EED profiles and all 36 TILE frames qualify; a second adapter cannot reuse the proof.",
+    "negativeControls": "PASS 6,336 individual one-bit mutations across the 36 complete 176-bit XRECORD frames; each rejects and restored same-import data requalifies. For every record, source-offset and payload-capture mutations reject and recover. For every extension dictionary, a raw body-bit and source-offset mutation reject and recover. A typed XRECORD identity mutation and typed dictionary owner mutation also reject and recover."
+  },
+  "limitations": [
+    "The source is a local AC1024 corpus sample; no AutoCAD producer witness or native texture interpretation is established.",
+    "The extension dictionaries also contain ADVMATERIAL and FBXASSET branches that remain to be independently source-bound and closed for output.",
+    "No output/readback qualification or support claim is established."
+  ],
+  "next": "Source-bind the six remaining FBXASSET XRECORDs with per-frame bounds and ordered binary chunk checks, then prove one bounded ADVMATERIAL compatibility profile. Keep strict MATERIAL root output gated on all body and dependency closure."
+}

@@ -21,6 +21,7 @@
 #include "dx_standard_output.h"
 #include "dx_symbol_output.h"
 #include "dx_ac1024_material_eed_wire.h"
+#include "dx_ac1024_aerial_tile_wire.h"
 #include "independent_dxf_scalar_walker.h"
 
 #include <algorithm>
@@ -3301,6 +3302,91 @@ public:
         const bool failedReceiptRejected = !qualified();
         receipt.captureFailed = oldFailed;
         return failedReceiptRejected && qualified();
+    }
+
+    static bool aerialTileSourceControls(dx_iface& iface, dx_data& data) {
+        iface.cData = &data;
+        const auto qualified = [&]() {
+            return iface.hasQualifiedAc1024AerialTileFrames(data);
+        };
+        if (!qualified()) {
+            std::cerr << "MATERIAL TILE source graph was not qualified\n";
+            return false;
+        }
+        dx_iface other;
+        other.cData = &data;
+        if (other.hasQualifiedAc1024AerialTileFrames(data))
+            return false;
+
+        for (const auto& material : dx_ac1024_aerial_tile_wire::materials) {
+            auto& dictionaryFrame = data.m_standardDwgObjectFrames.at(
+                {data.importGeneration, material.extensionHandle});
+            dictionaryFrame.raw.m_rawBytes[0] ^= 0x80u;
+            const bool dictionaryBodyRejected = !qualified();
+            dictionaryFrame.raw.m_rawBytes[0] ^= 0x80u;
+            if (!dictionaryBodyRejected || !qualified())
+                return false;
+            const auto oldDictionaryOffset =
+                dictionaryFrame.publication.m_sourceOffset;
+            ++dictionaryFrame.publication.m_sourceOffset;
+            const bool dictionaryPublicationRejected = !qualified();
+            dictionaryFrame.publication.m_sourceOffset = oldDictionaryOffset;
+            if (!dictionaryPublicationRejected || !qualified())
+                return false;
+            for (const auto handle : material.tileHandles) {
+                auto& frame = data.m_standardDwgObjectFrames.at(
+                    {data.importGeneration, handle});
+                for (std::uint32_t bit = 0u; bit < 176u; ++bit) {
+                    frame.raw.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(
+                        1u << (7u - bit % 8u));
+                    const bool rejected = !qualified();
+                    frame.raw.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(
+                        1u << (7u - bit % 8u));
+                    if (!rejected || !qualified()) {
+                        std::cerr << "TILE source bit control failed for 0x"
+                                  << std::hex << handle << std::dec
+                                  << " at bit " << bit << '\n';
+                        return false;
+                    }
+                }
+                const auto sourceOffset = frame.publication.m_sourceOffset;
+                ++frame.publication.m_sourceOffset;
+                const bool publicationRejected = !qualified();
+                frame.publication.m_sourceOffset = sourceOffset;
+                if (!publicationRejected || !qualified())
+                    return false;
+                const bool oldPayloadMatched = frame.payloadMatched;
+                frame.payloadMatched = false;
+                const bool failedCaptureRejected = !qualified();
+                frame.payloadMatched = oldPayloadMatched;
+                if (!failedCaptureRejected || !qualified())
+                    return false;
+            }
+        }
+
+        auto recordAt = std::find_if(data.xRecords.begin(), data.xRecords.end(),
+            [](const DRW_XRecord& item) { return item.handle == 0x2C6u; });
+        if (recordAt == data.xRecords.end())
+            return false;
+        auto& record = *recordAt;
+        const auto originalHandle = record.handle;
+        record.handle = 0u;
+        const bool typedRecordRejected = !qualified();
+        record.handle = originalHandle;
+        if (!typedRecordRejected || !qualified())
+            return false;
+        auto dictionaryAt = std::find_if(data.dictionaries.begin(),
+            data.dictionaries.end(), [](const DRW_Dictionary& item) {
+                return item.handle == 0x2C3u;
+            });
+        if (dictionaryAt == data.dictionaries.end())
+            return false;
+        auto& dictionary = *dictionaryAt;
+        const auto originalParent = dictionary.parentHandle;
+        dictionary.parentHandle ^= 1u;
+        const bool typedDictionaryRejected = !qualified();
+        dictionary.parentHandle = originalParent;
+        return typedDictionaryRejected && qualified();
     }
 
     static bool writeAerialMaterialAppIdSourceFrames(
@@ -61273,11 +61359,14 @@ bool physicalAc1024MaterialAppIdSourceCapture(
                 aerialOtherMaterialEedSourceControls(reader, source, handle))
             return fail("a non-Global MATERIAL EED source profile failed");
     }
+    if (!DxIfaceStandardDwgCaptureTestAccess::aerialTileSourceControls(
+            reader, source))
+        return fail("MATERIAL TILE same-import source binding controls failed");
     if (!DxIfaceStandardDwgCaptureTestAccess::writeAerialMaterialAppIdSourceFrames(
             reader))
         return fail("MATERIAL APPID raw frame capture failed");
-    std::cerr << "AC1024 APPID and all seven MATERIAL EED source-frame "
-                 "identity, span, mutation, and retry controls passed.\n";
+    std::cerr << "AC1024 APPID, all seven MATERIAL EED and 36 TILE source-frame "
+                 "identity, span, graph, mutation, and retry controls passed.\n";
     return true;
 }
 

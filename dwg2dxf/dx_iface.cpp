@@ -36,6 +36,7 @@
 #include "intern/dwg_table_projection_ac1018_candidate.h"
 #include "dx_ac1024_byblock_material_wire.h"
 #include "dx_ac1024_material_eed_wire.h"
+#include "dx_ac1024_aerial_tile_wire.h"
 #include "dx_ac1024_dictionaryvar_wire.h"
 #include "dx_ac1024_mentalray_wire.h"
 #include "dx_ac1024_mleaderstyle_wire.h"
@@ -45054,6 +45055,67 @@ bool dx_iface::hasQualifiedAc1024AerialOtherMaterialEed(
                        std::string_view name) noexcept {
                     return hasQualifiedDwgStandardAppIdSource(appId, name);
                 });
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::hasQualifiedAc1024AerialTileFrames(
+        const dx_data& data) const noexcept {
+    if (&data != cData || typeid(*this) != typeid(dx_iface)
+        || data.sourceFormat != dx_source_format::DWG
+        || data.sourceVersion != DRW::AC1024 || data.importGeneration == 0u
+        || aerialMaterialAppIdClassAttempt() == 0u)
+        return false;
+    try {
+        for (std::size_t profileIndex = 0u;
+             profileIndex < dx_ac1024_aerial_tile_wire::materials.size();
+             ++profileIndex) {
+            const auto& profile =
+                dx_ac1024_aerial_tile_wire::materials[profileIndex];
+            if (!hasQualifiedAc1024AerialOtherMaterialEed(
+                    data, profile.materialHandle))
+                return false;
+            const auto* material = uniqueDwgSourceRecord(
+                data.materials, profile.materialHandle);
+            const auto* extension = uniqueDwgSourceRecord(
+                data.dictionaries, profile.extensionHandle);
+            if (material == nullptr || extension == nullptr
+                || material->parentHandle != 0x72u
+                || material->xDictHandle != profile.extensionHandle
+                || extension->parentHandle != profile.materialHandle
+                || !data.hasCompleteDwgDictionaryEntry(
+                    0x72u, material->m_name.c_str(),
+                    profile.materialHandle))
+                return false;
+            const auto* extensionFrame = boundAc1024DwgStandardObject(
+                data, *extension, dwgObjType::DICTIONARY);
+            if (extensionFrame == nullptr
+                || !dx_ac1024_aerial_tile_wire::observeExtensionDictionary(
+                    *extensionFrame, *extension, profile))
+                return false;
+            for (std::size_t keyIndex = 0u;
+                 keyIndex < profile.tileHandles.size(); ++keyIndex) {
+                const auto handle = profile.tileHandles[keyIndex];
+                const auto* record = uniqueDwgSourceRecord(data.xRecords,
+                                                           handle);
+                if (record == nullptr
+                    || !data.hasCompleteDwgDictionaryEntry(
+                        profile.extensionHandle,
+                        dx_ac1024_aerial_tile_wire::keys[keyIndex], handle))
+                    return false;
+                const auto* frame = boundAc1024DwgStandardObject(
+                    data, *record, dwgObjType::XRECORD);
+                dx_ac1024_aerial_tile_wire::TileProfile tile{
+                    profileIndex, keyIndex, profile.materialHandle,
+                    profile.extensionHandle, handle};
+                if (frame == nullptr
+                    || !dx_ac1024_aerial_tile_wire::observeRecord(
+                        *frame, *record, tile))
+                    return false;
+            }
+        }
+        return true;
     } catch (...) {
         return false;
     }

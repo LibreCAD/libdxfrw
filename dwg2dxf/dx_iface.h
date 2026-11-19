@@ -4631,6 +4631,7 @@ private:
         const dx_data&) const noexcept;
     bool hasQualifiedAc1024AerialOtherMaterialEed(
         const dx_data&, std::uint32_t handle) const noexcept;
+    bool hasQualifiedAc1024AerialTileFrames(const dx_data&) const noexcept;
     bool requiresAc1024AerialGlobalMaterialEedOutput() const noexcept;
     bool inspectAc1024AerialGlobalMaterialEedTables(
         const dxfRW::DxfTablesWriteView&) noexcept;
