@@ -7683,13 +7683,14 @@ struct DRW_AssociativePrefixStatus {
     AcDbAssocAction,
     AcDbAssocActionParam,
     AcDbAssocDependency,
-    AcDbAssocValueDependency,
     AcDbAssocGeomDependency,
     AcDbAssocNetwork,
     AcDbAssocActionBody,
     AcDbEvalExpr,
     AcDbShHistoryNode,
     AcShActionBody,
+    // New kinds follow the established LibreCAD numeric values above.
+    AcDbAssocValueDependency,
     AcDbAssocDependencyBody,
     AcDbAssoc2dConstraintGroup,
     AcDbAssocVariable

@@ -158,10 +158,13 @@ enum class DwgIntegrityCheckKind : std::uint8_t {
     ObjectMapDuplicateOffset,
     ObjectFrameBounds,
     FrameLedgerTransition,
-    TemplateMissing,
-    TemplateMalformed,
-    TemplateDescriptionUnsupported,
-    HeaderSectionBounds,
+    // LibreCAD's bundled codec already assigns 18..20 to the three
+    // recovery categories below. Keep those values and use the otherwise
+    // unused 27..29 for these new template observations.
+    TemplateMissing = 27,
+    TemplateMalformed = 28,
+    TemplateDescriptionUnsupported = 29,
+    HeaderSectionBounds = 21,
     HeaderSectionSentinel,
     HeaderSectionCrc,
     HeaderSectionCompatibility,
@@ -170,14 +173,14 @@ enum class DwgIntegrityCheckKind : std::uint8_t {
     /// BLOCK_CONTROL lists a BLOCK_RECORD handle that is absent from the
     /// object map. Ordinary erased entries are skipped and reported; model
     /// and paper space phantom entries remain structural failures.
-    TableControlDanglingHandle,
+    TableControlDanglingHandle = 18,
     /// An entity belongs to a BLOCK_RECORD that is absent from the drawing.
     /// The entity is rejected and reported as an orphan during recovery.
     EntityOwnerRecordMissing,
     /// An INSERT references an erased BLOCK_RECORD listed by BLOCK_CONTROL.
     /// The reference cannot be delivered without silently changing meaning.
     EntityBlockRecordErased,
-    HeaderCurrentLayerReference,
+    HeaderCurrentLayerReference = 30,
     HeaderCurrentTextStyleReference,
     HeaderCurrentLineTypeReference,
     HeaderCurrentDimensionStyleReference,

@@ -847,8 +847,8 @@ public:
 
 namespace {
 
-static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::TemplateDescriptionUnsupported) == 20u,
-              "existing Template integrity categories must not be renumbered");
+static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::TemplateDescriptionUnsupported) == 29u,
+              "Template diagnostics must not overlap LibreCAD recovery categories");
 static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::HeaderSectionBounds) == 21u
                   && static_cast<unsigned>(DwgIntegrityCheckKind::HeaderSectionSentinel) == 22u
                   && static_cast<unsigned>(DwgIntegrityCheckKind::HeaderSectionCrc) == 23u,

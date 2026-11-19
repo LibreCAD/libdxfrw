@@ -33,11 +33,33 @@
 #include <drw_interface.h>
 #include <drw_base.h>
 #include <libdxfrw.h>
+#include <libdwgr.h>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
 namespace {
+
+using LegacyAssociativeKind = DRW_AssociativePrefixStatus::Kind;
+static_assert(static_cast<int>(LegacyAssociativeKind::AcDbAssocGeomDependency) == 3 &&
+                  static_cast<int>(LegacyAssociativeKind::AcDbAssocNetwork) == 4 &&
+                  static_cast<int>(LegacyAssociativeKind::AcDbAssocActionBody) == 5 &&
+                  static_cast<int>(LegacyAssociativeKind::AcDbEvalExpr) == 6 &&
+                  static_cast<int>(LegacyAssociativeKind::AcDbShHistoryNode) == 7 &&
+                  static_cast<int>(LegacyAssociativeKind::AcShActionBody) == 8,
+              "LibreCAD associative prefix kind values must remain stable");
+static_assert(static_cast<int>(LegacyAssociativeKind::AcDbAssocValueDependency) == 9 &&
+                  static_cast<int>(LegacyAssociativeKind::AcDbAssocDependencyBody) == 10 &&
+                  static_cast<int>(LegacyAssociativeKind::AcDbAssoc2dConstraintGroup) == 11 &&
+                  static_cast<int>(LegacyAssociativeKind::AcDbAssocVariable) == 12,
+              "new associative kinds must not overlap legacy values");
+static_assert(static_cast<unsigned>(DwgIntegrityCheckKind::TableControlDanglingHandle) == 18 &&
+                  static_cast<unsigned>(DwgIntegrityCheckKind::EntityOwnerRecordMissing) == 19 &&
+                  static_cast<unsigned>(DwgIntegrityCheckKind::EntityBlockRecordErased) == 20 &&
+                  static_cast<unsigned>(DwgIntegrityCheckKind::TemplateMissing) == 27 &&
+                  static_cast<unsigned>(DwgIntegrityCheckKind::TemplateMalformed) == 28 &&
+                  static_cast<unsigned>(DwgIntegrityCheckKind::TemplateDescriptionUnsupported) == 29,
+              "LibreCAD recovery and upstream template diagnostic values must remain distinct");
 
 // LibreCAD's bundled codec permits these aggregate-initialization forms.
 // The upstream type keeps private reader bookkeeping but must still accept
