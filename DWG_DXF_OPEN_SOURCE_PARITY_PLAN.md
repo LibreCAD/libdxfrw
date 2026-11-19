@@ -19,12 +19,13 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-19:** 11/34 package gates closed; 23 remain. The activity
-ledger is 184/188 (97.9%) with eleven closed gates and 173 completed implementation or
-research slices. The newest completed slice screened the conference-room AC1024
-source for a null-background LAYOUT route; its extra content and three object parse
-failures make it inadmissible for a quick selected projection. The P4-D output gate
-remains open. The [candidate screen](docs/research/p4-ac1024-null-background-layout-candidate-screen-2026-11-19.json)
-records the exact blocker and leaves the source untouched. The [same-import APPID source-capture slice](docs/research/p4-ac1024-aerial-material-appid-same-import-raw-capture-2026-11-18.json)
+ledger is 185/188 (98.4%) with eleven closed gates and 174 completed implementation or
+research slices. The newest completed slice corrected the pending LibreCAD MLINE
+patch so a cached same-name style cannot override a different source handle; the
+patch applies to the current LibreCAD index, while consumer build/tests remain open.
+See the [style-handle review](docs/research/p8d-mline-style-handle-review-2026-11-19.json).
+The prior AC1024 null-background candidate screen remains linked below; it did not
+admit LAYOUT output. The P4-D output gate remains open. The [same-import APPID source-capture slice](docs/research/p4-ac1024-aerial-material-appid-same-import-raw-capture-2026-11-18.json)
 now independently decodes the AC1024 APPID and APPID_CONTROL wire bodies, including
 the APPID_CONTROL BL count, handle roles and source spans. Its bounded count fix
 corrects the writer to emit BL, reads a legacy BS count only when its full count span
@@ -357,7 +358,7 @@ source-reference closure.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P8-D / ACTIVE_MLINE_CONSUMER_INTEGRATION_AND_WAITING_FOR_AQUA | The unmerged [style-timing](docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch) and [closure-bit](docs/patches/librecad-mline-closure-bit-2026-11-18.patch) patches have focused headless controls. The [installed-codec proof](docs/research/p8d-mline-installed-style-write-contract-2026-11-18.json) establishes source-handle input, stage binding and atomic retry. The [bounded bundled prototype](docs/research/p8d-mline-bundled-staged-write-proof-2026-11-18.json) now passes twelve refusals/retries and three no-hook readbacks. | Prepare the LibreCAD patch, check unrelated-record handling and budget disposition in a complete bundled build, then integrate the installed filter staged inspectors. Resume native GUI work after an active display and successful capture. The [latest preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json) could not capture. Batch Move/Copy, named-LTYPE save/reopen/render and selected MLINE display/edit/save/reopen. Run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf when that bundle is available. |
+| P8-D / ACTIVE_MLINE_CONSUMER_INTEGRATION_AND_WAITING_FOR_AQUA | The unmerged [style-timing patch](docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch) and [closure-bit patch](docs/patches/librecad-mline-closure-bit-2026-11-18.patch) have focused headless controls. The [style-handle review](docs/research/p8d-mline-style-handle-review-2026-11-19.json) fixes an eager-path same-name/wrong-handle binding gap; cached providers must match the MLINE's source handle. The patch passes `git apply --cached --check` against LibreCAD index `078aac892287`; its checkout was not modified. The [installed-codec proof](docs/research/p8d-mline-installed-style-write-contract-2026-11-18.json) establishes source-handle input, stage binding and atomic retry. The [bounded bundled prototype](docs/research/p8d-mline-bundled-staged-write-proof-2026-11-18.json) passes twelve refusals/retries and three no-hook readbacks. | Add an eager/cached-provider wrong-handle regression, apply the reviewed patch in an isolated/current-head consumer worktree, and run focused MLINE filter tests. Then check unrelated-record handling and budget disposition in one complete bundled build before integrating the installed filter staged inspectors. Resume native GUI work after an active display and successful capture; the [latest preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json) could not capture. Batch Move/Copy, named-LTYPE save/reopen/render and selected MLINE display/edit/save/reopen. Run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf when that bundle is available. |
 | P8-F / WAITING_FOR_CURRENT_DIGEST_CI | The selected local checks and frozen support guard pass for implementation digest `2e563ed8c4438f74a2b32b37bd779c4d7ce2119b79f1f8edca31e33da9b30e9f` (743 inputs). Earlier digest `3a5d271c` passed its selected checks; ByBlock `5102afcd` passed [fast CI and authenticated focused native CI](docs/research/p8f-8843-upstream-native-replay-2026-11-18.json), as did VISUALSTYLE `cdf5d6b6`. | Run fast and all three focused-native jobs for `2e563ed8` and authenticate completed receipts at the live tested ref. Group related local implementation and evidence commits before pushing to avoid canceling a nearly complete fast run. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 

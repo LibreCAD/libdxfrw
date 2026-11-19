@@ -91,13 +91,17 @@ index fefcf30a3..deb6b7225 100644
          m_graphic->removeBlock(bk);
        }
      }
-@@ -7550,11 +7572,75 @@ void RS_FilterDXFRW::addMLine(const DRW_MLine *data) {
+@@ -7550,11 +7572,79 @@ void RS_FilterDXFRW::addMLine(const DRW_MLine *data) {
    if (!data || data->vertlist.empty() || data->numLines == 0)
      return;
 
 +  const auto style = m_mlineStyleCache.find(QString::fromUtf8(data->styleName.c_str()));
++  const bool styleHandleMismatch = style != m_mlineStyleCache.end()
++      && data->styleHandle != 0u && data->styleHandle != DRW::NoHandle
++      && style->second.handle != data->styleHandle;
 +  if (m_deferDxfMLines && (style == m_mlineStyleCache.end()
-+      || style->second.elements.size() != static_cast<std::size_t>(data->numLines))) {
++      || style->second.elements.size() != static_cast<std::size_t>(data->numLines)
++      || styleHandleMismatch)) {
 +    PendingDxfMLine pending;
 +    // Retain only the projection inputs, not the potentially much larger
 +    // per-vertex segment/fill arrays or other callback-owned data.
@@ -159,15 +163,15 @@ index fefcf30a3..deb6b7225 100644
    auto styleIt = m_mlineStyleCache.find(styleName);
    const DRW_MLineStyle *style =
        (styleIt != m_mlineStyleCache.end()) ? &styleIt->second : nullptr;
-+  // Only late DXF binding needs this additional identity check. A nonzero
-+  // group-340 handle may not silently bind to a different same-named style.
-+  if (placeholders != nullptr && style != nullptr && data->styleHandle != 0u
++  // A nonzero source handle may not bind to a different same-named style,
++  // regardless of whether its style callback arrived before or after MLINE.
++  if (style != nullptr && data->styleHandle != 0u
 +      && data->styleHandle != DRW::NoHandle && style->handle != data->styleHandle)
 +    style = nullptr;
 
    // Compute effective per-element offsets after justification + scale.
    // Justification: 0=top, 1=zero/middle, 2=bottom. The reference offset
-@@ -7584,9 +7670,16 @@ void RS_FilterDXFRW::addMLine(const DRW_MLine *data) {
+@@ -7584,9 +7674,16 @@ void RS_FilterDXFRW::addMLine(const DRW_MLine *data) {
    const bool closed = (data->openClosed & 0x1) != 0;
 
    for (int i = 0; i < N; ++i) {
@@ -187,7 +191,7 @@ index fefcf30a3..deb6b7225 100644
 
      for (const auto &v : data->vertlist) {
        RS_Vector miter(v.miterDir.x, v.miterDir.y);
-@@ -7634,7 +7727,8 @@ void RS_FilterDXFRW::addMLine(const DRW_MLine *data) {
+@@ -7634,7 +7731,8 @@ void RS_FilterDXFRW::addMLine(const DRW_MLine *data) {
      }
      polyline->setDrwExtData(std::move(ext));
 
