@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-mline-staged-output-budget-controls-2026-11-19",
+  "date": "2026-11-19",
+  "status": "SCRATCH_BUDGET_BOUNDARIES_AND_ATOMIC_REFUSAL_PASS",
+  "supportClaimEffect": "none",
+  "scope": "Scratch-only ASCII staged graph scanner for the selected AC1018 MLINE output profile. Inputs were locally generated controls; no generated DXF was added to the repository.",
+  "budgetPolicy": {
+    "defaults": {
+      "stagedFileBytes": 268435456,
+      "lineBytes": 1048576,
+      "codeValuePairs": 8000000,
+      "dictionaryEntriesPerRecord": 100000,
+      "dictionaryEntriesTotal": 100000,
+      "aggregateDictionaryKeyBytes": 4194304,
+      "dictionaryKeyBytes": 255,
+      "reactorsPerRecord": 100000,
+      "expectedMlines": 4096
+    },
+    "disposition": "Exceeding any scanner budget refuses the selected verified save. The writer's atomic transaction must preserve the prior destination; no unverified fallback is published.",
+    "consumerRisk": "The limits are safety bounds, not observed LibreCAD document maxima. A valid unusually large drawing may be refused on the selected MLINE verified-save route. Keep them private and fail closed until representative consumer coverage supports different values.",
+    "testability": "The scratch scanner now accepts a private StageReadBudget with production defaults. Boundary tests lower individual limits to the measured input size, avoiding multi-megabyte or 256 MiB allocations. Do not expose this test control as public libdxfrw API."
+  },
+  "boundaryControls": {
+    "root": "/private/tmp/librecad-mline-staged-v5-20261118",
+    "source": "/private/tmp/librecad-mline-styleproof-20261118/positive-ascii.dxf",
+    "sourceSha256": "b51962d2010d6246702ec77a8a6376b6d87119d3176969eb89a0f40bb317655f",
+    "measuredSource": {
+      "bytes": 20882,
+      "maxRawLineBytes": 49,
+      "codeValuePairs": 1723,
+      "maxDictionaryEntriesPerRecord": 3,
+      "totalDictionaryEntries": 5,
+      "aggregateDictionaryKeyBytes": 67,
+      "maxDictionaryKeyBytes": 18,
+      "maxReactorsPerRecord": 1
+    },
+    "scannerSourceSha256": "a01ba2eca3d2d9837bc2875b610b0b85ed074dbee5248f66758f1d3af405502e",
+    "boundaryTestSha256": "8a8027e97fbb5a737fa5e644ff9c866503fefa3e34af23996c0002ea35eb3f5b",
+    "runnerSha256": "49c45d65312e00a7030cc556d0fc3a232137ef4d8a6f4f9ad075714172705315",
+    "resultLogSha256": "499548ec25fd80c1bebb6f211045d0db67bdd31dc5ff15d5ee3fef45c240f9fc",
+    "result": "34 focused controls pass: measured limits accept exactly at the boundary and refuse one below; a generated unrelated dictionary entry exercises per-record, total-entry and aggregate-key one-over refusal; an unrelated dictionary with two reactors refuses at a cap of one and passes at two; expected-count caps and invalid zero/oversized limits refuse."
+  },
+  "defaultCapControls": {
+    "runner": "/private/tmp/librecad-mline-staged-v5-20261118/run_budget_controls.py",
+    "resultLogSha256": "2d96434aff1641b66addb55229546431bf960013500a3fea1d6f6b8ce7e3e03c",
+    "result": "The unchanged production defaults refuse generated controls with a 256-byte dictionary key, 100001 dictionary entries, aggregate key names exceeding 4 MiB, and a line exceeding 1 MiB.",
+    "largeFileLimit": "The 256 MiB staged-file cap was exercised with an injected lower test budget at the exact measured source size and one byte below; allocating a 256 MiB drawing solely to hit the production threshold was skipped."
+  },
+  "atomicRefusalRetry": {
+    "transactionSourceSha256": {
+      "ascii": "dd7b814c5314bebddb19c9e2f9ea02afc551dd361a7b5e4f892e0b56cab360b9",
+      "binary": "6aa63d331b627c32f38aaf6ecac6e8e862dbc4d7370b033df798e001512af750",
+      "styleHandleCollision": "bd7f7fd6e6249c11fe00196441501a6c8ab2b9289ef785f12cacbb2f20db4d86"
+    },
+    "testHook": "Injects a 1 MiB-plus ASCII value line into the staged temporary output after encoding and before graph verification.",
+    "archiveSha256": "24651491675830a014ae41b70f769720475e3504a4f5ae1e50d73a3d6d224e26",
+    "runnerSha256": "600bc2b587f66dfaae3398a477290b8acf572f164efa9a1f45c53145758241b4",
+    "resultLogSha256": "2ddaf77f6c35d16abcbd958b3d25f6f7734c5d6b6af3b56e5e0387810f163b46",
+    "result": "ASCII, Binary and style-handle-collision inputs all reject the over-budget stage, retain the seeded destination sentinel byte-for-byte, and succeed on corrected retry using the same filter instance."
+  },
+  "semanticScannerControls": {
+    "resultLogSha256": "39f35e764c71669aca4fb331327b5cf01d2410fa5500f3da8cb8622f80f55281",
+    "result": "The unchanged selected graph passes; fifteen malformed graph, type, handle-role and field mutations refuse.",
+    "testLimits": "Generated low-cost controls use at most 4.4 MiB; no committed or external test fixture is used."
+  },
+  "limitations": [
+    "This is scratch evidence for the bounded bundled prototype, not an installed LibreCAD consumer result.",
+    "The atomic over-budget hook exercises the line-length refusal path; the 256 MiB file-byte threshold was boundary-tested by lowering the private test budget, not by creating a 256 MiB file.",
+    "The full bounded installed-filter inspector still needs a focused reviewable consumer patch and one application build. Native GUI and large-document compatibility qualification remain open."
+  ],
+  "next": "Carry only the bounded MLINE staged inspectors and their required MLINE source-model guards into a focused LibreCAD patch; build the isolated app and relevant fast selector, then update P8-D evidence."
+}
