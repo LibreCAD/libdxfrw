@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- AutoCAD 2024 Windows profile; build only with matching managed assemblies. -->
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <OutputType>Library</OutputType>
+    <AssemblyName>P6AImageDefWitness</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <LangVersion>7.3</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="p6a_imagedef_witness.cs" />
+    <Reference Include="AcCoreMgd"><HintPath>$(AutoCADDir)\AcCoreMgd.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="AcDbMgd"><HintPath>$(AutoCADDir)\AcDbMgd.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="AcMgd"><HintPath>$(AutoCADDir)\AcMgd.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+  <Target Name="RequireAutoCADDir" BeforeTargets="ResolveReferences" Condition="'$(AutoCADDir)' == ''">
+    <Error Text="Set AutoCADDir to the installed AutoCAD 2024 directory; use its matching managed DLLs." />
+  </Target>
+  <Target Name="RequireAutoCADAssemblies" BeforeTargets="ResolveReferences" Condition="'$(AutoCADDir)' != ''">
+    <Error Condition="!Exists('$(AutoCADDir)\AcMgd.dll') Or !Exists('$(AutoCADDir)\AcDbMgd.dll') Or !Exists('$(AutoCADDir)\AcCoreMgd.dll')" Text="AutoCADDir must contain matching AutoCAD 2024 managed assemblies." />
+  </Target>
+</Project>

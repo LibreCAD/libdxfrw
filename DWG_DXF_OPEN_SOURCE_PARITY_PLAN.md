@@ -19,10 +19,10 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-19:** 11/34 package gates closed; 23 remain. The
-implementation/research activity estimate is 185/186 tracked slices (99.5%).
-The shared remote ObjectARX host intake and the hash-gated P4-D native layout
-observer packet are prepared. Host release/build, Windows version,
-SDK/toolchain and artifact-return route are still pending; the observer has not
+implementation/research activity estimate is 186/187 tracked slices (99.5%).
+The shared remote ObjectARX host intake and the hash-gated P4-D and P6-A native
+observer/witness packets are prepared. Host release/build, Windows version,
+SDK/toolchain and artifact-return route are still pending; neither packet has
 been built with Autodesk assemblies or run in AutoCAD.
 `P8-D-API-COMPAT`, `P8-D-OUTPUT-BUDGET-REVIEW`, the bounded MLINE
 staged-inspector port, the P4-D local null-background candidate screen, and a
@@ -221,10 +221,12 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count implementation/research slices and package-gate readiness separately.
-  The activity estimate is 185 completed slices out of 186 currently counted
-  slices (99.5%); the shared host-intake and hash-gated P4-D observer-packet
-  slices are complete. The next P4-D step is native reopen and consumer
-  qualification using the [prepared observer packet](tools/research/P4D_LAYOUT_REOPEN_README.md).
+  The activity estimate is 186 completed slices out of 187 currently counted
+  slices (99.5%); the shared host-intake and P4-D/P6-A host-packet preparation
+  slices are complete. Native AutoCAD builds and captures remain unqualified.
+  Use the [P4-D observer packet](tools/research/P4D_LAYOUT_REOPEN_README.md)
+  and [P6-A witness packet](tools/research/P6A_IMAGEDEF_WITNESS_README.md)
+  after the one-time host profile is recorded.
   The [output-budget receipt](docs/research/p8d-mline-staged-output-budget-controls-2026-11-19.json)
   resolves scratch caps and records boundary refusal, destination preservation
   and same-filter retry evidence.
@@ -345,7 +347,7 @@ Versioned TABLECONTENT profiles whose semantics remain incomplete stay raw-only;
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P6-A / WAITING_FOR_OBJECTARX_WITNESS | Reuse the one-time [remote host profile intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md); do not repeat machine-profile collection. Select the IMAGEDEF packet only after confirming the host release, ObjectARX SDK/toolchain and artifact-return route. The existing [core witness packet](tools/research/OBJECTARX_WITNESS_README.md) covers unrelated layer-state/draw-order observations and must not be counted as IMAGEDEF evidence. Reuse the [role receipt](docs/research/p6-imagedef-objectarx-parent-role-boundary-2026-11-14.json) for the already-settled wire-role interpretation. | On the identified host, record IMAGEDEF create, dictionary `setAt`, save/reopen, remove, erase, clone and WBLOCK behavior; then close owner, dictionary membership, reactor and image links with strict output, atomic failure/retry, fresh libdxfrw readback and an independent consumer. |
+| P6-A / WAITING_FOR_OBJECTARX_WITNESS | Reuse the one-time [remote host profile intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md); do not repeat machine-profile collection. The [managed IMAGEDEF witness packet](tools/research/P6A_IMAGEDEF_WITNESS_README.md) and [preparation receipt](docs/research/p6-imagedef-managed-witness-packet-preparation-2026-11-19.json) now cover a from-scratch 2x2 BMP and baseline DWG, native graph readback after reopen, isolated dictionary-remove and IMAGEDEF-erase derivatives, and COPY/WBLOCK on separate baseline copies. Build it only on its checked AutoCAD 2024 Windows profile, or adapt it after identifying the host release and SDK/toolchain. The existing [core witness packet](tools/research/OBJECTARX_WITNESS_README.md) covers unrelated layer-state/draw-order observations and must not be counted as IMAGEDEF evidence. Reuse the [role receipt](docs/research/p6-imagedef-objectarx-parent-role-boundary-2026-11-14.json) for the already-settled wire-role interpretation. | On the identified host, record IMAGEDEF create, dictionary `setAt`, save/reopen, remove, erase, clone and WBLOCK behavior; then close owner, dictionary membership, reactor and image links with strict output, atomic failure/retry, fresh libdxfrw readback and an independent consumer. |
 | P6-B / WAITING_FOR_NONEMPTY_PERSUBENTMGR_WITNESS | DXF class-specific values remain raw-only. The [issue #1021 corpus/API screen](docs/research/p6-persubentmgr-libredwg-issue-1021-corpus-screen-2026-11-17.json) already covers five AC1032 DWGs and the matched Platte DXFs; it found no known nonzero selected-member path. The newer [raw-only disposition](docs/research/p6-persubentmgr-raw-only-dxf-disposition-2026-11-18.json) records the conflict between LibreDWG's group-90 candidate and open issue #1398. Do not download or rescan these artifacts, type either proposal, or infer semantics from zero-valued members. Strict whole-file output remains blocked by IMAGEDEF. | In full AutoCAD, first test whether the exact class can be created and populated; use ObjectARX only if needed. If eligible, save one compact pair and prove owner, selected nonzero path, exact class, and persistence after reopen. Then independently bind source/version, member meaning, full body spans, handle roles, and next-object boundary. Keep class data raw until resolved; implement only proved fields/edges with focused truncation/wrong-role refusal, destination preservation, corrected retry, strict output, and fresh independent readback. If the class cannot be populated, retain the raw-only disposition and park P6-B. |
 | P6-C / WAITING_FOR_PRODUCER_CELL_PROFILE | Keep the AC1032 compatibility path bounded, raw-retaining, semantic-incomplete, and strict-output-refused. Reuse the [AutoCAD 2021 candidate screen](docs/research/p6-ac1032-autocad2021-table-pair-screen-2026-11-17.json) and [LibreDWG 0.14 peer screen](docs/research/p6-ac1032-libredwg-tablecontent-peer-screen-2026-11-17.json); the HEADER reconciliation is complete, but producer API calls/state and independently decoded cell values are absent. The separate ODA scaffold exits with an explicit R2010+ TABLE TODO and unknown body; do not rerun it or infer semantics from it. | Request the AutoCAD 2021 TABLE API state and known cell/format values, or obtain primary/versioned authority or a source-distinct independently decoded matching profile. Then bind spans, roles, next-frame alignment, and graph closure; add only the needed malformed controls, strict output/readback, and native meaning checks. Do not infer semantics from a paired DXF or a peer's success status. |
 | P6-E / WAITING_FOR_SUFFIX_AUTHORITY | Reuse the [repeatability receipt](docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json): the AC1024 suffix changes across repeated saves, so a mesh-count comparison is not discriminating. | Resume only with versioned primary authority or a source-bound pre-compression trace. Bind fields/roles, then add only controls that distinguish that mapping. Keep strict refusal; never label the suffix padding or discard it. |
