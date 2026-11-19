@@ -126,6 +126,7 @@ EXTRA_DIST = \
     dwg2dxf/CMakeLists.txt \
     dwg2dxf/Makefile.am \
     dwg2dxf/dwg2dxf.1 \
+    dwg2dxf/dx_ac1024_byblock_material_wire.h \
     dwg2dxf/dx_ac1024_dictionaryvar_wire.h \
     dwg2dxf/dx_ac1024_mentalray_wire.h \
     dwg2dxf/dx_ac1024_mleaderstyle_wire.h \

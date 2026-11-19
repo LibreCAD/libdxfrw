@@ -34,6 +34,7 @@
 #include "intern/dwgreader.h"
 #include "intern/dwg_table_model_ac1018_candidate.h"
 #include "intern/dwg_table_projection_ac1018_candidate.h"
+#include "dx_ac1024_byblock_material_wire.h"
 #include "dx_ac1024_dictionaryvar_wire.h"
 #include "dx_ac1024_mentalray_wire.h"
 #include "dx_ac1024_mleaderstyle_wire.h"
@@ -29226,6 +29227,7 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
     retainAerialDwgMLeaderPublication(data);
     retainAerialDwgTableStylePublication(data);
     retainAerialDwgVisualStylePublication(data);
+    retainAerialDwgByBlockMaterialPublication(data);
     if (typeid(*this) == typeid(dx_iface) && m_classEvidenceReadData == cData
         && m_classEvidenceReadAttempt && cData->importGeneration == cData->m_classEvidenceGeneration
         && data.m_version == DRW::AC1027 && data.m_encodedType == 51) {
@@ -44549,6 +44551,128 @@ bool dx_iface::hasUnchangedDxfMaterialSources() const noexcept {
     } catch (...) { return false; }
 }
 
+void dx_iface::retainAerialDwgByBlockMaterialPublication(const DRW_DwgFramePublication& event) noexcept {
+    if (event.m_version != DRW::AC1024 || event.m_handle != 0x97u
+        || (event.m_recordName != "MATERIAL" && event.m_className != "AcDbMaterial")
+        || typeid(*this) != typeid(dx_iface) || cData == nullptr || m_classEvidenceReadData != cData
+        || m_classEvidenceReadAttempt == 0u || cData->m_classEvidenceOwner != this
+        || cData->m_classEvidenceAttempt != m_classEvidenceReadAttempt
+        || cData->m_classEvidenceGeneration != cData->importGeneration)
+        return;
+    auto& receipt = m_dwgAerialByBlockMaterial.frame;
+    const bool first = receipt.generation == 0u;
+    receipt.generation = cData->importGeneration;
+    receipt.attempt = 0u;
+    if (!first || event.m_recordName != "MATERIAL" || event.m_className != "AcDbMaterial"
+        || !event.m_controlHandles.empty())
+        return;
+    try {
+        receipt.publication = event;
+        receipt.attempt = m_classEvidenceReadAttempt;
+    } catch (...) { receipt.attempt = 0u; }
+}
+
+bool dx_iface::requiresAc1024AerialDwgByBlockMaterialProof(const dx_data& data) const noexcept {
+    if (data.sourceFormat != dx_source_format::DWG || data.sourceVersion != DRW::AC1024)
+        return false;
+    if (m_dwgAerialByBlockMaterial.owner == &data)
+        return true;
+    if (!data.hasNamedObjectDictionary || data.namedObjectDictionary.handle != 0xCu
+        || std::none_of(data.namedObjectDictionary.m_entries.begin(),
+            data.namedObjectDictionary.m_entries.end(), [](const auto& entry) {
+                return entry.m_name == "ACAD_MATERIAL" && entry.m_handle == 0x72u;
+            }))
+        return false;
+    const auto* root = uniqueDwgSourceRecord(data.dictionaries, 0x72u);
+    const auto* material = uniqueDwgSourceRecord(data.materials, 0x97u);
+    return root && root->m_entries.size() == 9u && material && material->m_name == "ByBlock"
+        && material->parentHandle == 0x72u && material->xDictHandle == 0x295u;
+}
+
+std::array<const DRW_UnsupportedObject*, 4> dx_iface::boundAerialDwgByBlockMaterialFrames(
+        const dx_data& data, const DRW_Material& material, DRW_Class* outputClass) const {
+    const auto* root = uniqueDwgSourceRecord(data.dictionaries, 0x72u);
+    const auto* extension = uniqueDwgSourceRecord(data.dictionaries, 0x295u);
+    const auto* record = uniqueDwgSourceRecord(data.xRecords, 0x296u);
+    if (!root || !extension || !record || material.handle != 0x97u
+        || !hasAc1024DwgRootMember(data, "ACAD_MATERIAL", 0x72u)
+        || !data.hasCompleteDwgDictionaryEntry(0x72u, "ByBlock", material.handle)
+        || !data.hasCompleteDwgDictionaryEntry(0x295u, "FBXASSET", record->handle))
+        return {};
+    DRW_Class row;
+    std::array<const DRW_UnsupportedObject*, 4> frames{{
+        boundAc1024DwgStandardObject(data, *root, dwgObjType::DICTIONARY),
+        boundAc1024DwgClassObject(data, material.handle, m_dwgAerialByBlockMaterial.frame, &row),
+        boundAc1024DwgStandardObject(data, *extension, dwgObjType::DICTIONARY),
+        boundAc1024DwgStandardObject(data, *record, dwgObjType::XRECORD)
+    }};
+    if (std::any_of(frames.begin(), frames.end(), [](const auto* frame) { return frame == nullptr; }))
+        return {};
+    const auto& source = m_dwgAerialByBlockMaterial.frame.publication;
+    for (const auto handle : {0x72u, 0x295u, 0x296u}) {
+        const auto& event = data.m_standardDwgObjectFrames.at({data.importGeneration, handle}).publication;
+        if (event.m_sourceMapOrdinal == source.m_sourceMapOrdinal
+            || (event.m_sourceOffsetSpace == source.m_sourceOffsetSpace
+                && event.m_sourceOffset == source.m_sourceOffset))
+            return {};
+    }
+    if (outputClass) {
+        row.instanceCount = 1;
+        *outputClass = std::move(row);
+    }
+    return frames;
+}
+
+void dx_iface::finishAerialDwgByBlockMaterialSource() noexcept {
+    if (cData == nullptr || typeid(*this) != typeid(dx_iface)
+        || !requiresAc1024AerialDwgByBlockMaterialProof(*cData))
+        return;
+    auto& proof = m_dwgAerialByBlockMaterial;
+    proof.owner = cData;
+    try {
+        const auto* material = uniqueDwgSourceRecord(cData->materials, 0x97u);
+        if (!material)
+            return;
+        const auto frames = boundAerialDwgByBlockMaterialFrames(*cData, *material, nullptr);
+        if (!frames.front()
+            || !dx_ac1024_byblock_material_wire::observeDictionary(*frames[0],
+                *uniqueDwgSourceRecord(cData->dictionaries, 0x72u))
+            || !dx_ac1024_byblock_material_wire::observeMaterial(*frames[1], *material)
+            || !dx_ac1024_byblock_material_wire::observeDictionary(*frames[2],
+                *uniqueDwgSourceRecord(cData->dictionaries, 0x295u))
+            || !dx_ac1024_byblock_material_wire::observeXRecord(*frames[3],
+                *uniqueDwgSourceRecord(cData->xRecords, 0x296u)))
+            return;
+        proof.material = *material;
+        for (std::size_t index = 0u; index < frames.size(); ++index)
+            proof.bodies[index] = frames[index]->m_rawBytes;
+    } catch (...) { proof.material.reset(); }
+}
+
+bool dx_iface::hasQualifiedAc1024AerialDwgByBlockMaterial(const dx_data& data,
+                                                          DRW_Class* outputClass) const noexcept {
+    const auto& proof = m_dwgAerialByBlockMaterial;
+    if (proof.owner != &data || !proof.material)
+        return false;
+    try {
+        const auto* material = uniqueDwgSourceRecord(data.materials, 0x97u);
+        if (!material || !standardDwgCommonEqual(*proof.material, *material, DRW::AC1024)
+            || !dxfMaterial::sameState(*proof.material, *material))
+            return false;
+        DRW_Class row;
+        const auto frames = boundAerialDwgByBlockMaterialFrames(data, *material, outputClass ? &row : nullptr);
+        if (!frames.front())
+            return false;
+        for (std::size_t index = 0u; index < frames.size(); ++index) {
+            if (proof.bodies[index].empty() || proof.bodies[index] != frames[index]->m_rawBytes)
+                return false;
+        }
+        if (outputClass)
+            *outputClass = std::move(row);
+        return true;
+    } catch (...) { return false; }
+}
+
 bool dx_iface::hasUnchangedExtensionMaterialSources() const noexcept {
     if (m_extensionMaterialSourceOwner == nullptr)
         return m_extensionMaterialHandles.empty()
@@ -49458,6 +49582,134 @@ bool dx_iface::finalizeDwgAssociativeDimensionDependencies() const noexcept {
     return true;
 }
 
+bool dx_iface::inspectAc1024AerialDwgByBlockMaterial(const dxfRW::DxfObjectsWriteView& view) noexcept {
+    if (!cData || view.version != DRW::AC1024
+        || !requiresAc1024AerialDwgByBlockMaterialProof(*cData))
+        return true;
+    if (!dxfW || m_dwgAerialByBlockMaterialInspected)
+        return false;
+    try {
+        const auto* source = uniqueDwgSourceRecord(cData->dictionaries, 0x72u);
+        const auto* record = uniqueDwgSourceRecord(cData->xRecords, 0x296u);
+        const bool projected = m_extensionMaterialHandles.size() == 1u;
+        const auto* context = dxfW->getWritingContext();
+        DRW_Class row;
+        if (!source || !record || !context
+            || !hasQualifiedAc1024AerialDwgByBlockMaterial(*cData, &row)
+            || (!projected && m_extensionMaterialHandles.size() != source->m_entries.size())
+            || std::count(m_extensionMaterialHandles.begin(), m_extensionMaterialHandles.end(), 0x97u) != 1)
+            return false;
+        row.instanceCount = static_cast<int>(m_extensionMaterialHandles.size());
+        if (!dxfW->dxfWriteClassMatches(row))
+            return false;
+        const auto map = [this, context](std::uint32_t input, std::uint32_t& output) {
+            output = dxfW->remapHandle(input);
+            return context->ambiguousSourceHandles.count(input) == 0u
+                && (input == 0u || (output != 0u && output != DRW::NoHandle));
+        };
+        std::uint32_t nod = 0u, root = 0u, material = 0u, extension = 0u, xrecord = 0u;
+        if (!map(0xCu, nod) || !map(0x72u, root) || !map(0x97u, material)
+            || !map(0x295u, extension) || !map(0x296u, xrecord)
+            || !dxfW->dxfWriteRecordHasIdentity(nod, "DICTIONARY", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(root, nod)
+            || !dxfW->dxfWriteRecordHasIdentity(material, "MATERIAL", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(material, root)
+            || !dxfW->dxfWriteRecordHasIdentity(extension, "DICTIONARY", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(extension, material)
+            || !dxfW->dxfWriteRecordHasOwner(xrecord, extension))
+            return false;
+
+        bool nodSeen = false, rootSeen = false, recordSeen = false, namesMatch = true;
+        const bool inspected = dx_standard_output::inspectSelected(view,
+            [&](std::string_view name, std::uint32_t handle) {
+                if (handle != nod && handle != root && handle != xrecord)
+                    return false;
+                namesMatch = namesMatch && name == (handle == xrecord ? "XRECORD" : "DICTIONARY");
+                return true;
+            },
+            [&](const auto& shape, std::string_view body) {
+                dx_standard_output::Decoder decoder(view);
+                if (shape.handle == xrecord) {
+                    if (recordSeen || shape.kind != dx_standard_output::Family::Xrecord)
+                        return false;
+                    recordSeen = true;
+                    return decoder.decodeRecord<DRW_XRecord>(body, [&](const DRW_XRecord& actual) {
+                        return actual.handle == xrecord && actual.parentHandle == extension
+                            && actual.xDictHandle == 0u && actual.m_cloning == record->m_cloning
+                            && actual.reactorHandles.size() == 1u && actual.reactorHandles.front() == extension
+                            && actual.appData.size() == 1u
+                            && dx_standard_output::reservedGroupExact(actual.appData.front(), actual, true)
+                            && actual.extData.empty() && actual.m_handleValues.empty()
+                            && actual.hasExactDxfCoordinateTuples()
+                            && standardDwgValuesEqual(record->m_dataEntries, actual.m_dataEntries, DRW::AC1024)
+                            && standardDwgValuesEqual(record->m_values, actual.m_values, DRW::AC1024);
+                    });
+                }
+                if (shape.kind != dx_standard_output::Family::Dictionary)
+                    return false;
+                return decoder.decodeRecord<DRW_Dictionary>(body, [&](const DRW_Dictionary& actual) {
+                    using Role = DRW_Dictionary::Entry::DxfHandleCode;
+                    if (!actual.hasCompleteDxfEntries() || actual.hardOwner != 0 || actual.handle != shape.handle)
+                        return false;
+                    if (shape.handle == nod) {
+                        if (nodSeen || actual.parentHandle != 0u)
+                            return false;
+                        nodSeen = true;
+                        std::size_t matches = 0u;
+                        for (const auto& entry : actual.m_entries) {
+                            if (entry.m_handle != root && !asciiIdentifierEquals(entry.m_name, "ACAD_MATERIAL"))
+                                continue;
+                            if (entry.m_name != "ACAD_MATERIAL" || entry.m_handle != root
+                                || entry.m_dxfHandleCode != Role::SoftOwner)
+                                return false;
+                            ++matches;
+                        }
+                        return matches == 1u;
+                    }
+                    std::vector<std::uint32_t> references;
+                    if (rootSeen || actual.cloning != source->cloning
+                        || actual.m_entries.size() != (projected ? 1u : source->m_entries.size())
+                        || !generatedDictionaryCommonEqual(*source, actual, map, references, view.binary))
+                        return false;
+                    rootSeen = true;
+                    auto emitted = actual.m_entries.cbegin();
+                    for (const auto& entry : source->m_entries) {
+                        if (projected && entry.m_handle != 0x97u)
+                            continue;
+                        std::uint32_t target = 0u;
+                        if (emitted == actual.m_entries.cend() || !map(entry.m_handle, target)
+                            || emitted->m_name != entry.m_name || emitted->m_handle != target
+                            || emitted->m_dxfHandleCode != Role::SoftOwner)
+                            return false;
+                        ++emitted;
+                    }
+                    return emitted == actual.m_entries.cend();
+                });
+            });
+        m_dwgAerialByBlockMaterialInspected = inspected && namesMatch && nodSeen && rootSeen && recordSeen;
+        return m_dwgAerialByBlockMaterialInspected;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::finalizeAc1024AerialDwgByBlockMaterial() const noexcept {
+    if (!cData || !dxfW || dxfW->getVersion() != DRW::AC1024 || m_extensionMaterialHandles.empty()
+        || !requiresAc1024AerialDwgByBlockMaterialProof(*cData))
+        return true;
+    if (!m_dwgAerialByBlockMaterialInspected || !hasQualifiedAc1024AerialDwgByBlockMaterial(*cData))
+        return false;
+    try {
+        const auto nod = dxfW->remapHandle(0xCu);
+        const auto root = dxfW->remapHandle(0x72u);
+        const auto material = dxfW->remapHandle(0x97u);
+        const auto extension = dxfW->remapHandle(0x295u);
+        const auto record = dxfW->remapHandle(0x296u);
+        return dxfW->dxfWriteSourceObjectHasIdentity(0x72u, root, "DICTIONARY", "OBJECTS", nod)
+            && dxfW->dxfWriteSourceObjectHasIdentity(0x97u, material, "MATERIAL", "OBJECTS", root)
+            && dxfW->dxfWriteSourceObjectHasIdentity(0x295u, extension, "DICTIONARY", "OBJECTS", material)
+            && dxfW->dxfWriteSourceObjectHasIdentity(0x296u, record, "XRECORD", "OBJECTS", extension);
+    } catch (...) { return false; }
+}
+
 bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
     if ((!m_dxfMaterialWriteRequired || m_dxfMaterialWriteSources.empty())
         && m_extensionMaterialHandles.empty())
@@ -49884,6 +50136,9 @@ bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) 
             + dictionaries.size() + typedExpected.size()
             + typedDictionaries.size();
         if (seen.size() != expectedCount)
+            return false;
+        diagnosticPhase = "aerial ByBlock MATERIAL source and FBXASSET output";
+        if (!inspectAc1024AerialDwgByBlockMaterial(view))
             return false;
         inspectionComplete = true;
         return true;
@@ -79172,6 +79427,8 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     m_dwgAerialVisualStyleDictionaryBody.clear();
     m_dwgAerialVisualStyleReadOwner = nullptr;
     m_dwgAerialVisualStyleCaptureFailed = false;
+    m_dwgAerialByBlockMaterial = {};
+    m_dwgAerialByBlockMaterialInspected = false;
     m_dwgAerialMLeaderReadOwner = nullptr;
     m_dwgAerialMLeaderTableCaptureFailed = false;
     m_dwgAerialMLeaderSourceRecognized = false;
@@ -79759,6 +80016,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
             finishAerialDwgMLeaderSource();
             finishAerialDwgTableStyleSource();
             finishAerialDwgVisualStyleSource();
+            finishAerialDwgByBlockMaterialSource();
         }
         if (!success) {
             std::cout << "DWG file error: format " << dwg.getVersion() << " error " << dwg.getError() << std::endl;
@@ -82562,6 +82820,7 @@ bool dx_iface::finalizeDxfWrite() {
     if (!finalizeDxfShadeConsumers()) return false;
     if (!hasUnchangedDxfMaterialSources()
         || !hasUnchangedExtensionMaterialSources()
+        || !finalizeAc1024AerialDwgByBlockMaterial()
         || ((!m_dxfMaterialWriteSources.empty()
              || !m_extensionMaterialSources.empty())
             && !m_dxfMaterialWriteInspected)) return false;
@@ -87441,6 +87700,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_dxfMaterialWriteDictionaries.clear();
     m_dxfMaterialWriteReceipt = {};
     m_dxfMaterialWriteInspected = false;
+    m_dwgAerialByBlockMaterialInspected = false;
     m_dxfMaterialWriteRequired = false;
     m_backgroundHandlesToWrite.clear();
     m_sunHandlesToWrite.clear();
@@ -90261,8 +90521,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 return false;
         }
 
+        DRW_Class byBlockClass;
+        const bool aerialMaterial = !m_extensionMaterialHandles.empty()
+            && requiresAc1024AerialDwgByBlockMaterialProof(*cData);
+        if (aerialMaterial && !hasQualifiedAc1024AerialDwgByBlockMaterial(*cData, &byBlockClass))
+            return false;
         return registerClass("MATERIAL", "AcDbMaterial",
-                             materialHandles.size())
+                             materialHandles.size(), aerialMaterial ? &byBlockClass : nullptr)
             && registerClass("SUNSTUDY", "AcDbSunStudy",
                              m_extensionSunStudyHandles.size())
             && registerClass("SCALE", "AcDbScale",

@@ -19,7 +19,7 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-18:** 11/34 package gates closed; 23 remain. The activity
-ledger is 154/177 (87.0%) with eleven closed gates and 143 completed implementation or
+ledger is 156/179 (87.2%) with eleven closed gates and 145 completed implementation or
 research slices. The [focused slice](docs/research/p6-raster-dimstyle-default-roundtrip-2026-11-18.json)
 fixes an AC1021 default plot dictionary reexport and a default BYBLOCK DIMSTYLE
 downgrade; five owning selectors pass. The following [source-identity selector
@@ -218,14 +218,21 @@ P8-D has local writer work available while GUI checks await a successful display
 |---|---|---|
 | P4-B / WAITING_FOR_WITNESS | Request one source-distinct, release-bound AC1032 drawing with known top-level and nested associative-network API state, or primary versioned wire documentation. Reuse the [readiness audit](docs/research/p4-ac1032-assocnetwork-evidence-readiness-2026-11-17.json); peer agreement and frame candidates alone do not qualify. | Bind class-version-2 order/spans, handle roles, and following-record boundary. Add one discriminating truncation/refusal control; close nested graph and producer/consumer evidence. |
 | P4-C / WAITING_FOR_AC1027_PRODUCER_WITNESS | Preferred source remains an AutoCAD 2013/ObjectARX-authored AC1027 drawing and matching R2013 DXF. If that host is unavailable, the documented APS fallback can use AutoCAD 2027's `Autodesk.AutoCAD+26_0` engine and save a separate current-producer profile as AC1027. Autodesk documents the `SweptSurface`/`SweepOptionsBuilder` APIs, AC1027 `Database.SaveAs`/`dxfOut`, and the cloud AppBundle/WorkItem route. See the [ObjectARX/API receipt](docs/research/p4-ac1027-sweep-oda-schema-boundary-2026-11-17.json) and [APS route receipt](docs/research/p4c-aps-autocad-ac1027-witness-route-2026-11-17.json). An APS job has service/quota requirements and may incur cost; do not submit one without authorized credentials and quota. A [managed witness packet](tools/research/P4C_SWEEP_WITNESS_README.md) is prepared for a matching AutoCAD 2024 Windows host. Its local [checks](docs/research/p4c-autocad-2024-managed-witness-packet-2026-11-18.json) cover syntax against stubs and helper controls. Its output would be a separate 2024-to-AC1027 profile; actual SDK build and host capture remain pending. | Generate one compact pair with a baseline/default sweep and one distinct non-default sweep. Capture the producer build and plug-in hash, source entities and options before save and after reopening AC1027, handles, geometry, AC1027 magic and DXF `$ACADVER`. Record the WorkItem ID for APS runs. Keep the 2027-to-AC1027 profile distinct from AutoCAD 2013. Compare the paired DXF, ODA v5.4.1, and source-bound libdxfrw/LibreDWG traces to bind parent/child spans, embedded LWPOLYLINE body and suffix, handle roles, and next-frame alignment. API/header agreement or ODA round-trip alone cannot close physical spans. Preserve unknown suffix bytes and refuse strict output until spans resolve; then add only the missing truncation/wrong-role control, strict output/readback, corrected retry, and independent geometry check. If neither producer route is available, leave only this gate waiting and continue other work. |
-| P4-D / ACTIVE_REMAINING_NOD_GRAPH | The [selected 27-member VISUALSTYLE transaction](docs/research/p4-ac1024-aerial-visualstyle-source-output-2026-11-18.json) preserves the original graph and passes staged ASCII/Binary proof. The [MATERIAL ByBlock trace](docs/research/p4-ac1024-aerial-byblock-material-wire-2026-11-18.json) closes four source frames and independently matches all ordered XRECORD data. Three aerial roots remain outside the selected structural checks: MATERIAL, BACKGROUND and LAYOUT. | Implement the authenticated ByBlock path 0x97 → 0x295 → FBXASSET 0x296 and retain the source root 0x72 evidence. Recheck the immutable 24,611-byte XRECORD and 193 typed values, then verify selected staged handles, roles, every binary chunk, atomic refusal, same-codec retry and fresh peer readback in both encodings. Use the exact profile bound and keep unrelated 4,096-byte XRECORD limits. Once the projection passes, finish the other eight MATERIALs, 52 XRECORDs and EED APPID joins before full-root admission. Native MLEADERSTYLE flag/null handling and the TABLESTYLE and VISUALSTYLE producer representation differences still require native comparisons. |
+| P4-D / ACTIVE_REMAINING_NOD_GRAPH | The [selected ByBlock MATERIAL transaction](docs/research/p4-ac1024-aerial-byblock-material-source-output-2026-11-18.json) verifies the original root, class, remapped extension and all 193 XRECORD values in both encodings. The output projects one member of the original nine-member root. Independent wire checks now cover all 36 TILE frames. Full-root work remains for MATERIAL, BACKGROUND and LAYOUT. | Batch the observed two-value TILE records and remaining FBXASSETs first. In parallel, implement one source-bound ADVMATERIAL XRECORD compatibility case, then cover all eight out-of-range XRECORDs. Verify the seven MATERIAL EED/APPID joins and every remaining class body and graph edge before full MATERIAL root admission. Retain the native MLEADERSTYLE flag/null and TABLESTYLE/VISUALSTYLE representation comparisons. |
 
-The MATERIAL source census confirms nine members and 53 XRECORDs, with EED on
-seven members. The ByBlock FBXASSET contains 189 binary chunks totaling 23,938
-bytes. Independent LibreDWG/ODA data and the typed import agree on every chunk
-boundary and byte. Use the existing AC1027 transaction tests as a starting
-point for failure/retry checks. The ByBlock projection leaves eight members and
-their dependencies to qualify.
+- For 36 TILE records, reuse the verified 22-byte source layout with ordered
+  Int16 values `(270,1)` and `(271,1)`, relative owners and absolute extension
+  reactors. Bind the same-read frames, then reuse the generic staged XRECORD
+  path and exercise all six TILE key types in one transaction.
+- For eight FBXASSETs, reuse the selected binary proof with the independently
+  verified per-frame bounds and original chunk counts. The observed frames run
+  from 24,609 to 53,578 bytes, and no chunk exceeds 127 bytes.
+- For six ADVMATERIAL records, start with the 10-value 0x2C4 profile with groups
+  460–464. Compare the actual source field spans and output, then use the same
+  source-bound compatibility check for the other five and extend it separately
+  to DIFFUSE 0x2EE and BUMP 0x2F0, which also carry groups 420/469. The generic
+  application-code domain stays 1–369. Peers agree on the eight sets of
+  ordered values, with no native interpretation, and ODA omits some tile keys.
 
 Whole-source strict output requires resolving either the aerial SUN graph or
 the alternate named-block SORTENTSTABLE route. For SUN, obtain a native pair
@@ -247,6 +254,12 @@ the aerial source, [ODA and LibreDWG](docs/research/p5-ac1024-aerial-sun-oda-lin
 agree on the XRECORD parent of SUN `0x24C`; ODA also reports a separate VIEW
 link. Obtain native `ownerId` and `sunId` behavior across save and reopen.
 Preserve both roles and strict refusal until that distinction is resolved.
+
+P4-D also carries three [older XRECORD controls](docs/research/p4-ac1024-aerial-byblock-material-source-output-2026-11-18.json)
+that reproduce on the pre-ByBlock commit. Diagnose the generated AC1015 B010
+source qualification and its retry together. Reproduce the AC1015-to-AC1018
+default-plot dictionary refusal separately, then verify the dictionary version
+boundary before rerunning owned-extension readback.
 
 AC1021 follow-ups in P4-D: the [two-root truetype repair](docs/research/p4-ac1021-layerstates-two-root-wire-regression-repair-2026-11-18.json)
 restores same-version selected and strict whole-source output for the witnessed
@@ -323,7 +336,7 @@ source-reference closure.
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
 | P8-D / ACTIVE_MLINE_CONSUMER_INTEGRATION_AND_WAITING_FOR_AQUA | The unmerged [style-timing](docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch) and [closure-bit](docs/patches/librecad-mline-closure-bit-2026-11-18.patch) patches have focused headless controls. The [installed-codec proof](docs/research/p8d-mline-installed-style-write-contract-2026-11-18.json) establishes source-handle input, stage binding and atomic retry. The [bounded bundled prototype](docs/research/p8d-mline-bundled-staged-write-proof-2026-11-18.json) now passes twelve refusals/retries and three no-hook readbacks. | Prepare the LibreCAD patch, check unrelated-record handling and budget disposition in a complete bundled build, then integrate the installed filter staged inspectors. Resume native GUI work after an active display and successful capture. The [latest preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json) could not capture. Batch Move/Copy, named-LTYPE save/reopen/render and selected MLINE display/edit/save/reopen. Run LibreCAD_3 MPOLYGON save/reopen with pinned ezdxf when that bundle is available. |
-| P8-F / WAITING_FOR_CURRENT_DIGEST_CI | Digest `cdf5d6b6db47465c65225aee7d45ebda04ec8cd2900532522893caa219e61f75` passes targeted local checks. The prior TABLESTYLE digest `6b6b6c92` passed [fast CI and all three authenticated focused-native jobs](docs/research/p8f-15cf-upstream-native-replay-2026-11-18.json). | Run fast and all three focused-native jobs for `cdf5d6b6`, then authenticate the completed receipts at the live tested ref. |
+| P8-F / WAITING_FOR_CURRENT_DIGEST_CI | Local digest `5102afcd86c6155799119fca3fd95269c4fbe4eb32ea558dace7a2a02bee5ed6` passes its selected checks. The prior VISUALSTYLE digest `cdf5d6b6` passed [authenticated focused native CI](https://github.com/LibreCAD/libdxfrw/actions/runs/44431365862). Its [fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/44431365739) is in progress. | Record terminal fast evidence for the VISUALSTYLE head, then run fast and all three focused-native jobs for `5102afcd` and authenticate the completed receipts at the live tested ref. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds. | Publish the evidence-backed support matrix with no required red job or advertised unqualified route. |
 
 Keep consumer, source, and build receipts separate. Preserve LibreCAD's R13

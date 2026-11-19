@@ -1540,3 +1540,186 @@ bool physicalAc1024SelectedVisualStyleWriter(const std::filesystem::path& source
     std::cerr << "AC1024 selected VISUALSTYLE passed seven refusal/retry controls in both encodings.\n";
     return true;
 }
+
+// Explicit one-member output projection; the original nine-member source
+// dictionary and all import evidence remain intact on the reader.
+bool physicalAc1024SelectedByBlockMaterialWriter(const std::filesystem::path& sourcePath) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG || source.sourceVersion != DRW::AC1024
+        || !source.hasSingleSuccessfulNamedResourceImport() || !source.hasNamedObjectDictionary
+        || source.namedObjectDictionary.handle != 0xCu || source.dictionaryWithDefaults.size() != 1u
+        || source.placeholders.size() != 1u)
+        return fail("could not import aerial ByBlock MATERIAL witness");
+    const auto findHandle = [](auto& rows, std::uint32_t handle) {
+        return std::find_if(rows.begin(), rows.end(), [handle](const auto& value) {
+            return value.handle == handle;
+        });
+    };
+    const auto group = findHandle(source.dictionaries, 0xDu);
+    const auto owner = findHandle(source.dictionaries, 0x72u);
+    const auto material = findHandle(source.materials, 0x97u);
+    const auto extension = findHandle(source.dictionaries, 0x295u);
+    const auto record = findHandle(source.xRecords, 0x296u);
+    if (group == source.dictionaries.end() || owner == source.dictionaries.end()
+        || material == source.materials.end() || extension == source.dictionaries.end()
+        || record == source.xRecords.end() || owner->parentHandle != 0xCu
+        || owner->m_entries.size() != 9u || material->parentHandle != 0x72u
+        || material->xDictHandle != 0x295u || extension->parentHandle != 0x97u
+        || extension->m_entries.size() != 1u || extension->m_entries.front().m_name != "FBXASSET"
+        || extension->m_entries.front().m_handle != 0x296u || record->parentHandle != 0x295u
+        || record->m_dataEntries.size() != 193u
+        || std::count_if(owner->m_entries.begin(), owner->m_entries.end(), [](const auto& entry) {
+            return entry.m_name == "ByBlock" && entry.m_handle == 0x97u;
+        }) != 1)
+        return fail("aerial ByBlock selected source graph differs from the witness");
+    class Writer final : public LayerStateTestWriter {
+    public:
+        dx_data blank;
+        DRW_Dictionary owner, extension;
+        DRW_Material material;
+        DRW_XRecord record;
+        DRW_DictionaryWithDefault plot;
+        DRW_AcDbPlaceholder placeholder;
+        bool skipRecord{false};
+        std::function<bool()> finalize;
+        void writeAppId() override {}
+        void writeObjects() override {
+            (void)dxfW->writeDictionaryWithDefault(&plot);
+            (void)dxfW->writeAcDbPlaceholder(&placeholder);
+            (void)dxfW->writeDictionary(&owner);
+            (void)dxfW->writeMaterial(&material);
+            (void)dxfW->writeDictionary(&extension);
+            if (!skipRecord) (void)dxfW->writeXRecord(&record);
+        }
+        bool finalizeDxfWrite() override { return finalize(); }
+    } writer;
+    writer.cData = &writer.blank;
+    writer.owner = *owner;
+    writer.owner.m_entries.erase(std::remove_if(writer.owner.m_entries.begin(),
+        writer.owner.m_entries.end(), [](const auto& entry) {
+            return entry.m_name != "ByBlock" || entry.m_handle != 0x97u;
+        }), writer.owner.m_entries.end());
+    if (writer.owner.m_entries.size() != 1u) return fail("ByBlock projection is ambiguous");
+    writer.material = *material;
+    writer.extension = *extension;
+    writer.record = *record;
+    writer.plot = source.dictionaryWithDefaults.front();
+    if (writer.plot.m_entries.size() != 1u) return fail("missing Normal plot-style entry");
+    writer.plot.m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+    writer.placeholder = source.placeholders.front();
+    const auto binaryField = std::find_if(writer.record.m_dataEntries.begin(),
+        writer.record.m_dataEntries.end(), [](const DRW_Variant& value) {
+            return value.code() == 310 && value.binary() != nullptr && !value.binary()->empty();
+        });
+    if (binaryField == writer.record.m_dataEntries.end()) return fail("ByBlock binary witness is missing");
+    const auto binaryIndex = static_cast<std::size_t>(binaryField - writer.record.m_dataEntries.begin());
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-selected-byblock-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error);
+    } } cleanup{path};
+    dxfRW codec(path.string().c_str());
+    reader.cData = &source;
+    Access::attachDxfWriter(reader, &codec);
+    Access::attachDxfWriter(writer, &codec);
+    codec.setDxfWriteRecordInventoryEnabled(true);
+    codec.setHandleRemap({{0x72u, 0xA072u}, {0x97u, 0xA097u},
+                          {0x295u, 0xA295u}, {0x296u, 0xA296u}});
+    codec.setRootDictEntries({{"ACAD_MATERIAL", "A072"}, {"ACAD_PLOTSTYLENAME", "E"}});
+    if (!codec.setGeneratedDictionarySourceHandles(0xCu, 0xDu)
+        || !codec.setGeneratedDictionarySourceRecords(
+            std::make_unique<DRW_Dictionary>(source.namedObjectDictionary),
+            std::make_unique<DRW_Dictionary>(*group))
+        || !codec.setDxfDefaultPlotStyleSourceHandles(0xEu, 0xFu))
+        return fail("could not set up selected ByBlock roots");
+    DRW_Class materialClass, plotClass, placeholderClass;
+    if (!Access::selectedAerialByBlockClass(reader, source, materialClass)
+        || !dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
+        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
+        return fail("missing selected ByBlock classes");
+    materialClass.instanceCount = plotClass.instanceCount = placeholderClass.instanceCount = 1;
+    codec.setDxfClasses({materialClass, plotClass, placeholderClass});
+    enum class Fault { None, RootRole, ExtensionRole, BinaryByte, Truncated, MissingTarget,
+                       MaterialEarly, RecordEarly, MaterialLate, RecordLate };
+    Fault fault = Fault::None;
+    bool staged = false, finalizing = false;
+    if (!codec.setDxfObjectsWriteInspector([&](const auto& view) {
+        staged = true;
+        return Access::inspectSelectedAerialByBlock(reader, view);
+    })) return fail("could not install selected ByBlock inspector");
+    auto& materialWire = Access::aerialMLeaderWire(source, 0x97u);
+    auto& recordWire = Access::standardFrameTail(source, 0x296u);
+    writer.finalize = [&]() {
+        finalizing = true;
+        if (fault == Fault::MaterialLate) materialWire ^= 0x80u;
+        if (fault == Fault::RecordLate) recordWire ^= 1u;
+        const bool result = Access::finalizeSelectedAerialByBlock(reader);
+        if (fault == Fault::MaterialLate) materialWire ^= 0x80u;
+        if (fault == Fault::RecordLate) recordWire ^= 1u;
+        return result;
+    };
+    const auto run = [&](bool binary) {
+        staged = finalizing = false;
+        Access::resetRasterOutput(reader);
+        return Access::prepareSelectedAerialByBlock(reader, source, *material, *extension)
+            && codec.write(&writer, DRW::AC1024, binary);
+    };
+    const std::string sentinel = "preserve selected ByBlock destination\n";
+    for (const bool binary : {false, true}) {
+        if (!run(binary) || !staged || !finalizing)
+            return fail("selected ByBlock baseline was rejected");
+        for (const Fault bad : {Fault::RootRole, Fault::ExtensionRole, Fault::BinaryByte,
+                Fault::Truncated, Fault::MissingTarget, Fault::MaterialEarly, Fault::RecordEarly,
+                Fault::MaterialLate, Fault::RecordLate}) {
+            fault = bad;
+            if (bad == Fault::RootRole) writer.owner.m_entries.front().m_dxfHandleCode =
+                DRW_Dictionary::Entry::DxfHandleCode::HardOwner;
+            if (bad == Fault::ExtensionRole) writer.extension.m_entries.front().m_dxfHandleCode =
+                DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+            if (bad == Fault::BinaryByte) {
+                auto bytes = *writer.record.m_dataEntries[binaryIndex].binary();
+                bytes.front() ^= 1u;
+                writer.record.m_dataEntries[binaryIndex] = DRW_Variant(310, std::move(bytes));
+            }
+            if (bad == Fault::Truncated) writer.record.m_dataEntries.pop_back();
+            if (bad == Fault::MissingTarget) writer.skipRecord = true;
+            if (bad == Fault::MaterialEarly) materialWire ^= 0x80u;
+            if (bad == Fault::RecordEarly) recordWire ^= 1u;
+            {
+                std::ofstream existing(path, std::ios::binary | std::ios::trunc);
+                if (!(existing << sentinel)) return fail("cannot seed ByBlock destination");
+            }
+            const bool saved = run(binary);
+            writer.owner = *owner;
+            writer.owner.m_entries.erase(std::remove_if(writer.owner.m_entries.begin(),
+                writer.owner.m_entries.end(), [](const auto& entry) {
+                    return entry.m_name != "ByBlock" || entry.m_handle != 0x97u;
+                }), writer.owner.m_entries.end());
+            writer.extension = *extension;
+            writer.record = *record;
+            writer.skipRecord = false;
+            if (bad == Fault::MaterialEarly) materialWire ^= 0x80u;
+            if (bad == Fault::RecordEarly) recordWire ^= 1u;
+            const bool early = bad == Fault::MaterialEarly || bad == Fault::RecordEarly;
+            const bool late = bad == Fault::MaterialLate || bad == Fault::RecordLate;
+            fault = Fault::None;
+            std::ifstream existing(path, std::ios::binary);
+            if (saved || (early && staged) || (late && (!staged || !finalizing))
+                || (!early && !late && !staged)
+                || std::string(std::istreambuf_iterator<char>(existing), {}) != sentinel) {
+                std::cerr << "ByBlock fault=" << static_cast<int>(bad) << " binary=" << binary
+                          << " staged=" << staged << " finalizing=" << finalizing << '\n';
+                return fail("selected ByBlock fault did not refuse atomically");
+            }
+            existing.close();
+            if (!run(binary) || !staged || !finalizing)
+                return fail("selected ByBlock corrected retry failed");
+        }
+    }
+    std::cerr << "AC1024 selected ByBlock MATERIAL passed nine refusal/retry controls in both encodings.\n";
+    return true;
+}

@@ -4592,6 +4592,23 @@ private:
     bool writeDxfMaterialSource(std::uint32_t handle);
     bool hasUnchangedDxfMaterialSources() const noexcept;
     bool inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) noexcept;
+    struct AerialDwgByBlockMaterialSource {
+        DwgClassObjectPublication frame;
+        const dx_data* owner{nullptr};
+        std::optional<DRW_Material> material;
+        std::array<std::vector<std::uint8_t>, 4> bodies;
+    };
+    AerialDwgByBlockMaterialSource m_dwgAerialByBlockMaterial;
+    bool m_dwgAerialByBlockMaterialInspected{false};
+    void retainAerialDwgByBlockMaterialPublication(const DRW_DwgFramePublication&) noexcept;
+    void finishAerialDwgByBlockMaterialSource() noexcept;
+    bool requiresAc1024AerialDwgByBlockMaterialProof(const dx_data&) const noexcept;
+    std::array<const DRW_UnsupportedObject*, 4> boundAerialDwgByBlockMaterialFrames(
+        const dx_data&, const DRW_Material&, DRW_Class*) const;
+    bool hasQualifiedAc1024AerialDwgByBlockMaterial(const dx_data&,
+        DRW_Class* outputClass = nullptr) const noexcept;
+    bool inspectAc1024AerialDwgByBlockMaterial(const dxfRW::DxfObjectsWriteView&) noexcept;
+    bool finalizeAc1024AerialDwgByBlockMaterial() const noexcept;
     struct DxfHeaderMaterialState {
         const dx_data* owner{nullptr};
         std::uint64_t generation{0};

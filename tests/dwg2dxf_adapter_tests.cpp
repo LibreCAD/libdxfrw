@@ -3570,6 +3570,35 @@ public:
             && iface.finalizeStandardDwgOutputProofs()
             && iface.finalizeGeneratedRootOutput();
     }
+    static bool prepareSelectedAerialByBlock(dx_iface& iface, dx_data& data,
+            const DRW_Material& material, const DRW_Dictionary& extension) {
+        if (!iface.hasQualifiedAc1024AerialDwgByBlockMaterial(data)) return false;
+        iface.m_extensionMaterialHandles = {0x97u};
+        iface.m_extensionMaterialSources = {material};
+        iface.m_extensionMaterialDictionaryHandles = {0x295u};
+        iface.m_extensionMaterialDictionaries = {extension};
+        iface.m_extensionMaterialSourceOwner = &data;
+        iface.m_extensionMaterialSourceVersion = data.sourceVersion;
+        iface.m_extensionMaterialSourceGeneration = data.importGeneration;
+        iface.m_dxfMaterialWriteInspected = false;
+        iface.m_dwgAerialByBlockMaterialInspected = false;
+        return iface.hasUnchangedExtensionMaterialSources();
+    }
+    static bool selectedAerialByBlockClass(const dx_iface& iface,
+            const dx_data& data, DRW_Class& row) {
+        return iface.hasQualifiedAc1024AerialDwgByBlockMaterial(data, &row);
+    }
+    static bool inspectSelectedAerialByBlock(dx_iface& iface,
+            const dxfRW::DxfObjectsWriteView& view) {
+        return iface.inspectDxfMaterialOutput(view)
+            && iface.inspectGeneratedRootOutput(view)
+            && iface.inspectStandardDwgOutput(view);
+    }
+    static bool finalizeSelectedAerialByBlock(dx_iface& iface) {
+        return iface.finalizeStandardDwgOutputProofs()
+            && iface.finalizeGeneratedRootOutput()
+            && iface.finalizeAc1024AerialDwgByBlockMaterial();
+    }
     static std::uint8_t& aerialMLeaderWire(dx_data& data, std::uint32_t handle) {
         return data.m_opaqueDwgSourceFrames.at({data.importGeneration, handle}).m_rawBytes.at(0u);
     }
@@ -93031,6 +93060,8 @@ int main(int argc, char** argv) {
         return physicalAc1024SelectedMLeaderStylesWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-visualstyle-writer")
         return physicalAc1024SelectedVisualStyleWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-byblock-material-writer")
+        return physicalAc1024SelectedByBlockMaterialWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-tablestyle-writer")
         return physicalAc1024SelectedTableStyleWriter(argv[2]) ? 0 : 1;
     if (argc == 3
