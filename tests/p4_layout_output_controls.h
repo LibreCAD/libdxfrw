@@ -157,6 +157,16 @@ bool physicalAc1024AerialLayoutSourceBinding(
         || !Access::hasStagedLayoutExtension(sourceReader))
         return fail("AC1024 aerial LAYOUT graph did not recover after wrong-version refusal");
 
+    dx_data projection;
+    if (!Access::selectPhysicalAc1024AerialLayoutProjection(source, projection)
+        || !projection.hasNamedObjectDictionary
+        || projection.namedObjectDictionary.m_entries.size() != 1u
+        || projection.dictionaries.size() != 2u
+        || projection.xRecords.size() != 1u
+        || projection.layouts.size() != 3u
+        || projection.blockRecords.size() != 3u)
+        return fail("selected AC1024 aerial LAYOUT projection was not closed");
+
     for (const bool binary : {false, true}) {
         const auto nonce = std::chrono::steady_clock::now()
                                .time_since_epoch().count();
@@ -172,6 +182,59 @@ bool physicalAc1024AerialLayoutSourceBinding(
                 std::filesystem::remove(path, ignored);
             }
         } cleanup{destinationPath};
+        const std::string projectionSentinel =
+            "preserve rejected aerial layout write\n";
+        {
+            std::ofstream output(destinationPath,
+                std::ios::binary | std::ios::trunc);
+            if (!output || !(output << projectionSentinel))
+                return fail("could not seed the selected LAYOUT destination");
+        }
+        dx_iface writer;
+        DRW_XRecord* projectedThumbnail = nullptr;
+        for (DRW_XRecord& record : projection.xRecords)
+            if (record.handle == 0x302u) projectedThumbnail = &record;
+        if (projectedThumbnail == nullptr
+            || projectedThumbnail->m_values.empty())
+            return fail("selected LAYOUT projection lost its thumbnail XRECORD");
+        const DRW_Variant savedThumbnailValue =
+            projectedThumbnail->m_values.front();
+        projectedThumbnail->m_values.front().addString(
+            1, "mutated aerial layout thumbnail");
+        const bool refusedChangedSource = !writer.fileExport(
+            destinationPath.string(), DRW::AC1024, binary, &projection,
+            false, false, dx_dxfSourceTextPolicy::RequireValidSource,
+            DRW::DxfTextWritePolicy::RequireLossless,
+            dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+            dx_dwgReadCompletenessPolicy::Legacy);
+        projectedThumbnail->m_values.front() = savedThumbnailValue;
+        std::ifstream preserved(destinationPath, std::ios::binary);
+        const std::string preservedContents{
+            std::istreambuf_iterator<char>{preserved}, {}};
+        if (!refusedChangedSource
+            || preservedContents != projectionSentinel)
+            return fail("changed selected LAYOUT source did not refuse atomically");
+
+        std::ostringstream retryDiagnostics;
+        std::streambuf* const previousErrorBuffer =
+            std::cerr.rdbuf(retryDiagnostics.rdbuf());
+        const bool restoredSourceAccepted = writer.fileExport(
+            destinationPath.string(), DRW::AC1024, binary, &projection,
+            true, false, dx_dxfSourceTextPolicy::RequireValidSource,
+            DRW::DxfTextWritePolicy::RequireLossless,
+            dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+            dx_dwgReadCompletenessPolicy::Legacy);
+        std::cerr.rdbuf(previousErrorBuffer);
+        std::ifstream afterRetry(destinationPath, std::ios::binary);
+        const std::string afterRetryContents{
+            std::istreambuf_iterator<char>{afterRetry}, {}};
+        if (restoredSourceAccepted
+            || afterRetryContents != projectionSentinel
+            || retryDiagnostics.str().find(
+                "Background consumer-reference closure: Background consumer reference is unrooted")
+                == std::string::npos)
+            return fail("restored LAYOUT graph bypassed its unresolved background refusal");
+
         const std::string sentinel = "preserve blocked aerial output\n";
         {
             std::ofstream output(destinationPath,
@@ -191,5 +254,6 @@ bool physicalAc1024AerialLayoutSourceBinding(
         if (exported || contents != sentinel)
             return fail("the independent SUN graph blocker did not preserve the output destination");
     }
+    std::cout << "AC1024 aerial LAYOUT source-bound projection: changed-XRECORD and restored-graph refusals preserve ASCII/Binary destinations; restored output is gated by the unresolved VPORT 0x94 background edge; whole-source output remains gated by VIEW/SUN parent mismatch. No DXF fixtures retained.\n";
     return true;
 }

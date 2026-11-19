@@ -435,6 +435,233 @@ public:
             && projection.m_standardDwgObjectFrames.emplace(*found).second;
     }
 
+    static bool selectPhysicalAc1024AerialLayoutProjection(
+            const dx_data& source, dx_data& projection) {
+        if (source.sourceFormat != dx_source_format::DWG
+            || source.sourceVersion != DRW::AC1024
+            || source.importGeneration == 0u
+            || !source.hasNamedObjectDictionary
+            || source.namedObjectDictionary.handle != 0x0Cu
+            || source.layouts.size() != 3u
+            || source.blockRecords.size() != 3u
+            || source.blocks.size() != 3u
+            || source.dictionaries.size() != 46u
+            || source.xRecords.size() != 131u)
+            return false;
+
+        projection.sourceFormat = source.sourceFormat;
+        projection.sourceVersion = source.sourceVersion;
+        projection.importGeneration = source.importGeneration;
+        projection.headerC = source.headerC;
+        projection.dwgReadOutcome = source.dwgReadOutcome;
+        // The selected output contains no opaque callback carriers. Keep the
+        // copied import receipt internally consistent with that projection.
+        projection.dwgReadOutcome.opaqueViewCallbacks = 0u;
+        projection.dwgReadOutcome.opaqueSourceFramesCaptured = 0u;
+        projection.dwgReadOutcome.opaqueFramesOutputQualified = 0u;
+        projection.dwgReadOutcome.opaqueFramesRetainedByAdapter = 0u;
+        projection.hasNamedObjectDictionary = true;
+        projection.namedObjectDictionary = source.namedObjectDictionary;
+        projection.namedObjectDictionary.m_entries.erase(
+            std::remove_if(
+                projection.namedObjectDictionary.m_entries.begin(),
+                projection.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name != "ACAD_LAYOUT"
+                        || entry.m_handle != 0x1Au;
+                }),
+            projection.namedObjectDictionary.m_entries.end());
+        if (projection.namedObjectDictionary.m_entries.size() != 1u)
+            return false;
+
+        projection.layouts = source.layouts;
+        projection.blockRecords = source.blockRecords;
+        for (const dx_ifaceBlock* block : source.blocks) {
+            if (block == nullptr || !block->ent.empty()
+                || !block->hasEndBlockData)
+                return false;
+            auto* retained = new dx_ifaceBlock(*block);
+            retained->endBlockData = block->endBlockData;
+            retained->hasEndBlockData = block->hasEndBlockData;
+            projection.blocks.push_back(retained);
+        }
+        projection.lineTypes = source.lineTypes;
+        projection.VPorts = source.VPorts;
+        projection.textStyles = source.textStyles;
+        projection.appIds = source.appIds;
+        if (projection.VPorts.size() != 1u
+            || projection.VPorts.front().handle != 0x94u
+            || projection.VPorts.front().m_sunHandle != 0x187u)
+            return false;
+        const auto sun = std::find_if(source.suns.begin(), source.suns.end(),
+            [](const DRW_Sun& value) {
+                return value.handle == 0x187u && value.parentHandle == 0x94u;
+            });
+        if (sun == source.suns.end()
+            || std::count_if(source.suns.begin(), source.suns.end(),
+                [](const DRW_Sun& value) { return value.handle == 0x187u; })
+                != 1u)
+            return false;
+        projection.suns.push_back(*sun);
+
+        const auto selectDictionary = [&source, &projection](
+                std::uint32_t handle) {
+            const DRW_Dictionary* found = nullptr;
+            for (const DRW_Dictionary& candidate : source.dictionaries) {
+                if (candidate.handle != handle)
+                    continue;
+                if (found != nullptr)
+                    return false;
+                found = &candidate;
+            }
+            if (found == nullptr)
+                return false;
+            projection.dictionaries.push_back(*found);
+            return true;
+        };
+        if (!selectDictionary(0x1Au) || !selectDictionary(0x301u))
+            return false;
+        const auto thumbnail = std::find_if(source.xRecords.begin(),
+            source.xRecords.end(), [](const DRW_XRecord& value) {
+                return value.handle == 0x302u;
+            });
+        if (thumbnail == source.xRecords.end()
+            || std::count_if(source.xRecords.begin(), source.xRecords.end(),
+                [](const DRW_XRecord& value) { return value.handle == 0x302u; })
+                != 1u)
+            return false;
+        projection.xRecords.push_back(*thumbnail);
+
+        copyAc1027MaterialSourceProof(source, projection);
+        projection.basicTableCaptureFailed = source.basicTableCaptureFailed;
+        projection.basicTableRetainedRecords = source.basicTableRetainedRecords;
+        projection.basicTableRetainedItems = source.basicTableRetainedItems;
+        projection.basicTableRetainedBytes = source.basicTableRetainedBytes;
+        projection.dictionaryCaptureFailed = source.dictionaryCaptureFailed;
+        projection.dictionaryRetainedRecords = source.dictionaryRetainedRecords;
+        projection.dictionaryRetainedEntries = source.dictionaryRetainedEntries;
+        projection.dictionaryRetainedBytes = source.dictionaryRetainedBytes;
+        projection.xRecordCaptureFailed = source.xRecordCaptureFailed;
+        projection.xRecordRetainedRecords = source.xRecordRetainedRecords;
+        projection.xRecordRetainedItems = source.xRecordRetainedItems;
+        projection.xRecordRetainedBytes = source.xRecordRetainedBytes;
+        projection.m_dwgBlockControlPublication =
+            source.m_dwgBlockControlPublication;
+        projection.m_dwgBlockControlGeneration =
+            source.m_dwgBlockControlGeneration;
+        projection.m_dwgBlockControlPublicationSeen =
+            source.m_dwgBlockControlPublicationSeen;
+        projection.m_dwgBlockControlCaptureFailed =
+            source.m_dwgBlockControlCaptureFailed;
+        projection.m_dwgLtypeControlPublication =
+            source.m_dwgLtypeControlPublication;
+        projection.m_dwgLtypeControlGeneration =
+            source.m_dwgLtypeControlGeneration;
+        projection.m_dwgLtypeControlPublicationSeen =
+            source.m_dwgLtypeControlPublicationSeen;
+        projection.m_dwgLtypeControlCaptureFailed =
+            source.m_dwgLtypeControlCaptureFailed;
+
+        projection.m_opaqueDwgSourceFrames.clear();
+        projection.m_opaqueDwgSourceFrameIdentities.clear();
+        projection.m_opaqueDwgSourceFrameRetainedBytes = 0u;
+        for (const std::uint32_t handle : {0x22u, 0x59u, 0x5Eu}) {
+            const dx_data::StandardDwgFrameKey key{
+                source.importGeneration, handle};
+            const auto frame = source.m_opaqueDwgSourceFrames.find(key);
+            if (frame == source.m_opaqueDwgSourceFrames.end()
+                || source.m_opaqueDwgSourceFrameIdentities.count(key) != 1u
+                || !projection.m_opaqueDwgSourceFrames.emplace(*frame).second
+                || !projection.m_opaqueDwgSourceFrameIdentities.insert(key).second)
+                return false;
+            projection.m_opaqueDwgSourceFrameRetainedBytes +=
+                frame->second.m_rawBytes.size();
+        }
+        projection.dwgReadOutcome.opaqueViewCallbacks = 3u;
+        projection.dwgReadOutcome.opaqueSourceFramesCaptured = 3u;
+        projection.dwgReadOutcome.opaqueFramesRetainedByAdapter = 3u;
+        projection.m_standardDwgObjectFrames.clear();
+        projection.m_standardDwgObjectOrdinals.clear();
+        projection.m_standardDwgObjectLocations.clear();
+        projection.m_standardDwgObjectRetainedBytes = 0u;
+        const auto includeFrame = [&source, &projection](std::uint32_t handle) {
+            const dx_data::StandardDwgFrameKey key{
+                source.importGeneration, handle};
+            const auto frame = source.m_standardDwgObjectFrames.find(key);
+            if (frame == source.m_standardDwgObjectFrames.end()) {
+                std::cerr << "LAYOUT projection missing standard frame/ordinal 0x"
+                          << std::hex << handle << std::dec << '\n';
+                return false;
+            }
+            const dx_data::StandardDwgOrdinalKey ordinalKey{
+                source.importGeneration,
+                frame->second.publication.m_sourceMapOrdinal};
+            const auto ordinal =
+                source.m_standardDwgObjectOrdinals.find(ordinalKey);
+            if (ordinal == source.m_standardDwgObjectOrdinals.end()) {
+                std::cerr << "LAYOUT projection missing standard ordinal 0x"
+                          << std::hex << handle << std::dec << '\n';
+                return false;
+            }
+            const dx_data::StandardDwgLocationKey locationKey{
+                source.importGeneration,
+                {frame->second.publication.m_sourceOffsetSpace,
+                 frame->second.publication.m_sourceOffset}};
+            const auto location = source.m_standardDwgObjectLocations.find(
+                locationKey);
+            if (location == source.m_standardDwgObjectLocations.end()) {
+                std::cerr << "LAYOUT projection missing standard location 0x"
+                          << std::hex << handle << std::dec << '\n';
+                return false;
+            }
+            if (!standardSourceEligible(source, handle)) {
+                std::cerr << "LAYOUT projection ineligible standard frame 0x"
+                          << std::hex << handle << std::dec << '\n';
+                return false;
+            }
+            if (!projection.m_standardDwgObjectFrames.emplace(*frame).second
+                || !projection.m_standardDwgObjectOrdinals.emplace(*ordinal).second
+                || !projection.m_standardDwgObjectLocations.emplace(*location).second)
+                return false;
+            projection.m_standardDwgObjectRetainedBytes +=
+                frame->second.raw.m_rawBytes.size();
+            return true;
+        };
+        for (const std::uint32_t handle : {0x301u, 0x302u})
+            if (!includeFrame(handle)) return false;
+        projection.m_standardDwgObjectMembershipEntries =
+            source.m_standardDwgObjectMembershipEntries;
+        projection.m_standardDwgObjectCaptureFailed =
+            source.m_standardDwgObjectCaptureFailed;
+        projection.m_standardDwgObjectPayloadFailed =
+            source.m_standardDwgObjectPayloadFailed;
+        projection.m_standardDwgNamesClosedThrough =
+            source.m_standardDwgNamesClosedThrough;
+        projection.m_standardDwgAppIdSources =
+            source.m_standardDwgAppIdSources;
+        projection.m_standardDwgLayerSources =
+            source.m_standardDwgLayerSources;
+        projection.dwgReadOutcome.standardObjectFramesCaptured =
+            projection.m_standardDwgObjectFrames.size();
+        projection.dwgReadOutcome.standardObjectSourceReceiptsMatched =
+            projection.m_standardDwgObjectFrames.size();
+        projection.dwgReadOutcome.standardObjectTypedPayloadsMatched =
+            projection.m_standardDwgObjectFrames.size();
+        projection.dwgReadOutcome.standardObjectOpaquePayloadsMatched = 0u;
+        const bool completeNod =
+            projection.namedObjectDictionary.hasCompleteDwgEntries()
+            && projection.namedObjectDictionary.hasCompleteDxfEntries();
+        const bool completeBlocks =
+            projection.hasCompleteDwgBlockRecordControlMembership();
+        const bool completeLtypes =
+            projection.hasCompleteDwgLineTypeControlMembership();
+        if (!completeNod || !completeBlocks || !completeLtypes)
+            std::cerr << "LAYOUT projection final audit nod=" << completeNod
+                      << " blocks=" << completeBlocks
+                      << " ltypes=" << completeLtypes << '\n';
+        return completeNod && completeBlocks && completeLtypes;
+    }
+
     static bool dynamicBlockOwnerDictionaryProfile(
             const dx_data& data, std::uint32_t handle) noexcept {
         return dx_iface::testAc1024DynamicBlockOwnerDictionary(data, handle);
