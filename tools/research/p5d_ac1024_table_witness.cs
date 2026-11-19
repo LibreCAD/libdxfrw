@@ -13,11 +13,17 @@ using Autodesk.AutoCAD.Runtime;
 
 namespace LibdxfrwWitness {
     public sealed class P5DTableWitness {
+        private const int BlockRow = 3;
+        private const int BlockColumn = 2;
+        private const string AttributeTag = "P5D_NOTE";
+        private const string AttributeDefault = "DEFAULT_NOTE";
+        private const string AttributeOverride = "OVERRIDDEN_NOTE";
+
         private static readonly string[,] Values = {
             { "P5-D AC1024 TABLE", "Source profile", "1" },
             { "KEY", "VALUE", "UNIT" },
             { "A", "42", "mm" },
-            { "B", "7", "deg" }
+            { "B", "7", "<block attribute>" }
         };
 
         private static void Log(TextWriter writer, string key, object value) {
@@ -109,11 +115,35 @@ namespace LibdxfrwWitness {
             ObjectId tableOwnerId = ObjectId.Null;
             ObjectId styleId = ObjectId.Null;
             ObjectId blockId = ObjectId.Null;
+            ObjectId cellBlockId = ObjectId.Null;
+            ObjectId attributeDefinitionId = ObjectId.Null;
+            string cellBlockName = "P5D_ATTR_" + Guid.NewGuid().ToString("N").Substring(0, 12).ToUpperInvariant();
 
             try {
                 using (Transaction tr = db.TransactionManager.StartTransaction()) {
                     styleId = db.Tablestyle;
                     if (styleId.IsNull) throw new InvalidOperationException("database has no current table style");
+
+                    BlockTable blockTable = tr.GetObject(db.BlockTableId, OpenMode.ForWrite) as BlockTable;
+                    if (blockTable == null) throw new InvalidOperationException("database has no block table");
+                    using (var cellBlock = new BlockTableRecord()) {
+                        cellBlock.Name = cellBlockName;
+                        cellBlock.Origin = Autodesk.AutoCAD.Geometry.Point3d.Origin;
+                        cellBlockId = blockTable.Add(cellBlock);
+                        tr.AddNewlyCreatedDBObject(cellBlock, true);
+
+                        using (var attributeDefinition = new AttributeDefinition()) {
+                            attributeDefinition.Position = Autodesk.AutoCAD.Geometry.Point3d.Origin;
+                            attributeDefinition.Height = 2.0;
+                            attributeDefinition.Tag = AttributeTag;
+                            attributeDefinition.Prompt = "P5-D cell note";
+                            attributeDefinition.TextString = AttributeDefault;
+                            attributeDefinition.Constant = false;
+                            cellBlock.AppendEntity(attributeDefinition);
+                            tr.AddNewlyCreatedDBObject(attributeDefinition, true);
+                            attributeDefinitionId = attributeDefinition.ObjectId;
+                        }
+                    }
 
                     var table = new Table();
                     table.TableStyle = styleId;
@@ -125,9 +155,12 @@ namespace LibdxfrwWitness {
                         for (int column = 0; column < Values.GetLength(1); ++column)
                             table.Cells[row, column].TextString = Values[row, column];
                     }
+                    // Exercise TABLECONTENT's block-content ATTDEF/value branch.
+                    table.SetBlockTableRecordId(BlockRow, BlockColumn, 0, cellBlockId, false);
+                    table.SetBlockAttributeValue(BlockRow, BlockColumn,
+                        attributeDefinitionId, AttributeOverride);
                     table.GenerateLayout();
 
-                    BlockTable blockTable = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
                     BlockTableRecord model = tr.GetObject(blockTable[BlockTableRecord.ModelSpace],
                         OpenMode.ForWrite) as BlockTableRecord;
                     tableId = model.AppendEntity(table);
@@ -155,7 +188,8 @@ namespace LibdxfrwWitness {
 
                 string magic = ReadMagic(dwgPath);
                 bool complete = magic == "AC1024" && !tableId.IsNull && !tableOwnerId.IsNull
-                    && !styleId.IsNull && !blockId.IsNull && File.Exists(asciiPath)
+                    && !styleId.IsNull && !blockId.IsNull && !cellBlockId.IsNull
+                    && !attributeDefinitionId.IsNull && File.Exists(asciiPath)
                     && File.Exists(binaryPath);
                 using (var file = new FileStream(receiptPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
                 using (var writer = new StreamWriter(file)) {
@@ -166,6 +200,15 @@ namespace LibdxfrwWitness {
                     Log(writer, "tableOwnerHandle", HandleText(tableOwnerId));
                     Log(writer, "tableStyleHandle", HandleText(styleId));
                     Log(writer, "tableBlockHandle", HandleText(blockId));
+                    Log(writer, "blockCellRow", BlockRow);
+                    Log(writer, "blockCellColumn", BlockColumn);
+                    Log(writer, "blockCellBlockHandle", HandleText(cellBlockId));
+                    Log(writer, "blockCellBlockName", cellBlockName);
+                    Log(writer, "blockCellAttributeDefinitionHandle", HandleText(attributeDefinitionId));
+                    Log(writer, "blockCellAttributeTag", AttributeTag);
+                    Log(writer, "blockCellAttributeConstant", false);
+                    Log(writer, "blockCellAttributeDefault", AttributeDefault);
+                    Log(writer, "blockCellAttributeExpectedValue", AttributeOverride);
                     Log(writer, "rowCount", Values.GetLength(0));
                     Log(writer, "columnCount", Values.GetLength(1));
                     Log(writer, "uniformRowHeight", "6.0");
@@ -225,6 +268,14 @@ namespace LibdxfrwWitness {
                 int dbmod = Convert.ToInt32(Application.GetSystemVariable("DBMOD"), CultureInfo.InvariantCulture);
                 int tableCount = 0;
                 Table observed = null;
+                ObjectId cellBlockId = ObjectId.Null;
+                ObjectId attributeDefinitionId = ObjectId.Null;
+                string observedCellBlockName = "<null>";
+                string observedAttributeDefault = "<null>";
+                string observedAttributeValue = "<null>";
+                bool observedAttributeConstant = true;
+                int attributeDefinitionCount = 0;
+                int attributeTagMatchCount = 0;
                 using (Transaction tr = db.TransactionManager.StartTransaction()) {
                     BlockTable blockTable = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
                     BlockTableRecord model = tr.GetObject(blockTable[BlockTableRecord.ModelSpace],
@@ -242,15 +293,48 @@ namespace LibdxfrwWitness {
                     if (matches) {
                         for (int row = 0; row < Values.GetLength(0); ++row)
                             for (int column = 0; column < Values.GetLength(1); ++column)
-                                matches = matches && String.Equals(observed.Cells[row, column].TextString,
-                                    Values[row, column], StringComparison.Ordinal);
+                                if (row != BlockRow || column != BlockColumn)
+                                    matches = matches && String.Equals(observed.Cells[row, column].TextString,
+                                        Values[row, column], StringComparison.Ordinal);
                         for (int row = 0; row < Values.GetLength(0); ++row)
                             matches = matches && Math.Abs(observed.GetRowHeight(row) - 6.0) < 1e-8;
                         for (int column = 0; column < Values.GetLength(1); ++column)
                             matches = matches && Math.Abs(observed.GetColumnWidth(column) - 32.0) < 1e-8;
+
+                        cellBlockId = observed.GetBlockTableRecordId(BlockRow, BlockColumn, 0);
+                        if (!cellBlockId.IsNull) {
+                            BlockTableRecord cellBlock = tr.GetObject(cellBlockId, OpenMode.ForRead)
+                                as BlockTableRecord;
+                            if (cellBlock != null) {
+                                observedCellBlockName = cellBlock.Name;
+                                foreach (ObjectId childId in cellBlock) {
+                                    AttributeDefinition candidate = tr.GetObject(childId, OpenMode.ForRead)
+                                        as AttributeDefinition;
+                                    if (candidate == null) continue;
+                                    ++attributeDefinitionCount;
+                                    if (!String.Equals(candidate.Tag, AttributeTag,
+                                            StringComparison.OrdinalIgnoreCase)) continue;
+                                    ++attributeTagMatchCount;
+                                    attributeDefinitionId = childId;
+                                    observedAttributeDefault = candidate.TextString;
+                                    observedAttributeConstant = candidate.Constant;
+                                }
+                            }
+                        }
+                        if (attributeTagMatchCount == 1 && !attributeDefinitionId.IsNull)
+                            observedAttributeValue = observed.GetBlockAttributeValue(BlockRow, BlockColumn,
+                                attributeDefinitionId);
                     }
                     matches = matches && dbmod == 0 && !observed.TableStyle.IsNull
                         && !observed.BlockTableRecord.IsNull;
+                    bool blockAttributeMatches = !cellBlockId.IsNull
+                        && observedCellBlockName.StartsWith("P5D_ATTR_", StringComparison.Ordinal)
+                        && attributeDefinitionCount == 1 && attributeTagMatchCount == 1
+                        && !attributeDefinitionId.IsNull && !observedAttributeConstant
+                        && String.Equals(observedAttributeDefault, AttributeDefault, StringComparison.Ordinal)
+                        && String.Equals(observedAttributeValue, AttributeOverride, StringComparison.Ordinal)
+                        && !String.Equals(observedAttributeValue, observedAttributeDefault, StringComparison.Ordinal);
+                    matches = matches && blockAttributeMatches;
 
                     using (var file = new FileStream(reportPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read))
                     using (var writer = new StreamWriter(file)) {
@@ -266,6 +350,17 @@ namespace LibdxfrwWitness {
                             Log(writer, "tableOwnerHandle", HandleText(observed.OwnerId));
                             Log(writer, "tableStyleHandle", HandleText(observed.TableStyle));
                             Log(writer, "tableBlockHandle", HandleText(observed.BlockTableRecord));
+                            Log(writer, "blockCellRow", BlockRow);
+                            Log(writer, "blockCellColumn", BlockColumn);
+                            Log(writer, "blockCellContentHandle", HandleText(cellBlockId));
+                            Log(writer, "blockCellContentName", observedCellBlockName);
+                            Log(writer, "blockCellAttributeDefinitionCount", attributeDefinitionCount);
+                            Log(writer, "blockCellAttributeTagMatchCount", attributeTagMatchCount);
+                            Log(writer, "blockCellAttributeDefinitionHandle", HandleText(attributeDefinitionId));
+                            Log(writer, "blockCellAttributeTag", AttributeTag);
+                            Log(writer, "blockCellAttributeConstant", observedAttributeConstant);
+                            Log(writer, "blockCellAttributeDefault", observedAttributeDefault);
+                            Log(writer, "blockCellAttributeValue", observedAttributeValue);
                             Log(writer, "tableStyleName", observed.TableStyle.IsNull ? "<null>"
                                 : ((TableStyle)tr.GetObject(observed.TableStyle, OpenMode.ForRead)).Name);
                             Log(writer, "tableBlockName", observed.BlockTableRecord.IsNull ? "<null>"
@@ -281,13 +376,17 @@ namespace LibdxfrwWitness {
                                     if (row == 0)
                                         Log(writer, "columnWidth[" + column + "]",
                                             observed.GetColumnWidth(column));
-                                    Log(writer, "cell[" + row + "," + column + "]",
-                                        observed.Cells[row, column].TextString);
+                                    if (row == BlockRow && column == BlockColumn)
+                                        Log(writer, "cell[" + row + "," + column + "]",
+                                            "BLOCK(" + AttributeTag + ")=" + observedAttributeValue);
+                                    else
+                                        Log(writer, "cell[" + row + "," + column + "]",
+                                            observed.Cells[row, column].TextString);
                                 }
                             }
                         }
                         Log(writer, "status", matches
-                            ? "NATIVE_REOPEN_VALUES_AND_LINKS_MATCHED"
+                            ? "NATIVE_REOPEN_VALUES_LINKS_AND_BLOCK_ATTRIBUTE_MATCHED"
                             : "INCOMPLETE_DO_NOT_QUALIFY");
                     }
                     tr.Commit();

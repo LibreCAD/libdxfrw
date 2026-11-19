@@ -3,7 +3,7 @@
   "title": "P5-D AC1024 TABLE ObjectARX witness packet readiness",
   "date": "2026-11-19",
   "supportClaimEffect": "none",
-  "scope": "Prepare a scratch-only native AutoCAD producer packet for one controlled AC1024 TABLE profile. This receipt covers packet readiness only; it is not a host build, producer capture, DWG field-span proof, or support qualification.",
+  "scope": "Prepare a scratch-only native AutoCAD producer packet for one controlled AC1024 TABLE profile, including a block-content cell with a known nonconstant ATTDEF and non-default value. This receipt covers packet readiness only; it is not a host build, producer capture, DWG field-span proof, or support qualification.",
   "hostIntake": {
     "availability": "The user confirmed a remote ObjectARX host is available.",
     "productReleaseBuild": "pending",
@@ -16,7 +16,7 @@
   "packet": {
     "source": {
       "path": "tools/research/p5d_ac1024_table_witness.cs",
-      "sha256": "4915d5d5edb725c56bd76e456d216afdc6e27cbdf07f2c1c653cdccd896f6a23"
+      "sha256": "d2f0ea3b4762aebc132e7721be794be8a64f83645fdc61d7d2c9f76f200b4afa"
     },
     "project": {
       "path": "tools/research/p5d_ac1024_table_witness.csproj",
@@ -24,7 +24,7 @@
     },
     "operatorReadme": {
       "path": "tools/research/P5D_AC1024_TABLE_WITNESS_README.md",
-      "sha256": "a4005d43c0a70cf9e032f5f77fd576d0f0302bda94431136d68d250e0612071e"
+      "sha256": "175f057f856225e1774167977b605df9799b38cbff91adde1e17cda7981c8eec"
     },
     "commands": [
       "DXFRW_P5D_CREATE",
@@ -41,10 +41,26 @@
       "rows": 4,
       "columns": 3,
       "cells": [
-        ["P5-D AC1024 TABLE", "Source profile", "1"],
-        ["KEY", "VALUE", "UNIT"],
-        ["A", "42", "mm"],
-        ["B", "7", "deg"]
+        [
+          "P5-D AC1024 TABLE",
+          "Source profile",
+          "1"
+        ],
+        [
+          "KEY",
+          "VALUE",
+          "UNIT"
+        ],
+        [
+          "A",
+          "42",
+          "mm"
+        ],
+        [
+          "B",
+          "7",
+          "Block cell: P5D_NOTE=OVERRIDDEN_NOTE"
+        ]
       ],
       "tableStyle": "Current database TableStyle, recorded by handle and name",
       "uniformRowHeight": 6.0,
@@ -52,8 +68,23 @@
       "linkedObjects": [
         "table owner",
         "table style",
-        "anonymous table block"
-      ]
+        "anonymous table block",
+        "block-cell BlockTableRecord",
+        "ATTDEF referenced by the block cell"
+      ],
+      "blockCell": {
+        "row": 3,
+        "column": 2,
+        "blockNamePrefix": "P5D_ATTR_",
+        "attributeDefinition": {
+          "tag": "P5D_NOTE",
+          "constant": false,
+          "default": "DEFAULT_NOTE",
+          "cellValue": "OVERRIDDEN_NOTE",
+          "expectedDifference": "cell value must differ from ATTDEF default"
+        },
+        "reopenProof": "Resolve the cell BTR; require exactly one ATTDEF in the BTR with the expected tag and Constant=false; record its handle/default and read the effective cell value."
+      }
     },
     "safetyAndRetry": "Creates a fresh GUID scratch directory under an existing operator-selected directory. Requires a saved, unmodified drawing and empty Model space. Never writes DWG/DXF fixture files into the repository. Failed/partial captures remain incomplete; retry only in a fresh directory."
   },
@@ -90,15 +121,33 @@
       {
         "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_DxfOut_string_int__MarshalAsUnmanagedType_U1__bool.html",
         "finding": "DxfOut precision -1 selects Binary DXF; ordinary nonnegative precision writes ASCII DXF."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table_SetBlockTableRecordId_int_int_int_ObjectId__MarshalAsUnmanagedType_U1__bool.html",
+        "finding": "AutoCAD 2024 Table.SetBlockTableRecordId(row,column,contentIndex,blockId,autoFit) selects a block BTR for a specific cell content; Autodesk marks this overload obsolete."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Table_SetBlockAttributeValue_int_int_ObjectId_string.html",
+        "finding": "AutoCAD 2024 Table.SetBlockAttributeValue(row,column,attributeDefinitionId,value) sets the selected block cell attribute; Autodesk marks this overload obsolete."
+      },
+      {
+        "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-DevGuide-Managed/files/GUID-2107599E-9405-4D8B-A6DD-83D603B41568.htm",
+        "finding": "AutoCAD 2024 managed guide documents creating AttributeDefinition objects inside a BlockTableRecord and setting tag, prompt, default text, height, and attribute modes."
+      },
+      {
+        "title": "Open Design Specification for .dwg files v5.4.1",
+        "sourcePath": "/Users/dli/dev/ACadSharp/reference/OpenDesign_Specification_for_.dwg_files.pdf",
+        "section": "20.4.97 TABLECONTENT",
+        "finding": "For block cell content, H/340 is a hard pointer to the block record; BL/91 is the attribute count; each attribute uses H/330 as a soft pointer to ATTDEF, TV/301 as its value, and BL/92 as a one-based index."
       }
     ],
-    "sourceType": "Official Autodesk managed API documentation",
-    "limit": "API documentation does not establish serialized AC1024 TABLE field spans or handle roles."
+    "sourceType": "Official Autodesk managed API documentation and ODA Open Design Specification v5.4.1 §20.4.97",
+    "limit": "The ObjectARX API binds the authored semantic state, and ODA supplies the expected field roles; neither alone establishes this producer file’s serialized bit spans, actual handle codes, boundary alignment, independent semantics, or support qualification."
   },
   "readiness": {
     "packetPrepared": true,
     "syntaxOrSdkBuild": "not run; matching Autodesk assemblies and host profile are unavailable locally",
-    "nativeProducerCapture": "not run",
+    "nativeProducerCapture": "not run; remote host availability confirmed but product/build/OS/SDK and return route remain pending",
     "nativeCloseReopen": "not run",
     "wireSpanAndRoleProof": "not established",
     "independentSemanticReadback": "pending",
@@ -107,10 +156,9 @@
     "p5fLayerOverrides": "not included"
   },
   "next": [
-    "Complete the one-time remote host profile intake.",
-    "Build and run this exact packet only on its checked AutoCAD 2024 Windows x64/.NET Framework 4.8 profile; otherwise perform a profile-specific API review first.",
-    "Return the exact DWG/DXF outputs, producer/build records, hashes, three native reopen reports, and appearance observation in scratch-only form.",
-    "Reconcile the producer-known source against ODA v5.4.1 §20.4.99 and source-bound traces to establish field spans, handle roles, references, and following-record boundary before implementing typed semantics.",
-    "Keep P5-D open and strict output refused until source proof, graph closure, strict output/readback, refusal/atomicity/retry, and native appearance gates pass."
+    "Complete the one-time remote host profile intake; adapt and review the packet if the available host differs from AutoCAD 2024 Windows x64/.NET Framework 4.8.",
+    "Build and run the packet on the checked host profile; capture the AC1024 DWG, paired ASCII/Binary DXFs, creation receipt, three close/reopen reports, and appearance observation as scratch artifacts only.",
+    "Use the known block BTR, single ATTDEF, and distinct value to reconcile ODA v5.4.1 §20.4.97 field spans, actual handle roles, references, and following-record boundary against source-bound traces before typed parser changes.",
+    "Keep P5-D open and strict output refused until physical source proof, graph closure, strict output/readback, refusal/atomicity/retry, and native appearance gates pass."
   ]
 }

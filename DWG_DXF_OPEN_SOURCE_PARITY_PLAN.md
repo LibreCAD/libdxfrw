@@ -29,12 +29,13 @@ Linux, macOS and Windows focused-native jobs each passed 7/7 with sealed,
 uploaded and enforced receipts. The repair receipt records exact job IDs,
 merge ref, receipt hashes and artifact digests; P8-F is closed for this digest.
 The shared remote ObjectARX host intake and the hash-gated P4-D, P5-D, and P6-A
-native observer/witness packets are prepared. The P5-D packet authors a known
-4×3 TABLE and AC1024 DWG/ASCII/Binary DXF pair; it is limited to AutoCAD 2024
-Windows x64 with .NET Framework 4.8 until reviewed against the actual host.
-Host release/build, Windows version, SDK/toolchain and artifact-return route
-are still pending; none of these packets has been built with Autodesk
-assemblies or run in AutoCAD.
+native observer/witness packets are prepared. P5-D now authors a known 4×3
+TABLE with a block cell, one nonconstant ATTDEF, and a distinct non-default
+cell attribute value, then saves an AC1024 DWG/ASCII/Binary DXF pair. It is
+limited to AutoCAD 2024 Windows x64 with .NET Framework 4.8 until reviewed
+against the actual host. Host release/build, Windows version, SDK/toolchain and
+artifact-return route are still pending; none of these packets has been built
+with Autodesk assemblies or run in AutoCAD.
 The first hosted fast run after adding P5-D caught the source-release manifests
 missing the new packet. The generated manifests now include its README, source,
 project and shared host intake; the focused inventory check passes locally.
@@ -128,11 +129,15 @@ extended fuzz lane remain for the frozen integration pass.
 The user has identified a remote ObjectARX host as available. Its AutoCAD
 release/year, build, operating system, SDK, and operator-run artifact return
 route are not yet identified, so no native witness can be scheduled. Obtain
-that host profile once, then select the matching bounded packet. The new
+that host profile once, then select the matching bounded packet. The updated
 [P5-D packet](tools/research/P5D_AC1024_TABLE_WITNESS_README.md) is a controlled
-AutoCAD 2024 AC1024 TABLE source generator, not yet built or run; other host
-releases require profile-specific API review. Its baseline does not contain
-CELLSTYLEMAP or TABLE layer overrides, so it cannot close P5-E/F. The existing
+AutoCAD 2024 AC1024 TABLE source generator with a block-content cell and
+non-default ATTDEF value, not yet built or run; other host releases require
+profile-specific API review. ODA v5.4.1 §20.4.97 specifies the target sequence
+(hard-pointer block record, ATTDEF count, soft-pointer ATTDEF, value and
+one-based index); the source-bound wire span/role and following-record proof
+remain open. This profile does not contain CELLSTYLEMAP or TABLE layer
+overrides, so it cannot close P5-E/F. The existing
 [core witness packet](tools/research/OBJECTARX_WITNESS_README.md) covers
 layer-state and named-block draw-order observations; it is not IMAGEDEF
 evidence. The managed sweep packet is relevant only to the matching AC1027
@@ -168,7 +173,7 @@ own profile.
 
 | Order | Work packet | Included gates | Smallest useful result |
 |---|---|---|---|
-| 1 | Batch producer capture by exact release and state | P4-B/C; P5-B/D/E/F/G/H/I; P6-A/B/C; P7-C | Use one producer session/database only where the same build and save version can create the exact requested states: AC1021 P5-I with P5-B only if the unresolved FIELD carriers are represented; AC1024 P5-D with conditional P5-E/F plus compatible P5-G/H/P6-A states; AC1027 P4-C with P7-C only if one file contains both required shapes; AC1032 P4-B/P6-B with P6-C only if AutoCAD 2021 can create all exact states. The prepared P5-D packet is only the baseline TABLE profile; add E/F states only from separately reviewed API variants and retain distinct expected-state receipts. Keep a separate receipt/profile for every state. P6-C remains an AutoCAD 2021 TABLECONTENT profile. A failed API creation parks only that gate. |
+| 1 | Batch producer capture by exact release and state | P4-B/C; P5-B/D/E/F/G/H/I; P6-A/B/C; P7-C | Use one producer session/database only where the same build and save version can create the exact requested states: AC1021 P5-I with P5-B only if the unresolved FIELD carriers are represented; AC1024 P5-D with conditional P5-E/F plus compatible P5-G/H/P6-A states; AC1027 P4-C with P7-C only if one file contains both required shapes; AC1032 P4-B/P6-B with P6-C only if AutoCAD 2021 can create all exact states. The prepared P5-D packet now includes the targeted block/ATTDEF value state; add E/F only from separately reviewed API variants and retain distinct expected-state receipts. Keep a separate receipt/profile for every state. P6-C remains an AutoCAD 2021 TABLECONTENT profile. A failed API creation parks only that gate. |
 | 2 | Resume authority/source waits only on their named trigger | P5-B/G/I; P6-E/F; P7-C/D/G | Reuse linked receipts. Do one bounded primary/source-distinct search per changed trigger; stop when the required field, role, version, and following-record boundary remain unbound. Do not repeat generic peer scans, sample downloads, or failed converter launches. |
 | 3 | Implement immediately when one profile is admitted | All source-backed gates | Bind source spans, handle roles, and meaning; make one narrow parser/model/graph/writer change; run its owning fast selectors together with one touched-target build; prove relevant refusal, state/destination preservation, and corrected same-object retry; add strict output and fresh independent readback only for output-capable profiles. Commit the slice, update its receipt and this queue, remove the completed action, recount, then take the next ready gate. |
 | 4 | Qualify consumers only for admitted profiles | P7-F/H; P8-D | Reuse the exact generated FreeCAD P8-B/C profile. Start P7-F only after P7-C/D admission and an independent geometry reader. Batch LibreCAD 2 GUI actions in one accessible session; run LibreCAD_3 only if its application becomes available. |
@@ -366,7 +371,7 @@ Versioned TABLECONTENT profiles whose semantics remain incomplete stay raw-only;
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
 | P5-B / WAITING_FOR_LOSSLESS_FIELD_SCHEMA_OR_DXF_ROUTE | The exact AutoCAD 2007 FIELD/FIELDLIST profile has independent source-span evidence (S29/S30), but 66/162 FIELD records remain raw-only and strict output has no lossless opaque FIELD route. Reuse the [output-boundary receipt](docs/research/p5-ac1021-field-output-readiness-boundary-2026-11-17.json) and [cursor/output receipt](docs/research/p5-ac1021-field-cursor-agreement-and-output-boundary-2026-11-17.json); do not repeat scans or infer the unknown tails/flags. | Resume only when versioned evidence defines all remaining carriers or an independently validated lossless DXF representation is approved. Preserve all FIELDLIST identities, then implement the embedded TABLE/MTEXT graph bridge; close strict ASCII/Binary output, independent value/graph readback, destination-preserving refusal, and same-adapter retry. Keep AcVar, imperial-only records, and other AC1021 releases outside this profile. |
-| P5-D / WAITING_FOR_AC1024_TABLE_WITNESS | After recording the one-time host profile, build/run the [prepared AutoCAD 2024 packet](tools/research/P5D_AC1024_TABLE_WITNESS_README.md) only on its matching Windows x64/.NET 4.8 host; otherwise review/adapt it for the exact release as a distinct producer profile. Follow the [packet-readiness receipt](docs/research/p5d-ac1024-objectarx-witness-packet-readiness-2026-11-19.json). Return the producer build, DLL hash, generated AC1024 DWG plus ASCII/Binary DXFs, creation log, three native close/reopen reports, and visual note. The bounded [source triage](docs/research/p5-ac1024-table-source-triage-2026-11-17.json) and [writer-profile screen](docs/research/p5-ac1024-acadsharp-writer-profile-screen-2026-11-17.json) need no repeat absent a new source/tool. | Reconcile the source against ODA v5.4.1 §20.4.99; bind spans, roles, references, and next-record boundary before typed implementation. Close with wrong-role/truncation refusal, strict ASCII/Binary output, independent readback, atomic retry, and native appearance. Keep raw fallback strict-output-refused. The baseline packet does not cover CELLSTYLEMAP or TABLE layer overrides; P5-E/F require separate API states. |
+| P5-D / WAITING_FOR_AC1024_TABLE_WITNESS | After recording the one-time host profile, build/run the [prepared AutoCAD 2024 packet](tools/research/P5D_AC1024_TABLE_WITNESS_README.md) only on its matching Windows x64/.NET 4.8 host; otherwise review/adapt it for the exact release as a distinct producer profile. The packet's cell [3,2] contains a block BTR with one nonconstant ATTDEF (`P5D_NOTE`, default `DEFAULT_NOTE`) and an overridden value (`OVERRIDDEN_NOTE`), targeting the failing attribute-reference branch. Follow the [packet-readiness receipt](docs/research/p5d-ac1024-objectarx-witness-packet-readiness-2026-11-19.json). Return the producer build, DLL hash, generated AC1024 DWG plus ASCII/Binary DXFs, creation log, three native close/reopen reports, and visual note. The bounded [source triage](docs/research/p5-ac1024-table-source-triage-2026-11-17.json) and [writer-profile screen](docs/research/p5-ac1024-acadsharp-writer-profile-screen-2026-11-17.json) need no repeat absent a new source/tool. | Reconcile the source against ODA v5.4.1 §20.4.97: bind the block hard pointer, attribute count, ATTDEF soft-pointer role, value, one-based index, bit spans, references, and next-record boundary before typed implementation. Close with wrong-role/truncation refusal, strict ASCII/Binary output, independent readback, atomic retry, and native appearance. Keep raw fallback strict-output-refused. This profile does not cover CELLSTYLEMAP or TABLE layer overrides; P5-E/F require separate API states. |
 | P5-E / DEPENDS_ON_P5-D_PROFILE | Reuse P5-D only if it contains Content Format/CELLSTYLEMAP; otherwise capture only this state in that producer session. | Prove format meaning independently; preserve unknown values or refuse lossless output. |
 | P5-F / DEPENDS_ON_P5-D_PROFILE | Reuse P5-D only if it contains TABLE layer overrides; otherwise capture only this state in that producer session. | Trace parse/storage/write/display precedence and compare with native appearance. |
 | P5-G / WAITING_FOR_CONSTRAINT_MODEL | Capture one producer-authored dynamic-constraint model with known parameters and dependencies. | Prove independent evaluation and graph closure, or explicitly refuse lossless output. Generated self-consistency is insufficient. |
