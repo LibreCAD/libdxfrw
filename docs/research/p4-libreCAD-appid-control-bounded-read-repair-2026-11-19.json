@@ -7,7 +7,10 @@
   "supportClaimEffect": "none",
   "sourceProfile": {
     "historicalWriter": "LibreCAD bundled libdxfrw ENC writer; see docs/research/p4-libreCAD-historical-control-read-profile-2026-11-05.json",
-    "versions": ["AC1021", "AC1027"],
+    "versions": [
+      "AC1021",
+      "AC1027"
+    ],
     "fixtures": [
       {
         "path": "tests/fixtures/dwg/ordinary_enc_AC1021.dwg",
@@ -50,6 +53,14 @@
     {
       "command": "git diff --check",
       "result": "PASS."
+    },
+    {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg_local_roundtrip libdxfrw_block_control_reactor_tests libdxfrw_dwg_reader_matrix_tests libdxfrw_diagnostic_tests libdxfrw_dwg_fixture_tests --parallel 4; ctest --test-dir build-gcc -R '^(libdxfrw_dwg_local_roundtrip|libdxfrw_dwg_reader_matrix|libdxfrw_diagnostic|libdxfrw_dwg_fixtures|libdxfrw_qualified_differential_v2|libdxfrw_qualified_semantic_fields|libdxfrw_qualified_support_metadata)$' --output-on-failure",
+      "result": "PASS: focused 7-test selector 7/7 (4.78 s); the normal AC1027 APPID_CONTROL footer is boundary-checked before the historical BS fallback."
+    },
+    {
+      "command": "GitHub Actions focused-native run 44550267531 on head 1a9cc5c7ef890feb04781d511f79a8782895fbc3",
+      "result": "FAIL on Linux and Windows: the 7-test selector passed 6/7 because a valid generated AC1027 29-bit absent-string footer was misclassified as unclaimed APPID_CONTROL data. This failure triggered the local fix above; no source fixtures were added."
     }
   ],
   "implementation": {
@@ -61,18 +72,18 @@
       "tests/block_control_reactor_tests.cpp"
     ],
     "sha256": {
-      "src/intern/dwgreader.cpp": "78e5ea372daef8b976f8831cfe02f9a60d45a3f65cee592f1b29f8a5b2a43dc9",
+      "src/intern/dwgreader.cpp": "7117424575e413b1e5774a5a9a471ebfcc347d68cf0a81760f6c46b00ef07f1e",
       "src/intern/dwgreader.h": "1f27499abd20871090b7179656757591ca477819a15ea4e663fea66f2e263d19",
       "src/libdwgr.h": "5d432362d4c5ef3cd109651793d3657eb8ef9f9834aca2b32582d962cbd64a14",
       "tests/dwg_fixture_tests.cpp": "de039fba4af25ea3e4922e6e23d14c4157dea2c68b6390578f9066d12de2db51",
       "tests/block_control_reactor_tests.cpp": "709a03ee098f7a7e1018746f86ecb9e843b85f9d5658c6efac9a48e2f7b80f13"
     },
-    "qualificationDigestSha256": "be55d5ee0a1b8916bbeaada103b1ad66ab3e523bf9d27a2dede8955b425bb25f",
+    "qualificationDigestSha256": "1d78774a033de558a4fdf2b3d0ae0738d3737bf02a621450d09ee49c66d1c6e4",
     "qualificationInputCount": 750,
-    "behavior": "Record unclaimed bits from the narrow historical APPID_CONTROL path as a new integrity error; preserve existing enum values by appending the new kind. The tracked AC1027 regression requires its 173-bit suffix to remain output-blocking. Generated AC1021/AC1027 frame controls verify suffix accounting, truncation reset, and successful retry on the same parsed object."
+    "behavior": "Use the normal boundary-checked AC1027 APPID_CONTROL count and valid absent-string footer first. Only when that exact interpretation fails, admit the narrow historical BS profile and report unclaimed object-data bits as an integrity error; the historical AC1027 173-bit suffix remains strict-output-blocking."
   },
   "remaining": [
-    "Run fresh fast and focused-native CI against the repaired implementation digest and current PR head.",
+    "Run fresh fast and focused-native CI against the post-fix implementation digest and latest PR head.",
     "Keep remote ObjectARX producer and native consumer gates open until the host product/build, Windows version, SDK/toolchain and artifact-return route are recorded and their exact witness packets run.",
     "Do not promote DWG/DXF support claims from this compatibility repair or its parser tests."
   ]

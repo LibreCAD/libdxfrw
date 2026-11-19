@@ -16043,6 +16043,7 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
   const std::uint64_t bodyEndBit = objSize != 0 ? objSize : totalBits;
   if (bodyEndBit > totalBits)
     return fail();
+  const dwgBuffer countStart = buf->forkIndependent();
   // last parsed is: XDic Missing Flag 2004+
   std::int32_t rawNumEntries = 0;
   bool countRead = false;
@@ -16054,11 +16055,11 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       oType == DRW::DwgAppIdControlObjectType && objSize != 0
       && (version == DRW::AC1024 || version == DRW::AC1027
           || version == DRW::AC1032);
-  if (historicalAppIdControlProfile) {
+  if (historicalAppIdControlProfile && version == DRW::AC1021) {
     // Preserve the pre-boundary-check reader for the identified LibreCAD
-    // source profile. The count and each H remain frame-bounded; any object
-    // data not explained by the fields we consume is reported below and
-    // keeps strict output closed.
+    // R2007 source profile. The count and each H remain frame-bounded; any
+    // object data not explained by the fields we consume is reported below
+    // and keeps strict output closed.
     countRead = readControlBitShort(*buf, bodyEndBit, rawNumEntries);
     usedHistoricalAppIdControlProfile = countRead;
   } else if (boundaryCheckedLtype || boundaryCheckedAppId) {
@@ -16353,6 +16354,16 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
     countRead = controlEntryCountUsesBitShort(oType)
         ? readControlBitShort(*buf, bodyEndBit, rawNumEntries)
         : readControlBitLong(*buf, bodyEndBit, rawNumEntries);
+  }
+  if (!countRead && historicalAppIdControlProfile
+      && version == DRW::AC1027) {
+    // First honor the R2013+ count boundary and writer footer. Only fall back
+    // to the historical BS interpretation when that exact bounded profile
+    // cannot explain the object data; otherwise a valid 29-bit absent-string
+    // footer would be misreported as unclaimed data.
+    *buf = countStart;
+    countRead = readControlBitShort(*buf, bodyEndBit, rawNumEntries);
+    usedHistoricalAppIdControlProfile = countRead;
   }
   if (!countRead || rawNumEntries < 0)
     return fail();
