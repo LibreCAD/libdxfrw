@@ -64,10 +64,10 @@
       "src/intern/dwgreader.cpp": "78e5ea372daef8b976f8831cfe02f9a60d45a3f65cee592f1b29f8a5b2a43dc9",
       "src/intern/dwgreader.h": "1f27499abd20871090b7179656757591ca477819a15ea4e663fea66f2e263d19",
       "src/libdwgr.h": "5d432362d4c5ef3cd109651793d3657eb8ef9f9834aca2b32582d962cbd64a14",
-      "tests/dwg_fixture_tests.cpp": "7985d050c35070792b40917da003f401f4a70ee010fb01c017c1fd2614ff7956",
+      "tests/dwg_fixture_tests.cpp": "de039fba4af25ea3e4922e6e23d14c4157dea2c68b6390578f9066d12de2db51",
       "tests/block_control_reactor_tests.cpp": "709a03ee098f7a7e1018746f86ecb9e843b85f9d5658c6efac9a48e2f7b80f13"
     },
-    "qualificationDigestSha256": "da0eb3c8f150671e160a1fe68f070bad3360fc427ed38dd5f5330fdacf1adfa9",
+    "qualificationDigestSha256": "be55d5ee0a1b8916bbeaada103b1ad66ab3e523bf9d27a2dede8955b425bb25f",
     "qualificationInputCount": 750,
     "behavior": "Record unclaimed bits from the narrow historical APPID_CONTROL path as a new integrity error; preserve existing enum values by appending the new kind. The tracked AC1027 regression requires its 173-bit suffix to remain output-blocking. Generated AC1021/AC1027 frame controls verify suffix accounting, truncation reset, and successful retry on the same parsed object."
   },

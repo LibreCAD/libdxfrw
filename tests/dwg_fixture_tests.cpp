@@ -12,6 +12,7 @@
 
 #include "drw_header.h"
 #include "drw_entities.h"
+#include "intern/dwg_fixed_handles.h"
 #include "intern/dwg_dxf_output_transaction.h"
 #include "dwg2dxf/dx_data.h"
 #include "dwg2dxf/dx_iface.h"
@@ -158,7 +159,8 @@ bool hasRoleMismatch(const dx_data& data, DwgIntegrityCheckKind kind,
     return false;
 }
 
-bool hasUnclaimedAppIdControlData(const dx_data& data) {
+bool hasUnclaimedAppIdControlData(const dx_data& data,
+                                  std::uint64_t expectedBits) {
     const auto& integrity = data.dwgReadOutcome.observations.integrity;
     for (std::size_t index = 0;
          index < std::min(integrity.retained, integrity.rows.size()); ++index) {
@@ -166,7 +168,8 @@ bool hasUnclaimedAppIdControlData(const dx_data& data) {
         if (row.kind != DwgIntegrityCheckKind::TableControlUnclaimedData
             || row.severity != DwgIntegritySeverity::Error
             || !row.hasExpected || !row.hasObserved || row.expected != 0u
-            || row.observed == 0u
+            || row.observed != expectedBits || !row.hasLogicalHandle
+            || row.logicalHandle != DRW::DwgAppIdControlHandle
             || row.sectionName.length != sizeof("APPID_CONTROL") - 1u)
             continue;
         const std::string name(
@@ -252,8 +255,8 @@ void testOrdinaryEncoding(TestContext& t, const char* name,
                  "historical ENC BLOCK member roles remain diagnostic");
     }
     if (data.sourceVersion == DRW::AC1027) {
-        t.expect(hasUnclaimedAppIdControlData(data),
-                 "historical AC1027 APPID_CONTROL suffix remains an output-blocking integrity error");
+        t.expect(hasUnclaimedAppIdControlData(data, 173u),
+                 "historical AC1027 APPID_CONTROL root retains its exact 173-bit output-blocking suffix diagnostic");
     }
     if (data.sourceVersion == DRW::AC1021) {
         t.expect(hasHistoricalAc1021BlockBodyRoles(data),
