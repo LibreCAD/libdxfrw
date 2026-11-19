@@ -7619,7 +7619,6 @@ struct GeneratedTableControls {
         return type == DRW::DwgLTypeControlObjectType
             || type == DRW::DwgUcsControlObjectType
             || type == DRW::DwgVPortControlObjectType
-            || type == DRW::DwgAppIdControlObjectType
             || type == DRW::DwgDimStyleControlObjectType;
     }
 
@@ -8030,6 +8029,187 @@ void testAc1015LtypeControlCountBoundary(TestContext& t) {
     DRW_ObjControl control;
     t.expect(!control.parseDwg(DRW::AC1015, &invalid, 0),
              "truncated old BS LTYPE_CONTROL fails closed");
+}
+
+std::vector<std::uint8_t> makeAppIdControlCountBody(
+    DRW::Version version, std::uint16_t count, bool legacyShort) {
+    auto h = [](std::uint8_t code, std::uint32_t reference) {
+        dwgHandle value;
+        value.code = code;
+        value.ref = reference;
+        value.ref64 = reference;
+        for (std::uint32_t remaining = reference; remaining != 0u;
+             remaining >>= 8u)
+            ++value.size;
+        return value;
+    };
+
+    dwgBufferW body;
+    body.putObjType(version, DRW::DwgAppIdControlObjectType);
+    body.putRawLong32(0u); // R2000+ object-data boundary, patched below.
+    body.putHandle(h(0u, DRW::DwgAppIdControlHandle));
+    body.putBitShort(0u); // Empty EED.
+    body.putBitLong(0); // No reactors.
+    if (version > DRW::AC1015)
+        body.putBit(1); // No extension dictionary.
+    if (legacyShort)
+        body.putBitShort(count);
+    else
+        body.putBitLong(static_cast<std::int32_t>(count));
+    if (version > DRW::AC1018)
+        body.putBit(0); // No detached string stream.
+
+    const std::uint32_t objectDataBits =
+        static_cast<std::uint32_t>(body.bitCount());
+    body.patchRawLong32AtBit(10u, objectDataBits);
+    body.putHandle(h(DRW::DwgSoftPointer, 0u)); // Null control owner.
+    if (version <= DRW::AC1015)
+        body.putHandle(h(DRW::DwgHardOwnership, 0u));
+    for (std::uint32_t index = 0; index < count; ++index)
+        body.putHandle(h(DRW::DwgSoftOwnership, 0x1000u + index));
+    body.alignToByte();
+    return body.data();
+}
+
+struct ModernAppIdControlBody {
+    std::vector<std::uint8_t> bytes;
+    std::uint32_t handleStreamBits{0};
+};
+
+ModernAppIdControlBody makeModernAppIdControlCountBody(
+    DRW::Version version, std::uint16_t count, bool legacyShort) {
+    auto h = [](std::uint8_t code, std::uint32_t reference) {
+        dwgHandle value;
+        value.code = code;
+        value.ref = reference;
+        value.ref64 = reference;
+        for (std::uint32_t remaining = reference; remaining != 0u;
+             remaining >>= 8u)
+            ++value.size;
+        return value;
+    };
+
+    dwgBufferW body;
+    body.putObjType(version, DRW::DwgAppIdControlObjectType);
+    body.putHandle(h(0u, DRW::DwgAppIdControlHandle));
+    body.putBitShort(0u);
+    body.putBitLong(0);
+    body.putBit(1); // No extension dictionary.
+    if (version > DRW::AC1024)
+        body.putBit(0); // No data-storage binary section.
+    if (legacyShort)
+        body.putBitShort(count);
+    else
+        body.putBitLong(static_cast<std::int32_t>(count));
+    body.putBit(0); // No detached string stream.
+    body.alignToByte();
+    body.putRawChar8(0);
+    body.putRawChar8(0);
+    body.putRawChar8(0); // AC1024+ absent-string trailer.
+    const std::uint32_t objectDataBits =
+        static_cast<std::uint32_t>(body.bitCount());
+    body.putHandle(h(DRW::DwgSoftPointer, 0u)); // Null owner.
+    for (std::uint32_t index = 0; index < count; ++index)
+        body.putHandle(h(DRW::DwgSoftOwnership, 0x2000u + index));
+    body.alignToByte();
+    const std::uint64_t totalBits = body.data().size() * 8u;
+    return {body.data(), static_cast<std::uint32_t>(totalBits - objectDataBits)};
+}
+
+void testAppIdControlCountBoundary(TestContext& t) {
+    DRW_TextCodec decoder;
+    for (const DRW::Version version :
+         {DRW::AC1015, DRW::AC1018, DRW::AC1021}) {
+        decoder.setVersion(version, false);
+        for (const unsigned count : {255u, 256u, 257u}) {
+            for (const bool legacyShort : {false, true}) {
+                const auto bytes = makeAppIdControlCountBody(
+                    version, static_cast<std::uint16_t>(count), legacyShort);
+                dwgBuffer input(bytes.data(), bytes.size(), &decoder);
+                DRW_ObjControl control;
+                const bool parsed = control.parseDwg(version, &input, 0u);
+                t.expect(parsed && control.orderedHandleSlots.size() == count
+                             && control.orderedHandleSlots.front() == 0x1000u
+                             && control.orderedHandleSlots.back()
+                                 == 0x1000u + count - 1u
+                             && control.orderedHandleRoles.size() == count
+                             && std::all_of(control.orderedHandleRoles.cbegin(),
+                                            control.orderedHandleRoles.cend(),
+                                            [](std::uint8_t role) {
+                                                return role == DRW::DwgSoftOwnership;
+                                            }),
+                         std::string("APPID_CONTROL ")
+                             + (version == DRW::AC1015 ? "AC1015 "
+                                : version == DRW::AC1018 ? "AC1018 " : "AC1021 ")
+                             + (legacyShort ? "bounded legacy BS "
+                                            : "normative BL ")
+                             + "count " + std::to_string(count)
+                             + " preserves all member handles");
+            }
+        }
+    }
+
+    const auto truncatedBytes =
+        makeAppIdControlCountBody(DRW::AC1021, 257u, false);
+    std::vector<std::uint8_t> truncated = truncatedBytes;
+    truncated.pop_back();
+    dwgBuffer invalid(truncated.data(), truncated.size(), &decoder);
+    DRW_ObjControl retryControl;
+    const bool rejected = !retryControl.parseDwg(DRW::AC1021, &invalid, 0u);
+    dwgBuffer retry(truncatedBytes.data(), truncatedBytes.size(), &decoder);
+    t.expect(rejected && retryControl.parseDwg(DRW::AC1021, &retry, 0u)
+                 && retryControl.orderedHandleSlots.size() == 257u,
+             "truncated APPID_CONTROL fails closed and the same object retries");
+
+    for (const DRW::Version version :
+         {DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
+        decoder.setVersion(version, false);
+        for (const std::uint16_t count : {255u, 256u, 257u}) {
+            for (const bool legacyShort : {false, true}) {
+                const auto frame = makeModernAppIdControlCountBody(
+                    version, count, legacyShort);
+                dwgBuffer input(frame.bytes.data(), frame.bytes.size(),
+                                &decoder);
+                DRW_ObjControl control;
+                const bool parsed = control.parseDwg(
+                    version, &input, frame.handleStreamBits);
+                t.expect(parsed && control.orderedHandleSlots.size() == count
+                             && control.orderedHandleSlots.front() == 0x2000u
+                             && control.orderedHandleSlots.back()
+                                 == 0x2000u + count - 1u
+                             && control.orderedHandleRoles.size() == count
+                             && std::all_of(control.orderedHandleRoles.cbegin(),
+                                            control.orderedHandleRoles.cend(),
+                                            [](std::uint8_t role) {
+                                                return role == DRW::DwgSoftOwnership;
+                                            }),
+                         std::string("APPID_CONTROL ")
+                             + (version == DRW::AC1024 ? "AC1024 "
+                                : version == DRW::AC1027 ? "AC1027 " : "AC1032 ")
+                             + (legacyShort ? "bounded legacy BS "
+                                            : "normative BL ")
+                             + "count " + std::to_string(count)
+                             + " preserves detached member handles");
+            }
+        }
+
+        const auto validFrame = makeModernAppIdControlCountBody(
+            version, 257u, false);
+        auto truncatedBytes = validFrame.bytes;
+        truncatedBytes.pop_back();
+        dwgBuffer invalid(truncatedBytes.data(), truncatedBytes.size(),
+                          &decoder);
+        DRW_ObjControl retryControl;
+        const bool rejected = !retryControl.parseDwg(
+            version, &invalid, validFrame.handleStreamBits);
+        dwgBuffer retry(validFrame.bytes.data(), validFrame.bytes.size(),
+                        &decoder);
+        t.expect(rejected && retryControl.parseDwg(
+                                version, &retry,
+                                validFrame.handleStreamBits)
+                     && retryControl.orderedHandleSlots.size() == 257u,
+                 "truncated modern APPID_CONTROL fails closed and retries");
+    }
 }
 
 void testErasedBlockRecordTableRecovery(TestContext& t) {
@@ -23784,6 +23964,13 @@ int main(int argc, char** argv) {
         return focused.failures == 0 ? 0 : 1;
     }
     if (argc == 2
+        && std::string(argv[1]) == "--appid-control-count") {
+        TestContext focused;
+        testAppIdControlCountBoundary(focused);
+        std::cout << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
         && std::string(argv[1]) == "--space-block-delimiter-owner") {
         TestContext focused;
         testLegacyLayoutBlockChains(focused);
@@ -23922,6 +24109,7 @@ int main(int argc, char** argv) {
     testSpaceBlockDelimiterOwner(context);
     testEntitySpaceFromBlockRecord(context);
     testErasedBlockRecordTableRecovery(context);
+    testAppIdControlCountBoundary(context);
     testMixedMissingBlockOwnership(context);
     testBoundedEedApplicationChunks(context);
     testMalformedEedEntityDoesNotBlockFollowingEntity(context);

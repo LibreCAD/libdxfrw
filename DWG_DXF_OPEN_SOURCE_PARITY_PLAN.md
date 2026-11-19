@@ -19,11 +19,19 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-18:** 11/34 package gates closed; 23 remain. The activity
-ledger is 163/186 (87.6%) with eleven closed gates and 152 completed implementation or
+ledger is 164/187 (87.7%) with eleven closed gates and 153 completed implementation or
 research slices. The [same-import APPID source-capture slice](docs/research/p4-ac1024-aerial-material-appid-same-import-raw-capture-2026-11-18.json)
-adds bounded raw APPID and APPID_CONTROL frames with publication, source location,
-class-attempt and unique ACAD-name checks. This does not decode their complete wire
-fields or promote output. The [AC1024 ByLayer MATERIAL slice](docs/research/p4-ac1024-aerial-bylayer-material-source-output-2026-11-18.json)
+now independently decodes the AC1024 APPID and APPID_CONTROL wire bodies, including
+the APPID_CONTROL BL count, handle roles and source spans. Its bounded count fix
+corrects the writer to emit BL, reads a legacy BS count only when its full count span
+meets the declared boundary, recognizes the exact AC1024+ source end-at-flag or
+writer zero-trailer boundary before detached handles, and seeks AC1021 detached
+APPID_CONTROL handles to the declared data boundary.
+Generated writer/readback covers 255/256/257 entries for AC1015/18/21/24/27/32;
+parser boundary, truncation and retry controls cover AC1015/18/21/24/27/32. This
+closes a local format defect but
+does not authenticate the sample producer, admit MATERIAL output, or promote support.
+The [AC1024 ByLayer MATERIAL slice](docs/research/p4-ac1024-aerial-bylayer-material-source-output-2026-11-18.json)
 adds same-import source binding and a selected ByLayer plus FBXASSET output profile;
 ASCII and Binary refusal/retry controls and ezdxf readback pass. This proves only
 the selected graph and does not promote support. The [focused slice](docs/research/p6-raster-dimstyle-default-roundtrip-2026-11-18.json)
@@ -63,9 +71,9 @@ and a clean local [macOS package profile](docs/research/p8a-macos-package-05e7-s
 activity progress does not imply drawing support. The broad native suite and
 extended fuzz lane remain for the frozen integration pass.
 
-The user can provide a remote ObjectARX host. Its release/year, authorized
-access or operator-run return route, Windows version and SDK are not yet
-identified. Run the [core witness packet](tools/research/OBJECTARX_WITNESS_README.md) first
+The user has confirmed a remote ObjectARX host is available. Its release/year,
+Windows version, SDK, and usable connection or operator-run return route are not
+yet identified, so no native witness can be scheduled yet. Run the [core witness packet](tools/research/OBJECTARX_WITNESS_README.md) first
 for the layer-state and named-block draw-order observations. Return the native
 pair, before/after reopen transcript and hashes. Run the managed sweep packet
 only after identifying a matching host release. Continue local source graph
@@ -224,7 +232,7 @@ P8-D has local writer work available while GUI checks await a successful display
 |---|---|---|
 | P4-B / WAITING_FOR_WITNESS | Request one source-distinct, release-bound AC1032 drawing with known top-level and nested associative-network API state, or primary versioned wire documentation. Reuse the [readiness audit](docs/research/p4-ac1032-assocnetwork-evidence-readiness-2026-11-17.json); peer agreement and frame candidates alone do not qualify. | Bind class-version-2 order/spans, handle roles, and following-record boundary. Add one discriminating truncation/refusal control; close nested graph and producer/consumer evidence. |
 | P4-C / WAITING_FOR_AC1027_PRODUCER_WITNESS | Preferred source remains an AutoCAD 2013/ObjectARX-authored AC1027 drawing and matching R2013 DXF. If that host is unavailable, the documented APS fallback can use AutoCAD 2027's `Autodesk.AutoCAD+26_0` engine and save a separate current-producer profile as AC1027. Autodesk documents the `SweptSurface`/`SweepOptionsBuilder` APIs, AC1027 `Database.SaveAs`/`dxfOut`, and the cloud AppBundle/WorkItem route. See the [ObjectARX/API receipt](docs/research/p4-ac1027-sweep-oda-schema-boundary-2026-11-17.json) and [APS route receipt](docs/research/p4c-aps-autocad-ac1027-witness-route-2026-11-17.json). An APS job has service/quota requirements and may incur cost; do not submit one without authorized credentials and quota. A [managed witness packet](tools/research/P4C_SWEEP_WITNESS_README.md) is prepared for a matching AutoCAD 2024 Windows host. Its local [checks](docs/research/p4c-autocad-2024-managed-witness-packet-2026-11-18.json) cover syntax against stubs and helper controls. Its output would be a separate 2024-to-AC1027 profile; actual SDK build and host capture remain pending. | Generate one compact pair with a baseline/default sweep and one distinct non-default sweep. Capture the producer build and plug-in hash, source entities and options before save and after reopening AC1027, handles, geometry, AC1027 magic and DXF `$ACADVER`. Record the WorkItem ID for APS runs. Keep the 2027-to-AC1027 profile distinct from AutoCAD 2013. Compare the paired DXF, ODA v5.4.1, and source-bound libdxfrw/LibreDWG traces to bind parent/child spans, embedded LWPOLYLINE body and suffix, handle roles, and next-frame alignment. API/header agreement or ODA round-trip alone cannot close physical spans. Preserve unknown suffix bytes and refuse strict output until spans resolve; then add only the missing truncation/wrong-role control, strict output/readback, corrected retry, and independent geometry check. If neither producer route is available, leave only this gate waiting and continue other work. |
-| P4-D / ACTIVE_REMAINING_NOD_GRAPH | The [selected ByBlock MATERIAL transaction](docs/research/p4-ac1024-aerial-byblock-material-source-output-2026-11-18.json) and [selected ByLayer transaction](docs/research/p4-ac1024-aerial-bylayer-material-source-output-2026-11-18.json) each verify same-import source identity, the original root/class, a remapped extension and all 193 FBXASSET XRECORD values in both encodings. Each output projects one member of the original nine-member root. Source checks cover Global, all 36 TILE frames and [all seven MATERIAL EED regions](docs/research/p4-ac1024-aerial-material-eed-appid-source-2026-11-18.json). Full-root work remains for MATERIAL, BACKGROUND and LAYOUT. The [APPID source-capture receipt](docs/research/p4-ac1024-aerial-material-appid-same-import-raw-capture-2026-11-18.json) now binds APPID_CONTROL 0x9 and APPID 0x12 raw frames to same-import publications and the completed class attempt; independently decode both frame bodies and control references against ODA v5.4.1 before treating their fields as proved. Then bind Global EED and stage its APPID row/values, reusing the already captured EED spans. Batch TILE and FBXASSET validation on the nondefault profiles. In parallel prove one source-bound ADVMATERIAL compatibility case, then apply it to the remaining out-of-range records. Close every class body and graph edge before full MATERIAL root admission. Retain the native MLEADERSTYLE flag/null and TABLESTYLE/VISUALSTYLE representation comparisons. |
+| P4-D / ACTIVE_REMAINING_NOD_GRAPH | The [selected ByBlock MATERIAL transaction](docs/research/p4-ac1024-aerial-byblock-material-source-output-2026-11-18.json) and [selected ByLayer transaction](docs/research/p4-ac1024-aerial-bylayer-material-source-output-2026-11-18.json) each verify same-import source identity, the original root/class, a remapped extension and all 193 FBXASSET XRECORD values in both encodings. Each output projects one member of the original nine-member root. Source checks cover Global, all 36 TILE frames and [all seven MATERIAL EED regions](docs/research/p4-ac1024-aerial-material-eed-appid-source-2026-11-18.json). Full-root work remains for MATERIAL, BACKGROUND and LAYOUT. The [APPID source-capture receipt](docs/research/p4-ac1024-aerial-material-appid-same-import-raw-capture-2026-11-18.json) binds APPID_CONTROL 0x9 and APPID 0x12 raw frames to same-import publications and the completed class attempt. Its independent decode maps their fields to ODA v5.4.1; the [bounded decoder](tools/research/decode_ac1024_appid_frames.py) and receipt record the BL writer/reader correction. Next bind Global EED and stage its APPID row/values, reusing the already captured EED spans. Batch TILE and FBXASSET validation on the nondefault profiles. In parallel prove one source-bound ADVMATERIAL compatibility case, then apply it to the remaining out-of-range records. Close every class body and graph edge before full MATERIAL root admission. Retain the native MLEADERSTYLE flag/null and TABLESTYLE/VISUALSTYLE representation comparisons. |
 
 - For 36 TILE records, reuse the verified 22-byte source layout with ordered
   Int16 values `(270,1)` and `(271,1)`, relative owners and absolute extension
@@ -242,10 +250,10 @@ P8-D has local writer work available while GUI checks await a successful display
   keys, so use the physical frames and the LibreDWG comparison for their input.
 - For seven MATERIALs with EED, reuse the [same-import ACAD name and
   LAYER_CONTROL evidence](docs/research/p4-ac1024-aerial-appid-control-source-context-2026-11-18.json)
-  and the new [APPID/APPID_CONTROL raw capture](docs/research/p4-ac1024-aerial-material-appid-same-import-raw-capture-2026-11-18.json).
-  First decode both captured bodies field-by-field against ODA v5.4.1, including
-  APPID_CONTROL membership and APPID row name; keep capture and typed-name
-  agreement separate from independent wire proof. Then use the existing private
+  and the [independently decoded APPID/APPID_CONTROL capture](docs/research/p4-ac1024-aerial-material-appid-same-import-raw-capture-2026-11-18.json).
+  The receipt proves the local source profile's APPID_CONTROL membership and
+  APPID row name against ODA v5.4.1, while leaving producer identity open. Next
+  use the existing private
   verified-table ticket pattern with separate limits and failure state.
   Bind the 20-byte application payload and recheck the parent, ordered
   membership and APPID name before writing. Require one

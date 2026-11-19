@@ -3,6 +3,7 @@
 #include "intern/dwgreader.h"
 #include "intern/dwgbufferw.h"
 #include "intern/dwgwriter18.h"
+#include "intern/dwgwriter21.h"
 #include "intern/dwgwriter24.h"
 #include "intern/dwgwriter27.h"
 #include "intern/dwgwriter32.h"
@@ -317,6 +318,90 @@ public:
         }
         return true;
     }
+
+    template<class Writer> static bool checkAppIdCount(unsigned count) {
+        DRW_Header header;
+        Writer writer(nullptr, &header);
+        std::vector<std::uint32_t> values;
+        values.reserve(count);
+        for (unsigned index = 0; index < count; ++index)
+            values.push_back(0x2000u + index);
+        if (!writer.emitControlObject(DRW::DwgAppIdControlObjectType,
+                                      DRW::DwgAppIdControlHandle, count,
+                                      values))
+            return false;
+        const auto found = std::find_if(
+            writer.m_objectMap.begin(), writer.m_objectMap.end(),
+            [](const auto& entry) {
+                return entry.first == DRW::DwgAppIdControlHandle;
+            });
+        if (found == writer.m_objectMap.end())
+            return false;
+
+        auto& encoded = writer.m_buf.data();
+        dwgBuffer source(encoded.data(), encoded.size());
+        DwgObjectFrame frame;
+        if (!frame.readAt(source, writer.m_version, found->second))
+            return false;
+        dwgBuffer body(frame.body().data(), frame.body().size());
+        if (body.getObjType(writer.m_version)
+                != DRW::DwgAppIdControlObjectType)
+            return false;
+        const std::uint32_t objectDataEnd = writer.m_version < DRW::AC1024
+            ? body.getRawLong32() : frame.objectDataBitSize();
+        if (body.getHandle().ref != DRW::DwgAppIdControlHandle
+            || body.getBitShort() != 0u || body.getBitLong() != 0
+            || (writer.m_version > DRW::AC1015 && body.getBit() != 0u)
+            || (writer.m_version > DRW::AC1024 && body.getBit() != 0u))
+            return false;
+        const auto countStart = body.getPosition() * 8u + body.getBitPos();
+        if (body.getBitLong() != static_cast<std::int32_t>(count))
+            return false;
+        if (writer.m_version > DRW::AC1018 && body.getBit() != 0u)
+            return false;
+        const auto fieldsEnd = body.getPosition() * 8u + body.getBitPos();
+        if (countStart >= fieldsEnd)
+            return false;
+        if (writer.m_version < DRW::AC1024) {
+            // R2004/R2007 writer stores a direct object-data bit boundary.
+            if (objectDataEnd != fieldsEnd)
+                return false;
+        } else {
+            if (fieldsEnd > objectDataEnd)
+                return false;
+            while (body.getPosition() * 8u + body.getBitPos() < objectDataEnd)
+                if (body.getBit() != 0u || !body.isGood())
+                    return false;
+        }
+
+        dwgBuffer retry(frame.body().data(), frame.body().size());
+        DRW_ObjControl parsed;
+        const bool parseOk = parsed.parseDwg(
+            writer.m_version, &retry, frame.bodyBitSize());
+        if (!parseOk || parsed.orderedHandleSlots != values
+            || parsed.orderedHandleRoles.size() != count
+            || !std::all_of(parsed.orderedHandleRoles.begin(),
+                            parsed.orderedHandleRoles.end(),
+                            [](std::uint8_t role) {
+                                return role == DRW::DwgSoftOwnership;
+                            })) {
+            std::cerr << "diagnostic: parse=" << parseOk
+                      << " slots=" << parsed.orderedHandleSlots.size()
+                      << " roles=" << parsed.orderedHandleRoles.size()
+                      << " bits=" << frame.objectDataBitSize()
+                      << " bodyBits=" << frame.bodyBitSize()
+                      << " count=" << count << '\n';
+            return false;
+        }
+        return true;
+    }
+
+    template<class Writer> static bool checkAppIdCountBoundaries() {
+        for (unsigned count : {255u, 256u, 257u})
+            if (!checkAppIdCount<Writer>(count))
+                return false;
+        return true;
+    }
 };
 
 int main(int argc,char** argv){
@@ -366,6 +451,10 @@ int main(int argc,char** argv){
         std::cerr << "AC1015 inline LTYPE handle-tail profile failed\n";
         return 1;
     }
+    if (!DwgBlockRecordXrefWireTestAccess::checkAppIdCountBoundaries<dwgWriter15>()) {
+        std::cerr << "AC1015 APPID_CONTROL BL writer boundary failure\n";
+        return 1;
+    }
     for(auto version:{DRW::AC1018,
                       DRW::AC1024,DRW::AC1027,DRW::AC1032}) {
         for(unsigned count:{255u,256u,257u}) {
@@ -378,6 +467,12 @@ int main(int argc,char** argv){
             for(bool legacy:{false,true}){auto body=build(version,count,legacy);DRW_ObjControl c;
                 if(!parse(body,version,count,c)){std::cerr<<"reader failure version="<<version<<" count="<<count<<" legacy="<<legacy<<'\n';return 1;}}
         }
+        bool appIdWire=false;
+        if(version==DRW::AC1018)appIdWire=DwgBlockRecordXrefWireTestAccess::checkAppIdCountBoundaries<dwgWriter18>();
+        if(version==DRW::AC1024)appIdWire=DwgBlockRecordXrefWireTestAccess::checkAppIdCountBoundaries<dwgWriter24>();
+        if(version==DRW::AC1027)appIdWire=DwgBlockRecordXrefWireTestAccess::checkAppIdCountBoundaries<dwgWriter27>();
+        if(version==DRW::AC1032)appIdWire=DwgBlockRecordXrefWireTestAccess::checkAppIdCountBoundaries<dwgWriter32>();
+        if(!appIdWire){std::cerr<<"APPID_CONTROL BL writer boundary failure version="<<version<<'\n';return 1;}
         for(int bad:{1,2,3,4,5}){auto invalid=build(version,257,true,bad);DRW_ObjControl c;
             if(parse(invalid,version,257,c)){std::cerr<<"invalid legacy accepted version="<<version<<" mode="<<bad<<'\n';return 1;}
             auto retry=build(version,257,false);if(!parse(retry,version,257,c)){std::cerr<<"retry failure\n";return 1;}}
@@ -451,5 +546,9 @@ int main(int argc,char** argv){
             }
         }
     }
-    std::cout<<"multi-version LTYPE_CONTROL count and legacy retry PASS\n";return 0;
+    if (!DwgBlockRecordXrefWireTestAccess::checkAppIdCountBoundaries<dwgWriter21>()) {
+        std::cerr << "AC1021 APPID_CONTROL BL writer boundary failure\n";
+        return 1;
+    }
+    std::cout<<"multi-version LTYPE_CONTROL and APPID_CONTROL count/retry PASS\n";return 0;
 }

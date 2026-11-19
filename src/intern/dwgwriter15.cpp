@@ -429,7 +429,6 @@ bool controlEntryCountUsesBitShort(std::uint16_t objectType) {
     case DRW::DwgLTypeControlObjectType:
     case DRW::DwgUcsControlObjectType:
     case DRW::DwgVPortControlObjectType:
-    case DRW::DwgAppIdControlObjectType:
     case DRW::DwgDimStyleControlObjectType:
         return true;
     default:

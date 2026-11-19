@@ -2943,7 +2943,6 @@ bool controlEntryCountUsesBitShort(std::int16_t objectType) {
   case DRW::DwgLTypeControlObjectType:
   case DRW::DwgUcsControlObjectType:
   case DRW::DwgVPortControlObjectType:
-  case DRW::DwgAppIdControlObjectType:
   case DRW::DwgDimStyleControlObjectType:
     return true;
   default:
@@ -16007,7 +16006,10 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
              && ((oType == DRW::DwgBlockControlObjectType
                   && !legacyR2007InlineBlockControl)
                  || (oType == DRW::DwgLTypeControlObjectType
-                     && !legacyR2007InlineLtypeControl))) {
+                     && !legacyR2007InlineLtypeControl)
+                 || (oType == DRW::DwgAppIdControlObjectType
+                     && handle == DRW::DwgAppIdControlHandle
+                     && objSize != 0 && objSize < totalBits))) {
     // R2007 control objects normally use the declared pre-handles boundary.
     if (objSize == 0 || objSize >= totalBits
         || !hBuff.setPosition(objSize >> 3))
@@ -16025,7 +16027,11 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       && (version == DRW::AC1015 || version == DRW::AC1018
           || version == DRW::AC1021 || version == DRW::AC1024
           || version == DRW::AC1027 || version == DRW::AC1032);
-  if (boundaryCheckedLtype) {
+  const bool boundaryCheckedAppId =
+      oType == DRW::DwgAppIdControlObjectType && objSize != 0
+      && (version == DRW::AC1024 || version == DRW::AC1027
+          || version == DRW::AC1032);
+  if (boundaryCheckedLtype || boundaryCheckedAppId) {
     // ODA §20.4.57 specifies BL. The previous writer used BS; extended
     // forms are accepted only when their complete fixed writer graph agrees.
     const bool detached = version > DRW::AC1021
@@ -16182,8 +16188,14 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       const std::uint64_t extra = version > DRW::AC1021 ? 24u : 0u;
       const bool alignedMatch = aligned <= UINT64_MAX - extra
           && aligned + extra == bodyEndBit;
+      // APPID_CONTROL has no phantom members or writer-specific role
+      // exceptions. Accept either its exact source end-at-absent-flag boundary
+      // or the writer's aligned zero trailer, then use the bounded member
+      // handle loop below. Special tail validators are for LTYPE only.
+      const bool appIdTail = oType == DRW::DwgAppIdControlObjectType;
       const bool tailMatch = alignedMatch
-          && (validWriterTail(hBuff.forkIndependent(), count)
+          && (appIdTail
+              || validWriterTail(hBuff.forkIndependent(), count)
               || validLegacySoftPointerTail(hBuff.forkIndependent(), count));
       if (!tailMatch) return false;
       dwgBuffer trailer = candidate.forkIndependent();
@@ -16242,12 +16254,69 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
           rawNumEntries = longCount;
           countRead = true;
         } else if (shortMatches && !longMatches
-                   && validWriterTail((detached ? hBuff : shortProbe)
-                                          .forkIndependent(), shortCount)) {
+                   && (boundaryCheckedAppId
+                       || validWriterTail((detached ? hBuff : shortProbe)
+                                              .forkIndependent(), shortCount))) {
           *buf = shortProbe;
           rawNumEntries = shortCount;
           countRead = true;
         }
+      }
+    }
+  } else if (oType == DRW::DwgAppIdControlObjectType && objSize != 0
+             && version <= DRW::AC1021) {
+    // ODA §20.4.65 specifies BL for APPID_CONTROL. Older libdxfrw writers
+    // emitted BS. For versions with a declared object-data boundary, preserve
+    // that legacy profile only when its complete count field ends exactly at
+    // the boundary (before the R2007+ absent-string bit). Prefer normative
+    // BL when both encodings are identical, as they are for counts <= 255.
+    const std::uint64_t stringFlagBits = version > DRW::AC1018 ? 1u : 0u;
+    if (bodyEndBit < stringFlagBits)
+      return fail();
+    const std::uint64_t countEndBit = bodyEndBit - stringFlagBits;
+    const auto matchesCountEnd = [countEndBit](const dwgBuffer &candidate) {
+      std::uint64_t end = 0;
+      return controlCurrentBit(candidate, end) && end == countEndBit;
+    };
+    dwgBuffer tagProbe = buf->forkIndependent();
+    const std::uint8_t tag = tagProbe.get2Bits();
+    if (!tagProbe.isGood()) return fail();
+    if (tag == 1u || tag == 2u) {
+      // Compact BL and BS values share these encodings; the decoded value is
+      // identical, so retain the normative BL interpretation.
+      countRead = readControlBitLong(*buf, countEndBit, rawNumEntries)
+          && rawNumEntries >= 0 && matchesCountEnd(*buf);
+    } else if (tag == 3u) {
+      // BS selector 3 is the legacy count-256 spelling. BL's selector 3
+      // decodes to zero, so do not let its shorter false candidate mask this.
+      dwgBuffer shortProbe = buf->forkIndependent();
+      std::int32_t shortCount = 0;
+      const bool shortMatches = readControlBitShort(shortProbe, countEndBit,
+                                                    shortCount)
+          && shortCount == 256 && matchesCountEnd(shortProbe);
+      if (shortMatches) {
+        *buf = shortProbe;
+        rawNumEntries = shortCount;
+        countRead = true;
+      }
+    } else {
+      dwgBuffer longProbe = buf->forkIndependent();
+      dwgBuffer shortProbe = buf->forkIndependent();
+      std::int32_t longCount = 0, shortCount = 0;
+      const bool longMatches = readControlBitLong(longProbe, countEndBit,
+                                                  longCount)
+          && longCount >= 0 && matchesCountEnd(longProbe);
+      const bool shortMatches = readControlBitShort(shortProbe, countEndBit,
+                                                    shortCount)
+          && shortCount >= 257 && matchesCountEnd(shortProbe);
+      if (longMatches && !shortMatches) {
+        *buf = longProbe;
+        rawNumEntries = longCount;
+        countRead = true;
+      } else if (shortMatches && !longMatches) {
+        *buf = shortProbe;
+        rawNumEntries = shortCount;
+        countRead = true;
       }
     }
   } else {
@@ -16287,7 +16356,8 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
                                // (ObjControl do not have)
     bool stringBit = false;
     if (!readControlBit(*buf, bodyEndBit, stringBit)
-        || ((legacyR2007InlineBlockControl || boundaryCheckedLtype)
+        || ((legacyR2007InlineBlockControl || boundaryCheckedLtype
+             || boundaryCheckedAppId)
             && stringBit))
       return fail();
     DRW_DBG(" string bit for  v2007+: ");
