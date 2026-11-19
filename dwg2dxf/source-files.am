@@ -4,8 +4,13 @@ dwg2dxf_SOURCES = \
     main.cpp \
     dx_batch_output_names.cpp
 dist_noinst_HEADERS = \
+    dx_ac1024_aerial_advmaterial_wire.h \
+    dx_ac1024_aerial_fbxasset_wire.h \
+    dx_ac1024_aerial_material_wide_wire.h \
+    dx_ac1024_aerial_tile_wire.h \
     dx_ac1024_byblock_material_wire.h \
     dx_ac1024_dictionaryvar_wire.h \
+    dx_ac1024_material_eed_wire.h \
     dx_ac1024_mentalray_wire.h \
     dx_ac1024_mleaderstyle_wire.h \
     dx_ac1024_mlinestyle_wire.h \

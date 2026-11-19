@@ -57,6 +57,8 @@ EXTRA_DIST = \
     docs/patches/freecad-p8-legacy-dxf-block-3dface-2026-11-15.patch \
     docs/patches/freecad-p8-legacy-dxf-surface-mesh-unit-scaling-2026-11-15.patch \
     docs/patches/freecad-p8-off-layer-no-group-diagnostic-2026-11-16.patch \
+    docs/patches/librecad-dwg-fulltest-upstream-api-2026-11-19.patch \
+    docs/patches/librecad-dxf-fast-test-upstream-api-2026-11-19.patch \
     docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch \
     docs/patches/librecad-dxfrw-default-dimstyle-qstring-2026-11-18.patch \
     docs/patches/librecad-jww-default-dimstyle-qstring-2026-11-18.patch \
@@ -107,6 +109,7 @@ EXTRA_DIST = \
     docs/patches/librecad-p8-test-api-compat-2026-11-15.patch \
     docs/patches/librecad-p8-upstream-compat-2026-11-15.patch \
     docs/patches/librecad-p8-zero-reactor-sortents-source-2026-11-15.patch \
+    docs/patches/librecad-p8d-mline-staged-inspector-2026-11-19.patch \
     docs/patches/librecad3-p8-abi3-system-codec-2026-11-16.patch \
     docs/patches/librecad3-p8-default-layer-lineweight-2026-11-16.patch \
     docs/patches/librecad3-p8-entity-lineweight-loss-2026-11-16.patch \
@@ -126,8 +129,13 @@ EXTRA_DIST = \
     dwg2dxf/CMakeLists.txt \
     dwg2dxf/Makefile.am \
     dwg2dxf/dwg2dxf.1 \
+    dwg2dxf/dx_ac1024_aerial_advmaterial_wire.h \
+    dwg2dxf/dx_ac1024_aerial_fbxasset_wire.h \
+    dwg2dxf/dx_ac1024_aerial_material_wide_wire.h \
+    dwg2dxf/dx_ac1024_aerial_tile_wire.h \
     dwg2dxf/dx_ac1024_byblock_material_wire.h \
     dwg2dxf/dx_ac1024_dictionaryvar_wire.h \
+    dwg2dxf/dx_ac1024_material_eed_wire.h \
     dwg2dxf/dx_ac1024_mentalray_wire.h \
     dwg2dxf/dx_ac1024_mleaderstyle_wire.h \
     dwg2dxf/dx_ac1024_mlinestyle_wire.h \
@@ -825,7 +833,9 @@ EXTRA_DIST = \
     tests/numeric_locale_tests.cpp \
     tests/oTypes.md \
     tests/object_physical_controls.h \
+    tests/p4_advmaterial_writer_controls.h \
     tests/p4_layerstates_real_writer_controls.h \
+    tests/p4_layout_output_controls.h \
     tests/partial_viewing_index_objects_allocation_tests.cpp \
     tests/persistent_manager_test_helpers.h \
     tests/plotsettings_objects_allocation_tests.cpp \
@@ -1205,8 +1215,11 @@ EXTRA_DIST = \
     tools/probe_wipeout_ac1032_source.cpp \
     tools/qualify_material_source_order.py \
     tools/replay_dwg_legacy_extrusion.cpp \
+    tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md \
     tools/research/OBJECTARX_WITNESS_README.md \
     tools/research/P4C_SWEEP_WITNESS_README.md \
+    tools/research/P4D_LAYOUT_REOPEN_README.md \
+    tools/research/P6A_IMAGEDEF_WITNESS_README.md \
     tools/research/ac1021_mtext_field_census.cpp \
     tools/research/ac1032_forum_assocnetwork_spans.py \
     tools/research/ac1032_forum_constraint_group_spans.py \
@@ -1217,6 +1230,7 @@ EXTRA_DIST = \
     tools/research/audit_ac1021_field_graph.py \
     tools/research/audit_ac1027_associative_constraints.py \
     tools/research/audit_ac1027_source_references.py \
+    tools/research/audit_binary_dxf_layout_nod.py \
     tools/research/audit_canonical_bulk_layers.py \
     tools/research/audit_dxf_dictionary_cloning.py \
     tools/research/audit_dxf_public_writer_test_mentions.py \
@@ -1227,6 +1241,7 @@ EXTRA_DIST = \
     tools/research/canonical_ltype_peer_generator.cpp \
     tools/research/check_mpolygon_projection_ezdxf.py \
     tools/research/create_ac1021_field_derivative.py \
+    tools/research/decode_ac1024_appid_frames.py \
     tools/research/decode_dxf_sat1.py \
     tools/research/dwg_ac1032_object_section_probe.cpp \
     tools/research/freecad_acis700_sat_probe.py \
@@ -1245,6 +1260,8 @@ EXTRA_DIST = \
     tools/research/p4_forum_ltype_oda_compare.py \
     tools/research/p4c_sweep_witness.cs \
     tools/research/p4c_sweep_witness.csproj \
+    tools/research/p4d_layout_reopen.cs \
+    tools/research/p4d_layout_reopen.csproj \
     tools/research/p5_ac1018_appid_sibling_scratch_instrument.py \
     tools/research/p5_ac1018_cellstylemap_binding_probe.cpp \
     tools/research/p5_ac1018_cellstylemap_candidate_live_probe.cpp \
@@ -1282,6 +1299,8 @@ EXTRA_DIST = \
     tools/research/p5_xrecord_codepage45_verify.py \
     tools/research/p5_xrecord_codepage_capture.cpp \
     tools/research/p6_ac1032_tablecontent_graph_capture.cpp \
+    tools/research/p6a_imagedef_witness.cs \
+    tools/research/p6a_imagedef_witness.csproj \
     tools/research/probe_ac1024_layerstates_eed.cpp \
     tools/research/probe_ac1024_layerstates_eed.py \
     tools/research/probe_ac1027_layer_typed_null.cpp \
