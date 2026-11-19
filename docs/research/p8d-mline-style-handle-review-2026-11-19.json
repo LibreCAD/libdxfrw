@@ -2,30 +2,32 @@
   "schema": "libdxfrw-research-receipt-v1",
   "id": "p8d-mline-style-handle-review-2026-11-19",
   "date": "2026-11-19",
-  "status": "PATCH_CORRECTED_AND_HEAD_APPLICABILITY_CHECKED",
+  "status": "PATCH_CORRECTED_AND_FOCUSED_RUNTIME_VERIFIED",
   "supportClaimEffect": "none",
-  "scope": "Review the pending LibreCAD MLINE style-timing patch for same-name style-handle mismatches before integrating it into the consumer.",
+  "scope": "Review and validate the pending LibreCAD MLINE style-timing patch for same-name style-handle mismatches before integrating it into the consumer.",
   "consumerHead": "078aac892287",
   "finding": {
     "failurePath": "The first patch revision compared styleHandle with the cached MLINESTYLE handle only when late-style placeholders were supplied. If a same-named style was already cached when an MLINE callback arrived, the ordinary projection path could use that style despite a different nonzero source handle. The queue predicate also did not classify a cached handle mismatch as unresolved.",
     "impact": "The displayed decomposed lines could use offsets from a style that the MLINE did not reference.",
-    "evidence": "Code-path review of the pending patch and MLINE callback order. No runtime reproduction was run in this slice."
+    "evidence": "Code-path review identified both late OBJECTS callbacks and a cached-style direct projection path. The added ASCII out-of-order-section regression reproduces the cached-style path with a nonzero mismatched source handle."
   },
   "change": {
     "file": "docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch",
     "queuePredicate": "When deferred import is active, a cached same-name style with a different nonzero, non-NoHandle source handle now enters the pending queue along with missing or cardinality-mismatched styles.",
     "projectionGuard": "The style-handle equality check now applies whenever projection considers a cached style, both for direct callbacks and deferred placeholders.",
-    "existingRegressionCoverage": "The patch's ASCII/Binary late-style test includes a different-handle profile and expects fallback offsets. It does not yet exercise a style cached before the MLINE callback."
+    "cachedStyleRegression": "The filter regression now moves the MLINESTYLE OBJECTS section before ENTITIES in an ASCII DXF, so the style is cached before the MLINE callback. A different nonzero source handle must produce fallback offsets. The existing late-style test covers matched, missing and wrong-handle styles in ASCII and Binary DXF.",
+    "testEmitter": "The direct DXF MLINE test emitter now writes the MLINESTYLE object referenced by each MLINE, satisfying the current strict writer contract and keeping the pre-existing writer cases valid."
   },
   "validation": {
-    "head": "PASS: git -C ../LibreCAD apply --cached --check <patch> against index at 078aac892287.",
-    "worktree": "The LibreCAD checkout was not modified; its pre-existing dirty files and untracked data were left untouched.",
-    "diffCheck": "PASS: git diff --check in the libdxfrw repository.",
-    "consumerBuildOrTests": "Not run. The pending patch is not applied to the consumer checkout, and the complete bundled consumer build remains a separate P8-D gate."
+    "head": "PASS: both patches apply sequentially to a fresh archive of LibreCAD 078aac892287; the resulting MLINE source files match the isolated build tree.",
+    "worktree": "The shared LibreCAD checkout was not modified; all patch application and builds ran under /private/tmp.",
+    "applicationBuild": "PASS: macOS ARM64 librecad_lib and librecad app targets build with current upstream libdxfrw sources overlaid in the isolated LibreCAD archive.",
+    "focusedMlineTests": "PASS: isolated mline_tests.cpp target; [mline] selector passes 596 assertions in 9 test cases, including the eager cached-style mismatch case and the ASCII/Binary deferred-style profiles.",
+    "fullConsumerTests": "BLOCKED BY API DIVERGENCE: librecad_tests does not compile against current upstream libdxfrw because LibreCAD tests reference fork-only dwgR inspection APIs and contain unrelated narrowing errors. A separate bundled-fork attempt fails earlier on four associative-prefix enum values missing from that fork.",
+    "fixtures": "No DWG/DXF fixture files were added to the repository; generated DXFs use QTemporaryDir or existing temporary paths."
   },
   "remaining": [
-    "Add a regression where the MLINESTYLE callback is already cached before an MLINE carrying a different nonzero style handle, then verify the wrong style is not used.",
-    "Apply the reviewed patch in an isolated/current-head consumer worktree, run the focused MLINE filter tests, then check unrelated MLINE/style handling and build the bundled application once.",
+    "Check unrelated-record handling and output-budget disposition in a complete consumer build using a consistent library/API revision; the full test target remains open until the fork/upstream API mismatch is resolved.",
     "Keep native GUI qualification waiting for an active display; this review does not promote consumer or DWG support."
   ]
 }

@@ -225,13 +225,15 @@ index edcb3d2f4..7029c017a 100644
    /** DXF export: raw-net OBJECT handles to NOT re-emit because the codec
     *  regenerates them (the source ACAD_GROUP dictionary, and any object
 diff --git a/librecad/src/lib/filters/tests/mline_tests.cpp b/librecad/src/lib/filters/tests/mline_tests.cpp
-index 7c8f91c7a..c795ee8ec 100644
+index 7c8f91c7a32ac80080cb8e76e816dd6f70060cf3..4bb012c30a778dc405836e575e5c84b919f87fc0 100644
 --- a/librecad/src/lib/filters/tests/mline_tests.cpp
 +++ b/librecad/src/lib/filters/tests/mline_tests.cpp
-@@ -33,10 +33,15 @@
+@@ -33,15 +33,48 @@
  #include <string>
  #include <vector>
-
+ 
++#include <QByteArray>
++#include <QFile>
 +#include <QTemporaryDir>
 +
  #include "drw_entities.h"
@@ -241,16 +243,63 @@ index 7c8f91c7a..c795ee8ec 100644
 +#include "lc_filtertestsupport.h"
 +#include "rs_line.h"
 +#include "rs_polyline.h"
-
+ 
  using Catch::Approx;
-
-@@ -122,6 +127,29 @@ public:
+ 
+ namespace {
+ 
++bool moveObjectsSectionBeforeEntities(const QString &path) {
++  QFile file(path);
++  if (!file.open(QIODevice::ReadOnly))
++    return false;
++  QByteArray contents = file.readAll();
++  file.close();
++
++  const int objectsName = contents.indexOf("2\nOBJECTS\n");
++  const int objectsBegin = contents.lastIndexOf("0\nSECTION\n", objectsName);
++  int objectsEnd = contents.indexOf("0\nENDSEC\n", objectsName);
++  if (objectsName < 0 || objectsBegin < 0 || objectsEnd < 0)
++    return false;
++  objectsEnd += 9;
++  const QByteArray objects = contents.mid(objectsBegin, objectsEnd - objectsBegin);
++  contents.remove(objectsBegin, objectsEnd - objectsBegin);
++
++  const int entitiesName = contents.indexOf("2\nENTITIES\n");
++  const int entitiesBegin = contents.lastIndexOf("0\nSECTION\n", entitiesName);
++  if (entitiesName < 0 || entitiesBegin < 0)
++    return false;
++  contents.insert(entitiesBegin, objects);
++
++  return file.open(QIODevice::WriteOnly | QIODevice::Truncate)
++      && file.write(contents) == contents.size();
++}
++
+ // Stub satisfying every DRW_Interface pure virtual; tests override only
+ // what they need. Pattern lifted from entity_metadata_tests.cpp.
+ class StubInterface : public DRW_Interface {
+@@ -118,10 +151,45 @@
+ class MLineEmitter : public StubInterface {
+ public:
+   DRW_MLine m_line;
++  DRW_MLineStyle style;
+   dxfRW *m_rw = nullptr;
++
++  MLineEmitter() {
++    style.handle = 0xA0u;
++    style.name = "STANDARD";
++    style.elements.resize(2);
++    style.elements[0].offset = 0.5;
++    style.elements[1].offset = -0.5;
++    m_line.styleName = style.name;
++    m_line.styleHandle = style.handle;
++  }
++
    void writeEntities() override { m_rw->writeMLine(&m_line); }
++  void writeObjects() override { m_rw->writeMLineStyle(&style); }
  };
-
+ 
 +class LateMLineStyleEmitter : public MLineEmitter {
 +public:
-+  DRW_MLineStyle style;
 +  bool includeStyle = true;
 +
 +  void writeEntities() override {
@@ -274,10 +323,12 @@ index 7c8f91c7a..c795ee8ec 100644
  class MLineDwgEmitter : public StubInterface {
  public:
    dwgRW *m_rw = nullptr;
-@@ -290,6 +318,73 @@ TEST_CASE("DRW_MLine: round-trip through dxfRW write+read",
+@@ -288,6 +356,76 @@
+   }
+ 
    std::filesystem::remove(path);
- }
-
++}
++
 +TEST_CASE("DXF filter resolves a late MLINE style in source order",
 +          "[mline][filter][dxf_roundtrip]") {
 +  lc::test::ensureSettings();
@@ -320,6 +371,9 @@ index 7c8f91c7a..c795ee8ec 100644
 +        REQUIRE(writer.write(&emitter, DRW::AC1021, binary));
 +      }
 +
++      if (!binary && profile == Style::DifferentHandle)
++        REQUIRE(moveObjectsSectionBeforeEntities(path));
++
 +      RS_Graphic drawing;
 +      REQUIRE(filter.fileImport(drawing, path, RS2::FormatDXFRW));
 +      REQUIRE(drawing.count() == 4);
@@ -343,8 +397,6 @@ index 7c8f91c7a..c795ee8ec 100644
 +      }
 +    }
 +  }
-+}
-+
+ }
+ 
  TEST_CASE("DXF MLINE write emits expected codes", "[mline][dxf_roundtrip]") {
-   const auto path =
-       std::filesystem::temp_directory_path() / "librecad_mline_codes.dxf";
