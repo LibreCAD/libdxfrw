@@ -1189,3 +1189,182 @@ bool physicalAc1024SelectedMLeaderStylesWriter(const std::filesystem::path& sour
     std::cerr << "AC1024 selected MLEADERSTYLE passed twelve refusal/retry controls in both encodings.\n";
     return true;
 }
+
+// Selected TABLESTYLE staging only; this does not qualify the full DWG.
+bool physicalAc1024SelectedTableStyleWriter(const std::filesystem::path& sourcePath) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || !source.hasSingleSuccessfulNamedResourceImport()
+        || !source.hasNamedObjectDictionary || source.namedObjectDictionary.handle != 0xCu
+        || source.tableStyles.size() != 1u || source.dictionaryWithDefaults.size() != 1u
+        || source.placeholders.size() != 1u)
+        return fail("could not import selected aerial TABLESTYLE witness");
+    const auto findHandle = [](auto& rows, std::uint32_t handle) {
+        return std::find_if(rows.begin(), rows.end(), [handle](const auto& row) {
+            return row.handle == handle;
+        });
+    };
+    const auto group = findHandle(source.dictionaries, 0xDu);
+    const auto owner = findHandle(source.dictionaries, 0x86u);
+    const auto extension = findHandle(source.dictionaries, 0x238u);
+    const auto textStyle = findHandle(source.textStyles, 0x11u);
+    const auto style = findHandle(source.tableStyles, 0x87u);
+    if (group == source.dictionaries.end() || owner == source.dictionaries.end()
+        || extension == source.dictionaries.end() || textStyle == source.textStyles.end()
+        || style == source.tableStyles.end() || style->parentHandle != 0x86u
+        || style->xDictHandle != 0x238u || extension->parentHandle != 0x87u
+        || !extension->m_entries.empty() || style->m_cellStyles.size() != 3u
+        || style->m_cellStyles.front().m_borders.empty())
+        return fail("aerial TABLESTYLE selected graph differs from its witness");
+
+    class Writer final : public LayerStateTestWriter {
+    public:
+        dx_data blank;
+        DRW_Textstyle text;
+        std::list<DRW_Textstyle> textStyles;
+        DRW_Dictionary owner, extension;
+        DRW_TableStyle style;
+        DRW_DictionaryWithDefault plot;
+        DRW_AcDbPlaceholder placeholder;
+        std::function<bool()> finalize;
+        void writeTextstyles() override { (void)dxfW->writeTextstyle(&text); }
+        void writeAppId() override {}
+        void writeObjects() override {
+            (void)dxfW->writeDictionaryWithDefault(&plot);
+            (void)dxfW->writeAcDbPlaceholder(&placeholder);
+            (void)dxfW->writeDictionary(&owner);
+            (void)dxfW->writeDictionary(&extension);
+            (void)dxfW->writeTableStyle(&style, textStyles);
+        }
+        bool finalizeDxfWrite() override { return finalize(); }
+    } writer;
+    writer.cData = &writer.blank;
+    writer.text = *textStyle;
+    writer.textStyles.push_back(*textStyle);
+    writer.owner = *owner;
+    writer.extension = *extension;
+    writer.style = *style;
+    writer.plot = source.dictionaryWithDefaults.front();
+    if (writer.plot.m_entries.size() != 1u) return fail("missing Normal plot-style entry");
+    writer.plot.m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+    writer.placeholder = source.placeholders.front();
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-selected-tablestyle-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error);
+    } } cleanup{path};
+    dxfRW codec(path.string().c_str());
+    reader.cData = &source;
+    Access::attachDxfWriter(reader, &codec);
+    Access::attachDxfWriter(writer, &codec);
+    codec.setDxfWriteRecordInventoryEnabled(true);
+    codec.setHandleRemap({{0x11u, 0xA011u}, {0x86u, 0xA086u},
+                          {0x87u, 0xA087u}, {0x238u, 0xA238u}});
+    codec.setRootDictEntries({{"ACAD_TABLESTYLE", "A086"}, {"ACAD_PLOTSTYLENAME", "E"}});
+    if (!codec.setGeneratedDictionarySourceHandles(0xCu, 0xDu)
+        || !codec.setGeneratedDictionarySourceRecords(
+            std::make_unique<DRW_Dictionary>(source.namedObjectDictionary),
+            std::make_unique<DRW_Dictionary>(*group))
+        || !codec.setDxfDefaultPlotStyleSourceHandles(0xEu, 0xFu))
+        return fail("could not set up selected TABLESTYLE roots");
+    DRW_Class styleClass, plotClass, placeholderClass;
+    if (!Access::selectedAerialTableStyleClass(reader, source, styleClass)
+        || !dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
+        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
+        return fail("missing selected TABLESTYLE classes");
+    styleClass.instanceCount = plotClass.instanceCount = placeholderClass.instanceCount = 1;
+    codec.setDxfClasses({styleClass, plotClass, placeholderClass});
+    enum class Fault { None, Height, Border, MissingStyle, Marker, ExtensionOwner,
+                       ExtensionFlag, StyleFont, StyleWireEarly, ExtensionWireEarly,
+                       DictionaryWireLate };
+    Fault fault = Fault::None;
+    bool tables = false, objects = false, finalizing = false, alteredBody = false;
+    if (!codec.setDxfTablesWriteInspector([&](const auto& view) {
+        tables = true;
+        return Access::inspectSelectedAerialTableStyleTables(reader, view);
+    }) || !codec.setDxfObjectsWriteInspector([&](const auto& view) {
+        objects = true;
+        if (fault == Fault::Marker || fault == Fault::MissingStyle) {
+            std::string bytes(view.bytes);
+            const auto record = bytes.find("TABLESTYLE");
+            const std::string needle = fault == Fault::Marker ? "CELLSTYLE_END" : "A011";
+            const auto at = record == std::string::npos ? std::string::npos : bytes.find(needle, record);
+            if (at == std::string::npos) return false;
+            bytes[at] = fault == Fault::Marker ? 'X' : 'B';
+            alteredBody = true;
+            auto altered = view;
+            altered.bytes = bytes;
+            return Access::inspectSelectedAerialTableStyle(reader, altered);
+        }
+        return Access::inspectSelectedAerialTableStyle(reader, view);
+    })) return fail("could not install selected TABLESTYLE inspectors");
+    auto& styleWire = Access::aerialMLeaderWire(source, 0x87u);
+    auto& extensionWire = Access::standardFrameTail(source, 0x238u);
+    auto& dictionaryWire = Access::standardFrameTail(source, 0x86u);
+    writer.finalize = [&]() {
+        finalizing = true;
+        if (fault == Fault::DictionaryWireLate) dictionaryWire ^= 1u;
+        const bool result = Access::finalizeSelectedAerialTableStyle(reader);
+        if (fault == Fault::DictionaryWireLate) dictionaryWire ^= 1u;
+        return result;
+    };
+    const auto run = [&](bool binary) {
+        tables = objects = finalizing = alteredBody = false;
+        Access::resetRasterOutput(reader);
+        return Access::prepareSelectedAerialTableStyle(reader, source, *owner, *style)
+            && codec.write(&writer, DRW::AC1024, binary);
+    };
+    const std::string sentinel = "preserve selected TABLESTYLE destination\n";
+    for (const bool binary : {false, true}) {
+        if (!run(binary) || !tables || !objects || !finalizing)
+            return fail("selected TABLESTYLE baseline was rejected");
+        for (const Fault bad : {Fault::Height, Fault::Border, Fault::MissingStyle,
+                Fault::Marker, Fault::ExtensionOwner, Fault::ExtensionFlag,
+                Fault::StyleFont, Fault::StyleWireEarly, Fault::ExtensionWireEarly,
+                Fault::DictionaryWireLate}) {
+            fault = bad;
+            if (bad == Fault::Height) writer.style.m_cellStyles.front().m_contentFormat.m_textHeight += 1.0;
+            if (bad == Fault::Border) writer.style.m_cellStyles.front().m_borders.front().m_lineWeight = -1;
+            if (bad == Fault::ExtensionOwner) writer.extension.parentHandle = 0x86u;
+            if (bad == Fault::ExtensionFlag) writer.extension.hardOwner = 0;
+            if (bad == Fault::StyleFont) writer.text.font += ".altered";
+            if (bad == Fault::StyleWireEarly) styleWire ^= 0x80u;
+            if (bad == Fault::ExtensionWireEarly) extensionWire ^= 1u;
+            {
+                std::ofstream existing(path, std::ios::binary | std::ios::trunc);
+                if (!(existing << sentinel)) return fail("cannot seed TABLESTYLE destination");
+            }
+            const bool saved = run(binary);
+            writer.style = *style;
+            writer.extension = *extension;
+            writer.text = *textStyle;
+            if (bad == Fault::StyleWireEarly) styleWire ^= 0x80u;
+            if (bad == Fault::ExtensionWireEarly) extensionWire ^= 1u;
+            const bool early = bad == Fault::StyleWireEarly || bad == Fault::ExtensionWireEarly;
+            const bool tableFault = bad == Fault::StyleFont;
+            const bool late = bad == Fault::DictionaryWireLate;
+            const bool editedBytes = bad == Fault::MissingStyle || bad == Fault::Marker;
+            fault = Fault::None;
+            std::ifstream existing(path, std::ios::binary);
+            if (saved || tables == early || objects != (!early && !tableFault)
+                || finalizing != late || (editedBytes && !alteredBody)
+                || std::string(std::istreambuf_iterator<char>(existing), {}) != sentinel) {
+                std::cerr << "TABLESTYLE fault=" << static_cast<int>(bad)
+                          << " binary=" << binary << " tables=" << tables
+                          << " objects=" << objects << " finalizing=" << finalizing
+                          << " altered=" << alteredBody << '\n';
+                return fail("selected TABLESTYLE fault did not refuse atomically at the expected stage");
+            }
+            existing.close();
+            if (!run(binary) || !tables || !objects || !finalizing)
+                return fail("selected TABLESTYLE corrected retry failed");
+        }
+    }
+    std::cerr << "AC1024 selected TABLESTYLE passed ten refusal/retry controls in both encodings.\n";
+    return true;
+}

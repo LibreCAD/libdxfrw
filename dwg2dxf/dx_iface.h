@@ -4693,7 +4693,7 @@ private:
     std::array<DwgClassObjectPublication, 2> m_dwgAerialMLeaderPublications;
     std::array<std::vector<std::uint8_t>, 2> m_dwgAerialMLeaderBodies;
     std::optional<DRW_LType> m_dwgAerialMLeaderLType;
-    std::optional<DRW_Textstyle> m_dwgAerialMLeaderTextStyle;
+    std::optional<DRW_Textstyle> m_dwgAc1024StandardTextStyle;
     const dx_data* m_dwgAerialMLeaderReadOwner{nullptr};
     bool m_dwgAerialMLeaderTableCaptureFailed{false};
     bool m_dwgAerialMLeaderSourceRecognized{false};
@@ -5187,6 +5187,17 @@ private:
     DRW::Version m_dwgTableStyleOutputSourceVersion{DRW::UNKNOWNV};
     std::uint64_t m_dwgTableStyleOutputSourceGeneration{0u};
     bool m_dwgTableStylesInspected{false};
+    DwgClassObjectPublication m_dwgAerialTableStylePublication;
+    std::vector<std::uint8_t> m_dwgAerialTableStyleBody;
+    const dx_data* m_dwgAerialTableStyleReadOwner{nullptr};
+    bool m_dwgAerialTableStyleTablesInspected{false};
+    void retainAerialDwgTableStylePublication(const DRW_DwgFramePublication& event) noexcept;
+    void finishAerialDwgTableStyleSource() noexcept;
+    bool requiresAc1024AerialDwgTableStyleProof(const dx_data& data) const noexcept;
+    bool hasQualifiedAc1024AerialDwgTableStyle(const dx_data& data,
+                                              DRW_Class* outputClass = nullptr) const noexcept;
+    bool inspectAerialDwgTableStyleTables(const dxfRW::DxfTablesWriteView& view) noexcept;
+    bool finalizeAerialDwgTableStyleOutput() const noexcept;
     bool hasUnchangedDwgTableStyleOutputSources() const noexcept;
     bool inspectDwgTableStylesOutput(
         const dxfRW::DxfObjectsWriteView& view) noexcept;

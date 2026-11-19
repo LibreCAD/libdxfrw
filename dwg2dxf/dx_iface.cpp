@@ -39,6 +39,7 @@
 #include "dx_ac1024_mleaderstyle_wire.h"
 #include "dx_ac1024_mlinestyle_wire.h"
 #include "dx_ac1024_renderglobal_wire.h"
+#include "dx_ac1024_tablestyle_wire.h"
 #include "dx_ac1027_plotstyle_wire.h"
 #include "dx_ac1027_material_wire.h"
 #include "dx_ac1027_layer_wire.h"
@@ -17043,6 +17044,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 || data->sourceVersion == DRW::AC1024)
             && data->dwgReadOutcome.attempted
             && !m_extensionTableStyleHandles.empty()) {
+            if (requiresAc1024AerialDwgTableStyleProof(*data)
+                && !hasQualifiedAc1024AerialDwgTableStyle(*data))
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "AC1024 TABLESTYLE requires the original source frames, class and STYLE target");
             try {
                 const DRW_Dictionary::Entry* rootEntry = nullptr;
                 std::size_t rootMatches = 0u;
@@ -17443,6 +17448,10 @@ bool dx_iface::prepareExtensionObjectGraph(dx_data* data,
                 m_dwgTableStyleOutputSourceVersion = DRW::UNKNOWNV;
                 m_dwgTableStyleOutputSourceGeneration = 0u;
             }
+            if (requiresAc1024AerialDwgTableStyleProof(*data)
+                && m_dwgTableStyleOutputSources.count(0x87u) != 1u)
+                return reject(ExtensionGraphFailure::InvalidGraph,
+                    "AC1024 TABLESTYLE source snapshot is incomplete");
         }
         // Freeze the exact AC1021 ModelDocViewStyle source profile whose
         // NOD, nested dictionaries, extension dictionaries, and XRECORD
@@ -29016,6 +29025,7 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
     if (cData == nullptr || !cData->dwgReadOutcome.attempted)
         return;
     retainAerialDwgMLeaderPublication(data);
+    retainAerialDwgTableStylePublication(data);
     if (typeid(*this) == typeid(dx_iface) && m_classEvidenceReadData == cData
         && m_classEvidenceReadAttempt && cData->importGeneration == cData->m_classEvidenceGeneration
         && data.m_version == DRW::AC1027 && data.m_encodedType == 51) {
@@ -36060,13 +36070,16 @@ void dx_iface::retainAerialDwgMLeaderPublication(const DRW_DwgFramePublication& 
                 m_dwgAerialMLeaderLType = *row;
         } else {
             const auto* row = uniqueDwgSourceRecord(cData->textStyles, event.m_handle);
-            if (m_dwgAerialMLeaderTextStyle || !row || row->name != "Standard" || row->parentHandle != 3u
+            if (m_dwgAc1024StandardTextStyle || !row || row->name != "Standard" || row->parentHandle != 3u
                 || row->font != "txt" || !row->bigFont.empty() || !row->appData.empty() || !row->extData.empty()
                 || !row->reactorHandles.empty() || !row->pendingAppIdResolutions.empty()
                 || !row->pendingLayerRefResolutions.empty() || row->xDictHandle != 0u)
+            {
                 m_dwgAerialMLeaderTableCaptureFailed = true;
-            else
-                m_dwgAerialMLeaderTextStyle = *row;
+                m_dwgAc1024StandardTextStyle.reset();
+            } else {
+                m_dwgAc1024StandardTextStyle = *row;
+            }
         }
     } catch (...) { m_dwgAerialMLeaderTableCaptureFailed = true; }
 }
@@ -36115,7 +36128,7 @@ void dx_iface::finishAerialDwgMLeaderSource() noexcept {
 
 bool dx_iface::hasQualifiedAc1024DwgAerialMLeaderStyles(DRW_Class* outputClass) const noexcept {
     if (cData == nullptr || m_dwgAerialMLeaderReadOwner != cData || !m_dwgAerialMLeaderSourceRecognized
-        || !m_dwgAerialMLeaderLType || !m_dwgAerialMLeaderTextStyle || m_dwgAerialMLeaderTableCaptureFailed
+        || !m_dwgAerialMLeaderLType || !m_dwgAc1024StandardTextStyle || m_dwgAerialMLeaderTableCaptureFailed
         || !hasAc1024DwgRootMember(*cData, "ACAD_MLEADERSTYLE", 0x147u)
         || !cData->hasCompleteDwgDictionaryEntry(0x147u, "Standard", 0x148u)
         || !cData->hasCompleteDwgDictionaryEntry(0x147u, "Annotative", 0x157u))
@@ -36126,7 +36139,7 @@ bool dx_iface::hasQualifiedAc1024DwgAerialMLeaderStyles(DRW_Class* outputClass) 
         const auto* dictionary = uniqueDwgSourceRecord(cData->dictionaries, 0x147u);
         if (!lineType || !textStyle || !dictionary
             || !lineTypeSourceEqual(*m_dwgAerialMLeaderLType, *lineType, DRW::AC1024)
-            || !verifiedStyleSourceModelMatches(*m_dwgAerialMLeaderTextStyle, *textStyle, *cData))
+            || !verifiedStyleSourceModelMatches(*m_dwgAc1024StandardTextStyle, *textStyle, *cData))
             return false;
         const auto* owner = boundAc1024DwgStandardObject(*cData, *dictionary, dwgObjType::DICTIONARY);
         if (!owner || !dx_ac1024_mleaderstyle_wire::observeDictionary(*owner, *dictionary))
@@ -36156,6 +36169,152 @@ bool dx_iface::hasQualifiedAc1024DwgAerialMLeaderStyles(DRW_Class* outputClass) 
             *outputClass = std::move(sourceClass);
         }
         return true;
+    } catch (...) { return false; }
+}
+
+void dx_iface::retainAerialDwgTableStylePublication(const DRW_DwgFramePublication& event) noexcept {
+    if (event.m_version != DRW::AC1024 || event.m_handle != 0x87u
+        || (event.m_recordName != "TABLESTYLE" && event.m_className != "AcDbTableStyle")
+        || typeid(*this) != typeid(dx_iface) || m_classEvidenceReadData != cData
+        || m_classEvidenceReadAttempt == 0u || cData->m_classEvidenceOwner != this
+        || cData->m_classEvidenceAttempt != m_classEvidenceReadAttempt
+        || cData->m_classEvidenceGeneration != cData->importGeneration)
+        return;
+    auto& receipt = m_dwgAerialTableStylePublication;
+    const bool first = receipt.generation == 0u;
+    receipt.generation = cData->importGeneration;
+    receipt.attempt = 0u;
+    if (!first || event.m_recordName != "TABLESTYLE" || event.m_className != "AcDbTableStyle"
+        || !event.m_controlHandles.empty())
+        return;
+    try {
+        receipt.publication = event;
+        receipt.attempt = m_classEvidenceReadAttempt;
+    } catch (...) { receipt.attempt = 0u; }
+}
+
+bool dx_iface::requiresAc1024AerialDwgTableStyleProof(const dx_data& data) const noexcept {
+    if (data.sourceFormat != dx_source_format::DWG || data.sourceVersion != DRW::AC1024)
+        return false;
+    if (m_dwgAerialTableStyleReadOwner == &data)
+        return true;
+    const auto& nod = data.namedObjectDictionary;
+    return data.hasNamedObjectDictionary && nod.handle == 0xCu
+        && std::any_of(nod.m_entries.begin(), nod.m_entries.end(), [](const auto& entry) {
+            return entry.m_name == "ACAD_TABLESTYLE" && entry.m_handle == 0x86u;
+        })
+        && std::any_of(data.tableStyles.begin(), data.tableStyles.end(), [](const auto& style) {
+            return style.handle == 0x87u && style.parentHandle == 0x86u
+                && style.xDictHandle == 0x238u && style.m_name == "Standard";
+        });
+}
+
+void dx_iface::finishAerialDwgTableStyleSource() noexcept {
+    if (cData == nullptr || typeid(*this) != typeid(dx_iface)
+        || !requiresAc1024AerialDwgTableStyleProof(*cData))
+        return;
+    // Keep the candidate bound to the importer even when physical proof fails.
+    m_dwgAerialTableStyleReadOwner = cData;
+    try {
+        const auto* style = uniqueDwgSourceRecord(cData->tableStyles, 0x87u);
+        const auto* raw = boundAc1024DwgClassObject(*cData, 0x87u, m_dwgAerialTableStylePublication, nullptr);
+        if (style && raw && dx_ac1024_tablestyle_wire::observeStyle(*raw, *style))
+            m_dwgAerialTableStyleBody = raw->m_rawBytes;
+    } catch (...) { m_dwgAerialTableStyleBody.clear(); }
+}
+
+bool dx_iface::hasQualifiedAc1024AerialDwgTableStyle(const dx_data& data,
+                                                     DRW_Class* outputClass) const noexcept {
+    if (m_dwgAerialTableStyleReadOwner != &data || m_dwgAerialTableStyleBody.empty()
+        || !m_dwgAc1024StandardTextStyle)
+        return false;
+    try {
+        if (!hasAc1024DwgRootMember(data, "ACAD_TABLESTYLE", 0x86u)
+            || !data.hasCompleteDwgDictionaryEntry(0x86u, "Standard", 0x87u))
+            return false;
+        const auto* style = uniqueDwgSourceRecord(data.tableStyles, 0x87u);
+        const auto* dictionary = uniqueDwgSourceRecord(data.dictionaries, 0x86u);
+        const auto* extension = uniqueDwgSourceRecord(data.dictionaries, 0x238u);
+        const auto* textStyle = uniqueDwgSourceRecord(data.textStyles, 0x11u);
+        if (!style || !dictionary || !extension || !textStyle
+            || !verifiedStyleSourceModelMatches(*m_dwgAc1024StandardTextStyle, *textStyle, data))
+            return false;
+        DRW_Class row;
+        const auto* rawStyle = boundAc1024DwgClassObject(data, 0x87u, m_dwgAerialTableStylePublication, &row);
+        const auto* rawDictionary = boundAc1024DwgStandardObject(data, *dictionary, dwgObjType::DICTIONARY);
+        const auto* rawExtension = boundAc1024DwgStandardObject(data, *extension, dwgObjType::DICTIONARY);
+        if (!rawStyle || !rawDictionary || !rawExtension || row.proxyFlag != 4095
+            || m_dwgAerialTableStyleBody != rawStyle->m_rawBytes
+            || !dx_ac1024_tablestyle_wire::observeStyle(*rawStyle, *style)
+            || !dx_ac1024_tablestyle_wire::observeDictionary(*rawDictionary, *dictionary)
+            || !dx_ac1024_tablestyle_wire::observeDictionary(*rawExtension, *extension))
+            return false;
+        const auto& styleEvent = m_dwgAerialTableStylePublication.publication;
+        for (const auto handle : {0x86u, 0x238u}) {
+            const auto& event = data.m_standardDwgObjectFrames.at({data.importGeneration, handle}).publication;
+            if (event.m_sourceMapOrdinal == styleEvent.m_sourceMapOrdinal
+                || (event.m_sourceOffsetSpace == styleEvent.m_sourceOffsetSpace
+                    && event.m_sourceOffset == styleEvent.m_sourceOffset))
+                return false;
+        }
+        if (outputClass) {
+            row.instanceCount = 1;
+            *outputClass = std::move(row);
+        }
+        return true;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::inspectAerialDwgTableStyleTables(const dxfRW::DxfTablesWriteView& view) noexcept {
+    if (m_dwgTableStyleOutputSources.count(0x87u) == 0u || cData == nullptr
+        || !requiresAc1024AerialDwgTableStyleProof(*cData))
+        return true;
+    if (!dxfW || view.version != DRW::AC1024 || m_dwgAerialTableStyleTablesInspected
+        || !hasQualifiedAc1024AerialDwgTableStyle(*cData))
+        return false;
+    try {
+        const auto emitted = dxfW->dxfWriteEmittedSourceTableHandle(0x11u);
+        if (emitted == 0u || emitted == DRW::NoHandle)
+            return false;
+        const auto& source = *m_dwgAc1024StandardTextStyle;
+        std::size_t seen = 0u;
+        bool nameMatches = true;
+        const bool inspected = dx_standard_output::inspectSelected(view,
+            [&](std::string_view name, std::uint32_t handle) {
+                if (handle != emitted) return false;
+                nameMatches = nameMatches && name == "STYLE";
+                return true;
+            },
+            [&](const auto&, std::string_view body) {
+                dx_standard_output::Decoder decoder(view);
+                return ++seen == 1u && decoder.decodeRecord<DRW_Textstyle>(body,
+                    [&](const DRW_Textstyle& actual) {
+                        return actual.handle == emitted && actual.parentHandle == 3u
+                            && asciiIdentifierEquals(actual.name, "STANDARD")
+                            && actual.flags == source.flags && actual.height == source.height
+                            && actual.width == source.width && actual.oblique == source.oblique
+                            && actual.genFlag == source.genFlag && actual.lastHeight == source.lastHeight
+                            && actual.font == source.font && actual.bigFont == source.bigFont
+                            && actual.fontFamily == source.fontFamily;
+                    });
+            });
+        m_dwgAerialTableStyleTablesInspected = inspected && nameMatches && seen == 1u;
+        return m_dwgAerialTableStyleTablesInspected;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::finalizeAerialDwgTableStyleOutput() const noexcept {
+    if (m_dwgTableStyleOutputSources.count(0x87u) == 0u || cData == nullptr
+        || !requiresAc1024AerialDwgTableStyleProof(*cData))
+        return true;
+    if (!dxfW || !m_dwgAerialTableStyleTablesInspected || !m_dwgTableStylesInspected)
+        return false;
+    try {
+        DRW_Class row;
+        const auto text = dxfW->dxfWriteEmittedSourceTableHandle(0x11u);
+        return hasQualifiedAc1024AerialDwgTableStyle(*cData, &row)
+            && dxfW->dxfWriteClassMatches(row)
+            && dxfW->dxfWriteSourceTableHasIdentity(0x11u, text, "STYLE", 3u);
     } catch (...) { return false; }
 }
 
@@ -36727,7 +36886,7 @@ bool dx_iface::inspectAerialDwgMLeaderStyleTables(const dxfRW::DxfTablesWriteVie
         if (line != 0x14u || text == 0u || text == DRW::NoHandle || text == line)
             return false;
         const auto& sourceLine = *m_dwgAerialMLeaderLType;
-        const auto& sourceText = *m_dwgAerialMLeaderTextStyle;
+        const auto& sourceText = *m_dwgAc1024StandardTextStyle;
         std::string_view currentName;
         std::size_t lines = 0u, texts = 0u;
         const bool tables = dx_standard_output::inspectSelected(view,
@@ -57734,6 +57893,11 @@ bool dx_iface::hasUnchangedDwgTableStyleOutputSources() const noexcept {
         return false;
     try {
         std::size_t currentStyles = 0u;
+        if (requiresAc1024AerialDwgTableStyleProof(*cData)
+            && (m_dwgTableStyleOutputSources.size() != 1u
+                || m_dwgTableStyleOutputSources.count(0x87u) != 1u
+                || !hasQualifiedAc1024AerialDwgTableStyle(*cData)))
+            return false;
         for (const DRW_TableStyle& style : cData->tableStyles) {
             const auto source = m_dwgTableStyleOutputSources.find(
                 style.handle);
@@ -58658,6 +58822,19 @@ bool dx_iface::inspectDwgTableStylesOutput(
             || expectedStyles.empty())
             return false;
 
+        std::uint32_t aerialExtension = 0u, aerialStyle = 0u;
+        if (requiresAc1024AerialDwgTableStyleProof(*cData)) {
+            DRW_Class row;
+            if (view.version != DRW::AC1024 || !m_dwgAerialTableStyleTablesInspected
+                || !hasQualifiedAc1024AerialDwgTableStyle(*cData, &row)
+                || !dxfW->dxfWriteClassMatches(row)
+                || !mapHandle(0x238u, aerialExtension) || !mapHandle(0x87u, aerialStyle)
+                || expectedStyles.count(aerialStyle) != 1u
+                || dxfW->dxfWriteRecordHandleCount(aerialExtension) != 1u
+                || !dxfW->dxfWriteRecordHasIdentity(aerialExtension, "DICTIONARY", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(aerialExtension, aerialStyle))
+                return false;
+        }
         std::unordered_set<std::uint32_t> seenStyles;
         std::unordered_set<std::uint32_t> seenDictionaries;
         std::unordered_set<std::uint32_t> seenCellMaps;
@@ -58673,17 +58850,29 @@ bool dx_iface::inspectDwgTableStylesOutput(
                     expectedCellMapDictionaries.count(handle) != 0u;
                 const bool cellMap = expectedCellMaps.count(handle) != 0u;
                 const bool nod = handle == emittedNod;
+                const bool emptyExtension = aerialExtension != 0u && handle == aerialExtension;
                 if ((style
                         && !asciiIdentifierEquals(name, "TABLESTYLE"))
-                    || ((dictionary || cellMapDictionary || nod)
+                    || ((dictionary || cellMapDictionary || nod || emptyExtension)
                         && !asciiIdentifierEquals(name, "DICTIONARY")))
                     namesMatch = false;
                 if (cellMap && !asciiIdentifierEquals(name, "CELLSTYLEMAP"))
                     namesMatch = false;
                 return style || dictionary || cellMapDictionary
-                    || cellMap || nod;
+                    || cellMap || nod || emptyExtension;
             },
             [&](const auto& shape, std::string_view body) {
+                if (aerialExtension != 0u && shape.handle == aerialExtension) {
+                    if (shape.kind != dx_standard_output::Family::Dictionary
+                        || !seenDictionaries.insert(shape.handle).second)
+                        return false;
+                    dx_standard_output::Decoder decoder(view);
+                    return decoder.decodeRecord<DRW_Dictionary>(body, [&](const DRW_Dictionary& actual) {
+                        return actual.handle == aerialExtension && actual.parentHandle == aerialStyle
+                            && actual.xDictHandle == 0u && actual.cloning == 1 && actual.hardOwner == 1
+                            && actual.m_entries.empty() && actual.appData.empty() && actual.extData.empty();
+                    });
+                }
                 if (shape.handle == emittedNod) {
                     dx_standard_output::Decoder decoder(view);
                     const bool decoded = decoder.decodeRecord<DRW_Dictionary>(
@@ -58905,6 +59094,111 @@ bool dx_iface::inspectDwgTableStylesOutput(
                 const auto source = emittedStyleSources.find(style->first);
                 if (source == emittedStyleSources.end())
                     return false;
+                if (m_dwgTableStyleOutputSourceVersion == DRW::AC1024
+                    && view.version == DRW::AC1024) {
+                    const DRW_TableStyle& original = *source->second;
+                    // The selected source profile has only the common DWG
+                    // reactor and extension-dictionary scopes. Arbitrary
+                    // application data needs a separate transport proof.
+                    if (!original.m_r24PrefixPresent
+                        || !original.appData.empty()
+                        || !original.extData.empty())
+                        return false;
+                    dx_standard_output::Decoder decoder(view);
+                    return decoder.decodeR24TableStyle(body,
+                        [&](const DRW_TableStyle& actual) {
+                            std::uint32_t extension = 0u;
+                            if (!mapHandle(original.xDictHandle, extension)
+                                || actual.handle != style->first
+                                || actual.parentHandle != style->second
+                                || actual.xDictHandle != extension
+                                || actual.m_name != original.m_name
+                                || actual.m_flowDirection
+                                    != original.m_flowDirection
+                                || !actual.extData.empty()
+                                || actual.m_cellStyles.size()
+                                    != original.m_cellStyles.size())
+                                return false;
+                            std::vector<std::uint32_t> reactors;
+                            for (const auto handle : original.reactorHandles) {
+                                std::uint32_t emitted = 0u;
+                                if (!mapHandle(handle, emitted) || !emitted)
+                                    return false;
+                                reactors.push_back(emitted);
+                            }
+                            if (actual.reactorHandles != reactors)
+                                return false;
+                            std::size_t reactorGroups = 0u, dictionaryGroups = 0u;
+                            for (const auto& group : actual.appData) {
+                                const auto name = dx_standard_output::appName(group);
+                                if (name == "ACAD_REACTORS") {
+                                    if (++reactorGroups != 1u
+                                        || !dx_standard_output::reservedGroupExact(
+                                            group, actual, true)) return false;
+                                } else if (name == "ACAD_XDICTIONARY") {
+                                    if (++dictionaryGroups != 1u
+                                        || !dx_standard_output::reservedGroupExact(
+                                            group, actual, false)) return false;
+                                } else return false;
+                            }
+                            if (reactorGroups != (reactors.empty() ? 0u : 1u)
+                                || dictionaryGroups != (extension ? 1u : 0u))
+                                return false;
+
+                            const auto normalizeColor = [](int index,
+                                    DRW_TableStyleCmcColor& color) {
+                                // The DXF color tuple does not carry the DWG
+                                // packed CMC method or its opaque C8 payload.
+                                if (color.m_method == 0xC8u) {
+                                    color.m_rgb = -1;
+                                    color.m_method = 0xC0u;
+                                } else if (color.m_rgb >= 0) {
+                                    color.m_method = 0xC2u;
+                                } else {
+                                    color.m_method = index == 0 ? 0xC1u
+                                        : index == 256 ? 0xC0u : 0xC3u;
+                                }
+                                color.m_flags = static_cast<std::uint8_t>(
+                                    (color.m_name.empty() ? 0u : 1u)
+                                    | (color.m_bookName.empty() ? 0u : 2u));
+                                color.m_reservedIndex = 0u;
+                            };
+                            const auto projectCell = [&](DRW_TableStyleCellStyle& cell) {
+                                auto& format = cell.m_contentFormat;
+                                std::uint32_t text = 0u;
+                                if (!mapHandle(format.m_textStyleHandle, text)
+                                    || (text && (dxfW->dxfWriteRecordHandleCount(text) != 1u
+                                        || !dxfW->dxfWriteRecordHasIdentity(text, "STYLE", "TABLES"))))
+                                    return false;
+                                format.m_textStyleHandle = text;
+                                normalizeColor(cell.m_backgroundColor, cell.m_backgroundColorCmc);
+                                normalizeColor(format.m_contentColor, format.m_contentColorCmc);
+                                for (auto& border : cell.m_borders) {
+                                    if (border.m_lineTypeHandle) {
+                                        const auto line = dxfW->dxfWriteSourceLinetypeTargetHandle(border.m_lineTypeHandle);
+                                        if (!line || line == DRW::NoHandle
+                                            || dxfW->dxfWriteRecordHandleCount(line) != 1u
+                                            || !dxfW->dxfWriteRecordHasIdentity(line, "LTYPE", "TABLES"))
+                                            return false;
+                                        border.m_lineTypeHandle = line;
+                                    }
+                                    normalizeColor(border.m_color, border.m_colorCmc);
+                                }
+                                return true;
+                            };
+                            DRW_TableStyleCellStyle table = original.m_tableCellStyle;
+                            if (!projectCell(table)
+                                || !retainedCellStyleEqual(table, actual.m_tableCellStyle))
+                                return false;
+                            for (std::size_t i = 0u; i < original.m_cellStyles.size(); ++i) {
+                                DRW_TableStyleCellStyle cell = original.m_cellStyles[i];
+                                if (!projectCell(cell)
+                                    || !retainedCellStyleEqual(cell, actual.m_cellStyles[i]))
+                                    return false;
+                            }
+                            return true;
+                        });
+                }
                 if (view.version != DRW::AC1021)
                     return !body.empty();
                 dx_standard_output::Decoder decoder(view);
@@ -59053,6 +59347,7 @@ bool dx_iface::inspectDwgTableStylesOutput(
         if (!inspected || !namesMatch || !rootKeyMatched
             || seenDictionaries.size() != expectedDictionaries.size()
                     + expectedCellMapDictionaries.size()
+                    + (aerialExtension != 0u ? 1u : 0u)
             || seenStyles.size() != expectedStyles.size()
             || seenCellMaps.size() != expectedCellMaps.size()) {
             DRW_DBG("TABLESTYLE staged body proof failed inspected=");
@@ -59061,7 +59356,7 @@ bool dx_iface::inspectDwgTableStylesOutput(
             DRW_DBG(" dictionaries=");
             DRW_DBG(seenDictionaries.size()); DRW_DBG("/");
             DRW_DBG(expectedDictionaries.size()
-                + expectedCellMapDictionaries.size());
+                + expectedCellMapDictionaries.size() + (aerialExtension != 0u ? 1u : 0u));
             DRW_DBG(" styles="); DRW_DBG(seenStyles.size()); DRW_DBG("/");
             DRW_DBG(expectedStyles.size()); DRW_DBG(" cellmaps=");
             DRW_DBG(seenCellMaps.size()); DRW_DBG("/");
@@ -78668,7 +78963,11 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     m_dwgAerialMLeaderPublications = {};
     m_dwgAerialMLeaderBodies = {};
     m_dwgAerialMLeaderLType.reset();
-    m_dwgAerialMLeaderTextStyle.reset();
+    m_dwgAc1024StandardTextStyle.reset();
+    m_dwgAerialTableStylePublication = {};
+    m_dwgAerialTableStyleBody.clear();
+    m_dwgAerialTableStyleReadOwner = nullptr;
+    m_dwgAerialTableStyleTablesInspected = false;
     m_dwgAerialMLeaderReadOwner = nullptr;
     m_dwgAerialMLeaderTableCaptureFailed = false;
     m_dwgAerialMLeaderSourceRecognized = false;
@@ -79252,8 +79551,10 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         finishFieldCarrierImport(success);
         finishSpatialFilterImport(success);
         completeAssociativeDwgImportReceipt(*fData, success);
-        if (success && dwg.getError() == DRW::BAD_NONE)
+        if (success && dwg.getError() == DRW::BAD_NONE) {
             finishAerialDwgMLeaderSource();
+            finishAerialDwgTableStyleSource();
+        }
         if (!success) {
             std::cout << "DWG file error: format " << dwg.getVersion() << " error " << dwg.getError() << std::endl;
             try {
@@ -82062,7 +82363,8 @@ bool dx_iface::finalizeDxfWrite() {
     finalizationPhase = "typed DWG table and dictionary output snapshots";
     if (!hasUnchangedDwgTableStyleOutputSources()
         || (!m_dwgTableStyleOutputSources.empty()
-            && !m_dwgTableStylesInspected))
+            && !m_dwgTableStylesInspected)
+        || !finalizeAerialDwgTableStyleOutput())
         return false;
     if (!hasUnchangedDwgModelDocViewStyleOutputSources()
         || (m_dwgModelDocViewStyleRootCaptured
@@ -86792,6 +87094,7 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_dwgTableStyleOutputSourceVersion = DRW::UNKNOWNV;
     m_dwgTableStyleOutputSourceGeneration = 0u;
     m_dwgTableStylesInspected = false;
+    m_dwgAerialTableStyleTablesInspected = false;
     m_dwgDictionaryDefaultOutputSources.clear();
     m_dwgDictionaryDefaultOutputSourceOwner = nullptr;
     m_dwgDictionaryDefaultOutputSourceVersion = DRW::UNKNOWNV;
@@ -89739,6 +90042,13 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                 && !registerClass("MENTALRAYRENDERSETTINGS", "AcDbMentalRayRenderSettings", 2u, &mentalRayClass))
                 return false;
         }
+        if (m_dwgTableStyleOutputSources.count(0x87u) != 0u
+            && requiresAc1024AerialDwgTableStyleProof(*cData)) {
+            DRW_Class tableStyleClass;
+            if (!hasQualifiedAc1024AerialDwgTableStyle(*cData, &tableStyleClass)
+                || !registerClass("TABLESTYLE", "AcDbTableStyle", 1u, &tableStyleClass))
+                return false;
+        }
 
         return registerClass("MATERIAL", "AcDbMaterial",
                              materialHandles.size())
@@ -91533,14 +91843,21 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         !m_dwgLayoutOutputSources.empty();
     const bool needsDwgLayerStateOutput =
         m_dwgLayerStateOutputPrepared;
+    const bool needsAerialTableStyleOutput = m_dwgTableStyleOutputSources.count(0x87u) != 0u
+        && requiresAc1024AerialDwgTableStyleProof(*cData);
     if ((needsStandardNames || needsRawEntityNameReferences
             || needsLayerControlOutput
             || m_dwgAerialMLeaderProofRequired
+            || needsAerialTableStyleOutput
             || m_dwgLtypeControlOutputRequired
             || m_dxfLayerMaterialState.active || !m_dxfMLineLinetypes.empty()
             || needsDwgLayoutsOutput || !m_dwgGeoDataGraphs.empty() || usesAc1027DefaultLayerProfile() || usesAc1024DefaultLayersProfile()) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames, needsRawEntityNameReferences, needsLayerControlOutput, needsDwgLayoutsOutput, debug, requireResolvedOwners, &reportPreflightFailure](const auto& view) {
             if (!inspectAerialDwgMLeaderStyleTables(view)) {
                 reportPreflightFailure("DWG MLEADERSTYLE table dependencies");
+                return false;
+            }
+            if (!inspectAerialDwgTableStyleTables(view)) {
+                reportPreflightFailure("DWG TABLESTYLE table dependencies");
                 return false;
             }
             if (m_dwgLtypeControlOutputRequired

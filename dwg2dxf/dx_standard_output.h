@@ -448,6 +448,51 @@ public:
         if (budget->exceeded() || reader->typedVariantNodeBudgetExceeded() || !record.complete()) return false;
         return visit(static_cast<const Record&>(record));
     }
+    // The rich R2010 TABLESTYLE grammar has four adjacent nested styles.
+    // Reject ignored fields between those styles as well as incomplete
+    // nested content; parseCode alone intentionally tolerates unknown tags.
+    template <class Visitor> bool decodeR24TableStyle(
+            std::string_view bytes, Visitor&& visit) {
+        if (!reader) return false;
+        buffer.reset(bytes);
+        input.clear();
+        Probe<DRW_TableStyle> record;
+        unsigned phase = 0u, styles = 0u;
+        bool inStyle = false;
+        int code = 0;
+        while (buffer.position() < bytes.size()) {
+            if (!reader->readRec(&code) || code == 0) return false;
+            const auto value = reader->getStringView();
+            if (phase == 0u) {
+                if (code != 5) return false;
+                phase = 1u;
+            } else if (phase == 1u) {
+                if (code == 330) phase = 2u;
+                else if (code != 102) return false;
+            } else if (phase == 2u) {
+                if (code != 100 || value != "AcDbTableStyle") return false;
+                phase = 3u;
+            } else if (phase == 3u) {
+                if (code != 70) return false;
+                phase = 4u;
+            } else if (phase == 4u) {
+                if (code != 3) return false;
+                phase = 5u;
+            } else if (!inStyle) {
+                if (styles == 4u || code != 1
+                    || value != "TABLEFORMAT_BEGIN") return false;
+                inStyle = true;
+            } else if (code == 309 && value == "CELLSTYLE_END") {
+                inStyle = false;
+                ++styles;
+            }
+            if (!record.parseCode(code, reader)) return false;
+        }
+        return phase == 5u && !inStyle && styles == 4u
+            && !budget->exceeded() && !reader->typedVariantNodeBudgetExceeded()
+            && record.finalizeDxfNestedStyles()
+            && visit(static_cast<const DRW_TableStyle&>(record));
+    }
     template <class Visitor> bool decodeBlockRecord(
             std::string_view bytes, Visitor&& visit) {
         if (!reader) return false;

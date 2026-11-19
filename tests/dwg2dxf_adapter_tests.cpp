@@ -3531,6 +3531,45 @@ public:
             && iface.finalizeGeneratedRootOutput()
             && iface.finalizeAerialDwgMLeaderStyleOutput();
     }
+    static bool prepareSelectedAerialTableStyle(dx_iface& iface, dx_data& data,
+            const DRW_Dictionary& owner, const DRW_TableStyle& style) {
+        if (!iface.hasQualifiedAc1024AerialDwgTableStyle(data)) return false;
+        iface.m_dwgTableStyleOutputSources.clear();
+        iface.m_dwgTableStyleDictionarySources.clear();
+        iface.m_dwgTableStyleCellMapDictionarySources.clear();
+        iface.m_dwgTableStyleCellMapSources.clear();
+        iface.m_dwgTableStyleOutputSources.emplace(style.handle, style);
+        iface.m_dwgTableStyleDictionarySources.emplace(owner.handle, owner);
+        iface.m_dwgTableStyleNamedObjectDictionarySource = data.namedObjectDictionary;
+        iface.m_dwgTableStyleRootSourceCaptured = true;
+        iface.m_dwgTableStyleOutputSourceOwner = &data;
+        iface.m_dwgTableStyleOutputSourceVersion = data.sourceVersion;
+        iface.m_dwgTableStyleOutputSourceGeneration = data.importGeneration;
+        iface.m_dwgTableStylesInspected = false;
+        iface.m_dwgAerialTableStyleTablesInspected = false;
+        return iface.hasUnchangedDwgTableStyleOutputSources();
+    }
+    static bool selectedAerialTableStyleClass(const dx_iface& iface,
+            const dx_data& data, DRW_Class& row) {
+        return iface.hasQualifiedAc1024AerialDwgTableStyle(data, &row);
+    }
+    static bool inspectSelectedAerialTableStyleTables(dx_iface& iface,
+            const dxfRW::DxfTablesWriteView& view) {
+        return iface.inspectAerialDwgTableStyleTables(view);
+    }
+    static bool inspectSelectedAerialTableStyle(dx_iface& iface,
+            const dxfRW::DxfObjectsWriteView& view) {
+        return iface.inspectDwgTableStylesOutput(view)
+            && iface.inspectGeneratedRootOutput(view)
+            && iface.inspectStandardDwgOutput(view);
+    }
+    static bool finalizeSelectedAerialTableStyle(dx_iface& iface) {
+        return iface.m_dwgTableStylesInspected
+            && iface.hasUnchangedDwgTableStyleOutputSources()
+            && iface.finalizeAerialDwgTableStyleOutput()
+            && iface.finalizeStandardDwgOutputProofs()
+            && iface.finalizeGeneratedRootOutput();
+    }
     static std::uint8_t& aerialMLeaderWire(dx_data& data, std::uint32_t handle) {
         return data.m_opaqueDwgSourceFrames.at({data.importGeneration, handle}).m_rawBytes.at(0u);
     }
@@ -92958,6 +92997,8 @@ int main(int argc, char** argv) {
         return physicalAc1024SelectedThreeRendersWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-mleaderstyle-writer")
         return physicalAc1024SelectedMLeaderStylesWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-tablestyle-writer")
+        return physicalAc1024SelectedTableStyleWriter(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-source-graph-context")
         return physicalAc1024LayerStatesSourceGraphContext(argv[2]) ? 0 : 1;
