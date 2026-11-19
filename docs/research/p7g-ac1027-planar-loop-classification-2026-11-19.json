@@ -64,6 +64,16 @@
       "rotatedProbeBinarySha256": "701ddf1c91f3da913c931ca76154f27c7da45ab7199bd73173a00055ba51260c",
       "rotatedOutputSha256": "ec8ba77860bfd97428c18f9f6f8ee118470d091f8fbef9e7baaef99faaa294ae",
       "limits": "Selected source-derived geometry and finite points only. The rotated data is a coordinate transformation, not an additional producer witness; no new trim or consumer support claim."
+    },
+    "budgetTestCorrection": {
+      "date": "2026-11-19",
+      "finding": "The original edge-budget negative test first failed the separate face-loop-chain consistency check, so it did not prove the 128-edge cap.",
+      "correctedControl": "A complete generated 129-edge simple ring refuses with the result unchanged; after clearing and rebuilding as a complete 128-edge ring, the same face and output result classify the center as Inside.",
+      "normal": "Graph-preservation CTest PASS 1/1",
+      "addressSanitizer": "Graph-preservation CTest PASS 1/1",
+      "testFileSha256": "ae516daf4afe6f2db368ae03916044e2e1a18884e51b1d82a322d9b078455fba",
+      "implementationDigestSha256": "799ffdb8364af3b2a581d041ede24a74361bfd0bfba33f4a6ef4367044f80328",
+      "limit": "The supporting libdxfrw implementation is unchanged; native CI qualification must be rebound because the selected regression test is part of the implementation digest."
     }
   },
   "limitations": [

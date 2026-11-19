@@ -16822,10 +16822,27 @@ void testPlanarTrimLoops(TestContext& t) {
     addRing({{0, 0, 0}, {1, 0, 0}, {0, 1, 0}}, 7000);
     t.expect(!drw_classifyAcisPlanarLoops(face, brep, {1, 1, 0}, tol, result),
              "touching rings refuse");
-    face.loops.resize(1);
-    face.loops[0].coedgeEdgeNodeIndices.resize(129);
-    t.expect(!drw_classifyAcisPlanarLoops(face, brep, {1, 1, 0}, tol, result),
-             "loop edge budget refuses");
+    face.loops.clear();
+    brep.edges.clear();
+    brep.vertices.clear();
+    std::vector<DRW_Coord> budgetRing;
+    for (int i = 0; i < 129; ++i) {
+        const double angle = 2.0 * std::acos(-1.0) * i / 129.0;
+        budgetRing.emplace_back(100 * std::cos(angle), 100 * std::sin(angle), 0);
+    }
+    addRing(budgetRing, 8000);
+    result = DRW_AcisPlanarLoopLocation::Boundary;
+    t.expect(!drw_classifyAcisPlanarLoops(face, brep, {0, 0, 0}, tol, result) &&
+                 result == DRW_AcisPlanarLoopLocation::Boundary,
+             "129-edge valid ring exceeds budget and preserves result");
+    face.loops.clear();
+    brep.edges.clear();
+    brep.vertices.clear();
+    budgetRing.pop_back();
+    addRing(budgetRing, 9000);
+    t.expect(drw_classifyAcisPlanarLoops(face, brep, {0, 0, 0}, tol, result) &&
+                 result == DRW_AcisPlanarLoopLocation::Inside,
+             "128-edge valid ring succeeds after budget refusal");
 }
 
 }  // namespace
