@@ -45,7 +45,26 @@
     "sourceProbeBinarySha256": "a18e8b388762701e5517c7cfc33991a5d26ceff4f39fd113dd815f4c57fdfe73",
     "sourceProbeResult": "8 peer ray classifications and one source edge midpoint pass; pcurve mutation refuses without changing result; corrected same-object retry passes.",
     "fixturePolicy": "No drawing, SAB, peer binary or derived fixture committed.",
-    "digest": "The normal workspace has unrelated untracked in-scope artifacts. An isolated Git index created from git archive HEAD, overlaid with the three selected code/test files and the status overlay, passes tools/check_qualification_digest.py for 750 inputs and the recorded digest; no user files were removed."
+    "digest": "The normal workspace has unrelated untracked in-scope artifacts. An isolated Git index created from git archive HEAD, overlaid with the three selected code/test files and the status overlay, passes tools/check_qualification_digest.py for 750 inputs and the recorded digest; no user files were removed.",
+    "differentialReview": {
+      "head": "d25f19f7c2a56ba389c925070cf4b295fa7609c5",
+      "method": "For the same hash-bound face, independent cq-acis supplies the two ordered triangle rings. Python Fraction exact crossing arithmetic classifies 3000 deterministic bounding-box points and 3000 points near loop edges; all are more than 2e-6 from the closest boundary. The current API runs at tolerance 1e-6. A separate scratch probe swaps source x and z in vertices, edges and planes to put the same source-derived face in a vertical plane and repeats eight peer rays, a boundary, pcurve refusal and corrected retry.",
+      "seed": 7102026,
+      "count": 6000,
+      "inside": 1329,
+      "outside": 4671,
+      "minimumBoundaryDistance": 0.00010010415770858773,
+      "result": "PASS; no mismatches. Rotated probe PASS.",
+      "compareScript": "/private/tmp/p7g-planar-source/compare-random.py",
+      "compareScriptSha256": "b0376556de198a5b29e4090f08863ae43d8b4a6652acad43721cf197f72537ec",
+      "compareOutputSha256": "c517096ec45c24ec9893281ae5c4856cf7ec313e5000410f6bd237f069862c9c",
+      "batchProbeSourceSha256": "241a88bad2656d7f29cd22e091d22f8c0c5d3671acef37726ff7077dcd0632bf",
+      "batchProbeBinarySha256": "0d51cd01b10d78a013f660cef20df03521a040da554ae655721365146d92648f",
+      "rotatedProbeSourceSha256": "c1e3bc41d86f118a8fa887a0da70a426c55c8c32eda6233c116ee82def7c9e11",
+      "rotatedProbeBinarySha256": "701ddf1c91f3da913c931ca76154f27c7da45ab7199bd73173a00055ba51260c",
+      "rotatedOutputSha256": "ec8ba77860bfd97428c18f9f6f8ee118470d091f8fbef9e7baaef99faaa294ae",
+      "limits": "Selected source-derived geometry and finite points only. The rotated data is a coordinate transformation, not an additional producer witness; no new trim or consumer support claim."
+    }
   },
   "limitations": [
     "This closes P7-G only for the selected source-associated straight-planar boundary utility profile, not DWG 3D output, native producer/consumer support, arbitrary polygon robustness, native kernel trim semantics, curves, pcurves, multiple holes, or general ACIS support.",
