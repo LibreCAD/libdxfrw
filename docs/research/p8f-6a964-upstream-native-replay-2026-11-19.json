@@ -1,0 +1,65 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8f-6a964-upstream-native-replay-2026-11-19",
+  "date": "2026-11-19",
+  "status": "DIGEST_FAST_AND_FOCUSED_NATIVE_PASSED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "fb90c50087e53c909ebe522ef0e1797ec56fea3db668ba870561a39b6cd74b3d",
+  "implementationInputCount": 750,
+  "upstream": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "focusedRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44625128318",
+    "fastRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44625128085",
+    "runAttempt": 1,
+    "fastJobId": 135916790225,
+    "fastResult": "PASS: seven executables plus 47 required CTests; optional numeric process locale skipped.",
+    "fastLogSha256": "b9e15016d0569ecf635497c3b7d6c7615baf0ba029e357bd5ab9959c614f1549",
+    "fastJobDurationSeconds": 623,
+    "fastBuildDurationSeconds": 576,
+    "previousFastRun": "44619995644: cancelled at 25-minute timeout before completing tests",
+    "headSha": "6a964268e920566d8813f54c5519619085fd3d95",
+    "checkedOutMergeSha": "518749c30aeaa6996d38ebf7a827eab0d7b6a476",
+    "mergeRef": "refs/pull/106/merge",
+    "platforms": {
+      "linux-gcc": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135916898338,
+        "artifactId": 14578724963,
+        "downloadedArchiveSha256": "f47704a65b63c3a978f9295d8081dff2c42fddd584ef1e753ff52c7b2e952c11",
+        "receiptContentSha256": "dd9824cf6ae27e1e934074e34896f02701d0d56cf7646227aedb903d66d39cad"
+      },
+      "macos-clang": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135916898445,
+        "artifactId": 14579367461,
+        "downloadedArchiveSha256": "14e2ee4e3c7d6d073e5c8a301d5dc865fb1b1c029bd44721452fab690ab06c4c",
+        "receiptContentSha256": "97a1c454bb438214c0d559c60fcef3c28e5f13338da2dac6490e57602a923b88"
+      },
+      "windows-msvc": {
+        "testsPassed": 7,
+        "testsTotal": 7,
+        "apiJobId": 135916898592,
+        "artifactId": 14579168080,
+        "downloadedArchiveSha256": "1bb978d044e0b4fdb434d0e2c2ea88226c21887b2485b7f3fec3e3a4268d523a",
+        "receiptContentSha256": "0d18096f0e51bf3917486d3598c1fddce9835ea47b5f8e849f3e6636f17fc15b"
+      }
+    }
+  },
+  "liveVerification": {
+    "result": "PASS: authenticated GitHub API and ZIP verification, three focused receipts, zero broad receipts.",
+    "scratchRoot": "/private/tmp/p7g-planar-source/native-verification-6a964",
+    "verifierSha256": "cc64ecedf9633cc74cab7ad3659b546f855769610828e3d9a81230de28db1455",
+    "statusSha256": "0474e351495ef0e7fda926836e9eea86f72a5a0fcc767d0266a8cd1e6679590b",
+    "apiResponseSha256": {
+      "run.json": "23cb19a9cefdb5a5e5165c93ff36cd36ff2460db3e15509c7339db1b162ecb38",
+      "jobs.json": "14b7bbac0b61372d00f69eb87da59af072c533ad726717e5ded149ec13fac89c",
+      "artifacts.json": "4a03a3ca18d173a4a23d6125cb962e9659e919ee7cf88be12d6b1fdf2ea434b5"
+    }
+  },
+  "limits": [
+    "The fast O1 profile is a disposable regression lane; native focused jobs use their unchanged Release configurations.",
+    "Later selected-input changes reopen this gate; broad/fuzz, native GUI, producer semantics and format support qualification remain open."
+  ]
+}
