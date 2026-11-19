@@ -1420,3 +1420,314 @@ bool physicalAc1024SelectedDiffuseBumpWriter(
     std::cerr << "AC1024 DIFFUSE/BUMP profiles passed ASCII/Binary output, refusal and retry.\n";
     return true;
 }
+
+bool physicalAc1024CompleteMaterialBranchWriter(
+        const std::filesystem::path& sourcePath) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    struct Child { std::uint32_t handle; const char* key; };
+    constexpr std::array<Child, 10> children{{
+        {0x2ECu, "ADVMATERIAL"}, {0x2EDu, "FBXASSET"},
+        {0x2EEu, "DIFFUSE"}, {0x2EFu, "DIFFUSETILE"},
+        {0x2F0u, "BUMP"}, {0x2F1u, "BUMPTILE"},
+        {0x2F2u, "OPACITYTILE"}, {0x2F3u, "SPECULARTILE"},
+        {0x2F4u, "REFLECTIONTILE"}, {0x2F5u, "REFRACTIONTILE"}
+    }};
+    dx_iface sourceIface;
+    dx_data source;
+    if (!sourceIface.fileImport(sourcePath.string(), &source, false))
+        return fail("complete AC1024 MATERIAL source import failed");
+    const auto& advProfile = dx_ac1024_aerial_advmaterial_wire::profiles[4];
+    const auto allQualified = [&]() {
+        return Access::qualifiedAerialFbxAssets(sourceIface, source)
+            && Access::qualifiedAerialAdvMaterial(sourceIface, source, advProfile)
+            && Access::qualifiedAerialDiffuseBump(sourceIface, source);
+    };
+    if (!allQualified())
+        return fail("complete AC1024 MATERIAL child profiles are not qualified");
+
+    const auto findHandle = [](auto& rows, std::uint32_t handle) {
+        return std::find_if(rows.begin(), rows.end(), [handle](const auto& row) {
+            return row.handle == handle;
+        });
+    };
+    auto root = findHandle(source.dictionaries, 0x72u);
+    auto group = findHandle(source.dictionaries, 0xDu);
+    auto material = findHandle(source.materials, 0x2EAu);
+    auto extension = findHandle(source.dictionaries, 0x2EBu);
+    auto appId = findHandle(source.appIds, 0x12u);
+    if (root == source.dictionaries.end() || group == source.dictionaries.end()
+        || material == source.materials.end()
+        || extension == source.dictionaries.end()
+        || appId == source.appIds.end() || appId->name != "ACAD"
+        || source.dictionaryWithDefaults.size() != 1u
+        || source.placeholders.size() != 1u
+        || root->parentHandle != 0xCu || material->parentHandle != root->handle
+        || material->xDictHandle != extension->handle
+        || material->extData.empty() || extension->parentHandle != material->handle
+        || extension->m_entries.size() != children.size())
+        return fail("complete AC1024 MATERIAL graph dependencies are incomplete");
+    std::vector<DRW_Dictionary::Entry> rootEntries;
+    std::copy_if(root->m_entries.begin(), root->m_entries.end(),
+        std::back_inserter(rootEntries), [](const auto& entry) {
+            return entry.m_handle == 0x2EAu;
+        });
+    if (rootEntries.size() != 1u)
+        return fail("complete MATERIAL root edge is ambiguous");
+
+    std::vector<DRW_XRecord*> records;
+    std::map<std::uint32_t, std::uint32_t> remap{
+        {0x72u, 0xA072u}, {0x2EAu, 0xA2EAu}, {0x2EBu, 0xA2EBu}
+    };
+    std::size_t sourceFieldCount = 0u;
+    for (const auto& child : children) {
+        auto record = findHandle(source.xRecords, child.handle);
+        const auto edgeCount = std::count_if(extension->m_entries.begin(),
+            extension->m_entries.end(), [&child](const auto& entry) {
+                return entry.m_name == child.key && entry.m_handle == child.handle;
+            });
+        if (record == source.xRecords.end() || edgeCount != 1
+            || record->tType != DRW::XRECORD
+            || record->parentHandle != extension->handle
+            || record->reactorHandles.size() != 1u
+            || record->reactorHandles.front() != extension->handle
+            || record->m_dataEntries.empty()
+            || record->m_dataEntries.size() != record->m_values.size())
+            return fail("a MATERIAL child edge or XRECORD is invalid");
+        records.push_back(&*record);
+        sourceFieldCount += record->m_dataEntries.size();
+        remap.emplace(child.handle, 0xA000u + child.handle);
+    }
+    if (sourceFieldCount != 782u)
+        return fail("complete MATERIAL field count differs from the source profile");
+
+    class SelectedWriter final : public LayerStateTestWriter {
+    public:
+        dx_data blank;
+        DRW_AppId appId;
+        DRW_Dictionary owner, extension;
+        DRW_DictionaryWithDefault plot;
+        DRW_AcDbPlaceholder placeholder;
+        DRW_Material material;
+        std::vector<DRW_XRecord*> records;
+        dx_iface* sourceIface{nullptr};
+        std::function<bool()> allQualified;
+        bool dependenciesOk{false};
+        bool routesOk{false};
+        void writeAppId() override { (void)dxfW->writeAppId(&appId); }
+        bool finalizeDxfWrite() override { return true; }
+        void writeObjects() override {
+            dependenciesOk = allQualified()
+                && dxfW->writeDictionaryWithDefault(&plot)
+                && dxfW->writeAcDbPlaceholder(&placeholder)
+                && dxfW->writeDictionary(&owner)
+                && dxfW->writeDictionary(&extension)
+                && dxfW->writeMaterial(&material);
+            routesOk = true;
+            for (auto* record : records) {
+                bool advRoute = false;
+                bool wideRoute = false;
+                const bool written = Access::writeXRecordWithSourceCompatibility(
+                    *sourceIface, *record, &advRoute, &wideRoute);
+                const bool expectedAdv = record->handle == 0x2ECu;
+                const bool expectedWide = record->handle == 0x2EEu
+                    || record->handle == 0x2F0u;
+                routesOk = routesOk && advRoute == expectedAdv
+                    && wideRoute == expectedWide;
+                dependenciesOk = written && dependenciesOk;
+            }
+        }
+    } writer;
+    writer.cData = &writer.blank;
+    writer.sourceIface = &sourceIface;
+    writer.allQualified = allQualified;
+    writer.appId = *appId;
+    writer.owner = *root;
+    writer.owner.m_entries = rootEntries;
+    writer.extension = *extension;
+    writer.material = *material;
+    writer.records = records;
+    writer.plot = source.dictionaryWithDefaults.front();
+    if (writer.plot.m_entries.size() != 1u)
+        return fail("complete MATERIAL plot-style dictionary is not singular");
+    writer.plot.m_entries.front().m_dxfHandleCode =
+        DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+    writer.placeholder = source.placeholders.front();
+
+    const auto output = std::filesystem::temp_directory_path()
+        / ("libdxfrw-p4-complete-material-output-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error);
+    }} cleanup{output};
+    dxfRW codec(output.string().c_str());
+    sourceIface.dxfW = &codec;
+    writer.dxfW = &codec;
+    codec.setDxfWriteRecordInventoryEnabled(true);
+    codec.setHandleRemap(remap);
+    codec.setRootDictEntries({{"ACAD_MATERIAL", "A072"},
+                              {"ACAD_PLOTSTYLENAME", "E"}});
+    if (!codec.setGeneratedDictionarySourceHandles(0xCu, 0xDu)
+        || !codec.setGeneratedDictionarySourceRecords(
+            std::make_unique<DRW_Dictionary>(source.namedObjectDictionary),
+            std::make_unique<DRW_Dictionary>(*group))
+        || !codec.setDxfDefaultPlotStyleSourceHandles(0xEu, 0xFu))
+        return fail("could not prepare complete MATERIAL output roots");
+    DRW_Class materialClass, plotClass, placeholderClass;
+    if (!dxfRW::dxfClassForRecordName("MATERIAL", materialClass)
+        || !dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
+        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
+        return fail("could not prepare complete MATERIAL output classes");
+    materialClass.instanceCount = plotClass.instanceCount
+        = placeholderClass.instanceCount = 1;
+    codec.setDxfClasses({materialClass, plotClass, placeholderClass});
+
+    const auto sameVariant = [](const DRW_Variant& left,
+                                const DRW_Variant& right) {
+        if (left.code() != right.code() || left.type() != right.type())
+            return false;
+        switch (left.type()) {
+        case DRW_Variant::INTEGER: return left.i_val() == right.i_val();
+        case DRW_Variant::INTEGER64: return left.i64_val() == right.i64_val();
+        case DRW_Variant::DOUBLE: return left.d_val() == right.d_val();
+        case DRW_Variant::STRING:
+            return left.content.s != nullptr && right.content.s != nullptr
+                && *left.content.s == *right.content.s;
+        case DRW_Variant::BINARY:
+            return left.binary() != nullptr && right.binary() != nullptr
+                && *left.binary() == *right.binary();
+        case DRW_Variant::COORD: {
+            const auto* a = left.coord();
+            const auto* b = right.coord();
+            return a != nullptr && b != nullptr && a->x == b->x
+                && a->y == b->y && a->z == b->z;
+        }
+        default: return false;
+        }
+    };
+    const auto readback = [&]() {
+        dx_iface reopened;
+        dx_data actual;
+        if (!reopened.fileImport(output.string(), &actual, false)
+            || !actual.hasNamedObjectDictionary
+            || std::count_if(actual.namedObjectDictionary.m_entries.begin(),
+                actual.namedObjectDictionary.m_entries.end(), [](const auto& entry) {
+                    return entry.m_name == "ACAD_MATERIAL"
+                        && entry.m_handle == 0xA072u;
+                }) != 1
+            || std::count_if(actual.appIds.begin(), actual.appIds.end(),
+                [](const DRW_AppId& row) { return row.name == "ACAD"; }) != 1)
+            return false;
+        const auto outRoot = findHandle(actual.dictionaries, 0xA072u);
+        const auto outMaterial = findHandle(actual.materials, 0xA2EAu);
+        const auto outExtension = findHandle(actual.dictionaries, 0xA2EBu);
+        if (outRoot == actual.dictionaries.end()
+            || outMaterial == actual.materials.end()
+            || outExtension == actual.dictionaries.end()
+            || outMaterial->parentHandle != 0xA072u
+            || outMaterial->xDictHandle != 0xA2EBu
+            || outMaterial->extData.size() != material->extData.size()
+            || outExtension->parentHandle != 0xA2EAu
+            || outExtension->m_entries.size() != children.size())
+            return false;
+        for (std::size_t field = 0u; field < material->extData.size(); ++field)
+            if (material->extData[field] == nullptr
+                || outMaterial->extData[field] == nullptr
+                || !sameVariant(*material->extData[field],
+                                *outMaterial->extData[field]))
+                return false;
+        std::size_t readbackFieldCount = 0u;
+        for (std::size_t index = 0u; index < children.size(); ++index) {
+            const auto& child = children[index];
+            const auto outputHandle = 0xA000u + child.handle;
+            const auto edgeCount = std::count_if(
+                outExtension->m_entries.begin(), outExtension->m_entries.end(),
+                [&child, outputHandle](const auto& entry) {
+                    return entry.m_name == child.key
+                        && entry.m_handle == outputHandle;
+                });
+            const auto outRecord = findHandle(actual.xRecords, outputHandle);
+            const auto& expected = *records[index];
+            if (edgeCount != 1 || outRecord == actual.xRecords.end()
+                || outRecord->parentHandle != 0xA2EBu
+                || outRecord->reactorHandles.size() != 1u
+                || outRecord->reactorHandles.front() != 0xA2EBu
+                || outRecord->m_dataEntries.size() != expected.m_dataEntries.size()
+                || outRecord->m_values.size() != expected.m_values.size())
+                return false;
+            for (std::size_t field = 0u; field < expected.m_dataEntries.size(); ++field)
+                if (!sameVariant(expected.m_dataEntries[field],
+                                 outRecord->m_dataEntries[field])
+                    || !sameVariant(expected.m_values[field],
+                                    outRecord->m_values[field]))
+                    return false;
+            readbackFieldCount += outRecord->m_dataEntries.size();
+        }
+        return readbackFieldCount == sourceFieldCount;
+    };
+    const auto write = [&](DRW::Version version, bool binary) {
+        writer.dependenciesOk = writer.routesOk = false;
+        return allQualified() && codec.write(&writer, version, binary)
+            && writer.dependenciesOk && writer.routesOk;
+    };
+    const auto refuseAndRetry = [&](bool binary,
+                                    const std::function<void()>& corrupt,
+                                    const std::function<void()>& restore,
+                                    DRW::Version version = DRW::AC1024) {
+        const std::string sentinel = "preserve complete MATERIAL output\n";
+        {
+            std::ofstream file(output, std::ios::binary | std::ios::trunc);
+            if (!(file << sentinel)) return false;
+        }
+        corrupt();
+        const bool saved = write(version, binary);
+        restore();
+        std::ifstream file(output, std::ios::binary);
+        const std::string preserved(std::istreambuf_iterator<char>(file), {});
+        file.close();
+        return !saved && preserved == sentinel && allQualified()
+            && write(DRW::AC1024, binary) && readback();
+    };
+    for (const bool binary : {false, true}) {
+        if (!write(DRW::AC1024, binary) || !readback())
+            return fail("complete MATERIAL ASCII/Binary readback failed");
+        const auto mutate = [&](std::uint32_t handle, int code,
+                                const char* description) {
+            auto record = findHandle(source.xRecords, handle);
+            if (record == source.xRecords.end()) return false;
+            auto field = std::find_if(record->m_dataEntries.begin(),
+                record->m_dataEntries.end(), [code](const auto& value) {
+                    return value.code() == code;
+                });
+            if (field == record->m_dataEntries.end()
+                || (field->type() != DRW_Variant::INTEGER
+                    && field->type() != DRW_Variant::DOUBLE))
+                return false;
+            const auto savedValue = *field;
+            const auto changedValue = field->type() == DRW_Variant::INTEGER
+                ? DRW_Variant(field->code(), field->i_val() + 1)
+                : DRW_Variant(field->code(), field->d_val() + 1.0);
+            const bool passed = refuseAndRetry(binary,
+                [field, changedValue] { *field = changedValue; },
+                [field, savedValue] { *field = savedValue; });
+            if (!passed)
+                std::cerr << "complete MATERIAL refusal/retry failed for "
+                          << description << '\n';
+            return passed;
+        };
+        if (!mutate(0x2ECu, 460, "ADVMATERIAL")
+            || !mutate(0x2EDu, 70, "FBXASSET")
+            || !mutate(0x2EFu, 270, "TILE")
+            || !mutate(0x2EEu, 420, "DIFFUSE/BUMP"))
+            return fail("complete MATERIAL typed-value refusal/retry failed");
+        auto& raw = Access::aerialAdvMaterialRawFrame(source, 0x2F0u)
+                        .m_rawBytes.front();
+        const auto savedByte = raw;
+        if (!refuseAndRetry(binary, [&] { raw ^= 0x80u; },
+                [&] { raw = savedByte; }))
+            return fail("complete MATERIAL raw-frame refusal/retry failed");
+        if (!refuseAndRetry(binary, [] {}, [] {}, DRW::AC1027))
+            return fail("complete MATERIAL wrong-version refusal/retry failed");
+    }
+    std::cerr << "AC1024 complete MATERIAL branch passed 10-edge ASCII/Binary output, readback, refusal and retry.\n";
+    return true;
+}

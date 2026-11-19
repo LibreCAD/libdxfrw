@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-complete-material-branch-source-output-2026-11-19",
+  "date": "2026-11-19",
+  "status": "COMPLETE_SINGLE_MATERIAL_BRANCH_ASCII_BINARY_OUTPUT_AND_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing local aerial DWG; producer identity is not authenticated.",
+    "material": "0x2EA",
+    "extensionDictionary": "0x2EB",
+    "extensionEntryCount": 10,
+    "children": [
+      {"key": "ADVMATERIAL", "handle": "0x2EC", "fieldCount": 10},
+      {"key": "FBXASSET", "handle": "0x2ED", "fieldCount": 416},
+      {"key": "DIFFUSE", "handle": "0x2EE", "fieldCount": 172},
+      {"key": "DIFFUSETILE", "handle": "0x2EF", "fieldCount": 2},
+      {"key": "BUMP", "handle": "0x2F0", "fieldCount": 172},
+      {"key": "BUMPTILE", "handle": "0x2F1", "fieldCount": 2},
+      {"key": "OPACITYTILE", "handle": "0x2F2", "fieldCount": 2},
+      {"key": "SPECULARTILE", "handle": "0x2F3", "fieldCount": 2},
+      {"key": "REFLECTIONTILE", "handle": "0x2F4", "fieldCount": 2},
+      {"key": "REFRACTIONTILE", "handle": "0x2F5", "fieldCount": 2}
+    ],
+    "sourceAdmission": "All ten exact same-import XRECORDs are checked against their source-bound profiles, ordered typed values, parent handles, sole reactor roles and unique extension-dictionary entries. The parent MATERIAL is checked against its root dictionary edge, extension handle and EED."
+  },
+  "outputProfile": {
+    "target": "AC1024",
+    "encodings": ["ASCII DXF", "Binary DXF"],
+    "selectedRootProjection": "ACAD_MATERIAL -> one selected MATERIAL 0xA2EA",
+    "handleMapping": "Source handles map to 0xA000 plus the source handle; root dictionary 0x72 maps to 0xA072.",
+    "graph": [
+      "The selected MATERIAL retains its EED and remapped extension dictionary.",
+      "The extension dictionary retains all ten source sibling edges and no edge points outside the projection.",
+      "All ten child XRECORD owners and sole reactors map to the remapped extension dictionary.",
+      "ADVMATERIAL and DIFFUSE/BUMP use their exact AC1024 source-bound compatibility routes; FBXASSET and six TILE records retain ordered values.",
+      "The ACAD APPID row and required default plot-style dependencies are emitted."
+    ],
+    "recordCount": 10,
+    "fieldCount": 782
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-complete-material-branch-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "result": "PASS. Fresh libdxfrw reimport matches the selected root/material/extension graph, all ten named child edges, each owner/reactor role, all 782 ordered typed values, MATERIAL EED and ACAD APPID in ASCII and Binary.",
+    "refusalRetry": [
+      "Changing a typed ADVMATERIAL, FBXASSET, TILE or DIFFUSE/BUMP field refuses the combined source qualification and preserves the destination sentinel; restoring each value allows a successful fresh readback in both encodings.",
+      "Changing the BUMP raw source frame refuses the combined source qualification, preserves the destination sentinel, then passes after restoration and readback in both encodings.",
+      "Requesting AC1027 output refuses the AC1024 profile, preserves the destination sentinel, then passes after the AC1024 retry and readback in both encodings."
+    ],
+    "fixturePolicy": "The existing local DWG remains untracked. Output DXFs are temporary and removed by the selector. No drawing fixture was added or committed."
+  },
+  "limits": [
+    "This closes all ten observed extension edges for MATERIAL 0x2EA only. The source ACAD_MATERIAL root has other entries that this projection omits.",
+    "The other five aerial MATERIAL extensions and all remaining ACAD_MATERIAL root entries still require complete source graph qualification before root-wide output.",
+    "The local producer is unauthenticated; no Autodesk semantic interpretation, native-consumer acceptance or general support claim is established."
+  ],
+  "nextAction": "Inventory every remaining ACAD_MATERIAL root entry and the other aerial MATERIAL extension dictionaries; source-bind any unqualified siblings and compose root-wide output only when all included edges close."
+}

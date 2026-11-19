@@ -93829,6 +93829,8 @@ int main(int argc, char** argv) {
         return physicalAc1024SelectedThirtySixTileWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-diffuse-bump-writer")
         return physicalAc1024SelectedDiffuseBumpWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-complete-material-branch-writer")
+        return physicalAc1024CompleteMaterialBranchWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-tablestyle-writer")
         return physicalAc1024SelectedTableStyleWriter(argv[2]) ? 0 : 1;
     if (argc == 3
