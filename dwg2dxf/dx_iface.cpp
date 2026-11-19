@@ -41246,6 +41246,11 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
         && hasLayoutIdentity(0x22u, "Model")
         && hasLayoutIdentity(0x1B18u, "ISO A2 Plot")
         && hasLayoutIdentity(0x2B16u, "ANSI C Plot");
+    const bool ac1024AerialProfile = cData->sourceVersion == DRW::AC1024
+        && cData->layouts.size() == 3u
+        && hasLayoutIdentity(0x22u, "Model")
+        && hasLayoutIdentity(0x59u, "Layout1")
+        && hasLayoutIdentity(0x5Eu, "Layout2");
     if (version != (ac1021Profile ? DRW::AC1021 : DRW::AC1024))
         return skip("target is outside the exact source-version DXF profile");
 
@@ -41256,7 +41261,7 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
     const bool ac1018Profile = cData->sourceVersion == DRW::AC1018;
     const std::size_t expectedLayoutCount = ac1021PlotScreeningProfile ? 7u
         :
-        (ac1018Profile || ac1021LineweightsProfile
+        (ac1018Profile || ac1024AerialProfile || ac1021LineweightsProfile
             || ac1021TabletProfile || ac1021ColorwhProfile
             || ac1021TrueTypeProfile) ? 3u : 2u;
     if (cData->layouts.size() != expectedLayoutCount
@@ -41369,6 +41374,8 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
         : ac1021TabletProfile
         ? std::vector<const char*>{
             "Model", "ISO A2 Plot", "ANSI C Plot"}
+        : ac1024AerialProfile
+        ? std::vector<const char*>{"Model", "Layout1", "Layout2"}
         : std::vector<const char*>{
             "Model", "Layout1",
             ac1018Profile ? "Layout2"
@@ -41379,6 +41386,8 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
     std::map<std::uint32_t, DwgNodDictionaryOutputSource>
         selectedNodDictionaries;
     std::set<std::string> selectedNames;
+    std::vector<std::uint32_t> stagedLayoutExtensionDictionaries;
+    std::vector<std::uint32_t> stagedLayoutExtensionXRecords;
     bool completeNodProfile = false;
     try {
         if (ac1018Profile || ac1015Profile || ac1021Profile) {
@@ -41767,15 +41776,91 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
                 return skip("BLOCK_RECORD backlink or extension dictionary shape");
             }
             std::vector<std::uint32_t> extensionXRecordHandles;
+            std::vector<DRW_XRecord> extensionXRecordModels;
             if (extension != nullptr) {
-                if (std::find(m_extensionDictionaryHandles.begin(),
-                              m_extensionDictionaryHandles.end(),
-                              extension->handle)
-                    == m_extensionDictionaryHandles.end())
+                bool sourceBoundAerialExtension = false;
+                if (ac1024AerialProfile && layout.handle == 0x22u
+                    && extension->handle == 0x301u) {
+                    const auto sourceFrameMatches = [this](
+                            std::uint32_t handle, int objectType,
+                            const DRW_TableEntry& model) {
+                        const auto frame =
+                            cData->m_standardDwgObjectFrames.find(
+                                {cData->importGeneration, handle});
+                        return frame
+                                != cData->m_standardDwgObjectFrames.end()
+                            && frame->second.generation
+                                == cData->importGeneration
+                            && frame->second.publicationSeen
+                            && frame->second.payloadMatched
+                            && !frame->second.opaquePayload
+                            && frame->second.typedBaseline != nullptr
+                            && frame->second.raw.m_handle == handle
+                            && frame->second.raw.m_objectType == objectType
+                            && !frame->second.raw.m_isEntity
+                            && frame->second.raw.m_version
+                                == cData->sourceVersion
+                            && drwDwgCommonLinkEvidenceValidated(
+                                frame->second.raw.m_commonLinkEvidence)
+                            && standardDwgModelsEqual(
+                                *frame->second.typedBaseline, model,
+                                cData->sourceVersion, objectType);
+                    };
+                    const DRW_Dictionary::Entry* thumbnailEdge =
+                        extension->m_entries.size() == 1u
+                        ? &extension->m_entries.front() : nullptr;
+                    const DRW_XRecord* thumbnail = thumbnailEdge == nullptr
+                        || thumbnailEdge->m_name
+                            != "ADSK_XREC_LAYOUTTHUMBNAIL"
+                        || thumbnailEdge->m_handle != 0x302u
+                        || thumbnailEdge->m_dxfHandleCode
+                            != DRW_Dictionary::Entry::DxfHandleCode::Unspecified
+                        ? nullptr : findXRecord(thumbnailEdge->m_handle);
+                    sourceBoundAerialExtension =
+                        extension->parentHandle == layout.handle
+                        && extension->hardOwner == 1
+                        && extension->cloning == 1
+                        && !extension->countCap
+                        && extension->hasCompleteDwgEntries()
+                        && extension->reactorHandles.empty()
+                        && extension->appData.empty()
+                        && extension->extData.empty()
+                        && !extension->hasDataStorageBinaryData()
+                        && extension->hasDwgCommonLinkTail()
+                        && extension->pendingAppIdResolutions.empty()
+                        && extension->pendingLayerRefResolutions.empty()
+                        && thumbnail != nullptr
+                        && thumbnail->tType == DRW::XRECORD
+                        && thumbnail->parentHandle == extension->handle
+                        && thumbnail->reactorHandles
+                            == std::vector<std::uint32_t>{extension->handle}
+                        && !thumbnail->m_rawDataValid
+                        && thumbnail->m_handleValues.empty()
+                        && thumbnail->m_dataEntries.size() == 1073u
+                        && thumbnail->m_values.size() == 1073u
+                        && sourceFrameMatches(
+                            extension->handle, dwgObjType::DICTIONARY,
+                            *extension)
+                        && sourceFrameMatches(
+                            thumbnail->handle, dwgObjType::XRECORD,
+                            *thumbnail);
+                    if (sourceBoundAerialExtension) {
+                        stagedLayoutExtensionDictionaries.push_back(
+                            extension->handle);
+                        stagedLayoutExtensionXRecords.push_back(
+                            thumbnail->handle);
+                    }
+                }
+                if (!sourceBoundAerialExtension
+                    && std::find(m_extensionDictionaryHandles.begin(),
+                                 m_extensionDictionaryHandles.end(),
+                                 extension->handle)
+                        == m_extensionDictionaryHandles.end())
                     return skip("LAYOUT extension dictionary closure");
                 std::set<std::string> childNames;
                 std::set<std::uint32_t> childHandles;
                 extensionXRecordHandles.reserve(extension->m_entries.size());
+                extensionXRecordModels.reserve(extension->m_entries.size());
                 for (const DRW_Dictionary::Entry& childEntry :
                      extension->m_entries) {
                     if ((childEntry.m_name != "ADSK_XREC_LAYOUTTHUMBNAIL"
@@ -41788,12 +41873,14 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
                         findXRecord(childEntry.m_handle);
                     if (child == nullptr
                         || child->parentHandle != extension->handle
-                        || std::find(m_extensionXRecordHandles.begin(),
-                                     m_extensionXRecordHandles.end(),
-                                     child->handle)
-                            == m_extensionXRecordHandles.end())
+                        || (!sourceBoundAerialExtension
+                            && std::find(m_extensionXRecordHandles.begin(),
+                                         m_extensionXRecordHandles.end(),
+                                         child->handle)
+                                == m_extensionXRecordHandles.end()))
                         return skip("LAYOUT extension XRECORD dependency");
                     extensionXRecordHandles.push_back(child->handle);
+                    extensionXRecordModels.push_back(*child);
                 }
             }
             for (const std::uint32_t viewport : layout.viewportHandles) {
@@ -41807,6 +41894,8 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
                 snapshot.extensionDictionary = *extension;
             snapshot.extensionXRecordHandles =
                 std::move(extensionXRecordHandles);
+            snapshot.extensionXRecordModels =
+                std::move(extensionXRecordModels);
             if (!selected.emplace(layout.handle, std::move(snapshot)).second)
                 return skip("two unique physical layout identities");
         }
@@ -41829,6 +41918,9 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
             : ac1021TabletProfile
             ? selectedNames.count("ISO A2 Plot") == 1u
                 && selectedNames.count("ANSI C Plot") == 1u
+            : ac1024AerialProfile
+            ? selectedNames.count("Layout1") == 1u
+                && selectedNames.count("Layout2") == 1u
             : ac1018Profile
             ? selectedNames.count("Layout1") == 1u
                 && selectedNames.count("Layout2") == 1u
@@ -41841,6 +41933,21 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
             || selectedNames.count("Model") != 1u
             || !expectedPaperLayouts)
             return skip("not every witnessed layout identity was selected");
+        std::vector<std::uint32_t> extensionDictionaryHandles =
+            m_extensionDictionaryHandles;
+        std::vector<std::uint32_t> extensionXRecordHandles =
+            m_extensionXRecordHandles;
+        const auto appendUnique = [](std::vector<std::uint32_t>& handles,
+                                     std::uint32_t handle) {
+            if (std::find(handles.begin(), handles.end(), handle)
+                == handles.end())
+                handles.push_back(handle);
+        };
+        for (const std::uint32_t handle :
+                stagedLayoutExtensionDictionaries)
+            appendUnique(extensionDictionaryHandles, handle);
+        for (const std::uint32_t handle : stagedLayoutExtensionXRecords)
+            appendUnique(extensionXRecordHandles, handle);
         m_dwgLayoutOutputSources = std::move(selected);
         m_dwgNodDictionaryOutputSources =
             std::move(selectedNodDictionaries);
@@ -41856,6 +41963,8 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
         m_dwgLayoutOutputGeneration = cData->importGeneration;
         m_dwgLayoutOutputSourceVersion = cData->sourceVersion;
         if (hasUnchangedDwgLayoutOutputSources(debug)) {
+            m_extensionDictionaryHandles = std::move(extensionDictionaryHandles);
+            m_extensionXRecordHandles = std::move(extensionXRecordHandles);
             return true;
         }
         if (debug)
@@ -42141,10 +42250,17 @@ bool dx_iface::hasUnchangedDwgLayoutOutputSources(bool debug) const noexcept {
                     || !sameDictionary(row.second.extensionDictionary,
                                        *liveExtensions[index])
                     || row.second.extensionXRecordHandles.size()
-                        != row.second.extensionDictionary.m_entries.size())
+                        != row.second.extensionDictionary.m_entries.size()
+                    || row.second.extensionXRecordModels.size()
+                        != row.second.extensionXRecordHandles.size())
                     return fail("LAYOUT extension DICTIONARY snapshot changed");
-                for (const std::uint32_t handle :
-                     row.second.extensionXRecordHandles) {
+                for (std::size_t childIndex = 0u;
+                     childIndex < row.second.extensionXRecordHandles.size();
+                     ++childIndex) {
+                    const std::uint32_t handle =
+                        row.second.extensionXRecordHandles[childIndex];
+                    const DRW_XRecord& expectedRecord =
+                        row.second.extensionXRecordModels[childIndex];
                     const DRW_XRecord* liveRecord = nullptr;
                     const DRW_XRecord* frozenRecord = nullptr;
                     std::size_t liveMatches = 0u;
@@ -42166,12 +42282,16 @@ bool dx_iface::hasUnchangedDwgLayoutOutputSources(bool debug) const noexcept {
                             ++frozenMatches;
                         }
                     }
-                    if (liveMatches != 1u || liveRecord == nullptr
+                    if (expectedRecord.handle != handle
+                        || liveMatches != 1u || liveRecord == nullptr
                         || (m_xrecordWriteSourceOwner != nullptr
                             && (frozenMatches != 1u
                                 || frozenRecord == nullptr))
                         || liveRecord->parentHandle
-                            != row.second.extensionDictionary.handle)
+                            != row.second.extensionDictionary.handle
+                        || !standardDwgModelsEqual(
+                            expectedRecord, *liveRecord, sourceVersion,
+                            dwgObjType::XRECORD))
                         return fail("LAYOUT extension XRECORD source role changed");
                     if (frozenRecord != nullptr
                         && !standardDwgModelsEqual(

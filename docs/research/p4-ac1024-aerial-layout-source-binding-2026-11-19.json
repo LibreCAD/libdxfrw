@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-layout-source-binding-2026-11-19",
+  "date": "2026-11-19",
+  "status": "AC1024_AERIAL_LAYOUT_SOURCE_PROFILE_BOUND",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing local aerial DWG; producer identity is not authenticated.",
+    "layoutInventoryReceipt": "p4-ac1024-aerial-background-layout-root-inventory-2026-11-19.json",
+    "profile": [
+      {"handle": "0x22", "name": "Model", "extensionDictionary": "0x301"},
+      {"handle": "0x59", "name": "Layout1", "extensionDictionary": null},
+      {"handle": "0x5E", "name": "Layout2", "extensionDictionary": null}
+    ],
+    "root": "NOD 0x0C -> ACAD_LAYOUT dictionary 0x1A; all three LAYOUT records resolve through the dictionary and reciprocal BLOCK_RECORD layout links."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "dwg2dxf/dx_iface.h",
+      "tests/dwg2dxf_adapter_tests.cpp",
+      "tests/p4_layout_output_controls.h"
+    ],
+    "sourceBinding": "The exact AC1024 profile is admitted only when the Model LAYOUT has XDICTIONARY 0x301, one ADSK_XREC_LAYOUTTHUMBNAIL entry to XRECORD 0x302 with Unspecified DXF handle role, and matching same-import standard-object frame publications, raw spans, and typed baselines for both objects.",
+    "roles": "DICTIONARY 0x301 has Model 0x22 as parent and hard-owner set. XRECORD 0x302 is owned by 0x301 and has its reciprocal reactor to 0x301; it has no handle-valued or raw-data fields and exactly 1,073 ordered typed data entries.",
+    "snapshot": "The staged layout output source stores complete XRECORD models with their handles. Every later admission check compares the live records against those snapshots, checks unique identity and parent role, and also compares the optional common XRECORD writer snapshot when present."
+  },
+  "validation": {
+    "diffCheck": "PASS",
+    "build": {
+      "command": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+      "result": "PASS"
+    },
+    "selector": {
+      "command": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layout-ac1024-aerial-source-binding tests/samples/AC1024/visualization_-_aerial.dwg",
+      "result": "PASS",
+      "assertions": [
+        "Exact three-layout identity and reciprocal BLOCK_RECORD links are present.",
+        "The Model extension dictionary and thumbnail XRECORD are source-bound and staged.",
+        "Post-admission LAYOUT name, dictionary-edge key, and XRECORD typed-value mutations are rejected; restoration permits retry.",
+        "The AC1024-only route is not selected for AC1021 and recovers on a correct AC1024 retry.",
+        "Whole-source ASCII and Binary export remain refused before output at the independent SUN owner mismatch; the seeded destination sentinel remains unchanged."
+      ]
+    }
+  },
+  "limits": [
+    "This slice proves source admission and mutation detection only; it did not write or read back ACAD_LAYOUT DXF bytes.",
+    "The selected source-binding test uses the existing local untracked sample. No DWG/DXF fixture was added or staged.",
+    "The local source producer is unauthenticated; this does not qualify native AutoCAD semantics or promote a support claim.",
+    "Whole-source export remains closed at SUN 0x24C: owner 0x242, parent 0x246. ACAD_BACKGROUND remains fail-closed."
+  ],
+  "nextAction": "Construct a selected dx_data projection retaining the source NOD, ACAD_LAYOUT dictionary, three LAYOUT records, reciprocal BLOCK_RECORD records, source-frame evidence, and thumbnail extension dependency. Run the production exporter preparation order; then add ASCII/Binary output and fresh readback, destination-preserving mutation/refusal, and corrected retry. Keep whole-source export blocked at the independent SUN graph mismatch."
+}

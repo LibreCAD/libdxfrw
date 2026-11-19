@@ -4470,6 +4470,7 @@ private:
         DRW_Block_Record blockRecord;
         DRW_Dictionary extensionDictionary;
         std::vector<std::uint32_t> extensionXRecordHandles;
+        std::vector<DRW_XRecord> extensionXRecordModels;
     };
     struct DwgNodDictionaryOutputSource {
         DRW_Dictionary model;

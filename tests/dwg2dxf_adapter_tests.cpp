@@ -206,6 +206,46 @@ public:
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static bool prepareDwgLayoutSource(dx_iface& iface, dx_data& data,
+                                       DRW::Version version,
+                                       bool debug = false) noexcept {
+        iface.cData = &data;
+        return iface.prepareDwgLayouts(version, debug);
+    }
+    static bool dwgLayoutSourceUnchanged(const dx_iface& iface) noexcept {
+        return iface.hasUnchangedDwgLayoutOutputSources();
+    }
+    static bool hasExactAc1024AerialLayoutSource(
+            const dx_iface& iface) noexcept {
+        const auto model = iface.m_dwgLayoutOutputSources.find(0x22u);
+        const auto layout1 = iface.m_dwgLayoutOutputSources.find(0x59u);
+        const auto layout2 = iface.m_dwgLayoutOutputSources.find(0x5Eu);
+        if (model == iface.m_dwgLayoutOutputSources.end()
+            || layout1 == iface.m_dwgLayoutOutputSources.end()
+            || layout2 == iface.m_dwgLayoutOutputSources.end())
+            return false;
+        return iface.m_dwgLayoutOutputSources.size() == 3u
+            && model->second.model.name == "Model"
+            && model->second.extensionDictionary.handle == 0x301u
+            && std::count(model->second.extensionXRecordHandles.begin(),
+                          model->second.extensionXRecordHandles.end(),
+                          0x302u) == 1u
+            && layout1->second.model.name == "Layout1"
+            && layout2->second.model.name == "Layout2"
+            && iface.m_dwgLayoutOutputDictionary.handle == 0x1Au
+            && iface.m_dwgLayoutOutputNodHandle == 0x0Cu
+            && iface.m_dwgLayoutOutputNodEntry.m_name == "ACAD_LAYOUT"
+            && iface.m_dwgLayoutOutputNodEntry.m_handle == 0x1Au
+            && !iface.m_dwgLayoutOutputNodComplete;
+    }
+    static bool hasStagedLayoutExtension(const dx_iface& iface) noexcept {
+        return std::find(iface.m_extensionDictionaryHandles.begin(),
+                         iface.m_extensionDictionaryHandles.end(), 0x301u)
+                    != iface.m_extensionDictionaryHandles.end()
+            && std::find(iface.m_extensionXRecordHandles.begin(),
+                         iface.m_extensionXRecordHandles.end(), 0x302u)
+                    != iface.m_extensionXRecordHandles.end();
+    }
     static bool qualifiedAerialAdvMaterial(
             const dx_iface& iface, const dx_data& data,
             const dx_ac1024_aerial_advmaterial_wire::Profile& profile =
@@ -61567,6 +61607,7 @@ bool physicalAc1024LayerStatesSourceGraphContext(const std::filesystem::path& so
 
 #include "p4_layerstates_real_writer_controls.h"
 #include "p4_advmaterial_writer_controls.h"
+#include "p4_layout_output_controls.h"
 
 bool physicalAc1024LayerStatesAppIdContext(
         const std::filesystem::path& sourcePath) {
@@ -93734,6 +93775,10 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--layout-physical-output-readback")
         return physicalLayoutOutputReadback(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1])
+            == "--layout-ac1024-aerial-source-binding")
+        return physicalAc1024AerialLayoutSourceBinding(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layout-physical-ac1018-output-readback")
         return physicalAc1018LayoutOutputReadback(argv[2]) ? 0 : 1;
