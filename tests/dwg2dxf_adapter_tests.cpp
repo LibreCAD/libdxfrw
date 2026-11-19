@@ -22,6 +22,7 @@
 #include "dx_symbol_output.h"
 #include "dx_ac1024_material_eed_wire.h"
 #include "dx_ac1024_aerial_tile_wire.h"
+#include "dx_ac1024_aerial_fbxasset_wire.h"
 #include "independent_dxf_scalar_walker.h"
 
 #include <algorithm>
@@ -3387,6 +3388,84 @@ public:
         const bool typedDictionaryRejected = !qualified();
         dictionary.parentHandle = originalParent;
         return typedDictionaryRejected && qualified();
+    }
+
+    static bool aerialFbxAssetSourceControls(dx_iface& iface, dx_data& data) {
+        iface.cData = &data;
+        const auto qualified = [&]() {
+            return iface.hasQualifiedAc1024AerialFbxAssetFrames(data);
+        };
+        if (!qualified()) {
+            std::cerr << "MATERIAL FBXASSET source graph was not qualified\n";
+            return false;
+        }
+        dx_iface other;
+        other.cData = &data;
+        if (other.hasQualifiedAc1024AerialFbxAssetFrames(data))
+            return false;
+
+        for (const auto& profile : dx_ac1024_aerial_fbxasset_wire::profiles) {
+            auto& frame = data.m_standardDwgObjectFrames.at(
+                {data.importGeneration, profile.recordHandle});
+            auto recordAt = std::find_if(data.xRecords.begin(), data.xRecords.end(),
+                [&profile](const DRW_XRecord& item) {
+                    return item.handle == profile.recordHandle;
+                });
+            if (recordAt == data.xRecords.end())
+                return false;
+            auto& record = *recordAt;
+            const std::array<std::uint32_t, 5> bitOffsets{{
+                0u, 81u, 81u + profile.payloadBytes * 4u,
+                81u + profile.payloadBytes * 8u - 1u,
+                profile.frameBytes * 8u - 44u
+            }};
+            for (const auto bit : bitOffsets) {
+                frame.raw.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(
+                    1u << (7u - bit % 8u));
+                const bool rejected = !dx_ac1024_aerial_fbxasset_wire::
+                    observeRecord(frame.raw, record, profile);
+                frame.raw.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(
+                    1u << (7u - bit % 8u));
+                if (!rejected || !dx_ac1024_aerial_fbxasset_wire::
+                        observeRecord(frame.raw, record, profile)) {
+                    std::cerr << "FBXASSET frame mutation control failed for 0x"
+                              << std::hex << profile.recordHandle << std::dec
+                              << " at bit " << bit << '\n';
+                    return false;
+                }
+            }
+
+            const auto sourceOffset = frame.publication.m_sourceOffset;
+            ++frame.publication.m_sourceOffset;
+            const bool publicationRejected = !qualified();
+            frame.publication.m_sourceOffset = sourceOffset;
+            if (!publicationRejected || !qualified())
+                return false;
+            const bool payloadMatched = frame.payloadMatched;
+            frame.payloadMatched = false;
+            const bool failedCaptureRejected = !qualified();
+            frame.payloadMatched = payloadMatched;
+            if (!failedCaptureRejected || !qualified())
+                return false;
+
+            const auto originalParent = record.parentHandle;
+            record.parentHandle ^= 1u;
+            const bool typedParentRejected = !qualified();
+            record.parentHandle = originalParent;
+            if (!typedParentRejected || !qualified())
+                return false;
+
+            if (record.m_values.size() < 5u)
+                return false;
+            const auto originalValue = record.m_values[4u];
+            record.m_values[4u] = DRW_Variant(310,
+                std::vector<std::uint8_t>{0u});
+            const bool typedPayloadRejected = !qualified();
+            record.m_values[4u] = originalValue;
+            if (!typedPayloadRejected || !qualified())
+                return false;
+        }
+        return qualified();
     }
 
     static bool writeAerialMaterialAppIdSourceFrames(
@@ -61360,13 +61439,15 @@ bool physicalAc1024MaterialAppIdSourceCapture(
             return fail("a non-Global MATERIAL EED source profile failed");
     }
     if (!DxIfaceStandardDwgCaptureTestAccess::aerialTileSourceControls(
+            reader, source)
+        || !DxIfaceStandardDwgCaptureTestAccess::aerialFbxAssetSourceControls(
             reader, source))
-        return fail("MATERIAL TILE same-import source binding controls failed");
+        return fail("MATERIAL TILE/FBXASSET same-import source binding controls failed");
     if (!DxIfaceStandardDwgCaptureTestAccess::writeAerialMaterialAppIdSourceFrames(
             reader))
         return fail("MATERIAL APPID raw frame capture failed");
-    std::cerr << "AC1024 APPID, all seven MATERIAL EED and 36 TILE source-frame "
-                 "identity, span, graph, mutation, and retry controls passed.\n";
+    std::cerr << "AC1024 APPID, all seven MATERIAL EED, 36 TILE and six FBXASSET "
+                 "source-frame identity, span, graph, mutation, and retry controls passed.\n";
     return true;
 }
 

@@ -37,6 +37,7 @@
 #include "dx_ac1024_byblock_material_wire.h"
 #include "dx_ac1024_material_eed_wire.h"
 #include "dx_ac1024_aerial_tile_wire.h"
+#include "dx_ac1024_aerial_fbxasset_wire.h"
 #include "dx_ac1024_dictionaryvar_wire.h"
 #include "dx_ac1024_mentalray_wire.h"
 #include "dx_ac1024_mleaderstyle_wire.h"
@@ -45114,6 +45115,54 @@ bool dx_iface::hasQualifiedAc1024AerialTileFrames(
                         *frame, *record, tile))
                     return false;
             }
+        }
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::hasQualifiedAc1024AerialFbxAssetFrames(
+        const dx_data& data) const noexcept {
+    if (&data != cData || typeid(*this) != typeid(dx_iface)
+        || data.sourceFormat != dx_source_format::DWG
+        || data.sourceVersion != DRW::AC1024 || data.importGeneration == 0u
+        || !hasQualifiedAc1024AerialTileFrames(data))
+        return false;
+    try {
+        for (const auto& profile : dx_ac1024_aerial_fbxasset_wire::profiles) {
+            const auto* material = uniqueDwgSourceRecord(
+                data.materials, profile.materialHandle);
+            const auto* extension = uniqueDwgSourceRecord(
+                data.dictionaries, profile.extensionHandle);
+            const auto* record = uniqueDwgSourceRecord(
+                data.xRecords, profile.recordHandle);
+            if (material == nullptr || extension == nullptr || record == nullptr
+                || material->parentHandle != 0x72u
+                || material->xDictHandle != profile.extensionHandle
+                || extension->parentHandle != profile.materialHandle
+                || record->parentHandle != profile.extensionHandle
+                || !data.hasCompleteDwgDictionaryEntry(
+                    profile.extensionHandle, "FBXASSET",
+                    profile.recordHandle))
+                return false;
+            const auto named = std::count_if(extension->m_entries.begin(),
+                extension->m_entries.end(), [](const DRW_Dictionary::Entry& row) {
+                    return row.m_name == "FBXASSET";
+                });
+            const auto targeted = std::count_if(extension->m_entries.begin(),
+                extension->m_entries.end(), [&profile](
+                        const DRW_Dictionary::Entry& row) {
+                    return row.m_handle == profile.recordHandle;
+                });
+            if (named != 1u || targeted != 1u)
+                return false;
+            const auto* frame = boundAc1024DwgStandardObject(
+                data, *record, dwgObjType::XRECORD);
+            if (frame == nullptr
+                || !dx_ac1024_aerial_fbxasset_wire::observeRecord(
+                    *frame, *record, profile))
+                return false;
         }
         return true;
     } catch (...) {
