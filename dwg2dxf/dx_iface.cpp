@@ -44885,10 +44885,41 @@ bool dx_iface::hasQualifiedAc1024AerialGlobalMaterialEed(
         || !hasQualifiedAerialMaterialAppIdSource())
         return false;
     try {
+        const auto* root = uniqueDwgSourceRecord(data.dictionaries, 0x72u);
         const auto* material = uniqueDwgSourceRecord(data.materials, 0x98u);
+        const auto* extension = uniqueDwgSourceRecord(data.dictionaries, 0x290u);
+        const auto* record = uniqueDwgSourceRecord(data.xRecords, 0x291u);
         const auto* raw = boundAc1024DwgClassObject(
             data, 0x98u, proof.frame, nullptr);
-        return material != nullptr && raw != nullptr
+        const auto* extensionFrame = extension == nullptr ? nullptr
+            : boundAc1024DwgStandardObject(
+                data, *extension, dwgObjType::DICTIONARY);
+        const auto* recordFrame = record == nullptr ? nullptr
+            : boundAc1024DwgStandardObject(
+                data, *record, dwgObjType::XRECORD);
+        const bool extensionEdge = extension != nullptr
+            && extension->parentHandle == 0x98u
+            && extension->m_entries.size() == 1u
+            && extension->m_entries.front().m_name == "FBXASSET"
+            && extension->m_entries.front().m_handle == 0x291u;
+        const bool recordEdge = record != nullptr
+            && record->parentHandle == 0x290u && record->xDictHandle == 0u
+            && record->reactorHandles.size() == 1u
+            && record->reactorHandles.front() == 0x290u
+            && record->m_dataEntries.size() == 193u
+            && record->m_values.size() == 193u;
+        const bool rootEdge = root != nullptr && root->parentHandle == 0xCu
+            && root->m_entries.size() == 9u
+            && std::count_if(root->m_entries.begin(), root->m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "Global" && entry.m_handle == 0x98u;
+                }) == 1;
+        return rootEdge && material != nullptr && raw != nullptr
+            && material->m_name == "Global"
+            && material->parentHandle == 0x72u
+            && material->xDictHandle == 0x290u
+            && extensionEdge && recordEdge
+            && extensionFrame != nullptr && recordFrame != nullptr
             && proof.body == raw->m_rawBytes
             && dxfMaterial::sameState(*proof.material, *material)
             && standardDwgCommonEqual(*proof.material, *material,
@@ -44899,6 +44930,82 @@ bool dx_iface::hasQualifiedAc1024AerialGlobalMaterialEed(
                        std::string_view name) noexcept {
                     return hasQualifiedDwgStandardAppIdSource(handle, name);
                 });
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::requiresAc1024AerialGlobalMaterialEedOutput() const noexcept {
+    return cData != nullptr && cData->sourceFormat == dx_source_format::DWG
+        && cData->sourceVersion == DRW::AC1024
+        && std::find(m_extensionMaterialHandles.begin(),
+                     m_extensionMaterialHandles.end(), 0x98u)
+            != m_extensionMaterialHandles.end();
+}
+
+bool dx_iface::inspectAc1024AerialGlobalMaterialEedTables(
+        const dxfRW::DxfTablesWriteView& view) noexcept {
+    if (!requiresAc1024AerialGlobalMaterialEedOutput())
+        return true;
+    if (m_dwgAerialGlobalMaterialEedTablesInspected || dxfW == nullptr
+        || view.version != DRW::AC1024
+        || std::count(m_extensionMaterialHandles.begin(),
+                      m_extensionMaterialHandles.end(), 0x98u) != 1
+        || !hasQualifiedAc1024AerialGlobalMaterialEed(*cData))
+        return false;
+    const std::uint32_t expectedHandle = dxfW->remapHandle(0x12u);
+    if (expectedHandle == 0u || expectedHandle == DRW::NoHandle)
+        return false;
+    try {
+        std::size_t acadRows = 0u;
+        bool rowMatches = false;
+        const bool inspected = dx_symbol_output::inspect(view,
+            [&](const dx_symbol_output::NameRecord& row) {
+                if (row.type != dx_symbol_output::Kind::AppId)
+                    return true;
+                if (!asciiIdentifierEquals(row.name, "ACAD"))
+                    return true;
+                ++acadRows;
+                rowMatches = row.qualified && row.handle == expectedHandle
+                    && row.owner == row.tableHandle;
+                return rowMatches;
+            });
+        m_dwgAerialGlobalMaterialEedTablesInspected = inspected
+            && acadRows == 1u && rowMatches;
+        return m_dwgAerialGlobalMaterialEedTablesInspected;
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dx_iface::finalizeAc1024AerialGlobalMaterialEedOutput() const noexcept {
+    if (!requiresAc1024AerialGlobalMaterialEedOutput())
+        return true;
+    if (dxfW == nullptr || dxfW->getVersion() != DRW::AC1024
+        || !m_dwgAerialGlobalMaterialEedTablesInspected
+        || !m_dwgAerialGlobalMaterialEedObjectsInspected
+        || !hasQualifiedAc1024AerialGlobalMaterialEed(*cData))
+        return false;
+    try {
+        const auto appId = dxfW->remapHandle(0x12u);
+        const auto material = dxfW->remapHandle(0x98u);
+        const auto root = dxfW->remapHandle(0x72u);
+        const auto nod = dxfW->remapHandle(0xCu);
+        const auto extension = dxfW->remapHandle(0x290u);
+        const auto xrecord = dxfW->remapHandle(0x291u);
+        return appId != 0u && appId != DRW::NoHandle
+            && dxfW->dxfWriteEmittedSourceTableHandle(0x12u) == appId
+            && material != 0u && material != DRW::NoHandle
+            && root != 0u && root != DRW::NoHandle
+            && nod != 0u && nod != DRW::NoHandle
+            && dxfW->dxfWriteSourceObjectHasIdentity(
+                0x72u, root, "DICTIONARY", "OBJECTS", nod)
+            && dxfW->dxfWriteSourceObjectHasIdentity(
+                0x98u, material, "MATERIAL", "OBJECTS", root)
+            && dxfW->dxfWriteSourceObjectHasIdentity(
+                0x290u, extension, "DICTIONARY", "OBJECTS", material)
+            && dxfW->dxfWriteSourceObjectHasIdentity(
+                0x291u, xrecord, "XRECORD", "OBJECTS", extension);
     } catch (...) {
         return false;
     }
@@ -49944,11 +50051,17 @@ bool dx_iface::finalizeDwgAssociativeDimensionDependencies() const noexcept {
 
 bool dx_iface::inspectAc1024AerialDwgByBlockMaterial(const dxfRW::DxfObjectsWriteView& view) noexcept {
     const auto selectedHandle = m_extensionMaterialHandles.size() == 1u
-        && m_extensionMaterialHandles.front() == 0x96u ? 0x96u : 0x97u;
-    const auto extensionHandle = selectedHandle == 0x96u ? 0x297u : 0x295u;
-    const auto recordHandle = selectedHandle == 0x96u ? 0x298u : 0x296u;
+        ? m_extensionMaterialHandles.front() : 0x97u;
+    const bool globalEed = selectedHandle == 0x98u;
+    const auto extensionHandle = globalEed ? 0x290u
+        : selectedHandle == 0x96u ? 0x297u : 0x295u;
+    const auto recordHandle = globalEed ? 0x291u
+        : selectedHandle == 0x96u ? 0x298u : 0x296u;
     if (!cData || view.version != DRW::AC1024
-        || !requiresAc1024AerialDwgByBlockMaterialProof(*cData, selectedHandle))
+        || (globalEed
+            ? !hasQualifiedAc1024AerialGlobalMaterialEed(*cData)
+            : !requiresAc1024AerialDwgByBlockMaterialProof(
+                *cData, selectedHandle)))
         return true;
     if (!dxfW || m_dwgAerialByBlockMaterialInspected)
         return false;
@@ -49958,8 +50071,17 @@ bool dx_iface::inspectAc1024AerialDwgByBlockMaterial(const dxfRW::DxfObjectsWrit
         const bool projected = m_extensionMaterialHandles.size() == 1u;
         const auto* context = dxfW->getWritingContext();
         DRW_Class row;
-        if (!source || !record || !context
-            || !hasQualifiedAc1024AerialDwgByBlockMaterial(*cData, &row, selectedHandle)
+        const auto* materialSource = globalEed
+            ? uniqueDwgSourceRecord(cData->materials, selectedHandle)
+            : nullptr;
+        const bool classQualified = globalEed
+            ? materialSource != nullptr
+                && boundAc1024DwgClassObject(
+                    *cData, selectedHandle,
+                    m_dwgAerialGlobalMaterialEed.frame, &row) != nullptr
+            : hasQualifiedAc1024AerialDwgByBlockMaterial(
+                *cData, &row, selectedHandle);
+        if (!source || !record || !context || !classQualified
             || (!projected && m_extensionMaterialHandles.size() != source->m_entries.size())
             || std::count(m_extensionMaterialHandles.begin(), m_extensionMaterialHandles.end(), selectedHandle) != 1)
             return false;
@@ -50057,13 +50179,26 @@ bool dx_iface::inspectAc1024AerialDwgByBlockMaterial(const dxfRW::DxfObjectsWrit
 
 bool dx_iface::finalizeAc1024AerialDwgByBlockMaterial() const noexcept {
     const auto selectedHandle = m_extensionMaterialHandles.size() == 1u
-        && m_extensionMaterialHandles.front() == 0x96u ? 0x96u : 0x97u;
-    const auto extensionHandle = selectedHandle == 0x96u ? 0x297u : 0x295u;
-    const auto recordHandle = selectedHandle == 0x96u ? 0x298u : 0x296u;
+        ? m_extensionMaterialHandles.front() : 0x97u;
+    const bool globalEed = selectedHandle == 0x98u;
+    const auto extensionHandle = globalEed ? 0x290u
+        : selectedHandle == 0x96u ? 0x297u : 0x295u;
+    const auto recordHandle = globalEed ? 0x291u
+        : selectedHandle == 0x96u ? 0x298u : 0x296u;
     if (!cData || !dxfW || dxfW->getVersion() != DRW::AC1024 || m_extensionMaterialHandles.empty()
-        || !requiresAc1024AerialDwgByBlockMaterialProof(*cData, selectedHandle))
+        || (globalEed
+            ? !hasQualifiedAc1024AerialGlobalMaterialEed(*cData)
+            : !requiresAc1024AerialDwgByBlockMaterialProof(
+                *cData, selectedHandle)))
         return true;
-    if (!m_dwgAerialByBlockMaterialInspected || !hasQualifiedAc1024AerialDwgByBlockMaterial(*cData, nullptr, selectedHandle))
+    const bool classQualified = globalEed
+        ? m_dwgAerialGlobalMaterialEed.material.has_value()
+            && boundAc1024DwgClassObject(
+                *cData, selectedHandle,
+                m_dwgAerialGlobalMaterialEed.frame, nullptr) != nullptr
+        : hasQualifiedAc1024AerialDwgByBlockMaterial(
+            *cData, nullptr, selectedHandle);
+    if (!m_dwgAerialByBlockMaterialInspected || !classQualified)
         return false;
     try {
         const auto nod = dxfW->remapHandle(0xCu);
@@ -50103,6 +50238,11 @@ bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) 
     if (m_dxfMaterialWriteInspected
         || !hasUnchangedDxfMaterialSources()
         || !hasUnchangedExtensionMaterialSources())
+        return false;
+    if (requiresAc1024AerialGlobalMaterialEedOutput()
+        && (!hasQualifiedAc1024AerialGlobalMaterialEed(*cData)
+            || std::count(m_extensionMaterialHandles.begin(),
+                          m_extensionMaterialHandles.end(), 0x98u) != 1))
         return false;
     m_dxfMaterialWriteInspected = true;
     try {
@@ -50508,6 +50648,17 @@ bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) 
         diagnosticPhase = "aerial selected MATERIAL source and FBXASSET output";
         if (!inspectAc1024AerialDwgByBlockMaterial(view))
             return false;
+        if (requiresAc1024AerialGlobalMaterialEedOutput()) {
+            const auto emitted = dxfW->remapHandle(0x98u);
+            if (std::count(m_extensionMaterialHandles.begin(),
+                           m_extensionMaterialHandles.end(), 0x98u) != 1
+                || !hasQualifiedAc1024AerialGlobalMaterialEed(*cData)
+                || !m_dwgAerialByBlockMaterialInspected
+                || typedExpected.count(emitted) != 1u
+                || seen.count(emitted) != 1u)
+                return false;
+            m_dwgAerialGlobalMaterialEedObjectsInspected = true;
+        }
         inspectionComplete = true;
         return true;
     } catch (...) { return false; }
@@ -79769,6 +79920,8 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     m_dwgAerialMaterialAppId = {};
     m_dwgAerialMaterialAppIdControl = {};
     m_dwgAerialGlobalMaterialEed = {};
+    m_dwgAerialGlobalMaterialEedTablesInspected = false;
+    m_dwgAerialGlobalMaterialEedObjectsInspected = false;
     m_dwgLayerControlSourceProof.reset();
     m_dwgLayerControlSourceOwner = nullptr;
     m_dwgLayerControlSourceGeneration = 0u;
@@ -83189,6 +83342,7 @@ bool dx_iface::finalizeDxfWrite() {
     if (!hasUnchangedDxfMaterialSources()
         || !hasUnchangedExtensionMaterialSources()
         || !finalizeAc1024AerialDwgByBlockMaterial()
+        || !finalizeAc1024AerialGlobalMaterialEedOutput()
         || ((!m_dxfMaterialWriteSources.empty()
              || !m_extensionMaterialSources.empty())
             && !m_dxfMaterialWriteInspected)) return false;
@@ -88069,6 +88223,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_dxfMaterialWriteReceipt = {};
     m_dxfMaterialWriteInspected = false;
     m_dwgAerialByBlockMaterialInspected = false;
+    m_dwgAerialGlobalMaterialEedTablesInspected = false;
+    m_dwgAerialGlobalMaterialEedObjectsInspected = false;
     m_dxfMaterialWriteRequired = false;
     m_backgroundHandlesToWrite.clear();
     m_sunHandlesToWrite.clear();
@@ -92691,19 +92847,28 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         m_dwgLayerStateOutputPrepared;
     const bool needsAerialTableStyleOutput = m_dwgTableStyleOutputSources.count(0x87u) != 0u
         && requiresAc1024AerialDwgTableStyleProof(*cData);
+    const bool needsAerialGlobalMaterialEedOutput =
+        requiresAc1024AerialGlobalMaterialEedOutput();
     if ((needsStandardNames || needsRawEntityNameReferences
             || needsLayerControlOutput
+            || needsAerialGlobalMaterialEedOutput
             || m_dwgAerialMLeaderProofRequired
             || needsAerialTableStyleOutput
             || m_dwgLtypeControlOutputRequired
             || m_dxfLayerMaterialState.active || !m_dxfMLineLinetypes.empty()
-            || needsDwgLayoutsOutput || !m_dwgGeoDataGraphs.empty() || usesAc1027DefaultLayerProfile() || usesAc1024DefaultLayersProfile()) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames, needsRawEntityNameReferences, needsLayerControlOutput, needsDwgLayoutsOutput, debug, requireResolvedOwners, &reportPreflightFailure](const auto& view) {
+            || needsDwgLayoutsOutput || !m_dwgGeoDataGraphs.empty() || usesAc1027DefaultLayerProfile() || usesAc1024DefaultLayersProfile()) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames, needsRawEntityNameReferences, needsLayerControlOutput, needsAerialGlobalMaterialEedOutput, needsDwgLayoutsOutput, debug, requireResolvedOwners, &reportPreflightFailure](const auto& view) {
             if (!inspectAerialDwgMLeaderStyleTables(view)) {
                 reportPreflightFailure("DWG MLEADERSTYLE table dependencies");
                 return false;
             }
             if (!inspectAerialDwgTableStyleTables(view)) {
                 reportPreflightFailure("DWG TABLESTYLE table dependencies");
+                return false;
+            }
+            if (needsAerialGlobalMaterialEedOutput
+                && !inspectAc1024AerialGlobalMaterialEedTables(view)) {
+                reportPreflightFailure(
+                    "Global MATERIAL APPID table dependency");
                 return false;
             }
             if (m_dwgLtypeControlOutputRequired

@@ -4615,6 +4615,8 @@ private:
         bool captureFailed{false};
     };
     AerialDwgGlobalMaterialEedSource m_dwgAerialGlobalMaterialEed;
+    bool m_dwgAerialGlobalMaterialEedTablesInspected{false};
+    bool m_dwgAerialGlobalMaterialEedObjectsInspected{false};
     AerialDwgByBlockMaterialSource m_dwgAerialByBlockMaterial;
     AerialDwgByBlockMaterialSource m_dwgAerialByLayerMaterial;
     bool m_dwgAerialByBlockMaterialInspected{false};
@@ -4623,6 +4625,10 @@ private:
     void finishAerialDwgGlobalMaterialEedSource() noexcept;
     bool hasQualifiedAc1024AerialGlobalMaterialEed(
         const dx_data&) const noexcept;
+    bool requiresAc1024AerialGlobalMaterialEedOutput() const noexcept;
+    bool inspectAc1024AerialGlobalMaterialEedTables(
+        const dxfRW::DxfTablesWriteView&) noexcept;
+    bool finalizeAc1024AerialGlobalMaterialEedOutput() const noexcept;
     void retainAerialDwgByBlockMaterialPublication(const DRW_DwgFramePublication&) noexcept;
     void finishAerialDwgByBlockMaterialSource() noexcept;
     bool requiresAc1024AerialDwgByBlockMaterialProof(const dx_data&, std::uint32_t materialHandle = 0x97u) const noexcept;

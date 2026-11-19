@@ -1732,3 +1732,342 @@ bool physicalAc1024SelectedByBlockMaterialWriter(const std::filesystem::path& so
     std::cerr << "AC1024 selected " << materialName << " MATERIAL passed nine refusal/retry controls in both encodings.\n";
     return true;
 }
+
+bool physicalAc1024SelectedGlobalMaterialEedWriter(
+        const std::filesystem::path& sourcePath) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024
+        || !source.hasSingleSuccessfulNamedResourceImport()
+        || !source.hasNamedObjectDictionary
+        || source.namedObjectDictionary.handle != 0xCu
+        || source.dictionaryWithDefaults.size() != 1u
+        || source.placeholders.size() != 1u)
+        return fail("could not import Global MATERIAL EED witness");
+    const auto findHandle = [](auto& rows, std::uint32_t handle) {
+        return std::find_if(rows.begin(), rows.end(), [handle](const auto& value) {
+            return value.handle == handle;
+        });
+    };
+    const auto group = findHandle(source.dictionaries, 0xDu);
+    const auto owner = findHandle(source.dictionaries, 0x72u);
+    const auto material = findHandle(source.materials, 0x98u);
+    const auto extension = findHandle(source.dictionaries, 0x290u);
+    const auto record = findHandle(source.xRecords, 0x291u);
+    auto appId = findHandle(source.appIds, 0x12u);
+    if (group == source.dictionaries.end() || owner == source.dictionaries.end()
+        || material == source.materials.end()
+        || extension == source.dictionaries.end()
+        || record == source.xRecords.end() || appId == source.appIds.end()
+        || owner->parentHandle != 0xCu || owner->m_entries.size() != 9u
+        || material->parentHandle != 0x72u || material->xDictHandle != 0x290u
+        || material->m_name != "Global" || material->extData.size() != 7u
+        || appId->name != "ACAD"
+        || extension->parentHandle != 0x98u
+        || extension->m_entries.size() != 1u
+        || extension->m_entries.front().m_name != "FBXASSET"
+        || extension->m_entries.front().m_handle != 0x291u
+        || record->parentHandle != 0x290u || record->xDictHandle != 0u
+        || record->reactorHandles.size() != 1u
+        || record->reactorHandles.front() != 0x290u
+        || record->m_dataEntries.size() != 193u
+        || record->m_values.size() != 193u
+        || std::count_if(owner->m_entries.begin(), owner->m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "Global" && entry.m_handle == 0x98u;
+            }) != 1)
+    {
+        std::cerr << "Global MATERIAL source graph: root="
+                  << (owner != source.dictionaries.end())
+                  << " material=" << (material != source.materials.end())
+                  << " extension=" << (extension != source.dictionaries.end())
+                  << " xrecord=" << (record != source.xRecords.end())
+                  << " appid=" << (appId != source.appIds.end());
+        if (material != source.materials.end())
+            std::cerr << " materialParent=" << material->parentHandle
+                      << " materialXdict=" << material->xDictHandle;
+        if (extension != source.dictionaries.end()) {
+            std::cerr << " extensionParent=" << extension->parentHandle
+                      << " extensionEntries=" << extension->m_entries.size();
+            for (const auto& entry : extension->m_entries)
+                std::cerr << " [" << entry.m_name << "->" << entry.m_handle << ']';
+        }
+        if (record != source.xRecords.end())
+            std::cerr << " recordParent=" << record->parentHandle
+                      << " recordXdict=" << record->xDictHandle
+                      << " reactors=" << record->reactorHandles.size()
+                      << " dataEntries=" << record->m_dataEntries.size()
+                      << " values=" << record->m_values.size();
+        std::cerr << '\n';
+        return fail("Global MATERIAL EED source graph differs from the witness");
+    }
+
+    class Writer final : public LayerStateTestWriter {
+    public:
+        dx_data blank;
+        DRW_AppId appId;
+        DRW_Dictionary owner;
+        DRW_Dictionary extension;
+        DRW_Material material;
+        DRW_XRecord record;
+        DRW_DictionaryWithDefault plot;
+        DRW_AcDbPlaceholder placeholder;
+        dx_data* sourceData{nullptr};
+        bool emitAppIdBinding{true};
+        bool corruptAppIdNameAfterCallback{false};
+        bool corruptMaterialEed{false};
+        bool corruptRecord{false};
+        bool omitRecord{false};
+        std::function<bool()> finalize;
+        void writeAppId() override {
+            if (emitAppIdBinding)
+                (void)dxfW->writeAppId(&appId);
+            if (corruptAppIdNameAfterCallback && sourceData != nullptr) {
+                const auto row = std::find_if(sourceData->appIds.begin(),
+                    sourceData->appIds.end(), [](const DRW_AppId& item) {
+                        return item.handle == 0x12u;
+                    });
+                if (row != sourceData->appIds.end()) row->name = "BROKEN";
+            }
+        }
+        void writeObjects() override {
+            (void)dxfW->writeDictionaryWithDefault(&plot);
+            (void)dxfW->writeAcDbPlaceholder(&placeholder);
+            (void)dxfW->writeDictionary(&owner);
+            (void)dxfW->writeDictionary(&extension);
+            if (corruptMaterialEed && material.extData.size() > 1u
+                && material.extData[1] != nullptr)
+                *material.extData[1] = DRW_Variant(1070, std::int32_t{9});
+            (void)dxfW->writeMaterial(&material);
+            if (corruptRecord && !record.m_dataEntries.empty())
+                record.m_dataEntries.pop_back();
+            if (!omitRecord) (void)dxfW->writeXRecord(&record);
+        }
+        bool finalizeDxfWrite() override { return finalize(); }
+    } writer;
+    writer.cData = &writer.blank;
+    writer.sourceData = &source;
+    writer.appId = *appId;
+    writer.owner = *owner;
+    writer.owner.m_entries.erase(std::remove_if(writer.owner.m_entries.begin(),
+        writer.owner.m_entries.end(), [](const DRW_Dictionary::Entry& entry) {
+            return entry.m_name != "Global" || entry.m_handle != 0x98u;
+        }), writer.owner.m_entries.end());
+    if (writer.owner.m_entries.size() != 1u)
+        return fail("Global MATERIAL root projection is ambiguous");
+    writer.material = *material;
+    writer.extension = *extension;
+    writer.record = *record;
+    writer.plot = source.dictionaryWithDefaults.front();
+    if (writer.plot.m_entries.size() != 1u)
+        return fail("missing Normal plot-style entry");
+    writer.plot.m_entries.front().m_dxfHandleCode =
+        DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+    writer.placeholder = source.placeholders.front();
+
+    const auto path = std::filesystem::temp_directory_path()
+        / ("libdxfrw-selected-global-material-eed-" + std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error);
+    } } cleanup{path};
+    dxfRW codec(path.string().c_str());
+    reader.cData = &source;
+    Access::attachDxfWriter(reader, &codec);
+    Access::attachDxfWriter(writer, &codec);
+    codec.setDxfWriteRecordInventoryEnabled(true);
+    codec.setHandleRemap({{0x72u, 0xA072u}, {0x98u, 0xA098u},
+                          {0x290u, 0xA290u}, {0x291u, 0xA291u}});
+    codec.setRootDictEntries({{"ACAD_MATERIAL", "A072"},
+                              {"ACAD_PLOTSTYLENAME", "E"}});
+    if (!codec.setGeneratedDictionarySourceHandles(0xCu, 0xDu)
+        || !codec.setGeneratedDictionarySourceRecords(
+            std::make_unique<DRW_Dictionary>(source.namedObjectDictionary),
+            std::make_unique<DRW_Dictionary>(*group))
+        || !codec.setDxfDefaultPlotStyleSourceHandles(0xEu, 0xFu))
+        return fail("could not set up selected Global MATERIAL roots");
+    DRW_Class materialClass, plotClass, placeholderClass;
+    if (!Access::selectedAerialGlobalMaterialEedClass(reader, source,
+                                                       materialClass)
+        || !dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
+        || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
+        return fail("missing selected Global MATERIAL classes");
+    materialClass.instanceCount = plotClass.instanceCount
+        = placeholderClass.instanceCount = 1;
+    codec.setDxfClasses({materialClass, plotClass, placeholderClass});
+
+    bool tablesSeen = false, objectsSeen = false, finalizing = false;
+    if (!codec.setDxfTablesWriteInspector([&](const auto& view) {
+            tablesSeen = true;
+            return Access::inspectSelectedAerialGlobalMaterialEedTables(
+                reader, view);
+        })
+        || !codec.setDxfObjectsWriteInspector([&](const auto& view) {
+            objectsSeen = true;
+            return Access::inspectSelectedAerialGlobalMaterialEedObjects(
+                reader, view);
+        }))
+        return fail("could not install selected Global MATERIAL inspectors");
+    auto& materialWire = Access::globalMaterialEedFrame(source);
+    const std::size_t eedBit = 26u;
+    const auto eedMask = static_cast<std::uint8_t>(1u << (7u - eedBit % 8u));
+    bool corruptRawLate = false;
+    writer.finalize = [&]() {
+        finalizing = true;
+        if (corruptRawLate)
+            materialWire[eedBit / 8u] ^= eedMask;
+        const bool valid = Access::finalizeSelectedAerialGlobalMaterialEed(
+            reader);
+        if (corruptRawLate)
+            materialWire[eedBit / 8u] ^= eedMask;
+        return valid;
+    };
+
+    enum class Fault { None, AppIdSource, MissingAppIdBinding, MaterialEed,
+                       RecordTruncated, MissingRecord, RawFrameLate };
+    Fault fault = Fault::None;
+    const auto run = [&](bool binary) {
+        tablesSeen = objectsSeen = finalizing = false;
+        Access::resetRasterOutput(reader);
+        writer.corruptAppIdNameAfterCallback = fault == Fault::AppIdSource;
+        writer.emitAppIdBinding = fault != Fault::MissingAppIdBinding;
+        writer.corruptMaterialEed = fault == Fault::MaterialEed;
+        writer.corruptRecord = fault == Fault::RecordTruncated;
+        writer.omitRecord = fault == Fault::MissingRecord;
+        corruptRawLate = fault == Fault::RawFrameLate;
+        return Access::prepareSelectedAerialGlobalMaterialEed(
+                   reader, source, *material, *extension)
+            && codec.write(&writer, DRW::AC1024, binary);
+    };
+    const auto sameVariant = [](const DRW_Variant& lhs,
+                                const DRW_Variant& rhs) {
+        if (lhs.code() != rhs.code() || lhs.type() != rhs.type()) return false;
+        switch (lhs.type()) {
+        case DRW_Variant::STRING:
+            return lhs.content.s != nullptr && rhs.content.s != nullptr
+                && *lhs.content.s == *rhs.content.s;
+        case DRW_Variant::INTEGER: return lhs.i_val() == rhs.i_val();
+        case DRW_Variant::INTEGER64: return lhs.i64_val() == rhs.i64_val();
+        case DRW_Variant::DOUBLE: return lhs.d_val() == rhs.d_val();
+        case DRW_Variant::COORD: {
+            const auto* a = lhs.coord(); const auto* b = rhs.coord();
+            return a != nullptr && b != nullptr && a->x == b->x
+                && a->y == b->y && a->z == b->z;
+        }
+        case DRW_Variant::BINARY:
+            return lhs.binary() != nullptr && rhs.binary() != nullptr
+                && *lhs.binary() == *rhs.binary();
+        default: return false;
+        }
+    };
+    const auto checkReadback = [&]() {
+        dx_iface reopened;
+        dx_data output;
+        if (!reopened.fileImport(path.string(), &output, false)) return false;
+        const auto outApp = findHandle(output.appIds, 0x12u);
+        const auto outMaterial = findHandle(output.materials, 0xA098u);
+        const auto outExtension = findHandle(output.dictionaries, 0xA290u);
+        const auto outRecord = findHandle(output.xRecords, 0xA291u);
+        if (outApp == output.appIds.end() || outApp->name != "ACAD"
+            || std::count_if(output.appIds.begin(), output.appIds.end(),
+                [](const DRW_AppId& value) { return value.name == "ACAD"; }) != 1
+            || outMaterial == output.materials.end()
+            || outMaterial->m_name != "Global"
+            || outMaterial->parentHandle != 0xA072u
+            || outMaterial->xDictHandle != 0xA290u
+            || outMaterial->extData.size() != material->extData.size()
+            || outExtension == output.dictionaries.end()
+            || outExtension->parentHandle != 0xA098u
+            || outExtension->m_entries.size() != 1u
+            || outExtension->m_entries.front().m_name != "FBXASSET"
+            || outExtension->m_entries.front().m_handle != 0xA291u
+            || outRecord == output.xRecords.end()
+            || outRecord->parentHandle != 0xA290u
+            || outRecord->reactorHandles.size() != 1u
+            || outRecord->reactorHandles.front() != 0xA290u
+            || outRecord->m_cloning != record->m_cloning
+            || outRecord->m_dataEntries.size() != record->m_dataEntries.size()
+            || outRecord->m_values.size() != record->m_values.size())
+            return false;
+        if (!output.hasNamedObjectDictionary
+            || output.namedObjectDictionary.handle != 0xCu
+            || std::count_if(output.namedObjectDictionary.m_entries.begin(),
+                output.namedObjectDictionary.m_entries.end(),
+                [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_MATERIAL"
+                        && entry.m_handle == 0xA072u;
+                }) != 1)
+            return false;
+        for (std::size_t i = 0u; i < material->extData.size(); ++i)
+            if (material->extData[i] == nullptr
+                || outMaterial->extData[i] == nullptr
+                || !sameVariant(*material->extData[i],
+                                *outMaterial->extData[i]))
+                return false;
+        for (std::size_t i = 0u; i < record->m_dataEntries.size(); ++i)
+            if (!sameVariant(record->m_dataEntries[i],
+                             outRecord->m_dataEntries[i]))
+                return false;
+        for (std::size_t i = 0u; i < record->m_values.size(); ++i)
+            if (!sameVariant(record->m_values[i], outRecord->m_values[i]))
+                return false;
+        return true;
+    };
+    const std::string sentinel = "preserve selected Global MATERIAL destination\n";
+    for (const bool binary : {false, true}) {
+        fault = Fault::None;
+        if (!run(binary) || !tablesSeen || !objectsSeen || !finalizing
+            || !checkReadback())
+            return fail("selected Global MATERIAL EED baseline/readback failed");
+        for (const Fault bad : {Fault::AppIdSource,
+                Fault::MissingAppIdBinding, Fault::MaterialEed,
+                Fault::RecordTruncated, Fault::MissingRecord,
+                Fault::RawFrameLate}) {
+            fault = bad;
+            {
+                std::ofstream existing(path, std::ios::binary | std::ios::trunc);
+                if (!(existing << sentinel))
+                    return fail("cannot seed selected Global MATERIAL destination");
+            }
+            const bool saved = run(binary);
+            appId->name = "ACAD";
+            writer.appId = *appId;
+            writer.material = *material;
+            writer.extension = *extension;
+            writer.record = *record;
+            writer.corruptAppIdNameAfterCallback = false;
+            writer.emitAppIdBinding = true;
+            writer.corruptMaterialEed = false;
+            writer.corruptRecord = false;
+            writer.omitRecord = false;
+            corruptRawLate = false;
+            fault = Fault::None;
+            std::ifstream existing(path, std::ios::binary);
+            const std::string actualSentinel(
+                std::istreambuf_iterator<char>(existing), {});
+            const bool expectedStages = bad == Fault::AppIdSource
+                ? (tablesSeen && !objectsSeen && !finalizing)
+                : bad == Fault::MaterialEed
+                    || bad == Fault::RecordTruncated
+                    || bad == Fault::MissingRecord
+                    ? (tablesSeen && objectsSeen && !finalizing)
+                    : (tablesSeen && objectsSeen && finalizing);
+            if (saved || !expectedStages || actualSentinel != sentinel) {
+                std::cerr << "Global MATERIAL fault=" << static_cast<int>(bad)
+                          << " binary=" << binary << " tables=" << tablesSeen
+                          << " objects=" << objectsSeen
+                          << " finalizing=" << finalizing << '\n';
+                return fail("selected Global MATERIAL fault did not refuse atomically");
+            }
+            existing.close();
+            if (!run(binary) || !tablesSeen || !objectsSeen || !finalizing
+                || !checkReadback())
+                return fail("selected Global MATERIAL corrected retry/readback failed");
+        }
+    }
+    std::cerr << "AC1024 selected Global MATERIAL EED passed six refusal/retry controls in both encodings.\n";
+    return true;
+}

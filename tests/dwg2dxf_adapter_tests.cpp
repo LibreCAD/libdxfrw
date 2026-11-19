@@ -3830,8 +3830,57 @@ public:
             && iface.finalizeGeneratedRootOutput()
             && iface.finalizeAc1024AerialDwgByBlockMaterial();
     }
+    static bool prepareSelectedAerialGlobalMaterialEed(
+            dx_iface& iface, dx_data& data, const DRW_Material& material,
+            const DRW_Dictionary& extension) {
+        if (!iface.hasQualifiedAc1024AerialGlobalMaterialEed(data)
+            || material.handle != 0x98u)
+            return false;
+        iface.m_extensionMaterialHandles = {0x98u};
+        iface.m_extensionMaterialSources = {material};
+        iface.m_extensionMaterialDictionaryHandles = {extension.handle};
+        iface.m_extensionMaterialDictionaries = {extension};
+        iface.m_extensionMaterialSourceOwner = &data;
+        iface.m_extensionMaterialSourceVersion = data.sourceVersion;
+        iface.m_extensionMaterialSourceGeneration = data.importGeneration;
+        iface.m_dxfMaterialWriteInspected = false;
+        iface.m_dwgAerialByBlockMaterialInspected = false;
+        iface.m_dwgAerialGlobalMaterialEedTablesInspected = false;
+        iface.m_dwgAerialGlobalMaterialEedObjectsInspected = false;
+        return iface.hasUnchangedExtensionMaterialSources();
+    }
+    static bool selectedAerialGlobalMaterialEedClass(
+            dx_iface& iface, dx_data& data, DRW_Class& row) {
+        const auto& proof = iface.m_dwgAerialGlobalMaterialEed;
+        if (!iface.hasQualifiedAc1024AerialGlobalMaterialEed(data)
+            || iface.boundAc1024DwgClassObject(
+                data, 0x98u, proof.frame, &row) == nullptr)
+            return false;
+        row.instanceCount = 1;
+        return true;
+    }
+    static bool inspectSelectedAerialGlobalMaterialEedTables(
+            dx_iface& iface, const dxfRW::DxfTablesWriteView& view) {
+        return iface.inspectAc1024AerialGlobalMaterialEedTables(view);
+    }
+    static bool inspectSelectedAerialGlobalMaterialEedObjects(
+            dx_iface& iface, const dxfRW::DxfObjectsWriteView& view) {
+        return iface.inspectDxfMaterialOutput(view)
+            && iface.inspectGeneratedRootOutput(view)
+            && iface.inspectStandardDwgOutput(view);
+    }
+    static bool finalizeSelectedAerialGlobalMaterialEed(dx_iface& iface) {
+        return iface.finalizeStandardDwgOutputProofs()
+            && iface.finalizeGeneratedRootOutput()
+            && iface.finalizeAc1024AerialDwgByBlockMaterial()
+            && iface.finalizeAc1024AerialGlobalMaterialEedOutput();
+    }
     static std::uint8_t& aerialMLeaderWire(dx_data& data, std::uint32_t handle) {
         return data.m_opaqueDwgSourceFrames.at({data.importGeneration, handle}).m_rawBytes.at(0u);
+    }
+    static std::vector<std::uint8_t>& globalMaterialEedFrame(dx_data& data) {
+        return data.m_opaqueDwgSourceFrames.at(
+            {data.importGeneration, 0x98u}).m_rawBytes;
     }
     static bool prepareSelectedAerialVisualStyles(dx_iface& iface,
             const dx_data& data, bool binary) {
@@ -93360,6 +93409,8 @@ int main(int argc, char** argv) {
         return physicalAc1024SelectedByBlockMaterialWriter(argv[2], true) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-byblock-material-writer")
         return physicalAc1024SelectedByBlockMaterialWriter(argv[2]) ? 0 : 1;
+    if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-global-material-eed-writer")
+        return physicalAc1024SelectedGlobalMaterialEedWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--ac1024-selected-tablestyle-writer")
         return physicalAc1024SelectedTableStyleWriter(argv[2]) ? 0 : 1;
     if (argc == 3

@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-global-material-eed-source-output-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SELECTED_GLOBAL_MATERIAL_EED_GRAPH_ASCII_BINARY_OUTPUT_READBACK_AND_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "provenance": "Existing local aerial sample; producer authentication is not established.",
+    "sourceProof": "The companion EED receipt binds handle 0x98 to the same-import MATERIAL publication, 188-bit EED span [26,214), typed values, and ACAD APPID evidence. This output receipt also requires the source-bound 0x72 dictionary, Global MATERIAL, 0x290 extension dictionary, and 0x291 XRECORD."
+  },
+  "selectedProfile": {
+    "sourceRoot": "NOD 0x0C -> ACAD_MATERIAL dictionary 0x72 -> Global MATERIAL 0x98",
+    "sourceExtension": "MATERIAL 0x98 -> extension DICTIONARY 0x290 -> FBXASSET XRECORD 0x291",
+    "sourceXrecord": {
+      "parent": "0x290",
+      "reactors": ["0x290"],
+      "dataEntries": 193,
+      "compatibilityValues": 193
+    },
+    "outputRemap": {
+      "ACAD APPID 0x12": "0x12",
+      "material root dictionary 0x72": "0xA072",
+      "Global MATERIAL 0x98": "0xA098",
+      "extension dictionary 0x290": "0xA290",
+      "FBXASSET XRECORD 0x291": "0xA291"
+    },
+    "scope": "One selected Global MATERIAL and its FBXASSET extension edge; the original nine-member MATERIAL root is not admitted."
+  },
+  "implementation": {
+    "tableGate": "Paired TABLES inspection requires exactly one qualified canonical ACAD APPID row at the remapped source handle; finalization requires the source APPID binding.",
+    "objectGate": "The selected MATERIAL inspector checks the remapped NOD/root/material/dictionary/XRECORD identities, source-bound dictionary and XRECORD frames, exact 193-value XRECORD projection, and typed MATERIAL EED against its retained same-import proof.",
+    "readback": "Fresh import checks the ACAD APPID row, selected root link, material owner and xdictionary, FBXASSET key/target, XRECORD parent/reactor, all 193 data entries and compatibility values, and all seven EED variants."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+    "selector": "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-selected-global-material-eed-writer tests/samples/AC1024/visualization_-_aerial.dwg",
+    "result": "PASS in ASCII and Binary. Six refusal cases per encoding preserve a seeded destination and permit corrected same-writer retry plus readback: source APPID name mutation at TABLES, missing APPID source binding, wrong typed EED value, truncated XRECORD, omitted XRECORD, and late EED raw-source mutation.",
+    "regressions": [
+      "--ac1024-selected-byblock-material-writer: PASS",
+      "--ac1024-selected-bylayer-material-writer: PASS",
+      "--ac1024-material-appid-source-capture: PASS"
+    ],
+    "diffCheck": "git diff --check: PASS"
+  },
+  "limitations": [
+    "Same-library staged output and readback do not establish independent producer semantics or interoperability.",
+    "The remaining MATERIAL root members, other six EED-bearing MATERIALs, and complete drawing-level dependency closure remain open.",
+    "This selected transaction does not promote a support claim."
+  ],
+  "next": "Source-bind the other six EED-bearing MATERIAL records and their dependencies; keep complete root admission gated on all class bodies and graph edges."
+}
