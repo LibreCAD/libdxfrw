@@ -16670,6 +16670,31 @@ void testDataStorageCapabilities(TestContext& t) {
              "DataStorage capability rejects null identity");
 }
 
+void testLibreCadThreeDimensionalAggregatePrefixes(TestContext& t) {
+    const DRW_AcisVertex vertex{7, DRW_Coord(1, 2, 3), true};
+    const DRW_AcisEdge edge{8, DRW_Coord(1, 2, 3), DRW_Coord(4, 5, 6), true, true};
+    const DRW_AcisFace face{9, DRW_AcisSurface::Plane, true};
+    const DRW_AcisBrep body{{vertex}, {edge}, {face}, true, DRW_Coord(0, 0, 0),
+                            DRW_Coord(4, 5, 6), {"note"}};
+    // The first 29 fields precede extLightingModel in LibreCAD's public prefix.
+    const DRW_VisualStyleBody visual{{}, {}, {}, {}, {}, {}, {}, {}, {}, {},
+        {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, 7, true};
+    // The first 36 fields precede orphanRecordCount in the public prefix.
+    const DRW_DataStorageSection section{{}, {}, {}, {}, {}, {}, {}, {}, {}, {},
+        {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {},
+        {}, {}, {}, {}, {}, {}, 5u, {}, true, false, false};
+    t.expect(vertex.valid && vertex.point.z == 3. && vertex.pointNodeIndex == -1 &&
+                 edge.hasStart && edge.hasEnd && edge.end.z == 6. && edge.curveNodeIndex == -1 &&
+                 face.hasSurface && face.surfaceType == DRW_AcisSurface::Plane &&
+                 face.shellNodeIndex == -1 && body.hasBBox && body.bboxMax.z == 6. &&
+                 body.diagnostics.size() == 1u && body.lumps.empty() && body.shells.empty(),
+             "LibreCAD ACIS aggregate prefixes preserve 3D geometry and defaults");
+    t.expect(visual.extLightingModel == 7 && visual.internalOnly && !visual.hasLegacyReserved &&
+                 section.orphanRecordCount == 5u && section.parseFailed &&
+                 !section.structurallyValid && !section.replayAllowed && section.unboundRecordCount == 0u,
+             "LibreCAD visual style and data storage prefixes preserve values and defaults");
+}
+
 void testLibreCadAggregatePrefixConstruction(TestContext& t) {
     const DRW_TableCell cell{1, 2, 3, true, false, 6, 7, 8.0, "tip", 10, 11, 12u,
         13u, 14u, 15u, 16u, 17., 18., 19., 20u, 21u, 22u, {}, {}, 25., 26., 27.,
@@ -17012,6 +17037,7 @@ int main(int argc, char** argv) {
     testDataStorageBlobPages(context);
     testDataStorageRecordCountAlignmentAnchors(context);
     testDataStorageDefaultSchemaOnlySection(context);
+    testLibreCadThreeDimensionalAggregatePrefixes(context);
     testLibreCadAggregatePrefixConstruction(context);
     testLibreCadStyleConstruction(context);
     testLibreCadRangeConstruction(context);

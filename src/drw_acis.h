@@ -216,11 +216,11 @@ enum class DRW_AcisSurface { Plane, Cone, Torus, Sphere, Spline, Unknown };
 //! A B-rep vertex; `valid` is false when its point could not be resolved.
 struct DRW_AcisVertex {
     int nodeIndex = 0;
+    DRW_Coord point;
+    bool valid = false;
     //! Point record used for these coordinates; strict rooted SAB 21800 uses
     //! vertex pointer ordinal 2.
     int pointNodeIndex = -1;
-    DRW_Coord point;
-    bool valid = false;
 };
 
 //! A B-rep edge with resolved endpoints and analytic curve params.
@@ -232,16 +232,6 @@ struct DRW_AcisVertex {
  */
 struct DRW_AcisEdge {
     int nodeIndex = 0;
-    //! Curve source node used for these fields; rooted SAB 21800 uses ordinal 4.
-    int curveNodeIndex = -1;
-    //! Edge's ordinal-3 coedge pointer target in SAB 21800; -1 if unresolved.
-    int coedgeNodeIndex = -1;
-    //! True only when that coedge's ordinal-4 edge link points back here.
-    bool hasReciprocalCoedgeLink = false;
-    //! Start vertex node identity; rooted SAB 21800 uses ordinal 1.
-    int startVertexNodeIndex = -1;
-    //! End vertex node identity; rooted SAB 21800 uses ordinal 2.
-    int endVertexNodeIndex = -1;
     DRW_Coord start;
     DRW_Coord end;
     bool hasStart = false;
@@ -253,6 +243,16 @@ struct DRW_AcisEdge {
     DRW_Coord p2;
     double ratio = 0.0;
     std::vector<DRW_Coord> controlPoints;
+    //! Curve source node used for these fields; rooted SAB 21800 uses ordinal 4.
+    int curveNodeIndex = -1;
+    //! Edge's ordinal-3 coedge pointer target in SAB 21800; -1 if unresolved.
+    int coedgeNodeIndex = -1;
+    //! True only when that coedge's ordinal-4 edge link points back here.
+    bool hasReciprocalCoedgeLink = false;
+    //! Start vertex node identity; rooted SAB 21800 uses ordinal 1.
+    int startVertexNodeIndex = -1;
+    //! End vertex node identity; rooted SAB 21800 uses ordinal 2.
+    int endVertexNodeIndex = -1;
     //! True when the admitted SAB 21800 profile exposed the partner links.
     bool hasCoedgePartnerRingObservation = false;
     //! True only when the selected coedge's partner walk returns to itself.
@@ -349,10 +349,6 @@ struct DRW_AcisFaceLoop {
  */
 struct DRW_AcisFace {
     int nodeIndex = 0;
-    //! Owning shell node in the admitted rooted projection; -1 if unresolved.
-    int shellNodeIndex = -1;
-    //! Source surface node; -1 if unresolved or absent in this projection.
-    int surfaceNodeIndex = -1;
     DRW_AcisSurface surfaceType = DRW_AcisSurface::Unknown;
     bool hasSurface = false;             //!< true when surface params were resolved
     DRW_Coord p0;
@@ -365,6 +361,10 @@ struct DRW_AcisFace {
     double majorRadius = 0.0;
     double minorRadius = 0.0;
     std::vector<DRW_AcisFaceLoop> loops;
+    //! Owning shell node in the admitted rooted projection; -1 if unresolved.
+    int shellNodeIndex = -1;
+    //! Source surface node; -1 if unresolved or absent in this projection.
+    int surfaceNodeIndex = -1;
     //! True when the admitted SAB profile observed the face's loop chain.
     bool hasLoopChainObservation = false;
     //! True only when the observed chain ends at an explicit null next link.
@@ -459,14 +459,14 @@ struct DRW_AcisBrep {
     std::vector<DRW_AcisVertex> vertices;
     std::vector<DRW_AcisEdge> edges;
     std::vector<DRW_AcisFace> faces;
-    //! Populated by the rooted SAB 21800 projection; never implies validity.
-    std::vector<DRW_AcisLump> lumps;
-    //! Populated by the rooted SAB 21800 projection; never implies validity.
-    std::vector<DRW_AcisShell> shells;
     bool hasBBox = false;
     DRW_Coord bboxMin;
     DRW_Coord bboxMax;
     std::vector<std::string> diagnostics;
+    //! Populated by the rooted SAB 21800 projection; never implies validity.
+    std::vector<DRW_AcisLump> lumps;
+    //! Populated by the rooted SAB 21800 projection; never implies validity.
+    std::vector<DRW_AcisShell> shells;
 
     bool empty() const {
         return vertices.empty() && edges.empty() && faces.empty();

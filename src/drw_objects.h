@@ -9184,11 +9184,6 @@ struct DRW_VisualStyleBody {
   // display group
   int displaySettings = 0, displayShadowType = 0;
   double displayBrightness = 0.0;
-  // R2007 stores a reserved double between displayShadowType and
-  // internalOnly. Preserve it so same-version DXF projection can fail closed
-  // or emit the exact source value instead of silently replacing it with 0.
-  double legacyReserved = 0.0;
-  bool hasLegacyReserved = false;
   // r2010b header
   int extLightingModel = 0;
   bool internalOnly = false;
@@ -9209,6 +9204,9 @@ struct DRW_VisualStyleBody {
   UTF8STRING strokes;
   bool bProp37 = false;
   double bdProp38 = 0.0, bdProp39 = 0.0;
+  // R2007's reserved wire value is appended to preserve the LibreCAD prefix.
+  double legacyReserved = 0.0;
+  bool hasLegacyReserved = false;
   // Assign {} explicitly when replacing source metadata with authored values.
   DRW_VisualStyleEncoding m_encoding;
 };

@@ -252,11 +252,6 @@ struct DRW_DataStorageSection {
     //! Number of records whose handle has no validated source-frame entry and
     //! was not linked to a parsed AC1027+ modeler/surface entity.
     std::size_t orphanRecordCount = 0;
-    //! Number of records whose handle exists in the validated source handle
-    //! map but was not linked to a parsed AC1027+ modeler/surface entity.
-    //! This is unresolved output association, not proof that the record was
-    //! preserved or semantically interpreted.
-    std::size_t unboundRecordCount = 0;
     std::vector<DRW_DataStorageDiagnostic> diagnostics;
     //! True when the input was shorter than HEADER_SIZE or otherwise unusable.
     bool parseFailed = false;
@@ -267,6 +262,11 @@ struct DRW_DataStorageSection {
     //! tolerated SupportedOpaque diagnostics keep replay enabled; structural
     //! diagnostics turn it off.
     bool replayAllowed = true;
+    //! Number of records whose handle exists in the validated source handle
+    //! map but was not linked to a parsed AC1027+ modeler/surface entity.
+    //! This is unresolved output association, not proof that the record was
+    //! preserved or semantically interpreted. Appended for source compatibility.
+    std::size_t unboundRecordCount = 0;
 
     bool hasStructuralDiagnostics() const noexcept {
         return !structurallyValid;

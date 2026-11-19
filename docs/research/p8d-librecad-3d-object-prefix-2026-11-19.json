@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-19",
+  "scope": "Restore bundled aggregate field prefixes for ACIS, VISUALSTYLE and data storage types.",
+  "librecad_master": "deaedc327850349ceb9b4825b3efcc68ac2a52eb",
+  "implementation_digest_sha256": "1aacbf9ffb87675a1c6235bc5d0e2a4010c01deae0035f24920069ddfadaf8d7",
+  "types": [
+    "DRW_AcisVertex",
+    "DRW_AcisEdge",
+    "DRW_AcisFace",
+    "DRW_AcisBrep",
+    "DRW_VisualStyleBody",
+    "DRW_DataStorageSection"
+  ],
+  "evidence": [
+    "Scratch aggregate-initializer programs compile and run with bundled headers; before this change ACIS and data-storage forms failed to compile, while VISUALSTYLE silently read 0/false instead of 7/true. After field-order restoration all three probes pass.",
+    "Focused graph-preservation CTest covers old field prefixes, new-field defaults, nested 3D objects and VISUALSTYLE values; lc3_compat_check builds.",
+    "Current LibreCAD metadata source compiles with the current upstream headers.",
+    "Both focused data-storage bounds and schema-profile CTests passed after rebuilding."
+  ],
+  "limitations": [
+    "Source-prefix checks do not prove binary ABI compatibility or general 3D/ACIS semantic support.",
+    "Native GUI, producer witnesses and hosted checks remain open."
+  ]
+}
