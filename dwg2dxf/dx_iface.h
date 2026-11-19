@@ -4607,14 +4607,15 @@ private:
         std::optional<DRW_Material> material;
         std::array<std::vector<std::uint8_t>, 4> bodies;
     };
-    struct AerialDwgGlobalMaterialEedSource {
+    struct AerialDwgMaterialEedSource {
         DwgClassObjectPublication frame;
         const dx_data* owner{nullptr};
         std::optional<DRW_Material> material;
         std::vector<std::uint8_t> body;
         bool captureFailed{false};
     };
-    AerialDwgGlobalMaterialEedSource m_dwgAerialGlobalMaterialEed;
+    AerialDwgMaterialEedSource m_dwgAerialGlobalMaterialEed;
+    std::array<AerialDwgMaterialEedSource, 6> m_dwgAerialOtherMaterialEed;
     bool m_dwgAerialGlobalMaterialEedTablesInspected{false};
     bool m_dwgAerialGlobalMaterialEedObjectsInspected{false};
     AerialDwgByBlockMaterialSource m_dwgAerialByBlockMaterial;
@@ -4622,9 +4623,14 @@ private:
     bool m_dwgAerialByBlockMaterialInspected{false};
     void retainAerialDwgGlobalMaterialEedPublication(
         const DRW_DwgFramePublication&) noexcept;
+    void retainAerialDwgOtherMaterialEedPublication(
+        const DRW_DwgFramePublication&) noexcept;
     void finishAerialDwgGlobalMaterialEedSource() noexcept;
+    void finishAerialDwgOtherMaterialEedSources() noexcept;
     bool hasQualifiedAc1024AerialGlobalMaterialEed(
         const dx_data&) const noexcept;
+    bool hasQualifiedAc1024AerialOtherMaterialEed(
+        const dx_data&, std::uint32_t handle) const noexcept;
     bool requiresAc1024AerialGlobalMaterialEedOutput() const noexcept;
     bool inspectAc1024AerialGlobalMaterialEedTables(
         const dxfRW::DxfTablesWriteView&) noexcept;
