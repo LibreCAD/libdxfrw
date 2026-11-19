@@ -16670,6 +16670,29 @@ void testDataStorageCapabilities(TestContext& t) {
              "DataStorage capability rejects null identity");
 }
 
+void testLibreCadTableAttributeConstruction(TestContext& t) {
+    std::vector<DRW_TableCellAttribute> attributes;
+    attributes.push_back({});
+    attributes.push_back({0x104u});
+    attributes.push_back({0x105u, 2});
+    attributes.push_back({0x106u, 3, "A1"});
+    attributes.push_back({0x107u, 4, "A2", 5u});
+    t.expect(attributes.size() == 5 && attributes[0].m_attdefHandle == 0 &&
+                 attributes[0].m_text.empty() && attributes[0].m_contentIndex == 0 &&
+                 attributes[1].m_attdefHandle == 0x104u && attributes[1].m_index == 0 &&
+                 attributes[2].m_attdefHandle == 0x105u && attributes[2].m_index == 2 &&
+                 attributes[3].m_attdefHandle == 0x106u && attributes[3].m_index == 3 &&
+                 attributes[3].m_text == "A1" && attributes[3].m_contentIndex == 0 &&
+                 attributes[4].m_attdefHandle == 0x107u && attributes[4].m_index == 4 &&
+                 attributes[4].m_text == "A2" && attributes[4].m_contentIndex == 5,
+             "LibreCAD table attribute initialization preserves all fields");
+    DRW_TableCellAttribute copied = attributes[3];
+    DRW_TableCellAttribute moved = std::move(copied);
+    t.expect(moved.m_attdefHandle == 0x106u && moved.m_text == "A1" &&
+                 moved.m_contentIndex == 0,
+             "LibreCAD table attribute copy and move preserve values");
+}
+
 void testPlanarTrimLoops(TestContext& t) {
     DRW_AcisBrep brep;
     DRW_AcisFace face;
@@ -16892,6 +16915,7 @@ int main(int argc, char** argv) {
     testDataStorageBlobPages(context);
     testDataStorageRecordCountAlignmentAnchors(context);
     testDataStorageDefaultSchemaOnlySection(context);
+    testLibreCadTableAttributeConstruction(context);
     testPlanarTrimLoops(context);
     testAcisBoundaries(context);
     testAcisWireframeHeaderProjection(context);

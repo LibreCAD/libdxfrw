@@ -55,6 +55,7 @@ docs/patches/freecad-p8-layer-color-syntax-guard-2026-11-16.patch
 docs/patches/freecad-p8-legacy-dxf-block-3dface-2026-11-15.patch
 docs/patches/freecad-p8-legacy-dxf-surface-mesh-unit-scaling-2026-11-15.patch
 docs/patches/freecad-p8-off-layer-no-group-diagnostic-2026-11-16.patch
+docs/patches/librecad-associative-prefix-kinds-guarded-2026-11-19.patch
 docs/patches/librecad-dwg-fulltest-upstream-api-2026-11-19.patch
 docs/patches/librecad-dxf-fast-test-upstream-api-2026-11-19.patch
 docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch

@@ -1938,6 +1938,15 @@ private:
 };
 
 struct DRW_TableCellAttribute {
+    DRW_TableCellAttribute() = default;
+    // Preserve the bundled LibreCAD aggregate's brace-initialization forms
+    // while keeping reader bookkeeping private.
+    DRW_TableCellAttribute(std::uint32_t attdefHandle, int index = 0,
+                           UTF8STRING text = UTF8STRING(),
+                           std::uint32_t contentIndex = 0)
+        : m_attdefHandle(attdefHandle), m_index(index), m_text(std::move(text)),
+          m_contentIndex(contentIndex) {}
+
     std::uint32_t m_attdefHandle = 0;
     int m_index = 0;
     UTF8STRING m_text;

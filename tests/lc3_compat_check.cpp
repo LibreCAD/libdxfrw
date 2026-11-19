@@ -35,8 +35,25 @@
 #include <libdxfrw.h>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 namespace {
+
+// LibreCAD's bundled codec permits these aggregate-initialization forms.
+// The upstream type keeps private reader bookkeeping but must still accept
+// the same source expressions, including direct vector emplacement.
+[[maybe_unused]] bool libreCadTableAttributeInitialization() {
+    DRW_TableCellAttribute empty{};
+    DRW_TableCellAttribute handleOnly{0x104u};
+    DRW_TableCellAttribute indexed{0x104u, 1};
+    DRW_TableCellAttribute text{0x104u, 1, "A1"};
+    DRW_TableCellAttribute associated{0x104u, 1, "A1", 2u};
+    std::vector<DRW_TableCellAttribute> attributes;
+    attributes.push_back({0x104u, 1, "A1"});
+    return empty.m_attdefHandle == 0 && handleOnly.m_index == 0 &&
+           indexed.m_index == 1 && text.m_text == "A1" &&
+           associated.m_contentIndex == 2 && attributes.front().m_text == "A1";
+}
 
 static_assert(LIBDXFRW_HAS_BLOCK_RECORD_CALLBACK == 1,
               "BLOCK_RECORD callback feature macro is missing");
