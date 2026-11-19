@@ -1,0 +1,60 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-material-visualstyle-source-census-2026-11-18",
+  "date": "2026-11-18",
+  "status": "MATERIAL_SOURCE_CENSUS_AND_VISUALSTYLE_RECHECK_GAP_CONFIRMED",
+  "supportClaimEffect": "none",
+  "sourceSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+  "head": "15cf4b2aa21c2d280dda5618c24caa7d2b735329",
+  "peerOdaDxfSha256": "911acff2824c5d75043a074381aea9d2274601ca62391b14786a224444f6c0eb",
+  "material": {
+    "root": "NOD C → MATERIAL owner dictionary 72 → nine typed MATERIALs. Each has owner and reactor 72 and one nonempty extension dictionary. The nine extension dictionaries contain 53 typed XRECORD children.",
+    "members": [
+      "2C2",
+      "2CC",
+      "97",
+      "96",
+      "98",
+      "32E",
+      "2D6",
+      "2E0",
+      "2EA"
+    ],
+    "eed": "Seven materials have seven EED variants apiece. ByBlock 97 and ByLayer 96 have none.",
+    "byBlock": "Source ByBlock 97 owns dictionary 295, which holds FBXASSET XRECORD 296 with 193 entries, mostly group 310 binary chunks. The earlier generated empty-dictionary test does not cover this graph.",
+    "next": "Start with the fixed root and the ByBlock path. Bind the complete binary XRECORD payload and ordered keys, source terminal roles, and actual class identity before a selected staged proof. Continue owner/APPID/value proof for the other eight paths before whole-root admission.",
+    "pinnedLibreDwgJsonSha256": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832",
+    "comparison": "All nine root entries, owners and extension handles agree with the pinned LibreDWG model. The typed comparison matches 501 present fields including available 16-double maps at tolerance 1e-12. It excludes 39 peer-absent values. All nine retained opaque MATERIAL frames have m_typedPayloadValidated false after import; existing typed snapshot checks do not close the full frames."
+  },
+  "visualStyle": {
+    "root": "NOD C → dictionary 99, containing 27 ordered children. Same-import callback and retained frame counts are both 27. The peer reports owner/reactor 99 and no xdictionary for every child. Key *A1 maps to 19A, whose style description is *.",
+    "observation": "The original imported data passes hasCompleteDwgVisualStyleSourceProfile(). Selecting all 27 records lets prepareDxfVisualStyles succeed for ASCII and binary targets. The unchanged predicate still accepts changed retained bytes for 19A after one observed tail bit is toggled. Restoring the byte also passes. The probe does not stage or publish output.",
+    "next": "Require same-import class and raw frame binding with exact original dictionary key and role evidence. Reuse the existing staged VISUALSTYLE comparator with all 27 remapped records. Add early and late raw-frame refusal, sentinel/retry and independent readback including *A1 versus its description."
+  },
+  "validation": [
+    {
+      "folder": "/private/tmp/p4-aerial-material-census",
+      "sha256": {
+        "census.cpp": "df44a6b39edea92071558443c9fbd1ae06fa3a9e7c222c38885d15cb4ec096ae",
+        "census.out": "d00313d6d65f1482df5215cf3247ad28cf8bb2a5d2063f5dbd3bd6647972e18e",
+        "census.log": "066cdf21fdecec66a0cc75a0d209abb7de13991b2508d80138dfa8216e686f4b",
+        "semantic.cpp": "54a919330dfe66a7f489188170a197c349dd00462ec0a5a78182476347d477f3",
+        "semantic.out": "bdb871945c047e60e6e1b88c627b6016916deb9bcaf999caedf15db1a906a36b",
+        "semantic.log": "066cdf21fdecec66a0cc75a0d209abb7de13991b2508d80138dfa8216e686f4b",
+        "compare.py": "b473385639e049e195c45dd91980f4d8aab45dcaff00d9f5dcb8f8c6d526b8d6",
+        "compare.log": "1f4290ad1e304f785e45ad83f1ead40a86d53cd22cd1dfc5fc0c6eed03213718",
+        "comparison.json": "95552d8f6c3fe1eab436e2ccecd4ea30edfac0a664a5f535e5bb7af21215c752"
+      }
+    },
+    {
+      "folder": "/private/tmp/p4-aerial-visualstyle-profile",
+      "sha256": {
+        "profile.cpp": "4a5a7df525132aeeb1642502fa94c0866547659e292101da304bcbe0be8ba8c5",
+        "profile.log": "8aad8823a66b36638b314fb12fa3ab040df47d95139e0a4cb056dbc8b2778909"
+      }
+    }
+  ],
+  "limits": [
+    "Source and readiness census only. Physical child-body spans, source-to-output semantics and whole-root support remain open. No external CAD files or captured frames are committed."
+  ]
+}
