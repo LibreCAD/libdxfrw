@@ -85,6 +85,10 @@
     {
       "command": "GitHub Actions focused-native run 44564025121 and fast parity run 44564025101 on PR head ea9e22c1336f05caf1db280843431ab631665e52; checked-out merge 3a3eabcfd0e52d69c0cd21f4d09dae8aa402bf62; implementation digest 482f6cff10cc1735ea3cea4c6b4e319e8ff27bacb82a93752884ef44ff96a086",
       "result": "Fast CI passed all 45 required CTests (one platform-locale case skipped by design); dwg2dxf_cli_contract passed. Linux and Windows focused-native each passed 7/7 tests with receipt sealing, upload and post-upload enforcement. Receipt hashes: Linux 955d377e9b867ef17e7777a2bde52a50ea9efdaed1b029d1dae2572ab66e733c; Windows 0685a9878a95c34fca97b971166390ac3d89500c09442b00046e1fcab2c38a90. Artifact IDs/digests: Linux 14549669990 / 52e91c4a404baf3529d505ade5be4da8684207862513bccea3b87d1ff910234f; Windows 14550314485 / 311953a148a2fb123fd2d30ea1dddf1cdcc4fcaffbd00412c4fc371ea4b72243. The macOS job was cancelled while queued, so the native workflow concluded failure despite the other platform passes. The GitHub integration denied a single-job rerun with HTTP 403 (Resource not accessible by integration). Retain P8-F until a fresh exact-digest native run passes macOS too; no code or claim issue was observed."
+    },
+    {
+      "command": "GitHub Actions focused-native run 44568400317 and fast parity run 44568400315 on PR head 2fcd4d18eeb2fbb7a13e83c760ac088b16f48c52; checked-out merge af3d40ce6909fb1af45650f07316c7453bc3f36b; implementation digest 482f6cff10cc1735ea3cea4c6b4e319e8ff27bacb82a93752884ef44ff96a086",
+      "result": "Fast CI passed all 45 required CTests; one process-locale test was skipped by design and 0 tests failed. Focused-native passed 7/7 on Linux, macOS and Windows; receipt sealing, upload and post-upload enforcement passed on all three. Receipt hashes: Linux 756c348af2efb91370f631e05f33bb5e6e56f1da87ddddc8e33a57306e455457; macOS 59503247aa41ceb46e7deb9a13dd3392ab0c97e0509274aa90333da27b93b771; Windows 544aa98e47c686b6ee2f6d63f9347e50e666e5501d2b2f872bd49a1258b8615c. Artifact IDs/digests: Linux 14552803334 / 82b041ac82972d8e75c75e2b9d98edcb5fa0f8b74321528e335aec0d5c8c3e97; macOS 14554381683 / b491677161f78a5d0c27dbdb4aa6c4ae8af259ff453da800f56424a732709016; Windows 14553039151 / 367b28ef9a70baa862510e6f1eb652a9d0782630e4ee65076fd30f067793b54d. No DWG/DXF fixture or support claim changed. P8-F is closed for this exact 750-input digest."
     }
   ],
   "implementation": {
@@ -110,7 +114,6 @@
     "behavior": "Use the normal boundary-checked AC1027 APPID_CONTROL count and valid absent-string footer first. Only when that exact interpretation fails, admit the narrow historical BS profile and report unclaimed object-data bits as an integrity error; the historical AC1027 173-bit suffix remains strict-output-blocking."
   },
   "remaining": [
-    "Fast CI and Linux/Windows focused-native passed on digest 482f6cff10cc1735ea3cea4c6b4e319e8ff27bacb82a93752884ef44ff96a086, but macOS was cancelled while queued. A single-job rerun was rejected with HTTP 403; retrigger the focused matrix through the authorized PR branch update and require macOS receipt enforcement before closing P8-F.",
     "Keep remote ObjectARX producer and native consumer gates open until the host product/build, Windows version, SDK/toolchain and artifact-return route are recorded and their exact witness packets run.",
     "Do not promote DWG/DXF support claims from this compatibility repair or its parser tests."
   ]
