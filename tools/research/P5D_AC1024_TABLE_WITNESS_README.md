@@ -61,6 +61,18 @@ independent reader that supports its encoding, and require `AC1024`; record the
 reader/version and results. A missing or different marker makes the capture
 incomplete even if the creation log reports success.
 
+After transferring the files to a machine with Python 3, run the independent
+header screen from this repository (or copy both named scripts together):
+
+```sh
+python3 -B tools/research/audit_p5d_dxf_versions.py path/to/table-ac1024-ascii.dxf path/to/table-ac1024-binary.dxf
+```
+
+Save the JSON output with the capture. It includes file hashes, encoding and
+version. The helper imports `audit_binary_dxf_layout_nod.py` from the same
+directory. `PASS_HEADER_ONLY` does not validate TABLE semantics or the rest of
+the drawing.
+
 ## Native reopen evidence
 
 For each of the three emitted files, close it and open it again in AutoCAD.

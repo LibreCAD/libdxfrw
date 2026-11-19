@@ -1237,6 +1237,7 @@ tools/research/audit_libredwg_sortents_spans.py
 tools/research/audit_mlinestyle_source_profile.py
 tools/research/audit_mtext_field_roundtrip.py
 tools/research/audit_mtext_field_source.py
+tools/research/audit_p5d_dxf_versions.py
 tools/research/canonical_ltype_peer_generator.cpp
 tools/research/check_mpolygon_projection_ezdxf.py
 tools/research/create_ac1021_field_derivative.py

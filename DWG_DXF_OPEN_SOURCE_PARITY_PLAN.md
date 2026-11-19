@@ -19,7 +19,7 @@ path screen found no filenames for Import, DXF, DWG, or libdxfrw. See the
 refresh moving heads again before later integration or platform qualification.
 
 **Progress on 2026-11-19:** 12/34 package gates closed; 22 remain. The
-implementation/research activity estimate is 194/194 tracked slices (100.0%);
+implementation/research activity estimate is 195/195 tracked slices (100.0%);
 external qualification gates remain separate and open. The latest fast-CI run
 found a stale AC1021 diagnostic-count assertion: 26 integrity rows minus 16
 retained rows means 10 omitted rows. The assertion is corrected. On digest
@@ -38,6 +38,8 @@ artifact-return route are still pending; none of these packets has been built
 with Autodesk assemblies or run in AutoCAD.
 The P5-D packet explicitly requests AC1024 for both DXF encodings; independently
 verify each returned `$ACADVER` marker before accepting the producer capture.
+The [header auditor](tools/research/audit_p5d_dxf_versions.py) checks both
+encodings and file hashes; it does not qualify TABLE semantics.
 The first hosted fast run after adding P5-D caught the source-release manifests
 missing the new packet. The generated manifests now include its README, source,
 project and shared host intake; the focused inventory check passes locally.
@@ -256,7 +258,7 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count implementation/research slices and package-gate readiness separately.
-  The activity estimate is 194 completed slices out of 194 currently counted
+  The activity estimate is 195 completed slices out of 195 currently counted
   slices (100.0%); the shared host-intake and P4-D/P6-A host-packet preparation
   slices, the P5-D packet preparation slice, and its source-release inventory
   repair are complete. Native AutoCAD builds and captures remain unqualified.
