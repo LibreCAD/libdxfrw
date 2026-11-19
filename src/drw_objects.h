@@ -152,8 +152,9 @@ struct DRW_DwgSubrecordRange {
   std::uint64_t m_bitSize = 0;
   DRW::Version m_version = DRW::UNKNOWNV;
   std::uint32_t m_count = 0;
-  std::uint8_t m_rawHandleCode = 0u;
   bool m_parseComplete = true;
+  // Appended to preserve the LibreCAD aggregate initialization prefix.
+  std::uint8_t m_rawHandleCode = 0u;
 };
 
 //! Decode-only context for a DICTIONARY count that exceeds complete

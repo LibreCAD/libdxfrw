@@ -1038,13 +1038,14 @@ struct DRW_ModelerPayloadRange {
     Kind m_kind = Kind::UnknownTail;
     Section m_section = Section::Unknown;
     size_t m_offset = 0;
-    //! Source bit offset within m_offset's byte (0..7), for DWG bit streams.
-    std::uint8_t m_bitOffset = 0;
     size_t m_length = 0;
     size_t m_declaredByteSize = 0;
     Consistency m_consistency = Consistency::Unknown;
     Confidence m_confidence = Confidence::Unknown;
     std::string m_markerText;
+    //! Source bit offset within m_offset's byte (0..7), for DWG bit streams.
+    //! Appended to preserve the LibreCAD aggregate initialization prefix.
+    std::uint8_t m_bitOffset = 0;
 };
 
 //! Opaque ACIS/SAB modeler geometry entity shell (REGION, 3DSOLID, BODY).

@@ -16670,6 +16670,27 @@ void testDataStorageCapabilities(TestContext& t) {
              "DataStorage capability rejects null identity");
 }
 
+void testLibreCadRangeConstruction(TestContext& t) {
+    const DRW_DwgSubrecordRange span{"span", 7u, 9u, DRW::AC1032, 1u, false};
+    const DRW_DwgSubrecordRange extendedSpan{"span", 7u, 9u, DRW::AC1032, 1u, false, 4u};
+    const DRW_ModelerPayloadRange payload{DRW_ModelerPayloadRange::Kind::Sat,
+        DRW_ModelerPayloadRange::Section::Body, 17u, 23u};
+    const DRW_ModelerPayloadRange extendedPayload{DRW_ModelerPayloadRange::Kind::Sab,
+        DRW_ModelerPayloadRange::Section::Body, 17u, 23u, 29u,
+        DRW_ModelerPayloadRange::Consistency::Exact,
+        DRW_ModelerPayloadRange::Confidence::Marker, "SAB", 3u};
+    t.expect(span.m_name == "span" && span.m_startBit == 7u && span.m_bitSize == 9u &&
+                 span.m_version == DRW::AC1032 && span.m_count == 1u &&
+                 !span.m_parseComplete && span.m_rawHandleCode == 0u &&
+                 !extendedSpan.m_parseComplete && extendedSpan.m_rawHandleCode == 4u,
+             "LibreCAD subrecord aggregate initialization preserves values");
+    t.expect(payload.m_offset == 17u && payload.m_length == 23u &&
+                 payload.m_bitOffset == 0u && extendedPayload.m_length == 23u &&
+                 extendedPayload.m_declaredByteSize == 29u &&
+                 extendedPayload.m_markerText == "SAB" && extendedPayload.m_bitOffset == 3u,
+             "LibreCAD modeler range aggregate initialization preserves values");
+}
+
 void testLibreCadTableContentConstruction(TestContext& t) {
     DRW_CadValue value;
     value.m_dataType = 2;
@@ -16942,6 +16963,7 @@ int main(int argc, char** argv) {
     testDataStorageBlobPages(context);
     testDataStorageRecordCountAlignmentAnchors(context);
     testDataStorageDefaultSchemaOnlySection(context);
+    testLibreCadRangeConstruction(context);
     testLibreCadTableContentConstruction(context);
     testLibreCadTableAttributeConstruction(context);
     testPlanarTrimLoops(context);
