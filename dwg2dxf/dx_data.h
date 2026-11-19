@@ -1886,6 +1886,7 @@ private:
         std::array<bool,3> repeatClassSeen{{false,false,false}};
         std::size_t repeatClassCount{0u};
         bool repeatClassValid{true};
+        bool legacyPlotAc1018Selected{false};
         std::array<bool,2> legacyPlotClassSeen{{false,false}};
         std::size_t legacyPlotClassCount{0u};
         bool legacyPlotClassValid{true};
@@ -1956,7 +1957,7 @@ private:
             std::vector<UTF8STRING> referenceNameKeys;
             bool invalidTextStyleName{false};
             bool rawTypedMatched{false}, rawTypedMismatch{false};
-            bool legacyPlotLayerRawTypedMatched{false};
+            bool legacyPlotLayerRawTypedMatched{false},legacyPlotRootRawTypedMatched{false};
             bool awaitingSymbol{false};
         };
         std::map<std::uint32_t,Resource> resources;
@@ -2316,6 +2317,7 @@ private:
             std::size_t physical{DRW_DxfIdentitySource::None};
             std::size_t index{0};
             bool bodyMatched{false},stateComplete{false},originBound{false};
+            bool legacyPlotRootBodyMatched{false},legacyPlotRootOriginBound{false};
         };
         std::map<std::uint32_t,StructuralPending> structuralPending;
         std::map<std::uint32_t,std::shared_ptr<const StructuralInput>> structuralInputs;

@@ -64578,9 +64578,9 @@ dx_iface::StructuralSourceReport dx_iface::structuralSourceReport(const dx_data&
     if(!s.successful) {r.state=S::ImportFailed;return r;}
     if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput
         ||data.dxfReadOutcome.readThrew||!data.dxfReadOutcome.operationSucceeded) {r.state=S::ContextMismatch;return r;}
-    // AC1015 root capture is reserved for the default-plot source proof. Do
+    // Legacy root capture is reserved for the default-plot source proof. Do
     // not expose it as the general structural census used by other routes.
-    if (data.sourceVersion == DRW::AC1015) return StructuralSourceReport{};
+    if (data.sourceVersion == DRW::AC1015 || s.legacyPlotAc1018Selected) return StructuralSourceReport{};
     if(s.structuralCaptureFailed||!s.structuralPending.empty()
         ||(s.structuralRecords&&(s.resourceCaptureFailed||s.resourceProofCaptureFailed))) {r.state=S::CaptureFailed;return r;}
     if(s.structuralInputs.empty())return r;
@@ -64617,7 +64617,7 @@ dx_iface::IdentitySourceReport dx_iface::identitySourceReport(const dx_data& dat
     return identitySourceReportInternal(data, false);
 }
 
-dx_iface::IdentitySourceReport dx_iface::identitySourceReportInternal(const dx_data& data, bool allowAc1015) noexcept {
+dx_iface::IdentitySourceReport dx_iface::identitySourceReportInternal(const dx_data& data, bool allowLegacyPlot) noexcept {
     using S=IdentitySourceState;IdentitySourceReport r;const auto& s=data.m_tableDxfSource;
     r.bytes=s.identityBytes;r.work=s.identityWork;
     if(!s.generation||data.sourceFormat!=dx_source_format::DXF)return r;
@@ -64626,8 +64626,8 @@ dx_iface::IdentitySourceReport dx_iface::identitySourceReportInternal(const dx_d
     if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput
         ||data.dxfReadOutcome.readThrew||!data.dxfReadOutcome.operationSucceeded) {r.state=S::ContextMismatch;return r;}
     // Preserve the legacy general-report contract; only the isolated
-    // default-plot observer can inspect the AC1015 identity snapshot.
-    if (!allowAc1015 && data.sourceVersion == DRW::AC1015) return IdentitySourceReport{};
+    // default-plot observer can inspect its legacy identity snapshot.
+    if (!allowLegacyPlot && (data.sourceVersion == DRW::AC1015 || s.legacyPlotAc1018Selected)) return IdentitySourceReport{};
     if(s.identityCaptureFailed) {r.state=S::CaptureFailed;return r;}
     if(!s.identityInput)return r;
     const auto same=[](const auto& a,const auto& b){return a.get()==b.get()&&!a.owner_before(b)&&!b.owner_before(a);};
@@ -68198,18 +68198,18 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
     try {
         // fileImport publishes data.sourceVersion only after read() returns.
         // During callbacks use the already delivered declared HEADER context.
-        // The generated AC1015 default-plot profile uses the root C and its
+        // The generated legacy default-plot profiles use the root C and their
         // LAYER consumers. Decode original bytes under the source codec; no
         // output is admitted by this source-only replay.
-        const bool legacyRoot=dictionary&&raw.m_version==DRW::AC1015&&raw.handle==0xCu&&raw.parentHandle==0u;
-        const bool legacyLayer=layer&&raw.m_version==DRW::AC1015
+        const bool legacyRoot=dictionary&&(raw.m_version==DRW::AC1015 || (raw.m_version==DRW::AC1018 && legacyPlotAc1018Enabled()))&&raw.handle==0xCu&&raw.parentHandle==0u;
+        const bool legacyLayer=layer&&(raw.m_version==DRW::AC1015 || (raw.m_version==DRW::AC1018 && legacyPlotAc1018Enabled()))
             &&raw.handle==0x10u&&raw.parentHandle==2u&&raw.groups.size()==11u;
         const bool legacyProfile=legacyRoot||legacyLayer;
         dxfRW::DxfReadContext legacyContext;
         if (raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
             || (!legacyProfile&&(raw.m_version<DRW::AC1021 || raw.m_version>DRW::AC1032))
             || (legacyProfile&&(!source.entitiesReadInput||!source.entitiesReadInput->getDxfReadContext(legacyContext)
-                ||legacyContext.sourceVersion!=DRW::AC1015||legacyContext.codecVersion!=DRW::AC1015
+                ||legacyContext.sourceVersion!=raw.m_version||legacyContext.codecVersion!=DRW::AC1015
                 ||legacyContext.binary==raw.hasRawValues))) return;
         std::string body;
         if (!tableResourceSourceBody(raw,source.maxResourceProofBytes,body)) {
@@ -68334,9 +68334,10 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
         else if(layer||appid){if(!namespaceSourceReferences(raw,layer,references))return;}
         else if(text || line) {if(!symbolSourceReferences(raw,line,references))return;}
         else if (!tableResourceSourceReferences(raw,style,references)) return;
-        // This AC1015 replay is reserved for the default-plot observer. Do
+        // This legacy replay is reserved for the default-plot observer. Do
         // not set the general resource-match or reference flags.
         if(legacyLayer){resource.legacyPlotLayerRawTypedMatched=true;return;}
+        if(legacyRoot&&raw.m_version==DRW::AC1018){resource.legacyPlotRootRawTypedMatched=true;return;}
         if(style && std::count_if(references.begin(),references.end(),[](const auto& ref){return ref.kind==dx_tableResourceRole::TextStyleName;})
             !=static_cast<std::ptrdiff_t>(nameKeys.size()))return;
         resource.references=std::move(references);
@@ -68755,10 +68756,10 @@ void dx_iface::observeResourceOrigin(const DRW_TableEntry* model,const DRW_RawDx
   if (view.kind > dxfRW::DxfResourceSourceView::Kind::AppId)
     return;
   if (!s.entitiesReadInput->getDxfReadContext(live) ||
-      (!(live.sourceVersion==DRW::AC1015 && view.kind==V::Kind::Layer)
+      (!((live.sourceVersion==DRW::AC1015 || (live.sourceVersion==DRW::AC1018 && legacyPlotAc1018Enabled())) && view.kind==V::Kind::Layer)
        && (live.sourceVersion < DRW::AC1021 || live.sourceVersion > DRW::AC1032)))
     return;
-  if(live.sourceVersion==DRW::AC1015 && (!view.source || view.source->handle!=0x10u
+  if((live.sourceVersion==DRW::AC1015 || live.sourceVersion==DRW::AC1018) && (!view.source || view.source->handle!=0x10u
       ||view.source->parentHandle!=2u ||view.source->groups.size()!=11u))return;
   const bool symbol = view.kind >= V::Kind::TextStyle;
   const bool first = symbol ? (model && raw) : (model && !raw);
@@ -68830,7 +68831,7 @@ void dx_iface::observeResourceOrigin(const DRW_TableEntry* model,const DRW_RawDx
 void dx_iface::finishResourceOrigins(dx_data& data) noexcept {
     auto& s=data.m_tableDxfSource;if(s.resourceOriginCaptureFailed)return;
     const bool ready=identitySourceReport(data).state==IdentitySourceState::NamespaceReady;
-    const bool legacyReady=data.sourceVersion==DRW::AC1015
+    const bool legacyReady=(data.sourceVersion==DRW::AC1015 || s.legacyPlotAc1018Selected)
         &&identitySourceReportInternal(data,true).state==IdentitySourceState::NamespaceReady;
     try {for(const auto& item:s.resourceOriginInputs) {
         using A=dx_data::TableDxfSourceCapture::ResourceOriginAudit;A audit;audit.input=item.second;audit.identities=s.identityAudit;audit.index=s.resourceOriginAuditOwners.size();
@@ -68865,9 +68866,9 @@ dx_iface::ResourceOriginReport dx_iface::resourceOriginReport(const dx_data& dat
     if(!s.generation||data.sourceFormat!=dx_source_format::DXF)return r;
     if(!s.closed){r.state=S::Reading;return r;}if(!s.successful){r.state=S::ImportFailed;return r;}
     if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput){r.state=S::ContextMismatch;return r;}
-    // Keep the general legacy resource-origin report unchanged. AC1015 LAYER
+    // Keep the general legacy resource-origin report unchanged. Selected LAYER
     // rows are visible only through the isolated default-plot observer.
-    if(data.sourceVersion==DRW::AC1015){r=ResourceOriginReport{};r.state=S::NoOrigins;return r;}
+    if(data.sourceVersion==DRW::AC1015 || s.legacyPlotAc1018Selected){r=ResourceOriginReport{};r.state=S::NoOrigins;return r;}
     if(s.resourceOriginCaptureFailed||!s.resourceOriginPending.empty()||(r.records&&(s.resourceCaptureFailed||s.resourceProofCaptureFailed))){r.state=S::CaptureFailed;return r;}
     if(s.resourceOriginInputs.size()!=s.resourceOriginAudits.size()||s.resourceOriginInputOwners.size()!=s.resourceOriginInputs.size()
         ||s.resourceOriginAuditOwners.size()!=s.resourceOriginInputs.size()){r.state=S::CaptureFailed;return r;}
@@ -70265,7 +70266,7 @@ void dx_iface::addDxfClassShape(const DRW_Class& value, bool known, InstanceCoun
     if(!source.entitiesReadInput || !source.entitiesReadInput->getDxfReadContext(live)) {
         source.legacyPlotClassValid=false;return;
     }
-    if(live.sourceVersion!=DRW::AC1015)return;
+    if(live.sourceVersion!=DRW::AC1015 && !(live.sourceVersion==DRW::AC1018 && legacyPlotAc1018Enabled()))return;
     if(live.codecVersion!=DRW::AC1015 || ++source.legacyPlotClassCount>2u) {
         source.legacyPlotClassValid=false;return;
     }
@@ -70275,8 +70276,8 @@ void dx_iface::addDxfClassShape(const DRW_Class& value, bool known, InstanceCoun
     for(unsigned i=0u;i<2u;++i)if(value.recName==records[i])index=i;
     if(index==2u || source.legacyPlotClassSeen[index]) {source.legacyPlotClassValid=false;return;}
     source.legacyPlotClassSeen[index]=true;
-    if(!known || countShape!=InstanceCountShape::Absent || value.className!=names[index] || value.appName!="ObjectDBX Classes"
-        || value.proxyFlag!=0 || value.instanceCount!=0 || value.wasaProxyFlag!=0 || value.entityFlag!=0)
+    if(!known || countShape!=(live.sourceVersion==DRW::AC1015?InstanceCountShape::Absent:InstanceCountShape::Present) || value.className!=names[index] || value.appName!="ObjectDBX Classes"
+        || value.proxyFlag!=0 || value.instanceCount!=(live.sourceVersion==DRW::AC1015?0:1) || value.wasaProxyFlag!=0 || value.entityFlag!=0)
         source.legacyPlotClassValid=false;
 }
 
@@ -71409,8 +71410,7 @@ void dx_iface::addDxfIdentitySource(const DRW_DxfIdentitySource& value) {
     fail();
     return;
   }
-    if(live.sourceVersion==DRW::AC1018) {
-        if(!m_legacyIdentityObservationEnabled)return;
+    if(live.sourceVersion==DRW::AC1018 && m_legacyIdentityObservationEnabled) {
         const auto legacyFail=[&](){
             s.legacyIdentityCaptureFailed=true;
             s.legacyIdentityObservation.reset();s.legacyIdentityObservationOwner.reset();
@@ -71467,8 +71467,10 @@ void dx_iface::addDxfIdentitySource(const DRW_DxfIdentitySource& value) {
         }catch(...) {legacyFail();}
         return;
     }
+    if(live.sourceVersion==DRW::AC1018 && !legacyPlotAc1018Enabled())return;
     if(s.entitiesReadInput->getDxfIdentitySourceView()!=&value||s.identityInput) {fail();return;}
-    const bool legacyRootProfile = live.sourceVersion == DRW::AC1015;
+    const bool legacyRootProfile = live.sourceVersion == DRW::AC1015 || live.sourceVersion == DRW::AC1018;
+    if(live.sourceVersion==DRW::AC1018)s.legacyPlotAc1018Selected=true;
     if(!legacyRootProfile && (live.sourceVersion<DRW::AC1021||live.sourceVersion>DRW::AC1032))return;
     if(value.status!=DRW_DxfIdentitySource::Status::Complete||value.version!=live.sourceVersion||value.binary!=live.binary
         ||live.codecVersion!=(legacyRootProfile?DRW::AC1015:DRW::AC1021)||live.codecCodePage.size()>128u||!cData->m_entitiesContainerIdentity.value) {fail();return;}
@@ -71576,7 +71578,7 @@ void dx_iface::observeStructuralSource(const DRW_TableEntry& value,bool source,c
             ||dictionaryOwner!=s.legacyBlockRecordDictionaryOwners.end());
     const std::uint32_t expectedDictionaryOwner=extensionOwner!=s.legacyBlockRecordExtensionDictionaries.end()
         ?extensionOwner->second:(dictionaryOwner!=s.legacyBlockRecordDictionaryOwners.end()?dictionaryOwner->second:0u);
-    const bool legacyRoot=live.sourceVersion==DRW::AC1015&&view.kind==V::Kind::RootDictionary
+    const bool legacyRoot=(live.sourceVersion==DRW::AC1015 || (live.sourceVersion==DRW::AC1018 && legacyPlotAc1018Enabled()))&&view.kind==V::Kind::RootDictionary
         &&value.handle==0xCu&&value.parentHandle==0u;
     const bool legacy=legacyBlock||legacyDictionary||legacyRoot;
     if(legacyBlock) {
@@ -73934,12 +73936,14 @@ void dx_iface::finishStructuralSourceAudits(dx_data& data) noexcept {
             audit.stateComplete=!row.second->originalState.first&&!row.second->originalState.second;
             const auto resource=s.resources.find(row.first);
             audit.bodyMatched=resource!=s.resources.end()&&resource->second.rawTypedMatched;
-            // The AC1015 identity snapshot is admitted only for the root
+            // The legacy identity snapshot is admitted only for the root
             // dictionary used by the default-plot observer. Existing legacy
             // block and extension audits must retain their previous status.
-            const bool legacyRoot=data.sourceVersion==DRW::AC1015
+            const bool legacyRoot=(data.sourceVersion==DRW::AC1015 || s.legacyPlotAc1018Selected)
                 &&row.second->kind==dxfRW::DxfStructuralSourceView::Kind::RootDictionary;
-            if(ready&&(data.sourceVersion!=DRW::AC1015||legacyRoot)) {
+            if(s.legacyPlotAc1018Selected && legacyRoot)
+                audit.legacyPlotRootBodyMatched=resource!=s.resources.end()&&resource->second.legacyPlotRootRawTypedMatched;
+            if(ready&&((data.sourceVersion!=DRW::AC1015 && !s.legacyPlotAc1018Selected)||legacyRoot)) {
                 const auto& source=*s.identityInput->source;const auto id=s.identityAudit->identities.find(row.first);
                 if(id!=s.identityAudit->identities.end()&&id->second<source.records.size()) {
                     const auto& physical=source.records[id->second];const auto& section=source.sections[physical.section];
@@ -73951,7 +73955,10 @@ void dx_iface::finishStructuralSourceAudits(dx_data& data) noexcept {
                          &&asciiIdentifierEquals(physical.name,"DICTIONARY")
                          &&((!id->second||source.records[id->second-1u].section!=physical.section)
                             ==(row.second->kind==dxfRW::DxfStructuralSourceView::Kind::RootDictionary)));
-                    if(scope&&audit.bodyMatched&&audit.stateComplete&&row.second->paired) {audit.originBound=true;audit.physical=id->second;}
+                    if(scope&&(s.legacyPlotAc1018Selected?audit.legacyPlotRootBodyMatched:audit.bodyMatched)&&audit.stateComplete&&row.second->paired) {
+                        if(s.legacyPlotAc1018Selected)audit.legacyPlotRootOriginBound=true;else audit.originBound=true;
+                        audit.physical=id->second;
+                    }
                 }
             }
             auto saved=std::make_shared<const A>(std::move(audit));s.structuralAudits.emplace(row.first,saved);s.structuralAuditOwners.push_back(std::move(saved));

@@ -91,7 +91,7 @@ void dx_iface::observePlotStyleSource(const DRW_TableEntry* model,const DRW_RawD
     return;
   const auto fail = [&]() { s.plotSourceCaptureFailed = true; };
   if (!s.entitiesReadInput->getDxfReadContext(live) ||
-      (live.sourceVersion != DRW::AC1015 &&
+      (live.sourceVersion != DRW::AC1015 && !(live.sourceVersion==DRW::AC1018 && legacyPlotAc1018Enabled()) &&
        (live.sourceVersion < DRW::AC1021 || live.sourceVersion > DRW::AC1032)))
     return;
   const bool dictionary = view.kind == V::Kind::DictionaryWithDefault;
@@ -199,7 +199,8 @@ void dx_iface::finishPlotStyleSources(dx_data& data) noexcept {
         s.plotSourceBytes+=rootBytes;s.plotSourceWork+=rootWork;
         unsigned roots=0u;for(const auto& item:s.structuralAudits) {
             const auto& row=item.second;
-            if(row&&row->originBound&&row->bodyMatched&&row->stateComplete&&row->input&&row->input->paired
+            if(row&&(data.sourceVersion==DRW::AC1018?row->legacyPlotRootOriginBound:row->originBound)
+                &&(data.sourceVersion==DRW::AC1018?row->legacyPlotRootBodyMatched:row->bodyMatched)&&row->stateComplete&&row->input&&row->input->paired
                 &&row->input->kind==dxfRW::DxfStructuralSourceView::Kind::RootDictionary){a->root=row;++roots;}
         }
         if(roots==1u) {
@@ -250,7 +251,7 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
     if(!s.closed){r.state=S::Reading;return r;}if(!s.successful){r.state=S::ImportFailed;return r;}
     if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput){r.state=S::ContextMismatch;return r;}
     if(s.plotSourceCaptureFailed||!s.plotSourcePending.empty()
-        ||(data.sourceVersion==DRW::AC1015&&(s.structuralCaptureFailed||s.resourceCaptureFailed
+        ||((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected)&&(s.structuralCaptureFailed||s.resourceCaptureFailed
             ||s.resourceProofCaptureFailed||s.resourceOriginCaptureFailed||!s.resourceOriginPending.empty()
             ||!s.structuralPending.empty()))){r.state=S::CaptureFailed;return r;}
     const auto& a=s.plotSourceAudit;if(!a)return r;
@@ -272,7 +273,7 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
     }
     r.state=a->state;r.physicalRecords=a->physicalRecords;r.plotTargets=a->plotTargets.size();r.namedTargets=a->namedTargets;r.defaultTarget=a->defaultTarget;
     r.originalSourcesMatched=r.state==S::SourcesReady&&r.records&&r.records==r.bodyMatched&&r.records==r.originsBound;
-    if(data.sourceVersion==DRW::AC1015 && s.legacyPlotClassValid && s.legacyPlotClassCount==2u
+    if((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected) && s.legacyPlotClassValid && s.legacyPlotClassCount==2u
         &&s.legacyPlotClassSeen[0]&&s.legacyPlotClassSeen[1]&&s.identityInput&&s.identityInput->source) {
         const auto& sections=s.identityInput->source->sections;
         r.legacyClassRowsMatched=sections.size()<=64u && std::count_if(sections.begin(),sections.end(),[](const auto& section) {
@@ -287,15 +288,15 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
                 if(index==2u || seen[index]) {valid=false;break;}
                 seen[index]=true;
                 if(value.className!=names[index] || value.appName!="ObjectDBX Classes" || value.proxyFlag!=0
-                    ||value.instanceCount!=0 ||value.wasaProxyFlag!=0 ||value.entityFlag!=0) {valid=false;break;}
+                    ||value.instanceCount!=(data.sourceVersion==DRW::AC1015?0:1) ||value.wasaProxyFlag!=0 ||value.entityFlag!=0) {valid=false;break;}
             }
             r.legacyLiveClassesMatched=valid&&seen[0]&&seen[1];
         }
     }
-    // The exact generated R2000 default-plot object shape is source evidence,
+    // The exact generated legacy default-plot object shape is source evidence,
     // not permission to export. Preserve every modeled and raw source field
     // for the later transactional writer and its staged output proof.
-    if(data.sourceVersion==DRW::AC1015 && r.originalSourcesMatched && a->root && a->root->input
+    if((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected) && r.originalSourcesMatched && a->root && a->root->input
         &&a->root->input->model && a->dictionary==0xEu && a->defaultTarget==0xFu
         &&a->namedTargets==1u && a->records.size()==2u) try {
         const auto dictionary=a->records.find(a->dictionary), placeholder=a->records.find(a->defaultTarget);
@@ -331,8 +332,8 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
                 &&data.dictionaryWithDefaults.size()==1u && data.rawDictionaryWithDefaults.size()==1u
                 &&data.rawPlaceholders.size()==1u && data.placeholders.empty()
                 &&data.hasSingleSuccessfulDictionaryDefaultImport()) {
-                r.legacyLiveBodiesMatched=mlineDictionaryKeysEqual(*root,data.namedObjectDictionary,{},DRW::AC1015)
-                    &&plotSourceModelsEqual(model,data.dictionaryWithDefaults.front(),DRW::AC1015)
+                r.legacyLiveBodiesMatched=mlineDictionaryKeysEqual(*root,data.namedObjectDictionary,{},data.sourceVersion)
+                    &&plotSourceModelsEqual(model,data.dictionaryWithDefaults.front(),data.sourceVersion)
                     &&retainedRawDxfObjectsEqual(raw,data.rawDictionaryWithDefaults.front())
                     &&retainedRawDxfObjectsEqual(place,data.rawPlaceholders.front());
             }
@@ -340,7 +341,7 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
     } catch (...) { r.legacyBodiesMatched=false;r.legacyLiveBodiesMatched=false; }
     // The selected source has exactly one physical LAYER and one plot-style
     // reference. This comparison still grants no object or output authority.
-    if(data.sourceVersion==DRW::AC1015 && r.legacyBodiesMatched && s.identityInput && s.identityInput->source
+    if((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected) && r.legacyBodiesMatched && s.identityInput && s.identityInput->source
         &&s.identityInput->source->records.size()<=4096u && s.resourceOriginRecords==1u
         &&s.resourceOriginInputs.size()==1u && s.resourceOriginAudits.size()==1u
         &&s.resourceOriginInputOwners.size()==1u && s.resourceOriginAuditOwners.size()==1u) try {
@@ -357,8 +358,8 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
             &&resource->second.family==dx_tableResourceFamily::Layer && resource->second.legacyPlotLayerRawTypedMatched
             &&same(audit->input->raw,resource->second.raw) && same(audit->input->model,resource->second.model)
             &&audit->input->context && audit->input->context->captured
-            &&audit->input->context->sourceVersion==DRW::AC1015 && audit->input->context->codecVersion==DRW::AC1015
-            &&audit->input->context->binary!=audit->input->raw->hasRawValues && audit->input->raw->m_version==DRW::AC1015
+            &&audit->input->context->sourceVersion==data.sourceVersion && audit->input->context->codecVersion==DRW::AC1015
+            &&audit->input->context->binary!=audit->input->raw->hasRawValues && audit->input->raw->m_version==data.sourceVersion
             &&audit->physical<physical.size()
             &&audit->input->kind==dxfRW::DxfResourceSourceView::Kind::Layer && audit->input->paired
             &&audit->legacyPlotLayerOriginBound&&audit->legacyPlotLayerBodyMatched&&audit->stateComplete
@@ -385,7 +386,7 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
                 &&integer(raw.groups[9],370,-3)&&handle(raw.groups[10],390,0xFu)
                 &&layer->handle==0x10u&&layer->parentHandle==2u&&layer->handlePlotS=="F";
             if(r.legacyLayerMatched && data.layers.size()==1u)
-                r.legacyLiveLayerMatched=layerSourceEqual(*layer,data.layers.front(),DRW::AC1015);
+                r.legacyLiveLayerMatched=layerSourceEqual(*layer,data.layers.front(),data.sourceVersion);
         }
     } catch (...) {r.legacyLayerMatched=false;r.legacyLiveLayerMatched=false;}
     return r;

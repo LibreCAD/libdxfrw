@@ -218,6 +218,16 @@ public:
             &&resource->second.rawTypedMismatch && audit->second->legacyPlotLayerBodyMatched
             &&audit->second->legacyPlotLayerOriginBound && !audit->second->bodyMatched && !audit->second->originBound;
     }
+    static bool legacyPlotRootIsIsolated(const dx_data& data) noexcept {
+        const auto& source=data.m_tableDxfSource;
+        const auto resource=source.resources.find(0xCu);
+        const auto audit=source.structuralAudits.find(0xCu);
+        return source.legacyPlotAc1018Selected && resource!=source.resources.end()
+            && audit!=source.structuralAudits.end() && audit->second
+            && resource->second.legacyPlotRootRawTypedMatched && !resource->second.rawTypedMatched
+            && audit->second->legacyPlotRootBodyMatched && audit->second->legacyPlotRootOriginBound
+            && !audit->second->bodyMatched && !audit->second->originBound;
+    }
     static bool prepareDwgLayoutSource(dx_iface& iface, dx_data& data,
                                        DRW::Version version,
                                        bool debug = false) noexcept {
@@ -9969,7 +9979,8 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
     unsigned sources = 0u, exports = 0u, reexports = 0u, strict = 0u, preflightRetries = 0u, lateRetries = 0u, snapshotBudgets = 0u, edgeBudgets = 0u;
     for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (unsigned format = 0u; format != 3u; ++format) {
         const bool native = format == 2u;
-        if ((plotSourceOnly || legacyOutputOnly) && (version != DRW::AC1015 || native)) continue;
+        if (plotSourceOnly && ((version != DRW::AC1015 && version != DRW::AC1018) || native)) continue;
+        if (legacyOutputOnly && (version != DRW::AC1015 || native)) continue;
         if (faultsOnly && (native ? version != DRW::AC1015 && version != DRW::AC1032 : version != DRW::AC1032)) continue;
         sourceHasCustomMetadata = !native;
         dxfRW dxfCodec(dxf.string().c_str()); dwgRW dwgCodec(dwg.string().c_str());
@@ -9985,6 +9996,64 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
         dx_data data; dx_iface importer;
         if (!importer.fileImport((native ? dwg : dxf).string(),&data,false) || !check(data,true)) return fail("XRECORD extension actual source checks failed");
         ++sources;
+        if (plotSourceOnly && version==DRW::AC1018) {
+            const auto report=dx_iface::plotStyleSourceReport(data);
+            if (dx_iface::identitySourceReport(data).state!=dx_iface::IdentitySourceState::NotCaptured
+                || dx_iface::structuralSourceReport(data).state!=dx_iface::StructuralSourceState::NotCaptured
+                || dx_iface::resourceOriginReport(data).state!=dx_iface::ResourceOriginState::NoOrigins
+                || !report.originalSourcesMatched || !report.legacyClassRowsMatched || !report.legacyLiveClassesMatched
+                || !report.legacyBodiesMatched || !report.legacyLiveBodiesMatched || !report.legacyLayerMatched
+                || !report.legacyLiveLayerMatched || !Access::legacyPlotRootIsIsolated(data)
+                || !Access::legacyPlotLayerIsIsolated(data) || report.outputEligible)
+                return fail("AC1018 default plot source capture was not isolated");
+            const auto classes=data.dxfClasses;const auto layers=data.layers;
+            const auto root=data.namedObjectDictionary;const auto dictionaries=data.dictionaryWithDefaults;
+            const auto raw=data.rawDictionaryWithDefaults;const auto placeholders=data.rawPlaceholders;
+            data.dxfClasses.front().instanceCount=0;
+            if(dx_iface::plotStyleSourceReport(data).legacyLiveClassesMatched)return fail("AC1018 changed CLASS count was accepted");
+            data.dxfClasses=classes;data.layers.front().handlePlotS="E";
+            if(dx_iface::plotStyleSourceReport(data).legacyLiveLayerMatched)return fail("AC1018 changed plot target was accepted");
+            data.layers=layers;data.namedObjectDictionary.m_entries.front().m_handle^=1u;
+            if(dx_iface::plotStyleSourceReport(data).legacyLiveBodiesMatched)return fail("AC1018 changed root edge was accepted");
+            data.namedObjectDictionary=root;data.dictionaryWithDefaults.front().m_defaultEntryHandle^=1u;
+            if(dx_iface::plotStyleSourceReport(data).legacyLiveBodiesMatched)return fail("AC1018 changed default target was accepted");
+            data.dictionaryWithDefaults=dictionaries;data.rawDictionaryWithDefaults.front().groups.pop_back();
+            if(dx_iface::plotStyleSourceReport(data).legacyLiveBodiesMatched)return fail("AC1018 changed raw dictionary was accepted");
+            data.rawDictionaryWithDefaults=raw;data.rawPlaceholders.front().groups.pop_back();
+            if(dx_iface::plotStyleSourceReport(data).legacyLiveBodiesMatched)return fail("AC1018 changed raw placeholder was accepted");
+            data.rawPlaceholders=placeholders;
+            if(!dx_iface::plotStyleSourceReport(data).legacyLiveBodiesMatched)return fail("AC1018 source restoration failed");
+            for(unsigned mode=0;mode!=2u;++mode) {
+                dx_iface opted;dx_data other;
+                if(!(mode?opted.enableWholeDxfSourceObservation():opted.enableLegacyDxfIdentityObservation())
+                    || !opted.fileImport(dxf.string(),&other,false)
+                    || dx_iface::plotStyleSourceReport(other).legacyBodiesMatched)
+                    return fail("AC1018 explicit source observation was overridden");
+            }
+            class Derived final : public dx_iface {};
+            Derived derived;dx_data derivedData;
+            if(!derived.fileImport(dxf.string(),&derivedData,false)
+                || dx_iface::plotStyleSourceReport(derivedData).legacyBodiesMatched)
+                return fail("AC1018 source observation changed subclass behavior");
+            std::ifstream input(dxf,std::ios::binary);
+            std::string bytes((std::istreambuf_iterator<char>(input)),{});
+            const auto className=bytes.find("AcDbDictionaryWithDefault");
+            const auto marker=format==0u?std::string("\n 91\n    1\n"):std::string("\x5b\0\1\0\0\0",6u);
+            const auto at=className==std::string::npos?std::string::npos:bytes.find(marker,className);
+            if(at==std::string::npos)return fail("AC1018 CLASS count boundary was not found");
+            bytes[at+(format==0u?9u:2u)]='0';
+            if(format==1u)bytes[at+2u]=0;
+            {std::ofstream changed(target,std::ios::binary);changed.write(bytes.data(),static_cast<std::streamsize>(bytes.size()));}
+            dx_iface alteredImporter;dx_data altered;
+            if(!alteredImporter.fileImport(target.string(),&altered,false)
+                || dx_iface::plotStyleSourceReport(altered).legacyClassRowsMatched)
+                return fail("AC1018 changed physical CLASS count was accepted");
+            dx_data restored;
+            if(!importer.fileImport(dxf.string(),&restored,false)
+                || !dx_iface::plotStyleSourceReport(restored).legacyLiveClassesMatched)
+                return fail("AC1018 source capture did not recover on retry");
+            continue;
+        }
         if (plotSourceOnly) {
             const auto source = dx_iface::plotStyleSourceReport(data);
             if (dx_iface::identitySourceReport(data).state != dx_iface::IdentitySourceState::NotCaptured
@@ -10183,7 +10252,7 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
                 if(!reader.fileImport(target.string(),&actual,false) || !check(actual,false) || !checkLegacyPlotOutput(actual))
                     return fail("staged LAYER retry did not read back");
             }
-            for(const auto unsupported:{std::make_pair(DRW::AC1018,false),std::make_pair(DRW::AC1014,true)}) {
+            for(const auto& unsupported:{std::make_pair(DRW::AC1018,false),std::make_pair(DRW::AC1014,true)}) {
                 seed();
                 if(exporter.fileExport(target.string(),unsupported.first,format==1u,&data,false,unsupported.second) || !preserved())
                     return fail("unqualified default-plot path did not preserve the destination");
@@ -10314,7 +10383,7 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
         if (Access::xrecordWriteSourceBytes(exporter) || Access::xrecordWriteSourceCounts(exporter) != std::make_pair(std::size_t(0),std::size_t(0)))
             return fail("XRECORD extension snapshots remained retained after write attempt");
     }
-    if (plotSourceOnly) return sources == 2u || fail("AC1015 default plot source capture skipped an encoding");
+    if (plotSourceOnly) return sources == 4u || fail("legacy default plot source capture skipped a version or encoding");
     if (legacyOutputOnly) return (sources==2u && exports==24u && reexports==24u)
         || fail("AC1015 default-plot output matrix skipped a cell");
     if (sources != (faultsOnly ? 4u : 18u) || exports != (faultsOnly ? 0u : 216u) || reexports != (faultsOnly ? 0u : 216u)
@@ -61726,8 +61795,10 @@ bool physicalAc1024EmptyLayerStateRootOutputReadback(
                                          changed, altered))
                 return fail("case-variant LayerStates root fell through to generic output");
         }
-        for (auto pair : {std::make_pair(&*mutableExtension, extensionFrame),
-                          std::make_pair(&*mutableStates, statesFrame)}) {
+        auto* const mutableExtensionRecord = &*mutableExtension;
+        auto* const mutableStatesRecord = &*mutableStates;
+        for (auto pair : {std::make_pair(mutableExtensionRecord, extensionFrame),
+                          std::make_pair(mutableStatesRecord, statesFrame)}) {
             for (unsigned field = 0u; field != 2u; ++field) {
                 auto changed = *pair.first;
                 auto altered = pair.second->m_rawBytes;

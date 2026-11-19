@@ -3644,9 +3644,12 @@ public:
     dx_ifaceBlock* currentBlock {nullptr};
 
 private:
-    // AC1015 is visible only to the default-plot source audit, not the
-    // general identity/output routes.
-    static IdentitySourceReport identitySourceReportInternal(const dx_data&, bool allowAc1015) noexcept;
+    // Keep the generated AC1018 profile isolated from existing opt-ins and
+    // subclasses. Legacy snapshots are not general identity/output evidence.
+    bool legacyPlotAc1018Enabled() const noexcept {
+        return typeid(*this)==typeid(dx_iface) && !m_legacyIdentityObservationEnabled && !m_wholeEnabled;
+    }
+    static IdentitySourceReport identitySourceReportInternal(const dx_data&, bool allowLegacyPlot) noexcept;
     bool writeXRecordWithSourceCompatibility(
             DRW_XRecord& record,
             bool* useAdskMaterialCompatibility = nullptr,
