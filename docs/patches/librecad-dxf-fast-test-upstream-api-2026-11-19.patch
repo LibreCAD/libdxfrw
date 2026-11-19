@@ -1,0 +1,94 @@
+diff --git a/librecad/src/lib/filters/tests/dxf_object_tests.cpp b/librecad/src/lib/filters/tests/dxf_object_tests.cpp
+index 2d5fc5536a3414bf51b487df1b3b873f92e390a2..b219c58806026101a951371f9a32004adba27988 100644
+--- a/librecad/src/lib/filters/tests/dxf_object_tests.cpp
++++ b/librecad/src/lib/filters/tests/dxf_object_tests.cpp
+@@ -40,6 +40,7 @@
+ #include <memory>
+ #include <sstream>
+ #include <string>
++#include <string_view>
+ #include <vector>
+ 
+ #include "drw_header.h"
+@@ -57,6 +58,16 @@
+     const std::vector<std::pair<std::string, std::string>> &groups,
+     const std::string &recordType, const std::string &recordName,
+     const std::vector<std::pair<std::string, std::string>> &sequence);
++
++DRW_DimensionAssociationOsnapRef makeOsnapRef(
++    const std::string &className, std::uint8_t type, std::uint32_t handle) {
++  DRW_DimensionAssociationOsnapRef ref;
++  ref.m_className = className;
++  ref.m_objectOsnapType = type;
++  ref.m_hasObjectOsnapType = true;
++  ref.m_objectHandle = handle;
++  return ref;
++}
+ 
+ // Stub satisfying every DRW_Interface pure virtual.
+ class StubInterface : public DRW_Interface {
+@@ -1759,7 +1770,7 @@
+ public:
+   FailingDxfWriter() : dxfWriter(nullptr) {}
+ 
+-  bool writeString(int, std::string) override {
++  bool writeString(int, std::string_view) override {
+     ++calls;
+     return false;
+   }
+@@ -11944,9 +11955,12 @@
+   CHECK(a.m_osnapRefs[0].m_className == "AcDbOsnapPointRef");
+   CHECK(a.m_osnapRefs[0].m_objectOsnapType == 1);
+   CHECK(a.m_osnapRefs[0].m_objectHandle == 0x510u);
++  REQUIRE(a.m_osnapRefs[0].m_objectHandles.size() == 1u);
++  CHECK(a.m_osnapRefs[0].m_objectHandles.front() == 0x510u);
++  CHECK(a.m_osnapRefs[0].m_hasObjectOsnapType);
+   CHECK(a.m_osnapRefs[1].m_objectOsnapType == 7);
+   CHECK(a.m_osnapRefs[1].m_objectHandle == 0x511u);
+-  CHECK(a.m_hasUnrepresentableDetail);
++  CHECK_FALSE(a.m_hasUnrepresentableDetail);
+ }
+ 
+ TEST_CASE("DXF DIMASSOC rejects out-of-range byte fields",
+@@ -11959,7 +11973,7 @@
+   };
+ 
+   DimAssocCapture rotatedTypeCapture;
+-  CHECK_FALSE(tryReadDxf(makeDxf("70\n256"), rotatedTypeCapture,
++  CHECK_FALSE(tryReadDxf(makeDxf("71\n256"), rotatedTypeCapture,
+                          "lc_dimassoc_rotated_type_overflow.dxf"));
+   CHECK(rotatedTypeCapture.m_callCount == 0);
+ 
+@@ -11980,7 +11994,8 @@
+     association.parentHandle = 0x1A;
+     association.m_dimensionHandle = 0x500;
+     association.m_associativityFlags = 0x01;
+-    association.m_osnapRefs.push_back({"AcDbOsnapPointRef", 0, 0x510});
++    association.m_osnapRefs.push_back(
++        makeOsnapRef("AcDbOsnapPointRef", 0, 0x510));
+     return association;
+   };
+   const auto verifyRejected = [&](DRW_DimensionAssociation association) {
+@@ -11999,9 +12014,10 @@
+     verifyRejected(std::move(association));
+   }
+ 
+-  SECTION("osnap subtype requires a raw carrier") {
++  SECTION("out-of-range subentity type") {
+     DRW_DimensionAssociation association = makeAssociation();
+-    association.m_osnapRefs[0].m_objectOsnapType = 1;
++    association.m_osnapRefs[0].m_hasSubentType = true;
++    association.m_osnapRefs[0].m_subentType = 0x10000;
+     verifyRejected(std::move(association));
+   }
+ 
+@@ -13042,7 +13058,8 @@
+       association.m_associativityFlags = 0x01;
+       association.m_isTransSpace = true;
+       association.m_rotatedDimensionType = 3;
+-      association.m_osnapRefs.push_back({"AcDbLine", 0, 0x722});
++      association.m_osnapRefs.push_back(
++          makeOsnapRef("AcDbLine", 0, 0x722));
+       REQUIRE(writer->writeDimensionAssociation(&association));
+ 
+       DRW_EvaluationGraph graph;
