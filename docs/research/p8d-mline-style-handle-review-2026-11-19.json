@@ -23,7 +23,7 @@
     "worktree": "The shared LibreCAD checkout was not modified; all patch application and builds ran under /private/tmp.",
     "applicationBuild": "PASS: macOS ARM64 librecad_lib and librecad app targets build with current upstream libdxfrw sources overlaid in the isolated LibreCAD archive.",
     "focusedMlineTests": "PASS: isolated mline_tests.cpp target; [mline] selector passes 596 assertions in 9 test cases, including the eager cached-style mismatch case and the ASCII/Binary deferred-style profiles.",
-    "fullConsumerTests": "BLOCKED BY API DIVERGENCE: librecad_tests does not compile against current upstream libdxfrw because LibreCAD tests reference fork-only dwgR inspection APIs and contain unrelated narrowing errors. A separate bundled-fork attempt fails earlier on four associative-prefix enum values missing from that fork.",
+    "fullConsumerTests": "BLOCKED BY API DIVERGENCE: librecad_tests does not compile against current upstream libdxfrw because LibreCAD tests reference fork-only dwgR inspection APIs and contain unrelated narrowing errors. librecad_dxf_fast_tests also fails before test execution: FailingDxfWriter overrides writeString(int, std::string) while upstream now requires std::string_view, and two OSNAP reference initializers narrow integers to bool. A separate bundled-fork attempt fails earlier on four associative-prefix enum values missing from that fork.",
     "fixtures": "No DWG/DXF fixture files were added to the repository; generated DXFs use QTemporaryDir or existing temporary paths."
   },
   "remaining": [
