@@ -8,6 +8,7 @@
 #include "dx_raster_dwg_wire.h"
 #include "drw_objects.h"
 
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -22,6 +23,14 @@ struct Profile {
 };
 
 constexpr Profile first{0x2C2u, 0x2C3u, 0x2C4u};
+inline constexpr std::array<Profile, 6> profiles{{
+    first,
+    {0x2CCu, 0x2CDu, 0x2CEu},
+    {0x2D6u, 0x2D7u, 0x2D8u},
+    {0x2E0u, 0x2E1u, 0x2E2u},
+    {0x2EAu, 0x2EBu, 0x2ECu},
+    {0x32Eu, 0x32Fu, 0x330u}
+}};
 
 inline bool rawDouble(dx_raster_wire::detail::Bits& bits,
                       double expected) noexcept {

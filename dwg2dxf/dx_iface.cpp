@@ -45172,8 +45172,8 @@ bool dx_iface::hasQualifiedAc1024AerialFbxAssetFrames(
 }
 
 bool dx_iface::hasQualifiedAc1024AerialAdvMaterial(
-        const dx_data& data) const noexcept {
-    const auto& profile = dx_ac1024_aerial_advmaterial_wire::first;
+        const dx_data& data,
+        const dx_ac1024_aerial_advmaterial_wire::Profile& profile) const noexcept {
     if (&data != cData || typeid(*this) != typeid(dx_iface)
         || data.sourceFormat != dx_source_format::DWG
         || data.sourceVersion != DRW::AC1024 || data.importGeneration == 0u
@@ -45200,10 +45200,9 @@ bool dx_iface::hasQualifiedAc1024AerialAdvMaterial(
                 return row.m_name == "ADVMATERIAL";
             });
         const auto targeted = std::count_if(extension->m_entries.begin(),
-            extension->m_entries.end(), [](
+            extension->m_entries.end(), [&profile](
                     const DRW_Dictionary::Entry& row) {
-                return row.m_handle
-                    == dx_ac1024_aerial_advmaterial_wire::first.recordHandle;
+                return row.m_handle == profile.recordHandle;
             });
         if (named != 1u || targeted != 1u)
             return false;

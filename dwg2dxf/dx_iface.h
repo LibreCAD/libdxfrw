@@ -3672,23 +3672,26 @@ private:
             *hasDwgCompatibilityCodeOut = hasDwgCompatibilityCode;
         if (hasLayerStateCompatibilityCodeOut != nullptr)
             *hasLayerStateCompatibilityCodeOut = hasLayerStateCompatibilityCode;
+        const auto profile = std::find_if(
+            dx_ac1024_aerial_advmaterial_wire::profiles.cbegin(),
+            dx_ac1024_aerial_advmaterial_wire::profiles.cend(),
+            [&record](const auto& candidate) {
+                return candidate.recordHandle == record.handle;
+            });
         const auto qualifiedSourceRecord = std::find_if(
             cData->xRecords.cbegin(), cData->xRecords.cend(),
             [&record](const DRW_XRecord& candidate) {
-                return &candidate == &record
-                    && candidate.handle
-                        == dx_ac1024_aerial_advmaterial_wire::first.recordHandle;
+                return &candidate == &record;
             });
         const bool useAdsk = hasAdskMaterialCompatibilityCode
             && !hasDwgCompatibilityCode
             && !hasLayerStateCompatibilityCode
-            && record.handle
-                == dx_ac1024_aerial_advmaterial_wire::first.recordHandle
+            && profile != dx_ac1024_aerial_advmaterial_wire::profiles.cend()
             && qualifiedSourceRecord != cData->xRecords.cend()
             && cData->sourceFormat == dx_source_format::DWG
             && cData->sourceVersion == DRW::AC1024
             && dxfW->getVersion() == DRW::AC1024
-            && hasQualifiedAc1024AerialAdvMaterial(*cData);
+            && hasQualifiedAc1024AerialAdvMaterial(*cData, *profile);
         if (useAdskMaterialCompatibility != nullptr)
             *useAdskMaterialCompatibility = useAdsk;
         if (isSelectedLayerStateCompatibilityRecord)
@@ -4682,7 +4685,10 @@ private:
         const dx_data&, std::uint32_t handle) const noexcept;
     bool hasQualifiedAc1024AerialTileFrames(const dx_data&) const noexcept;
     bool hasQualifiedAc1024AerialFbxAssetFrames(const dx_data&) const noexcept;
-    bool hasQualifiedAc1024AerialAdvMaterial(const dx_data&) const noexcept;
+    bool hasQualifiedAc1024AerialAdvMaterial(
+        const dx_data&,
+        const dx_ac1024_aerial_advmaterial_wire::Profile& =
+            dx_ac1024_aerial_advmaterial_wire::first) const noexcept;
     bool requiresAc1024AerialGlobalMaterialEedOutput() const noexcept;
     bool inspectAc1024AerialGlobalMaterialEedTables(
         const dxfRW::DxfTablesWriteView&) noexcept;
