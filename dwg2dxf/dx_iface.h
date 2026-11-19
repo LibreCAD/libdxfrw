@@ -57,7 +57,7 @@ class DxIfaceExtensionGraphTestAccess;
 class DxIfaceTableSourceTestAccess;
 class DxIfaceDwgLtypeControlOutputTestAccess;
 
-class dx_iface : public DRW_Interface, public DRW_DxfClassSourceHandler, public DRW_DwgHeaderMaterialSourceHandler, public DRW_DwgAc1024LayerSourceHandler, public DRW_DwgAc1024LayerControlSourceHandler, public DRW_DwgProxyGraphicsResourceOrderHandler, public DRW_UnmodeledDxfObjectHandler,
+class dx_iface : public DRW_Interface, public DRW_DxfClassSourceHandler, public DRW_DwgHeaderMaterialSourceHandler, public DRW_DwgAc1024LayerSourceHandler, public DRW_DwgAc1024LayerControlSourceHandler, public DRW_DwgAc1024AppIdSourceHandler, public DRW_DwgProxyGraphicsResourceOrderHandler, public DRW_UnmodeledDxfObjectHandler,
                  public DRW_DwgDbColorEedSourceHandler,
                  public DRW_DwgClassSourceHandler, public DRW_DxfTableSourceHandler,
                  public DRW_DxfSymbolSourceHandler, public DRW_DxfRootDictionarySourceHandler,
@@ -784,6 +784,13 @@ public:
     void addDwgAc1024LayerSource(const DRW_DwgAc1024LayerSource& source) noexcept override;
     void addDwgAc1024LayerControlSource(
         const DRW_DwgAc1024LayerControlSource& source) noexcept override;
+    bool wantsDwgAc1024AppIdSource(std::uint32_t handle) const noexcept override;
+    void addDwgAc1024AppIdSource(
+        const DRW_DwgAc1024AppIdSource& source) noexcept override;
+    bool wantsDwgAc1024AppIdControlSource(
+        std::uint32_t handle) const noexcept override;
+    void addDwgAc1024AppIdControlSource(
+        const DRW_DwgAc1024AppIdControlSource& source) noexcept override;
     void addDwgAc1027DefaultLayerSource(const DRW_DwgAc1027LayerSource& source) noexcept override {
         if (!cData || typeid(*this) != typeid(dx_iface) || source.m_raw.m_version != DRW::AC1027
             || cData->sourceFormat != dx_source_format::DWG
@@ -4441,6 +4448,8 @@ private:
     bool hasQualifiedDwgLayerStateScaleClass(
         const DRW_UnsupportedObject& raw) const noexcept;
     // Source-only APPID dependency check; not an output admission proof.
+    bool hasQualifiedDwgStandardAppIdSource(
+        std::uint32_t handle, std::string_view name) const noexcept;
     bool hasQualifiedDwgLayerStateAppId(std::uint32_t handle,
                                        std::string_view name) const noexcept;
     // Source-only consistency for the witnessed AC1024 graph shape. It is
@@ -4967,6 +4976,27 @@ private:
     bool hasUnchangedExtensionDictionaryOwnerSources() const noexcept;
     bool hasCurrentDwgLayerControlSourceProof(
         const dx_data& data) const noexcept;
+    struct DwgAerialMaterialAppIdFrame {
+        const dx_data* owner{nullptr};
+        std::uint64_t generation{0u};
+        std::uint64_t attempt{0u};
+        DRW_UnsupportedObject raw;
+        DRW_DwgFramePublication publication;
+        std::uint32_t sourceOffset{0u};
+        std::uint64_t sourceMapOrdinal{0u};
+        DRW_DwgFrameOffsetSpace sourceOffsetSpace{
+            DRW_DwgFrameOffsetSpace::Unknown};
+        bool rawSeen{false};
+        bool publicationSeen{false};
+        bool failed{false};
+    };
+    DwgAerialMaterialAppIdFrame m_dwgAerialMaterialAppId;
+    DwgAerialMaterialAppIdFrame m_dwgAerialMaterialAppIdControl;
+    std::uint64_t aerialMaterialAppIdClassAttempt() const noexcept;
+    void finishAerialMaterialAppIdSource(bool success) noexcept;
+    void retainAerialMaterialAppIdPublication(
+        const DRW_DwgFramePublication& publication) noexcept;
+    bool hasQualifiedAerialMaterialAppIdSource() const noexcept;
     std::optional<DRW_DwgAc1024LayerControlSource>
         m_dwgLayerControlSourceProof;
     const dx_data* m_dwgLayerControlSourceOwner{nullptr};

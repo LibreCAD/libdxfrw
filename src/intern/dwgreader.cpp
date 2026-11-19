@@ -8176,6 +8176,8 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
   m_verifiedTableCacheSourceBytes = 0u;
   m_verifiedTableCacheSourceFailed = false;
   m_ac1024LayerControlSource.reset();
+  m_ac1024AppIdSource.reset();
+  m_ac1024AppIdControlSource.reset();
   bool ret = true;
   bool ret2 = true;
   objHandle oc;
@@ -8218,6 +8220,8 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
     m_deferredRawObjects.clear();
     m_deferredTableFramePublications.clear();
     m_ac1024LayerControlSource.reset();
+    m_ac1024AppIdSource.reset();
+    m_ac1024AppIdControlSource.reset();
     m_danglingBlockRecords.clear();
   };
   const auto eraseObject = [&](DwgObjectMap::iterator it) {
@@ -8466,6 +8470,43 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
           m_ac1024LayerControlSource.reset();
         }
       }
+      if (version == DRW::AC1024
+          && descriptor.controlType == DRW::DwgAppIdControlObjectType
+          && parent != nullptr && parent->iface != nullptr) {
+        auto *sink = dynamic_cast<DRW_DwgAc1024AppIdSourceHandler *>(
+            parent->iface);
+        if (sink != nullptr
+            && sink->wantsDwgAc1024AppIdControlSource(object.handle)) {
+          try {
+            constexpr std::size_t maxSourceBytes = 4096u;
+            dwgBuffer probe = dbuf->forkIndependent();
+            DwgObjectFrame frame;
+            if (sourceIt->source.offset == object.loc
+                && frame.readAt(probe, version, object.loc)
+                && !frame.body().empty()
+                && frame.body().size() <= maxSourceBytes) {
+              DRW_DwgAc1024AppIdControlSource candidate;
+              candidate.m_sourceOffset = sourceIt->source.offset;
+              candidate.m_sourceMapOrdinal = sourceIt->source.ordinal;
+              candidate.m_sourceOffsetSpace = sourceIt->source.offsetSpace;
+              candidate.m_raw.m_version = version;
+              candidate.m_raw.m_objectType = descriptor.controlType;
+              candidate.m_raw.m_handle = object.handle;
+              candidate.m_raw.m_recordName = "APPID_CONTROL";
+              candidate.m_raw.m_xDictFlag = control.extensionDictionaryFlag();
+              candidate.m_raw.m_xDictHandle = control.xDictHandle;
+              candidate.m_raw.m_bodyBitSize = frame.bodyBitSize();
+              candidate.m_raw.m_objectOffset = object.loc;
+              candidate.m_raw.m_objectSize =
+                  static_cast<std::uint32_t>(frame.body().size());
+              candidate.m_raw.m_rawBytes = std::move(frame.body());
+              m_ac1024AppIdControlSource = std::move(candidate);
+            }
+          } catch (...) {
+            m_ac1024AppIdControlSource.reset();
+          }
+        }
+      }
       if (version == DRW::AC1018 &&
           (descriptor.controlType == DRW::DwgLTypeControlObjectType ||
            descriptor.controlType == DRW::DwgStyleControlObjectType)) {
@@ -8622,6 +8663,54 @@ bool dwgReader::readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
                                     links.extensionDictionaryFlag(),
                                     links.hasDataStorageBinaryData());
     record->setDwgCommonLinkTailValidated(true);
+    if (version == DRW::AC1024
+        && descriptor.recordType == DRW::DwgAppIdObjectType
+        && parent != nullptr && parent->iface != nullptr) {
+      auto *sink = dynamic_cast<DRW_DwgAc1024AppIdSourceHandler *>(
+          parent->iface);
+      if (sink != nullptr
+          && sink->wantsDwgAc1024AppIdSource(record->handle)) {
+        const auto sourceIt = std::find_if(
+            erasedObjectHandles.crbegin(), erasedObjectHandles.crend(),
+            [&object](const auto &erased) {
+              return erased.source.handle == object.handle;
+            });
+        try {
+          constexpr std::size_t maxSourceBytes = 4096u;
+          if (sourceIt != erasedObjectHandles.crend()
+              && sourceIt->source.offset == object.loc
+              && frame.body().size() <= maxSourceBytes) {
+            DRW_DwgAc1024AppIdSource candidate;
+            candidate.m_sourceOffset = sourceIt->source.offset;
+            candidate.m_sourceMapOrdinal = sourceIt->source.ordinal;
+            candidate.m_sourceOffsetSpace = sourceIt->source.offsetSpace;
+            candidate.m_raw.m_version = version;
+            candidate.m_raw.m_objectType = descriptor.recordType;
+            candidate.m_raw.m_handle = record->handle;
+            candidate.m_raw.m_parentHandle = record->parentHandle;
+            candidate.m_raw.m_reactorHandles = record->reactorHandles;
+            candidate.m_raw.m_numReactors = record->reactorCount();
+            candidate.m_raw.m_xDictFlag = record->extensionDictionaryFlag();
+            candidate.m_raw.m_xDictHandle = record->xDictHandle;
+            candidate.m_raw.m_bodyBitSize = frame.bodyBitSize();
+            candidate.m_raw.m_objectOffset = object.loc;
+            candidate.m_raw.m_objectSize =
+                static_cast<std::uint32_t>(frame.body().size());
+            candidate.m_raw.m_recordName = "AppId";
+            candidate.m_raw.m_rawBytes = frame.body();
+            candidate.m_raw.setCommonLinkEvidence(
+                drwDwgCommonLinkEvidenceForLinks(
+                    record->hasDwgCommonLinkTail(), record->parentHandle,
+                    record->reactorHandles, record->reactorCount(),
+                    record->xDictHandle));
+            candidate.m_raw.m_typedPayloadValidated = true;
+            m_ac1024AppIdSource = std::move(candidate);
+          }
+        } catch (...) {
+          m_ac1024AppIdSource.reset();
+        }
+      }
+    }
     return true;
   };
   const auto addRawControl = [&](const objHandle &object,
@@ -9436,6 +9525,14 @@ bool dwgReader::publishDeferredTableFramePublications(DRW_Interface &intfa) {
       sink->addDwgAc1024LayerControlSource(*m_ac1024LayerControlSource);
     m_ac1024LayerControlSource.reset();
   }
+  if (auto *sink = dynamic_cast<DRW_DwgAc1024AppIdSourceHandler *>(&intfa)) {
+    if (m_ac1024AppIdSource)
+      sink->addDwgAc1024AppIdSource(*m_ac1024AppIdSource);
+    if (m_ac1024AppIdControlSource)
+      sink->addDwgAc1024AppIdControlSource(*m_ac1024AppIdControlSource);
+  }
+  m_ac1024AppIdSource.reset();
+  m_ac1024AppIdControlSource.reset();
   return true;
 }
 

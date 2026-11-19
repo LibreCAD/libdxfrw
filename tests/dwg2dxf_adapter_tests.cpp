@@ -3030,6 +3030,131 @@ public:
         return duplicateNameRejected && qualified();
     }
 
+    static bool aerialMaterialAppIdSourceControls(dx_iface& iface,
+                                                  dx_data& data) {
+        iface.cData = &data;
+        const auto qualified = [&]() {
+            return iface.hasQualifiedAerialMaterialAppIdSource();
+        };
+        if (!qualified()) {
+            const auto dump = [](const char* label,
+                                 const dx_iface::DwgAerialMaterialAppIdFrame& proof) {
+                std::cerr << label << " rawSeen=" << proof.rawSeen
+                          << " publicationSeen=" << proof.publicationSeen
+                          << " failed=" << proof.failed
+                          << " owner=" << (proof.owner != nullptr)
+                          << " generation=" << proof.generation
+                          << " attempt=" << proof.attempt
+                          << " source=" << proof.sourceOffset << '/'
+                          << proof.sourceMapOrdinal << '/'
+                          << static_cast<unsigned>(proof.sourceOffsetSpace)
+                          << " raw=" << proof.raw.m_handle << '/'
+                          << proof.raw.m_objectType << '/'
+                          << proof.raw.m_recordName << '/'
+                          << proof.raw.m_rawBytes.size()
+                          << " event=" << proof.publication.m_handle << '/'
+                          << proof.publication.m_encodedType << '/'
+                          << proof.publication.m_recordName << '/'
+                          << static_cast<unsigned>(proof.publication.m_carrier)
+                          << '/' << proof.publication.m_sourceOffset << '/'
+                          << proof.publication.m_sourceMapOrdinal << '\n';
+            };
+            std::cerr << "APPID source generic="
+                      << iface.hasQualifiedDwgStandardAppIdSource(0x12u, "ACAD")
+                      << " classAttempt=" << iface.aerialMaterialAppIdClassAttempt()
+                      << " import=" << data.importGeneration << '\n';
+            dump("APPID", iface.m_dwgAerialMaterialAppId);
+            dump("APPID_CONTROL", iface.m_dwgAerialMaterialAppIdControl);
+            return false;
+        }
+        if (!qualified()
+            || !iface.hasQualifiedDwgStandardAppIdSource(0x12u, "ACAD")
+            || iface.m_dwgAerialMaterialAppId.raw.m_rawBytes.empty()
+            || iface.m_dwgAerialMaterialAppIdControl.raw.m_rawBytes.empty()
+            || iface.m_dwgAerialMaterialAppId.raw.m_handle != 0x12u
+            || iface.m_dwgAerialMaterialAppIdControl.raw.m_handle != 0x09u
+            || iface.m_dwgAerialMaterialAppId.publication.m_recordName != "AppId"
+            || iface.m_dwgAerialMaterialAppIdControl.publication.m_recordName
+                != "APPID_CONTROL") {
+            std::cerr << "APPID capture boundary generic="
+                      << iface.hasQualifiedDwgStandardAppIdSource(0x12u, "ACAD")
+                      << " appBytes="
+                      << iface.m_dwgAerialMaterialAppId.raw.m_rawBytes.size()
+                      << " controlBytes="
+                      << iface.m_dwgAerialMaterialAppIdControl.raw.m_rawBytes.size()
+                      << " appHandle=" << iface.m_dwgAerialMaterialAppId.raw.m_handle
+                      << " controlHandle="
+                      << iface.m_dwgAerialMaterialAppIdControl.raw.m_handle
+                      << " appEvent="
+                      << iface.m_dwgAerialMaterialAppId.publication.m_recordName
+                      << " controlEvent="
+                      << iface.m_dwgAerialMaterialAppIdControl.publication.m_recordName
+                      << '\n';
+            return false;
+        }
+        dx_iface other;
+        other.cData = &data;
+        if (other.hasQualifiedAerialMaterialAppIdSource()) return false;
+
+        const auto rejectAndRestore = [&](auto& field, const auto& bad) {
+            const auto saved = field;
+            field = bad;
+            const bool rejected = !qualified();
+            field = saved;
+            return rejected && qualified();
+        };
+        auto& appId = iface.m_dwgAerialMaterialAppId;
+        auto& control = iface.m_dwgAerialMaterialAppIdControl;
+        if (!rejectAndRestore(appId.attempt, appId.attempt + 1u)
+            || !rejectAndRestore(appId.owner,
+                                 static_cast<const dx_data*>(nullptr))
+            || !rejectAndRestore(appId.publication.m_sourceMapOrdinal,
+                              appId.publication.m_sourceMapOrdinal + 1u)
+            || !rejectAndRestore(appId.raw.m_objectSize,
+                                 appId.raw.m_objectSize + 1u)
+            || !rejectAndRestore(control.publication.m_sourceOffset,
+                                 control.publication.m_sourceOffset + 1u)
+            || !rejectAndRestore(control.publication.m_controlHandles,
+                                 std::vector<std::uint32_t>{}))
+            return false;
+        const auto oldFailed = appId.failed;
+        appId.failed = true;
+        const bool failedStateRejected = !qualified();
+        appId.failed = oldFailed;
+        if (!failedStateRejected || !qualified()) return false;
+        auto row = std::find_if(data.appIds.begin(), data.appIds.end(),
+            [](const DRW_AppId& value) { return value.handle == 0x12u; });
+        if (row == data.appIds.end()) return false;
+        return rejectAndRestore(row->name, std::string("WRONG"))
+            && qualified();
+    }
+
+    static bool writeAerialMaterialAppIdSourceFrames(
+            const dx_iface& iface) {
+        const char* prefix = std::getenv("LIBDXFRW_APPID_RESEARCH_CAPTURE");
+        if (prefix == nullptr || *prefix == '\0') return true;
+        const std::array<std::pair<std::string, const std::vector<std::uint8_t>*>, 2>
+            outputs{{
+                {std::string(prefix) + "-appid.raw",
+                 &iface.m_dwgAerialMaterialAppId.raw.m_rawBytes},
+                {std::string(prefix) + "-appid-control.raw",
+                 &iface.m_dwgAerialMaterialAppIdControl.raw.m_rawBytes}
+            }};
+        for (const auto& output : outputs) {
+            std::error_code error;
+            if (std::filesystem::exists(output.first, error) || error
+                || output.second == nullptr || output.second->empty())
+                return false;
+            std::ofstream file(output.first,
+                std::ios::binary | std::ios::out | std::ios::trunc);
+            if (!file) return false;
+            file.write(reinterpret_cast<const char*>(output.second->data()),
+                       static_cast<std::streamsize>(output.second->size()));
+            if (!file) return false;
+        }
+        return true;
+    }
+
     static bool prepareLayerStateOutput(dx_iface& iface,
                                         DRW::Version targetVersion) {
         return iface.prepareDwgLayerStateOutput(targetVersion, false);
@@ -60905,6 +61030,24 @@ bool physicalAc1024LayerStatesAppIdContext(
     return true;
 }
 
+bool physicalAc1024MaterialAppIdSourceCapture(
+        const std::filesystem::path& sourcePath) {
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || source.sourceFormat != dx_source_format::DWG
+        || source.sourceVersion != DRW::AC1024)
+        return fail("MATERIAL APPID source witness is not an AC1024 DWG");
+    if (!DxIfaceStandardDwgCaptureTestAccess::aerialMaterialAppIdSourceControls(
+            reader, source)
+        || !DxIfaceStandardDwgCaptureTestAccess::writeAerialMaterialAppIdSourceFrames(
+            reader))
+        return fail("MATERIAL APPID same-import source capture controls failed");
+    std::cerr << "AC1024 MATERIAL APPID 0x12 and APPID_CONTROL 0x09 source-frame "
+                 "identity and retry controls passed.\n";
+    return true;
+}
+
 bool physicalAc1024LayerStatesScaleClassContext(
         const std::filesystem::path& sourcePath) {
     dx_iface reader;
@@ -93124,6 +93267,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-appid-context")
         return physicalAc1024LayerStatesAppIdContext(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--ac1024-material-appid-source-capture")
+        return physicalAc1024MaterialAppIdSourceCapture(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-scale-class-context")
         return physicalAc1024LayerStatesScaleClassContext(argv[2]) ? 0 : 1;

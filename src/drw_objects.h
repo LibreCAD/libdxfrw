@@ -787,6 +787,25 @@ struct DRW_DwgAc1024LayerControlSource {
       const DRW_DwgFramePublication &publication) const noexcept;
 };
 
+//! Optional source-frame snapshot for one AC1024 APPID table record.
+//! This carries bytes and source-map identity only; callers must bind it to
+//! the typed APPID row and its same-import publication before using it.
+struct DRW_DwgAc1024AppIdSource {
+  DRW_UnsupportedObject m_raw;
+  std::uint32_t m_sourceOffset{0u};
+  std::uint64_t m_sourceMapOrdinal{0u};
+  DRW_DwgFrameOffsetSpace m_sourceOffsetSpace{DRW_DwgFrameOffsetSpace::Unknown};
+};
+
+//! Optional source-frame snapshot for the AC1024 APPID_CONTROL object.
+//! Its table membership still comes from the separate control publication.
+struct DRW_DwgAc1024AppIdControlSource {
+  DRW_UnsupportedObject m_raw;
+  std::uint32_t m_sourceOffset{0u};
+  std::uint64_t m_sourceMapOrdinal{0u};
+  DRW_DwgFrameOffsetSpace m_sourceOffsetSpace{DRW_DwgFrameOffsetSpace::Unknown};
+};
+
 //! Reader disposition of one HANDLE-map source frame.
 //!
 //! Pending, Deferred, and Staged are transient. Unresolved is assigned only by

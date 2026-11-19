@@ -29203,6 +29203,223 @@ void dx_iface::addDwgAc1024LayerControlSource(
     }
 }
 
+std::uint64_t dx_iface::aerialMaterialAppIdClassAttempt() const noexcept {
+    if (cData == nullptr || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || cData->importGeneration == 0u)
+        return 0u;
+    const auto found = cData->m_classEvidenceImports.find(
+        cData->importGeneration);
+    if (found == cData->m_classEvidenceImports.end()
+        || !found->second.closed
+        || found->second.result.state != dx_class_evidence::State::Joined
+        || found->second.result.version != DRW::AC1024
+        || found->second.result.generation != cData->importGeneration
+        || found->second.result.attempt == 0u)
+        return 0u;
+    return found->second.result.attempt;
+}
+
+void dx_iface::finishAerialMaterialAppIdSource(bool success) noexcept {
+    const auto attempt = success ? aerialMaterialAppIdClassAttempt() : 0u;
+    const auto bind = [this, attempt](DwgAerialMaterialAppIdFrame& proof) {
+        if (attempt == 0u || cData == nullptr || proof.failed
+            || !proof.rawSeen || !proof.publicationSeen
+            || proof.owner != cData
+            || proof.generation != cData->importGeneration
+            || (proof.attempt != 0u && proof.attempt != attempt)) {
+            proof.failed = true;
+            return;
+        }
+        proof.attempt = attempt;
+    };
+    bind(m_dwgAerialMaterialAppId);
+    bind(m_dwgAerialMaterialAppIdControl);
+}
+
+bool dx_iface::wantsDwgAc1024AppIdSource(
+        std::uint32_t handle) const noexcept {
+    return typeid(*this) == typeid(dx_iface) && cData != nullptr
+        && cData->importGeneration != 0u && handle == 0x12u;
+}
+
+void dx_iface::addDwgAc1024AppIdSource(
+        const DRW_DwgAc1024AppIdSource& source) noexcept {
+    auto& proof = m_dwgAerialMaterialAppId;
+    const auto reject = [&proof]() noexcept {
+        proof = {};
+        proof.failed = true;
+    };
+    if (!wantsDwgAc1024AppIdSource(source.m_raw.m_handle)
+        || !cData->dwgReadOutcome.attempted
+        || cData->sourceFormat != dx_source_format::DWG
+        || proof.rawSeen || proof.failed
+        || source.m_raw.m_version != DRW::AC1024
+        || source.m_raw.m_objectType != DRW::DwgAppIdObjectType
+        || source.m_raw.m_recordName != "AppId"
+        || source.m_raw.m_isEntity || source.m_raw.m_isCustomClass
+        || source.m_raw.m_hasClassDefinition
+        || source.m_raw.m_rawBytes.empty()
+        || source.m_raw.m_rawBytes.size() > 4096u
+        || source.m_raw.m_objectSize != source.m_raw.m_rawBytes.size()
+        || source.m_raw.m_objectOffset != source.m_sourceOffset
+        || source.m_raw.m_bodyBitSize
+            > static_cast<std::uint64_t>(source.m_raw.m_objectSize) * 8u
+        || (source.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+            && source.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)) {
+        reject();
+        return;
+    }
+    try {
+        proof.owner = cData;
+        proof.generation = cData->importGeneration;
+        const auto attempt = aerialMaterialAppIdClassAttempt();
+        if (attempt != 0u)
+            proof.attempt = attempt;
+        proof.raw = source.m_raw;
+        proof.sourceOffset = source.m_sourceOffset;
+        proof.sourceMapOrdinal = source.m_sourceMapOrdinal;
+        proof.sourceOffsetSpace = source.m_sourceOffsetSpace;
+        proof.rawSeen = true;
+    } catch (...) {
+        reject();
+    }
+}
+
+bool dx_iface::wantsDwgAc1024AppIdControlSource(
+        std::uint32_t handle) const noexcept {
+    return typeid(*this) == typeid(dx_iface) && cData != nullptr
+        && cData->importGeneration != 0u && handle == 0x09u;
+}
+
+void dx_iface::addDwgAc1024AppIdControlSource(
+        const DRW_DwgAc1024AppIdControlSource& source) noexcept {
+    auto& proof = m_dwgAerialMaterialAppIdControl;
+    const auto reject = [&proof]() noexcept {
+        proof = {};
+        proof.failed = true;
+    };
+    if (!wantsDwgAc1024AppIdControlSource(source.m_raw.m_handle)
+        || !cData->dwgReadOutcome.attempted
+        || cData->sourceFormat != dx_source_format::DWG
+        || proof.rawSeen || proof.failed
+        || source.m_raw.m_version != DRW::AC1024
+        || source.m_raw.m_objectType != DRW::DwgAppIdControlObjectType
+        || source.m_raw.m_rawBytes.empty()
+        || source.m_raw.m_rawBytes.size() > 4096u
+        || source.m_raw.m_objectSize != source.m_raw.m_rawBytes.size()
+        || source.m_raw.m_objectOffset != source.m_sourceOffset
+        || source.m_raw.m_bodyBitSize
+            > static_cast<std::uint64_t>(source.m_raw.m_objectSize) * 8u
+        || (source.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+            && source.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)) {
+        reject();
+        return;
+    }
+    try {
+        proof.owner = cData;
+        proof.generation = cData->importGeneration;
+        const auto attempt = aerialMaterialAppIdClassAttempt();
+        if (attempt != 0u)
+            proof.attempt = attempt;
+        proof.raw = source.m_raw;
+        proof.sourceOffset = source.m_sourceOffset;
+        proof.sourceMapOrdinal = source.m_sourceMapOrdinal;
+        proof.sourceOffsetSpace = source.m_sourceOffsetSpace;
+        proof.rawSeen = true;
+    } catch (...) {
+        reject();
+    }
+}
+
+void dx_iface::retainAerialMaterialAppIdPublication(
+        const DRW_DwgFramePublication& publication) noexcept {
+    if (cData == nullptr || typeid(*this) != typeid(dx_iface)
+        || publication.m_version != DRW::AC1024
+        || (publication.m_handle != 0x12u && publication.m_handle != 0x09u))
+        return;
+    const bool appId = publication.m_handle == 0x12u;
+    auto& proof = appId ? m_dwgAerialMaterialAppId
+                        : m_dwgAerialMaterialAppIdControl;
+    if (proof.publicationSeen || proof.failed) {
+        proof.failed = true;
+        return;
+    }
+    proof.owner = cData;
+    proof.generation = cData->importGeneration;
+    proof.attempt = aerialMaterialAppIdClassAttempt();
+    try {
+        proof.publication = publication;
+        proof.publicationSeen = true;
+    } catch (...) {
+        proof.failed = true;
+    }
+}
+
+bool dx_iface::hasQualifiedAerialMaterialAppIdSource() const noexcept {
+    if (cData == nullptr || typeid(*this) != typeid(dx_iface)
+        || cData->sourceFormat != dx_source_format::DWG
+        || cData->sourceVersion != DRW::AC1024
+        || cData->importGeneration == 0u
+        || aerialMaterialAppIdClassAttempt() == 0u
+        || !hasQualifiedDwgStandardAppIdSource(0x12u, "ACAD"))
+        return false;
+    const auto expectedAttempt = aerialMaterialAppIdClassAttempt();
+    const auto valid = [this, expectedAttempt](const DwgAerialMaterialAppIdFrame& proof,
+                              std::uint32_t handle, std::int16_t objectType,
+                              std::string_view recordName,
+                              DRW_DwgFramePublication::Carrier carrier) {
+        const auto& raw = proof.raw;
+        const auto& event = proof.publication;
+        return !proof.failed && proof.owner == cData
+            && proof.generation == cData->importGeneration
+            && proof.attempt == expectedAttempt
+            && proof.rawSeen && proof.publicationSeen
+            && proof.sourceOffsetSpace != DRW_DwgFrameOffsetSpace::Unknown
+            && raw.m_version == DRW::AC1024 && raw.m_handle == handle
+            && raw.m_objectType == objectType && raw.m_recordName == recordName
+            && !raw.m_isEntity && !raw.m_isCustomClass
+            && !raw.m_hasClassDefinition && !raw.m_rawBytes.empty()
+            && raw.m_rawBytes.size() <= 4096u
+            && raw.m_objectSize == raw.m_rawBytes.size()
+            && raw.m_objectOffset == proof.sourceOffset
+            && raw.m_bodyBitSize <= raw.m_rawBytes.size() * 8u
+            && event.m_version == DRW::AC1024 && event.m_handle == handle
+            && event.m_encodedType == objectType
+            && event.m_resolvedType == objectType
+            && !event.m_isEntity && !event.m_isCustomClass
+            && event.m_recordName == recordName
+            && event.m_carrier == carrier && event.m_hasSourceLocation
+            && event.m_sourceOffset == proof.sourceOffset
+            && event.m_sourceMapOrdinal == proof.sourceMapOrdinal
+            && event.m_sourceOffsetSpace == proof.sourceOffsetSpace;
+    };
+    const auto& appId = m_dwgAerialMaterialAppId;
+    const auto& control = m_dwgAerialMaterialAppIdControl;
+    if (!valid(appId, 0x12u, DRW::DwgAppIdObjectType, "AppId",
+               DRW_DwgFramePublication::Carrier::Typed)
+        || !valid(control, 0x09u, DRW::DwgAppIdControlObjectType,
+                  "APPID_CONTROL", DRW_DwgFramePublication::Carrier::Control))
+        return false;
+    const auto& appPublication = appId.publication;
+    const auto& controlPublication = control.publication;
+    if (appPublication.m_parentHandle != appId.raw.m_parentHandle
+        || appPublication.m_reactorHandles != appId.raw.m_reactorHandles
+        || appPublication.m_numReactors != appId.raw.m_numReactors
+        || appPublication.m_xDictFlag != appId.raw.m_xDictFlag
+        || appPublication.m_xDictHandle != appId.raw.m_xDictHandle
+        || appPublication.m_commonLinkEvidence != appId.raw.m_commonLinkEvidence
+        || appPublication.m_commonHandleDataValidated
+            != appId.raw.m_commonHandleDataValidated
+        || std::count(controlPublication.m_controlHandles.begin(),
+                      controlPublication.m_controlHandles.end(), 0x12u) != 1
+        || (appId.sourceMapOrdinal == control.sourceMapOrdinal)
+        || (appId.sourceOffsetSpace == control.sourceOffsetSpace
+            && appId.sourceOffset == control.sourceOffset))
+        return false;
+    return true;
+}
+
 bool dx_iface::hasCurrentDwgLayerControlSourceProof(
         const dx_data& data) const noexcept {
     if (data.sourceFormat != dx_source_format::DWG
@@ -29224,6 +29441,7 @@ bool dx_iface::hasCurrentDwgLayerControlSourceProof(
 void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
     if (cData == nullptr || !cData->dwgReadOutcome.attempted)
         return;
+    retainAerialMaterialAppIdPublication(data);
     retainAerialDwgMLeaderPublication(data);
     retainAerialDwgTableStylePublication(data);
     retainAerialDwgVisualStylePublication(data);
@@ -39431,12 +39649,11 @@ bool dx_iface::hasQualifiedDwgLayerStateScaleClass(
     } catch (...) { return false; }
 }
 
-bool dx_iface::hasQualifiedDwgLayerStateAppId(
+bool dx_iface::hasQualifiedDwgStandardAppIdSource(
         std::uint32_t handle, std::string_view name) const noexcept {
     if (cData == nullptr || cData->sourceFormat != dx_source_format::DWG
         || cData->sourceVersion != DRW::AC1024 || !cData->importGeneration
-        || handle == 0u || handle == DRW::NoHandle || name != "ACAD"
-        || !hasCurrentDwgLayerControlSourceProof(*cData))
+        || handle == 0u || handle == DRW::NoHandle || name != "ACAD")
         return false;
     try {
         const auto generation = cData->importGeneration;
@@ -39495,6 +39712,13 @@ bool dx_iface::hasQualifiedDwgLayerStateAppId(
     } catch (...) {
         return false;
     }
+}
+
+bool dx_iface::hasQualifiedDwgLayerStateAppId(
+        std::uint32_t handle, std::string_view name) const noexcept {
+    return cData != nullptr
+        && hasCurrentDwgLayerControlSourceProof(*cData)
+        && hasQualifiedDwgStandardAppIdSource(handle, name);
 }
 
 // Source consistency for the independently observed AC1024 graph shape. This
@@ -79430,6 +79654,8 @@ bool validateNamedObjectRootForExport(const dx_data& data,
 
 bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
                           DRW::DxfCodePagePolicy codePagePolicy){
+    m_dwgAerialMaterialAppId = {};
+    m_dwgAerialMaterialAppIdControl = {};
     m_dwgLayerControlSourceProof.reset();
     m_dwgLayerControlSourceOwner = nullptr;
     m_dwgLayerControlSourceGeneration = 0u;
@@ -80029,6 +80255,8 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
             // still compares its independent description, not that name.
             validateStandardDwgObjectPayloads(standardObjectRange);
         }
+        finishAerialMaterialAppIdSource(
+            success && dwg.getError() == DRW::BAD_NONE);
         finishVerifiedXRecordSource(success && dwg.getError() == DRW::BAD_NONE);
         finishVisualStyleImport(success);
         finishNamedResourceImport(success);

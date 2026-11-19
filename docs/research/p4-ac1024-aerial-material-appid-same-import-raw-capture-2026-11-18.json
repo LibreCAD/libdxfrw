@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-material-appid-same-import-raw-capture-2026-11-18",
+  "date": "2026-11-18",
+  "status": "SAME_IMPORT_APPID_AND_CONTROL_RAW_FRAMES_CAPTURED",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "fixtureDisposition": "Existing local corpus sample; not staged or committed by this slice. Raw captures were written only under /private/tmp/p4-aerial-material-census.",
+    "producerAuthentication": "Local corpus provenance only; this does not authenticate an AutoCAD/ObjectARX producer."
+  },
+  "readBinding": {
+    "importGeneration": 1,
+    "classEvidenceAttempt": 1,
+    "version": "AC1024",
+    "classEvidenceState": "Joined",
+    "binding": "The two raw bodies, typed APPID row, APPID_CONTROL and immutable frame publications were retained during one fileImport. After dwg.read returned, the closed successful class receipt bound both captures to the same generation and attempt.",
+    "publicationIdentity": "APPID 0x12 / AppId / encoded and resolved type 67 / Typed carrier; APPID_CONTROL 0x9 / APPID_CONTROL / encoded and resolved type 66 / Control carrier. The same-import typed control publication exposes APPID 0x12 exactly once; APPID's typed row is unique and named ACAD. The raw APPID_CONTROL body has not yet been decoded independently."
+  },
+  "frames": {
+    "APPID": {
+      "handle": "0x12",
+      "name": "ACAD",
+      "offsetSpace": "PhysicalFile",
+      "sourceOffset": 20681,
+      "sourceMapOrdinal": 15,
+      "bytes": 20,
+      "sha256": "a1271c8ea497ff7fc7af55d28521e86e8b509252398415d0cb6bb637cc0ac1dc"
+    },
+    "APPID_CONTROL": {
+      "handle": "0x9",
+      "offsetSpace": "PhysicalFile",
+      "sourceOffset": 114,
+      "sourceMapOrdinal": 7,
+      "bytes": 32,
+      "sha256": "5deb919fb575f6746d1f170e89c2d20f3c8bc351467491d759661c6b64921de6",
+      "typedPublishedControlHandles": ["0x12"]
+    }
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j 4",
+    "selectors": [
+      "LIBDXFRW_APPID_RESEARCH_CAPTURE=/private/tmp/p4-aerial-material-census/appid-source build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --ac1024-material-appid-source-capture tests/samples/AC1024/visualization_-_aerial.dwg",
+      "build-gcc/tests/libdxfrw_dwg2dxf_adapter_tests --layerstates-ac1024-appid-context tests/samples/AC1024/visualization_-_aerial.dwg"
+    ],
+    "result": "PASS. The new selector checks same-import publication/raw identity, completed class-attempt binding, unique APPID name, handle roles, source spans, failed-state refusal and mutation/restore retry controls for owner, attempt, publication ordinal/offset, raw size, control handles and typed name. Existing LayerStates APPID context controls also pass.",
+    "scratchCaptures": {
+      "appid": "/private/tmp/p4-aerial-material-census/appid-final-appid.raw",
+      "appidSha256": "a1271c8ea497ff7fc7af55d28521e86e8b509252398415d0cb6bb637cc0ac1dc",
+      "appidControl": "/private/tmp/p4-aerial-material-census/appid-final-appid-control.raw",
+      "appidControlSha256": "5deb919fb575f6746d1f170e89c2d20f3c8bc351467491d759661c6b64921de6",
+      "selectorLogSha256": "cb21b39b5e3f2751c3a63aeb0924c09844dae854a2d06b1ed26da7c15b4fda11",
+      "layerStatesSelectorLogSha256": "c89d37ab1ba9dc11dabce449aacf9cc6cc847433963db6cad65da9a69ad890ae"
+    }
+  },
+  "limitations": [
+    "The captured APPID and APPID_CONTROL bodies have not yet been independently decoded field-by-field against ODA v5.4.1 and producer bytes.",
+    "This does not source-bind Global MATERIAL EED or admit a MATERIAL root/output profile.",
+    "No independent native AutoCAD/ObjectARX witness, consumer qualification or support claim is established."
+  ],
+  "next": "Independently map the two APPID frames and APPID_CONTROL references against ODA v5.4.1, then source-bind Global MATERIAL EED and its unique APPID row through the retained same-import evidence."
+}

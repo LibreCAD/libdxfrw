@@ -1126,6 +1126,30 @@ public:
       const DRW_DwgAc1024LayerControlSource& source) noexcept = 0;
 };
 
+//! Optional bounded snapshots for one AC1024 APPID row and APPID_CONTROL.
+//! This extension leaves DRW_Interface's virtual table unchanged.
+class DRW_DwgAc1024AppIdSourceHandler {
+public:
+  virtual ~DRW_DwgAc1024AppIdSourceHandler() = default;
+  virtual bool wantsDwgAc1024AppIdSource(std::uint32_t handle) const noexcept {
+    (void)handle;
+    return false;
+  }
+  virtual void addDwgAc1024AppIdSource(
+      const DRW_DwgAc1024AppIdSource& source) noexcept {
+    (void)source;
+  }
+  virtual bool wantsDwgAc1024AppIdControlSource(
+      std::uint32_t handle) const noexcept {
+    (void)handle;
+    return false;
+  }
+  virtual void addDwgAc1024AppIdControlSource(
+      const DRW_DwgAc1024AppIdControlSource& source) noexcept {
+    (void)source;
+  }
+};
+
 /** Optional source-slot metadata for decoding DWG proxy graphic resources.
  * This extension is separate from DRW_Interface so existing consumers keep
  * the same virtual table. The vectors preserve the source control-table index
