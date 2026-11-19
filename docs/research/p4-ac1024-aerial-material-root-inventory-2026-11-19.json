@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-material-root-inventory-2026-11-19",
+  "date": "2026-11-19",
+  "status": "AC1024_ACAD_MATERIAL_ROOT_AND_EXTENSION_CENSUS_CAPTURED",
+  "supportClaimEffect": "none",
+  "source": {
+    "format": "AC1024",
+    "dwgSha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing local aerial DWG; producer identity is not authenticated.",
+    "rootDictionary": "0x72",
+    "rootEntryCount": 9,
+    "records": [
+      {"name": "Brass - Satin 1", "material": "0x2C2", "extension": "0x2C3", "extensionEntries": 8, "xrecords": ["ADVMATERIAL:0x2C4:10", "FBXASSET:0x2C5:292", "DIFFUSETILE:0x2C6:2", "BUMPTILE:0x2C7:2", "OPACITYTILE:0x2C8:2", "SPECULARTILE:0x2C9:2", "REFLECTIONTILE:0x2CA:2", "REFRACTIONTILE:0x2CB:2"]},
+      {"name": "Bronze - Satin 1", "material": "0x2CC", "extension": "0x2CD", "extensionEntries": 8, "xrecords": ["ADVMATERIAL:0x2CE:10", "FBXASSET:0x2CF:297", "DIFFUSETILE:0x2D0:2", "BUMPTILE:0x2D1:2", "OPACITYTILE:0x2D2:2", "SPECULARTILE:0x2D3:2", "REFLECTIONTILE:0x2D4:2", "REFRACTIONTILE:0x2D5:2"]},
+      {"name": "ByBlock", "material": "0x97", "extension": "0x295", "extensionEntries": 1, "xrecords": ["FBXASSET:0x296:193"]},
+      {"name": "ByLayer", "material": "0x96", "extension": "0x297", "extensionEntries": 1, "xrecords": ["FBXASSET:0x298:193"]},
+      {"name": "Global", "material": "0x98", "extension": "0x290", "extensionEntries": 1, "xrecords": ["FBXASSET:0x291:193"]},
+      {"name": "Indoor Pool", "material": "0x32E", "extension": "0x32F", "extensionEntries": 8, "xrecords": ["ADVMATERIAL:0x330:10", "FBXASSET:0x331:200", "DIFFUSETILE:0x332:2", "BUMPTILE:0x333:2", "OPACITYTILE:0x334:2", "SPECULARTILE:0x335:2", "REFLECTIONTILE:0x336:2", "REFRACTIONTILE:0x337:2"]},
+      {"name": "Plate - Blue", "material": "0x2D6", "extension": "0x2D7", "extensionEntries": 8, "xrecords": ["ADVMATERIAL:0x2D8:10", "FBXASSET:0x2D9:315", "DIFFUSETILE:0x2DA:2", "BUMPTILE:0x2DB:2", "OPACITYTILE:0x2DC:2", "SPECULARTILE:0x2DD:2", "REFLECTIONTILE:0x2DE:2", "REFRACTIONTILE:0x2DF:2"]},
+      {"name": "Plate - Riveted Flat Gray", "material": "0x2E0", "extension": "0x2E1", "extensionEntries": 8, "xrecords": ["ADVMATERIAL:0x2E2:10", "FBXASSET:0x2E3:259", "DIFFUSETILE:0x2E4:2", "BUMPTILE:0x2E5:2", "OPACITYTILE:0x2E6:2", "SPECULARTILE:0x2E7:2", "REFLECTIONTILE:0x2E8:2", "REFRACTIONTILE:0x2E9:2"]},
+      {"name": "Rust - Heavy", "material": "0x2EA", "extension": "0x2EB", "extensionEntries": 10, "xrecords": ["ADVMATERIAL:0x2EC:10", "FBXASSET:0x2ED:416", "DIFFUSE:0x2EE:172", "DIFFUSETILE:0x2EF:2", "BUMP:0x2F0:172", "BUMPTILE:0x2F1:2", "OPACITYTILE:0x2F2:2", "SPECULARTILE:0x2F3:2", "REFLECTIONTILE:0x2F4:2", "REFRACTIONTILE:0x2F5:2"]}
+    ],
+    "totals": {"materialRootEntries": 9, "extensionDictionaries": 9, "xrecordEdges": 53, "xrecordFields": 2834},
+    "capture": "One local dx_iface import enumerated the typed ACAD_MATERIAL dictionary, its MATERIAL children, each extension dictionary and every typed XRECORD count. Other receipts independently bind the source frames and selected output profiles; this census itself is not raw-span or root-output proof."
+  },
+  "limits": [
+    "This is a typed same-import inventory of one unauthenticated local source, not semantic interpretation or independent producer evidence.",
+    "The census does not establish one transaction that closes all nine MATERIAL root entries, nor does it close unrelated whole-file graphs such as the known SUN owner mismatch.",
+    "This evidence does not promote a DWG/DXF support claim."
+  ],
+  "nextAction": "Implement one selected ACAD_MATERIAL root transaction that includes the nine source entries, all nine extension dictionaries, and all 53 XRECORD branches; preserve the existing specialized ByBlock/ByLayer/Global source gates and verify the complete remapped graph in ASCII/Binary."
+}
