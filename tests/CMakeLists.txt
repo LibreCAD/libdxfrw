@@ -3762,6 +3762,10 @@ set_tests_properties(dwg2dxf_branched_xrecord_common PROPERTIES
     LABELS "fast;dwg;dxf;objects;xrecord;adapter;generated" TIMEOUT 60)
 add_test(NAME dwg2dxf_xrecord_owned_extension
     COMMAND libdxfrw_dwg2dxf_adapter_tests --xrecord-owned-extension)
+add_test(NAME dwg2dxf_xrecord_owned_defaultplot_source_probe
+    COMMAND libdxfrw_dwg2dxf_adapter_tests --xrecord-owned-defaultplot-source-probe)
+set_tests_properties(dwg2dxf_xrecord_owned_defaultplot_source_probe PROPERTIES
+    LABELS "fast;generated;adapter;dxf;xrecord")
 set_tests_properties(dwg2dxf_xrecord_owned_extension PROPERTIES
     LABELS "fast;dwg;dxf;objects;xrecord;adapter;generated" TIMEOUT 60)
 add_test(NAME dwg2dxf_xrecord_owned_extension_faults

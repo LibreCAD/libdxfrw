@@ -9796,7 +9796,7 @@ bool multipleSelectedXrecords(bool faultsOnly = false, bool branches = false) {
     return true;
 }
 
-bool xrecordOwnedExtensionClosure(bool faultsOnly = false) {
+bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly = false) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     const auto stamp = std::chrono::steady_clock::now().time_since_epoch().count();
     std::filesystem::path directory;
@@ -9930,6 +9930,7 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false) {
     unsigned sources = 0u, exports = 0u, reexports = 0u, strict = 0u, preflightRetries = 0u, lateRetries = 0u, snapshotBudgets = 0u, edgeBudgets = 0u;
     for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (unsigned format = 0u; format != 3u; ++format) {
         const bool native = format == 2u;
+        if (plotSourceOnly && (version != DRW::AC1015 || native)) continue;
         if (faultsOnly && (native ? version != DRW::AC1015 && version != DRW::AC1032 : version != DRW::AC1032)) continue;
         sourceHasCustomMetadata = !native;
         dxfRW dxfCodec(dxf.string().c_str()); dwgRW dwgCodec(dwg.string().c_str());
@@ -9944,7 +9945,42 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false) {
         author.native = nullptr; author.dxfW = nullptr;
         dx_data data; dx_iface importer;
         if (!importer.fileImport((native ? dwg : dxf).string(),&data,false) || !check(data,true)) return fail("XRECORD extension actual source checks failed");
-        ++sources; Exporter exporter;
+        ++sources;
+        if (plotSourceOnly) {
+            const auto source = dx_iface::plotStyleSourceReport(data);
+            if (dx_iface::identitySourceReport(data).state != dx_iface::IdentitySourceState::NotCaptured
+                || dx_iface::structuralSourceReport(data).state != dx_iface::StructuralSourceState::NotCaptured
+                || !source.originalSourcesMatched || source.records != 2u || source.bodyMatched != 2u
+                || source.originsBound != 2u || source.namedTargets != 1u || source.defaultTarget != 0xFu
+                || source.ownerTargetsResolved || source.outputEligible)
+                return fail("AC1015 default plot source capture did not bind the isolated graph");
+            std::ifstream input(dxf,std::ios::binary);
+            std::string bytes((std::istreambuf_iterator<char>(input)),std::istreambuf_iterator<char>());
+            const std::string key = "ACAD_PLOTSTYLENAME";
+            const auto at = bytes.find(key);
+            if (at == std::string::npos || bytes.find(key,at + 1u) != std::string::npos)
+                return fail("generated default plot root key was not unique");
+            bytes[at] = 'B';
+            { std::ofstream changed(target,std::ios::binary); changed.write(bytes.data(),static_cast<std::streamsize>(bytes.size())); }
+            dx_data altered; dx_iface alteredImporter;
+            if (!alteredImporter.fileImport(target.string(),&altered,false)) return fail("altered plot source failed to import");
+            const auto rejected = dx_iface::plotStyleSourceReport(altered);
+            if (rejected.defaultTarget != 0u || rejected.ownerTargetsResolved || rejected.outputEligible)
+                return fail("altered default plot root earned graph or output qualification");
+            const std::string sentinel = "AC1015_CROSS_VERSION_PLOT_REMAINS_REFUSED";
+            { std::ofstream prior(target,std::ios::binary); prior << sentinel; }
+            Exporter refused;
+            const bool wrote = refused.fileExport(target.string(),DRW::AC1018,format == 1u,&data,false,true);
+            std::ifstream prior(target,std::ios::binary);
+            const std::string retained((std::istreambuf_iterator<char>(prior)),std::istreambuf_iterator<char>());
+            if (wrote || retained != sentinel) return fail("source-only plot capture admitted cross-version output");
+            dx_data restored;
+            if (!importer.fileImport(dxf.string(),&restored,false)
+                || dx_iface::plotStyleSourceReport(restored).defaultTarget != 0xFu)
+                return fail("AC1015 default plot source capture failed on same-importer retry");
+            continue;
+        }
+        Exporter exporter;
         const auto write = [&](DRW::Version outputVersion, bool binary) {
             return native ? exporter.fileExport(target.string(),outputVersion,binary,&data,false,true,
                 dx_dxfSourceTextPolicy::Compatible,DRW::DxfTextWritePolicy::Compatible,dx_dxfProxyGraphicsPolicy::Compatible,dx_dwgReadCompletenessPolicy::AllowPartial)
@@ -10062,6 +10098,7 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false) {
         if (Access::xrecordWriteSourceBytes(exporter) || Access::xrecordWriteSourceCounts(exporter) != std::make_pair(std::size_t(0),std::size_t(0)))
             return fail("XRECORD extension snapshots remained retained after write attempt");
     }
+    if (plotSourceOnly) return sources == 2u || fail("AC1015 default plot source capture skipped an encoding");
     if (sources != (faultsOnly ? 4u : 18u) || exports != (faultsOnly ? 0u : 216u) || reexports != (faultsOnly ? 0u : 216u)
         || strict != (faultsOnly ? 0u : 12u) || preflightRetries != (faultsOnly ? 96u : 0u) || lateRetries != (faultsOnly ? 128u : 0u)
         || snapshotBudgets != (faultsOnly ? 16u : 0u) || edgeBudgets != (faultsOnly ? 8u : 0u)) return fail("XRECORD extension matrix skipped a cell");
@@ -93902,6 +93939,8 @@ int main(int argc, char** argv) {
         return multipleSelectedXrecords(false,true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--xrecord-owned-extension")
         return xrecordOwnedExtensionClosure() ? 0 : 1;
+    if (argc == 2 && std::string(argv[1]) == "--xrecord-owned-defaultplot-source-probe")
+        return xrecordOwnedExtensionClosure(false, true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--xrecord-owned-extension-faults")
         return xrecordOwnedExtensionClosure(true) ? 0 : 1;
     if (argc == 2 && std::string(argv[1]) == "--branched-xrecord-common-faults")

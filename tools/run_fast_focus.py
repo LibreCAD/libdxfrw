@@ -57,6 +57,7 @@ CTEST_REGRESSIONS = (
     "libdxfrw_extension_graph_limits",
     "dwg2dxf_native_xrecord_binary_transport",
     "dwg2dxf_native_xrecord_binary_faults",
+    "dwg2dxf_xrecord_owned_defaultplot_source_probe",
     "dwg2dxf_block_owner_rejection_cli",
     "dwg2dxf_block_owners_ascii_cli",
     "dwg2dxf_block_owners_binary_cli",

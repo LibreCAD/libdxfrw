@@ -3635,6 +3635,9 @@ public:
     dx_ifaceBlock* currentBlock {nullptr};
 
 private:
+    // AC1015 is visible only to the default-plot source audit, not the
+    // general identity/output routes.
+    static IdentitySourceReport identitySourceReportInternal(const dx_data&, bool allowAc1015) noexcept;
     bool writeXRecordWithSourceCompatibility(
             DRW_XRecord& record,
             bool* useAdskMaterialCompatibility = nullptr,

@@ -91,7 +91,8 @@ void dx_iface::observePlotStyleSource(const DRW_TableEntry* model,const DRW_RawD
     return;
   const auto fail = [&]() { s.plotSourceCaptureFailed = true; };
   if (!s.entitiesReadInput->getDxfReadContext(live) ||
-      live.sourceVersion < DRW::AC1021 || live.sourceVersion > DRW::AC1032)
+      (live.sourceVersion != DRW::AC1015 &&
+       (live.sourceVersion < DRW::AC1021 || live.sourceVersion > DRW::AC1032)))
     return;
   const bool dictionary = view.kind == V::Kind::DictionaryWithDefault;
   if (!view.source || !view.source->handle ||
@@ -165,7 +166,7 @@ void dx_iface::finishPlotStyleSources(dx_data& data) noexcept {
         auto a=std::make_shared<A>();a->container=&data;a->generation=s.generation;a->containerId=data.m_entitiesContainerIdentity.value;
         a->identity=s.identityInput;a->identities=s.identityAudit;
         const auto save=[&](S state){a->state=state;s.plotSourceAudit=std::move(a);s.plotSourceOwner=s.plotSourceAudit;};
-        if(identitySourceReport(data).state!=IdentitySourceState::NamespaceReady||!a->identity||!a->identities){save(S::SourceNotReady);return;}
+        if(identitySourceReportInternal(data, true).state!=IdentitySourceState::NamespaceReady||!a->identity||!a->identities){save(S::SourceNotReady);return;}
         const auto& physical=*a->identity->source;
         for(const auto& p:physical.records)if(p.kind==I::Kind::Object&&(plotSourceDictionaryName(p.name)||asciiIdentifierEquals(p.name,"ACDBPLACEHOLDER")))++a->physicalRecords;
         bool complete=a->physicalRecords==s.plotSourceInputs.size();
@@ -248,13 +249,15 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
     if(!s.generation||data.sourceFormat!=dx_source_format::DXF)return r;
     if(!s.closed){r.state=S::Reading;return r;}if(!s.successful){r.state=S::ImportFailed;return r;}
     if(s.contextFailed||s.generation!=1u||s.generation!=data.importGeneration||s.reader||s.entitiesReadInput){r.state=S::ContextMismatch;return r;}
-    if(s.plotSourceCaptureFailed||!s.plotSourcePending.empty()){r.state=S::CaptureFailed;return r;}
+    if(s.plotSourceCaptureFailed||!s.plotSourcePending.empty()
+        ||(data.sourceVersion==DRW::AC1015&&(s.structuralCaptureFailed||s.resourceCaptureFailed
+            ||s.resourceProofCaptureFailed||!s.structuralPending.empty()))){r.state=S::CaptureFailed;return r;}
     const auto& a=s.plotSourceAudit;if(!a)return r;
     const auto same=[](const auto& x,const auto& y){return x.get()==y.get()&&!x.owner_before(y)&&!y.owner_before(x);};
     if(!same(a,s.plotSourceOwner)||a->container!=&data||a->generation!=s.generation||a->containerId!=data.m_entitiesContainerIdentity.value
         ||!same(a->identity,s.identityInput)||!same(a->identities,s.identityAudit)||a->records.size()!=s.plotSourceInputs.size()
         ||s.plotSourceInputs.size()!=s.plotSourceInputOwners.size()){r.state=S::ContextMismatch;return r;}
-    const auto identities=identitySourceReport(data);const auto structural=structuralSourceReport(data);
+    const auto identities=identitySourceReportInternal(data, true);const auto structural=structuralSourceReport(data);
     if(identities.state==IdentitySourceState::ContextMismatch||structural.state==StructuralSourceState::ContextMismatch){r.state=S::ContextMismatch;return r;}
     if(identities.state!=IdentitySourceState::NamespaceReady||structural.state==StructuralSourceState::CaptureFailed){r.state=S::SourceNotReady;return r;}
     if(a->root){const auto found=s.structuralAudits.find(a->root->input->raw->handle);
