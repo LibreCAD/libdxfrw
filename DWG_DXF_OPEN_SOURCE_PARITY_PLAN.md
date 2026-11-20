@@ -70,8 +70,8 @@ operation, and profile. Apply the [support policy](docs/UPGRADE_SUPPORT.md),
 [external evidence registry](metadata/external-evidence-resolution-v1.json),
 and [3D plan](DWG_DXF_3D_SUPPORT_PLAN.md).
 
-The [APPID parent guard](docs/research/p4-ac1024-material-appid-parent-guard-2026-11-20.json)
-changes converter inputs, so P8-A/B/C/E/F require revalidation. Prior package,
+The [APPID source guards](docs/research/p4-ac1024-aerial-appid-wire-binding-2026-11-20.json)
+change converter inputs, so P8-A/B/C/E/F require revalidation. Prior package,
 FreeCAD and native receipts apply only to their recorded source, binaries,
 configurations, platforms and generated profiles.
 
@@ -106,7 +106,7 @@ P4-D additional unresolved paths:
   the [group-370 restore](docs/research/p4-layerstates-xrecord370-producer-semantics-2026-11-18.json)
   check on the version-identified host.
 - Reconcile the [LayerStates source-admission blocker](docs/research/p4-ac1024-layerstates-xrecord-source-admission-2026-11-01.json)
-  before enabling multi-root output. For the pending ACAD APPID/EED table ticket,
+  before enabling multi-root output. For the pending LayerStates ACAD APPID/EED table ticket,
   bind the 20-byte payload, parent, ordered membership and name; verify one
   emitted `ACAD` row and signed EED values after remapping, with wrong-owner,
   member, name and payload refusal, destination preservation and retry.

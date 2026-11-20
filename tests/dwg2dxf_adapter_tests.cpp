@@ -348,6 +348,11 @@ public:
         iface.cData = &data;
         return iface.hasQualifiedAerialMaterialAppIdSource();
     }
+    static std::vector<std::uint8_t>& aerialMaterialAppIdWire(
+            dx_iface& iface, bool control) noexcept {
+        return control ? iface.m_dwgAerialMaterialAppIdControl.raw.m_rawBytes
+                       : iface.m_dwgAerialMaterialAppId.raw.m_rawBytes;
+    }
     static bool qualifiedAerialOtherMaterialEed(
             dx_iface& iface, dx_data& data, std::uint32_t handle) noexcept {
         iface.cData = &data;
@@ -3520,6 +3525,34 @@ public:
         if (!rejectAndRestore(row->name, std::string("WRONG"))
             || !rejectAndRestore(row->parentHandle, 0x0au))
             return false;
+        // Every source bit is significant to this exact bounded profile;
+        // stale frame bytes must never continue to qualify its output.
+        for (auto* bytes : {&appId.raw.m_rawBytes, &control.raw.m_rawBytes}) {
+            for (std::size_t bit = 0u; bit < bytes->size() * 8u; ++bit) {
+                const auto mask = static_cast<std::uint8_t>(1u << (bit % 8u));
+                (*bytes)[bit / 8u] ^= mask;
+                const bool rejected = !qualified();
+                (*bytes)[bit / 8u] ^= mask;
+                if (!rejected || !qualified()) return false;
+            }
+        }
+        for (auto* bytes : {&appId.raw.m_rawBytes, &control.raw.m_rawBytes}) {
+            const auto saved = bytes->back();
+            bytes->pop_back();
+            const bool truncatedRejected = !qualified();
+            bytes->push_back(saved);
+            bytes->push_back(0u);
+            const bool extendedRejected = !qualified();
+            bytes->pop_back();
+            if (!truncatedRejected || !extendedRejected || !qualified()) return false;
+        }
+        if (control.publication.m_controlHandles.size() < 2u) return false;
+        std::swap(control.publication.m_controlHandles[0],
+                  control.publication.m_controlHandles[1]);
+        const bool reorderedMembershipRejected = !qualified();
+        std::swap(control.publication.m_controlHandles[0],
+                  control.publication.m_controlHandles[1]);
+        if (!reorderedMembershipRejected || !qualified()) return false;
         const auto rawParent = appId.raw.m_parentHandle;
         const auto publicationParent = appId.publication.m_parentHandle;
         appId.raw.m_parentHandle = 0x0au;

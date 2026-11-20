@@ -36,6 +36,7 @@
 #include "intern/dwg_table_projection_ac1018_candidate.h"
 #include "dx_ac1024_byblock_material_wire.h"
 #include "dx_ac1024_material_eed_wire.h"
+#include "dx_ac1024_aerial_appid_wire.h"
 #include "dx_ac1024_aerial_tile_wire.h"
 #include "dx_ac1024_aerial_fbxasset_wire.h"
 #include "dx_ac1024_aerial_advmaterial_wire.h"
@@ -29411,7 +29412,9 @@ bool dx_iface::hasQualifiedAerialMaterialAppIdSource() const noexcept {
     if (!valid(appId, 0x12u, DRW::DwgAppIdObjectType, "AppId",
                DRW_DwgFramePublication::Carrier::Typed)
         || !valid(control, 0x09u, DRW::DwgAppIdControlObjectType,
-                  "APPID_CONTROL", DRW_DwgFramePublication::Carrier::Control))
+                  "APPID_CONTROL", DRW_DwgFramePublication::Carrier::Control)
+        || !dx_ac1024_aerial_appid_wire::observe(
+            appId.raw, control.raw, control.publication))
         return false;
     const auto& appPublication = appId.publication;
     const auto& controlPublication = control.publication;

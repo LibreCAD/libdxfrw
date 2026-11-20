@@ -1923,19 +1923,30 @@ bool physicalAc1024SelectedGlobalMaterialEedWriter(
     const std::size_t eedBit = 26u;
     const auto eedMask = static_cast<std::uint8_t>(1u << (7u - eedBit % 8u));
     bool corruptRawLate = false;
+    bool corruptAppIdRawLate = false;
+    bool corruptAppIdControlRawLate = false;
+    auto& appIdWire = Access::aerialMaterialAppIdWire(reader, false);
+    auto& appIdControlWire = Access::aerialMaterialAppIdWire(reader, true);
+    if (appIdWire.empty() || appIdControlWire.empty())
+        return fail("missing selected APPID wire captures");
     writer.finalize = [&]() {
         finalizing = true;
         if (corruptRawLate)
             materialWire[eedBit / 8u] ^= eedMask;
+        if (corruptAppIdRawLate) appIdWire.front() ^= 1u;
+        if (corruptAppIdControlRawLate) appIdControlWire.front() ^= 1u;
         const bool valid = Access::finalizeSelectedAerialGlobalMaterialEed(
             reader);
+        if (corruptAppIdControlRawLate) appIdControlWire.front() ^= 1u;
+        if (corruptAppIdRawLate) appIdWire.front() ^= 1u;
         if (corruptRawLate)
             materialWire[eedBit / 8u] ^= eedMask;
         return valid;
     };
 
     enum class Fault { None, AppIdSource, AppIdParent, MissingAppIdBinding,
-                       MaterialEed, RecordTruncated, MissingRecord, RawFrameLate };
+                       MaterialEed, RecordTruncated, MissingRecord, RawFrameLate,
+                       AppIdRawLate, AppIdControlRawLate };
     Fault fault = Fault::None;
     const auto run = [&](bool binary) {
         tablesSeen = objectsSeen = finalizing = false;
@@ -1947,6 +1958,8 @@ bool physicalAc1024SelectedGlobalMaterialEedWriter(
         writer.corruptRecord = fault == Fault::RecordTruncated;
         writer.omitRecord = fault == Fault::MissingRecord;
         corruptRawLate = fault == Fault::RawFrameLate;
+        corruptAppIdRawLate = fault == Fault::AppIdRawLate;
+        corruptAppIdControlRawLate = fault == Fault::AppIdControlRawLate;
         return Access::prepareSelectedAerialGlobalMaterialEed(
                    reader, source, *material, *extension)
             && codec.write(&writer, DRW::AC1024, binary);
@@ -2035,7 +2048,8 @@ bool physicalAc1024SelectedGlobalMaterialEedWriter(
         for (const Fault bad : {Fault::AppIdSource, Fault::AppIdParent,
                 Fault::MissingAppIdBinding, Fault::MaterialEed,
                 Fault::RecordTruncated, Fault::MissingRecord,
-                Fault::RawFrameLate}) {
+                Fault::RawFrameLate, Fault::AppIdRawLate,
+                Fault::AppIdControlRawLate}) {
             fault = bad;
             {
                 std::ofstream existing(path, std::ios::binary | std::ios::trunc);
@@ -2056,6 +2070,8 @@ bool physicalAc1024SelectedGlobalMaterialEedWriter(
             writer.corruptRecord = false;
             writer.omitRecord = false;
             corruptRawLate = false;
+            corruptAppIdRawLate = false;
+            corruptAppIdControlRawLate = false;
             fault = Fault::None;
             std::ifstream existing(path, std::ios::binary);
             const std::string actualSentinel(
@@ -2080,6 +2096,6 @@ bool physicalAc1024SelectedGlobalMaterialEedWriter(
                 return fail("selected Global MATERIAL corrected retry/readback failed");
         }
     }
-    std::cerr << "AC1024 selected Global MATERIAL EED passed seven refusal/retry controls in both encodings.\n";
+    std::cerr << "AC1024 selected Global MATERIAL EED passed nine refusal/retry controls in both encodings.\n";
     return true;
 }

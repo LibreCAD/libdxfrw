@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-aerial-appid-wire-binding-2026-11-20",
+  "date": "2026-11-20",
+  "status": "BOUNDED_SOURCE_WIRE_AND_SELECTED_OUTPUT_PASS_NATIVE_OPEN",
+  "supportClaimEffect": "none",
+  "priorReceipt": "docs/research/p4-ac1024-material-appid-parent-guard-2026-11-20.json",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing local untracked reference source; producer provenance remains unqualified."
+  },
+  "authority": {
+    "specification": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "2.12",
+      "2.13",
+      "20.1",
+      "20.4.65",
+      "20.4.66"
+    ],
+    "scope": "Versioned field and role layouts; exact frame sizes, bit offsets, selected handles and terminal bits are bounded source observations."
+  },
+  "independentDecode": {
+    "script": "tools/research/decode_ac1024_appid_frames.py",
+    "resultPath": "/private/tmp/libdxfrw-aerial-appid-independent.json",
+    "resultSha256": "1d568cb5e8ff2262c438b9f2035b6c863714ff19f2ea9104e790733fbc93b6d6",
+    "appidRawSha256": "a1271c8ea497ff7fc7af55d28521e86e8b509252398415d0cb6bb637cc0ac1dc",
+    "controlRawSha256": "5deb919fb575f6746d1f170e89c2d20f3c8bc351467491d759661c6b64921de6",
+    "result": "Independent bit decoder confirms source type, own handles, empty EED/reactors, string stream, ACAD UTF-16 units, parent/xref roles and positions, nine ordered control members, and observed terminal bits."
+  },
+  "change": "Bounded allocation-free wire observer checks exact source APPID and APPID_CONTROL frame layouts and compares ordered members with the same-import publication before selected MATERIAL qualification. The strict observed terminal bits are not generalized as a format padding rule.",
+  "validation": {
+    "red": {
+      "log": "/private/tmp/libdxfrw-aerial-appid-wire-red.log",
+      "sha256": "3ce674b539fd8fb75a893ff325ea15cb87743104bf804387aaabbb10b46c524b",
+      "result": "Expected failure: earlier qualification did not reject a mutated retained source bit."
+    },
+    "sourceControls": {
+      "log": "/private/tmp/libdxfrw-aerial-appid-wire-final-source.log",
+      "sha256": "a9b5cae5f726002fb1e9bd87cb9b2791f2fa2218c98389f83b817697e78e5f8d",
+      "result": "PASS: every one of 416 single-bit source mutations, truncated and extended frames, reordered published members, wrong live/raw owner and stale context refuse; restoring original values requalifies on the same adapter."
+    },
+    "selectedOutput": {
+      "log": "/private/tmp/libdxfrw-aerial-appid-wire-final-writer.log",
+      "sha256": "6f23b019460f3b10f772467c5c077c6ebbd237430869c15bc420f148fb599fff",
+      "result": "PASS: selected Global MATERIAL ASCII/Binary output and fresh readback with nine refusal/retry controls each, including late corruption of either APPID source frame, destination preservation and corrected same-writer retry."
+    },
+    "completeRoot": {
+      "log": "/private/tmp/libdxfrw-aerial-appid-wire-final-root.log",
+      "sha256": "cbea32a72d63cabe1fe3f778cc7bac92412fa33fd13d5267404820328761bbaa",
+      "result": "PASS: selected complete material-root ASCII/Binary output, readback, refusal and retry."
+    },
+    "inventory": "PASS: canonical CMake, Automake and source-release inventories include the new header.",
+    "build": "PASS: touched adapter/test target and dwg2dxf built with project warning policy."
+  },
+  "files": {
+    "dwg2dxf/dx_ac1024_aerial_appid_wire.h": "a84b4097df55491b4a9b2d696425b963e6a96cc6f67a66628c73610d1920afdb",
+    "dwg2dxf/dx_iface.cpp": "328d361b4253535f59ae4df5c035b3409c325fe859223d4f7f1744314df6bb1e",
+    "tests/dwg2dxf_adapter_tests.cpp": "40e00cf8c1e9e6c9e08a047de93995ec863780f29447911339eac02313ac6b77",
+    "tests/p4_layerstates_real_writer_controls.h": "5e8beea33391fe88970d75a72495fbe6c95e242f73117a428003ec5be2a9f5a4",
+    "dwg2dxf/source-files.cmake": "9a4427a1aa79928cacbe692d3dcf7252b784275580b84f21051b808ffd139802",
+    "dwg2dxf/source-files.am": "ceb8da63dfc6101b1e85cb4cda8c52e847af482d0a3952790a2e8f12e429a7dc",
+    "source-release-files.am": "5eb7195b9a3000eb4e4113dac9b3cbcd45e10203c68c28f370e1485906c97613",
+    "source-release-files.txt": "06af5dc2f87e79a8bdc42071305a8474a208c6272fc12cd779ba3ecae7ca9d2e"
+  },
+  "implementationDigestSha256": "e91fabe3ceae78dbcdad08598f549096e1df5c49261792b5120ad97d73a73989",
+  "limits": [
+    "The observed source graph and selected MATERIAL output do not prove producer semantics, all APPID profiles, the LayerStates ticket, complete source-file export, or native acceptance.",
+    "The source has an independently recorded HEADER envelope discrepancy; no whole-file integrity claim is made.",
+    "P8 package, FreeCAD and focused native checks remain open for the changed candidate.",
+    "No DWG or DXF fixture was committed."
+  ]
+}
