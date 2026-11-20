@@ -110,9 +110,10 @@ P4-D additional unresolved paths:
   dependencies. Reuse its [Global EED](docs/research/p4-ac1024-mechanical-global-material-eed-source-2026-11-20.json)
   and [four-TILE](docs/research/p4-ac1024-mechanical-global-material-tile-source-2026-11-20.json)
   [APPID/control and root membership](docs/research/p4-ac1024-mechanical-material-appid-root-source-2026-11-20.json),
-  and [basic MATERIAL bodies and NOD edge](docs/research/p4-ac1024-mechanical-basic-material-nod-source-2026-11-20.json) source proofs.
-  Bind the complete `Global` MATERIAL semantic body and remaining graph
-  dependencies. Implement staged graph and signed-EED output proof with
+  [basic MATERIAL bodies and NOD edge](docs/research/p4-ac1024-mechanical-basic-material-nod-source-2026-11-20.json),
+  and [Global body](docs/research/p4-ac1024-mechanical-global-material-body-source-2026-11-20.json) source proofs.
+  Qualify the `Global` field meanings and output mapping and close remaining
+  graph dependencies. Implement staged graph and signed-EED output proof with
   failure/rollback/retry and independent readback.
   Keep unqualified profiles refused and verify the one-root LayerStates
   ASCII/Binary readback and same-writer retry on the resulting eligible profile.

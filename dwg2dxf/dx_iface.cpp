@@ -45350,6 +45350,7 @@ bool dx_iface::hasQualifiedAc1024MechanicalGlobalTileSources(
                 *raw, *material, [this](std::uint32_t app, std::string_view name) noexcept {
                     return hasQualifiedDwgStandardAppIdSource(app, name);
                 })
+            || !dx_ac1024_byblock_material_wire::observeMechanicalGlobalBody(*raw, *material)
             || !dx_ac1024_mechanical_tile_wire::observeExtension(*dictionaryRaw, *extension))
             return false;
         for (std::size_t i = 0u; i < dx_ac1024_mechanical_tile_wire::handles.size(); ++i) {

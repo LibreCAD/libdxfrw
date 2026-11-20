@@ -51,7 +51,8 @@ inline bool mapper(Bits& b, Bits& strings, double blend, std::uint8_t source, co
                    std::uint8_t projection, std::uint8_t tiling, std::uint8_t automatic,
                    const std::array<double, 16>& matrix, bool hasBlend, bool hasSource, bool hasFilename,
                    bool hasProjection, bool hasTiling, bool hasAutomatic, bool hasMatrix,
-                   std::uint8_t expectedSource, std::uint8_t expectedProjection) noexcept {
+                   std::uint8_t expectedSource, std::uint8_t expectedProjection,
+                   bool scaled = false) noexcept {
     if (blend != 1.0 || source != expectedSource || !filename.empty() || projection != expectedProjection || tiling != 1u
         || automatic != 1u || !hasBlend || !hasSource || hasFilename != (expectedSource == 1u)
         || !hasProjection || !hasTiling || !hasAutomatic || !hasMatrix || !number(b, 1.0)
@@ -59,7 +60,8 @@ inline bool mapper(Bits& b, Bits& strings, double blend, std::uint8_t source, co
         return false;
     }
     for (std::size_t i = 0; i < 16u; ++i) {
-        const double expected = (i == 0u || i == 5u || i == 10u || i == 15u) ? 1.0 : 0.0;
+        const double expected = scaled && (i == 0u || i == 5u) ? static_cast<double>(0.0208f)
+            : (i == 0u || i == 5u || i == 10u || i == 15u) ? 1.0 : 0.0;
         if (matrix[i] != expected || !number(b, expected)) {
             return false;
         }
@@ -162,6 +164,85 @@ inline bool observeMaterial(const DRW_UnsupportedObject& raw, const DRW_Material
 }
 inline bool observeMechanicalMaterial(const DRW_UnsupportedObject& raw, const DRW_Material& m) noexcept {
     return observeMaterialProfile(raw, m, true);
+}
+
+// Mechanical Global body only. The caller must independently verify its EED,
+// same-import source identity, graph, and any staged output.
+inline bool observeMechanicalGlobalBody(const DRW_UnsupportedObject& raw,
+                                        const DRW_Material& m) noexcept {
+    using namespace dx_raster_wire;
+    if (m.tType != DRW::MATERIAL || m.handle != 0x98u || m.parentHandle != 0x72u
+        || m.m_name != "Global" || !m.name.empty() || !m.m_description.empty()
+        || m.flags != 0u || m.reactorCount() != 1 || m.reactorHandles.size() != 1u
+        || m.reactorHandles[0] != 0x72u || m.extensionDictionaryFlag() != 0u
+        || m.xDictHandle != 0x110u || m.hasDataStorageBinaryData()
+        || m.hasDwgCommonLinkTail() || !m.appData.empty() || m.extData.size() != 7u
+        || !m.pendingAppIdResolutions.empty() || !m.pendingLayerRefResolutions.empty()
+        || !m.hasCompleteDwgSemanticFields() || !m.hasDwgRawData()
+        || m.dwgRawDataVersion() != DRW::AC1024 || m.dwgRawDataBitSize() != 1028u
+        || m.dwgRawData().size() != 129u
+        || raw.m_version != DRW::AC1024 || raw.m_objectType != 505u
+        || raw.m_handle != m.handle || raw.m_isEntity || !raw.m_isCustomClass
+        || !raw.m_hasClassDefinition || raw.m_recordName != "MATERIAL"
+        || raw.m_className != "AcDbMaterial" || raw.m_classAppName != "ObjectDBX Classes"
+        || raw.m_parentHandle != 0x72u || raw.m_numReactors != 1
+        || raw.m_reactorHandles != m.reactorHandles || raw.m_xDictFlag != 0u
+        || raw.m_xDictHandle != 0x110u || raw.m_hasDataStorage
+        || !raw.m_commonHandleDataValidated
+        || !drwDwgCommonLinkEvidenceValidated(raw.m_commonLinkEvidence)
+        || raw.m_objectSize != 181u || raw.m_rawBytes.size() != 181u
+        || raw.m_bodyBitSize != 60u) return false;
+    detail::Bits body{raw.m_rawBytes.data(), 0u, 1253u};
+    if (body.take(2u) != 1u || body.take(8u) + 0x1f0u != 505u) return false;
+    const auto self = detail::handle(body, 0u, 0u, true);
+    if (self.role != 0u || self.length != 1u || self.value != m.handle
+        || body.pos != 26u || !body.skip(188u) || body.pos != 214u
+        || body.longValue() != 1u || body.take(1u) != 0u || body.pos != 225u)
+        return false;
+    for (std::uint32_t i = 0u; i < 1028u; ++i) {
+        const auto rawBit = (raw.m_rawBytes[(225u + i) / 8u] >> (7u - (225u + i) % 8u)) & 1u;
+        const auto modelBit = (m.dwgRawData()[i / 8u] >> (7u - i % 8u)) & 1u;
+        if (rawBit != modelBit) return false;
+    }
+    detail::Bits strings{raw.m_rawBytes.data(), 1253u, 1371u};
+    if (!detail::text(strings, m.m_name) || !detail::text(strings, m.m_description)
+        || !detail::color(body, m.m_ambientColorMethod, m.m_ambientColorFactor, m.m_ambientColorValue,
+                          m.m_hasAmbientColorMethod, m.m_hasAmbientColorFactor, m.m_hasAmbientColorValue)
+        || !detail::color(body, m.m_diffuseColorMethod, m.m_diffuseColorFactor, m.m_diffuseColorValue,
+                          m.m_hasDiffuseColorMethod, m.m_hasDiffuseColorFactor, m.m_hasDiffuseColorValue)) return false;
+#define DX_GLOBAL_MAP(lower, Upper, expected, scaled)                                                     \
+    detail::mapper(body, strings, m.m_##lower##MapBlendFactor, m.m_##lower##MapSource,                    \
+                   m.m_##lower##MapFileName, m.m_##lower##MapProjection, m.m_##lower##MapTiling,         \
+                   m.m_##lower##MapAutoTransform, m.m_##lower##MapTransform,                             \
+                   m.m_has##Upper##MapBlendFactor, m.m_has##Upper##MapSource, m.m_has##Upper##MapFileName, \
+                   m.m_has##Upper##MapProjection, m.m_has##Upper##MapTiling,                             \
+                   m.m_has##Upper##MapAutoTransform, m.m_has##Upper##MapTransform, expected, 2u, scaled)
+    const bool decoded = DX_GLOBAL_MAP(diffuse, Diffuse, 1u, true)
+        && detail::color(body, m.m_specularColorMethod, m.m_specularColorFactor, m.m_specularColorValue,
+                         m.m_hasSpecularColorMethod, m.m_hasSpecularColorFactor, m.m_hasSpecularColorValue)
+        && DX_GLOBAL_MAP(specular, Specular, 1u, false) && m.m_hasSpecularGlossFactor
+        && m.m_specularGlossFactor == 0.5 && detail::number(body, 0.5)
+        && DX_GLOBAL_MAP(reflection, Reflection, 1u, true) && m.m_hasOpacityPercent
+        && m.m_opacityPercent == 1.0 && detail::number(body, 1.0)
+        && DX_GLOBAL_MAP(opacity, Opacity, 1u, true) && DX_GLOBAL_MAP(bump, Bump, 1u, true)
+        && m.m_hasRefractionIndex && m.m_refractionIndex == 1.0 && detail::number(body, 1.0)
+        && DX_GLOBAL_MAP(refraction, Refraction, 0u, false) && m.m_translucence == 0.0
+        && !m.m_hasTranslucence && detail::number(body, 0.0) && detail::number(body, 0.0)
+        && m.m_reflectivity == 0.0 && !m.m_hasReflectivity && detail::number(body, 0.0)
+        && m.m_illuminationModel == 0 && !m.m_hasIlluminationModel && body.longValue() == 0u
+        && m.m_channelFlags == 63 && m.m_hasChannelFlags && body.longValue() == 63u && body.longValue() == 0u;
+#undef DX_GLOBAL_MAP
+    if (!decoded || !body.good || body.pos != body.end || !strings.good || strings.pos != strings.end) return false;
+    detail::Bits footer{raw.m_rawBytes.data(), 1371u, 1388u};
+    if (footer.little(2u) != 118u || footer.take(1u) != 1u || !footer.good) return false;
+    detail::Bits links{raw.m_rawBytes.data(), 1388u, 1448u};
+    const auto owner = detail::handle(links, 4u, m.handle);
+    const auto reactor = detail::handle(links, 4u, m.handle);
+    const auto extension = detail::handle(links, 3u, m.handle);
+    return links.good && owner.role == 12u && owner.length == 1u && owner.value == 0x72u
+        && reactor.role == 4u && reactor.length == 1u && reactor.value == 0x72u
+        && extension.role == 3u && extension.length == 2u && extension.value == 0x110u
+        && links.take(4u) == 15u && links.good && links.pos == links.end;
 }
 inline bool observeDictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& source) noexcept {
     using dx_layerstates_dwg_wire::LinkKind;

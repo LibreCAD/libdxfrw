@@ -3638,6 +3638,30 @@ public:
             field = saved;
             return refused && qualified();
         };
+        auto global = std::find_if(data.materials.begin(), data.materials.end(),
+            [](const DRW_Material& row) { return row.handle == 0x98u; });
+        auto globalRaw = data.m_opaqueDwgSourceFrames.find({data.importGeneration, 0x98u});
+        if (global == data.materials.end() || globalRaw == data.m_opaqueDwgSourceFrames.end()
+            || !dx_ac1024_byblock_material_wire::observeMechanicalGlobalBody(globalRaw->second, *global)
+            || !rejectAndRestore(global->m_diffuseMapProjection, std::uint8_t{1u})
+            || !rejectAndRestore(global->m_diffuseMapTransform[0], 1.0)
+            || !rejectAndRestore(global->parentHandle, std::uint32_t{0x73u})) return false;
+        for (std::size_t bit = 0u; bit < globalRaw->second.m_rawBytes.size() * 8u; ++bit) {
+            if (bit >= 26u && bit < 214u) continue; // checked separately by the EED observer
+            auto& byte = globalRaw->second.m_rawBytes[bit / 8u];
+            byte ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
+            const bool refused = !dx_ac1024_byblock_material_wire::observeMechanicalGlobalBody(
+                globalRaw->second, *global);
+            byte ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
+            if (!refused || !dx_ac1024_byblock_material_wire::observeMechanicalGlobalBody(
+                    globalRaw->second, *global)) return false;
+        }
+        for (const auto bit : {std::size_t{225u}, std::size_t{700u}, std::size_t{1253u},
+                               std::size_t{1388u}, std::size_t{1420u}}) {
+            auto& byte = globalRaw->second.m_rawBytes[bit / 8u];
+            if (!rejectAndRestore(byte, static_cast<std::uint8_t>(
+                    byte ^ (0x80u >> (bit % 8u))))) return false;
+        }
         for (const auto handle : {0x96u, 0x97u}) {
             auto raw = data.m_opaqueDwgSourceFrames.find({data.importGeneration, handle});
             auto material = std::find_if(data.materials.begin(), data.materials.end(),
