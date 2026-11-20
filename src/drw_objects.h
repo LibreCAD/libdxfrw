@@ -15,6 +15,7 @@
 #ifndef DRW_OBJECTS_H
 #define DRW_OBJECTS_H
 
+#define LIBDXFRW_HAS_AC1015_PLOTSETTINGS_RAW_VERIFY 1
 #define LIBDXFRW_HAS_AC1024_DICTIONARY_SOURCE_VERIFY 1
 #define LIBDXFRW_HAS_AC1024_LAYER_CONTROL_SOURCE 1
 #define LIBDXFRW_HAS_AC1024_EMPTY_SORTENTS_SOURCE_VERIFY 1
@@ -3374,6 +3375,12 @@ protected:
                                dwgBufferW *handleBuf = nullptr) const;
 
 public:
+  //! Reparse and compare the bounded AC1015 no-EED, no-reactor ASCII source
+  //! profile, including common links and every modeled body field. This does
+  //! not establish dictionary membership, remap safety or output qualification.
+  [[nodiscard]] bool matchesAc1015RawNoEed(
+      const DRW_UnsupportedObject &raw) const noexcept;
+
   // Full PlotSettings field set per ODA §20.4.84 (mirrors DRW_Layout's
   // embedded plot prefix; member names kept identical so P4-02's lifted
   // parse/encode is a verbatim copy of the Layout path).

@@ -1,0 +1,59 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-ac1015-plotsettings-raw-resave-2026-11-19",
+  "date": "2026-11-19",
+  "status": "BOUNDED_GENERATED_AC1015_RESAVE_PASS_NATIVE_OPEN",
+  "supportClaimEffect": "none",
+  "scope": "Generated-from-scratch AC1015, same-version PLOTSETTINGS raw carrier, single owning dictionary entry, ASCII modeled strings, no EED/reactors/extension dictionary/DataStorage, stable object and owner handles and unchanged class number; active consumer plot settings must match the imported projection.",
+  "consumer": {
+    "repository": "https://github.com/LibreCAD/LibreCAD",
+    "base": "281a8a4c83884ae1e8c9aa3436d87184c0b17ea7",
+    "candidateHead": "d71af16eedab445b62f8c036b53161486f9cea82",
+    "combinedPatch": "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
+    "combinedPatchSha256": "7d6b6ffeb6eaeeab3f1768a7219483b6d061a5e2c00cd31ba4c0d3017a17df25",
+    "testBase": "26dd8817b37f59242a17fa1d0f8c61d6f1cfb410",
+    "baseDelta": "Only the unrelated picfile plugin differs between 26dd and 281a; tests were not rebuilt on 281a."
+  },
+  "source": {
+    "drawing": "/private/tmp/libdxfrw-librecad-system-smoke/edit-final.dwg",
+    "sha256": "0949376f64f635d3ba132662ae31de87082a874ad3714783d4f10a45c2e4707a",
+    "plotHandle": "0x56",
+    "dictionaryHandle": "0x30",
+    "provenance": "Generated locally from a line DXF; no external DWG/DXF fixture."
+  },
+  "implementation": "A no-EED ASCII AC1015 source check reparses raw bytes and compares every modeled field and common link before output. The consumer requires matching raw/typed source and active plot projection, exact owner/target/class identity, and an already committed raw carrier before recording the dictionary reference as RawCarrier. A consumer-side preflight refuses ambiguous DIMSTYLE groups before either codec opens the DXF destination.",
+  "validation": {
+    "currentCodec": {
+      "log": "/private/tmp/libdxfrw-plotsettings-consumer-final99.log",
+      "sha256": "9a5a12d18f0807c4176e8aa9afb71fee9e4e6fde66bf07ecc455b629ca724c29",
+      "result": "PASS: 99 assertions in two tests; same-version DWG re-export and readback, active plot mutation, wrong raw owner, changed raw bytes, duplicate raw carrier, destination preservation and corrected same-filter retry; DIMSTYLE edit/retention controls."
+    },
+    "bundledCodec": {
+      "log": "/private/tmp/libdxfrw-plotsettings-bundled-preflight.log",
+      "sha256": "2ce120d0dc7883e6c80b2f34df1a583973e5b6a2a089600c6a60957b6ec65a65",
+      "result": "PASS: 60 assertions in two tests. The new raw re-export path is unavailable without the feature macro and remains fail-closed; DIMSTYLE preflight and legacy DXF/DWG behavior remain covered."
+    },
+    "codecVectors": {
+      "ctestLog": "/private/tmp/libdxfrw-plotsettings-raw-match-final3-ctest.log",
+      "ctestSha256": "424fc90a6c6ce3b667e71fcc6ef210e813fa626ec30d3e09e981f14f7db8ea88",
+      "asanLog": "/private/tmp/libdxfrw-plotsettings-raw-match-final3-asan.log",
+      "asanSha256": "93f9a31a065b46330f4bbe8b3d0af5074489c842dfb90bc012ca02f501f479a9",
+      "scope": "AC1015 source frame plus AC1024/AC1027/AC1032 codec controls; changed wire role/body, stale owner, trailing byte and unrepresentable typed field refuse without preventing retry."
+    },
+    "independentReadback": {
+      "reader": "LibreDWG 0.14",
+      "output": "/private/tmp/libdxfrw-librecad-system-smoke/consumer-reexport-final-peer.dwg",
+      "outputSha256": "a9f975eabcc9f4c9323a33fb8771cd8349e7817e4d78f1bf90080beb63659e2e",
+      "trace": "/private/tmp/libdxfrw-librecad-system-smoke/consumer-reexport-final-peer.stderr",
+      "traceSha256": "abaec9ee6e7e7e52eaf3a644a82757320b7081d9ff25584f0fa71086e80f3cec",
+      "result": "One LINE with expected endpoints; one PLOTSETTINGS and one owning dictionary entry; every decoded PLOTSETTINGS field, handle and owner matched the independently decoded generated input. The scratch-only test harness copied the output for inspection.",
+      "warning": "Verbose LibreDWG reports 0x7C not found while resolving HANDSEED; the header identifies it as the next handle seed. No general whole-file integrity claim is made."
+    }
+  },
+  "limits": [
+    "The local consumer candidate is unmerged and requires the matching new library feature; bundled codec retains fail-closed behavior for this raw route.",
+    "No native GUI, Linux/Windows consumer, native AutoCAD producer, non-ASCII/EED/reactor/xdictionary/DataStorage, class remap, edited plot setting or other version profile is qualified.",
+    "No DWG/DXF fixture file was committed."
+  ],
+  "libraryImplementationDigestSha256": "7d8df8433c94a99ad19cf94d0d772787e200cea3b41263749ca0101e68405156"
+}

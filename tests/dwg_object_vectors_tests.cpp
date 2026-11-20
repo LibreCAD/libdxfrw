@@ -22081,6 +22081,54 @@ void testPlotSettingsAc1015CommonLinks(TestContext& t) {
         && goodInput.isGood() && retry.hasDwgCommonLinkTail()
         && retry.parentHandle == 0x30u;
     t.expect(rejected && accepted, "AC1015 truncated PlotSettings resets and retries on the same parser");
+
+    DRW_UnsupportedObject raw;
+    raw.m_version = DRW::AC1015;
+    raw.m_objectType = 504;
+    raw.m_handle = 0x56u;
+    raw.m_parentHandle = 0x30u;
+    raw.setCommonLinkEvidence(DRW_DwgCommonLinkEvidence::Validated);
+    raw.m_numReactors = 0;
+    raw.m_xDictFlag = retry.extensionDictionaryFlag();
+    raw.m_xDictHandle = 0;
+    raw.m_objectSize = static_cast<std::uint32_t>(frame.size());
+    raw.m_isCustomClass = true;
+    raw.m_hasClassDefinition = true;
+    raw.m_recordName = "PLOTSETTINGS";
+    raw.m_className = "AcDbPlotSettings";
+    raw.m_rawBytes = frame;
+    t.expect(retry.matchesAc1015RawNoEed(raw),
+             "AC1015 exact source frame matches its typed PlotSettings");
+    auto altered = raw;
+    altered.m_rawBytes[46] ^= 1u;
+    t.expect(!retry.matchesAc1015RawNoEed(altered),
+             "AC1015 raw match rejects changed owner wire role");
+    altered = raw;
+    altered.m_rawBytes[12] ^= 1u;
+    t.expect(!retry.matchesAc1015RawNoEed(altered),
+             "AC1015 raw match rejects changed source body");
+    altered = raw;
+    altered.m_parentHandle += 1u;
+    t.expect(!retry.matchesAc1015RawNoEed(altered),
+             "AC1015 raw match rejects a changed owner receipt");
+    altered = raw;
+    altered.m_rawBytes.push_back(0u);
+    ++altered.m_objectSize;
+    t.expect(!retry.matchesAc1015RawNoEed(altered),
+             "AC1015 raw match rejects an unclaimed trailing byte");
+    PlotSettingsEncodeProbe changedTyped = retry;
+    changedTyped.marginLeft += 1.0;
+    t.expect(!changedTyped.matchesAc1015RawNoEed(raw),
+             "AC1015 raw match rejects a changed modeled value");
+    changedTyped = retry;
+    changedTyped.shadePlotMode = 1;
+    t.expect(!changedTyped.matchesAc1015RawNoEed(raw),
+             "AC1015 raw match rejects an unrepresentable modern field");
+    changedTyped = retry;
+    changedTyped.plotViewHandle.ref = 0x24u;
+    t.expect(!changedTyped.matchesAc1015RawNoEed(raw)
+                 && retry.matchesAc1015RawNoEed(raw),
+             "AC1015 source mismatch refuses without mutating the source or preventing retry");
 }
 
 struct DimensionAssociationFrame {

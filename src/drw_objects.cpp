@@ -7697,6 +7697,83 @@ bool DRW_PlotSettings::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
     }
 }
 
+bool DRW_PlotSettings::matchesAc1015RawNoEed(
+        const DRW_UnsupportedObject& raw) const noexcept {
+    const auto asciiText = [](const std::string& text) {
+        return std::all_of(text.begin(), text.end(), [](unsigned char ch) {
+            return ch >= 0x20u && ch <= 0x7eu;
+        });
+    };
+    if (raw.m_version != DRW::AC1015 || raw.m_isEntity || !raw.m_isCustomClass
+        || !raw.m_hasClassDefinition || raw.m_recordName != "PLOTSETTINGS"
+        || raw.m_className != "AcDbPlotSettings" || raw.m_objectType < 500
+        || raw.m_objectType > std::numeric_limits<std::uint16_t>::max()
+        || raw.m_handle == 0 || raw.m_handle != handle
+        || raw.m_parentHandle == 0 || raw.m_parentHandle != parentHandle
+        || !drwDwgCommonLinkEvidenceValidated(raw.m_commonLinkEvidence)
+        || !raw.m_commonHandleDataValidated || !hasDwgCommonLinkTail()
+        || raw.m_numReactors != 0 || !raw.m_reactorHandles.empty()
+        || reactorCount() != 0 || !reactorHandles.empty()
+        || raw.m_xDictHandle != 0 || xDictHandle != 0
+        || raw.m_xDictFlag != extensionDictionaryFlag()
+        || raw.m_hasDataStorage || hasDataStorageBinaryData()
+        || !extData.empty() || !appData.empty()
+        || !dwgEedAppIdReferences.empty() || !dwgEedLayerReferences.empty()
+        || !pendingAppIdResolutions.empty() || !pendingLayerRefResolutions.empty()
+        || raw.m_rawBytes.empty() || raw.m_objectSize != raw.m_rawBytes.size()
+        || !asciiText(pageSetupName) || !asciiText(printerConfig)
+        || !asciiText(paperSize) || !asciiText(plotViewName)
+        || !asciiText(currentStyleSheet))
+        return false;
+    try {
+        DRW_TextCodec codec;
+        codec.setVersion(DRW::AC1015, false);
+        codec.resetAccumulatedDecodeIssues();
+        dwgBuffer input(raw.m_rawBytes.data(), raw.m_rawBytes.size(), &codec);
+        dwgBuffer typeProbe = input.forkIndependent();
+        if (typeProbe.getObjType(DRW::AC1015) != raw.m_objectType
+            || !typeProbe.isGood())
+            return false;
+        DRW_PlotSettings parsed;
+        if (!parsed.parseDwg(DRW::AC1015, &input, raw.m_bodyBitSize)
+            || !input.isGood() || codec.accumulatedDecodeIssues() != 0u
+            || !parsed.hasDwgCommonLinkTail() || parsed.handle != handle
+            || parsed.parentHandle != parentHandle || parsed.xDictHandle != 0
+            || parsed.reactorCount() != 0 || !parsed.reactorHandles.empty()
+            || parsed.extensionDictionaryFlag() != extensionDictionaryFlag()
+            || parsed.hasDataStorageBinaryData() || !parsed.extData.empty()
+            || !parsed.appData.empty() || !parsed.pendingAppIdResolutions.empty()
+            || !parsed.pendingLayerRefResolutions.empty())
+            return false;
+        return parsed.name == name && parsed.flags == flags
+            && parsed.pageSetupName == pageSetupName
+            && parsed.printerConfig == printerConfig
+            && parsed.plotLayoutFlags == plotLayoutFlags
+            && parsed.marginLeft == marginLeft && parsed.marginBottom == marginBottom
+            && parsed.marginRight == marginRight && parsed.marginTop == marginTop
+            && parsed.paperWidth == paperWidth && parsed.paperHeight == paperHeight
+            && parsed.paperSize == paperSize
+            && parsed.plotOriginX == plotOriginX && parsed.plotOriginY == plotOriginY
+            && parsed.paperUnits == paperUnits && parsed.plotRotation == plotRotation
+            && parsed.plotType == plotType
+            && parsed.windowMinX == windowMinX && parsed.windowMinY == windowMinY
+            && parsed.windowMaxX == windowMaxX && parsed.windowMaxY == windowMaxY
+            && parsed.plotViewName == plotViewName
+            && parsed.realWorldUnits == realWorldUnits && parsed.drawingUnits == drawingUnits
+            && parsed.currentStyleSheet == currentStyleSheet
+            && parsed.scaleType == scaleType && parsed.scaleFactor == scaleFactor
+            && parsed.paperImageOriginX == paperImageOriginX
+            && parsed.paperImageOriginY == paperImageOriginY
+            && parsed.shadePlotMode == shadePlotMode
+            && parsed.shadePlotResLevel == shadePlotResLevel
+            && parsed.shadePlotCustomDPI == shadePlotCustomDPI
+            && parsed.plotViewHandle.ref == plotViewHandle.ref
+            && parsed.shadePlotHandle.ref == shadePlotHandle.ref;
+    } catch (...) {
+        return false;
+    }
+}
+
 bool DRW_PlotSettings::encodeDwg(DRW::Version version, dwgBufferW *buf,
                                  dwgBufferW *strBuf,
                                  dwgBufferW *handleBuf) const {
