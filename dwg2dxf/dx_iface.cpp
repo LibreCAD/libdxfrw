@@ -39,6 +39,7 @@
 #include "dx_ac1024_aerial_tile_wire.h"
 #include "dx_ac1024_aerial_fbxasset_wire.h"
 #include "dx_ac1024_aerial_advmaterial_wire.h"
+#include "dx_ac1021_dictionaryvar_wire.h"
 #include "dx_ac1024_dictionaryvar_wire.h"
 #include "dx_ac1024_mentalray_wire.h"
 #include "dx_ac1024_mleaderstyle_wire.h"
@@ -18022,12 +18023,12 @@ bool hasAc1024DwgRootMember(const dx_data& data, const char* name, std::uint32_t
 }
 } // namespace
 
-const DRW_UnsupportedObject* dx_iface::boundAc1024DwgClassObject(
+const DRW_UnsupportedObject* dx_iface::boundDwgClassObject(
         const dx_data& data, std::uint32_t handle, const DwgClassObjectPublication& receipt,
-        DRW_Class* outputClass) const {
+        DRW_Class* outputClass, DRW::Version expectedVersion) const {
     const auto generation = data.importGeneration;
     const auto& pub = receipt.publication;
-    if (data.sourceFormat != dx_source_format::DWG || data.sourceVersion != DRW::AC1024
+    if (data.sourceFormat != dx_source_format::DWG || data.sourceVersion != expectedVersion
         || generation == 0u
         || receipt.generation != generation || receipt.attempt == 0u
         || !data.dwgReadOutcome.operationSucceeded || data.dwgReadOutcome.opaqueSourceCaptureFailed)
@@ -18061,7 +18062,7 @@ const DRW_UnsupportedObject* dx_iface::boundAc1024DwgClassObject(
     const auto& outcome = data.dwgReadOutcome;
     const auto ordinal = *pub.m_classStreamOrdinal;
     if (!table.closed || table.result.state != dx_class_evidence::State::Joined
-        || table.result.version != DRW::AC1024 || table.result.generation != generation
+        || table.result.version != expectedVersion || table.result.generation != generation
         || table.result.attempt != receipt.attempt || !table.rows
         || ordinal >= table.rows->entries.size()
         || table.codePage != outcome.sourceCodePageId
@@ -18097,6 +18098,12 @@ const DRW_UnsupportedObject* dx_iface::boundAc1024DwgClassObject(
         *outputClass = std::move(selected);
     }
     return &raw;
+}
+
+const DRW_UnsupportedObject* dx_iface::boundAc1024DwgClassObject(
+        const dx_data& data, std::uint32_t handle, const DwgClassObjectPublication& receipt,
+        DRW_Class* outputClass) const {
+    return boundDwgClassObject(data, handle, receipt, outputClass, DRW::AC1024);
 }
 
 const DRW_UnsupportedObject* dx_iface::boundAc1024DwgRenderClass(
@@ -29452,6 +29459,40 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
     retainAerialDwgTableStylePublication(data);
     retainAerialDwgVisualStylePublication(data);
     retainAerialDwgByBlockMaterialPublication(data);
+    // This exact-profile observation cannot authorize output. A callback must
+    // occur during the actual class-read attempt, once, on the original reader.
+    if (data.m_version == DRW::AC1021 && data.m_handle == 0x5acu) {
+        const auto reject = [this]() noexcept {
+            m_ac1021DictionaryVarCaptureFailed = true;
+            m_ac1021DictionaryVarPublication = {};
+        };
+        if (m_ac1021DictionaryVarCaptureFailed
+            || m_ac1021DictionaryVarSourceOwner != nullptr
+            || typeid(*this) != typeid(dx_iface)
+            || m_classEvidenceReadData != cData || !m_classEvidenceReadAttempt
+            || cData->m_classEvidenceOwner != this
+            || cData->m_classEvidenceAttempt != m_classEvidenceReadAttempt
+            || cData->m_classEvidenceGeneration != cData->importGeneration
+            || data.m_recordName != "DICTIONARYVAR"
+            || data.m_className != "AcDbDictionaryVar"
+            || data.m_encodedType != 504 || data.m_resolvedType != 504
+            || data.m_isEntity || !data.m_isCustomClass
+            || data.m_carrier != DRW_DwgFramePublication::Carrier::TypedAndRaw
+            || !data.m_classStreamOrdinal || !data.m_hasSourceLocation
+            || (data.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::PhysicalFile
+                && data.m_sourceOffsetSpace != DRW_DwgFrameOffsetSpace::DecodedBuffer)
+            || data.m_numReactors != 1 || data.m_reactorHandles.size() != 1u
+            || !data.m_controlHandles.empty()) {
+            reject();
+        } else {
+            try {
+                m_ac1021DictionaryVarPublication.publication = data;
+                m_ac1021DictionaryVarPublication.generation = cData->importGeneration;
+                m_ac1021DictionaryVarPublication.attempt = m_classEvidenceReadAttempt;
+                m_ac1021DictionaryVarSourceOwner = cData;
+            } catch (...) { reject(); }
+        }
+    }
     if (typeid(*this) == typeid(dx_iface) && m_classEvidenceReadData == cData
         && m_classEvidenceReadAttempt && cData->importGeneration == cData->m_classEvidenceGeneration
         && data.m_version == DRW::AC1027 && data.m_encodedType == 51) {
@@ -39652,6 +39693,44 @@ bool dx_iface::hasQualifiedDwgLayerStateScaleClass(
             && table.rows->name(row, 0u) == raw.m_classAppName
             && table.rows->name(row, 1u) == raw.m_className
             && table.rows->name(row, 2u) == raw.m_recordName;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::hasBoundAc1021DictionaryVarSource(const dx_data& data) const noexcept {
+    if (&data != m_ac1021DictionaryVarSourceOwner
+        || m_ac1021DictionaryVarCaptureFailed
+        || data.sourceFormat != dx_source_format::DWG
+        || data.sourceVersion != DRW::AC1021 || data.importGeneration == 0u
+        || !data.hasSingleSuccessfulNamedResourceImport()
+        || !data.hasUnchangedDwgClassEvidence()
+        || !data.hasNamedObjectDictionary || data.namedObjectDictionary.handle != 0xcu
+        || !data.namedObjectDictionary.hasCompleteDwgEntries())
+        return false;
+    try {
+        const auto generation = data.importGeneration;
+        const auto* raw = boundDwgClassObject(data, 0x5acu,
+            m_ac1021DictionaryVarPublication, nullptr, DRW::AC1021);
+        const auto* owner = uniqueDwgSourceRecord(data.dictionaries, 0x5abu);
+        const auto* variable = uniqueDwgSourceRecord(data.dictionaryVars, 0x5acu);
+        const auto ownerFrame = data.m_standardDwgObjectFrames.find({generation, 0x5abu});
+        if (!raw || raw->m_classEntityFlagRaw != 0x1f3u
+            || !m_ac1021DictionaryVarPublication.publication.m_controlHandles.empty()
+            || !owner || !variable
+            || ownerFrame == data.m_standardDwgObjectFrames.end()
+            || !ownerFrame->second.typedBaseline
+            || ownerFrame->second.generation != generation
+            || !data.hasCompleteDwgDictionaryEntry(0xcu, "AcDbVariableDictionary", 0x5abu)
+            || !data.hasCompleteDwgDictionaryEntry(0x5abu, "CTABLESTYLE", 0x5acu)
+            || data.m_opaqueDwgSourceFrameIdentities.count({generation, 0x5abu}) != 1u
+            || !standardDwgModelsEqual(*ownerFrame->second.typedBaseline, *owner,
+                                       DRW::AC1021, dwgObjType::DICTIONARY)
+            || !dx_ac1021_dictionaryvar_wire::observeOwner(ownerFrame->second.raw, *owner)
+            || !dx_ac1021_dictionaryvar_wire::observeVariable(*raw, *variable))
+            return false;
+        const auto& entries = data.namedObjectDictionary.m_entries;
+        return std::count_if(entries.begin(), entries.end(), [](const auto& entry) {
+            return entry.m_handle == 0x5abu || entry.m_name == "AcDbVariableDictionary";
+        }) == 1;
     } catch (...) { return false; }
 }
 
@@ -80458,6 +80537,9 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     m_dwgLayerControlSourceOwner = nullptr;
     m_dwgLayerControlSourceGeneration = 0u;
     m_dwgLayerControlSourceCaptureFailed = false;
+    m_ac1021DictionaryVarPublication = {};
+    m_ac1021DictionaryVarSourceOwner = nullptr;
+    m_ac1021DictionaryVarCaptureFailed = false;
     m_dwgLayerStateScalePublications.clear();
     m_dwgLayerStateScaleSourceOwner = nullptr;
     m_dwgLayerStateScaleCaptureFailed = false;

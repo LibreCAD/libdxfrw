@@ -206,6 +206,61 @@ public:
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static bool ac1021DictionaryVarBindingControls(dx_iface& reader, dx_data& data) {
+        const auto bound = [&]() { return reader.hasBoundAc1021DictionaryVarSource(data); };
+        if (!bound()) return false;
+        dx_iface other;
+        if (other.hasBoundAc1021DictionaryVarSource(data)) return false;
+        auto& receipt = reader.m_ac1021DictionaryVarPublication;
+        const auto raw = data.m_opaqueDwgSourceFrames.find({data.importGeneration, 0x5acu});
+        const auto owner = data.m_standardDwgObjectFrames.find({data.importGeneration, 0x5abu});
+        const auto classes = data.m_classEvidenceImports.find(data.importGeneration);
+        if (raw == data.m_opaqueDwgSourceFrames.end()
+            || owner == data.m_standardDwgObjectFrames.end()
+            || classes == data.m_classEvidenceImports.end()
+            || data.dictionaryVars.size() != 1u || raw->second.m_rawBytes.size() < 13u)
+            return false;
+        const auto reject = [&](auto& field, const auto& bad) {
+            const auto saved = field;
+            field = bad;
+            const bool rejected = !bound();
+            field = saved;
+            return rejected && bound();
+        };
+        if (!reject(reader.m_ac1021DictionaryVarCaptureFailed, true)
+            || !reject(receipt.generation, receipt.generation + 1u)
+            || !reject(receipt.attempt, receipt.attempt + 1u)
+            || !reject(receipt.publication.m_sourceOffset,
+                       receipt.publication.m_sourceOffset + 1u)
+            || !reject(receipt.publication.m_classStreamOrdinal,
+                       std::optional<std::uint64_t>{999999u})
+            || !reject(receipt.publication.m_parentHandle, std::uint32_t{1u})
+            || !reject(receipt.publication.m_controlHandles,
+                       std::vector<std::uint32_t>{1u})
+            || !reject(raw->second.m_classEntityFlagRaw, std::uint16_t{0x1f2u})
+            || !reject(raw->second.m_className, std::string("WrongClass"))
+            || !reject(raw->second.m_rawBytes[12],
+                       static_cast<std::uint8_t>(raw->second.m_rawBytes[12] ^ 1u))
+            || !reject(owner->second.raw.m_rawBytes[0],
+                       static_cast<std::uint8_t>(owner->second.raw.m_rawBytes[0] ^ 1u))
+            || !reject(classes->second.result.attempt, classes->second.result.attempt + 1u)
+            || !reject(classes->second.closed, false)
+            || !reject(data.dictionaryVars.front().m_value, std::string("OTHER")))
+            return false;
+        auto& entries = data.namedObjectDictionary.m_entries;
+        entries.push_back({});
+        entries.back().m_name = "alias";
+        entries.back().m_handle = 0x5abu;
+        const bool aliasRejected = !bound();
+        entries.pop_back();
+        if (!aliasRejected || !bound()) return false;
+        const auto latePublication = receipt.publication;
+        reader.addDwgFramePublication(latePublication);
+        return !bound();
+    }
+    static bool ac1021DictionaryVarBinding(dx_iface& reader, const dx_data& data) {
+        return reader.hasBoundAc1021DictionaryVarSource(data);
+    }
     static void setPlotSourceCaptureFailure(dx_data& data,bool value) noexcept {
         data.m_tableDxfSource.plotSourceCaptureFailed=value;
     }
@@ -54628,6 +54683,22 @@ bool physicalAc1024MixedDictionaryVarGraphOutput(
     return true;
 }
 
+bool physicalAc1021DictionaryVarBinding(const std::filesystem::path& sourcePath) {
+    dx_iface reader;
+    dx_data original;
+    if (!reader.fileImport(sourcePath.string(), &original, false)
+        || !DxIfaceStandardDwgCaptureTestAccess::ac1021DictionaryVarBindingControls(
+            reader, original))
+        return fail("AC1021 DICTIONARYVAR original-import binding controls failed");
+    dx_data retry;
+    if (!reader.fileImport(sourcePath.string(), &retry, false)
+        || !DxIfaceStandardDwgCaptureTestAccess::ac1021DictionaryVarBinding(reader, retry)
+        || DxIfaceStandardDwgCaptureTestAccess::ac1021DictionaryVarBinding(reader, original))
+        return fail("AC1021 DICTIONARYVAR fresh-import retry or stale-owner refusal failed");
+    std::cout << "AC1021 DICTIONARYVAR same-import source binding controls PASS\n";
+    return true;
+}
+
 bool physicalAc1021DictionaryVarSelectedGraphOutput(
         const std::filesystem::path& sourcePath,
         const std::filesystem::path& directory) {
@@ -93872,6 +93943,9 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--scale-ac1021-physical-selected-graph")
         return physicalAc1021ScaleSelectedGraphOutput(
             argv[2], argv[3]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--dictionaryvar-ac1021-source-binding")
+        return physicalAc1021DictionaryVarBinding(argv[2]) ? 0 : 1;
     if (argc == 4
         && std::string(argv[1])
             == "--dictionaryvar-ac1021-physical-selected-graph")

@@ -4532,9 +4532,17 @@ private:
         std::uint64_t generation{0u};
         std::uint64_t attempt{0u};
     };
+    const DRW_UnsupportedObject* boundDwgClassObject(
+        const dx_data& data, std::uint32_t handle, const DwgClassObjectPublication& receipt,
+        DRW_Class* outputClass, DRW::Version expectedVersion) const;
     const DRW_UnsupportedObject* boundAc1024DwgClassObject(
         const dx_data& data, std::uint32_t handle, const DwgClassObjectPublication& receipt,
         DRW_Class* outputClass) const;
+    // Exact source-only AC1021 CTABLESTYLE observation; not output admission.
+    DwgClassObjectPublication m_ac1021DictionaryVarPublication;
+    const dx_data* m_ac1021DictionaryVarSourceOwner{nullptr};
+    bool m_ac1021DictionaryVarCaptureFailed{false};
+    bool hasBoundAc1021DictionaryVarSource(const dx_data& data) const noexcept;
     const DRW_UnsupportedObject* boundAc1024DwgStandardObject(
         const dx_data& data, const DRW_TableEntry& live, int objectType) const;
     std::map<std::uint32_t, DwgClassObjectPublication>
