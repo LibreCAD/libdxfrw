@@ -3574,6 +3574,53 @@ public:
         return wrongCommonParentRejected && qualified();
     }
 
+    static bool mechanicalGlobalMaterialEedWireControls(dx_iface& iface,
+                                                         dx_data& data) {
+        iface.cData = &data;
+        const auto key = dx_data::StandardDwgFrameKey{data.importGeneration, 0x98u};
+        const auto rawAt = data.m_opaqueDwgSourceFrames.find(key);
+        auto material = std::find_if(data.materials.begin(), data.materials.end(),
+            [](const DRW_Material& value) { return value.handle == 0x98u; });
+        const auto& captured = iface.m_dwgAerialGlobalMaterialEed;
+        if (rawAt == data.m_opaqueDwgSourceFrames.end()
+            || data.m_opaqueDwgSourceFrameIdentities.count(key) != 1u
+            || material == data.materials.end() || material->m_name != "Global"
+            || material->parentHandle != 0x72u || material->xDictHandle != 0x110u
+            || captured.owner != &data || captured.captureFailed
+            || captured.frame.generation != data.importGeneration
+            || captured.frame.attempt == 0u
+            || captured.frame.attempt != iface.aerialMaterialAppIdClassAttempt()
+            || !captured.material || captured.body != rawAt->second.m_rawBytes
+            || !dxfMaterial::sameState(*captured.material, *material)
+            || captured.frame.publication.m_handle != rawAt->second.m_handle
+            || captured.frame.publication.m_sourceOffset != rawAt->second.m_objectOffset
+            || captured.frame.publication.m_recordName != rawAt->second.m_recordName
+            || !iface.hasQualifiedDwgStandardAppIdSource(0x12u, "ACAD")
+            || iface.hasQualifiedAc1024AerialGlobalMaterialEed(data)) return false;
+        auto& raw = rawAt->second;
+        const auto app = [&iface](std::uint32_t handle, std::string_view name) noexcept {
+            return iface.hasQualifiedDwgStandardAppIdSource(handle, name);
+        };
+        const auto qualified = [&]() {
+            return dx_ac1024_material_eed_wire::observeMechanicalGlobal(raw, *material, app);
+        };
+        if (!qualified() || dx_ac1024_material_eed_wire::observeGlobal(raw, *material, app))
+            return false;
+        for (std::uint32_t bit = 26u; bit < 214u; ++bit) {
+            auto& byte = raw.m_rawBytes[bit / 8u];
+            const auto original = byte;
+            byte ^= static_cast<std::uint8_t>(1u << (7u - bit % 8u));
+            const bool refused = !qualified();
+            byte = original;
+            if (!refused || !qualified()) return false;
+        }
+        DRW_Variant saved = *material->extData[1];
+        *material->extData[1] = DRW_Variant(1070, std::int32_t{0});
+        const bool changedValueRefused = !qualified();
+        *material->extData[1] = saved;
+        return changedValueRefused && qualified();
+    }
+
     static bool aerialGlobalMaterialEedSourceControls(dx_iface& iface,
                                                        dx_data& data) {
         iface.cData = &data;
@@ -3618,6 +3665,12 @@ public:
             return false;
 
         auto& raw = rawAt->second;
+        if (dx_ac1024_material_eed_wire::observeMechanicalGlobal(
+                raw, *material,
+                [&iface](std::uint32_t handle, std::string_view name) noexcept {
+                    return iface.hasQualifiedDwgStandardAppIdSource(handle, name);
+                }))
+            return false;
         for (std::uint32_t bit = 26u; bit < 214u; ++bit) {
             raw.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(
                 1u << (7u - bit % 8u));
@@ -62516,6 +62569,18 @@ bool physicalAc1024LayerStatesSourceAdmission(const std::filesystem::path& sourc
     return true;
 }
 
+bool physicalAc1024MechanicalGlobalMaterialEedWire(
+        const std::filesystem::path& sourcePath) {
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || !DxIfaceStandardDwgCaptureTestAccess::mechanicalGlobalMaterialEedWireControls(
+            reader, source))
+        return fail("AC1024 mechanical Global MATERIAL EED source controls failed");
+    std::cerr << "AC1024 mechanical Global MATERIAL EED wire controls passed.\n";
+    return true;
+}
+
 #include "p4_layerstates_real_writer_controls.h"
 #include "p4_advmaterial_writer_controls.h"
 #include "p4_layout_output_controls.h"
@@ -94981,6 +95046,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-source-admission")
         return physicalAc1024LayerStatesSourceAdmission(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--mechanical-ac1024-global-material-eed-wire")
+        return physicalAc1024MechanicalGlobalMaterialEedWire(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-appid-context")
         return physicalAc1024LayerStatesAppIdContext(argv[2]) ? 0 : 1;

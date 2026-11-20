@@ -108,11 +108,14 @@ P4-D additional unresolved paths:
   EED values after remapping in ASCII/Binary, with wrong-owner, member, name
   and payload refusal, destination preservation, corrected retry and independent
   readback. Retain the [baseline refusal guard](docs/research/p4-ac1024-layerstates-baseline-fallback-guard-2026-11-20.json).
-- Diagnose the existing [AC1024 empty-root readback failure](docs/research/p4-ac1024-layerstates-same-import-admission-2026-11-20.json)
-  at the Global MATERIAL APPID table check. Determine whether the mechanical
-  source belongs to the aerial material profile before changing its selection;
-  preserve refusal for unqualified EED dependencies and restore ASCII/Binary
-  readback and corrected retry for any eligible profile.
+- Restore the AC1024 mechanical empty-root readback without bypassing MATERIAL
+  dependencies. Its [separate Global EED source profile](docs/research/p4-ac1024-mechanical-global-material-eed-source-2026-11-20.json)
+  has extension dictionary `0x110` with four TILE XRECORDs, unlike the aerial
+  FBXASSET graph. Bind APPID_CONTROL membership, dictionary and XRECORD wire
+  roles/bodies and MATERIAL source identity; then implement staged graph and
+  signed-EED output proof with failure/rollback/retry and independent readback.
+  Keep unqualified profiles refused and verify the one-root LayerStates
+  ASCII/Binary readback and same-writer retry on the resulting eligible profile.
 - AC1021-to-AC1024 whole-source output needs the [DICTIONARYVAR/TABLESTYLE join](docs/research/p4-ac1021-ctablestyle-ac1024-crossversion-blocker-2026-11-18.json)
   and native target evidence for [VISUALSTYLE and LAYOUT](docs/research/p4-ac1021-visualstyle-ac1024-target-peer-mapping-2026-11-18.json).
   Prove the source TABLESTYLE body and target-version staged output; existing

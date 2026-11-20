@@ -36,6 +36,13 @@ constexpr std::array<Profile, 7> profiles{{
     {0x32Eu, 34u, 222u, {{-1, 3, 1, 0, 0}}}
 }};
 
+// Distinct Global MATERIAL EED observed in the AC1024 mechanical reference.
+// The identical handle in another drawing does not imply the same graph or
+// payload; this bounded field observer alone does not authorize output.
+constexpr Profile mechanicalGlobalProfile{
+    0x98u, 26u, 214u, {{-1, 3, 0, 0, 0}}
+};
+
 inline const Profile* profileFor(std::uint32_t handle) noexcept {
     for (const auto& profile : profiles)
         if (profile.handle == handle)
@@ -131,6 +138,13 @@ bool observeGlobal(const DRW_UnsupportedObject& raw,
                    AppIdSource appIdSource) noexcept {
     return raw.m_handle == profiles.front().handle
         && observeProfile(raw, material, profiles.front(), appIdSource);
+}
+
+template <class AppIdSource>
+bool observeMechanicalGlobal(const DRW_UnsupportedObject& raw,
+                             const DRW_Material& material,
+                             AppIdSource appIdSource) noexcept {
+    return observeProfile(raw, material, mechanicalGlobalProfile, appIdSource);
 }
 
 template <class AppIdSource>

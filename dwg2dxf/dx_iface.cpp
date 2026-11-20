@@ -45130,13 +45130,15 @@ void dx_iface::finishAerialDwgGlobalMaterialEedSource() noexcept {
             return;
         const auto* raw = boundAc1024DwgClassObject(
             *cData, 0x98u, proof.frame, nullptr);
+        const auto appIdSource = [this](std::uint32_t handle,
+                                        std::string_view name) noexcept {
+            return hasQualifiedDwgStandardAppIdSource(handle, name);
+        };
         if (raw == nullptr
-            || !dx_ac1024_material_eed_wire::observeGlobal(
-                *raw, *material,
-                [this](std::uint32_t handle,
-                       std::string_view name) noexcept {
-                    return hasQualifiedDwgStandardAppIdSource(handle, name);
-                }))
+            || (!dx_ac1024_material_eed_wire::observeGlobal(
+                    *raw, *material, appIdSource)
+                && !dx_ac1024_material_eed_wire::observeMechanicalGlobal(
+                    *raw, *material, appIdSource)))
             return;
         proof.material = *material;
         proof.body = raw->m_rawBytes;
