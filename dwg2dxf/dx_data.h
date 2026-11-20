@@ -2729,6 +2729,16 @@ private:
     // as a second owner to the existing raw-section groups/bytes budget.
     std::list<AcdsRawDxfSectionBaseline> m_acdsRawDxfSectionBaselines;
     bool m_acdsRawDxfSectionCaptureFailed{false};
+    // Captured only by the original reader during the active class-read
+    // attempt. The self owner makes copied/moved containers ineligible.
+    struct DwgClassObjectPublication {
+        DRW_DwgFramePublication publication;
+        std::uint64_t generation{0u};
+        std::uint64_t attempt{0u};
+    };
+    DwgClassObjectPublication m_ac1021DictionaryVarPublication;
+    const dx_data* m_ac1021DictionaryVarSourceOwner{nullptr};
+    bool m_ac1021DictionaryVarCaptureFailed{false};
     std::optional<DRW_DwgAc1027LayerSource> m_ac1027DefaultLayerSource;
     struct Ac1027LayerPublication {
         std::uint32_t handle{0u}, offset{0u};

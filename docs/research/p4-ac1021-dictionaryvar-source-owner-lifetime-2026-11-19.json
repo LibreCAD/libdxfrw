@@ -1,0 +1,47 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1021-dictionaryvar-source-owner-lifetime-2026-11-19",
+  "date": "2026-11-19",
+  "status": "SOURCE_ONLY_OWNER_LIFETIME_BOUND_TARGET_AND_NATIVE_OPEN",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "c02d2d1cfe95f8d0b01b0aca7e1d9c8638618d35a1d23a5a77d47400b82c8aab",
+  "source": {
+    "path": "/Users/dli/doc/dwg/truetype.dwg",
+    "sha256": "1e105bc884972d3d80cd983965d8dfa17f6f392042ec6c5997d99ae347487a92",
+    "version": "AC1021",
+    "provenance": "Local sample with unauthenticated producer/author; no drawing or derivative committed."
+  },
+  "change": {
+    "files": [
+      {
+        "path": "dwg2dxf/dx_data.h",
+        "sha256": "d2d9b871c0b204bca298a23d16a74c848cc078e904a91b63b28808570bd2c08d"
+      },
+      {
+        "path": "dwg2dxf/dx_iface.h",
+        "sha256": "b0d4bb355a944a30bbb53cc8226caa461f85b0f9da26e2a42e9571d475ae7101"
+      },
+      {
+        "path": "dwg2dxf/dx_iface.cpp",
+        "sha256": "02c059cba25d7cbae9d4a194c28435f8b25d2c014351b500ecf0bb10ff4ccca6"
+      },
+      {
+        "path": "tests/dwg2dxf_adapter_tests.cpp",
+        "sha256": "646d93787e72757a98ae6aeb8c7b1a6a9b7d5266a1fcc208a0b3ee4eb30e1a2e"
+      }
+    ],
+    "scope": "Move the exact-profile, active-read-only frame/class receipt to the original imported data container, with a self-owner identity check and reset on reimport. A different writer may validate the same container and the receipt survives importer reuse or destruction. This is source evidence only; it does not admit output."
+  },
+  "validation": [
+    "AppleClang -Werror focused build and exact-source selector: PASS for a separate writer, importer reuse, importer destruction, wrong source owner, late callback, failed same-container reimport and independence of another source.",
+    "AddressSanitizer focused build and same selector: PASS.",
+    "GCC 16.2 -Wall -Wextra -Werror syntax check on dx_iface.cpp: PASS.",
+    "Physical AC1021 strict same-version ASCII/Binary export and fresh readback: PASS, including refusal, destination preservation, and same-writer retry.",
+    "Existing generated DWG source-wire fast CTest: PASS before this source-ownership change; the wire observer itself was unchanged."
+  ],
+  "limits": [
+    "This fixes the original importer-only receipt lifetime; it does not complete the TABLESTYLE source/target join, native evidence, or cross-version output.",
+    "The physical selector requires a specific locally available source and is not an automatic CI test.",
+    "Selected implementation inputs changed; P8-F remains open until fast and focused-native qualification rerun for the new digest."
+  ]
+}

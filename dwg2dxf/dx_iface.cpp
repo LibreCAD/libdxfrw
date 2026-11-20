@@ -29463,11 +29463,11 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
     // occur during the actual class-read attempt, once, on the original reader.
     if (data.m_version == DRW::AC1021 && data.m_handle == 0x5acu) {
         const auto reject = [this]() noexcept {
-            m_ac1021DictionaryVarCaptureFailed = true;
-            m_ac1021DictionaryVarPublication = {};
+            cData->m_ac1021DictionaryVarCaptureFailed = true;
+            cData->m_ac1021DictionaryVarPublication = {};
         };
-        if (m_ac1021DictionaryVarCaptureFailed
-            || m_ac1021DictionaryVarSourceOwner != nullptr
+        if (cData->m_ac1021DictionaryVarCaptureFailed
+            || cData->m_ac1021DictionaryVarSourceOwner != nullptr
             || typeid(*this) != typeid(dx_iface)
             || m_classEvidenceReadData != cData || !m_classEvidenceReadAttempt
             || cData->m_classEvidenceOwner != this
@@ -29486,10 +29486,10 @@ void dx_iface::addDwgFramePublication(const DRW_DwgFramePublication& data) {
             reject();
         } else {
             try {
-                m_ac1021DictionaryVarPublication.publication = data;
-                m_ac1021DictionaryVarPublication.generation = cData->importGeneration;
-                m_ac1021DictionaryVarPublication.attempt = m_classEvidenceReadAttempt;
-                m_ac1021DictionaryVarSourceOwner = cData;
+                cData->m_ac1021DictionaryVarPublication.publication = data;
+                cData->m_ac1021DictionaryVarPublication.generation = cData->importGeneration;
+                cData->m_ac1021DictionaryVarPublication.attempt = m_classEvidenceReadAttempt;
+                cData->m_ac1021DictionaryVarSourceOwner = cData;
             } catch (...) { reject(); }
         }
     }
@@ -39697,8 +39697,8 @@ bool dx_iface::hasQualifiedDwgLayerStateScaleClass(
 }
 
 bool dx_iface::hasBoundAc1021DictionaryVarSource(const dx_data& data) const noexcept {
-    if (&data != m_ac1021DictionaryVarSourceOwner
-        || m_ac1021DictionaryVarCaptureFailed
+    if (&data != data.m_ac1021DictionaryVarSourceOwner
+        || data.m_ac1021DictionaryVarCaptureFailed
         || data.sourceFormat != dx_source_format::DWG
         || data.sourceVersion != DRW::AC1021 || data.importGeneration == 0u
         || !data.hasSingleSuccessfulNamedResourceImport()
@@ -39709,12 +39709,12 @@ bool dx_iface::hasBoundAc1021DictionaryVarSource(const dx_data& data) const noex
     try {
         const auto generation = data.importGeneration;
         const auto* raw = boundDwgClassObject(data, 0x5acu,
-            m_ac1021DictionaryVarPublication, nullptr, DRW::AC1021);
+            data.m_ac1021DictionaryVarPublication, nullptr, DRW::AC1021);
         const auto* owner = uniqueDwgSourceRecord(data.dictionaries, 0x5abu);
         const auto* variable = uniqueDwgSourceRecord(data.dictionaryVars, 0x5acu);
         const auto ownerFrame = data.m_standardDwgObjectFrames.find({generation, 0x5abu});
         if (!raw || raw->m_classEntityFlagRaw != 0x1f3u
-            || !m_ac1021DictionaryVarPublication.publication.m_controlHandles.empty()
+            || !data.m_ac1021DictionaryVarPublication.publication.m_controlHandles.empty()
             || !owner || !variable
             || ownerFrame == data.m_standardDwgObjectFrames.end()
             || !ownerFrame->second.typedBaseline
@@ -80537,9 +80537,6 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     m_dwgLayerControlSourceOwner = nullptr;
     m_dwgLayerControlSourceGeneration = 0u;
     m_dwgLayerControlSourceCaptureFailed = false;
-    m_ac1021DictionaryVarPublication = {};
-    m_ac1021DictionaryVarSourceOwner = nullptr;
-    m_ac1021DictionaryVarCaptureFailed = false;
     m_dwgLayerStateScalePublications.clear();
     m_dwgLayerStateScaleSourceOwner = nullptr;
     m_dwgLayerStateScaleCaptureFailed = false;
@@ -80768,6 +80765,9 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     fData->m_dxfLayerControlCaptureFailed = false;
     fData->sourceFormat = dx_source_format::Unknown;
     fData->sourceVersion = DRW::UNKNOWNV;
+    fData->m_ac1021DictionaryVarPublication = {};
+    fData->m_ac1021DictionaryVarSourceOwner = nullptr;
+    fData->m_ac1021DictionaryVarCaptureFailed = false;
     fData->m_ac1027DefaultLayerSource.reset();
     fData->m_ac1027LayerPublication = {};
     fData->m_ac1027DefaultLayerGeneration = 0u;

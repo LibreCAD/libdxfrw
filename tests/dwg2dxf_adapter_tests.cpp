@@ -210,8 +210,8 @@ public:
         const auto bound = [&]() { return reader.hasBoundAc1021DictionaryVarSource(data); };
         if (!bound()) return false;
         dx_iface other;
-        if (other.hasBoundAc1021DictionaryVarSource(data)) return false;
-        auto& receipt = reader.m_ac1021DictionaryVarPublication;
+        if (!other.hasBoundAc1021DictionaryVarSource(data)) return false;
+        auto& receipt = data.m_ac1021DictionaryVarPublication;
         const auto raw = data.m_opaqueDwgSourceFrames.find({data.importGeneration, 0x5acu});
         const auto owner = data.m_standardDwgObjectFrames.find({data.importGeneration, 0x5abu});
         const auto classes = data.m_classEvidenceImports.find(data.importGeneration);
@@ -227,7 +227,9 @@ public:
             field = saved;
             return rejected && bound();
         };
-        if (!reject(reader.m_ac1021DictionaryVarCaptureFailed, true)
+        if (!reject(data.m_ac1021DictionaryVarCaptureFailed, true)
+            || !reject(data.m_ac1021DictionaryVarSourceOwner,
+                       static_cast<const dx_data*>(nullptr))
             || !reject(receipt.generation, receipt.generation + 1u)
             || !reject(receipt.attempt, receipt.attempt + 1u)
             || !reject(receipt.publication.m_sourceOffset,
@@ -54695,6 +54697,24 @@ bool physicalAc1021DictionaryVarBinding(const std::filesystem::path& sourcePath)
         || !DxIfaceStandardDwgCaptureTestAccess::ac1021DictionaryVarBinding(reader, retry)
         || DxIfaceStandardDwgCaptureTestAccess::ac1021DictionaryVarBinding(reader, original))
         return fail("AC1021 DICTIONARYVAR fresh-import retry or stale-owner refusal failed");
+    dx_data next;
+    dx_iface writer;
+    if (!reader.fileImport(sourcePath.string(), &next, false)
+        || !DxIfaceStandardDwgCaptureTestAccess::ac1021DictionaryVarBinding(writer, retry)
+        || !DxIfaceStandardDwgCaptureTestAccess::ac1021DictionaryVarBinding(writer, next))
+        return fail("AC1021 DICTIONARYVAR source receipt did not survive a different import or writer");
+    dx_data surviving;
+    {
+        dx_iface temporaryReader;
+        if (!temporaryReader.fileImport(sourcePath.string(), &surviving, false))
+            return fail("AC1021 DICTIONARYVAR short-lived reader import failed");
+    }
+    if (!DxIfaceStandardDwgCaptureTestAccess::ac1021DictionaryVarBinding(writer, surviving))
+        return fail("AC1021 DICTIONARYVAR source receipt did not survive its reader");
+    if (reader.fileImport("/dev/null/libdxfrw-dictionaryvar-missing.dwg", &retry, false)
+        || DxIfaceStandardDwgCaptureTestAccess::ac1021DictionaryVarBinding(writer, retry)
+        || !DxIfaceStandardDwgCaptureTestAccess::ac1021DictionaryVarBinding(writer, surviving))
+        return fail("AC1021 DICTIONARYVAR failed reimport left stale evidence or damaged another source");
     std::cout << "AC1021 DICTIONARYVAR same-import source binding controls PASS\n";
     return true;
 }
