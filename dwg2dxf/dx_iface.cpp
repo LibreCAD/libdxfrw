@@ -40389,18 +40389,23 @@ bool dx_iface::prepareDwgLayerStateOutput(
         return found;
     };
     const DRW_Dictionary* extension = uniqueDictionary(extensionHandle);
-    // Recognize the imported two-root candidate from its immutable baseline
+    // Recognize an imported LayerStates candidate from its captured baseline
     // even if the editable root was removed, renamed or given extra entries.
-    if (sourceVersion == DRW::AC1021 && cData->importGeneration != 0u) {
+    if ((sourceVersion == DRW::AC1021 || sourceVersion == DRW::AC1024)
+        && cData->importGeneration != 0u) {
         const auto frame = cData->m_standardDwgObjectFrames.find(
             {cData->importGeneration, extensionHandle});
         const auto* baseline = frame == cData->m_standardDwgObjectFrames.end()
             ? nullptr : dynamic_cast<const DRW_Dictionary*>(frame->second.typedBaseline.get());
-        ac1021TwoRootCandidate = baseline && baseline->m_entries.size() == 2u
+        const bool baselineHasLayerStates = baseline
             && std::any_of(baseline->m_entries.begin(), baseline->m_entries.end(),
                 [](const DRW_Dictionary::Entry& entry) {
                     return asciiIdentifierEquals(entry.m_name, "ACAD_LAYERSTATES");
                 });
+        ac1021TwoRootCandidate = sourceVersion == DRW::AC1021
+            && baselineHasLayerStates && baseline->m_entries.size() == 2u;
+        ac1024LayerStatesCandidate = sourceVersion == DRW::AC1024
+            && baselineHasLayerStates;
     }
     if ((sourceVersion == DRW::AC1024 || sourceVersion == DRW::AC1021)
         && extension == nullptr
@@ -40412,12 +40417,12 @@ bool dx_iface::prepareDwgLayerStateOutput(
     // Named dictionaries are case-insensitive. An unqualified LayerStates
     // source must not fall through to generic DICTIONARY output just because
     // its case or graph shape lies outside a proven profile.
-    ac1024LayerStatesCandidate = sourceVersion == DRW::AC1024
+    ac1024LayerStatesCandidate = ac1024LayerStatesCandidate || (sourceVersion == DRW::AC1024
         && extension != nullptr
         && std::any_of(extension->m_entries.begin(), extension->m_entries.end(),
             [](const DRW_Dictionary::Entry& entry) {
                 return asciiIdentifierEquals(entry.m_name, "ACAD_LAYERSTATES");
-            });
+            }));
     const bool singleEmptyLayerStatesRoot = extension != nullptr
         && extension->m_entries.size() == 1u
         && (sourceVersion == DRW::AC1021 || sourceVersion == DRW::AC1024);

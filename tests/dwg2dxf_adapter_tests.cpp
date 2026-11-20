@@ -4061,6 +4061,27 @@ public:
                                         DRW::Version targetVersion) {
         return iface.prepareDwgLayerStateOutput(targetVersion, false);
     }
+    static bool unrelatedLayerStateBaselineSkips(dx_iface& iface, dx_data& data,
+                                                 std::uint32_t handle) {
+        auto frame = data.m_standardDwgObjectFrames.find({data.importGeneration, handle});
+        if (frame == data.m_standardDwgObjectFrames.end()) return false;
+        const auto* baseline = dynamic_cast<const DRW_Dictionary*>(
+            frame->second.typedBaseline.get());
+        if (!baseline) return false;
+        auto unrelated = std::make_shared<DRW_Dictionary>(*baseline);
+        const auto root = std::find_if(unrelated->m_entries.begin(), unrelated->m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_LAYERSTATES";
+            });
+        if (root == unrelated->m_entries.end()) return false;
+        root->m_name = "UNRELATED_ROOT";
+        const auto saved = frame->second.typedBaseline;
+        frame->second.typedBaseline = unrelated;
+        const bool skipped = iface.prepareDwgLayerStateOutput(DRW::AC1024, false)
+            && !iface.m_dwgLayerStateOutputPrepared;
+        frame->second.typedBaseline = saved;
+        return skipped;
+    }
     static bool layerStateOutputPrepared(const dx_iface& iface) {
         return iface.m_dwgLayerStateOutputPrepared;
     }
@@ -62535,7 +62556,9 @@ bool physicalAc1024LayerStatesFallbackRefusal(
     preflight.cData = &source;
     const auto refused = [&]() {
         return !DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
-            preflight, DRW::AC1024);
+            preflight, DRW::AC1024)
+            && !DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
+                reader, DRW::AC1024);
     };
     if (!refused())
         return fail("unqualified three-root LayerStates source fell through");
@@ -62557,10 +62580,19 @@ bool physicalAc1024LayerStatesFallbackRefusal(
         return fail("reduced LayerStates source fell through");
     extension->m_entries = original;
     extension->m_entries[rootIndex].m_name = "UNRELATED_ROOT";
-    if (!DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
-            preflight, DRW::AC1024))
-        return fail("unrelated extension was classified as LayerStates");
+    if (!refused())
+        return fail("renamed source LayerStates root fell through");
+    if (!DxIfaceStandardDwgCaptureTestAccess::unrelatedLayerStateBaselineSkips(
+            preflight, source, extensionHandle) || !refused())
+        return fail("unrelated baseline classification or restoration failed");
     extension->m_entries = original;
+    extension->m_entries.erase(extension->m_entries.begin()
+        + static_cast<std::ptrdiff_t>(rootIndex));
+    if (!refused())
+        return fail("removed source LayerStates root fell through");
+    extension->m_entries = original;
+    if (!refused())
+        return fail("restored unqualified LayerStates source fell through");
     if (!DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
             preflight, DRW::AC1027))
         return fail("cross-version preflight was affected by the AC1024 target guard");

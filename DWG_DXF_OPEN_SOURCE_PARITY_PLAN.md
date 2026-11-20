@@ -103,7 +103,8 @@ P4-D additional unresolved paths:
 - Resolve the [LayerStates source-admission blocker](docs/research/p4-ac1024-layerstates-original-adapter-admission-boundary-2026-11-20.json):
   admit the validated three-root common-link tails only for the proven original
   source graph, then freeze an output selection on the original adapter/data
-  instead of copying owner-bound receipts. Recheck APPID/control and all graph
+  instead of copying owner-bound receipts. Retain the [baseline refusal guard](docs/research/p4-ac1024-layerstates-baseline-fallback-guard-2026-11-20.json)
+  when source keys are renamed or removed. Recheck APPID/control and all graph
   dependencies through finalization; verify one emitted `ACAD` row and signed
   EED values after remapping in ASCII/Binary, with wrong-owner, member, name
   and payload refusal, destination preservation and corrected retry.
