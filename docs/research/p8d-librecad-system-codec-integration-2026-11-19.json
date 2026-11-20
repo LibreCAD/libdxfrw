@@ -10,18 +10,18 @@
     "testedBase": "26dd8817b37f59242a17fa1d0f8c61d6f1cfb410",
     "baseDelta": "Only plugins/picfile/picfile.cpp changed; the focused tests were built on 26dd and were not rebuilt against 281a.",
     "localBranch": "codex/libdxfrw-consumer-compat",
-    "localBranchHead": "bfc83e64090633416dc6a659cb497fe1870e786c",
+    "localBranchHead": "6c1cb619f50cde22551928090ba86cccc2c26a19",
     "checkout": "/private/tmp/libdxfrw-librecad-integration-26dd",
     "patch": "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
-    "patchSha256": "127c1b454bd1f944643145041e641fd906a9133eb58ad2f611c31253ef224db6",
-    "patchVerification": "Applying the patch to an alternate index at 281a produces exactly the candidate tree. The original five-commit patch matched the 26dd-based diff byte-for-byte; the macOS and DIMSTYLE fixes are additional."
+    "patchSha256": "38e2b3a60c69bf13f6d9bcafc5c7d23cbee8f7809de741881efd5efe68c7071c",
+    "patchVerification": "Applying the patch to an alternate index at 281a produces exactly the current candidate tree. The original five-commit patch matched the 26dd-based diff byte-for-byte; macOS and DIMSTYLE fixes are additional."
   },
   "validation": {
     "focusedCurrentLibrary": "A scratch CMake override built librecad_lib and five focused tests with current source headers and linked the source-built static archive; it was not the production installed-package option. DXF-to-DWG dimension style 15/15, JWW default 8/8, JWW imports 343 assertions in 17 cases, SHP codepage 20 assertions in 3 cases, associative prefix 48/48.",
     "testedSourceDifference": "Candidate affected C++ sources match the focused test source except for spelling of the fixed-handles include; both refer to the same header. The candidate spelling also compiled in the installed-option build.",
     "focusedBinary": {
       "path": "/private/tmp/libdxfrw-librecad-master-26dd-current-build/librecad_current_dimstyle_focus",
-      "sha256": "93242072433b2f0dee5822c43c5f901d1823610584f95f2e0b03889243ced26e",
+      "sha256": "141d83864fee3d734e55cb13023d300c931d097e7bf5eff4e088c49024483199",
       "scope": "Final DIMSTYLE selectors; earlier five-selector result used a previous binary."
     },
     "installedOption": "Actual installed-codec option configuration and filter/JWW/SHP compilation pass with -Werror. Bundled option filter compilation passes. BUILD_TESTS=ON, absent package, and 2.x package are refused explicitly.",
@@ -94,20 +94,49 @@
       {
         "path": "/private/tmp/libdxfrw-librecad-system-smoke/dwg2dxf-final.log",
         "sha256": "055bee025d5416a511bb0e4185a923998878442bd5fa4ede399fe886a35f2943"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-xdata-edit-red.log",
+        "sha256": "a61010f29857637f62486da3ea75d9039a280f3745c536f4a10cb665f9470a89"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-xdata-edit-direct-final.log",
+        "sha256": "46420ef813b072eb843a315264945d5cc78c46986b1ebd39fdd386b22073fd72"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-xdata-edit-app-build.log",
+        "sha256": "6648a9c3054d8692672d040726612378890a63dbd5dfb628686fa3fa1ca9f490"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-xdata-edit-bundled-build.log",
+        "sha256": "457986c2511d59ffb9fb22595c5de108d06943a301b1bf73be53d9f318c98d2f"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-system-smoke/edit-final-dxf2dwg.log",
+        "sha256": "38e9eb43f99465a7f6a438f73034c505cc0c212ab425e07193cb30cf2fae3601"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-system-smoke/edit-final-dwg2dxf.log",
+        "sha256": "67adc13c7eb9f67c63f7180d8a1e274db07551a4888e5578b5dd7c5af72330f3"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-xdata-edit-dwg.log",
+        "sha256": "7bee8feae382707b96a8126e59955e747d00a9352445aa83d3e2b6fb31638350"
       }
     ],
     "fullSystemBuild": "PASS: actual LibreCAD application built and linked on macOS 27.2.1 ARM64 using Qt 6.12 with -Werror and the installed libdxfrw 3.x archive; verified the final link command. Initial build failed on deprecated Q_OS_MAC and the isolated candidate replaces all six uses with Q_OS_MACOS. The final build also includes the DIMSTYLE fix.",
-    "dimstyleRoundtrip": "A generated-from-scratch DXF reproduces the failure after the normal onLoadingCompleted workflow: before the fix, DWG reimport to DXF fails with duplicate ACAD_DSTYLE_DIMTALN XDATA. The final focused selectors pass 40 assertions in two cases, including exact source preservation, conflicting-source refusal, unchanged destination and corrected same-filter retry. The app executable also converted generated DXF to AC1015 DWG and back to DXF, preserving a LINE endpoints and one DIMTALN application group. The executable uses a scratch injected library to redirect QSettings to a temporary INI location. This is headless smoke evidence only.",
+    "dimstyleRoundtrip": "A generated-from-scratch DXF reproduces the failure after the normal onLoadingCompleted workflow: before the fix, DWG reimport to DXF fails with duplicate ACAD_DSTYLE_DIMTALN XDATA. Final focused selectors pass 60 assertions in two cases. The exact modeled 392 group can be edited for DXF and is checked by direct text inspection and fresh typed readback; separate source XDATA remains intact, extended groups refuse, destination survives refusal, and corrected same-filter retry succeeds. A same-source retained group is never mutated. The actual installed-codec app converted generated DXF to AC1015 DWG and back, preserving a LINE endpoints and one DIMTALN group. A scratch injected library redirects QSettings to a temporary INI location. This is headless smoke evidence only.",
     "applicationBinary": {
       "path": "/private/tmp/libdxfrw-librecad-installed-option-build/LibreCAD.app/Contents/MacOS/LibreCAD",
-      "sha256": "ea6d7d691ae884d9fff39fa51a1a8f3c2c213a7cf33eb24f26c5be039676ba00"
-    }
+      "sha256": "b4b2b74fa242811e98be929d7d56845150759795dc1749eee94e73acb5adabf6"
+    },
+    "dwgReexportFinding": "A further DWG re-export experiment, after editing DIMSTYLE and adding a retained unrelated APPID group, fails safely: an AC1015 generated source carries DICTIONARY 0x30 referring to PLOTSETTINGS 0x56, which was not committed as a target; the writer reports an invalid structure reference and refuses. This observation is source/profile-specific and is not evidence that the DIMSTYLE change caused the failure. The full trace is in the attached local log."
   },
   "limits": [
     "The candidate remains local and unmerged; user consumer checkouts were not modified.",
     "Focused linked tests used a scratch CMake override, not the production installed option, and were built at 26dd.",
     "Only the specified generated line and DIMSTYLE XDATA profile was exercised through the installed-codec application; native GUI, Linux/Windows and LibreCAD_3 qualification remain open.",
-    "Conflicting or extended DIMSTYLE XDATA groups still refuse; they are not merged or discarded.",
+    "Extended, duplicate, invalid or otherwise ambiguous DIMSTYLE XDATA groups still refuse; they are not merged or discarded. The source metadata is not overwritten by the edited DXF projection.",
     "No DWG/DXF fixtures were added."
   ]
 }
