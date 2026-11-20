@@ -41049,11 +41049,11 @@ bool dx_iface::inspectDwgLayerStateNestedObjects(
             return output && output != DRW::NoHandle;
         };
         std::uint32_t companionHandle = 0u, dictionaryHandle = 0u, recordHandle = 0u, scaleHandle = 0u;
-        std::uint32_t rootHandle = 0u, parentRecord = 0u, scaleOwner = 0u;
+        std::uint32_t rootHandle = 0u, parentRecord = 0u, scaleOwner = 0u, nodHandle = 0u;
         if (!map(companion->handle, companionHandle) || !map(snapshot.nestedDictionary->handle, dictionaryHandle)
             || !map(snapshot.nestedRecord->handle, recordHandle) || !map(scale->handle, scaleHandle)
             || !map(snapshot.extensionDictionary.handle, rootHandle) || !map(snapshot.layerStateRecord.handle, parentRecord)
-            || !map(scale->parentHandle, scaleOwner)) return false;
+            || !map(scale->parentHandle, scaleOwner) || !map(cData->namedObjectDictionary.handle, nodHandle)) return false;
         for (const auto& item : {std::make_pair(companionHandle, "DICTIONARY"),
                                 std::make_pair(dictionaryHandle, "DICTIONARY"),
                                 std::make_pair(recordHandle, "XRECORD"),
@@ -41063,14 +41063,30 @@ bool dx_iface::inspectDwgLayerStateNestedObjects(
         if (!dxfW->dxfWriteRecordHasOwner(companionHandle, rootHandle)
             || !dxfW->dxfWriteRecordHasOwner(dictionaryHandle, parentRecord)
             || !dxfW->dxfWriteRecordHasOwner(recordHandle, dictionaryHandle)
-            || !dxfW->dxfWriteRecordHasOwner(scaleHandle, scaleOwner)) return false;
-        unsigned companions = 0u, dictionaries = 0u, records = 0u, scales = 0u;
+            || !dxfW->dxfWriteRecordHasOwner(scaleHandle, scaleOwner)
+            || !dxfW->dxfWriteRecordHasOwner(scaleOwner, nodHandle)
+            || !dxfW->dxfWriteRecordHasIdentity(nodHandle, "DICTIONARY", "OBJECTS")) return false;
+        unsigned companions = 0u, dictionaries = 0u, records = 0u, scales = 0u, roots = 0u;
         const bool inspected = dx_standard_output::inspectSelected(view,
             [&](std::string_view, std::uint32_t handle) {
                 return handle == companionHandle || handle == dictionaryHandle
-                    || handle == recordHandle || handle == scaleHandle;
+                    || handle == recordHandle || handle == scaleHandle || handle == nodHandle;
             }, [&](const dx_standard_output::Shape& shape, std::string_view body) {
                 dx_standard_output::Decoder decoder(view);
+                if (shape.handle == nodHandle) {
+                    if (++roots != 1u || shape.kind != dx_standard_output::Family::Dictionary) return false;
+                    return decoder.decodeRecord<DRW_Dictionary>(body, [&](const DRW_Dictionary& actual) {
+                        using Role = DRW_Dictionary::Entry::DxfHandleCode;
+                        return actual.hasCompleteDxfEntries() && actual.parentHandle == 0u
+                            && std::count_if(actual.m_entries.begin(), actual.m_entries.end(), [&](const auto& entry) {
+                                return entry.m_name == "ACAD_SCALELIST" && entry.m_handle == scaleOwner
+                                    && entry.m_dxfHandleCode == Role::SoftOwner;
+                            }) == 1
+                            && std::count_if(actual.m_entries.begin(), actual.m_entries.end(), [&](const auto& entry) {
+                                return entry.m_handle == scaleOwner || asciiIdentifierEquals(entry.m_name, "ACAD_SCALELIST");
+                            }) == 1;
+                    });
+                }
                 if (shape.handle == companionHandle || shape.handle == dictionaryHandle) {
                     const auto& expected = shape.handle == companionHandle ? *companion : *snapshot.nestedDictionary;
                     auto& count = shape.handle == companionHandle ? companions : dictionaries;
@@ -41098,8 +41114,49 @@ bool dx_iface::inspectDwgLayerStateNestedObjects(
                 });
             });
         m_dwgLayerStateNestedInspected = inspected && companions == 1u && dictionaries == 1u
-            && records == 1u && scales == 1u;
+            && records == 1u && scales == 1u && roots == 1u;
         return m_dwgLayerStateNestedInspected;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::finalizeDwgLayerStateOutputDependencies() const noexcept {
+    if (!hasUnchangedDwgLayerStateOutputSource()) return false;
+    if (!m_dwgLayerStateOutputPrepared) return true;
+    if (!m_dwgLayerStateOutputInspected) return false;
+    const auto& source = m_dwgLayerStateOutputSource;
+    if (!source.nestedDictionary) return true;
+    if (!dxfW || !cData || !source.nestedRecord || !m_dwgLayerStateAppIdTableInspected
+        || !m_dwgLayerStateNestedInspected || !m_dwgScalesInspected || !hasUnchangedDwgScales()) return false;
+    try {
+    const auto app = dxfW->dxfWriteEmittedSourceTableHandle(0x12u);
+    const auto root = dxfW->remapHandle(source.extensionDictionary.handle);
+    const auto states = dxfW->remapHandle(source.layerStatesDictionary.handle);
+    const auto dictionary = dxfW->remapHandle(source.nestedDictionary->handle);
+    const auto record = dxfW->remapHandle(source.nestedRecord->handle);
+    const auto parent = dxfW->remapHandle(source.layerStateRecord.handle);
+    const auto scale = std::find_if(cData->scales.begin(), cData->scales.end(),
+        [&source](const DRW_Scale& value) { return value.handle == source.nestedScaleHandle; });
+    if (!app || app == DRW::NoHandle
+        || !dxfW->dxfWriteSourceObjectHasIdentity(source.extensionDictionary.handle, root,
+                                                   "DICTIONARY", "OBJECTS", 2u)
+        || !dxfW->dxfWriteSourceObjectHasIdentity(source.layerStatesDictionary.handle, states,
+                                                   "DICTIONARY", "OBJECTS", root)
+        || !dxfW->dxfWriteSourceObjectHasIdentity(source.layerStateRecord.handle, parent,
+                                                   "XRECORD", "OBJECTS", states)) return false;
+    for (const auto& companion : source.layerStateCompanionDictionaries)
+        if (!dxfW->dxfWriteSourceObjectHasIdentity(companion.handle, dxfW->remapHandle(companion.handle),
+                                                   "DICTIONARY", "OBJECTS", root)) return false;
+    return app && app != DRW::NoHandle
+        && dxfW->dxfWriteSourceTableHasIdentity(0x12u, app, "APPID", 9u)
+        && dxfW->dxfWriteSourceObjectHasIdentity(source.nestedDictionary->handle, dictionary,
+                                                 "DICTIONARY", "OBJECTS", parent)
+        && dxfW->dxfWriteSourceObjectHasIdentity(source.nestedRecord->handle, record,
+                                                 "XRECORD", "OBJECTS", dictionary)
+        && scale != cData->scales.end()
+        && dxfW->dxfWriteSourceObjectHasIdentity(scale->parentHandle, dxfW->remapHandle(scale->parentHandle),
+                                                 "DICTIONARY", "OBJECTS", dxfW->remapHandle(cData->namedObjectDictionary.handle))
+        && dxfW->dxfWriteSourceObjectHasIdentity(scale->handle, dxfW->remapHandle(scale->handle),
+                                                 "SCALE", "OBJECTS", dxfW->remapHandle(scale->parentHandle));
     } catch (...) { return false; }
 }
 
@@ -41114,13 +41171,6 @@ bool dx_iface::inspectDwgLayerStateOutput(
                       << '\n';
         return false;
     };
-    // Source admission alone does not prove the nested dictionary, SCALE and
-    // APPID dependencies in the staged output. Keep this profile fail-closed
-    // until those output edges and their retry/readback controls are wired in.
-    if (m_dwgLayerStateOutputSourceVersion == DRW::AC1024
-        && m_dwgLayerStateOutputSource.extensionDictionary.m_entries.size() == 3u
-        && m_dwgLayerStateOutputSource.extensionDictionary.hasDwgCommonLinkTail())
-        return reject("AC1024 three-root staged dependencies are not yet qualified");
     const bool compatibleTarget =
         m_dwgLayerStateOutputSourceVersion == DRW::AC1024
             ? view.version == DRW::AC1024
@@ -41131,6 +41181,10 @@ bool dx_iface::inspectDwgLayerStateOutput(
         || view.version != dxfW->getVersion() || !compatibleTarget
         || !hasUnchangedDwgLayerStateOutputSource())
         return reject("source snapshot or output version");
+    const bool threeRoot = m_dwgLayerStateOutputSource.nestedDictionary.has_value();
+    if (threeRoot && (!m_dwgLayerStateAppIdTableInspected || !m_dwgScalesInspected
+        || !hasUnchangedDwgScales() || !inspectDwgLayerStateNestedObjects(view)))
+        return reject("AC1024 three-root staged dependencies are not yet qualified");
     const auto& tableProof = m_standardDwgLayerControlOutputProof;
     const auto& source = m_dwgLayerStateOutputSource;
     if (!tableProof.inspected || !tableProof.matched
@@ -41148,6 +41202,20 @@ bool dx_iface::inspectDwgLayerStateOutput(
             if (input == source.layerControlHandle) {
                 output = 2u;
                 return true;
+            }
+            if (source.nestedScaleHandle && input == source.nestedScaleHandle) {
+                const auto scale = std::find_if(cData->scales.begin(), cData->scales.end(),
+                    [input](const DRW_Scale& value) { return value.handle == input; });
+                const auto* context = dxfW->getWritingContext();
+                if (scale == cData->scales.end() || context == nullptr
+                    || context->ambiguousSourceHandles.count(input) != 0u
+                    || context->ambiguousSourceHandles.count(scale->parentHandle) != 0u) return false;
+                output = dxfW->remapHandle(input);
+                const auto owner = dxfW->remapHandle(scale->parentHandle);
+                return output && output != DRW::NoHandle && owner && owner != DRW::NoHandle
+                    && dxfW->dxfWriteRecordHandleCount(output) == 1u
+                    && dxfW->dxfWriteRecordHasIdentity(output, "SCALE", "OBJECTS")
+                    && dxfW->dxfWriteRecordHasOwner(output, owner);
             }
             const auto* context = dxfW->getWritingContext();
             if (input == DRW::NoHandle || context == nullptr)
@@ -41288,6 +41356,21 @@ bool dx_iface::inspectDwgLayerStateOutput(
             && !expectedXrecords.emplace(
                 emittedLayerStateRecord, &source.layerStateRecord).second)
             return reject("LayerStates XRECORD identity is duplicated");
+        if (threeRoot) {
+            std::uint32_t emittedNestedDictionary = 0u, emittedNestedRecord = 0u;
+            if (!source.nestedRecord
+                || !mapHandle(source.nestedDictionary->handle, emittedNestedDictionary)
+                || !mapHandle(source.nestedRecord->handle, emittedNestedRecord)
+                || dxfW->dxfWriteRecordHandleCount(emittedNestedDictionary) != 1u
+                || !dxfW->dxfWriteRecordHasIdentity(emittedNestedDictionary, "DICTIONARY", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(emittedNestedDictionary, emittedLayerStateRecord)
+                || dxfW->dxfWriteRecordHandleCount(emittedNestedRecord) != 1u
+                || !dxfW->dxfWriteRecordHasIdentity(emittedNestedRecord, "XRECORD", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(emittedNestedRecord, emittedNestedDictionary)
+                || !expectedDictionaries.emplace(emittedNestedDictionary, &*source.nestedDictionary).second
+                || !expectedXrecords.emplace(emittedNestedRecord, &*source.nestedRecord).second)
+                return reject("nested LayerStates identities or owner roles");
+        }
         for (const DRW_Dictionary& companion :
              source.layerStateCompanionDictionaries) {
             std::uint32_t emittedCompanion = 0u;
@@ -41349,7 +41432,8 @@ bool dx_iface::inspectDwgLayerStateOutput(
                         });
                     if (!decoded)
                         bodyMismatch = true;
-                    if (decoded && source.hasLayerStateRecord) {
+                    if (decoded && source.hasLayerStateRecord
+                        && expected->second->handle == source.layerStateRecord.handle) {
                         for (const auto& reference :
                              source.layerStateRecord.m_handleValues) {
                             const std::uint32_t sourceTarget = reference.second;
@@ -41507,6 +41591,9 @@ bool dx_iface::inspectDwgLayerStateOutput(
             && !recordOpaqueDwgOutputQualification(
                 source.layerStateRecord.handle))
             return reject("LayerStates XRECORD identity qualification staging");
+        if (threeRoot && (!recordOpaqueDwgOutputQualification(source.nestedDictionary->handle)
+            || !recordOpaqueDwgOutputQualification(source.nestedRecord->handle)))
+            return reject("nested LayerStates identity qualification staging");
         m_dwgLayerStateOutputInspected = true;
         return true;
     } catch (...) {
@@ -84234,8 +84321,8 @@ bool dx_iface::finalizeDxfWrite() {
     if (!m_dwgLayoutOutputSources.empty()
         && (!m_dwgLayoutsObjectsInspected || !m_dwgLayoutBlocksInspected))
         return failFinalization("DWG LAYOUT staged inspection");
-    if (m_dwgLayerStateOutputPrepared && !m_dwgLayerStateOutputInspected)
-        return failFinalization("DWG LAYERSTATE staged inspection");
+    if (!finalizeDwgLayerStateOutputDependencies())
+        return failFinalization("DWG LAYERSTATE staged dependency identity");
     if (!m_dxfMLineLinetypes.empty() && !m_dxfMLineLinetypesInspected)
         return failFinalization("DXF MLINE LTYPE staged inspection");
     if (!m_dxfMLineStyles.empty() && !m_dxfMLineStylesInspected)

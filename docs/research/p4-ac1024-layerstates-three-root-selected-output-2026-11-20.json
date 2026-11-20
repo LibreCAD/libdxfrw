@@ -1,0 +1,32 @@
+{
+  "scope": "Selected AC1024 three-root LayerStates graph output using the original importer; not a complete whole-drawing or native-semantics qualification.",
+  "source": {
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "producer": "not independently authenticated",
+    "repository_fixture_committed": false,
+    "libredwg_json_sha256": "31f12bab6c02c885f4ed97231573f0503c9de6835b23ace74cce65197234a832"
+  },
+  "implementation": {
+    "staged": "The same-import selection is joined to the LAYER_CONTROL table, ACAD APPID, nested dictionary and XRECORD, SCALELIST and all 32 SCALE records. Their remapped owner, member and payload identities are inspected before output qualification.",
+    "finalization": "Rechecks the source and emitted APPID, root, state dictionaries, primary and nested XRECORDs, companion dictionaries, SCALELIST and selected SCALE identities before publication.",
+    "limits": "The selected-ledger harness omits unrelated whole-drawing roots; unqualified whole-source routes remain fail-closed. Group 370 is preserved as observed, not independently qualified as a native semantic claim."
+  },
+  "validation": {
+    "selector": "--layerstates-ac1024-full-selected-writer",
+    "result": "PASS ASCII and Binary: 11 injected faults per encoding, including a finalization-time source-frame mutation, each refusing without changing the destination and allowing a corrected same-writer retry; fresh typed readback checks graph, EED, 32 scales and signed group 370.",
+    "address_sanitizer": "PASS the same selector in the address-sanitized build.",
+    "regressions": [
+      "--layerstates-ac1024-real-writer PASS, 17 faults per encoding",
+      "--layerstates-empty-ac1024-output-readback PASS on the mechanical profile"
+    ]
+  },
+  "independent_readback": {
+    "source_reader": "LibreDWG dwgread 0.14",
+    "dxf_reader": "ezdxf 1.4.5",
+    "script": "tools/research/compare_layerstates_selected_ezdxf.py",
+    "result": "PASS both encodings: LAYER table extension, three root entries, companion EED, primary and nested XRECORD links, SCALELIST and 32 members, selected SCALE fields and signed group 370.",
+    "ascii_sha256": "da5e77af6df6afd08dcd70f4a061359287083e19ca78767fe354c57920d4793d",
+    "binary_sha256": "0e0b10b3ab81e507e317aa3df3eb0ea43a5af64357ba6961941a004949979a4c"
+  },
+  "remaining": "Whole-source SUN and MATERIAL/APPID join, signed EED readback, authenticated producer provenance and native group-370/consumer semantics remain open."
+}

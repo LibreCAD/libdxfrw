@@ -4534,6 +4534,7 @@ private:
     bool m_dwgLayerStateNestedInspected{false};
     bool inspectDwgLayerStateAppIdTables(const dxfRW::DxfTablesWriteView&) noexcept;
     bool inspectDwgLayerStateNestedObjects(const dxfRW::DxfObjectsWriteView&) noexcept;
+    bool finalizeDwgLayerStateOutputDependencies() const noexcept;
     // Class and frame publication recorded during the same DWG read.
     using DwgClassObjectPublication = dx_data::DwgClassObjectPublication;
     const DRW_UnsupportedObject* boundDwgClassObject(

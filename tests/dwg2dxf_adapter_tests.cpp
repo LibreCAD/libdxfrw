@@ -4265,6 +4265,30 @@ public:
                                                const dxfRW::DxfObjectsWriteView& view) {
         return iface.inspectDwgLayerStateNestedObjects(view);
     }
+    static bool prepareSelectedLayerStateGraph(dx_iface& iface, dx_data& data, bool binary) {
+        iface.cData = &data;
+        iface.m_standardDwgOutputNameProofs.clear();
+        iface.m_standardDwgOutputNameBytes = 0u;
+        iface.m_standardDwgOutputNamesInspected = false;
+        iface.m_standardDwgLayerControlOutputProof = {};
+        iface.m_pendingOpaqueDwgOutputQualificationFrameIdentities.clear();
+        iface.m_extensionScaleHandles.clear();
+        for (const auto& scale : data.scales) iface.m_extensionScaleHandles.push_back(scale.handle);
+        return iface.prepareDwgLayerStateOutput(DRW::AC1024, true)
+            && iface.prepareDwgScales(DRW::AC1024, binary, true);
+    }
+    static bool inspectSelectedLayerStateGraphTables(dx_iface& iface,
+                                                       const dxfRW::DxfTablesWriteView& view) {
+        return iface.inspectDwgLayerStateAppIdTables(view)
+            && iface.inspectStandardDwgTablesOutput(view);
+    }
+    static bool inspectSelectedLayerStateGraphObjects(dx_iface& iface,
+                                                        const dxfRW::DxfObjectsWriteView& view) {
+        return iface.inspectDwgScales(view, true) && iface.inspectDwgLayerStateOutput(view, true);
+    }
+    static bool finalizeSelectedLayerStateGraph(const dx_iface& iface) {
+        return iface.finalizeDwgLayerStateOutputDependencies();
+    }
     static bool ac1024LayerStateAdmissionControls(dx_iface& iface, dx_data& data) {
         iface.cData = &data;
         const auto prepare = [&]() {
@@ -4295,9 +4319,7 @@ public:
         auto* savedCerr = std::cerr.rdbuf(diagnostics.rdbuf());
         const bool stagedAccepted = iface.inspectDwgLayerStateOutput(view, true);
         std::cerr.rdbuf(savedCerr);
-        if (stagedAccepted || diagnostics.str().find(
-                "AC1024 three-root staged dependencies are not yet qualified")
-                == std::string::npos) return false;
+        if (stagedAccepted) return false;
         dx_iface other;
         other.cData = &data;
         if (other.prepareDwgLayerStateOutput(DRW::AC1024, false)) return false;
@@ -95262,6 +95284,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-real-writer")
         return physicalAc1024LayerStatesRealWriter(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--layerstates-ac1024-full-selected-writer")
+        return physicalAc1024LayerStatesFullSelectedWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--layerstates-ac1024-empty-nod-writer")
         return physicalAc1024EmptyNodWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--layerstates-ac1024-mlinestyle-writer")

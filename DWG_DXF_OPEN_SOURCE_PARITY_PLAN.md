@@ -103,13 +103,12 @@ P4-D additional unresolved paths:
   numeric sort keys with the 12-entity native order after remapping. Continue
   the [group-370 restore](docs/research/p4-layerstates-xrecord370-producer-semantics-2026-11-18.json)
   check on the version-identified host.
-- Complete the [LayerStates three-root profile](docs/research/p4-ac1024-layerstates-same-import-admission-2026-11-20.json):
-  connect the [original-import selection and staged APPID/nested/SCALE checks](docs/research/p4-ac1024-layerstates-nested-staged-selection-2026-11-20.json)
-  to the complete graph inspector and finalization; keep the staged-output
-  refusal until the full writer path is verified. Verify one emitted `ACAD` row and signed
-  EED values after remapping in ASCII/Binary, with wrong-owner, member, name
-  and payload refusal, destination preservation, corrected retry and independent
-  readback. Retain the [baseline refusal guard](docs/research/p4-ac1024-layerstates-baseline-fallback-guard-2026-11-20.json).
+- Extend the [selected three-root LayerStates output](docs/research/p4-ac1024-layerstates-three-root-selected-output-2026-11-20.json)
+  to the whole-source path after the SUN graph closes. Join the MATERIAL and
+  APPID dependencies on the original importer and verify one emitted `ACAD`
+  row and signed EED after remapping in ASCII/Binary, with atomic refusal,
+  corrected retry and independent readback. Qualify native group-370 semantics
+  and retain the [baseline refusal guard](docs/research/p4-ac1024-layerstates-baseline-fallback-guard-2026-11-20.json).
 - AC1021-to-AC1024 whole-source output needs the [DICTIONARYVAR/TABLESTYLE join](docs/research/p4-ac1021-ctablestyle-ac1024-crossversion-blocker-2026-11-18.json)
   and native target evidence for [VISUALSTYLE and LAYOUT](docs/research/p4-ac1021-visualstyle-ac1024-target-peer-mapping-2026-11-18.json).
   Prove the source TABLESTYLE body and target-version staged output; existing

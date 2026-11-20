@@ -282,6 +282,208 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
     return true;
 }
 
+// Exercise the full selected LayerStates dependency inspector against the
+// original importer, while keeping unrelated whole-drawing roots out of scope.
+bool physicalAc1024LayerStatesFullSelectedWriter(const std::filesystem::path& sourcePath) {
+    using Access = DxIfaceStandardDwgCaptureTestAccess;
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || !Access::consistentLayerStateSourceGraph(reader, source))
+        return fail("full selected LayerStates source is not qualified");
+    const auto dictionary = [&](std::uint32_t handle) -> const DRW_Dictionary* {
+        const auto at = std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
+            [handle](const DRW_Dictionary& value) { return value.handle == handle; });
+        return at == source.dictionaries.end() ? nullptr : &*at;
+    };
+    const auto xrecord = [&](std::uint32_t handle) -> const DRW_XRecord* {
+        const auto at = std::find_if(source.xRecords.begin(), source.xRecords.end(),
+            [handle](const DRW_XRecord& value) { return value.handle == handle; });
+        return at == source.xRecords.end() ? nullptr : &*at;
+    };
+    std::uint32_t control = 0u, rootHandle = 0u;
+    if (!source.getLayerTableControlExtensionDictionary(control, rootHandle))
+        return fail("full selected LayerStates control is missing");
+    const auto* root = dictionary(rootHandle);
+    if (!root || root->m_entries.size() != 3u) return fail("full selected LayerStates root is missing");
+    const auto* filter = dictionary(root->m_entries[0].m_handle);
+    const auto* states = dictionary(root->m_entries[1].m_handle);
+    const auto* companion = dictionary(root->m_entries[2].m_handle);
+    const auto* primary = states && states->m_entries.size() == 1u ? xrecord(states->m_entries[0].m_handle) : nullptr;
+    const auto* nested = primary ? dictionary(primary->xDictHandle) : nullptr;
+    const auto* record = nested && nested->m_entries.size() == 1u ? xrecord(nested->m_entries[0].m_handle) : nullptr;
+    const auto* scaleList = dictionary(0x126u);
+    const auto app = std::find_if(source.appIds.begin(), source.appIds.end(),
+        [](const DRW_AppId& value) { return value.handle == 0x12u; });
+    if (!filter || !states || !companion || !primary || !nested || !record || !scaleList
+        || primary->m_handleValues.size() != 2u || app == source.appIds.end())
+        return fail("full selected LayerStates graph is incomplete");
+    const auto ltype = std::find_if(source.lineTypes.begin(), source.lineTypes.end(),
+        [&](const DRW_LType& value) { return value.handle == primary->m_handleValues[1].second; });
+    const auto layer = std::find_if(source.layers.begin(), source.layers.end(),
+        [&](const DRW_Layer& value) { return value.handle == primary->m_handleValues[0].second; });
+    if (layer == source.layers.end() || ltype == source.lineTypes.end())
+        return fail("full selected LayerStates table references are missing");
+    class SelectedWriter final : public LayerStateTestWriter {
+    public:
+        dx_data blank;
+        std::uint32_t control{0u};
+        DRW_AppId app;
+        DRW_Layer layer;
+        DRW_LType ltype;
+        DRW_Dictionary root, filter, states, companion, nested, scaleList;
+        DRW_XRecord primary, record;
+        std::vector<DRW_Scale> scales;
+        std::function<bool()> finalize;
+        bool omitRecord{false};
+        bool wantsDxfLayerTableControl() const override { return true; }
+        bool getDxfLayerTableControl(std::uint32_t& handle, std::uint32_t& extension) const override {
+            handle = control; extension = root.handle; return true;
+        }
+        void writeAppId() override { (void)dxfW->writeAppId(&app); }
+        void writeLTypes() override { (void)dxfW->writeLineType(&ltype); }
+        void writeLayers() override { (void)dxfW->writeLayer(&layer); }
+        void writeObjects() override {
+            (void)dxfW->writeDictionary(&root); (void)dxfW->writeDictionary(&filter);
+            (void)dxfW->writeDictionary(&states); (void)dxfW->writeDictionary(&companion);
+            (void)dxfW->writeXRecordLayerStateCompatibility(&primary);
+            (void)dxfW->writeDictionary(&nested);
+            if (!omitRecord) (void)dxfW->writeXRecord(&record);
+            (void)dxfW->writeDictionary(&scaleList);
+            for (auto& item : scales) (void)dxfW->writeScale(&item);
+        }
+        bool finalizeDxfWrite() override { return finalize && finalize(); }
+    } selected;
+    selected.cData = &selected.blank;
+    selected.control = control;
+    const auto path = std::filesystem::temp_directory_path() / ("libdxfrw-p4-full-selected-"
+        + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
+    struct Cleanup { std::filesystem::path path; ~Cleanup() {
+        std::error_code error; std::filesystem::remove(path, error);
+    } } cleanup{path};
+    dxfRW codec(path.string().c_str());
+    selected.dxfW = &codec;
+    reader.dxfW = &codec;
+    const auto* rootFrame = Access::standardSourceFrame(source, source.importGeneration, root->handle);
+    if (!rootFrame || rootFrame->m_rawBytes.empty()) return fail("full selected LayerStates source frame is absent");
+    auto& rootByte = const_cast<DRW_UnsupportedObject*>(rootFrame)->m_rawBytes.front();
+    bool corruptSourceAtFinalization = false;
+    selected.finalize = [&]() {
+        if (corruptSourceAtFinalization) rootByte ^= 1u;
+        const bool valid = Access::finalizeSelectedLayerStateGraph(reader);
+        if (corruptSourceAtFinalization) rootByte ^= 1u;
+        return valid;
+    };
+    codec.setDxfWriteRecordInventoryEnabled(true);
+    std::map<std::uint32_t, std::uint32_t> mappings;
+    for (auto handle : {root->handle, filter->handle, states->handle, companion->handle,
+                        primary->handle, nested->handle, record->handle, scaleList->handle})
+        mappings[handle] = 0xA000u + handle;
+    for (const auto& item : source.scales) mappings[item.handle] = 0xA000u + item.handle;
+    codec.setHandleRemap(mappings);
+    codec.setRootDictEntries({{"ACAD_SCALELIST", "A126"}});
+    if (!codec.setGeneratedDictionarySourceHandles(source.namedObjectDictionary.handle, 0u))
+        return fail("full selected LayerStates NOD setup failed");
+    if (!codec.setDxfTablesWriteInspector([&](const auto& view) {
+            return Access::inspectSelectedLayerStateGraphTables(reader, view);
+        }) || !codec.setDxfObjectsWriteInspector([&](const auto& view) {
+            return Access::inspectSelectedLayerStateGraphObjects(reader, view);
+        })) return fail("full selected LayerStates inspector setup failed");
+    const auto restore = [&]() {
+        selected.app = *app; selected.root = *root; selected.filter = *filter; selected.states = *states;
+        selected.companion = *companion; selected.primary = *primary; selected.nested = *nested;
+        selected.record = *record; selected.scaleList = *scaleList;
+        selected.scales.assign(source.scales.begin(), source.scales.end());
+        selected.omitRecord = false;
+        selected.layer = DRW_Layer{}; selected.layer.handle = layer->handle; selected.layer.name = layer->name;
+        selected.ltype = DRW_LType{}; selected.ltype.handle = ltype->handle; selected.ltype.name = ltype->name;
+    };
+    const std::string sentinel = "full selected LayerStates destination sentinel\n";
+    for (const bool binary : {false, true}) {
+        for (unsigned fault = 0u; fault < 11u; ++fault) {
+            restore();
+            corruptSourceAtFinalization = fault == 9u;
+            if (fault == 0u) selected.root.m_entries[1].m_name = "OTHER";
+            if (fault == 1u) selected.root.m_entries[1].m_handle = selected.companion.handle;
+            if (fault == 2u) selected.primary.parentHandle = selected.companion.handle;
+            if (fault == 3u) {
+                const auto value = std::find_if(selected.primary.m_dataEntries.begin(),
+                    selected.primary.m_dataEntries.end(), [](const DRW_Variant& v) { return v.code() == 370; });
+                if (value == selected.primary.m_dataEntries.end()) return fail("LayerStates group 370 is absent");
+                *value = DRW_Variant(370, std::int32_t{2});
+            }
+            if (fault == 4u) selected.nested.parentHandle = selected.companion.handle;
+            if (fault == 5u) selected.record.m_dataEntries[0] = DRW_Variant(330, std::string("128"));
+            if (fault == 6u) selected.app.name = "OTHER";
+            if (fault == 7u) {
+                if (selected.companion.extData.size() != 2u || !selected.companion.extData[1])
+                    return fail("LayerStates companion EED is absent");
+                *selected.companion.extData[1] = DRW_Variant(1000, std::string("OTHER"));
+            }
+            if (fault == 8u) selected.scales.front().paperUnits += 1.0;
+            if (fault == 10u) selected.omitRecord = true;
+            { std::ofstream existing(path, std::ios::binary | std::ios::trunc);
+              if (!existing || !(existing << sentinel)) return fail("cannot seed full selected destination"); }
+            if (!Access::prepareSelectedLayerStateGraph(reader, source, binary))
+                return fail("full selected LayerStates preparation failed");
+            if (codec.write(&selected, DRW::AC1024, binary)) {
+                std::cerr << "full selected LayerStates unexpected success: fault=" << fault << '\n';
+                return fail("corrupt full selected LayerStates output succeeded");
+            }
+            { std::ifstream input(path, std::ios::binary);
+              if (std::string{std::istreambuf_iterator<char>(input), {}} != sentinel)
+                  return fail("full selected LayerStates refusal changed the destination"); }
+            corruptSourceAtFinalization = false;
+            restore();
+            if (!Access::prepareSelectedLayerStateGraph(reader, source, binary)
+                || !codec.write(&selected, DRW::AC1024, binary)) {
+                std::cerr << "full selected LayerStates retry failed: fault=" << fault << '\n';
+                return fail("corrected full selected LayerStates retry failed");
+            }
+        }
+        dx_iface outputReader;
+        dx_data output;
+        if (!outputReader.fileImport(path.string(), &output, false)
+            || output.sourceFormat != dx_source_format::DXF || output.sourceVersion != DRW::AC1024)
+            return fail("full selected LayerStates fresh readback failed");
+        std::uint32_t outputControl = 0u, outputRoot = 0u;
+        if (!output.getLayerTableControlExtensionDictionary(outputControl, outputRoot)
+            || outputControl != 2u || outputRoot != codec.remapHandle(root->handle))
+            return fail("full selected LayerStates control link changed");
+        const auto outputRootRow = std::find_if(output.dictionaries.begin(), output.dictionaries.end(),
+            [outputRoot](const DRW_Dictionary& value) { return value.handle == outputRoot; });
+        const auto outputRecord = std::find_if(output.xRecords.begin(), output.xRecords.end(),
+            [&](const DRW_XRecord& value) { return value.handle == codec.remapHandle(record->handle); });
+        const auto outputPrimary = std::find_if(output.xRecords.begin(), output.xRecords.end(),
+            [&](const DRW_XRecord& value) { return value.handle == codec.remapHandle(primary->handle); });
+        const auto outputCompanion = std::find_if(output.dictionaries.begin(), output.dictionaries.end(),
+            [&](const DRW_Dictionary& value) { return value.handle == codec.remapHandle(companion->handle); });
+        if (outputRootRow == output.dictionaries.end() || outputRootRow->m_entries.size() != 3u
+            || outputRecord == output.xRecords.end() || outputRecord->m_handleValues.size() != 1u
+            || outputRecord->m_handleValues[0].second != codec.remapHandle(0x127u)
+            || outputPrimary == output.xRecords.end()
+            || outputPrimary->xDictHandle != codec.remapHandle(nested->handle)
+            || outputCompanion == output.dictionaries.end() || outputCompanion->extData.size() != 2u
+            || !outputCompanion->extData[0] || !outputCompanion->extData[0]->stringEquals("ACAD")
+            || !outputCompanion->extData[1] || !outputCompanion->extData[1]->stringEquals("<All")
+            || output.scales.size() != 32u)
+            return fail("full selected LayerStates nested graph or SCALE readback changed");
+        const auto signedValue = std::find_if(outputPrimary->m_dataEntries.begin(),
+            outputPrimary->m_dataEntries.end(), [](const DRW_Variant& value) { return value.code() == 370; });
+        if (signedValue == outputPrimary->m_dataEntries.end() || signedValue->i_val() != -3)
+            return fail("full selected LayerStates signed group 370 changed");
+        const char* capture = std::getenv("LIBDXFRW_LAYERSTATES_SELECTED_CAPTURE");
+        if (capture && *capture) {
+            std::error_code error;
+            const auto outputPath = std::string(capture) + (binary ? "-binary.dxf" : "-ascii.dxf");
+            if (!std::filesystem::copy_file(path, outputPath, std::filesystem::copy_options::none, error) || error)
+                return fail("full selected LayerStates research capture failed");
+        }
+    }
+    std::cerr << "AC1024 full selected LayerStates graph passed ASCII/Binary, 11 refusal/retries and readback.\n";
+    return true;
+}
+
 bool physicalAc1024EmptyNodWriter(const std::filesystem::path& sourcePath,
                                 bool withMLineStyle = false) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
