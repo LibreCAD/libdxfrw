@@ -1,0 +1,115 @@
+{
+  "id": "p6-ac1014-libredwg-candidate-dictionaryvar-output-gap-2026-11-20",
+  "gates": [
+    "P6-F",
+    "P6-J"
+  ],
+  "source": {
+    "repository": "https://github.com/LibreDWG/libredwg",
+    "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "directory": "test/test-data/r14",
+    "producer": "unknown; repository location and version magic do not establish producer/version-specific native semantics",
+    "localDirectory": "/Users/dli/dev/LibreDWG/test/test-data/r14"
+  },
+  "converter": {
+    "sourceRevision": "f83699086884c9fcd0bfff93b801afdafb1403d6",
+    "sha256": "609473bc0fb68d13aa68ce98646d06b9872763db3838528eade58d45fa417160",
+    "build": "AppleClang 21.0.0, CMake Release, macOS",
+    "commandShape": "dwg2dxf <source> -o <output> -y -d [-b]"
+  },
+  "results": [
+    {
+      "file": "Constraints.dwg",
+      "sha256": "8ac3451b4766ff4c723aa8a4aa08e340db3c7c74457d4cad29a79c134b3fb4d3",
+      "magic": "AC1014",
+      "sourceFrames": 321,
+      "publishedFrames": 319,
+      "failedFrames": 2,
+      "entityParseFailures": 0,
+      "objectParseFailures": 2,
+      "objectFailures": [
+        {
+          "handleLocTypeOrdinal": "998/139540/509/158",
+          "record": "CELLSTYLEMAP",
+          "class": "AcDbCellStyleMap"
+        },
+        {
+          "handleLocTypeOrdinal": "14/29937/500/11",
+          "record": "ACDBDICTIONARYWDFLT",
+          "class": "AcDbDictionaryWithDefault"
+        }
+      ]
+    },
+    {
+      "file": "Leader.dwg",
+      "sha256": "3a65cf074df4e50d9df6768fd1f067cc43b2f926ab54c8e83f73ddd62ae357f8",
+      "magic": "AC1014",
+      "sourceFrames": 346,
+      "publishedFrames": 344,
+      "failedFrames": 2,
+      "entityParseFailures": 0,
+      "objectParseFailures": 2,
+      "objectFailures": [
+        {
+          "handleLocTypeOrdinal": "3271/144000/509/185",
+          "record": "CELLSTYLEMAP",
+          "class": "AcDbCellStyleMap"
+        },
+        {
+          "handleLocTypeOrdinal": "14/31003/500/11",
+          "record": "ACDBDICTIONARYWDFLT",
+          "class": "AcDbDictionaryWithDefault"
+        }
+      ]
+    },
+    {
+      "file": "v.dwg",
+      "sha256": "e296ca50f237abb9eec1a8bdab77aa16fd59518e246df812aa4dd4f859bd12d3",
+      "magic": "AC1014",
+      "sourceFrames": 51,
+      "publishedFrames": 51,
+      "failedFrames": 0,
+      "entityParseFailures": 0,
+      "objectParseFailures": 0,
+      "objectFailures": []
+    }
+  ],
+  "vDwgOutput": {
+    "asciiAndBinaryExit": 1,
+    "existingDestinationsPreserved": true,
+    "diagnostic": "DXF OBJECTS callback aborted in DICTIONARYVAR records; emit-failure",
+    "observedScope": "AC1014 read operation succeeded and all 51 observed frames were published; this is not a proof of native semantics or complete source coverage."
+  },
+  "codeInvestigation": "prepareDwgDictionaryVars skips DWG versions other than AC1018/AC1021/AC1024, while the DWG OBJECTS callback requires a prepared snapshot for selected DICTIONARYVAR records. This explains why the AC1014 record cannot reach an admitted output path; later independent output gates remain untested.",
+  "authority": "ODA Open Design Specification for .dwg v5.4.1 section 20.4.74 distinguishes R13/R14 object-size placement and describes DICTIONARYVAR common and handle fields. A source-bound field/role and next-frame proof is still required.",
+  "nextAction": "For P6-J bind the AC1014 DICTIONARYVAR and NOD/owner graph source spans, identities, handle roles and frame boundary; admit only the proven profile, implement ASCII/Binary strict output and independent readback, and test atomic refusal plus corrected same-writer retry. For P6-F seek a different candidate with eligible recoverable entity failures and closed dependencies.",
+  "fixturePolicy": "LibreDWG sample remains in the external checkout; diagnostic output remains in /private/tmp. No sample or derivative was committed.",
+  "independentPeerScreen": {
+    "reader": "GNU LibreDWG dwgread 0.14 JSON",
+    "command": "dwgread -O JSON -o /private/tmp/libdxfrw-p6f-libredwg-r14/v-independent.json /Users/dli/dev/LibreDWG/test/test-data/r14/v.dwg",
+    "exit": 0,
+    "jsonSha256": "5abc06ae33b96bb2e7321d5a4fdfb45d25ffeb3ceac17663c69c2123bd5fcdb8",
+    "nod": {
+      "handle": "0x0C",
+      "entryName": "ACDBVARIABLEDICTIONARY",
+      "target": "0x22"
+    },
+    "owner": {
+      "handle": "0x22",
+      "parent": "0x0C",
+      "entryName": "DIMADEC",
+      "target": "0x23"
+    },
+    "dictionaryVar": {
+      "handle": "0x23",
+      "objectType": 500,
+      "owner": "0x22",
+      "reactor": "0x22",
+      "schema": 0,
+      "value": "0",
+      "objectSizeBytes": 17,
+      "bodyBitSize": 104
+    },
+    "limitation": "Peer-decoded role and value candidates only: neither physical spans nor producer-native semantics have been independently established. The peer-reported uppercase key differs from the exact mixed-case string assumed by the admitted snapshot path and must be handled without collapsing distinct dictionary keys."
+  }
+}
