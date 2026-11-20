@@ -127,8 +127,42 @@ index 6c64f90..fe04089 100644
      }
      switch (prefix.status) {
      case AssociativePrefixParseStatus::Complete:
+diff --git a/librecad/src/lib/engine/rs_system.cpp b/librecad/src/lib/engine/rs_system.cpp
+index e843358..544a1e6 100644
+--- a/librecad/src/lib/engine/rs_system.cpp
++++ b/librecad/src/lib/engine/rs_system.cpp
+@@ -602,9 +602,9 @@ QStringList RS_System::getDirectoryList(const QString& subDir) const{
+     QStringList dirList;
+     const QString subDirectory = QDir::fromNativeSeparators( subDir);
+ 
+-#ifdef Q_OS_MAC
++#ifdef Q_OS_MACOS
+     dirList.append(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/" + m_appDirName + "/" + subDirectory);
+-#endif // Q_OS_MAC
++#endif // Q_OS_MACOS
+ 
+ #if (defined(Q_OS_WIN32) || defined(Q_OS_WIN64))
+     dirList.append(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation) + "/" + m_appDirName + "/" + subDirectory);
+@@ -645,7 +645,7 @@ QStringList RS_System::getDirectoryList(const QString& subDir) const{
+         RS_DEBUG->print("%s\n", QString("%1(): line %2: dir=%3\n").arg(__func__).arg(__LINE__).arg(dir).toUtf8().constData());
+     }
+ 
+-#ifdef Q_OS_MAC
++#ifdef Q_OS_MACOS
+     if (!m_appDir.isEmpty() && m_appDir!="/") {
+         if (subDirectory == QStringLiteral("plugins")) {
+             dirList.append(QDir::cleanPath(m_appDir + "/../PlugIns/LibreCAD"));
+@@ -656,7 +656,7 @@ QStringList RS_System::getDirectoryList(const QString& subDir) const{
+     }
+ #endif
+ 
+-#ifndef Q_OS_MAC
++#ifndef Q_OS_MACOS
+     // Add support directory if librecad is run-in-place,
+     // not for Apple because it uses resources this is more for unix systems
+     dirList.append( m_appDir + "/resources/" + subDirectory);
 diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
-index fefcf30..407960a 100644
+index fefcf30..5a51126 100644
 --- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
 +++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
 @@ -66,7 +66,7 @@
@@ -149,6 +183,41 @@ index fefcf30..407960a 100644
    m_dimStyle = "Standard";
    m_codePage = "ANSI_1252";
    m_textStyle = "Standard";
+@@ -21401,7 +21401,33 @@ void RS_FilterDXFRW::prepareDRWDimStyleLeader(DRW_Dimstyle &d,
+ void RS_FilterDXFRW::prepareDRWDimStyleExtData(DRW_Dimstyle &d,
+                                                const LC_DimStyle *ds) {
+   auto tolerance = ds->latteralTolerance();
+-  if (tolerance->checkModifyState(LC_DimStyle::LatteralTolerance::$DIMTALN)) {
++  // A source DIMSTYLE can already carry the exact group that the model would
++  // generate. Replay it once, but leave conflicting or extended groups for
++  // the strict writer to refuse rather than silently dropping source data.
++  bool sourceMatchesGeneratedTolerance = false;
++  if (const auto *source =
++          m_graphic->dwgAdvancedMetadata().findDimStyleTableEntryByName(d.name)) {
++    const auto &xdata = source->extData;
++    for (std::size_t i = 0; i < xdata.size(); ++i) {
++      const DRW_Variant *app = xdata[i];
++      if (app == nullptr || app->code() != 1001 ||
++          app->type() != DRW_Variant::STRING || app->content.s == nullptr ||
++          normalizeDwgTableName(*app->content.s) != "ACAD_DSTYLE_DIMTALN")
++        continue;
++      const bool exactEnd = i + 3 == xdata.size() ||
++          (i + 3 < xdata.size() && xdata[i + 3] != nullptr &&
++           xdata[i + 3]->code() == 1001);
++      if (i + 2 < xdata.size() && exactEnd && xdata[i + 1] != nullptr &&
++          xdata[i + 2] != nullptr && xdata[i + 1]->code() == 1070 &&
++          xdata[i + 1]->type() == DRW_Variant::INTEGER &&
++          xdata[i + 1]->i_val() == 392 && xdata[i + 2]->code() == 1070 &&
++          xdata[i + 2]->type() == DRW_Variant::INTEGER &&
++          xdata[i + 2]->i_val() == tolerance->adjustment())
++        sourceMatchesGeneratedTolerance = true;
++    }
++  }
++  if (tolerance->checkModifyState(LC_DimStyle::LatteralTolerance::$DIMTALN) &&
++      !sourceMatchesGeneratedTolerance) {
+     try {
+       if (!d.addExtData(
+               std::make_unique<DRW_Variant>(1001, "ACAD_DSTYLE_DIMTALN")) ||
 diff --git a/librecad/src/lib/filters/rs_filterjww.cpp b/librecad/src/lib/filters/rs_filterjww.cpp
 index ec07aae..5214f5d 100644
 --- a/librecad/src/lib/filters/rs_filterjww.cpp
@@ -344,10 +413,14 @@ index ce2cb27..b20f882 100644
      ensureSettings();
      const QString path = writeJww(QStringLiteral("jww_import_line.jww"), "");
 diff --git a/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp b/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp
-index 49d5337..89ccf6d 100644
+index 49d5337..d51c7a4 100644
 --- a/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp
 +++ b/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp
-@@ -39,7 +39,10 @@
+@@ -36,10 +36,14 @@
+ #include <filesystem>
+ #include <fstream>
+ #include <iterator>
++#include <sstream>
  #include <string>
  
  #include <QCoreApplication>
@@ -358,7 +431,7 @@ index 49d5337..89ccf6d 100644
  
  #include "lc_dwgadvancedmetadata.h"
  #include "rs_filterdxfrw.h"
-@@ -158,6 +161,37 @@ std::string dxfWithViewports(const std::string& records) {
+@@ -158,6 +162,131 @@ std::string dxfWithViewports(const std::string& records) {
  
  } // namespace
  
@@ -391,8 +464,128 @@ index 49d5337..89ccf6d 100644
 +    reopened.initForNewDocument();
 +    REQUIRE(importFrom(reopened, output, RS2::FormatDWG));
 +    checkTheLine(reopened);
++    const std::string roundTrip = QDir(directory.path()).filePath("roundtrip.dxf").toStdString();
++    REQUIRE(exportTo(reopened, roundTrip, RS2::FormatDXFRW2000));
++    std::ifstream stream(roundTrip);
++    REQUIRE(stream.good());
++    const std::string text{std::istreambuf_iterator<char>(stream), {}};
++    std::istringstream pairs(text);
++    std::string code, value;
++    int toleranceGroups = 0;
++    while (std::getline(pairs, code) && std::getline(pairs, value)) {
++        if (QString::fromStdString(code).trimmed() == QStringLiteral("1001") &&
++            QString::fromStdString(value).trimmed() == QStringLiteral("ACAD_DSTYLE_DIMTALN"))
++            ++toleranceGroups;
++    }
++    CHECK(toleranceGroups == 1);
++    RS_Graphic dxfReopened;
++    dxfReopened.initForNewDocument();
++    REQUIRE(importFrom(dxfReopened, roundTrip, RS2::FormatDXFRW));
++    checkTheLine(dxfReopened);
++
++
++}
++
++TEST_CASE("DIMSTYLE source XDATA is emitted once and conflicts refuse safely",
++          "[dxf][dwg][filter][dimstyle-xdata-roundtrip]") {
++    ensureSettings();
++    QTemporaryDir directory;
++    REQUIRE(directory.isValid());
++    const QString input = QDir(directory.path()).filePath("source.dxf");
++    const std::string dwg = QDir(directory.path()).filePath("source.dwg").toStdString();
++    const QString output = QDir(directory.path()).filePath("output.dxf");
++    {
++        QFile file(input);
++        REQUIRE(file.open(QIODevice::WriteOnly));
++        const QByteArray dxf("0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n"
++                             "0\nENDSEC\n0\nSECTION\n2\nENTITIES\n0\nLINE\n8\n0\n"
++                             "10\n1.25\n20\n2.5\n30\n0.0\n11\n12.5\n21\n7.5\n31\n0.0\n"
++                             "0\nENDSEC\n0\nEOF\n");
++        REQUIRE(file.write(dxf) == dxf.size());
++        REQUIRE(file.flush());
++    }
++    RS_Graphic drawing;
++    drawing.initForNewDocument();
++    REQUIRE(importFrom(drawing, input.toStdString(), RS2::FormatDXFRW));
++    drawing.onLoadingCompleted();
++    REQUIRE(exportTo(drawing, dwg, RS2::FormatDWG));
++    RS_Graphic reopened;
++    reopened.initForNewDocument();
++    REQUIRE(importFrom(reopened, dwg, RS2::FormatDWG));
++    reopened.onLoadingCompleted();
++    RS_FilterDXFRW writer;
++    REQUIRE(writer.fileExport(reopened, output, RS2::FormatDXFRW2000));
++    QFile written(output);
++    REQUIRE(written.open(QIODevice::ReadOnly));
++    const QByteArray originalBytes = written.readAll();
++    written.close();
++    std::istringstream pairs(originalBytes.toStdString());
++    std::string code, value;
++    int count = 0;
++    while (std::getline(pairs, code) && std::getline(pairs, value)) {
++        if (QString::fromStdString(code).trimmed() == QStringLiteral("1001") &&
++            QString::fromStdString(value).trimmed() == QStringLiteral("ACAD_DSTYLE_DIMTALN"))
++            ++count;
++    }
++    CHECK(count == 1);
++    RS_Graphic readback;
++    readback.initForNewDocument();
++    REQUIRE(importFrom(readback, output.toStdString(), RS2::FormatDXFRW));
++
++    auto& metadata = reopened.dwgAdvancedMetadata();
++    const auto* source = metadata.findDimStyleTableEntryByName("Standard");
++    REQUIRE(source != nullptr);
++    DRW_Dimstyle original(*source);
++    DRW_Dimstyle conflicting(original);
++    bool changed = false;
++    for (std::size_t i = 0; i + 2 < conflicting.extData.size(); ++i) {
++        const auto* app = conflicting.extData[i];
++        auto* adjustment = conflicting.extData[i + 2];
++        if (app && app->code() == 1001 && app->type() == DRW_Variant::STRING &&
++            app->content.s && *app->content.s == "ACAD_DSTYLE_DIMTALN" &&
++            adjustment && adjustment->code() == 1070 &&
++            adjustment->type() == DRW_Variant::INTEGER) {
++            *adjustment = DRW_Variant(1070, adjustment->i_val() == 0 ? 1 : 0);
++            changed = true;
++            break;
++        }
++    }
++    REQUIRE(changed);
++    metadata.addDimStyleTableEntry(conflicting);
++    CHECK_FALSE(writer.fileExport(reopened, output, RS2::FormatDXFRW2000));
++    REQUIRE(written.open(QIODevice::ReadOnly));
++    CHECK(written.readAll() == originalBytes);
++    written.close();
++    metadata.addDimStyleTableEntry(original);
++    CHECK(writer.fileExport(reopened, output, RS2::FormatDXFRW2000));
 +}
 +
  TEST_CASE("a drawing saved as DXF and opened again is saved as DWG",
            "[dxf][dwg][filter][vport]") {
      ensureSettings();
+diff --git a/librecad/src/main/lc_application.cpp b/librecad/src/main/lc_application.cpp
+index 5f1285e..39d96ea 100644
+--- a/librecad/src/main/lc_application.cpp
++++ b/librecad/src/main/lc_application.cpp
+@@ -36,7 +36,7 @@ LC_Application::LC_Application(int &argc, char **argv)
+ // This is only used until the event filter is in place in mainwindow
+ bool LC_Application::event(QEvent *event)
+ {
+-#ifdef Q_OS_MAC
++#ifdef Q_OS_MACOS
+     if (QEvent::FileOpen == event->type()) {
+         QFileOpenEvent *openEvent = static_cast<QFileOpenEvent *>(event);
+         m_files.append( openEvent->file());
+diff --git a/librecad/src/ui/view/qg_graphicview.cpp b/librecad/src/ui/view/qg_graphicview.cpp
+index 8d8dccd..92c911e 100644
+--- a/librecad/src/ui/view/qg_graphicview.cpp
++++ b/librecad/src/ui/view/qg_graphicview.cpp
+@@ -328,7 +328,7 @@ QG_GraphicView::QG_GraphicView(QWidget* parent, RS_Document* doc, LC_ActionConte
+     setAttribute(Qt::WA_NoMousePropagation);
+ 
+     // Issue #2264: prevents macOS from applying text-related features like the Caps Lock indicator to the non-text canvas
+-#ifdef Q_OS_MAC
++#ifdef Q_OS_MACOS
+     setAttribute(Qt::WA_InputMethodEnabled, false); setInputMethodHints(Qt::ImhNone);
+ #endif
+ }
