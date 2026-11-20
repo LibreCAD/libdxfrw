@@ -105,11 +105,13 @@ P4-D additional unresolved paths:
   numeric sort keys with the 12-entity native order after remapping. Continue
   the [group-370 restore](docs/research/p4-layerstates-xrecord370-producer-semantics-2026-11-18.json)
   check on the version-identified host.
-- Reconcile the [LayerStates source-admission blocker](docs/research/p4-ac1024-layerstates-xrecord-source-admission-2026-11-01.json)
-  before enabling multi-root output. Integrate the source-bound ACAD APPID and
-  control evidence into the selected LayerStates output; verify one emitted
-  `ACAD` row and signed EED values after remapping, with wrong-owner, member,
-  name and payload refusal, destination preservation and retry.
+- Resolve the [LayerStates source-admission blocker](docs/research/p4-ac1024-layerstates-original-adapter-admission-boundary-2026-11-20.json):
+  admit the validated three-root common-link tails only for the proven original
+  source graph, then freeze an output selection on the original adapter/data
+  instead of copying owner-bound receipts. Recheck APPID/control and all graph
+  dependencies through finalization; verify one emitted `ACAD` row and signed
+  EED values after remapping in ASCII/Binary, with wrong-owner, member, name
+  and payload refusal, destination preservation and corrected retry.
 - AC1021-to-AC1024 whole-source output needs the [DICTIONARYVAR/TABLESTYLE join](docs/research/p4-ac1021-ctablestyle-ac1024-crossversion-blocker-2026-11-18.json)
   and native target evidence for [VISUALSTYLE and LAYOUT](docs/research/p4-ac1021-visualstyle-ac1024-target-peer-mapping-2026-11-18.json).
   Prove the source TABLESTYLE body and target-version staged output; existing
