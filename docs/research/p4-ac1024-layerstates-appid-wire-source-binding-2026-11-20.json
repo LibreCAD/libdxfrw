@@ -1,0 +1,48 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-layerstates-appid-wire-source-binding-2026-11-20",
+  "date": "2026-11-20",
+  "status": "SOURCE_GRAPH_BINDING_PASS_OUTPUT_AND_NATIVE_OPEN",
+  "supportClaimEffect": "none",
+  "priorReceipt": "docs/research/p4-ac1024-aerial-appid-wire-binding-2026-11-20.json",
+  "source": {
+    "path": "tests/samples/AC1024/visualization_-_aerial.dwg",
+    "sha256": "edf22e187337e37d2083b26d6d00ce30ed78d2fd31d6bf0e9869902325ad3ab1",
+    "fixtureCommitted": false,
+    "provenance": "Existing local untracked reference source; producer provenance remains unqualified."
+  },
+  "finding": "The LayerStates source-consistency predicate checked same-import APPID name identity but did not bind the live parent or the independently observed APPID and APPID_CONTROL bodies.",
+  "change": "Require the existing bounded same-import aerial APPID/APPID_CONTROL source and wire proof when evaluating this selected AC1024 LayerStates source graph. The generic APPID name predicate remains unchanged. This does not enable any output route.",
+  "validation": {
+    "red": {
+      "log": "/private/tmp/libdxfrw-layerstate-appid-wire-red.log",
+      "sha256": "27040160d8c9f43825b12d6a64598ce019c9b5c3565e16e64ef4d9f448485b98",
+      "result": "Expected failure: a changed live APPID parent was not rejected by the earlier source-graph predicate."
+    },
+    "graph": {
+      "log": "/private/tmp/libdxfrw-layerstate-appid-final-graph.log",
+      "sha256": "f3a6e1298ff03d5be13e7169c397b17c67a3b371558a1b3d2d4caafbd049b0e9",
+      "result": "PASS: changed live parent, either retained source body and published control membership refuse; restoration requalifies on the same adapter, alongside existing graph/source mutation controls."
+    },
+    "genericContext": {
+      "log": "/private/tmp/libdxfrw-layerstate-appid-final-context.log",
+      "sha256": "c89d37ab1ba9dc11dabce449aacf9cc6cc847433963db6cad65da9a69ad890ae",
+      "result": "PASS: existing generic same-import APPID name/context controls remain valid."
+    },
+    "materialOutput": {
+      "log": "/private/tmp/libdxfrw-layerstate-appid-final-material.log",
+      "sha256": "6f23b019460f3b10f772467c5c077c6ebbd237430869c15bc420f148fb599fff",
+      "result": "PASS: selected MATERIAL ASCII/Binary readback and nine refusal/retry controls remain valid."
+    }
+  },
+  "files": {
+    "dwg2dxf/dx_iface.cpp": "b908506362727798f78232709c764ef83814705e88befe909f014185d320a430",
+    "tests/dwg2dxf_adapter_tests.cpp": "b4a9aa4297a0c0f4e252166a178b3315a4098714f16dc5e138af1b1b35938614"
+  },
+  "implementationDigestSha256": "1810ea2d6b7d7cb21aaa7b2c287308c3f0b767fdea5a4e1ffac6112e4d1c8a93",
+  "limits": [
+    "Source consistency for one selected AC1024 graph only; LayerStates staged output, emitted APPID/EED graph closure, whole-source output and native semantics remain open.",
+    "P8 package, FreeCAD and focused native checks remain open for the changed candidate.",
+    "No DWG or DXF fixture was committed."
+  ]
+}

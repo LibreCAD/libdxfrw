@@ -39862,7 +39862,8 @@ bool dx_iface::hasConsistentAc1024LayerStateSourceGraph() const noexcept {
     using K = dx_layerstates_dwg_wire::LinkKind;
     if (!cData || cData->sourceFormat != dx_source_format::DWG
         || cData->sourceVersion != DRW::AC1024 || !cData->importGeneration
-        || !hasCurrentDwgLayerControlSourceProof(*cData)) return false;
+        || !hasCurrentDwgLayerControlSourceProof(*cData)
+        || !hasQualifiedAerialMaterialAppIdSource()) return false;
     try {
         const auto& data = *cData;
         std::uint32_t control = 0u, extension = 0u;

@@ -3203,7 +3203,18 @@ public:
             || !rejectAndRestore(record->m_handleValues[0].second, std::uint32_t{0x11u})
             || !rejectAndRestore(record->xDictHandle, std::uint32_t{0x24bu})
             || !rejectAndRestore(scale->parentHandle, std::uint32_t{0x127u})
-            || !rejectAndRestore(app->name, std::string("OTHER"))) return false;
+            || !rejectAndRestore(app->name, std::string("OTHER"))
+            || !rejectAndRestore(app->parentHandle, std::uint32_t{0x0au})) return false;
+        auto& appIdBytes = iface.m_dwgAerialMaterialAppId.raw.m_rawBytes;
+        auto& controlBytes = iface.m_dwgAerialMaterialAppIdControl.raw.m_rawBytes;
+        auto& controlMembers = iface.m_dwgAerialMaterialAppIdControl.publication.m_controlHandles;
+        if (appIdBytes.empty() || controlBytes.empty() || controlMembers.empty()
+            || !rejectAndRestore(appIdBytes.front(),
+                                 static_cast<std::uint8_t>(appIdBytes.front() ^ 1u))
+            || !rejectAndRestore(controlBytes.front(),
+                                 static_cast<std::uint8_t>(controlBytes.front() ^ 1u))
+            || !rejectAndRestore(controlMembers.front(), std::uint32_t{0x13u}))
+            return false;
         const auto badWire = [&](std::uint32_t handle, std::size_t bit, bool opaque) {
             auto key = dx_data::StandardDwgFrameKey{data.importGeneration, handle};
             auto standard = data.m_standardDwgObjectFrames.find(key);

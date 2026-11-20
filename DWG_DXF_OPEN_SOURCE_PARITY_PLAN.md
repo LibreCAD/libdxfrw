@@ -70,7 +70,7 @@ operation, and profile. Apply the [support policy](docs/UPGRADE_SUPPORT.md),
 [external evidence registry](metadata/external-evidence-resolution-v1.json),
 and [3D plan](DWG_DXF_3D_SUPPORT_PLAN.md).
 
-The [APPID source guards](docs/research/p4-ac1024-aerial-appid-wire-binding-2026-11-20.json)
+The [APPID source guards](docs/research/p4-ac1024-layerstates-appid-wire-source-binding-2026-11-20.json)
 change converter inputs, so P8-A/B/C/E/F require revalidation. Prior package,
 FreeCAD and native receipts apply only to their recorded source, binaries,
 configurations, platforms and generated profiles.
@@ -106,10 +106,10 @@ P4-D additional unresolved paths:
   the [group-370 restore](docs/research/p4-layerstates-xrecord370-producer-semantics-2026-11-18.json)
   check on the version-identified host.
 - Reconcile the [LayerStates source-admission blocker](docs/research/p4-ac1024-layerstates-xrecord-source-admission-2026-11-01.json)
-  before enabling multi-root output. For the pending LayerStates ACAD APPID/EED table ticket,
-  bind the 20-byte payload, parent, ordered membership and name; verify one
-  emitted `ACAD` row and signed EED values after remapping, with wrong-owner,
-  member, name and payload refusal, destination preservation and retry.
+  before enabling multi-root output. Integrate the source-bound ACAD APPID and
+  control evidence into the selected LayerStates output; verify one emitted
+  `ACAD` row and signed EED values after remapping, with wrong-owner, member,
+  name and payload refusal, destination preservation and retry.
 - AC1021-to-AC1024 whole-source output needs the [DICTIONARYVAR/TABLESTYLE join](docs/research/p4-ac1021-ctablestyle-ac1024-crossversion-blocker-2026-11-18.json)
   and native target evidence for [VISUALSTYLE and LAYOUT](docs/research/p4-ac1021-visualstyle-ac1024-target-peer-mapping-2026-11-18.json).
   Prove the source TABLESTYLE body and target-version staged output; existing
