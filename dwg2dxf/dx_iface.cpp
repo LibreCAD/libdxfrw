@@ -40346,6 +40346,8 @@ bool dx_iface::prepareDwgLayerStateOutput(
     m_dwgLayerStateOutputSourceVersion = DRW::UNKNOWNV;
     m_dwgLayerStateOutputPrepared = false;
     m_dwgLayerStateOutputInspected = false;
+    m_dwgLayerStateAppIdTableInspected = false;
+    m_dwgLayerStateNestedInspected = false;
     bool ac1024LayerStatesCandidate = false;
     bool ac1021TwoRootCandidate = false;
     const auto skip = [debug, &ac1024LayerStatesCandidate, &ac1021TwoRootCandidate](const char* reason) {
@@ -40702,6 +40704,20 @@ bool dx_iface::prepareDwgLayerStateOutput(
         m_dwgLayerStateOutputSource.layerStateRecord = *layerStateRecord;
         m_dwgLayerStateOutputSource.hasLayerStateRecord = true;
     }
+    if (ac1024ThreeRootProfile) {
+        const auto* nestedDictionary = layerStateRecord == nullptr ? nullptr
+            : uniqueDictionary(layerStateRecord->xDictHandle);
+        const auto* nestedRecord = !nestedDictionary || nestedDictionary->m_entries.size() != 1u
+            ? nullptr : uniqueXRecord(nestedDictionary->m_entries.front().m_handle);
+        if (!nestedDictionary || !nestedRecord || nestedRecord->m_handleValues.size() != 1u
+            || nestedRecord->m_handleValues.front().first != 330) {
+            m_dwgLayerStateOutputSource = {};
+            return skip("three-root nested LayerStates selection changed during capture");
+        }
+        m_dwgLayerStateOutputSource.nestedDictionary = *nestedDictionary;
+        m_dwgLayerStateOutputSource.nestedRecord = *nestedRecord;
+        m_dwgLayerStateOutputSource.nestedScaleHandle = nestedRecord->m_handleValues.front().second;
+    }
     m_dwgLayerStateOutputOwner = cData;
     m_dwgLayerStateOutputGeneration = cData->importGeneration;
     m_dwgLayerStateOutputSourceVersion = cData->sourceVersion;
@@ -40721,6 +40737,12 @@ bool dx_iface::prepareDwgLayerStateOutput(
         if (layerStateRecord != nullptr)
             appendUnique(m_extensionXRecordHandles,
                          layerStateRecord->handle);
+        if (m_dwgLayerStateOutputSource.nestedDictionary)
+            appendUnique(m_extensionDictionaryHandles,
+                         m_dwgLayerStateOutputSource.nestedDictionary->handle);
+        if (m_dwgLayerStateOutputSource.nestedRecord)
+            appendUnique(m_extensionXRecordHandles,
+                         m_dwgLayerStateOutputSource.nestedRecord->handle);
         return true;
     }
     m_dwgLayerStateOutputSource = {};
@@ -40911,6 +40933,33 @@ bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
             || !actual->m_entries.empty() || !frameMatches(*actual))
             return false;
     }
+    const bool threeRoot = sourceVersion == DRW::AC1024
+        && m_dwgLayerStateOutputSource.extensionDictionary.m_entries.size() == 3u
+        && m_dwgLayerStateOutputSource.extensionDictionary.hasDwgCommonLinkTail();
+    if (threeRoot && (!m_dwgLayerStateOutputSource.nestedDictionary
+        || !m_dwgLayerStateOutputSource.nestedRecord
+        || !m_dwgLayerStateOutputSource.nestedScaleHandle)) return false;
+    if (m_dwgLayerStateOutputSource.nestedDictionary
+        || m_dwgLayerStateOutputSource.nestedRecord
+        || m_dwgLayerStateOutputSource.nestedScaleHandle) {
+        const auto& snapshot = m_dwgLayerStateOutputSource;
+        if (!snapshot.nestedDictionary || !snapshot.nestedRecord || !snapshot.nestedScaleHandle
+            || !snapshot.hasLayerStateRecord || layerStateRecord == nullptr
+            || layerStateRecord->xDictHandle != snapshot.nestedDictionary->handle)
+            return false;
+        const auto* nestedDictionary = uniqueDictionary(snapshot.nestedDictionary->handle);
+        const auto* nestedRecord = uniqueXRecord(snapshot.nestedRecord->handle);
+        if (!nestedDictionary || !nestedRecord || !sameDictionary(*snapshot.nestedDictionary, *nestedDictionary)
+            || !frameMatches(*nestedDictionary)
+            || !standardDwgModelsEqual(*snapshot.nestedRecord, *nestedRecord, sourceVersion, dwgObjType::XRECORD)
+            || !xrecordFrameMatches(*nestedRecord) || nestedDictionary->m_entries.size() != 1u
+            || nestedDictionary->m_entries.front().m_handle != nestedRecord->handle
+            || nestedRecord->parentHandle != nestedDictionary->handle
+            || nestedRecord->m_handleValues.size() != 1u
+            || nestedRecord->m_handleValues.front().first != 330
+            || nestedRecord->m_handleValues.front().second != snapshot.nestedScaleHandle)
+            return false;
+    }
     const auto root = std::find_if(
         extension->m_entries.begin(), extension->m_entries.end(),
         [](const DRW_Dictionary::Entry& entry) {
@@ -40933,6 +40982,125 @@ bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
         && !layerStateRecord->m_rawDataValid
         && !layerStateRecord->hasDwgRawDataSourceRecord()
         && layerStateRecord->hasDwgCommonLinkTail();
+}
+
+bool dx_iface::inspectDwgLayerStateAppIdTables(
+        const dxfRW::DxfTablesWriteView& view) noexcept {
+    if (!m_dwgLayerStateOutputPrepared || m_dwgLayerStateOutputSourceVersion != DRW::AC1024
+        || m_dwgLayerStateOutputSource.extensionDictionary.m_entries.size() != 3u
+        || !m_dwgLayerStateOutputSource.extensionDictionary.hasDwgCommonLinkTail())
+        return true;
+    if (!cData || !dxfW || m_dwgLayerStateAppIdTableInspected
+        || view.version != DRW::AC1024 || view.version != dxfW->getVersion()
+        || !hasUnchangedDwgLayerStateOutputSource()
+        || !hasQualifiedDwgLayerStateAppId(0x12u, "ACAD")) return false;
+    try {
+        const auto emitted = dxfW->dxfWriteEmittedSourceTableHandle(0x12u);
+        if (!emitted || emitted == DRW::NoHandle
+            || dxfW->dxfWriteRecordHandleCount(emitted) != 1u
+            || !dxfW->dxfWriteRecordHasIdentity(emitted, "APPID", "TABLES")) return false;
+        unsigned names = 0u, handles = 0u, matched = 0u;
+        const bool inspected = dx_symbol_output::inspect(view, [&](const dx_symbol_output::NameRecord& row) {
+            if (row.handle == emitted) ++handles;
+            if (row.type == dx_symbol_output::Kind::AppId && asciiIdentifierEquals(row.name, "ACAD")) {
+                ++names;
+                if (row.qualified && row.name == "ACAD" && row.handle == emitted
+                    && row.tableHandle != 0u && row.tableHandle != DRW::NoHandle
+                    && row.owner == row.tableHandle) ++matched;
+            }
+            return true;
+        });
+        m_dwgLayerStateAppIdTableInspected = inspected && names == 1u && handles == 1u && matched == 1u;
+        return m_dwgLayerStateAppIdTableInspected;
+    } catch (...) { return false; }
+}
+
+bool dx_iface::inspectDwgLayerStateNestedObjects(
+        const dxfRW::DxfObjectsWriteView& view) noexcept {
+    const auto& snapshot = m_dwgLayerStateOutputSource;
+    if (!m_dwgLayerStateOutputPrepared || m_dwgLayerStateOutputSourceVersion != DRW::AC1024
+        || snapshot.extensionDictionary.m_entries.size() != 3u
+        || !snapshot.extensionDictionary.hasDwgCommonLinkTail()) return true;
+    if (!cData || !dxfW || !snapshot.nestedDictionary || !snapshot.nestedRecord || !snapshot.nestedScaleHandle
+        || !m_dwgLayerStateAppIdTableInspected || m_dwgLayerStateNestedInspected
+        || view.version != DRW::AC1024 || view.version != dxfW->getVersion()
+        || !hasUnchangedDwgLayerStateOutputSource()) return false;
+    try {
+        const auto companion = std::find_if(snapshot.layerStateCompanionDictionaries.begin(),
+            snapshot.layerStateCompanionDictionaries.end(), [](const DRW_Dictionary& value) {
+                return !value.extData.empty();
+            });
+        const auto scale = std::find_if(cData->scales.begin(), cData->scales.end(),
+            [&snapshot](const DRW_Scale& value) { return value.handle == snapshot.nestedScaleHandle; });
+        if (companion == snapshot.layerStateCompanionDictionaries.end() || scale == cData->scales.end()
+            || std::count_if(snapshot.layerStateCompanionDictionaries.begin(),
+                             snapshot.layerStateCompanionDictionaries.end(),
+                             [](const DRW_Dictionary& value) { return !value.extData.empty(); }) != 1
+            || std::count_if(cData->scales.begin(), cData->scales.end(),
+                [&snapshot](const DRW_Scale& value) { return value.handle == snapshot.nestedScaleHandle; }) != 1)
+            return false;
+        const auto* context = dxfW->getWritingContext();
+        if (!context) return false;
+        const auto map = [this, context, &snapshot](std::uint32_t source, std::uint32_t& output) {
+            if (!source) { output = 0u; return true; }
+            if (source == snapshot.layerControlHandle) { output = 2u; return true; }
+            if (source == DRW::NoHandle || context->ambiguousSourceHandles.count(source)) return false;
+            output = dxfW->remapHandle(source);
+            return output && output != DRW::NoHandle;
+        };
+        std::uint32_t companionHandle = 0u, dictionaryHandle = 0u, recordHandle = 0u, scaleHandle = 0u;
+        std::uint32_t rootHandle = 0u, parentRecord = 0u, scaleOwner = 0u;
+        if (!map(companion->handle, companionHandle) || !map(snapshot.nestedDictionary->handle, dictionaryHandle)
+            || !map(snapshot.nestedRecord->handle, recordHandle) || !map(scale->handle, scaleHandle)
+            || !map(snapshot.extensionDictionary.handle, rootHandle) || !map(snapshot.layerStateRecord.handle, parentRecord)
+            || !map(scale->parentHandle, scaleOwner)) return false;
+        for (const auto& item : {std::make_pair(companionHandle, "DICTIONARY"),
+                                std::make_pair(dictionaryHandle, "DICTIONARY"),
+                                std::make_pair(recordHandle, "XRECORD"),
+                                std::make_pair(scaleHandle, "SCALE")})
+            if (dxfW->dxfWriteRecordHandleCount(item.first) != 1u
+                || !dxfW->dxfWriteRecordHasIdentity(item.first, item.second, "OBJECTS")) return false;
+        if (!dxfW->dxfWriteRecordHasOwner(companionHandle, rootHandle)
+            || !dxfW->dxfWriteRecordHasOwner(dictionaryHandle, parentRecord)
+            || !dxfW->dxfWriteRecordHasOwner(recordHandle, dictionaryHandle)
+            || !dxfW->dxfWriteRecordHasOwner(scaleHandle, scaleOwner)) return false;
+        unsigned companions = 0u, dictionaries = 0u, records = 0u, scales = 0u;
+        const bool inspected = dx_standard_output::inspectSelected(view,
+            [&](std::string_view, std::uint32_t handle) {
+                return handle == companionHandle || handle == dictionaryHandle
+                    || handle == recordHandle || handle == scaleHandle;
+            }, [&](const dx_standard_output::Shape& shape, std::string_view body) {
+                dx_standard_output::Decoder decoder(view);
+                if (shape.handle == companionHandle || shape.handle == dictionaryHandle) {
+                    const auto& expected = shape.handle == companionHandle ? *companion : *snapshot.nestedDictionary;
+                    auto& count = shape.handle == companionHandle ? companions : dictionaries;
+                    if (++count != 1u || shape.kind != dx_standard_output::Family::Dictionary) return false;
+                    return decoder.decodeRecord<DRW_Dictionary>(body, [&](const DRW_Dictionary& actual) {
+                        std::vector<std::uint32_t> refs;
+                        return dx_standard_output::equal(expected, actual, map, refs)
+                            && (shape.handle != dictionaryHandle || std::count(refs.begin(), refs.end(), recordHandle) == 1);
+                    });
+                }
+                if (shape.handle == recordHandle) {
+                    if (++records != 1u || shape.kind != dx_standard_output::Family::Xrecord) return false;
+                    return decoder.decodeRecord<DRW_XRecord>(body, [&](const DRW_XRecord& actual) {
+                        std::vector<std::uint32_t> refs;
+                        return dx_standard_output::equal(*snapshot.nestedRecord, actual, map, refs)
+                            && std::count(refs.begin(), refs.end(), scaleHandle) == 1;
+                    });
+                }
+                if (shape.handle != scaleHandle || ++scales != 1u || shape.kind != dx_standard_output::Family::Other
+                    || !scaleRawTransportEqual(*scale, body, view, map)) return false;
+                return decoder.decodeRecord<DRW_Scale>(body, [&](const DRW_Scale& actual) {
+                    return actual.handle == scaleHandle && actual.parentHandle == scaleOwner
+                        && actual.reactorHandles == std::vector<std::uint32_t>{scaleOwner}
+                        && scaleFieldsEqual(*scale, actual);
+                });
+            });
+        m_dwgLayerStateNestedInspected = inspected && companions == 1u && dictionaries == 1u
+            && records == 1u && scales == 1u;
+        return m_dwgLayerStateNestedInspected;
+    } catch (...) { return false; }
 }
 
 bool dx_iface::inspectDwgLayerStateOutput(
@@ -89132,6 +89300,8 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     m_dwgLayerStateOutputSourceVersion = DRW::UNKNOWNV;
     m_dwgLayerStateOutputPrepared = false;
     m_dwgLayerStateOutputInspected = false;
+    m_dwgLayerStateAppIdTableInspected = false;
+    m_dwgLayerStateNestedInspected = false;
     m_dxfMLeaderStyleState={}; m_dxfMLeaderStylesInspected=false;
     m_dxfMLineLinetypes.clear();m_dxfMLineAppIds.clear();m_dxfMLineLinetypesInspected=false;m_dxfMLineLinetypeCount=0u;
     m_dxfMaterialWriteDictionaries.clear();
@@ -93771,12 +93941,16 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         requiresAc1024AerialGlobalMaterialEedOutput();
     if ((needsStandardNames || needsRawEntityNameReferences
             || needsLayerControlOutput
-            || needsAerialGlobalMaterialEedOutput
+            || needsAerialGlobalMaterialEedOutput || needsDwgLayerStateOutput
             || m_dwgAerialMLeaderProofRequired
             || needsAerialTableStyleOutput
             || m_dwgLtypeControlOutputRequired
             || m_dxfLayerMaterialState.active || m_dxfLayerMaterialState.legacyPlotCrossVersion || !m_dxfMLineLinetypes.empty()
-            || needsDwgLayoutsOutput || !m_dwgGeoDataGraphs.empty() || usesAc1027DefaultLayerProfile() || usesAc1024DefaultLayersProfile()) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames, needsRawEntityNameReferences, needsLayerControlOutput, needsAerialGlobalMaterialEedOutput, needsDwgLayoutsOutput, debug, requireResolvedOwners, &reportPreflightFailure](const auto& view) {
+            || needsDwgLayoutsOutput || !m_dwgGeoDataGraphs.empty() || usesAc1027DefaultLayerProfile() || usesAc1024DefaultLayersProfile()) && !dxfW->setDxfTablesWriteInspector([this, needsStandardNames, needsRawEntityNameReferences, needsLayerControlOutput, needsAerialGlobalMaterialEedOutput, needsDwgLayerStateOutput, needsDwgLayoutsOutput, debug, requireResolvedOwners, &reportPreflightFailure](const auto& view) {
+            if (needsDwgLayerStateOutput && !inspectDwgLayerStateAppIdTables(view)) {
+                reportPreflightFailure("LayerStates APPID table dependency");
+                return false;
+            }
             if (!inspectAerialDwgMLeaderStyleTables(view)) {
                 reportPreflightFailure("DWG MLEADERSTYLE table dependencies");
                 return false;

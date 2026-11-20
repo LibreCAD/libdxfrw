@@ -4257,6 +4257,14 @@ public:
                                         DRW::Version targetVersion) {
         return iface.prepareDwgLayerStateOutput(targetVersion, false);
     }
+    static bool inspectLayerStateAppIdTables(dx_iface& iface,
+                                             const dxfRW::DxfTablesWriteView& view) {
+        return iface.inspectDwgLayerStateAppIdTables(view);
+    }
+    static bool inspectLayerStateNestedObjects(dx_iface& iface,
+                                               const dxfRW::DxfObjectsWriteView& view) {
+        return iface.inspectDwgLayerStateNestedObjects(view);
+    }
     static bool ac1024LayerStateAdmissionControls(dx_iface& iface, dx_data& data) {
         iface.cData = &data;
         const auto prepare = [&]() {
@@ -4265,6 +4273,21 @@ public:
                 && iface.hasUnchangedDwgLayerStateOutputSource();
         };
         if (!prepare()) return false;
+        const auto& snapshot = iface.m_dwgLayerStateOutputSource;
+        if (!snapshot.nestedDictionary || !snapshot.nestedRecord
+            || !snapshot.nestedScaleHandle
+            || snapshot.layerStateRecord.xDictHandle != snapshot.nestedDictionary->handle
+            || snapshot.nestedDictionary->m_entries.size() != 1u
+            || snapshot.nestedDictionary->m_entries.front().m_handle != snapshot.nestedRecord->handle
+            || std::count(iface.m_extensionDictionaryHandles.begin(), iface.m_extensionDictionaryHandles.end(),
+                          snapshot.nestedDictionary->handle) != 1
+            || std::count(iface.m_extensionXRecordHandles.begin(), iface.m_extensionXRecordHandles.end(),
+                          snapshot.nestedRecord->handle) != 1) return false;
+        auto savedNested = std::move(iface.m_dwgLayerStateOutputSource.nestedDictionary);
+        iface.m_dwgLayerStateOutputSource.nestedDictionary.reset();
+        const bool missingSnapshotRefused = !iface.hasUnchangedDwgLayerStateOutputSource();
+        iface.m_dwgLayerStateOutputSource.nestedDictionary = std::move(savedNested);
+        if (!missingSnapshotRefused || !iface.hasUnchangedDwgLayerStateOutputSource()) return false;
         const std::string empty;
         const dxfRW::DxfObjectsWriteView view{empty, DRW::AC1024, false,
             "UTF-8", dxfRW::DxfCompatibilityProfile::StandaloneSafe};
@@ -4296,17 +4319,25 @@ public:
             [](const DRW_Dictionary& value) { return value.handle == 0xedu; });
         auto record = std::find_if(data.xRecords.begin(), data.xRecords.end(),
             [](const DRW_XRecord& value) { return value.handle == 0x249u; });
+        auto nested = std::find_if(data.xRecords.begin(), data.xRecords.end(),
+            [&snapshot](const DRW_XRecord& value) { return value.handle == snapshot.nestedRecord->handle; });
+        auto nestedDictionary = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
+            [&snapshot](const DRW_Dictionary& value) { return value.handle == snapshot.nestedDictionary->handle; });
         if (root == data.dictionaries.end() || root->m_entries.size() != 3u
             || app == data.appIds.end() || scale == data.scales.end()
             || companion == data.dictionaries.end() || companion->extData.size() != 2u
             || !companion->extData[1] || !companion->extData[1]->content.s
-            || record == data.xRecords.end() || record->m_handleValues.empty()) return false;
+            || record == data.xRecords.end() || record->m_handleValues.empty()
+            || nested == data.xRecords.end() || nested->m_handleValues.size() != 1u
+            || nestedDictionary == data.dictionaries.end() || nestedDictionary->m_entries.size() != 1u) return false;
         if (!rejectAndRestore(root->m_entries[1].m_name, std::string("UNRELATED_ROOT"))
             || !rejectAndRestore(root->m_entries[1].m_handle, std::uint32_t{0xedu})
             || !rejectAndRestore(app->name, std::string("OTHER"))
             || !rejectAndRestore(app->parentHandle, std::uint32_t{0xau})
             || !rejectAndRestore(*companion->extData[1]->content.s, std::string("OTHER"))
             || !rejectAndRestore(record->m_handleValues[0].second, std::uint32_t{0x11u})
+            || !rejectAndRestore(nested->m_handleValues[0].second, std::uint32_t{0x11u})
+            || !rejectAndRestore(nestedDictionary->m_entries[0].m_name, std::string("OTHER"))
             || !rejectAndRestore(scale->parentHandle, std::uint32_t{0x127u})) return false;
         auto frame = data.m_standardDwgObjectFrames.find({data.importGeneration, 0xd5u});
         if (frame == data.m_standardDwgObjectFrames.end()

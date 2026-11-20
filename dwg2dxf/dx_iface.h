@@ -4520,6 +4520,9 @@ private:
         std::vector<DRW_Dictionary> layerStateCompanionDictionaries;
         DRW_XRecord layerStateRecord;
         bool hasLayerStateRecord{false};
+        std::optional<DRW_Dictionary> nestedDictionary;
+        std::optional<DRW_XRecord> nestedRecord;
+        std::uint32_t nestedScaleHandle{0u};
     };
     DwgLayerStateOutputSource m_dwgLayerStateOutputSource;
     const dx_data* m_dwgLayerStateOutputOwner{nullptr};
@@ -4527,6 +4530,10 @@ private:
     DRW::Version m_dwgLayerStateOutputSourceVersion{DRW::UNKNOWNV};
     bool m_dwgLayerStateOutputPrepared{false};
     bool m_dwgLayerStateOutputInspected{false};
+    bool m_dwgLayerStateAppIdTableInspected{false};
+    bool m_dwgLayerStateNestedInspected{false};
+    bool inspectDwgLayerStateAppIdTables(const dxfRW::DxfTablesWriteView&) noexcept;
+    bool inspectDwgLayerStateNestedObjects(const dxfRW::DxfObjectsWriteView&) noexcept;
     // Class and frame publication recorded during the same DWG read.
     using DwgClassObjectPublication = dx_data::DwgClassObjectPublication;
     const DRW_UnsupportedObject* boundDwgClassObject(

@@ -57,7 +57,15 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
         DRW_XRecord record;
         std::vector<DRW_Scale> scales;
         bool duplicateRecord {false};
-        void writeAppId() override { (void)dxfW->writeAppId(&app); }
+        bool duplicateAppId {false};
+        void writeAppId() override {
+            (void)dxfW->writeAppId(&app);
+            if (duplicateAppId) {
+                DRW_AppId duplicate = app;
+                duplicate.handle = 0x13u;
+                (void)dxfW->writeAppId(&duplicate);
+            }
+        }
         void writeObjects() override {
             (void)dxfW->writeDictionary(&companion);
             (void)dxfW->writeDictionary(&dictionary);
@@ -77,6 +85,8 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
     } } cleanup{path};
     dxfRW codec(path.string().c_str());
     selected.dxfW = &codec;
+    reader.cData = &source;
+    reader.dxfW = &codec;
     codec.setDxfWriteRecordInventoryEnabled(true);
     std::map<std::uint32_t, std::uint32_t> mappings{{0xEDu, 0xA0EDu}, {0xD5u, 0xA0D5u},
         {0x24Au, 0xA24Au}, {0x24Bu, 0xA24Bu}, {0x127u, 0xA127u},
@@ -98,7 +108,8 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
     };
     if (!codec.setDxfTablesWriteInspector([&](const auto& view) {
         tablesSeen = true;
-        if (!Access::consistentLayerStateSourceGraph(reader, source)) return false;
+        if (!Access::consistentLayerStateSourceGraph(reader, source)
+            || !Access::inspectLayerStateAppIdTables(reader, view)) return false;
         const auto emitted = codec.dxfWriteEmittedSourceTableHandle(app->handle);
         unsigned matches = 0u;
         return emitted != 0u && codec.dxfWriteRecordHandleCount(emitted) == 1u
@@ -111,7 +122,8 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
             }) && matches == 1u;
     }) || !codec.setDxfObjectsWriteInspector([&](const auto& view) {
         objectsSeen = true;
-        if (!tablesSeen || !Access::consistentLayerStateSourceGraph(reader, source)) return false;
+        if (!tablesSeen || !Access::consistentLayerStateSourceGraph(reader, source)
+            || !Access::inspectLayerStateNestedObjects(reader, view)) return false;
         for (const auto& item : {std::make_pair(0xA0EDu, "DICTIONARY"),
                 std::make_pair(0xA24Au, "DICTIONARY"),
                 std::make_pair(0xA24Bu, "XRECORD"), std::make_pair(0xA127u, "SCALE"),
@@ -196,11 +208,13 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
         selected.scaleList = *scaleList;
         selected.scales.assign(source.scales.begin(), source.scales.end());
         codec.setRootDictEntries({{"ACAD_SCALELIST", "A126"}});
-        selected.duplicateRecord = false; };
+        selected.duplicateRecord = false; selected.duplicateAppId = false; };
     const std::string sentinel = "selected LayerStates ledger sentinel\n";
     for (const bool binary : {false, true}) {
-        for (unsigned fault = 0u; fault != 12u; ++fault) {
+        for (unsigned fault = 0u; fault != 17u; ++fault) {
             restore(); tablesSeen = false; objectsSeen = false;
+            if (!Access::prepareLayerStateOutput(reader, DRW::AC1024))
+                return fail("could not freeze selected LayerStates source");
             if (fault == 0u) selected.app.name = "OTHER";
             if (fault == 1u) selected.companion.cloning = 2;
             if (fault == 2u) selected.record.parentHandle = 0x249u;
@@ -230,6 +244,11 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
             if (fault == 10u) for (auto& item : selected.scales)
                 if (item.handle == 0x145u) item.drawingUnits += 1.0;
             if (fault == 11u) selected.scales.push_back(selected.scales.front());
+            if (fault == 12u) selected.app.handle = 0x13u;
+            if (fault == 13u) selected.duplicateAppId = true;
+            if (fault == 14u) selected.dictionary.m_entries.front().m_name = "OTHER";
+            if (fault == 15u) selected.dictionary.parentHandle = 0x248u;
+            if (fault == 16u) selected.record.m_cloning = 2;
             { std::ofstream existing(path, std::ios::binary | std::ios::trunc);
               if (!existing || !(existing << sentinel)) return fail("cannot seed selected ledger sentinel"); }
             if (codec.write(&selected, DRW::AC1024, binary)) {
@@ -240,13 +259,16 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
             {
                 std::ifstream existing(path, std::ios::binary);
                 if (std::string{std::istreambuf_iterator<char>(existing), {}} != sentinel
-                    || !tablesSeen || (fault != 0u && fault != 6u && fault != 11u && !objectsSeen)) {
+                    || (!tablesSeen && fault != 13u) || (fault != 0u && fault != 6u && fault != 11u
+                        && fault != 12u && fault != 13u && !objectsSeen)) {
                     std::cerr << "LayerStates staged fault " << fault
                               << ", binary=" << binary << '\n';
                     return fail("selected ledger refusal did not preserve destination or reach its inspector");
                 }
             }
             restore(); tablesSeen = false; objectsSeen = false;
+            if (!Access::prepareLayerStateOutput(reader, DRW::AC1024))
+                return fail("could not refreeze selected LayerStates source");
             if (!codec.write(&selected, DRW::AC1024, binary) || !tablesSeen || !objectsSeen) {
                 std::cerr << "LayerStates staged fault " << fault
                           << ", binary=" << binary << '\n';
@@ -256,7 +278,7 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
     }
     if (!Access::consistentLayerStateSourceGraph(reader, source))
         return fail("selected ledger test changed the original source graph");
-    std::cerr << "AC1024 selected NOD/SCALELIST and 32 SCALE staged controls passed (ASCII/Binary, 12 faults each).\n";
+    std::cerr << "AC1024 selected NOD/SCALELIST and 32 SCALE staged controls passed (ASCII/Binary, 17 faults each).\n";
     return true;
 }
 
