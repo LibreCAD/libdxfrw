@@ -109,11 +109,11 @@ P4-D additional unresolved paths:
   and payload refusal, destination preservation, corrected retry and independent
   readback. Retain the [baseline refusal guard](docs/research/p4-ac1024-layerstates-baseline-fallback-guard-2026-11-20.json).
 - Restore the AC1024 mechanical empty-root readback without bypassing MATERIAL
-  dependencies. Its [separate Global EED source profile](docs/research/p4-ac1024-mechanical-global-material-eed-source-2026-11-20.json)
-  has extension dictionary `0x110` with four TILE XRECORDs, unlike the aerial
-  FBXASSET graph. Bind APPID_CONTROL membership, dictionary and XRECORD wire
-  roles/bodies and MATERIAL source identity; then implement staged graph and
-  signed-EED output proof with failure/rollback/retry and independent readback.
+  dependencies. Reuse its [Global EED](docs/research/p4-ac1024-mechanical-global-material-eed-source-2026-11-20.json)
+  and [four-TILE source proofs](docs/research/p4-ac1024-mechanical-global-material-tile-source-2026-11-20.json).
+  Bind APPID_CONTROL membership and the complete `0x72` MATERIAL root; then
+  implement staged graph and signed-EED output proof with failure/rollback/retry
+  and independent readback.
   Keep unqualified profiles refused and verify the one-root LayerStates
   ASCII/Binary readback and same-writer retry on the resulting eligible profile.
 - AC1021-to-AC1024 whole-source output needs the [DICTIONARYVAR/TABLESTYLE join](docs/research/p4-ac1021-ctablestyle-ac1024-crossversion-blocker-2026-11-18.json)

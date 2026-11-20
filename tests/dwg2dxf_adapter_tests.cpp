@@ -3621,6 +3621,60 @@ public:
         return changedValueRefused && qualified();
     }
 
+    static bool mechanicalGlobalTileSourceControls(dx_iface& iface, dx_data& data) {
+        iface.cData = &data;
+        const auto qualified = [&]() {
+            return iface.hasQualifiedAc1024MechanicalGlobalTileSources(data);
+        };
+        if (!qualified()) return false;
+        dx_iface other;
+        other.cData = &data;
+        if (other.hasQualifiedAc1024MechanicalGlobalTileSources(data)) return false;
+        const auto rejectAndRestore = [&](auto& field, const auto& bad) {
+            const auto saved = field;
+            field = bad;
+            const bool refused = !qualified();
+            field = saved;
+            return refused && qualified();
+        };
+        auto extension = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
+            [](const DRW_Dictionary& row) { return row.handle == 0x110u; });
+        auto record = std::find_if(data.xRecords.begin(), data.xRecords.end(),
+            [](const DRW_XRecord& row) { return row.handle == 0x111u; });
+        if (extension == data.dictionaries.end() || extension->m_entries.size() != 4u
+            || record == data.xRecords.end() || record->m_dataEntries.size() != 2u)
+            return false;
+        if (!rejectAndRestore(extension->parentHandle, std::uint32_t{0x99u})
+            || !rejectAndRestore(extension->m_entries[0].m_name, std::string("OTHER"))
+            || !rejectAndRestore(extension->m_entries[0].m_handle, std::uint32_t{0x111u})
+            || !rejectAndRestore(record->parentHandle, std::uint32_t{0x111u})
+            || !rejectAndRestore(record->m_dataEntries[0], DRW_Variant(270, 2))) return false;
+        for (const auto handle : {0x110u, 0x111u, 0x112u, 0x113u, 0x114u}) {
+            auto at = data.m_standardDwgObjectFrames.find({data.importGeneration, handle});
+            if (at == data.m_standardDwgObjectFrames.end() || at->second.raw.m_rawBytes.empty())
+                return false;
+            auto& byte = at->second.raw.m_rawBytes.front();
+            if (!rejectAndRestore(byte, static_cast<std::uint8_t>(byte ^ 1u))
+                || !rejectAndRestore(at->second.sourceProfileBound, false)) return false;
+            auto& raw = at->second.raw;
+            const auto linkStart = raw.m_rawBytes.size() * 8u - raw.m_bodyBitSize;
+            for (const auto bit : {std::size_t{50u}, linkStart, linkStart + 4u, linkStart + 8u}) {
+                if (bit >= raw.m_rawBytes.size() * 8u) return false;
+                auto& changed = raw.m_rawBytes[bit / 8u];
+                if (!rejectAndRestore(changed, static_cast<std::uint8_t>(
+                        changed ^ (0x80u >> (bit % 8u))))) return false;
+            }
+            const auto last = raw.m_rawBytes.back();
+            raw.m_rawBytes.pop_back();
+            --raw.m_objectSize;
+            const bool truncatedRefused = !qualified();
+            raw.m_rawBytes.push_back(last);
+            ++raw.m_objectSize;
+            if (!truncatedRefused || !qualified()) return false;
+        }
+        return qualified();
+    }
+
     static bool aerialGlobalMaterialEedSourceControls(dx_iface& iface,
                                                        dx_data& data) {
         iface.cData = &data;
@@ -62575,9 +62629,11 @@ bool physicalAc1024MechanicalGlobalMaterialEedWire(
     dx_data source;
     if (!reader.fileImport(sourcePath.string(), &source, false)
         || !DxIfaceStandardDwgCaptureTestAccess::mechanicalGlobalMaterialEedWireControls(
+            reader, source)
+        || !DxIfaceStandardDwgCaptureTestAccess::mechanicalGlobalTileSourceControls(
             reader, source))
-        return fail("AC1024 mechanical Global MATERIAL EED source controls failed");
-    std::cerr << "AC1024 mechanical Global MATERIAL EED wire controls passed.\n";
+        return fail("AC1024 mechanical Global MATERIAL EED/TILE source controls failed");
+    std::cerr << "AC1024 mechanical Global MATERIAL EED/TILE source controls passed.\n";
     return true;
 }
 

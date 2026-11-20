@@ -1,0 +1,63 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1024-mechanical-global-material-tile-source-2026-11-20",
+  "date": "2026-11-20",
+  "status": "MECHANICAL_TILE_SOURCE_GRAPH_PASS_OUTPUT_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "tests/samples/AC1024/mechanical_example-imperial-alt.dwg",
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "fixtureCommitted": false,
+    "provenance": "Existing local reference; producer provenance not independently established."
+  },
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.4.44 DICTIONARY",
+      "20.4.104 XRECORD"
+    ],
+    "roleLimits": "Per-record role and length values are observed in this source and correlated with LibreDWG 0.14, not generalized across files."
+  },
+  "observation": {
+    "extension": "Dictionary 0x110, owner 0x98, has four ordered TILE entries. Its owner is role 12 length 1, and item references role 2 length 2.",
+    "records": "0x111 owner role 8 length 0; 0x112/0x113/0x114 owner role 12 length 1. All reactors use role 4 length 2 to 0x110. The exact records contain groups 270=1 and 271=1 and four witnessed final set bits.",
+    "sourceBinding": "The importing adapter binds the Global MATERIAL frame and EED to its same-import APPID source and the dictionary/XRECORD frames to their source publications and typed baselines. Complete dictionary membership is required for each child."
+  },
+  "validation": {
+    "binary": "/private/tmp/libdxfrw-plotsettings-test-build/tests/libdxfrw_dwg2dxf_adapter_tests",
+    "binarySha256": "39998d4a80b83ac3c5b532613a30a258308cf1f901c3f49ad9e9ab536766e6de",
+    "artifacts": {
+      "build": {
+        "path": "/private/tmp/libdxfrw-mechanical-tile-source-build.log",
+        "sha256": "4142ad3861c342a25339b398fb5d5dae3a7381376383a2f825be1ac4209a32f0"
+      },
+      "mechanical": {
+        "path": "/private/tmp/libdxfrw-mechanical-tile-source.log",
+        "sha256": "e319568d50b83bfa985470afe3b12a1c3ffbe181e1fd53078f54426fcaa40d69"
+      },
+      "aerial": {
+        "path": "/private/tmp/libdxfrw-mechanical-tile-aerial.log",
+        "sha256": "a9b5cae5f726002fb1e9bd87cb9b2791f2fa2218c98389f83b817697e78e5f8d"
+      },
+      "wireDiagnostic": {
+        "path": "/private/tmp/libdxfrw-mechanical-graph-diag.log",
+        "sha256": "9f21d1d2404fcf171fe424884276f7cccc001f8a868744ed4920cce0b7734012"
+      },
+      "peerJson": {
+        "path": "/private/tmp/libdxfrw-mechanical-material.json",
+        "sha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367"
+      }
+    },
+    "controls": [
+      "Different adapter, changed dictionary owner/name/member, XRECORD owner or payload, mutated body/handle-stream bits, missing source-profile binding and per-record truncation are refused; restoring each passes on the same importer.",
+      "Aerial APPID, seven MATERIAL EED and 36 TILE source controls continue to pass."
+    ]
+  },
+  "limits": [
+    "This source proof does not establish APPID_CONTROL physical membership, the complete 0x72 material root or all unrelated drawing dependencies.",
+    "The staged writer, output ownership/remapping, signed EED readback and native semantics remain unqualified; no output support claim is promoted.",
+    "No DWG/DXF fixture was committed."
+  ]
+}

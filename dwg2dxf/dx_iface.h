@@ -4727,6 +4727,8 @@ private:
     void finishAerialDwgOtherMaterialEedSources() noexcept;
     bool hasQualifiedAc1024AerialGlobalMaterialEed(
         const dx_data&) const noexcept;
+    bool hasQualifiedAc1024MechanicalGlobalTileSources(
+        const dx_data&) const noexcept;
     bool hasQualifiedAc1024AerialOtherMaterialEed(
         const dx_data&, std::uint32_t handle) const noexcept;
     bool hasQualifiedAc1024AerialTileFrames(const dx_data&) const noexcept;

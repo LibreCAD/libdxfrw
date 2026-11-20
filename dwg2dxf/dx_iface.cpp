@@ -38,6 +38,7 @@
 #include "dx_ac1024_material_eed_wire.h"
 #include "dx_ac1024_aerial_appid_wire.h"
 #include "dx_ac1024_aerial_tile_wire.h"
+#include "dx_ac1024_mechanical_tile_wire.h"
 #include "dx_ac1024_aerial_fbxasset_wire.h"
 #include "dx_ac1024_aerial_advmaterial_wire.h"
 #include "dx_ac1021_dictionaryvar_wire.h"
@@ -45297,6 +45298,49 @@ bool dx_iface::hasQualifiedAc1024AerialGlobalMaterialEed(
     } catch (...) {
         return false;
     }
+}
+
+// Source-only proof; staged output and APPID_CONTROL wire proof remain open.
+bool dx_iface::hasQualifiedAc1024MechanicalGlobalTileSources(
+        const dx_data& data) const noexcept {
+    const auto& proof = m_dwgAerialGlobalMaterialEed;
+    if (&data != cData || typeid(*this) != typeid(dx_iface)
+        || data.sourceFormat != dx_source_format::DWG
+        || data.sourceVersion != DRW::AC1024 || data.importGeneration == 0u
+        || proof.captureFailed || proof.owner != &data || !proof.material
+        || proof.body.empty() || proof.frame.generation != data.importGeneration
+        || proof.frame.attempt == 0u
+        || proof.frame.attempt != aerialMaterialAppIdClassAttempt()) return false;
+    try {
+        const auto* material = uniqueDwgSourceRecord(data.materials, 0x98u);
+        const auto* extension = uniqueDwgSourceRecord(data.dictionaries, 0x110u);
+        const auto* raw = boundAc1024DwgClassObject(data, 0x98u, proof.frame, nullptr);
+        const auto* dictionaryRaw = extension == nullptr ? nullptr
+            : boundAc1024DwgStandardObject(data, *extension, dwgObjType::DICTIONARY);
+        if (!material || material->m_name != "Global" || material->parentHandle != 0x72u
+            || material->xDictHandle != 0x110u || !raw || !dictionaryRaw
+            || proof.body != raw->m_rawBytes
+            || !dxfMaterial::sameState(*proof.material, *material)
+            || !standardDwgCommonEqual(*proof.material, *material, DRW::AC1024)
+            || !dx_ac1024_material_eed_wire::observeMechanicalGlobal(
+                *raw, *material, [this](std::uint32_t app, std::string_view name) noexcept {
+                    return hasQualifiedDwgStandardAppIdSource(app, name);
+                })
+            || !dx_ac1024_mechanical_tile_wire::observeExtension(*dictionaryRaw, *extension))
+            return false;
+        for (std::size_t i = 0u; i < dx_ac1024_mechanical_tile_wire::handles.size(); ++i) {
+            const auto handle = dx_ac1024_mechanical_tile_wire::handles[i];
+            const auto* record = uniqueDwgSourceRecord(data.xRecords, handle);
+            const auto* recordRaw = record == nullptr ? nullptr
+                : boundAc1024DwgStandardObject(data, *record, dwgObjType::XRECORD);
+            if (!record || !recordRaw
+                || !data.hasCompleteDwgDictionaryEntry(0x110u,
+                    dx_ac1024_mechanical_tile_wire::names[i], handle)
+                || !dx_ac1024_mechanical_tile_wire::observeRecord(*recordRaw, *record))
+                return false;
+        }
+        return true;
+    } catch (...) { return false; }
 }
 
 bool dx_iface::hasQualifiedAc1024AerialOtherMaterialEed(
