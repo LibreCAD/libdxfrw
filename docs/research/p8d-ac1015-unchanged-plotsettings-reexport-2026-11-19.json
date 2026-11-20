@@ -1,0 +1,41 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-ac1015-unchanged-plotsettings-reexport-2026-11-19",
+  "date": "2026-11-19",
+  "status": "GENERATED_SOURCE_UNCHANGED_DWG_REEXPORT_REFUSED",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/private/tmp/libdxfrw-librecad-system-smoke/edit-final.dwg",
+    "sha256": "0949376f64f635d3ba132662ae31de87082a874ad3714783d4f10a45c2e4707a",
+    "provenance": "Created locally from scratch by the isolated LibreCAD candidate installed-codec executable converting source.dxf; no downloaded fixture.",
+    "version": "AC1015",
+    "inputPath": "/private/tmp/libdxfrw-librecad-system-smoke/source.dxf",
+    "inputSha256": "593518f6affc9a968dcbba6509bfb57d6b3acae24faea0d890c08e581b3e3106"
+  },
+  "experiment": {
+    "consumerBase": "281a8a4c83884ae1e8c9aa3436d87184c0b17ea7",
+    "candidate": "6c1cb619f50cde22551928090ba86cccc2c26a19",
+    "method": "Scratch-only focused test imports the existing generated DWG, calls onLoadingCompleted, and attempts a same-version DWG export without editing the drawing or adding APPIDs. It prints typed/raw metadata and the admission report.",
+    "binary": "/private/tmp/libdxfrw-librecad-plotsettings-trace-binary",
+    "binarySha256": "85ca3561b8b048f1bec6384a00758294cc7d651800d5031313ac18d999096da8",
+    "log": "/private/tmp/libdxfrw-librecad-plotsettings-unchanged-trace.log",
+    "logSha256": "88288e5eded4dadca92a6133ccc55f3c2970af16c6943af2d1f59d892eae1dfc",
+    "result": "PASS as a refusal characterization: unchanged re-export returns false. This is not a successful re-export."
+  },
+  "observations": [
+    "The generated source contains DICTIONARY 0x30 referencing custom PLOTSETTINGS 0x56. The typed PlotSettings callback reports handle 0x56, owner 0x30 and page setup LIBDXFRW_PLOTSETTINGS_86.",
+    "The raw PLOTSETTINGS callback retains 50 bytes at handle 0x56; its exposed parent handle is 0 and its typed payload validation flag is false. A zero exposed raw parent is not proof of the on-wire owner.",
+    "The admission report records same-version-raw selection for handle 0x56. Final reference validation reports DICTIONARY producer 0x30 committed, target 0x56 unresolved and not committed.",
+    "The same failure occurs without the DIMSTYLE edit or extra source APPID used in the prior experiment; neither is needed to reproduce it."
+  ],
+  "next": [
+    "Bind this exact raw carrier to its common header, parent and dependent handle spans using the authoritative DWG specification and an independent decoder/source trace.",
+    "Trace the frozen raw carrier selection, object identity kind, class admission, transaction and final dictionary reference receipts to locate the uncommitted target; resolve only with verified owner/remap invariants.",
+    "Add a generated-source success and fresh readback check plus malformed, wrong-owner, remap, rollback and corrected-retry controls; independently qualify emitted semantics before broadening claims."
+  ],
+  "limits": [
+    "Generated self-roundtrip is not independent producer evidence or native semantic qualification.",
+    "The temporary harness, binary, logs and drawing are outside the repository; no DWG/DXF fixture was committed.",
+    "No parser or writer changes were made for this finding."
+  ]
+}
