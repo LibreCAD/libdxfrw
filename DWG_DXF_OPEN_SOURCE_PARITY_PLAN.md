@@ -7,11 +7,16 @@ preserving LibreCAD 2D consumers, enabling evidence-backed 3D use, and keeping
 `dwg2dxf` usable by FreeCAD. Support claims apply only to qualified source,
 version, operation, consumer, and platform profiles.
 
-There are **21 open package gates**: P4: 3, P5: 7, P6: 5, P7: 4, and P8: 2.
-Gate readiness is 13/34 (38.2%); this is not an overall implementation
+There are **26 open package gates**: P4: 3, P5: 7, P6: 5, P7: 4, and P8: 7.
+Gate readiness is 8/34 (23.5%); this is not an overall implementation
 percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
+
+P8-A/B/C/E/F reopened because the candidate's implementation inputs changed;
+their prior package, FreeCAD and focused-native receipts do not qualify this
+digest. Reuse matching evidence and wait for the final candidate before
+repeating expensive package and consumer runs.
 
 The recorded consumer baselines are libdxfrw `master` `d68fb1ed937ad2a74a54f6208277ec10a1b031b0`,
 LibreCAD `master` `281a8a4c83884ae1e8c9aa3436d87184c0b17ea7`, LibreCAD_3
@@ -164,11 +169,16 @@ acceptance separate. CAD Assistant/ezdxf shares OCCT lineage with FreeCAD and
 is not independent-kernel evidence. P7-E is optional; a missing external kernel
 or app blocks only its profile.
 
-### P8 — consumers, packaging, release (2 open)
+### P8 — consumers, packaging, release (7 open)
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
+| P8-A / REVALIDATE_PACKAGE_INPUTS | After the candidate is frozen, run the existing shared/static install and relocation package profile on Linux, macOS and Windows. | Bind source, configuration and package artifacts; resolve failures before closure. |
+| P8-B / REVALIDATE_LINUX_FREECAD | After the candidate is frozen, rerun the existing Linux FreeCAD generated-profile qualification. | Bind the actual converter and consumer binaries and preserve the original profile limits. |
+| P8-C / REVALIDATE_WINDOWS_FREECAD | After the candidate is frozen, rerun the existing Windows FreeCAD generated-profile qualification. | Bind the actual converter and consumer binaries and preserve the original profile limits. |
 | P8-D / WAITING_FOR_GUI_AND_EXTERNAL_CONSUMER_QUALIFICATION | Once an active display is available, run LibreCAD 2 native save/reopen/render/edit checks for Move/Copy, named LTYPE, and selected MLINE; run LibreCAD_3 native MPOLYGON save/reopen. See the [GUI preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json). | Review and qualify [LibreCAD draft PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289), which depends on [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106); resolve hosted CI and review findings, including the pre-existing workflow and catalog failures. Revalidate the [ownerless resave fix](docs/research/p8d-librecad-3289-ownerless-resave-fix-2026-11-20.json) and [DIMSTYLE null-handle control](docs/research/p8d-dimstyle-null-xdictionary-cross-codec-2026-11-20.json) against final inputs. Integrate/review the LibreCAD_3 [planar elevation](docs/patches/librecad3-p8-hatch-planar-elevation-2026-11-19.patch) and [multiple-loop](docs/patches/librecad3-p8-multiloop-planar-elevation-2026-11-19.patch) patches against current master. Verify bundled and upstream codecs where applicable, qualify final macOS, Linux and Windows inputs, and verify native behavior before merging. Headless tests and the remote ObjectARX host do not replace native GUI evidence. |
+| P8-E / REVALIDATE_INSTALLED_PACKAGE | Reuse the P8-A cross-platform package run for the installed shared/static profile where inputs and configurations match. | Verify installed runtime identity, consumer selection and relocation; do not infer broader ABI or drawing semantics. |
+| P8-F / REVALIDATE_NATIVE_AND_FAST | On the candidate digest, run the existing focused native platform and fast CI jobs once. | Require successful Linux, macOS and Windows native jobs and the fast job with source-bound receipts. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds and freeze the candidate. Recheck closed package, FreeCAD and focused-native receipts against the final inputs; reopen mismatched gates. | Build and test the complete GCC profile, run the broad suite and extended fuzz lane once for the frozen candidate, resolve required failures, and publish the evidence-backed support matrix. No required job may remain red and no unqualified route may be advertised. |
 
 For PLOTSETTINGS, qualify additional source, version, EED, reactor, remap and

@@ -142,6 +142,7 @@ EXTRA_DIST = \
     dwg2dxf/dx_ac1024_byblock_material_wire.h \
     dwg2dxf/dx_ac1024_dictionaryvar_wire.h \
     dwg2dxf/dx_ac1024_material_eed_wire.h \
+    dwg2dxf/dx_ac1024_mechanical_tile_wire.h \
     dwg2dxf/dx_ac1024_mentalray_wire.h \
     dwg2dxf/dx_ac1024_mleaderstyle_wire.h \
     dwg2dxf/dx_ac1024_mlinestyle_wire.h \
@@ -1253,6 +1254,7 @@ EXTRA_DIST = \
     tools/research/audit_p5h_viewport_shadeplot.py \
     tools/research/canonical_ltype_peer_generator.cpp \
     tools/research/check_mpolygon_projection_ezdxf.py \
+    tools/research/compare_mechanical_material_ezdxf.py \
     tools/research/create_ac1021_field_derivative.py \
     tools/research/decode_ac1024_appid_frames.py \
     tools/research/decode_dxf_sat1.py \

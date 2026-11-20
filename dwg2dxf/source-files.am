@@ -13,6 +13,7 @@ dist_noinst_HEADERS = \
     dx_ac1021_dictionaryvar_wire.h \
     dx_ac1024_dictionaryvar_wire.h \
     dx_ac1024_material_eed_wire.h \
+    dx_ac1024_mechanical_tile_wire.h \
     dx_ac1024_mentalray_wire.h \
     dx_ac1024_mleaderstyle_wire.h \
     dx_ac1024_mlinestyle_wire.h \
