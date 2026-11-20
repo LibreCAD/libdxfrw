@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8f-13594-native-fast-qualification-2026-11-20",
+  "date": "2026-11-20",
+  "status": "CURRENT_DIGEST_FAST_AND_FOCUSED_NATIVE_PASSED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "1810ea2d6b7d7cb21aaa7b2c287308c3f0b767fdea5a4e1ffac6112e4d1c8a93",
+  "testedPrHead": "13594985a2e2818712a6550e5d504ce7ba57d95b",
+  "candidateAtReview": "823af60e6985a9e8b2622102bd8c910ac632c27f",
+  "candidateEquivalence": "Only plan and research prose changed after testedPrHead; selected implementation inputs are unchanged. Recheck before reuse.",
+  "changedPaths": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/research/p8-package-b53-qualification-2026-11-20.json",
+    "docs/research/p8b-linux-freecad-13594-2026-11-20.json"
+  ],
+  "testedPrMerge": "10d7238cd2121485aae29c10d2209161baf9ec04",
+  "focusedRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44685686467",
+  "fastRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44685686461",
+  "fastJobId": 136119433186,
+  "fastResult": "PASS: 52 selected tests, including one skipped optional locale test.",
+  "fastLogSha256": "ed370f8dfb7d53ad320b171644a281537f05ba5f80be077c5a3ba3476a52415d",
+  "platforms": {
+    "linux-gcc": {
+      "jobId": 136119435769,
+      "artifactId": 14606209099,
+      "archiveSha256": "ef0b0ea619120e23c29ef3084d69b071c27bda37ab4221164a464912c83ee6f8",
+      "receiptSha256": "74adc1920d5c9885974f98dfc4a07d7c5e47ef6374e087c1a8f8f342fd7ea1b8"
+    },
+    "macos-clang": {
+      "jobId": 136119435804,
+      "artifactId": 14606980994,
+      "archiveSha256": "f83d3c88064c6a56876d91b7ad393708c701420f1c9500c673c139906fd2b437",
+      "receiptSha256": "e67fe658dfecbe09702fc38b4432811ba34130c1169477c7c4a3322fdeb7d55c"
+    },
+    "windows-msvc": {
+      "jobId": 136119436060,
+      "artifactId": 14606896849,
+      "archiveSha256": "93e42ea1076b5420da196b25f7535fc5fce9ba12702f583e9cc8005bb65a11a7",
+      "receiptSha256": "c7ec2b3d7e004caad689d43280fac3afec17b0d86aa9ed209d96063ac5b437c0"
+    }
+  },
+  "verification": {
+    "result": "PASS: all three focused artifacts authenticated against live GitHub API responses, exact tested PR merge, required focused test contracts and artifact archives using verify_native_qualification_receipts.py --pre-native --live-token-env.",
+    "scratchRoot": "/private/tmp/libdxfrw-p8f-135",
+    "apiSnapshotSha256": {
+      "run.json": "7c7f895c75b74d358c5720383cdb805c748ebb58f4f1cbab188b6c8f0669670b",
+      "jobs.json": "4400c6d7e9053f88009e4a608ba5ab5970045bf6aa330b384a852eccc0a73031",
+      "artifacts.json": "47c386fd8883bd33c853c3f3ac5a8e28bd6b5a9df228c3de3f4219de4103654c",
+      "workflow.json": "2cb4e72f0912c1eccae6d7c89370e3772e521631a5bab9400f1e30384c0af326"
+    }
+  },
+  "limits": [
+    "P8-F closes only for the recorded implementation digest and platform profile; changes to selected inputs reopen it.",
+    "Final broad/fuzz lanes, native GUI, producer and semantic evidence remain open.",
+    "One optional locale test was skipped. No support claim is promoted."
+  ]
+}
