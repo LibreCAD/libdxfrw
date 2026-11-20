@@ -162,7 +162,7 @@ index e843358..544a1e6 100644
      // not for Apple because it uses resources this is more for unix systems
      dirList.append( m_appDir + "/resources/" + subDirectory);
 diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
-index fefcf30..235ad8d 100644
+index fefcf30..a1c4bfd 100644
 --- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
 +++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
 @@ -66,7 +66,7 @@
@@ -174,7 +174,7 @@ index fefcf30..235ad8d 100644
  #include "dxf_format.h"
  #include "intern/dwgbufferw.h"
  #include "intern/dwgsafety.h"
-@@ -877,6 +877,67 @@ void overlayActivePlotSettings(DRW_PlotSettings &target,
+@@ -877,6 +877,68 @@ void overlayActivePlotSettings(DRW_PlotSettings &target,
    target.paperImageOriginY = source.getPaperImageOriginY();
  }
  
@@ -182,10 +182,11 @@ index fefcf30..235ad8d 100644
 +// active graphic still equals the imported projection. Unmapped fields stay
 +// in the retained source frame and are never overwritten here.
 +bool matchesImportedPlotSettings(LC_PlotSettings &active,
-+                                 const DRW_PlotSettings &source) {
++                                 const DRW_PlotSettings &source,
++                                 bool allowLeftMarginChange = false) {
 +  return QString("%1x%2").arg(active.getPagesNumHoriz()).arg(active.getPagesNumVert())
 +             == QString::fromStdString(source.plotViewName)
-+      && active.getMarginLeftMm() == source.marginLeft
++      && (allowLeftMarginChange || active.getMarginLeftMm() == source.marginLeft)
 +      && active.getMarginTopMm() == source.marginTop
 +      && active.getMarginRightMm() == source.marginRight
 +      && active.getMarginBottomMm() == source.marginBottom
@@ -242,7 +243,100 @@ index fefcf30..235ad8d 100644
  bool restoreTableEntryExtData(
      DRW_TableEntry &destination,
      const std::vector<std::shared_ptr<DRW_Variant>> &source) {
-@@ -4288,7 +4349,7 @@ bool RS_FilterDXFRW::fileImport(RS_Graphic &g, const QString &file,
+@@ -1408,6 +1470,92 @@ rawObjectFromMetadata(const LC_DwgAdvancedMetadata::RawObjectRecord &record) {
+   return object;
+ }
+ 
++// Admit the bounded raw or edited profile only when the retained AC1015
++// frame and the source NOD/dictionary chain prove the selected object.
++bool isQualifiedAc1015PlotProfile(
++    const LC_DwgAdvancedMetadata &metadata, LC_PlotSettings *active,
++    std::size_t rawIndex, bool editedMargin) {
++#ifdef LIBDXFRW_HAS_AC1015_PLOTSETTINGS_RAW_VERIFY
++  if (!active || metadata.plotSettings().size() != 1u ||
++      rawIndex >= metadata.rawObjects().size() ||
++      !std::isfinite(active->getMarginLeftMm()))
++    return false;
++  const auto &plot = metadata.plotSettings().front();
++  const auto &raw = metadata.rawObjects()[rawIndex];
++  if (raw.version != DRW::AC1015 || raw.isEntity || !raw.isCustomClass ||
++      raw.handle == 0 || raw.parentHandle == 0 ||
++      raw.handle != plot.handle || raw.parentHandle != plot.parentHandle ||
++      !raw.commonHandleDataValidated || !plot.hasDwgCommonLinkTail() ||
++      raw.numReactors != 0 || !raw.reactorHandles.empty() ||
++      raw.xDictHandle != 0 || plot.xDictHandle != 0 || raw.hasDataStorage ||
++      !plot.extData.empty() ||
++      raw.replayState != LC_DwgAdvancedMetadata::ReplayState::ReplayAllowed ||
++      LC_DwgAdvancedMetadata::rawReplayBlocker(raw) !=
++          LC_DwgAdvancedMetadata::ReplayBlocker::None ||
++      !plot.matchesAc1015RawNoEed(rawObjectFromMetadata(raw)) ||
++      (editedMargin && (raw.classAppName != "ODBX" || raw.classProxyFlag != 0 ||
++                        raw.classWasProxy || raw.classEntityFlagRaw != 0x1F3)) ||
++      !matchesImportedPlotSettings(*active, plot, editedMargin) ||
++      (active->getMarginLeftMm() != plot.marginLeft) != editedMargin)
++    return false;
++  std::size_t rawCount = 0;
++  for (const auto &item : metadata.rawObjects())
++    if (item.handle == raw.handle)
++      ++rawCount;
++  std::size_t ownerCount = 0;
++  std::size_t targetCount = 0;
++  std::size_t nodCount = 0;
++  std::size_t nodPlotEntryCount = 0;
++  std::size_t nodGroupEntryCount = 0;
++  for (const auto &dictionary : metadata.dictionaries()) {
++    if (dictionary.handle == DRW::DwgNamedObjectsDictionaryHandle) {
++      ++nodCount;
++      if (!dictionary.typedPayloadComplete || dictionary.parentHandle != 0 ||
++          dictionary.cloning != 1 || dictionary.hardOwner != 0 ||
++          dictionary.entries.size() != 2u || !dictionary.extData.empty() ||
++          !dictionary.appData.empty() || dictionary.numReactors != 0 ||
++          !dictionary.reactorHandles.empty() || dictionary.xDictHandle != 0 ||
++          dictionary.hasDsData ||
++          dictionary.replayState != LC_DwgAdvancedMetadata::ReplayState::ReplayAllowed)
++        return false;
++      for (const auto &entry : dictionary.entries) {
++        if (normalizeDwgTableName(entry.name) == "ACAD_GROUP") {
++          ++nodGroupEntryCount;
++          if (entry.handle != DRW::DwgAcadGroupDictionaryHandle)
++            return false;
++        }
++        if (normalizeDwgTableName(entry.name) == "ACAD_PLOTSETTINGS") {
++          ++nodPlotEntryCount;
++          if (entry.handle != plot.parentHandle)
++            return false;
++        }
++      }
++    }
++    if (dictionary.handle == plot.parentHandle) {
++      ++ownerCount;
++      if (dictionary.parentHandle != DRW::DwgNamedObjectsDictionaryHandle ||
++          !dictionary.typedPayloadComplete ||
++          dictionary.replayState != LC_DwgAdvancedMetadata::ReplayState::ReplayAllowed ||
++          dictionary.entries.size() != 1u ||
++          dictionary.entries.front().handle != plot.handle ||
++          dictionary.entries.front().name != plot.pageSetupName)
++        return false;
++    }
++    for (const auto &entry : dictionary.entries)
++      if (entry.handle == plot.handle)
++        ++targetCount;
++  }
++  return rawCount == 1u && ownerCount == 1u && targetCount == 1u &&
++         nodCount == 1u && nodPlotEntryCount == 1u && nodGroupEntryCount == 1u;
++#else
++  (void)metadata;
++  (void)active;
++  (void)rawIndex;
++  (void)editedMargin;
++  return false;
++#endif
++}
++
+ bool rawCustomEntityOwnerFieldsAreReplayable(
+     const DRW_UnsupportedObject &object, DRW::Version targetVersion) {
+   if (!object.m_isEntity || !object.m_isCustomClass)
+@@ -4288,7 +4436,7 @@ bool RS_FilterDXFRW::fileImport(RS_Graphic &g, const QString &file,
      }
    } stackGuard{&m_xrefStack, thisFileAbs, stackInsertedSelf};
    // add some variables that need to be there for DXF drawings:
@@ -251,7 +345,7 @@ index fefcf30..235ad8d 100644
    m_dimStyle = "Standard";
    m_codePage = "ANSI_1252";
    m_textStyle = "Standard";
-@@ -12185,6 +12246,30 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
+@@ -12185,6 +12333,30 @@ bool RS_FilterDXFRW::fileExport(RS_Graphic &g, const QString &file,
      m_exactColor = true;
    }
    m_dxfExportVersion = exportVersion;
@@ -282,7 +376,102 @@ index fefcf30..235ad8d 100644
    /**
     * fixme - sand - files - RESTORE!!! Under win, encodeName() prevents using
     * unicode file names!!! Due to that, blocks/files may be saved incorrectly if
-@@ -20973,7 +21058,20 @@ void RS_FilterDXFRW::writeDimstyles() {
+@@ -16272,11 +16444,24 @@ bool RS_FilterDXFRW::prepareDwgExportAdmissionPlan() {
+         duplicateRawPlotHandles.count(settings.handle) == 0 &&
+         (!settings.hasDataStorageBinaryData() ||
+          rawIt->second.hasDataStorage)) {
+-      record.policy = DwgExportAdmissionPolicy::SameVersionRaw;
+-      record.relatedSourceHandle = settings.handle;
+-      plan.rawPlotSettingsRecordIndexes.emplace(settings.handle,
+-                                                rawIt->second.index);
+-      plan.rawPlotSettingsHandles.insert(settings.handle);
++      if (plan.version == DRW::AC1015 &&
++          isQualifiedAc1015PlotProfile(metadata, m_graphic->getPlotSettings(),
++                                       rawIt->second.index, true)) {
++        const auto &raw = metadata.rawObjects()[rawIt->second.index];
++        record.policy = DwgExportAdmissionPolicy::Typed;
++        record.relatedSourceHandle = settings.handle;
++        plan.editedPlotSettings.emplace(
++            index, DwgEditedPlotSettingsPlanRecord{
++                       rawIt->second.index, raw.handle, raw.parentHandle,
++                       raw.objectType, raw.bodyBitSize, raw.objectSize,
++                       raw.rawBytes, m_graphic->getPlotSettings()->getMarginLeftMm()});
++      } else {
++        record.policy = DwgExportAdmissionPolicy::SameVersionRaw;
++        record.relatedSourceHandle = settings.handle;
++        plan.rawPlotSettingsRecordIndexes.emplace(settings.handle,
++                                                  rawIt->second.index);
++        plan.rawPlotSettingsHandles.insert(settings.handle);
++      }
+     } else if (settings.hasDataStorageBinaryData()) {
+       record.policy = DwgExportAdmissionPolicy::Refuse;
+       record.reason =
+@@ -17021,6 +17206,20 @@ bool RS_FilterDXFRW::validateDwgExportAdmissionPlan(
+     }
+   }
+   const auto &rawObjects = m_graphic->dwgAdvancedMetadata().rawObjects();
++  for (const auto &entry : plan.editedPlotSettings) {
++    const auto &snapshot = entry.second;
++    if (entry.first != 0 || snapshot.rawIndex >= rawObjects.size() ||
++        !isQualifiedAc1015PlotProfile(m_graphic->dwgAdvancedMetadata(),
++                                      m_graphic->getPlotSettings(), snapshot.rawIndex,
++                                      true))
++      return false;
++    const auto &raw = rawObjects[snapshot.rawIndex];
++    if (raw.handle != snapshot.handle || raw.parentHandle != snapshot.parentHandle ||
++        raw.objectType != snapshot.objectType || raw.bodyBitSize != snapshot.bodyBitSize ||
++        raw.objectSize != snapshot.objectSize || raw.rawBytes != snapshot.rawBytes ||
++        m_graphic->getPlotSettings()->getMarginLeftMm() != snapshot.marginLeft)
++      return false;
++  }
+   for (const auto &entry : plan.rawPlotSettingsRecordIndexes) {
+     if (entry.second >= rawObjects.size())
+       return false;
+@@ -18603,6 +18802,31 @@ void RS_FilterDXFRW::writeDwgClasses() {
+   }
+   const bool emitNativePlotSettings =
+       canRegisterCustomClassObjects && nativePlotSettingsCount != 0;
++  // Register the proven source NOD edge before class registration. Otherwise
++  // both raw replay and typed writes can emit an orphan PLOTSETTINGS dictionary.
++  std::uint32_t sourcePlotDictionary = 0;
++  if (!m_dwgExportAdmissionPlan.editedPlotSettings.empty()) {
++    sourcePlotDictionary =
++        m_dwgExportAdmissionPlan.editedPlotSettings.begin()->second.parentHandle;
++  } else if (!m_dwgExportAdmissionPlan.rawPlotSettingsRecordIndexes.empty()) {
++    const auto &raws = m_dwgExportAdmissionPlan.rawPlotSettingsRecordIndexes;
++    if (raws.size() != 1u ||
++        !isQualifiedAc1015PlotProfile(metadata, m_graphic->getPlotSettings(),
++                                      raws.begin()->second, false)) {
++      m_writeFailed = true;
++      m_dwgW->markDwgWriteFailure();
++      return;
++    }
++    sourcePlotDictionary = metadata.rawObjects()[raws.begin()->second].parentHandle;
++  }
++  if (sourcePlotDictionary != 0 &&
++      (resolveDwgWriteHandle(sourcePlotDictionary) != sourcePlotDictionary ||
++       !m_dwgW->registerDwgNamedObjectDictionaryEntry(
++           "ACAD_PLOTSETTINGS", sourcePlotDictionary))) {
++    m_writeFailed = true;
++    m_dwgW->markDwgWriteFailure();
++    return;
++  }
+   if (emitNativePlotSettings) {
+     if (metadata.plotSettings().empty()) {
+       if (!m_dwgW->registerPlotSettingsObjectClass())
+@@ -18627,7 +18851,11 @@ void RS_FilterDXFRW::writeDwgClasses() {
+           break;
+         }
+         std::uint16_t classNumber = 0;
++        const auto edited = m_dwgExportAdmissionPlan.editedPlotSettings.find(index);
+         if (!m_dwgW->getDwgClassInstanceClass(outputHandle, classNumber) ||
++            (edited != m_dwgExportAdmissionPlan.editedPlotSettings.end() &&
++             (outputHandle != settings.handle ||
++              classNumber != edited->second.objectType)) ||
+             !admitDwgClassFrameDescriptor(
+                 DwgWriteSourceKind::Object, settings.handle, outputHandle,
+                 classNumber, 0, m_dwgW->getVersion())) {
+@@ -20973,7 +21201,20 @@ void RS_FilterDXFRW::writeDimstyles() {
          m_writeFailed = true;
          continue;
        }
@@ -304,7 +493,7 @@ index fefcf30..235ad8d 100644
          RS_DEBUG->print(RS_Debug::D_WARNING,
                          "RS_FilterDXFRW: cannot restore DXF "
                          "DIMSTYLE XDATA");
-@@ -21401,7 +21499,17 @@ void RS_FilterDXFRW::prepareDRWDimStyleLeader(DRW_Dimstyle &d,
+@@ -21401,7 +21642,17 @@ void RS_FilterDXFRW::prepareDRWDimStyleLeader(DRW_Dimstyle &d,
  void RS_FilterDXFRW::prepareDRWDimStyleExtData(DRW_Dimstyle &d,
                                                 const LC_DimStyle *ds) {
    auto tolerance = ds->latteralTolerance();
@@ -323,7 +512,7 @@ index fefcf30..235ad8d 100644
      try {
        if (!d.addExtData(
                std::make_unique<DRW_Variant>(1001, "ACAD_DSTYLE_DIMTALN")) ||
-@@ -22184,8 +22292,8 @@ void RS_FilterDXFRW::writeObjects() {
+@@ -22184,8 +22435,8 @@ void RS_FilterDXFRW::writeObjects() {
      const bool canWriteDbColor = m_dwgW->getVersion() >= DRW::AC1018;
      const bool canWriteAssociativeObjects = m_dwgW->getVersion() >= DRW::AC1021;
      auto sanitizeDictionaryEntries =
@@ -334,7 +523,7 @@ index fefcf30..235ad8d 100644
            std::vector<DRW_Dictionary::Entry> remapped;
            remapped.reserve(dictionary.m_entries.size());
            for (std::size_t ordinal = 0; ordinal < dictionary.m_entries.size();
-@@ -22200,8 +22308,56 @@ void RS_FilterDXFRW::writeObjects() {
+@@ -22200,8 +22451,58 @@ void RS_FilterDXFRW::writeObjects() {
                return false;
              }
              std::uint32_t outputHandle = 0;
@@ -366,7 +555,9 @@ index fefcf30..235ad8d 100644
 +              outputHandle = 0;
 +              const auto rawIdentity = lookupDwgWriteIdentity(
 +                  DwgWriteSourceKind::RawCarrier, entry.m_handle, &outputHandle);
-+              if (!sourceBytesMatch || !raw.commonHandleDataValidated ||
++              if (!sourceBytesMatch ||
++                  !isQualifiedAc1015PlotProfile(metadata, active, plan->second, false) ||
++                  !raw.commonHandleDataValidated ||
 +                  !plot.hasDwgCommonLinkTail() ||
 +                  raw.version != DRW::AC1015 || raw.handle != plot.handle ||
 +                  raw.parentHandle != plot.parentHandle ||
@@ -392,7 +583,7 @@ index fefcf30..235ad8d 100644
              if (!isLiveDwgWriteReference(status) || outputHandle == 0) {
                // A declared raw source object that is unavailable in the target
                // version is different from a genuinely dangling member. Do
-@@ -22244,7 +22400,7 @@ void RS_FilterDXFRW::writeObjects() {
+@@ -22244,7 +22545,7 @@ void RS_FilterDXFRW::writeObjects() {
              }
              if (!recordRetainedReference(
                      entry.m_handle, outputHandle,
@@ -401,6 +592,53 @@ index fefcf30..235ad8d 100644
                      static_cast<std::uint32_t>(ordinal),
                      dictionary.dwgItemHandleCode(), true))
                return false;
+@@ -22799,7 +23100,16 @@ void RS_FilterDXFRW::writeObjects() {
+         }
+         if (plotSettingsValid && overlayActiveSettings &&
+             graphicPlotSettings != nullptr) {
+-          overlayActivePlotSettings(plotSettings, *graphicPlotSettings);
++          if (sourceHandle != 0 &&
++              m_dwgExportAdmissionPlan.editedPlotSettings.count(0) != 0) {
++            if (!validateDwgExportAdmissionPlan(DwgOpaqueTableFailurePhase::Objects)) {
++              m_writeFailed = true;
++              return;
++            }
++            plotSettings.marginLeft = graphicPlotSettings->getMarginLeftMm();
++          } else {
++            overlayActivePlotSettings(plotSettings, *graphicPlotSettings);
++          }
+         }
+         const bool wrote =
+             plotSettingsValid &&
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.h b/librecad/src/lib/filters/rs_filterdxfrw.h
+index edcb3d2..4c0433f 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.h
++++ b/librecad/src/lib/filters/rs_filterdxfrw.h
+@@ -2755,6 +2755,16 @@ private:
+     std::optional<DwgOpaqueTableOwnerGraphPlanRecord> ownerGraph;
+     std::optional<DwgOpaqueTableFailure> preflightFailure;
+   };
++  struct DwgEditedPlotSettingsPlanRecord {
++    std::size_t rawIndex;
++    std::uint32_t handle;
++    std::uint32_t parentHandle;
++    int objectType;
++    std::uint32_t bodyBitSize;
++    std::uint32_t objectSize;
++    std::vector<std::uint8_t> rawBytes;
++    double marginLeft;
++  };
+   struct DwgExportAdmissionPlan {
+     DRW::Version version = DRW::UNKNOWNV;
+     bool valid = true;
+@@ -2771,6 +2781,7 @@ private:
+     std::map<const LC_Wipeout *, std::size_t> wipeoutRecordIndexes;
+     std::map<std::size_t, DwgOpaqueTablePlanRecord> opaqueTableRecordIndexes;
+     std::map<std::size_t, std::size_t> plotSettingsRecordIndexes;
++    std::map<std::size_t, DwgEditedPlotSettingsPlanRecord> editedPlotSettings;
+     std::map<std::uint32_t, std::size_t> rawPlotSettingsRecordIndexes;
+     std::set<std::uint32_t> rawPlotSettingsHandles;
+   };
 diff --git a/librecad/src/lib/filters/rs_filterjww.cpp b/librecad/src/lib/filters/rs_filterjww.cpp
 index ec07aae..5214f5d 100644
 --- a/librecad/src/lib/filters/rs_filterjww.cpp
@@ -596,7 +834,7 @@ index ce2cb27..b20f882 100644
      ensureSettings();
      const QString path = writeJww(QStringLiteral("jww_import_line.jww"), "");
 diff --git a/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp b/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp
-index 49d5337..6cf9006 100644
+index 49d5337..aa03aa7 100644
 --- a/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp
 +++ b/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp
 @@ -36,12 +36,18 @@
@@ -618,7 +856,7 @@ index 49d5337..6cf9006 100644
  #include "rs_filterdxfrw.h"
  #include "rs_graphic.h"
  #include "rs_line.h"
-@@ -158,6 +164,314 @@ std::string dxfWithViewports(const std::string& records) {
+@@ -158,6 +164,399 @@ std::string dxfWithViewports(const std::string& records) {
  
  } // namespace
  
@@ -732,6 +970,17 @@ index 49d5337..6cf9006 100644
 +    REQUIRE(dict->entries.size() == 1u);
 +    CHECK(dict->entries.front().handle == readbackPlot.front().handle);
 +    CHECK(dict->entries.front().name == readbackPlot.front().pageSetupName);
++    const auto nod = std::find_if(readbackDictionaries.begin(), readbackDictionaries.end(),
++                                  [](const auto& item) {
++        return item.handle == DRW::DwgNamedObjectsDictionaryHandle;
++    });
++    REQUIRE(nod != readbackDictionaries.end());
++    const auto plotEntry = std::find_if(nod->entries.begin(), nod->entries.end(),
++                                        [&readbackPlot](const auto& entry) {
++        return entry.name == "ACAD_PLOTSETTINGS" &&
++               entry.handle == readbackPlot.front().parentHandle;
++    });
++    REQUIRE(plotEntry != nod->entries.end());
 +
 +    const QString guardedDwg = QDir(directory.path()).filePath("guarded.dwg");
 +    QFile guarded(guardedDwg);
@@ -745,11 +994,38 @@ index 49d5337..6cf9006 100644
 +    const double right = activePlot->getMarginRightMm();
 +    const double bottom = activePlot->getMarginBottomMm();
 +    activePlot->setMarginsInMm(left + 1.0, top, right, bottom);
-+    CHECK_FALSE(writer.fileExport(reopened, guardedDwg, RS2::FormatDWG));
++    REQUIRE(writer.fileExport(reopened, guardedDwg, RS2::FormatDWG));
++    RS_Graphic editedPlotReadback;
++    editedPlotReadback.initForNewDocument();
++    REQUIRE(importFrom(editedPlotReadback, guardedDwg.toStdString(), RS2::FormatDWG));
++    const auto& editedPlots = editedPlotReadback.dwgAdvancedMetadata().plotSettings();
++    REQUIRE(editedPlots.size() == 1u);
++    CHECK(editedPlots.front().marginLeft == left + 1.0);
++    CHECK(editedPlots.front().handle == sourcePlot.handle);
++    CHECK(editedPlots.front().parentHandle == sourcePlot.parentHandle);
++    CHECK(editedPlots.front().pageSetupName == sourcePlot.pageSetupName);
++    const auto& editedDictionaries = editedPlotReadback.dwgAdvancedMetadata().dictionaries();
++    const auto editedNod = std::find_if(editedDictionaries.begin(), editedDictionaries.end(),
++                                        [](const auto& item) {
++        return item.handle == DRW::DwgNamedObjectsDictionaryHandle;
++    });
++    REQUIRE(editedNod != editedDictionaries.end());
++    REQUIRE(std::count_if(editedNod->entries.begin(), editedNod->entries.end(),
++                          [&editedPlots](const auto& entry) {
++        return entry.name == "ACAD_PLOTSETTINGS" &&
++               entry.handle == editedPlots.front().parentHandle;
++    }) == 1);
 +    REQUIRE(guarded.open(QIODevice::ReadOnly));
-+    CHECK(guarded.readAll() == QByteArray("sentinel"));
++    const QByteArray editedPlotBytes = guarded.readAll();
 +    guarded.close();
 +    activePlot->setMarginsInMm(left, top, right, bottom);
++    const int oldShadeMode = activePlot->getShadePlotMode();
++    activePlot->setShadePlotMode(oldShadeMode == 0 ? 1 : 0);
++    CHECK_FALSE(writer.fileExport(reopened, guardedDwg, RS2::FormatDWG));
++    REQUIRE(guarded.open(QIODevice::ReadOnly));
++    CHECK(guarded.readAll() == editedPlotBytes);
++    guarded.close();
++    activePlot->setShadePlotMode(oldShadeMode);
 +    REQUIRE(writer.fileExport(reopened, guardedDwg, RS2::FormatDWG));
 +    REQUIRE(guarded.open(QIODevice::ReadOnly));
 +    const QByteArray validDwg = guarded.readAll();
@@ -759,6 +1035,37 @@ index 49d5337..6cf9006 100644
 +    tampered.initForNewDocument();
 +    REQUIRE(importFrom(tampered, dwg, RS2::FormatDWG));
 +    tampered.onLoadingCompleted();
++    auto& sourceDictionaries = const_cast<std::vector<LC_DwgAdvancedMetadata::DictionaryRecord>&>(
++        tampered.dwgAdvancedMetadata().dictionaries());
++    auto sourceNod = std::find_if(sourceDictionaries.begin(), sourceDictionaries.end(),
++                                  [](const auto& item) {
++        return item.handle == DRW::DwgNamedObjectsDictionaryHandle;
++    });
++    REQUIRE(sourceNod != sourceDictionaries.end());
++    auto sourceNodPlot = std::find_if(sourceNod->entries.begin(), sourceNod->entries.end(),
++                                      [](const auto& entry) {
++        return entry.name == "ACAD_PLOTSETTINGS";
++    });
++    REQUIRE(sourceNodPlot != sourceNod->entries.end());
++    const auto originalNodTarget = sourceNodPlot->handle;
++    sourceNodPlot->handle += 1u;
++    CHECK_FALSE(writer.fileExport(tampered, guardedDwg, RS2::FormatDWG));
++    REQUIRE(guarded.open(QIODevice::ReadOnly));
++    CHECK(guarded.readAll() == validDwg);
++    guarded.close();
++    sourceNodPlot->handle = originalNodTarget;
++    REQUIRE(writer.fileExport(tampered, guardedDwg, RS2::FormatDWG));
++    sourceNod->entries.push_back({"UNMODELED_ROOT", 0x123u});
++    REQUIRE(guarded.open(QIODevice::ReadOnly));
++    const QByteArray beforeExtraRoot = guarded.readAll();
++    guarded.close();
++    CHECK_FALSE(writer.fileExport(tampered, guardedDwg, RS2::FormatDWG));
++    REQUIRE(guarded.open(QIODevice::ReadOnly));
++    CHECK(guarded.readAll() == beforeExtraRoot);
++    guarded.close();
++    sourceNod->entries.pop_back();
++    REQUIRE(writer.fileExport(tampered, guardedDwg, RS2::FormatDWG));
++
 +    // Deliberately corrupt the otherwise read-only source receipt to exercise
 +    // the wrong-owner guard; the underlying metadata object is mutable.
 +    auto& tamperedRaw = const_cast<std::vector<LC_DwgAdvancedMetadata::RawObjectRecord>&>(
@@ -768,6 +1075,22 @@ index 49d5337..6cf9006 100644
 +        return raw.handle == sourcePlot.handle && raw.recordName == "PLOTSETTINGS";
 +    });
 +    REQUIRE(badRaw != tamperedRaw.end());
++    auto* tamperedActive = tampered.getPlotSettings();
++    REQUIRE(tamperedActive != nullptr);
++    const auto oldClassAppName = badRaw->classAppName;
++    badRaw->classAppName = "OTHER_APP";
++    tamperedActive->setMarginsInMm(left + 1.0, top, right, bottom);
++    REQUIRE(guarded.open(QIODevice::ReadOnly));
++    const QByteArray beforeChangedClass = guarded.readAll();
++    guarded.close();
++    CHECK_FALSE(writer.fileExport(tampered, guardedDwg, RS2::FormatDWG));
++    REQUIRE(guarded.open(QIODevice::ReadOnly));
++    CHECK(guarded.readAll() == beforeChangedClass);
++    guarded.close();
++    badRaw->classAppName = oldClassAppName;
++    REQUIRE(writer.fileExport(tampered, guardedDwg, RS2::FormatDWG));
++    tamperedActive->setMarginsInMm(left, top, right, bottom);
++    REQUIRE(writer.fileExport(tampered, guardedDwg, RS2::FormatDWG));
 +    const auto originalOwner = badRaw->parentHandle;
 +    badRaw->parentHandle = originalOwner + 1u;
 +    CHECK_FALSE(writer.fileExport(tampered, guardedDwg, RS2::FormatDWG));

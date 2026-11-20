@@ -2,7 +2,7 @@
   "schema": "libdxfrw-research-receipt-v1",
   "id": "p8d-ac1015-plotsettings-raw-resave-2026-11-19",
   "date": "2026-11-19",
-  "status": "BOUNDED_GENERATED_AC1015_RESAVE_PASS_NATIVE_OPEN",
+  "status": "SUPERSEDED_INCOMPLETE_NOD_GRAPH",
   "supportClaimEffect": "none",
   "scope": "Generated-from-scratch AC1015, same-version PLOTSETTINGS raw carrier, single owning dictionary entry, ASCII modeled strings, no EED/reactors/extension dictionary/DataStorage, stable object and owner handles and unchanged class number; active consumer plot settings must match the imported projection.",
   "consumer": {
@@ -55,5 +55,6 @@
     "No native GUI, Linux/Windows consumer, native AutoCAD producer, non-ASCII/EED/reactor/xdictionary/DataStorage, class remap, edited plot setting or other version profile is qualified.",
     "No DWG/DXF fixture file was committed."
   ],
-  "libraryImplementationDigestSha256": "7d8df8433c94a99ad19cf94d0d772787e200cea3b41263749ca0101e68405156"
+  "libraryImplementationDigestSha256": "7d8df8433c94a99ad19cf94d0d772787e200cea3b41263749ca0101e68405156",
+  "correction": "The prior output omitted the NOD ACAD_PLOTSETTINGS edge; object/dictionary readback alone did not prove graph closure. See docs/research/p8d-ac1015-plotsettings-nod-and-margin-2026-11-20.json."
 }

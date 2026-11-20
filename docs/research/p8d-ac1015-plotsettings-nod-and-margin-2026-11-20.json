@@ -1,0 +1,70 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-ac1015-plotsettings-nod-and-margin-2026-11-20",
+  "date": "2026-11-20",
+  "status": "GENERATED_PROFILE_GRAPH_AND_MARGIN_PASS_NATIVE_OPEN",
+  "supportClaimEffect": "none",
+  "scope": "Locally generated AC1015 source; one ASCII PLOTSETTINGS, no EED/reactors/extension dictionary/DataStorage, unchanged class and object identities, exact two-entry named-objects dictionary and single owning dictionary entry. Unchanged raw replay and a one-millimeter active left-margin edit are separate paths.",
+  "consumer": {
+    "repository": "https://github.com/LibreCAD/LibreCAD",
+    "patchBase": "281a8a4c83884ae1e8c9aa3436d87184c0b17ea7",
+    "testBase": "26dd8817b37f59242a17fa1d0f8c61d6f1cfb410",
+    "baseDelta": "Only the unrelated picfile plugin differs; tests were not rebuilt on patchBase.",
+    "candidateHead": "f1a1627460b510d8d7c416905cd9ed50c7ff09d2",
+    "combinedPatch": "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
+    "combinedPatchSha256": "d7051e5923e8d1a689c6eb5b278b053aee811e3bf579fbe9536efdab14a79206",
+    "patchVerification": "Applying the combined patch to an alternate index at patchBase reproduces candidateHead exactly."
+  },
+  "libraryImplementationDigestSha256": "7d8df8433c94a99ad19cf94d0d772787e200cea3b41263749ca0101e68405156",
+  "regression": {
+    "oldCandidate": "d71af16eedab445b62f8c036b53161486f9cea82",
+    "finding": "The earlier bounded raw resave preserved the PLOTSETTINGS object and owning dictionary but omitted the named-objects ACAD_PLOTSETTINGS edge. It did not establish a closed source graph.",
+    "redLog": "/private/tmp/libdxfrw-plotsettings-nod-red.log",
+    "redLogSha256": "0d446168c9806b1444a19cf59a2cf946421d0be4e16c3e9142a9bccba29e07e9"
+  },
+  "implementation": "Before class registration, validate the complete bounded source NOD/dictionary chain and register its plot dictionary entry. For an edited left margin, select typed output only after verifying retained raw bytes, all other active settings, class definition and frozen identities; otherwise refuse. Check frame and source again during emission; preserve unmapped source fields. Unchanged output remains raw-replayed.",
+  "validation": {
+    "currentCodec": {
+      "log": "/private/tmp/libdxfrw-plotsettings-graph-final.log",
+      "sha256": "155518d7d26d396e8b931e168bedc0d66e000434cadab8c4132eec26e6e6d76b",
+      "result": "PASS: 129 assertions in 2 focused cases, including NOD and object readback for raw/edited output, bad NOD target, extra root entry, mismatched class, altered frame/owner, duplicate carrier, destination preservation and corrected retry."
+    },
+    "bundledCodec": {
+      "log": "/private/tmp/libdxfrw-plotsettings-graph-bundled.log",
+      "sha256": "3e61914faf7a8e93459fe12b1ef0daca8f13ca733347cbcfd09e7bbc680ea5c0",
+      "result": "PASS: 60 assertions in 2 focused cases; unsupported raw route remains fail-closed."
+    },
+    "independentPeer": {
+      "reader": "GNU LibreDWG dwgread 0.14",
+      "drawings": {
+        "source": {
+          "path": "/private/tmp/libdxfrw-plot-nod-source-final.dwg",
+          "sha256": "0949376f64f635d3ba132662ae31de87082a874ad3714783d4f10a45c2e4707a",
+          "decodedJsonSha256": "b22d75d22062d073a8be1202b4813df01f9936948d1933c02fd1288aa9f2ea55",
+          "stderrSha256": "8c293c0044bf29d9a201b0303159e008518f70b9b9bd677ac8a54854a737a7c0"
+        },
+        "raw": {
+          "path": "/private/tmp/libdxfrw-plot-nod-raw-final.dwg",
+          "sha256": "7fb4c581726c449ff59e3b0c162adc4023d47ab1da48b0277ffe21a6250dca57",
+          "decodedJsonSha256": "3d76787a0ac62d5e4e178969b1dc3d2428df9ab66ec828b1a02a4435f67765c7",
+          "stderrSha256": "76bcc4080d84f46681ae4db73b7c143dd8aa6d64c74812ef9675c28cccbdda4d"
+        },
+        "edited": {
+          "path": "/private/tmp/libdxfrw-plot-nod-edited-final.dwg",
+          "sha256": "81c299ad72558d8c6eea12d2ad071563aa24c81bc501c9846f5defc6341cdd96",
+          "decodedJsonSha256": "60d869c8e7a2668975cba0b65c0a67d0e2583ba324b291a4007ed763acb40033",
+          "stderrSha256": "a259563ae75f618397b5da4f409b43e84e214b4cf9d2daf6d5e1f800d846335b"
+        }
+      },
+      "comparisonLog": "/private/tmp/libdxfrw-plot-nod-final-peer-comparison.log",
+      "comparisonLogSha256": "16d4f34c32c1f218750c6aebe5cb2f7d4d9272674c2589ed647af52f13b96ff2",
+      "result": "PASS: source, raw resave and edited resave each have NOD 0xC -> dictionary 0x30 -> PLOTSETTINGS 0x56, class 504, and original LINE endpoints. Decoded raw plot fields equal source; edited fields differ only in left margin 0 to 1 mm.",
+      "warning": "The reader reports missing handles 0x57 in source and 0x7C in outputs; independent HEADER decoding identifies these exact values as HANDSEED. No general whole-file integrity claim is made."
+    }
+  },
+  "limits": [
+    "Unmerged consumer candidate; native GUI and Linux/Windows consumer qualification remain open.",
+    "No claim for other source graphs, releases, classes, source encodings, edits or opaque data; unsupported profiles refuse.",
+    "The raw source and output were generated locally; no DWG or DXF fixture was committed."
+  ]
+}

@@ -14,7 +14,8 @@
     "checkout": "/private/tmp/libdxfrw-librecad-integration-26dd",
     "patch": "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
     "patchSha256": "7d6b6ffeb6eaeeab3f1768a7219483b6d061a5e2c00cd31ba4c0d3017a17df25",
-    "patchVerification": "Applying the patch to an alternate index at 281a produces exactly the current candidate tree."
+    "patchVerification": "Applying the patch to an alternate index at 281a produces exactly the current candidate tree.",
+    "patchAtReceiptCommit": "39320dd325fa8f1003faaca34925ab02b5293853"
   },
   "validation": {
     "focusedCurrentLibrary": "A scratch CMake override built librecad_lib and five focused tests with current source headers and linked the source-built static archive; it was not the production installed-package option. DXF-to-DWG dimension style 15/15, JWW default 8/8, JWW imports 343 assertions in 17 cases, SHP codepage 20 assertions in 3 cases, associative prefix 48/48.",
@@ -139,5 +140,6 @@
     "Only the specified generated line and DIMSTYLE XDATA profile was exercised through the installed-codec application; native GUI, Linux/Windows and LibreCAD_3 qualification remain open.",
     "Extended, duplicate, invalid or otherwise ambiguous DIMSTYLE XDATA groups still refuse; they are not merged or discarded. The source metadata is not overwritten by the edited DXF projection.",
     "No DWG/DXF fixtures were added."
-  ]
+  ],
+  "supersededBy": "docs/research/p8d-ac1015-plotsettings-nod-and-margin-2026-11-20.json"
 }
