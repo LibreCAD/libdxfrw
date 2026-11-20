@@ -23,7 +23,8 @@ Tags tableReferenceDocument(const std::string& version,bool blocks,unsigned form
         const auto first=slot(tags,5,"501")-1u;auto last=slot(tags,5,"513")+1u;while(tags[last].code!=0)++last;
         Tags body(tags.begin()+static_cast<std::ptrdiff_t>(first),tags.begin()+static_cast<std::ptrdiff_t>(last));
         tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(first),tags.begin()+static_cast<std::ptrdiff_t>(last));
-        if(body[2].code!=330)throw std::logic_error("authored TABLE owner position");body[2].value="B0";
+        if(body[2].code!=330)throw std::logic_error("authored TABLE owner position");
+        body[2].value="B0";
         const auto at=slot(tags,2,"ENTITIES")+1u;tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),body.begin(),body.end());
     }
     return tags;
@@ -46,11 +47,13 @@ bool tableReferenceTests(const std::filesystem::path& dir) {
             const auto& audit=*A::tableReferences(data);const auto& source=*A::identityInput(data)->source;
             const auto wire=attdefWireTags(path,encoding==2u);
             for(const auto& row:audit.rows)if(row.target) {
-                if(row.physical>=source.records.size())return false;const auto& original=source.records[row.physical];
+                if(row.physical>=source.records.size())return false;
+                const auto& original=source.records[row.physical];
                 const auto& marker=wire.at(original.marker.ordinal-1u);
                 if(marker.code||marker.text!=original.name||marker.begin!=original.marker.beginOffset||marker.end!=original.marker.endOffset)return false;
                 const auto target=audit.targets.find(row.target);
-                if(target==audit.targets.end()||target->second.physical!=row.physical||target->second.ambiguous)return false;++roles;
+                if(target==audit.targets.end()||target->second.physical!=row.physical||target->second.ambiguous)return false;
+                ++roles;
             }
             ++profiles;
         }
@@ -147,14 +150,16 @@ bool tableReferenceTests(const std::filesystem::path& dir) {
                 auto& p=A::mutableResource(data,0x40u).model;p=std::decay_t<decltype(p)>(p.get(),[](const auto*){});
             }
             const auto r=dx_iface::tableReferenceReport(data);
-            if(r.state!=S::ContextMismatch||r.sourceTargetsMatched||r.valueSourceTargetsMatched||r.outputEligible||!retry(reader))return false;++contexts;
+            if(r.state!=S::ContextMismatch||r.sourceTargetsMatched||r.valueSourceTargetsMatched||r.outputEligible||!retry(reader))return false;
+            ++contexts;
         }
         dx_iface baseline;dx_data base;if(!writeBlockBinding(path,good,encoding)||!baseline.fileImport(path.string(),&base,false)||!ready(base))return false;
         const auto r=dx_iface::tableReferenceReport(base);const std::size_t uses[]={r.references,r.bytes,r.work};
         for(unsigned which=0u;which<3u;++which)for(bool under:{false,true}) {
             dx_iface reader;dx_data data;A::tableReferenceLimit(data,which,uses[which]-(under?1u:0u));
             if(!reader.fileImport(path.string(),&data,false)||ready(data)==under)return false;
-            if(under&&dx_iface::tableReferenceReport(data).state!=S::CaptureFailed)return false;++quotas;
+            if(under&&dx_iface::tableReferenceReport(data).state!=S::CaptureFailed)return false;
+            ++quotas;
         }
         for(long offset=0;offset<64;++offset) {
             dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!ready(data))return false;

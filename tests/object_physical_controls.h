@@ -70,7 +70,8 @@ bool test(const std::filesystem::path& dir) {
         const auto wire=attdefWireTags(path,encoding==2u);const auto& audit=*A::renderingSources(data);const auto& style=*audit.records.at(0xEA01u);
         std::size_t observed=0u;
         const auto inspect=[&](const auto& input,std::size_t physical,const auto& map){
-            if(!input.physical||input.physicalStatus!=Source::Status::Complete)return false;const auto& source=*input.physical;
+            if(!input.physical||input.physicalStatus!=Source::Status::Complete)return false;
+            const auto& source=*input.physical;
             const auto& original=A::identityInput(data)->source->records.at(physical);
             const auto& raw=input.raw; // structural input; rendering uses the explicit overload below
             if(map.size()!=raw->groups.size()||source.marker.ordinal!=original.marker.ordinal||source.endMarker.ordinal!=original.endMarker.ordinal)return false;
@@ -90,7 +91,8 @@ bool test(const std::filesystem::path& dir) {
             const auto pair=root?std::make_pair(audit.rootKeyGroup,audit.rootTargetGroup):std::make_pair(style.nameGroup,style.targetGroup);
             const auto& source=root?*audit.root->input->physical:*audit.dictionary->input->physical;const auto& map=root?audit.rootFields:audit.dictionaryFields;
             const auto& key=wire.at(source.fields.at(map.at(pair.first)).span.ordinal-1u);const auto& target=wire.at(source.fields.at(map.at(pair.second)).span.ordinal-1u);
-            if(key.code!=3||key.text!=(root?"ACAD_VISUALSTYLE":"AuthoredStyle")||target.code!=350||target.text!=(root?"EB00":"EA01"))return fail(__LINE__);named+=2u;}
+            if(key.code!=3||key.text!=(root?"ACAD_VISUALSTYLE":"AuthoredStyle")||target.code!=350||target.text!=(root?"EB00":"EA01"))return fail(__LINE__);
+            named+=2u;}
         const auto before=symbolFailedAllocations;{SymbolAllocationFailure none(0);if(!ready(data))return fail(__LINE__);}if(before!=symbolFailedAllocations)return fail(__LINE__);++queries;++profiles;
     }
     auto good=renderingSourceDocument("AC1027",false,false);comments(good,6u);
@@ -101,7 +103,8 @@ bool test(const std::filesystem::path& dir) {
             const auto set=[&](std::size_t value){if(which==0u)limited.limits.fields=value;else if(which==1u)limited.limits.bytes=value;else limited.limits.work=value;};
             set(exact);dx_data fits;if(!limited.fileImport(path.string(),&fits,false)||!ready(fits))return fail(__LINE__);
             set(exact-1u);dx_data under;if(!limited.fileImport(path.string(),&under,false)||ready(under)||!dx_iface::renderingModelReport(under).modeledStateMatched)return fail(__LINE__);
-            if(A::renderingSources(under)->records.at(0xEA01u)->input->physicalStatus!=Source::Status::Quota)return fail(__LINE__);++limits;
+            if(A::renderingSources(under)->records.at(0xEA01u)->input->physicalStatus!=Source::Status::Quota)return fail(__LINE__);
+            ++limits;
             limited.limits={};dx_data fixed;if(!limited.fileImport(path.string(),&fixed,false)||!ready(fixed))return fail(__LINE__);++retries;}
         for(unsigned owner=0u;owner<3u;++owner)for(unsigned fault=0u;fault<6u;++fault){
             const auto& audit=*A::renderingSources(base);

@@ -30,13 +30,22 @@ struct ViewportProbe:dx_iface {
         const auto before=symbolFailedAllocations;bool present=false;
         {SymbolAllocationFailure none(0);present=input&&input->getDxfViewportSourceView(view);}
         if(!present||view.model!=&value||view.inBlock!=blocks||symbolFailedAllocations!=before)good=false;
-        if(view.originalPendingXdata||view.originalCoordinateMask)++pending;++callbacks;
+        if(view.originalPendingXdata||view.originalCoordinateMask)++pending;
+        ++callbacks;
         if(fault==1){const DRW_Viewport copy(value);dx_iface::addViewport(copy);return;}if(fault==2)return;
         auto& actual=const_cast<DRW_Viewport&>(value);const DRW_Viewport saved(value);
-        if(mutation==0)actual.pswidth+=1.;if(mutation==1)actual.statusFlags^=1;if(mutation==2)actual.namedUcsHandle=0xFFFFu;
-        if(mutation==3)actual.frozenLayerHandles.front()=0xFFFFu;if(mutation==4)actual.styleSheet="edited.ctb";if(mutation==5)actual.ambientColorName="edited";
-        if(mutation==6)actual.brightness+=1.;if(mutation==7)actual.viewDir.y+=1.;if(mutation==8)actual.vpHeaderHandle=0xFFFFu;
-        if(mutation==9)actual.ambientColorDwgIndex=7u;if(mutation==10)actual.fullVisualStyleHandle=0xFFFFu;if(mutation==11)actual.basePoint.z+=1.;
+        if(mutation==0)actual.pswidth+=1.;
+        if(mutation==1)actual.statusFlags^=1;
+        if(mutation==2)actual.namedUcsHandle=0xFFFFu;
+        if(mutation==3)actual.frozenLayerHandles.front()=0xFFFFu;
+        if(mutation==4)actual.styleSheet="edited.ctb";
+        if(mutation==5)actual.ambientColorName="edited";
+        if(mutation==6)actual.brightness+=1.;
+        if(mutation==7)actual.viewDir.y+=1.;
+        if(mutation==8)actual.vpHeaderHandle=0xFFFFu;
+        if(mutation==9)actual.ambientColorDwgIndex=7u;
+        if(mutation==10)actual.fullVisualStyleHandle=0xFFFFu;
+        if(mutation==11)actual.basePoint.z+=1.;
         dx_iface::addViewport(value);actual=saved;if(fault==3)dx_iface::addViewport(value);
         if(throwing)throw std::runtime_error("viewport typed callback");
     }
@@ -56,11 +65,13 @@ bool viewportSourceTests(const std::filesystem::path& dir) {
         ViewportProbe reader;reader.blocks=blocks;dx_data data;const auto tags=viewportDocument(version,blocks,form);
         if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||!reader.good||reader.callbacks!=1u||!ready(data)){std::cerr<<version<<'/'<<encoding<<" blocks="<<blocks<<" form="<<form<<'\n';diagnose(data);return fail(__LINE__);}
         const auto& node=A::dependencies(data)->nodes.at(0xE801u);const auto& original=A::identityInput(data)->source->records.at(node.physical);const auto wire=attdefWireTags(path,encoding==2u);const auto& marker=wire.at(original.marker.ordinal-1u);
-        if(marker.code||marker.text!="VIEWPORT"||marker.begin!=original.marker.beginOffset||marker.end!=original.marker.endOffset)return fail(__LINE__);++markers;
+        if(marker.code||marker.text!="VIEWPORT"||marker.begin!=original.marker.beginOffset||marker.end!=original.marker.endOffset)return fail(__LINE__);
+        ++markers;
         const auto& groups=A::dependencyGroups(node);for(std::size_t i=0u;i<groups.size();++i){const auto& value=groups[i];const auto& field=wire.at(original.marker.ordinal+i);if(field.code!=value.code())return fail(__LINE__);
             if(field.kind==AttdefWireTag::Integer){if(value.type()!=DRW_Variant::INTEGER||value.i_val()!=field.integer)return fail(__LINE__);}
             else if(field.kind==AttdefWireTag::Real){const auto real=value.d_val();if(value.type()!=DRW_Variant::DOUBLE||std::memcmp(&real,&field.real,sizeof(real)))return fail(__LINE__);}
-            else if(value.type()!=DRW_Variant::STRING||!value.content.s||*value.content.s!=field.text)return fail(__LINE__);++spans;}
+            else if(value.type()!=DRW_Variant::STRING||!value.content.s||*value.content.s!=field.text)return fail(__LINE__);
+            ++spans;}
         unsigned layers=0u;for(const auto& row:A::dependencies(data)->rows)if(row.source==0xE801u&&row.present){using R=dx_tableResourceRole;R expected=R::Unknown;
             switch(row.code){case 5:expected=R::Self;break;case 330:expected=R::Owner;break;case 8:case 1003:expected=R::LayerName;break;case 6:expected=R::LineTypeName;break;
             case 410:expected=R::LayoutName;break;case 331:expected=R::ViewportFrozenLayer;break;case 345:expected=R::LayoutNamedUcs;break;case 346:expected=R::LayoutBaseUcs;break;
@@ -71,15 +82,18 @@ bool viewportSourceTests(const std::filesystem::path& dir) {
             if(row.role==R::ViewportShade){const auto& mode=wire.at(original.marker.ordinal+row.modeGroup);if(mode.code!=170||mode.integer!=row.mode)return fail(__LINE__);}
             if((row.code>=320&&row.code<=369)||row.code==5||row.code==1005){std::uint32_t target=0u;const auto parsed=std::from_chars(field.text.data(),field.text.data()+field.text.size(),target,16);
                 if(parsed.ec!=std::errc{}||parsed.ptr!=field.text.data()+field.text.size()||target!=row.target)return fail(__LINE__);}++references;}
-        if(layers!=(form?2u:1u))return fail(__LINE__);const auto before=symbolFailedAllocations;{SymbolAllocationFailure none(0);if(!ready(data))return fail(__LINE__);}if(symbolFailedAllocations!=before)return fail(__LINE__);
+        if(layers!=(form?2u:1u))return fail(__LINE__);
+        const auto before=symbolFailedAllocations;{SymbolAllocationFailure none(0);if(!ready(data))return fail(__LINE__);}if(symbolFailedAllocations!=before)return fail(__LINE__);
         for(auto* entity:data.mBlock->ent)if(auto* v=dynamic_cast<DRW_Viewport*>(entity)){v->pswidth+=12.;v->namedUcsHandle=0xFFFFu;v->frozenLayerHandles.clear();}
         A::clearAdvisoryNames(data);if(!ready(data))return fail(__LINE__);++immutable;++profiles;
     }
     for(unsigned encoding=0u;encoding<3u;++encoding)for(bool blocks:{false,true}){
         const auto good=viewportDocument("AC1032",blocks,1u);const auto retry=[&](ViewportProbe& reader){reader.fault=0;reader.mutation=-1;reader.throwing=false;dx_data next;
-            if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&next,false)||!ready(next))return fail(__LINE__);++imports;return true;};
+            if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&next,false)||!ready(next))return fail(__LINE__);
+            ++imports;return true;};
         for(int mutation=0;mutation<12;++mutation){ViewportProbe reader;reader.blocks=blocks;reader.mutation=mutation;dx_data data;
-            if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&data,false)||ready(data)||!retry(reader))return fail(__LINE__);++mutations;}
+            if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&data,false)||ready(data)||!retry(reader))return fail(__LINE__);
+            ++mutations;}
         for(unsigned fault=0u;fault<20u;++fault){auto tags=good;ViewportProbe reader;reader.blocks=blocks;bool parseFailure=false;
             if(fault<3u)reader.fault=static_cast<int>(fault+1u);
             else if(fault==3u)tags[blockField(tags,"E801",331)].value="FFFF";
@@ -105,15 +119,19 @@ bool viewportSourceTests(const std::filesystem::path& dir) {
             // VIEWPORT callback or completed dependency graph escaped, then
             // use the same reader for the corrected retry below.
             if(fault==16u&&(reader.callbacks!=0u||dx_iface::dependencyReport(data).state!=dx_iface::DependencyState::ImportFailed))return fail(__LINE__);
-            if(!retry(reader))return fail(__LINE__);++refusals;}
+            if(!retry(reader))return fail(__LINE__);
+            ++refusals;}
         {auto tags=good;for(unsigned i=0u;i<510u;++i)viewportBodyAppend(tags,{{331,"D301"}});ViewportProbe reader;reader.blocks=blocks;dx_data data;
-            if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||!ready(data)||!retry(reader))return fail(__LINE__);++limits;}
+            if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||!ready(data)||!retry(reader))return fail(__LINE__);
+            ++limits;}
         {ViewportProbe reader;reader.blocks=blocks;reader.throwing=true;dx_data data;bool caught=false;
             try{if(reader.fileImport(path.string(),&data,false))return fail(__LINE__);}catch(const std::runtime_error&){caught=true;}
-            if(!caught||dx_iface::dependencyReport(data).state!=dx_iface::DependencyState::ImportFailed||!retry(reader))return fail(__LINE__);++throws;}
+            if(!caught||dx_iface::dependencyReport(data).state!=dx_iface::DependencyState::ImportFailed||!retry(reader))return fail(__LINE__);
+            ++throws;}
         ViewportProbe reader;reader.blocks=blocks;dx_data base;if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&base,false)||!ready(base))return fail(__LINE__);
         const auto use=A::attdefBodyUsage(base,blocks);for(unsigned which=0u;which<3u;++which)for(bool under:{false,true}){ViewportProbe codec;codec.blocks=blocks;dx_data data;A::attdefBodyLimit(data,blocks,which,use[which]-(under?1u:0u));
-            if(!codec.fileImport(path.string(),&data,false)||ready(data)==under||!retry(codec))return fail(__LINE__);++quotas;}
+            if(!codec.fileImport(path.string(),&data,false)||ready(data)==under||!retry(codec))return fail(__LINE__);
+            ++quotas;}
         for(long offset=0;offset<64;++offset){const auto before=symbolFailedAllocations;{SymbolAllocationFailure fault(offset);A::repeatDependencies(reader,base);}
             if(symbolFailedAllocations!=before){if(dx_iface::dependencyReport(base).state!=dx_iface::DependencyState::CaptureFailed)return fail(__LINE__);++reached;}else{if(!ready(base))return fail(__LINE__);++unreached;}
             A::repeatDependencies(reader,base);if(!ready(base))return fail(__LINE__);++finalizations;}
@@ -122,14 +140,17 @@ bool viewportSourceTests(const std::filesystem::path& dir) {
         Tags tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1032"},{0,"ENDSEC"},{0,"SECTION"},{2,blocks?"BLOCKS":"ENTITIES"}};
         if(blocks)tags.insert(tags.end(),{{0,"BLOCK"},{5,"E800"},{330,"B2"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockBegin"},{2,"Publication"},{70,"0"},{10,"0"},{20,"0"},{30,"0"}});
         tags.insert(tags.end(),{{0,"VIEWPORT"},{5,"E801"},{330,"B2"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbViewport"},{10,"1"},{20,"2"},{30,"3"},{40,"4"},{41,"5"},{68,"1"},{69,"2"}});
-        if(blocks)tags.insert(tags.end(),{{0,"ENDBLK"},{5,"E802"},{330,"B2"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockEnd"}});tags.insert(tags.end(),{{0,"ENDSEC"},{0,"EOF"}});
+        if(blocks)tags.insert(tags.end(),{{0,"ENDBLK"},{5,"E802"},{330,"B2"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockEnd"}});
+        tags.insert(tags.end(),{{0,"ENDSEC"},{0,"EOF"}});
         struct Public:dx_iface {dxfRW* input=nullptr;bool good=true,blocks=false,throwing=false;unsigned callbacks=0u;
             void addHeader(const DRW_Header*) override{}void addBlock(const DRW_Block&) override{}void endBlock() override{}
             void addViewport(const DRW_Viewport& v) override{dxfRW::DxfViewportSourceView view;dxfRW::DxfTableSourceView table;dxfRW::DxfViewUcsSourceView symbol;
                 const auto before=symbolFailedAllocations;{SymbolAllocationFailure none(0);if(!input->getDxfViewportSourceView(view)||view.model!=&v||view.inBlock!=blocks||input->getDxfTableSourceView(table)||input->getDxfViewUcsSourceView(symbol))good=false;}
-                if(symbolFailedAllocations!=before)good=false;++callbacks;if(throwing)throw std::runtime_error("public viewport");}
+                if(symbolFailedAllocations!=before)good=false;
+                ++callbacks;if(throwing)throw std::runtime_error("public viewport");}
         } consumer;
-        if(!writeBlockBinding(path,tags,encoding))return fail(__LINE__);dxfRW input(path.string().c_str());consumer.input=&input;consumer.blocks=blocks;consumer.throwing=throwing;
+        if(!writeBlockBinding(path,tags,encoding))return fail(__LINE__);
+        dxfRW input(path.string().c_str());consumer.input=&input;consumer.blocks=blocks;consumer.throwing=throwing;
         dxfRW::DxfViewportSourceView view;DRW_Viewport sentinel;view.model=&sentinel;if(input.getDxfViewportSourceView(view)||view.model)return fail(__LINE__);bool caught=false;
         try{if(!input.read(&consumer,false))return fail(__LINE__);}catch(const std::runtime_error&){caught=true;}
         view.model=&sentinel;if(caught!=throwing||!consumer.good||consumer.callbacks!=1u||input.getDxfViewportSourceView(view)||view.model)return fail(__LINE__);++lifetimes;

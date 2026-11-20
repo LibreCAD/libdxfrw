@@ -80,7 +80,8 @@ bool structuralPublicLifetime(unsigned& contexts) {
         if(threw!=(phase>=0&&phase<4)||reader.getDxfStructuralSourceView(view)||view.model||view.source||!consumer.good)return false;
         if(phase==-1&&consumer.calls!=std::vector<int>{0,1,0,1,2,3})return false;
         if(phase==4&&consumer.calls!=std::vector<int>{0,1,0,1})return false;
-        if(phase==5&&!consumer.calls.empty())return false;++contexts;
+        if(phase==5&&!consumer.calls.empty())return false;
+        ++contexts;
     }
     return true;
 }
@@ -92,17 +93,20 @@ bool structuralSourceTests(const std::filesystem::path& dir) {
         &&r.bodyMatched==3u&&r.stateComplete==3u&&r.originsBound==3u&&r.namespaceReady&&!r.ownerTargetsResolved&&!r.outputEligible;};
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding) {
         auto tags=structuralSourceDocument(version);if(encoding==2u)tags.erase(std::remove_if(tags.begin(),tags.end(),[](const auto& t){return t.code==999;}),tags.end());
-        if(!writeBlockBinding(path,tags,encoding))return false;StructuralSourceProbe reader;dx_data data;
+        if(!writeBlockBinding(path,tags,encoding))return false;
+        StructuralSourceProbe reader;dx_data data;
         if(!reader.fileImport(path.string(),&data,false)||!complete(data)||!reader.good||reader.order!=std::vector<int>{0,1,0,1,2,3}) {
             const auto r=dx_iface::structuralSourceReport(data);std::cerr<<version<<'/'<<encoding<<" state="<<static_cast<int>(r.state)<<" pairs="<<r.paired<<" bodies="<<r.bodyMatched<<" complete="<<r.stateComplete<<" origins="<<r.originsBound<<'\n';return false;
         }
         const auto wire=attdefWireTags(path,encoding==2u);
         for(const auto& row:A::structuralAudits(data)) {
             const auto& audit=*row.second;const auto& source=*A::identityInput(data)->source;
-            if(audit.physical>=source.records.size())return false;const auto& physical=source.records[audit.physical];
+            if(audit.physical>=source.records.size())return false;
+            const auto& physical=source.records[audit.physical];
             const auto& marker=wire.at(physical.marker.ordinal-1u);
             if(marker.code||marker.text!=audit.input->raw->name||marker.begin!=physical.marker.beginOffset||marker.end!=physical.marker.endOffset)return false;
-            if(audit.input->model.get()!=A::resources(data).at(row.first).model.get()||audit.input->raw.get()!=A::resources(data).at(row.first).raw.get())return false;++origins;
+            if(audit.input->model.get()!=A::resources(data).at(row.first).model.get()||audit.input->raw.get()!=A::resources(data).at(row.first).raw.get())return false;
+            ++origins;
         }++profiles;
     }
     for(bool binary:{false,true}) {
@@ -126,7 +130,8 @@ bool structuralSourceTests(const std::filesystem::path& dir) {
             auto tags=good;
             if(dictionary){const auto at=slot(tags,0,"XRECORD");tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{{1001,"PENDING_APP"},{1010,"1"}});}
             else {const auto at=slot(tags,1030,"3.75");tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(at));}
-            if(!write(path,tags,binary))return false;StructuralSourceProbe reader;dx_data data;
+            if(!write(path,tags,binary))return false;
+            StructuralSourceProbe reader;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||dx_iface::structuralSourceReport(data).state!=S::Unqualified) {
                 const auto r=dx_iface::structuralSourceReport(data);std::cerr<<"pending dictionary="<<dictionary<<" state="<<static_cast<int>(r.state)<<" complete="<<r.stateComplete<<'\n';return false;
             }
@@ -134,13 +139,15 @@ bool structuralSourceTests(const std::filesystem::path& dir) {
             if(!input.originalState.first||DRW::internal::DxfBlockRecordDecoder::observeCommonState(*input.model)!=input.originalState) {
                 std::cerr<<"pending dictionary="<<dictionary<<" original="<<input.originalState.first<<" mask="<<static_cast<int>(input.originalState.second)<<" copied="<<DRW::internal::DxfBlockRecordDecoder::observeCommonState(*input.model).first<<'\n';return false;
             }
-            if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
+            if(!write(path,good,binary))return false;
+            dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
         }
         stage.name="exact and one-under quotas";
         for(unsigned which=0u;which<3u;++which)for(bool exact:{false,true}) {
             StructuralSourceProbe reader;dx_data data;const auto r=dx_iface::structuralSourceReport(base);
             A::structuralLimit(data,which,(which==0u?r.records:which==1u?r.bytes:r.work)-(exact?0u:1u));
-            if(!reader.fileImport(path.string(),&data,false)||dx_iface::structuralSourceReport(data).state!=(exact?S::OriginsBound:S::CaptureFailed))return false;++quotas;
+            if(!reader.fileImport(path.string(),&data,false)||dx_iface::structuralSourceReport(data).state!=(exact?S::OriginsBound:S::CaptureFailed))return false;
+            ++quotas;
         }
         stage.name="owner/context/opt-out controls";
         for(unsigned which=0u;which<4u;++which) {
@@ -149,10 +156,12 @@ bool structuralSourceTests(const std::filesystem::path& dir) {
         }
         for(unsigned which=0u;which<3u;++which) {
             StructuralSourceProbe reader;reader.blocks=which==1u;reader.root=which==2u;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false)||dx_iface::structuralSourceReport(data).state!=(which?S::OriginsBound:S::NotCaptured))return false;++contexts;
+            if(!reader.fileImport(path.string(),&data,false)||dx_iface::structuralSourceReport(data).state!=(which?S::OriginsBound:S::NotCaptured))return false;
+            ++contexts;
         }
         {StructuralSourceProbe reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;dx_data copy;A::copyBindingContext(copy,data);
-            if(dx_iface::structuralSourceReport(copy).state!=S::ContextMismatch)return false;++contexts;}
+            if(dx_iface::structuralSourceReport(copy).state!=S::ContextMismatch)return false;
+            ++contexts;}
         {auto tags=good;tags[slot(tags,5,"30")].value="13";if(!write(path,tags,binary))return false;StructuralSourceProbe reader;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||dx_iface::structuralSourceReport(data).state!=S::ProducerPairsReady
                 ||dx_iface::structuralSourceReport(data).originsBound)return false;

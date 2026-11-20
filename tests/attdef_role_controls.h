@@ -45,14 +45,21 @@ struct AttdefRoleProbe final:dx_iface {
         if(typedFault==1u){const DRW_Attdef copy(original);dx_iface::addAttDef(copy);return;}
         if(typedFault==2u)return;
         auto& value=const_cast<DRW_Attdef&>(original);std::string* text=nullptr;double* real=nullptr;
-        if(mutation==0)text=&value.text;if(mutation==1)text=&value.prompt;if(mutation==2)text=&value.tag;if(mutation==5)text=&value.style;
+        if(mutation==0)text=&value.text;
+        if(mutation==1)text=&value.prompt;
+        if(mutation==2)text=&value.tag;
+        if(mutation==5)text=&value.style;
         if(mutation==7&&value.mtext)text=&value.mtext->text;
-        if(mutation==3)real=&value.basePoint.x;if(mutation==4)real=&value.height;
-        if(mutation==8&&value.mtext)real=&value.mtext->widthscale;if(mutation==9&&value.mtext)real=&value.mtext->secPoint.y;
+        if(mutation==3)real=&value.basePoint.x;
+        if(mutation==4)real=&value.height;
+        if(mutation==8&&value.mtext)real=&value.mtext->widthscale;
+        if(mutation==9&&value.mtext)real=&value.mtext->secPoint.y;
         std::string savedText;double savedReal=0.;const auto flags=value.attribFlags;
         if(text){savedText=*text;*text="changed actual callback field";}if(real){savedReal=*real;*real+=1.;}if(mutation==6)value.attribFlags^=1u;
         dx_iface::addAttDef(value);
-        if(text)text->swap(savedText);if(real)*real=savedReal;value.attribFlags=flags;
+        if(text)text->swap(savedText);
+        if(real)*real=savedReal;
+        value.attribFlags=flags;
         if(typedFault==3u)dx_iface::addAttDef(value);
         if(throwTyped)throw std::runtime_error("ATTDEF role typed callback");
     }
@@ -81,7 +88,8 @@ bool attdefRoleWire(const std::vector<AttdefWireTag>& wire,const Physical& p,con
     }
     bool nested=false;unsigned depth=0u;
     for(std::size_t i=0;i<p.groups.size();++i){const auto& s=p.spans[i];const auto& v=p.groups[i];const auto& a=profile.spans[i];
-        if(!s.ordinal||s.ordinal>wire.size())return false;const auto& w=wire[s.ordinal-1u];
+        if(!s.ordinal||s.ordinal>wire.size())return false;
+        const auto& w=wire[s.ordinal-1u];
         if(a.groupIndex!=i||a.code!=w.code||v.code()!=w.code||s.beginOffset!=w.begin||s.endOffset!=w.end)return false;
         if(s.ignoredComment){if(a.scope!=Scope::Ignored||a.field!=Field::IgnoredComment)return false;++spans;continue;}
         if(w.kind==AttdefWireTag::Integer){if((v.type()!=DRW_Variant::INTEGER&&v.type()!=DRW_Variant::INTEGER64)||(v.type()==DRW_Variant::INTEGER64?v.i64_val():v.i_val())!=w.integer)return false;}
@@ -110,10 +118,12 @@ std::array<std::size_t,2> attdefDualRoleSlots(const Tags& tags,const char* id) {
     const auto begin=slot(tags,5,id);unsigned depth=0u;bool attribute=false;std::array<std::size_t,2> found{{tags.size(),tags.size()}};unsigned count=0u;
     for(std::size_t i=begin;i<tags.size()&&(i==begin||tags[i].code!=0);++i) {
         const auto& field=tags[i];if(field.code==102){if(field.value=="}"){if(!depth)throw std::runtime_error("dual280 role application depth");--depth;}else ++depth;continue;}
-        if(depth)continue;if(field.code==100)attribute=field.value=="AcDbAttributeDefinition";
+        if(depth)continue;
+        if(field.code==100)attribute=field.value=="AcDbAttributeDefinition";
         if(attribute&&field.code==280){if(count==2u)throw std::runtime_error("dual280 role source count");found[count++]=i;}
     }
-    if(count!=2u)throw std::runtime_error("dual280 role source slots");return found;
+    if(count!=2u)throw std::runtime_error("dual280 role source slots");
+    return found;
 }
 Tags attdefDualRoleDocument(const std::string& version,bool blocks,bool lock,bool binary) {
     auto tags=attdefRoleDocument(version,blocks,0u);
@@ -124,7 +134,8 @@ Tags attdefDualRoleDocument(const std::string& version,bool blocks,bool lock,boo
             if(field.code==100){attribute=field.value=="AcDbAttributeDefinition";if(attribute)marker=i;}
             if(attribute&&field.code==280)last=i;
         }
-        if(marker==tags.size()||last==tags.size())throw std::runtime_error("dual280 role authored body");tags[last].value=lock?"1":"0";
+        if(marker==tags.size()||last==tags.size())throw std::runtime_error("dual280 role authored body");
+        tags[last].value=lock?"1":"0";
         if(!binary)tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(last),{999,"ignored original lock-span boundary"});
         tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(marker+1u),{280,"0"});
         tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(marker+2u),{{102,"{VERSION_SHADOW"},{280,"7"},{3,"not-prompt"},{2,"NOT_TAG"},{70,"15"},{102,"}"}});
@@ -275,12 +286,15 @@ bool attdefDual280RoleTests(const std::filesystem::path& dir) {
     const auto positiveCorruptions=corruptions;
     for(const std::string version:{"AC1024","AC1027","AC1032"})for(bool binary:{false,true})for(bool blocks:{false,true})for(unsigned kind=0u;kind<10u;++kind) {
         auto tags=attdefDualRoleDocument(version,blocks,true,binary);const auto at=attdefDualRoleSlots(tags,"501");
-        if(kind==0u)tags[at[0]].value="1";if(kind==1u)tags[at[0]].value="-1";if(kind==2u)tags[at[1]].value="2";
+        if(kind==0u)tags[at[0]].value="1";
+        if(kind==1u)tags[at[0]].value="-1";
+        if(kind==2u)tags[at[1]].value="2";
         if(kind==3u){const auto version=tags[at[0]];tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(at[0]));
             unsigned depth=0u;std::size_t prompt=tags.size();const auto first=slot(tags,5,"501");
             for(std::size_t i=first;i<tags.size()&&(i==first||tags[i].code!=0);++i){if(tags[i].code==102){depth=tags[i].value=="}"?depth-1u:depth+1u;continue;}
                 if(!depth&&tags[i].code==3){prompt=i;break;}}
-            if(prompt==tags.size())throw std::runtime_error("dual280 owning prompt missing");tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(prompt+1u),version);}
+            if(prompt==tags.size())throw std::runtime_error("dual280 owning prompt missing");
+            tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(prompt+1u),version);}
         if(kind==4u)tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at[0]+1u),{280,"0"});
         if(kind==5u)tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at[1]+1u),{280,"1"});
         if(kind==6u){unsigned depth=0u;const auto first=slot(tags,5,"501");for(std::size_t i=first;i<tags.size()&&(i==first||tags[i].code!=0);++i){if(tags[i].code==102){depth=tags[i].value=="}"?depth-1u:depth+1u;continue;}
@@ -307,11 +321,14 @@ bool attdefRoleTests(const std::filesystem::path& dir) {
     if(!attdefDual280RoleTests(dir))return false;
     const auto path=dir/"attdef-roles.dxf";unsigned profiles=0u,qualified=0u,revisions=0u,variants=0u,mutations=0u,pairs=0u,contexts=0u,quotas=0u,failures=0u,allocations=0u,liveCopyFailures=0u,destinationGuards=0u;std::size_t spans=0u;
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding)for(bool blocks:{false,true})for(unsigned mode=0u;mode<3u;++mode){
-        if(!writeBlockBinding(path,attdefRoleDocument(version,blocks,mode),encoding))return false;dx_iface reader;dx_data data;
-        if(!reader.fileImport(path.string(),&data,false))return false;const bool admitted=!mode||version=="AC1032";
+        if(!writeBlockBinding(path,attdefRoleDocument(version,blocks,mode),encoding))return false;
+        dx_iface reader;dx_data data;
+        if(!reader.fileImport(path.string(),&data,false))return false;
+        const bool admitted=!mode||version=="AC1032";
         if(attdefRolesReady(data,blocks)!=admitted){std::cerr<<version<<'/'<<encoding<<" blocks="<<blocks<<" mode="<<mode<<" B="<<static_cast<int>(dx_iface::blockRoleReport(data).state)<<" E="<<static_cast<int>(dx_iface::entitiesRoleReport(data).state)<<'\n';
             if(A::blockRole(data))for(const auto& r:A::blockRole(data)->rows)if(r.self==0x501u||r.self==0x502u)std::cerr<<r.self<<" reason="<<static_cast<int>(r.reason)<<'\n';
-            if(A::entitiesRole(data))for(const auto& r:A::entitiesRole(data)->rows)if(r.self==0x501u||r.self==0x502u)std::cerr<<r.self<<" reason="<<static_cast<int>(r.reason)<<'\n';return false;}
+            if(A::entitiesRole(data))for(const auto& r:A::entitiesRole(data)->rows)if(r.self==0x501u||r.self==0x502u)std::cerr<<r.self<<" reason="<<static_cast<int>(r.reason)<<'\n';
+            return false;}
         const auto wire=attdefWireTags(path,encoding==2u);
         for(auto id:{0x501u,0x502u}){const auto& resource=A::mapResource(data,id);
             if(!resource.attdefPairMatched||!resource.attdefFieldsMatched||resource.attdefFieldMismatch||resource.rawTypedMatched||!resource.attdefState.attributeSubclass
@@ -322,11 +339,13 @@ bool attdefRoleTests(const std::filesystem::path& dir) {
                 for(const auto& b:row.compoundBodies) {if(b.second->model->handle==id){const auto& body=*b.second;const auto range=body.membership->ranges[b.first];
                     if(body.state!=decltype(body.state)::ModeledReplayMatched||body.profilesComplete!=admitted||body.attdef.model!=resource.attdefModel||body.sourceStates.size()!=1u
                         ||!body.sourceStates.front().attributeSubclass||!body.replayStates.front().attributeSubclass)return false;
-                    if(admitted&&!attdefRoleWire(wire,body.membership->children->records[range.first],body.profiles.front(),spans))return false;found=true;}}
+                    if(admitted&&!attdefRoleWire(wire,body.membership->children->records[range.first],body.profiles.front(),spans))return false;
+                    found=true;}}
                 if(!found)return false;
             }else{bool found=false;for(const auto& a:A::entitiesAudits(data)){for(const auto& p:a->proofs){if(a->members[p.first].self==id){
                     if(!p.attributeDefinition||p.primary||p.compound||!p.modeledMatched||p.profilesMatched!=admitted||p.attdef.model!=resource.attdefModel)return false;
-                    if(admitted&&!attdefRoleWire(wire,a->physical->records[p.first],p.profiles.front(),spans))return false;found=true;}}}
+                    if(admitted&&!attdefRoleWire(wire,a->physical->records[p.first],p.profiles.front(),spans))return false;
+                    found=true;}}}
                 if(!found)return false;}
         }
         ++profiles;if(admitted)++qualified;else ++revisions;
@@ -343,7 +362,8 @@ bool attdefRoleTests(const std::filesystem::path& dir) {
             if(kind==4u)tags[blockField(tags,"501",10)].value="-0.0";
             if(kind==5u){const auto at=slot(tags,0,"ENDSEC");tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{{9,"$DWGCODEPAGE"},{3,"ANSI_1252"}});}
             if(kind==7u)for(const char* id:{"501","502"}){const auto at=slot(tags,5,id);tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{{999,"original ignored comment"}});}
-            if(!write(path,tags,binary))return false;AttdefRoleProbe reader;dx_data data;
+            if(!write(path,tags,binary))return false;
+            AttdefRoleProbe reader;dx_data data;
             const auto policy=kind==6u?DRW::DxfCodePagePolicy::ExactNamed:DRW::DxfCodePagePolicy::Compatible;
             if(!reader.fileImport(path.string(),&data,false,policy)||!attdefRolesReady(data,blocks)
                 ||A::mapResource(data,0x501u).attdefReadContext->codePagePolicy!=policy){std::cerr<<"variant="<<kind<<" blocks="<<blocks<<'\n';return false;}++variants;
@@ -358,7 +378,8 @@ bool attdefRoleTests(const std::filesystem::path& dir) {
             if(kind==5u){const auto at=blockField(tags,"501",100)+1u;tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{{90,"1"}});}
             if(kind==6u)tags[blockField(tags,"501",40)].value="-1";
             if(kind==7u){const auto at=blockField(tags,"501",100)+1u;tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{{100,"AcDbXrecord"}});}
-            if(!write(path,tags,binary))return false;AttdefRoleProbe reader;dx_data data;(void)reader.fileImport(path.string(),&data,false);
+            if(!write(path,tags,binary))return false;
+            AttdefRoleProbe reader;dx_data data;(void)reader.fileImport(path.string(),&data,false);
             if(attdefRolesReady(data,blocks)||!retry(reader)){std::cerr<<"refusal="<<kind<<" blocks="<<blocks<<'\n';return false;}++failures;
         }
         if(!write(path,good,binary))return false;
@@ -371,16 +392,22 @@ bool attdefRoleTests(const std::filesystem::path& dir) {
             if(attdefRolesReady(data,blocks)||!retry(reader)){std::cerr<<"pair="<<kind<<" blocks="<<blocks<<'\n';return false;}++pairs;}
         stage.value="immutable owner and pair prerequisites";
         for(unsigned which=0u;which<(blocks?4u:3u);++which)for(bool alias:{false,true}){AttdefRoleProbe reader;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false)||!attdefRolesReady(data,blocks))return false;A::substituteAttdef(data,0x501u,which,alias);
+            if(!reader.fileImport(path.string(),&data,false)||!attdefRolesReady(data,blocks))return false;
+            A::substituteAttdef(data,0x501u,which,alias);
             const bool mismatch=blocks?dx_iface::blockRoleReport(data).state==dx_iface::BlockRoleState::ContextMismatch:dx_iface::entitiesRoleReport(data).state==dx_iface::EntitiesRoleState::ContextMismatch;
             if(!mismatch||!retry(reader)){std::cerr<<"owner="<<which<<" blocks="<<blocks<<'\n';return false;}++contexts;}
         for(unsigned which=0u;which<4u;++which){AttdefRoleProbe reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;auto& r=A::mutableResource(data,0x501u);
-            if(which==0u)r.attdefPairMatched=false;if(which==1u)r.attdefFieldsMatched=false;if(which==2u)r.awaitingAttdef=true;if(which==3u)r.attdefState.attributeSubclass=false;
-            if(attdefRolesReady(data,blocks)||!retry(reader))return false;++contexts;}
+            if(which==0u)r.attdefPairMatched=false;
+            if(which==1u)r.attdefFieldsMatched=false;
+            if(which==2u)r.awaitingAttdef=true;
+            if(which==3u)r.attdefState.attributeSubclass=false;
+            if(attdefRolesReady(data,blocks)||!retry(reader))return false;
+            ++contexts;}
         {AttdefRoleProbe reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;
             const auto edit=[](dx_ifaceBlock* b){if(b)for(auto* e:b->ent)if(auto* a=dynamic_cast<DRW_Attdef*>(e)){a->prompt="edited";a->parentHandle=0x40u;if(a->mtext)a->mtext->text="edited nested";}};
             edit(data.mBlock);for(auto* b:data.blocks)edit(b);data.layouts.front().name="edited live layout";
-            if(!attdefRolesReady(data,blocks))return false;{SymbolAllocationFailure fault(0);if(!attdefRolesReady(data,blocks))return false;}++contexts;
+            if(!attdefRolesReady(data,blocks))return false;
+            {SymbolAllocationFailure fault(0);if(!attdefRolesReady(data,blocks))return false;}++contexts;
             dx_data copy;A::copyBindingContext(copy,data);if(attdefRolesReady(copy,blocks))return false;++contexts;}
         stage.value="bounded body and enclosing role audit";
         AttdefRoleProbe baseline;dx_data base;if(!baseline.fileImport(path.string(),&base,false)||!attdefRolesReady(base,blocks))return false;
@@ -389,7 +416,8 @@ bool attdefRoleTests(const std::filesystem::path& dir) {
             if(!reader.fileImport(path.string(),&data,false)||attdefRolesReady(data,blocks)==under){std::cerr<<"quota="<<which<<" under="<<under<<" blocks="<<blocks<<'\n';return false;}++quotas;}
         for(bool work:{false,true})for(bool under:{false,true}){const auto cap=blocks?(work?dx_iface::blockRoleReport(base).work:dx_iface::blockRoleReport(base).bytes):(work?dx_iface::entitiesRoleReport(base).work:dx_iface::entitiesRoleReport(base).bytes);
             AttdefRoleProbe reader;dx_data data;if(blocks)A::blockRoleLimit(data,work,cap-(under?1u:0u));else A::entitiesRoleLimit(data,work,cap-(under?1u:0u));
-            if(!reader.fileImport(path.string(),&data,false)||attdefRolesReady(data,blocks)==under)return false;++quotas;}
+            if(!reader.fileImport(path.string(),&data,false)||attdefRolesReady(data,blocks)==under)return false;
+            ++quotas;}
         stage.value="observed typed callback allocation faults";
         AttdefRoleProbe calibrated;calibrated.allocation=(std::numeric_limits<long>::max)();dx_data measured;
         if(!calibrated.fileImport(path.string(),&measured,false)||!attdefRolesReady(measured,blocks)||calibrated.observedAllocations<32)return false;
@@ -422,7 +450,8 @@ bool attdefRoleTests(const std::filesystem::path& dir) {
         stage.value="whole-import callback and tail recovery";
         for(unsigned kind=0u;kind<3u;++kind){auto tags=good;if(kind==2u)tags.pop_back();if(!write(path,tags,binary))return false;AttdefRoleProbe reader;reader.throwSource=kind==0u;reader.throwTyped=kind==1u;
             dx_data data;bool read=false,threw=false;try{read=reader.fileImport(path.string(),&data,false);}catch(const std::runtime_error&){threw=true;}
-            if(read||threw!=(kind!=2u)||reader.depth||attdefRolesReady(data,blocks)||!retry(reader))return false;++failures;}
+            if(read||threw!=(kind!=2u)||reader.depth||attdefRolesReady(data,blocks)||!retry(reader))return false;
+            ++failures;}
     }
     stage.done=true;std::cout<<"ATTDEF roles profiles="<<profiles<<"; qualified="<<qualified<<"; revision refusals="<<revisions<<"; independent scalar spans="<<spans
         <<"; variants="<<variants<<"; actual field mutations="<<mutations<<"; pair refusals="<<pairs<<"; context guards="<<contexts<<"; exact/under quotas="<<quotas<<"; allocation faults="<<allocations

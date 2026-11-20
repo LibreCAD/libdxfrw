@@ -367,15 +367,20 @@ public:
         auto& r=data.m_tableDxfSource.resources.at(id);
         const auto change=[&](auto& p){using T=typename std::decay_t<decltype(p)>::element_type;
             if(alias)p=std::shared_ptr<T>(p.get(),[](const auto*){});else p=std::make_shared<T>(*p);};
-        if(which==0u)change(r.attdefModel);if(which==1u)change(r.raw);if(which==2u)change(r.attdefReadContext);if(which==3u)change(r.attdefOrigin);
+        if(which==0u)change(r.attdefModel);
+        if(which==1u)change(r.raw);
+        if(which==2u)change(r.attdefReadContext);
+        if(which==3u)change(r.attdefOrigin);
     }
     using BlockRoleReason=dx_data::TableDxfSourceCapture::BlockRoleAudit::Reason;
     static void blockRoleLimit(dx_data& data,bool work,std::size_t n){if(work)data.m_tableDxfSource.maxBlockRoleWork=n;else data.m_tableDxfSource.maxBlockRoleBytes=n;}
     static void repeatBlockRole(dx_iface& reader,dx_data& data){auto& s=data.m_tableDxfSource;s.blockRoleAudit.reset();s.blockRoleOwner.reset();s.blockRoleBytes=s.blockRoleWork=0u;s.blockRoleCaptureFailed=false;reader.finishBlockRoleAudit(data);}
     static void substituteBlockRole(dx_data& data,unsigned kind,bool alias){auto& s=data.m_tableDxfSource;
         const auto change=[&](auto& p){using T=typename std::decay_t<decltype(p)>::element_type;if(alias)p=std::shared_ptr<T>(p.get(),[](const auto*){});else p=std::make_shared<T>(*p);};
-        if(kind==0u)change(s.blockRoleAudit);if(kind==1u)change(s.blockOriginAudits.at(0xF4u));
-        if(kind==2u)change(s.blockSources.at(0xF4u).membership);if(kind==3u)change(s.blockSources.at(0xF4u).compoundBodies.begin()->second);
+        if(kind==0u)change(s.blockRoleAudit);
+        if(kind==1u)change(s.blockOriginAudits.at(0xF4u));
+        if(kind==2u)change(s.blockSources.at(0xF4u).membership);
+        if(kind==3u)change(s.blockSources.at(0xF4u).compoundBodies.begin()->second);
     }
     static void transplantBlockRole(dx_data& to,const dx_data& from){to.m_tableDxfSource.blockRoleAudit=from.m_tableDxfSource.blockRoleAudit;}
     using EntitiesRoleReason=dx_data::TableDxfSourceCapture::EntitiesRoleAudit::Reason;
@@ -5999,63 +6004,72 @@ int main(int argc,char** argv) {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
             "libdxfrw-full-style-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
-        if(dir.empty())return 1;const bool ok=fullStyleCarrierControls::tests(dir);
+        if(dir.empty())return 1;
+        const bool ok=fullStyleCarrierControls::tests(dir);
         if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
     }
     if(argc==2&&std::string(argv[1])=="--render-preset-transactions") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
             "libdxfrw-preset-transactions-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
-        if(dir.empty())return 1;const bool ok=renderPresetTransactionControls::tests(dir);
+        if(dir.empty())return 1;
+        const bool ok=renderPresetTransactionControls::tests(dir);
         if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
     }
     if(argc==2&&std::string(argv[1])=="--render-preset-edits") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
             "libdxfrw-preset-edits-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
-        if(dir.empty())return 1;const bool ok=renderPresetEditControls::tests(dir);
+        if(dir.empty())return 1;
+        const bool ok=renderPresetEditControls::tests(dir);
         if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
     }
     if(argc==2&&std::string(argv[1])=="--shade-consumer-output") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
             "libdxfrw-shade-consumer-output-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
-        if(dir.empty())return 1;const bool ok=shadeConsumerOutputControls::tests(dir);
+        if(dir.empty())return 1;
+        const bool ok=shadeConsumerOutputControls::tests(dir);
         if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
     }
     if(argc==2&&std::string(argv[1])=="--render-preset-graph-output") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
             "libdxfrw-render-preset-graph-output-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
-        if(dir.empty())return 1;const bool ok=renderPresetGraphOutputControls::tests(dir);
+        if(dir.empty())return 1;
+        const bool ok=renderPresetGraphOutputControls::tests(dir);
         if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
     }
     if(argc==2&&std::string(argv[1])=="--render-preset-output") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
             "libdxfrw-render-preset-output-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
-        if(dir.empty())return 1;const bool ok=renderPresetOutputControls::tests(dir);
+        if(dir.empty())return 1;
+        const bool ok=renderPresetOutputControls::tests(dir);
         if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
     }
     if(argc==2&&std::string(argv[1])=="--render-presets") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
             "libdxfrw-render-presets-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
-        if(dir.empty())return 1;const bool ok=renderPresetControls::tests(dir);
+        if(dir.empty())return 1;
+        const bool ok=renderPresetControls::tests(dir);
         if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
     }
     if(argc==2&&std::string(argv[1])=="--object-physical") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
             "libdxfrw-object-physical-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
-        if(dir.empty())return 1;const bool ok=objectPhysicalControls::test(dir);
+        if(dir.empty())return 1;
+        const bool ok=objectPhysicalControls::test(dir);
         if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
     }
     if(argc==2&&std::string(argv[1])=="--rendering-sources") {
         std::error_code error;
         const auto dir=reserveTestScratch(std::filesystem::temp_directory_path(),
             "libdxfrw-rendering-source-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()),error);
-        if(dir.empty())return 1;const bool ok=renderingSourceTests(dir);
+        if(dir.empty())return 1;
+        const bool ok=renderingSourceTests(dir);
         if(ok)std::filesystem::remove_all(dir,error);else std::cerr<<"Evidence: "<<dir<<'\n';return ok?0:1;
     }
     if(argc==2&&std::string(argv[1])=="--rendering-model-failures") {

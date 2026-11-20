@@ -40,7 +40,8 @@ struct LayoutSourceProbe final:dx_iface {
             if(sourceCopy){auto copy=raw;dx_iface::addDxfLayoutSource(value,copy);}else dx_iface::addDxfLayoutSource(value,raw);
             if(duplicate)dx_iface::addDxfLayoutSource(value,raw);
         }
-        if(undo)undo();if(throwPhase==2)throw std::runtime_error("layout source after");
+        if(undo)undo();
+        if(throwPhase==2)throw std::runtime_error("layout source after");
     }
     void addLayout(const DRW_Layout& value) override {
         ++typed;dxfRW::DxfLayoutSourceView view;const auto* input=DxIfaceTableSourceTestAccess::readInput(*cData);
@@ -48,7 +49,8 @@ struct LayoutSourceProbe final:dx_iface {
         phaseGood=phaseGood&&(enabled?(active&&view.phase==dxfRW::DxfLayoutSourceView::Phase::Typed&&view.model==&value&&view.source):!active);
         auto undo=change?change(const_cast<DRW_Layout&>(value)):std::function<void()>{};
         if(!skipTyped){if(typedCopy){DRW_Layout copy(value);dx_iface::addLayout(copy);}else dx_iface::addLayout(value);}
-        if(undo)undo();captured=DxIfaceTableSourceTestAccess::layoutAllowance(*cData);
+        if(undo)undo();
+        captured=DxIfaceTableSourceTestAccess::layoutAllowance(*cData);
         if(throwPhase==3)throw std::runtime_error("layout typed after");
     }
 };
@@ -57,10 +59,12 @@ bool layoutSourceWire(const std::filesystem::path& path,bool binary,const dx_dat
     for(const auto& entry:DxIfaceTableSourceTestAccess::layoutAudits(data)) {
         const auto& audit=*entry.second;const auto& raw=*audit.input->raw;if(!audit.profile.complete())return false;
         auto at=std::find_if(wire.begin(),wire.end(),[&](const auto& w){return w.code==5&&std::stoul(w.text,nullptr,16)==entry.first;});
-        if(at==wire.end())return false;const auto first=static_cast<std::size_t>(at-wire.begin());
+        if(at==wire.end())return false;
+        const auto first=static_cast<std::size_t>(at-wire.begin());
         if(raw.groups.size()!=audit.profile.spans.size())return false;
         for(std::size_t j=0;j<raw.groups.size();++j) {
-            if(first+j>=wire.size())return false;const auto& w=wire[first+j];const auto& v=raw.groups[j];const auto& p=audit.profile.spans[j];
+            if(first+j>=wire.size())return false;
+            const auto& w=wire[first+j];const auto& v=raw.groups[j];const auto& p=audit.profile.spans[j];
             if(w.code!=v.code()||p.code!=w.code||p.groupIndex!=j)return false;
             if(w.kind==AttdefWireTag::Real){const auto d=v.d_val();if(v.type()!=DRW_Variant::DOUBLE||std::memcmp(&d,&w.real,sizeof(d)))return false;}
             else if(w.kind==AttdefWireTag::Integer){if(w.integer!=v.i_val())return false;}
@@ -68,7 +72,8 @@ bool layoutSourceWire(const std::filesystem::path& path,bool binary,const dx_dat
             using R=dx_layout_source::Role;
             if(p.role==R::Self||p.role==R::Owner||p.role==R::BlockRecord||p.role==R::Viewport||p.role==R::ShadePlot||p.role==R::NamedUcs
                 ||p.role==R::BaseUcs||p.role==R::Reactor||p.role==R::OpaqueHandle||p.role==R::XdataObjectId) {
-                if(std::stoull(w.text,nullptr,16)!=p.handle)return false;++roles;
+                if(std::stoull(w.text,nullptr,16)!=p.handle)return false;
+                ++roles;
             }++spans;
         }
     }
@@ -84,7 +89,8 @@ bool layoutPublicationViewControls(const std::filesystem::path& path,unsigned& c
         void addDxfLayoutSource(const DRW_Layout& v,const DRW_RawDxfObject& raw) override {
             dxfRW::DxfLayoutSourceView view;good=good&&input->getDxfLayoutSourceView(view)&&view.phase==dxfRW::DxfLayoutSourceView::Phase::Source
                 &&view.model==&v&&view.source==&raw;++source;capturing=true;
-            if(disable)enabled=false;if(throwPhase==1)throw std::runtime_error("public source view");
+            if(disable)enabled=false;
+            if(throwPhase==1)throw std::runtime_error("public source view");
         }
         void addLayout(const DRW_Layout& v) override {
             dxfRW::DxfLayoutSourceView view;const bool active=input->getDxfLayoutSourceView(view);
@@ -102,7 +108,8 @@ bool layoutPublicationViewControls(const std::filesystem::path& path,unsigned& c
         if(threw!=(kind==1u)||!consumer.good||reader.getDxfLayoutSourceView(view)||view.phase!=dxfRW::DxfLayoutSourceView::Phase::None||view.model||view.source)return false;
         if(kind==0u&&(consumer.source!=2u||consumer.typed!=2u))return false;
         if(kind==2u&&(consumer.source!=1u||consumer.typed!=2u))return false;
-        if(kind==3u&&(consumer.source||consumer.typed!=2u))return false;++contexts;
+        if(kind==3u&&(consumer.source||consumer.typed!=2u))return false;
+        ++contexts;
     }
     return true;
 }
@@ -112,7 +119,8 @@ bool layoutSourceTests(const std::filesystem::path& dir) {
     const auto path=dir/"layout-source.dxf";unsigned profiles=0u,roles=0u,mutations=0u,refusals=0u,limits=0u,exceptions=0u,contexts=0u,modernModes=0u;std::size_t spans=0u;long allocations=0;
     const auto complete=[](const dx_data& data){const auto r=dx_iface::layoutSourceReport(data);return r.state==S::ProofsReady&&r.records==2u&&r.matched==2u&&r.paired==2u&&r.modeledMatched==2u&&r.profilesMatched==2u&&!r.outputEligible&&!r.ownerTargetsResolved;};
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0;encoding<3u;++encoding) {
-        if(!writeBlockBinding(path,layoutSourceDocument(version),encoding))return false;LayoutSourceProbe reader;dx_data data;
+        if(!writeBlockBinding(path,layoutSourceDocument(version),encoding))return false;
+        LayoutSourceProbe reader;dx_data data;
         if(!reader.fileImport(path.string(),&data,false)||!complete(data)||!reader.phaseGood||reader.premature||reader.rawLayouts
             ||reader.sources!=2u||reader.typed!=2u||!layoutSourceWire(path,encoding==2u,data,spans,roles)) {
             const auto r=dx_iface::layoutSourceReport(data);std::cerr<<version<<'/'<<encoding<<" state="<<static_cast<int>(r.state)<<" matched="<<r.matched<<" paired="<<r.paired<<'\n';
@@ -145,8 +153,10 @@ bool layoutSourceTests(const std::filesystem::path& dir) {
         stage.name="modern documented shade modes";
         for(const char* mode:{"4","5"}) {
             auto tags=good;for(auto& tag:tags)if(tag.code==76&&tag.value=="3")tag.value=mode;
-            if(!write(path,tags,binary))return false;LayoutSourceProbe reader;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false)||!complete(data)||!layoutSourceWire(path,binary,data,spans,roles))return false;++modernModes;
+            if(!write(path,tags,binary))return false;
+            LayoutSourceProbe reader;dx_data data;
+            if(!reader.fileImport(path.string(),&data,false)||!complete(data)||!layoutSourceWire(path,binary,data,spans,roles))return false;
+            ++modernModes;
         }
         if(!write(path,good,binary))return false;
         stage.name="whole modeled fields";
@@ -185,10 +195,12 @@ bool layoutSourceTests(const std::filesystem::path& dir) {
             if(kind==5u) {const auto name=slot(tags,1,"layout-A100");
                 auto shade=name;while(tags[shade].code!=333)++shade;tags[shade].value="D8";}
             if(kind==6u) {auto at=slot(tags,5,"A100");while(tags[at].code!=0)++at;tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(at-1u));}
-            if(!write(path,tags,binary))return false;LayoutSourceProbe reader;dx_data data;
+            if(!write(path,tags,binary))return false;
+            LayoutSourceProbe reader;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||dx_iface::layoutSourceReport(data).state!=S::Unqualified
                 ||dx_iface::layoutSourceReport(data).matched!=1u) {std::cerr<<"source profile="<<kind<<" state="<<static_cast<int>(dx_iface::layoutSourceReport(data).state)<<'\n';return false;}
-            if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
+            if(!write(path,good,binary))return false;
+            dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
         }
         stage.name="publication context controls";
         for(unsigned kind=0;kind<6u;++kind) {
@@ -198,7 +210,8 @@ bool layoutSourceTests(const std::filesystem::path& dir) {
             reader.enabled=true;reader.skipSource=reader.skipTyped=reader.sourceCopy=reader.typedCopy=reader.duplicate=false;
             dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++contexts;
         }
-        if(!write(path,good,binary))return false;LayoutSourceProbe baseline;dx_data base;if(!baseline.fileImport(path.string(),&base,false)||!complete(base))return false;
+        if(!write(path,good,binary))return false;
+        LayoutSourceProbe baseline;dx_data base;if(!baseline.fileImport(path.string(),&base,false)||!complete(base))return false;
         stage.name="logical limits";const auto measured=dx_iface::layoutSourceReport(base);
         const std::array<std::size_t,4> cap{{measured.records,measured.groups,measured.bytes,measured.work}};
         for(unsigned which=0;which<4u;++which)for(bool below:{false,true}) {
@@ -226,9 +239,11 @@ bool layoutSourceTests(const std::filesystem::path& dir) {
         stage.name="immutable cache and instance owners";
         auto& audit=A::mutableLayoutAudits(base).at(0xA100u);const auto owner=audit;
         audit=std::make_shared<const std::decay_t<decltype(*owner)>>(*owner);
-        if(dx_iface::layoutSourceReport(base).state!=S::ContextMismatch)return false;audit=owner;++contexts;
+        if(dx_iface::layoutSourceReport(base).state!=S::ContextMismatch)return false;
+        audit=owner;++contexts;
         audit=std::shared_ptr<const std::decay_t<decltype(*owner)>>(owner.get(),[](const auto*){});
-        if(dx_iface::layoutSourceReport(base).state!=S::ContextMismatch)return false;audit=owner;++contexts;
+        if(dx_iface::layoutSourceReport(base).state!=S::ContextMismatch)return false;
+        audit=owner;++contexts;
         dx_data copy;A::copyBindingContext(copy,base);if(dx_iface::layoutSourceReport(copy).state!=S::ContextMismatch)return false;++contexts;
         base.layouts[0].name="live edit";base.layouts[0].paperSpaceBlockRecordHandle.ref=0xFFFFu;if(!complete(base))return false;++contexts;
         stage.name="callback exceptions";
@@ -241,15 +256,18 @@ bool layoutSourceTests(const std::filesystem::path& dir) {
         stage.name="late read failure";
         auto broken=good;broken.erase(broken.end()-2);if(!write(path,broken,binary))return false;LayoutSourceProbe reader;dx_data failed;
         if(reader.fileImport(path.string(),&failed,false)||dx_iface::layoutSourceReport(failed).state!=S::ImportFailed||!A::layoutAudits(failed).empty())return false;
-        if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++exceptions;
+        if(!write(path,good,binary))return false;
+        dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++exceptions;
         stage.name="native reserved handle widths";
         for(bool dictionary:{false,true}) {
             auto tags=good;
             if(dictionary) {const auto at=slot(tags,100,"AcDbPlotSettings");tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{{102,"{ACAD_XDICTIONARY"},{360,"FFFFFFFFFFFFFFFF"},{102,"}"}});}
             else tags[slot(tags,330,"F8")].value="FFFFFFFFFFFFFFFF";
-            if(!write(path,tags,binary))return false;LayoutSourceProbe native;dx_data failedNative;
+            if(!write(path,tags,binary))return false;
+            LayoutSourceProbe native;dx_data failedNative;
             if(native.fileImport(path.string(),&failedNative,false)||dx_iface::layoutSourceReport(failedNative).state!=S::ImportFailed)return false;
-            if(!write(path,good,binary))return false;dx_data retryNative;if(!native.fileImport(path.string(),&retryNative,false)||!complete(retryNative))return false;++exceptions;
+            if(!write(path,good,binary))return false;
+            dx_data retryNative;if(!native.fileImport(path.string(),&retryNative,false)||!complete(retryNative))return false;++exceptions;
         }
     }
     stage.name="public view lifetime and latched selection";if(!layoutPublicationViewControls(path,contexts))return false;

@@ -75,18 +75,21 @@ bool tests(const std::filesystem::path& dir) {
         const auto shape=form<2u?Shape::Base:form<5u?Shape::RapidRT:form==5u?Shape::LegacyMentalRay:form<8u?Shape::ModernMentalRay:Shape::ExtendedMentalRay;
         if(row.preset.shape!=shape||row.preset.predefined!=(form==1u||form==3u||form==4u||form==7u||form==9u))return fail(__LINE__);
         for(const auto& span:row.preset.spans){const auto& observed=physical.fields.at(row.physicalFields.at(span.group));const auto& field=wire.at(observed.span.ordinal-1u);
-            if(field.code!=span.code||field.begin!=observed.span.beginOffset||field.end!=observed.span.endOffset||raw.groups.at(span.group).code()!=span.code)return fail(__LINE__);++fields;
+            if(field.code!=span.code||field.begin!=observed.span.beginOffset||field.end!=observed.span.endOffset||raw.groups.at(span.group).code()!=span.code)return fail(__LINE__);
+            ++fields;
             if(span.role!=dx_visualstyle_source::Role::None)++roles;
             if(span.field==dx_visualstyle_source::Field::Primary){auto changed=raw;auto& value=changed.groups.at(span.group);
                 if(value.type()==DRW_Variant::INTEGER)value=DRW_Variant(value.code(),value.i_val()?0:1);
                 else if(value.type()==DRW_Variant::DOUBLE)value=DRW_Variant(value.code(),value.d_val()+0.125);
                 else value=DRW_Variant(value.code(),UTF8STRING("different authored scalar"));
                 const auto profile=dx_rendersettings_source::audit(changed);
-                if(dx_rendersettings_source::matches(profile,changed,static_cast<const DRW_RenderSettings&>(*row.input->typedModel),*row.input->context))return fail(__LINE__);++binders;}
+                if(dx_rendersettings_source::matches(profile,changed,static_cast<const DRW_RenderSettings&>(*row.input->typedModel),*row.input->context))return fail(__LINE__);
+                ++binders;}
         }
         for(const auto& use:A::dependencies(data)->rows)if(use.target==0xEA02u&&use.role==dx_tableResourceRole::LayoutShadePlot){if(use.reason!=Reason::Matched)return fail(__LINE__);++uses;}
         const auto before=symbolFailedAllocations;{SymbolAllocationFailure none(0);if(!ready(data))return fail(__LINE__);}if(before!=symbolFailedAllocations)return fail(__LINE__);++queries;
-        if(commented)++comments;++profiles;
+        if(commented)++comments;
+        ++profiles;
     }
     for(unsigned encoding=0u;encoding<3u;++encoding)for(unsigned fault=0u;fault<12u;++fault){auto tags=document("AC1027",false,3u,false);
         if(fault==0u)tags[slot(tags,3,root(3u))].value="ACAD_RENDER_SETTINGS";
@@ -108,8 +111,10 @@ bool tests(const std::filesystem::path& dir) {
         if(!writeBlockBinding(path,document("AC1027",false,3u,true),encoding)||!reader.fileImport(path.string(),&data,false)||!ready(data))return fail(__LINE__);
         const auto report=dx_iface::renderingSourceReport(data);
         for(bool work:{false,true}){const auto exact=work?report.work:report.bytes;A::renderingSourceLimit(data,work,exact);A::repeatRenderingSources(reader,data);A::joinRenderingSources(reader,data);
-            if(!ready(data))return fail(__LINE__);A::renderingSourceLimit(data,work,exact-1u);A::repeatRenderingSources(reader,data);
-            if(dx_iface::renderingSourceReport(data).state!=dx_iface::RenderingSourceState::Limited||dx_iface::dependencyReport(data).originalTargetsMatched)return fail(__LINE__);++limits;
+            if(!ready(data))return fail(__LINE__);
+            A::renderingSourceLimit(data,work,exact-1u);A::repeatRenderingSources(reader,data);
+            if(dx_iface::renderingSourceReport(data).state!=dx_iface::RenderingSourceState::Limited||dx_iface::dependencyReport(data).originalTargetsMatched)return fail(__LINE__);
+            ++limits;
             A::renderingSourceLimit(data,work,work?128u*1024u*1024u:64u*1024u*1024u);A::repeatRenderingSources(reader,data);A::joinRenderingSources(reader,data);if(!ready(data))return fail(__LINE__);++retries;}
     }
     for(unsigned encoding:{0u,2u}){auto tags=document("AC1027",false,8u,true);
@@ -121,7 +126,8 @@ bool tests(const std::filesystem::path& dir) {
             if(symbolFailedAllocations!=before){if(dx_iface::renderingSourceReport(data).state!=dx_iface::RenderingSourceState::CaptureFailed||dx_iface::dependencyReport(data).originalTargetsMatched)return fail(__LINE__);++reached;untouched=0u;}
             else{if(!dx_iface::renderingSourceReport(data).originalSourcesMatched||dx_iface::dependencyReport(data).originalTargetsMatched)return fail(__LINE__);++unreached;++untouched;}
             A::repeatRenderingSources(reader,data);A::joinRenderingSources(reader,data);if(!ready(data))return fail(__LINE__);++finalizations;
-            if(untouched==2u)break;if(offset==255)return fail(__LINE__);}
+            if(untouched==2u)break;
+            if(offset==255)return fail(__LINE__);}
     }
     for(unsigned form=0u;form<10u;++form)for(unsigned encoding:{0u,2u}){
         const auto tags=exportDocument(form);dx_iface reader;dx_data data;if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||data.renderSettings.size()!=1u)return fail(__LINE__);
@@ -130,7 +136,8 @@ bool tests(const std::filesystem::path& dir) {
             const auto& value=reopened.renderSettings.front();return value.m_name==model.m_name&&value.m_longs==model.m_longs&&value.m_strings==model.m_strings
                 &&value.m_bools==model.m_bools&&value.m_doubles==model.m_doubles&&value.m_shorts==model.m_shorts
                 &&value.m_hasPredefinedPresent==model.m_hasPredefinedPresent&&value.m_hasPredefined==model.m_hasPredefined;};
-        if(!reader.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!verify())return fail(__LINE__);++exports;
+        if(!reader.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!verify())return fail(__LINE__);
+        ++exports;
         for(unsigned fault=0u;fault<5u;++fault){const auto original=data.renderSettings.front();auto& value=data.renderSettings.front();
             if(fault==0u)value.m_fogColorR=17;
             if(fault==1u)value.m_longs.push_back(17);

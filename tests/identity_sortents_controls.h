@@ -29,13 +29,15 @@ bool identitySortentsTests(const std::filesystem::path& path) {
             {0,"SORTENTSTABLE"},{5,"41"},{102,"{APP"},{5,"44"},{102,"}"},{330,"40"},{100,"AcDbSortentsTable"},{330,"1F"},
             {331,"42"},{5,"41"},{331,"43"},{5,"42"},{1001,"APP"},{1000,"payload"},{0,"ENDSEC"},
             {0,"SECTION"},{2,"ENTITIES"},{0,"POINT"},{5,"42"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbPoint"},{10,"0"},{20,"0"},{30,"0"},{0,"ENDSEC"},{0,"EOF"}};
-        if(!write(path,tags,binary))return false;Probe p;dx_data data;
+        if(!write(path,tags,binary))return false;
+        Probe p;dx_data data;
         if(!check(p.fileImport(path.string(),&data,false)&&p.calls==1u&&p.typed==1u&&p.observed.status==Source::Status::Complete
             &&p.table.handle==0x41u&&p.table.m_entityHandles==std::vector<std::uint32_t>({0x42u,0x43u})
             &&p.table.m_sortHandles==std::vector<std::uint32_t>({0x41u,0x42u}),"valid parse and typed sort keys"))return false;
         unsigned outer=0u,app=0u,sort=0u,point=0u;
         for(const auto& c:p.observed.candidates) {
-            if(c.record>=p.observed.records.size())return false;const auto& r=p.observed.records[c.record];
+            if(c.record>=p.observed.records.size())return false;
+            const auto& r=p.observed.records[c.record];
             if(r.name=="SORTENTSTABLE"&&c.scope==Scope::Outer&&c.lexeme=="41")++outer;
             else if(r.name=="SORTENTSTABLE"&&c.scope==Scope::Application&&c.lexeme=="44")++app;
             else if(r.name=="SORTENTSTABLE"&&c.scope==Scope::SortOrder&&(c.lexeme=="41"||c.lexeme=="42")&&c.admission==Source::Admission::Unobserved)++sort;
@@ -47,7 +49,8 @@ bool identitySortentsTests(const std::filesystem::path& path) {
         ++routes;
         auto bad=tags;auto pt=std::find_if(bad.begin(),bad.end(),[](const Tag& t){return t.code==0&&t.value=="POINT";});
         auto id=std::find_if(pt,bad.end(),[](const Tag& t){return t.code==5;});id->value="41";
-        if(!write(path,bad,binary))return false;Probe dup;dx_data duplicate;
+        if(!write(path,bad,binary))return false;
+        Probe dup;dx_data duplicate;
         if(!check(dup.fileImport(path.string(),&duplicate,false)&&dup.calls==1u,"duplicate soft import"))return false;
         unsigned collision=0u;for(const auto& c:dup.observed.candidates)if(c.record<dup.observed.records.size()&&dup.observed.records[c.record].name=="POINT"
             &&c.scope==Scope::Outer&&c.admission==Source::Admission::Duplicate)++collision;
@@ -58,12 +61,15 @@ bool identitySortentsTests(const std::filesystem::path& path) {
         for(bool duplicateMarker:{false,true}) {
             auto malformed=tags;auto marker=std::find_if(malformed.begin(),malformed.end(),[](const Tag& t){return t.code==100&&t.value=="AcDbSortentsTable";});
             if(duplicateMarker)malformed.insert(marker+1,{100,"AcDbSortentsTable"});else malformed.erase(marker);
-            if(!write(path,malformed,binary))return false;Probe rejected;dx_data broken;
+            if(!write(path,malformed,binary))return false;
+            Probe rejected;dx_data broken;
             if(!check(!rejected.fileImport(path.string(),&broken,false),"missing or duplicate subclass refuses"))return false;
-            if(!write(path,tags,binary))return false;dx_data repaired;
+            if(!write(path,tags,binary))return false;
+            dx_data repaired;
             if(!check(rejected.fileImport(path.string(),&repaired,false)&&rejected.calls==1u&&rejected.typed==1u,"subclass corrected retry"))return false;
         }
-        if(!write(path,tags,binary))return false;dx_data retry;
+        if(!write(path,tags,binary))return false;
+        dx_data retry;
         if(!check(dup.fileImport(path.string(),&retry,false)&&dup.calls==2u&&dup.typed==2u,"same-facade corrected retry"))return false;
         ++retries;
     }

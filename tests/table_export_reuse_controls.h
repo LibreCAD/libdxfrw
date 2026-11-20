@@ -129,7 +129,8 @@ bool tableExportReuseTests(const std::filesystem::path& dir) {
                     data.tables.front().m_content.m_rows[0].m_cells[0].m_contents[0].m_value.m_formatFlags=2;
                     if(!tableExportSentinel(destination,true)||writer.fileExport(destination.string(),version,encoding,&data,false))return false;
                     data.tables.front().m_content.m_rows[0].m_cells[0].m_contents[0].m_value.m_formatFlags=0;
-                    if(!tableExportSentinel(destination)||!unchanged())return false;++refusals;
+                    if(!tableExportSentinel(destination)||!unchanged())return false;
+                    ++refusals;
                 }
                 if(!writer.fileExport(destination.string(),version,encoding,&data,false)||!unchanged()
                     ||!tableExportReadback(destination,encoding,shape,block)) {

@@ -19,7 +19,8 @@ bool xrecordPayloadIdentityTests(const std::filesystem::path& path) {
   tags.insert(tags.end(),{{100,"AcDbXrecord"},{280,"1"},{5,"41"},{5,"42"},{105,"43"},{330,"44"},
    {102,"{ATTRRECORD"},{102,"ATTRRECORD}"},{1001,"APP"},{1000,"payload"},{0,"ENDSEC"},
    {0,"SECTION"},{2,"ENTITIES"},{0,"POINT"},{5,"42"},{330,"0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbPoint"},{10,"0"},{20,"0"},{30,"0"},{0,"ENDSEC"},{0,"EOF"}});
-  if(!write(path,tags,binary))return false;Probe reader;reader.sourceOptIn=sourceOptIn;dx_data data;
+  if(!write(path,tags,binary))return false;
+  Probe reader;reader.sourceOptIn=sourceOptIn;dx_data data;
   if(!check(reader.fileImport(path.string(),&data,false)&&reader.typed==1u&&reader.raw==1u&&reader.census==1u
    &&reader.identity.status==Source::Status::Complete&&reader.model.handle==0x41u&&reader.model.parentHandle==0u
    &&reader.original.handle==0x41u&&reader.original.parentHandle==0u,
@@ -28,10 +29,12 @@ bool xrecordPayloadIdentityTests(const std::filesystem::path& path) {
   if(!check(reader.model.m_handleValues==expected,"XRECORD payload handles retain code/order/value"))return false;
   unsigned own=0u,body=0u,point=0u;
   for(const auto& c:reader.identity.candidates) {
-   if(c.record>=reader.identity.records.size())return false;const auto& rec=reader.identity.records[c.record];
+   if(c.record>=reader.identity.records.size())return false;
+   const auto& rec=reader.identity.records[c.record];
    if(rec.name=="XRECORD"&&c.scope==Scope::Outer&&c.lexeme=="41")++own;
    else if(rec.name=="XRECORD"&&c.scope==Scope::OpaqueBody&&(c.lexeme=="41"||c.lexeme=="42"||c.lexeme=="43")) {
-    if(c.admission!=Source::Admission::Unobserved)return false;++body;
+    if(c.admission!=Source::Admission::Unobserved)return false;
+    ++body;
    } else if(rec.name=="POINT"&&c.scope==Scope::Outer&&c.lexeme=="42"&&c.admission==Source::Admission::Accepted)++point;
   }
   if(!check(own==1u&&body==3u&&point==1u,"XRECORD payload candidates do not reserve later entity identity"))return false;
@@ -42,7 +45,8 @@ bool xrecordPayloadIdentityTests(const std::filesystem::path& path) {
   ++successes;
   auto bad=tags;auto pointTag=std::find_if(bad.begin(),bad.end(),[](const Tag& t){return t.code==0&&t.value=="POINT";});
   auto id=std::find_if(pointTag,bad.end(),[](const Tag& t){return t.code==5;});id->value="41";
-  if(!write(path,bad,binary))return false;Probe rejected;rejected.sourceOptIn=sourceOptIn;dx_data failed;
+  if(!write(path,bad,binary))return false;
+  Probe rejected;rejected.sourceOptIn=sourceOptIn;dx_data failed;
   if(!check(rejected.fileImport(path.string(),&failed,false)&&rejected.census==1u,
    "duplicate typed entity remains a compatible import"))return false;
   unsigned duplicateCandidates=0u;
@@ -54,7 +58,8 @@ bool xrecordPayloadIdentityTests(const std::filesystem::path& path) {
    duplicateReport.state==dx_iface::IdentitySourceState::Unqualified&&duplicateReport.duplicateAdmissions>=1u),
    "duplicate outer self cannot qualify the identity namespace"))return false;
   ++duplicates;
-  if(!write(path,tags,binary))return false;dx_data retry;rejected.typed=rejected.raw=rejected.census=0u;
+  if(!write(path,tags,binary))return false;
+  dx_data retry;rejected.typed=rejected.raw=rejected.census=0u;
   if(!check(rejected.fileImport(path.string(),&retry,false)&&rejected.typed==1u&&rejected.raw==1u,
    "XRECORD duplicate corrected same-adapter retry"))return false;
   ++retries;

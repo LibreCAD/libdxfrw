@@ -31,7 +31,8 @@ bool tableControlIdentityTests(const std::filesystem::path& path) {
             if(row.kind==Source::Kind::TableControl&&c.code==5&&c.scope==Source::Scope::Outer
                 &&c.admission==Source::Admission::Accepted)++controls;
         }
-        if(!check(controls==names.size(),"known and unknown TABLE controls register their outer identity"))return false;++matrices;
+        if(!check(controls==names.size(),"known and unknown TABLE controls register their outer identity"))return false;
+        ++matrices;
         const auto section=[](bool first,bool collision) {
             const Tags table{{0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"LAYER"},{5,"10"},{100,"AcDbSymbolTable"},{70,"1"},
                 {0,"LAYER"},{5,"11"},{330,"10"},{100,"AcDbSymbolTableRecord"},{2,"0"},{70,"0"},
@@ -43,12 +44,14 @@ bool tableControlIdentityTests(const std::filesystem::path& path) {
         };
         for(bool first:{false,true}) {
             auto bad=header(version);const auto payload=section(first,true);bad.insert(bad.end(),payload.begin(),payload.end());
-            if(!write(path,bad,binary))return false;Probe rejected;dx_data failed;
+            if(!write(path,bad,binary))return false;
+            Probe rejected;dx_data failed;
             if(!check(!rejected.fileImport(path.string(),&failed,false)&&rejected.callbacks==0u,
                 "TABLE control and XRECORD duplicate self must refuse"))return false;
             ++collisions;
             auto good=header(version);const auto fixed=section(first,false);good.insert(good.end(),fixed.begin(),fixed.end());
-            if(!write(path,good,binary))return false;dx_data retry;rejected.callbacks=rejected.layers=rejected.records=0u;
+            if(!write(path,good,binary))return false;
+            dx_data retry;rejected.callbacks=rejected.layers=rejected.records=0u;
             if(!check(rejected.fileImport(path.string(),&retry,false)&&rejected.layers==1u&&rejected.records==1u
                 &&rejected.callbacks==1u&&rejected.census.status==Source::Status::Complete,
                 "TABLE control duplicate corrected same-adapter retry"))return false;
@@ -59,7 +62,8 @@ bool tableControlIdentityTests(const std::filesystem::path& path) {
                 {102,"{CUSTOM"},{5,"20"},{102,"{NESTED"},{5,"FFFFFFFFFFFFFFFF"},{102,"}"},{102,"}"},
                 {5,"10"},{100,"AcDbSymbolTable"},{70,"0"},{0,"ENDTAB"},{0,"ENDSEC"},
                 {0,"SECTION"},{2,"OBJECTS"},{0,"XRECORD"},{5,"20"},{330,"0"},{100,"AcDbXrecord"},{280,"1"},{0,"ENDSEC"},{0,"EOF"}});
-            if(!write(path,tags,binary))return false;Probe scoped;dx_data captured;
+            if(!write(path,tags,binary))return false;
+            Probe scoped;dx_data captured;
             if(!check(scoped.fileImport(path.string(),&captured,false)&&scoped.census.status==Source::Status::Complete,
                 "TABLE control nested application payload stays out of registry"))return false;
             unsigned outer=0u,application=0u;
@@ -70,7 +74,8 @@ bool tableControlIdentityTests(const std::filesystem::path& path) {
                     &&c.admission==Source::Admission::Unobserved)++application;
                 else return false;
             }
-            if(!check(outer==1u&&application==2u,"TABLE header payload/outer roles stay distinct"))return false;++scopes;
+            if(!check(outer==1u&&application==2u,"TABLE header payload/outer roles stay distinct"))return false;
+            ++scopes;
         }
         for(unsigned mode=0u;mode<4u;++mode) {
             auto tags=header(version);tags.insert(tags.end(),{{0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"LAYER"}});
@@ -78,7 +83,8 @@ bool tableControlIdentityTests(const std::filesystem::path& path) {
             if(mode==2u)tags.push_back({5,"not-hex"});
             if(mode==3u)tags.push_back({5,"FFFFFFFFFFFFFFFF"});
             tags.insert(tags.end(),{{100,"AcDbSymbolTable"},{70,"0"},{0,"ENDTAB"},{0,"ENDSEC"},{0,"EOF"}});
-            if(!write(path,tags,binary))return false;Probe probe;dx_data compatible;
+            if(!write(path,tags,binary))return false;
+            Probe probe;dx_data compatible;
             if(!check(probe.fileImport(path.string(),&compatible,false)&&probe.callbacks==1u,
                 "TABLE null/absent/invalid/wide header behavior"))return false;
             if(mode!=1u) {

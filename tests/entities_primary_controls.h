@@ -75,7 +75,8 @@ bool entitiesPrimaryWire(const std::filesystem::path& path,bool binary,const dx_
             if(s.role==R::Self||s.role==R::Owner||s.role==R::Reactor||s.role==R::ExtensionDictionary||s.role==R::Material
                 ||s.role==R::FullVisualStyle||s.role==R::PlotStyle||s.role==R::XdataObjectId||s.role==R::OpaqueHandle) {
                 std::uint64_t h=0u;const auto converted=std::from_chars(w.text.data(),w.text.data()+w.text.size(),h,16);
-                if(converted.ec!=std::errc{}||converted.ptr!=w.text.data()+w.text.size()||h!=s.handle)return false;++roles;
+                if(converted.ec!=std::errc{}||converted.ptr!=w.text.data()+w.text.size()||h!=s.handle)return false;
+                ++roles;
             }
             ++spans;
         }
@@ -128,7 +129,8 @@ bool entitiesPrimaryTests(const std::filesystem::path& dir) {
         stage.name="field mutations";
         for(int field=0;field<18;++field) {
             EntitiesPrimaryProbe reader;reader.fault=field;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false))return false;const auto r=dx_iface::entitiesPrimaryReport(data);
+            if(!reader.fileImport(path.string(),&data,false))return false;
+            const auto r=dx_iface::entitiesPrimaryReport(data);
             if(r.state!=S::Unqualified||r.matched!=2u||A::entitiesAudits(data)[0]->proofs[field<8?0u:1u].state!=P::ModelMismatch
                 ||dx_iface::entitiesCompoundReport(data).state!=dx_iface::EntitiesCompoundState::ProofsReady)return false;
             reader.fault=-1;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++mutations;
@@ -146,7 +148,8 @@ bool entitiesPrimaryTests(const std::filesystem::path& dir) {
                 if(source.compoundStates.size()!=1u||source.compoundStates[0].hasNoPendingXdata()
                     ||!dxfCompound::Decoder::observe(*source.model).hasNoPendingXdata())return false;
             }
-            if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
+            if(!write(path,good,binary))return false;
+            dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
         }
         stage.name="original variants";
         for(unsigned kind=0;kind<5u;++kind) {
@@ -156,7 +159,8 @@ bool entitiesPrimaryTests(const std::filesystem::path& dir) {
             if(kind==2u) {tags[blockField(tags,"102",67)].value="0";}
             if(kind==3u) {appendBlockFields(tags,"101",{{102,"{OPAQUE"},{10,"9"},{20,"8"},{330,"DEAD"},{410,"not host"},{102,"}"}});}
             if(kind==4u) {appendBlockFields(tags,"101",{{1001,"APP"},{1010,"1"},{1020,"2"},{1030,"3"}});}
-            if(!write(path,tags,binary))return false;EntitiesPrimaryProbe reader;dx_data data;
+            if(!write(path,tags,binary))return false;
+            EntitiesPrimaryProbe reader;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||!complete(data)||!entitiesPrimaryWire(path,binary,data,spans,roles)) {
                 std::cerr<<"variant="<<kind<<" state="<<static_cast<int>(dx_iface::entitiesPrimaryReport(data).state)<<'\n';return false;
             }
@@ -171,15 +175,18 @@ bool entitiesPrimaryTests(const std::filesystem::path& dir) {
             auto tags=good;const char* id=field<2u?"101":"102";
             const std::array<int,6> codes{{10,20,10,20,11,21}};
             tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(blockField(tags,id,codes[field])));
-            if(!write(path,tags,binary))return false;EntitiesPrimaryProbe reader;dx_data data;
+            if(!write(path,tags,binary))return false;
+            EntitiesPrimaryProbe reader;dx_data data;
             if(reader.fileImport(path.string(),&data,false)||dx_iface::entitiesPrimaryReport(data).state!=S::ImportFailed)return false;
-            if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++required;
+            if(!write(path,good,binary))return false;
+            dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++required;
         }
         stage.name="unavailable and unselected bodies";
         {
             EntitiesOriginProbe reader;reader.richerPoint=true;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;
             const auto r=dx_iface::entitiesPrimaryReport(data);
-            if(r.state!=S::Unqualified||r.unavailable!=1u||r.matched!=2u||r.outputEligible)return false;++dispositions;
+            if(r.state!=S::Unqualified||r.unavailable!=1u||r.matched!=2u||r.outputEligible)return false;
+            ++dispositions;
         }
         for(unsigned kind=0;kind<4u;++kind) {
             Tags tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1032"},{0,"ENDSEC"},{0,"SECTION"},{2,"ENTITIES"}};
@@ -187,15 +194,19 @@ bool entitiesPrimaryTests(const std::filesystem::path& dir) {
             if(kind==2u)tags.insert(tags.end(),{{0,"DIMENSION"},{5,"101"},{330,"1F"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbDimension"},{70,"7"}});
             if(kind==3u)tags.insert(tags.end(),{{0,"CIRCLE"},{5,"101"},{330,"1F"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbCircle"},{10,"1"},{20,"2"},{40,"3"}});
             tags.insert(tags.end(),{{0,"ENDSEC"},{0,"EOF"}});if(!write(path,tags,binary))return false;EntitiesPrimaryProbe reader;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false))return false;const auto r=dx_iface::entitiesPrimaryReport(data);
-            if(r.state!=S::NoPrimaries||r.primaries||r.matched||r.outputEligible||r.ownerTargetsResolved)return false;++dispositions;
+            if(!reader.fileImport(path.string(),&data,false))return false;
+            const auto r=dx_iface::entitiesPrimaryReport(data);
+            if(r.state!=S::NoPrimaries||r.primaries||r.matched||r.outputEligible||r.ownerTargetsResolved)return false;
+            ++dispositions;
         }
-        if(!write(path,good,binary))return false;EntitiesPrimaryProbe baseline;dx_data base;if(!baseline.fileImport(path.string(),&base,false)||!complete(base))return false;
+        if(!write(path,good,binary))return false;
+        EntitiesPrimaryProbe baseline;dx_data base;if(!baseline.fileImport(path.string(),&base,false)||!complete(base))return false;
         const auto measured=dx_iface::entitiesPrimaryReport(base);stage.name="allowances";
         for(unsigned dimension=0;dimension<3u;++dimension)for(bool below:{false,true}) {
             const auto cap=dimension==0u?measured.records:dimension==1u?measured.bytes:measured.work;
             EntitiesPrimaryProbe reader;dx_data data;A::entitiesCompoundLimit(data,dimension,cap-(below?1u:0u));
-            if(!reader.fileImport(path.string(),&data,false)||dx_iface::entitiesPrimaryReport(data).state!=(below?S::CaptureFailed:S::ProofsReady))return false;++limits;
+            if(!reader.fileImport(path.string(),&data,false)||dx_iface::entitiesPrimaryReport(data).state!=(below?S::CaptureFailed:S::ProofsReady))return false;
+            ++limits;
         }
         stage.name="allocator controls";bool calibrated=false;
         for(long fail=0;fail<3000&&!calibrated;++fail) {
@@ -208,18 +219,22 @@ bool entitiesPrimaryTests(const std::filesystem::path& dir) {
         dx_data retry;if(!baseline.fileImport(path.string(),&retry,false)||!complete(retry))return false;
         stage.name="live edits and copied owners";
         for(auto* entity:base.mBlock->ent)if(auto* point=dynamic_cast<DRW_Point*>(entity))point->basePoint.x=777.;
-        if(!complete(base))return false;++contexts;
+        if(!complete(base))return false;
+        ++contexts;
         dx_data copied;A::copyBindingContext(copied,base);if(dx_iface::entitiesPrimaryReport(copied).state!=S::ContextMismatch)return false;++contexts;
         auto& audit=A::mutableEntitiesAudits(base)[0];const auto owner=audit;audit=std::make_shared<const std::decay_t<decltype(*owner)>>(*owner);
-        if(dx_iface::entitiesPrimaryReport(base).state!=S::ContextMismatch)return false;audit=owner;if(!complete(base))return false;++contexts;
+        if(dx_iface::entitiesPrimaryReport(base).state!=S::ContextMismatch)return false;
+        audit=owner;if(!complete(base))return false;++contexts;
         stage.name="callback and tail exceptions";
         for(unsigned phase=0;phase<3u;++phase) {
             EntitiesPrimaryProbe reader;reader.throwPoint=phase==0u;reader.throwLine=phase==1u;dx_data data;bool threw=false;
             if(phase==2u){auto tags=good;tags.erase(tags.end()-2);if(!write(path,tags,binary))return false;}
             try{if(reader.fileImport(path.string(),&data,false))return false;}catch(const std::runtime_error&){threw=true;}
             if((phase<2u&&!threw)||dx_iface::entitiesPrimaryReport(data).state!=S::ImportFailed)return false;
-            if(!write(path,good,binary))return false;reader.throwPoint=reader.throwLine=false;dx_data corrected;
-            if(!reader.fileImport(path.string(),&corrected,false)||!complete(corrected))return false;++exceptions;
+            if(!write(path,good,binary))return false;
+            reader.throwPoint=reader.throwLine=false;dx_data corrected;
+            if(!reader.fileImport(path.string(),&corrected,false)||!complete(corrected))return false;
+            ++exceptions;
         }
     }
     stage.finished=true;

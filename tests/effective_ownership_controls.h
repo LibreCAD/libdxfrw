@@ -43,14 +43,17 @@ bool effectiveOwnershipTests(const std::filesystem::path& dir) {
         const auto before=symbolFailedAllocations;{SymbolAllocationFailure none(0);if(!ready(data))return false;}if(symbolFailedAllocations!=before)return false;
         const auto wire=attdefWireTags(path,encoding==2u);const auto& physical=*A::identityInput(data)->source;
         const auto id=A::identityAudit(data)->identities.at(source);const auto& record=physical.records.at(id);const auto& marker=wire.at(record.marker.ordinal-1u);
-        if(marker.code||marker.text!=(withDefault?"DICTIONARYWDFLT":"DICTIONARY")||marker.begin!=record.marker.beginOffset||marker.end!=record.marker.endOffset)return false;++markers;
+        if(marker.code||marker.text!=(withDefault?"DICTIONARYWDFLT":"DICTIONARY")||marker.begin!=record.marker.beginOffset||marker.end!=record.marker.endOffset)return false;
+        ++markers;
         const auto& scalar=wire.at(record.marker.ordinal+row->group);const auto& flagScalar=wire.at(record.marker.ordinal+row->dictionaryFlagGroup);
         std::uint32_t value=0u;const auto parsed=std::from_chars(scalar.text.data(),scalar.text.data()+scalar.text.size(),value,16);
-        if(scalar.code!=(code?360:350)||parsed.ec!=std::errc{}||parsed.ptr!=scalar.text.data()+scalar.text.size()||value!=target||flagScalar.code!=280||flagScalar.integer!=(flag?1:0))return false;spans+=2u;
+        if(scalar.code!=(code?360:350)||parsed.ec!=std::errc{}||parsed.ptr!=scalar.text.data()+scalar.text.size()||value!=target||flagScalar.code!=280||flagScalar.integer!=(flag?1:0))return false;
+        spans+=2u;
         if(withDefault)for(const auto& r:A::dependencies(data)->rows)if(r.source==source&&r.role==dx_tableResourceRole::DictionaryDefault&&r.ownership!=O::None)return false;
         for(auto& dictionary:data.dictionaries)dictionary.hardOwner^=1;
         for(auto& dictionary:data.dictionaryWithDefaults)dictionary.hardOwner^=1;
-        if(!ready(data)||effectiveOwnershipRow(data,source,target)->ownership!=expected)return false;++immutable;++profiles;
+        if(!ready(data)||effectiveOwnershipRow(data,source,target)->ownership!=expected)return false;
+        ++immutable;++profiles;
     }
     for(unsigned encoding=0u;encoding<3u;++encoding) {
         const auto good=effectiveOwnershipDocument("AC1032",false,true,false,false);
@@ -61,7 +64,9 @@ bool effectiveOwnershipTests(const std::filesystem::path& dir) {
             const auto* row=effectiveOwnershipRow(data,withDefault?0xE801u:0xE901u,withDefault?0xE802u:0xE902u);
             const bool hard=flag||code;
             if(!row||ready(data)==hard||row->reason!=(hard?R::WrongOwner:R::Matched)||(hard&&!dx_iface::dependencyReport(data).wrongOwner))return false;
-            if(hard)++ownerRefusals;if(!retry(reader))return false;++ownerControls;
+            if(hard)++ownerRefusals;
+            if(!retry(reader))return false;
+            ++ownerControls;
         }
         for(bool blocks:{false,true})for(bool flag:{false,true})for(bool code:{false,true}) {
             auto tags=effectiveOwnershipDocument("AC1032",blocks,flag,code,false);tags[blockField(tags,"E901",330)].value="E902";
@@ -69,7 +74,9 @@ bool effectiveOwnershipTests(const std::filesystem::path& dir) {
             dx_iface reader;dx_data data;if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false))return false;
             const bool hard=flag||code;const auto r=dx_iface::dependencyReport(data);
             if(ready(data)==hard||(hard?r.ownershipCycles<2u:r.ownershipCycles!=0u))return false;
-            if(hard)++cycleRefusals;if(!retry(reader))return false;++cycles;
+            if(hard)++cycleRefusals;
+            if(!retry(reader))return false;
+            ++cycles;
         }
         for(unsigned mode=0u;mode<3u;++mode)for(bool code:{false,true}) {
             auto tags=effectiveOwnershipDocument("AC1032",false,false,code,false);
@@ -80,7 +87,9 @@ bool effectiveOwnershipTests(const std::filesystem::path& dir) {
             if(!row||ready(data)==unknown||row->ownership!=(code?O::PhysicalHard:unknown?O::Unqualified:O::ExplicitSoft)
                 ||row->reason!=(unknown?R::OwnershipUnknown:R::Matched)||(mode<2u&&row->dictionaryFlagGroup!=DRW_DxfIdentitySource::None))return false;
             const auto* model=dynamic_cast<const DRW_Dictionary*>(A::resource(data,0xE901u));if(!model||model->hardOwner!=0)return false;
-            if(unknown)++unknownPolicies;if(!retry(reader))return false;++policyControls;
+            if(unknown)++unknownPolicies;
+            if(!retry(reader))return false;
+            ++policyControls;
         }
         for(bool withDefault:{false,true}) {
             const auto tags=effectiveOwnershipDocument("AC1032",false,true,false,false,withDefault);dx_iface reader;dx_data base;
@@ -89,7 +98,8 @@ bool effectiveOwnershipTests(const std::filesystem::path& dir) {
             for(unsigned which=0u;which<3u;++which)for(bool under:{false,true}) {
                 dx_iface codec;dx_data actual;A::dependencyLimit(actual,which,limits[which]-(under?1u:0u));
                 if(!codec.fileImport(path.string(),&actual,false)||ready(actual)==under||(!under&&dx_iface::dependencyReport(actual).state!=dx_iface::DependencyState::OriginalTargetsMatched))return false;
-                if(!retry(codec))return false;++quotas;
+                if(!retry(codec))return false;
+                ++quotas;
                 if(!writeBlockBinding(path,tags,encoding))return false;
             }
             for(long offset=0;offset<64;++offset) {

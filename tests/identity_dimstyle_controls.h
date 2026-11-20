@@ -33,7 +33,8 @@ bool identityDimstyleTests(const std::filesystem::path& path) {
         ++valid;
         auto collision=tags;const auto point=slot(collision,0,"POINT");
         auto pointId=std::find_if(collision.begin()+static_cast<std::ptrdiff_t>(point),collision.end(),[](const Tag& v){return v.code==5;});pointId->value="41";
-        if(!write(path,collision,binary))return false;Probe dup;dup.observe=observe;dx_data duplicate;
+        if(!write(path,collision,binary))return false;
+        Probe dup;dup.observe=observe;dx_data duplicate;
         if(!check(dup.fileImport(path.string(),&duplicate,false)&&dup.styles==1u&&dup.points==1u&&dup.point.handle==DRW::NoHandle,"later entity duplicate is softened"))return false;
         if(observe) {
             unsigned count=0u;for(const auto& c:dup.source.candidates)if(c.record<dup.source.records.size()&&dup.source.records[c.record].name=="POINT"
@@ -54,10 +55,12 @@ bool identityDimstyleTests(const std::filesystem::path& path) {
                     {0,"LAYER"},{5,"41"},{330,"10"},{100,"AcDbSymbolTableRecord"},{2,"0"},{70,"0"},{100,"AcDbLayerTableRecord"},{62,"7"},{6,"CONTINUOUS"},{0,"ENDTAB"}};
                 const auto table=slot(bad,0,"TABLE");bad.insert(bad.begin()+static_cast<std::ptrdiff_t>(table),prefix.begin(),prefix.end());(void)dim;
             }
-            if(!write(path,bad,binary))return false;Probe failed;failed.observe=observe;dx_data broken;
+            if(!write(path,bad,binary))return false;
+            Probe failed;failed.observe=observe;dx_data broken;
             if(!check(!failed.fileImport(path.string(),&broken,false)&&failed.styles==0u,"duplicate or invalid identity refuses"))return false;
             ++refusals;
-            if(!write(path,tags,binary))return false;dx_data repaired;
+            if(!write(path,tags,binary))return false;
+            dx_data repaired;
             if(!check(failed.fileImport(path.string(),&repaired,false)&&failed.styles==1u&&failed.point.handle==0x42u,"same-facade retry"))return false;
             ++retries;
         }
@@ -65,7 +68,8 @@ bool identityDimstyleTests(const std::filesystem::path& path) {
     // Legacy R12 symbol entries may legitimately omit identities. No new
     // registration is attempted when group 105 is absent.
     auto legacy=make("AC1009");legacy.erase(legacy.begin()+static_cast<std::ptrdiff_t>(slot(legacy,105,"41")));
-    if(!write(path,legacy,false))return false;Probe r12;dx_data old;
+    if(!write(path,legacy,false))return false;
+    Probe r12;dx_data old;
     if(!check(r12.fileImport(path.string(),&old,false)&&r12.styles==1u&&r12.style.dimblk=="NOT_A_HANDLE","R12 absent identity"))return false;
     std::cout<<"DIMSTYLE identity valid="<<valid<<" later="<<later<<" refusals="<<refusals<<" retries="<<retries<<" R12=1\n";
     return valid==8u&&later==8u&&refusals==32u&&retries==32u;

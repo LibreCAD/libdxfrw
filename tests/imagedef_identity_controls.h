@@ -36,12 +36,14 @@ bool imageDefIdentityTests(const std::filesystem::path& path) {
    else if(c.code==5&&c.lexeme=="41"&&c.scope==Source::Scope::Application&&c.admission==Source::Admission::Unobserved)++application;
    else return false;
   }
-  if(!check(outer==1u&&application==1u,"IMAGEDEF only registers the outer self"))return false;++valid;
+  if(!check(outer==1u&&application==1u,"IMAGEDEF only registers the outer self"))return false;
+  ++valid;
   const auto duplicate=document(version,"41",first,false);if(!write(path,duplicate,binary))return false;
   Probe bad;dx_data failed;if(!check(!bad.fileImport(path.string(),&failed,false)&&bad.censuses==0u,
    "IMAGEDEF duplicate object handle fails without source publication"))return false;
   ++duplicates;
-  if(!write(path,clean,binary))return false;dx_data retry;if(!check(bad.fileImport(path.string(),&retry,false)
+  if(!write(path,clean,binary))return false;
+  dx_data retry;if(!check(bad.fileImport(path.string(),&retry,false)
    &&bad.definitions>=1u&&bad.censuses==1u,"IMAGEDEF duplicate corrected same-adapter retry"))return false;
   ++retries;
  }
@@ -51,7 +53,8 @@ bool imageDefIdentityTests(const std::filesystem::path& path) {
    "IMAGEDEF absent and explicit-null handles retain compatible callback"))return false;
   ++empty;
   const auto malformed=document(version,"INVALID",true,false);if(!write(path,malformed,binary))return false;Probe bad;dx_data rejected;
-  if(!check(!bad.fileImport(path.string(),&rejected,false),"IMAGEDEF malformed handle remains rejected"))return false;++invalid;
+  if(!check(!bad.fileImport(path.string(),&rejected,false),"IMAGEDEF malformed handle remains rejected"))return false;
+  ++invalid;
  }
  std::cout<<"IMAGEDEF identity routes="<<valid<<" duplicate objects="<<duplicates<<" retries="<<retries
   <<" absent/null="<<empty<<" malformed="<<invalid<<'\n';

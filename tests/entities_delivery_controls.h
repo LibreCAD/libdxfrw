@@ -25,7 +25,8 @@ struct EntitiesDeliveryProbe final:dx_iface {
         active=false;++ends;
     }
     void addDxfEntitiesSource(const DRW_DxfEntitiesSource& source) override {
-        if(active)bad=true;++physicalCalls;dx_iface::addDxfEntitiesSource(source);
+        if(active)bad=true;
+        ++physicalCalls;dx_iface::addDxfEntitiesSource(source);
         if(throwPhase==4)throw std::runtime_error("ENTITIES physical callback");
     }
     void addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource& source) override {
@@ -47,7 +48,8 @@ struct EntitiesDeliveryProbe final:dx_iface {
     }
     void addPoint(const DRW_Point& v) override {
         note(C::addPoint,"point");if(active&&disableDuringPoint)enabled=false;
-        if(active&&throwPhase==2)throw std::runtime_error("ENTITIES ordinary callback");dx_iface::addPoint(v);
+        if(active&&throwPhase==2)throw std::runtime_error("ENTITIES ordinary callback");
+        dx_iface::addPoint(v);
     }
     void addLine(const DRW_Line& v) override {note(C::addLine,"line");dx_iface::addLine(v);}
     void addCircle(const DRW_Circle& v) override {note(C::addCircle,"circle");if(throwPhase==6)throw std::runtime_error("proxy circle");dx_iface::addCircle(v);}
@@ -90,7 +92,8 @@ bool entitiesDeliveryOriginalWire(const std::filesystem::path& path,bool binary,
             if(name=="INSERT"&&record-first!=3u)return false;
             if(name=="DIMENSION"&&d.events!=0u)return false;
             for(std::size_t k=0;k<d.events;++k,++event) {
-                if(event>=s.events.size())return false;const auto& e=s.events[event];
+                if(event>=s.events.size())return false;
+                const auto& e=s.events[event];
                 if(e.dispatch!=j||!e.hasValue||e.origin!=DRW_DxfEntitiesDeliveryEvent::Origin::Parser
                     ||e.callback==C::TableSource||e.callback==C::AttdefSource)return false;
             }
@@ -106,7 +109,8 @@ bool entitiesDeliveryAllocationControls(long& faults) {
         auto budget=std::make_shared<DxfReadRetainedBudget>(1024u*1024u);
         std::istringstream input("0\nPOINT\n0\nENDSEC\n");auto reader=std::make_unique<dxfReaderAscii>(&input);
         reader->setVersion("AC1032",true);reader->setRetainedByteBudget(budget);int code=0;
-        if(!reader->readRec(&code))return false;DxfReadRecordView first;if(!reader->currentRecordView(first))return false;
+        if(!reader->readRec(&code))return false;
+        DxfReadRecordView first;if(!reader->currentRecordView(first))return false;
         DRW_DxfEntitiesSource physical;physical.status=DRW_DxfEntitiesSource::Status::Collecting;physical.scopeId=1u;
         physical.version=reader->getSourceVersion();physical.beginMarker={first.ordinal,first.beginOffset,first.endOffset,false};
         const auto initial=budget->used();
@@ -118,7 +122,8 @@ bool entitiesDeliveryAllocationControls(long& faults) {
             if(capture.source().status==S::Collecting)calibrated=true;
             else {if(capture.source().status!=S::Allocation)return false;++faults;}
         }
-        if(budget->used()!=initial)return false;reader.reset();if(budget->used()!=0u)return false;
+        if(budget->used()!=initial)return false;
+        reader.reset();if(budget->used()!=0u)return false;
     }
     return calibrated&&faults>0;
 }
@@ -178,7 +183,8 @@ bool entitiesDeliveryPolymorphicControls(unsigned& routes) {
         void addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource&) override {}
     } handler;
     std::istringstream input("0\nPOINT\n0\nENDSEC\n");dxfReaderAscii reader(&input);reader.setVersion("AC1032",true);int code=0;
-    if(!reader.readRec(&code))return false;DxfReadRecordView v;if(!reader.currentRecordView(v))return false;
+    if(!reader.readRec(&code))return false;
+    DxfReadRecordView v;if(!reader.currentRecordView(v))return false;
     DRW_DxfEntitiesSource physical;physical.status=DRW_DxfEntitiesSource::Status::Collecting;physical.scopeId=1u;physical.version=reader.getSourceVersion();
     physical.beginMarker={v.ordinal,v.beginOffset,v.endOffset,false};
     dxfEntitiesDelivery::Capture capture;capture.start(reader,physical,{});capture.begin(reader);dxfEntitiesDelivery::Sink sink(target,capture,&handler);
@@ -190,7 +196,8 @@ bool entitiesDeliveryPolymorphicControls(unsigned& routes) {
     for(const auto* surface:surfaces) {target.expected=surface;sink.addSurface(surface);}
     DRW_Spline spline;target.expected=&spline;sink.addSpline(&spline);target.expected=nullptr;sink.addSpline(nullptr);
     DRW_Polyline polyline;target.expected=&polyline;sink.addPolyline(polyline);
-    if(!reader.readRec(&code)||!reader.currentRecordView(v))return false;capture.end(reader);
+    if(!reader.readRec(&code)||!reader.currentRecordView(v))return false;
+    capture.end(reader);
     physical.status=DRW_DxfEntitiesSource::Status::Complete;physical.endMarker={v.ordinal,v.beginOffset,v.endOffset,false};capture.complete(physical);
     routes=target.calls;
     return target.good&&routes==12u&&handler.begins==routes&&handler.ends==routes&&capture.source().status==DRW_DxfEntitiesDeliverySource::Status::Complete
@@ -206,7 +213,8 @@ bool entitiesDeliveryProxyControls(const std::filesystem::path& path,unsigned& r
             {0,"ACAD_PROXY_ENTITY"},{5,"101"},{330,"1F"},{100,"AcDbEntity"},{8,"HOST"},{100,"AcDbProxyEntity"},
             {90,"498"},{91,"500"},{95,"1032"},{70,"1"},{92,"72"},{310,hex},{93,"0"},{94,"0"},
             {0,"POINT"},{5,"102"},{330,"1F"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbPoint"},{10,"1"},{20,"2"},{0,"ENDSEC"},{0,"EOF"}};
-        if(!write(path,tags,binary))return false;EntitiesDeliveryProbe receiver;dx_data data;
+        if(!write(path,tags,binary))return false;
+        EntitiesDeliveryProbe receiver;dx_data data;
         if(!receiver.fileImport(path.string(),&data,false)||receiver.bad||receiver.reports.size()!=1u)return false;
         const auto& s=receiver.reports.front();const std::vector<C> expected{C::addCircle,C::addProxyEntity,C::addRawDxfEntity,C::addPoint};
         if(s.status!=DRW_DxfEntitiesDeliverySource::Status::Complete||s.events.size()!=expected.size())return false;
@@ -214,8 +222,10 @@ bool entitiesDeliveryProxyControls(const std::filesystem::path& path,unsigned& r
         ++routes;
         receiver.resetObservation();receiver.throwPhase=6;dx_data failed;bool threw=false;
         try{if(receiver.fileImport(path.string(),&failed,false))return false;}catch(const std::runtime_error&){threw=true;}
-        if(!threw||!receiver.reports.empty())return false;receiver.resetObservation();receiver.throwPhase=0;dx_data retry;
-        if(!receiver.fileImport(path.string(),&retry,false)||receiver.bad||receiver.reports[0].status!=DRW_DxfEntitiesDeliverySource::Status::Complete)return false;++retries;
+        if(!threw||!receiver.reports.empty())return false;
+        receiver.resetObservation();receiver.throwPhase=0;dx_data retry;
+        if(!receiver.fileImport(path.string(),&retry,false)||receiver.bad||receiver.reports[0].status!=DRW_DxfEntitiesDeliverySource::Status::Complete)return false;
+        ++retries;
     }
     return routes==8u&&retries==8u;
 }
@@ -268,10 +278,13 @@ bool entitiesDeliveryTests(const std::filesystem::path& dir) {
                 broken.erase(broken.begin()+static_cast<std::ptrdiff_t>(first),broken.begin()+static_cast<std::ptrdiff_t>(end));}
             else {auto pos=slot(broken,2,"ENTITIES");while(++pos<broken.size()&&!(broken[pos].code==0&&broken[pos].value=="ENDSEC")){}
                 broken[pos].value="EOF";broken.resize(pos+1u);}
-            if(!write(path,broken,binary))return false;EntitiesDeliveryProbe rejected;dx_data failed;
+            if(!write(path,broken,binary))return false;
+            EntitiesDeliveryProbe rejected;dx_data failed;
             if(rejected.fileImport(path.string(),&failed,false)||!rejected.reports.empty())return false;
-            if(!write(path,tags,binary))return false;rejected.resetObservation();dx_data retry;
-            if(!rejected.fileImport(path.string(),&retry,false)||rejected.bad||rejected.reports[0].status!=S::Complete)return false;++aborts;
+            if(!write(path,tags,binary))return false;
+            rejected.resetObservation();dx_data retry;
+            if(!rejected.fileImport(path.string(),&retry,false)||rejected.bad||rejected.reports[0].status!=S::Complete)return false;
+            ++aborts;
         }
         auto rich=bindingSource("AC1032");auto at=slot(rich,2,"ENTITIES");while(++at<rich.size()&&!(rich[at].code==0&&rich[at].value=="ENDSEC")){}
         const Tags attdef{{0,"ATTDEF"},{5,"AFF0"},{330,"1F"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbText"},
@@ -282,8 +295,10 @@ bool entitiesDeliveryTests(const std::filesystem::path& dir) {
             EntitiesDeliveryProbe facets;facets.tableOpt=mask&1u;facets.attdefOpt=mask&2u;dx_data data;
             if(!facets.fileImport(path.string(),&data,false)||facets.bad||facets.reports.size()!=1u||facets.projections!=1u)return false;
             const auto& s=facets.reports.front();std::vector<C> expected;
-            if(mask&1u)expected.push_back(C::TableSource);expected.push_back(C::addTable);
-            if(mask&2u)expected.push_back(C::AttdefSource);expected.push_back(C::addAttDef);
+            if(mask&1u)expected.push_back(C::TableSource);
+            expected.push_back(C::addTable);
+            if(mask&2u)expected.push_back(C::AttdefSource);
+            expected.push_back(C::addAttDef);
             if(s.status!=S::Complete||s.events.size()!=expected.size())return false;
             for(std::size_t i=0;i<expected.size();++i)if(s.events[i].callback!=expected[i]
                 ||s.events[i].origin!=((expected[i]==C::TableSource||expected[i]==C::AttdefSource)?O::SourceObserver:O::Parser))return false;

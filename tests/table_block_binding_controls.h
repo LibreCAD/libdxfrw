@@ -55,7 +55,8 @@ bool blockBindingOriginalWire(const std::filesystem::path& path,bool binary,cons
         std::cerr<<"block wire cardinality="<<wire.size()<<" authored="<<tags.size()<<'\n';return false;
     }
     for(const auto& row:DxIfaceTableSourceTestAccess::blockSources(data)) {
-        if(!row.second.children)return false;const auto& source=*row.second.children;
+        if(!row.second.children)return false;
+        const auto& source=*row.second.children;
         for(const auto& record:source.records) {
             if(record.groups.size()!=record.spans.size()||record.groups.size()!=record.rawValues.size())return false;
             const auto first=record.marker.ordinal-1u;
@@ -152,7 +153,8 @@ bool tableBlockBindingTests(const std::filesystem::path& dir) {
             if(c.state==S::Bound&&(r.blockSourceDefinitions!=c.definitions||r.blockSourceMembers!=c.members)) {
                 std::cerr<<"block wire counts="<<c.name<<" definitions="<<r.blockSourceDefinitions<<" members="<<r.blockSourceMembers<<'\n';return false;
             }
-            if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!valid(retry,9u))return false;++wireCases;
+            if(!write(path,good,binary))return false;
+            dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!valid(retry,9u))return false;++wireCases;
         }
         for(unsigned fault=0u;fault<6u;++fault) {
             reader.alterPolyline=fault<3u?std::function<void(DRW_Polyline&)>([&](auto& v){if(v.handle!=0xD100u)return;if(fault==0u)v.vertlist[0]->basePoint.x+=1;if(fault==1u)v.defstawidth+=1;if(fault==2u)v.seqEndEntity->layer="changed";}):nullptr;
@@ -203,7 +205,8 @@ bool tableBlockBindingTests(const std::filesystem::path& dir) {
             dx_data failed;if(!reader.fileImport(path.string(),&failed,false)||dx_iface::tableContentBindingReport(failed).state==S::Bound)return false;
             reader.definitionOptIn=reader.childrenOptIn=reader.deliveryOptIn=true;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!valid(retry,9u))return false;++contexts;
         }
-        if(!reader.fileImport(path.string(),&baseline,false)||dx_iface::tableContentBindingReport(baseline).state==S::Bound)return false;++contexts;
+        if(!reader.fileImport(path.string(),&baseline,false)||dx_iface::tableContentBindingReport(baseline).state==S::Bound)return false;
+        ++contexts;
     }
     std::cout<<"Selected BLOCK bindings: profiles="<<profiles<<"; matched="<<matched<<"; revision refusals="<<revisions<<"; original member scalar spans="<<spans
         <<"; wire cases/retries="<<wireCases<<"; callback mismatches/retries="<<callbacks<<"; exact/under budgets="<<quotas

@@ -59,7 +59,8 @@ bool tableValueProfileTests(const std::filesystem::path& dir) {
                 }
                 const auto check=[&](const DRW_Table& t){const auto& c=t.m_content.m_rows[0].m_cells[0].m_contents[0];
                     return t.parentHandle==(blocks?0xB3u:0xB0u)&&c.m_handle==0xF11u&&c.m_value.m_handle==(form==16u?0u:0xFFEE1122u);};
-                if(owner!=1u||field!=1u||value!=1u||!check(*body.source->model)||!check(*body.typed->model))return false;++roles;
+                if(owner!=1u||field!=1u||value!=1u||!check(*body.source->model)||!check(*body.typed->model))return false;
+                ++roles;
             }
             ++positives;
         }
@@ -74,16 +75,19 @@ bool tableValueProfileTests(const std::filesystem::path& dir) {
             const int code=original.groups[i].code();if(code==301)value=true;if(!value)continue;
             auto raw=original;
             if(raw.groups[i].type()==DRW_Variant::STRING)raw.groups[i].addInt(code,1);else raw.groups[i].addString(code,"wrong-type");
-            if(dx_table_source::audit(raw).complete())return false;++types;
+            if(dx_table_source::audit(raw).complete())return false;
+            ++types;
             raw=original;DRW_Variant extra(99,7);raw.groups.insert(raw.groups.begin()+static_cast<std::ptrdiff_t>(i),extra);
-            if(dx_table_source::audit(raw).complete())return false;++unknown;
+            if(dx_table_source::audit(raw).complete())return false;
+            ++unknown;
             if(code!=2) {
                 raw=original;raw.groups.erase(raw.groups.begin()+static_cast<std::ptrdiff_t>(i));
                 if(dx_table_source::audit(raw).complete()) {std::cerr<<"Value missing accepted form="<<form<<" code="<<code<<'\n';return false;}++missing;
             }
             if(code!=2&&code!=310) {
                 raw=original;raw.groups.insert(raw.groups.begin()+static_cast<std::ptrdiff_t>(i),original.groups[i]);
-                if(dx_table_source::audit(raw).complete())return false;++duplicate;
+                if(dx_table_source::audit(raw).complete())return false;
+                ++duplicate;
             }
             if(code==304)break;
         }
@@ -129,7 +133,8 @@ bool tableValueProfileTests(const std::filesystem::path& dir) {
             default:raw.groups[field(330)].addString(344,"FFEE1122");break;
             }
             if(dx_table_source::audit(raw).complete()){std::cerr<<"Value grammar accepted fault="<<fault<<'\n';return false;}
-            if(!dx_table_source::audit(*A::tableInputs(data).at(0x501u)->raw).complete())return false;++grammar;
+            if(!dx_table_source::audit(*A::tableInputs(data).at(0x501u)->raw).complete())return false;
+            ++grammar;
         }
         // Byte-identical handles/records in another import are not the
         // original callback/control-block identity for this TABLE body.
@@ -150,7 +155,8 @@ bool tableValueProfileTests(const std::filesystem::path& dir) {
             dx_data data;A::tableBodyLimit(data,which,uses[which]-(under?1u:0u));
             if(!reader.fileImport(path.string(),&data,false)||ready(data)==under)return false;
             const auto r=dx_iface::tableBodyReport(data);
-            if(under&&(r.state!=dx_iface::TableBodyState::CaptureFailed||r.profilesMatched||r.outputEligible))return false;++quotas;
+            if(under&&(r.state!=dx_iface::TableBodyState::CaptureFailed||r.profilesMatched||r.outputEligible))return false;
+            ++quotas;
         }
         for(long offset=0;offset<16;++offset) {
             dx_data data;if(!reader.fileImport(path.string(),&data,false)||!ready(data))return false;

@@ -11,12 +11,14 @@ struct DictionarySourceProbe final:dx_iface {
         if(enabled?(!active||view.kind!=dxfRW::DxfStructuralSourceView::Kind::Dictionary
             ||view.phase!=(phase==0?dxfRW::DxfStructuralSourceView::Phase::Typed:phase==1?dxfRW::DxfStructuralSourceView::Phase::Raw:dxfRW::DxfStructuralSourceView::Phase::Source)
             ||(model&&view.model!=model)||(body&&view.source!=body)):active)good=false;
-        if(layoutRoleReport(*cData).rolesMatched)good=false;order.push_back(phase);
+        if(layoutRoleReport(*cData).rolesMatched)good=false;
+        order.push_back(phase);
     }
     template<class F>void call(int phase,F action) {
         if(skip==phase)return;
         if(allocationAt==phase){SymbolAllocationFailure failure(allocation);action();}else action();
-        if(duplicate==phase)action();if(throwAt==phase)throw std::runtime_error("dictionary publication callback");
+        if(duplicate==phase)action();
+        if(throwAt==phase)throw std::runtime_error("dictionary publication callback");
     }
     void addDictionary(const DRW_Dictionary& value) override {
         ++typed;check(&value,nullptr,0);if(forged)++const_cast<DRW_Dictionary&>(value).cloning;
@@ -52,7 +54,8 @@ bool dictionaryPublicLifetime(unsigned& contexts) {
             bool delivered=true;const bool delivery=input->getDxfDictionaryRawDelivery(delivered);
             if(phase==2) {if(!delivery||delivered!=(model->handle!=0xDu))good=false;}
             else if(delivery||delivered)good=false;
-            if(selected)order.push_back(phase);if(phase==0&&disable)enabled=false;
+            if(selected)order.push_back(phase);
+            if(phase==0&&disable)enabled=false;
             if(phase==throwAt)throw std::runtime_error("public dictionary publication");
         }
         void addDictionary(const DRW_Dictionary& row) override {check(&row,nullptr,0);}
@@ -70,7 +73,8 @@ bool dictionaryPublicLifetime(unsigned& contexts) {
             ||view.model||view.source||reader.getDxfDictionaryRawDelivery(delivered)||delivered)return false;
         if(kind==0u&&consumer.order!=std::vector<int>{0,1,2,0,2})return false;
         if(kind==4u&&consumer.order!=std::vector<int>{0,1,2})return false;
-        if(kind==5u&&!consumer.order.empty())return false;++contexts;
+        if(kind==5u&&!consumer.order.empty())return false;
+        ++contexts;
     }
     return true;
 }
@@ -81,7 +85,8 @@ bool dictionarySourceTests(const std::filesystem::path& dir) {
     const auto complete=[](const dx_data& data){const auto r=dx_iface::structuralSourceReport(data);return r.state==S::OriginsBound&&r.records==4u&&r.paired==4u&&r.originsBound==4u&&!r.outputEligible&&!r.ownerTargetsResolved;};
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding) {
         auto tags=dictionarySourceDocument(version);if(encoding==2u)tags.erase(std::remove_if(tags.begin(),tags.end(),[](const auto& t){return t.code==999;}),tags.end());
-        if(!writeBlockBinding(path,tags,encoding))return false;DictionarySourceProbe reader;dx_data data;
+        if(!writeBlockBinding(path,tags,encoding))return false;
+        DictionarySourceProbe reader;dx_data data;
         if(!reader.fileImport(path.string(),&data,false)||!complete(data)||!reader.good||reader.order!=std::vector<int>{0,1,2})return false;
         const auto& input=*A::structuralInputs(data).at(0x43u);if(input.kind!=dxfRW::DxfStructuralSourceView::Kind::Dictionary||input.raw.get()!=A::resources(data).at(0x43u).raw.get())return false;++profiles;
     }
@@ -89,8 +94,10 @@ bool dictionarySourceTests(const std::filesystem::path& dir) {
         const auto good=dictionarySourceDocument("AC1032");
         stage.name="fixed raw suppression and opt-out";
         for(const char* handle:{"C","D"}) {
-            if(!write(path,dictionarySourceDocument("AC1032",handle),binary))return false;DictionarySourceProbe reader;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false)||!complete(data)||!reader.good||reader.raw||reader.order!=std::vector<int>{0,2})return false;++fixed;
+            if(!write(path,dictionarySourceDocument("AC1032",handle),binary))return false;
+            DictionarySourceProbe reader;dx_data data;
+            if(!reader.fileImport(path.string(),&data,false)||!complete(data)||!reader.good||reader.raw||reader.order!=std::vector<int>{0,2})return false;
+            ++fixed;
         }
         if(!write(path,good,binary))return false;
         {DictionarySourceProbe reader;reader.enabled=false;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!reader.good||reader.sources||reader.raw!=1u
@@ -99,7 +106,8 @@ bool dictionarySourceTests(const std::filesystem::path& dir) {
         {DictionarySourceProbe reader;reader.rawEqualCopy=true;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!complete(data))return false;++contexts;}
         stage.name="missing/copy/duplicate phases";
         for(unsigned mode=0u;mode<3u;++mode)for(int phase=0;phase<3;++phase) {
-            if(mode==1u&&phase==1)continue;DictionarySourceProbe reader;if(mode==0u)reader.skip=phase;else if(mode==1u)reader.copy=phase;else reader.duplicate=phase;dx_data data;
+            if(mode==1u&&phase==1)continue;
+            DictionarySourceProbe reader;if(mode==0u)reader.skip=phase;else if(mode==1u)reader.copy=phase;else reader.duplicate=phase;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||dx_iface::structuralSourceReport(data).state!=S::CaptureFailed) {
                 const auto r=dx_iface::structuralSourceReport(data);std::cerr<<"mode="<<mode<<" phase="<<phase<<" state="<<static_cast<int>(r.state)<<" paired="<<r.paired<<" bodies="<<r.bodyMatched<<'\n';return false;
             }
@@ -115,7 +123,8 @@ bool dictionarySourceTests(const std::filesystem::path& dir) {
         for(int phase=0;phase<3;++phase) {
             bool recovered=false;for(long count=0;count<2000;++count) {
                 DictionarySourceProbe reader;reader.allocationAt=phase;reader.allocation=count;dx_data data;
-                if(!reader.fileImport(path.string(),&data,false))return false;const auto r=dx_iface::structuralSourceReport(data);
+                if(!reader.fileImport(path.string(),&data,false))return false;
+                const auto r=dx_iface::structuralSourceReport(data);
                 if(r.state==S::OriginsBound){recovered=true;break;}if(r.state!=S::CaptureFailed&&r.state!=S::Unqualified)return false;
                 reader.allocationAt=-1;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++allocations;
             }if(!recovered)return false;
@@ -176,7 +185,8 @@ bool layoutRoleTests(const std::filesystem::path& dir) {
     const auto complete=[](const dx_data& d){const auto r=dx_iface::layoutRoleReport(d);return r.state==S::Matched&&r.rolesMatched&&r.layouts==2u&&r.blocks==2u&&r.associations==2u
         &&r.root==0x40u&&r.layoutDictionary==0x43u&&!r.nativeNamesQualified&&!r.ownerTargetsResolved&&!r.outputEligible;};
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding) {
-        if(!writeBlockBinding(path,layoutRoleDocument(version),encoding))return false;dx_iface reader;dx_data data;
+        if(!writeBlockBinding(path,layoutRoleDocument(version),encoding))return false;
+        dx_iface reader;dx_data data;
         if(!reader.fileImport(path.string(),&data,false)||!complete(data)) {const auto r=dx_iface::layoutRoleReport(data);std::cerr<<version<<'/'<<encoding<<" state="<<static_cast<int>(r.state)<<" first="<<r.firstHandle<<'\n';return false;}++profiles;
     }
     for(bool binary:{false,true}) {
@@ -198,29 +208,34 @@ bool layoutRoleTests(const std::filesystem::path& dir) {
             if(kind==11u)tags[slot(tags,5,"B1")].value="B3";
             if(kind==12u)tags[blockField(tags,"B0",330)].value="40";
             if(kind==13u)tags[blockField(tags,"B0",330)].value="0";
-            if(!write(path,tags,binary))return false;dx_iface reader;dx_data data;
+            if(!write(path,tags,binary))return false;
+            dx_iface reader;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||dx_iface::layoutRoleReport(data).rolesMatched) {std::cerr<<"refusal="<<kind<<'\n';return false;}
             const auto state=dx_iface::layoutRoleReport(data).state;
             if((kind==8u&&state!=S::AmbiguousRoot)||(kind==10u&&state!=S::ReferenceMismatch)||(kind==12u&&state!=S::WrongOwner))return false;
-            if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
+            if(!write(path,good,binary))return false;
+            dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
         }
         stage.name="quota boundaries and ownership contexts";
         for(bool work:{false,true})for(bool exact:{false,true}) {
             dx_iface reader;dx_data data;const auto r=dx_iface::layoutRoleReport(base);A::layoutRoleLimit(data,work,(work?r.work:r.bytes)-(exact?0u:1u));
-            if(!reader.fileImport(path.string(),&data,false)||dx_iface::layoutRoleReport(data).state!=(exact?S::Matched:S::CaptureFailed))return false;++quotas;
+            if(!reader.fileImport(path.string(),&data,false)||dx_iface::layoutRoleReport(data).state!=(exact?S::Matched:S::CaptureFailed))return false;
+            ++quotas;
         }
         for(unsigned kind=0u;kind<5u;++kind) {
             dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;
             if(kind<2u)A::substituteLayoutRole(data,kind==1u);else if(kind==2u)A::substituteStructural(data,0u);else if(kind==3u)A::substituteIdentity(data,0u);
             else {dx_data copied;A::copyBindingContext(copied,data);if(dx_iface::layoutRoleReport(copied).state!=S::ContextMismatch)return false;++contexts;continue;}
-            if(dx_iface::layoutRoleReport(data).state!=S::ContextMismatch)return false;++contexts;
+            if(dx_iface::layoutRoleReport(data).state!=S::ContextMismatch)return false;
+            ++contexts;
         }
         stage.name="isolated audit allocation recovery";
         bool recovered=false;
         for(long count=0;count<2000;++count) {
             {SymbolAllocationFailure failure(count);A::repeatLayoutRole(baseline,base);}
             const auto r=dx_iface::layoutRoleReport(base);if(r.state==S::Matched){recovered=true;break;}
-            if(r.state!=S::CaptureFailed)return false;A::repeatLayoutRole(baseline,base);if(!complete(base))return false;
+            if(r.state!=S::CaptureFailed)return false;
+            A::repeatLayoutRole(baseline,base);if(!complete(base))return false;
             dx_iface retryReader;dx_data retry;if(!retryReader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++allocations;
         }if(!recovered)return false;
         stage.name="literal names and fixed source dictionary variants";
@@ -229,7 +244,8 @@ bool layoutRoleTests(const std::filesystem::path& dir) {
             if(kind==0u){tags[slot(tags,3,"Sheet 1")].value="sheet 1";}
             if(kind==1u){tags[slot(tags,3,"Sheet 1")].value="Sheet-é";tags[slot(tags,1,"Sheet 1")].value="Sheet-é";}
             if(kind==3u)appendBlockFields(tags,"B0",{{102,"{OPAQUE"},{330,"FFFFFFFFFFFFFFFF"},{5,"opaque-not-handle"},{102,"}"}});
-            if(!write(path,tags,binary))return false;dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||dx_iface::layoutRoleReport(data).rolesMatched!=(kind!=3u)
+            if(!write(path,tags,binary))return false;
+            dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||dx_iface::layoutRoleReport(data).rolesMatched!=(kind!=3u)
                 ||dx_iface::layoutRoleReport(data).nativeNamesQualified) {std::cerr<<"variant="<<kind<<" binary="<<binary<<'\n';return false;}
             // Compatible opaque import is not independent semantic/body proof.
             if(kind==3u&&dx_iface::structuralSourceReport(data).state!=dx_iface::StructuralSourceState::Unqualified)return false;
@@ -246,13 +262,17 @@ bool layoutRoleTests(const std::filesystem::path& dir) {
             if(kind==5u)fields={{102,"{OPAQUE"},{330,"FFFFFFFFFFFFFFFF"}};
             appendBlockFields(tags,"B0",fields);if(!write(path,tags,binary))return false;dx_iface reader;dx_data data;
             if(reader.fileImport(path.string(),&data,false)||!data.blockRecords.empty()||dx_iface::layoutRoleReport(data).state!=S::ImportFailed)return false;
-            if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++nativeRefusals;
+            if(!write(path,good,binary))return false;
+            dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++nativeRefusals;
         }
         stage.name="live export/readback and reverse-alias failure";
-        if(!write(path,good,binary))return false;dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!complete(data))return false;
+        if(!write(path,good,binary))return false;
+        dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!complete(data))return false;
         const auto output=dir/(binary?"roles-binary.dxf":"roles-ascii.dxf");
-        if(!reader.fileExport(output.string(),DRW::AC1032,binary,&data,false))return false;dx_iface rereader;dx_data reread;
-        if(!rereader.fileImport(output.string(),&reread,false)||reread.layouts.size()!=2u)return false;++outputs;
+        if(!reader.fileExport(output.string(),DRW::AC1032,binary,&data,false))return false;
+        dx_iface rereader;dx_data reread;
+        if(!rereader.fileImport(output.string(),&reread,false)||reread.layouts.size()!=2u)return false;
+        ++outputs;
         DRW_Block_Record extra;extra.handle=0xB2u;extra.parentHandle=0x8u;extra.name="EXTRA";extra.layoutHandle=0xA0u;data.blockRecords.push_back(extra);
         const std::string sentinel="preserve role destination";{std::ofstream out(output,std::ios::binary|std::ios::trunc);out<<sentinel;}
         std::ostringstream diagnostic;auto* previous=std::cerr.rdbuf(diagnostic.rdbuf());bool rejected=false;

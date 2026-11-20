@@ -100,7 +100,8 @@ bool tableInputTests(const std::filesystem::path& dir) {
     const auto complete=[](const dx_data& d){const auto r=dx_iface::tableInputReport(d);return r.state==S::OriginalPairsReady&&r.sources==1u&&r.typed==1u&&r.paired==1u
         &&r.originalPairsMatched&&r.cleanStates&&!r.modeledMatched&&!r.profilesMatched&&!r.ownerTargetsResolved&&!r.outputEligible;};
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding)for(bool blocks:{false,true})for(unsigned form=0u;form<3u;++form){
-        if(!writeBlockBinding(path,tableBlockSourceDocument(version,blocks,form),encoding))return false;TableInputProbe reader;dx_data data;
+        if(!writeBlockBinding(path,tableBlockSourceDocument(version,blocks,form),encoding))return false;
+        TableInputProbe reader;dx_data data;
         if(!reader.fileImport(path.string(),&data,false)||reader.bad||reader.depth||!complete(data)){std::cerr<<version<<'/'<<encoding<<" blocks="<<blocks<<" form="<<form<<" state="<<static_cast<int>(dx_iface::tableInputReport(data).state)<<'\n';return false;}
         const auto& p=*A::tableInputs(data).at(0x501u);const auto& t=*A::tableTypedInputs(data).at(0x501u);
         if(p.typed||!t.typed||t.source!=A::tableInputs(data).at(0x501u)||p.raw!=t.raw||p.context!=t.context||p.state.rows!=1||p.state.columns!=1||p.state.nextCell!=1u
@@ -115,26 +116,31 @@ bool tableInputTests(const std::filesystem::path& dir) {
         stage.name="every original private TABLE state field";
         if(!write(path,good,binary))return false;
         for(int field=0;field<22;++field){TableInputProbe reader;reader.stateFault=field;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false)||reader.bad||dx_iface::tableInputReport(data).state!=S::Unqualified||!retry(reader))return false;++states;}
+            if(!reader.fileImport(path.string(),&data,false)||reader.bad||dx_iface::tableInputReport(data).state!=S::Unqualified||!retry(reader))return false;
+            ++states;}
         stage.name="producer identities and callback phases";
         for(int fault=1;fault<=8;++fault){TableInputProbe reader;reader.fault=fault;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||reader.bad||dx_iface::tableInputReport(data).state!=(fault==4?S::CaptureFailed:S::Unqualified)||!retry(reader)){std::cerr<<"input fault="<<fault<<" blocks="<<blocks
                 <<" state="<<static_cast<int>(dx_iface::tableInputReport(data).state)<<" deliveries="<<A::entitiesDeliveries(data).size()<<'\n';return false;}++refusals;}
         stage.name="view opt-out and context-owner independence";
         for(bool sourceFacet:{false,true}){TableInputProbe reader;reader.selected=sourceFacet;reader.facets=!sourceFacet;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false)||reader.bad||dx_iface::tableInputReport(data).state!=(sourceFacet?S::OriginalPairsReady:S::Unqualified))return false;++contexts;}
+            if(!reader.fileImport(path.string(),&data,false)||reader.bad||dx_iface::tableInputReport(data).state!=(sourceFacet?S::OriginalPairsReady:S::Unqualified))return false;
+            ++contexts;}
         stage.name="snapshot ownership and retained fields";
         for(bool typed:{false,true})for(bool alias:{false,true}){TableInputProbe reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;A::substituteTableInput(data,typed,alias);
-            if(dx_iface::tableInputReport(data).state!=S::ContextMismatch||!retry(reader))return false;++contexts;}
+            if(dx_iface::tableInputReport(data).state!=S::ContextMismatch||!retry(reader))return false;
+            ++contexts;}
         for(bool alias:{false,true}){TableInputProbe reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;A::substituteTableContext(data,blocks,alias);
-            if(dx_iface::tableInputReport(data).state!=S::ContextMismatch)return false;++contexts;}
+            if(dx_iface::tableInputReport(data).state!=S::ContextMismatch)return false;
+            ++contexts;}
         {TableInputProbe reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;
             data.tables.front().m_content.m_rows.clear();data.tables.front().parentHandle=0x40u;data.headerC.clearDxfCodePageDeclaration();
             if(!complete(data)||A::tableInputs(data).at(0x501u)->model->m_content.m_rows.size()!=1u)return false;
             {SymbolAllocationFailure fail(0);if(!complete(data))return false;}++contexts;
             dx_data copy;A::copyBindingContext(copy,data);if(dx_iface::tableInputReport(copy).state!=S::ContextMismatch)return false;++contexts;}
         {TableInputProbe first,second;dx_data a,b;if(!first.fileImport(path.string(),&a,false)||!second.fileImport(path.string(),&b,false))return false;A::transplantTableInput(a,b);
-            if(dx_iface::tableInputReport(a).state!=S::ContextMismatch)return false;++contexts;}
+            if(dx_iface::tableInputReport(a).state!=S::ContextMismatch)return false;
+            ++contexts;}
         stage.name="actual field observations are not modeled equality";
         {TableInputProbe reader;reader.alterField=true;dx_data data;if(!reader.fileImport(path.string(),&data,false)||reader.bad||!complete(data)
                 ||A::tableInputs(data).at(0x501u)->model->m_horizontalDirection.x==A::tableTypedInputs(data).at(0x501u)->model->m_horizontalDirection.x)return false;
@@ -150,37 +156,47 @@ bool tableInputTests(const std::filesystem::path& dir) {
         stage.name="borrowed context and bounded owned-context copy failure/recovery";
         for(bool capture:{false,true}){auto tags=good;const auto at=slot(tags,0,"ENDSEC");const std::string declaration(96u,'X');
             tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{{9,"$DWGCODEPAGE"},{3,declaration}});
-            if(!write(path,tags,binary))return false;TableInputProbe reader;reader.contextProbe=!capture;reader.facets=!capture;reader.allocation=capture?0:-1;dx_data data;
+            if(!write(path,tags,binary))return false;
+            TableInputProbe reader;reader.contextProbe=!capture;reader.facets=!capture;reader.allocation=capture?0:-1;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||reader.bad||(capture?(!reader.allocationReached||dx_iface::tableInputReport(data).state!=S::CaptureFailed)
                 :(!reader.contextViewAllocationFree||!complete(data)||A::tableInputs(data).at(0x501u)->context->declaration!=declaration)))return false;
-            if(!retry(reader))return false;++contextFailures;
+            if(!retry(reader))return false;
+            ++contextFailures;
         }
         stage.name="record/byte/work exact and one-under boundaries";
-        if(!write(path,good,binary))return false;TableInputProbe baseline;dx_data base;if(!baseline.fileImport(path.string(),&base,false)||!complete(base))return false;
+        if(!write(path,good,binary))return false;
+        TableInputProbe baseline;dx_data base;if(!baseline.fileImport(path.string(),&base,false)||!complete(base))return false;
         const auto used=dx_iface::tableInputReport(base);const std::array<std::size_t,3> caps{{used.records,used.bytes,used.work}};
         for(unsigned which=0u;which<3u;++which)for(bool under:{false,true}){TableInputProbe reader;dx_data data;A::tableInputLimit(data,which,caps[which]-(under?1u:0u));
-            if(!reader.fileImport(path.string(),&data,false)||reader.bad||dx_iface::tableInputReport(data).state!=(under?S::CaptureFailed:S::OriginalPairsReady)||!retry(reader))return false;++quotas;}
+            if(!reader.fileImport(path.string(),&data,false)||reader.bad||dx_iface::tableInputReport(data).state!=(under?S::CaptureFailed:S::OriginalPairsReady)||!retry(reader))return false;
+            ++quotas;}
         stage.name="reached actual source snapshot allocation failures";
         for(long fault=0;fault<20;++fault){TableInputProbe reader;reader.allocation=fault;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false)||!reader.allocationReached||dx_iface::tableInputReport(data).state!=S::CaptureFailed||!A::tablePendingEmpty(data)||!retry(reader))return false;++allocations;}
+            if(!reader.fileImport(path.string(),&data,false)||!reader.allocationReached||dx_iface::tableInputReport(data).state!=S::CaptureFailed||!A::tablePendingEmpty(data)||!retry(reader))return false;
+            ++allocations;}
         stage.name="whole-read tail and callback exception recovery";
         for(unsigned which=0u;which<3u;++which){auto tags=good;if(which==2u)tags.pop_back();if(!write(path,tags,binary))return false;TableInputProbe reader;reader.throwSource=which==0u;reader.throwTyped=which==1u;
             dx_data data;bool read=false,threw=false;try{read=reader.fileImport(path.string(),&data,false);}catch(const std::runtime_error&){threw=true;}
-            if(read||reader.depth||threw!=(which!=2u)||dx_iface::tableInputReport(data).state!=S::ImportFailed||!A::tablePendingEmpty(data)||!retry(reader))return false;++failures;}
+            if(read||reader.depth||threw!=(which!=2u)||dx_iface::tableInputReport(data).state!=S::ImportFailed||!A::tablePendingEmpty(data)||!retry(reader))return false;
+            ++failures;}
     }
     stage.name="public callback-only lifetime,throw cleanup and reader reuse";
     for(bool binary:{false,true})for(bool blocks:{false,true})for(unsigned mode=0u;mode<4u;++mode) {
-        if(!write(path,tablePublicationDocument(blocks),binary))return false;dxfRW input(path.string().c_str());TablePublicationReceiver receiver;receiver.input=&input;
+        if(!write(path,tablePublicationDocument(blocks),binary))return false;
+        dxfRW input(path.string().c_str());TablePublicationReceiver receiver;receiver.input=&input;
         receiver.throwing=mode<3u?static_cast<int>(mode):0;receiver.selected=mode!=3u;
         const auto cleared=[&](){dxfRW::DxfTableSourceView view;DRW_Table dummy;DRW_RawDxfObject raw;view.phase=dxfRW::DxfTableSourceView::Phase::Typed;view.model=&dummy;view.source=&raw;view.inBlock=true;
             SymbolAllocationFailure fail(0);return !input.getDxfTableSourceView(view)&&view.phase==dxfRW::DxfTableSourceView::Phase::None&&!view.model&&!view.source&&!view.inBlock;};
-        if(!cleared())return false;bool read=false,threw=false;try{read=input.read(&receiver,false);}catch(const std::runtime_error&){threw=true;}
+        if(!cleared())return false;
+        bool read=false,threw=false;try{read=input.read(&receiver,false);}catch(const std::runtime_error&){threw=true;}
         if(receiver.bad||receiver.depth||read!=(mode==0u||mode==3u)||threw!=(mode==1u||mode==2u)||!cleared())return false;
         receiver.throwing=0;receiver.bad=false;receiver.sources=receiver.typed=0u;receiver.model=nullptr;receiver.raw=nullptr;
-        if(!input.read(&receiver,false)||receiver.bad||receiver.depth||receiver.sources!=(receiver.selected?1u:0u)||receiver.typed!=1u||!cleared())return false;++views;
+        if(!input.read(&receiver,false)||receiver.bad||receiver.depth||receiver.sources!=(receiver.selected?1u:0u)||receiver.typed!=1u||!cleared())return false;
+        ++views;
     }
     {if(!write(path,entitiesRoleDocument("AC1032"),false))return false;TableInputProbe reader;dx_data data;
-        if(!reader.fileImport(path.string(),&data,false)||dx_iface::tableInputReport(data).state!=S::NoInputs||dx_iface::tableInputReport(data).originalPairsMatched)return false;++contexts;}
+        if(!reader.fileImport(path.string(),&data,false)||dx_iface::tableInputReport(data).state!=S::NoInputs||dx_iface::tableInputReport(data).originalPairsMatched)return false;
+        ++contexts;}
     stage.done=true;std::cout<<"TABLE inputs profiles="<<profiles<<"; original state mutations="<<states<<"; producer refusals="<<refusals<<"; context/owner controls="<<contexts
         <<"; field/pending boundaries="<<boundaries<<"; exact/under quotas="<<quotas<<"; reached allocation faults="<<allocations<<"; callback/tail retries="<<failures<<"; public lifetime/reuse routes="<<views
         <<"; borrowed/owned long-declaration context controls="<<contextFailures<<'\n';

@@ -54,7 +54,8 @@ bool entitiesOriginalWire(const std::filesystem::path& path,bool binary,const Ta
     const auto wire=attdefWireTags(path,binary);if(wire.size()!=tags.size())return false;
     const auto& scopes=DxIfaceTableSourceTestAccess::entitiesSources(data);if(scopes.size()!=2u)return false;
     for(const auto& owner:scopes) {
-        if(!owner.physical)return false;const auto& s=*owner.physical;
+        if(!owner.physical)return false;
+        const auto& s=*owner.physical;
         const auto begin=s.beginMarker.ordinal-1u,end=s.endMarker.ordinal-1u;
         if(begin>=wire.size()||end>=wire.size()||wire[begin].code!=0||wire[end].text!="ENDSEC"
             ||wire[begin].begin!=s.beginMarker.beginOffset||wire[begin].end!=s.beginMarker.endOffset
@@ -71,7 +72,8 @@ bool entitiesOriginalWire(const std::filesystem::path& path,bool binary,const Ta
                     if((v.type()!=DRW_Variant::INTEGER&&v.type()!=DRW_Variant::INTEGER64)||w.integer!=std::stoll(tags[i].value)
                         ||(v.type()==DRW_Variant::INTEGER64?v.i64_val():v.i_val())!=w.integer)return false;
                 }else if(w.kind==AttdefWireTag::Real) {
-                    if(v.type()!=DRW_Variant::DOUBLE)return false;const auto d=v.d_val(),original=std::stod(tags[i].value);
+                    if(v.type()!=DRW_Variant::DOUBLE)return false;
+                    const auto d=v.d_val(),original=std::stod(tags[i].value);
                     if(std::memcmp(&w.real,&d,sizeof(double))||std::memcmp(&d,&original,sizeof(double)))return false;
                 }else if(v.type()!=DRW_Variant::STRING||!v.content.s||*v.content.s!=w.text||w.text!=tags[i].value)return false;
                 ++spans;
@@ -100,7 +102,8 @@ bool entitiesCollectorControls(long& allocations) {
                 ||capture.source().ignoredComments!=1u||previous.calls!=5u||previous.comments!=1u)return false;
             capture.detach();if(reader->exchangeRecordObserver(&previous)!=&previous)return false;
         }
-        if(!reader->readRec(&code)||code!=0||previous.calls!=6u)return false;reader.reset();if(budget->used()!=0u)return false;
+        if(!reader->readRec(&code)||code!=0||previous.calls!=6u)return false;
+        reader.reset();if(budget->used()!=0u)return false;
     }
     const std::string payload(128u,'x');bool calibrated=false;
     for(long fault=0;fault<100&&!calibrated;++fault) {
@@ -146,10 +149,13 @@ bool entitiesPublicMemoryControls(const std::filesystem::path& path,unsigned& ro
             ||consumer.snapshot.endMarker.beginOffset!=input.rfind(std::string("0")+newline+"ENDSEC"+newline))return false;
         previous=consumer.snapshot.scopeId;++routes;
     }
-    if(!write(path,document("AC1032"),true))return false;consumer.points=consumer.calls=0u;
-    if(!reader.read(&consumer,false)||consumer.calls!=1u||!consumer.snapshot.binary)return false;++routes;
+    if(!write(path,document("AC1032"),true))return false;
+    consumer.points=consumer.calls=0u;
+    if(!reader.read(&consumer,false)||consumer.calls!=1u||!consumer.snapshot.binary)return false;
+    ++routes;
     std::ostringstream out;for(const auto& t:document("AC1032"))out<<t.code<<'\n'<<t.value<<'\n';auto input=out.str();consumer.points=consumer.calls=0u;
-    if(!reader.readAscii(&consumer,false,input)||consumer.calls!=1u||consumer.snapshot.binary||consumer.badOrder)return false;++routes;
+    if(!reader.readAscii(&consumer,false,input)||consumer.calls!=1u||consumer.snapshot.binary||consumer.badOrder)return false;
+    ++routes;
     return routes==14u;
 }
 bool rawEntityProxyClassControls(const std::filesystem::path& path,unsigned& profiles,unsigned& retries) {
@@ -222,7 +228,8 @@ bool rawEntityProxyClassControls(const std::filesystem::path& path,unsigned& pro
                 ||receiver.circles.front().basePoint.z!=4.||receiver.circles.front().radious!=5.||receiver.circles.front().layer!="HOST"))return false;
             if(block) {if(!receiver.delivered.empty())return false;}
             else {
-                if(receiver.delivered.size()!=1u)return false;const auto& s=receiver.delivered.front();
+                if(receiver.delivered.size()!=1u)return false;
+                const auto& s=receiver.delivered.front();
                 if(s.status!=DRW_DxfEntitiesDeliverySource::Status::Complete||s.dispatches.size()!=2u||s.events.size()!=2u+circles||s.completedEvents!=s.events.size())return false;
                 for(std::size_t i=0;i<s.events.size();++i) {
                     const auto& e=s.events[i];const bool rendered=circles&&i==0u;
@@ -233,7 +240,8 @@ bool rawEntityProxyClassControls(const std::filesystem::path& path,unsigned& pro
             ++profiles;
         }
         Tags invalid{{5,"C1"},{330,"B100"},{100,"AcDbEntity"},{8,"HOST"},{countCode,"67108865"},{100,"VendorData"}};
-        if(!write(path,document(version,invalid,block),binary))return false;dxfRW reader(path.string().c_str());Consumer failed;
+        if(!write(path,document(version,invalid,block),binary))return false;
+        dxfRW reader(path.string().c_str());Consumer failed;
         if(reader.read(&failed,false)||failed.depth||!failed.raw.empty()||failed.points||!failed.circles.empty())return false;
         const auto fixed=rowFor(0u);if(!write(path,document(version,fixed,block),binary))return false;Consumer retry;
         if(!reader.read(&retry,false)||retry.depth||retry.points!=1u||retry.raw.size()!=1u||!retry.circles.empty()||!exact(retry.raw.front(),fixed,binary))return false;
@@ -290,11 +298,13 @@ bool entitiesSourceTests(const std::filesystem::path& dir) {
         }
         auto one=tags;const auto first=slot(one,2,"ENTITIES"),second=slot(Tags(one.begin()+static_cast<std::ptrdiff_t>(first+1u),one.end()),2,"ENTITIES")+first+1u;
         one.erase(one.begin()+static_cast<std::ptrdiff_t>(second-1u),one.begin()+static_cast<std::ptrdiff_t>(second+2u));
-        if(!write(path,one,binary))return false;dx_data single;if(!reader.fileImport(path.string(),&single,false)||!complete(single))return false;
+        if(!write(path,one,binary))return false;
+        dx_data single;if(!reader.fileImport(path.string(),&single,false)||!complete(single))return false;
         const auto own=reader.measured;
         for(unsigned which=0;which<4u;++which)for(bool exact:{false,true}) {
             reader.limits={};if(which==0u)reader.limits.records=own[which]-(exact?0u:1u);if(which==1u)reader.limits.groups=own[which]-(exact?0u:1u);
-            if(which==2u)reader.limits.bytes=own[which]-(exact?0u:1u);if(which==3u)reader.limits.work=own[which]-(exact?0u:1u);
+            if(which==2u)reader.limits.bytes=own[which]-(exact?0u:1u);
+            if(which==3u)reader.limits.work=own[which]-(exact?0u:1u);
             dx_data data;if(!reader.fileImport(path.string(),&data,false)||dx_iface::entitiesSourceReport(data).state!=(exact?S::TransportComplete:S::CaptureFailed))return false;++primitive;
         }
         reader.limits={};bool calibrated=false;
@@ -325,10 +335,12 @@ bool entitiesSourceTests(const std::filesystem::path& dir) {
         ++contexts;
         dx_data stale;if(!reader.fileImport(path.string(),&stale,false)||!complete(stale))return false;
         reader.addDxfEntitiesSource(*A::entitiesSources(stale).front().physical);
-        if(dx_iface::entitiesSourceReport(stale).state!=S::CaptureFailed)return false;++contexts;
+        if(dx_iface::entitiesSourceReport(stale).state!=S::CaptureFailed)return false;
+        ++contexts;
         std::weak_ptr<const DRW_DxfEntitiesSource> weak;
         {dx_data owned;if(!reader.fileImport(path.string(),&owned,false)||!complete(owned))return false;weak=A::entitiesSources(owned).front().physical;}
-        if(!weak.expired())return false;++contexts;
+        if(!weak.expired())return false;
+        ++contexts;
         for(unsigned fault=0;fault<5u;++fault) {
             auto broken=one;
             if(fault==0u) {const auto at=slot(broken,2,"CUSTOM_SECTION")-2u;broken.erase(broken.begin()+static_cast<std::ptrdiff_t>(at));}
@@ -378,7 +390,8 @@ bool entitiesSourceTests(const std::filesystem::path& dir) {
         Tags tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,v},{0,"ENDSEC"},{0,"SECTION"},{2,"ENTITIES"},
             {0,"POINT"},{5,"101"},{8,"0"},{10,"1"},{20,"2"},{0,"ENDSEC"},{0,"EOF"}};
         EntitiesProbe reader;reader.force=true;dx_data data;
-        if(!write(path,tags,false)||!reader.fileImport(path.string(),&data,false)||!complete(data))return false;++legacyRoutes;
+        if(!write(path,tags,false)||!reader.fileImport(path.string(),&data,false)||!complete(data))return false;
+        ++legacyRoutes;
     }
     std::cout<<"ENTITIES source: routes="<<routes<<"; original scalar spans="<<spans<<"; malformed carrier/retries="<<refusals
         <<"; aggregate boundaries="<<aggregate<<"; collector boundaries="<<primitive<<"; observed copy allocation faults="<<allocations

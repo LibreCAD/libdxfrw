@@ -53,18 +53,21 @@ bool identitySourceWire(const std::filesystem::path& path,bool binary,const dx_d
     const auto wire=attdefWireTags(path,binary);
     if(source.scalars!=wire.size()||source.ignoredComments!=(binary?0u:2u)||source.sections.size()!=7u||source.records.size()!=15u||source.candidates.size()!=18u)return false;
     const auto physical=[&](const DRW_DxfPhysicalRecordSpan& span,int code,const std::string& text) {
-        if(!span.ordinal||span.ordinal>wire.size())return false;const auto& w=wire[span.ordinal-1u];
+        if(!span.ordinal||span.ordinal>wire.size())return false;
+        const auto& w=wire[span.ordinal-1u];
         return w.code==code&&w.text==text&&w.begin==span.beginOffset&&w.end==span.endOffset;
     };
     for(const auto& section:source.sections)if(!physical(section.marker,0,"SECTION")||!physical(section.endMarker,0,"ENDSEC"))return false;
     for(const auto& record:source.records) {
         if(!physical(record.marker,0,record.name)||!record.endMarker.ordinal||record.endMarker.ordinal>wire.size())return false;
         const auto& end=wire[record.endMarker.ordinal-1u];
-        if(end.code||end.begin!=record.endMarker.beginOffset||end.end!=record.endMarker.endOffset)return false;++spans;
+        if(end.code||end.begin!=record.endMarker.beginOffset||end.end!=record.endMarker.endOffset)return false;
+        ++spans;
     }
     for(const auto& candidate:source.candidates) {
         if(!physical(candidate.span,candidate.code,candidate.lexeme)||candidate.span.ignoredComment)return false;
-        if(binary?!candidate.rawValue.empty():candidate.rawValue!=candidate.lexeme)return false;++spans;
+        if(binary?!candidate.rawValue.empty():candidate.rawValue!=candidate.lexeme)return false;
+        ++spans;
     }
     const std::array<std::uint64_t,15> expected{{0x10,0x11,0x12,0x13,0x14,0x15,0x20,0x21,0x22,0x30,0x31,0x32,0x40,0x41,0x33}};
     const auto& index=A::identityAudit(data)->identities;
@@ -93,9 +96,11 @@ bool identityPublicLifetime(unsigned& contexts) {
     std::string document="999\nbefore section\n0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1032\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n0\nENDSEC\n0\nEOF";
     for(unsigned phase=0u;phase<5u;++phase) {
         consumer.enabled=phase!=3u;consumer.disableAtHeader=phase==2u;consumer.throwSource=phase==1u;consumer.calls=0u;
-        if(reader.getDxfIdentitySourceView())return false;bool threw=false;
+        if(reader.getDxfIdentitySourceView())return false;
+        bool threw=false;
         try{if(!reader.readAscii(&consumer,false,document))return false;}catch(const std::runtime_error&){threw=true;}
-        if(threw!=(phase==1u)||reader.getDxfIdentitySourceView()||!consumer.good||consumer.calls!=(phase==3u?0u:1u))return false;++contexts;
+        if(threw!=(phase==1u)||reader.getDxfIdentitySourceView()||!consumer.good||consumer.calls!=(phase==3u?0u:1u))return false;
+        ++contexts;
     }
     return true;
 }
@@ -123,7 +128,8 @@ bool identitySourceTests(const std::filesystem::path& dir) {
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding) {
         auto tags=identitySourceDocument(version);
         if(encoding==2u)tags.erase(std::remove_if(tags.begin(),tags.end(),[](const auto& t){return t.code==999;}),tags.end());
-        if(!writeBlockBinding(path,tags,encoding))return false;IdentitySourceProbe reader;dx_data data;
+        if(!writeBlockBinding(path,tags,encoding))return false;
+        IdentitySourceProbe reader;dx_data data;
         if(!reader.fileImport(path.string(),&data,false)||!complete(data)||!reader.good||reader.callbacks!=1u||!identitySourceWire(path,encoding==2u,data,spans)) {
             const auto r=dx_iface::identitySourceReport(data);std::cerr<<version<<'/'<<encoding<<" state="<<static_cast<int>(r.state)<<" records="<<r.records<<" candidates="<<r.candidates<<" admitted="<<r.admitted<<" unobserved="<<r.unobserved<<" unknown="<<r.unknown<<'\n';return false;
         }++profiles;
@@ -140,10 +146,12 @@ bool identitySourceTests(const std::filesystem::path& dir) {
             if(kind==3u) {tags[slot(tags,0,"DIMSTYLE")].value="dimstyle";tags[slot(tags,2,"DIMSTYLE")].value="dimstyle";}
             if(kind==4u) {const auto at=slot(tags,5,"not-a-handle");tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{102,"{INNER"});tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at+3u),{102,"}"});}
             if(kind==5u) {const auto at=slot(tags,0,"FUTURE_ENTITY");tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{{0,"DIMENSION"},{5,"34"},{330,"B1"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbDimension"},{70,"7"}});}
-            if(!write(path,tags,binary))return false;IdentitySourceProbe reader;dx_data data;
+            if(!write(path,tags,binary))return false;
+            IdentitySourceProbe reader;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||dx_iface::identitySourceReport(data).state!=S::NamespaceReady) {std::cerr<<"variant="<<kind<<'\n';return false;}
             const auto& index=A::identityAudit(data)->identities;
-            if(index.size()!=(kind==5u?16u:15u)||index.count(kind==0u?UINT64_MAX:0x32u)!=1u||(kind==0u&&index.count(UINT32_MAX)))return false;++variants;
+            if(index.size()!=(kind==5u?16u:15u)||index.count(kind==0u?UINT64_MAX:0x32u)!=1u||(kind==0u&&index.count(UINT32_MAX)))return false;
+            ++variants;
         }
         if(!write(path,good,binary))return false;
         stage.name="physical namespace refusals";
@@ -155,11 +163,13 @@ bool identitySourceTests(const std::filesystem::path& dir) {
             if(kind==5u) {const auto at=slot(tags,5,"30");tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at+1u),{5,"30"});}
             if(kind==6u) {const auto at=slot(tags,0,"EOF");tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{{0,"SECTION"},{2,"FUTURE_SECTION"},{5,"F001"},{0,"ENDSEC"}});}
             if(kind==7u) {const auto at=slot(tags,5,"30");tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at+1u),{105,"F002"});}
-            if(!write(path,tags,binary))return false;IdentitySourceProbe reader;dx_data data;
+            if(!write(path,tags,binary))return false;
+            IdentitySourceProbe reader;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||dx_iface::identitySourceReport(data).state!=S::Unqualified) {std::cerr<<"refusal="<<kind<<'\n';return false;}
             const auto report=dx_iface::identitySourceReport(data);
             if(kind<3u&&(report.duplicates!=1u||report.duplicateAdmissions!=1u))return false;
-            if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
+            if(!write(path,good,binary))return false;
+            dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
         }
         stage.name="exact and one-under quotas";
         for(unsigned which=0;which<7u;++which)for(bool exact:{false,true}) {
@@ -175,13 +185,15 @@ bool identitySourceTests(const std::filesystem::path& dir) {
         stage.name="copy/context guards";
         for(unsigned which=0;which<3u;++which) {
             IdentitySourceProbe reader;reader.enabled=which!=0u;reader.copy=which==1u;reader.duplicate=which==2u;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false)||dx_iface::identitySourceReport(data).state!=(which?S::CaptureFailed:S::NotCaptured))return false;++contexts;
+            if(!reader.fileImport(path.string(),&data,false)||dx_iface::identitySourceReport(data).state!=(which?S::CaptureFailed:S::NotCaptured))return false;
+            ++contexts;
         }
         for(unsigned which=0;which<5u;++which) {
             IdentitySourceProbe reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!complete(data))return false;
             if(which<4u)A::substituteIdentity(data,which);
             else {dx_data copy;A::copyBindingContext(copy,data);if(dx_iface::identitySourceReport(copy).state!=S::ContextMismatch)return false;++contexts;continue;}
-            if(dx_iface::identitySourceReport(data).state!=S::ContextMismatch)return false;++contexts;
+            if(dx_iface::identitySourceReport(data).state!=S::ContextMismatch)return false;
+            ++contexts;
         }
         stage.name="source-copy allocation and audit recovery";
         for(bool audit:{false,true}) {
@@ -206,7 +218,8 @@ bool identitySourceTests(const std::filesystem::path& dir) {
             if(read||threw!=(which<2u)||dx_iface::identitySourceReport(data).state!=S::ImportFailed||A::identityAudit(data))return false;
             if(which!=0u&&reader.callbacks)return false;
             reader.throwSource=reader.throwPoint=false;if(!write(path,good,binary))return false;dx_data retry;
-            if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++exceptions;
+            if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;
+            ++exceptions;
         }
     }
     if(!identityPublicLifetime(contexts))return false;

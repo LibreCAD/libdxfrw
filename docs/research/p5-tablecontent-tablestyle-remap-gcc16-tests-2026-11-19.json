@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-tablecontent-tablestyle-remap-gcc16-tests-2026-11-19",
+  "date": "2026-11-19",
+  "status": "WRITER_REMAP_FIXED_GCC_TEST_TRANSLATION_UNIT_COMPILES",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "614ce29b6d38a40785727bde74f63473cf88c8e260412238c842deecacfe19f9",
+  "problem": "A multi-cell TABLECONTENT emitted the source TABLESTYLE handle instead of its allocated output handle because a local variable shadowed the already-remapped handle. In the existing generated regression, the style was emitted as C131 while the first TABLECONTENT still referenced C100; the second, single-cell TABLECONTENT correctly referenced C131. The failure reproduces on the previous adapter/library build.",
+  "change": [
+    "Keep the source handle for base-style validation while using the existing remapped output handle for the multi-cell group 340.",
+    "Repair pre-existing misleading-indentation warnings in 50 table-content test files through whitespace-only changes; no warning flag is disabled."
+  ],
+  "validation": {
+    "baselineFailureLogSha256": "863e6f954749ea80cec4d6aeaed4cac7df8c6037499b8cd0b8145e1a33a5432f",
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_table_content_dxf_tests libdxfrw_dwg2dxf_adapter_tests -j 2.",
+    "targeted": "PASS: 12 table content, TABLESTYLE, source, dependency, identity and XRECORD CTests in 10.04 seconds. The formerly failing style-reference regression checks ASCII/binary source and output, independent DXF group inspection, typed readback, unsupported/unrooted refusal, destination/caller-state preservation and same-adapter retry.",
+    "gcc16": "PASS: Homebrew GCC 16.2.0 compiled the full table-content test translation unit at O1 with -Wall -Wextra -pedantic -Werror. Object SHA-256 35dbce6d36dee8f29f12567c533ba3b065578af5cd34836ea5668203420e72b2. This is one translation unit, not a full GCC configure/link or full suite.",
+    "formatting": "PASS: 50 tracked files compared against their originals after removing whitespace; all non-whitespace content matched. File-list SHA-256 bf554aff640fc27614e8a4dd0eaa1c61d0d891d9d49d6e9ac2a127e36e61fbd0."
+  },
+  "limits": [
+    "The test uses generated DXF sources and does not qualify native AutoCAD TABLE or TABLESTYLE semantics. P5-D remains dependent on its producer witness.",
+    "P8-F and final broad GCC build/test qualification remain open for the changed digest."
+  ]
+}

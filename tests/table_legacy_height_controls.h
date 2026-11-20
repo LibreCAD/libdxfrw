@@ -322,7 +322,10 @@ bool legacyTableBlockAlignmentTests(const std::filesystem::path& dir) {
                 const auto wire=attdefWireTags(output,binary);bool inTable=false,inCell=false;std::vector<int> codes;unsigned tables=0;
                 for(const auto& tag:wire) {
                     if(tag.code==0){inTable=tag.text=="ACAD_TABLE";inCell=false;if(inTable)++tables;continue;}
-                    if(!inTable)continue;if(tag.code==171)inCell=true;if(!inCell)continue;codes.push_back(tag.code);
+                    if(!inTable)continue;
+                    if(tag.code==171)inCell=true;
+                    if(!inCell)continue;
+                    codes.push_back(tag.code);
                     if(tag.code==177&&(tag.kind!=AttdefWireTag::Integer||tag.integer!=1))return false;
                     if(tag.code==170&&(tag.kind!=AttdefWireTag::Integer||tag.integer!=alignment))return false;
                 }
@@ -769,9 +772,13 @@ bool legacyTableBlockCountPresenceTests(const std::filesystem::path& dir) {
             bool inTable=false,inCell=false;unsigned n177=0,n179=0;int mask=-1,count=-1;std::size_t pos340=0,pos179=0,pos170=0,index=0;
             for(const auto& v:attdefWireTags(output,outputBinary)) {
                 if(v.code==0){inTable=v.text=="ACAD_TABLE";inCell=false;continue;}
-                if(!inTable)continue;if(v.code==171)inCell=true;if(!inCell)continue;++index;
+                if(!inTable)continue;
+                if(v.code==171)inCell=true;
+                if(!inCell)continue;
+                ++index;
                 if(v.code==177){++n177;mask=static_cast<int>(v.integer);}if(v.code==179){++n179;count=static_cast<int>(v.integer);pos179=index;}
-                if(v.code==340)pos340=index;if(v.code==170)pos170=index;
+                if(v.code==340)pos340=index;
+                if(v.code==170)pos170=index;
             }
             return n177==1u&&mask==(zeroFlag?0:1)&&n179==((zeroCount||attribute)?1u:0u)
                 &&(!n179||(count==(attribute?1:0)&&pos340<pos179))
@@ -797,7 +804,8 @@ bool legacyTableBlockCountPresenceTests(const std::filesystem::path& dir) {
                 if(fault==0u)data.sourceVersion=DRW::AC1021;
                 if(fault==1u)data.sourceFormat=dx_source_format::DWG;
                 io.mutateVersion=fault==2u;io.mutateFormat=fault==3u;
-                if(fault==4u)++data.importGeneration;io.mutateGeneration=fault==5u;
+                if(fault==4u)++data.importGeneration;
+                io.mutateGeneration=fault==5u;
                 if(!tableExportSentinel(output,true)||io.fileExport(output.string(),DRW::AC1018,outputBinary,&data,false,strict)
                     ||!tableExportSentinel(output)||identities!=tableExportIdentities(data)
                     ||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))return fail("source provenance mutation");
@@ -893,7 +901,8 @@ bool legacyTableBlockCountPresenceTests(const std::filesystem::path& dir) {
             unsigned count=0u;bool inTable=false,inCell=false;
             for(const auto& tag:attdefWireTags(output,false)) {
                 if(tag.code==0){inTable=tag.text=="ACAD_TABLE";inCell=false;continue;}
-                if(!inTable)continue;if(tag.code==171)inCell=true;
+                if(!inTable)continue;
+                if(tag.code==171)inCell=true;
                 if(inCell&&tag.code==179&&tag.kind==AttdefWireTag::Integer&&tag.integer==0)++count;
             }
             if(count!=1u)return fail("direct zero count output");

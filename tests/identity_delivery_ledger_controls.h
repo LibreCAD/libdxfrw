@@ -55,7 +55,8 @@ bool identityDeliveryLedgerTests(const std::filesystem::path& path) {
             case 32:++changed.candidates[0].repeatedAdmissions;break;case 33:changed.candidates[0].lexeme+="0";break;case 34:changed.candidates[0].rawValue+="0";break;
             case 35:++changed.candidates[0].span.ordinal;break;case 36:++changed.candidates[0].span.beginOffset;break;case 37:changed.candidates[0].span.ignoredComment=true;break;
             }
-            if(reader.dxfIdentityDeliveryMatches(changed,firstTicket))return false;++fieldFaults;
+            if(reader.dxfIdentityDeliveryMatches(changed,firstTicket))return false;
+            ++fieldFaults;
         }
         // Every component of each physical span, including ignored-comment
         // flags, is independently authenticated; cardinality changes cannot
@@ -67,23 +68,27 @@ bool identityDeliveryLedgerTests(const std::filesystem::path& path) {
             auto& span=*spans[which];
             if(component==0u)++span.ordinal;else if(component==1u)++span.beginOffset;
             else if(component==2u)++span.endOffset;else span.ignoredComment=!span.ignoredComment;
-            if(reader.dxfIdentityDeliveryMatches(changed,firstTicket))return false;++fieldFaults;
+            if(reader.dxfIdentityDeliveryMatches(changed,firstTicket))return false;
+            ++fieldFaults;
         }
         for(unsigned which=0u;which<3u;++which)for(bool remove:{false,true}) {
             auto changed=original;
             if(which==0u){if(remove)changed.sections.pop_back();else changed.sections.push_back(changed.sections.back());}
             else if(which==1u){if(remove)changed.records.pop_back();else changed.records.push_back(changed.records.back());}
             else {if(remove)changed.candidates.pop_back();else changed.candidates.push_back(changed.candidates.back());}
-            if(reader.dxfIdentityDeliveryMatches(changed,firstTicket))return false;++fieldFaults;
+            if(reader.dxfIdentityDeliveryMatches(changed,firstTicket))return false;
+            ++fieldFaults;
         }
         const std::array<std::size_t,5> usage{{state.sections,state.records,state.candidates,state.bytes,state.work}};
         for(unsigned which=0u;which<usage.size();++which)for(bool exact:{false,true}) {
-            if(!usage[which])return false;auto limits=usage;limits[which]-=exact?0u:1u;
+            if(!usage[which])return false;
+            auto limits=usage;limits[which]-=exact?0u:1u;
             dxfRW bounded(path.string().c_str());Facet receiver;receiver.reader=&bounded;
             if(!bounded.enableDxfIdentityDeliveryLedger(limits[0],limits[1],limits[2],limits[3],limits[4])
                 ||!bounded.read(&receiver,false)||!receiver.delivered)return false;
             const auto outcome=bounded.dxfIdentityDeliveryState();
-            if(outcome.complete!=exact||outcome.failed==exact||bounded.dxfIdentityDeliveryMatches(receiver.captured,receiver.ticket)!=exact)return false;++quotas;
+            if(outcome.complete!=exact||outcome.failed==exact||bounded.dxfIdentityDeliveryMatches(receiver.captured,receiver.ticket)!=exact)return false;
+            ++quotas;
             if(!exact){if(!bounded.enableDxfIdentityDeliveryLedger()||!bounded.read(&receiver,false))return false;
                 const auto retry=bounded.dxfIdentityDeliveryState();if(!retry.complete||!bounded.dxfIdentityDeliveryMatches(receiver.captured,receiver.ticket))return false;++retries;}
         }
@@ -114,7 +119,8 @@ bool identityDeliveryLedgerTests(const std::filesystem::path& path) {
         const auto dropped=reader.dxfIdentityDeliveryState();if(!dropped.complete||reader.dxfIdentityDeliveryMatches(original,secondTicket))return false;
         ++contexts;
         facet.drop=false;facet.reenter=false;if(!reader.read(&facet,false))return false;const auto recovered=reader.dxfIdentityDeliveryState();
-        if(!recovered.complete||!reader.dxfIdentityDeliveryMatches(facet.captured,facet.ticket))return false;++retries;
+        if(!recovered.complete||!reader.dxfIdentityDeliveryMatches(facet.captured,facet.ticket))return false;
+        ++retries;
         dxfRW unselected(path.string().c_str());Facet noCallback;noCallback.reader=&unselected;noCallback.selected=false;
         if(!unselected.enableDxfIdentityDeliveryLedger()||!unselected.read(&noCallback,false)||noCallback.delivered
             ||unselected.dxfIdentityDeliveryState().complete||unselected.dxfIdentityDeliveryMatches(original,firstTicket))return false;

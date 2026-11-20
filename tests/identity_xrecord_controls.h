@@ -38,7 +38,8 @@ bool identityXrecordTests(const std::filesystem::path& path) {
             {0,"XRECORD"},{5,"41"},{102,"{PRE"},{5,"44"},{102,"}"},{330,"40"},{100,"AcDbXrecord"},{280,"1"},
             {102,"{ATTRRECORD"},{100,"AcDbXrecord"},{5,"42"},{105,"43"},{102,"ATTRRECORD}"},
             {102,"{NESTED"},{102,"}"},{1001,"APP"},{1000,"payload"},{0,"ENDSEC"},{0,"EOF"}};
-        if(!write(path,tags,binary))return false;Probe reader;dx_data data;
+        if(!write(path,tags,binary))return false;
+        Probe reader;dx_data data;
         if(!check(reader.fileImport(path.string(),&data,false)&&reader.calls==1u
             &&reader.observed.status==Source::Status::Complete&&reader.observed.eofMarker.ordinal,
             "XRECORD payload does not corrupt identity stream"))return false;

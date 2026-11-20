@@ -133,13 +133,16 @@ bool entitiesReadContextControls(const std::filesystem::path& path,unsigned& con
         {0,"SECTION"},{2,"ENTITIES"},{0,"POINT"},{5,"101"},{8,"0"},{10,"1"},{20,"2"},{0,"ENDSEC"},{0,"EOF"}};
     std::ostringstream out;for(const auto& t:tags)out<<t.code<<'\n'<<t.value<<'\n';auto document=out.str();
     dxfRW reader(path.string().c_str());consumer.input=&reader;dxfRW::DxfReadContext context;context.binary=true;context.declaration="stale";
-    if(reader.getDxfReadContext(context)||context.binary||!context.declaration.empty())return false;++contexts;
+    if(reader.getDxfReadContext(context)||context.binary||!context.declaration.empty())return false;
+    ++contexts;
     reader.setDxfCodePagePolicy(consumer.policy);
     if(!reader.readAscii(&consumer,false,document)||!consumer.good||consumer.calls!=1u||consumer.codePage.empty()||consumer.declaration!="ANSI_932")return false;
-    if(reader.getDxfReadContext(context)||context.sourceVersion!=DRW::UNKNOWNV||!context.codecCodePage.empty())return false;++contexts;
+    if(reader.getDxfReadContext(context)||context.sourceVersion!=DRW::UNKNOWNV||!context.codecCodePage.empty())return false;
+    ++contexts;
     consumer.change=false;consumer.policy=DRW::DxfCodePagePolicy::Compatible;
     reader.setDxfTextEncoding(DRW::DxfTextEncoding::Declared);
-    if(!reader.readAscii(&consumer,false,document)||!consumer.good||consumer.calls!=2u)return false;++contexts;
+    if(!reader.readAscii(&consumer,false,document)||!consumer.good||consumer.calls!=2u)return false;
+    ++contexts;
     return true;
 }
 
@@ -172,14 +175,16 @@ bool entitiesCompoundTests(const std::filesystem::path& dir) {
     stage.name="empty completed chains and missing footers";
     for(const std::string version:{"AC1015","AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0;encoding<3u;++encoding) {
         auto tags=entitiesSourceDocument(version);eraseBlockRecord(tags,"D101");eraseBlockRecord(tags,"D102");
-        if(!writeBlockBinding(path,tags,encoding))return false;EntitiesCompoundProbe reader;dx_data data;
+        if(!writeBlockBinding(path,tags,encoding))return false;
+        EntitiesCompoundProbe reader;dx_data data;
         if(!reader.fileImport(path.string(),&data,false))return false;
         const DRW_Polyline* empty=nullptr;for(const auto* e:data.mBlock->ent)if(const auto* pl=dynamic_cast<const DRW_Polyline*>(e))empty=pl;
         if(!empty||!empty->vertlist.empty()||!empty->seqEndEntity||empty->seqEndEntity->handle!=0xD103u
             ||(version!="AC1015"&&!complete(data)))return false;
         auto broken=tags;eraseBlockRecord(broken,"D103");if(!writeBlockBinding(path,broken,encoding))return false;dx_data failed;
         if(reader.fileImport(path.string(),&failed,false))return false;
-        if(!writeBlockBinding(path,tags,encoding))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false))return false;++emptyChains;
+        if(!writeBlockBinding(path,tags,encoding))return false;
+        dx_data retry;if(!reader.fileImport(path.string(),&retry,false))return false;++emptyChains;
     }
     stage.name="live context API";if(!entitiesReadContextControls(path,contexts))return false;
     const auto common=[](Tags& tags,const char* id,Tags fields) {
@@ -223,8 +228,10 @@ bool entitiesCompoundTests(const std::filesystem::path& dir) {
                 if(!A::entitiesAudits(data).empty())std::cerr<<" proof="<<static_cast<int>(A::entitiesAudits(data)[0]->proofs[c.dispatch].state);
                 std::cerr<<'\n';return false;
             }
-            if(!write(path,good,binary))return false;dx_data retry;
-            if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
+            if(!write(path,good,binary))return false;
+            dx_data retry;
+            if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;
+            ++refusals;
         }
         stage.name="positive linked variants";
         for(unsigned kind=0;kind<7u;++kind) {
@@ -236,12 +243,14 @@ bool entitiesCompoundTests(const std::filesystem::path& dir) {
             if(kind==4u) {eraseBlockRecord(tags,"E101");eraseBlockRecord(tags,"E102");tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(blockField(tags,"E100",66)));}
             if(kind==5u) {eraseBlockRecord(tags,"E101");}
             if(kind==6u) {tags[blockField(tags,"D103",330)].value="1F";tags[blockField(tags,"E102",330)].value="2F";}
-            if(!write(path,tags,binary))return false;EntitiesCompoundProbe reader;dx_data data;
+            if(!write(path,tags,binary))return false;
+            EntitiesCompoundProbe reader;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||!complete(data)||!entitiesCompoundWire(path,binary,data,spans)) {
                 std::cerr<<"linked variant="<<kind<<" state="<<static_cast<int>(dx_iface::entitiesCompoundReport(data).state)<<'\n';return false;
             }++variants;
         }
-        if(!write(path,good,binary))return false;EntitiesCompoundProbe baseline;dx_data base;
+        if(!write(path,good,binary))return false;
+        EntitiesCompoundProbe baseline;dx_data base;
         if(!baseline.fileImport(path.string(),&base,false)||!complete(base))return false;
         stage.name="exact logical allowances";const auto measured=dx_iface::entitiesCompoundReport(base);
         const std::array<std::size_t,3> caps{{measured.records,measured.bytes,measured.work}};
@@ -268,24 +277,29 @@ bool entitiesCompoundTests(const std::filesystem::path& dir) {
         stage.name="pinned cache and read-context owners";
         auto& audit=A::mutableEntitiesAudits(base)[0];const auto original=audit;
         audit=std::make_shared<const std::decay_t<decltype(*original)>>(*original);
-        if(dx_iface::entitiesCompoundReport(base).state!=S::ContextMismatch)return false;audit=original;++contexts;
+        if(dx_iface::entitiesCompoundReport(base).state!=S::ContextMismatch)return false;
+        audit=original;++contexts;
         audit=std::shared_ptr<const std::decay_t<decltype(*original)>>(original.get(),[](const auto*){});
-        if(dx_iface::entitiesCompoundReport(base).state!=S::ContextMismatch)return false;audit=original;++contexts;
+        if(dx_iface::entitiesCompoundReport(base).state!=S::ContextMismatch)return false;
+        audit=original;++contexts;
         auto& row=A::mutableEntitiesDeliveries(base)[0];const auto context=row.context;
         row.context=std::make_shared<const std::decay_t<decltype(*context)>>(*context);
-        if(dx_iface::entitiesCompoundReport(base).state!=S::ContextMismatch)return false;row.context=context;++contexts;
+        if(dx_iface::entitiesCompoundReport(base).state!=S::ContextMismatch)return false;
+        row.context=context;++contexts;
         if(!complete(base))return false;
         dx_data copy;A::copyBindingContext(copy,base);if(dx_iface::entitiesCompoundReport(copy).state!=S::ContextMismatch)return false;++contexts;
         for(auto* entity:base.mBlock->ent)if(auto* pl=dynamic_cast<DRW_Polyline*>(entity))pl->vertlist.front()->basePoint.x=777.;
         base.headerC.addStr("$DWGCODEPAGE","ANSI_1252",3);
-        if(!complete(base))return false;++contexts;
+        if(!complete(base))return false;
+        ++contexts;
         stage.name="scope-local codec context";
         {
             auto tags=good;tags.insert(tags.begin()+4,{{9,"$DWGCODEPAGE"},{3,"ANSI_932"}});
             const auto at=slot(tags,2,"CUSTOM_SECTION")-1u;
             tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1032"},
                 {9,"$DWGCODEPAGE"},{3,"ANSI_1252"},{0,"ENDSEC"},{0,"SECTION"},{2,"ENTITIES"},{0,"ENDSEC"}});
-            if(!write(path,tags,binary))return false;EntitiesCompoundProbe reader;dx_data data;
+            if(!write(path,tags,binary))return false;
+            EntitiesCompoundProbe reader;dx_data data;
             if(!reader.fileImport(path.string(),&data,false,DRW::DxfCodePagePolicy::ExactNamed)||!complete(data))return false;
             const auto& rows=A::entitiesDeliveries(data);
             if(rows.size()!=3u||rows[0].context->declaration!="ANSI_932"||rows[1].context->declaration!="ANSI_932"
@@ -297,8 +311,10 @@ bool entitiesCompoundTests(const std::filesystem::path& dir) {
         stage.name="unsupported body subtypes";
         for(bool polyline:{false,true}) {
             EntitiesOriginProbe reader;reader.richerPolyline=polyline;reader.richerInsert=!polyline;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false))return false;const auto r=dx_iface::entitiesCompoundReport(data);
-            if(r.state!=S::Unqualified||r.unavailable!=1u||r.matched!=1u||r.outputEligible)return false;++dispositions;
+            if(!reader.fileImport(path.string(),&data,false))return false;
+            const auto r=dx_iface::entitiesCompoundReport(data);
+            if(r.state!=S::Unqualified||r.unavailable!=1u||r.matched!=1u||r.outputEligible)return false;
+            ++dispositions;
         }
         stage.name="owner release";
         {
@@ -306,7 +322,8 @@ bool entitiesCompoundTests(const std::filesystem::path& dir) {
             std::weak_ptr<const Audit> weakAudit;std::weak_ptr<const Context> weakContext;EntitiesCompoundProbe reader;
             {dx_data data;if(!reader.fileImport(path.string(),&data,false)||!complete(data))return false;
                 weakAudit=A::entitiesAudits(data)[0];weakContext=A::entitiesDeliveries(data)[0].context;}
-            if(!weakAudit.expired()||!weakContext.expired())return false;++contexts;
+            if(!weakAudit.expired()||!weakContext.expired())return false;
+            ++contexts;
         }
         stage.name="callback exceptions and failed tail";
         for(int phase=1;phase<=2;++phase) {
@@ -317,9 +334,11 @@ bool entitiesCompoundTests(const std::filesystem::path& dir) {
         }
         for(unsigned kind=0;kind<2u;++kind) {
             auto tags=good;if(!kind)tags.resize(slot(tags,5,"F201")+1u);else tags.erase(tags.end()-2);
-            if(!write(path,tags,binary))return false;EntitiesCompoundProbe reader;dx_data data;
+            if(!write(path,tags,binary))return false;
+            EntitiesCompoundProbe reader;dx_data data;
             if(reader.fileImport(path.string(),&data,false)||dx_iface::entitiesCompoundReport(data).state!=S::ImportFailed||!A::entitiesAudits(data).empty())return false;
-            if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++exceptions;
+            if(!write(path,good,binary))return false;
+            dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++exceptions;
         }
     }
     stage.finished=true;

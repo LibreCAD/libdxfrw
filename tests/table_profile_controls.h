@@ -37,7 +37,8 @@ bool tableProfileWire(const std::vector<AttdefWireTag>& wire,const DRW_DxfPhysic
     unsigned depth=0u;std::string application;int stage=0;bool table=physical.name=="ACAD_TABLE",inValue=false,firstValue=false,structured=false;
     for(std::size_t i=0u;i<physical.groups.size();++i) {
         const auto& p=physical.spans[i];const auto& span=profile.spans[i];const auto& value=physical.groups[i];
-        if(!p.ordinal||p.ordinal>wire.size())return false;const auto& w=wire[p.ordinal-1u];
+        if(!p.ordinal||p.ordinal>wire.size())return false;
+        const auto& w=wire[p.ordinal-1u];
         if(span.groupIndex!=i||span.code!=w.code||value.code()!=w.code||p.beginOffset!=w.begin||p.endOffset!=w.end)return false;
         if(p.ignoredComment){if(span.scope!=Scope::Ignored||span.field!=Field::IgnoredComment)return false;++count;continue;}
         if(w.kind==AttdefWireTag::Integer) {if((value.type()!=DRW_Variant::INTEGER&&value.type()!=DRW_Variant::INTEGER64)
@@ -93,7 +94,8 @@ bool tableProfileTests(const std::filesystem::path& dir) {
     };
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding)for(bool blocks:{false,true})for(bool paper:{false,true})for(bool rich:{false,true}) {
         const auto tags=tableProfileDocument(version,blocks,paper,rich);if(!writeBlockBinding(path,tags,encoding))return false;dx_iface reader;dx_data data;
-        if(!reader.fileImport(path.string(),&data,false))return false;const auto report=dx_iface::tableBodyReport(data);const auto& body=*A::tableBodies(data).at(0x501u);
+        if(!reader.fileImport(path.string(),&data,false))return false;
+        const auto report=dx_iface::tableBodyReport(data);const auto& body=*A::tableBodies(data).at(0x501u);
         const bool roles=ready(data,blocks);
         if(!report.modeledMatched||!report.profilesMatched||!roles||report.ownerTargetsResolved||report.outputEligible) {
             std::cerr<<"TABLE profile "<<version<<'/'<<encoding<<" blocks="<<blocks<<" paper="<<paper<<" rich="<<rich<<" modeled="<<report.modeledMatched
@@ -139,15 +141,18 @@ bool tableProfileTests(const std::filesystem::path& dir) {
                 dx_data over;if(!write(path,tags,binary))return false;const auto overWire=attdefWireTags(path,binary);
                 if(std::none_of(overWire.begin(),overWire.end(),[](const auto& t){return t.code==310&&t.text.size()==256u;}))return false;
                 (void)reader.fileImport(path.string(),&over,false);
-                if(dx_iface::tableBodyReport(over).profilesMatched||ready(over,blocks)||!retry(reader))return false;++proxyBoundary;
+                if(dx_iface::tableBodyReport(over).profilesMatched||ready(over,blocks)||!retry(reader))return false;
+                ++proxyBoundary;
             }
         }
-        if(!write(path,good,binary))return false;dx_iface baseline;dx_data base;if(!baseline.fileImport(path.string(),&base,false)||!ready(base,blocks))return false;
+        if(!write(path,good,binary))return false;
+        dx_iface baseline;dx_data base;if(!baseline.fileImport(path.string(),&base,false)||!ready(base,blocks))return false;
         stage.name="every parent scalar type, independent of decoder tolerance";
         const auto& source=*A::tableInputs(base).at(0x501u)->raw;
         for(std::size_t i=0u;i<source.groups.size();++i) {auto raw=source;auto& value=raw.groups[i];const int code=value.code();
             if(value.type()==DRW_Variant::STRING)value.addInt(code,1);else value.addString(code,"not-a-number");
-            if(dx_table_source::audit(raw).complete())return false;++types;
+            if(dx_table_source::audit(raw).complete())return false;
+            ++types;
         }
         for(const char* name:{"TABLECONTENT","TABLEGEOMETRY","TABLE"}) {auto raw=source;raw.name=name;if(dx_table_source::audit(raw).complete())return false;++types;}
         stage.name="unmodeled,duplicate,subclass/count/value/attribute grammar is not replay equality";
@@ -170,7 +175,8 @@ bool tableProfileTests(const std::filesystem::path& dir) {
             case 14:appendBlockFields(tags,"501",{{97,"4"},{98,"1"},{4,"unsupported-table-format"}});break;
             case 15:tags[blockField(tags,"501",171)].value="92";break;
             default:{const int kinds[]={0,1,2,8,16,32,64,512};auto at=blockField(tags,"501",301)+1u;
-                if(tags[at].code!=90)return false;tags[at].value=std::to_string(kinds[fault-16u]);break;}
+                if(tags[at].code!=90)return false;
+                tags[at].value=std::to_string(kinds[fault-16u]);break;}
             }
             dx_iface reader;dx_data data;if(!write(path,tags,binary)||!reader.fileImport(path.string(),&data,false)) {
                 std::cerr<<"grammar import fault="<<fault<<" blocks="<<blocks<<" binary="<<binary<<'\n';return false;
@@ -214,14 +220,16 @@ bool tableProfileTests(const std::filesystem::path& dir) {
                 ||!dx_iface::tableBodyReport(data).profilesMatched)return false;
             if(blocks){const auto r=dx_iface::blockRoleReport(data);if(!r.physicalCensusComplete||!r.unsupported||r.wholeDocumentMatched||r.outputEligible)return false;}
             else {const auto r=dx_iface::entitiesRoleReport(data);if(!r.unsupported||r.wholeDocumentMatched||r.outputEligible)return false;}
-            if(!retry(reader))return false;++census;
+            if(!retry(reader))return false;
+            ++census;
         }
         stage.name="body/input/owner substitutions, missing maps and copied containers";
         if(!write(path,good,binary))return false;
         for(unsigned fault=0u;fault<5u;++fault) {dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;
             if(fault<2u)A::substituteTableBody(data,fault!=0u);else if(fault==2u)A::removeTableBody(data);
             else if(fault==3u)A::substituteTableInput(data,false,false);else A::substituteTableContext(data,blocks,true);
-            if((blocks?dx_iface::blockRoleReport(data).state!=BS::ContextMismatch:dx_iface::entitiesRoleReport(data).state!=ES::ContextMismatch)||!retry(reader))return false;++contexts;
+            if((blocks?dx_iface::blockRoleReport(data).state!=BS::ContextMismatch:dx_iface::entitiesRoleReport(data).state!=ES::ContextMismatch)||!retry(reader))return false;
+            ++contexts;
         }
         {dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;
             {SymbolAllocationFailure noAllocation(0);if(!ready(data,blocks))return false;}++contexts;

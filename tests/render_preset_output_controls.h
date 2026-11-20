@@ -270,7 +270,8 @@ bool tests(const std::filesystem::path& dir) {
         sentinel(output);
         if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!preserved(output))return fail(__LINE__);
         ++refusals;value=original;value.m_description="corrected edit";
-        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
+        ++retries;
     }
     for(unsigned encoding:{0u,2u})for(unsigned when=0u;when<4u;++when){
         EditingWriter writer;writer.when=when;dx_data data;
@@ -278,7 +279,8 @@ bool tests(const std::filesystem::path& dir) {
         data.renderSettings.front().m_description="valid initial edit";const auto original=data.renderSettings.front();sentinel(output);
         if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!preserved(output))return fail(__LINE__);
         ++callbacks;writer.enabled=false;data.renderSettings.front()=original;
-        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
+        ++retries;
     }
     for(unsigned encoding:{0u,2u}){
         BudgetWriter writer;dx_data data;
@@ -289,9 +291,11 @@ bool tests(const std::filesystem::path& dir) {
         A::presetEditLimit(writer,exact.first,exact.second);
         if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
         for(bool records:{false,true}){A::presetEditLimit(writer,exact.first-(records?1u:0u),exact.second-(records?0u:1u));sentinel(output);
-            if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!preserved(output))return fail(__LINE__);++limits;
+            if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!preserved(output))return fail(__LINE__);
+            ++limits;
             A::presetEditLimit(writer,exact.first,exact.second);
-            if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;}
+            if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
+            ++retries;}
         FaultWriter faults;unsigned untouched=0u;
         for(long offset=0;offset<256&&untouched<2u;++offset){faults.offset=offset;faults.refused=false;const auto before=symbolFailedAllocations;sentinel(output);
             const bool ok=faults.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false);
@@ -307,9 +311,11 @@ bool tests(const std::filesystem::path& dir) {
         std::string text;for(unsigned i=0u;i<4096u;++i)text+="\\U+";
         if(named)data.renderSettings.front().m_description=text;else data.renderSettings.front().m_strings[2]=text;
         A::presetEditLimit(writer,1u,32768u);sentinel(output);
-        if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!preserved(output))return fail(__LINE__);++limits;
+        if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!preserved(output))return fail(__LINE__);
+        ++limits;
         A::presetEditLimit(writer,1u,64u*1024u*1024u);
-        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
+        ++retries;
         dx_iface reader;dx_data reopened;if(!reader.fileImport(output.string(),&reopened,false)||reopened.renderSettings.front().m_description!=text)return fail(__LINE__);
     }
     for(const std::string version:{"AC1021","AC1024","AC1032"})for(unsigned encoding:{0u,2u}){
@@ -331,9 +337,11 @@ bool tests(const std::filesystem::path& dir) {
         dx_iface reader;dx_data reopened;if(!reader.fileImport(output.string(),&reopened,false)||reopened.renderSettings.front().m_description!=text)return fail(__LINE__);
         ++textProfiles;
         if(!binary){data.renderSettings.front().m_description="unsafe\nASCII record";sentinel(output);
-            if(writer.fileExport(output.string(),DRW::AC1027,false,&data,false)||!preserved(output))return fail(__LINE__);++textRollbacks;
+            if(writer.fileExport(output.string(),DRW::AC1027,false,&data,false)||!preserved(output))return fail(__LINE__);
+            ++textRollbacks;
             data.renderSettings.front().m_description=text;
-            if(!writer.fileExport(output.string(),DRW::AC1027,false,&data,false))return fail(__LINE__);++retries;}
+            if(!writer.fileExport(output.string(),DRW::AC1027,false,&data,false))return fail(__LINE__);
+            ++retries;}
     }
     for(unsigned encoding:{0u,2u}){
         auto tags=renderPresetControls::exportDocument(3u);
@@ -365,7 +373,8 @@ bool tests(const std::filesystem::path& dir) {
             if(tag.code==1005){if(tag.text!="EF01")return fail(__LINE__);++checked;}
             if(tag.code==1070){if(tag.integer!=17)return fail(__LINE__);++checked;}
         }
-        if(checked!=12u||self.empty()||self=="1F")return fail(__LINE__);++metadata;
+        if(checked!=12u||self.empty()||self=="1F")return fail(__LINE__);
+        ++metadata;
     }
     for(unsigned encoding:{0u,2u}){
         dx_iface writer;dx_data data;
@@ -403,7 +412,8 @@ void dictionaryName(dx_data& data,std::uint32_t target,const std::string& name){
 Tags edit(dx_data& data,unsigned form,unsigned mode,unsigned operation){
     auto& value=data.renderSettings.front();auto body=renderPresetOutputControls::expectedBody(form,false);
     if(operation!=1u){const auto name=changedName(form);dictionaryName(data,value.handle,name);
-        if(mode!=1u)value.m_name=name;if(mode!=0u)value.m_strings[0]=name;
+        if(mode!=1u)value.m_name=name;
+        if(mode!=0u)value.m_strings[0]=name;
         body[slot(body,1,"AuthoredPreset")].value=name;}
     if(operation!=0u){const bool before=present(form);
         if(mode!=1u){value.m_hasPredefinedPresent=!before;value.m_hasPredefined=!before;}
@@ -473,7 +483,8 @@ bool tests(const std::filesystem::path& dir){
             std::size_t first=0u,last=0u;for(std::size_t i=0u;i+1u<wire.size();++i)if(wire[i].text=="SECTION"&&wire[i+1u].text=="OBJECTS"){
                 first=wire[i+1u].end;for(auto j=i+2u;j<wire.size();++j)if(wire[j].code==0&&wire[j].text=="ENDSEC"){last=wire[j].begin;break;}break;}
             std::ifstream file(output,std::ios::binary);const std::string bytes((std::istreambuf_iterator<char>(file)),{});
-            if(last<=first)return fail(__LINE__);const auto section=bytes.substr(first,last-first);
+            if(last<=first)return fail(__LINE__);
+            const auto section=bytes.substr(first,last-first);
             dxfRW::DxfObjectsWriteView view{section,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
             if(!A::presetOutput(proof,view))return fail(__LINE__);
             Wire selected=body;bool selectedDictionary=false;
@@ -483,12 +494,14 @@ bool tests(const std::filesystem::path& dir){
             for(const auto& field:selected){auto changed=section;auto at=field.valueBegin-first;
                 if(binary)changed.at(at)^=1;
                 else{while(at<changed.size()&&(changed[at]==' '||changed[at]=='\t'))++at;
-                    if(at==changed.size())return fail(__LINE__);auto& byte=changed[at];byte=byte=='1'?'2':byte=='0'?'1':byte>='2'&&byte<='9'?'1':'X';}
+                    if(at==changed.size())return fail(__LINE__);
+                    auto& byte=changed[at];byte=byte=='1'?'2':byte=='0'?'1':byte>='2'&&byte<='9'?'1':'X';}
                 view.bytes=changed;if(A::presetOutput(proof,view))return fail(__LINE__);++mutations;}
             view.bytes=section;if(!A::presetOutput(proof,view))return fail(__LINE__);
         }
         data.renderSettings.front()=original;data.dictionaries=dictionaries;
-        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);++retries;++profiles;
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        ++retries;++profiles;
     }
     for(unsigned encoding:{0u,2u})for(unsigned fault=0u;fault<17u;++fault){
         const auto form=fault==15u?4u:3u;dx_iface writer;dx_data data;
@@ -512,43 +525,52 @@ bool tests(const std::filesystem::path& dir){
         if(fault==15u){value.m_hasPredefinedPresent=false;value.m_hasPredefined=true;}
         if(fault==16u){value.m_name=value.m_strings[0]="CaseChanged";dictionaryName(data,value.handle,"CASECHANGED");}
         renderPresetEditControls::sentinel(output);
-        if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!renderPresetEditControls::preserved(output))return fail(__LINE__);++refusals;
+        if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!renderPresetEditControls::preserved(output))return fail(__LINE__);
+        ++refusals;
         value=original;data.dictionaries=dictionaries;
         if(fault==14u){auto& groups=data.rawRenderSettingsObjects.front().groups;groups.pop_back();}
         edit(data,form,2u,2u);
-        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
+        ++retries;
     }
     for(unsigned encoding:{0u,2u})for(char illegal:std::string("|*\\:;<>?\"")){
         dx_iface writer;dx_data data;if(!writeBlockBinding(input,renderPresetControls::exportDocument(3u),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
         const auto original=data.renderSettings.front();const auto dictionaries=data.dictionaries;const auto name=std::string("Invalid")+illegal+"Name";
         data.renderSettings.front().m_name=data.renderSettings.front().m_strings[0]=name;dictionaryName(data,0xEA02u,name);renderPresetEditControls::sentinel(output);
-        if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!renderPresetEditControls::preserved(output))return fail(__LINE__);++refusals;
+        if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!renderPresetEditControls::preserved(output))return fail(__LINE__);
+        ++refusals;
         data.renderSettings.front()=original;data.dictionaries=dictionaries;edit(data,3u,2u,2u);
-        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
+        ++retries;
     }
     for(unsigned encoding:{0u,2u})for(unsigned when=0u;when<4u;++when)for(unsigned what=0u;what<4u;++what){
         EditingWriter writer;writer.when=when;writer.what=what;dx_data data;
         if(!writeBlockBinding(input,renderPresetControls::exportDocument(3u),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
         edit(data,3u,2u,2u);const auto original=data.renderSettings.front();const auto dictionaries=data.dictionaries;renderPresetEditControls::sentinel(output);
-        if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!renderPresetEditControls::preserved(output))return fail(__LINE__);++callbacks;
+        if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!renderPresetEditControls::preserved(output))return fail(__LINE__);
+        ++callbacks;
         writer.enabled=false;data.renderSettings.front()=original;data.dictionaries=dictionaries;
-        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
+        ++retries;
     }
     for(unsigned encoding:{0u,2u}){
         BudgetWriter writer;dx_data data;if(!writeBlockBinding(input,renderPresetControls::exportDocument(0u),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
         edit(data,0u,2u,2u);
-        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);const auto exact=writer.size;
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
+        const auto exact=writer.size;
         A::presetEditLimit(writer,exact.first,exact.second);
         if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
         for(bool records:{false,true}){A::presetEditLimit(writer,exact.first-(records?1u:0u),exact.second-(records?0u:1u));renderPresetEditControls::sentinel(output);
-            if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!renderPresetEditControls::preserved(output))return fail(__LINE__);++quotas;
+            if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!renderPresetEditControls::preserved(output))return fail(__LINE__);
+            ++quotas;
             A::presetEditLimit(writer,exact.first,exact.second);if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;}
         A::presetEditLimit(writer,100000u,64u*1024u*1024u);unsigned untouched=0u;
         for(long offset=0;offset<1024&&untouched<2u;++offset){const auto before=symbolFailedAllocations;bool ok=false;
             {SymbolAllocationFailure injection(offset);ok=A::preparePresetEdits(writer,data,encoding==2u);}
             if(symbolFailedAllocations!=before){if(ok)return fail(__LINE__);++reached;untouched=0u;}
             else{if(!ok)return fail(__LINE__);++unreached;++untouched;}
-            if(!A::preparePresetEdits(writer,data,encoding==2u)||!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++corrections;
+            if(!A::preparePresetEdits(writer,data,encoding==2u)||!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
+            ++corrections;
         }
         if(untouched!=2u)return fail(__LINE__);
         dx_data pair;if(!writeBlockBinding(input,twoPresets(),encoding)||!writer.fileImport(input.string(),&pair,false)||pair.renderSettings.size()!=2u)return fail(__LINE__);
@@ -578,7 +600,8 @@ bool tests(const std::filesystem::path& dir){
             if(field.code==290){if(field.integer!=1)return fail(__LINE__);++scoped;}
             if(field.code==100){if(field.text!="OpaqueSubclass")return fail(__LINE__);++scoped;}
             if(field.code==1){if(field.text!="opaque name")return fail(__LINE__);++scoped;}}
-        if(scoped!=3u)return fail(__LINE__);++metadata;
+        if(scoped!=3u)return fail(__LINE__);
+        ++metadata;
     }
     for(unsigned encoding:{0u,2u})for(unsigned form:{2u,3u,4u}){
         auto tags=renderPresetControls::exportDocument(form);
@@ -598,7 +621,8 @@ bool tests(const std::filesystem::path& dir){
             if(field.code==100){if(field.text!="OpaqueAtSlot")return fail(__LINE__);++checked;}
             if(field.code==1){if(field.text!="authored slot metadata")return fail(__LINE__);++checked;}
         }
-        if(checked!=3u)return fail(__LINE__);++metadata;
+        if(checked!=3u)return fail(__LINE__);
+        ++metadata;
     }
     for(unsigned encoding:{0u,2u})for(bool binary:{false,true}){
         dx_iface writer;dx_data data;if(!writeBlockBinding(input,renderPresetControls::exportDocument(0u),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
@@ -608,7 +632,8 @@ bool tests(const std::filesystem::path& dir){
         dx_iface reader;dx_data reopened;if(!reader.fileImport(output.string(),&reopened,false)||reopened.renderSettings.front().m_name!=name)return fail(__LINE__);
         bool exact=false;for(const auto& dictionary:reopened.dictionaries)if(dictionary.handle==0xEE00u)
             exact=dictionary.m_entries.size()==1u&&dictionary.m_entries.front().m_name==name;
-        if(!exact)return fail(__LINE__);++validNames;
+        if(!exact)return fail(__LINE__);
+        ++validNames;
     }
     std::cout<<"Render preset transactions="<<profiles<<"; independent fields="<<fields<<"; readbacks="<<readbacks<<"; observed-field refusals="<<mutations
         <<"; invalid/name collision rollbacks="<<refusals<<"; callback rollbacks="<<callbacks<<"; exact/one-under limits="<<quotas

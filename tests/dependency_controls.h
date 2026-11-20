@@ -79,15 +79,19 @@ bool dependencyTests(const std::filesystem::path& dir) {
         const auto wire=attdefWireTags(path,encoding==2u);const auto& physical=*A::identityInput(data)->source;const auto& audit=*A::dependencies(data);
         for(const auto& node:audit.nodes) {
             const auto& p=physical.records.at(node.second.physical);const auto& marker=wire.at(p.marker.ordinal-1u);
-            if(marker.code||marker.text!=p.name||marker.begin!=p.marker.beginOffset||marker.end!=p.marker.endOffset)return false;++markers;
+            if(marker.code||marker.text!=p.name||marker.begin!=p.marker.beginOffset||marker.end!=p.marker.endOffset)return false;
+            ++markers;
         }
         for(const auto& row:audit.rows)if(row.present) {
             const auto& n=audit.nodes.at(row.source);const auto& original=physical.records.at(n.physical);const auto& scalar=wire.at(original.marker.ordinal+row.group);
-            if(scalar.code!=row.code||A::dependencyGroups(n).at(row.group).code()!=row.code)return false;++spans;
+            if(scalar.code!=row.code||A::dependencyGroups(n).at(row.group).code()!=row.code)return false;
+            ++spans;
         }
         A::clearAdvisoryNames(data);if(!ready(data))return false;A::repeatDependencies(reader,data);if(!ready(data))return false;
-        for(auto& layer:data.layers)layer.name="edited consumer layer";for(auto& app:data.appIds)app.name="edited consumer app";
-        if(!ready(data))return false;++immutable;++profiles;
+        for(auto& layer:data.layers)layer.name="edited consumer layer";
+        for(auto& app:data.appIds)app.name="edited consumer app";
+        if(!ready(data))return false;
+        ++immutable;++profiles;
     }
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding) {
         auto symbols=symbolOriginTables(48);symbols[blockField(symbols,"D301",2)].value="0";
@@ -154,7 +158,8 @@ bool dependencyTests(const std::filesystem::path& dir) {
             if((fault<6u&&!report.missing)||((fault==6u||fault==20u)&&!report.ambiguous)
                 ||((fault==10u||fault==15u||fault==18u||fault==19u)&&!report.wrongKind)
                 ||(fault==11u&&!report.unavailable)||(fault==12u&&!report.unknownRoles)||(fault==14u&&!report.wrongOwner)) {std::cerr<<"Unexercised refusal category="<<fault<<'\n';diagnose(data);return false;}
-            if(!retry(reader))return false;++refusals;
+            if(!retry(reader))return false;
+            ++refusals;
         }
         struct ReplayOnly:dx_iface {bool selected=false;bool wantsDxfResourceSource() const override{return selected&&dx_iface::wantsDxfResourceSource();}} replay;
         dx_data replayData;if(!writeBlockBinding(path,good,encoding)||!replay.fileImport(path.string(),&replayData,false)||ready(replayData)
@@ -164,7 +169,8 @@ bool dependencyTests(const std::filesystem::path& dir) {
         const auto report=dx_iface::dependencyReport(base);const std::size_t uses[]={report.reservedRows,report.bytes,report.work};
         for(unsigned which=0u;which<3u;++which)for(bool under:{false,true}) {
             dx_iface reader;dx_data data;A::dependencyLimit(data,which,uses[which]-(under?1u:0u));
-            if(!reader.fileImport(path.string(),&data,false)||(dx_iface::dependencyReport(data).state==S::OriginalTargetsMatched)==under||!retry(reader))return false;++quotas;
+            if(!reader.fileImport(path.string(),&data,false)||(dx_iface::dependencyReport(data).state==S::OriginalTargetsMatched)==under||!retry(reader))return false;
+            ++quotas;
         }
         for(unsigned fault=0u;fault<7u;++fault) {
             dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!ready(data))return false;
@@ -174,7 +180,8 @@ bool dependencyTests(const std::filesystem::path& dir) {
             else if(fault==4u)A::substituteTableReferences(data,false);
             else if(fault==5u)A::mutableResource(data,0xD401u).references.front().value^=1u;
             else A::removeTableBody(data);
-            if(dx_iface::dependencyReport(data).state!=S::ContextMismatch||!retry(reader))return false;++contexts;
+            if(dx_iface::dependencyReport(data).state!=S::ContextMismatch||!retry(reader))return false;
+            ++contexts;
         }
         for(long offset=0;offset<64;++offset) {
             dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!ready(data))return false;const auto before=symbolFailedAllocations;

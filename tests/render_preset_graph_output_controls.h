@@ -315,7 +315,8 @@ void extraViewport(Tags& tags,bool anonymous) {
 }
 DRW_Viewport* viewport(dx_data& data,bool blocks=false) {
     const auto find=[](dx_ifaceBlock* block)->DRW_Viewport* {
-        if(block)for(auto* entity:block->ent)if(auto* result=dynamic_cast<DRW_Viewport*>(entity))return result;return nullptr;
+        if(block)for(auto* entity:block->ent)if(auto* result=dynamic_cast<DRW_Viewport*>(entity))return result;
+        return nullptr;
     };
     if(!blocks)return find(data.mBlock);
     for(auto* block:data.blocks)if(block&&block->name=="AuthoredBlock")return find(block);
@@ -390,7 +391,9 @@ bool bindings(const Wire& wire,unsigned form,bool extra,bool edited=false,bool c
         Wire found;std::string scope;unsigned depth=0u;
         for(const auto& field:row.fields){
             if(field.code==102){if(field.text=="}"){if(!depth)return {};--depth;}else if(!field.text.empty()&&field.text.front()=='{')++depth;else return {};continue;}
-            if(depth)continue;if(field.code>=1000)break;if(field.code==100){scope=field.text;continue;}
+            if(depth)continue;
+            if(field.code>=1000)break;
+            if(field.code==100){scope=field.text;continue;}
             if(scope==wanted&&field.code==code)found.push_back(field);
         }return found;
     };
@@ -418,11 +421,13 @@ bool bindings(const Wire& wire,unsigned form,bool extra,bool edited=false,bool c
         if(vp){const auto styles=scoped(row,"AcDbViewport",348);if(form==10u?(styles.size()!=1u||styles.front().text!=target):!styles.empty())return false;}
         if(vp){if(row.section=="ENTITIES"){if(owner!="1E")return false;}else if(row.section!="BLOCKS"||owner!=blockOwner)return false;++viewports;}
         else if(layout){if(row.section!="OBJECTS"||owner!="D0"||!number(row,"AcDbLayout",76,0))return false;
-            if(text(row,"AcDbLayout",330)!=(model?"1F":"1E")||(!model&&text(row,"AcDbLayout",331)!=paperViewport))return false;++layouts;}
+            if(text(row,"AcDbLayout",330)!=(model?"1F":"1E")||(!model&&text(row,"AcDbLayout",331)!=paperViewport))return false;
+            ++layouts;}
         else {if(row.section!="OBJECTS"||owner!="EF00"||text(row,"AcDbPlotSettings",1)!="AuthoredPage"||(collision&&self=="1C"))return false;++plots;}
         checked+=3u+(mode>3?1u:0u)+(vp&&form==10u?1u:0u);
     }
-    if(fields)*fields+=checked;return plots==1u&&layouts==2u&&viewports==(extra?2u:1u);
+    if(fields)*fields+=checked;
+    return plots==1u&&layouts==2u&&viewports==(extra?2u:1u);
 }
 bool tests(const std::filesystem::path& dir) {
     const auto input=dir/"shade-input.dxf",output=dir/"shade-output.dxf";
@@ -553,7 +558,8 @@ bool tests(const std::filesystem::path& dir) {
         ++unreached;++untouched;}
             writer.allocation=-1;if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!bindings(attdefWireTags(output,encoding==2u),4u,false))return fail(__LINE__);
         ++corrections;
-            if(untouched==2u)break;if(offset==255)return fail(__LINE__);
+            if(untouched==2u)break;
+            if(offset==255)return fail(__LINE__);
         }
     }
     std::cout<<"Shade consumer output profiles="<<profiles<<"; independent fields="<<fields<<"; observed mutations="<<mutations<<"; valid preflight edits="<<edits
@@ -628,7 +634,8 @@ std::vector<Record> records(const std::vector<AttdefWireTag>& wire){
     for(std::size_t i=0u;i<wire.size();++i){const auto& field=wire[i];
         if(field.code==0){scope.clear();depth=0u;if(field.text=="SECTION"){section=i+1u<wire.size()?wire[i+1u].text:"";continue;}if(field.text=="ENDSEC"){section.clear();continue;}
             out.push_back({field.text,section,{},{},{},{},{},0u});continue;}
-        if(out.empty())continue;auto& row=out.back();
+        if(out.empty())continue;
+        auto& row=out.back();
         if(field.code==102){if(field.text=="}"){if(!depth)throw std::runtime_error("unbalanced source app");--depth;}else++depth;continue;}if(depth)continue;
         if(field.code==100){scope=field.text;continue;}
         if(field.code==5&&scope.empty())row.id=field.text;
@@ -652,7 +659,8 @@ bool proof(const std::vector<Record>& rows,std::size_t& fields){
             const auto root=byId.find(owner->second->owner);if(root==byId.end()||root->second->name!="BLOCK_RECORD")return false;++children;
         }else if(owner->second->name!="BLOCK_RECORD")return false;
         if(row.name=="VIEWPORT"){if(row.full!=first||row.viewport!=second||row.full==row.viewport)return false;++viewports;fields+=2u;}
-        if(row.name=="BLOCK"||row.name=="ENDBLK")++blocks;if(row.name=="AUTHORED_FULL_CARRIER")++raw;
+        if(row.name=="BLOCK"||row.name=="ENDBLK")++blocks;
+        if(row.name=="AUTHORED_FULL_CARRIER")++raw;
         fields+=5u;++seen;
     }
     return seen==26u&&children==5u&&viewports==1u&&blocks==2u&&raw==1u;
@@ -694,7 +702,8 @@ struct ReplayWriter:dx_iface{
         for(const std::string section:{"BLOCKS","ENTITIES"}){
             std::size_t begin=0u,end=0u;for(std::size_t i=0u;i+1u<wire.size();++i)if(wire[i].text=="SECTION"&&wire[i+1u].text==section){
                 begin=wire[i+1u].end;for(auto j=i+2u;j<wire.size();++j)if(wire[j].code==0&&wire[j].text=="ENDSEC"){end=wire[j].begin;break;}break;}
-            if(end<=begin)return false;const auto body=bytes.substr(begin,end-begin);
+            if(end<=begin)return false;
+            const auto body=bytes.substr(begin,end-begin);
             const dxfRW::DxfObjectsWriteView view{body,DRW::AC1027,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
             if(!A::replayFullStyle(*this,view,section))return false;
             bool active=false;std::size_t record=0u;std::string scope;
@@ -707,7 +716,8 @@ struct ReplayWriter:dx_iface{
                 auto changed=body;auto offset=field.valueBegin-begin;
                 if(binary)changed.at(offset)^=1;
                 else{while(offset<changed.size()&&(changed[offset]==' '||changed[offset]=='\t'))++offset;
-                    if(offset==changed.size())return false;changed.at(offset)=changed.at(offset)=='F'?'E':'F';}
+                    if(offset==changed.size())return false;
+                    changed.at(offset)=changed.at(offset)=='F'?'E':'F';}
                 const dxfRW::DxfObjectsWriteView bad{changed,view.version,view.binary,view.codePage,view.compatibilityProfile};
                 if(A::replayFullStyle(*this,bad,section)||!A::replayFullStyle(*this,view,section)){
                     std::cerr<<"Common field corruption accepted record="<<wire[record].text<<" code="<<field.code<<'\n';return false;}
@@ -725,21 +735,25 @@ bool tests(const std::filesystem::path& dir){
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(bool binary:{false,true}){
         dxfRW target(output.string().c_str());target.setHandleRemap({{0xEA01u,0xEA11u}});DirectWriter writer(target);
         const auto v=version=="AC1021"?DRW::AC1021:version=="AC1024"?DRW::AC1024:version=="AC1032"?DRW::AC1032:DRW::AC1027;
-        if(!target.write(&writer,v,binary)||!writer.wrote)return fail(__LINE__);bool matched=false;
+        if(!target.write(&writer,v,binary)||!writer.wrote)return fail(__LINE__);
+        bool matched=false;
         for(const auto& row:records(attdefWireTags(output,binary)))if(row.name=="LINE")matched=row.full=="EA11";
-        if(!matched)return fail(__LINE__);++direct;
+        if(!matched)return fail(__LINE__);
+        ++direct;
     }
     for(unsigned encoding:{0u,2u})for(unsigned shape=0u;shape<6u;++shape){
         Tags tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1027"},{0,"ENDSEC"},{0,"SECTION"},{2,"ENTITIES"},
             {0,"VIEWPORT"},{5,"E801"},{330,"1E"},{100,"AcDbEntity"},{67,"1"},{8,"0"}};
         if(shape!=1u&&shape!=5u)tags.push_back({348,shape==3u?"0":"EA01"});
         tags.insert(tags.end(),{{102,"{AUTHORED_SCOPE"},{100,"AcDbEntity"},{348,"EBAD"},{102,"}"},{100,"AcDbViewport"},{10,"1"},{20,"2"},{40,"20"},{41,"10"},{68,"1"},{69,"2"}});
-        if(shape!=2u)tags.push_back({348,"EA02"});if(shape>=4u)tags.insert(tags.end(),{{100,"ForeignSubclass"},{348,"EBAD"}});
+        if(shape!=2u)tags.push_back({348,"EA02"});
+        if(shape>=4u)tags.insert(tags.end(),{{100,"ForeignSubclass"},{348,"EBAD"}});
         tags.insert(tags.end(),{{0,"ENDSEC"},{0,"EOF"}});dx_iface reader;dx_data data;
         if(!writeBlockBinding(input,tags,encoding)||!reader.fileImport(input.string(),&data,false)||data.mBlock->ent.size()!=1u)return fail(__LINE__);
         const auto* value=dynamic_cast<const DRW_Viewport*>(data.mBlock->ent.front());
         const auto expected=shape==1u||shape==5u?0xEA02u:shape==3u?0u:0xEA01u;
-        if(!value||value->fullVisualStyleHandle!=expected||value->visualStyleHandle!=(shape==2u?0u:0xEA02u))return fail(__LINE__);++scopes;
+        if(!value||value->fullVisualStyleHandle!=expected||value->visualStyleHandle!=(shape==2u?0u:0xEA02u))return fail(__LINE__);
+        ++scopes;
     }
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding:{0u,2u})for(bool binary:{false,true})for(unsigned variant=0u;variant<3u;++variant){
         dx_iface writer;dx_data data;if(!writeBlockBinding(input,base(version,variant==1u),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);models(data,variant==2u);
@@ -756,14 +770,16 @@ bool tests(const std::filesystem::path& dir){
         if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
         dx_iface reader;dx_data reopened;if(!reader.fileImport(output.string(),&reopened,false))return fail(__LINE__);
         const auto* actual=dynamic_cast<const DRW_Viewport*>(named(reopened)->ent.front());
-        if(!actual||actual->fullVisualStyleHandle!=0u||actual->visualStyleHandle!=style(reopened,true))return fail(__LINE__);++nulls;
+        if(!actual||actual->fullVisualStyleHandle!=0u||actual->visualStyleHandle!=style(reopened,true))return fail(__LINE__);
+        ++nulls;
     }
     for(bool binary:{false,true}){
         ReplayWriter writer;dx_data data;if(!writeBlockBinding(input,base("AC1027",false),binary?2u:0u)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);models(data,false);
         const auto previous=dir/(binary?"full-captured-binary.dxf":"full-captured-ascii.dxf");dx_iface capture;
         if(!capture.fileExport(previous.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
         writer.previous=previous;writer.binary=binary;
-        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);mutations+=writer.mutations;
+        if(!writer.fileExport(output.string(),DRW::AC1027,binary,&data,false))return fail(__LINE__);
+        mutations+=writer.mutations;
         for(unsigned fault=0u;fault<4u;++fault){auto& raw=data.mBlock->rawEntities.front().record;const auto saved=raw;
             if(fault==0u)raw.groups.emplace_back(349,hex(style(data)));
             if(fault==1u){raw.groups.emplace_back(100,UTF8STRING("ForeignSubclass"));raw.groups.emplace_back(348,hex(style(data)));}
@@ -774,26 +790,33 @@ bool tests(const std::filesystem::path& dir){
         }
     }
     for(unsigned encoding:{0u,2u})for(unsigned when=0u;when<4u;++when)for(unsigned what=0u;what<7u;++what){
-        if(when==1u&&what!=0u)continue;EditingWriter writer;writer.when=when;writer.what=what;dx_data data;
-        if(!writeBlockBinding(input,base("AC1027",false),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);models(data,false);
+        if(when==1u&&what!=0u)continue;
+        EditingWriter writer;writer.when=when;writer.what=what;dx_data data;
+        if(!writeBlockBinding(input,base("AC1027",false),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);
+        models(data,false);
         const auto target=style(data);const auto other=style(data,true);const auto owner=data.visualStyles.front().parentHandle;sentinel(output);
-        if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!kept(output))return fail(__LINE__);++callbacks;
+        if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!kept(output))return fail(__LINE__);
+        ++callbacks;
         writer.enabled=false;
         data.mBlock->ent.front()->fullVisualStyleHandle=target;
         dynamic_cast<DRW_Polyline*>(*std::next(data.mBlock->ent.begin(),11))->vertlist.front()->fullVisualStyleHandle=target;
         named(data)->fullVisualStyleHandle=target;named(data)->endBlockData.fullVisualStyleHandle=other;data.visualStyles.front().parentHandle=owner;
         for(auto& group:data.mBlock->rawEntities.front().record.groups)if(group.code()==348)group=DRW_Variant(348,hex(target));
-        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
+        ++retries;
     }
     for(unsigned encoding:{0u,2u}){
         BudgetWriter writer;dx_data data;if(!writeBlockBinding(input,base("AC1027",false),encoding)||!writer.fileImport(input.string(),&data,false))return fail(__LINE__);models(data,false);
-        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||writer.size.first!=26u)return fail(__LINE__);const auto exact=writer.size;
+        if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||writer.size.first!=26u)return fail(__LINE__);
+        const auto exact=writer.size;
         A::fullStyleLimit(writer,exact.first,exact.second);if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);
         for(bool records:{false,true}){A::fullStyleLimit(writer,exact.first-(records?1u:0u),exact.second-(records?0u:1u));sentinel(output);
-            if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!kept(output))return fail(__LINE__);++limits;
+            if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!kept(output))return fail(__LINE__);
+            ++limits;
             A::fullStyleLimit(writer,exact.first,exact.second);if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;}
         for(bool dangling:{false,true}){const auto original=data.mBlock->ent.front()->fullVisualStyleHandle;data.mBlock->ent.front()->fullVisualStyleHandle=dangling?0xEBADu:0xEB00u;sentinel(output);
-            if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!kept(output))return fail(__LINE__);++refusals;
+            if(writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!kept(output))return fail(__LINE__);
+            ++refusals;
             data.mBlock->ent.front()->fullVisualStyleHandle=original;if(!writer.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;}
         EditingWriter faults;faults.enabled=false;unsigned untouched=0u;
         for(long offset=0;offset<1024&&untouched<2u;++offset){faults.allocation=offset;const auto before=symbolFailedAllocations;sentinel(output);
@@ -806,7 +829,8 @@ bool tests(const std::filesystem::path& dir){
         extra.invalid=true;sentinel(output);if(extra.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false)||!kept(output))return fail(__LINE__);++refusals;
         extra.invalid=false;if(!extra.fileExport(output.string(),DRW::AC1027,encoding==2u,&data,false))return fail(__LINE__);++retries;
         FastWriter plain;dx_data ordinary;auto* line=new DRW_Line;line->handle=0xE801u;line->secPoint=DRW_Coord(1,2,3);ordinary.mBlock->ent.push_back(line);
-        if(!plain.fileExport(output.string(),DRW::AC1027,encoding==2u,&ordinary,false)||!plain.observed)return fail(__LINE__);++fast;
+        if(!plain.fileExport(output.string(),DRW::AC1027,encoding==2u,&ordinary,false)||!plain.observed)return fail(__LINE__);
+        ++fast;
         plain.bad=true;sentinel(output);if(plain.fileExport(output.string(),DRW::AC1027,encoding==2u,&ordinary,false)||!kept(output))return fail(__LINE__);++refusals;
         plain.bad=false;line->fullVisualStyleHandle=0u;if(!plain.fileExport(output.string(),DRW::AC1027,encoding==2u,&ordinary,false))return fail(__LINE__);++retries;
     }

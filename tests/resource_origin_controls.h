@@ -81,7 +81,8 @@ bool resourceOriginTests(const std::filesystem::path& dir) {
                     ||a.input->model.get()!=A::resources(data).at(item.first).model.get()||a.input->raw.get()!=A::resources(data).at(item.first).raw.get())return false;
                 ++markers;
             }
-            for(unsigned i=0u;i<8u;++i)if(reader.order[i]!=std::make_pair(i/2u+1u,i%2u+1u))return false;++profiles;
+            for(unsigned i=0u;i<8u;++i)if(reader.order[i]!=std::make_pair(i/2u+1u,i%2u+1u))return false;
+            ++profiles;
         }
     for(unsigned encoding=0u;encoding<3u;++encoding)for(bool blocks:{false,true}) {
         const auto good=resourceOriginDocument("AC1032",blocks,0u);
@@ -98,25 +99,30 @@ bool resourceOriginTests(const std::filesystem::path& dir) {
             }
             if(dx_iface::tableReferenceReport(data).sourceTargetsMatched||!A::resourcePendingEmpty(data))return false;
             reader.skip=reader.copy=reader.duplicate=reader.mutate=reader.common=reader.throwAt=0;
-            if(!retry(reader))return false;++refusals;
+            if(!retry(reader))return false;
+            ++refusals;
         }
         for(unsigned fault=0u;fault<5u;++fault) {
             ResourceOriginProbe reader;dx_data data;if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&data,false)||!ready(data))return false;
             if(fault<4u)A::substituteResourceOrigin(data,fault/2u,fault%2u!=0u);
             else {dx_iface another;dx_data other;if(!another.fileImport(path.string(),&other,false)||!ready(other))return false;A::transplantResourceOrigins(data,other);}
-            if(dx_iface::resourceOriginReport(data).state!=S::ContextMismatch||dx_iface::tableReferenceReport(data).sourceTargetsMatched||!retry(reader))return false;++contexts;
+            if(dx_iface::resourceOriginReport(data).state!=S::ContextMismatch||dx_iface::tableReferenceReport(data).sourceTargetsMatched||!retry(reader))return false;
+            ++contexts;
         }
         {auto tags=good;appendBlockFields(tags,"704",{{1001,"APP"},{1010,"1"}});ResourceOriginProbe reader;dx_data data;
-            if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||dx_iface::resourceOriginReport(data).state!=S::Unqualified||!retry(reader))return false;++pending;}
+            if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||dx_iface::resourceOriginReport(data).state!=S::Unqualified||!retry(reader))return false;
+            ++pending;}
         {auto tags=good;appendBlockFields(tags,"704",{{7,"STANDARD"}});ResourceOriginProbe reader;dx_data data;
             if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||!reader.good||reader.callbacks!=7u)return false;
             const auto r=dx_iface::resourceOriginReport(data);const auto refs=dx_iface::tableReferenceReport(data);
-            if(r.rawOnly!=1u||r.records!=3u||r.originsBound!=3u||refs.sourceTargetsMatched||refs.unavailable!=2u||!retry(reader))return false;++rawOnly;}
+            if(r.rawOnly!=1u||r.records!=3u||r.originsBound!=3u||refs.sourceTargetsMatched||refs.unavailable!=2u||!retry(reader))return false;
+            ++rawOnly;}
         ResourceOriginProbe baseline;dx_data base;if(!writeBlockBinding(path,good,encoding)||!baseline.fileImport(path.string(),&base,false)||!ready(base))return false;
         const auto r=dx_iface::resourceOriginReport(base);const std::size_t uses[]={r.records,r.bytes,r.work};
         for(unsigned which=0u;which<3u;++which)for(bool under:{false,true}) {
             ResourceOriginProbe reader;dx_data data;A::resourceOriginLimit(data,which,uses[which]-(under?1u:0u));
-            if(!reader.fileImport(path.string(),&data,false)||(dx_iface::resourceOriginReport(data).state==S::OriginsBound)==under||!retry(reader))return false;++quotas;
+            if(!reader.fileImport(path.string(),&data,false)||(dx_iface::resourceOriginReport(data).state==S::OriginsBound)==under||!retry(reader))return false;
+            ++quotas;
         }
         for(long offset=0;offset<32;++offset) {
             ResourceOriginProbe reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!ready(data))return false;
@@ -131,12 +137,14 @@ bool resourceOriginTests(const std::filesystem::path& dir) {
         auto objects=resourceOriginObjects();const auto first=slot(objects,5,"705")-1u,last=slot(objects,5,"706")-1u;
         Tags tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1032"},{0,"ENDSEC"},{0,"SECTION"},{2,"OBJECTS"}};
         tags.insert(tags.end(),objects.begin()+static_cast<std::ptrdiff_t>(first),objects.begin()+static_cast<std::ptrdiff_t>(last));tags.insert(tags.end(),{{0,"ENDSEC"},{0,"EOF"}});
-        if(!write(path,tags,binary))return false;dxfRW input(path.string().c_str());ResourceOriginProbe consumer;consumer.publicOnly=true;consumer.publicReader=&input;
+        if(!write(path,tags,binary))return false;
+        dxfRW input(path.string().c_str());ResourceOriginProbe consumer;consumer.publicOnly=true;consumer.publicReader=&input;
         consumer.enabled=mode!=4u;consumer.expectView=mode!=4u;consumer.throwAt=mode==1u?1:mode==2u?2:0;consumer.disableTyped=mode==3u;
         dxfRW::DxfResourceSourceView view;view.model=reinterpret_cast<const DRW_TableEntry*>(1);
         if(input.getDxfResourceSourceView(view)||view.model||view.source)return false;
         bool threw=false;try{if(!input.read(&consumer,false))return false;}catch(const std::runtime_error&){threw=true;}
-        if(threw!=(mode==1u||mode==2u)||!consumer.good||input.getDxfResourceSourceView(view)||view.model||view.source)return false;++lifetimes;
+        if(threw!=(mode==1u||mode==2u)||!consumer.good||input.getDxfResourceSourceView(view)||view.model||view.source)return false;
+        ++lifetimes;
     }
     std::cout<<"Resource original profiles="<<profiles<<"; original markers="<<markers<<"; callback/cursor/throw refusals="<<refusals
         <<"; immutable/cross-import refusals="<<contexts<<"; pending-state refusals="<<pending<<"; raw-only fallbacks="<<rawOnly<<"; exact/one-under limits="<<quotas

@@ -91,18 +91,21 @@ bool tableBodyComparatorControls(const DRW_Table& original,unsigned& count) {
     for(unsigned i=0u;i<6u;++i) {DRW_Table b(a);auto& r=b.m_content.m_subrecordRanges.back();
         if(!A::sameTableBody(a,b))return false;
         switch(i){case 0:r.m_name+="x";break;case 1:++r.m_startBit;break;case 2:++r.m_bitSize;break;case 3:r.m_version=DRW::AC1027;break;case 4:++r.m_count;break;default:r.m_parseComplete=false;break;}
-        if(A::sameTableBody(a,b))return false;++count;
+        if(A::sameTableBody(a,b))return false;
+        ++count;
     }
     const auto value=[](DRW_Table& t)->DRW_Variant&{return t.m_content.m_rows[0].m_cells[0].m_contents[0].m_value.m_value;};
     for(unsigned i=0u;i<7u;++i){DRW_Table left(a);auto& v=value(left);
         switch(i){case 0:v.addString(1,"text");break;case 1:v.addInt(70,42);break;case 2:v.addInt64(160,INT64_C(0x123456789abcdef));break;
         case 3:v.addDouble(40,-0.0);break;case 4:v.addCoord(10,{1.,2.,3.});break;case 5:v.addBinary(310,{0u,42u,255u});break;default:v=DRW_Variant();break;}
         DRW_Table right(left);if(!A::sameTableBody(left,right))return false;value(right).addInt(71,99);
-        if(A::sameTableBody(left,right))return false;++count;
+        if(A::sameTableBody(left,right))return false;
+        ++count;
     }
     {DRW_Table left(a);value(left).addString(1003,"Layer");value(left).setDwgRawLayerReference(UINT64_C(0x123456789),DRW::AC1032);
         DRW_Table right(left);if(!A::sameTableBody(left,right))return false;value(right).setDwgRawLayerReference(UINT64_C(0x123456789),DRW::AC1027);
-        if(A::sameTableBody(left,right))return false;++count;
+        if(A::sameTableBody(left,right))return false;
+        ++count;
         right=left;value(right).setLayerRefName("Layer");if(A::sameTableBody(left,right))return false;++count;}
     for(unsigned i=0u;i<8u;++i){DRW_Table left(a);DRW_DwgCmColor color;value(left).setDwgCmColor(color);DRW_Table right(left);
         if(!A::sameTableBody(left,right))return false;
@@ -118,7 +121,8 @@ bool tableBodyComparatorControls(const DRW_Table& original,unsigned& count) {
     for(unsigned i=0u;i<4u;++i){DRW_Table b(a);
         if(i==0u)b.attlist[0]=std::make_shared<RichAttribute>();else if(i==1u)b.attlist[0]->mtext=std::make_unique<RichMText>();
         else if(i==2u)b.seqEndEntity=std::make_shared<RichFooter>();else b.attlist[0].reset();
-        if(A::sameTableBody(b,b))return false;++count;
+        if(A::sameTableBody(b,b))return false;
+        ++count;
     }
     return true;
 }
@@ -129,8 +133,10 @@ bool tableBodyTests(const std::filesystem::path& dir) {
     const auto matched=[](const dx_data& d){const auto r=dx_iface::tableBodyReport(d);return r.state==S::ModeledMatched&&r.selected==1u&&r.matched==1u
         &&r.modeledMatched&&!r.ownerTargetsResolved&&!r.outputEligible;};
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding)for(bool blocks:{false,true})for(unsigned form=0u;form<3u;++form) {
-        if(!writeBlockBinding(path,tableBlockSourceDocument(version,blocks,form),encoding))return false;dx_iface reader;dx_data data;
-        if(!reader.fileImport(path.string(),&data,false))return false;const auto r=dx_iface::tableBodyReport(data);
+        if(!writeBlockBinding(path,tableBlockSourceDocument(version,blocks,form),encoding))return false;
+        dx_iface reader;dx_data data;
+        if(!reader.fileImport(path.string(),&data,false))return false;
+        const auto r=dx_iface::tableBodyReport(data);
         if(r.state!=S::ModeledMatched||r.selected!=1u||r.matched!=1u||!r.modeledMatched||r.ownerTargetsResolved||r.outputEligible) {
             std::cerr<<"TABLE body "<<version<<'/'<<encoding<<" blocks="<<blocks<<" form="<<form<<" state="<<static_cast<int>(r.state);
             if(!A::tableBodies(data).empty())std::cerr<<" reason="<<static_cast<int>(A::tableBodies(data).begin()->second->state)
@@ -143,7 +149,8 @@ bool tableBodyTests(const std::filesystem::path& dir) {
         ||!tableBodyComparatorControls(*A::tableInputs(data).at(0x501u)->model,comparators))return false;}
     stage.name="rich grid/field/attributes and both footer-owner forms";
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding)for(bool blocks:{false,true}) {
-        if(!writeBlockBinding(path,tableBodyRichDocument(version,blocks),encoding))return false;dx_iface reader;dx_data data;
+        if(!writeBlockBinding(path,tableBodyRichDocument(version,blocks),encoding))return false;
+        dx_iface reader;dx_data data;
         if(!reader.fileImport(path.string(),&data,false)||!matched(data)||dx_iface::tableBodyReport(data).semanticComplete!=1u)return false;
         ++rich;
         for(unsigned form=1u;form<3u;++form) {dx_data next;if(!writeBlockBinding(path,tableBlockSourceDocument(version,blocks,form,true),encoding)
@@ -179,7 +186,8 @@ bool tableBodyTests(const std::filesystem::path& dir) {
             }
             tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(last),second.begin(),second.end());
             for(bool bad:{false,true}){TableBodyProbe reader;reader.mutateHandle=0x521u;if(bad)reader.mutation=[](DRW_Table& t){++t.m_horizontalDirection.x;};dx_data data;
-                if(!write(path,tags,binary)||!reader.fileImport(path.string(),&data,false))return false;const auto r=dx_iface::tableBodyReport(data);
+                if(!write(path,tags,binary)||!reader.fileImport(path.string(),&data,false))return false;
+                const auto r=dx_iface::tableBodyReport(data);
                 if(r.selected!=2u||r.matched!=(bad?1u:2u)||r.modeledMatched==bad||r.state!=(bad?S::Unqualified:S::ModeledMatched))return false;
                 reader.mutation={};if(!retry(reader))return false;++multiple;
             }
@@ -196,7 +204,8 @@ bool tableBodyTests(const std::filesystem::path& dir) {
         dx_iface baseline;dx_data base;if(!baseline.fileImport(path.string(),&base,false)||!matched(base))return false;const auto usage=dx_iface::tableBodyReport(base);
         const std::array<std::size_t,3> caps{{usage.records,usage.bytes,usage.work}};
         for(unsigned which=0u;which<3u;++which)for(bool under:{false,true}) {dx_iface reader;dx_data data;A::tableBodyLimit(data,which,caps[which]-(under?1u:0u));
-            if(!reader.fileImport(path.string(),&data,false)||dx_iface::tableBodyReport(data).state!=(under?S::CaptureFailed:S::ModeledMatched)||!retry(reader))return false;++quotas;}
+            if(!reader.fileImport(path.string(),&data,false)||dx_iface::tableBodyReport(data).state!=(under?S::CaptureFailed:S::ModeledMatched)||!retry(reader))return false;
+            ++quotas;}
         stage.name="reached replay-finalizer allocation faults and corrected rebuild";
         for(long fault=0;fault<32;++fault) {dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!matched(data))return false;
             const auto count=symbolFailedAllocations;{SymbolAllocationFailure fail(fault);A::rebuildTableBodies(reader,data);}
@@ -205,7 +214,8 @@ bool tableBodyTests(const std::filesystem::path& dir) {
         }
         stage.name="immutable owner/context/container guards and live-edit independence";
         for(bool alias:{false,true}) {dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;A::substituteTableBody(data,alias);
-            if(dx_iface::tableBodyReport(data).state!=S::ContextMismatch)return false;++contexts;}
+            if(dx_iface::tableBodyReport(data).state!=S::ContextMismatch)return false;
+            ++contexts;}
         {dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;
             {SymbolAllocationFailure noAllocation(0);if(!matched(data))return false;}++contexts;
             data.tables.front().m_content.m_rows.clear();if(!matched(data))return false;++contexts;

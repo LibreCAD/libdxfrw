@@ -29,9 +29,11 @@ bool entitiesRoleTests(const std::filesystem::path& dir) {
     const auto complete=[](const dx_data& d){const auto r=dx_iface::entitiesRoleReport(d);return r.state==S::SelectedRolesReady&&r.selected==9u&&r.matched==9u
         &&r.primaries==4u&&r.children==5u&&r.model==5u&&r.paper==4u&&r.selectedRolesMatched&&!r.wholeDocumentMatched&&!r.nativeNamesQualified&&!r.ownerTargetsResolved&&!r.outputEligible;};
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding) {
-        if(!writeBlockBinding(path,entitiesRoleDocument(version),encoding))return false;dx_iface reader;dx_data data;
+        if(!writeBlockBinding(path,entitiesRoleDocument(version),encoding))return false;
+        dx_iface reader;dx_data data;
         if(!reader.fileImport(path.string(),&data,false)||!complete(data)) {const auto r=dx_iface::entitiesRoleReport(data);std::cerr<<"profile="<<version<<'/'<<encoding<<" state="<<static_cast<int>(r.state)<<" matched="<<r.matched<<'\n';
-            if(A::entitiesRole(data))for(const auto& row:A::entitiesRole(data)->rows)std::cerr<<row.self<<" reason="<<static_cast<int>(row.reason)<<'\n';return false;}
+            if(A::entitiesRole(data))for(const auto& row:A::entitiesRole(data)->rows)std::cerr<<row.self<<" reason="<<static_cast<int>(row.reason)<<'\n';
+            return false;}
         const auto r=dx_iface::entitiesRoleReport(data);if(r.spacePresent!=4u||r.layoutPresent!=4u)return false;
         const auto wire=attdefWireTags(path,encoding==2u);const auto& audit=*A::entitiesRole(data);const auto& identity=*audit.graph->identity->source;
         for(const auto& row:audit.rows) {
@@ -57,7 +59,8 @@ bool entitiesRoleTests(const std::filesystem::path& dir) {
             if(kind==5u)appendBlockFields(tags,"101",{{102,"{OPAQUE"},{67,"1"},{410,"false paper layout"},{330,"DEAD"},{102,"}"}});
             if(kind==6u) {const auto at=slot(tags,5,"D100")-1u;tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{{0,"ENDSEC"},{0,"SECTION"},{2,"ENTITIES"}});}
             if(kind==7u) {const auto at=slot(tags,0,"EOF");tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{{0,"SECTION"},{2,"ENTITIES"},{0,"ENDSEC"}});}
-            if(!write(path,tags,binary))return false;dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!complete(data)){std::cerr<<"variant="<<kind<<'\n';return false;}
+            if(!write(path,tags,binary))return false;
+            dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!complete(data)){std::cerr<<"variant="<<kind<<'\n';return false;}
             if(kind==1u&&(dx_iface::entitiesCompoundReport(data).state!=dx_iface::EntitiesCompoundState::Unqualified||dx_iface::entitiesRoleReport(data).layoutPresent!=2u))return false;
             ++variants;
         }
@@ -76,35 +79,44 @@ bool entitiesRoleTests(const std::filesystem::path& dir) {
             if(kind==10u){tags[blockField(tags,"D101",330)].value="40";target=0xD101u;}
             if(kind==11u){tags[blockField(tags,"E101",410)].value="Model";target=0xE101u;}
             if(kind==12u){tags[blockField(tags,"102",410)].value="\\U+D800";expected=R::TextUnqualified;target=0x102u;}
-            if(!write(path,tags,binary))return false;dx_iface reader;dx_data data;
+            if(!write(path,tags,binary))return false;
+            dx_iface reader;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||dx_iface::entitiesRoleReport(data).state!=S::Unqualified){std::cerr<<"refusal="<<kind<<'\n';return false;}
             const auto& rows=A::entitiesRole(data)->rows;const auto row=std::find_if(rows.begin(),rows.end(),[&](const auto& v){return v.self==target;});
             if(row==rows.end()||row->reason!=expected){std::cerr<<"reason kind="<<kind<<" actual="<<(row==rows.end()?-1:static_cast<int>(row->reason))<<'\n';return false;}
-            if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
+            if(!write(path,good,binary))return false;
+            dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;
         }
         stage.name="unsupported whole-scope and frozen editable separation";
         {auto tags=good;const auto at=slot(tags,0,"EOF")-1u;tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),{{0,"ARC"},{5,"103"},{330,"B0"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbCircle"},{10,"0"},{20,"0"},{40,"1"},{100,"AcDbArc"},{50,"0"},{51,"90"}});
-            if(!write(path,tags,binary))return false;dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;
+            if(!write(path,tags,binary))return false;
+            dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;
             const auto r=dx_iface::entitiesRoleReport(data);if(r.state!=S::Unqualified||r.unsupported!=1u||r.matched!=9u||!r.selectedRolesMatched||r.wholeDocumentMatched)return false;++contexts;}
-        if(!write(path,good,binary))return false;dx_iface baseline;dx_data base;if(!baseline.fileImport(path.string(),&base,false)||!complete(base))return false;
+        if(!write(path,good,binary))return false;
+        dx_iface baseline;dx_data base;if(!baseline.fileImport(path.string(),&base,false)||!complete(base))return false;
         base.blockRecords.front().name="edited block";base.layouts.front().name="edited layout";base.mBlock->ent.front()->parentHandle=0x40u;
-        if(!complete(base))return false;{SymbolAllocationFailure noAllocation(0);if(!complete(base))return false;}++contexts;
+        if(!complete(base))return false;
+        {SymbolAllocationFailure noAllocation(0);if(!complete(base))return false;}++contexts;
         {auto tags=good;tags[blockField(tags,"B0",2)].value="Not the model-space block";if(!write(path,tags,binary))return false;dx_iface reader;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false)||!dx_iface::layoutRoleReport(data).rolesMatched||dx_iface::entitiesRoleReport(data).state!=S::SourceNotReady)return false;++contexts;}
+            if(!reader.fileImport(path.string(),&data,false)||!dx_iface::layoutRoleReport(data).rolesMatched||dx_iface::entitiesRoleReport(data).state!=S::SourceNotReady)return false;
+            ++contexts;}
         {if(!write(path,layoutRoleDocument("AC1032"),binary))return false;dx_iface reader;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false)||dx_iface::entitiesRoleReport(data).state!=S::NoSelected||dx_iface::entitiesRoleReport(data).selectedRolesMatched)return false;++contexts;}
+            if(!reader.fileImport(path.string(),&data,false)||dx_iface::entitiesRoleReport(data).state!=S::NoSelected||dx_iface::entitiesRoleReport(data).selectedRolesMatched)return false;
+            ++contexts;}
         if(!write(path,good,binary))return false;
         {EntitiesPrimaryProbe reader;reader.fault=0;dx_data data;if(!reader.fileImport(path.string(),&data,false)||dx_iface::entitiesRoleReport(data).state!=S::Unqualified)return false;
             const auto& rows=A::entitiesRole(data)->rows;if(rows.front().reason!=R::BodyNotReady)return false;
             reader.fault=-1;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++refusals;}
         stage.name="quota/context/allocation recovery";
         for(bool work:{false,true})for(bool exact:{false,true}) {const auto r=dx_iface::entitiesRoleReport(base);dx_iface reader;dx_data data;A::entitiesRoleLimit(data,work,(work?r.work:r.bytes)-(exact?0u:1u));
-            if(!reader.fileImport(path.string(),&data,false)||dx_iface::entitiesRoleReport(data).state!=(exact?S::SelectedRolesReady:S::CaptureFailed))return false;++quotas;}
+            if(!reader.fileImport(path.string(),&data,false)||dx_iface::entitiesRoleReport(data).state!=(exact?S::SelectedRolesReady:S::CaptureFailed))return false;
+            ++quotas;}
         for(unsigned kind=0u;kind<7u;++kind) {dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false))return false;
             if(kind<2u)A::substituteEntitiesRole(data,kind==1u);else if(kind==2u)A::substituteLayoutRole(data,false);else if(kind==3u)A::substituteIdentity(data,0u);
             else if(kind>=5u)A::substituteEntitiesRoleBody(data,kind==6u);
             else {dx_data copy;A::copyBindingContext(copy,data);if(dx_iface::entitiesRoleReport(copy).state!=S::ContextMismatch)return false;++contexts;continue;}
-            if(dx_iface::entitiesRoleReport(data).state!=S::ContextMismatch)return false;++contexts;}
+            if(dx_iface::entitiesRoleReport(data).state!=S::ContextMismatch)return false;
+            ++contexts;}
         bool recovered=false;for(long fault=0;fault<2000;++fault) {{SymbolAllocationFailure failure(fault);A::repeatEntitiesRole(baseline,base);}
             if(complete(base)){recovered=true;break;}if(dx_iface::entitiesRoleReport(base).state!=S::CaptureFailed)return false;
             A::repeatEntitiesRole(baseline,base);if(!complete(base))return false;++allocations;}

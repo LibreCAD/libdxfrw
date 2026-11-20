@@ -41,7 +41,8 @@ bool legacyIdentityObservationTests(const std::filesystem::path& path) {
         auto document=identitySourceDocument("AC1018");
         if(!write(path,document,binary))return false;
         Probe def;dx_data optout;A::identityLimit(optout,false,0u);A::identityLimit(optout,true,0u);
-        if(!def.fileImport(path.string(),&optout,false)||A::legacyIdentity(optout)||A::legacyIdentityFailed(optout)||!gated(optout))return false;++defaults;
+        if(!def.fileImport(path.string(),&optout,false)||A::legacyIdentity(optout)||A::legacyIdentityFailed(optout)||!gated(optout))return false;
+        ++defaults;
         Probe selected;if(!selected.enableLegacyDxfIdentityObservation())return false;selected.checkActive=true;dx_data data;
         if(!selected.fileImport(path.string(),&data,false)||A::legacyIdentityFailed(data)||!gated(data))return false;
         const auto& captured=A::legacyIdentity(data);
@@ -61,10 +62,12 @@ bool legacyIdentityObservationTests(const std::filesystem::path& path) {
             if(c.lexeme=="30"&&row.kind==Source::Kind::Entity&&c.scope==Source::Scope::Outer)point=true;
             if(c.lexeme=="not-a-handle"&&c.scope==Source::Scope::Application)opaque=true;
         }
-        if(!control||!point||!opaque)return false;++positive;
+        if(!control||!point||!opaque)return false;
+        ++positive;
         for(unsigned which=0;which<2u;++which)for(bool exact:{false,true}) {
             Probe limited;if(!limited.enableLegacyDxfIdentityObservation())return false;dx_data bounded;const auto limit=which?A::legacyIdentityWork(data):A::legacyIdentityBytes(data);
-            if(!limit)return false;A::identityLimit(bounded,which!=0u,limit-(exact?0u:1u));
+            if(!limit)return false;
+            A::identityLimit(bounded,which!=0u,limit-(exact?0u:1u));
             if(!limited.fileImport(path.string(),&bounded,false)||A::legacyIdentityFailed(bounded)==exact
                 ||bool(A::legacyIdentity(bounded))!=exact||!gated(bounded))return false;
             ++quota;
@@ -72,9 +75,11 @@ bool legacyIdentityObservationTests(const std::filesystem::path& path) {
         }
         for(unsigned fault=0;fault<4u;++fault) {
             Probe bad;if(!bad.enableLegacyDxfIdentityObservation())return false;bad.copy=fault==0u;bad.duplicate=fault==1u||fault==3u;bad.duplicateTail=fault==3u;bad.allocation=fault==2u?0:-1;dx_data rejected;
-            if(!bad.fileImport(path.string(),&rejected,false)||!A::legacyIdentityFailed(rejected)||A::legacyIdentity(rejected)||!gated(rejected))return false;++refusals;
+            if(!bad.fileImport(path.string(),&rejected,false)||!A::legacyIdentityFailed(rejected)||A::legacyIdentity(rejected)||!gated(rejected))return false;
+            ++refusals;
             bad.copy=bad.duplicate=bad.duplicateTail=false;bad.allocation=-1;dx_data retry;
-            if(!bad.fileImport(path.string(),&retry,false)||A::legacyIdentityFailed(retry)||!A::legacyIdentity(retry)||!gated(retry))return false;++retries;
+            if(!bad.fileImport(path.string(),&retry,false)||A::legacyIdentityFailed(retry)||!A::legacyIdentity(retry)||!gated(retry))return false;
+            ++retries;
         }
         for(unsigned f=0u;f<5u;++f) {
             Probe corrupted;if(!corrupted.enableLegacyDxfIdentityObservation())return false;
@@ -99,7 +104,8 @@ bool legacyIdentityObservationTests(const std::filesystem::path& path) {
             if(!hidden.fileImport(path.string(),&accepted,false)||A::legacyIdentityFailed(accepted)||!A::legacyIdentity(accepted)||!gated(accepted))return false;
             bool observed=false;for(const auto& c:A::legacyIdentity(accepted)->source->candidates)
                 if(c.lexeme=="00000000000000030"&&c.scope==Source::Scope::Outer&&c.admission==Source::Admission::Invalid)observed=true;
-            if(!observed||!write(path,document,binary))return false;++integrity;
+            if(!observed||!write(path,document,binary))return false;
+            ++integrity;
         }
         Probe observerLimited;if(!observerLimited.enableLegacyDxfIdentityObservation())return false;
         observerLimited.limits.records=0u;dx_data limitedSource;

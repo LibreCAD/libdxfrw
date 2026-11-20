@@ -72,7 +72,8 @@ bool tableBlockSourceTests(const std::filesystem::path& dir) {
     struct Stage{const char* value="profiles";bool done=false;~Stage(){if(!done)std::cerr<<"TABLE source stage="<<value<<'\n';}}stage;
     using A=DxIfaceTableSourceTestAccess;const auto path=dir/"table-block-source.dxf";unsigned profiles=0u,publicRoutes=0u,ownerForms=0u,refusals=0u,quotas=0u,failures=0u,allocations=0u,moves=0u,contexts=0u;std::size_t spans=0u;
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding)for(bool blocks:{true,false})for(unsigned form=0u;form<3u;++form){
-        if(!writeBlockBinding(path,tableBlockSourceDocument(version,blocks,form),encoding))return false;TableBlockSourceProbe reader;dx_data data;
+        if(!writeBlockBinding(path,tableBlockSourceDocument(version,blocks,form),encoding))return false;
+        TableBlockSourceProbe reader;dx_data data;
         const bool read=reader.fileImport(path.string(),&data,false);
         if(!read||reader.bad||reader.depth||reader.sources!=1u||reader.typed!=1u||reader.projections!=1u){std::cerr<<"TABLE pair "<<version<<'/'<<encoding<<" blocks="<<blocks<<" form="<<form<<" read="<<read<<" source="<<reader.sources<<" typed="<<reader.typed<<" bad="<<reader.bad<<'\n';return false;}
         if(data.tables.size()!=1u||A::table(data).attlist.size()!=(form==1u?2u:0u)||static_cast<bool>(A::table(data).seqEndEntity)!=(form!=0u)){std::cerr<<"TABLE retained form="<<form<<'\n';return false;}
@@ -98,16 +99,19 @@ bool tableBlockSourceTests(const std::filesystem::path& dir) {
                 {0,"BLOCK"},{5,"F6"},{330,"B3"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockBegin"},{2,"Definition"},{70,"0"},{10,"0"},{20,"0"}};
             tags.insert(tags.end(),full.begin()+static_cast<std::ptrdiff_t>(first),full.begin()+static_cast<std::ptrdiff_t>(last));
             tags.insert(tags.end(),{{0,"ENDBLK"},{5,"F7"},{330,"B3"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbBlockEnd"},{0,"ENDSEC"},{0,"EOF"}});
-            if(!write(path,tags,binary))return false;TableBlockSourceProbe receiver;receiver.publicOnly=true;receiver.selected=selected;dxfRW input(path.string().c_str());
+            if(!write(path,tags,binary))return false;
+            TableBlockSourceProbe receiver;receiver.publicOnly=true;receiver.selected=selected;dxfRW input(path.string().c_str());
             if(!input.read(&receiver,false)||receiver.bad||receiver.depth||receiver.sources!=(selected?1u:0u)||receiver.typed!=1u||receiver.projections)return false;
             moves+=receiver.moveChecks;++publicRoutes;
         }
         stage.value="both observed footer owners and explicit unsupported body";
         for(unsigned form=1u;form<3u;++form){if(!write(path,tableBlockSourceDocument("AC1032",true,form,true),binary))return false;TableBlockSourceProbe reader;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false)||reader.bad||!complete(data)||A::table(data).seqEndEntity->parentHandle!=0xB3u)return false;++ownerForms;}
+            if(!reader.fileImport(path.string(),&data,false)||reader.bad||!complete(data)||A::table(data).seqEndEntity->parentHandle!=0xB3u)return false;
+            ++ownerForms;}
         stage.value="converter opt-out and original pending XDATA state";
         {if(!write(path,good,binary))return false;TableBlockSourceProbe reader;reader.selected=false;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false)||reader.bad||reader.sources||reader.typed!=1u||reader.projections!=1u||!complete(data))return false;++contexts;}
+            if(!reader.fileImport(path.string(),&data,false)||reader.bad||reader.sources||reader.typed!=1u||reader.projections!=1u||!complete(data))return false;
+            ++contexts;}
         {auto tags=good;appendBlockFields(tags,"501",{{1001,"APP"},{1010,"7"}});if(!write(path,tags,binary))return false;TableBlockSourceProbe reader;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||reader.bad||!complete(data)||reader.sourceState.hasNoPendingXdata()
                 ||!dxfCompound::Decoder::observe(A::table(data)).hasNoPendingXdata())return false;
@@ -128,18 +132,24 @@ bool tableBlockSourceTests(const std::filesystem::path& dir) {
         }
         stage.value="reached source-snapshot allocation faults";
         for(long fault=0;fault<16;++fault){TableBlockSourceProbe reader;reader.allocation=fault;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false)||!reader.allocationReached||dx_iface::tableSourceReport(data).state!=dx_iface::TableSourceState::CaptureFailed||!retry(reader))return false;++allocations;}
+            if(!reader.fileImport(path.string(),&data,false)||!reader.allocationReached||dx_iface::tableSourceReport(data).state!=dx_iface::TableSourceState::CaptureFailed||!retry(reader))return false;
+            ++allocations;}
         stage.value="malformed linked chain and whole-import callback/tail retries";
         for(unsigned kind=0u;kind<7u;++kind){auto tags=good;TableBlockSourceProbe reader;
-            if(kind==0u)eraseBlockRecord(tags,"513");if(kind==1u)eraseBlockRecord(tags,"F7");
+            if(kind==0u)eraseBlockRecord(tags,"513");
+            if(kind==1u)eraseBlockRecord(tags,"F7");
             if(kind==2u)tags[blockField(tags,"511",330)].value="DEAD";
             if(kind==3u)tags[blockField(tags,"513",330)].value="DEAD";
-            if(kind==4u)reader.throwSource=true;if(kind==5u)reader.throwTyped=true;if(kind==6u)tags.pop_back();
-            if(!write(path,tags,binary))return false;dx_data data;bool read=false,threw=false;try{read=reader.fileImport(path.string(),&data,false);}catch(const std::runtime_error&){threw=true;}
+            if(kind==4u)reader.throwSource=true;
+            if(kind==5u)reader.throwTyped=true;
+            if(kind==6u)tags.pop_back();
+            if(!write(path,tags,binary))return false;
+            dx_data data;bool read=false,threw=false;try{read=reader.fileImport(path.string(),&data,false);}catch(const std::runtime_error&){threw=true;}
             if(reader.depth||threw!=(kind==4u||kind==5u))return false;
             if(kind==2u||kind==3u){if(!read||complete(data))return false;}
             else if(read||dx_iface::blockOriginReport(data).state!=dx_iface::BlockOriginState::ImportFailed)return false;
-            if(!retry(reader))return false;++failures;}
+            if(!retry(reader))return false;
+            ++failures;}
     }
     stage.done=true;std::cout<<"TABLE source profiles="<<profiles<<"; independent BLOCKS scalar spans="<<spans<<"; public selected/opt-out routes="<<publicRoutes
         <<"; footer owner variants="<<ownerForms<<"; copied/missing/duplicate refusals="<<refusals<<"; exact/under source quotas="<<quotas<<"; reached allocation faults="<<allocations

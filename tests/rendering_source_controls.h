@@ -71,13 +71,16 @@ bool renderingSourceTests(const std::filesystem::path& dir) {
             if(field.code!=span.code||value.code()!=span.code||field.begin<marker.end||field.end<=field.begin)return fail(__LINE__);
             if(field.kind==AttdefWireTag::Integer){if(value.type()!=DRW_Variant::INTEGER||value.i_val()!=field.integer)return fail(__LINE__);}
             else if(field.kind==AttdefWireTag::Real){const auto found=value.d_val();if(value.type()!=DRW_Variant::DOUBLE||std::memcmp(&found,&field.real,sizeof(double)))return fail(__LINE__);}
-            else if(value.type()!=DRW_Variant::STRING||!value.content.s||*value.content.s!=field.text)return fail(__LINE__);++fields;}
+            else if(value.type()!=DRW_Variant::STRING||!value.content.s||*value.content.s!=field.text)return fail(__LINE__);
+            ++fields;}
         for(const auto& ref:row.references){const auto& span=row.profile.spans.at(ref.groupIndex);Role expected=Role::Unknown;
             if(ref.code==5)expected=Role::Self;else if(ref.code==330)expected=span.field==Field::Application?Role::Reactor:Role::Owner;
             else if(ref.code==360)expected=Role::ExtensionDictionary;else if(ref.code==1001)expected=Role::AppIdName;else if(ref.code==1003)expected=Role::LayerName;else if(ref.code==1005)expected=Role::XdataObjectId;
-            if(ref.kind!=expected||span.code!=ref.code)return fail(__LINE__);++references;}
+            if(ref.kind!=expected||span.code!=ref.code)return fail(__LINE__);
+            ++references;}
         for(const auto& ref:A::dependencies(data)->rows)if(ref.target==0xEA01u&&(ref.role==Role::VisualStyle||ref.role==Role::LayoutShadePlot)){
-            if(ref.reason!=R::Matched)return fail(__LINE__);++targets;}
+            if(ref.reason!=R::Matched)return fail(__LINE__);
+            ++targets;}
         const auto before=symbolFailedAllocations;{SymbolAllocationFailure none(0);if(!ready(data))return fail(__LINE__);}if(before!=symbolFailedAllocations)return fail(__LINE__);
         ++immutable;
         // Test the independent binder for every primary field, without using
@@ -87,7 +90,8 @@ bool renderingSourceTests(const std::filesystem::path& dir) {
             else if(value.type()==DRW_Variant::DOUBLE)value=DRW_Variant(value.code(),value.d_val()+1.);
             else value=DRW_Variant(value.code(),UTF8STRING("other-description"));
             const auto profile=dx_visualstyle_source::audit(changed);
-            if(dx_visualstyle_source::matches(profile,changed,static_cast<const DRW_VisualStyle&>(*row.input->typedModel),row.input->typedVisualProperties,*row.input->context))return fail(__LINE__);++bindings;}
+            if(dx_visualstyle_source::matches(profile,changed,static_cast<const DRW_VisualStyle&>(*row.input->typedModel),row.input->typedVisualProperties,*row.input->context))return fail(__LINE__);
+            ++bindings;}
         ++profiles;
     }
     const auto good=renderingSourceDocument("AC1027",false,false);
@@ -101,7 +105,8 @@ bool renderingSourceTests(const std::filesystem::path& dir) {
         {std::ofstream output(path,std::ios::binary);output.write(bytes.data(),static_cast<std::streamsize>(bytes.size()));}
         dx_iface reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!ready(data))return fail(__LINE__);
         const auto& model=static_cast<const DRW_VisualStyle&>(*A::renderingSources(data)->records.at(0xEA01u)->input->typedModel);
-        if(model.desc!=(encoding==2u?"LINE^JTEXT":"LINE\nTEXT"))return fail(__LINE__);++texts;
+        if(model.desc!=(encoding==2u?"LINE^JTEXT":"LINE\nTEXT"))return fail(__LINE__);
+        ++texts;
     }
     for(unsigned encoding=0u;encoding<3u;++encoding)for(unsigned kind=0u;kind<16u;++kind){auto bad=good;
         if(kind==0u)renderingStyleSet(bad,71,"0"); // valid changed source remains valid; no guessed property defaults
@@ -123,7 +128,7 @@ bool renderingSourceTests(const std::filesystem::path& dir) {
         dx_iface reader;dx_data data;if(!writeBlockBinding(path,bad,encoding)||!reader.fileImport(path.string(),&data,false))return fail(__LINE__);
         if(kind==0u||kind>=13u){if(!ready(data))return fail(__LINE__);if(kind>=13u)++comments;}else{if(ready(data))return fail(__LINE__);++refusals;}
         if(kind==12u){bool found=false;if(A::dependencies(data))for(const auto& row:A::dependencies(data)->rows)
-            if(row.source==0xA0u&&row.role==Role::LayoutShadePlot&&row.reason==R::WrongKind)found=true;
+                    if(row.source==0xA0u&&row.role==Role::LayoutShadePlot&&row.reason==R::WrongKind)found=true;
             if(!found)return fail(__LINE__);}
         dx_data fixed;if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&fixed,false)||!ready(fixed))return fail(__LINE__);++retries;
     }
@@ -131,10 +136,12 @@ bool renderingSourceTests(const std::filesystem::path& dir) {
         if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&data,false)||!ready(data))return fail(__LINE__);
         const auto source=dx_iface::renderingSourceReport(data);
         for(bool work:{false,true}){const auto exact=work?source.work:source.bytes;A::renderingSourceLimit(data,work,exact);A::repeatRenderingSources(reader,data);A::joinRenderingSources(reader,data);
-            if(!ready(data))return fail(__LINE__);A::renderingSourceLimit(data,work,exact-1u);A::repeatRenderingSources(reader,data);
+            if(!ready(data))return fail(__LINE__);
+            A::renderingSourceLimit(data,work,exact-1u);A::repeatRenderingSources(reader,data);
             if(dx_iface::renderingSourceReport(data).state!=S::Limited||dx_iface::tableReferenceReport(data).state!=dx_iface::TableReferenceState::ContextMismatch)return fail(__LINE__);
             A::renderingSourceLimit(data,work,work?128u*1024u*1024u:64u*1024u*1024u);A::repeatRenderingSources(reader,data);A::joinRenderingSources(reader,data);
-            if(!ready(data))return fail(__LINE__);++quotas;++retries;}
+            if(!ready(data))return fail(__LINE__);
+            ++quotas;++retries;}
         for(unsigned which:{1u,2u}){A::unavailableRenderingReplay(data,which);
             if(dx_iface::renderingSourceReport(data).state!=S::SourceNotReady||dx_iface::dependencyReport(data).originalTargetsMatched)return fail(__LINE__);
             A::repeatRenderingSources(reader,data);if(dx_iface::renderingSourceReport(data).state!=S::SourceNotReady)return fail(__LINE__);++prerequisites;
@@ -142,11 +149,13 @@ bool renderingSourceTests(const std::filesystem::path& dir) {
         const auto saved=A::renderingSources(data);using Ptr=std::decay_t<decltype(saved)>;
         for(bool alias:{false,true}){
             A::mutableRenderingSources(data)=alias?Ptr(saved.get(),[](const auto*){}):std::make_shared<const std::remove_const_t<typename Ptr::element_type>>(*saved);
-            if(dx_iface::renderingSourceReport(data).state!=S::ContextMismatch||dx_iface::dependencyReport(data).originalTargetsMatched)return fail(__LINE__);++contexts;
+            if(dx_iface::renderingSourceReport(data).state!=S::ContextMismatch||dx_iface::dependencyReport(data).originalTargetsMatched)return fail(__LINE__);
+            ++contexts;
             A::mutableRenderingSources(data)=saved;if(!ready(data))return fail(__LINE__);++retries;}
         dx_data other;if(!reader.fileImport(path.string(),&other,false)||!ready(other))return fail(__LINE__);
         A::mutableRenderingSources(data)=A::renderingSources(other);
-        if(dx_iface::renderingSourceReport(data).state!=S::ContextMismatch||dx_iface::dependencyReport(data).originalTargetsMatched)return fail(__LINE__);++contexts;
+        if(dx_iface::renderingSourceReport(data).state!=S::ContextMismatch||dx_iface::dependencyReport(data).originalTargetsMatched)return fail(__LINE__);
+        ++contexts;
         A::mutableRenderingSources(data)=saved;if(!ready(data))return fail(__LINE__);++retries;
         for(auto& value:data.visualStyles){value.desc="edited live style";value.parentHandle=0xFFFFu;value.m_body.edgeWidth+=99;}
         data.rawVisualStyleObjects.clear();A::joinRenderingSources(reader,data);if(!ready(data))return fail(__LINE__);
@@ -160,7 +169,8 @@ bool renderingSourceTests(const std::filesystem::path& dir) {
             if(symbolFailedAllocations!=before){if(dx_iface::renderingSourceReport(data).state!=S::CaptureFailed||dx_iface::dependencyReport(data).originalTargetsMatched)return fail(__LINE__);++reached;untouched=0u;}
             else{if(!dx_iface::renderingSourceReport(data).originalSourcesMatched||dx_iface::dependencyReport(data).originalTargetsMatched)return fail(__LINE__);++unreached;++untouched;}
             A::repeatRenderingSources(reader,data);A::joinRenderingSources(reader,data);if(!ready(data))return fail(__LINE__);++finalizations;
-            if(untouched==2u)break;if(offset==255)return fail(__LINE__);}
+            if(untouched==2u)break;
+            if(offset==255)return fail(__LINE__);}
     }
     std::cout<<"Rendering source profiles="<<profiles<<"; independent physical fields="<<fields<<"; dictionary key/target fields="<<dictionaryFields<<"; reference roles="<<references<<"; rooted target uses="<<targets
         <<"; primary binder refusals="<<bindings<<"; source/owner/dependency refusals="<<refusals<<"; corrected retries="<<retries<<"; exact/one-under limits="<<quotas

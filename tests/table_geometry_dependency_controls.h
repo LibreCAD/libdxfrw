@@ -23,7 +23,8 @@ bool tableGeometryDependencyTests(const std::filesystem::path& dir) {
     const auto ready=[](const dx_data& d){const auto r=dx_iface::dependencyReport(d);return r.originalTargetsMatched&&r.geometryPairs==1u&&r.geometryMatched==1u
         &&!r.geometryMismatches&&!r.geometryUnavailable&&!r.ownerTargetsResolved&&!r.recursiveClosureMatched&&!r.outputEligible;};
     const auto rows=[](const dx_data& d){std::pair<const A::DependencyRow*,const A::DependencyRow*> out{};
-        if(A::dependencies(d))for(const auto& row:A::dependencies(d)->rows)if(row.source==0x501u){if(row.role==Role::BlockName)out.first=&row;if(row.role==Role::TableGeometryBlock)out.second=&row;}return out;};
+        if(A::dependencies(d))for(const auto& row:A::dependencies(d)->rows)if(row.source==0x501u){if(row.role==Role::BlockName)out.first=&row;if(row.role==Role::TableGeometryBlock)out.second=&row;}
+        return out;};
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding)for(bool blocks:{false,true})for(unsigned spelling=0u;spelling<3u;++spelling) {
         const auto tags=tableGeometryDependencyDocument(version,blocks,spelling);dx_iface reader;dx_data data;
         if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||!ready(data)) {
@@ -36,14 +37,16 @@ bool tableGeometryDependencyTests(const std::filesystem::path& dir) {
         // Independently bind both physical fields and the original target name.
         const auto wire=attdefWireTags(path,encoding==2u);const auto& source=*A::identityInput(data)->source;const auto& audit=*A::dependencies(data);
         for(const auto id:{0x501u,0xB8u}){const auto& record=source.records.at(audit.nodes.at(id).physical);const auto& marker=wire.at(record.marker.ordinal-1u);
-            if(marker.code||marker.text!=(id==0x501u?"ACAD_TABLE":"BLOCK_RECORD")||marker.begin!=record.marker.beginOffset||marker.end!=record.marker.endOffset)return fail(__LINE__);++markers;}
+            if(marker.code||marker.text!=(id==0x501u?"ACAD_TABLE":"BLOCK_RECORD")||marker.begin!=record.marker.beginOffset||marker.end!=record.marker.endOffset)return fail(__LINE__);
+            ++markers;}
         const auto& table=source.records.at(audit.nodes.at(0x501u).physical);
         const auto& name=wire.at(table.marker.ordinal+pair.first->group);const auto& handle=wire.at(table.marker.ordinal+pair.second->group);
         if(name.code!=2||name.text!=tags[blockField(tags,"501",2)].value||handle.code!=343||handle.text!="B8")return fail(__LINE__);
         const auto& target=audit.nodes.at(0xB8u);const auto& original=source.records.at(target.physical);bool targetName=false;
         for(std::size_t i=0u;i<A::dependencyGroups(target).size();++i)if(A::dependencyGroups(target)[i].code()==2) {
             const auto& field=wire.at(original.marker.ordinal+i);if(field.code!=2||field.text!=(spelling==2u?"*T-é":"*T17"))return fail(__LINE__);targetName=true;}
-        if(!targetName)return fail(__LINE__);spans+=3u;
+        if(!targetName)return fail(__LINE__);
+        spans+=3u;
         const auto before=symbolFailedAllocations;{SymbolAllocationFailure none(0);if(!ready(data))return fail(__LINE__);}if(symbolFailedAllocations!=before)return fail(__LINE__);
         for(auto& record:data.blockRecords)record.name="edited live name";
         A::clearAdvisoryNames(data);if(!ready(data))return fail(__LINE__);A::repeatDependencies(reader,data);if(!ready(data))return fail(__LINE__);++immutable;++profiles;
@@ -86,27 +89,31 @@ bool tableGeometryDependencyTests(const std::filesystem::path& dir) {
                 if(fault==4u&&(!pair.second||pair.second->reason!=R::MissingTarget))return fail(__LINE__);
                 if(fault==5u&&(!pair.second||pair.second->reason!=R::WrongKind))return fail(__LINE__);
                 if(fault==6u&&pair.first->reason!=R::MissingName)return fail(__LINE__);
-                if(fault==9u&&pair.first->reason!=R::NameSourceUnavailable)return fail(__LINE__);++unavailable;
+                if(fault==9u&&pair.first->reason!=R::NameSourceUnavailable)return fail(__LINE__);
+                ++unavailable;
             }else {
                 // A duplicate geometry namespace or physical343 already fails
                 // an original-body prerequisite; it supplies no coupled proof.
                 if(r.state!=S::SourceNotReady||r.originalTargetsMatched||r.geometryPairs||pair.first||pair.second)return fail(__LINE__);
                 ++prerequisites;
             }
-            if(!retry(reader))return fail(__LINE__);++refusals;
+            if(!retry(reader))return fail(__LINE__);
+            ++refusals;
         }
         dx_iface reader;dx_data base;if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&base,false)||!ready(base))return fail(__LINE__);
         const auto report=dx_iface::dependencyReport(base);const std::size_t limits[]{report.reservedRows,report.bytes,report.work};
         for(unsigned which=0u;which<3u;++which)for(bool under:{false,true}) {
             dx_iface codec;dx_data actual;A::dependencyLimit(actual,which,limits[which]-(under?1u:0u));
-            if(!codec.fileImport(path.string(),&actual,false)||ready(actual)==under||(under&&dx_iface::dependencyReport(actual).state!=S::CaptureFailed)||!retry(codec))return fail(__LINE__);++quotas;
+            if(!codec.fileImport(path.string(),&actual,false)||ready(actual)==under||(under&&dx_iface::dependencyReport(actual).state!=S::CaptureFailed)||!retry(codec))return fail(__LINE__);
+            ++quotas;
         }
         for(unsigned fault=0u;fault<4u;++fault) {
             dx_data actual;if(!reader.fileImport(path.string(),&actual,false)||!ready(actual))return fail(__LINE__);
             if(fault<2u)A::substituteDependencies(actual,fault!=0u);
             else if(fault==2u){dx_iface other;dx_data d;if(!other.fileImport(path.string(),&d,false)||!ready(d))return fail(__LINE__);A::transplantDependencies(actual,d);}
             else A::substituteTableReferences(actual,false);
-            if(dx_iface::dependencyReport(actual).state!=S::ContextMismatch||!retry(reader))return fail(__LINE__);++contexts;
+            if(dx_iface::dependencyReport(actual).state!=S::ContextMismatch||!retry(reader))return fail(__LINE__);
+            ++contexts;
         }
         struct Throwing:dx_iface {unsigned phase=0u;
             void addDxfTableSource(const DRW_Table& v,const DRW_RawDxfObject& raw) override{dx_iface::addDxfTableSource(v,raw);if(phase==1u)throw std::runtime_error("geometry source callback");}

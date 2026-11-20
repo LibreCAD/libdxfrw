@@ -38,7 +38,8 @@ struct SymbolOriginProbe:dx_iface {
     }
     template<class Call>void source(const DRW_TableEntry& v,const DRW_RawDxfObject& r,unsigned kind,Call call) {
         inspect(v,&r,kind,3u);auto& actual=const_cast<DRW_TableEntry&>(v);const auto flags=actual.flags;const auto state=DRW::internal::DxfBlockRecordDecoder::observeCommonState(v);
-        if(mutate==3)actual.flags^=1;if(cursor==3)DrwObjectEncodeTestAccess::commonMask(actual,static_cast<std::uint8_t>(state.second^1u));
+        if(mutate==3)actual.flags^=1;
+        if(cursor==3)DrwObjectEncodeTestAccess::commonMask(actual,static_cast<std::uint8_t>(state.second^1u));
         if(skip!=3){if(copy==3){const DRW_RawDxfObject clone(r);call(v,clone);}else call(v,r);if(duplicate==3)call(v,r);}
         actual.flags=flags;DrwObjectEncodeTestAccess::commonMask(actual,state.second);
         if(disableSource){enabled=false;publicationEnabled=false;}if(throwAt==3)throw std::runtime_error("symbol source publication");
@@ -51,7 +52,8 @@ struct SymbolOriginProbe:dx_iface {
     }
     template<class Model,class Call>void typed(const Model& v,unsigned kind,Call call) {
         inspect(v,nullptr,kind,1u);auto& actual=const_cast<Model&>(v);const auto flags=actual.flags;const auto state=DRW::internal::DxfBlockRecordDecoder::observeCommonState(v);
-        if(mutate==1)actual.flags^=1;if(cursor==1)DrwObjectEncodeTestAccess::commonMask(actual,static_cast<std::uint8_t>(state.second^1u));
+        if(mutate==1)actual.flags^=1;
+        if(cursor==1)DrwObjectEncodeTestAccess::commonMask(actual,static_cast<std::uint8_t>(state.second^1u));
         if(skip!=1){if(copy==1){const Model clone(v);call(clone);}else call(v);if(duplicate==1)call(v);}
         actual.flags=flags;DrwObjectEncodeTestAccess::commonMask(actual,state.second);model=nullptr;raw=nullptr;
         if(throwAt==1)throw std::runtime_error("symbol typed publication");
@@ -77,7 +79,8 @@ bool symbolOriginTests(const std::filesystem::path& dir) {
             const auto wire=attdefWireTags(path,encoding==2u);const auto& source=*A::identityInput(data)->source;
             for(const auto& item:A::resourceOrigins(data)) {
                 const auto& a=*item.second;const auto& original=source.records.at(a.physical);const auto& w=wire.at(original.marker.ordinal-1u);
-                if(w.code||w.text!=original.name||w.begin!=original.marker.beginOffset||w.end!=original.marker.endOffset||!a.input->sourceModel)return false;++markers;
+                if(w.code||w.text!=original.name||w.begin!=original.marker.beginOffset||w.end!=original.marker.endOffset||!a.input->sourceModel)return false;
+                ++markers;
             }
             ++profiles;
         }
@@ -94,7 +97,8 @@ bool symbolOriginTests(const std::filesystem::path& dir) {
         }
         for(unsigned family=0u;family<4u;++family) {
             auto tags=symbolOriginDocument("AC1032",blocks,family,48);appendBlockFields(tags,ids[family],{{1001,"REGISTERED_APP"},{1010,"1"}});SymbolOriginProbe reader;dx_data data;
-            if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||!reader.originalPending||ready(data)||dx_iface::tableReferenceReport(data).valueSourceTargetsMatched||!retry(reader))return false;++pending;
+            if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||!reader.originalPending||ready(data)||dx_iface::tableReferenceReport(data).valueSourceTargetsMatched||!retry(reader))return false;
+            ++pending;
         }
         for(unsigned fault=0u;fault<8u;++fault) {
             const auto family=fault==6u?3u:fault==7u?2u:fault%2u+2u;auto tags=symbolOriginDocument("AC1032",blocks,family,48);
@@ -105,16 +109,19 @@ bool symbolOriginTests(const std::filesystem::path& dir) {
             SymbolOriginProbe reader;dx_data data;if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||ready(data)||dx_iface::tableReferenceReport(data).valueSourceTargetsMatched||!retry(reader))return false;++unmodeled;
         }
         {SymbolOriginProbe reader;reader.enabled=false;reader.expectView=false;dx_data data;
-            if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&data,false)||!reader.good||reader.callbacks!=4u||dx_iface::resourceOriginReport(data).records!=4u||ready(data)||dx_iface::tableReferenceReport(data).valueSourceTargetsMatched)return false;++optouts;}
+            if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&data,false)||!reader.good||reader.callbacks!=4u||dx_iface::resourceOriginReport(data).records!=4u||ready(data)||dx_iface::tableReferenceReport(data).valueSourceTargetsMatched)return false;
+            ++optouts;}
         SymbolOriginProbe baseline;dx_data base;if(!baseline.fileImport(path.string(),&base,false)||!ready(base))return false;const auto r=dx_iface::resourceOriginReport(base);const std::size_t uses[]={r.records,r.bytes,r.work};
         for(unsigned which=0u;which<3u;++which)for(bool under:{false,true}) {
             SymbolOriginProbe reader;dx_data data;A::resourceOriginLimit(data,which,uses[which]-(under?1u:0u));
-            if(!reader.fileImport(path.string(),&data,false)||(dx_iface::resourceOriginReport(data).state==S::OriginsBound)==under||!retry(reader))return false;++quotas;
+            if(!reader.fileImport(path.string(),&data,false)||(dx_iface::resourceOriginReport(data).state==S::OriginsBound)==under||!retry(reader))return false;
+            ++quotas;
         }
         for(unsigned fault=0u;fault<5u;++fault) {
             SymbolOriginProbe reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!ready(data))return false;
             if(fault<4u)A::substituteResourceOrigin(data,fault/2u,fault%2u!=0u);else {dx_iface otherReader;dx_data other;if(!otherReader.fileImport(path.string(),&other,false)||!ready(other))return false;A::transplantResourceOrigins(data,other);}
-            if(dx_iface::resourceOriginReport(data).state!=S::ContextMismatch||dx_iface::tableReferenceReport(data).sourceTargetsMatched||!retry(reader))return false;++contexts;
+            if(dx_iface::resourceOriginReport(data).state!=S::ContextMismatch||dx_iface::tableReferenceReport(data).sourceTargetsMatched||!retry(reader))return false;
+            ++contexts;
         }
         for(long offset=0;offset<32;++offset) {
             SymbolOriginProbe reader;dx_data data;if(!reader.fileImport(path.string(),&data,false)||!ready(data))return false;const auto before=symbolFailedAllocations;
@@ -125,13 +132,17 @@ bool symbolOriginTests(const std::filesystem::path& dir) {
     }
     for(bool binary:{false,true})for(unsigned family=0u;family<4u;++family)for(unsigned mode=0u;mode<6u;++mode) {
         auto tables=symbolOriginTables(48);const auto first=slot(tables,2,family==0u?"LTYPE":family==1u?"STYLE":family==2u?"LAYER":"APPID")-1u;auto end=first+1u;
-        while(tables[end].code!=0||tables[end].value!="ENDTAB")++end;++end;
+        while(tables[end].code!=0||tables[end].value!="ENDTAB")++end;
+        ++end;
         Tags tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1032"},{0,"ENDSEC"},{0,"SECTION"},{2,"TABLES"}};
         tags.insert(tags.end(),tables.begin()+static_cast<std::ptrdiff_t>(first),tables.begin()+static_cast<std::ptrdiff_t>(end));tags.insert(tags.end(),{{0,"ENDSEC"},{0,"EOF"}});
-        if(!write(path,tags,binary))return false;dxfRW input(path.string().c_str());SymbolOriginProbe consumer;consumer.publicOnly=true;consumer.publicReader=&input;consumer.enabled=mode!=4u;consumer.publicationEnabled=mode!=5u;consumer.expectView=mode<4u;
+        if(!write(path,tags,binary))return false;
+        dxfRW input(path.string().c_str());SymbolOriginProbe consumer;consumer.publicOnly=true;consumer.publicReader=&input;consumer.enabled=mode!=4u;consumer.publicationEnabled=mode!=5u;consumer.expectView=mode<4u;
         consumer.throwAt=mode==1u?3:mode==2u?1:0;consumer.disableSource=mode==3u;dxfRW::DxfResourceSourceView view;
-        if(input.getDxfResourceSourceView(view))return false;bool threw=false;try{if(!input.read(&consumer,false))return false;}catch(const std::runtime_error&){threw=true;}
-        if(threw!=(mode==1u||mode==2u)||!consumer.good||input.getDxfResourceSourceView(view)||view.model||view.source)return false;++lifetimes;
+        if(input.getDxfResourceSourceView(view))return false;
+        bool threw=false;try{if(!input.read(&consumer,false))return false;}catch(const std::runtime_error&){threw=true;}
+        if(threw!=(mode==1u||mode==2u)||!consumer.good||input.getDxfResourceSourceView(view)||view.model||view.source)return false;
+        ++lifetimes;
     }
     for(int flag:{0,16,32,48,64,80,96,112}) {
         DRW_AppId app;app.flags=flag;if(!DrwObjectEncodeTestAccess::appIdDxfValid(app)||DrwObjectEncodeTestAccess::appIdNativeValid(app)!=((flag&32)==0))return false;++flags;
@@ -156,7 +167,8 @@ bool symbolOriginTests(const std::filesystem::path& dir) {
         };
         for(int flag:{0,16,32,48,64,80,96,112}) {
             dx_data data;DRW_AppId app;app.name="REGISTERED_APP";app.flags=flag;data.appIds.push_back(app);
-            if(!roundtrip(data,flag))return false;++outputs;
+            if(!roundtrip(data,flag))return false;
+            ++outputs;
         }
         for(int flag:{-1,128}) {
             dx_data data;DRW_AppId app;app.name="REGISTERED_APP";app.flags=flag;data.appIds.push_back(app);

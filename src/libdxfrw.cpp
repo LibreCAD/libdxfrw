@@ -36231,10 +36231,10 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
             return true;
         };
 
-        const std::uint32_t tableStyleHandle =
+        const std::uint32_t sourceTableStyleHandle =
             ent->m_content.m_tableStyleHandle;
         const auto cellPropertiesSupported = [&safeText, &defaultBorder,
-                &tableContentBaseStyleIdIsSupported, tableStyleHandle](
+                &tableContentBaseStyleIdIsSupported, sourceTableStyleHandle](
                 const DRW_TableCell& cell) {
             return cell.m_type == 0 && cell.m_edgeFlags == 0
                 && !cell.m_isMerged && !cell.m_autoFit
@@ -36242,7 +36242,7 @@ bool dxfRW::writeTableContent(DRW_TableContentObject *ent) {
                 && cell.m_rotation == 0.0 && safeText(cell.m_toolTip)
                 && cell.m_textStyleName.empty()
                 && tableContentBaseStyleIdIsSupported(
-                    cell.m_styleId, tableStyleHandle)
+                    cell.m_styleId, sourceTableStyleHandle)
                 && cell.m_overrideStyleType == 1
                 && cell.m_virtualEdgeFlags == 0 && cell.m_overrideFlags == 0u
                 && cell.m_valueHandle == 0u && cell.m_textStyleHandle == 0u

@@ -79,7 +79,8 @@ bool tableBlockNameTests(const std::filesystem::path& dir) {
     };
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0;encoding<3u;++encoding) {
         const auto good=blockNameSource(version);Probe reader;dx_data baseline;
-        if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&baseline,false)||!valid(baseline))return false;++routes;
+        if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&baseline,false)||!valid(baseline))return false;
+        ++routes;
         for(const auto& c:cases) {
             auto tags=good;c.change(tags);dx_data data;if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false))return false;
             const auto r=dx_iface::tableContentBindingReport(data);
@@ -103,7 +104,8 @@ bool tableBlockNameTests(const std::filesystem::path& dir) {
         for(unsigned dimension=0;dimension<2u;++dimension)for(bool exact:{false,true}) {
             dx_data data;if(dimension)A::blockBindingLimit(data,measured.blockSourceWorkspaceBytes-(exact?0u:1u));
             else A::resourceLimits(data,100000u,4000000u,64u*1024u*1024u,measured.examinedSlots-(exact?0u:1u));
-            if(!reader.fileImport(path.string(),&data,false)||dx_iface::tableContentBindingReport(data).state!=(exact?S::Bound:S::WorkLimit))return false;++quotas;
+            if(!reader.fileImport(path.string(),&data,false)||dx_iface::tableContentBindingReport(data).state!=(exact?S::Bound:S::WorkLimit))return false;
+            ++quotas;
         }
         bool calibrated=false;
         for(long fault=0;fault<80&&!calibrated;++fault) {
@@ -145,7 +147,8 @@ bool tableBlockNameTests(const std::filesystem::path& dir) {
             const auto r=dx_iface::tableContentBindingReport(failed);
             if(r.state!=(cycle?S::BlockReferenceCycle:S::BlockMemberUnsupported)||r.outputEligible||r.firstSourceBlock!=0x200000u+2u*(depth-1u))return false;
             dx_data retry;A::blockEndpointWorkLimit(retry,16u*1024u*1024u);
-            if(!write(path,chain,binary)||!reader.fileImport(path.string(),&retry,false)||!valid(retry,depth+2u,depth+9u,depth+1u))return false;++deep;
+            if(!write(path,chain,binary)||!reader.fileImport(path.string(),&retry,false)||!valid(retry,depth+2u,depth+9u,depth+1u))return false;
+            ++deep;
         }
     }
     std::cout<<"Nested BLOCK name bindings: source routes="<<routes<<"; wire faults/retries="<<wireCases<<"; positive variants="<<variants

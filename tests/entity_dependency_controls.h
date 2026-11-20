@@ -29,7 +29,8 @@ bool entityDependencyTests(const std::filesystem::path& dir) {
     const auto ready=[](const dx_data& d){const auto r=dx_iface::dependencyReport(d);return r.originalTargetsMatched&&r.physicalEntityRows&&r.physicalEntityRows==r.backedEntityRows
         &&r.entitySources==28u&&r.entitySources==r.backedEntityRows&&r.entityReferences&&!r.ownerTargetsResolved&&!r.recursiveClosureMatched&&!r.outputEligible;};
     const auto refusal=[&](const dx_data& d,std::uint32_t handle,int code,R reason){if(!A::dependencies(d))return false;
-        for(const auto& row:A::dependencies(d)->rows)if(row.source==handle&&row.code==code&&row.reason==reason)return true;return false;};
+        for(const auto& row:A::dependencies(d)->rows)if(row.source==handle&&row.code==code&&row.reason==reason)return true;
+        return false;};
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0u;encoding<3u;++encoding)for(bool blocks:{false,true})for(unsigned form=0u;form<3u;++form) {
         const auto tags=entityDependencyDocument(version,blocks,form);dx_iface reader;dx_data data;
         if(!writeBlockBinding(path,tags,encoding)||!reader.fileImport(path.string(),&data,false)||!ready(data)) {
@@ -49,11 +50,13 @@ bool entityDependencyTests(const std::filesystem::path& dir) {
         }
         for(const auto& row:audit.rows)if(row.present&&audit.nodes.at(row.source).entity) {
             const auto& node=audit.nodes.at(row.source);const auto& record=physical.records.at(node.physical);const auto& field=wire.at(record.marker.ordinal+row.group);
-            if(field.code!=row.code||A::dependencyGroups(node).at(row.group).code()!=row.code)return fail(__LINE__);++spans;
+            if(field.code!=row.code||A::dependencyGroups(node).at(row.group).code()!=row.code)return fail(__LINE__);
+            ++spans;
         }
         const auto before=symbolFailedAllocations;{SymbolAllocationFailure none(0);if(!ready(data))return fail(__LINE__);}if(symbolFailedAllocations!=before)return fail(__LINE__);
         for(auto* entity:data.mBlock->ent)entity->layer="edited live layer";
-        for(auto& layer:data.layers)layer.name="edited live symbol";A::clearAdvisoryNames(data);if(!ready(data))return fail(__LINE__);
+        for(auto& layer:data.layers)layer.name="edited live symbol";
+        A::clearAdvisoryNames(data);if(!ready(data))return fail(__LINE__);
         A::repeatDependencies(reader,data);if(!ready(data))return fail(__LINE__);++immutable;++profiles;
     }
     for(unsigned encoding=0u;encoding<3u;++encoding)for(bool blocks:{false,true}) {
@@ -84,22 +87,26 @@ bool entityDependencyTests(const std::filesystem::path& dir) {
             const auto r=dx_iface::dependencyReport(data);
             if(fault==11u){if(!r.unavailableSources||r.backedEntityRows+1u!=r.physicalEntityRows)return fail(__LINE__);}
             else if(!refusal(data,handle,code,reason))return fail(__LINE__);
-            if(!retry(reader))return fail(__LINE__);++refusals;
+            if(!retry(reader))return fail(__LINE__);
+            ++refusals;
         }
         dx_iface reader;dx_data base;if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&base,false)||!ready(base))return fail(__LINE__);
         const auto report=dx_iface::dependencyReport(base);const std::size_t limits[]{report.reservedRows,report.bytes,report.work};
         for(unsigned which=0u;which<3u;++which)for(bool under:{false,true}){dx_iface codec;dx_data actual;A::dependencyLimit(actual,which,limits[which]-(under?1u:0u));
-            if(!codec.fileImport(path.string(),&actual,false)||ready(actual)==under||(under&&dx_iface::dependencyReport(actual).state!=S::CaptureFailed)||!retry(codec))return fail(__LINE__);++quotas;}
+            if(!codec.fileImport(path.string(),&actual,false)||ready(actual)==under||(under&&dx_iface::dependencyReport(actual).state!=S::CaptureFailed)||!retry(codec))return fail(__LINE__);
+            ++quotas;}
         for(unsigned fault=0u;fault<6u;++fault){dx_data actual;if(!reader.fileImport(path.string(),&actual,false)||!ready(actual))return fail(__LINE__);
             if(fault<2u)A::substituteEntitiesRole(actual,fault!=0u);else if(fault<4u)A::substituteBlockRole(actual,0u,fault==3u);
             else if(fault==4u)A::substituteEntitiesRoleBody(actual,false);else A::substituteBlockRole(actual,3u,false);
-            if(dx_iface::dependencyReport(actual).state!=S::ContextMismatch||!retry(reader))return fail(__LINE__);++contexts;}
+            if(dx_iface::dependencyReport(actual).state!=S::ContextMismatch||!retry(reader))return fail(__LINE__);
+            ++contexts;}
         struct Throwing:dx_iface {unsigned phase=0u;
             void addPoint(const DRW_Point& v) override{dx_iface::addPoint(v);if(phase==1u&&v.handle==0x701u)throw std::runtime_error("entity dependency point");}
             void addDxfAttdefSource(const DRW_Attdef& v,const DRW_RawDxfObject& raw,const DRW_DxfAttdefSourceContext& c) override{dx_iface::addDxfAttdefSource(v,raw,c);if(phase==2u&&v.handle==0x703u)throw std::runtime_error("entity dependency attdef");}
         } throwing;
         for(unsigned phase=1u;phase<=2u;++phase){throwing.phase=phase;dx_data failed;bool caught=false;try{if(throwing.fileImport(path.string(),&failed,false))return fail(__LINE__);}catch(const std::runtime_error&){caught=true;}
-            if(!caught||dx_iface::dependencyReport(failed).state!=S::ImportFailed)return fail(__LINE__);throwing.phase=0u;if(!retry(throwing))return fail(__LINE__);++throws;}
+            if(!caught||dx_iface::dependencyReport(failed).state!=S::ImportFailed)return fail(__LINE__);
+            throwing.phase=0u;if(!retry(throwing))return fail(__LINE__);++throws;}
         for(long offset=0;offset<64;++offset){const auto before=symbolFailedAllocations;{SymbolAllocationFailure fault(offset);A::repeatDependencies(reader,base);}
             if(symbolFailedAllocations!=before){if(ready(base)||dx_iface::dependencyReport(base).state!=S::CaptureFailed)return fail(__LINE__);++reached;}
             else {if(!ready(base))return fail(__LINE__);++unreached;}A::repeatDependencies(reader,base);if(!ready(base))return fail(__LINE__);++finalizations;}

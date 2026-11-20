@@ -47,7 +47,8 @@ bool styleFontWire(const std::filesystem::path& path,bool binary,int font,const 
     const auto wire=attdefWireTags(path,binary);unsigned records=0u;
     for(std::size_t first=0u;first<wire.size();++first)if(wire[first].code==0&&wire[first].text=="STYLE") {
         auto end=first+1u;bool selected=false;while(end<wire.size()&&wire[end].code!=0){if(wire[end].code==2&&wire[end].text=="SCOPED_FONT")selected=true;++end;}
-        if(!selected)continue;++records;bool xdata=false;unsigned bodies=0u;std::size_t field=0u;
+        if(!selected)continue;
+        ++records;bool xdata=false;unsigned bodies=0u;std::size_t field=0u;
         while(field<expected.size()&&expected[field].code!=1001)++field;
         for(std::size_t at=first+1u;at<end;++at) {
             const auto& scalar=wire[at];if(scalar.code==1001)xdata=true;
@@ -76,7 +77,8 @@ bool styleFontTests(const std::filesystem::path& dir) {
                 <<" XDATA="<<(reader.seen.empty()?0u:reader.seen.front().extData.size())<<'\n';return false;
         }
         const auto& style=reader.seen.front();DRW_Textstyle clone(style),assigned;assigned=clone;
-        if(!styleFontXdata(clone,fields)||!styleFontXdata(assigned,fields)||clone.fontFamily!=style.fontFamily||assigned.fontFamily!=style.fontFamily)return false;++copies;
+        if(!styleFontXdata(clone,fields)||!styleFontXdata(assigned,fields)||clone.fontFamily!=style.fontFamily||assigned.fontFamily!=style.fontFamily)return false;
+        ++copies;
         const auto origin=dx_iface::resourceOriginReport(data);const bool qualified=form!=4u&&form!=7u;
         if((origin.state==dx_iface::ResourceOriginState::OriginsBound)!=qualified
             ||dx_iface::dependencyReport(data).originalTargetsMatched!=qualified) {
@@ -158,7 +160,8 @@ bool styleFontTests(const std::filesystem::path& dir) {
         {const std::string sentinel="KEEP_UNSUPPORTED_FONT_TARGET";{std::ofstream out(output,std::ios::binary);out<<sentinel;}
             if(writer.fileExport(output.string(),DRW::AC1012,binary,&data,false))return false;
             {std::ifstream in(output,std::ios::binary);if(std::string(std::istreambuf_iterator<char>(in),{})!=sentinel)return false;}
-            if(!success())return false;++versionRefusals;++retries;}
+            if(!success())return false;
+            ++versionRefusals;++retries;}
         for(unsigned fault=0u;fault<6u;++fault) {
             auto& row=data.textStyles.front();row=base;row.fontFamily=17;
             if(fault==0u)row.extData[2]->addString(1071,"invalid font flags");
@@ -179,7 +182,8 @@ bool styleFontTests(const std::filesystem::path& dir) {
             writer.armed=false;
             if(symbolFailedAllocations!=before){if(ok)return false;std::ifstream in(output,std::ios::binary);if(std::string(std::istreambuf_iterator<char>(in),{})!=sentinel)return false;++reached;}
             else {if(!ok)return false;++unreached;}
-            if(!success())return false;++retries;
+            if(!success())return false;
+            ++retries;
         }
     }
     for(bool under:{false,true}) {

@@ -49,7 +49,8 @@ bool layoutDependencyTests(const std::filesystem::path& dir) {
         }
         const auto& audit=*A::dependencies(data);const auto& source=*A::identityInput(data)->source;const auto wire=attdefWireTags(path,encoding==2u);
         for(const auto& item:audit.nodes)if(item.second.layout){const auto& record=source.records.at(item.second.physical);const auto& marker=wire.at(record.marker.ordinal-1u);
-            if(marker.code||marker.text!="LAYOUT"||marker.begin!=record.marker.beginOffset||marker.end!=record.marker.endOffset)return fail(__LINE__);++markers;
+            if(marker.code||marker.text!="LAYOUT"||marker.begin!=record.marker.beginOffset||marker.end!=record.marker.endOffset)return fail(__LINE__);
+            ++markers;
             unsigned owner=0u,block=0u;
             for(const auto& row:audit.rows)if(row.source==item.first){if(row.role==Role::LayoutName||row.code==1)return fail(__LINE__);
                 if(row.role==Role::Owner){if(row.target!=0x43u)return fail(__LINE__);++owner;}
@@ -110,19 +111,22 @@ bool layoutDependencyTests(const std::filesystem::path& dir) {
         dx_iface reader;dx_data base;if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&base,false)||!ready(base))return fail(__LINE__);
         const auto report=dx_iface::dependencyReport(base);const std::size_t limits[]{report.reservedRows,report.bytes,report.work};
         for(unsigned which=0u;which<3u;++which)for(bool under:{false,true}){dx_iface codec;dx_data actual;A::dependencyLimit(actual,which,limits[which]-(under?1u:0u));
-            if(!codec.fileImport(path.string(),&actual,false)||ready(actual)==under||(under&&dx_iface::dependencyReport(actual).state!=S::CaptureFailed)||!retry(codec))return fail(__LINE__);++quotas;}
+            if(!codec.fileImport(path.string(),&actual,false)||ready(actual)==under||(under&&dx_iface::dependencyReport(actual).state!=S::CaptureFailed)||!retry(codec))return fail(__LINE__);
+            ++quotas;}
         for(unsigned fault=0u;fault<6u;++fault){dx_data actual;if(!reader.fileImport(path.string(),&actual,false)||!ready(actual))return fail(__LINE__);
             if(fault<2u){auto& p=A::mutableLayoutAudits(actual).at(0xA0u);if(fault)p=std::decay_t<decltype(p)>(p.get(),[](const auto*){});else p=std::make_shared<const std::decay_t<decltype(*p)>>(*p);}
             else if(fault<4u)A::substituteLayoutDependencyInput(actual,fault==3u);
             else if(fault==4u){dx_iface other;dx_data d;if(!other.fileImport(path.string(),&d,false)||!ready(d))return fail(__LINE__);A::mutableLayoutAudits(actual).at(0xA0u)=A::layoutAudits(d).at(0xA0u);}
             else A::substituteLayoutRole(actual,false);
-            if(dx_iface::dependencyReport(actual).state!=S::ContextMismatch||!retry(reader))return fail(__LINE__);++contexts;}
+            if(dx_iface::dependencyReport(actual).state!=S::ContextMismatch||!retry(reader))return fail(__LINE__);
+            ++contexts;}
         struct Throwing:dx_iface {unsigned phase=0u;
             void addDxfLayoutSource(const DRW_Layout& v,const DRW_RawDxfObject& r) override{dx_iface::addDxfLayoutSource(v,r);if(phase==1u&&v.handle==0xA0u)throw std::runtime_error("layout dependency source");}
             void addLayout(const DRW_Layout& v) override{dx_iface::addLayout(v);if(phase==2u&&v.handle==0xA0u)throw std::runtime_error("layout dependency typed");}
         } throwing;
         for(unsigned phase=1u;phase<=2u;++phase){throwing.phase=phase;dx_data failed;bool caught=false;try{if(throwing.fileImport(path.string(),&failed,false))return fail(__LINE__);}catch(const std::runtime_error&){caught=true;}
-            if(!caught||dx_iface::dependencyReport(failed).state!=S::ImportFailed)return fail(__LINE__);throwing.phase=0u;if(!retry(throwing))return fail(__LINE__);++throws;}
+            if(!caught||dx_iface::dependencyReport(failed).state!=S::ImportFailed)return fail(__LINE__);
+            throwing.phase=0u;if(!retry(throwing))return fail(__LINE__);++throws;}
         for(long offset=0;offset<64;++offset){const auto before=symbolFailedAllocations;{SymbolAllocationFailure fault(offset);A::repeatDependencies(reader,base);}
             if(symbolFailedAllocations!=before){if(ready(base)||dx_iface::dependencyReport(base).state!=S::CaptureFailed)return fail(__LINE__);++reached;}else {if(!ready(base))return fail(__LINE__);++unreached;}
             A::repeatDependencies(reader,base);if(!ready(base))return fail(__LINE__);++finalizations;}

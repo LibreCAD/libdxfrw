@@ -33,7 +33,8 @@ struct EntitiesOriginProbe final:dx_iface {
     }
     void endDxfEntitiesDelivery(std::uint64_t scope,std::size_t index,const DRW_DxfEntitiesDeliveryEvent& e) override {
         if(throwPhase==2)throw std::runtime_error("origin end");
-        if(dropEnd)return;auto copy=e;if(alterEnd)alterEnd(copy);dx_iface::endDxfEntitiesDelivery(scope,index,copy);
+        if(dropEnd)return;
+        auto copy=e;if(alterEnd)alterEnd(copy);dx_iface::endDxfEntitiesDelivery(scope,index,copy);
     }
     void addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource& value) override {
         ++calls;if(entitiesDeliveryReport(*cData).state==EntitiesDeliveryState::ObservedTransportComplete)premature=true;
@@ -58,7 +59,8 @@ bool entitiesOriginWire(const std::filesystem::path& path,bool binary,const dx_d
             if(record>=p.records.size()||p.records[record].marker.ordinal!=d.begin.ordinal)return false;
             while(record<p.records.size()&&p.records[record].marker.ordinal<d.end.ordinal)++record;
             for(std::size_t j=0;j<d.events;++j,++event) {
-                if(event>=source.events.size())return false;const auto& e=source.events[event];const auto& observed=(*row.observed)[event];
+                if(event>=source.events.size())return false;
+                const auto& e=source.events[event];const auto& observed=(*row.observed)[event];
                 if(e.dispatch!=i||e.callback!=observed.event.callback||e.handle!=observed.event.handle||e.owner!=observed.event.owner)return false;
             }
             ++joins;
@@ -74,7 +76,8 @@ bool entitiesOriginTests(const std::filesystem::path& dir) {
     long allocations=0;std::size_t joins=0u;
     const auto complete=[](const dx_data& d){const auto r=dx_iface::entitiesDeliveryReport(d);return r.state==S::ObservedTransportComplete&&!r.outputEligible;};
     for(const std::string version:{"AC1021","AC1024","AC1027","AC1032"})for(unsigned encoding=0;encoding<3u;++encoding) {
-        if(!writeBlockBinding(path,entitiesSourceDocument(version),encoding))return false;EntitiesOriginProbe reader;dx_data data;
+        if(!writeBlockBinding(path,entitiesSourceDocument(version),encoding))return false;
+        EntitiesOriginProbe reader;dx_data data;
         if(!reader.fileImport(path.string(),&data,false)||!entitiesOriginWire(path,encoding==2u,data,joins))return false;
         const auto r=dx_iface::entitiesDeliveryReport(data);
         if(r.state!=S::ObservedTransportComplete||reader.premature||r.sections!=2u||r.dispatches!=7u||r.events!=6u
@@ -136,7 +139,8 @@ bool entitiesOriginTests(const std::filesystem::path& dir) {
         {
             const auto& original=*(*A::entitiesDeliveries(base)[0].observed)[4].raw;
             auto at=std::find_if(original.groups.begin(),original.groups.end(),[](const auto& field){return field.code()==160;});
-            if(at==original.groups.end())return false;const auto index=static_cast<std::size_t>(at-original.groups.begin());
+            if(at==original.groups.end())return false;
+            const auto index=static_cast<std::size_t>(at-original.groups.begin());
             DRW_Variant padded(160,std::string(1024u,'x'));padded.addBinary(160,std::vector<std::uint8_t>(2048u,0xA5u));padded.addInt64(160,at->i64_val());
             std::size_t before=0u,after=0u;if(!at->estimateRetainedPayloadBytes(65536u,before)||!padded.estimateRetainedPayloadBytes(65536u,after)||after<=before)return false;
             for(bool below:{false,true}) {
@@ -200,20 +204,27 @@ bool entitiesOriginTests(const std::filesystem::path& dir) {
         stage.name="copied and substituted owners";
         {
             dx_data copied;A::copyBindingContext(copied,base);
-            if(dx_iface::entitiesDeliveryReport(copied).state!=S::ContextMismatch)return false;++contexts;
+            if(dx_iface::entitiesDeliveryReport(copied).state!=S::ContextMismatch)return false;
+            ++contexts;
             auto& row=A::mutableEntitiesDeliveries(base)[0];
             const auto physical=row.physical;row.physical=std::make_shared<const DRW_DxfEntitiesSource>(*physical);
-            if(dx_iface::entitiesDeliveryReport(base).state!=S::ContextMismatch)return false;row.physical=physical;if(!complete(base))return false;++contexts;
+            if(dx_iface::entitiesDeliveryReport(base).state!=S::ContextMismatch)return false;
+            row.physical=physical;if(!complete(base))return false;++contexts;
             const auto delivery=row.delivery;row.delivery=std::make_shared<const DRW_DxfEntitiesDeliverySource>(*delivery);
-            if(dx_iface::entitiesDeliveryReport(base).state!=S::ContextMismatch)return false;row.delivery=delivery;if(!complete(base))return false;++contexts;
+            if(dx_iface::entitiesDeliveryReport(base).state!=S::ContextMismatch)return false;
+            row.delivery=delivery;if(!complete(base))return false;++contexts;
             const auto observed=row.observed;row.observed=std::make_shared<const std::decay_t<decltype(*observed)>>(*observed);
-            if(dx_iface::entitiesDeliveryReport(base).state!=S::ContextMismatch)return false;row.observed=observed;if(!complete(base))return false;++contexts;
+            if(dx_iface::entitiesDeliveryReport(base).state!=S::ContextMismatch)return false;
+            row.observed=observed;if(!complete(base))return false;++contexts;
             row.physical=std::shared_ptr<const DRW_DxfEntitiesSource>(physical.get(),[](const auto*){});
-            if(dx_iface::entitiesDeliveryReport(base).state!=S::ContextMismatch)return false;row.physical=physical;if(!complete(base))return false;++contexts;
+            if(dx_iface::entitiesDeliveryReport(base).state!=S::ContextMismatch)return false;
+            row.physical=physical;if(!complete(base))return false;++contexts;
             row.delivery=std::shared_ptr<const DRW_DxfEntitiesDeliverySource>(delivery.get(),[](const auto*){});
-            if(dx_iface::entitiesDeliveryReport(base).state!=S::ContextMismatch)return false;row.delivery=delivery;if(!complete(base))return false;++contexts;
+            if(dx_iface::entitiesDeliveryReport(base).state!=S::ContextMismatch)return false;
+            row.delivery=delivery;if(!complete(base))return false;++contexts;
             row.observed=std::shared_ptr<const std::decay_t<decltype(*observed)>>(observed.get(),[](const auto*){});
-            if(dx_iface::entitiesDeliveryReport(base).state!=S::ContextMismatch)return false;row.observed=observed;if(!complete(base))return false;++contexts;
+            if(dx_iface::entitiesDeliveryReport(base).state!=S::ContextMismatch)return false;
+            row.observed=observed;if(!complete(base))return false;++contexts;
             row.container=nullptr;if(dx_iface::entitiesDeliveryReport(base).state!=S::ContextMismatch)return false;row.container=&base;if(!complete(base))return false;++contexts;
             ++row.generation;if(dx_iface::entitiesDeliveryReport(base).state!=S::ContextMismatch)return false;--row.generation;if(!complete(base))return false;++contexts;
             dx_data appended;EntitiesOriginProbe reader;if(!reader.fileImport(path.string(),&appended,false)||!reader.fileImport(path.string(),&appended,false)
@@ -243,7 +254,8 @@ bool entitiesOriginTests(const std::filesystem::path& dir) {
             const auto& row=A::entitiesDeliveries(data)[0];const auto& observed=*row.observed;
             if(row.delivery->events[0].handle!=0x101u)return false;
             auto* point=dynamic_cast<DRW_Point*>(data.mBlock->ent.front());const auto* frozen=dynamic_cast<const DRW_Point*>(observed[0].model.get());
-            if(!point||!frozen)return false;point->basePoint.y=99.;if(frozen->basePoint.y!=1.25)return false;
+            if(!point||!frozen)return false;
+            point->basePoint.y=99.;if(frozen->basePoint.y!=1.25)return false;
             DRW_Polyline* poly=nullptr;DRW_Insert* insert=nullptr;
             for(auto* e:data.mBlock->ent){if(e->eType==DRW::POLYLINE)poly=dynamic_cast<DRW_Polyline*>(e);if(e->eType==DRW::INSERT)insert=dynamic_cast<DRW_Insert*>(e);}
             const auto* frozenPoly=dynamic_cast<const DRW_Polyline*>(observed[2].model.get());const auto* frozenInsert=dynamic_cast<const DRW_Insert*>(observed[3].model.get());
@@ -260,23 +272,29 @@ bool entitiesOriginTests(const std::filesystem::path& dir) {
                 EntitiesOriginProbe reader;reader.richerPoint=shape==0u;reader.richerPolyline=shape==1u;reader.richerInsert=shape==2u;dx_data data;
                 if(!reader.fileImport(path.string(),&data,false)||!complete(data))return false;
                 const auto& value=(*A::entitiesDeliveries(data)[0].observed)[shape==0u?0u:shape==1u?2u:3u];
-                if(!value.valueObserved||!value.modelUnavailable||value.model||dx_iface::entitiesDeliveryReport(data).models!=4u)return false;++dispositions;
+                if(!value.valueObserved||!value.modelUnavailable||value.model||dx_iface::entitiesDeliveryReport(data).models!=4u)return false;
+                ++dispositions;
             }
             const Tags ignored{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1032"},{0,"ENDSEC"},{0,"SECTION"},{2,"ENTITIES"},
                 {0,"CAMERA"},{5,"101"},{330,"1F"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbCamera"},{340,"0"},{0,"ENDSEC"},{0,"EOF"}};
-            if(!write(path,ignored,binary))return false;dx_iface compatible;dx_data noBody;
+            if(!write(path,ignored,binary))return false;
+            dx_iface compatible;dx_data noBody;
             if(!compatible.fileImport(path.string(),&noBody,false)||!complete(noBody))return false;
             const auto r=dx_iface::entitiesDeliveryReport(noBody);
-            if(r.events!=1u||r.valuesObserved||r.models||r.rawBodies||r.outputEligible)return false;++dispositions;
+            if(r.events!=1u||r.valuesObserved||r.models||r.rawBodies||r.outputEligible)return false;
+            ++dispositions;
             if(!write(path,tags,binary))return false;
         }
         for(bool noCallback:{false,true}) {
             Tags input{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1032"},{0,"ENDSEC"},{0,"SECTION"},{2,"ENTITIES"}};
             if(noCallback)input.insert(input.end(),{{0,"DIMENSION"},{5,"101"},{330,"1F"},{100,"AcDbEntity"},{8,"0"},{100,"AcDbDimension"},{70,"7"}});
             input.insert(input.end(),{{0,"ENDSEC"},{0,"EOF"}});
-            if(!write(path,input,binary))return false;dx_iface reader;dx_data data;
-            if(!reader.fileImport(path.string(),&data,false)||!complete(data))return false;const auto r=dx_iface::entitiesDeliveryReport(data);
-            if(r.sections!=1u||r.dispatches!=(noCallback?1u:0u)||r.events||r.models||r.rawBodies||r.valuesObserved)return false;++emptyOrNoCallback;
+            if(!write(path,input,binary))return false;
+            dx_iface reader;dx_data data;
+            if(!reader.fileImport(path.string(),&data,false)||!complete(data))return false;
+            const auto r=dx_iface::entitiesDeliveryReport(data);
+            if(r.sections!=1u||r.dispatches!=(noCallback?1u:0u)||r.events||r.models||r.rawBodies||r.valuesObserved)return false;
+            ++emptyOrNoCallback;
         }
         if(!write(path,tags,binary))return false;
         stage.name="owner teardown";
@@ -285,31 +303,39 @@ bool entitiesOriginTests(const std::filesystem::path& dir) {
             std::weak_ptr<const DRW_DxfEntitiesDeliverySource> delivery;EntitiesOriginProbe reader;
             {dx_data owned;if(!reader.fileImport(path.string(),&owned,false)||!complete(owned))return false;
                 const auto& row=A::entitiesDeliveries(owned)[0];model=(*row.observed)[0].model;raw=(*row.observed)[4].raw;delivery=row.delivery;}
-            if(!model.expired()||!raw.expired()||!delivery.expired())return false;++teardowns;
+            if(!model.expired()||!raw.expired()||!delivery.expired())return false;
+            ++teardowns;
         }
         stage.name="aborted imports";
         for(unsigned kind=0;kind<2u;++kind) {
             auto broken=tags;
             if(!kind)broken.resize(slot(broken,5,"F201")+1u);
             else broken.erase(broken.end()-2);
-            if(!write(path,broken,binary))return false;EntitiesOriginProbe reader;dx_data data;
+            if(!write(path,broken,binary))return false;
+            EntitiesOriginProbe reader;dx_data data;
             if(reader.fileImport(path.string(),&data,false)||dx_iface::entitiesDeliveryReport(data).state!=S::ImportFailed)return false;
-            if(!write(path,tags,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++aborts;
+            if(!write(path,tags,binary))return false;
+            dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++aborts;
         }
         stage.name="selected TABLE origin gates";
-        if(!write(path,bindingSource("AC1032"),binary))return false;EntitiesOriginProbe tables;dx_data data;
+        if(!write(path,bindingSource("AC1032"),binary))return false;
+        EntitiesOriginProbe tables;dx_data data;
         if(!tables.fileImport(path.string(),&data,false)||!complete(data))return false;
         auto binding=dx_iface::tableContentBindingReport(data);
-        if(binding.state!=B::Bound||binding.entitiesDeliveredTablesMatched!=1u||binding.outputEligible)return false;++tableOrigins;
+        if(binding.state!=B::Bound||binding.entitiesDeliveredTablesMatched!=1u||binding.outputEligible)return false;
+        ++tableOrigins;
         EntitiesOriginProbe absent;absent.enabled=false;dx_data noDelivery;if(!absent.fileImport(path.string(),&noDelivery,false))return false;
         binding=dx_iface::tableContentBindingReport(noDelivery);
-        if(binding.state!=B::EntitiesDeliveryMissing||!binding.directRolesBound||binding.outputEligible)return false;++tableOrigins;
+        if(binding.state!=B::EntitiesDeliveryMissing||!binding.directRolesBound||binding.outputEligible)return false;
+        ++tableOrigins;
         EntitiesOriginProbe unfinished;unfinished.dropEnd=true;dx_data partial;if(!unfinished.fileImport(path.string(),&partial,false))return false;
         binding=dx_iface::tableContentBindingReport(partial);
-        if(binding.state!=B::EntitiesDeliveryIncomplete||!binding.directRolesBound||binding.outputEligible)return false;++tableOrigins;
+        if(binding.state!=B::EntitiesDeliveryIncomplete||!binding.directRolesBound||binding.outputEligible)return false;
+        ++tableOrigins;
         auto& origin=A::mutableEntitiesDeliveries(data)[0];const auto owner=origin.delivery;
         origin.delivery=std::make_shared<const DRW_DxfEntitiesDeliverySource>(*owner);binding=dx_iface::tableContentBindingReport(data);
-        if(binding.state!=B::EntitiesDeliveryMismatch||!binding.directRolesBound||binding.outputEligible)return false;++tableOrigins;
+        if(binding.state!=B::EntitiesDeliveryMismatch||!binding.directRolesBound||binding.outputEligible)return false;
+        ++tableOrigins;
         origin.delivery=owner;if(dx_iface::tableContentBindingReport(data).state!=B::Bound)return false;++tableOrigins;
         struct CopyInsert final:dx_iface {
             unsigned projections=0u;

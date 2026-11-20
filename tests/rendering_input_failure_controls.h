@@ -38,7 +38,8 @@ bool renderingInputFailureTests(const std::filesystem::path& dir) {
         dx_iface::RenderingInputReport report;
         const auto before=symbolFailedAllocations;
         {SymbolAllocationFailure none(0);report=dx_iface::renderingInputReport(clean);}
-        if(symbolFailedAllocations!=before||!report.publicationInputsCaptured||report.fullModelsMatched||report.originalSourcesMatched||report.outputEligible)return fail(__LINE__);++queries;
+        if(symbolFailedAllocations!=before||!report.publicationInputsCaptured||report.fullModelsMatched||report.originalSourcesMatched||report.outputEligible)return fail(__LINE__);
+        ++queries;
         for(unsigned phase:{1u,2u}) {
             unsigned untouched=0u;
             for(long offset=0;offset<256;++offset) {
@@ -56,7 +57,8 @@ bool renderingInputFailureTests(const std::filesystem::path& dir) {
                     ++unreached;++untouched;
                 }
                 dx_data fixed;reader.offset=-1;
-                if(!reader.fileImport(path.string(),&fixed,false)||!reader.good||!dx_iface::renderingInputReport(fixed).publicationInputsCaptured)return fail(__LINE__);++retries;
+                if(!reader.fileImport(path.string(),&fixed,false)||!reader.good||!dx_iface::renderingInputReport(fixed).publicationInputsCaptured)return fail(__LINE__);
+                ++retries;
                 if(untouched==2u)break;
                 if(offset==255)return fail(__LINE__); // finite calibration must close
             }
@@ -85,7 +87,8 @@ bool renderingModelFailureTests(const std::filesystem::path& dir) {
         if(!reader.fileImport(path.string(),&data,false)||!reader.good||!dx_iface::renderingModelReport(data).modeledStateMatched)return fail(__LINE__);
         const auto before=symbolFailedAllocations;dx_iface::RenderingModelReport report;
         {SymbolAllocationFailure none(0);report=dx_iface::renderingModelReport(data);}
-        if(symbolFailedAllocations!=before||!report.modeledStateMatched||report.propertyCoverageMatched||report.originalSourcesMatched||report.outputEligible)return fail(__LINE__);++queries;
+        if(symbolFailedAllocations!=before||!report.modeledStateMatched||report.propertyCoverageMatched||report.originalSourcesMatched||report.outputEligible)return fail(__LINE__);
+        ++queries;
         unsigned untouched=0u;
         for(long offset=0;offset<256;++offset) {
             auto row=A::renderingReplayRow(data);A::resetRenderingReplay(data);
@@ -101,7 +104,8 @@ bool renderingModelFailureTests(const std::filesystem::path& dir) {
                 ++unreached;++untouched;
             }
             A::repeatRenderingModels(reader,data);
-            if(!dx_iface::renderingModelReport(data).modeledStateMatched)return fail(__LINE__,offset);++retries;
+            if(!dx_iface::renderingModelReport(data).modeledStateMatched)return fail(__LINE__,offset);
+            ++retries;
             if(untouched==2u)break;
             if(offset==255)return fail(__LINE__,offset);
         }

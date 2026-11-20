@@ -607,7 +607,8 @@ bool tableLegacyPresenceControls(const std::filesystem::path& dir) {
                 if(fault==0u)data.sourceVersion=DRW::AC1021;
                 if(fault==1u)data.sourceFormat=dx_source_format::DWG;
                 io.mutateVersion=fault==2u;io.mutateFormat=fault==3u;
-                if(fault==4u)++data.importGeneration;io.mutateGeneration=fault==5u;
+                if(fault==4u)++data.importGeneration;
+                io.mutateGeneration=fault==5u;
                 if(!tableExportSentinel(out,true)||io.fileExport(out.string(),DRW::AC1018,outputBinary,&data,false,strict)
                     ||!tableExportSentinel(out)||identities!=tableExportIdentities(data)
                     ||!DxIfaceTableSourceTestAccess::sameTableBody(baseline,table))return fail("source provenance mutation");

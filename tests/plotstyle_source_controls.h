@@ -129,10 +129,12 @@ bool plotSourceTests(const std::filesystem::path& dir) {
         const auto wire=attdefWireTags(path,encoding==2u);const auto& physical=*A::identityInput(data)->source;
         for(const auto& item:A::plots(data)->records) {
             const auto& p=physical.records.at(item.second->physical);const auto& marker=wire.at(p.marker.ordinal-1u);
-            if(marker.code||marker.text!=p.name||marker.begin!=p.marker.beginOffset||marker.end!=p.marker.endOffset)return false;++markers;
+            if(marker.code||marker.text!=p.name||marker.begin!=p.marker.beginOffset||marker.end!=p.marker.endOffset)return false;
+            ++markers;
             for(const auto& ref:item.second->references){const auto& scalar=wire.at(p.marker.ordinal+ref.groupIndex);
                 std::uint32_t handle=0u;const auto parsed=std::from_chars(scalar.text.data(),scalar.text.data()+scalar.text.size(),handle,16);
-                if(scalar.code!=ref.code||parsed.ec!=std::errc{}||parsed.ptr!=scalar.text.data()+scalar.text.size()||handle!=ref.value)return false;++spans;}
+                if(scalar.code!=ref.code||parsed.ec!=std::errc{}||parsed.ptr!=scalar.text.data()+scalar.text.size()||handle!=ref.value)return false;
+                ++spans;}
         }
         {const auto& graph=*A::plots(data);if(!graph.root)return false;const auto& record=physical.records.at(graph.root->physical);
             const auto& key=wire.at(record.marker.ordinal+graph.rootKeyGroup);const auto& target=wire.at(record.marker.ordinal+graph.rootTargetGroup);
@@ -140,7 +142,8 @@ bool plotSourceTests(const std::filesystem::path& dir) {
             spans+=2u;}
         for(auto& dictionary:data.dictionaryWithDefaults)dictionary.m_defaultEntryHandle=0xFFFFu;
         for(auto& placeholder:data.rawPlaceholders)placeholder.parentHandle=0xFFFFu;
-        if(!ready(data,form))return false;++immutable;++profiles;
+        if(!ready(data,form))return false;
+        ++immutable;++profiles;
     }
     for(unsigned encoding=0u;encoding<3u;++encoding) {
         const auto good=plotSourceDocument("AC1032",false,0u);
@@ -173,29 +176,34 @@ bool plotSourceTests(const std::filesystem::path& dir) {
                     withheld=row.reason==dx_iface::DependencyReason::OriginalUnavailable;
                 if(!withheld)return false;
             }
-            if(!retry(reader))return false;++refusals;
+            if(!retry(reader))return false;
+            ++refusals;
         }
         for(unsigned phase=1u;phase<=3u;++phase)for(unsigned fault=0u;fault<4u;++fault) {
             PlotSourceProbe reader;if(fault==0u)reader.skip=phase;else if(fault==1u)reader.copy=phase;else if(fault==2u)reader.duplicate=phase;else reader.throwAt=phase;
             dx_data data;bool threw=false;try{if(!writeBlockBinding(path,good,encoding))return false;(void)reader.fileImport(path.string(),&data,false);}catch(const std::runtime_error&){threw=true;}
             if((fault==3u)!=threw||dx_iface::plotStyleSourceReport(data).originalSourcesMatched||dx_iface::dependencyReport(data).originalTargetsMatched)return false;
-            if(!retry(reader))return false;++callbacks;
+            if(!retry(reader))return false;
+            ++callbacks;
         }
         for(unsigned mutation=1u;mutation<=2u;++mutation) {
             PlotSourceProbe reader;reader.mutate=mutation;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||dx_iface::plotStyleSourceReport(data).originalSourcesMatched||dx_iface::dependencyReport(data).originalTargetsMatched)return false;
-            if(!retry(reader))return false;++callbacks;
+            if(!retry(reader))return false;
+            ++callbacks;
         }
         {PlotSourceProbe reader;reader.disableTyped=true;dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||!reader.good||dx_iface::plotStyleSourceReport(data).records!=1u
                 ||dx_iface::plotStyleSourceReport(data).originalSourcesMatched||dx_iface::dependencyReport(data).originalTargetsMatched)return false;
-            if(!retry(reader))return false;++callbacks;}
+            if(!retry(reader))return false;
+            ++callbacks;}
         PlotSourceProbe baseline;dx_data base;if(!writeBlockBinding(path,good,encoding)||!baseline.fileImport(path.string(),&base,false)||!ready(base,0u))return false;
         const auto receipt=dx_iface::plotStyleSourceReport(base);const std::array<std::size_t,4> limits{receipt.records,A::plotGroups(base),receipt.bytes,receipt.work};
         for(unsigned which=0u;which<4u;++which)for(bool under:{false,true}) {
             PlotSourceProbe reader;reader.limitKind=which;reader.limit=limits[which]-(under?1u:0u);dx_data data;
             if(!reader.fileImport(path.string(),&data,false)||ready(data,0u)==under||(!under&&dx_iface::plotStyleSourceReport(data).state!=S::SourcesReady))return false;
-            if(!retry(reader))return false;++quotas;
+            if(!retry(reader))return false;
+            ++quotas;
         }
         for(bool alias:{false,true}) {
             auto saved=A::plots(base);A::substitutePlots(base,alias);

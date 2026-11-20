@@ -17,7 +17,8 @@ Tags viewUcsTables(unsigned flags,bool rich) {
 }
 Tags viewUcsDocument(const std::string& version,bool blocks,unsigned flags,bool rich) {
     auto tags=layoutDependencyDocument(version,blocks,0u);const auto tables=viewUcsTables(flags,rich);auto at=slot(tags,2,"TABLES")+1u;
-    while(tags[at].code!=0||tags[at].value!="ENDSEC")++at;tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),tables.begin(),tables.end());
+    while(tags[at].code!=0||tags[at].value!="ENDSEC")++at;
+    tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(at),tables.begin(),tables.end());
     layoutDependencySet(tags,"AcDbPlotSettings",74,"3");layoutDependencySet(tags,"AcDbPlotSettings",6,rich?"lOoKuP-\\U+00E9":"LOOKUP-é");
     layoutDependencySet(tags,"AcDbLayout",76,"1");layoutDependencySet(tags,"AcDbLayout",345,"E711");layoutDependencySet(tags,"AcDbLayout",346,"E712");
     for(const char* handle:{"E701","E711","E712"})appendBlockFields(tags,handle,{{1001,"REGISTERED_APP"},{1003,"0"},{1005,"705"},{1010,"1"},{1020,"2"},{1030,"3"},{1070,"7"}});
@@ -44,17 +45,20 @@ struct ViewUcsProbe:dx_iface {
     void addDxfViewUcsSource(const DRW_TableEntry& v,const DRW_RawDxfObject& r) override {
         inspect(v,&r,3u);auto& actual=const_cast<DRW_TableEntry&>(v);const auto flags=actual.flags;const auto state=dxfViewUcs::Decoder::observe(v);
         if(allocationPhase==3&&v.handle==0xE701u){const auto before=symbolFailedAllocations;{SymbolAllocationFailure fault(allocation);dx_iface::addDxfViewUcsSource(v,r);}allocationReached=symbolFailedAllocations!=before;return;}
-        if(mutate==3)actual.flags^=16;if(cursor==3)DrwObjectEncodeTestAccess::commonMask(actual,static_cast<std::uint8_t>(state.second^1u));
+        if(mutate==3)actual.flags^=16;
+        if(cursor==3)DrwObjectEncodeTestAccess::commonMask(actual,static_cast<std::uint8_t>(state.second^1u));
         if(!publicOnly&&skip!=3){if(copy==3){const DRW_RawDxfObject clone(r);dx_iface::addDxfViewUcsSource(v,clone);}else dx_iface::addDxfViewUcsSource(v,r);
             if(duplicate==3)dx_iface::addDxfViewUcsSource(v,r);}
         actual.flags=flags;DrwObjectEncodeTestAccess::commonMask(actual,state.second);
-        if(disableSource)enabled=false;if(throwAt==3)throw std::runtime_error("VIEW/UCS source publication");
+        if(disableSource)enabled=false;
+        if(throwAt==3)throw std::runtime_error("VIEW/UCS source publication");
     }
     template<class Model,class Call>void typed(const Model& v,Call call) {
         inspect(v,nullptr,1u);auto& actual=const_cast<Model&>(v);const auto flags=actual.flags;const auto state=dxfViewUcs::Decoder::observe(v);
         // Isolate the actual observer from later legacy live-container copies.
         if(allocationPhase==1&&v.handle==0xE701u){const auto before=symbolFailedAllocations;{SymbolAllocationFailure fault(allocation);DxIfaceTableSourceTestAccess::observeViewUcs(*this,v);}allocationReached=symbolFailedAllocations!=before;model=nullptr;raw=nullptr;return;}
-        if(mutate==1)actual.flags^=16;if(cursor==1)DrwObjectEncodeTestAccess::commonMask(actual,static_cast<std::uint8_t>(state.second^1u));
+        if(mutate==1)actual.flags^=16;
+        if(cursor==1)DrwObjectEncodeTestAccess::commonMask(actual,static_cast<std::uint8_t>(state.second^1u));
         if(!publicOnly&&skip!=1){if(copy==1){const Model clone(v);call(clone);}else call(v);if(duplicate==1)call(v);}
         actual.flags=flags;DrwObjectEncodeTestAccess::commonMask(actual,state.second);model=nullptr;raw=nullptr;
         if(throwAt==1)throw std::runtime_error("VIEW/UCS typed publication");
@@ -80,7 +84,8 @@ bool viewUcsSourceTests(const std::filesystem::path& dir) {
         }
         const auto wire=attdefWireTags(path,encoding==2u);const auto& physical=*A::identityInput(data)->source;
         for(const auto& item:A::viewUcs(data)->records){const auto& row=*item.second;const auto& original=physical.records.at(row.physical);const auto& marker=wire.at(original.marker.ordinal-1u);
-            if(marker.code||marker.text!=(row.input->view?"VIEW":"UCS")||marker.begin!=original.marker.beginOffset||marker.end!=original.marker.endOffset)return fail(__LINE__);++markers;
+            if(marker.code||marker.text!=(row.input->view?"VIEW":"UCS")||marker.begin!=original.marker.beginOffset||marker.end!=original.marker.endOffset)return fail(__LINE__);
+            ++markers;
             if(row.profile.spans.size()!=row.input->raw->groups.size())return fail(__LINE__);
             for(const auto& span:row.profile.spans){const auto& w=wire.at(original.marker.ordinal+span.group);const auto& v=row.input->raw->groups.at(span.group);
                 if(w.code!=span.code||w.code!=v.code())return fail(__LINE__);
@@ -89,7 +94,8 @@ bool viewUcsSourceTests(const std::filesystem::path& dir) {
                 else if(v.type()!=DRW_Variant::STRING||!v.content.s||*v.content.s!=w.text)return fail(__LINE__);
                 Role role=Role::None;switch(w.code){case 5:role=Role::Self;break;case 330:role=Role::Owner;break;case 2:role=Role::Name;break;case 345:role=Role::NamedUcs;break;
                     case 346:role=Role::BaseUcs;break;case 1001:role=Role::AppId;break;case 1003:role=Role::Layer;break;case 1005:role=Role::Object;break;default:break;}
-                if(span.role!=role)return fail(__LINE__);if(role==Role::Self||role==Role::Owner||role==Role::NamedUcs||role==Role::BaseUcs||role==Role::Object){
+                if(span.role!=role)return fail(__LINE__);
+                if(role==Role::Self||role==Role::Owner||role==Role::NamedUcs||role==Role::BaseUcs||role==Role::Object){
                     std::uint32_t target=0u;const auto parsed=std::from_chars(w.text.data(),w.text.data()+w.text.size(),target,16);
                     if(parsed.ec!=std::errc{}||parsed.ptr!=w.text.data()+w.text.size()||target!=span.target)return fail(__LINE__);}
                 ++spans;
@@ -130,15 +136,18 @@ bool viewUcsSourceTests(const std::filesystem::path& dir) {
             else appendBlockFields(tags,fault==13u?"E701":"E711",{{1001,"REGISTERED_APP"},{1010,"1"}});
             ViewUcsProbe reader;dx_data data;if(!writeBlockBinding(path,tags,encoding))return fail(__LINE__);const bool parsed=reader.fileImport(path.string(),&data,false);
             if(parsed==parseFailure||ready(data)){std::cerr<<"field fault="<<fault<<" parsed="<<parsed<<'\n';return fail(__LINE__);}
-            if(!retry(reader))return fail(__LINE__);++fields;
+            if(!retry(reader))return fail(__LINE__);
+            ++fields;
         }
         dx_iface reader;dx_data base;if(!writeBlockBinding(path,good,encoding)||!reader.fileImport(path.string(),&base,false)||!ready(base))return fail(__LINE__);
         const auto report=dx_iface::viewUcsSourceReport(base);const std::size_t limits[]{report.records,A::viewUcsGroups(base),report.bytes,report.work};
         for(unsigned which=0u;which<4u;++which)for(bool under:{false,true}){dx_iface codec;dx_data actual;A::viewUcsLimit(actual,which,limits[which]-(under?1u:0u));
-            if(!codec.fileImport(path.string(),&actual,false)||ready(actual)==under||(under&&dx_iface::viewUcsSourceReport(actual).state!=S::CaptureFailed)||!retry(codec))return fail(__LINE__);++quotas;}
+            if(!codec.fileImport(path.string(),&actual,false)||ready(actual)==under||(under&&dx_iface::viewUcsSourceReport(actual).state!=S::CaptureFailed)||!retry(codec))return fail(__LINE__);
+            ++quotas;}
         for(unsigned fault=0u;fault<6u;++fault){dx_data actual;if(!reader.fileImport(path.string(),&actual,false)||!ready(actual))return fail(__LINE__);
             if(fault<4u)A::substituteViewUcs(actual,fault/2u,fault%2u!=0u);else {dx_iface other;dx_data d;if(!other.fileImport(path.string(),&d,false)||!ready(d))return fail(__LINE__);A::transplantViewUcs(actual,d,fault==5u);}
-            if(dx_iface::viewUcsSourceReport(actual).state!=S::ContextMismatch||dx_iface::dependencyReport(actual).originalTargetsMatched||!retry(reader))return fail(__LINE__);++contexts;}
+            if(dx_iface::viewUcsSourceReport(actual).state!=S::ContextMismatch||dx_iface::dependencyReport(actual).originalTargetsMatched||!retry(reader))return fail(__LINE__);
+            ++contexts;}
         for(int phase:{3,1})for(long offset=0;offset<8;++offset){ViewUcsProbe probe;probe.allocationPhase=phase;probe.allocation=offset;dx_data actual;
             if(!probe.fileImport(path.string(),&actual,false))return fail(__LINE__);
             if(probe.allocationReached){if(dx_iface::viewUcsSourceReport(actual).state!=S::CaptureFailed||ready(actual))return fail(__LINE__);++captureFailures;}
@@ -161,12 +170,15 @@ bool viewUcsSourceTests(const std::filesystem::path& dir) {
         const auto first=slot(tables,2,ucs?"UCS":"VIEW")-1u;auto end=first+1u;while(tables[end].code!=0||tables[end].value!="ENDTAB")++end;++end;
         Tags tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1032"},{0,"ENDSEC"},{0,"SECTION"},{2,"TABLES"}};
         tags.insert(tags.end(),tables.begin()+static_cast<std::ptrdiff_t>(first),tables.begin()+static_cast<std::ptrdiff_t>(end));tags.insert(tags.end(),{{0,"ENDSEC"},{0,"EOF"}});
-        if(!write(path,tags,binary))return fail(__LINE__);dxfRW input(path.string().c_str());ViewUcsProbe consumer;consumer.publicOnly=true;consumer.publicReader=&input;
+        if(!write(path,tags,binary))return fail(__LINE__);
+        dxfRW input(path.string().c_str());ViewUcsProbe consumer;consumer.publicOnly=true;consumer.publicReader=&input;
         consumer.enabled=mode!=4u;consumer.expectView=mode<4u;consumer.throwAt=mode==1u?3:mode==2u?1:0;consumer.disableSource=mode==3u;ViewUcsProbe::V view;
         DRW_View sentinel;DRW_RawDxfObject rawSentinel;view.model=&sentinel;view.source=&rawSentinel;
-        if(input.getDxfViewUcsSourceView(view)||view.model||view.source)return fail(__LINE__);bool caught=false;try{if(!input.read(&consumer,false))return fail(__LINE__);}catch(const std::runtime_error&){caught=true;}
+        if(input.getDxfViewUcsSourceView(view)||view.model||view.source)return fail(__LINE__);
+        bool caught=false;try{if(!input.read(&consumer,false))return fail(__LINE__);}catch(const std::runtime_error&){caught=true;}
         view.model=&sentinel;view.source=&rawSentinel;
-        if(caught!=(mode==1u||mode==2u)||!consumer.good||input.getDxfViewUcsSourceView(view)||view.model||view.source)return fail(__LINE__);++lifetimes;
+        if(caught!=(mode==1u||mode==2u)||!consumer.good||input.getDxfViewUcsSourceView(view)||view.model||view.source)return fail(__LINE__);
+        ++lifetimes;
     }
     const auto output=dir/"view-ucs-flags-output.dxf";
     for(bool binary:{false,true}){dx_iface exporter;const auto roundtrip=[&](dx_data& data,int flag){if(!exporter.fileExport(output.string(),DRW::AC1032,binary,&data,false)){std::cerr<<"VIEW/UCS export flags="<<flag<<'\n';return false;}

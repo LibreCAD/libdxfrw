@@ -58,7 +58,8 @@ bool tableValueScopeTests(const std::filesystem::path& dir) {
         for(int code:{93,94}) {
             auto tags=good;const auto marker=blockField(tags,"501",301);
             auto field=marker+1u;while(field<tags.size()&&tags[field].code!=code)++field;
-            if(field==tags.size())return false;tags[field].value="-1";
+            if(field==tags.size())return false;
+            tags[field].value="-1";
             dx_iface reader;dx_data data;if(!write(path,tags,binary)||reader.fileImport(path.string(),&data,false)||!retry(reader))return false;
             ++retries;
         }
