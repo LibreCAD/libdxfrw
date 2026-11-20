@@ -9980,10 +9980,10 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
         }
         return dictionaries==1u && placeholders==1u;
     };
-    unsigned sources = 0u, exports = 0u, reexports = 0u, strict = 0u, preflightRetries = 0u, lateRetries = 0u, snapshotBudgets = 0u, edgeBudgets = 0u;
+    unsigned sources = 0u, exports = 0u, reexports = 0u, strict = 0u, preflightRetries = 0u, lateRetries = 0u, snapshotBudgets = 0u, edgeBudgets = 0u, ac1027Refusals = 0u;
     for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (unsigned format = 0u; format != 3u; ++format) {
         const bool native = format == 2u;
-        if (plotSourceOnly && ((version != DRW::AC1015 && version != DRW::AC1018 && version != DRW::AC1021) || native)) continue;
+        if (plotSourceOnly && native) continue;
         if (legacyOutputOnly && (version != DRW::AC1015 || native)) continue;
         if (faultsOnly && (native ? version != DRW::AC1015 && version != DRW::AC1032 : version != DRW::AC1032)) continue;
         sourceHasCustomMetadata = !native;
@@ -10000,7 +10000,7 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
         dx_data data; dx_iface importer;
         if (!importer.fileImport((native ? dwg : dxf).string(),&data,false) || !check(data,true)) return fail("XRECORD extension actual source checks failed");
         ++sources;
-        if (plotSourceOnly && (version==DRW::AC1018 || version==DRW::AC1021)) {
+        if (plotSourceOnly && version!=DRW::AC1015) {
             const auto report=dx_iface::plotStyleSourceReport(data);
             const bool legacy=version==DRW::AC1018;
             if ((legacy && (dx_iface::identitySourceReport(data).state!=dx_iface::IdentitySourceState::NotCaptured
@@ -10078,10 +10078,9 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
                     && output.legacyLiveBodiesMatched && output.legacyLiveLayerMatched;
             };
             unsigned retries=0u;
-            const std::array<DRW::Version,5> outputVersions=legacy
-                ?std::array<DRW::Version,5>{{DRW::AC1015,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}}
-                :std::array<DRW::Version,5>{{DRW::AC1015,DRW::AC1018,DRW::AC1024,DRW::AC1027,DRW::AC1032}};
-            for(const auto outputVersion:outputVersions)
+            const std::array<DRW::Version,6> outputVersions{{DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}};
+            for(const auto outputVersion:outputVersions) {
+            if(outputVersion==version)continue;
             for(const bool binary:{false,true}) {
                 if(!exporter.fileExport(target.string(),outputVersion,binary,&data,false,true) || !readback())
                     return fail("AC1018 default plot conversion or target CLASS readback failed");
@@ -10114,7 +10113,7 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
                 exporter.injectUnexpectedLayer=false;
                 if(!exporter.fileExport(target.string(),outputVersion,binary,&data,false,true) || !readback())
                     return fail("staged LAYER rejection did not retry");
-            }
+            }}
             if(retries!=90u)return fail("AC1018 default plot refusal/retry matrix skipped a case");
             seed();Access::setPlotSourceCaptureFailure(data,true);
             const bool acceptedFailedCapture=exporter.fileExport(target.string(),DRW::AC1015,false,&data,false,true);
@@ -10354,6 +10353,21 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
                 if (accepted || bytes != sentinel) return fail("XRECORD extension source bypassed strict admission");
                 ++strict;
             }
+            if (native && version==DRW::AC1027) {
+                // The source-reference gate also refuses partial conversion
+                // for this generated AC1027 profile. Check the actual
+                // destination and source state instead of treating it as a
+                // successful output or silently skipping the cell.
+                const std::string sentinel="XRECORD_EXTENSION_AC1027_PARTIAL_REFUSAL";
+                {std::ofstream prior(target,std::ios::binary);prior<<sentinel;}
+                const bool accepted=write(outputVersion,binary);
+                std::ifstream prior(target,std::ios::binary);
+                const std::string bytes((std::istreambuf_iterator<char>(prior)),{});
+                if(accepted || bytes!=sentinel || !check(data,true) || !Access::unchanged(importer))
+                    return fail("AC1027 XRECORD partial refusal did not preserve state");
+                ++ac1027Refusals;
+                continue;
+            }
             if (!write(outputVersion,binary) || !captured || !retained || !readback())
                 return fail("XRECORD extension facade projection/readback failed: source="
                     + std::to_string(static_cast<int>(version)) + " output="
@@ -10453,10 +10467,11 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
         if (Access::xrecordWriteSourceBytes(exporter) || Access::xrecordWriteSourceCounts(exporter) != std::make_pair(std::size_t(0),std::size_t(0)))
             return fail("XRECORD extension snapshots remained retained after write attempt");
     }
-    if (plotSourceOnly) return sources == 6u || fail("default plot source capture skipped a version or encoding");
+    if (plotSourceOnly) return sources == 12u || fail("default plot source capture skipped a version or encoding");
     if (legacyOutputOnly) return (sources==2u && exports==24u && reexports==24u)
         || fail("AC1015 default-plot output matrix skipped a cell");
-    if (sources != (faultsOnly ? 4u : 18u) || exports != (faultsOnly ? 0u : 216u) || reexports != (faultsOnly ? 0u : 216u)
+    if (sources != (faultsOnly ? 4u : 18u) || exports != (faultsOnly ? 0u : 204u) || reexports != (faultsOnly ? 0u : 204u)
+        || ac1027Refusals != (faultsOnly ? 0u : 12u)
         || strict != (faultsOnly ? 0u : 12u) || preflightRetries != (faultsOnly ? 96u : 0u) || lateRetries != (faultsOnly ? 128u : 0u)
         || snapshotBudgets != (faultsOnly ? 16u : 0u) || edgeBudgets != (faultsOnly ? 8u : 0u)) return fail("XRECORD extension matrix skipped a cell");
     std::cout << "XRECORD extension sources=" << sources << " exports=" << exports << " reexports=" << reexports

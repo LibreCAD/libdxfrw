@@ -273,7 +273,7 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
     }
     r.state=a->state;r.physicalRecords=a->physicalRecords;r.plotTargets=a->plotTargets.size();r.namedTargets=a->namedTargets;r.defaultTarget=a->defaultTarget;
     r.originalSourcesMatched=r.state==S::SourcesReady&&r.records&&r.records==r.bodyMatched&&r.records==r.originsBound;
-    if((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected||(data.sourceVersion==DRW::AC1021&&s.legacyPlotClassCount==2u)) && s.legacyPlotClassValid && s.legacyPlotClassCount==2u
+    if((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected||(data.sourceVersion>=DRW::AC1021&&data.sourceVersion<=DRW::AC1032&&s.legacyPlotClassCount==2u)) && s.legacyPlotClassValid && s.legacyPlotClassCount==2u
         &&s.legacyPlotClassSeen[0]&&s.legacyPlotClassSeen[1]&&s.identityInput&&s.identityInput->source) {
         const auto& sections=s.identityInput->source->sections;
         r.legacyClassRowsMatched=sections.size()<=64u && std::count_if(sections.begin(),sections.end(),[](const auto& section) {
@@ -296,7 +296,7 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
     // The exact generated default-plot object shape is source evidence,
     // not permission to export. Preserve every modeled and raw source field
     // for the later transactional writer and its staged output proof.
-    if((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected||(data.sourceVersion==DRW::AC1021&&s.legacyPlotClassCount==2u)) && r.originalSourcesMatched && a->root && a->root->input
+    if((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected||(data.sourceVersion>=DRW::AC1021&&data.sourceVersion<=DRW::AC1032&&s.legacyPlotClassCount==2u)) && r.originalSourcesMatched && a->root && a->root->input
         &&a->root->input->model && a->dictionary==0xEu && a->defaultTarget==0xFu
         &&a->namedTargets==1u && a->records.size()==2u) try {
         const auto dictionary=a->records.find(a->dictionary), placeholder=a->records.find(a->defaultTarget);
@@ -341,12 +341,12 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
     } catch (...) { r.legacyBodiesMatched=false;r.legacyLiveBodiesMatched=false; }
     // The selected source has exactly one physical LAYER and one plot-style
     // reference. This comparison still grants no object or output authority.
-    if((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected||(data.sourceVersion==DRW::AC1021&&s.legacyPlotClassCount==2u)) && r.legacyBodiesMatched && s.identityInput && s.identityInput->source
+    if((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected||(data.sourceVersion>=DRW::AC1021&&data.sourceVersion<=DRW::AC1032&&s.legacyPlotClassCount==2u)) && r.legacyBodiesMatched && s.identityInput && s.identityInput->source
         &&s.identityInput->source->records.size()<=4096u
         &&!s.resourceCaptureFailed &&!s.resourceProofCaptureFailed &&!s.resourceOriginCaptureFailed &&s.resourceOriginPending.empty()
-        &&((data.sourceVersion==DRW::AC1021 && s.resourceOriginInputs.size()==s.resourceOriginAudits.size()
+        &&((data.sourceVersion>=DRW::AC1021 && s.resourceOriginInputs.size()==s.resourceOriginAudits.size()
             &&s.resourceOriginInputOwners.size()==s.resourceOriginInputs.size() &&s.resourceOriginAuditOwners.size()==s.resourceOriginAudits.size())
-           ||(data.sourceVersion!=DRW::AC1021 && s.resourceOriginRecords==1u &&s.resourceOriginInputs.size()==1u
+           ||(data.sourceVersion<DRW::AC1021 && s.resourceOriginRecords==1u &&s.resourceOriginInputs.size()==1u
             &&s.resourceOriginAudits.size()==1u &&s.resourceOriginInputOwners.size()==1u &&s.resourceOriginAuditOwners.size()==1u))) try {
         const auto& physical=s.identityInput->source->records;
         const auto count=std::count_if(physical.begin(),physical.end(),[](const auto& row) {
@@ -361,14 +361,14 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
             &&input->first==0x10u && auditIt->first==input->first
             &&same(audit->input,input->second) && resource!=s.resources.end()
             &&resource->second.family==dx_tableResourceFamily::Layer
-            &&(data.sourceVersion==DRW::AC1021?(resource->second.rawTypedMatched&&!resource->second.rawTypedMismatch):resource->second.legacyPlotLayerRawTypedMatched)
+            &&(data.sourceVersion>=DRW::AC1021?(resource->second.rawTypedMatched&&!resource->second.rawTypedMismatch):resource->second.legacyPlotLayerRawTypedMatched)
             &&same(audit->input->raw,resource->second.raw) && same(audit->input->model,resource->second.model)
             &&audit->input->context && audit->input->context->captured
-            &&audit->input->context->sourceVersion==data.sourceVersion && audit->input->context->codecVersion==(data.sourceVersion==DRW::AC1021?DRW::AC1021:DRW::AC1015)
+            &&audit->input->context->sourceVersion==data.sourceVersion && audit->input->context->codecVersion==(data.sourceVersion>=DRW::AC1021?DRW::AC1021:DRW::AC1015)
             &&audit->input->context->binary!=audit->input->raw->hasRawValues && audit->input->raw->m_version==data.sourceVersion
             &&audit->physical<physical.size()
             &&audit->input->kind==dxfRW::DxfResourceSourceView::Kind::Layer && audit->input->paired
-            &&(data.sourceVersion==DRW::AC1021?(audit->originBound&&audit->bodyMatched):(audit->legacyPlotLayerOriginBound&&audit->legacyPlotLayerBodyMatched))&&audit->stateComplete
+            &&(data.sourceVersion>=DRW::AC1021?(audit->originBound&&audit->bodyMatched):(audit->legacyPlotLayerOriginBound&&audit->legacyPlotLayerBodyMatched))&&audit->stateComplete
             &&audit->input->index<s.resourceOriginInputOwners.size() &&audit->index<s.resourceOriginAuditOwners.size()
             &&same(audit,s.resourceOriginAuditOwners[audit->index])
             &&same(audit->input,s.resourceOriginInputOwners[audit->input->index])&&same(audit->identities,s.identityAudit)

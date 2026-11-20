@@ -70266,9 +70266,10 @@ void dx_iface::addDxfClassShape(const DRW_Class& value, bool known, InstanceCoun
     if(!source.entitiesReadInput || !source.entitiesReadInput->getDxfReadContext(live)) {
         source.legacyPlotClassValid=false;return;
     }
-    if(live.sourceVersion!=DRW::AC1015 && !(live.sourceVersion==DRW::AC1018 && legacyPlotAc1018Enabled()) && live.sourceVersion!=DRW::AC1021)return;
-    if(live.sourceVersion==DRW::AC1021 && (m_legacyIdentityObservationEnabled || m_wholeEnabled))return;
-    if(live.codecVersion!=(live.sourceVersion==DRW::AC1021?DRW::AC1021:DRW::AC1015) || ++source.legacyPlotClassCount>2u) {
+    const bool modern=live.sourceVersion>=DRW::AC1021 && live.sourceVersion<=DRW::AC1032;
+    if(live.sourceVersion!=DRW::AC1015 && !(live.sourceVersion==DRW::AC1018 && legacyPlotAc1018Enabled()) && !modern)return;
+    if(modern && (m_legacyIdentityObservationEnabled || m_wholeEnabled))return;
+    if(live.codecVersion!=(modern?DRW::AC1021:DRW::AC1015) || ++source.legacyPlotClassCount>2u) {
         source.legacyPlotClassValid=false;return;
     }
     const char* records[]={"ACDBDICTIONARYWDFLT","ACDBPLACEHOLDER"};
@@ -96125,15 +96126,9 @@ bool dx_iface::hasUnchangedLegacyPlot() const noexcept {
     if(!state.legacyPlotCrossVersion)return true;
     if(!cData || cData!=state.owner || cData->importGeneration!=state.generation || cData->sourceFormat!=dx_source_format::DXF
         ||state.defaultPlotDictionarySource!=0xEu ||state.defaultPlotPlaceholderSource!=0xFu
-        ||!((cData->sourceVersion==DRW::AC1018 && (state.legacyPlotTargetVersion==DRW::AC1015
-                ||state.legacyPlotTargetVersion==DRW::AC1021 ||state.legacyPlotTargetVersion==DRW::AC1024
-                ||state.legacyPlotTargetVersion==DRW::AC1027 ||state.legacyPlotTargetVersion==DRW::AC1032))
-            || (cData->sourceVersion==DRW::AC1021 && (state.legacyPlotTargetVersion==DRW::AC1015
-                ||state.legacyPlotTargetVersion==DRW::AC1018 ||state.legacyPlotTargetVersion==DRW::AC1024
-                ||state.legacyPlotTargetVersion==DRW::AC1027 ||state.legacyPlotTargetVersion==DRW::AC1032))
-            || (cData->sourceVersion==DRW::AC1015 && (state.legacyPlotTargetVersion==DRW::AC1018
-                ||state.legacyPlotTargetVersion==DRW::AC1021 ||state.legacyPlotTargetVersion==DRW::AC1024
-                ||state.legacyPlotTargetVersion==DRW::AC1027 ||state.legacyPlotTargetVersion==DRW::AC1032))))return false;
+        ||cData->sourceVersion<DRW::AC1015 ||cData->sourceVersion>DRW::AC1032
+        ||state.legacyPlotTargetVersion<DRW::AC1015 ||state.legacyPlotTargetVersion>DRW::AC1032
+        ||state.legacyPlotTargetVersion==cData->sourceVersion)return false;
     const auto r=plotStyleSourceReport(*cData);
     return r.originalSourcesMatched&&r.legacyClassRowsMatched&&r.legacyLiveClassesMatched
         &&r.legacyBodiesMatched&&r.legacyLiveBodiesMatched&&r.legacyLayerMatched&&r.legacyLiveLayerMatched;
@@ -96259,12 +96254,8 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
     try {
         // Admit the exact generated, source-bound default plot graph only to
         // the checked target versions. Unrelated drawings keep their path.
-        if ((cData->sourceVersion==DRW::AC1018 && (version==DRW::AC1015 || version==DRW::AC1021
-                ||version==DRW::AC1024 ||version==DRW::AC1027 ||version==DRW::AC1032))
-            || (cData->sourceVersion==DRW::AC1021 && (version==DRW::AC1015 || version==DRW::AC1018
-                ||version==DRW::AC1024 ||version==DRW::AC1027 ||version==DRW::AC1032))
-            || (cData->sourceVersion==DRW::AC1015 && (version==DRW::AC1018 || version==DRW::AC1021
-                ||version==DRW::AC1024 ||version==DRW::AC1027 ||version==DRW::AC1032))) {
+        if (cData->sourceVersion>=DRW::AC1015 && cData->sourceVersion<=DRW::AC1032
+            &&version>=DRW::AC1015 && version<=DRW::AC1032 && version!=cData->sourceVersion) {
             const auto source=plotStyleSourceReport(*cData);
             const bool hasPlotGraph=source.records || !cData->dictionaryWithDefaults.empty()
                 || !cData->rawDictionaryWithDefaults.empty() || !cData->rawPlaceholders.empty()
