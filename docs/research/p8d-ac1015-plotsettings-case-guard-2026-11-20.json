@@ -12,7 +12,8 @@
     "baseDelta": "Only the unrelated picfile plugin differs; tests were not rebuilt on patchBase.",
     "combinedPatch": "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
     "combinedPatchSha256": "34d25e66e1cc6be1021b5ef647ec64c922c38680c33ecaa890f3bd6f19636a95",
-    "patchVerification": "Applying the combined patch to an alternate index at patchBase reproduces candidateHead exactly."
+    "patchVerification": "Applying the combined patch to an alternate index at patchBase reproduces candidateHead exactly.",
+    "patchAtReceiptCommit": "141f4e33"
   },
   "change": "Admit the bounded source graph only for exactly spelled ACAD_GROUP and ACAD_PLOTSETTINGS root entries; differently cased keys refuse instead of being silently rewritten.",
   "validation": {
@@ -55,5 +56,6 @@
     "The candidate is unmerged; native GUI, external producer, and cross-platform consumer qualification remain open.",
     "No DWG/DXF fixture was committed."
   ],
-  "libraryImplementationDigestSha256": "7d8df8433c94a99ad19cf94d0d772787e200cea3b41263749ca0101e68405156"
+  "libraryImplementationDigestSha256": "7d8df8433c94a99ad19cf94d0d772787e200cea3b41263749ca0101e68405156",
+  "supersededBy": "docs/research/p8d-ac1015-plotsettings-four-margins-2026-11-20.json"
 }

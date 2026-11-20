@@ -9,7 +9,8 @@
     "patchBase": "281a8a4c83884ae1e8c9aa3436d87184c0b17ea7",
     "candidateHead": "e991a61ff9103ce8c544f4b452571cd310984941",
     "candidatePatch": "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
-    "candidatePatchSha256": "34d25e66e1cc6be1021b5ef647ec64c922c38680c33ecaa890f3bd6f19636a95"
+    "candidatePatchSha256": "34d25e66e1cc6be1021b5ef647ec64c922c38680c33ecaa890f3bd6f19636a95",
+    "candidatePatchAtReceiptCommit": "141f4e33"
   },
   "library": {
     "commit": "39320dd325fa8f1003faaca34925ab02b5293853",
@@ -43,5 +44,6 @@
     "Generated headless CLI profile only; no native GUI, AutoCAD, Linux/Windows consumer or broad semantic qualification.",
     "Source checkout and installed app are under /private/tmp; no user consumer checkout was modified.",
     "No DWG/DXF fixture was committed."
-  ]
+  ],
+  "supersededBy": "docs/research/p8d-current-eed-installed-macos-app-smoke-2026-11-20.json"
 }
