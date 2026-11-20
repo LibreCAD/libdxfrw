@@ -1,0 +1,35 @@
+{
+  "scope": "Bounded same-import AC1024 mechanical MATERIAL and empty LayerStates output; native CAD semantics and producer identity remain unqualified.",
+  "source": {
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "producer": "not independently authenticated",
+    "repository_fixture_committed": false,
+    "libredwg_json_sha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367"
+  },
+  "authority": {
+    "title": "Autodesk AutoCAD 2021 DXF Reference: MATERIAL",
+    "url": "https://help.autodesk.com/cloudhelp/2021/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm",
+    "applies_to": "DXF material group codes, projection values and row-major 16-real mapper matrices; it is not DWG producer-state evidence."
+  },
+  "implementation": {
+    "table": "Same-import bounded APPID/control and source graph proof; staged table inspection requires one remapped ACAD row.",
+    "objects": "Staged inspection validates three MATERIAL bodies and common fields, both MATERIAL dictionaries, NOD membership, four TILE XRECORD values/owners/reactors, class count and remapped identities.",
+    "finalization": "Revalidates source and emitted APPID, MATERIAL, dictionary and TILE source identities before publication.",
+    "failure": "Unqualified profiles and changed dependencies refuse output; no general MATERIAL or native-semantics claim follows."
+  },
+  "fast_validation": {
+    "selector": "--layerstates-empty-ac1024-output-readback",
+    "result": "PASS ASCII and Binary: source and staged guards, destination-preserving refusal for six MATERIAL mutations, corrected same-writer retry, and fresh typed LayerStates and MATERIAL/TILE/EED readback.",
+    "address_sanitizer": "PASS the same selector in the address-sanitized build.",
+    "aerial_regression": "Existing selected Global, ByLayer and ByBlock MATERIAL writer selectors each passed nine refusal/retry controls in ASCII and Binary."
+  },
+  "independent_readback": {
+    "source_reader": "LibreDWG dwgread 0.14",
+    "dxf_reader": "ezdxf 1.4.5",
+    "script": "tools/research/compare_mechanical_material_ezdxf.py",
+    "result": "PASS for both encodings: three materials, 18 mapper matrices, projection values, four TILE records, owners and signed ACAD EED.",
+    "ascii_sha256": "461424e9cb29419c55c660c851a1a3fbefdb0ac2a1f0b4c231273e9a2fde3d81",
+    "binary_sha256": "1951e7152c6eb59ab7c972330aff0ca9c03ce36ea1dbf2f530798d9691f1cff7"
+  },
+  "remaining": "Native producer and consumer semantics and broader source/version/platform qualification remain open; this receipt alone cannot promote a general support claim."
+}

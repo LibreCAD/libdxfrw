@@ -81,7 +81,7 @@ validation, refusal, preservation, retry, and readback rules above also apply.
 |---|---|---|
 | P4-B / WAITING_FOR_WITNESS | Use the shared [remote host profile intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) once. If that host can create the known top-level and nested associative-network API state and save AC1032, capture a source-distinct release-bound drawing; otherwise use primary versioned wire documentation or leave this gate waiting. Reuse the [readiness audit](docs/research/p4-ac1032-assocnetwork-evidence-readiness-2026-11-17.json); peer agreement and frame candidates alone do not qualify. | Bind class-version-2 order/spans, handle roles, and following-record boundary. Add one discriminating truncation/refusal control; close nested graph and producer/consumer evidence. |
 | P4-C / WAITING_FOR_AC1027_PRODUCER_WITNESS | Record the host profile; use the [managed sweep packet](tools/research/P4C_SWEEP_WITNESS_README.md) only on a matching AutoCAD 2024 Windows host, or adapt/review for the actual release. AutoCAD 2013 is the preferred native AC1027 profile; a 2024-to-AC1027 capture is separate. The [APS route](docs/research/p4c-aps-autocad-ac1027-witness-route-2026-11-17.json) is another distinct producer profile and requires authorized credentials and quota. | Capture default and non-default sweeps with producer/build, plug-in hash, source options and geometry before save and after reopen, handles, DWG magic and DXF `$ACADVER`. Compare the pair with ODA v5.4.1 and source-bound traces to bind parent/child spans, embedded LWPOLYLINE, suffix, handle roles and next-frame boundary. Preserve unknowns and strict refusal until resolved; then verify truncation/wrong-role refusal, strict output/readback, retry and independent geometry. |
-| P4-D / WAITING_FOR_NATIVE_LAYOUT_REOPEN | Record the host profile and run the [hash-gated P4-D observer](tools/research/P4D_LAYOUT_REOPEN_README.md) on the exact selected ASCII and Binary outputs. Return build, OS, SDK/toolchain, hashes, transcript, reports and visual notes. | Verify NOD membership, layout identity/owner/extension/block links, group-331 target classes, `DBMOD=0`, paper-space viewport arrays, native semantics and consumer behavior. The local source has unauthenticated producer provenance; [ACadSharp and wire readback](docs/research/p4-ac1024-acadsharp-layout-readback-2026-11-19.json) do not prove native acceptance. Keep whole-source and unqualified background routes fail-closed. |
+| P4-D / WAITING_FOR_NATIVE_LAYOUT_REOPEN | Record the host profile and run the [hash-gated P4-D observer](tools/research/P4D_LAYOUT_REOPEN_README.md) on the exact selected ASCII and Binary outputs. Return build, OS, SDK/toolchain, hashes, transcript, reports and visual notes. | Verify NOD membership, layout identity/owner/extension/block links, group-331 target classes, `DBMOD=0`, paper-space viewport arrays, native semantics and consumer behavior. The local source has unauthenticated producer provenance; [ACadSharp and wire readback](docs/research/p4-ac1024-acadsharp-layout-readback-2026-11-19.json) do not prove native acceptance. Qualify native MATERIAL semantics before promoting the [mechanical profile](docs/research/p4-ac1024-mechanical-material-output-readback-2026-11-20.json). Keep whole-source and unqualified background routes fail-closed. |
 
 P4-D additional unresolved paths:
 
@@ -106,17 +106,6 @@ P4-D additional unresolved paths:
   EED values after remapping in ASCII/Binary, with wrong-owner, member, name
   and payload refusal, destination preservation, corrected retry and independent
   readback. Retain the [baseline refusal guard](docs/research/p4-ac1024-layerstates-baseline-fallback-guard-2026-11-20.json).
-- Restore the AC1024 mechanical empty-root readback without bypassing MATERIAL
-  dependencies. Reuse its [Global EED](docs/research/p4-ac1024-mechanical-global-material-eed-source-2026-11-20.json)
-  and [four-TILE](docs/research/p4-ac1024-mechanical-global-material-tile-source-2026-11-20.json)
-  [APPID/control and root membership](docs/research/p4-ac1024-mechanical-material-appid-root-source-2026-11-20.json),
-  [basic MATERIAL bodies and NOD edge](docs/research/p4-ac1024-mechanical-basic-material-nod-source-2026-11-20.json),
-  and [Global body](docs/research/p4-ac1024-mechanical-global-material-body-source-2026-11-20.json) source proofs.
-  Qualify the `Global` field meanings and output mapping and close remaining
-  graph dependencies. Implement staged graph and signed-EED output proof with
-  failure/rollback/retry and independent readback.
-  Keep unqualified profiles refused and verify the one-root LayerStates
-  ASCII/Binary readback and same-writer retry on the resulting eligible profile.
 - AC1021-to-AC1024 whole-source output needs the [DICTIONARYVAR/TABLESTYLE join](docs/research/p4-ac1021-ctablestyle-ac1024-crossversion-blocker-2026-11-18.json)
   and native target evidence for [VISUALSTYLE and LAYOUT](docs/research/p4-ac1021-visualstyle-ac1024-target-peer-mapping-2026-11-18.json).
   Prove the source TABLESTYLE body and target-version staged output; existing

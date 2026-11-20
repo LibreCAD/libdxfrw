@@ -4755,6 +4755,7 @@ private:
     bool hasQualifiedAc1024AerialDwgByBlockMaterial(const dx_data&,
         DRW_Class* outputClass = nullptr, std::uint32_t materialHandle = 0x97u) const noexcept;
     bool inspectAc1024AerialDwgByBlockMaterial(const dxfRW::DxfObjectsWriteView&) noexcept;
+    bool inspectAc1024MechanicalMaterial(const dxfRW::DxfObjectsWriteView&) noexcept;
     bool finalizeAc1024AerialDwgByBlockMaterial() const noexcept;
     struct DxfHeaderMaterialState {
         const dx_data* owner{nullptr};

@@ -3759,6 +3759,11 @@ public:
         return qualified();
     }
 
+    static bool mechanicalMaterialQualified(dx_iface& iface, dx_data& data) {
+        iface.cData = &data;
+        return iface.hasQualifiedAc1024MechanicalGlobalTileSources(data);
+    }
+
     static bool aerialGlobalMaterialEedSourceControls(dx_iface& iface,
                                                        dx_data& data) {
         iface.cData = &data;
@@ -62142,6 +62147,46 @@ bool physicalAc1024EmptyLayerStateRootOutputReadback(
                 writer, states->handle))
             return fail("one-root empty AC1024 LayerStates profile was not admitted");
 
+        const bool mechanical = DxIfaceStandardDwgCaptureTestAccess::
+            mechanicalMaterialQualified(writer, source);
+        if (mechanical) {
+            auto material = std::find_if(source.materials.begin(), source.materials.end(),
+                [](const DRW_Material& row) { return row.handle == 0x98u; });
+            auto root = std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
+                [](const DRW_Dictionary& row) { return row.handle == 0x72u; });
+            auto tile = std::find_if(source.xRecords.begin(), source.xRecords.end(),
+                [](const DRW_XRecord& row) { return row.handle == 0x111u; });
+            auto app = std::find_if(source.appIds.begin(), source.appIds.end(),
+                [](const DRW_AppId& row) { return row.handle == 0x12u; });
+            if (material == source.materials.end() || material->extData.size() < 2u
+                || !material->extData[1] || root == source.dictionaries.end()
+                || root->m_entries.empty() || tile == source.xRecords.end()
+                || tile->m_dataEntries.empty() || app == source.appIds.end())
+                return fail("mechanical MATERIAL fault controls lack source records");
+            const auto reject = [&](auto& field, const auto& bad) {
+                const auto saved = field;
+                field = bad;
+                const bool wrote = writer.fileExport(
+                    outputPath.string(), DRW::AC1024, binary, &source, false, true,
+                    dx_dxfSourceTextPolicy::RequireValidSource,
+                    DRW::DxfTextWritePolicy::RequireLossless,
+                    dx_dxfProxyGraphicsPolicy::FailIfNotPreserved,
+                    dx_dwgReadCompletenessPolicy::RequireComplete);
+                field = saved;
+                std::ifstream input(outputPath, std::ios::binary);
+                const std::string retained{std::istreambuf_iterator<char>(input), {}};
+                return !wrote && retained == sentinel
+                    && DxIfaceStandardDwgCaptureTestAccess::mechanicalMaterialQualified(writer, source);
+            };
+            if (!reject(material->m_diffuseMapTransform[0], 1.0)
+                || !reject(*material->extData[1], DRW_Variant(1070, std::int32_t{0}))
+                || !reject(material->parentHandle, std::uint32_t{0x73u})
+                || !reject(root->m_entries[0].m_handle, std::uint32_t{0x98u})
+                || !reject(tile->m_dataEntries[0], DRW_Variant(270, 2))
+                || !reject(app->name, std::string("OTHER")))
+                return fail("mechanical MATERIAL mutation did not refuse atomically");
+        }
+
         // A missing common-link receipt is not an empty tail. Both records
         // must retain their version-qualified source evidence.
         for (DRW_Dictionary* record : {&*mutableExtension, &*mutableStates}) {
@@ -62415,6 +62460,48 @@ bool physicalAc1024EmptyLayerStateRootOutputReadback(
                     return record.parentHandle == outputStates->handle;
                 }))
             return fail("fresh output changed the empty child owner/reactor graph");
+        if (mechanical) {
+            const auto nodEntry = std::find_if(output.namedObjectDictionary.m_entries.begin(),
+                output.namedObjectDictionary.m_entries.end(), [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name == "ACAD_MATERIAL";
+                });
+            const auto* materialRoot = nodEntry == output.namedObjectDictionary.m_entries.end()
+                ? nullptr : uniqueDictionary(output, nodEntry->m_handle);
+            const auto global = std::find_if(output.materials.begin(), output.materials.end(),
+                [](const DRW_Material& row) { return row.m_name == "Global"; });
+            const auto sourceGlobal = std::find_if(source.materials.begin(), source.materials.end(),
+                [](const DRW_Material& row) { return row.handle == 0x98u; });
+            if (!materialRoot || materialRoot->m_entries.size() != 3u
+                || global == output.materials.end() || sourceGlobal == source.materials.end()
+                || global->parentHandle != materialRoot->handle
+                || !dxfMaterial::sameBodyState(*sourceGlobal, *global)
+                || global->extData.size() != 7u || !global->extData[0]
+                || !global->extData[0]->stringEquals("ACAD") || !global->extData[1]
+                || global->extData[1]->code() != 1070 || global->extData[1]->i_val() != -1
+                || std::count_if(output.appIds.begin(), output.appIds.end(),
+                    [](const DRW_AppId& row) { return row.name == "ACAD"; }) != 1)
+                return fail("fresh mechanical MATERIAL body or signed EED changed");
+            const auto* materialExtension = uniqueDictionary(output, global->xDictHandle);
+            if (!materialExtension || materialExtension->parentHandle != global->handle
+                || materialExtension->m_entries.size() != 4u)
+                return fail("fresh mechanical MATERIAL extension graph changed");
+            for (const auto* name : {"BUMPTILE", "DIFFUSETILE", "OPACITYTILE", "REFLECTIONTILE"}) {
+                const auto entry = std::find_if(materialExtension->m_entries.begin(),
+                    materialExtension->m_entries.end(), [name](const DRW_Dictionary::Entry& value) {
+                        return value.m_name == name;
+                    });
+                if (entry == materialExtension->m_entries.end())
+                    return fail("fresh mechanical MATERIAL TILE entry is missing");
+                const auto record = std::find_if(output.xRecords.begin(), output.xRecords.end(),
+                    [&](const DRW_XRecord& value) { return value.handle == entry->m_handle; });
+                if (record == output.xRecords.end() || record->parentHandle != materialExtension->handle
+                    || record->reactorHandles != std::vector<std::uint32_t>{materialExtension->handle}
+                    || record->m_dataEntries.size() != 2u
+                    || record->m_dataEntries[0].code() != 270 || record->m_dataEntries[0].i_val() != 1
+                    || record->m_dataEntries[1].code() != 271 || record->m_dataEntries[1].i_val() != 1)
+                    return fail("fresh mechanical MATERIAL TILE payload or links changed");
+            }
+        }
     }
     std::cerr << "Physical AC1024 empty LayerStates root passed: ASCII/Binary "
                  "source-frame admission, owner refusal, same-writer retry, "

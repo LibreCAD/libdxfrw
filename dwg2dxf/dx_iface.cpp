@@ -45670,7 +45670,8 @@ bool dx_iface::inspectAc1024AerialGlobalMaterialEedTables(
         || view.version != DRW::AC1024
         || std::count(m_extensionMaterialHandles.begin(),
                       m_extensionMaterialHandles.end(), 0x98u) != 1
-        || !hasQualifiedAc1024AerialGlobalMaterialEed(*cData))
+        || !(hasQualifiedAc1024AerialGlobalMaterialEed(*cData)
+             || hasQualifiedAc1024MechanicalGlobalTileSources(*cData)))
         return false;
     const std::uint32_t expectedHandle = dxfW->remapHandle(0x12u);
     if (expectedHandle == 0u || expectedHandle == DRW::NoHandle)
@@ -45703,13 +45704,31 @@ bool dx_iface::finalizeAc1024AerialGlobalMaterialEedOutput() const noexcept {
     if (dxfW == nullptr || dxfW->getVersion() != DRW::AC1024
         || !m_dwgAerialGlobalMaterialEedTablesInspected
         || !m_dwgAerialGlobalMaterialEedObjectsInspected
-        || !hasQualifiedAc1024AerialGlobalMaterialEed(*cData))
+        || !(hasQualifiedAc1024AerialGlobalMaterialEed(*cData)
+             || hasQualifiedAc1024MechanicalGlobalTileSources(*cData)))
         return false;
     try {
         const auto appId = dxfW->remapHandle(0x12u);
         const auto material = dxfW->remapHandle(0x98u);
         const auto root = dxfW->remapHandle(0x72u);
         const auto nod = dxfW->remapHandle(0xCu);
+        if (hasQualifiedAc1024MechanicalGlobalTileSources(*cData)) {
+            const auto extension = dxfW->remapHandle(0x110u);
+            if (!appId || appId == DRW::NoHandle
+                || dxfW->dxfWriteEmittedSourceTableHandle(0x12u) != appId
+                || !dxfW->dxfWriteSourceObjectHasIdentity(0x72u, root, "DICTIONARY", "OBJECTS", nod)
+                || !dxfW->dxfWriteSourceObjectHasIdentity(0x110u, extension, "DICTIONARY", "OBJECTS", material))
+                return false;
+            for (const auto source : {0x96u, 0x97u, 0x98u}) {
+                const auto emitted = dxfW->remapHandle(source);
+                if (!dxfW->dxfWriteSourceObjectHasIdentity(source, emitted, "MATERIAL", "OBJECTS", root)) return false;
+            }
+            for (const auto source : dx_ac1024_mechanical_tile_wire::handles) {
+                const auto emitted = dxfW->remapHandle(source);
+                if (!dxfW->dxfWriteSourceObjectHasIdentity(source, emitted, "XRECORD", "OBJECTS", extension)) return false;
+            }
+            return true;
+        }
         const auto extension = dxfW->remapHandle(0x290u);
         const auto xrecord = dxfW->remapHandle(0x291u);
         return appId != 0u && appId != DRW::NoHandle
@@ -50932,6 +50951,90 @@ bool dx_iface::finalizeAc1024AerialDwgByBlockMaterial() const noexcept {
     } catch (...) { return false; }
 }
 
+bool dx_iface::inspectAc1024MechanicalMaterial(const dxfRW::DxfObjectsWriteView& view) noexcept {
+    if (!cData || !dxfW || view.version != DRW::AC1024
+        || m_dwgAerialByBlockMaterialInspected
+        || !hasQualifiedAc1024MechanicalGlobalTileSources(*cData)
+        || m_extensionMaterialHandles.size() != 3u) return false;
+    try {
+        const auto* context = dxfW->getWritingContext();
+        if (!context) return false;
+        for (const auto handle : {0x96u, 0x97u, 0x98u})
+            if (std::count(m_extensionMaterialHandles.begin(), m_extensionMaterialHandles.end(), handle) != 1)
+                return false;
+        DRW_Class row;
+        if (!boundAc1024DwgClassObject(*cData, 0x98u, m_dwgAerialGlobalMaterialEed.frame, &row)) return false;
+        row.instanceCount = 3;
+        if (!dxfW->dxfWriteClassMatches(row)) return false;
+        const auto map = [this, context](std::uint32_t source, std::uint32_t& emitted) {
+            emitted = dxfW->remapHandle(source);
+            return source != 0u && emitted != 0u && emitted != DRW::NoHandle
+                && context->ambiguousSourceHandles.count(source) == 0u;
+        };
+        std::uint32_t nod = 0u, root = 0u, global = 0u, extension = 0u;
+        if (!map(0xcu, nod) || !map(0x72u, root) || !map(0x98u, global) || !map(0x110u, extension)
+            || !dxfW->dxfWriteRecordHasIdentity(nod, "DICTIONARY", "OBJECTS")
+            || !dxfW->dxfWriteRecordHasOwner(root, nod)
+            || !dxfW->dxfWriteRecordHasOwner(global, root)
+            || !dxfW->dxfWriteRecordHasOwner(extension, global)) return false;
+        for (const auto source : {0x96u, 0x97u, 0x98u}) {
+            std::uint32_t emitted = 0u;
+            if (!map(source, emitted) || !dxfW->dxfWriteRecordHasIdentity(emitted, "MATERIAL", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(emitted, root)) return false;
+        }
+        std::array<std::uint32_t, 4> records{};
+        for (std::size_t i = 0u; i < records.size(); ++i) {
+            if (!map(dx_ac1024_mechanical_tile_wire::handles[i], records[i])
+                || !dxfW->dxfWriteRecordHasIdentity(records[i], "XRECORD", "OBJECTS")
+                || !dxfW->dxfWriteRecordHasOwner(records[i], extension)) return false;
+        }
+        bool nodSeen = false;
+        std::array<bool, 4> recordSeen{};
+        const bool inspected = dx_standard_output::inspectSelected(view,
+            [&](std::string_view, std::uint32_t handle) {
+                return handle == nod || std::find(records.begin(), records.end(), handle) != records.end();
+            },
+            [&](const auto& shape, std::string_view body) {
+                dx_standard_output::Decoder decoder(view);
+                if (shape.handle == nod) {
+                    if (nodSeen || shape.kind != dx_standard_output::Family::Dictionary) return false;
+                    nodSeen = true;
+                    return decoder.decodeRecord<DRW_Dictionary>(body, [&](const DRW_Dictionary& actual) {
+                        using Role = DRW_Dictionary::Entry::DxfHandleCode;
+                        if (!actual.hasCompleteDxfEntries() || actual.parentHandle != 0u) return false;
+                        return std::count_if(actual.m_entries.begin(), actual.m_entries.end(), [&](const auto& entry) {
+                            return entry.m_name == "ACAD_MATERIAL" && entry.m_handle == root
+                                && entry.m_dxfHandleCode == Role::SoftOwner;
+                        }) == 1 && std::count_if(actual.m_entries.begin(), actual.m_entries.end(), [&](const auto& entry) {
+                            return entry.m_handle == root || asciiIdentifierEquals(entry.m_name, "ACAD_MATERIAL");
+                        }) == 1;
+                    });
+                }
+                const auto at = std::find(records.begin(), records.end(), shape.handle);
+                if (at == records.end() || shape.kind != dx_standard_output::Family::Xrecord) return false;
+                const auto index = static_cast<std::size_t>(at - records.begin());
+                if (recordSeen[index]) return false;
+                recordSeen[index] = true;
+                const auto* source = uniqueDwgSourceRecord(cData->xRecords,
+                    dx_ac1024_mechanical_tile_wire::handles[index]);
+                return source && decoder.decodeRecord<DRW_XRecord>(body, [&](const DRW_XRecord& actual) {
+                    return actual.handle == records[index] && actual.parentHandle == extension
+                        && actual.xDictHandle == 0u && actual.m_cloning == source->m_cloning
+                        && actual.reactorHandles == std::vector<std::uint32_t>{extension}
+                        && actual.appData.size() == 1u
+                        && dx_standard_output::reservedGroupExact(actual.appData.front(), actual, true)
+                        && actual.extData.empty() && actual.m_handleValues.empty()
+                        && actual.hasExactDxfCoordinateTuples()
+                        && standardDwgValuesEqual(source->m_dataEntries, actual.m_dataEntries, DRW::AC1024)
+                        && standardDwgValuesEqual(source->m_values, actual.m_values, DRW::AC1024);
+                });
+            });
+        m_dwgAerialByBlockMaterialInspected = inspected && nodSeen
+            && std::all_of(recordSeen.begin(), recordSeen.end(), [](bool seen) { return seen; });
+        return m_dwgAerialByBlockMaterialInspected;
+    } catch (...) { return false; }
+}
+
 bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) noexcept {
     if ((!m_dxfMaterialWriteRequired || m_dxfMaterialWriteSources.empty())
         && m_extensionMaterialHandles.empty())
@@ -50959,7 +51062,8 @@ bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) 
         || !hasUnchangedExtensionMaterialSources())
         return false;
     if (requiresAc1024AerialGlobalMaterialEedOutput()
-        && (!hasQualifiedAc1024AerialGlobalMaterialEed(*cData)
+        && (!(hasQualifiedAc1024AerialGlobalMaterialEed(*cData)
+              || hasQualifiedAc1024MechanicalGlobalTileSources(*cData))
             || std::count(m_extensionMaterialHandles.begin(),
                           m_extensionMaterialHandles.end(), 0x98u) != 1))
         return false;
@@ -51365,13 +51469,16 @@ bool dx_iface::inspectDxfMaterialOutput(const dxfRW::DxfObjectsWriteView& view) 
         if (seen.size() != expectedCount)
             return false;
         diagnosticPhase = "aerial selected MATERIAL source and FBXASSET output";
-        if (!inspectAc1024AerialDwgByBlockMaterial(view))
+        const bool mechanical = requiresAc1024AerialGlobalMaterialEedOutput()
+            && hasQualifiedAc1024MechanicalGlobalTileSources(*cData);
+        if (mechanical ? !inspectAc1024MechanicalMaterial(view)
+                       : !inspectAc1024AerialDwgByBlockMaterial(view))
             return false;
         if (requiresAc1024AerialGlobalMaterialEedOutput()) {
             const auto emitted = dxfW->remapHandle(0x98u);
             if (std::count(m_extensionMaterialHandles.begin(),
                            m_extensionMaterialHandles.end(), 0x98u) != 1
-                || !hasQualifiedAc1024AerialGlobalMaterialEed(*cData)
+                || !(hasQualifiedAc1024AerialGlobalMaterialEed(*cData) || mechanical)
                 || !m_dwgAerialByBlockMaterialInspected
                 || typedExpected.count(emitted) != 1u
                 || seen.count(emitted) != 1u)
