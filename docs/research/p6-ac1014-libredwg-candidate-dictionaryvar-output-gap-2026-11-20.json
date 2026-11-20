@@ -110,6 +110,196 @@
       "objectSizeBytes": 17,
       "bodyBitSize": 104
     },
-    "limitation": "Peer-decoded role and value candidates only: neither physical spans nor producer-native semantics have been independently established. The peer-reported uppercase key differs from the exact mixed-case string assumed by the admitted snapshot path and must be handled without collapsing distinct dictionary keys."
+    "limitation": "Peer-decoded role and value candidates only: producer-native semantics have not been established; selected source spans are recorded separately. The peer-reported uppercase key differs from the exact mixed-case string assumed by the admitted snapshot path and must be handled without collapsing distinct dictionary keys."
+  },
+  "sourceSpanScreen": {
+    "scope": "Single hash-bound AC1014 v.dwg only; bit offsets start at each object data frame after its two-byte MS length. Decoded directly from the external source with a scratch MSB-first BS/BL/RC/RL/H reader, using the R13/R14 field order in ODA v5.4.1 sections 20.4.44 and 20.4.74; cross-checked with LibreDWG 0.14 -v4.",
+    "ownerDictionary": {
+      "lengthOffset": 3902,
+      "bodyOffset": 3904,
+      "bodyBytes": 27,
+      "crcOffset": 3931,
+      "peerReportedCrc": "0x6B60",
+      "objectDataBitLength": 154,
+      "fields": [
+        {
+          "bits": "0..10",
+          "value": "BS type 42"
+        },
+        {
+          "bits": "10..26",
+          "value": "H self 0.1.0x22"
+        },
+        {
+          "bits": "26..28",
+          "value": "BS EED length 0"
+        },
+        {
+          "bits": "28..60",
+          "value": "RL object data size 154"
+        },
+        {
+          "bits": "60..70",
+          "value": "BL reactor count 1"
+        },
+        {
+          "bits": "70..80",
+          "value": "BL item count 1"
+        },
+        {
+          "bits": "80..88",
+          "value": "R14 unknown RC 0"
+        },
+        {
+          "bits": "88..154",
+          "value": "TV DIMADEC"
+        },
+        {
+          "bits": "154..170",
+          "value": "H owner 4.1.0x0C"
+        },
+        {
+          "bits": "170..186",
+          "value": "H reactor 4.1.0x0C"
+        },
+        {
+          "bits": "186..194",
+          "value": "H xdictionary 3.0.0"
+        },
+        {
+          "bits": "194..210",
+          "value": "H item 2.1.0x23"
+        },
+        {
+          "bits": "210..216",
+          "value": "six trailing bits 0x06"
+        }
+      ]
+    },
+    "dictionaryVar": {
+      "lengthOffset": 4063,
+      "bodyOffset": 4065,
+      "bodyBytes": 17,
+      "crcOffset": 4082,
+      "peerReportedCrc": "0x953A",
+      "objectDataBitLength": 104,
+      "fields": [
+        {
+          "bits": "0..18",
+          "value": "BS type 500"
+        },
+        {
+          "bits": "18..34",
+          "value": "H self 0.1.0x23"
+        },
+        {
+          "bits": "34..36",
+          "value": "BS EED length 0"
+        },
+        {
+          "bits": "36..68",
+          "value": "RL object data size 104"
+        },
+        {
+          "bits": "68..78",
+          "value": "BL reactor count 1"
+        },
+        {
+          "bits": "78..86",
+          "value": "RC schema 0"
+        },
+        {
+          "bits": "86..104",
+          "value": "TV one-character value 0"
+        },
+        {
+          "bits": "104..112",
+          "value": "H owner 8.0.0, relative result 0x22"
+        },
+        {
+          "bits": "112..128",
+          "value": "H reactor 4.1.0x22"
+        },
+        {
+          "bits": "128..136",
+          "value": "H xdictionary 3.0.0"
+        }
+      ]
+    },
+    "limitations": "CRC checks and object-map sequence were observed in the peer trace; other NOD branches, full graph, mutation resistance, snapshot/output and native semantic proof remain open. Section 20.4.74 labels Str BS while the source and peer use variable text; do not generalize beyond this observed one-byte string.",
+    "nod": {
+      "lengthOffset": 1488,
+      "bodyOffset": 1490,
+      "bodyBytes": 69,
+      "crcOffset": 1559,
+      "peerReportedCrc": "0x6F31",
+      "objectDataBitLength": 486,
+      "fields": [
+        {
+          "bits": "0..10",
+          "value": "BS type 42"
+        },
+        {
+          "bits": "10..26",
+          "value": "H self 0.1.0x0C"
+        },
+        {
+          "bits": "26..28",
+          "value": "BS EED length 0"
+        },
+        {
+          "bits": "28..60",
+          "value": "RL object data size 486"
+        },
+        {
+          "bits": "60..62",
+          "value": "BL reactor count 0"
+        },
+        {
+          "bits": "62..72",
+          "value": "BL item count 3"
+        },
+        {
+          "bits": "72..80",
+          "value": "R14 unknown RC 0"
+        },
+        {
+          "bits": "80..170",
+          "value": "TV ACAD_GROUP"
+        },
+        {
+          "bits": "170..300",
+          "value": "TV ACAD_MLINESTYLE"
+        },
+        {
+          "bits": "300..486",
+          "value": "TV ACDBVARIABLEDICTIONARY"
+        },
+        {
+          "bits": "486..494",
+          "value": "H owner 4.0.0"
+        },
+        {
+          "bits": "494..502",
+          "value": "H xdictionary 3.0.0"
+        },
+        {
+          "bits": "502..518",
+          "value": "H item 2.1.0x0D"
+        },
+        {
+          "bits": "518..534",
+          "value": "H item 2.1.0x1A"
+        },
+        {
+          "bits": "534..550",
+          "value": "H item 2.1.0x22"
+        },
+        {
+          "bits": "550..552",
+          "value": "two trailing bits 2"
+        }
+      ]
+    }
   }
 }
