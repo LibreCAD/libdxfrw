@@ -802,7 +802,8 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
                              std::uint64_t handleEndBit =
                                  std::numeric_limits<std::uint64_t>::max(),
                              bool validateLegacyDictionaryGroupRoles = false,
-                             bool imageDefParentHardOwner = false) {
+                             bool imageDefParentHardOwner = false,
+                             bool allowDimstyleNullSoftPointerXdict = false) {
     if (buf == nullptr || !buf->isGood()
         || !dwgSafety::validReactorCount(numReactors)) {
         if (buf != nullptr)
@@ -901,7 +902,14 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
                                   currentObjectDwgBit(&probe), xDict.rawCode,
                                   xDict.ref);
 #endif
-        if (validateRoles
+        // LibreCAD's bundled DWG writer emits a zero-length soft-pointer
+        // null for DIMSTYLE here. ODA §20.4.68 assigns this field the hard-
+        // owner role; accept only that witnessed null spelling, never a
+        // non-null soft pointer or this spelling on another object type.
+        const bool dimstyleNullSoftPointer = allowDimstyleNullSoftPointerXdict
+            && xDict.rawCode == DRW::DwgSoftPointer && xDict.size == 0u
+            && xDict.ref == 0u && xDict.ref64 == 0u;
+        if (validateRoles && !dimstyleNullSoftPointer
             && !hasRole(xDict, DRW::DwgHardOwnership, false)) {
             DRW_DBG("Common object xdictionary role mismatch: raw code ");
             DRW_DBG(static_cast<unsigned int>(xDict.rawCode));
@@ -3945,7 +3953,8 @@ bool DRW_TableEntry::readDwgObjectCommonHandles(
                                    parentHandle, reactorHandles, xDictHandle,
                                    endBit,
                                    validateLegacyDictionaryGroupRoles,
-                                   imageDefParentHardOwner);
+                                   imageDefParentHardOwner,
+                                   oType == DRW::DwgDimStyleObjectType);
 }
 
 bool DRW_TableEntry::getDwgHandleEndBit(
@@ -4872,7 +4881,8 @@ bool DRW_Dimstyle::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t 
         || !readObjectCommonHandles(handleBuf, version, parsed.handle,
                                     parsed.numReactors, parsed.xDictFlag,
                                     &parsedParentHandle, &parsedReactors,
-                                    &parsedXDictHandle, handleEndBit))
+                                    &parsedXDictHandle, handleEndBit,
+                                    false, false, true))
         return fail();
 
     std::vector<DRW_DwgSubrecordRange> parsedHandleFieldSpans;

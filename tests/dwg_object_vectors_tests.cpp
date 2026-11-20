@@ -243,6 +243,20 @@ public:
     using DRW_Dimstyle::parseDwg;
 };
 
+class CommonHandleShellProbe final : public DRW_TableEntry {
+public:
+    bool parse(DRW::Version version, dwgBuffer* buffer, std::uint32_t handleBits) {
+        dwgBuffer strings = buffer->forkIndependent();
+        return DRW_TableEntry::parseDwg(version, buffer,
+                    version > DRW::AC1018 ? &strings : nullptr, handleBits)
+            && DRW_TableEntry::parseDwgCommonHandleData(version, buffer);
+    }
+    bool parseDwg(DRW::Version version, dwgBuffer* buffer,
+                  std::uint32_t handleBits = 0) override {
+        return parse(version, buffer, handleBits);
+    }
+};
+
 class VportCodecProbe final : public DRW_Vport {
 public:
     using DRW_Vport::encodeDwg;
@@ -19902,6 +19916,34 @@ void testAc1018PlusLayerBodyHandleRoles(TestContext& t) {
         if (!built)
             continue;
 
+        dwgBuffer commonOracle(validFrame.bytes.data(), validFrame.bytes.size());
+        const bool commonPositioned = commonOracle.setPosition(validFrame.handleStartBit / 8u);
+        commonOracle.setBitPos(static_cast<std::uint8_t>(validFrame.handleStartBit % 8u));
+        (void)commonOracle.getHandle();
+        const auto xdictBit = commonOracle.getPosition() * 8u + commonOracle.getBitPos();
+        const auto xdict = commonOracle.getHandle();
+        const bool commonLocated = commonPositioned && commonOracle.isGood()
+            && xdict.rawCode == 0u && xdict.size == 0u;
+        t.expect(commonLocated, std::string("LAYER ") + versionName(version)
+                     + " null xdictionary offset is independently located");
+        if (commonLocated && version > DRW::AC1018) {
+            auto wrongCommonRole = validFrame.bytes;
+            replaceFourBits(wrongCommonRole, xdictBit, DRW::DwgSoftPointer);
+            DRW_TextCodec shellCodec;
+            shellCodec.setVersion(version, false);
+            dwgBuffer badInput(wrongCommonRole.data(), wrongCommonRole.size(), &shellCodec);
+            CommonHandleShellProbe badShell;
+            const bool rejected = !badShell.parse(version, &badInput, validFrame.handleBits);
+            t.expect(rejected,
+                     std::string("LAYER ") + versionName(version)
+                         + " common shell continues to reject soft-pointer null xdictionary");
+            dwgBuffer goodInput(validFrame.bytes.data(), validFrame.bytes.size(), &shellCodec);
+            CommonHandleShellProbe goodShell;
+            t.expect(goodShell.parse(version, &goodInput, validFrame.handleBits),
+                     std::string("LAYER ") + versionName(version)
+                         + " common shell accepts the original null spelling");
+        }
+
         const auto fieldFor = [](DRW_Layer& layer, const std::string& role)
             -> dwgHandle& {
             if (role == "xrefBlock") return layer.xrefBlockHandle;
@@ -20084,6 +20126,7 @@ void testAc1015PlusDimstyleBodyHandleRoles(TestContext& t) {
         case DRW::AC1021: return "AC1021";
         case DRW::AC1024: return "AC1024";
         case DRW::AC1027: return "AC1027";
+        case DRW::AC1032: return "AC1032";
         default: return "unexpected-version";
         }
     };
@@ -20159,7 +20202,7 @@ void testAc1015PlusDimstyleBodyHandleRoles(TestContext& t) {
 
     for (const DRW::Version version : {DRW::AC1015, DRW::AC1018,
                                        DRW::AC1021,
-                                       DRW::AC1024, DRW::AC1027}) {
+                                       DRW::AC1024, DRW::AC1027, DRW::AC1032}) {
         const auto fields = fieldsFor(version);
         DimstyleCodecProbe source;
         source.handle = 0xA500u + static_cast<std::uint32_t>(version);
@@ -20186,6 +20229,57 @@ void testAc1015PlusDimstyleBodyHandleRoles(TestContext& t) {
                      + versionName(version));
         if (!built)
             continue;
+
+        if (version >= DRW::AC1018) {
+            dwgBuffer oracle(frame.bytes.data(), frame.bytes.size());
+            const bool positioned = oracle.setPosition(frame.handleStartBit / 8u);
+            oracle.setBitPos(static_cast<std::uint8_t>(frame.handleStartBit % 8u));
+            const auto owner = oracle.getHandle();
+            const auto xdictBit = oracle.getPosition() * 8u + oracle.getBitPos();
+            const auto xdict = oracle.getHandle();
+            const bool located = positioned && oracle.isGood() && xdictBit % 8u == 0u
+                && owner.ref == source.parentHandle && xdict.rawCode == 0u
+                && xdict.size == 0u && xdictBit / 8u < frame.bytes.size();
+            t.expect(located, std::string("DIMSTYLE ") + versionName(version)
+                         + " null xdictionary offset is independently located");
+            if (located) {
+                auto compatibility = frame;
+                compatibility.bytes[static_cast<std::size_t>(xdictBit / 8u)] = 0x40u;
+                DimstyleCodecProbe retryable;
+                const bool accepted = parse(version, retryable, compatibility);
+                t.expect(accepted && retryable.parentHandle == source.parentHandle
+                             && retryable.xDictHandle == 0u
+                             && retryable.xrefBlockHandle.ref == fields[0].second
+                             && retryable.dimtxstyH.ref == fields[1].second
+                             && retryable.dwgHandleFieldSpans().size() == fields.size(),
+                         std::string("DIMSTYLE ") + versionName(version)
+                             + " accepts only the zero-length soft-pointer null xdictionary");
+                if (version > DRW::AC1018) {
+                    DRW_TextCodec shellCodec;
+                    shellCodec.setVersion(version, false);
+                    dwgBuffer shellInput(compatibility.bytes.data(), compatibility.bytes.size(), &shellCodec);
+                    CommonHandleShellProbe shell;
+                    t.expect(shell.parse(version, &shellInput, compatibility.handleBits)
+                                 && shell.parentHandle == source.parentHandle
+                                 && shell.xDictHandle == 0u && shell.hasDwgCommonLinkTail(),
+                             std::string("DIMSTYLE ") + versionName(version)
+                                 + " common shell retains the qualified null spelling");
+                }
+                for (const std::uint8_t bad : {std::uint8_t{0x41u}, std::uint8_t{0x50u}}) {
+                    auto corrupted = frame;
+                    corrupted.bytes[static_cast<std::size_t>(xdictBit / 8u)] = bad;
+                    const bool refused = !parse(version, retryable, corrupted);
+                    t.expect(refused && retryable.handle == 0u && retryable.name.empty()
+                                 && retryable.dwgHandleFieldSpans().empty(),
+                             std::string("DIMSTYLE ") + versionName(version)
+                                 + " rejects non-null-width or wrong-role xdictionary atomically");
+                    t.expect(parse(version, retryable, compatibility)
+                                 && retryable.xrefBlockHandle.ref == fields[0].second,
+                             std::string("DIMSTYLE ") + versionName(version)
+                                 + " retries the qualified null spelling after refusal");
+                }
+            }
+        }
 
         DimstyleCodecProbe parsed;
         const bool parsedValid = parse(version, parsed, frame);

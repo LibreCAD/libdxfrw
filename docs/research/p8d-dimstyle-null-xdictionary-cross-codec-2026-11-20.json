@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-dimstyle-null-xdictionary-cross-codec-2026-11-20",
+  "date": "2026-11-20",
+  "status": "BOUNDED_READ_COMPATIBILITY_PASS",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.68 DIMSTYLE",
+    "note": "The specification assigns the xdictionary a hard-owner role. This change admits the independently observed soft-pointer spelling only for a zero-length null DIMSTYLE xdictionary."
+  },
+  "witnesses": {
+    "2004": {
+      "dwg": "/private/tmp/lc-viewport-before-dwg-2004.dwg",
+      "sha256": "eae52bac0470af7d086ebae92f1767caec94a58bea5dde2ed27a11494fcd1cd8",
+      "libredwgTrace": "/private/tmp/lc-viewport-2004-peer-trace.log",
+      "traceSha256": "0555313684329fe053768542cb326bd7a9102b33d668184ba152b038a62033c9"
+    },
+    "2010": {
+      "dwg": "/private/tmp/lc-viewport-before-dwg-2010.dwg",
+      "sha256": "0ab4cb89249ee65ece3c2b0c40c3c6602fa537d73271c6c9f3861c840447bc29",
+      "libredwgTrace": "/private/tmp/lc-viewport-2010-peer-trace.log",
+      "traceSha256": "dd3345dbf3e200c1680c7ffefb2d9aa253d420b696d11745b068137f93374018"
+    },
+    "2013": {
+      "dwg": "/private/tmp/lc-viewport-before-dwg-2013.dwg",
+      "sha256": "7a6a5f05f6e88341238f918d444f105f812770ed3541cfa5725cacf244dd9f4e",
+      "libredwgTrace": "/private/tmp/lc-viewport-2013-peer-trace.log",
+      "traceSha256": "7c63cc7afc01f4c5d8c8605a2c1c657231df2b0d56e038387260f8ac37e714c4"
+    },
+    "2018": {
+      "dwg": "/private/tmp/lc-viewport-before-dwg-2018.dwg",
+      "sha256": "76cb0d1631dbf6230d7abf09af6fc1a85f67ccc4c6dd819c16a2a2f07dccb3ee",
+      "libredwgTrace": "/private/tmp/lc-viewport-2018-peer-trace.log",
+      "traceSha256": "720add853c1b53b8fc26dea5c8f9c54fec71f0fea2a23f5637aea436d9bbd4e7"
+    }
+  },
+  "implementation": "Both typed DIMSTYLE parsing and its later raw-object-shell common-link pass accept role 4 only when size, 32-bit reference and 64-bit reference are zero. Other roles and non-null soft pointers remain refused; no other object type receives this exception.",
+  "validation": {
+    "artifacts": {
+      "build": {
+        "path": "/private/tmp/libdxfrw-dimstyle-null-xdict-build.log",
+        "sha256": "7642bb2f30427a9dc1ba94db5cf009a4e24d6de4ec4ed71fcb55613ca450f5db"
+      },
+      "dimstyleVectors": {
+        "path": "/private/tmp/libdxfrw-dimstyle-null-xdict-test.log",
+        "sha256": "aac6fcffbdf6cce703c0b33c245aec620fc2af77b6b4a3b9bd8f95f005dea709"
+      },
+      "layerShellVectors": {
+        "path": "/private/tmp/libdxfrw-layer-xdict-role-scope-test.log",
+        "sha256": "c871085648829e37f372ff8ed140777b7d89f19a027d49ac16fe4268ada1b467"
+      },
+      "consumerCrossCodec": {
+        "path": "/private/tmp/libdxfrw-lc3289-ownerless-current-codec-controls.log",
+        "sha256": "b00585610c93fc997fc8f421184d4dcc755bb36a7319fcd010bfc73109f9235f"
+      }
+    },
+    "checks": [
+      "LibreDWG 0.14 independently identifies owner (4.1.A), xdictionary (4.0.0), following xref (5.0.0) and DIMTXSTY (5.0.0) on the generated R2004/R2010/R2013/R2018 witnesses.",
+      "Generated DIMSTYLE controls include AC1018, AC1021, AC1024, AC1027 and AC1032: accept the zero-length null, reject a one-byte soft-pointer and a wrong role, check following fields, and retry after refusal. AC1021 is a generated codec control; no R2007 producer witness was qualified.",
+      "The independent common shell retains strict soft-pointer-null refusal for generated LAYER controls in AC1021 through AC1032.",
+      "With current libdxfrw linked, LibreCAD imported locally generated bundled-codec ownerless DWGs and passed 130 ownerless preservation/refusal/retry/readback assertions over five versions."
+    ]
+  },
+  "limits": [
+    "This read compatibility observation does not prove general DIMSTYLE write parity, independent producer semantics, native GUI behavior or whole-file support.",
+    "All DWG inputs were generated locally from scratch and remain outside the repository."
+  ]
+}
