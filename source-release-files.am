@@ -1225,6 +1225,7 @@ EXTRA_DIST = \
     tools/research/P4D_AERIAL_SUN_OBSERVER.md \
     tools/research/P4D_LAYOUT_REOPEN_README.md \
     tools/research/P5D_AC1024_TABLE_WITNESS_README.md \
+    tools/research/P5H_VIEWPORT_SHADEPLOT_WITNESS_README.md \
     tools/research/P6A_IMAGEDEF_WITNESS_README.md \
     tools/research/ac1021_mtext_field_census.cpp \
     tools/research/ac1032_forum_assocnetwork_spans.py \
@@ -1246,6 +1247,7 @@ EXTRA_DIST = \
     tools/research/audit_mtext_field_roundtrip.py \
     tools/research/audit_mtext_field_source.py \
     tools/research/audit_p5d_dxf_versions.py \
+    tools/research/audit_p5h_viewport_shadeplot.py \
     tools/research/canonical_ltype_peer_generator.cpp \
     tools/research/check_mpolygon_projection_ezdxf.py \
     tools/research/create_ac1021_field_derivative.py \

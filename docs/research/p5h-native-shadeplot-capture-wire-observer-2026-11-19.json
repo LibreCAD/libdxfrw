@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5h-native-shadeplot-capture-wire-observer-2026-11-19",
+  "date": "2026-11-19",
+  "status": "PREPARED_NATIVE_WITNESS_STILL_REQUIRED",
+  "supportClaimEffect": "none",
+  "files": [
+    {
+      "path": "tools/research/audit_p5h_viewport_shadeplot.py",
+      "sha256": "ba0a0f5f50684284da696fc9e8a8c188145ec25dfea67aa153c42a9727cf5d9a"
+    },
+    {
+      "path": "tools/research/P5H_VIEWPORT_SHADEPLOT_WITNESS_README.md",
+      "sha256": "188f7ca035536b009ebef72775253488ba05c71f386892ac0e8b33c273a503f7"
+    }
+  ],
+  "validation": [
+    "python3 -B tools/research/audit_p5h_viewport_shadeplot.py --self-test: PASS on scratch in-memory ASCII/Binary synthetic streams",
+    "Controls include literal group 91, 170, 333 and 348, unique/duplicate/missing/null target, duplicate modes, duplicate identity, appdata isolation/nesting, invalid handle, unsupported old version, missing EOF and retry by fresh invocation."
+  ],
+  "limits": [
+    "The host profile, native capture and actual AutoCAD rendering/reopen remain unavailable; the procedure is not tested against AutoCAD.",
+    "The observer is not a complete DXF parser and does not establish native enum meanings, target semantics, write/readback compatibility or support.",
+    "No DWG/DXF fixture or third-party drawing was committed."
+  ],
+  "next": [
+    "Identify the remote host and capture the three native viewport states and file-specific reports described in the packet.",
+    "Correlate hash-bound native results with the ASCII/Binary wire report; then resolve strict output and independent readback, refusal, preservation and same-writer retry."
+  ]
+}
