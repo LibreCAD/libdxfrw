@@ -1,0 +1,121 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-librecad-3289-ownerless-resave-fix-2026-11-20",
+  "date": "2026-11-20",
+  "status": "LOCAL_FIX_PASS_NATIVE_AND_CI_OPEN",
+  "supportClaimEffect": "none",
+  "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "base": "281a8a4c83884ae1e8c9aa3436d87184c0b17ea7",
+  "candidateHead": "c5a9380c16347eef5003178a84501fedbf77cfe9",
+  "dependency": "https://github.com/LibreCAD/libdxfrw/pull/106",
+  "priorFailure": "docs/research/p8d-librecad-3289-bundled-ci-regression-2026-11-20.json",
+  "implementation": "For one unchanged, ownerless, no-reactor/no-EED/no-xdictionary/no-plot-reference source whose complete NOD contains only ACAD_GROUP, preserve same-version raw replay at its original handle. Freeze import-time typed/raw snapshots, recheck the source and active settings through finalization, and require the raw carrier to be committed. Reject edited, duplicate, linked, changed, wide-reference, unsupported or ambiguous profiles. Rooted AC1015 handling remains separately guarded.",
+  "validation": {
+    "artifacts": {
+      "bundledBuild": {
+        "path": "/private/tmp/libdxfrw-lc3289-ownerless-final-build.log",
+        "sha256": "a45a65b901d951df88fdefca3268620d07489757de3a9a2b3742bd63483b1e2f"
+      },
+      "bundledFast": {
+        "path": "/private/tmp/libdxfrw-lc3289-ownerless-final-fast.log",
+        "sha256": "da87a02cf4d5b1240b0b7751c1f128261a04716f7de3a5b41d1a5779f45fac47"
+      },
+      "bundledControls": {
+        "path": "/private/tmp/libdxfrw-lc3289-ownerless-controls.log",
+        "sha256": "b41f85abfc958f3043987facf6b9ead6f9ebe21cdfe02f58d0a04de6f0dc2a42"
+      },
+      "bundledViewport": {
+        "path": "/private/tmp/libdxfrw-lc3289-ownerless-final-viewport.log",
+        "sha256": "60dbdc4338161544267ba95f529e46fdbb5b44f9f7b1a19e17b97867f0b33219"
+      },
+      "currentCodecBuild": {
+        "path": "/private/tmp/libdxfrw-lc3289-ownerless-current-codec-build.log",
+        "sha256": "85d7a8b9f384dc52f2f5e9660dd7d5dd25e1b0e9ea8c5efec6b424d1d284d90e"
+      },
+      "currentCodecControls": {
+        "path": "/private/tmp/libdxfrw-lc3289-ownerless-current-codec-controls.log",
+        "sha256": "e587e45c56406130cbb938f2f67b8164a14fe58ae910fabad9871ae8c3873bc0"
+      },
+      "currentCodecFast": {
+        "path": "/private/tmp/libdxfrw-lc3289-ownerless-current-codec-fast.log",
+        "sha256": "80b3460a20a5107b57b6647c8a4ae8b7b63141a5fb4e5dde48c4dc1541ba1c2c"
+      },
+      "installedFilterBuild": {
+        "path": "/private/tmp/libdxfrw-lc3289-ownerless-installed-filter-build.log",
+        "sha256": "457986c2511d59ffb9fb22595c5de108d06943a301b1bf73be53d9f318c98d2f"
+      },
+      "witnessControls": {
+        "path": "/private/tmp/libdxfrw-lc3289-fixed-witness.log",
+        "sha256": "c9dde0c38c7fbf81acff2447eeefc1bdb8b67641cd71f7631b8800ef8f7ed77c"
+      },
+      "peerCompare": {
+        "path": "/private/tmp/libdxfrw-lc3289-ownerless-peer-compare.log",
+        "sha256": "09ac2e4d0d1a767a09a4be4b03916b81681e4327c5030ab6b9fbdbe481b3768d"
+      }
+    },
+    "bundledFast": "PASS: 41,432 assertions in 840 passed test cases, 4 skipped.",
+    "bundledControls": "PASS: 125 assertions in five generated DWG versions, including modified raw bytes, typed fields, wide/relative handles, active margin, NOD membership, duplicate identity, destination preservation, same-filter corrected retry and exact raw readback.",
+    "currentCodecControls": "PASS: 140 assertions using locally generated bundled-codec inputs across five DWG versions; includes original raw-code and hidden EED reference controls. The test target uses scratch CMake current-codec wiring.",
+    "currentCodecFast": "PASS: 1,266 assertions in 50 focused cases.",
+    "installedFilter": "PASS: production installed-codec filter compile; this is not native GUI or platform qualification.",
+    "peer": "LibreDWG dwgread 0.14 independently matched PLOTSETTINGS modeled fields, object identity, owner and NOD membership before/after for five generated versions.",
+    "witnesses": {
+      "2000": {
+        "before": {
+          "dwgSha256": "6e612815a730cbe655699118233b60e6f0588d0774b2ac2704a4d71b589b4ab7",
+          "peerJsonSha256": "27044f7849c7fb6792cff352aa7e253fa6ee68d6d9849a44f63f36f566e948f5"
+        },
+        "after": {
+          "dwgSha256": "fdc612b3e50fba8f816ee7abdf88a598887602fe2331d90a603478f702091b13",
+          "peerJsonSha256": "d90ba45625a94ae422b3e6bf8c9ecdda1ae77bc1a4616a9d48925bd7b16b6dbb"
+        }
+      },
+      "2004": {
+        "before": {
+          "dwgSha256": "5876228acd1a0093b8f38fc38fe8f62093ca7c80a18b363e87b62ae3dfa3ba3b",
+          "peerJsonSha256": "048ff479d1e05b5ef9d704a4ff43188fab618d2fd9f67073f18649504e5ace7c"
+        },
+        "after": {
+          "dwgSha256": "537ec4734a31c45ef994d5318d87b4270794ffaa0eb55d4b33bee048c9ea025b",
+          "peerJsonSha256": "0d34b575e51c662663f049c11f90a508e08dcdf2929ce752a5e15cac4b9a87da"
+        }
+      },
+      "2010": {
+        "before": {
+          "dwgSha256": "b25533027337363be9669349464204a9f62e1cab404d1711f50b6b93fa49f9b8",
+          "peerJsonSha256": "09c137c124ee99e784386ffdb3723ffe39d691dea28af081024286ed310a49e6"
+        },
+        "after": {
+          "dwgSha256": "3a06f60e75778ecd346329d78eec42108c0e26aca737af8d6272f2996b02a843",
+          "peerJsonSha256": "a0e176146789728c32b28d19f2d522f43cd7d0d061a992ce6c7fa8e61e41576f"
+        }
+      },
+      "2013": {
+        "before": {
+          "dwgSha256": "59db01970025f1daec2aa88eedb0fd25553df9a845a3de1c8ec2c77eabf8e488",
+          "peerJsonSha256": "1e239a6ac9456f7c54d0804dd7a4f923d586c9d35b4f885b05d6ecc019ab6d39"
+        },
+        "after": {
+          "dwgSha256": "c534e06b1e48bb25455146a33909519a114ef8e0e69213478ce9100dab71d140",
+          "peerJsonSha256": "1a3451788350fbb76f0a934bc4a8f65b693dd0c691b059a9e71265bd02f0322a"
+        }
+      },
+      "2018": {
+        "before": {
+          "dwgSha256": "639374dc8ae9e644832822098872cee64179d1a9a1fffa5546cf2a38f083a154",
+          "peerJsonSha256": "c7efcd8ce7b798015d48063e073e9ca4283b18437172b6ff9727422098e59d47"
+        },
+        "after": {
+          "dwgSha256": "345cadd8ba9d787eff9fc6edbd73ece3bf1e56d305beb71d38415cda8b4cf754",
+          "peerJsonSha256": "e960c1028c3924e0926fcbe9d3079e5ec3af289f16edb3b14798e49f84306624"
+        }
+      }
+    }
+  },
+  "limits": [
+    "The witness PLOTSETTINGS object is already ownerless; this is source-shape preservation, not a claim that the graph is canonical or suitable for every consumer.",
+    "R2007 is not included in these five peer witnesses. Native GUI, Linux/Windows system-codec qualification, LibreCAD_3 and fresh CI remain open.",
+    "The prior CI missing colorbox target and Hungarian/Ukrainian translation failures were also present on earlier master; this local result does not claim hosted CI is green.",
+    "Generated DWG/DXF files were not committed."
+  ]
+}
