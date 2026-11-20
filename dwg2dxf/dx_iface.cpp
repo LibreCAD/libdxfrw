@@ -29415,7 +29415,13 @@ bool dx_iface::hasQualifiedAerialMaterialAppIdSource() const noexcept {
         return false;
     const auto& appPublication = appId.publication;
     const auto& controlPublication = control.publication;
-    if (appPublication.m_parentHandle != appId.raw.m_parentHandle
+    const auto liveAppId = std::find_if(
+        cData->appIds.cbegin(), cData->appIds.cend(),
+        [](const DRW_AppId& item) { return item.handle == 0x12u; });
+    if (liveAppId == cData->appIds.cend()
+        || appId.raw.m_parentHandle != control.raw.m_handle
+        || liveAppId->parentHandle != appId.raw.m_parentHandle
+        || appPublication.m_parentHandle != appId.raw.m_parentHandle
         || appPublication.m_reactorHandles != appId.raw.m_reactorHandles
         || appPublication.m_numReactors != appId.raw.m_numReactors
         || appPublication.m_xDictFlag != appId.raw.m_xDictFlag

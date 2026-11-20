@@ -1765,7 +1765,7 @@ bool physicalAc1024SelectedGlobalMaterialEedWriter(
         || owner->parentHandle != 0xCu || owner->m_entries.size() != 9u
         || material->parentHandle != 0x72u || material->xDictHandle != 0x290u
         || material->m_name != "Global" || material->extData.size() != 7u
-        || appId->name != "ACAD"
+        || appId->name != "ACAD" || appId->parentHandle != 0x09u
         || extension->parentHandle != 0x98u
         || extension->m_entries.size() != 1u
         || extension->m_entries.front().m_name != "FBXASSET"
@@ -1818,6 +1818,7 @@ bool physicalAc1024SelectedGlobalMaterialEedWriter(
         dx_data* sourceData{nullptr};
         bool emitAppIdBinding{true};
         bool corruptAppIdNameAfterCallback{false};
+        bool corruptAppIdParentAfterCallback{false};
         bool corruptMaterialEed{false};
         bool corruptRecord{false};
         bool omitRecord{false};
@@ -1831,6 +1832,13 @@ bool physicalAc1024SelectedGlobalMaterialEedWriter(
                         return item.handle == 0x12u;
                     });
                 if (row != sourceData->appIds.end()) row->name = "BROKEN";
+            }
+            if (corruptAppIdParentAfterCallback && sourceData != nullptr) {
+                const auto row = std::find_if(sourceData->appIds.begin(),
+                    sourceData->appIds.end(), [](const DRW_AppId& item) {
+                        return item.handle == 0x12u;
+                    });
+                if (row != sourceData->appIds.end()) row->parentHandle = 0x0au;
             }
         }
         void writeObjects() override {
@@ -1926,13 +1934,14 @@ bool physicalAc1024SelectedGlobalMaterialEedWriter(
         return valid;
     };
 
-    enum class Fault { None, AppIdSource, MissingAppIdBinding, MaterialEed,
-                       RecordTruncated, MissingRecord, RawFrameLate };
+    enum class Fault { None, AppIdSource, AppIdParent, MissingAppIdBinding,
+                       MaterialEed, RecordTruncated, MissingRecord, RawFrameLate };
     Fault fault = Fault::None;
     const auto run = [&](bool binary) {
         tablesSeen = objectsSeen = finalizing = false;
         Access::resetRasterOutput(reader);
         writer.corruptAppIdNameAfterCallback = fault == Fault::AppIdSource;
+        writer.corruptAppIdParentAfterCallback = fault == Fault::AppIdParent;
         writer.emitAppIdBinding = fault != Fault::MissingAppIdBinding;
         writer.corruptMaterialEed = fault == Fault::MaterialEed;
         writer.corruptRecord = fault == Fault::RecordTruncated;
@@ -2017,12 +2026,13 @@ bool physicalAc1024SelectedGlobalMaterialEedWriter(
         return true;
     };
     const std::string sentinel = "preserve selected Global MATERIAL destination\n";
+    const auto originalAppIdParent = appId->parentHandle;
     for (const bool binary : {false, true}) {
         fault = Fault::None;
         if (!run(binary) || !tablesSeen || !objectsSeen || !finalizing
             || !checkReadback())
             return fail("selected Global MATERIAL EED baseline/readback failed");
-        for (const Fault bad : {Fault::AppIdSource,
+        for (const Fault bad : {Fault::AppIdSource, Fault::AppIdParent,
                 Fault::MissingAppIdBinding, Fault::MaterialEed,
                 Fault::RecordTruncated, Fault::MissingRecord,
                 Fault::RawFrameLate}) {
@@ -2034,11 +2044,13 @@ bool physicalAc1024SelectedGlobalMaterialEedWriter(
             }
             const bool saved = run(binary);
             appId->name = "ACAD";
+            appId->parentHandle = originalAppIdParent;
             writer.appId = *appId;
             writer.material = *material;
             writer.extension = *extension;
             writer.record = *record;
             writer.corruptAppIdNameAfterCallback = false;
+            writer.corruptAppIdParentAfterCallback = false;
             writer.emitAppIdBinding = true;
             writer.corruptMaterialEed = false;
             writer.corruptRecord = false;
@@ -2048,7 +2060,7 @@ bool physicalAc1024SelectedGlobalMaterialEedWriter(
             std::ifstream existing(path, std::ios::binary);
             const std::string actualSentinel(
                 std::istreambuf_iterator<char>(existing), {});
-            const bool expectedStages = bad == Fault::AppIdSource
+            const bool expectedStages = bad == Fault::AppIdSource || bad == Fault::AppIdParent
                 ? (tablesSeen && !objectsSeen && !finalizing)
                 : bad == Fault::MaterialEed
                     || bad == Fault::RecordTruncated
@@ -2068,6 +2080,6 @@ bool physicalAc1024SelectedGlobalMaterialEedWriter(
                 return fail("selected Global MATERIAL corrected retry/readback failed");
         }
     }
-    std::cerr << "AC1024 selected Global MATERIAL EED passed six refusal/retry controls in both encodings.\n";
+    std::cerr << "AC1024 selected Global MATERIAL EED passed seven refusal/retry controls in both encodings.\n";
     return true;
 }

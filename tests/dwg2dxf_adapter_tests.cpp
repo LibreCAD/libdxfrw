@@ -3517,8 +3517,17 @@ public:
         auto row = std::find_if(data.appIds.begin(), data.appIds.end(),
             [](const DRW_AppId& value) { return value.handle == 0x12u; });
         if (row == data.appIds.end()) return false;
-        return rejectAndRestore(row->name, std::string("WRONG"))
-            && qualified();
+        if (!rejectAndRestore(row->name, std::string("WRONG"))
+            || !rejectAndRestore(row->parentHandle, 0x0au))
+            return false;
+        const auto rawParent = appId.raw.m_parentHandle;
+        const auto publicationParent = appId.publication.m_parentHandle;
+        appId.raw.m_parentHandle = 0x0au;
+        appId.publication.m_parentHandle = 0x0au;
+        const bool wrongCommonParentRejected = !qualified();
+        appId.raw.m_parentHandle = rawParent;
+        appId.publication.m_parentHandle = publicationParent;
+        return wrongCommonParentRejected && qualified();
     }
 
     static bool aerialGlobalMaterialEedSourceControls(dx_iface& iface,
