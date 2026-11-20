@@ -7,8 +7,8 @@ preserving LibreCAD 2D consumers, enabling evidence-backed 3D use, and keeping
 `dwg2dxf` usable by FreeCAD. Support claims apply only to qualified source,
 version, operation, consumer, and platform profiles.
 
-There are **22 open package gates**: P4: 3, P5: 7, P6: 5, P7: 4, and P8: 3.
-Gate readiness is 12/34 (35.3%); this is not an overall implementation
+There are **21 open package gates**: P4: 3, P5: 7, P6: 5, P7: 4, and P8: 2.
+Gate readiness is 13/34 (38.2%); this is not an overall implementation
 percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
@@ -71,8 +71,9 @@ operation, and profile. Apply the [support policy](docs/UPGRADE_SUPPORT.md),
 and [3D plan](DWG_DXF_3D_SUPPORT_PLAN.md).
 
 The [APPID source guards](docs/research/p4-ac1024-layerstates-appid-wire-source-binding-2026-11-20.json)
-change converter inputs, so P8-C requires revalidation. [Package checks](docs/research/p8-package-b53-qualification-2026-11-20.json),
-[Linux FreeCAD](docs/research/p8b-linux-freecad-13594-2026-11-20.json) and [focused native/fast checks](docs/research/p8f-13594-native-fast-qualification-2026-11-20.json) passed for their recorded inputs. All receipts apply only to their recorded
+change converter inputs; [package checks](docs/research/p8-package-b53-qualification-2026-11-20.json),
+[Linux FreeCAD](docs/research/p8b-linux-freecad-13594-2026-11-20.json),
+[Windows FreeCAD](docs/research/p8c-windows-freecad-13594-2026-11-20.json), and [focused native/fast checks](docs/research/p8f-13594-native-fast-qualification-2026-11-20.json) passed for their recorded inputs. All receipts apply only to their recorded
 source, binaries, configurations, platforms and generated profiles.
 
 ## Active package gates
@@ -172,11 +173,10 @@ acceptance separate. CAD Assistant/ezdxf shares OCCT lineage with FreeCAD and
 is not independent-kernel evidence. P7-E is optional; a missing external kernel
 or app blocks only its profile.
 
-### P8 — consumers, packaging, release (3 open)
+### P8 — consumers, packaging, release (2 open)
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P8-C / REVALIDATE_WINDOWS_FREECAD | After the candidate is frozen, rerun the existing Windows FreeCAD generated-profile qualification. | Bind the actual converter and consumer binaries and preserve the original profile limits. |
 | P8-D / WAITING_FOR_GUI_AND_EXTERNAL_CONSUMER_QUALIFICATION | Once the process sees an active display and can capture it, run LibreCAD 2 native save/reopen/render/edit checks: Move/Copy, named-LTYPE rendering, and the selected MLINE display/edit/save/reopen. Run LibreCAD_3 native MPOLYGON save/reopen and current-consumer integration. See the [GUI preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json) and [staged-inspector receipt](docs/research/p8d-mline-staged-inspector-port-2026-11-19.json). | Integrate/review the unmerged consumer patches and verify against the current consumers, both bundled and upstream codecs where applicable. In particular, the [LibreCAD_3 planar elevation patch](docs/patches/librecad3-p8-hatch-planar-elevation-2026-11-19.patch) and its [multiple-loop follow-up](docs/patches/librecad3-p8-multiloop-planar-elevation-2026-11-19.patch) are incremental on the recorded candidate, not upstream master; see their [validation receipt](docs/research/p8d-librecad3-multiloop-elevation-2026-11-19.json). The [DIMSTYLE](docs/patches/librecad-dxfrw-default-dimstyle-qstring-2026-11-18.patch), [JWW](docs/patches/librecad-jww-default-dimstyle-qstring-2026-11-18.patch), and [associative-prefix](docs/patches/librecad-associative-prefix-kinds-guarded-2026-11-19.patch) fixes remain unmerged; reuse their [focused checks](docs/research/p8d-librecad-master-26dd-dimstyle-prefix-2026-11-19.json). Review and upstream the [combined consumer candidate](docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch), rebased on LibreCAD `281a8a4`; it also covers codepage and installed-codec changes. Reuse its [focused evidence](docs/research/p8d-librecad-system-codec-integration-2026-11-19.json) and [macOS installed-app smoke](docs/research/p8d-current-eed-installed-macos-app-smoke-2026-11-20.json); qualify the final macOS, Linux and Windows inputs and verify native behavior. Do not substitute the remote ObjectARX host or headless tests for native GUI evidence. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds and freeze the candidate. Recheck closed package, FreeCAD and focused-native receipts against the final inputs; reopen mismatched gates. | Build and test the complete GCC profile, run the broad suite and extended fuzz lane once for the frozen candidate, resolve required failures, and publish the evidence-backed support matrix. No required job may remain red and no unqualified route may be advertised. |
 
