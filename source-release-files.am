@@ -132,6 +132,7 @@ EXTRA_DIST = \
     dwg2dxf/CMakeLists.txt \
     dwg2dxf/Makefile.am \
     dwg2dxf/dwg2dxf.1 \
+    dwg2dxf/dx_ac1021_dictionaryvar_wire.h \
     dwg2dxf/dx_ac1024_aerial_advmaterial_wire.h \
     dwg2dxf/dx_ac1024_aerial_fbxasset_wire.h \
     dwg2dxf/dx_ac1024_aerial_material_wide_wire.h \

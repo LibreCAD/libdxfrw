@@ -89,6 +89,7 @@ jobs:
           libdxfrw_wave1_tests libdxfrw_hardening_tests
           libdxfrw_graph_preservation_tests libdxfrw_writer_primitives_tests
           libdxfrw_dwg_object_vectors_tests libdxfrw_writer_version_matrix_tests
+          libdxfrw_dwg_ac1027_material_dictionary_wire_tests
           libdxfrw_diagnostic_tests libdxfrw_dxf_fixture_tests
           libdxfrw_dwg_local_roundtrip libdxfrw_3d_consumer_probe
           lc3_compat_check libdxfrw_dwg2dxf_adapter_tests

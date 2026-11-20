@@ -9,6 +9,7 @@ dist_noinst_HEADERS = \
     dx_ac1024_aerial_material_wide_wire.h \
     dx_ac1024_aerial_tile_wire.h \
     dx_ac1024_byblock_material_wire.h \
+    dx_ac1021_dictionaryvar_wire.h \
     dx_ac1024_dictionaryvar_wire.h \
     dx_ac1024_material_eed_wire.h \
     dx_ac1024_mentalray_wire.h \

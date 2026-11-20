@@ -11,6 +11,7 @@ set(LIBDXFRW_CLI_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1024_aerial_material_wide_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1024_aerial_tile_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1024_byblock_material_wire.h"
+    "${CMAKE_CURRENT_LIST_DIR}/dx_ac1021_dictionaryvar_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1024_dictionaryvar_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1024_material_eed_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1024_mentalray_wire.h"

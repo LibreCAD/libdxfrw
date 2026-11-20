@@ -56,6 +56,7 @@ CTEST_REGRESSIONS = (
     "libdxfrw_block_owners",
     "libdxfrw_extension_graph_limits",
     "libdxfrw_classes_wire_census",
+    "libdxfrw_dwg_ac1027_material_dictionary_wire",
     "dwg2dxf_native_xrecord_binary_transport",
     "dwg2dxf_native_xrecord_binary_faults",
     "dwg2dxf_xrecord_owned_defaultplot_source_probe",

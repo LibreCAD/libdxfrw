@@ -3,6 +3,7 @@
 #include "dx_ac1024_mentalray_wire.h"
 #include "dx_ac1024_mleaderstyle_wire.h"
 #include "dx_ac1024_dictionaryvar_wire.h"
+#include "dx_ac1021_dictionaryvar_wire.h"
 #include "dx_ac1024_mlinestyle_wire.h"
 #include "dx_layerstates_dwg_wire.h"
 
@@ -328,6 +329,78 @@ bool checkAc1024MLineStyleWire() {
   if(check(raw,changedStyle)) return false;
   return check(raw,style);
 }
+// Locally generated controls for the selected AC1021 variable graph.
+bool checkAc1021DictionaryVarWire() {
+  using namespace dx_ac1021_dictionaryvar_wire;
+  const auto h = [](BitWriter& w, std::uint8_t role, std::uint32_t value, unsigned length) {
+    w.bits((role << 4u) | length, 8u);
+    for (unsigned i = length; i > 0u; --i) w.bits((value >> ((i - 1u) * 8u)) & 255u, 8u);
+  };
+  const auto rl = [](BitWriter& w, std::uint32_t value) {
+    for (unsigned i = 0; i < 4u; ++i) w.bits((value >> (8u * i)) & 255u, 8u);
+  };
+  const auto rawFor = [](std::uint32_t self, std::uint32_t owner, int type) {
+    DRW_UnsupportedObject raw; raw.m_version = DRW::AC1021; raw.m_objectType = type;
+    raw.m_handle = self; raw.m_parentHandle = owner; raw.m_numReactors = 1;
+    raw.m_reactorHandles = {owner}; raw.m_xDictFlag = 1u;
+    raw.m_commonHandleDataValidated = true;
+    raw.m_commonLinkEvidence = DRW_DwgCommonLinkEvidence::Validated;
+    if (type == 504) { raw.m_isCustomClass = true; raw.m_hasClassDefinition = true;
+      raw.m_recordName = "DICTIONARYVAR"; raw.m_className = "AcDbDictionaryVar"; }
+    return raw;
+  };
+  BitWriter d; d.shortValue(42u); rl(d, 310u); h(d, 0u, 0x5abu, 2u);
+  d.bits(2u, 2u); d.longValue(1u); d.bits(1u, 1u); d.longValue(1u);
+  d.shortValue(1u); d.bits(0u, 8u); const std::string key = "CTABLESTYLE";
+  d.shortValue(static_cast<std::uint8_t>(key.size()));
+  for (unsigned char c : key) d.little16(c);
+  d.little16(186u); d.bits(1u, 1u); h(d, 4u, 0xcu, 1u);
+  h(d, 4u, 0xcu, 1u); h(d, 2u, 0x5acu, 2u); d.bits(3u, 2u);
+  if (d.size() != 368u) return false;
+  auto owner = rawFor(0x5abu, 0xcu, 42); owner.m_objectSize = 46u;
+  owner.m_rawBytes = std::move(d).take();
+  DRW_Dictionary dictionary; dictionary.handle = 0x5abu; dictionary.parentHandle = 0xcu;
+  dictionary.cloning = 1; dictionary.hardOwner = 0; dictionary.reactorHandles = {0xcu};
+  dictionary.m_entries.push_back({key, 0x5acu}); dictionary.setDwgCommonObjectState(1, 1u, false);
+  dictionary.setDwgCommonLinkTailValidated(true);
+  if (!observeOwner(owner, dictionary)) return false;
+  for (std::size_t bit = 0; bit < 368u; ++bit) {
+    auto changed = owner; changed.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(1u << (7u - bit % 8u));
+    if (observeOwner(changed, dictionary) || !observeOwner(owner, dictionary)) return false;
+  }
+  BitWriter v; v.bits(0u, 2u); v.little16(504u); rl(v, 250u); h(v, 0u, 0x5acu, 2u);
+  v.bits(2u, 2u); v.longValue(1u); v.bits(1u, 1u); v.bits(0u, 8u);
+  const std::string text = "STANDARD"; v.shortValue(static_cast<std::uint8_t>(text.size()));
+  for (unsigned char c : text) v.little16(c);
+  v.little16(138u); v.bits(1u, 1u); h(v, 8u, 0u, 0u); h(v, 4u, 0x5abu, 2u); v.bits(63u, 6u);
+  if (v.size() != 288u) return false;
+  auto raw = rawFor(0x5acu, 0x5abu, 504); raw.m_objectSize = 36u;
+  raw.m_rawBytes = std::move(v).take();
+  DRW_DictionaryVar value; value.handle = 0x5acu; value.parentHandle = 0x5abu;
+  value.m_value = text; value.reactorHandles = {0x5abu}; value.setDwgCommonObjectState(1, 1u, false);
+  value.setDwgCommonLinkTailValidated(true);
+  if (!observeVariable(raw, value)) return false;
+  for (std::size_t bit = 0; bit < 288u; ++bit) {
+    auto changed = raw; changed.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(1u << (7u - bit % 8u));
+    if (observeVariable(changed, value) || !observeVariable(raw, value)) return false;
+  }
+  auto changed = value; changed.m_value = "Standard";
+  auto truncated = raw; truncated.m_rawBytes.pop_back();
+  auto extended = raw; extended.m_rawBytes.push_back(0xffu); ++extended.m_objectSize;
+  auto otherVersion = raw; otherVersion.m_version = DRW::AC1024;
+  auto otherClass = raw; otherClass.m_className = "AcDbOther";
+  auto noClass = raw; noClass.m_hasClassDefinition = false;
+  auto wrongParent = raw; wrongParent.m_parentHandle = 0xcu;
+  auto badOwner = dictionary; badOwner.m_entries.front().m_handle = 0x5adu;
+  auto ownerTruncated = owner; ownerTruncated.m_rawBytes.pop_back();
+  return !observeVariable(raw, changed) && !observeVariable(truncated, value)
+      && !observeVariable(extended, value) && !observeVariable(otherVersion, value)
+      && !observeVariable(otherClass, value) && !observeVariable(noClass, value)
+      && !observeVariable(wrongParent, value) && !observeOwner(owner, badOwner)
+      && !observeOwner(ownerTruncated, dictionary)
+      && observeOwner(owner, dictionary) && observeVariable(raw, value);
+}
+
 // Generated source-format controls for the pinned AC1024 variable graph.
 bool checkAc1024DictionaryVarWire() {
   using namespace dx_ac1024_dictionaryvar_wire;
@@ -456,7 +529,8 @@ bool checkAc1024RenderGlobalWire() {
 
   BitWriter dictionary;common(dictionary,42,0x251u,0,1);dictionary.longValue(1u);dictionary.shortValue(1u);dictionary.bits(1u,8u);
   const std::string key="ADSK_XREC_RENDERGLOBALINFO";dictionary.shortValue(static_cast<std::uint8_t>(key.size()));
-  for(unsigned char c:key)dictionary.little16(c);dictionary.little16(426u);dictionary.bits(1u,1u);
+  for (unsigned char c : key) dictionary.little16(c);
+  dictionary.little16(426u); dictionary.bits(1u, 1u);
   h(dictionary,12u,0x1au,1u);h(dictionary,2u,0x252u,2u);dictionary.bits(3u,2u);
   if(dictionary.size()!=552u)return false;
   auto dr=makeRaw(0x251u,42,0x237u,0,1);dr.m_objectSize=69u;dr.m_bodyBitSize=42u;dr.m_rawBytes=std::move(dictionary).take();
@@ -779,6 +853,10 @@ int main() {
   }
   if (!checkAc1024RenderGlobalWire()) {
     std::cerr << "AC1024 RENDERGLOBAL source wire control failed\n";
+    return 1;
+  }
+  if (!checkAc1021DictionaryVarWire()) {
+    std::cerr << "AC1021 DICTIONARYVAR source wire control failed\n";
     return 1;
   }
   if (!checkAc1024DictionaryVarWire()) {
