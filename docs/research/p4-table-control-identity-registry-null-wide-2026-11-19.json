@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-table-control-identity-registry-null-wide-2026-11-19",
+  "date": "2026-11-19",
+  "status": "DXF_IDENTITY_REGISTRY_FIXED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "f6aeb47f140f9830e0ffdf90965259bd4ae2b7bd9be53de1954d6cdcb358d750",
+  "problem": "The existing TABLE-control observer skipped valid null and 64-bit code-5 lexemes before reader identity registration. The established identity selector consequently reported null and wide candidates as Unobserved and did not detect duplicate wide TABLE controls.",
+  "change": "Register valid code-5 lexemes with the reader before applying the separate 32-bit control-model constraint. Null remains non-identifying, and null or out-of-range values make the table-control model ambiguous and unavailable for source qualification. Invalid lexemes retain tolerant unobserved behavior.",
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_table_content_dxf_tests libdxfrw_dwg2dxf_adapter_tests -j 2",
+    "tests": "PASS: six identity, class, structural, plotstyle and XRECORD selectors, including 16 existing null/absent/invalid/wide cases and eight wide-duplicate/refusal/corrected-same-reader cases and four repeated-null cases across AC1018/AC1032 and ASCII/binary.",
+    "baseline": "The previous adapter and library reproduced the pre-existing TABLE header admission failure on AC1018 ASCII handle 0.",
+    "gcc16FullTarget": "A separate GCC 16 -Wall -Wextra -pedantic -Werror syntax check of the entire table-content test translation unit still fails on many pre-existing misleading-indentation diagnostics in that unit and its included controls; the newly added lines were corrected. Log SHA-256 0d0a670f38f2c0bf059b08a7c1f0986db0e632db215cb08baf912339f46041a0. No warnings were disabled."
+  },
+  "limits": [
+    "This change does not grant ownership, output eligibility or format support to unmodeled wide or null TABLE control handles.",
+    "P8-F must be replayed for the new implementation digest."
+  ]
+}

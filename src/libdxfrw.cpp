@@ -21008,12 +21008,19 @@ public:
         if(!xdata&&code==5) {
             std::uint64_t parsed=0u;
             if(handleSeen||!input.isValidHandleLexeme()
-               ||!parseRawDxfHandleLexeme(input.getStringView(),parsed)
-               ||parsed>UINT32_MAX||parsed==DRW::NoHandle) {
+               ||!parseRawDxfHandleLexeme(input.getStringView(),parsed)) {
                 ambiguous=true;
                 return true;
             }
+            // The reader's identity census and duplicate registry preserve
+            // valid 64-bit lexemes, including the null admission. The
+            // narrower table-control model still refuses to use null or
+            // out-of-range handles as source-qualified control identities.
             if(!input.registerSelfHandle())return false;
+            if(parsed>UINT32_MAX||parsed==DRW::NoHandle) {
+                ambiguous=true;
+                return true;
+            }
             handle=static_cast<std::uint32_t>(parsed);
             handleSeen=true;
         }

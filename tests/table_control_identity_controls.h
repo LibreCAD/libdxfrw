@@ -13,7 +13,7 @@ bool tableControlIdentityTests(const std::filesystem::path& path) {
     const auto header=[](const std::string& version) {
         return Tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,version},{0,"ENDSEC"}};
     };
-    unsigned matrices=0u,collisions=0u,retries=0u,scopes=0u,tolerant=0u;
+    unsigned matrices=0u,collisions=0u,retries=0u,scopes=0u,tolerant=0u,wideCollisions=0u,nullPairs=0u;
     for(const std::string version:{"AC1018","AC1032"})for(bool binary:{false,true}) {
         Tags all=header(version);all.insert(all.end(),{{0,"SECTION"},{2,"TABLES"}});
         const std::array<const char*,10> names{{"VPORT","LTYPE","LAYER","STYLE","VIEW","UCS","APPID","DIMSTYLE","BLOCK_RECORD","FUTURE"}};
@@ -88,8 +88,32 @@ bool tableControlIdentityTests(const std::filesystem::path& path) {
             }else if(!probe.census.candidates.empty())return false;
             ++tolerant;
         }
+        // Wide TABLE identities remain in the 64-bit registry even though
+        // they cannot qualify the adapter's 32-bit table-control model.
+        for(const char* value:{"100000000","FFFFFFFFFFFFFFFF"}) {
+            const auto tables=[&](const char* second) {
+                auto tags=header(version);tags.insert(tags.end(),{{0,"SECTION"},{2,"TABLES"},
+                    {0,"TABLE"},{2,"LAYER"},{5,value},{0,"ENDTAB"},
+                    {0,"TABLE"},{2,"LTYPE"},{5,second},{0,"ENDTAB"},{0,"ENDSEC"},{0,"EOF"}});
+                return tags;
+            };
+            if(!write(path,tables(value),binary))return false;
+            Probe reader;dx_data duplicate;
+            if(!check(!reader.fileImport(path.string(),&duplicate,false),"duplicate wide TABLE control was accepted"))return false;
+            if(!write(path,tables("10"),binary))return false;
+            dx_data corrected;
+            if(!check(reader.fileImport(path.string(),&corrected,false),"corrected wide TABLE control did not retry"))return false;
+            ++wideCollisions;
+        }
+        auto nulls=header(version);nulls.insert(nulls.end(),{{0,"SECTION"},{2,"TABLES"},
+            {0,"TABLE"},{2,"LAYER"},{5,"0"},{0,"ENDTAB"},
+            {0,"TABLE"},{2,"LTYPE"},{5,"0"},{0,"ENDTAB"},{0,"ENDSEC"},{0,"EOF"}});
+        if(!write(path,nulls,binary))return false;
+        Probe nullReader;dx_data nullData;
+        if(!check(nullReader.fileImport(path.string(),&nullData,false),"null TABLE controls were treated as duplicates"))return false;
+        ++nullPairs;
     }
     std::cout<<"TABLE control matrices="<<matrices<<" collisions="<<collisions<<" retries="<<retries
         <<" nested scopes="<<scopes<<" legacy controls="<<tolerant<<'\n';
-    return matrices==4u&&collisions==8u&&retries==8u&&scopes==8u&&tolerant==16u;
+    return matrices==4u&&collisions==8u&&retries==8u&&scopes==8u&&tolerant==16u&&wideCollisions==8u&&nullPairs==4u;
 }
