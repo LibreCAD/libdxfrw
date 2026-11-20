@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-ac1015-plotsettings-common-links-2026-11-19",
+  "date": "2026-11-19",
+  "status": "AC1015_BOUNDED_COMMON_LINK_PUBLICATION_ONLY",
+  "supportClaimEffect": "none",
+  "source": {
+    "path": "/private/tmp/libdxfrw-librecad-system-smoke/edit-final.dwg",
+    "sha256": "0949376f64f635d3ba132662ae31de87082a874ad3714783d4f10a45c2e4707a",
+    "provenance": "Generated locally from scratch by the isolated LibreCAD consumer from a generated line DXF; not a producer witness.",
+    "objectHandle": "0x56",
+    "sourceObjectOffset": 19816,
+    "sourceObjectBytes": 50,
+    "sourceObjectSha256": "2dc58a433e7f94bc4bce828f57d48b8cb5651a6576da5f9d3ce62f3be823943d"
+  },
+  "evidence": {
+    "oda": {
+      "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+      "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+      "sections": [
+        "20.1 common non-entity object format",
+        "20.4.84 LAYOUT embedded plot-settings prefix"
+      ],
+      "limit": "The embedded prefix is not by itself independent proof of all standalone PLOTSETTINGS profiles."
+    },
+    "libredwg": {
+      "version": "0.14",
+      "log": "/private/tmp/libdxfrw-librecad-system-smoke/peer-generated-trace.stderr",
+      "sha256": "c1657a128bc8bafc4ceb1cbab866433f807b56b90f885ea6827aa011d2abc2c8",
+      "observation": "Independently decodes the source object at byte 19816, 50-byte object body, 372-bit body boundary, parent soft pointer 0x30, null extension dictionary, four alignment bits, and DICTIONARY 0x30 owning the named entry to 0x56.",
+      "warning": "Verbose reference resolution reports the HANDSEED 0x57 is not an object; HANDSEED is a seed rather than evidence of a missing graph object. No general whole-file integrity conclusion is drawn."
+    },
+    "instrumentedParser": {
+      "log": "/private/tmp/libdxfrw-plotsettings-parser-span.log",
+      "sha256": "55518fb3e4f3abf0ceb6137d0d3eebe7b186ea54813774cecf7370153b6cce5e",
+      "observation": "Independent strict-role probe on the same source reports body end 372, handles start 372, handle cursor 396 of 400, parent role 4 with value 0x30, null xdictionary, zero reactors, and strict common-tail parse succeeds."
+    },
+    "sourceCallbackCapture": {
+      "log": "/private/tmp/libdxfrw-plotsettings-source-capture.log",
+      "sha256": "b9c4149d856ecb05318975e965568ec558935159d93f5c403e9f245624ebccf9",
+      "observation": "Actual reader delivers one typed, one raw and one frame callback with matching handle 0x56, parent 0x30 and validated common-link evidence."
+    }
+  },
+  "implementation": "For AC1015 PLOTSETTINGS, qualify common links only when the typed body ends at the declared handle boundary, an independent cursor validates the ODA common-handle roles and agrees with the normal parse, and the remaining tail contains fewer than eight alignment bits. Propagate that evidence from the typed parser to the matching raw view and frame publication; leave the parser compatibility behavior unchanged when qualification fails.",
+  "validation": {
+    "red": "The AC1015 source-frame vector failed its qualification assertion before the change.",
+    "focused": "libdxfrw_dwg_plotsettings_nod_graph and libdxfrw_plotsettings_dwg_decode_roundtrip passed. Generated AC1015 graph cases verify typed/raw/publication matching; the object vector checks wrong owner role and extra tail do not qualify, truncation resets, and corrected same-parser retry succeeds.",
+    "asanLog": "/private/tmp/libdxfrw-plotsettings-ac1015-asan-final.log",
+    "asanSha256": "93f9a31a065b46330f4bbe8b3d0af5074489c842dfb90bc012ca02f501f479a9"
+  },
+  "limits": [
+    "Common-link evidence is not full source body, dictionary membership, raw relocation, native plotting or output graph qualification.",
+    "No support claim is promoted; the raw carrier and dictionary identity-kind mismatch remain to be resolved.",
+    "No DWG/DXF fixture file was committed."
+  ]
+}

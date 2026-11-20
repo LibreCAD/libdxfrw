@@ -7644,6 +7644,21 @@ bool DRW_PlotSettings::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
     std::uint32_t parsedParentHandle = 0;
     std::vector<std::uint32_t> parsedReactors;
     std::uint32_t parsedXDictHandle = 0;
+    // AC1015 has an inline handle stream. Preserve the legacy parser's
+    // compatibility policy, but independently qualify its common links only
+    // when the body boundary and every common handle role are exact.
+    std::uint32_t qualifiedParentHandle = 0;
+    std::vector<std::uint32_t> qualifiedReactors;
+    std::uint32_t qualifiedXDictHandle = 0;
+    bool qualifiedLegacyLinks = false;
+    if (version == DRW::AC1015 && parsed.objSize != 0
+        && bodyBitOffset == parsed.objSize) {
+        dwgBuffer qualifiedProbe = hBuf->forkIndependent();
+        qualifiedLegacyLinks = readObjectCommonHandles(
+            &qualifiedProbe, version, parsed.handle, parsed.numReactors,
+            parsed.xDictFlag, &qualifiedParentHandle, &qualifiedReactors,
+            &qualifiedXDictHandle, handleEndBit, true);
+    }
     if (!readObjectCommonHandles(hBuf, version, parsed.handle, parsed.numReactors,
                                  parsed.xDictFlag,
                                  &parsedParentHandle, &parsedReactors,
@@ -7665,6 +7680,11 @@ bool DRW_PlotSettings::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
         return fail();
     *hBuf = plotHandleBuffer;
 
+    if (qualifiedLegacyLinks && hasOnlyByteAlignmentRemaining(hBuf)
+        && qualifiedParentHandle == parsedParentHandle
+        && qualifiedReactors == parsedReactors
+        && qualifiedXDictHandle == parsedXDictHandle)
+        parsed.setDwgCommonLinkTailValidated(true);
     parsed.parentHandle = parsedParentHandle;
     parsed.reactorHandles = std::move(parsedReactors);
     parsed.xDictHandle = parsedXDictHandle;

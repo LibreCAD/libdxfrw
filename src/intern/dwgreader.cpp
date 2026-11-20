@@ -15592,6 +15592,26 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
               DRW_PlotSettings e;
               ret = parseTableEntry(e);
               if (ret) {
+                // AC1015 keeps common links inline after the typed body. The
+                // typed parser qualifies them only after exact body/tail and
+                // role checks; attach that same bounded evidence to this raw
+                // view and its frame publication without promoting the body.
+                if (version == DRW::AC1015 && e.hasDwgCommonLinkTail()
+                    && e.handle == obj.handle
+                    && e.reactorCount() == commonObject.reactorCount()
+                    && e.extensionDictionaryFlag()
+                           == commonObject.extensionDictionaryFlag()) {
+                  commonObject.parentHandle = e.parentHandle;
+                  commonObject.reactorHandles = e.reactorHandles;
+                  commonObject.xDictHandle = e.xDictHandle;
+                  commonObject.setDwgCommonLinkTailValidated(true);
+                  publication.setCommonLinkEvidence(drwDwgCommonLinkEvidenceForLinks(
+                      true, e.parentHandle, e.reactorHandles, e.reactorCount(),
+                      e.xDictHandle));
+                  publication.m_parentHandle = e.parentHandle;
+                  publication.m_reactorHandles = e.reactorHandles;
+                  publication.m_xDictHandle = e.xDictHandle;
+                }
                 intfa.addPlotSettings(&e);
                 intfa.addUnsupportedObject(makeRawObject(oType, cit->second));
               }

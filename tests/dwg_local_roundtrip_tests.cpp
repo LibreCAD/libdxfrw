@@ -9967,7 +9967,7 @@ private:
 
 class PlotSettingsNodGraphReader final : public dx_iface {
 public:
-    PlotSettingsNodGraphReader() {
+    explicit PlotSettingsNodGraphReader(DRW::Version version) : version_(version) {
         cData = &data_;
         currentBlock = data_.mBlock;
     }
@@ -9993,6 +9993,16 @@ public:
             plotSettings_.push_back(*settings);
     }
 
+    void addUnsupportedObject(const DRW_UnsupportedObject& object) override {
+        if (object.m_recordName == "PLOTSETTINGS")
+            plotSettingsRaw_.push_back(object);
+    }
+
+    void addDwgFramePublication(const DRW_DwgFramePublication& frame) override {
+        if (frame.m_recordName == "PLOTSETTINGS")
+            plotSettingsFrames_.push_back(frame);
+    }
+
     bool hasClosedGraph(const std::string& expectedPageSetupName,
                         std::uint32_t expectedHandle) const {
         const DRW_Dictionary* plotSettingsDictionary = nullptr;
@@ -10016,6 +10026,23 @@ public:
             || plotSettings_.size() != 1u)
             return false;
         const DRW_PlotSettings& settings = plotSettings_.front();
+        if (version_ == DRW::AC1015) {
+            if (!settings.hasDwgCommonLinkTail() || plotSettingsRaw_.size() != 1u
+                || plotSettingsFrames_.size() != 1u)
+                return false;
+            const auto& raw = plotSettingsRaw_.front();
+            const auto& frame = plotSettingsFrames_.front();
+            if (raw.m_handle != settings.handle || frame.m_handle != settings.handle
+                || !drwDwgCommonLinkEvidenceValidated(raw.m_commonLinkEvidence)
+                || !drwDwgCommonLinkEvidenceValidated(frame.m_commonLinkEvidence)
+                || raw.m_parentHandle != settings.parentHandle
+                || frame.m_parentHandle != settings.parentHandle
+                || raw.m_reactorHandles != settings.reactorHandles
+                || frame.m_reactorHandles != settings.reactorHandles
+                || raw.m_xDictHandle != settings.xDictHandle
+                || frame.m_xDictHandle != settings.xDictHandle)
+                return false;
+        }
         return settings.handle != 0
             && (expectedHandle == 0 || settings.handle == expectedHandle)
             && settings.handle
@@ -10029,6 +10056,9 @@ public:
     }
 
 private:
+    DRW::Version version_;
+    std::vector<DRW_UnsupportedObject> plotSettingsRaw_;
+    std::vector<DRW_DwgFramePublication> plotSettingsFrames_;
     std::size_t rootCount_ {0};
     std::size_t plotSettingsRootCount_ {0};
     std::uint32_t plotSettingsDictionaryHandle_ {0};
@@ -10056,7 +10086,7 @@ bool runPlotSettingsNodGraphRoundTrip(
     }
 
     dwgRW input(outputPath.string().c_str());
-    PlotSettingsNodGraphReader capture;
+    PlotSettingsNodGraphReader capture(version);
     const bool read = input.read(&capture, false);
     if (!read || !capture.hasClosedGraph(source.expectedPageSetupName(),
                                          source.expectedHandle())) {

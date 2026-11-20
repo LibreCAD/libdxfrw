@@ -22035,6 +22035,54 @@ void testPlotSettingsDwgDecodeRoundTrip(TestContext& t) {
     }
 }
 
+// Source object body generated locally from scratch by the LibreCAD consumer.
+// LibreDWG 0.14 independently decoded its AC1015 PLOTSETTINGS handle 0x56,
+// soft-pointer owner 0x30, null extension dictionary, body end 372 and four
+// padding bits. This is a common-link profile, not full writer qualification.
+void testPlotSettingsAc1015CommonLinks(TestContext& t) {
+    const std::vector<std::uint8_t> frame{
+        0x3e, 0x00, 0x5d, 0x00, 0x40, 0x00, 0x00, 0x55, 0xa9, 0x19,
+        0x4c, 0x49, 0x42, 0x44, 0x58, 0x46, 0x52, 0x57, 0x5f, 0x50,
+        0x4c, 0x4f, 0x54, 0x53, 0x45, 0x54, 0x54, 0x49, 0x4e, 0x47,
+        0x53, 0x5f, 0x38, 0x36, 0x00, 0xaa, 0xaa, 0xaa, 0xaa, 0xa4,
+        0x10, 0xc5, 0xe0, 0xc4, 0x01, 0x69, 0xa4, 0x13, 0x00, 0x00};
+    const auto check = [&t](std::vector<std::uint8_t> bytes,
+                            bool expectedParse, bool expectedTail,
+                            const char* description) {
+        DRW_TextCodec codec;
+        codec.setVersion(DRW::AC1015, false);
+        dwgBuffer input(bytes.data(), bytes.size(), &codec);
+        PlotSettingsEncodeProbe parsed;
+        const bool ok = parsed.parseDwg(DRW::AC1015, &input, 0);
+        t.expect(ok == expectedParse && parsed.hasDwgCommonLinkTail() == expectedTail
+                     && (!ok || (parsed.handle == 0x56u && parsed.parentHandle == 0x30u
+                                 && parsed.xDictHandle == 0u
+                                 && parsed.reactorHandles.empty())), description);
+    };
+    check(frame, true, true, "AC1015 PlotSettings qualifies its exact common handle tail");
+    auto wrongRole = frame;
+    wrongRole[46] = static_cast<std::uint8_t>((wrongRole[46] & 0xf0u) | 0x05u);
+    check(wrongRole, true, false, "AC1015 wrong parent role retains compatibility without common-link qualification");
+    auto extra = frame;
+    extra.push_back(0u);
+    check(extra, true, false, "AC1015 unclaimed tail byte prevents common-link qualification");
+    auto truncated = frame;
+    truncated.pop_back();
+    check(truncated, false, false, "AC1015 truncated common handle tail fails without qualification");
+    DRW_TextCodec codec;
+    codec.setVersion(DRW::AC1015, false);
+    PlotSettingsEncodeProbe retry;
+    dwgBuffer badInput(truncated.data(), truncated.size(), &codec);
+    const bool rejected = !retry.parseDwg(DRW::AC1015, &badInput, 0)
+        && !badInput.isGood() && !retry.hasDwgCommonLinkTail();
+    auto corrected = frame;
+    dwgBuffer goodInput(corrected.data(), corrected.size(), &codec);
+    const bool accepted = retry.parseDwg(DRW::AC1015, &goodInput, 0)
+        && goodInput.isGood() && retry.hasDwgCommonLinkTail()
+        && retry.parentHandle == 0x30u;
+    t.expect(rejected && accepted, "AC1015 truncated PlotSettings resets and retries on the same parser");
+}
+
 struct DimensionAssociationFrame {
     std::vector<std::uint8_t> bytes;
     std::uint32_t handleBits {0};
@@ -32826,7 +32874,8 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--plotsettings-dwg-decode-roundtrip") {
         TestContext context;
         testPlotSettingsDwgDecodeRoundTrip(context);
-        std::cout << "AC1024/AC1027/AC1032 PlotSettings DWG decode round-trip: "
+        testPlotSettingsAc1015CommonLinks(context);
+        std::cout << "AC1015/AC1024/AC1027/AC1032 PlotSettings DWG decode round-trip: "
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
         return context.failures == 0 ? 0 : 1;
     }
@@ -32854,6 +32903,7 @@ int main(int argc, char** argv) {
     testOpaqueXRecordReplayGuards(context);
     testPlotSettingsVectors(context);
     testPlotSettingsDwgDecodeRoundTrip(context);
+    testPlotSettingsAc1015CommonLinks(context);
     testDimensionAssociationDwgDetailReadback(context);
     testDimensionAssociationAc1018Readback(context);
     testLayoutVectors(context);
