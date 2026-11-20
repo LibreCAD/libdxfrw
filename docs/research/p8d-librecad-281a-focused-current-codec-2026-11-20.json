@@ -11,7 +11,10 @@
     "patch": "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
     "patchSha256": "803ed0576bd08cbbdbaf95c5a0985f803b3c0e1b9b57a1ff2277720f4837cc1f",
     "scratchCheckout": "/private/tmp/libdxfrw-lc-281a-focused",
-    "scratchDifference": "Only CMakeLists.txt differs from candidate: scratch-only wiring removes bundled codec sources, links the source-built static codec, and adds the focused test target. All consumer source and test files match the candidate exactly."
+    "scratchDifference": "Only CMakeLists.txt differs from candidate: scratch-only wiring removes bundled codec sources, links the source-built static codec, and adds the focused test target. All consumer source and test files match the candidate exactly.",
+    "draftPullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "dependencyPullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "pullRequestStatusAtPublication": "Open draft; CI running; GUI and platform qualification remain open."
   },
   "codec": {
     "sourceRepository": "/Users/dli/dev/libdxfrw",
