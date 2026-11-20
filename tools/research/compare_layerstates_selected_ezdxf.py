@@ -18,6 +18,7 @@ def main():
     parser.add_argument("source_json", type=Path)
     parser.add_argument("ascii_dxf", type=Path)
     parser.add_argument("binary_dxf", type=Path)
+    parser.add_argument("--material", action="store_true", help="also verify selected Global MATERIAL and FBXASSET")
     args = parser.parse_args()
     with args.source_json.open(encoding="utf-8") as stream:
         source = json.load(stream)
@@ -68,9 +69,32 @@ def main():
         assert fields[140] == source_scale["paper_units"] and fields[141] == source_scale["drawing_units"]
         assert fields[290] == source_scale["is_unit_scale"]
         assert "ACAD" in document.appids
+        if args.material:
+            material_root = document.rootdict["ACAD_MATERIAL"]
+            # ezdxf may synthesize missing default ByLayer/ByBlock materials
+            # during load, so its in-memory dictionary is not a wire census.
+            assert "Global" in material_root
+            material = material_root["Global"]
+            assert material.dxftype() == "MATERIAL" and material.dxf.owner == material_root.dxf.handle
+            source_eed = objects[0x98]["eed"]
+            expected_eed = [
+                (1070, source_eed[0]["value"]), (1070, source_eed[1]["value"]),
+                (1070, source_eed[2]["value"]), (1000, source_eed[3]["value"]),
+                (1071, source_eed[4]["value"]), (1070, source_eed[5]["value"]),
+            ]
+            assert [(tag.code, tag.value) for tag in material.get_xdata("ACAD")] == expected_eed
+            material_extension = material.get_extension_dict().dictionary
+            assert material_extension.dxf.owner == material.dxf.handle
+            assert set(material_extension.keys()) == {"FBXASSET"}
+            fbx = material_extension["FBXASSET"]
+            assert fbx.dxftype() == "XRECORD" and fbx.dxf.owner == material_extension.dxf.handle
+            expected_fbx = [(code, bytes.fromhex(value) if code == 310 else value)
+                            for code, value in objects[0x291]["xdata"]]
+            assert [(tag.code, tag.value) for tag in fbx.tags] == expected_fbx
         result["outputs"].append({
             "path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
             "root_entries": 3, "scales": 32, "signed_group_370": -3, "result": "pass",
+            "material_eed_and_fbxasset": bool(args.material),
         })
     print(json.dumps(result, indent=2))
 

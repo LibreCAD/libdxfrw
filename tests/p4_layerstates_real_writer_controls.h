@@ -284,7 +284,8 @@ bool physicalAc1024LayerStatesRealWriter(const std::filesystem::path& sourcePath
 
 // Exercise the full selected LayerStates dependency inspector against the
 // original importer, while keeping unrelated whole-drawing roots out of scope.
-bool physicalAc1024LayerStatesFullSelectedWriter(const std::filesystem::path& sourcePath) {
+bool physicalAc1024LayerStatesFullSelectedWriter(const std::filesystem::path& sourcePath,
+                                                 bool withMaterial = false) {
     using Access = DxIfaceStandardDwgCaptureTestAccess;
     dx_iface reader;
     dx_data source;
@@ -313,11 +314,21 @@ bool physicalAc1024LayerStatesFullSelectedWriter(const std::filesystem::path& so
     const auto* nested = primary ? dictionary(primary->xDictHandle) : nullptr;
     const auto* record = nested && nested->m_entries.size() == 1u ? xrecord(nested->m_entries[0].m_handle) : nullptr;
     const auto* scaleList = dictionary(0x126u);
+    const auto* group = dictionary(0x0du);
+    const auto* materialRoot = dictionary(0x72u);
+    const auto* materialExtension = dictionary(0x290u);
+    const auto* materialRecord = xrecord(0x291u);
+    const auto global = std::find_if(source.materials.begin(), source.materials.end(),
+        [](const DRW_Material& value) { return value.handle == 0x98u; });
     const auto app = std::find_if(source.appIds.begin(), source.appIds.end(),
         [](const DRW_AppId& value) { return value.handle == 0x12u; });
     if (!filter || !states || !companion || !primary || !nested || !record || !scaleList
         || primary->m_handleValues.size() != 2u || app == source.appIds.end())
         return fail("full selected LayerStates graph is incomplete");
+    if (withMaterial && (!group || !materialRoot || !materialExtension || !materialRecord
+        || global == source.materials.end() || source.dictionaryWithDefaults.size() != 1u
+        || source.placeholders.size() != 1u))
+        return fail("selected MATERIAL dependencies are incomplete");
     const auto ltype = std::find_if(source.lineTypes.begin(), source.lineTypes.end(),
         [&](const DRW_LType& value) { return value.handle == primary->m_handleValues[1].second; });
     const auto layer = std::find_if(source.layers.begin(), source.layers.end(),
@@ -333,9 +344,16 @@ bool physicalAc1024LayerStatesFullSelectedWriter(const std::filesystem::path& so
         DRW_LType ltype;
         DRW_Dictionary root, filter, states, companion, nested, scaleList;
         DRW_XRecord primary, record;
+        DRW_Dictionary materialRoot, materialExtension;
+        DRW_Material material;
+        DRW_XRecord materialRecord;
+        DRW_DictionaryWithDefault plot;
+        DRW_AcDbPlaceholder placeholder;
         std::vector<DRW_Scale> scales;
         std::function<bool()> finalize;
         bool omitRecord{false};
+        bool withMaterial{false};
+        bool omitMaterialRecord{false};
         bool wantsDxfLayerTableControl() const override { return true; }
         bool getDxfLayerTableControl(std::uint32_t& handle, std::uint32_t& extension) const override {
             handle = control; extension = root.handle; return true;
@@ -351,11 +369,18 @@ bool physicalAc1024LayerStatesFullSelectedWriter(const std::filesystem::path& so
             if (!omitRecord) (void)dxfW->writeXRecord(&record);
             (void)dxfW->writeDictionary(&scaleList);
             for (auto& item : scales) (void)dxfW->writeScale(&item);
+            if (withMaterial) {
+                (void)dxfW->writeDictionaryWithDefault(&plot); (void)dxfW->writeAcDbPlaceholder(&placeholder);
+                (void)dxfW->writeDictionary(&materialRoot); (void)dxfW->writeDictionary(&materialExtension);
+                (void)dxfW->writeMaterial(&material);
+                if (!omitMaterialRecord) (void)dxfW->writeXRecord(&materialRecord);
+            }
         }
         bool finalizeDxfWrite() override { return finalize && finalize(); }
     } selected;
     selected.cData = &selected.blank;
     selected.control = control;
+    selected.withMaterial = withMaterial;
     const auto path = std::filesystem::temp_directory_path() / ("libdxfrw-p4-full-selected-"
         + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()) + ".dxf");
     struct Cleanup { std::filesystem::path path; ~Cleanup() {
@@ -368,9 +393,13 @@ bool physicalAc1024LayerStatesFullSelectedWriter(const std::filesystem::path& so
     if (!rootFrame || rootFrame->m_rawBytes.empty()) return fail("full selected LayerStates source frame is absent");
     auto& rootByte = const_cast<DRW_UnsupportedObject*>(rootFrame)->m_rawBytes.front();
     bool corruptSourceAtFinalization = false;
+    bool corruptMaterialAtFinalization = false;
     selected.finalize = [&]() {
         if (corruptSourceAtFinalization) rootByte ^= 1u;
-        const bool valid = Access::finalizeSelectedLayerStateGraph(reader);
+        if (corruptMaterialAtFinalization) Access::globalMaterialEedFrame(source).front() ^= 1u;
+        const bool valid = Access::finalizeSelectedLayerStateGraph(reader)
+            && (!withMaterial || Access::finalizeSelectedAerialGlobalMaterialEed(reader));
+        if (corruptMaterialAtFinalization) Access::globalMaterialEedFrame(source).front() ^= 1u;
         if (corruptSourceAtFinalization) rootByte ^= 1u;
         return valid;
     };
@@ -380,14 +409,32 @@ bool physicalAc1024LayerStatesFullSelectedWriter(const std::filesystem::path& so
                         primary->handle, nested->handle, record->handle, scaleList->handle})
         mappings[handle] = 0xA000u + handle;
     for (const auto& item : source.scales) mappings[item.handle] = 0xA000u + item.handle;
+    if (withMaterial) for (auto handle : {0x72u, 0x98u, 0x290u, 0x291u})
+        mappings[handle] = 0xA000u + handle;
     codec.setHandleRemap(mappings);
-    codec.setRootDictEntries({{"ACAD_SCALELIST", "A126"}});
-    if (!codec.setGeneratedDictionarySourceHandles(source.namedObjectDictionary.handle, 0u))
+    codec.setRootDictEntries(withMaterial
+        ? std::vector<std::pair<std::string, std::string>>{{"ACAD_SCALELIST", "A126"}, {"ACAD_MATERIAL", "A072"}, {"ACAD_PLOTSTYLENAME", "E"}}
+        : std::vector<std::pair<std::string, std::string>>{{"ACAD_SCALELIST", "A126"}});
+    if (!codec.setGeneratedDictionarySourceHandles(source.namedObjectDictionary.handle, withMaterial ? 0xdu : 0u))
         return fail("full selected LayerStates NOD setup failed");
+    if (withMaterial) {
+        DRW_Class materialClass, plotClass, placeholderClass;
+        if (!codec.setGeneratedDictionarySourceRecords(
+                std::make_unique<DRW_Dictionary>(source.namedObjectDictionary), std::make_unique<DRW_Dictionary>(*group))
+            || !codec.setDxfDefaultPlotStyleSourceHandles(0xeu, 0xfu)
+            || !Access::selectedAerialGlobalMaterialEedClass(reader, source, materialClass)
+            || !dxfRW::dxfClassForRecordName("ACDBDICTIONARYWDFLT", plotClass)
+            || !dxfRW::dxfClassForRecordName("ACDBPLACEHOLDER", placeholderClass))
+            return fail("selected MATERIAL class and root setup failed");
+        materialClass.instanceCount = plotClass.instanceCount = placeholderClass.instanceCount = 1;
+        codec.setDxfClasses({materialClass, plotClass, placeholderClass});
+    }
     if (!codec.setDxfTablesWriteInspector([&](const auto& view) {
-            return Access::inspectSelectedLayerStateGraphTables(reader, view);
+            return Access::inspectSelectedLayerStateGraphTables(reader, view)
+                && (!withMaterial || Access::inspectSelectedAerialGlobalMaterialEedTables(reader, view));
         }) || !codec.setDxfObjectsWriteInspector([&](const auto& view) {
-            return Access::inspectSelectedLayerStateGraphObjects(reader, view);
+            return Access::inspectSelectedLayerStateGraphObjects(reader, view)
+                && (!withMaterial || Access::inspectSelectedAerialGlobalMaterialEedObjects(reader, view));
         })) return fail("full selected LayerStates inspector setup failed");
     const auto restore = [&]() {
         selected.app = *app; selected.root = *root; selected.filter = *filter; selected.states = *states;
@@ -395,14 +442,34 @@ bool physicalAc1024LayerStatesFullSelectedWriter(const std::filesystem::path& so
         selected.record = *record; selected.scaleList = *scaleList;
         selected.scales.assign(source.scales.begin(), source.scales.end());
         selected.omitRecord = false;
+        selected.omitMaterialRecord = false;
+        if (withMaterial) {
+            selected.materialRoot = *materialRoot;
+            selected.materialRoot.m_entries.erase(std::remove_if(selected.materialRoot.m_entries.begin(),
+                selected.materialRoot.m_entries.end(), [](const DRW_Dictionary::Entry& entry) {
+                    return entry.m_name != "Global" || entry.m_handle != 0x98u;
+                }), selected.materialRoot.m_entries.end());
+            selected.materialExtension = *materialExtension; selected.material = *global;
+            selected.materialRecord = *materialRecord; selected.plot = source.dictionaryWithDefaults.front();
+            selected.plot.m_entries.front().m_dxfHandleCode = DRW_Dictionary::Entry::DxfHandleCode::SoftOwner;
+            selected.placeholder = source.placeholders.front();
+        }
         selected.layer = DRW_Layer{}; selected.layer.handle = layer->handle; selected.layer.name = layer->name;
         selected.ltype = DRW_LType{}; selected.ltype.handle = ltype->handle; selected.ltype.name = ltype->name;
     };
+    const auto prepare = [&](bool binary) {
+        if (withMaterial) {
+            Access::resetRasterOutput(reader);
+            if (!Access::prepareSelectedAerialGlobalMaterialEed(reader, source, *global, *materialExtension)) return false;
+        }
+        return Access::prepareSelectedLayerStateGraph(reader, source, binary);
+    };
     const std::string sentinel = "full selected LayerStates destination sentinel\n";
     for (const bool binary : {false, true}) {
-        for (unsigned fault = 0u; fault < 11u; ++fault) {
+        for (unsigned fault = 0u; fault < (withMaterial ? 15u : 11u); ++fault) {
             restore();
             corruptSourceAtFinalization = fault == 9u;
+            corruptMaterialAtFinalization = fault == 14u;
             if (fault == 0u) selected.root.m_entries[1].m_name = "OTHER";
             if (fault == 1u) selected.root.m_entries[1].m_handle = selected.companion.handle;
             if (fault == 2u) selected.primary.parentHandle = selected.companion.handle;
@@ -422,9 +489,12 @@ bool physicalAc1024LayerStatesFullSelectedWriter(const std::filesystem::path& so
             }
             if (fault == 8u) selected.scales.front().paperUnits += 1.0;
             if (fault == 10u) selected.omitRecord = true;
+            if (fault == 11u) *selected.material.extData[1] = DRW_Variant(1070, std::int32_t{9});
+            if (fault == 12u) selected.material.parentHandle = selected.companion.handle;
+            if (fault == 13u) selected.omitMaterialRecord = true;
             { std::ofstream existing(path, std::ios::binary | std::ios::trunc);
               if (!existing || !(existing << sentinel)) return fail("cannot seed full selected destination"); }
-            if (!Access::prepareSelectedLayerStateGraph(reader, source, binary))
+            if (!prepare(binary))
                 return fail("full selected LayerStates preparation failed");
             if (codec.write(&selected, DRW::AC1024, binary)) {
                 std::cerr << "full selected LayerStates unexpected success: fault=" << fault << '\n';
@@ -434,8 +504,9 @@ bool physicalAc1024LayerStatesFullSelectedWriter(const std::filesystem::path& so
               if (std::string{std::istreambuf_iterator<char>(input), {}} != sentinel)
                   return fail("full selected LayerStates refusal changed the destination"); }
             corruptSourceAtFinalization = false;
+            corruptMaterialAtFinalization = false;
             restore();
-            if (!Access::prepareSelectedLayerStateGraph(reader, source, binary)
+            if (!prepare(binary)
                 || !codec.write(&selected, DRW::AC1024, binary)) {
                 std::cerr << "full selected LayerStates retry failed: fault=" << fault << '\n';
                 return fail("corrected full selected LayerStates retry failed");
@@ -472,6 +543,26 @@ bool physicalAc1024LayerStatesFullSelectedWriter(const std::filesystem::path& so
             outputPrimary->m_dataEntries.end(), [](const DRW_Variant& value) { return value.code() == 370; });
         if (signedValue == outputPrimary->m_dataEntries.end() || signedValue->i_val() != -3)
             return fail("full selected LayerStates signed group 370 changed");
+        if (withMaterial) {
+            const auto material = std::find_if(output.materials.begin(), output.materials.end(),
+                [](const DRW_Material& value) { return value.m_name == "Global"; });
+            if (material == output.materials.end() || material->extData.size() != 7u
+                || !material->extData[0] || !material->extData[0]->stringEquals("ACAD")
+                || !material->extData[1] || material->extData[1]->code() != 1070
+                || material->extData[1]->i_val() != 0
+                || std::count_if(output.appIds.begin(), output.appIds.end(),
+                    [](const DRW_AppId& value) { return value.name == "ACAD"; }) != 1)
+                return fail("selected LayerStates MATERIAL signed EED or APPID readback changed");
+            const std::array<std::int32_t, 5> expected{{0, 3, 0, 0, 0}};
+            for (std::size_t i = 0u; i < expected.size(); ++i) {
+                const auto index = i < 3u ? i + 1u : i + 2u;
+                if (!material->extData[index] || material->extData[index]->i_val() != expected[i]
+                    || material->extData[index]->code() != (i == 3u ? 1071 : 1070))
+                    return fail("selected LayerStates MATERIAL EED numeric payload changed");
+            }
+            if (!material->extData[4] || !material->extData[4]->stringEquals(""))
+                return fail("selected LayerStates MATERIAL EED string changed");
+        }
         const char* capture = std::getenv("LIBDXFRW_LAYERSTATES_SELECTED_CAPTURE");
         if (capture && *capture) {
             std::error_code error;
@@ -480,7 +571,8 @@ bool physicalAc1024LayerStatesFullSelectedWriter(const std::filesystem::path& so
                 return fail("full selected LayerStates research capture failed");
         }
     }
-    std::cerr << "AC1024 full selected LayerStates graph passed ASCII/Binary, 11 refusal/retries and readback.\n";
+    std::cerr << "AC1024 full selected LayerStates graph passed ASCII/Binary, "
+              << (withMaterial ? 15 : 11) << " refusal/retries and readback.\n";
     return true;
 }
 

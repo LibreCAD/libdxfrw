@@ -95287,6 +95287,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-full-selected-writer")
         return physicalAc1024LayerStatesFullSelectedWriter(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--layerstates-ac1024-material-selected-writer")
+        return physicalAc1024LayerStatesFullSelectedWriter(argv[2], true) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--layerstates-ac1024-empty-nod-writer")
         return physicalAc1024EmptyNodWriter(argv[2]) ? 0 : 1;
     if (argc == 3 && std::string(argv[1]) == "--layerstates-ac1024-mlinestyle-writer")
