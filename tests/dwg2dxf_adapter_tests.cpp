@@ -9968,13 +9968,17 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
             || dictionary.m_entries.front().m_handle!=placeholder.handle || dictionary.m_defaultEntryHandle!=placeholder.handle
             || placeholder.parentHandle!=dictionary.handle || text.empty() || parsed.ec!=std::errc{}
             || parsed.ptr!=text.data()+text.size() || layerTarget!=placeholder.handle) return false;
-        unsigned seen=0u;
+        unsigned dictionaries=0u,placeholders=0u;
         for(const auto& cls:value.dxfClasses) {
-            if(cls.recName!="ACDBDICTIONARYWDFLT" && cls.recName!="ACDBPLACEHOLDER")return false;
-            if(cls.instanceCount!=1 || cls.proxyFlag || cls.wasaProxyFlag || cls.entityFlag) return false;
-            ++seen;
+            if(cls.recName=="ACDBPLACEHOLDER" && cls.className=="AcDbPlaceHolder")++placeholders;
+            else if((cls.recName=="ACDBDICTIONARYWDFLT"
+                    || (value.sourceVersion==DRW::AC1015 && cls.recName=="DICTIONARYWDFLT"))
+                && cls.className=="AcDbDictionaryWithDefault")++dictionaries;
+            else return false;
+            if(cls.instanceCount!=(value.sourceVersion==DRW::AC1015?0:1)
+                || cls.proxyFlag || cls.wasaProxyFlag || cls.entityFlag) return false;
         }
-        return seen==2u && value.dxfClasses[0].recName!=value.dxfClasses[1].recName;
+        return dictionaries==1u && placeholders==1u;
     };
     unsigned sources = 0u, exports = 0u, reexports = 0u, strict = 0u, preflightRetries = 0u, lateRetries = 0u, snapshotBudgets = 0u, edgeBudgets = 0u;
     for (const auto version : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (unsigned format = 0u; format != 3u; ++format) {
@@ -10052,6 +10056,64 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
             if(!importer.fileImport(dxf.string(),&restored,false)
                 || !dx_iface::plotStyleSourceReport(restored).legacyLiveClassesMatched)
                 return fail("AC1018 source capture did not recover on retry");
+            const std::string sentinel="AC1018_TO_AC1015_ATOMIC_DESTINATION";
+            const auto seed=[&]() {std::ofstream prior(target,std::ios::binary);prior<<sentinel;};
+            const auto preserved=[&]() {std::ifstream prior(target,std::ios::binary);
+                return std::string((std::istreambuf_iterator<char>(prior)),{})==sentinel;};
+            const auto restore=[&]() {data.dxfClasses=classes;data.layers=layers;data.namedObjectDictionary=root;
+                data.dictionaryWithDefaults=dictionaries;data.rawDictionaryWithDefaults=raw;data.rawPlaceholders=placeholders;};
+            Exporter exporter;
+            const auto readback=[&](bool selected=true) {
+                dx_data actual;dx_iface reader;
+                if(!reader.fileImport(target.string(),&actual,false) || !check(actual,false) || !checkLegacyPlotOutput(actual))return false;
+                // Same-version AC1015 output may use DICTIONARYWDFLT, an
+                // existing alias outside the selected source-audit shape.
+                if(!selected)return true;
+                const auto output=dx_iface::plotStyleSourceReport(actual);
+                return output.legacyClassRowsMatched && output.legacyLiveClassesMatched
+                    && output.legacyLiveBodiesMatched && output.legacyLiveLayerMatched;
+            };
+            unsigned retries=0u;
+            for(const bool binary:{false,true}) {
+                if(!exporter.fileExport(target.string(),DRW::AC1015,binary,&data,false,true) || !readback())
+                    return fail("AC1018 default plot downgrade or absent CLASS count readback failed");
+                dx_data actual;dx_iface reader;
+                if(!reader.fileImport(target.string(),&actual,false)
+                    || !exporter.fileExport(target.string(),DRW::AC1015,!binary,&actual,false,true) || !readback(false))
+                    return fail("AC1015 default plot opposite-encoding reexport failed");
+                for(unsigned mode=0u;mode!=9u;++mode) {
+                    bool injected=false;
+                    const auto mutate=[&]() {injected=true;switch(mode%5u) {
+                        case 0u:data.dxfClasses.front().proxyFlag=1;break;
+                        case 1u:data.layers.front().handlePlotS="E";break;
+                        case 2u:data.rawPlaceholders.front().groups.pop_back();break;
+                        case 3u:data.dictionaryWithDefaults.front().m_defaultEntryHandle=0xEu;break;
+                        case 4u:data.namedObjectDictionary.m_entries.front().m_handle^=1u;break;
+                    }};
+                    if(mode<5u)mutate();else if(mode==5u || mode==7u)exporter.afterObjects=mutate;
+                    else exporter.beforeFinalize=mutate;
+                    seed();
+                    if(exporter.fileExport(target.string(),DRW::AC1015,binary,&data,false,true) || !injected || !preserved())
+                        return fail("changed AC1018 default plot did not preserve the destination");
+                    restore();exporter.afterObjects={};exporter.beforeFinalize={};
+                    if(!exporter.fileExport(target.string(),DRW::AC1015,binary,&data,false,true) || !readback())
+                        return fail("corrected AC1018 default plot downgrade did not retry");
+                    ++retries;
+                }
+                seed();exporter.injectUnexpectedLayer=true;exporter.injectedLayerWritten=false;
+                if(exporter.fileExport(target.string(),DRW::AC1015,binary,&data,false,true)
+                    || !exporter.injectedLayerWritten || !preserved())return fail("unexpected AC1015 LAYER was published");
+                exporter.injectUnexpectedLayer=false;
+                if(!exporter.fileExport(target.string(),DRW::AC1015,binary,&data,false,true) || !readback())
+                    return fail("AC1015 staged LAYER rejection did not retry");
+            }
+            if(retries!=18u)return fail("AC1018 default plot refusal/retry matrix skipped a case");
+            seed();Access::setPlotSourceCaptureFailure(data,true);
+            const bool acceptedFailedCapture=exporter.fileExport(target.string(),DRW::AC1015,false,&data,false,true);
+            Access::setPlotSourceCaptureFailure(data,false);
+            if(acceptedFailedCapture || !preserved())return fail("failed AC1018 capture did not preserve the destination");
+            if(!exporter.fileExport(target.string(),DRW::AC1015,false,&data,false,true) || !readback())
+                return fail("AC1018 capture retry failed");
             continue;
         }
         if (plotSourceOnly) {

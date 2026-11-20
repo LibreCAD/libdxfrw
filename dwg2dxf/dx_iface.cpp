@@ -96123,10 +96123,11 @@ bool dx_iface::hasUnchangedLegacyPlot() const noexcept {
     const auto& state=m_dxfLayerMaterialState;
     if(!state.legacyPlotCrossVersion)return true;
     if(!cData || cData!=state.owner || cData->importGeneration!=state.generation || cData->sourceFormat!=dx_source_format::DXF
-        ||cData->sourceVersion!=DRW::AC1015 ||state.defaultPlotDictionarySource!=0xEu ||state.defaultPlotPlaceholderSource!=0xFu
-        ||(state.legacyPlotTargetVersion!=DRW::AC1018 && state.legacyPlotTargetVersion!=DRW::AC1021
-            &&state.legacyPlotTargetVersion!=DRW::AC1024 && state.legacyPlotTargetVersion!=DRW::AC1027
-            &&state.legacyPlotTargetVersion!=DRW::AC1032))return false;
+        ||state.defaultPlotDictionarySource!=0xEu ||state.defaultPlotPlaceholderSource!=0xFu
+        ||!((cData->sourceVersion==DRW::AC1018 && state.legacyPlotTargetVersion==DRW::AC1015)
+            || (cData->sourceVersion==DRW::AC1015 && (state.legacyPlotTargetVersion==DRW::AC1018
+                ||state.legacyPlotTargetVersion==DRW::AC1021 ||state.legacyPlotTargetVersion==DRW::AC1024
+                ||state.legacyPlotTargetVersion==DRW::AC1027 ||state.legacyPlotTargetVersion==DRW::AC1032))))return false;
     const auto r=plotStyleSourceReport(*cData);
     return r.originalSourcesMatched&&r.legacyClassRowsMatched&&r.legacyLiveClassesMatched
         &&r.legacyBodiesMatched&&r.legacyLiveBodiesMatched&&r.legacyLayerMatched&&r.legacyLiveLayerMatched;
@@ -96250,10 +96251,11 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
     auto& state = m_dxfLayerMaterialState;
     if (!strict || !cData || cData->sourceFormat != dx_source_format::DXF) return true;
     try {
-        // Admit only the generated, source-bound R2000 default plot graph to
-        // the checked R2004+ targets. Unrelated drawings keep their path.
-        if (cData->sourceVersion==DRW::AC1015 && (version==DRW::AC1018 || version==DRW::AC1021
-            ||version==DRW::AC1024 ||version==DRW::AC1027 ||version==DRW::AC1032)) {
+        // Admit the exact generated, source-bound default plot graph only to
+        // the checked target versions. Unrelated drawings keep their path.
+        if ((cData->sourceVersion==DRW::AC1018 && version==DRW::AC1015)
+            || (cData->sourceVersion==DRW::AC1015 && (version==DRW::AC1018 || version==DRW::AC1021
+                ||version==DRW::AC1024 ||version==DRW::AC1027 ||version==DRW::AC1032))) {
             const auto source=plotStyleSourceReport(*cData);
             const bool hasPlotGraph=source.records || !cData->dictionaryWithDefaults.empty()
                 || !cData->rawDictionaryWithDefaults.empty() || !cData->rawPlaceholders.empty()
