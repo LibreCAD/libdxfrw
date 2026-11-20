@@ -1,0 +1,76 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-librecad-master-26dd-dimstyle-prefix-2026-11-19",
+  "date": "2026-11-19",
+  "status": "CANDIDATE_PATCHES_FOCUSED_CHECKS_PASS_UNMERGED_GUI_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "repository": "https://github.com/LibreCAD/LibreCAD",
+    "masterSha": "26dd8817b37f59242a17fa1d0f8c61d6f1cfb410",
+    "treeSha": "b91659a97c53babff595e71be35092913d9ba2a0",
+    "previousBaseline": "deaedc327850349ceb9b4825b3efcc68ac2a52eb",
+    "delta": "Two commits changed rs_units.cpp, its test and a translation; affected filter, metadata and regression sources are unchanged.",
+    "checkout": "Exact git archive in /private/tmp; user checkout untouched.",
+    "host": "macOS 27.2.1 build 26B131 ARM64; Apple clang 21; Qt 6.12; Catch2 3.16.1"
+  },
+  "candidatePatches": [
+    {
+      "path": "docs/patches/librecad-dxfrw-default-dimstyle-qstring-2026-11-18.patch",
+      "sha256": "3eccdce3cd32b8fbc837485986513eb7fa973edc38e84ff7efaddc68c96174b7",
+      "applyCheck": "PASS on exact master archive"
+    },
+    {
+      "path": "docs/patches/librecad-jww-default-dimstyle-qstring-2026-11-18.patch",
+      "sha256": "d6f755a4a92cb5b3d8f88a720b3b19ad13a3e191dd9c971f2470e0ce1c0c842b",
+      "applyCheck": "PASS on exact master archive"
+    },
+    {
+      "path": "docs/patches/librecad-associative-prefix-kinds-guarded-2026-11-19.patch",
+      "sha256": "bb57e9b1a640010d5163135510b8e5526bdad6798ef3b41c6e8ca321aba27b4e",
+      "applyCheck": "PASS on exact master archive"
+    }
+  ],
+  "validation": {
+    "bundledCodec": "A scratch-only microtarget links the unmodified master bundled codec. The two tests fail with original literal overloads (2 assertions each), then pass after restoring patches: DXF 15/15 and JWW 8/8. The bundled DXF red run still exported DWG; the demonstrated defect is the wrong variable type/value.",
+    "currentHeaders": "With all three patches, librecad_filter_compile_check passes against the current upstream libdxfrw source headers under -Werror. Before the associative patch the compiler reports four missing enum switch cases.",
+    "bundledHeaders": "With all three patches, the same filter compile check passes against the bundled headers under -Werror.",
+    "prefixProbe": "Standalone consumer metadata probe linked to the current source-built libdxfrw static library verifies each of the four extended associative prefix kinds is counted in its own category; source src/ files were unchanged between that build and 4ed5a6c3.",
+    "binarySha256": "09e7d3cb7497d82222c1303e76c8dacccc33f984a5127938419a30de079ed0dd",
+    "logs": [
+      {
+        "path": "/private/tmp/libdxfrw-librecad-dxf-dimstyle-red.log",
+        "sha256": "243f2e66421ca2e90ffad37ba363f357a8754a954911df06c3560b67c953a57c"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-dxf-dimstyle-restored.log",
+        "sha256": "2572d55dd60d5ab7bd84cbeaa47b55012dc353c07439ebab3b2d47e4a39446e5"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-jww-dimstyle-red.log",
+        "sha256": "efd97fe190300f1af5f875368d1d9f2d532ac6ff758ea89bd9f6e4c081a2a12f"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-jww-dimstyle-restored.log",
+        "sha256": "63e36362e0548ab91cbada2723682bf8cc4fcc20061d7cef0f0144110c02d154"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-headercheck-guarded.log",
+        "sha256": "97926cbcd0fa002df60af22bde73ef6eecab7dbe8c91577c301efd79a7dfcd2f"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-bundledcheck-guarded.log",
+        "sha256": "5853863b5f6c79027407dd132f6a2d615fc573d1a5d896ec048c518383d53fbf"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-prefix-probe.log",
+        "sha256": "7b9236e1b412596470e505668162b64fa630ba20908a8d227a12978a50347915"
+      }
+    ]
+  },
+  "limits": [
+    "The three consumer patches remain unmerged and were not applied to the user checkout.",
+    "The full linked current-libdxfrw consumer application, native GUI, Linux/Windows, and LibreCAD_3 GUI were not tested in this slice.",
+    "The direct prefix probe and headless bundled-codec tests do not establish native drawing semantics or broad support.",
+    "No DWG/DXF fixtures were added or committed."
+  ]
+}

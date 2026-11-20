@@ -7,14 +7,14 @@ preserving LibreCAD 2D consumers, enabling evidence-backed 3D use, and keeping
 `dwg2dxf` usable by FreeCAD. Support claims apply only to qualified source,
 version, operation, consumer, and platform profiles.
 
-There are **22 open package gates**: P4: 3, P5: 7, P6: 5, P7: 4, and P8: 3.
-Gate readiness is 12/34 (35.3%). The historical activity count is 231 slices;
+There are **21 open package gates**: P4: 3, P5: 7, P6: 5, P7: 4, and P8: 2.
+Gate readiness is 13/34 (38.2%). The historical activity count is 232 slices;
 the remaining slice count is unknown, so this is not an overall completion
 percentage. The six P9 external-only IDs are advisory and excluded from the
 gate count. Completed work is recorded in `docs/research/` and Git history.
 
 The recorded consumer baselines are libdxfrw `master` `d68fb1ed937ad2a74a54f6208277ec10a1b031b0`,
-LibreCAD `master` `deaedc327850349ceb9b4825b3efcc68ac2a52eb`, LibreCAD_3
+LibreCAD `master` `26dd8817b37f59242a17fa1d0f8c61d6f1cfb410`, LibreCAD_3
 `master` `4fb48312708b39d499f7e6668104a3b54a8601c7`, and FreeCAD `main`
 `d65d3b388743b51da923d6ab36d10ddbc149ba46`. Refresh moving heads before
 integration or platform qualification.
@@ -70,11 +70,11 @@ operation, and profile. Apply the [support policy](docs/UPGRADE_SUPPORT.md),
 [external evidence registry](metadata/external-evidence-resolution-v1.json),
 and [3D plan](DWG_DXF_3D_SUPPORT_PLAN.md).
 
-P8-F requires fast and focused-native replay for implementation digest
-`dca611538c75b59c82efbf03f7c571de9277d2816dd4e4e17e2f0884f7149e9c`.
-Reopen P8-A/B/C/E if their relevant source, build, configuration, or consumer
-inputs change. Existing FreeCAD results cover only the exact generated profiles
-and binaries.
+Reopen P8-F if its implementation digest changes; its fast and native
+[replay receipt](docs/research/p8f-4ed-upstream-native-replay-2026-11-19.json)
+is valid only for the recorded digest. Reopen P8-A/B/C/E if their relevant
+source, build, configuration, or consumer inputs change. Existing FreeCAD
+results cover only the exact generated profiles and binaries.
 
 ## Active package gates
 
@@ -173,12 +173,11 @@ acceptance separate. CAD Assistant/ezdxf shares OCCT lineage with FreeCAD and
 is not independent-kernel evidence. P7-E is optional; a missing external kernel
 or app blocks only its profile.
 
-### P8 — consumers, packaging, release (3 open)
+### P8 — consumers, packaging, release (2 open)
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P8-D / WAITING_FOR_GUI_AND_EXTERNAL_CONSUMER_QUALIFICATION | Once the process sees an active display and can capture it, run LibreCAD 2 native save/reopen/render/edit checks: Move/Copy, named-LTYPE rendering, and the selected MLINE display/edit/save/reopen. Run LibreCAD_3 native MPOLYGON save/reopen and current-consumer integration. See the [GUI preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json) and [staged-inspector receipt](docs/research/p8d-mline-staged-inspector-port-2026-11-19.json). | Integrate/review the unmerged consumer patches and verify against the current consumers, both bundled and upstream codecs where applicable. In particular, the [LibreCAD_3 planar elevation patch](docs/patches/librecad3-p8-hatch-planar-elevation-2026-11-19.patch) and its [multiple-loop follow-up](docs/patches/librecad3-p8-multiloop-planar-elevation-2026-11-19.patch) are incremental on the recorded candidate, not upstream master; see their [validation receipt](docs/research/p8d-librecad3-multiloop-elevation-2026-11-19.json). The [DIMSTYLE](docs/patches/librecad-dxfrw-default-dimstyle-qstring-2026-11-18.patch) and [JWW](docs/patches/librecad-jww-default-dimstyle-qstring-2026-11-18.patch) consumer fixes also remain unmerged. Do not substitute the remote ObjectARX host or headless tests for native GUI evidence. |
-| P8-F / WAITING_FOR_FAST_AND_NATIVE_REPLAY | Run the required fast lane and authenticated Linux, macOS and Windows focused-native receipts for the current implementation digest after the source is stabilized. | Verify the tested merge ref, digest and receipt/artifact integrity before closing this gate. |
+| P8-D / WAITING_FOR_GUI_AND_EXTERNAL_CONSUMER_QUALIFICATION | Once the process sees an active display and can capture it, run LibreCAD 2 native save/reopen/render/edit checks: Move/Copy, named-LTYPE rendering, and the selected MLINE display/edit/save/reopen. Run LibreCAD_3 native MPOLYGON save/reopen and current-consumer integration. See the [GUI preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json) and [staged-inspector receipt](docs/research/p8d-mline-staged-inspector-port-2026-11-19.json). | Integrate/review the unmerged consumer patches and verify against the current consumers, both bundled and upstream codecs where applicable. In particular, the [LibreCAD_3 planar elevation patch](docs/patches/librecad3-p8-hatch-planar-elevation-2026-11-19.patch) and its [multiple-loop follow-up](docs/patches/librecad3-p8-multiloop-planar-elevation-2026-11-19.patch) are incremental on the recorded candidate, not upstream master; see their [validation receipt](docs/research/p8d-librecad3-multiloop-elevation-2026-11-19.json). The [DIMSTYLE](docs/patches/librecad-dxfrw-default-dimstyle-qstring-2026-11-18.patch), [JWW](docs/patches/librecad-jww-default-dimstyle-qstring-2026-11-18.patch), and [associative-prefix](docs/patches/librecad-associative-prefix-kinds-guarded-2026-11-19.patch) fixes remain unmerged; reuse their [current-master focused checks](docs/research/p8d-librecad-master-26dd-dimstyle-prefix-2026-11-19.json). Do not substitute the remote ObjectARX host or headless tests for native GUI evidence. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds and freeze the candidate. Recheck closed package, FreeCAD and focused-native receipts against the final inputs; reopen mismatched gates. | Build and test the complete GCC profile, run the broad suite and extended fuzz lane once for the frozen candidate, resolve required failures, and publish the evidence-backed support matrix. No required job may remain red and no unqualified route may be advertised. |
 
 Keep LibreCAD's R13 raw-carrier refusal until owner/remap namespace and all 65
