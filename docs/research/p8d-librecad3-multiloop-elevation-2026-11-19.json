@@ -1,0 +1,179 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-librecad3-multiloop-elevation-2026-11-19",
+  "date": "2026-11-19",
+  "status": "DOWNSTREAM_INCREMENTAL_PATCH_VERIFIED_UNMERGED_GUI_OPEN",
+  "supportClaimEffect": "none",
+  "problem": "With the prior single-loop patch applied, an elevated DXF MPOLYGON imports its polyline paths at Z=0; multiple polyline HATCH loops save at group-30 elevation zero. The generated two-loop HATCH and MPOLYGON regression failed 54 assertions in each codec build before this patch.",
+  "authority": {
+    "title": "Autodesk HATCH DXF group codes",
+    "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm",
+    "scope": "HATCH and MPOLYGON have a shared OCS elevation field and extrusion direction; this patch only maps default-normal DXF MPOLYGON input and flat default-normal polyline output."
+  },
+  "patch": {
+    "path": "docs/patches/librecad3-p8-multiloop-planar-elevation-2026-11-19.patch",
+    "sha256": "3da4f62e184498f4ad44f222fff77fd54e6774b7172d03c57bf0f889987c18e3",
+    "base": "Apply after docs/patches/librecad3-p8-hatch-planar-elevation-2026-11-19.patch on its reconstructed candidate; it is not standalone on upstream master.",
+    "reconstruction": "Replayed the three ordered MPOLYGON patches, selected PR #456 paths, legacy and import-loss patches, ABI-3 integration, and lineweight patches on LibreCAD_3 upstream 4fb48312708b39d499f7e6668104a3b54a8601c7; the adapter preimage matched Git blob e56db6b9bdd3910f570f34d0db4f1b5fce6c6179 before applying the previous elevation patch. Dependency archives use the pinned revisions listed in p8-librecad3-05e7-patched-persistence-load-2026-11-18.json.",
+    "application": "Apply check PASS against isolated preimages; applying produces byte-identical tested adapter and test source. No user consumer checkout modified.",
+    "changes": "Map the entity elevation into DXF MPOLYGON polyline vertex Z for the default normal. Emit a common HATCH elevation only if every loop has exactly one closed, nonempty default-normal polyline with zero polyline elevation/thickness and every vertex has the same finite Z. If a checked ordinary HATCH has mixed or nonfinite vertex elevation, record a loss note. Existing MPOLYGON fallback loss reporting remains. DWG MPOLYGON import and tilted planes are unchanged."
+  },
+  "tests": {
+    "baselineBundledLogSha256": "db96849b6735421d5810ec59016cc2f6cea3fa4fbf2b0a600000d0b3b8d1762c",
+    "baselineCurrentLogSha256": "6fd51599d9638008ae942743c152caa36d8cf1122edb1f17cc750f2311c032f5",
+    "focused": "PASS 4/4 on each codec: new locally generated elevated two-loop HATCH and MPOLYGON imports, ASCII/Binary save/reopen and resave/reopen, mixed-loop loss note/no fabricated elevation and corrected same-document retry; plus previous single-loop elevation, simple MPOLYGON and rotation/bulge controls.",
+    "line": "PASS 2/2 on each codec: 2D LINE open/save and 3D LINE save/reopen. The 2D case does not reopen saved output.",
+    "independent": "ezdxf 1.4.5 reads 12 generated outputs per codec, checks HATCH type, AC1015, both loop vertex lists, default extrusion, shared elevation 3 for normal and retry cases, elevation 0 for mixed fallback, and ASCII/Binary signatures. Mixed geometry is still flattened and explicitly reported as loss.",
+    "releaseInventory": "1351 released files; generator check and 18-control self-test PASS. No DWG/DXF fixture was added or committed."
+  },
+  "currentCodec": {
+    "implementationDigestSha256": "1b63ce2a27ce76a23c32c34d360001c3d0328f3b43e96c5245b7aedb535c5cf4",
+    "sharedLibrarySha256": "3f618ad21e1c4d45c571523cb6fccb02f068bb5b24f9386cf16dedea8baff9c5",
+    "persistenceSha256": "07abcff1288c6bbbfd4422951d758fd48564580ba94ac97d8e8f3274a818785b",
+    "testSha256": "c631787186ea1d6ec454a88884b358903749aa7ac8ad4cf7da90b5e7afba0af4",
+    "logSha256": "ec116cc141e8d48ab7b675a5a44708ac289c861952fe49a1c55565cc422a7006",
+    "dyldLogSha256": "9980aa0d5a8ebde80f4758c733dee99e2e6eab5be50e9f994fe588d7a2cbeaec",
+    "lineLogSha256": "31ec103ba3743b1fd55ba9d77a346861b80f9840981a8ac1509f21437e7e0d60",
+    "peerResultSha256": "7ce377c021102b8dd072ad14437fe8786cca4158db1deaf305b88c5a3b85cbfe",
+    "outputs": [
+      {
+        "file": "hatch-ascii.dxf",
+        "elevation": 3,
+        "sha256": "4ad67694e352de4c8ee3a8531592a1e5b3c547ef14a0ddfeb0ce280bd9017bc8"
+      },
+      {
+        "file": "hatch-binary.dxf",
+        "elevation": 3,
+        "sha256": "2cb4d6feb82000be3a72fd966a116a6bf9947c4fa470ac732e14f72505cb5034"
+      },
+      {
+        "file": "resave-hatch-ascii.dxf",
+        "elevation": 3,
+        "sha256": "2ce0a405cadb2002d7047a9a01b0be253577f3f040a1b78688fb74e120fd3bf8"
+      },
+      {
+        "file": "resave-hatch-binary.dxf",
+        "elevation": 3,
+        "sha256": "daf22921d4d9404d44d2a92a8d56ff3c605f4d747aacd0ca74dfd4f63b590dd3"
+      },
+      {
+        "file": "mixed-hatch.dxf",
+        "elevation": 0,
+        "sha256": "cd66d80a76b64955fb0d2ff3869cebb8bff0e2a25cb36bc1315a89ea8bb4812b"
+      },
+      {
+        "file": "retry-hatch.dxf",
+        "elevation": 3,
+        "sha256": "4ad67694e352de4c8ee3a8531592a1e5b3c547ef14a0ddfeb0ce280bd9017bc8"
+      },
+      {
+        "file": "mpolygon-ascii.dxf",
+        "elevation": 3,
+        "sha256": "eca83890a19f3d4b41821739a45fd932c70651ac36e63ddfd7e2c6892da6105a"
+      },
+      {
+        "file": "mpolygon-binary.dxf",
+        "elevation": 3,
+        "sha256": "bfb4d8ae3b9e1eff21e994b4e1a690a39abd667cd8c41903781963c295002d1f"
+      },
+      {
+        "file": "resave-mpolygon-ascii.dxf",
+        "elevation": 3,
+        "sha256": "d7dca09f2fd57bda923fb34f11cbae74e50436b76b2cabc55bad169a41b8bf01"
+      },
+      {
+        "file": "resave-mpolygon-binary.dxf",
+        "elevation": 3,
+        "sha256": "ff66abe3f43da27370ad00a2e3ee812d1dea29eae5bd5ef13f862ae8f4a90c17"
+      },
+      {
+        "file": "mixed-mpolygon.dxf",
+        "elevation": 0,
+        "sha256": "bbae451f642a78080ac400335f3c628a7e37e703c69af9157d66cc8c6a37510a"
+      },
+      {
+        "file": "retry-mpolygon.dxf",
+        "elevation": 3,
+        "sha256": "eca83890a19f3d4b41821739a45fd932c70651ac36e63ddfd7e2c6892da6105a"
+      }
+    ]
+  },
+  "bundledCodec": {
+    "pinnedGitlink": "d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
+    "archiveSha256": "6938db05aacd0cc6984ba74e68d4c30299b086095b265c1e881364caea1e0f62",
+    "persistenceSha256": "71099432b9831daed25d23ba5870b8a642cc045f4d179930e87aa493aa17a0a5",
+    "testSha256": "65f6d8285c402512517d0084c3bb2c1a4fb66811d44142f052e0efaab35b0391",
+    "logSha256": "7bb6f71f646e29ab84f682a1378fea1eee15105a97ceedd2538e74d5b2af31ae",
+    "dyldLogSha256": "e0639e752ed7c284228dadb58020ad5bd424197ec1f1c0eff2cfe4d9b790c191",
+    "lineLogSha256": "8f6156ddcf04f59f1f7fbe8a72cce21e76456246e93390bd2e6eb60a2e23cd5e",
+    "peerResultSha256": "413fb15575fc74380d38f1da3ad96dc2d65cd9e6cbf3c649197d42ca60b7e570",
+    "outputs": [
+      {
+        "file": "hatch-ascii.dxf",
+        "elevation": 3,
+        "sha256": "625ab36fccac5f389d0b753869b93d507385dc65db3acbd110d848d37995bb28"
+      },
+      {
+        "file": "hatch-binary.dxf",
+        "elevation": 3,
+        "sha256": "271e0cfb7fe1a19af1e6dbc2b49136b2f79890f68ccc785d8f81b2717ae81121"
+      },
+      {
+        "file": "resave-hatch-ascii.dxf",
+        "elevation": 3,
+        "sha256": "1a34e3c635d29cf8b14d1fa69fe97b30b3ae054fa95c1e11d299991505dda351"
+      },
+      {
+        "file": "resave-hatch-binary.dxf",
+        "elevation": 3,
+        "sha256": "81e90be5d2b6ae7150a81ed4f6818757e9b83647d628665f5de65a8566cc7780"
+      },
+      {
+        "file": "mixed-hatch.dxf",
+        "elevation": 0,
+        "sha256": "28094f30d03716550f5834e80b7f930096f90247907284ff882391c6f676aa86"
+      },
+      {
+        "file": "retry-hatch.dxf",
+        "elevation": 3,
+        "sha256": "625ab36fccac5f389d0b753869b93d507385dc65db3acbd110d848d37995bb28"
+      },
+      {
+        "file": "mpolygon-ascii.dxf",
+        "elevation": 3,
+        "sha256": "871825e1d5d2e0c98b8fa0263298b9050d0a8a11d253094f2659f3e542c67817"
+      },
+      {
+        "file": "mpolygon-binary.dxf",
+        "elevation": 3,
+        "sha256": "7d3afb9f21bf644b94d1e74c1a63771bfa7e95e3151fefe5a4063472973f7326"
+      },
+      {
+        "file": "resave-mpolygon-ascii.dxf",
+        "elevation": 3,
+        "sha256": "a65c69d407ee2d049d8107bc8ea59500eeeab386663cc148a74d72f658577bcd"
+      },
+      {
+        "file": "resave-mpolygon-binary.dxf",
+        "elevation": 3,
+        "sha256": "f6d7cdc7306862f4ba2704d5bec1969b336da5d0f6308ffc6574605857547ede"
+      },
+      {
+        "file": "mixed-mpolygon.dxf",
+        "elevation": 0,
+        "sha256": "cf24eb2b88b96d4692ce1ddc3068d102b76a0c45b2c8923e0e96266c953eca7c"
+      },
+      {
+        "file": "retry-mpolygon.dxf",
+        "elevation": 3,
+        "sha256": "871825e1d5d2e0c98b8fa0263298b9050d0a8a11d253094f2659f3e542c67817"
+      }
+    ]
+  },
+  "limits": [
+    "The downstream patch stack is unmerged; native GUI, rendering, producer DWG, full application, and Linux/Windows behavior are not qualified.",
+    "Only default-normal DXF MPOLYGON polyline input and flat default-normal closed polyline loops are newly handled. Mixed/nonfinite elevation, tilted planes, edge paths, nonzero polyline elevation/thickness and other geometry are not preserved by this change. The ordinary HATCH loss note covers mixed/nonfinite Z detected during the checked polyline traversal; it does not claim detection of every unsupported path.",
+    "MPOLYGON-to-HATCH fallback still loses subtype-specific data and keeps its loss note. The conservative nondefault-plane import note remains.",
+    "Generated files and scratch logs are ephemeral and were not committed. P8-D remains open."
+  ]
+}

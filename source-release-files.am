@@ -122,6 +122,7 @@ EXTRA_DIST = \
     docs/patches/librecad3-p8-mpolygon-offset-preservation-2026-11-15.patch \
     docs/patches/librecad3-p8-mpolygon-projection-warning-2026-11-15.patch \
     docs/patches/librecad3-p8-mpolygon-rotation-preservation-2026-11-15.patch \
+    docs/patches/librecad3-p8-multiloop-planar-elevation-2026-11-19.patch \
     docs/patches/librecad3-p8-shape-import-loss-2026-11-16.patch \
     docs/patches/librecad3-p8-underlay-import-loss-2026-11-16.patch \
     docs/patches/librecad3-p8-unrepresentable-layer-width-2026-11-16.patch \
