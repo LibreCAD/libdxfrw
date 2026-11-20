@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4-ac1018-generated-defaultplot-modern-output-2026-11-19",
+  "date": "2026-11-19",
+  "status": "GENERATED_SELECTED_PROFILE_OUTPUT_AND_PEER_READBACK",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "ebb247cbddc7110c55bd02b727fb9854ba149bb51ea04fc2cad5f33f4280d37d",
+  "scope": "Strict conversion of the exact source-bound locally generated AC1018 default-plot graph to AC1021, AC1024, AC1027 and AC1032 DXF in ASCII and binary, retaining the AC1015 downgrade profile.",
+  "implementation": [
+    "Extend only the target admission for the existing selected AC1018 transaction; reuse same-import CLASS/root/dictionary/placeholder/LAYER proofs, staged TABLES/OBJECTS field and handle checks, source rechecks and atomic output.",
+    "Check canonical target CLASS metadata and counts; preserve existing same-version AC1018 and generic non-profile paths."
+  ],
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j 2",
+    "focusedCtests": "PASS: six identity, class, structural, plotstyle and XRECORD selectors; 3.70 seconds.",
+    "compiler": "PASS: GCC 16 -Wall -Wextra -pedantic -Werror syntax check on the adapter tests.",
+    "matrix": "PASS: 20 AC1018 exports and 20 opposite-encoding reexports across two source encodings, AC1015 plus four modern targets, and two target encodings, with owned-XRECORD graph readback; 180 mutation/refusal/retries, 20 staged-extra-LAYER refusal/retries and two capture-failure refusal/retries.",
+    "remainingSelector": "The full owned-XRECORD selector now advances through all AC1018 targets and first refuses AC1021 source to AC1015 ASCII output.",
+    "remainingSelectorLogSha256": "4f9e3d60f608a20d4902302b64f5795d22fdc21c2c0a82b63bfb3b0ad9d62c3b"
+  },
+  "independentReadback": {
+    "tool": "ezdxf 1.4.5",
+    "result": "PASS on 16 outputs generated with the in-tree production adapter object: target version, root/dictionary/placeholder ownership, Normal/default and layer references, and both CLASS instance counts.",
+    "script": "/private/tmp/p4-2004-proto/verify-modern-ezdxf.py",
+    "scriptSha256": "bc2b8eab2bf35240026da460b253c1463964faf1862e2f9d83ccc77ac6e3b20d",
+    "logSha256": "6df47007485f8965c6c558501bc3ec208a2efbcac753a3587d149495d1a87aa1",
+    "limits": "Scratch drawings were generated locally; independent readback is not an independent producer or native semantic witness. No generated drawings are committed."
+  },
+  "limits": [
+    "Only this exact generated strict-conversion profile is admitted; general compatibility, nonidentity remaps and native semantics remain unqualified.",
+    "The full owned-XRECORD selector and P8-F replay remain open."
+  ]
+}

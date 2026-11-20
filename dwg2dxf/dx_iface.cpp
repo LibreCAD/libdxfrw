@@ -96124,7 +96124,9 @@ bool dx_iface::hasUnchangedLegacyPlot() const noexcept {
     if(!state.legacyPlotCrossVersion)return true;
     if(!cData || cData!=state.owner || cData->importGeneration!=state.generation || cData->sourceFormat!=dx_source_format::DXF
         ||state.defaultPlotDictionarySource!=0xEu ||state.defaultPlotPlaceholderSource!=0xFu
-        ||!((cData->sourceVersion==DRW::AC1018 && state.legacyPlotTargetVersion==DRW::AC1015)
+        ||!((cData->sourceVersion==DRW::AC1018 && (state.legacyPlotTargetVersion==DRW::AC1015
+                ||state.legacyPlotTargetVersion==DRW::AC1021 ||state.legacyPlotTargetVersion==DRW::AC1024
+                ||state.legacyPlotTargetVersion==DRW::AC1027 ||state.legacyPlotTargetVersion==DRW::AC1032))
             || (cData->sourceVersion==DRW::AC1015 && (state.legacyPlotTargetVersion==DRW::AC1018
                 ||state.legacyPlotTargetVersion==DRW::AC1021 ||state.legacyPlotTargetVersion==DRW::AC1024
                 ||state.legacyPlotTargetVersion==DRW::AC1027 ||state.legacyPlotTargetVersion==DRW::AC1032))))return false;
@@ -96253,7 +96255,8 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
     try {
         // Admit the exact generated, source-bound default plot graph only to
         // the checked target versions. Unrelated drawings keep their path.
-        if ((cData->sourceVersion==DRW::AC1018 && version==DRW::AC1015)
+        if ((cData->sourceVersion==DRW::AC1018 && (version==DRW::AC1015 || version==DRW::AC1021
+                ||version==DRW::AC1024 ||version==DRW::AC1027 ||version==DRW::AC1032))
             || (cData->sourceVersion==DRW::AC1015 && (version==DRW::AC1018 || version==DRW::AC1021
                 ||version==DRW::AC1024 ||version==DRW::AC1027 ||version==DRW::AC1032))) {
             const auto source=plotStyleSourceReport(*cData);

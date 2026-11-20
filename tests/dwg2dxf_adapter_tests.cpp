@@ -9954,7 +9954,7 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
         }
         return true;
     };
-    const auto checkLegacyPlotOutput = [](const dx_data& value) {
+    const auto checkLegacyPlotOutput = [](const dx_data& value, bool allowAlias=false) {
         if(!value.hasNamedObjectDictionary || value.dictionaryWithDefaults.size()!=1u || value.rawPlaceholders.size()!=1u
             || value.layers.size()!=1u || value.dxfClasses.size()!=2u) return false;
         const auto& dictionary=value.dictionaryWithDefaults.front();const auto& placeholder=value.rawPlaceholders.front();
@@ -9972,7 +9972,7 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
         for(const auto& cls:value.dxfClasses) {
             if(cls.recName=="ACDBPLACEHOLDER" && cls.className=="AcDbPlaceHolder")++placeholders;
             else if((cls.recName=="ACDBDICTIONARYWDFLT"
-                    || (value.sourceVersion==DRW::AC1015 && cls.recName=="DICTIONARYWDFLT"))
+                    || ((value.sourceVersion==DRW::AC1015 || allowAlias) && cls.recName=="DICTIONARYWDFLT"))
                 && cls.className=="AcDbDictionaryWithDefault")++dictionaries;
             else return false;
             if(cls.instanceCount!=(value.sourceVersion==DRW::AC1015?0:1)
@@ -10065,22 +10065,24 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
             Exporter exporter;
             const auto readback=[&](bool selected=true) {
                 dx_data actual;dx_iface reader;
-                if(!reader.fileImport(target.string(),&actual,false) || !check(actual,false) || !checkLegacyPlotOutput(actual))return false;
+                if(!reader.fileImport(target.string(),&actual,false) || !check(actual,false)
+                    || !checkLegacyPlotOutput(actual,!selected))return false;
                 // Same-version AC1015 output may use DICTIONARYWDFLT, an
                 // existing alias outside the selected source-audit shape.
-                if(!selected)return true;
+                if(!selected || actual.sourceVersion!=DRW::AC1015)return true;
                 const auto output=dx_iface::plotStyleSourceReport(actual);
                 return output.legacyClassRowsMatched && output.legacyLiveClassesMatched
                     && output.legacyLiveBodiesMatched && output.legacyLiveLayerMatched;
             };
             unsigned retries=0u;
+            for(const auto outputVersion:{DRW::AC1015,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032})
             for(const bool binary:{false,true}) {
-                if(!exporter.fileExport(target.string(),DRW::AC1015,binary,&data,false,true) || !readback())
-                    return fail("AC1018 default plot downgrade or absent CLASS count readback failed");
+                if(!exporter.fileExport(target.string(),outputVersion,binary,&data,false,true) || !readback())
+                    return fail("AC1018 default plot conversion or target CLASS readback failed");
                 dx_data actual;dx_iface reader;
                 if(!reader.fileImport(target.string(),&actual,false)
-                    || !exporter.fileExport(target.string(),DRW::AC1015,!binary,&actual,false,true) || !readback(false))
-                    return fail("AC1015 default plot opposite-encoding reexport failed");
+                    || !exporter.fileExport(target.string(),outputVersion,!binary,&actual,false,true) || !readback(false))
+                    return fail("AC1018 default plot opposite-encoding reexport failed");
                 for(unsigned mode=0u;mode!=9u;++mode) {
                     bool injected=false;
                     const auto mutate=[&]() {injected=true;switch(mode%5u) {
@@ -10093,21 +10095,21 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
                     if(mode<5u)mutate();else if(mode==5u || mode==7u)exporter.afterObjects=mutate;
                     else exporter.beforeFinalize=mutate;
                     seed();
-                    if(exporter.fileExport(target.string(),DRW::AC1015,binary,&data,false,true) || !injected || !preserved())
+                    if(exporter.fileExport(target.string(),outputVersion,binary,&data,false,true) || !injected || !preserved())
                         return fail("changed AC1018 default plot did not preserve the destination");
                     restore();exporter.afterObjects={};exporter.beforeFinalize={};
-                    if(!exporter.fileExport(target.string(),DRW::AC1015,binary,&data,false,true) || !readback())
-                        return fail("corrected AC1018 default plot downgrade did not retry");
+                    if(!exporter.fileExport(target.string(),outputVersion,binary,&data,false,true) || !readback())
+                        return fail("corrected AC1018 default plot conversion did not retry");
                     ++retries;
                 }
                 seed();exporter.injectUnexpectedLayer=true;exporter.injectedLayerWritten=false;
-                if(exporter.fileExport(target.string(),DRW::AC1015,binary,&data,false,true)
-                    || !exporter.injectedLayerWritten || !preserved())return fail("unexpected AC1015 LAYER was published");
+                if(exporter.fileExport(target.string(),outputVersion,binary,&data,false,true)
+                    || !exporter.injectedLayerWritten || !preserved())return fail("unexpected target LAYER was published");
                 exporter.injectUnexpectedLayer=false;
-                if(!exporter.fileExport(target.string(),DRW::AC1015,binary,&data,false,true) || !readback())
-                    return fail("AC1015 staged LAYER rejection did not retry");
+                if(!exporter.fileExport(target.string(),outputVersion,binary,&data,false,true) || !readback())
+                    return fail("staged LAYER rejection did not retry");
             }
-            if(retries!=18u)return fail("AC1018 default plot refusal/retry matrix skipped a case");
+            if(retries!=90u)return fail("AC1018 default plot refusal/retry matrix skipped a case");
             seed();Access::setPlotSourceCaptureFailure(data,true);
             const bool acceptedFailedCapture=exporter.fileExport(target.string(),DRW::AC1015,false,&data,false,true);
             Access::setPlotSourceCaptureFailure(data,false);
