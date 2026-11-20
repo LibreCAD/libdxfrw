@@ -1,0 +1,62 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8c-windows-freecad-60715-2026-11-20",
+  "date": "2026-11-20",
+  "status": "GENERATED_PROFILE_WINDOWS_PASS",
+  "supportClaimEffect": "none",
+  "testedCommit": "60715c52387eb9a930271c24139f4fe4fbbd2c8b",
+  "candidateAtReview": "c5bc43af7c24388deb0eaea54ac6e6023c7527e9",
+  "candidateEquivalence": "Only the plan, research receipts and downstream consumer patch changed after testedCommit; source, build, test and workflow inputs are unchanged. Recheck before reuse.",
+  "changedPaths": [
+    "DWG_DXF_OPEN_SOURCE_PARITY_PLAN.md",
+    "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
+    "docs/research/p8b-linux-freecad-60715-2026-11-20.json",
+    "docs/research/p8d-ac1015-plotsettings-case-guard-2026-11-20.json",
+    "docs/research/p8d-ac1015-plotsettings-nod-and-margin-2026-11-20.json",
+    "docs/research/p8d-current-e991-installed-macos-app-smoke-2026-11-20.json",
+    "docs/research/p8d-current-f1-installed-macos-app-smoke-2026-11-20.json"
+  ],
+  "run": "https://github.com/dxli/libdxfrw/actions/runs/44681325824",
+  "jobId": 136105188891,
+  "artifactId": 14605047597,
+  "artifactArchiveSha256": "f28e6f4a96af64e04c8de7776bf0da8c2bf5ff4ffcedeafba7fe1c64d2e377fc",
+  "testLogSha256": "0e309872adc12d200579fdede92a45ffd09406532b3ee6ab3626ca9b3a993e9e",
+  "apiSnapshotSha256": {
+    "run.json": "e9c8afad8a0c822e35cc4e1f40f06643d08b618e16bfd1b274ff53267305627b",
+    "jobs.json": "06b8f0e0a4574015b8b83152ccf4cf22d03ed26eba06e6254f188f01280eb49a",
+    "artifacts.json": "68cea2879c0dd90077ac54162f7298599c31f95fc65842e41d055d72774a8eb2"
+  },
+  "verification": "Authenticated successful GitHub run and platform job, artifact API and downloaded archive; verified exact archive size and SHA-256 and all 17 passing test log entries.",
+  "platform": "Windows x64",
+  "freecadRelease": "1.1.4",
+  "freecadRevision": "4fd3bf320d9566a27e60069fc8387448aaa3a094",
+  "releaseArchiveSha256": "4828741fc91ee37fafcdb97a1abacb18b04ba451ac4372d9ff7a7349b36f4d6d",
+  "legacyImporterCommit": "e060ef0d8fe7143c2e0ce34734b686ba073f3cc1",
+  "installedConverterSha256": "3a315ffc1828b927303277493d7ba24f5f4a182aae351f63846965ca69cb94f0",
+  "result": "17/17 PASS; eight C++ importer observations and six legacy importer observations bind the same converter hash and FreeCAD revision.",
+  "tests": [
+    "libdxfrw_batch_output_names",
+    "dwg2dxf_freecad_cli_compat",
+    "dwg2dxf_freecad_installed_cli_compat",
+    "dwg2dxf_freecad_generated_ac1021_line_open",
+    "dwg2dxf_freecad_generated_ac1021_line_insert",
+    "dwg2dxf_freecad_generated_ac1021_primitives_open",
+    "dwg2dxf_freecad_generated_ac1021_primitives_insert",
+    "dwg2dxf_freecad_generated_ac1024_primitives_open",
+    "dwg2dxf_freecad_generated_ac1024_primitives_insert",
+    "dwg2dxf_freecad_generated_ac1032_primitives_open",
+    "dwg2dxf_freecad_generated_ac1032_primitives_insert",
+    "dwg2dxf_freecad_legacy_polyface_open",
+    "dwg2dxf_freecad_legacy_polyface_insert",
+    "dwg2dxf_freecad_legacy_polyface_ac1024_open",
+    "dwg2dxf_freecad_legacy_polyface_ac1024_insert",
+    "dwg2dxf_freecad_legacy_polyface_ac1032_open",
+    "dwg2dxf_freecad_legacy_polyface_ac1032_insert"
+  ],
+  "limits": [
+    "Generated handoff profiles only; no producer-wire, GUI, or broad native DWG support claim.",
+    "The pinned C++ importer reports generated 3DFACE and SOLID unsupported and renders the selected polyface as wireframe; the separately selected legacy Python importer handles its bounded polyface and surface controls.",
+    "The source, converter, consumer, configuration and exact profile must match to reuse this evidence.",
+    "No DWG/DXF fixture was committed."
+  ]
+}
