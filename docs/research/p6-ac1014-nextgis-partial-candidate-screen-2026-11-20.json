@@ -1,0 +1,172 @@
+{
+  "id": "p6-ac1014-nextgis-partial-candidate-screen-2026-11-20",
+  "gate": "P6-F",
+  "status": "WAITING_FOR_ELIGIBLE_PARTIAL_SOURCE",
+  "source": {
+    "repository": "https://github.com/nextgis/dwg_samples",
+    "revision": "ff05d5a89ce123da511ed93c5fe5e6df85e02ab8",
+    "producer": "AutoCAD 2016 M.49.0.0, per earlier point3d corpus receipt; individual-source producer not independently reverified",
+    "localDirectory": "/private/tmp/libdxfrw-p6f-nextgis-r14"
+  },
+  "converter": {
+    "sourceRevision": "f83699086884c9fcd0bfff93b801afdafb1403d6",
+    "sha256": "609473bc0fb68d13aa68ce98646d06b9872763db3838528eade58d45fa417160",
+    "build": "AppleClang 21.0.0, CMake Release, macOS",
+    "commandShape": "dwg2dxf <source> -o <new output> -y -d"
+  },
+  "results": [
+    {
+      "file": "arc_R14.dwg",
+      "sha256": "d16e193976cee296830ab2d78e892ea9d24e96af03c8635a9308853fde40e9fc",
+      "dwgMagic": "AC1014",
+      "readOperationSucceeded": true,
+      "strictExit": 1,
+      "destinationPublished": false,
+      "entityParseFailures": 0,
+      "objectParseFailures": 2,
+      "sourceFrames": 292,
+      "publishedFrames": 290,
+      "failedFrames": 2,
+      "objectFailures": [
+        {
+          "handleLocTypeOrdinal": "680/109845/509/138",
+          "record": "CELLSTYLEMAP",
+          "class": "AcDbCellStyleMap"
+        },
+        {
+          "handleLocTypeOrdinal": "14/19716/500/12",
+          "record": "ACDBDICTIONARYWDFLT",
+          "class": "AcDbDictionaryWithDefault"
+        }
+      ]
+    },
+    {
+      "file": "circle_R14.dwg",
+      "sha256": "9e7894989b4792cfedb631431df100f2f154e4953fc817bcfca29036696f449e",
+      "dwgMagic": "AC1014",
+      "readOperationSucceeded": true,
+      "strictExit": 1,
+      "destinationPublished": false,
+      "entityParseFailures": 0,
+      "objectParseFailures": 2,
+      "sourceFrames": 292,
+      "publishedFrames": 290,
+      "failedFrames": 2,
+      "objectFailures": [
+        {
+          "handleLocTypeOrdinal": "680/109821/509/138",
+          "record": "CELLSTYLEMAP",
+          "class": "AcDbCellStyleMap"
+        },
+        {
+          "handleLocTypeOrdinal": "14/19700/500/12",
+          "record": "ACDBDICTIONARYWDFLT",
+          "class": "AcDbDictionaryWithDefault"
+        }
+      ]
+    },
+    {
+      "file": "ellipse_R14.dwg",
+      "sha256": "ebf77feaeca1efbf83a96aca124fc659fb7896ddf7fd3c67cd7f36d98c50597a",
+      "dwgMagic": "AC1014",
+      "readOperationSucceeded": true,
+      "strictExit": 1,
+      "destinationPublished": false,
+      "entityParseFailures": 0,
+      "objectParseFailures": 2,
+      "sourceFrames": 305,
+      "publishedFrames": 303,
+      "failedFrames": 2,
+      "objectFailures": [
+        {
+          "handleLocTypeOrdinal": "801/144976/509/140",
+          "record": "CELLSTYLEMAP",
+          "class": "AcDbCellStyleMap"
+        },
+        {
+          "handleLocTypeOrdinal": "14/19743/500/12",
+          "record": "ACDBDICTIONARYWDFLT",
+          "class": "AcDbDictionaryWithDefault"
+        }
+      ]
+    },
+    {
+      "file": "line_R14.dwg",
+      "sha256": "4ae12afb4052f1be913003b84021054c0e07b08e6aef5e430bf523c6f85c0903",
+      "dwgMagic": "AC1014",
+      "readOperationSucceeded": true,
+      "strictExit": 1,
+      "destinationPublished": false,
+      "entityParseFailures": 0,
+      "objectParseFailures": 2,
+      "sourceFrames": 292,
+      "publishedFrames": 290,
+      "failedFrames": 2,
+      "objectFailures": [
+        {
+          "handleLocTypeOrdinal": "680/109845/509/138",
+          "record": "CELLSTYLEMAP",
+          "class": "AcDbCellStyleMap"
+        },
+        {
+          "handleLocTypeOrdinal": "14/19716/500/12",
+          "record": "ACDBDICTIONARYWDFLT",
+          "class": "AcDbDictionaryWithDefault"
+        }
+      ]
+    },
+    {
+      "file": "point2d_R14.dwg",
+      "sha256": "9b731c1568827f18ad4c1875826da28c0e8af4340528d2b66a56b5f4af866066",
+      "dwgMagic": "AC1014",
+      "readOperationSucceeded": true,
+      "strictExit": 1,
+      "destinationPublished": false,
+      "entityParseFailures": 0,
+      "objectParseFailures": 2,
+      "sourceFrames": 291,
+      "publishedFrames": 289,
+      "failedFrames": 2,
+      "objectFailures": [
+        {
+          "handleLocTypeOrdinal": "673/109724/509/137",
+          "record": "CELLSTYLEMAP",
+          "class": "AcDbCellStyleMap"
+        },
+        {
+          "handleLocTypeOrdinal": "14/19603/500/12",
+          "record": "ACDBDICTIONARYWDFLT",
+          "class": "AcDbDictionaryWithDefault"
+        }
+      ]
+    },
+    {
+      "file": "polyline2d_line_R14.dwg",
+      "sha256": "7c4ab5e08e85edaced507df033fc357836c564ee19d15dbc965f1b465039fa14",
+      "dwgMagic": "AC1014",
+      "readOperationSucceeded": true,
+      "strictExit": 1,
+      "destinationPublished": false,
+      "entityParseFailures": 0,
+      "objectParseFailures": 2,
+      "sourceFrames": 292,
+      "publishedFrames": 290,
+      "failedFrames": 2,
+      "objectFailures": [
+        {
+          "handleLocTypeOrdinal": "680/109861/509/138",
+          "record": "CELLSTYLEMAP",
+          "class": "AcDbCellStyleMap"
+        },
+        {
+          "handleLocTypeOrdinal": "14/19716/500/12",
+          "record": "ACDBDICTIONARYWDFLT",
+          "class": "AcDbDictionaryWithDefault"
+        }
+      ]
+    }
+  ],
+  "disposition": "None of these six inputs meets the P6-F requirement for a recoverable entity parse failure. Each has two failed object frames; strict complete conversion refused before publication. The source-frame totals do not establish graph closure or later entity publication, and no partial-output claim is made.",
+  "nextAction": "Keep P6-F waiting for a new hash-bound AC1012/AC1014 input with eligible recoverable entity failure and closed dependencies; do not repeat this unchanged corpus scan.",
+  "fixturePolicy": "Downloaded DWGs and diagnostic logs stay in /private/tmp and are not committed."
+}
