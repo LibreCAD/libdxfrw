@@ -181,12 +181,12 @@ or app blocks only its profile.
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds and freeze the candidate. Recheck closed package, FreeCAD and focused-native receipts against the final inputs; reopen mismatched gates. | Build and test the complete GCC profile, run the broad suite and extended fuzz lane once for the frozen candidate, resolve required failures, and publish the evidence-backed support matrix. No required job may remain red and no unqualified route may be advertised. |
 
 For the [generated AC1015 consumer drawing](docs/research/p8d-ac1015-unchanged-plotsettings-reexport-2026-11-19.json),
-unchanged DWG re-export refuses because DICTIONARY `0x30` has no committed
-PLOTSETTINGS target `0x56`, despite same-version raw admission. Bind the raw
-owner and reference spans, then trace raw identity/class admission, transaction
-and final reference receipts. Verify graph closure, destination preservation,
-corrected retry, fresh readback and independent target semantics; keep the
-observed route fail-closed until those checks pass.
+unchanged DWG re-export refuses because DICTIONARY `0x30` records target `0x56`
+as an ordinary object even though its PLOTSETTINGS frame commits as a raw
+carrier. Bind the raw owner and reference spans, then route the dictionary
+receipt to the selected carrier with ambiguity, class and remap checks. Verify
+graph closure, destination preservation, corrected retry, fresh readback and
+independent target semantics; keep the route fail-closed until those checks pass.
 
 Keep LibreCAD's R13 raw-carrier refusal until owner/remap namespace and all 65
 omitted records close. Source-derived FreeCAD cases for nonplanar 3DFACE,
