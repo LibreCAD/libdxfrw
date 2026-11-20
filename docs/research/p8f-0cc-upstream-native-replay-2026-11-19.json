@@ -1,0 +1,53 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8f-0cc-upstream-native-replay-2026-11-19",
+  "date": "2026-11-19",
+  "status": "CURRENT_DIGEST_FAST_AND_FOCUSED_NATIVE_PASSED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "12f7259ce24cb77d2d5130b8b3521b1128305c6f9bb06ec4f9320665380842ca",
+  "upstream": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "focusedRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44661714507",
+    "fastRun": "https://github.com/LibreCAD/libdxfrw/actions/runs/44661714215",
+    "headSha": "0cc9960244eda9f22a6d44e127ac14aa38d98180",
+    "checkedOutMergeSha": "e962b180842b83dcb91769674ac1de5708f08507",
+    "fastJobId": 136041263288,
+    "fastResult": "PASS: 52 selected CTests; one optional locale test skipped.",
+    "fastLogSha256": "e62365309d901cb868528b99ceb46353be1e7d071706214d44d92c924a2d9e5d",
+    "platforms": {
+      "linux-gcc": {
+        "apiJobId": 136041360278,
+        "artifactId": 14595853514,
+        "downloadedArchiveSha256": "7836c9e030b79d628257b092d235af6426440541eece50ad9d1bdce8c45950ef",
+        "receiptContentSha256": "191747a47f6761f28c9eebb642bf07ab4724e0f9088d0350c0be19ca54b990d5"
+      },
+      "macos-clang": {
+        "apiJobId": 136041360361,
+        "artifactId": 14595813762,
+        "downloadedArchiveSha256": "43cc58092dbbd6e0b88d6fc7093852b97762e595b08ac22b155a4828a4ae519d",
+        "receiptContentSha256": "8402ac0cd2402356f3861d115e03ab73ee1fdfa0c58d432a44a1789b302eb7e3"
+      },
+      "windows-msvc": {
+        "apiJobId": 136041360360,
+        "artifactId": 14595994298,
+        "downloadedArchiveSha256": "e36e7a9520df571ec9451ecc1a20ff91de91911ee026109d28883af921b0beb3",
+        "receiptContentSha256": "6e7662aa4b4812ff9fc84e3137cb5061decc3e306205426f98dd0c8db656db61"
+      }
+    }
+  },
+  "liveVerification": {
+    "result": "PASS: all three focused artifacts authenticated against the GitHub API, exact tested PR merge ref and artifact archives before the ref advanced.",
+    "scratchRoot": "/private/tmp/libdxfrw-p8f-0cc",
+    "apiResponseSha256": {
+      "run.json": "72ea6ba61b4ad3625b418e7d33addbf860b9826673a1e7a09ab91fce700b8e61",
+      "jobs.json": "344913afe8faaa10d305b8c73f6fb1121815a78f24904385ae600a274fb8a8b2",
+      "artifacts.json": "1f71d67d98f6066af2730413794757d8aa24f87caede103f273cf65fced21835",
+      "workflow.json": "b158cabfa9d89a8d4a9f21b5d71e2f9dae3b45b8e87c2fa24faac3ec3e4b1781"
+    }
+  },
+  "limits": [
+    "P8-F closes only for this implementation digest; later selected-input changes reopen it.",
+    "This does not close native GUI, broad/fuzz, independent producer or semantic evidence and does not promote any support claim.",
+    "One optional locale test was skipped in the fast lane."
+  ]
+}
