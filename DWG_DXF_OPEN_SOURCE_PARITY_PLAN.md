@@ -14,7 +14,7 @@ IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
 The recorded consumer baselines are libdxfrw `master` `d68fb1ed937ad2a74a54f6208277ec10a1b031b0`,
-LibreCAD `master` `26dd8817b37f59242a17fa1d0f8c61d6f1cfb410`, LibreCAD_3
+LibreCAD `master` `281a8a4c83884ae1e8c9aa3436d87184c0b17ea7`, LibreCAD_3
 `master` `4fb48312708b39d499f7e6668104a3b54a8601c7`, and FreeCAD `main`
 `d65d3b388743b51da923d6ab36d10ddbc149ba46`. Refresh moving heads before
 integration or platform qualification.
@@ -69,12 +69,6 @@ operation, and profile. Apply the [support policy](docs/UPGRADE_SUPPORT.md),
 [route matrix](metadata/support-matrix-v1.json), [qualified status](metadata/qualified-format-status-v1.json),
 [external evidence registry](metadata/external-evidence-resolution-v1.json),
 and [3D plan](DWG_DXF_3D_SUPPORT_PLAN.md).
-
-The [APPID source guards](docs/research/p4-ac1024-layerstates-appid-wire-source-binding-2026-11-20.json)
-change converter inputs; [package checks](docs/research/p8-package-b53-qualification-2026-11-20.json),
-[Linux FreeCAD](docs/research/p8b-linux-freecad-13594-2026-11-20.json),
-[Windows FreeCAD](docs/research/p8c-windows-freecad-13594-2026-11-20.json), and [focused native/fast checks](docs/research/p8f-13594-native-fast-qualification-2026-11-20.json) passed for their recorded inputs. All receipts apply only to their recorded
-source, binaries, configurations, platforms and generated profiles.
 
 ## Active package gates
 
@@ -146,8 +140,6 @@ see the [callback boundary](docs/research/p5-tablecontent-semantic-incomplete-ca
 | P6-E / WAITING_FOR_SUFFIX_AUTHORITY | Reuse the [repeatability receipt](docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json): the AC1024 suffix changes across repeated saves, so a mesh-count comparison is not discriminating. | Resume only with versioned primary authority or a source-bound pre-compression trace. Bind fields/roles, then add only controls that distinguish that mapping. Keep strict refusal; never label the suffix padding or discard it. |
 | P6-F / WAITING_FOR_ELIGIBLE_PARTIAL_SOURCE | Reuse the [disposition](docs/research/p6-cli-legacy-ac1012-ac1014-partial-disposition-2026-11-16.json) and [candidate trace](docs/research/p6-ac1012-ac1014-lwpolyline-partial-candidate-screen-2026-11-17.json); no current source qualifies; do not repeat the scans without a new candidate. | Resume only with an existing hash-bound AC1012/AC1014 source containing recoverable entity failures, closed object/backlink/reference dependencies, and later published frames. Prove destination preservation, partial ASCII/Binary output, fresh readback, and corrected retry; never weaken version/frame/reference checks or commit ODA derivatives. |
 
-Keep PERSUBENTMGR class data raw until the selected nonzero path is proved;
-IMAGEDEF separately blocks strict whole-file output on the observed profile.
 Keep the AC1027 173-bit unclaimed suffix as an output-blocking integrity error;
 ordinary AC1027 drawings remain deferred until source-reference closure. Keep
 short-tail LTYPE_CONTROL fail-closed until versioned roles resolve. The
@@ -177,13 +169,12 @@ or app blocks only its profile.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
-| P8-D / WAITING_FOR_GUI_AND_EXTERNAL_CONSUMER_QUALIFICATION | Once the process sees an active display and can capture it, run LibreCAD 2 native save/reopen/render/edit checks: Move/Copy, named-LTYPE rendering, and the selected MLINE display/edit/save/reopen. Run LibreCAD_3 native MPOLYGON save/reopen and current-consumer integration. See the [GUI preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json) and [staged-inspector receipt](docs/research/p8d-mline-staged-inspector-port-2026-11-19.json). | Integrate/review the unmerged consumer patches and verify against the current consumers, both bundled and upstream codecs where applicable. In particular, the [LibreCAD_3 planar elevation patch](docs/patches/librecad3-p8-hatch-planar-elevation-2026-11-19.patch) and its [multiple-loop follow-up](docs/patches/librecad3-p8-multiloop-planar-elevation-2026-11-19.patch) are incremental on the recorded candidate, not upstream master; see their [validation receipt](docs/research/p8d-librecad3-multiloop-elevation-2026-11-19.json). The [DIMSTYLE](docs/patches/librecad-dxfrw-default-dimstyle-qstring-2026-11-18.patch), [JWW](docs/patches/librecad-jww-default-dimstyle-qstring-2026-11-18.patch), and [associative-prefix](docs/patches/librecad-associative-prefix-kinds-guarded-2026-11-19.patch) fixes remain unmerged; reuse their [focused checks](docs/research/p8d-librecad-master-26dd-dimstyle-prefix-2026-11-19.json). Review and upstream the [combined consumer candidate](docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch), rebased on LibreCAD `281a8a4`; it also covers codepage and installed-codec changes. Reuse its [focused evidence](docs/research/p8d-librecad-system-codec-integration-2026-11-19.json) and [macOS installed-app smoke](docs/research/p8d-current-eed-installed-macos-app-smoke-2026-11-20.json); qualify the final macOS, Linux and Windows inputs and verify native behavior. Do not substitute the remote ObjectARX host or headless tests for native GUI evidence. |
+| P8-D / WAITING_FOR_GUI_AND_EXTERNAL_CONSUMER_QUALIFICATION | Once an active display is available, run LibreCAD 2 native save/reopen/render/edit checks for Move/Copy, named LTYPE, and the selected MLINE; run LibreCAD_3 native MPOLYGON save/reopen. See the [GUI preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json) and [staged-inspector receipt](docs/research/p8d-mline-staged-inspector-port-2026-11-19.json). | Review and upstream the [combined LibreCAD candidate](docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch), including its DIMSTYLE, JWW, associative-prefix, codepage, installed-codec, and bounded PLOTSETTINGS changes; reuse the [exact-base focused evidence](docs/research/p8d-librecad-281a-focused-current-codec-2026-11-20.json), [PLOTSETTINGS evidence](docs/research/p8d-ac1015-plotsettings-four-margins-2026-11-20.json), and [macOS installed-app smoke](docs/research/p8d-current-eed-installed-macos-app-smoke-2026-11-20.json). Integrate/review the incremental LibreCAD_3 [planar elevation](docs/patches/librecad3-p8-hatch-planar-elevation-2026-11-19.patch) and [multiple-loop](docs/patches/librecad3-p8-multiloop-planar-elevation-2026-11-19.patch) patches against current master; see their [validation receipt](docs/research/p8d-librecad3-multiloop-elevation-2026-11-19.json). Verify current consumers with bundled and upstream codecs where applicable, qualify final macOS, Linux and Windows inputs, and verify native behavior. Headless tests and the remote ObjectARX host do not replace native GUI evidence. |
 | P8-G / INTEGRATION_GATE | After package and platform gates close, set consumer/platform release thresholds and freeze the candidate. Recheck closed package, FreeCAD and focused-native receipts against the final inputs; reopen mismatched gates. | Build and test the complete GCC profile, run the broad suite and extended fuzz lane once for the frozen candidate, resolve required failures, and publish the evidence-backed support matrix. No required job may remain red and no unqualified route may be advertised. |
 
-For PLOTSETTINGS, integrate and review the [bounded NOD and margin candidate](docs/research/p8d-ac1015-plotsettings-four-margins-2026-11-20.json),
-then qualify additional source, version, EED, reactor, remap and edited-plot
-profiles only after their source and native semantics are established. The
-candidate refuses profiles outside its recorded bounds.
+For PLOTSETTINGS, qualify additional source, version, EED, reactor, remap and
+edited-plot profiles only after their source and native semantics are
+established. The candidate refuses profiles outside its recorded bounds.
 
 Keep LibreCAD's R13 raw-carrier refusal until owner/remap namespace and all 65
 omitted records close. Source-derived FreeCAD cases for nonplanar 3DFACE,
