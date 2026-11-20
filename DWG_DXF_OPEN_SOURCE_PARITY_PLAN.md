@@ -18,10 +18,11 @@ import or libdxfrw path. See the [consumer compatibility receipt](docs/research/
 Refresh moving heads again before later integration or platform qualification.
 The [current-digest headless consumer recheck](docs/research/p8d-current-digest-headless-consumers-2026-11-19.json) rebuilt the patched LibreCAD filter and LibreCAD_3 candidate persistence against digest `1b63ce2a`; the filtered LibreCAD link probe and two generated LibreCAD_3 LINE tests passed. P8-D remains open for GUI and wider consumer qualification.
 The [LibreCAD_3 MPOLYGON headless recheck](docs/research/p8d-librecad3-current-mpolygon-headless-ezdxf-2026-11-19.json) passes two existing candidate tests and independently reads 11 generated outputs with ezdxf 1.4.5. It records the selected MPOLYGON preservation and loss-noted HATCH fallbacks; native GUI and broad consumer qualification remain open.
+The unmerged [planar HATCH elevation patch](docs/patches/librecad3-p8-hatch-planar-elevation-2026-11-19.patch) fixes the selected vertical MPOLYGON fallback and HATCH re-save in the existing LibreCAD_3 candidate. The [receipt](docs/research/p8d-librecad3-planar-hatch-elevation-fix-2026-11-19.json) records before/after, two codec builds, focused 2D/3D controls and ezdxf readback. Mixed-height fallback remains lossy and native GUI qualification is open.
 
 **Progress on 2026-11-19:** 13/34 package gates closed; 21 remain. The
 historical activity count records 198 completed implementation/research
-slices, followed by twenty-five implementation and compatibility slices (223 total); the number of remaining slices is not yet known, so it cannot support
+slices, followed by twenty-six implementation and compatibility slices (224 total); the number of remaining slices is not yet known, so it cannot support
 a completion percentage. Gate readiness is 13/34 (38.2%). An earlier fast-CI run
 found a stale AC1021 diagnostic-count assertion: 26 integrity rows minus 16
 retained rows means 10 omitted rows. The assertion is corrected. On digest
@@ -274,7 +275,7 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count implementation/research slices and package-gate readiness separately.
-  The historical ledger records 198 completed slices; twenty-five subsequent implementation and compatibility slices bring the count to 223. Remaining work cannot be
+  The historical ledger records 198 completed slices; twenty-six subsequent implementation and compatibility slices bring the count to 224. Remaining work cannot be
   counted accurately as slices until the external source profiles are known;
   do not divide by only the completed slices or present 100% as completion.
   The 21 open gates are not interchangeable with slices and can require several

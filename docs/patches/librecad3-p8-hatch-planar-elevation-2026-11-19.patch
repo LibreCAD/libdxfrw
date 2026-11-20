@@ -1,0 +1,201 @@
+diff --git a/persistence/libdxfrw/dxfimpl.cpp b/persistence/libdxfrw/dxfimpl.cpp
+index e56db6b..0906308 100644
+--- a/persistence/libdxfrw/dxfimpl.cpp
++++ b/persistence/libdxfrw/dxfimpl.cpp
+@@ -1161,6 +1161,12 @@ void DXFimpl::addHatch(const DRW_Hatch* data) {
+                                             addOffset(point.y(), offsetY), point.z());
+             return mapped;
+         };
++        // A default-normal HATCH polyline path lies at the HATCH OCS
++        // elevation, not at the boundary path's absent Z coordinate.
++        // Leave tilted planes and MPOLYGON projection on their existing paths.
++        const double hatchPolylinePlaneZ = !polygon && data->extPoint.x == 0.0
++            && data->extPoint.y == 0.0 && data->extPoint.z == 1.0
++            && std::isfinite(data->basePoint.z) ? data->basePoint.z : 0.0;
+         lc::geo::Region reg;
+         auto lcHatch = std::make_shared<lc::entity::Hatch>(   layer,
+                        mf,
+@@ -1202,7 +1208,8 @@ void DXFimpl::addHatch(const DRW_Hatch* data) {
+                     std::vector<lc::entity::LWVertex2D> points;
+                     for (const auto& i : data->vertlist) {
+                         points.emplace_back(lc::geo::Coordinate(addOffset(i->x, offsetX),
+-                                                                addOffset(i->y, offsetY)),
++                                                                addOffset(i->y, offsetY),
++                                                                hatchPolylinePlaneZ),
+                                             i->bulge, i->stawidth, i->endwidth);
+                     }
+                     auto isCLosed = (unsigned int) data->flags & 0x01u;
+@@ -3156,6 +3163,30 @@ void DXFimpl::writeHatch(const lc::entity::Hatch_CSPtr& h) {
+             "Some MPOLYGON entities were written as HATCH; boundary geometry "
+             "or polygon-specific information may not be retained.");
+     }
++    // A single flat XY-plane polyline is representable as a HATCH at one
++    // common OCS elevation. The boundary writer emits only XY coordinates,
++    // so store Z on the HATCH, including after reopening a fallback HATCH.
++    // Do not infer a plane for other geometry or mixed/nonfinite Z values.
++    if (region.loopList().size() == 1
++        && region.loopList()[0].entities().size() == 1) {
++        const auto polyline = std::dynamic_pointer_cast<const lc::entity::LWPolyline>(
++            region.loopList()[0].entities()[0]);
++        if (polyline && polyline->closed() && !polyline->vertex().empty()
++            && polyline->elevation() == 0.0
++            && polyline->tickness() == 0.0
++            && polyline->extrusionDirection().x() == 0.0
++            && polyline->extrusionDirection().y() == 0.0
++            && polyline->extrusionDirection().z() == 1.0) {
++            const double elevation = polyline->vertex()[0].location().z();
++            const bool planar = std::isfinite(elevation) && std::all_of(
++                polyline->vertex().begin(), polyline->vertex().end(),
++                [elevation](const lc::entity::LWVertex2D& vertex) {
++                    return std::isfinite(vertex.location().z())
++                        && vertex.location().z() == elevation;
++                });
++            if (planar) hatch.basePoint.z = elevation;
++        }
++    }
+     if (!dxfW->writeHatch(&hatch)) {
+         LOG_ERROR << "libdxfrw refused HATCH " << hatch.name;
+         _loss.droppedByType["HATCH"]++;
+diff --git a/unittest/persistence/dwgimporttest.cpp b/unittest/persistence/dwgimporttest.cpp
+index 2dd4d4a..6259a7f 100644
+--- a/unittest/persistence/dwgimporttest.cpp
++++ b/unittest/persistence/dwgimporttest.cpp
+@@ -1143,3 +1143,138 @@ TEST(DwgImportTest, ShapeLossIsReportedForDxf) {
+         if (std::dynamic_pointer_cast<const lc::entity::Line>(entity)) ++lines;
+     EXPECT_EQ(lines, 1u);
+ }
++
++TEST(DwgImportTest, MpolygonLiftFallbackRetainsPlanarElevation) {
++    const std::string input = tmpPath("elevation-source");
++    {
++        std::ofstream f(input);
++        ASSERT_TRUE(f.good());
++        f << "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1018\n0\nENDSEC\n"
++             "0\nSECTION\n2\nENTITIES\n0\nMPOLYGON\n5\n55\n"
++             "100\nAcDbEntity\n8\n0\n100\nAcDbMPolygon\n70\n1\n"
++             "10\n0\n20\n0\n30\n0\n210\n0\n220\n0\n230\n1\n"
++             "2\nSOLID\n71\n1\n91\n1\n92\n2\n73\n1\n72\n0\n93\n3\n"
++             "10\n1\n20\n2\n10\n4\n20\n2\n10\n3\n20\n5\n"
++             "76\n1\n78\n0\n63\n3\n98\n0\n11\n2\n21\n5\n99\n0\n"
++             "0\nENDSEC\n0\nEOF\n";
++        ASSERT_TRUE(f.good());
++    }
++    auto doc = newDwgDocument();
++    ASSERT_TRUE(lc::persistence::File::importFile(doc, input, lc::persistence::File::LIBDXFRW).ok);
++    lc::entity::Hatch_CSPtr hatch;
++    for (const auto& e : doc->entityContainer().asVector())
++        if (auto h = std::dynamic_pointer_cast<const lc::entity::Hatch>(e)) hatch = h;
++    ASSERT_NE(hatch, nullptr);
++    auto lifted = hatch->move(lc::geo::Coordinate(0, 0, 3));
++    ASSERT_NE(lifted, nullptr);
++    doc->removeEntity(hatch);
++    doc->insertEntity(lifted);
++    const char* capture = std::getenv("LC3_ELEVATION_CAPTURE");
++    for (const auto& encoding : std::vector<std::pair<const char*, lc::persistence::File::Type>>{
++            {"ascii", lc::persistence::File::LIBDXFRW_DXF_R2000},
++            {"binary", lc::persistence::File::LIBDXFRW_DXB_R2000}}) {
++        SCOPED_TRACE(encoding.first);
++        const std::string output = capture ? std::string(capture) + "/" + encoding.first + ".dxf"
++                                           : tmpPath("elevation-output");
++        auto written = lc::persistence::File::exportFile(doc, output, encoding.second);
++        ASSERT_TRUE(written.ok);
++        EXPECT_TRUE(std::any_of(written.loss.notes.begin(), written.loss.notes.end(),
++            [](const std::string& n) { return n.find("written as HATCH") != std::string::npos; }));
++        auto reopened = newDwgDocument();
++        ASSERT_TRUE(lc::persistence::File::importFile(reopened, output, lc::persistence::File::LIBDXFRW).ok);
++        lc::entity::Hatch_CSPtr result;
++        for (const auto& e : reopened->entityContainer().asVector())
++            if (auto h = std::dynamic_pointer_cast<const lc::entity::Hatch>(e)) result = h;
++        ASSERT_NE(result, nullptr);
++        ASSERT_EQ(result->getRegion().loopList().size(), 1u);
++        ASSERT_EQ(result->getRegion().loopList()[0].entities().size(), 1u);
++        const auto poly = std::dynamic_pointer_cast<const lc::entity::LWPolyline>(result->getRegion().loopList()[0].entities()[0]);
++        ASSERT_NE(poly, nullptr);
++        ASSERT_EQ(poly->vertex().size(), 3u);
++        const double expected[][2] = {{3,7},{6,7},{5,10}};
++        for (std::size_t i = 0; i < 3; ++i) {
++            EXPECT_DOUBLE_EQ(poly->vertex()[i].location().x(), expected[i][0]);
++            EXPECT_DOUBLE_EQ(poly->vertex()[i].location().y(), expected[i][1]);
++            EXPECT_DOUBLE_EQ(poly->vertex()[i].location().z(), 3.0);
++        }
++        const std::string resaved = capture ? std::string(capture) + "/resave-" + encoding.first + ".dxf"
++                                            : tmpPath("elevation-resave");
++        ASSERT_TRUE(lc::persistence::File::exportFile(reopened, resaved, encoding.second).ok);
++        auto reread = newDwgDocument();
++        ASSERT_TRUE(lc::persistence::File::importFile(reread, resaved, lc::persistence::File::LIBDXFRW).ok);
++        lc::entity::Hatch_CSPtr resavedHatch;
++        for (const auto& e : reread->entityContainer().asVector())
++            if (auto h = std::dynamic_pointer_cast<const lc::entity::Hatch>(e)) resavedHatch = h;
++        ASSERT_NE(resavedHatch, nullptr);
++        ASSERT_EQ(resavedHatch->getRegion().loopList().size(), 1u);
++        ASSERT_EQ(resavedHatch->getRegion().loopList()[0].entities().size(), 1u);
++        const auto resavedPoly = std::dynamic_pointer_cast<const lc::entity::LWPolyline>(
++            resavedHatch->getRegion().loopList()[0].entities()[0]);
++        ASSERT_NE(resavedPoly, nullptr);
++        ASSERT_EQ(resavedPoly->vertex().size(), 3u);
++        for (const auto& v : resavedPoly->vertex()) EXPECT_DOUBLE_EQ(v.location().z(), 3.0);
++        if (!capture) { boost::filesystem::remove(output); boost::filesystem::remove(resaved); }
++    }
++    // Mixed Z values cannot be represented by a single HATCH elevation.
++    // The existing lossy fallback must not invent one from the first vertex.
++    const auto liftedHatch = std::dynamic_pointer_cast<const lc::entity::Hatch>(lifted);
++    ASSERT_NE(liftedHatch, nullptr);
++    const auto sourcePoly = std::dynamic_pointer_cast<const lc::entity::LWPolyline>(
++        liftedHatch->getRegion().loopList()[0].entities()[0]);
++    ASSERT_NE(sourcePoly, nullptr);
++    auto vertices = sourcePoly->vertex();
++    ASSERT_EQ(vertices.size(), 3u);
++    vertices[2]._location = lc::geo::Coordinate(vertices[2].location().x(), vertices[2].location().y(), 4.0);
++    auto mixedPoly = std::make_shared<lc::entity::LWPolyline>(vertices, sourcePoly->width(),
++        sourcePoly->elevation(), sourcePoly->tickness(), sourcePoly->closed(),
++        sourcePoly->extrusionDirection(), sourcePoly->layer());
++    lc::geo::Region mixedRegion;
++    mixedRegion.addLoop(lc::geo::Loop({mixedPoly}));
++    auto mixed = std::make_shared<lc::entity::Hatch>(hatch->layer(), hatch->metaInfo(), hatch->block());
++    mixed->setRegion(mixedRegion);
++    mixed->setPatternName(hatch->getPatternName());
++    mixed->setSolid(hatch->isSolid());
++    mixed->setAngle(hatch->getAngle());
++    mixed->setScale(hatch->getScale());
++    doc->removeEntity(lifted);
++    doc->insertEntity(mixed);
++    const std::string mixedOutput = capture ? std::string(capture) + "/mixed-ascii.dxf" : tmpPath("mixed-elevation-output");
++    const auto mixedWrite = lc::persistence::File::exportFile(doc, mixedOutput, lc::persistence::File::LIBDXFRW_DXF_R2000);
++    ASSERT_TRUE(mixedWrite.ok);
++    EXPECT_TRUE(std::any_of(mixedWrite.loss.notes.begin(), mixedWrite.loss.notes.end(),
++        [](const std::string& n) { return n.find("written as HATCH") != std::string::npos; }));
++    std::ifstream mixedFile(mixedOutput);
++    ASSERT_TRUE(mixedFile.good());
++    bool inHatch = false, checkedElevation = false;
++    std::string code, value;
++    while (std::getline(mixedFile, code) && std::getline(mixedFile, value)) {
++        const int group = std::stoi(code);
++        if (group == 0) { if (inHatch) break; inHatch = value == "HATCH"; }
++        if (inHatch && group == 30) {
++            EXPECT_DOUBLE_EQ(std::stod(value), 0.0);
++            checkedElevation = true;
++            break;
++        }
++    }
++    EXPECT_TRUE(checkedElevation);
++    if (!capture) boost::filesystem::remove(mixedOutput);
++    // Restore and retry using the same document after the refused plane.
++    doc->removeEntity(mixed);
++    doc->insertEntity(lifted);
++    const std::string retryOutput = capture ? std::string(capture) + "/retry-ascii.dxf" : tmpPath("retry-elevation-output");
++    ASSERT_TRUE(lc::persistence::File::exportFile(doc, retryOutput, lc::persistence::File::LIBDXFRW_DXF_R2000).ok);
++    auto retryDoc = newDwgDocument();
++    ASSERT_TRUE(lc::persistence::File::importFile(retryDoc, retryOutput, lc::persistence::File::LIBDXFRW).ok);
++    lc::entity::Hatch_CSPtr retryHatch;
++    for (const auto& e : retryDoc->entityContainer().asVector())
++        if (auto h = std::dynamic_pointer_cast<const lc::entity::Hatch>(e)) retryHatch = h;
++    ASSERT_NE(retryHatch, nullptr);
++    ASSERT_EQ(retryHatch->getRegion().loopList().size(), 1u);
++    ASSERT_EQ(retryHatch->getRegion().loopList()[0].entities().size(), 1u);
++    auto retryPoly = std::dynamic_pointer_cast<const lc::entity::LWPolyline>(retryHatch->getRegion().loopList()[0].entities()[0]);
++    ASSERT_NE(retryPoly, nullptr);
++    ASSERT_EQ(retryPoly->vertex().size(), 3u);
++    for (const auto& v : retryPoly->vertex()) EXPECT_DOUBLE_EQ(v.location().z(), 3.0);
++    if (!capture) boost::filesystem::remove(retryOutput);
++    boost::filesystem::remove(input);
++}
