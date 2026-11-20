@@ -109,10 +109,11 @@ P4-D additional unresolved paths:
 - Restore the AC1024 mechanical empty-root readback without bypassing MATERIAL
   dependencies. Reuse its [Global EED](docs/research/p4-ac1024-mechanical-global-material-eed-source-2026-11-20.json)
   and [four-TILE](docs/research/p4-ac1024-mechanical-global-material-tile-source-2026-11-20.json)
-  and [APPID/control and root membership](docs/research/p4-ac1024-mechanical-material-appid-root-source-2026-11-20.json) source proofs.
-  Bind the `ByBlock` and `ByLayer` MATERIAL bodies and their dependencies,
-  and prove the `0x72` root's NOD edge. Implement staged graph and signed-EED
-  output proof with failure/rollback/retry and independent readback.
+  [APPID/control and root membership](docs/research/p4-ac1024-mechanical-material-appid-root-source-2026-11-20.json),
+  and [basic MATERIAL bodies and NOD edge](docs/research/p4-ac1024-mechanical-basic-material-nod-source-2026-11-20.json) source proofs.
+  Bind the complete `Global` MATERIAL semantic body and remaining graph
+  dependencies. Implement staged graph and signed-EED output proof with
+  failure/rollback/retry and independent readback.
   Keep unqualified profiles refused and verify the one-root LayerStates
   ASCII/Binary readback and same-writer retry on the resulting eligible profile.
 - AC1021-to-AC1024 whole-source output needs the [DICTIONARYVAR/TABLESTYLE join](docs/research/p4-ac1021-ctablestyle-ac1024-crossversion-blocker-2026-11-18.json)

@@ -4714,6 +4714,7 @@ private:
     };
     AerialDwgMaterialEedSource m_dwgAerialGlobalMaterialEed;
     std::array<AerialDwgMaterialEedSource, 6> m_dwgAerialOtherMaterialEed;
+    std::array<AerialDwgMaterialEedSource, 2> m_dwgMechanicalBasicMaterials;
     bool m_dwgAerialGlobalMaterialEedTablesInspected{false};
     bool m_dwgAerialGlobalMaterialEedObjectsInspected{false};
     AerialDwgByBlockMaterialSource m_dwgAerialByBlockMaterial;
@@ -4725,6 +4726,9 @@ private:
         const DRW_DwgFramePublication&) noexcept;
     void finishAerialDwgGlobalMaterialEedSource() noexcept;
     void finishAerialDwgOtherMaterialEedSources() noexcept;
+    void finishMechanicalBasicMaterialSources() noexcept;
+    bool hasQualifiedMechanicalBasicMaterialSource(
+        const dx_data&, std::uint32_t handle) const noexcept;
     bool hasQualifiedAc1024AerialGlobalMaterialEed(
         const dx_data&) const noexcept;
     bool hasQualifiedAc1024MechanicalGlobalTileSources(

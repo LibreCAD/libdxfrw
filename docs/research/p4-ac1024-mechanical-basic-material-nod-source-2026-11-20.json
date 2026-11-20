@@ -1,0 +1,32 @@
+{
+  "scope": "Bounded same-import AC1024 mechanical NOD and ByLayer/ByBlock MATERIAL source observations; no output admission or producer semantics are established.",
+  "source": {
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "producer": "not independently authenticated",
+    "repository_fixture_committed": false
+  },
+  "authority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["2.12", "2.13", "20.1", "20.4.44 DICTIONARY"],
+    "limitation": "The cited dictionary and common framing sections do not independently establish all MATERIAL field semantics."
+  },
+  "independent_decode": {
+    "tool": "LibreDWG dwgread 0.14",
+    "json_sha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+    "named_dictionary": {"handle": "0x0c", "object_bytes": 444, "handle_stream_start_bit": 3326, "owner_role_length_value": [4, 0, 0], "entry_count": 13, "material_entry": ["ACAD_MATERIAL", "0x72", 2, 1]},
+    "basic_materials": {"handles": ["0x96", "0x97"], "names": ["ByLayer", "ByBlock"], "object_bytes": 93, "handle_stream_start_bit": 706, "owner": "0x72", "owner_role_length": [12, 1], "reactor_role_length": [4, 1], "xdictionary": "absent", "map_projection": 2}
+  },
+  "validation": {
+    "build": "libdxfrw_dwg2dxf_adapter_tests",
+    "mechanical_selector": "--mechanical-ac1024-global-material-eed-wire",
+    "mechanical_result": "passed; source binding, owner/name/member/projection and selected frame-bit mutation, truncation, foreign adapter refusal and restored same-adapter retry",
+    "aerial_selectors": ["--ac1024-selected-bylayer-material-writer", "--ac1024-selected-byblock-material-writer"],
+    "aerial_result": "both passed nine refusal/retry controls in ASCII and Binary"
+  },
+  "remaining": [
+    "Independently bind the complete mechanical Global MATERIAL semantic body and remaining graph dependencies.",
+    "Prove staged graph and signed-EED output, destination-preserving failure, corrected writer retry, and independent ASCII/Binary readback.",
+    "Retain fail-closed handling for all unqualified profiles and native-semantic uncertainty."
+  ]
+}

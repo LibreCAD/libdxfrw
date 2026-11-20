@@ -45322,7 +45322,9 @@ bool dx_iface::hasQualifiedAc1024MechanicalGlobalTileSources(
         || proof.body.empty() || proof.frame.generation != data.importGeneration
         || proof.frame.attempt == 0u
         || proof.frame.attempt != aerialMaterialAppIdClassAttempt()
-        || !hasQualifiedMechanicalMaterialAppIdSource()) return false;
+        || !hasQualifiedMechanicalMaterialAppIdSource()
+        || !hasQualifiedMechanicalBasicMaterialSource(data, 0x96u)
+        || !hasQualifiedMechanicalBasicMaterialSource(data, 0x97u)) return false;
     try {
         const auto* material = uniqueDwgSourceRecord(data.materials, 0x98u);
         const auto* root = uniqueDwgSourceRecord(data.dictionaries, 0x72u);
@@ -45332,7 +45334,11 @@ bool dx_iface::hasQualifiedAc1024MechanicalGlobalTileSources(
             : boundAc1024DwgStandardObject(data, *extension, dwgObjType::DICTIONARY);
         const auto* rootRaw = root == nullptr ? nullptr
             : boundAc1024DwgStandardObject(data, *root, dwgObjType::DICTIONARY);
-        if (!root || !rootRaw
+        const auto* nodRaw = !data.hasNamedObjectDictionary ? nullptr
+            : boundAc1024DwgStandardObject(data, data.namedObjectDictionary, dwgObjType::DICTIONARY);
+        if (!nodRaw || !hasAc1024DwgRootMember(data, "ACAD_MATERIAL", 0x72u)
+            || !dx_ac1024_mechanical_tile_wire::observeNamedRoot(*nodRaw, data.namedObjectDictionary)
+            || !root || !rootRaw
             || !dx_ac1024_mechanical_tile_wire::observeMaterialRoot(*rootRaw, *root)
             || !data.hasCompleteDwgDictionaryEntry(0x72u, "Global", 0x98u)
             || !material || material->m_name != "Global" || material->parentHandle != 0x72u
@@ -45358,6 +45364,49 @@ bool dx_iface::hasQualifiedAc1024MechanicalGlobalTileSources(
                 return false;
         }
         return true;
+    } catch (...) { return false; }
+}
+
+void dx_iface::finishMechanicalBasicMaterialSources() noexcept {
+    if (cData == nullptr || typeid(*this) != typeid(dx_iface)) return;
+    for (std::size_t i = 0u; i < m_dwgMechanicalBasicMaterials.size(); ++i) {
+        auto& proof = m_dwgMechanicalBasicMaterials[i];
+        const std::uint32_t handle = i == 0u ? 0x96u : 0x97u;
+        const auto& source = i == 0u ? m_dwgAerialByLayerMaterial : m_dwgAerialByBlockMaterial;
+        if (source.frame.generation != cData->importGeneration
+            || source.frame.attempt == 0u
+            || source.frame.attempt != aerialMaterialAppIdClassAttempt()) continue;
+        try {
+            const auto* material = uniqueDwgSourceRecord(cData->materials, handle);
+            const auto* raw = material == nullptr ? nullptr
+                : boundAc1024DwgClassObject(*cData, handle, source.frame, nullptr);
+            if (!raw || !dx_ac1024_byblock_material_wire::observeMechanicalMaterial(*raw, *material)) continue;
+            proof.owner = cData;
+            proof.frame = source.frame;
+            proof.material = *material;
+            proof.body = raw->m_rawBytes;
+        } catch (...) {
+            proof = {};
+            proof.captureFailed = true;
+        }
+    }
+}
+
+bool dx_iface::hasQualifiedMechanicalBasicMaterialSource(
+        const dx_data& data, std::uint32_t handle) const noexcept {
+    if (handle != 0x96u && handle != 0x97u) return false;
+    const auto& proof = m_dwgMechanicalBasicMaterials[handle == 0x96u ? 0u : 1u];
+    if (&data != cData || proof.owner != &data || proof.captureFailed || !proof.material
+        || proof.frame.generation != data.importGeneration || proof.frame.attempt == 0u
+        || proof.frame.attempt != aerialMaterialAppIdClassAttempt()) return false;
+    try {
+        const auto* material = uniqueDwgSourceRecord(data.materials, handle);
+        const auto* raw = material == nullptr ? nullptr
+            : boundAc1024DwgClassObject(data, handle, proof.frame, nullptr);
+        return material && raw && !proof.body.empty() && proof.body == raw->m_rawBytes
+            && standardDwgCommonEqual(*proof.material, *material, DRW::AC1024)
+            && dxfMaterial::sameState(*proof.material, *material)
+            && dx_ac1024_byblock_material_wire::observeMechanicalMaterial(*raw, *material);
     } catch (...) { return false; }
 }
 
@@ -80669,6 +80718,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
     m_dwgAerialMaterialAppIdControl = {};
     m_dwgAerialGlobalMaterialEed = {};
     m_dwgAerialOtherMaterialEed = {};
+    m_dwgMechanicalBasicMaterials = {};
     m_dwgAerialGlobalMaterialEedTablesInspected = false;
     m_dwgAerialGlobalMaterialEedObjectsInspected = false;
     m_dwgLayerControlSourceProof.reset();
@@ -81291,6 +81341,7 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
             finishAerialDwgByBlockMaterialSource();
             finishAerialDwgGlobalMaterialEedSource();
             finishAerialDwgOtherMaterialEedSources();
+            finishMechanicalBasicMaterialSources();
         }
         if (!success) {
             std::cout << "DWG file error: format " << dwg.getVersion() << " error " << dwg.getError() << std::endl;

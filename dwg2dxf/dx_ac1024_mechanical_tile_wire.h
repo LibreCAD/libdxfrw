@@ -19,6 +19,38 @@ constexpr std::array<const char*, 4> names{{
     "BUMPTILE", "DIFFUSETILE", "OPACITYTILE", "REFLECTIONTILE"
 }};
 
+inline bool observeNamedRoot(const DRW_UnsupportedObject& raw,
+                             const DRW_Dictionary& source) noexcept {
+    constexpr std::array<const char*, 13> rootNames{{
+        "ACAD_ASSOCNETWORK", "ACAD_COLOR", "ACAD_GROUP", "ACAD_LAYOUT",
+        "ACAD_MATERIAL", "ACAD_MLEADERSTYLE", "ACAD_MLINESTYLE", "ACAD_PLOTSETTINGS",
+        "ACAD_PLOTSTYLENAME", "ACAD_SCALELIST", "ACAD_TABLESTYLE", "ACAD_VISUALSTYLE",
+        "AcDbVariableDictionary"
+    }};
+    constexpr std::array<std::uint32_t, 13> rootHandles{{
+        0x421u, 0x73u, 0x0du, 0x1au, 0x72u, 0xd7u, 0x17u, 0x19u,
+        0x0eu, 0xb6u, 0x86u, 0x99u, 0x66u
+    }};
+    if (source.handle != 0xcu || source.parentHandle != 0u
+        || source.cloning != 1 || source.hardOwner != 0
+        || !source.reactorHandles.empty() || !source.extData.empty()
+        || source.m_entries.size() != rootNames.size()
+        || raw.m_objectSize != 444u || raw.m_rawBytes.size() != 444u
+        || raw.m_bodyBitSize != 226u) return false;
+    for (std::size_t i = 0u; i < rootNames.size(); ++i)
+        if (source.m_entries[i].m_name != rootNames[i]
+            || source.m_entries[i].m_handle != rootHandles[i]) return false;
+    return dx_layerstates_dwg_wire::observeDictionary(raw, source,
+        [](std::uint32_t, const std::string&) noexcept { return false; },
+        [](dx_layerstates_dwg_wire::LinkKind kind, std::size_t index,
+           std::uint8_t role, std::uint8_t length) noexcept {
+            if (kind == dx_layerstates_dwg_wire::LinkKind::Owner)
+                return index == 0u && role == 4u && length == 0u;
+            return kind == dx_layerstates_dwg_wire::LinkKind::Item
+                && index < 13u && role == 2u && length == (index == 0u ? 2u : 1u);
+        });
+}
+
 // The dictionary frame establishes membership, not the bodies or output
 // semantics of the three referenced MATERIAL objects.
 inline bool observeMaterialRoot(const DRW_UnsupportedObject& raw,

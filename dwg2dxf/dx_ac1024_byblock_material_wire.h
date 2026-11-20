@@ -6,7 +6,8 @@
 #include <cmath>
 #include <cstring>
 
-// Source-only aerial AC1024 ByBlock MATERIAL companion frames. This observer
+// Source-only aerial and mechanical AC1024 ByLayer/ByBlock MATERIAL frames.
+// The dictionary and XRECORD observers below are aerial-only. This observer
 // does not establish same-import/class provenance, unchanged source baselines,
 // graph closure, staged output or native FBX semantics. In particular, the
 // text and binary bytes below are compared to the supplied live model: a caller
@@ -50,11 +51,11 @@ inline bool mapper(Bits& b, Bits& strings, double blend, std::uint8_t source, co
                    std::uint8_t projection, std::uint8_t tiling, std::uint8_t automatic,
                    const std::array<double, 16>& matrix, bool hasBlend, bool hasSource, bool hasFilename,
                    bool hasProjection, bool hasTiling, bool hasAutomatic, bool hasMatrix,
-                   std::uint8_t expectedSource) noexcept {
-    if (blend != 1.0 || source != expectedSource || !filename.empty() || projection != 1u || tiling != 1u
+                   std::uint8_t expectedSource, std::uint8_t expectedProjection) noexcept {
+    if (blend != 1.0 || source != expectedSource || !filename.empty() || projection != expectedProjection || tiling != 1u
         || automatic != 1u || !hasBlend || !hasSource || hasFilename != (expectedSource == 1u)
         || !hasProjection || !hasTiling || !hasAutomatic || !hasMatrix || !number(b, 1.0)
-        || b.take(8u) != 1u || b.take(8u) != 1u || b.take(8u) != 1u) {
+        || b.take(8u) != expectedProjection || b.take(8u) != 1u || b.take(8u) != 1u) {
         return false;
     }
     for (std::size_t i = 0; i < 16u; ++i) {
@@ -66,14 +67,16 @@ inline bool mapper(Bits& b, Bits& strings, double blend, std::uint8_t source, co
     return b.take(8u) == expectedSource && (expectedSource == 0u || text(strings, filename)) && b.good;
 }
 } // namespace detail
-inline bool observeMaterial(const DRW_UnsupportedObject& raw, const DRW_Material& m) noexcept {
+inline bool observeMaterialProfile(const DRW_UnsupportedObject& raw, const DRW_Material& m,
+                                   bool mechanical) noexcept {
     using namespace dx_raster_wire;
     const bool byLayer = m.handle == 0x96u;
     if (!byLayer && m.handle != 0x97u) return false;
-    const auto extensionHandle = byLayer ? 0x297u : 0x295u;
+    const auto extensionHandle = mechanical ? 0u : (byLayer ? 0x297u : 0x295u);
     if (m.tType != DRW::MATERIAL || m.parentHandle != 0x72u || !m.name.empty()
         || m.flags != 0u || m.reactorCount() != 1 || m.reactorHandles.size() != 1u
-        || m.reactorHandles[0] != 0x72u || m.extensionDictionaryFlag() != 0u || m.xDictHandle != extensionHandle
+        || m.reactorHandles[0] != 0x72u || m.extensionDictionaryFlag() != (mechanical ? 1u : 0u)
+        || m.xDictHandle != extensionHandle
         || m.hasDataStorageBinaryData() || m.hasDwgCommonLinkTail() || !m.appData.empty()
         || !m.extData.empty() || !m.pendingAppIdResolutions.empty() || !m.pendingLayerRefResolutions.empty()
         || !m.hasCompleteDwgSemanticFields() || !m.hasDwgRawData() || m.dwgRawDataVersion() != DRW::AC1024
@@ -82,10 +85,10 @@ inline bool observeMaterial(const DRW_UnsupportedObject& raw, const DRW_Material
         || raw.m_handle != m.handle || raw.m_isEntity || !raw.m_isCustomClass || !raw.m_hasClassDefinition
         || raw.m_recordName != "MATERIAL" || raw.m_className != "AcDbMaterial"
         || raw.m_classAppName != "ObjectDBX Classes" || raw.m_parentHandle != 0x72u
-        || raw.m_numReactors != 1 || raw.m_reactorHandles != m.reactorHandles || raw.m_xDictFlag != 0u
+        || raw.m_numReactors != 1 || raw.m_reactorHandles != m.reactorHandles || raw.m_xDictFlag != (mechanical ? 1u : 0u)
         || raw.m_xDictHandle != extensionHandle || raw.m_hasDataStorage || !raw.m_commonHandleDataValidated
-        || !drwDwgCommonLinkEvidenceValidated(raw.m_commonLinkEvidence) || raw.m_objectSize != 96u
-        || raw.m_rawBytes.size() != 96u || raw.m_bodyBitSize != 62u) {
+        || !drwDwgCommonLinkEvidenceValidated(raw.m_commonLinkEvidence) || raw.m_objectSize != (mechanical ? 93u : 96u)
+        || raw.m_rawBytes.size() != raw.m_objectSize || raw.m_bodyBitSize != (mechanical ? 38u : 62u)) {
         return false;
     }
     detail::Bits b{raw.m_rawBytes.data(), 0u, 555u};
@@ -94,7 +97,7 @@ inline bool observeMaterial(const DRW_UnsupportedObject& raw, const DRW_Material
     }
     const auto self = dx_raster_wire::detail::handle(b, 0u, 0u, true);
     if (self.role != 0u || self.length != 1u || self.value != m.handle || b.shortValue() != 0u
-        || b.longValue() != 1u || b.take(1u) != 0u || !b.good || b.pos != 39u) {
+        || b.longValue() != 1u || b.take(1u) != (mechanical ? 1u : 0u) || !b.good || b.pos != 39u) {
         return false;
     }
     // Bind the exposed opaque semantic-body shelf to the actual frame bits.
@@ -119,7 +122,7 @@ inline bool observeMaterial(const DRW_UnsupportedObject& raw, const DRW_Material
                    m.m_##lower##MapAutoTransform, m.m_##lower##MapTransform,                               \
                    m.m_has##Upper##MapBlendFactor, m.m_has##Upper##MapSource, m.m_has##Upper##MapFileName, \
                    m.m_has##Upper##MapProjection, m.m_has##Upper##MapTiling,                               \
-                   m.m_has##Upper##MapAutoTransform, m.m_has##Upper##MapTransform, expected)
+                   m.m_has##Upper##MapAutoTransform, m.m_has##Upper##MapTransform, expected, mechanical ? 2u : 1u)
     const bool decoded
         = DX_BYBLOCK_MAP(diffuse, Diffuse, 1u)
           && detail::color(b, m.m_specularColorMethod, m.m_specularColorFactor, m.m_specularColorValue,
@@ -143,14 +146,22 @@ inline bool observeMaterial(const DRW_UnsupportedObject& raw, const DRW_Material
     if (footer.little(2u) != 134u || footer.take(1u) != 1u || !footer.good) {
         return false;
     }
-    detail::Bits links{raw.m_rawBytes.data(), 706u, 768u};
+    detail::Bits links{raw.m_rawBytes.data(), 706u, mechanical ? 744u : 768u};
     const auto owner = detail::handle(links, 4u, m.handle);
     const auto reactor = detail::handle(links, 4u, m.handle);
-    const auto extension = detail::handle(links, 3u, m.handle);
-    return links.good && owner.role == 12u && owner.length == 1u && owner.value == 0x72u
-           && reactor.role == 4u && reactor.length == 1u && reactor.value == 0x72u && extension.role == 3u
-           && extension.length == 2u && extension.value == extensionHandle && links.take(6u) == 63u && links.good
-           && links.pos == links.end;
+    if (!links.good || owner.role != 12u || owner.length != 1u || owner.value != 0x72u
+        || reactor.role != 4u || reactor.length != 1u || reactor.value != 0x72u) return false;
+    if (!mechanical) {
+        const auto extension = detail::handle(links, 3u, m.handle);
+        if (extension.role != 3u || extension.length != 2u || extension.value != extensionHandle) return false;
+    }
+    return links.take(6u) == 63u && links.good && links.pos == links.end;
+}
+inline bool observeMaterial(const DRW_UnsupportedObject& raw, const DRW_Material& m) noexcept {
+    return observeMaterialProfile(raw, m, false);
+}
+inline bool observeMechanicalMaterial(const DRW_UnsupportedObject& raw, const DRW_Material& m) noexcept {
+    return observeMaterialProfile(raw, m, true);
 }
 inline bool observeDictionary(const DRW_UnsupportedObject& raw, const DRW_Dictionary& source) noexcept {
     using dx_layerstates_dwg_wire::LinkKind;

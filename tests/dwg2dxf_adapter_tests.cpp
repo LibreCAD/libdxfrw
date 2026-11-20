@@ -21,6 +21,7 @@
 #include "dx_standard_output.h"
 #include "dx_symbol_output.h"
 #include "dx_ac1024_material_eed_wire.h"
+#include "dx_ac1024_byblock_material_wire.h"
 #include "dx_ac1024_aerial_tile_wire.h"
 #include "dx_ac1024_aerial_fbxasset_wire.h"
 #include "dx_ac1024_aerial_advmaterial_wire.h"
@@ -3637,6 +3638,34 @@ public:
             field = saved;
             return refused && qualified();
         };
+        for (const auto handle : {0x96u, 0x97u}) {
+            auto raw = data.m_opaqueDwgSourceFrames.find({data.importGeneration, handle});
+            auto material = std::find_if(data.materials.begin(), data.materials.end(),
+                [handle](const DRW_Material& row) { return row.handle == handle; });
+            auto& proof = iface.m_dwgMechanicalBasicMaterials[handle == 0x96u ? 0u : 1u];
+            if (raw == data.m_opaqueDwgSourceFrames.end() || material == data.materials.end()
+                || !iface.hasQualifiedMechanicalBasicMaterialSource(data, handle)
+                || dx_ac1024_byblock_material_wire::observeMaterial(raw->second, *material)
+                || !rejectAndRestore(material->m_name, std::string("OTHER"))
+                || !rejectAndRestore(material->m_diffuseMapProjection, std::uint8_t{1u})
+                || !rejectAndRestore(material->parentHandle, std::uint32_t{0x73u})
+                || !rejectAndRestore(proof.frame.attempt, proof.frame.attempt + 1u)
+                || !rejectAndRestore(proof.owner, static_cast<const dx_data*>(nullptr))
+                || !rejectAndRestore(raw->second.m_rawBytes.front(),
+                    static_cast<std::uint8_t>(raw->second.m_rawBytes.front() ^ 1u))) return false;
+            for (const auto bit : {std::size_t{39u}, std::size_t{555u}, std::size_t{706u}, std::size_t{722u}}) {
+                auto& byte = raw->second.m_rawBytes[bit / 8u];
+                if (!rejectAndRestore(byte, static_cast<std::uint8_t>(
+                        byte ^ (0x80u >> (bit % 8u))))) return false;
+            }
+            const auto last = raw->second.m_rawBytes.back();
+            raw->second.m_rawBytes.pop_back();
+            --raw->second.m_objectSize;
+            const bool truncatedRefused = !qualified();
+            raw->second.m_rawBytes.push_back(last);
+            ++raw->second.m_objectSize;
+            if (!truncatedRefused || !qualified()) return false;
+        }
         auto& app = iface.m_dwgAerialMaterialAppId;
         auto& control = iface.m_dwgAerialMaterialAppIdControl;
         if (!iface.hasQualifiedMechanicalMaterialAppIdSource()
@@ -3660,11 +3689,18 @@ public:
             [](const DRW_Dictionary& row) { return row.handle == 0x72u; });
         auto record = std::find_if(data.xRecords.begin(), data.xRecords.end(),
             [](const DRW_XRecord& row) { return row.handle == 0x111u; });
+        auto nodEntry = std::find_if(data.namedObjectDictionary.m_entries.begin(),
+            data.namedObjectDictionary.m_entries.end(), [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_MATERIAL";
+            });
         if (root == data.dictionaries.end() || root->m_entries.size() != 3u
             || extension == data.dictionaries.end() || extension->m_entries.size() != 4u
-            || record == data.xRecords.end() || record->m_dataEntries.size() != 2u)
+            || record == data.xRecords.end() || record->m_dataEntries.size() != 2u
+            || nodEntry == data.namedObjectDictionary.m_entries.end())
             return false;
         if (!rejectAndRestore(root->parentHandle, std::uint32_t{0xdu})
+            || !rejectAndRestore(nodEntry->m_name, std::string("OTHER"))
+            || !rejectAndRestore(nodEntry->m_handle, std::uint32_t{0x73u})
             || !rejectAndRestore(extension->parentHandle, std::uint32_t{0x99u})
             || !rejectAndRestore(extension->m_entries[0].m_name, std::string("OTHER"))
             || !rejectAndRestore(extension->m_entries[0].m_handle, std::uint32_t{0x111u})
@@ -3673,7 +3709,7 @@ public:
         for (auto& entry : root->m_entries)
             if (!rejectAndRestore(entry.m_name, std::string("OTHER"))
                 || !rejectAndRestore(entry.m_handle, entry.m_handle ^ 1u)) return false;
-        for (const auto handle : {0x72u, 0x110u, 0x111u, 0x112u, 0x113u, 0x114u}) {
+        for (const auto handle : {0x0cu, 0x72u, 0x110u, 0x111u, 0x112u, 0x113u, 0x114u}) {
             auto at = data.m_standardDwgObjectFrames.find({data.importGeneration, handle});
             if (at == data.m_standardDwgObjectFrames.end() || at->second.raw.m_rawBytes.empty())
                 return false;
