@@ -16,10 +16,11 @@ including CMake and DWG smoke tests; its DXFRW filter source is unchanged.
 FreeCAD advanced nine commits; a 265-path filename screen found no DXF, DWG,
 import or libdxfrw path. See the [consumer compatibility receipt](docs/research/p8d-librecad-table-attribute-and-prefix-compat-2026-11-19.json).
 Refresh moving heads again before later integration or platform qualification.
+The [current-digest headless consumer recheck](docs/research/p8d-current-digest-headless-consumers-2026-11-19.json) rebuilt the patched LibreCAD filter and LibreCAD_3 candidate persistence against digest `1b63ce2a`; the filtered LibreCAD link probe and two generated LibreCAD_3 LINE tests passed. P8-D remains open for GUI and wider consumer qualification.
 
 **Progress on 2026-11-19:** 13/34 package gates closed; 21 remain. The
 historical activity count records 198 completed implementation/research
-slices, followed by twenty-three implementation and compatibility slices (221 total); the number of remaining slices is not yet known, so it cannot support
+slices, followed by twenty-four implementation and compatibility slices (222 total); the number of remaining slices is not yet known, so it cannot support
 a completion percentage. Gate readiness is 13/34 (38.2%). An earlier fast-CI run
 found a stale AC1021 diagnostic-count assertion: 26 integrity rows minus 16
 retained rows means 10 omitted rows. The assertion is corrected. On digest
@@ -272,7 +273,7 @@ producer wire evidence or 3D semantic proof.
   risks. Reserve full suites and broad matrices for composed integration/release
   gates; expand only when a failure or changed risk warrants it.
 - Count implementation/research slices and package-gate readiness separately.
-  The historical ledger records 198 completed slices; twenty-three subsequent implementation and compatibility slices bring the count to 221. Remaining work cannot be
+  The historical ledger records 198 completed slices; twenty-four subsequent implementation and compatibility slices bring the count to 222. Remaining work cannot be
   counted accurately as slices until the external source profiles are known;
   do not divide by only the completed slices or present 100% as completion.
   The 21 open gates are not interchangeable with slices and can require several
