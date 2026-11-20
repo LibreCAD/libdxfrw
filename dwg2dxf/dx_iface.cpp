@@ -41,6 +41,7 @@
 #include "dx_ac1024_aerial_advmaterial_wire.h"
 #include "dx_ac1021_dictionaryvar_wire.h"
 #include "dx_ac1024_dictionaryvar_wire.h"
+#include "dx_current_tablestyle_reference.h"
 #include "dx_ac1024_mentalray_wire.h"
 #include "dx_ac1024_mleaderstyle_wire.h"
 #include "dx_ac1024_mlinestyle_wire.h"
@@ -34730,6 +34731,46 @@ bool dx_iface::hasUnchangedDwgDictionaryVars() const noexcept {
     } catch (...) {
         return false;
     }
+}
+
+// CTABLESTYLE stores a name, not a handle. In complete DWG exports, bind
+// that name to one selected, staged TABLESTYLE and its rooted dictionary.
+// The existing dictionary-variable and TABLESTYLE output inspectors prove
+// their actual serialized fields and identities independently.
+bool dx_iface::hasClosedDwgCurrentTableStyle() const noexcept {
+    if (m_dwgDictionaryVarOutputSources.empty()) return true;
+    if (!cData || !hasUnchangedDwgDictionaryVars()) return false;
+    try {
+        const auto nod = m_dwgDictionaryVarOutputDictionaries.find(
+            cData->namedObjectDictionary.handle);
+        if (nod == m_dwgDictionaryVarOutputDictionaries.end()) return false;
+        const DRW_Dictionary::Entry* variableRoot = nullptr;
+        for (const auto& entry : nod->second.m_entries) {
+            if (layoutSymbolKey(entry.m_name) != "ACDBVARIABLEDICTIONARY") continue;
+            if (variableRoot) return false;
+            variableRoot = &entry;
+        }
+        if (!variableRoot) return false;
+        const auto owner = m_dwgDictionaryVarOutputDictionaries.find(variableRoot->m_handle);
+        if (owner == m_dwgDictionaryVarOutputDictionaries.end()) return false;
+        const DRW_Dictionary::Entry* currentEntry = nullptr;
+        for (const auto& entry : owner->second.m_entries) {
+            if (layoutSymbolKey(entry.m_name) != "CTABLESTYLE") continue;
+            if (currentEntry) return false;
+            currentEntry = &entry;
+        }
+        if (!currentEntry) return true;
+        const auto variable = m_dwgDictionaryVarOutputSources.find(currentEntry->m_handle);
+        if (variable == m_dwgDictionaryVarOutputSources.end()
+            || variable->second.model.parentHandle != owner->first
+            || variable->second.model.m_value.empty()
+            || m_dwgTableStyleDictionarySources.size() != 1u
+            || m_dwgTableStyleOutputSources.empty()
+            || !hasUnchangedDwgTableStyleOutputSources()) return false;
+        const auto& dictionary = m_dwgTableStyleDictionarySources.begin()->second;
+        return dx_current_tablestyle_reference::resolves(
+            variable->second.model.m_value, dictionary, m_dwgTableStyleOutputSources);
+    } catch (...) { return false; }
 }
 
 bool dx_iface::prepareDwgScales(DRW::Version version,
@@ -83944,6 +83985,8 @@ bool dx_iface::finalizeDxfWrite() {
         || !hasUnchangedDwgDictionaryVars()
         || (!m_dwgDictionaryVarOutputSources.empty()
             && !m_dwgDictionaryVarsInspected)
+        || (m_requireCompleteDwgOutputQualification
+            && !hasClosedDwgCurrentTableStyle())
         || !hasUnchangedDwgScales()
         || (!m_dwgScaleOutputSources.empty() && !m_dwgScalesInspected)) return false;
     if(!hasUnchangedDxfDictionaryVars()||(!m_dxfDictionaryVars.empty()&&!m_dxfDictionaryVarsInspected))return false;
@@ -90602,6 +90645,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (!prepareDwgDictionaryVars(v, binary, debug)) {
         reportPreflightFailure("DICTIONARYVAR DWG source/output snapshot");
+        return false;
+    }
+    if (m_requireCompleteDwgOutputQualification
+        && !hasClosedDwgCurrentTableStyle()) {
+        reportPreflightFailure("CTABLESTYLE has no unique selected TABLESTYLE");
         return false;
     }
     if (!prepareDxfScales(v,binary,targetTextPolicy)) {

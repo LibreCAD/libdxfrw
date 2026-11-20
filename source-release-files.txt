@@ -155,6 +155,7 @@ dwg2dxf/dx_block_membership.h
 dwg2dxf/dx_block_source_profile.h
 dwg2dxf/dx_cli.h
 dwg2dxf/dx_compound_source_profile.h
+dwg2dxf/dx_current_tablestyle_reference.h
 dwg2dxf/dx_data.h
 dwg2dxf/dx_dependency_audit.h
 dwg2dxf/dx_dwg_class_evidence.h

@@ -8,7 +8,7 @@ preserving LibreCAD 2D consumers, enabling evidence-backed 3D use, and keeping
 version, operation, consumer, and platform profiles.
 
 There are **22 open package gates**: P4: 3, P5: 7, P6: 5, P7: 4, and P8: 3.
-Gate readiness is 12/34 (35.3%). The historical activity count is 230 slices;
+Gate readiness is 12/34 (35.3%). The historical activity count is 231 slices;
 the remaining slice count is unknown, so this is not an overall completion
 percentage. The six P9 external-only IDs are advisory and excluded from the
 gate count. Completed work is recorded in `docs/research/` and Git history.
@@ -71,7 +71,7 @@ operation, and profile. Apply the [support policy](docs/UPGRADE_SUPPORT.md),
 and [3D plan](DWG_DXF_3D_SUPPORT_PLAN.md).
 
 P8-F requires fast and focused-native replay for implementation digest
-`c02d2d1cfe95f8d0b01b0aca7e1d9c8638618d35a1d23a5a77d47400b82c8aab`.
+`dca611538c75b59c82efbf03f7c571de9277d2816dd4e4e17e2f0884f7149e9c`.
 Reopen P8-A/B/C/E if their relevant source, build, configuration, or consumer
 inputs change. Existing FreeCAD results cover only the exact generated profiles
 and binaries.
@@ -113,9 +113,10 @@ P4-D additional unresolved paths:
   member, name and payload refusal, destination preservation and retry.
 - AC1021-to-AC1024 whole-source output needs the [DICTIONARYVAR/TABLESTYLE join](docs/research/p4-ac1021-ctablestyle-ac1024-crossversion-blocker-2026-11-18.json)
   and native target evidence for [VISUALSTYLE and LAYOUT](docs/research/p4-ac1021-visualstyle-ac1024-target-peer-mapping-2026-11-18.json).
-  Reuse the [data-owned same-import source binding](docs/research/p4-ac1021-dictionaryvar-source-owner-lifetime-2026-11-19.json)
-  when proving the style join and staged output; a separate writer may validate
-  the original source, but the binding itself does not authorize output.
+  Reuse the [same-version strict CTABLESTYLE target check](docs/research/p4-ctablestyle-strict-selected-target-closure-2026-11-19.json)
+  and [data-owned source binding](docs/research/p4-ac1021-dictionaryvar-source-owner-lifetime-2026-11-19.json)
+  when proving the source TABLESTYLE body and target-version staged output;
+  neither proof authorizes cross-version output.
   Preserve the [LAYER → LTYPE → unnamed STYLE chain](docs/research/p4-ac1021-annotation-empty-layerstates-style-chain-2026-11-18.json)
   until dependencies close, including the whole-source MLEADER dependencies.
   Retain the native MLEADERSTYLE flag/null and TABLESTYLE/VISUALSTYLE checks.

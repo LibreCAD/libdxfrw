@@ -63647,6 +63647,102 @@ bool physicalAc1021LayerStateViewXrecordOutputReadback(
     return true;
 }
 
+bool physicalAc1021CurrentTableStyleStrict(
+        const std::filesystem::path& sourcePath,
+        const std::filesystem::path& outputDirectory) {
+    std::filesystem::create_directories(outputDirectory);
+    for (const bool binary : {false, true}) {
+        dx_iface reader;
+        dx_data source;
+        if (!reader.fileImport(sourcePath.string(), &source, false))
+            return fail("CTABLESTYLE witness import failed");
+        auto variable = std::find_if(source.dictionaryVars.begin(), source.dictionaryVars.end(),
+            [](const DRW_DictionaryVar& value) { return value.handle == 0x5acu; });
+        auto dictionary = std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
+            [](const DRW_Dictionary& value) { return value.handle == 0x567u; });
+        if (variable == source.dictionaryVars.end() || dictionary == source.dictionaries.end()
+            || variable->m_value != "STANDARD" || dictionary->m_entries.size() != 1u
+            || dictionary->m_entries.front().m_name != "Standard")
+            return fail("CTABLESTYLE witness source graph changed");
+        class LateCurrentStyleEdit final : public dx_iface {
+        public:
+            bool mutate{false};
+            void writeObjects() override {
+                dx_iface::writeObjects();
+                if (!mutate || !cData) return;
+                for (auto& value : cData->dictionaryVars)
+                    if (value.handle == 0x5acu) value.m_value = "NO_SUCH_STYLE";
+            }
+        } writer;
+        const auto output = outputDirectory / (binary ? "current-style-binary.dxf"
+                                                       : "current-style-ascii.dxf");
+        const std::string sentinel = "preserve CTABLESTYLE destination\n";
+        const auto seed = [&]() {
+            std::ofstream out(output, std::ios::binary | std::ios::trunc);
+            out << sentinel;
+            return static_cast<bool>(out);
+        };
+        const auto preserved = [&]() {
+            std::ifstream in(output, std::ios::binary);
+            return std::string(std::istreambuf_iterator<char>(in), {}) == sentinel;
+        };
+        const auto save = [&]() {
+            return writer.fileExport(output.string(), DRW::AC1021, binary,
+                &source, false, false, dx_dxfSourceTextPolicy::Compatible,
+                DRW::DxfTextWritePolicy::Compatible, dx_dxfProxyGraphicsPolicy::Compatible,
+                dx_dwgReadCompletenessPolicy::RequireComplete);
+        };
+        variable->m_value = "NO_SUCH_STYLE";
+        if (!seed() || save() || !preserved())
+            return fail("unresolved CTABLESTYLE was not refused atomically");
+        variable->m_value = "sTaNdArD";
+        if (!save()) return fail("case-insensitive CTABLESTYLE retry failed");
+        dx_iface outputReader;
+        dx_data readback;
+        if (!outputReader.fileImport(output.string(), &readback, false)
+            || std::count_if(readback.dictionaryVars.begin(), readback.dictionaryVars.end(),
+                [](const DRW_DictionaryVar& value) { return value.m_value == "sTaNdArD"; }) != 1)
+            return fail("valid edited CTABLESTYLE value was not read back");
+        const auto styleRoot = std::find_if(readback.namedObjectDictionary.m_entries.begin(),
+            readback.namedObjectDictionary.m_entries.end(), [](const auto& entry) {
+                return entry.m_name == "ACAD_TABLESTYLE";
+            });
+        if (styleRoot == readback.namedObjectDictionary.m_entries.end())
+            return fail("readback TABLESTYLE root missing");
+        const auto emittedDictionary = std::find_if(readback.dictionaries.begin(),
+            readback.dictionaries.end(), [&](const DRW_Dictionary& value) {
+                return value.handle == styleRoot->m_handle;
+            });
+        if (emittedDictionary == readback.dictionaries.end()
+            || emittedDictionary->m_entries.size() != 1u
+            || emittedDictionary->m_entries.front().m_name != "Standard")
+            return fail("readback TABLESTYLE dictionary changed");
+        const auto emittedStyle = std::find_if(readback.tableStyles.begin(),
+            readback.tableStyles.end(), [&](const DRW_TableStyle& value) {
+                return value.handle == emittedDictionary->m_entries.front().m_handle;
+            });
+        if (emittedStyle == readback.tableStyles.end()
+            || emittedStyle->parentHandle != emittedDictionary->handle
+            || emittedStyle->m_name != "Standard")
+            return fail("readback CTABLESTYLE target identity or owner changed");
+        auto alias = dictionary->m_entries.front();
+        alias.m_name = "sTaNdArD";
+        dictionary->m_entries.push_back(alias);
+        if (!seed() || save() || !preserved())
+            return fail("ambiguous TABLESTYLE key was not refused atomically");
+        dictionary->m_entries.pop_back();
+        if (!save()) return fail("TABLESTYLE alias correction did not retry");
+        writer.mutate = true;
+        if (!seed() || save() || !preserved())
+            return fail("late CTABLESTYLE mutation was not refused atomically");
+        writer.mutate = false;
+        variable->m_value = "sTaNdArD";
+        if (!save()) return fail("late CTABLESTYLE correction did not retry");
+    }
+    std::cout << "AC1021 strict CTABLESTYLE closure PASS ASCII,Binary rollback,retry\n";
+    return true;
+}
+
 bool physicalAc1021TrueTypeStrictOutputReadback(
         const std::filesystem::path& sourcePath,
         const std::filesystem::path& outputDirectory) {
@@ -94750,6 +94846,9 @@ int main(int argc, char** argv) {
         && std::string(argv[1]) == "--layerstates-ac1021-view-xrecord-output-readback")
         return physicalAc1021LayerStateViewXrecordOutputReadback(argv[2])
             ? 0 : 1;
+    if (argc == 4
+        && std::string(argv[1]) == "--ctablestyle-ac1021-strict-closure")
+        return physicalAc1021CurrentTableStyleStrict(argv[2], argv[3]) ? 0 : 1;
     if (argc == 4
         && std::string(argv[1]) == "--truetype-ac1021-strict-output-readback")
         return physicalAc1021TrueTypeStrictOutputReadback(argv[2], argv[3])

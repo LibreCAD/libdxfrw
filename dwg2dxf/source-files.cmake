@@ -30,6 +30,7 @@ set(LIBDXFRW_CLI_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/dx_block_source_profile.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_cli.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_compound_source_profile.h"
+    "${CMAKE_CURRENT_LIST_DIR}/dx_current_tablestyle_reference.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_data.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_dependency_audit.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_dwg_class_evidence.h"

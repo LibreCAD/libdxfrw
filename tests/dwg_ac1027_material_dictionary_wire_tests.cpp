@@ -4,6 +4,7 @@
 #include "dx_ac1024_mleaderstyle_wire.h"
 #include "dx_ac1024_dictionaryvar_wire.h"
 #include "dx_ac1021_dictionaryvar_wire.h"
+#include "dx_current_tablestyle_reference.h"
 #include "dx_ac1024_mlinestyle_wire.h"
 #include "dx_layerstates_dwg_wire.h"
 
@@ -840,9 +841,44 @@ bool checkAc1024MLeaderStyleWire() {
   edited.m_entries[0].m_handle = 0x148u;
   return !observeDictionary(truncated, d) && !observeDictionary(raw, edited) && observeDictionary(raw, d);
 }
+bool checkCurrentTableStyleReference() {
+  using dx_current_tablestyle_reference::resolves;
+  DRW_Dictionary dictionary;
+  dictionary.handle = 0x20u;
+  dictionary.m_entries.push_back({"Standard", 0x21u});
+  DRW_TableStyle style;
+  style.handle = 0x21u;
+  style.parentHandle = dictionary.handle;
+  style.m_name = "Standard";
+  std::map<std::uint32_t, DRW_TableStyle> styles{{style.handle, style}};
+  if (!resolves("STANDARD", dictionary, styles)
+      || !resolves("sTaNdArD", dictionary, styles)
+      || resolves("", dictionary, styles)
+      || resolves("NO_SUCH_STYLE", dictionary, styles)) return false;
+  dictionary.m_entries.push_back({"sTaNdArD", 0x21u});
+  if (resolves("STANDARD", dictionary, styles)) return false;
+  dictionary.m_entries.pop_back();
+  styles.at(0x21u).parentHandle = 0x22u;
+  if (resolves("STANDARD", dictionary, styles)) return false;
+  styles.at(0x21u).parentHandle = dictionary.handle;
+  styles.at(0x21u).handle = 0x22u;
+  if (resolves("STANDARD", dictionary, styles)) return false;
+  styles.at(0x21u).handle = 0x21u;
+  styles.at(0x21u).m_name = "Different";
+  if (resolves("STANDARD", dictionary, styles)) return false;
+  styles.at(0x21u).m_name = "Standard";
+  dictionary.m_entries.front().m_handle = 0x22u;
+  if (resolves("STANDARD", dictionary, styles)) return false;
+  dictionary.m_entries.front().m_handle = 0x21u;
+  return resolves("STANDARD", dictionary, styles);
+}
 } // namespace
 
 int main() {
+  if (!checkCurrentTableStyleReference()) {
+    std::cerr << "CTABLESTYLE target-name resolution control failed\n";
+    return 1;
+  }
   if (!checkAc1024MLeaderStyleWire()) {
     std::cerr << "AC1024 MLEADERSTYLE source wire control failed\n";
     return 1;

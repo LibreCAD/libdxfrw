@@ -28,6 +28,7 @@ dist_noinst_HEADERS = \
     dx_block_source_profile.h \
     dx_cli.h \
     dx_compound_source_profile.h \
+    dx_current_tablestyle_reference.h \
     dx_data.h \
     dx_dependency_audit.h \
     dx_dwg_class_evidence.h \

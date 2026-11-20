@@ -4416,6 +4416,7 @@ private:
     bool prepareDwgDictionaryVars(DRW::Version version, bool binary,
                                   bool debug) noexcept;
     bool hasUnchangedDwgDictionaryVars() const noexcept;
+    bool hasClosedDwgCurrentTableStyle() const noexcept;
     bool inspectDwgDictionaryVars(
         const dxfRW::DxfObjectsWriteView& view, bool debug) noexcept;
     std::unordered_map<std::uint32_t,DxfScaleSource> m_dxfScales;
