@@ -577,6 +577,7 @@ EXTRA_DIST = \
     tests/dimassoc_physical_transport_tests.cpp \
     tests/dimstyle_optional_handle_tests.cpp \
     tests/dimstyle_table_allocation_tests.cpp \
+    tests/dwg2dxf_ac1014_partial_external.py \
     tests/dwg2dxf_adapter_tests.cpp \
     tests/dwg2dxf_cli_contract_tests.py \
     tests/dwg2dxf_dimension_angle_tests.cpp \

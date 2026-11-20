@@ -1967,6 +1967,9 @@ if(LIBDXFRW_AC1014_EXTERNAL_PROFILE)
     if(NOT EXISTS "${LIBDXFRW_AC1014_EXTERNAL_PROFILE}")
         message(FATAL_ERROR "LIBDXFRW_AC1014_EXTERNAL_PROFILE does not exist")
     endif()
+    if(NOT TARGET dwg2dxf)
+        message(FATAL_ERROR "LIBDXFRW_AC1014_EXTERNAL_PROFILE requires dwg2dxf")
+    endif()
     add_executable(libdxfrw_dwg_ac1014_output_external_tests
         ${CMAKE_CURRENT_SOURCE_DIR}/dwg_ac1014_output_external_tests.cpp
         ${_libdxfrw_test_adapter_source})
@@ -1982,6 +1985,15 @@ if(LIBDXFRW_AC1014_EXTERNAL_PROFILE)
             "${CMAKE_CURRENT_BINARY_DIR}/ac1014-output-external.dxf")
     set_tests_properties(libdxfrw_dwg_ac1014_output_external PROPERTIES
         LABELS "dwg;AC1014;external;transaction" TIMEOUT 60)
+    add_dependencies(libdxfrw_dwg_ac1014_output_external_tests dwg2dxf)
+    add_test(NAME dwg2dxf_ac1014_partial_external
+        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf_ac1014_partial_external.py
+            $<TARGET_FILE:dwg2dxf>
+            $<TARGET_FILE:libdxfrw_dwg_ac1014_output_external_tests>
+            "${LIBDXFRW_AC1014_EXTERNAL_PROFILE}")
+    set_tests_properties(dwg2dxf_ac1014_partial_external PROPERTIES
+        LABELS "dwg;AC1014;external;partial;transaction" TIMEOUT 60)
 endif()
 add_executable(libdxfrw_datalink_objects_allocation_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/datalink_objects_allocation_tests.cpp

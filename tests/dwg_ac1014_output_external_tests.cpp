@@ -34,10 +34,11 @@ public:
 };
 
 bool write(dx_iface& adapter, dx_data& source, const std::string& path, bool binary,
-           DRW::Version version = DRW::AC1014) {
+           DRW::Version version = DRW::AC1014,
+           dx_dwgReadCompletenessPolicy policy = dx_dwgReadCompletenessPolicy::RequireComplete) {
     return adapter.fileExport(path, version, binary, &source, false, false,
         dx_dxfSourceTextPolicy::Compatible, DRW::DxfTextWritePolicy::Compatible,
-        dx_dxfProxyGraphicsPolicy::Compatible, dx_dwgReadCompletenessPolicy::RequireComplete);
+        dx_dxfProxyGraphicsPolicy::Compatible, policy);
 }
 
 std::string bytes(const std::filesystem::path& path) {
@@ -125,10 +126,80 @@ bool run(const std::string& input, const std::filesystem::path& output) {
     }
     return true;
 }
+
+bool partial(const std::string& input, const std::filesystem::path& output) {
+    LateMutationAdapter adapter;
+    dx_data source;
+    adapter.source = &source;
+    if (!adapter.fileImport(input, &source, false)
+        || source.sourceVersion != DRW::AC1014
+        || source.dwgReadOutcome.observations.entityParseFailures != 1u
+        || source.dwgReadOutcome.observations.objectParseFailures != 0u
+        || source.dwgReadOutcome.observations.frames.sourceFrames != 51u
+        || source.mBlock == nullptr || source.dictionaryVars.size() != 1u)
+        return false;
+    const auto countLines = [](const dx_data& data) {
+        std::size_t count = 0u;
+        for (const DRW_Entity* entity : data.mBlock->ent)
+            if (entity != nullptr && entity->eType == DRW::LINE) ++count;
+        return count;
+    };
+    if (countLines(source) != 15u) return false;
+    bool laterLine = false;
+    for (const DRW_Entity* entity : source.mBlock->ent)
+        if (entity != nullptr && entity->eType == DRW::LINE && entity->handle == 0x25u)
+            laterLine = true;
+    if (!laterLine) return false;
+    const std::string sentinel = "AC1014 partial destination preserved\n";
+    const auto allow = dx_dwgReadCompletenessPolicy::AllowPartial;
+    for (const bool binary : {false, true}) {
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        if (write(adapter, source, output.string(), binary)
+            || bytes(output) != sentinel
+            || !write(adapter, source, output.string(), binary, DRW::AC1014, allow))
+            return false;
+        auto& variable = source.dictionaryVars.front();
+        variable.m_value = "invalid";
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        const bool accepted = write(adapter, source, output.string(), binary, DRW::AC1014, allow);
+        variable.m_value = "0";
+        if (accepted || bytes(output) != sentinel
+            || !write(adapter, source, output.string(), binary, DRW::AC1014, allow))
+            return false;
+        dx_iface fresh;
+        dx_data readback;
+        if (!fresh.fileImport(output.string(), &readback, false)
+            || readback.sourceVersion != DRW::AC1014 || readback.mBlock == nullptr
+            || countLines(readback) != 15u || readback.dictionaryVars.size() != 1u
+            || readback.dictionaryVars.front().m_value != "0")
+            return false;
+    }
+    return true;
+}
+
+bool checkPartialReadback(const std::string& input) {
+    dx_iface reader;
+    dx_data data;
+    if (!reader.fileImport(input, &data, false) || data.sourceVersion != DRW::AC1014
+        || data.mBlock == nullptr || data.dictionaryVars.size() != 1u
+        || data.dictionaryVars.front().m_value != "0") return false;
+    std::size_t lines = 0u, texts = 0u;
+    for (const DRW_Entity* entity : data.mBlock->ent) {
+        if (entity == nullptr) return false;
+        if (entity->eType == DRW::LINE) ++lines;
+        if (entity->eType == DRW::TEXT) ++texts;
+    }
+    return lines == 15u && texts == 1u;
+}
 } // namespace
 
 int main(int argc, char** argv) {
-    if (argc != 3 || !run(argv[1], argv[2])) {
+    const bool ok = argc == 3 && std::string(argv[1]) == "--check-partial"
+        ? checkPartialReadback(argv[2])
+        : argc == 3 ? run(argv[1], argv[2])
+        : argc == 4 && std::string(argv[1]) == "--partial"
+            && partial(argv[2], argv[3]);
+    if (!ok) {
         std::cerr << "AC1014 external output profile test failed\n";
         return 1;
     }

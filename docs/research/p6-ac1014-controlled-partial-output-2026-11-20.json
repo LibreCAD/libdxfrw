@@ -1,0 +1,35 @@
+{
+  "id": "p6-ac1014-controlled-partial-output-2026-11-20",
+  "gate": "P6-F",
+  "status": "PARTIAL_CONTROL_COMPLETED",
+  "source": {
+    "repository": "https://github.com/LibreDWG/libredwg",
+    "revision": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "path": "test/test-data/r14/v.dwg",
+    "sha256": "e296ca50f237abb9eec1a8bdab77aa16fd59518e246df812aa4dd4f859bd12d3",
+    "producer": "unknown"
+  },
+  "fault": {
+    "construction": "Temporary source copy changes the initial LINE 0x24 start-Y binary64 coordinate to a quiet NaN at source frame body bit 141 and recomputes that frame CRC16. The exact source hash and prior coordinate and CRC are checked before mutation.",
+    "alteredSha256": "1d1d378f2ac1cd130c536d43df7acb9ee537ba465fb3fd6f8386143e5555f5b2",
+    "nonClaim": "This is intentional fault injection, not an organic producer-authored malformed drawing."
+  },
+  "result": {
+    "read": "AC1014 source read succeeds with one entity failure and zero object failures: 51 source frames, 50 published, 1 failed, 0 unresolved. Later source LINE 0x25 survives.",
+    "strict": "ASCII and Binary strict conversion refuse and preserve an existing destination.",
+    "partial": "Explicit partial ASCII and Binary conversion warns and succeeds. Fresh libdxfrw readback retains 15 LINEs, one TEXT and the DIMADEC variable graph. Same-adapter invalid-variable refusal preserves destination and corrected retry succeeds in both encodings.",
+    "crc": "An independently damaged object frame with stale CRC is rejected in explicit-partial mode with destination preserved; the valid-CRC fault control then converts successfully.",
+    "independent": "ezdxf 1.4.5 comparisons with the pristine source decoded by LibreDWG 0.14 match all 15 surviving LINE endpoint pairs, TEXT fields and selected NOD/DICTIONARYVAR/MLINESTYLE graph in both encodings. ezdxf upgrades R14 and synthesizes extra root objects in memory; this is not an exact root census.",
+    "asciiSha256": "12f5796c6679e956a8f5afb0c9984e87d76e904c2c707a87156d81b34f56f900",
+    "binarySha256": "473a6dd94e7e71293ceb858b0203af7534477c260f410a59611d46d970ad152c",
+    "converterSha256": "1158c07f86eaa86fc2d0e7b1a552639d707a30b2e5c43672e69cb95f137ef783"
+  },
+  "validation": {
+    "test": "tests/dwg2dxf_ac1014_partial_external.py; tests/dwg_ac1014_output_external_tests.cpp --partial and --check-partial",
+    "independentComparator": "tools/research/compare_ac1014_profile_ezdxf.py --omit-line-handle 0x24",
+    "addressSanitizer": "PASS: both optional AC1014 whole-source and partial-source CTests in the opt-in external profile."
+  },
+  "remaining": "P6-F stays open for eligible AC1012 and organic recoverable-failure sources; this controlled source does not establish native semantics or broader support.",
+  "fixturePolicy": "The original external drawing, fault-injected derivative and all DXFs remain outside the repository. The test builds the fault in a temporary directory and does not commit drawing fixtures.",
+  "implementationDigestSha256": "843e158b53693ddf35ec2253aa16a0e5a21c9108f8d407c4d00999232c1b12d2"
+}
