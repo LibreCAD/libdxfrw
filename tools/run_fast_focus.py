@@ -60,6 +60,7 @@ CTEST_REGRESSIONS = (
     "dwg2dxf_native_xrecord_binary_faults",
     "dwg2dxf_xrecord_owned_defaultplot_source_probe",
     "dwg2dxf_xrecord_owned_extension",
+    "dwg2dxf_table_content_style_reference_census",
     "dwg2dxf_block_owner_rejection_cli",
     "dwg2dxf_block_owners_ascii_cli",
     "dwg2dxf_block_owners_binary_cli",

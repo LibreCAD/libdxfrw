@@ -77045,6 +77045,64 @@ bool cellStyleMapExtensionGraph() {
     return true;
 }
 
+bool tableContentStyleRemapFast() {
+    const auto stamp=std::chrono::steady_clock::now().time_since_epoch().count();
+    std::filesystem::path directory;
+    for(unsigned attempt=0u;attempt!=64u;++attempt) {
+        const auto candidate=std::filesystem::temp_directory_path()
+            / ("libdxfrw-table-style-remap-"+std::to_string(stamp)+"-"+std::to_string(attempt));
+        std::error_code error;
+        if(std::filesystem::create_directory(candidate,error)){directory=candidate;break;}
+        if(error && error!=std::errc::file_exists)break;
+    }
+    if(directory.empty())return fail("TABLECONTENT style remap scratch directory failed");
+    struct Cleanup {std::filesystem::path path;~Cleanup(){std::error_code error;std::filesystem::remove_all(path,error);}} cleanup{directory};
+    const auto source=directory/"source.dxf",target=directory/"target.dxf";
+    {
+        std::ofstream out(source,std::ios::binary);
+        out<<"0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1027\n0\nENDSEC\n"
+              "0\nSECTION\n2\nOBJECTS\n0\nDICTIONARY\n5\nC\n330\n0\n"
+              "100\nAcDbDictionary\n280\n0\n281\n1\n3\nACAD_TABLESTYLE\n350\nC130\n"
+              "0\nDICTIONARY\n5\nC130\n330\nC\n100\nAcDbDictionary\n280\n1\n281\n1\n3\nStandard\n360\nC100\n"
+              "0\nTABLESTYLE\n5\nC100\n330\nC130\n100\nAcDbTableStyle\n280\n0\n3\nStandard\n"
+              "70\n0\n71\n0\n40\n1\n41\n1\n280\n0\n281\n0\n0\nENDSEC\n0\nEOF\n";
+        if(!out)return fail("TABLECONTENT style remap source write failed");
+    }
+    for(const bool binary:{false,true}) {
+        dx_iface reader;dx_data data;
+        if(!reader.fileImport(source.string(),&data,false) || data.tableStyles.size()!=1u
+            || data.tableStyles.front().handle!=0xC100u)return fail("TABLECONTENT style remap source import failed");
+        dx_iface writer;writer.cData=&data;writer.currentBlock=data.mBlock;
+        DRW_TableContentObject grid;grid.handle=0xC200u;grid.parentHandle=DRW::DwgNamedObjectsDictionaryHandle;
+        grid.m_parseComplete=true;grid.m_semanticContentComplete=true;grid.m_content.m_name="generated-grid";
+        grid.m_content.m_tableStyleHandle=0xC100u;grid.m_content.m_columns={{"left",12.0},{"right",18.0}};
+        grid.m_content.m_rows.resize(2u);
+        for(auto& row:grid.m_content.m_rows){row.m_height=5.0;row.m_cells.resize(2u);}
+        grid.m_content.m_columns.front().m_styleId=1;grid.m_content.m_rows.front().m_styleId=2;
+        grid.m_content.m_rows.front().m_cells.front().m_styleId=3;
+        DRW_TableContentObject single=grid;single.handle=0xC201u;
+        single.m_content.m_columns.resize(1u);single.m_content.m_rows.resize(1u);
+        single.m_content.m_rows.front().m_cells.resize(1u);single.m_content.m_rows.front().m_cells.front().m_styleId=2;
+        writer.addTableContent(grid);writer.addTableContent(single);
+        if(!writer.fileExport(target.string(),DRW::AC1027,binary,&data,false))return fail("TABLECONTENT style remap export failed");
+        std::string style;std::vector<std::string> refs;bool inStyle=false,inContent=false,inSubclass=false;
+        for(const auto& tag:attdefWireTags(target,binary)) {
+            if(tag.code==0){inStyle=tag.text=="TABLESTYLE";inContent=tag.text=="TABLECONTENT";inSubclass=false;}
+            else if(inStyle && tag.code==5)style=tag.text;
+            else if(inContent && tag.code==100 && tag.text=="AcDbTableContent")inSubclass=true;
+            else if(inContent && inSubclass && tag.code==340)refs.push_back(tag.text);
+        }
+        if(style.empty() || style=="C100" || refs.size()!=2u || refs[0]!=style || refs[1]!=style)
+            return fail("multi-cell TABLECONTENT did not use the remapped TABLESTYLE handle");
+        dx_iface rereader;dx_data actual;
+        if(!rereader.fileImport(target.string(),&actual,false) || actual.tableStyles.size()!=1u || actual.tableContents.size()!=2u
+            || actual.tableContents[0].m_content.m_tableStyleHandle!=actual.tableStyles.front().handle
+            || actual.tableContents[1].m_content.m_tableStyleHandle!=actual.tableStyles.front().handle)
+            return fail("TABLECONTENT remapped style did not survive fresh readback");
+    }
+    return true;
+}
+
 bool tableContentStyleReferenceCensus() {
     static constexpr char canonicalKey[] =
         "ACAD_ROUNDTRIP_2008_TABLESTYLE_CELLSTYLEMAP";
@@ -94711,7 +94769,7 @@ int main(int argc, char** argv) {
         return associativeDwgNestedNetworkSortEntsOutput() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--table-content-style-reference-census")
-        return tableContentStyleReferenceCensus() ? 0 : 1;
+        return tableContentStyleReferenceCensus() && tableContentStyleRemapFast() ? 0 : 1;
     if (argc == 2
         && std::string(argv[1]) == "--cell-style-map-dxf-writer")
         return cellStyleMapDxfWriter() ? 0 : 1;

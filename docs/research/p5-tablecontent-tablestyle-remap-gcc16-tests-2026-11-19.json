@@ -20,5 +20,12 @@
   "limits": [
     "The test uses generated DXF sources and does not qualify native AutoCAD TABLE or TABLESTYLE semantics. P5-D remains dependent on its producer witness.",
     "P8-F and final broad GCC build/test qualification remain open for the changed digest."
-  ]
+  ],
+  "independentReadback": {
+    "tool": "ezdxf 1.4.5",
+    "result": "PASS: three captured current test outputs, covering ASCII and binary, each have one emitted TABLESTYLE and two TABLECONTENT objects whose group 340 references both match the remapped TABLESTYLE handle. DXFTagStorage reports the raw group; this is reference readback, not independent TABLE semantics.",
+    "script": "/private/tmp/libdxfrw-gcc16-clean/verify-tablestyle-ezdxf.py",
+    "scriptSha256": "d369b7315ce32b4b9ad87f51a5790fe5b3e3df6ba03a5579fab31cbf632dd408",
+    "logSha256": "f71f44c72c6b4b3be1134ff0317e4fcd7629c32fce233e97f03bc4a05a4856f4"
+  }
 }

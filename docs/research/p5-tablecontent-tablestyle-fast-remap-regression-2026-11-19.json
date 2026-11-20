@@ -1,0 +1,27 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p5-tablecontent-tablestyle-fast-remap-regression-2026-11-19",
+  "date": "2026-11-19",
+  "status": "FAST_REGRESSION_ADDED",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "1b63ce2a27ce76a23c32c34d360001c3d0328f3b43e96c5245b7aedb535c5cf4",
+  "scope": "Add an end-to-end nonidentity TABLESTYLE handle-remap regression to the existing fast style-reference census without adding a CTest or committing fixtures.",
+  "validation": {
+    "behavior": "The scratch-created AC1027 source is imported, then multi-cell and single-cell TABLECONTENT objects are exported to ASCII and binary. The test requires the output TABLESTYLE handle to differ from C100, verifies both physical group-340 references match it, and checks fresh typed readback.",
+    "baseline": "The earlier binary and independent ezdxf raw-tag readback showed multi-cell C200 referencing C100 while the emitted TABLESTYLE and single-cell C201 used C131; the existing integration regression failed on that build.",
+    "build": "PASS: cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j 2.",
+    "focused": "PASS: five style-reference, full table-style, identity and XRECORD selectors in 6.84 seconds. The new fast census ran in 0.36 seconds.",
+    "compiler": "PASS: GCC 16 -Wall -Wextra -pedantic -Werror syntax check of the adapter tests.",
+    "runner": "PASS: run_fast_focus.py --self-test; the existing style-reference CTest is included in the fast selector (51 CTests total)."
+  },
+  "independentReadback": {
+    "tool": "ezdxf 1.4.5",
+    "result": "PASS: three captured fixed outputs across ASCII and binary each contain one TABLESTYLE and two TABLECONTENT objects whose group-340 references match the emitted style. The independent reader exposes raw tags, not TABLE semantics.",
+    "scriptSha256": "d369b7315ce32b4b9ad87f51a5790fe5b3e3df6ba03a5579fab31cbf632dd408",
+    "logSha256": "f71f44c72c6b4b3be1134ff0317e4fcd7629c32fce233e97f03bc4a05a4856f4"
+  },
+  "limits": [
+    "Generated sources are scratch-only and are not native producer witnesses.",
+    "Hosted fast and native qualification for this new digest remain pending."
+  ]
+}
