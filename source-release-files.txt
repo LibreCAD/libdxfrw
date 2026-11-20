@@ -61,6 +61,7 @@ docs/patches/librecad-dxf-fast-test-upstream-api-2026-11-19.patch
 docs/patches/librecad-dxf-mline-deferred-style-2026-11-18.patch
 docs/patches/librecad-dxfrw-default-dimstyle-qstring-2026-11-18.patch
 docs/patches/librecad-jww-default-dimstyle-qstring-2026-11-18.patch
+docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch
 docs/patches/librecad-master-7396-shared-build-scratch-2026-11-18.patch
 docs/patches/librecad-mline-closure-bit-2026-11-18.patch
 docs/patches/librecad-p8-abi3-complete-source-2026-11-16.patch

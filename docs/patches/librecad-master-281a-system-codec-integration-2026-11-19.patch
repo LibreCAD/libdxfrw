@@ -1,0 +1,398 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ae2330a..a51a660 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -2293,10 +2293,22 @@ else()
+ endif()
+ file(TO_CMAKE_PATH "${LC_PLUGIN_INSTALL_DIR}" LC_PLUGIN_INSTALL_DIR)
+ 
++option(LIBRECAD_USE_SYSTEM_LIBDXFRW
++       "Link a separately installed libdxfrw instead of the bundled source" OFF)
++if (LIBRECAD_USE_SYSTEM_LIBDXFRW)
++    find_package(libdxfrw 3.0 CONFIG REQUIRED)
++    list(REMOVE_ITEM SHARED_INCLUDES
++         libraries/libdxfrw/src libraries/libdxfrw/src/intern)
++    list(REMOVE_ITEM SHARED_SOURCES ${LIBDXFRW_ALL_FILES})
++endif()
++
+ qt_add_library (librecad_lib STATIC
+                 ${MUPARSER_SOURCES}
+                 ${SHARED_SOURCES}
+ )
++if (LIBRECAD_USE_SYSTEM_LIBDXFRW)
++    target_link_libraries(librecad_lib PUBLIC libdxfrw::libdxfrw)
++endif()
+ # MUPARSER_STATIC, LC_VERSION and LC_PRERELEASE are already set for every
+ # target by the add_compile_definitions() calls near the top of this file.
+ # Repeating them here only gave them room to drift apart, and they did: this
+@@ -2334,6 +2346,9 @@ target_include_directories(librecad_filter_compile_check PRIVATE
+ target_link_libraries(librecad_filter_compile_check PRIVATE
+     Qt6::Core Qt6::Widgets Qt6::Gui Qt6::PrintSupport Qt6::Svg Qt6::Network
+ )
++if (LIBRECAD_USE_SYSTEM_LIBDXFRW)
++    target_link_libraries(librecad_filter_compile_check PRIVATE libdxfrw::libdxfrw)
++endif()
+ target_compile_features(librecad_filter_compile_check PRIVATE cxx_std_17)
+ target_compile_definitions(librecad_filter_compile_check PRIVATE
+     DWGSUPPORT
+@@ -2574,6 +2589,11 @@ install(FILES ${PLUGIN_QM_FILES}
+     DESTINATION "${LIBRECAD_DATA_INSTALL_DIR}/qm" COMPONENT Resources)
+ 
+ option (BUILD_TESTS "Build unit tests for LibreCAD" OFF)
++if (LIBRECAD_USE_SYSTEM_LIBDXFRW AND BUILD_TESTS)
++    message(FATAL_ERROR
++        "LibreCAD test targets require bundled libdxfrw internals; "
++        "set BUILD_TESTS=OFF when using LIBRECAD_USE_SYSTEM_LIBDXFRW")
++endif()
+ option (LIBRECAD_REGISTER_FULL_TESTS
+         "Register the complete LibreCAD test executable with CTest" OFF)
+ option (LIBRECAD_REGISTER_INTEGRATION_TESTS
+diff --git a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+index 6c64f90..fe04089 100644
+--- a/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
++++ b/librecad/src/lib/engine/document/lc_dwgadvancedmetadata.h
+@@ -90,7 +90,11 @@ public:
+     AcDbAssocActionBody,
+     AcDbEvalExpr,
+     AcDbShHistoryNode,
+-    AcShActionBody
++    AcShActionBody,
++    AcDbAssocValueDependency,
++    AcDbAssocDependencyBody,
++    AcDbAssoc2dConstraintGroup,
++    AcDbAssocVariable
+   };
+ 
+   enum class AssociativePrefixParseStatus {
+@@ -2183,6 +2187,11 @@ public:
+     size_t boundedCountOverflow = 0;
+     size_t decodedHandleCount = 0;
+     size_t decodedValueCount = 0;
++    // Append new counters to preserve offsets of existing diagnostic fields.
++    size_t assocValueDependency = 0;
++    size_t assocDependencyBody = 0;
++    size_t assoc2dConstraintGroup = 0;
++    size_t assocVariable = 0;
+   };
+ 
+   struct TableRecord {
+@@ -10594,6 +10603,14 @@ public:
+       return "AcDbShHistoryNode";
+     case AssociativePrefixKind::AcShActionBody:
+       return "AcShActionBody";
++    case AssociativePrefixKind::AcDbAssocValueDependency:
++      return "AcDbAssocValueDependency";
++    case AssociativePrefixKind::AcDbAssocDependencyBody:
++      return "AcDbAssocDependencyBody";
++    case AssociativePrefixKind::AcDbAssoc2dConstraintGroup:
++      return "AcDbAssoc2dConstraintGroup";
++    case AssociativePrefixKind::AcDbAssocVariable:
++      return "AcDbAssocVariable";
+     }
+     return "unknown";
+   }
+@@ -12383,6 +12400,16 @@ private:
+       return AssociativePrefixKind::AcDbShHistoryNode;
+     case DRW_AssociativePrefixStatus::Kind::AcShActionBody:
+       return AssociativePrefixKind::AcShActionBody;
++#ifdef LIBDXFRW_HAS_EXTENDED_ASSOCIATIVE_PREFIX_KINDS
++    case DRW_AssociativePrefixStatus::Kind::AcDbAssocValueDependency:
++      return AssociativePrefixKind::AcDbAssocValueDependency;
++    case DRW_AssociativePrefixStatus::Kind::AcDbAssocDependencyBody:
++      return AssociativePrefixKind::AcDbAssocDependencyBody;
++    case DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup:
++      return AssociativePrefixKind::AcDbAssoc2dConstraintGroup;
++    case DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable:
++      return AssociativePrefixKind::AcDbAssocVariable;
++#endif
+     }
+     return AssociativePrefixKind::AcDbAssocAction;
+   }
+@@ -12612,6 +12639,18 @@ private:
+     case AssociativePrefixKind::AcShActionBody:
+       ++counts.shActionBody;
+       break;
++    case AssociativePrefixKind::AcDbAssocValueDependency:
++      ++counts.assocValueDependency;
++      break;
++    case AssociativePrefixKind::AcDbAssocDependencyBody:
++      ++counts.assocDependencyBody;
++      break;
++    case AssociativePrefixKind::AcDbAssoc2dConstraintGroup:
++      ++counts.assoc2dConstraintGroup;
++      break;
++    case AssociativePrefixKind::AcDbAssocVariable:
++      ++counts.assocVariable;
++      break;
+     }
+     switch (prefix.status) {
+     case AssociativePrefixParseStatus::Complete:
+diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+index fefcf30..407960a 100644
+--- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
++++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
+@@ -66,7 +66,7 @@
+ #include <QStringList>
+ 
+ #include "drw_acis.h"
+-#include "dwg_fixed_handles.h"
++#include "intern/dwg_fixed_handles.h"
+ #include "dxf_format.h"
+ #include "intern/dwgbufferw.h"
+ #include "intern/dwgsafety.h"
+@@ -4288,7 +4288,7 @@ bool RS_FilterDXFRW::fileImport(RS_Graphic &g, const QString &file,
+     }
+   } stackGuard{&m_xrefStack, thisFileAbs, stackInsertedSelf};
+   // add some variables that need to be there for DXF drawings:
+-  m_graphic->addVariable("$DIMSTYLE", "Standard", 2);
++  m_graphic->addVariable("$DIMSTYLE", QStringLiteral("Standard"), 2);
+   m_dimStyle = "Standard";
+   m_codePage = "ANSI_1252";
+   m_textStyle = "Standard";
+diff --git a/librecad/src/lib/filters/rs_filterjww.cpp b/librecad/src/lib/filters/rs_filterjww.cpp
+index ec07aae..5214f5d 100644
+--- a/librecad/src/lib/filters/rs_filterjww.cpp
++++ b/librecad/src/lib/filters/rs_filterjww.cpp
+@@ -32,7 +32,10 @@
+ #include "dl_attributes.h"
+ #include "dl_codes.h"
+ #include "dl_writer_ascii.h"
++#include "drw_base.h"
++#ifndef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
+ #include "intern/drw_textcodec.h"
++#endif
+ #include "lc_containertraverser.h"
+ #include "rs_arc.h"
+ #include "rs_block.h"
+@@ -90,10 +93,17 @@ QChar toJisSymbol(QChar c) {
+  * 0x5C (95 5C is U+8868): that byte is not a backslash.
+  */
+ QString fromJwwString(const std::string& text) {
++#ifdef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
++    DRW_LegacyCodePageDecoder shiftJis(932);
++    const auto decode = [&shiftJis](const std::string_view run) {
++        return QString::fromStdString(shiftJis.toUtf8(run).value());
++    };
++#else
+     DRW_Conv932Table shiftJis;
+     const auto decode = [&shiftJis](const std::string_view run) {
+         return QString::fromStdString(shiftJis.toUtf8(run));
+     };
++#endif
+     QString res;
+     std::size_t runStart = 0;
+     for (std::size_t i = 0; i < text.size(); ++i) {
+@@ -193,7 +203,7 @@ bool RS_FilterJWW::fileImport(RS_Graphic& g, const QString& file, RS2::FormatTyp
+         // add some variables that need to be there for JWW drawings:
+         if (graphic->getVariableString("$DIMSTYLE", "").isEmpty()) {
+                 RS_DEBUG->print("RS_FilterJWW::fileImport: adding DIMSTYLE");
+-                graphic->addVariable("$DIMSTYLE", "Standard", 2);
++                graphic->addVariable("$DIMSTYLE", QStringLiteral("Standard"), 2);
+                 RS_DEBUG->print("RS_FilterJWW::fileImport: adding DIMSTYLE: OK");
+         }
+         RS_DEBUG->print("RS_FilterJWW::fileImport: adding variables: OK");
+diff --git a/librecad/src/lib/filters/rs_filtershp.cpp b/librecad/src/lib/filters/rs_filtershp.cpp
+index 464e00f..1912c18 100644
+--- a/librecad/src/lib/filters/rs_filtershp.cpp
++++ b/librecad/src/lib/filters/rs_filtershp.cpp
+@@ -41,7 +41,10 @@
+ 
+ #include "shapefil.h"
+ 
++#include "drw_base.h"
++#ifndef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
+ #include "intern/drw_textcodec.h"
++#endif
+ #include "lc_colornumbers.h"
+ #include "lc_linetypenames.h"
+ #include "rs_color.h"
+@@ -231,17 +234,27 @@ int windowsCodePage(const QString& codepage) {
+ // character, and a single-byte one byte by byte: a dropped byte stays as
+ // ISO-8859-1 has it.
+ std::optional<QString> decodeCodePage(const QByteArray& bytes, int codePage) {
++#ifdef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
++    DRW_LegacyCodePageDecoder codec(codePage);
++    if (!codec.supported()) return std::nullopt;
++#else
+     const std::string name = "ANSI_" + std::to_string(codePage);
+     DRW_TextCodec codec;
+     codec.setCodePage(name, false);
+     if (codec.getCodePage() != name) return std::nullopt; // no table for it
++#endif
+     const bool twoByte = codePage >= 932 && codePage <= 950;
+     std::string utf8;
+     for (qsizetype start = 0, end = 0; start < bytes.size(); start = end) {
+         end = twoByte ? bytes.indexOf('\\', start) + 1 : start + 1;
+         if (end == 0) end = bytes.size();
++#ifdef LIBDXFRW_HAS_LEGACY_CODEPAGE_DECODER
++        const std::string part = codec.toUtf8(
++            {bytes.constData() + start, static_cast<std::size_t>(end - start)}).value();
++#else
+         const std::string part = codec.toUtf8(
+             {bytes.constData() + start, static_cast<std::size_t>(end - start)});
++#endif
+         utf8 += part.empty() ? QString(QLatin1Char(bytes[start])).toStdString()
+                              : part;
+     }
+diff --git a/librecad/src/lib/filters/tests/entity_metadata_tests.cpp b/librecad/src/lib/filters/tests/entity_metadata_tests.cpp
+index f6d0c5f..bf1bb58 100644
+--- a/librecad/src/lib/filters/tests/entity_metadata_tests.cpp
++++ b/librecad/src/lib/filters/tests/entity_metadata_tests.cpp
+@@ -2520,7 +2520,33 @@ TEST_CASE("DWG advanced metadata stores associative prefix accounting",
+   DRW_AssociativePrefixStatus bodyPrefix;
+   bodyPrefix.m_kind = DRW_AssociativePrefixStatus::Kind::AcShActionBody;
+   bodyPrefix.m_status = DRW_AssociativePrefixStatus::ParseStatus::Complete;
++#ifdef LIBDXFRW_HAS_EXTENDED_ASSOCIATIVE_PREFIX_KINDS
++  DRW_AssociativePrefixStatus valueDependencyPrefix;
++  valueDependencyPrefix.m_kind =
++      DRW_AssociativePrefixStatus::Kind::AcDbAssocValueDependency;
++  valueDependencyPrefix.m_status =
++      DRW_AssociativePrefixStatus::ParseStatus::Complete;
++  DRW_AssociativePrefixStatus dependencyBodyPrefix;
++  dependencyBodyPrefix.m_kind =
++      DRW_AssociativePrefixStatus::Kind::AcDbAssocDependencyBody;
++  dependencyBodyPrefix.m_status =
++      DRW_AssociativePrefixStatus::ParseStatus::Partial;
++  DRW_AssociativePrefixStatus constraintGroupPrefix;
++  constraintGroupPrefix.m_kind =
++      DRW_AssociativePrefixStatus::Kind::AcDbAssoc2dConstraintGroup;
++  constraintGroupPrefix.m_status =
++      DRW_AssociativePrefixStatus::ParseStatus::Complete;
++  DRW_AssociativePrefixStatus variablePrefix;
++  variablePrefix.m_kind =
++      DRW_AssociativePrefixStatus::Kind::AcDbAssocVariable;
++  variablePrefix.m_status =
++      DRW_AssociativePrefixStatus::ParseStatus::Missing;
++  sweep.m_prefixStatuses = {evalPrefix, shPrefix, bodyPrefix,
++                            valueDependencyPrefix, dependencyBodyPrefix,
++                            constraintGroupPrefix, variablePrefix};
++#else
+   sweep.m_prefixStatuses = {evalPrefix, shPrefix, bodyPrefix};
++#endif
+   metadata.addAcShObject(sweep);
+ 
+   REQUIRE(metadata.associativeObjects().size() == 2u);
+@@ -2568,21 +2594,43 @@ TEST_CASE("DWG advanced metadata stores associative prefix accounting",
+ 
+   const LC_DwgAdvancedMetadata::AssociativePrefixCounts prefixCounts =
+       metadata.associativePrefixCounts();
++#ifdef LIBDXFRW_HAS_EXTENDED_ASSOCIATIVE_PREFIX_KINDS
++  CHECK(prefixCounts.prefixCount == 10u);
++#else
+   CHECK(prefixCounts.prefixCount == 6u);
++#endif
+   CHECK(prefixCounts.assocAction == 1u);
+   CHECK(prefixCounts.assocNetwork == 1u);
+   CHECK(prefixCounts.assocActionParam == 1u);
+   CHECK(prefixCounts.evalExpr == 1u);
+   CHECK(prefixCounts.shHistoryNode == 1u);
+   CHECK(prefixCounts.shActionBody == 1u);
++#ifdef LIBDXFRW_HAS_EXTENDED_ASSOCIATIVE_PREFIX_KINDS
++  CHECK(prefixCounts.assocValueDependency == 1u);
++  CHECK(prefixCounts.assocDependencyBody == 1u);
++  CHECK(prefixCounts.assoc2dConstraintGroup == 1u);
++  CHECK(prefixCounts.assocVariable == 1u);
++  CHECK(prefixCounts.complete == 6u);
++  CHECK(prefixCounts.partial == 2u);
++  CHECK(prefixCounts.missing == 1u);
++#else
++  CHECK(prefixCounts.assocValueDependency == 0u);
++  CHECK(prefixCounts.assocDependencyBody == 0u);
++  CHECK(prefixCounts.assoc2dConstraintGroup == 0u);
++  CHECK(prefixCounts.assocVariable == 0u);
+   CHECK(prefixCounts.complete == 4u);
+   CHECK(prefixCounts.partial == 1u);
++  CHECK(prefixCounts.missing == 0u);
++#endif
+   CHECK(prefixCounts.boundedCountOverflow == 1u);
+   CHECK(prefixCounts.decodedHandleCount == 4u);
+   CHECK(prefixCounts.decodedValueCount == 5u);
+   CHECK(std::string(LC_DwgAdvancedMetadata::associativePrefixKindName(
+             LC_DwgAdvancedMetadata::AssociativePrefixKind::AcDbEvalExpr))
+         == "AcDbEvalExpr");
++  CHECK(std::string(LC_DwgAdvancedMetadata::associativePrefixKindName(
++            LC_DwgAdvancedMetadata::AssociativePrefixKind::AcDbAssocVariable))
++        == "AcDbAssocVariable");
+   CHECK(std::string(
+             LC_DwgAdvancedMetadata::associativePrefixParseStatusName(
+                 LC_DwgAdvancedMetadata::AssociativePrefixParseStatus::
+diff --git a/librecad/src/lib/filters/tests/jww_import_tests.cpp b/librecad/src/lib/filters/tests/jww_import_tests.cpp
+index ce2cb27..b20f882 100644
+--- a/librecad/src/lib/filters/tests/jww_import_tests.cpp
++++ b/librecad/src/lib/filters/tests/jww_import_tests.cpp
+@@ -327,6 +327,22 @@ int openDescriptors() {
+ 
+ } // namespace
+ 
++TEST_CASE("JWW import stores its default DIMSTYLE as a string", "[jww-dimstyle]") {
++    ensureSettings();
++    const QString path = writeJww(QStringLiteral("dimstyle_fallback.jww"), "");
++    RS_Graphic graphic;
++    RS_FilterJWW filter;
++    const bool imported = filter.fileImport(graphic, path, RS2::FormatJWW);
++    QFile::remove(path);
++    REQUIRE(imported);
++    const auto& variables = graphic.getVariableDict();
++    const auto style = variables.constFind("$DIMSTYLE");
++    REQUIRE(style != variables.cend());
++    CHECK(style->getType() == RS2::VariableString);
++    CHECK(style->getCode() == 2);
++    CHECK(style->getString() == QStringLiteral("Standard"));
++}
++
+ TEST_CASE("A JWW file with a line imports", "[jww][import]") {
+     ensureSettings();
+     const QString path = writeJww(QStringLiteral("jww_import_line.jww"), "");
+diff --git a/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp b/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp
+index 49d5337..89ccf6d 100644
+--- a/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp
++++ b/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp
+@@ -39,7 +39,10 @@
+ #include <string>
+ 
+ #include <QCoreApplication>
++#include <QDir>
++#include <QFile>
+ #include <QString>
++#include <QTemporaryDir>
+ 
+ #include "lc_dwgadvancedmetadata.h"
+ #include "rs_filterdxfrw.h"
+@@ -158,6 +161,37 @@ std::string dxfWithViewports(const std::string& records) {
+ 
+ } // namespace
+ 
++TEST_CASE("DXF import retains the default DIMSTYLE as a string for DWG export",
++          "[dxf][dwg][filter][dimstyle-default]") {
++    ensureSettings();
++    QTemporaryDir directory;
++    REQUIRE(directory.isValid());
++    const QString input = QDir(directory.path()).filePath("input.dxf");
++    const std::string output = QDir(directory.path()).filePath("output.dwg").toStdString();
++    {
++        QFile file(input);
++        REQUIRE(file.open(QIODevice::WriteOnly));
++        const std::string dxf = dxfWithViewports(viewportRecord("29", "*Active"));
++        const auto size = static_cast<qint64>(dxf.size());
++        REQUIRE(file.write(dxf.data(), size) == size);
++        REQUIRE(file.flush());
++    }
++    RS_Graphic drawing;
++    drawing.initForNewDocument();
++    REQUIRE(importFrom(drawing, input.toStdString(), RS2::FormatDXFRW));
++    const auto& variables = drawing.getVariableDict();
++    const auto style = variables.constFind("$DIMSTYLE");
++    REQUIRE(style != variables.cend());
++    CHECK(style->getType() == RS2::VariableString);
++    CHECK(style->getCode() == 2);
++    CHECK(style->getString() == QStringLiteral("Standard"));
++    REQUIRE(exportTo(drawing, output, RS2::FormatDWG));
++    RS_Graphic reopened;
++    reopened.initForNewDocument();
++    REQUIRE(importFrom(reopened, output, RS2::FormatDWG));
++    checkTheLine(reopened);
++}
++
+ TEST_CASE("a drawing saved as DXF and opened again is saved as DWG",
+           "[dxf][dwg][filter][vport]") {
+     ensureSettings();

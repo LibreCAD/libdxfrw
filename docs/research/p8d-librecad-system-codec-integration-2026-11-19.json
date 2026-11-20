@@ -1,0 +1,77 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-librecad-system-codec-integration-2026-11-19",
+  "date": "2026-11-19",
+  "status": "LOCAL_CANDIDATE_FOCUSED_CHECKS_PASS_UNMERGED",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "repository": "https://github.com/LibreCAD/LibreCAD",
+    "patchBase": "281a8a4c83884ae1e8c9aa3436d87184c0b17ea7",
+    "testedBase": "26dd8817b37f59242a17fa1d0f8c61d6f1cfb410",
+    "baseDelta": "Only plugins/picfile/picfile.cpp changed; the focused tests were built on 26dd and were not rebuilt against 281a.",
+    "localBranch": "codex/libdxfrw-consumer-compat",
+    "localBranchHead": "9f494e7cc4132aa58288e7854dbf185cdb2774b3",
+    "checkout": "/private/tmp/libdxfrw-librecad-integration-26dd",
+    "patch": "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
+    "patchSha256": "bf80c605a4a9cff5b7eb946f48946a7a02caaa92d8e9a3aa2308ee33be8a6736",
+    "patchVerification": "Applying the patch to an alternate index at 281a produces exactly the candidate tree. The patch bytes match the earlier 26dd-based diff."
+  },
+  "validation": {
+    "focusedCurrentLibrary": "A scratch CMake override built librecad_lib and five focused tests with current source headers and linked the source-built static archive; it was not the production installed-package option. DXF-to-DWG dimension style 15/15, JWW default 8/8, JWW imports 343 assertions in 17 cases, SHP codepage 20 assertions in 3 cases, associative prefix 48/48.",
+    "testedSourceDifference": "Candidate affected C++ sources match the focused test source except for spelling of the fixed-handles include; both refer to the same header. The candidate spelling also compiled in the installed-option build.",
+    "focusedBinary": {
+      "path": "/private/tmp/libdxfrw-librecad-master-26dd-current-build/librecad_current_dimstyle_focus",
+      "sha256": "9400949f62a55835e0b54fb3c4e92512f1e6878432c0e588dbdd2b892443739e"
+    },
+    "installedOption": "Actual installed-codec option configuration and filter/JWW/SHP compilation pass with -Werror. Bundled option filter compilation passes. BUILD_TESTS=ON, absent package, and 2.x package are refused explicitly. Full application build is tracked separately.",
+    "archiveComparison": "The installed and linked source-built archives have different container hashes but contain the same 48 ordered object members, each byte-identical.",
+    "logs": [
+      {
+        "path": "/private/tmp/libdxfrw-librecad-current-final-dxf.log",
+        "sha256": "fa05f82c5512124b0c92e72a3b1da7406cd8225c8eecc2f8ecdbea278bf9b55f"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-current-final-jww-default.log",
+        "sha256": "36d9a1ab2418bc465c1638b8fa1a82f4583a1cab40254b6c0c35b28de6a9192b"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-current-final-jww-import.log",
+        "sha256": "1546e5e8e6c567eb571d5e8a51bc1116c64966be11055b199cb8e1c91809b44c"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-current-final-shp.log",
+        "sha256": "7ee2f2ee6a6028ec71f7d59f86cbbac5ff70db2ef2b336319992591371432ea6"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-current-final-prefix.log",
+        "sha256": "203c8c17c281ebf8439bd1c80d7864a9beaf44d1da777089d7aed5a1d4db0fe9"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-system-v3-check.log",
+        "sha256": "39c9182adcb40e2daf8af96a9404a54e487ed0ad72eb74fdcea9a5234e863ba2"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-bundled-option.log",
+        "sha256": "814eb4435f671ef8bda6a0f36f36504e50b3e7e653d198c9ebdc9281915b9284"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-system-v2-refusal.log",
+        "sha256": "81d5a7f838a0a83bbac423d4fdcb32067e6d787890a200c8132ec60f61348d5d"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-installed-tests-refusal.log",
+        "sha256": "5698bdeb109f3515cd148353d0027fb9b8b5de08b5cc82129ed54635db7e44de"
+      },
+      {
+        "path": "/private/tmp/libdxfrw-librecad-missing-system-package.log",
+        "sha256": "5fa0a3c830339d1164297008f30084e28a40446c82f854e73421056b030c9074"
+      }
+    ]
+  },
+  "limits": [
+    "The candidate remains local and unmerged; user consumer checkouts were not modified.",
+    "Focused linked tests used a scratch CMake override, not the production installed option, and were built at 26dd.",
+    "Native GUI, Linux/Windows and LibreCAD_3 qualification remain open; no broad support claim follows.",
+    "No DWG/DXF fixtures were added."
+  ]
+}
