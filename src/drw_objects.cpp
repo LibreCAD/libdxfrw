@@ -11634,21 +11634,34 @@ bool DRW_DictionaryVar::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint
         return fail();
     }
 
-    // DICTIONARYVAR follows the same R2000/R2004 object-data boundary as
-    // DICTIONARY before its common handle stream.
+    // The R14 object-size field ends immediately after this inline value.
+    // Do not turn an unconsumed body suffix into an apparent handle tail.
+    if (version == DRW::AC1014 && currentObjectDwgBit(buf) != objSize)
+        return fail();
+    // DICTIONARYVAR follows the same object-data boundary as DICTIONARY
+    // before its common handle stream.
     seekObjectHandleStream(version, buf, objSize, version >= DRW::AC1015);
-    if (!buf->isGood()
-        || !this->readDwgObjectCommonHandles(version, buf, &parentHandle, &reactorHandles, &xDictHandle)) {
+    std::uint64_t handleEnd = 0;
+    const bool handlesGood = buf->isGood()
+        && (version != DRW::AC1014
+            ? this->readDwgObjectCommonHandles(version, buf, &parentHandle,
+                                               &reactorHandles, &xDictHandle)
+            : (getDwgHandleEndBit(version, *buf, handleEnd)
+               && readObjectCommonHandles(buf, version, handle, numReactors,
+                    xDictFlag, &parentHandle, &reactorHandles, &xDictHandle,
+                    handleEnd, true)));
+    if (!handlesGood) {
         return fail();
     }
     m_schema = parsedSchema;
     m_value = std::move(parsedValue);
     // R2007+ keeps the common owner/reactor/extension-dictionary tail
-    // independently bounded. For AC1018, qualify the legacy inline tail only
-    // when the owner/reactor/xdictionary sequence consumes the complete object
-    // frame, leaving fewer than eight alignment bits. ODA v5.4.1 §20.4.74
-    // defines the DICTIONARYVAR body and common handle sequence.
-    const bool boundedLegacyTail = version == DRW::AC1018
+    // independently bounded. For AC1014 and AC1018, qualify the legacy inline
+    // tail only when the owner/reactor/xdictionary sequence consumes the
+    // complete object frame, leaving fewer than eight alignment bits. ODA
+    // v5.4.1 §20.4.74 defines the body and common handle sequence.
+    const bool boundedLegacyTail = (version == DRW::AC1014
+        || version == DRW::AC1018)
         && hasOnlyByteAlignmentRemaining(buf);
     setDwgCommonLinkTailValidated(version > DRW::AC1018
         || boundedLegacyTail);

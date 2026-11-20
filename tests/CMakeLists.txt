@@ -1950,6 +1950,39 @@ add_test(NAME libdxfrw_dictionaryvar_objects_version_allocation_retry
 set_tests_properties(libdxfrw_dictionaryvar_objects_version_allocation_retry PROPERTIES
     LABELS "fast;dxf;dictionaryvar;allocation;transaction;generated"
     TIMEOUT 60)
+add_executable(libdxfrw_dwg_ac1014_dictionaryvar_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dwg_ac1014_dictionaryvar_tests.cpp)
+target_compile_features(libdxfrw_dwg_ac1014_dictionaryvar_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dwg_ac1014_dictionaryvar_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dwg_ac1014_dictionaryvar_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/dwg2dxf)
+target_link_libraries(libdxfrw_dwg_ac1014_dictionaryvar_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_dwg_ac1014_dictionaryvar
+    COMMAND libdxfrw_dwg_ac1014_dictionaryvar_tests)
+set_tests_properties(libdxfrw_dwg_ac1014_dictionaryvar PROPERTIES
+    LABELS "fast;dwg;dictionaryvar;AC1014;transaction;generated" TIMEOUT 30)
+set(LIBDXFRW_AC1014_EXTERNAL_PROFILE "" CACHE FILEPATH
+    "Optional external AC1014 DICTIONARYVAR/MLINESTYLE source profile")
+if(LIBDXFRW_AC1014_EXTERNAL_PROFILE)
+    if(NOT EXISTS "${LIBDXFRW_AC1014_EXTERNAL_PROFILE}")
+        message(FATAL_ERROR "LIBDXFRW_AC1014_EXTERNAL_PROFILE does not exist")
+    endif()
+    add_executable(libdxfrw_dwg_ac1014_output_external_tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/dwg_ac1014_output_external_tests.cpp
+        ${_libdxfrw_test_adapter_source})
+    target_compile_features(libdxfrw_dwg_ac1014_output_external_tests PRIVATE cxx_std_17)
+    target_compile_options(libdxfrw_dwg_ac1014_output_external_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+    target_include_directories(libdxfrw_dwg_ac1014_output_external_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+    target_link_libraries(libdxfrw_dwg_ac1014_output_external_tests PRIVATE dxfrw)
+    libdxfrw_check_test_adapter_context(libdxfrw_dwg_ac1014_output_external_tests)
+    add_test(NAME libdxfrw_dwg_ac1014_output_external
+        COMMAND libdxfrw_dwg_ac1014_output_external_tests
+            "${LIBDXFRW_AC1014_EXTERNAL_PROFILE}"
+            "${CMAKE_CURRENT_BINARY_DIR}/ac1014-output-external.dxf")
+    set_tests_properties(libdxfrw_dwg_ac1014_output_external PROPERTIES
+        LABELS "dwg;AC1014;external;transaction" TIMEOUT 60)
+endif()
 add_executable(libdxfrw_datalink_objects_allocation_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/datalink_objects_allocation_tests.cpp
     ${_libdxfrw_test_adapter_source}

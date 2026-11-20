@@ -41,6 +41,8 @@
 #include "dx_ac1024_mechanical_tile_wire.h"
 #include "dx_ac1024_aerial_fbxasset_wire.h"
 #include "dx_ac1024_aerial_advmaterial_wire.h"
+#include "dx_ac1014_dictionaryvar_wire.h"
+#include "dx_ac1014_mlinestyle_wire.h"
 #include "dx_ac1021_dictionaryvar_wire.h"
 #include "dx_ac1024_dictionaryvar_wire.h"
 #include "dx_current_tablestyle_reference.h"
@@ -34416,7 +34418,8 @@ bool dx_iface::prepareDwgDictionaryVars(DRW::Version version, bool binary,
     if (cData == nullptr)
         return reject("no source container");
     if (cData->sourceFormat != dx_source_format::DWG
-        || (cData->sourceVersion != DRW::AC1018
+        || (cData->sourceVersion != DRW::AC1014
+            && cData->sourceVersion != DRW::AC1018
             && cData->sourceVersion != DRW::AC1021
             && cData->sourceVersion != DRW::AC1024))
         return true;
@@ -34424,8 +34427,8 @@ bool dx_iface::prepareDwgDictionaryVars(DRW::Version version, bool binary,
         && m_extensionDictionaryVarHandles.empty())
         return true;
     const DRW::Version expectedTargetVersion =
-        cData->sourceVersion == DRW::AC1021
-            ? DRW::AC1021 : DRW::AC1024;
+        cData->sourceVersion == DRW::AC1014 ? DRW::AC1014
+            : cData->sourceVersion == DRW::AC1021 ? DRW::AC1021 : DRW::AC1024;
     if (debug)
         std::cerr << "DICTIONARYVAR source gate details: source-version="
                   << static_cast<int>(cData->sourceVersion)
@@ -34452,8 +34455,10 @@ bool dx_iface::prepareDwgDictionaryVars(DRW::Version version, bool binary,
             || !nod.hasCompleteDwgEntries())
             return reject("NOD handle or complete membership is invalid");
         const DRW_Dictionary::Entry* rootEntry = nullptr;
+        const char* variableRootName = cData->sourceVersion == DRW::AC1014
+            ? "ACDBVARIABLEDICTIONARY" : "AcDbVariableDictionary";
         for (const DRW_Dictionary::Entry& entry : nod.m_entries) {
-            if (entry.m_name != "AcDbVariableDictionary")
+            if (entry.m_name != variableRootName)
                 continue;
             if (rootEntry != nullptr)
                 return reject("AcDbVariableDictionary NOD key is duplicated");
@@ -34525,7 +34530,7 @@ bool dx_iface::prepareDwgDictionaryVars(DRW::Version version, bool binary,
             return reject("rooted variable dictionary entry count is incomplete");
         for (const DRW_Dictionary::Entry& entry : nod.m_entries)
             if ((entry.m_handle == owner->handle
-                    && entry.m_name != "AcDbVariableDictionary")
+                    && entry.m_name != variableRootName)
                 || (customOwner != nullptr && entry.m_handle == customOwner->handle
                     && entry.m_name != "EZDXF_META"))
                 return reject("variable dictionary target is aliased from the NOD");
@@ -34643,13 +34648,14 @@ bool dx_iface::hasUnchangedDwgDictionaryVars() const noexcept {
             && m_dwgDictionaryVarOutputBytes == 0u;
     if (cData == nullptr || m_dwgDictionaryVarOutputOwner != cData
         || m_dwgDictionaryVarOutputGeneration != cData->importGeneration
-        || (sourceVersion != DRW::AC1018
+        || (sourceVersion != DRW::AC1014
+            && sourceVersion != DRW::AC1018
             && sourceVersion != DRW::AC1021
             && sourceVersion != DRW::AC1024)
         || m_dwgDictionaryVarOutputVersion != sourceVersion
         || m_dwgDictionaryVarTargetVersion
-            != (sourceVersion == DRW::AC1021
-                ? DRW::AC1021 : DRW::AC1024)
+            != (sourceVersion == DRW::AC1014 ? DRW::AC1014
+                : sourceVersion == DRW::AC1021 ? DRW::AC1021 : DRW::AC1024)
         || m_dwgDictionaryVarOutputBytes
             > kMaxAdapterNamedResourceTypedRetainedBytes
         || cData->sourceFormat != dx_source_format::DWG
@@ -34706,6 +34712,49 @@ bool dx_iface::hasUnchangedDwgDictionaryVars() const noexcept {
         }
         if (foundDictionaries != m_dwgDictionaryVarOutputDictionaries.size())
             return false;
+
+        if (sourceVersion == DRW::AC1014) {
+            if (m_dwgDictionaryVarOutputDictionaries.size() != 2u
+                || m_dwgDictionaryVarOutputSources.size() != 1u
+                || cData->dwgReadOutcome.opaqueSourceCaptureFailed
+                || !cData->hasCompleteDwgDictionaryEntry(
+                    0xcu, "ACDBVARIABLEDICTIONARY", 0x22u)
+                || !cData->hasCompleteDwgDictionaryEntry(0x22u, "DIMADEC", 0x23u))
+                return false;
+            const auto nod = m_dwgDictionaryVarOutputDictionaries.find(0xcu);
+            const auto owner = m_dwgDictionaryVarOutputDictionaries.find(0x22u);
+            const auto variable = m_dwgDictionaryVarOutputSources.find(0x23u);
+            if (nod == m_dwgDictionaryVarOutputDictionaries.end()
+                || owner == m_dwgDictionaryVarOutputDictionaries.end()
+                || variable == m_dwgDictionaryVarOutputSources.end())
+                return false;
+            const auto generation = cData->importGeneration;
+            const dx_data::StandardDwgFrameKey nodKey{generation, 0xcu};
+            const dx_data::StandardDwgFrameKey ownerKey{generation, 0x22u};
+            const dx_data::StandardDwgFrameKey variableKey{generation, 0x23u};
+            const auto nodFrame = cData->m_standardDwgObjectFrames.find(nodKey);
+            const auto ownerFrame = cData->m_standardDwgObjectFrames.find(ownerKey);
+            const auto variableFrame = cData->m_opaqueDwgSourceFrames.find(variableKey);
+            if (nodFrame == cData->m_standardDwgObjectFrames.end()
+                || ownerFrame == cData->m_standardDwgObjectFrames.end()
+                || variableFrame == cData->m_opaqueDwgSourceFrames.end()
+                || cData->m_opaqueDwgSourceFrameIdentities.count(nodKey) != 1u
+                || cData->m_opaqueDwgSourceFrameIdentities.count(ownerKey) != 1u
+                || cData->m_opaqueDwgSourceFrameIdentities.count(variableKey) != 1u
+                || !nodFrame->second.typedBaseline || !ownerFrame->second.typedBaseline
+                || !nodFrame->second.payloadMatched || !ownerFrame->second.payloadMatched
+                || !standardDwgModelsEqual(*nodFrame->second.typedBaseline, nod->second,
+                                           sourceVersion, dwgObjType::DICTIONARY)
+                || !standardDwgModelsEqual(*ownerFrame->second.typedBaseline, owner->second,
+                                           sourceVersion, dwgObjType::DICTIONARY))
+                return false;
+            return dx_ac1014_dictionaryvar_wire::dictionary(nodFrame->second.raw,
+                                                            nod->second, true)
+                && dx_ac1014_dictionaryvar_wire::dictionary(ownerFrame->second.raw,
+                                                            owner->second, false)
+                && dx_ac1014_dictionaryvar_wire::variable(variableFrame->second,
+                                                          variable->second.model);
+        }
 
         // Only the exact witnessed AC1024 variable dictionary uses this wire
         // proof. Select it from the frozen typed graph so changing or removing
@@ -38714,13 +38763,17 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
     if (cData == nullptr)
         return false;
     if (cData->sourceFormat != dx_source_format::DWG
-        || (cData->sourceVersion != DRW::AC1015
+        || (cData->sourceVersion != DRW::AC1014
+            && cData->sourceVersion != DRW::AC1015
             && cData->sourceVersion != DRW::AC1018
             && cData->sourceVersion != DRW::AC1021
             && cData->sourceVersion != DRW::AC1024
             && cData->sourceVersion != DRW::AC1027
             && cData->sourceVersion != DRW::AC1032)
+        || (cData->sourceVersion == DRW::AC1014 && version != DRW::AC1014)
         || (version != DRW::AC1024
+            && !(cData->sourceVersion == DRW::AC1014
+                && version == DRW::AC1014)
             && !(cData->sourceVersion == DRW::AC1021
                 && version == DRW::AC1021)
             && !(cData->sourceVersion == DRW::AC1027
@@ -38830,7 +38883,8 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         && frame->second.m_xDictFlag == 0u
         && (frame->second.m_xDictHandle == 0u
             || frame->second.m_xDictHandle == DRW::NoHandle);
-    const bool frameLinksMatch = (cData->sourceVersion == DRW::AC1015
+    const bool frameLinksMatch = (cData->sourceVersion == DRW::AC1014
+                                  || cData->sourceVersion == DRW::AC1015
                                   || cData->sourceVersion == DRW::AC1018)
         ? legacyFrameLinksMatch
         : frame != cData->m_opaqueDwgSourceFrames.end()
@@ -38869,20 +38923,22 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
             return skipProfile("ambiguous ACAD_MLINESTYLE root owner");
         rootOwner = &dictionary;
     }
-    const bool expectedCommonLinkTail =
-        cData->sourceVersion > DRW::AC1018;
+    const bool expectedCommonLinkTail = cData->sourceVersion == DRW::AC1014
+        || cData->sourceVersion > DRW::AC1018;
     if (rootOwner == nullptr || rootOwner->handle == 0u
         || rootOwner->handle == DRW::NoHandle
         || rootOwner->parentHandle != nod.handle || rootOwner->countCap
         || !rootOwner->hasCompleteDwgEntries()
-        || rootOwner->hardOwner != 0 || rootOwner->cloning != 1
+        || rootOwner->hardOwner != 0 || rootOwner->cloning
+            != (cData->sourceVersion == DRW::AC1014 ? 0 : 1)
         || rootOwner->m_entries.size() != 1u
         || !rootOwner->appData.empty() || !rootOwner->extData.empty()
         || rootOwner->hasDataStorageBinaryData()
         || rootOwner->hasDwgCommonLinkTail() != expectedCommonLinkTail
         || !rootOwner->pendingAppIdResolutions.empty()
         || !rootOwner->pendingLayerRefResolutions.empty()
-        || rootOwner->m_entries.front().m_name != "Standard"
+        || rootOwner->m_entries.front().m_name
+            != (cData->sourceVersion == DRW::AC1014 ? "STANDARD" : "Standard")
         || rootOwner->m_entries.front().m_handle != style.handle
         || style.parentHandle != rootOwner->handle
         || nod.m_entries.end() == std::find_if(
@@ -38950,7 +39006,8 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
     if (cData == nullptr || m_dwgMLineStyleOutputOwner != cData
         || m_dwgMLineStyleOutputGeneration != cData->importGeneration
         || cData->sourceFormat != dx_source_format::DWG
-        || (cData->sourceVersion != DRW::AC1015
+        || (cData->sourceVersion != DRW::AC1014
+            && cData->sourceVersion != DRW::AC1015
             && cData->sourceVersion != DRW::AC1018
             && cData->sourceVersion != DRW::AC1021
             && cData->sourceVersion != DRW::AC1024
@@ -39048,7 +39105,8 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
                 && (frame->second.m_xDictHandle == 0u
                     || frame->second.m_xDictHandle == DRW::NoHandle);
             const bool frameLinksMatch =
-                (cData->sourceVersion == DRW::AC1015
+                (cData->sourceVersion == DRW::AC1014
+                 || cData->sourceVersion == DRW::AC1015
                  || cData->sourceVersion == DRW::AC1018)
                     ? legacyFrameLinksMatch
                     : frame != cData->m_opaqueDwgSourceFrames.end()
@@ -39116,6 +39174,25 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
                     *rootFrameBaseline, frozen->second.rootOwner,
                     cData->sourceVersion, dwgObjType::DICTIONARY))
                 return false;
+            if (cData->sourceVersion == DRW::AC1014) {
+                const dx_data::StandardDwgFrameKey nodKey{cData->importGeneration, nod.handle};
+                const dx_data::StandardDwgFrameKey rootKey{cData->importGeneration, liveRoot->handle};
+                const dx_data::StandardDwgFrameKey styleKey{cData->importGeneration, current.handle};
+                const auto nodFrame = cData->m_standardDwgObjectFrames.find(nodKey);
+                if (nodFrame == cData->m_standardDwgObjectFrames.end()
+                    || !nodFrame->second.typedBaseline || !nodFrame->second.payloadMatched
+                    || cData->m_opaqueDwgSourceFrameIdentities.count(nodKey) != 1u
+                    || cData->m_opaqueDwgSourceFrameIdentities.count(rootKey) != 1u
+                    || cData->m_opaqueDwgSourceFrameIdentities.count(styleKey) != 1u
+                    || !cData->hasCompleteDwgDictionaryEntry(nod.handle, "ACAD_MLINESTYLE", liveRoot->handle)
+                    || !cData->hasCompleteDwgDictionaryEntry(liveRoot->handle, "STANDARD", current.handle)
+                    || !standardDwgModelsEqual(*nodFrame->second.typedBaseline, nod,
+                                               DRW::AC1014, dwgObjType::DICTIONARY)
+                    || !dx_ac1014_dictionaryvar_wire::dictionary(nodFrame->second.raw, nod, true)
+                    || !dx_ac1014_dictionaryvar_wire::dictionary(rootFrame->second.raw, *liveRoot, false, true)
+                    || !dx_ac1014_mlinestyle_wire::style(frame->second, current))
+                    return false;
+            }
             if (frozen->second.ac1024WireProof) {
                 dx_dwgDictionaryCloningSource cloning;
                 if (!cData->hasCompleteDwgDictionaryEntry(
@@ -39152,7 +39229,9 @@ bool dx_iface::inspectDwgMLineStyles(
         return false;
     };
     const bool supportedVersion = cData != nullptr
-        && (view.version == DRW::AC1024
+        && ((view.version == DRW::AC1024 && cData->sourceVersion != DRW::AC1014)
+            || (cData->sourceVersion == DRW::AC1014
+                && view.version == DRW::AC1014)
             || (cData->sourceVersion == DRW::AC1021
                 && view.version == DRW::AC1021)
             || (cData->sourceVersion == DRW::AC1027
@@ -39275,7 +39354,8 @@ bool dx_iface::inspectDwgMLineStyles(
                     return entry.m_handle == source.handle;
                 });
             if (ownerEntry == sourceRoot.m_entries.end()
-                || ownerEntry->m_name != "Standard"
+                || ownerEntry->m_name != (cData->sourceVersion == DRW::AC1014
+                    ? "STANDARD" : "Standard")
                 || std::count_if(sourceRoot.m_entries.begin(),
                     sourceRoot.m_entries.end(), [&ownerEntry](
                         const DRW_Dictionary::Entry& entry) {

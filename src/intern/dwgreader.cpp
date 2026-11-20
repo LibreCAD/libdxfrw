@@ -14193,7 +14193,7 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
       return parsed;
     };
     const DRW::Version sourceVersion = version;
-    const auto publishDictionaryGroupLinks =
+    const auto publishValidatedCommonLinks =
         [sourceVersion, &commonObject, &publication, &obj](
             const DRW_TableEntry& entry) {
           const bool legacyInline = sourceVersion == DRW::AC1012
@@ -14212,12 +14212,12 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
                   || entry.xDictHandle != commonObject.xDictHandle))
             return false;
 
-          // In R13/R14, DICTIONARY/GROUP parse the inline common-handle
+          // In R13/R14, the typed parser checks the inline common-handle
           // sequence as part of their typed payload. R2007+ exposes the
           // common links in the shared handle stream as well as in the typed
           // record; require exact agreement before publishing either view.
-          // In both cases, wait until the class parser has validated its full
-          // counted entry/member list and handle roles.
+          // In both cases, wait until the typed parser has validated its
+          // complete payload and handle roles.
           commonObject.parentHandle = entry.parentHandle;
           commonObject.reactorHandles = entry.reactorHandles;
           commonObject.xDictHandle = entry.xDictHandle;
@@ -14228,7 +14228,7 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
           publication.m_parentHandle = entry.parentHandle;
           publication.m_reactorHandles = entry.reactorHandles;
           publication.m_xDictHandle = entry.xDictHandle;
-          DRW_DBG("DICTIONARY/GROUP common links qualified for handle ");
+          DRW_DBG("Typed object common links qualified for handle ");
           DRW_DBGH(entry.handle);
           DRW_DBG(" reactors=");
           DRW_DBG(entry.reactorCount());
@@ -14259,7 +14259,7 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
         DRW_Dictionary e;
         ret = parseTableEntry(e);
         if (ret)
-          ret = publishDictionaryGroupLinks(e);
+          ret = publishValidatedCommonLinks(e);
         if (ret) {
           if (e.hasCompleteDwgEntries()) {
             DRW_DwgDictionaryMembership receipt;
@@ -14302,7 +14302,7 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
         DRW_Group e;
         ret = parseTableEntry(e);
         if (ret)
-          ret = publishDictionaryGroupLinks(e);
+          ret = publishValidatedCommonLinks(e);
         if (ret) {
           if (!e.hasCompleteDwgEntityHandles()) {
             ret = failReceiptPreflight();
@@ -14738,6 +14738,8 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
                 cit->second->className == "AcDbDictionaryVar") {
               DRW_DictionaryVar e;
               ret = parseTableEntry(e);
+              if (ret && version == DRW::AC1014)
+                ret = publishValidatedCommonLinks(e);
               if (ret) {
                 intfa.addDictionaryVar(e);
                 intfa.addUnsupportedObject(makeRawObject(oType, cit->second));

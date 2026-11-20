@@ -131,6 +131,8 @@ docs/research/visualstyle-slot-map-readiness-2026-10-15.json
 dwg2dxf/CMakeLists.txt
 dwg2dxf/Makefile.am
 dwg2dxf/dwg2dxf.1
+dwg2dxf/dx_ac1014_dictionaryvar_wire.h
+dwg2dxf/dx_ac1014_mlinestyle_wire.h
 dwg2dxf/dx_ac1021_dictionaryvar_wire.h
 dwg2dxf/dx_ac1024_aerial_advmaterial_wire.h
 dwg2dxf/dx_ac1024_aerial_appid_wire.h
@@ -579,6 +581,8 @@ tests/dwg2dxf_dimension_angle_tests.cpp
 tests/dwg2dxf_light_angle_tests.cpp
 tests/dwg2dxf_version_tests.cpp
 tests/dwg2dxf_wipeoutvariables_cli_contract.py
+tests/dwg_ac1014_dictionaryvar_tests.cpp
+tests/dwg_ac1014_output_external_tests.cpp
 tests/dwg_ac1021_polyline_block_membership_tests.cpp
 tests/dwg_ac1021_polyline_group_targets_tests.cpp
 tests/dwg_ac1021_solid_trace_footer_tests.cpp
@@ -1252,6 +1256,7 @@ tools/research/audit_p5d_dxf_versions.py
 tools/research/audit_p5h_viewport_shadeplot.py
 tools/research/canonical_ltype_peer_generator.cpp
 tools/research/check_mpolygon_projection_ezdxf.py
+tools/research/compare_ac1014_profile_ezdxf.py
 tools/research/compare_layerstates_selected_ezdxf.py
 tools/research/compare_mechanical_material_ezdxf.py
 tools/research/create_ac1021_field_derivative.py
