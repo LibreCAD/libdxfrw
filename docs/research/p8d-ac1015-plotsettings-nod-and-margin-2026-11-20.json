@@ -13,7 +13,8 @@
     "candidateHead": "f1a1627460b510d8d7c416905cd9ed50c7ff09d2",
     "combinedPatch": "docs/patches/librecad-master-281a-system-codec-integration-2026-11-19.patch",
     "combinedPatchSha256": "d7051e5923e8d1a689c6eb5b278b053aee811e3bf579fbe9536efdab14a79206",
-    "patchVerification": "Applying the combined patch to an alternate index at patchBase reproduces candidateHead exactly."
+    "patchVerification": "Applying the combined patch to an alternate index at patchBase reproduces candidateHead exactly.",
+    "patchAtReceiptCommit": "60715c52387eb9a930271c24139f4fe4fbbd2c8b"
   },
   "libraryImplementationDigestSha256": "7d8df8433c94a99ad19cf94d0d772787e200cea3b41263749ca0101e68405156",
   "regression": {
@@ -66,5 +67,6 @@
     "Unmerged consumer candidate; native GUI and Linux/Windows consumer qualification remain open.",
     "No claim for other source graphs, releases, classes, source encodings, edits or opaque data; unsupported profiles refuse.",
     "The raw source and output were generated locally; no DWG or DXF fixture was committed."
-  ]
+  ],
+  "supersededBy": "docs/research/p8d-ac1015-plotsettings-case-guard-2026-11-20.json"
 }

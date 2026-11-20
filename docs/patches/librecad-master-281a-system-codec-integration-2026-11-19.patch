@@ -162,7 +162,7 @@ index e843358..544a1e6 100644
      // not for Apple because it uses resources this is more for unix systems
      dirList.append( m_appDir + "/resources/" + subDirectory);
 diff --git a/librecad/src/lib/filters/rs_filterdxfrw.cpp b/librecad/src/lib/filters/rs_filterdxfrw.cpp
-index fefcf30..a1c4bfd 100644
+index fefcf30..0e70933 100644
 --- a/librecad/src/lib/filters/rs_filterdxfrw.cpp
 +++ b/librecad/src/lib/filters/rs_filterdxfrw.cpp
 @@ -66,7 +66,7 @@
@@ -296,12 +296,12 @@ index fefcf30..a1c4bfd 100644
 +          dictionary.replayState != LC_DwgAdvancedMetadata::ReplayState::ReplayAllowed)
 +        return false;
 +      for (const auto &entry : dictionary.entries) {
-+        if (normalizeDwgTableName(entry.name) == "ACAD_GROUP") {
++        if (entry.name == "ACAD_GROUP") {
 +          ++nodGroupEntryCount;
 +          if (entry.handle != DRW::DwgAcadGroupDictionaryHandle)
 +            return false;
 +        }
-+        if (normalizeDwgTableName(entry.name) == "ACAD_PLOTSETTINGS") {
++        if (entry.name == "ACAD_PLOTSETTINGS") {
 +          ++nodPlotEntryCount;
 +          if (entry.handle != plot.parentHandle)
 +            return false;
@@ -834,7 +834,7 @@ index ce2cb27..b20f882 100644
      ensureSettings();
      const QString path = writeJww(QStringLiteral("jww_import_line.jww"), "");
 diff --git a/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp b/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp
-index 49d5337..aa03aa7 100644
+index 49d5337..e291fa9 100644
 --- a/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp
 +++ b/librecad/src/lib/filters/tests/lc_dxf_reopen_dwg_export_tests.cpp
 @@ -36,12 +36,18 @@
@@ -856,7 +856,7 @@ index 49d5337..aa03aa7 100644
  #include "rs_filterdxfrw.h"
  #include "rs_graphic.h"
  #include "rs_line.h"
-@@ -158,6 +164,399 @@ std::string dxfWithViewports(const std::string& records) {
+@@ -158,6 +164,414 @@ std::string dxfWithViewports(const std::string& records) {
  
  } // namespace
  
@@ -1064,6 +1064,21 @@ index 49d5337..aa03aa7 100644
 +    CHECK(guarded.readAll() == beforeExtraRoot);
 +    guarded.close();
 +    sourceNod->entries.pop_back();
++    REQUIRE(writer.fileExport(tampered, guardedDwg, RS2::FormatDWG));
++    sourceNodPlot = std::find_if(sourceNod->entries.begin(), sourceNod->entries.end(),
++                                 [](const auto& entry) {
++        return entry.name == "ACAD_PLOTSETTINGS";
++    });
++    REQUIRE(sourceNodPlot != sourceNod->entries.end());
++    sourceNodPlot->name = "acad_plotsettings";
++    REQUIRE(guarded.open(QIODevice::ReadOnly));
++    const QByteArray beforeChangedName = guarded.readAll();
++    guarded.close();
++    CHECK_FALSE(writer.fileExport(tampered, guardedDwg, RS2::FormatDWG));
++    REQUIRE(guarded.open(QIODevice::ReadOnly));
++    CHECK(guarded.readAll() == beforeChangedName);
++    guarded.close();
++    sourceNodPlot->name = "ACAD_PLOTSETTINGS";
 +    REQUIRE(writer.fileExport(tampered, guardedDwg, RS2::FormatDWG));
 +
 +    // Deliberately corrupt the otherwise read-only source receipt to exercise
