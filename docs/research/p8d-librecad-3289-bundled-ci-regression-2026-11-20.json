@@ -1,0 +1,58 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p8d-librecad-3289-bundled-ci-regression-2026-11-20",
+  "date": "2026-11-20",
+  "status": "CANDIDATE_REGRESSION_REPRODUCED_FIX_OPEN",
+  "supportClaimEffect": "none",
+  "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "candidate": "eed6bd2c7e0dd6b2694a3eba3c71c21752a2a113",
+  "base": "281a8a4c83884ae1e8c9aa3436d87184c0b17ea7",
+  "ci": {
+    "candidateJob": "https://github.com/LibreCAD/LibreCAD/actions/runs/44689231420/job/136130786467",
+    "result": "VerifyDwgDxfFast failed: missing colorbox executable, DXF fast tests and translation catalog tests. The DXF suite reported 55 failed assertions across six cases, including 15 viewport resave, 36 polyline XDATA resave, and 4 attribute assertions.",
+    "priorMasterRun": "https://github.com/LibreCAD/LibreCAD/actions/runs/44384841588",
+    "priorMasterCommit": "deaedc327850349ceb9b4825b3efcc68ac2a52eb",
+    "comparison": "Prior master fast job passed its DXF fast suite but failed the missing colorbox executable and the same Hungarian/Ukrainian translation checks. The GitHub revision comparison from that master to the PR base reports only rs_units.cpp, its unit tests, the Traditional Chinese catalog and picfile.cpp."
+  },
+  "local": {
+    "candidateProduction": "The production bundled-codec configuration reproduces the viewport resave regression: 165/180 assertions pass and 15 fail.",
+    "baseFilterControl": "On the otherwise same focused 26dd scratch checkout, substituting the base filter source passes all 180 viewport assertions; the filter candidate matched the PR source before substitution.",
+    "sourceWitness": "Scratch-generated base before/after DWGs have identical LibreDWG 0.14-decoded PLOTSETTINGS fields and NOD membership for R2000, R2004, R2010, R2013 and R2018. The plot object has no owner and no NOD entry. LibreDWG did not read the R2007 pair.",
+    "rawMetadata": "In those generated examples the captured PLOTSETTINGS source has parent 0, no reactors or xdictionary and no data storage. For R2000/R2004 the common-handle metadata is not validated; do not infer graph closure from those zero values."
+  },
+  "artifacts": {
+    "candidateCi": {
+      "path": "/private/tmp/libdxfrw-librecad-3289-fast-ci.log",
+      "sha256": "95745753fbc8f8ce7231af657eb9ede6440e0913352830d0cc2b35c2ef9dcf59"
+    },
+    "priorMasterCi": {
+      "path": "/private/tmp/libdxfrw-librecad-master-fast-ci.log",
+      "sha256": "4d179027c901c6f7c03e0e41486cfa3c16033aa47e0bfdd90aff1d06a673f8bb"
+    },
+    "candidateProductionViewport": {
+      "path": "/private/tmp/libdxfrw-lc3289-production-viewport.log",
+      "sha256": "fe054d5ab07282543c52c9ae48bf2872532e26b951d65e72cfe2dda5d84243a6"
+    },
+    "candidateFocusedViewport": {
+      "path": "/private/tmp/libdxfrw-librecad-3289-viewport-bundled.log",
+      "sha256": "dd0b0ff50d8d438db947d8d2f6e05b516432ad40c91d6e5fb840ce47f1795c2c"
+    },
+    "baseFocusedViewport": {
+      "path": "/private/tmp/libdxfrw-lc3289-base-filter-viewport.log",
+      "sha256": "793769014d7b471294c608996fe95236fcadce8b6bdb3306b68bd28cf76ad401"
+    },
+    "baseGeneratedWitness": {
+      "path": "/private/tmp/libdxfrw-lc3289-base-witness.log",
+      "sha256": "385314c230f2b22dcf483b5b04914ef3a0d763837945e34d501f44145931b675"
+    }
+  },
+  "remaining": [
+    "Implement and verify a bounded resave path without silently dropping or inventing plot graph dependencies, including legacy sources whose common links are not validated.",
+    "Re-run the affected fast tests for bundled and current codec configurations, including rollback, same-writer retry and fresh independent readback.",
+    "Resolve or separately disposition the pre-existing workflow target and catalog failures; do not claim CI green."
+  ],
+  "limits": [
+    "Generated DWG witnesses remain in temporary storage and were not committed.",
+    "One peer and bounded generated examples do not establish general DWG graph or plot semantics."
+  ]
+}
