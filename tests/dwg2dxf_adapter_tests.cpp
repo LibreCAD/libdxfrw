@@ -4061,6 +4061,63 @@ public:
                                         DRW::Version targetVersion) {
         return iface.prepareDwgLayerStateOutput(targetVersion, false);
     }
+    static bool ac1024LayerStateAdmissionControls(dx_iface& iface, dx_data& data) {
+        iface.cData = &data;
+        const auto prepare = [&]() {
+            return iface.prepareDwgLayerStateOutput(DRW::AC1024, true)
+                && iface.m_dwgLayerStateOutputPrepared
+                && iface.hasUnchangedDwgLayerStateOutputSource();
+        };
+        if (!prepare()) return false;
+        const std::string empty;
+        const dxfRW::DxfObjectsWriteView view{empty, DRW::AC1024, false,
+            "UTF-8", dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+        std::ostringstream diagnostics;
+        auto* savedCerr = std::cerr.rdbuf(diagnostics.rdbuf());
+        const bool stagedAccepted = iface.inspectDwgLayerStateOutput(view, true);
+        std::cerr.rdbuf(savedCerr);
+        if (stagedAccepted || diagnostics.str().find(
+                "AC1024 three-root staged dependencies are not yet qualified")
+                == std::string::npos) return false;
+        dx_iface other;
+        other.cData = &data;
+        if (other.prepareDwgLayerStateOutput(DRW::AC1024, false)) return false;
+        const auto rejectAndRestore = [&](auto& field, const auto& bad) {
+            const auto saved = field;
+            field = bad;
+            const bool lateRefused = !iface.hasUnchangedDwgLayerStateOutputSource();
+            const bool refused = !iface.prepareDwgLayerStateOutput(DRW::AC1024, false);
+            field = saved;
+            return lateRefused && refused && prepare();
+        };
+        auto root = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
+            [](const DRW_Dictionary& value) { return value.handle == 0xd5u; });
+        auto app = std::find_if(data.appIds.begin(), data.appIds.end(),
+            [](const DRW_AppId& value) { return value.handle == 0x12u; });
+        auto scale = std::find_if(data.scales.begin(), data.scales.end(),
+            [](const DRW_Scale& value) { return value.handle == 0x127u; });
+        auto companion = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
+            [](const DRW_Dictionary& value) { return value.handle == 0xedu; });
+        auto record = std::find_if(data.xRecords.begin(), data.xRecords.end(),
+            [](const DRW_XRecord& value) { return value.handle == 0x249u; });
+        if (root == data.dictionaries.end() || root->m_entries.size() != 3u
+            || app == data.appIds.end() || scale == data.scales.end()
+            || companion == data.dictionaries.end() || companion->extData.size() != 2u
+            || !companion->extData[1] || !companion->extData[1]->content.s
+            || record == data.xRecords.end() || record->m_handleValues.empty()) return false;
+        if (!rejectAndRestore(root->m_entries[1].m_name, std::string("UNRELATED_ROOT"))
+            || !rejectAndRestore(root->m_entries[1].m_handle, std::uint32_t{0xedu})
+            || !rejectAndRestore(app->name, std::string("OTHER"))
+            || !rejectAndRestore(app->parentHandle, std::uint32_t{0xau})
+            || !rejectAndRestore(*companion->extData[1]->content.s, std::string("OTHER"))
+            || !rejectAndRestore(record->m_handleValues[0].second, std::uint32_t{0x11u})
+            || !rejectAndRestore(scale->parentHandle, std::uint32_t{0x127u})) return false;
+        auto frame = data.m_standardDwgObjectFrames.find({data.importGeneration, 0xd5u});
+        if (frame == data.m_standardDwgObjectFrames.end()
+            || frame->second.raw.m_rawBytes.empty()) return false;
+        auto& byte = frame->second.raw.m_rawBytes.front();
+        return rejectAndRestore(byte, static_cast<std::uint8_t>(byte ^ 1u));
+    }
     static bool unrelatedLayerStateBaselineSkips(dx_iface& iface, dx_data& data,
                                                  std::uint32_t handle) {
         auto frame = data.m_standardDwgObjectFrames.find({data.importGeneration, handle});
@@ -62448,6 +62505,17 @@ bool physicalAc1024LayerStatesSourceGraphContext(const std::filesystem::path& so
     return true;
 }
 
+bool physicalAc1024LayerStatesSourceAdmission(const std::filesystem::path& sourcePath) {
+    dx_iface reader;
+    dx_data source;
+    if (!reader.fileImport(sourcePath.string(), &source, false)
+        || !DxIfaceStandardDwgCaptureTestAccess::ac1024LayerStateAdmissionControls(
+            reader, source))
+        return fail("AC1024 LayerStates same-import admission controls failed");
+    std::cerr << "AC1024 LayerStates same-import admission and retry controls passed.\n";
+    return true;
+}
+
 #include "p4_layerstates_real_writer_controls.h"
 #include "p4_advmaterial_writer_controls.h"
 #include "p4_layout_output_controls.h"
@@ -62556,9 +62624,7 @@ bool physicalAc1024LayerStatesFallbackRefusal(
     preflight.cData = &source;
     const auto refused = [&]() {
         return !DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
-            preflight, DRW::AC1024)
-            && !DxIfaceStandardDwgCaptureTestAccess::prepareLayerStateOutput(
-                reader, DRW::AC1024);
+            preflight, DRW::AC1024);
     };
     if (!refused())
         return fail("unqualified three-root LayerStates source fell through");
@@ -94912,6 +94978,9 @@ int main(int argc, char** argv) {
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-source-graph-context")
         return physicalAc1024LayerStatesSourceGraphContext(argv[2]) ? 0 : 1;
+    if (argc == 3
+        && std::string(argv[1]) == "--layerstates-ac1024-source-admission")
+        return physicalAc1024LayerStatesSourceAdmission(argv[2]) ? 0 : 1;
     if (argc == 3
         && std::string(argv[1]) == "--layerstates-ac1024-appid-context")
         return physicalAc1024LayerStatesAppIdContext(argv[2]) ? 0 : 1;

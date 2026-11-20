@@ -40434,13 +40434,18 @@ bool dx_iface::prepareDwgLayerStateOutput(
         sourceVersion == DRW::AC1024 && singleEmptyLayerStatesRoot;
     const bool ac1021TwoRootProfile = sourceVersion == DRW::AC1021
         && extension != nullptr && extension->m_entries.size() == 2u;
+    // The three-root AC1024 profile is admitted only for the original import
+    // after its complete source graph, wire frames and APPID proof agree.
+    const bool ac1024ThreeRootProfile = sourceVersion == DRW::AC1024
+        && extension != nullptr && extension->m_entries.size() == 3u
+        && hasConsistentAc1024LayerStateSourceGraph();
     ac1021TwoRootCandidate = ac1021TwoRootCandidate || (ac1021TwoRootProfile
         && std::any_of(extension->m_entries.begin(), extension->m_entries.end(),
             [](const DRW_Dictionary::Entry& entry) {
                 return asciiIdentifierEquals(entry.m_name, "ACAD_LAYERSTATES");
             }));
     const bool expectsCommonLinks = expectsAc1024EmptyRootCommonLinks
-        || ac1021TwoRootProfile;
+        || ac1021TwoRootProfile || ac1024ThreeRootProfile;
     if (extension == nullptr || extension->handle != extensionHandle
         || extension->parentHandle != controlHandle
         || extension->hardOwner != 1 || extension->cloning != 1
@@ -40648,7 +40653,8 @@ bool dx_iface::prepareDwgLayerStateOutput(
                 || !companion->m_entries.empty()
                 || companion->xDictHandle != 0u
                 || companion->hasDataStorageBinaryData()
-                || companion->hasDwgCommonLinkTail() != ac1021TwoRootProfile
+                || companion->hasDwgCommonLinkTail()
+                    != (ac1021TwoRootProfile || ac1024ThreeRootProfile)
                 || !companion->pendingAppIdResolutions.empty()
                 || !companion->pendingLayerRefResolutions.empty()
                 || companion->reactorHandles
@@ -40754,6 +40760,11 @@ bool dx_iface::hasUnchangedDwgLayerStateOutputSource() const noexcept {
         return false;
     const DRW::Version sourceVersion =
         m_dwgLayerStateOutputSourceVersion;
+    if (sourceVersion == DRW::AC1024
+        && m_dwgLayerStateOutputSource.extensionDictionary.m_entries.size() == 3u
+        && m_dwgLayerStateOutputSource.extensionDictionary.hasDwgCommonLinkTail()
+        && !hasConsistentAc1024LayerStateSourceGraph())
+        return false;
     std::uint32_t controlHandle = 0u;
     std::uint32_t extensionHandle = 0u;
     if (!cData->getLayerTableControlExtensionDictionary(
@@ -40923,6 +40934,13 @@ bool dx_iface::inspectDwgLayerStateOutput(
                       << '\n';
         return false;
     };
+    // Source admission alone does not prove the nested dictionary, SCALE and
+    // APPID dependencies in the staged output. Keep this profile fail-closed
+    // until those output edges and their retry/readback controls are wired in.
+    if (m_dwgLayerStateOutputSourceVersion == DRW::AC1024
+        && m_dwgLayerStateOutputSource.extensionDictionary.m_entries.size() == 3u
+        && m_dwgLayerStateOutputSource.extensionDictionary.hasDwgCommonLinkTail())
+        return reject("AC1024 three-root staged dependencies are not yet qualified");
     const bool compatibleTarget =
         m_dwgLayerStateOutputSourceVersion == DRW::AC1024
             ? view.version == DRW::AC1024
