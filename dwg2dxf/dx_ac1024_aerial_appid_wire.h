@@ -2,9 +2,8 @@
 #ifndef DX_AC1024_AERIAL_APPID_WIRE_H
 #define DX_AC1024_AERIAL_APPID_WIRE_H
 
-// Bounded independent observer of the ACAD APPID and APPID_CONTROL bodies
-// in the source profile documented in p4-ac1024-aerial-appid-control-source-
-// context-2026-11-18.json. These exact positions and terminal bits are source
+// Bounded source-wire observers for the aerial and mechanical AC1024 ACAD
+// APPID/APPID_CONTROL profiles. Exact positions and terminal bits are source
 // observations, not a general rule for other AC1024 files. Container/frame
 // integrity, producer semantics and whole-file output remain separate gates.
 #include "drw_objects.h"
@@ -60,17 +59,17 @@ inline bool appId(const DRW_UnsupportedObject& raw) noexcept {
         && handles.take(4u) == 15u && handles.good && handles.pos == 160u;
 }
 
-inline bool control(const DRW_UnsupportedObject& raw,
-                    const DRW_DwgFramePublication& publication) noexcept {
+template <std::size_t N>
+inline bool controlProfile(const DRW_UnsupportedObject& raw,
+                           const DRW_DwgFramePublication& publication,
+                           const std::array<std::uint32_t, N>& members,
+                           std::uint32_t byteSize,
+                           std::uint32_t handleBits) noexcept {
     if (raw.m_version != DRW::AC1024 || raw.m_handle != 0x09u
         || raw.m_objectType != DRW::DwgAppIdControlObjectType
-        || raw.m_rawBytes.size() != 32u || raw.m_objectSize != 32u
-        || raw.m_bodyBitSize != 214u)
+        || raw.m_rawBytes.size() != byteSize || raw.m_objectSize != byteSize
+        || raw.m_bodyBitSize != handleBits)
         return false;
-    constexpr std::array<std::uint32_t, 9> members{{
-        0x12u, 0xf8u, 0x14fu, 0x150u, 0x151u,
-        0x152u, 0x1a8u, 0x23bu, 0x2a3u
-    }};
     if (publication.m_controlHandles.size() != members.size()) return false;
     const auto* bytes = raw.m_rawBytes.data();
     Bits body{bytes, 0u, 42u};
@@ -78,21 +77,39 @@ inline bool control(const DRW_UnsupportedObject& raw,
         || body.longValue() != members.size() || body.pos != 41u
         || body.take(1u) != 0u || !body.good || body.pos != 42u)
         return false;
-    Bits handles{bytes, 42u, 256u};
+    Bits handles{bytes, 42u, byteSize * 8u};
     const auto owner = handle(handles, 4u, 0x09u);
     if (!handles.good || owner.role != 4u || owner.length != 0u
         || owner.value != 0u || handles.pos != 50u)
         return false;
     for (std::size_t i = 0u; i < members.size(); ++i) {
         const auto member = handle(handles, 2u, 0x09u);
-        const auto expectedLength = i < 2u ? 1u : 2u;
+        const auto expectedLength = members[i] <= 0xffu ? 1u : 2u;
         if (!handles.good || member.role != 2u || member.length != expectedLength
             || member.value != members[i]
             || publication.m_controlHandles[i] != members[i])
             return false;
     }
-    return handles.pos == 250u && handles.take(6u) == 63u
-        && handles.good && handles.pos == 256u;
+    return handles.pos == byteSize * 8u - 6u && handles.take(6u) == 63u
+        && handles.good && handles.pos == byteSize * 8u;
+}
+
+inline bool control(const DRW_UnsupportedObject& raw,
+                    const DRW_DwgFramePublication& publication) noexcept {
+    constexpr std::array<std::uint32_t, 9> members{{
+        0x12u, 0xf8u, 0x14fu, 0x150u, 0x151u,
+        0x152u, 0x1a8u, 0x23bu, 0x2a3u
+    }};
+    return controlProfile(raw, publication, members, 32u, 214u);
+}
+
+inline bool mechanicalControl(const DRW_UnsupportedObject& raw,
+                              const DRW_DwgFramePublication& publication) noexcept {
+    constexpr std::array<std::uint32_t, 14> members{{
+        0x12u, 0xddu, 0xdeu, 0xdfu, 0xe0u, 0x107u, 0x1b5u,
+        0x1bau, 0x237u, 0x28eu, 0x385u, 0x41eu, 0x41fu, 0x48eu
+    }};
+    return controlProfile(raw, publication, members, 44u, 310u);
 }
 } // namespace detail
 
@@ -100,6 +117,12 @@ inline bool observe(const DRW_UnsupportedObject& appId,
                     const DRW_UnsupportedObject& control,
                     const DRW_DwgFramePublication& controlPublication) noexcept {
     return detail::appId(appId) && detail::control(control, controlPublication);
+}
+
+inline bool observeMechanical(const DRW_UnsupportedObject& appId,
+                              const DRW_UnsupportedObject& control,
+                              const DRW_DwgFramePublication& publication) noexcept {
+    return detail::appId(appId) && detail::mechanicalControl(control, publication);
 }
 } // namespace dx_ac1024_aerial_appid_wire
 

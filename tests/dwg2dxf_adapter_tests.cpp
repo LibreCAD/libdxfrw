@@ -3637,19 +3637,43 @@ public:
             field = saved;
             return refused && qualified();
         };
+        auto& app = iface.m_dwgAerialMaterialAppId;
+        auto& control = iface.m_dwgAerialMaterialAppIdControl;
+        if (!iface.hasQualifiedMechanicalMaterialAppIdSource()
+            || iface.hasQualifiedAerialMaterialAppIdSource()
+            || !rejectAndRestore(app.attempt, app.attempt + 1u)
+            || !rejectAndRestore(app.owner, static_cast<const dx_data*>(nullptr))
+            || !rejectAndRestore(control.publication.m_sourceMapOrdinal,
+                                 control.publication.m_sourceMapOrdinal + 1u)
+            || !rejectAndRestore(control.publication.m_controlHandles,
+                                 std::vector<std::uint32_t>{})) return false;
+        for (auto* bytes : {&app.raw.m_rawBytes, &control.raw.m_rawBytes}) {
+            for (std::size_t bit = 0u; bit < bytes->size() * 8u; ++bit) {
+                auto& byte = (*bytes)[bit / 8u];
+                if (!rejectAndRestore(byte, static_cast<std::uint8_t>(
+                        byte ^ (0x80u >> (bit % 8u))))) return false;
+            }
+        }
         auto extension = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
             [](const DRW_Dictionary& row) { return row.handle == 0x110u; });
+        auto root = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
+            [](const DRW_Dictionary& row) { return row.handle == 0x72u; });
         auto record = std::find_if(data.xRecords.begin(), data.xRecords.end(),
             [](const DRW_XRecord& row) { return row.handle == 0x111u; });
-        if (extension == data.dictionaries.end() || extension->m_entries.size() != 4u
+        if (root == data.dictionaries.end() || root->m_entries.size() != 3u
+            || extension == data.dictionaries.end() || extension->m_entries.size() != 4u
             || record == data.xRecords.end() || record->m_dataEntries.size() != 2u)
             return false;
-        if (!rejectAndRestore(extension->parentHandle, std::uint32_t{0x99u})
+        if (!rejectAndRestore(root->parentHandle, std::uint32_t{0xdu})
+            || !rejectAndRestore(extension->parentHandle, std::uint32_t{0x99u})
             || !rejectAndRestore(extension->m_entries[0].m_name, std::string("OTHER"))
             || !rejectAndRestore(extension->m_entries[0].m_handle, std::uint32_t{0x111u})
             || !rejectAndRestore(record->parentHandle, std::uint32_t{0x111u})
             || !rejectAndRestore(record->m_dataEntries[0], DRW_Variant(270, 2))) return false;
-        for (const auto handle : {0x110u, 0x111u, 0x112u, 0x113u, 0x114u}) {
+        for (auto& entry : root->m_entries)
+            if (!rejectAndRestore(entry.m_name, std::string("OTHER"))
+                || !rejectAndRestore(entry.m_handle, entry.m_handle ^ 1u)) return false;
+        for (const auto handle : {0x72u, 0x110u, 0x111u, 0x112u, 0x113u, 0x114u}) {
             auto at = data.m_standardDwgObjectFrames.find({data.importGeneration, handle});
             if (at == data.m_standardDwgObjectFrames.end() || at->second.raw.m_rawBytes.empty())
                 return false;

@@ -1,0 +1,32 @@
+{
+  "scope": "Source-only AC1024 mechanical Global MATERIAL dependency observations; not an output or native interoperability qualification.",
+  "source": {
+    "sha256": "854c8ebed8726add72ba4a9a2a19ba0d010372f5cadefb40e648cdf881cad858",
+    "producer": "not independently authenticated",
+    "repository_fixture_committed": false
+  },
+  "authority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["20.4.44 DICTIONARY", "20.4.65 APPID_CONTROL", "20.4.66 APPID"]
+  },
+  "independent_decode": {
+    "tool": "LibreDWG dwgread 0.14",
+    "json_sha256": "79dc4fd0c00116a0de6d26010f0ee87c800bc9f3f424155f7e19dc44bd40d367",
+    "appid": {"handle": "0x12", "name": "ACAD", "owner": "0x09", "object_bytes": 20, "handle_stream_start_bit": 132},
+    "control": {"handle": "0x09", "object_bytes": 44, "handle_stream_start_bit": 42, "owner_role_length_value": [4, 0, 0], "member_role": 2, "members": ["0x12", "0xdd", "0xde", "0xdf", "0xe0", "0x107", "0x1b5", "0x1ba", "0x237", "0x28e", "0x385", "0x41e", "0x41f", "0x48e"]},
+    "material_dictionary": {"handle": "0x72", "object_bytes": 65, "handle_stream_start_bit": 434, "owner": "0x0c", "owner_and_reactor_role_length": [4, 1], "items": {"ByBlock": "0x97", "ByLayer": "0x96", "Global": "0x98"}, "item_role_length": [2, 1]}
+  },
+  "validation": {
+    "mechanical_selector": "--mechanical-ac1024-global-material-eed-wire",
+    "result": "passed after rebuild",
+    "controls": "Same-import and source-location binding; individual bit mutations of APPID and APPID_CONTROL; dictionary owner, names, member handles and selected frame-bit mutations; truncation; restored same-adapter retry; foreign adapter refusal.",
+    "aerial_selector": "--ac1024-material-appid-source-capture",
+    "aerial_result": "passed after rebuild"
+  },
+  "remaining": [
+    "Bind ByBlock and ByLayer MATERIAL bodies and dependency graphs and prove the NOD-to-MATERIAL dictionary edge.",
+    "Prove selected staged graph and signed EED output, rollback, corrected retry, and independent ASCII/Binary readback.",
+    "Keep unknown profiles refused; do not infer producer or native semantics from this peer decode."
+  ]
+}

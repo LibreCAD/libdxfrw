@@ -29371,6 +29371,14 @@ void dx_iface::retainAerialMaterialAppIdPublication(
 }
 
 bool dx_iface::hasQualifiedAerialMaterialAppIdSource() const noexcept {
+    return hasQualifiedMaterialAppIdSource(false);
+}
+
+bool dx_iface::hasQualifiedMechanicalMaterialAppIdSource() const noexcept {
+    return hasQualifiedMaterialAppIdSource(true);
+}
+
+bool dx_iface::hasQualifiedMaterialAppIdSource(bool mechanical) const noexcept {
     if (cData == nullptr || typeid(*this) != typeid(dx_iface)
         || cData->sourceFormat != dx_source_format::DWG
         || cData->sourceVersion != DRW::AC1024
@@ -29414,8 +29422,11 @@ bool dx_iface::hasQualifiedAerialMaterialAppIdSource() const noexcept {
                DRW_DwgFramePublication::Carrier::Typed)
         || !valid(control, 0x09u, DRW::DwgAppIdControlObjectType,
                   "APPID_CONTROL", DRW_DwgFramePublication::Carrier::Control)
-        || !dx_ac1024_aerial_appid_wire::observe(
-            appId.raw, control.raw, control.publication))
+        || !(mechanical
+            ? dx_ac1024_aerial_appid_wire::observeMechanical(
+                appId.raw, control.raw, control.publication)
+            : dx_ac1024_aerial_appid_wire::observe(
+                appId.raw, control.raw, control.publication)))
         return false;
     const auto& appPublication = appId.publication;
     const auto& controlPublication = control.publication;
@@ -45300,7 +45311,7 @@ bool dx_iface::hasQualifiedAc1024AerialGlobalMaterialEed(
     }
 }
 
-// Source-only proof; staged output and APPID_CONTROL wire proof remain open.
+// Source-only proof; complete MATERIAL root and staged output remain open.
 bool dx_iface::hasQualifiedAc1024MechanicalGlobalTileSources(
         const dx_data& data) const noexcept {
     const auto& proof = m_dwgAerialGlobalMaterialEed;
@@ -45310,14 +45321,21 @@ bool dx_iface::hasQualifiedAc1024MechanicalGlobalTileSources(
         || proof.captureFailed || proof.owner != &data || !proof.material
         || proof.body.empty() || proof.frame.generation != data.importGeneration
         || proof.frame.attempt == 0u
-        || proof.frame.attempt != aerialMaterialAppIdClassAttempt()) return false;
+        || proof.frame.attempt != aerialMaterialAppIdClassAttempt()
+        || !hasQualifiedMechanicalMaterialAppIdSource()) return false;
     try {
         const auto* material = uniqueDwgSourceRecord(data.materials, 0x98u);
+        const auto* root = uniqueDwgSourceRecord(data.dictionaries, 0x72u);
         const auto* extension = uniqueDwgSourceRecord(data.dictionaries, 0x110u);
         const auto* raw = boundAc1024DwgClassObject(data, 0x98u, proof.frame, nullptr);
         const auto* dictionaryRaw = extension == nullptr ? nullptr
             : boundAc1024DwgStandardObject(data, *extension, dwgObjType::DICTIONARY);
-        if (!material || material->m_name != "Global" || material->parentHandle != 0x72u
+        const auto* rootRaw = root == nullptr ? nullptr
+            : boundAc1024DwgStandardObject(data, *root, dwgObjType::DICTIONARY);
+        if (!root || !rootRaw
+            || !dx_ac1024_mechanical_tile_wire::observeMaterialRoot(*rootRaw, *root)
+            || !data.hasCompleteDwgDictionaryEntry(0x72u, "Global", 0x98u)
+            || !material || material->m_name != "Global" || material->parentHandle != 0x72u
             || material->xDictHandle != 0x110u || !raw || !dictionaryRaw
             || proof.body != raw->m_rawBytes
             || !dxfMaterial::sameState(*proof.material, *material)

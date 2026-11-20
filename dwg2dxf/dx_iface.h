@@ -5137,6 +5137,8 @@ private:
     void retainAerialMaterialAppIdPublication(
         const DRW_DwgFramePublication& publication) noexcept;
     bool hasQualifiedAerialMaterialAppIdSource() const noexcept;
+    bool hasQualifiedMechanicalMaterialAppIdSource() const noexcept;
+    bool hasQualifiedMaterialAppIdSource(bool mechanical) const noexcept;
     std::optional<DRW_DwgAc1024LayerControlSource>
         m_dwgLayerControlSourceProof;
     const dx_data* m_dwgLayerControlSourceOwner{nullptr};

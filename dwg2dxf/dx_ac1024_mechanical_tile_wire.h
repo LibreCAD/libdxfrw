@@ -19,6 +19,33 @@ constexpr std::array<const char*, 4> names{{
     "BUMPTILE", "DIFFUSETILE", "OPACITYTILE", "REFLECTIONTILE"
 }};
 
+// The dictionary frame establishes membership, not the bodies or output
+// semantics of the three referenced MATERIAL objects.
+inline bool observeMaterialRoot(const DRW_UnsupportedObject& raw,
+                                const DRW_Dictionary& source) noexcept {
+    constexpr std::array<const char*, 3> rootNames{{"ByBlock", "ByLayer", "Global"}};
+    constexpr std::array<std::uint32_t, 3> rootHandles{{0x97u, 0x96u, 0x98u}};
+    if (source.handle != 0x72u || source.parentHandle != 0xcu
+        || source.cloning != 1 || source.hardOwner != 0
+        || source.reactorHandles.size() != 1u || source.reactorHandles[0] != 0xcu
+        || source.m_entries.size() != rootNames.size() || !source.extData.empty()
+        || raw.m_objectSize != 65u || raw.m_rawBytes.size() != 65u
+        || raw.m_bodyBitSize != 86u) return false;
+    for (std::size_t i = 0u; i < rootNames.size(); ++i)
+        if (source.m_entries[i].m_name != rootNames[i]
+            || source.m_entries[i].m_handle != rootHandles[i]) return false;
+    return dx_layerstates_dwg_wire::observeDictionary(raw, source,
+        [](std::uint32_t, const std::string&) noexcept { return false; },
+        [](dx_layerstates_dwg_wire::LinkKind kind, std::size_t index,
+           std::uint8_t role, std::uint8_t length) noexcept {
+            if (kind == dx_layerstates_dwg_wire::LinkKind::Owner
+                || kind == dx_layerstates_dwg_wire::LinkKind::Reactor)
+                return index == 0u && role == 4u && length == 1u;
+            return kind == dx_layerstates_dwg_wire::LinkKind::Item
+                && index < 3u && role == 2u && length == 1u;
+        });
+}
+
 inline bool observeExtension(const DRW_UnsupportedObject& raw,
                              const DRW_Dictionary& source) noexcept {
     if (source.handle != 0x110u || source.parentHandle != 0x98u
