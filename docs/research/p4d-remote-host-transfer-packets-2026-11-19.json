@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "id": "p4d-remote-host-transfer-packets-2026-11-19",
+  "date": "2026-11-19",
+  "status": "LOCAL_TRANSFER_PACKETS_READY_HOST_PROFILE_PENDING",
+  "supportClaimEffect": "none",
+  "sourcePacket": {
+    "path": "/Users/dli/.codex/visualizations/2026/09/13/01a09a72-4aa5-7562-a791-9cf6d27e32af/libdxfrw-objectarx-witness-sources.zip",
+    "sha256": "cd85f5e9643b4a025015b5934654085c394276caf6d8e8337c9db375c847278e",
+    "validation": "All packaged repository-backed source files match the current workspace; packet contains source and instructions, no Autodesk libraries."
+  },
+  "candidatePacket": {
+    "path": "/Users/dli/.codex/visualizations/2026/09/13/01a09a72-4aa5-7562-a791-9cf6d27e32af/libdxfrw-p4d-layout-candidates.zip",
+    "sha256": "63a84502edebebbdba31959250559ef7c2774224b1b749cf2f58de7ad0acf1d2",
+    "contents": {
+      "architectural_example-imperial.dxf": "6bda57e8f5d4ba81c444dac8cc8d41e8b23ef8c5b75da841f9e5da6cdb0d7566",
+      "architectural_example-imperial-binary.dxf": "308e27cc9a6b14fb8bc0d701505f3f7f45dae211c86112d128b1538a78d2c0e5"
+    },
+    "validation": "Archive integrity and both in-archive SHA-256 checks pass. The files are scratch-generated outputs from a local DWG sample and are not committed."
+  },
+  "remaining": "Obtain the remote host AutoCAD release/build, OS, SDK/toolchain and artifact-return route; use the host-compatible packet only after that profile is known. The candidate producer provenance is unauthenticated.",
+  "limits": [
+    "The host has not been contacted and no Autodesk SDK build, native reopen, or semantic witness has been performed.",
+    "These local packages do not promote any format support claim."
+  ]
+}
