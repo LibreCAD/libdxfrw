@@ -6,13 +6,13 @@
   "supportClaimEffect": "none",
   "pullRequest": {
     "url": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
-    "head": "5419e7b403102f91d6ed11540420021ede5bcd06",
+    "head": "b3980f7287680c71935da9b809b086669fcde40c",
     "baseMaster": "4fb48312708b39d499f7e6668104a3b54a8601c7",
     "state": "draft and mergeable when observed",
-    "hostedChecks": "New head pushed; prior head plan sync and sanitizer jobs passed but do not qualify this head. Recheck current workflows.",
-    "previousHead": "3a64b81601492420c4a8969b19b2d9dbc469b1d5"
+    "hostedChecks": "Updated head pushed; hosted checks on prior heads do not qualify this head. Recheck current workflows.",
+    "previousHead": "5419e7b403102f91d6ed11540420021ede5bcd06"
   },
-  "scope": "Ordinary default-normal HATCH polyline, line, arc, ellipse and selected non-rational spline point elevation; ellipse edge direction; mixed-elevation loss handling. This direct upstream change does not include the larger unmerged MPOLYGON consumer candidate or its system-codec integration. Open and Save dialog loss notes are displayed, including with partial-read warnings.",
+  "scope": "Ordinary default-normal HATCH polyline, line, arc, ellipse and selected non-rational spline point elevation; ellipse edge direction; mixed-elevation loss handling. This direct upstream change does not include the larger unmerged MPOLYGON consumer candidate or its system-codec integration. Open and Save dialog loss notes are displayed, including with partial-read warnings. Reserved ByLayer/ByBlock descriptions are cleared before output to match the current codec.",
   "implementation": "Rebased the supported HATCH portions of the prior candidate into a three-file master-based change; original user LibreCAD_3 checkout was untouched.",
   "validation": {
     "platform": "macOS arm64, headless persistence, LibreCAD_3 pinned bundled codec d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
@@ -27,7 +27,10 @@
     "sourceMatch": "Both implementation and test source files byte-match the committed PR head.",
     "uiSource": "The Qt 6 CadMdiChild translation unit compiled on macOS arm64; exact extracted helper smoke passed empty, note-only, combined and zero-count summaries. No native dialog interaction is claimed.",
     "uiObjectSha256": "e8fccde816d89f38bb67783503039a948ca044f5f39fa9f14b830da37a9f8971",
-    "uiSourceSha256": "4f7fa80d529d1a091700bb2361a2ce6389c5bd9d7451811ea6f7bca9657150ea"
+    "uiSourceSha256": "4f7fa80d529d1a091700bb2361a2ce6389c5bd9d7451811ea6f7bca9657150ea",
+    "currentSharedCodec": "PASS: 4/4 generated ordinary-HATCH tests on the direct adapter and test source using the current shared libdxfrw 3 and scratch system-codec CMake glue; DYLD_PRINT_LIBRARIES confirms its path. The system-codec build glue is a separate, unmerged candidate.",
+    "currentSharedLogSha256": "e113ab98cf2310a07db24b1cf027a68b69f1d22388691c3ebae04d4f8649fc43",
+    "currentSharedPersistenceSha256": "9b89f0b1fc68f13f805a9b4ba5cfdcf1c4cbc78092e827601c1ef637b2ada5e3"
   },
   "limits": [
     "No native GUI, Linux or Windows result is claimed.",
