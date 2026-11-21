@@ -3,25 +3,25 @@
   "scope": "LibreCAD_3 ordinary open-clamped spline Bezier conversion",
   "pull_request": "https://github.com/LibreCAD/LibreCAD_3/pull/462",
   "base": "4fb48312708b39d499f7e6668104a3b54a8601c7",
-  "head": "cca8cb190eca965a1c83983cb9d1b5ea147313ad",
+  "head": "c000f4a94349b5ddfe904ef29545950059143f40",
   "findings": {
     "baseline": "Source knot vector was ignored; for a quadratic control polygon the seam was x=2 instead of x=1.5. The new test failed on the base.",
     "change": "Use finite, ordered, open-clamped ordinary spline source knots with separated distinct values, when TinySpline accepts and converts them; use the previous default clamped curve otherwise.",
-    "degree_one": "Degree-one spline conversion previously yielded no Bezier segments. Represent each linear piece as an exactly equivalent quadratic Bezier and handle the degenerate quadratic line-intersection equation."
+    "degree_one": "Degree-one spline conversion previously yielded no Bezier segments. Represent each linear piece as an exactly equivalent quadratic Bezier and handle the degenerate quadratic line-intersection equation. A shared normalized linear-conic solver handles the previously zero-leading-term circle/arc and translated/rotated ellipse/elliptical-arc cases."
   },
   "validation": {
     "platform": "macOS arm64, headless",
     "build": "lckernel built with pinned bundled libdxfrw",
-    "geometry": "13/13 targeted Bezier and spline tests passed, including five knot/linear-segment tests and a degree-one crossing-line and parallel control",
+    "geometry": "17/17 targeted Bezier and spline tests passed, including degree-one crossing and parallel lines, circles, tangency, no intersection, small radius, arcs, translated/rotated ellipses and forward/reversed elliptical arcs.",
     "persistence": "2/2 existing fit-only and spline reopen/resave tests passed",
     "independent_evaluator": "ezdxf 1.4.5 BSpline returned quadratic seam (1.5,2,3) and cubic seam (1.96,0.9200000000000002,2)",
     "plan_sync": "explicit changed-path plan validation passed",
-    "negative_control": "Quadratic seam test failed against unmodified master; degree-one segment test failed with the preceding PR head; the line-crossing control failed before the solver change."
+    "negative_control": "Quadratic seam test failed against unmodified master; degree-one segment test failed with the preceding PR head; the line-crossing control failed before the solver change. Degree-one circle and ellipse controls failed before the shared conic solver."
   },
   "limits": [
     "Native GUI, hosted CI and other platforms remain pending.",
     "Rational, periodic, non-clamped, near-coincident and otherwise unsupported knots retain old fallback and remain unqualified.",
-    "Degree-one circle, arc and ellipse intersections have not been qualified.",
+    "Conic evidence covers the selected planar cases; other spline degrees, degenerate conics, 3D conic intersections and native GUI behavior remain unqualified.",
     "This does not qualify DWG parsing or close P8-D."
   ]
 }
