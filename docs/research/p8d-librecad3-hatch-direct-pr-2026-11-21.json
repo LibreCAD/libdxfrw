@@ -6,13 +6,13 @@
   "supportClaimEffect": "none",
   "pullRequest": {
     "url": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
-    "head": "df4cba8033a8d44ffcb922474d9153fccec341e4",
+    "head": "c06e526ea1d0fb5c699142b0e874fb8c95a73ce8",
     "baseMaster": "4fb48312708b39d499f7e6668104a3b54a8601c7",
     "state": "draft and mergeable when observed",
     "hostedChecks": "Updated head pushed; prior workflow results do not qualify this head.",
-    "previousHead": "64f45915b01165e10082091d0bb879464f9effa3"
+    "previousHead": "df4cba8033a8d44ffcb922474d9153fccec341e4"
   },
-  "scope": "Ordinary default-normal HATCH polyline, line, arc, ellipse and selected non-rational spline point elevation; ellipse edge direction; mixed-elevation loss handling. This direct upstream change does not include the larger unmerged MPOLYGON consumer candidate or its system-codec integration. Open and Save dialog loss notes are displayed, including with partial-read warnings. Reserved ByLayer/ByBlock descriptions are cleared before output to match the current codec. Spline move/copy translates fit points together with control points. Spline planar rotation transforms controls, fit points, tangents and normal without discarding Z.",
+  "scope": "Ordinary default-normal HATCH polyline, line, arc, ellipse and selected non-rational spline point elevation; ellipse edge direction; mixed-elevation loss handling. This direct upstream change does not include the larger unmerged MPOLYGON consumer candidate or its system-codec integration. Open and Save dialog loss notes are displayed, including with partial-read warnings. Reserved ByLayer/ByBlock descriptions are cleared before output to match the current codec. Spline move/copy translates fit points together with control points. Spline planar rotation transforms controls, fit points, tangents and normal without discarding Z. Spline scale and mirror also transform fit points and tangent/normal vectors; planar mirror preserves Z.",
   "implementation": "Rebased the supported HATCH portions of the prior candidate into a three-file master-based change; original user LibreCAD_3 checkout was untouched.",
   "validation": {
     "platform": "macOS arm64, headless persistence, LibreCAD_3 pinned bundled codec d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
@@ -40,12 +40,17 @@
     "splineRotationBaselineLogSha256": "4c5b51bf4a0a0c55502ac38868e4adbc9947492d82f6cfc46ebff1a5a029df0d",
     "splineRotationBundledLogSha256": "0545fd3834065ddb0bd01369c30ee41ca746a598b087319ca8587997c37b285d",
     "splineRotationCurrentLogSha256": "13a5568ef66cf71134a7a7623a927d0a00a554fb8a962bcfa41d8f132d8bd9b4",
-    "splineRotationIndependentSha256": "c9cd9faa2f215e87511e29bc5adf579e96a24976d1f09079671e630ee695179a"
+    "splineRotationIndependentSha256": "c9cd9faa2f215e87511e29bc5adf579e96a24976d1f09079671e630ee695179a",
+    "splineScaleMirror": "Pre-fix controls fail for fit points and tangents. Four focused HATCH tests pass with each codec, including fit-only, nonuniform scale, planar and tilted-axis mirror, vector and singular-normal controls. ezdxf independently verifies selected scaled/mirrored ASCII/Binary positions, tangents and elevation for both codecs.",
+    "splineScaleMirrorBaselineLogSha256": "b6a0c11a10ed760c3be9b749a6877efc1bbe5bd74de98570db57237af290a4d2",
+    "splineScaleMirrorBundledLogSha256": "7f20406198dc11f4ee39c6f1a121e0a695363e97141a8ab6818c7a88c08e2081",
+    "splineScaleMirrorCurrentLogSha256": "a7a58465998274ca86084cb1da4c56a6c3a15650b2d7fec2baf21c1d86283385",
+    "splineScaleMirrorIndependentSha256": "021111de0138a811c744a50b66a3a7f8b8894410e32008e9421d929b7162ff29"
   },
   "limits": [
     "No native GUI, Linux or Windows result is claimed.",
     "The tested bundled codec and scratch source are not a final candidate freeze. Rational weights, periodic and tilted-plane cases remain open.",
     "MPOLYGON offset/subtype and related patches still require downstream integration and native qualification. No fixtures were committed.",
-    "Spline scale and mirror fit-point/tangent behavior remain separately unqualified."
+    "Singular-scale normal semantics remain unresolved; the previous normal is retained for a singular scale. Tilted-plane HATCH export and rational/periodic spline behavior remain separately unqualified."
   ]
 }

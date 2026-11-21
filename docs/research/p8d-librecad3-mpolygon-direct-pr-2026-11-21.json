@@ -6,13 +6,13 @@
   "supportClaimEffect": "none",
   "pullRequest": {
     "url": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
-    "head": "d3c9fd9c9b75fca6d3deaf7b93c732f4b639c103",
+    "head": "11d8461ec28b5a873919766a75bfffc38f5d1522",
     "baseMaster": "4fb48312708b39d499f7e6668104a3b54a8601c7",
     "dependsOn": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
-    "parentHead": "df4cba8033a8d44ffcb922474d9153fccec341e4",
+    "parentHead": "c06e526ea1d0fb5c699142b0e874fb8c95a73ce8",
     "state": "draft, mergeable when observed; combined diff includes parent until it merges",
     "hostedChecks": "Updated head pushed; hosted checks pending.",
-    "previousHead": "eb5b4248a6843b7049267884acbd1f5b7811871e"
+    "previousHead": "d3c9fd9c9b75fca6d3deaf7b93c732f4b639c103"
   },
   "scope": "Map MPOLYGON boundary offsets and preserve an independently bounded simple planar solid MPOLYGON snapshot for supported translation and rotation. Unsupported source or edits use the explicit HATCH projection loss route. Lift the tested default-normal DXF multiloop projection to its shared elevation.",
   "validation": {
@@ -31,9 +31,9 @@
     "dwgRegression": "4/4 existing DWG import/export, encoding parity, fixture delivery and text/dimension controls pass with each codec.",
     "bundledDwgRegressionLogSha256": "3d2e58cd973e6eec47b682226e3a2cfb846116d957990fe9b24a83bce94c02e2",
     "currentDwgRegressionLogSha256": "bfa544634d0aaefaa73b4e3f94ce5586eb6742077f3820eeb279c8962b95c3e4",
-    "mergedRegression": "13/13 focused MPOLYGON/HATCH and existing DWG controls pass with each codec after merging the updated parent, including spline move/copy and rotation.",
-    "mergedBundledLogSha256": "11fb3646c54136cf563a9ffd3973662f1c6bc8acba0a39d0ffb9d3ae245610d3",
-    "mergedCurrentLogSha256": "b4aeba19dfaea6192238418ff95f4cf1681b8c02b1c78bdebe59f8b6d5868d50"
+    "mergedRegression": "13/13 focused MPOLYGON/HATCH and existing DWG controls pass with each codec after merging the updated parent, including spline move/copy, rotation, scale and mirror.",
+    "mergedBundledLogSha256": "cb9c75d53478826b7aa2f830e9d5323cbeb195820a4c643e3a94a92d9582202d",
+    "mergedCurrentLogSha256": "112491a6c1ea3d3bb08c0f6e38f0a11a7dde8a7da53a505a3a374d6ef8ab0d54"
   },
   "limits": [
     "Draft depends on PR #460 and is not merged. Native GUI and Linux/Windows qualification remain open.",
