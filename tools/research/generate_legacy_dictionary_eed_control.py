@@ -67,6 +67,7 @@ def main():
     parser.add_argument('--version', choices=('r13', 'r14'), default='r14')
     parser.add_argument('--alternate-app', action='store_true')
     parser.add_argument('--alternate-group', action='store_true')
+    parser.add_argument('--nonempty-group', action='store_true')
     parser.add_argument('--dwgadd', default='dwgadd')
     parser.add_argument('--dwgread', default='dwgread')
     parser.add_argument('--dwgwrite', default='dwgwrite')
@@ -81,7 +82,11 @@ def main():
     source = root / 'dwgadd.json'
     if any((root / name).exists() for name in ('dwgadd.dwg', 'dwgadd.json', 'baseline.dwg', 'eed.dwg', 'unqualified.dwg', 'utf8.dwg', 'wide.dwg')):
         raise RuntimeError('output directory must not contain a previous control')
-    run(args.dwgadd, '--as', args.version, '-o', str(base), str(recipe))
+    effective_recipe = recipe
+    if args.nonempty_group:
+        effective_recipe = root / 'nonempty-group.dwgadd'
+        effective_recipe.write_text(recipe.read_text() + '\ngroup "MYGROUP"\n')
+    run(args.dwgadd, '--as', args.version, '-o', str(base), str(effective_recipe))
     run(args.dwgread, '-O', 'JSON', '-o', str(source), str(base))
     document = json.loads(source.read_text())
     styles = [o for o in document['OBJECTS'] if o.get('object') == 'MLINESTYLE']
@@ -121,6 +126,20 @@ def main():
         for child in [dictionaries[0], *siblings]:
             child['ownerhandle'] = [4, 1, root_handle, root_handle]
             child['reactors'] = [[4, 1, root_handle, root_handle]]
+    if args.nonempty_group:
+        groups = [o for o in document['OBJECTS'] if o.get('object') == 'GROUP']
+        lines = [o for o in document['OBJECTS'] if o.get('entity') == 'LINE']
+        if len(groups) != 1 or len(lines) != 3 or groups[0].get('handle', [0, 0, 0])[2] != 49:
+            raise RuntimeError('unexpected generated GROUP or LINE graph')
+        # LibreDWG dwgadd leaves this scratch GROUP malformed. Construct the
+        # bounded graph with the ODA v5.4.1 §20.4.72 hard-pointer member role.
+        dictionaries[0]['numitems'] = 1
+        dictionaries[0]['items'] = {'MYGROUP': [2, 1, 49, 49]}
+        groups[0]['ownerhandle'] = [4, 1, group, group]
+        groups[0]['reactors'] = [[4, 1, group, group]]
+        groups[0]['unnamed'] = 0
+        groups[0]['selectable'] = 1
+        groups[0]['groups'] = [[5, 1, lines[0]['handle'][2], lines[0]['handle'][2]]]
     # dwgread JSON rounds the angle; restore the exact generated binary value
     # so the baseline remains within the existing MLINESTYLE wire profile.
     styles[0]['start_angle'] = styles[0]['end_angle'] = 1.5707963267948966
@@ -157,9 +176,34 @@ def main():
                 or len(peer_apps) != 1 or len(peer_controls) != 1
                 or [entry[-1] for entry in peer_controls[0].get('entries', [])] != [appid]):
             raise RuntimeError(f'{name} independent source graph mismatch')
+        if args.nonempty_group:
+            group_objects = [o for o in reread['OBJECTS'] if o.get('object') == 'GROUP'
+                             and o.get('handle', [0, 0, 0])[2] == 49]
+            if (selected[0].get('items', {}).get('MYGROUP', [0])[-1] != 49
+                    or len(group_objects) != 1 or group_objects[0].get('ownerhandle', [0])[-1] != group
+                    or group_objects[0].get('groups') != [[5, 1, 46, 46]]):
+                raise RuntimeError(f'{name} peer group member graph mismatch')
         if name == 'baseline' and selected[0].get('eed'):
             raise RuntimeError('baseline unexpectedly contains EED')
         results[name] = {'path': str(drawing), 'sha256': digest(drawing)}
+    if args.nonempty_group:
+        broken = json.loads((root / 'eed.json').read_text())
+        member = [o for o in broken['OBJECTS'] if o.get('object') == 'GROUP'
+                  and o.get('handle', [0, 0, 0])[2] == 49]
+        if len(member) != 1 or member[0].get('groups') != [[5, 1, 46, 46]]:
+            raise RuntimeError('unexpected GROUP before wrong-role control')
+        member[0]['groups'] = [[2, 1, 46, 46]]
+        (root / 'bad-member-role.json').write_text(json.dumps(broken))
+        drawing = root / 'bad-member-role.dwg'
+        run(args.dwgwrite, '--as', args.version, '-I', 'JSON', '-o', str(drawing), str(root / 'bad-member-role.json'))
+        check = root / 'bad-member-role-readback.json'
+        run(args.dwgread, '-O', 'JSON', '-o', str(check), str(drawing))
+        peer = json.loads(check.read_text())
+        members = [o for o in peer['OBJECTS'] if o.get('object') == 'GROUP'
+                   and o.get('handle', [0, 0, 0])[2] == 49]
+        if len(members) != 1 or members[0].get('groups') != [[2, 1, 46, 46]]:
+            raise RuntimeError('wrong-member-role peer readback mismatch')
+        results['badMemberRole'] = {'path': str(drawing), 'sha256': digest(drawing)}
     if args.alternate_group:
         broken = json.loads((root / 'eed.json').read_text())
         nod = [o for o in broken['OBJECTS'] if o.get('object') == 'DICTIONARY'
@@ -184,6 +228,7 @@ def main():
         results[name] = {'path': str(drawing), 'sha256': digest(drawing)}
     print(json.dumps({'recipeSha256': digest(recipe), 'controls': results,
                       'version': args.version, 'dictionaryHandle': group, 'appidHandle': appid,
+                      'nonemptyGroup': args.nonempty_group,
                       'status': 'research control; no support claim'}, indent=2))
 
 

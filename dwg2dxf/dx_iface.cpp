@@ -32521,7 +32521,7 @@ bool dx_iface::hasLegacyDictionaryWireSource(
         || !cData->hasNamedObjectDictionary || dictionary.handle == 0u
         || dictionary.parentHandle != cData->namedObjectDictionary.handle
         || !cData->hasCompleteDwgDictionaryEntry(dictionary.parentHandle, "ACAD_GROUP", dictionary.handle)
-        || !dictionary.m_entries.empty() || frame.appIdDependencies.size() != 1u
+        || frame.appIdDependencies.size() != 1u
         || frame.appIdDependencies.front() == 0u || frame.appIdDependencies.front() == DRW::NoHandle
         || !frame.hasNoObservedTextDecodeIssues() || !frame.sourceCodePageFieldPresent
         || !frame.sourceCodePageRecognized || frame.sourceCodePageId != 30u) return false;

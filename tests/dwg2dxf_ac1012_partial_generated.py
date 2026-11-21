@@ -182,6 +182,33 @@ def main():
                                 str(remapped / "wide.dwg"), str(remapped / "utf8.dwg"),
                                 str(remapped / "wide-output.dxf")]).returncode == 0,
                         source_version + " remapped dictionary unrepresentable refusal")
+                for remap_group in (False, True):
+                    group_root = root / (source_version + ("-nonempty-remapped" if remap_group else "-nonempty"))
+                    group_command = [sys.executable, str(generator), "--version", source_version,
+                                     "--nonempty-group", "--output-dir", str(group_root), "--dwgadd", dwgadd,
+                                     "--dwgread", dwgread, "--dwgwrite", dwgwrite]
+                    if remap_group:
+                        group_command += ["--alternate-app", "--alternate-group"]
+                    require(invoke(group_command).returncode == 0,
+                            source_version + " nonempty group source generation")
+                    suffix = "-nonempty-remapped" if remap_group else "-nonempty"
+                    for profile, file in (("eed", "eed.dwg"), ("eed-utf8", "utf8.dwg")):
+                        require(invoke([profile_test, "--" + source_version + "-" + profile + suffix,
+                                        str(group_root / file), str(group_root / "adapter.dxf")]).returncode == 0,
+                                source_version + " nonempty group " + profile + " graph proof and retry")
+                    wide_profile = "--" + source_version + "-eed-wide" + ("-remapped" if remap_group else "")
+                    require(invoke([profile_test, wide_profile, str(group_root / "wide.dwg"),
+                                    str(group_root / "utf8.dwg"), str(group_root / "wide-output.dxf")]).returncode == 0,
+                            source_version + " nonempty group unrepresentable EED refusal")
+                    if remap_group:
+                        require(invoke([profile_test, "--" + source_version + "-eed-bad-graph",
+                                        str(group_root / "bad-graph.dwg"), str(group_root / "eed.dwg"),
+                                        str(group_root / "graph-output.dxf")]).returncode == 0,
+                                source_version + " nonempty group bad source graph refusal")
+                    require(invoke([profile_test, "--" + source_version + "-eed-bad-member",
+                                    str(group_root / "bad-member-role.dwg"), str(group_root / "eed.dwg"),
+                                    str(group_root / "role-output.dxf")]).returncode == 0,
+                            source_version + " wrong member handle role refusal and corrected retry")
                 for binary in (False, True):
                     output = eed_root / ("cli-binary.dxf" if binary else "cli-ascii.dxf")
                     command = [converter, str(eed_input), "-o", str(output), "-y"]
