@@ -116,6 +116,7 @@ docs/patches/librecad3-p8-entity-lineweight-loss-2026-11-16.patch
 docs/patches/librecad3-p8-hatch-curved-edge-elevation-2026-11-21.patch
 docs/patches/librecad3-p8-hatch-line-edge-elevation-2026-11-21.patch
 docs/patches/librecad3-p8-hatch-planar-elevation-2026-11-19.patch
+docs/patches/librecad3-p8-hatch-spline-edge-elevation-2026-11-21.patch
 docs/patches/librecad3-p8-legacy-layer-lineweight-2026-11-16.patch
 docs/patches/librecad3-p8-mleader-import-loss-2026-11-16.patch
 docs/patches/librecad3-p8-mline-import-loss-2026-11-16.patch

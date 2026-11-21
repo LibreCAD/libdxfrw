@@ -1,0 +1,196 @@
+--- a/persistence/libdxfrw/dxfimpl.cpp
++++ b/persistence/libdxfrw/dxfimpl.cpp
+@@ -1154,13 +1154,6 @@
+             return lc::geo::Coordinate(addOffset(point.x, offsetX),
+                                        addOffset(point.y, offsetY), point.z);
+         };
+-        const auto pointsInOffsetPlane = [this, offsetX, offsetY, addOffset](const auto& points) {
+-            auto mapped = coords(points);
+-            for (auto& point : mapped)
+-                point = lc::geo::Coordinate(addOffset(point.x(), offsetX),
+-                                            addOffset(point.y(), offsetY), point.z());
+-            return mapped;
+-        };
+         // Default-normal DXF HATCH and MPOLYGON polyline paths lie at
+         // the entity's OCS elevation; their path coordinates have no Z.
+         // Leave tilted planes and DWG MPOLYGON projection on existing paths.
+@@ -1171,6 +1164,14 @@
+         const auto boundaryPointInPlane = [&pointInOffsetPlane, liftBoundaryPlane, hatchPolylinePlaneZ](const DRW_Coord& point) {
+             const auto mapped = pointInOffsetPlane(point);
+             return liftBoundaryPlane ? lc::geo::Coordinate(mapped.x(), mapped.y(), hatchPolylinePlaneZ) : mapped;
++        };
++        const auto pointsInOffsetPlane = [this, offsetX, offsetY, addOffset, liftBoundaryPlane, hatchPolylinePlaneZ](const auto& points) {
++            auto mapped = coords(points);
++            for (auto& point : mapped)
++                point = lc::geo::Coordinate(addOffset(point.x(), offsetX),
++                                            addOffset(point.y(), offsetY),
++                                            liftBoundaryPlane ? hatchPolylinePlaneZ : point.z());
++            return mapped;
+         };
+         lc::geo::Region reg;
+         auto lcHatch = std::make_shared<lc::entity::Hatch>(   layer,
+@@ -3168,8 +3169,8 @@
+             "Some MPOLYGON entities were written as HATCH; boundary geometry "
+             "or polygon-specific information may not be retained.");
+     }
+-    // Polyline, line, arc and planar ellipse paths can share one default-
+-    // normal HATCH elevation. Do not infer it from unsupported or mixed loops.
++    // Supported paths can share one default-normal HATCH elevation. Do not
++    // infer it from unsupported or mixed loops.
+     bool planar = !region.loopList().empty();
+     bool haveElevation = false;
+     bool mixedOrNonfiniteElevation = false;
+@@ -3206,6 +3207,15 @@
+             } else if (const auto ellipse = std::dynamic_pointer_cast<const lc::entity::Ellipse>(entity)) {
+                 if (ellipse->majorP().z() != 0.0 || !addElevation(ellipse->center().z()))
+                     planar = false;
++            } else if (const auto spline = std::dynamic_pointer_cast<const lc::entity::Spline>(entity)) {
++                if (spline->controlPoints().empty() || (spline->flags() & lc::geo::Spline::RATIONAL)
++                    || spline->startTanZ() != 0.0 || spline->endTanZ() != 0.0) {
++                    planar = false; break;
++                }
++                for (const auto& point : spline->controlPoints())
++                    if (!addElevation(point.z())) { planar = false; break; }
++                if (planar) for (const auto& point : spline->fitPoints())
++                    if (!addElevation(point.z())) { planar = false; break; }
+             } else {
+                 planar = false;
+             }
+@@ -3213,7 +3223,20 @@
+         }
+         if (!planar) break;
+     }
+-    if (planar && haveElevation) hatch.basePoint.z = elevation;
++    if (planar && haveElevation) {
++        hatch.basePoint.z = elevation;
++        // Spline edge points are 2D in DXF. The common elevation above is
++        // their Z component, so do not submit a second geometric Z to the
++        // codec's strict HATCH boundary validator.
++        for (const auto& loop : hatch.looplist) {
++            for (const auto& entity : loop->objlist) {
++                const auto spline = std::dynamic_pointer_cast<DRW_Spline>(entity);
++                if (!spline) continue;
++                for (const auto& point : spline->controllist) if (point) point->z = 0.0;
++                for (const auto& point : spline->fitlist) if (point) point->z = 0.0;
++            }
++        }
++    }
+     if (mixedOrNonfiniteElevation && !snapshot) {
+         _loss.notes.push_back(
+             "HATCH boundary elevation varies or is nonfinite; the output "
+--- a/unittest/persistence/dwgimporttest.cpp
++++ b/unittest/persistence/dwgimporttest.cpp
+@@ -1644,3 +1644,113 @@
+     boost::filesystem::remove(input);
+     }
+ }
++
++TEST(DwgImportTest, ElevatedSplineEdgeHatchRoundTrip) {
++    const auto input = tmpPath("elevated-spline-hatch");
++    {
++        std::ofstream f(input);
++        ASSERT_TRUE(f.good());
++        f << "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1018\n0\nENDSEC\n"
++             "0\nSECTION\n2\nENTITIES\n0\nHATCH\n5\n55\n100\nAcDbEntity\n8\n0\n"
++             "100\nAcDbHatch\n10\n0\n20\n0\n30\n3\n210\n0\n220\n0\n230\n1\n"
++             "2\nSOLID\n70\n1\n71\n0\n91\n1\n92\n0\n93\n1\n"
++             "72\n4\n94\n2\n73\n0\n74\n0\n95\n6\n96\n3\n"
++             "40\n0\n40\n0\n40\n0\n40\n1\n40\n1\n40\n1\n"
++             "10\n1\n20\n2\n10\n2\n20\n4\n10\n3\n20\n2\n"
++             "97\n2\n11\n1\n21\n2\n11\n3\n21\n2\n"
++             "12\n1\n22\n2\n13\n1\n23\n-2\n"
++             "97\n0\n75\n0\n76\n1\n78\n0\n98\n0\n0\nENDSEC\n0\nEOF\n";
++        ASSERT_TRUE(f.good());
++    }
++    const auto check = [](const std::shared_ptr<lc::storage::DocumentImpl>& doc) {
++        lc::entity::Hatch_CSPtr hatch;
++        for (const auto& entity : doc->entityContainer().asVector())
++            if (auto value = std::dynamic_pointer_cast<const lc::entity::Hatch>(entity)) hatch = value;
++        ASSERT_NE(hatch, nullptr);
++        const auto& loops = hatch->getRegion().loopList();
++        ASSERT_EQ(loops.size(), 1u);
++        ASSERT_EQ(loops[0].entities().size(), 1u);
++        const auto spline = std::dynamic_pointer_cast<const lc::entity::Spline>(loops[0].entities()[0]);
++        ASSERT_NE(spline, nullptr);
++        ASSERT_EQ(spline->controlPoints().size(), 3u);
++        EXPECT_EQ(spline->degree(), 2);
++        ASSERT_EQ(spline->fitPoints().size(), 2u);
++        for (const auto& point : spline->fitPoints()) EXPECT_DOUBLE_EQ(point.z(), 3.0);
++        EXPECT_DOUBLE_EQ(spline->startTanX(), 1.0);
++        EXPECT_DOUBLE_EQ(spline->startTanY(), 2.0);
++        EXPECT_DOUBLE_EQ(spline->startTanZ(), 0.0);
++        EXPECT_DOUBLE_EQ(spline->endTanX(), 1.0);
++        EXPECT_DOUBLE_EQ(spline->endTanY(), -2.0);
++        EXPECT_DOUBLE_EQ(spline->endTanZ(), 0.0);
++        const double xy[3][2] = {{1,2},{2,4},{3,2}};
++        for (std::size_t i = 0; i < 3; ++i) {
++            EXPECT_DOUBLE_EQ(spline->controlPoints()[i].x(), xy[i][0]);
++            EXPECT_DOUBLE_EQ(spline->controlPoints()[i].y(), xy[i][1]);
++            EXPECT_DOUBLE_EQ(spline->controlPoints()[i].z(), 3.0);
++        }
++    };
++    auto doc = newDwgDocument();
++    ASSERT_TRUE(lc::persistence::File::importFile(doc, input, lc::persistence::File::LIBDXFRW).ok);
++    check(doc);
++    const char* capture = std::getenv("LC3_SPLINE_CAPTURE");
++    if (capture) {
++        std::ifstream from(input, std::ios::binary);
++        std::ofstream to(std::string(capture) + "/input.dxf", std::ios::binary);
++        ASSERT_TRUE(from.good() && to.good());
++        to << from.rdbuf();
++        ASSERT_TRUE(to.good());
++    }
++    for (const auto type : {lc::persistence::File::LIBDXFRW_DXF_R2000,
++                            lc::persistence::File::LIBDXFRW_DXB_R2000}) {
++        const auto output = capture ? std::string(capture) + (type == lc::persistence::File::LIBDXFRW_DXF_R2000 ? "/spline-ascii.dxf" : "/spline-binary.dxf") : tmpPath("elevated-spline-hatch-output");
++        ASSERT_TRUE(lc::persistence::File::exportFile(doc, output, type).ok);
++        auto reopened = newDwgDocument();
++        ASSERT_TRUE(lc::persistence::File::importFile(reopened, output, lc::persistence::File::LIBDXFRW).ok);
++        check(reopened);
++        if (!capture) boost::filesystem::remove(output);
++    }
++    lc::entity::Hatch_CSPtr original;
++    for (const auto& entity : doc->entityContainer().asVector())
++        if (auto value = std::dynamic_pointer_cast<const lc::entity::Hatch>(entity)) original = value;
++    ASSERT_NE(original, nullptr);
++    const auto& edges = original->getRegion().loopList().front().entities();
++    ASSERT_EQ(edges.size(), 1u);
++    const auto spline = std::dynamic_pointer_cast<const lc::entity::Spline>(edges[0]);
++    ASSERT_NE(spline, nullptr);
++    auto points = spline->controlPoints();
++    ASSERT_EQ(points.size(), 3u);
++    points[1] = lc::geo::Coordinate(points[1].x(), points[1].y(), 4.0);
++    auto changed = std::make_shared<lc::entity::Spline>(points, spline->knotPoints(), spline->fitPoints(),
++        spline->degree(), spline->closed(), spline->fitTolerance(),
++        spline->startTanX(), spline->startTanY(), spline->startTanZ(),
++        spline->endTanX(), spline->endTanY(), spline->endTanZ(),
++        spline->nX(), spline->nY(), spline->nZ(), spline->flags(), spline->layer());
++    lc::geo::Region mixedRegion;
++    mixedRegion.addLoop(lc::geo::Loop({changed}));
++    auto mixed = std::make_shared<lc::entity::Hatch>(original->layer(), original->metaInfo(), original->block());
++    mixed->setRegion(mixedRegion);
++    mixed->setPatternName(original->getPatternName());
++    mixed->setSolid(original->isSolid());
++    doc->removeEntity(original);
++    doc->insertEntity(mixed);
++    const auto mixedOutput = capture ? std::string(capture) + "/mixed.dxf" : tmpPath("mixed-spline-hatch");
++    { std::ofstream sentinel(mixedOutput); sentinel << "previous destination"; }
++    const auto mixedResult = lc::persistence::File::exportFile(doc, mixedOutput, lc::persistence::File::LIBDXFRW_DXF_R2000);
++    if (mixedResult.ok) {
++        EXPECT_TRUE(std::any_of(mixedResult.loss.notes.begin(), mixedResult.loss.notes.end(),
++            [](const std::string& note) { return note.find("HATCH boundary elevation varies") != std::string::npos; }));
++    } else {
++        std::ifstream sentinel(mixedOutput);
++        std::string value; std::getline(sentinel, value);
++        EXPECT_EQ(value, "previous destination");
++    }
++    doc->removeEntity(mixed);
++    doc->insertEntity(original);
++    const auto retry = capture ? std::string(capture) + "/retry.dxf" : tmpPath("retry-spline-hatch");
++    ASSERT_TRUE(lc::persistence::File::exportFile(doc, retry, lc::persistence::File::LIBDXFRW_DXF_R2000).ok);
++    auto reopened = newDwgDocument();
++    ASSERT_TRUE(lc::persistence::File::importFile(reopened, retry, lc::persistence::File::LIBDXFRW).ok);
++    check(reopened);
++    if (!capture) { boost::filesystem::remove(mixedOutput); boost::filesystem::remove(retry); }
++    boost::filesystem::remove(input);
++}
