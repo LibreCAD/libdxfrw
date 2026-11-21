@@ -150,7 +150,11 @@ EED and currently hit a separate ModelDocViewStyle cross-version guard. The
 now checks the observed EED bytes, APPID identity and mutation/retry against
 both ODA files. The [controlled producer/reopen witness](docs/research/p6-legacy-eed-codepage45-utf8-witness-2026-11-21.json)
 binds EED codepage 45 to UTF-8 for the observed R13/R14 profile, now decoded
-with malformed-byte observations. The observed legacy DICTIONARYWDFLT is now
+with malformed-byte observations. The [UTF-8 EED source proof](docs/research/p6-legacy-dictionary-eed-utf8-source-2026-11-21.json)
+also binds exact bytes and unchanged APPIDs, with malformed text, bit mutation,
+and retry controls; it does not qualify output. Next, connect the verified
+source profile to staged APPID/table and graph checks only for an independently
+qualified whole-file output profile. The observed legacy DICTIONARYWDFLT is now
 decoded with cloning, owner, entry and default fields after
 [producer and wire checks](docs/research/p6-legacy-dictionary-default-typed-2026-11-21.json);
 the subclass physically contains a cloning field in these samples. CELLSTYLEMAP

@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-dictionary-eed-utf8-source-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_SOURCE_FRAMING_ONLY",
+  "supportClaimEffect": "none",
+  "producer": "ODA File Converter 27.1.0, with locally generated ezdxf 1.4.5 source; ODA reopen and LibreDWG 0.14 peer observations",
+  "generator": "tools/research/generate_legacy_eed_utf8_witness.py",
+  "priorWitness": "docs/research/p6-legacy-eed-codepage45-utf8-witness-2026-11-21.json",
+  "samples": {
+    "r13": {
+      "dwgSha256": "48339032e80e019394c5becde4ab54c9d93987176e8ccf6302d3ada6f1eae9c2",
+      "dictionaryHandle": "31",
+      "frameSha256": "ea5c93ac7c393bbe90197f5ba05ef7d247d552761fe814c2fb47e50e4a9df1d4",
+      "frameBytes": 60,
+      "paddingBits": 4,
+      "appidHandles": [
+        "2F",
+        "2A"
+      ]
+    },
+    "r14": {
+      "dwgSha256": "47021ba2784dc6995ab8e94cb264df366734a628d00a71fe55a0140a1abf623b",
+      "dictionaryHandle": "31",
+      "frameSha256": "649d2e84a87cfc5342cce16e036fc90bf1f3081739054c17bc062aafe30f7608",
+      "frameBytes": 38,
+      "paddingBits": 6,
+      "appidHandles": [
+        "2F"
+      ]
+    }
+  },
+  "checks": [
+    "The shared source observer accepts only exact matching UTF-8 scalar bytes with literal EED codepage 45 in this R13/R14 source profile; the caller independently binds the codepage and each APPID.",
+    "The real source tests check unchanged APPID identities, every frame bit including the expected padding exceptions, mutation refusal and corrected retry; strict output still refuses while preserving the destination.",
+    "A hand-encoded R13 control checks truncation, wrong APPID/page/value and unresolved references, and matching malformed bytes in both model and source.",
+    "The candidate was rerun against independently generated producer files and CRC-repaired malformed object controls."
+  ],
+  "limits": [
+    "These checks establish a bounded physical source match, not complete EED semantics, graph closure, staged output, native clone behavior, or support promotion.",
+    "Generated drawings remain outside the repository."
+  ]
+}

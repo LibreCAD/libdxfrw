@@ -74,24 +74,27 @@ void putText(dwgBufferW& w, const std::string& text) {
     for (const unsigned char c : text) w.putRawChar8(c);
 }
 
-bool r13DictionaryEedControl() {
+bool r13DictionaryEedControl(bool utf8 = false) {
     // ODA-produced scratch source, re-encoded from its observed fields. The
     // caller must bind APPID and codepage; this is not an output proof.
     dwgBufferW w;
     w.putObjType(DRW::AC1012, 42u);
     w.putFixedHandle(0u, 1u, 0x30u);
-    w.putBitShort(20u);
+    const std::string value = utf8 ? "caf\xC3\xA9" : "TREAT_AS_HARD";
+    w.putBitShort(static_cast<std::uint16_t>(value.size() + 7u));
     w.putFixedHandle(5u, 1u, 0x2au);
     w.putRawChar8(0u);
-    w.putRawChar8(13u);
+    w.putRawChar8(static_cast<std::uint8_t>(value.size()));
     w.putRawChar8(0u);
     w.putRawChar8(45u);
-    for (const unsigned char c : std::string("TREAT_AS_HARD")) w.putRawChar8(c);
+    const std::size_t textBit = w.bitPos() == 0u ? w.size() * 8u
+        : (w.size() - 1u) * 8u + w.bitPos();
+    for (const unsigned char c : value) w.putRawChar8(c);
     w.putRawChar8(70u);
     w.putRawChar8(0u);
     w.putRawChar8(0u);
     w.putBitShort(0u);
-    w.putRawLong32(250u);
+    w.putRawLong32(utf8 ? 186u : 250u);
     w.putBitLong(0);
     w.putBitLong(0);
     w.putFixedHandle(4u, 1u, 0xau);
@@ -100,7 +103,7 @@ bool r13DictionaryEedControl() {
     const auto bytes = w.data();
     dwgBuffer input(bytes.data(), bytes.size());
     Dictionary model;
-    if (bytes.size() != 35u || !model.parseDwg(DRW::AC1012, &input, 0u)
+    if (bytes.size() != (utf8 ? 27u : 35u) || !model.parseDwg(DRW::AC1012, &input, 0u)
         || !input.isGood() || model.extData.size() != 3u
         || model.pendingAppIdResolutions.size() != 1u) return false;
     model.extData[0]->addString(1001, "ACAD");
@@ -140,6 +143,22 @@ bool r13DictionaryEedControl() {
         truncated.m_rawBytes.resize(size);
         truncated.m_objectSize = static_cast<std::uint32_t>(size);
         if (check(truncated)) return false;
+    }
+    if (utf8) {
+        auto malformed = raw;
+        // Change C3 to FF in both model and wire. Matching bytes alone must
+        // not make an invalid UTF-8 scalar sequence acceptable.
+        const std::size_t invalidByte = textBit + 3u * 8u;
+        for (unsigned int bit = 0; bit < 8u; ++bit) {
+            if ((0x3cu & (0x80u >> bit)) != 0u) {
+                const std::size_t pos = invalidByte + bit;
+                malformed.m_rawBytes[pos / 8u] ^= static_cast<std::uint8_t>(0x80u >> (pos % 8u));
+            }
+        }
+        model.extData[1]->addString(1000, std::string("caf\xff\xa9", 5u));
+        const bool invalidAccepted = check(malformed);
+        model.extData[1]->addString(1000, value);
+        if (invalidAccepted || !check(raw)) return false;
     }
     model.pendingAppIdResolutions.push_back({});
     const bool unresolvedAccepted = check(raw);
@@ -305,7 +324,7 @@ bool expected(const Variable& v) {
 }
 
 bool run() {
-    if (!legacyDictionaryWithDefaultControl() || !r13DictionaryEedControl() || !terminatedDictionaryControl(DRW::AC1012)
+    if (!legacyDictionaryWithDefaultControl() || !r13DictionaryEedControl() || !r13DictionaryEedControl(true) || !terminatedDictionaryControl(DRW::AC1012)
         || !terminatedDictionaryControl(DRW::AC1014) || !dictionaryWireControl(true, false)
         || !dictionaryWireControl(false, false)
         || !dictionaryWireControl(false, true)) {

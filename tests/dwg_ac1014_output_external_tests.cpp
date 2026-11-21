@@ -60,6 +60,20 @@ public:
     static bool hasOpaqueSource(const dx_data& data, std::uint32_t handle) {
         return data.m_opaqueDwgSourceFrameIdentities.count({data.importGeneration, handle}) != 0u;
     }
+    static bool unchangedAppId(const dx_data& data, std::uint32_t handle,
+                               const std::string& name) noexcept {
+        const auto snapshot = data.m_standardDwgAppIdSources.find({data.importGeneration, handle});
+        if (snapshot == data.m_standardDwgAppIdSources.end() || !snapshot->second
+            || snapshot->second->name != name || !snapshot->second->hasUnchangedDwgSourceName()
+            || snapshot->second->dwgNameDecodeIssues() != 0u) return false;
+        const DRW_AppId* live = nullptr;
+        for (const auto& candidate : data.appIds) {
+            if (candidate.handle != handle) continue;
+            if (live) return false;
+            live = &candidate;
+        }
+        return live && live->name == name && live->sameDwgNameSource(*snapshot->second);
+    }
     // Literal wire observation only; EED semantics and output remain unproved.
     static bool r13EedSource(const dx_data& data) {
         const dx_data::StandardDwgFrameKey key{data.importGeneration, 0x30u};
@@ -73,24 +87,39 @@ public:
             || frame.appIdDependencies != std::vector<std::uint32_t>{0x2au}
             || data.m_opaqueDwgSourceFrameIdentities.count(key) != 1u) return false;
         const auto app = [&data](std::uint32_t handle, const std::string& name) noexcept {
-            const auto snapshot = data.m_standardDwgAppIdSources.find({data.importGeneration, handle});
-            if (handle != 0x2au || name != "ACAD" || snapshot == data.m_standardDwgAppIdSources.end()
-                || !snapshot->second || snapshot->second->name != name
-                || !snapshot->second->hasUnchangedDwgSourceName()
-                || snapshot->second->dwgNameDecodeIssues() != 0u) return false;
-            const DRW_AppId* live = nullptr;
-            for (const auto& candidate : data.appIds) {
-                if (candidate.handle != handle) continue;
-                if (live) return false;
-                live = &candidate;
-            }
-            return live && live->name == name && live->sameDwgNameSource(*snapshot->second);
+            return handle == 0x2au && name == "ACAD" && unchangedAppId(data, handle, name);
         };
         const auto literalPage = [](std::uint16_t be, std::uint16_t le) noexcept {
             return be == 45u && le == 0x2d00u;
         };
         return !dx_legacy_dwg_wire::dictionary(frame.raw, *model, false)
             && dx_legacy_dwg_wire::observeDictionaryEed(frame.raw, *model, false, app, literalPage);
+    }
+    // This checks the physical UTF-8 EED profile and unchanged APPID identity;
+    // it does not qualify the dictionary for output.
+    static bool legacyUtf8EedSource(const dx_data& data) {
+        const dx_data::StandardDwgFrameKey key{data.importGeneration, 0x31u};
+        const auto found = data.m_standardDwgObjectFrames.find(key);
+        if (found == data.m_standardDwgObjectFrames.end()) return false;
+        const auto& frame = found->second;
+        const auto* model = dynamic_cast<const DRW_Dictionary*>(frame.typedBaseline.get());
+        if (!model || frame.generation != data.importGeneration || !frame.payloadMatched
+            || !frame.sourceProfileBound || !frame.textDecodeObserved
+            || frame.textDecodeIssues != 0u
+            || data.m_opaqueDwgSourceFrameIdentities.count(key) != 1u
+            || data.m_opaqueDwgOutputQualifiedFrameIdentities.count(key) != 0u) return false;
+        const auto app = [&data](std::uint32_t handle, const std::string& name) noexcept {
+            return ((handle == 0x2fu && name == "CODEPAGE_TEST")
+                || (handle == 0x2au && name == "ACAD")) && unchangedAppId(data, handle, name);
+        };
+        const auto page = [](std::uint16_t be, std::uint16_t le) noexcept {
+            return be == 45u && le == 0x2d00u;
+        };
+        return !dx_legacy_dwg_wire::dictionary(frame.raw, *model, false)
+            && dx_legacy_dwg_wire::observeDictionaryEed(frame.raw, *model, false, app, page);
+    }
+    static std::vector<std::uint8_t>& legacyUtf8EedBytes(dx_data& data) {
+        return data.m_standardDwgObjectFrames.at({data.importGeneration, 0x31u}).raw.m_rawBytes;
     }
     static std::vector<std::uint8_t>& r13EedBytes(dx_data& data) {
         return data.m_standardDwgObjectFrames.at({data.importGeneration, 0x30u}).raw.m_rawBytes;
@@ -537,7 +566,25 @@ bool checkLegacyEedUtf8Source(const std::string& input) {
         && dictionary->extData[3] && dictionary->extData[3]->code() == 1070
         && dictionary->extData[3]->type() == DRW_Variant::INTEGER
         && dictionary->extData[3]->i_val() == -42;
-    return decoded && strictOutputRefuses(reader, data)
+    if (!decoded || !DxIfaceStandardDwgCaptureTestAccess::legacyUtf8EedSource(data)) return false;
+    auto& frameBytes = DxIfaceStandardDwgCaptureTestAccess::legacyUtf8EedBytes(data);
+    const std::size_t padding = data.sourceVersion == DRW::AC1012 ? 4u : 6u;
+    if (frameBytes.size() != (data.sourceVersion == DRW::AC1012 ? 60u : 38u)) return false;
+    for (std::size_t bit = 0; bit < frameBytes.size() * 8u; ++bit) {
+        frameBytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
+        const bool accepted = DxIfaceStandardDwgCaptureTestAccess::legacyUtf8EedSource(data);
+        frameBytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
+        if (accepted != (bit >= frameBytes.size() * 8u - padding)) return false;
+    }
+    auto app = std::find_if(data.appIds.begin(), data.appIds.end(),
+        [](const DRW_AppId& item) { return item.handle == 0x2fu; });
+    if (app == data.appIds.end()) return false;
+    const std::string originalName = app->name;
+    app->name += "X";
+    const bool changedAccepted = DxIfaceStandardDwgCaptureTestAccess::legacyUtf8EedSource(data);
+    app->name = originalName;
+    if (changedAccepted || !DxIfaceStandardDwgCaptureTestAccess::legacyUtf8EedSource(data)) return false;
+    return strictOutputRefuses(reader, data)
         && (data.sourceVersion != DRW::AC1014
             || DxIfaceStandardDwgCaptureTestAccess::legacyRawPair(
                 data, bytes(input), 0xc1u, 17516u, 5221u, 28u));

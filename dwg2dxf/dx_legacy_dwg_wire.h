@@ -4,6 +4,7 @@
 
 #include "drw_objects.h"
 #include "dx_raster_dwg_wire.h"
+#include "intern/drw_textcodec.h"
 #include <algorithm>
 #include <cstdint>
 #include <limits>
@@ -56,7 +57,8 @@ inline bool metadata(const DRW_UnsupportedObject& raw, std::uint32_t id,
 // Source framing only: this does not qualify decoded text or output. Callers
 // must bind APPIDs to unchanged records, independently justify the codepage
 // interpretation, and check import text issues, semantics, graph and output.
-// Only ASCII bytes and signed 16-bit values are currently observed.
+// String bytes are ASCII or the observed codepage-45 UTF-8 profile; integer
+// support is currently limited to signed 16-bit values.
 template<class AppIdSource, class CodepageSource>
 bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
                        const DRW_Dictionary& model, bool nod,
@@ -110,8 +112,13 @@ bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
                 || !codepageSource(token.codePageBE, token.codePageLE)) return false;
             Bits textBits{raw.m_rawBytes.data(), token.valueSpan.begin, token.valueSpan.end};
             if (textBits.take(8u) != value->content.s->size() || !textBits.skip(16u)) return false;
-            for (unsigned char c : *value->content.s)
-                if (c == 0u || c > 0x7fu || textBits.take(8u) != c) return false;
+            bool nonAscii = false;
+            for (unsigned char c : *value->content.s) {
+                if (c == 0u || textBits.take(8u) != c) return false;
+                nonAscii = nonAscii || c > 0x7fu;
+            }
+            if (nonAscii && (token.codePageBE != 45u || token.codePageLE != 0x2d00u
+                || !DRW_TextCodec::isUtf8ScalarText(*value->content.s))) return false;
             return textBits.good && textBits.pos == textBits.end;
         }
         if (token.code == 1070u && value->type() == DRW_Variant::INTEGER) {
