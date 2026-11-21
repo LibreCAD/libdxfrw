@@ -140,14 +140,17 @@ see the [callback boundary](docs/research/p5-tablecontent-semantic-incomplete-ca
 
 For R14 source and output changes, reuse the [PR review regression controls](docs/research/p6-pr106-r14-conversion-review-fixes-2026-11-20.json); they do not close the organic-failure gate.
 
-For the strict AC1012 MLINESTYLE output profile, reuse the version-aware R13/R14 source-frame and
-dictionary checks in the [source readiness receipt](docs/research/p6-ac1012-legacy-frame-readiness-2026-11-21.json), then resolve the absent-source cloning/ownership projection
-with the [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md)
-and the [prior peer disagreement](docs/research/p6-ac1012-dictionary-cloning-boundary-2026-11-15.json).
-Keep this profile's strict output refused until the source-presence-aware projection, native
-duplicate behavior, both encodings and rollback/retry are proven. This is
-separate from P6-F's organic partial-read failure and the LibreCAD raw-carrier
-gate below.
+For the strict AC1012 MLINESTYLE output profile, reuse the version-aware R13/R14
+source checks and the [generated and ODA-produced controls](docs/research/p6-ac1012-generated-oda-dictionary-witness-2026-11-21.json).
+They bind the absent R13/R14 cloning field and show that ODA's selected R14
+output omits group 281 while its R2000 output writes 1; they do not establish
+native duplicate behavior. The ODA sources also contain APPID-bound dictionary
+EED and currently hit a separate ModelDocViewStyle cross-version guard. Resolve
+source-presence-aware dictionary projection and EED dependencies, then run the
+[native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md)
+on an identified host. Keep strict output refused until native duplicate
+behavior, both encodings and rollback/retry are proven. This is separate from
+P6-F's organic partial-read failure and the LibreCAD raw-carrier gate below.
 
 Keep the AC1027 173-bit unclaimed suffix as an output-blocking integrity error;
 ordinary AC1027 drawings remain deferred until source-reference closure. Keep

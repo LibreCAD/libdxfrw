@@ -19,7 +19,7 @@ from audit_binary_dxf_layout_nod import SENTINEL, read_pairs
 MAX_BYTES = 128 * 1024 * 1024
 
 
-def audit_bytes(data: bytes) -> dict:
+def audit_bytes(data: bytes, include_rows: bool = False) -> dict:
     if len(data) > MAX_BYTES:
         raise ValueError("DXF exceeds 128 MiB")
     if data.startswith(SENTINEL):
@@ -104,9 +104,12 @@ def audit_bytes(data: bytes) -> dict:
                                 "target": target})
     counts = Counter("absent" if row["cloning"] is None else str(row["cloning"])
                      for row in rows)
-    return {"sha256": hashlib.sha256(data).hexdigest(), "dictionaries": len(rows),
-            "cloning_field_counts": dict(sorted(counts.items())),
-            "mlinestyle_roots": matches}
+    result = {"sha256": hashlib.sha256(data).hexdigest(), "dictionaries": len(rows),
+              "cloning_field_counts": dict(sorted(counts.items())),
+              "mlinestyle_roots": matches}
+    if include_rows:
+        result["dictionary_rows"] = rows
+    return result
 
 
 def self_test() -> None:
@@ -126,6 +129,7 @@ def self_test() -> None:
     binary_result = audit_bytes(bytes(binary))
     assert binary_result["cloning_field_counts"] == result["cloning_field_counts"]
     assert binary_result["mlinestyle_roots"] == result["mlinestyle_roots"]
+    assert audit_bytes(data, include_rows=True)["dictionary_rows"][0]["cloning"] is None
     for invalid in (data + b"0\n", data.replace(b"281\n1\n", b"281\n1\n281\n0\n"),
                     bytes(binary[:-1])):
         try:
@@ -140,6 +144,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("paths", nargs="*", type=Path)
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--details", action="store_true", help="include each dictionary's physical fields")
     args = parser.parse_args()
     if args.self_test:
         self_test()
@@ -149,7 +154,7 @@ def main() -> int:
         try:
             with path.open("rb") as stream:
                 data = stream.read(MAX_BYTES + 1)
-            result = audit_bytes(data)
+            result = audit_bytes(data, include_rows=args.details)
         except (OSError, ValueError) as error:
             print(f"{path}: {error}", file=sys.stderr)
             return 1

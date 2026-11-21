@@ -1,0 +1,312 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-generated-oda-dictionary-witness-2026-11-21",
+  "date": "2026-11-21",
+  "status": "CONTROLLED_SOURCE_WITNESSES_CREATED_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1 and 20.4.44; R13/R14 omit the cloning field and R14 has the extra byte, while R2000 stores cloning and hard-owner fields.",
+  "generator": "tools/research/generate_ac1012_dictionary_witness.py",
+  "command": "PYTHONPATH=<ezdxf-directory> python3 -B tools/research/generate_ac1012_dictionary_witness.py --self-test --output-dir <scratch> --candidate <libdxfrw-dwg2dxf> --oda <ODAFileConverter>",
+  "oneRunDirectory": "/private/tmp/libdxfrw-ac1012-witness-runs/ac1012-dictionary-wxyaoky1",
+  "oneRunReceiptSha256": "07ce4f262485ebe5bb1625fd124f05c5af07eac8bdf725732017d86fa83ae092",
+  "tools": {
+    "dwgadd": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgadd",
+      "sha256": "66c435deb0f081ab72be21bb9ba36e5d149f9352d71ddf1e83ac95b3fc07f282"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "candidate": {
+      "path": "/private/tmp/libdxfrw-p6j-asan/dwg2dxf/dwg2dxf",
+      "sha256": "77c0e956fa3eba21a591e53f16069546a0b74987768398e9500910c00f5ce00f"
+    }
+  },
+  "odaVersion": "27.1.0.0",
+  "odaExecutable": {
+    "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+  },
+  "ezdxfVersion": "1.4.5",
+  "localSamples": {
+    "r13-cloning-0": {
+      "sha256": "64ed90616029160efbbab448ee59e4b269d93d8754342a4b2e6a065e7d3e2d70",
+      "frameSha256": "4036547657589ec54edcaf98dfedcf6866c4e234991f2cef8cd10e0112abb269",
+      "sourceHandle": 47,
+      "dataBits": 72,
+      "cloning": null,
+      "candidate": {
+        "exit": 1,
+        "destinationPreservedOnFailure": true,
+        "diagnostics": [
+          "DXF export finalization failed: strict-complete conversion requires output qualification for every opaque DWG callback (qualified=5/6)",
+          "Unqualified opaque DWG callback: handle=24 type=73 record= class=",
+          "DXF export failed: dxf-finalize-rejected: the consumer did not accept the completed DXF write"
+        ]
+      }
+    },
+    "r13-cloning-1": {
+      "sha256": "ddaea427ddf779a00b08c6b7723e11c34bf72995f0dbd3a57613781728429d96",
+      "frameSha256": "4036547657589ec54edcaf98dfedcf6866c4e234991f2cef8cd10e0112abb269",
+      "sourceHandle": 47,
+      "dataBits": 72,
+      "cloning": null,
+      "candidate": {
+        "exit": 1,
+        "destinationPreservedOnFailure": true,
+        "diagnostics": [
+          "DXF export finalization failed: strict-complete conversion requires output qualification for every opaque DWG callback (qualified=5/6)",
+          "Unqualified opaque DWG callback: handle=24 type=73 record= class=",
+          "DXF export failed: dxf-finalize-rejected: the consumer did not accept the completed DXF write"
+        ]
+      }
+    },
+    "r14-cloning-0": {
+      "sha256": "dfc1e5dcc9bd28990a4c6896afeb7feb1714a073c04aa36309ccd810320ca181",
+      "frameSha256": "70773bda8a49614351e40a8fe8f4d602d769fc14b3fe0f71efd8920f868a1ce6",
+      "sourceHandle": 47,
+      "dataBits": 80,
+      "cloning": null,
+      "candidate": {
+        "exit": 0,
+        "destinationPreservedOnFailure": false,
+        "diagnostics": [],
+        "outputSha256": "9a3417a469de81d0113ad043d17f1f888b93d3dc4009813694dc56561d0d45cd",
+        "cloningFieldCounts": {
+          "0": 2,
+          "absent": 3
+        },
+        "selectedDictionary": {
+          "handle": "2F",
+          "owner": "C",
+          "cloning": null,
+          "entries": []
+        }
+      }
+    },
+    "r14-cloning-1": {
+      "sha256": "dfc1e5dcc9bd28990a4c6896afeb7feb1714a073c04aa36309ccd810320ca181",
+      "frameSha256": "70773bda8a49614351e40a8fe8f4d602d769fc14b3fe0f71efd8920f868a1ce6",
+      "sourceHandle": 47,
+      "dataBits": 80,
+      "cloning": null,
+      "candidate": {
+        "exit": 0,
+        "destinationPreservedOnFailure": false,
+        "diagnostics": [],
+        "outputSha256": "9a3417a469de81d0113ad043d17f1f888b93d3dc4009813694dc56561d0d45cd",
+        "cloningFieldCounts": {
+          "0": 2,
+          "absent": 3
+        },
+        "selectedDictionary": {
+          "handle": "2F",
+          "owner": "C",
+          "cloning": null,
+          "entries": []
+        }
+      }
+    },
+    "r2000-cloning-0": {
+      "sha256": "9a8c2f0219c515ee022bf9647153b7a19e0f8cca60bdd8fe1d0311cd01617aca",
+      "frameSha256": "df76c860b560a8d37918751b358327322b588fd1ba1cd193c0cdfb6c829bdb60",
+      "sourceHandle": 47,
+      "dataBits": 82,
+      "cloning": 0,
+      "candidate": {
+        "exit": 1,
+        "destinationPreservedOnFailure": true,
+        "diagnostics": [
+          "DXF OBJECTS output inspection failed: DICTIONARYWDFLT/PLACEHOLDER DWG physical source/output binding",
+          "DXF export failed: emit-failure: DXF output generation failed during OBJECTS emission"
+        ]
+      }
+    },
+    "r2000-cloning-1": {
+      "sha256": "baabbda740ef3464deca229151fb55e207794e87c11d874507b258229abf531b",
+      "frameSha256": "f68da5cf985b761e5effa7336fbcc4e480cdfe3b01cd157353013a0ac70312ef",
+      "sourceHandle": 47,
+      "dataBits": 90,
+      "cloning": 1,
+      "candidate": {
+        "exit": 1,
+        "destinationPreservedOnFailure": true,
+        "diagnostics": [
+          "DXF OBJECTS output inspection failed: DICTIONARYWDFLT/PLACEHOLDER DWG physical source/output binding",
+          "DXF export failed: emit-failure: DXF output generation failed during OBJECTS emission"
+        ]
+      }
+    }
+  },
+  "odaSamples": {
+    "0": {
+      "seedSha256": "1ca7fc20c59ff02f0f69eaa5f0aabd551849fdfc762fa99f572476623fdfd4c0",
+      "seedExplicitCloning": 0,
+      "sourceSha256": "9361298515f2a339d6bfd7b55621e53b095389b433fd21c39441a11a267f5fcf",
+      "frameSha256": "f9433ac6db8666a7c1bd4e973cb84e3023a1f30a7312982a13d5cec3a14ee328",
+      "eed": [
+        {
+          "appid": {
+            "role": 5,
+            "length": 1,
+            "value": 42
+          },
+          "rawHex": "000d002d54524541545f41535f48415244460000"
+        }
+      ],
+      "candidate": {
+        "exit": 1,
+        "destinationPreservedOnFailure": true,
+        "diagnostics": [
+          "DXF export preflight failed: typed DWG ModelDocViewStyle serialization requires the exact DWG source version"
+        ]
+      },
+      "outputs": {
+        "ACAD14": {
+          "sha256": "70e541546c63564a903411f02b0c0130ebcd80dd57aea958cfe6490c5205cb31",
+          "physicalVersion": "AC1014",
+          "cloningFieldCounts": {
+            "absent": 22
+          },
+          "selectedDictionary": {
+            "handle": "30",
+            "owner": "A",
+            "cloning": null,
+            "entries": []
+          },
+          "ezdxfReadback": {
+            "readVersion": "AC1015",
+            "cloningAttributePresent": false,
+            "cloningValueOrDefault": 1
+          }
+        },
+        "ACAD2000": {
+          "sha256": "d5200f361d8cdbd328947a4823b51efd1806ae238237513ee28ae9db1f9038cf",
+          "physicalVersion": "AC1015",
+          "cloningFieldCounts": {
+            "1": 48
+          },
+          "selectedDictionary": {
+            "handle": "30",
+            "owner": "A",
+            "cloning": 1,
+            "entries": []
+          },
+          "ezdxfReadback": {
+            "readVersion": "AC1015",
+            "cloningAttributePresent": true,
+            "cloningValueOrDefault": 1
+          }
+        }
+      }
+    },
+    "1": {
+      "seedSha256": "317ce473116a090cbce6520784ad0e0820cf873075606ea36cdae3c94593c9fe",
+      "seedExplicitCloning": 1,
+      "sourceSha256": "c70a47dbb7a03a1eca49870e91f17ab10854dc108b5e58e97a7e2e644f2eb4b9",
+      "frameSha256": "f9433ac6db8666a7c1bd4e973cb84e3023a1f30a7312982a13d5cec3a14ee328",
+      "eed": [
+        {
+          "appid": {
+            "role": 5,
+            "length": 1,
+            "value": 42
+          },
+          "rawHex": "000d002d54524541545f41535f48415244460000"
+        }
+      ],
+      "candidate": {
+        "exit": 1,
+        "destinationPreservedOnFailure": true,
+        "diagnostics": [
+          "DXF export preflight failed: typed DWG ModelDocViewStyle serialization requires the exact DWG source version"
+        ]
+      },
+      "outputs": {
+        "ACAD14": {
+          "sha256": "ca507bc8af9cd4fe87f2c042e5f6d7254b605d4b1bb1b5cc8fd0452eb28bd0aa",
+          "physicalVersion": "AC1014",
+          "cloningFieldCounts": {
+            "absent": 22
+          },
+          "selectedDictionary": {
+            "handle": "30",
+            "owner": "A",
+            "cloning": null,
+            "entries": []
+          },
+          "ezdxfReadback": {
+            "readVersion": "AC1015",
+            "cloningAttributePresent": false,
+            "cloningValueOrDefault": 1
+          }
+        },
+        "ACAD2000": {
+          "sha256": "f6969bf85093de035eb41f099e642b41af5fe95b4f4e45d25460695b0c8df04e",
+          "physicalVersion": "AC1015",
+          "cloningFieldCounts": {
+            "1": 48
+          },
+          "selectedDictionary": {
+            "handle": "30",
+            "owner": "A",
+            "cloning": 1,
+            "entries": []
+          },
+          "ezdxfReadback": {
+            "readVersion": "AC1015",
+            "cloningAttributePresent": true,
+            "cloningValueOrDefault": 1
+          }
+        }
+      }
+    }
+  },
+  "findings": [
+    "LibreDWG from-scratch empty TEST_DICT source frames are byte-identical between requested cloning values 0 and 1 for each R13 and R14 pair. Their R2000 frames differ and independently decode to 0 and 1, proving the control can detect the field when present.",
+    "ODA rejected all six LibreDWG-generated empty-dictionary controls while reading the files, reporting an AcDbDictionary-to-AcDbEntity cast error; those controls are not independently accepted DWG interoperability samples.",
+    "Two physically different seed DXFs with selected group 281 equal to 0 and 1 were converted by ODA to AC1012. Their selected dictionary frames are identical and contain APPID-bound EED decoded by LibreDWG as TREAT_AS_HARD, integer 0. The bit walker preserves that EED as opaque bytes; its semantic role is not established by this study.",
+    "ODA reopened its own AC1012 outputs and generated R14 DXF without group 281 in all 22 dictionaries, and R2000 DXF with group 281 equal to 1 in all 48 dictionaries. The selected TEST_DICT is present in each; ezdxf reads a default value 1 for the absent R14 attribute and an explicitly present 1 in R2000. ezdxf upgrades R14 in memory, so the script checks the physical $ACADVER separately.",
+    "The current candidate preserves the destination while refusing the generated R13 complete profiles at the MLINESTYLE qualification gate. It accepts the paired generated R14 complete profiles. Both ODA AC1012 sources stop earlier at a distinct cross-version ModelDocViewStyle guard; their dictionary EED is also outside the current bounded wire observer.",
+    "An exploratory populated-dictionary generator output had an XRECORD with a null owner and was rejected by the graph validator. It is excluded from the recorded controls and must not be treated as a valid sample."
+  ],
+  "validation": [
+    "The bit walker checked type, version-dependent field boundary, object size, CRC, source handle, parent role, reactors, extension-dictionary role, and final alignment. Self-tests reject truncated, wrong-role, and wrong-version controls.",
+    "The ODA conversion and ezdxf readback ran on macOS 27.2.1 with locally generated scratch data. No DWG or DXF fixture was committed."
+  ],
+  "remaining": "The samples establish observable source-format boundaries and peer behavior for these exact generated profiles. They do not establish AutoCAD-native duplicate/merge semantics or independently validate the EED meaning; preserve strict AC1012 refusal and the no-support-claim boundary. Continue with the native witness packet when an identified host becomes available.",
+  "odaLibredwgScreen": {
+    "r13-cloning-0": {
+      "accepted": false,
+      "error": "OdError thrown during readFile of drawing \"/private/tmp/libdxfrw-ac1012-witness-runs/ac1012-dictionary-wxyaoky1/oda-peer-input/r13-cloning-0.dwg\" :\n  Object of class AcDbDictionary can't be cast to AcDbEntity.",
+      "outputSha256": null
+    },
+    "r13-cloning-1": {
+      "accepted": false,
+      "error": "OdError thrown during readFile of drawing \"/private/tmp/libdxfrw-ac1012-witness-runs/ac1012-dictionary-wxyaoky1/oda-peer-input/r13-cloning-1.dwg\" :\n  Object of class AcDbDictionary can't be cast to AcDbEntity.",
+      "outputSha256": null
+    },
+    "r14-cloning-0": {
+      "accepted": false,
+      "error": "OdError thrown during readFile of drawing \"/private/tmp/libdxfrw-ac1012-witness-runs/ac1012-dictionary-wxyaoky1/oda-peer-input/r14-cloning-0.dwg\" :\n  Object of class AcDbDictionary can't be cast to AcDbEntity.",
+      "outputSha256": null
+    },
+    "r14-cloning-1": {
+      "accepted": false,
+      "error": "OdError thrown during readFile of drawing \"/private/tmp/libdxfrw-ac1012-witness-runs/ac1012-dictionary-wxyaoky1/oda-peer-input/r14-cloning-1.dwg\" :\n  Object of class AcDbDictionary can't be cast to AcDbEntity.",
+      "outputSha256": null
+    },
+    "r2000-cloning-0": {
+      "accepted": false,
+      "error": "OdError thrown during readFile of drawing \"/private/tmp/libdxfrw-ac1012-witness-runs/ac1012-dictionary-wxyaoky1/oda-peer-input/r2000-cloning-0.dwg\" :\n  Object of class AcDbDictionary can't be cast to AcDbEntity.",
+      "outputSha256": null
+    },
+    "r2000-cloning-1": {
+      "accepted": false,
+      "error": "OdError thrown during readFile of drawing \"/private/tmp/libdxfrw-ac1012-witness-runs/ac1012-dictionary-wxyaoky1/oda-peer-input/r2000-cloning-1.dwg\" :\n  Object of class AcDbDictionary can't be cast to AcDbEntity.",
+      "outputSha256": null
+    }
+  },
+  "generatorSha256": "755cddf04244ae94aae9e8a755ac75e9c994bf0e45004cd03dd09658953e4bb5"
+}
