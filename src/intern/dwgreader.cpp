@@ -15134,11 +15134,11 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
                          && RawObjectShell().parseDwg(
                              version, &cellStyleMapShellProbe, bs)
                          && cellStyleMapShellProbe.isGood()) {
-                // These observed AC1015 and AC1018 compatibility profiles
+                // These observed AC1012, AC1015 and AC1018 compatibility profiles
                 // carry an AcDbCellStyleMap class, but their body schemas are
                 // not independently established. ODA v5.4.1 §20.4.102 says
-                // CELLSTYLEMAP was introduced in AutoCAD 2008; the AC1015
-                // occurrence is therefore out-of-version. Preserve only the
+                // CELLSTYLEMAP was introduced in AutoCAD 2008; these
+                // occurrences are therefore out-of-version. Preserve only the
                 // validated common shell and exact source frame. Do not
                 // publish partial typed state or authorize DXF replay.
                 intfa.addUnsupportedObject(

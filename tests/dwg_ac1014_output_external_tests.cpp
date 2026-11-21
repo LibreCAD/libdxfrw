@@ -12,6 +12,21 @@
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static bool r13CellStyleMapRaw(const dx_data& data) {
+        const dx_data::StandardDwgFrameKey key{data.importGeneration, 0xbbu};
+        const auto found = data.m_opaqueDwgSourceFrames.find(key);
+        if (found == data.m_opaqueDwgSourceFrames.end()) return false;
+        const auto& raw = found->second;
+        return raw.m_version == DRW::AC1012 && raw.m_handle == 0xbbu
+            && raw.m_isCustomClass && !raw.m_isEntity
+            && raw.m_recordName == "CELLSTYLEMAP" && raw.m_className == "AcDbCellStyleMap"
+            && !raw.m_typedPayloadValidated && !raw.m_rawBytes.empty()
+            && raw.m_rawBytes.size() == raw.m_objectSize
+            && data.m_opaqueDwgSourceFrameIdentities.count(key) == 1u
+            && data.m_opaqueDwgOutputQualifiedFrameIdentities.count(key) == 0u
+            && std::none_of(data.cellStyleMaps.begin(), data.cellStyleMaps.end(),
+                [](const DRW_CellStyleMap& item) { return item.handle == 0xbbu; });
+    }
     // Literal wire observation only. In particular, the producer's EED
     // codepage is unknown to this reader and must not qualify text/output.
     static bool r13EedSource(const dx_data& data) {
@@ -383,7 +398,9 @@ bool checkR13EedSource(const std::string& input) {
     dx_iface reader;
     dx_data data;
     if (!reader.fileImport(input, &data, false) || data.sourceVersion != DRW::AC1012
-        || !DxIfaceStandardDwgCaptureTestAccess::r13EedSource(data)) return false;
+        || data.dwgReadOutcome.observations.objectParseFailures != 1u
+        || !DxIfaceStandardDwgCaptureTestAccess::r13EedSource(data)
+        || !DxIfaceStandardDwgCaptureTestAccess::r13CellStyleMapRaw(data)) return false;
     auto& bytes = DxIfaceStandardDwgCaptureTestAccess::r13EedBytes(data);
     if (bytes.size() != 35u) return false;
     for (std::size_t bit = 0; bit < bytes.size() * 8u; ++bit) {

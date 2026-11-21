@@ -63,7 +63,8 @@ inline bool isCellStyleMapRawOnlyProfile(DRW::Version version,
   return objectClass != nullptr
       && objectClass->recName == "CELLSTYLEMAP"
       && objectClass->className == "AcDbCellStyleMap"
-      && (version == DRW::AC1015 || version == DRW::AC1018);
+      && (version == DRW::AC1012 || version == DRW::AC1015
+          || version == DRW::AC1018);
 }
 
 /// Immutable ordering key for the bounded catch-all ENTITIES sweep. The

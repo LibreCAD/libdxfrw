@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-oda-cellstylemap-raw-shell-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_RAW_SOURCE_ONLY",
+  "supportClaimEffect": "none",
+  "priorReceipt": "docs/research/p6-ac1012-oda-dictionary-eed-source-2026-11-21.json",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1 and 20.4.102; CELLSTYLEMAP was introduced in AutoCAD 2008.",
+  "sources": [
+    "9361298515f2a339d6bfd7b55621e53b095389b433fd21c39441a11a267f5fcf",
+    "c70a47dbb7a03a1eca49870e91f17ab10854dc108b5e58e97a7e2e644f2eb4b9"
+  ],
+  "observation": {
+    "version": "AC1012",
+    "handle": "BB",
+    "class": "AcDbCellStyleMap",
+    "record": "CELLSTYLEMAP",
+    "typedPayloadPublished": false,
+    "retainedRawFrame": true,
+    "rawFrameOutputQualified": false,
+    "objectFramesPublished": 200,
+    "objectFramesFailed": 1,
+    "objectFramesObserved": 201,
+    "remainingFailedRecord": "ACDBDICTIONARYWDFLT handle 12"
+  },
+  "checks": [
+    "Both generated ODA sources pass the optional physical-source profile test, which verifies the untyped frame, exact class, source identity and absence of output qualification.",
+    "The AC1012 class/version selector and rejection of unrelated versions and classes pass the object-vector test.",
+    "Focused AC1012/AC1014 transaction controls pass under ASan, with their statically linked executables rebuilt after the reader change."
+  ],
+  "limits": [
+    "Common-shell validation and bounded source retention do not establish the class-specific body, complete graph, DXF projection or producer semantics.",
+    "The retained record is reported as skipped; the remaining failed record and independent cross-version output guard still prevent complete output.",
+    "The two DWG samples were generated locally and remain outside the repository."
+  ]
+}

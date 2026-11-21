@@ -4433,6 +4433,9 @@ void testCellStyleMapRawOnlyVersionProfile(TestContext& t) {
     objectClass.recName = "CELLSTYLEMAP";
     objectClass.className = "AcDbCellStyleMap";
     t.expect(dwgReaderDetail::isCellStyleMapRawOnlyProfile(
+                 DRW::AC1012, &objectClass),
+             "AC1012 CELLSTYLEMAP uses only the validated raw-shell fallback");
+    t.expect(dwgReaderDetail::isCellStyleMapRawOnlyProfile(
                  DRW::AC1015, &objectClass),
              "AC1015 CELLSTYLEMAP uses only the validated raw-shell fallback");
     t.expect(dwgReaderDetail::isCellStyleMapRawOnlyProfile(
