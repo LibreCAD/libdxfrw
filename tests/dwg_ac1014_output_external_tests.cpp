@@ -38,14 +38,24 @@ public:
     static bool legacyRawPair(const dx_data& data, const std::string& source,
                                std::uint32_t cell, std::size_t cellOffset,
                                std::size_t defaultOffset, std::size_t defaultSize) {
+        const auto defaultDictionary = std::find_if(
+            data.dictionaryWithDefaults.begin(), data.dictionaryWithDefaults.end(),
+            [](const DRW_DictionaryWithDefault& item) { return item.handle == 0x12u; });
         return legacyRawFrame(data, cell, source, cellOffset, 708u,
                               "CELLSTYLEMAP", "AcDbCellStyleMap")
             && legacyRawFrame(data, 0x12u, source, defaultOffset, defaultSize,
                               "ACDBDICTIONARYWDFLT", "AcDbDictionaryWithDefault")
             && std::none_of(data.cellStyleMaps.begin(), data.cellStyleMaps.end(),
                 [cell](const DRW_CellStyleMap& item) { return item.handle == cell; })
-            && std::none_of(data.dictionaryWithDefaults.begin(), data.dictionaryWithDefaults.end(),
-                [](const DRW_DictionaryWithDefault& item) { return item.handle == 0x12u; });
+            && defaultDictionary != data.dictionaryWithDefaults.end()
+            && std::count_if(data.dictionaryWithDefaults.begin(), data.dictionaryWithDefaults.end(),
+                [](const DRW_DictionaryWithDefault& item) { return item.handle == 0x12u; }) == 1
+            && defaultDictionary->cloning == 1 && defaultDictionary->hardOwner == 0
+            && defaultDictionary->parentHandle == 0xau
+            && defaultDictionary->m_defaultEntryHandle == 0x13u
+            && defaultDictionary->m_entries.size() == 1u
+            && defaultDictionary->m_entries[0].m_name == "NORMAL"
+            && defaultDictionary->m_entries[0].m_handle == 0x13u;
     }
     static bool hasOpaqueSource(const dx_data& data, std::uint32_t handle) {
         return data.m_opaqueDwgSourceFrameIdentities.count({data.importGeneration, handle}) != 0u;
@@ -461,6 +471,24 @@ bool checkLegacyMalformed(const std::string& input, const std::string& corrected
             retry, bytes(corrected), 0xc1u, 17516u, 5221u, 28u);
 }
 
+bool checkLegacyDefaultRoleFallback(const std::string& input, const std::string& corrected) {
+    dx_iface reader;
+    dx_data bad;
+    if (!reader.fileImport(input, &bad, false) || bad.sourceVersion != DRW::AC1014
+        || bad.dwgReadOutcome.observations.objectParseFailures != 0u
+        || !DxIfaceStandardDwgCaptureTestAccess::legacyRawFrame(
+            bad, 0x12u, bytes(input), 5221u, 28u,
+            "ACDBDICTIONARYWDFLT", "AcDbDictionaryWithDefault")
+        || std::any_of(bad.dictionaryWithDefaults.begin(), bad.dictionaryWithDefaults.end(),
+            [](const DRW_DictionaryWithDefault& item) { return item.handle == 0x12u; })
+        || !strictOutputRefuses(reader, bad)) return false;
+    dx_data retry;
+    return reader.fileImport(corrected, &retry, false)
+        && retry.dwgReadOutcome.observations.objectParseFailures == 0u
+        && DxIfaceStandardDwgCaptureTestAccess::legacyRawPair(
+            retry, bytes(corrected), 0xc1u, 17516u, 5221u, 28u);
+}
+
 bool checkLegacyEedUtf8Source(const std::string& input) {
     dx_iface reader;
     dx_data data;
@@ -578,6 +606,8 @@ int main(int argc, char** argv) {
         : argc == 3 ? run(argv[1], argv[2])
         : argc == 4 && std::string(argv[1]) == "--partial"
             ? partial(argv[2], argv[3])
+            : argc == 4 && std::string(argv[1]) == "--legacy-bad-default-role"
+                ? checkLegacyDefaultRoleFallback(argv[2], argv[3])
             : argc == 4 && std::string(argv[1]) == "--r14-generated"
                 ? legacyGenerated(argv[2], argv[3], DRW::AC1014)
             : argc == 4 && std::string(argv[1]) == "--r13-generated"

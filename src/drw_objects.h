@@ -382,7 +382,8 @@ protected:
       std::uint32_t *parentHandle = nullptr,
       std::vector<std::uint32_t> *reactorHandles = nullptr,
       std::uint32_t *xDictHandle = nullptr,
-      bool imageDefParentHardOwner = false) const;
+      bool imageDefParentHardOwner = false,
+      bool legacyDictionaryRoles = false) const;
   [[nodiscard]] bool getDwgHandleEndBit(DRW::Version version,
                                         const dwgBuffer &buf,
                                         std::uint64_t &endBit) const;

@@ -5,7 +5,7 @@
   "status": "BOUNDED_RAW_SOURCE_ONLY",
   "supportClaimEffect": "none",
   "priorReceipt": "docs/research/p6-ac1012-oda-cellstylemap-raw-shell-2026-11-21.json",
-  "authority": "ODA Open Design Specification v5.4.1 sections 20.1, 20.4.44 and 20.4.45: R13 omits the dictionary cloning field; DICTIONARYWDFLT adds a hard-pointer default entry.",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1, 20.4.44 and 20.4.45: plain R13 DICTIONARY omits the cloning field; DICTIONARYWDFLT adds a hard-pointer default entry. Later producer-frame evidence identifies a cloning field in the observed legacy DICTIONARYWDFLT subclass; see p6-legacy-dictionary-default-typed-2026-11-21.json.",
   "sources": [
     "9361298515f2a339d6bfd7b55621e53b095389b433fd21c39441a11a267f5fcf",
     "c70a47dbb7a03a1eca49870e91f17ab10854dc108b5e58e97a7e2e644f2eb4b9"

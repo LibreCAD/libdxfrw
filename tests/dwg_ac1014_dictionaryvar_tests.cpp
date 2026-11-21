@@ -21,6 +21,52 @@ class Dictionary final : public DRW_Dictionary {
 public:
     using DRW_Dictionary::parseDwg;
 };
+class DictionaryWithDefault final : public DRW_DictionaryWithDefault {
+public:
+    using DRW_DictionaryWithDefault::parseDwg;
+};
+
+bool legacyDictionaryWithDefaultControl() {
+    // Physical object bodies from locally generated ODA R13/R14 files. Unlike
+    // plain DICTIONARY, these observed class bodies carry cloning and owner.
+    struct Control { DRW::Version version; std::vector<std::uint8_t> bytes; std::size_t defaultRoleBit; };
+    const Control controls[] = {
+        {DRW::AC1012, {0x3du,0x00u,0x40u,0x44u,0x91u,0x45u,0x12u,0xa0u,0x00u,0xd0u,0x02u,0xd5u,0x45u,0x24u,0x54u,0x15u,0x45u,0xf4u,0x15u,0x35u,0xf4u,0x84u,0x15u,0x24u,0x44u,0x60u,0x00u,0x09u,0x58u,0x04u,0x00u,0x02u,0x40u,0x50u,0x10u,0x04u,0x19u,0x39u,0x3du,0x49u,0x35u,0x05u,0x31u,0x04u,0x28u,0xc6u,0xdcu,0x84u,0x4du,0x44u,0x4cu}, 390u},
+        {DRW::AC1014, {0x3du,0x00u,0x40u,0x44u,0xa9u,0xc0u,0x00u,0x00u,0x09u,0x01u,0x40u,0x40u,0x10u,0x64u,0xe4u,0xf5u,0x24u,0xd4u,0x14u,0xc4u,0x10u,0xa3u,0x1bu,0xd2u,0x11u,0x35u,0x11u,0x30u}, 204u}
+    };
+    for (const auto& control : controls) {
+        DictionaryWithDefault parsed;
+        const auto read = [&](const std::vector<std::uint8_t>& bytes) {
+            dwgBuffer input(bytes.data(), bytes.size());
+            return parsed.parseDwg(control.version, &input, 0u) && input.isGood();
+        };
+        const auto modelMatches = [&]() {
+            return parsed.hasCompleteDwgEntries() && parsed.handle == 0x12u
+                && parsed.parentHandle == 0xau && parsed.cloning == 1 && parsed.hardOwner == 0
+                && parsed.m_defaultEntryHandle == 0x13u && parsed.m_entries.size() == 1u
+                && parsed.m_entries[0].m_name == "NORMAL" && parsed.m_entries[0].m_handle == 0x13u;
+        };
+        if (!read(control.bytes) || !modelMatches()) return false;
+        for (std::size_t offset : {48u, 32u, 16u, 0u}) {
+            auto wrongRole = control.bytes;
+            const std::size_t roleBit = control.defaultRoleBit - offset + 3u;
+            wrongRole[roleBit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (roleBit % 8u));
+            if (read(wrongRole) || parsed.hasCompleteDwgEntries() || !parsed.m_entries.empty()
+                || parsed.m_defaultEntryHandle != 0u || !read(control.bytes) || !modelMatches()) return false;
+        }
+        auto suffix = control.bytes;
+        suffix.push_back(0u);
+        if (read(suffix) || parsed.hasCompleteDwgEntries() || !parsed.m_entries.empty()
+            || parsed.m_defaultEntryHandle != 0u) return false;
+        for (std::size_t length = 0; length < control.bytes.size(); ++length) {
+            const std::vector<std::uint8_t> truncated(control.bytes.begin(), control.bytes.begin() + length);
+            if (read(truncated) || parsed.hasCompleteDwgEntries() || !parsed.m_entries.empty()
+                || parsed.m_defaultEntryHandle != 0u) return false;
+        }
+        if (!read(control.bytes) || !modelMatches()) return false;
+    }
+    return true;
+}
 
 void putText(dwgBufferW& w, const std::string& text) {
     w.putBitShort(static_cast<std::uint16_t>(text.size()));
@@ -244,7 +290,7 @@ bool expected(const Variable& v) {
 }
 
 bool run() {
-    if (!r13DictionaryEedControl() || !terminatedDictionaryControl(DRW::AC1012)
+    if (!legacyDictionaryWithDefaultControl() || !r13DictionaryEedControl() || !terminatedDictionaryControl(DRW::AC1012)
         || !terminatedDictionaryControl(DRW::AC1014) || !dictionaryWireControl(true, false)
         || !dictionaryWireControl(false, false)
         || !dictionaryWireControl(false, true)) {

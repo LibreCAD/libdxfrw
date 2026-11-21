@@ -142,7 +142,7 @@ For R14 source and output changes, reuse the [PR review regression controls](doc
 
 For the strict AC1012 MLINESTYLE output profile, reuse the version-aware R13/R14
 source checks and the [generated and ODA-produced controls](docs/research/p6-ac1012-generated-oda-dictionary-witness-2026-11-21.json).
-They bind the absent R13/R14 cloning field and show that ODA's selected R14
+They bind the absent R13/R14 plain-DICTIONARY cloning field and show that ODA's selected R14
 output omits group 281 while its R2000 output writes 1; they do not establish
 native duplicate behavior. The ODA sources also contain APPID-bound dictionary
 EED and currently hit a separate ModelDocViewStyle cross-version guard. The
@@ -150,10 +150,12 @@ EED and currently hit a separate ModelDocViewStyle cross-version guard. The
 now checks the observed EED bytes, APPID identity and mutation/retry against
 both ODA files. The [controlled producer/reopen witness](docs/research/p6-legacy-eed-codepage45-utf8-witness-2026-11-21.json)
 binds EED codepage 45 to UTF-8 for the observed R13/R14 profile, now decoded
-with malformed-byte observations. The previously failed CELLSTYLEMAP and
-DICTIONARYWDFLT are retained as unqualified raw data in the observed R13 and
-R14 sources (see the [source disposition](docs/research/p6-legacy-oda-raw-frames-r14-2026-11-21.json));
-all source frames have a disposition, but both bodies are still unmodeled.
+with malformed-byte observations. The observed legacy DICTIONARYWDFLT is now
+decoded with cloning, owner, entry and default fields after
+[producer and wire checks](docs/research/p6-legacy-dictionary-default-typed-2026-11-21.json);
+the subclass physically contains a cloning field in these samples. CELLSTYLEMAP
+remains unmodeled and raw-only. All source frames have a disposition, which
+does not establish complete output.
 Establish dictionary cloning/default semantics; then implement source-presence-aware dictionary
 projection and EED dependencies, and run the
 [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md)

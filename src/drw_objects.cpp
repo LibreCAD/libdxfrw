@@ -3939,7 +3939,7 @@ bool DRW_TableEntry::readDwgObjectCommonHandles(
     DRW::Version version, dwgBuffer *buf, std::uint32_t *parentHandle,
     std::vector<std::uint32_t> *reactorHandles,
     std::uint32_t *xDictHandle,
-    bool imageDefParentHardOwner) const {
+    bool imageDefParentHardOwner, bool legacyDictionaryRoles) const {
     if (buf == nullptr)
         return false;
     std::uint64_t endBit = 0;
@@ -3947,7 +3947,7 @@ bool DRW_TableEntry::readDwgObjectCommonHandles(
         return false;
     const bool validateLegacyDictionaryGroupRoles =
         (version == DRW::AC1012 || version == DRW::AC1014)
-        && (oType == DRW_Dictionary::kDwgFixedType
+        && (legacyDictionaryRoles || oType == DRW_Dictionary::kDwgFixedType
             || oType == DRW_Group::kDwgFixedType);
     return readObjectCommonHandles(buf, version, handle, numReactors, xDictFlag,
                                    parentHandle, reactorHandles, xDictHandle,
@@ -11476,12 +11476,19 @@ bool DRW_Dictionary::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
     }
     if (!bodyFits())
         return false;
+    // Legacy DICTIONARYWDFLT has no independently bounded string stream.
+    // Do not publish its typed body if the declared end skips unknown bits.
+    if (withDefaultHandle && (version == DRW::AC1012 || version == DRW::AC1014)
+        && (objSize == 0u || currentObjectDwgBit(buf) != objSize))
+        return false;
     // DICTIONARY stores the R2000/R2004 handle stream after the object data;
     // objSize is the absolute bit offset of that stream, not merely a size
     // hint. The R2007+ path is already enabled by the shared helper.
     seekObjectHandleStream(version, buf, objSize, version >= DRW::AC1015);
     if (!buf->isGood()
-        || !this->readDwgObjectCommonHandles(version, buf, &parentHandle, &reactorHandles, &xDictHandle))
+        || !this->readDwgObjectCommonHandles(version, buf, &parentHandle,
+                                             &reactorHandles, &xDictHandle,
+                                             false, withDefaultHandle))
         return false;
 
     if (!DRW::reserve(entries, static_cast<int>(numItems)))
@@ -11569,6 +11576,13 @@ bool DRW_DictionaryWithDefault::parseDwg(DRW::Version version, dwgBuffer *buf, s
     if (defaultH.ref == 0 || defaultH.code != DRW::DwgHardPointer) {
         DRW_DBG("DICTIONARYWDFLT default entry is not a hard pointer\n");
         return fail();
+    }
+    if (version == DRW::AC1012 || version == DRW::AC1014) {
+        std::uint64_t endBit = 0;
+        const auto cursor = currentObjectDwgBit(buf);
+        if (!getDwgHandleEndBit(version, *buf, endBit) || cursor > endBit
+            || endBit - cursor >= 8u)
+            return fail();
     }
     m_defaultEntryHandle = defaultH.ref;
     DRW_DBG("default entry Handle: "); DRW_DBGHL(defaultH.code, defaultH.size, defaultH.ref); DRW_DBG("\n");

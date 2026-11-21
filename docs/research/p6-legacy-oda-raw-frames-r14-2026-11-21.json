@@ -5,7 +5,7 @@
   "status": "R13_R14_BOUNDED_RAW_SOURCE_ONLY",
   "supportClaimEffect": "none",
   "priorReceipts": ["docs/research/p6-ac1012-oda-dictionary-default-raw-shell-2026-11-21.json", "docs/research/p6-legacy-eed-codepage45-utf8-witness-2026-11-21.json"],
-  "authority": "ODA Open Design Specification v5.4.1 sections 20.1, 20.4.44, 20.4.45, and 20.4.102. The cloning field is absent in R13/R14, and CELLSTYLEMAP postdates those revisions.",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1, 20.4.44, 20.4.45, and 20.4.102. The cloning field is absent from plain R13/R14 DICTIONARY, and CELLSTYLEMAP postdates those revisions. Subsequent producer-frame evidence found a cloning field in the observed legacy DICTIONARYWDFLT subclass; see p6-legacy-dictionary-default-typed-2026-11-21.json.",
   "generator": "tools/research/generate_legacy_eed_utf8_witness.py",
   "runDirectory": "/private/tmp/libdxfrw-ac1012-eed-utf8-runs/legacy-eed-utf8-mohl9bsf",
   "runReceiptSha256": "f4d6dbdae471b19bcbb87f91c965d58ac0b2333c108eccf10c855e765772b9da",

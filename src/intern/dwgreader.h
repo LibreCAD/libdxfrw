@@ -67,8 +67,8 @@ inline bool isCellStyleMapRawOnlyProfile(DRW::Version version,
           || version == DRW::AC1018);
 }
 
-/// The observed R13/R14 compatibility records have no qualified cloning projection.
-/// As with other raw-only profiles, the object shell must still be checked.
+/// Legacy dictionary-with-default records may fall back to raw retention if
+/// their typed body is unrecognized. The common object shell must still pass.
 inline bool isLegacyDictionaryWithDefaultRawOnlyProfile(
     DRW::Version version, const DRW_Class *objectClass) {
   return objectClass != nullptr && (version == DRW::AC1012 || version == DRW::AC1014)

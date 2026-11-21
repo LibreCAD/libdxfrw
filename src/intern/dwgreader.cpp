@@ -2571,7 +2571,7 @@ bool dwgReader::validateDwgFramePublicationStaticArtifacts(
             DRW::NoHandle ||
         dictionaryWithDefaultMembership->m_entries.size() >
             DRW_Dictionary::kMaxEntries ||
-        publication.m_version < DRW::AC1015 || !dictionaryWithDefault) {
+        publication.m_version < DRW::AC1012 || !dictionaryWithDefault) {
       return false;
     }
     for (const DRW_DwgDictionaryWithDefaultMembership::Entry &entry :
@@ -14761,14 +14761,18 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
             }
             if (rn == "ACDBDICTIONARYWDFLT" || rn == "DICTIONARYWDFLT" ||
                 cit->second->className == "AcDbDictionaryWithDefault") {
-              if (dwgReaderDetail::isLegacyDictionaryWithDefaultRawOnlyProfile(
-                      version, cit->second)) {
-                // ODA v5.4.1 §§20.1, 20.4.44-45: retain the observed R13/R14
-                // common shell and bounded source frame. Do not publish a
-                // typed cloning/default projection without its versioned
-                // semantics and a qualified membership receipt.
+              const bool legacyRawOnly =
+                  dwgReaderDetail::isLegacyDictionaryWithDefaultRawOnlyProfile(
+                      version, cit->second);
+              dwgBuffer legacyShellProbe = buff.forkIndependent();
+              DRW_DictionaryWithDefault e;
+              ret = parseTableEntry(e);
+              if (!ret && legacyRawOnly) {
+                // If the typed body is not recognized, keep only a bounded
+                // common shell and raw frame, never a partial typed model.
                 RawObjectShell shell;
-                ret = shell.parseDwg(version, &buff, bs) && buff.isGood();
+                ret = shell.parseDwg(version, &legacyShellProbe, bs)
+                    && legacyShellProbe.isGood();
                 if (ret) {
                   intfa.addUnsupportedObject(
                       makeRawObject(oType, cit->second, false));
@@ -14780,8 +14784,6 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
                 }
                 break;
               }
-              DRW_DictionaryWithDefault e;
-              ret = parseTableEntry(e);
               if (ret) {
                 if (!e.hasCompleteDwgEntries() ||
                     !e.isDwgPayloadValid(version)) {
