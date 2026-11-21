@@ -2,6 +2,7 @@
 #include "dx_iface.h"
 #include "dx_legacy_dwg_wire.h"
 #include "dx_legacy_mlinestyle_wire.h"
+#include "test_scratch.h"
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -26,6 +27,27 @@ public:
             && data.m_opaqueDwgOutputQualifiedFrameIdentities.count(key) == 0u
             && std::none_of(data.cellStyleMaps.begin(), data.cellStyleMaps.end(),
                 [](const DRW_CellStyleMap& item) { return item.handle == 0xbbu; });
+    }
+    static bool r13DictionaryDefaultRaw(const dx_data& data, const std::string& source) {
+        const dx_data::StandardDwgFrameKey key{data.importGeneration, 0x12u};
+        const auto found = data.m_opaqueDwgSourceFrames.find(key);
+        if (found == data.m_opaqueDwgSourceFrames.end()) return false;
+        const auto& raw = found->second;
+        return raw.m_version == DRW::AC1012 && raw.m_handle == 0x12u
+            && raw.m_isCustomClass && !raw.m_isEntity
+            && raw.m_recordName == "ACDBDICTIONARYWDFLT"
+            && raw.m_className == "AcDbDictionaryWithDefault"
+            && !raw.m_typedPayloadValidated && raw.m_objectOffset == 5188u
+            && raw.m_objectSize == 51u && raw.m_rawBytes.size() == 51u
+            && source.size() >= 5241u
+            && std::equal(raw.m_rawBytes.begin(), raw.m_rawBytes.end(),
+                source.begin() + 5190, [](std::uint8_t left, char right) {
+                    return left == static_cast<std::uint8_t>(right);
+                })
+            && data.m_opaqueDwgSourceFrameIdentities.count(key) == 1u
+            && data.m_opaqueDwgOutputQualifiedFrameIdentities.count(key) == 0u
+            && std::none_of(data.dictionaryWithDefaults.begin(), data.dictionaryWithDefaults.end(),
+                [](const DRW_DictionaryWithDefault& item) { return item.handle == 0x12u; });
     }
     // Literal wire observation only. In particular, the producer's EED
     // codepage is unknown to this reader and must not qualify text/output.
@@ -398,16 +420,17 @@ bool checkR13EedSource(const std::string& input) {
     dx_iface reader;
     dx_data data;
     if (!reader.fileImport(input, &data, false) || data.sourceVersion != DRW::AC1012
-        || data.dwgReadOutcome.observations.objectParseFailures != 1u
+        || data.dwgReadOutcome.observations.objectParseFailures != 0u
         || !DxIfaceStandardDwgCaptureTestAccess::r13EedSource(data)
-        || !DxIfaceStandardDwgCaptureTestAccess::r13CellStyleMapRaw(data)) return false;
-    auto& bytes = DxIfaceStandardDwgCaptureTestAccess::r13EedBytes(data);
-    if (bytes.size() != 35u) return false;
-    for (std::size_t bit = 0; bit < bytes.size() * 8u; ++bit) {
-        bytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
+        || !DxIfaceStandardDwgCaptureTestAccess::r13CellStyleMapRaw(data)
+        || !DxIfaceStandardDwgCaptureTestAccess::r13DictionaryDefaultRaw(data, bytes(input))) return false;
+    auto& frameBytes = DxIfaceStandardDwgCaptureTestAccess::r13EedBytes(data);
+    if (frameBytes.size() != 35u) return false;
+    for (std::size_t bit = 0; bit < frameBytes.size() * 8u; ++bit) {
+        frameBytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
         const bool accepted = DxIfaceStandardDwgCaptureTestAccess::r13EedSource(data);
-        bytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
-        if (accepted != (bit >= bytes.size() * 8u - 6u)) return false;
+        frameBytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
+        if (accepted != (bit >= frameBytes.size() * 8u - 6u)) return false;
     }
     auto app = std::find_if(data.appIds.begin(), data.appIds.end(),
         [](const DRW_AppId& candidate) { return candidate.handle == 0x2au; });
@@ -416,7 +439,21 @@ bool checkR13EedSource(const std::string& input) {
     app->name += "X";
     const bool changedAccepted = DxIfaceStandardDwgCaptureTestAccess::r13EedSource(data);
     app->name = original;
-    return !changedAccepted && DxIfaceStandardDwgCaptureTestAccess::r13EedSource(data);
+    if (changedAccepted || !DxIfaceStandardDwgCaptureTestAccess::r13EedSource(data)) return false;
+    std::error_code error;
+    const auto scratch = libdxfrw_test::reserveTestScratch(
+        std::filesystem::temp_directory_path(), "libdxfrw-r13-raw-output", error);
+    if (error || scratch.empty()) return false;
+    const auto destination = scratch / "out.dxf";
+    const std::string sentinel = "AC1012 unqualified source destination preserved\n";
+    bool preserved = true;
+    for (bool binary : {false, true}) {
+        { std::ofstream out(destination, std::ios::binary | std::ios::trunc); out << sentinel; }
+        if (write(reader, data, destination.string(), binary)
+            || bytes(destination) != sentinel) preserved = false;
+    }
+    std::filesystem::remove_all(scratch, error);
+    return preserved && !error;
 }
 
 bool r13GeneratedGuard(const std::string& input, const std::filesystem::path& output) {

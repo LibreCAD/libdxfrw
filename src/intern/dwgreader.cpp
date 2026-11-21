@@ -14748,6 +14748,25 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
             }
             if (rn == "ACDBDICTIONARYWDFLT" || rn == "DICTIONARYWDFLT" ||
                 cit->second->className == "AcDbDictionaryWithDefault") {
+              if (dwgReaderDetail::isR13DictionaryWithDefaultRawOnlyProfile(
+                      version, cit->second)) {
+                // ODA v5.4.1 §§20.1, 20.4.44-45: retain the observed R13
+                // common shell and bounded source frame. Do not publish a
+                // typed cloning/default projection without its versioned
+                // semantics and a qualified membership receipt.
+                RawObjectShell shell;
+                ret = shell.parseDwg(version, &buff, bs) && buff.isGood();
+                if (ret) {
+                  intfa.addUnsupportedObject(
+                      makeRawObject(oType, cit->second, false));
+                  ++m_skippedCustomClasses[cit->second->className.c_str()];
+                  ++m_skippedUnsupportedObjects[cit->second->recName];
+                  DRW_DBG("[r13-dictionary-default-raw-only handle=");
+                  DRW_DBG(obj.handle);
+                  DRW_DBG("]\n");
+                }
+                break;
+              }
               DRW_DictionaryWithDefault e;
               ret = parseTableEntry(e);
               if (ret) {

@@ -67,6 +67,15 @@ inline bool isCellStyleMapRawOnlyProfile(DRW::Version version,
           || version == DRW::AC1018);
 }
 
+/// The observed R13 compatibility record has no qualified cloning projection.
+/// As with other raw-only profiles, the object shell must still be checked.
+inline bool isR13DictionaryWithDefaultRawOnlyProfile(
+    DRW::Version version, const DRW_Class *objectClass) {
+  return objectClass != nullptr && version == DRW::AC1012
+      && objectClass->recName == "ACDBDICTIONARYWDFLT"
+      && objectClass->className == "AcDbDictionaryWithDefault";
+}
+
 /// Immutable ordering key for the bounded catch-all ENTITIES sweep. The
 /// source map is unordered; retaining only this key lets the reader reproduce
 /// its established sourceOrdinal/location/handle order without keeping

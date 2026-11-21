@@ -4452,6 +4452,19 @@ void testCellStyleMapRawOnlyVersionProfile(TestContext& t) {
     t.expect(!dwgReaderDetail::isCellStyleMapRawOnlyProfile(
                  DRW::AC1015, &objectClass),
              "CELLSTYLEMAP raw-shell fallback refuses a different record class");
+    objectClass.recName = "ACDBDICTIONARYWDFLT";
+    objectClass.className = "AcDbDictionaryWithDefault";
+    t.expect(dwgReaderDetail::isR13DictionaryWithDefaultRawOnlyProfile(
+                 DRW::AC1012, &objectClass)
+                 && !dwgReaderDetail::isR13DictionaryWithDefaultRawOnlyProfile(
+                     DRW::AC1014, &objectClass)
+                 && !dwgReaderDetail::isR13DictionaryWithDefaultRawOnlyProfile(
+                     DRW::AC1012, nullptr),
+             "DICTIONARYWDFLT raw-shell fallback is bounded to observed R13 class");
+    objectClass.recName = "DICTIONARYWDFLT";
+    t.expect(!dwgReaderDetail::isR13DictionaryWithDefaultRawOnlyProfile(
+                 DRW::AC1012, &objectClass),
+             "DICTIONARYWDFLT raw-shell fallback refuses a different record name");
 }
 
 void testCellStyleMapIdentityDomains(TestContext& t) {
