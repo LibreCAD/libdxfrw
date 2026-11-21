@@ -149,9 +149,9 @@ public:
     static std::uint8_t& sourceBit(dx_data& data, int fault) {
         const std::uint32_t handle = fault == 7 ? 0xcu : fault == 8 ? 0x22u
             : fault == 9 ? 0x23u : fault == 10 ? 0x1au : fault == 12 ? 0x19u
-            : fault == 13 ? 0x18u : fault == 14 ? 0xdu : fault == 15 ? 0x34u : 0x1bu;
+            : fault == 13 ? 0x18u : fault == 14 ? 0xdu : fault == 15 ? 0x34u : fault == 16 ? 0x35u : 0x1bu;
         const dx_data::StandardDwgFrameKey key{data.importGeneration, handle};
-        if (fault == 7 || fault == 8 || fault == 10 || fault == 12 || fault == 14 || fault == 15)
+        if (fault == 7 || fault == 8 || fault == 10 || fault == 12 || fault == 14 || fault == 15 || fault == 16)
             return data.m_standardDwgObjectFrames.at(key).raw.m_rawBytes.front();
         return data.m_opaqueDwgSourceFrames.at(key).m_rawBytes.front();
     }
@@ -474,17 +474,19 @@ bool legacyGenerated(const std::string& input, const std::filesystem::path& outp
 bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::path& output,
                                DRW::Version sourceVersion, const std::string& expectedText,
                                std::uint32_t appHandle = 0x12u, std::uint32_t groupHandle = 0xdu,
-                               bool nonemptyGroup = false) {
+                               bool nonemptyGroup = false, bool nod = false) {
     LateMutationAdapter adapter;
     dx_data source;
     adapter.source = &source;
     if (!adapter.fileImport(input, &source, false) || !checkR14Generated(source, sourceVersion)
         || !DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(source, groupHandle)) return false;
-    auto group = std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
+    auto foundGroup = std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
         [groupHandle](const DRW_Dictionary& dictionary) { return dictionary.handle == groupHandle; });
+    DRW_Dictionary* group = nod ? &source.namedObjectDictionary
+        : foundGroup == source.dictionaries.end() ? nullptr : &*foundGroup;
     auto app = std::find_if(source.appIds.begin(), source.appIds.end(),
         [appHandle](const DRW_AppId& item) { return item.handle == appHandle; });
-    if (group == source.dictionaries.end() || app == source.appIds.end()
+    if (!group || app == source.appIds.end()
         || group->extData.size() != 3u || !group->extData[0] || !group->extData[1]
         || !group->extData[2] || group->extData[0]->code() != 1001
         || group->extData[1]->code() != 1000 || group->extData[2]->code() != 1070
@@ -504,7 +506,9 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
     DRW_Group savedGroup;
     if (nonemptyGroup) savedGroup = *groupRecord;
     const DRW_Dictionary savedRoot = source.namedObjectDictionary;
-    const int sourceFault = groupHandle == 0xdu ? 14 : 15;
+    const DRW_MLineStyle savedStyle = source.mLineStyles.front();
+    const int sourceFault = nod ? (groupHandle == 0xcu ? 7 : 16)
+                                : (groupHandle == 0xdu ? 14 : 15);
     const std::string sentinel = "Legacy EED destination preserved\n";
     const auto policy = sourceVersion == DRW::AC1012 ? dx_dwgReadCompletenessPolicy::AllowPartial
                                                     : dx_dwgReadCompletenessPolicy::RequireComplete;
@@ -522,7 +526,10 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             if (emit(binary, DRW::AC1015)
                 || bytes(output) != sentinel || !emit(binary)) return false;
         }
-        for (int fault = 0; fault < (nonemptyGroup ? 10 : 8); ++fault) {
+        for (int fault = 0; fault < (nod ? 9 : nonemptyGroup ? 10 : 8); ++fault) {
+            // R13 explicit partial output does not certify its MLINESTYLE;
+            // edits to that unqualified object remain outside this proof.
+            if (nod && sourceVersion == DRW::AC1012 && fault == 8) continue;
             if (fault == 0) group->extData[1]->addString(1000, "CHANGED");
             if (fault == 1) group->extData[2]->addInt(1070, 43);
             if (fault == 2) app->name = "CHANGED";
@@ -538,7 +545,8 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
                 edge->m_handle ^= 1u;
             }
             if (fault == 7) group->parentHandle ^= 1u;
-            if (fault == 8) group->m_entries[0].m_handle ^= 1u;
+            if (fault == 8 && nod) source.mLineStyles.front().name += "X";
+            else if (fault == 8) group->m_entries[0].m_handle ^= 1u;
             if (fault == 9) groupRecord->m_entityHandles[0] ^= 1u;
             { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
             const bool accepted = emit(binary);
@@ -548,6 +556,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             *group = saved;
             if (nonemptyGroup) *groupRecord = savedGroup;
             source.namedObjectDictionary = savedRoot;
+            if (nod) source.mLineStyles.front() = savedStyle;
             if (accepted || bytes(output) != sentinel
                 || !emit(binary)) {
                 std::cerr << "Legacy EED refusal/retry failed: binary=" << binary
@@ -558,9 +567,11 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
         dx_iface fresh;
         dx_data readback;
         if (!fresh.fileImport(output.string(), &readback, false) || !checkR14Generated(readback)) return false;
-        const auto result = std::find_if(readback.dictionaries.begin(), readback.dictionaries.end(),
+        const auto foundResult = std::find_if(readback.dictionaries.begin(), readback.dictionaries.end(),
             [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0xdu; });
-        if (result == readback.dictionaries.end() || result->extData.size() != 3u
+        const DRW_Dictionary* result = nod ? &readback.namedObjectDictionary
+            : foundResult == readback.dictionaries.end() ? nullptr : &*foundResult;
+        if (!result || result->extData.size() != 3u
             || !result->extData[0] || !result->extData[1] || !result->extData[2]
             || result->extData[0]->type() != DRW_Variant::STRING
             || result->extData[1]->type() != DRW_Variant::STRING
@@ -614,29 +625,36 @@ bool legacyBadGroupMember(const std::string& badInput, const std::string& goodIn
 }
 
 bool legacyBadEedGraph(const std::string& badInput, const std::string& goodInput,
-                       const std::filesystem::path& output, DRW::Version version) {
+                       const std::filesystem::path& output, DRW::Version version,
+                       std::uint32_t sourceHandle = 0x34u) {
     dx_iface adapter;
     const auto policy = version == DRW::AC1012 ? dx_dwgReadCompletenessPolicy::AllowPartial
                                                : dx_dwgReadCompletenessPolicy::RequireComplete;
     const std::string sentinel = "bad legacy EED graph destination preserved\n";
     for (bool binary : {false, true}) {
         dx_data bad;
-        if (!adapter.fileImport(badInput, &bad, false) || bad.sourceVersion != version
-            || DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(bad, 0x34u)) return false;
+        const bool imported = adapter.fileImport(badInput, &bad, false);
+        const bool bound = DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(bad, sourceHandle);
+        if (!imported || bad.sourceVersion != version || bound) {
+            std::cerr << "Bad-graph import=" << imported << " source proof=" << bound << '\n';
+            return false;
+        }
         { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
         if (write(adapter, bad, output.string(), binary, DRW::AC1014, policy)
-            || bytes(output) != sentinel) return false;
+            || bytes(output) != sentinel) { std::cerr << "Bad-graph refusal failed\n"; return false; }
         dx_data corrected;
         if (!adapter.fileImport(goodInput, &corrected, false)
-            || !DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(corrected, 0x34u)
-            || !write(adapter, corrected, output.string(), binary, DRW::AC1014, policy)) return false;
+            || !DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(corrected, sourceHandle)
+            || !write(adapter, corrected, output.string(), binary, DRW::AC1014, policy)) {
+            std::cerr << "Bad-graph corrected retry failed\n"; return false;
+        }
     }
     return true;
 }
 
 bool legacyWideEedRefusal(const std::string& badInput, const std::string& goodInput,
                           const std::filesystem::path& output, DRW::Version sourceVersion,
-                          std::uint32_t groupHandle = 0xdu) {
+                          std::uint32_t groupHandle = 0xdu, bool nod = false) {
     dx_iface adapter;
     const auto policy = sourceVersion == DRW::AC1012 ? dx_dwgReadCompletenessPolicy::AllowPartial
                                                     : dx_dwgReadCompletenessPolicy::RequireComplete;
@@ -645,9 +663,11 @@ bool legacyWideEedRefusal(const std::string& badInput, const std::string& goodIn
         dx_data bad;
         if (!adapter.fileImport(badInput, &bad, false)
             || !DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(bad, groupHandle)) return false;
-        const auto badGroup = std::find_if(bad.dictionaries.begin(), bad.dictionaries.end(),
+        const auto foundBadGroup = std::find_if(bad.dictionaries.begin(), bad.dictionaries.end(),
             [groupHandle](const DRW_Dictionary& dictionary) { return dictionary.handle == groupHandle; });
-        if (badGroup == bad.dictionaries.end() || badGroup->extData.size() != 3u
+        const DRW_Dictionary* badGroup = nod ? &bad.namedObjectDictionary
+            : foundBadGroup == bad.dictionaries.end() ? nullptr : &*foundBadGroup;
+        if (!badGroup || badGroup->extData.size() != 3u
             || !badGroup->extData[1] || badGroup->extData[1]->type() != DRW_Variant::STRING
             || !badGroup->extData[1]->content.s
             || *badGroup->extData[1]->content.s != "\xE6\xBC\xA2\xC3\xA9") return false;
@@ -661,9 +681,11 @@ bool legacyWideEedRefusal(const std::string& badInput, const std::string& goodIn
         dx_iface fresh;
         dx_data readback;
         if (!fresh.fileImport(output.string(), &readback, false)) return false;
-        const auto group = std::find_if(readback.dictionaries.begin(), readback.dictionaries.end(),
+        const auto foundGroup = std::find_if(readback.dictionaries.begin(), readback.dictionaries.end(),
             [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0xdu; });
-        if (group == readback.dictionaries.end() || group->extData.size() != 3u
+        const DRW_Dictionary* group = nod ? &readback.namedObjectDictionary
+            : foundGroup == readback.dictionaries.end() ? nullptr : &*foundGroup;
+        if (!group || group->extData.size() != 3u
             || !group->extData[1] || group->extData[1]->type() != DRW_Variant::STRING
             || !group->extData[1]->content.s || *group->extData[1]->content.s != "caf\xC3\xA9") return false;
     }
@@ -898,6 +920,34 @@ int main(int argc, char** argv) {
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO")
             : argc == 4 && std::string(argv[1]) == "--r13-eed"
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO")
+            : argc == 4 && std::string(argv[1]) == "--r14-nod-eed"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x12u, 0xcu, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-nod-eed"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO", 0x12u, 0xcu, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r14-nod-utf8"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "caf\xC3\xA9", 0x12u, 0xcu, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-nod-utf8"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "caf\xC3\xA9", 0x12u, 0xcu, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r14-nod-eed-remapped"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u, 0x35u, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-nod-eed-remapped"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO", 0x33u, 0x35u, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r14-nod-utf8-remapped"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "caf\xC3\xA9", 0x33u, 0x35u, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-nod-utf8-remapped"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "caf\xC3\xA9", 0x33u, 0x35u, false, true)
+            : argc == 5 && std::string(argv[1]) == "--r14-nod-bad-graph"
+                ? legacyBadEedGraph(argv[2], argv[3], argv[4], DRW::AC1014, 0x35u)
+            : argc == 5 && std::string(argv[1]) == "--r13-nod-bad-graph"
+                ? legacyBadEedGraph(argv[2], argv[3], argv[4], DRW::AC1012, 0x35u)
+            : argc == 5 && std::string(argv[1]) == "--r14-nod-wide"
+                ? legacyWideEedRefusal(argv[2], argv[3], argv[4], DRW::AC1014, 0xcu, true)
+            : argc == 5 && std::string(argv[1]) == "--r13-nod-wide"
+                ? legacyWideEedRefusal(argv[2], argv[3], argv[4], DRW::AC1012, 0xcu, true)
+            : argc == 5 && std::string(argv[1]) == "--r14-nod-wide-remapped"
+                ? legacyWideEedRefusal(argv[2], argv[3], argv[4], DRW::AC1014, 0x35u, true)
+            : argc == 5 && std::string(argv[1]) == "--r13-nod-wide-remapped"
+                ? legacyWideEedRefusal(argv[2], argv[3], argv[4], DRW::AC1012, 0x35u, true)
             : argc == 4 && std::string(argv[1]) == "--r14-eed-nonempty"
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x12u, 0xdu, true)
             : argc == 4 && std::string(argv[1]) == "--r13-eed-nonempty"

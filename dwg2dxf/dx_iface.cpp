@@ -32507,7 +32507,7 @@ void dx_iface::finishVerifiedXRecordSource(bool successfulRead) noexcept {
     m_verifiedTableCandidatePendingBytes=0u;
 }
 
-// R13/R14 group-dictionary EED profile: bind the physical values to the
+// R13/R14 root and group dictionary EED profile: bind physical values to the
 // captured ACAD APPID. Staged table identity and exact output are checked by
 // the normal standard-object and generated-root proofs before publication.
 bool dx_iface::hasLegacyDictionaryWireSource(
@@ -32519,12 +32519,30 @@ bool dx_iface::hasLegacyDictionaryWireSource(
     if (!cData || !dx_legacy_dwg_wire::supported(cData->sourceVersion)
         || frame.raw.m_version != cData->sourceVersion || frame.generation != cData->importGeneration
         || !cData->hasNamedObjectDictionary || dictionary.handle == 0u
-        || dictionary.parentHandle != cData->namedObjectDictionary.handle
-        || !cData->hasCompleteDwgDictionaryEntry(dictionary.parentHandle, "ACAD_GROUP", dictionary.handle)
         || frame.appIdDependencies.size() != 1u
         || frame.appIdDependencies.front() == 0u || frame.appIdDependencies.front() == DRW::NoHandle
         || !frame.hasNoObservedTextDecodeIssues() || !frame.sourceCodePageFieldPresent
         || !frame.sourceCodePageRecognized || frame.sourceCodePageId != 30u) return false;
+    const bool nod = dictionary.handle == cData->namedObjectDictionary.handle
+        && dictionary.parentHandle == 0u;
+    if (nod) {
+        std::uint32_t group = 0u;
+        for (const auto& entry : dictionary.m_entries) {
+            if (entry.m_name != "ACAD_GROUP") continue;
+            if (group != 0u || entry.m_handle == 0u) return false;
+            group = entry.m_handle;
+        }
+        std::uint32_t groupOwner = DRW::NoHandle;
+        if (!group || std::count_if(dictionary.m_entries.begin(), dictionary.m_entries.end(),
+                [group](const DRW_Dictionary::Entry& entry) { return entry.m_handle == group; }) != 1
+            || !cData->hasCompleteDwgDictionaryEntry(dictionary.handle, "ACAD_GROUP", group)
+            || !cData->getCompleteDwgDictionaryOwner(group, groupOwner)
+            || groupOwner != dictionary.handle) return false;
+    } else if (dictionary.handle == cData->namedObjectDictionary.handle
+               || dictionary.parentHandle != cData->namedObjectDictionary.handle
+               || !cData->hasCompleteDwgDictionaryEntry(dictionary.parentHandle, "ACAD_GROUP", dictionary.handle)) {
+        return false;
+    }
     const auto app = [this, &frame](std::uint32_t handle, const std::string& name) noexcept {
         if (handle != frame.appIdDependencies.front() || name != "ACAD") return false;
         const auto source = cData->m_standardDwgAppIdSources.find({frame.generation, handle});
@@ -32543,7 +32561,7 @@ bool dx_iface::hasLegacyDictionaryWireSource(
     const auto page = [](std::uint16_t be, std::uint16_t le) noexcept {
         return (be == 30u && le == 0x1e00u) || (be == 45u && le == 0x2d00u);
     };
-    return dx_legacy_dwg_wire::observeDictionaryEed(frame.raw, dictionary, false, app, page);
+    return dx_legacy_dwg_wire::observeDictionaryEed(frame.raw, dictionary, nod, app, page);
 }
 
 bool dx_iface::hasUnchangedStandardDwgObjectSources() const noexcept {
@@ -39257,7 +39275,7 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
                     || !cData->hasCompleteDwgDictionaryEntry(liveRoot->handle, current.name.c_str(), current.handle)
                     || !standardDwgModelsEqual(*nodFrame->second.typedBaseline, nod,
                                                cData->sourceVersion, dwgObjType::DICTIONARY)
-                    || !dx_legacy_dwg_wire::dictionary(nodFrame->second.raw, nod, true)
+                    || !hasLegacyDictionaryWireSource(nodFrame->second, nod)
                     || !dx_legacy_dwg_wire::dictionary(rootFrame->second.raw, *liveRoot, false, true)
                     || !dx_legacy_mlinestyle_wire::style(frame->second, current))
                     return false;
@@ -52134,7 +52152,7 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
             proof.references.reserve(slots);
             const auto sourceFrame = cData->m_standardDwgObjectFrames.find(
                 {cData->importGeneration, frozen->handle});
-            const bool legacyEedText = groups && view.version == DRW::AC1014
+            const bool legacyEedText = view.version == DRW::AC1014
                 && cData->sourceFormat == dx_source_format::DWG
                 && sourceFrame != cData->m_standardDwgObjectFrames.end()
                 && sourceFrame->second.legacyEedWireAtImport;

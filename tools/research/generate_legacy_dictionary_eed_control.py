@@ -68,6 +68,7 @@ def main():
     parser.add_argument('--alternate-app', action='store_true')
     parser.add_argument('--alternate-group', action='store_true')
     parser.add_argument('--nonempty-group', action='store_true')
+    parser.add_argument('--eed-on-nod', action='store_true')
     parser.add_argument('--dwgadd', default='dwgadd')
     parser.add_argument('--dwgread', default='dwgread')
     parser.add_argument('--dwgwrite', default='dwgwrite')
@@ -140,20 +141,27 @@ def main():
         groups[0]['unnamed'] = 0
         groups[0]['selectable'] = 1
         groups[0]['groups'] = [[5, 1, lines[0]['handle'][2], lines[0]['handle'][2]]]
+    root_handle = 53 if args.alternate_group else 12
+    roots = [o for o in document['OBJECTS'] if o.get('object') == 'DICTIONARY'
+             and o.get('handle', [0, 0, 0])[2] == root_handle]
+    if len(roots) != 1:
+        raise RuntimeError('named-object dictionary not unique')
+    target = roots[0] if args.eed_on_nod else dictionaries[0]
+    target_handle = root_handle if args.eed_on_nod else group
     # dwgread JSON rounds the angle; restore the exact generated binary value
     # so the baseline remains within the existing MLINESTYLE wire profile.
     styles[0]['start_angle'] = styles[0]['end_angle'] = 1.5707963267948966
     results = {}
     for name in ('baseline', 'eed', 'unqualified'):
         if name == 'eed':
-            dictionaries[0]['eed'] = [
+            target['eed'] = [
                 {'size': 12, 'handle': [5, 1, appid], 'code': 0, 'value': 'HELLO'},
                 {'code': 70, 'value': 42},
             ]
         if name == 'unqualified':
             # A 1071 long is deliberately outside the bounded source proof.
-            dictionaries[0]['eed'][0]['size'] = 17
-            dictionaries[0]['eed'].append({'code': 71, 'value': 123456})
+            target['eed'][0]['size'] = 17
+            target['eed'].append({'code': 71, 'value': 123456})
         path = root / (name + '.json')
         drawing = root / (name + '.dwg')
         path.write_text(json.dumps(document))
@@ -163,11 +171,13 @@ def main():
         reread = json.loads(check.read_text())
         selected = [o for o in reread['OBJECTS'] if o.get('object') == 'DICTIONARY'
                     and o.get('handle', [0, 0, 0])[2] == group]
-        if len(selected) != 1 or (name != 'baseline' and selected[0].get('eed') != dictionaries[0]['eed']):
-            raise RuntimeError(f'{name} independent JSON readback mismatch')
-        root_handle = 53 if args.alternate_group else 12
         roots = [o for o in reread['OBJECTS'] if o.get('object') == 'DICTIONARY'
                  and o.get('handle', [0, 0, 0])[2] == root_handle]
+        if len(selected) != 1 or len(roots) != 1:
+            raise RuntimeError(f'{name} independent dictionary readback mismatch')
+        peer_target = roots[0] if args.eed_on_nod else selected[0]
+        if name != 'baseline' and peer_target.get('eed') != target['eed']:
+            raise RuntimeError(f'{name} independent EED readback mismatch')
         peer_apps = [o for o in reread['OBJECTS'] if o.get('object') == 'APPID'
                      and o.get('handle', [0, 0, 0])[2] == appid and o.get('name') == 'ACAD']
         peer_controls = [o for o in reread['OBJECTS'] if o.get('object') == 'APPID_CONTROL']
@@ -183,7 +193,7 @@ def main():
                     or len(group_objects) != 1 or group_objects[0].get('ownerhandle', [0])[-1] != group
                     or group_objects[0].get('groups') != [[5, 1, 46, 46]]):
                 raise RuntimeError(f'{name} peer group member graph mismatch')
-        if name == 'baseline' and selected[0].get('eed'):
+        if name == 'baseline' and peer_target.get('eed'):
             raise RuntimeError('baseline unexpectedly contains EED')
         results[name] = {'path': str(drawing), 'sha256': digest(drawing)}
     if args.nonempty_group:
@@ -224,11 +234,11 @@ def main():
         results['badGraph'] = {'path': str(drawing), 'sha256': digest(drawing)}
     for name, value in (('utf8', 'café'), ('wide', '漢é')):
         drawing = root / (name + '.dwg')
-        replace_eed_text(args.dwgread, root / 'eed.dwg', drawing, value, appid, group)
+        replace_eed_text(args.dwgread, root / 'eed.dwg', drawing, value, appid, target_handle)
         results[name] = {'path': str(drawing), 'sha256': digest(drawing)}
     print(json.dumps({'recipeSha256': digest(recipe), 'controls': results,
                       'version': args.version, 'dictionaryHandle': group, 'appidHandle': appid,
-                      'nonemptyGroup': args.nonempty_group,
+                      'nonemptyGroup': args.nonempty_group, 'eedTargetHandle': target_handle,
                       'status': 'research control; no support claim'}, indent=2))
 
 

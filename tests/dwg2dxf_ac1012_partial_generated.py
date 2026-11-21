@@ -209,6 +209,28 @@ def main():
                                     str(group_root / "bad-member-role.dwg"), str(group_root / "eed.dwg"),
                                     str(group_root / "role-output.dxf")]).returncode == 0,
                             source_version + " wrong member handle role refusal and corrected retry")
+                for remap_nod in (False, True):
+                    nod_root = root / (source_version + ("-nod-remapped" if remap_nod else "-nod"))
+                    nod_command = [sys.executable, str(generator), "--version", source_version,
+                                   "--eed-on-nod", "--output-dir", str(nod_root), "--dwgadd", dwgadd,
+                                   "--dwgread", dwgread, "--dwgwrite", dwgwrite]
+                    if remap_nod:
+                        nod_command += ["--alternate-app", "--alternate-group", "--nonempty-group"]
+                    require(invoke(nod_command).returncode == 0, source_version + " NOD EED source generation")
+                    suffix = "-remapped" if remap_nod else ""
+                    if remap_nod:
+                        require(invoke([profile_test, "--" + source_version + "-nod-bad-graph",
+                                        str(nod_root / "bad-graph.dwg"), str(nod_root / "eed.dwg"),
+                                        str(nod_root / "bad-output.dxf")]).returncode == 0,
+                                source_version + " NOD bad group graph refusal and retry")
+                    for profile, file in (("nod-eed", "eed.dwg"), ("nod-utf8", "utf8.dwg")):
+                        require(invoke([profile_test, "--" + source_version + "-" + profile + suffix,
+                                        str(nod_root / file), str(nod_root / "adapter.dxf")]).returncode == 0,
+                                source_version + " NOD " + profile + " graph proof and retry")
+                    require(invoke([profile_test, "--" + source_version + "-nod-wide" + suffix,
+                                    str(nod_root / "wide.dwg"), str(nod_root / "utf8.dwg"),
+                                    str(nod_root / "wide-output.dxf")]).returncode == 0,
+                            source_version + " NOD unrepresentable EED refusal")
                 for binary in (False, True):
                     output = eed_root / ("cli-binary.dxf" if binary else "cli-ascii.dxf")
                     command = [converter, str(eed_input), "-o", str(output), "-y"]
