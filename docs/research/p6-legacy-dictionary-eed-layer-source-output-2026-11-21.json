@@ -1,0 +1,102 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-dictionary-eed-layer-source-output-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_GENERATED_CONTROL",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.4.44 DICTIONARY",
+      "28 Extended Entity Data"
+    ],
+    "note": "Item 3 contains an eight-byte layer-table handle; the specification does not explicitly resolve byte order."
+  },
+  "producerByteOrderEvidence": "docs/research/p6-legacy-eed-layer-byte-order-2026-11-21.json",
+  "sourceGenerator": "tools/research/generate_legacy_dictionary_eed_control.py",
+  "sourceGeneratorSha256": "bc27b04bbdf404f5a7d82b8eb1c83055234c073b34526cbf3bdb39b763f3d713",
+  "sourceProvenance": "From-scratch GNU LibreDWG 0.14 controls. Little-endian layer bytes are produced by LibreDWG; big-endian controls patch those bytes and repair the object CRC. Patched controls are not native or ODA producer witnesses.",
+  "independentVerifier": "tools/research/verify_legacy_dictionary_layer_output.py",
+  "independentVerifierSha256": "4c013d0b5d853cbde356cd7550cc1f7302d15c274ab507299e87d72cad1f1c29",
+  "candidateSha256": "1e89f39dc4b1bb75d6e64f245c5e5761222f49689ab46bfd9fd695002c7c3f14",
+  "testSourceSha256": "07a004bc93330c98ab66903c6994a70b26c5a060e9731dad5fa9341a8d6d10b3",
+  "testBinarySha256": "c0561fd19ca8dfa601ef4983061abe8d4c6613f5cc6ab6120b85ef36c3491631",
+  "independentReader": {
+    "name": "ezdxf",
+    "version": "1.4.5"
+  },
+  "profiles": {
+    "r13-group-little": {
+      "sourceSha256": "1e8e6224b3ff94f94cd46e616bbd16129477ac3596cebb35beabb18d4f9d5e3b",
+      "asciiSha256": "a44fc59379ec3a37e0ee705b0f0d19f8c93130182782f61c73967db18be11456",
+      "binarySha256": "70e30cee6ea1309117efb9f7e46e37581f03a5122d7e18aff166640b40edcedc"
+    },
+    "r13-group-big": {
+      "sourceSha256": "35a79ee165a448f8296b995337c0c053a9455a36d5f386c2c33406ebec64c512",
+      "asciiSha256": "a44fc59379ec3a37e0ee705b0f0d19f8c93130182782f61c73967db18be11456",
+      "binarySha256": "70e30cee6ea1309117efb9f7e46e37581f03a5122d7e18aff166640b40edcedc"
+    },
+    "r13-nod-little": {
+      "sourceSha256": "7101e1c02e09e7d8b991724a7a1c880724df1cd2a5f97761912e63d847f1b4ed",
+      "asciiSha256": "6cad9793d15fe068cb291545c5027586f241dfdae7652ee192b1beaad8ef5c1f",
+      "binarySha256": "aea065560ac3eeb12fcd13910b8732d20d27d717a1e88074b82e4b5c4457f17b"
+    },
+    "r13-nod-big": {
+      "sourceSha256": "4e82a01c0fe9318715a9db2599085b228bf0d6a5828f76c7560314fbb9534590",
+      "asciiSha256": "6cad9793d15fe068cb291545c5027586f241dfdae7652ee192b1beaad8ef5c1f",
+      "binarySha256": "aea065560ac3eeb12fcd13910b8732d20d27d717a1e88074b82e4b5c4457f17b"
+    },
+    "r13-mline-little": {
+      "sourceSha256": "b37d4cc62c5c4cb4f32e45c56b9410f19c1ff7db54ed4f1b013458d63b676b6c",
+      "asciiSha256": "afb7910cf045725c4d1aed8944cfc1a8dfa3f0204a5779f3dc3f7650b4adf099",
+      "binarySha256": "d382c0e7547a539c074a9dccc2b2eae04d907d41b0003dc532b6246ca9aca583"
+    },
+    "r13-mline-big": {
+      "sourceSha256": "ee8acf05ab337c7bf48cd32e5255cc04249d79ebc44b246f53c4fc6d7acbabfa",
+      "asciiSha256": "afb7910cf045725c4d1aed8944cfc1a8dfa3f0204a5779f3dc3f7650b4adf099",
+      "binarySha256": "d382c0e7547a539c074a9dccc2b2eae04d907d41b0003dc532b6246ca9aca583"
+    },
+    "r14-group-little": {
+      "sourceSha256": "e9a43a2a9959dc4a7a3405ae786c53e1151b31288bed0c1cb6f4213ba1ccb834",
+      "asciiSha256": "e728ffc9921bae9d8259fce30e503448e90b83e3cea3f48e759292f1d006681c",
+      "binarySha256": "9bb412b89f0a6700f7273fa6116a1b14ecb91daa96796d73df7655570cf47089"
+    },
+    "r14-group-big": {
+      "sourceSha256": "8bcfc6e04b6223e053c724db0f438b345a68c2ba63ab587134ba053b8fa69b33",
+      "asciiSha256": "e728ffc9921bae9d8259fce30e503448e90b83e3cea3f48e759292f1d006681c",
+      "binarySha256": "9bb412b89f0a6700f7273fa6116a1b14ecb91daa96796d73df7655570cf47089"
+    },
+    "r14-nod-little": {
+      "sourceSha256": "d06d13e02345598ea4bad289fb9e31303b52bb1582f7657c8a3fd941d2efbba7",
+      "asciiSha256": "c8e1829e7ef0316e7d40b7630f2e164156496b2a739f667c605c5a7e6d8e21fc",
+      "binarySha256": "8b9a221ad4f21f92a12636c36d05aa874de4d210b54f7452bb667588f7d3af94"
+    },
+    "r14-nod-big": {
+      "sourceSha256": "8689ab5e3bd573db4158a32dfad793a0598070767e22dba6038c0739aba8d98c",
+      "asciiSha256": "c8e1829e7ef0316e7d40b7630f2e164156496b2a739f667c605c5a7e6d8e21fc",
+      "binarySha256": "8b9a221ad4f21f92a12636c36d05aa874de4d210b54f7452bb667588f7d3af94"
+    },
+    "r14-mline-little": {
+      "sourceSha256": "e6b8fba144241d9e374d46d6058d04429e8a21fee64602e948a8dccf60715156",
+      "asciiSha256": "c94b48a4ab0e8268f6a17513672393c7a00d46d718c00b743024d5f52d2431b0",
+      "binarySha256": "1009530f38946b9f763e805ab7f4a45ebf168298f4a883f23b148a3e94b03191"
+    },
+    "r14-mline-big": {
+      "sourceSha256": "c806adb12b55946d7a0b674fd4fe30eeb8000332e26ac372f23c3d34a8e004ac",
+      "asciiSha256": "c94b48a4ab0e8268f6a17513672393c7a00d46d718c00b743024d5f52d2431b0",
+      "binarySha256": "1009530f38946b9f763e805ab7f4a45ebf168298f4a883f23b148a3e94b03191"
+    }
+  },
+  "result": [
+    "The version-aware observer binds the full dictionary frame and EED item to the selected eight-byte handle interpretation and unchanged unique layer name. It retains the existing APPID, parent/ownership, entry, frame boundary and source-name checks.",
+    "The staged output uses the shared layer-reference verifier for both standard objects and the MLINESTYLE owner, then requires output table identity and final reference closure. R13 uses explicit partial output; R14 uses strict output.",
+    "Independent fresh ezdxf readback checked the ACAD group values HELLO, 42, layer 0 and three complete XYZ LINE endpoint pairs in all 24 ASCII/Binary outputs.",
+    "Focused AddressSanitizer controls check missing, zero and wide targets; duplicate layer identity; source layer-name mutation; dictionary value mutation; exact layer-handle wire-bit mutation; destination preservation and corrected same-adapter retry. The generated AC1012/AC1014 regression harness passed in 42.11 seconds.",
+    "Standard-object source capture and payload-correlation ASan selectors passed after correcting a pre-existing test expectation: resolving a layer clears the raw replay spelling, so the budget control now verifies both the unresolved and resolved states."
+  ],
+  "limits": [
+    "The byte order remains a caller-selected producer policy, not automatic identification. Strict whole-file AC1012 and native duplicate/merge semantics remain unqualified.",
+    "These controls cover one layer and generated dictionary graphs; native AutoCAD, nondefault layer identities, other APPIDs, versions and graph profiles need their own evidence. No DWG/DXF files were committed."
+  ]
+}

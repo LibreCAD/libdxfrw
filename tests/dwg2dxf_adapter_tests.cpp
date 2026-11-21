@@ -23397,17 +23397,22 @@ bool standardDwgObjectPayloadCorrelation() {
     {
         DRW_Variant value(1003, std::string("source\0suffix", 13));
         value.setDwgRawLayerReference(0x123u, DRW::AC1021);
-        value.setLayerRefName("x");
         DRW_DwgCmColor color;
         color.colorName = std::string("c\0suffix", 8);
         color.bookName = "book";
         value.setDwgCmColor(color);
-        const std::size_t expected = 2u + 14u + sizeof(DRW_DwgCmColor)
-            + 2u * sizeof(void*) + 9u + 5u;
+        const std::size_t colorCost = sizeof(DRW_DwgCmColor) + 2u * sizeof(void*) + 9u + 5u;
+        const std::size_t unresolvedCost = 14u + 14u + colorCost;
         std::size_t bytes = 99u;
-        if (!value.estimateRetainedPayloadBytes(expected, bytes) || bytes != expected
-            || value.estimateRetainedPayloadBytes(expected - 1u, bytes) || bytes != expected)
-            return fail("variant source baseline budget ignored an owned string/CMC payload");
+        if (!value.estimateRetainedPayloadBytes(unresolvedCost, bytes) || bytes != unresolvedCost
+            || value.estimateRetainedPayloadBytes(unresolvedCost - 1u, bytes) || bytes != unresolvedCost)
+            return fail("unresolved variant baseline budget ignored an owned string/CMC payload");
+        value.setLayerRefName("x");
+        const std::size_t resolvedCost = 2u + 1u + colorCost;
+        if (value.activeDwgLayerReference()
+            || !value.estimateRetainedPayloadBytes(resolvedCost, bytes) || bytes != resolvedCost
+            || value.estimateRetainedPayloadBytes(resolvedCost - 1u, bytes) || bytes != resolvedCost)
+            return fail("resolved variant baseline budget or source replay state is incorrect");
         DRW_Variant dormant(1, std::string("a\0tail", 6));
         dormant.addInt(90, 1);
         if (!dormant.estimateRetainedPayloadBytes(8u, bytes) || bytes != 8u

@@ -32585,7 +32585,26 @@ bool dx_iface::hasLegacyDictionaryWireSource(
     const auto page = [](std::uint16_t be, std::uint16_t le) noexcept {
         return (be == 30u && le == 0x1e00u) || (be == 45u && le == 0x2d00u);
     };
-    return dx_legacy_dwg_wire::observeDictionaryEed(frame.raw, dictionary, nod, app, page, mlineOwner);
+    const auto layer = [this, &frame](std::uint64_t handle, const std::string& name) noexcept {
+        if (handle == 0u || handle > (std::numeric_limits<std::uint32_t>::max)()
+            || !std::binary_search(frame.layerDependencies.begin(), frame.layerDependencies.end(), handle)) return false;
+        const auto id = static_cast<std::uint32_t>(handle);
+        const auto source = cData->m_standardDwgLayerSources.find({frame.generation, id});
+        if (source == cData->m_standardDwgLayerSources.end() || !source->second
+            || source->second->handle != id || source->second->name != name
+            || !source->second->hasUnchangedDwgSourceName()
+            || source->second->dwgNameDecodeIssues() != 0u
+            || !source->second->hasBoundDwgNameProfile(frame.raw.m_version, dwgCodePageName(30u))) return false;
+        const DRW_Layer* current = nullptr;
+        for (const auto& candidate : cData->layers) {
+            if (candidate.handle != id) continue;
+            if (current) return false;
+            current = &candidate;
+        }
+        return current && current->name == name && current->sameDwgNameSource(*source->second);
+    };
+    return dx_legacy_dwg_wire::observeDictionaryEed(frame.raw, dictionary, nod, app, page,
+        mlineOwner, m_activeDwgEedLayerByteOrder, layer);
 }
 
 bool dx_iface::hasUnchangedStandardDwgObjectSources() const noexcept {
@@ -33508,6 +33527,31 @@ bool dx_iface::inspectDwgPlotSettingsOutput(
     } catch (...) {
         return false;
     }
+}
+
+bool dx_iface::verifyStandardDwgOutputLayer(
+        const dx_data::StandardDwgObjectFrame& frame,
+        const DRW_Variant& source, const DRW_Variant& actual,
+        std::vector<std::uint32_t>& references) const {
+    if (!cData || !dxfW) return false;
+    const auto handle = dwgEed::layerHandle(source.rawDwgLayerReference(),
+                                            m_activeDwgEedLayerByteOrder);
+    if (source.code() != 1003 || actual.code() != 1003 || !source.isLayerRef()
+        || source.type() != DRW_Variant::STRING || actual.type() != DRW_Variant::STRING
+        || !source.content.s || !actual.content.s || source.dwgCmColorValue()
+        || actual.dwgCmColorValue() || actual.rawDwgLayerReference() != 0u
+        || handle == 0u || handle > (std::numeric_limits<std::uint32_t>::max)()
+        || !std::binary_search(frame.layerDependencies.begin(), frame.layerDependencies.end(), handle)) return false;
+    const auto original = cData->m_standardDwgLayerSources.find(
+        {frame.generation, static_cast<std::uint32_t>(handle)});
+    const auto observed = m_standardDwgOutputNameProofs.find(
+        {frame.generation, static_cast<std::uint32_t>(handle)});
+    if (original == cData->m_standardDwgLayerSources.end() || !original->second
+        || observed == m_standardDwgOutputNameProofs.end() || !observed->second.layer
+        || *source.content.s != original->second->name || *actual.content.s != original->second->name
+        || references.size() >= StandardDwgObjectCaptureMaxEntries) return false;
+    references.push_back(observed->second.emitted);
+    return true;
 }
 
 bool dx_iface::hasQualifiedStandardDwgOutputNames(std::uint64_t generation,
@@ -39570,8 +39614,16 @@ bool dx_iface::inspectDwgMLineStyles(
                     const bool decoded = decoder.decodeRecord<DRW_Dictionary>(
                         body, [&](const DRW_Dictionary& actual) {
                             std::vector<std::uint32_t> references;
+                            const auto verifyLayer = [this, &sourceFrame](
+                                    const DRW_Variant& sourceValue,
+                                    const DRW_Variant& actualValue,
+                                    std::vector<std::uint32_t>& outputReferences) {
+                                return sourceFrame != cData->m_standardDwgObjectFrames.end()
+                                    && verifyStandardDwgOutputLayer(sourceFrame->second,
+                                        sourceValue, actualValue, outputReferences);
+                            };
                             return dx_standard_output::equal(
-                                sourceRoot, actual, mapHandle, references);
+                                sourceRoot, actual, mapHandle, references, verifyLayer);
                         });
                     if (!decoded)
                         stagedFailure = "owner dictionary fields or entry role";
@@ -53550,25 +53602,9 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
             proof.emitted = shape.handle;
             proof.objectType = frame.raw.m_objectType;
             bool matched = false;
-            const auto verifyLayer = [&](const DRW_Variant& source, const DRW_Variant& actual,
-                                          std::vector<std::uint32_t>& references) {
-                const auto handle = source.rawDwgLayerReference();
-                if (source.code() != 1003 || actual.code() != 1003 || !source.isLayerRef()
-                    || source.type() != DRW_Variant::STRING || actual.type() != DRW_Variant::STRING
-                    || !source.content.s || !actual.content.s || source.dwgCmColorValue()
-                    || actual.dwgCmColorValue() || actual.rawDwgLayerReference() != 0u
-                    || handle == 0u || handle > (std::numeric_limits<std::uint32_t>::max)()
-                    || !std::binary_search(frame.layerDependencies.begin(), frame.layerDependencies.end(), handle)) return false;
-                const auto original = cData->m_standardDwgLayerSources.find(
-                    {frame.generation, static_cast<std::uint32_t>(handle)});
-                const auto observed = m_standardDwgOutputNameProofs.find(
-                    {frame.generation, static_cast<std::uint32_t>(handle)});
-                if (original == cData->m_standardDwgLayerSources.end() || !original->second
-                    || observed == m_standardDwgOutputNameProofs.end() || !observed->second.layer
-                    || *source.content.s != original->second->name || *actual.content.s != original->second->name
-                    || references.size() >= StandardDwgObjectCaptureMaxEntries) return false;
-                references.push_back(observed->second.emitted);
-                return true;
+            const auto verifyLayer = [this, &frame](const DRW_Variant& source,
+                    const DRW_Variant& actual, std::vector<std::uint32_t>& references) {
+                return verifyStandardDwgOutputLayer(frame, source, actual, references);
             };
             const auto compare = [&](const auto& actual) {
                 using Record = std::decay_t<decltype(actual)>;
@@ -53926,7 +53962,7 @@ bool dx_iface::finalizeStandardDwgOutputProofs() noexcept {
                 const auto* dictionary = dynamic_cast<const DRW_Dictionary*>(frame.typedBaseline.get());
                 if (!dictionary) return false;
                 const bool hasHandle = std::any_of(dictionary->extData.begin(), dictionary->extData.end(),
-                    [](const DRW_Variant* value) { return value && value->code() == 1005; });
+                    [](const DRW_Variant* value) { return value && (value->code() == 1005 || value->code() == 1003); });
                 if (hasHandle && m_standardDwgOutputProofs.count(frame.raw.m_handle) != 1u) return false;
             }
         }

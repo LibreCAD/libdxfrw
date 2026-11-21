@@ -4147,6 +4147,9 @@ private:
     bool finalizeDwgPlotSettingsOutputProofs() noexcept;
     bool hasQualifiedStandardDwgOutputNames(std::uint64_t generation,
                                           std::uint32_t handle, bool finalizing) const;
+    bool verifyStandardDwgOutputLayer(const dx_data::StandardDwgObjectFrame& frame,
+        const DRW_Variant& source, const DRW_Variant& actual,
+        std::vector<std::uint32_t>& references) const;
     bool finalizeStandardDwgOutputProofs() noexcept;
     bool recordOpaqueDwgSourceFrameIdentity(
         const DRW_UnsupportedObject& data) noexcept;

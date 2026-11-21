@@ -123,6 +123,31 @@ public:
         const auto frame = data.m_standardDwgObjectFrames.find({data.importGeneration, handle});
         return frame != data.m_standardDwgObjectFrames.end() && frame->second.legacyEedWireAtImport;
     }
+
+    static std::vector<std::uint8_t>& legacyGroupEedBytes(dx_data& data, std::uint32_t handle) {
+        return data.m_standardDwgObjectFrames.at({data.importGeneration, handle}).raw.m_rawBytes;
+    }
+    static std::size_t legacyLayerBit(const dx_data& data, std::uint32_t handle) {
+        const auto& raw = data.m_standardDwgObjectFrames.at({data.importGeneration, handle}).raw;
+        if (raw.m_rawBytes.empty() || raw.m_rawBytes.size() > UINT32_MAX / 8u)
+            return (std::numeric_limits<std::size_t>::max)();
+        dx_raster_wire::detail::Bits bits{raw.m_rawBytes.data(), 0u,
+            static_cast<std::uint32_t>(raw.m_rawBytes.size() * 8u)};
+        if (bits.shortValue() != 42u || !dx_legacy_dwg_wire::reference(bits, 0u, 0u, handle, true))
+            return (std::numeric_limits<std::size_t>::max)();
+        dx_raster_wire::Proof proof;
+        std::size_t found = (std::numeric_limits<std::size_t>::max)();
+        const auto visitor = [&found](const dx_raster_wire::EedToken& token) noexcept {
+            if (token.code != 1003u) return true;
+            if (found != (std::numeric_limits<std::size_t>::max)() || token.valueSpan.width() != 64u)
+                return false;
+            found = token.valueSpan.begin + 63u;
+            return true;
+        };
+        const auto revision = raw.m_version == DRW::AC1012 ? 13u : 14u;
+        return dx_raster_wire::detail::eed(bits, revision, proof, visitor) == dx_raster_wire::Status::Proven
+            ? found : (std::numeric_limits<std::size_t>::max)();
+    }
     static std::vector<std::uint8_t>& legacyUtf8EedBytes(dx_data& data) {
         return data.m_standardDwgObjectFrames.at({data.importGeneration, 0x31u}).raw.m_rawBytes;
     }
@@ -780,26 +805,33 @@ bool legacyLayerEedReadPolicy(const std::string& input, bool sourceBig, bool mis
     return true;
 }
 
-bool checkLayerDxf(const std::string& input) {
+bool checkLayerDxf(const std::string& input, std::uint32_t handle = 0xdu) {
     dx_iface reader;
     dx_data data;
     if (!reader.fileImport(input, &data, false)) return false;
-    const auto group = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
-        [](const DRW_Dictionary& item) { return item.handle == 0xdu; });
-    if (group == data.dictionaries.end()) return false;
+    const auto entry = std::find_if(data.namedObjectDictionary.m_entries.begin(), data.namedObjectDictionary.m_entries.end(),
+        [handle](const auto& item) { return handle == 0x17u && item.m_name == "ACAD_MLINESTYLE"; });
+    if (handle == 0x17u && entry == data.namedObjectDictionary.m_entries.end()) return false;
+    const auto emittedHandle = handle == 0x17u ? entry->m_handle : handle;
+    const auto found = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
+        [emittedHandle](const DRW_Dictionary& item) { return item.handle == emittedHandle; });
+    const DRW_Dictionary* group = handle == 0xcu ? &data.namedObjectDictionary
+        : found == data.dictionaries.end() ? nullptr : &*found;
+    if (!group) return false;
     const auto layer = std::find_if(group->extData.begin(), group->extData.end(),
         [](const DRW_Variant* item) { return item && item->code() == 1003; });
     return layer != group->extData.end() && (*layer)->stringEquals("0");
 }
 
 bool legacyBigLayerPartial(const std::string& goodInput, const std::string& badInput,
-                           const std::filesystem::path& output) {
+                           const std::filesystem::path& output, std::uint32_t handle = 0xdu) {
     dx_iface adapter;
     if (!adapter.setDwgEedLayerByteOrder(DRW::DwgEedLayerByteOrder::BigEndian)) return false;
     const std::string sentinel = "unresolved EED layer destination preserved\n";
     for (bool binary : {false, true}) {
         dx_data bad;
-        if (!adapter.fileImport(badInput, &bad, false)) return false;
+        if (!adapter.fileImport(badInput, &bad, false)
+            || DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(bad, handle)) return false;
         { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
         if (write(adapter, bad, output.string(), binary, DRW::AC1014,
                   dx_dwgReadCompletenessPolicy::AllowPartial) || bytes(output) != sentinel) {
@@ -811,12 +843,52 @@ bool legacyBigLayerPartial(const std::string& goodInput, const std::string& badI
             std::cerr << "Resolved EED layer import failed\n";
             return false;
         }
-        if (!write(adapter, source, output.string(), binary, DRW::AC1014,
-                   dx_dwgReadCompletenessPolicy::AllowPartial)) {
-            std::cerr << "Resolved EED layer export failed\n";
+        if (!DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(source, handle)) {
+            std::cerr << "Resolved EED layer source was not bound\n";
             return false;
         }
-        if (!checkLayerDxf(output.string())) return false;
+        const auto layer = std::find_if(source.layers.begin(), source.layers.end(),
+            [](const DRW_Layer& item) { return item.handle == 16u; });
+        if (layer == source.layers.end()) return false;
+        const auto policy = dx_dwgReadCompletenessPolicy::AllowPartial;
+        const auto rejectMutation = [&](bool wire) {
+            auto& raw = DxIfaceStandardDwgCaptureTestAccess::legacyGroupEedBytes(source, handle);
+            const auto bit = DxIfaceStandardDwgCaptureTestAccess::legacyLayerBit(source, handle);
+            if (bit == (std::numeric_limits<std::size_t>::max)() || bit / 8u >= raw.size()) return false;
+            const auto mask = static_cast<std::uint8_t>(0x80u >> (bit % 8u));
+            const auto originalName = layer->name;
+            if (wire) raw[bit / 8u] ^= mask;
+            else layer->name = "MUTATED_LAYER";
+            { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+            const bool accepted = write(adapter, source, output.string(), binary, DRW::AC1014, policy);
+            if (wire) raw[bit / 8u] ^= mask;
+            else layer->name = originalName;
+            return !accepted && bytes(output) == sentinel;
+        };
+        if (!rejectMutation(false) || !rejectMutation(true)) return false;
+        const auto found = std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
+            [handle](const DRW_Dictionary& item) { return item.handle == handle; });
+        DRW_Dictionary* group = handle == 0xcu ? &source.namedObjectDictionary
+            : found == source.dictionaries.end() ? nullptr : &*found;
+        if (!group || group->extData.empty()
+            || !group->extData.back() || group->extData.back()->code() != 1003) return false;
+        DRW_Variant saved = *group->extData.back();
+        group->extData.back()->setLayerRefName("WRONG_LAYER");
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        const bool acceptedName = write(adapter, source, output.string(), binary, DRW::AC1014, policy);
+        *group->extData.back() = saved;
+        if (acceptedName || bytes(output) != sentinel) return false;
+        source.layers.push_back(*layer); // Duplicate source identity must not be guessed.
+        const bool acceptedDuplicate = write(adapter, source, output.string(), binary, DRW::AC1014, policy);
+        source.layers.pop_back();
+        const bool preserved = bytes(output) == sentinel;
+        const bool retried = write(adapter, source, output.string(), binary, DRW::AC1014, policy);
+        if (acceptedDuplicate || !preserved || !retried) {
+            std::cerr << "EED layer duplicate=" << acceptedDuplicate << " preserved=" << preserved
+                      << " retried=" << retried << " binary=" << binary << '\n';
+            return false;
+        }
+        if (!checkLayerDxf(output.string(), handle)) return false;
     }
     return true;
 }
@@ -929,11 +1001,13 @@ bool legacyWideEedRefusal(const std::string& badInput, const std::string& goodIn
 
 // A source outside the new proof retains the established explicit-partial
 // route. Its successful projection is not a complete-source certificate.
-bool r13UnqualifiedEedPartial(const std::string& input, const std::filesystem::path& output) {
+bool legacyLayerEedPartial(const std::string& input, const std::filesystem::path& output) {
     dx_iface adapter;
     dx_data source;
-    if (!adapter.fileImport(input, &source, false) || !checkR14Generated(source, DRW::AC1012)
-        || DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(source)) return false;
+    if (!adapter.fileImport(input, &source, false)
+        || (source.sourceVersion != DRW::AC1012 && source.sourceVersion != DRW::AC1014)
+        || !checkR14Generated(source, source.sourceVersion)
+        || !DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(source)) return false;
     for (bool binary : {false, true}) {
         if (!write(adapter, source, output.string(), binary, DRW::AC1014,
                    dx_dwgReadCompletenessPolicy::AllowPartial)) return false;
@@ -1138,6 +1212,10 @@ int main(int argc, char** argv) {
         ? checkLegacyMalformed(argv[2], argv[3], argv[4])
         : argc == 5 && std::string(argv[1]) == "--layer-big-partial"
             ? legacyBigLayerPartial(argv[2], argv[3], argv[4])
+        : argc == 5 && std::string(argv[1]) == "--layer-big-nod"
+            ? legacyBigLayerPartial(argv[2], argv[3], argv[4], 0xcu)
+        : argc == 5 && std::string(argv[1]) == "--layer-big-mline"
+            ? legacyBigLayerPartial(argv[2], argv[3], argv[4], 0x17u)
         : argc == 3 && std::string(argv[1]) == "--check-layer-dxf"
             ? checkLayerDxf(argv[2])
         : argc == 3 && std::string(argv[1]) == "--check-partial"
@@ -1351,8 +1429,8 @@ int main(int argc, char** argv) {
                 ? legacyWideEedRefusal(argv[2], argv[3], argv[4], DRW::AC1014)
             : argc == 5 && std::string(argv[1]) == "--r13-eed-wide"
                 ? legacyWideEedRefusal(argv[2], argv[3], argv[4], DRW::AC1012)
-            : argc == 4 && std::string(argv[1]) == "--r13-unqualified-eed"
-                ? r13UnqualifiedEedPartial(argv[2], argv[3])
+            : argc == 4 && std::string(argv[1]) == "--legacy-little-layer-eed"
+                ? legacyLayerEedPartial(argv[2], argv[3])
             : argc == 4 && std::string(argv[1]) == "--r14-generated"
                 ? legacyGenerated(argv[2], argv[3], DRW::AC1014)
             : argc == 4 && std::string(argv[1]) == "--r13-generated"

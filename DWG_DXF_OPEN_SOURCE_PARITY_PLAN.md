@@ -192,8 +192,12 @@ now resolves either witnessed order when the caller selects it, preserves raw
 bytes, and refuses DXF output for unresolved layer references. The default
 remains the existing little-endian behavior; the choice does not infer producer
 identity or promote support. Next, establish trustworthy automatic source
-profile evidence and extend semantic/source proofs to the selected layer edge;
-keep ambiguous or wide targets unresolved. The [R2000 writer control](docs/research/p6-r2000-eed-layer-write-order-2026-11-21.json)
+profile evidence; keep ambiguous or wide targets unresolved. The [legacy
+layer-edge control](docs/research/p6-legacy-dictionary-eed-layer-source-output-2026-11-21.json)
+binds the selected R13/R14 dictionary source, layer and staged output for both
+explicit byte orders, with independent ASCII/Binary readback and refusal/retry.
+Extend the proof to independently produced nondefault layers and other graphs.
+The [R2000 writer control](docs/research/p6-r2000-eed-layer-write-order-2026-11-21.json)
 now checks explicitly selected byte order, raw-byte replay, failure/retry and
 ODA reopen for generated LINE and LAYER examples. A [named-layer control](docs/research/p6-r2000-eed-layer-named-handle-2026-11-21.json)
 also checks a multi-byte target after low-handle reservations; the [corrected
@@ -205,8 +209,7 @@ The same source and staged proof now covers R13-to-R14 explicit partial output
 for that bounded group, with independent ASCII/Binary readback and mutation
 refusal; see [R13 control](docs/research/p6-r13-group-dictionary-eed-partial-2026-11-21.json)
 and the subsequent [import-bound integrity fix](docs/research/p6-legacy-eed-import-bound-integrity-2026-11-21.json).
-The original pre-inspection fallback is closed for the verified profile; an
-unqualified EED control retains its existing partial route. Strict R13, broader
+The original pre-inspection fallback is closed for the verified profile. Strict R13, broader
 cross-version and non-representable EED output remain outside this profile. Extend
 other dictionaries only with separately bound source, name, graph and output evidence. The observed legacy DICTIONARYWDFLT is now
 decoded with cloning, owner, entry and default fields after

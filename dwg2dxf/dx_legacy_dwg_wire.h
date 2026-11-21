@@ -6,6 +6,7 @@
 #include "dx_raster_dwg_wire.h"
 #include "intern/drw_textcodec.h"
 #include "intern/dxfparserlimits.h"
+#include "intern/dwgutil.h"
 #include <algorithm>
 #include <charconv>
 #include <cstdint>
@@ -64,11 +65,18 @@ inline bool metadata(const DRW_UnsupportedObject& raw, std::uint32_t id,
 // String bytes are ASCII or the observed codepage-45 UTF-8 profile; integer
 // support includes balanced 1002 groups, binary chunks, finite 3D points and reals, and signed
 // 1070/1071 integers; handle targets require separate output graph closure.
-template<class AppIdSource, class CodepageSource>
+struct NoLayerSource {
+    bool operator()(std::uint64_t, const std::string&) const noexcept { return false; }
+};
+template<class AppIdSource, class CodepageSource, class LayerSource = NoLayerSource>
 bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
                        const DRW_Dictionary& model, bool nod,
                        AppIdSource appIdSource, CodepageSource codepageSource,
-                       bool mlineOwner = false) noexcept {
+                       bool mlineOwner = false,
+                       DRW::DwgEedLayerByteOrder order = DRW::DwgEedLayerByteOrder::LegacyLittleEndian,
+                       LayerSource layerSource = {}) noexcept {
+    static_assert(noexcept(layerSource(std::uint64_t{}, std::declval<const std::string&>())),
+                  "LAYER verifier must not throw");
     static_assert(noexcept(appIdSource(std::uint32_t{}, std::declval<const std::string&>())),
                   "APPID verifier must not throw");
     static_assert(noexcept(codepageSource(std::uint16_t{}, std::uint16_t{})),
@@ -138,6 +146,14 @@ bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
             if (nonAscii && (token.codePageBE != 45u || token.codePageLE != 0x2d00u
                 || !DRW_TextCodec::isUtf8ScalarText(*value->content.s))) return false;
             return textBits.good && textBits.pos == textBits.end;
+        }
+        if (token.code == 1003u && value->type() == DRW_Variant::STRING
+            && value->content.s && value->isLayerRef()
+            && !value->activeDwgLayerReference()
+            && value->rawDwgLayerReference() == token.value) {
+            const auto target = dwgEed::layerHandle(token.value, order);
+            return target != 0u && target <= (std::numeric_limits<std::uint32_t>::max)()
+                && layerSource(target, *value->content.s);
         }
         if (token.code == 1004u && value->type() == DRW_Variant::BINARY && value->binary()) {
             const auto& bytes = *value->binary();

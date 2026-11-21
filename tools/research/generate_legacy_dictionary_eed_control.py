@@ -235,7 +235,7 @@ def main():
                 {'code': 70, 'value': 42}, {'code': 5, 'value': [5, 1, ref, ref]},
             ]
         if name == 'unqualified':
-            # Layer-handle byte order and dependency proof remain outside this profile.
+            # LibreDWG emits this layer-handle control in little-endian order.
             target['eed'] = [
                 {'size': 21, 'handle': [5, 1, appid], 'code': 0, 'value': 'HELLO'},
                 {'code': 70, 'value': 42}, {'code': 3, 'value': 16},

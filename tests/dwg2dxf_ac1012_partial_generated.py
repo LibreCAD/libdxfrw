@@ -179,11 +179,10 @@ def main():
                             and layer_output.read_bytes() == sentinel
                             and invoke(command + ["--dwg-eed-layer-byte-order=big"]).returncode == 0,
                             source_version + " CLI unresolved layer refusal and corrected retry")
-                if source_version == "r13":
-                    require(invoke([profile_test, "--r13-unqualified-eed",
-                                    str(eed_root / "unqualified.dwg"),
-                                    str(eed_root / "unqualified-output.dxf")]).returncode == 0,
-                            "unqualified R13 EED retains its partial route")
+                require(invoke([profile_test, "--legacy-little-layer-eed",
+                                str(eed_root / "unqualified.dwg"),
+                                str(eed_root / "unqualified-output.dxf")]).returncode == 0,
+                        source_version + " little-endian layer EED source proof and output")
                 alternate = root / (source_version + "-eed-alternate-app")
                 require(invoke([sys.executable, str(generator), "--version", source_version,
                                 "--alternate-app", "--output-dir", str(alternate), "--dwgadd", dwgadd,
@@ -273,6 +272,10 @@ def main():
                         nod_command += ["--alternate-app", "--alternate-group", "--nonempty-group"]
                     require(invoke(nod_command).returncode == 0, source_version + " NOD EED source generation")
                     suffix = "-remapped" if remap_nod else ""
+                    if not remap_nod:
+                        require(invoke([profile_test, "--layer-big-nod", str(nod_root / "big-layer.dwg"),
+                                        str(nod_root / "big-missing.dwg"), str(nod_root / "layer-output.dxf")]).returncode == 0,
+                                source_version + " NOD layer source, refusal and retry")
                     if remap_nod:
                         require(invoke([profile_test, "--" + source_version + "-eed-dangling",
                                         str(nod_root / "bad-handle.dwg"), str(nod_root / "handle.dwg"),
@@ -319,6 +322,10 @@ def main():
                     require(invoke(mline_command).returncode == 0,
                             source_version + " MLINESTYLE dictionary EED source generation")
                     suffix = "-remapped" if remap_mline else ""
+                    if not remap_mline:
+                        require(invoke([profile_test, "--layer-big-mline", str(mline_root / "big-layer.dwg"),
+                                        str(mline_root / "big-missing.dwg"), str(mline_root / "layer-output.dxf")]).returncode == 0,
+                                source_version + " MLINESTYLE owner layer source, refusal and retry")
                     if remap_mline:
                         require(invoke([profile_test, "--" + source_version + "-eed-dangling",
                                         str(mline_root / "bad-handle.dwg"), str(mline_root / "handle.dwg"),
