@@ -25,14 +25,14 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def replace_eed_text(dwgread, source, destination, value, appid):
+def replace_eed_text(dwgread, source, destination, value, appid, group):
     """Patch the locally generated fixed-size EED string and repair its CRC."""
     raw = value.encode('utf-8')
     if len(raw) != 5:
         raise ValueError('control text must occupy exactly five UTF-8 bytes')
     trace = run(dwgread, '-v4', str(source))
     blocks = re.split(r'(?=Object number:)', trace.stdout + trace.stderr)
-    matches = [b for b in blocks if re.search(r'\bhandle: 0\.\d+\.D\s', b)]
+    matches = [b for b in blocks if re.search(r'\bhandle: 0\.\d+\.' + format(group, 'X') + r'\s', b)]
     if len(matches) != 1:
         raise RuntimeError('group dictionary trace is missing or ambiguous')
     location = re.search(r'Size: (\d+) \[MS\], Type: 42 \[BS\], Address: (\d+)', matches[0])
@@ -45,7 +45,7 @@ def replace_eed_text(dwgread, source, destination, value, appid):
     if int.from_bytes(data[address+size:address+size+2], 'little') != crc16(data[address-2:address+size]):
         raise RuntimeError('source frame CRC mismatch')
     bits = Bits(data[address:address+size])
-    if (bits.bs() != 42 or bits.handle(0, own=True)['value'] != 13 or bits.bs() != 12
+    if (bits.bs() != 42 or bits.handle(0, own=True)['value'] != group or bits.bs() != 12
             or bits.handle(5)['value'] != appid or bits.take(8) != 0 or bits.take(8) != 5):
         raise RuntimeError('unexpected source EED framing')
     offset = bits.position
@@ -66,6 +66,7 @@ def main():
     parser.add_argument('--output-dir', type=Path, required=True)
     parser.add_argument('--version', choices=('r13', 'r14'), default='r14')
     parser.add_argument('--alternate-app', action='store_true')
+    parser.add_argument('--alternate-group', action='store_true')
     parser.add_argument('--dwgadd', default='dwgadd')
     parser.add_argument('--dwgread', default='dwgread')
     parser.add_argument('--dwgwrite', default='dwgwrite')
@@ -101,6 +102,25 @@ def main():
         apps[0]['handle'] = [0, 1, appid]
         apps[0]['ownerhandle'] = [4, 1, 9, 9]
         document['HEADER']['HANDSEED'] = [0, 1, 52, 52]
+    group = 13
+    if args.alternate_group:
+        used = {o.get('handle', [0, 0, 0])[2] for o in document['OBJECTS'] if 'handle' in o}
+        nod = [o for o in document['OBJECTS'] if o.get('object') == 'DICTIONARY'
+               and o.get('handle', [0, 0, 0])[2] == 12]
+        siblings = [o for o in document['OBJECTS'] if o.get('object') == 'DICTIONARY'
+                    and o.get('handle', [0, 0, 0])[2] in (23, 25)]
+        if 52 in used or 53 in used or len(nod) != 1 or len(siblings) != 2:
+            raise RuntimeError('unexpected dictionary graph or occupied alternate handles')
+        group, root_handle = 52, 53
+        document['HEADER']['HANDSEED'] = [0, 1, 54, 54]
+        document['HEADER']['DICTIONARY_ACAD_GROUP'] = [5, 1, group, group]
+        document['HEADER']['DICTIONARY_NAMED_OBJECT'] = [3, 1, root_handle, root_handle]
+        nod[0]['handle'] = [0, 1, root_handle]
+        nod[0]['items']['ACAD_GROUP'] = [2, 1, group, group]
+        dictionaries[0]['handle'] = [0, 1, group]
+        for child in [dictionaries[0], *siblings]:
+            child['ownerhandle'] = [4, 1, root_handle, root_handle]
+            child['reactors'] = [[4, 1, root_handle, root_handle]]
     # dwgread JSON rounds the angle; restore the exact generated binary value
     # so the baseline remains within the existing MLINESTYLE wire profile.
     styles[0]['start_angle'] = styles[0]['end_angle'] = 1.5707963267948966
@@ -123,18 +143,47 @@ def main():
         run(args.dwgread, '-O', 'JSON', '-o', str(check), str(drawing))
         reread = json.loads(check.read_text())
         selected = [o for o in reread['OBJECTS'] if o.get('object') == 'DICTIONARY'
-                    and o.get('handle', [0, 0, 0])[2] == 13]
+                    and o.get('handle', [0, 0, 0])[2] == group]
         if len(selected) != 1 or (name != 'baseline' and selected[0].get('eed') != dictionaries[0]['eed']):
             raise RuntimeError(f'{name} independent JSON readback mismatch')
+        root_handle = 53 if args.alternate_group else 12
+        roots = [o for o in reread['OBJECTS'] if o.get('object') == 'DICTIONARY'
+                 and o.get('handle', [0, 0, 0])[2] == root_handle]
+        peer_apps = [o for o in reread['OBJECTS'] if o.get('object') == 'APPID'
+                     and o.get('handle', [0, 0, 0])[2] == appid and o.get('name') == 'ACAD']
+        peer_controls = [o for o in reread['OBJECTS'] if o.get('object') == 'APPID_CONTROL']
+        if (len(roots) != 1 or roots[0].get('items', {}).get('ACAD_GROUP', [0])[-1] != group
+                or selected[0].get('ownerhandle', [0])[-1] != root_handle
+                or len(peer_apps) != 1 or len(peer_controls) != 1
+                or [entry[-1] for entry in peer_controls[0].get('entries', [])] != [appid]):
+            raise RuntimeError(f'{name} independent source graph mismatch')
         if name == 'baseline' and selected[0].get('eed'):
             raise RuntimeError('baseline unexpectedly contains EED')
         results[name] = {'path': str(drawing), 'sha256': digest(drawing)}
+    if args.alternate_group:
+        broken = json.loads((root / 'eed.json').read_text())
+        nod = [o for o in broken['OBJECTS'] if o.get('object') == 'DICTIONARY'
+               and o.get('handle', [0, 0, 0])[2] == 53]
+        if len(nod) != 1 or nod[0].get('items', {}).get('ACAD_GROUP', [0])[-1] != group:
+            raise RuntimeError('unexpected source graph before negative control')
+        nod[0]['items']['ACAD_GROUP'] = [2, 1, 25, 25]
+        (root / 'bad-graph.json').write_text(json.dumps(broken))
+        drawing = root / 'bad-graph.dwg'
+        run(args.dwgwrite, '--as', args.version, '-I', 'JSON', '-o', str(drawing), str(root / 'bad-graph.json'))
+        check = root / 'bad-graph-readback.json'
+        run(args.dwgread, '-O', 'JSON', '-o', str(check), str(drawing))
+        peer = json.loads(check.read_text())
+        roots = [o for o in peer['OBJECTS'] if o.get('object') == 'DICTIONARY'
+                 and o.get('handle', [0, 0, 0])[2] == 53]
+        if len(roots) != 1 or roots[0].get('items', {}).get('ACAD_GROUP', [0])[-1] != 25:
+            raise RuntimeError('bad graph peer readback mismatch')
+        results['badGraph'] = {'path': str(drawing), 'sha256': digest(drawing)}
     for name, value in (('utf8', 'café'), ('wide', '漢é')):
         drawing = root / (name + '.dwg')
-        replace_eed_text(args.dwgread, root / 'eed.dwg', drawing, value, appid)
+        replace_eed_text(args.dwgread, root / 'eed.dwg', drawing, value, appid, group)
         results[name] = {'path': str(drawing), 'sha256': digest(drawing)}
     print(json.dumps({'recipeSha256': digest(recipe), 'controls': results,
-                      'version': args.version, 'dictionaryHandle': 13, 'appidHandle': appid,
+                      'version': args.version, 'dictionaryHandle': group, 'appidHandle': appid,
                       'status': 'research control; no support claim'}, indent=2))
 
 

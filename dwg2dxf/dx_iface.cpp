@@ -30307,10 +30307,6 @@ void dx_iface::validateStandardDwgObjectPayloads(
                 frame.textDecodeObserved = true;
                 frame.appIdDependencies = std::move(appIdDependencies);
                 frame.layerDependencies = std::move(layerDependencies);
-                const auto* dictionary = raw.m_objectType == dwgObjType::DICTIONARY
-                    ? dynamic_cast<const DRW_Dictionary*>(frame.typedBaseline.get()) : nullptr;
-                frame.legacyEedWireAtImport = dictionary && !dictionary->extData.empty()
-                    && hasLegacyDictionaryWireSource(frame, *dictionary);
                 cData->m_standardDwgObjectRetainedBytes += bytes;
                 cData->m_standardDwgObjectMembershipEntries += items;
             }
@@ -30320,6 +30316,18 @@ void dx_iface::validateStandardDwgObjectPayloads(
                 ++opaque;
             else
                 ++matched;
+        }
+        // Seal graph-dependent legacy EED observations only after every
+        // dictionary payload has been validated, regardless of handle order.
+        for (auto current = begin; current != cData->m_standardDwgObjectFrames.end()
+             && current->first.first == cData->importGeneration; ++current) {
+            auto& frame = current->second;
+            if (frame.legacyEedWireSealed) continue;
+            const auto* dictionary = frame.raw.m_objectType == dwgObjType::DICTIONARY
+                ? dynamic_cast<const DRW_Dictionary*>(frame.typedBaseline.get()) : nullptr;
+            frame.legacyEedWireAtImport = dictionary && !dictionary->extData.empty()
+                && hasLegacyDictionaryWireSource(frame, *dictionary);
+            frame.legacyEedWireSealed = true;
         }
         // Counts publish only after every source matched. Neither count
         // contributes to opaque-retention or actual-output completeness.
@@ -32510,7 +32518,9 @@ bool dx_iface::hasLegacyDictionaryWireSource(
                                                dictionary.parentHandle == 0u);
     if (!cData || !dx_legacy_dwg_wire::supported(cData->sourceVersion)
         || frame.raw.m_version != cData->sourceVersion || frame.generation != cData->importGeneration
-        || dictionary.handle != 0xdu || dictionary.parentHandle != 0xcu
+        || !cData->hasNamedObjectDictionary || dictionary.handle == 0u
+        || dictionary.parentHandle != cData->namedObjectDictionary.handle
+        || !cData->hasCompleteDwgDictionaryEntry(dictionary.parentHandle, "ACAD_GROUP", dictionary.handle)
         || !dictionary.m_entries.empty() || frame.appIdDependencies.size() != 1u
         || frame.appIdDependencies.front() == 0u || frame.appIdDependencies.front() == DRW::NoHandle
         || !frame.hasNoObservedTextDecodeIssues() || !frame.sourceCodePageFieldPresent

@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-eed-remapped-dictionary-graph-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_LEGACY_EMPTY_GROUP_EED_SOURCE_GRAPH",
+  "supportClaimEffect": "none",
+  "generator": "tools/research/generate_legacy_dictionary_eed_control.py --alternate-app --alternate-group",
+  "construction": "Locally generated LibreDWG 0.14 R13/R14 source controls remap NOD 0xC to 0x35, empty ACAD_GROUP dictionary 0xD to 0x34, and ACAD APPID 0x12 to 0x33. HEADER references, APPID control, child owner/reactors, root entries and handseed are updated. Independent LibreDWG JSON readback checks the owner, membership and APPID graph. UTF-8 controls are fixed-size local EED patches with verified and repaired object CRC.",
+  "sourceSha256": {
+    "r13Utf8": "edb85a6a247a65e56b6994e8fe5e2ac221e2943fb4e5ed329d4d8b3f386cd5ca",
+    "r14Utf8": "77ea7fd1a8dc4ffd9c13124d48575c7828e715ddbe640e7421bbc15bc040b2ca",
+    "r13BadGraph": "4bfb9900a03fff7ed1b3d553db43211a49ec1324e07a9e2a763eb772b5b7fa6d",
+    "r14BadGraph": "962510b1b40d98e7734f9be2b573e19b05a63b7e485054add1e367f61b03181a"
+  },
+  "checks": [
+    "The group proof now joins the source NOD and exact import-matched ACAD_GROUP edge, without assuming source handle values. Import-time evidence is sealed only after all dictionary payloads validate, so group-before-owner handle ordering is covered without refreshing proof at export.",
+    "An EED-free remapped baseline passed strict R14 conversion before the fix; the EED variant was previously refused as unqualified. The remapped ASCII and UTF-8 EED controls now pass R14 strict and R13 explicit-partial output.",
+    "ASan controls mutate the source group owner, root membership, APPID, EED values and physical source bytes; they check destination preservation and retry. A separately generated source with the wrong NOD group target never receives the import proof and is refused before corrected same-adapter retry.",
+    "Independent ezdxf 1.4.5 readback finds ACAD_GROUP at output handle D and verifies ACAD, caf\u00e9 and integer 42 in ASCII and Binary output for each source version. Unrepresentable text remains refused."
+  ],
+  "limits": [
+    "The group dictionary is empty; nonempty group members, other EED schemas, other APPID names, strict R13 and native cloning semantics remain outside this profile.",
+    "This is source, graph and selected-output evidence, not whole-format or native semantic qualification. Generated drawings remain in scratch space."
+  ]
+}
