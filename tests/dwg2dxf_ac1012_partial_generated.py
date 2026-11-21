@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generate an R13 drawing from scratch and test bounded partial recovery."""
+import shutil
 import struct
 import sys
 import tempfile
@@ -125,6 +126,26 @@ def main():
                     "R14 CLI conversion and fresh 3D coordinate readback")
             require_legacy_dictionary_presence(output)
         require(r14.read_bytes() == r14_bytes, "generated R14 source was changed")
+        dwgread, dwgwrite = shutil.which("dwgread"), shutil.which("dwgwrite")
+        if dwgread and dwgwrite and b"0.14" in invoke([dwgread, "--version"]).stdout \
+                and b"0.14" in invoke([dwgwrite, "--version"]).stdout:
+            generator = Path(__file__).resolve().parents[1] / "tools/research/generate_legacy_dictionary_eed_control.py"
+            eed_root = root / "r14-eed"
+            generated = invoke([sys.executable, str(generator), "--output-dir", str(eed_root),
+                                "--dwgadd", dwgadd, "--dwgread", dwgread, "--dwgwrite", dwgwrite])
+            require(generated.returncode == 0, "R14 EED scratch control generation")
+            eed_input = eed_root / "eed.dwg"
+            require(invoke([profile_test, "--r14-eed", str(eed_input),
+                            str(eed_root / "adapter.dxf")]).returncode == 0,
+                    "R14 EED staged output, mutation refusal and retry")
+            for binary in (False, True):
+                output = eed_root / ("cli-binary.dxf" if binary else "cli-ascii.dxf")
+                command = [converter, str(eed_input), "-o", str(output), "-y"]
+                if binary:
+                    command.append("-b")
+                require(invoke(command).returncode == 0
+                        and invoke([profile_test, "--check-r14-generated", str(output)]).returncode == 0,
+                        "R14 EED CLI conversion and fresh readback")
     print("AC1012 locally generated partial-read CLI and same-adapter tests: PASS")
 
 

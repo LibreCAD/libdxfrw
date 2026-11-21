@@ -145,9 +145,9 @@ public:
     static std::uint8_t& sourceBit(dx_data& data, int fault) {
         const std::uint32_t handle = fault == 7 ? 0xcu : fault == 8 ? 0x22u
             : fault == 9 ? 0x23u : fault == 10 ? 0x1au : fault == 12 ? 0x19u
-            : fault == 13 ? 0x18u : 0x1bu;
+            : fault == 13 ? 0x18u : fault == 14 ? 0xdu : 0x1bu;
         const dx_data::StandardDwgFrameKey key{data.importGeneration, handle};
-        if (fault == 7 || fault == 8 || fault == 10 || fault == 12)
+        if (fault == 7 || fault == 8 || fault == 10 || fault == 12 || fault == 14)
             return data.m_standardDwgObjectFrames.at(key).raw.m_rawBytes.front();
         return data.m_opaqueDwgSourceFrames.at(key).m_rawBytes.front();
     }
@@ -467,6 +467,69 @@ bool legacyGenerated(const std::string& input, const std::filesystem::path& outp
     return true;
 }
 
+bool r14DictionaryEedOutput(const std::string& input, const std::filesystem::path& output) {
+    LateMutationAdapter adapter;
+    dx_data source;
+    adapter.source = &source;
+    if (!adapter.fileImport(input, &source, false) || !checkR14Generated(source)) return false;
+    auto group = std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
+        [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0xdu; });
+    auto app = std::find_if(source.appIds.begin(), source.appIds.end(),
+        [](const DRW_AppId& item) { return item.handle == 0x12u; });
+    if (group == source.dictionaries.end() || app == source.appIds.end()
+        || group->extData.size() != 3u || !group->extData[0] || !group->extData[1]
+        || !group->extData[2] || group->extData[0]->code() != 1001
+        || group->extData[1]->code() != 1000 || group->extData[2]->code() != 1070
+        || group->extData[0]->type() != DRW_Variant::STRING
+        || group->extData[1]->type() != DRW_Variant::STRING
+        || group->extData[2]->type() != DRW_Variant::INTEGER
+        || !group->extData[0]->content.s || *group->extData[0]->content.s != "ACAD"
+        || !group->extData[1]->content.s || *group->extData[1]->content.s != "HELLO"
+        || group->extData[2]->i_val() != 42 || app->name != "ACAD") return false;
+    const DRW_Dictionary saved = *group;
+    const std::string sentinel = "R14 EED destination preserved\n";
+    for (const bool binary : {false, true}) {
+        if (!write(adapter, source, output.string(), binary)) return false;
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        if (write(adapter, source, output.string(), binary, DRW::AC1015)
+            || bytes(output) != sentinel || !write(adapter, source, output.string(), binary)) return false;
+        for (int fault = 0; fault < 6; ++fault) {
+            if (fault == 0) group->extData[1]->addString(1000, "CHANGED");
+            if (fault == 1) group->extData[2]->addInt(1070, 43);
+            if (fault == 2) app->name = "CHANGED";
+            if (fault == 3) DxIfaceStandardDwgCaptureTestAccess::sourceBit(source, 14) ^= 1u;
+            if (fault == 4) adapter.lateFault = 14;
+            if (fault == 5) group->extData[0]->addString(1001, "OTHER");
+            { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+            const bool accepted = write(adapter, source, output.string(), binary);
+            if (fault == 3) DxIfaceStandardDwgCaptureTestAccess::sourceBit(source, 14) ^= 1u;
+            if (fault == 4) adapter.lateFault = 0;
+            app->name = "ACAD";
+            *group = saved;
+            if (accepted || bytes(output) != sentinel
+                || !write(adapter, source, output.string(), binary)) {
+                std::cerr << "R14 EED refusal/retry failed: binary=" << binary
+                          << " fault=" << fault << '\n';
+                return false;
+            }
+        }
+        dx_iface fresh;
+        dx_data readback;
+        if (!fresh.fileImport(output.string(), &readback, false) || !checkR14Generated(readback)) return false;
+        const auto result = std::find_if(readback.dictionaries.begin(), readback.dictionaries.end(),
+            [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0xdu; });
+        if (result == readback.dictionaries.end() || result->extData.size() != 3u
+            || !result->extData[0] || !result->extData[1] || !result->extData[2]
+            || result->extData[0]->type() != DRW_Variant::STRING
+            || result->extData[1]->type() != DRW_Variant::STRING
+            || result->extData[2]->type() != DRW_Variant::INTEGER
+            || !result->extData[0]->content.s || *result->extData[0]->content.s != "ACAD"
+            || !result->extData[1]->content.s || *result->extData[1]->content.s != "HELLO"
+            || result->extData[2]->i_val() != 42) return false;
+    }
+    return true;
+}
+
 bool checkR14GeneratedFile(const std::string& input) {
     dx_iface reader;
     dx_data data;
@@ -668,6 +731,8 @@ int main(int argc, char** argv) {
             ? partial(argv[2], argv[3])
             : argc == 4 && std::string(argv[1]) == "--legacy-bad-default-role"
                 ? checkLegacyDefaultRoleFallback(argv[2], argv[3])
+            : argc == 4 && std::string(argv[1]) == "--r14-eed"
+                ? r14DictionaryEedOutput(argv[2], argv[3])
             : argc == 4 && std::string(argv[1]) == "--r14-generated"
                 ? legacyGenerated(argv[2], argv[3], DRW::AC1014)
             : argc == 4 && std::string(argv[1]) == "--r13-generated"

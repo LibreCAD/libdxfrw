@@ -4013,6 +4013,8 @@ private:
     void retainStandardDwgLayerSource(const DRW_Layer& data);
     void validateStandardDwgObjectPayloads(
         const StandardDwgObjectImportRange& range) noexcept;
+    bool hasLegacyDictionaryWireSource(const dx_data::StandardDwgObjectFrame& frame,
+                                       const DRW_Dictionary& dictionary) const noexcept;
     bool hasUnchangedStandardDwgObjectSources() const noexcept;
     const std::vector<DRW_Group>* m_standardDwgBorrowedGroups{nullptr};
     struct StandardDwgOutputProof {

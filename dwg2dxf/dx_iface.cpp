@@ -32495,6 +32495,44 @@ void dx_iface::finishVerifiedXRecordSource(bool successfulRead) noexcept {
     m_verifiedTableCandidatePendingBytes=0u;
 }
 
+// R14 group-dictionary EED profile: bind the physical ASCII values to the
+// captured ACAD APPID. Staged table identity and exact output are checked by
+// the normal standard-object and generated-root proofs before publication.
+bool dx_iface::hasLegacyDictionaryWireSource(
+        const dx_data::StandardDwgObjectFrame& frame,
+        const DRW_Dictionary& dictionary) const noexcept {
+    if (dictionary.extData.empty())
+        return dx_legacy_dwg_wire::dictionary(frame.raw, dictionary,
+                                               dictionary.parentHandle == 0u);
+    if (!cData || !dxfW || dxfW->getVersion() != DRW::AC1014
+        || cData->sourceVersion != DRW::AC1014
+        || frame.raw.m_version != DRW::AC1014 || frame.generation != cData->importGeneration
+        || dictionary.handle != 0xdu || dictionary.parentHandle != 0xcu
+        || !dictionary.m_entries.empty() || frame.appIdDependencies.size() != 1u
+        || frame.appIdDependencies.front() != 0x12u
+        || !frame.hasNoObservedTextDecodeIssues() || !frame.sourceCodePageFieldPresent
+        || !frame.sourceCodePageRecognized || frame.sourceCodePageId != 30u) return false;
+    const auto app = [this, &frame](std::uint32_t handle, const std::string& name) noexcept {
+        if (handle != 0x12u || name != "ACAD") return false;
+        const auto source = cData->m_standardDwgAppIdSources.find({frame.generation, handle});
+        if (source == cData->m_standardDwgAppIdSources.end() || !source->second
+            || source->second->name != name || !source->second->hasUnchangedDwgSourceName()
+            || source->second->dwgNameDecodeIssues() != 0u
+            || !source->second->hasBoundDwgNameProfile(DRW::AC1014, dwgCodePageName(30u))) return false;
+        const DRW_AppId* current = nullptr;
+        for (const auto& candidate : cData->appIds) {
+            if (candidate.handle != handle) continue;
+            if (current) return false;
+            current = &candidate;
+        }
+        return current && current->name == name && current->sameDwgNameSource(*source->second);
+    };
+    const auto page = [](std::uint16_t be, std::uint16_t le) noexcept {
+        return be == 30u && le == 0x1e00u;
+    };
+    return dx_legacy_dwg_wire::observeDictionaryEed(frame.raw, dictionary, false, app, page);
+}
+
 bool dx_iface::hasUnchangedStandardDwgObjectSources() const noexcept {
     if (cData == nullptr)
         return false;
@@ -32556,8 +32594,7 @@ bool dx_iface::hasUnchangedStandardDwgObjectSources() const noexcept {
                 && frame.raw.m_objectType == dwgObjType::DICTIONARY
                 && m_standardDwgOutputProofs.count(frame.raw.m_handle) != 0u) {
                 const auto* dictionary = dynamic_cast<const DRW_Dictionary*>(found->second);
-                if (!dictionary || !dx_legacy_dwg_wire::dictionary(
-                        frame.raw, *dictionary, dictionary->parentHandle == 0u))
+                if (!dictionary || !hasLegacyDictionaryWireSource(frame, *dictionary))
                     return false;
             }
             for (const auto handle : frame.appIdDependencies) {
@@ -53342,9 +53379,7 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
                 : nullptr;
             const bool legacyDictionaryWire = !dx_legacy_dwg_wire::supported(cData->sourceVersion)
                 || frame.raw.m_objectType != dwgObjType::DICTIONARY
-                || (legacyDictionary && dx_legacy_dwg_wire::dictionary(
-                    frame.raw, *legacyDictionary,
-                    legacyDictionary->parentHandle == 0u));
+                || (legacyDictionary && hasLegacyDictionaryWireSource(frame, *legacyDictionary));
             const bool standardOutputCandidate =
                 frame.typedBaseline && frame.payloadMatched
                 && !frame.opaquePayload

@@ -153,12 +153,13 @@ binds EED codepage 45 to UTF-8 for the observed R13/R14 profile, now decoded
 with malformed-byte observations. The [UTF-8 EED source proof](docs/research/p6-legacy-dictionary-eed-utf8-source-2026-11-21.json)
 also binds exact bytes and unchanged APPIDs, with malformed text, bit mutation,
 and retry controls; it does not qualify output. Next, connect the verified
-source profile to staged APPID/table and graph checks for the locally generated
-R14 [baseline/EED control](tools/research/generate_legacy_dictionary_eed_control.py):
-the baseline passes strict ASCII/Binary output, while the matching EED source
-preserves the destination and is refused at opaque-output qualification. Use
-its ACAD APPID and codepage-30 ASCII EED first; prove both output encodings and
-mutations/retries before extending the profile. The observed legacy DICTIONARYWDFLT is now
+source profile to staged APPID/table and graph checks. The bounded R14 group
+DICTIONARY with ACAD APPID and codepage-30 ASCII EED now passes strict R14
+ASCII/Binary output, mutation/refusal and retry, and independent readback; see
+the [control and limits](docs/research/p6-r14-group-dictionary-eed-output-2026-11-21.json).
+Extend only with separately bound source, name, graph and output evidence; R13,
+cross-version and non-ASCII output remain outside this profile. The observed
+legacy DICTIONARYWDFLT is now
 decoded with cloning, owner, entry and default fields after
 [producer and wire checks](docs/research/p6-legacy-dictionary-default-typed-2026-11-21.json);
 the subclass physically contains a cloning field in these samples. CELLSTYLEMAP

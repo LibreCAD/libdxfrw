@@ -2,7 +2,7 @@
   "schema": 1,
   "kind": "libdxfrw-qualified-format-status",
   "freezeState": "FROZEN",
-  "implementationDigestSha256": "e6c5639df285070f6a6260299e86c3681b644133a7a8feaba2386078e4f27854",
+  "implementationDigestSha256": "b51ceb1aff385d7642b97303b704cfe097288e6c6105439db89735197aa29ea7",
   "claimsDigestSha256": "7f72bd5c6033fb312c89d56fcc5b476063273a2b24faa863e58114a703956ab8",
   "allowedTransitions": {
     "EXPERIMENTAL": [
