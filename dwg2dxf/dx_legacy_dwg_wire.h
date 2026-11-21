@@ -58,7 +58,7 @@ inline bool metadata(const DRW_UnsupportedObject& raw, std::uint32_t id,
 // must bind APPIDs to unchanged records, independently justify the codepage
 // interpretation, and check import text issues, semantics, graph and output.
 // String bytes are ASCII or the observed codepage-45 UTF-8 profile; integer
-// support is currently limited to signed 16-bit values.
+// support is limited to signed 16-bit and 32-bit values.
 template<class AppIdSource, class CodepageSource>
 bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
                        const DRW_Dictionary& model, bool nod,
@@ -126,6 +126,8 @@ bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
             return number >= -32768 && number <= 32767
                 && token.value == static_cast<std::uint16_t>(number);
         }
+        if (token.code == 1071u && value->type() == DRW_Variant::INTEGER)
+            return token.value == static_cast<std::uint32_t>(value->i_val());
         return false;
     };
     const unsigned revision = raw.m_version == DRW::AC1012 ? 13u : 14u;

@@ -170,8 +170,11 @@ reuses that source proof for the named-object dictionary and its MLINESTYLE
 path, with unique group ownership and staged ASCII/Binary output checks. The
 [MLINESTYLE owner EED control](docs/research/p6-legacy-mline-owner-eed-output-2026-11-21.json)
 binds the separate ACAD_MLINESTYLE dictionary, its style edge and text transport;
-the shared staged check also refuses lossy escapes in R13 partial output.
-Other group graphs and EED schemas still need matching source and output evidence.
+the shared staged check also refuses lossy escapes in R13 partial output. The
+[1071 control](docs/research/p6-legacy-dictionary-eed-int32-2026-11-21.json)
+adds signed 32-bit integer wire and output checks for all three dictionary
+locations, including boundary values. Other group graphs and EED schemas still
+need matching source and output evidence.
 The same source and staged proof now covers R13-to-R14 explicit partial output
 for that bounded group, with independent ASCII/Binary readback and mutation
 refusal; see [R13 control](docs/research/p6-r13-group-dictionary-eed-partial-2026-11-21.json)

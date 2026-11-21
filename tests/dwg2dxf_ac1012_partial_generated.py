@@ -201,6 +201,10 @@ def main():
                                     str(group_root / "utf8.dwg"), str(group_root / "wide-output.dxf")]).returncode == 0,
                             source_version + " nonempty group unrepresentable EED refusal")
                     if remap_group:
+                        require(invoke([profile_test, "--" + source_version + "-group-int32",
+                                        str(group_root / "int32.dwg"), str(group_root / "int32-output.dxf")]).returncode == 0,
+                                source_version + " group 1071 boundaries, mutation and retry")
+                    if remap_group:
                         require(invoke([profile_test, "--" + source_version + "-eed-bad-graph",
                                         str(group_root / "bad-graph.dwg"), str(group_root / "eed.dwg"),
                                         str(group_root / "graph-output.dxf")]).returncode == 0,
@@ -218,6 +222,10 @@ def main():
                         nod_command += ["--alternate-app", "--alternate-group", "--nonempty-group"]
                     require(invoke(nod_command).returncode == 0, source_version + " NOD EED source generation")
                     suffix = "-remapped" if remap_nod else ""
+                    if remap_nod:
+                        require(invoke([profile_test, "--" + source_version + "-nod-int32",
+                                        str(nod_root / "int32.dwg"), str(nod_root / "int32-output.dxf")]).returncode == 0,
+                                source_version + " NOD 1071 boundaries, mutation and retry")
                     if remap_nod:
                         require(invoke([profile_test, "--" + source_version + "-nod-bad-graph",
                                         str(nod_root / "bad-graph.dwg"), str(nod_root / "eed.dwg"),
@@ -241,6 +249,10 @@ def main():
                     require(invoke(mline_command).returncode == 0,
                             source_version + " MLINESTYLE dictionary EED source generation")
                     suffix = "-remapped" if remap_mline else ""
+                    if remap_mline:
+                        require(invoke([profile_test, "--" + source_version + "-mline-int32",
+                                        str(mline_root / "int32.dwg"), str(mline_root / "int32-output.dxf")]).returncode == 0,
+                                source_version + " MLINESTYLE 1071 boundaries, mutation and retry")
                     if remap_mline:
                         require(invoke([profile_test, "--" + source_version + "-mline-bad-graph",
                                         str(mline_root / "bad-graph.dwg"), str(mline_root / "eed.dwg"),

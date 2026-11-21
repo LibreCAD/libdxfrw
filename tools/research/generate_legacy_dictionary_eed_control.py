@@ -158,16 +158,22 @@ def main():
     # so the baseline remains within the existing MLINESTYLE wire profile.
     styles[0]['start_angle'] = styles[0]['end_angle'] = 1.5707963267948966
     results = {}
-    for name in ('baseline', 'eed', 'unqualified'):
+    for name in ('baseline', 'eed', 'int32', 'unqualified'):
         if name == 'eed':
             target['eed'] = [
                 {'size': 12, 'handle': [5, 1, appid], 'code': 0, 'value': 'HELLO'},
                 {'code': 70, 'value': 42},
             ]
+        if name == 'int32':
+            target['eed'][0]['size'] = 27
+            target['eed'].extend({'code': 71, 'value': value}
+                                 for value in (123456, 0x80000000, 0x7fffffff))
         if name == 'unqualified':
-            # A 1071 long is deliberately outside the bounded source proof.
-            target['eed'][0]['size'] = 17
-            target['eed'].append({'code': 71, 'value': 123456})
+            # A real-valued EED item remains outside this bounded source proof.
+            target['eed'] = [
+                {'size': 21, 'handle': [5, 1, appid], 'code': 0, 'value': 'HELLO'},
+                {'code': 70, 'value': 42}, {'code': 40, 'value': 1.25},
+            ]
         path = root / (name + '.json')
         drawing = root / (name + '.dwg')
         path.write_text(json.dumps(document))
