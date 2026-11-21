@@ -6,12 +6,13 @@
   "supportClaimEffect": "none",
   "pullRequest": {
     "url": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
-    "head": "518347f6cbb369a76bd3c3462b234989e2c6388b",
+    "head": "eb5b4248a6843b7049267884acbd1f5b7811871e",
     "baseMaster": "4fb48312708b39d499f7e6668104a3b54a8601c7",
     "dependsOn": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
-    "parentHead": "b3980f7287680c71935da9b809b086669fcde40c",
+    "parentHead": "64f45915b01165e10082091d0bb879464f9effa3",
     "state": "draft, mergeable when observed; combined diff includes parent until it merges",
-    "hostedChecks": "not yet qualified"
+    "hostedChecks": "Updated head pushed; hosted checks pending.",
+    "previousHead": "518347f6cbb369a76bd3c3462b234989e2c6388b"
   },
   "scope": "Map MPOLYGON boundary offsets and preserve an independently bounded simple planar solid MPOLYGON snapshot for supported translation and rotation. Unsupported source or edits use the explicit HATCH projection loss route. Lift the tested default-normal DXF multiloop projection to its shared elevation.",
   "validation": {
@@ -29,7 +30,10 @@
     "planSync": "explicit-path check PASS; hosted PR check pending",
     "dwgRegression": "4/4 existing DWG import/export, encoding parity, fixture delivery and text/dimension controls pass with each codec.",
     "bundledDwgRegressionLogSha256": "3d2e58cd973e6eec47b682226e3a2cfb846116d957990fe9b24a83bce94c02e2",
-    "currentDwgRegressionLogSha256": "bfa544634d0aaefaa73b4e3f94ce5586eb6742077f3820eeb279c8962b95c3e4"
+    "currentDwgRegressionLogSha256": "bfa544634d0aaefaa73b4e3f94ce5586eb6742077f3820eeb279c8962b95c3e4",
+    "mergedRegression": "13/13 focused MPOLYGON/HATCH and existing DWG controls pass with each codec after merging the updated parent, including spline move/copy.",
+    "mergedBundledLogSha256": "f76ba89ebd5867ed906d3e165c3ba77bfa0bf18e5665a6ce33279b8f9e9b4e63",
+    "mergedCurrentLogSha256": "022cfdeebe1bf66839782d1ffb89e0901522556e683af3c90144acfb1e73e48b"
   },
   "limits": [
     "Draft depends on PR #460 and is not merged. Native GUI and Linux/Windows qualification remain open.",
