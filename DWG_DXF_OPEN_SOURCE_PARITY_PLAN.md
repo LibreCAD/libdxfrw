@@ -196,8 +196,10 @@ profile evidence and extend semantic/source proofs to the selected layer edge;
 keep ambiguous or wide targets unresolved. The [R2000 writer control](docs/research/p6-r2000-eed-layer-write-order-2026-11-21.json)
 now checks explicitly selected byte order, raw-byte replay, failure/retry and
 ODA reopen for generated LINE and LAYER examples. A [named-layer control](docs/research/p6-r2000-eed-layer-named-handle-2026-11-21.json)
-also checks a multi-byte target after low-handle reservations. Extend independent
-output witnesses and collision controls to other versions and object graphs; do not
+also checks a multi-byte target after low-handle reservations; the [corrected
+graph control](docs/research/p6-r2000-eed-layer-graph-closure-2026-11-21.json)
+uses the actual planned plot-style placeholder and checks its dictionary links.
+Extend independent output witnesses and collision controls to other versions and object graphs; do not
 infer native producer semantics or broader support from this bounded example.
 The same source and staged proof now covers R13-to-R14 explicit partial output
 for that bounded group, with independent ASCII/Binary readback and mutation

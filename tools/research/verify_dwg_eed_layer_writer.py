@@ -94,6 +94,21 @@ def main() -> None:
         if len(tables) != 1:
             raise ValueError(f"{mode} table identity missing or ambiguous")
         table_handle = tables[0]["handle"][-1]
+        plotstyle = tables[0].get("plotstyle", [])
+        xref = tables[0].get("xref", [])
+        placeholders = [record for record in model["OBJECTS"]
+                        if record.get("object") == "PLACEHOLDER"
+                        and record.get("handle", [None])[-1] == (plotstyle[-1] if plotstyle else None)]
+        if len(placeholders) != 1 or not plotstyle or plotstyle[0] != 5 or not xref or xref[0] != 5:
+            raise ValueError(f"{mode} LAYER handle roles or plot-style target mismatch")
+        placeholder = placeholders[0]
+        dictionary_handle = placeholder["ownerhandle"][-1]
+        dictionaries = [record for record in model["OBJECTS"]
+                        if record.get("object") == "DICTIONARYWDFLT"
+                        and record.get("handle", [None])[-1] == dictionary_handle]
+        if (len(dictionaries) != 1 or dictionaries[0].get("defaultid", [None])[-1] != plotstyle[-1]
+                or dictionaries[0].get("items", {}).get("Normal", [None])[-1] != plotstyle[-1]):
+            raise ValueError(f"{mode} default plot-style graph mismatch")
         frame = record_frame(args.dwgread, drawing, 0x130, 19)
         table_frame = record_frame(args.dwgread, drawing, table_handle, 51)
         if mode == "named":
@@ -104,7 +119,9 @@ def main() -> None:
         if frame["eedHex"] != expected[mode] or table_frame["eedHex"] != table_expected:
             raise ValueError(f"{mode} EED bytes mismatch: {frame['eedHex']}, {table_frame['eedHex']}")
         item = {"dwgSha256": sha(drawing), "lineFrame": frame,
-                "tableHandle": table_handle, "tableFrame": table_frame}
+                "tableHandle": table_handle, "tableFrame": table_frame,
+                "plotStyleHandle": plotstyle[-1], "plotStyleDictionary": dictionary_handle,
+                "layerXrefRole": xref[0]}
         if mode != "raw":
             run(args.oda, str(source_dir), str(reopened), "ACAD2013", "DXF", "0", "1", "*.dwg")
             dxf = reopened / "seed.dxf"

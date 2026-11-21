@@ -1,0 +1,67 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-r2000-eed-layer-graph-closure-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_GENERATED_R2000_OUTPUT_CONTROL",
+  "supportClaimEffect": "none",
+  "supersedes": "docs/research/p6-r2000-eed-layer-named-handle-2026-11-21.json",
+  "generator": "tools/research/verify_dwg_eed_layer_writer.py",
+  "generatorSha256": "8d7675f820eba42b6684f4134091a3d9eeb84a96bd02cabd80c1cfd8ec448da1",
+  "testSourceSha256": "938af7ddd9c894199210d1fb04297500c770b90d857e0db18279cc2ddd521d6a",
+  "candidateBinarySha256": "68b9c27548e3bfaa51b7c6cb1725d91d3acb9098a1fb9db24292769fa219e34f",
+  "peerTools": {
+    "oda": {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "ezdxfVersion": "1.4.5"
+  },
+  "profile": {
+    "dwgSha256": "9871fa78828e3d11be36eec0b0e71e7c6becfb45968aa0e1e795262e58713240",
+    "lineFrame": {
+      "frameSha256": "1a2156a185c0c420dcd2d23cc11877a07bd55129dc93a05ce626f99adada3e6c",
+      "frameOffset": 5446,
+      "frameSize": 78,
+      "bodyEndBit": 583,
+      "frameCrcValid": true,
+      "eedHex": "030000000000000125"
+    },
+    "tableHandle": 293,
+    "tableFrame": {
+      "frameSha256": "f795895827df7f8760ec14eca14c2f409f48c5c33bf9f6f530abae2ec2237641",
+      "frameOffset": 4764,
+      "frameSize": 46,
+      "bodyEndBit": 290,
+      "frameCrcValid": true,
+      "eedHex": "030000000000000125"
+    },
+    "plotStyleHandle": 292,
+    "plotStyleDictionary": 291,
+    "layerXrefRole": 5,
+    "dxfSha256": "5330608f5023ca665e17bf31944f3a73466f889fb67ed75a2a158fafc4d530ad",
+    "lineXdata": [
+      [
+        1003,
+        "EED_TABLE"
+      ]
+    ],
+    "tableXdata": [
+      [
+        1003,
+        "EED_TABLE"
+      ]
+    ],
+    "lineGeometryMatched": true
+  },
+  "checks": [
+    "The generated layer uses the actual planned plotstyle placeholder, not a guessed fixed handle. Independent LibreDWG decoding binds layer hard pointer 0x124, placeholder owner 0x123, dictionary Normal entry and default reference. ODA reopens this drawing; ezdxf verifies the named EED reference on both the LINE and LAYER and the 3D LINE geometry.",
+    "The explicit default-graph R2000 null-role normalization is limited to newly authored layers with no retained common link tail, zero extension dictionary, a genuinely null compatible xref and the staged default placeholder. A generated retained-common-link control keeps the previous untyped xref role; the authored control writes the witnessed hard-pointer null. AddressSanitizer tests pass for both paths."
+  ],
+  "limits": [
+    "This is one generated graph with reserved low handles. It does not establish native AutoCAD behavior, other input graphs or general support. No generated DWG or DXF fixture is committed."
+  ]
+}

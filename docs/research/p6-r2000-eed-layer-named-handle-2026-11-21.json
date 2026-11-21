@@ -63,5 +63,7 @@
   "limits": [
     "The reserved handles are allocator controls, not a proof of all real object graph collisions. The table targets itself for one EED reference; no native producer or AutoCAD semantics are established.",
     "The control is limited to this generated R2000 graph with the explicit predeclared entity chain and default plotstyle graph. No drawings or peer output files were committed."
-  ]
+  ],
+  "correction": "The originally generated named drawing used a hard-coded plotstyle reference 0x31 after reservations had moved the actual placeholder to 0x124. ODA accepted the drawing, but this did not prove plot-style graph closure. Use the corrected successor receipt for the named profile.",
+  "supersededBy": "docs/research/p6-r2000-eed-layer-graph-closure-2026-11-21.json"
 }

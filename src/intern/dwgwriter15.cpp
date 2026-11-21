@@ -3870,7 +3870,14 @@ bool dwgWriter15::emitLayerRecord(std::uint32_t handle, const DRW_Layer& lay) {
         && (m_version == DRW::AC1015 || (m_version == DRW::AC1027
             && defaultDwgMaterialGraphActive())))
         || (m_version == DRW::AC1015 && m_defaultPlotStyleDictionaryHandle != 0u
-            && layerCopy.xDictHandle == 0u && layerCopy.xrefBlockHandle.ref == 0u);
+            && layerCopy.plotStyleHandle.ref == m_defaultPlotStylePlaceholderHandle
+            && !layerCopy.hasDwgCommonLinkTail() && layerCopy.xDictHandle == 0u
+            && layerCopy.xrefBlockHandle.ref == 0u && layerCopy.xrefBlockHandle.ref64 == 0u
+            && layerCopy.xrefBlockHandle.size == 0u
+            && (layerCopy.xrefBlockHandle.code == 0u
+                || layerCopy.xrefBlockHandle.code == DRW::DwgHardPointer)
+            && (layerCopy.xrefBlockHandle.rawCode == 0u
+                || layerCopy.xrefBlockHandle.rawCode == DRW::DwgHardPointer));
     if (!layerCopy.encodeDwgForWriter(m_version, &body, sb, hb, typedLegacyNulls))
         return false;
 
