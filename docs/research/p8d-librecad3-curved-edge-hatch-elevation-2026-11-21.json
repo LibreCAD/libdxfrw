@@ -1,0 +1,140 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-curved-edge-hatch-elevation-2026-11-21",
+  "date": "2026-11-21",
+  "status": "DOWNSTREAM_INCREMENTAL_PATCH_FOCUSED_VERIFICATION_PASSED_NATIVE_PENDING",
+  "supportClaimEffect": "none",
+  "problem": "After the line-edge fix, a default-normal elevated HATCH with ARC and ELLIPSE edges still imported their centers at Z=0. Independent DXF readback also revealed that the existing ellipse edge import inverted the direction flag, changing the selected arc.",
+  "authority": [
+    {
+      "title": "Autodesk HATCH (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-C6C71CED-CE0F-4184-82A5-07AD6241F15B.htm"
+    },
+    {
+      "title": "Autodesk Boundary Path Data (DXF)",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+      "scope": "Arc and ellipse centers are 2D OCS positions; the major-axis endpoint is a relative vector, not a position."
+    }
+  ],
+  "patch": {
+    "path": "docs/patches/librecad3-p8-hatch-curved-edge-elevation-2026-11-21.patch",
+    "sha256": "ca8bac21ec35949af365c073aff93579aa61824fc245995e2869ddbba4f93daf",
+    "base": "Incremental downstream candidate patch applied after the P8 line-edge elevation patch and its recorded dependencies; it is not standalone on LibreCAD_3 master.",
+    "adapterPreimageGitBlob": "2a3170315f1016f2ed549bb5fb5a5d9b4d48ae83",
+    "testsPreimageGitBlob": "c7dc30f1e3441583392e6bb2686c374d353d6164",
+    "application": "git apply --check and apply PASS on isolated preimages; patched files exactly match tested files. Existing user LibreCAD_3 checkout untouched.",
+    "implementation": "Use the existing default-normal boundary point mapping for arc and ellipse centers while leaving the ellipse major-axis vector untouched. Convert DXF isccw to the kernel reversed flag and include arcs and zero-Z-major-axis ellipses in the shared same-plane output check."
+  },
+  "validation": {
+    "baseline": "A generated elevated arc/ellipse HATCH failed on import and ASCII/Binary reopen before the change; the original ellipse direction also differed in independent readback.",
+    "baselineLogSha256": "9c3bfd243d678e5a4a8c0feb39be82a17b4a91f59fcff399760ada4052b615ec",
+    "focused": "7/7 selected tests passed for both bundled and current shared codecs, covering the curved-edge case in both directions, source import, ASCII/Binary output and reopen, mixed-elevation warning, corrected same-document retry, and the six existing line/polyline/MPOLYGON controls.",
+    "currentLibrarySourceCommit": "b46f448b9611374c286674fe2619715572bca67a",
+    "currentLibraryImplementationDigest": "18a77d51abb44da94a659d99d26657645f57e570ce19b8fea4c76f5cbd65c95d",
+    "currentSharedLibrarySha256": "e61efec8166c2e6f12d1e180fd039de682989fe1768a138ed704ba147eef848f",
+    "currentPersistenceSha256": "3a47becedbd3b03d4eb52fc0876e59cf7c1a9308b0d4b78ceb74f67de0352305",
+    "bundledPersistenceSha256": "3bf60c990d2d3eacacb66eac83ad79aca8f9de9c26eef0592d08454dabac82a9",
+    "currentLogSha256": "c285363eb48eb81cb4bede30eaac9e0d7db3a2921bdc30b14b26e8b85a753506",
+    "bundledLogSha256": "283c9daeb559152ee38d02b96486ae89e1faefae526035b15f8667656ec98e8e",
+    "independentReader": "ezdxf 1.4.5 checks input versus output canonical arc and ellipse centers, radius, major axis, ratio, angles and direction for clockwise and counterclockwise controls, plus elevation and ASCII/Binary signature.",
+    "independentOutputs": {
+      "current": {
+        "ccw": {
+          "ascii.dxf": {
+            "sha256": "7b943357c12759dcf7708f99128fddb53658c77c4f0001a4da598f9083bcf2fa",
+            "elevation": 3.0,
+            "canonicalEdgeFieldsMatchInput": true
+          },
+          "binary.dxf": {
+            "sha256": "b78f1525186e0d68757f9ba09666d68f35e4177c021f4a4b9dd56327e12bd2bf",
+            "elevation": 3.0,
+            "canonicalEdgeFieldsMatchInput": true
+          },
+          "mixed.dxf": {
+            "sha256": "02d7eae9d677aad038019bf7ecaa8464d067e000aac780a95887d20b0562dde5",
+            "elevation": 0.0,
+            "canonicalEdgeFieldsMatchInput": true
+          },
+          "retry.dxf": {
+            "sha256": "7b943357c12759dcf7708f99128fddb53658c77c4f0001a4da598f9083bcf2fa",
+            "elevation": 3.0,
+            "canonicalEdgeFieldsMatchInput": true
+          }
+        },
+        "cw": {
+          "ascii.dxf": {
+            "sha256": "b2d596bcab47e4e14f6c513dcf53e4551cb89657ce3c2971825c7a72f636695a",
+            "elevation": 3.0,
+            "canonicalEdgeFieldsMatchInput": true
+          },
+          "binary.dxf": {
+            "sha256": "a416446a88bc83470fd71dd2eba778cda9bab337f93a66b20e66c063176236ee",
+            "elevation": 3.0,
+            "canonicalEdgeFieldsMatchInput": true
+          },
+          "mixed.dxf": {
+            "sha256": "5203e03f0e6679c64c689a972bbed39e0525604341ec6f56065c6dcab39fd131",
+            "elevation": 0.0,
+            "canonicalEdgeFieldsMatchInput": true
+          },
+          "retry.dxf": {
+            "sha256": "b2d596bcab47e4e14f6c513dcf53e4551cb89657ce3c2971825c7a72f636695a",
+            "elevation": 3.0,
+            "canonicalEdgeFieldsMatchInput": true
+          }
+        }
+      },
+      "bundled": {
+        "ccw": {
+          "ascii.dxf": {
+            "sha256": "ace73a6c08b6b0854cb63820149196953568a688d0cb8b1e39630618c5ab42d7",
+            "elevation": 3.0,
+            "canonicalEdgeFieldsMatchInput": true
+          },
+          "binary.dxf": {
+            "sha256": "5191e191974c14b2bb20509b26e077af3a31dbe6adbd03fde3a873fae013c589",
+            "elevation": 3.0,
+            "canonicalEdgeFieldsMatchInput": true
+          },
+          "mixed.dxf": {
+            "sha256": "d6cabe8e27ab96f203d9892885669c0184aff00db1e0f7c9afe157fff38b44aa",
+            "elevation": 0.0,
+            "canonicalEdgeFieldsMatchInput": true
+          },
+          "retry.dxf": {
+            "sha256": "ace73a6c08b6b0854cb63820149196953568a688d0cb8b1e39630618c5ab42d7",
+            "elevation": 3.0,
+            "canonicalEdgeFieldsMatchInput": true
+          }
+        },
+        "cw": {
+          "ascii.dxf": {
+            "sha256": "c159323e89ac8a187987eab8a80540f7d11a0457f1ecfcd49dbad87ac70bf2de",
+            "elevation": 3.0,
+            "canonicalEdgeFieldsMatchInput": true
+          },
+          "binary.dxf": {
+            "sha256": "115a649bd9b3f5a69deb4c6f93e5e2a4671ab5036930393ec973ab7440cdb9a1",
+            "elevation": 3.0,
+            "canonicalEdgeFieldsMatchInput": true
+          },
+          "mixed.dxf": {
+            "sha256": "a105fb3cc184fcc3cb96e862f69ca666d90196fe012cdfe7f6ebdfd97c34ef2c",
+            "elevation": 0.0,
+            "canonicalEdgeFieldsMatchInput": true
+          },
+          "retry.dxf": {
+            "sha256": "c159323e89ac8a187987eab8a80540f7d11a0457f1ecfcd49dbad87ac70bf2de",
+            "elevation": 3.0,
+            "canonicalEdgeFieldsMatchInput": true
+          }
+        }
+      }
+    }
+  },
+  "limits": [
+    "This is a downstream incremental patch, not a merged consumer PR or native GUI qualification.",
+    "Only default-normal DXF curved-edge cases are established; tilted ellipse vectors and spline-edge elevation need separate analysis. DWG MPOLYGON projection is not broadened.",
+    "Mixed checked elevations deliberately report a loss and flatten; the test checks retry after correcting the document, not atomic refusal. No fixture files were committed."
+  ]
+}
