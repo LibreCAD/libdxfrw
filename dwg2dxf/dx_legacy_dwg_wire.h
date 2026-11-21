@@ -27,6 +27,43 @@ inline bool supported(DRW::Version version) noexcept {
     return version == DRW::AC1012 || version == DRW::AC1014;
 }
 
+// ODA-produced R13 dictionaries can carry hard ownership in ACAD EED even
+// though the plain R13 dictionary body has no corresponding flag. Until this
+// producer-specific marker has an independently qualified projection, refuse
+// ambiguous or nonzero values rather than emitting a contradictory flag 0.
+inline bool r13OwnershipMarkerSafe(const DRW_Dictionary& dictionary) noexcept {
+    const auto equalsAscii = [](const std::string& text, std::string_view expected) noexcept {
+        return text.size() == expected.size()
+            && std::equal(text.begin(), text.end(), expected.begin(),
+                [](unsigned char a, unsigned char b) {
+                    if (a >= 'a' && a <= 'z') a = static_cast<unsigned char>(a - ('a' - 'A'));
+                    if (b >= 'a' && b <= 'z') b = static_cast<unsigned char>(b - ('a' - 'A'));
+                    return a == b;
+                });
+    };
+    bool acad = false;
+    bool seen = false;
+    for (std::size_t i = 0; i < dictionary.extData.size(); ++i) {
+        const auto* item = dictionary.extData[i];
+        if (!item) return false;
+        if (item->code() == 1001) {
+            acad = item->type() == DRW_Variant::STRING && item->content.s
+                && equalsAscii(*item->content.s, "ACAD");
+        } else if (acad && item->code() == 1000
+                   && item->type() == DRW_Variant::STRING && item->content.s
+                   && equalsAscii(*item->content.s, "TREAT_AS_HARD")) {
+            if (seen || i + 1u == dictionary.extData.size()) return false;
+            seen = true;
+            const auto* value = dictionary.extData[i + 1u];
+            if (!value || value->code() != 1070
+                || value->type() != DRW_Variant::INTEGER
+                || value->i_val() != 0 || dictionary.hardOwner != 0)
+                return false;
+        }
+    }
+    return true;
+}
+
 inline bool text(Bits& bits, std::string_view expected) noexcept {
     const auto length = bits.shortValue();
     if (length != expected.size() && length != expected.size() + 1u) return false;

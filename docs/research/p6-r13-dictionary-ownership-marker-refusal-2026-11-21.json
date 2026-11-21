@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-r13-dictionary-ownership-marker-refusal-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_DEFENSIVE_GUARD_IMPLEMENTED_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "evidence": "docs/research/p6-oda-r13-r14-dictionary-ownership-pair-2026-11-21.json",
+  "reproduction": {
+    "source": "locally generated LibreDWG 0.14 R13 nonempty ACAD_GROUP with ACAD EED TREAT_AS_HARD and 1070 value 0/1",
+    "before": "Both explicit-partial DXF outputs used hard-owner 0; the marker 1 output retained the EED while projecting the same dictionary and entry as soft-owned. The observed ODA pair maps marker 1 to hard ownership, so that output was inconsistent with that producer profile.",
+    "controlScope": "Synthetic control exercises the same EED structure but does not establish LibreDWG producer semantics."
+  },
+  "implementation": "Before DWG output, inspect R13 NOD and named dictionary ACAD marker groups. Refuse nonzero, duplicate, malformed or inconsistent observed markers; allow the observed zero form and unrelated application data. Do not infer ownership or mutate source fields.",
+  "validation": {
+    "build": "AddressSanitizer macOS ARM64 focused targets built with project warning policy",
+    "ctest": "libdxfrw_dwg_dictionary_cloning_source, dwg2dxf_ac1012_partial_generated, dwg2dxf_ac1012_ownership_generated passed (3/3)",
+    "transaction": "The generated control verifies both ASCII and binary refusal, unchanged destination and successful corrected-source retry on the same adapter, followed by fresh libdxfrw readback.",
+    "independent": "ezdxf 1.4.5 read the corrected binary output and verified the zero marker, soft ownership and MYGROUP membership.",
+    "buildInventory": "tools/generate_build_inventory.py --check passed after regenerating source-release lists",
+    "candidateBinarySha256": "02215c25bb1759c0bee8a0af7c4e0310f287e40bf7eaea24de0837f979d950ee",
+    "nativeInventory": "Clean source snapshot with hosted ordinary CMake settings: frozen inventory updated from 1391 to 1393 for the already-registered EED layer writer and XDATA int16 allocation tests; check-inventory and check-manifest pass. This is inventory validation, not a native test run."
+  },
+  "limits": [
+    "This is fail-closed behavior, not implemented or qualified output for a nonzero marker.",
+    "AutoCAD-native ownership, cloning and duplicate-merge semantics remain open; no support claim is promoted.",
+    "No DWG or DXF fixture was committed."
+  ]
+}

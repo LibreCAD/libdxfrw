@@ -32610,6 +32610,15 @@ bool dx_iface::hasLegacyDictionaryWireSource(
 bool dx_iface::hasUnchangedStandardDwgObjectSources() const noexcept {
     if (cData == nullptr)
         return false;
+    if (cData->sourceFormat == dx_source_format::DWG
+        && cData->sourceVersion == DRW::AC1012
+        && ((cData->hasNamedObjectDictionary
+             && !dx_legacy_dwg_wire::r13OwnershipMarkerSafe(cData->namedObjectDictionary))
+            || std::any_of(cData->dictionaries.begin(), cData->dictionaries.end(),
+                [](const DRW_Dictionary& dictionary) {
+                    return !dx_legacy_dwg_wire::r13OwnershipMarkerSafe(dictionary);
+                })))
+        return false;
     if (cData->m_standardDwgObjectFrames.empty())
         return true; // Fresh authored state has no invented source receipt.
     if (cData->m_standardDwgObjectCaptureFailed || cData->m_standardDwgObjectPayloadFailed)

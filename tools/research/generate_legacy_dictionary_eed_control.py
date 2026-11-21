@@ -103,6 +103,8 @@ def main():
     parser.add_argument('--alternate-app', action='store_true')
     parser.add_argument('--alternate-group', action='store_true')
     parser.add_argument('--nonempty-group', action='store_true')
+    parser.add_argument('--r13-ownership-markers', action='store_true',
+                        help='also generate paired R13 ACAD ownership marker controls')
     target_group = parser.add_mutually_exclusive_group()
     target_group.add_argument('--eed-on-nod', action='store_true')
     target_group.add_argument('--eed-on-mline', action='store_true')
@@ -110,6 +112,8 @@ def main():
     parser.add_argument('--dwgread', default='dwgread')
     parser.add_argument('--dwgwrite', default='dwgwrite')
     args = parser.parse_args()
+    if args.r13_ownership_markers and args.version != 'r13':
+        parser.error('--r13-ownership-markers requires --version r13')
     for tool in (args.dwgadd, args.dwgread, args.dwgwrite):
         if '0.14' not in run(tool, '--version').stdout:
             raise RuntimeError(f'{tool} must be LibreDWG 0.14')
@@ -282,6 +286,24 @@ def main():
         if name == 'baseline' and peer_target.get('eed'):
             raise RuntimeError('baseline unexpectedly contains EED')
         results[name] = {'path': str(drawing), 'sha256': digest(drawing)}
+    if args.r13_ownership_markers:
+        for value in (0, 1):
+            control = json.loads((root / 'eed.json').read_text())
+            dictionaries = [o for o in control['OBJECTS'] if o.get('object') == 'DICTIONARY'
+                            and o.get('handle', [0])[-1] == target_handle]
+            if len(dictionaries) != 1:
+                raise RuntimeError('ownership marker target is not unique')
+            dictionaries[0]['eed'] = [
+                {'size': 20, 'handle': [5, 1, appid], 'code': 0, 'value': 'TREAT_AS_HARD'},
+                {'code': 70, 'value': value},
+            ]
+            name = f'ownership-{value}'
+            path, drawing = root / (name + '.json'), root / (name + '.dwg')
+            if path.exists() or drawing.exists():
+                raise RuntimeError('ownership control already exists')
+            path.write_text(json.dumps(control))
+            run(args.dwgwrite, '--as', 'r13', '-I', 'JSON', '-o', str(drawing), str(path))
+            results[name] = {'path': str(drawing), 'sha256': digest(drawing)}
     if args.nonempty_group:
         broken = json.loads((root / 'eed.json').read_text())
         member = [o for o in broken['OBJECTS'] if o.get('object') == 'GROUP'

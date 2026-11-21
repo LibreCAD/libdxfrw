@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 // Source-bound DICTIONARY cloning-field presence; this does not qualify output.
 #include "dx_iface.h"
+#include "dx_legacy_dwg_wire.h"
 
 #include <algorithm>
 #include <array>
@@ -9,6 +10,31 @@
 #include <string>
 
 namespace {
+bool ownershipMarkerControls() {
+    DRW_Dictionary dictionary;
+    dictionary.extData.push_back(new DRW_Variant(1001, std::string("ACAD")));
+    dictionary.extData.push_back(new DRW_Variant(1000, std::string("TREAT_AS_HARD")));
+    dictionary.extData.push_back(new DRW_Variant(1070, std::int32_t{0}));
+    if (!dx_legacy_dwg_wire::r13OwnershipMarkerSafe(dictionary)) return false;
+    dictionary.extData[2]->addInt(1070, 1);
+    if (dx_legacy_dwg_wire::r13OwnershipMarkerSafe(dictionary)) return false;
+    dictionary.extData[0]->addString(1001, "acad");
+    dictionary.extData[1]->addString(1000, "treat_as_hard");
+    if (dx_legacy_dwg_wire::r13OwnershipMarkerSafe(dictionary)) return false;
+    dictionary.extData[0]->addString(1001, "ACAD");
+    dictionary.extData[1]->addString(1000, "TREAT_AS_HARD");
+    dictionary.extData[2]->addInt(1071, 0);
+    if (dx_legacy_dwg_wire::r13OwnershipMarkerSafe(dictionary)) return false;
+    dictionary.extData[2]->addInt(1070, 0);
+    dictionary.hardOwner = 1;
+    if (dx_legacy_dwg_wire::r13OwnershipMarkerSafe(dictionary)) return false;
+    dictionary.hardOwner = 0;
+    dictionary.extData.push_back(new DRW_Variant(1000, std::string("TREAT_AS_HARD")));
+    if (dx_legacy_dwg_wire::r13OwnershipMarkerSafe(dictionary)) return false;
+    dictionary.extData[0]->addString(1001, "OTHER");
+    return dx_legacy_dwg_wire::r13OwnershipMarkerSafe(dictionary);
+}
+
 bool unavailable(const dx_data& data, std::uint32_t handle) {
     dx_dwgDictionaryCloningSource observation;
     observation.presence = dx_dwgDictionaryCloningPresence::Present;
@@ -123,6 +149,7 @@ bool checkOne(const char* path, DRW::Version expectedVersion,
 
 int main(int argc, char** argv) {
     if (argc != 5) return 1;
+    if (!ownershipMarkerControls()) return 4;
     if (!checkOne(argv[1], DRW::AC1012, dx_dwgDictionaryCloningPresence::Absent, std::nullopt)
         || !checkOne(argv[2], DRW::AC1014, dx_dwgDictionaryCloningPresence::Absent, std::nullopt)
         || !checkOne(argv[3], DRW::AC1015, dx_dwgDictionaryCloningPresence::Present, 0)

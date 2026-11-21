@@ -2013,6 +2013,19 @@ if(LIBDXFRW_AC1014_EXTERNAL_PROFILE OR LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CON
                 ${CMAKE_CURRENT_SOURCE_DIR}/fixtures/dwg/ac1012_partial_three_line_control.dwgadd)
         set_tests_properties(dwg2dxf_ac1012_partial_generated PROPERTIES
             LABELS "dwg;AC1012;generated;external;partial;transaction" TIMEOUT 60)
+        find_program(LIBDXFRW_AC1012_DWGREAD_EXECUTABLE NAMES dwgread)
+        find_program(LIBDXFRW_AC1012_DWGWRITE_EXECUTABLE NAMES dwgwrite)
+        if(LIBDXFRW_AC1012_DWGREAD_EXECUTABLE AND LIBDXFRW_AC1012_DWGWRITE_EXECUTABLE)
+            add_test(NAME dwg2dxf_ac1012_ownership_generated
+                COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                    ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf_ac1012_ownership_generated.py
+                    ${LIBDXFRW_AC1012_DWGADD_EXECUTABLE}
+                    ${LIBDXFRW_AC1012_DWGREAD_EXECUTABLE}
+                    ${LIBDXFRW_AC1012_DWGWRITE_EXECUTABLE}
+                    $<TARGET_FILE:libdxfrw_dwg_ac1014_output_external_tests>)
+            set_tests_properties(dwg2dxf_ac1012_ownership_generated PROPERTIES
+                LABELS "dwg;AC1012;generated;external;partial;transaction" TIMEOUT 120)
+        endif()
     endif()
 endif()
 add_executable(libdxfrw_datalink_objects_allocation_tests

@@ -963,6 +963,41 @@ bool legacyBadGroupMember(const std::string& badInput, const std::string& goodIn
     return true;
 }
 
+bool r13OwnershipMarkerRefusal(const std::string& badInput, const std::string& goodInput,
+                               const std::filesystem::path& output) {
+    dx_iface adapter;
+    const std::string sentinel = "R13 ownership destination preserved\n";
+    for (bool binary : {false, true}) {
+        dx_data bad;
+        if (!adapter.fileImport(badInput, &bad, false)
+            || bad.sourceVersion != DRW::AC1012
+            || !DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(bad, 0xdu)) return false;
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        if (write(adapter, bad, output.string(), binary, DRW::AC1014,
+                  dx_dwgReadCompletenessPolicy::AllowPartial) || bytes(output) != sentinel)
+            return false;
+        dx_data corrected;
+        if (!adapter.fileImport(goodInput, &corrected, false)
+            || !DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(corrected, 0xdu)
+            || !write(adapter, corrected, output.string(), binary, DRW::AC1014,
+                      dx_dwgReadCompletenessPolicy::AllowPartial)) return false;
+        dx_iface fresh;
+        dx_data readback;
+        if (!fresh.fileImport(output.string(), &readback, false)) return false;
+        const auto group = std::find_if(readback.dictionaries.begin(), readback.dictionaries.end(),
+            [](const DRW_Dictionary& value) { return value.handle == 0xdu; });
+        if (group == readback.dictionaries.end() || group->hardOwner != 0
+            || group->extData.size() != 3u || !group->extData[1] || !group->extData[2]
+            || group->extData[1]->type() != DRW_Variant::STRING
+            || !group->extData[1]->content.s || *group->extData[1]->content.s != "TREAT_AS_HARD"
+            || group->extData[2]->code() != 1070
+            || group->extData[2]->type() != DRW_Variant::INTEGER
+            || group->extData[2]->i_val() != 0)
+            return false;
+    }
+    return true;
+}
+
 bool legacyBadEedGraph(const std::string& badInput, const std::string& goodInput,
                        const std::filesystem::path& output, DRW::Version version,
                        std::uint32_t sourceHandle = 0x34u) {
@@ -1478,6 +1513,8 @@ int main(int argc, char** argv) {
                 ? legacyGenerated(argv[2], argv[3], DRW::AC1014)
             : argc == 4 && std::string(argv[1]) == "--r13-generated"
                 ? r13GeneratedGuard(argv[2], argv[3])
+            : argc == 5 && std::string(argv[1]) == "--r13-ownership-marker"
+                ? r13OwnershipMarkerRefusal(argv[2], argv[3], argv[4])
             : argc == 4 && std::string(argv[1]) == "--r13-partial"
                 && r13Partial(argv[2], argv[3]);
     if (!ok) {
