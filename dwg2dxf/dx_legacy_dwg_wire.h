@@ -61,7 +61,7 @@ inline bool metadata(const DRW_UnsupportedObject& raw, std::uint32_t id,
 // must bind APPIDs to unchanged records, independently justify the codepage
 // interpretation, and check import text issues, semantics, graph and output.
 // String bytes are ASCII or the observed codepage-45 UTF-8 profile; integer
-// support includes balanced 1002 groups, binary chunks, finite 1040-1042 reals and signed
+// support includes balanced 1002 groups, binary chunks, finite 3D points and reals, and signed
 // 1070/1071 integers.
 template<class AppIdSource, class CodepageSource>
 bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
@@ -146,6 +146,20 @@ bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
             for (const auto byte : bytes)
                 if (payload.take(8u) != byte) return false;
             return payload.good && payload.pos == payload.end;
+        }
+        if (token.code >= 1010u && token.code <= 1013u
+            && value->type() == DRW_Variant::COORD && value->coord()) {
+            const auto& point = *value->coord();
+            const double components[] = {point.x, point.y, point.z};
+            Bits pointBits{raw.m_rawBytes.data(), token.valueSpan.begin, token.valueSpan.end};
+            for (const double component : components) {
+                if (!std::isfinite(component)) return false;
+                std::uint64_t expected = 0u;
+                static_assert(sizeof expected == sizeof component, "DWG doubles must be 64-bit");
+                std::memcpy(&expected, &component, sizeof expected);
+                if (pointBits.little(8u) != expected) return false;
+            }
+            return pointBits.good && pointBits.pos == pointBits.end;
         }
         if (token.code >= 1040u && token.code <= 1042u
             && value->type() == DRW_Variant::DOUBLE && std::isfinite(value->d_val())) {

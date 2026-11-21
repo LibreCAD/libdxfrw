@@ -477,7 +477,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
                                DRW::Version sourceVersion, const std::string& expectedText,
                                std::uint32_t appHandle = 0x12u, std::uint32_t groupHandle = 0xdu,
                                bool nonemptyGroup = false, bool nod = false, bool mlineOwner = false,
-                               bool longInts = false, bool reals = false, bool groups = false, bool binaryEed = false) {
+                               bool longInts = false, bool reals = false, bool groups = false, bool binaryEed = false, bool pointEed = false) {
     LateMutationAdapter adapter;
     dx_data source;
     adapter.source = &source;
@@ -490,7 +490,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
     auto app = std::find_if(source.appIds.begin(), source.appIds.end(),
         [appHandle](const DRW_AppId& item) { return item.handle == appHandle; });
     if (!group || app == source.appIds.end()
-        || group->extData.size() != (groups ? 7u : (longInts || reals) ? 6u : binaryEed ? 4u : 3u) || !group->extData[0] || !group->extData[1]
+        || group->extData.size() != (groups || pointEed ? 7u : (longInts || reals) ? 6u : binaryEed ? 4u : 3u) || !group->extData[0] || !group->extData[1]
         || !group->extData[2] || group->extData[0]->code() != 1001
         || group->extData[1]->code() != 1000 || group->extData[2]->code() != 1070
         || group->extData[0]->type() != DRW_Variant::STRING
@@ -530,6 +530,18 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
         }
         return true;
     };
+    const auto pointValuesMatch = [](const DRW_Dictionary& dictionary) {
+        if (dictionary.extData.size() != 7u) return false;
+        for (std::size_t i = 0u; i < 4u; ++i) {
+            const auto* item = dictionary.extData[i + 3u];
+            const double code = static_cast<double>(10u + i);
+            if (!item || item->code() != 1010 + static_cast<int>(i)
+                || item->type() != DRW_Variant::COORD || !item->coord()
+                || item->coord()->x != code + 0.25 || item->coord()->y != -code - 0.5
+                || item->coord()->z != code + 0.75) return false;
+        }
+        return true;
+    };
     const auto binarySourceMatches = [](const DRW_Dictionary& dictionary) {
         const auto* item = dictionary.extData[3];
         if (!item || item->code() != 1004 || item->type() != DRW_Variant::BINARY
@@ -554,7 +566,8 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             && second->content.s->size() == 2u && *first->content.s + *second->content.s == expected;
     };
     if ((longInts && !longValuesMatch(*group)) || (reals && !realValuesMatch(*group))
-        || (groups && !groupValuesMatch(*group)) || (binaryEed && !binarySourceMatches(*group))) return false;
+        || (groups && !groupValuesMatch(*group)) || (binaryEed && !binarySourceMatches(*group))
+        || (pointEed && !pointValuesMatch(*group))) return false;
     auto groupRecord = std::find_if(source.groups.begin(), source.groups.end(),
         [](const DRW_Group& item) { return item.handle == 0x31u; });
     if (nonemptyGroup && (group->m_entries.size() != 1u
@@ -585,7 +598,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             if (emit(binary, DRW::AC1015)
                 || bytes(output) != sentinel || !emit(binary)) return false;
         }
-        for (int fault = 0; fault < ((longInts || reals || groups || binaryEed) ? 11 : (nod || mlineOwner) ? 9 : nonemptyGroup ? 10 : 8); ++fault) {
+        for (int fault = 0; fault < ((longInts || reals || groups || binaryEed || pointEed) ? 11 : (nod || mlineOwner) ? 9 : nonemptyGroup ? 10 : 8); ++fault) {
             // R13 explicit partial output does not certify its MLINESTYLE;
             // edits to that unqualified object remain outside this proof.
             if ((nod || mlineOwner) && sourceVersion == DRW::AC1012 && fault == 8) continue;
@@ -613,6 +626,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             if (fault == 10 && reals) group->extData[4]->addDouble(1041, 0.5);
             if (fault == 10 && groups) group->extData[4]->addString(1002, "}");
             if (fault == 10 && binaryEed) group->extData[3]->addBinary(1004, {1u, 2u});
+            if (fault == 10 && pointEed) group->extData[4]->addCoord(1011, {1.0, 2.0, 3.0});
             { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
             const bool accepted = emit(binary);
             if (fault == 3) DxIfaceStandardDwgCaptureTestAccess::sourceBit(source, sourceFault) ^= 1u;
@@ -645,7 +659,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             [outputHandle](const DRW_Dictionary& dictionary) { return dictionary.handle == outputHandle; });
         const DRW_Dictionary* result = nod ? &readback.namedObjectDictionary
             : foundResult == readback.dictionaries.end() ? nullptr : &*foundResult;
-        if (!result || result->extData.size() != (groups ? 7u : (longInts || reals) ? 6u : binaryEed ? 5u : 3u)
+        if (!result || result->extData.size() != (groups || pointEed ? 7u : (longInts || reals) ? 6u : binaryEed ? 5u : 3u)
             || !result->extData[0] || !result->extData[1] || !result->extData[2]
             || result->extData[0]->type() != DRW_Variant::STRING
             || result->extData[1]->type() != DRW_Variant::STRING
@@ -654,7 +668,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             || !result->extData[1]->content.s || *result->extData[1]->content.s != expectedText
             || result->extData[2]->i_val() != 42 || (longInts && !longValuesMatch(*result))
             || (reals && !realValuesMatch(*result)) || (groups && !groupValuesMatch(*result))
-            || (binaryEed && !binaryOutputMatches(*result))) return false;
+            || (binaryEed && !binaryOutputMatches(*result)) || (pointEed && !pointValuesMatch(*result))) return false;
         if (nonemptyGroup) {
             const auto member = std::find_if(readback.groups.begin(), readback.groups.end(),
                 [](const DRW_Group& item) { return item.name == "MYGROUP"; });
@@ -1014,6 +1028,18 @@ int main(int argc, char** argv) {
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO")
             : argc == 4 && std::string(argv[1]) == "--r13-eed"
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO")
+            : argc == 4 && std::string(argv[1]) == "--r14-group-points"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u, 0x34u, true, false, false, false, false, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r14-nod-points"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u, 0x35u, false, true, false, false, false, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r14-mline-points"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u, 0x17u, false, false, true, false, false, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-group-points"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO", 0x33u, 0x34u, true, false, false, false, false, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-nod-points"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO", 0x33u, 0x35u, false, true, false, false, false, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-mline-points"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO", 0x33u, 0x17u, false, false, true, false, false, false, false, true)
             : argc == 4 && std::string(argv[1]) == "--r14-group-binary"
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u, 0x34u, true, false, false, false, false, false, true)
             : argc == 4 && std::string(argv[1]) == "--r14-nod-binary"

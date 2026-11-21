@@ -75,15 +75,28 @@ void putText(dwgBufferW& w, const std::string& text) {
     for (const unsigned char c : text) w.putRawChar8(c);
 }
 
+void setLittleEndianDoubleBits(std::vector<std::uint8_t>& bytes, std::size_t start,
+                               std::uint64_t value) {
+    for (unsigned byte = 0u; byte < 8u; ++byte) {
+        const auto octet = static_cast<std::uint8_t>(value >> (8u * byte));
+        for (unsigned bit = 0u; bit < 8u; ++bit) {
+            const auto pos = start + byte * 8u + bit;
+            const auto mask = static_cast<std::uint8_t>(0x80u >> (pos % 8u));
+            if ((octet & (0x80u >> bit)) != 0u) bytes[pos / 8u] |= mask;
+            else bytes[pos / 8u] &= static_cast<std::uint8_t>(~mask);
+        }
+    }
+}
+
 bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool reals = false,
-                             bool groups = false, bool binaryEed = false) {
+                             bool groups = false, bool binaryEed = false, bool pointEed = false) {
     // ODA-produced scratch source, re-encoded from its observed fields. The
     // caller must bind APPID and codepage; this is not an output proof.
     dwgBufferW w;
     w.putObjType(DRW::AC1012, 42u);
     w.putFixedHandle(0u, 1u, 0x30u);
     const std::string value = utf8 ? "caf\xC3\xA9" : "TREAT_AS_HARD";
-    w.putBitShort(static_cast<std::uint16_t>(value.size() + 7u + (longInts ? 15u : 0u) + (reals ? 27u : 0u) + (groups ? 4u : 0u) + (binaryEed ? 130u : 0u)));
+    w.putBitShort(static_cast<std::uint16_t>(value.size() + 7u + (longInts ? 15u : 0u) + (reals ? 27u : 0u) + (groups ? 4u : 0u) + (binaryEed ? 130u : 0u) + (pointEed ? 25u : 0u)));
     w.putFixedHandle(5u, 1u, 0x2au);
     w.putRawChar8(0u);
     w.putRawChar8(static_cast<std::uint8_t>(value.size()));
@@ -126,9 +139,18 @@ bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool real
         w.putRawChar8(128u);
         for (unsigned n = 0u; n < 128u; ++n) w.putRawChar8(static_cast<std::uint8_t>(n));
     }
+    std::size_t firstPointBit = 0u;
+    if (pointEed) {
+        w.putRawChar8(10u);
+        firstPointBit = w.bitPos() == 0u ? w.size() * 8u
+            : (w.size() - 1u) * 8u + w.bitPos();
+        w.putRawDouble(1.25);
+        w.putRawDouble(-2.5);
+        w.putRawDouble(3.75);
+    }
     w.putBitShort(0u);
     w.putRawLong32((utf8 ? 186u : 250u) + (longInts ? 120u : 0u)
-                   + (reals ? 216u : 0u) + (groups ? 32u : 0u) + (binaryEed ? 1040u : 0u));
+                   + (reals ? 216u : 0u) + (groups ? 32u : 0u) + (binaryEed ? 1040u : 0u) + (pointEed ? 200u : 0u));
     w.putBitLong(0);
     w.putBitLong(0);
     w.putFixedHandle(4u, 1u, 0xau);
@@ -137,8 +159,8 @@ bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool real
     const auto bytes = w.data();
     dwgBuffer input(bytes.data(), bytes.size());
     Dictionary model;
-    if (bytes.size() != (utf8 ? 27u : 35u) + (longInts ? 15u : 0u) + (reals ? 27u : 0u) + (groups ? 4u : 0u) + (binaryEed ? 130u : 0u) || !model.parseDwg(DRW::AC1012, &input, 0u)
-        || !input.isGood() || model.extData.size() != 3u + (longInts ? 3u : 0u) + (reals ? 3u : 0u) + (groups ? 2u : 0u) + (binaryEed ? 1u : 0u)
+    if (bytes.size() != (utf8 ? 27u : 35u) + (longInts ? 15u : 0u) + (reals ? 27u : 0u) + (groups ? 4u : 0u) + (binaryEed ? 130u : 0u) + (pointEed ? 25u : 0u) || !model.parseDwg(DRW::AC1012, &input, 0u)
+        || !input.isGood() || model.extData.size() != 3u + (longInts ? 3u : 0u) + (reals ? 3u : 0u) + (groups ? 2u : 0u) + (binaryEed ? 1u : 0u) + (pointEed ? 1u : 0u)
         || model.pendingAppIdResolutions.size() != 1u) return false;
     model.extData[0]->addString(1001, "ACAD");
     model.pendingAppIdResolutions.clear();
@@ -213,15 +235,7 @@ bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool real
         if (changedAccepted || !check(raw)) return false;
         auto nonFinite = raw;
         const std::uint64_t nanBits = UINT64_C(0x7ff8000000000000);
-        for (unsigned byte = 0u; byte < 8u; ++byte) {
-            const auto value = static_cast<std::uint8_t>(nanBits >> (8u * byte));
-            for (unsigned bit = 0u; bit < 8u; ++bit) {
-                const auto pos = firstRealBit + byte * 8u + bit;
-                const auto mask = static_cast<std::uint8_t>(0x80u >> (pos % 8u));
-                if ((value & (0x80u >> bit)) != 0u) nonFinite.m_rawBytes[pos / 8u] |= mask;
-                else nonFinite.m_rawBytes[pos / 8u] &= static_cast<std::uint8_t>(~mask);
-            }
-        }
+        setLittleEndianDoubleBits(nonFinite.m_rawBytes, firstRealBit, nanBits);
         double nan = 0.0;
         std::memcpy(&nan, &nanBits, sizeof nan);
         model.extData[first]->addDouble(1040, nan);
@@ -253,6 +267,26 @@ bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool real
         const bool changedAccepted = check(raw);
         model.extData[index]->addBinary(1004, original);
         if (changedAccepted || !check(raw)) return false;
+    }
+    if (pointEed) {
+        const std::size_t index = 3u + (longInts ? 3u : 0u) + (reals ? 3u : 0u)
+            + (groups ? 2u : 0u) + (binaryEed ? 1u : 0u);
+        const auto* point = model.extData[index]->coord();
+        if (!point || point->x != 1.25 || point->y != -2.5 || point->z != 3.75) return false;
+        const DRW_Coord original = *point;
+        model.extData[index]->addCoord(1010, {1.25, -2.5, 4.75});
+        const bool changedAccepted = check(raw);
+        model.extData[index]->addCoord(1010, original);
+        if (changedAccepted || !check(raw)) return false;
+        auto nonFinite = raw;
+        const std::uint64_t nanBits = UINT64_C(0x7ff8000000000000);
+        setLittleEndianDoubleBits(nonFinite.m_rawBytes, firstPointBit, nanBits);
+        double nan = 0.0;
+        std::memcpy(&nan, &nanBits, sizeof nan);
+        model.extData[index]->addCoord(1010, {nan, original.y, original.z});
+        const bool nonFiniteAccepted = check(nonFinite);
+        model.extData[index]->addCoord(1010, original);
+        if (nonFiniteAccepted || !check(raw)) return false;
     }
     model.pendingAppIdResolutions.push_back({});
     const bool unresolvedAccepted = check(raw);
@@ -458,7 +492,7 @@ bool expected(const Variable& v) {
 }
 
 bool run() {
-    if (!legacyDictionaryWithDefaultControl() || !r13DictionaryEedControl() || !r13DictionaryEedControl(true) || !r13DictionaryEedControl(false, true) || !r13DictionaryEedControl(false, false, true) || !r13DictionaryEedControl(false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, true)
+    if (!legacyDictionaryWithDefaultControl() || !r13DictionaryEedControl() || !r13DictionaryEedControl(true) || !r13DictionaryEedControl(false, true) || !r13DictionaryEedControl(false, false, true) || !r13DictionaryEedControl(false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, false, true)
         || !r13EedChunkGroupBoundary(false) || !r13EedChunkGroupBoundary(true) || !terminatedDictionaryControl(DRW::AC1012)
         || !terminatedDictionaryControl(DRW::AC1014) || !dictionaryWireControl(true, false)
         || !dictionaryWireControl(false, false)
