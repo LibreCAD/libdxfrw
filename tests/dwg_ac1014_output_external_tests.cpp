@@ -1,20 +1,22 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "dx_iface.h"
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <limits>
 #include <string>
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
     static std::uint8_t& sourceBit(dx_data& data, int fault) {
         const std::uint32_t handle = fault == 7 ? 0xcu : fault == 8 ? 0x22u
-            : fault == 9 ? 0x23u : fault == 10 ? 0x1au : 0x1bu;
+            : fault == 9 ? 0x23u : fault == 10 ? 0x1au : fault == 12 ? 0x19u : 0x1bu;
         const dx_data::StandardDwgFrameKey key{data.importGeneration, handle};
-        if (fault == 7 || fault == 8 || fault == 10)
-            return data.m_standardDwgObjectFrames.at(key).raw.m_rawBytes.back();
-        return data.m_opaqueDwgSourceFrames.at(key).m_rawBytes.back();
+        if (fault == 7 || fault == 8 || fault == 10 || fault == 12)
+            return data.m_standardDwgObjectFrames.at(key).raw.m_rawBytes.front();
+        return data.m_opaqueDwgSourceFrames.at(key).m_rawBytes.front();
     }
 };
 
@@ -191,14 +193,152 @@ bool checkPartialReadback(const std::string& input) {
     }
     return lines == 15u && texts == 1u;
 }
+
+bool r13Partial(const std::string& input, const std::filesystem::path& output) {
+    dx_iface adapter;
+    dx_data source;
+    if (!adapter.fileImport(input, &source, false)
+        || source.sourceVersion != DRW::AC1012 || source.mBlock == nullptr
+        || source.dwgReadOutcome.observations.entityParseFailures != 1u
+        || source.dwgReadOutcome.observations.objectParseFailures != 0u
+        || source.dwgReadOutcome.observations.frames.sourceFrames != 33u)
+        return false;
+    DRW_Line* line = nullptr;
+    std::size_t count = 0u;
+    bool later = false;
+    for (DRW_Entity* entity : source.mBlock->ent) {
+        if (entity != nullptr && entity->eType == DRW::LINE) {
+            ++count;
+            if (entity->handle == 0x2fu) {
+                later = true;
+                line = dynamic_cast<DRW_Line*>(entity);
+            }
+        }
+    }
+    if (!later || line == nullptr || count != 2u) return false;
+    const auto allow = dx_dwgReadCompletenessPolicy::AllowPartial;
+    const std::string sentinel = "AC1012 partial destination preserved\n";
+    for (const bool binary : {false, true}) {
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        if (write(adapter, source, output.string(), binary)
+            || bytes(output) != sentinel
+            || !write(adapter, source, output.string(), binary, DRW::AC1014, allow))
+            return false;
+        const double old = line->basePoint.x;
+        line->basePoint.x = std::numeric_limits<double>::quiet_NaN();
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        const bool accepted = write(adapter, source, output.string(), binary, DRW::AC1014, allow);
+        line->basePoint.x = old;
+        if (accepted || bytes(output) != sentinel
+            || !write(adapter, source, output.string(), binary, DRW::AC1014, allow))
+            return false;
+        dx_iface fresh;
+        dx_data readback;
+        if (!fresh.fileImport(output.string(), &readback, false)
+            || readback.sourceVersion != DRW::AC1014 || readback.mBlock == nullptr)
+            return false;
+        std::size_t readLines = 0u;
+        for (const DRW_Entity* entity : readback.mBlock->ent)
+            if (entity != nullptr && entity->eType == DRW::LINE) ++readLines;
+        if (readLines != 2u) return false;
+    }
+    return true;
+}
+
+bool checkR13PartialReadback(const std::string& input) {
+    dx_iface reader;
+    dx_data data;
+    if (!reader.fileImport(input, &data, false) || data.sourceVersion != DRW::AC1014
+        || data.mBlock == nullptr) return false;
+    bool first = false, second = false;
+    std::size_t lines = 0u;
+    for (const DRW_Entity* entity : data.mBlock->ent) {
+        const auto* line = dynamic_cast<const DRW_Line*>(entity);
+        if (line == nullptr || entity->eType != DRW::LINE) continue;
+        ++lines;
+        if (line->basePoint.x == 2.0 && line->basePoint.y == 3.0
+            && line->basePoint.z == 4.0 && line->secPoint.x == 5.0
+            && line->secPoint.y == 7.0 && line->secPoint.z == 10.0) first = true;
+        if (line->basePoint.x == 3.0 && line->basePoint.y == 4.0
+            && line->basePoint.z == 5.0 && line->secPoint.x == 6.0
+            && line->secPoint.y == 8.0 && line->secPoint.z == 11.0) second = true;
+    }
+    return lines == 2u && first && second;
+}
+
+bool checkR14Generated(const dx_data& data) {
+    if (data.sourceVersion != DRW::AC1014 || data.mBlock == nullptr
+        || data.mLineStyles.size() != 1u || data.mLineStyles.front().name != "Standard") return false;
+    bool seen[3] = {false, false, false};
+    std::size_t count = 0u;
+    for (const DRW_Entity* entity : data.mBlock->ent) {
+        const auto* line = dynamic_cast<const DRW_Line*>(entity);
+        if (!line || entity->eType != DRW::LINE) continue;
+        ++count;
+        for (int i = 0; i < 3; ++i)
+            if (line->basePoint.x == i + 1.0 && line->basePoint.y == i + 2.0
+                && line->basePoint.z == i + 3.0 && line->secPoint.x == i + 4.0
+                && line->secPoint.y == i + 6.0 && line->secPoint.z == i + 9.0)
+                seen[i] = true;
+    }
+    return count == 3u && seen[0] && seen[1] && seen[2];
+}
+
+bool r14Generated(const std::string& input, const std::filesystem::path& output) {
+    LateMutationAdapter adapter;
+    dx_data source;
+    adapter.source = &source;
+    if (!adapter.fileImport(input, &source, false) || !checkR14Generated(source)) return false;
+    const std::string sentinel = "AC1014 generated destination preserved\n";
+    for (const bool binary : {false, true}) {
+        if (!write(adapter, source, output.string(), binary)) return false;
+        for (const bool late : {false, true}) {
+            { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+            if (late) adapter.lateFault = 12;
+            else DxIfaceStandardDwgCaptureTestAccess::sourceBit(source, 12) ^= 1u;
+            const bool accepted = write(adapter, source, output.string(), binary);
+            if (late) adapter.lateFault = 0;
+            else DxIfaceStandardDwgCaptureTestAccess::sourceBit(source, 12) ^= 1u;
+            if (accepted || bytes(output) != sentinel
+                || !write(adapter, source, output.string(), binary)) return false;
+        }
+        dx_iface fresh;
+        dx_data readback;
+        if (!fresh.fileImport(output.string(), &readback, false) || !checkR14Generated(readback)) return false;
+        const auto root = std::find_if(readback.namedObjectDictionary.m_entries.begin(),
+            readback.namedObjectDictionary.m_entries.end(), [](const auto& entry) {
+                return entry.m_name == "ACAD_PLOTSETTINGS";
+            });
+        if (root == readback.namedObjectDictionary.m_entries.end()
+            || std::count_if(readback.dictionaries.begin(), readback.dictionaries.end(),
+                [&root](const auto& dictionary) {
+                    return dictionary.handle == root->m_handle && dictionary.m_entries.empty();
+                }) != 1) return false;
+    }
+    return true;
+}
+
+bool checkR14GeneratedFile(const std::string& input) {
+    dx_iface reader;
+    dx_data data;
+    return reader.fileImport(input, &data, false) && checkR14Generated(data);
+}
 } // namespace
 
 int main(int argc, char** argv) {
     const bool ok = argc == 3 && std::string(argv[1]) == "--check-partial"
         ? checkPartialReadback(argv[2])
+        : argc == 3 && std::string(argv[1]) == "--check-r14-generated"
+            ? checkR14GeneratedFile(argv[2])
+        : argc == 3 && std::string(argv[1]) == "--check-r13-partial"
+            ? checkR13PartialReadback(argv[2])
         : argc == 3 ? run(argv[1], argv[2])
         : argc == 4 && std::string(argv[1]) == "--partial"
-            && partial(argv[2], argv[3]);
+            ? partial(argv[2], argv[3])
+            : argc == 4 && std::string(argv[1]) == "--r14-generated"
+                ? r14Generated(argv[2], argv[3])
+            : argc == 4 && std::string(argv[1]) == "--r13-partial"
+                && r13Partial(argv[2], argv[3]);
     if (!ok) {
         std::cerr << "AC1014 external output profile test failed\n";
         return 1;

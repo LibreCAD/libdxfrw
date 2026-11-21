@@ -575,6 +575,7 @@ tests/dimassoc_dwg_encoder_allocation_tests.cpp
 tests/dimassoc_physical_transport_tests.cpp
 tests/dimstyle_optional_handle_tests.cpp
 tests/dimstyle_table_allocation_tests.cpp
+tests/dwg2dxf_ac1012_partial_generated.py
 tests/dwg2dxf_ac1014_partial_external.py
 tests/dwg2dxf_adapter_tests.cpp
 tests/dwg2dxf_cli_contract_tests.py
@@ -742,6 +743,7 @@ tests/evaluation_graph_objects_allocation_tests.cpp
 tests/field_objects_allocation_tests.cpp
 tests/field_retained_budget_tests.cpp
 tests/fixtures/README.md
+tests/fixtures/dwg/ac1012_partial_three_line_control.dwgadd
 tests/fixtures/dwg/ac1015_3d_line_control.dwgadd
 tests/fixtures/dwg/ac1015_3d_point_freecad_control.dwgadd
 tests/fixtures/dwg/ac1015_3d_polyline_freecad_control.dwgadd

@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-pr106-r14-conversion-review-fixes-2026-11-20",
+  "date": "2026-11-20",
+  "supportClaimEffect": "none",
+  "source": {
+    "generator": "GNU LibreDWG dwgadd 0.14 --as r14",
+    "recipe": "tests/fixtures/dwg/ac1012_partial_three_line_control.dwgadd",
+    "oneRunSha256": "c5c34adab7c828fe77fc5816103f84a51d68c81c3e10604a8bee68f89456e0df",
+    "fields": "Three locally authored 3D LINEs, Standard MLINESTYLE, relative dictionary owner and NUL-terminated R14 names; generation timestamp varies."
+  },
+  "fix": [
+    "Compare bounded R14 dictionary and standard MLINESTYLE wire fields, graph handles, roles and source boundaries to captured models rather than one drawing's fixed handles and strings.",
+    "Allow only bounded final alignment bits of any value, accept source-proven NUL-terminated TV names and relative soft-pointer handles, and keep raw-frame rechecks at finalization.",
+    "Admit an R14 dictionary without group 281 in the shared staged-output inspector; later versions still require that group.",
+    "Identify the earlier FreeCAD result as baseline-only and require fresh current-candidate qualification."
+  ],
+  "validation": {
+    "generated": "The opt-in generated R14 test checks strict ASCII and binary CLI output, three exact 3D LINE endpoint pairs, Standard style and the empty ACAD_PLOTSETTINGS graph, plus early/late source corruption refusal, destination preservation and same-adapter retry.",
+    "padding": "A temporary external LibreDWG r14/v.dwg variant changes one dictionary alignment bit and recomputes its CRC; the external profile test checks both encodings, semantic mutations, refusal, retry and fresh readback. SHA-256 of that temporary variant: abbbc16e4ba4ebafa5c0f35179a61bf30cbfb307b40ff45a848b59c8acb9381c.",
+    "independent": "ezdxf 1.4.5 reads the generated ASCII and binary outputs and reproduces all three exact 3D endpoint pairs and an ACAD_PLOTSETTINGS root. ezdxf upgrades R14 in memory; target revision and graph identity are independently checked by fresh libdxfrw readback.",
+    "sanitizer": "The owning generated-unit, R14 external-profile, padding/partial, generated AC1012/R14 and MLINESTYLE transaction tests run under AddressSanitizer."
+  },
+  "limitations": "The MLINESTYLE admission remains bounded to the proven standard two-BYLAYER-element profile. This is not general R14, native CAD, FreeCAD or cross-platform qualification. No external DWG or DXF fixture is committed."
+}

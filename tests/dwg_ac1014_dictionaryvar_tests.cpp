@@ -27,6 +27,47 @@ void putText(dwgBufferW& w, const std::string& text) {
     for (const unsigned char c : text) w.putRawChar8(c);
 }
 
+// Generated R14 producers may include a terminator in a TV field and encode
+// an owner as an offset handle. Bind both forms to the same typed graph.
+bool terminatedDictionaryControl() {
+    dwgBufferW w;
+    w.putObjType(DRW::AC1014, 42u);
+    w.putFixedHandle(0u, 1u, 0x17u);
+    w.putBitShort(0u);
+    w.putRawLong32(170u);
+    w.putBitLong(1);
+    w.putBitLong(1);
+    w.putRawChar8(0u);
+    w.putBitShort(9u);
+    for (unsigned char c : std::string("Standard")) w.putRawChar8(c);
+    w.putRawChar8(0u);
+    w.putFixedHandle(12u, 1u, 11u);
+    w.putFixedHandle(4u, 1u, 0xcu);
+    w.putFixedHandle(3u, 0u, 0u);
+    w.putFixedHandle(2u, 1u, 0x18u);
+    for (int i = 0; i < 6; ++i) w.putBit(0u);
+    const auto bytes = w.data();
+    dwgBuffer input(bytes.data(), bytes.size());
+    Dictionary model;
+    if (!model.parseDwg(DRW::AC1014, &input, 0u) || !input.isGood()) return false;
+    DRW_UnsupportedObject raw;
+    raw.m_version = DRW::AC1014;
+    raw.m_handle = model.handle;
+    raw.m_objectType = 42;
+    raw.m_objectSize = static_cast<std::uint32_t>(bytes.size());
+    raw.m_rawBytes = bytes;
+    raw.m_parentHandle = model.parentHandle;
+    raw.m_numReactors = model.reactorCount();
+    raw.m_reactorHandles = model.reactorHandles;
+    raw.m_xDictHandle = model.xDictHandle;
+    raw.setCommonLinkEvidence(DRW_DwgCommonLinkEvidence::Validated);
+    if (!dx_ac1014_dictionaryvar_wire::dictionary(raw, model, false, true)) return false;
+    auto wrongOwner = raw;
+    // Change the offset, retaining a syntactically valid soft-pointer role.
+    wrongOwner.m_rawBytes[22] ^= 0x40u;
+    return !dx_ac1014_dictionaryvar_wire::dictionary(wrongOwner, model, false, true);
+}
+
 bool dictionaryWireControl(bool nod, bool mlineOwner) {
     const std::uint32_t id = nod ? 0xcu : (mlineOwner ? 0x1au : 0x22u);
     dwgBufferW w;
@@ -70,12 +111,19 @@ bool dictionaryWireControl(bool nod, bool mlineOwner) {
     raw.m_reactorHandles = model.reactorHandles;
     raw.m_xDictHandle = model.xDictHandle;
     raw.setCommonLinkEvidence(DRW_DwgCommonLinkEvidence::Validated);
-    if (!dx_ac1014_dictionaryvar_wire::dictionary(raw, model, nod, mlineOwner)) return false;
+    if (!dx_ac1014_dictionaryvar_wire::dictionary(raw, model, nod, mlineOwner)) {
+        std::cerr << "dictionary rejected: nod=" << nod << " mline=" << mlineOwner << '\n';
+        return false;
+    }
     for (std::size_t bit = 0; bit < bytes.size() * 8u; ++bit) {
         auto changed = raw;
         changed.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
-        if (dx_ac1014_dictionaryvar_wire::dictionary(changed, model, nod, mlineOwner))
+        const bool accepted = dx_ac1014_dictionaryvar_wire::dictionary(changed, model, nod, mlineOwner);
+        const std::size_t paddingBits = nod ? 2u : 6u;
+        if (accepted != (bit >= bytes.size() * 8u - paddingBits)) {
+            std::cerr << "dictionary mutation: nod=" << nod << " mline=" << mlineOwner << " bit=" << bit << " accepted=" << accepted << '\n';
             return false;
+        }
     }
     return true;
 }
@@ -114,7 +162,7 @@ bool expected(const Variable& v) {
 }
 
 bool run() {
-    if (!dictionaryWireControl(true, false)
+    if (!terminatedDictionaryControl() || !dictionaryWireControl(true, false)
         || !dictionaryWireControl(false, false)
         || !dictionaryWireControl(false, true)) {
         std::cerr << "generated dictionary source or mutation control failed\n";
@@ -224,8 +272,9 @@ bool run() {
     for (std::size_t bit = 0; bit < styleBytes.size() * 8u; ++bit) {
         auto changed = rawStyle;
         changed.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
-        if (dx_ac1014_mlinestyle_wire::style(changed, style)) {
-            std::cerr << "MLINESTYLE observer accepted bit mutation " << bit << '\n';
+        const bool accepted = dx_ac1014_mlinestyle_wire::style(changed, style);
+        if (accepted != (bit >= styleBytes.size() * 8u - 2u)) {
+            std::cerr << "MLINESTYLE observer mishandled bit mutation " << bit << '\n';
             return false;
         }
     }

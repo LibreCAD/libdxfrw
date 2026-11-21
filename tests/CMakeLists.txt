@@ -1963,12 +1963,14 @@ set_tests_properties(libdxfrw_dwg_ac1014_dictionaryvar PROPERTIES
     LABELS "fast;dwg;dictionaryvar;AC1014;transaction;generated" TIMEOUT 30)
 set(LIBDXFRW_AC1014_EXTERNAL_PROFILE "" CACHE FILEPATH
     "Optional external AC1014 DICTIONARYVAR/MLINESTYLE source profile")
-if(LIBDXFRW_AC1014_EXTERNAL_PROFILE)
-    if(NOT EXISTS "${LIBDXFRW_AC1014_EXTERNAL_PROFILE}")
+option(LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CONTROL
+    "Enable locally generated AC1012 partial-read control using dwgadd 0.14" OFF)
+if(LIBDXFRW_AC1014_EXTERNAL_PROFILE OR LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CONTROL)
+    if(LIBDXFRW_AC1014_EXTERNAL_PROFILE AND NOT EXISTS "${LIBDXFRW_AC1014_EXTERNAL_PROFILE}")
         message(FATAL_ERROR "LIBDXFRW_AC1014_EXTERNAL_PROFILE does not exist")
     endif()
     if(NOT TARGET dwg2dxf)
-        message(FATAL_ERROR "LIBDXFRW_AC1014_EXTERNAL_PROFILE requires dwg2dxf")
+        message(FATAL_ERROR "AC1012/AC1014 partial controls require dwg2dxf")
     endif()
     add_executable(libdxfrw_dwg_ac1014_output_external_tests
         ${CMAKE_CURRENT_SOURCE_DIR}/dwg_ac1014_output_external_tests.cpp
@@ -1979,21 +1981,35 @@ if(LIBDXFRW_AC1014_EXTERNAL_PROFILE)
         ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
     target_link_libraries(libdxfrw_dwg_ac1014_output_external_tests PRIVATE dxfrw)
     libdxfrw_check_test_adapter_context(libdxfrw_dwg_ac1014_output_external_tests)
-    add_test(NAME libdxfrw_dwg_ac1014_output_external
-        COMMAND libdxfrw_dwg_ac1014_output_external_tests
-            "${LIBDXFRW_AC1014_EXTERNAL_PROFILE}"
-            "${CMAKE_CURRENT_BINARY_DIR}/ac1014-output-external.dxf")
-    set_tests_properties(libdxfrw_dwg_ac1014_output_external PROPERTIES
-        LABELS "dwg;AC1014;external;transaction" TIMEOUT 60)
     add_dependencies(libdxfrw_dwg_ac1014_output_external_tests dwg2dxf)
-    add_test(NAME dwg2dxf_ac1014_partial_external
-        COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE}
-            ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf_ac1014_partial_external.py
-            $<TARGET_FILE:dwg2dxf>
-            $<TARGET_FILE:libdxfrw_dwg_ac1014_output_external_tests>
-            "${LIBDXFRW_AC1014_EXTERNAL_PROFILE}")
-    set_tests_properties(dwg2dxf_ac1014_partial_external PROPERTIES
-        LABELS "dwg;AC1014;external;partial;transaction" TIMEOUT 60)
+    if(LIBDXFRW_AC1014_EXTERNAL_PROFILE)
+        add_test(NAME libdxfrw_dwg_ac1014_output_external
+            COMMAND libdxfrw_dwg_ac1014_output_external_tests
+                "${LIBDXFRW_AC1014_EXTERNAL_PROFILE}"
+                "${CMAKE_CURRENT_BINARY_DIR}/ac1014-output-external.dxf")
+        set_tests_properties(libdxfrw_dwg_ac1014_output_external PROPERTIES
+            LABELS "dwg;AC1014;external;transaction" TIMEOUT 60)
+        add_test(NAME dwg2dxf_ac1014_partial_external
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf_ac1014_partial_external.py
+                $<TARGET_FILE:dwg2dxf>
+                $<TARGET_FILE:libdxfrw_dwg_ac1014_output_external_tests>
+                "${LIBDXFRW_AC1014_EXTERNAL_PROFILE}")
+        set_tests_properties(dwg2dxf_ac1014_partial_external PROPERTIES
+            LABELS "dwg;AC1014;external;partial;transaction" TIMEOUT 60)
+    endif()
+    if(LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CONTROL)
+        find_program(LIBDXFRW_AC1012_DWGADD_EXECUTABLE NAMES dwgadd REQUIRED)
+        add_test(NAME dwg2dxf_ac1012_partial_generated
+            COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -B
+                ${CMAKE_CURRENT_SOURCE_DIR}/dwg2dxf_ac1012_partial_generated.py
+                ${LIBDXFRW_AC1012_DWGADD_EXECUTABLE}
+                $<TARGET_FILE:dwg2dxf>
+                $<TARGET_FILE:libdxfrw_dwg_ac1014_output_external_tests>
+                ${CMAKE_CURRENT_SOURCE_DIR}/fixtures/dwg/ac1012_partial_three_line_control.dwgadd)
+        set_tests_properties(dwg2dxf_ac1012_partial_generated PROPERTIES
+            LABELS "dwg;AC1012;generated;external;partial;transaction" TIMEOUT 60)
+    endif()
 endif()
 add_executable(libdxfrw_datalink_objects_allocation_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/datalink_objects_allocation_tests.cpp

@@ -332,7 +332,8 @@ struct Shape {
         if (!valid || self != 1u || owner != 1u || subclass != 1u
             || depth != 0u || pointNext != 0 || entryPending || handle == 0u)
             return false;
-        if (kind == Family::Dictionary) return hardOwner == 1u && cloning == 1u;
+        if (kind == Family::Dictionary)
+            return hardOwner == 1u && (version <= DRW::AC1014 || cloning == 1u);
         if (kind == Family::Group) return description == 1u && unnamed == 1u && selectable == 1u;
         return kind == Family::Xrecord && (version <= DRW::AC1014 || cloning == 1u);
     }

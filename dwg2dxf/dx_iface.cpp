@@ -32551,6 +32551,14 @@ bool dx_iface::hasUnchangedStandardDwgObjectSources() const noexcept {
                 || !standardDwgModelsEqual(*frame.typedBaseline, *found->second,
                                             frame.raw.m_version, frame.raw.m_objectType))
                 return false;
+            if (frame.raw.m_version == DRW::AC1014
+                && frame.raw.m_objectType == dwgObjType::DICTIONARY
+                && m_standardDwgOutputProofs.count(frame.raw.m_handle) != 0u) {
+                const auto* dictionary = dynamic_cast<const DRW_Dictionary*>(found->second);
+                if (!dictionary || !dx_ac1014_dictionaryvar_wire::dictionary(
+                        frame.raw, *dictionary, dictionary->parentHandle == 0u))
+                    return false;
+            }
             for (const auto handle : frame.appIdDependencies) {
                 const auto original = cData->m_standardDwgAppIdSources.find(
                     {frame.generation, handle});
@@ -38794,9 +38802,11 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         return skipProfile("selected style census or import receipt");
     const DRW_MLineStyle& style = cData->mLineStyles.front();
     const bool expectedStyleName =
-        (cData->sourceVersion == DRW::AC1015
+        (cData->sourceVersion == DRW::AC1014
+         || cData->sourceVersion == DRW::AC1015
          || cData->sourceVersion == DRW::AC1027)
-            ? style.name == "Standard" : style.name == "STANDARD";
+            ? (style.name == "Standard" || (cData->sourceVersion == DRW::AC1014 && style.name == "STANDARD"))
+            : style.name == "STANDARD";
     if (!expectedStyleName || style.elements.size() != 2u
         || style.flags != 0 || !style.description.empty()
         || style.handle != m_extensionMLineStyleHandles.front()
@@ -38938,7 +38948,7 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         || !rootOwner->pendingAppIdResolutions.empty()
         || !rootOwner->pendingLayerRefResolutions.empty()
         || rootOwner->m_entries.front().m_name
-            != (cData->sourceVersion == DRW::AC1014 ? "STANDARD" : "Standard")
+            != (cData->sourceVersion == DRW::AC1014 ? style.name : "Standard")
         || rootOwner->m_entries.front().m_handle != style.handle
         || style.parentHandle != rootOwner->handle
         || nod.m_entries.end() == std::find_if(
@@ -39185,7 +39195,7 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
                     || cData->m_opaqueDwgSourceFrameIdentities.count(rootKey) != 1u
                     || cData->m_opaqueDwgSourceFrameIdentities.count(styleKey) != 1u
                     || !cData->hasCompleteDwgDictionaryEntry(nod.handle, "ACAD_MLINESTYLE", liveRoot->handle)
-                    || !cData->hasCompleteDwgDictionaryEntry(liveRoot->handle, "STANDARD", current.handle)
+                    || !cData->hasCompleteDwgDictionaryEntry(liveRoot->handle, current.name.c_str(), current.handle)
                     || !standardDwgModelsEqual(*nodFrame->second.typedBaseline, nod,
                                                DRW::AC1014, dwgObjType::DICTIONARY)
                     || !dx_ac1014_dictionaryvar_wire::dictionary(nodFrame->second.raw, nod, true)
@@ -39354,8 +39364,8 @@ bool dx_iface::inspectDwgMLineStyles(
                     return entry.m_handle == source.handle;
                 });
             if (ownerEntry == sourceRoot.m_entries.end()
-                || ownerEntry->m_name != (cData->sourceVersion == DRW::AC1014
-                    ? "STANDARD" : "Standard")
+                || ownerEntry->m_name
+                    != (cData->sourceVersion == DRW::AC1014 ? source.name : "Standard")
                 || std::count_if(sourceRoot.m_entries.begin(),
                     sourceRoot.m_entries.end(), [&ownerEntry](
                         const DRW_Dictionary::Entry& entry) {
@@ -53309,6 +53319,15 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
             const bool qualifiedOutputNames =
                 hasQualifiedStandardDwgOutputNames(
                     frame.generation, frame.raw.m_handle, false);
+            const auto* legacyDictionary = cData->sourceVersion == DRW::AC1014
+                && frame.raw.m_objectType == dwgObjType::DICTIONARY
+                ? dynamic_cast<const DRW_Dictionary*>(frame.typedBaseline.get())
+                : nullptr;
+            const bool legacyDictionaryWire = cData->sourceVersion != DRW::AC1014
+                || frame.raw.m_objectType != dwgObjType::DICTIONARY
+                || (legacyDictionary && dx_ac1014_dictionaryvar_wire::dictionary(
+                    frame.raw, *legacyDictionary,
+                    legacyDictionary->parentHandle == 0u));
             const bool standardOutputCandidate =
                 frame.typedBaseline && frame.payloadMatched
                 && !frame.opaquePayload
@@ -53328,7 +53347,7 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
                                 frame.raw.m_handle))))
                 && (!frame.sourceCodePageFieldPresent
                     || frame.sourceCodePageRecognized)
-                && qualifiedOutputNames;
+                && qualifiedOutputNames && legacyDictionaryWire;
             // Unknown/opaque carriers and unmodeled source state are not
             // upgraded by a successful typed projection/readback.
             if (!standardOutputCandidate)

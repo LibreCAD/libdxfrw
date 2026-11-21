@@ -71,6 +71,17 @@ def main():
     original = Path(source).read_bytes()
     with tempfile.TemporaryDirectory(prefix="libdxfrw-ac1014-partial-") as directory:
         root = Path(directory)
+        # Vary only the final alignment bit in the MLINESTYLE dictionary
+        # frame, then repair its CRC. Alignment bits carry no field value.
+        aligned = bytearray(original)
+        require(int.from_bytes(aligned[3900:3902], "little") == crc16(aligned[3870:3900]),
+                "source dictionary frame CRC")
+        aligned[3899] ^= 1
+        aligned[3900:3902] = crc16(aligned[3870:3900]).to_bytes(2, "little")
+        padded = root / "padding-variant.dwg"
+        padded.write_bytes(aligned)
+        require(invoke([profile_test, str(padded), str(root / "padding.dxf")]).returncode == 0,
+                "padding variant conversion, mutation refusal and readback")
         damaged = root / "controlled-failure.dwg"
         damaged.write_bytes(source_control(original))
         bad_crc = root / "invalid-frame-crc.dwg"

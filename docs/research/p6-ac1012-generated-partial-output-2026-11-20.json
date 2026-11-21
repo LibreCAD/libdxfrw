@@ -1,0 +1,33 @@
+{
+  "id": "p6-ac1012-generated-partial-output-2026-11-20",
+  "gate": "P6-F",
+  "status": "CONTROLLED_AC1012_PROFILE_COMPLETE",
+  "source": {
+    "generator": "GNU LibreDWG dwgadd 0.14, --as r13",
+    "recipe": "tests/fixtures/dwg/ac1012_partial_three_line_control.dwgadd",
+    "origin": "Locally authored three-line recipe with a uniquely named additional DIMSTYLE, generated from scratch.",
+    "oneRunSha256": "66fa2c2a92011f9193ea81f900cfe91c5f2b7a2e264b404cf3ebc131c932ee9e",
+    "hashNote": "Full source hash changes with generated header time. Each run hashes the source and validates version, exact field span and enclosing CRC before applying the controlled fault."
+  },
+  "control": {
+    "fault": "Replace the first LINE handle 0x2e start-Y binary64 at body bit 77 with quiet NaN; recompute frame CRC.",
+    "oneRunFaultSha256": "7b6e47af3c4494dac8a79b813b508e4cc54729cccc02ecdc2f7659a916523d3d",
+    "classification": "Deliberate local fault injection, not an organic producer-authored failure."
+  },
+  "result": {
+    "read": "AC1012 read succeeds with one entity failure and zero object failures. All 33 frames are accounted for: 32 published, one failed, none unresolved. The later LINE at handle 0x2f is retained.",
+    "strict": "Strict-complete conversion to AC1014 ASCII and Binary refuses and preserves the destination.",
+    "partial": "Explicit partial conversion warns and succeeds in both encodings. Fresh libdxfrw readback retains exactly the two later 3D LINEs. Invalid live coordinate refusal preserves destination and corrected same-adapter retry succeeds.",
+    "crc": "An independently damaged frame with stale CRC refuses even in partial mode and preserves the destination; corrected-source retry succeeds.",
+    "independent": "ezdxf 1.4.5 independently reads the AC1014 outputs and matches both surviving known 3D LINE endpoint pairs exactly. ezdxf upgrades R14 in memory, so the target revision is also checked by libdxfrw readback.",
+    "asciiSha256": "a4684268d59b4fd9dba4dbe94118a4a331167c4572b95306e3cd4e5661562d73",
+    "binarySha256": "9e67517a4b8965e1251f58aa71d19e3ac730029adde8dc42c572c86cc2c2d46a"
+  },
+  "validation": {
+    "test": "tests/dwg2dxf_ac1012_partial_generated.py; tests/dwg_ac1014_output_external_tests.cpp --r13-partial and --check-r13-partial",
+    "setup": "Enable LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CONTROL with dwgadd 0.14 and the dwg2dxf build enabled.",
+    "addressSanitizer": "PASS: opt-in generated AC1012 partial test and AC1014 external controls on macOS."
+  },
+  "remaining": "P6-F remains open for organic source failures with closed dependencies. This control does not establish general AC1012 support or native CAD semantics.",
+  "fixturePolicy": "Only the locally authored text recipe is committed. DWG and DXF artifacts are generated into temporary directories and deleted."
+}
