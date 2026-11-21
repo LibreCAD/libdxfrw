@@ -49,8 +49,7 @@ public:
             && std::none_of(data.dictionaryWithDefaults.begin(), data.dictionaryWithDefaults.end(),
                 [](const DRW_DictionaryWithDefault& item) { return item.handle == 0x12u; });
     }
-    // Literal wire observation only. In particular, the producer's EED
-    // codepage is unknown to this reader and must not qualify text/output.
+    // Literal wire observation only; EED semantics and output remain unproved.
     static bool r13EedSource(const dx_data& data) {
         const dx_data::StandardDwgFrameKey key{data.importGeneration, 0x30u};
         const auto found = data.m_standardDwgObjectFrames.find(key);
@@ -59,7 +58,7 @@ public:
         const auto* model = dynamic_cast<const DRW_Dictionary*>(frame.typedBaseline.get());
         if (!model || frame.generation != data.importGeneration || !frame.payloadMatched
             || !frame.sourceProfileBound || !frame.textDecodeObserved
-            || frame.textDecodeIssues != DRW::dxfTextIssueMask(DRW::DxfTextIssue::UnknownCodePage)
+            || frame.textDecodeIssues != 0u
             || frame.appIdDependencies != std::vector<std::uint32_t>{0x2au}
             || data.m_opaqueDwgSourceFrameIdentities.count(key) != 1u) return false;
         const auto app = [&data](std::uint32_t handle, const std::string& name) noexcept {
@@ -84,6 +83,11 @@ public:
     }
     static std::vector<std::uint8_t>& r13EedBytes(dx_data& data) {
         return data.m_standardDwgObjectFrames.at({data.importGeneration, 0x30u}).raw.m_rawBytes;
+    }
+    static bool cleanDictionaryText(const dx_data& data, std::uint32_t handle) {
+        const auto found = data.m_standardDwgObjectFrames.find({data.importGeneration, handle});
+        return found != data.m_standardDwgObjectFrames.end() && found->second.payloadMatched
+            && found->second.sourceProfileBound && found->second.hasNoObservedTextDecodeIssues();
     }
     static bool dictionaryProof(const dx_data& data, std::uint32_t handle) {
         const auto frame = data.m_standardDwgObjectFrames.find({data.importGeneration, handle});
@@ -416,6 +420,39 @@ bool checkR14GeneratedFile(const std::string& input) {
     return reader.fileImport(input, &data, false) && checkR14Generated(data);
 }
 
+bool checkLegacyEedUtf8Source(const std::string& input) {
+    dx_iface reader;
+    dx_data data;
+    if (!reader.fileImport(input, &data, false)
+        || (data.sourceVersion != DRW::AC1012 && data.sourceVersion != DRW::AC1014)) return false;
+    const auto dictionary = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
+        [](const DRW_Dictionary& item) { return item.handle == 0x31u; });
+    if (dictionary == data.dictionaries.end() || dictionary->extData.size() < 4u
+        || !DxIfaceStandardDwgCaptureTestAccess::cleanDictionaryText(data, 0x31u)) return false;
+    const auto text = [](const DRW_Variant* value, int code, const char* expected) {
+        return value && value->code() == code && value->type() == DRW_Variant::STRING
+            && value->content.s && *value->content.s == expected;
+    };
+    if (!data.mBlock) return false;
+    const auto line = std::find_if(data.mBlock->ent.begin(), data.mBlock->ent.end(),
+        [](const DRW_Entity* entity) { return entity && entity->handle == 0x30u; });
+    if (line == data.mBlock->ent.end() || !dynamic_cast<const DRW_Line*>(*line)
+        || (*line)->extData.size() != 5u) return false;
+    const auto& entityEed = (*line)->extData;
+    return text(entityEed[0].get(), 1001, "CODEPAGE_TEST")
+        && text(entityEed[1].get(), 1000, "ASCII")
+        && text(entityEed[2].get(), 1000, "caf\xC3\xA9")
+        && text(entityEed[3].get(), 1000, "\xE2\x82\xAC\xE6\xBC\xA2")
+        && entityEed[4] && entityEed[4]->code() == 1070
+        && entityEed[4]->type() == DRW_Variant::INTEGER && entityEed[4]->i_val() == 42
+        && text(dictionary->extData[0], 1001, "CODEPAGE_TEST")
+        && text(dictionary->extData[1], 1000, "caf\xC3\xA9")
+        && text(dictionary->extData[2], 1000, "\xE2\x82\xAC\xE6\xBC\xA2")
+        && dictionary->extData[3] && dictionary->extData[3]->code() == 1070
+        && dictionary->extData[3]->type() == DRW_Variant::INTEGER
+        && dictionary->extData[3]->i_val() == -42;
+}
+
 bool checkR13EedSource(const std::string& input) {
     dx_iface reader;
     dx_data data;
@@ -490,6 +527,8 @@ bool r13GeneratedGuard(const std::string& input, const std::filesystem::path& ou
 int main(int argc, char** argv) {
     const bool ok = argc == 3 && std::string(argv[1]) == "--check-partial"
         ? checkPartialReadback(argv[2])
+        : argc == 3 && std::string(argv[1]) == "--legacy-eed-utf8-source"
+            ? checkLegacyEedUtf8Source(argv[2])
         : argc == 3 && std::string(argv[1]) == "--r13-eed-source"
             ? checkR13EedSource(argv[2])
         : argc == 3 && std::string(argv[1]) == "--check-r14-generated"

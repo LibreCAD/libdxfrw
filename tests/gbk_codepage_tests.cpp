@@ -2257,6 +2257,24 @@ void testDwgEedTextProvenance(TestContext& t) {
     const auto replaced = textIssueMask({Issue::UndefinedByteSequence, Issue::ReplacedSource});
     const auto unknown = textIssueMask({Issue::UnknownCodePage});
     const auto alias = textIssueMask({Issue::CompatibilityCodePage});
+    const auto invalidUtf8 = textIssueMask({Issue::InvalidUtf8, Issue::InvalidUnicodeOutput});
+    for (const auto version : {DRW::AC1012, DRW::AC1014}) {
+        DRW_TextCodec file;
+        file.setVersion(version, false);
+        const std::string utf8 = "caf\xC3\xA9 \xE2\x82\xAC\xE6\xBC\xA2";
+        t.expect(decodeEedString(45u, utf8, &file, version) == utf8
+                     && file.accumulatedDecodeIssues() == 0u,
+                 "observed legacy EED codepage 45 retains valid UTF-8 without changing the file codec");
+        file.resetAccumulatedDecodeIssues();
+        const std::string malformed("\xC3\x28", 2);
+        t.expect(decodeEedString(45u, malformed, &file, version) == malformed
+                     && file.accumulatedDecodeIssues() == invalidUtf8,
+                 "legacy EED codepage 45 observes malformed UTF-8 without certifying it");
+        file.resetAccumulatedDecodeIssues();
+        t.expect(decodeEedString(45u, "plain", &file, DRW::AC1015) == "plain"
+                     && file.accumulatedDecodeIssues() == unknown,
+                 "unqualified EED revisions keep codepage 45 unknown");
+    }
     struct Row { std::uint16_t page; std::string raw, expected; std::uint32_t issues; };
     const Row rows[] = {
         {30u, "L\x81R", "LR", discarded}, {30u, "LR", "LR", 0u}, {30u, "", "", 0u},

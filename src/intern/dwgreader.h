@@ -1013,11 +1013,14 @@ std::uint16_t dwgCodePageId(const char *name);
 /// codec or last primary-conversion snapshot on the named-codec path. Empty
 /// values retain their declared-profile observation. This is not exhaustive
 /// codepage/table qualification; no read/decoding policy is made stricter.
+/// Observed R13/R14 EED codepage 45 is UTF-8. Pass the source revision only
+/// for common EED; an unknown revision keeps the legacy unknown-page behavior.
 /// Legacy XRECORD application strings also use this value conversion for a
 /// nonzero RC codepage, but retain their separate application-body framing
 /// and established zero/file-default convention.
 std::string decodeEedString(std::uint16_t cp, const std::string &raw,
-                            DRW_TextCodec *fallback);
+                            DRW_TextCodec *fallback,
+                            DRW::Version eedVersion = DRW::UNKNOWNV);
 
 struct DwgEedHandleRef {
   std::size_t itemIndex{0};

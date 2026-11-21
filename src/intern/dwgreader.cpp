@@ -3671,7 +3671,20 @@ std::uint16_t dwgCodePageId(const char *name) {
 }
 
 std::string decodeEedString(std::uint16_t cp, const std::string &raw,
-                            DRW_TextCodec *fallback) {
+                            DRW_TextCodec *fallback, DRW::Version eedVersion) {
+  // ODA-produced R13/R14 EED controls contain codepage 45 with UTF-8 bytes,
+  // including non-ASCII characters confirmed after producer reopen. Restrict
+  // this to common EED on those revisions; header and XRECORD mappings are
+  // separate profiles. Malformed UTF-8 retains the codec's loss observations.
+  if (cp == 45u && (eedVersion == DRW::AC1012 || eedVersion == DRW::AC1014)) {
+    DRW_TextCodec codec;
+    codec.setVersion(DRW::AC1015, false);
+    codec.setCodePage("UTF-8", false);
+    std::string result = codec.toUtf8(raw);
+    if (fallback != nullptr)
+      fallback->mergeDecodeIssues(codec.accumulatedDecodeIssues());
+    return result;
+  }
   const char *name = dwgCodePageName(cp);
   // Keep the established tolerant decoder/result. A declared per-value
   // profile that is unknown or maps many-to-one cannot become an exact
@@ -3928,7 +3941,7 @@ bool readDwgEed(DRW::Version version, dwgBuffer &buffer,
                 !itemBuffer.getBytes(
                     reinterpret_cast<std::uint8_t *>(raw.data()), length))
               return false;
-            value = decodeEedString(codePage, raw, itemBuffer.decoder);
+            value = decodeEedString(codePage, raw, itemBuffer.decoder, version);
           }
           if (!appendEedItem(chunk, totalItems, 1000, std::move(value)))
             return false;

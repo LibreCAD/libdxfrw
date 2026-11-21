@@ -148,12 +148,13 @@ native duplicate behavior. The ODA sources also contain APPID-bound dictionary
 EED and currently hit a separate ModelDocViewStyle cross-version guard. The
 [source-framing control](docs/research/p6-ac1012-oda-dictionary-eed-source-2026-11-21.json)
 now checks the observed EED bytes, APPID identity and mutation/retry against
-both ODA files. Their EED codepage 45 is unknown to the reader. The previously
-failed CELLSTYLEMAP and DICTIONARYWDFLT are now retained as unqualified raw
+both ODA files. The [controlled producer/reopen witness](docs/research/p6-legacy-eed-codepage45-utf8-witness-2026-11-21.json)
+binds EED codepage 45 to UTF-8 for the observed R13/R14 profile, now decoded
+with malformed-byte observations. The previously failed CELLSTYLEMAP and
+DICTIONARYWDFLT are retained as unqualified raw
 data (see the [source disposition](docs/research/p6-ac1012-oda-dictionary-default-raw-shell-2026-11-21.json));
 all source frames have a disposition, but two bodies are still unmodeled.
-Establish the codepage interpretation and dictionary cloning/default semantics;
-then implement source-presence-aware dictionary
+Establish dictionary cloning/default semantics; then implement source-presence-aware dictionary
 projection and EED dependencies, and run the
 [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md)
 on an identified host. Keep strict output refused until native duplicate
