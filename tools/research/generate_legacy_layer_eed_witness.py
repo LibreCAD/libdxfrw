@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate scratch R13/R14 layer-reference DWGs and test their byte order.
+"""Generate scratch R13/R14/R2000 layer-reference DWGs and test byte order.
 
 Requires ezdxf, LibreDWG dwgread, and an installed ODA File Converter with
 access to the desktop session. Generated drawings are never copied into the
@@ -29,7 +29,7 @@ def run(*args: str) -> None:
 
 
 def patch_layer_bytes(source: Path, destination: Path, proof: dict,
-                      appid: int, handle: int) -> None:
+                      appid: int, handle: int, version: str) -> None:
     data = bytearray(source.read_bytes())
     offset, size = proof["frameOffset"], proof["frameSize"]
     if data[offset-2:offset] != size.to_bytes(2, "little"):
@@ -37,7 +37,11 @@ def patch_layer_bytes(source: Path, destination: Path, proof: dict,
     if int.from_bytes(data[offset+size:offset+size+2], "little") != crc16(data[offset-2:offset+size]):
         raise ValueError("source CRC mismatch")
     bits = Bits(data[offset:offset+size])
-    if bits.bs() != 42 or bits.handle(0, own=True)["value"] != proof["sourceHandle"]:
+    if bits.bs() != 42:
+        raise ValueError("source dictionary type mismatch")
+    if version == "r2000":
+        bits.little(4)  # R2000 stores the body boundary before the self handle.
+    if bits.handle(0, own=True)["value"] != proof["sourceHandle"]:
         raise ValueError("source dictionary identity mismatch")
     start = None
     while True:
@@ -90,7 +94,7 @@ def main() -> None:
     receipt = {"ezdxfVersion": ezdxf.__version__, "oda": executable_identity(args.oda),
                "dwgread": executable_identity(args.dwgread), "seedSha256": digest(seed),
                "layerHandle": handle, "appidHandle": appid, "versions": {}}
-    for version, target in (("r13", "ACAD13"), ("r14", "ACAD14")):
+    for version, target in (("r13", "ACAD13"), ("r14", "ACAD14"), ("r2000", "ACAD2000")):
         source_dir, reopen, patched_dir, patched_reopen = [root / (version + suffix)
             for suffix in ("", "-reopen", "-patched", "-patched-reopen")]
         for directory in (source_dir, reopen, patched_dir, patched_reopen):
@@ -103,7 +107,7 @@ def main() -> None:
         if len(chunks) != 1 or chunks[0]["rawHex"] != expected:
             raise ValueError(f"{version} physical layer handle mismatch")
         patched = patched_dir / "seed.dwg"
-        patch_layer_bytes(source, patched, proof, appid, handle)
+        patch_layer_bytes(source, patched, proof, appid, handle, version)
         for directory, out in ((source_dir, reopen), (patched_dir, patched_reopen)):
             run(args.oda, str(directory), str(out), "ACAD2018", "DXF", "0", "1", "*.dwg")
         original_dxf, patched_dxf = reopen / "seed.dxf", patched_reopen / "seed.dxf"

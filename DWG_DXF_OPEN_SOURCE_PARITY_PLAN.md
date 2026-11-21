@@ -186,7 +186,8 @@ checks the source value, remapped output, and unique target closure, including
 refusal and retry for a dangling reference in R13 partial output. Layer EED
 byte order, other group graphs and EED schemas still need matching source and
 output evidence. A [repeatable ODA/LibreDWG layer witness](docs/research/p6-legacy-eed-layer-byte-order-2026-11-21.json)
-now shows opposing physical byte orders for R13/R14; the current reader and
+now shows opposing physical byte orders for R13/R14, with ODA confirming the
+same big-endian encoding for R2000; the current reader and
 DWG encoder use the LibreDWG order. Next, retain both interpretations with the
 raw source/version, prove an unambiguous layer-table identity and source profile
 before resolving a name, and leave ambiguous or wide targets unresolved. Add
