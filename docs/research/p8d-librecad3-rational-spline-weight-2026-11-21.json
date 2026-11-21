@@ -27,7 +27,8 @@
   },
   "limits": [
     "Weight preservation is limited to standalone SPLINE. Rational rendering and geometry calculations remain approximate and are reported on import.",
-    "Rational HATCH spline-edge support, native GUI, Linux and Windows remain open.",
+    "Other rational HATCH spline-edge profiles, native GUI, Linux and Windows remain open; the selected planar path is recorded in p8d-librecad3-rational-hatch-spline-weight-2026-11-21.json.",
     "No generated DWG/DXF fixture is committed."
-  ]
+  ],
+  "followUp": "Selected planar HATCH edge weight preservation is recorded in p8d-librecad3-rational-hatch-spline-weight-2026-11-21.json; this receipt retains its original PR heads and evidence."
 }

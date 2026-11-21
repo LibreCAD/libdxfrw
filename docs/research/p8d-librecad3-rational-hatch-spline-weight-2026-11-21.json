@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-rational-hatch-spline-weight-2026-11-21",
+  "date": "2026-11-21",
+  "status": "DRAFT_CONSUMER_FIX_BOUNDED_ROUNDTRIP",
+  "supportClaimEffect": "none",
+  "parentPr": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
+  "parentHead": "ff2e487566923851acc6e76a19aa211266386345",
+  "dependentPr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "dependentHead": "c0c608e2425cebf2e1ee64523e83006d8037265d",
+  "problem": "A generated elevated rational HATCH spline boundary imported with empty weights and Z=0; export could not preserve its rational shape or elevation.",
+  "implementation": "Preserve edge weights in the spline model, emit the rational edge with its weight vector, admit supported common-elevation rational boundaries, and report approximate rendering. Detect incomplete edited weight arrays and report HATCH loss rather than allowing the older codec to pad the array silently.",
+  "validation": {
+    "platform": "macOS ARM64 headless",
+    "negativeControl": "Generated rational quarter-circle edge initially imported with empty weights and Z=0.",
+    "parent": "2/2 focused rational and ordinary spline-edge HATCH controls and 3/3 standalone spline controls pass with the bundled codec.",
+    "merged": "9/9 focused HATCH/MPOLYGON controls and 3/3 standalone spline controls pass with both bundled and current shared libdxfrw.",
+    "bundledLogSha256": "e9f6d61f337620cfc91fb7b8cad66aef71950847cee28a7149739f3882cfa935",
+    "currentLogSha256": "169334df0d177dfb5eb9fd52e9bc07e70c930f5125dd9f2b64fb93283116613a",
+    "independent": "ezdxf 1.4.5 verifies rational flag, weights [1,0.7071067811865476,1], control coordinates and parent elevation for original and moved output in both encodings and on both codec paths.",
+    "failure": "An incomplete edited weight array is reported as loss for ASCII and Binary; corrected export and fresh readback succeed. This is a new File export invocation, not a same-adapter or destination-preservation claim.",
+    "planSync": "explicit-path plan validation passed for both PR branches."
+  },
+  "limits": [
+    "Only the tested default-normal planar HATCH spline profile is covered. Rational rendering remains approximate and is reported on import.",
+    "No native GUI, Linux, Windows, whole-file atomic save or broader 3D semantics are claimed.",
+    "No generated DWG/DXF fixture was committed."
+  ]
+}
