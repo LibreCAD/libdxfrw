@@ -1,0 +1,279 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-oda-r13-r14-dictionary-ownership-pair-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_PRODUCER_OWNERSHIP_EVIDENCE_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "generator": "tools/research/verify_oda_legacy_dictionary_ownership.py",
+  "command": "PYTHONPATH=<ezdxf-directory> python3 -B tools/research/verify_oda_legacy_dictionary_ownership.py --oda <ODAFileConverter> --dwgread <dwgread-0.14> --candidate <dwg2dxf> --output-dir <scratch>",
+  "oneRunReceiptSha256": "b3d77804894ff23f8aa5bb4d564349b258eda09635874c85fff4fc96f5126367",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1 section 20.4.44",
+    "qualification": "The specification describes the R14 byte as unknown and observed zero; the nonzero ODA-produced control is bounded contrary empirical evidence, not a replacement for the specification."
+  },
+  "observations": [
+    "Two R2000 DXF seeds were authored locally with matching root dictionary, line, named dictionary and XRECORD; their selected hard-ownership flag differs (0 versus 1).",
+    "ODA 27.1.0 produced R13 and R14 DWGs from each seed and reopened each to R2000 ASCII DXF. LibreDWG 0.14 supplied the independent peer object model; a separate bit walker checked dictionary frame size, CRC, body boundary, entry names and handle roles, and next-frame CRC.",
+    "For the R13 pair, the ordinary DICTIONARY has no R14 byte; its ACAD APPID-bound EED contains TREAT_AS_HARD with value 0 or 1. The selected dictionary frames differ in one physical byte.",
+    "For the R14 pair, selected dictionary frames likewise differ in one physical byte, decoded by the walker as the R14-only byte 0 or 1. LibreDWG reports corresponding is_hardowner values.",
+    "ODA reopen preserves the two ownership flags, the named entry, owner links and XRECORD values. Physical DXF entry codes are 350 for 0 and 360 for 1; ezdxf independently reads the selected graph and values.",
+    "Candidate strict conversion refuses all four controls without replacing the destination. R13 stops at the ModelDocViewStyle cross-version guard; R14 reports incomplete source disposition because the generated file contains an unsupported class."
+  ],
+  "run": {
+    "scope": "two locally authored ODA-family dictionary ownership controls; no native semantics claim",
+    "generatorSha256": "f0b58a9857ba61c75be7a4568c9c25e9b8d75ea8999c0b5cd8983c882bc7cfb2",
+    "oda": {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "ezdxfVersion": "1.4.5",
+    "versions": {
+      "r13": {
+        "samples": {
+          "0": {
+            "seedSha256": "2ff71f8205125510eb17ab22013e3929dae645ad6d9d3bf34516ab458e4c1339",
+            "sourceSha256": "aa5dba01d95ed08c7e0941d736fe8045b2c5a6e8d1438ccfd68c7d0a45972230",
+            "sourceDictionary": {
+              "handle": 48,
+              "frameSha256": "a58ec1f59c77a6691a023dfb412a0d61aabef6ed94ea41b51c0f601ee46cfe69",
+              "frameOffset": 5848,
+              "frameSize": 46,
+              "bodyEndBit": 324,
+              "crcValid": true,
+              "nextFrame": {
+                "offset": 5898,
+                "size": 51,
+                "type": 42,
+                "crcValid": true
+              },
+              "r14Byte": null,
+              "owner": 10,
+              "reactors": [],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              },
+              "eed": [
+                {
+                  "appid": 42,
+                  "hex": "000d002d54524541545f41535f48415244460000"
+                }
+              ],
+              "entryCount": 1
+            },
+            "sourceXrecord": {
+              "handle": 49,
+              "owner": 48,
+              "peerValues": [
+                [
+                  1,
+                  "from_scratch"
+                ],
+                [
+                  90,
+                  1234
+                ]
+              ]
+            },
+            "reopenSha256": "866f606aa033e13b436a3f3af6a3725ae241d35019f38f06a78c32e493f1f11d",
+            "outputOwnerFlag": 0,
+            "outputEntryCode": 350,
+            "candidate": {
+              "exit": 1,
+              "destinationPreservedOnFailure": true,
+              "diagnostics": [
+                "DXF export preflight failed: typed DWG ModelDocViewStyle serialization requires the exact DWG source version"
+              ]
+            }
+          },
+          "1": {
+            "seedSha256": "eaa71ef72b036790ca105d36e1b35de2a8114203bb8a969f09c4e3fdf3be393e",
+            "sourceSha256": "c45f81bf4848424eaed665199562e3a79c507ebc06fb2fe06c74347db9407484",
+            "sourceDictionary": {
+              "handle": 48,
+              "frameSha256": "0d35e504e3f02177a7a4a04d77636e4a03fe8ca2f236064e4e1158a01204d6bb",
+              "frameOffset": 5848,
+              "frameSize": 46,
+              "bodyEndBit": 324,
+              "crcValid": true,
+              "nextFrame": {
+                "offset": 5898,
+                "size": 51,
+                "type": 42,
+                "crcValid": true
+              },
+              "r14Byte": null,
+              "owner": 10,
+              "reactors": [],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              },
+              "eed": [
+                {
+                  "appid": 42,
+                  "hex": "000d002d54524541545f41535f48415244460100"
+                }
+              ],
+              "entryCount": 1
+            },
+            "sourceXrecord": {
+              "handle": 49,
+              "owner": 48,
+              "peerValues": [
+                [
+                  1,
+                  "from_scratch"
+                ],
+                [
+                  90,
+                  1234
+                ]
+              ]
+            },
+            "reopenSha256": "2f260cef90695b652f9144018770daae38d3787fe3795a0d8e9e52cd1aca5457",
+            "outputOwnerFlag": 1,
+            "outputEntryCode": 360,
+            "candidate": {
+              "exit": 1,
+              "destinationPreservedOnFailure": true,
+              "diagnostics": [
+                "DXF export preflight failed: typed DWG ModelDocViewStyle serialization requires the exact DWG source version"
+              ]
+            }
+          }
+        },
+        "differingFrameByteOffsets": [
+          25
+        ]
+      },
+      "r14": {
+        "samples": {
+          "0": {
+            "seedSha256": "2ff71f8205125510eb17ab22013e3929dae645ad6d9d3bf34516ab458e4c1339",
+            "sourceSha256": "ac6d87a5f2e1907791849582ccb27b7c32b8c5e193c504f3017fb1d0bd566435",
+            "sourceDictionary": {
+              "handle": 48,
+              "frameSha256": "9cc8fb8b1ea1b9676f60bea3f8c3738c057f956078cebd7274cc5b646936cb1a",
+              "frameOffset": 5733,
+              "frameSize": 24,
+              "bodyEndBit": 146,
+              "crcValid": true,
+              "nextFrame": {
+                "offset": 5761,
+                "size": 29,
+                "type": 42,
+                "crcValid": true
+              },
+              "r14Byte": 0,
+              "owner": 10,
+              "reactors": [],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              },
+              "eed": [],
+              "entryCount": 1
+            },
+            "sourceXrecord": {
+              "handle": 49,
+              "owner": 48,
+              "peerValues": [
+                [
+                  1,
+                  "from_scratch"
+                ],
+                [
+                  90,
+                  1234
+                ]
+              ]
+            },
+            "reopenSha256": "63917efcc8860713933cd77e3182c19ea7ea72f8b10d68fc1ccdcba13aa3056c",
+            "outputOwnerFlag": 0,
+            "outputEntryCode": 350,
+            "candidate": {
+              "exit": 1,
+              "destinationPreservedOnFailure": true,
+              "diagnostics": [
+                "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+              ]
+            }
+          },
+          "1": {
+            "seedSha256": "eaa71ef72b036790ca105d36e1b35de2a8114203bb8a969f09c4e3fdf3be393e",
+            "sourceSha256": "8aed745a6e38d099431ff7c36a7f6677e99b5d9ac48e3fd9fabc461662140e1c",
+            "sourceDictionary": {
+              "handle": 48,
+              "frameSha256": "22ab52ea7f3611e99340675ad1bf08b49a82504e83379d8625b3877c6e82c027",
+              "frameOffset": 5733,
+              "frameSize": 24,
+              "bodyEndBit": 146,
+              "crcValid": true,
+              "nextFrame": {
+                "offset": 5761,
+                "size": 29,
+                "type": 42,
+                "crcValid": true
+              },
+              "r14Byte": 1,
+              "owner": 10,
+              "reactors": [],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              },
+              "eed": [],
+              "entryCount": 1
+            },
+            "sourceXrecord": {
+              "handle": 49,
+              "owner": 48,
+              "peerValues": [
+                [
+                  1,
+                  "from_scratch"
+                ],
+                [
+                  90,
+                  1234
+                ]
+              ]
+            },
+            "reopenSha256": "7fed82316d023f206f77c3b8f7e19b8cbef8bd573495ecdd9fcf006a7e12d36f",
+            "outputOwnerFlag": 1,
+            "outputEntryCode": 360,
+            "candidate": {
+              "exit": 1,
+              "destinationPreservedOnFailure": true,
+              "diagnostics": [
+                "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+              ]
+            }
+          }
+        },
+        "differingFrameByteOffsets": [
+          9
+        ]
+      }
+    },
+    "candidate": {
+      "path": "/private/tmp/libdxfrw-p6j-asan/dwg2dxf/dwg2dxf",
+      "sha256": "d2ae9c30a3f9907dfe9ca38a2491331809c68a3898ccd3a3c3aa21de966a239e"
+    }
+  },
+  "limitations": [
+    "The same producer family creates and reopens the DWGs; this does not prove native AutoCAD semantics, cloning/default behavior, duplicate-merge behavior, or any other producer profile.",
+    "The XRECORD source content and owner are checked via the LibreDWG object model; this receipt does not independently bind its body bytes.",
+    "The R13 EED marker is a producer-specific observation; do not globally treat arbitrary EED as a hard-owner setting or broaden output qualification.",
+    "No generated DWG or DXF is committed."
+  ]
+}
