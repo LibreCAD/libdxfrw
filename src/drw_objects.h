@@ -3693,6 +3693,7 @@ public:
   DRW_Dictionary(const DRW_Dictionary& o): DRW_TableEntry(o),
       cloning(o.cloning), hardOwner(o.hardOwner), m_entries(o.m_entries),
       countCap(o.countCap), m_dwgEntriesComplete(o.m_dwgEntriesComplete),
+      m_legacyDwgCloningAbsent(o.m_legacyDwgCloningAbsent),
       m_dxfRetainedEntryNameBytes(o.m_dxfRetainedEntryNameBytes) {
     tType = o.tType;
     m_pendingEntryName.clear();
@@ -3705,6 +3706,7 @@ public:
       m_entries = o.m_entries;
       countCap = o.countCap;
       m_dwgEntriesComplete = o.m_dwgEntriesComplete;
+      m_legacyDwgCloningAbsent = o.m_legacyDwgCloningAbsent;
       m_dxfRetainedEntryNameBytes = o.m_dxfRetainedEntryNameBytes;
       m_dxfRetainedPendingEntryNameBytes = 0u;
       m_pendingEntryName.clear();
@@ -3721,6 +3723,7 @@ public:
     // vector. DWG decoding changes this to false until the complete,
     // counted name/handle stream has passed validation.
     m_dwgEntriesComplete = true;
+    m_legacyDwgCloningAbsent = false;
     name.clear();
     m_entries.clear();
     m_pendingEntryName.clear();
@@ -3769,6 +3772,15 @@ public:
   [[nodiscard]] bool hasCompleteDwgEntries() const noexcept {
     return m_dwgEntriesComplete;
   }
+  //! Observed source presence only; no duplicate-merge semantics are implied.
+  [[nodiscard]] bool legacyDwgCloningAbsent() const noexcept {
+    return m_legacyDwgCloningAbsent;
+  }
+  //! Preserve the observed absence for an R14 projection while the current
+  //! value remains zero. Equality is not proof that the value was not edited.
+  [[nodiscard]] bool omitLegacyDxfCloning(DRW::Version target) const noexcept {
+    return target == DRW::AC1014 && m_legacyDwgCloningAbsent && cloning == 0;
+  }
   //! True when the DXF name/handle stream is structurally complete.
   [[nodiscard]] bool hasCompleteDxfEntries() const noexcept;
   //! Selected proof helper for a parsed, complete DXF dictionary body.
@@ -3798,6 +3810,7 @@ private:
   // Keep a DXF entry name private until its following handle is decoded.
   UTF8STRING m_pendingEntryName;
   bool m_dwgEntriesComplete = false;
+  bool m_legacyDwgCloningAbsent = false;
   std::size_t m_dxfRetainedEntryNameBytes{0u};
   std::size_t m_dxfRetainedPendingEntryNameBytes{0u};
 };

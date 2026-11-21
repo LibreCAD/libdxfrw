@@ -30201,6 +30201,7 @@ void dx_iface::validateStandardDwgObjectPayloads(
                     && body.isGood() && compareCommon(parsed)
                     && parsed.hasCompleteDwgEntries() && record->hasCompleteDwgEntries()
                     && !parsed.countCap && !record->countCap
+                    && parsed.legacyDwgCloningAbsent() == record->legacyDwgCloningAbsent()
                     && parsed.cloning == record->cloning && parsed.hardOwner == record->hardOwner
                     && frame.membershipSeen && frame.dictionaryMembership.m_complete
                     && parsed.m_entries.size() == record->m_entries.size()
@@ -51990,6 +51991,15 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
                                      : "NOD dictionary source setup";
             const auto* frozen = dxfW->dxfWriteGeneratedRootSource(groups);
             if (!frozen) continue;
+            if (cData->sourceFormat == dx_source_format::DWG
+                && (cData->sourceVersion == DRW::AC1012 || cData->sourceVersion == DRW::AC1014)) {
+                dx_dwgDictionaryCloningSource sourceCloning;
+                const bool bound = cData->getDwgDictionaryCloningSource(frozen->handle, sourceCloning);
+                if ((bound && (!sourceCloning.currentValueMatchesBaseline
+                               || sourceCloning.presence != dx_dwgDictionaryCloningPresence::Absent
+                               || !frozen->legacyDwgCloningAbsent()))
+                    || (!bound && frozen->legacyDwgCloningAbsent())) return false;
+            }
             std::size_t bytes = 0u, items = 0u, extra = 0u;
             if (!estimateDictionaryTypedBytes(*frozen, bytes, items)
                 || !generatedDictionaryXdataProjectionBytes(*frozen,extra)
@@ -52180,7 +52190,8 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
                             return false;
                         }
                     }
-                    return !depth && !pending && selves == 1u && owners == 1u && classes == 1u && hard == 1u && cloning == 1u
+                    const auto expectedCloning = frozen->omitLegacyDxfCloning(view.version) ? 0u : 1u;
+                    return !depth && !pending && selves == 1u && owners == 1u && classes == 1u && hard == 1u && cloning == expectedCloning
                         && entry == expected.size() && reactors == (frozen->reactorHandles.empty() ? 0u : 1u) && extensions == (frozen->xDictHandle ? 1u : 0u);
                 },profile) || !seen) return false;
             // Decode only the independently selected root. Reading unrelated
@@ -76567,7 +76578,8 @@ bool dx_data::getDwgDictionaryCloningSource(
     observation.version = sourceVersion;
     if (present)
         observation.sourceValue = baseline->cloning;
-    observation.currentValueMatchesBaseline = current->cloning == baseline->cloning;
+    observation.currentValueMatchesBaseline = current->cloning == baseline->cloning
+        && current->legacyDwgCloningAbsent() == baseline->legacyDwgCloningAbsent();
     return true;
 }
 

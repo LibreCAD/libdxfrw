@@ -19824,7 +19824,8 @@ bool dxfRW::writeObjects() {
         } catch (...) {
             return failDxfWrite();
         }
-        if (!writeDictionaryRecord(*m_generatedNodSource, 0xCu, 0u, true, &ordered))
+        if (!writeDictionaryRecord(*m_generatedNodSource, 0xCu, 0u,
+                !m_generatedNodSource->omitLegacyDxfCloning(version), &ordered))
             return false;
     } else {
     writer->writeString(0, "DICTIONARY");
@@ -19883,7 +19884,8 @@ bool dxfRW::writeObjects() {
         } catch (...) {
             return failDxfWrite();
         }
-        if (!writeDictionaryRecord(*m_generatedGroupDictionarySource, 0xDu, 0xCu, true, &entries))
+        if (!writeDictionaryRecord(*m_generatedGroupDictionarySource, 0xDu, 0xCu,
+                !m_generatedGroupDictionarySource->omitLegacyDxfCloning(version), &entries))
             return false;
     } else {
     writer->writeString(0, "DICTIONARY");

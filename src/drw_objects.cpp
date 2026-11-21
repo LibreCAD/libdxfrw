@@ -11188,6 +11188,7 @@ bool DRW_Dictionary::parseCode(int code, const std::unique_ptr<dxfReader>& reade
     }
     case 281:
         cloning = reader->getInt32();
+        m_legacyDwgCloningAbsent = false;
         break;
     case 3: {
         if (!m_pendingEntryName.empty()
@@ -11516,6 +11517,8 @@ bool DRW_Dictionary::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
 
     m_entries = std::move(entries);
     m_dwgEntriesComplete = true;
+    m_legacyDwgCloningAbsent = !withDefaultHandle
+        && (version == DRW::AC1012 || version == DRW::AC1014);
     // R13/R14 DICTIONARY has an inline object-size boundary followed by the
     // common links and a counted item-handle list. R2007+ has a separately
     // bounded handle stream. In both layouts the common links and every item

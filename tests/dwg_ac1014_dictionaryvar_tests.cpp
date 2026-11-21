@@ -42,6 +42,7 @@ bool legacyDictionaryWithDefaultControl() {
         };
         const auto modelMatches = [&]() {
             return parsed.hasCompleteDwgEntries() && parsed.handle == 0x12u
+                && !parsed.legacyDwgCloningAbsent()
                 && parsed.parentHandle == 0xau && parsed.cloning == 1 && parsed.hardOwner == 0
                 && parsed.m_defaultEntryHandle == 0x13u && parsed.m_entries.size() == 1u
                 && parsed.m_entries[0].m_name == "NORMAL" && parsed.m_entries[0].m_handle == 0x13u;
@@ -172,7 +173,21 @@ bool terminatedDictionaryControl(DRW::Version version) {
     const auto bytes = w.data();
     dwgBuffer input(bytes.data(), bytes.size());
     Dictionary model;
-    if (!model.parseDwg(version, &input, 0u) || !input.isGood()) return false;
+    if (!model.parseDwg(version, &input, 0u) || !input.isGood()
+        || !model.legacyDwgCloningAbsent()) return false;
+    DRW_Dictionary copied(model), assigned;
+    assigned = model;
+    if (!copied.legacyDwgCloningAbsent() || !assigned.legacyDwgCloningAbsent()
+        || !copied.omitLegacyDxfCloning(DRW::AC1014)
+        || copied.omitLegacyDxfCloning(DRW::AC1015)) return false;
+    assigned.cloning = 1;
+    if (assigned.omitLegacyDxfCloning(DRW::AC1014)) return false;
+    assigned.reset();
+    if (assigned.legacyDwgCloningAbsent() || assigned.omitLegacyDxfCloning(DRW::AC1014)) return false;
+    dwgBuffer truncated(bytes.data(), bytes.size() - 1u);
+    if (model.parseDwg(version, &truncated, 0u) || model.legacyDwgCloningAbsent()) return false;
+    dwgBuffer retry(bytes.data(), bytes.size());
+    if (!model.parseDwg(version, &retry, 0u) || !model.legacyDwgCloningAbsent()) return false;
     DRW_UnsupportedObject raw;
     raw.m_version = version;
     raw.m_handle = model.handle;

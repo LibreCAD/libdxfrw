@@ -397,6 +397,19 @@ bool legacyGenerated(const std::string& input, const std::filesystem::path& outp
     const std::string sentinel = "AC1014 generated destination preserved\n";
     for (const bool binary : {false, true}) {
         if (!write(adapter, source, output.string(), binary)) return false;
+        const DRW_Dictionary savedRoot = source.namedObjectDictionary;
+        DRW_Dictionary detachedRoot;
+        static_cast<DRW_TableEntry&>(detachedRoot) = static_cast<const DRW_TableEntry&>(savedRoot);
+        detachedRoot.cloning = savedRoot.cloning;
+        detachedRoot.hardOwner = savedRoot.hardOwner;
+        detachedRoot.m_entries = savedRoot.m_entries;
+        detachedRoot.countCap = savedRoot.countCap;
+        source.namedObjectDictionary = detachedRoot;
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        const bool detachedAccepted = write(adapter, source, output.string(), binary);
+        source.namedObjectDictionary = savedRoot;
+        if (detachedAccepted || bytes(output) != sentinel
+            || !write(adapter, source, output.string(), binary)) return false;
         for (const int fault : {12, 13}) {
             for (const bool late : {false, true}) {
                 { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }

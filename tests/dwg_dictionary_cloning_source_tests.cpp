@@ -43,6 +43,8 @@ bool checkOne(const char* path, DRW::Version expectedVersion,
         return data.getDwgDictionaryCloningSource(live.handle, observation)
             && observation.version == expectedVersion
             && observation.presence == expectedPresence
+            && live.legacyDwgCloningAbsent()
+                == (expectedPresence == dx_dwgDictionaryCloningPresence::Absent)
             && (expectedPresence == dx_dwgDictionaryCloningPresence::Absent
                 ? !observation.sourceValue
                 : observation.sourceValue == expectedSourceValue
@@ -70,6 +72,20 @@ bool checkOne(const char* path, DRW::Version expectedVersion,
     nested->cloning = original;
     if (!check(*nested) || !unavailable(data, 0u)
         || !unavailable(data, DRW::NoHandle)) return false;
+    if (expectedPresence == dx_dwgDictionaryCloningPresence::Absent) {
+        const DRW_Dictionary saved = *nested;
+        DRW_Dictionary replacement;
+        static_cast<DRW_TableEntry&>(replacement) = static_cast<const DRW_TableEntry&>(saved);
+        replacement.cloning = saved.cloning;
+        replacement.hardOwner = saved.hardOwner;
+        replacement.m_entries = saved.m_entries;
+        replacement.countCap = saved.countCap;
+        *nested = replacement;
+        if (!data.getDwgDictionaryCloningSource(nested->handle, observation)
+            || observation.currentValueMatchesBaseline) return false;
+        *nested = saved;
+        if (!check(*nested)) return false;
+    }
     const auto handle = nested->handle;
     // A duplicate live identity cannot be bound to the immutable source.
     data.dictionaries.push_back(*nested);

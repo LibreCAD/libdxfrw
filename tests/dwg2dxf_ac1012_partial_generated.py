@@ -7,6 +7,17 @@ from pathlib import Path
 
 from dwg2dxf_ac1014_partial_external import crc16, invoke, require, sha, SENTINEL
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "research"))
+from audit_dxf_dictionary_cloning import audit_bytes
+
+
+def require_legacy_dictionary_presence(path):
+    rows = audit_bytes(path.read_bytes(), include_rows=True)["dictionary_rows"]
+    for handle in ("C", "D"):
+        matches = [row for row in rows if row["handle"] == handle]
+        require(len(matches) == 1 and matches[0]["cloning"] is None,
+                "legacy root/group dictionaries must not invent group 281")
+
 
 def make_fault(data):
     data = bytearray(data)
@@ -55,6 +66,7 @@ def main():
             require(invoke(command + ["--allow-partial-dwg-read"]).returncode == 0
                     and invoke([profile_test, "--check-r14-generated", str(output)]).returncode == 0,
                     "R13 partial CLI conversion and fresh 3D coordinate readback")
+            require_legacy_dictionary_presence(output)
         damaged = root / "controlled-failure.dwg"
         damaged.write_bytes(make_fault(source_bytes))
         print("source SHA-256:", sha(source_bytes), "fault SHA-256:", sha(damaged.read_bytes()))
@@ -111,6 +123,7 @@ def main():
             require(invoke(command).returncode == 0
                     and invoke([profile_test, "--check-r14-generated", str(output)]).returncode == 0,
                     "R14 CLI conversion and fresh 3D coordinate readback")
+            require_legacy_dictionary_presence(output)
         require(r14.read_bytes() == r14_bytes, "generated R14 source was changed")
     print("AC1012 locally generated partial-read CLI and same-adapter tests: PASS")
 

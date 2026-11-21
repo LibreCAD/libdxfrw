@@ -156,8 +156,10 @@ decoded with cloning, owner, entry and default fields after
 the subclass physically contains a cloning field in these samples. CELLSTYLEMAP
 remains unmodeled and raw-only. All source frames have a disposition, which
 does not establish complete output.
-Establish dictionary cloning/default semantics; then implement source-presence-aware dictionary
-projection and EED dependencies, and run the
+The [R14 generated-root projection](docs/research/p6-legacy-dictionary-cloning-absence-projection-2026-11-21.json)
+now preserves the absent group 281 for observed legacy plain dictionaries;
+this is not native duplicate-merge evidence. Establish dictionary cloning/default
+semantics and close the remaining output and EED dependencies, then run the
 [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md)
 on an identified host. Keep strict output refused until native duplicate
 behavior, both encodings and rollback/retry are proven. This is separate from

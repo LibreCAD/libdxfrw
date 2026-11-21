@@ -14729,6 +14729,21 @@ void testGeneratedDictionarySourceMetadata(TestContext& t) {
             rawMetadataMatches = rawMetadataMatches && value->code() == 320
                 && value->type() == DRW_Variant::STRING && std::string(value->c_str()) == "DEADBEEF";
         }
+        const auto& rootEntries = decoded.namedObjectDictionary.m_entries;
+        const auto plotDictionary = std::find_if(
+            decoded.dictionaryWithDefaults.begin(), decoded.dictionaryWithDefaults.end(),
+            [&rootEntries](const DRW_DictionaryWithDefault& dictionary) {
+                return rootEntries.size() == 4u && dictionary.handle == rootEntries[3].m_handle;
+            });
+        const bool plotGraph = version <= DRW::AC1014 ? rootEntries.size() == 3u
+            : rootEntries.size() == 4u && rootEntries[3].m_name == "ACAD_PLOTSTYLENAME"
+                && rootEntries[3].m_dxfHandleCode == Edge::SoftOwner
+                && plotDictionary != decoded.dictionaryWithDefaults.end()
+                && plotDictionary->parentHandle == 0xCu
+                && plotDictionary->m_defaultEntryHandle != 0u
+                && plotDictionary->m_entries.size() == 1u
+                && plotDictionary->m_entries[0].m_name == "Normal"
+                && plotDictionary->m_entries[0].m_handle == plotDictionary->m_defaultEntryHandle;
         const bool retained = read && decoded.hasNamedObjectDictionary
             && rootValue != decoded.xRecords.end() && rootValue->parentHandle == 0xCu
             && rootValue->m_dataEntries.size() == 2u
@@ -14742,7 +14757,7 @@ void testGeneratedDictionarySourceMetadata(TestContext& t) {
             && decoded.namedObjectDictionary.hardOwner == 1 && decoded.namedObjectDictionary.cloning == 2
             && common(decoded.namedObjectDictionary, 0xDu, 0xA516u, "root-eed-caf\xC3\xA9")
             && rawMetadataMatches
-            && decoded.namedObjectDictionary.m_entries.size() == 3u
+            && plotGraph
             && decoded.namedObjectDictionary.m_entries[0].m_name == "DIRECT_XREC"
             && decoded.namedObjectDictionary.m_entries[0].m_handle == 0xA512u
             && decoded.namedObjectDictionary.m_entries[0].m_dxfHandleCode == Edge::SoftOwner
