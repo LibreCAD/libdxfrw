@@ -1,0 +1,73 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-eed-layer-byte-order-2026-11-21",
+  "date": "2026-11-21",
+  "status": "CONFLICTING_PRODUCER_EVIDENCE_NEEDS_IMPLEMENTATION",
+  "supportClaimEffect": "none",
+  "generator": "tools/research/generate_legacy_layer_eed_witness.py",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "28 Extended Entity Data",
+    "observation": "EED item 3 contains an eight-byte layer-table handle; this text does not explicitly specify byte order."
+  },
+  "odaControl": {
+    "ezdxfVersion": "1.4.5",
+    "oda": {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "seedSha256": "9fae8609ea240d4bd1e3e0ed8772889f51f82dc0ada414312ec338989ba53604",
+    "layerHandle": 48,
+    "appidHandle": 47,
+    "versions": {
+      "r13": {
+        "dwgSha256": "be63534e7c736891d04750286c73d49fbf20cbd3087430bb424e0c365aa666a0",
+        "frameSha256": "aa79f329070b32ba68e096487185dbe73465375c43cb24d9bf21b61392a7f5e4",
+        "layerEedHex": "030000000000000030",
+        "reopenedDxfSha256": "51e4f72fab8c3846cb5b8bcf517415db13c61c2dc94af6ed7f56e9820d18b983",
+        "reopenedLayer": "PROBE_LAYER",
+        "patchedDwgSha256": "713c938059b18d54c98344e52e5b7d4b7f0ad5373e4079a96623136154c82e10",
+        "patchedReopenedDxfSha256": "e6660a372d187a70a404704136961a8a01e1ab15896f89d3890ce18c0f3a6ade",
+        "patchedLayerTags": [],
+        "frameCrcValid": true
+      },
+      "r14": {
+        "dwgSha256": "8502ad2c8497fe851fc801c9ecfd5773b2f1e2de4f1d7903509f0038ad607629",
+        "frameSha256": "e81c6103c33d90f7097a39d628c45bea3e22b76197fdba4b778c0ac4c9443fe0",
+        "layerEedHex": "030000000000000030",
+        "reopenedDxfSha256": "05a0664072549b6255e0fdb9c8a5735b559fc5fc773b9aae5b54e9204f7448dc",
+        "reopenedLayer": "PROBE_LAYER",
+        "patchedDwgSha256": "3157ca304f48a2912b24b8e7d62d392b03874689d9975e220ac58603450958cc",
+        "patchedReopenedDxfSha256": "a47385d8955e2afeba5d4c43eb7d5efc5e2bc6ea02d0b76d771ee575de6c7a69",
+        "patchedLayerTags": [],
+        "frameCrcValid": true
+      }
+    }
+  },
+  "libreDwgControl": {
+    "producer": "LibreDWG 0.14",
+    "generator": "tools/research/generate_legacy_dictionary_eed_control.py",
+    "layerHandle": 16,
+    "layerEedHex": "031000000000000000",
+    "independentTrace": "The scratch source object CRC matched, and a separate bit walker located the bytes from the traced type-42 frame."
+  },
+  "crossCheck": {
+    "libreDwgInterpretationOfOdaR13": 3458764513820540928,
+    "expectedLayerHandle": 48,
+    "odaReadOfLibreDwgWholeFile": "ODA rejected the scratch file with an AcDbDictionary/AcDbEntity cast error; this does not isolate EED byte-order behavior and is not used as evidence."
+  },
+  "conclusions": [
+    "ODA R13 and R14 producer outputs encode the observed handle big-endian and recover PROBE_LAYER on ODA reopen. Reversing only those eight bytes with a corrected object CRC causes the dictionary layer XDATA to disappear on ODA reopen.",
+    "The locally generated LibreDWG control encodes its observed layer handle little-endian; LibreDWG reads the ODA R13 bytes as a different wide integer.",
+    "The current libdxfrw reader and DWG encoder use little-endian for this field. A global swap or a 32-bit-size heuristic alone would risk compatibility or misidentify an unresolved wide handle."
+  ],
+  "limits": [
+    "These are generated bounded controls, not native AutoCAD witnesses or whole-format support evidence.",
+    "The swapped file is a derived negative control, not a producer source.",
+    "The evidence does not by itself identify a safe universal rule for conflicting or unresolved references; preserve both physical interpretations and require source/profile and target-identity proof before selection."
+  ]
+}

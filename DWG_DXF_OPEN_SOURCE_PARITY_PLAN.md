@@ -185,7 +185,15 @@ The [1005 handle control](docs/research/p6-legacy-dictionary-eed-handle-2026-11-
 checks the source value, remapped output, and unique target closure, including
 refusal and retry for a dangling reference in R13 partial output. Layer EED
 byte order, other group graphs and EED schemas still need matching source and
-output evidence.
+output evidence. A [repeatable ODA/LibreDWG layer witness](docs/research/p6-legacy-eed-layer-byte-order-2026-11-21.json)
+now shows opposing physical byte orders for R13/R14; the current reader and
+DWG encoder use the LibreDWG order. Next, retain both interpretations with the
+raw source/version, prove an unambiguous layer-table identity and source profile
+before resolving a name, and leave ambiguous or wide targets unresolved. Add
+ODA and LibreDWG producer/reopen controls, unresolved/wide and collision cases,
+mutation, rollback and retry; then correct the writer only for an independently
+witnessed output profile. Do not infer an endian choice from 32-bit fit alone or
+promote format support from the generated controls.
 The same source and staged proof now covers R13-to-R14 explicit partial output
 for that bounded group, with independent ASCII/Binary readback and mutation
 refusal; see [R13 control](docs/research/p6-r13-group-dictionary-eed-partial-2026-11-21.json)
