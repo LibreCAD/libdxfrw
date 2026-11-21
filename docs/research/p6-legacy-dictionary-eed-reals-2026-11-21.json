@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-dictionary-eed-reals-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_LEGACY_EED_1040_1042_REALS",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "2 Data Types",
+      "28 Extended Entity Data"
+    ],
+    "observation": "EED items 40\u201342 map to DXF groups 1040\u20131042 and contain eight-byte real values; the specification defaults to little-endian data."
+  },
+  "generator": "tools/research/generate_legacy_dictionary_eed_control.py",
+  "construction": "LibreDWG 0.14 generates locally authored R13/R14 controls with 1.25, -0.5 and 42.125, remapped root, APPID and group handles, and one 3D LINE member. LibreDWG JSON readback verifies the values and source graph. No generated drawing is committed.",
+  "checks": [
+    "The shared source observer compares each finite typed double to its exact 64-bit little-endian source representation.",
+    "ASan controls exercise all three codes, per-bit source mutations, truncations, changed typed values, and a NaN whose source bytes and model agree; malformed or changed state is refused and corrected retry succeeds.",
+    "Group, NOD and MLINESTYLE owner profiles pass R14 strict and R13 explicit-partial ASCII/Binary output. A balanced 1002 group remains outside this profile and preserves its prior explicit-partial route.",
+    "Independent ezdxf 1.4.5 readback recovers all three values and a separate GROUP-to-3D-LINE edge for each location and source version."
+  ],
+  "sourceSha256": {
+    "r13Group": "c3ad810f29a878362904061454122b189272c3255eab0831576d9fe499c2cf9d",
+    "r13Nod": "41d94779de7d47138b5e6a2e99c894092f5db6d3476b54d2c4c1cf3cba6a7cf1",
+    "r13Mline": "48ab9c9afba6cbb76b04a3a14d6cd0a89278ad4e5e2b66b05baa13e79ec36ea7",
+    "r14Group": "049e723676b678712b2af9dd31c87ea55b8db3966f40df07555a45a09997a512",
+    "r14Nod": "c816694e71bb092f3d07f6b1f40db52cc6a3c403580fc31c74e7e3542c8ce455",
+    "r14Mline": "4a09518f5717e3e491af3ff22ecf7d68abdb2221ea1b59f4e890051fe49f9a8e"
+  },
+  "limits": [
+    "Non-finite source values are not admitted by this profile.",
+    "R13 output remains explicit partial; MLINESTYLE source semantics, native cloning and general DWG/DXF support remain unqualified. Other EED codes and source graphs remain open."
+  ]
+}

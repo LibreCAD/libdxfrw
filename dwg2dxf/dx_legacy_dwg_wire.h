@@ -7,6 +7,8 @@
 #include "intern/drw_textcodec.h"
 #include <algorithm>
 #include <cstdint>
+#include <cmath>
+#include <cstring>
 #include <limits>
 #include <string>
 #include <string_view>
@@ -58,7 +60,7 @@ inline bool metadata(const DRW_UnsupportedObject& raw, std::uint32_t id,
 // must bind APPIDs to unchanged records, independently justify the codepage
 // interpretation, and check import text issues, semantics, graph and output.
 // String bytes are ASCII or the observed codepage-45 UTF-8 profile; integer
-// support is limited to signed 16-bit and 32-bit values.
+// support includes finite 1040-1042 reals and signed 1070/1071 integers.
 template<class AppIdSource, class CodepageSource>
 bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
                        const DRW_Dictionary& model, bool nod,
@@ -120,6 +122,16 @@ bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
             if (nonAscii && (token.codePageBE != 45u || token.codePageLE != 0x2d00u
                 || !DRW_TextCodec::isUtf8ScalarText(*value->content.s))) return false;
             return textBits.good && textBits.pos == textBits.end;
+        }
+        if (token.code >= 1040u && token.code <= 1042u
+            && value->type() == DRW_Variant::DOUBLE && std::isfinite(value->d_val())) {
+            static_assert(sizeof(double) == sizeof(std::uint64_t), "DWG doubles must be 64-bit");
+            std::uint64_t expected = 0u;
+            const double number = value->d_val();
+            std::memcpy(&expected, &number, sizeof expected);
+            Bits realBits{raw.m_rawBytes.data(), token.valueSpan.begin, token.valueSpan.end};
+            const auto actual = realBits.little(8u);
+            return realBits.good && realBits.pos == realBits.end && actual == expected;
         }
         if (token.code == 1070u && value->type() == DRW_Variant::INTEGER) {
             const auto number = value->i_val();

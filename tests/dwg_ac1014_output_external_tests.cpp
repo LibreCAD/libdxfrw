@@ -476,7 +476,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
                                DRW::Version sourceVersion, const std::string& expectedText,
                                std::uint32_t appHandle = 0x12u, std::uint32_t groupHandle = 0xdu,
                                bool nonemptyGroup = false, bool nod = false, bool mlineOwner = false,
-                               bool longInts = false) {
+                               bool longInts = false, bool reals = false) {
     LateMutationAdapter adapter;
     dx_data source;
     adapter.source = &source;
@@ -489,7 +489,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
     auto app = std::find_if(source.appIds.begin(), source.appIds.end(),
         [appHandle](const DRW_AppId& item) { return item.handle == appHandle; });
     if (!group || app == source.appIds.end()
-        || group->extData.size() != (longInts ? 6u : 3u) || !group->extData[0] || !group->extData[1]
+        || group->extData.size() != ((longInts || reals) ? 6u : 3u) || !group->extData[0] || !group->extData[1]
         || !group->extData[2] || group->extData[0]->code() != 1001
         || group->extData[1]->code() != 1000 || group->extData[2]->code() != 1070
         || group->extData[0]->type() != DRW_Variant::STRING
@@ -509,7 +509,17 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
         }
         return true;
     };
-    if (longInts && !longValuesMatch(*group)) return false;
+    const auto realValuesMatch = [](const DRW_Dictionary& dictionary) {
+        const double expected[] = {1.25, -0.5, 42.125};
+        if (dictionary.extData.size() != 6u) return false;
+        for (std::size_t i = 0; i < 3u; ++i) {
+            const auto* item = dictionary.extData[i + 3u];
+            if (!item || item->code() != static_cast<int>(1040u + i)
+                || item->type() != DRW_Variant::DOUBLE || item->d_val() != expected[i]) return false;
+        }
+        return true;
+    };
+    if ((longInts && !longValuesMatch(*group)) || (reals && !realValuesMatch(*group))) return false;
     auto groupRecord = std::find_if(source.groups.begin(), source.groups.end(),
         [](const DRW_Group& item) { return item.handle == 0x31u; });
     if (nonemptyGroup && (group->m_entries.size() != 1u
@@ -540,7 +550,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             if (emit(binary, DRW::AC1015)
                 || bytes(output) != sentinel || !emit(binary)) return false;
         }
-        for (int fault = 0; fault < (longInts ? 11 : (nod || mlineOwner) ? 9 : nonemptyGroup ? 10 : 8); ++fault) {
+        for (int fault = 0; fault < ((longInts || reals) ? 11 : (nod || mlineOwner) ? 9 : nonemptyGroup ? 10 : 8); ++fault) {
             // R13 explicit partial output does not certify its MLINESTYLE;
             // edits to that unqualified object remain outside this proof.
             if ((nod || mlineOwner) && sourceVersion == DRW::AC1012 && fault == 8) continue;
@@ -564,7 +574,8 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             if (fault == 8 && (nod || mlineOwner)) source.mLineStyles.front().name += "X";
             else if (fault == 8) group->m_entries[0].m_handle ^= 1u;
             if (fault == 9) groupRecord->m_entityHandles[0] ^= 1u;
-            if (fault == 10) group->extData[4]->addInt(1071, 0);
+            if (fault == 10 && longInts) group->extData[4]->addInt(1071, 0);
+            if (fault == 10 && reals) group->extData[4]->addDouble(1041, 0.5);
             { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
             const bool accepted = emit(binary);
             if (fault == 3) DxIfaceStandardDwgCaptureTestAccess::sourceBit(source, sourceFault) ^= 1u;
@@ -597,14 +608,15 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             [outputHandle](const DRW_Dictionary& dictionary) { return dictionary.handle == outputHandle; });
         const DRW_Dictionary* result = nod ? &readback.namedObjectDictionary
             : foundResult == readback.dictionaries.end() ? nullptr : &*foundResult;
-        if (!result || result->extData.size() != (longInts ? 6u : 3u)
+        if (!result || result->extData.size() != ((longInts || reals) ? 6u : 3u)
             || !result->extData[0] || !result->extData[1] || !result->extData[2]
             || result->extData[0]->type() != DRW_Variant::STRING
             || result->extData[1]->type() != DRW_Variant::STRING
             || result->extData[2]->type() != DRW_Variant::INTEGER
             || !result->extData[0]->content.s || *result->extData[0]->content.s != "ACAD"
             || !result->extData[1]->content.s || *result->extData[1]->content.s != expectedText
-            || result->extData[2]->i_val() != 42 || (longInts && !longValuesMatch(*result))) return false;
+            || result->extData[2]->i_val() != 42 || (longInts && !longValuesMatch(*result))
+            || (reals && !realValuesMatch(*result))) return false;
         if (nonemptyGroup) {
             const auto member = std::find_if(readback.groups.begin(), readback.groups.end(),
                 [](const DRW_Group& item) { return item.name == "MYGROUP"; });
@@ -742,10 +754,13 @@ bool r13UnqualifiedEedPartial(const std::string& input, const std::filesystem::p
         if (!fresh.fileImport(output.string(), &readback, false)) return false;
         const auto group = std::find_if(readback.dictionaries.begin(), readback.dictionaries.end(),
             [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0xdu; });
-        if (group == readback.dictionaries.end() || group->extData.size() != 4u
-            || !group->extData[3] || group->extData[3]->code() != 1040
-            || group->extData[3]->type() != DRW_Variant::DOUBLE
-            || group->extData[3]->d_val() != 1.25) return false;
+        if (group == readback.dictionaries.end() || group->extData.size() != 5u
+            || !group->extData[3] || !group->extData[4]
+            || group->extData[3]->code() != 1002 || group->extData[4]->code() != 1002
+            || group->extData[3]->type() != DRW_Variant::STRING
+            || group->extData[4]->type() != DRW_Variant::STRING
+            || !group->extData[3]->content.s || *group->extData[3]->content.s != "{"
+            || !group->extData[4]->content.s || *group->extData[4]->content.s != "}") return false;
     }
     return true;
 }
@@ -955,6 +970,18 @@ int main(int argc, char** argv) {
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO")
             : argc == 4 && std::string(argv[1]) == "--r13-eed"
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO")
+            : argc == 4 && std::string(argv[1]) == "--r14-group-reals"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u, 0x34u, true, false, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-group-reals"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO", 0x33u, 0x34u, true, false, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r14-nod-reals"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u, 0x35u, false, true, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-nod-reals"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO", 0x33u, 0x35u, false, true, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r14-mline-reals"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u, 0x17u, false, false, true, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-mline-reals"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO", 0x33u, 0x17u, false, false, true, false, true)
             : argc == 4 && std::string(argv[1]) == "--r14-group-int32"
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u, 0x34u, true, false, false, true)
             : argc == 4 && std::string(argv[1]) == "--r13-group-int32"

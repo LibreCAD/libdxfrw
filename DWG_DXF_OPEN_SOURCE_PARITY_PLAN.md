@@ -173,8 +173,9 @@ binds the separate ACAD_MLINESTYLE dictionary, its style edge and text transport
 the shared staged check also refuses lossy escapes in R13 partial output. The
 [1071 control](docs/research/p6-legacy-dictionary-eed-int32-2026-11-21.json)
 adds signed 32-bit integer wire and output checks for all three dictionary
-locations, including boundary values. Other group graphs and EED schemas still
-need matching source and output evidence.
+locations, including boundary values. The [1040–1042 real control](docs/research/p6-legacy-dictionary-eed-reals-2026-11-21.json)
+adds exact finite wire-value and output checks, with a matching-wire NaN refusal.
+Other group graphs and EED schemas still need matching source and output evidence.
 The same source and staged proof now covers R13-to-R14 explicit partial output
 for that bounded group, with independent ASCII/Binary readback and mutation
 refusal; see [R13 control](docs/research/p6-r13-group-dictionary-eed-partial-2026-11-21.json)
