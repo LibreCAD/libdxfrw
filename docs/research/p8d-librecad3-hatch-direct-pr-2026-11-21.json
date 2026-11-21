@@ -6,13 +6,13 @@
   "supportClaimEffect": "none",
   "pullRequest": {
     "url": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
-    "head": "c06e526ea1d0fb5c699142b0e874fb8c95a73ce8",
+    "head": "d5cc38b51a6399a70c58f2269d7cd9b9c085dbdb",
     "baseMaster": "4fb48312708b39d499f7e6668104a3b54a8601c7",
     "state": "draft and mergeable when observed",
     "hostedChecks": "Updated head pushed; prior workflow results do not qualify this head.",
-    "previousHead": "df4cba8033a8d44ffcb922474d9153fccec341e4"
+    "previousHead": "c06e526ea1d0fb5c699142b0e874fb8c95a73ce8"
   },
-  "scope": "Ordinary default-normal HATCH polyline, line, arc, ellipse and selected non-rational spline point elevation; ellipse edge direction; mixed-elevation loss handling. This direct upstream change does not include the larger unmerged MPOLYGON consumer candidate or its system-codec integration. Open and Save dialog loss notes are displayed, including with partial-read warnings. Reserved ByLayer/ByBlock descriptions are cleared before output to match the current codec. Spline move/copy translates fit points together with control points. Spline planar rotation transforms controls, fit points, tangents and normal without discarding Z. Spline scale and mirror also transform fit points and tangent/normal vectors; planar mirror preserves Z.",
+  "scope": "Ordinary default-normal HATCH polyline, line, arc, ellipse and selected non-rational spline point elevation; ellipse edge direction; mixed-elevation loss handling. This direct upstream change does not include the larger unmerged MPOLYGON consumer candidate or its system-codec integration. Open and Save dialog loss notes are displayed, including with partial-read warnings. Reserved ByLayer/ByBlock descriptions are cleared before output to match the current codec. Spline move/copy translates fit points together with control points. Spline planar rotation transforms controls, fit points, tangents and normal without discarding Z. Spline scale and mirror also transform fit points and tangent/normal vectors; planar mirror preserves Z. Standalone SPLINE weights are preserved on save, with an import warning for approximate rational rendering.",
   "implementation": "Rebased the supported HATCH portions of the prior candidate into a three-file master-based change; original user LibreCAD_3 checkout was untouched.",
   "validation": {
     "platform": "macOS arm64, headless persistence, LibreCAD_3 pinned bundled codec d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
@@ -24,7 +24,7 @@
     "focusedLogSha256": "a3c4a4be4609eefb1bf973ee89e8c05bc8120bdd602dea55248579f196df3673",
     "regressionLogSha256": "3e60e56efdc0931e2a9dbd0e97674665cfeff3037241657656b069ba5f4ffb0c",
     "persistenceSha256": "4220423857fcee9a05ba1c8bf45bc1bbc2876a5018ec507197c2db18ae8656ff",
-    "sourceMatch": "Both implementation and test source files byte-match the committed PR head.",
+    "sourceMatch": "Earlier source-match and binary hashes are historical; the rational-weight receipt covers the updated head.",
     "uiSource": "The Qt 6 CadMdiChild translation unit compiled on macOS arm64; exact extracted helper smoke passed empty, note-only, combined and zero-count summaries. No native dialog interaction is claimed.",
     "uiObjectSha256": "e8fccde816d89f38bb67783503039a948ca044f5f39fa9f14b830da37a9f8971",
     "uiSourceSha256": "4f7fa80d529d1a091700bb2361a2ce6389c5bd9d7451811ea6f7bca9657150ea",
@@ -45,11 +45,12 @@
     "splineScaleMirrorBaselineLogSha256": "b6a0c11a10ed760c3be9b749a6877efc1bbe5bd74de98570db57237af290a4d2",
     "splineScaleMirrorBundledLogSha256": "7f20406198dc11f4ee39c6f1a121e0a695363e97141a8ab6818c7a88c08e2081",
     "splineScaleMirrorCurrentLogSha256": "a7a58465998274ca86084cb1da4c56a6c3a15650b2d7fec2baf21c1d86283385",
-    "splineScaleMirrorIndependentSha256": "021111de0138a811c744a50b66a3a7f8b8894410e32008e9421d929b7162ff29"
+    "splineScaleMirrorIndependentSha256": "021111de0138a811c744a50b66a3a7f8b8894410e32008e9421d929b7162ff29",
+    "rationalWeights": "See p8d-librecad3-rational-spline-weight-2026-11-21.json for the new head; earlier hash-bound validations describe earlier heads."
   },
   "limits": [
     "No native GUI, Linux or Windows result is claimed.",
-    "The tested bundled codec and scratch source are not a final candidate freeze. Rational weights, periodic and tilted-plane cases remain open.",
+    "The tested codecs and scratch source are not a final candidate freeze. Rational rendering, HATCH spline weights, periodic and tilted-plane cases remain open.",
     "MPOLYGON offset/subtype and related patches still require downstream integration and native qualification. No fixtures were committed.",
     "Singular-scale normal semantics remain unresolved; the previous normal is retained for a singular scale. Tilted-plane HATCH export and rational/periodic spline behavior remain separately unqualified."
   ]
