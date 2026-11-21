@@ -181,7 +181,11 @@ control](docs/research/p6-legacy-dictionary-eed-binary-2026-11-21.json) matches
 source length and bytes and checks a 128-byte payload split across DXF chunks.
 The [1010–1013 control](docs/research/p6-legacy-dictionary-eed-points-2026-11-21.json)
 binds finite 3D point components to the source and checks output readback.
-Other group graphs and EED schemas still need matching source and output evidence.
+The [1005 handle control](docs/research/p6-legacy-dictionary-eed-handle-2026-11-21.json)
+checks the source value, remapped output, and unique target closure, including
+refusal and retry for a dangling reference in R13 partial output. Layer EED
+byte order, other group graphs and EED schemas still need matching source and
+output evidence.
 The same source and staged proof now covers R13-to-R14 explicit partial output
 for that bounded group, with independent ASCII/Binary readback and mutation
 refusal; see [R13 control](docs/research/p6-r13-group-dictionary-eed-partial-2026-11-21.json)

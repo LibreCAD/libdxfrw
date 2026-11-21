@@ -7,6 +7,7 @@
 #include "intern/drw_textcodec.h"
 #include "intern/dxfparserlimits.h"
 #include <algorithm>
+#include <charconv>
 #include <cstdint>
 #include <cmath>
 #include <cstring>
@@ -62,7 +63,7 @@ inline bool metadata(const DRW_UnsupportedObject& raw, std::uint32_t id,
 // interpretation, and check import text issues, semantics, graph and output.
 // String bytes are ASCII or the observed codepage-45 UTF-8 profile; integer
 // support includes balanced 1002 groups, binary chunks, finite 3D points and reals, and signed
-// 1070/1071 integers.
+// 1070/1071 integers; handle targets require separate output graph closure.
 template<class AppIdSource, class CodepageSource>
 bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
                        const DRW_Dictionary& model, bool nod,
@@ -146,6 +147,14 @@ bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
             for (const auto byte : bytes)
                 if (payload.take(8u) != byte) return false;
             return payload.good && payload.pos == payload.end;
+        }
+        if (token.code == 1005u && value->type() == DRW_Variant::STRING && value->content.s) {
+            const auto& text = *value->content.s;
+            std::uint64_t target = 0u;
+            const auto parsed = std::from_chars(text.data(), text.data() + text.size(), target, 16);
+            return !text.empty() && parsed.ec == std::errc{} && parsed.ptr == text.data() + text.size()
+                && target != 0u && target <= (std::numeric_limits<std::uint32_t>::max)()
+                && target == token.value;
         }
         if (token.code >= 1010u && token.code <= 1013u
             && value->type() == DRW_Variant::COORD && value->coord()) {

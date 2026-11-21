@@ -477,7 +477,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
                                DRW::Version sourceVersion, const std::string& expectedText,
                                std::uint32_t appHandle = 0x12u, std::uint32_t groupHandle = 0xdu,
                                bool nonemptyGroup = false, bool nod = false, bool mlineOwner = false,
-                               bool longInts = false, bool reals = false, bool groups = false, bool binaryEed = false, bool pointEed = false) {
+                               bool longInts = false, bool reals = false, bool groups = false, bool binaryEed = false, bool pointEed = false, bool handleEed = false) {
     LateMutationAdapter adapter;
     dx_data source;
     adapter.source = &source;
@@ -490,7 +490,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
     auto app = std::find_if(source.appIds.begin(), source.appIds.end(),
         [appHandle](const DRW_AppId& item) { return item.handle == appHandle; });
     if (!group || app == source.appIds.end()
-        || group->extData.size() != (groups || pointEed ? 7u : (longInts || reals) ? 6u : binaryEed ? 4u : 3u) || !group->extData[0] || !group->extData[1]
+        || group->extData.size() != (groups || pointEed ? 7u : (longInts || reals) ? 6u : (binaryEed || handleEed) ? 4u : 3u) || !group->extData[0] || !group->extData[1]
         || !group->extData[2] || group->extData[0]->code() != 1001
         || group->extData[1]->code() != 1000 || group->extData[2]->code() != 1070
         || group->extData[0]->type() != DRW_Variant::STRING
@@ -530,6 +530,20 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
         }
         return true;
     };
+    const auto handleMatches = [](const DRW_Dictionary& dictionary, const dx_data& data) {
+        if (dictionary.extData.size() != 4u || !dictionary.extData[3]
+            || dictionary.extData[3]->code() != 1005
+            || dictionary.extData[3]->type() != DRW_Variant::STRING
+            || !dictionary.extData[3]->content.s || !data.mBlock) return false;
+        const auto& text = *dictionary.extData[3]->content.s;
+        std::uint64_t target = 0u;
+        const auto parsed = std::from_chars(text.data(), text.data() + text.size(), target, 16);
+        return !text.empty() && parsed.ec == std::errc{} && parsed.ptr == text.data() + text.size()
+            && std::count_if(data.mBlock->ent.begin(), data.mBlock->ent.end(),
+                [target](const DRW_Entity* entity) {
+                    return entity && entity->handle == target && dynamic_cast<const DRW_Line*>(entity);
+                }) == 1;
+    };
     const auto pointValuesMatch = [](const DRW_Dictionary& dictionary) {
         if (dictionary.extData.size() != 7u) return false;
         for (std::size_t i = 0u; i < 4u; ++i) {
@@ -567,7 +581,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
     };
     if ((longInts && !longValuesMatch(*group)) || (reals && !realValuesMatch(*group))
         || (groups && !groupValuesMatch(*group)) || (binaryEed && !binarySourceMatches(*group))
-        || (pointEed && !pointValuesMatch(*group))) return false;
+        || (pointEed && !pointValuesMatch(*group)) || (handleEed && !handleMatches(*group, source))) return false;
     auto groupRecord = std::find_if(source.groups.begin(), source.groups.end(),
         [](const DRW_Group& item) { return item.handle == 0x31u; });
     if (nonemptyGroup && (group->m_entries.size() != 1u
@@ -598,7 +612,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             if (emit(binary, DRW::AC1015)
                 || bytes(output) != sentinel || !emit(binary)) return false;
         }
-        for (int fault = 0; fault < ((longInts || reals || groups || binaryEed || pointEed) ? 11 : (nod || mlineOwner) ? 9 : nonemptyGroup ? 10 : 8); ++fault) {
+        for (int fault = 0; fault < ((longInts || reals || groups || binaryEed || pointEed || handleEed) ? 11 : (nod || mlineOwner) ? 9 : nonemptyGroup ? 10 : 8); ++fault) {
             // R13 explicit partial output does not certify its MLINESTYLE;
             // edits to that unqualified object remain outside this proof.
             if ((nod || mlineOwner) && sourceVersion == DRW::AC1012 && fault == 8) continue;
@@ -627,6 +641,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             if (fault == 10 && groups) group->extData[4]->addString(1002, "}");
             if (fault == 10 && binaryEed) group->extData[3]->addBinary(1004, {1u, 2u});
             if (fault == 10 && pointEed) group->extData[4]->addCoord(1011, {1.0, 2.0, 3.0});
+            if (fault == 10 && handleEed) group->extData[3]->addString(1005, "FA");
             { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
             const bool accepted = emit(binary);
             if (fault == 3) DxIfaceStandardDwgCaptureTestAccess::sourceBit(source, sourceFault) ^= 1u;
@@ -659,7 +674,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             [outputHandle](const DRW_Dictionary& dictionary) { return dictionary.handle == outputHandle; });
         const DRW_Dictionary* result = nod ? &readback.namedObjectDictionary
             : foundResult == readback.dictionaries.end() ? nullptr : &*foundResult;
-        if (!result || result->extData.size() != (groups || pointEed ? 7u : (longInts || reals) ? 6u : binaryEed ? 5u : 3u)
+        if (!result || result->extData.size() != (groups || pointEed ? 7u : (longInts || reals) ? 6u : binaryEed ? 5u : handleEed ? 4u : 3u)
             || !result->extData[0] || !result->extData[1] || !result->extData[2]
             || result->extData[0]->type() != DRW_Variant::STRING
             || result->extData[1]->type() != DRW_Variant::STRING
@@ -668,7 +683,8 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             || !result->extData[1]->content.s || *result->extData[1]->content.s != expectedText
             || result->extData[2]->i_val() != 42 || (longInts && !longValuesMatch(*result))
             || (reals && !realValuesMatch(*result)) || (groups && !groupValuesMatch(*result))
-            || (binaryEed && !binaryOutputMatches(*result)) || (pointEed && !pointValuesMatch(*result))) return false;
+            || (binaryEed && !binaryOutputMatches(*result)) || (pointEed && !pointValuesMatch(*result))
+            || (handleEed && !handleMatches(*result, readback))) return false;
         if (nonemptyGroup) {
             const auto member = std::find_if(readback.groups.begin(), readback.groups.end(),
                 [](const DRW_Group& item) { return item.name == "MYGROUP"; });
@@ -680,6 +696,30 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
                         return entity && entity->handle == member->m_entityHandles[0]
                             && dynamic_cast<const DRW_Line*>(entity) != nullptr;
                     })) return false;
+        }
+    }
+    return true;
+}
+
+bool legacyDanglingEedHandle(const std::string& badInput, const std::string& goodInput,
+                             const std::filesystem::path& output, DRW::Version version) {
+    dx_iface adapter;
+    const auto policy = version == DRW::AC1012 ? dx_dwgReadCompletenessPolicy::AllowPartial
+                                               : dx_dwgReadCompletenessPolicy::RequireComplete;
+    const std::string sentinel = "dangling EED handle destination preserved\n";
+    for (bool binary : {false, true}) {
+        dx_data bad;
+        if (!adapter.fileImport(badInput, &bad, false) || bad.sourceVersion != version) return false;
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        if (write(adapter, bad, output.string(), binary, DRW::AC1014, policy) || bytes(output) != sentinel) {
+            std::cerr << "Dangling EED target was not refused atomically\n";
+            return false;
+        }
+        dx_data corrected;
+        if (!adapter.fileImport(goodInput, &corrected, false)
+            || !write(adapter, corrected, output.string(), binary, DRW::AC1014, policy)) {
+            std::cerr << "Corrected EED target retry failed\n";
+            return false;
         }
     }
     return true;
@@ -807,18 +847,9 @@ bool r13UnqualifiedEedPartial(const std::string& input, const std::filesystem::p
         const auto group = std::find_if(readback.dictionaries.begin(), readback.dictionaries.end(),
             [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0xdu; });
         if (group == readback.dictionaries.end() || group->extData.size() != 4u
-            || !group->extData[3] || group->extData[3]->code() != 1005
+            || !group->extData[3] || group->extData[3]->code() != 1003
             || group->extData[3]->type() != DRW_Variant::STRING
-            || !group->extData[3]->content.s || !readback.mBlock) return false;
-        std::uint64_t referenced = 0u;
-        const auto& text = *group->extData[3]->content.s;
-        const auto parsed = std::from_chars(text.data(), text.data() + text.size(), referenced, 16);
-        if (text.empty() || parsed.ec != std::errc{} || parsed.ptr != text.data() + text.size()
-            || std::none_of(readback.mBlock->ent.begin(), readback.mBlock->ent.end(),
-                [referenced](const DRW_Entity* entity) {
-                    return entity && entity->handle == referenced
-                        && dynamic_cast<const DRW_Line*>(entity) != nullptr;
-                })) return false;
+            || !group->extData[3]->content.s || *group->extData[3]->content.s != "0") return false;
     }
     return true;
 }
@@ -1028,6 +1059,22 @@ int main(int argc, char** argv) {
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO")
             : argc == 4 && std::string(argv[1]) == "--r13-eed"
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO")
+            : argc == 5 && std::string(argv[1]) == "--r14-eed-dangling"
+                ? legacyDanglingEedHandle(argv[2], argv[3], argv[4], DRW::AC1014)
+            : argc == 5 && std::string(argv[1]) == "--r13-eed-dangling"
+                ? legacyDanglingEedHandle(argv[2], argv[3], argv[4], DRW::AC1012)
+            : argc == 4 && std::string(argv[1]) == "--r14-group-handle"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u, 0x34u, true, false, false, false, false, false, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r14-nod-handle"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u, 0x35u, false, true, false, false, false, false, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r14-mline-handle"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u, 0x17u, false, false, true, false, false, false, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-group-handle"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO", 0x33u, 0x34u, true, false, false, false, false, false, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-nod-handle"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO", 0x33u, 0x35u, false, true, false, false, false, false, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-mline-handle"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO", 0x33u, 0x17u, false, false, true, false, false, false, false, false, true)
             : argc == 4 && std::string(argv[1]) == "--r14-group-points"
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u, 0x34u, true, false, false, false, false, false, false, true)
             : argc == 4 && std::string(argv[1]) == "--r14-nod-points"

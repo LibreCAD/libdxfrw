@@ -53895,6 +53895,23 @@ bool dx_iface::finalizeStandardDwgOutputProofs() noexcept {
             if (!closed) current = m_standardDwgOutputProofs.erase(current);
             else ++current;
         }
+        // Handle-bearing legacy EED is admitted only with an exact staged
+        // dictionary comparison and closed output references, even in R13
+        // explicit-partial mode. An erased/missing proof must not fall back to
+        // publishing a dangling reference as a qualified source projection.
+        if (dx_legacy_dwg_wire::supported(cData->sourceVersion)
+            && dxfW->getVersion() == DRW::AC1014) {
+            for (const auto& row : cData->m_standardDwgObjectFrames) {
+                const auto& frame = row.second;
+                if (frame.generation != cData->importGeneration || !frame.legacyEedWireAtImport
+                    || frame.raw.m_objectType != dwgObjType::DICTIONARY) continue;
+                const auto* dictionary = dynamic_cast<const DRW_Dictionary*>(frame.typedBaseline.get());
+                if (!dictionary) return false;
+                const bool hasHandle = std::any_of(dictionary->extData.begin(), dictionary->extData.end(),
+                    [](const DRW_Variant* value) { return value && value->code() == 1005; });
+                if (hasHandle && m_standardDwgOutputProofs.count(frame.raw.m_handle) != 1u) return false;
+            }
+        }
         m_standardDwgOutputFinalized = true;
         return true;
     } catch (...) { return false; }

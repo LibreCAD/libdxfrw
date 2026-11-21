@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-dictionary-eed-handle-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_LEGACY_EED_1005_HANDLE",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "28 Extended Entity Data",
+    "observation": "EED item 5 maps to DXF group 1005 and encodes an entity handle as eight bytes."
+  },
+  "generator": "tools/research/generate_legacy_dictionary_eed_control.py",
+  "construction": "LibreDWG 0.14 generates locally authored R13/R14 controls containing an EED handle to a 3D LINE, remapped dictionary graph and a GROUP containing the same LINE. Independent LibreDWG JSON readback verifies the source handle; a separate control references a missing handle. Drawings remain outside the repository.",
+  "checks": [
+    "The shared legacy source observer matches the eight-byte source value to the parsed hexadecimal value and bounds admitted nonzero references to the model's 32-bit range.",
+    "ASan controls check all source bits, all frame truncations, malformed and changed values, source/model mutation, destination preservation and corrected retry.",
+    "For GROUP, NOD and MLINESTYLE-owner dictionaries, R14 strict and R13 explicit-partial output tests check both encodings and reject a separately generated dangling target. An initially observed R13 MLINESTYLE-owner failure is prevented by requiring the existing staged dictionary and reference-closure proof for each admitted handle-bearing legacy dictionary.",
+    "Independent ezdxf 1.4.5 readback verifies that each remapped EED handle resolves to the emitted LINE and agrees with the GROUP member for both encodings, all three locations and both source versions."
+  ],
+  "sourceSha256": {
+    "r13Group": "108b7fd33d7cb3d0073416b73fc647b1a708566ff29aba1240a6555960fe180e",
+    "r13Nod": "3e856db4be863e52891ce66bb5a01080051eb61634433166c1f258503a3c9f07",
+    "r13Mline": "127a3f71f39b364a3aa1ac4db536dc10d17aa90dd3b28031065d4aafa5135f93",
+    "r14Group": "a4f845a8a76f3402a4a48b933e91ffc76bf2d7d01e2879b96cc29641bdacd497",
+    "r14Nod": "6b67cf9da63d16b9382b1c41f9cac2afb3e2ed01ca64fafbe5ff6f1fbff8dbf3",
+    "r14Mline": "e152133fea31d5cfab6dbbfdd5329ab6ee45f4526b116271e5b3457ede26216f"
+  },
+  "limits": [
+    "R13 output remains explicit partial; native cloning and general DWG/DXF support remain unqualified.",
+    "This evidence covers one generated nonzero entity target and explicit dangling refusal. It does not establish native application-specific use, zero/wide handles, layer-reference byte order, or unobserved EED schemas."
+  ]
+}

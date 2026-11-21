@@ -201,6 +201,13 @@ def main():
                                     str(group_root / "utf8.dwg"), str(group_root / "wide-output.dxf")]).returncode == 0,
                             source_version + " nonempty group unrepresentable EED refusal")
                     if remap_group:
+                        require(invoke([profile_test, "--" + source_version + "-eed-dangling",
+                                        str(group_root / "bad-handle.dwg"), str(group_root / "handle.dwg"),
+                                        str(group_root / "dangling-output.dxf")]).returncode == 0,
+                                source_version + " group dangling EED handle refusal and retry")
+                        require(invoke([profile_test, "--" + source_version + "-group-handle",
+                                        str(group_root / "handle.dwg"), str(group_root / "handle-output.dxf")]).returncode == 0,
+                                source_version + " group EED handle, mutation and retry")
                         require(invoke([profile_test, "--" + source_version + "-group-points",
                                         str(group_root / "points.dwg"), str(group_root / "points-output.dxf")]).returncode == 0,
                                 source_version + " group 3D EED points, mutation and retry")
@@ -235,6 +242,13 @@ def main():
                     require(invoke(nod_command).returncode == 0, source_version + " NOD EED source generation")
                     suffix = "-remapped" if remap_nod else ""
                     if remap_nod:
+                        require(invoke([profile_test, "--" + source_version + "-eed-dangling",
+                                        str(nod_root / "bad-handle.dwg"), str(nod_root / "handle.dwg"),
+                                        str(nod_root / "dangling-output.dxf")]).returncode == 0,
+                                source_version + " nod dangling EED handle refusal and retry")
+                        require(invoke([profile_test, "--" + source_version + "-nod-handle",
+                                        str(nod_root / "handle.dwg"), str(nod_root / "handle-output.dxf")]).returncode == 0,
+                                source_version + " nod EED handle, mutation and retry")
                         require(invoke([profile_test, "--" + source_version + "-nod-points",
                                         str(nod_root / "points.dwg"), str(nod_root / "points-output.dxf")]).returncode == 0,
                                 source_version + " nod 3D EED points, mutation and retry")
@@ -274,6 +288,13 @@ def main():
                             source_version + " MLINESTYLE dictionary EED source generation")
                     suffix = "-remapped" if remap_mline else ""
                     if remap_mline:
+                        require(invoke([profile_test, "--" + source_version + "-eed-dangling",
+                                        str(mline_root / "bad-handle.dwg"), str(mline_root / "handle.dwg"),
+                                        str(mline_root / "dangling-output.dxf")]).returncode == 0,
+                                source_version + " mline dangling EED handle refusal and retry")
+                        require(invoke([profile_test, "--" + source_version + "-mline-handle",
+                                        str(mline_root / "handle.dwg"), str(mline_root / "handle-output.dxf")]).returncode == 0,
+                                source_version + " mline EED handle, mutation and retry")
                         require(invoke([profile_test, "--" + source_version + "-mline-points",
                                         str(mline_root / "points.dwg"), str(mline_root / "points-output.dxf")]).returncode == 0,
                                 source_version + " mline 3D EED points, mutation and retry")

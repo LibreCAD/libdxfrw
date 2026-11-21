@@ -89,14 +89,14 @@ void setLittleEndianDoubleBits(std::vector<std::uint8_t>& bytes, std::size_t sta
 }
 
 bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool reals = false,
-                             bool groups = false, bool binaryEed = false, bool pointEed = false) {
+                             bool groups = false, bool binaryEed = false, bool pointEed = false, bool handleEed = false) {
     // ODA-produced scratch source, re-encoded from its observed fields. The
     // caller must bind APPID and codepage; this is not an output proof.
     dwgBufferW w;
     w.putObjType(DRW::AC1012, 42u);
     w.putFixedHandle(0u, 1u, 0x30u);
     const std::string value = utf8 ? "caf\xC3\xA9" : "TREAT_AS_HARD";
-    w.putBitShort(static_cast<std::uint16_t>(value.size() + 7u + (longInts ? 15u : 0u) + (reals ? 27u : 0u) + (groups ? 4u : 0u) + (binaryEed ? 130u : 0u) + (pointEed ? 25u : 0u)));
+    w.putBitShort(static_cast<std::uint16_t>(value.size() + 7u + (longInts ? 15u : 0u) + (reals ? 27u : 0u) + (groups ? 4u : 0u) + (binaryEed ? 130u : 0u) + (pointEed ? 25u : 0u) + (handleEed ? 9u : 0u)));
     w.putFixedHandle(5u, 1u, 0x2au);
     w.putRawChar8(0u);
     w.putRawChar8(static_cast<std::uint8_t>(value.size()));
@@ -148,9 +148,14 @@ bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool real
         w.putRawDouble(-2.5);
         w.putRawDouble(3.75);
     }
+    if (handleEed) {
+        w.putRawChar8(5u);
+        for (unsigned n = 0u; n < 7u; ++n) w.putRawChar8(0u);
+        w.putRawChar8(0x2eu);
+    }
     w.putBitShort(0u);
     w.putRawLong32((utf8 ? 186u : 250u) + (longInts ? 120u : 0u)
-                   + (reals ? 216u : 0u) + (groups ? 32u : 0u) + (binaryEed ? 1040u : 0u) + (pointEed ? 200u : 0u));
+                   + (reals ? 216u : 0u) + (groups ? 32u : 0u) + (binaryEed ? 1040u : 0u) + (pointEed ? 200u : 0u) + (handleEed ? 72u : 0u));
     w.putBitLong(0);
     w.putBitLong(0);
     w.putFixedHandle(4u, 1u, 0xau);
@@ -159,8 +164,8 @@ bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool real
     const auto bytes = w.data();
     dwgBuffer input(bytes.data(), bytes.size());
     Dictionary model;
-    if (bytes.size() != (utf8 ? 27u : 35u) + (longInts ? 15u : 0u) + (reals ? 27u : 0u) + (groups ? 4u : 0u) + (binaryEed ? 130u : 0u) + (pointEed ? 25u : 0u) || !model.parseDwg(DRW::AC1012, &input, 0u)
-        || !input.isGood() || model.extData.size() != 3u + (longInts ? 3u : 0u) + (reals ? 3u : 0u) + (groups ? 2u : 0u) + (binaryEed ? 1u : 0u) + (pointEed ? 1u : 0u)
+    if (bytes.size() != (utf8 ? 27u : 35u) + (longInts ? 15u : 0u) + (reals ? 27u : 0u) + (groups ? 4u : 0u) + (binaryEed ? 130u : 0u) + (pointEed ? 25u : 0u) + (handleEed ? 9u : 0u) || !model.parseDwg(DRW::AC1012, &input, 0u)
+        || !input.isGood() || model.extData.size() != 3u + (longInts ? 3u : 0u) + (reals ? 3u : 0u) + (groups ? 2u : 0u) + (binaryEed ? 1u : 0u) + (pointEed ? 1u : 0u) + (handleEed ? 1u : 0u)
         || model.pendingAppIdResolutions.size() != 1u) return false;
     model.extData[0]->addString(1001, "ACAD");
     model.pendingAppIdResolutions.clear();
@@ -287,6 +292,18 @@ bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool real
         const bool nonFiniteAccepted = check(nonFinite);
         model.extData[index]->addCoord(1010, original);
         if (nonFiniteAccepted || !check(raw)) return false;
+    }
+    if (handleEed) {
+        const std::size_t index = 3u + (longInts ? 3u : 0u) + (reals ? 3u : 0u)
+            + (groups ? 2u : 0u) + (binaryEed ? 1u : 0u) + (pointEed ? 1u : 0u);
+        if (model.extData[index]->type() != DRW_Variant::STRING
+            || !model.extData[index]->content.s || *model.extData[index]->content.s != "2E") return false;
+        for (const auto* invalid : {"0", "2F", "2Ex", "100000000", ""}) {
+            model.extData[index]->addString(1005, invalid);
+            if (check(raw)) return false;
+        }
+        model.extData[index]->addString(1005, "2E");
+        if (!check(raw)) return false;
     }
     model.pendingAppIdResolutions.push_back({});
     const bool unresolvedAccepted = check(raw);
@@ -492,7 +509,7 @@ bool expected(const Variable& v) {
 }
 
 bool run() {
-    if (!legacyDictionaryWithDefaultControl() || !r13DictionaryEedControl() || !r13DictionaryEedControl(true) || !r13DictionaryEedControl(false, true) || !r13DictionaryEedControl(false, false, true) || !r13DictionaryEedControl(false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, false, true)
+    if (!legacyDictionaryWithDefaultControl() || !r13DictionaryEedControl() || !r13DictionaryEedControl(true) || !r13DictionaryEedControl(false, true) || !r13DictionaryEedControl(false, false, true) || !r13DictionaryEedControl(false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, false, false, true)
         || !r13EedChunkGroupBoundary(false) || !r13EedChunkGroupBoundary(true) || !terminatedDictionaryControl(DRW::AC1012)
         || !terminatedDictionaryControl(DRW::AC1014) || !dictionaryWireControl(true, false)
         || !dictionaryWireControl(false, false)
