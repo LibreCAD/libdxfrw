@@ -140,6 +140,11 @@ def main():
                 require(invoke([profile_test, "--" + source_version + "-eed", str(eed_input),
                                 str(eed_root / "adapter.dxf")]).returncode == 0,
                         source_version + " EED staged output, mutation refusal and retry")
+                if source_version == "r13":
+                    require(invoke([profile_test, "--r13-unqualified-eed",
+                                    str(eed_root / "unqualified.dwg"),
+                                    str(eed_root / "unqualified-output.dxf")]).returncode == 0,
+                            "unqualified R13 EED retains its partial route")
                 for binary in (False, True):
                     output = eed_root / ("cli-binary.dxf" if binary else "cli-ascii.dxf")
                     command = [converter, str(eed_input), "-o", str(output), "-y"]

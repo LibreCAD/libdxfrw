@@ -30307,6 +30307,10 @@ void dx_iface::validateStandardDwgObjectPayloads(
                 frame.textDecodeObserved = true;
                 frame.appIdDependencies = std::move(appIdDependencies);
                 frame.layerDependencies = std::move(layerDependencies);
+                const auto* dictionary = raw.m_objectType == dwgObjType::DICTIONARY
+                    ? dynamic_cast<const DRW_Dictionary*>(frame.typedBaseline.get()) : nullptr;
+                frame.legacyEedWireAtImport = dictionary && !dictionary->extData.empty()
+                    && hasLegacyDictionaryWireSource(frame, *dictionary);
                 cData->m_standardDwgObjectRetainedBytes += bytes;
                 cData->m_standardDwgObjectMembershipEntries += items;
             }
@@ -32504,8 +32508,7 @@ bool dx_iface::hasLegacyDictionaryWireSource(
     if (dictionary.extData.empty())
         return dx_legacy_dwg_wire::dictionary(frame.raw, dictionary,
                                                dictionary.parentHandle == 0u);
-    if (!cData || !dxfW || dxfW->getVersion() != DRW::AC1014
-        || !dx_legacy_dwg_wire::supported(cData->sourceVersion)
+    if (!cData || !dx_legacy_dwg_wire::supported(cData->sourceVersion)
         || frame.raw.m_version != cData->sourceVersion || frame.generation != cData->importGeneration
         || dictionary.handle != 0xdu || dictionary.parentHandle != 0xcu
         || !dictionary.m_entries.empty() || frame.appIdDependencies.size() != 1u
@@ -32592,7 +32595,9 @@ bool dx_iface::hasUnchangedStandardDwgObjectSources() const noexcept {
                 return false;
             if (dx_legacy_dwg_wire::supported(frame.raw.m_version)
                 && frame.raw.m_objectType == dwgObjType::DICTIONARY
-                && m_standardDwgOutputProofs.count(frame.raw.m_handle) != 0u) {
+                && (m_standardDwgOutputProofs.count(frame.raw.m_handle) != 0u
+                    || (frame.legacyEedWireAtImport && dxfW != nullptr
+                        && dxfW->getVersion() == DRW::AC1014))) {
                 const auto* dictionary = dynamic_cast<const DRW_Dictionary*>(found->second);
                 if (!dictionary || !hasLegacyDictionaryWireSource(frame, *dictionary))
                     return false;
@@ -53379,7 +53384,9 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
                 : nullptr;
             const bool legacyDictionaryWire = !dx_legacy_dwg_wire::supported(cData->sourceVersion)
                 || frame.raw.m_objectType != dwgObjType::DICTIONARY
-                || (legacyDictionary && hasLegacyDictionaryWireSource(frame, *legacyDictionary));
+                || (legacyDictionary
+                    && (legacyDictionary->extData.empty() || view.version == DRW::AC1014)
+                    && hasLegacyDictionaryWireSource(frame, *legacyDictionary));
             const bool standardOutputCandidate =
                 frame.typedBaseline && frame.payloadMatched
                 && !frame.opaquePayload

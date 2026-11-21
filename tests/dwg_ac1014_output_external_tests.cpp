@@ -118,6 +118,10 @@ public:
         return !dx_legacy_dwg_wire::dictionary(frame.raw, *model, false)
             && dx_legacy_dwg_wire::observeDictionaryEed(frame.raw, *model, false, app, page);
     }
+    static bool importBoundGroupEed(const dx_data& data) {
+        const auto frame = data.m_standardDwgObjectFrames.find({data.importGeneration, 0xdu});
+        return frame != data.m_standardDwgObjectFrames.end() && frame->second.legacyEedWireAtImport;
+    }
     static std::vector<std::uint8_t>& legacyUtf8EedBytes(dx_data& data) {
         return data.m_standardDwgObjectFrames.at({data.importGeneration, 0x31u}).raw.m_rawBytes;
     }
@@ -472,7 +476,8 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
     LateMutationAdapter adapter;
     dx_data source;
     adapter.source = &source;
-    if (!adapter.fileImport(input, &source, false) || !checkR14Generated(source, sourceVersion)) return false;
+    if (!adapter.fileImport(input, &source, false) || !checkR14Generated(source, sourceVersion)
+        || !DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(source)) return false;
     auto group = std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
         [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0xdu; });
     auto app = std::find_if(source.appIds.begin(), source.appIds.end(),
@@ -506,10 +511,6 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
                 || bytes(output) != sentinel || !emit(binary)) return false;
         }
         for (int fault = 0; fault < 6; ++fault) {
-            // Explicit partial output can omit a proof if the source was
-            // already changed before inspection; it does not certify this
-            // pre-inspection corruption case. The late mutation is checked.
-            if (sourceVersion == DRW::AC1012 && fault == 3) continue;
             if (fault == 0) group->extData[1]->addString(1000, "CHANGED");
             if (fault == 1) group->extData[2]->addInt(1070, 43);
             if (fault == 2) app->name = "CHANGED";
@@ -542,6 +543,29 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             || !result->extData[0]->content.s || *result->extData[0]->content.s != "ACAD"
             || !result->extData[1]->content.s || *result->extData[1]->content.s != "HELLO"
             || result->extData[2]->i_val() != 42) return false;
+    }
+    return true;
+}
+
+// A source outside the new proof retains the established explicit-partial
+// route. Its successful projection is not a complete-source certificate.
+bool r13UnqualifiedEedPartial(const std::string& input, const std::filesystem::path& output) {
+    dx_iface adapter;
+    dx_data source;
+    if (!adapter.fileImport(input, &source, false) || !checkR14Generated(source, DRW::AC1012)
+        || DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(source)) return false;
+    for (bool binary : {false, true}) {
+        if (!write(adapter, source, output.string(), binary, DRW::AC1014,
+                   dx_dwgReadCompletenessPolicy::AllowPartial)) return false;
+        dx_iface fresh;
+        dx_data readback;
+        if (!fresh.fileImport(output.string(), &readback, false)) return false;
+        const auto group = std::find_if(readback.dictionaries.begin(), readback.dictionaries.end(),
+            [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0xdu; });
+        if (group == readback.dictionaries.end() || group->extData.size() != 4u
+            || !group->extData[3] || group->extData[3]->code() != 1071
+            || group->extData[3]->type() != DRW_Variant::INTEGER
+            || group->extData[3]->i_val() != 123456) return false;
     }
     return true;
 }
@@ -751,6 +775,8 @@ int main(int argc, char** argv) {
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014)
             : argc == 4 && std::string(argv[1]) == "--r13-eed"
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012)
+            : argc == 4 && std::string(argv[1]) == "--r13-unqualified-eed"
+                ? r13UnqualifiedEedPartial(argv[2], argv[3])
             : argc == 4 && std::string(argv[1]) == "--r14-generated"
                 ? legacyGenerated(argv[2], argv[3], DRW::AC1014)
             : argc == 4 && std::string(argv[1]) == "--r13-generated"

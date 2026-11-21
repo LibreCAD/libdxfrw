@@ -38,7 +38,7 @@ def main():
     recipe = Path(__file__).resolve().parents[2] / 'tests/fixtures/dwg/ac1012_partial_three_line_control.dwgadd'
     base = root / 'dwgadd.dwg'
     source = root / 'dwgadd.json'
-    if any((root / name).exists() for name in ('dwgadd.dwg', 'dwgadd.json', 'baseline.dwg', 'eed.dwg')):
+    if any((root / name).exists() for name in ('dwgadd.dwg', 'dwgadd.json', 'baseline.dwg', 'eed.dwg', 'unqualified.dwg')):
         raise RuntimeError('output directory must not contain a previous control')
     run(args.dwgadd, '--as', args.version, '-o', str(base), str(recipe))
     run(args.dwgread, '-O', 'JSON', '-o', str(source), str(base))
@@ -54,12 +54,16 @@ def main():
     # so the baseline remains within the existing MLINESTYLE wire profile.
     styles[0]['start_angle'] = styles[0]['end_angle'] = 1.5707963267948966
     results = {}
-    for name in ('baseline', 'eed'):
+    for name in ('baseline', 'eed', 'unqualified'):
         if name == 'eed':
             dictionaries[0]['eed'] = [
                 {'size': 12, 'handle': [5, 1, 18], 'code': 0, 'value': 'HELLO'},
                 {'code': 70, 'value': 42},
             ]
+        if name == 'unqualified':
+            # A 1071 long is deliberately outside the bounded source proof.
+            dictionaries[0]['eed'][0]['size'] = 17
+            dictionaries[0]['eed'].append({'code': 71, 'value': 123456})
         path = root / (name + '.json')
         drawing = root / (name + '.dwg')
         path.write_text(json.dumps(document))
@@ -69,7 +73,7 @@ def main():
         reread = json.loads(check.read_text())
         selected = [o for o in reread['OBJECTS'] if o.get('object') == 'DICTIONARY'
                     and o.get('handle', [0, 0, 0])[2] == 13]
-        if len(selected) != 1 or (name == 'eed' and selected[0].get('eed') != dictionaries[0]['eed']):
+        if len(selected) != 1 or (name != 'baseline' and selected[0].get('eed') != dictionaries[0]['eed']):
             raise RuntimeError(f'{name} independent JSON readback mismatch')
         if name == 'baseline' and selected[0].get('eed'):
             raise RuntimeError('baseline unexpectedly contains EED')

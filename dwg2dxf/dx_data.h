@@ -2780,6 +2780,8 @@ private:
         bool membershipSeen{false};
         bool payloadMatched{false};
         bool opaquePayload{false};
+        // Frozen import-time source proof; never upgraded during export.
+        bool legacyEedWireAtImport{false};
         // Frozen observations from the import-matched raw reparse, never
         // inferred from the resulting scalar or refreshed at export.
         bool textDecodeObserved{false};
