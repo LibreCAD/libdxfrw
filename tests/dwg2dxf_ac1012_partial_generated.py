@@ -147,6 +147,38 @@ def main():
                                 str(eed_root / "wide.dwg"), str(eed_root / "utf8.dwg"),
                                 str(eed_root / "wide-output.dxf")]).returncode == 0,
                         source_version + " unrepresentable EED refusal and corrected retry")
+                for profile, name in (("little", "unqualified.dwg"),
+                                      ("big", "big-layer.dwg"),
+                                      ("missing", "big-missing.dwg"),
+                                      ("wide", "big-wide.dwg"),
+                                      ("zero", "big-zero.dwg")):
+                    require(invoke([profile_test, "--layer-policy-" + profile,
+                                    str(eed_root / name)]).returncode == 0,
+                            source_version + " explicit layer byte-order policy " + profile)
+                require(invoke([profile_test, "--layer-big-partial", str(eed_root / "big-layer.dwg"),
+                                str(eed_root / "big-missing.dwg"), str(eed_root / "layer-output.dxf")]).returncode == 0,
+                        source_version + " big-endian EED layer partial output, refusal and retry")
+                require(invoke([profile_test, "--layer-big-partial", str(eed_root / "big-layer.dwg"),
+                                str(eed_root / "big-zero.dwg"), str(eed_root / "layer-zero-output.dxf")]).returncode == 0,
+                        source_version + " zero EED layer refusal and corrected retry")
+                for binary in (False, True):
+                    layer_output = eed_root / ("cli-layer-binary.dxf" if binary else "cli-layer-ascii.dxf")
+                    sentinel = b"unresolved layer destination preserved\n"
+                    command = [converter, str(eed_root / "big-layer.dwg"), "-o", str(layer_output), "-y",
+                               "--allow-partial-dwg-read"] + (["-b"] if binary else [])
+                    layer_output.write_bytes(sentinel)
+                    require(invoke(command).returncode != 0 and layer_output.read_bytes() == sentinel,
+                            source_version + " default byte order refuses unresolved source")
+                    require(invoke(command + ["--dwg-eed-layer-byte-order=big"]).returncode == 0
+                            and invoke([profile_test, "--check-layer-dxf", str(layer_output)]).returncode == 0,
+                            source_version + " CLI explicit big-endian layer output")
+                    layer_output.write_bytes(sentinel)
+                    wrong = list(command)
+                    wrong[1] = str(eed_root / "big-missing.dwg")
+                    require(invoke(wrong + ["--dwg-eed-layer-byte-order=big"]).returncode != 0
+                            and layer_output.read_bytes() == sentinel
+                            and invoke(command + ["--dwg-eed-layer-byte-order=big"]).returncode == 0,
+                            source_version + " CLI unresolved layer refusal and corrected retry")
                 if source_version == "r13":
                     require(invoke([profile_test, "--r13-unqualified-eed",
                                     str(eed_root / "unqualified.dwg"),

@@ -23,6 +23,20 @@ namespace DRW {
     std::string toHexStr(int n);
 }
 
+namespace dwgEed {
+// `raw` is the eight physical bytes interpreted little-endian by the parser.
+// This is a caller-selected interpretation, never producer auto-detection.
+inline std::uint64_t layerHandle(std::uint64_t raw, DRW::DwgEedLayerByteOrder order) noexcept {
+    if (order == DRW::DwgEedLayerByteOrder::LegacyLittleEndian) return raw;
+    std::uint64_t result = 0u;
+    for (unsigned i = 0u; i < 8u; ++i) {
+        result = (result << 8u) | (raw & 0xffu);
+        raw >>= 8u;
+    }
+    return result;
+}
+}
+
 namespace dwgSpec {
     /// R18+ CLASSES sections carry eight ODA-defined unknown bytes between
     /// the class CRC and the closing sentinel. ODA specifies zero values.

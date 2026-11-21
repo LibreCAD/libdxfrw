@@ -1,0 +1,78 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-eed-layer-read-policy-2026-11-21",
+  "date": "2026-11-21",
+  "status": "EXPLICIT_DWG_EED_LAYER_READ_ORDER",
+  "supportClaimEffect": "none",
+  "producerWitness": "docs/research/p6-legacy-eed-layer-byte-order-2026-11-21.json",
+  "generator": "tools/research/generate_legacy_layer_eed_witness.py",
+  "witnessRun": {
+    "ezdxfVersion": "1.4.5",
+    "oda": {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "seedSha256": "83a2bdb3adcf7a58bd317a5fdc694c9e1f85027463d7f3809553a0daf9783849",
+    "layerHandle": 48,
+    "appidHandle": 47,
+    "versions": {
+      "r13": {
+        "dwgSha256": "a7c6f49c95211e5b7f335082dd9adc30c94f732923fda358f3f2c59dc3f3dab0",
+        "frameSha256": "aa79f329070b32ba68e096487185dbe73465375c43cb24d9bf21b61392a7f5e4",
+        "layerEedHex": "030000000000000030",
+        "reopenedDxfSha256": "1715ef9afabe07d661cfd0f59999a65d592ed999b6034bf78355543483078a77",
+        "reopenedLayer": "PROBE_LAYER",
+        "patchedDwgSha256": "60390c93c4c184067eff1054d2a73e4e03152fa1a7b15acf5a7aadd70b164020",
+        "patchedReopenedDxfSha256": "83d30a50590006c6be2369f6465440d5616f3f18694b3f8b8b5f869e5bfb563e",
+        "patchedLayerTags": [],
+        "frameCrcValid": true,
+        "candidatePolicyReadbackPassed": true
+      },
+      "r14": {
+        "dwgSha256": "f5b2a926cbe0e738ea9861d13dab8106c787151eccba0e4907ea52b812a664fd",
+        "frameSha256": "e81c6103c33d90f7097a39d628c45bea3e22b76197fdba4b778c0ac4c9443fe0",
+        "layerEedHex": "030000000000000030",
+        "reopenedDxfSha256": "b5fd7052e7524e2334e3caa49e11dbfc8d66ae2f652225c432172828f8aad2cd",
+        "reopenedLayer": "PROBE_LAYER",
+        "patchedDwgSha256": "84f25241cb6c180bf91970d4028390c3ce61e92818e3805dd21946681f8760a3",
+        "patchedReopenedDxfSha256": "7c074093265415ed668cee902701c1d72b70a193bcc7423e1327df619d88c8bf",
+        "patchedLayerTags": [],
+        "frameCrcValid": true,
+        "candidatePolicyReadbackPassed": true
+      },
+      "r2000": {
+        "dwgSha256": "3b9629341f8269d7044a7c6408aaf8f08e19a2a7d734e0a2af7a49a5f5480082",
+        "frameSha256": "c080a1fc75843f94c6eba751e61c35d6817ab2429e2c6482a2c3cfd7dc3bec69",
+        "layerEedHex": "030000000000000030",
+        "reopenedDxfSha256": "33b99f5cabbafd8d157f04fe5794948868914d2745ffff62df220da1fd9c3e74",
+        "reopenedLayer": "PROBE_LAYER",
+        "patchedDwgSha256": "84671ab6f7b7b414bd18c4033e4992b392709e83680c10c95d882ef15e715d94",
+        "patchedReopenedDxfSha256": "a66875c8dec97fb77b68e5df8e005c345a8694d2db012d4ef487ddc49e473375",
+        "patchedLayerTags": [],
+        "frameCrcValid": true,
+        "candidatePolicyReadbackPassed": true
+      }
+    }
+  },
+  "implementation": [
+    "dwgRW and dwgR expose an explicit per-read layer-byte-order selection. The default retains legacy little-endian behavior; the reader snapshots the selection at read start.",
+    "Both entity and object EED resolve only a nonzero 32-bit selected handle present in the layer table. The original physical bytes remain in the existing raw reference; missing, zero and wide references stay unresolved.",
+    "The converter adapter re-parses source frames using the same per-import selection. The CLI accepts --dwg-eed-layer-byte-order=big or little; FreeCAD-compatible invocation remains available.",
+    "Shared DXF XDATA validation refuses unresolved DWG layer handles instead of emitting their hexadecimal spelling as a layer name. A resolved numeric layer name cannot be mistaken for an unresolved handle. DWG raw replay remains separate."
+  ],
+  "validation": [
+    "Generated R13/R14 little-endian, big-endian, missing, zero and wide controls test policy switching, invalid options, raw-byte preservation, explicit selection, partial DXF output, destination preservation and corrected retry.",
+    "Fresh ODA R13/R14/R2000 drawings were read under both policies, confirming the selected big-endian interpretation for entity and dictionary EED against ODA reopen.",
+    "Independent ezdxf 1.4.5 readback checks the selected layer name and actual layer table in both ASCII and Binary DXF for a locally generated control.",
+    "Focused ASan checks include CLI option parsing, EED text provenance, legacy dictionary/partial-output tests, and the existing exhaustive XDATA allocation rollback/retry sweep. The slow sweep is separate from the fast numeric test and sizes its search from the measured clean allocation count."
+  ],
+  "limits": [
+    "Selection is explicit; the implementation does not infer producer identity or decide between conflicting byte orders.",
+    "This slice does not change DWG writer byte order, qualify automatic source profiles, certify broader DWG/DXF support, or replace native AutoCAD and platform evidence.",
+    "The ODA candidate controls check import, not full-document conversion: unrelated ModelDocViewStyle and native-qualification gates remain."
+  ]
+}

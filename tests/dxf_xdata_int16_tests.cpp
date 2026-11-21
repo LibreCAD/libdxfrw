@@ -363,8 +363,16 @@ bool compatibilityXrecordAllocationControls() {
         dxfRW baselineWriter(path.string().c_str());
         SelectedWriter baseline(baselineWriter, true, 12345,
                                 layerStateCompatibility);
+        // Measure the clean path so the failure sweep reaches the first
+        // successful offset even as unrelated setup allocations change.
+        constexpr long allocationCeiling = 65536;
+        xdataAllocationFailed = false;
+        xdataAllocationFailureOffset = allocationCeiling;
+        const bool baselineOk = baselineWriter.write(&baseline, version, binary);
+        const long baselineAllocations = allocationCeiling - xdataAllocationFailureOffset;
         xdataAllocationFailureOffset = -1;
-        if (!baselineWriter.write(&baseline, version, binary))
+        if (!baselineOk || xdataAllocationFailed || baselineAllocations < 1
+            || baselineAllocations > 4096)
             return fail("compatibility XRECORD allocation baseline failed");
         std::ifstream baselineInput(path, std::ios::binary);
         const std::string cleanBytes{std::istreambuf_iterator<char>{baselineInput},
@@ -386,7 +394,7 @@ bool compatibilityXrecordAllocationControls() {
         const std::string sentinel = "PRIOR_COMPAT_XRECORD_DESTINATION";
         unsigned failures = 0u;
         bool reachedSuccess = false;
-        for (long offset = 0; offset < 128; ++offset) {
+        for (long offset = 0; offset <= baselineAllocations + 32; ++offset) {
             { std::ofstream seed(path, std::ios::binary | std::ios::trunc);
               seed << sentinel; }
             dxfRW writer(path.string().c_str());
@@ -445,8 +453,12 @@ bool compatibilityXrecordAllocationControls() {
                 || !readbackMatches(reader))
                 return fail("same-writer compatibility retry/readback mismatch");
         }
-        if (!reachedSuccess || failures == 0u)
+        if (!reachedSuccess || failures == 0u) {
+            std::cerr << "version=" << static_cast<int>(version) << " layerState="
+                      << layerStateCompatibility << " binary=" << binary
+                      << " failures=" << failures << " reachedSuccess=" << reachedSuccess << '\n';
             return fail("compatibility allocation sweep missed failure or success");
+        }
         std::cout << "XRECORD "
                   << (layerStateCompatibility
                         ? "LayerState compatibility "
@@ -463,9 +475,11 @@ bool compatibilityXrecordAllocationControls() {
 
 } // namespace
 
-int main() {
-    if (!directTypedControls() || !wholeFileControls()
-        || !compatibilityXrecordAllocationControls()) return 1;
+int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--compat-allocation")
+        return compatibilityXrecordAllocationControls() ? 0 : 1;
+    if (argc != 1) return 1;
+    if (!directTypedControls() || !wholeFileControls()) return 1;
     if (!appIdAllocationRollbackControls()) return 1;
     std::cout << "Typed XDATA 1070 Binary exact numeric policy: PASS\n";
     return 0;

@@ -61,6 +61,41 @@ def replace_eed_text(dwgread, source, destination, value, appid, group):
     destination.write_bytes(data)
 
 
+def patch_layer_eed(dwgread, source, destination, appid, target, handle):
+    """Encode the locally generated layer item big-endian and repair its CRC."""
+    trace = run(dwgread, '-v4', str(source))
+    blocks = re.split(r'(?=Object number:)', trace.stdout + trace.stderr)
+    matches = [b for b in blocks if re.search(r'\bhandle: 0\.\d+\.' + format(target, 'X') + r'\s', b)]
+    if len(matches) != 1:
+        raise RuntimeError('layer dictionary trace missing or ambiguous')
+    match = re.search(r'Size: (\d+) \[MS\], Type: 42 \[BS\], Address: (\d+)', matches[0])
+    if match is None:
+        raise RuntimeError('layer dictionary frame location missing')
+    size, address = map(int, match.groups())
+    data = bytearray(source.read_bytes())
+    if address < 2 or address + size + 2 > len(data) or data[address-2:address] != size.to_bytes(2, 'little'):
+        raise RuntimeError('unexpected source frame envelope')
+    if int.from_bytes(data[address+size:address+size+2], 'little') != crc16(data[address-2:address+size]):
+        raise RuntimeError('source frame CRC mismatch')
+    bits = Bits(data[address:address+size])
+    if (bits.bs() != 42 or bits.handle(0, own=True)['value'] != target or bits.bs() != 21
+            or bits.handle(5)['value'] != appid or bits.take(8) != 0 or bits.take(8) != 5
+            or bytes(bits.take(8) for _ in range(7)) != b'\x00\x1eHELLO'
+            or bits.take(8) != 70 or bits.little(2) != 42 or bits.take(8) != 3):
+        raise RuntimeError('unexpected layer EED framing')
+    start = bits.position
+    if bytes(bits.take(8) for _ in range(8)) != (16).to_bytes(8, 'little'):
+        raise RuntimeError('unexpected LibreDWG layer bytes')
+    for index, byte in enumerate(handle.to_bytes(8, 'big')):
+        for bit in range(8):
+            pos = address * 8 + start + index * 8 + bit
+            mask = 0x80 >> (pos % 8)
+            data[pos // 8] = ((data[pos // 8] | mask) if byte & (0x80 >> bit)
+                               else (data[pos // 8] & ~mask))
+    data[address+size:address+size+2] = crc16(data[address-2:address+size]).to_bytes(2, 'little')
+    destination.write_bytes(data)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output-dir', type=Path, required=True)
@@ -83,7 +118,7 @@ def main():
     recipe = Path(__file__).resolve().parents[2] / 'tests/fixtures/dwg/ac1012_partial_three_line_control.dwgadd'
     base = root / 'dwgadd.dwg'
     source = root / 'dwgadd.json'
-    if any((root / name).exists() for name in ('dwgadd.dwg', 'dwgadd.json', 'baseline.dwg', 'eed.dwg', 'int32.dwg', 'reals.dwg', 'groups.dwg', 'binary.dwg', 'points.dwg', 'handle.dwg', 'bad-handle.dwg', 'unqualified.dwg', 'utf8.dwg', 'wide.dwg')):
+    if any((root / name).exists() for name in ('dwgadd.dwg', 'dwgadd.json', 'baseline.dwg', 'eed.dwg', 'int32.dwg', 'reals.dwg', 'groups.dwg', 'binary.dwg', 'points.dwg', 'handle.dwg', 'bad-handle.dwg', 'unqualified.dwg', 'big-layer.dwg', 'big-missing.dwg', 'big-wide.dwg', 'big-zero.dwg', 'utf8.dwg', 'wide.dwg')):
         raise RuntimeError('output directory must not contain a previous control')
     effective_recipe = recipe
     if args.nonempty_group:
@@ -285,6 +320,10 @@ def main():
         if len(roots) != 1 or roots[0].get('items', {}).get(bad_key, [0])[-1] != 25:
             raise RuntimeError('bad graph peer readback mismatch')
         results['badGraph'] = {'path': str(drawing), 'sha256': digest(drawing)}
+    for name, handle in (('big-layer', 16), ('big-missing', 250), ('big-wide', 0x0102030405060708), ('big-zero', 0)):
+        drawing = root / (name + '.dwg')
+        patch_layer_eed(args.dwgread, root / 'unqualified.dwg', drawing, appid, target_handle, handle)
+        results[name] = {'path': str(drawing), 'sha256': digest(drawing)}
     for name, value in (('utf8', 'café'), ('wide', '漢é')):
         drawing = root / (name + '.dwg')
         replace_eed_text(args.dwgread, root / 'eed.dwg', drawing, value, appid, target_handle)

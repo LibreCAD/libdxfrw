@@ -89,6 +89,21 @@ int main(){
         }
     }
 
+    for (bool big : {false, true}) {
+        dwg2dxfCli::Options policy;
+        const auto token = big ? "--dwg-eed-layer-byte-order=big" : "--dwg-eed-layer-byte-order=little";
+        if (!dwg2dxfCli::applyOption(token, policy, false) || !policy.haveDwgEedLayerByteOrder
+            || policy.dwgEedLayerByteOrder != (big ? DRW::DwgEedLayerByteOrder::BigEndian
+                                                   : DRW::DwgEedLayerByteOrder::LegacyLittleEndian)
+            || dwg2dxfCli::applyOption(token, policy, false)) return 1;
+    }
+    for (const char* invalid : {"--dwg-eed-layer-byte-order=", "--dwg-eed-layer-byte-order=auto",
+                                "--dwg-eed-layer-byte-order=big-extra"}) {
+        dwg2dxfCli::Options policy;
+        if (dwg2dxfCli::applyOption(invalid, policy, false) || policy.haveDwgEedLayerByteOrder
+            || policy.dwgEedLayerByteOrder != DRW::DwgEedLayerByteOrder::LegacyLittleEndian) return 1;
+    }
+
     const dwg2dxfCli::BatchInputLimits limits {4u, 2u, 8u};
     for (const auto& test : std::vector<std::pair<std::string, std::vector<std::string>>>{
              {"abcd", {"abcd"}}, {"abcd\r\n", {"abcd"}},

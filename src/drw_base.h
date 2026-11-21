@@ -188,6 +188,11 @@ enum class DxfTextWritePolicy { Compatible, RequireLossless };
 // It is independent of UTF8 recovery, output policy and DXF profile admission.
 enum class DxfCodePagePolicy { Compatible, ExactNamed, DeclaredUtf8 };
 
+// DWG EED layer-reference bytes have conflicting producer interpretations.
+// Select explicitly for a known input producer; no endian inference is made.
+// This controls name resolution only, not DWG output encoding or a support claim.
+enum class DwgEedLayerByteOrder { LegacyLittleEndian, BigEndian };
+
 //! Version numbers for the DXF Format.
 enum Version {
     UNKNOWNV,     //!< UNKNOWN VERSION.
@@ -937,7 +942,16 @@ public:
     void setCoordX(double d) { if (vType == COORD) vdata.x = d;}
     void setCoordY(double d) { if (vType == COORD) vdata.y = d;}
     void setCoordZ(double d) { if (vType == COORD) vdata.z = d;}
-    void setLayerRefName(const UTF8STRING& s) { if (vType == STRING) { sdata = s; content.s = &sdata; sIsLayerRef = true; } }
+    void setLayerRefName(const UTF8STRING& s) {
+        if (vType == STRING) {
+            sdata = s;
+            content.s = &sdata;
+            sIsLayerRef = true;
+            // A successfully resolved name is not a replayable unresolved
+            // handle, even if its spelling happens to equal the hex handle.
+            if (hasDwgRawLayerReference) dwgRawLayerReferenceText.clear();
+        }
+    }
     void setDwgRawLayerReference(std::uint64_t reference,
                                  DRW::Version sourceVersion) noexcept {
         if (vType != STRING || vCode != 1003)
@@ -952,6 +966,8 @@ public:
             && dwgRawLayerReferenceVersion == targetVersion
             && sdata == dwgRawLayerReferenceText;
     }
+    // Original eight DWG bytes interpreted as a little-endian integer. This
+    // remains unchanged when a caller selects big-endian name resolution.
     std::uint64_t rawDwgLayerReference() const noexcept {
         return dwgRawLayerReference;
     }

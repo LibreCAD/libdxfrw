@@ -401,6 +401,20 @@ public:
     void setDwgReadObjectBudget(std::size_t maxObjects) noexcept {
         m_dwgReadObjectBudget = maxObjects;
     }
+    /// Select the byte order for resolving DWG EED layer names on subsequent
+    /// reads. Default preserves the historical LibreDWG-compatible behavior.
+    /// Choose BigEndian only for inputs whose producer profile is known.
+    /// Missing and over-32-bit targets stay unresolved; raw bytes are retained.
+    bool setDwgEedLayerByteOrder(DRW::DwgEedLayerByteOrder order) noexcept {
+        if (order != DRW::DwgEedLayerByteOrder::LegacyLittleEndian
+            && order != DRW::DwgEedLayerByteOrder::BigEndian) return false;
+        m_dwgEedLayerByteOrder = order;
+        return true;
+    }
+    DRW::DwgEedLayerByteOrder dwgEedLayerByteOrder() const noexcept {
+        return m_dwgEedLayerByteOrder;
+    }
+
     /** Return the aggregate object-map ceiling used by subsequent DWG reads. */
     std::size_t dwgReadObjectBudget() const noexcept {
         return m_dwgReadObjectBudget;
@@ -1067,6 +1081,7 @@ private:
     std::vector<std::string> m_ltypeNameOrder;
     WriteSkipCounters m_writeSkipCounters;
     std::size_t m_dwgReadObjectBudget { 1000000u };
+    DRW::DwgEedLayerByteOrder m_dwgEedLayerByteOrder { DRW::DwgEedLayerByteOrder::LegacyLittleEndian };
     std::size_t m_successfulEntityWrites { 0 };
     std::uint32_t m_lastSuccessfulEntityHandle { 0 };
     DRW::DwgObjectFrameReceipt m_lastDwgObjectFrame;
@@ -1112,6 +1127,12 @@ public:
     }
     std::size_t dwgReadObjectBudget() const noexcept {
         return implementation.dwgReadObjectBudget();
+    }
+    bool setDwgEedLayerByteOrder(DRW::DwgEedLayerByteOrder order) noexcept {
+        return implementation.setDwgEedLayerByteOrder(order);
+    }
+    DRW::DwgEedLayerByteOrder dwgEedLayerByteOrder() const noexcept {
+        return implementation.dwgEedLayerByteOrder();
     }
     bool getPreview() { return implementation.getPreview(); }
     DRW::Version getVersion() const { return implementation.getVersion(); }

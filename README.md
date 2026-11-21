@@ -425,6 +425,13 @@ produces DXF for FreeCAD's own importer: it does not extend that importer's
 entity or 3D geometry support. For example, a DXF entity may be preserved
 correctly by `dwg2dxf` while FreeCAD reports it as unsupported.
 
+For DWG files from a producer known to use big-endian EED layer handles, pass
+`--dwg-eed-layer-byte-order=big` when invoking `dwg2dxf` directly. The default
+remains little-endian for existing consumers; the option does not guess the
+producer or change DWG output encoding. Missing or wide unresolved layer
+references are not written as DXF layer names. Library callers can make the
+same per-read choice with `dwgRW::setDwgEedLayerByteOrder` or the `dwgR` facade.
+
 Explicit target selectors include `-v2013` (AC1027) and `-v2018` (AC1032),
 in positional, `-o`, and batch forms. The default `-o` source-revision policy
 is unchanged. Selecting a version does not grant overwrite permission or relax

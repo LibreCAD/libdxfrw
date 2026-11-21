@@ -569,10 +569,14 @@ bool isValidDxfEedVariant(const DRW_Variant *value) {
     case 1000:
     case 1001:
     case 1002:
-    case 1003:
     case 1005:
         return value->type() == DRW_Variant::STRING
             && value->content.s != nullptr;
+    case 1003:
+        // An unresolved DWG handle is not a DXF layer name. Keep the raw
+        // value for DWG replay, but never publish its hex spelling as XDATA.
+        return value->type() == DRW_Variant::STRING
+            && value->content.s != nullptr && !value->activeDwgLayerReference();
     case 1004:
         if (value->type() == DRW_Variant::BINARY) {
             return value->content.b != nullptr
@@ -20167,57 +20171,10 @@ bool dxfRW::writeExtDataRange(const Range& ed, GetPointer getPointer) {
     // is appended to an already-open record, so validating as we write can
     // leave a syntactically incomplete record when a later variant is bad.
     const auto isValid = [](const DRW_Variant* value) {
-        if (value == nullptr)
-            return false;
-
-        switch (value->code()) {
-        case 1000:
-        case 1001:
-        case 1002:
-        case 1003:
-        case 1005:
-            return value->type() == DRW_Variant::STRING
-                && value->content.s != nullptr;
-        case 1004:
-            if (value->type() == DRW_Variant::BINARY) {
-                return value->content.b != nullptr
-                    && value->content.b->size()
-                        <= DRW::kMaxDxfBinaryPayloadBytes;
-            }
-            return value->type() == DRW_Variant::STRING
-                && value->content.s != nullptr
-                && isDxfHexText(*value->content.s)
-                && value->content.s->size() / 2u
-                    <= DRW::kMaxDxfBinaryPayloadBytes;
-        case 1010:
-        case 1011:
-        case 1012:
-        case 1013:
-            return value->type() == DRW_Variant::COORD
-                && value->content.v != nullptr
-                && std::isfinite(value->content.v->x)
-                && std::isfinite(value->content.v->y)
-                && std::isfinite(value->content.v->z);
-        case 1040:
-        case 1041:
-        case 1042:
-            return value->type() == DRW_Variant::DOUBLE
-                && std::isfinite(value->content.d);
-        case 1070:
-            return value->type() == DRW_Variant::INTEGER
-                && value->content.i >= std::numeric_limits<std::int16_t>::min()
-                && value->content.i <= std::numeric_limits<std::uint16_t>::max();
-        case 1071:
-            if (value->type() == DRW_Variant::INTEGER)
-                return true;
-            return value->type() == DRW_Variant::INTEGER64
-                && value->content.i64
-                    >= std::numeric_limits<std::int32_t>::min()
-                && value->content.i64
-                    <= std::numeric_limits<std::int32_t>::max();
-        default:
-            return false;
-        }
+        if (!isValidDxfEedVariant(value)) return false;
+        return value->code() != 1070
+            || (value->content.i >= std::numeric_limits<std::int16_t>::min()
+                && value->content.i <= std::numeric_limits<std::uint16_t>::max());
     };
     for (const auto& storedValue : ed) {
         const DRW_Variant* value = getPointer(storedValue);

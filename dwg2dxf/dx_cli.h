@@ -25,6 +25,8 @@ struct Options {
     bool observeWholeDxfSource = false;
     DRW::DxfCodePagePolicy codePagePolicy = DRW::DxfCodePagePolicy::Compatible;
     bool haveCodePagePolicy = false;
+    DRW::DwgEedLayerByteOrder dwgEedLayerByteOrder = DRW::DwgEedLayerByteOrder::LegacyLittleEndian;
+    bool haveDwgEedLayerByteOrder = false;
 };
 
 inline DRW::Version versionOption(const std::string& token) {
@@ -54,6 +56,12 @@ inline bool applyOption(const std::string& token, Options& options,
         options.allowPartialDwgRead = true;
     } else if (token == "--observe-whole-dxf-source") {
         options.observeWholeDxfSource = true;
+    } else if (token == "--dwg-eed-layer-byte-order=little"
+               || token == "--dwg-eed-layer-byte-order=big") {
+        if (options.haveDwgEedLayerByteOrder) return false;
+        options.dwgEedLayerByteOrder = token == "--dwg-eed-layer-byte-order=big"
+            ? DRW::DwgEedLayerByteOrder::BigEndian : DRW::DwgEedLayerByteOrder::LegacyLittleEndian;
+        options.haveDwgEedLayerByteOrder = true;
     } else if (token == "--dxf-codepage-policy=compatible"
                || token == "--dxf-codepage-policy=exact-named") {
         if (options.haveCodePagePolicy) return false;

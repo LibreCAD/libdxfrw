@@ -740,6 +740,10 @@ add_test(NAME libdxfrw_xdata_int16_exact_numeric
     COMMAND libdxfrw_xdata_int16_tests)
 set_tests_properties(libdxfrw_xdata_int16_exact_numeric PROPERTIES
     LABELS "fast;dxf;xdata;transaction" TIMEOUT 20)
+add_test(NAME libdxfrw_xdata_int16_compat_allocation
+    COMMAND libdxfrw_xdata_int16_tests --compat-allocation)
+set_tests_properties(libdxfrw_xdata_int16_compat_allocation PROPERTIES
+    LABELS "dxf;xdata;allocation;transaction" TIMEOUT 240)
 add_executable(libdxfrw_mline_source_dependency_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/dxf_mline_source_dependency_tests.cpp
     ${_libdxfrw_test_adapter_source}

@@ -725,6 +725,102 @@ bool legacyDanglingEedHandle(const std::string& badInput, const std::string& goo
     return true;
 }
 
+bool legacyLayerEedReadPolicy(const std::string& input, bool sourceBig, bool missing = false,
+                              bool oda = false, bool wide = false, bool zero = false) {
+    const auto little = DRW::DwgEedLayerByteOrder::LegacyLittleEndian;
+    const auto big = DRW::DwgEedLayerByteOrder::BigEndian;
+    dwgRW api(input.c_str());
+    dwgR legacyApi(input.c_str());
+    const auto invalid = static_cast<DRW::DwgEedLayerByteOrder>(99);
+    if (api.dwgEedLayerByteOrder() != little || legacyApi.dwgEedLayerByteOrder() != little
+        || api.setDwgEedLayerByteOrder(invalid) || legacyApi.setDwgEedLayerByteOrder(invalid)
+        || !api.setDwgEedLayerByteOrder(big) || !legacyApi.setDwgEedLayerByteOrder(big)
+        || api.dwgEedLayerByteOrder() != big || legacyApi.dwgEedLayerByteOrder() != big) return false;
+    DRW_Variant equalName(1003, std::string("10"), true);
+    equalName.setDwgRawLayerReference(16u, DRW::AC1012);
+    if (!equalName.activeDwgLayerReference()) return false;
+    equalName.setLayerRefName("10");
+    if (equalName.activeDwgLayerReference() || equalName.rawDwgLayerReference() != 16u) return false;
+    dx_iface adapter;
+    for (const auto order : {little, big, little}) {
+        if (!adapter.setDwgEedLayerByteOrder(order) || adapter.setDwgEedLayerByteOrder(invalid)) return false;
+        dx_data data;
+        if (!adapter.fileImport(input, &data, false) || !data.hasNamedObjectDictionary
+            || data.dwgReadOutcome.standardObjectPayloadValidationFailed) return false;
+        const auto entry = std::find_if(data.namedObjectDictionary.m_entries.begin(),
+            data.namedObjectDictionary.m_entries.end(), [oda](const DRW_Dictionary::Entry& item) {
+                return item.m_name == (oda ? "TEST_DICT" : "ACAD_GROUP");
+            });
+        if (entry == data.namedObjectDictionary.m_entries.end()) return false;
+        const auto dictionary = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
+            [&entry](const DRW_Dictionary& item) { return item.handle == entry->m_handle; });
+        if (dictionary == data.dictionaries.end()) return false;
+        const auto found = std::find_if(dictionary->extData.begin(), dictionary->extData.end(),
+            [](const DRW_Variant* item) { return item && item->code() == 1003; });
+        if (found == dictionary->extData.end() || !(*found)->content.s || !(*found)->isLayerRef()) return false;
+        const std::uint64_t raw = zero ? 0u : wide ? UINT64_C(0x0807060504030201)
+            : sourceBig ? (missing ? UINT64_C(0xfa00000000000000)
+            : oda ? UINT64_C(0x3000000000000000) : UINT64_C(0x1000000000000000)) : 16u;
+        const bool resolved = !missing && !wide && !zero && ((order == big) == sourceBig);
+        const char* layerName = oda ? "PROBE_LAYER" : "0";
+        if ((*found)->rawDwgLayerReference() != raw
+            || (resolved ? (!(*found)->stringEquals(layerName) || (*found)->activeDwgLayerReference())
+                         : !(*found)->activeDwgLayerReference())) return false;
+        if (oda) {
+            if (!data.mBlock) return false;
+            const auto line = std::find_if(data.mBlock->ent.begin(), data.mBlock->ent.end(),
+                [](const DRW_Entity* item) { return dynamic_cast<const DRW_Line*>(item) != nullptr; });
+            if (line == data.mBlock->ent.end()) return false;
+            const auto eed = std::find_if((*line)->extData.begin(), (*line)->extData.end(),
+                [](const std::shared_ptr<DRW_Variant>& item) { return item && item->code() == 1003; });
+            if (eed == (*line)->extData.end() || (*eed)->rawDwgLayerReference() != raw
+                || ((*eed)->stringEquals(layerName) != resolved)) return false;
+        }
+    }
+    return true;
+}
+
+bool checkLayerDxf(const std::string& input) {
+    dx_iface reader;
+    dx_data data;
+    if (!reader.fileImport(input, &data, false)) return false;
+    const auto group = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
+        [](const DRW_Dictionary& item) { return item.handle == 0xdu; });
+    if (group == data.dictionaries.end()) return false;
+    const auto layer = std::find_if(group->extData.begin(), group->extData.end(),
+        [](const DRW_Variant* item) { return item && item->code() == 1003; });
+    return layer != group->extData.end() && (*layer)->stringEquals("0");
+}
+
+bool legacyBigLayerPartial(const std::string& goodInput, const std::string& badInput,
+                           const std::filesystem::path& output) {
+    dx_iface adapter;
+    if (!adapter.setDwgEedLayerByteOrder(DRW::DwgEedLayerByteOrder::BigEndian)) return false;
+    const std::string sentinel = "unresolved EED layer destination preserved\n";
+    for (bool binary : {false, true}) {
+        dx_data bad;
+        if (!adapter.fileImport(badInput, &bad, false)) return false;
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        if (write(adapter, bad, output.string(), binary, DRW::AC1014,
+                  dx_dwgReadCompletenessPolicy::AllowPartial) || bytes(output) != sentinel) {
+            std::cerr << "Unresolved EED layer did not preserve the destination\n";
+            return false;
+        }
+        dx_data source;
+        if (!adapter.fileImport(goodInput, &source, false)) {
+            std::cerr << "Resolved EED layer import failed\n";
+            return false;
+        }
+        if (!write(adapter, source, output.string(), binary, DRW::AC1014,
+                   dx_dwgReadCompletenessPolicy::AllowPartial)) {
+            std::cerr << "Resolved EED layer export failed\n";
+            return false;
+        }
+        if (!checkLayerDxf(output.string())) return false;
+    }
+    return true;
+}
+
 bool legacyBadGroupMember(const std::string& badInput, const std::string& goodInput,
                           const std::filesystem::path& output, DRW::Version version) {
     dx_iface adapter;
@@ -1040,6 +1136,10 @@ bool r13GeneratedGuard(const std::string& input, const std::filesystem::path& ou
 int main(int argc, char** argv) {
     const bool ok = argc == 5 && std::string(argv[1]) == "--legacy-malformed"
         ? checkLegacyMalformed(argv[2], argv[3], argv[4])
+        : argc == 5 && std::string(argv[1]) == "--layer-big-partial"
+            ? legacyBigLayerPartial(argv[2], argv[3], argv[4])
+        : argc == 3 && std::string(argv[1]) == "--check-layer-dxf"
+            ? checkLayerDxf(argv[2])
         : argc == 3 && std::string(argv[1]) == "--check-partial"
         ? checkPartialReadback(argv[2])
         : argc == 3 && std::string(argv[1]) == "--legacy-eed-utf8-source"
@@ -1050,6 +1150,18 @@ int main(int argc, char** argv) {
             ? checkR14GeneratedFile(argv[2])
         : argc == 3 && std::string(argv[1]) == "--check-r13-partial"
             ? checkR13PartialReadback(argv[2])
+            : argc == 3 && std::string(argv[1]) == "--layer-policy-little"
+                ? legacyLayerEedReadPolicy(argv[2], false)
+            : argc == 3 && std::string(argv[1]) == "--layer-policy-big"
+                ? legacyLayerEedReadPolicy(argv[2], true)
+            : argc == 3 && std::string(argv[1]) == "--layer-policy-missing"
+                ? legacyLayerEedReadPolicy(argv[2], true, true)
+            : argc == 3 && std::string(argv[1]) == "--layer-policy-oda"
+                ? legacyLayerEedReadPolicy(argv[2], true, false, true)
+            : argc == 3 && std::string(argv[1]) == "--layer-policy-wide"
+                ? legacyLayerEedReadPolicy(argv[2], true, false, false, true)
+            : argc == 3 && std::string(argv[1]) == "--layer-policy-zero"
+                ? legacyLayerEedReadPolicy(argv[2], true, false, false, false, true)
         : argc == 3 ? run(argv[1], argv[2])
         : argc == 4 && std::string(argv[1]) == "--partial"
             ? partial(argv[2], argv[3])

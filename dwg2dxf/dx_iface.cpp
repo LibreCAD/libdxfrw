@@ -23879,7 +23879,8 @@ bool resolveStandardDwgExtendedData(DRW_TableEntry& record,
                                   const StandardDwgNameIndex& appIds,
                                   const StandardDwgNameIndex& layers,
                                   ObserveAppId&& observeAppId,
-                                  ObserveLayer&& observeLayer) {
+                                  ObserveLayer&& observeLayer,
+                                  DRW::DwgEedLayerByteOrder order) {
     for (const auto& pending : record.pendingAppIdResolutions) {
         if (pending.indexInExtData >= record.extData.size()
             || record.extData[pending.indexInExtData] == nullptr)
@@ -23896,27 +23897,44 @@ bool resolveStandardDwgExtendedData(DRW_TableEntry& record,
             return false;
     }
     record.pendingAppIdResolutions.clear();
-    for (const auto& pending : record.pendingLayerRefResolutions) {
-        if (pending.indexInExtData >= record.extData.size()
-            || record.extData[pending.indexInExtData] == nullptr)
-            return false;
-        const auto found = layers.find(pending.handleRef);
-        if (found != layers.end()) {
-            if (found->second == nullptr)
-                return false;
-            if (!found->second->empty())
-                record.extData[pending.indexInExtData]->setLayerRefName(*found->second);
+    if (order == DRW::DwgEedLayerByteOrder::BigEndian) {
+        for (auto* value : record.extData) {
+            if (!value || value->code() != 1003 || !value->isLayerRef()
+                || value->rawDwgLayerReference() == 0u) continue;
+            const auto handle = dwgEed::layerHandle(value->rawDwgLayerReference(), order);
+            if (handle != 0u && handle <= (std::numeric_limits<std::uint32_t>::max)()) {
+                const auto found = layers.find(static_cast<std::uint32_t>(handle));
+                if (found != layers.end()) {
+                    if (found->second == nullptr) return false;
+                    if (!found->second->empty()) value->setLayerRefName(*found->second);
+                }
+            }
+            if (!value->content.s || !observeLayer(handle, *value->content.s)) return false;
         }
-        if (!observeLayer(pending.handleRef,
-                *record.extData[pending.indexInExtData]->content.s))
-            return false;
+    } else {
+        for (const auto& pending : record.pendingLayerRefResolutions) {
+            if (pending.indexInExtData >= record.extData.size()
+                || record.extData[pending.indexInExtData] == nullptr)
+                return false;
+            const auto found = layers.find(pending.handleRef);
+            if (found != layers.end()) {
+                if (found->second == nullptr)
+                    return false;
+                if (!found->second->empty())
+                    record.extData[pending.indexInExtData]->setLayerRefName(*found->second);
+            }
+            if (!observeLayer(pending.handleRef,
+                    *record.extData[pending.indexInExtData]->content.s))
+                return false;
+        }
     }
     record.pendingLayerRefResolutions.clear();
     // Wide EED layer references are intentionally not queued into the 32-bit
     // layer map. Preserve that raw value and its unqualified dependency; never
     // match a truncated low-word alias or infer a layer from the hex spelling.
     for (const auto* value : record.extData) {
-        if (value && value->code() == 1003
+        if (order == DRW::DwgEedLayerByteOrder::LegacyLittleEndian
+            && value && value->code() == 1003
             && value->rawDwgLayerReference() > (std::numeric_limits<std::uint32_t>::max)()
             && (!value->content.s || !observeLayer(value->rawDwgLayerReference(), *value->content.s)))
             return false;
@@ -28540,7 +28558,7 @@ void dx_iface::finishRasterDwgSources(bool successfulRead, std::size_t appIdBegi
             const auto observed = [](auto, const UTF8STRING &) { return true; };
             capturePhase = "raw-to-typed payload correlation";
             if (!body.isGood()
-                || !resolveStandardDwgExtendedData(*parsed, appIds, layers, observed, observed)
+                || !resolveStandardDwgExtendedData(*parsed, appIds, layers, observed, observed, m_activeDwgEedLayerByteOrder)
                 || !rasterDwgModelEqual(*parsed, *typed, raw.m_version, definition)
                 || parsed->handle != raw.m_handle
                 || parsed->reactorCount() != frame.publication.m_numReactors
@@ -30178,7 +30196,7 @@ void dx_iface::validateStandardDwgObjectPayloads(
                 return true;
             };
             const auto compareCommon = [&](DRW_TableEntry& parsed, bool compareName = true) {
-                if (!resolveStandardDwgExtendedData(parsed, appIds, layers, observeAppId, observeLayer)
+                if (!resolveStandardDwgExtendedData(parsed, appIds, layers, observeAppId, observeLayer, m_activeDwgEedLayerByteOrder)
                     || !standardDwgCommonEqual(parsed, *found->second, raw.m_version, compareName)
                     || parsed.handle != raw.m_handle
                     || parsed.reactorCount() != frame.publication.m_numReactors
@@ -81842,6 +81860,8 @@ bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
         fData->visualStyleImport.sourceFormat = fData->sourceFormat;
         //loads dwg
         dwgRW dwg(fileI.c_str());
+        m_activeDwgEedLayerByteOrder = m_dwgEedLayerByteOrder;
+        if (!dwg.setDwgEedLayerByteOrder(m_activeDwgEedLayerByteOrder)) return false;
         fData->dwgReadOutcome.attempted = true;
         m_verifiedXRecordFailed = false;
         m_verifiedXRecordPending.clear();

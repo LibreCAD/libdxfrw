@@ -63,6 +63,8 @@ void usage(){
     std::cout << "   and retains up to 64 MiB of source data with a separate work limit;" << std::endl;
     std::cout << "   total memory can be higher and strict checks remain in force." << std::endl;
     std::cout << "   An emitted DXF may not itself qualify for another conversion." << std::endl;
+    std::cout << "   --dwg-eed-layer-byte-order=little|big selects DWG EED layer decoding" << std::endl;
+    std::cout << "   for a known producer; default is little. Unresolved targets fail output." << std::endl;
     std::cout << "   --allow-partial-dwg-read permits bounded terminal DWG frame losses;" << std::endl;
     std::cout << "   strict is the default; owner/reference checks remain strict and" << std::endl;
     std::cout << "   partial output is not a complete DWG semantics/support claim." << std::endl;
@@ -312,7 +314,8 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver,
                  bool nonInteractive = false,
                  DRW::DxfCodePagePolicy codePagePolicy = DRW::DxfCodePagePolicy::Compatible,
                  bool allowPartialDwgRead = false,
-                 bool observeWholeDxfSource = false){
+                 bool observeWholeDxfSource = false,
+                 DRW::DwgEedLayerByteOrder dwgEedLayerByteOrder = DRW::DwgEedLayerByteOrder::LegacyLittleEndian){
     bool badState = false;
     namespace fs = std::filesystem;
     const fs::path inputPath = fs::u8path(inName);
@@ -372,6 +375,7 @@ bool convertFile(std::string inName, std::string outName, DRW::Version ver,
     dx_data fData;
     //First read a dwg or dxf file
     dx_iface input;
+    if (!input.setDwgEedLayerByteOrder(dwgEedLayerByteOrder)) return false;
     if (observeWholeDxfSource && !input.enableWholeDxfSourceObservation()) {
         std::cerr << "Error: cannot enable DXF source observation" << std::endl;
         return false;
@@ -472,7 +476,7 @@ int runCli(int argc, char *argv[]) {
                                     options.binary, options.overwrite,
                                     options.debug, true, options.codePagePolicy,
                                     options.allowPartialDwgRead,
-                                    options.observeWholeDxfSource);
+                                    options.observeWholeDxfSource, options.dwgEedLayerByteOrder);
         if (ok) {
             std::cout << "Success: converted " << fileName << " to " << outName << std::endl;
             return 0;
@@ -501,7 +505,7 @@ int runCli(int argc, char *argv[]) {
     if (!options.batch){ //no batch mode, only one file
         bool ok = convertFile(fileName, outName, options.version, options.binary,
                               options.overwrite, options.debug, false, options.codePagePolicy,
-                              options.allowPartialDwgRead, options.observeWholeDxfSource);
+                              options.allowPartialDwgRead, options.observeWholeDxfSource, options.dwgEedLayerByteOrder);
         if (ok) {
             std::cout << "Success: converted " << fileName << " to " << outName << std::endl;
             return 0;
@@ -610,7 +614,7 @@ int runCli(int argc, char *argv[]) {
                 && convertFile(inputs[index], output, options.version,
                                options.binary, options.overwrite,
                                options.debug, true, options.codePagePolicy,
-                               options.allowPartialDwgRead, options.observeWholeDxfSource);
+                               options.allowPartialDwgRead, options.observeWholeDxfSource, options.dwgEedLayerByteOrder);
             std::cout << (ok ? "Success: " : "Failed: ") << inputs[index]
                       << " -> " << output << '\n';
             allOk = ok && allOk;

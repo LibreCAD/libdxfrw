@@ -71,6 +71,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--oda", required=True)
     parser.add_argument("--dwgread", default="dwgread")
+    parser.add_argument("--candidate-test", help="optional libdxfrw policy/readback test executable")
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     import ezdxf
@@ -102,6 +103,8 @@ def main() -> None:
         run(args.oda, str(incoming), str(source_dir), target, "DWG", "0", "1", "*.dxf")
         source = source_dir / "seed.dwg"
         proof = model_and_frame(args.dwgread, source, version)
+        if args.candidate_test:
+            run(args.candidate_test, "--layer-policy-oda", str(source))
         chunks = [row for row in proof["wire"]["eed"] if row["appid"]["value"] == appid]
         expected = (b"\x03" + handle.to_bytes(8, "big")).hex()
         if len(chunks) != 1 or chunks[0]["rawHex"] != expected:
@@ -121,7 +124,8 @@ def main() -> None:
             "frameSha256": proof["wire"]["frameSha256"], "layerEedHex": expected,
             "reopenedDxfSha256": digest(original_dxf), "reopenedLayer": original_tags[0][1],
             "patchedDwgSha256": digest(patched), "patchedReopenedDxfSha256": digest(patched_dxf),
-            "patchedLayerTags": patched_tags, "frameCrcValid": proof["crcValid"]}
+            "patchedLayerTags": patched_tags, "frameCrcValid": proof["crcValid"],
+            "candidatePolicyReadbackPassed": bool(args.candidate_test)}
     print(json.dumps(receipt, indent=2))
 
 

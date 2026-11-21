@@ -1205,6 +1205,7 @@ public:
       m_polylineStagingBytes = (std::numeric_limits<std::size_t>::max)();
       m_dwgFrameCoverageIntegrityViolation = true;
     }
+    if (p != nullptr) m_eedLayerByteOrder = p->dwgEedLayerByteOrder();
     decoder.setVersion(DRW::AC1021, false); // default 2007 in utf8(no convert)
     decoder.setCodePage("UTF-16", false);
     //        blockCtrl=0; //RLZ: temporary
@@ -2427,6 +2428,7 @@ protected:
   std::unordered_map<std::uint32_t, std::uint64_t> m_dwgClassNumberOrdinals;
   bool m_dwgClassCoveragePublished{false};
   bool m_dwgClassCoverageCaptureFailed{false};
+  DRW::DwgEedLayerByteOrder m_eedLayerByteOrder{DRW::DwgEedLayerByteOrder::LegacyLittleEndian};
   DRW_TextCodec decoder;
   DwgSourceCodePage m_sourceCodePage;
 

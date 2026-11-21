@@ -187,14 +187,15 @@ refusal and retry for a dangling reference in R13 partial output. Layer EED
 byte order, other group graphs and EED schemas still need matching source and
 output evidence. A [repeatable ODA/LibreDWG layer witness](docs/research/p6-legacy-eed-layer-byte-order-2026-11-21.json)
 now shows opposing physical byte orders for R13/R14, with ODA confirming the
-same big-endian encoding for R2000; the current reader and
-DWG encoder use the LibreDWG order. Next, retain both interpretations with the
-raw source/version, prove an unambiguous layer-table identity and source profile
-before resolving a name, and leave ambiguous or wide targets unresolved. Add
-ODA and LibreDWG producer/reopen controls, unresolved/wide and collision cases,
-mutation, rollback and retry; then correct the writer only for an independently
-witnessed output profile. Do not infer an endian choice from 32-bit fit alone or
-promote format support from the generated controls.
+same big-endian encoding for R2000. The [explicit read-policy control](docs/research/p6-eed-layer-read-policy-2026-11-21.json)
+now resolves either witnessed order when the caller selects it, preserves raw
+bytes, and refuses DXF output for unresolved layer references. The default
+remains the existing little-endian behavior; the choice does not infer producer
+identity or promote support. Next, establish trustworthy automatic source
+profile evidence and extend semantic/source proofs to the selected layer edge;
+keep ambiguous or wide targets unresolved. Correct DWG output encoding only for
+an independently witnessed output profile, with producer reopen, collision,
+mutation, rollback and retry controls.
 The same source and staged proof now covers R13-to-R14 explicit partial output
 for that bounded group, with independent ASCII/Binary readback and mutation
 refusal; see [R13 control](docs/research/p6-r13-group-dictionary-eed-partial-2026-11-21.json)

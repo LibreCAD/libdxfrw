@@ -7344,6 +7344,30 @@ void dwgReader::resolveLayerLineTypeReference(DRW_Layer *layer) noexcept {
   }
 }
 
+namespace {
+DRW_Variant* eedLayerVariant(DRW_Variant* value) noexcept { return value; }
+DRW_Variant* eedLayerVariant(const std::shared_ptr<DRW_Variant>& value) noexcept {
+  return value.get();
+}
+
+// The raw value stores the original bytes in little-endian integer order.
+// Only an explicit caller-selected big-endian profile permits reversing it;
+// table identity is still required, and wide/missing references remain raw.
+template <typename Values, typename Layers>
+void resolveBigEndianEedLayers(Values& values, const Layers& layers) {
+  for (auto& holder : values) {
+    DRW_Variant* value = eedLayerVariant(holder);
+    if (!value || value->code() != 1003 || !value->isLayerRef()) continue;
+    const auto handle = dwgEed::layerHandle(value->rawDwgLayerReference(),
+                                            DRW::DwgEedLayerByteOrder::BigEndian);
+    if (!handle || handle > (std::numeric_limits<std::uint32_t>::max)()) continue;
+    const auto layer = layers.find(static_cast<std::uint32_t>(handle));
+    if (layer != layers.end() && layer->second && !layer->second->name.empty())
+      value->setLayerRefName(layer->second->name);
+  }
+}
+} // namespace
+
 void dwgReader::parseAttribs(DRW_Entity *e) {
   if (nullptr == e) {
     return;
@@ -7415,7 +7439,9 @@ void dwgReader::parseAttribs(DRW_Entity *e) {
   }
   e->pendingAppIdResolutions.clear();
 
-  for (const auto &p : e->pendingLayerRefResolutions) {
+  if (m_eedLayerByteOrder == DRW::DwgEedLayerByteOrder::BigEndian)
+    resolveBigEndianEedLayers(e->extData, layermap);
+  else for (const auto &p : e->pendingLayerRefResolutions) {
     if (p.indexInExtData >= e->extData.size())
       continue;
     auto &v = e->extData[p.indexInExtData];
@@ -7446,7 +7472,9 @@ void dwgReader::parseAttribs(DRW_TableEntry *e) {
   }
   e->pendingAppIdResolutions.clear();
 
-  for (const auto &p : e->pendingLayerRefResolutions) {
+  if (m_eedLayerByteOrder == DRW::DwgEedLayerByteOrder::BigEndian)
+    resolveBigEndianEedLayers(e->extData, layermap);
+  else for (const auto &p : e->pendingLayerRefResolutions) {
     if (p.indexInExtData >= e->extData.size() ||
         e->extData[p.indexInExtData] == nullptr)
       continue;

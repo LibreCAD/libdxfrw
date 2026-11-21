@@ -626,6 +626,12 @@ public:
 
     dx_iface() = default;
     ~dx_iface() = default;
+    bool setDwgEedLayerByteOrder(DRW::DwgEedLayerByteOrder order) noexcept {
+        if (order != DRW::DwgEedLayerByteOrder::LegacyLittleEndian
+            && order != DRW::DwgEedLayerByteOrder::BigEndian) return false;
+        m_dwgEedLayerByteOrder = order;
+        return true;
+    }
     // Explicit input-only selection; ordinary/CLI calls retain Compatible.
     // Owned outcome distinguishes this request from the read-entry snapshot.
     bool fileImport(const std::string& fileI, dx_data *fData, bool debug,
@@ -3644,6 +3650,8 @@ public:
     dx_ifaceBlock* currentBlock {nullptr};
 
 private:
+    DRW::DwgEedLayerByteOrder m_dwgEedLayerByteOrder{DRW::DwgEedLayerByteOrder::LegacyLittleEndian};
+    DRW::DwgEedLayerByteOrder m_activeDwgEedLayerByteOrder{DRW::DwgEedLayerByteOrder::LegacyLittleEndian};
     // Keep the generated AC1018 profile isolated from existing opt-ins and
     // subclasses. Legacy snapshots are not general identity/output evidence.
     bool legacyPlotAc1018Enabled() const noexcept {
