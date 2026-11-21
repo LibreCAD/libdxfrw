@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-dictionary-eed-binary-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_LEGACY_EED_1004_BINARY",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "28 Extended Entity Data",
+    "observation": "EED item 4 maps to DXF group 1004 and contains a one-byte length followed by that many bytes."
+  },
+  "generator": "tools/research/generate_legacy_dictionary_eed_control.py",
+  "construction": "LibreDWG 0.14 generates locally authored R13/R14 controls with a 128-byte EED item, remapped graph and one 3D LINE member. LibreDWG JSON readback verifies source values and graph. Generated drawings remain outside the repository.",
+  "checks": [
+    "The shared legacy dictionary observer matches the physical length and every payload byte to the typed binary value and requires the token span to end exactly.",
+    "The ASan source control checks every source bit, all frame truncations, an altered model byte and corrected retry.",
+    "Group, NOD and MLINESTYLE owner profiles pass R14 strict and R13 explicit-partial ASCII/Binary output with mutation refusal, destination preservation and corrected retry. An out-of-profile 1005 handle retains its partial route and references the remapped LINE.",
+    "Independent ezdxf 1.4.5 readback verifies the complete payload as 127-byte and 1-byte chunks and the GROUP-to-LINE graph for both output encodings, all three locations and both source versions."
+  ],
+  "sourceSha256": {
+    "r13Group": "da229d4a2da50f768cd70d5aab9460946d28831eb99c605852e25e2c74520505",
+    "r13Nod": "941cbe364ad9e3405d15e9c158ba0214c8e9012116b904390cb355d935cd8e8e",
+    "r13Mline": "a93cae7121e4db67fce7931e76c39c2525a7486a55e016ff31531d48c4198a8c",
+    "r14Group": "b6adc2aa59cfb3ca3823e986f3946038e801d7ffb0647d82ad5bca0891eb2c17",
+    "r14Nod": "4f38956537d72c1c0c92636f621ee1f0b6a32a42f3dd61f69874d5067c49e599",
+    "r14Mline": "987d11cee2766282805d7e653ddbff0e495dc15177602d4117e875474aa5a230"
+  },
+  "limits": [
+    "R13 output remains explicit partial; MLINESTYLE source semantics, native cloning and general DWG/DXF support remain unqualified.",
+    "The independent generated witness exercises 128 bytes; it does not qualify application-specific binary meanings or unobserved EED codes."
+  ]
+}

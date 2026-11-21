@@ -83,7 +83,7 @@ def main():
     recipe = Path(__file__).resolve().parents[2] / 'tests/fixtures/dwg/ac1012_partial_three_line_control.dwgadd'
     base = root / 'dwgadd.dwg'
     source = root / 'dwgadd.json'
-    if any((root / name).exists() for name in ('dwgadd.dwg', 'dwgadd.json', 'baseline.dwg', 'eed.dwg', 'unqualified.dwg', 'utf8.dwg', 'wide.dwg')):
+    if any((root / name).exists() for name in ('dwgadd.dwg', 'dwgadd.json', 'baseline.dwg', 'eed.dwg', 'int32.dwg', 'reals.dwg', 'groups.dwg', 'binary.dwg', 'unqualified.dwg', 'utf8.dwg', 'wide.dwg')):
         raise RuntimeError('output directory must not contain a previous control')
     effective_recipe = recipe
     if args.nonempty_group:
@@ -158,7 +158,7 @@ def main():
     # so the baseline remains within the existing MLINESTYLE wire profile.
     styles[0]['start_angle'] = styles[0]['end_angle'] = 1.5707963267948966
     results = {}
-    for name in ('baseline', 'eed', 'int32', 'reals', 'groups', 'unqualified'):
+    for name in ('baseline', 'eed', 'int32', 'reals', 'groups', 'binary', 'unqualified'):
         if name == 'eed':
             target['eed'] = [
                 {'size': 12, 'handle': [5, 1, appid], 'code': 0, 'value': 'HELLO'},
@@ -180,11 +180,18 @@ def main():
                 {'code': 70, 'value': 42}, {'code': 2, 'value': 0}, {'code': 2, 'value': 0},
                 {'code': 2, 'value': 1}, {'code': 2, 'value': 1},
             ]
-        if name == 'unqualified':
-            # A binary EED item remains outside this bounded source proof.
+        if name == 'binary':
+            # 128 bytes exercise the DXF 127-byte chunk boundary.
             target['eed'] = [
-                {'size': 16, 'handle': [5, 1, appid], 'code': 0, 'value': 'HELLO'},
-                {'code': 70, 'value': 42}, {'code': 4, 'value': '0102'},
+                {'size': 142, 'handle': [5, 1, appid], 'code': 0, 'value': 'HELLO'},
+                {'code': 70, 'value': 42},
+                {'code': 4, 'value': ''.join(f'{n:02X}' for n in range(128))},
+            ]
+        if name == 'unqualified':
+            # An EED handle reference remains outside this bounded source proof.
+            target['eed'] = [
+                {'size': 21, 'handle': [5, 1, appid], 'code': 0, 'value': 'HELLO'},
+                {'code': 70, 'value': 42}, {'code': 5, 'value': [5, 1, 46, 46]},
             ]
         path = root / (name + '.json')
         drawing = root / (name + '.dwg')
@@ -205,8 +212,11 @@ def main():
                 or mline_roots[0].get('ownerhandle', [0])[-1] != root_handle:
             raise RuntimeError(f'{name} MLINESTYLE owner graph mismatch')
         peer_target = roots[0] if args.eed_on_nod else mline_roots[0] if args.eed_on_mline else selected[0]
-        if name != 'baseline' and peer_target.get('eed') != target['eed']:
+        if name not in ('baseline', 'unqualified') and peer_target.get('eed') != target['eed']:
             raise RuntimeError(f'{name} independent EED readback mismatch')
+        if name == 'unqualified' and (peer_target.get('eed', [])[-1].get('code') != 5
+                or peer_target['eed'][-1].get('value', [])[-1] != 46):
+            raise RuntimeError('unqualified EED handle readback mismatch')
         peer_apps = [o for o in reread['OBJECTS'] if o.get('object') == 'APPID'
                      and o.get('handle', [0, 0, 0])[2] == appid and o.get('name') == 'ACAD']
         peer_controls = [o for o in reread['OBJECTS'] if o.get('object') == 'APPID_CONTROL']
