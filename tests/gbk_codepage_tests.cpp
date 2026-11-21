@@ -2588,7 +2588,7 @@ void testXRecordPerValueCodePage(TestContext& t) {
     for (const auto& row : rows) {
         // Independently authored application pairs retain the established RS
         // count, not common EED's RC count/two-byte codepage framing. The
-        // disputed legacy count layout is deliberately not qualified here.
+        // R13/R14 count boundaries are separately bound to ODA producer controls.
         dwgBufferW payload;
         payload.putRawShort16(1u);
         payload.putRawShort16(static_cast<std::uint16_t>(row.raw.size()));
@@ -2635,6 +2635,63 @@ void testXRecordPerValueCodePage(TestContext& t) {
                      && parsed.m_values.empty(),
                  "oversized counted text cannot borrow following common handles or retain prior XRECORD values");
         ++count;
+    }
+    // ODA-produced R13/R14 XRECORDs prove the legacy RS length boundary:
+    // 255 is FF 00, while 256 is 00 01, followed by the RC page 45.
+    const auto legacyFrame = [](DRW::Version version, std::uint16_t length,
+                                std::uint16_t declared) {
+        dwgBufferW payload;
+        payload.putRawShort16(1u);
+        payload.putRawShort16(declared);
+        payload.putRawChar8(45u);
+        const std::string text(length, 'A');
+        payload.putBytes(reinterpret_cast<const std::uint8_t*>(text.data()), text.size());
+        payload.putRawShort16(90u);
+        payload.putRawLong32(length);
+        dwgBufferW frame;
+        frame.putObjType(version, 515u);
+        dwgHandle own; own.ref = 0x35u; frame.putHandle(own);
+        frame.putBitShort(0u); // EED terminator
+        const auto sizeOffset = frame.bitCount();
+        frame.putRawLong32(0u);
+        frame.putBitLong(1); // one reactor
+        frame.putBitLong(static_cast<std::int32_t>(payload.data().size()));
+        frame.putBytes(payload.data().data(), payload.data().size());
+        const auto bodyBits = static_cast<std::uint32_t>(frame.bitCount());
+        const std::uint8_t sizeBytes[] = {
+            static_cast<std::uint8_t>(bodyBits), static_cast<std::uint8_t>(bodyBits >> 8),
+            static_cast<std::uint8_t>(bodyBits >> 16), static_cast<std::uint8_t>(bodyBits >> 24)};
+        frame.patchRawBytesAtBit(sizeOffset, sizeBytes, sizeof(sizeBytes));
+        dwgHandle owner; owner.code = DRW::DwgSoftPointer; owner.ref = 0x30u;
+        frame.putHandle(owner); frame.putHandle(owner);
+        dwgHandle extension; extension.code = DRW::DwgHardOwnership;
+        frame.putHandle(extension); frame.alignToByte();
+        return frame.data();
+    };
+    for (const auto version : {DRW::AC1012, DRW::AC1014}) {
+        DRW_TextCodec codec;
+        codec.setVersion(version, false);
+        codec.setCodePage("ANSI_1252", false);
+        xrecord_test::CodecProbe parsed;
+        for (const std::uint16_t length : {1u, 254u, 255u, 256u, 300u}) {
+            const auto good = legacyFrame(version, length, length);
+            const auto bad = legacyFrame(version, length, 0xffffu);
+            dwgBuffer failed(bad.data(), bad.size(), &codec);
+            t.expect(!parsed.parseDwg(version, &failed) && parsed.m_values.empty()
+                         && parsed.m_dataEntries.empty(),
+                     "legacy XRECORD overlong count refuses and clears previous values");
+            dwgBuffer body(good.data(), good.size(), &codec);
+            const bool read = parsed.parseDwg(version, &body);
+            t.expect(read && body.isGood() && parsed.m_dataEntries.size() == 2u
+                         && parsed.m_dataEntries[0].type() == DRW_Variant::STRING
+                         && parsed.m_dataEntries[0].content.s
+                         && *parsed.m_dataEntries[0].content.s == std::string(length, 'A')
+                         && parsed.m_dataEntries[1].code() == 90
+                         && parsed.m_dataEntries[1].i_val() == length
+                         && parsed.parentHandle == 0x30u && parsed.reactorHandles.size() == 1u
+                         && parsed.reactorHandles[0] == 0x30u,
+                     "legacy XRECORD 16-bit string length retains following value and handles on retry");
+        }
     }
     unsigned noSink = 0u;
     for (const auto page : {0u, 30u, 39u, 255u}) {

@@ -805,6 +805,47 @@ bool legacyLayerEedReadPolicy(const std::string& input, bool sourceBig, bool mis
     return true;
 }
 
+bool legacyXRecordLengthControls(const std::string& goodInput,
+                                 const std::string& badInput) {
+    dx_iface adapter;
+    dx_data bad;
+    if (!adapter.fileImport(badInput, &bad, false)
+        || bad.dwgReadOutcome.observations.objectParseFailures == 0u) {
+        std::cerr << "oversized XRECORD string did not record an object failure\n";
+        return false;
+    }
+    dx_data source;
+    if (!adapter.fileImport(goodInput, &source, false)
+        || (source.sourceVersion != DRW::AC1012 && source.sourceVersion != DRW::AC1014)
+        || source.dwgReadOutcome.observations.objectParseFailures != 0u
+        || !source.hasNamedObjectDictionary) return false;
+    const auto parentEdge = std::find_if(source.namedObjectDictionary.m_entries.begin(),
+        source.namedObjectDictionary.m_entries.end(), [](const auto& entry) {
+            return entry.m_name == "LEN_PROBE";
+        });
+    if (parentEdge == source.namedObjectDictionary.m_entries.end()) return false;
+    const auto parent = std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
+        [&parentEdge](const DRW_Dictionary& dictionary) { return dictionary.handle == parentEdge->m_handle; });
+    if (parent == source.dictionaries.end()) return false;
+    for (const int length : {1, 254, 255, 256, 300}) {
+        const auto name = "LEN_" + std::to_string(length);
+        const auto edge = std::find_if(parent->m_entries.begin(), parent->m_entries.end(),
+            [&name](const auto& entry) { return entry.m_name == name; });
+        if (edge == parent->m_entries.end()) return false;
+        const auto record = std::find_if(source.xRecords.begin(), source.xRecords.end(),
+            [&edge](const DRW_XRecord& item) { return item.handle == edge->m_handle; });
+        if (record == source.xRecords.end() || record->m_dataEntries.size() != 2u
+            || record->m_dataEntries[0].code() != 1
+            || record->m_dataEntries[0].type() != DRW_Variant::STRING
+            || !record->m_dataEntries[0].content.s
+            || *record->m_dataEntries[0].content.s != std::string(static_cast<std::size_t>(length), 'A')
+            || record->m_dataEntries[1].code() != 90
+            || record->m_dataEntries[1].type() != DRW_Variant::INTEGER
+            || record->m_dataEntries[1].i_val() != length || record->m_rawDataValid) return false;
+    }
+    return true;
+}
+
 bool checkLayerDxf(const std::string& input, std::uint32_t handle = 0xdu) {
     dx_iface reader;
     dx_data data;
@@ -1216,6 +1257,8 @@ int main(int argc, char** argv) {
             ? legacyBigLayerPartial(argv[2], argv[3], argv[4], 0xcu)
         : argc == 5 && std::string(argv[1]) == "--layer-big-mline"
             ? legacyBigLayerPartial(argv[2], argv[3], argv[4], 0x17u)
+        : argc == 4 && std::string(argv[1]) == "--legacy-xrecord-lengths"
+            ? legacyXRecordLengthControls(argv[2], argv[3])
         : argc == 3 && std::string(argv[1]) == "--check-layer-dxf"
             ? checkLayerDxf(argv[2])
         : argc == 3 && std::string(argv[1]) == "--check-partial"

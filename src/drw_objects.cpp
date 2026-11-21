@@ -1397,7 +1397,9 @@ bool readXRecordTextWithinBody(DRW::Version version, dwgBuffer *buf,
     // codepage. Reuse the named DWG-page conversion/issue transfer, not the
     // common EED framing. Zero retains the established file-default path;
     // Unicode strings have no per-value codepage byte. The legacy RS length
-    // convention above is unchanged and still needs producer qualification.
+    // convention is independently observed for R13/R14 strings at lengths
+    // 1, 254, 255, 256 and 300 with application codepage 45; see the
+    // legacy XRECORD length-boundary research receipt.
     if (version <= DRW::AC1018 && codePage != 0u)
         text = decodeEedString(codePage, text, buf->decoder);
     else if (buf->decoder)

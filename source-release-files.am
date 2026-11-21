@@ -1360,6 +1360,7 @@ EXTRA_DIST = \
     tools/research/verify_legacy_dictionary_layer_output.py \
     tools/research/verify_libredwg_tablestyle_peer_tail.py \
     tools/research/verify_oda_legacy_layer_graph.py \
+    tools/research/verify_oda_legacy_xrecord_lengths.py \
     tools/run_external_advisory.py \
     tools/run_fast_baseline.py \
     tools/run_fast_focus.py \

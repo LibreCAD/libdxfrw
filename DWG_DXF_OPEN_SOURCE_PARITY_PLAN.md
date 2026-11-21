@@ -200,7 +200,7 @@ The [ODA nondefault-layer source](docs/research/p6-oda-legacy-dictionary-layer-e
 now binds NOD/MLINESTYLE parent and extension dictionary frames, APPID, layer,
 handle roles and ODA reopen. The [XRECORD wire control](docs/research/p6-oda-legacy-layer-extension-xrecord-wire-2026-11-21.json)
 now binds the selected extension XRECORD bodies, tails, following frames and
-class-table records. Before extending output, establish the R14 extension byte
+class-table records. The [R13/R14 string-length witness](docs/research/p6-oda-legacy-xrecord-string-lengths-2026-11-21.json) independently checks ODA-generated 1, 254, 255, 256 and 300-byte XRECORD strings, the following value and handles, malformed-length refusal, and same-adapter retry. Its observed two-byte length differs from ODA specification section 20.4.104; keep other producer profiles unqualified. Before extending output, establish the R14 extension byte
 and ownership semantics, and close the recorded whole-source guards. The [R2000 writer control](docs/research/p6-r2000-eed-layer-write-order-2026-11-21.json)
 now checks explicitly selected byte order, raw-byte replay, failure/retry and
 ODA reopen for generated LINE and LAYER examples. A [named-layer control](docs/research/p6-r2000-eed-layer-named-handle-2026-11-21.json)
