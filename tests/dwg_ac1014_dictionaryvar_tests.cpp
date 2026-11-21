@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "dx_ac1014_dictionaryvar_wire.h"
-#include "dx_ac1014_mlinestyle_wire.h"
+#include "dx_legacy_mlinestyle_wire.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
 
@@ -29,18 +29,18 @@ void putText(dwgBufferW& w, const std::string& text) {
 
 // Generated R14 producers may include a terminator in a TV field and encode
 // an owner as an offset handle. Bind both forms to the same typed graph.
-bool terminatedDictionaryControl() {
+bool terminatedDictionaryControl(DRW::Version version) {
     dwgBufferW w;
-    w.putObjType(DRW::AC1014, 42u);
+    w.putObjType(version, 42u);
     w.putFixedHandle(0u, 1u, 0x17u);
     w.putBitShort(0u);
-    w.putRawLong32(170u);
+    w.putRawLong32(version == DRW::AC1014 ? 170u : 154u);
     w.putBitLong(1);
     w.putBitLong(1);
-    w.putRawChar8(0u);
-    w.putBitShort(9u);
+    if (version == DRW::AC1014) w.putRawChar8(0u);
+    w.putBitShort(version == DRW::AC1014 ? 9u : 8u);
     for (unsigned char c : std::string("Standard")) w.putRawChar8(c);
-    w.putRawChar8(0u);
+    if (version == DRW::AC1014) w.putRawChar8(0u);
     w.putFixedHandle(12u, 1u, 11u);
     w.putFixedHandle(4u, 1u, 0xcu);
     w.putFixedHandle(3u, 0u, 0u);
@@ -49,9 +49,9 @@ bool terminatedDictionaryControl() {
     const auto bytes = w.data();
     dwgBuffer input(bytes.data(), bytes.size());
     Dictionary model;
-    if (!model.parseDwg(DRW::AC1014, &input, 0u) || !input.isGood()) return false;
+    if (!model.parseDwg(version, &input, 0u) || !input.isGood()) return false;
     DRW_UnsupportedObject raw;
-    raw.m_version = DRW::AC1014;
+    raw.m_version = version;
     raw.m_handle = model.handle;
     raw.m_objectType = 42;
     raw.m_objectSize = static_cast<std::uint32_t>(bytes.size());
@@ -62,10 +62,15 @@ bool terminatedDictionaryControl() {
     raw.m_xDictHandle = model.xDictHandle;
     raw.setCommonLinkEvidence(DRW_DwgCommonLinkEvidence::Validated);
     if (!dx_ac1014_dictionaryvar_wire::dictionary(raw, model, false, true)) return false;
-    auto wrongOwner = raw;
-    // Change the offset, retaining a syntactically valid soft-pointer role.
-    wrongOwner.m_rawBytes[22] ^= 0x40u;
-    return !dx_ac1014_dictionaryvar_wire::dictionary(wrongOwner, model, false, true);
+    for (std::size_t bit = 0; bit < bytes.size() * 8u; ++bit) {
+        auto changed = raw;
+        changed.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
+        if (dx_legacy_dwg_wire::dictionary(changed, model, false, true)
+            != (bit >= bytes.size() * 8u - 6u)) return false;
+    }
+    auto wrongVersion = raw;
+    wrongVersion.m_version = version == DRW::AC1012 ? DRW::AC1014 : DRW::AC1012;
+    return !dx_ac1014_dictionaryvar_wire::dictionary(wrongVersion, model, false, true);
 }
 
 bool dictionaryWireControl(bool nod, bool mlineOwner) {
@@ -162,7 +167,8 @@ bool expected(const Variable& v) {
 }
 
 bool run() {
-    if (!terminatedDictionaryControl() || !dictionaryWireControl(true, false)
+    if (!terminatedDictionaryControl(DRW::AC1012)
+        || !terminatedDictionaryControl(DRW::AC1014) || !dictionaryWireControl(true, false)
         || !dictionaryWireControl(false, false)
         || !dictionaryWireControl(false, true)) {
         std::cerr << "generated dictionary source or mutation control failed\n";
@@ -265,14 +271,23 @@ bool run() {
     rawStyle.m_handle = 0x1bu;
     rawStyle.m_objectSize = static_cast<std::uint32_t>(styleBytes.size());
     rawStyle.m_rawBytes = styleBytes;
-    if (!dx_ac1014_mlinestyle_wire::style(rawStyle, style)) {
+    if (!dx_legacy_mlinestyle_wire::style(rawStyle, style)) {
         std::cerr << "MLINESTYLE observer rejected generated source\n";
         return false;
     }
+    dwgBuffer r13StyleInput(styleBytes.data(), styleBytes.size());
+    Style r13Style;
+    rawStyle.m_version = DRW::AC1012;
+    if (!r13Style.parseDwg(DRW::AC1012, &r13StyleInput, 0u)
+        || !r13StyleInput.isGood() || !dx_legacy_mlinestyle_wire::style(rawStyle, r13Style)) {
+        std::cerr << "R13 MLINESTYLE shared framing failed\n";
+        return false;
+    }
+    rawStyle.m_version = DRW::AC1014;
     for (std::size_t bit = 0; bit < styleBytes.size() * 8u; ++bit) {
         auto changed = rawStyle;
         changed.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
-        const bool accepted = dx_ac1014_mlinestyle_wire::style(changed, style);
+        const bool accepted = dx_legacy_mlinestyle_wire::style(changed, style);
         if (accepted != (bit >= styleBytes.size() * 8u - 2u)) {
             std::cerr << "MLINESTYLE observer mishandled bit mutation " << bit << '\n';
             return false;

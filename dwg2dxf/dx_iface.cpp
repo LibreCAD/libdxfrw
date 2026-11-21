@@ -42,7 +42,7 @@
 #include "dx_ac1024_aerial_fbxasset_wire.h"
 #include "dx_ac1024_aerial_advmaterial_wire.h"
 #include "dx_ac1014_dictionaryvar_wire.h"
-#include "dx_ac1014_mlinestyle_wire.h"
+#include "dx_legacy_mlinestyle_wire.h"
 #include "dx_ac1021_dictionaryvar_wire.h"
 #include "dx_ac1024_dictionaryvar_wire.h"
 #include "dx_current_tablestyle_reference.h"
@@ -32551,11 +32551,11 @@ bool dx_iface::hasUnchangedStandardDwgObjectSources() const noexcept {
                 || !standardDwgModelsEqual(*frame.typedBaseline, *found->second,
                                             frame.raw.m_version, frame.raw.m_objectType))
                 return false;
-            if (frame.raw.m_version == DRW::AC1014
+            if (dx_legacy_dwg_wire::supported(frame.raw.m_version)
                 && frame.raw.m_objectType == dwgObjType::DICTIONARY
                 && m_standardDwgOutputProofs.count(frame.raw.m_handle) != 0u) {
                 const auto* dictionary = dynamic_cast<const DRW_Dictionary*>(found->second);
-                if (!dictionary || !dx_ac1014_dictionaryvar_wire::dictionary(
+                if (!dictionary || !dx_legacy_dwg_wire::dictionary(
                         frame.raw, *dictionary, dictionary->parentHandle == 0u))
                     return false;
             }
@@ -38770,6 +38770,12 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
     };
     if (cData == nullptr)
         return false;
+    // R13 has no dictionary cloning field. Require a source-presence-aware
+    // target projection and independent duplicate-merge semantics before
+    // qualifying its opaque MLINESTYLE callback for complete output.
+    if (cData->sourceFormat == dx_source_format::DWG
+        && cData->sourceVersion == DRW::AC1012)
+        return skipProfile("R13 dictionary cloning semantics remain unqualified");
     if (cData->sourceFormat != dx_source_format::DWG
         || (cData->sourceVersion != DRW::AC1014
             && cData->sourceVersion != DRW::AC1015
@@ -39197,10 +39203,10 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
                     || !cData->hasCompleteDwgDictionaryEntry(nod.handle, "ACAD_MLINESTYLE", liveRoot->handle)
                     || !cData->hasCompleteDwgDictionaryEntry(liveRoot->handle, current.name.c_str(), current.handle)
                     || !standardDwgModelsEqual(*nodFrame->second.typedBaseline, nod,
-                                               DRW::AC1014, dwgObjType::DICTIONARY)
-                    || !dx_ac1014_dictionaryvar_wire::dictionary(nodFrame->second.raw, nod, true)
-                    || !dx_ac1014_dictionaryvar_wire::dictionary(rootFrame->second.raw, *liveRoot, false, true)
-                    || !dx_ac1014_mlinestyle_wire::style(frame->second, current))
+                                               cData->sourceVersion, dwgObjType::DICTIONARY)
+                    || !dx_legacy_dwg_wire::dictionary(nodFrame->second.raw, nod, true)
+                    || !dx_legacy_dwg_wire::dictionary(rootFrame->second.raw, *liveRoot, false, true)
+                    || !dx_legacy_mlinestyle_wire::style(frame->second, current))
                     return false;
             }
             if (frozen->second.ac1024WireProof) {
@@ -53319,13 +53325,13 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
             const bool qualifiedOutputNames =
                 hasQualifiedStandardDwgOutputNames(
                     frame.generation, frame.raw.m_handle, false);
-            const auto* legacyDictionary = cData->sourceVersion == DRW::AC1014
+            const auto* legacyDictionary = dx_legacy_dwg_wire::supported(cData->sourceVersion)
                 && frame.raw.m_objectType == dwgObjType::DICTIONARY
                 ? dynamic_cast<const DRW_Dictionary*>(frame.typedBaseline.get())
                 : nullptr;
-            const bool legacyDictionaryWire = cData->sourceVersion != DRW::AC1014
+            const bool legacyDictionaryWire = !dx_legacy_dwg_wire::supported(cData->sourceVersion)
                 || frame.raw.m_objectType != dwgObjType::DICTIONARY
-                || (legacyDictionary && dx_ac1014_dictionaryvar_wire::dictionary(
+                || (legacyDictionary && dx_legacy_dwg_wire::dictionary(
                     frame.raw, *legacyDictionary,
                     legacyDictionary->parentHandle == 0u));
             const bool standardOutputCandidate =

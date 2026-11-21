@@ -41,6 +41,20 @@ def main():
         created = invoke([dwgadd, "--as", "r13", "-o", str(original), recipe])
         require(created.returncode == 0 and original.is_file(), "dwgadd generation")
         source_bytes = original.read_bytes()
+        require(invoke([profile_test, "--r13-generated", str(original),
+                        str(root / "r13-adapter.dxf")]).returncode == 0,
+                "R13 strict refusal, destination preservation and partial readback")
+        for binary in (False, True):
+            output = root / ("r13-binary.dxf" if binary else "r13-ascii.dxf")
+            command = [converter, str(original), "-o", str(output), "-y"]
+            if binary:
+                command.append("-b")
+            output.write_bytes(SENTINEL)
+            require(invoke(command).returncode == 1 and output.read_bytes() == SENTINEL,
+                    "R13 strict output must remain refused")
+            require(invoke(command + ["--allow-partial-dwg-read"]).returncode == 0
+                    and invoke([profile_test, "--check-r14-generated", str(output)]).returncode == 0,
+                    "R13 partial CLI conversion and fresh 3D coordinate readback")
         damaged = root / "controlled-failure.dwg"
         damaged.write_bytes(make_fault(source_bytes))
         print("source SHA-256:", sha(source_bytes), "fault SHA-256:", sha(damaged.read_bytes()))

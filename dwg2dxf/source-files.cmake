@@ -7,7 +7,8 @@ set(LIBDXFRW_CLI_SOURCES
 
 set(LIBDXFRW_CLI_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1014_dictionaryvar_wire.h"
-    "${CMAKE_CURRENT_LIST_DIR}/dx_ac1014_mlinestyle_wire.h"
+    "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_mlinestyle_wire.h"
+    "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_dwg_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1024_aerial_advmaterial_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1024_aerial_appid_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_ac1024_aerial_fbxasset_wire.h"

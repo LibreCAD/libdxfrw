@@ -54,6 +54,9 @@ security settings as part of intake.
 - **P6-A:** if ObjectARX build/load is available, capture IMAGEDEF create,
   dictionary registration, save/reopen, remove, erase, clone and WBLOCK
   behavior. Return the exact source pair and API log.
+- **AC1012 dictionaries:** use the [native witness procedure](AC1012_DICTIONARY_NATIVE_WITNESS.md)
+  to test the source-absent cloning/ownership fields and the selected R14 DXF
+  projection, including duplicate-merge behavior on the identified host.
 
 One host profile can serve several gates, but each gate keeps its own source
 identity, expected values, output checks and support decision. Host availability

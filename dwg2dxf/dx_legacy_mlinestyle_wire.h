@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-#ifndef DX_AC1014_MLINESTYLE_WIRE_H
-#define DX_AC1014_MLINESTYLE_WIRE_H
+#ifndef DX_LEGACY_MLINESTYLE_WIRE_H
+#define DX_LEGACY_MLINESTYLE_WIRE_H
 
-#include "dx_ac1014_dictionaryvar_wire.h"
+#include "dx_legacy_dwg_wire.h"
 #include <cstring>
 
-// Bounded R14 standard style observer. Caller binds source generation, owner
+// Bounded R13/R14 standard style observer. Caller binds source generation, owner
 // dictionary, output graph and staged readback.
 // ODA v5.4.1 section 20.4.73.
-namespace dx_ac1014_mlinestyle_wire {
+namespace dx_legacy_mlinestyle_wire {
 inline bool bitDouble(dx_raster_wire::detail::Bits& bits, double expected) noexcept {
     const auto tag = bits.take(2u);
     double value = 0.0;
@@ -22,8 +22,8 @@ inline bool bitDouble(dx_raster_wire::detail::Bits& bits, double expected) noexc
 
 inline bool style(const DRW_UnsupportedObject& raw,
                   const DRW_MLineStyle& model) noexcept {
-    using namespace dx_ac1014_dictionaryvar_wire;
-    if (raw.m_version != DRW::AC1014 || raw.m_objectType != 73
+    using namespace dx_legacy_dwg_wire;
+    if (!supported(raw.m_version) || raw.m_objectType != 73
         || raw.m_handle != model.handle || raw.m_isEntity || raw.m_isCustomClass
         || raw.m_hasClassDefinition || raw.m_objectSize != raw.m_rawBytes.size()
         || raw.m_rawBytes.size() > UINT32_MAX / 8u || raw.m_bodyBitSize != 0u
@@ -58,5 +58,5 @@ inline bool style(const DRW_UnsupportedObject& raw,
         && reference(b, 4u, model.handle, model.parentHandle)
         && reference(b, 3u, model.handle, 0u) && padding(b);
 }
-} // namespace dx_ac1014_mlinestyle_wire
+} // namespace dx_legacy_mlinestyle_wire
 #endif

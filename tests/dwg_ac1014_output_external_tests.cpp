@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "dx_iface.h"
+#include "dx_legacy_dwg_wire.h"
+#include "dx_legacy_mlinestyle_wire.h"
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -10,9 +12,23 @@
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static bool dictionaryProof(const dx_data& data, std::uint32_t handle) {
+        const auto frame = data.m_standardDwgObjectFrames.find({data.importGeneration, handle});
+        if (frame == data.m_standardDwgObjectFrames.end() || !frame->second.typedBaseline)
+            return false;
+        const auto* model = dynamic_cast<const DRW_Dictionary*>(frame->second.typedBaseline.get());
+        return model && dx_legacy_dwg_wire::dictionary(frame->second.raw, *model,
+                                                       model->parentHandle == 0u);
+    }
+    static bool styleProof(const dx_data& data, std::uint32_t handle) {
+        const auto frame = data.m_opaqueDwgSourceFrames.find({data.importGeneration, handle});
+        return frame != data.m_opaqueDwgSourceFrames.end() && data.mLineStyles.size() == 1u
+            && dx_legacy_mlinestyle_wire::style(frame->second, data.mLineStyles.front());
+    }
     static std::uint8_t& sourceBit(dx_data& data, int fault) {
         const std::uint32_t handle = fault == 7 ? 0xcu : fault == 8 ? 0x22u
-            : fault == 9 ? 0x23u : fault == 10 ? 0x1au : fault == 12 ? 0x19u : 0x1bu;
+            : fault == 9 ? 0x23u : fault == 10 ? 0x1au : fault == 12 ? 0x19u
+            : fault == 13 ? 0x18u : 0x1bu;
         const dx_data::StandardDwgFrameKey key{data.importGeneration, handle};
         if (fault == 7 || fault == 8 || fault == 10 || fault == 12)
             return data.m_standardDwgObjectFrames.at(key).raw.m_rawBytes.front();
@@ -266,8 +282,8 @@ bool checkR13PartialReadback(const std::string& input) {
     return lines == 2u && first && second;
 }
 
-bool checkR14Generated(const dx_data& data) {
-    if (data.sourceVersion != DRW::AC1014 || data.mBlock == nullptr
+bool checkR14Generated(const dx_data& data, DRW::Version sourceVersion = DRW::AC1014) {
+    if (data.sourceVersion != sourceVersion || data.mBlock == nullptr
         || data.mLineStyles.size() != 1u || data.mLineStyles.front().name != "Standard") return false;
     bool seen[3] = {false, false, false};
     std::size_t count = 0u;
@@ -284,23 +300,26 @@ bool checkR14Generated(const dx_data& data) {
     return count == 3u && seen[0] && seen[1] && seen[2];
 }
 
-bool r14Generated(const std::string& input, const std::filesystem::path& output) {
+bool legacyGenerated(const std::string& input, const std::filesystem::path& output,
+                     DRW::Version sourceVersion) {
     LateMutationAdapter adapter;
     dx_data source;
     adapter.source = &source;
-    if (!adapter.fileImport(input, &source, false) || !checkR14Generated(source)) return false;
+    if (!adapter.fileImport(input, &source, false) || !checkR14Generated(source, sourceVersion)) return false;
     const std::string sentinel = "AC1014 generated destination preserved\n";
     for (const bool binary : {false, true}) {
         if (!write(adapter, source, output.string(), binary)) return false;
-        for (const bool late : {false, true}) {
-            { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
-            if (late) adapter.lateFault = 12;
-            else DxIfaceStandardDwgCaptureTestAccess::sourceBit(source, 12) ^= 1u;
-            const bool accepted = write(adapter, source, output.string(), binary);
-            if (late) adapter.lateFault = 0;
-            else DxIfaceStandardDwgCaptureTestAccess::sourceBit(source, 12) ^= 1u;
-            if (accepted || bytes(output) != sentinel
-                || !write(adapter, source, output.string(), binary)) return false;
+        for (const int fault : {12, 13}) {
+            for (const bool late : {false, true}) {
+                { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+                if (late) adapter.lateFault = fault;
+                else DxIfaceStandardDwgCaptureTestAccess::sourceBit(source, fault) ^= 1u;
+                const bool accepted = write(adapter, source, output.string(), binary);
+                if (late) adapter.lateFault = 0;
+                else DxIfaceStandardDwgCaptureTestAccess::sourceBit(source, fault) ^= 1u;
+                if (accepted || bytes(output) != sentinel
+                    || !write(adapter, source, output.string(), binary)) return false;
+            }
         }
         dx_iface fresh;
         dx_data readback;
@@ -323,6 +342,36 @@ bool checkR14GeneratedFile(const std::string& input) {
     dx_data data;
     return reader.fileImport(input, &data, false) && checkR14Generated(data);
 }
+
+bool r13GeneratedGuard(const std::string& input, const std::filesystem::path& output) {
+    dx_iface adapter;
+    dx_data source;
+    if (!adapter.fileImport(input, &source, false)
+        || !checkR14Generated(source, DRW::AC1012)) return false;
+    for (const std::uint32_t handle : {0xcu, 0x17u, 0x19u})
+        if (!DxIfaceStandardDwgCaptureTestAccess::dictionaryProof(source, handle)) return false;
+    if (!DxIfaceStandardDwgCaptureTestAccess::styleProof(source, 0x18u)) return false;
+    for (const int fault : {12, 13}) {
+        DxIfaceStandardDwgCaptureTestAccess::sourceBit(source, fault) ^= 1u;
+        const bool accepted = fault == 12
+            ? DxIfaceStandardDwgCaptureTestAccess::dictionaryProof(source, 0x19u)
+            : DxIfaceStandardDwgCaptureTestAccess::styleProof(source, 0x18u);
+        DxIfaceStandardDwgCaptureTestAccess::sourceBit(source, fault) ^= 1u;
+        if (accepted) return false;
+    }
+    const std::string sentinel = "AC1012 strict destination preserved\n";
+    for (const bool binary : {false, true}) {
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        if (write(adapter, source, output.string(), binary) || bytes(output) != sentinel
+            || !write(adapter, source, output.string(), binary, DRW::AC1014,
+                      dx_dwgReadCompletenessPolicy::AllowPartial)) return false;
+        dx_iface fresh;
+        dx_data readback;
+        if (!fresh.fileImport(output.string(), &readback, false)
+            || !checkR14Generated(readback)) return false;
+    }
+    return true;
+}
 } // namespace
 
 int main(int argc, char** argv) {
@@ -336,7 +385,9 @@ int main(int argc, char** argv) {
         : argc == 4 && std::string(argv[1]) == "--partial"
             ? partial(argv[2], argv[3])
             : argc == 4 && std::string(argv[1]) == "--r14-generated"
-                ? r14Generated(argv[2], argv[3])
+                ? legacyGenerated(argv[2], argv[3], DRW::AC1014)
+            : argc == 4 && std::string(argv[1]) == "--r13-generated"
+                ? r13GeneratedGuard(argv[2], argv[3])
             : argc == 4 && std::string(argv[1]) == "--r13-partial"
                 && r13Partial(argv[2], argv[3]);
     if (!ok) {

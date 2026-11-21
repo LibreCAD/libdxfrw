@@ -134,7 +134,6 @@ EXTRA_DIST = \
     dwg2dxf/Makefile.am \
     dwg2dxf/dwg2dxf.1 \
     dwg2dxf/dx_ac1014_dictionaryvar_wire.h \
-    dwg2dxf/dx_ac1014_mlinestyle_wire.h \
     dwg2dxf/dx_ac1021_dictionaryvar_wire.h \
     dwg2dxf/dx_ac1024_aerial_advmaterial_wire.h \
     dwg2dxf/dx_ac1024_aerial_appid_wire.h \
@@ -177,7 +176,9 @@ EXTRA_DIST = \
     dwg2dxf/dx_legacy_block_record_source_profile.h \
     dwg2dxf/dx_legacy_blockrecord_whole_source.h \
     dwg2dxf/dx_legacy_blockref_source_relation.h \
+    dwg2dxf/dx_legacy_dwg_wire.h \
     dwg2dxf/dx_legacy_identity_join.h \
+    dwg2dxf/dx_legacy_mlinestyle_wire.h \
     dwg2dxf/dx_material_body.h \
     dwg2dxf/dx_mline_dictionary_source_live.h \
     dwg2dxf/dx_mline_layer_source_live.h \
@@ -1230,6 +1231,7 @@ EXTRA_DIST = \
     tools/probe_wipeout_ac1032_source.cpp \
     tools/qualify_material_source_order.py \
     tools/replay_dwg_legacy_extrusion.cpp \
+    tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md \
     tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md \
     tools/research/OBJECTARX_WITNESS_README.md \
     tools/research/P4C_SWEEP_WITNESS_README.md \

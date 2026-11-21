@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-legacy-frame-readiness-2026-11-21",
+  "date": "2026-11-21",
+  "status": "SOURCE_WIRE_CONTROLS_PASSED_STRICT_OUTPUT_DEFERRED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "20.1 common non-entity framing and padding",
+      "20.4.44 DICTIONARY",
+      "20.4.73 MLINESTYLE"
+    ],
+    "boundary": "R13 and R14 put the data-bit boundary after the handle and EED. Only R14 has the extra DICTIONARY RC; cloning and hard-owner fields are R2000+ DWG fields."
+  },
+  "source": {
+    "generator": "GNU LibreDWG dwgadd 0.14 --as r13",
+    "recipe": "tests/fixtures/dwg/ac1012_partial_three_line_control.dwgadd",
+    "oneRunSha256": "f3cac7f15c5ed9520e673bad18cea3581049dd55b82d921b94f31986bb489897",
+    "qualification": "Locally authored generated control; timestamps may change its hash. Not a native producer or consumer witness."
+  },
+  "changes": [
+    "Extract shared R13/R14 source framing, bounded text, alignment, dictionary and handle-role checks, and reuse them in the existing R14 output proof.",
+    "Bind generated AC1012 dictionary and standard MLINESTYLE source frames to the captured typed identities; test R13/R14 byte boundary, mutated role and every dictionary bit, and the unsupported-version boundary.",
+    "Keep AC1012 MLINESTYLE strict output refused pending absent-source cloning/ownership and native duplicate-merge semantics; test destination preservation and explicit partial readback in both encodings."
+  ],
+  "independentPeer": {
+    "source": "LibreDWG test-data/example_r13.dwg",
+    "sha256": "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89",
+    "observation": "The reader identifies AC1012 and returns a successful operation; complete conversion stops at a separate exact-version ModelDocViewStyle output guard. This is not evidence of that profile's output completeness."
+  },
+  "nativeNextStep": "tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md defines source, output-presence, mergeStyle, ownership, duplicate-operation, re-open and artifact controls for an identified AutoCAD/ObjectARX host. Host profile and a successful execution remain required.",
+  "limitations": "This is source-bound readiness and an explicit partial route, not complete AC1012 support or native interoperability. The prior ODA/LibreDWG cloning disagreement remains unresolved; no support claim or plan gate is promoted. No DWG/DXF fixtures were added.",
+  "fieldPresenceAudit": {
+    "tool": "tools/research/audit_dxf_dictionary_cloning.py",
+    "method": "ASCII group pairs and a separate bounded Binary DXF framing reader; reports physical group-281 presence without inferring defaults.",
+    "generatedPartialOutputs": "Both ASCII and binary report four dictionaries: group 281 is absent on two and explicitly zero on two. This is evidence of the current projection, not proof of native duplicate-merge behavior.",
+    "selfTest": "PASS: matching encodings, absent versus explicit values, duplicate group and truncated inputs."
+  }
+}

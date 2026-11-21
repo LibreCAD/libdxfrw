@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Inventory explicit dictionary cloning flags in ASCII DXF peer outputs.
+"""Inventory explicit dictionary cloning flags in ASCII and Binary DXF outputs.
 
 This is a source-comparison tool, not a format validator or a default-value
 oracle. In particular, an absent group 281 is reported as null, not zero.
@@ -11,24 +11,30 @@ from collections import Counter
 import hashlib
 import json
 from pathlib import Path
+import struct
 import sys
+
+from audit_binary_dxf_layout_nod import SENTINEL, read_pairs
 
 MAX_BYTES = 128 * 1024 * 1024
 
 
 def audit_bytes(data: bytes) -> dict:
-    if len(data) > MAX_BYTES or data.startswith(b"AutoCAD Binary DXF"):
-        raise ValueError("expected an ASCII DXF of at most 128 MiB")
-    lines = data.decode("utf-8", "surrogateescape").splitlines()
-    if len(lines) % 2:
-        raise ValueError("unpaired group code and value")
-    tags = []
-    for index in range(0, len(lines), 2):
-        try:
-            code = int(lines[index].strip())
-        except ValueError as error:
-            raise ValueError(f"invalid group code at line {index + 1}") from error
-        tags.append((code, lines[index + 1].strip()))
+    if len(data) > MAX_BYTES:
+        raise ValueError("DXF exceeds 128 MiB")
+    if data.startswith(SENTINEL):
+        tags = read_pairs(data)
+    else:
+        lines = data.decode("utf-8", "surrogateescape").splitlines()
+        if len(lines) % 2:
+            raise ValueError("unpaired group code and value")
+        tags = []
+        for index in range(0, len(lines), 2):
+            try:
+                code = int(lines[index].strip())
+            except ValueError as error:
+                raise ValueError(f"invalid group code at line {index + 1}") from error
+            tags.append((code, lines[index + 1].strip()))
     rows = []
     cursor = 0
     while cursor < len(tags):
@@ -110,7 +116,18 @@ def self_test() -> None:
     result = audit_bytes(data)
     assert result["cloning_field_counts"] == {"1": 1, "absent": 1}
     assert result["mlinestyle_roots"][0]["target"]["owner"] == "A"
-    for invalid in (data + b"0\n", data.replace(b"281\n1\n", b"281\n1\n281\n0\n")):
+    lines = data.decode("ascii").splitlines()
+    binary = bytearray(SENTINEL)
+    for i in range(0, len(lines), 2):
+        code = int(lines[i])
+        binary.extend(struct.pack("<H", code))
+        binary.extend(struct.pack("<h", int(lines[i + 1])) if code == 281
+                      else lines[i + 1].encode("ascii") + b"\0")
+    binary_result = audit_bytes(bytes(binary))
+    assert binary_result["cloning_field_counts"] == result["cloning_field_counts"]
+    assert binary_result["mlinestyle_roots"] == result["mlinestyle_roots"]
+    for invalid in (data + b"0\n", data.replace(b"281\n1\n", b"281\n1\n281\n0\n"),
+                    bytes(binary[:-1])):
         try:
             audit_bytes(invalid)
         except ValueError:
@@ -127,7 +144,7 @@ def main() -> int:
     if args.self_test:
         self_test()
     if not args.paths and not args.self_test:
-        parser.error("supply one or more ASCII DXF files")
+        parser.error("supply one or more DXF files")
     for path in args.paths:
         try:
             with path.open("rb") as stream:
