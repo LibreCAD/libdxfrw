@@ -113,6 +113,7 @@ docs/patches/librecad-p8d-mline-staged-inspector-2026-11-19.patch
 docs/patches/librecad3-p8-abi3-system-codec-2026-11-16.patch
 docs/patches/librecad3-p8-default-layer-lineweight-2026-11-16.patch
 docs/patches/librecad3-p8-entity-lineweight-loss-2026-11-16.patch
+docs/patches/librecad3-p8-hatch-line-edge-elevation-2026-11-21.patch
 docs/patches/librecad3-p8-hatch-planar-elevation-2026-11-19.patch
 docs/patches/librecad3-p8-legacy-layer-lineweight-2026-11-16.patch
 docs/patches/librecad3-p8-mleader-import-loss-2026-11-16.patch
