@@ -145,7 +145,7 @@ source checks and the [generated and ODA-produced controls](docs/research/p6-ac1
 They bind the absent R13/R14 plain-DICTIONARY cloning field and show that ODA's selected R14
 output omits group 281 while its R2000 output writes 1; they do not establish
 native duplicate behavior. The ODA sources also contain APPID-bound dictionary
-EED and currently hit a separate ModelDocViewStyle cross-version guard. The
+EED and currently hit a separate ModelDocViewStyle cross-version guard. AC1012 source-default output selects AC1014, so the guard applies even without an explicit target. A [bounded ODA output screen](docs/research/p6-oda-ac1012-modeldoc-proxy-output-screen-2026-11-21.json) finds R14 proxy children for the same detail/section style handles that appear typed in R2013; bind their class/payload and demonstrate lossless semantic roundtrip before considering a proxy bridge. The
 [source-framing control](docs/research/p6-ac1012-oda-dictionary-eed-source-2026-11-21.json)
 now checks the observed EED bytes, APPID identity and mutation/retry against
 both ODA files. The [controlled producer/reopen witness](docs/research/p6-legacy-eed-codepage45-utf8-witness-2026-11-21.json)
