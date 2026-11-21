@@ -81,7 +81,7 @@ def main() -> None:
                "ezdxfVersion": ezdxf.__version__, "profiles": {}}
     expected = {"big": "030000000000000012", "little": "031200000000000000",
                 "raw": "030807060504030201", "none": ""}
-    for mode in ("big", "little", "none", "raw"):
+    for mode in ("big", "little", "none", "raw", "named"):
         source_dir, reopened = root / (mode + "-source"), root / (mode + "-reopened")
         source_dir.mkdir(); reopened.mkdir()
         drawing = source_dir / "seed.dwg"
@@ -96,6 +96,10 @@ def main() -> None:
         table_handle = tables[0]["handle"][-1]
         frame = record_frame(args.dwgread, drawing, 0x130, 19)
         table_frame = record_frame(args.dwgread, drawing, table_handle, 51)
+        if mode == "named":
+            if table_handle <= 0xff:
+                raise ValueError("named target is not a multibyte handle")
+            expected[mode] = (bytes([3]) + table_handle.to_bytes(8, "big")).hex()
         table_expected = expected["big"] if mode == "raw" else expected[mode]
         if frame["eedHex"] != expected[mode] or table_frame["eedHex"] != table_expected:
             raise ValueError(f"{mode} EED bytes mismatch: {frame['eedHex']}, {table_frame['eedHex']}")
@@ -114,7 +118,8 @@ def main() -> None:
                 raise ValueError(f"{mode} LINE geometry mismatch")
             values = ([(item.code, item.value) for item in lines[0].get_xdata("ACAD")]
                       if lines[0].has_xdata("ACAD") else [])
-            expected_values = [(1003, "0")] if mode == "big" else []
+            expected_values = ([(1003, "EED_TABLE")] if mode == "named"
+                               else [(1003, "0")] if mode == "big" else [])
             if values != expected_values:
                 raise ValueError(f"{mode} ODA LINE EED mismatch: {values!r}")
             layer = document.layers.get("EED_TABLE")
