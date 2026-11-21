@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "dx_ac1014_dictionaryvar_wire.h"
 #include "dx_legacy_mlinestyle_wire.h"
+#include "drw_entities.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
 
@@ -26,6 +27,49 @@ class DictionaryWithDefault final : public DRW_DictionaryWithDefault {
 public:
     using DRW_DictionaryWithDefault::parseDwg;
 };
+
+bool eedLayerWriteOrderControl() {
+    const auto little = DRW::DwgEedLayerByteOrder::LegacyLittleEndian;
+    const auto big = DRW::DwgEedLayerByteOrder::BigEndian;
+    dwgBufferW staged;
+    staged.setEedLayerByteOrder(big);
+    dwgBufferW copy = staged;
+    copy.reset();
+    dwgBufferW other;
+    copy.swap(other);
+    if (other.eedLayerByteOrder() != big || copy.eedLayerByteOrder() != little) return false;
+    DRW_Variant app(1001, std::string("ACAD"));
+    DRW_Variant layer(1003, std::string("0"));
+    const std::vector<DRW_Variant*> data{&app, &layer};
+    const std::vector<DRW_Entity::PendingHandleRef> apps{{0u, 0x14u}};
+    for (const auto order : {little, big}) {
+        for (const bool raw : {false, true}) {
+            const std::uint64_t reference = raw ? UINT64_C(0x0102030405060708) : UINT64_C(0x12345678);
+            const std::vector<DRW_Entity::PendingHandleRef> refs{
+                {1u, static_cast<std::uint32_t>(reference), reference, raw}};
+            dwgBufferW output;
+            output.setEedLayerByteOrder(order);
+            output.putRawChar8(0xa5u);
+            const std::vector<DRW_Entity::PendingHandleRef> missing{{1u, 0u}};
+            if (DRW_Entity::encodeDwgEed(DRW::AC1015, data, apps, missing, 30u, output)
+                || output.data() != std::vector<std::uint8_t>{0xa5u}
+                || output.eedLayerByteOrder() != order) return false;
+            if (!DRW_Entity::encodeDwgEed(DRW::AC1015, data, apps, refs, 30u, output)) return false;
+            output.putRawChar8(0x5au);
+            dwgBuffer input(output.data().data(), output.data().size());
+            if (input.getRawChar8() != 0xa5u || input.getBitShort() != 9u) return false;
+            const auto appHandle = input.getHandle();
+            if (appHandle.code != 5u || appHandle.ref != 0x14u || input.getRawChar8() != 3u) return false;
+            for (unsigned index = 0u; index < 8u; ++index) {
+                const bool useBig = !raw && order == big;
+                const auto shift = 8u * (useBig ? 7u - index : index);
+                if (input.getRawChar8() != static_cast<std::uint8_t>(reference >> shift)) return false;
+            }
+            if (input.getBitShort() != 0u || input.getRawChar8() != 0x5au || !input.isGood()) return false;
+        }
+    }
+    return true;
+}
 
 bool legacyDictionaryWithDefaultControl() {
     // Physical object bodies from locally generated ODA R13/R14 files. Unlike
@@ -509,7 +553,7 @@ bool expected(const Variable& v) {
 }
 
 bool run() {
-    if (!legacyDictionaryWithDefaultControl() || !r13DictionaryEedControl() || !r13DictionaryEedControl(true) || !r13DictionaryEedControl(false, true) || !r13DictionaryEedControl(false, false, true) || !r13DictionaryEedControl(false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, false, false, true)
+    if (!eedLayerWriteOrderControl() || !legacyDictionaryWithDefaultControl() || !r13DictionaryEedControl() || !r13DictionaryEedControl(true) || !r13DictionaryEedControl(false, true) || !r13DictionaryEedControl(false, false, true) || !r13DictionaryEedControl(false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, false, false, true)
         || !r13EedChunkGroupBoundary(false) || !r13EedChunkGroupBoundary(true) || !terminatedDictionaryControl(DRW::AC1012)
         || !terminatedDictionaryControl(DRW::AC1014) || !dictionaryWireControl(true, false)
         || !dictionaryWireControl(false, false)

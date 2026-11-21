@@ -7511,3 +7511,14 @@ add_test(NAME libdxfrw_dxf_default_plotstyle_graph
         "${CMAKE_CURRENT_BINARY_DIR}/default-plotstyle-graph-scratch.dxf")
 set_tests_properties(libdxfrw_dxf_default_plotstyle_graph PROPERTIES
     LABELS "fast;dxf;plotstyle;generated" TIMEOUT 30)
+
+add_executable(libdxfrw_dwg_eed_layer_write_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/dwg_eed_layer_write_tests.cpp)
+target_compile_features(libdxfrw_dwg_eed_layer_write_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_dwg_eed_layer_write_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_dwg_eed_layer_write_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_dwg_eed_layer_write_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_dwg_eed_layer_write
+    COMMAND libdxfrw_dwg_eed_layer_write_tests)
+set_tests_properties(libdxfrw_dwg_eed_layer_write PROPERTIES
+    LABELS "fast;dwg;xdata;transaction;generated" TIMEOUT 20)

@@ -54,6 +54,22 @@ bool scopeControls() {
         ScopedDwgLegacyEntityLinks nullScope(nullptr,nullptr,1u,2u);
         if(ScopedDwgLegacyEntityLinks::lookup(nullptr,prev,next)) return false;
     }
+    {
+        dwgBufferW stagedBody, stagedHandles;
+        ScopedDwgLegacyEntityLinks outer(&body, &handlesBuffer, 17u, 19u);
+        {
+            ScopedDwgStagedLegacyEntityLinks staged(&body, &handlesBuffer, &stagedBody, &stagedHandles);
+            if (!staged.valid() || !equals(&stagedBody, 17u, 19u)
+                || !equals(&stagedHandles, 17u, 19u)) return false;
+        }
+        if (ScopedDwgLegacyEntityLinks::lookup(&stagedBody, prev, next)) return false;
+        {
+            ScopedDwgLegacyEntityLinks conflicting(&handlesBuffer, nullptr, 21u, 22u);
+            ScopedDwgStagedLegacyEntityLinks staged(&body, &handlesBuffer, &stagedBody, &stagedHandles);
+            if (staged.valid() || ScopedDwgLegacyEntityLinks::lookup(&stagedBody, prev, next)) return false;
+        }
+        if (!equals(&body, 17u, 19u) || !equals(&handlesBuffer, 17u, 19u)) return false;
+    }
     std::array<std::atomic<dwgBufferW*>,2> pointers{};
     std::atomic<unsigned> ready{0}, checked{0}; std::atomic<bool> release{false}, ok{true};
     std::array<std::thread,2> threads;
@@ -266,7 +282,12 @@ int main(int argc,char**argv) {
     const auto path=(dir/"chain.dwg").string(); dwgRW output(path.c_str()); Adapter adapter(output);
     auto success=[&] {
         adapter.mode=Mode::Normal; adapter.validReceipts=true;
-        return output.write(&adapter,DRW::AC1015,true) && adapter.verifyReceipts() && inspect(path);
+        const bool wrote = output.write(&adapter,DRW::AC1015,true);
+        const bool receipts = wrote && adapter.verifyReceipts();
+        const bool readback = receipts && inspect(path);
+        if (!readback) std::cerr << "wrote=" << wrote << " receipts=" << receipts
+                                 << " readback=" << readback << " error=" << output.getError() << '\n';
+        return readback;
     };
     if(!success()) {std::cerr<<"normal write, frame receipt, or readback failed\n";return 1;}
     handles={{0x451u,0x130u,0x999u}};

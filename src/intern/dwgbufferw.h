@@ -15,6 +15,7 @@
 #define DWGBUFFERW_H
 
 #include <algorithm>
+#include <optional>
 #include <vector>
 #include <string>
 #include <utility>
@@ -52,6 +53,7 @@ public:
         std::swap(m_bitPos, other.m_bitPos);
         std::swap(m_decoder, other.m_decoder);
         std::swap(m_good, other.m_good);
+        std::swap(m_eedLayerByteOrder, other.m_eedLayerByteOrder);
     }
 
     // ---- accessors ------------------------------------------------------
@@ -65,6 +67,9 @@ public:
     /// Replace the text codec used by subsequent CP8/ENC string writes.
     /// The caller owns the codec and must keep it alive for this buffer.
     void setDecoder(DRW_TextCodec *decoder) { m_decoder = decoder; }
+    // Configuration follows staged copies and swaps; reset keeps it intact.
+    void setEedLayerByteOrder(DRW::DwgEedLayerByteOrder order) noexcept { m_eedLayerByteOrder = order; }
+    DRW::DwgEedLayerByteOrder eedLayerByteOrder() const noexcept { return m_eedLayerByteOrder; }
 
     /// Current write position in bytes (size of accumulator).  When
     /// bitPos() != 0 the last byte is partially filled.
@@ -319,6 +324,7 @@ private:
     std::uint8_t m_bitPos {0};
     DRW_TextCodec *m_decoder {nullptr};
     bool m_good {true};
+    DRW::DwgEedLayerByteOrder m_eedLayerByteOrder {DRW::DwgEedLayerByteOrder::LegacyLittleEndian};
 };
 
 // Ephemeral encoding context; neither buffer nor public entity layout changes.
@@ -340,5 +346,31 @@ private:
     const ScopedDwgLegacyEntityLinks* m_enclosing;
 };
 
+
+// Preserve an enclosing legacy link context when a codec encodes into
+// independent staged buffers. Conflicting body/handle contexts fail closed.
+class ScopedDwgStagedLegacyEntityLinks {
+public:
+    ScopedDwgStagedLegacyEntityLinks(const dwgBufferW* sourceBody,
+                                     const dwgBufferW* sourceHandles,
+                                     const dwgBufferW* stagedBody,
+                                     const dwgBufferW* stagedHandles) noexcept {
+        std::uint32_t bodyPrevious = 0u, bodyNext = 0u;
+        std::uint32_t handlePrevious = 0u, handleNext = 0u;
+        const bool body = ScopedDwgLegacyEntityLinks::lookup(sourceBody, bodyPrevious, bodyNext);
+        const bool handles = ScopedDwgLegacyEntityLinks::lookup(sourceHandles, handlePrevious, handleNext);
+        if (body && handles && (bodyPrevious != handlePrevious || bodyNext != handleNext)) {
+            m_valid = false;
+        } else if (body || handles) {
+            m_scope.emplace(stagedBody, stagedHandles,
+                            body ? bodyPrevious : handlePrevious,
+                            body ? bodyNext : handleNext);
+        }
+    }
+    bool valid() const noexcept { return m_valid; }
+private:
+    bool m_valid{true};
+    std::optional<ScopedDwgLegacyEntityLinks> m_scope;
+};
 
 #endif // DWGBUFFERW_H

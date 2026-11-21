@@ -431,6 +431,12 @@ remains little-endian for existing consumers; the option does not guess the
 producer or change DWG output encoding. Missing or wide unresolved layer
 references are not written as DXF layer names. Library callers can make the
 same per-read choice with `dwgRW::setDwgEedLayerByteOrder` or the `dwgR` facade.
+For authored R2000 DWG output, `dwgRW::setDwgWriteEedLayerByteOrder(
+DRW::DwgEedLayerByteOrder::BigEndian)` selects the ODA-observed order for
+new layer references. The default remains little-endian; retained raw layer
+references keep their original bytes. Big-endian selection currently rejects
+other output versions before opening the destination. These options do not
+automatically identify a source producer.
 
 Explicit target selectors include `-v2013` (AC1027) and `-v2018` (AC1032),
 in positional, `-o`, and batch forms. The default `-o` source-revision policy

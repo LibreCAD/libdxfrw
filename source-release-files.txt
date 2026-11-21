@@ -620,6 +620,7 @@ tests/dwg_default_material_optin_tests.cpp
 tests/dwg_default_plotstyle_libredwg.py
 tests/dwg_default_plotstyle_optin_tests.cpp
 tests/dwg_dictionary_cloning_source_tests.cpp
+tests/dwg_eed_layer_write_tests.cpp
 tests/dwg_ellipse_geometry_reader_tests.cpp
 tests/dwg_ellipse_wcs_test.h
 tests/dwg_entity_table_ref_diagnostic_tests.cpp
@@ -1353,6 +1354,7 @@ tools/research/verify_ac1027_material_graph_minjson.py
 tools/research/verify_ac1027_mlinestyle_peer_spans.py
 tools/research/verify_cover_dictionary_edges.py
 tools/research/verify_cover_tablestyle_raw_spans.py
+tools/research/verify_dwg_eed_layer_writer.py
 tools/research/verify_libredwg_tablestyle_peer_tail.py
 tools/run_external_advisory.py
 tools/run_fast_baseline.py

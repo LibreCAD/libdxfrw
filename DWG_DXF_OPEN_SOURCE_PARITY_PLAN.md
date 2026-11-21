@@ -193,9 +193,11 @@ bytes, and refuses DXF output for unresolved layer references. The default
 remains the existing little-endian behavior; the choice does not infer producer
 identity or promote support. Next, establish trustworthy automatic source
 profile evidence and extend semantic/source proofs to the selected layer edge;
-keep ambiguous or wide targets unresolved. Correct DWG output encoding only for
-an independently witnessed output profile, with producer reopen, collision,
-mutation, rollback and retry controls.
+keep ambiguous or wide targets unresolved. The [R2000 writer control](docs/research/p6-r2000-eed-layer-write-order-2026-11-21.json)
+now checks explicitly selected byte order, raw-byte replay, failure/retry and
+ODA reopen for generated LINE and LAYER examples. Extend independent output
+witnesses and collision controls to other versions and object graphs; do not
+infer native producer semantics or broader support from this bounded example.
 The same source and staged proof now covers R13-to-R14 explicit partial output
 for that bounded group, with independent ASCII/Binary readback and mutation
 refusal; see [R13 control](docs/research/p6-r13-group-dictionary-eed-partial-2026-11-21.json)

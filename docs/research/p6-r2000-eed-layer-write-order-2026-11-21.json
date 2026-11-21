@@ -1,0 +1,152 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-r2000-eed-layer-write-order-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_GENERATED_R2000_OUTPUT_CONTROL",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.4.54 LAYER",
+      "28 Extended Entity Data"
+    ],
+    "note": "Section 28 specifies an eight-byte layer handle but does not explicitly resolve its byte order. See the preceding producer witness for the opposing observed encodings."
+  },
+  "producerWitness": "docs/research/p6-legacy-eed-layer-byte-order-2026-11-21.json",
+  "generator": "tools/research/verify_dwg_eed_layer_writer.py",
+  "generatorSha256": "27974daa8ae1ac1fa3595fcd8122cb3a2485b86e5b6918b445f1e52a088f0e45",
+  "candidate": {
+    "baseCommit": "30d20f96c",
+    "testSource": "tests/dwg_eed_layer_write_tests.cpp",
+    "testSourceSha256": "d3a8eeebeba6ea1b8a10616fa5a82b007b7c2c43b69051988dc58e0f796e1069",
+    "binarySha256": "18117aac134925951b4de96c9138cf3e367c8389612279e5b1883bf3899921d2",
+    "build": "Debug, AddressSanitizer, macOS ARM64"
+  },
+  "peerResults": {
+    "oda": {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "ezdxfVersion": "1.4.5",
+    "profiles": {
+      "big": {
+        "dwgSha256": "25f3b9a76443a081f1772462d1f645f04e70c30857e97686ba5f62fe9c3be7a2",
+        "lineFrame": {
+          "frameSha256": "d11abbafac69f1d81ac3cee51024ae40ab72ee18ab6f68d65d12209af756e8b8",
+          "frameOffset": 5440,
+          "frameSize": 78,
+          "bodyEndBit": 583,
+          "frameCrcValid": true,
+          "eedHex": "030000000000000012"
+        },
+        "tableHandle": 50,
+        "tableFrame": {
+          "frameSha256": "1442adf9e95f9af7961ebf0d1b1b339a77b50000d8f35f86a24b8888775b3712",
+          "frameOffset": 4761,
+          "frameSize": 44,
+          "bodyEndBit": 282,
+          "frameCrcValid": true,
+          "eedHex": "030000000000000012"
+        },
+        "dxfSha256": "5ba9c514763177bd66c9e17685fae154384e3dde2ba8280c4ea33e58e36fa373",
+        "lineXdata": [
+          [
+            1003,
+            "0"
+          ]
+        ],
+        "tableXdata": [
+          [
+            1003,
+            "0"
+          ]
+        ],
+        "lineGeometryMatched": true
+      },
+      "little": {
+        "dwgSha256": "5dcf4061b355f94407ee515e48db2b1d7a7df444c2eb7718b88e8462799626d9",
+        "lineFrame": {
+          "frameSha256": "131005e1332d827b5de79d0c794e62393d1bc2b1180d5450476b26073914dba0",
+          "frameOffset": 5440,
+          "frameSize": 78,
+          "bodyEndBit": 583,
+          "frameCrcValid": true,
+          "eedHex": "031200000000000000"
+        },
+        "tableHandle": 50,
+        "tableFrame": {
+          "frameSha256": "3c7a9a7aef186772e8592f028f4e13bc8174516db17fc9a46dd886aa94148a96",
+          "frameOffset": 4761,
+          "frameSize": 44,
+          "bodyEndBit": 282,
+          "frameCrcValid": true,
+          "eedHex": "031200000000000000"
+        },
+        "dxfSha256": "a03e9f1ce5a2b7cb9fecfe33add8b37dc01180ba74c1e35a3cc4f6f97fc46db1",
+        "lineXdata": [],
+        "tableXdata": [],
+        "lineGeometryMatched": true
+      },
+      "none": {
+        "dwgSha256": "35a1eb4536e0b6491cfa25a7b68727378c9dae91c585226b87355c3eb1b43645",
+        "lineFrame": {
+          "frameSha256": "17cf9ca209a2a0eca2af46ed32c2d1feb94d06387a0e0b59a27f6d80a083143c",
+          "frameOffset": 5427,
+          "frameSize": 66,
+          "bodyEndBit": 485,
+          "frameCrcValid": true,
+          "eedHex": ""
+        },
+        "tableHandle": 50,
+        "tableFrame": {
+          "frameSha256": "8dad3c001c4fa6336d5907783fcdf7bf8c1a2c24ced968ecc5dfc55287af0107",
+          "frameOffset": 4761,
+          "frameSize": 31,
+          "bodyEndBit": 184,
+          "frameCrcValid": true,
+          "eedHex": ""
+        },
+        "dxfSha256": "e0816f4317ed662399f8503efd708f24360666cc0aa8443fdc5cdd1b9b099ea6",
+        "lineXdata": [],
+        "tableXdata": [],
+        "lineGeometryMatched": true
+      },
+      "raw": {
+        "dwgSha256": "8ef76b20cefa2ff3a39c70805e0a80f9be9aab6fed578b11ebe1850151d2cb6c",
+        "lineFrame": {
+          "frameSha256": "706ce18585e0e11d50fc29feba5814b2478f7d181c90c92b63296f7bb6045ce9",
+          "frameOffset": 5440,
+          "frameSize": 78,
+          "bodyEndBit": 583,
+          "frameCrcValid": true,
+          "eedHex": "030807060504030201"
+        },
+        "tableHandle": 50,
+        "tableFrame": {
+          "frameSha256": "1442adf9e95f9af7961ebf0d1b1b339a77b50000d8f35f86a24b8888775b3712",
+          "frameOffset": 4761,
+          "frameSize": 44,
+          "bodyEndBit": 282,
+          "frameCrcValid": true,
+          "eedHex": "030000000000000012"
+        }
+      }
+    }
+  },
+  "observations": [
+    "From-scratch R2000 LINE and LAYER objects reference layer 0 (0x12) using APPID ACAD. A separate bit walker checks traced frame size, CRC, self handle, APPID, and exact EED bytes. ODA File Converter 27.1.0 reopened the big-endian case and ezdxf observed layer name 0 on both objects and preserved 3D line endpoints.",
+    "The little-endian control and no-EED control both reopened and retained geometry; ODA did not retain the little-endian layer EED. The raw-reference control checks retained physical bytes only, not ODA semantic acceptance.",
+    "A pre-existing staged-encoder regression dropped the predeclared legacy model chain; propagating the scoped link context restores the chain and allows ODA to reopen the LINE. R2000 generated LAYER records in the explicit default-plotstyle graph require typed null extension dictionary and xref handle roles; the no-EED control independently verifies that graph fix.",
+    "Focused AddressSanitizer controls passed for the explicit writer policy, unsupported-version atomic refusal, missing-layer refusal and corrected same-object retry, policy snapshot, raw replay, staged copy/reset/swap, conflicting nested link contexts and four legacy chain tests."
+  ],
+  "limits": [
+    "Only the selected generated AC1015 LINE and LAYER graph with the predeclared legacy chain and default plotstyle graph is peer-reopened. The producer is not native AutoCAD; no general DWG, object, version, or application support is claimed.",
+    "Big-endian output is opt-in and restricted to AC1015; other versions reject it before opening the destination. Existing little-endian default is retained. Raw bytes are replayed unchanged and may remain unresolved.",
+    "The test custom layer supplies its plotstyle handle for this scratch graph. Other layer graphs, handle collisions, automatic producer identification, and native mutation semantics need independent evidence. No generated drawing or peer-output fixture is committed."
+  ]
+}

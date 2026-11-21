@@ -3866,9 +3866,11 @@ bool dwgWriter15::emitLayerRecord(std::uint32_t handle, const DRW_Layer& lay) {
                             &layerCopy.extData, &appIdRefs, &layerRefs,
                             fileCodePageId()))
         return false;
-    const bool typedLegacyNulls = handle == DRW::DwgLayer0Handle && !m_haveLayer0
+    const bool typedLegacyNulls = (handle == DRW::DwgLayer0Handle && !m_haveLayer0
         && (m_version == DRW::AC1015 || (m_version == DRW::AC1027
-            && defaultDwgMaterialGraphActive()));
+            && defaultDwgMaterialGraphActive())))
+        || (m_version == DRW::AC1015 && m_defaultPlotStyleDictionaryHandle != 0u
+            && layerCopy.xDictHandle == 0u && layerCopy.xrefBlockHandle.ref == 0u);
     if (!layerCopy.encodeDwgForWriter(m_version, &body, sb, hb, typedLegacyNulls))
         return false;
 
@@ -9649,6 +9651,7 @@ dwgBufferW& dwgWriter15::beginObject(std::uint32_t handle) {
     m_lastDwgObjectFrame = {};
     m_lastDwgObjectFrameValid = false;
     m_objectBody.reset();
+    m_objectBody.setEedLayerByteOrder(m_eedLayerByteOrder);
     m_objectStrings.reset();
     m_objectHandles.reset();
     return m_objectBody;

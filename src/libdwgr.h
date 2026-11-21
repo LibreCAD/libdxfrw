@@ -420,6 +420,19 @@ public:
         return m_dwgReadObjectBudget;
     }
 
+    /// Choose the DWG EED layer-byte encoding for subsequent writes. The
+    /// big-endian output profile is currently admitted only for AC1015.
+    /// Unchanged unresolved raw layer bytes retain their original encoding.
+    bool setDwgWriteEedLayerByteOrder(DRW::DwgEedLayerByteOrder order) noexcept {
+        if (order != DRW::DwgEedLayerByteOrder::LegacyLittleEndian
+            && order != DRW::DwgEedLayerByteOrder::BigEndian) return false;
+        m_dwgWriteEedLayerByteOrder = order;
+        return true;
+    }
+    DRW::DwgEedLayerByteOrder dwgWriteEedLayerByteOrder() const noexcept {
+        return m_dwgWriteEedLayerByteOrder;
+    }
+
     /// Write the in-memory model (driven via DRW_Interface callbacks)
     /// out to the file named at construction.
     /// The `bin` parameter is ignored — DWG is always binary — but
@@ -1082,6 +1095,7 @@ private:
     WriteSkipCounters m_writeSkipCounters;
     std::size_t m_dwgReadObjectBudget { 1000000u };
     DRW::DwgEedLayerByteOrder m_dwgEedLayerByteOrder { DRW::DwgEedLayerByteOrder::LegacyLittleEndian };
+    DRW::DwgEedLayerByteOrder m_dwgWriteEedLayerByteOrder { DRW::DwgEedLayerByteOrder::LegacyLittleEndian };
     std::size_t m_successfulEntityWrites { 0 };
     std::uint32_t m_lastSuccessfulEntityHandle { 0 };
     DRW::DwgObjectFrameReceipt m_lastDwgObjectFrame;

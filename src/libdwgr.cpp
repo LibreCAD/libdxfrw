@@ -1948,6 +1948,7 @@ bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
     // dxfRW::write — DWG is always binary on disk.
     (void)bin;
     beginOperationDiagnostic(DRW::OperationKind::Write);
+    const auto eedLayerByteOrder = m_dwgWriteEedLayerByteOrder;
     resetWriteSkipCounters();
     struct TableCallerStateRollback final {
         std::function<void()> rollback;
@@ -1972,6 +1973,13 @@ bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
         ver != DRW::AC1032) {
         error = DRW::BAD_VERSION;
         recordOperationDiagnosticForError(error);
+        return false;
+    }
+    if (eedLayerByteOrder == DRW::DwgEedLayerByteOrder::BigEndian && ver != DRW::AC1015) {
+        error = DRW::BAD_VERSION;
+        recordOperationDiagnostic(DRW::OperationPhase::Argument,
+            DRW::OperationCause::UnsupportedVersion, "dwg-eed-layer-byte-order",
+            "big-endian EED layer output is currently supported only for R2000");
         return false;
     }
     if (interface_ == nullptr) {
@@ -2024,6 +2032,8 @@ bool dwgRW::write(DRW_Interface *interface_, DRW::Version ver, bool bin) {
         writer = std::make_unique<dwgWriter18>(&filestr, &header);
     else
         writer = std::make_unique<dwgWriter15>(&filestr, &header);
+
+    writer->setEedLayerByteOrder(eedLayerByteOrder);
 
     // Seed caller-reserved handles into the writer's HandleAllocator BEFORE
     // any defineBlock()/next() mint (writeBlocks runs below).  Without this a

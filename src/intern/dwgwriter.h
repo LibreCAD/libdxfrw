@@ -353,6 +353,7 @@ public:
     }
 
     virtual ~dwgWriter() = default;
+    void setEedLayerByteOrder(DRW::DwgEedLayerByteOrder order) noexcept { m_eedLayerByteOrder = order; }
 
     /// Emit the file-header stub at offsets 0..(0x19 + 9N + 1) with
     /// placeholder zeros for section addresses + sizes.  Final values
@@ -2269,6 +2270,7 @@ protected:
     /// higher versions set this in their constructor before any emit calls
     /// so all inherited section-emit helpers use the correct format.
     DRW::Version m_version {DRW::AC1015};
+    DRW::DwgEedLayerByteOrder m_eedLayerByteOrder {DRW::DwgEedLayerByteOrder::LegacyLittleEndian};
 
     /// Handle allocator pre-seeded with the canonical R2000 reserved
     /// set.  Subclasses call `m_handles.next()` for each user-emitted

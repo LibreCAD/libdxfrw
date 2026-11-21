@@ -230,6 +230,8 @@ bool encodeEntityDwgTransaction(std::int16_t &objectType, dwgBufferW *body,
             handleStage = &*handleStageStorage;
         }
 
+        ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+        if (!legacyLinks.valid()) return false;
         if (!writer(&bodyStage, strings != nullptr ? stringStage : nullptr,
                     handles != nullptr ? handleStage : nullptr))
             return false;
@@ -7760,7 +7762,7 @@ void putEedRawHandleLE(dwgBufferW& buffer, std::uint64_t handle) {
 bool encodeEedItem(DRW::Version version, const DRW_Variant& value,
                    dwgBufferW& textEncoder, dwgBufferW& output,
                    std::uint64_t resolvedLayerHandle,
-                   std::uint16_t codePage) {
+                   std::uint16_t codePage, bool rawLayerBytes) {
     const int groupCode = value.code();
     switch (groupCode) {
     case 1000: {
@@ -7799,7 +7801,10 @@ bool encodeEedItem(DRW::Version version, const DRW_Variant& value,
         if (value.type() != DRW_Variant::STRING || resolvedLayerHandle == 0)
             return false;
         output.putRawChar8(3);
-        putEedRawHandleLE(output, resolvedLayerHandle);
+        if (!rawLayerBytes && textEncoder.eedLayerByteOrder() == DRW::DwgEedLayerByteOrder::BigEndian)
+            putEedRawHandleBE(output, resolvedLayerHandle);
+        else
+            putEedRawHandleLE(output, resolvedLayerHandle);
         return output.isGood();
     case 1004: {
         if (value.type() != DRW_Variant::BINARY || value.binary() == nullptr
@@ -7950,18 +7955,19 @@ bool DRW_Entity::encodeDwgEed(
         }
 
         std::uint64_t layerHandle = 0;
+        bool rawLayerBytes = false;
         if (value->code() == 1003) {
             const PendingHandleRef* layerRef = findEedWriteRef(layerRefs, index);
             if (layerRef == nullptr)
                 return false;
-            layerHandle = layerRef->useRawHandleRef
-                ? layerRef->rawHandleRef : layerRef->handleRef;
+            rawLayerBytes = layerRef->useRawHandleRef;
+            layerHandle = rawLayerBytes ? layerRef->rawHandleRef : layerRef->handleRef;
             if (layerHandle == 0)
                 return false;
         }
         dwgBufferW item;
         if (!encodeEedItem(version, *value, output, item, layerHandle,
-                           codePage))
+                           codePage, rawLayerBytes))
             return false;
         if (item.data().size() > std::numeric_limits<std::uint16_t>::max())
             return false;
@@ -8342,6 +8348,8 @@ bool DRW_Point::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
     struct ObjectTypeRollback {
@@ -8499,6 +8507,8 @@ bool DRW_Line::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
     struct ObjectTypeRollback {
@@ -8625,6 +8635,8 @@ bool DRW_3DLine::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     strBuf = strBuf != nullptr ? stringStage : nullptr;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
@@ -8697,6 +8709,8 @@ bool DRW_Circle::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
     struct ObjectTypeRollback {
@@ -8767,6 +8781,8 @@ bool DRW_Ray::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
     struct ObjectTypeRollback {
@@ -8861,6 +8877,8 @@ bool DRW_Trace::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
     struct ObjectTypeRollback {
@@ -8937,6 +8955,8 @@ bool DRW_Spline::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
     struct ObjectTypeRollback {
@@ -9097,6 +9117,8 @@ bool DRW_Helix::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
     struct ObjectTypeRollback {
@@ -9364,6 +9386,8 @@ bool DRW_MText::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     strBuf = hasStringBuffer ? stringStage : nullptr;
     handleBuf = hasHandleBuffer ? handleStage : nullptr;
@@ -9528,6 +9552,8 @@ bool DRW_Insert::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
     struct ObjectTypeRollback {
@@ -9676,6 +9702,8 @@ bool DRW_3Dface::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
     struct ObjectTypeRollback {
@@ -9760,6 +9788,8 @@ bool DRW_Solid::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
     struct ObjectTypeRollback {
@@ -9836,6 +9866,8 @@ bool DRW_LWPolyline::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
     struct ObjectTypeRollback {
@@ -9980,6 +10012,8 @@ bool DRW_Block::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     strBuf = strBuf != nullptr ? stringStage : nullptr;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
@@ -10059,6 +10093,8 @@ bool DRW_Text::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     strBuf = strBuf != nullptr ? stringStage : nullptr;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
@@ -10162,6 +10198,8 @@ bool DRW_Ellipse::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
     struct ObjectTypeRollback {
@@ -10233,6 +10271,8 @@ bool DRW_Arc::encodeDwg(DRW::Version version, dwgBufferW *buf, std::uint32_t bs,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
     struct ObjectTypeRollback {
@@ -21561,6 +21601,8 @@ bool DRW_Attrib::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     strBuf = strBuf != nullptr ? stringStage : nullptr;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
@@ -21939,6 +21981,8 @@ bool DRW_Attdef::encodeDwg(DRW::Version version, dwgBufferW *buf,
       handleStage = &*handleStageStorage;
     }
 
+    ScopedDwgStagedLegacyEntityLinks legacyLinks(bodyTarget, handleTarget, &bodyStage, handleStage);
+    if (!legacyLinks.valid()) return false;
     buf = &bodyStage;
     strBuf = strBuf != nullptr ? stringStage : nullptr;
     handleBuf = handleBuf != nullptr ? handleStage : nullptr;
