@@ -6,13 +6,13 @@
   "supportClaimEffect": "none",
   "pullRequest": {
     "url": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
-    "head": "64f45915b01165e10082091d0bb879464f9effa3",
+    "head": "df4cba8033a8d44ffcb922474d9153fccec341e4",
     "baseMaster": "4fb48312708b39d499f7e6668104a3b54a8601c7",
     "state": "draft and mergeable when observed",
     "hostedChecks": "Updated head pushed; prior workflow results do not qualify this head.",
-    "previousHead": "b3980f7287680c71935da9b809b086669fcde40c"
+    "previousHead": "64f45915b01165e10082091d0bb879464f9effa3"
   },
-  "scope": "Ordinary default-normal HATCH polyline, line, arc, ellipse and selected non-rational spline point elevation; ellipse edge direction; mixed-elevation loss handling. This direct upstream change does not include the larger unmerged MPOLYGON consumer candidate or its system-codec integration. Open and Save dialog loss notes are displayed, including with partial-read warnings. Reserved ByLayer/ByBlock descriptions are cleared before output to match the current codec. Spline move/copy translates fit points together with control points.",
+  "scope": "Ordinary default-normal HATCH polyline, line, arc, ellipse and selected non-rational spline point elevation; ellipse edge direction; mixed-elevation loss handling. This direct upstream change does not include the larger unmerged MPOLYGON consumer candidate or its system-codec integration. Open and Save dialog loss notes are displayed, including with partial-read warnings. Reserved ByLayer/ByBlock descriptions are cleared before output to match the current codec. Spline move/copy translates fit points together with control points. Spline planar rotation transforms controls, fit points, tangents and normal without discarding Z.",
   "implementation": "Rebased the supported HATCH portions of the prior candidate into a three-file master-based change; original user LibreCAD_3 checkout was untouched.",
   "validation": {
     "platform": "macOS arm64, headless persistence, LibreCAD_3 pinned bundled codec d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
@@ -35,12 +35,17 @@
     "splineMoveBaselineLogSha256": "73887e8678a7e442f8a9b0bad657818c232920b79352521f13bca241a545bb20",
     "splineMoveBundledLogSha256": "0b5b7f964923a08192da26dcdf845a2df88fdbba7e5d95a1097045278e1d2340",
     "splineMoveCurrentLogSha256": "431b5cd093276b5be6defcf6f4abaefb6898864d1c763a0e7bc37c012e15e602",
-    "splineMoveIndependentSha256": "8822e5ca68151774a0b8976b127eaf415ac4d174edd066d42d8e560faffc1319"
+    "splineMoveIndependentSha256": "8822e5ca68151774a0b8976b127eaf415ac4d174edd066d42d8e560faffc1319",
+    "splineRotation": "Pre-fix control changes Z to the rotation-center Z and leaves fit points and tangents unrotated. Four focused HATCH tests pass with each codec after the fix; a fit-only control and nonzero 3D tangent/normal vector control also pass. ezdxf independently verifies selected rotated ASCII/Binary points, tangents and elevation for both codecs.",
+    "splineRotationBaselineLogSha256": "4c5b51bf4a0a0c55502ac38868e4adbc9947492d82f6cfc46ebff1a5a029df0d",
+    "splineRotationBundledLogSha256": "0545fd3834065ddb0bd01369c30ee41ca746a598b087319ca8587997c37b285d",
+    "splineRotationCurrentLogSha256": "13a5568ef66cf71134a7a7623a927d0a00a554fb8a962bcfa41d8f132d8bd9b4",
+    "splineRotationIndependentSha256": "c9cd9faa2f215e87511e29bc5adf579e96a24976d1f09079671e630ee695179a"
   },
   "limits": [
     "No native GUI, Linux or Windows result is claimed.",
     "The tested bundled codec and scratch source are not a final candidate freeze. Rational weights, periodic and tilted-plane cases remain open.",
     "MPOLYGON offset/subtype and related patches still require downstream integration and native qualification. No fixtures were committed.",
-    "Spline rotation, scale and mirror fit-point/tangent behavior remain separately unqualified."
+    "Spline scale and mirror fit-point/tangent behavior remain separately unqualified."
   ]
 }
