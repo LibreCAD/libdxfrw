@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p8d-librecad-3289-master-refresh-2026-11-21",
   "date": "2026-11-21",
-  "status": "CONSUMER_REFRESH_PUSHED_VALIDATION_IN_PROGRESS",
+  "status": "CONSUMER_REFRESH_HOSTED_BOUNDED_CHECKS_PASSED",
   "supportClaimEffect": "none",
   "consumer": {
     "repository": "LibreCAD/LibreCAD",
@@ -41,7 +41,7 @@
   },
   "hostedNewRuns": {
     "dwgDxf": "https://github.com/LibreCAD/LibreCAD/actions/runs/44952335912",
-    "stateWhenRecorded": "Linux fast passed; Windows x64 and Windows ARM64 were still in progress when checked."
+    "stateWhenRecorded": "PASS: Linux fast, Windows x64, and Windows ARM64 jobs on consumer head 195dc2cd142dd1205761de4b38c6b96e3216b316."
   },
   "limits": [
     "The upstream workflow fixes are inherited from master, not new fixes claimed by the consumer PR.",
