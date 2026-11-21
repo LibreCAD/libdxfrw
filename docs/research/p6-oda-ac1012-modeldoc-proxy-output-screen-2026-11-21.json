@@ -69,7 +69,27 @@
         ]
       }
     },
-    "observation": "The same source dictionaries and child handles reopen with ACAD_PROXY_OBJECT children in R14 and typed detail/section style children in R2013; selected dictionary entry spelling is uppercased in R14. The physical R14 CLASSES section still names the classes. A proxy object is not evidence that class fields and behavior round-trip unchanged."
+    "observation": "The same source dictionaries and child handles reopen with ACAD_PROXY_OBJECT children in R14 and typed detail/section style children in R2013; selected dictionary entry spelling is uppercased in R14. The physical R14 CLASSES section still names the classes. A proxy object is not evidence that class fields and behavior round-trip unchanged.",
+    "r14ProxyReopen2013": {
+      "sha256": "a885b054a87564c6a8cff05eef912ee2b6aea2cfd6f20c74c2a1a7cd7be78a2a",
+      "operation": "ODA converts the generated R14 ASCII DXF back to ACAD2013 ASCII DXF",
+      "comparison": "ezdxf 1.4.5 TagCollector exports each selected typed style as AC1027 and compares all ordered code/value tags with the direct AC2013 export of the original source",
+      "objects": {
+        "65": {
+          "type": "ACDBDETAILVIEWSTYLE",
+          "tagCount": 47,
+          "allOrderedExportedTagsEqual": true,
+          "canonicalTagSha256": "a4dd6f3e0698c8dec64d8ff67c510d176363953a1d6b6b071a13bb1f764a099d"
+        },
+        "67": {
+          "type": "ACDBSECTIONVIEWSTYLE",
+          "tagCount": 63,
+          "allOrderedExportedTagsEqual": true,
+          "canonicalTagSha256": "1ab41e9795dc55e66da6901bfc60c38abd17c7ffe388c7b25e023b04e3f10d48"
+        }
+      },
+      "limitation": "The same producer family performed both conversions; equality covers only the selected default style objects and exported tags, not dictionary name spelling, other objects, native semantics, or lossless whole-file output."
+    }
   },
   "nextSteps": [
     "Before admitting this source/target profile, bind proxy class records and payload, source/target handles and dictionary entries, and establish lossless semantics after a native save/reopen or independent decoder.",
