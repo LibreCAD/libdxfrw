@@ -1,0 +1,330 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-oda-legacy-dictionary-layer-extension-2026-11-21",
+  "date": "2026-11-21",
+  "status": "SOURCE_GRAPH_EVIDENCE_OUTPUT_NOT_QUALIFIED",
+  "supportClaimEffect": "none",
+  "generator": "tools/research/verify_oda_legacy_layer_graph.py",
+  "generatorSha256": "5ed01795e422eb323ea878460be5b2ead2f6a9680cc3ae61c981955a25065dbb",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.4.44 DICTIONARY",
+      "28 Extended Entity Data"
+    ],
+    "note": "The specification calls the R14 byte unknown and does not explicitly state EED layer-handle byte order."
+  },
+  "producerAndReadback": {
+    "oda": {
+      "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+      "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "candidate": {
+      "path": "/private/tmp/libdxfrw-p6j-asan/dwg2dxf/dwg2dxf",
+      "sha256": "1e89f39dc4b1bb75d6e64f245c5e5761222f49689ab46bfd9fd695002c7c3f14"
+    },
+    "ezdxfVersion": "1.4.5",
+    "seedSha256": "1a579e5b869050e4cc01c8c3f9f5d6af370cd6d73c986b4f9c64e0b7e5af76db",
+    "versions": {
+      "r13": {
+        "dwgSha256": "3416db54f0b01604d44a643b1433c728f8e40b7562fe8f84b63f90cb22a6b860",
+        "layerHandle": 47,
+        "appidHandle": 42,
+        "proofs": {
+          "nod": {
+            "handle": 10,
+            "frameSha256": "1201cc5bd5d7375c32dec10dc98cb3471ace2aea6792e1bb80de6d720a1c5406",
+            "frameOffset": 2993,
+            "frameSize": 382,
+            "bodyEndBit": 2742,
+            "crcValid": true,
+            "r14Byte": null,
+            "owner": 0,
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 1,
+              "value": 202
+            },
+            "eed": [
+              {
+                "appid": 42,
+                "hex": "03000000000000002f000d002d54524541545f41535f48415244460000"
+              }
+            ],
+            "entryCount": 18,
+            "extensionFrame": {
+              "handle": 202,
+              "frameSha256": "a52b2285f0d2881e64b8942cb8bf2f567ecba912a4eb6cf7f46ddfd7f7f879d5",
+              "frameOffset": 4834,
+              "frameSize": 35,
+              "bodyEndBit": 234,
+              "crcValid": true,
+              "r14Byte": null,
+              "owner": 10,
+              "reactors": [],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              },
+              "eed": [],
+              "entryCount": 1
+            },
+            "extensionEntry": 203,
+            "extensionChildType": "XRECORD",
+            "extensionChildXdata": [
+              [
+                102,
+                "EXTNAMES"
+              ],
+              [
+                1,
+                "ACDBVARIABLEDICTIONARY"
+              ],
+              [
+                2,
+                "AcDbVariableDictionary"
+              ]
+            ]
+          },
+          "mline": {
+            "handle": 16,
+            "frameSha256": "6d592f8f2b2d451a3c8360f4b0b7b26afa9c93c958fc1d4e68ce5ba54b9beaa5",
+            "frameOffset": 5132,
+            "frameSize": 57,
+            "bodyEndBit": 404,
+            "crcValid": true,
+            "r14Byte": null,
+            "owner": 10,
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 1,
+              "value": 183
+            },
+            "eed": [
+              {
+                "appid": 42,
+                "hex": "03000000000000002f000d002d54524541545f41535f48415244460000"
+              }
+            ],
+            "entryCount": 1,
+            "extensionFrame": {
+              "handle": 183,
+              "frameSha256": "5370ffcca334dc2a970c07baa14f0dff9021d0e8f2da51373fc30a48bb656ad9",
+              "frameOffset": 8591,
+              "frameSize": 35,
+              "bodyEndBit": 234,
+              "crcValid": true,
+              "r14Byte": null,
+              "owner": 16,
+              "reactors": [],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              },
+              "eed": [],
+              "entryCount": 1
+            },
+            "extensionEntry": 184,
+            "extensionChildType": "XRECORD",
+            "extensionChildXdata": [
+              [
+                102,
+                "EXTNAMES"
+              ],
+              [
+                1,
+                "STANDARD"
+              ],
+              [
+                2,
+                "Standard"
+              ]
+            ]
+          }
+        },
+        "odaReadbackSha256": "43da580cfd00a5ec17b946d967bf66500039ae74380c519157ad447d94faf948",
+        "odaReadbackLayer": "PROBE_LAYER",
+        "candidate": {
+          "strict": {
+            "exit": 1,
+            "destinationPreserved": true,
+            "diagnostics": [
+              "DXF export preflight failed: typed DWG ModelDocViewStyle serialization requires the exact DWG source version"
+            ]
+          },
+          "partial": {
+            "exit": 1,
+            "destinationPreserved": true,
+            "diagnostics": [
+              "DXF export preflight failed: typed DWG ModelDocViewStyle serialization requires the exact DWG source version"
+            ]
+          }
+        }
+      },
+      "r14": {
+        "dwgSha256": "d1e7f355c7cbd877a254f6d5890dc8119dd82b6dde48f74a4da1bbc9c107b564",
+        "layerHandle": 47,
+        "appidHandle": 42,
+        "proofs": {
+          "nod": {
+            "handle": 10,
+            "frameSha256": "174142ac3e15fe97671c59f3513acad85356f92239cfcdc190d4724812ddd0e0",
+            "frameOffset": 3128,
+            "frameSize": 363,
+            "bodyEndBit": 2590,
+            "crcValid": true,
+            "r14Byte": 0,
+            "owner": 0,
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 1,
+              "value": 204
+            },
+            "eed": [
+              {
+                "appid": 42,
+                "hex": "03000000000000002f"
+              }
+            ],
+            "entryCount": 18,
+            "extensionFrame": {
+              "handle": 204,
+              "frameSha256": "3fdd640cc7dcc2ccdf69ae413f3c68d0c220a174c9f9fe037dc77e924fd3b4e9",
+              "frameOffset": 4990,
+              "frameSize": 36,
+              "bodyEndBit": 242,
+              "crcValid": true,
+              "r14Byte": 1,
+              "owner": 10,
+              "reactors": [],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              },
+              "eed": [],
+              "entryCount": 1
+            },
+            "extensionEntry": 205,
+            "extensionChildType": "XRECORD",
+            "extensionChildXdata": [
+              [
+                102,
+                "EXTNAMES"
+              ],
+              [
+                1,
+                "ACDBVARIABLEDICTIONARY"
+              ],
+              [
+                2,
+                "AcDbVariableDictionary"
+              ]
+            ]
+          },
+          "mline": {
+            "handle": 16,
+            "frameSha256": "58a692d4562c59358d7ce8e93439fcbb3953093bf9b8b98ceb849fc3dc0c4a8c",
+            "frameOffset": 5177,
+            "frameSize": 38,
+            "bodyEndBit": 252,
+            "crcValid": true,
+            "r14Byte": 0,
+            "owner": 10,
+            "reactors": [],
+            "extension": {
+              "role": 3,
+              "length": 1,
+              "value": 185
+            },
+            "eed": [
+              {
+                "appid": 42,
+                "hex": "03000000000000002f"
+              }
+            ],
+            "entryCount": 1,
+            "extensionFrame": {
+              "handle": 185,
+              "frameSha256": "796acded099584ef1ea2af5b1f71149c7f2a8898521f138138e264c1682e0950",
+              "frameOffset": 8666,
+              "frameSize": 36,
+              "bodyEndBit": 242,
+              "crcValid": true,
+              "r14Byte": 1,
+              "owner": 16,
+              "reactors": [],
+              "extension": {
+                "role": 3,
+                "length": 0,
+                "value": 0
+              },
+              "eed": [],
+              "entryCount": 1
+            },
+            "extensionEntry": 186,
+            "extensionChildType": "XRECORD",
+            "extensionChildXdata": [
+              [
+                102,
+                "EXTNAMES"
+              ],
+              [
+                1,
+                "STANDARD"
+              ],
+              [
+                2,
+                "Standard"
+              ]
+            ]
+          }
+        },
+        "odaReadbackSha256": "21de1241e0371edc562fce54962cc0abbc8f97ae13a5103762eaa20e23709cde",
+        "odaReadbackLayer": "PROBE_LAYER",
+        "candidate": {
+          "strict": {
+            "exit": 1,
+            "destinationPreserved": true,
+            "diagnostics": [
+              "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+            ]
+          },
+          "partial": {
+            "exit": 1,
+            "destinationPreserved": true,
+            "diagnostics": [
+              "DXF export preflight failed: LAYOUT and BLOCK_RECORD backlinks disagree"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "findings": [
+    "Locally authored R2000 DXF seeds set ACAD group 1003 to PROBE_LAYER on the NOD and ACAD_MLINESTYLE owner. ODA File Converter created AC1012 and AC1014 DWGs, then reopened each into AC1027 DXF; ezdxf found PROBE_LAYER in both selected dictionaries.",
+    "A separate bit walker binds each source dictionary frame, size, CRC, own handle, APPID, EED bytes, body boundary, entry names, owner, hard-owner extension handle and item roles. Both selected records reference layer 0x2f in big-endian EED. The source extension dictionary frames are independently walked with exact owner, one membership and item role.",
+    "LibreDWG identifies each extension child as an XRECORD owned by its extension dictionary, with a matching reactor and the recorded EXTNAMES values. This is a peer-model observation; its physical XRECORD body is not independently bound by this control.",
+    "The selected R14 parent dictionaries contain byte 0; their extension dictionaries contain byte 1. LibreDWG interprets the latter as is_hardowner=1, while the ODA document labels this field unknown. The observation does not establish native ownership semantics or justify broadening the zero-byte observer.",
+    "On this generated source, strict and partial AC1012 conversion preserve the destination and stop at the cross-version ModelDocViewStyle guard. Strict AC1014 stops at complete-read disposition; explicit partial AC1014 stops at the LAYOUT/BLOCK_RECORD backlink guard. These are distinct from, and precede, output qualification of the selected extension graphs."
+  ],
+  "nextActions": [
+    "Bind each extension XRECORD physical body, class identity, string encodings, owner/reactor roles and following-frame boundary; verify the source extension graph against more than one producer state.",
+    "Establish the R14 byte meaning and versioned DXF projection using version-qualified authority or an independent native semantic witness. Then implement bounded source and staged-output graph closure with nondefault layer identity, both encodings, wrong-role/ambiguous/missing-target refusal and same-adapter retry.",
+    "Resolve the separate whole-file disposition and backlink guards before claiming whole-source conversion. Keep unqualified extension data raw or refuse output."
+  ],
+  "limits": [
+    "ODA-generated controls are not native AutoCAD producer or duplicate/merge evidence. LibreDWG XRECORD values are not an independent physical-body proof.",
+    "The two source frames were created locally from scratch and no DWG/DXF fixture is committed."
+  ]
+}
