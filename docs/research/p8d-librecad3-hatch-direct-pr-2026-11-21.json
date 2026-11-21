@@ -6,12 +6,13 @@
   "supportClaimEffect": "none",
   "pullRequest": {
     "url": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
-    "head": "3a64b81601492420c4a8969b19b2d9dbc469b1d5",
+    "head": "5419e7b403102f91d6ed11540420021ede5bcd06",
     "baseMaster": "4fb48312708b39d499f7e6668104a3b54a8601c7",
     "state": "draft and mergeable when observed",
-    "hostedChecks": "in progress when observed; no conclusion inferred"
+    "hostedChecks": "New head pushed; prior head plan sync and sanitizer jobs passed but do not qualify this head. Recheck current workflows.",
+    "previousHead": "3a64b81601492420c4a8969b19b2d9dbc469b1d5"
   },
-  "scope": "Ordinary default-normal HATCH polyline, line, arc, ellipse and selected non-rational spline point elevation; ellipse edge direction; mixed-elevation loss handling. This direct upstream change does not include the larger unmerged MPOLYGON consumer candidate or its system-codec integration.",
+  "scope": "Ordinary default-normal HATCH polyline, line, arc, ellipse and selected non-rational spline point elevation; ellipse edge direction; mixed-elevation loss handling. This direct upstream change does not include the larger unmerged MPOLYGON consumer candidate or its system-codec integration. Open and Save dialog loss notes are displayed, including with partial-read warnings.",
   "implementation": "Rebased the supported HATCH portions of the prior candidate into a three-file master-based change; original user LibreCAD_3 checkout was untouched.",
   "validation": {
     "platform": "macOS arm64, headless persistence, LibreCAD_3 pinned bundled codec d68fb1ed937ad2a74a54f6208277ec10a1b031b0",
@@ -19,11 +20,14 @@
     "focused": "5/5 generated HATCH and format tests pass, covering line, mixed line/polyline, curved edges in both directions and non-rational spline, ASCII/Binary output, loss and corrected retry",
     "regression": "5/5 existing HATCH, spline and 3D line tests pass",
     "independent": "ezdxf 1.4.5 checked 12 selected line, ellipse-direction and spline input/output cases",
-    "planSync": "Python binding plan --base-ref check PASS",
+    "planSync": "Python binding plan explicit-path check PASS for the final PR paths; hosted recheck pending.",
     "focusedLogSha256": "a3c4a4be4609eefb1bf973ee89e8c05bc8120bdd602dea55248579f196df3673",
     "regressionLogSha256": "3e60e56efdc0931e2a9dbd0e97674665cfeff3037241657656b069ba5f4ffb0c",
     "persistenceSha256": "4220423857fcee9a05ba1c8bf45bc1bbc2876a5018ec507197c2db18ae8656ff",
-    "sourceMatch": "Both implementation and test source files byte-match the committed PR head."
+    "sourceMatch": "Both implementation and test source files byte-match the committed PR head.",
+    "uiSource": "The Qt 6 CadMdiChild translation unit compiled on macOS arm64; exact extracted helper smoke passed empty, note-only, combined and zero-count summaries. No native dialog interaction is claimed.",
+    "uiObjectSha256": "e8fccde816d89f38bb67783503039a948ca044f5f39fa9f14b830da37a9f8971",
+    "uiSourceSha256": "4f7fa80d529d1a091700bb2361a2ce6389c5bd9d7451811ea6f7bca9657150ea"
   },
   "limits": [
     "No native GUI, Linux or Windows result is claimed.",
