@@ -7,8 +7,11 @@ committed; the inputs originate in the tracked, locally authored recipe.
 import argparse
 import hashlib
 import json
+import re
 import subprocess
 from pathlib import Path
+
+from generate_ac1012_dictionary_witness import Bits, crc16
 
 
 def run(*args):
@@ -20,6 +23,42 @@ def run(*args):
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def replace_eed_text(dwgread, source, destination, value):
+    """Patch the locally generated fixed-size EED string and repair its CRC."""
+    raw = value.encode('utf-8')
+    if len(raw) != 5:
+        raise ValueError('control text must occupy exactly five UTF-8 bytes')
+    trace = run(dwgread, '-v4', str(source))
+    blocks = re.split(r'(?=Object number:)', trace.stdout + trace.stderr)
+    matches = [b for b in blocks if re.search(r'\bhandle: 0\.\d+\.D\s', b)]
+    if len(matches) != 1:
+        raise RuntimeError('group dictionary trace is missing or ambiguous')
+    location = re.search(r'Size: (\d+) \[MS\], Type: 42 \[BS\], Address: (\d+)', matches[0])
+    if location is None:
+        raise RuntimeError('group dictionary frame location missing')
+    size, address = map(int, location.groups())
+    data = bytearray(source.read_bytes())
+    if address < 2 or address + size + 2 > len(data) or data[address-2:address] != size.to_bytes(2, 'little'):
+        raise RuntimeError('unexpected source frame envelope')
+    if int.from_bytes(data[address+size:address+size+2], 'little') != crc16(data[address-2:address+size]):
+        raise RuntimeError('source frame CRC mismatch')
+    bits = Bits(data[address:address+size])
+    if (bits.bs() != 42 or bits.handle(0, own=True)['value'] != 13 or bits.bs() != 12
+            or bits.handle(5)['value'] != 18 or bits.take(8) != 0 or bits.take(8) != 5):
+        raise RuntimeError('unexpected source EED framing')
+    offset = bits.position
+    if bytes(bits.take(8) for _ in range(7)) != b'\x00\x1eHELLO':
+        raise RuntimeError('unexpected source codepage or text')
+    for index, byte in enumerate(b'\x00\x2d' + raw):
+        for bit in range(8):
+            pos = address * 8 + offset + index * 8 + bit
+            mask = 0x80 >> (pos % 8)
+            data[pos // 8] = ((data[pos // 8] | mask) if byte & (0x80 >> bit)
+                               else (data[pos // 8] & ~mask))
+    data[address+size:address+size+2] = crc16(data[address-2:address+size]).to_bytes(2, 'little')
+    destination.write_bytes(data)
 
 
 def main():
@@ -38,7 +77,7 @@ def main():
     recipe = Path(__file__).resolve().parents[2] / 'tests/fixtures/dwg/ac1012_partial_three_line_control.dwgadd'
     base = root / 'dwgadd.dwg'
     source = root / 'dwgadd.json'
-    if any((root / name).exists() for name in ('dwgadd.dwg', 'dwgadd.json', 'baseline.dwg', 'eed.dwg', 'unqualified.dwg')):
+    if any((root / name).exists() for name in ('dwgadd.dwg', 'dwgadd.json', 'baseline.dwg', 'eed.dwg', 'unqualified.dwg', 'utf8.dwg', 'wide.dwg')):
         raise RuntimeError('output directory must not contain a previous control')
     run(args.dwgadd, '--as', args.version, '-o', str(base), str(recipe))
     run(args.dwgread, '-O', 'JSON', '-o', str(source), str(base))
@@ -77,6 +116,10 @@ def main():
             raise RuntimeError(f'{name} independent JSON readback mismatch')
         if name == 'baseline' and selected[0].get('eed'):
             raise RuntimeError('baseline unexpectedly contains EED')
+        results[name] = {'path': str(drawing), 'sha256': digest(drawing)}
+    for name, value in (('utf8', 'café'), ('wide', '漢é')):
+        drawing = root / (name + '.dwg')
+        replace_eed_text(args.dwgread, root / 'eed.dwg', drawing, value)
         results[name] = {'path': str(drawing), 'sha256': digest(drawing)}
     print(json.dumps({'recipeSha256': digest(recipe), 'controls': results,
                       'version': args.version, 'dictionaryHandle': 13, 'appidHandle': 18,

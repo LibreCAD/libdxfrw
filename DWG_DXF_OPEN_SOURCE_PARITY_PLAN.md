@@ -152,19 +152,20 @@ both ODA files. The [controlled producer/reopen witness](docs/research/p6-legacy
 binds EED codepage 45 to UTF-8 for the observed R13/R14 profile, now decoded
 with malformed-byte observations. The [UTF-8 EED source proof](docs/research/p6-legacy-dictionary-eed-utf8-source-2026-11-21.json)
 also binds exact bytes and unchanged APPIDs, with malformed text, bit mutation,
-and retry controls; it does not qualify output. Next, connect the verified
-source profile to staged APPID/table and graph checks. The bounded R14 group
-DICTIONARY with ACAD APPID and codepage-30 ASCII EED now passes strict R14
-ASCII/Binary output, mutation/refusal and retry, and independent readback; see
-the [control and limits](docs/research/p6-r14-group-dictionary-eed-output-2026-11-21.json).
+and retry controls. The bounded R14 group DICTIONARY with ACAD APPID now binds
+staged APPID/table and graph checks for codepage-30 ASCII and representable
+codepage-45 UTF-8 EED, with strict ASCII/Binary output and independent readback;
+see the [ASCII control](docs/research/p6-r14-group-dictionary-eed-output-2026-11-21.json)
+and [UTF-8 output and refusal controls](docs/research/p6-legacy-eed-utf8-output-2026-11-21.json).
+A target escape that an independent reader treats literally is refused atomically.
 The same source and staged proof now covers R13-to-R14 explicit partial output
 for that bounded group, with independent ASCII/Binary readback and mutation
 refusal; see [R13 control](docs/research/p6-r13-group-dictionary-eed-partial-2026-11-21.json)
 and the subsequent [import-bound integrity fix](docs/research/p6-legacy-eed-import-bound-integrity-2026-11-21.json).
 The original pre-inspection fallback is closed for the verified profile; an
 unqualified EED control retains its existing partial route. Strict R13, broader
-cross-version and non-ASCII output remain outside this profile. Extend only with separately
-bound source, name, graph and output evidence. The observed legacy DICTIONARYWDFLT is now
+cross-version and non-representable EED output remain outside this profile. Extend
+other dictionaries only with separately bound source, name, graph and output evidence. The observed legacy DICTIONARYWDFLT is now
 decoded with cloning, owner, entry and default fields after
 [producer and wire checks](docs/research/p6-legacy-dictionary-default-typed-2026-11-21.json);
 the subclass physically contains a cloning field in these samples. CELLSTYLEMAP

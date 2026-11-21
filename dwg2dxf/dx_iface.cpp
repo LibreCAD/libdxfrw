@@ -32531,7 +32531,7 @@ bool dx_iface::hasLegacyDictionaryWireSource(
         return current && current->name == name && current->sameDwgNameSource(*source->second);
     };
     const auto page = [](std::uint16_t be, std::uint16_t le) noexcept {
-        return be == 30u && le == 0x1e00u;
+        return (be == 30u && le == 0x1e00u) || (be == 45u && le == 0x2d00u);
     };
     return dx_legacy_dwg_wire::observeDictionaryEed(frame.raw, dictionary, false, app, page);
 }
@@ -52122,6 +52122,18 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
             const auto slots = 2u * frozen->reactorHandles.size() + expected.size() + frozen->extData.size() + 4u;
             if (slots > 1000000u || !charge(slots * sizeof(std::uint32_t))) return false;
             proof.references.reserve(slots);
+            const auto sourceFrame = cData->m_standardDwgObjectFrames.find(
+                {cData->importGeneration, frozen->handle});
+            const bool legacyEedText = groups && view.version == DRW::AC1014
+                && cData->sourceFormat == dx_source_format::DWG
+                && sourceFrame != cData->m_standardDwgObjectFrames.end()
+                && sourceFrame->second.legacyEedWireAtImport;
+            const bool nonAsciiEed = legacyEedText && std::any_of(
+                frozen->extData.begin(), frozen->extData.end(), [](const DRW_Variant* value) {
+                    return value && value->code() == 1000 && value->type() == DRW_Variant::STRING
+                        && value->content.s && std::any_of(value->content.s->begin(), value->content.s->end(),
+                            [](unsigned char c) { return c > 0x7fu; });
+                });
             bool seen = false;
             std::string_view matchedBody;
             diagnosticStage = groups ? "GROUPS output field inspection"
@@ -52182,7 +52194,9 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
                         if (token.code >= 1000) {
                             diagnosticStage = groups ? "GROUPS staged XDATA"
                                                      : "NOD staged XDATA";
-                            if (!classes || pending || (!xdata && token.code != 1001)) return false;
+                            if (!classes || pending || (!xdata && token.code != 1001)
+                                || (nonAsciiEed && token.code == 1000
+                                    && token.text.find('\\') != std::string_view::npos)) return false;
                             xdata = true;
                             continue;
                         }
@@ -52281,8 +52295,16 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
                         bool qualified = frozen->flags == 0 && frozen->name.empty() && !frozen->hasDataStorageBinaryData();
                         for (const auto& app : frozen->appData) for (const auto& value : app)
                             if (value.dwgCmColorValue() || (value.type() == DRW_Variant::STRING && (!value.c_str() || !textProfile(value.c_str())))) qualified = false;
-                        for (const auto* value : frozen->extData)
-                            if (!value || value->dwgCmColorValue() || (value->type() == DRW_Variant::STRING && (!value->c_str() || !textProfile(value->c_str())))) qualified = false;
+                        for (const auto* value : frozen->extData) {
+                            if (!value || value->dwgCmColorValue()) { qualified = false; continue; }
+                            if (value->type() != DRW_Variant::STRING) continue;
+                            const char* text = value->c_str();
+                            if (!text || (!textProfile(text)
+                                && !(legacyEedText && value->code() == 1000 && value->content.s
+                                    && value->content.s->find('\0') == std::string::npos
+                                    && value->content.s->find('\\') == std::string::npos
+                                    && DRW_TextCodec::isUtf8ScalarText(*value->content.s)))) qualified = false;
+                        }
                         // Compatible/unqualified text retains its established
                         // route without earning a common/text certificate.
                         if (!qualified) return true;

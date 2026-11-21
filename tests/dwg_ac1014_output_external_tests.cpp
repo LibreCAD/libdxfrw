@@ -472,7 +472,7 @@ bool legacyGenerated(const std::string& input, const std::filesystem::path& outp
 }
 
 bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::path& output,
-                               DRW::Version sourceVersion) {
+                               DRW::Version sourceVersion, const std::string& expectedText) {
     LateMutationAdapter adapter;
     dx_data source;
     adapter.source = &source;
@@ -490,7 +490,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
         || group->extData[1]->type() != DRW_Variant::STRING
         || group->extData[2]->type() != DRW_Variant::INTEGER
         || !group->extData[0]->content.s || *group->extData[0]->content.s != "ACAD"
-        || !group->extData[1]->content.s || *group->extData[1]->content.s != "HELLO"
+        || !group->extData[1]->content.s || *group->extData[1]->content.s != expectedText
         || group->extData[2]->i_val() != 42 || app->name != "ACAD") return false;
     const DRW_Dictionary saved = *group;
     const std::string sentinel = "Legacy EED destination preserved\n";
@@ -541,8 +541,43 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             || result->extData[1]->type() != DRW_Variant::STRING
             || result->extData[2]->type() != DRW_Variant::INTEGER
             || !result->extData[0]->content.s || *result->extData[0]->content.s != "ACAD"
-            || !result->extData[1]->content.s || *result->extData[1]->content.s != "HELLO"
+            || !result->extData[1]->content.s || *result->extData[1]->content.s != expectedText
             || result->extData[2]->i_val() != 42) return false;
+    }
+    return true;
+}
+
+bool legacyWideEedRefusal(const std::string& badInput, const std::string& goodInput,
+                          const std::filesystem::path& output, DRW::Version sourceVersion) {
+    dx_iface adapter;
+    const auto policy = sourceVersion == DRW::AC1012 ? dx_dwgReadCompletenessPolicy::AllowPartial
+                                                    : dx_dwgReadCompletenessPolicy::RequireComplete;
+    const std::string sentinel = "unrepresentable EED destination preserved\n";
+    for (bool binary : {false, true}) {
+        dx_data bad;
+        if (!adapter.fileImport(badInput, &bad, false)
+            || !DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(bad)) return false;
+        const auto badGroup = std::find_if(bad.dictionaries.begin(), bad.dictionaries.end(),
+            [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0xdu; });
+        if (badGroup == bad.dictionaries.end() || badGroup->extData.size() != 3u
+            || !badGroup->extData[1] || badGroup->extData[1]->type() != DRW_Variant::STRING
+            || !badGroup->extData[1]->content.s
+            || *badGroup->extData[1]->content.s != "\xE6\xBC\xA2\xC3\xA9") return false;
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        if (write(adapter, bad, output.string(), binary, DRW::AC1014, policy)
+            || bytes(output) != sentinel) return false;
+        dx_data corrected;
+        if (!adapter.fileImport(goodInput, &corrected, false)
+            || !DxIfaceStandardDwgCaptureTestAccess::importBoundGroupEed(corrected)
+            || !write(adapter, corrected, output.string(), binary, DRW::AC1014, policy)) return false;
+        dx_iface fresh;
+        dx_data readback;
+        if (!fresh.fileImport(output.string(), &readback, false)) return false;
+        const auto group = std::find_if(readback.dictionaries.begin(), readback.dictionaries.end(),
+            [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0xdu; });
+        if (group == readback.dictionaries.end() || group->extData.size() != 3u
+            || !group->extData[1] || group->extData[1]->type() != DRW_Variant::STRING
+            || !group->extData[1]->content.s || *group->extData[1]->content.s != "caf\xC3\xA9") return false;
     }
     return true;
 }
@@ -772,9 +807,17 @@ int main(int argc, char** argv) {
             : argc == 4 && std::string(argv[1]) == "--legacy-bad-default-role"
                 ? checkLegacyDefaultRoleFallback(argv[2], argv[3])
             : argc == 4 && std::string(argv[1]) == "--r14-eed"
-                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014)
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO")
             : argc == 4 && std::string(argv[1]) == "--r13-eed"
-                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012)
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO")
+            : argc == 4 && std::string(argv[1]) == "--r14-eed-utf8"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "caf\xC3\xA9")
+            : argc == 4 && std::string(argv[1]) == "--r13-eed-utf8"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "caf\xC3\xA9")
+            : argc == 5 && std::string(argv[1]) == "--r14-eed-wide"
+                ? legacyWideEedRefusal(argv[2], argv[3], argv[4], DRW::AC1014)
+            : argc == 5 && std::string(argv[1]) == "--r13-eed-wide"
+                ? legacyWideEedRefusal(argv[2], argv[3], argv[4], DRW::AC1012)
             : argc == 4 && std::string(argv[1]) == "--r13-unqualified-eed"
                 ? r13UnqualifiedEedPartial(argv[2], argv[3])
             : argc == 4 && std::string(argv[1]) == "--r14-generated"

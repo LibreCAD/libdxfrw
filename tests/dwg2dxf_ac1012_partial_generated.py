@@ -140,6 +140,13 @@ def main():
                 require(invoke([profile_test, "--" + source_version + "-eed", str(eed_input),
                                 str(eed_root / "adapter.dxf")]).returncode == 0,
                         source_version + " EED staged output, mutation refusal and retry")
+                require(invoke([profile_test, "--" + source_version + "-eed-utf8",
+                                str(eed_root / "utf8.dwg"), str(eed_root / "utf8-output.dxf")]).returncode == 0,
+                        source_version + " UTF-8 EED staged output, mutation refusal and retry")
+                require(invoke([profile_test, "--" + source_version + "-eed-wide",
+                                str(eed_root / "wide.dwg"), str(eed_root / "utf8.dwg"),
+                                str(eed_root / "wide-output.dxf")]).returncode == 0,
+                        source_version + " unrepresentable EED refusal and corrected retry")
                 if source_version == "r13":
                     require(invoke([profile_test, "--r13-unqualified-eed",
                                     str(eed_root / "unqualified.dwg"),
