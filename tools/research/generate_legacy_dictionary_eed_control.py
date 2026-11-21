@@ -68,7 +68,9 @@ def main():
     parser.add_argument('--alternate-app', action='store_true')
     parser.add_argument('--alternate-group', action='store_true')
     parser.add_argument('--nonempty-group', action='store_true')
-    parser.add_argument('--eed-on-nod', action='store_true')
+    target_group = parser.add_mutually_exclusive_group()
+    target_group.add_argument('--eed-on-nod', action='store_true')
+    target_group.add_argument('--eed-on-mline', action='store_true')
     parser.add_argument('--dwgadd', default='dwgadd')
     parser.add_argument('--dwgread', default='dwgread')
     parser.add_argument('--dwgwrite', default='dwgwrite')
@@ -146,8 +148,12 @@ def main():
              and o.get('handle', [0, 0, 0])[2] == root_handle]
     if len(roots) != 1:
         raise RuntimeError('named-object dictionary not unique')
-    target = roots[0] if args.eed_on_nod else dictionaries[0]
-    target_handle = root_handle if args.eed_on_nod else group
+    mline_dicts = [o for o in document['OBJECTS'] if o.get('object') == 'DICTIONARY'
+                   and o.get('handle', [0, 0, 0])[2] == 23]
+    if len(mline_dicts) != 1:
+        raise RuntimeError('MLINESTYLE owner dictionary not unique')
+    target = roots[0] if args.eed_on_nod else mline_dicts[0] if args.eed_on_mline else dictionaries[0]
+    target_handle = root_handle if args.eed_on_nod else 23 if args.eed_on_mline else group
     # dwgread JSON rounds the angle; restore the exact generated binary value
     # so the baseline remains within the existing MLINESTYLE wire profile.
     styles[0]['start_angle'] = styles[0]['end_angle'] = 1.5707963267948966
@@ -175,7 +181,12 @@ def main():
                  and o.get('handle', [0, 0, 0])[2] == root_handle]
         if len(selected) != 1 or len(roots) != 1:
             raise RuntimeError(f'{name} independent dictionary readback mismatch')
-        peer_target = roots[0] if args.eed_on_nod else selected[0]
+        mline_roots = [o for o in reread['OBJECTS'] if o.get('object') == 'DICTIONARY'
+                       and o.get('handle', [0, 0, 0])[2] == 23]
+        if len(mline_roots) != 1 or roots[0].get('items', {}).get('ACAD_MLINESTYLE', [0])[-1] != 23 \
+                or mline_roots[0].get('ownerhandle', [0])[-1] != root_handle:
+            raise RuntimeError(f'{name} MLINESTYLE owner graph mismatch')
+        peer_target = roots[0] if args.eed_on_nod else mline_roots[0] if args.eed_on_mline else selected[0]
         if name != 'baseline' and peer_target.get('eed') != target['eed']:
             raise RuntimeError(f'{name} independent EED readback mismatch')
         peer_apps = [o for o in reread['OBJECTS'] if o.get('object') == 'APPID'
@@ -218,9 +229,11 @@ def main():
         broken = json.loads((root / 'eed.json').read_text())
         nod = [o for o in broken['OBJECTS'] if o.get('object') == 'DICTIONARY'
                and o.get('handle', [0, 0, 0])[2] == 53]
-        if len(nod) != 1 or nod[0].get('items', {}).get('ACAD_GROUP', [0])[-1] != group:
+        bad_key = 'ACAD_MLINESTYLE' if args.eed_on_mline else 'ACAD_GROUP'
+        expected_target = 23 if args.eed_on_mline else group
+        if len(nod) != 1 or nod[0].get('items', {}).get(bad_key, [0])[-1] != expected_target:
             raise RuntimeError('unexpected source graph before negative control')
-        nod[0]['items']['ACAD_GROUP'] = [2, 1, 25, 25]
+        nod[0]['items'][bad_key] = [2, 1, 25, 25]
         (root / 'bad-graph.json').write_text(json.dumps(broken))
         drawing = root / 'bad-graph.dwg'
         run(args.dwgwrite, '--as', args.version, '-I', 'JSON', '-o', str(drawing), str(root / 'bad-graph.json'))
@@ -229,7 +242,7 @@ def main():
         peer = json.loads(check.read_text())
         roots = [o for o in peer['OBJECTS'] if o.get('object') == 'DICTIONARY'
                  and o.get('handle', [0, 0, 0])[2] == 53]
-        if len(roots) != 1 or roots[0].get('items', {}).get('ACAD_GROUP', [0])[-1] != 25:
+        if len(roots) != 1 or roots[0].get('items', {}).get(bad_key, [0])[-1] != 25:
             raise RuntimeError('bad graph peer readback mismatch')
         results['badGraph'] = {'path': str(drawing), 'sha256': digest(drawing)}
     for name, value in (('utf8', 'café'), ('wide', '漢é')):

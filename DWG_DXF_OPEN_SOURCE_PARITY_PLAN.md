@@ -167,7 +167,10 @@ control](docs/research/p6-legacy-eed-nonempty-group-2026-11-21.json) also binds
 one named GROUP and its 3D LINE member, including wrong-role, graph-mutation,
 rollback and independent output-readback checks. The [NOD EED control](docs/research/p6-legacy-nod-eed-output-2026-11-21.json)
 reuses that source proof for the named-object dictionary and its MLINESTYLE
-path, with unique group ownership and staged ASCII/Binary output checks.
+path, with unique group ownership and staged ASCII/Binary output checks. The
+[MLINESTYLE owner EED control](docs/research/p6-legacy-mline-owner-eed-output-2026-11-21.json)
+binds the separate ACAD_MLINESTYLE dictionary, its style edge and text transport;
+the shared staged check also refuses lossy escapes in R13 partial output.
 Other group graphs and EED schemas still need matching source and output evidence.
 The same source and staged proof now covers R13-to-R14 explicit partial output
 for that bounded group, with independent ASCII/Binary readback and mutation

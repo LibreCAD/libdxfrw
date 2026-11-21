@@ -149,9 +149,10 @@ public:
     static std::uint8_t& sourceBit(dx_data& data, int fault) {
         const std::uint32_t handle = fault == 7 ? 0xcu : fault == 8 ? 0x22u
             : fault == 9 ? 0x23u : fault == 10 ? 0x1au : fault == 12 ? 0x19u
-            : fault == 13 ? 0x18u : fault == 14 ? 0xdu : fault == 15 ? 0x34u : fault == 16 ? 0x35u : 0x1bu;
+            : fault == 13 ? 0x18u : fault == 14 ? 0xdu : fault == 15 ? 0x34u : fault == 16 ? 0x35u
+            : fault == 17 ? 0x17u : 0x1bu;
         const dx_data::StandardDwgFrameKey key{data.importGeneration, handle};
-        if (fault == 7 || fault == 8 || fault == 10 || fault == 12 || fault == 14 || fault == 15 || fault == 16)
+        if (fault == 7 || fault == 8 || fault == 10 || fault == 12 || fault == 14 || fault == 15 || fault == 16 || fault == 17)
             return data.m_standardDwgObjectFrames.at(key).raw.m_rawBytes.front();
         return data.m_opaqueDwgSourceFrames.at(key).m_rawBytes.front();
     }
@@ -474,7 +475,7 @@ bool legacyGenerated(const std::string& input, const std::filesystem::path& outp
 bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::path& output,
                                DRW::Version sourceVersion, const std::string& expectedText,
                                std::uint32_t appHandle = 0x12u, std::uint32_t groupHandle = 0xdu,
-                               bool nonemptyGroup = false, bool nod = false) {
+                               bool nonemptyGroup = false, bool nod = false, bool mlineOwner = false) {
     LateMutationAdapter adapter;
     dx_data source;
     adapter.source = &source;
@@ -508,7 +509,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
     const DRW_Dictionary savedRoot = source.namedObjectDictionary;
     const DRW_MLineStyle savedStyle = source.mLineStyles.front();
     const int sourceFault = nod ? (groupHandle == 0xcu ? 7 : 16)
-                                : (groupHandle == 0xdu ? 14 : 15);
+                                : mlineOwner ? 17 : (groupHandle == 0xdu ? 14 : 15);
     const std::string sentinel = "Legacy EED destination preserved\n";
     const auto policy = sourceVersion == DRW::AC1012 ? dx_dwgReadCompletenessPolicy::AllowPartial
                                                     : dx_dwgReadCompletenessPolicy::RequireComplete;
@@ -526,10 +527,10 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             if (emit(binary, DRW::AC1015)
                 || bytes(output) != sentinel || !emit(binary)) return false;
         }
-        for (int fault = 0; fault < (nod ? 9 : nonemptyGroup ? 10 : 8); ++fault) {
+        for (int fault = 0; fault < ((nod || mlineOwner) ? 9 : nonemptyGroup ? 10 : 8); ++fault) {
             // R13 explicit partial output does not certify its MLINESTYLE;
             // edits to that unqualified object remain outside this proof.
-            if (nod && sourceVersion == DRW::AC1012 && fault == 8) continue;
+            if ((nod || mlineOwner) && sourceVersion == DRW::AC1012 && fault == 8) continue;
             if (fault == 0) group->extData[1]->addString(1000, "CHANGED");
             if (fault == 1) group->extData[2]->addInt(1070, 43);
             if (fault == 2) app->name = "CHANGED";
@@ -538,14 +539,14 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             if (fault == 5) group->extData[0]->addString(1001, "OTHER");
             if (fault == 6) {
                 auto edge = std::find_if(source.namedObjectDictionary.m_entries.begin(),
-                    source.namedObjectDictionary.m_entries.end(), [](const DRW_Dictionary::Entry& item) {
-                        return item.m_name == "ACAD_GROUP";
+                    source.namedObjectDictionary.m_entries.end(), [mlineOwner](const DRW_Dictionary::Entry& item) {
+                        return item.m_name == (mlineOwner ? "ACAD_MLINESTYLE" : "ACAD_GROUP");
                     });
                 if (edge == source.namedObjectDictionary.m_entries.end()) return false;
                 edge->m_handle ^= 1u;
             }
             if (fault == 7) group->parentHandle ^= 1u;
-            if (fault == 8 && nod) source.mLineStyles.front().name += "X";
+            if (fault == 8 && (nod || mlineOwner)) source.mLineStyles.front().name += "X";
             else if (fault == 8) group->m_entries[0].m_handle ^= 1u;
             if (fault == 9) groupRecord->m_entityHandles[0] ^= 1u;
             { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
@@ -556,7 +557,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
             *group = saved;
             if (nonemptyGroup) *groupRecord = savedGroup;
             source.namedObjectDictionary = savedRoot;
-            if (nod) source.mLineStyles.front() = savedStyle;
+            if (nod || mlineOwner) source.mLineStyles.front() = savedStyle;
             if (accepted || bytes(output) != sentinel
                 || !emit(binary)) {
                 std::cerr << "Legacy EED refusal/retry failed: binary=" << binary
@@ -567,8 +568,17 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
         dx_iface fresh;
         dx_data readback;
         if (!fresh.fileImport(output.string(), &readback, false) || !checkR14Generated(readback)) return false;
+        std::uint32_t outputHandle = 0xdu;
+        if (mlineOwner) {
+            const auto edge = std::find_if(readback.namedObjectDictionary.m_entries.begin(),
+                readback.namedObjectDictionary.m_entries.end(), [](const DRW_Dictionary::Entry& item) {
+                    return item.m_name == "ACAD_MLINESTYLE";
+                });
+            if (edge == readback.namedObjectDictionary.m_entries.end()) return false;
+            outputHandle = edge->m_handle;
+        }
         const auto foundResult = std::find_if(readback.dictionaries.begin(), readback.dictionaries.end(),
-            [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0xdu; });
+            [outputHandle](const DRW_Dictionary& dictionary) { return dictionary.handle == outputHandle; });
         const DRW_Dictionary* result = nod ? &readback.namedObjectDictionary
             : foundResult == readback.dictionaries.end() ? nullptr : &*foundResult;
         if (!result || result->extData.size() != 3u
@@ -654,7 +664,7 @@ bool legacyBadEedGraph(const std::string& badInput, const std::string& goodInput
 
 bool legacyWideEedRefusal(const std::string& badInput, const std::string& goodInput,
                           const std::filesystem::path& output, DRW::Version sourceVersion,
-                          std::uint32_t groupHandle = 0xdu, bool nod = false) {
+                          std::uint32_t groupHandle = 0xdu, bool nod = false, bool mlineOwner = false) {
     dx_iface adapter;
     const auto policy = sourceVersion == DRW::AC1012 ? dx_dwgReadCompletenessPolicy::AllowPartial
                                                     : dx_dwgReadCompletenessPolicy::RequireComplete;
@@ -681,8 +691,17 @@ bool legacyWideEedRefusal(const std::string& badInput, const std::string& goodIn
         dx_iface fresh;
         dx_data readback;
         if (!fresh.fileImport(output.string(), &readback, false)) return false;
+        std::uint32_t outputHandle = 0xdu;
+        if (mlineOwner) {
+            const auto edge = std::find_if(readback.namedObjectDictionary.m_entries.begin(),
+                readback.namedObjectDictionary.m_entries.end(), [](const DRW_Dictionary::Entry& item) {
+                    return item.m_name == "ACAD_MLINESTYLE";
+                });
+            if (edge == readback.namedObjectDictionary.m_entries.end()) return false;
+            outputHandle = edge->m_handle;
+        }
         const auto foundGroup = std::find_if(readback.dictionaries.begin(), readback.dictionaries.end(),
-            [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0xdu; });
+            [outputHandle](const DRW_Dictionary& dictionary) { return dictionary.handle == outputHandle; });
         const DRW_Dictionary* group = nod ? &readback.namedObjectDictionary
             : foundGroup == readback.dictionaries.end() ? nullptr : &*foundGroup;
         if (!group || group->extData.size() != 3u
@@ -920,6 +939,30 @@ int main(int argc, char** argv) {
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO")
             : argc == 4 && std::string(argv[1]) == "--r13-eed"
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO")
+            : argc == 4 && std::string(argv[1]) == "--r14-mline-eed"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x12u, 0x17u, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-mline-eed"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO", 0x12u, 0x17u, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r14-mline-utf8"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "caf\xC3\xA9", 0x12u, 0x17u, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-mline-utf8"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "caf\xC3\xA9", 0x12u, 0x17u, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r14-mline-eed-remapped"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u, 0x17u, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-mline-eed-remapped"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO", 0x33u, 0x17u, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r14-mline-utf8-remapped"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "caf\xC3\xA9", 0x33u, 0x17u, false, false, true)
+            : argc == 4 && std::string(argv[1]) == "--r13-mline-utf8-remapped"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "caf\xC3\xA9", 0x33u, 0x17u, false, false, true)
+            : argc == 5 && std::string(argv[1]) == "--r14-mline-wide"
+                ? legacyWideEedRefusal(argv[2], argv[3], argv[4], DRW::AC1014, 0x17u, false, true)
+            : argc == 5 && std::string(argv[1]) == "--r13-mline-wide"
+                ? legacyWideEedRefusal(argv[2], argv[3], argv[4], DRW::AC1012, 0x17u, false, true)
+            : argc == 5 && std::string(argv[1]) == "--r14-mline-bad-graph"
+                ? legacyBadEedGraph(argv[2], argv[3], argv[4], DRW::AC1014, 0x17u)
+            : argc == 5 && std::string(argv[1]) == "--r13-mline-bad-graph"
+                ? legacyBadEedGraph(argv[2], argv[3], argv[4], DRW::AC1012, 0x17u)
             : argc == 4 && std::string(argv[1]) == "--r14-nod-eed"
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x12u, 0xcu, false, true)
             : argc == 4 && std::string(argv[1]) == "--r13-nod-eed"

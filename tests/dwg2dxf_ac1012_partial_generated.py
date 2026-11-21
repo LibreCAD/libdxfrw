@@ -231,6 +231,29 @@ def main():
                                     str(nod_root / "wide.dwg"), str(nod_root / "utf8.dwg"),
                                     str(nod_root / "wide-output.dxf")]).returncode == 0,
                             source_version + " NOD unrepresentable EED refusal")
+                for remap_mline in (False, True):
+                    mline_root = root / (source_version + ("-mline-remapped" if remap_mline else "-mline"))
+                    mline_command = [sys.executable, str(generator), "--version", source_version,
+                                     "--eed-on-mline", "--output-dir", str(mline_root), "--dwgadd", dwgadd,
+                                     "--dwgread", dwgread, "--dwgwrite", dwgwrite]
+                    if remap_mline:
+                        mline_command += ["--alternate-app", "--alternate-group", "--nonempty-group"]
+                    require(invoke(mline_command).returncode == 0,
+                            source_version + " MLINESTYLE dictionary EED source generation")
+                    suffix = "-remapped" if remap_mline else ""
+                    if remap_mline:
+                        require(invoke([profile_test, "--" + source_version + "-mline-bad-graph",
+                                        str(mline_root / "bad-graph.dwg"), str(mline_root / "eed.dwg"),
+                                        str(mline_root / "bad-output.dxf")]).returncode == 0,
+                                source_version + " MLINESTYLE bad source graph refusal")
+                    for profile, file in (("mline-eed", "eed.dwg"), ("mline-utf8", "utf8.dwg")):
+                        require(invoke([profile_test, "--" + source_version + "-" + profile + suffix,
+                                        str(mline_root / file), str(mline_root / "adapter.dxf")]).returncode == 0,
+                                source_version + " MLINESTYLE " + profile + " output and retry")
+                    require(invoke([profile_test, "--" + source_version + "-mline-wide",
+                                    str(mline_root / "wide.dwg"), str(mline_root / "utf8.dwg"),
+                                    str(mline_root / "wide-output.dxf")]).returncode == 0,
+                            source_version + " MLINESTYLE unrepresentable EED refusal")
                 for binary in (False, True):
                     output = eed_root / ("cli-binary.dxf" if binary else "cli-ascii.dxf")
                     command = [converter, str(eed_input), "-o", str(output), "-y"]

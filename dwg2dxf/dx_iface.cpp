@@ -32538,10 +32538,16 @@ bool dx_iface::hasLegacyDictionaryWireSource(
             || !cData->hasCompleteDwgDictionaryEntry(dictionary.handle, "ACAD_GROUP", group)
             || !cData->getCompleteDwgDictionaryOwner(group, groupOwner)
             || groupOwner != dictionary.handle) return false;
-    } else if (dictionary.handle == cData->namedObjectDictionary.handle
-               || dictionary.parentHandle != cData->namedObjectDictionary.handle
-               || !cData->hasCompleteDwgDictionaryEntry(dictionary.parentHandle, "ACAD_GROUP", dictionary.handle)) {
-        return false;
+    }
+    bool mlineOwner = false;
+    if (!nod) {
+        if (dictionary.handle == cData->namedObjectDictionary.handle
+            || dictionary.parentHandle != cData->namedObjectDictionary.handle) return false;
+        const bool groupOwner = cData->hasCompleteDwgDictionaryEntry(
+            dictionary.parentHandle, "ACAD_GROUP", dictionary.handle);
+        mlineOwner = cData->hasCompleteDwgDictionaryEntry(
+            dictionary.parentHandle, "ACAD_MLINESTYLE", dictionary.handle);
+        if (groupOwner == mlineOwner) return false;
     }
     const auto app = [this, &frame](std::uint32_t handle, const std::string& name) noexcept {
         if (handle != frame.appIdDependencies.front() || name != "ACAD") return false;
@@ -32561,7 +32567,7 @@ bool dx_iface::hasLegacyDictionaryWireSource(
     const auto page = [](std::uint16_t be, std::uint16_t le) noexcept {
         return (be == 30u && le == 0x1e00u) || (be == 45u && le == 0x2d00u);
     };
-    return dx_legacy_dwg_wire::observeDictionaryEed(frame.raw, dictionary, nod, app, page);
+    return dx_legacy_dwg_wire::observeDictionaryEed(frame.raw, dictionary, nod, app, page, mlineOwner);
 }
 
 bool dx_iface::hasUnchangedStandardDwgObjectSources() const noexcept {
@@ -33819,6 +33825,28 @@ bool generatedDictionaryXdataProjectionBytes(const DRW_Dictionary& source, std::
         if ((binary && !addAssociativeSlotBytes(bytes,2u,extra))
             || !addAssociativeSlotBytes(2u * (chunks - 1u),sizeof(DRW_Variant) + sizeof(DRW_Variant*) + sizeof(std::string),extra)) return false;
     }
+    return true;
+}
+
+bool legacyEedHasNonAscii(const DRW_Dictionary& source) noexcept {
+    return std::any_of(source.extData.begin(), source.extData.end(), [](const DRW_Variant* value) {
+        return value && value->code() == 1000 && value->type() == DRW_Variant::STRING
+            && value->content.s && std::any_of(value->content.s->begin(), value->content.s->end(),
+                [](unsigned char c) { return c > 0x7fu; });
+    });
+}
+
+bool legacyEedOutputTokenSafe(const dx_raster_output::Token& token, bool nonAscii) noexcept {
+    return !nonAscii || token.code != 1000 || token.text.find('\\') == std::string_view::npos;
+}
+
+bool legacyEedOutputTextSafe(const dxfRW::DxfObjectsWriteView& view,
+                             std::string_view body, const DRW_Dictionary& source) {
+    if (!legacyEedHasNonAscii(source)) return true;
+    dx_raster_output::Cursor cursor(body, view.binary, rasterOutputProfile(view.compatibilityProfile));
+    dx_raster_output::Token token;
+    while (!cursor.done())
+        if (!cursor.next(token) || !legacyEedOutputTokenSafe(token, true)) return false;
     return true;
 }
 
@@ -39019,7 +39047,8 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         || rootOwner->hardOwner != 0 || rootOwner->cloning
             != (cData->sourceVersion == DRW::AC1014 ? 0 : 1)
         || rootOwner->m_entries.size() != 1u
-        || !rootOwner->appData.empty() || !rootOwner->extData.empty()
+        || !rootOwner->appData.empty()
+        || (!rootOwner->extData.empty() && cData->sourceVersion != DRW::AC1014)
         || rootOwner->hasDataStorageBinaryData()
         || rootOwner->hasDwgCommonLinkTail() != expectedCommonLinkTail
         || !rootOwner->pendingAppIdResolutions.empty()
@@ -39061,7 +39090,8 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         || !rootFrame->second.raw.m_className.empty()
         || !standardDwgModelsEqual(*rootFrameBaseline, *rootOwner,
                                    cData->sourceVersion,
-                                   dwgObjType::DICTIONARY))
+                                   dwgObjType::DICTIONARY)
+        || (!rootOwner->extData.empty() && !rootFrame->second.legacyEedWireAtImport))
         return skipProfile("root owner DICTIONARY source frame");
 
     try {
@@ -39276,7 +39306,7 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
                     || !standardDwgModelsEqual(*nodFrame->second.typedBaseline, nod,
                                                cData->sourceVersion, dwgObjType::DICTIONARY)
                     || !hasLegacyDictionaryWireSource(nodFrame->second, nod)
-                    || !dx_legacy_dwg_wire::dictionary(rootFrame->second.raw, *liveRoot, false, true)
+                    || !hasLegacyDictionaryWireSource(rootFrame->second, *liveRoot)
                     || !dx_legacy_mlinestyle_wire::style(frame->second, current))
                     return false;
             }
@@ -39507,6 +39537,15 @@ bool dx_iface::inspectDwgMLineStyles(
                 if (shape.handle == emittedRoot) {
                     if (!seenOwners.insert(shape.handle).second) {
                         stagedFailure = "duplicate MLINESTYLE owner dictionary";
+                        return false;
+                    }
+                    const auto sourceFrame = cData->m_standardDwgObjectFrames.find(
+                        {cData->importGeneration, sourceRoot.handle});
+                    if (!sourceRoot.extData.empty()
+                        && (sourceFrame == cData->m_standardDwgObjectFrames.end()
+                            || !sourceFrame->second.legacyEedWireAtImport
+                            || !legacyEedOutputTextSafe(view, body, sourceRoot))) {
+                        stagedFailure = "owner dictionary EED text transport";
                         return false;
                     }
                     dx_standard_output::Decoder decoder(view);
@@ -52156,12 +52195,7 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
                 && cData->sourceFormat == dx_source_format::DWG
                 && sourceFrame != cData->m_standardDwgObjectFrames.end()
                 && sourceFrame->second.legacyEedWireAtImport;
-            const bool nonAsciiEed = legacyEedText && std::any_of(
-                frozen->extData.begin(), frozen->extData.end(), [](const DRW_Variant* value) {
-                    return value && value->code() == 1000 && value->type() == DRW_Variant::STRING
-                        && value->content.s && std::any_of(value->content.s->begin(), value->content.s->end(),
-                            [](unsigned char c) { return c > 0x7fu; });
-                });
+            const bool nonAsciiEed = legacyEedText && legacyEedHasNonAscii(*frozen);
             bool seen = false;
             std::string_view matchedBody;
             diagnosticStage = groups ? "GROUPS output field inspection"
@@ -52223,8 +52257,7 @@ bool dx_iface::inspectGeneratedRootOutput(const dxfRW::DxfObjectsWriteView& view
                             diagnosticStage = groups ? "GROUPS staged XDATA"
                                                      : "NOD staged XDATA";
                             if (!classes || pending || (!xdata && token.code != 1001)
-                                || (nonAsciiEed && token.code == 1000
-                                    && token.text.find('\\') != std::string_view::npos)) return false;
+                                || !legacyEedOutputTokenSafe(token, nonAsciiEed)) return false;
                             xdata = true;
                             continue;
                         }
@@ -53490,6 +53523,10 @@ bool dx_iface::inspectStandardDwgOutput(const dxfRW::DxfObjectsWriteView& view) 
             ++m_standardDwgOutputObserved;
             if (!shape.complete()) return true;
             const auto& frame = *found->second;
+            if (frame.legacyEedWireAtImport && frame.raw.m_objectType == dwgObjType::DICTIONARY) {
+                const auto* dictionary = dynamic_cast<const DRW_Dictionary*>(frame.typedBaseline.get());
+                if (!dictionary || !legacyEedOutputTextSafe(view, body, *dictionary)) return false;
+            }
             StandardDwgOutputProof proof;
             proof.generation = frame.generation;
             proof.emitted = shape.handle;
