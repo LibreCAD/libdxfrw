@@ -1,0 +1,32 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-dictionary-eed-groups-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_LEGACY_EED_1002_GROUPS",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "28 Extended Entity Data",
+    "observation": "EED item 2 maps to DXF group 1002; byte 0 opens and byte 1 closes a control group."
+  },
+  "generator": "tools/research/generate_legacy_dictionary_eed_control.py",
+  "construction": "LibreDWG 0.14 generates locally authored R13/R14 controls with nested balanced groups, remapped source graph and one 3D LINE member. LibreDWG JSON readback verifies the values and graph. Generated drawings remain outside the repository.",
+  "checks": [
+    "The source observer matches each physical control byte to the typed brace, bounds nesting to the existing DXF limit, requires closure before another APPID, and requires closure at EED end.",
+    "ASan controls exercise nested groups, every source bit and truncation, a source/model-matched reversed brace order, and a matched open/close pair incorrectly split across APPID chunks. Balanced per-APPID chunks pass.",
+    "Group, NOD and MLINESTYLE owner profiles pass R14 strict and R13 explicit-partial ASCII/Binary output with mutation refusal, destination preservation and corrected retry. An out-of-profile 1004 binary item retains the prior partial route.",
+    "Independent ezdxf 1.4.5 readback recovers nested control groups and a separate GROUP-to-3D-LINE edge in both encodings for each location and source version."
+  ],
+  "sourceSha256": {
+    "r13Group": "ec2c739bcf49c4ce7181d12f103d6c7ad03fac403eee333caf9f115683aef860",
+    "r13Nod": "1c927a5af71f3232cc7ed6be160ca6b9e47e6cdb1276873c51f70ef7d7e39186",
+    "r13Mline": "abc232ac1a4e969d12e6ce60ad22fb96e9d6ae1d6ecf8cd7d0a3197552f8ae01",
+    "r14Group": "0429d9858a43ee9ef2ad3c6fd24267d9393349a11673d03c062511e713d7e8bf",
+    "r14Nod": "35f7644cd31a395df0ba5bd4dabbaee524b7f59a5ead0194e4ae1dc03bb57000",
+    "r14Mline": "25d25a4b80b6d76b615bc72fd8ea3479c10ebc9a1161b48b4a6c3a9dc42d0e77"
+  },
+  "limits": [
+    "R13 output remains explicit partial; MLINESTYLE source semantics, native cloning and general DWG/DXF support remain unqualified.",
+    "This proves balanced transport for the selected profile, not application-specific meanings of nested values or unobserved EED codes."
+  ]
+}

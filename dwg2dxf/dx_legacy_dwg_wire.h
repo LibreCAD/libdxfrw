@@ -5,6 +5,7 @@
 #include "drw_objects.h"
 #include "dx_raster_dwg_wire.h"
 #include "intern/drw_textcodec.h"
+#include "intern/dxfparserlimits.h"
 #include <algorithm>
 #include <cstdint>
 #include <cmath>
@@ -60,7 +61,8 @@ inline bool metadata(const DRW_UnsupportedObject& raw, std::uint32_t id,
 // must bind APPIDs to unchanged records, independently justify the codepage
 // interpretation, and check import text issues, semantics, graph and output.
 // String bytes are ASCII or the observed codepage-45 UTF-8 profile; integer
-// support includes finite 1040-1042 reals and signed 1070/1071 integers.
+// support includes balanced 1002 groups, finite 1040-1042 reals and signed
+// 1070/1071 integers.
 template<class AppIdSource, class CodepageSource>
 bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
                        const DRW_Dictionary& model, bool nod,
@@ -99,15 +101,28 @@ bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
     Bits bits{raw.m_rawBytes.data(), 0u, static_cast<std::uint32_t>(size * 8u)};
     if (bits.shortValue() != 42u || !reference(bits, 0u, 0u, id, true)) return false;
     dx_raster_wire::Proof eedProof;
+    std::size_t groupDepth = 0u;
     const auto visit = [&](const dx_raster_wire::EedToken& token) noexcept {
         if (token.index >= model.extData.size()) return false;
         const auto* value = model.extData[token.index];
         if (!value || value->code() != static_cast<int>(token.code)) return false;
         if (token.code == 1001u)
-            return token.role == 5u && token.value != 0u
+            return groupDepth == 0u && token.role == 5u && token.value != 0u
                 && token.value <= (std::numeric_limits<std::uint32_t>::max)()
                 && value->type() == DRW_Variant::STRING && value->content.s
                 && appIdSource(static_cast<std::uint32_t>(token.value), *value->content.s);
+        if (token.code == 1002u && value->type() == DRW_Variant::STRING && value->content.s) {
+            if (token.value == 0u && *value->content.s == "{") {
+                if (groupDepth >= static_cast<std::size_t>(DRW::kMaxDxfApplicationGroupNesting)) return false;
+                ++groupDepth;
+                return true;
+            }
+            if (token.value == 1u && *value->content.s == "}" && groupDepth != 0u) {
+                --groupDepth;
+                return true;
+            }
+            return false;
+        }
         if (token.code == 1000u) {
             if (value->type() != DRW_Variant::STRING || !value->content.s
                 || token.value != value->content.s->size()
@@ -145,7 +160,7 @@ bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
     const unsigned revision = raw.m_version == DRW::AC1012 ? 13u : 14u;
     if (dx_raster_wire::detail::eed(bits, revision, eedProof, visit)
             != dx_raster_wire::Status::Proven
-        || eedProof.eedVariants != model.extData.size()) return false;
+        || eedProof.eedVariants != model.extData.size() || groupDepth != 0u) return false;
     const auto bodyEnd = bits.little(4u);
     if (bits.longValue() != model.reactorHandles.size() || bits.longValue() != count
         || (raw.m_version == DRW::AC1014 && bits.take(8u) != 0u)) return false;

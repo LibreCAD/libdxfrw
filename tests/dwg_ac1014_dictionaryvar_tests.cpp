@@ -75,14 +75,15 @@ void putText(dwgBufferW& w, const std::string& text) {
     for (const unsigned char c : text) w.putRawChar8(c);
 }
 
-bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool reals = false) {
+bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool reals = false,
+                             bool groups = false) {
     // ODA-produced scratch source, re-encoded from its observed fields. The
     // caller must bind APPID and codepage; this is not an output proof.
     dwgBufferW w;
     w.putObjType(DRW::AC1012, 42u);
     w.putFixedHandle(0u, 1u, 0x30u);
     const std::string value = utf8 ? "caf\xC3\xA9" : "TREAT_AS_HARD";
-    w.putBitShort(static_cast<std::uint16_t>(value.size() + 7u + (longInts ? 15u : 0u) + (reals ? 27u : 0u)));
+    w.putBitShort(static_cast<std::uint16_t>(value.size() + 7u + (longInts ? 15u : 0u) + (reals ? 27u : 0u) + (groups ? 4u : 0u)));
     w.putFixedHandle(5u, 1u, 0x2au);
     w.putRawChar8(0u);
     w.putRawChar8(static_cast<std::uint8_t>(value.size()));
@@ -111,8 +112,18 @@ bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool real
             w.putRawDouble(item.second);
         }
     }
+    std::size_t firstGroupValueBit = 0u;
+    if (groups) {
+        w.putRawChar8(2u);
+        firstGroupValueBit = w.bitPos() == 0u ? w.size() * 8u
+            : (w.size() - 1u) * 8u + w.bitPos();
+        w.putRawChar8(0u);
+        w.putRawChar8(2u);
+        w.putRawChar8(1u);
+    }
     w.putBitShort(0u);
-    w.putRawLong32((utf8 ? 186u : 250u) + (longInts ? 120u : 0u) + (reals ? 216u : 0u));
+    w.putRawLong32((utf8 ? 186u : 250u) + (longInts ? 120u : 0u)
+                   + (reals ? 216u : 0u) + (groups ? 32u : 0u));
     w.putBitLong(0);
     w.putBitLong(0);
     w.putFixedHandle(4u, 1u, 0xau);
@@ -121,8 +132,8 @@ bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool real
     const auto bytes = w.data();
     dwgBuffer input(bytes.data(), bytes.size());
     Dictionary model;
-    if (bytes.size() != (utf8 ? 27u : 35u) + (longInts ? 15u : 0u) + (reals ? 27u : 0u) || !model.parseDwg(DRW::AC1012, &input, 0u)
-        || !input.isGood() || model.extData.size() != 3u + (longInts ? 3u : 0u) + (reals ? 3u : 0u)
+    if (bytes.size() != (utf8 ? 27u : 35u) + (longInts ? 15u : 0u) + (reals ? 27u : 0u) + (groups ? 4u : 0u) || !model.parseDwg(DRW::AC1012, &input, 0u)
+        || !input.isGood() || model.extData.size() != 3u + (longInts ? 3u : 0u) + (reals ? 3u : 0u) + (groups ? 2u : 0u)
         || model.pendingAppIdResolutions.size() != 1u) return false;
     model.extData[0]->addString(1001, "ACAD");
     model.pendingAppIdResolutions.clear();
@@ -213,6 +224,20 @@ bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool real
         model.extData[first]->addDouble(1040, 1.25);
         if (nanAccepted || !check(raw)) return false;
     }
+    if (groups) {
+        const std::size_t first = 3u + (longInts ? 3u : 0u) + (reals ? 3u : 0u);
+        if (!model.extData[first]->content.s || *model.extData[first]->content.s != "{"
+            || !model.extData[first + 1u]->content.s || *model.extData[first + 1u]->content.s != "}") return false;
+        auto reversed = raw;
+        for (const auto bit : {firstGroupValueBit + 7u, firstGroupValueBit + 23u})
+            reversed.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
+        model.extData[first]->addString(1002, "}");
+        model.extData[first + 1u]->addString(1002, "{");
+        const bool reversedAccepted = check(reversed);
+        model.extData[first]->addString(1002, "{");
+        model.extData[first + 1u]->addString(1002, "}");
+        if (reversedAccepted || !check(raw)) return false;
+    }
     model.pendingAppIdResolutions.push_back({});
     const bool unresolvedAccepted = check(raw);
     model.pendingAppIdResolutions.clear();
@@ -221,6 +246,46 @@ bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool real
     const bool wrongValueAccepted = check(raw);
     model.extData[2]->addInt(1070, 0);
     return !wrongValueAccepted && check(raw);
+}
+
+bool r13EedChunkGroupBoundary(bool crossed) {
+    dwgBufferW w;
+    w.putObjType(DRW::AC1012, 42u);
+    w.putFixedHandle(0u, 1u, 0x30u);
+    for (unsigned chunk = 0u; chunk < 2u; ++chunk) {
+        w.putBitShort(crossed ? 2u : 4u);
+        w.putFixedHandle(5u, 1u, chunk == 0u ? 0x2au : 0x2bu);
+        if (!crossed || chunk == 0u) { w.putRawChar8(2u); w.putRawChar8(0u); }
+        if (!crossed || chunk == 1u) { w.putRawChar8(2u); w.putRawChar8(1u); }
+    }
+    w.putBitShort(0u);
+    const auto bit = w.bitPos() == 0u ? w.size() * 8u : (w.size() - 1u) * 8u + w.bitPos();
+    w.putRawLong32(static_cast<std::uint32_t>(bit + 36u));
+    w.putBitLong(0);
+    w.putBitLong(0);
+    w.putFixedHandle(4u, 1u, 0xau);
+    w.putFixedHandle(3u, 0u, 0u);
+    while (w.bitPos() != 0u) w.putBit(0u);
+    const auto bytes = w.data();
+    dwgBuffer input(bytes.data(), bytes.size());
+    Dictionary model;
+    if (!model.parseDwg(DRW::AC1012, &input, 0u) || !input.isGood()
+        || model.extData.size() != (crossed ? 4u : 6u)
+        || model.pendingAppIdResolutions.size() != 2u) return false;
+    model.extData[0]->addString(1001, "ACAD");
+    model.extData[crossed ? 2u : 3u]->addString(1001, "OTHER");
+    model.pendingAppIdResolutions.clear();
+    DRW_UnsupportedObject raw;
+    raw.m_version = DRW::AC1012; raw.m_handle = model.handle; raw.m_objectType = 42;
+    raw.m_objectSize = static_cast<std::uint32_t>(bytes.size()); raw.m_rawBytes = bytes;
+    raw.m_parentHandle = model.parentHandle; raw.m_numReactors = model.reactorCount();
+    raw.m_reactorHandles = model.reactorHandles; raw.m_xDictHandle = model.xDictHandle;
+    raw.setCommonLinkEvidence(DRW_DwgCommonLinkEvidence::Validated);
+    const auto app = [](std::uint32_t handle, const std::string& name) noexcept {
+        return (handle == 0x2au && name == "ACAD") || (handle == 0x2bu && name == "OTHER");
+    };
+    return dx_legacy_dwg_wire::observeDictionaryEed(raw, model, false, app,
+        [](std::uint16_t, std::uint16_t) noexcept { return false; }) != crossed;
 }
 
 // Generated R14 producers may include a terminator in a TV field and encode
@@ -377,7 +442,8 @@ bool expected(const Variable& v) {
 }
 
 bool run() {
-    if (!legacyDictionaryWithDefaultControl() || !r13DictionaryEedControl() || !r13DictionaryEedControl(true) || !r13DictionaryEedControl(false, true) || !r13DictionaryEedControl(false, false, true) || !terminatedDictionaryControl(DRW::AC1012)
+    if (!legacyDictionaryWithDefaultControl() || !r13DictionaryEedControl() || !r13DictionaryEedControl(true) || !r13DictionaryEedControl(false, true) || !r13DictionaryEedControl(false, false, true) || !r13DictionaryEedControl(false, false, false, true)
+        || !r13EedChunkGroupBoundary(false) || !r13EedChunkGroupBoundary(true) || !terminatedDictionaryControl(DRW::AC1012)
         || !terminatedDictionaryControl(DRW::AC1014) || !dictionaryWireControl(true, false)
         || !dictionaryWireControl(false, false)
         || !dictionaryWireControl(false, true)) {

@@ -158,7 +158,7 @@ def main():
     # so the baseline remains within the existing MLINESTYLE wire profile.
     styles[0]['start_angle'] = styles[0]['end_angle'] = 1.5707963267948966
     results = {}
-    for name in ('baseline', 'eed', 'int32', 'reals', 'unqualified'):
+    for name in ('baseline', 'eed', 'int32', 'reals', 'groups', 'unqualified'):
         if name == 'eed':
             target['eed'] = [
                 {'size': 12, 'handle': [5, 1, appid], 'code': 0, 'value': 'HELLO'},
@@ -174,11 +174,17 @@ def main():
                 {'code': 70, 'value': 42}, {'code': 40, 'value': 1.25},
                 {'code': 41, 'value': -0.5}, {'code': 42, 'value': 42.125},
             ]
+        if name == 'groups':
+            target['eed'] = [
+                {'size': 20, 'handle': [5, 1, appid], 'code': 0, 'value': 'HELLO'},
+                {'code': 70, 'value': 42}, {'code': 2, 'value': 0}, {'code': 2, 'value': 0},
+                {'code': 2, 'value': 1}, {'code': 2, 'value': 1},
+            ]
         if name == 'unqualified':
-            # A balanced 1002 group remains outside this bounded source proof.
+            # A binary EED item remains outside this bounded source proof.
             target['eed'] = [
                 {'size': 16, 'handle': [5, 1, appid], 'code': 0, 'value': 'HELLO'},
-                {'code': 70, 'value': 42}, {'code': 2, 'value': 0}, {'code': 2, 'value': 1},
+                {'code': 70, 'value': 42}, {'code': 4, 'value': '0102'},
             ]
         path = root / (name + '.json')
         drawing = root / (name + '.dwg')

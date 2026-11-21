@@ -201,6 +201,9 @@ def main():
                                     str(group_root / "utf8.dwg"), str(group_root / "wide-output.dxf")]).returncode == 0,
                             source_version + " nonempty group unrepresentable EED refusal")
                     if remap_group:
+                        require(invoke([profile_test, "--" + source_version + "-group-groups",
+                                        str(group_root / "groups.dwg"), str(group_root / "groups-output.dxf")]).returncode == 0,
+                                source_version + " group nested 1002 groups, mutation and retry")
                         require(invoke([profile_test, "--" + source_version + "-group-reals",
                                         str(group_root / "reals.dwg"), str(group_root / "reals-output.dxf")]).returncode == 0,
                                 source_version + " group 1040-1042 real values, mutation and retry")
@@ -226,6 +229,9 @@ def main():
                     require(invoke(nod_command).returncode == 0, source_version + " NOD EED source generation")
                     suffix = "-remapped" if remap_nod else ""
                     if remap_nod:
+                        require(invoke([profile_test, "--" + source_version + "-nod-groups",
+                                        str(nod_root / "groups.dwg"), str(nod_root / "groups-output.dxf")]).returncode == 0,
+                                source_version + " nod nested 1002 groups, mutation and retry")
                         require(invoke([profile_test, "--" + source_version + "-nod-reals",
                                         str(nod_root / "reals.dwg"), str(nod_root / "reals-output.dxf")]).returncode == 0,
                                 source_version + " nod 1040-1042 real values, mutation and retry")
@@ -256,6 +262,9 @@ def main():
                             source_version + " MLINESTYLE dictionary EED source generation")
                     suffix = "-remapped" if remap_mline else ""
                     if remap_mline:
+                        require(invoke([profile_test, "--" + source_version + "-mline-groups",
+                                        str(mline_root / "groups.dwg"), str(mline_root / "groups-output.dxf")]).returncode == 0,
+                                source_version + " mline nested 1002 groups, mutation and retry")
                         require(invoke([profile_test, "--" + source_version + "-mline-reals",
                                         str(mline_root / "reals.dwg"), str(mline_root / "reals-output.dxf")]).returncode == 0,
                                 source_version + " mline 1040-1042 real values, mutation and retry")
