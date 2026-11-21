@@ -145,8 +145,13 @@ source checks and the [generated and ODA-produced controls](docs/research/p6-ac1
 They bind the absent R13/R14 cloning field and show that ODA's selected R14
 output omits group 281 while its R2000 output writes 1; they do not establish
 native duplicate behavior. The ODA sources also contain APPID-bound dictionary
-EED and currently hit a separate ModelDocViewStyle cross-version guard. Resolve
-source-presence-aware dictionary projection and EED dependencies, then run the
+EED and currently hit a separate ModelDocViewStyle cross-version guard. The
+[source-framing control](docs/research/p6-ac1012-oda-dictionary-eed-source-2026-11-21.json)
+now checks the observed EED bytes, APPID identity and mutation/retry against
+both ODA files, but their EED codepage 45 is unknown to the reader and each
+file has two failed object frames. Establish the codepage interpretation and
+resolve those source failures; then implement source-presence-aware dictionary
+projection and EED dependencies, and run the
 [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md)
 on an identified host. Keep strict output refused until native duplicate
 behavior, both encodings and rollback/retry are proven. This is separate from

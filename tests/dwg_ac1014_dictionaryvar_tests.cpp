@@ -27,6 +27,83 @@ void putText(dwgBufferW& w, const std::string& text) {
     for (const unsigned char c : text) w.putRawChar8(c);
 }
 
+bool r13DictionaryEedControl() {
+    // ODA-produced scratch source, re-encoded from its observed fields. The
+    // caller must bind APPID and codepage; this is not an output proof.
+    dwgBufferW w;
+    w.putObjType(DRW::AC1012, 42u);
+    w.putFixedHandle(0u, 1u, 0x30u);
+    w.putBitShort(20u);
+    w.putFixedHandle(5u, 1u, 0x2au);
+    w.putRawChar8(0u);
+    w.putRawChar8(13u);
+    w.putRawChar8(0u);
+    w.putRawChar8(45u);
+    for (const unsigned char c : std::string("TREAT_AS_HARD")) w.putRawChar8(c);
+    w.putRawChar8(70u);
+    w.putRawChar8(0u);
+    w.putRawChar8(0u);
+    w.putBitShort(0u);
+    w.putRawLong32(250u);
+    w.putBitLong(0);
+    w.putBitLong(0);
+    w.putFixedHandle(4u, 1u, 0xau);
+    w.putFixedHandle(3u, 0u, 0u);
+    for (int i = 0; i < 6; ++i) w.putBit(0u);
+    const auto bytes = w.data();
+    dwgBuffer input(bytes.data(), bytes.size());
+    Dictionary model;
+    if (bytes.size() != 35u || !model.parseDwg(DRW::AC1012, &input, 0u)
+        || !input.isGood() || model.extData.size() != 3u
+        || model.pendingAppIdResolutions.size() != 1u) return false;
+    model.extData[0]->addString(1001, "ACAD");
+    model.pendingAppIdResolutions.clear();
+    DRW_UnsupportedObject raw;
+    raw.m_version = DRW::AC1012;
+    raw.m_handle = model.handle;
+    raw.m_objectType = 42;
+    raw.m_objectSize = static_cast<std::uint32_t>(bytes.size());
+    raw.m_rawBytes = bytes;
+    raw.m_parentHandle = model.parentHandle;
+    raw.m_numReactors = model.reactorCount();
+    raw.m_reactorHandles = model.reactorHandles;
+    raw.m_xDictHandle = model.xDictHandle;
+    raw.setCommonLinkEvidence(DRW_DwgCommonLinkEvidence::Validated);
+    const auto app = [](std::uint32_t h, const std::string& name) noexcept {
+        return h == 0x2au && name == "ACAD";
+    };
+    const auto page = [](std::uint16_t be, std::uint16_t le) noexcept {
+        return be == 45u && le == 0x2d00u;
+    };
+    const auto check = [&](const DRW_UnsupportedObject& source) {
+        return dx_legacy_dwg_wire::observeDictionaryEed(source, model, false, app, page);
+    };
+    if (!check(raw) || dx_legacy_dwg_wire::dictionary(raw, model, false)
+        || dx_legacy_dwg_wire::observeDictionaryEed(raw, model, false,
+            [](std::uint32_t, const std::string&) noexcept { return false; }, page)
+        || dx_legacy_dwg_wire::observeDictionaryEed(raw, model, false, app,
+            [](std::uint16_t, std::uint16_t) noexcept { return false; })) return false;
+    for (std::size_t bit = 0; bit < bytes.size() * 8u; ++bit) {
+        auto changed = raw;
+        changed.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
+        if (check(changed) != (bit >= bytes.size() * 8u - 6u)) return false;
+    }
+    for (std::size_t size = 0; size < bytes.size(); ++size) {
+        auto truncated = raw;
+        truncated.m_rawBytes.resize(size);
+        truncated.m_objectSize = static_cast<std::uint32_t>(size);
+        if (check(truncated)) return false;
+    }
+    model.pendingAppIdResolutions.push_back({});
+    const bool unresolvedAccepted = check(raw);
+    model.pendingAppIdResolutions.clear();
+    if (unresolvedAccepted || !check(raw)) return false;
+    model.extData[2]->addInt(1070, 1);
+    const bool wrongValueAccepted = check(raw);
+    model.extData[2]->addInt(1070, 0);
+    return !wrongValueAccepted && check(raw);
+}
+
 // Generated R14 producers may include a terminator in a TV field and encode
 // an owner as an offset handle. Bind both forms to the same typed graph.
 bool terminatedDictionaryControl(DRW::Version version) {
@@ -167,7 +244,7 @@ bool expected(const Variable& v) {
 }
 
 bool run() {
-    if (!terminatedDictionaryControl(DRW::AC1012)
+    if (!r13DictionaryEedControl() || !terminatedDictionaryControl(DRW::AC1012)
         || !terminatedDictionaryControl(DRW::AC1014) || !dictionaryWireControl(true, false)
         || !dictionaryWireControl(false, false)
         || !dictionaryWireControl(false, true)) {

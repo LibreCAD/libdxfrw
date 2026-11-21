@@ -1,0 +1,49 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-oda-dictionary-eed-source-2026-11-21",
+  "date": "2026-11-21",
+  "status": "SOURCE_FRAMING_ONLY_CODEPAGE_AND_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "priorReceipt": "docs/research/p6-ac1012-generated-oda-dictionary-witness-2026-11-21.json",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.1, 20.4.44 and 28",
+  "sourceGeneratorCommit": "932c01e76",
+  "sources": [
+    {
+      "path": "/private/tmp/libdxfrw-ac1012-witness-runs/ac1012-dictionary-wxyaoky1/oda-r13/seed-0.dwg",
+      "sha256": "9361298515f2a339d6bfd7b55621e53b095389b433fd21c39441a11a267f5fcf"
+    },
+    {
+      "path": "/private/tmp/libdxfrw-ac1012-witness-runs/ac1012-dictionary-wxyaoky1/oda-r13/seed-1.dwg",
+      "sha256": "c70a47dbb7a03a1eca49870e91f17ab10854dc108b5e58e97a7e2e644f2eb4b9"
+    }
+  ],
+  "observation": {
+    "version": "AC1012",
+    "dictionaryHandle": "30",
+    "parentHandle": "A",
+    "frameBytes": 35,
+    "frameSha256": "f9433ac6db8666a7c1bd4e973cb84e3023a1f30a7312982a13d5cec3a14ee328",
+    "appidHandle": "2A",
+    "appidName": "ACAD",
+    "eedStringAsciiBytes": "TREAT_AS_HARD",
+    "eedStringCodepageBigEndian": 45,
+    "eedInt16": 0,
+    "headerCodepage": 30,
+    "sourceTextIssue": "UnknownCodePage",
+    "objectFramesPublished": 199,
+    "objectFramesFailed": 2,
+    "objectFramesObserved": 201
+  },
+  "checks": [
+    "An opt-in source observer matched the bounded frame, fields, handle roles and unchanged APPID snapshot in both physical ODA outputs.",
+    "Every non-padding bit mutation was refused; six alignment bits were allowed, and changing the live APPID name was refused until restored.",
+    "The generated in-memory control tested each truncated byte boundary, unresolved APPID, changed value and corrected retry.",
+    "Four focused ASan CTests passed, including existing AC1012 and AC1014 partial-output and rollback controls."
+  ],
+  "limits": [
+    "The codepage callback checks a literal source value only; it does not establish its encoding or clear the observed unknown-codepage issue.",
+    "The string contents do not establish dictionary cloning or EED semantics, native AutoCAD behavior, graph closure or output qualification.",
+    "Both complete sources have two failed object frames, and an independent ModelDocViewStyle version guard remains; no complete-file support is inferred.",
+    "No generated DWG or DXF fixture was committed."
+  ]
+}

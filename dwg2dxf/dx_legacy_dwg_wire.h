@@ -6,7 +6,10 @@
 #include "dx_raster_dwg_wire.h"
 #include <algorithm>
 #include <cstdint>
+#include <limits>
+#include <string>
 #include <string_view>
+#include <utility>
 
 // Shared bounded R13/R14 object framing and dictionary observer. Callers
 // must additionally bind import identity, the complete graph and output.
@@ -50,9 +53,19 @@ inline bool metadata(const DRW_UnsupportedObject& raw, std::uint32_t id,
         && !raw.m_hasDataStorage && raw.m_xDictHandle == 0u;
 }
 
-inline bool dictionary(const DRW_UnsupportedObject& raw,
+// Source framing only: this does not qualify decoded text or output. Callers
+// must bind APPIDs to unchanged records, independently justify the codepage
+// interpretation, and check import text issues, semantics, graph and output.
+// Only ASCII bytes and signed 16-bit values are currently observed.
+template<class AppIdSource, class CodepageSource>
+bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
                        const DRW_Dictionary& model, bool nod,
+                       AppIdSource appIdSource, CodepageSource codepageSource,
                        bool mlineOwner = false) noexcept {
+    static_assert(noexcept(appIdSource(std::uint32_t{}, std::declval<const std::string&>())),
+                  "APPID verifier must not throw");
+    static_assert(noexcept(codepageSource(std::uint16_t{}, std::uint16_t{})),
+                  "EED codepage verifier must not throw");
     if (nod && mlineOwner) return false;
     const auto id = model.handle;
     const auto size = raw.m_rawBytes.size();
@@ -67,7 +80,8 @@ inline bool dictionary(const DRW_UnsupportedObject& raw,
         || model.cloning != 0 || !model.hasCompleteDwgEntries()
         || !model.hasDwgCommonLinkTail() || model.countCap
         || model.xDictHandle != 0u || model.hasDataStorageBinaryData()
-        || !model.appData.empty() || !model.extData.empty()
+        || !model.appData.empty() || model.extData.size() > 256u
+        || (!model.extData.empty() && size > 4096u)
         || !model.pendingAppIdResolutions.empty()
         || !model.pendingLayerRefResolutions.empty()
         || model.reactorCount() < 0
@@ -79,8 +93,38 @@ inline bool dictionary(const DRW_UnsupportedObject& raw,
             || !std::all_of(entry.m_name.begin(), entry.m_name.end(),
                             [](unsigned char c) { return c > 0u && c < 128u; })) return false;
     Bits bits{raw.m_rawBytes.data(), 0u, static_cast<std::uint32_t>(size * 8u)};
-    if (bits.shortValue() != 42u || !reference(bits, 0u, 0u, id, true)
-        || bits.shortValue() != 0u) return false;
+    if (bits.shortValue() != 42u || !reference(bits, 0u, 0u, id, true)) return false;
+    dx_raster_wire::Proof eedProof;
+    const auto visit = [&](const dx_raster_wire::EedToken& token) noexcept {
+        if (token.index >= model.extData.size()) return false;
+        const auto* value = model.extData[token.index];
+        if (!value || value->code() != static_cast<int>(token.code)) return false;
+        if (token.code == 1001u)
+            return token.role == 5u && token.value != 0u
+                && token.value <= (std::numeric_limits<std::uint32_t>::max)()
+                && value->type() == DRW_Variant::STRING && value->content.s
+                && appIdSource(static_cast<std::uint32_t>(token.value), *value->content.s);
+        if (token.code == 1000u) {
+            if (value->type() != DRW_Variant::STRING || !value->content.s
+                || token.value != value->content.s->size()
+                || !codepageSource(token.codePageBE, token.codePageLE)) return false;
+            Bits textBits{raw.m_rawBytes.data(), token.valueSpan.begin, token.valueSpan.end};
+            if (textBits.take(8u) != value->content.s->size() || !textBits.skip(16u)) return false;
+            for (unsigned char c : *value->content.s)
+                if (c == 0u || c > 0x7fu || textBits.take(8u) != c) return false;
+            return textBits.good && textBits.pos == textBits.end;
+        }
+        if (token.code == 1070u && value->type() == DRW_Variant::INTEGER) {
+            const auto number = value->i_val();
+            return number >= -32768 && number <= 32767
+                && token.value == static_cast<std::uint16_t>(number);
+        }
+        return false;
+    };
+    const unsigned revision = raw.m_version == DRW::AC1012 ? 13u : 14u;
+    if (dx_raster_wire::detail::eed(bits, revision, eedProof, visit)
+            != dx_raster_wire::Status::Proven
+        || eedProof.eedVariants != model.extData.size()) return false;
     const auto bodyEnd = bits.little(4u);
     if (bits.longValue() != model.reactorHandles.size() || bits.longValue() != count
         || (raw.m_version == DRW::AC1014 && bits.take(8u) != 0u)) return false;
@@ -93,6 +137,15 @@ inline bool dictionary(const DRW_UnsupportedObject& raw,
     for (const auto& entry : model.m_entries)
         if (!reference(bits, 2u, id, entry.m_handle)) return false;
     return padding(bits);
+}
+
+inline bool dictionary(const DRW_UnsupportedObject& raw,
+                       const DRW_Dictionary& model, bool nod,
+                       bool mlineOwner = false) noexcept {
+    if (!model.extData.empty()) return false;
+    return observeDictionaryEed(raw, model, nod,
+        [](std::uint32_t, const std::string&) noexcept { return false; },
+        [](std::uint16_t, std::uint16_t) noexcept { return false; }, mlineOwner);
 }
 
 } // namespace dx_legacy_dwg_wire

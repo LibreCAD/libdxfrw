@@ -12,6 +12,42 @@
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    // Literal wire observation only. In particular, the producer's EED
+    // codepage is unknown to this reader and must not qualify text/output.
+    static bool r13EedSource(const dx_data& data) {
+        const dx_data::StandardDwgFrameKey key{data.importGeneration, 0x30u};
+        const auto found = data.m_standardDwgObjectFrames.find(key);
+        if (found == data.m_standardDwgObjectFrames.end()) return false;
+        const auto& frame = found->second;
+        const auto* model = dynamic_cast<const DRW_Dictionary*>(frame.typedBaseline.get());
+        if (!model || frame.generation != data.importGeneration || !frame.payloadMatched
+            || !frame.sourceProfileBound || !frame.textDecodeObserved
+            || frame.textDecodeIssues != DRW::dxfTextIssueMask(DRW::DxfTextIssue::UnknownCodePage)
+            || frame.appIdDependencies != std::vector<std::uint32_t>{0x2au}
+            || data.m_opaqueDwgSourceFrameIdentities.count(key) != 1u) return false;
+        const auto app = [&data](std::uint32_t handle, const std::string& name) noexcept {
+            const auto snapshot = data.m_standardDwgAppIdSources.find({data.importGeneration, handle});
+            if (handle != 0x2au || name != "ACAD" || snapshot == data.m_standardDwgAppIdSources.end()
+                || !snapshot->second || snapshot->second->name != name
+                || !snapshot->second->hasUnchangedDwgSourceName()
+                || snapshot->second->dwgNameDecodeIssues() != 0u) return false;
+            const DRW_AppId* live = nullptr;
+            for (const auto& candidate : data.appIds) {
+                if (candidate.handle != handle) continue;
+                if (live) return false;
+                live = &candidate;
+            }
+            return live && live->name == name && live->sameDwgNameSource(*snapshot->second);
+        };
+        const auto literalPage = [](std::uint16_t be, std::uint16_t le) noexcept {
+            return be == 45u && le == 0x2d00u;
+        };
+        return !dx_legacy_dwg_wire::dictionary(frame.raw, *model, false)
+            && dx_legacy_dwg_wire::observeDictionaryEed(frame.raw, *model, false, app, literalPage);
+    }
+    static std::vector<std::uint8_t>& r13EedBytes(dx_data& data) {
+        return data.m_standardDwgObjectFrames.at({data.importGeneration, 0x30u}).raw.m_rawBytes;
+    }
     static bool dictionaryProof(const dx_data& data, std::uint32_t handle) {
         const auto frame = data.m_standardDwgObjectFrames.find({data.importGeneration, handle});
         if (frame == data.m_standardDwgObjectFrames.end() || !frame->second.typedBaseline)
@@ -343,6 +379,29 @@ bool checkR14GeneratedFile(const std::string& input) {
     return reader.fileImport(input, &data, false) && checkR14Generated(data);
 }
 
+bool checkR13EedSource(const std::string& input) {
+    dx_iface reader;
+    dx_data data;
+    if (!reader.fileImport(input, &data, false) || data.sourceVersion != DRW::AC1012
+        || !DxIfaceStandardDwgCaptureTestAccess::r13EedSource(data)) return false;
+    auto& bytes = DxIfaceStandardDwgCaptureTestAccess::r13EedBytes(data);
+    if (bytes.size() != 35u) return false;
+    for (std::size_t bit = 0; bit < bytes.size() * 8u; ++bit) {
+        bytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
+        const bool accepted = DxIfaceStandardDwgCaptureTestAccess::r13EedSource(data);
+        bytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
+        if (accepted != (bit >= bytes.size() * 8u - 6u)) return false;
+    }
+    auto app = std::find_if(data.appIds.begin(), data.appIds.end(),
+        [](const DRW_AppId& candidate) { return candidate.handle == 0x2au; });
+    if (app == data.appIds.end()) return false;
+    const auto original = app->name;
+    app->name += "X";
+    const bool changedAccepted = DxIfaceStandardDwgCaptureTestAccess::r13EedSource(data);
+    app->name = original;
+    return !changedAccepted && DxIfaceStandardDwgCaptureTestAccess::r13EedSource(data);
+}
+
 bool r13GeneratedGuard(const std::string& input, const std::filesystem::path& output) {
     dx_iface adapter;
     dx_data source;
@@ -377,6 +436,8 @@ bool r13GeneratedGuard(const std::string& input, const std::filesystem::path& ou
 int main(int argc, char** argv) {
     const bool ok = argc == 3 && std::string(argv[1]) == "--check-partial"
         ? checkPartialReadback(argv[2])
+        : argc == 3 && std::string(argv[1]) == "--r13-eed-source"
+            ? checkR13EedSource(argv[2])
         : argc == 3 && std::string(argv[1]) == "--check-r14-generated"
             ? checkR14GeneratedFile(argv[2])
         : argc == 3 && std::string(argv[1]) == "--check-r13-partial"
