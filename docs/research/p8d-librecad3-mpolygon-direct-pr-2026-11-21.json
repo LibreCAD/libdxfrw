@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-mpolygon-direct-pr-2026-11-21",
+  "date": "2026-11-21",
+  "status": "DRAFT_PR_OPEN_FOCUSED_LOCAL_CHECKS_PASSED",
+  "supportClaimEffect": "none",
+  "pullRequest": {
+    "url": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+    "head": "518347f6cbb369a76bd3c3462b234989e2c6388b",
+    "baseMaster": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+    "dependsOn": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
+    "parentHead": "b3980f7287680c71935da9b809b086669fcde40c",
+    "state": "draft, mergeable when observed; combined diff includes parent until it merges",
+    "hostedChecks": "not yet qualified"
+  },
+  "scope": "Map MPOLYGON boundary offsets and preserve an independently bounded simple planar solid MPOLYGON snapshot for supported translation and rotation. Unsupported source or edits use the explicit HATCH projection loss route. Lift the tested default-normal DXF multiloop projection to its shared elevation.",
+  "validation": {
+    "platform": "macOS arm64, headless persistence",
+    "bundledCodec": "pinned d68fb1ed937ad2a74a54f6208277ec10a1b031b0; 9/9 focused MPOLYGON/HATCH tests pass; 5/5 existing HATCH/spline/3D line checks pass",
+    "currentCodec": "current libdxfrw 3 shared library built from implementation digest 18a77d51abb44da94a659d99d26657645f57e570ce19b8fea4c76f5cbd65c95d using separate scratch system-codec CMake glue; 9/9 focused tests pass, DYLD_PRINT_LIBRARIES confirms loaded library",
+    "independent": "ezdxf 1.4.5 checked two-loop HATCH and MPOLYGON projection, ASCII/Binary save and resave, XY offsets, elevation and fallback/retry on both codec paths",
+    "bundledFocusedLogSha256": "61432bb10eb09a8a9e7acff544fe42d88131a7e7b5b74f9fe436a8e6252c7a",
+    "currentFocusedLogSha256": "20cae0ef334d060dadf24002432e80bb947fd9b6b44e5adb4f5f2e77484416c1",
+    "bundledRegressionLogSha256": "9cc5038d24e415dd6a66cb88de4835a3837f439ddd09ad1295bd4dc6d09b97a0",
+    "independentResultSha256": "51f7b0bca6ac5cc2e381626a13b7c75ab37d77b2e0381793eae1d12bcdf5ef91",
+    "bundledPersistenceSha256": "9e6c108d4930ffb37820ef79958cd24f75da083bf94717356aa7f7c3f6a5fc78",
+    "currentPersistenceSha256": "c92320797d62f144e4a50d12d6140a5442fe26c3f4bc7d067518f509fe1c88d0",
+    "sourceMatch": "Implementation, header and tests byte-match the draft PR head; system-codec build uses separate unmerged CMake glue.",
+    "planSync": "explicit-path check PASS; hosted PR check pending"
+  },
+  "limits": [
+    "Draft depends on PR #460 and is not merged. Native GUI and Linux/Windows qualification remain open.",
+    "The pinned codec cannot replay the selected MPOLYGON subtype and uses the reported HATCH fallback; broader MPOLYGON and 3D semantics are not claimed.",
+    "No DWG/DXF fixtures were committed."
+  ]
+}
