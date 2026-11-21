@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-21",
+  "scope": "LibreCAD_3 ordinary open-clamped spline Bezier conversion",
+  "pull_request": "https://github.com/LibreCAD/LibreCAD_3/pull/462",
+  "base": "4fb48312708b39d499f7e6668104a3b54a8601c7",
+  "head": "e0245c517c0bc43f04c33768ce29b87eb2a70994",
+  "findings": {
+    "baseline": "Source knot vector was ignored; for a quadratic control polygon the seam was x=2 instead of x=1.5. The new test failed on the base.",
+    "change": "Use finite, ordered, open-clamped ordinary spline source knots with separated distinct values, when TinySpline accepts and converts them; use the previous default clamped curve otherwise."
+  },
+  "validation": {
+    "platform": "macOS arm64, headless",
+    "build": "lckernel built with pinned bundled libdxfrw",
+    "geometry": "11/11 targeted Bezier and spline tests passed, including four new knot tests and a rejected-multiplicity fallback",
+    "persistence": "2/2 existing fit-only and spline reopen/resave tests passed",
+    "independent_evaluator": "ezdxf 1.4.5 BSpline returned quadratic seam (1.5,2,3) and cubic seam (1.96,0.9200000000000002,2)",
+    "plan_sync": "explicit changed-path plan validation passed",
+    "negative_control": "quadratic seam test failed against unmodified master"
+  },
+  "limits": [
+    "Native GUI, hosted CI and other platforms remain pending.",
+    "Rational, periodic, non-clamped, near-coincident and otherwise unsupported knots retain old fallback and remain unqualified.",
+    "This does not qualify DWG parsing or close P8-D."
+  ]
+}
