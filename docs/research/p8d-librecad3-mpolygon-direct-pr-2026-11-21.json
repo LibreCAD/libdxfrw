@@ -26,7 +26,10 @@
     "bundledPersistenceSha256": "9e6c108d4930ffb37820ef79958cd24f75da083bf94717356aa7f7c3f6a5fc78",
     "currentPersistenceSha256": "c92320797d62f144e4a50d12d6140a5442fe26c3f4bc7d067518f509fe1c88d0",
     "sourceMatch": "Implementation, header and tests byte-match the draft PR head; system-codec build uses separate unmerged CMake glue.",
-    "planSync": "explicit-path check PASS; hosted PR check pending"
+    "planSync": "explicit-path check PASS; hosted PR check pending",
+    "dwgRegression": "4/4 existing DWG import/export, encoding parity, fixture delivery and text/dimension controls pass with each codec.",
+    "bundledDwgRegressionLogSha256": "3d2e58cd973e6eec47b682226e3a2cfb846116d957990fe9b24a83bce94c02e2",
+    "currentDwgRegressionLogSha256": "bfa544634d0aaefaa73b4e3f94ce5586eb6742077f3820eeb279c8962b95c3e4"
   },
   "limits": [
     "Draft depends on PR #460 and is not merged. Native GUI and Linux/Windows qualification remain open.",

@@ -9,7 +9,7 @@
     "head": "b3980f7287680c71935da9b809b086669fcde40c",
     "baseMaster": "4fb48312708b39d499f7e6668104a3b54a8601c7",
     "state": "draft and mergeable when observed",
-    "hostedChecks": "Updated head pushed; hosted checks on prior heads do not qualify this head. Recheck current workflows.",
+    "hostedChecks": "Python Binding Plan Sync PASS on head b3980f7287680c71935da9b809b086669fcde40c; remaining hosted workflows queued or running.",
     "previousHead": "5419e7b403102f91d6ed11540420021ede5bcd06"
   },
   "scope": "Ordinary default-normal HATCH polyline, line, arc, ellipse and selected non-rational spline point elevation; ellipse edge direction; mixed-elevation loss handling. This direct upstream change does not include the larger unmerged MPOLYGON consumer candidate or its system-codec integration. Open and Save dialog loss notes are displayed, including with partial-read warnings. Reserved ByLayer/ByBlock descriptions are cleared before output to match the current codec.",
