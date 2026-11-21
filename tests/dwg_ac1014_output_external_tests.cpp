@@ -467,11 +467,12 @@ bool legacyGenerated(const std::string& input, const std::filesystem::path& outp
     return true;
 }
 
-bool r14DictionaryEedOutput(const std::string& input, const std::filesystem::path& output) {
+bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::path& output,
+                               DRW::Version sourceVersion) {
     LateMutationAdapter adapter;
     dx_data source;
     adapter.source = &source;
-    if (!adapter.fileImport(input, &source, false) || !checkR14Generated(source)) return false;
+    if (!adapter.fileImport(input, &source, false) || !checkR14Generated(source, sourceVersion)) return false;
     auto group = std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
         [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0xdu; });
     auto app = std::find_if(source.appIds.begin(), source.appIds.end(),
@@ -487,13 +488,28 @@ bool r14DictionaryEedOutput(const std::string& input, const std::filesystem::pat
         || !group->extData[1]->content.s || *group->extData[1]->content.s != "HELLO"
         || group->extData[2]->i_val() != 42 || app->name != "ACAD") return false;
     const DRW_Dictionary saved = *group;
-    const std::string sentinel = "R14 EED destination preserved\n";
+    const std::string sentinel = "Legacy EED destination preserved\n";
+    const auto policy = sourceVersion == DRW::AC1012 ? dx_dwgReadCompletenessPolicy::AllowPartial
+                                                    : dx_dwgReadCompletenessPolicy::RequireComplete;
+    const auto emit = [&](bool binary, DRW::Version target = DRW::AC1014) {
+        return write(adapter, source, output.string(), binary, target, policy);
+    };
     for (const bool binary : {false, true}) {
-        if (!write(adapter, source, output.string(), binary)) return false;
-        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
-        if (write(adapter, source, output.string(), binary, DRW::AC1015)
-            || bytes(output) != sentinel || !write(adapter, source, output.string(), binary)) return false;
+        if (sourceVersion == DRW::AC1012) {
+            { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+            if (write(adapter, source, output.string(), binary) || bytes(output) != sentinel) return false;
+        }
+        if (!emit(binary)) return false;
+        if (sourceVersion == DRW::AC1014) {
+            { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+            if (emit(binary, DRW::AC1015)
+                || bytes(output) != sentinel || !emit(binary)) return false;
+        }
         for (int fault = 0; fault < 6; ++fault) {
+            // Explicit partial output can omit a proof if the source was
+            // already changed before inspection; it does not certify this
+            // pre-inspection corruption case. The late mutation is checked.
+            if (sourceVersion == DRW::AC1012 && fault == 3) continue;
             if (fault == 0) group->extData[1]->addString(1000, "CHANGED");
             if (fault == 1) group->extData[2]->addInt(1070, 43);
             if (fault == 2) app->name = "CHANGED";
@@ -501,14 +517,14 @@ bool r14DictionaryEedOutput(const std::string& input, const std::filesystem::pat
             if (fault == 4) adapter.lateFault = 14;
             if (fault == 5) group->extData[0]->addString(1001, "OTHER");
             { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
-            const bool accepted = write(adapter, source, output.string(), binary);
+            const bool accepted = emit(binary);
             if (fault == 3) DxIfaceStandardDwgCaptureTestAccess::sourceBit(source, 14) ^= 1u;
             if (fault == 4) adapter.lateFault = 0;
             app->name = "ACAD";
             *group = saved;
             if (accepted || bytes(output) != sentinel
-                || !write(adapter, source, output.string(), binary)) {
-                std::cerr << "R14 EED refusal/retry failed: binary=" << binary
+                || !emit(binary)) {
+                std::cerr << "Legacy EED refusal/retry failed: binary=" << binary
                           << " fault=" << fault << '\n';
                 return false;
             }
@@ -732,7 +748,9 @@ int main(int argc, char** argv) {
             : argc == 4 && std::string(argv[1]) == "--legacy-bad-default-role"
                 ? checkLegacyDefaultRoleFallback(argv[2], argv[3])
             : argc == 4 && std::string(argv[1]) == "--r14-eed"
-                ? r14DictionaryEedOutput(argv[2], argv[3])
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014)
+            : argc == 4 && std::string(argv[1]) == "--r13-eed"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012)
             : argc == 4 && std::string(argv[1]) == "--r14-generated"
                 ? legacyGenerated(argv[2], argv[3], DRW::AC1014)
             : argc == 4 && std::string(argv[1]) == "--r13-generated"

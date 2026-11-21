@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-r13-group-dictionary-eed-partial-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_R13_TO_R14_EXPLICIT_PARTIAL_SOURCE_AND_OUTPUT_PROOF",
+  "supportClaimEffect": "none",
+  "generator": "tools/research/generate_legacy_dictionary_eed_control.py --version r13",
+  "control": {
+    "baselineDwgSha256": "a25ab1818da4a5e269dc3370f7484a1f869932a468b7a5db821bb2ec4f67ee23",
+    "eedDwgSha256": "ff67121335dcbce56c21c3468b8a073ed8041508039f7c0d72adb9b145a6c9f6",
+    "outputAsciiSha256": "269882e14289bba887dca1dbe9d8ae3a30c404c3128824faec30bfb3827776b4",
+    "outputBinarySha256": "6e3fc39731e1c9c23a8d3f03e8bbec9fe9b97620bfcb753f6785b53f7736dca7",
+    "dictionaryHandle": "D",
+    "appidHandle": "12",
+    "appid": "ACAD",
+    "eedCodepage": 30,
+    "eed": [
+      [
+        1000,
+        "HELLO"
+      ],
+      [
+        1070,
+        42
+      ]
+    ]
+  },
+  "checks": [
+    "Shared version-aware source observer binds exact R13 frame, APPID identity, text decoding and staged R14 output proof.",
+    "R13 strict conversion remains refused with destination preserved; explicit partial output was read back independently by ezdxf 1.4.5 in both encodings.",
+    "ASan controls verify EED and APPID mutation refusals, late source-frame mutation refusal, destination preservation and corrected retry.",
+    "The locally authored corpus is generated into scratch space; no DWG or DXF sample is committed."
+  ],
+  "limits": [
+    "Explicit partial conversion may continue without an output proof if the source frame is corrupted before inspection. This is not a strict conversion or a proof of complete source retention; repairing this narrowly remains open.",
+    "No claim is made for native cloning or duplicate semantics, unobserved EED profiles, non-ASCII output, other target versions, or overall R13 compatibility."
+  ]
+}

@@ -130,22 +130,26 @@ def main():
         if dwgread and dwgwrite and b"0.14" in invoke([dwgread, "--version"]).stdout \
                 and b"0.14" in invoke([dwgwrite, "--version"]).stdout:
             generator = Path(__file__).resolve().parents[1] / "tools/research/generate_legacy_dictionary_eed_control.py"
-            eed_root = root / "r14-eed"
-            generated = invoke([sys.executable, str(generator), "--output-dir", str(eed_root),
-                                "--dwgadd", dwgadd, "--dwgread", dwgread, "--dwgwrite", dwgwrite])
-            require(generated.returncode == 0, "R14 EED scratch control generation")
-            eed_input = eed_root / "eed.dwg"
-            require(invoke([profile_test, "--r14-eed", str(eed_input),
-                            str(eed_root / "adapter.dxf")]).returncode == 0,
-                    "R14 EED staged output, mutation refusal and retry")
-            for binary in (False, True):
-                output = eed_root / ("cli-binary.dxf" if binary else "cli-ascii.dxf")
-                command = [converter, str(eed_input), "-o", str(output), "-y"]
-                if binary:
-                    command.append("-b")
-                require(invoke(command).returncode == 0
-                        and invoke([profile_test, "--check-r14-generated", str(output)]).returncode == 0,
-                        "R14 EED CLI conversion and fresh readback")
+            for source_version in ("r13", "r14"):
+                eed_root = root / (source_version + "-eed")
+                generated = invoke([sys.executable, str(generator), "--version", source_version,
+                                    "--output-dir", str(eed_root), "--dwgadd", dwgadd,
+                                    "--dwgread", dwgread, "--dwgwrite", dwgwrite])
+                require(generated.returncode == 0, source_version + " EED scratch control generation")
+                eed_input = eed_root / "eed.dwg"
+                require(invoke([profile_test, "--" + source_version + "-eed", str(eed_input),
+                                str(eed_root / "adapter.dxf")]).returncode == 0,
+                        source_version + " EED staged output, mutation refusal and retry")
+                for binary in (False, True):
+                    output = eed_root / ("cli-binary.dxf" if binary else "cli-ascii.dxf")
+                    command = [converter, str(eed_input), "-o", str(output), "-y"]
+                    if binary:
+                        command.append("-b")
+                    if source_version == "r13":
+                        command.append("--allow-partial-dwg-read")
+                    require(invoke(command).returncode == 0
+                            and invoke([profile_test, "--check-r14-generated", str(output)]).returncode == 0,
+                            source_version + " EED CLI conversion and fresh readback")
     print("AC1012 locally generated partial-read CLI and same-adapter tests: PASS")
 
 

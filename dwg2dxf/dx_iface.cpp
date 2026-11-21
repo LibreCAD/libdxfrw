@@ -32495,7 +32495,7 @@ void dx_iface::finishVerifiedXRecordSource(bool successfulRead) noexcept {
     m_verifiedTableCandidatePendingBytes=0u;
 }
 
-// R14 group-dictionary EED profile: bind the physical ASCII values to the
+// R13/R14 group-dictionary EED profile: bind the physical ASCII values to the
 // captured ACAD APPID. Staged table identity and exact output are checked by
 // the normal standard-object and generated-root proofs before publication.
 bool dx_iface::hasLegacyDictionaryWireSource(
@@ -32505,8 +32505,8 @@ bool dx_iface::hasLegacyDictionaryWireSource(
         return dx_legacy_dwg_wire::dictionary(frame.raw, dictionary,
                                                dictionary.parentHandle == 0u);
     if (!cData || !dxfW || dxfW->getVersion() != DRW::AC1014
-        || cData->sourceVersion != DRW::AC1014
-        || frame.raw.m_version != DRW::AC1014 || frame.generation != cData->importGeneration
+        || !dx_legacy_dwg_wire::supported(cData->sourceVersion)
+        || frame.raw.m_version != cData->sourceVersion || frame.generation != cData->importGeneration
         || dictionary.handle != 0xdu || dictionary.parentHandle != 0xcu
         || !dictionary.m_entries.empty() || frame.appIdDependencies.size() != 1u
         || frame.appIdDependencies.front() != 0x12u
@@ -32518,7 +32518,7 @@ bool dx_iface::hasLegacyDictionaryWireSource(
         if (source == cData->m_standardDwgAppIdSources.end() || !source->second
             || source->second->name != name || !source->second->hasUnchangedDwgSourceName()
             || source->second->dwgNameDecodeIssues() != 0u
-            || !source->second->hasBoundDwgNameProfile(DRW::AC1014, dwgCodePageName(30u))) return false;
+            || !source->second->hasBoundDwgNameProfile(frame.raw.m_version, dwgCodePageName(30u))) return false;
         const DRW_AppId* current = nullptr;
         for (const auto& candidate : cData->appIds) {
             if (candidate.handle != handle) continue;

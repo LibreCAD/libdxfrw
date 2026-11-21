@@ -157,9 +157,13 @@ source profile to staged APPID/table and graph checks. The bounded R14 group
 DICTIONARY with ACAD APPID and codepage-30 ASCII EED now passes strict R14
 ASCII/Binary output, mutation/refusal and retry, and independent readback; see
 the [control and limits](docs/research/p6-r14-group-dictionary-eed-output-2026-11-21.json).
-Extend only with separately bound source, name, graph and output evidence; R13,
-cross-version and non-ASCII output remain outside this profile. The observed
-legacy DICTIONARYWDFLT is now
+The same source and staged proof now covers R13-to-R14 explicit partial output
+for that bounded group, with independent ASCII/Binary readback and late-mutation
+refusal; see [R13 control and limits](docs/research/p6-r13-group-dictionary-eed-partial-2026-11-21.json).
+Next, address its pre-inspection raw-frame mutation fallback without changing the
+contract for other unqualified partial records. Strict R13, broader cross-version
+and non-ASCII output remain outside this profile. Extend only with separately
+bound source, name, graph and output evidence. The observed legacy DICTIONARYWDFLT is now
 decoded with cloning, owner, entry and default fields after
 [producer and wire checks](docs/research/p6-legacy-dictionary-default-typed-2026-11-21.json);
 the subclass physically contains a cloning field in these samples. CELLSTYLEMAP

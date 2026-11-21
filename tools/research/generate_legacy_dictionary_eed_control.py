@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build scratch R14 baseline and EED variants for local qualification work.
+"""Build scratch R13/R14 baseline and EED variants for local qualification work.
 
 Requires LibreDWG 0.14's dwgadd, dwgread and dwgwrite. No drawings are
 committed; the inputs originate in the tracked, locally authored recipe.
@@ -25,6 +25,7 @@ def digest(path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output-dir', type=Path, required=True)
+    parser.add_argument('--version', choices=('r13', 'r14'), default='r14')
     parser.add_argument('--dwgadd', default='dwgadd')
     parser.add_argument('--dwgread', default='dwgread')
     parser.add_argument('--dwgwrite', default='dwgwrite')
@@ -39,7 +40,7 @@ def main():
     source = root / 'dwgadd.json'
     if any((root / name).exists() for name in ('dwgadd.dwg', 'dwgadd.json', 'baseline.dwg', 'eed.dwg')):
         raise RuntimeError('output directory must not contain a previous control')
-    run(args.dwgadd, '--as', 'r14', '-o', str(base), str(recipe))
+    run(args.dwgadd, '--as', args.version, '-o', str(base), str(recipe))
     run(args.dwgread, '-O', 'JSON', '-o', str(source), str(base))
     document = json.loads(source.read_text())
     styles = [o for o in document['OBJECTS'] if o.get('object') == 'MLINESTYLE']
@@ -62,7 +63,7 @@ def main():
         path = root / (name + '.json')
         drawing = root / (name + '.dwg')
         path.write_text(json.dumps(document))
-        run(args.dwgwrite, '--as', 'r14', '-I', 'JSON', '-o', str(drawing), str(path))
+        run(args.dwgwrite, '--as', args.version, '-I', 'JSON', '-o', str(drawing), str(path))
         check = root / (name + '-readback.json')
         run(args.dwgread, '-O', 'JSON', '-o', str(check), str(drawing))
         reread = json.loads(check.read_text())
@@ -74,7 +75,7 @@ def main():
             raise RuntimeError('baseline unexpectedly contains EED')
         results[name] = {'path': str(drawing), 'sha256': digest(drawing)}
     print(json.dumps({'recipeSha256': digest(recipe), 'controls': results,
-                      'dictionaryHandle': 13, 'appidHandle': 18,
+                      'version': args.version, 'dictionaryHandle': 13, 'appidHandle': 18,
                       'status': 'research control; no support claim'}, indent=2))
 
 
