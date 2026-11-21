@@ -152,6 +152,19 @@ def main():
                                     str(eed_root / "unqualified.dwg"),
                                     str(eed_root / "unqualified-output.dxf")]).returncode == 0,
                             "unqualified R13 EED retains its partial route")
+                alternate = root / (source_version + "-eed-alternate-app")
+                require(invoke([sys.executable, str(generator), "--version", source_version,
+                                "--alternate-app", "--output-dir", str(alternate), "--dwgadd", dwgadd,
+                                "--dwgread", dwgread, "--dwgwrite", dwgwrite]).returncode == 0,
+                        source_version + " alternate APPID control generation")
+                for profile, file in (("eed", "eed.dwg"), ("eed-utf8", "utf8.dwg")):
+                    require(invoke([profile_test, "--" + source_version + "-" + profile + "-alternate-app",
+                                    str(alternate / file), str(alternate / "adapter.dxf")]).returncode == 0,
+                            source_version + " alternate APPID " + profile + " proof and retry")
+                require(invoke([profile_test, "--" + source_version + "-eed-wide",
+                                str(alternate / "wide.dwg"), str(alternate / "utf8.dwg"),
+                                str(alternate / "wide-output.dxf")]).returncode == 0,
+                        source_version + " alternate APPID unrepresentable refusal")
                 for binary in (False, True):
                     output = eed_root / ("cli-binary.dxf" if binary else "cli-ascii.dxf")
                     command = [converter, str(eed_input), "-o", str(output), "-y"]

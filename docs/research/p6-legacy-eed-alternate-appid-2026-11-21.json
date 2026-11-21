@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-eed-alternate-appid-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_LEGACY_ACAD_APPID_SOURCE_IDENTITY",
+  "supportClaimEffect": "none",
+  "generator": "tools/research/generate_legacy_dictionary_eed_control.py --alternate-app",
+  "construction": "Locally authored LibreDWG 0.14 R13/R14 controls remap ACAD APPID from 0x12 to unused 0x33, update the APPID_CONTROL member, owner, EED handle and handseed, and verify peer JSON readback. UTF-8 variants patch a fixed-size EED string and repair the verified object CRC. No generated files are committed.",
+  "sourceSha256": {
+    "r13Ascii": "f3ad6f03f84296988ef674ac0e71d6e3a2d2e8882d73e97c9830f4e54c5b4864",
+    "r13Utf8": "b26eb917b2820cede40d2779f94e9bf32888db3022c756a23839d27d8ee047bf",
+    "r14Ascii": "a82211ee5dbe9a77c8035acf11096abce6938d773ee04f47e4b25a12d040ba0f",
+    "r14Utf8": "768b70bd76161ce0c0500dee05b514f29639b96394c26cc22c7820dc32594909"
+  },
+  "checks": [
+    "The observer checks the single physically referenced APPID handle against its immutable source record, live unique handle, exact ACAD name, bound source text profile and staged output-table identity.",
+    "The alternate-handle R14 EED-free baseline passes strict conversion. Before the change, its EED variant was refused at opaque-output qualification; after the change, ASCII and UTF-8 controls pass R14 strict and R13 explicit-partial output.",
+    "ASan tests cover both source versions, two APPID handles, EED values, APPID changes, source-bit mutations, late failure, destination preservation, same-adapter retry and unrepresentable UTF-8 refusal.",
+    "ezdxf 1.4.5 independently reads ACAD, caf\u00e9 and integer 42 from the alternate-handle ASCII and Binary outputs for each version."
+  ],
+  "limits": [
+    "The bounded group and root source handles remain fixed; broader graph admission requires a separately checked remapped group/NOD witness.",
+    "This does not qualify strict R13, unobserved EED schemas, arbitrary APPID names, native clone semantics or general DWG/DXF support."
+  ]
+}

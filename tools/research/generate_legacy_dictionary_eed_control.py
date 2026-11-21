@@ -25,7 +25,7 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def replace_eed_text(dwgread, source, destination, value):
+def replace_eed_text(dwgread, source, destination, value, appid):
     """Patch the locally generated fixed-size EED string and repair its CRC."""
     raw = value.encode('utf-8')
     if len(raw) != 5:
@@ -46,7 +46,7 @@ def replace_eed_text(dwgread, source, destination, value):
         raise RuntimeError('source frame CRC mismatch')
     bits = Bits(data[address:address+size])
     if (bits.bs() != 42 or bits.handle(0, own=True)['value'] != 13 or bits.bs() != 12
-            or bits.handle(5)['value'] != 18 or bits.take(8) != 0 or bits.take(8) != 5):
+            or bits.handle(5)['value'] != appid or bits.take(8) != 0 or bits.take(8) != 5):
         raise RuntimeError('unexpected source EED framing')
     offset = bits.position
     if bytes(bits.take(8) for _ in range(7)) != b'\x00\x1eHELLO':
@@ -65,6 +65,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output-dir', type=Path, required=True)
     parser.add_argument('--version', choices=('r13', 'r14'), default='r14')
+    parser.add_argument('--alternate-app', action='store_true')
     parser.add_argument('--dwgadd', default='dwgadd')
     parser.add_argument('--dwgread', default='dwgread')
     parser.add_argument('--dwgwrite', default='dwgwrite')
@@ -89,6 +90,17 @@ def main():
             and o.get('handle', [0, 0, 0])[2] == 18 and o.get('name') == 'ACAD']
     if len(styles) != 1 or len(dictionaries) != 1 or len(apps) != 1:
         raise RuntimeError('unexpected dwgadd graph or APPID')
+    appid = 18
+    if args.alternate_app:
+        controls = [o for o in document['OBJECTS'] if o.get('object') == 'APPID_CONTROL']
+        used = {o.get('handle', [0, 0, 0])[2] for o in document['OBJECTS'] if 'handle' in o}
+        if len(controls) != 1 or controls[0].get('entries') != [[2, 1, 18, 18]] or 51 in used:
+            raise RuntimeError('unexpected APPID control or occupied alternate handle')
+        appid = 51
+        controls[0]['entries'] = [[2, 1, appid, appid]]
+        apps[0]['handle'] = [0, 1, appid]
+        apps[0]['ownerhandle'] = [4, 1, 9, 9]
+        document['HEADER']['HANDSEED'] = [0, 1, 52, 52]
     # dwgread JSON rounds the angle; restore the exact generated binary value
     # so the baseline remains within the existing MLINESTYLE wire profile.
     styles[0]['start_angle'] = styles[0]['end_angle'] = 1.5707963267948966
@@ -96,7 +108,7 @@ def main():
     for name in ('baseline', 'eed', 'unqualified'):
         if name == 'eed':
             dictionaries[0]['eed'] = [
-                {'size': 12, 'handle': [5, 1, 18], 'code': 0, 'value': 'HELLO'},
+                {'size': 12, 'handle': [5, 1, appid], 'code': 0, 'value': 'HELLO'},
                 {'code': 70, 'value': 42},
             ]
         if name == 'unqualified':
@@ -119,10 +131,10 @@ def main():
         results[name] = {'path': str(drawing), 'sha256': digest(drawing)}
     for name, value in (('utf8', 'café'), ('wide', '漢é')):
         drawing = root / (name + '.dwg')
-        replace_eed_text(args.dwgread, root / 'eed.dwg', drawing, value)
+        replace_eed_text(args.dwgread, root / 'eed.dwg', drawing, value, appid)
         results[name] = {'path': str(drawing), 'sha256': digest(drawing)}
     print(json.dumps({'recipeSha256': digest(recipe), 'controls': results,
-                      'version': args.version, 'dictionaryHandle': 13, 'appidHandle': 18,
+                      'version': args.version, 'dictionaryHandle': 13, 'appidHandle': appid,
                       'status': 'research control; no support claim'}, indent=2))
 
 

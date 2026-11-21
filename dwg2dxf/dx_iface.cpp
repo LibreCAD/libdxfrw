@@ -32499,7 +32499,7 @@ void dx_iface::finishVerifiedXRecordSource(bool successfulRead) noexcept {
     m_verifiedTableCandidatePendingBytes=0u;
 }
 
-// R13/R14 group-dictionary EED profile: bind the physical ASCII values to the
+// R13/R14 group-dictionary EED profile: bind the physical values to the
 // captured ACAD APPID. Staged table identity and exact output are checked by
 // the normal standard-object and generated-root proofs before publication.
 bool dx_iface::hasLegacyDictionaryWireSource(
@@ -32512,14 +32512,14 @@ bool dx_iface::hasLegacyDictionaryWireSource(
         || frame.raw.m_version != cData->sourceVersion || frame.generation != cData->importGeneration
         || dictionary.handle != 0xdu || dictionary.parentHandle != 0xcu
         || !dictionary.m_entries.empty() || frame.appIdDependencies.size() != 1u
-        || frame.appIdDependencies.front() != 0x12u
+        || frame.appIdDependencies.front() == 0u || frame.appIdDependencies.front() == DRW::NoHandle
         || !frame.hasNoObservedTextDecodeIssues() || !frame.sourceCodePageFieldPresent
         || !frame.sourceCodePageRecognized || frame.sourceCodePageId != 30u) return false;
     const auto app = [this, &frame](std::uint32_t handle, const std::string& name) noexcept {
-        if (handle != 0x12u || name != "ACAD") return false;
+        if (handle != frame.appIdDependencies.front() || name != "ACAD") return false;
         const auto source = cData->m_standardDwgAppIdSources.find({frame.generation, handle});
         if (source == cData->m_standardDwgAppIdSources.end() || !source->second
-            || source->second->name != name || !source->second->hasUnchangedDwgSourceName()
+            || source->second->handle != handle || source->second->name != name || !source->second->hasUnchangedDwgSourceName()
             || source->second->dwgNameDecodeIssues() != 0u
             || !source->second->hasBoundDwgNameProfile(frame.raw.m_version, dwgCodePageName(30u))) return false;
         const DRW_AppId* current = nullptr;

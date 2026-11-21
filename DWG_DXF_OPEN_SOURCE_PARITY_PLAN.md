@@ -158,6 +158,10 @@ codepage-45 UTF-8 EED, with strict ASCII/Binary output and independent readback;
 see the [ASCII control](docs/research/p6-r14-group-dictionary-eed-output-2026-11-21.json)
 and [UTF-8 output and refusal controls](docs/research/p6-legacy-eed-utf8-output-2026-11-21.json).
 A target escape that an independent reader treats literally is refused atomically.
+The [alternate APPID control](docs/research/p6-legacy-eed-alternate-appid-2026-11-21.json)
+binds ACAD by its captured source handle and table identity instead of assuming
+handle 0x12. Next, use an independently checked remapped group/NOD control to
+replace their fixed source handles with a complete source-graph join.
 The same source and staged proof now covers R13-to-R14 explicit partial output
 for that bounded group, with independent ASCII/Binary readback and mutation
 refusal; see [R13 control](docs/research/p6-r13-group-dictionary-eed-partial-2026-11-21.json)

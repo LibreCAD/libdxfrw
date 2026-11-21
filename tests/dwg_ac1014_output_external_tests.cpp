@@ -472,7 +472,8 @@ bool legacyGenerated(const std::string& input, const std::filesystem::path& outp
 }
 
 bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::path& output,
-                               DRW::Version sourceVersion, const std::string& expectedText) {
+                               DRW::Version sourceVersion, const std::string& expectedText,
+                               std::uint32_t appHandle = 0x12u) {
     LateMutationAdapter adapter;
     dx_data source;
     adapter.source = &source;
@@ -481,7 +482,7 @@ bool legacyDictionaryEedOutput(const std::string& input, const std::filesystem::
     auto group = std::find_if(source.dictionaries.begin(), source.dictionaries.end(),
         [](const DRW_Dictionary& dictionary) { return dictionary.handle == 0xdu; });
     auto app = std::find_if(source.appIds.begin(), source.appIds.end(),
-        [](const DRW_AppId& item) { return item.handle == 0x12u; });
+        [appHandle](const DRW_AppId& item) { return item.handle == appHandle; });
     if (group == source.dictionaries.end() || app == source.appIds.end()
         || group->extData.size() != 3u || !group->extData[0] || !group->extData[1]
         || !group->extData[2] || group->extData[0]->code() != 1001
@@ -810,6 +811,14 @@ int main(int argc, char** argv) {
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO")
             : argc == 4 && std::string(argv[1]) == "--r13-eed"
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO")
+            : argc == 4 && std::string(argv[1]) == "--r14-eed-alternate-app"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "HELLO", 0x33u)
+            : argc == 4 && std::string(argv[1]) == "--r13-eed-alternate-app"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "HELLO", 0x33u)
+            : argc == 4 && std::string(argv[1]) == "--r14-eed-utf8-alternate-app"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "caf\xC3\xA9", 0x33u)
+            : argc == 4 && std::string(argv[1]) == "--r13-eed-utf8-alternate-app"
+                ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1012, "caf\xC3\xA9", 0x33u)
             : argc == 4 && std::string(argv[1]) == "--r14-eed-utf8"
                 ? legacyDictionaryEedOutput(argv[2], argv[3], DRW::AC1014, "caf\xC3\xA9")
             : argc == 4 && std::string(argv[1]) == "--r13-eed-utf8"
