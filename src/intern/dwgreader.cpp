@@ -14761,9 +14761,9 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
             }
             if (rn == "ACDBDICTIONARYWDFLT" || rn == "DICTIONARYWDFLT" ||
                 cit->second->className == "AcDbDictionaryWithDefault") {
-              if (dwgReaderDetail::isR13DictionaryWithDefaultRawOnlyProfile(
+              if (dwgReaderDetail::isLegacyDictionaryWithDefaultRawOnlyProfile(
                       version, cit->second)) {
-                // ODA v5.4.1 §§20.1, 20.4.44-45: retain the observed R13
+                // ODA v5.4.1 §§20.1, 20.4.44-45: retain the observed R13/R14
                 // common shell and bounded source frame. Do not publish a
                 // typed cloning/default projection without its versioned
                 // semantics and a qualified membership receipt.
@@ -14774,7 +14774,7 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
                       makeRawObject(oType, cit->second, false));
                   ++m_skippedCustomClasses[cit->second->className.c_str()];
                   ++m_skippedUnsupportedObjects[cit->second->recName];
-                  DRW_DBG("[r13-dictionary-default-raw-only handle=");
+                  DRW_DBG("[legacy-dictionary-default-raw-only handle=");
                   DRW_DBG(obj.handle);
                   DRW_DBG("]\n");
                 }
@@ -15166,7 +15166,7 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
                          && RawObjectShell().parseDwg(
                              version, &cellStyleMapShellProbe, bs)
                          && cellStyleMapShellProbe.isGood()) {
-                // These observed AC1012, AC1015 and AC1018 compatibility profiles
+                // These observed AC1012/AC1014/AC1015/AC1018 compatibility profiles
                 // carry an AcDbCellStyleMap class, but their body schemas are
                 // not independently established. ODA v5.4.1 §20.4.102 says
                 // CELLSTYLEMAP was introduced in AutoCAD 2008; these

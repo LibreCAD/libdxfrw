@@ -151,9 +151,9 @@ now checks the observed EED bytes, APPID identity and mutation/retry against
 both ODA files. The [controlled producer/reopen witness](docs/research/p6-legacy-eed-codepage45-utf8-witness-2026-11-21.json)
 binds EED codepage 45 to UTF-8 for the observed R13/R14 profile, now decoded
 with malformed-byte observations. The previously failed CELLSTYLEMAP and
-DICTIONARYWDFLT are retained as unqualified raw
-data (see the [source disposition](docs/research/p6-ac1012-oda-dictionary-default-raw-shell-2026-11-21.json));
-all source frames have a disposition, but two bodies are still unmodeled.
+DICTIONARYWDFLT are retained as unqualified raw data in the observed R13 and
+R14 sources (see the [source disposition](docs/research/p6-legacy-oda-raw-frames-r14-2026-11-21.json));
+all source frames have a disposition, but both bodies are still unmodeled.
 Establish dictionary cloning/default semantics; then implement source-presence-aware dictionary
 projection and EED dependencies, and run the
 [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md)

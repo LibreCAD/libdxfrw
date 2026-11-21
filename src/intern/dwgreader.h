@@ -63,15 +63,15 @@ inline bool isCellStyleMapRawOnlyProfile(DRW::Version version,
   return objectClass != nullptr
       && objectClass->recName == "CELLSTYLEMAP"
       && objectClass->className == "AcDbCellStyleMap"
-      && (version == DRW::AC1012 || version == DRW::AC1015
+      && (version == DRW::AC1012 || version == DRW::AC1014 || version == DRW::AC1015
           || version == DRW::AC1018);
 }
 
-/// The observed R13 compatibility record has no qualified cloning projection.
+/// The observed R13/R14 compatibility records have no qualified cloning projection.
 /// As with other raw-only profiles, the object shell must still be checked.
-inline bool isR13DictionaryWithDefaultRawOnlyProfile(
+inline bool isLegacyDictionaryWithDefaultRawOnlyProfile(
     DRW::Version version, const DRW_Class *objectClass) {
-  return objectClass != nullptr && version == DRW::AC1012
+  return objectClass != nullptr && (version == DRW::AC1012 || version == DRW::AC1014)
       && objectClass->recName == "ACDBDICTIONARYWDFLT"
       && objectClass->className == "AcDbDictionaryWithDefault";
 }

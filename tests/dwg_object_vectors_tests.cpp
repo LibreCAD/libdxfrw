@@ -4436,13 +4436,16 @@ void testCellStyleMapRawOnlyVersionProfile(TestContext& t) {
                  DRW::AC1012, &objectClass),
              "AC1012 CELLSTYLEMAP uses only the validated raw-shell fallback");
     t.expect(dwgReaderDetail::isCellStyleMapRawOnlyProfile(
+                 DRW::AC1014, &objectClass),
+             "AC1014 CELLSTYLEMAP uses only the validated raw-shell fallback");
+    t.expect(dwgReaderDetail::isCellStyleMapRawOnlyProfile(
                  DRW::AC1015, &objectClass),
              "AC1015 CELLSTYLEMAP uses only the validated raw-shell fallback");
     t.expect(dwgReaderDetail::isCellStyleMapRawOnlyProfile(
                  DRW::AC1018, &objectClass),
              "AC1018 CELLSTYLEMAP retains its existing raw-shell fallback");
     t.expect(!dwgReaderDetail::isCellStyleMapRawOnlyProfile(
-                 DRW::AC1014, &objectClass)
+                 DRW::AC1024, &objectClass)
                  && !dwgReaderDetail::isCellStyleMapRawOnlyProfile(
                      DRW::AC1021, &objectClass)
                  && !dwgReaderDetail::isCellStyleMapRawOnlyProfile(
@@ -4454,15 +4457,17 @@ void testCellStyleMapRawOnlyVersionProfile(TestContext& t) {
              "CELLSTYLEMAP raw-shell fallback refuses a different record class");
     objectClass.recName = "ACDBDICTIONARYWDFLT";
     objectClass.className = "AcDbDictionaryWithDefault";
-    t.expect(dwgReaderDetail::isR13DictionaryWithDefaultRawOnlyProfile(
+    t.expect(dwgReaderDetail::isLegacyDictionaryWithDefaultRawOnlyProfile(
                  DRW::AC1012, &objectClass)
-                 && !dwgReaderDetail::isR13DictionaryWithDefaultRawOnlyProfile(
+                 && dwgReaderDetail::isLegacyDictionaryWithDefaultRawOnlyProfile(
                      DRW::AC1014, &objectClass)
-                 && !dwgReaderDetail::isR13DictionaryWithDefaultRawOnlyProfile(
+                 && !dwgReaderDetail::isLegacyDictionaryWithDefaultRawOnlyProfile(
+                     DRW::AC1015, &objectClass)
+                 && !dwgReaderDetail::isLegacyDictionaryWithDefaultRawOnlyProfile(
                      DRW::AC1012, nullptr),
-             "DICTIONARYWDFLT raw-shell fallback is bounded to observed R13 class");
+             "DICTIONARYWDFLT raw-shell fallback is bounded to observed R13/R14 class");
     objectClass.recName = "DICTIONARYWDFLT";
-    t.expect(!dwgReaderDetail::isR13DictionaryWithDefaultRawOnlyProfile(
+    t.expect(!dwgReaderDetail::isLegacyDictionaryWithDefaultRawOnlyProfile(
                  DRW::AC1012, &objectClass),
              "DICTIONARYWDFLT raw-shell fallback refuses a different record name");
 }

@@ -10,15 +10,53 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
+import re
 import tempfile
 
-from generate_ac1012_dictionary_witness import executable_identity, model_and_frame, require, run, sha
+from generate_ac1012_dictionary_witness import Bits, crc16, executable_identity, model_and_frame, require, run, sha
+
+
+def malformed_controls(dwgread: str, candidate: str, source: Path, root: Path) -> dict:
+    """Corrupt source self-handles with valid CRCs and test refusal/retry."""
+    trace = run([dwgread, "-v4", str(source)])
+    blocks = re.split(r"(?=Object number:)", (trace.stdout + trace.stderr).decode(errors="replace"))
+    result = {}
+    original = source.read_bytes()
+    for label, handle, objtype in (("dictionary", 0x12, 500), ("cellmap", 0xC1, 508)):
+        pattern = re.compile(r"\bhandle: 0\.[0-9]+\." + format(handle, "X") + r"\s")
+        matches = [block for block in blocks if pattern.search(block)]
+        require(len(matches) == 1, f"{label} peer frame is not unique")
+        location = re.search(r"Size: (\d+) \[MS\], Type: (\d+) \[BS\], Address: (\d+)", matches[0])
+        require(location is not None, f"{label} peer frame location missing")
+        size, found_type, address = map(int, location.groups())
+        require(found_type == objtype and address >= 2 and address + size + 2 <= len(original),
+                f"{label} frame bounds or type invalid")
+        require(original[address - 2:address] == size.to_bytes(2, "little"),
+                f"{label} unexpected frame size encoding")
+        require(int.from_bytes(original[address + size:address + size + 2], "little")
+                == crc16(original[address - 2:address + size]), f"{label} CRC mismatch")
+        bits = Bits(original[address:address + size])
+        require(bits.bs() == objtype and bits.handle(0, own=True)["value"] == handle,
+                f"{label} wire identity mismatch")
+        bit = bits.position - 1
+        damaged = bytearray(original)
+        damaged[address + bit // 8] ^= 0x80 >> (bit % 8)
+        damaged[address + size:address + size + 2] = crc16(
+            damaged[address - 2:address + size]).to_bytes(2, "little")
+        path = root / ("bad-" + label + ".dwg")
+        path.write_bytes(damaged)
+        run([candidate, "--legacy-malformed", str(path), str(source), label])
+        result[label] = {"sha256": sha(damaged), "frameOffset": address,
+                         "frameSize": size, "flippedBit": bit, "recomputedCrc": True,
+                         "badFrameRejectedAndCorrectedRetryPassed": True}
+    return result
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--oda", required=True)
     parser.add_argument("--dwgread", default="dwgread")
+    parser.add_argument("--candidate-test", help="optional libdxfrw external-profile test executable")
     parser.add_argument("--output-dir", type=Path, required=True)
     args = parser.parse_args()
     import ezdxf
@@ -71,6 +109,14 @@ def main() -> None:
             "frameSha256": model["wire"]["frameSha256"], "frameOffset": model["frameOffset"],
             "frameSize": model["frameSize"], "frameCrcValid": model["crcValid"],
             "eedRawHex": chunks[0]["rawHex"], "reopenedDxfSha256": sha(dxf.read_bytes())}
+        if args.candidate_test:
+            run([args.candidate_test, "--legacy-eed-utf8-source", str(dwg)])
+            result["versions"][name]["candidateSourceTestPassed"] = True
+            if name == "r14":
+                result["versions"][name]["malformedControls"] = malformed_controls(
+                    args.dwgread, args.candidate_test, dwg, root)
+    if args.candidate_test:
+        result["candidateTest"] = executable_identity(args.candidate_test)
     (root / "receipt.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps({"root": str(root), **result}, indent=2))
 

@@ -13,41 +13,42 @@
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
-    static bool r13CellStyleMapRaw(const dx_data& data) {
-        const dx_data::StandardDwgFrameKey key{data.importGeneration, 0xbbu};
+    static bool legacyRawFrame(const dx_data& data, std::uint32_t handle,
+                               const std::string& source, std::size_t bodyOffset,
+                               std::size_t size, const char* record, const char* name) {
+        const dx_data::StandardDwgFrameKey key{data.importGeneration, handle};
         const auto found = data.m_opaqueDwgSourceFrames.find(key);
         if (found == data.m_opaqueDwgSourceFrames.end()) return false;
         const auto& raw = found->second;
-        return raw.m_version == DRW::AC1012 && raw.m_handle == 0xbbu
+        return raw.m_version == data.sourceVersion && raw.m_handle == handle
             && raw.m_isCustomClass && !raw.m_isEntity
-            && raw.m_recordName == "CELLSTYLEMAP" && raw.m_className == "AcDbCellStyleMap"
-            && !raw.m_typedPayloadValidated && !raw.m_rawBytes.empty()
-            && raw.m_rawBytes.size() == raw.m_objectSize
-            && data.m_opaqueDwgSourceFrameIdentities.count(key) == 1u
-            && data.m_opaqueDwgOutputQualifiedFrameIdentities.count(key) == 0u
-            && std::none_of(data.cellStyleMaps.begin(), data.cellStyleMaps.end(),
-                [](const DRW_CellStyleMap& item) { return item.handle == 0xbbu; });
-    }
-    static bool r13DictionaryDefaultRaw(const dx_data& data, const std::string& source) {
-        const dx_data::StandardDwgFrameKey key{data.importGeneration, 0x12u};
-        const auto found = data.m_opaqueDwgSourceFrames.find(key);
-        if (found == data.m_opaqueDwgSourceFrames.end()) return false;
-        const auto& raw = found->second;
-        return raw.m_version == DRW::AC1012 && raw.m_handle == 0x12u
-            && raw.m_isCustomClass && !raw.m_isEntity
-            && raw.m_recordName == "ACDBDICTIONARYWDFLT"
-            && raw.m_className == "AcDbDictionaryWithDefault"
-            && !raw.m_typedPayloadValidated && raw.m_objectOffset == 5188u
-            && raw.m_objectSize == 51u && raw.m_rawBytes.size() == 51u
-            && source.size() >= 5241u
+            && raw.m_recordName == record && raw.m_className == name
+            && !raw.m_typedPayloadValidated && bodyOffset >= 2u
+            && raw.m_objectOffset == bodyOffset - 2u && raw.m_objectSize == size
+            && raw.m_rawBytes.size() == size && bodyOffset <= source.size()
+            && size <= source.size() - bodyOffset
             && std::equal(raw.m_rawBytes.begin(), raw.m_rawBytes.end(),
-                source.begin() + 5190, [](std::uint8_t left, char right) {
+                source.begin() + static_cast<std::ptrdiff_t>(bodyOffset),
+                [](std::uint8_t left, char right) {
                     return left == static_cast<std::uint8_t>(right);
                 })
             && data.m_opaqueDwgSourceFrameIdentities.count(key) == 1u
-            && data.m_opaqueDwgOutputQualifiedFrameIdentities.count(key) == 0u
+            && data.m_opaqueDwgOutputQualifiedFrameIdentities.count(key) == 0u;
+    }
+    static bool legacyRawPair(const dx_data& data, const std::string& source,
+                               std::uint32_t cell, std::size_t cellOffset,
+                               std::size_t defaultOffset, std::size_t defaultSize) {
+        return legacyRawFrame(data, cell, source, cellOffset, 708u,
+                              "CELLSTYLEMAP", "AcDbCellStyleMap")
+            && legacyRawFrame(data, 0x12u, source, defaultOffset, defaultSize,
+                              "ACDBDICTIONARYWDFLT", "AcDbDictionaryWithDefault")
+            && std::none_of(data.cellStyleMaps.begin(), data.cellStyleMaps.end(),
+                [cell](const DRW_CellStyleMap& item) { return item.handle == cell; })
             && std::none_of(data.dictionaryWithDefaults.begin(), data.dictionaryWithDefaults.end(),
                 [](const DRW_DictionaryWithDefault& item) { return item.handle == 0x12u; });
+    }
+    static bool hasOpaqueSource(const dx_data& data, std::uint32_t handle) {
+        return data.m_opaqueDwgSourceFrameIdentities.count({data.importGeneration, handle}) != 0u;
     }
     // Literal wire observation only; EED semantics and output remain unproved.
     static bool r13EedSource(const dx_data& data) {
@@ -420,11 +421,55 @@ bool checkR14GeneratedFile(const std::string& input) {
     return reader.fileImport(input, &data, false) && checkR14Generated(data);
 }
 
+bool strictOutputRefuses(dx_iface& reader, dx_data& data) {
+    std::error_code error;
+    const auto scratch = libdxfrw_test::reserveTestScratch(
+        std::filesystem::temp_directory_path(), "libdxfrw-legacy-raw-output", error);
+    if (error || scratch.empty()) return false;
+    const auto destination = scratch / "out.dxf";
+    const std::string sentinel = "unqualified legacy source destination preserved\n";
+    bool preserved = true;
+    for (bool binary : {false, true}) {
+        { std::ofstream out(destination, std::ios::binary | std::ios::trunc); out << sentinel; }
+        if (write(reader, data, destination.string(), binary)
+            || bytes(destination) != sentinel) preserved = false;
+    }
+    std::filesystem::remove_all(scratch, error);
+    return preserved && !error;
+}
+
+bool checkLegacyMalformed(const std::string& input, const std::string& corrected,
+                          const std::string& damaged) {
+    if (damaged != "dictionary" && damaged != "cellmap") return false;
+    dx_iface reader;
+    dx_data bad;
+    if (!reader.fileImport(input, &bad, false) || bad.sourceVersion != DRW::AC1014
+        || bad.dwgReadOutcome.observations.objectParseFailures != 1u) return false;
+    const auto badHandle = damaged == "dictionary" ? 0x12u : 0xc1u;
+    if (DxIfaceStandardDwgCaptureTestAccess::hasOpaqueSource(bad, badHandle)) return false;
+    const auto source = bytes(input);
+    const bool otherRetained = damaged == "dictionary"
+        ? DxIfaceStandardDwgCaptureTestAccess::legacyRawFrame(
+              bad, 0xc1u, source, 17516u, 708u, "CELLSTYLEMAP", "AcDbCellStyleMap")
+        : DxIfaceStandardDwgCaptureTestAccess::legacyRawFrame(
+              bad, 0x12u, source, 5221u, 28u, "ACDBDICTIONARYWDFLT", "AcDbDictionaryWithDefault");
+    if (!otherRetained || !strictOutputRefuses(reader, bad)) return false;
+    dx_data retry;
+    return reader.fileImport(corrected, &retry, false)
+        && retry.dwgReadOutcome.observations.objectParseFailures == 0u
+        && DxIfaceStandardDwgCaptureTestAccess::legacyRawPair(
+            retry, bytes(corrected), 0xc1u, 17516u, 5221u, 28u);
+}
+
 bool checkLegacyEedUtf8Source(const std::string& input) {
     dx_iface reader;
     dx_data data;
     if (!reader.fileImport(input, &data, false)
-        || (data.sourceVersion != DRW::AC1012 && data.sourceVersion != DRW::AC1014)) return false;
+        || (data.sourceVersion != DRW::AC1012 && data.sourceVersion != DRW::AC1014)
+        || data.dwgReadOutcome.observations.objectParseFailures != 0u) return false;
+    if (data.sourceVersion == DRW::AC1014
+        && !DxIfaceStandardDwgCaptureTestAccess::legacyRawPair(
+            data, bytes(input), 0xc1u, 17516u, 5221u, 28u)) return false;
     const auto dictionary = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
         [](const DRW_Dictionary& item) { return item.handle == 0x31u; });
     if (dictionary == data.dictionaries.end() || dictionary->extData.size() < 4u
@@ -439,7 +484,7 @@ bool checkLegacyEedUtf8Source(const std::string& input) {
     if (line == data.mBlock->ent.end() || !dynamic_cast<const DRW_Line*>(*line)
         || (*line)->extData.size() != 5u) return false;
     const auto& entityEed = (*line)->extData;
-    return text(entityEed[0].get(), 1001, "CODEPAGE_TEST")
+    const bool decoded = text(entityEed[0].get(), 1001, "CODEPAGE_TEST")
         && text(entityEed[1].get(), 1000, "ASCII")
         && text(entityEed[2].get(), 1000, "caf\xC3\xA9")
         && text(entityEed[3].get(), 1000, "\xE2\x82\xAC\xE6\xBC\xA2")
@@ -451,6 +496,10 @@ bool checkLegacyEedUtf8Source(const std::string& input) {
         && dictionary->extData[3] && dictionary->extData[3]->code() == 1070
         && dictionary->extData[3]->type() == DRW_Variant::INTEGER
         && dictionary->extData[3]->i_val() == -42;
+    return decoded && strictOutputRefuses(reader, data)
+        && (data.sourceVersion != DRW::AC1014
+            || DxIfaceStandardDwgCaptureTestAccess::legacyRawPair(
+                data, bytes(input), 0xc1u, 17516u, 5221u, 28u));
 }
 
 bool checkR13EedSource(const std::string& input) {
@@ -459,8 +508,8 @@ bool checkR13EedSource(const std::string& input) {
     if (!reader.fileImport(input, &data, false) || data.sourceVersion != DRW::AC1012
         || data.dwgReadOutcome.observations.objectParseFailures != 0u
         || !DxIfaceStandardDwgCaptureTestAccess::r13EedSource(data)
-        || !DxIfaceStandardDwgCaptureTestAccess::r13CellStyleMapRaw(data)
-        || !DxIfaceStandardDwgCaptureTestAccess::r13DictionaryDefaultRaw(data, bytes(input))) return false;
+        || !DxIfaceStandardDwgCaptureTestAccess::legacyRawPair(
+            data, bytes(input), 0xbbu, 17278u, 5190u, 51u)) return false;
     auto& frameBytes = DxIfaceStandardDwgCaptureTestAccess::r13EedBytes(data);
     if (frameBytes.size() != 35u) return false;
     for (std::size_t bit = 0; bit < frameBytes.size() * 8u; ++bit) {
@@ -477,20 +526,9 @@ bool checkR13EedSource(const std::string& input) {
     const bool changedAccepted = DxIfaceStandardDwgCaptureTestAccess::r13EedSource(data);
     app->name = original;
     if (changedAccepted || !DxIfaceStandardDwgCaptureTestAccess::r13EedSource(data)) return false;
-    std::error_code error;
-    const auto scratch = libdxfrw_test::reserveTestScratch(
-        std::filesystem::temp_directory_path(), "libdxfrw-r13-raw-output", error);
-    if (error || scratch.empty()) return false;
-    const auto destination = scratch / "out.dxf";
-    const std::string sentinel = "AC1012 unqualified source destination preserved\n";
-    bool preserved = true;
-    for (bool binary : {false, true}) {
-        { std::ofstream out(destination, std::ios::binary | std::ios::trunc); out << sentinel; }
-        if (write(reader, data, destination.string(), binary)
-            || bytes(destination) != sentinel) preserved = false;
-    }
-    std::filesystem::remove_all(scratch, error);
-    return preserved && !error;
+    return strictOutputRefuses(reader, data)
+        && DxIfaceStandardDwgCaptureTestAccess::legacyRawPair(
+            data, bytes(input), 0xbbu, 17278u, 5190u, 51u);
 }
 
 bool r13GeneratedGuard(const std::string& input, const std::filesystem::path& output) {
@@ -525,7 +563,9 @@ bool r13GeneratedGuard(const std::string& input, const std::filesystem::path& ou
 } // namespace
 
 int main(int argc, char** argv) {
-    const bool ok = argc == 3 && std::string(argv[1]) == "--check-partial"
+    const bool ok = argc == 5 && std::string(argv[1]) == "--legacy-malformed"
+        ? checkLegacyMalformed(argv[2], argv[3], argv[4])
+        : argc == 3 && std::string(argv[1]) == "--check-partial"
         ? checkPartialReadback(argv[2])
         : argc == 3 && std::string(argv[1]) == "--legacy-eed-utf8-source"
             ? checkLegacyEedUtf8Source(argv[2])
