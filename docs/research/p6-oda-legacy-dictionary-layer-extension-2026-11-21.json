@@ -326,5 +326,6 @@
   "limits": [
     "ODA-generated controls are not native AutoCAD producer or duplicate/merge evidence. LibreDWG XRECORD values are not an independent physical-body proof.",
     "The two source frames were created locally from scratch and no DWG/DXF fixture is committed."
-  ]
+  ],
+  "successor": "docs/research/p6-oda-legacy-layer-extension-xrecord-wire-2026-11-21.json"
 }

@@ -27,23 +27,39 @@ def run(*args):
     return result
 
 
-def dictionary_frame(dwgread, source, version, model, appid, layer):
-    own = model['handle'][-1]
+def traced_frame(dwgread, source, own, expected_type):
     trace = run(dwgread, '-v4', str(source))
-    blocks = re.split(r'(?=Object number:)', (trace.stdout + trace.stderr).decode(errors='replace'))
+    trace_text = (trace.stdout + trace.stderr).decode(errors='replace')
+    blocks = re.split(r'(?=Object number:)', trace_text)
     candidates = [block for block in blocks if re.search(r'\bhandle: 0\.\d+\.' + format(own, 'X') + r'\s', block)]
     if len(candidates) != 1:
-        raise ValueError('ambiguous dictionary trace')
-    location = re.search(r'Size: (\d+) \[MS\], Type: 42 \[BS\], Address: (\d+)', candidates[0])
+        raise ValueError('ambiguous object trace')
+    location = re.search(r'Size: (\d+) \[MS\], Type: (\d+) \[BS\], Address: (\d+)', candidates[0])
     if not location:
-        raise ValueError('dictionary frame location missing')
-    size, offset = map(int, location.groups())
+        raise ValueError('object frame location missing')
+    size, object_type, offset = map(int, location.groups())
     data = source.read_bytes()
-    if offset < 2 or offset + size + 2 > len(data) or data[offset-2:offset] != size.to_bytes(2, 'little'):
-        raise ValueError('dictionary envelope invalid')
+    if object_type != expected_type or offset < 2 or offset + size + 2 > len(data) \
+            or data[offset-2:offset] != size.to_bytes(2, 'little'):
+        raise ValueError('object envelope or type invalid')
     if int.from_bytes(data[offset+size:offset+size+2], 'little') != crc16(data[offset-2:offset+size]):
-        raise ValueError('dictionary CRC mismatch')
-    frame = data[offset:offset+size]
+        raise ValueError('object CRC mismatch')
+    locations = sorted((int(addr), int(length), int(kind)) for length, kind, addr in
+        re.findall(r'Size: (\d+) \[MS\], Type: (\d+) \[BS\], Address: (\d+)', trace_text))
+    following = next((entry for entry in locations if entry[0] > offset), None)
+    if following is None or following[0] - 2 != offset + size + 2:
+        raise ValueError('following physical frame is not adjacent')
+    next_offset, next_size, next_type = following
+    if next_offset + next_size + 2 > len(data) or data[next_offset-2:next_offset] != next_size.to_bytes(2, 'little') \
+            or int.from_bytes(data[next_offset+next_size:next_offset+next_size+2], 'little') != crc16(data[next_offset-2:next_offset+next_size]):
+        raise ValueError('following physical frame envelope or CRC mismatch')
+    return data[offset:offset+size], offset, {'offset': next_offset, 'size': next_size, 'type': next_type, 'crcValid': True}
+
+
+def dictionary_frame(dwgread, source, version, model, appid, layer):
+    own = model['handle'][-1]
+    frame, offset, following = traced_frame(dwgread, source, own, 42)
+    size = len(frame)
     bits = Bits(frame)
     if bits.bs() != 42 or bits.handle(0, own=True)['value'] != own:
         raise ValueError('dictionary source identity mismatch')
@@ -81,8 +97,159 @@ def dictionary_frame(dwgread, source, version, model, appid, layer):
         raise ValueError('dictionary source role or entry mismatch')
     return {'handle': own, 'frameSha256': hashlib.sha256(frame).hexdigest(),
             'frameOffset': offset, 'frameSize': size, 'bodyEndBit': body_end,
-            'crcValid': True, 'r14Byte': r14_byte, 'owner': owner, 'reactors': reactor_handles,
+            'crcValid': True, 'nextFrame': following, 'r14Byte': r14_byte, 'owner': owner, 'reactors': reactor_handles,
             'extension': xdict, 'eed': chunks, 'entryCount': count}
+
+
+def class_frame(source, classes, selected_type):
+    """Walk the complete R13/R14 class section and bind one class record."""
+    data = source.read_bytes()
+    if len(data) < 25:
+        raise ValueError('truncated file header')
+    count = int.from_bytes(data[21:25], 'little')
+    if count > 64 or 25 + count * 9 > len(data):
+        raise ValueError('invalid section locator count')
+    locators = []
+    for index in range(count):
+        at = 25 + index * 9
+        if data[at] == 1:
+            locators.append((int.from_bytes(data[at+1:at+5], 'little'),
+                             int.from_bytes(data[at+5:at+9], 'little')))
+    if len(locators) != 1:
+        raise ValueError('class section locator missing or ambiguous')
+    start, size = locators[0]
+    if size < 38 or start + size > len(data):
+        raise ValueError('class section outside file')
+    section = data[start:start+size]
+    if section[:16] != bytes.fromhex('8da1c4b8c4a9f8c5c0dcf45fe7cfb68a') \
+            or section[-16:] != bytes.fromhex('725e3b473b56073a3f230ba018304975'):
+        raise ValueError('class section sentinel mismatch')
+    count_bytes = int.from_bytes(section[16:20], 'little')
+    if count_bytes != size - 38 or int.from_bytes(section[-18:-16], 'little') != crc16(section[16:-18]):
+        raise ValueError('class section size or CRC mismatch')
+    if len(classes) > 4096:
+        raise ValueError('too many peer class records')
+    bits = Bits(section[20:-18]); selected = []; seen = set()
+    def text_value():
+        n = bits.bs()
+        if n > 4096:
+            raise ValueError('class string too long')
+        value_start = bits.position
+        return bytes(bits.take(8) for _ in range(n)).rstrip(b'\0').decode('ascii'), value_start
+    for peer in classes:
+        begin = bits.position
+        number, flags = bits.bs(), bits.bs()
+        app, _ = text_value()
+        cpp, _ = text_value()
+        dxf, dxf_start = text_value()
+        zombie, item_class = bits.take(1), bits.bs()
+        if number in seen or (number, flags, app, cpp, dxf, zombie, item_class) != (
+                peer['number'], peer['proxyflag'], peer['appname'], peer['cppname'],
+                peer['dxfname'], peer['is_zombie'], peer['item_class_id']):
+            raise ValueError('class physical and peer records differ')
+        seen.add(number)
+        if number == selected_type:
+            selected.append({'number': number, 'flags': flags, 'app': app, 'cpp': cpp,
+                             'dxf': dxf, 'zombie': zombie, 'itemClassId': item_class,
+                             'physicalStartBit': (start + 20) * 8 + begin,
+                             'physicalEndBit': (start + 20) * 8 + bits.position,
+                             'physicalDxfValueStartBit': (start + 20) * 8 + dxf_start})
+    if len(selected) != 1 or len(section[20:-18]) * 8 - bits.position >= 8:
+        raise ValueError('class record missing or trailing class data')
+    return {'sectionOffset': start, 'sectionSize': size,
+            'sectionSha256': hashlib.sha256(section).hexdigest(), 'crcValid': True,
+            'classCount': len(classes), 'selected': selected[0]}
+
+
+def class_mutation_control(source, root, classes, class_proof):
+    data = bytearray(source.read_bytes())
+    bit = class_proof['selected']['physicalDxfValueStartBit'] + 7
+    data[bit // 8] ^= 0x80 >> (bit % 8)
+    start, size = class_proof['sectionOffset'], class_proof['sectionSize']
+    data[start+size-18:start+size-16] = crc16(data[start+16:start+size-18]).to_bytes(2, 'little')
+    patched = root / ('mutated-class-' + source.parent.name + '.dwg')
+    patched.write_bytes(data)
+    try:
+        class_frame(patched, classes, class_proof['selected']['number'])
+    except (ValueError, IndexError):
+        pass
+    else:
+        raise ValueError('mutated class name was accepted')
+    retry = class_frame(source, classes, class_proof['selected']['number'])
+    if retry['sectionSha256'] != class_proof['sectionSha256']:
+        raise ValueError('unchanged class-section retry mismatch')
+    return {'changedDxfNameRejectedWithRepairedCrc': True, 'unchangedRetryPassed': True}
+
+
+def xrecord_frame(dwgread, source, model, expected_values):
+    own = model['handle'][-1]
+    object_type = model['type']
+    frame, offset, following = traced_frame(dwgread, source, own, object_type)
+    bits = Bits(frame)
+    if bits.bs() != object_type or bits.handle(0, own=True)['value'] != own or bits.bs() != 0:
+        raise ValueError('XRECORD type, identity or EED mismatch')
+    body_end_field = bits.position
+    body_end = bits.little(4)
+    reactors, size = bits.bl(), bits.bl()
+    start = bits.position
+    payload = bytes(bits.take(8) for _ in range(size))
+    if bits.position != body_end or reactors != len(model.get('reactors', [])):
+        raise ValueError('XRECORD body or data boundary mismatch')
+    index, decoded = 0, []
+    while index < len(payload):
+        if index + 5 > len(payload):
+            raise ValueError('truncated XRECORD string')
+        code = int.from_bytes(payload[index:index+2], 'little')
+        length = payload[index+2]
+        codepage = int.from_bytes(payload[index+3:index+5], 'big')
+        index += 5
+        if index + length > len(payload) or codepage != 45:
+            raise ValueError('XRECORD string length or codepage mismatch')
+        value = payload[index:index+length].decode('ascii')
+        decoded.append([code, value]); index += length
+    if decoded != expected_values:
+        raise ValueError('XRECORD physical values mismatch')
+    owner_bit = bits.position
+    owner = bits.handle(4, own)
+    reactor_handles = [bits.handle(4, own) for _ in range(reactors)]
+    xdict = bits.handle(3, own)
+    if owner['value'] != model['ownerhandle'][-1] or xdict['value'] != 0 \
+            or [item['value'] for item in reactor_handles] != [item[-1] for item in model['reactors']] \
+            or len(frame) * 8 - bits.position >= 8:
+        raise ValueError('XRECORD handle tail or trailing boundary mismatch')
+    return {'handle': own, 'type': object_type, 'frameSha256': hashlib.sha256(frame).hexdigest(),
+            'frameOffset': offset, 'frameSize': len(frame), 'crcValid': True, 'nextFrame': following,
+            'bodyEndBit': body_end, 'bodyEndFieldBit': body_end_field, 'dataStartBit': start,
+            'ownerBit': owner_bit, 'dataBytes': size,
+            'dataHex': payload.hex(), 'values': decoded, 'owner': owner,
+            'reactors': reactor_handles, 'extension': xdict}
+
+
+def mutation_control(dwgread, source, root, model, values, proof):
+    """Repair the CRC after each source-bit mutation; require a failed proof."""
+    failures = {}
+    for name, bit in (('value', proof['dataStartBit'] + 47),
+                      ('ownerRole', proof['ownerBit']),
+                      ('bodyBoundary', proof['bodyEndFieldBit'])):
+        data = bytearray(source.read_bytes())
+        absolute = proof['frameOffset'] * 8 + bit
+        if absolute // 8 >= len(data):
+            raise ValueError('mutation bit outside file')
+        data[absolute // 8] ^= 0x80 >> (absolute % 8)
+        offset, size = proof['frameOffset'], proof['frameSize']
+        data[offset+size:offset+size+2] = crc16(data[offset-2:offset+size]).to_bytes(2, 'little')
+        patched = root / f"mutation-{proof['handle']}-{name}.dwg"
+        patched.write_bytes(data)
+        try:
+            xrecord_frame(dwgread, patched, model, values)
+        except (RuntimeError, ValueError, IndexError):
+            failures[name] = True
+        else:
+            raise ValueError(f'XRECORD {name} mutation was accepted')
+    retry = xrecord_frame(dwgread, source, model, values)
+    if retry['frameSha256'] != proof['frameSha256']:
+        raise ValueError('unchanged XRECORD retry mismatch')
+    return {'rejected': failures, 'unchangedRetryPassed': True}
 
 
 def main():
@@ -114,7 +281,8 @@ def main():
             raise ValueError('ODA source missing or wrong version')
         peer = source_dir / 'peer.json'
         run(args.dwgread, '-O', 'JSON', '-o', str(peer), str(source))
-        objects = json.loads(peer.read_text())['OBJECTS']
+        peer_model = json.loads(peer.read_text())
+        objects = peer_model['OBJECTS']
         by_handle = {}
         for item in objects:
             if item.get('handle'):
@@ -133,6 +301,7 @@ def main():
         if not mline or mline.get('object') != 'DICTIONARY' or mline['ownerhandle'][-1] != nod['handle'][-1]:
             raise ValueError('MLINESTYLE dictionary graph mismatch')
         proofs = {}
+        class_proof = None
         for kind, item in (('nod', nod), ('mline', mline)):
             proof = dictionary_frame(args.dwgread, source, version, item, appid, layer)
             xdict = by_handle.get(proof['extension']['value'])
@@ -150,9 +319,23 @@ def main():
                                [[102, 'EXTNAMES'], [1, 'STANDARD'], [2, 'Standard']])
             if child.get('xdata') != expected_values or child.get('reactors') != [[4, 1, xdict['handle'][-1], xdict['handle'][-1]]]:
                 raise ValueError('extension XRECORD peer content or reactor mismatch')
+            class_rows = [row for row in peer_model['CLASSES'] if row.get('number') == child['type']]
+            if len(class_rows) != 1 or class_rows[0].get('dxfname') != 'XRECORD' \
+                    or class_rows[0].get('cppname') != 'AcDbXrecord' \
+                    or class_rows[0].get('appname') != 'ObjectDBX Classes':
+                raise ValueError('XRECORD class-table peer identity mismatch')
+            if class_proof is None:
+                class_proof = class_frame(source, peer_model['CLASSES'], child['type'])
+            elif class_proof['selected']['number'] != child['type']:
+                raise ValueError('extension XRECORD class mismatch')
+            child_frame = xrecord_frame(args.dwgread, source, child, expected_values)
+            controls = mutation_control(args.dwgread, source, root, child, expected_values, child_frame)
             proof.update({'extensionFrame': extension_frame, 'extensionEntry': entry[-1],
-                          'extensionChildType': 'XRECORD', 'extensionChildXdata': expected_values})
+                          'extensionChildType': 'XRECORD', 'extensionChildXdata': expected_values,
+                          'extensionChildClass': class_rows[0], 'extensionChildFrame': child_frame,
+                          'extensionChildMutationControls': controls})
             proofs[kind] = proof
+        class_controls = class_mutation_control(source, root, peer_model['CLASSES'], class_proof)
         run(args.oda, str(source_dir), str(reopened), 'ACAD2013', 'DXF', '0', '1', '*.dwg')
         dxf = reopened / 'seed.dxf'
         if not dxf.is_file() or (reopened / 'seed.dxf.err').exists():
@@ -177,7 +360,8 @@ def main():
             candidate_results[mode] = {'exit': candidate.returncode, 'destinationPreserved': True,
                                        'diagnostics': errors[-5:]}
         report['versions'][version] = {'dwgSha256': sha(source), 'layerHandle': layer, 'appidHandle': appid,
-            'proofs': proofs, 'odaReadbackSha256': sha(dxf), 'odaReadbackLayer': 'PROBE_LAYER',
+            'proofs': proofs, 'classFrame': class_proof, 'classMutationControls': class_controls,
+            'odaReadbackSha256': sha(dxf), 'odaReadbackLayer': 'PROBE_LAYER',
             'candidate': candidate_results}
     print(json.dumps(report, indent=2))
 

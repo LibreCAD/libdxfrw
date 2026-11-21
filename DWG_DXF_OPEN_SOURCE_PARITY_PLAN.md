@@ -198,9 +198,10 @@ binds the selected R13/R14 dictionary source, layer and staged output for both
 explicit byte orders, with independent ASCII/Binary readback and refusal/retry.
 The [ODA nondefault-layer source](docs/research/p6-oda-legacy-dictionary-layer-extension-2026-11-21.json)
 now binds NOD/MLINESTYLE parent and extension dictionary frames, APPID, layer,
-handle roles and ODA reopen. Before extending output, independently bind the
-extension XRECORD bodies, establish the R14 extension byte and ownership
-semantics, and close the recorded whole-source guards. The [R2000 writer control](docs/research/p6-r2000-eed-layer-write-order-2026-11-21.json)
+handle roles and ODA reopen. The [XRECORD wire control](docs/research/p6-oda-legacy-layer-extension-xrecord-wire-2026-11-21.json)
+now binds the selected extension XRECORD bodies, tails, following frames and
+class-table records. Before extending output, establish the R14 extension byte
+and ownership semantics, and close the recorded whole-source guards. The [R2000 writer control](docs/research/p6-r2000-eed-layer-write-order-2026-11-21.json)
 now checks explicitly selected byte order, raw-byte replay, failure/retry and
 ODA reopen for generated LINE and LAYER examples. A [named-layer control](docs/research/p6-r2000-eed-layer-named-handle-2026-11-21.json)
 also checks a multi-byte target after low-handle reservations; the [corrected
