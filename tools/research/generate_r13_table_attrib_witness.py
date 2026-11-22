@@ -35,10 +35,13 @@ def main():
     parser.add_argument("--dwgread", default="dwgread")
     parser.add_argument("--dwgwrite", default="dwgwrite")
     parser.add_argument("--reader-probe")
-    parser.add_argument("--earlier-children", action="store_true")
+    ordering = parser.add_mutually_exclusive_group()
+    ordering.add_argument("--earlier-children", action="store_true")
+    ordering.add_argument("--mixed-children", action="store_true")
     args = parser.parse_args()
     insert_handle, attrib_handle, seqend_handle = (
-        (0x190, 0x192, 0x191) if args.earlier_children else (0x756, 0x757, 0x759))
+        (0x190, 0x192, 0x191) if args.earlier_children else
+        (0x756, 0x757, 0x191) if args.mixed_children else (0x756, 0x757, 0x759))
     inserted = bytes((0x42, attrib_handle >> 8, attrib_handle & 255,
                       0x42, attrib_handle >> 8, attrib_handle & 255,
                       0x32, seqend_handle >> 8, seqend_handle & 255))
@@ -60,11 +63,14 @@ def main():
                                         (0x4F2, insert_handle, attrib_handle, seqend_handle))
     require(table.get("has_attribs") == 0 and insert.get("has_attribs") == 1,
             "unexpected source attribute states")
-    for key, target in (("first_attrib", attrib_handle), ("last_attrib", attrib_handle),
-                        ("seqend", seqend_handle)):
+    for key, target in (("first_attrib", attrib_handle), ("last_attrib", attrib_handle)):
         require(insert.get(key, [None])[-1] == target, f"unexpected source {key}")
+    sequence_insert = source_objects[0x190] if args.mixed_children else insert
+    require(sequence_insert.get("seqend", [None])[-1] == seqend_handle,
+            "unexpected source seqend")
     require(attribute.get("ownerhandle", [None])[-1] == insert_handle and
-            seqend.get("ownerhandle", [None])[-1] == insert_handle, "source owner mismatch")
+            seqend.get("ownerhandle", [None])[-1] ==
+            (0x190 if args.mixed_children else insert_handle), "source owner mismatch")
     original = frame(source, BODY_START - 2, BODY_SIZE)
     original_bits = bitstring(original)
     unknown = original_bits[UNKNOWN_START:]
@@ -85,9 +91,15 @@ def main():
     table["unknown_bits"], table["num_unknown_bits"] = raw.hex().upper(), len(unknown)
     table["size"] += len(inserted)
     table["has_attribs"] = 1
-    for key in ("first_attrib", "last_attrib", "seqend"):
+    for key in ("first_attrib", "last_attrib"):
         table[key] = insert.pop(key)
+    table["seqend"] = sequence_insert["seqend"]
+    insert.pop("seqend")
     insert["has_attribs"] = 0
+    if args.mixed_children:
+        for key in ("first_attrib", "last_attrib", "seqend"):
+            sequence_insert.pop(key)
+        sequence_insert["has_attribs"] = 0
     attribute["ownerhandle"] = [4, 2, 0x4F2, 0x4F2]
     seqend["ownerhandle"] = [4, 2, 0x4F2, 0x4F2]
     edit = root / "edit.json"
@@ -143,10 +155,12 @@ def main():
             bad_path = root / f"{name}.dwg"
             bad_path.write_bytes(bad)
             frame(bad, body_address - 2, body_size)
-            profile = "r13-early-attrs" if args.earlier_children else "r13-attrs"
+            profile = ("r13-early-attrs" if args.earlier_children else
+                       "r13-mixed-attrs" if args.mixed_children else "r13-attrs")
             run([args.reader_probe, str(bad_path), profile, str(output)])
     receipt = {"schema": 1, "scope": "controlled AC1012 TABLE compound; not native semantics",
                "earlierChildren": args.earlier_children,
+               "mixedChildren": args.mixed_children,
                "sourceSha256": SOURCE_HASH, "outputSha256": digest(output.read_bytes()),
                "frameSha256": digest(emitted), "generatorSha256": digest(Path(__file__).read_bytes()),
                "dwgread": executable(args.dwgread), "dwgwrite": executable(args.dwgwrite),

@@ -4653,7 +4653,8 @@ dwgReader::DwgMappedEntityOutcome
 dwgReader::stagePendingInsert(DRW_Insert &&insert,
                               const DRW_DwgFramePublication &publication,
                               DRW_Interface &intfa,
-                              std::shared_ptr<LegacyTableDelivery> table) {
+                              std::shared_ptr<LegacyTableDelivery> table,
+                              bool deferCommit) {
   if (insert.handle == DRW::NoHandle || !insert.attlist.empty() ||
       m_invalidInsertOwners.find(insert.handle) !=
           m_invalidInsertOwners.end() ||
@@ -4740,6 +4741,7 @@ dwgReader::stagePendingInsert(DRW_Insert &&insert,
   PendingInsertState pending;
   pending.entity = std::move(insert);
   pending.table = std::move(table);
+  pending.deferCommit = deferCommit;
   pending.expectedAttributeHandles = std::move(expectedAttributeHandles);
   const std::uint32_t insertHandle = pending.entity.handle;
   const std::size_t adoptedAttributeCount =
@@ -5073,63 +5075,54 @@ dwgReader::DwgMappedEntityOutcome dwgReader::stageLegacyInsertAggregate(
       }
     }
 
-    // Handle maps are visited by handle, so a valid legacy SEQEND can be
-    // staged before its INSERT.  The empty-range form has no ATTRIB frames to
-    // move, and the pending INSERT commit can consume that staged SEQEND
-    // directly.
+    // A SEQEND can be staged before its owner. Hold the commit until every
+    // discovered ATTRIB has been staged, including children later in the map.
     const auto preStagedSequenceIt = m_stagedSeqEnds.find(sequenceHandle);
-    if (preStagedSequenceIt != m_stagedSeqEnds.end()) {
-      if (!attributes.empty() ||
-          preStagedSequenceIt->second.owner != insertHandle ||
+    const bool preStagedSequence = preStagedSequenceIt != m_stagedSeqEnds.end();
+    DwgSourceFrameLease borrowedSequence;
+    DRW_DwgFramePublication sequencePublication;
+    if (preStagedSequence) {
+      if (preStagedSequenceIt->second.owner != insertHandle ||
           !validateStagedFrame(preStagedSequenceIt->second.frame))
         return reject();
-      const DwgMappedEntityOutcome outcome =
-          stagePendingInsert(std::move(insert), publication, intfa, table);
-      return outcome == DwgMappedEntityOutcome::CommittedCompound
-                 ? outcome
-                 : reject();
+    } else {
+      discoveredHandles.push_back(sequenceHandle);
+      const auto sequenceIt = ObjectMap.find(sequenceHandle);
+      if (sequenceIt == ObjectMap.end())
+        return reject();
+      if (!borrowDwgSourceFrame(ObjectMap, sequenceIt, borrowedSequence) ||
+          borrowedSequence.object.handle != sequenceHandle)
+        return reject();
+      DwgObjectFrame sequenceFrame;
+      if (!sequenceFrame.readAt(*dbuf, version, borrowedSequence.object.loc)) {
+        recordObjectFrameFailure(borrowedSequence.object, offsetSpace);
+        return reject();
+      }
+      std::vector<std::uint8_t> &sequenceBody = sequenceFrame.body();
+      dwgBuffer sequenceBuffer(sequenceBody.data(), sequenceBody.size(), &decoder);
+      if (sequenceBuffer.getObjType(version) != dwgType::SEQEND ||
+          !sequenceBuffer.isGood())
+        return reject();
+      sequenceBuffer.resetPosition();
+      DRW_SeqEnd sequenceEnd;
+      if (!sequenceEnd.parseDwg(version, &sequenceBuffer,
+                                sequenceFrame.bodyBitSize()) ||
+          !sequenceBuffer.isGood() || sequenceEnd.handle != sequenceHandle) {
+        if (sequenceEnd.handle != sequenceHandle)
+          parsedEntityHandleMismatch = true;
+        return reject();
+      }
+      if (sequenceEnd.parentHandle != insertHandle) {
+        parsedEntityOwnerMismatch = true;
+        return reject();
+      }
+      sequencePublication = makeTypedEntityFramePublication(
+          version, borrowedSequence.object, dwgType::SEQEND, sequenceEnd);
     }
-
-    discoveredHandles.push_back(sequenceHandle);
-    const auto sequenceIt = ObjectMap.find(sequenceHandle);
-    if (sequenceIt == ObjectMap.end())
-      return reject();
-    DwgSourceFrameLease borrowedSequence;
-    if (!borrowDwgSourceFrame(ObjectMap, sequenceIt, borrowedSequence) ||
-        borrowedSequence.object.handle != sequenceHandle) {
-      return reject();
-    }
-    DwgObjectFrame sequenceFrame;
-    if (!sequenceFrame.readAt(*dbuf, version, borrowedSequence.object.loc)) {
-      recordObjectFrameFailure(borrowedSequence.object, offsetSpace);
-      return reject();
-    }
-    std::vector<std::uint8_t> &sequenceBody = sequenceFrame.body();
-    dwgBuffer sequenceBuffer(sequenceBody.data(), sequenceBody.size(),
-                             &decoder);
-    if (sequenceBuffer.getObjType(version) != dwgType::SEQEND ||
-        !sequenceBuffer.isGood()) {
-      return reject();
-    }
-    sequenceBuffer.resetPosition();
-    DRW_SeqEnd sequenceEnd;
-    if (!sequenceEnd.parseDwg(version, &sequenceBuffer,
-                              sequenceFrame.bodyBitSize()) ||
-        !sequenceBuffer.isGood() || sequenceEnd.handle != sequenceHandle) {
-      if (sequenceEnd.handle != sequenceHandle)
-        parsedEntityHandleMismatch = true;
-      return reject();
-    }
-    if (sequenceEnd.parentHandle != insertHandle) {
-      parsedEntityOwnerMismatch = true;
-      return reject();
-    }
-    const DRW_DwgFramePublication sequencePublication =
-        makeTypedEntityFramePublication(version, borrowedSequence.object,
-                                        dwgType::SEQEND, sequenceEnd);
 
     const DwgMappedEntityOutcome parentOutcome =
-        stagePendingInsert(std::move(insert), publication, intfa, table);
+        stagePendingInsert(std::move(insert), publication, intfa, table,
+                           preStagedSequence);
     if (parentOutcome != DwgMappedEntityOutcome::StagedCompound)
       return reject();
 
@@ -5169,6 +5162,15 @@ dwgReader::DwgMappedEntityOutcome dwgReader::stageLegacyInsertAggregate(
         restoreUnstagedLease(lease);
         return reject();
       }
+    }
+
+    if (preStagedSequence) {
+      const auto pending = m_pendingInsertStates.find(insertHandle);
+      if (pending == m_pendingInsertStates.end())
+        return reject();
+      pending->second.deferCommit = false;
+      const DwgMappedEntityOutcome outcome = tryCommitPendingInsert(insertHandle, intfa);
+      return outcome == DwgMappedEntityOutcome::CommittedCompound ? outcome : reject();
     }
 
     const auto stagedSequenceIt = ObjectMap.find(sequenceHandle);
@@ -6994,6 +6996,8 @@ dwgReader::tryCommitPendingInsert(std::uint32_t handle, DRW_Interface &intfa) {
     abandonPendingInsertState(handle);
     return DwgMappedEntityOutcome::Rejected;
   }
+  if (pending.deferCommit)
+    return DwgMappedEntityOutcome::StagedCompound;
   bool completeAttributeList = false;
   if (version < DRW::AC1018 && pending.entity.attribHandles.size() == 2u) {
     const std::uint32_t first = pending.entity.attribHandles.front().ref;

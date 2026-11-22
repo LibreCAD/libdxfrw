@@ -1950,6 +1950,7 @@ protected:
   struct PendingInsertState {
     DRW_Insert entity;
     std::shared_ptr<LegacyTableDelivery> table;
+    bool deferCommit{false};
     DwgStagedFrame frame;
     std::vector<StagedAttribState> attributes;
     // Modern INSERT membership is checked through a sorted, unique projection
@@ -2091,7 +2092,8 @@ protected:
   stagePendingInsert(DRW_Insert &&insert,
                      const DRW_DwgFramePublication &publication,
                      DRW_Interface &intfa,
-                     std::shared_ptr<LegacyTableDelivery> table = nullptr);
+                     std::shared_ptr<LegacyTableDelivery> table = nullptr,
+                     bool deferCommit = false);
   [[nodiscard]] DwgMappedEntityOutcome
   stageMappedInsertAggregate(DRW_Insert &&insert,
                              const DRW_DwgFramePublication &publication,

@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "scope": "Controlled AC1012 TABLE with earlier SEQEND and later ATTRIB; no native support claim",
+  "sourceSha256": "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89",
+  "generatedDwgSha256": "39959006216b4570dcc1c714c7b6292515cb7deb2a27d631775b9dbd6c1c5edf",
+  "generatedTableFrameSha256": "e0e5ac52313dc024adb7fe49f89ef7b25467084531d9c8192d4d1a24a9ca2a92",
+  "generator": "tools/research/generate_r13_table_attrib_witness.py --mixed-children",
+  "generatorSha256": "995d915ed7a7acee2402057e938e60368ed3fa3b1d9206183ff3660bf3068195",
+  "observations": [
+    "The TABLE frame matches the source outside its attribute flag and three inserted references; LibreDWG reopens TABLE 4F2, ATTRIB 757 and SEQEND 191 with the selected owner.",
+    "The earlier SEQEND remains staged while the later ATTRIB is verified and staged. No callback occurs until the compound is ready.",
+    "Wrong endpoint role, ATTRIB owner and SEQEND owner are individually CRC-valid and rejected; the same reader then accepts the corrected compound with TABLE, 2D INSERT, raw and optional grid callbacks."
+  ],
+  "limits": [
+    "No derivative is committed.",
+    "Other rewritten objects are not qualified.",
+    "No native TABLE semantics or strict output claim is established.",
+    "Multiple-attribute source controls, native producer semantics, complete file conversion and strict output remain unqualified."
+  ]
+}

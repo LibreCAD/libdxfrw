@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     };
     const std::string profile = argv[2];
     if (profile == "r14-attrs" || profile == "r13-attrs" ||
-        profile == "r13-early-attrs") {
+        profile == "r13-early-attrs" || profile == "r13-mixed-attrs") {
         if (argc != 4) return 2;
         const bool r13Attributes = profile != "r14-attrs";
         const std::uint32_t tableHandle = r13Attributes ? 0x4F2u : 0x528u;
