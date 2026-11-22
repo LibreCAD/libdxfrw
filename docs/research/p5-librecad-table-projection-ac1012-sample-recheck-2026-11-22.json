@@ -20,6 +20,14 @@
     "producer": "GNU LibreDWG dwgadd 0.14",
     "observations": "R13 and R14 requested cloning values 0 and 1 produce identical selected frames with no cloning field. R2000 controls have different frames and decode the requested values. Malformed-frame self-tests pass.",
     "peerAttempt": "ODA File Converter aborted with exit -6 and no output before conversion; macOS pasteboard and hiservices XPC errors were reported.",
-    "limits": ["Scratch files are locally generated and are not committed.", "The prior build executable was screened but was not established as built from the current source head; its conversion results do not qualify the current candidate.", "Generated source frames and peer failure cannot establish native AutoCAD duplicate-merge or WBLOCK behavior."]
+    "currentCandidateRecheck": {
+      "sourceCommit": "079138d1",
+      "build": "Clean Ninja build with LIBDXFRW_BUILD_TESTS=OFF and LIBDXFRW_BUILD_DOC=OFF",
+      "executableSha256": "d86e78f34e785b57212982723e7801b70a6094a83056197e0b174c689df1503f",
+      "scratchDirectory": "/private/tmp/libdxfrw-ac1012-current/ac1012-dictionary-r2zvjynk",
+      "scratchReceiptSha256": "05031585c31d128ce34982bcbb7cefb0df8f1f002e044a6c930ccd92d5833f8a",
+      "result": "Both R13 cases refuse strict output due to one unqualified opaque callback and preserve an existing destination. Both R14 and both R2000 generated cases return success; this screen does not independently validate their output."
+    },
+    "limits": ["Scratch files are locally generated and are not committed.", "The earlier build executable was not established as built from the current source head; its conversion results do not qualify the current candidate.", "Generated source frames and peer failure cannot establish native AutoCAD duplicate-merge or WBLOCK behavior."]
   }
 }
