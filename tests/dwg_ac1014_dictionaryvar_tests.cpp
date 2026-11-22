@@ -28,6 +28,47 @@ public:
     using DRW_DictionaryWithDefault::parseDwg;
 };
 
+bool sharedLegacyFrameControl() {
+    using namespace dx_legacy_dwg_wire;
+    const auto bytesFor = [](DRW::Version version, std::uint32_t end,
+                             unsigned ownerRole) {
+        dwgBufferW w;
+        w.putObjType(version, 73u);
+        if (version == DRW::AC1015) w.putRawLong32(end);
+        w.putFixedHandle(0u, 1u, 0x31u);
+        w.putBitShort(0u);
+        if (version != DRW::AC1015) w.putRawLong32(end);
+        w.putBitLong(1u);
+        w.putFixedHandle(ownerRole, 1u, 0x20u);
+        w.putFixedHandle(4u, 1u, 0x21u);
+        w.putFixedHandle(3u, 0u, 0u);
+        w.put2Bits(0u);
+        return w.data();
+    };
+    const auto check = [](const std::vector<std::uint8_t>& bytes, DRW::Version version) {
+        Bits bits{bytes.data(), 0u, static_cast<std::uint32_t>(bytes.size() * 8u)};
+        std::uint32_t bodyEnd = 0u;
+        const auto noEed = [](Bits& b) noexcept { return b.shortValue() == 0u && b.good; };
+        return frameStart(bits, version, 73u, 0x31u, 1u, noEed, bodyEnd)
+            && bits.pos == bodyEnd
+            && commonTail(bits, 0x31u, 0x20u, std::vector<std::uint32_t>{0x21u}, 0u)
+            && padding(bits);
+    };
+    for (const auto version : {DRW::AC1012, DRW::AC1014, DRW::AC1015}) {
+        const auto valid = bytesFor(version, 70u, 4u);
+        if (!check(valid, version) || check(bytesFor(version, 69u, 4u), version)
+            || check(bytesFor(version, 113u, 4u), version)
+            || check(bytesFor(version, 70u, 5u), version)
+            || check(valid, version == DRW::AC1015 ? DRW::AC1014 : DRW::AC1015)
+            || !check(valid, version)) return false;
+        for (std::size_t length = 0; length < valid.size(); ++length) {
+            const std::vector<std::uint8_t> truncated(valid.begin(), valid.begin() + length);
+            if (check(truncated, version) || !check(valid, version)) return false;
+        }
+    }
+    return true;
+}
+
 bool eedLayerWriteOrderControl() {
     const auto little = DRW::DwgEedLayerByteOrder::LegacyLittleEndian;
     const auto big = DRW::DwgEedLayerByteOrder::BigEndian;
@@ -553,7 +594,7 @@ bool expected(const Variable& v) {
 }
 
 bool run() {
-    if (!eedLayerWriteOrderControl() || !legacyDictionaryWithDefaultControl() || !r13DictionaryEedControl() || !r13DictionaryEedControl(true) || !r13DictionaryEedControl(false, true) || !r13DictionaryEedControl(false, false, true) || !r13DictionaryEedControl(false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, false, false, true)
+    if (!sharedLegacyFrameControl() || !eedLayerWriteOrderControl() || !legacyDictionaryWithDefaultControl() || !r13DictionaryEedControl() || !r13DictionaryEedControl(true) || !r13DictionaryEedControl(false, true) || !r13DictionaryEedControl(false, false, true) || !r13DictionaryEedControl(false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, false, false, true)
         || !r13EedChunkGroupBoundary(false) || !r13EedChunkGroupBoundary(true) || !terminatedDictionaryControl(DRW::AC1012)
         || !terminatedDictionaryControl(DRW::AC1014) || !dictionaryWireControl(true, false)
         || !dictionaryWireControl(false, false)

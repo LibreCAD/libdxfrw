@@ -142,7 +142,7 @@ For R14 source and output changes, reuse the [PR review regression controls](doc
 
 The [selected AC1015 plot-style graph](docs/research/p6-ac1015-canonical-plotstyle-output-2026-11-21.json) emits the canonical dictionary record and class for AC1015 and AC1024 targets. The [generated strict control](docs/research/p6-ac1015-generated-strict-same-version-2026-11-21.json) now retains that graph, the selected MLINESTYLE, both LAYOUT backlinks, and the INSERT chain in independent ASCII/Binary readback for both targets; malformed source, graph, and retry controls pass. This bounded generated case does not qualify other source records or close the organic-failure gate.
 
-For the strict AC1012 MLINESTYLE output profile, reuse the version-aware R13/R14
+For the strict AC1012 MLINESTYLE output profile, reuse the [shared version-aware frame and handle-role checks](docs/research/p6-ac1012-shared-object-frame-2026-11-21.json) and R13/R14
 source checks and the [generated and ODA-produced controls](docs/research/p6-ac1012-generated-oda-dictionary-witness-2026-11-21.json).
 The [fresh LibreDWG-generated sample recheck](docs/research/p6-ac1012-dictionary-generated-recheck-2026-11-21.json) reproduces the version boundary, with R2000 cloning 0/1 controls; its fresh ODA reopen was unavailable due to the macOS pasteboard service.
 They bind the absent R13/R14 plain-DICTIONARY cloning field and show that ODA's selected R14

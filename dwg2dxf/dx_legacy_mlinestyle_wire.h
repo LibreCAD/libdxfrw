@@ -45,19 +45,18 @@ inline bool style(const DRW_UnsupportedObject& raw,
             return false;
     Bits b{raw.m_rawBytes.data(), 0u, static_cast<std::uint32_t>(raw.m_rawBytes.size() * 8u)};
     constexpr double halfPi = 1.5707963267948966;
-    if (b.shortValue() != 73u) return false;
-    const auto r2000BodyEnd = raw.m_version == DRW::AC1015 ? b.little(4u) : 0u;
-    if (!reference(b, 0u, 0u, model.handle, true) || b.shortValue() != 0u) return false;
-    const auto bodyEnd = raw.m_version == DRW::AC1015 ? r2000BodyEnd : b.little(4u);
-    return b.longValue() == 1u && text(b, model.name) && text(b, "")
+    std::uint32_t bodyEnd = 0u;
+    if (!frameStart(b, raw.m_version, 73u, model.handle, model.reactorHandles.size(),
+                    [](Bits& source) noexcept { return source.shortValue() == 0u && source.good; },
+                    bodyEnd)) return false;
+    return text(b, model.name) && text(b, "")
         && b.shortValue() == 0u && b.shortValue() == 256u
         && bitDouble(b, halfPi) && bitDouble(b, halfPi) && b.take(8u) == 2u
         && bitDouble(b, 0.5) && b.shortValue() == 256u
         && b.shortValue() == 32767u && bitDouble(b, -0.5)
         && b.shortValue() == 256u && b.shortValue() == 32767u
-        && b.pos == bodyEnd && reference(b, 4u, model.handle, model.parentHandle)
-        && reference(b, 4u, model.handle, model.parentHandle)
-        && reference(b, 3u, model.handle, 0u) && padding(b);
+        && b.pos == bodyEnd && commonTail(b, model.handle, model.parentHandle,
+                                          model.reactorHandles, 0u) && padding(b);
 }
 } // namespace dx_legacy_mlinestyle_wire
 #endif

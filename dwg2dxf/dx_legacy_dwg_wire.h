@@ -86,6 +86,34 @@ inline bool reference(Bits& bits, unsigned role, std::uint32_t base,
     return bits.good && h.value == expected && (expected != 0u || h.role == role);
 }
 
+// Object-data size precedes the self handle in R2000, but follows EED in
+// R13/R14. The caller supplies the EED observer and validates object fields
+// before comparing its final position with bodyEnd.
+template<class EedObserver>
+bool frameStart(Bits& bits, DRW::Version version, std::uint32_t type,
+                std::uint32_t id, std::size_t reactors,
+                EedObserver observeEed, std::uint32_t& bodyEnd) noexcept {
+    if (!supported(version) && version != DRW::AC1015) return false;
+    if (bits.shortValue() != type) return false;
+    const auto earlyEnd = version == DRW::AC1015 ? bits.little(4u) : 0u;
+    if (!reference(bits, 0u, 0u, id, true) || !observeEed(bits)) return false;
+    bodyEnd = version == DRW::AC1015 ? earlyEnd
+                                     : static_cast<std::uint32_t>(bits.little(4u));
+    return bits.longValue() == reactors && bits.good
+        && bodyEnd >= bits.pos && bodyEnd <= bits.end;
+}
+
+// These versions all store owner and reactors as soft pointers and the
+// extension dictionary as a hard-owner handle, including a typed null.
+template<class Reactors>
+bool commonTail(Bits& bits, std::uint32_t id, std::uint32_t owner,
+                const Reactors& reactors, std::uint32_t xdictionary) noexcept {
+    if (!reference(bits, 4u, id, owner)) return false;
+    for (const auto reactor : reactors)
+        if (!reference(bits, 4u, id, reactor)) return false;
+    return reference(bits, 3u, id, xdictionary);
+}
+
 inline bool metadata(const DRW_UnsupportedObject& raw, std::uint32_t id,
                      int type, std::size_t size) noexcept {
     return supported(raw.m_version) && raw.m_handle == id
@@ -145,7 +173,6 @@ bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
             || !std::all_of(entry.m_name.begin(), entry.m_name.end(),
                             [](unsigned char c) { return c > 0u && c < 128u; })) return false;
     Bits bits{raw.m_rawBytes.data(), 0u, static_cast<std::uint32_t>(size * 8u)};
-    if (bits.shortValue() != 42u || !reference(bits, 0u, 0u, id, true)) return false;
     dx_raster_wire::Proof eedProof;
     std::size_t groupDepth = 0u;
     const auto visit = [&](const dx_raster_wire::EedToken& token) noexcept {
@@ -243,18 +270,19 @@ bool observeDictionaryEed(const DRW_UnsupportedObject& raw,
         return false;
     };
     const unsigned revision = raw.m_version == DRW::AC1012 ? 13u : 14u;
-    if (dx_raster_wire::detail::eed(bits, revision, eedProof, visit)
-            != dx_raster_wire::Status::Proven
-        || eedProof.eedVariants != model.extData.size() || groupDepth != 0u) return false;
-    const auto bodyEnd = bits.little(4u);
-    if (bits.longValue() != model.reactorHandles.size() || bits.longValue() != count
+    std::uint32_t bodyEnd = 0u;
+    const auto observeEed = [&](Bits& source) noexcept {
+        return dx_raster_wire::detail::eed(source, revision, eedProof, visit)
+                == dx_raster_wire::Status::Proven
+            && eedProof.eedVariants == model.extData.size() && groupDepth == 0u;
+    };
+    if (!frameStart(bits, raw.m_version, 42u, id, model.reactorHandles.size(),
+                    observeEed, bodyEnd) || bits.longValue() != count
         || (raw.m_version == DRW::AC1014 && bits.take(8u) != 0u)) return false;
     for (const auto& entry : model.m_entries)
         if (!text(bits, entry.m_name)) return false;
-    if (bits.pos != bodyEnd || !reference(bits, 4u, id, model.parentHandle)) return false;
-    for (const auto reactor : model.reactorHandles)
-        if (!reference(bits, 4u, id, reactor)) return false;
-    if (!reference(bits, 3u, id, 0u)) return false;
+    if (bits.pos != bodyEnd || !commonTail(bits, id, model.parentHandle,
+                                           model.reactorHandles, 0u)) return false;
     for (const auto& entry : model.m_entries)
         if (!reference(bits, 2u, id, entry.m_handle)) return false;
     return padding(bits);
