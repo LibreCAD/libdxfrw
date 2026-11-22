@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-spline-builder-bounds-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_HEADLESS_CONTROL_PASSED",
+  "supportClaimEffect": "none",
+  "consumerPullRequest": "https://github.com/LibreCAD/LibreCAD_3/pull/462",
+  "consumerCommit": "e4e34ac327f6d32688b6f8df70bf349dadf12f8e",
+  "scope": "Builder-created control- and fit-point splines, shared 3D area merging, and XY spatial selection.",
+  "validation": [
+    "Before the fix, builder-created control- and fit-point spline bounding boxes were at the origin, selected at the origin, and not selected around their true location.",
+    "Both constructors now reuse the existing spline bounds calculation; both Area merge overloads retain Z min/max while XY predicates remain unchanged.",
+    "Eight focused spline and area tests pass with bundled and current shared codecs, including 3D box extents and positive/negative selection.",
+    "Thirty-eight geometry tests and six bundled and ten shared HATCH/MPOLYGON controls pass.",
+    "Python binding plan-sync check passes."
+  ],
+  "logSha256": {
+    "lc3-spline-bounds-negative.log": "e137883f9d122fe890c56944c8b40245d4d198e7a4b1961f009186615ef1c992",
+    "lc3-spline-bounds-direct-test2.log": "633125d75ed462a75cdc95086fc3049de647f0e0671dcd2ddf7bf81539d84402",
+    "lc3-spline-bounds-system-test2.log": "93109fdd888fe09c212662352fbdd1726a6257917a0fa2bb7fd0f266114154af",
+    "lc3-spline-bounds-geometry-test.log": "0138a219515d85fd84a92168ae9f8a9166179b10a4f1ad1ec701ac9c099ec88d",
+    "lc3-spline-bounds-direct-hatch.log": "7cd2568a8eb23f8cdb6d17038879d5fea6d6463cfe9af5a8da513ca25f74c07d",
+    "lc3-spline-bounds-system-hatch.log": "ae88f33617af0afca1ef44a1a55830b757e0742152ef691f0e176839d6f0b86a"
+  },
+  "limitations": [
+    "Headless macOS ARM64 only; native GUI, hosted CI, and other platforms remain open.",
+    "Area predicates and selection remain two-dimensional; this change only preserves stored Z extents. Current shared-codec build uses scratch CMake glue."
+  ]
+}
