@@ -1,0 +1,229 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-populated-dictionary-merge-samples-2026-11-22",
+  "status": "PAIRED_SPEC_BOUND_SAMPLE_GENERATION_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "section": "20.4.44 DICTIONARY",
+    "source": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "layoutApplied": "AC1012 DICTIONARY has a counted entry-name stream and soft-owner entry handles; the R2000+ cloning and hard-owner fields are absent."
+  },
+  "producer": "GNU LibreDWG dwgadd 0.14",
+  "generatorSha256": "1b39220037eb2d8561bd046a1e27622255ab7f679f086b3f552cd986cd25a111",
+  "executables": {
+    "dwgadd": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgadd",
+      "sha256": "66c435deb0f081ab72be21bb9ba36e5d149f9352d71ddf1e83ac95b3fc07f282"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    }
+  },
+  "scratchDirectory": "/private/tmp/ac1012-populated-dict-samples/ac1012-dictionary-merge-_ab1jlai",
+  "styleHandles": {
+    "Standard": 24,
+    "ProbeStyle": 45
+  },
+  "samples": {
+    "destination": {
+      "file": "destination-ac1012.dwg",
+      "recipe": "destination.dwgadd",
+      "source": {
+        "sha256": "82c67cafafc88848823bf14bb2b6c26841b0ebe4e5379386cde0413324ab6219",
+        "dictionaryHandle": 46,
+        "rootHandle": 12,
+        "dictionaryOwner": 12,
+        "entry": {
+          "name": "SAME_KEY",
+          "raw": [
+            2,
+            1,
+            24,
+            24
+          ],
+          "targetHandle": 24
+        },
+        "targetStyle": {
+          "handle": 24,
+          "name": "Standard",
+          "startAngle": 1.5707963267949
+        }
+      },
+      "wire": {
+        "offset": 2388,
+        "sizeBytes": 27,
+        "frameSha256": "86f08944458bc5e5c1cca4bacb91ea7380cf52e63c2e5a243d0dfff7e4ed7ea8",
+        "crcValid": true,
+        "self": {
+          "role": 0,
+          "length": 1,
+          "value": 46
+        },
+        "dataEndBit": 154,
+        "entryName": "SAME_KEY",
+        "entryNameHasTerminator": false,
+        "parent": {
+          "role": 12,
+          "length": 1,
+          "value": 12
+        },
+        "reactors": [
+          {
+            "role": 4,
+            "length": 1,
+            "value": 12
+          }
+        ],
+        "xdictionary": {
+          "role": 3,
+          "length": 0,
+          "value": 0
+        },
+        "itemHandle": {
+          "role": 2,
+          "length": 1,
+          "value": 24
+        },
+        "cloningField": null,
+        "eed": [],
+        "paddingBits": 6
+      },
+      "candidateStrict": {
+        "executable": {
+          "path": "/Users/dli/dev/libdxfrw/build-gcc/dwg2dxf/dwg2dxf",
+          "sha256": "167b379115f2b98a7a0ab6ff385d8bb015367eeb60ec990a4d10ffc2c36e5d82"
+        },
+        "exitCode": 1,
+        "destinationPreservedOnRefusal": true,
+        "outputSha256": null,
+        "diagnostics": [
+          "DWG read observations: schema=1 operationSucceeded=true sourceVersion=AC1012 sourceVersionEnum=11 legacyError=0",
+          "frameCoverageStatus=2 frameSourceDenominator=observed sourceFrames=31 pending=0 deferred=0 staged=0 published=31 quarantined=0 failed=0 unresolved=0 unrecognizedDispositions=0",
+          "Opaque callback dispositions: opaqueViewCallbacks=7 opaqueSourceFramesCaptured=7 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=5 standardObjectSourceReceiptsMatched=5 standardObjectTypedPayloadsMatched=5 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+          "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+        ]
+      }
+    },
+    "source": {
+      "file": "source-ac1012.dwg",
+      "recipe": "source.dwgadd",
+      "source": {
+        "sha256": "ba4e6de9bc9a7eb39ff378c832ec1537a014c9a3a13d2ff0a0d9102849733b00",
+        "dictionaryHandle": 46,
+        "rootHandle": 12,
+        "dictionaryOwner": 12,
+        "entry": {
+          "name": "SAME_KEY",
+          "raw": [
+            2,
+            1,
+            45,
+            45
+          ],
+          "targetHandle": 45
+        },
+        "targetStyle": {
+          "handle": 45,
+          "name": "ProbeStyle",
+          "startAngle": 0.6457718232379
+        }
+      },
+      "wire": {
+        "offset": 2388,
+        "sizeBytes": 27,
+        "frameSha256": "b2b5d5caa8eec9a4da2ef96a26c3344f49402ba30b8cc571c8da34554d8c09c0",
+        "crcValid": true,
+        "self": {
+          "role": 0,
+          "length": 1,
+          "value": 46
+        },
+        "dataEndBit": 154,
+        "entryName": "SAME_KEY",
+        "entryNameHasTerminator": false,
+        "parent": {
+          "role": 12,
+          "length": 1,
+          "value": 12
+        },
+        "reactors": [
+          {
+            "role": 4,
+            "length": 1,
+            "value": 12
+          }
+        ],
+        "xdictionary": {
+          "role": 3,
+          "length": 0,
+          "value": 0
+        },
+        "itemHandle": {
+          "role": 2,
+          "length": 1,
+          "value": 45
+        },
+        "cloningField": null,
+        "eed": [],
+        "paddingBits": 6
+      },
+      "candidateStrict": {
+        "executable": {
+          "path": "/Users/dli/dev/libdxfrw/build-gcc/dwg2dxf/dwg2dxf",
+          "sha256": "167b379115f2b98a7a0ab6ff385d8bb015367eeb60ec990a4d10ffc2c36e5d82"
+        },
+        "exitCode": 1,
+        "destinationPreservedOnRefusal": true,
+        "outputSha256": null,
+        "diagnostics": [
+          "DWG read observations: schema=1 operationSucceeded=true sourceVersion=AC1012 sourceVersionEnum=11 legacyError=0",
+          "frameCoverageStatus=2 frameSourceDenominator=observed sourceFrames=31 pending=0 deferred=0 staged=0 published=31 quarantined=0 failed=0 unresolved=0 unrecognizedDispositions=0",
+          "Opaque callback dispositions: opaqueViewCallbacks=7 opaqueSourceFramesCaptured=7 opaqueFramesOutputQualified=0 opaqueSourceCaptureFailed=false opaqueFramesRetainedForCorrelation=0 standardObjectFramesCaptured=5 standardObjectSourceReceiptsMatched=5 standardObjectTypedPayloadsMatched=5 standardObjectOpaquePayloadsMatched=0 standardObjectCaptureFailed=false standardObjectPayloadValidationFailed=false callbackCountsSaturated=false",
+          "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+        ]
+      }
+    }
+  },
+  "limits": [
+    "The paired files are generated controls, not AutoCAD-authored samples.",
+    "LibreDWG output must pass native normal-open without recovery before any ObjectARX observation counts.",
+    "The exact entry target and MLINESTYLE values are source evidence only; this does not establish native duplicate-merge behavior or output qualification.",
+    "No DWG or DXF fixture is added to the repository."
+  ],
+  "peerScreens": {
+    "odaFileConverter": {
+      "version": "27.1.0.0",
+      "executable": {
+        "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+        "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+      },
+      "command": [
+        "<ODAFileConverter>",
+        "<scratch-input>",
+        "<scratch-output>",
+        "ACAD14",
+        "DXF",
+        "0",
+        "1",
+        "*.dwg"
+      ],
+      "exitCode": -6,
+      "outputFilesCreated": false,
+      "stderr": "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]; PasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]; Connection Invalid error for service com.apple.hiservices-xpcservice; Error received in message reply handler: Connection invalid.",
+      "interpretation": "Converter aborted before reading/converting either sample. This is unavailable peer evidence, not a sample rejection."
+    }
+  },
+  "nativeAutoCADObjectARX": {
+    "status": "NOT_RUN",
+    "reason": "No native AutoCAD/ObjectARX host connection was provided in this session. The paired generated samples are ready for normal-open screening, but their generated provenance and previous peer-screen limitations must be considered."
+  },
+  "validationSummary": [
+    "Generated two AC1012 DWGs with the same TEST_DICT/SAME_KEY mapping shape and distinct MLINESTYLE targets.",
+    "Independent physical frame walker verifies the AC1012 DICTIONARY object type, frame bounds and CRC, entry-name stream, NOD parent and reactor references, null extension dictionary, and soft-owner item-handle role.",
+    "LibreDWG JSON readback agrees with physical entry names and target handles.",
+    "libdxfrw reads all 31 observed frames for both files; strict-complete DXF conversion refuses because seven opaque callbacks remain unqualified, preserving the pre-existing destination.",
+    "No DWG or DXF fixture is stored in the repository."
+  ]
+}

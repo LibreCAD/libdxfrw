@@ -94,3 +94,29 @@ handle role, native duplicate behavior, both encodings, destination-preserving
 failure, corrected same-adapter retry, and independent readback all agree.
 If no discriminating witness can be produced, retain the refusal and report the
 specific limitation.
+
+## Paired populated AC1012 controls
+
+To prepare a scratch pair with the same `TEST_DICT` / `SAME_KEY` entry but
+different, inspectable MLINESTYLE targets, run:
+
+```sh
+PYTHONPATH=tools/research python3 -B \
+  tools/research/generate_ac1012_dictionary_merge_samples.py \
+  --output-dir /private/tmp/ac1012-dictionary-merge
+```
+
+The generated destination maps `SAME_KEY` to `Standard`; the source maps it to
+`ProbeStyle`. The generator checks the AC1012 DICTIONARY frame, CRC, entry-name
+span, NOD parent/reactor handles, absent cloning field, and soft-owner entry
+handle against the ODA v5.4.1 §20.4.44 layout. It keeps both drawings and the
+receipt outside the repository.
+
+These files are LibreDWG-authored controls, not native producer witnesses.
+Screen each file in a fresh AutoCAD process and reject any file that opens only
+after recovery. The 2026-11-22 local ODA File Converter attempt aborted before
+conversion with pasteboard/XPC errors, so it provides no acceptance evidence.
+Only after normal-open succeeds should the host perform the read-only
+observation and duplicate-key operation above; record the exact survivor,
+renamed key, object identity, and close/reopen result. The generated source
+pair does not by itself establish R13 default merge behavior.
