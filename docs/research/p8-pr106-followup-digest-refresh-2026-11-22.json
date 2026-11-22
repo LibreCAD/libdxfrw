@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-followup-digest-refresh-2026-11-22",
+  "date": "2026-11-22",
+  "sourceCommit": "87404e3247e82ecdaf753eda35b7cefa6eeac87a",
+  "headSha": "87404e3247e82ecdaf753eda35b7cefa6eeac87a",
+  "supportClaimEffect": "none",
+  "failure": {
+    "workflow": "qualification workflow contract",
+    "runId": 45049132655,
+    "jobId": 137290146263,
+    "reason": "status overlay implementation digest was stale after the AC1012 source test changed"
+  },
+  "repair": {
+    "method": "Compute the selected implementation digest in a clean clone of the exact pushed source commit; update only the digest-excluded status overlay.",
+    "implementationDigestSha256": "043e50bf66b4290e802a5b3dbf16147a1d078905b33727b247bf26cffbfb5d08",
+    "implementationInputs": 774,
+    "claimStatusesChanged": false
+  },
+  "validation": [
+    "Clean-clone check_qualification_digest.py passes.",
+    "Clean-clone check_qualification_workflow.py passes.",
+    "Clean-clone check_qualified_format_support.py passes: 15 claims, two candidate routes, zero advertised.",
+    "The focused AC1012 dictionary CTest and generated source/output controls pass locally."
+  ],
+  "limits": [
+    "This overlay refresh does not promote support claims or qualify a final candidate.",
+    "The PR fast-regressions check was still running when this receipt was prepared; hosted checks must be rechecked after pushing the overlay update."
+  ]
+}
