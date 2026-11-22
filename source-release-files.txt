@@ -1300,6 +1300,7 @@ tools/research/generate_legacy_layer_eed_witness.py
 tools/research/generate_legacy_table_attrib_witness.py
 tools/research/generate_librecad3_mline_samples.py
 tools/research/generate_librecad_r13_ltype_samples.py
+tools/research/generate_r13_table_attrib_witness.py
 tools/research/inspect_mtext_field_freecad.FCMacro
 tools/research/inventory_cover_peer_body_handles.py
 tools/research/lc3_spline_builder_removal_asan.cpp

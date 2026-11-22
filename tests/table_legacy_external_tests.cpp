@@ -64,8 +64,11 @@ int main(int argc, char** argv) {
           9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0}}
     };
     const std::string profile = argv[2];
-    if (profile == "r14-attrs") {
+    if (profile == "r14-attrs" || profile == "r13-attrs") {
         if (argc != 4) return 2;
+        const bool r13Attributes = profile == "r13-attrs";
+        const std::uint32_t tableHandle = r13Attributes ? 0x4F2u : 0x528u;
+        const std::uint32_t attribHandle = r13Attributes ? 0x757u : 0x705u;
         // A bad endpoint must not publish any part of the compound. Reuse
         // the same adapter for the corrected derivative and check its child.
         for (const unsigned mode : {0u, 1u, 2u}) {
@@ -74,12 +77,12 @@ int main(int argc, char** argv) {
             Probe& reader = mode == 0u ? plain : static_cast<Probe&>(capable);
             dx_data data;
             (void)reader.fileImport(argv[1], &data, false);
-            if (reader.tables.count(0x528u) || reader.inserts.count(0x528u)
-                || reader.raw.count(0x528u) || capable.grids.count(0x528u)) {
+            if (reader.tables.count(tableHandle) || reader.inserts.count(tableHandle)
+                || reader.raw.count(tableHandle) || capable.grids.count(tableHandle)) {
                 std::cerr << "uncommitted TABLE attribute compound was published\n";
                 return 1;
             }
-            if (reader.tables.count(0xA35u) != 1u) {
+            if (!r13Attributes && reader.tables.count(0xA35u) != 1u) {
                 std::cerr << "independent TABLE after rejected compound was not delivered\n";
                 return 1;
             }
@@ -87,22 +90,24 @@ int main(int argc, char** argv) {
             capable.grids.clear();
             dx_data retry;
             (void)reader.fileImport(argv[3], &retry, false);
-            if (reader.tables.count(0x528u) != 1u
-                || reader.inserts.count(0x528u) != 1u
-                || reader.raw.count(0x528u) != 1u
-                || capable.grids.count(0x528u) != (mode == 2u ? 1u : 0u)
-                || reader.tables.at(0x528u).attlist.size() != 1u
-                || reader.tables.at(0x528u).attlist[0]->handle != 0x705u
-                || reader.inserts.at(0x528u).attlist.size() != 1u
+            if (reader.tables.count(tableHandle) != 1u
+                || reader.inserts.count(tableHandle) != 1u
+                || reader.raw.count(tableHandle) != 1u
+                || capable.grids.count(tableHandle) != (mode == 2u ? 1u : 0u)
+                || reader.tables.at(tableHandle).attlist.size() != 1u
+                || reader.tables.at(tableHandle).attlist[0]->handle != attribHandle
+                || reader.inserts.at(tableHandle).attlist.size() != 1u
                 || (mode == 2u &&
-                    (capable.grids.at(0x528u).attlist.size() != 1u ||
-                     capable.grids.at(0x528u).m_content.m_columns.size() != 3u ||
-                     capable.grids.at(0x528u).m_content.m_rows.size() != 7u))) {
+                    (capable.grids.at(tableHandle).attlist.size() != 1u ||
+                     capable.grids.at(tableHandle).m_content.m_columns.size() !=
+                         (r13Attributes ? 9u : 3u) ||
+                     capable.grids.at(tableHandle).m_content.m_rows.size() !=
+                         (r13Attributes ? 20u : 7u)))) {
                 std::cerr << "TABLE callback did not recover on same-reader retry\n";
                 return 1;
             }
         }
-        std::cout << "R14 TABLE attribute compound and corrected retry: PASS\n";
+        std::cout << profile << " TABLE attribute compound and corrected retry: PASS\n";
         return 0;
     }
     if (argc != 3) return 2;
