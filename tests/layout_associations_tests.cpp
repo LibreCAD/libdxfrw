@@ -9,7 +9,12 @@ struct Layout {
     std::uint32_t handle;
     struct { std::uint32_t ref; } paperSpaceBlockRecordHandle;
 };
-struct Record { std::uint32_t layoutHandle; };
+struct Record {
+    std::uint32_t handle;
+    std::string name;
+    std::uint32_t layoutHandle;
+    std::uint32_t xDictHandle;
+};
 }
 
 int main() {
@@ -30,7 +35,9 @@ int main() {
                "nonlegacy DWG must require reciprocal relationships");
 
     Layout first{0x30u, {0x10u}}, second{0x31u, {0x11u}};
-    Record a{0u}, b{0u}, extra{0u};
+    Record a{0x10u, "*Model_Space", 0u, 0x40u};
+    Record b{0x11u, "*Paper_Space", 0u, 0u};
+    Record extra{0x12u, "Other", 0u, 0u};
     std::map<std::uint32_t, const Layout*> layouts{{first.handle, &first},
                                                    {second.handle, &second}};
     std::map<std::uint32_t, const Record*> records{{0x10u, &a}, {0x11u, &b},
@@ -58,6 +65,56 @@ int main() {
     extra.layoutHandle = 0u;
     expect(run(Mode::LegacyDwgForwardOnly) && result == expected,
            "corrected legacy source must succeed after refusal");
+    std::vector<BlockRecordProjection> projection;
+    const auto project = [&](DRW::Version target) {
+        return projectLegacyToR2000(layouts, records, target, projection, reason);
+    };
+    expect(project(DRW::AC1015) && projection.size() == 3u
+               && projection[0].handle == 0x10u
+               && projection[0].name == "*Model_Space"
+               && projection[0].layoutHandle == 0x30u
+               && projection[0].xDictHandle == 0x40u
+               && projection[1].handle == 0x11u
+               && projection[1].layoutHandle == 0x31u
+               && projection[2].layoutHandle == 0u
+               && a.layoutHandle == 0u && b.layoutHandle == 0u,
+           "R2000 projection preserves source and produces writer identities");
+    const auto projectionRefused = [&](const char* label) {
+        expect(!project(DRW::AC1015) && projection.size() == 3u
+                   && projection[0].layoutHandle == 0x30u
+                   && projection[1].layoutHandle == 0x31u
+                   && a.layoutHandle == 0u && b.layoutHandle == 0u, label);
+    };
+    expect(!project(DRW::AC1014) && !project(DRW::AC1018)
+               && projection.size() == 3u,
+           "unqualified target versions leave the projection unchanged");
+    second.paperSpaceBlockRecordHandle.ref = 0x10u;
+    projectionRefused("duplicate target preserves projected and source state");
+    second.paperSpaceBlockRecordHandle.ref = 0x19u;
+    projectionRefused("missing target preserves projected and source state");
+    second.paperSpaceBlockRecordHandle.ref = 0x11u;
+    b.handle = 0x19u;
+    projectionRefused("changed source identity preserves projected and source state");
+    b.handle = 0x11u;
+    auto* savedRecord = records[0x11u];
+    records[0x11u] = nullptr;
+    projectionRefused("missing source record preserves projected and source state");
+    records[0x11u] = savedRecord;
+    auto* savedLayout = layouts[0x31u];
+    layouts[0x31u] = nullptr;
+    projectionRefused("missing source layout preserves projected and source state");
+    layouts[0x31u] = savedLayout;
+    second.handle = 0x39u;
+    projectionRefused("changed layout identity preserves projected and source state");
+    second.handle = 0x31u;
+    extra.layoutHandle = 0x30u;
+    expect(!project(DRW::AC1015) && projection.size() == 3u
+               && projection[0].layoutHandle == 0x30u,
+           "unexpected source backlink preserves prior projection");
+    extra.layoutHandle = 0u;
+    expect(project(DRW::AC1015) && projection.size() == 3u
+               && projection[1].layoutHandle == 0x31u,
+           "corrected R2000 projection succeeds after failure");
     expect(!run(Mode::Reciprocal), "newer sources cannot omit backlinks");
     a.layoutHandle = first.handle; b.layoutHandle = second.handle;
     expect(run(Mode::Reciprocal) && result == expected,

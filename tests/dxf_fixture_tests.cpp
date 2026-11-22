@@ -32,6 +32,7 @@
 #include "drw_objects.h"
 #include "dwg2dxf/dx_data.h"
 #include "dwg2dxf/dx_iface.h"
+#include "dwg2dxf/dx_layout_associations.h"
 #include "src/intern/dxfmaterial.h"
 #include "dwg2dxf/dx_raster_output.h"
 #include "dwg2dxf/dx_symbol_name_key.h"
@@ -47,6 +48,10 @@
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
 #include "libdwgr.h"
+
+namespace independentLayoutWire {
+#include "independent_dxf_scalar_walker.h"
+}
 
 class DxfGroupSetterTestAccess {
 public:
@@ -2815,6 +2820,41 @@ void testLayoutGraphReadContract(TestContext& t) {
             t.expect(addTypedRootDictionary(exportSource),
                      "versioned graph source contains a typed unrelated root dictionary graph");
             applyCollisionRemap(exportSource);
+            if (target.first == DRW::AC1015) {
+                // Model an R13/R14 forward-only source, then supply only the
+                // projected identities to this generated R2000 DXF control.
+                // This does not admit legacy DWG output through its gates.
+                std::map<std::uint32_t, const DRW_Layout*> layouts;
+                std::map<std::uint32_t, const DRW_Block_Record*> records;
+                for (const DRW_Layout& layout : exportSource.layouts)
+                    layouts.emplace(layout.handle, &layout);
+                for (DRW_Block_Record& record : exportSource.blockRecords) {
+                    record.layoutHandle = 0u;
+                    records.emplace(record.handle, &record);
+                }
+                std::vector<dx_layout_associations::BlockRecordProjection> projected;
+                std::string failure;
+                const bool projectedOk =
+                    dx_layout_associations::projectLegacyToR2000(
+                        layouts, records, DRW::AC1015, projected, failure);
+                t.expect(projectedOk && projected.size() == records.size()
+                             && std::all_of(exportSource.blockRecords.begin(),
+                                 exportSource.blockRecords.end(),
+                                 [](const DRW_Block_Record& record) {
+                                     return record.layoutHandle == 0u;
+                                 }),
+                         "forward-only graph projects without mutating source records");
+                if (!projectedOk)
+                    continue;
+                for (DRW_Block_Record& record : exportSource.blockRecords) {
+                    const auto identity = std::find_if(projected.begin(), projected.end(),
+                        [&record](const auto& value) {
+                            return value.handle == record.handle;
+                        });
+                    if (identity != projected.end())
+                        record.layoutHandle = identity->layoutHandle;
+                }
+            }
             const std::string outputName = std::string("layout-graph-export-")
                 + target.second + (binary ? "-binary.dxf" : "-ascii.dxf");
             const auto exportedPath = directory / outputName;
@@ -2828,6 +2868,53 @@ void testLayoutGraphReadContract(TestContext& t) {
             t.expect(exported, exportLabel.c_str());
             if (!exported)
                 continue;
+            if (target.first == DRW::AC1015) {
+                bool physical = true;
+                std::map<std::uint32_t, std::uint32_t> blockToLayout;
+                std::map<std::uint32_t, std::uint32_t> layoutToBlock;
+                try {
+                    const auto wire = independentLayoutWire::attdefWireTags(
+                        exportedPath, binary);
+                    for (std::size_t i = 0; i < wire.size();) {
+                        if (wire[i].code != 0) { ++i; continue; }
+                        const std::string type = wire[i].text;
+                        std::size_t end = i + 1u;
+                        while (end < wire.size() && wire[end].code != 0) ++end;
+                        if (type == "BLOCK_RECORD" || type == "LAYOUT") {
+                            std::uint32_t handle = 0u, link = 0u;
+                            unsigned handles = 0u, links = 0u;
+                            bool layoutSubclass = false;
+                            for (std::size_t j = i + 1u; j < end; ++j) {
+                                const auto& tag = wire[j];
+                                if (tag.code == 100 && tag.text == "AcDbLayout")
+                                    layoutSubclass = true;
+                                if (tag.code == 5) {
+                                    handle = static_cast<std::uint32_t>(std::stoul(tag.text, nullptr, 16));
+                                    ++handles;
+                                } else if ((type == "BLOCK_RECORD" && tag.code == 340)
+                                           || (type == "LAYOUT" && layoutSubclass && tag.code == 330)) {
+                                    link = static_cast<std::uint32_t>(std::stoul(tag.text, nullptr, 16));
+                                    ++links;
+                                }
+                            }
+                            auto& graph = type == "BLOCK_RECORD" ? blockToLayout : layoutToBlock;
+                            if (handles != 1u || links != 1u || !handle || !link
+                                || !graph.emplace(handle, link).second)
+                                physical = false;
+                        }
+                        i = end;
+                    }
+                } catch (const std::exception&) { physical = false; }
+                physical = physical && blockToLayout.size() == 3u
+                    && layoutToBlock.size() == 3u;
+                for (const auto& edge : blockToLayout) {
+                    const auto reciprocal = layoutToBlock.find(edge.second);
+                    physical = physical && reciprocal != layoutToBlock.end()
+                        && reciprocal->second == edge.first;
+                }
+                t.expect(physical,
+                    "independent wire walk finds physical reciprocal R2000 layout links");
+            }
             dx_data exportedData;
             dx_iface imported;
             const std::string importLabel = std::string("exported ")
@@ -12910,7 +12997,8 @@ void testEmbeddedMTextXdataRefusal(TestContext& t) {
 }
 
 namespace embeddedAlignmentControls {
-#include "independent_dxf_scalar_walker.h"
+using independentLayoutWire::AttdefWireTag;
+using independentLayoutWire::attdefWireTags;
 constexpr unsigned count=6u;
 struct Profile {DRW_Coord alignment,insertion,base;bool embedded,justified;};
 Profile profile(unsigned index,bool definition) {

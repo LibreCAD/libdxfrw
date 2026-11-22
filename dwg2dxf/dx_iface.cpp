@@ -83187,13 +83187,19 @@ bool validateLayoutGraph(const dx_data& data, DRW::Version targetVersion,
     }
     const auto associationMode = dx_layout_associations::sourceMode(
         data.sourceFormat == dx_source_format::DWG, data.sourceVersion);
+    if (associationMode == dx_layout_associations::Mode::LegacyDwgForwardOnly) {
+        std::vector<dx_layout_associations::BlockRecordProjection> projection;
+        if (!dx_layout_associations::projectLegacyToR2000(
+                layoutsByHandle, recordsByHandle, targetVersion,
+                projection, failure))
+            return false;
+        return reject("R13/R14 DWG LAYOUT forward references need a qualified target projection");
+    }
     std::map<std::uint32_t, std::uint32_t> sourceAssociations;
     if (!dx_layout_associations::resolve(layoutsByHandle, recordsByHandle,
                                          associationMode, sourceAssociations,
                                          failure))
         return false;
-    if (associationMode == dx_layout_associations::Mode::LegacyDwgForwardOnly)
-        return reject("R13/R14 DWG LAYOUT forward references need a qualified target projection");
 
     // Model LAYOUT 331 identifies a VPORT table configuration; paper-layout
     // LAYOUT 331 identifies its last-active paperspace VIEWPORT entity. Resolve

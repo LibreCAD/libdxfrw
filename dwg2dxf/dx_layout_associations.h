@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <map>
 #include <string>
+#include <vector>
 
 namespace dx_layout_associations {
 
@@ -59,6 +60,61 @@ bool resolve(const Layouts& layouts, const Records& records, Mode mode,
         }
     }
     associations.swap(staged);
+    return true;
+}
+
+// Build only the writer-facing identities. In particular, do not add the
+// R2000 backlink to the retained R13/R14 source record: its absence is part
+// of the source evidence and must survive a failed export and retry.
+struct BlockRecordProjection {
+    std::uint32_t handle;
+    std::string name;
+    std::uint32_t layoutHandle;
+    std::uint32_t xDictHandle;
+};
+
+template<class Layouts, class Records>
+bool projectLegacyToR2000(const Layouts& layouts, const Records& records,
+                          DRW::Version target,
+                          std::vector<BlockRecordProjection>& projection,
+                          std::string& failure) {
+    if (target != DRW::AC1015) {
+        failure = "R13/R14 LAYOUT projection requires an R2000 DXF target";
+        return false;
+    }
+    for (const auto& item : layouts) {
+        if (item.second == nullptr || item.first == 0u
+            || item.first == DRW::NoHandle
+            || item.second->handle != item.first) {
+            failure = "R13/R14 LAYOUT identity is invalid";
+            return false;
+        }
+    }
+    for (const auto& item : records) {
+        if (item.second == nullptr) {
+            failure = "R13/R14 BLOCK_RECORD identity is missing";
+            return false;
+        }
+    }
+    std::map<std::uint32_t, std::uint32_t> associations;
+    if (!resolve(layouts, records, Mode::LegacyDwgForwardOnly,
+                 associations, failure))
+        return false;
+    std::vector<BlockRecordProjection> staged;
+    staged.reserve(records.size());
+    for (const auto& item : records) {
+        const auto& source = *item.second;
+        if (item.first == 0u || item.first == DRW::NoHandle
+            || source.handle != item.first || source.name.empty()) {
+            failure = "R13/R14 BLOCK_RECORD identity is invalid";
+            return false;
+        }
+        const auto association = associations.find(item.first);
+        staged.push_back({item.first, source.name,
+            association == associations.end() ? 0u : association->second,
+            source.xDictHandle});
+    }
+    projection.swap(staged);
     return true;
 }
 } // namespace dx_layout_associations
