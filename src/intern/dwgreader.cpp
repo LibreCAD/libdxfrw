@@ -4652,7 +4652,8 @@ void dwgReader::terminalizeOrphanPolylineVertexOwner(std::uint32_t owner) {
 dwgReader::DwgMappedEntityOutcome
 dwgReader::stagePendingInsert(DRW_Insert &&insert,
                               const DRW_DwgFramePublication &publication,
-                              DRW_Interface &intfa) {
+                              DRW_Interface &intfa,
+                              std::shared_ptr<LegacyTableDelivery> table) {
   if (insert.handle == DRW::NoHandle || !insert.attlist.empty() ||
       m_invalidInsertOwners.find(insert.handle) !=
           m_invalidInsertOwners.end() ||
@@ -4738,6 +4739,7 @@ dwgReader::stagePendingInsert(DRW_Insert &&insert,
 
   PendingInsertState pending;
   pending.entity = std::move(insert);
+  pending.table = std::move(table);
   pending.expectedAttributeHandles = std::move(expectedAttributeHandles);
   const std::uint32_t insertHandle = pending.entity.handle;
   const std::size_t adoptedAttributeCount =
@@ -4940,7 +4942,8 @@ dwgReader::DwgMappedEntityOutcome dwgReader::stageMappedInsertAggregate(
 dwgReader::DwgMappedEntityOutcome dwgReader::stageLegacyInsertAggregate(
     DRW_Insert &&insert, const DRW_DwgFramePublication &publication,
     dwgBuffer *dbuf, DRW_Interface &intfa,
-    DwgIntegrityAddressSpace offsetSpace) {
+    DwgIntegrityAddressSpace offsetSpace,
+    std::shared_ptr<LegacyTableDelivery> table) {
   if (version >= DRW::AC1018 || dbuf == nullptr ||
       m_activeEntityFrameLease == nullptr ||
       !m_activeEntityFrameLease->isDetached() ||
@@ -4952,7 +4955,7 @@ dwgReader::DwgMappedEntityOutcome dwgReader::stageLegacyInsertAggregate(
   // are outside the BLOCK_RECORD's normal next-entity chain, so follow their
   // own explicit (or implicit +1) chain before staging the parent.
   if (insert.attribHandles.empty())
-    return stagePendingInsert(std::move(insert), publication, intfa);
+    return stagePendingInsert(std::move(insert), publication, intfa, table);
   if (insert.attribHandles.size() != 2u ||
       insert.seqendH.ref == DRW::NoHandle) {
     return DwgMappedEntityOutcome::Rejected;
@@ -5052,7 +5055,7 @@ dwgReader::DwgMappedEntityOutcome dwgReader::stageLegacyInsertAggregate(
           !attributes.empty())
         return reject();
       const DwgMappedEntityOutcome outcome =
-          stagePendingInsert(std::move(insert), publication, intfa);
+          stagePendingInsert(std::move(insert), publication, intfa, table);
       return outcome == DwgMappedEntityOutcome::CommittedCompound
                  ? outcome
                  : reject();
@@ -5097,7 +5100,7 @@ dwgReader::DwgMappedEntityOutcome dwgReader::stageLegacyInsertAggregate(
                                         dwgType::SEQEND, sequenceEnd);
 
     const DwgMappedEntityOutcome parentOutcome =
-        stagePendingInsert(std::move(insert), publication, intfa);
+        stagePendingInsert(std::move(insert), publication, intfa, table);
     if (parentOutcome != DwgMappedEntityOutcome::StagedCompound)
       return reject();
 
@@ -6746,7 +6749,8 @@ dwgReader::journalPreparedInsertCommit(std::uint32_t handle,
   }
   if ((prepared.sequenceEnd != nullptr &&
        !chargeFrame(prepared.sequenceEnd->frame)) ||
-      !transaction.reserveAdmission(sourceCount, sourceCount + 1u,
+      !transaction.reserveAdmission(sourceCount,
+                                    sourceCount + (pending.table ? 3u : 1u),
                                     bodyByteCount)) {
     releasePreparedMarkers();
     return DwgMappedEntityOutcome::Rejected;
@@ -6812,7 +6816,30 @@ dwgReader::journalPreparedInsertCommit(std::uint32_t handle,
     const DwgSourceFrameId parentSource = pending.frame.lease->source;
     {
       auto sourceScope = output.bindSource(parentSource);
-      output.appendValue(delivery, &DRW_Interface::addInsert);
+      if (pending.table) {
+        DRW_Table table = pending.table->entity;
+        static_cast<DRW_Insert &>(table) = delivery;
+        if (pending.table->splitGrid) {
+          auto grid = std::move(table.m_content);
+          output.appendValue(table, &DRW_Interface::addTable);
+          table.m_content = std::move(grid);
+        } else {
+          output.appendValue(table, &DRW_Interface::addTable);
+        }
+        if (pending.table->gridRequested) {
+          output.appendValue(table, [](DRW_Interface &target,
+                                       const DRW_Table &value) {
+            auto *handler = dynamic_cast<DRW_DwgLegacyTableGridHandler *>(&target);
+            if (handler && handler->wantsDwgLegacyTableGrid())
+              handler->addDwgLegacyTableGrid(value);
+          });
+        }
+        if (pending.table->raw)
+          output.appendValue(*pending.table->raw,
+                             &DRW_Interface::addUnsupportedObject);
+      } else {
+        output.appendValue(delivery, &DRW_Interface::addInsert);
+      }
     }
     committed = queueFrame(pending.frame);
     for (StagedAttribState *attribute : prepared.orderedAttributes)
@@ -6831,6 +6858,11 @@ dwgReader::journalPreparedInsertCommit(std::uint32_t handle,
     frame.frame->lease.reset();
     frame.frame->publication.reset();
   }
+  if (version < DRW::AC1018 && prepared.sequenceEnd != nullptr &&
+      pending.entity.haveNextLinks != 0 && sequenceHandle != DRW::NoHandle &&
+      sequenceHandle != std::numeric_limits<std::uint32_t>::max()) {
+    nextEntLink = sequenceHandle + 1u;
+  }
   if (prepared.sequenceEnd != nullptr)
     m_stagedSeqEnds.erase(sequenceHandle);
   eraseStagedAttributeIndex(handle, pending.attributes);
@@ -6844,6 +6876,13 @@ dwgReader::DwgMappedEntityOutcome dwgReader::deliverPreparedInsertCommit(
     DwgPreparedInsertCommit &prepared, DRW_Interface &intfa) {
   if (m_activeBlockTransaction != nullptr || m_activeBlockOutput != nullptr)
     return journalPreparedInsertCommit(handle, pending, prepared);
+
+  // TABLE publishes its typed projection, optional grid and raw peer as one
+  // block journal transaction; an immediate callback cannot roll them back.
+  if (pending.table) {
+    terminalizeInsertGroup(handle, DwgInsertTerminalReason::MalformedGroup);
+    return DwgMappedEntityOutcome::Rejected;
+  }
 
   const std::uint32_t sequenceHandle = pending.entity.seqendH.ref;
   pending.entity.attlist.swap(prepared.orderedEntities);
@@ -13221,6 +13260,65 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
                 && gridHandler && gridHandler->wantsDwgLegacyTableGrid();
             if (entryParse(e, buff, bs, ret, wantsLegacyGrid)) {
               e.name = findTableName(DRW::BLOCK_RECORD, e.blockRecH.ref);
+              if (version <= DRW::AC1015 && !e.attribHandles.empty()) {
+                compoundFrameHandled = true;
+                if (m_activeEntityFrameLease == nullptr ||
+                    ((m_activeBlockTransaction == nullptr) !=
+                     (m_activeBlockOutput == nullptr)) ||
+                    m_danglingBlockRecords.find(e.blockRecH.ref) !=
+                        m_danglingBlockRecords.end()) {
+                  terminalizeOrphanAttribOwner(e.handle);
+                  ret = false;
+                  break;
+                }
+                auto table = std::make_shared<LegacyTableDelivery>();
+                table->entity = e;
+                table->splitGrid = version < DRW::AC1015 &&
+                    !e.m_content.m_columns.empty() && !e.m_content.m_rows.empty();
+                table->gridRequested = table->splitGrid && wantsLegacyGrid;
+                if (e.m_hasSemanticContent && !e.m_semanticContentComplete) {
+                  table->raw = makeRawEntity(oType, cit->second, false,
+                                             DRW::NoHandle, &e);
+                  table->raw->m_typedPayloadValidated = false;
+                }
+                DRW_DwgFramePublication publication;
+                if (!materializeCurrentFramePublication(publication)) {
+                  terminalizeOrphanAttribOwner(e.handle);
+                  ret = false;
+                  break;
+                }
+                DRW_Insert owner = e;
+                DwgBlockScopeTransaction localTransaction(*this);
+                const bool standalone = m_activeBlockTransaction == nullptr;
+                struct RestoreJournal {
+                  DwgBlockScopeTransaction *&transaction;
+                  DwgEntityOutput *&output;
+                  bool active;
+                  ~RestoreJournal() {
+                    if (active) {
+                      transaction = nullptr;
+                      output = nullptr;
+                    }
+                  }
+                } restore{m_activeBlockTransaction, m_activeBlockOutput,
+                          standalone};
+                if (standalone) {
+                  m_activeBlockTransaction = &localTransaction;
+                  m_activeBlockOutput = &localTransaction.output();
+                }
+                const DwgMappedEntityOutcome outcome =
+                    stageLegacyInsertAggregate(std::move(owner), publication,
+                                               dbuf, intfa, offsetSpace, table);
+                ret = outcome != DwgMappedEntityOutcome::Rejected;
+                if (standalone && ret)
+                  ret = outcome == DwgMappedEntityOutcome::CommittedCompound &&
+                        localTransaction.replay(intfa);
+                if (m_activeMappedEntityOutcome != nullptr)
+                  *m_activeMappedEntityOutcome = outcome;
+                if (!ret)
+                  terminalizeOrphanAttribOwner(obj.handle);
+                break;
+              }
               // This snapshot is private and provisional until the later
               // committed-ledger/CRC reread and whole-read completion. Its
               // allocation failure never alters the ordinary TABLE callback.

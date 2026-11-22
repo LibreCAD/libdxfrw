@@ -1940,8 +1940,16 @@ protected:
     std::size_t index{0u};
   };
 
+  struct LegacyTableDelivery {
+    DRW_Table entity;
+    std::optional<DRW_UnsupportedObject> raw;
+    bool splitGrid{false};
+    bool gridRequested{false};
+  };
+
   struct PendingInsertState {
     DRW_Insert entity;
+    std::shared_ptr<LegacyTableDelivery> table;
     DwgStagedFrame frame;
     std::vector<StagedAttribState> attributes;
     // Modern INSERT membership is checked through a sorted, unique projection
@@ -2082,7 +2090,8 @@ protected:
   [[nodiscard]] DwgMappedEntityOutcome
   stagePendingInsert(DRW_Insert &&insert,
                      const DRW_DwgFramePublication &publication,
-                     DRW_Interface &intfa);
+                     DRW_Interface &intfa,
+                     std::shared_ptr<LegacyTableDelivery> table = nullptr);
   [[nodiscard]] DwgMappedEntityOutcome
   stageMappedInsertAggregate(DRW_Insert &&insert,
                              const DRW_DwgFramePublication &publication,
@@ -2092,7 +2101,8 @@ protected:
   stageLegacyInsertAggregate(DRW_Insert &&insert,
                              const DRW_DwgFramePublication &publication,
                              dwgBuffer *dbuf, DRW_Interface &intfa,
-                             DwgIntegrityAddressSpace offsetSpace);
+                             DwgIntegrityAddressSpace offsetSpace,
+                             std::shared_ptr<LegacyTableDelivery> table = nullptr);
   [[nodiscard]] DwgMappedEntityOutcome
   stageMappedPolylineAggregate(DRW_Polyline &&polyline,
                                const DRW_DwgFramePublication &publication,
@@ -2518,11 +2528,6 @@ private:
         m_dwgTableProducerProfile
             == dwgAppInfo::R21ProducerProfile::AutoCAD2007,
         legacyGridRequested);
-    // Do not publish an owner without its legacy ATTRIB/SEQEND aggregate.
-    // The record parser retains the links for qualification; the file reader
-    // remains fail-closed until it can stage the complete TABLE compound.
-    if (ret && version <= DRW::AC1015 && !e.attribHandles.empty())
-      ret = false;
     return finishEntryParse(e, buff, ret);
   }
 

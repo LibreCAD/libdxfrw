@@ -66,8 +66,8 @@ int main(int argc, char** argv) {
     const std::string profile = argv[2];
     if (profile == "r14-attrs") {
         if (argc != 4) return 2;
-        // Controlled derivative: the record parser can inspect the endpoint
-        // handles, but the file reader must not publish an incomplete owner.
+        // A bad endpoint must not publish any part of the compound. Reuse
+        // the same adapter for the corrected derivative and check its child.
         for (const unsigned mode : {0u, 1u, 2u}) {
             Probe plain;
             GridProbe capable; capable.optIn = mode == 2u;
@@ -86,16 +86,23 @@ int main(int argc, char** argv) {
             reader.tables.clear(); reader.inserts.clear(); reader.raw.clear();
             capable.grids.clear();
             dx_data retry;
-            if (!reader.fileImport(argv[3], &retry, false)
-                || reader.tables.count(0x528u) != 1u
+            (void)reader.fileImport(argv[3], &retry, false);
+            if (reader.tables.count(0x528u) != 1u
                 || reader.inserts.count(0x528u) != 1u
                 || reader.raw.count(0x528u) != 1u
-                || capable.grids.count(0x528u) != (mode == 2u ? 1u : 0u)) {
+                || capable.grids.count(0x528u) != (mode == 2u ? 1u : 0u)
+                || reader.tables.at(0x528u).attlist.size() != 1u
+                || reader.tables.at(0x528u).attlist[0]->handle != 0x705u
+                || reader.inserts.at(0x528u).attlist.size() != 1u
+                || (mode == 2u &&
+                    (capable.grids.at(0x528u).attlist.size() != 1u ||
+                     capable.grids.at(0x528u).m_content.m_columns.size() != 3u ||
+                     capable.grids.at(0x528u).m_content.m_rows.size() != 7u))) {
                 std::cerr << "TABLE callback did not recover on same-reader retry\n";
                 return 1;
             }
         }
-        std::cout << "R14 TABLE attribute compound remains fail-closed: PASS\n";
+        std::cout << "R14 TABLE attribute compound and corrected retry: PASS\n";
         return 0;
     }
     if (argc != 3) return 2;

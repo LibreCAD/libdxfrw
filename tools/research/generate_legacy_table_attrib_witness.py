@@ -191,9 +191,29 @@ def main():
         run([args.parser_probe, "--source-frame", str(frame_path)])
     if args.reader_probe:
         probes["reader"] = executable(args.reader_probe)
-        run([args.reader_probe, str(output), "r14-attrs", str(args.source)])
+        def reject_then_retry(name, body_address, body_size, bit):
+            bad = bytearray(output.read_bytes())
+            bad[body_address + bit // 8] ^= 0x80 >> (bit % 8)
+            struct.pack_into("<H", bad, body_address + body_size,
+                             crc16(bad[body_address - 2:body_address + body_size]))
+            bad_path = root / f"{name}.dwg"
+            bad_path.write_bytes(bad)
+            frame(bad, body_address - 2, body_size)
+            run([args.reader_probe, str(bad_path), "r14-attrs", str(output)])
+
+        reject_then_retry("wrong-role", address, size, INSERT_BIT + 3)
+        # In this hash-bound rewrite the ATTRIB/SEQEND common handle tails
+        # start at these bit offsets. Mutate their owner targets (not roles).
+        for name, body_address, body_size, owner_bit in (
+                ("wrong-attrib-owner", 99873, 89, 625),
+                ("wrong-seqend-owner", 99966, 20, 81)):
+            body = frame(output.read_bytes(), body_address - 2, body_size)
+            bits = Bits(body)
+            bits.bit = owner_bit
+            require(bits.handle() == (4, 2, 0x528), "child owner span changed")
+            reject_then_retry(name, body_address, body_size, owner_bit + 23)
     receipt = {
-        "schema": 1, "scope": "controlled R14 TABLE wire and fail-closed reader; not native semantics",
+        "schema": 1, "scope": "controlled R14 TABLE compound and malformed-role retry; not native semantics",
         "sourceSha256": SOURCE_HASH, "outputSha256": digest(output.read_bytes()),
         "frameSha256": digest(emitted), "frameAddress": address, "frameBytes": size,
         "toolSha256": digest(Path(__file__).read_bytes()),
