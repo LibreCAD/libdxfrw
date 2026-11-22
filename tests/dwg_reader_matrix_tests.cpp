@@ -13038,6 +13038,11 @@ public:
         if (forward)
             dx_iface::addRenderSettings(object);
     }
+    void addAcShHistoryObject(const DRW_AcShHistoryObject& object) override {
+        history.push_back(object);
+        if (forward)
+            dx_iface::addAcShHistoryObject(object);
+    }
     void addDwgFramePublication(const DRW_DwgFramePublication& publication) override {
         publications.push_back(publication);
         if (forward)
@@ -13050,6 +13055,7 @@ public:
     std::vector<DRW_TableGeometry> tableGeometry;
     std::vector<DRW_DataTable> dataTables;
     std::vector<DRW_RenderSettings> renderSettings;
+    std::vector<DRW_AcShHistoryObject> history;
     std::vector<DRW_DwgFramePublication> publications;
 private:
     bool forward;
@@ -13057,7 +13063,7 @@ private:
 
 void testR14RenderRawRetention(TestContext& t) {
     // Locally generated framing control, not a producer-authored render body.
-    const auto makeFrame = [](std::uint16_t type, std::uint32_t self) {
+    const auto makeFrame = [](std::uint16_t type, std::uint32_t self, bool history = false) {
         dwgBufferW body;
         body.putObjType(DRW::AC1014, type);
         body.putFixedHandle(0u, 2u, self);
@@ -13065,7 +13071,21 @@ void testR14RenderRawRetention(TestContext& t) {
         const auto sizeOffset = body.bitCount();
         body.putRawLong32(0u);
         body.putBitLong(1u); // one reactor
-        body.putBitShort(32767u); // unsupported/truncated typed body
+        if (history) {
+            // A complete generated common action prefix, followed by a
+            // deliberately truncated revolve body. This reaches the typed
+            // failure path instead of accepting an incomplete prefix.
+            body.putBitLong(0); body.putBitLong(33); body.putBitLong(329);
+            body.putSBitShort(0); body.putBitLong(1);
+            body.putBitLong(33); body.putBitLong(329);
+            for (unsigned i = 0; i < 16u; ++i)
+                body.putBitDouble(i % 5u == 0u ? 1.0 : 0.0);
+            body.putBitShort(7u); // legacy color index
+            body.putBitLong(3); // history-node value
+            body.putBitLong(33); body.putBitLong(329); // action versions
+        } else {
+            body.putBitShort(32767u); // unsupported/truncated typed body
+        }
         const auto bodyEnd = static_cast<std::uint32_t>(body.bitCount());
         const std::uint8_t endBytes[] = {
             static_cast<std::uint8_t>(bodyEnd), static_cast<std::uint8_t>(bodyEnd >> 8u),
@@ -13074,6 +13094,7 @@ void testR14RenderRawRetention(TestContext& t) {
         body.putFixedHandle(4u, 1u, 0xCu);
         body.putFixedHandle(4u, 1u, 0xCu);
         body.putFixedHandle(3u, 0u, 0u);
+        if (history) body.putFixedHandle(5u, 0u, 0u); // material handle
         body.alignToByte();
         dwgBufferW frame;
         frame.putModularShort(static_cast<std::int32_t>(body.size()));
@@ -13083,10 +13104,12 @@ void testR14RenderRawRetention(TestContext& t) {
     };
     constexpr std::uint16_t renderType = 517u, nextType = 519u;
     constexpr std::uint32_t renderHandle = 0xA110u, nextHandle = 0xA111u;
-    for (const auto& pair : {std::pair<const char*, const char*>{
-                                "RAPIDRTRENDERSETTINGS", "AcDbRapidRTRenderSettings"},
-                            {"MENTALRAYRENDERSETTINGS", "AcDbMentalRayRenderSettings"}}) {
-        const auto source = makeFrame(renderType, renderHandle);
+    struct Profile { const char* first; const char* second; bool history; };
+    for (const auto& pair : {Profile{"RAPIDRTRENDERSETTINGS", "AcDbRapidRTRenderSettings", false},
+                            {"MENTALRAYRENDERSETTINGS", "AcDbMentalRayRenderSettings", false},
+                            {"RENDERGLOBAL", "AcDbRenderGlobal", false},
+                            {"ACSH_REVOLVE_CLASS", "AcDbShRevolve", true}}) {
+        const auto source = makeFrame(renderType, renderHandle, pair.history);
         const auto next = makeFrame(nextType, nextHandle);
         auto bytes = source.second;
         bytes.insert(bytes.end(), next.second.begin(), next.second.end());
@@ -13098,12 +13121,19 @@ void testR14RenderRawRetention(TestContext& t) {
             static_cast<std::uint32_t>(source.second.size()), nextHandle, sink);
         const auto found = std::find_if(sink.raw.begin(), sink.raw.end(),
             [](const DRW_UnsupportedObject& object) { return object.m_handle == renderHandle; });
-        t.expect(read && reader.objectFailures() == 0u && sink.renderSettings.empty()
+        const auto published = std::find_if(sink.publications.begin(), sink.publications.end(),
+            [](const DRW_DwgFramePublication& object) { return object.m_handle == renderHandle; });
+        const auto expectedFailures = pair.history ? 1u : 0u;
+        t.expect(read && reader.objectFailures() == expectedFailures
+                     && sink.renderSettings.empty() && sink.history.empty()
                      && found != sink.raw.end() && found->m_rawBytes == source.first
                      && !found->m_typedPayloadValidated && sink.raw.size() == 2u
+                     && published != sink.publications.end()
+                     && published->m_carrier == DRW_DwgFramePublication::Carrier::Raw
                      && reader.skippedObjectCount(pair.first) == 1u,
-                 "R14 render body remains raw and the following frame is delivered");
-        if (!read || reader.objectFailures() != 0u || !sink.renderSettings.empty()
+                 "R14 unmodeled body remains raw and the following frame is delivered");
+        if (!read || reader.objectFailures() != expectedFailures
+            || !sink.renderSettings.empty() || !sink.history.empty()
             || found == sink.raw.end() || sink.raw.size() != 2u
             || reader.skippedObjectCount(pair.first) != 1u) {
             std::cerr << pair.first << ": read=" << read << " failures="
@@ -13122,8 +13152,8 @@ void testR14RenderRawRetention(TestContext& t) {
             static_cast<std::uint32_t>(source.second.size()), nextHandle, rejected);
         t.expect(!corruptRead && std::none_of(rejected.raw.begin(), rejected.raw.end(),
                      [](const DRW_UnsupportedObject& object) { return object.m_handle == renderHandle; }),
-                 "corrupt R14 render frame is not delivered through raw fallback");
-        const auto wrongSelf = makeFrame(renderType, renderHandle + 1u);
+                 "corrupt R14 frame is not delivered through raw fallback");
+        const auto wrongSelf = makeFrame(renderType, renderHandle + 1u, pair.history);
         auto wrongBytes = wrongSelf.second;
         wrongBytes.insert(wrongBytes.end(), next.second.begin(), next.second.end());
         PersistentManagerDispatchReader mismatch(wrongBytes, DRW::AC1014, 700u);
@@ -13137,6 +13167,20 @@ void testR14RenderRawRetention(TestContext& t) {
                      && std::none_of(mismatchSink.raw.begin(), mismatchSink.raw.end(),
                          [](const DRW_UnsupportedObject& object) { return object.m_handle == renderHandle; }),
                  "R14 render object-map handle mismatch refuses raw publication");
+        if (pair.history) {
+            auto otherClassBytes = bytes;
+            PersistentManagerDispatchReader otherClass(otherClassBytes, DRW::AC1014, 700u);
+            otherClass.addClass(renderType, pair.first, "AcDbOther");
+            otherClass.addTableContentClass(nextType);
+            PersistentManagerDispatchSink otherSink;
+            otherClass.readObjects(otherClassBytes, renderHandle,
+                static_cast<std::uint32_t>(source.second.size()), nextHandle, otherSink);
+            t.expect(otherClass.objectFailures() != 0u
+                         && otherClass.skippedObjectCount(pair.first) == 0u
+                         && std::none_of(otherSink.publications.begin(), otherSink.publications.end(),
+                             [](const DRW_DwgFramePublication& object) { return object.m_handle == renderHandle; }),
+                     "R14 history fallback does not publish a different class identity");
+        }
     }
 }
 

@@ -15434,12 +15434,19 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
                          && cit->second->className == "AcDbShRevolve")
                         || (rn == "ACSH_LOFT_CLASS"
                             && cit->second->className == "AcDbShLoft"));
-                if (ac1024OpaqueBodyProfile) {
+                const bool r14OpaqueRevolve = version == DRW::AC1014
+                    && rn == "ACSH_REVOLVE_CLASS"
+                    && cit->second->className == "AcDbShRevolve";
+                if (ac1024OpaqueBodyProfile || r14OpaqueRevolve) {
                   ++m_objectParseFailures;
+                  if (r14OpaqueRevolve) {
+                    ++m_skippedCustomClasses[cit->second->className];
+                    ++m_skippedUnsupportedObjects[rn];
+                  }
                   ret = true;
-                  DRW_DBG("AC1024 ACSH LOFT/REVOLVE retained as a ");
-                  DRW_DBG("qualified opaque source frame after typed ");
-                  DRW_DBG("body parse failure\n");
+                  DRW_DBG(r14OpaqueRevolve
+                      ? "R14 ACSH REVOLVE retained raw after typed body failure\n"
+                      : "AC1024 ACSH LOFT/REVOLVE retained as a qualified opaque source frame after typed body parse failure\n");
                 }
               }
               break;

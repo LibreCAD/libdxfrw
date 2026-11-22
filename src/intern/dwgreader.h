@@ -85,7 +85,9 @@ inline bool isR14RenderRawOnlyProfile(DRW::Version version,
       && ((objectClass->recName == "RAPIDRTRENDERSETTINGS"
            && objectClass->className == "AcDbRapidRTRenderSettings")
           || (objectClass->recName == "MENTALRAYRENDERSETTINGS"
-              && objectClass->className == "AcDbMentalRayRenderSettings"));
+              && objectClass->className == "AcDbMentalRayRenderSettings")
+          || (objectClass->recName == "RENDERGLOBAL"
+              && objectClass->className == "AcDbRenderGlobal"));
 }
 
 /// Immutable ordering key for the bounded catch-all ENTITIES sweep. The

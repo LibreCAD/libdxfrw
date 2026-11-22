@@ -4472,7 +4472,8 @@ void testCellStyleMapRawOnlyVersionProfile(TestContext& t) {
              "DICTIONARYWDFLT raw-shell fallback refuses a different record name");
     for (const auto& pair : {std::pair<const char*, const char*>{
                                 "RAPIDRTRENDERSETTINGS", "AcDbRapidRTRenderSettings"},
-                            {"MENTALRAYRENDERSETTINGS", "AcDbMentalRayRenderSettings"}}) {
+                            {"MENTALRAYRENDERSETTINGS", "AcDbMentalRayRenderSettings"},
+                            {"RENDERGLOBAL", "AcDbRenderGlobal"}}) {
         objectClass.recName = pair.first;
         objectClass.className = pair.second;
         t.expect(dwgReaderDetail::isR14RenderRawOnlyProfile(DRW::AC1014, &objectClass)
