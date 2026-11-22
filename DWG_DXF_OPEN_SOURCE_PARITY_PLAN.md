@@ -117,6 +117,8 @@ P4-D additional unresolved paths:
 
 The [AC1032 TABLECONTENT handle-role controls](docs/research/p5-ac1032-tablecontent-handle-role-controls-2026-11-21.json) now test non-null wrong-role refusal and retry. Keep the existing typed-null compatibility behavior unqualified until producer-specific meaning is established.
 
+The [legacy TABLE insertion prefix](docs/research/p5-ac1014-table-insert-prefix-2026-11-21.json) now preserves selected R14 placement and the 2D INSERT projection, with an explicitly unvalidated raw peer. Finish legacy ATTRIB chains, cell semantics, independent source boundaries and strict output before claiming wider TABLE support.
+
 Versioned TABLECONTENT profiles with incomplete semantics remain raw-only;
 see the [callback boundary](docs/research/p5-tablecontent-semantic-incomplete-callback-guard-2026-11-18.json).
 

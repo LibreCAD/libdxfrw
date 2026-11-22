@@ -17312,7 +17312,7 @@ bool DRW_Table::parseDwgWithR21Profile(DRW::Version version, dwgBuffer *buf,
         resetDwgState();
         return false;
     };
-    if (buf == nullptr || version < DRW::AC1015)
+    if (buf == nullptr || version < DRW::AC1012)
         return fail();
 
     dwgBuffer *sourceBuf = buf;
@@ -17332,36 +17332,46 @@ bool DRW_Table::parseDwgWithR21Profile(DRW::Version version, dwgBuffer *buf,
     DRW_DBG("\n************************** parsing table *****************************************\n");
     const std::uint64_t bodyEndBit = dwgDataEndBit;
     DRW_Coord parsedBasePoint;
-    std::uint8_t dataFlags = 0;
-    if (!readBoundedBitCoord(*buf, bodyEndBit, parsedBasePoint)
-        || !proxyEntityHasBits(*buf, bodyEndBit, 2))
-        return fail();
-    dataFlags = buf->get2Bits();
-    if (!buf->isGood())
+    if (!readBoundedBitCoord(*buf, bodyEndBit, parsedBasePoint))
         return fail();
 
     double parsedXScale = 1.0;
     double parsedYScale = 1.0;
     double parsedZScale = 1.0;
-    if (dataFlags == 3) {
-        // default scale 1,1,1
-    } else if (dataFlags == 1) {
-        if (!readBoundedDefaultDouble(*buf, bodyEndBit, parsedXScale,
-                                      parsedYScale)
-            || !readBoundedDefaultDouble(*buf, bodyEndBit, parsedXScale,
-                                         parsedZScale))
+    std::uint8_t dataFlags = 0;
+    if (version < DRW::AC1015) {
+        // ODA v5.4.1 §20.4.96.1: R13/R14 use three BD scale fields,
+        // not the R2000+ two-bit scale selector and DD payload.
+        if (!readBoundedBitDouble(*buf, bodyEndBit, parsedXScale)
+            || !readBoundedBitDouble(*buf, bodyEndBit, parsedYScale)
+            || !readBoundedBitDouble(*buf, bodyEndBit, parsedZScale))
             return fail();
-    } else if (dataFlags == 2) {
-        if (!readBoundedRawDouble(*buf, bodyEndBit, parsedXScale))
-            return fail();
-        parsedYScale = parsedZScale = parsedXScale;
     } else {
-        if (!readBoundedRawDouble(*buf, bodyEndBit, parsedXScale)
-            || !readBoundedDefaultDouble(*buf, bodyEndBit, parsedXScale,
-                                          parsedYScale)
-            || !readBoundedDefaultDouble(*buf, bodyEndBit, parsedXScale,
-                                         parsedZScale))
+        if (!proxyEntityHasBits(*buf, bodyEndBit, 2))
             return fail();
+        dataFlags = buf->get2Bits();
+        if (!buf->isGood())
+            return fail();
+        if (dataFlags == 3) {
+            // default scale 1,1,1
+        } else if (dataFlags == 1) {
+            if (!readBoundedDefaultDouble(*buf, bodyEndBit, parsedXScale,
+                                          parsedYScale)
+                || !readBoundedDefaultDouble(*buf, bodyEndBit, parsedXScale,
+                                             parsedZScale))
+                return fail();
+        } else if (dataFlags == 2) {
+            if (!readBoundedRawDouble(*buf, bodyEndBit, parsedXScale))
+                return fail();
+            parsedYScale = parsedZScale = parsedXScale;
+        } else {
+            if (!readBoundedRawDouble(*buf, bodyEndBit, parsedXScale)
+                || !readBoundedDefaultDouble(*buf, bodyEndBit, parsedXScale,
+                                              parsedYScale)
+                || !readBoundedDefaultDouble(*buf, bodyEndBit, parsedXScale,
+                                             parsedZScale))
+                return fail();
+        }
     }
 
     double parsedAngle = 0.0;
@@ -17376,6 +17386,11 @@ bool DRW_Table::parseDwgWithR21Profile(DRW::Version version, dwgBuffer *buf,
     std::int32_t objCount = 0;
     bool hasAttrib = false;
     if (!readBoundedBit(*buf, bodyEndBit, hasAttrib))
+        return fail();
+    // Legacy ATTRIB sequences use first/last links and a SEQEND. The
+    // aggregate has not yet been qualified for TABLE, so retain no partial
+    // typed view when this bit is set.
+    if (version < DRW::AC1015 && hasAttrib)
         return fail();
     if (hasAttrib && version > DRW::AC1015) {
         if (!readBoundedBitLong(*buf, bodyEndBit, objCount)
@@ -17406,8 +17421,12 @@ bool DRW_Table::parseDwgWithR21Profile(DRW::Version version, dwgBuffer *buf,
     if (!ret)
         return fail();
     dwgHandle parsedBlockRecH;
-    if (!readBoundedDwgHandle(hBuff, handleEndBit, 0, false,
-                              parsedBlockRecH))
+    if (version < DRW::AC1015
+        ? !readBoundedDwgHandleWithRole(hBuff, handleEndBit, handle,
+                                        DwgHandleReferenceRole::HardPointer,
+                                        parsedBlockRecH)
+        : !readBoundedDwgHandle(hBuff, handleEndBit, 0, false,
+                                parsedBlockRecH))
         return fail();
 
     std::vector<dwgHandle> parsedAttribHandles;
@@ -17440,6 +17459,14 @@ bool DRW_Table::parseDwgWithR21Profile(DRW::Version version, dwgBuffer *buf,
     zscale = parsedZScale;
     angle = parsedAngle;
     extPoint = parsedExtPoint;
+
+    if (version < DRW::AC1015) {
+        // This is only the INSERT-like prefix. Cell data and dependencies
+        // remain unqualified and are retained by the reader as a raw peer.
+        m_hasSemanticContent = true;
+        m_semanticContentComplete = false;
+        return commit();
+    }
 
     if (version == DRW::AC1021 && !autoCad2007Profile) {
         // AC1021 also covers AutoCAD 2008/2009, whose changed cell schema is

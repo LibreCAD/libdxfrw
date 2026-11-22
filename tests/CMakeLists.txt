@@ -43,6 +43,18 @@ add_test(NAME libdxfrw_raster_legacy_owner_wire
 set_tests_properties(libdxfrw_raster_legacy_owner_wire PROPERTIES
     LABELS "fast;dwg;raster;AC1012;AC1014;AC1015;transaction" TIMEOUT 30)
 
+add_executable(libdxfrw_table_legacy_prefix_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/table_legacy_prefix_tests.cpp)
+target_compile_features(libdxfrw_table_legacy_prefix_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_table_legacy_prefix_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_table_legacy_prefix_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_table_legacy_prefix_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_table_legacy_prefix
+    COMMAND libdxfrw_table_legacy_prefix_tests)
+set_tests_properties(libdxfrw_table_legacy_prefix PROPERTIES
+    LABELS "fast;dwg;table;AC1012;AC1014;transaction" TIMEOUT 30)
+
 add_executable(libdxfrw_legacy_layout_handle_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/legacy_layout_handle_tests.cpp)
 target_compile_features(libdxfrw_legacy_layout_handle_tests PRIVATE cxx_std_17)
@@ -2018,6 +2030,29 @@ set(LIBDXFRW_AC1012_LAYOUT_WIRE_SAMPLE "" CACHE FILEPATH
     "Optional external AC1012 two-LAYOUT source for physical wire controls")
 set(LIBDXFRW_AC1014_LAYOUT_WIRE_SAMPLE "" CACHE FILEPATH
     "Optional external AC1014 two-LAYOUT source for physical wire controls")
+set(LIBDXFRW_AC1014_TABLE_SAMPLE "" CACHE FILEPATH
+    "Optional ACadSharp sample_AC1014.dwg for the hash-selected TABLE prefix control")
+if(LIBDXFRW_AC1014_TABLE_SAMPLE)
+    if(NOT EXISTS "${LIBDXFRW_AC1014_TABLE_SAMPLE}")
+        message(FATAL_ERROR "LIBDXFRW_AC1014_TABLE_SAMPLE does not exist")
+    endif()
+    add_executable(libdxfrw_table_legacy_external_tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/table_legacy_external_tests.cpp
+        ${_libdxfrw_test_adapter_source})
+    target_compile_features(libdxfrw_table_legacy_external_tests PRIVATE cxx_std_17)
+    target_compile_options(libdxfrw_table_legacy_external_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+    target_include_directories(libdxfrw_table_legacy_external_tests PRIVATE
+        ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+    target_link_libraries(libdxfrw_table_legacy_external_tests PRIVATE dxfrw)
+    libdxfrw_check_test_adapter_context(libdxfrw_table_legacy_external_tests)
+    add_test(NAME libdxfrw_table_legacy_external
+        COMMAND ${CMAKE_COMMAND}
+            "-DSAMPLE=${LIBDXFRW_AC1014_TABLE_SAMPLE}"
+            "-DTEST_EXECUTABLE=$<TARGET_FILE:libdxfrw_table_legacy_external_tests>"
+            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_table_legacy_external.cmake)
+    set_tests_properties(libdxfrw_table_legacy_external PROPERTIES
+        LABELS "dwg;table;AC1014;external;compatibility" TIMEOUT 30)
+endif()
 if(LIBDXFRW_AC1014_EXTERNAL_PROFILE OR LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CONTROL
    OR LIBDXFRW_AC1012_LAYOUT_WIRE_SAMPLE OR LIBDXFRW_AC1014_LAYOUT_WIRE_SAMPLE)
     if(LIBDXFRW_AC1014_EXTERNAL_PROFILE AND NOT EXISTS "${LIBDXFRW_AC1014_EXTERNAL_PROFILE}")

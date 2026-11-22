@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1014-table-insert-prefix-2026-11-21",
+  "date": "2026-11-21",
+  "gate": "P5 / P6-F",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "path": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.4.1",
+      "20.4.96.1"
+    ],
+    "basis": "R13/R14 TABLE insertion uses three BD scales, not the R2000+ BB scale selector; the BLOCK_HEADER is a hard pointer. The specification notes TABLE was introduced later, so R13/R14 custom-class profiles need individual source evidence."
+  },
+  "source": {
+    "path": "../ACadSharp/samples/sample_AC1014.dwg",
+    "sha256": "d1ec4519be14ac49ecab5ec024ad951271e00261a1851f623a784a97ba6ede73",
+    "provenance": "ACadSharp sample script uses AutoCAD SAVEAS LT98; the exact producing build and original source provenance are unverified. The source is read in place and not committed.",
+    "peer": "GNU LibreDWG dwgread 0.14 independently reports TABLE handles 0x528 and 0xA35, block headers 0x570 and 0xA36, insertions (774.865723661128, 48.53878603809859, 0) and (18.3905818828116, -140.70432957829854, 0), scales (1,1,1), rotation 0 and normal (0,0,1)."
+  },
+  "change": "Decode a bounded R13/R14 insertion prefix with version-correct scales and hard-pointer BLOCK_HEADER. Mark all TABLE content incomplete, publish the existing 2D INSERT compatibility projection and retain an unvalidated raw source peer. Refuse unqualified legacy ATTRIB sequences. No complete cell semantics are claimed.",
+  "validation": {
+    "source": "Entity parse failures fall from two to zero for the hash-selected source; four other object failures and three unmodeled custom instances remain. Both TABLE typed prefixes and 2D projections match peer coordinates, scales and block handles; each has a nonempty, explicitly unvalidated raw peer.",
+    "repeatableExternal": "Set LIBDXFRW_AC1014_TABLE_SAMPLE to the source path and run CTest libdxfrw_table_legacy_external. Its wrapper rejects any different source hash. No external DWG or derivative is committed.",
+    "generated": "R13/R14 locally authored controls exercise distinct non-unit scales and 3D placement, block-handle roles and width, non-finite values, unqualified ATTRIB, truncation, reset and same-parser retry.",
+    "asan": "Instrumented generated prefix test passed.",
+    "compatibility": "AC1021/AC1024 TABLE placement vector and five rebuilt prefix, callback order, proxy-graphics, fallback runtime-dispatch and TABLE content tests passed.",
+    "publication": "Strict and explicit partial ASCII/binary conversion of the sample refused at the separate IMAGEDEF owner gate and preserved destination bytes. This is not whole-file or native TABLE output qualification."
+  },
+  "sourceHashes": {
+    "src/drw_entities.cpp": "56ce72b221a19ba0ca30abceb42930347764d457f1523d7526ab716a8ea0ef15",
+    "tests/table_legacy_prefix_tests.cpp": "ac2bd8656d5fd77c71d3901a38682da45c3d2288ed0bc6220678a0b868dc4934",
+    "tests/table_legacy_external_tests.cpp": "e56c442b01ecd632a0bdc3ddefac7842b40ab3ca744841f166c69a3a57b27802",
+    "tests/run_table_legacy_external.cmake": "6f2259e17175301fe5c0c0e721f9e7f5806d7444d57064a96e3c8291cbb28700"
+  },
+  "candidateBinarySha256": "3b995f5002e1e5cf9550c01ffaafc2e650d5ba8accaa9f40fbfedd0c7dbebbbf",
+  "traceSha256": "65ebbaf39db4331a16935da511ffc8afc8df4fc9caf8556c9b53ed7347363de3"
+}
