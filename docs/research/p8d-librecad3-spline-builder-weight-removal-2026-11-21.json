@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-spline-builder-weight-removal-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_HEADLESS_CONTROL_PASSED",
+  "supportClaimEffect": "none",
+  "consumerPullRequest": "https://github.com/LibreCAD/LibreCAD_3/pull/462",
+  "consumerCommit": "8b9ba9e8f671cfc0a48159d91ba366e31afc7223",
+  "scope": "SplineBuilder control-point removal with complete weights, invalid indices and incomplete-weight refusal; standalone spline save failure/retry.",
+  "validation": [
+    "Before the fix, removing a control retained the removed control weight and made the vector incomplete.",
+    "Nine focused spline tests pass with each codec build: negative and positive control indices, out-of-range including INT_MIN, fit/knot removals, rejection without mutation for incomplete weights, and generated ASCII/Binary save/reopen after caller knot update.",
+    "For invalid standalone weights, both codec builds refuse output while preserving an existing destination; replacing the invalid spline in the same document permits successful save and fresh readback. File::exportFile creates a new writer per call, so this is same-document rather than same-adapter retry.",
+    "Thirty-eight focused geometry tests and six bundled/ten shared HATCH/MPOLYGON controls pass.",
+    "Python binding plan-sync check passes."
+  ],
+  "logSha256": {
+    "lc3-builder-weight-negative.log": "557a2ac7b3856cc469b3aac2f21631ec9fa4adf91da5e69ce2c4e9d9161575f6",
+    "lc3-builder-weight-direct-test.log": "0bc66716ae1c33f408b44bcd2c483054037a979687041c3cdec309b11c7cd133",
+    "lc3-builder-weight-system-test.log": "7212b1072f04a3b5779d722a63a2ba5d9fb9b9f5f71bb66c7178ebf84605912c",
+    "lc3-builder-weight-geometry.log": "fb16448b7f1f740389a9d1c1111a26ebb974a62646b3eeb52dce342e29fd34a9",
+    "lc3-builder-weight-direct-hatch.log": "ea8ad214fd4b73d45b8fb56f69cc909c5d72bb00f6ef8ddf9de714fd05371a6a",
+    "lc3-builder-weight-system-hatch.log": "4da4dbf574e3ff34536300b6ebf12d2cb6517853c25603ccf67c18caaf8701d9"
+  },
+  "limitations": [
+    "Callers must still update the knot vector after changing control-point count; the builder does not infer a new spline shape.",
+    "Headless macOS ARM64 only; native GUI, hosted CI, and other platforms remain open. Current shared-codec build uses scratch CMake glue."
+  ]
+}
