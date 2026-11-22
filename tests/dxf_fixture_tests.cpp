@@ -1845,6 +1845,12 @@ void testLayoutGraphReadContract(TestContext& t) {
     struct Cleanup {
         std::filesystem::path path;
         ~Cleanup() {
+            // Research tools can inspect the generated output before deleting
+            // the scratch directory. Ordinary test runs always clean up.
+            if (std::getenv("LIBDXFRW_KEEP_LAYOUT_GRAPH_CONTROL")) {
+                std::cerr << "saved layout graph controls: " << path << '\n';
+                return;
+            }
             std::error_code error;
             std::filesystem::remove_all(path, error);
         }
