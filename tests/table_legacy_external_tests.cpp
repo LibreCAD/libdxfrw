@@ -64,11 +64,13 @@ int main(int argc, char** argv) {
           9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0}}
     };
     const std::string profile = argv[2];
-    if (profile == "r14-attrs" || profile == "r13-attrs") {
+    if (profile == "r14-attrs" || profile == "r13-attrs" ||
+        profile == "r13-early-attrs") {
         if (argc != 4) return 2;
-        const bool r13Attributes = profile == "r13-attrs";
+        const bool r13Attributes = profile != "r14-attrs";
         const std::uint32_t tableHandle = r13Attributes ? 0x4F2u : 0x528u;
-        const std::uint32_t attribHandle = r13Attributes ? 0x757u : 0x705u;
+        const std::uint32_t attribHandle = profile == "r13-early-attrs" ? 0x192u
+                                            : r13Attributes ? 0x757u : 0x705u;
         // A bad endpoint must not publish any part of the compound. Reuse
         // the same adapter for the corrected derivative and check its child.
         for (const unsigned mode : {0u, 1u, 2u}) {

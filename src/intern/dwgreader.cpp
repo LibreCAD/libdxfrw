@@ -4984,6 +4984,7 @@ dwgReader::DwgMappedEntityOutcome dwgReader::stageLegacyInsertAggregate(
   };
   const auto reject = [this, insertHandle, &quarantineDiscovered]() {
     terminalizeInsertGroup(insertHandle, DwgInsertTerminalReason::MalformedGroup);
+    terminalizeOrphanAttribOwner(insertHandle);
     quarantineDiscovered();
     return DwgMappedEntityOutcome::Rejected;
   };
@@ -4994,6 +4995,25 @@ dwgReader::DwgMappedEntityOutcome dwgReader::stageLegacyInsertAggregate(
     while (nextHandle != DRW::NoHandle) {
       if (!visitedHandles.insert(nextHandle).second)
         return reject();
+      const auto indexed = m_stagedAttributeIndex.find(nextHandle);
+      if (indexed != m_stagedAttributeIndex.end()) {
+        const auto orphans = m_orphanAttribStates.find(insertHandle);
+        if (indexed->second.owner != insertHandle ||
+            orphans == m_orphanAttribStates.end() ||
+            indexed->second.index >= orphans->second.attributes.size())
+          return reject();
+        const auto &attribute = orphans->second.attributes[indexed->second.index];
+        if (!attribute.entity || attribute.entity->handle != nextHandle ||
+            attribute.entity->parentHandle != insertHandle ||
+            !validateStagedFrame(attribute.frame))
+          return reject();
+        if (nextHandle == lastHandle) {
+          reachedLast = true;
+          break;
+        }
+        nextHandle = attribute.entity->nextEntLink;
+        continue;
+      }
       discoveredHandles.push_back(nextHandle);
 
       const auto sourceIt = ObjectMap.find(nextHandle);
@@ -5044,6 +5064,14 @@ dwgReader::DwgMappedEntityOutcome dwgReader::stageLegacyInsertAggregate(
     }
     if (!reachedLast)
       return reject();
+    const auto orphans = m_orphanAttribStates.find(insertHandle);
+    if (orphans != m_orphanAttribStates.end()) {
+      for (const StagedAttribState &attribute : orphans->second.attributes) {
+        if (!attribute.entity ||
+            visitedHandles.find(attribute.entity->handle) == visitedHandles.end())
+          return reject();
+      }
+    }
 
     // Handle maps are visited by handle, so a valid legacy SEQEND can be
     // staged before its INSERT.  The empty-range form has no ATTRIB frames to
@@ -5051,8 +5079,9 @@ dwgReader::DwgMappedEntityOutcome dwgReader::stageLegacyInsertAggregate(
     // directly.
     const auto preStagedSequenceIt = m_stagedSeqEnds.find(sequenceHandle);
     if (preStagedSequenceIt != m_stagedSeqEnds.end()) {
-      if (preStagedSequenceIt->second.owner != insertHandle ||
-          !attributes.empty())
+      if (!attributes.empty() ||
+          preStagedSequenceIt->second.owner != insertHandle ||
+          !validateStagedFrame(preStagedSequenceIt->second.frame))
         return reject();
       const DwgMappedEntityOutcome outcome =
           stagePendingInsert(std::move(insert), publication, intfa, table);
@@ -6632,7 +6661,17 @@ bool dwgReader::prepareInsertCommit(std::uint32_t handle,
   };
   try {
     if (version < DRW::AC1018 && pending.entity.attribHandles.size() == 2u) {
-      for (std::size_t index = 0u; index < pending.attributes.size(); ++index) {
+      const std::uint32_t last = pending.entity.attribHandles.back().ref;
+      std::uint32_t current = pending.entity.attribHandles.front().ref;
+      while (current != DRW::NoHandle) {
+        if (prepared.orderedAttributes.size() >= pending.attributes.size())
+          return false;
+        const auto indexed = m_stagedAttributeIndex.find(current);
+        if (indexed == m_stagedAttributeIndex.end() ||
+            indexed->second.owner != handle ||
+            indexed->second.index >= pending.attributes.size())
+          return false;
+        const std::size_t index = indexed->second.index;
         const StagedAttribState &attribute = pending.attributes[index];
         if (attribute.entity == nullptr ||
             !isExpectedAttribute(pending.entity,
@@ -6641,7 +6680,13 @@ bool dwgReader::prepareInsertCommit(std::uint32_t handle,
             !appendAttribute(index)) {
           return false;
         }
+        if (current == last)
+          break;
+        current = attribute.entity->nextEntLink;
       }
+      if ((last != DRW::NoHandle && current != last) ||
+          prepared.orderedAttributes.size() != pending.attributes.size())
+        return false;
     } else {
       if (pending.expectedAttributeHandles.size() !=
           pending.entity.attribHandles.size()) {
@@ -11414,8 +11459,15 @@ bool dwgReader::isMappedInsertSequenceEnd(dwgBuffer *dbuf,
       parentClassification.route != DwgFrameClassification::Route::Entity) {
     return false;
   }
-  return parentClassification.resolvedType == dwgType::INSERT ||
-         parentClassification.resolvedType == dwgType::MINSERT;
+  if (parentClassification.resolvedType == dwgType::INSERT ||
+      parentClassification.resolvedType == dwgType::MINSERT)
+    return true;
+  if (version > DRW::AC1015)
+    return false;
+  const auto tableClass = classesmap.find(parentClassification.resolvedType);
+  return tableClass != classesmap.end() && tableClass->second &&
+         (tableClass->second->recName == "ACAD_TABLE" ||
+          tableClass->second->className == "AcDbTable");
 }
 
 bool dwgReader::preflightMappedPolylineOwnership(

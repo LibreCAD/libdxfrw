@@ -352,6 +352,8 @@ std::vector<std::uint8_t> makeGeneratedR2000NonXrefBlockRecord(
     return output.data();
 }
 
+void setAttribNextForTest(DRW_Attrib& attribute, std::uint32_t nextHandle);
+
 class PolylineStageTestReader final : public dwgReader21 {
 public:
     using Outcome = DwgMappedEntityOutcome;
@@ -564,10 +566,12 @@ public:
                            std::uint32_t ownerHandle,
                            std::uint32_t attributeHandle,
                            DRW_Interface &interface,
-                           bool &frameRemainsInMap) {
+                           bool &frameRemainsInMap,
+                           std::uint32_t nextHandle = DRW::NoHandle) {
         DRW_Attrib attribute;
         attribute.handle = attributeHandle;
         attribute.parentHandle = ownerHandle;
+        setAttribNextForTest(attribute, nextHandle);
         auto staged = std::make_shared<DRW_Attrib>(std::move(attribute));
         return stageWithFrame(
             sourceFrameHandle, interface, frameRemainsInMap,
@@ -753,6 +757,9 @@ public:
 
 class DrwEntityEncodeTestAccess {
 public:
+    static void setNextLink(DRW_Entity& entity, std::uint32_t nextHandle) {
+        entity.nextEntLink = nextHandle;
+    }
     static void setImplicitLinks(DRW_Entity& entity) {
         entity.haveNextLinks = 1u;
     }
@@ -850,6 +857,10 @@ public:
         return false;
     }
 };
+
+void setAttribNextForTest(DRW_Attrib& attribute, std::uint32_t nextHandle) {
+    DrwEntityEncodeTestAccess::setNextLink(attribute, nextHandle);
+}
 
 namespace {
 
@@ -3079,7 +3090,7 @@ void testInsertAttributeStagingIndex(TestContext& t) {
     const bool legacyMiddleStaged = legacyParentStaged &&
         legacyReader.addFrame(legacyMiddle) &&
         legacyReader.stageAttribute(legacyMiddle, legacyOwner, legacyMiddle,
-                                    legacySink, legacyMiddleRemains) ==
+                                    legacySink, legacyMiddleRemains, legacyLast) ==
             PolylineStageTestReader::Outcome::StagedCompound &&
         !legacyMiddleRemains;
     const bool legacyLastStaged = legacyMiddleStaged &&
@@ -3091,17 +3102,38 @@ void testInsertAttributeStagingIndex(TestContext& t) {
     const bool legacyEndpointsCommit = legacyLastStaged &&
         legacyReader.addFrame(legacyFirst) &&
         legacyReader.stageAttribute(legacyFirst, legacyOwner, legacyFirst,
-                                    legacySink, legacyFirstRemains) ==
+                                    legacySink, legacyFirstRemains, legacyMiddle) ==
             PolylineStageTestReader::Outcome::CommittedCompound &&
         !legacyFirstRemains && legacySink.inserts.size() == 1u &&
         legacySink.inserts.front().attlist.size() == 3u &&
-        legacySink.inserts.front().attlist[0]->handle == legacyMiddle &&
-        legacySink.inserts.front().attlist[1]->handle == legacyLast &&
-        legacySink.inserts.front().attlist[2]->handle == legacyFirst &&
+        legacySink.inserts.front().attlist[0]->handle == legacyFirst &&
+        legacySink.inserts.front().attlist[1]->handle == legacyMiddle &&
+        legacySink.inserts.front().attlist[2]->handle == legacyLast &&
         legacyReader.stagedAttributeIndexSize() == 0u &&
         legacyReader.validateState();
     t.expect(legacyEndpointsCommit,
-             "R13-R2000 INSERT first/last endpoint compatibility retains encounter order for intervening ATTRIB records");
+             "R13-R2000 INSERT first/last endpoint compatibility follows ATTRIB links instead of encounter order");
+
+    PolylineStageTestReader cyclicReader;
+    cyclicReader.setReaderVersionForTest(DRW::AC1015);
+    PolylinePublicationSink cyclicSink;
+    DRW_Insert cyclicInsert;
+    cyclicInsert.handle = legacyOwner;
+    addDeclaredHandles(cyclicInsert, {legacyFirst, legacyLast});
+    bool ownerRemains = true, firstRemains = true, lastRemains = true;
+    const bool cyclicRejected = cyclicReader.addFrame(legacyOwner) &&
+        cyclicReader.stageInsert(cyclicInsert, cyclicSink, ownerRemains) ==
+            PolylineStageTestReader::Outcome::StagedCompound &&
+        cyclicReader.addFrame(legacyFirst) &&
+        cyclicReader.stageAttribute(legacyFirst, legacyOwner, legacyFirst,
+                                    cyclicSink, firstRemains, legacyFirst) ==
+            PolylineStageTestReader::Outcome::StagedCompound &&
+        cyclicReader.addFrame(legacyLast) &&
+        cyclicReader.stageAttribute(legacyLast, legacyOwner, legacyLast,
+                                    cyclicSink, lastRemains) ==
+            PolylineStageTestReader::Outcome::Rejected &&
+        cyclicSink.inserts.empty() && cyclicReader.validateState();
+    t.expect(cyclicRejected, "cyclic legacy ATTRIB chain is not published");
 }
 
 void testExactUnknownSectionNames(TestContext& t) {

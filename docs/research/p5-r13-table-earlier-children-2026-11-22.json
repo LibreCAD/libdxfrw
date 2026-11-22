@@ -1,0 +1,22 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "scope": "Controlled AC1012 TABLE with ATTRIB and SEQEND handles preceding their owner; no native support claim",
+  "sourceSha256": "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89",
+  "generatedDwgSha256": "9133b1820f73c2499ed507402e35b44bf55b68da4f0fd20ca778672d84954d6b",
+  "generatedTableFrameSha256": "7213946b85fdae35b34bc3e9f8dbedfa2f5615201445f2a2317dd5e67bb10f93",
+  "generator": "tools/research/generate_r13_table_attrib_witness.py --earlier-children",
+  "generatorSha256": "51dadb7e49e8cd679ccf8e992213ddc7d3c7740c24e2ca7b47b2c9dd1c8fabc3",
+  "observations": [
+    "The TABLE frame matches the original AC1012 source outside its attribute flag and three inserted references; LibreDWG independently reopens its TABLE 4F2, ATTRIB 192 and SEQEND 191.",
+    "The old reader withheld the controlled TABLE because its children were staged before their owner. The corrected reader adopts the staged children and publishes the TABLE, 2D INSERT, raw peer and opt-in 9-by-20 grid.",
+    "Separately corrupted role, ATTRIB owner and SEQEND owner are rejected with valid CRCs; the same reader then accepts the corrected compound."
+  ],
+  "limits": [
+    "No derivative is committed.",
+    "Other rewritten objects are not qualified.",
+    "No native TABLE semantics or strict output claim is established.",
+    "Mixed pre-staged and later children when SEQEND is already staged remain fail-closed.",
+    "Multiple-child controls and native source qualification remain necessary."
+  ]
+}
