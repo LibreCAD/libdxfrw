@@ -57491,7 +57491,8 @@ bool physicalDictionaryDefaultOutputReadback(
             || outputDictionary.m_defaultEntryHandle
                 != outputPlaceholder.handle
             || outputPlaceholder.parentHandle != outputDictionary.handle
-            || outputClassCount(output, "DICTIONARYWDFLT") != 1
+            || outputClassCount(output, source.sourceVersion == DRW::AC1015
+                ? "ACDBDICTIONARYWDFLT" : "DICTIONARYWDFLT") != 1
             || outputClassCount(output, "ACDBPLACEHOLDER") != 1)
             return fail("physical dictionary-default readback mismatch: root="
                 + std::to_string(outputRootEntry == output.namedObjectDictionary.m_entries.end()
@@ -57521,7 +57522,8 @@ bool physicalDictionaryDefaultOutputReadback(
                 + " reactors=" + std::to_string(outputDictionary.reactorHandles.size())
                 + " app/ext=" + std::to_string(outputDictionary.appData.size())
                 + "/" + std::to_string(outputDictionary.extData.size())
-                + " classes=" + std::to_string(outputClassCount(output, "DICTIONARYWDFLT"))
+                + " classes=" + std::to_string(outputClassCount(output,
+                    source.sourceVersion == DRW::AC1015 ? "ACDBDICTIONARYWDFLT" : "DICTIONARYWDFLT"))
                 + "/" + std::to_string(outputClassCount(output, "ACDBPLACEHOLDER")));
 
         std::vector<std::uint32_t> placeholderOwners;

@@ -34506,9 +34506,12 @@ bool dxfRW::writeDictionaryWithDefault(DRW_DictionaryWithDefault *ent) {
     RecordStateScope state(*this, ent);
     DxfWriterRecordScope record(*writer);
     const bool canonicalAc1027 = dynamic_cast<const DRW_Ac1027BoundDictionary*>(ent) != nullptr;
+    const auto* canonicalAc1015 = dynamic_cast<const DRW_Ac1015BoundDictionary*>(ent);
     if (canonicalAc1027 && (version != DRW::AC1027 || !m_requireResolvedBlockOwners))
         return failDxfWrite();
-    if (!writer->writeString(0, canonicalAc1027 || selectedCallerPlot
+    if (canonicalAc1015 && version != canonicalAc1015->targetVersion)
+        return failDxfWrite();
+    if (!writer->writeString(0, canonicalAc1027 || canonicalAc1015 || selectedCallerPlot
             ? "ACDBDICTIONARYWDFLT" : "DICTIONARYWDFLT")
         || !writer->writeString(5, toHexStr(handle))
         || !writeTableEntryAppData(*ent))

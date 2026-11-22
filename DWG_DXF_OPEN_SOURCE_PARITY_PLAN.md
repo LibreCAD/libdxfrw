@@ -140,6 +140,8 @@ see the [callback boundary](docs/research/p5-tablecontent-semantic-incomplete-ca
 
 For R14 source and output changes, reuse the [PR review regression controls](docs/research/p6-pr106-r14-conversion-review-fixes-2026-11-20.json). The [generated R13/R14/R2000 implicit INSERT chains](docs/research/p6-generated-legacy-implicit-insert-exact-angle-2026-11-21.json) exercise the next-link fix with complete scratch DWGs. R13 explicit-partial and R14 strict/partial outputs pass independent ASCII/Binary geometry readback; R14 also passes same-adapter refusal/retry. The earlier [R14 refusal](docs/research/p6-generated-legacy-implicit-insert-chain-2026-11-21.json) used a JSON-rounded angle. These controls do not close the organic-failure gate or establish broad support.
 
+The [selected AC1015 plot-style graph](docs/research/p6-ac1015-canonical-plotstyle-output-2026-11-21.json) now emits the canonical dictionary record and class for AC1015 and AC1024 targets; generated partial ASCII/Binary outputs retain the original graph in an independent reader and pass atomic refusal/retry. Other unqualified source records still block strict conversion.
+
 For the strict AC1012 MLINESTYLE output profile, reuse the version-aware R13/R14
 source checks and the [generated and ODA-produced controls](docs/research/p6-ac1012-generated-oda-dictionary-witness-2026-11-21.json).
 They bind the absent R13/R14 plain-DICTIONARY cloning field and show that ODA's selected R14

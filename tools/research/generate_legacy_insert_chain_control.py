@@ -169,6 +169,24 @@ def check_output(ezdxf, output, label):
             f'{label}: block geometry mismatch')
 
 
+def check_r2000_plotstyle(ezdxf, output, label):
+    drawing = ezdxf.readfile(output)
+    root = drawing.rootdict
+    dictionary = root['ACAD_PLOTSTYLENAME']
+    placeholder = dictionary['Normal']
+    # Also bind the original physical handles: ezdxf can otherwise replace
+    # an unrecognized alias with a new default graph while opening the file.
+    require(root.dxf.handle == 'C' and dictionary.dxftype() == 'ACDBDICTIONARYWDFLT'
+            and ('ACDBDICTIONARYWDFLT', 'AcDbDictionaryWithDefault') in drawing.classes.classes
+            and not any(key[0] == 'DICTIONARYWDFLT' for key in drawing.classes.classes)
+            and dictionary.dxf.handle == 'E' and dictionary.dxf.owner == 'C'
+            and dictionary.dxf.default == 'F' and dictionary.dxf.cloning == 1
+            and dictionary.dxf.hard_owned == 0 and dictionary.get_reactors() == ['C']
+            and placeholder.dxftype() == 'ACDBPLACEHOLDER'
+            and placeholder.dxf.handle == 'F' and placeholder.dxf.owner == 'E'
+            and placeholder.get_reactors() == ['E'], f'{label}: plot-style graph changed')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output-dir', type=Path, required=True)
@@ -254,13 +272,15 @@ def main():
                     require(trace.count(f'insertion point: x: {x}.000000, y: 0.000000, z: 0.000000') == 1,
                             f'{version} {label} INSERT {x} not visited once')
                 require('0x33 [bidi-debug pre-graphFlag' in trace, f'{version} {label} following LINE missing')
-                accepted = (version == 'r13' and partial) or version == 'r14'
+                accepted = (version in ('r13', 'r2000') and partial) or version == 'r14'
                 require((candidate.returncode == 0) == accepted,
                         f'{version} {label}: unexpected admission result')
                 observation = {'mode': label, 'exit': candidate.returncode,
                                'traceSha256': digest(root / (version + '-' + label + '.log'))}
                 if accepted:
                     check_output(ezdxf, output, f'{version} {label}')
+                    if version == 'r2000':
+                        check_r2000_plotstyle(ezdxf, output, f'{version} {label}')
                     observation['outputSha256'] = digest(output)
                     observation['independentReadback'] = 'three INSERTs and following LINE, positions and target block'
                 else:
@@ -268,6 +288,18 @@ def main():
                             f'{version} {label} did not preserve destination on refusal')
                     observation['destinationPreserved'] = True
                 observations.append(observation)
+        if version == 'r2000':
+            for binary in (False, True):
+                label = 'partial-r2010-binary' if binary else 'partial-r2010-ascii'
+                output = root / (version + '-' + label + '.dxf')
+                cmd = [str(tools['candidate']), str(corrected_dwg), '-y', '-v2010',
+                       '--allow-partial-dwg-read', '-o', str(output)]
+                if binary: cmd.append('-b')
+                run(cmd)
+                check_output(ezdxf, output, label)
+                check_r2000_plotstyle(ezdxf, output, label)
+                observations.append({'mode': label, 'exit': 0, 'outputSha256': digest(output),
+                                     'independentReadback': 'canonical plot-style graph and geometry'})
         result['samples'][version] = {'version': magic, 'dwgSha256': digest(corrected_dwg),
                                       'peerReopenSha256': digest(reopened), 'checks': observations}
         if version == 'r14' and args.adapter_test:
@@ -279,6 +311,15 @@ def main():
             result['samples'][version]['adapterRetry'] = {
                 'testSha256': digest(adapter_test), 'outputSha256': digest(output),
                 'result': 'mutation refused and destination preserved; same-adapter ASCII and Binary retry passed'}
+        if version == 'r2000' and args.adapter_test:
+            adapter_test = Path(args.adapter_test).resolve()
+            output = root / 'r2000-adapter-retry.dxf'
+            run([str(adapter_test), '--generated-r2000-default-retry', str(corrected_dwg), str(output)])
+            check_output(ezdxf, output, 'R2000 same-adapter retry')
+            check_r2000_plotstyle(ezdxf, output, 'R2000 same-adapter retry')
+            result['samples'][version]['adapterRetry'] = {
+                'testSha256': digest(adapter_test), 'outputSha256': digest(output),
+                'result': 'wrong reactor refused and destination preserved; same-adapter R2000/R2010 ASCII and Binary retry passed'}
     receipt = root / 'receipt.json'
     receipt.write_text(json.dumps(result, indent=2) + '\n')
     print(root)

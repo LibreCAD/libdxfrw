@@ -43290,8 +43290,12 @@ bool dx_iface::inspectDwgLayouts(
                     dictionaryWithDefault != nullptr && dictionary == nullptr
                     && dictionaryWithDefault->parentHandle
                         == m_dwgLayoutOutputNodHandle;
+                const bool canonicalDefault = cData->sourceVersion == DRW::AC1015
+                    && m_dwgDictionaryDefaultOutputSources.count(entry.m_handle) == 1u;
                 const char* recordName = isDictionary ? "DICTIONARY"
-                    : isDictionaryWithDefault ? "DICTIONARYWDFLT" : nullptr;
+                    : isDictionaryWithDefault
+                        ? (canonicalDefault ? "ACDBDICTIONARYWDFLT" : "DICTIONARYWDFLT")
+                        : nullptr;
                 if (recordName == nullptr || !mapHandle(entry.m_handle, emitted)
                     || emitted == emittedNod
                     || !emittedTargets.insert(emitted).second
@@ -59988,8 +59992,12 @@ bool dx_iface::inspectDwgDictionaryDefaultOutput(
         && cData->sourceVersion == DRW::AC1021
         && m_dwgLayoutOutputSourceVersion == DRW::AC1021
         && !m_dwgLayoutOutputSources.empty();
+    const bool canonicalAc1015 = m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1015;
     const DRW::Version expectedTargetVersion =
-        m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1018
+        m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1015
+            && view.version == DRW::AC1015
+            ? DRW::AC1015
+            : m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1018
             && view.version == DRW::AC1018
             ? DRW::AC1018
             : m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1027
@@ -60042,7 +60050,7 @@ bool dx_iface::inspectDwgDictionaryDefaultOutput(
             || emittedDictionary == emittedNod
             || emittedPlaceholder == emittedNod
             || !dxfW->dxfWriteRecordHasIdentity(
-                emittedDictionary, m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1027
+                emittedDictionary, (m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1027 || canonicalAc1015)
                     ? "ACDBDICTIONARYWDFLT" : "DICTIONARYWDFLT", "OBJECTS")
             || !dxfW->dxfWriteRecordHasOwner(
                 emittedDictionary, emittedNod)
@@ -60114,7 +60122,7 @@ bool dx_iface::inspectDwgDictionaryDefaultOutput(
             [&](std::string_view name, std::uint32_t handle) {
                 if ((handle == emittedDictionary
                         && !asciiIdentifierEquals(
-                            name, m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1027
+                            name, (m_dwgDictionaryDefaultOutputSourceVersion == DRW::AC1027 || canonicalAc1015)
                                 ? "ACDBDICTIONARYWDFLT" : "DICTIONARYWDFLT"))
                     || (handle == emittedPlaceholder
                         && !asciiIdentifierEquals(
@@ -92836,12 +92844,17 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         };
         const bool callerDefaultPlotProfile =
             m_dxfLayerMaterialState.defaultPlotSourceActive;
+        const bool canonicalAc1015 = cData && cData->sourceFormat == dx_source_format::DWG
+            && cData->sourceVersion == DRW::AC1015
+            && m_dwgDictionaryDefaultOutputSources.size() == 1u;
         return registerClass((usesAc1027DefaultLayerProfile()
+                                  || canonicalAc1015
                                   || m_dxfLayerMaterialState.plotActive
                                   || callerDefaultPlotProfile)
                                  ? "ACDBDICTIONARYWDFLT" : "DICTIONARYWDFLT",
                              "ACDBDICTIONARYWITHDEFAULT",
                              (usesAc1027DefaultLayerProfile()
+                                  || canonicalAc1015
                                   || m_dxfLayerMaterialState.plotActive
                                   || callerDefaultPlotProfile)
                                  ? "DICTIONARYWDFLT" : "ACDBDICTIONARYWDFLT",

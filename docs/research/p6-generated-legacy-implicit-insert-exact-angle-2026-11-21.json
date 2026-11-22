@@ -166,5 +166,6 @@
     "The selected R14 case establishes neither organic partial-read loss nor broad DWG, MLINESTYLE, or native CAD interoperability.",
     "The rounded input is a generator JSON precision artifact, not a demonstrated libdxfrw parser defect."
   ],
-  "supportClaimEffect": "none"
+  "supportClaimEffect": "none",
+  "followup": "p6-ac1015-canonical-plotstyle-output-2026-11-21.json: the selected AC1015 graph now emits its canonical class and record for AC1015 and AC1024 partial output; the previous refusal remains historical."
 }

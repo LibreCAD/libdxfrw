@@ -1,0 +1,187 @@
+{
+  "schema": 1,
+  "scope": "generated source chain; not native interoperability",
+  "ezdxfVersion": "1.4.5",
+  "tools": {
+    "dwgadd": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgadd",
+      "sha256": "66c435deb0f081ab72be21bb9ba36e5d149f9352d71ddf1e83ac95b3fc07f282"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "dwgwrite": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgwrite",
+      "sha256": "8c5dfd7f733e924723155e5040dd33f3fefdf4682071867a4c1d3499adf73e74"
+    },
+    "candidate": {
+      "path": "/private/tmp/libdxfrw-p6j-asan/dwg2dxf/dwg2dxf",
+      "sha256": "7e7c3e165a910e339ece162745d5f5114d691800d5522ee22b17b2b439de4d81"
+    }
+  },
+  "samples": {
+    "r13": {
+      "version": "AC1012",
+      "dwgSha256": "4917707a79d3cd5861449b9985bc5f97c1c5bf83c02fc8ca2a64c96b9f6eb0fb",
+      "peerReopenSha256": "2826f87fa8a13ec33945a50e37f7f35e720e87eaf27974f081ff3b4dc7655380",
+      "checks": [
+        {
+          "mode": "strict-ascii",
+          "exit": 1,
+          "traceSha256": "1ad235695fa358c2ed4eaee468261aa2b240becfed342eadae67b3bfc85dccb1",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "strict-binary",
+          "exit": 1,
+          "traceSha256": "89873b72cfbbeacb50486e294dc48a400796b82f525ee9866141115d3b3bb9bd",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "partial-ascii",
+          "exit": 0,
+          "traceSha256": "14044775be3dc62bc5b5336359eb0e7f4a795a294cc4defcb6dfb0a053bdcb8e",
+          "outputSha256": "e99dbd178d97206396b51ca57473317beb4a12fb13d66c348c1da47510119ab9",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "partial-binary",
+          "exit": 0,
+          "traceSha256": "4195da018df8796718568469efe56a5c0983bc566b485b8f1016f3dcc44bc84b",
+          "outputSha256": "bc8d1873670ab1b7266c3d8ac33f2cd06b8ad627e13e6b1c188f9b7e76dd8f35",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        }
+      ]
+    },
+    "r14": {
+      "version": "AC1014",
+      "dwgSha256": "d6b11cc160a06f9f57ed82d65314f5145927db5869dfc42368b08d1a6515f316",
+      "peerReopenSha256": "cca75424c2a8fff6f815705138869dce4a03700e86aebd8131e4890518520e58",
+      "checks": [
+        {
+          "mode": "rounded-ascii",
+          "exit": 1,
+          "destinationPreserved": true,
+          "sourceSha256": "d31b93effc8feea25428abe97d189499fce9fbd468dc5640fc324c3dee8aca6b"
+        },
+        {
+          "mode": "rounded-binary",
+          "exit": 1,
+          "destinationPreserved": true,
+          "sourceSha256": "d31b93effc8feea25428abe97d189499fce9fbd468dc5640fc324c3dee8aca6b"
+        },
+        {
+          "mode": "strict-ascii",
+          "exit": 0,
+          "traceSha256": "4a7f25823673c9a3e247cc1b2345f8d64865005e960b85602565cab2c8d0a647",
+          "outputSha256": "b488201ad5970e7ffbee090212d1776c44b7f765dc95ce5dd9d4c96688211979",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "strict-binary",
+          "exit": 0,
+          "traceSha256": "87eab46fd92409d9992579084078d752f6fe9267bb7af12538e7e86c3f1126f8",
+          "outputSha256": "428a5b4f43953ec0c9b682fe863234e46484b85a322434d5644469babb5c1a07",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "partial-ascii",
+          "exit": 0,
+          "traceSha256": "8fa67584b8549711ca33d7a078a2abd9d31f174290dcfaccde8e1863d3e2df9f",
+          "outputSha256": "b488201ad5970e7ffbee090212d1776c44b7f765dc95ce5dd9d4c96688211979",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "partial-binary",
+          "exit": 0,
+          "traceSha256": "477128f649e1d36f58143b2dcedada9f69e49db84cda43210d5face4955aa1e1",
+          "outputSha256": "428a5b4f43953ec0c9b682fe863234e46484b85a322434d5644469babb5c1a07",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        }
+      ],
+      "adapterRetry": {
+        "testSha256": "2c92819cff2fc0bca62dd5e6f15410b457a0d5112552d971a3845b6535a73554",
+        "outputSha256": "428a5b4f43953ec0c9b682fe863234e46484b85a322434d5644469babb5c1a07",
+        "result": "mutation refused and destination preserved; same-adapter ASCII and Binary retry passed"
+      }
+    },
+    "r2000": {
+      "version": "AC1015",
+      "dwgSha256": "c153770663f76db7b95017c424afba05cbe0b737ae4654e0076e778ece0f5366",
+      "peerReopenSha256": "7ba3b64585d4b10f391046fce6730feb246ad9267bdea67600a264ffa1164747",
+      "checks": [
+        {
+          "mode": "strict-ascii",
+          "exit": 1,
+          "traceSha256": "7c720dd3977838d5a2472062926ea19c5f9f3ad7f2f9b581fa93113d06a3c257",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "strict-binary",
+          "exit": 1,
+          "traceSha256": "f9eb406f63efdeca1291c6eb23ce4dc8b7d417054a5eeea2cc234ec541510de6",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "partial-ascii",
+          "exit": 0,
+          "traceSha256": "5838f84590cf920af2de732f814d93ad11d80ead13d0051088545addf9a1b4bb",
+          "outputSha256": "57770f6028226665a8a08534103a302b8832b2752537ab177f1e35ab4a5a5962",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "partial-binary",
+          "exit": 0,
+          "traceSha256": "02bcfb52ad2bb20dd376dac719c3770d6b41d31305fce95aa418bc04c52fb9ae",
+          "outputSha256": "db294e406a03524c7c6fd44699af790fe27ed9342d049bbb81580f5d74922284",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "partial-r2010-ascii",
+          "exit": 0,
+          "outputSha256": "c55a4739852cc177c10f1f44d360a30c0ea7f907831c6c487865a085b9234ad9",
+          "independentReadback": "canonical plot-style graph and geometry"
+        },
+        {
+          "mode": "partial-r2010-binary",
+          "exit": 0,
+          "outputSha256": "12646a2af00b4602f62775c4201ddf339a1a6dba6d1d806f314366646cd7e6ce",
+          "independentReadback": "canonical plot-style graph and geometry"
+        }
+      ],
+      "adapterRetry": {
+        "testSha256": "2c92819cff2fc0bca62dd5e6f15410b457a0d5112552d971a3845b6535a73554",
+        "outputSha256": "5cf5402fa9d0d8267b84838ef357b0d1583bbb1373893ccfb16f149783d03333",
+        "result": "wrong reactor refused and destination preserved; same-adapter R2000/R2010 ASCII and Binary retry passed"
+      }
+    }
+  },
+  "status": "SELECTED_AC1015_GRAPH_ONLY",
+  "baseCommit": "9e8d8318f",
+  "generator": "tools/research/generate_legacy_insert_chain_control.py",
+  "generatorSha256": "28cf1db3f5279a760e10c2ac1b0b20437b582261f294c540ef507e673f424c5b",
+  "adapterTestSha256": "2d38480eb11850613e4e5810b80aac6c6f572821a05e4ea56ff8019825609891",
+  "authority": {
+    "object": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-A6605C05-1CF4-42A4-95EC-42190B2424EE.htm",
+    "classes": "https://help.autodesk.com/cloudhelp/2017/ENU/AutoCAD-DXF/files/GUID-DBDBE57E-9045-46A5-9FB9-99CADEB81CF0.htm"
+  },
+  "finding": "The selected typed AC1015 DWG plot-style graph was emitted with DICTIONARYWDFLT in both the record and CLASS. ezdxf 1.4.5 ignored that alias and silently created a new default plot-style graph, so a geometry-only readback did not prove original dictionary preservation. The former same-version inspection also rejected AC1015 targets before the selected graph could qualify.",
+  "change": "For the existing source-bound AC1015 dictionary/placeholder profile, emit the canonical ACDBDICTIONARYWDFLT record and CLASS at the already-supported AC1024 target and the newly admitted AC1015 target. Keep source, graph, reference, staged-output, and rollback checks; the raw DXF replay and other source profiles are unchanged.",
+  "verification": [
+    "ASan candidate reads a locally generated and peer-reopened AC1015 source with three implicit INSERTs and a line. Strict conversion still refuses other unqualified callbacks and preserves the destination.",
+    "Explicit-partial AC1015 and AC1024 ASCII/Binary outputs independently reopen in ezdxf with physical root C, dictionary E, default/Normal PLACEHOLDER F, canonical CLASS, owners, reactors, cloning, and geometry intact.",
+    "For both targets and encodings, a wrong placeholder reactor fails while preserving a seeded destination; restoring it succeeds on the same adapter and a fresh libdxfrw import verifies the graph."
+  ],
+  "limits": [
+    "The graph is a selected locally generated profile, not a native AutoCAD producer or general DWG output proof.",
+    "R2000 strict complete conversion still refuses unqualified opaque callbacks.",
+    "Organic entity loss remains absent; P6-F and the overall package gates remain open."
+  ],
+  "supportClaimEffect": "none",
+  "validation": {
+    "existingPhysicalProfile": "PASS: libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-output-readback on the generated AC1015 input; AC1024 ASCII/Binary graph, refusal, and same-adapter retry under ASan.",
+    "generatedTargets": "PASS: locally generated AC1015 input, AC1015 and AC1024 partial ASCII/Binary, independently reopened by ezdxf 1.4.5; wrong-reactor refusal and retry on the same adapter for both targets.",
+    "strict": "Both AC1015 strict encodings preserved destination while refusing other unqualified callbacks."
+  }
+}

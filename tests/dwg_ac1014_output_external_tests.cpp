@@ -1305,10 +1305,56 @@ bool generatedInsertRetry(const std::string& input, const std::filesystem::path&
     }
     return true;
 }
+
+bool generatedR2000DefaultRetry(const std::string& input, const std::filesystem::path& output) {
+    dx_iface adapter;
+    dx_data source;
+    if (!adapter.fileImport(input, &source, false)
+        || source.sourceVersion != DRW::AC1015
+        || source.dictionaryWithDefaults.size() != 1u
+        || source.placeholders.size() != 1u) return false;
+    auto& placeholder = source.placeholders.front();
+    const auto reactors = placeholder.reactorHandles;
+    const std::string sentinel = "generated R2000 default graph retry\n";
+    for (const DRW::Version target : {DRW::AC1015, DRW::AC1024}) for (const bool binary : {false, true}) {
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        placeholder.reactorHandles = {DRW::NoHandle};
+        const bool failed = !write(adapter, source, output.string(), binary, target,
+                                   dx_dwgReadCompletenessPolicy::AllowPartial)
+            && bytes(output) == sentinel;
+        placeholder.reactorHandles = reactors;
+        if (!failed || !write(adapter, source, output.string(), binary, target,
+                              dx_dwgReadCompletenessPolicy::AllowPartial)) return false;
+        dx_iface fresh;
+        dx_data reopened;
+        if (!fresh.fileImport(output.string(), &reopened, false)
+            || reopened.sourceVersion != target
+            || !reopened.hasNamedObjectDictionary
+            || reopened.dictionaryWithDefaults.size() != 1u
+            || reopened.rawPlaceholders.size() != 1u) return false;
+        const auto& dictionary = reopened.dictionaryWithDefaults.front();
+        const auto& child = reopened.rawPlaceholders.front();
+        const auto root = std::find_if(reopened.namedObjectDictionary.m_entries.begin(),
+            reopened.namedObjectDictionary.m_entries.end(), [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_PLOTSTYLENAME";
+            });
+        if (root == reopened.namedObjectDictionary.m_entries.end()
+            || root->m_handle != dictionary.handle
+            || dictionary.parentHandle != reopened.namedObjectDictionary.handle
+            || dictionary.m_entries.size() != 1u
+            || dictionary.m_entries.front().m_name != "Normal"
+            || dictionary.m_entries.front().m_handle != child.handle
+            || dictionary.m_defaultEntryHandle != child.handle
+            || child.parentHandle != dictionary.handle) return false;
+    }
+    return true;
+}
 } // namespace
 
 int main(int argc, char** argv) {
-    const bool ok = argc == 4 && std::string(argv[1]) == "--generated-insert-retry"
+    const bool ok = argc == 4 && std::string(argv[1]) == "--generated-r2000-default-retry"
+        ? generatedR2000DefaultRetry(argv[2], argv[3])
+        : argc == 4 && std::string(argv[1]) == "--generated-insert-retry"
         ? generatedInsertRetry(argv[2], argv[3])
         : argc == 5 && std::string(argv[1]) == "--legacy-malformed"
         ? checkLegacyMalformed(argv[2], argv[3], argv[4])
