@@ -447,7 +447,7 @@
     "The prior hash-selected R13 CTest checks library callback behavior against the same source."
   ],
   "limits": [
-    "The exact producer release and provenance are unknown; these are two versioned samples of the same drawing, not independent producer families.",
+    "The exact producer release and provenance are unknown; the selected TABLE values match across the two versions, but common origin and independent producer families are not established.",
     "The TABLE has no ATTRIBs. Cell data, intervening unknown payload, remaining handles, strict output and native consumer semantics are not qualified.",
     "No drawing or derivative is committed."
   ],
