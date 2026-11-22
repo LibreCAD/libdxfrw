@@ -2978,6 +2978,17 @@ private:
     bool m_standardDwgObjectCaptureFailed{false};
     bool m_standardDwgObjectPayloadFailed{false};
     DRW_DwgFramePublication m_dwgBlockControlPublication;
+    struct LegacyBlockRecordSource {
+        std::uint64_t generation{0u};
+        DRW::Version version{DRW::UNKNOWNV};
+        std::uint32_t handle{0u}, offset{0u};
+        std::uint64_t ordinal{0u};
+        DRW_DwgFrameOffsetSpace space{DRW_DwgFrameOffsetSpace::Unknown};
+        std::vector<std::uint8_t> body;
+    };
+    std::map<std::uint32_t, LegacyBlockRecordSource> m_legacyBlockRecordSources;
+    std::size_t m_legacyBlockRecordSourceBytes{0u};
+    bool m_legacyBlockRecordSourceFailed{false};
     // Import-time model-space BLOCK_RECORD extension link. Keep this private
     // so an editable table row cannot manufacture a source graph edge.
     std::uint64_t m_dwgGeoHostGeneration{0u};

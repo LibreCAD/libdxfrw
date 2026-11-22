@@ -76,8 +76,12 @@ class dx_iface : public DRW_Interface, public DRW_DxfClassSourceHandler, public 
                  public DRW_DxfPointCloudDefinitionSourceHandler,
                  public WholeSourceV2::Handler, public DwgVerifiedXRecordSink,
                  public DwgVerifiedTableCandidateSink,
-                 public DwgVerifiedTableCacheSourceSink {
+                 public DwgVerifiedTableCacheSourceSink,
+                 public DwgLegacyBlockRecordSourceSink {
 public:
+    bool wantsLegacyBlockRecordSource(DRW::Version version) const noexcept override;
+    void legacyBlockRecordSource(const DwgLegacyBlockRecordSourceTicket&) noexcept override;
+    void legacyBlockRecordSourceFailed() noexcept override;
     // Source observation only. This does not permit DWG or DXF replay.
     bool enableVerifiedXRecordSource(std::uint32_t handle) noexcept;
     // Empty disables observation; nonempty sets are all-or-none per import.

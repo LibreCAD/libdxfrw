@@ -30545,6 +30545,52 @@ bool dx_iface::enableVerifiedTableProjectionSource(const std::vector<std::uint32
     m_verifiedTableProjectionSelected=true;return true;
 }
 
+bool dx_iface::wantsLegacyBlockRecordSource(DRW::Version version) const noexcept {
+    return cData != nullptr && !cData->m_legacyBlockRecordSourceFailed
+        && dx_legacy_dwg_wire::supported(version);
+}
+
+void dx_iface::legacyBlockRecordSourceFailed() noexcept {
+    if (cData == nullptr) return;
+    cData->m_legacyBlockRecordSourceFailed = true;
+    cData->m_legacyBlockRecordSources.clear();
+    cData->m_legacyBlockRecordSourceBytes = 0u;
+}
+
+void dx_iface::legacyBlockRecordSource(
+        const DwgLegacyBlockRecordSourceTicket& ticket) noexcept {
+    if (cData == nullptr || cData->m_legacyBlockRecordSourceFailed) return;
+    constexpr std::size_t maxRecords = 10000u;
+    constexpr std::size_t maxBytes = 16u * 1024u * 1024u;
+    constexpr std::size_t perRecordOverhead = 256u;
+    const auto size = ticket.frame().body().size();
+    if (!dx_legacy_dwg_wire::supported(ticket.version())
+        || cData->importGeneration == 0u || ticket.handle() == 0u
+        || ticket.handle() == DRW::NoHandle || ticket.offset() != ticket.frame().offset()
+        || ticket.space() != DRW_DwgFrameOffsetSpace::PhysicalFile
+        || size == 0u || size > DwgLegacyBlockRecordSourceSink::MaxFrameBytes
+        || cData->m_legacyBlockRecordSources.size() >= maxRecords
+        || cData->m_legacyBlockRecordSourceBytes > maxBytes
+        || size + perRecordOverhead > maxBytes - cData->m_legacyBlockRecordSourceBytes) {
+        legacyBlockRecordSourceFailed();
+        return;
+    }
+    try {
+        dx_data::LegacyBlockRecordSource source;
+        source.generation = cData->importGeneration;
+        source.version = ticket.version(); source.handle = ticket.handle();
+        source.offset = ticket.offset(); source.ordinal = ticket.ordinal();
+        source.space = ticket.space(); source.body = ticket.frame().body();
+        if (!cData->m_legacyBlockRecordSources.emplace(ticket.handle(), std::move(source)).second) {
+            legacyBlockRecordSourceFailed();
+            return;
+        }
+        cData->m_legacyBlockRecordSourceBytes += size + perRecordOverhead;
+    } catch (...) {
+        legacyBlockRecordSourceFailed();
+    }
+}
+
 bool dx_iface::enableVerifiedTableCacheSourceFrames(
         std::uint32_t blockRecordHandle, std::uint32_t blockHandle) noexcept {
     if (!m_verifiedTableProjectionSelected || m_verifiedXRecordReadData
@@ -81506,6 +81552,11 @@ bool validateNamedObjectRootForExport(const dx_data& data,
 
 bool dx_iface::fileImport(const std::string& fileI, dx_data *fData, bool debug,
                           DRW::DxfCodePagePolicy codePagePolicy){
+    if (fData != nullptr) {
+        fData->m_legacyBlockRecordSources.clear();
+        fData->m_legacyBlockRecordSourceBytes = 0u;
+        fData->m_legacyBlockRecordSourceFailed = false;
+    }
     m_dwgAerialMaterialAppId = {};
     m_dwgAerialMaterialAppIdControl = {};
     m_dwgAerialGlobalMaterialEed = {};

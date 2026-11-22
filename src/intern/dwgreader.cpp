@@ -10319,6 +10319,46 @@ bool dwgReader::readDwgBlocks(DRW_Interface &intfa, dwgBuffer *dbuf,
       // delimiter entity. Deliver it only with the validated block scope.
       bkr->name = bk.name;
       intfa.addBlockRecord(*bkr);
+      // Optional source observation must not alter the main read cursor or
+      // turn a retention limit into a drawing-read failure. Consumers bind
+      // these provisional bytes to the completed import before using them.
+      if (auto *sink = dynamic_cast<DwgLegacyBlockRecordSourceSink *>(&intfa)) {
+        if (sink->wantsLegacyBlockRecordSource(version)) {
+          bool captured = false;
+          try {
+            const auto index = m_dwgSourceFrameIndexes.find(bkr->handle);
+            if (index != m_dwgSourceFrameIndexes.end()
+                && index->second < m_dwgSourceFrameLedger.size()) {
+              const auto &source = m_dwgSourceFrameLedger[index->second];
+              dwgBuffer probe = dbuf->forkIndependent();
+              if (source.m_handle == bkr->handle
+                  && source.m_disposition == DRW_DwgFrameDisposition::Published
+                  && source.m_publicationCount == 1u
+                  && source.m_sourceOffsetSpace == DRW_DwgFrameOffsetSpace::PhysicalFile
+                  && probe.setPosition(source.m_sourceOffset)) {
+                const std::int32_t size = probe.getModularShort();
+                if (probe.isGood() && size > 0
+                    && static_cast<std::size_t>(size) <= DwgLegacyBlockRecordSourceSink::MaxFrameBytes) {
+                  DwgObjectFrame frame;
+                  if (frame.readAt(probe, version, source.m_sourceOffset)) {
+                    dwgBuffer type(frame.body().data(), frame.body().size());
+                    if (type.getObjType(version) == kBlockTable.recordType && type.isGood()) {
+                      DwgLegacyBlockRecordSourceTicket ticket(
+                          version, source.m_handle, source.m_sourceOffset,
+                          source.m_sourceMapOrdinal, source.m_sourceOffsetSpace, frame);
+                      sink->legacyBlockRecordSource(ticket);
+                      captured = true;
+                    }
+                  }
+                }
+              }
+            }
+          } catch (...) {
+            captured = false;
+          }
+          if (!captured) sink->legacyBlockRecordSourceFailed();
+        }
+      }
       intfa.addBlock(bk);
       blockScopeOpened = true;
 

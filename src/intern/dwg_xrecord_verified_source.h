@@ -6,6 +6,7 @@
 
 #include "drw_objects.h"
 #include "dwgobjectframe.h"
+#include <cstddef>
 
 class dwgReader;
 class DRW_Table;
@@ -146,5 +147,41 @@ public:
         const noexcept = 0;
     virtual void verifiedTableCacheSource(
         const DwgVerifiedTableCacheSourceTicket&) noexcept = 0;
+};
+
+// Provisional, reader-authenticated R13/R14 BLOCK_HEADER frame. The sink must
+// bind this to the completed import, table membership and live model before
+// using it; delivery alone does not authorize output.
+class DwgLegacyBlockRecordSourceTicket final {
+    friend class dwgReader;
+    DwgLegacyBlockRecordSourceTicket(DRW::Version version, std::uint32_t handle,
+        std::uint32_t offset, std::uint64_t ordinal, DRW_DwgFrameOffsetSpace space,
+        const DwgObjectFrame& frame) noexcept
+        : version_(version), handle_(handle), offset_(offset), ordinal_(ordinal),
+          space_(space), frame_(frame) {}
+public:
+    DwgLegacyBlockRecordSourceTicket(const DwgLegacyBlockRecordSourceTicket&) = delete;
+    DwgLegacyBlockRecordSourceTicket& operator=(const DwgLegacyBlockRecordSourceTicket&) = delete;
+    DRW::Version version() const noexcept { return version_; }
+    std::uint32_t handle() const noexcept { return handle_; }
+    std::uint32_t offset() const noexcept { return offset_; }
+    std::uint64_t ordinal() const noexcept { return ordinal_; }
+    DRW_DwgFrameOffsetSpace space() const noexcept { return space_; }
+    const DwgObjectFrame& frame() const noexcept { return frame_; }
+private:
+    DRW::Version version_;
+    std::uint32_t handle_, offset_;
+    std::uint64_t ordinal_;
+    DRW_DwgFrameOffsetSpace space_;
+    const DwgObjectFrame& frame_;
+};
+
+class DwgLegacyBlockRecordSourceSink {
+public:
+    static constexpr std::size_t MaxFrameBytes = 64u * 1024u;
+    virtual ~DwgLegacyBlockRecordSourceSink() = default;
+    virtual bool wantsLegacyBlockRecordSource(DRW::Version) const noexcept = 0;
+    virtual void legacyBlockRecordSource(const DwgLegacyBlockRecordSourceTicket&) noexcept = 0;
+    virtual void legacyBlockRecordSourceFailed() noexcept = 0;
 };
 #endif
