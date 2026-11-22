@@ -2518,6 +2518,11 @@ private:
         m_dwgTableProducerProfile
             == dwgAppInfo::R21ProducerProfile::AutoCAD2007,
         legacyGridRequested);
+    // Do not publish an owner without its legacy ATTRIB/SEQEND aggregate.
+    // The record parser retains the links for qualification; the file reader
+    // remains fail-closed until it can stage the complete TABLE compound.
+    if (ret && version <= DRW::AC1015 && !e.attribHandles.empty())
+      ret = false;
     return finishEntryParse(e, buff, ret);
   }
 

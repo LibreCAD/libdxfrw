@@ -1842,7 +1842,10 @@ bool readBoundedDwgHandleWithRole(dwgBuffer& buffer,
 
     // Null references may retain an absolute relation code in the stream;
     // with no target, accept the untyped null or any absolute typed null.
-    const bool validRole = raw.ref64 == 0
+    const bool relativeUnit = raw.code == 0x06u || raw.code == 0x08u;
+    const bool validRole = relativeUnit
+        ? raw.size == 0u && role == DwgHandleReferenceRole::SoftPointer
+        : raw.ref64 == 0
         ? raw.size == 0u
             && (raw.code == 0u || (raw.code >= 0x02u && raw.code <= 0x05u))
         : role == DwgHandleReferenceRole::SoftPointer
@@ -1861,7 +1864,9 @@ bool readBoundedDwgHandleWithRole(dwgBuffer& buffer,
     dwgHandle resolved;
     if (!readBoundedDwgHandle(resolvedProbe, endBit, baseHandle,
                               resolveOffset, resolved)
-        || resolved.ref64 > std::numeric_limits<std::uint32_t>::max())
+        || resolved.ref64 > std::numeric_limits<std::uint32_t>::max()
+        || (isDwgSoftPointerHandleCode(raw.code) && raw.code != 0x04u
+            && resolved.ref64 == 0u))
         return false;
     buffer = resolvedProbe;
     value = resolved;
@@ -17420,11 +17425,6 @@ bool DRW_Table::parseDwgWithR21Profile(DRW::Version version, dwgBuffer *buf,
     bool hasAttrib = false;
     if (!readBoundedBit(*buf, bodyEndBit, hasAttrib))
         return fail();
-    // Legacy ATTRIB sequences use first/last links and a SEQEND. The
-    // aggregate has not yet been qualified for TABLE, so retain no partial
-    // typed view when this bit is set.
-    if (version < DRW::AC1015 && hasAttrib)
-        return fail();
     if (hasAttrib && version > DRW::AC1015) {
         if (!readBoundedBitLong(*buf, bodyEndBit, objCount)
             || !dwgSafety::validOwnedObjectCount(
@@ -17466,17 +17466,33 @@ bool DRW_Table::parseDwgWithR21Profile(DRW::Version version, dwgBuffer *buf,
     dwgHandle parsedSeqendH;
 
     if (hasAttrib) {
-        if (!DRW::reserve(parsedAttribHandles, objCount))
+        const bool legacyEndpoints = version <= DRW::AC1015;
+        const std::int32_t attributeCount = legacyEndpoints ? 2 : objCount;
+        if (!DRW::reserve(parsedAttribHandles, attributeCount))
             return fail();
-        for (std::int32_t i = 0; i < objCount; ++i) {
+        for (std::int32_t i = 0; i < attributeCount; ++i) {
             dwgHandle attribHandle;
-            if (!readBoundedDwgHandle(hBuff, handleEndBit, 0, false,
-                                      attribHandle))
+            if (legacyEndpoints
+                    ? !readBoundedDwgHandleWithRole(
+                          hBuff, handleEndBit, handle,
+                          DwgHandleReferenceRole::SoftPointer, attribHandle)
+                    : !readBoundedDwgHandle(hBuff, handleEndBit, 0, false,
+                                            attribHandle))
                 return fail();
             parsedAttribHandles.push_back(attribHandle);
         }
-        if (!readBoundedDwgHandle(hBuff, handleEndBit, 0, false,
-                                  parsedSeqendH))
+        if (legacyEndpoints
+                && ((parsedAttribHandles[0].ref == DRW::NoHandle)
+                    != (parsedAttribHandles[1].ref == DRW::NoHandle)))
+            return fail();
+        if (legacyEndpoints
+                ? !readBoundedDwgHandleWithRole(
+                      hBuff, handleEndBit, handle,
+                      DwgHandleReferenceRole::HardOwner, parsedSeqendH)
+                : !readBoundedDwgHandle(hBuff, handleEndBit, 0, false,
+                                        parsedSeqendH))
+            return fail();
+        if (legacyEndpoints && parsedSeqendH.ref == DRW::NoHandle)
             return fail();
     }
 

@@ -40,7 +40,7 @@ public:
 };
 
 int main(int argc, char** argv) {
-    if (argc != 3) return 2;
+    if (argc != 3 && argc != 4) return 2;
     struct Expected {
         std::uint32_t handle, block;
         double x, y;
@@ -64,6 +64,41 @@ int main(int argc, char** argv) {
           9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0}}
     };
     const std::string profile = argv[2];
+    if (profile == "r14-attrs") {
+        if (argc != 4) return 2;
+        // Controlled derivative: the record parser can inspect the endpoint
+        // handles, but the file reader must not publish an incomplete owner.
+        for (const unsigned mode : {0u, 1u, 2u}) {
+            Probe plain;
+            GridProbe capable; capable.optIn = mode == 2u;
+            Probe& reader = mode == 0u ? plain : static_cast<Probe&>(capable);
+            dx_data data;
+            (void)reader.fileImport(argv[1], &data, false);
+            if (reader.tables.count(0x528u) || reader.inserts.count(0x528u)
+                || reader.raw.count(0x528u) || capable.grids.count(0x528u)) {
+                std::cerr << "uncommitted TABLE attribute compound was published\n";
+                return 1;
+            }
+            if (reader.tables.count(0xA35u) != 1u) {
+                std::cerr << "independent TABLE after rejected compound was not delivered\n";
+                return 1;
+            }
+            reader.tables.clear(); reader.inserts.clear(); reader.raw.clear();
+            capable.grids.clear();
+            dx_data retry;
+            if (!reader.fileImport(argv[3], &retry, false)
+                || reader.tables.count(0x528u) != 1u
+                || reader.inserts.count(0x528u) != 1u
+                || reader.raw.count(0x528u) != 1u
+                || capable.grids.count(0x528u) != (mode == 2u ? 1u : 0u)) {
+                std::cerr << "TABLE callback did not recover on same-reader retry\n";
+                return 1;
+            }
+        }
+        std::cout << "R14 TABLE attribute compound remains fail-closed: PASS\n";
+        return 0;
+    }
+    if (argc != 3) return 2;
     if (profile != "r13" && profile != "r14") return 2;
     const bool isR13 = profile == "r13";
     const auto& expected = isR13 ? r13 : r14;
