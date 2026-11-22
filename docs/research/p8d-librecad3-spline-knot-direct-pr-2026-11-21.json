@@ -3,7 +3,7 @@
   "scope": "LibreCAD_3 ordinary open-clamped spline Bezier conversion",
   "pull_request": "https://github.com/LibreCAD/LibreCAD_3/pull/462",
   "base": "4fb48312708b39d499f7e6668104a3b54a8601c7",
-  "head": "c000f4a94349b5ddfe904ef29545950059143f40",
+  "head": "7bf4b1725ac1dde772c3a208aa3b48671df348db",
   "findings": {
     "baseline": "Source knot vector was ignored; for a quadratic control polygon the seam was x=2 instead of x=1.5. The new test failed on the base.",
     "change": "Use finite, ordered, open-clamped ordinary spline source knots with separated distinct values, when TinySpline accepts and converts them; use the previous default clamped curve otherwise.",
@@ -20,8 +20,11 @@
   },
   "limits": [
     "Native GUI, hosted CI and other platforms remain pending.",
-    "Rational, periodic, non-clamped, near-coincident and otherwise unsupported knots retain old fallback and remain unqualified.",
+    "Periodic, non-clamped, near-coincident and other unsupported profiles retain old fallback and remain unqualified; positive-weight open-clamped rational profiles now have bounded approximation evidence.",
     "Conic evidence covers the selected planar cases; other spline degrees, degenerate conics, 3D conic intersections and native GUI behavior remain unqualified.",
     "This does not qualify DWG parsing or close P8-D."
-  ]
+  ],
+  "previousHead": "c000f4a94349b5ddfe904ef29545950059143f40",
+  "dependsOn": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
+  "followUp": "Selected positive-weight rational spline approximation and rational HATCH region line checks are recorded in p8d-librecad3-rational-spline-render-2026-11-21.json; earlier test counts and hashes describe earlier heads."
 }

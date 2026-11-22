@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-rational-spline-render-2026-11-21",
+  "date": "2026-11-21",
+  "status": "DRAFT_BOUNDED_APPROXIMATION_FOCUSED_CHECKS_PASSED",
+  "supportClaimEffect": "none",
+  "pr": "https://github.com/LibreCAD/LibreCAD_3/pull/462",
+  "head": "7bf4b1725ac1dde772c3a208aa3b48671df348db",
+  "dependsOn": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
+  "parentHead": "ff2e487566923851acc6e76a19aa211266386345",
+  "problem": "Weighted SPLINE and HATCH spline edges previously drew the unweighted control polygon approximation despite retained weights.",
+  "implementation": "For finite positive weights and open-clamped nonperiodic degree 1\u20133 splines with supported knots, convert to homogeneous Bezier pieces and adaptively split until the projected control hull is within 1e-4 of control extent from each chord, subject to finite-value checks, maximum depth 16 and 8192 segments. Internal line-intersection junctions are retained once. Unsupported or over-budget cases retain the existing fallback and warning.",
+  "validation": {
+    "platform": "macOS ARM64 headless",
+    "geometry": "24/24 focused Bezier/spline tests pass, including rational quarter circle, weighted nonuniform 3D points and cubic midpoint independently evaluated by ezdxf 1.4.5, line intersection, exact joins and invalid-weight fallback.",
+    "geometryLogSha256": "4e6b112e73b92fb97844b72bafd49bc2683961efbb0d4a466587d47f2ef01672",
+    "negativeControl": "Quarter-circle rational source produced one unweighted segment before the change; an exact interior junction was missed before the intersection correction.",
+    "hatch": "2/2 focused rational/ordinary HATCH controls pass with the bundled codec, including selected region line intersections, movement and ASCII/Binary save/reopen. Nine HATCH/MPOLYGON controls and three standalone spline controls pass with the current shared codec using separate scratch integration.",
+    "bundledHatchLogSha256": "f8a18fdcd7bd07b6d106d91de503eddb2b2de7704dc1bee300942d3d4294355a",
+    "currentHatchLogSha256": "c40827bbda5aa542154d8a6c2bda9637be9816660a0898b7404d8c576077b2ae",
+    "planSync": "explicit-path plan validation passed in the complete source tree."
+  },
+  "limits": [
+    "Approximation is not an exact NURBS representation; rational import warning remains.",
+    "Periodic, nonpositive or invalid weights, unsupported knots or degree, and over-budget curves fall back to previous behavior.",
+    "Native GUI, other platforms, general 3D intersections and final integration remain open.",
+    "No generated DWG/DXF fixtures were committed."
+  ]
+}
