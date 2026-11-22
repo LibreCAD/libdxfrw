@@ -13,6 +13,12 @@
   "producer": "GNU LibreDWG dwgadd 0.14",
   "scratchDirectory": "/private/tmp/libdxfrw-ac1012-current/ac1012-dictionary-rdf52l0f",
   "scratchReceiptSha256": "efea83b2cb5871251556f3e29a8f8be273c0abc288e16b12855d97a335c04cc3",
+  "binaryRefusalRecheck": {
+    "toolSha256": "e1a67f354f8eeda99b19f7356ec522ccb9b2fc28cd764f9e39791032788f1b58",
+    "scratchDirectory": "/private/tmp/libdxfrw-ac1012-current/ac1012-dictionary-bdr2arb3",
+    "scratchReceiptSha256": "e48bafc5b1db4b58e2a4e8e1ee1dd87c38cdab2828da54662ea568e22c4a6ece",
+    "result": "For both R13 cloning requests, ASCII and binary strict conversion refuse and preserve their pre-existing destinations. All four R14/R2000 samples continue to pass the selected ASCII and binary peer checks. Wrong owner and cloning expectations refuse, followed by corrected same-process retry."
+  },
   "checks": [
     "Fresh R13 outputs refuse strict conversion while preserving the existing destination; no successful output is claimed for these cases.",
     "For each of two generated R14 and two R2000 sources, both ASCII and binary output independently reopen. The root resolves TEST_DICT with the expected handle, owner and empty contents, and the LINE retains both 3D endpoints.",

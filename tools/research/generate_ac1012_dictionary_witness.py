@@ -145,9 +145,12 @@ def model_and_frame(dwgread: str, path: Path, expected_version: str) -> dict:
             "crcValid": True, "wire": proof}
 
 
-def candidate_result(candidate: str, path: Path, output: Path) -> dict:
+def candidate_result(candidate: str, path: Path, output: Path, *, binary: bool = False) -> dict:
     output.write_bytes(SENTINEL)
-    result = run([candidate, str(path), "-o", str(output), "-y", "-d"], allow_failure=True)
+    command = [candidate, str(path)]
+    if binary:
+        command.append("-b")
+    result = run(command + ["-o", str(output), "-y", "-d"], allow_failure=True)
     log = result.stderr.decode(errors="replace")
     if result.returncode:
         require(output.read_bytes() == SENTINEL, "candidate failure replaced destination")
@@ -174,11 +177,9 @@ def selected_dictionary(summary: dict) -> dict:
     return children[0]
 
 
-def peer_output_check(ezdxf, candidate: str, source: Path, ascii_output: Path,
+def peer_output_check(ezdxf, ascii_output: Path, binary_output: Path,
                       source_model: dict, version: str, flag: int) -> dict:
     """Independently read successful candidate output in both DXF encodings."""
-    binary_output = ascii_output.with_name(ascii_output.stem + "-binary.dxf")
-    run([candidate, str(source), "-b", "-o", str(binary_output), "-y"])
     outputs = {}
     for encoding, output in (("ascii", ascii_output), ("binary", binary_output)):
         summary = audit_bytes(output.read_bytes(), include_rows=True)
@@ -297,9 +298,13 @@ def main() -> None:
             if args.candidate:
                 output = root / (name + "-candidate.dxf")
                 item["candidate"] = candidate_result(args.candidate, path, output)
-                if args.ezdxf_peer and item["candidate"]["exit"] == 0:
-                    item["ezdxfPeer"] = peer_output_check(ezdxf, args.candidate, path, output,
-                                                           item, version, flag)
+                if args.ezdxf_peer:
+                    binary = root / (name + "-candidate-binary.dxf")
+                    item["candidateBinary"] = candidate_result(args.candidate, path, binary, binary=True)
+                    require((item["candidate"]["exit"] == 0) == (item["candidateBinary"]["exit"] == 0),
+                            "candidate ASCII/binary conversion status differs")
+                    if item["candidate"]["exit"] == 0:
+                        item["ezdxfPeer"] = peer_output_check(ezdxf, output, binary, item, version, flag)
             results["samples"][name] = item
     for version in ("r13", "r14", "r2000"):
         x = results["samples"][f"{version}-cloning-0"]["wire"]["frameSha256"]
