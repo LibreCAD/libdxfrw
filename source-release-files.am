@@ -1381,6 +1381,7 @@ EXTRA_DIST = \
     tools/research/verify_oda_legacy_dictionary_ownership.py \
     tools/research/verify_oda_legacy_layer_graph.py \
     tools/research/verify_oda_legacy_xrecord_lengths.py \
+    tools/research/verify_r13_table_grid_wire.py \
     tools/research/verify_r14_render_frames_source.py \
     tools/run_external_advisory.py \
     tools/run_fast_baseline.py \
