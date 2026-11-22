@@ -4490,6 +4490,7 @@ private:
         DRW_Dictionary::Entry nodRootEntry;
         std::vector<std::pair<std::uint32_t, std::string>> linetypeDependencies;
         bool ac1024WireProof{false};
+        bool ac1015WireProof{false};
     };
     std::map<std::uint32_t,DwgMLineStyleOutputSource>
         m_dwgMLineStyleOutputSources;

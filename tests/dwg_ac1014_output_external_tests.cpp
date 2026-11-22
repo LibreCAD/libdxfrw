@@ -154,6 +154,9 @@ public:
     static std::vector<std::uint8_t>& r13EedBytes(dx_data& data) {
         return data.m_standardDwgObjectFrames.at({data.importGeneration, 0x30u}).raw.m_rawBytes;
     }
+    static std::vector<std::uint8_t>& mlineSourceBytes(dx_data& data, std::uint32_t handle) {
+        return data.m_opaqueDwgSourceFrames.at({data.importGeneration, handle}).m_rawBytes;
+    }
     static bool cleanDictionaryText(const dx_data& data, std::uint32_t handle) {
         const auto found = data.m_standardDwgObjectFrames.find({data.importGeneration, handle});
         return found != data.m_standardDwgObjectFrames.end() && found->second.payloadMatched
@@ -1312,19 +1315,40 @@ bool generatedR2000DefaultRetry(const std::string& input, const std::filesystem:
     if (!adapter.fileImport(input, &source, false)
         || source.sourceVersion != DRW::AC1015
         || source.dictionaryWithDefaults.size() != 1u
-        || source.placeholders.size() != 1u) return false;
+        || source.placeholders.size() != 1u
+        || source.mLineStyles.size() != 1u
+        || source.mLineStyles.front().elements.size() != 2u
+        || source.layouts.size() != 2u) return false;
     auto& placeholder = source.placeholders.front();
+    auto& element = source.mLineStyles.front().elements.front();
+    auto& style = source.mLineStyles.front();
+    auto& layout = source.layouts.front();
     const auto reactors = placeholder.reactorHandles;
+    const auto linetype = element.linetypeIndex;
+    const auto layoutOwner = layout.parentHandle;
+    const auto angle = style.startAngle;
+    auto& styleBytes = DxIfaceStandardDwgCaptureTestAccess::mlineSourceBytes(source, style.handle);
+    if (styleBytes.empty()) return false;
     const std::string sentinel = "generated R2000 default graph retry\n";
-    for (const DRW::Version target : {DRW::AC1015, DRW::AC1024}) for (const bool binary : {false, true}) {
+    for (const DRW::Version target : {DRW::AC1015, DRW::AC1024}) for (const bool binary : {false, true})
+    for (const int fault : {0, 1, 2, 3, 4}) {
+        if (target != DRW::AC1015 && fault >= 3) continue;
         { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
-        placeholder.reactorHandles = {DRW::NoHandle};
+        if (fault == 0) placeholder.reactorHandles = {DRW::NoHandle};
+        else if (fault == 1) element.linetypeIndex = 7;
+        else if (fault == 2) layout.parentHandle = DRW::NoHandle;
+        else if (fault == 3) styleBytes.front() ^= 1u;
+        else style.startAngle = angle + 1.0;
         const bool failed = !write(adapter, source, output.string(), binary, target,
-                                   dx_dwgReadCompletenessPolicy::AllowPartial)
+                                   dx_dwgReadCompletenessPolicy::RequireComplete)
             && bytes(output) == sentinel;
         placeholder.reactorHandles = reactors;
+        element.linetypeIndex = linetype;
+        layout.parentHandle = layoutOwner;
+        if (fault == 3) styleBytes.front() ^= 1u;
+        style.startAngle = angle;
         if (!failed || !write(adapter, source, output.string(), binary, target,
-                              dx_dwgReadCompletenessPolicy::AllowPartial)) return false;
+                              dx_dwgReadCompletenessPolicy::RequireComplete)) return false;
         dx_iface fresh;
         dx_data reopened;
         if (!fresh.fileImport(output.string(), &reopened, false)

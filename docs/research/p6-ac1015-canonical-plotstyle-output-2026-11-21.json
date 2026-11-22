@@ -183,5 +183,6 @@
     "existingPhysicalProfile": "PASS: libdxfrw_dwg2dxf_adapter_tests --dictionary-default-physical-output-readback on the generated AC1015 input; AC1024 ASCII/Binary graph, refusal, and same-adapter retry under ASan.",
     "generatedTargets": "PASS: locally generated AC1015 input, AC1015 and AC1024 partial ASCII/Binary, independently reopened by ezdxf 1.4.5; wrong-reactor refusal and retry on the same adapter for both targets.",
     "strict": "Both AC1015 strict encodings preserved destination while refusing other unqualified callbacks."
-  }
+  },
+  "followup": "p6-ac1015-generated-strict-same-version-2026-11-21.json: selected AC1015 source now passes strict same-version conversion; strict refusal in this receipt was historical."
 }

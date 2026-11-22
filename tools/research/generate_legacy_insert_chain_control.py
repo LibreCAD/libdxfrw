@@ -187,6 +187,31 @@ def check_r2000_plotstyle(ezdxf, output, label):
             and placeholder.get_reactors() == ['E'], f'{label}: plot-style graph changed')
 
 
+def check_r2000_layout_and_style(ezdxf, output, label):
+    drawing = ezdxf.readfile(output)
+    root = drawing.rootdict
+    layouts = root['ACAD_LAYOUT']
+    require(layouts.dxf.handle == '1A' and layouts.dxf.owner == 'C'
+            and set(layouts.keys()) == {'Model', 'Layout1'}, f'{label}: layout dictionary changed')
+    for name, handle, block in [('Model', '27', '1F'), ('Layout1', '29', '1E')]:
+        layout = layouts[name]
+        record = drawing.entitydb[block]
+        require(layout.dxftype() == 'LAYOUT' and layout.dxf.handle == handle
+                and layout.dxf.owner == '1A' and layout.get_reactors() == ['1A']
+                and layout.dxf.block_record_handle == block
+                and record.dxftype() == 'BLOCK_RECORD' and record.dxf.layout == handle,
+                f'{label}: {name} layout or block backlink changed')
+    styles = root['ACAD_MLINESTYLE']
+    style = styles['Standard']
+    require(styles.dxf.handle == '17' and styles.dxf.owner == 'C'
+            and style.dxftype() == 'MLINESTYLE' and style.dxf.handle == '18'
+            and style.dxf.owner == '17' and style.get_reactors() == ['17']
+            and style.dxf.start_angle == 90 and style.dxf.end_angle == 90
+            and [(e.offset, e.color, e.linetype) for e in style.elements]
+                == [(0.5, 256, 'BYLAYER'), (-0.5, 256, 'BYLAYER')],
+            f'{label}: MLINESTYLE graph or fields changed')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output-dir', type=Path, required=True)
@@ -272,7 +297,7 @@ def main():
                     require(trace.count(f'insertion point: x: {x}.000000, y: 0.000000, z: 0.000000') == 1,
                             f'{version} {label} INSERT {x} not visited once')
                 require('0x33 [bidi-debug pre-graphFlag' in trace, f'{version} {label} following LINE missing')
-                accepted = (version in ('r13', 'r2000') and partial) or version == 'r14'
+                accepted = (version == 'r13' and partial) or version in ('r14', 'r2000')
                 require((candidate.returncode == 0) == accepted,
                         f'{version} {label}: unexpected admission result')
                 observation = {'mode': label, 'exit': candidate.returncode,
@@ -281,6 +306,7 @@ def main():
                     check_output(ezdxf, output, f'{version} {label}')
                     if version == 'r2000':
                         check_r2000_plotstyle(ezdxf, output, f'{version} {label}')
+                        check_r2000_layout_and_style(ezdxf, output, f'{version} {label}')
                     observation['outputSha256'] = digest(output)
                     observation['independentReadback'] = 'three INSERTs and following LINE, positions and target block'
                 else:
@@ -289,17 +315,19 @@ def main():
                     observation['destinationPreserved'] = True
                 observations.append(observation)
         if version == 'r2000':
-            for binary in (False, True):
-                label = 'partial-r2010-binary' if binary else 'partial-r2010-ascii'
-                output = root / (version + '-' + label + '.dxf')
-                cmd = [str(tools['candidate']), str(corrected_dwg), '-y', '-v2010',
-                       '--allow-partial-dwg-read', '-o', str(output)]
-                if binary: cmd.append('-b')
-                run(cmd)
-                check_output(ezdxf, output, label)
-                check_r2000_plotstyle(ezdxf, output, label)
-                observations.append({'mode': label, 'exit': 0, 'outputSha256': digest(output),
-                                     'independentReadback': 'canonical plot-style graph and geometry'})
+            for partial in (False, True):
+                for binary in (False, True):
+                    label = ('partial' if partial else 'strict') + ('-r2010-binary' if binary else '-r2010-ascii')
+                    output = root / (version + '-' + label + '.dxf')
+                    cmd = [str(tools['candidate']), str(corrected_dwg), '-y', '-v2010', '-o', str(output)]
+                    if partial: cmd.append('--allow-partial-dwg-read')
+                    if binary: cmd.append('-b')
+                    run(cmd)
+                    check_output(ezdxf, output, label)
+                    check_r2000_plotstyle(ezdxf, output, label)
+                    check_r2000_layout_and_style(ezdxf, output, label)
+                    observations.append({'mode': label, 'exit': 0, 'outputSha256': digest(output),
+                                         'independentReadback': 'canonical plot-style graph and geometry'})
         result['samples'][version] = {'version': magic, 'dwgSha256': digest(corrected_dwg),
                                       'peerReopenSha256': digest(reopened), 'checks': observations}
         if version == 'r14' and args.adapter_test:
@@ -317,9 +345,10 @@ def main():
             run([str(adapter_test), '--generated-r2000-default-retry', str(corrected_dwg), str(output)])
             check_output(ezdxf, output, 'R2000 same-adapter retry')
             check_r2000_plotstyle(ezdxf, output, 'R2000 same-adapter retry')
+            check_r2000_layout_and_style(ezdxf, output, 'R2000 same-adapter retry')
             result['samples'][version]['adapterRetry'] = {
                 'testSha256': digest(adapter_test), 'outputSha256': digest(output),
-                'result': 'wrong reactor refused and destination preserved; same-adapter R2000/R2010 ASCII and Binary retry passed'}
+                'result': 'wrong reactor, linetype, or layout owner refused for both targets; changed source style bytes or angle refused for R2000; destination preserved and same-adapter strict ASCII/Binary retry passed'}
     receipt = root / 'receipt.json'
     receipt.write_text(json.dumps(result, indent=2) + '\n')
     print(root)

@@ -5,7 +5,7 @@
 #include "dx_legacy_dwg_wire.h"
 #include <cstring>
 
-// Bounded R13/R14 standard style observer. Caller binds source generation, owner
+// Bounded R13/R14/R2000 standard style observer. Caller binds source generation, owner
 // dictionary, output graph and staged readback.
 // ODA v5.4.1 section 20.4.73.
 namespace dx_legacy_mlinestyle_wire {
@@ -23,7 +23,7 @@ inline bool bitDouble(dx_raster_wire::detail::Bits& bits, double expected) noexc
 inline bool style(const DRW_UnsupportedObject& raw,
                   const DRW_MLineStyle& model) noexcept {
     using namespace dx_legacy_dwg_wire;
-    if (!supported(raw.m_version) || raw.m_objectType != 73
+    if ((!supported(raw.m_version) && raw.m_version != DRW::AC1015) || raw.m_objectType != 73
         || raw.m_handle != model.handle || raw.m_isEntity || raw.m_isCustomClass
         || raw.m_hasClassDefinition || raw.m_objectSize != raw.m_rawBytes.size()
         || raw.m_rawBytes.size() > UINT32_MAX / 8u || raw.m_bodyBitSize != 0u
@@ -45,9 +45,10 @@ inline bool style(const DRW_UnsupportedObject& raw,
             return false;
     Bits b{raw.m_rawBytes.data(), 0u, static_cast<std::uint32_t>(raw.m_rawBytes.size() * 8u)};
     constexpr double halfPi = 1.5707963267948966;
-    if (b.shortValue() != 73u || !reference(b, 0u, 0u, model.handle, true)
-        || b.shortValue() != 0u) return false;
-    const auto bodyEnd = b.little(4u);
+    if (b.shortValue() != 73u) return false;
+    const auto r2000BodyEnd = raw.m_version == DRW::AC1015 ? b.little(4u) : 0u;
+    if (!reference(b, 0u, 0u, model.handle, true) || b.shortValue() != 0u) return false;
+    const auto bodyEnd = raw.m_version == DRW::AC1015 ? r2000BodyEnd : b.little(4u);
     return b.longValue() == 1u && text(b, model.name) && text(b, "")
         && b.shortValue() == 0u && b.shortValue() == 256u
         && bitDouble(b, halfPi) && bitDouble(b, halfPi) && b.take(8u) == 2u

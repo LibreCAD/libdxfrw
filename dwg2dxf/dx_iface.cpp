@@ -38958,6 +38958,8 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         || (version != DRW::AC1024
             && !(cData->sourceVersion == DRW::AC1014
                 && version == DRW::AC1014)
+            && !(cData->sourceVersion == DRW::AC1015
+                && version == DRW::AC1015)
             && !(cData->sourceVersion == DRW::AC1021
                 && version == DRW::AC1021)
             && !(cData->sourceVersion == DRW::AC1027
@@ -39085,6 +39087,10 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
         || frame->second.m_hasDataStorage
         || !frameLinksMatch)
         return skipProfile("opaque MLINESTYLE source frame or common links");
+    const bool ac1015WireProof = cData->sourceVersion == DRW::AC1015
+        && version == DRW::AC1015;
+    if (ac1015WireProof && !dx_legacy_mlinestyle_wire::style(frame->second, style))
+        return skipProfile("AC1015 MLINESTYLE source wire");
 
     const DRW_Dictionary& nod = cData->namedObjectDictionary;
     if (nod.handle == 0u || nod.handle == DRW::NoHandle
@@ -39175,7 +39181,7 @@ bool dx_iface::prepareDwgMLineStyles(DRW::Version version) noexcept {
             style.handle,
             DwgMLineStyleOutputSource{
                 style, *rootOwner, nod.handle, nod.hardOwner, *rootEntry,
-                std::move(linetypeDependencies), ac1024WireProof});
+                std::move(linetypeDependencies), ac1024WireProof, ac1015WireProof});
         m_dwgMLineStyleOutputOwner = cData;
         m_dwgMLineStyleOutputGeneration = cData->importGeneration;
         return hasUnchangedDwgMLineStyleOutputSources();
@@ -39306,6 +39312,9 @@ bool dx_iface::hasUnchangedDwgMLineStyleOutputSources() const noexcept {
                 || frame->second.m_objectType != 73
                 || !frameLinksMatch)
                 return false;
+            if (frozen->second.ac1015WireProof
+                && !dx_legacy_mlinestyle_wire::style(frame->second, current))
+                return false;
             const DRW_Dictionary& nod = cData->namedObjectDictionary;
             const auto rootEntry = std::find_if(
                 nod.m_entries.begin(), nod.m_entries.end(),
@@ -39420,6 +39429,8 @@ bool dx_iface::inspectDwgMLineStyles(
         && ((view.version == DRW::AC1024 && cData->sourceVersion != DRW::AC1014)
             || (cData->sourceVersion == DRW::AC1014
                 && view.version == DRW::AC1014)
+            || (cData->sourceVersion == DRW::AC1015
+                && view.version == DRW::AC1015)
             || (cData->sourceVersion == DRW::AC1021
                 && view.version == DRW::AC1021)
             || (cData->sourceVersion == DRW::AC1027
@@ -41956,7 +41967,8 @@ bool dx_iface::prepareDwgLayouts(DRW::Version version, bool debug) noexcept {
         && hasLayoutIdentity(0x22u, "Model")
         && hasLayoutIdentity(0x59u, "Layout1")
         && hasLayoutIdentity(0x5Eu, "Layout2");
-    if (version != (ac1021Profile ? DRW::AC1021 : DRW::AC1024))
+    if (version != (ac1021Profile ? DRW::AC1021 : DRW::AC1024)
+        && !(cData->sourceVersion == DRW::AC1015 && version == DRW::AC1015))
         return skip("target is outside the exact source-version DXF profile");
 
     // Admit the witnessed AC1015/AC1021/AC1024 two-layout or AC1018
@@ -43030,7 +43042,8 @@ bool dx_iface::inspectDwgLayoutBlockRecords(
         return false;
     };
     const DRW::Version expectedTargetVersion =
-        m_dwgLayoutOutputSourceVersion == DRW::AC1021
+        m_dwgLayoutOutputSourceVersion == DRW::AC1015 && view.version == DRW::AC1015
+            ? DRW::AC1015 : m_dwgLayoutOutputSourceVersion == DRW::AC1021
             ? DRW::AC1021 : DRW::AC1024;
     if (dxfW == nullptr || cData == nullptr
         || view.version != expectedTargetVersion
@@ -43187,7 +43200,8 @@ bool dx_iface::inspectDwgLayouts(
         return false;
     };
     const DRW::Version expectedTargetVersion =
-        m_dwgLayoutOutputSourceVersion == DRW::AC1021
+        m_dwgLayoutOutputSourceVersion == DRW::AC1015 && view.version == DRW::AC1015
+            ? DRW::AC1015 : m_dwgLayoutOutputSourceVersion == DRW::AC1021
             ? DRW::AC1021 : DRW::AC1024;
     if (dxfW == nullptr || cData == nullptr
         || view.version != expectedTargetVersion
