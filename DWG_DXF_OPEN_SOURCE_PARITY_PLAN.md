@@ -149,6 +149,7 @@ The [selected AC1015 plot-style graph](docs/research/p6-ac1015-canonical-plotsty
 For the strict AC1012 MLINESTYLE output profile, reuse the [shared version-aware frame and handle-role checks](docs/research/p6-ac1012-shared-object-frame-2026-11-21.json) and R13/R14
 source checks and the [generated and ODA-produced controls](docs/research/p6-ac1012-generated-oda-dictionary-witness-2026-11-21.json).
 The [fresh LibreDWG-generated sample recheck](docs/research/p6-ac1012-dictionary-generated-recheck-2026-11-21.json) reproduces the version boundary, with R2000 cloning 0/1 controls; its fresh ODA reopen was unavailable due to the macOS pasteboard service. A [new scratch generation](docs/research/p5-librecad-table-projection-ac1012-sample-recheck-2026-11-22.json) repeats the six controls and records the continuing ODA service failure; generated layouts cannot determine native duplicate behavior.
+The [repeatable independent readback](docs/research/p6-generated-dictionary-ezdxf-peer-2026-11-22.json) checks the successful generated R14/R2000 ASCII and binary projections, including selected dictionary links and 3D line geometry; it does not resolve R13 native merge behavior.
 They bind the absent R13/R14 plain-DICTIONARY cloning field and show that ODA's selected R14
 output omits group 281 while its R2000 output writes 1; they do not establish
 native duplicate behavior. The ODA sources also contain APPID-bound dictionary

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Create scratch R13/R14/R2000 dictionary boundary controls and audit them.
 
-Requires GNU LibreDWG 0.14. Optional ODA mode additionally needs ezdxf and an
-ODA File Converter that can access its desktop session. Outputs are deliberately
+Requires GNU LibreDWG 0.14. Optional peer mode needs ezdxf; ODA mode additionally
+needs an ODA File Converter that can access its desktop session. Outputs are deliberately
 kept in a new unique directory; no fixture is copied into the repository.
 This is producer/transport evidence, not native duplicate-merge semantics.
 """
@@ -174,6 +174,40 @@ def selected_dictionary(summary: dict) -> dict:
     return children[0]
 
 
+def peer_output_check(ezdxf, candidate: str, source: Path, ascii_output: Path,
+                      source_model: dict, version: str, flag: int) -> dict:
+    """Independently read successful candidate output in both DXF encodings."""
+    binary_output = ascii_output.with_name(ascii_output.stem + "-binary.dxf")
+    run([candidate, str(source), "-b", "-o", str(binary_output), "-y"])
+    outputs = {}
+    for encoding, output in (("ascii", ascii_output), ("binary", binary_output)):
+        summary = audit_bytes(output.read_bytes(), include_rows=True)
+        child = selected_dictionary(summary)
+        expected_cloning = flag if version == "r2000" else None
+        require(child["cloning"] == expected_cloning, "physical cloning field mismatch")
+        document = ezdxf.readfile(output)
+        dictionary = document.rootdict.get("TEST_DICT")
+        require(dictionary is not None and dictionary.dxftype() == "DICTIONARY",
+                "peer cannot resolve TEST_DICT")
+        require(int(dictionary.dxf.handle, 16) == source_model["sourceHandle"]
+                and int(dictionary.dxf.owner, 16) == source_model["nodHandle"]
+                and not list(dictionary.keys()), "peer dictionary graph mismatch")
+        require(dictionary.dxf.hasattr("cloning") == (expected_cloning is not None),
+                "peer cloning presence mismatch")
+        if expected_cloning is not None:
+            require(dictionary.dxf.cloning == expected_cloning, "peer cloning value mismatch")
+        lines = list(document.modelspace().query("LINE"))
+        require(len(lines) == 1 and tuple(lines[0].dxf.start) == (1., 2., 3.)
+                and tuple(lines[0].dxf.end) == (4., 6., 9.), "peer line geometry mismatch")
+        outputs[encoding] = {"sha256": sha(output.read_bytes()),
+                             "dictionaryHandle": dictionary.dxf.handle,
+                             "ownerHandle": dictionary.dxf.owner,
+                             "physicalCloning": child["cloning"],
+                             "lineStart": list(lines[0].dxf.start),
+                             "lineEnd": list(lines[0].dxf.end)}
+    return outputs
+
+
 def physical_dxf_version(data: bytes) -> str:
     lines = data.decode("utf-8", "surrogateescape").splitlines()
     require(len(lines) % 2 == 0, "invalid ASCII DXF framing")
@@ -224,6 +258,8 @@ def main() -> None:
     parser.add_argument("--dwgadd", default="dwgadd")
     parser.add_argument("--dwgread", default="dwgread")
     parser.add_argument("--candidate", help="optional libdxfrw dwg2dxf executable")
+    parser.add_argument("--ezdxf-peer", action="store_true",
+                        help="independently read successful candidate ASCII and binary DXF outputs")
     parser.add_argument("--oda", help="optional ODAFileConverter executable; needs desktop access and ezdxf")
     args = parser.parse_args()
     if args.self_test:
@@ -232,6 +268,10 @@ def main() -> None:
             return
     if args.output_dir is None:
         parser.error("--output-dir is required unless only --self-test is selected")
+    if args.ezdxf_peer and not args.candidate:
+        parser.error("--ezdxf-peer requires --candidate")
+    if args.ezdxf_peer:
+        import ezdxf
     require(b"0.14" in run([args.dwgadd, "--version"]).stdout, "dwgadd 0.14 required")
     require(b"0.14" in run([args.dwgread, "--version"]).stdout, "dwgread 0.14 required")
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -243,6 +283,8 @@ def main() -> None:
                                "dwgread": executable_identity(args.dwgread)}, "samples": {}}
     if args.candidate:
         results["executables"]["candidate"] = executable_identity(args.candidate)
+    if args.ezdxf_peer:
+        results["ezdxfPeerVersion"] = ezdxf.__version__
     for version in VERSIONS:
         for flag in (0, 1):
             name = f"{version}-cloning-{flag}"
@@ -253,7 +295,11 @@ def main() -> None:
             item = model_and_frame(args.dwgread, path, version)
             require(item["wire"]["cloning"] == (flag if version == "r2000" else None), "cloning boundary mismatch")
             if args.candidate:
-                item["candidate"] = candidate_result(args.candidate, path, root / (name + "-candidate.dxf"))
+                output = root / (name + "-candidate.dxf")
+                item["candidate"] = candidate_result(args.candidate, path, output)
+                if args.ezdxf_peer and item["candidate"]["exit"] == 0:
+                    item["ezdxfPeer"] = peer_output_check(ezdxf, args.candidate, path, output,
+                                                           item, version, flag)
             results["samples"][name] = item
     for version in ("r13", "r14", "r2000"):
         x = results["samples"][f"{version}-cloning-0"]["wire"]["frameSha256"]
