@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1014-noattrib-insert-next-chain-2026-11-21",
+  "date": "2026-11-21",
+  "gate": "P6-F",
+  "status": "BOUNDED_READER_DEFECT_FIXED_OBJECT_GATES_OPEN",
+  "supportClaimEffect": "none",
+  "source": {
+    "url": "https://github.com/kurema/BookViewerApp3/blob/b8e1dcbf26183e96d199499e491c368c935fb0b0/res/Explorer/history/3d.dwg",
+    "sha256": "ab655649e8a1059d0557fb167eeb8d9a5d802afc8313d60d4bcabdce790bac4c",
+    "magic": "AC1014",
+    "producer": "not recorded",
+    "storage": "scratch only; source not committed"
+  },
+  "authority": {
+    "document": "Open Design Specification for .dwg files, v5.4.1 sections 20.2 and 20.4.9",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "basis": "The R13/R14 no-links bit implies adjacent previous/next handles; INSERT carries a SEQEND only if the attributes bit is set."
+  },
+  "independentSourceTrace": {
+    "tool": "LibreDWG dwgread 0.14 -v4",
+    "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+    "traceSha256": "0faeeb381c03dd48da1e4894f97633e4301b75925e80b9141f79be57d42f7d97",
+    "blockHandle": "0x440",
+    "firstHandle": "0x456",
+    "lastHandle": "0x461",
+    "sourceInsert0x457": {
+      "nolinks": 1,
+      "hasAttributes": 0,
+      "crcVerifiedByPeer": true,
+      "nextImplicit": "0x458"
+    },
+    "peerAndCandidateOrderedHandles": [
+      "0x456",
+      "0x457",
+      "0x458",
+      "0x459",
+      "0x45a",
+      "0x45b",
+      "0x45c",
+      "0x45d",
+      "0x45e",
+      "0x45f",
+      "0x460",
+      "0x461"
+    ],
+    "limit": "Peer trace and independently encoded controls do not prove native behavior or whole-file graph/output closure."
+  },
+  "rootCause": "The direct INSERT commit overwrote the parsed implicit next handle with null SEQEND + 1 for INSERTs without attributes; the false 0x01 link stopped the block walk.",
+  "change": "Advance past a legacy SEQEND only if a real SEQEND frame was prepared, the parent uses implicit links, and the SEQEND handle is non-null and does not overflow. Otherwise preserve the parsed next link.",
+  "validation": {
+    "negativeSha256": "050275bb6c09343df727be5a9edfa14c5967efe0e8f06e1d222e305800bb2925",
+    "focusedSha256": "c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431",
+    "stagingSha256": "c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431",
+    "spaceSha256": "c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431",
+    "asan": "PASS: generated AC1015 INSERT followed by LINE and untouched sentinel; direct R13/R14/R2000 no-SEQEND staging controls; existing staged-attribute and block-delimiter selectors. AddressSanitizer with project warning flags.",
+    "sourceReplay": "Before: one entity failure and false missing 0x01. After: zero entity failures and 12 independently matched block INSERT handles. Four distinct object failures remain.",
+    "asciiScreenSha256": "dfe7c9d285dcdb365101648a123ffe30f2059849163c903d88ad78e3d14d5b23",
+    "binaryScreenSha256": "164bddeed4a00364ff040c0e657edcdaca243e5ecbda3e1658635e003094e45f",
+    "transaction": "Strict and partial ASCII/Binary exports all refuse and preserve seeded destinations because the four object failures remain. The regression tests preserve the following sentinel; this does not demonstrate successful file output or native readback.",
+    "candidateBinarySha256": "0f3e18df2a6b4057de1e6d927224855cf01b3fea1ef2955fd1bf9ca41324cf10"
+  },
+  "remaining": "P6-F remains open: this source has no remaining entity parse failure and still has four object failures. No support claim or output guard is broadened."
+}

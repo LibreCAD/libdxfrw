@@ -373,6 +373,9 @@ public:
         decoder.setVersion(value, false);
     }
 
+    void setLegacyNextForTest(std::uint32_t value) { nextEntLink = value; }
+    std::uint32_t legacyNextForTest() const { return nextEntLink; }
+
     bool setSourceOrdinal(std::uint32_t handle, std::uint64_t ordinal) {
         const auto found = ObjectMap.find(handle);
         if (found == ObjectMap.end())
@@ -750,6 +753,9 @@ public:
 
 class DrwEntityEncodeTestAccess {
 public:
+    static void setImplicitLinks(DRW_Entity& entity) {
+        entity.haveNextLinks = 1u;
+    }
     static void addPolylineHandle(DRW_Polyline& polyline,
                                   std::uint32_t handle) {
         polyline.hadlesList.push_back(handle);
@@ -3034,6 +3040,23 @@ void testInsertAttributeStagingIndex(TestContext& t) {
     t.expect(wrongOwnerCleaned,
              "wrong-owner and parent cleanup leave no staged index entries");
 
+    for (const DRW::Version legacyVersion : {DRW::AC1012, DRW::AC1014, DRW::AC1015}) {
+        PolylineStageTestReader noAttributeReader;
+        noAttributeReader.setReaderVersionForTest(legacyVersion);
+        PolylinePublicationSink noAttributeSink;
+        DRW_Insert noAttributeInsert;
+        noAttributeInsert.handle = 0x29000u;
+        DrwEntityEncodeTestAccess::setImplicitLinks(noAttributeInsert);
+        noAttributeReader.setLegacyNextForTest(0x29001u);
+        bool frameRemains = true;
+        const bool committed = noAttributeReader.addFrame(noAttributeInsert.handle)
+            && noAttributeReader.stageInsert(noAttributeInsert, noAttributeSink, frameRemains)
+                == PolylineStageTestReader::Outcome::CommittedCompound;
+        t.expect(committed && !frameRemains && noAttributeSink.inserts.size() == 1u
+                     && noAttributeReader.legacyNextForTest() == 0x29001u,
+                 "R13/R14/R2000 INSERT with no SEQEND retains the parsed implicit next link");
+    }
+
     constexpr std::uint32_t legacyOwner = 0x2A000u;
     constexpr std::uint32_t legacyMiddle = 0x2A001u;
     constexpr std::uint32_t legacyLast = 0x2A002u;
@@ -3775,6 +3798,22 @@ public:
                                                std::uint32_t previous,
                                                std::uint32_t next) {
         return encodeOwnerlessLine(handle, space, previous, next, true);
+    }
+
+    bool encodeOwnerlessInsert(std::uint32_t handle, DRW::Space space,
+                               std::uint32_t targetBlockHandle) {
+        InsertDispatchSource source;
+        source.handle = handle;
+        source.parentHandle = DRW::NoHandle;
+        source.space = space;
+        source.blockRecH.ref = targetBlockHandle;
+        dwgBufferW& body = beginObject(handle);
+        m_objectStrings.reset();
+        m_objectHandles.reset();
+        if (!source.encode(m_version, body, m_objectStrings, m_objectHandles))
+            return false;
+        finishObject();
+        return !objectWriteFailed() && m_buf.isGood();
     }
 
     bool encodeBlockDelimiter(std::uint32_t handle, const std::string& name,
@@ -6860,6 +6899,43 @@ void testLegacyLayoutBlockChains(TestContext& t) {
     t.expect(legacyReader.ObjectMap.find(sentinelHandle)
                  != legacyReader.ObjectMap.end(),
              "AC1015 singleton chain stops before its following paper-space sentinel");
+
+    constexpr std::uint32_t insertFirst = 0xD80u;
+    constexpr std::uint32_t insertNext = 0xD81u;
+    constexpr std::uint32_t insertSentinel = 0xD82u;
+    LegacyLayoutFrameWriter insertWriter(&output, &header);
+    const bool insertGenerated =
+        insertWriter.encodeOwnerlessInsert(insertFirst, DRW::PaperSpace, 0xD90u)
+        && insertWriter.encodeOwnerlessLine(insertNext, DRW::PaperSpace)
+        && insertWriter.encodeOwnerlessLine(insertSentinel, DRW::PaperSpace);
+    t.expect(insertGenerated, "from-scratch AC1015 no-attribute INSERT chain encodes");
+    if (insertGenerated) {
+        const auto insertBytes = insertWriter.m_buf.data();
+        dwgRW insertParent("");
+        ModelerDispatchReader insertReader(
+            std::unique_ptr<dwgBuffer>(new dwgBuffer(insertBytes.data(), insertBytes.size())),
+            &insertParent);
+        insertReader.setFormatVersion(DRW::AC1015);
+        t.expect(mapFrames(insertReader, insertWriter.objectOffsets()),
+                 "AC1015 INSERT chain frames enter the source map");
+        DRW_Block_Record insertRecord;
+        insertRecord.handle = 0x533u;
+        insertRecord.name = "*PAPER_SPACE6";
+        DwgBlockOwnershipTestAccess::setLegacyEntityChain(insertRecord, insertFirst, insertNext);
+        LayoutChainDispatchSink insertSink;
+        insertSink.beginLayout("Insert sheet", 0x707u, insertRecord.handle);
+        dwgBuffer insertStream(insertBytes.data(), insertBytes.size());
+        const bool walked = insertReader.walkBlockRecordEntities(
+            &insertRecord, &insertStream, insertSink, DRW::NoHandle, insertRecord.handle);
+        t.expect(walked && insertSink.inserts.size() == 1u
+                     && insertSink.inserts[0].entity.handle == insertFirst
+                     && insertSink.lines.size() == 1u
+                     && insertSink.lines[0].entityHandle == insertNext
+                     && insertReader.entityParseFailures() == 0u
+                     && insertReader.entityFailures().empty()
+                     && insertReader.ObjectMap.find(insertSentinel) != insertReader.ObjectMap.end(),
+                 "AC1015 INSERT without attributes preserves the implicit following entity link");
+    }
 
     constexpr std::uint32_t cycleFirst = 0xC10u;
     constexpr std::uint32_t cycleSecond = 0xC11u;

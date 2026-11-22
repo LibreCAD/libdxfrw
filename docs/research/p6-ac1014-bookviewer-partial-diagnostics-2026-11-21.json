@@ -193,5 +193,6 @@
     "adjacent": "PASS: space-block-delimiter-owner, mixed-missing-block-ownership, orphan-entity-sweep-recovery, entity-space-from-block-record.",
     "inventory": "PASS: regenerated source release inventory for two previously committed research tools; --check reports 1386 files."
   },
-  "remaining": "P6-F stays open. Do not infer full graph closure or promote support from these source observations; the 3d trace names a missing handle, but does not establish why the link exists or whether recovery is semantically safe."
+  "remaining": "P6-F stays open. Do not infer full graph closure or promote support from these source observations; the 3d trace names a missing handle, but does not establish why the link exists or whether recovery is semantically safe.",
+  "followUp": "The previously observed 3d missing handle 0x01 was a reader defect, fixed and independently investigated in docs/research/p6-ac1014-noattrib-insert-next-chain-2026-11-21.json. The prior observations remain historical; the four object failures and P6-F gate remain open."
 }

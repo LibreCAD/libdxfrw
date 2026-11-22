@@ -6885,7 +6885,8 @@ dwgReader::DwgMappedEntityOutcome dwgReader::deliverPreparedInsertCommit(
     return DwgMappedEntityOutcome::Rejected;
   }
 
-  if (version < DRW::AC1018 && pending.entity.haveNextLinks != 0 &&
+  if (version < DRW::AC1018 && prepared.sequenceEnd != nullptr &&
+      pending.entity.haveNextLinks != 0 && sequenceHandle != DRW::NoHandle &&
       sequenceHandle != std::numeric_limits<std::uint32_t>::max()) {
     nextEntLink = sequenceHandle + 1;
   }
