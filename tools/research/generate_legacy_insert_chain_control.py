@@ -9,9 +9,13 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 import shutil
+import struct
 import subprocess
 import tempfile
+
+from generate_ac1012_dictionary_witness import Bits, crc16
 
 RECIPE = '''block "TEST_BLOCK"
 line (0 0 0) (1 1 0)
@@ -74,7 +78,41 @@ def graph(doc):
     return by_handle
 
 
-def fix_generated_graph(doc):
+def source_style_angles(dwgread, source):
+    # LibreDWG JSON rounds doubles; recover the original two BD values from
+    # the CRC-checked R13/R14/R2000 frame using ODA v5.4.1 sections 20.1/20.4.73.
+    result = run([str(dwgread), '-v4', str(source)])
+    trace = (result.stdout + result.stderr).decode(errors='replace')
+    matches = re.findall(r'Size: (\d+) \[MS\], Type: 73 \[BS\], Address: (\d+)', trace)
+    require(len(matches) == 1, 'expected one peer-identified MLINESTYLE frame')
+    size, address = map(int, matches[0])
+    data = source.read_bytes()
+    require(size < 0x8000 and address >= 2 and address + size + 2 <= len(data)
+            and data[address-2:address] == size.to_bytes(2, 'little')
+            and int.from_bytes(data[address+size:address+size+2], 'little')
+                == crc16(data[address-2:address+size]), 'invalid MLINESTYLE frame or CRC')
+    bits = Bits(data[address:address+size])
+    require(bits.bs() == 73, 'wrong style type')
+    boundary = bits.little(4) if data.startswith(b'AC1015') else None
+    require(bits.handle(0, own=True)['value'] == 24 and bits.bs() == 0, 'style header mismatch')
+    if boundary is None: boundary = bits.little(4)
+    require(bits.bl() == 1, 'style reactor count mismatch')
+    def text():
+        return bytes(bits.take(8) for _ in range(bits.bs()))
+    require(text() in (b'Standard', b'Standard\0') and text() == b''
+            and bits.bs() == 0 and bits.bs() == 256, 'style fields mismatch')
+    def double():
+        tag = bits.take(2)
+        if tag == 0: return struct.unpack('<d', bytes(bits.take(8) for _ in range(8)))[0]
+        require(tag in (1, 2), 'invalid bit-double')
+        return 1.0 if tag == 1 else 0.0
+    values = [double(), double()]
+    require(bits.position <= boundary and values == [1.5707963267948966] * 2,
+            'unexpected original style angles')
+    return values
+
+
+def fix_generated_graph(doc, angles):
     objects = graph(doc)
     def ref(role, value):
         return [role, 1, value, value]
@@ -93,6 +131,9 @@ def fix_generated_graph(doc):
         objects[handle].pop('prev_entity', None)
         objects[handle].pop('next_entity', None)
     doc['HEADER']['DIMSTYLE'] = ref(5, 52)
+    styles = [o for o in doc['OBJECTS'] if o.get('object') == 'MLINESTYLE']
+    require(len(styles) == 1, 'expected one generated MLINESTYLE')
+    styles[0]['start_angle'], styles[0]['end_angle'] = angles
 
 
 def check_graph(doc):
@@ -109,10 +150,30 @@ def check_graph(doc):
     require(doc['HEADER']['DIMSTYLE'][-1] == 52, 'missing header DIMSTYLE')
 
 
+def check_output(ezdxf, output, label):
+    drawing = ezdxf.readfile(output)
+    entities = list(drawing.modelspace())
+    require([e.dxftype() for e in entities] == ['INSERT', 'INSERT', 'INSERT', 'LINE'],
+            f'{label}: independent modelspace readback mismatch')
+    require([tuple(e.dxf.insert) for e in entities[:3]]
+            == [(2.0, 0.0, 0.0), (4.0, 0.0, 0.0), (6.0, 0.0, 0.0)]
+            and all(e.dxf.name == 'TEST_BLOCK' for e in entities[:3])
+            and tuple(entities[3].dxf.start) == (8.0, 0.0, 0.0)
+            and tuple(entities[3].dxf.end) == (9.0, 1.0, 0.0)
+            and len(drawing.blocks['TEST_BLOCK']) == 1,
+            f'{label}: independent geometry or block readback mismatch')
+    block_line = list(drawing.blocks['TEST_BLOCK'])[0]
+    require(block_line.dxftype() == 'LINE'
+            and tuple(block_line.dxf.start) == (0.0, 0.0, 0.0)
+            and tuple(block_line.dxf.end) == (1.0, 1.0, 0.0),
+            f'{label}: block geometry mismatch')
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output-dir', type=Path, required=True)
     parser.add_argument('--candidate', required=True)
+    parser.add_argument('--adapter-test', help='optional generated INSERT same-adapter retry test executable')
     args = parser.parse_args()
     import ezdxf  # Independent DXF readback; install separately when needed.
     tools = {name: Path(shutil.which(name) or '').resolve() for name in ('dwgadd', 'dwgread', 'dwgwrite')}
@@ -134,7 +195,10 @@ def main():
         run([str(tools['dwgadd']), '--as', version, '-o', str(source), str(recipe)])
         run([str(tools['dwgread']), '-O', 'JSON', '-o', str(decoded), str(source)])
         doc = json.loads(decoded.read_text())
-        fix_generated_graph(doc)
+        initial_style = next(o for o in doc['OBJECTS'] if o.get('object') == 'MLINESTYLE')
+        rounded_angles = [initial_style['start_angle'], initial_style['end_angle']]
+        exact_angles = source_style_angles(tools['dwgread'], source)
+        fix_generated_graph(doc, exact_angles)
         corrected_json, corrected_dwg = root / (version + '-corrected.json'), root / (version + '-corrected.dwg')
         corrected_json.write_text(json.dumps(doc))
         run([str(tools['dwgwrite']), '-I', 'JSON', '--as', version, '-y', '-o', str(corrected_dwg), str(corrected_json)])
@@ -143,6 +207,30 @@ def main():
         run([str(tools['dwgread']), '-O', 'JSON', '-o', str(reopened), str(corrected_dwg)])
         check_graph(json.loads(reopened.read_text()))
         observations = []
+        if version == 'r14':
+            # Verify the source-wire gate distinguishes the rounded JSON
+            # representation, then retry the original exact source below.
+            require(rounded_angles != exact_angles, 'peer JSON no longer demonstrates rounding')
+            altered = json.loads(json.dumps(doc))
+            altered_style = next(o for o in altered['OBJECTS'] if o.get('object') == 'MLINESTYLE')
+            altered_style['start_angle'], altered_style['end_angle'] = rounded_angles
+            altered_json, altered_dwg = root / 'r14-rounded.json', root / 'r14-rounded.dwg'
+            altered_json.write_text(json.dumps(altered))
+            run([str(tools['dwgwrite']), '-I', 'JSON', '--as', version, '-y', '-o', str(altered_dwg), str(altered_json)])
+            for binary in (False, True):
+                label = 'rounded-binary' if binary else 'rounded-ascii'
+                output = root / (label + '.dxf')
+                output.write_bytes(SENTINEL)
+                cmd = [str(tools['candidate']), str(altered_dwg), '-y', '-d', '-o', str(output)]
+                if binary: cmd.append('-b')
+                candidate = run(cmd, check=False)
+                trace = (candidate.stdout + candidate.stderr).decode(errors='replace')
+                require(candidate.returncode != 0 and output.read_bytes() == SENTINEL
+                        and 'MLINESTYLE DWG source/output snapshot' in trace,
+                        f'{label}: changed physical source must be refused')
+                observations.append({'mode': label, 'exit': candidate.returncode,
+                                     'destinationPreserved': True,
+                                     'sourceSha256': digest(altered_dwg)})
         for partial in (False, True):
             for binary in (False, True):
                 label = ('partial' if partial else 'strict') + ('-binary' if binary else '-ascii')
@@ -166,28 +254,13 @@ def main():
                     require(trace.count(f'insertion point: x: {x}.000000, y: 0.000000, z: 0.000000') == 1,
                             f'{version} {label} INSERT {x} not visited once')
                 require('0x33 [bidi-debug pre-graphFlag' in trace, f'{version} {label} following LINE missing')
-                accepted = version == 'r13' and partial
+                accepted = (version == 'r13' and partial) or version == 'r14'
                 require((candidate.returncode == 0) == accepted,
                         f'{version} {label}: unexpected admission result')
                 observation = {'mode': label, 'exit': candidate.returncode,
                                'traceSha256': digest(root / (version + '-' + label + '.log'))}
                 if accepted:
-                    drawing = ezdxf.readfile(output)
-                    entities = list(drawing.modelspace())
-                    require([e.dxftype() for e in entities] == ['INSERT', 'INSERT', 'INSERT', 'LINE'],
-                            f'{version} {label}: independent modelspace readback mismatch')
-                    require([tuple(e.dxf.insert) for e in entities[:3]]
-                            == [(2.0, 0.0, 0.0), (4.0, 0.0, 0.0), (6.0, 0.0, 0.0)]
-                            and all(e.dxf.name == 'TEST_BLOCK' for e in entities[:3])
-                            and tuple(entities[3].dxf.start) == (8.0, 0.0, 0.0)
-                            and tuple(entities[3].dxf.end) == (9.0, 1.0, 0.0)
-                            and len(drawing.blocks['TEST_BLOCK']) == 1,
-                            f'{version} {label}: independent geometry or block readback mismatch')
-                    block_line = list(drawing.blocks['TEST_BLOCK'])[0]
-                    require(block_line.dxftype() == 'LINE'
-                            and tuple(block_line.dxf.start) == (0.0, 0.0, 0.0)
-                            and tuple(block_line.dxf.end) == (1.0, 1.0, 0.0),
-                            f'{version} {label}: block geometry mismatch')
+                    check_output(ezdxf, output, f'{version} {label}')
                     observation['outputSha256'] = digest(output)
                     observation['independentReadback'] = 'three INSERTs and following LINE, positions and target block'
                 else:
@@ -197,6 +270,15 @@ def main():
                 observations.append(observation)
         result['samples'][version] = {'version': magic, 'dwgSha256': digest(corrected_dwg),
                                       'peerReopenSha256': digest(reopened), 'checks': observations}
+        if version == 'r14' and args.adapter_test:
+            adapter_test = Path(args.adapter_test).resolve()
+            require(adapter_test.is_file(), 'missing adapter retry test')
+            output = root / 'r14-adapter-retry.dxf'
+            run([str(adapter_test), '--generated-insert-retry', str(corrected_dwg), str(output)])
+            check_output(ezdxf, output, 'R14 same-adapter retry')
+            result['samples'][version]['adapterRetry'] = {
+                'testSha256': digest(adapter_test), 'outputSha256': digest(output),
+                'result': 'mutation refused and destination preserved; same-adapter ASCII and Binary retry passed'}
     receipt = root / 'receipt.json'
     receipt.write_text(json.dumps(result, indent=2) + '\n')
     print(root)

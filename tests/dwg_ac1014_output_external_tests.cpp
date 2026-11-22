@@ -1281,10 +1281,36 @@ bool r13GeneratedGuard(const std::string& input, const std::filesystem::path& ou
     }
     return true;
 }
+
+bool generatedInsertRetry(const std::string& input, const std::filesystem::path& output) {
+    dx_iface adapter;
+    dx_data source;
+    if (!adapter.fileImport(input, &source, false)
+        || source.sourceVersion != DRW::AC1014
+        || source.mLineStyles.size() != 1u) return false;
+    auto& style = source.mLineStyles.front();
+    const double original = style.startAngle;
+    const std::string sentinel = "generated INSERT retry destination\n";
+    for (const bool binary : {false, true}) {
+        { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+        style.startAngle = original + 1.0;
+        const bool failed = !write(adapter, source, output.string(), binary)
+            && bytes(output) == sentinel;
+        style.startAngle = original;
+        if (!failed || !write(adapter, source, output.string(), binary)) return false;
+        dx_iface fresh;
+        dx_data reopened;
+        if (!fresh.fileImport(output.string(), &reopened, false)
+            || reopened.mLineStyles.size() != 1u) return false;
+    }
+    return true;
+}
 } // namespace
 
 int main(int argc, char** argv) {
-    const bool ok = argc == 5 && std::string(argv[1]) == "--legacy-malformed"
+    const bool ok = argc == 4 && std::string(argv[1]) == "--generated-insert-retry"
+        ? generatedInsertRetry(argv[2], argv[3])
+        : argc == 5 && std::string(argv[1]) == "--legacy-malformed"
         ? checkLegacyMalformed(argv[2], argv[3], argv[4])
         : argc == 5 && std::string(argv[1]) == "--layer-big-partial"
             ? legacyBigLayerPartial(argv[2], argv[3], argv[4])

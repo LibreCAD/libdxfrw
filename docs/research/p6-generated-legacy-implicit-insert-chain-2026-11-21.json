@@ -137,5 +137,6 @@
     "R14 and R2000 conversion remain refused by separate output gates; strict R13 still refuses MLINESTYLE.",
     "No organic entity failure is induced; P6-F remains open and no support claim is promoted."
   ],
-  "supportClaimEffect": "none"
+  "supportClaimEffect": "none",
+  "followup": "p6-generated-legacy-implicit-insert-exact-angle-2026-11-21.json: JSON rounded the style angle in this historical sample; corrected source preserves the original DWG angle and R14 strict output succeeds."
 }

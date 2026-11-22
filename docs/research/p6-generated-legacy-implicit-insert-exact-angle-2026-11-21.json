@@ -1,0 +1,170 @@
+{
+  "schema": 1,
+  "scope": "generated source chain; not native interoperability",
+  "ezdxfVersion": "1.4.5",
+  "tools": {
+    "dwgadd": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgadd",
+      "sha256": "66c435deb0f081ab72be21bb9ba36e5d149f9352d71ddf1e83ac95b3fc07f282"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "dwgwrite": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgwrite",
+      "sha256": "8c5dfd7f733e924723155e5040dd33f3fefdf4682071867a4c1d3499adf73e74"
+    },
+    "candidate": {
+      "path": "/private/tmp/libdxfrw-p6j-asan/dwg2dxf/dwg2dxf",
+      "sha256": "0f3e18df2a6b4057de1e6d927224855cf01b3fea1ef2955fd1bf9ca41324cf10"
+    }
+  },
+  "samples": {
+    "r13": {
+      "version": "AC1012",
+      "dwgSha256": "52cc182f03151d0afbad77da1be0fb40ed47d177272f2d6acad151ac742df448",
+      "peerReopenSha256": "b1ecef99d9f1f2d1029938fd3055e959969509b4190d5b6cb9e0f39761670fc8",
+      "checks": [
+        {
+          "mode": "strict-ascii",
+          "exit": 1,
+          "traceSha256": "16ac7e9aba2199b6290dbb6d2ecc03ebf9f75968ad453aa25188f93f4cf2f43e",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "strict-binary",
+          "exit": 1,
+          "traceSha256": "b309d8c494ed5a62109add0490376005c53d914931ec30a318bb1cdb822ef472",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "partial-ascii",
+          "exit": 0,
+          "traceSha256": "aa36512f88a117930c0cedc431ea76c2387efa781a22f61d6422c7efd5b43dfc",
+          "outputSha256": "85694acfecd1c5bb0430af468b3f450e7754bcbdf918f4432efa07bf158439a3",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "partial-binary",
+          "exit": 0,
+          "traceSha256": "389333bf1e594598882c1066ef08381a2caac1fa97431876fbb5588a85688b7a",
+          "outputSha256": "890e889b4aa2c9f155c2dd83906f689dd36322a0a838ea14748544c71260303b",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        }
+      ]
+    },
+    "r14": {
+      "version": "AC1014",
+      "dwgSha256": "eda6ff36ddb9100354540f1b3be9d5ec5d08a3e721448267a68900c43c367c0d",
+      "peerReopenSha256": "f8eb91c837bd773fd2309f31ac7055b2398738cbdea17cf98b47ce24221bdf3a",
+      "checks": [
+        {
+          "mode": "rounded-ascii",
+          "exit": 1,
+          "destinationPreserved": true,
+          "sourceSha256": "f27360cdb2bbc1a998f452cd224dd5514ec6f72297518ef49678e9a03b978311"
+        },
+        {
+          "mode": "rounded-binary",
+          "exit": 1,
+          "destinationPreserved": true,
+          "sourceSha256": "f27360cdb2bbc1a998f452cd224dd5514ec6f72297518ef49678e9a03b978311"
+        },
+        {
+          "mode": "strict-ascii",
+          "exit": 0,
+          "traceSha256": "351885e6012988b427a20fa8569128bbb44f6174b49f315b25dee0098bf34096",
+          "outputSha256": "a8daf3d538ec83c5ea917f435f4d64d2c16945d33f71e251204bdad3085505bc",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "strict-binary",
+          "exit": 0,
+          "traceSha256": "25e9223b2b9c70289450a0df77f33c1d17bea556476a274c6e93292b63f1a8e3",
+          "outputSha256": "2f07ec4c19eda5889df158719c120d3312fef2bb0b2e0730966dc01494510024",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "partial-ascii",
+          "exit": 0,
+          "traceSha256": "a5a7dbbd9d4cf24bbff70e7eab6412ade269b60f33b4fda12525920fb019bf5a",
+          "outputSha256": "a8daf3d538ec83c5ea917f435f4d64d2c16945d33f71e251204bdad3085505bc",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "partial-binary",
+          "exit": 0,
+          "traceSha256": "84ec03fe6f16c4c947a518bbb65b89dfdfedcd2889294b314028d0759f902640",
+          "outputSha256": "2f07ec4c19eda5889df158719c120d3312fef2bb0b2e0730966dc01494510024",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        }
+      ],
+      "adapterRetry": {
+        "testSha256": "f9304e64c2c691fd5700de4202f74ab7dfe30e254b313c92c7e87417a9e1651f",
+        "outputSha256": "2f07ec4c19eda5889df158719c120d3312fef2bb0b2e0730966dc01494510024",
+        "result": "mutation refused and destination preserved; same-adapter ASCII and Binary retry passed"
+      }
+    },
+    "r2000": {
+      "version": "AC1015",
+      "dwgSha256": "94cd91121bf851955d8c1c9e96964054b523df8a84c7c6963fd5962bd80c484d",
+      "peerReopenSha256": "b7228b722ba5bcbc7afe5f5358ac2e4ce3249eab512cd6abed381cd9fc2f2cb7",
+      "checks": [
+        {
+          "mode": "strict-ascii",
+          "exit": 1,
+          "traceSha256": "348c5306622c886cfc5a3aebb7fcbc80e289f908334e767acaef6d5219f10794",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "strict-binary",
+          "exit": 1,
+          "traceSha256": "f45345667fdb309aaf4aedfc3cc997dfcc42badb4a588646fdaa944aaf0349d1",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "partial-ascii",
+          "exit": 1,
+          "traceSha256": "3667e6e643356b3621f5804854573d4b5a8ce52807d14bbd69f7d6c9e7a58a5f",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "partial-binary",
+          "exit": 1,
+          "traceSha256": "493612292d4d15021dc1a4d7ed9a967b4353479b8951a14537abb13d5735288a",
+          "destinationPreserved": true
+        }
+      ]
+    }
+  },
+  "status": "CONTROLLED_GENERATED_CHAIN_EXACT_ANGLE",
+  "candidateCommit": "98ad6478f",
+  "generator": "tools/research/generate_legacy_insert_chain_control.py",
+  "generatorSha256": "dfca96d8eae761753bff966314e6169e1b9ff822a8d4efe5dae229c97294e652",
+  "adapterTest": "tests/dwg_ac1014_output_external_tests.cpp",
+  "adapterTestSourceSha256": "547dca074ba9f53ed058ea155c3a8817d9de83c658376c354bafb99194ade86d",
+  "specification": {
+    "document": "ODA Open Design Specification for DWG Files v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.1 common object frame",
+      "20.2 common entity flags",
+      "20.4.73 MLINESTYLE"
+    ]
+  },
+  "correction": "The previous generated-chain receipt correctly recorded refusal for its JSON-round-tripped R14 drawing, but LibreDWG JSON rounded the original MLINESTYLE angle from 1.5707963267948966 to 1.5707963267949 radians. That previous result is not a refusal of the original angle. The generator now reads the original angles from CRC-checked source frames before serializing the corrected graph.",
+  "method": [
+    "Generate scratch R13/R14/R2000 DWGs using LibreDWG dwgadd. Correct generator-created block graph and DIMSTYLE reference, and restore the exact original style angle observed in the source frame. The three INSERTs use default implicit next links.",
+    "Validate original style frame checksum and field boundary, reopen source graph with LibreDWG, and run ASan-instrumented dwg2dxf in strict and explicit partial ASCII/Binary modes.",
+    "The deliberately rounded R14 control refuses while preserving destination; the corrected R14 source then succeeds. An ASan adapter test mutates the typed style, verifies refusal and preserved destination, restores it and retries both encodings on the same adapter.",
+    "ezdxf independently verifies modelspace INSERT positions and target, following LINE, and block LINE geometry for accepted outputs."
+  ],
+  "limitations": [
+    "Scratch generated files are not native producer evidence.",
+    "R13 strict output and R2000 output remain refused; R13 partial output is not complete-output evidence.",
+    "The selected R14 case establishes neither organic partial-read loss nor broad DWG, MLINESTYLE, or native CAD interoperability.",
+    "The rounded input is a generator JSON precision artifact, not a demonstrated libdxfrw parser defect."
+  ],
+  "supportClaimEffect": "none"
+}
