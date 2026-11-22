@@ -46,7 +46,8 @@ add_executable(libdxfrw_block_record_relative_handle_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/block_record_relative_handle_tests.cpp)
 target_compile_features(libdxfrw_block_record_relative_handle_tests PRIVATE cxx_std_17)
 target_compile_options(libdxfrw_block_record_relative_handle_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
-target_include_directories(libdxfrw_block_record_relative_handle_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(libdxfrw_block_record_relative_handle_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/dwg2dxf)
 target_link_libraries(libdxfrw_block_record_relative_handle_tests PRIVATE dxfrw)
 add_test(NAME libdxfrw_block_record_relative_handles COMMAND libdxfrw_block_record_relative_handle_tests)
 set_tests_properties(libdxfrw_block_record_relative_handles PROPERTIES

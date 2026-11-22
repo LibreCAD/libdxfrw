@@ -64,6 +64,7 @@
 #include "dx_legacy_blockref_source_relation.h"
 #include "dx_layout_associations.h"
 #include "dx_legacy_layout_wire.h"
+#include "dx_legacy_block_record_wire.h"
 #include "dx_standard_output.h"
 #include "dx_material_body.h"
 #include "dx_legacy_identity_join.h"
@@ -32755,6 +32756,8 @@ bool dx_iface::hasBoundLegacyLayoutSources() const noexcept {
         || !cData->hasNamedObjectDictionary || cData->layouts.empty()
         || cData->basicTableCaptureFailed
         || cData->layouts.size() > kMaxAdapterBasicTableRecords
+        || cData->m_legacyBlockRecordSourceFailed
+        || cData->m_legacyBlockRecordSources.size() != cData->blockRecords.size()
         || !cData->hasCompleteDwgBlockRecordControlMembership()
         || !cData->hasUnchangedDwgClassEvidence()
         || !cData->dwgClassCoverage.m_complete
@@ -32801,9 +32804,20 @@ bool dx_iface::hasBoundLegacyLayoutSources() const noexcept {
             return false;
         std::map<std::uint32_t, const DRW_Layout*> layouts;
         std::map<std::uint32_t, const DRW_Block_Record*> records;
+        std::set<std::uint32_t> offsets;
+        std::set<std::uint64_t> ordinals;
         std::set<std::string> names;
-        for (const auto& record : cData->blockRecords)
-            if (!records.emplace(record.handle, &record).second) return false;
+        for (const auto& record : cData->blockRecords) {
+            const auto source = cData->m_legacyBlockRecordSources.find(record.handle);
+            if (!records.emplace(record.handle, &record).second
+                || source == cData->m_legacyBlockRecordSources.end()
+                || source->second.generation != cData->importGeneration
+                || source->second.version != cData->sourceVersion
+                || source->second.handle != record.handle
+                || source->second.space != DRW_DwgFrameOffsetSpace::PhysicalFile
+                || !offsets.insert(source->second.offset).second
+                || !ordinals.insert(source->second.ordinal).second) return false;
+        }
         for (const auto& layout : cData->layouts) {
             if (layout.parentHandle != dictionary->handle || layout.name.empty()
                 || layout.name.size() > 65535u
@@ -32831,8 +32845,18 @@ bool dx_iface::hasBoundLegacyLayoutSources() const noexcept {
         }
         std::map<std::uint32_t, std::uint32_t> associations;
         std::string reason;
-        return dx_layout_associations::resolve(layouts, records,
-            dx_layout_associations::Mode::LegacyDwgForwardOnly, associations, reason);
+        if (!dx_layout_associations::resolve(layouts, records,
+                dx_layout_associations::Mode::LegacyDwgForwardOnly, associations, reason))
+            return false;
+        for (const auto& association : associations) {
+            const auto source = cData->m_legacyBlockRecordSources.find(association.first);
+            const auto record = records.find(association.first);
+            if (source == cData->m_legacyBlockRecordSources.end() || record == records.end()
+                || !dx_legacy_block_record_wire::record(source->second.version,
+                                                       source->second.body, *record->second))
+                return false;
+        }
+        return true;
     } catch (...) {
         return false;
     }

@@ -3,6 +3,7 @@
 #include "dx_legacy_dwg_wire.h"
 #include "dx_legacy_mlinestyle_wire.h"
 #include "dx_legacy_layout_wire.h"
+#include "dx_legacy_block_record_wire.h"
 #include "test_scratch.h"
 #include <algorithm>
 #include <charconv>
@@ -37,6 +38,44 @@ public:
                 || !ordinals.insert(captured.ordinal).second
                 || !frame.readAt(source, captured.version, captured.offset)
                 || frame.body() != captured.body) return false;
+        }
+        return true;
+    }
+    static bool legacyBlockWire(const dx_data& data) {
+        for (const auto& record : data.blockRecords) {
+            const auto found = data.m_legacyBlockRecordSources.find(record.handle);
+            if (found == data.m_legacyBlockRecordSources.end()) return false;
+            const auto& source = found->second;
+            dx_legacy_block_record_wire::Proof proof;
+            if (!dx_legacy_block_record_wire::record(source.version, source.body, record, &proof)) {
+                std::cerr << "BLOCK_HEADER wire mismatch handle=" << record.handle
+                          << " name=" << record.name << " flags=" << record.flags
+                          << " xrefIndex=" << record.xrefIndex << " parent=" << record.parentHandle
+                          << " spans=" << record.dwgHandleFieldSpans().size() << '\n';
+                return false;
+            }
+            std::cout << "legacy-block handle=" << record.handle
+                      << " bodyBitEnd=" << proof.bodyEnd << " objectOffset=" << source.offset
+                      << " spans=";
+            for (const auto& span : proof.handles)
+                std::cout << span.begin << ':' << span.end << ',';
+            std::cout << '\n';
+            DRW_Block_Record edited = record;
+            edited.basePoint.x += 1.0;
+            if (dx_legacy_block_record_wire::record(source.version, source.body, edited)) return false;
+            edited = record; edited.parentHandle ^= 1u;
+            if (dx_legacy_block_record_wire::record(source.version, source.body, edited)) return false;
+            for (const auto field : {dx_legacy_block_record_wire::Field::Control,
+                    dx_legacy_block_record_wire::Field::XDictionary, dx_legacy_block_record_wire::Field::Xref,
+                    dx_legacy_block_record_wire::Field::Block, dx_legacy_block_record_wire::Field::First,
+                    dx_legacy_block_record_wire::Field::Last, dx_legacy_block_record_wire::Field::End}) {
+                const auto span = proof.handles[static_cast<std::size_t>(field)];
+                if (!span.present) continue;
+                auto damaged = source.body;
+                damaged[span.begin / 8u] ^= static_cast<std::uint8_t>(0x80u >> (span.begin % 8u));
+                if (dx_legacy_block_record_wire::record(source.version, damaged, record)) return false;
+            }
+            if (!dx_legacy_block_record_wire::record(source.version, source.body, record)) return false;
         }
         return true;
     }
@@ -1242,7 +1281,8 @@ bool checkLegacyLayoutGraph(const std::string& input) {
         || !DxIfaceStandardDwgCaptureTestAccess::boundLegacyLayout(adapter)
         || adapter.wantsLegacyBlockRecordSource(DRW::AC1015)) return false;
     const auto source = bytes(input);
-    if (!DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(data, source)) return false;
+    if (!DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(data, source)
+        || !DxIfaceStandardDwgCaptureTestAccess::legacyBlockWire(data)) return false;
     auto& capturedBlock = DxIfaceStandardDwgCaptureTestAccess::blockBytes(data, data.blockRecords.front().handle);
     if (capturedBlock.empty()) return false;
     capturedBlock.front() ^= 0x80u;
@@ -1297,7 +1337,14 @@ bool checkLegacyLayoutGraph(const std::string& input) {
     auto& rawLayout = DxIfaceStandardDwgCaptureTestAccess::layoutBytes(data, data.layouts.front().handle);
     auto& rawDictionary = DxIfaceStandardDwgCaptureTestAccess::dictionaryBytes(data, dictionaryHandle);
     if (rawLayout.empty() || rawDictionary.empty()) return false;
-    const bool ok = check([&]() { rawLayout.front() ^= 0x80u; })
+    double changedBase = record->basePoint.x + 1.0;
+    std::string changedName = record->name + "_changed";
+    const bool ok = check([&]() { capturedBlock.front() ^= 0x80u; })
+        && check([&]() { capturedGeneration ^= 1u; })
+        && check([&]() { std::swap(record->basePoint.x, changedBase); })
+        && check([&]() { std::swap(record->name, changedName); })
+        && check([&]() { record->xrefBlockHandle.rawCode ^= 1u; })
+        && check([&]() { rawLayout.front() ^= 0x80u; })
         && check([&]() { rawDictionary.front() ^= 0x80u; })
         && check([&]() { classRow->m_classNumber ^= 1u; })
         && check([&]() { rootEntry->m_handle ^= 1u; })
@@ -1309,19 +1356,23 @@ bool checkLegacyLayoutGraph(const std::string& input) {
     const bool stopped = ok && DxIfaceStandardDwgCaptureTestAccess::noLegacyBlockFrames(data)
         && !adapter.wantsLegacyBlockRecordSource(data.sourceVersion);
     const bool missingRejected = stopped && !adapter.fileImport((scratch / "missing.dwg").string(), &data, false)
-        && DxIfaceStandardDwgCaptureTestAccess::noLegacyBlockFrames(data);
+        && DxIfaceStandardDwgCaptureTestAccess::noLegacyBlockFrames(data)
+        && !DxIfaceStandardDwgCaptureTestAccess::boundLegacyLayout(adapter);
     dx_data retry;
     const bool retried = missingRejected && adapter.fileImport(input, &retry, false)
-        && DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(retry, source);
+        && DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(retry, source)
+        && DxIfaceStandardDwgCaptureTestAccess::boundLegacyLayout(adapter);
     FailingLegacyBlockCaptureAdapter failing;
     dx_data unretained;
     const bool tolerantRead = retried && failing.fileImport(input, &unretained, false)
         && DxIfaceStandardDwgCaptureTestAccess::noLegacyBlockFrames(unretained)
-        && !failing.wantsLegacyBlockRecordSource(unretained.sourceVersion);
+        && !failing.wantsLegacyBlockRecordSource(unretained.sourceVersion)
+        && !DxIfaceStandardDwgCaptureTestAccess::boundLegacyLayout(failing);
     failing.injectFailure = false;
     dx_data recovered;
     const bool recoveredRead = tolerantRead && failing.fileImport(input, &recovered, false)
-        && DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(recovered, source);
+        && DxIfaceStandardDwgCaptureTestAccess::legacyBlockFrames(recovered, source)
+        && DxIfaceStandardDwgCaptureTestAccess::boundLegacyLayout(failing);
     std::filesystem::remove_all(scratch, error);
     return recoveredRead && !error;
 }

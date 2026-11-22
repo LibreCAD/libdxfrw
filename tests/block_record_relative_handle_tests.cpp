@@ -2,6 +2,7 @@
 #include "drw_objects.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
+#include "dx_legacy_block_record_wire.h"
 #include <cstdint>
 #include <iostream>
 #include <vector>
@@ -21,7 +22,7 @@ enum Field : unsigned { Control, Reactor, XDictionary, Xref, Block, First, Last,
 // Independently authored inline object bodies and tails (ODA 20.1/20.4.52).
 std::vector<std::uint8_t> frame(DRW::Version version, Field changed,
                                 std::uint8_t code, std::uint8_t size,
-                                std::uint64_t value) {
+                                std::uint64_t value, bool xref = false) {
     dwgBufferW b;
     b.putObjType(version, 49u);
     std::uint64_t sizeOffset = 0u;
@@ -32,10 +33,10 @@ std::vector<std::uint8_t> frame(DRW::Version version, Field changed,
     if (version >= DRW::AC1018) b.putBit(0u); // extension dictionary present
     b.putVariableText(version, "BLOCK_ROLE_TEST");
     b.putBit(0u); b.putBitShort(0u); b.putBit(0u); // xref flags/index
-    b.putBit(0u); b.putBit(0u); b.putBit(0u); b.putBit(0u);
+    b.putBit(0u); b.putBit(0u); b.putBit(xref ? 1u : 0u); b.putBit(0u);
     if (version >= DRW::AC1015) b.putBit(0u); // loaded
     if (version >= DRW::AC1018) b.putBitLong(0); // no owned-entity vector
-    b.put3BitDouble({0., 0., 0.}); b.putVariableText(version, "");
+    b.put3BitDouble({0., 0., 0.}); b.putVariableText(version, xref ? "refs/linked.dwg" : "");
     if (version >= DRW::AC1015) {
         b.putRawChar8(1u); b.putRawChar8(0u); // one INSERT reference
         b.putVariableText(version, ""); b.putBitLong(0); // description, preview
@@ -54,7 +55,7 @@ std::vector<std::uint8_t> frame(DRW::Version version, Field changed,
     put(Control, 4u, 1u, 0x10u); put(Reactor, 4u, 1u, 0x11u);
     put(XDictionary, 3u, 0u, 0u); put(Xref, 5u, 0u, 0u);
     put(Block, 3u, 2u, 0x201u);
-    if (version <= DRW::AC1015) {
+    if (version <= DRW::AC1015 && !xref) {
         put(First, 4u, 2u, 0x210u); put(Last, 4u, 2u, 0x211u);
     }
     put(End, 3u, 2u, 0x202u);
@@ -79,6 +80,33 @@ int main() {
         };
         const auto good = frame(version, Control, 4u, 1u, 0x10u);
         expect(parse(good) && record.handle == 0x200u, "valid BLOCK_HEADER must parse");
+        if (version <= DRW::AC1014) {
+            dx_legacy_block_record_wire::Proof proof;
+            expect(dx_legacy_block_record_wire::record(version, good, record, &proof)
+                       && proof.bodyEnd != 0u,
+                   "independent BLOCK_HEADER observer must match source");
+            DRW_Block_Record changed = record; changed.basePoint.x = -0.0;
+            proof.bodyEnd = 123u;
+            expect(!dx_legacy_block_record_wire::record(version, good, changed, &proof)
+                       && proof.bodyEnd == 123u,
+                   "changed signed-zero field must refuse without changing proof");
+            changed = record; changed.parentHandle ^= 1u;
+            expect(!dx_legacy_block_record_wire::record(version, good, changed),
+                   "changed BLOCK_CONTROL target must refuse");
+            auto damaged = good; damaged.front() ^= 0x80u;
+            expect(!dx_legacy_block_record_wire::record(version, damaged, record)
+                       && dx_legacy_block_record_wire::record(version, good, record),
+                   "changed frame must refuse and corrected frame must retry");
+            const auto xref = frame(version, Control, 4u, 1u, 0x10u, true);
+            expect(parse(xref) && (record.flags & 4) != 0
+                       && dx_legacy_block_record_wire::record(version, xref, record),
+                   "legacy XREF omits first/last handles and retains its path");
+            const auto nonnullXref = frame(version, Xref, 5u, 1u, 0x31u, true);
+            expect(parse(nonnullXref)
+                       && !dx_legacy_block_record_wire::record(version, nonnullXref, record),
+                   "unqualified non-null legacy XREF pointer must refuse source proof");
+            expect(parse(good), "normal BLOCK_HEADER must parse after XREF control");
+        }
         struct Relative { std::uint8_t code, size; std::uint64_t value; std::uint32_t result; };
         for (const Relative ref : {Relative{6u, 0u, 0u, 0x201u}, Relative{8u, 0u, 0u, 0x1ffu},
                                    Relative{10u, 1u, 0x23u, 0x223u}, Relative{12u, 1u, 0x23u, 0x1ddu}}) {
@@ -86,9 +114,13 @@ int main() {
                        && record.parentHandle == ref.result,
                    "relative BLOCK_CONTROL reference must remain supported");
             if (version <= DRW::AC1015) {
-                expect(parse(frame(version, First, ref.code, ref.size, ref.value))
+                const auto relative = frame(version, First, ref.code, ref.size, ref.value);
+                expect(parse(relative)
                            && DwgBlockOwnershipTestAccess::first(record) == ref.result,
                        "relative first entity must resolve against the record handle");
+                if (version <= DRW::AC1014)
+                    expect(dx_legacy_block_record_wire::record(version, relative, record),
+                           "independent observer must verify relative first entity");
                 expect(parse(frame(version, Last, ref.code, ref.size, ref.value))
                            && DwgBlockOwnershipTestAccess::last(record) == ref.result,
                        "relative last entity must resolve against the record handle");

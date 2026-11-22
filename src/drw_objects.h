@@ -170,6 +170,7 @@ struct DRW_DictionaryCountCap {
 
 class dwgBufferW;
 class DwgBlockOwnershipTestAccess;
+class DRW_DwgBlockRecordWireAccess;
 
 // Read-only name-field evidence shared by the APPID/LAYER DWG parsers. It is
 // not an entire table-record certificate, and cannot be installed by callers.
@@ -2724,6 +2725,7 @@ private:
 class DRW_Block_Record : public DRW_TableEntry {
   SETOBJFRIENDS
   friend class DRW::internal::DxfBlockRecordDecoder;
+  friend class DRW_DwgBlockRecordWireAccess;
 public:
   DRW_Block_Record() { reset(); }
   void reset() {

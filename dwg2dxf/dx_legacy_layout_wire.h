@@ -68,6 +68,14 @@ inline bool absolute(Bits& bits, std::uint8_t role,
         && (token.role == role
             || (token.role == 0u && token.length == 0u && expected == 0u));
 }
+inline bool typedAbsolute(Bits& bits, std::uint8_t role,
+                          const dwgHandle& expected) noexcept {
+    const auto token = dx_raster_wire::detail::handle(bits, role, 0u);
+    return bits.good && token.value == expected.ref && expected.ref64 == expected.ref
+        && token.role == expected.rawCode && token.role == expected.code
+        && token.length == expected.size
+        && (token.role == role || (token.role == 0u && token.length == 0u));
+}
 inline bool ascii(const std::string& text) noexcept {
     return std::all_of(text.begin(), text.end(),
                        [](unsigned char c) { return c > 0u && c < 128u; });
@@ -155,12 +163,7 @@ inline bool layout(const DRW_UnsupportedObject& raw, const DRW_Layout& value,
     const auto observeTyped = [&b, &mark](Field field, std::uint8_t role,
                                           const dwgHandle& expected) {
         const auto begin = b.pos;
-        const auto token = dx_raster_wire::detail::handle(b, role, 0u);
-        if (!b.good || token.value != expected.ref || expected.ref64 != expected.ref
-            || token.role != expected.rawCode || token.role != expected.code
-            || token.length != expected.size
-            || (token.role != role && !(token.role == 0u && token.length == 0u)))
-            return false;
+        if (!typedAbsolute(b, role, expected)) return false;
         mark(field, begin, b.pos);
         return true;
     };

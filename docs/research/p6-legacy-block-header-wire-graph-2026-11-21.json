@@ -1,0 +1,233 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-block-header-wire-graph-2026-11-21",
+  "date": "2026-11-21",
+  "gate": "P6-F",
+  "status": "LEGACY_LAYOUT_BLOCK_SOURCE_BOUND_OUTPUT_UNQUALIFIED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "2.13",
+      "20.1",
+      "20.4.52"
+    ]
+  },
+  "change": "An allocation-free independent bit observer checks the selected R13/R14 BLOCK_HEADER body, typed and relative references, and parser handle spans against the live record. The legacy LAYOUT source-graph check now requires generation-bound retained frames and applies the observer to every associated block record. Captured frame CRC and source location were verified during the original read; dictionary and class checks remain in force.",
+  "observed": {
+    "r13": {
+      "sourceSha256": "999c41fa2d243b145f36db8e3a797648dcced79f8c7257eb17aefd3d90287242",
+      "objects": [
+        {
+          "handle": 21,
+          "name": "*Model_Space",
+          "frameOffset": 4206,
+          "bodyBitEnd": 184,
+          "handleBitSpans": {
+            "control": [
+              184,
+              200
+            ],
+            "reactors": [
+              200,
+              200
+            ],
+            "xdictionary": [
+              200,
+              208
+            ],
+            "xref": [
+              208,
+              216
+            ],
+            "block": [
+              216,
+              232
+            ],
+            "first": [
+              232,
+              248
+            ],
+            "last": [
+              248,
+              264
+            ],
+            "end": [
+              264,
+              280
+            ]
+          },
+          "block": 22,
+          "first": 51,
+          "last": 52,
+          "end": 23
+        },
+        {
+          "handle": 24,
+          "name": "*Paper_Space",
+          "frameOffset": 4416,
+          "bodyBitEnd": 184,
+          "handleBitSpans": {
+            "control": [
+              184,
+              200
+            ],
+            "reactors": [
+              200,
+              200
+            ],
+            "xdictionary": [
+              200,
+              208
+            ],
+            "xref": [
+              208,
+              216
+            ],
+            "block": [
+              216,
+              232
+            ],
+            "first": [
+              232,
+              240
+            ],
+            "last": [
+              240,
+              248
+            ],
+            "end": [
+              248,
+              264
+            ]
+          },
+          "block": 25,
+          "first": 0,
+          "last": 0,
+          "end": 26
+        }
+      ]
+    },
+    "r14": {
+      "sourceSha256": "c057bba383107ea8906d4dc887eb7857628419306e36f37a8cb261a117319bdb",
+      "objects": [
+        {
+          "handle": 21,
+          "name": "*Model_Space",
+          "frameOffset": 4215,
+          "bodyBitEnd": 184,
+          "handleBitSpans": {
+            "control": [
+              184,
+              200
+            ],
+            "reactors": [
+              200,
+              200
+            ],
+            "xdictionary": [
+              200,
+              208
+            ],
+            "xref": [
+              208,
+              216
+            ],
+            "block": [
+              216,
+              232
+            ],
+            "first": [
+              232,
+              248
+            ],
+            "last": [
+              248,
+              264
+            ],
+            "end": [
+              264,
+              280
+            ]
+          },
+          "block": 22,
+          "first": 51,
+          "last": 52,
+          "end": 23
+        },
+        {
+          "handle": 24,
+          "name": "*Paper_Space",
+          "frameOffset": 4425,
+          "bodyBitEnd": 184,
+          "handleBitSpans": {
+            "control": [
+              184,
+              200
+            ],
+            "reactors": [
+              200,
+              200
+            ],
+            "xdictionary": [
+              200,
+              208
+            ],
+            "xref": [
+              208,
+              216
+            ],
+            "block": [
+              216,
+              232
+            ],
+            "first": [
+              232,
+              240
+            ],
+            "last": [
+              240,
+              248
+            ],
+            "end": [
+              248,
+              264
+            ]
+          },
+          "block": 25,
+          "first": 0,
+          "last": 0,
+          "end": 26
+        }
+      ]
+    }
+  },
+  "validation": {
+    "peer": "GNU LibreDWG 0.14 independently reads the selected block names, zero base points, control ownership, hard-owned block/end handles and first/last soft pointers in both generated resaved controls.",
+    "mutations": "Controls alter captured block and layout bytes, generation, block name/base point and XREF role, class evidence, dictionary bytes and ownership, root membership and links. The same adapter refuses while changed and restores its source proof after correction; ASCII/Binary R2000 destinations remain preserved because output projection is still unqualified.",
+    "vectors": "Hand-authored R13/R14 non-XREF and XREF controls cover complete body/tail spans, relative first/last references, null fields, changed body and source bytes, signed-zero identity, XREF first/last absence and refusal of an unqualified non-null XREF pointer.",
+    "tests": [
+      "libdxfrw_block_record_relative_handles",
+      "libdxfrw_AC1012_layout_wire_external",
+      "libdxfrw_AC1014_layout_wire_external",
+      "libdxfrw_AC1012_layout_graph_external",
+      "libdxfrw_AC1014_layout_graph_external",
+      "dwg2dxf_ac1012_partial_generated"
+    ],
+    "asan": "Fully instrumented library, CLI and adapter pass the focused vector and generated graph controls under AddressSanitizer."
+  },
+  "sources": {
+    "src/drw_objects.h": "71d794e2aecd6098208fbec50b63e6720ba2554c25d914785beadd685d15ed04",
+    "dwg2dxf/dx_legacy_layout_wire.h": "8acf4cbe483edf852a6676cc6b8ac0015b8a4220600626590fbb7a53303767ee",
+    "dwg2dxf/dx_legacy_block_record_wire.h": "8f3e527b3903f37b07a1091c8c47a7020f1f4d79c11da89d0e0a2621ceebcaa8",
+    "dwg2dxf/dx_iface.cpp": "161b9d5702023034f3131b4bb4752c3434a7da686eb4624d4b7b672fac1a0c61",
+    "tests/block_record_relative_handle_tests.cpp": "2cb22e1f068ee3481ff86391686d3f528ad040a21ce4043875317f3cef96548a",
+    "tests/dwg_ac1014_output_external_tests.cpp": "4a1339437c4ada2688048133bf9a4aa5d13672655f2f0dfc1941318ca6b2771d"
+  },
+  "limits": [
+    "The source observer admits only its bounded ASCII/no-EED legacy profile and requires the specified null XREF pointer; additional profiles need evidence.",
+    "Source proof is not proof of dictionary duplicate-merge semantics, complete output graph, projected DXF backlinks or consumer interoperability. Legacy LAYOUT export remains refused.",
+    "Producer samples are locally generated peer controls descended from ACadSharp; no native AutoCAD claim is made and no DWG or DXF fixture was committed."
+  ]
+}
