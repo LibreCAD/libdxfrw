@@ -1,10 +1,17 @@
-# This optional control is tied to the independently inspected ACadSharp sample.
+# The optional controls are tied to independently inspected external samples.
 file(SHA256 "${SAMPLE}" sample_hash)
-if(NOT sample_hash STREQUAL "d1ec4519be14ac49ecab5ec024ad951271e00261a1851f623a784a97ba6ede73")
-    message(FATAL_ERROR "AC1014 TABLE sample hash does not match the qualified control")
+if(PROFILE STREQUAL "r13")
+    set(expected_hash "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89")
+elseif(PROFILE STREQUAL "r14")
+    set(expected_hash "d1ec4519be14ac49ecab5ec024ad951271e00261a1851f623a784a97ba6ede73")
+else()
+    message(FATAL_ERROR "Unknown legacy TABLE profile: ${PROFILE}")
 endif()
-execute_process(COMMAND "${TEST_EXECUTABLE}" "${SAMPLE}"
+if(NOT sample_hash STREQUAL expected_hash)
+    message(FATAL_ERROR "${PROFILE} TABLE sample hash does not match the selected control")
+endif()
+execute_process(COMMAND "${TEST_EXECUTABLE}" "${SAMPLE}" "${PROFILE}"
     RESULT_VARIABLE status)
 if(NOT status EQUAL 0)
-    message(FATAL_ERROR "AC1014 TABLE prefix control failed: ${status}")
+    message(FATAL_ERROR "${PROFILE} TABLE prefix control failed: ${status}")
 endif()

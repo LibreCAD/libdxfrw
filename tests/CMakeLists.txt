@@ -2032,10 +2032,9 @@ set(LIBDXFRW_AC1014_LAYOUT_WIRE_SAMPLE "" CACHE FILEPATH
     "Optional external AC1014 two-LAYOUT source for physical wire controls")
 set(LIBDXFRW_AC1014_TABLE_SAMPLE "" CACHE FILEPATH
     "Optional ACadSharp sample_AC1014.dwg for the hash-selected TABLE prefix control")
-if(LIBDXFRW_AC1014_TABLE_SAMPLE)
-    if(NOT EXISTS "${LIBDXFRW_AC1014_TABLE_SAMPLE}")
-        message(FATAL_ERROR "LIBDXFRW_AC1014_TABLE_SAMPLE does not exist")
-    endif()
+set(LIBDXFRW_AC1012_TABLE_SAMPLE "" CACHE FILEPATH
+    "Optional LibreDWG example_r13.dwg for the hash-selected TABLE prefix control")
+if(LIBDXFRW_AC1014_TABLE_SAMPLE OR LIBDXFRW_AC1012_TABLE_SAMPLE)
     add_executable(libdxfrw_table_legacy_external_tests
         ${CMAKE_CURRENT_SOURCE_DIR}/table_legacy_external_tests.cpp
         ${_libdxfrw_test_adapter_source})
@@ -2045,13 +2044,28 @@ if(LIBDXFRW_AC1014_TABLE_SAMPLE)
         ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
     target_link_libraries(libdxfrw_table_legacy_external_tests PRIVATE dxfrw)
     libdxfrw_check_test_adapter_context(libdxfrw_table_legacy_external_tests)
-    add_test(NAME libdxfrw_table_legacy_external
-        COMMAND ${CMAKE_COMMAND}
-            "-DSAMPLE=${LIBDXFRW_AC1014_TABLE_SAMPLE}"
-            "-DTEST_EXECUTABLE=$<TARGET_FILE:libdxfrw_table_legacy_external_tests>"
-            -P ${CMAKE_CURRENT_SOURCE_DIR}/run_table_legacy_external.cmake)
-    set_tests_properties(libdxfrw_table_legacy_external PROPERTIES
-        LABELS "dwg;table;AC1014;external;compatibility" TIMEOUT 30)
+    foreach(profile IN ITEMS AC1012 AC1014)
+        if(LIBDXFRW_${profile}_TABLE_SAMPLE)
+            if(NOT EXISTS "${LIBDXFRW_${profile}_TABLE_SAMPLE}")
+                message(FATAL_ERROR "LIBDXFRW_${profile}_TABLE_SAMPLE does not exist")
+            endif()
+            if(profile STREQUAL "AC1012")
+                set(table_profile r13)
+                set(table_test libdxfrw_table_legacy_r13_external)
+            else()
+                set(table_profile r14)
+                set(table_test libdxfrw_table_legacy_external)
+            endif()
+            add_test(NAME ${table_test}
+                COMMAND ${CMAKE_COMMAND}
+                    "-DSAMPLE=${LIBDXFRW_${profile}_TABLE_SAMPLE}"
+                    "-DPROFILE=${table_profile}"
+                    "-DTEST_EXECUTABLE=$<TARGET_FILE:libdxfrw_table_legacy_external_tests>"
+                    -P ${CMAKE_CURRENT_SOURCE_DIR}/run_table_legacy_external.cmake)
+            set_tests_properties(${table_test} PROPERTIES
+                LABELS "dwg;table;${profile};external;compatibility" TIMEOUT 30)
+        endif()
+    endforeach()
 endif()
 if(LIBDXFRW_AC1014_EXTERNAL_PROFILE OR LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CONTROL
    OR LIBDXFRW_AC1012_LAYOUT_WIRE_SAMPLE OR LIBDXFRW_AC1014_LAYOUT_WIRE_SAMPLE)

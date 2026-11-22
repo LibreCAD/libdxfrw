@@ -21,6 +21,40 @@
 #include "drw_textcodec.h"
 #include "dwgsafety.h"
 
+namespace {
+// Each context remains alive until its destructor restores the enclosing one.
+// Keep this implementation with the writer buffer rather than in entity
+// codec translation units, where GCC 13 misdiagnoses inlined RAII scopes.
+thread_local const ScopedDwgLegacyEntityLinks* g_legacyEntityLinks = nullptr;
+}
+
+ScopedDwgLegacyEntityLinks::ScopedDwgLegacyEntityLinks(
+    const dwgBufferW* body, const dwgBufferW* handles,
+    std::uint32_t previous, std::uint32_t next) noexcept
+    : m_body(body), m_handles(handles), m_previous(previous), m_next(next),
+      m_enclosing(g_legacyEntityLinks) {
+    g_legacyEntityLinks = this;
+}
+
+ScopedDwgLegacyEntityLinks::~ScopedDwgLegacyEntityLinks() {
+    g_legacyEntityLinks = m_enclosing;
+}
+
+bool ScopedDwgLegacyEntityLinks::lookup(const dwgBufferW* buffer,
+                                       std::uint32_t& previous,
+                                       std::uint32_t& next) noexcept {
+    if (buffer == nullptr) return false;
+    for (auto* context = g_legacyEntityLinks; context != nullptr;
+         context = context->m_enclosing) {
+        if (context->m_body == buffer || context->m_handles == buffer) {
+            previous = context->m_previous;
+            next = context->m_next;
+            return true;
+        }
+    }
+    return false;
+}
+
 // CRC-CCITT lookup table — same constants the reader uses (the file's
 // crctable[256] is static-linked, so we duplicate it locally; small
 // (512 bytes) and keeps the writer independent of the reader's TU).

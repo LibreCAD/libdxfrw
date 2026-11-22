@@ -69,7 +69,6 @@ bool takeTableCandidateWork(std::uint32_t units=1u) noexcept {
     trace.workUnits+=units;
     return true;
 }
-thread_local const ScopedDwgLegacyEntityLinks* g_legacyEntityLinks = nullptr;
 
 bool readDwgRepresentableAppDataHandle(const DRW_Variant& value,
                                        int expectedCode,
@@ -250,33 +249,6 @@ bool encodeEntityDwgTransaction(std::int16_t &objectType, dwgBufferW *body,
         return false;
     }
 }
-}
-
-ScopedDwgLegacyEntityLinks::ScopedDwgLegacyEntityLinks(
-    const dwgBufferW* body, const dwgBufferW* handles,
-    std::uint32_t previous, std::uint32_t next) noexcept
-    : m_body(body), m_handles(handles), m_previous(previous), m_next(next),
-      m_enclosing(g_legacyEntityLinks) {
-    g_legacyEntityLinks = this;
-}
-
-ScopedDwgLegacyEntityLinks::~ScopedDwgLegacyEntityLinks() {
-    g_legacyEntityLinks = m_enclosing;
-}
-
-bool ScopedDwgLegacyEntityLinks::lookup(const dwgBufferW* buffer,
-                                       std::uint32_t& previous,
-                                       std::uint32_t& next) noexcept {
-    if (buffer == nullptr) return false;
-    for (auto* context = g_legacyEntityLinks; context != nullptr;
-         context = context->m_enclosing) {
-        if (context->m_body == buffer || context->m_handles == buffer) {
-            previous = context->m_previous;
-            next = context->m_next;
-            return true;
-        }
-    }
-    return false;
 }
 
 namespace {

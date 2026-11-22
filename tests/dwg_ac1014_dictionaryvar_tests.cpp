@@ -201,7 +201,7 @@ bool r13DictionaryEedControl(bool utf8 = false, bool longInts = false, bool real
     }
     std::size_t firstRealBit = 0u;
     if (reals) {
-        for (const auto item : {std::pair<std::uint8_t, double>{40u, 1.25},
+        for (const auto& item : {std::pair<std::uint8_t, double>{40u, 1.25},
                                 {41u, -0.5}, {42u, 42.125}}) {
             w.putRawChar8(item.first);
             if (item.first == 40u)

@@ -13103,7 +13103,7 @@ void testR14RenderRawRetention(TestContext& t) {
         return std::make_pair(body.data(), frame.data());
     };
     constexpr std::uint16_t renderType = 517u, nextType = 519u;
-    constexpr std::uint32_t renderHandle = 0xA110u, nextHandle = 0xA111u;
+    static constexpr std::uint32_t renderHandle = 0xA110u, nextHandle = 0xA111u;
     struct Profile { const char* first; const char* second; bool history; };
     for (const auto& pair : {Profile{"RAPIDRTRENDERSETTINGS", "AcDbRapidRTRenderSettings", false},
                             {"MENTALRAYRENDERSETTINGS", "AcDbMentalRayRenderSettings", false},

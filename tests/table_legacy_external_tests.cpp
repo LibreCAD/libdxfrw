@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-// Optional, hash-selected external AC1014 source; no drawing is stored here.
+// Optional, hash-selected external AC1012/AC1014 sources; no drawing is stored here.
 #include "dx_data.h"
 #include "dx_iface.h"
 #include <cmath>
 #include <cstdint>
 #include <iostream>
 #include <map>
+#include <string>
 #include <vector>
 
 class Probe : public dx_iface {
@@ -18,7 +19,7 @@ public:
         dx_iface::addTable(value);
     }
     void addInsert(const DRW_Insert& value) override {
-        if (value.handle == 0x528u || value.handle == 0xA35u)
+        if (value.handle == 0x4F2u || value.handle == 0x528u || value.handle == 0xA35u)
             inserts.emplace(value.handle, value);
         dx_iface::addInsert(value);
     }
@@ -39,13 +40,13 @@ public:
 };
 
 int main(int argc, char** argv) {
-    if (argc != 2) return 2;
+    if (argc != 3) return 2;
     struct Expected {
         std::uint32_t handle, block;
         double x, y;
         std::vector<double> widths, heights;
     };
-    const Expected expected[] = {
+    const std::vector<Expected> r14 = {
         {0x528u, 0x570u, 774.865723661128, 48.53878603809859,
          {34.19820493727295, 34.19820493727295, 34.19820493727295},
          {7.49103536721217, 6.3510952026364, 6.3510952026364,
@@ -56,6 +57,19 @@ int main(int argc, char** argv) {
          {0.45333333333333, 0.60675306957708, 0.60454297407913,
           0.60454297407913}}
     };
+    const std::vector<Expected> r13 = {
+        {0x4F2u, 0x4F3u, 3298.7947769117454, 839.6133480853896,
+         std::vector<double>(9u, 63.5),
+         {11.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0,
+          9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0, 9.0}}
+    };
+    const std::string profile = argv[2];
+    if (profile != "r13" && profile != "r14") return 2;
+    const bool isR13 = profile == "r13";
+    const auto& expected = isR13 ? r13 : r14;
+    const auto version = isR13 ? DRW::AC1012 : DRW::AC1014;
+    const int objectType = isR13 ? 528 : 523;
+    const std::uint32_t style = isR13 ? 0x29Bu : 0x87u;
     for (const unsigned mode : {0u, 1u, 2u}) {
         Probe plain;
         GridProbe capable; capable.optIn = mode == 2u;
@@ -63,9 +77,9 @@ int main(int argc, char** argv) {
         const bool optIn = mode == 2u;
         dx_data data;
         if (!reader.fileImport(argv[1], &data, false)
-            || reader.tables.size() != 2u || reader.raw.size() != 2u
-            || reader.inserts.size() != 2u
-            || capable.grids.size() != (optIn ? 2u : 0u)) return 1;
+            || reader.tables.size() != expected.size() || reader.raw.size() != expected.size()
+            || reader.inserts.size() != expected.size()
+            || capable.grids.size() != (optIn ? expected.size() : 0u)) return 1;
         for (const auto& row : expected) {
             const auto table = reader.tables.find(row.handle);
             const auto raw = reader.raw.find(row.handle);
@@ -89,10 +103,10 @@ int main(int argc, char** argv) {
                 || projection.colcount != 1 || projection.rowcount != 1
                 || projection.basePoint.x != value.basePoint.x
                 || projection.basePoint.y != value.basePoint.y
-                || source.m_version != DRW::AC1014 || source.m_objectType != 523
+                || source.m_version != version || source.m_objectType != objectType
                 || !source.m_isEntity || source.m_typedPayloadValidated
                 || source.m_rawBytes.empty()) {
-                std::cerr << "AC1014 TABLE 2D projection or raw peer mismatch for "
+                std::cerr << profile << " TABLE 2D projection or raw peer mismatch for "
                           << std::hex << row.handle << '\n';
                 return 1;
             }
@@ -102,7 +116,7 @@ int main(int argc, char** argv) {
             const auto& grid = selected->second;
             if (!grid.m_hasSemanticContent || grid.m_semanticContentComplete
                 || grid.colcount != 1 || grid.rowcount != 1
-                || grid.m_valueFlag != 22 || grid.m_tableStyleHandle != 0x87u
+                || grid.m_valueFlag != 22 || grid.m_tableStyleHandle != style
                 || grid.m_horizontalDirection.x != 1.0
                 || grid.m_horizontalDirection.y != 0.0
                 || grid.m_horizontalDirection.z != 0.0
@@ -117,6 +131,6 @@ int main(int argc, char** argv) {
                     return 1;
         }
     }
-    std::cout << "AC1014 TABLE 2D projection, opt-in grid and raw peers: PASS\n";
+    std::cout << profile << " TABLE 2D projection, opt-in grid and raw peers: PASS\n";
     return 0;
 }
