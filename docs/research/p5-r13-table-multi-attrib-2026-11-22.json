@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "date": "2026-11-22",
+  "scope": "Controlled AC1012 TABLE with two linked ATTRIBs and an earlier SEQEND; no native support claim",
+  "source": "LibreDWG test/test-data/example_r13.dwg read in place",
+  "sourceSha256": "53558a8ae4bf666f906c9c2e4d3c3ee7ef61690e3b0f4d4a858e4e1bf555fc89",
+  "generatedDwgSha256": "a1d3b0ee456122c88d193a85e9d7e586768b9afbb362b5b9042e8f0037472645",
+  "generatedTableFrameSha256": "2cc5a67148981ecbe9b1e4c02b28f8a78275dad981ed3e9eedfa48518ab49206",
+  "generator": "tools/research/generate_r13_table_attrib_witness.py --multiple-children",
+  "generatorSha256": "92eda564b9e9769bc5037a70a2aaf98756301e5f0dd881bbff29224307245cd1",
+  "independentPeer": "LibreDWG 0.14 dwgread/dwgwrite",
+  "observations": [
+    "The TABLE payload is preserved bit for bit outside the attribute flag and inserted first/last/SEQEND handles; its frame CRC is valid.",
+    "LibreDWG reopens TABLE 4F2 with first ATTRIB 192, last ATTRIB 757 and SEQEND 191. ATTRIB 192 links to 757; both ATTRIBs and SEQEND point back to TABLE 4F2.",
+    "The library stages the earlier SEQEND and both ATTRIB frames, then delivers TABLE, 2D INSERT and opt-in 9-by-20 grid callbacks with attributes ordered 192 then 757.",
+    "Wrong endpoint role, wrong first ATTRIB owner and wrong SEQEND owner are individually mutated with valid frame CRCs. Each bad read withholds the compound, then the same adapter imports the corrected drawing successfully."
+  ],
+  "limits": [
+    "Source and generated DWG remain outside the repository.",
+    "Other rewritten unsupported objects are not qualified by this selected-object check.",
+    "No native AutoCAD TABLE semantics, strict output or complete-file conversion is established."
+  ]
+}

@@ -65,12 +65,15 @@ int main(int argc, char** argv) {
     };
     const std::string profile = argv[2];
     if (profile == "r14-attrs" || profile == "r13-attrs" ||
-        profile == "r13-early-attrs" || profile == "r13-mixed-attrs") {
+        profile == "r13-early-attrs" || profile == "r13-mixed-attrs" ||
+        profile == "r13-multi-attrs") {
         if (argc != 4) return 2;
         const bool r13Attributes = profile != "r14-attrs";
         const std::uint32_t tableHandle = r13Attributes ? 0x4F2u : 0x528u;
-        const std::uint32_t attribHandle = profile == "r13-early-attrs" ? 0x192u
+        const std::uint32_t attribHandle =
+            profile == "r13-early-attrs" || profile == "r13-multi-attrs" ? 0x192u
                                             : r13Attributes ? 0x757u : 0x705u;
+        const std::size_t attributeCount = profile == "r13-multi-attrs" ? 2u : 1u;
         // A bad endpoint must not publish any part of the compound. Reuse
         // the same adapter for the corrected derivative and check its child.
         for (const unsigned mode : {0u, 1u, 2u}) {
@@ -96,11 +99,13 @@ int main(int argc, char** argv) {
                 || reader.inserts.count(tableHandle) != 1u
                 || reader.raw.count(tableHandle) != 1u
                 || capable.grids.count(tableHandle) != (mode == 2u ? 1u : 0u)
-                || reader.tables.at(tableHandle).attlist.size() != 1u
+                || reader.tables.at(tableHandle).attlist.size() != attributeCount
                 || reader.tables.at(tableHandle).attlist[0]->handle != attribHandle
-                || reader.inserts.at(tableHandle).attlist.size() != 1u
+                || (attributeCount == 2u &&
+                    reader.tables.at(tableHandle).attlist[1]->handle != 0x757u)
+                || reader.inserts.at(tableHandle).attlist.size() != attributeCount
                 || (mode == 2u &&
-                    (capable.grids.at(tableHandle).attlist.size() != 1u ||
+                    (capable.grids.at(tableHandle).attlist.size() != attributeCount ||
                      capable.grids.at(tableHandle).m_content.m_columns.size() !=
                          (r13Attributes ? 9u : 3u) ||
                      capable.grids.at(tableHandle).m_content.m_rows.size() !=

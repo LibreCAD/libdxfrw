@@ -38,12 +38,14 @@ def main():
     ordering = parser.add_mutually_exclusive_group()
     ordering.add_argument("--earlier-children", action="store_true")
     ordering.add_argument("--mixed-children", action="store_true")
+    ordering.add_argument("--multiple-children", action="store_true")
     args = parser.parse_args()
     insert_handle, attrib_handle, seqend_handle = (
-        (0x190, 0x192, 0x191) if args.earlier_children else
+        (0x190, 0x192, 0x191) if args.earlier_children or args.multiple_children else
         (0x756, 0x757, 0x191) if args.mixed_children else (0x756, 0x757, 0x759))
+    last_handle = 0x757 if args.multiple_children else attrib_handle
     inserted = bytes((0x42, attrib_handle >> 8, attrib_handle & 255,
-                      0x42, attrib_handle >> 8, attrib_handle & 255,
+                      0x42, last_handle >> 8, last_handle & 255,
                       0x32, seqend_handle >> 8, seqend_handle & 255))
     source = args.source.read_bytes()
     require(source.startswith(b"AC1012") and digest(source) == SOURCE_HASH,
@@ -102,6 +104,18 @@ def main():
         sequence_insert["has_attribs"] = 0
     attribute["ownerhandle"] = [4, 2, 0x4F2, 0x4F2]
     seqend["ownerhandle"] = [4, 2, 0x4F2, 0x4F2]
+    if args.multiple_children:
+        other_insert, other_attribute = source_objects[0x756], source_objects[0x757]
+        require(other_insert.get("first_attrib", [None])[-1] == 0x757 and
+                other_attribute.get("ownerhandle", [None])[-1] == 0x756,
+                "unexpected second source attribute")
+        table["last_attrib"] = [4, 2, 0x757, 0x757]
+        attribute["next_entity"] = [4, 2, 0x757, 0x757]
+        other_attribute["prev_entity"] = [4, 2, 0x192, 0x192]
+        other_attribute["ownerhandle"] = [4, 2, 0x4F2, 0x4F2]
+        for key in ("first_attrib", "last_attrib", "seqend"):
+            other_insert.pop(key)
+        other_insert["has_attribs"] = 0
     edit = root / "edit.json"
     edit.write_text(json.dumps(document, separators=(",", ":")))
     output = root / "table-attrib.dwg"
@@ -113,16 +127,21 @@ def main():
     _, observed = objects(reopened, insert_handle, attrib_handle, seqend_handle)
     require(observed[0x4F2].get("has_attribs") == 1 and
             observed[insert_handle].get("has_attribs") == 0, "peer attribute flag mismatch")
-    for key, target in (("first_attrib", attrib_handle), ("last_attrib", attrib_handle),
+    for key, target in (("first_attrib", attrib_handle), ("last_attrib", last_handle),
                         ("seqend", seqend_handle)):
         require(observed[0x4F2].get(key, [None])[-1] == target, "peer handle mismatch")
     require(all(observed[h].get("ownerhandle", [None])[-1] == 0x4F2
                 for h in (attrib_handle, seqend_handle)), "peer ownership mismatch")
+    if args.multiple_children:
+        require(observed[0x757].get("ownerhandle", [None])[-1] == 0x4F2 and
+                observed[attrib_handle].get("next_entity", [None])[-1] == 0x757,
+                "peer multiple-attribute chain mismatch")
     trace = run([args.dwgread, "-v4", str(output)])
     blocks = re.split(r"(?=Object number:)", (trace.stdout + trace.stderr).decode(errors="replace"))
     spans = {}
     for handle, expected_size in ((0x4F2, BODY_SIZE + len(inserted)),
-                                  (attrib_handle, 102 if args.earlier_children else 96),
+                                  (attrib_handle, 104 if args.multiple_children else
+                                   102 if args.earlier_children else 96),
                                   (seqend_handle, 19)):
         selected = [b for b in blocks if re.search(rf"\bhandle: 0\.2\.{handle:X}\s", b)]
         require(len(selected) == 1, "peer frame identity mismatch")
@@ -140,7 +159,7 @@ def main():
         probe = executable(args.reader_probe)
         for name, handle, bit in (("wrong-role", 0x4F2, INSERT_BIT + 3),
                                   ("wrong-attrib-owner", attrib_handle,
-                                   (735 if args.earlier_children else 687) + 23),
+                                   (735 if args.earlier_children or args.multiple_children else 687) + 23),
                                   ("wrong-seqend-owner", seqend_handle, 81 + 23)):
             body_address, body_size = spans[handle]
             body = frame(output.read_bytes(), body_address - 2, body_size)
@@ -155,12 +174,14 @@ def main():
             bad_path = root / f"{name}.dwg"
             bad_path.write_bytes(bad)
             frame(bad, body_address - 2, body_size)
-            profile = ("r13-early-attrs" if args.earlier_children else
+            profile = ("r13-multi-attrs" if args.multiple_children else
+                       "r13-early-attrs" if args.earlier_children else
                        "r13-mixed-attrs" if args.mixed_children else "r13-attrs")
             run([args.reader_probe, str(bad_path), profile, str(output)])
     receipt = {"schema": 1, "scope": "controlled AC1012 TABLE compound; not native semantics",
                "earlierChildren": args.earlier_children,
                "mixedChildren": args.mixed_children,
+               "multipleChildren": args.multiple_children,
                "sourceSha256": SOURCE_HASH, "outputSha256": digest(output.read_bytes()),
                "frameSha256": digest(emitted), "generatorSha256": digest(Path(__file__).read_bytes()),
                "dwgread": executable(args.dwgread), "dwgwrite": executable(args.dwgwrite),
