@@ -76,6 +76,18 @@ inline bool isLegacyDictionaryWithDefaultRawOnlyProfile(
       && objectClass->className == "AcDbDictionaryWithDefault";
 }
 
+/// Observed R14 render classes may carry newer, unmodeled bodies. Preserve
+/// their bounded source frames when typed decoding fails, without qualifying
+/// their fields or output.
+inline bool isR14RenderRawOnlyProfile(DRW::Version version,
+                                      const DRW_Class *objectClass) {
+  return version == DRW::AC1014 && objectClass != nullptr
+      && ((objectClass->recName == "RAPIDRTRENDERSETTINGS"
+           && objectClass->className == "AcDbRapidRTRenderSettings")
+          || (objectClass->recName == "MENTALRAYRENDERSETTINGS"
+              && objectClass->className == "AcDbMentalRayRenderSettings"));
+}
+
 /// Immutable ordering key for the bounded catch-all ENTITIES sweep. The
 /// source map is unordered; retaining only this key lets the reader reproduce
 /// its established sourceOrdinal/location/handle order without keeping

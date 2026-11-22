@@ -4470,6 +4470,20 @@ void testCellStyleMapRawOnlyVersionProfile(TestContext& t) {
     t.expect(!dwgReaderDetail::isLegacyDictionaryWithDefaultRawOnlyProfile(
                  DRW::AC1012, &objectClass),
              "DICTIONARYWDFLT raw-shell fallback refuses a different record name");
+    for (const auto& pair : {std::pair<const char*, const char*>{
+                                "RAPIDRTRENDERSETTINGS", "AcDbRapidRTRenderSettings"},
+                            {"MENTALRAYRENDERSETTINGS", "AcDbMentalRayRenderSettings"}}) {
+        objectClass.recName = pair.first;
+        objectClass.className = pair.second;
+        t.expect(dwgReaderDetail::isR14RenderRawOnlyProfile(DRW::AC1014, &objectClass)
+                     && !dwgReaderDetail::isR14RenderRawOnlyProfile(DRW::AC1012, &objectClass)
+                     && !dwgReaderDetail::isR14RenderRawOnlyProfile(DRW::AC1015, &objectClass),
+                 "render raw fallback is limited to observed R14 class identities");
+        objectClass.className = "AcDbUnrelated";
+        t.expect(!dwgReaderDetail::isR14RenderRawOnlyProfile(DRW::AC1014, &objectClass)
+                     && !dwgReaderDetail::isR14RenderRawOnlyProfile(DRW::AC1014, nullptr),
+                 "render raw fallback refuses mismatched or missing classes");
+    }
 }
 
 void testCellStyleMapIdentityDomains(TestContext& t) {

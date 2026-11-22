@@ -14725,6 +14725,22 @@ bool dwgReader::readDwgObject(dwgBuffer *dbuf, objHandle &obj,
               if (ret) {
                 intfa.addRenderSettings(settings);
                 intfa.addUnsupportedObject(makeRawObject(oType, cit->second));
+              } else if (dwgReaderDetail::isR14RenderRawOnlyProfile(
+                             version, cit->second)) {
+                // The frame, CRC, common prologue and handle were validated
+                // independently before the typed parser ran. These R14
+                // bodies are not established; retain the original bytes only
+                // and keep output gated by the unmodeled-source counters.
+                intfa.addUnsupportedObject(
+                    makeRawObject(oType, cit->second, false));
+                ++m_skippedCustomClasses[cit->second->className];
+                ++m_skippedUnsupportedObjects[rn];
+                ret = true;
+                DRW_DBG("[r14-render-raw-only class=");
+                DRW_DBG(cit->second->className.c_str());
+                DRW_DBG(" handle=");
+                DRW_DBG(obj.handle);
+                DRW_DBG("]\n");
               }
               break;
             }

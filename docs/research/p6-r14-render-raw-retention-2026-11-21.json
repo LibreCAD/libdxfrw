@@ -1,0 +1,209 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-r14-render-raw-retention-2026-11-21",
+  "date": "2026-11-21",
+  "gate": "P6-F",
+  "status": "BOUNDED_RAW_RETENTION_OUTPUT_STILL_GATED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.1"
+    ],
+    "limits": "Authority specifies the common object frame, not the observed render-class body semantics."
+  },
+  "change": "For the exact observed AC1014 RAPIDRTRENDERSETTINGS/AcDbRapidRTRenderSettings and MENTALRAYRENDERSETTINGS/AcDbMentalRayRenderSettings pairs, retain the exact validated outer frame as unmodeled when typed parsing fails. Publish no typed callback and increment skipped-class and skipped-object counters. CRC, common prologue and object-map identity must already pass. Other versions and class pairs do not use this fallback.",
+  "sourceFiles": {
+    "src/intern/dwgreader.cpp": "9f156ca52deae56906083c875c53ea6a26005029f212cc0118cba4afbd155abc",
+    "src/intern/dwgreader.h": "14db03f16f96b9675a0864c4187498c2764e0c5a059a5eab0c606217dfe2acc0",
+    "tests/dwg_reader_matrix_tests.cpp": "f50686fb81a564aab9f7a6a9df7efbbc97cee73db4bc9611c7efafd05d1d9bc2",
+    "tests/dwg_object_vectors_tests.cpp": "5367eec7f11cafd70d4d3802fdaa9cc5a6aab880da43d7f3091cd4be2177dc3f"
+  },
+  "sourceProfile": "Existing four BookViewer corpus R14 files, hashes and provenance limits in p6-ac1014-bookviewer-partial-diagnostics-2026-11-21.json; downloaded samples stay outside the repository.",
+  "screen": [
+    {
+      "name": "draw",
+      "sourceSha256": "a20770a8736b818f503bffd8aa77ede3ac4896f1046252e22fd9789690357669",
+      "results": {
+        "strict": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "dispositions": {
+            "sourceDwgSkippedCustomClassInstances": "3",
+            "sourceDwgSkippedUnsupportedObjectInstances": "3",
+            "sourceDwgEntityParseFailures": "0",
+            "sourceDwgObjectParseFailures": "0",
+            "sourceDwgFrameCoverage": "complete",
+            "sourceDwgSourceFrames": "314",
+            "sourceDwgFramesPublished": "314",
+            "sourceDwgFramesFailed": "0"
+          },
+          "rawRenderCount": 2,
+          "preflight": [
+            "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+          ]
+        },
+        "partial": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "dispositions": {
+            "sourceDwgSkippedCustomClassInstances": "3",
+            "sourceDwgSkippedUnsupportedObjectInstances": "3",
+            "sourceDwgEntityParseFailures": "0",
+            "sourceDwgObjectParseFailures": "0",
+            "sourceDwgFrameCoverage": "complete",
+            "sourceDwgSourceFrames": "314",
+            "sourceDwgFramesPublished": "314",
+            "sourceDwgFramesFailed": "0"
+          },
+          "rawRenderCount": 2,
+          "preflight": [
+            "DXF export preflight failed: partial DWG output requires a successful read and finalized, bounded frame dispositions"
+          ]
+        }
+      }
+    },
+    {
+      "name": "draw2",
+      "sourceSha256": "df38aaf25549a1ab22ced97fc4f687ba4ba2740e6da735ba948af6f25a7247d2",
+      "results": {
+        "strict": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "dispositions": {
+            "sourceDwgSkippedCustomClassInstances": "3",
+            "sourceDwgSkippedUnsupportedObjectInstances": "3",
+            "sourceDwgEntityParseFailures": "0",
+            "sourceDwgObjectParseFailures": "0",
+            "sourceDwgFrameCoverage": "complete",
+            "sourceDwgSourceFrames": "326",
+            "sourceDwgFramesPublished": "326",
+            "sourceDwgFramesFailed": "0"
+          },
+          "rawRenderCount": 2,
+          "preflight": [
+            "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+          ]
+        },
+        "partial": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "dispositions": {
+            "sourceDwgSkippedCustomClassInstances": "3",
+            "sourceDwgSkippedUnsupportedObjectInstances": "3",
+            "sourceDwgEntityParseFailures": "0",
+            "sourceDwgObjectParseFailures": "0",
+            "sourceDwgFrameCoverage": "complete",
+            "sourceDwgSourceFrames": "326",
+            "sourceDwgFramesPublished": "326",
+            "sourceDwgFramesFailed": "0"
+          },
+          "rawRenderCount": 2,
+          "preflight": [
+            "DXF export preflight failed: partial DWG output requires a successful read and finalized, bounded frame dispositions"
+          ]
+        }
+      }
+    },
+    {
+      "name": "2d",
+      "sourceSha256": "c91b57626cfc283816308dc092ac1aaa2761f7587bbcdb349338b36bde3171d4",
+      "results": {
+        "strict": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "dispositions": {
+            "sourceDwgSkippedCustomClassInstances": "3",
+            "sourceDwgSkippedUnsupportedObjectInstances": "3",
+            "sourceDwgEntityParseFailures": "0",
+            "sourceDwgObjectParseFailures": "0",
+            "sourceDwgFrameCoverage": "complete",
+            "sourceDwgSourceFrames": "317",
+            "sourceDwgFramesPublished": "317",
+            "sourceDwgFramesFailed": "0"
+          },
+          "rawRenderCount": 2,
+          "preflight": [
+            "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+          ]
+        },
+        "partial": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "dispositions": {
+            "sourceDwgSkippedCustomClassInstances": "3",
+            "sourceDwgSkippedUnsupportedObjectInstances": "3",
+            "sourceDwgEntityParseFailures": "0",
+            "sourceDwgObjectParseFailures": "0",
+            "sourceDwgFrameCoverage": "complete",
+            "sourceDwgSourceFrames": "317",
+            "sourceDwgFramesPublished": "317",
+            "sourceDwgFramesFailed": "0"
+          },
+          "rawRenderCount": 2,
+          "preflight": [
+            "DXF export preflight failed: partial DWG output requires a successful read and finalized, bounded frame dispositions"
+          ]
+        }
+      }
+    },
+    {
+      "name": "3d",
+      "sourceSha256": "ab655649e8a1059d0557fb167eeb8d9a5d802afc8313d60d4bcabdce790bac4c",
+      "results": {
+        "strict": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "dispositions": {
+            "sourceDwgSkippedCustomClassInstances": "3",
+            "sourceDwgSkippedUnsupportedObjectInstances": "3",
+            "sourceDwgEntityParseFailures": "0",
+            "sourceDwgObjectParseFailures": "2",
+            "sourceDwgFrameCoverage": "partial",
+            "sourceDwgSourceFrames": "502",
+            "sourceDwgFramesPublished": "500",
+            "sourceDwgFramesFailed": "2"
+          },
+          "rawRenderCount": 2,
+          "preflight": [
+            "DXF export preflight failed: strict-complete conversion requires successful, complete DWG read disposition"
+          ]
+        },
+        "partial": {
+          "exit": 1,
+          "destinationPreserved": true,
+          "dispositions": {
+            "sourceDwgSkippedCustomClassInstances": "3",
+            "sourceDwgSkippedUnsupportedObjectInstances": "3",
+            "sourceDwgEntityParseFailures": "0",
+            "sourceDwgObjectParseFailures": "2",
+            "sourceDwgFrameCoverage": "partial",
+            "sourceDwgSourceFrames": "502",
+            "sourceDwgFramesPublished": "500",
+            "sourceDwgFramesFailed": "2"
+          },
+          "rawRenderCount": 2,
+          "preflight": [
+            "DXF export preflight failed: partial DWG output requires a successful read and finalized, bounded frame dispositions"
+          ]
+        }
+      }
+    }
+  ],
+  "screenReceiptSha256": "0bf6ef87778fc7c0c498c8a13b9696975e0d7f0b9e0cf4c2a134a32903bba6eb",
+  "binarySha256": "96358825a1f023111848762d12fb88e8a3850beb0823659e25dc07f8c1cfa789",
+  "validation": {
+    "generatedFrames": "Both class pairs: exact raw bytes, no typed callback, unmodeled counter and following frame; bad frame CRC and wrong object-map handle refuse publication. Explicit version and class mismatch controls pass.",
+    "release": "Focused generated-frame selector and class-profile selector pass; three existing AC1012 dictionary/partial/ownership CTests pass.",
+    "asan": "Fully instrumented library and generated-frame selector pass.",
+    "refusalAndRetry": "Both strict and partial CLI outputs refuse and preserve destination for each observed file. For 2d.dwg, strict refusal preserves destination; a new CLI invocation on a locally generated valid R14 source subsequently writes ASCII and Binary output. ezdxf 1.4.5 independently reads expected 3D LINE endpoints from both. This is a new-process retry, not a same-adapter retry.",
+    "unrelatedSelectorFailures": "The existing --persistent-manager-prefix-dispatch selector reports three AC1032 TABLECONTENT handle-role tests failing; the same three fail with the pre-change ASan executable. This must be investigated independently and is not counted as passing."
+  },
+  "limits": [
+    "No render-class semantic or output qualification; the observed source producer is unknown.",
+    "No organic entity parse failure was found; P6-F remains open.",
+    "The three smaller drawings still refuse output due to unmodeled/graph checks. The larger 3d source still has two other failed objects.",
+    "No external DWG or DXF fixture added."
+  ]
+}

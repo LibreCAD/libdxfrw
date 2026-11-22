@@ -12970,6 +12970,10 @@ public:
     }
 
     std::size_t objectFailures() const { return m_objectParseFailures; }
+    std::size_t skippedObjectCount(const char* record) const {
+        const auto item = m_skippedUnsupportedObjects.find(record);
+        return item == m_skippedUnsupportedObjects.end() ? 0u : item->second;
+    }
 };
 
 class PersistentManagerDispatchSink final : public dx_iface {
@@ -13001,6 +13005,11 @@ public:
         if (forward)
             dx_iface::addDataTable(object);
     }
+    void addRenderSettings(const DRW_RenderSettings& object) override {
+        renderSettings.push_back(object);
+        if (forward)
+            dx_iface::addRenderSettings(object);
+    }
     void addDwgFramePublication(const DRW_DwgFramePublication& publication) override {
         publications.push_back(publication);
         if (forward)
@@ -13012,10 +13021,96 @@ public:
     std::vector<DRW_TableContentObject> tableContent;
     std::vector<DRW_TableGeometry> tableGeometry;
     std::vector<DRW_DataTable> dataTables;
+    std::vector<DRW_RenderSettings> renderSettings;
     std::vector<DRW_DwgFramePublication> publications;
 private:
     bool forward;
 };
+
+void testR14RenderRawRetention(TestContext& t) {
+    // Locally generated framing control, not a producer-authored render body.
+    const auto makeFrame = [](std::uint16_t type, std::uint32_t self) {
+        dwgBufferW body;
+        body.putObjType(DRW::AC1014, type);
+        body.putFixedHandle(0u, 2u, self);
+        body.putBitShort(0u); // no EED
+        const auto sizeOffset = body.bitCount();
+        body.putRawLong32(0u);
+        body.putBitLong(1u); // one reactor
+        body.putBitShort(32767u); // unsupported/truncated typed body
+        const auto bodyEnd = static_cast<std::uint32_t>(body.bitCount());
+        const std::uint8_t endBytes[] = {
+            static_cast<std::uint8_t>(bodyEnd), static_cast<std::uint8_t>(bodyEnd >> 8u),
+            static_cast<std::uint8_t>(bodyEnd >> 16u), static_cast<std::uint8_t>(bodyEnd >> 24u)};
+        body.patchRawBytesAtBit(sizeOffset, endBytes, sizeof endBytes);
+        body.putFixedHandle(4u, 1u, 0xCu);
+        body.putFixedHandle(4u, 1u, 0xCu);
+        body.putFixedHandle(3u, 0u, 0u);
+        body.alignToByte();
+        dwgBufferW frame;
+        frame.putModularShort(static_cast<std::int32_t>(body.size()));
+        frame.putBytes(body.data().data(), body.size());
+        frame.putRawShort16(frame.crc16(0xC0C1u, 0u, frame.size()));
+        return std::make_pair(body.data(), frame.data());
+    };
+    constexpr std::uint16_t renderType = 517u, nextType = 519u;
+    constexpr std::uint32_t renderHandle = 0xA110u, nextHandle = 0xA111u;
+    for (const auto& pair : {std::pair<const char*, const char*>{
+                                "RAPIDRTRENDERSETTINGS", "AcDbRapidRTRenderSettings"},
+                            {"MENTALRAYRENDERSETTINGS", "AcDbMentalRayRenderSettings"}}) {
+        const auto source = makeFrame(renderType, renderHandle);
+        const auto next = makeFrame(nextType, nextHandle);
+        auto bytes = source.second;
+        bytes.insert(bytes.end(), next.second.begin(), next.second.end());
+        PersistentManagerDispatchReader reader(bytes, DRW::AC1014, 700u);
+        reader.addClass(renderType, pair.first, pair.second);
+        reader.addTableContentClass(nextType);
+        PersistentManagerDispatchSink sink;
+        const bool read = reader.readObjects(bytes, renderHandle,
+            static_cast<std::uint32_t>(source.second.size()), nextHandle, sink);
+        const auto found = std::find_if(sink.raw.begin(), sink.raw.end(),
+            [](const DRW_UnsupportedObject& object) { return object.m_handle == renderHandle; });
+        t.expect(read && reader.objectFailures() == 0u && sink.renderSettings.empty()
+                     && found != sink.raw.end() && found->m_rawBytes == source.first
+                     && !found->m_typedPayloadValidated && sink.raw.size() == 2u
+                     && reader.skippedObjectCount(pair.first) == 1u,
+                 "R14 render body remains raw and the following frame is delivered");
+        if (!read || reader.objectFailures() != 0u || !sink.renderSettings.empty()
+            || found == sink.raw.end() || sink.raw.size() != 2u
+            || reader.skippedObjectCount(pair.first) != 1u) {
+            std::cerr << pair.first << ": read=" << read << " failures="
+                      << reader.objectFailures() << " typed=" << sink.renderSettings.size()
+                      << " raw=" << sink.raw.size() << " found=" << (found != sink.raw.end())
+                      << " skipped=" << reader.skippedObjectCount(pair.first) << '\n';
+        }
+
+        auto badCrc = bytes;
+        badCrc[source.second.size() - 1u] ^= 1u;
+        PersistentManagerDispatchReader corrupt(badCrc, DRW::AC1014, 700u);
+        corrupt.addClass(renderType, pair.first, pair.second);
+        corrupt.addTableContentClass(nextType);
+        PersistentManagerDispatchSink rejected;
+        const bool corruptRead = corrupt.readObjects(badCrc, renderHandle,
+            static_cast<std::uint32_t>(source.second.size()), nextHandle, rejected);
+        t.expect(!corruptRead && std::none_of(rejected.raw.begin(), rejected.raw.end(),
+                     [](const DRW_UnsupportedObject& object) { return object.m_handle == renderHandle; }),
+                 "corrupt R14 render frame is not delivered through raw fallback");
+        const auto wrongSelf = makeFrame(renderType, renderHandle + 1u);
+        auto wrongBytes = wrongSelf.second;
+        wrongBytes.insert(wrongBytes.end(), next.second.begin(), next.second.end());
+        PersistentManagerDispatchReader mismatch(wrongBytes, DRW::AC1014, 700u);
+        mismatch.addClass(renderType, pair.first, pair.second);
+        mismatch.addTableContentClass(nextType);
+        PersistentManagerDispatchSink mismatchSink;
+        mismatch.readObjects(wrongBytes, renderHandle,
+            static_cast<std::uint32_t>(wrongSelf.second.size()), nextHandle, mismatchSink);
+        t.expect(mismatch.objectFailures() != 0u
+                     && mismatch.skippedObjectCount(pair.first) == 0u
+                     && std::none_of(mismatchSink.raw.begin(), mismatchSink.raw.end(),
+                         [](const DRW_UnsupportedObject& object) { return object.m_handle == renderHandle; }),
+                 "R14 render object-map handle mismatch refuses raw publication");
+    }
+}
 
 class AssociativeConstraintGroupDispatchReader final : public dwgReader24 {
 public:
@@ -23765,6 +23860,11 @@ int runAssociativeRawCarrierRetention(const std::string& path) {
 }  // namespace
 
 int main(int argc, char** argv) {
+    if (argc == 2 && std::string(argv[1]) == "--r14-render-raw") {
+        TestContext focused;
+        testR14RenderRawRetention(focused);
+        return focused.failures == 0 ? 0 : 1;
+    }
     if (argc == 2 && std::string(argv[1]) == "--header-packed-flags") {
         TestContext focused;
         testHeaderPackedFlags(focused);
@@ -24232,6 +24332,7 @@ int main(int argc, char** argv) {
     testR2004SectionMapPublication(context);
     testR2004SystemTerminators(context);
     testModelerBlockRecordDispatch(context);
+    testR14RenderRawRetention(context);
     testBlockRecordXrefIndexRetention(context);
     testLegacyLayoutBlockChains(context);
     testModelerBlockWalkRejectsBadOwnership(context);
