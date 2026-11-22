@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-librecad-table-projection-ac1012-sample-recheck-2026-11-22",
+  "date": "2026-11-22",
+  "supportClaimEffect": "none",
+  "librecadTableProjection": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "baseCommit": "195dc2cd142dd1205761de4b38c6b96e3216b316",
+    "fixCommit": "f5477f98a",
+    "change": "In the LibreCAD adapter, use one row and column for a TABLE's INSERT projection while retaining the source grid and ordinary MINSERT counts.",
+    "bundledRuntime": "Focused Catch2 test passes 48 assertions for block-only and grid-rendered TABLEs and ordinary MINSERT, including source counts, metadata and placement. Before the fix the same test fails four count assertions: both TABLE projections are 3 by 2.",
+    "installedCodecCompile": "librecad_filter_compile_check passes with LIBRECAD_USE_SYSTEM_LIBDXFRW=ON and BUILD_TESTS=OFF against the local installed 3.0.0 package; runtime was not tested with this package.",
+    "installedHeaderSha256": "36bb94b5c29a2ff6426f30aaaabfdd3d72bc258ed7ecf32e5082b32211872c03",
+    "limits": ["No native GUI rendering or editing qualification was performed.", "LibreCAD_3 addInsert does not use row or column counts; its native behavior remains a separate qualification."]
+  },
+  "ac1012GeneratedControls": {
+    "command": "python3 -B tools/research/generate_ac1012_dictionary_witness.py --self-test --output-dir /private/tmp/libdxfrw-ac1012-current --candidate /Users/dli/dev/libdxfrw/build/dwg2dxf/dwg2dxf",
+    "scratchDirectory": "/private/tmp/libdxfrw-ac1012-current/ac1012-dictionary-6xf_hrwp",
+    "scratchReceiptSha256": "81cc974e82aac58a408801807a294da76ac5c37342123f7bd1c0671a4e45849b",
+    "producer": "GNU LibreDWG dwgadd 0.14",
+    "observations": "R13 and R14 requested cloning values 0 and 1 produce identical selected frames with no cloning field. R2000 controls have different frames and decode the requested values. Malformed-frame self-tests pass.",
+    "peerAttempt": "ODA File Converter aborted with exit -6 and no output before conversion; macOS pasteboard and hiservices XPC errors were reported.",
+    "limits": ["Scratch files are locally generated and are not committed.", "The prior build executable was screened but was not established as built from the current source head; its conversion results do not qualify the current candidate.", "Generated source frames and peer failure cannot establish native AutoCAD duplicate-merge or WBLOCK behavior."]
+  }
+}
