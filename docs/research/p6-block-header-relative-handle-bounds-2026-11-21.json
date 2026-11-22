@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-block-header-relative-handle-bounds-2026-11-21",
+  "date": "2026-11-21",
+  "gate": "P6-F",
+  "status": "BLOCK_HEADER_RELATIVE_REFERENCE_AND_BOUNDS_FIXED",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "2.13",
+      "20.4.52"
+    ],
+    "scope": "Relative codes 6/8/A/C represent soft pointers, codes 6/8 have zero-length payloads; BLOCK_HEADER has soft first/last entity and INSERT references."
+  },
+  "bug": "The parser accepted relative soft-pointer codes on first/last entity and INSERT fields but read their encoded offset as an absolute handle. It also narrowed wider common and body references into the 32-bit model.",
+  "change": "Resolve accepted soft-pointer references against the containing BLOCK_HEADER handle using the existing bounded reader; reject out-of-range common and body handles and nonzero payloads on relative +1/-1 codes. Parsing failure resets the record and invalidates the input.",
+  "validation": {
+    "baseline": "Independently authored AC1012, AC1014, AC1015 and AC1018 bodies reproduced incorrect first/last or INSERT targets and silent wide-handle acceptance before the fix.",
+    "focused": "The new fast test checks relative 6/8/A/C on each applicable first/last and INSERT field, relative block-control compatibility, wide control, reactor, extension-dictionary and applicable body handles, malformed relative lengths, arithmetic underflow and overflow, reset and corrected retry.",
+    "asan": "Fully instrumented library and focused test pass under AddressSanitizer.",
+    "regressions": [
+      "libdxfrw_block_record_body_handle_roles",
+      "libdxfrw_entity_space_from_block_record",
+      "libdxfrw_AC1012_layout_graph_external",
+      "libdxfrw_AC1014_layout_graph_external",
+      "dwg2dxf_ac1012_partial_generated",
+      "dwg_read_AC1021_lineweights",
+      "dwg_read_AC1024_visualization_-_aerial"
+    ]
+  },
+  "sources": {
+    "src/drw_objects.cpp": "381c789b4b690a7dab684a6bbfe686844994c0abde6dc26c5b0701fbd7cc11ae",
+    "tests/block_record_relative_handle_tests.cpp": "62343e058eb0029c6925f9d048c0d42bc8df8763ed5b48aa8edd453434b45ce8"
+  },
+  "limits": [
+    "The relative-source controls are hand-authored codec vectors, not a native producer witness.",
+    "The fix does not bind the captured BLOCK_HEADER body to the output graph or resolve dictionary merge semantics. Legacy LAYOUT output remains refused.",
+    "Existing historical model/paper-space ownership tolerance is unchanged."
+  ]
+}

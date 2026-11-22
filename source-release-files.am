@@ -557,6 +557,7 @@ EXTRA_DIST = \
     tests/block_origin_controls.h \
     tests/block_owner_tests.cpp \
     tests/block_primary_controls.h \
+    tests/block_record_relative_handle_tests.cpp \
     tests/block_role_controls.h \
     tests/block_source_controls.h \
     tests/block_source_proof_controls.h \

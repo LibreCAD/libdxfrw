@@ -6120,8 +6120,14 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
     dwgBuffer handleBuffer = hBuf->forkIndependent();
     const auto readHandle = [&handleBuffer, this, handleEndBit](
                                 bool offset, dwgHandle& value) {
-        return readBoundedObjectHandle(handleBuffer, handle, offset, value,
-                                       handleEndBit);
+        if (!readBoundedObjectHandle(handleBuffer, handle, offset, value,
+                                     handleEndBit))
+            return false;
+        // Relative +1/-1 encodings have no payload (ODA 2.13). The public
+        // BLOCK_RECORD model stores 32-bit handles, including common refs.
+        return value.ref64 <= std::numeric_limits<std::uint32_t>::max()
+            && (!offset || ((value.rawCode != 0x06u && value.rawCode != 0x08u)
+                            || value.size == 0u));
     };
     std::vector<DRW_DwgSubrecordRange> parsedHandleFieldSpans;
     const auto readBodyHandle = [version, &handleBuffer, &readHandle,
@@ -6133,7 +6139,10 @@ bool DRW_Block_Record::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint3
         if (!objectCurrentBit(handleBuffer, startBit))
             return false;
         dwgHandle parsed;
-        if (!readHandle(offset, parsed))
+        // All accepted relative codes denote soft pointers. Resolve these
+        // against this record, even for fields that normally use absolute
+        // soft-pointer encodings such as first/last entity and INSERT refs.
+        if (!readHandle(offset || expectedRole == DRW::DwgSoftPointer, parsed))
             return false;
         std::uint64_t endBit = 0u;
         if (!objectCurrentBit(handleBuffer, endBit) || endBit < startBit)
