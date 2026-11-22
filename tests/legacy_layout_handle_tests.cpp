@@ -2,6 +2,7 @@
 #include "drw_objects.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
+#include "dx_legacy_layout_wire.h"
 #include <cstdint>
 #include <iostream>
 #include <vector>
@@ -75,6 +76,38 @@ int main() {
         expect(parse(good) && object.name == "Model"
                    && object.paperSpaceBlockRecordHandle.ref == 0x40u,
                "valid legacy LAYOUT must parse");
+        DRW_UnsupportedObject raw;
+        raw.m_version = version; raw.m_objectType = 82; raw.m_handle = object.handle;
+        raw.m_objectSize = static_cast<std::uint32_t>(good.size()); raw.m_rawBytes = good;
+        dx_legacy_layout_wire::Proof proof;
+        expect(dx_legacy_layout_wire::layout(raw, object, &proof)
+                   && proof.sourceClass == 502u && proof.bodyEnd != 0u,
+               "independent LAYOUT observer must match the source frame");
+        DRW_Layout changed = object;
+        ++changed.paperSpaceBlockRecordHandle.ref;
+        proof.sourceClass = 123u;
+        expect(!dx_legacy_layout_wire::layout(raw, changed, &proof)
+                   && proof.sourceClass == 123u,
+               "independent observer must reject changed block target");
+        changed = object; changed.paperSpaceBlockRecordHandle.rawCode = 5u;
+        expect(!dx_legacy_layout_wire::layout(raw, changed),
+               "independent observer must reject changed typed role metadata");
+        changed = object; ++changed.paperSpaceBlockRecordHandle.ref64;
+        expect(!dx_legacy_layout_wire::layout(raw, changed),
+               "independent observer must reject changed full-width handle metadata");
+        changed = object; changed.marginLeft = 2.0;
+        expect(!dx_legacy_layout_wire::layout(raw, changed),
+               "independent observer must reject changed body fields");
+        changed = object; changed.marginLeft = -0.0;
+        expect(!dx_legacy_layout_wire::layout(raw, changed),
+               "independent observer must preserve signed bit-double zero");
+        changed = object; changed.limMinX = -0.0;
+        expect(!dx_legacy_layout_wire::layout(raw, changed),
+               "independent observer must preserve signed raw-double zero");
+        auto damaged = raw; damaged.m_rawBytes.front() ^= 0x80u;
+        expect(!dx_legacy_layout_wire::layout(damaged, object)
+                   && dx_legacy_layout_wire::layout(raw, object),
+               "independent observer must reject a changed frame and allow retry");
         for (unsigned field = 0; field < 4u; ++field) {
             const std::uint8_t expected = field < 2u ? 4u : 5u;
             for (const std::uint8_t role : {std::uint8_t{0}, std::uint8_t{2},

@@ -51,6 +51,7 @@ set(LIBDXFRW_CLI_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_blockrecord_whole_source.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_blockref_source_relation.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_identity_join.h"
+    "${CMAKE_CURRENT_LIST_DIR}/dx_legacy_layout_wire.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_material_body.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_mline_layer_source_live.h"
     "${CMAKE_CURRENT_LIST_DIR}/dx_mline_ltype_source_live.h"

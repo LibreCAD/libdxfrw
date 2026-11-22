@@ -35,7 +35,8 @@ add_executable(libdxfrw_legacy_layout_handle_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/legacy_layout_handle_tests.cpp)
 target_compile_features(libdxfrw_legacy_layout_handle_tests PRIVATE cxx_std_17)
 target_compile_options(libdxfrw_legacy_layout_handle_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
-target_include_directories(libdxfrw_legacy_layout_handle_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(libdxfrw_legacy_layout_handle_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/dwg2dxf)
 target_link_libraries(libdxfrw_legacy_layout_handle_tests PRIVATE dxfrw)
 add_test(NAME libdxfrw_legacy_layout_handles COMMAND libdxfrw_legacy_layout_handle_tests)
 set_tests_properties(libdxfrw_legacy_layout_handles PROPERTIES
@@ -1990,7 +1991,12 @@ set(LIBDXFRW_AC1014_EXTERNAL_PROFILE "" CACHE FILEPATH
     "Optional external AC1014 DICTIONARYVAR/MLINESTYLE source profile")
 option(LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CONTROL
     "Enable locally generated AC1012 partial-read control using dwgadd 0.14" OFF)
-if(LIBDXFRW_AC1014_EXTERNAL_PROFILE OR LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CONTROL)
+set(LIBDXFRW_AC1012_LAYOUT_WIRE_SAMPLE "" CACHE FILEPATH
+    "Optional external AC1012 two-LAYOUT source for physical wire controls")
+set(LIBDXFRW_AC1014_LAYOUT_WIRE_SAMPLE "" CACHE FILEPATH
+    "Optional external AC1014 two-LAYOUT source for physical wire controls")
+if(LIBDXFRW_AC1014_EXTERNAL_PROFILE OR LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CONTROL
+   OR LIBDXFRW_AC1012_LAYOUT_WIRE_SAMPLE OR LIBDXFRW_AC1014_LAYOUT_WIRE_SAMPLE)
     if(LIBDXFRW_AC1014_EXTERNAL_PROFILE AND NOT EXISTS "${LIBDXFRW_AC1014_EXTERNAL_PROFILE}")
         message(FATAL_ERROR "LIBDXFRW_AC1014_EXTERNAL_PROFILE does not exist")
     endif()
@@ -2007,6 +2013,20 @@ if(LIBDXFRW_AC1014_EXTERNAL_PROFILE OR LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CON
     target_link_libraries(libdxfrw_dwg_ac1014_output_external_tests PRIVATE dxfrw)
     libdxfrw_check_test_adapter_context(libdxfrw_dwg_ac1014_output_external_tests)
     add_dependencies(libdxfrw_dwg_ac1014_output_external_tests dwg2dxf)
+    foreach(_layout_version IN ITEMS AC1012 AC1014)
+        set(_layout_sample "${LIBDXFRW_${_layout_version}_LAYOUT_WIRE_SAMPLE}")
+        if(_layout_sample)
+            if(NOT EXISTS "${_layout_sample}")
+                message(FATAL_ERROR "${_layout_version} LAYOUT wire sample does not exist")
+            endif()
+            add_test(NAME libdxfrw_${_layout_version}_layout_wire_external
+                COMMAND libdxfrw_dwg_ac1014_output_external_tests
+                    --legacy-layout-wire "${_layout_sample}")
+            set_tests_properties(libdxfrw_${_layout_version}_layout_wire_external
+                PROPERTIES LABELS "dwg;layout;source;external;${_layout_version}"
+                TIMEOUT 30)
+        endif()
+    endforeach()
     if(LIBDXFRW_AC1014_EXTERNAL_PROFILE)
         add_test(NAME libdxfrw_dwg_ac1014_output_external
             COMMAND libdxfrw_dwg_ac1014_output_external_tests
