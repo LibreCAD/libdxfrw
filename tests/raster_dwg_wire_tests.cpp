@@ -426,11 +426,11 @@ bool run() {
                           wire::detail::Ignore{}, wire::detail::IgnoreEed{},
                           softPointerBackReference.objectType).status
             != wire::Status::Malformed) return false;
-    // AutoCAD's AC1021/24/27/32 samples encode IMAGEDEF's parent back-reference
-    // as code C, a relative soft pointer. The dictionary entry is the distinct
+    // The sampled AC1014/15/21/24/27/32 files encode IMAGEDEF's parent
+    // back-reference as code C, a relative soft pointer. The dictionary entry is the distinct
     // ownership edge. Preserve the exact target and following reactor spans,
     // while keeping output qualification separate from wire-role parsing.
-    for (const unsigned revision : {2007u, 2010u, 2013u, 2018u}) {
+    for (const unsigned revision : {14u, 2000u, 2007u, 2010u, 2013u, 2018u}) {
         auto relativeOwner = make(revision, wire::Kind::Definition, false,
             false, 2u, 528u, false, nullptr, true);
         const auto ownerSpan = relativeOwner.spans[
@@ -492,6 +492,15 @@ bool run() {
     const auto eedStart = unknownEed.spans[static_cast<std::size_t>(wire::Field::Eed)].begin;
     unknownEed.bytes.patch(eedStart + ownerEed.tokens[1].span.begin, 1u, 8u);
     if (scan(unknownEed).status != wire::Status::Malformed) return false;
+    const auto r2000Eed = eed(2000u);
+    auto r2000UnknownEed = make(2000u, wire::Kind::Definition, false, false,
+                                2u, 528u, false, &r2000Eed.bytes, true);
+    const auto r2000Owner = r2000UnknownEed.spans[static_cast<std::size_t>(wire::Field::Owner)].begin;
+    r2000UnknownEed.bytes.patch(r2000Owner, 0xC2u, 8u);
+    r2000UnknownEed.bytes.patch(r2000Owner + 8u, 2u, 16u);
+    const auto r2000EedStart = r2000UnknownEed.spans[static_cast<std::size_t>(wire::Field::Eed)].begin;
+    r2000UnknownEed.bytes.patch(r2000EedStart + r2000Eed.tokens[1].span.begin, 1u, 8u);
+    if (scan(r2000UnknownEed).status != wire::Status::Malformed) return false;
     auto dataStorage = make(2013u, wire::Kind::Definition, true, false,
                             2u, 514u, false, nullptr, true);
     dataStorage.bytes.patch(dataStorage.spans[static_cast<std::size_t>(wire::Field::Owner)].begin, 4u, 4u);

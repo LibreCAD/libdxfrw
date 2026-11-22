@@ -17,13 +17,18 @@ std::uint32_t cursor(const dwgBufferW& buffer) {
 std::vector<std::uint8_t> definition(std::uint16_t type,
                                      std::uint8_t ownerRole,
                                      std::uint8_t ownerValue,
-                                     std::uint8_t reactorRole = 4u) {
+                                     std::uint8_t reactorRole = 4u,
+                                     bool r2000 = false) {
     dwgBufferW out;
     out.putBitShort(type);
+    auto sizeField = cursor(out);
+    if (r2000) out.putRawLong32(0u);
     out.putFixedHandle(0u, 1u, 0x30u);
     out.putBitShort(0u); // EED terminator
-    const auto sizeField = cursor(out);
-    out.putRawLong32(0u); // R13/R14 object-data end in bits
+    if (!r2000) {
+        sizeField = cursor(out);
+        out.putRawLong32(0u); // R13/R14 object-data end in bits
+    }
     out.putBitLong(1); // reactor count
     out.putBitLong(0); // class version
     out.putRawDouble(100.0); out.putRawDouble(50.0);
@@ -76,6 +81,23 @@ int main() {
            "R13/R14 documented hard-owner controls remain proven");
     expect(check(relative, 13u).status == Status::Malformed,
            "R13 relative-owner profile remains unqualified");
+    const auto r2000Relative = definition(528u, 12u, 0x10u, 4u, true);
+    const auto r2000Proof = check(r2000Relative, 2000u);
+    expect(r2000Proof.status == Status::KnownSoftPointerOwnerBackReference
+               && r2000Proof.self == 0x30u && r2000Proof.owner == 0x20u
+               && r2000Proof.ownerRole == 12u
+               && r2000Proof.at(Field::Owner).begin == r2000Proof.dataEnd
+               && !profile(2000u, Kind::Definition, r2000Proof).knownBodyClass,
+           "R2000 custom IMAGEDEF relative owner is observed without output qualification");
+    expect(check(definition(528u, 3u, 0x20u, 4u, true), 2000u).status
+               == Status::Proven,
+           "R2000 documented hard-owner control remains proven");
+    expect(check(definition(102u, 12u, 0x10u, 4u, true), 2000u, 102u).status
+               == Status::Malformed,
+           "R2000 fixed IMAGEDEF does not inherit custom-class evidence");
+    expect(check(definition(528u, 12u, 0x40u, 4u, true), 2000u).status
+               == Status::Malformed,
+           "R2000 relative-owner subtraction must not underflow");
     expect(check(definition(528u, 5u, 0x20u), 14u).status == Status::Malformed,
            "wrong hard-pointer role must not become a back-reference");
     const auto reactorCheck = [](std::uint32_t ordinal, std::uint32_t value,

@@ -1,0 +1,46 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-r2000-imagedef-relative-owner-wire-2026-11-21",
+  "date": "2026-11-21",
+  "gate": "P6-A",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "pdf": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "2.13",
+      "20.4.81",
+      "20.4.82"
+    ],
+    "note": "Section 20.4.81 labels the IMAGEDEF parent as a hard owner, whereas this source encodes code C, a relative soft pointer. Recognition retains the actual wire role and does not infer native operations or output semantics."
+  },
+  "source": {
+    "repository": "ACadSharp samples",
+    "dwgSha256": "8ffbdc713f5838cbbb1596a8422e2b607e5c9e79921e852cbb5abee4af76ea4e",
+    "asciiDxfSha256": "4f7d7f0d3957d4d32c6c43e4c600eea8e90fc0fcb1b36b11256095a9789a923f",
+    "binaryDxfSha256": "a3b3d56311371355b0fc01c50c2fa8ac741ed87429114fe9fcdfb3d2ad15d535",
+    "provenance": "The project sample script uses AutoCAD SAVEAS 2000; exact producer build and original source provenance remain unverified. Samples are read only and never committed.",
+    "crossVersion": "The paired AC1014 source is recorded in p6-r14-imagedef-relative-owner-wire-2026-11-21.json."
+  },
+  "independentObservations": {
+    "libredwg": "LibreDWG dwgread 0.14 reports custom IMAGEDEF 0x8C4, parent code C length 1 offset 2 resolving to 0x8C2, reactors 0x8C2 and 0x8C5, and IMAGEDEF_REACTOR 0x8C5 with parent 0x8C6.",
+    "rawDxf": "The independently decoded ASCII and binary source records each contain DICTIONARY 0x8C2 entry image group 350 to 0x8C4; IMAGEDEF 0x8C4 reactor references 0x8C2 and 0x8C5 and owner 0x8C2; IMAGE 0x8C6 groups 340/360 reference 0x8C4/0x8C5; reactor 0x8C5 references image 0x8C6.",
+    "limitation": "These are source graph observations, not native create, save/reopen, erase, clone or WBLOCK tests."
+  },
+  "change": "Recognize the observed R2000 custom-class code-C parent as KnownSoftPointerOwnerBackReference; do not treat it as hard ownership. Fixed-type IMAGEDEF, undocumented roles, underflow, malformed EED and unqualified output remain refused.",
+  "validation": {
+    "generated": "Both production-writer and independent locally authored wire controls exercise R2000 and R14 code C, hard-owner controls, wrong roles, underflow, truncation, fixed-type refusal and exact subsequent reactor spans; unknown R2000 EED with a back-reference is malformed.",
+    "asan": "The focused legacy wire test passes with the ASan instrumented library.",
+    "sourceRefusal": "For each AC1014 and AC1015 sample, strict and explicit partial CLI conversion in ASCII and binary reached the explicit unqualified back-reference gate and preserved the pre-existing destination.",
+    "sourceScope": "The AC1015 source has four unrelated object parse failures and three unmodeled class instances. This is not whole-file output qualification.",
+    "regression": "Eight rebuilt focused independent wire, raster EED, image dictionary, custom class, reactor metadata and observer profile/fault tests passed."
+  },
+  "candidateBinarySha256": "16f3cef04f0e7d0b677ca6583c070cbd0c3c25daeb3ac28e61b339e904eaf448",
+  "peerJsonSha256": "2a20f3051f2f7a33945868c5621cef142518f82926f95547589d5ce7df750caf",
+  "sourceHashes": {
+    "dwg2dxf/dx_raster_dwg_wire.h": "54c822646fec188f117537ecb4651efd6127996f1ee606c18b86bf841ade6c4f",
+    "tests/raster_legacy_owner_wire_tests.cpp": "b0afbece89fdabc311b8e99eb155a0c3bef6148af1efe1e91202f2d1d93d87d6",
+    "tests/raster_dwg_wire_tests.cpp": "63b3ac0c22e162dfca0ae0adbf5b0661e5b1d526315f7fae226a322c956b91f5"
+  }
+}

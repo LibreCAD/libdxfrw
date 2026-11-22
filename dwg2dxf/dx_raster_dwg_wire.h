@@ -325,7 +325,7 @@ Proof observe(const std::uint8_t* bytes, std::size_t size, unsigned revision,
     const auto isSoftOwnerBackReference = [&](std::uint32_t dataEnd) noexcept {
         detail::Bits probe{bytes, dataEnd, total};
         const auto code = static_cast<unsigned>(probe.take(8u) >> 4u);
-        const bool relativeProfile = revision == 14u || revision == 2007u
+        const bool relativeProfile = revision == 14u || revision == 2000u || revision == 2007u
             || revision == 2010u || revision == 2013u || revision == 2018u;
         return kind == Kind::Definition && probe.good
             && ((revision == 2010u && code == 4u)
