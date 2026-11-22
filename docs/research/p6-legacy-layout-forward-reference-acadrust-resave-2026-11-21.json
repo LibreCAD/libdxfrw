@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-layout-forward-reference-acadrust-resave-2026-11-21",
+  "date": "2026-11-21",
+  "gate": "P6-F",
+  "status": "GENERATED_REOPEN_CONTROLS_LAYOUT_VERSION_BOUNDARY_OPEN",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": {
+      "20.4.52": "BLOCK HEADER has a layout handle only in R2000 and later.",
+      "20.4.84": "LAYOUT has an associated block-record soft pointer in the common handle tail."
+    },
+    "dxfReferences": [
+      "https://help.autodesk.com/cloudhelp/2026/ENU/AutoCAD-DXF/files/GUID-A1FD1934-7EF5-4D35-A4B0-F8AE54A9A20A.htm",
+      "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-433D25BF-655D-4697-834E-C666EDFD956D.htm"
+    ]
+  },
+  "producer": {
+    "project": "https://github.com/hakanaktt/acadrust",
+    "revision": "534ff8abaf112d9c9ec3e08292080002b0e9de3a",
+    "lineage": "DWG codec descends from ACadSharp; this is not an independent ACadSharp or native AutoCAD witness.",
+    "generator": "tools/research/generate_acadrust_legacy_shape.py",
+    "command": "python3 -B tools/research/generate_acadrust_legacy_shape.py --acadrust-root <pinned-checkout> --output-dir <outside-repository> --cargo-home <populated-offline-cache> --cargo-target <scratch-build>",
+    "generation": "Create R13/R14 null and bound SHAPE with following 3D LINE, then reopen each with the producer and save in its original version; no binary patch or fixture committed. The producer reader reconstructs its missing layout registration before resaving.",
+    "scratchReceipt": {
+      "schema": 1,
+      "scope": "generated producer controls, no native semantic claim",
+      "producer": "ACadRust 0.6.8",
+      "producerRevision": "534ff8abaf112d9c9ec3e08292080002b0e9de3a",
+      "producerLineage": "ACadSharp DWG codec",
+      "files": {
+        "r13-null.dwg": {
+          "sha256": "2e32d7058bd8a0ea5b743f333b8d794b0008f669b7f99351528f77fb695a2d89",
+          "bytes": 5176
+        },
+        "r13-null-resaved.dwg": {
+          "sha256": "c7177b23c2d725c4c898fca26a5546ecddd9650e342c5ccbe5641fa0219d43a2",
+          "bytes": 5189
+        },
+        "r13-bound.dwg": {
+          "sha256": "220fd8dfb08daa46939b6f3583ff8d2a81ce48b58f5d26b6bdc4fce1a7a61928",
+          "bytes": 5235
+        },
+        "r13-bound-resaved.dwg": {
+          "sha256": "999c41fa2d243b145f36db8e3a797648dcced79f8c7257eb17aefd3d90287242",
+          "bytes": 5248
+        },
+        "r14-null.dwg": {
+          "sha256": "aa06aa606e6c8a819fd5be85ad09fd2870701dc0ad38f4e3e2c92da6994ba6f0",
+          "bytes": 5194
+        },
+        "r14-null-resaved.dwg": {
+          "sha256": "eda5cec8202161a699935f9c7164736c34f6e0c484745b4c9851dec85975a957",
+          "bytes": 5207
+        },
+        "r14-bound.dwg": {
+          "sha256": "c7ce0274b1b04624958a878f04ef423cea6df7032fb74063d0e22d7fd69fb404",
+          "bytes": 5253
+        },
+        "r14-bound-resaved.dwg": {
+          "sha256": "c057bba383107ea8906d4dc887eb7857628419306e36f37a8cb261a117319bdb",
+          "bytes": 5266
+        }
+      },
+      "generatorSha256": "039293ede342fbc46ea671152016e63526f94602c496e5677e2a76b00f6c143c",
+      "rustProgramSha256": "5aeaeb41a8f0fb3d98c81701d2512b771e18e1aecbc82ba26d20d7fe1f3509c1",
+      "cargoLockSha256": "e3e9e1e2f83eaee504b1cb4e9805a6f024df20d6e7aa1818620e1f80657d5322",
+      "binarySha256": "16c493c4ee74ff68e8be70eefb4a4e4ff7f88e22eab3f4ea203cbe20473d1a23"
+    }
+  },
+  "validation": {
+    "repeatability": "Two fresh generator runs produced identical hashes for all eight DWGs.",
+    "independentReader": "GNU LibreDWG 0.14 JSON reads each resaved input. Each has one NOD ACAD_LAYOUT entry, a dictionary owned by the NOD, two uniquely named and owned LAYOUT entries and two distinct associated BLOCK_HEADER records. R13/R14 BLOCK_HEADER JSON has no layout member.",
+    "cli": "For all four resaved files, strict and explicit-partial, ASCII and binary output attempts failed without changing a pre-existing sentinel (16 attempts). Bound files have no entity or object failures but reach LAYOUT/BLOCK_RECORD backlink rejection; null files have a SHAPE parse failure and strict refusal, and explicit-partial reaches the same backlink rejection.",
+    "earlierReaderObservation": "Producer reopen sees one SHAPE and one LINE in each source; candidate parser publishes the later LINE on the null controls.",
+    "candidateCommit": "c69edaf92"
+  },
+  "limits": [
+    "ACadRust reconstructs the root in memory; the initial authored drawings did not contain that registration. This cannot establish native producer behavior.",
+    "The spec defines a forward reference but does not by itself prove every target DXF mapping or consumer interpretation; do not simply bypass reciprocal output validation.",
+    "Null SHAPEFILE validity, complete source and output graph closure, successful partial output, independent readback, and same-adapter corrected retry remain unproved."
+  ]
+}

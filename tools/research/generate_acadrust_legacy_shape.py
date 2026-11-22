@@ -17,7 +17,7 @@ import tempfile
 REVISION = "534ff8abaf112d9c9ec3e08292080002b0e9de3a"
 PROGRAM = r'''use acadrust::entities::{Line, Shape};
 use acadrust::tables::TextStyle;
-use acadrust::{CadDocument, DwgWriter, DxfVersion, EntityType, Vector3};
+use acadrust::{CadDocument, DwgReader, DwgWriter, DxfVersion, EntityType, Vector3};
 
 fn main() {
     let output = std::path::PathBuf::from(std::env::args_os().nth(1).unwrap());
@@ -42,7 +42,16 @@ fn main() {
             doc.add_entity(EntityType::Shape(shape)).unwrap();
             doc.add_entity(EntityType::Line(Line::from_coords(21., 34., 55., 89., 144., 233.))).unwrap();
             let kind = if valid_style { "bound" } else { "null" };
-            DwgWriter::write_to_file(output.join(format!("{release}-{kind}.dwg")), &doc).unwrap();
+            let original = output.join(format!("{release}-{kind}.dwg"));
+            DwgWriter::write_to_file(&original, &doc).unwrap();
+            // Exercise the producer's ordinary reader/writer path separately.
+            // The reader repairs its generated document's layout registration;
+            // this is not evidence that an unrelated producer wrote that graph.
+            let reopened = DwgReader::from_file(&original).unwrap().read().unwrap();
+            assert_eq!(reopened.entities().filter(|e| matches!(e, EntityType::Shape(_))).count(), 1);
+            assert_eq!(reopened.entities().filter(|e| matches!(e, EntityType::Line(_))).count(), 1);
+            assert!(reopened.named_objects_dictionary().and_then(|d| d.get("ACAD_LAYOUT")).is_some());
+            DwgWriter::write_to_file(output.join(format!("{release}-{kind}-resaved.dwg")), &reopened).unwrap();
         }
     }
 }
@@ -88,10 +97,11 @@ def main():
     files = {}
     for release, magic in (("r13", b"AC1012"), ("r14", b"AC1014")):
         for kind in ("null", "bound"):
-            path = root / f"{release}-{kind}.dwg"
-            if path.read_bytes()[:6] != magic:
-                raise RuntimeError(f"wrong DWG version in {path}")
-            files[path.name] = {"sha256": sha256(path), "bytes": path.stat().st_size}
+            for suffix in ("", "-resaved"):
+                path = root / f"{release}-{kind}{suffix}.dwg"
+                if path.read_bytes()[:6] != magic:
+                    raise RuntimeError(f"wrong DWG version in {path}")
+                files[path.name] = {"sha256": sha256(path), "bytes": path.stat().st_size}
     binary_name = "libdxfrw-shape-witness.exe" if os.name == "nt" else "libdxfrw-shape-witness"
     binary = args.cargo_target.resolve() / "debug" / binary_name
     receipt = {"schema": 1, "scope": "generated producer controls, no native semantic claim",
