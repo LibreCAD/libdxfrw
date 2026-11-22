@@ -31,6 +31,18 @@ add_test(NAME libdxfrw_layout_associations
 set_tests_properties(libdxfrw_layout_associations PROPERTIES
     LABELS "fast;dwg;dxf;layout;graph;transaction" TIMEOUT 30)
 
+add_executable(libdxfrw_raster_legacy_owner_wire_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/raster_legacy_owner_wire_tests.cpp)
+target_compile_features(libdxfrw_raster_legacy_owner_wire_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_raster_legacy_owner_wire_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_raster_legacy_owner_wire_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/src ${CMAKE_SOURCE_DIR}/dwg2dxf)
+target_link_libraries(libdxfrw_raster_legacy_owner_wire_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_raster_legacy_owner_wire
+    COMMAND libdxfrw_raster_legacy_owner_wire_tests)
+set_tests_properties(libdxfrw_raster_legacy_owner_wire PROPERTIES
+    LABELS "fast;dwg;raster;AC1012;AC1014;transaction" TIMEOUT 30)
+
 add_executable(libdxfrw_legacy_layout_handle_tests
     ${CMAKE_CURRENT_SOURCE_DIR}/legacy_layout_handle_tests.cpp)
 target_compile_features(libdxfrw_legacy_layout_handle_tests PRIVATE cxx_std_17)

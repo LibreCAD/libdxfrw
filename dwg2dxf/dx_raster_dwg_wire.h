@@ -322,14 +322,19 @@ Proof observe(const std::uint8_t* bytes, std::size_t size, unsigned revision,
     // dictionary entry is the separate ownership edge (DXF group 350). These
     // observed profiles must be identified before EED parsing so malformed or
     // unsupported EED cannot fall through the generic Unsupported path.
-    detail::Bits ownerProbe{bytes, result.dataEnd, total};
-    const auto ownerCode = static_cast<unsigned>(ownerProbe.take(8u) >> 4u);
-    const bool observedRelativeOwnerRevision = revision == 2007u
-        || revision == 2010u || revision == 2013u || revision == 2018u;
-    const bool softPointerOwnerBackReference = kind == Kind::Definition
-        && ownerProbe.good
-        && ((revision == 2010u && ownerCode == 4u)
-            || (observedRelativeOwnerRevision && ownerCode == 12u));
+    const auto isSoftOwnerBackReference = [&](std::uint32_t dataEnd) noexcept {
+        detail::Bits probe{bytes, dataEnd, total};
+        const auto code = static_cast<unsigned>(probe.take(8u) >> 4u);
+        const bool relativeProfile = revision == 14u || revision == 2007u
+            || revision == 2010u || revision == 2013u || revision == 2018u;
+        return kind == Kind::Definition && probe.good
+            && ((revision == 2010u && code == 4u)
+                || (relativeProfile && code == 12u));
+    };
+    // R13/R14 store the handle boundary after the self handle and EED. Do
+    // not probe an uninitialized boundary at bit zero for those versions.
+    bool softPointerOwnerBackReference = revision >= 2000u
+        && isSoftOwnerBackReference(result.dataEnd);
     // Fixed-type role-4 IMAGEDEF is not part of this observed profile.
     if (softPointerOwnerBackReference && definitionType < 500u) return result;
     begin = body.pos;
@@ -356,6 +361,10 @@ Proof observe(const std::uint8_t* bytes, std::size_t size, unsigned revision,
         }
         if (result.dataEnd <= body.pos || result.dataEnd >= total) return result;
         body.end = result.dataEnd;
+        softPointerOwnerBackReference = isSoftOwnerBackReference(result.dataEnd);
+        // A custom-class R14 producer uses a relative soft back-reference.
+        // This only classifies the raw source; strict output remains gated.
+        if (softPointerOwnerBackReference && definitionType < 500u) return result;
     }
     std::uint32_t stringsBegin = result.dataEnd, stringsEnd = result.dataEnd;
     bool hasStrings = false;

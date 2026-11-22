@@ -8432,6 +8432,7 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
             && std::string(def.extData[1]->c_str()) == "RASTER_EED_LAYER";
     };
     unsigned cells = 0u, wireRefusals = 0u, sourceRefusals = 0u, classRefusals = 0u;
+    unsigned ac1027Refusals = 0u, ac1027ClassRefusals = 0u;
     unsigned unknownCases = 0u, aliasCases = 0u, historyCases = 0u, lateRefusals = 0u, eedHistories = 0u, nameBudgetCases = 0u;
     unsigned mixedHistories = 0u, labelConflicts = 0u, nameCallbackRefusals = 0u, eedMixedHistories = 0u;
     unsigned rootedSources = 0u, rootedProjections = 0u, rootedRetries = 0u, rootedFreshRetries = 0u, cacheProjections = 0u;
@@ -9028,6 +9029,20 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
             continue;
         }
         for (bool binary : {false, true}) {
+            if (version == DRW::AC1027) {
+                // The overall AC1027 source-reference gate precedes raster
+                // output. Keep checking its atomic refusal until the full
+                // source profile is qualified, then restore readback here.
+                const std::string sentinel = "RASTER_AC1027_DESTINATION";
+                { std::ofstream file(target, std::ios::binary); file << sentinel; }
+                const bool wrote = write(data, binary);
+                std::ifstream file(target, std::ios::binary);
+                const std::string kept((std::istreambuf_iterator<char>(file)), {});
+                if (wrote || kept != sentinel)
+                    return fail("unqualified AC1027 raster source changed destination");
+                ++ac1027Refusals;
+                continue;
+            }
             if (!write(data, binary) || !readback()) return fail("raster EED compatibility projection/readback failed");
             ++cells;
         }
@@ -9127,9 +9142,20 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
                     const bool wrote = write(bad, binary);
                     std::ifstream file(target, std::ios::binary);
                     const std::string kept((std::istreambuf_iterator<char>(file)), {}); file.close();
-                    if (wrote || kept != sentinel || !write(data, binary) || !readback())
+                    if (wrote || kept != sentinel)
                         return fail("raster class atomic refusal/corrected-source retry failed");
-                    ++classRefusals;
+                    const bool recovered = write(data, binary);
+                    if (version == DRW::AC1027) {
+                        std::ifstream retry(target, std::ios::binary);
+                        const std::string retryKept((std::istreambuf_iterator<char>(retry)), {});
+                        if (recovered || retryKept != sentinel)
+                            return fail("AC1027 class-source retry escaped the whole-source gate");
+                        ++ac1027ClassRefusals;
+                    } else {
+                        if (!recovered || !readback())
+                            return fail("raster class corrected-source retry failed");
+                        ++classRefusals;
+                    }
                 }
                 importer.enabled = false; dx_data recovered;
                 if (!importer.fileImport(native.string(), &recovered, false) || !Access::rasterUnchanged(importer))
@@ -9188,9 +9214,11 @@ bool rasterDwgSourceProfileEed(bool historyOnly = false, bool rootedOnly = false
                   << " name callback refusal/retries=" << nameCallbackRefusals << " mixed EED histories=" << eedMixedHistories << '\n';
         return true;
     }
-    if (classRefusals != 132u) return fail("raster class contradiction matrix was unexpectedly skipped");
+    if (classRefusals != 110u || ac1027Refusals != 2u || ac1027ClassRefusals != 22u)
+        return fail("raster class contradiction or AC1027 refusal matrix was unexpectedly skipped");
     std::cout << "Raster source-profile/EED native projections=" << cells << " wire refusal/retries=" << wireRefusals
-              << " name-source refusal/retries=" << sourceRefusals << " class refusal/retries=" << classRefusals << '\n';
+              << " name-source refusal/retries=" << sourceRefusals << " class refusal/retries=" << classRefusals
+              << " AC1027 whole-source/class refusals=" << ac1027Refusals << '/' << ac1027ClassRefusals << '\n';
     return true;
 }
 

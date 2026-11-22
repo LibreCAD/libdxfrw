@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-r14-imagedef-relative-owner-wire-2026-11-21",
+  "date": "2026-11-21",
+  "gate": "P6-A",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "pdf": "~/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "2.13",
+      "20.4.81",
+      "20.4.82"
+    ],
+    "note": "The specification describes an IMAGEDEF parent as a hard owner. The observed R14 custom-class profile uses an offset soft pointer instead; do not relabel the observed role or infer native semantics."
+  },
+  "source": {
+    "path": "../ACadSharp/samples/sample_AC1014.dwg",
+    "sha256": "d1ec4519be14ac49ecab5ec024ad951271e00261a1851f623a784a97ba6ede73",
+    "provenance": "ACadSharp sample; its checked-in script uses AutoCAD SAVEAS LT98. Exact producer build and original source provenance remain unverified; see p6-persubentmgr-acadsharp-cross-version-dxf-wire-conflict-2026-11-09.json.",
+    "fixturePolicy": "External DWG is read locally only and is not committed."
+  },
+  "independentPeer": {
+    "tool": "LibreDWG dwgread 0.14",
+    "observation": "IMAGEDEF type 528 self 0x8C4 has bit boundary 459 and code-C offset 2 resolving to 0x8C2; two soft-pointer reactors resolve to 0x8C2 and 0x8C5. Its IMAGEDEF_REACTOR has class version 2 and relative soft owner 0x8C6.",
+    "limit": "A peer read confirms the encoded role and values, not native create, clone, remove or WBLOCK semantics."
+  },
+  "change": "For R14 custom IMAGEDEF, inspect the owner at the R13/R14 RL boundary after self and EED rather than at bit zero; recognize observed code C only as KnownSoftPointerOwnerBackReference. The existing hasUnchangedRasterDwgSources guard still refuses this profile. R13, fixed IMAGEDEF and unobserved owner roles remain unchanged.",
+  "checks": {
+    "generated": "Locally authored R13/R14 wire controls test documented hard owner, R14 custom code C, exact owner/reactor/xdictionary spans, source mutation, wrong owner/reactor roles, arithmetic underflow, fixed-type refusal, truncation and retry.",
+    "asan": "Focused generated test passed with the instrumented library.",
+    "original": "Source capture now passes correlation and reaches explicit IMAGEDEF owner-back-reference qualification refusal; both ASCII and binary, strict and allow-partial CLI modes preserve pre-existing destination bytes.",
+    "sourceLimit": "The source also contains two ACAD_TABLE entity parse failures, four object parse failures and three unmodeled class instances; this is not successful partial conversion or complete support.",
+    "baselineTest": "Unmodified HEAD raster EED test reproduced the AC1027 whole-source-gate failure. Its updated matrix now verifies destination-preserving AC1027 refusal and continued source-mutation checks, while other admitted revisions retain output/readback and corrected retry.",
+    "focusedRegression": "Seven rebuilt focused raster wire, EED, source identity, custom class, reactor metadata, observer profile and observer-fault tests passed."
+  },
+  "candidateBinarySha256": "c0bb22fb61653b596af113fdda1deab9bb902855ef20f688df426882d6bf8d58",
+  "traceSha256": "6e7953d7456efd325626137390afe56979c6797425368fb2f6772c05d1c7d2e6",
+  "sourceHashes": {
+    "dwg2dxf/dx_raster_dwg_wire.h": "c0b30e35cfa2aa281cad43f726915b68a755b40e0365f42c4eb69afaf57afded",
+    "tests/raster_legacy_owner_wire_tests.cpp": "7266eb3463d562d922b29e36f61479ad72b7dfca13d08e9e8ccd5ca963b84463",
+    "tests/dwg2dxf_adapter_tests.cpp": "25a0b50d31f27244519fa075f794421931ac252cb04bf43d34d33ca8bd59b75e"
+  }
+}
