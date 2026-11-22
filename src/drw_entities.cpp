@@ -17294,17 +17294,78 @@ bool DRW_Table::encodeDwgWithExtension(DRW::Version version, dwgBufferW *buf,
     return true;
 }
 
+namespace {
+struct LegacyTableGrid {
+    std::uint16_t valueFlag{0};
+    DRW_Coord horizontalDirection;
+    std::int32_t columnCount{0}, rowCount{0};
+    DRW_TableContent content;
+};
+
+// Shared R13-R2007 grid prefix. Callers choose whether a failed optional
+// prefix keeps the already parsed INSERT or fails the entire record.
+bool readLegacyTableGrid(dwgBuffer& body, dwgBuffer& handles,
+                         std::uint64_t bodyEnd, std::uint64_t handleEnd,
+                         DRW::Version version, std::uint32_t owner,
+                         LegacyTableGrid& result) {
+    LegacyTableGrid staged;
+    if (!readBoundedBitShort(body, bodyEnd, staged.valueFlag)
+        || !readBoundedBitCoord(body, bodyEnd, staged.horizontalDirection)
+        || !readBoundedBitLong(body, bodyEnd, staged.columnCount)
+        || !readBoundedBitLong(body, bodyEnd, staged.rowCount)
+        || staged.columnCount < 0 || staged.rowCount < 0)
+        return false;
+    const auto columns = static_cast<std::uint32_t>(staged.columnCount);
+    const auto rows = static_cast<std::uint32_t>(staged.rowCount);
+    if (columns > kMaxTableColumns || rows > kMaxTableRows
+        || (columns != 0 && rows > kMaxTableCells / columns)
+        || (version < DRW::AC1015
+            && (columns == 0u || rows == 0u
+                || !validLegacyTableValueFlag(staged.valueFlag)))
+        || currentDwgBit(&body) > bodyEnd
+        || static_cast<std::uint64_t>(columns) + rows
+            > (bodyEnd - currentDwgBit(&body)) / 2u)
+        return false;
+    dwgHandle style;
+    if (version < DRW::AC1015
+        ? !readBoundedDwgHandleWithRole(handles, handleEnd, owner,
+                                        DwgHandleReferenceRole::HardPointer,
+                                        style)
+        : !readBoundedDwgHandle(handles, handleEnd, 0, false, style))
+        return false;
+    if (!DRW::reserve(staged.content.m_columns, staged.columnCount)
+        || !DRW::reserve(staged.content.m_rows, staged.rowCount))
+        return false;
+    for (std::uint32_t i = 0; i < columns; ++i) {
+        DRW_TableColumn column;
+        if (!readBoundedBitDouble(body, bodyEnd, column.m_width)) return false;
+        staged.content.m_columns.push_back(std::move(column));
+    }
+    for (std::uint32_t i = 0; i < rows; ++i) {
+        DRW_TableRow row;
+        if (!readBoundedBitDouble(body, bodyEnd, row.m_height)
+            || !DRW::reserve(row.m_cells, staged.columnCount)
+            || !DRW::resize(row.m_cells, staged.columnCount)) return false;
+        staged.content.m_rows.push_back(std::move(row));
+    }
+    staged.content.m_tableStyleHandle = style.ref;
+    result = std::move(staged);
+    return true;
+}
+} // namespace
+
 bool DRW_Table::parseDwg(DRW::Version version, dwgBuffer *buf,
                          std::uint32_t bs) {
     // Keep the direct codec entry point available for explicit legacy-layout
     // vectors. The file reader uses parseDwgWithR21Profile after classifying
     // source metadata, and is the only path that can select an unknown profile.
-    return parseDwgWithR21Profile(version, buf, bs, true);
+    return parseDwgWithR21Profile(version, buf, bs, true, true);
 }
 
 bool DRW_Table::parseDwgWithR21Profile(DRW::Version version, dwgBuffer *buf,
                                        std::uint32_t bs,
-                                       bool autoCad2007Profile) {
+                                       bool autoCad2007Profile,
+                                       bool legacyGridRequested) {
     resetDwgState();
     auto fail = [this, buf]() {
         if (buf != nullptr)
@@ -17461,10 +17522,26 @@ bool DRW_Table::parseDwgWithR21Profile(DRW::Version version, dwgBuffer *buf,
     extPoint = parsedExtPoint;
 
     if (version < DRW::AC1015) {
-        // This is only the INSERT-like prefix. Cell data and dependencies
-        // remain unqualified and are retained by the reader as a raw peer.
+        // Preserve the INSERT-like prefix if an optional grid field is
+        // unknown. Only a complete, bounded grid is published; cell data
+        // remains unqualified and is retained in the raw source peer.
         m_hasSemanticContent = true;
         m_semanticContentComplete = false;
+        if (!legacyGridRequested)
+            return commit();
+        dwgBuffer gridBody = buf->forkIndependent();
+        dwgBuffer gridHandles = hBuff.forkIndependent();
+        LegacyTableGrid grid;
+        if (readLegacyTableGrid(gridBody, gridHandles, bodyEndBit,
+                                handleEndBit, version, handle, grid)) {
+            m_valueFlag = grid.valueFlag;
+            m_horizontalDirection = grid.horizontalDirection;
+            // These inherited fields describe MINSERT repetition, not grid
+            // dimensions. Leave them at one for the 2D INSERT fallback.
+            m_tableStyleHandle = grid.content.m_tableStyleHandle;
+            m_content = std::move(grid.content);
+            *buf = gridBody;
+        }
         return commit();
     }
 
@@ -17724,58 +17801,20 @@ bool DRW_Table::parseDwgWithR21Profile(DRW::Version version, dwgBuffer *buf,
         return commit();
     }
 
-    std::uint16_t parsedValueFlag = 0;
-    DRW_Coord parsedHorizontalDirection;
-    std::int32_t parsedColumnCount = 0;
-    std::int32_t parsedRowCount = 0;
-    if (!readBoundedBitShort(*buf, bodyEndBit, parsedValueFlag)
-        || !readBoundedBitCoord(*buf, bodyEndBit,
-                                parsedHorizontalDirection)
-        || !readBoundedBitLong(*buf, bodyEndBit, parsedColumnCount)
-        || !readBoundedBitLong(*buf, bodyEndBit, parsedRowCount)
-        || parsedColumnCount < 0 || parsedRowCount < 0)
+    LegacyTableGrid grid;
+    if (!readLegacyTableGrid(*buf, hBuff, bodyEndBit, handleEndBit,
+                             version, handle, grid))
         return fail();
-    const std::uint32_t columns = static_cast<std::uint32_t>(parsedColumnCount);
-    const std::uint32_t rows = static_cast<std::uint32_t>(parsedRowCount);
-    if (columns > kMaxTableColumns || rows > kMaxTableRows
-        || (columns != 0 && rows > kMaxTableCells / columns)) {
-        return fail();
-    }
-
+    const std::uint16_t parsedValueFlag = grid.valueFlag;
+    const DRW_Coord parsedHorizontalDirection = grid.horizontalDirection;
+    const std::int32_t parsedColumnCount = grid.columnCount;
+    const std::int32_t parsedRowCount = grid.rowCount;
+    const auto columns = static_cast<std::uint32_t>(parsedColumnCount);
+    const auto rows = static_cast<std::uint32_t>(parsedRowCount);
+    m_content = std::move(grid.content);
+    m_tableStyleHandle = m_content.m_tableStyleHandle;
     m_hasSemanticContent = true;
-    m_semanticContentComplete = false;
-    m_content.m_columns.clear();
-    m_content.m_rows.clear();
-    if (!DRW::reserve(m_content.m_columns, static_cast<int>(columns))
-        || !DRW::reserve(m_content.m_rows, static_cast<int>(rows)))
-        return fail();
-    for (std::uint32_t i = 0; i < columns; ++i) {
-        DRW_TableColumn column;
-        if (!readBoundedBitDouble(*buf, bodyEndBit, column.m_width))
-            return fail();
-        m_content.m_columns.push_back(column);
-    }
-    for (std::uint32_t i = 0; i < rows; ++i) {
-        DRW_TableRow row;
-        if (!readBoundedBitDouble(*buf, bodyEndBit, row.m_height))
-            return fail();
-        if (!DRW::reserve(row.m_cells, static_cast<int>(columns)))
-            return fail();
-        if (!DRW::resize(row.m_cells, static_cast<int>(columns)))
-            return fail();
-        m_content.m_rows.push_back(row);
-    }
-    dwgHandle parsedTableStyleHandle;
-    if (!readBoundedDwgHandle(hBuff, handleEndBit, 0, false,
-                              parsedTableStyleHandle))
-        return fail();
-    m_tableStyleHandle = parsedTableStyleHandle.ref;
-    if (!hBuff.isGood())
-        return fail();
-    m_content.m_tableStyleHandle = m_tableStyleHandle;
-    m_semanticContentComplete = true;
-    if (!validLegacyTableValueFlag(parsedValueFlag))
-        m_semanticContentComplete = false;
+    m_semanticContentComplete = validLegacyTableValueFlag(parsedValueFlag);
     // For <=AC1018 (R2000/R2004) there is no separate R2007+ string stream:
     // DRW_Entity::parseDwg only seeks sBuf when version > AC1018 (see the
     // `strBuf != NULL && version > DRW::AC1018` guard there), so legacy cell

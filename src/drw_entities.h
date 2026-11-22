@@ -2254,7 +2254,7 @@ private:
                                  bool allowExtensionDictionary);
     [[nodiscard]] bool parseDwgWithR21Profile(
         DRW::Version version, dwgBuffer *buf, std::uint32_t bs,
-        bool autoCad2007Profile);
+        bool autoCad2007Profile, bool legacyGridRequested);
 protected:
     void resetDwgState();
     bool parseCode(int code, const std::unique_ptr<dxfReader>& reader) override;

@@ -2512,11 +2512,12 @@ private:
   }
 
   bool entryParse(DRW_Table &e, dwgBuffer &buff, std::uint32_t bs,
-                  bool &ret) {
+                  bool &ret, bool legacyGridRequested = false) {
     ret = e.parseDwgWithR21Profile(
         version, &buff, bs,
         m_dwgTableProducerProfile
-            == dwgAppInfo::R21ProducerProfile::AutoCAD2007);
+            == dwgAppInfo::R21ProducerProfile::AutoCAD2007,
+        legacyGridRequested);
     return finishEntryParse(e, buff, ret);
   }
 

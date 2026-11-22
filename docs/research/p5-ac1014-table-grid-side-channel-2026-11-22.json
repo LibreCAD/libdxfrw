@@ -1,0 +1,44 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1014-table-grid-side-channel-2026-11-22",
+  "date": "2026-11-22",
+  "gate": "P5 / P6-F",
+  "supportClaimEffect": "none",
+  "scope": "Opt-in bounded R13/R14 TABLE grid observation with unchanged legacy 2D callback and raw source retention; no complete cells or output profile.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.4.96.1",
+    "fields": "TABLE value flag, horizontal direction, column and row counts, BD column widths and row heights, and hard-pointer TABLESTYLE."
+  },
+  "source": {
+    "file": "../ACadSharp/samples/sample_AC1014.dwg",
+    "sha256": "d1ec4519be14ac49ecab5ec024ad951271e00261a1851f623a784a97ba6ede73",
+    "provenance": "Project sample script uses AutoCAD SAVEAS LT98; exact producing build and original source provenance remain unverified. External file is not committed.",
+    "peer": "GNU LibreDWG 0.14 independently reports TABLE 0x528 as 3 columns by 7 rows, TABLE 0xA35 as 5 columns by 4 rows, TABLESTYLE 0x87 and the width and height values asserted by the hash-selected test."
+  },
+  "implementation": {
+    "contract": "A separate DRW_DwgLegacyTableGridHandler opt-in leaves the DRW_Interface vtable unchanged. Only the opt-in pays to parse and retain the grid. Normal addTable receives the incomplete INSERT-like prefix with no grid and one row/column repetition; the side callback receives the bounded grid with semantic completeness false. The original raw peer stays unvalidated.",
+    "transaction": "Unknown flags, empty or oversized grids, invalid style roles, non-finite dimensions or truncated optional grid leave only the prior INSERT prefix; corrected input retries successfully. Direct encoding of an incomplete grid refuses without altering destination buffers.",
+    "sharedCode": "The version-aware bounded grid routine is shared with the existing AC1015-AC1021 table path."
+  },
+  "validation": {
+    "external": "The hash-selected external CTest checks no-handler, handler-disabled and handler-enabled paths; each preserves normal 2D projection and raw peers. Only enabled handlers receive both grids, with all peer widths/heights and style target.",
+    "asan": "Both generated malformed/failure/retry controls and the opt-in external control passed with AddressSanitizer.",
+    "modern": "Rebuilt AC1018/AC1021 TABLE cell reader including allocation rollback/retry, AC1021/AC1024 placement and AC1024 merged-range vectors passed.",
+    "remaining": "The grids do not include validated cells; native TABLE render/output and legacy ATTRIB chains remain unqualified. This sample has four unrelated object parse failures and unsupported custom objects.",
+    "focused": "Six rebuilt legacy source/prefix, 2D callback order, proxy-graphics, runtime fallback and DXF TABLE-content tests passed.",
+    "guard": "Strict and partial ASCII/Binary conversion still refuse the R14 sample at the unqualified IMAGEDEF owner gate and preserve destination bytes."
+  },
+  "consumerFollowUp": "The modern TABLE body parser assigns grid dimensions to DRW_Insert rowcount/colcount, and LibreCAD addTable forwards the same record to addInsert, which uses those fields as array repetition counts. Verify actual rendering and fix the newer-source path without losing table dimensions or codec roundtrip; it is separate from this bounded legacy path.",
+  "sourceHashes": {
+    "src/drw_entities.cpp": "eab0873c84850d6856fdf4a222273bf26120c6317a13650e2f229281a3e50990",
+    "src/drw_entities.h": "e905207a8e940bea38abc97e807898638d5996dbe52d3fab6a77f2d15d85d162",
+    "src/drw_interface.h": "5a651273cabfeb7a28daf06bc62ecafbac22a1647b69f969faf68e0bf3eeabcc",
+    "src/intern/dwgreader.cpp": "4248c06ac06ad25c53963a22afe2687167df46c0c039fc0ab6c5b2e80b452153",
+    "src/intern/dwgreader.h": "e5ab21520940bb2b49eca99b479042f6e653fce40a2fd2b0671b715403f60863",
+    "tests/table_legacy_prefix_tests.cpp": "cd04b34d2c7b02d1a6201832200c0c015d7b34441450cb11dd29d9b69bef96bd",
+    "tests/table_legacy_external_tests.cpp": "1c35bf1e03b18c10d5b892c34250c4a9d8ed7caf1175d470b4e9b68c59ab1a7f"
+  },
+  "candidateBinarySha256": "4e9d1a0bcafde9b3c9801e1a49eaa5dbae7e358224a1a149a4761ffb4bbaa8aa"
+}

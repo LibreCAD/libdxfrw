@@ -13215,7 +13215,11 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
             DRW_DBG(cit->second->className);
             DRW_DBG("\n");
             DRW_Table e;
-            if (entryParse(e, buff, bs, ret)) {
+            const auto* gridHandler =
+                dynamic_cast<const DRW_DwgLegacyTableGridHandler*>(&intfa);
+            const bool wantsLegacyGrid = version < DRW::AC1015
+                && gridHandler && gridHandler->wantsDwgLegacyTableGrid();
+            if (entryParse(e, buff, bs, ret, wantsLegacyGrid)) {
               e.name = findTableName(DRW::BLOCK_RECORD, e.blockRecH.ref);
               // This snapshot is private and provisional until the later
               // committed-ledger/CRC reread and whole-read completion. Its
@@ -13247,7 +13251,27 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
                   }
                 } catch(...) {m_verifiedTableCandidateFailed=true;}
               }
-              output.appendValue(e, &DRW_Interface::addTable);
+              if (version < DRW::AC1015 && !e.m_content.m_columns.empty()
+                  && !e.m_content.m_rows.empty()) {
+                // Existing 2D consumers render any nonempty TABLE grid, even
+                // when its cells are incomplete. Keep their callback as a
+                // single INSERT-like prefix; a separate opt-in side channel
+                // can inspect the bounded grid without changing that path.
+                auto partialGrid = std::move(e.m_content);
+                output.appendValue(e, &DRW_Interface::addTable);
+                e.m_content = std::move(partialGrid);
+                if (wantsLegacyGrid) {
+                  output.appendValue(e, [](DRW_Interface& target,
+                                           const DRW_Table& table) {
+                    auto* handler =
+                        dynamic_cast<DRW_DwgLegacyTableGridHandler*>(&target);
+                    if (handler && handler->wantsDwgLegacyTableGrid())
+                      handler->addDwgLegacyTableGrid(table);
+                  });
+                }
+              } else {
+                output.appendValue(e, &DRW_Interface::addTable);
+              }
               if (e.m_hasSemanticContent && !e.m_semanticContentComplete) {
                 // Keep the usable 2D TABLE prefix for existing consumers and
                 // retain the complete decompressed object body and frame

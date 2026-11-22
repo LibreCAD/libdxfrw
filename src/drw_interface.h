@@ -1798,6 +1798,19 @@ public:
   virtual void addDxfEntitiesDeliverySource(const DRW_DxfEntitiesDeliverySource&) = 0;
 };
 
+/** Optional bounded, nonempty R13/R14 TABLE grid observation. Cell bodies are not
+ * parsed: this callback is evidence for consumers that explicitly opt in,
+ * not a complete table or an output-qualification certificate. The request
+ * must remain true through callback delivery. The borrowed value is valid only
+ * during the callback. Existing DRW_Interface vtables and
+ * the ordinary 2D addTable/INSERT fallback are unchanged. */
+class DRW_DwgLegacyTableGridHandler {
+public:
+  virtual ~DRW_DwgLegacyTableGridHandler() = default;
+  virtual bool wantsDwgLegacyTableGrid() const noexcept { return false; }
+  virtual void addDwgLegacyTableGrid(const DRW_Table& value) = 0;
+};
+
 /** Optional source-evidence side channel. Does not extend DRW_Interface's
  * established vtable or require existing 2D consumers to retain source bytes.
  * Request once per read; default false performs no source copy. Reports are
