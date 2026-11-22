@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-periodic-spline-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_HEADLESS_CONTROL_PASSED",
+  "supportClaimEffect": "none",
+  "consumerPullRequest": "https://github.com/LibreCAD/LibreCAD_3/pull/462",
+  "consumerCommit": "141211d2d0f887164e2d0a50fb14b75c5df13197",
+  "scope": "Generated periodic quadratic only, non-rational exact Bezier conversion and positive-weight rational adaptive line approximation.",
+  "independentEvaluator": "ezdxf 1.4.5 closed-uniform B-spline evaluation; expected knot-domain endpoints and four interior span points",
+  "validation": [
+    "26 focused kernel geometry tests pass, including periodic sample endpoints, independent interior points, rational segment continuity and convex hull checks. The ordinary periodic control failed before the change.",
+    "Six focused bundled-codec HATCH tests and ten shared-codec HATCH/MPOLYGON tests pass; generated periodic HATCH uses source knots and passes region intersections plus ASCII/Binary save and reopen.",
+    "ezdxf independently inspected both current shared-codec ASCII/Binary outputs: degree 2, periodic flag, nine knots, six controls, and elevation 3 match.",
+    "Three standalone spline round-trip controls pass against current shared codec.",
+    "Python binding plan-sync check passes."
+  ],
+  "logSha256": {
+    "geometry": "103acbc5baca750de33274a8a57a1d58d54070471b40640b88f18f9c9c0b07d8",
+    "bundledHatch": "1d35b1f692e67d5640d858048426c9e57c05adf1db46c8a75493a142d492867d",
+    "sharedHatch": "b0a4879e8c204d4733ac4895fb3ccccf27266fd13d075e81a39ba848485047fb",
+    "sharedStandalone": "680cbd0995c096e33bcc9a67412e2d9be90965c790d2a5bc77d61910534bbd30"
+  },
+  "limitations": [
+    "Headless macOS ARM64 only; native GUI, hosted CI and other platforms remain open.",
+    "Only the specified generated quadratic periodic profiles were independently sampled; other degrees, arbitrary periodic knot patterns and producer files remain unqualified.",
+    "Positive-weight rational geometry is approximated to a projected-hull chord tolerance of 1e-4 of control-point extent, subject to depth and segment limits; unsupported profiles retain the existing fallback."
+  ]
+}

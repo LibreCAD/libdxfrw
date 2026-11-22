@@ -23,6 +23,23 @@ screened, but record each independently; generated LibreDWG drawings previously
 failed ODA conversion and cannot by themselves establish interoperability.
 Hash the exact input before and after testing. Do not modify the original.
 
+For the existing ODA-produced paired empty-dictionary controls, prepare a
+hash-checked scratch handoff from a completed generator run:
+
+```sh
+python3 -B tools/research/package_ac1012_dictionary_witness.py RUN_DIR NEW_PACKET_DIR
+```
+
+The tool checks the stored receipt, selected seed and peer DXF fields, and
+AC1012 frame CRC, roles and cloning-field absence with LibreDWG 0.14. It
+refuses an existing output directory or altered inputs. The two source frames
+are identical even though their original seed cloning flags differ. Their ODA
+reopens are peer evidence only: the source files must still pass the native
+normal-open check. The selected dictionaries are empty, so construct
+distinguishable native entries on disposable copies for the duplicate test.
+The packet contains locally generated files and belongs in scratch storage,
+not in the repository.
+
 ## Read-only observation
 
 Open the pristine DWG in a fresh process and record every diagnostic, recovery

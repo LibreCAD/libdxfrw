@@ -1,0 +1,169 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-generated-native-packet-2026-11-21",
+  "date": "2026-11-21",
+  "status": "GENERATED_PACKET_READY_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "generator": "tools/research/generate_ac1012_dictionary_witness.py",
+  "packager": "tools/research/package_ac1012_dictionary_witness.py",
+  "packagerSha256": "6e1838c4aacdbde641698ac0cd88f76ad829c0199f00f0afddc13ba1bf171ac9",
+  "freshRun": {
+    "directory": "/private/tmp/ac1012-refresh-20261121/ac1012-dictionary-4vkl1kok",
+    "receiptSha256": "d619d317aba83c3696cec5e81f396edf71172ed492b913efae123fdbfeb2dfa5",
+    "samples": {
+      "r13-cloning-0": {
+        "sha256": "357b01011a81b1fb80cf3778c968c8d08bfd62a69d2aad3d6f8d7ccd7308b324",
+        "frameSha256": "4036547657589ec54edcaf98dfedcf6866c4e234991f2cef8cd10e0112abb269",
+        "cloning": null,
+        "candidate": {
+          "exit": 1,
+          "destinationPreservedOnFailure": true,
+          "diagnostics": [
+            "DXF export finalization failed: strict-complete conversion requires output qualification for every opaque DWG callback (qualified=5/6)",
+            "Unqualified opaque DWG callback: handle=24 type=73 record= class=",
+            "DXF export failed: dxf-finalize-rejected: the consumer did not accept the completed DXF write"
+          ]
+        }
+      },
+      "r13-cloning-1": {
+        "sha256": "357b01011a81b1fb80cf3778c968c8d08bfd62a69d2aad3d6f8d7ccd7308b324",
+        "frameSha256": "4036547657589ec54edcaf98dfedcf6866c4e234991f2cef8cd10e0112abb269",
+        "cloning": null,
+        "candidate": {
+          "exit": 1,
+          "destinationPreservedOnFailure": true,
+          "diagnostics": [
+            "DXF export finalization failed: strict-complete conversion requires output qualification for every opaque DWG callback (qualified=5/6)",
+            "Unqualified opaque DWG callback: handle=24 type=73 record= class=",
+            "DXF export failed: dxf-finalize-rejected: the consumer did not accept the completed DXF write"
+          ]
+        }
+      },
+      "r14-cloning-0": {
+        "sha256": "6d224657044a6f88b8b95339f1c28f75c83f0bfeb84874228688c9049d4b0d43",
+        "frameSha256": "70773bda8a49614351e40a8fe8f4d602d769fc14b3fe0f71efd8920f868a1ce6",
+        "cloning": null,
+        "candidate": {
+          "exit": 0,
+          "destinationPreservedOnFailure": false,
+          "diagnostics": [],
+          "outputSha256": "a3d0a7d36ac6aa9da77d7a3ca111b12ba214613ba157e7ba81835447ae9ca820",
+          "cloningFieldCounts": {
+            "absent": 5
+          },
+          "selectedDictionary": {
+            "handle": "2F",
+            "owner": "C",
+            "cloning": null,
+            "entries": []
+          }
+        }
+      },
+      "r14-cloning-1": {
+        "sha256": "6d224657044a6f88b8b95339f1c28f75c83f0bfeb84874228688c9049d4b0d43",
+        "frameSha256": "70773bda8a49614351e40a8fe8f4d602d769fc14b3fe0f71efd8920f868a1ce6",
+        "cloning": null,
+        "candidate": {
+          "exit": 0,
+          "destinationPreservedOnFailure": false,
+          "diagnostics": [],
+          "outputSha256": "a3d0a7d36ac6aa9da77d7a3ca111b12ba214613ba157e7ba81835447ae9ca820",
+          "cloningFieldCounts": {
+            "absent": 5
+          },
+          "selectedDictionary": {
+            "handle": "2F",
+            "owner": "C",
+            "cloning": null,
+            "entries": []
+          }
+        }
+      },
+      "r2000-cloning-0": {
+        "sha256": "66427b6bb6a614e5bfa0de897d6b8e57d6459d939655f481f8eff1cdb7373885",
+        "frameSha256": "df76c860b560a8d37918751b358327322b588fd1ba1cd193c0cdfb6c829bdb60",
+        "cloning": 0,
+        "candidate": {
+          "exit": 1,
+          "destinationPreservedOnFailure": true,
+          "diagnostics": [
+            "DXF OBJECTS output inspection failed: DICTIONARYWDFLT/PLACEHOLDER DWG physical source/output binding",
+            "DXF export failed: emit-failure: DXF output generation failed during OBJECTS emission"
+          ]
+        }
+      },
+      "r2000-cloning-1": {
+        "sha256": "75ae35fdac9e55c7c68bcf1b7751ed3e07c6645e90edfaa4c490b4830b583410",
+        "frameSha256": "f68da5cf985b761e5effa7336fbcc4e480cdfe3b01cd157353013a0ac70312ef",
+        "cloning": 1,
+        "candidate": {
+          "exit": 1,
+          "destinationPreservedOnFailure": true,
+          "diagnostics": [
+            "DXF OBJECTS output inspection failed: DICTIONARYWDFLT/PLACEHOLDER DWG physical source/output binding",
+            "DXF export failed: emit-failure: DXF output generation failed during OBJECTS emission"
+          ]
+        }
+      }
+    }
+  },
+  "packet": {
+    "directory": "/private/tmp/ac1012-native-witness-20261121-v3",
+    "manifestSha256": "b58946e61843aa979a9d1fc129df1408f73d0fde4b386a2764dbe2760a1e276f",
+    "sourceReceiptSha256": "07ce4f262485ebe5bb1625fd124f05c5af07eac8bdf725732017d86fa83ae092",
+    "oda": {
+      "bundleVersion": "27.1.0.0",
+      "executable": {
+        "path": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+        "sha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783"
+      }
+    },
+    "auditDwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "samples": {
+      "0": {
+        "files": {
+          "source.dwg": "9361298515f2a339d6bfd7b55621e53b095389b433fd21c39441a11a267f5fcf",
+          "seed.dxf": "1ca7fc20c59ff02f0f69eaa5f0aabd551849fdfc762fa99f572476623fdfd4c0",
+          "oda-r14.dxf": "70e541546c63564a903411f02b0c0130ebcd80dd57aea958cfe6490c5205cb31",
+          "oda-r2000.dxf": "d5200f361d8cdbd328947a4823b51efd1806ae238237513ee28ae9db1f9038cf"
+        },
+        "seedCloning": 0,
+        "sourceHandle": 48,
+        "nodHandle": 10,
+        "sourceFrameSha256": "f9433ac6db8666a7c1bd4e973cb84e3023a1f30a7312982a13d5cec3a14ee328",
+        "sourceCloningField": null,
+        "odaR14CloningField": null,
+        "odaR2000CloningField": 1
+      },
+      "1": {
+        "files": {
+          "source.dwg": "c70a47dbb7a03a1eca49870e91f17ab10854dc108b5e58e97a7e2e644f2eb4b9",
+          "seed.dxf": "317ce473116a090cbce6520784ad0e0820cf873075606ea36cdae3c94593c9fe",
+          "oda-r14.dxf": "ca507bc8af9cd4fe87f2c042e5f6d7254b605d4b1bb1b5cc8fd0452eb28bd0aa",
+          "oda-r2000.dxf": "f6969bf85093de035eb41f099e642b41af5fe95b4f4e45d25460695b0c8df04e"
+        },
+        "seedCloning": 1,
+        "sourceHandle": 48,
+        "nodHandle": 10,
+        "sourceFrameSha256": "f9433ac6db8666a7c1bd4e973cb84e3023a1f30a7312982a13d5cec3a14ee328",
+        "sourceCloningField": null,
+        "odaR14CloningField": null,
+        "odaR2000CloningField": 1
+      }
+    }
+  },
+  "validation": [
+    "Fresh generator self-test passes and creates six local R13/R14/R2000 controls.",
+    "Packager checks receipt hashes, source frame CRC and roles, physical DXF versions and selected dictionary fields; it refuses an existing output and detects a modified DWG without publishing a packet.",
+    "The ODA-generated AC1012 pair is reused from the prior recorded run; this is not a new native or ODA run."
+  ],
+  "limits": [
+    "No native AutoCAD open or duplicate-merge test was performed.",
+    "The selected source dictionaries are empty; distinguishable entries must be created on native disposable copies.",
+    "LibreDWG-generated controls were rejected by ODA in the prior peer screen; they are not independently qualified inputs.",
+    "Keep strict refusal and all native semantic and other profile gates open."
+  ]
+}
