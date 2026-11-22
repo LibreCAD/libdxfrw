@@ -872,6 +872,7 @@ tests/public_header_hygiene_tests.py
 tests/qualified_format_support_numeric_tests.py
 tests/qualify_modeler_dxf_syntax.py
 tests/raster_dwg_wire_tests.cpp
+tests/raster_legacy_owner_wire_tests.cpp
 tests/rastervariables_objects_allocation_tests.cpp
 tests/raw_application_scope_controls.h
 tests/raw_object_string_override_allocation_tests.cpp
@@ -931,6 +932,7 @@ tests/run_freecad_shared_installed_3d_line_test.cmake
 tests/run_r11_paper_space_cli_test.cmake.in
 tests/run_sunstudy_dxf_graph_test.cmake
 tests/run_sunstudy_objects_allocation_test.cmake
+tests/run_table_legacy_external.cmake
 tests/samples/README.md
 tests/scale_objects_allocation_tests.cpp
 tests/semantic_differential_adapter.cpp
@@ -957,8 +959,10 @@ tests/table_geometry_dependency_controls.h
 tests/table_geometry_dxf_tests.cpp
 tests/table_geometry_source_observer.py
 tests/table_input_controls.h
+tests/table_legacy_external_tests.cpp
 tests/table_legacy_height_controls.h
 tests/table_legacy_merge_controls.h
+tests/table_legacy_prefix_tests.cpp
 tests/table_profile_controls.h
 tests/table_reference_controls.h
 tests/table_resource_reference_observer.py
@@ -1272,6 +1276,7 @@ tools/research/audit_p5d_dxf_versions.py
 tools/research/audit_p5h_viewport_shadeplot.py
 tools/research/canonical_ltype_peer_generator.cpp
 tools/research/check_mpolygon_projection_ezdxf.py
+tools/research/check_r2000_layout_projection_peer.py
 tools/research/compare_ac1014_profile_ezdxf.py
 tools/research/compare_layerstates_selected_ezdxf.py
 tools/research/compare_mechanical_material_ezdxf.py

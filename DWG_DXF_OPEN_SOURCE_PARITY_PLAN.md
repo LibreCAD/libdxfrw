@@ -15,6 +15,7 @@ evidence are recorded in `docs/research/` and Git history.
 
 P8-A/B/C/E/F require receipts matching the frozen candidate's inputs. Reuse
 matching evidence and defer expensive package and consumer runs until freeze.
+The [PR CI inventory and digest refresh](docs/research/p8-pr106-ci-inventory-digest-refresh-2026-11-22.json) fixes the observed preflight failures without promoting claims; verify hosted checks and refresh again after subsequent implementation changes.
 
 The recorded consumer baselines are libdxfrw `master` `d68fb1ed937ad2a74a54f6208277ec10a1b031b0`,
 LibreCAD `master` `78014ecde2f53fdd8c06453f3854b1cae1a3fd0d`, LibreCAD_3

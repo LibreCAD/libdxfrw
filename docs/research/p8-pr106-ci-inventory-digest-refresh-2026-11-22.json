@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-ci-inventory-digest-refresh-2026-11-22",
+  "date": "2026-11-22",
+  "sourceCommit": "06e427c3fab4536ed7bb34ba9b9fad10de7c78b6",
+  "supportClaimEffect": "none",
+  "failures": {
+    "fast-regressions": "GitHub Actions run 44989563734 job 137107445709 stopped at a stale source-release inventory.",
+    "qualification-workflow-contract": "GitHub Actions run 44989563767 job 137107445753 stopped at a stale implementation digest."
+  },
+  "repair": {
+    "method": "In a clean shared clone of the exact source commit, regenerate and stage both release inventories, compute the implementation digest from the staged index, and update only the digest-excluded status overlay.",
+    "inventory": "1400 tracked release files; the regenerated inventories add five already-tracked test and research files and no drawing fixtures.",
+    "implementationDigestSha256": "6c3742c30f632b46536f5e2620794112bfd6829d559ff14664c36fe44a48f9ce",
+    "implementationInputs": 774,
+    "claims": "The immutable claims and their statuses are unchanged: 11 EXPERIMENTAL, four PENDING_NATIVE, zero PROMOTED, no native or broad receipts."
+  },
+  "validation": [
+    "Clean-clone generate_build_inventory.py --check passes.",
+    "Clean-clone check_qualification_digest.py passes with the refreshed status.",
+    "Qualification workflow contract and qualified-format-support self-test and join pass; zero claims are advertised."
+  ],
+  "limits": ["This refresh does not qualify a final candidate or replace the pending platform, broad-suite, and independent semantic receipts.", "Hosted CI on the resulting commit must still finish."]
+}
