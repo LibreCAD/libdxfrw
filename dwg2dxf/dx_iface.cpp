@@ -62,6 +62,7 @@
 #include "dx_mline_layer_source_live.h"
 #include "dx_mline_ltype_source_live.h"
 #include "dx_legacy_blockref_source_relation.h"
+#include "dx_layout_associations.h"
 #include "dx_standard_output.h"
 #include "dx_material_body.h"
 #include "dx_legacy_identity_join.h"
@@ -2052,21 +2053,9 @@ bool retainedRawDxfObjectsEqual(const DRW_RawDxfObject& lhs,
 // viewport/name/consumer gates remain with each caller.
 template<class Layouts,class Records>
 bool reciprocalLayoutAssociations(const Layouts& layouts,const Records& records,std::string& failure) {
-    std::set<std::uint32_t> associated;
-    for(const auto& item:layouts) {
-        const auto& layout=*item.second;const auto handle=layout.paperSpaceBlockRecordHandle.ref;
-        const auto record=records.find(handle);
-        if(!handle||record==records.end()) {failure="LAYOUT associated BLOCK_RECORD is null or missing";return false;}
-        if(record->second->layoutHandle!=layout.handle) {failure="LAYOUT and BLOCK_RECORD backlinks disagree";return false;}
-        if(!associated.insert(handle).second) {failure="multiple LAYOUT records share one BLOCK_RECORD";return false;}
-    }
-    for(const auto& item:records)if(item.second->layoutHandle) {
-        const auto layout=layouts.find(item.second->layoutHandle);
-        if(layout==layouts.end()||layout->second->paperSpaceBlockRecordHandle.ref!=item.first) {
-            failure="BLOCK_RECORD has a missing or nonreciprocal LAYOUT target";return false;
-        }
-    }
-    return true;
+    std::map<std::uint32_t, std::uint32_t> associations;
+    return dx_layout_associations::resolve(layouts, records,
+        dx_layout_associations::Mode::Reciprocal, associations, failure);
 }
 bool validateNamedObjectRootForExport(const dx_data& data,
                                       const char* rootName,
@@ -83029,7 +83018,15 @@ bool validateLayoutGraph(const dx_data& data, DRW::Version targetVersion,
             || !structuralHandles.insert(vport.handle).second)
             return reject("VPORT handle is invalid, duplicated, or collides with a structural layout record");
     }
-    if(!reciprocalLayoutAssociations(layoutsByHandle,recordsByHandle,failure))return false;
+    const auto associationMode = dx_layout_associations::sourceMode(
+        data.sourceFormat == dx_source_format::DWG, data.sourceVersion);
+    std::map<std::uint32_t, std::uint32_t> sourceAssociations;
+    if (!dx_layout_associations::resolve(layoutsByHandle, recordsByHandle,
+                                         associationMode, sourceAssociations,
+                                         failure))
+        return false;
+    if (associationMode == dx_layout_associations::Mode::LegacyDwgForwardOnly)
+        return reject("R13/R14 DWG LAYOUT forward references need a qualified target projection");
 
     // Model LAYOUT 331 identifies a VPORT table configuration; paper-layout
     // LAYOUT 331 identifies its last-active paperspace VIEWPORT entity. Resolve

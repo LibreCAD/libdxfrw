@@ -20,6 +20,17 @@
 #   cd build && ctest -L AC1024 --output-on-failure
 #   cd build && ctest -R '^dwg_read_' --output-on-failure
 
+add_executable(libdxfrw_layout_associations_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/layout_associations_tests.cpp)
+target_compile_features(libdxfrw_layout_associations_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_layout_associations_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_layout_associations_tests PRIVATE
+    ${CMAKE_SOURCE_DIR}/dwg2dxf ${CMAKE_SOURCE_DIR}/src)
+add_test(NAME libdxfrw_layout_associations
+    COMMAND libdxfrw_layout_associations_tests)
+set_tests_properties(libdxfrw_layout_associations PROPERTIES
+    LABELS "fast;dwg;dxf;layout;graph;transaction" TIMEOUT 30)
+
 # Optional external qualification for AC1015 SAT-v1 modeler carriers. Neither
 # the DWG nor independent reference DXF is vendored; callers provide paths to
 # their local evidence. The generated input/output copies remain in build/.

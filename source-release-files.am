@@ -173,6 +173,7 @@ EXTRA_DIST = \
     dwg2dxf/dx_iface.cpp \
     dwg2dxf/dx_iface.h \
     dwg2dxf/dx_layerstates_dwg_wire.h \
+    dwg2dxf/dx_layout_associations.h \
     dwg2dxf/dx_layout_source_profile.h \
     dwg2dxf/dx_legacy_attribute_compound_join.h \
     dwg2dxf/dx_legacy_attribute_compound_profile.h \
@@ -825,6 +826,7 @@ EXTRA_DIST = \
     tests/independent_dxf_scalar_walker.h \
     tests/layer_table_allocation_tests.cpp \
     tests/layer_test_helpers.h \
+    tests/layout_associations_tests.cpp \
     tests/layout_dependency_controls.h \
     tests/layout_source_controls.h \
     tests/lc3_compat_check.cpp \
@@ -1283,6 +1285,7 @@ EXTRA_DIST = \
     tools/research/freecad_real_draft_mesh_layer_probe.py \
     tools/research/freecad_torus_bound_probe.py \
     tools/research/generate_ac1012_dictionary_witness.py \
+    tools/research/generate_acadrust_legacy_shape.py \
     tools/research/generate_legacy_dictionary_eed_control.py \
     tools/research/generate_legacy_eed_utf8_witness.py \
     tools/research/generate_legacy_insert_chain_control.py \
