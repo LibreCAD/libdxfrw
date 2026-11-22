@@ -833,6 +833,7 @@ tests/legacy_blockref_relation_tests.cpp
 tests/legacy_codepage_consumer_tests.cpp
 tests/legacy_entities_compound_join_tests.cpp
 tests/legacy_identity_controls.h
+tests/legacy_layout_handle_tests.cpp
 tests/light_dxf_proxy_replay_tests.cpp
 tests/ltype_string_area_test_helpers.h
 tests/ltype_table_allocation_tests.cpp

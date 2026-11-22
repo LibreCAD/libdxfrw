@@ -31,6 +31,16 @@ add_test(NAME libdxfrw_layout_associations
 set_tests_properties(libdxfrw_layout_associations PROPERTIES
     LABELS "fast;dwg;dxf;layout;graph;transaction" TIMEOUT 30)
 
+add_executable(libdxfrw_legacy_layout_handle_tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/legacy_layout_handle_tests.cpp)
+target_compile_features(libdxfrw_legacy_layout_handle_tests PRIVATE cxx_std_17)
+target_compile_options(libdxfrw_legacy_layout_handle_tests PRIVATE ${LIBDXFRW_WARNING_FLAGS})
+target_include_directories(libdxfrw_legacy_layout_handle_tests PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(libdxfrw_legacy_layout_handle_tests PRIVATE dxfrw)
+add_test(NAME libdxfrw_legacy_layout_handles COMMAND libdxfrw_legacy_layout_handle_tests)
+set_tests_properties(libdxfrw_legacy_layout_handles PROPERTIES
+    LABELS "fast;dwg;layout;AC1012;AC1014;transaction" TIMEOUT 30)
+
 # Optional external qualification for AC1015 SAT-v1 modeler carriers. Neither
 # the DWG nor independent reference DXF is vendored; callers provide paths to
 # their local evidence. The generated input/output copies remain in build/.

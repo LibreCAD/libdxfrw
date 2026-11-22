@@ -803,7 +803,8 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
                                  std::numeric_limits<std::uint64_t>::max(),
                              bool validateLegacyDictionaryGroupRoles = false,
                              bool imageDefParentHardOwner = false,
-                             bool allowDimstyleNullSoftPointerXdict = false) {
+                             bool allowDimstyleNullSoftPointerXdict = false,
+                             bool requireRepresentableHandles = false) {
     if (buf == nullptr || !buf->isGood()
         || !dwgSafety::validReactorCount(numReactors)) {
         if (buf != nullptr)
@@ -825,6 +826,9 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
 #endif
     if (!readBoundedObjectHandle(probe, baseHandle, true, parentH,
                                  handleEndBit))
+        return false;
+    if (requireRepresentableHandles
+        && parentH.ref64 > std::numeric_limits<std::uint32_t>::max())
         return false;
 #if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
     DRW_MLINESTYLE_TRACE_SPAN(baseHandle, version, "handle", "ownerhandle",
@@ -870,6 +874,9 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
         if (!readBoundedObjectHandle(probe, baseHandle, false, reactor,
                                      handleEndBit))
             return false;
+        if (requireRepresentableHandles
+            && reactor.ref64 > std::numeric_limits<std::uint32_t>::max())
+            return false;
 #if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
         const std::string reactorField =
             "reactors[" + std::to_string(i) + "]";
@@ -895,6 +902,9 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
 #endif
         if (!readBoundedObjectHandle(probe, baseHandle, false, xDict,
                                      handleEndBit))
+            return false;
+        if (requireRepresentableHandles
+            && xDict.ref64 > std::numeric_limits<std::uint32_t>::max())
             return false;
 #if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
         DRW_MLINESTYLE_TRACE_SPAN(baseHandle, version, "handle",
@@ -22395,10 +22405,14 @@ bool DRW_Layout::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs
     std::uint32_t parsedParentHandle = 0;
     std::vector<std::uint32_t> parsedReactorHandles;
     std::uint32_t parsedXDictHandle = 0;
+    const bool legacyLayout = version == DRW::AC1012 || version == DRW::AC1014;
     if (!hBuf->isGood()
-        || !this->readDwgObjectCommonHandles(version, hBuf, &parsedParentHandle,
-                                       &parsedReactorHandles,
-                                       &parsedXDictHandle))
+        || !readObjectCommonHandles(hBuf, version, handle, numReactors,
+                                    xDictFlag, &parsedParentHandle,
+                                    &parsedReactorHandles, &parsedXDictHandle,
+                                    handleEndBit, legacyLayout, false,
+                                    oType == DRW::DwgDimStyleObjectType,
+                                    legacyLayout))
         return fail();
 
     dwgHandle parsedPlotViewHandle;
@@ -22407,14 +22421,23 @@ bool DRW_Layout::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs
     dwgHandle parsedLastActiveViewportHandle;
     dwgHandle parsedBaseUcsHandle;
     dwgHandle parsedNamedUcsHandle;
+    const auto readLayoutHandle = [&](dwgHandle& value, std::uint8_t role) {
+        if (!readDwgObjectHandleWithinFrame(version, *hBuf, false, value))
+            return false;
+        // R13/R14 LAYOUT has typed inline references (ODA 20.4.84).
+        // Never publish a truncated target or a different handle role.
+        return !legacyLayout
+            || (value.ref64 <= std::numeric_limits<std::uint32_t>::max()
+                && hasDwgHandleReferenceRole(value, role));
+    };
     if ((version >= DRW::AC1018
          && !readDwgObjectHandleWithinFrame(version, *hBuf, false, parsedPlotViewHandle))
         || (version > DRW::AC1018
             && !readDwgObjectHandleWithinFrame(version, *hBuf, false, parsedShadePlotHandle))
-        || !readDwgObjectHandleWithinFrame(version, *hBuf, false, parsedPaperSpaceBlockRecordHandle)
-        || !readDwgObjectHandleWithinFrame(version, *hBuf, false, parsedLastActiveViewportHandle)
-        || !readDwgObjectHandleWithinFrame(version, *hBuf, false, parsedBaseUcsHandle)
-        || !readDwgObjectHandleWithinFrame(version, *hBuf, false, parsedNamedUcsHandle))
+        || !readLayoutHandle(parsedPaperSpaceBlockRecordHandle, DRW::DwgSoftPointer)
+        || !readLayoutHandle(parsedLastActiveViewportHandle, DRW::DwgSoftPointer)
+        || !readLayoutHandle(parsedBaseUcsHandle, DRW::DwgHardPointer)
+        || !readLayoutHandle(parsedNamedUcsHandle, DRW::DwgHardPointer))
         return fail();
 
     std::vector<std::uint32_t> parsedViewportHandles;
