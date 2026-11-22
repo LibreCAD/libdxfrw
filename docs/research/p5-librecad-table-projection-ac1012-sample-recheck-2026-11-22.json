@@ -11,6 +11,14 @@
     "bundledRuntime": "Focused Catch2 test passes 48 assertions for block-only and grid-rendered TABLEs and ordinary MINSERT, including source counts, metadata and placement. Before the fix the same test fails four count assertions: both TABLE projections are 3 by 2.",
     "installedCodecCompile": "librecad_filter_compile_check passes with LIBRECAD_USE_SYSTEM_LIBDXFRW=ON and BUILD_TESTS=OFF against the local installed 3.0.0 package; runtime was not tested with this package.",
     "installedHeaderSha256": "36bb94b5c29a2ff6426f30aaaabfdd3d72bc258ed7ecf32e5082b32211872c03",
+    "currentInstalledCodecRuntime": {
+      "libdxfrwSourceCommit": "079138d1",
+      "libdxfrwStaticArchiveSha256": "396e694a4cc819a21826511f69683856d68261fa85b9c3e82f24549b248b6cbb",
+      "librecadCommit": "f5477f98a051f2e9e41ffaf9858a9e8c153821fe",
+      "testExecutableSha256": "2b5877f5b51875e6d3eb829d6319e51d7761b62798897b0a20ad0ed77266499d",
+      "result": "The focused TABLE projection test passes all 48 assertions using the separately installed static libdxfrw and offscreen Qt on macOS arm64.",
+      "configuration": "An isolated build temporarily exempted only this public-API test target from the repository's general system-codec/test incompatibility guard. The tracked CMake policy was restored unchanged. The complete test suite was not run under this configuration."
+    },
     "limits": ["No native GUI rendering or editing qualification was performed.", "LibreCAD_3 addInsert does not use row or column counts; its native behavior remains a separate qualification."]
   },
   "ac1012GeneratedControls": {
