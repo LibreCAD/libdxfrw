@@ -1,0 +1,141 @@
+{
+  "schema": 1,
+  "scope": "generated source chain; not native interoperability",
+  "ezdxfVersion": "1.4.5",
+  "tools": {
+    "dwgadd": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgadd",
+      "sha256": "66c435deb0f081ab72be21bb9ba36e5d149f9352d71ddf1e83ac95b3fc07f282"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    },
+    "dwgwrite": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgwrite",
+      "sha256": "8c5dfd7f733e924723155e5040dd33f3fefdf4682071867a4c1d3499adf73e74"
+    },
+    "candidate": {
+      "path": "/private/tmp/libdxfrw-p6j-asan/dwg2dxf/dwg2dxf",
+      "sha256": "0f3e18df2a6b4057de1e6d927224855cf01b3fea1ef2955fd1bf9ca41324cf10"
+    }
+  },
+  "samples": {
+    "r13": {
+      "version": "AC1012",
+      "dwgSha256": "b5c470bb009f43d2c96ed9e50d17718991c0e1bc482d5e30d287e53f50e67e84",
+      "peerReopenSha256": "6d6fc0d29403e400c340ad49efca278268e07b9e98b3fa9d2af901d31cdaf6e9",
+      "checks": [
+        {
+          "mode": "strict-ascii",
+          "exit": 1,
+          "traceSha256": "5e3d4f93a3c4e90262b63e1e2bcdd3112cca9d9093f16cc341a1bcf8ffbc9eff",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "strict-binary",
+          "exit": 1,
+          "traceSha256": "dc437f7080d6dc71f6df6f984a632d9c1785ce5b5125a259617142c11b84364e",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "partial-ascii",
+          "exit": 0,
+          "traceSha256": "8d5cff51511e04f15fe3b996ce6bda395a7fbe6f2626830a839f88f283621501",
+          "outputSha256": "963ba16628d6856a4f3d17fb866d8dc2d1f6e7dc09dc5f824ef7c296f247dd42",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        },
+        {
+          "mode": "partial-binary",
+          "exit": 0,
+          "traceSha256": "97a835e71e6c8e2c872d4b61805c89278ac4766f5ad55a45fc9a709edbe639e0",
+          "outputSha256": "3354f05b3fcbc5531257e4bc2f9f2097b356c351486409ed4c1575a6b4fc0550",
+          "independentReadback": "three INSERTs and following LINE, positions and target block"
+        }
+      ]
+    },
+    "r14": {
+      "version": "AC1014",
+      "dwgSha256": "72346124ec11f1a2ca411b224752ea85073e0000722d580d5928520dec497627",
+      "peerReopenSha256": "2d2224cab41446781a40ea621ac7bf1148c32dc4c5d4714d22a5fbd3a8728ec5",
+      "checks": [
+        {
+          "mode": "strict-ascii",
+          "exit": 1,
+          "traceSha256": "a0bf4163fa43682c585ab704f3913fef6fa4e9ec91f11b5bff71f48dceb61dc8",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "strict-binary",
+          "exit": 1,
+          "traceSha256": "daf35135db2244cfd5abf62793d85d461856ef256c76d7fabcaad5841b254b6a",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "partial-ascii",
+          "exit": 1,
+          "traceSha256": "655d26eaf15f935553ad1548eee7d9dd7f9a9d2ec3f63bc3e9581e4e1fb7fe6a",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "partial-binary",
+          "exit": 1,
+          "traceSha256": "c9ab2e97202f221a8592c07f740e6bc9ccda2931d09eee971a58d613e6c0f9ab",
+          "destinationPreserved": true
+        }
+      ]
+    },
+    "r2000": {
+      "version": "AC1015",
+      "dwgSha256": "d5120bee0ccd07ce873bac68e54fea62bd4460d46944096c276246007c2a7a1c",
+      "peerReopenSha256": "b3fa45268a7bebdb0be1959754cb5535a0003a1da36b0d39011e8efc479a2d40",
+      "checks": [
+        {
+          "mode": "strict-ascii",
+          "exit": 1,
+          "traceSha256": "f3f69478a6bb2f8ea3456421d28853ef90f2afa0a2d0cf3631b4e520781fecaa",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "strict-binary",
+          "exit": 1,
+          "traceSha256": "ed2e2c1d3e25e71fec77e7f0cd75a09800ab7171542f8462e2697053ef632273",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "partial-ascii",
+          "exit": 1,
+          "traceSha256": "139ffc66881ada556e6517b650490c7218039cb1c64a848d52be130ecd1a0f2f",
+          "destinationPreserved": true
+        },
+        {
+          "mode": "partial-binary",
+          "exit": 1,
+          "traceSha256": "005ada677f3d006262e91e5e5a39bbb031e77c5f3a6daec9290d8f160592eb42",
+          "destinationPreserved": true
+        }
+      ]
+    }
+  },
+  "status": "CONTROLLED_GENERATED_CHAIN_ONLY",
+  "candidateCommit": "7f59f70ece7d7d36c099d525d1b8141456e3728d",
+  "generator": "tools/research/generate_legacy_insert_chain_control.py",
+  "generatorSha256": "63451007fa4a969392e46a2d560b9126b73a1c8899b7433789987978a9b75117",
+  "specification": {
+    "document": "ODA Open Design Specification for DWG Files v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "20.2 R13/R14 entity flags: named-block entities carry owner; default links mean previous/next handles are implicit"
+  },
+  "method": [
+    "LibreDWG dwgadd generates scratch R13/R14/R2000 source; its initial named BLOCK is mistakenly linked to modelspace. Correct the modelspace and named-block first/last/delimiter handles, named-block entity owner/mode, line boundary, and HEADER DIMSTYLE in the generated JSON, then serialize and reopen with LibreDWG. Set nolinks=1 for all three inserts so the previous/next references are implicit.",
+    "ASan-instrumented candidate reads all frames and visits three no-attribute INSERTs and their following LINE; for each version exercise strict and explicit-partial output in ASCII and Binary with a seeded destination.",
+    "ezdxf 1.4.5 independently reopens successful R13 partial outputs and checks the three INSERT positions and block name, following LINE, and target block LINE geometry."
+  ],
+  "limitations": [
+    "Generated sources and corrected graph are not native producer evidence.",
+    "The explicit partial R13 outputs are not complete-output or native-semantics qualification.",
+    "R14 and R2000 conversion remain refused by separate output gates; strict R13 still refuses MLINESTYLE.",
+    "No organic entity failure is induced; P6-F remains open and no support claim is promoted."
+  ],
+  "supportClaimEffect": "none"
+}

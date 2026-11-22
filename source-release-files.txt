@@ -1283,6 +1283,7 @@ tools/research/freecad_torus_bound_probe.py
 tools/research/generate_ac1012_dictionary_witness.py
 tools/research/generate_legacy_dictionary_eed_control.py
 tools/research/generate_legacy_eed_utf8_witness.py
+tools/research/generate_legacy_insert_chain_control.py
 tools/research/generate_legacy_layer_eed_witness.py
 tools/research/generate_librecad3_mline_samples.py
 tools/research/generate_librecad_r13_ltype_samples.py
