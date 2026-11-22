@@ -6,8 +6,11 @@
 #include "intern/dwgbufferw.h"
 
 #include <cstdint>
+#include <fstream>
 #include <iostream>
+#include <iterator>
 #include <limits>
+#include <string>
 #include <vector>
 
 namespace {
@@ -560,6 +563,79 @@ bool dictionaryWireControl(bool nod, bool mlineOwner) {
     return true;
 }
 
+bool populatedAc1012DictionaryFrame(const std::string& path,
+                                    std::uint32_t expectedTarget) {
+    std::ifstream input(path, std::ios::binary);
+    const std::vector<std::uint8_t> bytes{
+        std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>()};
+    if (!input.is_open() || bytes.empty()) return false;
+
+    Dictionary model;
+    const auto read = [&](const std::vector<std::uint8_t>& source) {
+        dwgBuffer buffer(source.data(), source.size());
+        return model.parseDwg(DRW::AC1012, &buffer, 0u) && buffer.isGood();
+    };
+    const auto matches = [&]() {
+        return model.handle == 0x2eu && model.parentHandle == 0x0cu
+            && model.reactorHandles == std::vector<std::uint32_t>{0x0cu}
+            && model.xDictHandle == 0u && model.legacyDwgCloningAbsent()
+            && model.hasCompleteDwgEntries() && model.hasDwgCommonLinkTail()
+            && model.m_entries.size() == 1u
+            && model.m_entries.front().m_name == "SAME_KEY"
+            && model.m_entries.front().m_handle == expectedTarget;
+    };
+    if (!read(bytes) || !matches()) return false;
+
+    DRW_UnsupportedObject raw;
+    raw.m_version = DRW::AC1012;
+    raw.m_handle = model.handle;
+    raw.m_objectType = 42;
+    raw.m_objectSize = static_cast<std::uint32_t>(bytes.size());
+    raw.m_rawBytes = bytes;
+    raw.m_parentHandle = model.parentHandle;
+    raw.m_numReactors = model.reactorCount();
+    raw.m_reactorHandles = model.reactorHandles;
+    raw.m_xDictHandle = model.xDictHandle;
+    raw.setCommonLinkEvidence(DRW_DwgCommonLinkEvidence::Validated);
+    if (!dx_legacy_dwg_wire::dictionary(raw, model, false)) return false;
+
+    using dx_legacy_dwg_wire::Bits;
+    Bits bits{bytes.data(), 0u, static_cast<std::uint32_t>(bytes.size() * 8u)};
+    std::uint32_t bodyEnd = 0u;
+    const auto noEed = [](Bits& source) noexcept {
+        return source.shortValue() == 0u && source.good;
+    };
+    if (!dx_legacy_dwg_wire::frameStart(
+            bits, DRW::AC1012, 42u, model.handle, model.reactorHandles.size(),
+            noEed, bodyEnd)
+        || bits.longValue() != 1u
+        || !dx_legacy_dwg_wire::text(bits, "SAME_KEY")
+        || bits.pos != bodyEnd
+        || !dx_legacy_dwg_wire::commonTail(
+            bits, model.handle, model.parentHandle, model.reactorHandles, 0u))
+        return false;
+    const std::uint32_t roleBit = bits.pos;
+    if (!dx_legacy_dwg_wire::reference(bits, 2u, model.handle, expectedTarget)
+        || !dx_legacy_dwg_wire::padding(bits)) return false;
+
+    auto wrongRole = bytes;
+    wrongRole[roleBit / 8u] ^=
+        static_cast<std::uint8_t>(0x80u >> (roleBit % 8u));
+    auto mutatedRaw = raw;
+    mutatedRaw.m_rawBytes = wrongRole;
+    if (dx_legacy_dwg_wire::dictionary(mutatedRaw, model, false)
+        || read(wrongRole) || model.hasCompleteDwgEntries()
+        || !model.m_entries.empty() || !read(bytes) || !matches()) return false;
+
+    for (std::size_t length = 0; length < bytes.size(); ++length) {
+        const std::vector<std::uint8_t> truncated(bytes.begin(),
+                                                  bytes.begin() + length);
+        if (read(truncated) || model.hasCompleteDwgEntries()
+            || !model.m_entries.empty() || !read(bytes) || !matches()) return false;
+    }
+    return true;
+}
+
 std::vector<std::uint8_t> makeVariable(std::uint32_t dataBits = 104u,
                                        unsigned ownerRole = 8u,
                                        unsigned reactorRole = 4u,
@@ -725,7 +801,22 @@ bool run() {
 }
 } // namespace
 
-int main() {
+int main(int argc, char** argv) {
+    if (argc == 4 && std::string(argv[1]) == "--source-dictionary-frame") {
+        try {
+            const auto target = static_cast<std::uint32_t>(std::stoul(argv[3]));
+            if (populatedAc1012DictionaryFrame(argv[2], target)) {
+                std::cout << "physical AC1012 dictionary frame and role/refusal/retry: PASS\n";
+                return 0;
+            }
+        } catch (...) {
+            std::cerr << "invalid physical AC1012 dictionary test arguments\n";
+            return 2;
+        }
+        std::cerr << "physical AC1012 dictionary frame check failed\n";
+        return 1;
+    }
+    if (argc != 1) return 2;
     if (run()) return 0;
     std::cerr << "AC1014 DICTIONARYVAR body or refusal/retry check failed\n";
     return 1;

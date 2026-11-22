@@ -4,7 +4,9 @@
 The two drawings contain the same NOD -> TEST_DICT -> SAME_KEY graph. The
 entry targets distinct, named MLINESTYLE objects so an ObjectARX observer can
 identify which value survives a duplicate-key clone. LibreDWG is only the
-sample producer here; its output is not native AutoCAD evidence.
+sample producer here; its output is not native AutoCAD evidence. Optionally
+pass the focused libdxfrw test executable to parse each extracted physical
+dictionary frame and exercise role/truncation refusal and corrected retry.
 """
 from __future__ import annotations
 
@@ -31,7 +33,8 @@ ENTRY_KEY = "SAME_KEY"
 TEST_DICTIONARY = "TEST_DICT"
 
 
-def read_dictionary_frame(path: Path, dwgread: str, handle: int) -> dict:
+def read_dictionary_frame(path: Path, dwgread: str,
+                          handle: int) -> tuple[dict, bytes]:
     data = path.read_bytes()
     require(data.startswith(VERSION), "sample is not AC1012")
     trace = run([dwgread, "-v4", str(path)])
@@ -90,7 +93,7 @@ def read_dictionary_frame(path: Path, dwgread: str, handle: int) -> dict:
     item = bits.handle(2, handle)
     require(len(frame) * 8 - bits.position < 8, "unexpected data after dictionary item handle")
     require(name == ENTRY_KEY and item["value"] != 0, "dictionary item differs from the selected key")
-    return {
+    proof = {
         "offset": address,
         "sizeBytes": size,
         "frameSha256": sha(frame),
@@ -107,6 +110,7 @@ def read_dictionary_frame(path: Path, dwgread: str, handle: int) -> dict:
         "eed": eed,
         "paddingBits": len(frame) * 8 - bits.position,
     }
+    return proof, frame
 
 
 def read_model(path: Path, dwgread: str) -> dict:
@@ -183,6 +187,8 @@ def main() -> None:
     parser.add_argument("--dwgadd", default="dwgadd")
     parser.add_argument("--dwgread", default="dwgread")
     parser.add_argument("--candidate", help="optional libdxfrw dwg2dxf executable")
+    parser.add_argument("--dictionary-source-test",
+                        help="optional libdxfrw AC1012 physical-frame test executable")
     args = parser.parse_args()
     require(b"0.14" in run([args.dwgadd, "--version"]).stdout,
             "LibreDWG 0.14 dwgadd is required")
@@ -235,7 +241,8 @@ def main() -> None:
         path = root / f"{label}-ac1012.dwg"
         run([args.dwgadd, "--as", "r13", "-o", str(path), str(recipe)])
         model = read_model(path, args.dwgread)
-        frame = read_dictionary_frame(path, args.dwgread, model["dictionaryHandle"])
+        frame, frame_bytes = read_dictionary_frame(
+            path, args.dwgread, model["dictionaryHandle"])
         require(model["dictionaryOwner"] == model["rootHandle"],
                 "TEST_DICT owner does not point to the NOD")
         require(frame["itemHandle"]["value"] == model["entry"]["targetHandle"],
@@ -281,12 +288,33 @@ def main() -> None:
                 "outputSha256": sha(candidate_output.read_bytes()) if result.returncode == 0 else None,
                 "diagnostics": lines[-8:],
             }
+        dictionary_frame_test = None
+        if args.dictionary_source_test:
+            test_path = Path(args.dictionary_source_test).resolve()
+            frame_path = root / f"{label}-dictionary-frame.bin"
+            frame_path.write_bytes(frame_bytes)
+            result = subprocess.run(
+                [str(test_path), "--source-dictionary-frame", str(frame_path),
+                 str(model["entry"]["targetHandle"])],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                timeout=30,
+                check=False,
+            )
+            dictionary_frame_test = {
+                "executable": executable_identity(str(test_path)),
+                "exitCode": result.returncode,
+                "output": result.stdout.decode(errors="replace").strip(),
+            }
+            require(result.returncode == 0,
+                    "libdxfrw physical AC1012 dictionary frame test failed")
         results["samples"][label] = {
             "file": path.name,
             "recipe": recipe.name,
             "source": model,
             "wire": frame,
             "candidateStrict": candidate,
+            "libdxfrwPhysicalFrameTest": dictionary_frame_test,
         }
 
     require(results["samples"]["destination"]["source"]["entry"]["name"]

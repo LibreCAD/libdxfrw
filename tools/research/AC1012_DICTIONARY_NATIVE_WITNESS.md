@@ -110,7 +110,10 @@ The generated destination maps `SAME_KEY` to `Standard`; the source maps it to
 `ProbeStyle`. The generator checks the AC1012 DICTIONARY frame, CRC, entry-name
 span, NOD parent/reactor handles, absent cloning field, and soft-owner entry
 handle against the ODA v5.4.1 §20.4.44 layout. It keeps both drawings and the
-receipt outside the repository.
+receipt outside the repository. If `libdxfrw_dwg_ac1014_dictionaryvar_tests`
+has been built, pass its path with `--dictionary-source-test`; the generator
+then checks the physical bytes through `DRW_Dictionary` and the shared wire
+observer, including bad-role/truncation refusal and corrected retry.
 
 These files are LibreDWG-authored controls, not native producer witnesses.
 Screen each file in a fresh AutoCAD process and reject any file that opens only
