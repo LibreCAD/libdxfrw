@@ -25,5 +25,16 @@
   "limitations": [
     "Callers must still update the knot vector after changing control-point count; the builder does not infer a new spline shape.",
     "Headless macOS ARM64 only; native GUI, hosted CI, and other platforms remain open. Current shared-codec build uses scratch CMake glue."
-  ]
+  ],
+  "addressSanitizer": {
+    "scope": "Only the candidate SplineBuilder implementation is compiled with ASan into the test executable; the linked lckernel is not instrumented. No whole-application or leak claim.",
+    "harness": "tools/research/lc3_spline_builder_removal_asan.cpp",
+    "harnessSha256": "fddfc1a24a742b9b148002c81e65d84211c22c5655a4d68f1324a2526a5545b5",
+    "candidateBuilderSha256": "63f2c4c3cf65b1e4f660de8077c4bf79b75faa45a622e9433c217c914d6dd0fb",
+    "binarySha256": "df174609e119b4f5f053191f3b011d7ad188b5721fdd64f53c9951f29ace8d6b",
+    "testLogSha256": "87f40f617370d8a59f91dfa148274b068b07174bb0a6c4ab5a47616cce8abecb",
+    "symbolLogSha256": "ce7ae5a9a804bf6d941b2c5c572aa0e1f74bfcf44dd2fdc099b4efa91e364fa0",
+    "result": "PASS: valid removals, positive and negative bounds including INT_MIN, incomplete weights, corrected retry, and fit/knot removal. The executable exports all three instrumented removal methods and imports the ASan runtime.",
+    "command": "clang++ -std=c++17 -O1 -fsanitize=address -fno-omit-frame-pointer -Wno-missing-template-arg-list-after-template-kw -DBOOST_LOG_DYN_LINK -I<lc3-source> -I<lc3-source>/lckernel -I<eigen-include> -I<gtest-include> tools/research/lc3_spline_builder_removal_asan.cpp <lc3-source>/lckernel/cad/builders/spline.cpp -L<lc3-build>/lckernel -L<gtest-lib> -llckernel -lgtest_main -lgtest -Wl,-rpath,<lc3-build>/lckernel -o <scratch>/lc3-builder-removal-asan-tests; <scratch>/lc3-builder-removal-asan-tests"
+  }
 }
