@@ -670,12 +670,35 @@ bool populatedAc1012DictionaryFrame(const std::string& path,
             foundSelectedEntry = true;
         }
     }
-    if (!foundSelectedEntry || bits.pos != bodyEnd
-        || !dx_legacy_dwg_wire::commonTail(
-            bits, model.handle, model.parentHandle, model.reactorHandles, 0u)) {
+    if (!foundSelectedEntry || bits.pos != bodyEnd) {
         std::cerr << "AC1012 dictionary independent frame walk failed\n";
         return false;
     }
+    const auto commonTailBitStart = bits.pos;
+    if (!dx_legacy_dwg_wire::commonTail(
+            bits, model.handle, model.parentHandle, model.reactorHandles, 0u)) {
+        std::cerr << "AC1012 dictionary common tail failed\n";
+        return false;
+    }
+    std::vector<std::size_t> commonHandleBitStarts;
+    Bits commonBits{bytes.data(), static_cast<std::uint32_t>(commonTailBitStart),
+                    static_cast<std::uint32_t>(bytes.size() * 8u)};
+    const auto captureCommonHandle = [&](unsigned role, std::uint32_t target) {
+        commonHandleBitStarts.push_back(commonBits.pos);
+        const auto parsed = dx_raster_wire::detail::handle(
+            commonBits, role, model.handle);
+        const bool directRole = parsed.role == role;
+        const bool softPointerOffset = role == 4u
+            && (parsed.role == 6u || parsed.role == 8u
+                || parsed.role == 10u || parsed.role == 12u);
+        return commonBits.good && (directRole || softPointerOffset)
+            && parsed.value == target;
+    };
+    if (!captureCommonHandle(4u, model.parentHandle)) return false;
+    for (const auto reactor : model.reactorHandles)
+        if (!captureCommonHandle(4u, reactor)) return false;
+    if (!captureCommonHandle(3u, 0u) || commonBits.pos != bits.pos) return false;
+
     std::vector<std::size_t> itemHandleBitStarts;
     itemHandleBitStarts.reserve(model.m_entries.size());
     for (const auto& entry : model.m_entries) {
@@ -690,6 +713,18 @@ bool populatedAc1012DictionaryFrame(const std::string& path,
         const auto hardOwnerRoleBit = itemHandleBitStart + 3u;
         wrongRole[hardOwnerRoleBit / 8u] ^=
             static_cast<std::uint8_t>(0x80u >> (hardOwnerRoleBit % 8u));
+        auto mutatedRaw = raw;
+        mutatedRaw.m_rawBytes = wrongRole;
+        if (dx_legacy_dwg_wire::dictionary(mutatedRaw, model, false)
+            || read(wrongRole) || model.hasCompleteDwgEntries()
+            || !model.m_entries.empty() || !read(bytes) || !matches()) return false;
+    }
+
+    for (const auto commonHandleBitStart : commonHandleBitStarts) {
+        auto wrongRole = bytes;
+        const auto wrongRoleBit = commonHandleBitStart + 3u;
+        wrongRole[wrongRoleBit / 8u] ^=
+            static_cast<std::uint8_t>(0x80u >> (wrongRoleBit % 8u));
         auto mutatedRaw = raw;
         mutatedRaw.m_rawBytes = wrongRole;
         if (dx_legacy_dwg_wire::dictionary(mutatedRaw, model, false)

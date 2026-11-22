@@ -12,18 +12,18 @@
   },
   "scope": "Generated regression matrix for the shared R13/R14/R2000 object-frame and common-tail observer used by the bounded dictionary and MLINESTYLE source checks. No production parser layout or support profile changed.",
   "files": {
-    "tests/dwg_ac1014_dictionaryvar_tests.cpp": "dedae3effc902ab3850e3f6e27872befc7f75ee6a5dea62434b845b27cdd5a24",
+    "tests/dwg_ac1014_dictionaryvar_tests.cpp": "2a167e5f28ee73ea181bc481b1e9c5c2ddc464a9af921d9904a2dce2e4021df5",
     "tests/CMakeLists.txt": "2b19aaab2aec0ef729b8207d6343a3786adfe2a6372e682f870f087780866414"
   },
   "controls": {
     "versions": ["AC1012", "AC1014", "AC1015"],
     "frame": "Retains version-dependent object-size location, valid body boundary, wrong-version and out-of-frame size refusal, every byte truncation, and successful valid-frame recheck after refusal.",
-    "handleRoles": "At each owner, reactor, and typed-null extension-dictionary position, tries all 16 role nibbles; accepts only role 4, 4, and 3 respectively. Also mutates each non-null target and requires refusal followed by valid-frame acceptance. On both hash-bound paired AC1012 dictionary frames, independently walks every item handle, mutates every item role to the wrong role, verifies observer/parser refusal and reset, then retries the original frame successfully.",
+    "handleRoles": "At each owner, reactor, and typed-null extension-dictionary position, tries all 16 role nibbles; accepts only role 4, 4, and 3 respectively. Also mutates each non-null target and requires refusal followed by valid-frame acceptance. On both hash-bound paired AC1012 dictionary frames, independently walks common-tail links and every item handle, mutates each role to an invalid role, verifies observer/parser refusal and reset, then retries the original frame successfully. The source common tail retains valid ODA soft-pointer offset encodings while mutations are rejected.",
     "testLabels": "The focused CTest labels now identify AC1012, AC1014, and AC1015 coverage."
   },
   "validation": {
     "command": "cmake --build build-gcc --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j4 && ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
-    "result": "PASS; strict target build succeeded and focused CTest passed 1/1 in 0.20 seconds. The optional source-frame selector passed on both generated AC1012 pair frames.",
+    "result": "PASS; strict target build succeeded and focused CTest passed 1/1. The optional source-frame selector passed on both generated AC1012 pair frames.",
     "sourceFrames": {
       "generator": "tools/research/generate_ac1012_dictionary_merge_samples.py; locally generated scratch controls, never added to the repository",
       "sourceDwgSha256": "0def9f1a66a88481e8c3f625aa8810893ebef9f0b70ded083e1897ad4a31281f",

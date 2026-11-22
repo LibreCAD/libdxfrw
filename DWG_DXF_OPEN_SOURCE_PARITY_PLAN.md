@@ -157,9 +157,10 @@ The shared common-tail fast control now checks all 16 handle-role nibbles for
 the parent, reactor, and typed-null extension-dictionary positions across
 AC1012/AC1014/AC1015, plus wrong non-null targets and successful reuse after
 each rejection. Both paired AC1012 source frames also refuse wrong roles on
-every dictionary entry handle, reset parser state, and accept a corrected
-retry. The CTest labels now include every version it actually covers.
-`libdxfrw_dwg_ac1014_dictionaryvar` passes 1/1 (0.20 s). This closes the local
+every common-tail link and dictionary entry handle, reset parser state, and
+accept a corrected retry while retaining the source's valid soft-pointer
+offset encodings. The CTest labels now include every version it actually
+covers. `libdxfrw_dwg_ac1014_dictionaryvar` passes 1/1. This closes the local
 shared-helper regression slice only; it does not establish native dictionary
 clone/merge semantics, strict AC1012 export, or format support. See the
 [role-matrix receipt](docs/research/p6-legacy-common-tail-role-matrix-2026-11-22.json).
