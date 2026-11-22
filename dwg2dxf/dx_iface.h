@@ -4030,6 +4030,7 @@ private:
     bool hasLegacyDictionaryWireSource(const dx_data::StandardDwgObjectFrame& frame,
                                        const DRW_Dictionary& dictionary) const noexcept;
     bool hasUnchangedStandardDwgObjectSources() const noexcept;
+    bool hasBoundLegacyLayoutSources() const noexcept;
     const std::vector<DRW_Group>* m_standardDwgBorrowedGroups{nullptr};
     struct StandardDwgOutputProof {
         std::uint64_t generation{0};

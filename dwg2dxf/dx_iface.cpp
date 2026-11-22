@@ -63,6 +63,7 @@
 #include "dx_mline_ltype_source_live.h"
 #include "dx_legacy_blockref_source_relation.h"
 #include "dx_layout_associations.h"
+#include "dx_legacy_layout_wire.h"
 #include "dx_standard_output.h"
 #include "dx_material_body.h"
 #include "dx_legacy_identity_join.h"
@@ -32695,6 +32696,97 @@ bool dx_iface::hasUnchangedStandardDwgObjectSources() const noexcept {
             }
         }
         return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+// Bind the legacy LAYOUT bodies to the captured class and dictionary graph.
+// This is source evidence only; target projection and output are separate.
+bool dx_iface::hasBoundLegacyLayoutSources() const noexcept {
+    if (cData == nullptr || cData->sourceFormat != dx_source_format::DWG
+        || !dx_legacy_dwg_wire::supported(cData->sourceVersion)
+        || !cData->hasNamedObjectDictionary || cData->layouts.empty()
+        || cData->basicTableCaptureFailed
+        || cData->layouts.size() > kMaxAdapterBasicTableRecords
+        || !cData->hasCompleteDwgBlockRecordControlMembership()
+        || !cData->hasUnchangedDwgClassEvidence()
+        || !cData->dwgClassCoverage.m_complete
+        || cData->dwgClassCoverage.m_status != DRW_DwgClassCoverageStatus::FinalizedComplete
+        || !hasUnchangedStandardDwgObjectSources()) return false;
+    try {
+        const auto& root = cData->namedObjectDictionary;
+        if (!validateNamedObjectRootForExport(*cData, "ACAD_LAYOUT", true)) return false;
+        const auto entry = std::find_if(root.m_entries.begin(), root.m_entries.end(),
+            [](const DRW_Dictionary::Entry& value) {
+                return layoutSymbolKey(value.m_name) == "ACAD_LAYOUT";
+            });
+        if (entry == root.m_entries.end() || entry->m_handle == 0u) return false;
+        const DRW_Dictionary* dictionary = nullptr;
+        for (const auto& value : cData->dictionaries) {
+            if (value.handle != entry->m_handle) continue;
+            if (dictionary != nullptr) return false;
+            dictionary = &value;
+        }
+        if (dictionary == nullptr || dictionary->parentHandle != root.handle
+            || dictionary->m_entries.size() != cData->layouts.size()
+            || !cData->hasCompleteDwgDictionaryEntry(root.handle,
+                                                      entry->m_name.c_str(), dictionary->handle))
+            return false;
+        const auto wire = [this](const DRW_Dictionary& value) {
+            const auto it = cData->m_standardDwgObjectFrames.find(
+                {cData->importGeneration, value.handle});
+            return it != cData->m_standardDwgObjectFrames.end()
+                && it->second.generation == cData->importGeneration
+                && it->second.raw.m_version == cData->sourceVersion
+                && it->second.publicationSeen && it->second.membershipSeen
+                && it->second.sourceProfileBound && it->second.payloadMatched
+                && hasLegacyDictionaryWireSource(it->second, value);
+        };
+        if (!wire(root) || !wire(*dictionary)) return false;
+        std::uint32_t layoutClass = 0u;
+        for (const auto& row : cData->dwgClassCoverage.m_entries) {
+            if (row.m_recordName != "LAYOUT" && row.m_className != "AcDbLayout") continue;
+            if (layoutClass != 0u) return false;
+            layoutClass = row.m_classNumber;
+        }
+        if (layoutClass == 0u
+            || !dx_legacy_layout_wire::matchesClass(cData->dwgClassCoverage, layoutClass))
+            return false;
+        std::map<std::uint32_t, const DRW_Layout*> layouts;
+        std::map<std::uint32_t, const DRW_Block_Record*> records;
+        std::set<std::string> names;
+        for (const auto& record : cData->blockRecords)
+            if (!records.emplace(record.handle, &record).second) return false;
+        for (const auto& layout : cData->layouts) {
+            if (layout.parentHandle != dictionary->handle || layout.name.empty()
+                || layout.name.size() > 65535u
+                || !names.insert(layoutSymbolKey(layout.name)).second
+                || !layouts.emplace(layout.handle, &layout).second) return false;
+            const auto key = dx_data::StandardDwgFrameKey{cData->importGeneration, layout.handle};
+            const auto frame = cData->m_opaqueDwgSourceFrames.find(key);
+            dx_legacy_layout_wire::Proof proof;
+            if (frame == cData->m_opaqueDwgSourceFrames.end()
+                || cData->m_opaqueDwgSourceFrameIdentities.count(key) != 1u
+                || frame->second.m_version != cData->sourceVersion
+                || !dx_legacy_layout_wire::layout(frame->second, layout, &proof)) return false;
+            if (proof.sourceClass != layoutClass) return false;
+        }
+        std::set<std::uint32_t> members;
+        std::set<std::string> memberNames;
+        for (const auto& member : dictionary->m_entries) {
+            const auto found = layouts.find(member.m_handle);
+            if (found == layouts.end() || !members.insert(member.m_handle).second
+                || !memberNames.insert(layoutSymbolKey(member.m_name)).second
+                || layoutSymbolKey(member.m_name) != layoutSymbolKey(found->second->name)
+                || !cData->hasCompleteDwgDictionaryEntry(dictionary->handle,
+                                                          member.m_name.c_str(), member.m_handle))
+                return false;
+        }
+        std::map<std::uint32_t, std::uint32_t> associations;
+        std::string reason;
+        return dx_layout_associations::resolve(layouts, records,
+            dx_layout_associations::Mode::LegacyDwgForwardOnly, associations, reason);
     } catch (...) {
         return false;
     }
@@ -90895,6 +90987,12 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     }
     if (!validateHatchBoundaryGraph(*cData)) {
         reportPreflightFailure("HATCH boundary identity/owner graph validation");
+        return false;
+    }
+    if (cData->sourceFormat == dx_source_format::DWG
+        && dx_legacy_dwg_wire::supported(cData->sourceVersion)
+        && !cData->layouts.empty() && !hasBoundLegacyLayoutSources()) {
+        reportPreflightFailure("R13/R14 DWG LAYOUT source graph is unbound or changed");
         return false;
     }
     std::string layoutGraphFailure;

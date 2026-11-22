@@ -2025,6 +2025,12 @@ if(LIBDXFRW_AC1014_EXTERNAL_PROFILE OR LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CON
             set_tests_properties(libdxfrw_${_layout_version}_layout_wire_external
                 PROPERTIES LABELS "dwg;layout;source;external;${_layout_version}"
                 TIMEOUT 30)
+            add_test(NAME libdxfrw_${_layout_version}_layout_graph_external
+                COMMAND libdxfrw_dwg_ac1014_output_external_tests
+                    --legacy-layout-graph "${_layout_sample}")
+            set_tests_properties(libdxfrw_${_layout_version}_layout_graph_external
+                PROPERTIES LABELS "dwg;layout;graph;transaction;external;${_layout_version}"
+                TIMEOUT 30)
         endif()
     endforeach()
     if(LIBDXFRW_AC1014_EXTERNAL_PROFILE)

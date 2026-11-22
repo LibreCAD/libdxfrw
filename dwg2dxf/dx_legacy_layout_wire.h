@@ -16,6 +16,26 @@ struct Proof {
     std::uint32_t bodyEnd = 0u;
     std::array<dx_raster_wire::Span, static_cast<std::size_t>(Field::Count)> handles{};
 };
+// The caller separately verifies that this report is the unchanged captured
+// class evidence for the current import.
+inline bool matchesClass(const DRW_DwgClassCoverageReport& report,
+                         std::uint32_t number) noexcept {
+    if (!report.m_complete
+        || report.m_status != DRW_DwgClassCoverageStatus::FinalizedComplete)
+        return false;
+    const DRW_DwgClassCoverageEntry* selected = nullptr;
+    for (const auto& row : report.m_entries) {
+        if (row.m_classNumber != number && row.m_recordName != "LAYOUT"
+            && row.m_className != "AcDbLayout") continue;
+        if (selected != nullptr) return false;
+        selected = &row;
+    }
+    return selected != nullptr && selected->m_classNumber == number
+        && selected->m_recordName == "LAYOUT" && selected->m_className == "AcDbLayout"
+        && selected->m_state == DRW_DwgClassCoverageState::Published
+        && selected->m_reason == DRW_DwgClassCoverageReason::None
+        && selected->m_entityFlag == 0 && selected->m_wasAProxyFlag == 0;
+}
 
 inline bool sameDouble(double value, double expected) noexcept {
     return std::isfinite(value) && std::isfinite(expected)

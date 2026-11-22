@@ -66,6 +66,22 @@ int main() {
     const auto expect = [&failures](bool ok, const char* label) {
         if (!ok) { std::cerr << label << '\n'; ++failures; }
     };
+    DRW_DwgClassCoverageReport classes;
+    classes.m_complete = true;
+    classes.m_status = DRW_DwgClassCoverageStatus::FinalizedComplete;
+    DRW_DwgClassCoverageEntry classRow;
+    classRow.m_classNumber = 502u; classRow.m_recordName = "LAYOUT";
+    classRow.m_className = "AcDbLayout"; classRow.m_state = DRW_DwgClassCoverageState::Published;
+    classes.m_entries.push_back(classRow);
+    expect(dx_legacy_layout_wire::matchesClass(classes, 502u), "unique source class must match");
+    expect(!dx_legacy_layout_wire::matchesClass(classes, 503u), "wrong source class must refuse");
+    classes.m_entries.push_back(classRow);
+    expect(!dx_legacy_layout_wire::matchesClass(classes, 502u), "ambiguous source class must refuse");
+    classes.m_entries.pop_back();
+    classes.m_entries.front().m_entityFlag = 1;
+    expect(!dx_legacy_layout_wire::matchesClass(classes, 502u), "entity class must refuse");
+    classes.m_entries.front().m_entityFlag = 0;
+    expect(dx_legacy_layout_wire::matchesClass(classes, 502u), "corrected source class must pass");
     for (const auto version : {DRW::AC1012, DRW::AC1014}) {
         LayoutProbe object;
         const auto parse = [&](const std::vector<std::uint8_t>& raw) {

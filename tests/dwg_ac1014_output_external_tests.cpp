@@ -15,6 +15,15 @@
 
 class DxIfaceStandardDwgCaptureTestAccess {
 public:
+    static bool boundLegacyLayout(const dx_iface& adapter) {
+        return adapter.hasBoundLegacyLayoutSources();
+    }
+    static std::vector<std::uint8_t>& layoutBytes(dx_data& data, std::uint32_t handle) {
+        return data.m_opaqueDwgSourceFrames.at({data.importGeneration, handle}).m_rawBytes;
+    }
+    static std::vector<std::uint8_t>& dictionaryBytes(dx_data& data, std::uint32_t handle) {
+        return data.m_standardDwgObjectFrames.at({data.importGeneration, handle}).raw.m_rawBytes;
+    }
     static bool legacyLayoutWire(const dx_data& data, const std::string& source) {
         if ((data.sourceVersion != DRW::AC1012 && data.sourceVersion != DRW::AC1014)
             || data.layouts.size() != 2u || !data.hasUnchangedDwgClassEvidence()
@@ -45,19 +54,8 @@ public:
                     source.begin() + static_cast<std::ptrdiff_t>(offset),
                     [](std::uint8_t a, char b) { return a == static_cast<std::uint8_t>(b); }))
                 return false;
-            const DRW_DwgClassCoverageEntry* selected = nullptr;
-            for (const auto& row : data.dwgClassCoverage.m_entries) {
-                if (row.m_classNumber != proof.sourceClass && row.m_recordName != "LAYOUT"
-                    && row.m_className != "AcDbLayout") continue;
-                if (selected != nullptr) return false;
-                selected = &row;
-            }
-            if (selected == nullptr || selected->m_classNumber != proof.sourceClass
-                || selected->m_recordName != "LAYOUT" || selected->m_className != "AcDbLayout"
-                || selected->m_state != DRW_DwgClassCoverageState::Published
-                || selected->m_reason != DRW_DwgClassCoverageReason::None
-                || selected->m_entityFlag != 0 || selected->m_wasAProxyFlag != 0)
-                return false;
+            if (!dx_legacy_layout_wire::matchesClass(data.dwgClassCoverage,
+                                                     proof.sourceClass)) return false;
             std::cout << "legacy-layout handle=" << layout.handle
                       << " class=" << proof.sourceClass << " bodyBitEnd=" << proof.bodyEnd
                       << " objectOffset=" << raw.m_objectOffset << " spans=";
@@ -1196,6 +1194,66 @@ bool checkLegacyLayoutWire(const std::string& input) {
     return refused && DxIfaceStandardDwgCaptureTestAccess::legacyLayoutWire(data, source);
 }
 
+bool checkLegacyLayoutGraph(const std::string& input) {
+    dx_iface adapter;
+    dx_data data;
+    if (!adapter.fileImport(input, &data, false)
+        || !DxIfaceStandardDwgCaptureTestAccess::boundLegacyLayout(adapter)) return false;
+    const auto rootEntry = std::find_if(data.namedObjectDictionary.m_entries.begin(),
+        data.namedObjectDictionary.m_entries.end(),
+        [](const DRW_Dictionary::Entry& item) { return item.m_name == "ACAD_LAYOUT"; });
+    if (rootEntry == data.namedObjectDictionary.m_entries.end() || data.layouts.empty()) return false;
+    const auto dictionaryHandle = rootEntry->m_handle;
+    auto dictionary = std::find_if(data.dictionaries.begin(), data.dictionaries.end(),
+        [dictionaryHandle](const DRW_Dictionary& value) { return value.handle == dictionaryHandle; });
+    if (dictionary == data.dictionaries.end() || dictionary->m_entries.empty()) return false;
+    auto record = std::find_if(data.blockRecords.begin(), data.blockRecords.end(),
+        [&data](const DRW_Block_Record& value) {
+            return value.handle == data.layouts.front().paperSpaceBlockRecordHandle.ref;
+        });
+    if (record == data.blockRecords.end()) return false;
+    const auto classRow = std::find_if(data.dwgClassCoverage.m_entries.begin(),
+        data.dwgClassCoverage.m_entries.end(),
+        [](const DRW_DwgClassCoverageEntry& value) { return value.m_recordName == "LAYOUT"; });
+    if (classRow == data.dwgClassCoverage.m_entries.end()) return false;
+    std::error_code error;
+    const auto scratch = libdxfrw_test::reserveTestScratch(
+        std::filesystem::temp_directory_path(), "libdxfrw-legacy-layout-graph", error);
+    if (error || scratch.empty()) return false;
+    const auto output = scratch / "out.dxf";
+    const std::string sentinel = "legacy layout destination preserved\n";
+    const auto refuses = [&]() {
+        for (const bool binary : {false, true}) {
+            { std::ofstream out(output, std::ios::binary | std::ios::trunc); out << sentinel; }
+            if (write(adapter, data, output.string(), binary, DRW::AC1015,
+                      dx_dwgReadCompletenessPolicy::AllowPartial) || bytes(output) != sentinel)
+                return false;
+        }
+        return true;
+    };
+    const auto check = [&](const auto& mutate) {
+        mutate();
+        const bool rejected = !DxIfaceStandardDwgCaptureTestAccess::boundLegacyLayout(adapter)
+            && refuses();
+        mutate();
+        return rejected && DxIfaceStandardDwgCaptureTestAccess::boundLegacyLayout(adapter)
+            && refuses();
+    };
+    auto& rawLayout = DxIfaceStandardDwgCaptureTestAccess::layoutBytes(data, data.layouts.front().handle);
+    auto& rawDictionary = DxIfaceStandardDwgCaptureTestAccess::dictionaryBytes(data, dictionaryHandle);
+    if (rawLayout.empty() || rawDictionary.empty()) return false;
+    const bool ok = check([&]() { rawLayout.front() ^= 0x80u; })
+        && check([&]() { rawDictionary.front() ^= 0x80u; })
+        && check([&]() { classRow->m_classNumber ^= 1u; })
+        && check([&]() { rootEntry->m_handle ^= 1u; })
+        && check([&]() { dictionary->parentHandle ^= 1u; })
+        && check([&]() { dictionary->m_entries.front().m_handle ^= 1u; })
+        && check([&]() { data.layouts.front().paperSpaceBlockRecordHandle.ref ^= 1u; })
+        && check([&]() { record->layoutHandle ^= 1u; });
+    std::filesystem::remove_all(scratch, error);
+    return ok && !error;
+}
+
 bool strictOutputRefuses(dx_iface& reader, dx_data& data) {
     std::error_code error;
     const auto scratch = libdxfrw_test::reserveTestScratch(
@@ -1463,7 +1521,9 @@ bool generatedR2000DefaultRetry(const std::string& input, const std::filesystem:
 } // namespace
 
 int main(int argc, char** argv) {
-    const bool ok = argc == 3 && std::string(argv[1]) == "--legacy-layout-wire"
+    const bool ok = argc == 3 && std::string(argv[1]) == "--legacy-layout-graph"
+        ? checkLegacyLayoutGraph(argv[2])
+        : argc == 3 && std::string(argv[1]) == "--legacy-layout-wire"
         ? checkLegacyLayoutWire(argv[2])
         : argc == 4 && std::string(argv[1]) == "--generated-r2000-default-retry"
         ? generatedR2000DefaultRetry(argv[2], argv[3])
