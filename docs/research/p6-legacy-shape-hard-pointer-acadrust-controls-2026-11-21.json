@@ -1,0 +1,81 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-shape-hard-pointer-acadrust-controls-2026-11-21",
+  "date": "2026-11-21",
+  "gate": "P6-F",
+  "status": "SHAPE_ROLE_GUARD_FIXED_GENERATED_PEER_CONTROLS_ONLY",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "pdfSha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "2.13",
+      "20.4.1",
+      "20.4.37"
+    ],
+    "scope": "The SHAPEFILE reference is a hard pointer; relative handle codes represent soft pointers."
+  },
+  "bug": "The DWG SHAPE parser previously accepted any nonzero handle code and truncated five-byte targets to the public 32-bit handle, allowing the wrong object identity to be published.",
+  "change": "Reuse the existing bounded, version-aware hard-pointer reader; keep the existing nonzero target requirement and reject targets outside the representable handle range. Failed parses reset state and invalidate the source buffer.",
+  "sourceFiles": {
+    "src/drw_entities.cpp": "888dfaf44764ef3fbbe3ad5c8e9960b7399339640167b9e21b79efe9ee12f06f",
+    "tests/dwg_object_vectors_tests.cpp": "8af5f20ce6f1d9637c6dd6d094c322a42f479e34e1e995ad372c8e80e9f2f9d0",
+    "tools/research/generate_acadrust_legacy_shape.py": "69e398e0263d042d15b99a988f18caad8add3d1e0d4ff3ab39ce2d3754d44ed9"
+  },
+  "producer": {
+    "project": "https://github.com/hakanaktt/acadrust",
+    "revision": "534ff8abaf112d9c9ec3e08292080002b0e9de3a",
+    "version": "0.6.8",
+    "lineage": "https://github.com/hakanaktt/acadrust/blob/534ff8abaf112d9c9ec3e08292080002b0e9de3a/THIRD_PARTY_NOTICES.md",
+    "independence": "DWG codec descends from ACadSharp; do not count it as an independent ACadSharp vote or a native producer.",
+    "generator": "tools/research/generate_acadrust_legacy_shape.py",
+    "command": "python3 -B tools/research/generate_acadrust_legacy_shape.py --acadrust-root <pinned-checkout> --output-dir <outside-repository> --cargo-home <populated-offline-cache> --cargo-target <scratch-build>",
+    "cargo": "cargo 1.99.1; rustc 1.99.1",
+    "scratchReceipt": {
+      "schema": 1,
+      "scope": "generated producer controls, no native semantic claim",
+      "producer": "ACadRust 0.6.8",
+      "producerRevision": "534ff8abaf112d9c9ec3e08292080002b0e9de3a",
+      "producerLineage": "ACadSharp DWG codec",
+      "files": {
+        "r13-null.dwg": {
+          "sha256": "2e32d7058bd8a0ea5b743f333b8d794b0008f669b7f99351528f77fb695a2d89",
+          "bytes": 5176
+        },
+        "r13-bound.dwg": {
+          "sha256": "220fd8dfb08daa46939b6f3583ff8d2a81ce48b58f5d26b6bdc4fce1a7a61928",
+          "bytes": 5235
+        },
+        "r14-null.dwg": {
+          "sha256": "aa06aa606e6c8a819fd5be85ad09fd2870701dc0ad38f4e3e2c92da6994ba6f0",
+          "bytes": 5194
+        },
+        "r14-bound.dwg": {
+          "sha256": "c7ce0274b1b04624958a878f04ef423cea6df7032fb74063d0e22d7fd69fb404",
+          "bytes": 5253
+        }
+      },
+      "generatorSha256": "69e398e0263d042d15b99a988f18caad8add3d1e0d4ff3ab39ce2d3754d44ed9",
+      "rustProgramSha256": "5391ccc4a1464e903d64d4857bdcbbc8152917ab609b8f17ff215418626c4f4a",
+      "cargoLockSha256": "e3e9e1e2f83eaee504b1cb4e9805a6f024df20d6e7aa1818620e1f80657d5322",
+      "binarySha256": "e387a07e648a4dd6173b073bd04a9d8fffe77688f1a2ef69572d31dea9c3877a"
+    },
+    "repeat": "Two independent runs generated identical SHA-256 for all four drawings.",
+    "safety": "Generator rejects output inside this repository and refuses an incorrect or modified pinned source. Generated DWGs and outputs remain in scratch."
+  },
+  "validation": {
+    "baseline": "New R13/R14 controls failed for three non-null wrong codes and a five-byte handle on the unchanged parser; valid controls passed.",
+    "release": "Focused SHAPE CTest passes; R13/R14/R2000/R2004 literal bodies check hard pointer, soft/hard ownership, soft pointer and relative codes, null, truncation, 64-bit overflow and same-parser corrected retry. R13/R14 common headers are hand-authored; later common headers use the existing production encoder. Existing AC1015/1018/1021/1024 encode allocation-rollback controls also pass.",
+    "asan": "Fully instrumented library and focused SHAPE CTest pass.",
+    "peer": "LibreDWG 0.14 independently reads the generated SHAPE hard-pointer roles and both endpoints of the later 3D LINE; bound controls resolve the named shape-file STYLE, null controls do not. The candidate reads both bound controls without entity/object failures and refuses the null controls while reading the later LINE.",
+    "cli": "For each of four producer controls, strict and explicit-partial ASCII and Binary conversion refuse and preserve an existing destination because the producer outputs an unlinked ACAD_LAYOUT graph. This is not a successful partial-output or same-adapter retry qualification.",
+    "proofSha256": "019de01d25c85c16b5bbf20b5b851dd0160d8652c5c6abc53c55e62f647c6e18",
+    "candidateSha256": "ad070d78bb2c33df65b9358f887ee54655d46527009011ccf333b63474ec7c41",
+    "asanTestSha256": "622f29d97861399c7241e4af782a30b9a30737c247730ed245d6a308b40f5f98"
+  },
+  "limits": [
+    "The null SHAPEFILE is an unbound generated input, not established as a valid producer-authored entity failure. The layout dictionary remains orphaned; no partial-output gate is closed.",
+    "The .shx file and actual glyph appearance are not independently qualified.",
+    "The tests do not establish general SHAPE or DWG version support."
+  ]
+}

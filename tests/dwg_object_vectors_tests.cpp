@@ -634,6 +634,9 @@ public:
 class ShapeCodecProbe final : public DRW_Shape {
 public:
     using DRW_Shape::encodeDwg;
+    using DRW_Shape::encodeDwgCommon;
+    using DRW_Shape::encodeDwgEntHandle;
+    using DRW_Shape::parseDwg;
 
     void setDwgType(std::int16_t value) { oType = value; }
     std::int16_t dwgType() const { return oType; }
@@ -28347,6 +28350,86 @@ void testMLineDwgEncodeAllocationRollback(TestContext &t) {
   }
 }
 
+void testShapeDwgHandleRoles(TestContext &t) {
+  // Independently authored SHAPE bodies (ODA 20.4.1, 20.4.37).
+  const auto frame = [](DRW::Version version, std::uint8_t role,
+                        std::uint8_t size, std::uint64_t target) {
+    dwgBufferW body, handles;
+    std::uint64_t sizeOffset = 0u;
+    if (version < DRW::AC1015) {
+      body.putObjType(version, 33u);
+      body.putFixedHandle(0u, 1u, 0x32u);
+      body.putBitShort(0u); // no EED
+      body.putBit(0u); // no graphics
+      sizeOffset = body.bitCount();
+      body.putRawLong32(0u);
+      body.put2Bits(2u); // model space
+      body.putBitLong(0); body.putBit(1u); body.putBit(1u); // no reactors, BYLAYER, no links
+      body.putBitShort(256u); body.putBitDouble(1.0); body.putBitShort(0u);
+      handles.putFixedHandle(3u, 0u, 0u); // null extension dictionary
+      handles.putFixedHandle(5u, 1u, 0x12u); // layer
+    } else {
+      ShapeCodecProbe source;
+      source.setDwgType(33);
+      source.handle = 0x32u;
+      source.setDwgLayerHandle(0x12u);
+      if (!source.encodeDwgCommon(version, &body)
+          || !source.encodeDwgEntHandle(version, &body, &handles))
+        return std::vector<std::uint8_t>{};
+      dwgBuffer prefix(body.data().data(), body.size());
+      if (prefix.getObjType(version) != 33u) return std::vector<std::uint8_t>{};
+      sizeOffset = prefix.getPosition() * 8u + prefix.getBitPos();
+    }
+    body.put3BitDouble({1.0, 2.0, 3.0});
+    body.putBitDouble(2.0); body.putBitDouble(0.0); body.putBitDouble(1.0);
+    body.putBitDouble(0.0); body.putBitDouble(0.0); body.putBitShort(7u);
+    body.put3BitDouble({0.0, 0.0, 1.0});
+    const auto dataEnd = static_cast<std::uint32_t>(body.bitCount());
+    const std::uint8_t sizeBytes[] = {
+        static_cast<std::uint8_t>(dataEnd), static_cast<std::uint8_t>(dataEnd >> 8u),
+        static_cast<std::uint8_t>(dataEnd >> 16u), static_cast<std::uint8_t>(dataEnd >> 24u)};
+    if (!body.patchRawBytesAtBit(sizeOffset, sizeBytes, sizeof sizeBytes))
+      return std::vector<std::uint8_t>{};
+    handles.putFixedHandle(role, size, target); // SHAPEFILE
+    appendBits(body, handles);
+    body.alignToByte();
+    return body.data();
+  };
+  for (const auto version : {DRW::AC1012, DRW::AC1014, DRW::AC1015, DRW::AC1018}) {
+    const auto valid = frame(version, DRW::DwgHardPointer, 2u, 0x1234u);
+    const auto parse = [&](ShapeCodecProbe& shape, const std::vector<std::uint8_t>& bytes) {
+      dwgBuffer input(bytes.data(), bytes.size());
+      return shape.parseDwg(version, &input, 0u) && input.isGood();
+    };
+    ShapeCodecProbe parser;
+    t.expect(parse(parser, valid) && parser.m_shapeFileHandle == 0x1234u
+                 && parser.m_shapeIndex == 7u && parser.m_insertionPoint.z == 3.0,
+             "SHAPE accepts the non-null hard-pointer SHAPEFILE reference");
+    for (const std::uint8_t role : {std::uint8_t{2}, std::uint8_t{3}, std::uint8_t{4},
+                                    std::uint8_t{6}, std::uint8_t{8}, std::uint8_t{10},
+                                    std::uint8_t{12}}) {
+      const auto invalid = frame(version, role, 2u, 0x1234u);
+      const bool refused = !parse(parser, invalid) && parser.m_shapeFileHandle == 0u
+          && parser.m_shapeIndex == 0u;
+      const bool retry = parse(parser, valid) && parser.m_shapeFileHandle == 0x1234u;
+      t.expect(refused && retry, "SHAPE refuses the wrong role and retries on the same parser");
+    }
+    const auto wide = frame(version, DRW::DwgHardPointer, 5u, UINT64_C(0x100001234));
+    const bool wideRefused = !parse(parser, wide) && parser.m_shapeFileHandle == 0u;
+    const bool wideRetry = parse(parser, valid) && parser.m_shapeFileHandle == 0x1234u;
+    t.expect(wideRefused && wideRetry, "SHAPE refuses a wide target and retries without truncation");
+    const auto missing = frame(version, DRW::DwgHardPointer, 0u, 0u);
+    const bool missingRefused = !parse(parser, missing) && parser.m_shapeFileHandle == 0u;
+    const bool missingRetry = parse(parser, valid) && parser.m_shapeFileHandle == 0x1234u;
+    t.expect(missingRefused && missingRetry, "SHAPE refuses a null SHAPEFILE and retries");
+    auto truncated = valid;
+    truncated.pop_back();
+    const bool truncatedRefused = !parse(parser, truncated) && parser.m_shapeFileHandle == 0u;
+    const bool truncatedRetry = parse(parser, valid) && parser.m_shapeFileHandle == 0x1234u;
+    t.expect(truncatedRefused && truncatedRetry, "SHAPE refuses a truncated SHAPEFILE and retries");
+  }
+}
+
 void testShapeDwgEncodeAllocationRollback(TestContext &t) {
   for (const DRW::Version version : {DRW::AC1015, DRW::AC1018, DRW::AC1021,
                                      DRW::AC1024}) {
@@ -32536,6 +32619,7 @@ int main(int argc, char** argv) {
                          "--shape-dwg-encode-allocation-rollback") {
       TestContext context;
       testShapeDwgEncodeAllocationRollback(context);
+      testShapeDwgHandleRoles(context);
       std::cout << "SHAPE DWG encoder allocation rollback/retry: "
                 << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
       return context.failures == 0 ? 0 : 1;

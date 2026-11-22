@@ -12618,8 +12618,9 @@ bool DRW_Shape::parseDwg(DRW::Version v, dwgBuffer *buf, std::uint32_t bs){
     // SHAPEFILE hard pointer is therefore mandatory and must be parsed even
     // when only its exact handle bytes remain.
     dwgHandle shapeFileH;
-    if (!readBoundedDwgHandle(handleProbe, handleEndBit, 0, false,
-                              shapeFileH)
+    if (!readBoundedDwgHandleWithRole(handleProbe, handleEndBit, 0,
+                                      DwgHandleReferenceRole::HardPointer,
+                                      shapeFileH)
         || shapeFileH.ref == 0)
         return fail();
 
