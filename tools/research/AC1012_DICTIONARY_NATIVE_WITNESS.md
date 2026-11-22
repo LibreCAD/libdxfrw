@@ -83,6 +83,15 @@ and the separate [`wblockCloneObjects` argument](https://help.autodesk.com/cloud
 Those pages do not specify the R13-to-R14 default; behavior must be observed on
 the qualified release and source.
 
+The follow-up [Autodesk API scope receipt](../../docs/research/p6-ac1012-autodesk-dictionary-clone-semantics-2026-11-22.json)
+records that the documented `Database.insert()` behavior is Ignore, while
+`WblockCloneObjects` takes an explicit duplicate policy and `AcDbDictionary`
+also exposes `mergeStyle()`. Keep those values separate in the witness. The
+docs still do not establish the in-memory default for an AC1012 dictionary
+whose serialized group 281 is absent. A fresh spec-directed LibreDWG pair and
+local physical-frame/refusal/retry proof are in the receipt; these are not
+native-open or native-merge evidence.
+
 ## Return and acceptance
 
 Return hash-pinned sources, outputs, logs, native reports, observer source and

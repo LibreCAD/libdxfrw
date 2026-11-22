@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-autodesk-dictionary-clone-semantics-2026-11-22",
+  "date": "2026-11-22",
+  "status": "PRIMARY_API_SCOPE_REFINED_NATIVE_R13_DEFAULT_OPEN",
+  "supportClaimEffect": "none",
+  "question": "Do primary AutoCAD APIs define duplicate dictionary-entry behavior well enough to qualify the missing AC1012 DICTIONARY cloning field?",
+  "sources": [
+    {
+      "title": "Autodesk AutoCAD DXF Reference: DICTIONARY",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "finding": "Dictionary keys are unique. Group 281 values are documented as 0 Not applicable, 1 Keep existing, 2 Use clone, 3 RefMangleName, 4 MangleName, and 5 UnmangleName. Group 350 carries dictionary entry handles as soft-owner references."
+    },
+    {
+      "title": "Autodesk ObjectARX Reference: AcDbDictionary methods",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OREF-__MEMBERTYPE_Methods_AcDbDictionary.html",
+      "finding": "mergeStyle() reads the dictionary merge style; setMergeStyle() sets it for INSERT operations. isTreatElementsAsHard() and setTreatElementsAsHard() concern ownership and are separate properties."
+    },
+    {
+      "title": "Autodesk AutoCAD .NET Reference: DuplicateRecordCloning",
+      "url": "https://help.autodesk.com/cloudhelp/2022/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_DuplicateRecordCloning.html",
+      "finding": "Ignore preserves an existing destination record; Replace replaces it; the other modes mangle or unmangle names. The page says ordinary INSERT and Database.insert() operate as Ignore."
+    },
+    {
+      "title": "Autodesk AutoCAD .NET Reference: Database.WblockCloneObjects",
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_WblockCloneObjects_ObjectIdCollection_ObjectId_IdMapping_Autodesk_AutoCAD_DatabaseServices_DuplicateRecordCloning__MarshalAsUnmanaged.html",
+      "finding": "The caller supplies a DuplicateRecordCloning argument; dictionary ownership and this explicit operation argument must be recorded independently."
+    }
+  ],
+  "assessment": {
+    "established": [
+      "The DXF-level duplicate policy field has explicit values in newer profiles.",
+      "AutoCAD exposes dictionary mergeStyle and hard/soft ownership as distinct properties.",
+      "WblockCloneObjects exposes an operation-level duplicate policy separate from dictionary state."
+    ],
+    "not_established": [
+      "The documented sources do not state what AutoCAD returns for mergeStyle() when an AC1012 dictionary has no serialized group 281.",
+      "The generic Database.insert() Ignore behavior does not by itself prove R13-to-R14 handling of a populated nested ACAD_MLINESTYLE dictionary.",
+      "No native AutoCAD process opened or merged the local specification-directed sample pair in this research pass."
+    ],
+    "inference": "The sources narrow the required experiment and distinguish its variables, but do not justify assigning an AC1012 default or changing strict-output behavior."
+  },
+  "freshSpecificationDirectedPair": {
+    "generator": "tools/research/generate_ac1012_dictionary_merge_samples.py",
+    "producer": "LibreDWG 0.14; not AutoCAD-authored",
+    "scratchDirectory": "/private/tmp/ac1012-populated-dict-samples-rerun/ac1012-dictionary-merge-uu0cr0hi",
+    "destinationSha256": "da3db1b17d38f6f846040fe5c09975284c6b7a323ebc4ab04d901cd33b505c43",
+    "sourceSha256": "5e903e37ead1b2d33e673e67ca77ecd6688a7b73a4637e6eccaad597d846eca1",
+    "discriminator": "Both contain canonical NOD -> ACAD_MLINESTYLE -> SAME_KEY ownership; MLINESTYLE start angles are 15 and 37 degrees.",
+    "generationAndLocalProof": "Both files regenerated; AC1012 DICTIONARY physical-frame parsing, shared version-aware observer, role mutation refusal, all truncations, parser reset and corrected retry passed. Candidate strict refusal preserved the destination; explicit partial ASCII/Binary output passed the bounded wire audit.",
+    "limits": "LibreDWG generation and local parser/auditor success do not prove AutoCAD normal-open or native duplicate merge behavior. Files remain scratch-only."
+  },
+  "nextStep": "On an identified AutoCAD/ObjectARX host, query mergeStyle() and ownership on the normal-open AC1012 sample, then run a documented clone/INSERT operation while recording the operation-level DRC separately; close/reopen and inspect the SAME_KEY target identities and angle. Preserve strict-output refusal pending that witness and the other source/output gates."
+}
