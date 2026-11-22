@@ -10563,7 +10563,14 @@ bool dwgReader::walkBlockRecordEntities(DRW_Block_Record *bkr, dwgBuffer *dbuf,
         if (!visitedHandles.insert(nextH).second) {
           // R13-R2000 stores ownership as a next_entity chain.  A
           // corrupt cycle must not hang the reader indefinitely.
-          DRW_DBG("\nWARNING: Cyclic entity chain in block\n");
+          DRW_DBG("\nWARNING: Cyclic entity chain in block ");
+          DRW_DBGH(bkr->handle);
+          DRW_DBG(" at handle ");
+          DRW_DBGH(nextH);
+          DRW_DBG("\n");
+          objHandle repeated;
+          repeated.handle = nextH;
+          recordWalkFailure(repeated, -1, DwgEntityFailurePhase::BlockFinalize);
           ret = false;
           ++m_entityParseFailures;
           break;
@@ -10575,7 +10582,14 @@ bool dwgReader::walkBlockRecordEntities(DRW_Block_Record *bkr, dwgBuffer *dbuf,
           // remaining entities still sit in ObjectMap and are recovered by
           // the subsequent readDwgEntities sweep. Treat as a soft warning
           // (libreDWG parity) — stop chasing this chain but keep ret true.
-          DRW_DBG("\nWARNING: Entity of block not found\n");
+          DRW_DBG("\nWARNING: Entity of block not found; block ");
+          DRW_DBGH(bkr->handle);
+          DRW_DBG(" missing handle ");
+          DRW_DBGH(nextH);
+          DRW_DBG("\n");
+          objHandle missing;
+          missing.handle = nextH;
+          recordWalkFailure(missing, -1, DwgEntityFailurePhase::BlockFinalize);
           ++m_entityParseFailures;
           break;
         }

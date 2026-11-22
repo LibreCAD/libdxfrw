@@ -6903,6 +6903,12 @@ void testLegacyLayoutBlockChains(TestContext& t) {
             && cycleReader.m_entityParseFailures == 1u;
         t.expect(!cycleWalked && exactCyclePrefix,
                  "AC1015 explicit-link cycle terminates after each reachable entity and reports one bounded chain failure");
+        const auto& cycleFailures = cycleReader.entityFailures();
+        t.expect(cycleFailures.size() == 1u
+                     && cycleFailures[0].handle == cycleFirst
+                     && cycleFailures[0].blockRecordHandle == cycleRecord.handle
+                     && cycleFailures[0].phase == dwgReader::DwgEntityFailurePhase::BlockFinalize,
+                 "AC1015 cycle failure identifies the repeated handle and owning block");
         t.expect(cycleReader.ObjectMap.find(cycleSentinel)
                      != cycleReader.ObjectMap.end(),
                  "AC1015 explicit-link cycle leaves the following paper-space sentinel untouched");
@@ -7186,6 +7192,54 @@ void testLegacyLayoutBlockChains(TestContext& t) {
                  && missingReader.ObjectMap.find(missingLast)
                         != missingReader.ObjectMap.end(),
              "AC1015 missing-middle chain stops at the gap without rehoming its later sibling");
+    const auto& missingFailures = missingReader.entityFailures();
+    t.expect(missingReader.entityParseFailures() == 1u
+                 && missingFailures.size() == 1u
+                 && missingFailures[0].handle == missingFirst + 1u
+                 && missingFailures[0].blockRecordHandle == missingRecord.handle
+                 && missingFailures[0].phase == dwgReader::DwgEntityFailurePhase::BlockFinalize,
+             "AC1015 missing chain link reports the absent handle and owning block");
+    DRW_Block_Record recoveryRecord;
+    recoveryRecord.handle = 0x532u;
+    recoveryRecord.name = "*PAPER_SPACE5";
+    DwgBlockOwnershipTestAccess::setLegacyEntityChain(
+        recoveryRecord, missingLast, missingLast);
+    LayoutChainDispatchSink recoverySink;
+    recoverySink.beginLayout("Following sheet", 0x706u, recoveryRecord.handle);
+    const bool recovered = missingReader.walkBlockRecordEntities(
+        &recoveryRecord, &missingStream, recoverySink, DRW::NoHandle,
+        recoveryRecord.handle);
+    t.expect(recovered && recoverySink.lines.size() == 1u
+                 && recoverySink.lines.front().entityHandle == missingLast
+                 && missingReader.entityParseFailures() == 1u
+                 && missingReader.entityFailures().size() == 1u,
+             "AC1015 following valid block remains readable on the same reader after a missing link");
+
+    // A missing first handle needs the same attribution on every reader that
+    // uses the legacy first/last chain, including R13 and R14.
+    for (const DRW::Version legacyVersion : {DRW::AC1012, DRW::AC1014, DRW::AC1015}) {
+        std::vector<std::uint8_t> emptySource(1u, 0u);
+        dwgRW parent("");
+        ModelerDispatchReader reader(
+            std::unique_ptr<dwgBuffer>(new dwgBuffer(emptySource.data(), emptySource.size())),
+            &parent);
+        reader.setFormatVersion(legacyVersion);
+        DRW_Block_Record record;
+        record.handle = 0x610u;
+        record.name = "*PAPER_SPACE4";
+        DwgBlockOwnershipTestAccess::setLegacyEntityChain(record, 0x611u, 0x612u);
+        LayoutChainDispatchSink sink;
+        sink.beginLayout("Missing first", 0x705u, record.handle);
+        dwgBuffer stream(emptySource.data(), emptySource.size());
+        const bool walked = reader.walkBlockRecordEntities(
+            &record, &stream, sink, DRW::NoHandle, record.handle);
+        const auto& diagnostics = reader.entityFailures();
+        t.expect(walked && sink.lines.empty() && reader.entityParseFailures() == 1u
+                     && diagnostics.size() == 1u && diagnostics[0].handle == 0x611u
+                     && diagnostics[0].blockRecordHandle == record.handle
+                     && diagnostics[0].phase == dwgReader::DwgEntityFailurePhase::BlockFinalize,
+                 "R13/R14/R2000 missing first link remains a soft failure with block-scoped attribution");
+    }
 }
 
 void testModelerBlockWalkRejectsBadOwnership(TestContext& t) {
