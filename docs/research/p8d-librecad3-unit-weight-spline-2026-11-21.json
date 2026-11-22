@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-unit-weight-spline-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_HEADLESS_CONTROL_PASSED",
+  "supportClaimEffect": "none",
+  "consumerPullRequest": "https://github.com/LibreCAD/LibreCAD_3/pull/462",
+  "consumerCommit": "27e1d1cc69eb906dcd639da307e74ca93c366498",
+  "scope": "Non-rational degree-two spline with an explicit, complete unit-weight vector.",
+  "validation": [
+    "The negative control previously produced 128 approximate segments rather than one exact quadratic; the import did not issue an approximation note.",
+    "31 focused geometry tests pass, including the exact quadratic midpoint and retained weights.",
+    "Six focused spline round-trip tests pass with each bundled and current shared codec, including generated ASCII/Binary save/reopen of unflagged unit weights and no approximation warning.",
+    "Six bundled and ten shared HATCH/MPOLYGON controls pass.",
+    "Python binding plan-sync check passes."
+  ],
+  "logSha256": {
+    "lc3-unitweight-negative.log": "fcf22571aacf737ed8aa67f80243917f53c17010d1186c748d82a7b9576fd553",
+    "lc3-unitweight-test.log": "2b1b182c7f1c09b9f6ec7e2dc4ade09be800e9ae8eaace178a66229b838d249d",
+    "lc3-unitweight-direct-test.log": "0d922d7a46392984665514a5e9bda176e1ddae2d885edb56fb25094f2604a594",
+    "lc3-unitweight-system-test.log": "30d5fd1cde14cec39d330b6158c952bca05c8ea2b1bbfccdf347c8cee4b78089",
+    "lc3-unitweight-direct-hatch.log": "f93563f79053283657a936e8244b64d00efe58ad92a8721d9cc952afd5663f37",
+    "lc3-unitweight-system-hatch.log": "6ded9bb36d0086fec25c79d70787bdff6d1056b5698f2947aaa99938f52e5294"
+  },
+  "limitations": [
+    "Headless macOS ARM64 only; native GUI, hosted CI, and other platforms remain open.",
+    "This control does not qualify other spline degrees or weight profiles. Current shared-codec build uses scratch CMake glue."
+  ]
+}
