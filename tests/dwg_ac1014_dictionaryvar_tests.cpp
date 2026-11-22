@@ -34,7 +34,8 @@ public:
 bool sharedLegacyFrameControl() {
     using namespace dx_legacy_dwg_wire;
     const auto bytesFor = [](DRW::Version version, std::uint32_t end,
-                             unsigned ownerRole) {
+                             unsigned ownerRole, unsigned reactorRole,
+                             unsigned extensionRole) {
         dwgBufferW w;
         w.putObjType(version, 73u);
         if (version == DRW::AC1015) w.putRawLong32(end);
@@ -43,8 +44,8 @@ bool sharedLegacyFrameControl() {
         if (version != DRW::AC1015) w.putRawLong32(end);
         w.putBitLong(1u);
         w.putFixedHandle(ownerRole, 1u, 0x20u);
-        w.putFixedHandle(4u, 1u, 0x21u);
-        w.putFixedHandle(3u, 0u, 0u);
+        w.putFixedHandle(reactorRole, 1u, 0x21u);
+        w.putFixedHandle(extensionRole, 0u, 0u);
         w.put2Bits(0u);
         return w.data();
     };
@@ -58,12 +59,40 @@ bool sharedLegacyFrameControl() {
             && padding(bits);
     };
     for (const auto version : {DRW::AC1012, DRW::AC1014, DRW::AC1015}) {
-        const auto valid = bytesFor(version, 70u, 4u);
-        if (!check(valid, version) || check(bytesFor(version, 69u, 4u), version)
-            || check(bytesFor(version, 113u, 4u), version)
-            || check(bytesFor(version, 70u, 5u), version)
+        const auto valid = bytesFor(version, 70u, 4u, 4u, 3u);
+        if (!check(valid, version) || check(bytesFor(version, 69u, 4u, 4u, 3u), version)
+            || check(bytesFor(version, 113u, 4u, 4u, 3u), version)
             || check(valid, version == DRW::AC1015 ? DRW::AC1014 : DRW::AC1015)
             || !check(valid, version)) return false;
+        // The common-tail helper is shared by the legacy DICTIONARY and
+        // MLINESTYLE source observers. Check every handle-role nibble at each
+        // position, including the typed-null extension-dictionary handle.
+        const std::size_t roleBitStarts[] = {70u, 86u, 102u};
+        const unsigned expectedRoles[] = {4u, 4u, 3u};
+        for (std::size_t field = 0; field < 3u; ++field) {
+            for (unsigned role = 0u; role < 16u; ++role) {
+                auto changed = valid;
+                for (unsigned bit = 0u; bit < 4u; ++bit) {
+                    const auto position = roleBitStarts[field] + bit;
+                    const auto mask = static_cast<std::uint8_t>(0x80u >> (position % 8u));
+                    const auto roleMask = 1u << (3u - bit);
+                    if ((role & roleMask) != 0u)
+                        changed[position / 8u] |= mask;
+                    else
+                        changed[position / 8u] &= static_cast<std::uint8_t>(~mask);
+                }
+                if (check(changed, version) != (role == expectedRoles[field])
+                    || !check(valid, version)) return false;
+            }
+            if (field < 2u) {
+                auto wrongTarget = valid;
+                const auto position = roleBitStarts[field] + 8u;
+                wrongTarget[position / 8u] ^=
+                    static_cast<std::uint8_t>(0x80u >> (position % 8u));
+                if (check(wrongTarget, version) || !check(valid, version))
+                    return false;
+            }
+        }
         for (std::size_t length = 0; length < valid.size(); ++length) {
             const std::vector<std::uint8_t> truncated(valid.begin(), valid.begin() + length);
             if (check(truncated, version) || !check(valid, version)) return false;
@@ -647,23 +676,26 @@ bool populatedAc1012DictionaryFrame(const std::string& path,
         std::cerr << "AC1012 dictionary independent frame walk failed\n";
         return false;
     }
-    std::uint32_t roleBit = 0u;
+    std::vector<std::size_t> itemHandleBitStarts;
+    itemHandleBitStarts.reserve(model.m_entries.size());
     for (const auto& entry : model.m_entries) {
-        if (entry.m_name == "SAME_KEY") roleBit = bits.pos;
+        itemHandleBitStarts.push_back(bits.pos);
         if (!dx_legacy_dwg_wire::reference(
                 bits, 2u, model.handle, entry.m_handle)) return false;
     }
     if (!dx_legacy_dwg_wire::padding(bits)) return false;
 
-    auto wrongRole = bytes;
-    const auto hardOwnerRoleBit = roleBit + 3u;
-    wrongRole[hardOwnerRoleBit / 8u] ^=
-        static_cast<std::uint8_t>(0x80u >> (hardOwnerRoleBit % 8u));
-    auto mutatedRaw = raw;
-    mutatedRaw.m_rawBytes = wrongRole;
-    if (dx_legacy_dwg_wire::dictionary(mutatedRaw, model, false)
-        || read(wrongRole) || model.hasCompleteDwgEntries()
-        || !model.m_entries.empty() || !read(bytes) || !matches()) return false;
+    for (const auto itemHandleBitStart : itemHandleBitStarts) {
+        auto wrongRole = bytes;
+        const auto hardOwnerRoleBit = itemHandleBitStart + 3u;
+        wrongRole[hardOwnerRoleBit / 8u] ^=
+            static_cast<std::uint8_t>(0x80u >> (hardOwnerRoleBit % 8u));
+        auto mutatedRaw = raw;
+        mutatedRaw.m_rawBytes = wrongRole;
+        if (dx_legacy_dwg_wire::dictionary(mutatedRaw, model, false)
+            || read(wrongRole) || model.hasCompleteDwgEntries()
+            || !model.m_entries.empty() || !read(bytes) || !matches()) return false;
+    }
 
     for (std::size_t length = 0; length < bytes.size(); ++length) {
         const std::vector<std::uint8_t> truncated(bytes.begin(),

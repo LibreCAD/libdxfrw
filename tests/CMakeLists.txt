@@ -2021,7 +2021,7 @@ target_link_libraries(libdxfrw_dwg_ac1014_dictionaryvar_tests PRIVATE dxfrw)
 add_test(NAME libdxfrw_dwg_ac1014_dictionaryvar
     COMMAND libdxfrw_dwg_ac1014_dictionaryvar_tests)
 set_tests_properties(libdxfrw_dwg_ac1014_dictionaryvar PROPERTIES
-    LABELS "fast;dwg;dictionaryvar;AC1014;transaction;generated" TIMEOUT 30)
+    LABELS "fast;dwg;dictionaryvar;AC1012;AC1014;AC1015;transaction;generated" TIMEOUT 30)
 set(LIBDXFRW_AC1014_EXTERNAL_PROFILE "" CACHE FILEPATH
     "Optional external AC1014 DICTIONARYVAR/MLINESTYLE source profile")
 option(LIBDXFRW_ENABLE_AC1012_PARTIAL_DWGADD_CONTROL
