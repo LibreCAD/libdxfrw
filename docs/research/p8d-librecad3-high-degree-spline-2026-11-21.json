@@ -1,0 +1,31 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-high-degree-spline-2026-11-21",
+  "date": "2026-11-21",
+  "status": "BOUNDED_HEADLESS_CONTROL_PASSED",
+  "supportClaimEffect": "none",
+  "consumerPullRequest": "https://github.com/LibreCAD/LibreCAD_3/pull/462",
+  "consumerCommit": "6d92d08954342d8aab475c82f61c9d5bbbe58c3e",
+  "scope": "Generated nonuniform ordinary 3D degree-four and clamped positive-weight rational 3D degree-five splines.",
+  "reference": "ezdxf 1.4.5 BSpline.point endpoint and interior samples.",
+  "validation": [
+    "Before the change both independent high-degree samples produced no segments.",
+    "Thirty focused geometry tests pass, including distance to independent samples, invalid zero-weight refusal and degree-65 limit control.",
+    "Five focused standalone spline tests pass with each bundled and current shared codec, including generated degree-four and degree-five ASCII/Binary save/reopen and high-degree import note.",
+    "Six bundled and ten shared HATCH/MPOLYGON controls pass.",
+    "Python binding plan-sync check passes."
+  ],
+  "logSha256": {
+    "lc3-highdegree-negative.log": "0a1b3b201c51ae42cad3bc5591bb15c254fafaa977dd031163b8b2cf000c2a04",
+    "lc3-highdegree-test.log": "c6e6a0f4a3f06d183555610f33b5ad03200cefa006fc9dc77eed398076dcdc15",
+    "lc3-highdegree-direct-test2.log": "3b9ec75680b0493374e311d0323e25af00925f5d619cef043af152a4b5f2e106",
+    "lc3-highdegree-system-test2.log": "7aedbe1fa1fa7f8231c52d5e600ae56eaa2f3a5d9d2d9ac5db10be13cdc0ea7c",
+    "lc3-highdegree-bundled-hatch2.log": "8480f1453180d4def80ea3fc2957a44c2f7113739c7b6a61ede0056e9691a19f",
+    "lc3-highdegree-current-hatch2.log": "4e5647a81a6abeb8e67207c20af3096de9f0aefd92dd7a63297d0845dac45af5"
+  },
+  "limitations": [
+    "The approximation is bounded by 1e-4 of input control-point extent subject to finite-value, positive-weight, depth-16, 8192-segment and degree-64 limits. Failed approximation produces no high-degree display segments and reports an import note.",
+    "Only generated degree-four and degree-five profiles were independently sampled; other degrees and producer files remain unqualified.",
+    "Headless macOS ARM64 only; native GUI, hosted CI, and other platforms remain open. Current shared-codec build uses scratch CMake glue."
+  ]
+}
