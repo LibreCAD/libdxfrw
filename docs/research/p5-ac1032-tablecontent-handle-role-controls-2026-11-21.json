@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1032-tablecontent-handle-role-controls-2026-11-21",
+  "date": "2026-11-21",
+  "status": "FOCUSED_REGRESSION_CONTROLS_REPAIRED",
+  "supportClaimEffect": "none",
+  "sourceAuthority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "2.13",
+      "20.4.97",
+      "20.4.101.3",
+      "20.4.101.4"
+    ],
+    "scope": "TABLECONTENT style-related target references are hard pointers. Border override flags identify the fields included by this generated vector; the all-flags-set control includes all six properties."
+  },
+  "priorFailure": "Three AC1032 role/retry assertions failed in the current and pre-change ASan executables. The final-style negative used a zero-length typed null, which the existing compatibility policy accepts; two cell-style positive retry vectors emitted border values with all overrides cleared and did not match the current bounded parser.",
+  "change": "Generate non-null role violations and matching hard-pointer positive controls with the same target 0xE705. Inspect the actual generated handle stream to bind both raw role and target before parsing. Set all six border-override bits for the vector that carries all six fields. Improve failure diagnostics. No production parser behavior changed.",
+  "validation": {
+    "normal": "libdxfrw_persistent_manager_prefix_dispatch CTest: pass; adjacent generated R14 raw-retention selector: pass.",
+    "asan": "Fully instrumented library and libdxfrw_persistent_manager_prefix_dispatch CTest: pass.",
+    "normalBinarySha256": "5cbcb199765268978abd0d5258e9a38526096b6195621320e25eff879163072a",
+    "asanBinarySha256": "821e09bd5b7521c82b79a483aa856d99a22ae058ed0c8e1235934272e0113185",
+    "testSourceSha256": "4765b359e2a6c6f36f3dbcb5ddea70bf13b2c94abca4a6211b21dbe4290a8a85",
+    "previousFailureLogSha256": "e5211c188b4179a78ba8d1541ee7e708c9baeafb3d958f360126ff9c686cfede",
+    "rollback": "Three non-null wrong-role cases reject, clear parsed state, and succeed on corrected input using the same parser. Their generated body and handle graph are local synthetic controls."
+  },
+  "limits": [
+    "The reader continues its existing typed-null compatibility policy; cross-producer semantics of mismatched typed nulls remain unqualified.",
+    "These controls do not establish producer-authored AC1032 TABLECONTENT layouts, source graph closure, strict output, or native behavior.",
+    "No DWG/DXF fixture is added."
+  ]
+}

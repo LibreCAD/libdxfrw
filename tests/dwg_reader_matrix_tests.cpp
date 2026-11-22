@@ -12448,6 +12448,18 @@ struct GeneratedTableContentObject {
     std::uint64_t objectEndBit{0};
 };
 
+bool generatedTableHandleMatches(const GeneratedTableContentObject& object,
+                                 unsigned index, std::uint8_t role,
+                                 std::uint32_t target) {
+    dwgBuffer input(object.payload.data(), object.payload.size());
+    if (!input.setPosition(object.handleStartBit / 8u)) return false;
+    input.setBitPos(static_cast<std::uint8_t>(object.handleStartBit % 8u));
+    dwgHandle handle;
+    for (unsigned n = 0; n <= index; ++n) handle = input.getHandle();
+    return input.isGood() && handle.rawCode == role && handle.ref64 == target
+        && input.getPosition() * 8u + input.getBitPos() <= object.handleEndBit;
+}
+
 enum class GeneratedTableContentRoleFailure {
     None,
     ContentTextStyle,
@@ -12551,7 +12563,9 @@ bool makeGeneratedR24TableContentObject(
     GeneratedTableContentRoleFailure wrongRole =
         GeneratedTableContentRoleFailure::None,
     std::int32_t cellContentType = 1,
-    bool includeTableFieldReference = false) {
+    bool includeTableFieldReference = false,
+    std::uint32_t tableStyleReference = 0u,
+    bool nonNullStyleReferences = false) {
     constexpr DRW::Version version = DRW::AC1032;
     DRW_TextCodec codec;
     codec.setVersion(version, false);
@@ -12630,7 +12644,7 @@ bool makeGeneratedR24TableContentObject(
         body.putBitShort(0u); // no margin overrides
         body.putBitLong(1); // one border
         body.putBitLong(1); // nonzero edge flags
-        body.putBitLong(0); // border property overrides
+        body.putBitLong(0x3f); // include all six border property overrides
         body.putBitLong(1); // border type
         putByLayerCmc(); // border color
         body.putBitLong(0); // lineweight
@@ -12698,11 +12712,21 @@ bool makeGeneratedR24TableContentObject(
         textStyleHandle.code = wrongRole
                 == GeneratedTableContentRoleFailure::ContentTextStyle
             ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
+        if (nonNullStyleReferences
+            || wrongRole == GeneratedTableContentRoleFailure::ContentTextStyle) {
+            textStyleHandle.ref = 0xE705u;
+            textStyleHandle.ref64 = textStyleHandle.ref;
+        }
         handles.putHandle(textStyleHandle); // cell-style content text style
         dwgHandle borderLineTypeHandle;
         borderLineTypeHandle.code = wrongRole
                 == GeneratedTableContentRoleFailure::BorderLineType
             ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
+        if (nonNullStyleReferences
+            || wrongRole == GeneratedTableContentRoleFailure::BorderLineType) {
+            borderLineTypeHandle.ref = 0xE705u;
+            borderLineTypeHandle.ref64 = borderLineTypeHandle.ref;
+        }
         handles.putHandle(borderLineTypeHandle); // cell-style border linetype
     }
     if (includeTableFieldReference) {
@@ -12718,6 +12742,10 @@ bool makeGeneratedR24TableContentObject(
     dwgHandle tableStyleHandle;
     tableStyleHandle.code = wrongTableStyleRole
         ? DRW::DwgSoftPointer : DRW::DwgHardPointer;
+    if (wrongTableStyleRole || tableStyleReference != 0u) {
+        tableStyleHandle.ref = wrongTableStyleRole ? 0xE705u : tableStyleReference;
+        tableStyleHandle.ref64 = tableStyleHandle.ref;
+    }
     handles.putHandle(tableStyleHandle); // final table-style reference
     handles.alignToByte();
     if (!object.isGood() || !handles.isGood()
@@ -17707,29 +17735,43 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
         }
 
         GeneratedTableContentObject wrongTableStyleRoleObject;
+        GeneratedTableContentObject validTableStyleRoleObject;
         const bool wrongRoleBuilt = makeGeneratedR24TableContentObject(
-            0xE702u, false, wrongTableStyleRoleObject, true);
+            0xE702u, false, wrongTableStyleRoleObject, true)
+            && makeGeneratedR24TableContentObject(
+                0xE702u, false, validTableStyleRoleObject, false, false,
+                GeneratedTableContentRoleFailure::None, 1, false, 0xE705u)
+            && generatedTableHandleMatches(wrongTableStyleRoleObject, 1u,
+                                           DRW::DwgSoftPointer, 0xE705u)
+            && generatedTableHandleMatches(validTableStyleRoleObject, 1u,
+                                           DRW::DwgHardPointer, 0xE705u);
         TestableTableContentObject roleRetry;
         dwgBuffer wrongRoleInput(wrongTableStyleRoleObject.payload.data(),
                                  wrongTableStyleRoleObject.payload.size(),
                                  &codec);
-        const bool wrongRoleRefused = wrongRoleBuilt
-            && !roleRetry.parseDwg(DRW::AC1032, &wrongRoleInput,
-                                   wrongTableStyleRoleObject.handleBits)
+        const bool wrongRoleAccepted = wrongRoleBuilt
+            && roleRetry.parseDwg(DRW::AC1032, &wrongRoleInput,
+                                  wrongTableStyleRoleObject.handleBits);
+        const bool wrongRoleRefused = wrongRoleBuilt && !wrongRoleAccepted
             && !roleRetry.m_parseComplete
             && !roleRetry.m_semanticContentComplete
             && roleRetry.m_content.m_rows.empty();
-        dwgBuffer correctRoleRetry(detachedValueObject.payload.data(),
-                                   detachedValueObject.payload.size(), &codec);
+        dwgBuffer correctRoleRetry(validTableStyleRoleObject.payload.data(),
+                                   validTableStyleRoleObject.payload.size(), &codec);
         const bool correctedRoleRetry = wrongRoleRefused
             && roleRetry.parseDwg(DRW::AC1032, &correctRoleRetry,
-                                  detachedValueObject.handleBits)
+                                  validTableStyleRoleObject.handleBits)
             && roleRetry.m_parseComplete
             && roleRetry.m_semanticContentComplete
-            && roleRetry.m_content.m_tableStyleHandle == 0u
+            && roleRetry.m_content.m_tableStyleHandle == 0xE705u
             && roleRetry.m_content.m_rows.size() == 1u;
         t.expect(wrongRoleRefused && correctedRoleRetry,
                  "TABLECONTENT rejects a wrong final table-style role, rolls back, and retries on the same parser");
+        if (!wrongRoleRefused || !correctedRoleRetry)
+            std::cerr << "TABLECONTENT table-style role: built=" << wrongRoleBuilt
+                      << " accepted=" << wrongRoleAccepted << " reset=" << wrongRoleRefused
+                      << " retry=" << correctedRoleRetry << " complete=" << roleRetry.m_parseComplete
+                      << " semantic=" << roleRetry.m_semanticContentComplete << '\n';
 
         const auto checkStyleHandleRole = [&codec, &t](
             GeneratedTableContentRoleFailure failure,
@@ -17737,25 +17779,35 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
             GeneratedTableContentObject wrongObject;
             GeneratedTableContentObject validObject;
             const bool controlsBuilt = makeGeneratedR24TableContentObject(
-                    0xE703u, false, wrongObject, false, true, failure)
+                    0xE703u, false, wrongObject, false, true, failure,
+                    1, false, 0u, true)
                 && makeGeneratedR24TableContentObject(
-                    0xE704u, false, validObject, false, true);
+                    0xE704u, false, validObject, false, true,
+                    GeneratedTableContentRoleFailure::None, 1, false, 0u, true)
+                && generatedTableHandleMatches(wrongObject,
+                    failure == GeneratedTableContentRoleFailure::ContentTextStyle ? 1u : 2u,
+                    DRW::DwgSoftPointer, 0xE705u)
+                && generatedTableHandleMatches(validObject, 1u, DRW::DwgHardPointer, 0xE705u)
+                && generatedTableHandleMatches(validObject, 2u, DRW::DwgHardPointer, 0xE705u);
             TestableTableContentObject parser;
             bool rejectedAndReset = false;
             bool validRetry = false;
+            bool wrongAccepted = false;
+            bool validParsed = false;
             if (controlsBuilt) {
                 dwgBuffer wrongInput(wrongObject.payload.data(),
                                      wrongObject.payload.size(), &codec);
-                rejectedAndReset = !parser.parseDwg(
-                        DRW::AC1032, &wrongInput, wrongObject.handleBits)
+                wrongAccepted = parser.parseDwg(
+                    DRW::AC1032, &wrongInput, wrongObject.handleBits);
+                rejectedAndReset = !wrongAccepted
                     && !parser.m_parseComplete
                     && !parser.m_semanticContentComplete
                     && parser.m_content.m_rows.empty();
                 dwgBuffer validInput(validObject.payload.data(),
                                      validObject.payload.size(), &codec);
-                validRetry = rejectedAndReset
-                    && parser.parseDwg(DRW::AC1032, &validInput,
-                                       validObject.handleBits)
+                validParsed = rejectedAndReset && parser.parseDwg(
+                    DRW::AC1032, &validInput, validObject.handleBits);
+                validRetry = validParsed
                     && parser.m_parseComplete
                     && !parser.m_semanticContentComplete
                     && parser.m_content.m_rows.size() == 1u
@@ -17764,6 +17816,13 @@ void testPersistentManagerPrefixDispatch(TestContext& t) {
             const std::string message = std::string("TABLECONTENT ")
                 + label + " wrong-role reference rolls back and retries on the same parser";
             t.expect(controlsBuilt && rejectedAndReset && validRetry, message);
+            if (!controlsBuilt || !rejectedAndReset || !validRetry)
+                std::cerr << "TABLECONTENT " << label << ": built=" << controlsBuilt
+                          << " accepted=" << wrongAccepted << " reset=" << rejectedAndReset
+                          << " validParsed=" << validParsed << " retry=" << validRetry
+                          << " complete=" << parser.m_parseComplete
+                          << " semantic=" << parser.m_semanticContentComplete
+                          << " rows=" << parser.m_content.m_rows.size() << '\n';
             return controlsBuilt && rejectedAndReset && validRetry;
         };
         checkStyleHandleRole(

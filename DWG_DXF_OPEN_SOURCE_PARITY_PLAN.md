@@ -115,7 +115,7 @@ P4-D additional unresolved paths:
 
 ### P5 — FIELD, TABLE, rendering, constraints (7 open)
 
-Investigate the three pre-existing AC1032 TABLECONTENT wrong-role/retry failures in the `--persistent-manager-prefix-dispatch` selector before relying on that selector; the prior and current binaries both reproduce them. See the [R14 render receipt](docs/research/p6-r14-render-raw-retention-2026-11-21.json).
+The [AC1032 TABLECONTENT handle-role controls](docs/research/p5-ac1032-tablecontent-handle-role-controls-2026-11-21.json) now test non-null wrong-role refusal and retry. Keep the existing typed-null compatibility behavior unqualified until producer-specific meaning is established.
 
 Versioned TABLECONTENT profiles with incomplete semantics remain raw-only;
 see the [callback boundary](docs/research/p5-tablecontent-semantic-incomplete-callback-guard-2026-11-18.json).
