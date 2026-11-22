@@ -97,25 +97,37 @@ specific limitation.
 
 ## Paired populated AC1012 controls
 
-To prepare a scratch pair with the same `TEST_DICT` / `SAME_KEY` entry but
-different, inspectable MLINESTYLE targets, run:
+Generate the scratch pair with LibreDWG 0.14 on `PATH`; add the candidate and
+focused test options when those executables are available:
 
 ```sh
 PYTHONPATH=tools/research python3 -B \
   tools/research/generate_ac1012_dictionary_merge_samples.py \
-  --output-dir /private/tmp/ac1012-dictionary-merge
+  --output-dir /private/tmp/ac1012-dictionary-merge \
+  --candidate build/dwg2dxf/dwg2dxf \
+  --dictionary-source-test build/tests/libdxfrw_dwg_ac1014_dictionaryvar_tests
 ```
 
-The generated destination maps `SAME_KEY` to `Standard`; the source maps it to
-`ProbeStyle`. The generator checks the AC1012 DICTIONARY frame, CRC, entry-name
-span, NOD parent/reactor handles, absent cloning field, and soft-owner entry
-handle against the ODA v5.4.1 §20.4.44 layout. It keeps both drawings and the
-receipt outside the repository. If `libdxfrw_dwg_ac1014_dictionaryvar_tests`
-has been built, pass its path with `--dictionary-source-test`; the generator
-then checks the physical bytes through `DRW_Dictionary` and the shared wire
-observer, including bad-role/truncation refusal and corrected retry.
+The source graph is canonical `NOD -> ACAD_MLINESTYLE -> SAME_KEY`. Both
+drawings bind SAME_KEY to a same-named MLINESTYLE owned by that dictionary;
+the destination and source use distinguishable 15- and 37-degree start
+angles. The generator points the current DIMSTYLE header hard pointer to the
+unique Standard DIMSTYLE using the ODA v5.4.1 §9 definition, then writes the
+result as AC1012. This is a LibreDWG-generated, specification-directed control,
+not an AutoCAD-authored source.
 
-These files are LibreDWG-authored controls, not native producer witnesses.
+The generator checks the physical DICTIONARY frame, CRC, counted name span,
+NOD parent/reactor links, absent R13 cloning field and role-2 soft-owner item
+handles against ODA v5.4.1 §§9 and 20.4.44. The focused test passes each frame
+through `DRW_Dictionary` and the shared version-aware observer; wrong item
+roles and every truncation are rejected, parser state resets, and the complete
+frame succeeds on retry. With `--candidate`, strict conversion must preserve
+its preexisting destination on refusal; explicit partial ASCII/Binary outputs
+are checked for the selected dictionary/style identity, owner, value and
+emitted cloning flag by a bounded local DXF wire audit. None of these controls
+proves native open or duplicate-merge behavior, and they do not promote a
+support claim. Keep all generated DWG/DXF files in scratch storage.
+
 Screen each file in a fresh AutoCAD process and reject any file that opens only
 after recovery. The 2026-11-22 local ODA File Converter attempt aborted before
 conversion with pasteboard/XPC errors, so it provides no acceptance evidence.

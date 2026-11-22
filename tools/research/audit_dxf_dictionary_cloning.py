@@ -93,6 +93,69 @@ def audit_bytes(data: bytes, include_rows: bool = False) -> dict:
     by_handle = {row["handle"]: row for row in rows}
     if len(by_handle) != len(rows):
         raise ValueError("duplicate dictionary object handles")
+    styles = []
+    cursor = 0
+    while cursor < len(tags):
+        if tags[cursor] != (0, "MLINESTYLE"):
+            cursor += 1
+            continue
+        cursor += 1
+        record = []
+        while cursor < len(tags) and tags[cursor][0] != 0:
+            record.append(tags[cursor])
+            cursor += 1
+        handle = None
+        owner = None
+        name = None
+        start_angle = None
+        end_angle = None
+        line_count = None
+        app_group = False
+        for code, value in record:
+            if code == 102:
+                if value.startswith("{"):
+                    if app_group:
+                        raise ValueError("nested MLINESTYLE application group")
+                    app_group = True
+                elif value == "}":
+                    if not app_group:
+                        raise ValueError("unmatched MLINESTYLE application group close")
+                    app_group = False
+                continue
+            if app_group:
+                continue
+            if code == 5:
+                if handle is not None:
+                    raise ValueError("duplicate MLINESTYLE handle")
+                handle = value.upper()
+            elif code == 330:
+                if owner is not None:
+                    raise ValueError("duplicate MLINESTYLE owner")
+                owner = value.upper()
+            elif code == 2:
+                if name is not None:
+                    raise ValueError("duplicate MLINESTYLE name")
+                name = value
+            elif code == 51:
+                if start_angle is not None:
+                    raise ValueError("duplicate MLINESTYLE start angle")
+                start_angle = float(value)
+            elif code == 52:
+                if end_angle is not None:
+                    raise ValueError("duplicate MLINESTYLE end angle")
+                end_angle = float(value)
+            elif code == 71:
+                if line_count is not None:
+                    raise ValueError("duplicate MLINESTYLE line count")
+                line_count = int(value)
+        if app_group or handle is None or owner is None or name is None:
+            raise ValueError("incomplete MLINESTYLE record")
+        styles.append({"handle": handle, "owner": owner, "name": name,
+                       "start_angle": start_angle, "end_angle": end_angle,
+                       "line_count": line_count})
+    styles_by_handle = {row["handle"]: row for row in styles}
+    if len(styles_by_handle) != len(styles):
+        raise ValueError("duplicate MLINESTYLE object handles")
     matches = []
     for row in rows:
         for entry in row["entries"]:
@@ -100,36 +163,59 @@ def audit_bytes(data: bytes, include_rows: bool = False) -> dict:
                 target = by_handle.get(entry["handle"])
                 if target is None:
                     raise ValueError("MLINESTYLE dictionary target missing")
+                rooted_styles = []
+                for style_entry in target["entries"]:
+                    style = styles_by_handle.get(style_entry["handle"])
+                    if style is None:
+                        raise ValueError("MLINESTYLE dictionary entry target missing")
+                    if style["owner"] != target["handle"]:
+                        raise ValueError("MLINESTYLE target owner differs from its dictionary")
+                    if style["name"] != style_entry["name"]:
+                        raise ValueError("MLINESTYLE name differs from its dictionary key")
+                    rooted_styles.append({"key": style_entry["name"], **style})
                 matches.append({"owner": row["handle"], "entry_code": entry["code"],
-                                "target": target})
+                                "target": target, "styles": rooted_styles})
     counts = Counter("absent" if row["cloning"] is None else str(row["cloning"])
                      for row in rows)
     result = {"sha256": hashlib.sha256(data).hexdigest(), "dictionaries": len(rows),
               "cloning_field_counts": dict(sorted(counts.items())),
-              "mlinestyle_roots": matches}
+              "mlinestyle_roots": matches,
+              "mlinestyle_objects": len(styles)}
     if include_rows:
         result["dictionary_rows"] = rows
+        result["mlinestyle_rows"] = styles
     return result
 
 
 def self_test() -> None:
     data = (b"0\nDICTIONARY\n5\nA\n330\n0\n3\nACAD_MLINESTYLE\n350\n10\n"
             b"0\nDICTIONARY\n5\n10\n102\n{ACAD_REACTORS\n330\nA\n102\n}\n"
-            b"330\nA\n281\n1\n3\nStandard\n350\n22\n0\nEOF\n")
+            b"330\nA\n281\n1\n3\nStandard\n350\n22\n"
+            b"0\nMLINESTYLE\n5\n22\n102\n{ACAD_REACTORS\n330\n10\n102\n}\n"
+            b"330\n10\n100\nAcDbMlineStyle\n2\nStandard\n51\n15.0\n52\n0.0\n71\n0\n"
+            b"0\nEOF\n")
     result = audit_bytes(data)
     assert result["cloning_field_counts"] == {"1": 1, "absent": 1}
     assert result["mlinestyle_roots"][0]["target"]["owner"] == "A"
+    assert result["mlinestyle_roots"][0]["styles"][0]["name"] == "Standard"
+    assert result["mlinestyle_roots"][0]["styles"][0]["start_angle"] == 15.0
     lines = data.decode("ascii").splitlines()
     binary = bytearray(SENTINEL)
     for i in range(0, len(lines), 2):
         code = int(lines[i])
         binary.extend(struct.pack("<H", code))
-        binary.extend(struct.pack("<h", int(lines[i + 1])) if code == 281
-                      else lines[i + 1].encode("ascii") + b"\0")
+        value = lines[i + 1]
+        if code in (51, 52):
+            binary.extend(struct.pack("<d", float(value)))
+        elif code in (71, 281):
+            binary.extend(struct.pack("<h", int(value)))
+        else:
+            binary.extend(value.encode("ascii") + b"\0")
     binary_result = audit_bytes(bytes(binary))
     assert binary_result["cloning_field_counts"] == result["cloning_field_counts"]
     assert binary_result["mlinestyle_roots"] == result["mlinestyle_roots"]
     assert audit_bytes(data, include_rows=True)["dictionary_rows"][0]["cloning"] is None
+    assert audit_bytes(data, include_rows=True)["mlinestyle_rows"][0]["handle"] == "22"
     for invalid in (data + b"0\n", data.replace(b"281\n1\n", b"281\n1\n281\n0\n"),
                     bytes(binary[:-1])):
         try:

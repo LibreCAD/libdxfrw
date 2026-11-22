@@ -1,21 +1,24 @@
 #!/usr/bin/env python3
-"""Create paired, scratch-only AC1012 DICTIONARY merge observation samples.
+"""Create paired, scratch-only AC1012 MLINESTYLE dictionary merge samples.
 
-The two drawings contain the same NOD -> TEST_DICT -> SAME_KEY graph. The
-entry targets distinct, named MLINESTYLE objects so an ObjectARX observer can
-identify which value survives a duplicate-key clone. LibreDWG is only the
-sample producer here; its output is not native AutoCAD evidence. Optionally
-pass the focused libdxfrw test executable to parse each extracted physical
-dictionary frame and exercise role/truncation refusal and corrected retry.
+The two drawings contain the canonical NOD -> ACAD_MLINESTYLE -> SAME_KEY
+graph. Each SAME_KEY target is owned by ACAD_MLINESTYLE and has a different
+start angle. LibreDWG is only the sample producer here; its output is not
+native AutoCAD evidence. Optionally pass the focused libdxfrw test executable
+to parse each extracted physical dictionary frame and exercise role/truncation
+refusal and corrected retry. An optional candidate is checked for strict
+refusal and explicit-partial ASCII/Binary readback.
 """
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 import subprocess
+import sys
 import tempfile
 
 from generate_ac1012_dictionary_witness import (
@@ -30,11 +33,11 @@ from generate_ac1012_dictionary_witness import (
 
 VERSION = b"AC1012"
 ENTRY_KEY = "SAME_KEY"
-TEST_DICTIONARY = "TEST_DICT"
+STYLE_DICTIONARY = "ACAD_MLINESTYLE"
 
 
-def read_dictionary_frame(path: Path, dwgread: str,
-                          handle: int) -> tuple[dict, bytes]:
+def read_dictionary_frame(path: Path, dwgread: str, handle: int,
+                          expected_entries: dict[str, int]) -> tuple[dict, bytes]:
     data = path.read_bytes()
     require(data.startswith(VERSION), "sample is not AC1012")
     trace = run([dwgread, "-v4", str(path)])
@@ -76,23 +79,36 @@ def read_dictionary_frame(path: Path, dwgread: str,
     data_end = bits.little(4)
     reactors = bits.bl()
     count = bits.bl()
-    require(reactors <= 8 and count == 1, "expected one bounded dictionary item")
-    name_length = bits.bs()
-    require(0 < name_length <= 256, "dictionary TV name length is invalid")
-    name_bytes = bytes(bits.take(8) for _ in range(name_length))
-    require(name_bytes.count(b"\0") <= 1
-            and (b"\0" not in name_bytes or name_bytes.endswith(b"\0")),
-            "AC1012 TV name has an embedded or repeated terminator")
-    name = name_bytes[:-1].decode("ascii") if name_bytes.endswith(b"\0") \
-        else name_bytes.decode("ascii")
-    require(bits.position == data_end, "dictionary data span does not end after its TV entry")
+    require(reactors <= 8 and 0 < count <= 64
+            and count == len(expected_entries),
+            "dictionary entry count differs from the bounded model")
+    names = []
+    for _ in range(count):
+        name_length = bits.bs()
+        require(0 < name_length <= 256, "dictionary TV name length is invalid")
+        name_bytes = bytes(bits.take(8) for _ in range(name_length))
+        require(name_bytes.count(b"\0") <= 1
+                and (b"\0" not in name_bytes or name_bytes.endswith(b"\0")),
+                "AC1012 TV name has an embedded or repeated terminator")
+        name = name_bytes[:-1].decode("ascii") if name_bytes.endswith(b"\0") \
+            else name_bytes.decode("ascii")
+        names.append({"name": name,
+                      "nameHasTerminator": name_bytes.endswith(b"\0")})
+    require(bits.position == data_end, "dictionary data span does not end after its TV entries")
 
     parent = bits.handle(4, handle)
     reactor_handles = [bits.handle(4, handle) for _ in range(reactors)]
     xdictionary = bits.handle(3, handle)
-    item = bits.handle(2, handle)
+    entries = [dict(name=name["name"],
+                    nameHasTerminator=name["nameHasTerminator"],
+                    handle=bits.handle(2, handle)) for name in names]
+    require({item["name"]: item["handle"]["value"] for item in entries}
+            == expected_entries,
+            "physical dictionary entries differ from the model")
     require(len(frame) * 8 - bits.position < 8, "unexpected data after dictionary item handle")
-    require(name == ENTRY_KEY and item["value"] != 0, "dictionary item differs from the selected key")
+    selected = next((item for item in entries if item["name"] == ENTRY_KEY), None)
+    require(selected is not None and selected["handle"]["value"] != 0,
+            "dictionary item differs from the selected key")
     proof = {
         "offset": address,
         "sizeBytes": size,
@@ -100,12 +116,13 @@ def read_dictionary_frame(path: Path, dwgread: str,
         "crcValid": True,
         "self": own,
         "dataEndBit": data_end,
-        "entryName": name,
-        "entryNameHasTerminator": name_bytes.endswith(b"\0"),
+        "entries": entries,
+        "entryName": selected["name"],
+        "entryNameHasTerminator": selected["nameHasTerminator"],
         "parent": parent,
         "reactors": reactor_handles,
         "xdictionary": xdictionary,
-        "itemHandle": item,
+        "itemHandle": selected["handle"],
         "cloningField": None,
         "eed": eed,
         "paddingBits": len(frame) * 8 - bits.position,
@@ -116,24 +133,35 @@ def read_dictionary_frame(path: Path, dwgread: str,
 def read_model(path: Path, dwgread: str) -> dict:
     decoded = path.with_suffix(".json")
     run([dwgread, "-O", "JSON", "-o", str(decoded), str(path)])
-    objects = json.loads(decoded.read_text())["OBJECTS"]
+    drawing = json.loads(decoded.read_text())
+    objects = drawing["OBJECTS"]
     roots = [
         obj for obj in objects
         if obj.get("object") == "DICTIONARY"
-        and TEST_DICTIONARY in obj.get("items", {})
+        and STYLE_DICTIONARY in obj.get("items", {})
     ]
-    require(len(roots) == 1, "TEST_DICT NOD membership is not unique")
+    require(len(roots) == 1, "ACAD_MLINESTYLE NOD membership is not unique")
     root = roots[0]
-    dictionary_handle = root["items"][TEST_DICTIONARY][-1]
+    dictionary_handle = root["items"][STYLE_DICTIONARY][-1]
     dictionaries = [
         obj for obj in objects
         if obj.get("object") == "DICTIONARY"
         and obj.get("handle", [None])[-1] == dictionary_handle
     ]
-    require(len(dictionaries) == 1, "TEST_DICT child dictionary is missing or duplicated")
+    require(len(dictionaries) == 1,
+            "ACAD_MLINESTYLE child dictionary is missing or duplicated")
     dictionary = dictionaries[0]
-    require(dictionary.get("numitems") == 1, "TEST_DICT must contain one entry")
-    entry = dictionary.get("items", {}).get(ENTRY_KEY)
+    require(dictionary.get("numitems") == 2,
+            "expected Standard and SAME_KEY in ACAD_MLINESTYLE")
+    raw_entries = dictionary.get("items", {})
+    dictionary_entries = {
+        name: value[-1] for name, value in raw_entries.items()
+        if isinstance(value, list) and len(value) >= 3
+    }
+    require(len(dictionary_entries) == dictionary.get("numitems")
+            and ENTRY_KEY in dictionary_entries,
+            "ACAD_MLINESTYLE entries are incomplete")
+    entry = raw_entries.get(ENTRY_KEY)
     require(isinstance(entry, list) and len(entry) >= 3,
             "SAME_KEY does not resolve to one object handle")
     target_handle = entry[-1]
@@ -143,41 +171,181 @@ def read_model(path: Path, dwgread: str) -> dict:
         and obj.get("handle", [None])[-1] == target_handle
     ]
     require(len(target) == 1, "SAME_KEY target is not one MLINESTYLE")
+    require(target[0].get("name") == ENTRY_KEY,
+            "SAME_KEY target style name does not match its dictionary key")
+    target_owner = target[0].get("ownerhandle", [None])[-1]
+    require(target_owner == dictionary_handle,
+            "SAME_KEY target is not owned by ACAD_MLINESTYLE")
+    dimstyles = [
+        obj for obj in objects
+        if obj.get("object") == "DIMSTYLE" and obj.get("name") == "Standard"
+    ]
+    require(len(dimstyles) == 1, "Standard DIMSTYLE record is not unique")
+    current_dimstyle = drawing.get("HEADER", {}).get("DIMSTYLE")
+    require(isinstance(current_dimstyle, list) and len(current_dimstyle) >= 4
+            and current_dimstyle[-1] == dimstyles[0].get("handle", [None])[-1],
+            "header current DIMSTYLE handle does not resolve to Standard")
     return {
         "sha256": sha(path.read_bytes()),
         "dictionaryHandle": dictionary_handle,
         "rootHandle": root["handle"][-1],
         "dictionaryOwner": dictionary.get("ownerhandle", [None])[-1],
+        "dictionaryEntries": dictionary_entries,
+        "headerCurrentDimStyleReference": current_dimstyle,
         "entry": {"name": ENTRY_KEY, "raw": entry, "targetHandle": target_handle},
         "targetStyle": {
             "handle": target_handle,
             "name": target[0].get("name"),
+            "ownerHandle": target_owner,
             "startAngle": target[0].get("start_angle"),
+        },
+        "standardDimStyle": {
+            "handle": dimstyles[0].get("handle", [None])[-1],
+            "name": dimstyles[0].get("name"),
         },
     }
 
 
-def write_recipe(path: Path, angle: int, target_handle: int) -> None:
+def run_candidate(candidate: str, source: Path, root: Path, label: str,
+                  partial: bool, binary: bool = False,
+                  expected_angle: float | None = None) -> dict:
+    candidate_path = Path(candidate).resolve()
+    mode = "explicit-partial" if partial else "strict"
+    encoding = "binary" if binary else "ascii"
+    candidate_output = root / f"{label}-candidate-{mode}-{encoding}.dxf"
+    sentinel = b"preserve prior DXF destination on refusal\n"
+    candidate_output.write_bytes(sentinel)
+    command = [str(candidate_path), str(source), "-o", str(candidate_output),
+               "-v2010", "-y"]
+    if binary:
+        command.append("-b")
+    command.append("-d")
+    if partial:
+        command.append("--allow-partial-dwg-read")
+    result = subprocess.run(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        timeout=120,
+        check=False,
+    )
+    log = result.stdout.decode(errors="replace")
+    preserved = candidate_output.read_bytes() == sentinel
+    require(result.returncode == 0 or preserved,
+            f"candidate replaced its destination after {mode} refusal")
+    if partial:
+        require(result.returncode == 0 and not preserved,
+                f"candidate did not emit the bounded {encoding} partial projection")
+    else:
+        require(result.returncode != 0 and preserved,
+                "candidate unexpectedly accepted strict output for the unqualified source")
+    audit = None
+    if result.returncode == 0:
+        audit_script = Path(__file__).with_name("audit_dxf_dictionary_cloning.py")
+        audited = subprocess.run(
+            [sys.executable, str(audit_script), "--details", str(candidate_output)],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+        require(audited.returncode == 0,
+                f"independent {encoding} DXF dictionary/style audit failed")
+        audit = json.loads(audited.stdout)
+        roots = audit.get("mlinestyle_roots", [])
+        require(len(roots) == 1, "output ACAD_MLINESTYLE root is not unique")
+        style_dictionary = roots[0]["target"]
+        require(style_dictionary.get("owner") == roots[0].get("owner"),
+                "ACAD_MLINESTYLE dictionary owner does not resolve to the NOD")
+        selected = [style for style in roots[0].get("styles", [])
+                    if style.get("key") == ENTRY_KEY]
+        require(style_dictionary.get("cloning") == 0 and len(selected) == 1,
+                "output selected dictionary field/entry is missing")
+        style = selected[0]
+        require(style.get("name") == ENTRY_KEY
+                and style.get("owner") == style_dictionary.get("handle")
+                and style.get("start_angle") is not None,
+                "output MLINESTYLE identity or owner differs from its dictionary")
+        if expected_angle is not None:
+            require(abs(style["start_angle"] - expected_angle) < 1e-8,
+                    "output MLINESTYLE start angle differs from the selected source")
+    lines = [line.strip() for line in log.splitlines()
+             if ("DWG read observations:" in line
+                 or "frameCoverageStatus=" in line
+                 or "Opaque callback dispositions:" in line
+                 or "integrity row:" in line
+                 or "DXF export preflight failed:" in line
+                 or "DXF export failed:" in line)]
+    return {
+        "mode": mode,
+        "encoding": encoding,
+        "executable": executable_identity(str(candidate_path)),
+        "command": command,
+        "exitCode": result.returncode,
+        "destinationPreservedOnRefusal": preserved if result.returncode else None,
+        "outputSha256": sha(candidate_output.read_bytes()) if result.returncode == 0 else None,
+        "independentDxfAudit": audit,
+        "diagnostics": lines[-12:],
+    }
+
+
+def write_recipe(path: Path, angle: int) -> None:
     path.write_text(
         "line (0 0 0) (1 1 0)\n"
-        'mlinestyle "ProbeStyle"\n'
+        'dimstyle "Standard"\n'
+        f'mlinestyle "{ENTRY_KEY}"\n'
         f"mlinestyle.start_angle = {angle}\n"
-        f'dictionary "{TEST_DICTIONARY}" "{ENTRY_KEY}" {target_handle}\n'
     )
 
 
-def style_handles(path: Path, dwgread: str) -> dict[str, int]:
-    decoded = path.with_suffix(".json")
-    run([dwgread, "-O", "JSON", "-o", str(decoded), str(path)])
-    objects = json.loads(decoded.read_text())["OBJECTS"]
-    styles = {
-        obj.get("name"): obj.get("handle", [None])[-1]
-        for obj in objects if obj.get("object") == "MLINESTYLE"
+def materialize_r13_source(initial: Path, output: Path, dwgread: str,
+                           dwgwrite: str, root: Path, label: str) -> dict:
+    decoded = root / f"{label}-preheader.json"
+    run([dwgread, "-O", "JSON", "-o", str(decoded), str(initial)])
+    drawing = json.loads(decoded.read_text())
+    dimstyles = [obj for obj in drawing["OBJECTS"]
+                 if obj.get("object") == "DIMSTYLE"
+                 and obj.get("name") == "Standard"]
+    require(len(dimstyles) == 1,
+            "producer did not create one Standard DIMSTYLE record")
+    dimstyle_handle = dimstyles[0].get("handle", [None])[-1]
+    require(isinstance(dimstyle_handle, int) and dimstyle_handle != 0,
+            "Standard DIMSTYLE has no nonzero handle")
+    header = drawing.get("HEADER", {})
+    layer_reference = header.get("CLAYER")
+    require(isinstance(layer_reference, list) and len(layer_reference) >= 4
+            and layer_reference[0] == 5 and layer_reference[1] > 0,
+            "producer did not provide a versioned hard-pointer header reference")
+    original_reference = header.get("DIMSTYLE")
+    header["DIMSTYLE"] = [layer_reference[0], layer_reference[1],
+                          dimstyle_handle, dimstyle_handle]
+    patched = root / f"{label}-header-bound.json"
+    patched.write_text(json.dumps(drawing, separators=(",", ":")) + "\n")
+    run([dwgwrite, "-I", "JSON", "--as", "r13", "-o", str(output),
+         str(patched)])
+    require(output.read_bytes().startswith(VERSION),
+            "versioned DWG writer did not produce AC1012")
+    readback = root / f"{label}-header-readback.json"
+    run([dwgread, "-O", "JSON", "-o", str(readback), str(output)])
+    normalized = json.loads(readback.read_text())["HEADER"].get("DIMSTYLE")
+    require(isinstance(normalized, list) and len(normalized) >= 4
+            and normalized[0] == 5 and normalized[1] > 0
+            and normalized[-1] == dimstyle_handle,
+            "encoded current DIMSTYLE hard pointer does not read back")
+    return {
+        "inputSha256": sha(initial.read_bytes()),
+        "inputJsonSha256": sha(decoded.read_bytes()),
+        "patchedJsonSha256": sha(patched.read_bytes()),
+        "outputSha256": sha(output.read_bytes()),
+        "headerDimstyleBefore": original_reference,
+        "headerDimstyleAfter": normalized,
+        "targetDimstyle": {"name": "Standard", "handle": dimstyle_handle},
+        "normalization": (
+            "Set the AC1012 HEADER DIMSTYLE H field to the unique Standard "
+            "DIMSTYLE handle; ODA v5.4.1 specifies this field as a hard pointer."
+        ),
     }
-    require(isinstance(styles.get("Standard"), int)
-            and isinstance(styles.get("ProbeStyle"), int),
-            "DWG producer did not provide both selected MLINESTYLE targets")
-    return styles
 
 
 def main() -> None:
@@ -186,6 +354,7 @@ def main() -> None:
                         help="scratch parent; each run creates a new child directory")
     parser.add_argument("--dwgadd", default="dwgadd")
     parser.add_argument("--dwgread", default="dwgread")
+    parser.add_argument("--dwgwrite", default="dwgwrite")
     parser.add_argument("--candidate", help="optional libdxfrw dwg2dxf executable")
     parser.add_argument("--dictionary-source-test",
                         help="optional libdxfrw AC1012 physical-frame test executable")
@@ -194,57 +363,62 @@ def main() -> None:
             "LibreDWG 0.14 dwgadd is required")
     require(b"0.14" in run([args.dwgread, "--version"]).stdout,
             "LibreDWG 0.14 dwgread is required")
+    require(b"0.14" in run([args.dwgwrite, "--version"]).stdout,
+            "LibreDWG 0.14 dwgwrite is required")
     args.output_dir.mkdir(parents=True, exist_ok=True)
     root = Path(tempfile.mkdtemp(prefix="ac1012-dictionary-merge-", dir=args.output_dir))
-
-    probe_recipe = root / "probe.dwgadd"
-    probe_recipe.write_text('line (0 0 0) (1 1 0)\nmlinestyle "ProbeStyle"\n')
-    probe = root / "probe.dwg"
-    run([args.dwgadd, "--as", "r13", "-o", str(probe), str(probe_recipe)])
-    handles = style_handles(probe, args.dwgread)
 
     results = {
         "schema": "libdxfrw.research-receipt.v1",
         "id": "p6-ac1012-populated-dictionary-merge-samples-2026-11-22",
-        "status": "PAIRED_SPEC_BOUND_SAMPLE_GENERATION_PASS_NATIVE_SEMANTICS_OPEN",
+        "status": "PAIRED_SPEC_BOUND_SOURCE_AND_PARTIAL_ASCII_BINARY_PROOF_PASS_NATIVE_SEMANTICS_OPEN",
         "supportClaimEffect": "none",
         "authority": {
             "document": "ODA Open Design Specification v5.4.1",
-            "section": "20.4.44 DICTIONARY",
+            "sections": [
+                "9 HEADER VARIABLES: DIMSTYLE is an H hard pointer",
+                "20.4.44 DICTIONARY",
+                "20.4.73 MLINESTYLE",
+            ],
             "source": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
-            "layoutApplied": "AC1012 DICTIONARY has a counted entry-name stream and soft-owner entry handles; the R2000+ cloning and hard-owner fields are absent.",
+            "layoutApplied": "AC1012 DICTIONARY has counted entry-name streams and soft-owner entry handles; R2000+ cloning and hard-owner fields are absent. Each MLINESTYLE is owned by the canonical ACAD_MLINESTYLE dictionary, and the current DIMSTYLE header reference is a hard pointer.",
         },
-        "producer": "GNU LibreDWG dwgadd 0.14",
+        "producer": "GNU LibreDWG dwgadd/dwgread/dwgwrite 0.14; generated header DIMSTYLE link bound to the unique Standard record by a specification-directed JSON rewrite",
         "generatorSha256": sha(Path(__file__).read_bytes()),
         "executables": {
             "dwgadd": executable_identity(args.dwgadd),
             "dwgread": executable_identity(args.dwgread),
+            "dwgwrite": executable_identity(args.dwgwrite),
         },
         "scratchDirectory": str(root),
-        "styleHandles": handles,
         "samples": {},
         "limits": [
-            "The paired files are generated controls, not AutoCAD-authored samples.",
-            "LibreDWG output must pass native normal-open without recovery before any ObjectARX observation counts.",
-            "The exact entry target and MLINESTYLE values are source evidence only; this does not establish native duplicate-merge behavior or output qualification.",
+            "The paired files are locally generated and specification-directed controls, not AutoCAD-authored samples; native normal-open and duplicate-merge semantics remain unqualified.",
+            "Strict conversion still refuses unqualified opaque callbacks. Explicit partial ASCII/Binary output is source-profile evidence only and is not a completeness/support claim.",
+            "The matching key and distinct MLINESTYLE start angles are discriminating sample state only; this does not establish native duplicate-merge behavior.",
             "No DWG or DXF fixture is added to the repository.",
         ],
     }
 
-    for label, target_name, angle in (
-        ("destination", "Standard", 15),
-        ("source", "ProbeStyle", 37),
+    for label, angle in (
+        ("destination", 15),
+        ("source", 37),
     ):
-        target_handle = handles[target_name]
         recipe = root / f"{label}.dwgadd"
-        write_recipe(recipe, angle, target_handle)
+        write_recipe(recipe, angle)
+        initial = root / f"{label}-dwgadd-ac1012.dwg"
+        run([args.dwgadd, "--as", "r13", "-o", str(initial), str(recipe)])
         path = root / f"{label}-ac1012.dwg"
-        run([args.dwgadd, "--as", "r13", "-o", str(path), str(recipe)])
+        construction = materialize_r13_source(
+            initial, path, args.dwgread, args.dwgwrite, root, label)
         model = read_model(path, args.dwgread)
+        require(abs(model["targetStyle"]["startAngle"] - math.radians(angle)) < 1e-10,
+                "source MLINESTYLE start angle differs from the recipe")
         frame, frame_bytes = read_dictionary_frame(
-            path, args.dwgread, model["dictionaryHandle"])
+            path, args.dwgread, model["dictionaryHandle"],
+            model["dictionaryEntries"])
         require(model["dictionaryOwner"] == model["rootHandle"],
-                "TEST_DICT owner does not point to the NOD")
+                "ACAD_MLINESTYLE dictionary owner does not point to the NOD")
         require(frame["itemHandle"]["value"] == model["entry"]["targetHandle"],
                 "physical dictionary item handle differs from the peer model")
         require(frame["parent"]["value"] == model["rootHandle"],
@@ -254,39 +428,23 @@ def main() -> None:
                 "physical dictionary reactor does not resolve to the NOD")
         require(frame["xdictionary"]["value"] == 0,
                 "unexpected extension dictionary on this bounded profile")
-        require(model["targetStyle"]["name"] == target_name,
+        require(model["targetStyle"]["name"] == ENTRY_KEY,
                 "dictionary target does not identify the expected style")
+        require(model["targetStyle"]["ownerHandle"] == model["dictionaryHandle"],
+                "MLINESTYLE target owner does not point to ACAD_MLINESTYLE")
         require(frame["cloningField"] is None,
-                "AC1012 plain DICTIONARY unexpectedly reports a cloning field")
+                "AC1012 DICTIONARY unexpectedly reports a cloning field")
         candidate = None
+        candidate_partial = None
         if args.candidate:
-            candidate_path = Path(args.candidate).resolve()
-            candidate_output = root / f"{label}-candidate-strict.dxf"
-            sentinel = b"preserve prior DXF destination on strict refusal\n"
-            candidate_output.write_bytes(sentinel)
-            result = subprocess.run(
-                [str(candidate_path), str(path), "-o", str(candidate_output), "-y", "-d"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                timeout=120,
-                check=False,
-            )
-            log = result.stdout.decode(errors="replace")
-            preserved = candidate_output.read_bytes() == sentinel
-            require(result.returncode == 0 or preserved,
-                    "candidate replaced its destination after refusing strict output")
-            lines = [line.strip() for line in log.splitlines()
-                     if ("DWG read observations:" in line
-                         or "frameCoverageStatus=" in line
-                         or "Opaque callback dispositions:" in line
-                         or "DXF export preflight failed:" in line
-                         or "DXF export failed:" in line)]
-            candidate = {
-                "executable": executable_identity(str(candidate_path)),
-                "exitCode": result.returncode,
-                "destinationPreservedOnRefusal": preserved if result.returncode else None,
-                "outputSha256": sha(candidate_output.read_bytes()) if result.returncode == 0 else None,
-                "diagnostics": lines[-8:],
+            candidate = run_candidate(args.candidate, path, root, label, False)
+            candidate_partial = {
+                "ascii": run_candidate(
+                    args.candidate, path, root, label, True,
+                    expected_angle=float(angle)),
+                "binary": run_candidate(
+                    args.candidate, path, root, label, True, binary=True,
+                    expected_angle=float(angle)),
             }
         dictionary_frame_test = None
         if args.dictionary_source_test:
@@ -295,6 +453,7 @@ def main() -> None:
             frame_path.write_bytes(frame_bytes)
             result = subprocess.run(
                 [str(test_path), "--source-dictionary-frame", str(frame_path),
+                 str(model["dictionaryHandle"]), str(model["rootHandle"]),
                  str(model["entry"]["targetHandle"])],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -311,18 +470,20 @@ def main() -> None:
         results["samples"][label] = {
             "file": path.name,
             "recipe": recipe.name,
+            "construction": construction,
             "source": model,
             "wire": frame,
             "candidateStrict": candidate,
+            "candidatePartial": candidate_partial,
             "libdxfrwPhysicalFrameTest": dictionary_frame_test,
         }
 
     require(results["samples"]["destination"]["source"]["entry"]["name"]
             == results["samples"]["source"]["source"]["entry"]["name"],
             "paired dictionaries do not share the duplicate key")
-    require(results["samples"]["destination"]["source"]["entry"]["targetHandle"]
-            != results["samples"]["source"]["source"]["entry"]["targetHandle"],
-            "paired dictionary entries do not have distinct targets")
+    require(results["samples"]["destination"]["source"]["targetStyle"]["startAngle"]
+            != results["samples"]["source"]["source"]["targetStyle"]["startAngle"],
+            "paired MLINESTYLE targets do not have distinct values")
     receipt = root / "receipt.json"
     receipt.write_text(json.dumps(results, indent=2) + "\n")
     print(root)

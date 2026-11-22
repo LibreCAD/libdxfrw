@@ -564,6 +564,8 @@ bool dictionaryWireControl(bool nod, bool mlineOwner) {
 }
 
 bool populatedAc1012DictionaryFrame(const std::string& path,
+                                    std::uint32_t expectedDictionary,
+                                    std::uint32_t expectedParent,
                                     std::uint32_t expectedTarget) {
     std::ifstream input(path, std::ios::binary);
     const std::vector<std::uint8_t> bytes{
@@ -576,15 +578,33 @@ bool populatedAc1012DictionaryFrame(const std::string& path,
         return model.parseDwg(DRW::AC1012, &buffer, 0u) && buffer.isGood();
     };
     const auto matches = [&]() {
-        return model.handle == 0x2eu && model.parentHandle == 0x0cu
-            && model.reactorHandles == std::vector<std::uint32_t>{0x0cu}
+        bool selectedEntry = false;
+        for (const auto& entry : model.m_entries) {
+            if (entry.m_name == "SAME_KEY"
+                && entry.m_handle == expectedTarget) selectedEntry = true;
+        }
+        return model.handle == expectedDictionary
+            && model.parentHandle == expectedParent
+            && model.reactorHandles == std::vector<std::uint32_t>{expectedParent}
             && model.xDictHandle == 0u && model.legacyDwgCloningAbsent()
             && model.hasCompleteDwgEntries() && model.hasDwgCommonLinkTail()
-            && model.m_entries.size() == 1u
-            && model.m_entries.front().m_name == "SAME_KEY"
-            && model.m_entries.front().m_handle == expectedTarget;
+            && !model.m_entries.empty() && selectedEntry;
     };
-    if (!read(bytes) || !matches()) return false;
+    if (!read(bytes)) {
+        std::cerr << "AC1012 dictionary frame parser rejected physical frame\n";
+        return false;
+    }
+    if (!matches()) {
+        std::cerr << "AC1012 dictionary model mismatch: handle=" << model.handle
+                  << " parent=" << model.parentHandle << " reactors="
+                  << model.reactorHandles.size() << " entries="
+                  << model.m_entries.size() << " complete="
+                  << model.hasCompleteDwgEntries() << " common-tail="
+                  << model.hasDwgCommonLinkTail() << '\n';
+        for (const auto& entry : model.m_entries)
+            std::cerr << "  entry " << entry.m_name << " -> " << entry.m_handle << '\n';
+        return false;
+    }
 
     DRW_UnsupportedObject raw;
     raw.m_version = DRW::AC1012;
@@ -597,7 +617,10 @@ bool populatedAc1012DictionaryFrame(const std::string& path,
     raw.m_reactorHandles = model.reactorHandles;
     raw.m_xDictHandle = model.xDictHandle;
     raw.setCommonLinkEvidence(DRW_DwgCommonLinkEvidence::Validated);
-    if (!dx_legacy_dwg_wire::dictionary(raw, model, false)) return false;
+    if (!dx_legacy_dwg_wire::dictionary(raw, model, false)) {
+        std::cerr << "AC1012 dictionary shared source proof rejected physical frame\n";
+        return false;
+    }
 
     using dx_legacy_dwg_wire::Bits;
     Bits bits{bytes.data(), 0u, static_cast<std::uint32_t>(bytes.size() * 8u)};
@@ -608,19 +631,34 @@ bool populatedAc1012DictionaryFrame(const std::string& path,
     if (!dx_legacy_dwg_wire::frameStart(
             bits, DRW::AC1012, 42u, model.handle, model.reactorHandles.size(),
             noEed, bodyEnd)
-        || bits.longValue() != 1u
-        || !dx_legacy_dwg_wire::text(bits, "SAME_KEY")
-        || bits.pos != bodyEnd
-        || !dx_legacy_dwg_wire::commonTail(
-            bits, model.handle, model.parentHandle, model.reactorHandles, 0u))
+        || bits.longValue() != model.m_entries.size())
         return false;
-    const std::uint32_t roleBit = bits.pos;
-    if (!dx_legacy_dwg_wire::reference(bits, 2u, model.handle, expectedTarget)
-        || !dx_legacy_dwg_wire::padding(bits)) return false;
+    bool foundSelectedEntry = false;
+    for (const auto& entry : model.m_entries) {
+        if (!dx_legacy_dwg_wire::text(bits, entry.m_name)) return false;
+        if (entry.m_name == "SAME_KEY") {
+            if (entry.m_handle != expectedTarget) return false;
+            foundSelectedEntry = true;
+        }
+    }
+    if (!foundSelectedEntry || bits.pos != bodyEnd
+        || !dx_legacy_dwg_wire::commonTail(
+            bits, model.handle, model.parentHandle, model.reactorHandles, 0u)) {
+        std::cerr << "AC1012 dictionary independent frame walk failed\n";
+        return false;
+    }
+    std::uint32_t roleBit = 0u;
+    for (const auto& entry : model.m_entries) {
+        if (entry.m_name == "SAME_KEY") roleBit = bits.pos;
+        if (!dx_legacy_dwg_wire::reference(
+                bits, 2u, model.handle, entry.m_handle)) return false;
+    }
+    if (!dx_legacy_dwg_wire::padding(bits)) return false;
 
     auto wrongRole = bytes;
-    wrongRole[roleBit / 8u] ^=
-        static_cast<std::uint8_t>(0x80u >> (roleBit % 8u));
+    const auto hardOwnerRoleBit = roleBit + 3u;
+    wrongRole[hardOwnerRoleBit / 8u] ^=
+        static_cast<std::uint8_t>(0x80u >> (hardOwnerRoleBit % 8u));
     auto mutatedRaw = raw;
     mutatedRaw.m_rawBytes = wrongRole;
     if (dx_legacy_dwg_wire::dictionary(mutatedRaw, model, false)
@@ -802,10 +840,15 @@ bool run() {
 } // namespace
 
 int main(int argc, char** argv) {
-    if (argc == 4 && std::string(argv[1]) == "--source-dictionary-frame") {
+    if (argc == 6 && std::string(argv[1]) == "--source-dictionary-frame") {
         try {
-            const auto target = static_cast<std::uint32_t>(std::stoul(argv[3]));
-            if (populatedAc1012DictionaryFrame(argv[2], target)) {
+            const auto dictionary =
+                static_cast<std::uint32_t>(std::stoul(argv[3]));
+            const auto parent =
+                static_cast<std::uint32_t>(std::stoul(argv[4]));
+            const auto target = static_cast<std::uint32_t>(std::stoul(argv[5]));
+            if (populatedAc1012DictionaryFrame(
+                    argv[2], dictionary, parent, target)) {
                 std::cout << "physical AC1012 dictionary frame and role/refusal/retry: PASS\n";
                 return 0;
             }
