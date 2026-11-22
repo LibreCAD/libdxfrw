@@ -1293,6 +1293,7 @@ EXTRA_DIST = \
     tools/research/freecad_imported_sat_torus_bound_probe.py \
     tools/research/freecad_real_draft_mesh_layer_probe.py \
     tools/research/freecad_torus_bound_probe.py \
+    tools/research/generate_ac1012_dictionary_merge_samples.py \
     tools/research/generate_ac1012_dictionary_witness.py \
     tools/research/generate_acadrust_legacy_shape.py \
     tools/research/generate_legacy_dictionary_eed_control.py \
