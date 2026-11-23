@@ -20,7 +20,8 @@
   },
   "validation": {
     "command": "cmake --build build-gcc --target libdxfrw_dwg_ac1014_dictionaryvar_tests dwg2dxf -j4 && ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
-    "result": "PASS; -Werror build completed and focused CTest passed 1/1 in 0.17 seconds. The test exercises all four relative reactor encodings across AC1012/AC1014/AC1015, rejects them as reactor roles, and retains valid owner offsets.",
+    "result": "PASS; the -Werror target build is current and the focused CTest passed 1/1 at implementation revision ecc6eb28162b61da510f9546a521d8c904c62b84. The test exercises all four relative reactor encodings across AC1012/AC1014/AC1015, rejects them as reactor roles, and retains valid owner offsets.",
+    "implementationRevisionFocusedCtest": "PASS; 1/1 in 0.00 seconds, labels AC1012/AC1014/AC1015, dictionaryvar, dwg, fast, generated, transaction.",
     "implementationDigestSha256": "2f53ecf6c97862e374ad37095e14576cc2835a6647bf39970eafb9998b1232c7",
     "implementationDigestInputCount": 774
   },

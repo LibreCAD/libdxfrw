@@ -165,6 +165,10 @@ control rejects all four relative-offset encodings for reactors across
 AC1012/AC1014/AC1015 while preserving the relative owner and typed-null
 extension-dictionary paths. The test calls the shared legacy dictionary
 observer directly; see the [absolute-reactor receipt](docs/research/p6-ac1012-common-tail-absolute-reactors-2026-11-23.json).
+This shared framing, dictionary, and handle-role implementation was rechecked
+at implementation revision `ecc6eb28`; its `-Werror` target build is current and the
+focused CTest passes 1/1. This completes the local extraction/control slice;
+the separate native dictionary clone/merge witness remains open.
 The same self-contained CTest now builds an in-memory AC1012
 DICTIONARY object frame from the ODA §20.4.44 field sequence, including a
 relative soft-pointer parent, then checks the typed parser and shared observer,
