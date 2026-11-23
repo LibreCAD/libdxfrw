@@ -1120,6 +1120,8 @@ def check_partial_dwg_read_cli(converter, root, writer):
         strict_required = (
             b"DWG read observations: schema=1 operationSucceeded=true sourceVersion="
             + revision,
+            b"DWG entity-failure: handle=",
+            b"type=19 phase=3 block=",
             b"entityParseFailures=1",
             b"failed=1",
             b"sourceDwgEntityParseFailures=1",

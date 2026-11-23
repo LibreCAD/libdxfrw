@@ -1049,6 +1049,21 @@ void dwgReader::recordEntityFailure(const objHandle &object, std::int16_t type,
                                               ? blockRecordHandle
                                               : rawBlockEntityOwner,
                                           phase});
+    // Keep a bounded, source-identifying trace for -d investigations. The
+    // failure count alone cannot distinguish a typed-body defect from a
+    // common-link or identity rejection in a real drawing.
+    DRW_DBG("DWG entity-failure: handle=");
+    DRW_DBGH(object.handle);
+    DRW_DBG(" loc=");
+    DRW_DBG(object.loc);
+    DRW_DBG(" type=");
+    DRW_DBG(type);
+    DRW_DBG(" phase=");
+    DRW_DBG(static_cast<unsigned>(phase));
+    DRW_DBG(" block=");
+    DRW_DBGH(blockRecordHandle != DRW::NoHandle
+                 ? blockRecordHandle : rawBlockEntityOwner);
+    DRW_DBG("\n");
   } catch (...) {
     // Fixture attribution must never turn an existing parse failure into
     // a different observable result when reporting cannot allocate.

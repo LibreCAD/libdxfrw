@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-cli-entity-failure-attribution-trace-2026-11-23",
+  "date": "2026-11-23",
+  "status": "BOUNDED_DEBUG_ATTRIBUTION_IMPLEMENTED_AND_FAST_VALIDATED_SOURCE_NOT_ELIGIBLE",
+  "supportClaimEffect": "none",
+  "scope": "Expose the existing bounded per-entity failure attribution under DWG debug tracing and use it to classify an existing local AC1018 candidate without changing reader admission.",
+  "implementation": {
+    "files": [
+      "src/intern/dwgreader.cpp",
+      "tests/dwg2dxf_cli_contract_tests.py"
+    ],
+    "behavior": "Each of the existing capped entity-failure diagnostics now emits handle, source location, DWG type, phase index, and block context through DRW_DBG. Normal non-debug reads, parse decisions, failure counts, frame publication, and output guards are unchanged.",
+    "phaseIndex": 5,
+    "phaseName": "Identity"
+  },
+  "candidate": {
+    "path": "/Users/dli/doc/dwg/Extruder2.dwg",
+    "sha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+    "version": "AC1018",
+    "provenance": "Existing local source; author and producer are unauthenticated and the source is not committed.",
+    "peer": "GNU LibreDWG 0.14 independently identifies four OLE2FRAME records in its readback.",
+    "libdxfrw": {
+      "sourceFrames": 14713,
+      "publishedFrames": 14239,
+      "entityParseFailures": 474,
+      "objectParseFailures": 0,
+      "integrityRowsRetained": 16,
+      "integrityExtractionOmitted": 460,
+      "debugTraceRows": 64,
+      "first64FailurePhases": {
+        "identity": 64
+      },
+      "first64DwgTypes": {
+        "4 BLOCK": 8,
+        "31 SOLID": 10,
+        "19 LINE": 25,
+        "44 MTEXT": 10,
+        "5 ENDBLK": 8,
+        "27 POINT": 3
+      },
+      "interpretation": "The first 64 attribution records identify residual-sweep ownership/identity rejection, not an OLE2FRAME typed-body failure. They do not classify the remaining 410 failures. The source and incomplete integrity ledger remain ineligible for partial output."
+    }
+  },
+  "validation": {
+    "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_local_roundtrip -j2",
+    "focusedFast": "PASS: tests/dwg2dxf_cli_contract_tests.py --partial-read-only; 172 strict/partial/readback and recovery controls across supported revisions. Added assertions bind the debug trace to generated type-19 typed-body failures.",
+    "realSampleScreen": "dwg2dxf -d reports the existing 474 entity failures and emits the 64-record bounded diagnostic sample; strict export remains refused.",
+    "diffCheck": "PASS: git diff --check"
+  },
+  "limits": [
+    "The debug sample is bounded to the existing 64-record internal diagnostic cap and is not a complete failure census.",
+    "This unauthenticated source, its omitted integrity rows, and identity/ownership failures do not qualify organic partial ASCII/Binary output.",
+    "No DWG/DXF fixture was added and no support claim was promoted."
+  ]
+}
