@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-native-handoff-peer-readback-2026-11-23",
+  "date": "2026-11-23",
+  "status": "SPEC_DIRECTED_HANDOFF_PAIR_LIBREDWG_READBACK_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "scope": "Verify the exact scratch-only AC1012 destination/source pair packaged for a future native dictionary-clone witness.",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "sections": [
+      "9 HEADER VARIABLES: DIMSTYLE hard pointer",
+      "20.4.44 DICTIONARY",
+      "20.4.73 MLINESTYLE"
+    ],
+    "profile": "NOD -> ACAD_MLINESTYLE -> SAME_KEY; both entries target same-named MLINESTYLE records owned by ACAD_MLINESTYLE. The targets have distinct 15-degree and 37-degree start angles. The absent AC1012 group-281 cloning value has no inferred AutoCAD merge behavior."
+  },
+  "handoff": {
+    "archive": "/private/tmp/ac1012-spec-witness-pair-20261123.zip",
+    "archiveSha256": "e343bc3b29f7f79d7762ada6dbc648f75d8035e38e8203defcf8ae5cae47fcc3",
+    "contents": [
+      "README.md",
+      "manifest.json",
+      "destination-ac1012.dwg",
+      "source-ac1012.dwg"
+    ],
+    "producer": "GNU LibreDWG 0.14 dwgadd/dwgread/dwgwrite; locally generated from scratch and specification-directed, not AutoCAD-authored"
+  },
+  "peerReadback": {
+    "tool": "GNU LibreDWG dwgread",
+    "version": "0.14",
+    "command": "dwgread -O json <sample.dwg>",
+    "result": "Both commands exited 0 and emitted SUCCESS. The decoded OBJECTS census contains the expected NOD entry to ACAD_MLINESTYLE, the SAME_KEY entry to handle 46, and the same-named MLINESTYLE owned by dictionary handle 23.",
+    "samples": {
+      "destination-ac1012.dwg": {
+        "sha256": "5eedebb76de92404d37b95c0fdaadc4300499395340a46ddfa6f3b06d1546ce6",
+        "magic": "AC1012",
+        "dictionaryHandle": 23,
+        "sameKeyTargetHandle": 46,
+        "targetOwnerHandle": 23,
+        "targetStartAngleRadians": 0.26179938779915
+      },
+      "source-ac1012.dwg": {
+        "sha256": "252468c35714a4659d92fbcc539bef2268cdf29a5b48c61ffb11d4b8c7e92051",
+        "magic": "AC1012",
+        "dictionaryHandle": 23,
+        "sameKeyTargetHandle": 46,
+        "targetOwnerHandle": 23,
+        "targetStartAngleRadians": 0.6457718232379
+      }
+    }
+  },
+  "limits": [
+    "The peer decoder confirms sample structure and selected values, not AutoCAD normal-open or duplicate-key merge behavior.",
+    "Use fresh native processes, reject recovery-open, and record the explicit clone operation policy separately from AcDbDictionary::mergeStyle().",
+    "Keep the DWG/DXF controls in scratch storage; no files were added to the repository sample corpus."
+  ]
+}
