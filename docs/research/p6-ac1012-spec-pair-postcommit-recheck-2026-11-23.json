@@ -1,0 +1,85 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-spec-pair-postcommit-recheck-2026-11-23",
+  "date": "2026-11-23",
+  "supportClaimEffect": "none",
+  "status": "SPEC_DIRECTED_PAIR_REGENERATED_AND_CURRENT_CANDIDATE_CHECKED_NATIVE_SEMANTICS_OPEN",
+  "request": "Regenerate complete AC1012 DWG samples according to the versioned dictionary and MLINESTYLE specification after the current implementation commit; keep all generated files outside the repository.",
+  "authority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "§9 HEADER VARIABLES: DIMSTYLE is an H hard pointer",
+      "§20.4.44 DICTIONARY",
+      "§20.4.73 MLINESTYLE"
+    ],
+    "appliedLayout": "The AC1012 DICTIONARY frame has counted entry-name streams, soft-owner item handles, and no R2000+ cloning or hard-owner fields. ACAD_MLINESTYLE is rooted in NOD; each selected MLINESTYLE is owned by that dictionary; HEADER DIMSTYLE resolves to Standard."
+  },
+  "producer": {
+    "toolchain": "GNU LibreDWG 0.14 dwgadd/dwgread/dwgwrite; a specification-directed JSON rewrite binds HEADER DIMSTYLE to Standard",
+    "generator": "tools/research/generate_ac1012_dictionary_merge_samples.py",
+    "generatorSha256": "9b2a86e379f6676d51c9ba3efb0cfdbd7e1e0c2215bb957ec9e2e308b76a089e",
+    "candidateCommit": "f2035ca2",
+    "candidateExecutable": {
+      "path": "build-gcc/dwg2dxf/dwg2dxf",
+      "sha256": "dc753d44a42601e071c72f9e61cbde36cb9626d002bb13e670ac273a7a7c0e23"
+    },
+    "physicalFrameTest": {
+      "path": "build-gcc/tests/libdxfrw_dwg_ac1014_dictionaryvar_tests",
+      "sha256": "2348546b4fd0b56c6267294de42ac92009b0739c77404e04313a561f9a99dffb",
+      "result": "PASS for both exact physical DICTIONARY frames, including role/truncation refusal and corrected retry"
+    }
+  },
+  "scratchDirectory": "/private/tmp/ac1012-user-spec-followup-20261123/ac1012-dictionary-merge-buvd8iq6",
+  "samples": {
+    "destination": {
+      "file": "destination-ac1012.dwg",
+      "sha256": "5fb943c9637b93a4e6515f46b0d5b0616bd8e80e1c19648788400c4929be462a",
+      "dictionaryHandle": "0x17",
+      "nodHandle": "0xC",
+      "key": "SAME_KEY",
+      "targetMlineStyleHandle": "0x2E",
+      "targetOwner": "0x17",
+      "startAngleDegrees": 15,
+      "dictionaryFrameBytes": 38,
+      "dictionaryFrameSha256": "f742211bff5f5da8008ca8dbf2c1fd61a128fabe657b4f1ddc2d86e51c8fb75a"
+    },
+    "source": {
+      "file": "source-ac1012.dwg",
+      "sha256": "d840a01972dd99fbe718e44306b76565ac21983fdac4dc6e843b7781a6aa1c79",
+      "dictionaryHandle": "0x17",
+      "nodHandle": "0xC",
+      "key": "SAME_KEY",
+      "targetMlineStyleHandle": "0x2E",
+      "targetOwner": "0x17",
+      "startAngleDegrees": 37,
+      "dictionaryFrameBytes": 38,
+      "dictionaryFrameSha256": "f742211bff5f5da8008ca8dbf2c1fd61a128fabe657b4f1ddc2d86e51c8fb75a"
+    }
+  },
+  "currentCandidate": {
+    "strict": {
+      "result": "REFUSED",
+      "destinationPreserved": true,
+      "reason": "AC1012 ACAD_MLINESTYLE dictionary duplicate-merge semantics lack native qualification"
+    },
+    "explicitPartial": {
+      "ascii": {
+        "result": "PASS",
+        "sha256": "be5c08f494bb66a70fd922ef2f25d8df6583ef7401fc27a54b1f9593bca0fc90",
+        "boundedDictionaryTargetAudit": "PASS"
+      },
+      "binary": {
+        "result": "PASS",
+        "sha256": "742b031bad048794f916870911814067ce2c7331812e2da9e8f7ef429b3d311c",
+        "boundedDictionaryTargetAudit": "PASS"
+      }
+    },
+    "sourceRead": "Each sample parses with all 31 observed frames published and no failed, deferred, quarantined or unresolved frames."
+  },
+  "fixturePolicy": "The two complete DWGs and all emitted DXFs remain scratch-only; no fixture is added to Git.",
+  "limits": [
+    "The newly generated pair repeats the existing same-key 15/37-degree discriminator; it is a current-candidate recheck, not a new native-semantic discriminator.",
+    "LibreDWG is the sample producer and a peer parser, not an AutoCAD witness.",
+    "AutoCAD normal-open and duplicate-key import/clone behavior remain unknown; strict output remains guarded. No support claim is promoted."
+  ]
+}
