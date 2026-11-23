@@ -86,6 +86,12 @@ inline bool reference(Bits& bits, unsigned role, std::uint32_t base,
     return bits.good && h.value == expected && (expected != 0u || h.role == role);
 }
 
+inline bool absoluteReference(Bits& bits, unsigned role, std::uint32_t base,
+                               std::uint32_t expected) noexcept {
+    const auto h = handle(bits, role, base);
+    return bits.good && h.role == role && h.value == expected;
+}
+
 // Object-data size precedes the self handle in R2000, but follows EED in
 // R13/R14. The caller supplies the EED observer and validates object fields
 // before comparing its final position with bodyEnd.
@@ -103,14 +109,15 @@ bool frameStart(Bits& bits, DRW::Version version, std::uint32_t type,
         && bodyEnd >= bits.pos && bodyEnd <= bits.end;
 }
 
-// These versions all store owner and reactors as soft pointers and the
-// extension dictionary as a hard-owner handle, including a typed null.
+// These versions store the owner as a soft pointer (including relative soft
+// pointer encodings), reactors as absolute soft pointers, and the extension
+// dictionary as a hard-owner handle, including a typed null.
 template<class Reactors>
 bool commonTail(Bits& bits, std::uint32_t id, std::uint32_t owner,
                 const Reactors& reactors, std::uint32_t xdictionary) noexcept {
     if (!reference(bits, 4u, id, owner)) return false;
     for (const auto reactor : reactors)
-        if (!reference(bits, 4u, id, reactor)) return false;
+        if (!absoluteReference(bits, 4u, id, reactor)) return false;
     return reference(bits, 3u, id, xdictionary);
 }
 

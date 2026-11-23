@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 #include "dx_ac1014_dictionaryvar_wire.h"
+#include "dx_legacy_dwg_wire.h"
 #include "dx_legacy_mlinestyle_wire.h"
 #include "drw_entities.h"
 #include "intern/dwgbuffer.h"
 #include "intern/dwgbufferw.h"
 
+#include <array>
 #include <cstdint>
 #include <fstream>
 #include <iostream>
@@ -36,7 +38,10 @@ bool sharedLegacyFrameControl() {
     using namespace dx_legacy_dwg_wire;
     const auto bytesFor = [](DRW::Version version, std::uint32_t end,
                              unsigned ownerRole, unsigned reactorRole,
-                             unsigned extensionRole) {
+                             unsigned extensionRole, unsigned ownerLength = 1u,
+                             std::uint32_t ownerValue = 0x20u,
+                             unsigned reactorLength = 1u,
+                             std::uint32_t reactorValue = 0x21u) {
         dwgBufferW w;
         w.putObjType(version, 73u);
         if (version == DRW::AC1015) w.putRawLong32(end);
@@ -44,8 +49,8 @@ bool sharedLegacyFrameControl() {
         w.putBitShort(0u);
         if (version != DRW::AC1015) w.putRawLong32(end);
         w.putBitLong(1u);
-        w.putFixedHandle(ownerRole, 1u, 0x20u);
-        w.putFixedHandle(reactorRole, 1u, 0x21u);
+        w.putFixedHandle(ownerRole, ownerLength, ownerValue);
+        w.putFixedHandle(reactorRole, reactorLength, reactorValue);
         w.putFixedHandle(extensionRole, 0u, 0u);
         w.put2Bits(0u);
         return w.data();
@@ -59,12 +64,38 @@ bool sharedLegacyFrameControl() {
             && commonTail(bits, 0x31u, 0x20u, std::vector<std::uint32_t>{0x21u}, 0u)
             && padding(bits);
     };
+    const auto rejectsRelativeReactor = [&](DRW::Version version, unsigned role,
+                                            unsigned length, std::uint32_t offset,
+                                            std::uint32_t target) {
+        const auto bytes = bytesFor(version, 70u, 4u, role, 3u,
+                                    1u, 0x20u, length, offset);
+        Bits bits{bytes.data(), 0u, static_cast<std::uint32_t>(bytes.size() * 8u)};
+        std::uint32_t bodyEnd = 0u;
+        const auto noEed = [](Bits& b) noexcept { return b.shortValue() == 0u && b.good; };
+        if (!frameStart(bits, version, 73u, 0x31u, 1u, noEed, bodyEnd)
+            || bits.pos > bodyEnd || !bits.skip(bodyEnd - bits.pos)) return false;
+        auto decoded = bits;
+        const auto parent = handle(decoded, 4u, 0x31u);
+        const auto reactor = handle(decoded, 4u, 0x31u);
+        if (!decoded.good || parent.value != 0x20u || reactor.role != role
+            || reactor.value != target) return false;
+        return !commonTail(bits, 0x31u, 0x20u,
+                           std::vector<std::uint32_t>{target}, 0u);
+    };
     for (const auto version : {DRW::AC1012, DRW::AC1014, DRW::AC1015}) {
         const auto valid = bytesFor(version, 70u, 4u, 4u, 3u);
         if (!check(valid, version) || check(bytesFor(version, 69u, 4u, 4u, 3u), version)
             || check(bytesFor(version, 113u, 4u, 4u, 3u), version)
             || check(valid, version == DRW::AC1015 ? DRW::AC1014 : DRW::AC1015)
             || !check(valid, version)) return false;
+        for (const auto& relative : {
+                 std::array<std::uint32_t, 3>{{6u, 0u, 0x32u}},
+                 std::array<std::uint32_t, 3>{{8u, 0u, 0x30u}},
+                 std::array<std::uint32_t, 3>{{10u, 1u, 0x32u}},
+                 std::array<std::uint32_t, 3>{{12u, 1u, 0x30u}}})
+            if (!rejectsRelativeReactor(version, relative[0], relative[1],
+                                        relative[1] == 0u ? 0u : 1u,
+                                        relative[2])) return false;
         // The common-tail helper is shared by the legacy DICTIONARY and
         // MLINESTYLE source observers. Check every handle-role nibble at each
         // position, including the typed-null extension-dictionary handle.
@@ -672,7 +703,7 @@ bool terminatedDictionaryControl(DRW::Version version) {
     raw.m_reactorHandles = model.reactorHandles;
     raw.m_xDictHandle = model.xDictHandle;
     raw.setCommonLinkEvidence(DRW_DwgCommonLinkEvidence::Validated);
-    if (!dx_ac1014_dictionaryvar_wire::dictionary(raw, model, false, true)) return false;
+    if (!dx_legacy_dwg_wire::dictionary(raw, model, false, true)) return false;
     for (std::size_t bit = 0; bit < bytes.size() * 8u; ++bit) {
         auto changed = raw;
         changed.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
@@ -681,7 +712,7 @@ bool terminatedDictionaryControl(DRW::Version version) {
     }
     auto wrongVersion = raw;
     wrongVersion.m_version = version == DRW::AC1012 ? DRW::AC1014 : DRW::AC1012;
-    return !dx_ac1014_dictionaryvar_wire::dictionary(wrongVersion, model, false, true);
+    return !dx_legacy_dwg_wire::dictionary(wrongVersion, model, false, true);
 }
 
 bool dictionaryWireControl(bool nod, bool mlineOwner) {
@@ -727,14 +758,14 @@ bool dictionaryWireControl(bool nod, bool mlineOwner) {
     raw.m_reactorHandles = model.reactorHandles;
     raw.m_xDictHandle = model.xDictHandle;
     raw.setCommonLinkEvidence(DRW_DwgCommonLinkEvidence::Validated);
-    if (!dx_ac1014_dictionaryvar_wire::dictionary(raw, model, nod, mlineOwner)) {
+    if (!dx_legacy_dwg_wire::dictionary(raw, model, nod, mlineOwner)) {
         std::cerr << "dictionary rejected: nod=" << nod << " mline=" << mlineOwner << '\n';
         return false;
     }
     for (std::size_t bit = 0; bit < bytes.size() * 8u; ++bit) {
         auto changed = raw;
         changed.m_rawBytes[bit / 8u] ^= static_cast<std::uint8_t>(0x80u >> (bit % 8u));
-        const bool accepted = dx_ac1014_dictionaryvar_wire::dictionary(changed, model, nod, mlineOwner);
+        const bool accepted = dx_legacy_dwg_wire::dictionary(changed, model, nod, mlineOwner);
         const std::size_t paddingBits = nod ? 2u : 6u;
         if (accepted != (bit >= bytes.size() * 8u - paddingBits)) {
             std::cerr << "dictionary mutation: nod=" << nod << " mline=" << mlineOwner << " bit=" << bit << " accepted=" << accepted << '\n';
