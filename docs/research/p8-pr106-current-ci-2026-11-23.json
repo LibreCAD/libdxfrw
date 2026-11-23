@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-current-ci-2026-11-23",
+  "date": "2026-11-23",
+  "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+  "head": "5c3715b9bc57c3b3c1dba49f7909e77d3491306d",
+  "observedAtUtc": "2026-11-23 18:31 UTC",
+  "checks": {
+    "source-release": {
+      "runId": 45237445348,
+      "jobId": 137912822916,
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    "fast-regressions": {
+      "runId": 45237445348,
+      "jobId": 137912820111,
+      "status": "queued",
+      "conclusion": null
+    },
+    "qualification workflow contract": {
+      "runId": 45237445352,
+      "jobId": 137912812285,
+      "status": "queued",
+      "conclusion": null
+    }
+  },
+  "supportClaimEffect": "none",
+  "limits": [
+    "The refreshed implementation digest is published; these queued checks have not yet validated it.",
+    "No qualification claim or release gate is promoted by this status snapshot."
+  ]
+}

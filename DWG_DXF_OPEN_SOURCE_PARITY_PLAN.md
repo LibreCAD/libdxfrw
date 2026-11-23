@@ -25,9 +25,13 @@ The next test-only role-matrix addition changed the selected implementation
 digest, so the exact PR head `7d92fa043c634315e751ae3cf0c385711273a1ac`
 failed the qualification workflow contract on its stale overlay. The clean
 worktree digest is now `c4a5c04e41d56ad6bc14249048a8e1dc9232b03bd1e3af8df8875c1bf1694e4a`
-for 774 inputs; the refreshed overlay and focused receipt are being
-revalidated on the next source head. See the
-[digest repair receipt](docs/research/p8-pr106-relative-owner-digest-refresh-2026-11-23.json).
+for 774 inputs, and the refreshed overlay is published. At PR source head
+`5c3715b9bc57c3b3c1dba49f7909e77d3491306d`, fast regressions and the
+qualification workflow contract were queued; source-release was skipped. The
+documentation update that records this state starts a new check cycle; use the
+PR's head-bound checks for current status. See the
+[digest repair receipt](docs/research/p8-pr106-relative-owner-digest-refresh-2026-11-23.json)
+and [CI snapshot](docs/research/p8-pr106-current-ci-2026-11-23.json).
 
 The recorded consumer baselines are libdxfrw `master` `d68fb1ed937ad2a74a54f6208277ec10a1b031b0`,
 LibreCAD `master` `78014ecde2f53fdd8c06453f3854b1cae1a3fd0d`, LibreCAD_3
@@ -197,7 +201,7 @@ The clean-checkout qualification implementation digest and workflow/support
 contracts also pass at `2f53ecf6` with no claim promotion.
 The [fresh LibreDWG-generated sample recheck](docs/research/p6-ac1012-dictionary-generated-recheck-2026-11-21.json) reproduces the version boundary, with R2000 cloning 0/1 controls; its fresh ODA reopen was unavailable due to the macOS pasteboard service. A [new scratch generation](docs/research/p5-librecad-table-projection-ac1012-sample-recheck-2026-11-22.json) repeats the six controls and records the continuing ODA service failure; generated layouts cannot determine native duplicate behavior.
 The [repeatable independent readback](docs/research/p6-generated-dictionary-ezdxf-peer-2026-11-22.json) checks the successful generated R14/R2000 ASCII and binary projections, including selected dictionary links and 3D line geometry; it does not resolve R13 native merge behavior. The [paired populated AC1012 controls](docs/research/p6-ac1012-populated-dictionary-merge-samples-2026-11-22.json) now use the canonical `NOD -> ACAD_MLINESTYLE -> SAME_KEY` graph. Each file points that key to a same-named MLINESTYLE owned by its dictionary; the target start angles differ (15 and 37 degrees). The generator binds the current DIMSTYLE header hard pointer to the unique Standard record as directed by ODA §9, then rewrites each file as AC1012. Physical frame and CRC checks cover the counted name region, common links, and role-2 soft-owner item handles. The C++ parser and shared observer accept each frame; wrong item roles and every truncation refuse, reset state, and pass corrected retry. `dwg2dxf` reads and publishes all 31 observed frames. Strict export preserves its destination while failing closed on six unqualified opaque view callbacks. Explicit partial ASCII and Binary outputs pass the local wire audit for dictionary ownership, the SAME_KEY target identity/value, and group 281=0 in the emitted R2010 dictionaries; this is bounded projection evidence, not independent consumer or native acceptance. A [primary Autodesk API review and fresh pair regeneration](docs/research/p6-ac1012-autodesk-dictionary-clone-semantics-2026-11-22.json) confirms that DXF group 281 modes, dictionary `mergeStyle()`, and the `WblockCloneObjects` operation argument are separate documented controls; the docs do not specify the in-memory default when an AC1012 group 281 is absent. A [2026-11-23 regeneration](docs/research/p6-ac1012-spec-pair-refresh-2026-11-23.json) again creates a complete spec-directed AC1012 DWG pair, passes the parser/role/refusal/retry check and bounded ASCII/Binary audits, and preserves strict refusal. AutoCAD normal-open and duplicate-merge behavior remain unqualified; the fresh pair does not close that gate. The ODA File Converter 27.1 attempt aborted before conversion with pasteboard/XPC errors. Retain the strict guard. The generated DWG/DXF files remain scratch-only.
-The [current-build spec pair recheck](docs/research/p6-ac1012-current-build-spec-pair-2026-11-23.json) regenerates the two AC1012 DWGs with the current `dwg2dxf` and focused C++ test binaries. The pair shares the same 38-byte DICTIONARY frame and has different `SAME_KEY` MLINESTYLE angles; physical role/truncation refusal, reset and corrected retry pass. Strict export preserves its destination, while explicit partial ASCII/Binary projections pass the bounded dictionary/target audits. The ODA 27.1 CLI ACAD13-DWG attempt still aborts with pasteboard/XPC errors; its GUI run converted only to AC1024 ASCII DXF and produced no AC1012 DWG. This does not qualify AutoCAD normal-open or duplicate-merge behavior. Keep the strict guard and keep all generated DWG/DXF files in scratch.
+The [current-build spec pair recheck](docs/research/p6-ac1012-current-build-spec-pair-2026-11-23.json) regenerates the two AC1012 DWGs with the current `dwg2dxf` and focused C++ test binaries. The pair shares the same 38-byte DICTIONARY frame and has different `SAME_KEY` MLINESTYLE angles; physical role/truncation refusal, reset and corrected retry pass. Strict export preserves its destination, while explicit partial ASCII/Binary projections pass the bounded dictionary/target audits. The ODA 27.1 CLI ACAD13-DWG attempt still aborts with pasteboard/XPC errors; its earlier GUI run converted only to AC1024 ASCII DXF and produced no AC1012 DWG. A retry after the reported unlock again aborted before conversion, and Computer Use found no ODA window; see the [unlocked retry receipt](docs/research/p6-ac1012-oda-unlocked-retry-2026-11-23.json). This does not qualify AutoCAD normal-open or duplicate-merge behavior. Keep the strict guard and keep all generated DWG/DXF files in scratch.
 They bind the absent R13/R14 plain-DICTIONARY cloning field and show that ODA's selected R14
 output omits group 281 while its R2000 output writes 1; they do not establish
 native duplicate behavior. The ODA sources also contain APPID-bound dictionary
@@ -331,10 +335,12 @@ The #460 follow-up at `113111eca15d698bbc8132374b6bc27ad2c99e2d` closes the
 input stream before the rational-SPLINE test truncates or removes its file on
 Windows, and maps S3 in the affected rational-HATCH and standalone SPLINE
 receipt rows. On this exact head, Plan Sync, Windows persistence, DWG
-sanitizer, and Linux ARM64 checks pass. Windows and Linux builds, macOS app
-bundles, AppImage packaging, and static analysis remain in progress. See the
+sanitizer, Windows/Linux x64/Linux ARM64 builds, macOS x86_64/arm64 app bundles,
+AppImage, and Python analysis pass. C++ analysis remains in progress; CodeQL
+is neutral because the C++ configuration was not found. See the
 [follow-up receipt](docs/research/p8d-librecad3-pr460-windows-test-cleanup-2026-11-23.json).
-Do not count the Windows gate until the remaining required checks pass.
+Do not count consumer qualification until all required checks and native GUI
+gates pass.
 
 For PLOTSETTINGS, qualify additional source, version, EED, reactor, remap and
 edited-plot profiles only after their source and native semantics are
