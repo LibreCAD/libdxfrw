@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-3289-system-codec-compile-2026-11-23",
+  "status": "UPSTREAM_CODEC_FILTER_COMPILE_PASS_GUI_AND_FULL_APP_LINK_OPEN",
+  "supportClaimEffect": "none",
+  "libdxfrw": {
+    "commit": "7e6c646869b4804407ecd09996f70b460b622d8d",
+    "installedLibrary": "/private/tmp/libdxfrw-p8d-current-20261123-install/lib/libdxfrw.3.0.0.dylib",
+    "installedLibrarySha256": "09041857fd7770d21986c01a3969f6cacd988fac2c2c094fd38dd89a2eb05653"
+  },
+  "consumer": {
+    "repository": "LibreCAD/LibreCAD",
+    "pullRequest": 3289,
+    "head": "f5477f98a051f2e9e41ffaf9858a9e8c153821fe",
+    "configuration": {
+      "LIBRECAD_USE_SYSTEM_LIBDXFRW": true,
+      "BUILD_TESTS": false,
+      "prefixPath": "/private/tmp/libdxfrw-p8d-current-20261123-install;/opt/homebrew/opt/qt"
+    },
+    "target": "librecad_filter_compile_check",
+    "result": "PASS",
+    "compiledObjectSha256": "b8b9ccb19e2f9aad5f738266acdad23b0090f4085687cb0575b6ff2fd02e6dad",
+    "sourceSha256": "0186dba9c7898cfc42b79280b24ce49a8b13e0ca27034572a819aee16f4f0dc8"
+  },
+  "additionalBuild": {
+    "target": "librecad",
+    "result": "NOT_COMPLETED",
+    "note": "The full application build was scope-limited after the focused adapter compile passed; no app link or runtime is claimed."
+  },
+  "limits": [
+    "This verifies compilation of LibreCAD's DXF/DWG adapter against the installed upstream public headers and system-codec configuration; it does not prove application link, runtime behavior, drawing semantics, or GUI behavior.",
+    "P8-D remains open for LibreCAD 2 native save/reopen/render/edit and LibreCAD_3 MPOLYGON qualification on final candidates.",
+    "No support claim is promoted."
+  ]
+}
