@@ -1039,7 +1039,9 @@ void dwgReader::recordEntityFailure(const objHandle &object, std::int16_t type,
                                     DwgEntityFailurePhase phase,
                                     std::uint32_t blockRecordHandle,
                                     bool handleMismatch,
-                                    bool ownerMismatch) noexcept {
+                                    bool ownerMismatch,
+                                    std::uint32_t missingOwnerRecordHandle)
+    noexcept {
   if (phase == DwgEntityFailurePhase::None ||
       m_entityFailureDiagnostics.size() >=
           dwgSafety::MaxEntityFailureDiagnostics) {
@@ -1051,7 +1053,8 @@ void dwgReader::recordEntityFailure(const objHandle &object, std::int16_t type,
                                               ? blockRecordHandle
                                               : rawBlockEntityOwner,
                                           phase, handleMismatch,
-                                          ownerMismatch});
+                                          ownerMismatch,
+                                          missingOwnerRecordHandle});
     // Keep a bounded, source-identifying trace for -d investigations. The
     // failure count alone cannot distinguish a typed-body defect from a
     // common-link or identity rejection in a real drawing.
@@ -1066,7 +1069,8 @@ void dwgReader::recordEntityFailure(const objHandle &object, std::int16_t type,
     DRW_DBG(" block=");
     DRW_DBGH(blockRecordHandle != DRW::NoHandle
                  ? blockRecordHandle : rawBlockEntityOwner);
-    if (handleMismatch || ownerMismatch) {
+    if (handleMismatch || ownerMismatch ||
+        missingOwnerRecordHandle != DRW::NoHandle) {
       DRW_DBG(" identity=");
       if (handleMismatch)
         DRW_DBG("handle");
@@ -1074,6 +1078,13 @@ void dwgReader::recordEntityFailure(const objHandle &object, std::int16_t type,
         DRW_DBG(",");
       if (ownerMismatch)
         DRW_DBG("owner");
+      if ((handleMismatch || ownerMismatch) &&
+          missingOwnerRecordHandle != DRW::NoHandle)
+        DRW_DBG(",");
+      if (missingOwnerRecordHandle != DRW::NoHandle) {
+        DRW_DBG("missing-owner-record=");
+        DRW_DBGH(missingOwnerRecordHandle);
+      }
     }
     DRW_DBG("\n");
   } catch (...) {
@@ -12293,8 +12304,9 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
               dwgBuffer handleBuffer = buff.forkIndependent();
               ownerKnown = ownerProbe.readLegacyOwnerHandle(handleBuffer, owner);
             }
-            if (ownerKnown && blockRecordmap.find(owner) ==
-                                  blockRecordmap.end()) {
+            const bool missingOwnerRecord = ownerKnown &&
+                blockRecordmap.find(owner) == blockRecordmap.end();
+            if (missingOwnerRecord) {
               if (m_orphanedEntityRejections !=
                   std::numeric_limits<std::uint64_t>::max())
                 ++m_orphanedEntityRejections;
@@ -12305,7 +12317,9 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
             m_currentEntityFailurePhase = DwgEntityFailurePhase::Identity;
             recordEntityFailure(obj, oType, m_currentEntityFailurePhase,
                                 DRW::NoHandle, parsedEntityHandleMismatch,
-                                parsedEntityOwnerMismatch);
+                                parsedEntityOwnerMismatch,
+                                missingOwnerRecord ? owner
+                                                   : DRW::NoHandle);
             return false;
           }
         }

@@ -7473,6 +7473,12 @@ void testOrphanEntitySweepRecovery(TestContext& t) {
     t.expect(sink.modeler.size() == 1u
                  && sink.modeler.front().entity.handle == validHandle,
              "orphan rejection does not block publication of the valid peer");
+    t.expect(reader.entityFailures().size() == 1u
+                 && reader.entityFailures().front().handle == orphanHandle
+                 && reader.entityFailures().front().missingOwnerRecordHandle
+                        == missingOwner
+                 && !reader.entityFailures().front().ownerMismatch,
+             "orphan trace distinguishes a missing owner record from a mismatched parsed owner");
 
     std::vector<DwgIntegrityDiagnostic> orphanDiagnostics;
     for (const DwgIntegrityDiagnostic& diagnostic :

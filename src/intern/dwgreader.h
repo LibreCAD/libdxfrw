@@ -1206,6 +1206,7 @@ public:
     DwgEntityFailurePhase phase{DwgEntityFailurePhase::None};
     bool handleMismatch{false};
     bool ownerMismatch{false};
+    std::uint32_t missingOwnerRecordHandle{DRW::NoHandle};
   };
 
   dwgReader(std::unique_ptr<dwgBuffer> buffer, dwgRW *p)
@@ -1760,7 +1761,9 @@ protected:
                       DwgEntityFailurePhase phase,
                       std::uint32_t blockRecordHandle = DRW::NoHandle,
                       bool handleMismatch = false,
-                      bool ownerMismatch = false) noexcept;
+                      bool ownerMismatch = false,
+                      std::uint32_t missingOwnerRecordHandle =
+                          DRW::NoHandle) noexcept;
   [[nodiscard]] bool readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
                                    DwgIntegrityAddressSpace offsetSpace =
                                        DwgIntegrityAddressSpace::DecodedBuffer);

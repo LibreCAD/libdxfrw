@@ -35,6 +35,11 @@ qualification workflow contract passed; source-release was skipped. See the
 [digest repair receipt](docs/research/p8-pr106-relative-owner-digest-refresh-2026-11-23.json)
 and [CI snapshot](docs/research/p8-pr106-current-ci-2026-11-23.json).
 
+The later local diagnostic commits recorded below changed the implementation
+digest after these PR CI receipts. Do not treat those checks as validation of
+the current worktree; refresh the clean-input digest and hosted checks before
+integration.
+
 The recorded consumer baselines are libdxfrw `master` `d68fb1ed937ad2a74a54f6208277ec10a1b031b0`,
 LibreCAD `master` `78014ecde2f53fdd8c06453f3854b1cae1a3fd0d`, LibreCAD_3
 `master` `4fb48312708b39d499f7e6668104a3b54a8601c7`, and FreeCAD `main`
@@ -163,7 +168,7 @@ see the [callback boundary](docs/research/p5-tablecontent-semantic-incomplete-ca
 
 For R14 source and output changes, reuse the [PR review regression controls](docs/research/p6-pr106-r14-conversion-review-fixes-2026-11-20.json). The [generated R13/R14/R2000 implicit INSERT chains](docs/research/p6-generated-legacy-implicit-insert-exact-angle-2026-11-21.json) exercise the next-link fix with complete scratch DWGs. R13 explicit-partial and R14 strict/partial outputs pass independent ASCII/Binary geometry readback; R14 also passes same-adapter refusal/retry. The earlier [R14 refusal](docs/research/p6-generated-legacy-implicit-insert-chain-2026-11-21.json) used a JSON-rounded angle. These controls do not close the organic-failure gate or establish broad support.
 
-The bounded [debug entity-failure attribution](docs/research/p6-cli-entity-failure-attribution-trace-2026-11-23.json) now prints handle, source location, DWG type, failure phase and block context for the existing first 64 diagnostic rows. On the local AC1018 `Extruder2.dwg` candidate, all 64 sampled failures are identity/ownership rejections across BLOCK, SOLID, LINE, MTEXT, ENDBLK and POINT; this does not classify the remaining 410 failures. The source is unauthenticated, and 460 integrity rows were omitted, so it remains ineligible for partial output. Preserve strict owner checks and do not use this source to close P6-F.
+The bounded [debug entity-failure attribution](docs/research/p6-cli-entity-failure-attribution-trace-2026-11-23.json) prints handle, source location, DWG type, phase, block context, parsed identity flags, and a known missing `BLOCK_RECORD` target for the first 64 diagnostic rows. On the local AC1018 `Extruder2.dwg` candidate, those rows map to eight missing owner targets across BLOCK, SOLID, LINE, MTEXT, ENDBLK and POINT. LibreDWG 0.14 independently retains all 64 entity rows and the same owner references, with no object at any of those target handles. ODA v5.4.1 §20.4.52 documents the versioned BLOCK HEADER handle links that frame this relationship; it does not validate the unauthenticated sample. The evidence classifies these rows as missing-owner targets, not typed-body failures, but does not classify the remaining 410 failures. The source is unauthenticated, and 460 integrity rows were omitted, so it remains ineligible for partial output. Preserve strict owner checks and do not use this source to close P6-F.
 
 The same bounded debug line now adds `identity=handle`, `identity=owner`, or
 both when those parsed mismatch flags are available. A generated wrong-owner

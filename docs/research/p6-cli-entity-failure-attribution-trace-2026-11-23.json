@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p6-cli-entity-failure-attribution-trace-2026-11-23",
   "date": "2026-11-23",
-  "status": "BOUNDED_DEBUG_ATTRIBUTION_AND_IDENTITY_FLAGS_IMPLEMENTED_FAST_VALIDATED_SOURCE_NOT_ELIGIBLE",
+  "status": "BOUNDED_DEBUG_ATTRIBUTION_AND_OWNER_TARGETS_IMPLEMENTED_FAST_VALIDATED_SOURCE_NOT_ELIGIBLE",
   "supportClaimEffect": "none",
   "scope": "Expose the existing bounded per-entity failure attribution under DWG debug tracing and use it to classify an existing local AC1018 candidate without changing reader admission.",
   "implementation": {
@@ -12,8 +12,8 @@
       "tests/dwg_reader_matrix_tests.cpp",
       "tests/dwg2dxf_cli_contract_tests.py"
     ],
-    "behavior": "Each of the existing capped entity-failure diagnostics emits handle, source location, DWG type, phase index, and block context through DRW_DBG. When the parser has explicit per-frame identity evidence, it also emits identity=handle, identity=owner, or both. Normal non-debug reads, parse decisions, failure counts, frame publication, and output guards are unchanged.",
-    "identityDetail": "The generated AC1027 wrong-owner modeler frame records ownerMismatch=true and handleMismatch=false in the internal diagnostic. The local Extruder2 first-64 rows contain no explicit identity flags, so this detail does not further classify that source's block-scope failures.",
+    "behavior": "Each of the existing capped entity-failure diagnostics emits handle, source location, DWG type, phase index, and block context through DRW_DBG. When known, identity details include parsed handle mismatch, parsed owner mismatch, or the exact missing BLOCK_RECORD target. Normal non-debug reads, parse decisions, failure counts, frame publication, and output guards are unchanged.",
+    "identityDetail": "Generated AC1027 wrong-owner and orphan controls distinguish ownerMismatch from missingOwnerRecordHandle. The local Extruder2 first-64 rows identify missing owner-record targets by handle.",
     "phaseIndex": 5,
     "phaseName": "Identity"
   },
@@ -24,10 +24,11 @@
     "provenance": "Existing local source; author and producer are unauthenticated and the source is not committed.",
     "peer": "GNU LibreDWG 0.14 independently identifies four OLE2FRAME records in its readback.",
     "debugRun": {
-      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/Extruder2.dwg -y -d -v2010 /private/tmp/Extruder2.identity-flags.dxf",
-      "converterSha256": "d8dff499212468be20b5d0bbe8c2aa762846fdc05e3dcb472ac987f05184d7ff",
-      "logPath": "/private/tmp/Extruder2.identity-flags.log",
-      "logSha256": "4c5e30de9ac2db90390f44831f0d9d3a684c8be6fbf8bde26474dd6e3d64ca4b"
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/Extruder2.dwg -y -d -v2010 /private/tmp/Extruder2.owner-handle.dxf",
+      "converterSha256": "a827a6d9960321e658eda7af06c03c012582525e2e764b0a4f132a7ba0b8f7b4",
+      "logPath": "/private/tmp/Extruder2.owner-handle.log",
+      "logSha256": "ecbdecdee85b7d4616f9671d6b38df72d0917cea699d456664a3b764f0297122",
+      "exit": 1
     },
     "libdxfrw": {
       "sourceFrames": 14713,
@@ -40,7 +41,16 @@
       "first64FailurePhases": {
         "identity": 64
       },
-      "first64ExplicitIdentityFlags": 0,
+      "first64MissingOwnerRecordHandles": {
+        "0x4883": 10,
+        "0x488e": 10,
+        "0x4899": 11,
+        "0x48a5": 11,
+        "0x48ff": 12,
+        "0x490c": 6,
+        "0x4919": 2,
+        "0x4927": 2
+      },
       "first64DwgTypes": {
         "4 BLOCK": 8,
         "31 SOLID": 10,
@@ -49,17 +59,31 @@
         "5 ENDBLK": 8,
         "27 POINT": 3
       },
-      "interpretation": "The first 64 attribution records identify residual-sweep ownership/identity rejection, not an OLE2FRAME typed-body failure. They do not classify the remaining 410 failures. The source and incomplete integrity ledger remain ineligible for partial output."
+      "interpretation": "All first 64 attribution records are entities whose parsed owner points to one of eight missing BLOCK_RECORD targets; they are not typed-body failures. LibreDWG 0.14 JSON contains all 64 corresponding entity records with the same owner references and no object at any of the eight target handles. This cross-reader agreement does not establish producer validity or classify the remaining 410 failures. The source and incomplete integrity ledger remain ineligible for partial output."
     }
+  },
+  "peerCrossCheck": {
+    "tool": "GNU LibreDWG 0.14",
+    "command": "dwgread -O JSON -o /private/tmp/Extruder2.peer.json /Users/dli/doc/dwg/Extruder2.dwg",
+    "exit": 0,
+    "peerJsonSha256": "cce18602d90ddff40d0c71164d6d4d29f6a539b981c9ec2a42408d24bce1142d",
+    "result": "The independent JSON contains one matching entity row for every one of the 64 traced handles, retains each same owner handle, and contains no object with any of the eight owner target handles listed above."
+  },
+  "authority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "localPath": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "section": "§20.4.52 BLOCK HEADER",
+    "finding": "The BLOCK HEADER common handle sequence identifies the BLOCK entity as a hard-owned link and, for R13-R2000, the first and last entities in the block definition as soft pointers. This is the versioned context for interpreting the observed owner and block-definition links; it does not validate the unauthenticated sample."
   },
   "validation": {
     "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j2",
-    "focusedFast": "PASS: libdxfrw_dwg_reader_matrix_tests checks generated wrong-owner identity flags; tests/dwg2dxf_cli_contract_tests.py --partial-read-only passes 172 strict/partial/readback and recovery controls across supported revisions.",
-    "realSampleScreen": "dwg2dxf -d reports the existing 474 entity failures and emits the 64-record bounded diagnostic sample. The new explicit identity flags are absent from these 64 rows, so the block-scope cause is still unresolved; strict export remains refused.",
+    "focusedFast": "PASS: libdxfrw_dwg_reader_matrix_tests checks generated owner-mismatch and missing-owner-target attribution; tests/dwg2dxf_cli_contract_tests.py --partial-read-only passes 172 strict/partial/readback and recovery controls across supported revisions.",
+    "realSampleScreen": "dwg2dxf -d reports the existing 474 entity failures and emits the bounded 64-row sample. All 64 rows map to eight absent owner targets also absent from the independent LibreDWG JSON; strict output remains refused.",
     "diffCheck": "PASS: git diff --check"
   },
   "limits": [
-    "The debug sample is bounded to the existing 64-record internal diagnostic cap and is not a complete failure census. Explicit handle/owner flags only cover identity mismatch state available at the reporting site; they do not classify block-scope or aggregate failures.",
+    "The debug sample is bounded to the existing 64-record internal diagnostic cap and is not a complete failure census. The first-64 missing-owner classification does not classify the remaining 410 failures.",
     "This unauthenticated source, its omitted integrity rows, and identity/ownership failures do not qualify organic partial ASCII/Binary output.",
     "No DWG/DXF fixture was added and no support claim was promoted."
   ]
