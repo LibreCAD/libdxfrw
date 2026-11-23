@@ -163,10 +163,13 @@ offset encodings. The shared helper now permits relative soft-pointer encodings
 on the owner only and requires absolute role-4 reactor handles; a follow-up
 control rejects all four relative-offset encodings for reactors across
 AC1012/AC1014/AC1015 while preserving the relative owner and typed-null
-extension-dictionary paths. The test calls the shared legacy dictionary
-observer directly; see the [absolute-reactor receipt](docs/research/p6-ac1012-common-tail-absolute-reactors-2026-11-23.json).
+extension-dictionary paths. The direct helper matrix now separately accepts
+all four relative owner encodings and rejects those same encodings for reactors
+across AC1012/AC1014/AC1015; see the [relative-owner role receipt](docs/research/p6-ac1012-relative-owner-role-matrix-2026-11-23.json).
+The test calls the shared legacy dictionary observer directly; see the
+[absolute-reactor receipt](docs/research/p6-ac1012-common-tail-absolute-reactors-2026-11-23.json).
 This shared framing, dictionary, and handle-role implementation was rechecked
-at implementation revision `ecc6eb28`; its `-Werror` target build is current and the
+at implementation revision `8642548e`; its `-Werror` target build is current and the
 focused CTest passes 1/1. This completes the local extraction/control slice;
 the separate native dictionary clone/merge witness remains open.
 The same self-contained CTest now builds an in-memory AC1012
