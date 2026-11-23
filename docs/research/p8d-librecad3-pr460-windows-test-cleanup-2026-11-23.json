@@ -1,0 +1,50 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad3-pr460-windows-test-cleanup-2026-11-23",
+  "date": "2026-11-23",
+  "status": "CI_RUNNING_PERSISTENCE_PLAN_SYNC_SANITIZER_PASSED",
+  "pullRequest": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
+  "head": "113111eca15d698bbc8132374b6bc27ad2c99e2d",
+  "parent": "d85035d4b6d23b6ea53f474647bdb04931eea1e1",
+  "changes": [
+    {
+      "path": "unittest/persistence/dxfroundtriptest.cpp",
+      "fix": "Close the input ifstream after loading the rational SPLINE fixture and before truncating or removing it. Windows CI showed the open handle caused boost::filesystem::remove to fail in DxfRoundTripTest.RationalSplineKeepsWeightsOnSave."
+    },
+    {
+      "path": "PYTHON_BINDING_IMPLEMENTATION_PLAN.md",
+      "fix": "Add S3 to the rational-HATCH and standalone SPLINE receipt rows after the prior plan-sync failure identified the missing gate."
+    }
+  ],
+  "validation": {
+    "priorFailure": "Exact head ff2e487566923851acc6e76a19aa211266386345 failed the Windows persistence selector because the test attempted to truncate/remove rational-input while its ifstream remained open.",
+    "newHeadChecks": {
+      "Python Binding Plan Sync": "success",
+      "BuildWindowsPersistence": "success",
+      "ReadDwgUnderSanitizers": "success",
+      "BuildWindows": "in_progress",
+      "BuildLinux": "in_progress",
+      "BuildLinuxArm64": "in_progress",
+      "Python / Lua / app bundle (x86_64)": "in_progress",
+      "Python / Lua / app bundle (arm64)": "in_progress",
+      "BuildAppImage": "in_progress",
+      "Analyze (cpp)": "in_progress",
+      "Analyze (python)": "in_progress"
+    },
+    "checkRunIds": [
+      137888765008,
+      137888764994,
+      137888764566,
+      137888764357,
+      137888764103,
+      137888763802,
+      137888763793,
+      137888763697,
+      137888763667,
+      137888762584,
+      137888761926
+    ],
+    "claim": "Plan Sync, Windows persistence, and DWG sanitizer checks are source-bound and passed. The full Windows build and other listed jobs remain in progress; no support promotion is recorded."
+  },
+  "supportClaimEffect": "none"
+}
