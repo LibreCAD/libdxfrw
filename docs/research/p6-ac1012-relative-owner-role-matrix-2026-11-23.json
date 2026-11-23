@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-relative-owner-role-matrix-2026-11-23",
+  "date": "2026-11-23",
+  "status": "FAST_ROLE_MATRIX_PASS",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["2.13", "20.1", "20.4.44"],
+    "contract": "Legacy owners accept absolute or relative soft-pointer encodings; common persistent reactors require absolute soft-pointer role 4. Relative roles 6, 8, 10, and 12 resolve by +1, -1, +offset, and -offset respectively."
+  },
+  "change": {
+    "commit": "8642548e336bfcfb0078e2e95eb532f897513b67",
+    "regressionControl": "tests/dwg_ac1014_dictionaryvar_tests.cpp::sharedLegacyFrameControl",
+    "versions": ["AC1012", "AC1014", "AC1015"],
+    "ownerCasesAccepted": [
+      {"role": 6, "length": 0, "target": "base+1"},
+      {"role": 8, "length": 0, "target": "base-1"},
+      {"role": 10, "length": 1, "offset": 1, "target": "base+1"},
+      {"role": 12, "length": 1, "offset": 1, "target": "base-1"}
+    ],
+    "sameEncodingsAsReactorsRejected": true,
+    "targetedControl": "The shared common-tail helper consumes each generated in-memory frame, validates exact target resolution and final byte padding, then checks same-target corrected frames after reactor-role rejection."
+  },
+  "validation": {
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_ac1014_dictionaryvar_tests dwg2dxf -j4 && ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
+    "result": "PASS; -Werror target build completed and focused CTest passed 1/1 in 0.28 seconds. All four relative owner encodings are accepted and those encodings are refused in the reactor position across AC1012/AC1014/AC1015.",
+    "implementationRevision": "8642548e336bfcfb0078e2e95eb532f897513b67",
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "The generated frames are in-memory controls, not producer-authored DWGs.",
+    "This closes only the shared helper's owner/reactor role matrix; it does not establish native duplicate-merge behavior, strict AC1012 export, or broader DWG/DXF support."
+  ]
+}
