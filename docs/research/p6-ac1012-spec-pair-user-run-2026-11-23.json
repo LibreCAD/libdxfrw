@@ -25,11 +25,78 @@
   },
   "generatorSha256": "46b36ecef6bfb5340bdb6aa00cf277b0fd1dd577d83d20827450ff8d095ab6eb",
   "id": "p6-ac1012-spec-pair-user-run-2026-11-23",
+  "independentPeerReadback": {
+    "assertions": [
+      "Unique NOD ACAD_MLINESTYLE root resolves to dictionary handle 23.",
+      "SAME_KEY resolves to MLINESTYLE handle 46, with matching owner and name.",
+      "The destination/source values reopen at 15/37 degrees respectively."
+    ],
+    "controls": [
+      {
+        "dxfSha256": "d5bafed6fe701d6e6c124b03940daabf6f93420737070fb95c9f6e58f7c299fe",
+        "encoding": "ascii",
+        "expectedStartAngleDegrees": 15,
+        "jsonSha256": "bdbd445324fb95cb7c13d3a8c5d2a8bc54dac8c57614b377bd45f83a79b06679",
+        "readbackDwgSha256": "35623236b3ec7df6107d976fea49b64d80488cb664bebc5a9cd2cb3251c60592",
+        "result": "PASS",
+        "sample": "destination"
+      },
+      {
+        "dxfSha256": "209c9fa32c93c14a5d69235b03a8954aaea519f614467bfd7f6dd2ad4abdd6d2",
+        "encoding": "binary",
+        "expectedStartAngleDegrees": 15,
+        "jsonSha256": "bdbd445324fb95cb7c13d3a8c5d2a8bc54dac8c57614b377bd45f83a79b06679",
+        "readbackDwgSha256": "35623236b3ec7df6107d976fea49b64d80488cb664bebc5a9cd2cb3251c60592",
+        "result": "PASS",
+        "sample": "destination"
+      },
+      {
+        "dxfSha256": "42cbf0ef6f066aabdfb6a8bc2533546252a020ec23bcfa21fcd1ab2b34dace8f",
+        "encoding": "ascii",
+        "expectedStartAngleDegrees": 37,
+        "jsonSha256": "79996d4de9d3c17077d7b190dfe2f3391fbeb437f2a41da70077f1d729009ec9",
+        "readbackDwgSha256": "9d9a683a56532a6e991ded31b99d5e7c4405f2c5725a6236c99ca01781015412",
+        "result": "PASS",
+        "sample": "source"
+      },
+      {
+        "dxfSha256": "33c19dd3ee1c82b7634bcde6fb6e9cf149f21421078613ab6b868bd6f778cc3e",
+        "encoding": "binary",
+        "expectedStartAngleDegrees": 37,
+        "jsonSha256": "79996d4de9d3c17077d7b190dfe2f3391fbeb437f2a41da70077f1d729009ec9",
+        "readbackDwgSha256": "9d9a683a56532a6e991ded31b99d5e7c4405f2c5725a6236c99ca01781015412",
+        "result": "PASS",
+        "sample": "source"
+      }
+    ],
+    "diagnostics": [
+      "LibreDWG dxf2dwg emits Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1; this is retained as a partial-profile limitation."
+    ],
+    "executables": {
+      "dwgread": {
+        "path": "/opt/homebrew/bin/dwgread",
+        "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+        "version": "0.14"
+      },
+      "dxf2dwg": {
+        "path": "/opt/homebrew/bin/dxf2dwg",
+        "sha256": "d8d27fed5519b67b977170093f3e3d2cd2aeae086ba2db75b5ded2faf2ec31e8",
+        "version": "0.14"
+      }
+    },
+    "limits": [
+      "Readback is an independent open-source consumer check of the selected projected graph, not native AutoCAD acceptance or duplicate-merge semantics.",
+      "The intermediate DWG is R2000 and was created by LibreDWG from the libdxfrw DXF; it does not qualify a complete AC1012 DXF export."
+    ],
+    "role": "LibreDWG 0.14 reopened each libdxfrw partial DXF through dxf2dwg (R2000) followed by dwgread JSON.",
+    "status": "PASS_SELECTED_DICTIONARY_GRAPH_AND_VALUES_ASCII_BINARY"
+  },
   "limits": [
     "The paired files are locally generated and specification-directed controls, not AutoCAD-authored samples; native normal-open and duplicate-merge semantics remain unqualified.",
     "Strict conversion still refuses unqualified opaque callbacks. Explicit partial ASCII/Binary output is source-profile evidence only and is not a completeness/support claim.",
     "The matching key and distinct MLINESTYLE start angles are discriminating sample state only; this does not establish native duplicate-merge behavior.",
-    "No DWG or DXF fixture is added to the repository."
+    "No DWG or DXF fixture is added to the repository.",
+    "LibreDWG 0.14 independently imports all four explicit-partial ASCII/Binary DXFs and reopens the selected dictionary/style graph; the importer reports an unrelated unsupported DIMLDRBLK header value, so this remains bounded projection evidence only."
   ],
   "producer": "GNU LibreDWG dwgadd/dwgread/dwgwrite 0.14; generated header DIMSTYLE link bound to the unique Standard record by a specification-directed JSON rewrite",
   "runPurpose": "Fresh response to the request to create specification-directed AC1012 DWG samples, regenerated with the current worktree binaries.",
