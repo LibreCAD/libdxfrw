@@ -1204,6 +1204,8 @@ public:
     std::int16_t type{-1};
     std::uint32_t blockRecordHandle{DRW::NoHandle};
     DwgEntityFailurePhase phase{DwgEntityFailurePhase::None};
+    bool handleMismatch{false};
+    bool ownerMismatch{false};
   };
 
   dwgReader(std::unique_ptr<dwgBuffer> buffer, dwgRW *p)
@@ -1756,7 +1758,9 @@ protected:
   void
   recordEntityFailure(const objHandle &object, std::int16_t type,
                       DwgEntityFailurePhase phase,
-                      std::uint32_t blockRecordHandle = DRW::NoHandle) noexcept;
+                      std::uint32_t blockRecordHandle = DRW::NoHandle,
+                      bool handleMismatch = false,
+                      bool ownerMismatch = false) noexcept;
   [[nodiscard]] bool readDwgTables(DRW_Header &hdr, dwgBuffer *dbuf,
                                    DwgIntegrityAddressSpace offsetSpace =
                                        DwgIntegrityAddressSpace::DecodedBuffer);

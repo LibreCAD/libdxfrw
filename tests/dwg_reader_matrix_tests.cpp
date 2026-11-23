@@ -7370,6 +7370,8 @@ void testModelerBlockWalkRejectsBadOwnership(TestContext& t) {
     struct WalkResult {
         bool walked;
         std::size_t callbacks;
+        bool handleMismatch;
+        bool ownerMismatch;
     };
     const auto runWalk = [](const std::vector<std::uint8_t>& bytes,
                             std::uint32_t mappedHandle,
@@ -7399,7 +7401,17 @@ void testModelerBlockWalkRejectsBadOwnership(TestContext& t) {
         ModelerDispatchSink sink;
         const bool walked = reader.walkBlockRecordEntities(
             block, &objectStream, sink, blockHandle, blockHandle);
-        return WalkResult{walked, sink.modeler.size()};
+        bool handleMismatch = false;
+        bool ownerMismatch = false;
+        for (const auto& failure : reader.entityFailures()) {
+            if (failure.handle != mappedHandle)
+                continue;
+            handleMismatch = failure.handleMismatch;
+            ownerMismatch = failure.ownerMismatch;
+            break;
+        }
+        return WalkResult{walked, sink.modeler.size(), handleMismatch,
+                          ownerMismatch};
     };
 
     const WalkResult duplicate = runWalk(
@@ -7417,6 +7429,8 @@ void testModelerBlockWalkRejectsBadOwnership(TestContext& t) {
              "missing BLOCK_RECORD entity frame is skipped without failing the block walk");
     t.expect(!wrongOwner.walked && wrongOwner.callbacks == 0u,
              "entity whose encoded owner differs from BLOCK_RECORD is quarantined");
+    t.expect(!wrongOwner.handleMismatch && wrongOwner.ownerMismatch,
+             "entity failure trace distinguishes an encoded owner mismatch from a handle mismatch");
 }
 
 void testOrphanEntitySweepRecovery(TestContext& t) {

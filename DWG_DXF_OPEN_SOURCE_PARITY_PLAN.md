@@ -165,6 +165,12 @@ For R14 source and output changes, reuse the [PR review regression controls](doc
 
 The bounded [debug entity-failure attribution](docs/research/p6-cli-entity-failure-attribution-trace-2026-11-23.json) now prints handle, source location, DWG type, failure phase and block context for the existing first 64 diagnostic rows. On the local AC1018 `Extruder2.dwg` candidate, all 64 sampled failures are identity/ownership rejections across BLOCK, SOLID, LINE, MTEXT, ENDBLK and POINT; this does not classify the remaining 410 failures. The source is unauthenticated, and 460 integrity rows were omitted, so it remains ineligible for partial output. Preserve strict owner checks and do not use this source to close P6-F.
 
+The same bounded debug line now adds `identity=handle`, `identity=owner`, or
+both when those parsed mismatch flags are available. A generated wrong-owner
+control verifies owner-only attribution. The first 64 `Extruder2.dwg` rows
+contain no such explicit flags, so their block-scope cause remains unresolved;
+the added detail does not make that source eligible for partial output.
+
 The [selected AC1015 plot-style graph](docs/research/p6-ac1015-canonical-plotstyle-output-2026-11-21.json) emits the canonical dictionary record and class for AC1015 and AC1024 targets. The [generated strict control](docs/research/p6-ac1015-generated-strict-same-version-2026-11-21.json) now retains that graph, the selected MLINESTYLE, both LAYOUT backlinks, and the INSERT chain in independent ASCII/Binary readback for both targets; malformed source, graph, and retry controls pass. This bounded generated case does not qualify other source records or close the organic-failure gate.
 
 For the strict AC1012 MLINESTYLE output profile, reuse the [shared version-aware frame and handle-role checks](docs/research/p6-ac1012-shared-object-frame-2026-11-21.json) and R13/R14

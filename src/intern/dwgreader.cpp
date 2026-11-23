@@ -1037,7 +1037,9 @@ void dwgReader::recordErasedBlockReference(
 
 void dwgReader::recordEntityFailure(const objHandle &object, std::int16_t type,
                                     DwgEntityFailurePhase phase,
-                                    std::uint32_t blockRecordHandle) noexcept {
+                                    std::uint32_t blockRecordHandle,
+                                    bool handleMismatch,
+                                    bool ownerMismatch) noexcept {
   if (phase == DwgEntityFailurePhase::None ||
       m_entityFailureDiagnostics.size() >=
           dwgSafety::MaxEntityFailureDiagnostics) {
@@ -1048,7 +1050,8 @@ void dwgReader::recordEntityFailure(const objHandle &object, std::int16_t type,
                                           blockRecordHandle != DRW::NoHandle
                                               ? blockRecordHandle
                                               : rawBlockEntityOwner,
-                                          phase});
+                                          phase, handleMismatch,
+                                          ownerMismatch});
     // Keep a bounded, source-identifying trace for -d investigations. The
     // failure count alone cannot distinguish a typed-body defect from a
     // common-link or identity rejection in a real drawing.
@@ -1063,6 +1066,15 @@ void dwgReader::recordEntityFailure(const objHandle &object, std::int16_t type,
     DRW_DBG(" block=");
     DRW_DBGH(blockRecordHandle != DRW::NoHandle
                  ? blockRecordHandle : rawBlockEntityOwner);
+    if (handleMismatch || ownerMismatch) {
+      DRW_DBG(" identity=");
+      if (handleMismatch)
+        DRW_DBG("handle");
+      if (handleMismatch && ownerMismatch)
+        DRW_DBG(",");
+      if (ownerMismatch)
+        DRW_DBG("owner");
+    }
     DRW_DBG("\n");
   } catch (...) {
     // Fixture attribution must never turn an existing parse failure into
@@ -12238,7 +12250,9 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
             parsedEntityOwnerMismatch = ownerMismatch;
             m_currentEntityFailurePhase = ownerProbeFailurePhase;
             recordObjectFrameFailure(obj, offsetSpace);
-            recordEntityFailure(obj, oType, m_currentEntityFailurePhase);
+            recordEntityFailure(obj, oType, m_currentEntityFailurePhase,
+                                DRW::NoHandle, identityMismatch,
+                                ownerMismatch);
             if (frameFailure)
               *frameFailure = true;
             return false;
@@ -12256,7 +12270,9 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
             parsedEntityOwnerMismatch = true;
             m_currentEntityFailurePhase = ownerProbeFailurePhase;
             recordObjectFrameFailure(obj, offsetSpace);
-            recordEntityFailure(obj, oType, m_currentEntityFailurePhase);
+            recordEntityFailure(obj, oType, m_currentEntityFailurePhase,
+                                DRW::NoHandle, identityMismatch,
+                                ownerMismatch);
             if (frameFailure)
               *frameFailure = true;
             return false;
@@ -12287,7 +12303,9 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
               parsedEntityOwnerMismatch = true;
             }
             m_currentEntityFailurePhase = DwgEntityFailurePhase::Identity;
-            recordEntityFailure(obj, oType, m_currentEntityFailurePhase);
+            recordEntityFailure(obj, oType, m_currentEntityFailurePhase,
+                                DRW::NoHandle, parsedEntityHandleMismatch,
+                                parsedEntityOwnerMismatch);
             return false;
           }
         }
@@ -13695,7 +13713,9 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
       else if (phase == DwgEntityFailurePhase::None)
         phase = compoundFrameHandled ? DwgEntityFailurePhase::Aggregate
                                      : DwgEntityFailurePhase::TypedBody;
-      recordEntityFailure(obj, oType, phase);
+      recordEntityFailure(obj, oType, phase, DRW::NoHandle,
+                          parsedEntityHandleMismatch,
+                          parsedEntityOwnerMismatch);
     }
     m_activeEntityFrameCapture = nullptr;
     return ret;
@@ -13717,7 +13737,9 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
                         m_currentEntityFailurePhase ==
                                 DwgEntityFailurePhase::None
                             ? DwgEntityFailurePhase::TypedBody
-                            : m_currentEntityFailurePhase);
+                            : m_currentEntityFailurePhase,
+                        DRW::NoHandle, parsedEntityHandleMismatch,
+                        parsedEntityOwnerMismatch);
     return false;
   }
 }
