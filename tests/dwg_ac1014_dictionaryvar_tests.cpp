@@ -11,6 +11,7 @@
 #include <iterator>
 #include <limits>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -190,6 +191,157 @@ bool legacyDictionaryWithDefaultControl() {
 void putText(dwgBufferW& w, const std::string& text) {
     w.putBitShort(static_cast<std::uint16_t>(text.size()));
     for (const unsigned char c : text) w.putRawChar8(c);
+}
+
+std::uint32_t writtenBits(const dwgBufferW& w) {
+    return static_cast<std::uint32_t>(w.bitPos() == 0u
+        ? w.size() * 8u : (w.size() - 1u) * 8u + w.bitPos());
+}
+
+void setNibble(std::vector<std::uint8_t>& bytes, std::size_t start,
+               unsigned value) {
+    for (unsigned bit = 0u; bit < 4u; ++bit) {
+        const auto position = start + bit;
+        const auto mask = static_cast<std::uint8_t>(0x80u >> (position % 8u));
+        const auto valueMask = 1u << (3u - bit);
+        if ((value & valueMask) != 0u) bytes[position / 8u] |= mask;
+        else bytes[position / 8u] &= static_cast<std::uint8_t>(~mask);
+    }
+}
+
+bool generatedAc1012DictionaryFrameControl() {
+    const auto reject = [](const char* stage) {
+        std::cerr << "generated AC1012 DICTIONARY control failed: " << stage << '\n';
+        return false;
+    };
+    constexpr std::uint32_t dictionaryHandle = 0x30u;
+    constexpr std::uint32_t ownerHandle = 0x31u;
+    constexpr std::uint32_t reactorHandle = 0x32u;
+    const std::vector<std::pair<std::string, std::uint32_t>> entries{
+        {"Standard", 0x34u}, {"SAME_KEY", 0x35u}};
+
+    // Build the bounded R13 DICTIONARY layout from the ODA field order. The
+    // relative soft-pointer parent is a valid offset handle; files are never
+    // written to the repository or treated as producer/native evidence.
+    dwgBufferW prefix;
+    prefix.putObjType(DRW::AC1012, DRW_Dictionary::kDwgFixedType);
+    prefix.putFixedHandle(0u, 1u, dictionaryHandle);
+    prefix.putBitShort(0u); // no EED
+
+    dwgBufferW body;
+    body.putBitLong(1u); // Numreactors
+    body.putBitLong(static_cast<std::int32_t>(entries.size()));
+    for (const auto& entry : entries) putText(body, entry.first);
+    const auto bodyEnd = writtenBits(prefix) + 32u + writtenBits(body);
+
+    dwgBufferW writer;
+    writer.putObjType(DRW::AC1012, DRW_Dictionary::kDwgFixedType);
+    writer.putFixedHandle(0u, 1u, dictionaryHandle);
+    writer.putBitShort(0u);
+    writer.putRawLong32(bodyEnd);
+    writer.putBitLong(1u);
+    writer.putBitLong(static_cast<std::int32_t>(entries.size()));
+    for (const auto& entry : entries) putText(writer, entry.first);
+    if (writtenBits(writer) != bodyEnd) return reject("body boundary generation");
+    writer.putFixedHandle(6u, 0u, 0u); // relative soft pointer: handle + 1
+    writer.putFixedHandle(4u, 1u, reactorHandle);
+    writer.putFixedHandle(3u, 0u, 0u); // typed-null hard-owner extension dictionary
+    for (const auto& entry : entries)
+        writer.putFixedHandle(2u, 1u, entry.second); // soft-owner dictionary item
+    while (writer.bitPos() != 0u) writer.putBit(0u);
+    if (!writer.isGood()) return reject("writer state");
+    const auto bytes = writer.data();
+
+    Dictionary model;
+    const auto parse = [&model](const std::vector<std::uint8_t>& source) {
+        dwgBuffer input(source.data(), source.size());
+        return model.parseDwg(DRW::AC1012, &input, 0u) && input.isGood();
+    };
+    const auto matches = [&]() {
+        if (model.handle != dictionaryHandle || model.parentHandle != ownerHandle
+            || model.reactorHandles != std::vector<std::uint32_t>{reactorHandle}
+            || model.xDictHandle != 0u || !model.legacyDwgCloningAbsent()
+            || !model.hasCompleteDwgEntries() || model.m_entries.size() != entries.size())
+            return false;
+        for (std::size_t i = 0u; i < entries.size(); ++i)
+            if (model.m_entries[i].m_name != entries[i].first
+                || model.m_entries[i].m_handle != entries[i].second) return false;
+        return true;
+    };
+    if (!parse(bytes)) return reject("typed parser");
+    if (!matches()) {
+        std::cerr << "AC1012 model: h=" << model.handle << " p=" << model.parentHandle
+                  << " r=" << model.reactorCount() << " x=" << model.xDictHandle
+                  << " entries=" << model.m_entries.size() << " complete="
+                  << model.hasCompleteDwgEntries() << " absent="
+                  << model.legacyDwgCloningAbsent() << '\n';
+        for (const auto& entry : model.m_entries)
+            std::cerr << "  " << entry.m_name << " -> " << entry.m_handle << '\n';
+        return reject("decoded model");
+    }
+
+    DRW_UnsupportedObject raw;
+    raw.m_version = DRW::AC1012;
+    raw.m_handle = model.handle;
+    raw.m_objectType = DRW_Dictionary::kDwgFixedType;
+    raw.m_objectSize = static_cast<std::uint32_t>(bytes.size());
+    raw.m_rawBytes = bytes;
+    raw.m_parentHandle = model.parentHandle;
+    raw.m_numReactors = model.reactorCount();
+    raw.m_reactorHandles = model.reactorHandles;
+    raw.m_xDictHandle = model.xDictHandle;
+    raw.setCommonLinkEvidence(DRW_DwgCommonLinkEvidence::Validated);
+    if (!dx_legacy_dwg_wire::dictionary(raw, model, false))
+        return reject("shared dictionary observer");
+
+    using dx_legacy_dwg_wire::Bits;
+    Bits bits{bytes.data(), 0u, static_cast<std::uint32_t>(bytes.size() * 8u)};
+    std::uint32_t parsedBodyEnd = 0u;
+    const auto noEed = [](Bits& source) noexcept {
+        return source.shortValue() == 0u && source.good;
+    };
+    if (!dx_legacy_dwg_wire::frameStart(bits, DRW::AC1012,
+            DRW_Dictionary::kDwgFixedType, dictionaryHandle, 1u,
+            noEed, parsedBodyEnd)
+        || bits.longValue() != entries.size()) return reject("independent frame start");
+    for (const auto& entry : entries)
+        if (!dx_legacy_dwg_wire::text(bits, entry.first)) return reject("independent dictionary name");
+    if (bits.pos != parsedBodyEnd) return reject("independent body boundary");
+
+    std::vector<std::pair<std::size_t, unsigned>> handles;
+    handles.emplace_back(bits.pos, 2u); // parent must be a soft pointer
+    if (!dx_legacy_dwg_wire::reference(bits, 4u, dictionaryHandle, ownerHandle))
+        return reject("parent soft pointer");
+    handles.emplace_back(bits.pos, 2u); // reactor must be a soft pointer
+    if (!dx_legacy_dwg_wire::reference(bits, 4u, dictionaryHandle, reactorHandle))
+        return reject("reactor soft pointer");
+    handles.emplace_back(bits.pos, 4u); // extension dictionary is hard-owner typed null
+    if (!dx_legacy_dwg_wire::reference(bits, 3u, dictionaryHandle, 0u))
+        return reject("typed-null extension dictionary");
+    for (const auto& entry : entries) {
+        handles.emplace_back(bits.pos, 3u); // dictionary items are soft-owner handles
+        if (!dx_legacy_dwg_wire::reference(bits, 2u, dictionaryHandle, entry.second))
+            return reject("item soft owner");
+    }
+    if (!dx_legacy_dwg_wire::padding(bits)) return reject("frame padding");
+
+    for (const auto& [start, invalidRole] : handles) {
+        auto malformed = bytes;
+        setNibble(malformed, start, invalidRole);
+        auto malformedRaw = raw;
+        malformedRaw.m_rawBytes = malformed;
+        if (dx_legacy_dwg_wire::dictionary(malformedRaw, model, false)
+            || parse(malformed) || model.hasCompleteDwgEntries()
+            || !model.m_entries.empty() || !parse(bytes) || !matches())
+            return reject("role refusal or corrected retry");
+    }
+    for (std::size_t length = 0u; length < bytes.size(); ++length) {
+        const std::vector<std::uint8_t> truncated(bytes.begin(), bytes.begin() + length);
+        if (parse(truncated) || model.hasCompleteDwgEntries()
+            || !model.m_entries.empty() || !parse(bytes) || !matches())
+            return reject("truncation refusal or corrected retry");
+    }
+    return true;
 }
 
 void setLittleEndianDoubleBits(std::vector<std::uint8_t>& bytes, std::size_t start,
@@ -779,7 +931,8 @@ bool run() {
         || !r13EedChunkGroupBoundary(false) || !r13EedChunkGroupBoundary(true) || !terminatedDictionaryControl(DRW::AC1012)
         || !terminatedDictionaryControl(DRW::AC1014) || !dictionaryWireControl(true, false)
         || !dictionaryWireControl(false, false)
-        || !dictionaryWireControl(false, true)) {
+        || !dictionaryWireControl(false, true)
+        || !generatedAc1012DictionaryFrameControl()) {
         std::cerr << "generated dictionary source or mutation control failed\n";
         return false;
     }
