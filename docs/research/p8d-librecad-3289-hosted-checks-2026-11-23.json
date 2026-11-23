@@ -1,0 +1,71 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-3289-hosted-checks-2026-11-23",
+  "date": "2026-11-23",
+  "status": "CURRENT_HEAD_REQUIRED_WORKFLOWS_PASS_SECURITY_SCAN_SKIPPED",
+  "supportClaimEffect": "none",
+  "pullRequest": {
+    "url": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "state": "open",
+    "draft": true,
+    "base": "master",
+    "baseSha": "954217a719f7fff1f54bdf4ee894a0e462e21934",
+    "head": "codex/libdxfrw-consumer-compat",
+    "headSha": "05aaf9fd245da753b7ffea17acc9bc1272d87d65"
+  },
+  "observation": {
+    "source": "GitHub Actions through the connected GitHub account; exact commit-bound workflow and job reads.",
+    "workflowRuns": [
+      {
+        "name": "DWG/DXF verification",
+        "runId": 45259748683,
+        "url": "https://github.com/LibreCAD/LibreCAD/actions/runs/45259748683",
+        "conclusion": "success",
+        "jobs": {
+          "VerifyDwgDxfFast": "success",
+          "VerifyDwgDxfWindows (windows-2022 x64)": "success",
+          "VerifyDwgDxfWindows (windows-11-arm ARM64)": "success"
+        }
+      },
+      {
+        "name": "Pixi Builds",
+        "runId": 45259748353,
+        "url": "https://github.com/LibreCAD/LibreCAD/actions/runs/45259748353",
+        "conclusion": "success",
+        "jobs": {
+          "ubuntu-latest": "success",
+          "ubuntu-24.04-arm": "success",
+          "macos-15-intel": "success",
+          "windows-latest": "success",
+          "macos-latest": "success"
+        }
+      },
+      {
+        "name": "Text foundations",
+        "runId": 45259748240,
+        "url": "https://github.com/LibreCAD/LibreCAD/actions/runs/45259748240",
+        "conclusion": "success",
+        "jobs": {
+          "Headless (OFF)": "success",
+          "Headless (ON)": "success"
+        }
+      },
+      {
+        "name": "CodeQL",
+        "runId": 45259748054,
+        "url": "https://github.com/LibreCAD/LibreCAD/actions/runs/45259748054",
+        "conclusion": "success",
+        "jobs": {
+          "Analyze (cpp, none)": "success",
+          "Security scan": "skipped"
+        }
+      }
+    ]
+  },
+  "interpretation": "All enumerated required workflow jobs passed on the same PR head. The Security scan job was skipped. The PR remains open and draft.",
+  "limits": [
+    "This is bounded CI evidence for PR head 05aaf9f, not a frozen libdxfrw integration candidate.",
+    "The workflows do not qualify native LibreCAD 2/LibreCAD 3 GUI behavior, final package relocation, or drawing semantics.",
+    "Do not close P8-D or P8-F and do not promote a format support claim from these checks."
+  ]
+}
