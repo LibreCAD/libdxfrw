@@ -5,6 +5,7 @@
 #include "intern/dwgwriter21.h"
 #include "drw_header.h"
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <filesystem>
@@ -128,13 +129,43 @@ class DwgBlockRecordXrefWireTestAccess {public:
  static bool legacyFacade(DRW::Version version){DRW_Header h;dwgRW out("");auto writer=std::make_unique<LegacyWriterStub>(&h);auto* observed=writer.get();out.version=version;out.writer=std::move(writer);DRW_Viewport v;v.snapAngle=30.*std::numeric_limits<double>::denorm_min();const bool result=out.writeViewport(&v);return !result&&observed->calls==1;}
  static bool frame(dwgWriter15& w,std::uint32_t id,std::vector<std::uint8_t>& b){auto i=std::find_if(w.m_objectMap.begin(),w.m_objectMap.end(),[id](const auto& x){return x.first==id;});if(i==w.m_objectMap.end())return false;const auto& d=w.buffer();dwgBuffer in(d.data()+i->second,d.size()-i->second);auto n=in.getModularShort();auto start=in.getPosition();if(!in.isGood()||n<=0||start+static_cast<std::size_t>(n)+2>d.size()-i->second)return false;b.assign(d.begin()+i->second+start,d.begin()+i->second+start+n);return true;}
 };
+static bool ac1021HardPointerClipBoundaryCompatibility(){
+ constexpr std::uint32_t clipTarget=0x12345678u;
+ DRW_Header header;dwgWriter21 writer(nullptr,&header);
+ if(!writer.prepareDwgClassManifest()||!writer.writeFileHeaderStub()
+    ||!writer.writeDwgHeader()||!writer.writeDwgClasses()
+    ||!writer.writeDwgObjects())return false;
+ ViewportProbe source;source.clipBoundaryHandle=clipTarget;
+ source.snapAngle=30.;source.twistAngle=45.;
+ if(!writer.encodeEntity(&source))return false;
+ std::vector<std::uint8_t> frame;
+ if(!DwgBlockRecordXrefWireTestAccess::frame(writer,source.handle,frame))
+  return false;
+ ViewportProbe softParsed;dwgBuffer softInput(frame.data(),frame.size());
+ if(!softParsed.parseDwg(DRW::AC1021,&softInput,0u)||!softInput.isGood()
+    ||softParsed.clipBoundaryHandle!=clipTarget)return false;
+ const std::array<std::uint8_t,5> softHandle={0x44u,0x12u,0x34u,0x56u,0x78u};
+ auto hardFrame=frame;
+ const auto occurrence=std::search(hardFrame.begin(),hardFrame.end(),
+                                   softHandle.begin(),softHandle.end());
+ if(occurrence==hardFrame.end())return false;
+ if(std::search(std::next(occurrence),hardFrame.end(),
+                softHandle.begin(),softHandle.end())!=hardFrame.end())
+  return false;
+ *occurrence=static_cast<std::uint8_t>(0x54u|(*occurrence&0x0Fu));
+ dwgBuffer hardInput(hardFrame.data(),hardFrame.size());
+ ViewportProbe hardParsed;
+ return hardParsed.parseDwg(DRW::AC1021,&hardInput,0u)
+     &&hardInput.isGood()&&hardParsed.handle==source.handle
+     &&hardParsed.clipBoundaryHandle==clipTarget;
+}
 static bool wireAndOverflow(){DRW_Header h;dwgWriter21 w(nullptr,&h);if(!w.prepareDwgClassManifest()||!w.writeFileHeaderStub()||!w.writeDwgHeader()||!w.writeDwgClasses()||!w.writeDwgObjects())return false;DRW_Viewport v;v.snapAngle=30.;v.twistAngle=45.;v.viewTarget={4,5,6};v.viewDir={1,2,3};v.centerPX=9.;v.viewHeight=10.;v.viewLength=50.;if(!w.encodeEntity(&v))return false;std::vector<std::uint8_t> body;if(!DwgBlockRecordXrefWireTestAccess::frame(w,v.handle,body))return false;ViewportProbe parsed;dwgBuffer scalar(body.data(),body.size());if(!parsed.common(scalar))return false;(void)scalar.get3BitDouble();(void)scalar.getBitDouble();(void)scalar.getBitDouble();auto target=scalar.get3BitDouble();auto direction=scalar.get3BitDouble();if(target.x!=4.||target.y!=5.||target.z!=6.||direction.x!=1.||direction.y!=2.||direction.z!=3.)return false;const auto twist=scalar.getPosition()*8u+scalar.getBitPos();if(std::fabs(scalar.getBitDouble()-45./ARAD)>1e-12)return false;for(int i=0;i<4;++i)(void)scalar.getBitDouble();const auto snap=scalar.getPosition()*8u+scalar.getBitPos();if(std::fabs(scalar.getBitDouble()-30./ARAD)>1e-12||scalar.getRawDouble()!=9.||!scalar.isGood())return false;dwgBuffer good(body.data(),body.size());if(!parsed.parseDwg(DRW::AC1021,&good,0)||std::fabs(parsed.snapAngle-30.)>1e-10||std::fabs(parsed.twistAngle-45.)>1e-10)return false;for(auto pos:{twist,snap}){auto bytes=body;dwgBufferW huge;huge.putBitDouble(1.e308);if(huge.bitCount()!=66u)return false;for(std::size_t i=0;i<66u;++i){auto mask=static_cast<std::uint8_t>(0x80u>>((pos+i)%8u));if((huge.data()[i/8u]>>(7u-i%8u))&1u)bytes[(pos+i)/8u]|=mask;else bytes[(pos+i)/8u]&=static_cast<std::uint8_t>(~mask);}dwgBuffer bad(bytes.data(),bytes.size());if(parsed.parseDwg(DRW::AC1021,&bad,0)||parsed.snapAngle!=0.||parsed.twistAngle!=0.)return false;dwgBuffer retry(body.data(),body.size());if(!parsed.parseDwg(DRW::AC1021,&retry,0)||std::fabs(parsed.snapAngle-30.)>1e-10||std::fabs(parsed.twistAngle-45.)>1e-10)return false;}return true;}
 struct CustomViewport:DRW_Viewport {bool encodeDwg(DRW::Version,dwgBufferW*,std::uint32_t,dwgBufferW*,dwgBufferW*) override{return false;}};
 struct Adapter:LC3CompatCheck {dwgRW* out=nullptr;bool bad=false,tilt=false,badTwist=false,derived=false,viaPoint=false;int count=0;DRW_Viewport got,value;CustomViewport sub;
  void writeEntities() override {DRW_Viewport& v=derived?static_cast<DRW_Viewport&>(sub):value;v.space=DRW::PaperSpace;v.basePoint={5,5,0};v.pswidth=10.;v.psheight=8.;v.snapAngle=bad&&!badTwist?30.*std::numeric_limits<double>::denorm_min():30.;v.twistAngle=bad&&badTwist?30.*std::numeric_limits<double>::denorm_min():45.;v.statusFlags=16;v.renderMode=2;if(tilt){v.viewDir={1,2,3};v.viewTarget={4,5,6};}if(viaPoint)(void)out->writePoint(&v);else (void)out->writeViewport(&v);}
  void addViewport(const DRW_Viewport& v) override {got=v;++count;}
 };
-int main(){for(auto version:{DRW::AC1012,DRW::AC1014}){if(!DwgBlockRecordXrefWireTestAccess::legacyFacade(version))return 12;ViewportProbe zero,tiny;tiny.snapAngle=30.*std::numeric_limits<double>::denorm_min();dwgBufferW z,zs,zh,t,ts,th;const bool a=zero.encodeDwg(version,&z,0,&zs,&zh),b=tiny.encodeDwg(version,&t,0,&ts,&th);if(a!=b||z.data()!=t.data()||zs.data()!=ts.data()||zh.data()!=th.data()||z.bitCount()!=t.bitCount())return 13;}if(!wireAndOverflow()){std::cerr<<"wire/overflow failed\n";return 1;}if(!viewportHandleRoles()){std::cerr<<"handle role validation/retry failed\n";return 14;}
+int main(){for(auto version:{DRW::AC1012,DRW::AC1014}){if(!DwgBlockRecordXrefWireTestAccess::legacyFacade(version))return 12;ViewportProbe zero,tiny;tiny.snapAngle=30.*std::numeric_limits<double>::denorm_min();dwgBufferW z,zs,zh,t,ts,th;const bool a=zero.encodeDwg(version,&z,0,&zs,&zh),b=tiny.encodeDwg(version,&t,0,&ts,&th);if(a!=b||z.data()!=t.data()||zs.data()!=ts.data()||zh.data()!=th.data()||z.bitCount()!=t.bitCount())return 13;}if(!wireAndOverflow()){std::cerr<<"wire/overflow failed\n";return 1;}if(!viewportHandleRoles()){std::cerr<<"handle role validation/retry failed\n";return 14;}if(!ac1021HardPointerClipBoundaryCompatibility()){std::cerr<<"AC1021 clip-boundary compatibility failed\n";return 15;}
  for(int which=0;which<2;++which)for(double value:{std::numeric_limits<double>::infinity(),std::numeric_limits<double>::quiet_NaN(),std::numeric_limits<double>::denorm_min(),30.*std::numeric_limits<double>::denorm_min()}){ViewportProbe v;(which?v.snapAngle:v.twistAngle)=value;dwgBufferW b,s,h;b.putRawChar8(0xa5);b.putBit(1);s.putRawChar8(0x5a);h.putRawChar8(0x3c);auto bb=b.data(),ss=s.data(),hh=h.data();auto n=b.bitCount();if(v.encodeDwg(DRW::AC1021,&b,0,&s,&h)||bb!=b.data()||ss!=s.data()||hh!=h.data()||n!=b.bitCount())return 2;(which?v.snapAngle:v.twistAngle)=30.;if(!v.encodeDwg(DRW::AC1021,&b,0,&s,&h))return 3;}
  auto dir=std::filesystem::temp_directory_path()/("viewport-angles-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directory(dir);struct Cleanup{std::filesystem::path p;~Cleanup(){std::error_code e;std::filesystem::remove_all(p,e);}} cleanup{dir};
  for(auto version:{DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032})for(bool tilt:{false,true}) {auto p=dir/(std::to_string(int(version))+(tilt?"t":"p")+".dwg");dwgRW out(p.string().c_str());Adapter a;a.out=&out;a.tilt=tilt;if(!out.write(&a,version,true)){std::cerr<<"write "<<int(version)<<"\n";return 4;}dwgRW in(p.string().c_str());Adapter r;if(!in.read(&r,false)||r.count!=1||std::fabs(r.got.snapAngle-30.)>1e-10||std::fabs(r.got.twistAngle-45.)>1e-10||r.got.statusFlags!=16||r.got.renderMode!=2||(tilt&&(r.got.viewDir.x!=1||r.got.viewDir.y!=2||r.got.viewDir.z!=3||r.got.viewTarget.x!=4||r.got.viewTarget.y!=5||r.got.viewTarget.z!=6))){std::cerr<<"read "<<int(version)<<" count="<<r.count<<" flags="<<r.got.statusFlags<<" render="<<r.got.renderMode<<"\n";return 5;}}

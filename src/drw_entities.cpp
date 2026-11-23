@@ -34583,8 +34583,17 @@ bool DRW_Viewport::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t 
             frozenLayerHandles.push_back(ref);
         }
         if (!readHandleRef(clipBoundaryHandle,
-                           DwgHandleReferenceRole::SoftPointer))
-            return fail();
+                           DwgHandleReferenceRole::SoftPointer)) {
+            // ODA §20.4.38 specifies a soft pointer. The hash-pinned AC1021
+            // colorwh source encodes its two non-null clip-boundary links as
+            // hard pointers; keep this single-field compatibility path while
+            // retaining strict roles for all other viewport references.
+            if (version != DRW::AC1021
+                || !readHandleRef(clipBoundaryHandle,
+                                  DwgHandleReferenceRole::HardPointer))
+                return fail();
+            DRW_DBG("AC1021 VIEWPORT clip-boundary compatibility: observed hard pointer\n");
+        }
         if (version == DRW::AC1015) {//2000 only
             if (!readHandleRef(vpHeaderHandle,
                                DwgHandleReferenceRole::HardPointer))
