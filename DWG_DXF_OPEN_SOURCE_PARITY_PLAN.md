@@ -174,6 +174,7 @@ AC1012/AC1014/AC1015 while preserving the relative owner and typed-null
 extension-dictionary paths. The direct helper matrix now separately accepts
 all four relative owner encodings and rejects those same encodings for reactors
 across AC1012/AC1014/AC1015; see the [relative-owner role receipt](docs/research/p6-ac1012-relative-owner-role-matrix-2026-11-23.json).
+The new matrix passes the focused CTest under AddressSanitizer as well.
 The test calls the shared legacy dictionary observer directly; see the
 [absolute-reactor receipt](docs/research/p6-ac1012-common-tail-absolute-reactors-2026-11-23.json).
 This shared framing, dictionary, and handle-role implementation was rechecked

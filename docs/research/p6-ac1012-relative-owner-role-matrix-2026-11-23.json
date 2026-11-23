@@ -27,7 +27,11 @@
     "command": "cmake --build build-gcc --target libdxfrw_dwg_ac1014_dictionaryvar_tests dwg2dxf -j4 && ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
     "result": "PASS; -Werror target build completed and focused CTest passed 1/1 in 0.28 seconds. All four relative owner encodings are accepted and those encodings are refused in the reactor position across AC1012/AC1014/AC1015.",
     "implementationRevision": "8642548e336bfcfb0078e2e95eb532f897513b67",
-    "diffCheck": "PASS"
+    "diffCheck": "PASS",
+    "addressSanitizer": {
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j4 && ctest --test-dir build-asan-custom --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
+      "result": "PASS; focused CTest passed 1/1 in 0.38 seconds with -fsanitize=address."
+    }
   },
   "limits": [
     "The generated frames are in-memory controls, not producer-authored DWGs.",
