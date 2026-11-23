@@ -167,7 +167,8 @@ retry. This adds a reproducible specification-shaped object-frame control
 without adding a DWG fixture; it is not a complete producer file or native
 semantic witness. The CTest labels now include every version it actually
 covers. `libdxfrw_dwg_ac1014_dictionaryvar` passes 1/1. This closes the local
-shared-helper regression slice only; it does not establish native dictionary
+shared-helper regression slice only; the same focused test also passes under
+AddressSanitizer. It does not establish native dictionary
 clone/merge semantics, strict AC1012 export, or format support. See the
 [role-matrix receipt](docs/research/p6-legacy-common-tail-role-matrix-2026-11-22.json).
 The clean-checkout qualification implementation digest and workflow/support

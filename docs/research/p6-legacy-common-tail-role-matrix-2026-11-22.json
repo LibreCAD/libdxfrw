@@ -26,6 +26,12 @@
   "validation": {
     "command": "cmake --build build-gcc --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j4 && ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
     "result": "PASS; strict target build succeeded and focused CTest passed 1/1 (0.04 s). The self-contained spec-shaped AC1012 frame and the optional source-frame selector both pass. The optional selector also passed on both generated AC1012 pair frames.",
+    "addressSanitizer": {
+      "buildType": "Debug",
+      "flags": "-fsanitize=address -fno-omit-frame-pointer",
+      "command": "cmake --build build-asan-custom --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j4 && ctest --test-dir build-asan-custom --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
+      "result": "PASS; focused test passed 1/1 under AddressSanitizer (0.44 s total)."
+    },
     "sourceFrames": {
       "generator": "tools/research/generate_ac1012_dictionary_merge_samples.py; locally generated scratch controls, never added to the repository",
       "sourceDwgSha256": "0def9f1a66a88481e8c3f625aa8810893ebef9f0b70ded083e1897ad4a31281f",
