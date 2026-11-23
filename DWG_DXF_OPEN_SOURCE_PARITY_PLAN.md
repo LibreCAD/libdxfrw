@@ -21,6 +21,14 @@ updates the excluded status overlay for the AC1012 slice without promoting any
 claim. Recheck hosted CI after that overlay commit; the fast regression job was
 still running at the time of the receipt.
 
+The next test-only role-matrix addition changed the selected implementation
+digest, so the exact PR head `7d92fa043c634315e751ae3cf0c385711273a1ac`
+failed the qualification workflow contract on its stale overlay. The clean
+worktree digest is now `c4a5c04e41d56ad6bc14249048a8e1dc9232b03bd1e3af8df8875c1bf1694e4a`
+for 774 inputs; the refreshed overlay and focused receipt are being
+revalidated on the next source head. See the
+[digest repair receipt](docs/research/p8-pr106-relative-owner-digest-refresh-2026-11-23.json).
+
 The recorded consumer baselines are libdxfrw `master` `d68fb1ed937ad2a74a54f6208277ec10a1b031b0`,
 LibreCAD `master` `78014ecde2f53fdd8c06453f3854b1cae1a3fd0d`, LibreCAD_3
 `master` `4fb48312708b39d499f7e6668104a3b54a8601c7`, and FreeCAD `main`
