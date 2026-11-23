@@ -1,0 +1,93 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-current-build-spec-pair-2026-11-23",
+  "status": "SPEC_SHAPED_AC1012_PAIR_REGENERATED_LOCAL_PROOF_PASS_ODA_R13_OUTPUT_UNAVAILABLE_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "sections": [
+      "9 HEADER VARIABLES: DIMSTYLE is an H hard pointer",
+      "20.4.44 DICTIONARY",
+      "20.4.73 MLINESTYLE"
+    ],
+    "layout": "AC1012 DICTIONARY uses counted entry names and soft-owner item handles; the R2000+ cloning and hard-owner fields are absent. Both drawings contain NOD -> ACAD_MLINESTYLE -> SAME_KEY; the target MLINESTYLE is owned by ACAD_MLINESTYLE, and HEADER DIMSTYLE resolves to Standard."
+  },
+  "producer": {
+    "name": "GNU LibreDWG 0.14 dwgadd/dwgread/dwgwrite",
+    "role": "scratch-only specification-directed controls; not native AutoCAD evidence",
+    "generator": "tools/research/generate_ac1012_dictionary_merge_samples.py",
+    "generatorSha256": "46b36ecef6bfb5340bdb6aa00cf277b0fd1dd577d83d20827450ff8d095ab6eb",
+    "executables": {
+      "dwgaddSha256": "66c435deb0f081ab72be21bb9a36e5d149f9352d71ddf1e83ac95b3fc07f282",
+      "dwgreadSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "dwgwriteSha256": "8c5dfd7f733e924723155e5040dd33f3fefdf4682071867a4c1d3499adf73e74"
+    }
+  },
+  "scratchDirectory": "/private/tmp/ac1012-spec-directed-user-run-20261123/ac1012-dictionary-merge-lq7ne5gy",
+  "candidate": {
+    "path": "build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "bf35f9bc4bc56a99dcdb47943bf28c407c9446eff827aa652ac63ce89d47ebb6",
+    "focusedTest": {
+      "path": "build-gcc/tests/libdxfrw_dwg_ac1014_dictionaryvar_tests",
+      "sha256": "1ca995489c940e7cba7d3097d71017ea63d45b205322afc5d1388c52e5aaa9cb",
+      "result": "PASS: physical AC1012 dictionary frame and role/refusal/retry"
+    }
+  },
+  "samples": {
+    "destination": {
+      "file": "destination-ac1012.dwg",
+      "sha256": "bb3a5426da2bd889a040883add9a1cb23e483d96f7693105bc53d7d532fbe687",
+      "dictionaryFrameSha256": "f742211bff5f5da8008ca8dbf2c1fd61a128fabe657b4f1ddc2d86e51c8fb75a",
+      "dictionaryHandle": 23,
+      "entryTargetHandle": 46,
+      "entryTargetOwnerHandle": 23,
+      "entryTargetStartAngleRadians": 0.26179938779915,
+      "physicalFrameAndRoles": "PASS",
+      "strictOutput": "REFUSED_WITH_DESTINATION_PRESERVED",
+      "partialAsciiSha256": "6ce59ea6697f59595882d0e0d5ee1d2ce060e47a9fecd1033cc1239ffb032312",
+      "partialBinarySha256": "2c3b45d1a5bf0675acce772b4064464b89e654d03e01dd71bb32fca8eba2b59f",
+      "partialAsciiBinaryWireAudit": "PASS"
+    },
+    "source": {
+      "file": "source-ac1012.dwg",
+      "sha256": "205cd0932efda533690dc5fe2ab96c82a9522d1a0b10e63c77de08e730eb50ff",
+      "dictionaryFrameSha256": "f742211bff5f5da8008ca8dbf2c1fd61a128fabe657b4f1ddc2d86e51c8fb75a",
+      "dictionaryHandle": 23,
+      "entryTargetHandle": 46,
+      "entryTargetOwnerHandle": 23,
+      "entryTargetStartAngleRadians": 0.6457718232379,
+      "physicalFrameAndRoles": "PASS",
+      "strictOutput": "REFUSED_WITH_DESTINATION_PRESERVED",
+      "partialAsciiSha256": "5a98b37b89a59f011ceffc25d1cfc662670a5c293deba1e5475ffffe8f376feb",
+      "partialBinarySha256": "44ac915903ab05e78d64130c4a220e8dc34d34e90202a0d525dcc4b4ea0a6874",
+      "partialAsciiBinaryWireAudit": "PASS"
+    }
+  },
+  "odaProbe": {
+    "product": "ODA File Converter 27.1.0 macOS ARM64",
+    "executableSha256": "21a8f029e7d41af64088f65492404d97ffec0d2f7886703b3b725f5ac4a55783",
+    "r13DwgCli": {
+      "requestedOutput": "ACAD13 DWG",
+      "exitCode": 134,
+      "result": "ABORTED_BEFORE_CONVERSION",
+      "diagnostics": [
+        "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]",
+        "PasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]",
+        "Connection Invalid error for service com.apple.hiservices-xpcservice"
+      ]
+    },
+    "guiControl": {
+      "observedOutputVersion": "2010 ASCII DXF",
+      "result": "TWO_DXFS_CONVERTED_TO_AC1024",
+      "destinationSha256": "a9cafa65c9f762771b298856001320a96571e6fddce045995ad797e30b2c73a1",
+      "sourceSha256": "93477083d43afc3a536e344c099780ad1be572829392d07093984c6e2ef2032b",
+      "effect": "does not create or qualify an AC1012 DWG sample"
+    }
+  },
+  "limitations": [
+    "The paired DWGs are generated and specification-directed, not AutoCAD-authored or independently accepted producer witnesses.",
+    "The current run proves local parser/frame/role/refusal/retry behavior and bounded partial DXF projection only; it does not prove AutoCAD normal-open, duplicate-merge semantics, complete AC1012 output, or native readback.",
+    "Strict AC1012 output remains guarded. No support claim is promoted.",
+    "DWG/DXF files remain in scratch storage and are not repository fixtures."
+  ]
+}
