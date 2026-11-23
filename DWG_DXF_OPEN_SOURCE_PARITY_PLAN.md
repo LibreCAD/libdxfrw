@@ -318,9 +318,9 @@ or app blocks only its profile.
 The #460 follow-up at `113111eca15d698bbc8132374b6bc27ad2c99e2d` closes the
 input stream before the rational-SPLINE test truncates or removes its file on
 Windows, and maps S3 in the affected rational-HATCH and standalone SPLINE
-receipt rows. On this exact head, Plan Sync, Windows persistence, and DWG
-sanitizer checks pass; the Windows build remains in progress along with Linux,
-ARM64, packaging, and analysis jobs. See the
+receipt rows. On this exact head, Plan Sync, Windows persistence, DWG
+sanitizer, and Linux ARM64 checks pass. Windows and Linux builds, macOS app
+bundles, AppImage packaging, and static analysis remain in progress. See the
 [follow-up receipt](docs/research/p8d-librecad3-pr460-windows-test-cleanup-2026-11-23.json).
 Do not count the Windows gate until the remaining required checks pass.
 
