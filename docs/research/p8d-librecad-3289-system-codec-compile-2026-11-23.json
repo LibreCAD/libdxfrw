@@ -1,7 +1,7 @@
 {
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p8d-librecad-3289-system-codec-compile-2026-11-23",
-  "status": "UPSTREAM_CODEC_FILTER_COMPILE_PASS_GUI_AND_FULL_APP_LINK_OPEN",
+  "status": "UPSTREAM_CODEC_FULL_APP_BUILD_AND_LINK_PASS_GUI_OPEN",
   "supportClaimEffect": "none",
   "libdxfrw": {
     "commit": "7e6c646869b4804407ecd09996f70b460b622d8d",
@@ -24,11 +24,16 @@
   },
   "additionalBuild": {
     "target": "librecad",
-    "result": "NOT_COMPLETED",
-    "note": "The full application build was scope-limited after the focused adapter compile passed; no app link or runtime is claimed."
+    "command": "cmake --build /private/tmp/librecad-p8-refresh-current-build --target librecad -j8",
+    "result": "PASS",
+    "executable": "/private/tmp/librecad-p8-refresh-current-build/LibreCAD.app/Contents/MacOS/LibreCAD",
+    "executableSha256": "2f3a89654b7ce0e3658e0aed1525c76e95942f1b3578a07695df2cdfac0dfd9b",
+    "architecture": "arm64",
+    "dynamicDependency": "@rpath/libdxfrw.3.dylib",
+    "matchingRpath": "/private/tmp/libdxfrw-p8d-current-20261123-install/lib"
   },
   "limits": [
-    "This verifies compilation of LibreCAD's DXF/DWG adapter against the installed upstream public headers and system-codec configuration; it does not prove application link, runtime behavior, drawing semantics, or GUI behavior.",
+    "The full LibreCAD app target builds and links the system libdxfrw dylib; the executable was not launched, so runtime loading, drawing semantics, and GUI behavior are not established.",
     "P8-D remains open for LibreCAD 2 native save/reopen/render/edit and LibreCAD_3 MPOLYGON qualification on final candidates.",
     "No support claim is promoted."
   ]
