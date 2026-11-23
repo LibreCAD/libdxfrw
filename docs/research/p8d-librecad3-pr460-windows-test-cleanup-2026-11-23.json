@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p8d-librecad3-pr460-windows-test-cleanup-2026-11-23",
   "date": "2026-11-23",
-  "status": "ALL_BUILD_AND_PACKAGE_CHECKS_PASS_CPP_ANALYSIS_IN_PROGRESS",
+  "status": "ALL_REQUIRED_PR_CHECKS_PASS",
   "pullRequest": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
   "head": "113111eca15d698bbc8132374b6bc27ad2c99e2d",
   "parent": "d85035d4b6d23b6ea53f474647bdb04931eea1e1",
@@ -17,7 +17,7 @@
     }
   ],
   "validation": {
-    "observedAtUtc": "2026-11-23 18:31 UTC",
+    "observedAtUtc": "2026-11-23 19:53 UTC",
     "priorFailure": "Exact head ff2e487566923851acc6e76a19aa211266386345 failed the Windows persistence selector because the test attempted to truncate/remove rational-input while its ifstream remained open.",
     "newHeadChecks": {
       "Python Binding Plan Sync": "success",
@@ -29,9 +29,9 @@
       "Python / Lua / app bundle (x86_64)": "success",
       "Python / Lua / app bundle (arm64)": "success",
       "BuildAppImage": "success",
-      "Analyze (cpp)": "in_progress",
+      "Analyze (cpp)": "success",
       "Analyze (python)": "success",
-      "CodeQL": "neutral: 1 configuration not found (C++); not a passing C++ analysis result"
+      "CodeQL": "success"
     },
     "checkRunIds": [
       137888765008,
@@ -46,7 +46,7 @@
       137888762584,
       137888761926
     ],
-    "claim": "Plan Sync, Windows persistence, DWG sanitizer, Windows/Linux x64/Linux ARM64 builds, macOS x86_64/arm64 app bundles, AppImage, and Python analysis are source-bound and passed. C++ analysis remains in progress. CodeQL is neutral because its C++ configuration was not found. No support promotion is recorded."
+    "claim": "All required checks on this exact PR head pass: Plan Sync, Windows persistence, DWG sanitizer, Windows/Linux x64/Linux ARM64 builds, macOS x86_64/arm64 app bundles, AppImage, C++/Python analysis, and CodeQL. UpdateAssets is skipped. This is PR CI evidence only; native GUI and consumer-semantic gates remain open. No support promotion is recorded."
   },
   "supportClaimEffect": "none"
 }

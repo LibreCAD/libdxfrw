@@ -26,10 +26,8 @@ digest, so the exact PR head `7d92fa043c634315e751ae3cf0c385711273a1ac`
 failed the qualification workflow contract on its stale overlay. The clean
 worktree digest is now `c4a5c04e41d56ad6bc14249048a8e1dc9232b03bd1e3af8df8875c1bf1694e4a`
 for 774 inputs, and the refreshed overlay is published. At PR source head
-`5c3715b9bc57c3b3c1dba49f7909e77d3491306d`, fast regressions and the
-qualification workflow contract were queued; source-release was skipped. The
-documentation update that records this state starts a new check cycle; use the
-PR's head-bound checks for current status. See the
+`cc4ca1585dbf0af4b72b3c9148102e1b435ef96c`, fast regressions and the
+qualification workflow contract passed; source-release was skipped. See the
 [digest repair receipt](docs/research/p8-pr106-relative-owner-digest-refresh-2026-11-23.json)
 and [CI snapshot](docs/research/p8-pr106-current-ci-2026-11-23.json).
 
@@ -334,10 +332,10 @@ or app blocks only its profile.
 The #460 follow-up at `113111eca15d698bbc8132374b6bc27ad2c99e2d` closes the
 input stream before the rational-SPLINE test truncates or removes its file on
 Windows, and maps S3 in the affected rational-HATCH and standalone SPLINE
-receipt rows. On this exact head, Plan Sync, Windows persistence, DWG
-sanitizer, Windows/Linux x64/Linux ARM64 builds, macOS x86_64/arm64 app bundles,
-AppImage, and Python analysis pass. C++ analysis remains in progress; CodeQL
-is neutral because the C++ configuration was not found. See the
+receipt rows. On this exact head, all required checks pass: Plan Sync, Windows
+persistence, DWG sanitizer, Windows/Linux x64/Linux ARM64 builds, macOS
+x86_64/arm64 app bundles, AppImage, C++/Python analysis, and CodeQL. UpdateAssets
+is skipped. See the
 [follow-up receipt](docs/research/p8d-librecad3-pr460-windows-test-cleanup-2026-11-23.json).
 Do not count consumer qualification until all required checks and native GUI
 gates pass.
