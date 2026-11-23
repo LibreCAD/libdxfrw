@@ -239,6 +239,9 @@ def run_candidate(candidate: str, source: Path, root: Path, label: str,
     else:
         require(result.returncode != 0 and preserved,
                 "candidate unexpectedly accepted strict output for the unqualified source")
+        require("AC1012 ACAD_MLINESTYLE dictionary duplicate-merge semantics lack native qualification"
+                in log,
+                "strict refusal did not identify the unresolved AC1012 merge semantics")
     audit = None
     if result.returncode == 0:
         audit_script = Path(__file__).with_name("audit_dxf_dictionary_cloning.py")

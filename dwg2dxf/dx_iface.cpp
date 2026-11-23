@@ -89560,6 +89560,10 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
     } outputQualificationDebugScope{
         m_debugDwgOutputQualification, previousOutputQualificationDebug};
     const bool ac1027GuardStrict = readCompletenessPolicy!=dx_dwgReadCompletenessPolicy::Legacy || requireResolvedOwners;
+    const bool requireCompleteDwgRead =
+        readCompletenessPolicy == dx_dwgReadCompletenessPolicy::RequireComplete
+        || (readCompletenessPolicy == dx_dwgReadCompletenessPolicy::Legacy
+            && requireResolvedOwners);
     StrictDxfExportLease strictExportLease(fData,ac1027GuardStrict);
     m_dwgLtypeControlOutputRequired = false;
     m_dwgLtypeControlOutputInspected = false;
@@ -90037,6 +90041,55 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
             "ACAD_MLINESTYLE root is duplicated, aliased, or not a unique NOD-owned DICTIONARY");
         return false;
     }
+    // AC1012 has no serialized dictionary cloning field. Keep this selected
+    // semantic profile guarded even if opaque callback output is later
+    // qualified; that cannot establish AutoCAD's duplicate-merge default.
+    if (requireCompleteDwgRead
+        && cData->sourceFormat == dx_source_format::DWG
+        && cData->sourceVersion == DRW::AC1012
+        && cData->hasNamedObjectDictionary) {
+        const DRW_Dictionary::Entry* mlineStyleRoot = nullptr;
+        for (const auto& entry : cData->namedObjectDictionary.m_entries) {
+            if (entry.m_name != "ACAD_MLINESTYLE")
+                continue;
+            if (mlineStyleRoot != nullptr) {
+                mlineStyleRoot = nullptr;
+                break;
+            }
+            mlineStyleRoot = &entry;
+        }
+        if (mlineStyleRoot != nullptr && mlineStyleRoot->m_handle != 0u) {
+            const auto dictionary = std::find_if(
+                cData->dictionaries.begin(), cData->dictionaries.end(),
+                [mlineStyleRoot](const DRW_Dictionary& candidate) {
+                    return candidate.handle == mlineStyleRoot->m_handle;
+                });
+            const bool uniqueDictionary = dictionary != cData->dictionaries.end()
+                && std::count_if(cData->dictionaries.begin(),
+                    cData->dictionaries.end(), [mlineStyleRoot](
+                        const DRW_Dictionary& candidate) {
+                            return candidate.handle == mlineStyleRoot->m_handle;
+                        }) == 1;
+            const bool containsMlineStyle = uniqueDictionary
+                && std::any_of(cData->mLineStyles.begin(),
+                    cData->mLineStyles.end(), [&dictionary, &mlineStyleRoot](
+                        const DRW_MLineStyle& style) {
+                            return style.handle != 0u
+                                && style.parentHandle == mlineStyleRoot->m_handle
+                                && std::any_of(dictionary->m_entries.begin(),
+                                    dictionary->m_entries.end(), [&style](
+                                        const DRW_Dictionary::Entry& entry) {
+                                            return entry.m_handle == style.handle
+                                                && entry.m_name == style.name;
+                                        });
+                        });
+            if (containsMlineStyle) {
+                reportPreflightFailure(
+                    "AC1012 ACAD_MLINESTYLE dictionary duplicate-merge semantics lack native qualification");
+                return false;
+            }
+        }
+    }
     if (!hasUnchangedRasterDwgSources()) {
         const bool ownerBackReference = std::any_of(
             cData->m_rasterDwgSources.begin(), cData->m_rasterDwgSources.end(),
@@ -90147,10 +90200,6 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
         spatialFilterReceipt.ownerGraphFailure.clear();
         hasAdmittedSpatialFilters = true;
     }
-    const bool requireCompleteDwgRead =
-        readCompletenessPolicy == dx_dwgReadCompletenessPolicy::RequireComplete
-        || (readCompletenessPolicy == dx_dwgReadCompletenessPolicy::Legacy
-            && requireResolvedOwners);
     m_requireCompleteDwgOutputQualification = requireCompleteDwgRead
         && cData->sourceFormat == dx_source_format::DWG;
     if (requireResolvedOwners
