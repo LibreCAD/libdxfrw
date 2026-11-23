@@ -315,6 +315,15 @@ or app blocks only its profile.
 | P8-F / REVALIDATE_NATIVE_AND_FAST | On the candidate digest, run the existing focused native platform and fast CI jobs once. | Require successful Linux, macOS and Windows native jobs and the fast job with source-bound receipts. |
 | P8-G / INTEGRATION_GATE | Set consumer/platform release thresholds and freeze the candidate before running P8-A/B/C/E/F. Recheck their receipts against the final inputs; reopen any that no longer match. | After required package and platform gates close, build and test the complete GCC profile, run the broad suite and extended fuzz lane once for the frozen candidate, resolve required failures, and publish the evidence-backed support matrix. No required job may remain red and no unqualified route may be advertised. |
 
+The #460 follow-up at `113111eca15d698bbc8132374b6bc27ad2c99e2d` closes the
+input stream before the rational-SPLINE test truncates or removes its file on
+Windows, and maps S3 in the affected rational-HATCH and standalone SPLINE
+receipt rows. On this exact head, Plan Sync, Windows persistence, and DWG
+sanitizer checks pass; the Windows build remains in progress along with Linux,
+ARM64, packaging, and analysis jobs. See the
+[follow-up receipt](docs/research/p8d-librecad3-pr460-windows-test-cleanup-2026-11-23.json).
+Do not count the Windows gate until the remaining required checks pass.
+
 For PLOTSETTINGS, qualify additional source, version, EED, reactor, remap and
 edited-plot profiles only after their source and native semantics are
 established. The candidate refuses profiles outside its recorded bounds.
