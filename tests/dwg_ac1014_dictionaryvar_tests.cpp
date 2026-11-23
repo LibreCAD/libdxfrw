@@ -55,13 +55,14 @@ bool sharedLegacyFrameControl() {
         w.put2Bits(0u);
         return w.data();
     };
-    const auto check = [](const std::vector<std::uint8_t>& bytes, DRW::Version version) {
+    const auto check = [](const std::vector<std::uint8_t>& bytes, DRW::Version version,
+                          std::uint32_t owner = 0x20u) {
         Bits bits{bytes.data(), 0u, static_cast<std::uint32_t>(bytes.size() * 8u)};
         std::uint32_t bodyEnd = 0u;
         const auto noEed = [](Bits& b) noexcept { return b.shortValue() == 0u && b.good; };
         return frameStart(bits, version, 73u, 0x31u, 1u, noEed, bodyEnd)
             && bits.pos == bodyEnd
-            && commonTail(bits, 0x31u, 0x20u, std::vector<std::uint32_t>{0x21u}, 0u)
+            && commonTail(bits, 0x31u, owner, std::vector<std::uint32_t>{0x21u}, 0u)
             && padding(bits);
     };
     const auto rejectsRelativeReactor = [&](DRW::Version version, unsigned role,
@@ -92,10 +93,14 @@ bool sharedLegacyFrameControl() {
                  std::array<std::uint32_t, 3>{{6u, 0u, 0x32u}},
                  std::array<std::uint32_t, 3>{{8u, 0u, 0x30u}},
                  std::array<std::uint32_t, 3>{{10u, 1u, 0x32u}},
-                 std::array<std::uint32_t, 3>{{12u, 1u, 0x30u}}})
-            if (!rejectsRelativeReactor(version, relative[0], relative[1],
-                                        relative[1] == 0u ? 0u : 1u,
-                                        relative[2])) return false;
+                 std::array<std::uint32_t, 3>{{12u, 1u, 0x30u}}}) {
+            const auto offset = relative[1] == 0u ? 0u : 1u;
+            const auto relativeOwner = bytesFor(version, 70u, relative[0], 4u, 3u,
+                                                relative[1], offset, 1u, 0x21u);
+            if (!check(relativeOwner, version, relative[2])
+                || !rejectsRelativeReactor(version, relative[0], relative[1],
+                                           offset, relative[2])) return false;
+        }
         // The common-tail helper is shared by the legacy DICTIONARY and
         // MLINESTYLE source observers. Check every handle-role nibble at each
         // position, including the typed-null extension-dictionary handle.
