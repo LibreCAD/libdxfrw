@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p8d-librecad3-pr460-windows-test-cleanup-2026-11-23",
   "date": "2026-11-23",
-  "status": "CI_RUNNING_PERSISTENCE_PLAN_SYNC_SANITIZER_PASSED",
+  "status": "CI_RUNNING_WINDOWS_LINUX_MACOS_PACKAGING_ANALYSIS",
   "pullRequest": "https://github.com/LibreCAD/LibreCAD_3/pull/460",
   "head": "113111eca15d698bbc8132374b6bc27ad2c99e2d",
   "parent": "d85035d4b6d23b6ea53f474647bdb04931eea1e1",
@@ -17,6 +17,7 @@
     }
   ],
   "validation": {
+    "observedAtUtc": "2026-11-23 18:00:39 UTC",
     "priorFailure": "Exact head ff2e487566923851acc6e76a19aa211266386345 failed the Windows persistence selector because the test attempted to truncate/remove rational-input while its ifstream remained open.",
     "newHeadChecks": {
       "Python Binding Plan Sync": "success",
@@ -24,7 +25,7 @@
       "ReadDwgUnderSanitizers": "success",
       "BuildWindows": "in_progress",
       "BuildLinux": "in_progress",
-      "BuildLinuxArm64": "in_progress",
+      "BuildLinuxArm64": "success",
       "Python / Lua / app bundle (x86_64)": "in_progress",
       "Python / Lua / app bundle (arm64)": "in_progress",
       "BuildAppImage": "in_progress",
@@ -44,7 +45,7 @@
       137888762584,
       137888761926
     ],
-    "claim": "Plan Sync, Windows persistence, and DWG sanitizer checks are source-bound and passed. The full Windows build and other listed jobs remain in progress; no support promotion is recorded."
+    "claim": "Plan Sync, Windows persistence, DWG sanitizer, and Linux ARM64 checks are source-bound and passed. Remaining listed checks are in progress; no support promotion is recorded."
   },
   "supportClaimEffect": "none"
 }
