@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 default plot-style NOD reactor and fresh DXF re-export",
+  "date": "2026-11-23",
+  "supportClaimEffect": "none",
+  "scope": "Extend the exact AC1021 default-only LAYER plot-style adapter profile to preserve the single observed ACAD_REACTORS link from DICTIONARYWDFLT to the named object dictionary, then re-export the selected whole-source DXF at the same version.",
+  "source": {
+    "dwgPath": "/Users/dli/doc/dwg/colorwh.dwg",
+    "dwgSha256": "7c70a76ce00647770b5026727fd0156a94a11d456db47db97d0bdf5a81acc344",
+    "version": "AC1021",
+    "provenanceLimit": "Existing local producer provenance is unauthenticated.",
+    "firstDxfPath": "/private/tmp/colorwh-ac1021-hard-clip-compat-20261123.dxf",
+    "firstDxfSha256": "f9cd5c09829481ec2720a9ef7eca3c7f3716f43f6665414c166610f8e9899b60",
+    "observedGraph": "Each source LAYER has the default/null plot-style reference. The NOD ACAD_PLOTSTYLENAME entry reaches one DICTIONARYWDFLT whose Normal and default targets both reach ACDBPLACEHOLDER F; the dictionary carries one ACAD_REACTORS handle back to the NOD."
+  },
+  "implementation": {
+    "files": [
+      "dwg2dxf/dx_iface.cpp",
+      "tests/dwg2dxf_adapter_tests.cpp"
+    ],
+    "change": "The exact default-only AC1021 plot-style source gate now permits either no reactor or exactly one source-bound ACAD_REACTORS group targeting the NOD. It checks both raw groups and the typed appData projection (whose opener omits the leading brace), normalizes only the three reactor framing groups, and retains strict rejection for mismatches and extra data. The generated control verifies mismatch refusal and same-adapter retry, then ASCII/Binary output and graph readback.",
+    "sourceSha256": "9db4ab327d22dcc678aefdf8692c913921992a1908801c8fabcdc094e2c1fd87",
+    "testSha256": "9c4a2a3d5d893915281b030341e3034cbe5edf559d3808eff0f16c88ba3fa6c5"
+  },
+  "validation": {
+    "warningAsErrorBuild": {
+      "commands": [
+        "cmake --build build-gcc --target libdxfrw_dwg2dxf_adapter_tests -j4",
+        "cmake --build build-gcc --target dwg2dxf -j4"
+      ],
+      "result": "PASS"
+    },
+    "generatedGraphAndCodecRoundtrip": {
+      "command": "ctest --test-dir build-gcc -R '^dwg2dxf_default_plotstyle_layer_graph$' --output-on-failure",
+      "result": "PASS, 1/1. Covers the exact source-bound NOD reactor, malformed raw-target refusal, corrected retry, and ASCII/Binary graph readback."
+    },
+    "ac1012SharedFrameAndHandleRoleRegression": {
+      "command": "ctest --test-dir build-gcc -R '^libdxfrw_dwg_ac1014_dictionaryvar$' --output-on-failure",
+      "result": "PASS, 1/1; labels include AC1012, AC1014 and AC1015."
+    },
+    "wholeSourceSameVersionFreshReexport": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf /private/tmp/colorwh-ac1021-hard-clip-compat-20261123.dxf -y -v2007 /private/tmp/colorwh-ac1021-hard-clip-compat-readback-20261123.dxf",
+      "exit": 0,
+      "readbackDxfSha256": "f87db21320a7f2ee73a629edfebc1d57c7d590ee392b353939762e21afe333d1",
+      "result": "The previously observed plot-style carrier preflight refusal is resolved for this exact AC1021 source profile. The command successfully read and rewrote the whole DXF at AC1021."
+    },
+    "workingTreeCheck": "git diff --check passed."
+  },
+  "limits": [
+    "The source producer is unauthenticated; this is one observed AC1021 profile, not producer-wide qualification.",
+    "No native AutoCAD, FreeCAD, LibreCAD 2, or LibreCAD 3 open/save/render behavior is qualified. P4-D remains open.",
+    "No support claim is promoted. The generated control is authored in memory; no DWG/DXF fixture is committed."
+  ]
+}

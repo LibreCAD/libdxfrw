@@ -93413,7 +93413,8 @@ static bool dxfLayerDefaultPlotStyleGraph() {
         "0\nDICTIONARY\n5\nC\n330\n0\n100\nAcDbDictionary\n"
         "280\n0\n281\n1\n3\nACAD_PLOTSTYLENAME\n350\nE\n"
         "3\nACAD_COLOR\n350\n20\n"
-        "0\nACDBDICTIONARYWDFLT\n5\nE\n330\nC\n"
+        "0\nACDBDICTIONARYWDFLT\n5\nE\n"
+        "102\n{ACAD_REACTORS\n330\nC\n102\n}\n330\nC\n"
         "100\nAcDbDictionary\n280\n0\n281\n1\n"
         "3\nNormal\n350\nF\n100\nAcDbDictionaryWithDefault\n340\nF\n"
         "0\nACDBPLACEHOLDER\n5\nF\n330\nE\n"
@@ -93438,6 +93439,8 @@ static bool dxfLayerDefaultPlotStyleGraph() {
         || data.dictionaryWithDefaults.size() != 1u
         || data.rawDictionaryWithDefaults.size() != 1u
         || data.rawPlaceholders.size() != 1u
+        || data.dictionaryWithDefaults.front().reactorHandles
+            != std::vector<std::uint32_t>{0xCu}
         || data.dxfDbColorObjects.size() != 1u
         || data.dxfDbColorRawObjects.size() != 1u
         || !data.hasUnchangedDxfDbColorRawObjects()
@@ -93450,13 +93453,51 @@ static bool dxfLayerDefaultPlotStyleGraph() {
     if (!DxIfaceExtensionGraphTestAccess::prepare(adapter, data, true))
         return fail("default-only extension graph preparation failed");
     if (!DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
-            adapter, data, DRW::AC1021, true))
+            adapter, data, DRW::AC1021, true)) {
         return fail("exact default-only graph was refused");
+    }
     // The dictionary writer omits its default hard-owner flag. Both that
     // spelling and explicit zero must satisfy the same exact graph gate;
     // a nonzero or duplicated flag must still fail and permit correction.
     auto& rawPlot = data.rawDictionaryWithDefaults.front();
     const DRW_RawDxfObject originalPlot = rawPlot;
+    const auto reactorMarker = std::find_if(
+        rawPlot.groups.begin(), rawPlot.groups.end(),
+        [](const DRW_Variant& group) {
+            return group.code() == 102 && group.c_str() != nullptr
+                && std::string(group.c_str()) == "{ACAD_REACTORS";
+        });
+    if (reactorMarker == rawPlot.groups.end())
+        return fail("source-bound NOD reactor group was absent");
+    const std::size_t reactorIndex = static_cast<std::size_t>(
+        reactorMarker - rawPlot.groups.begin()) + 1u;
+    if (reactorIndex >= rawPlot.groups.size()
+        || rawPlot.groups[reactorIndex].code() != 330
+        || rawPlot.groups[reactorIndex].type() != DRW_Variant::STRING
+        || rawPlot.groups[reactorIndex].c_str() == nullptr
+        || (rawPlot.hasRawValues
+            && rawPlot.rawValues.size() != rawPlot.groups.size()))
+        return fail("source-bound NOD reactor handle was absent");
+    rawPlot.groups[reactorIndex].addString(330, "99");
+    if (rawPlot.hasRawValues)
+        rawPlot.rawValues[reactorIndex] = "99";
+    if (DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
+            adapter, data, DRW::AC1021, true))
+        return fail("unbound default-dictionary NOD reactor was accepted");
+    rawPlot = originalPlot;
+    if (!DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
+            adapter, data, DRW::AC1021, true))
+        return fail("restored source-bound NOD reactor did not retry");
+    auto& typedPlot = data.dictionaryWithDefaults.front();
+    const auto originalReactors = typedPlot.reactorHandles;
+    typedPlot.reactorHandles.front() = 0x63u;
+    if (DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
+            adapter, data, DRW::AC1021, true))
+        return fail("typed default-dictionary NOD reactor mismatch was accepted");
+    typedPlot.reactorHandles = originalReactors;
+    if (!DxIfaceExtensionGraphTestAccess::prepareDxfLayerPlot(
+            adapter, data, DRW::AC1021, true))
+        return fail("corrected typed NOD reactor did not retry");
     auto hardOwner = std::find_if(rawPlot.groups.begin(), rawPlot.groups.end(),
         [](const DRW_Variant& group) { return group.code() == 280; });
     if (hardOwner == rawPlot.groups.end())
@@ -93611,6 +93652,40 @@ static bool dxfLayerDefaultPlotStyleGraph() {
             || readback.dxfDbColorObjects.size() != 1u
             || readback.dxfDbColorRawObjects.size() != 1u)
             return fail("DBCOLOR ASCII/Binary output did not import as one typed/raw record");
+        const auto readbackPlotRoot = std::find_if(
+            readback.namedObjectDictionary.m_entries.begin(),
+            readback.namedObjectDictionary.m_entries.end(),
+            [](const DRW_Dictionary::Entry& entry) {
+                return entry.m_name == "ACAD_PLOTSTYLENAME";
+            });
+        const auto readbackPlotDictionary =
+            readbackPlotRoot == readback.namedObjectDictionary.m_entries.end()
+                ? readback.dictionaryWithDefaults.end()
+                : std::find_if(readback.dictionaryWithDefaults.begin(),
+                    readback.dictionaryWithDefaults.end(),
+                    [&readbackPlotRoot](
+                        const DRW_DictionaryWithDefault& dictionary) {
+                        return dictionary.handle == readbackPlotRoot->m_handle;
+                    });
+        if (readback.dictionaryWithDefaults.size() != 1u
+            || readbackPlotRoot
+                == readback.namedObjectDictionary.m_entries.end()
+            || readbackPlotDictionary == readback.dictionaryWithDefaults.end()
+            || readbackPlotDictionary->parentHandle
+                != readback.namedObjectDictionary.handle
+            || readbackPlotDictionary->reactorHandles
+                != std::vector<std::uint32_t>{
+                    readback.namedObjectDictionary.handle}
+            || readbackPlotDictionary->m_entries.size() != 1u
+            || readbackPlotDictionary->m_entries.front().m_name != "Normal"
+            || readbackPlotDictionary->m_entries.front().m_handle
+                != readbackPlotDictionary->m_defaultEntryHandle
+            || readbackPlotDictionary->m_defaultEntryHandle == 0u
+            || std::any_of(readback.layers.begin(), readback.layers.end(),
+                [](const DRW_Layer& layer) {
+                    return layer.handlePlotS != "F";
+                }))
+            return fail("default plot-style graph or its NOD reactor changed on readback");
         const auto readbackColor = readback.dxfDbColorRawObjects.find(
             {readback.importGeneration, 0x50u});
         const auto readbackTypedColor = readback.dxfDbColorObjects.find(

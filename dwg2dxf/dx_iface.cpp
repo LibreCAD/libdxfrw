@@ -97569,34 +97569,84 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
                     && parsed.ptr == text.data() + text.size()
                     && parsedHandle == expected;
             };
+            // This selected AC1021 source profile may retain its single
+            // source-bound NOD reactor. Keep the application group exact and
+            // normalize only its three framing groups before checking the
+            // typed DICTIONARYWDFLT payload below.
+            const bool hasNodReactor =
+                (rawDictionary.groups.size() == 11u
+                 || rawDictionary.groups.size() == 12u)
+                && rawString(rawDictionary.groups[1], 102,
+                             "{ACAD_REACTORS")
+                && rawHandle(rawDictionary.groups[2], 330,
+                             cData->namedObjectDictionary.handle)
+                && rawString(rawDictionary.groups[3], 102, "}")
+                && dictionary.reactorHandles
+                    == std::vector<std::uint32_t>{
+                        cData->namedObjectDictionary.handle};
+            const std::size_t reactorFramingGroups =
+                hasNodReactor ? 3u : 0u;
+            const std::size_t normalizedGroupCount =
+                rawDictionary.groups.size() - reactorFramingGroups;
+            const auto rawGroup = [&](std::size_t index)
+                    -> const DRW_Variant& {
+                return rawDictionary.groups[
+                    index + (hasNodReactor && index != 0u
+                                 ? reactorFramingGroups : 0u)];
+            };
+            const auto hasExactNodReactorAppData = [&]() {
+                if (!hasNodReactor)
+                    return dictionary.appData.empty();
+                if (dictionary.appData.size() != 1u)
+                    return false;
+                const auto& group = dictionary.appData.front();
+                if (group.size() != 3u)
+                    return false;
+                auto field = group.begin();
+                // parseDxfGroups stores the application-group opener without
+                // its leading brace; the raw object preserves the brace.
+                if (!rawString(*field, 102, "ACAD_REACTORS"))
+                    return false;
+                ++field;
+                if (!rawHandle(*field, 330,
+                               cData->namedObjectDictionary.handle))
+                    return false;
+                ++field;
+                return rawString(*field, 102, "}");
+            };
             // Only normalize group 280 when the imported value is exactly the
             // default soft-owner value and every other source field is covered
-            // by the typed writer. Unknown groups, reactors, XDATA and xdicts
-            // remain outside this adapter profile.
+            // by the typed writer. Unknown groups, XDATA and xdicts remain
+            // outside this adapter profile.
             // The typed writer omits group 280 when hardOwner is its default
             // zero. Accept that form as well as an explicit zero, while still
             // requiring the exact remaining source projection.
-            const bool explicitHardOwner = rawDictionary.groups.size() == 9u;
+            const bool explicitHardOwner = normalizedGroupCount == 9u;
             const std::size_t shift = explicitHardOwner ? 1u : 0u;
             const bool conformantTypedProjection =
-                (rawDictionary.groups.size() == 8u || explicitHardOwner)
-                && rawHandle(rawDictionary.groups[0], 5, dictionary.handle)
-                && rawHandle(rawDictionary.groups[1], 330,
+                (normalizedGroupCount == 8u || explicitHardOwner)
+                && (!hasNodReactor
+                    ? (rawDictionary.groups.size() == 8u
+                       || rawDictionary.groups.size() == 9u)
+                    : (rawDictionary.groups.size() == 11u
+                       || rawDictionary.groups.size() == 12u))
+                && rawHandle(rawGroup(0u), 5, dictionary.handle)
+                && rawHandle(rawGroup(1u), 330,
                              cData->namedObjectDictionary.handle)
-                && rawString(rawDictionary.groups[2], 100,
-                             "AcDbDictionary")
+                && rawString(rawGroup(2u), 100, "AcDbDictionary")
                 && (!explicitHardOwner
-                    || rawInteger(rawDictionary.groups[3], 280, 0))
-                && rawInteger(rawDictionary.groups[3 + shift], 281,
+                    || rawInteger(rawGroup(3u), 280, 0))
+                && rawInteger(rawGroup(3u + shift), 281,
                               dictionary.cloning)
-                && rawString(rawDictionary.groups[4 + shift], 3, "Normal")
-                && rawHandle(rawDictionary.groups[5 + shift], 350, 0xFu)
-                && rawString(rawDictionary.groups[6 + shift], 100,
+                && rawString(rawGroup(4u + shift), 3, "Normal")
+                && rawHandle(rawGroup(5u + shift), 350, 0xFu)
+                && rawString(rawGroup(6u + shift), 100,
                              "AcDbDictionaryWithDefault")
-                && rawHandle(rawDictionary.groups[7 + shift], 340, 0xFu)
+                && rawHandle(rawGroup(7u + shift), 340, 0xFu)
                 && dictionary.hardOwner == 0
-                && dictionary.extData.empty() && dictionary.appData.empty()
-                && dictionary.reactorHandles.empty()
+                && dictionary.extData.empty()
+                && hasExactNodReactorAppData()
+                && (hasNodReactor || dictionary.reactorHandles.empty())
                 && dictionary.xDictHandle == 0u;
             if (rootMatches != 1u || rootEntry == nullptr
                 || rootEntry->m_handle != dictionary.handle
@@ -97613,6 +97663,10 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
                 || dictionary.m_entries.size() != 1u
                 || dictionary.m_entries.front().m_name != "Normal"
                 || dictionary.m_entries.front().m_handle != 0xFu
+                || (hasNodReactor
+                    && (dictionary.reactorHandles.size() != 1u
+                        || dictionary.reactorHandles.front()
+                            != cData->namedObjectDictionary.handle))
                 || (!asciiIdentifierEquals(
                         rawDictionary.name, "DICTIONARYWDFLT")
                     && !asciiIdentifierEquals(

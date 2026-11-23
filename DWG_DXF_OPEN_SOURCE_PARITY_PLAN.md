@@ -114,10 +114,15 @@ The exact AC1021 `colorwh` profile exposed two VIEWPORT clip-boundary handles
 encoded as hard pointers, although ODA §20.4.38 specifies a soft pointer. A
 version- and field-scoped parser fallback now accepts those observed handles;
 the generated full-frame control, exact-source parse, and selected ASCII/Binary
-VIEWPORT readbacks pass. Whole-source strict ASCII conversion also passes, but
-fresh strict DXF re-export is still refused by the separate LAYER plot-style
-carrier guard. This one unauthenticated source does not qualify a producer-wide
-role change or close P4-D. See the [role compatibility receipt](docs/research/p4-ac1021-viewport-clip-role-compat-2026-11-23.json).
+VIEWPORT readbacks pass. Whole-source strict ASCII conversion also passes. Its
+first fresh strict DXF re-export was blocked by the exact default-only LAYER
+plot-style carrier gate. That gate now accepts the observed single
+`DICTIONARYWDFLT` reactor to the NOD, with raw/typed mismatch refusal and retry;
+the focused ASCII/Binary graph roundtrip and a fresh whole-source AC1021 DXF
+re-export pass. See the [role compatibility receipt](docs/research/p4-ac1021-viewport-clip-role-compat-2026-11-23.json)
+and [plot-style re-export receipt](docs/research/p4-ac1021-default-plotstyle-nod-reactor-reexport-2026-11-23.json).
+The source remains unauthenticated; this does not qualify a producer-wide
+VIEWPORT role change or close P4-D.
 
 P4-D additional unresolved paths:
 
