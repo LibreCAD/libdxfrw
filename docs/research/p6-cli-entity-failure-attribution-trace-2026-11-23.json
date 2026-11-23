@@ -2,18 +2,19 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p6-cli-entity-failure-attribution-trace-2026-11-23",
   "date": "2026-11-23",
-  "status": "BOUNDED_DEBUG_ATTRIBUTION_AND_OWNER_TARGETS_IMPLEMENTED_FAST_VALIDATED_SOURCE_NOT_ELIGIBLE",
+  "status": "FULL_BOUNDED_FAILURE_CENSUS_IMPLEMENTED_AND_PEER_CORROBORATED_SOURCE_NOT_ELIGIBLE",
   "supportClaimEffect": "none",
   "scope": "Expose the existing bounded per-entity failure attribution under DWG debug tracing and use it to classify an existing local AC1018 candidate without changing reader admission.",
   "implementation": {
     "files": [
       "src/intern/dwgreader.cpp",
       "src/intern/dwgreader.h",
+      "src/intern/dwgsafety.h",
       "tests/dwg_reader_matrix_tests.cpp",
       "tests/dwg2dxf_cli_contract_tests.py"
     ],
-    "behavior": "Each of the existing capped entity-failure diagnostics emits handle, source location, DWG type, phase index, and block context through DRW_DBG. When known, identity details include parsed handle mismatch, parsed owner mismatch, or the exact missing BLOCK_RECORD target. Normal non-debug reads, parse decisions, failure counts, frame publication, and output guards are unchanged.",
-    "identityDetail": "Generated AC1027 wrong-owner and orphan controls distinguish ownerMismatch from missingOwnerRecordHandle. The local Extruder2 first-64 rows identify missing owner-record targets by handle.",
+    "behavior": "Each capped entity-failure diagnostic emits handle, source location, DWG type, phase index, and block context through DRW_DBG. When known, identity details include parsed handle mismatch, parsed owner mismatch, or the exact missing BLOCK_RECORD target. The internal cap is 512 rows. Normal non-debug reads, parse decisions, failure counts, frame publication, and output guards are unchanged.",
+    "identityDetail": "Generated AC1027 wrong-owner and orphan controls distinguish ownerMismatch from missingOwnerRecordHandle. The full local Extruder2 census identifies missing owner-record targets by handle.",
     "phaseIndex": 5,
     "phaseName": "Identity"
   },
@@ -24,10 +25,10 @@
     "provenance": "Existing local source; author and producer are unauthenticated and the source is not committed.",
     "peer": "GNU LibreDWG 0.14 independently identifies four OLE2FRAME records in its readback.",
     "debugRun": {
-      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/Extruder2.dwg -y -d -v2010 /private/tmp/Extruder2.owner-handle.dxf",
-      "converterSha256": "a827a6d9960321e658eda7af06c03c012582525e2e764b0a4f132a7ba0b8f7b4",
-      "logPath": "/private/tmp/Extruder2.owner-handle.log",
-      "logSha256": "ecbdecdee85b7d4616f9671d6b38df72d0917cea699d456664a3b764f0297122",
+      "command": "build-gcc/dwg2dxf/dwg2dxf /Users/dli/doc/dwg/Extruder2.dwg -y -d -v2010 /private/tmp/Extruder2.full-owner-census.dxf",
+      "converterSha256": "0c1aa596f9dfc4499b7288e682b9caf0e7752ea19a54916426ff05674996e284",
+      "logPath": "/private/tmp/Extruder2.full-owner-census.log",
+      "logSha256": "68fe72aabdb3a6b58ca4bf4bcd0d2f8db18b66262cca7090a654b29a5044482f",
       "exit": 1
     },
     "libdxfrw": {
@@ -37,29 +38,35 @@
       "objectParseFailures": 0,
       "integrityRowsRetained": 16,
       "integrityExtractionOmitted": 460,
-      "debugTraceRows": 64,
-      "first64FailurePhases": {
-        "identity": 64
+      "debugTraceCapacity": 512,
+      "debugTraceRows": 474,
+      "failurePhases": {
+        "identity": 474
       },
-      "first64MissingOwnerRecordHandles": {
+      "failureTypes": {
+        "4 BLOCK": 40,
+        "31 SOLID": 80,
+        "19 LINE": 170,
+        "44 MTEXT": 54,
+        "5 ENDBLK": 40,
+        "27 POINT": 90
+      },
+      "missingOwnerRecordTargets": {
         "0x4883": 10,
         "0x488e": 10,
         "0x4899": 11,
         "0x48a5": 11,
-        "0x48ff": 12,
-        "0x490c": 6,
-        "0x4919": 2,
-        "0x4927": 2
+        "0x48ff": 12, "0x490c": 12, "0x4919": 13, "0x4927": 12,
+        "0x495e": 13, "0x497a": 12, "0x499c": 10, "0x49a7": 10,
+        "0x49b2": 10, "0x49bd": 11, "0x49c9": 11, "0x49d5": 13,
+        "0x4b78": 12, "0x4b9c": 13, "0x4bba": 13, "0x4bd9": 12,
+        "0x4bf4": 12, "0x4c0e": 13, "0x4c2a": 12, "0x4cbb": 12,
+        "0x4cf3": 12, "0x4d71": 12, "0x4da7": 12, "0x4dd2": 12,
+        "0x4df4": 13, "0x4e1f": 12, "0x503e": 12, "0x5a0f": 12,
+        "0x5a2e": 12, "0x5a49": 12, "0x5a76": 13, "0x5b5b": 12,
+        "0x638e": 12, "0x6475": 12, "0x6496": 12, "0x64fd": 12
       },
-      "first64DwgTypes": {
-        "4 BLOCK": 8,
-        "31 SOLID": 10,
-        "19 LINE": 25,
-        "44 MTEXT": 10,
-        "5 ENDBLK": 8,
-        "27 POINT": 3
-      },
-      "interpretation": "All first 64 attribution records are entities whose parsed owner points to one of eight missing BLOCK_RECORD targets; they are not typed-body failures. LibreDWG 0.14 JSON contains all 64 corresponding entity records with the same owner references and no object at any of the eight target handles. This cross-reader agreement does not establish producer validity or classify the remaining 410 failures. The source and incomplete integrity ledger remain ineligible for partial output."
+      "interpretation": "All 474 attribution records are entities whose parsed owner points to one of 40 missing BLOCK_RECORD targets; none is a typed-body failure. The complete entity-type census is BLOCK 40, SOLID 80, LINE 170, MTEXT 54, ENDBLK 40, and POINT 90. LibreDWG 0.14 JSON contains all 474 corresponding entity records with matching owner references and no object at any of the 40 target handles. This cross-reader agreement does not establish producer validity. The source and incomplete integrity ledger remain ineligible for partial output."
     }
   },
   "peerCrossCheck": {
@@ -67,7 +74,10 @@
     "command": "dwgread -O JSON -o /private/tmp/Extruder2.peer.json /Users/dli/doc/dwg/Extruder2.dwg",
     "exit": 0,
     "peerJsonSha256": "cce18602d90ddff40d0c71164d6d4d29f6a539b981c9ec2a42408d24bce1142d",
-    "result": "The independent JSON contains one matching entity row for every one of the 64 traced handles, retains each same owner handle, and contains no object with any of the eight owner target handles listed above."
+    "result": "The independent JSON contains one matching entity row for every one of the 474 traced handles, retains each same owner reference, and contains no object with any of the 40 owner target handles listed above.",
+    "matchingEntityRows": 474,
+    "matchingOwnerReferences": 474,
+    "missingOwnerTargets": 40
   },
   "authority": {
     "document": "ODA Open Design Specification for .dwg files v5.4.1",
@@ -79,11 +89,11 @@
   "validation": {
     "build": "PASS: cmake --build build-gcc --target dwg2dxf libdxfrw_dwg_reader_matrix_tests -j2",
     "focusedFast": "PASS: libdxfrw_dwg_reader_matrix_tests checks generated owner-mismatch and missing-owner-target attribution; tests/dwg2dxf_cli_contract_tests.py --partial-read-only passes 172 strict/partial/readback and recovery controls across supported revisions.",
-    "realSampleScreen": "dwg2dxf -d reports the existing 474 entity failures and emits the bounded 64-row sample. All 64 rows map to eight absent owner targets also absent from the independent LibreDWG JSON; strict output remains refused.",
+    "realSampleScreen": "dwg2dxf -d reports all 474 entity failures within the 512-row cap; every row identifies a missing owner-record target. LibreDWG 0.14 independently matches all 474 owner references and lacks all 40 targets. Strict output remains refused.",
     "diffCheck": "PASS: git diff --check"
   },
   "limits": [
-    "The debug sample is bounded to the existing 64-record internal diagnostic cap and is not a complete failure census. The first-64 missing-owner classification does not classify the remaining 410 failures.",
+    "The 512-row diagnostic remains bounded; it is a complete census only for this 474-failure source and does not generalize to larger files.",
     "This unauthenticated source, its omitted integrity rows, and identity/ownership failures do not qualify organic partial ASCII/Binary output.",
     "No DWG/DXF fixture was added and no support claim was promoted."
   ]

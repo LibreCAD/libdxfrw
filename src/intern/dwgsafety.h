@@ -131,9 +131,9 @@ constexpr std::uint32_t MaxEedTotalItems = 1000000;
 // Public integrity reports retain a bounded prefix so malformed input cannot
 // turn one warning per page into an unbounded diagnostic allocation.
 constexpr std::uint32_t MaxIntegrityDiagnostics = 1024;
-// Fixture-only entity attribution retains a small bounded prefix. It is
-// intentionally separate from public integrity reports.
-constexpr std::uint32_t MaxEntityFailureDiagnostics = 64;
+// Internal entity attribution retains a bounded prefix large enough to
+// inspect multi-record failures while keeping malformed-input memory bounded.
+constexpr std::uint32_t MaxEntityFailureDiagnostics = 512;
 
 inline bool validReactorCount(std::int32_t count) {
     return count >= 0
