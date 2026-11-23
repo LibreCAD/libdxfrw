@@ -1,0 +1,39 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-reactor-count-notation-2026-11-23",
+  "status": "SPEC_NOTATION_CONFLICT_BOUNDED_FOR_ORDINARY_COUNTS_NO_PARSER_CHANGE",
+  "supportClaimEffect": "none",
+  "question": "Does AC1012 DICTIONARY encode its reactor count using the common-object BL field or the S field printed in ODA v5.4.1 §20.4.44?",
+  "primaryAuthority": {
+    "document": "ODA Open Design Specification for .dwg files v5.4.1",
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "observations": [
+      "§20.1 lists Numreactors as BL for common objects.",
+      "§20.4.44 lists Numreactors as S for DICTIONARY.",
+      "§2.2 defines BS; §2.3 defines BL. The notation table does not separately define bare S.",
+      "§2.2 encodes BS zero as 10, values 1–255 as 01 plus one byte, 256 as 11, and other values using a two-byte payload.",
+      "§2.3 encodes BL zero as 10, values 1–255 as 01 plus one byte, and other values using a four-byte payload; tag 11 is unused."
+    ]
+  },
+  "independentImplementation": {
+    "repository": "GNU LibreDWG",
+    "url": "https://github.com/LibreDWG/libredwg/blob/master/src/common_object_handle_data.spec",
+    "observation": "Common object reactor count is FIELD_BL(num_reactors); the schema comment gives max 15.",
+    "weight": "independent implementation evidence, not native AutoCAD producer evidence"
+  },
+  "localImplementation": {
+    "reader": "DRW_TableEntry::parseDwgImpl reads the common reactor count through readBitLongWithinBody.",
+    "wireControl": "The current generated AC1012 dictionary pair has one reactor and parses through the shared BL path.",
+    "resourceBound": "dwgSafety::MaxReactorCount is a parser safety ceiling of 1000000; it is not treated as a format semantic maximum."
+  },
+  "conclusion": {
+    "ordinaryRange": "For counts 0–255, BS and BL have identical bit encodings, so the common valid reactor range described by LibreDWG (0–15) cannot distinguish the two types on wire.",
+    "unresolvedRange": "Values above 255 would distinguish BS from BL, but no valid AutoCAD-authored DICTIONARY witness or primary erratum for that range is available.",
+    "decision": "No parser change. Preserve the notation discrepancy in the plan; do not infer that the AC1012 sample proves the field type or broad support."
+  },
+  "limitations": [
+    "The paired DWGs are specification-directed LibreDWG samples with one reactor, not native AutoCAD-authored witnesses.",
+    "The specification's bare S notation remains textually ambiguous; the likely bit-short reading does not alter wire behavior for counts 0–255.",
+    "This analysis does not qualify strict AC1012 output or native dictionary duplicate-merge semantics."
+  ]
+}
