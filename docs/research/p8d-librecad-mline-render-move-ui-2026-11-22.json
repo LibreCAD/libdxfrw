@@ -34,7 +34,7 @@
       "selectedComponentsAfterMove": 2,
       "componentType": "Polyline"
     },
-    "persistence": "Save As did not produce the requested scratch output. The dialog reset to the original filename and the command history reported that the original input path could not be saved. The original input hash remained as recorded above; no moved output exists to reopen or read back."
+    "persistence": "Save As did not produce the requested scratch output. The dialog reset to the original filename and the command history reported that the original input path could not be saved. The post-attempt input hash is recorded above; no moved output exists to reopen or read back."
   },
   "limits": [
     "The Move result was observed only in the live UI; save, close/reopen, and geometry persistence are unqualified.",
