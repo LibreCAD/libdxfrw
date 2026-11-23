@@ -19,7 +19,11 @@ The [PR CI inventory and digest refresh](docs/research/p8-pr106-ci-inventory-dig
 fixed the source and CTest inventories. The [follow-up digest refresh](docs/research/p8-pr106-followup-digest-refresh-2026-11-22.json)
 updates the excluded status overlay for the AC1012 slice without promoting any
 claim. Recheck hosted CI after that overlay commit; the fast regression job was
-still running at the time of the receipt.
+still running at the time of the receipt. The subsequent [current-head poll](docs/research/p8-pr106-current-ci-fc51ed6-2026-11-23.json)
+shows fast regressions and the qualification contract passing, with focused
+Linux GCC and Windows MSVC also passing. Focused macOS Clang remains in
+progress; the broad matrix, extended fuzz, and source-release were skipped by
+workflow design. These checks do not promote support claims.
 
 The next test-only role-matrix addition changed the selected implementation
 digest, so the exact PR head `7d92fa043c634315e751ae3cf0c385711273a1ac`
