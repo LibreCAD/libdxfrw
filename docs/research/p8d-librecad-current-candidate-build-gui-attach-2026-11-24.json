@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-current-candidate-build-gui-attach-2026-11-24",
+  "date": "2026-11-24",
+  "status": "CURRENT_CANDIDATE_BUILD_PASS_GUI_ATTACHMENT_UNAVAILABLE",
+  "supportClaimEffect": "none",
+  "libdxfrw": {
+    "commit": "24359454c6f2d569a4245fb8bcd29ca971fa3bc8",
+    "implementationDigestSha256": "6007acda069c3fd0ef13d96d80651f4ef335a2dd59797726b5ae8f48dda779af",
+    "implementationInputCount": 774,
+    "installedLibrary": "/private/tmp/libdxfrw-p8d-candidate-install/lib/libdxfrw.3.dylib",
+    "installedLibrarySha256": "0db72148cacdf2134bfef99fb5b5d0b3efa336220082373e09ccf2b6e6415633"
+  },
+  "consumer": {
+    "repository": "LibreCAD/LibreCAD",
+    "pullRequest": 3289,
+    "head": "05aaf9fd245da753b7ffea17acc9bc1272d87d65",
+    "configuration": {
+      "LIBRECAD_USE_SYSTEM_LIBDXFRW": true,
+      "BUILD_TESTS": false,
+      "CMAKE_BUILD_TYPE": "Release",
+      "CMAKE_PREFIX_PATH": "/private/tmp/libdxfrw-p8d-candidate-install;/opt/homebrew/opt/qt"
+    },
+    "build": {
+      "configureCommand": "cmake -S /private/tmp/librecad-pr3289-full-20261123 -B /private/tmp/librecad-p8d-current-candidate-build -DCMAKE_POLICY_VERSION_MINIMUM=3.5 -DCMAKE_BUILD_TYPE=Release '-DCMAKE_PREFIX_PATH=/private/tmp/libdxfrw-p8d-candidate-install;/opt/homebrew/opt/qt' -DLIBRECAD_USE_SYSTEM_LIBDXFRW=ON -DBUILD_TESTS=OFF",
+      "command": "cmake --build /private/tmp/librecad-p8d-current-candidate-build --target librecad --parallel 8",
+      "result": "PASS",
+      "executable": "/private/tmp/librecad-p8d-current-candidate-build/LibreCAD.app/Contents/MacOS/LibreCAD",
+      "executableSha256": "582a0de4ea5c5373b8b6847316de3df77607655976de20f3d8808032a370a88c",
+      "architecture": "arm64",
+      "dynamicDependency": "@rpath/libdxfrw.3.dylib",
+      "matchingRpath": "/private/tmp/libdxfrw-p8d-candidate-install/lib"
+    }
+  },
+  "input": {
+    "path": "/private/tmp/p8d-copy-current-app-20261124/input-mline.dxf",
+    "sha256": "c65d44cd54b7a8f0f07c38cdddee2fc11528105fe9605d80a81b304b7569ccaf",
+    "origin": "/private/tmp/p8d-mline-current-app-20261123/p8d-mline-saveas-probe.dxf",
+    "operationPerformed": false
+  },
+  "computerUse": {
+    "result": "NO_WINDOW_ATTACHED",
+    "observations": [
+      "The app inventory showed multiple LibreCAD instances sharing the same bundle identifier.",
+      "Selecting the candidate app by full path timed out twice.",
+      "Selecting the shared bundle identifier reported ambiguity across installed and scratch app bundles.",
+      "Selecting the display name returned cgWindowNotFound."
+    ]
+  },
+  "interpretation": "The full LibreCAD app target builds and links against the hash-pinned current upstream libdxfrw candidate. Computer Use could not attach to a window, so no native MLINE Copy operation, save, reopen, or geometry audit was performed. The prior invalid Copy attempt remains unqualified.",
+  "limits": [
+    "This is build and dependency evidence only; it does not close P8-D or establish Copy behavior.",
+    "Named LTYPE and LibreCAD_3 MPOLYGON GUI qualification remain open.",
+    "No support claim is promoted.",
+    "The input DXF and build artifacts remain in scratch storage; no drawing fixture was added to the repository."
+  ]
+}
