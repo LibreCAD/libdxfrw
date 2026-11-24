@@ -4365,8 +4365,6 @@ bool parseR2007TableCellOverrides(DRW::Version version,
     constexpr std::uint32_t contentColorFlag = 0x00000008u;
     constexpr std::uint32_t textStyleFlag = 0x00000010u;
     constexpr std::uint32_t textHeightFlag = 0x00000020u;
-    const bool ac1021TextAlignmentProfile = version == DRW::AC1021
-        && cell.m_type == 1u && cell.m_overrideFlags == cellAlignmentFlag;
     std::uint32_t representableOverrideFlags =
         cellAlignmentFlag | backgroundFillNoneFlag | backgroundColorFlag
         | contentColorFlag | textStyleFlag | textHeightFlag;
@@ -4380,39 +4378,28 @@ bool parseR2007TableCellOverrides(DRW::Version version,
         && autoCad2007Profile && cell.m_type == 1u
         && cell.m_overrideFlags != 0u
         && (cell.m_overrideFlags & ~representableOverrideFlags) == 0u;
+    const bool ac1021TextAlignmentProfile = autoCad2007CellOverrideProfile
+        && cell.m_overrideFlags == cellAlignmentFlag;
     const bool retainKnownCellOverrides = legacyAc1018CellOverrideProfile
         || autoCad2007CellOverrideProfile;
-    if (cell.m_overrideFlags != 0u
-        && !retainKnownCellOverrides
-        && !ac1021TextAlignmentProfile)
+    if (cell.m_overrideFlags != 0u && !retainKnownCellOverrides)
         semanticComplete = false;
 
     if (cell.m_overrideFlags & cellAlignmentFlag) {
         std::uint16_t alignment = 0;
-        if (ac1021TextAlignmentProfile) {
-            dwgBuffer rawAlignmentProbe = buf->forkIndependent();
-            if (!readBoundedRawShort16(rawAlignmentProbe,
-                                       bounds.bodyEndBit, alignment))
+        if (autoCad2007CellOverrideProfile) {
+            // ODA §20.4.96.1 lists RS, but the exact classified AutoCAD 2007
+            // source profile encodes this alignment as BS. Independent
+            // ACadSharp source tracing bound both values to 10-bit spans in
+            // the source object body and parsed the following cell strings
+            // and object frames. Keep this producer-specific exception narrow.
+            if (!readBoundedBitShort(*buf, bounds.bodyEndBit, alignment))
                 return false;
-            if (alignment >= 1u && alignment <= 9u) {
-                *buf = rawAlignmentProbe;
-            } else {
-                // ODA §20.4.96.1 specifies RS, but marks AutoCAD 2008 cell
-                // changes TODO. Preserve this bounded compatibility candidate
-                // only when RS is outside the defined alignment domain and
-                // BitShort yields a defined 1..9 value. It remains partial
-                // until the producer-specific schema is independently proven.
-                if (!readBoundedBitShort(*buf, bounds.bodyEndBit, alignment)
-                    || alignment < 1u || alignment > 9u)
-                    return false;
-                semanticComplete = false;
-            }
         } else if (!readBoundedRawShort16(*buf, bounds.bodyEndBit,
                                           alignment)) {
             return false;
         }
-        if (retainKnownCellOverrides
-            || ac1021TextAlignmentProfile) {
+        if (retainKnownCellOverrides) {
             cell.m_textAlignment = static_cast<int>(alignment);
             if (alignment < 1u || alignment > 9u)
                 semanticComplete = false;

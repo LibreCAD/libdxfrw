@@ -1,0 +1,89 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 AutoCAD 2007 TABLE alignment independent source spans",
+  "date": "2026-11-24",
+  "supportClaimEffect": "none",
+  "scope": "Resolve the two disputed cell-alignment field spans for the exact classified AutoCAD 2007 TABLE source profile, implement the narrow producer-specific BitShort decode, and record remaining output gates.",
+  "source": {
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "headerVersion": "AC1021",
+    "producer": "AutoCAD 2007 per docs/research/p5-ac1021-autodesk-2007-table-source-attribution-2026-11-17.json",
+    "fixtureDisposition": "The source is an existing local external sample. No DWG or DXF fixture was added to the repository."
+  },
+  "independentReaderTrace": {
+    "reader": "DomCR/ACadSharp",
+    "sourceCommit": "3a52a52047e84670759c1f9ad3916ec3ce85ff56",
+    "sourceFiles": [
+      "src/ACadSharp/IO/DWG/DwgStreamReaders/DwgObjectReader.Entities.cs",
+      "src/ACadSharp/IO/DWG/DwgStreamReaders/DwgStreamReaderBase.cs"
+    ],
+    "sourceBehavior": "The R2007 TABLE cell alignment branch calls ReadBitShort; ReadBitShort consumes the encoded BS prefix and payload. The independent trace was built from this pinned source in a scratch copy and emitted PositionInBits before and after the field.",
+    "instrumentedOutput": {
+      "path": "/private/tmp/acadsharp-p5i-20261124/probe/output11.log",
+      "sha256": "c0ecf01429c7110e6da87ed6d1330678417a7b3e689e8dce8c99774593817ddf",
+      "wholeDocumentRead": "P5I|DOCUMENT_READ_COMPLETE"
+    },
+    "objects": [
+      {
+        "handle": "0x2856e",
+        "dimensions": "9 rows x 9 columns",
+        "objectMapOffsetBytes": 190877,
+        "objectStartBit": 1527048,
+        "objectSizeBytes": 35882,
+        "objectEndBit": 1814104,
+        "alignmentCell": [8, 0],
+        "alignmentSpanBits": [1805680, 1805690],
+        "alignmentSpanRelativeToObjectStartBits": [278632, 278642],
+        "decodedAlignment": 6,
+        "independentCellReadback": "MiddleRight; ESTIMATED COST OF DOORS",
+        "nextObjectHandle": "0x2a974",
+        "nextObjectMapOffsetBytes": 226765
+      },
+      {
+        "handle": "0x2a974",
+        "dimensions": "10 rows x 9 columns",
+        "objectMapOffsetBytes": 226765,
+        "objectStartBit": 1814152,
+        "objectSizeBytes": 40223,
+        "objectEndBit": 2135936,
+        "alignmentCell": [9, 0],
+        "alignmentSpanBits": [2126965, 2126975],
+        "alignmentSpanRelativeToObjectStartBits": [312813, 312823],
+        "decodedAlignment": 6,
+        "independentCellReadback": "MiddleRight; ESTIMATED COST OF WINDOWS",
+        "nextObjectHandle": "0x25",
+        "nextObjectMapOffsetBytes": 266994
+      }
+    ],
+    "comparison": "Both independently measured starts equal the previously recorded libdxfrw alignment starts. Both field spans are 10 bits, matching BitShort consumption. ACadSharp reads the remaining TABLE content, reports the expected strings and dimensions, and continues through the full document. The declared object ends and next object-map entries bound each object."
+  },
+  "implementation": {
+    "files": [
+      "src/drw_entities.cpp",
+      "tests/dwg_object_vectors_tests.cpp"
+    ],
+    "change": "The cell alignment uses BitShort only when version, classified AutoCAD 2007 profile, text-cell type, and representable override flags all match. Other version/profile paths retain the specified raw-short behavior or stop at the existing unclassified AC1021 guard. The generated BitShort vector now requires typed semantic completion and the following CadValue/table sentinel boundary.",
+    "focusedTests": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2",
+      "commands": [
+        "ctest --test-dir build-gcc --output-on-failure -R 'libdxfrw_dwg_table_cell_overrides|libdxfrw_table_dwg_codec_allocation_retry|libdxfrw_dwg_appinfo_profile'"
+      ],
+      "result": "Build succeeded; 3 of 3 fast tests passed."
+    },
+    "sourceReadCheck": {
+      "command": "build-gcc/dwg2dxf/dwg2dxf tests/samples/AC1021/blocks_and_tables_-_metric.dwg -o /private/tmp/acadsharp-p5i-20261124/libdxfrw-ac1021-profile-output.dxf -y -d -v2010",
+      "result": "The full AC1021 source read succeeded with complete source-frame coverage and zero entity/object parse failures. DXF publication stopped at the existing FIELD/FIELDLIST serializer preflight, so this is not a TABLE output qualification."
+    }
+  },
+  "specificationReconciliation": {
+    "authority": "Open Design Specification for .dwg files v5.4.1, section 20.4.96.1",
+    "specifiedField": "Cell alignment RS, values 1 through 9.",
+    "profileDisposition": "The classified AutoCAD 2007 source uses a 10-bit BitShort field at both disputed cell spans. Keep this exception limited to the classified AutoCAD 2007 text-cell profile; do not broaden it to AC1021 as a whole or other producers."
+  },
+  "remainingWork": [
+    "Bind the remaining TABLE cell/value/string/handle fields and graph links for the selected profile, including strict malformed, rollback, and retry behavior.",
+    "Qualify selected-TABLE ASCII and Binary DXF output plus fresh independent readback. Whole-source conversion remains blocked by FIELD/FIELDLIST carriers and unrelated unsupported payloads.",
+    "Keep other AC1021 producer profiles and proxy-graphics support outside this slice."
+  ],
+  "closure": "The two alignment spans and their following-object boundaries are resolved for the exact classified AutoCAD 2007 source. The narrow parser and generated-vector slice is implemented and fast-tested. P5-I remains open for remaining graph and selected-output/readback gates; no TABLE-wide or AC1021-wide support claim follows."
+}
