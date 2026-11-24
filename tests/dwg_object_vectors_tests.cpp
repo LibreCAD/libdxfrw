@@ -15331,25 +15331,50 @@ void testR2007TableCellTypeReaderVectors(TestContext& t) {
                  "AC1021 TABLE row-height overrides leave the following field aligned");
     }
 
-    R2007TableFrame wrongTableTextStyleRoleFrame;
-    const bool wrongTableTextStyleRoleBuilt = makeR2007TableFrame(
-        1, wrongTableTextStyleRoleFrame, TablePlacement{}, 0u, 0x000E0000u,
-        DRW::AC1021, 0u, 0u, 1u, DRW::DwgSoftPointer);
-    t.expect(wrongTableTextStyleRoleBuilt,
-             "AC1021 TABLE wrong text-style handle-role vector builds from scratch");
-    if (!wrongTableTextStyleRoleBuilt)
-        return;
-    dwgBuffer wrongTableTextStyleRoleInput(
-        wrongTableTextStyleRoleFrame.bytes.data(),
-        wrongTableTextStyleRoleFrame.bytes.size());
-    const bool wrongTableTextStyleRoleRead = table.parseDwg(
-        DRW::AC1021, &wrongTableTextStyleRoleInput);
-    t.expect(wrongTableTextStyleRoleRead
-                 && wrongTableTextStyleRoleInput.isGood()
-                 && !table.m_semanticContentComplete
-                 && table.m_tableRowTextStyleHandles
-                     == std::array<std::uint32_t, 3>{{0u, 0u, 0u}},
-             "AC1021 TABLE keeps a wrong-role row style ref semantically incomplete and does not expose it as typed");
+    constexpr std::array<std::uint32_t, 3> rowStyleFlags = {{
+        0x00020000u, 0x00040000u, 0x00080000u
+    }};
+    constexpr std::array<std::uint32_t, 3> rowStyleHandles = {{
+        0xA900u, 0xAA00u, 0xAB00u
+    }};
+    bool rowStyleRoleMatrixPasses = true;
+    for (std::size_t index = 0u; index < rowStyleFlags.size(); ++index) {
+        R2007TableFrame wrongRowStyleRoleFrame;
+        R2007TableFrame correctedRowStyleRoleFrame;
+        const bool wrongBuilt = makeR2007TableFrame(
+            1u, wrongRowStyleRoleFrame, TablePlacement{}, 0u,
+            rowStyleFlags[index], DRW::AC1021, 0u, 0u, 1u,
+            DRW::DwgSoftPointer);
+        const bool correctedBuilt = makeR2007TableFrame(
+            1u, correctedRowStyleRoleFrame, TablePlacement{}, 0u,
+            rowStyleFlags[index], DRW::AC1021, 0u, 0u, 1u,
+            DRW::DwgHardPointer);
+        if (!wrongBuilt || !correctedBuilt) {
+            rowStyleRoleMatrixPasses = false;
+            continue;
+        }
+        dwgBuffer wrongRoleInput(wrongRowStyleRoleFrame.bytes.data(),
+                                 wrongRowStyleRoleFrame.bytes.size());
+        const bool wrongRoleRead = table.parseDwg(
+            DRW::AC1021, &wrongRoleInput);
+        const bool wrongRoleWithheld = wrongRoleRead && wrongRoleInput.isGood()
+            && table.m_hasSemanticContent && !table.m_semanticContentComplete
+            && table.m_tableRowTextStyleHandles[index] == 0u;
+
+        dwgBuffer correctedRoleInput(correctedRowStyleRoleFrame.bytes.data(),
+                                     correctedRowStyleRoleFrame.bytes.size());
+        const bool correctedRoleRead = table.parseDwg(
+            DRW::AC1021, &correctedRoleInput);
+        const bool correctedRoleRetained = correctedRoleRead
+            && correctedRoleInput.isGood() && table.m_semanticContentComplete
+            && table.m_tableRowTextStyleHandles[index] == rowStyleHandles[index]
+            && cursorBit(correctedRoleInput)
+                == correctedRowStyleRoleFrame.tableDataEndBit;
+        rowStyleRoleMatrixPasses = rowStyleRoleMatrixPasses
+            && wrongRoleWithheld && correctedRoleRetained;
+    }
+    t.expect(rowStyleRoleMatrixPasses,
+             "AC1021 TABLE title/header/data row-style handles require hard-pointer roles and recover on corrected same-object retry");
 
     R2007TableFrame secondUnknownFrame;
     const bool secondUnknownBuilt = makeR2007TableFrame(92, secondUnknownFrame);
