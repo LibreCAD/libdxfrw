@@ -334,8 +334,8 @@ or app blocks only its profile.
 ### P8 — consumers, packaging, release (6 open)
 
 P8-F is complete for the frozen 774-input candidate digest. On exact PR #106
-head `dc9b6fd8da7ec6e41d2fc1630a251687b4914c94`, fast run 334 passed; native
-qualification run 491 passed its workflow contract and focused Linux GCC,
+head `3b66c2703516d2affb08dc87567337c5d2c5284a`, fast run 335 passed; native
+qualification run 492 passed its workflow contract and focused Linux GCC,
 macOS Clang, and Windows MSVC jobs. The contract verified the frozen
 implementation digest, and the three platform receipt artifacts are recorded
 in the [CI receipt](docs/research/p8-pr106-current-ci-2026-11-24.json). This
