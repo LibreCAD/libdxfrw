@@ -31,7 +31,7 @@
     "result": "Aborted before conversion with PasteBoard errors (-4960) and an invalid hiservices XPC connection; no DWG was produced.",
     "disposition": "Do not repeat the same attempt until the converter or desktop state changes."
   },
-  "nextAction": "Use a source-distinct AC1024 section trace or independent decode to bind any post-envelope string/handle spans, handle roles, and section boundary. The after-unlock ODA retry also produced no DWG. Keep the bytes raw and strict output refused until that proof exists.",
+  "nextAction": "Use an AutoCAD/ODA-produced AC1024 source or a source-distinct trace/decoder that binds exact post-envelope string and handle stream spans, roles, and the section boundary. The after-unlock ODA retry failed before conversion; the installed LibreDWG r2010 writer produced only an unqualified AC1024-magic file. Keep the bytes raw and strict output refused until the source-bound proof exists.",
   "limits": [
     "The local PDF is the ODA specification named in AGENTS.md and its hash matches the earlier receipts.",
     "A structural statement about separate streams does not prove the semantics of this specific suffix.",
@@ -53,5 +53,42 @@
     "outputFiles": [],
     "result": "No AC1024 DWG was produced. The direct converter invocation aborted before conversion; the command wrapper did not retain its process exit code.",
     "disposition": "Do not repeat this unchanged converter/profile. Continue only after the converter/session state changes or via a source-distinct writer/decoder."
+  },
+  "alternativeWriterAttempt": {
+    "writer": "GNU LibreDWG 0.14 dwgwrite",
+    "writerExecutable": "/opt/homebrew/bin/dwgwrite",
+    "writerSha256": "8c5dfd7f733e924723155e5040dd33f3fefdf4682071867a4c1d3499adf73e74",
+    "command": "dwgwrite --as r2010 -I DXF -o <scratch>/out/libredwg-ac1024.dwg <scratch>/in/section-headers.dxf",
+    "sourceSha256": "8c87543bea37185e72674e9e1a2f6bdae7331ef27a555feeb27ddf2302f8711c",
+    "writerExitCode": 0,
+    "writerDiagnostics": [
+      "ERROR: dwg.block_control and HEADER.BLOCK_CONTROL_OBJECT missing",
+      "Warning: Unknown 3DFACE.layer 0"
+    ],
+    "output": {
+      "path": "/private/tmp/p6e-ac1024-after-unlock-20261124/out/libredwg-ac1024.dwg",
+      "sizeBytes": 573048,
+      "magic": "AC1024",
+      "sha256": "f70a9d01a3aaa60ff9b45951507ea0658d76c115dba668f515744fd2aaae1755",
+      "scratchOnly": true
+    },
+    "selfReadback": {
+      "reader": "GNU LibreDWG 0.14 dwgread",
+      "readerExecutableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "exitCode": 0,
+      "diagnostics": [
+        "ERROR: Invalid max class number 499",
+        "ERROR: dwg.block_control and HEADER.BLOCK_CONTROL_OBJECT missing",
+        "ERROR: BLOCK_CONTROL missing",
+        "SUCCESS"
+      ],
+      "interpretation": "A zero exit with structural ERROR diagnostics is not a clean independent readback."
+    },
+    "libdxfrwReadback": {
+      "reader": "build-gcc/dwg2dxf/dwg2dxf",
+      "exitCode": 1,
+      "result": "BAD_READ_FILE_HEADER (legacyError 5); failed before section decoding."
+    },
+    "disposition": "Not a valid producer witness or regression fixture; do not commit this generated DWG. The writer advertised AC1024 magic but did not produce a file that either reader cleanly accepts."
   }
 }
