@@ -2,18 +2,33 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p6-ac1024-header-stream-suffix-authority-2026-11-24",
   "date": "2026-11-24",
-  "status": "VALID_SOURCE_STREAMS_AND_SUFFIX_BOUNDS_CONFIRMED_SUFFIX_ROLE_OPEN",
+  "status": "STREAM_SPANS_AND_SUFFIX_BOUNDS_CONFIRMED_PEER_INERT_ROLE_OPEN",
   "supportClaimEffect": "none",
   "authority": {
     "document": "Open Design Specification for .dwg files v5.4.1",
     "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
     "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "officialUrl": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
     "sections": {
       "5.9": "For R2007+ AcDb:Header, strings are separated into a string stream and handles into a separate stream at the end of the header, in the manner used for objects.",
       "9": "The header-variable section-locator-0 envelope contains a beginning sentinel, size fields, data, CRC, and ending sentinel; the section's data stream has no gaps and header bits are padded to a byte boundary.",
       "20.1": "The common object format describes string-stream location and a separate handle stream; it supplies the referenced object-stream model, not a direct mapping for the observed trailing bytes."
     },
     "interpretation": "ODA v5.4.1 \u00a75.9 establishes separate header string and handle streams. The independent LibreDWG trace maps the decoded streams before the validated envelope trailer in this AC1024 source. Neither the specification text screened here nor the independent bounded container decoder identifies the remaining 739-byte suffix role or semantics."
+  },
+  "section9ScopeReview": {
+    "authority": "ODA v5.4.1 §9, printed page 72",
+    "describedOrder": [
+      "Beginning sentinel",
+      "Four-byte section size",
+      "R2010/R2013 maintenance>3 or R2018+ unknown four-byte word when present",
+      "System-variable data and possibly other data at the beginning",
+      "CRC",
+      "Ending sentinel"
+    ],
+    "paddingStatement": "Header data is padded with random bits to the next byte boundary.",
+    "suffixAssessment": "The observed 739-byte span starts after the declared ending sentinel. Section 9 does not describe that post-sentinel span as padding or assign it fields; its possible extra data is described at the beginning. The specification therefore supplies no basis to discard or semantically ignore the suffix.",
+    "effect": "Keep the raw suffix and strict-output refusal; require a source-distinct producer or independently interpreted decoder trace for any semantic disposition."
   },
   "priorEvidence": {
     "repeatabilityReceipt": "docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json",
@@ -31,7 +46,7 @@
     "result": "Aborted before conversion with PasteBoard errors (-4960) and an invalid hiservices XPC connection; no DWG was produced.",
     "disposition": "Do not repeat the same attempt until the converter or desktop state changes."
   },
-  "nextAction": "Determine the role and semantics of the independently bounded source bytes [887,1626) (739 bytes, SHA-256 3f841c402344cc07c25ede3d7284824b68ad3e463316adad4b456d80beb9ecdd) using versioned primary authority or an independent source-distinct decode. The known string and handle fields end before trailer offset 887. Retain the suffix raw and strict output refused until its role is established.",
+  "nextAction": "The exact suffix span is bounded and zero/XOR mutation leaves LibreDWG 0.14 JSON unchanged, while libdxfrw continues to refuse strict and explicit-partial output. This does not reveal the suffix role. Obtain versioned primary authority or a source-distinct independent decode/producer profile that classifies [887,1626); retain raw bytes and fail closed until then.",
   "limits": [
     "The local PDF is the ODA specification named in AGENTS.md and its hash matches the earlier receipts.",
     "A structural statement about separate streams does not prove the semantics of this specific suffix.",
@@ -227,5 +242,59 @@
     },
     "logicalHeaderSha256": "07942fac3769fa24fc9e3c4c391fd76d46587c854f7c0c42cf3c754849d45004",
     "interpretation": "Independent bounded container parsing confirms exact source bounds and a valid section envelope. It does not assign meaning to the suffix."
+  },
+  "suffixMutationStudy": {
+    "tool": "tools/research/mutate_ac1024_header_suffix_traced.py",
+    "toolSha256": "03a083f3760ffedd9c65a229506908deaca72eed672f888fa0489a39dace0d4f",
+    "sourceSha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+    "method": "Trace pinned R2004-family decompressor literal origins, alter only the independently bounded post-envelope suffix, and reseal page checksums; the tool verifies exact decompression and container structure.",
+    "variants": [
+      {
+        "variant": "zero",
+        "dwgSha256": "03b0c02a138937153e6986a1f5b3666b9279bbb44e74ce4767704d4c2d148b72",
+        "suffixSha256": "eb548e0f3a79fbeb4cf9497863f31bb11a22d29dd17960c013df59fc01bbbd9c"
+      },
+      {
+        "variant": "xor-0xA5",
+        "dwgSha256": "f980f79b14c661460279b7f2bf27685bd0822a3fe3f20b8678f5e5696ca34749",
+        "suffixSha256": "1e77159e67846b9226a17e026e9bba7f4ea5f01ec36e589fe9f927f7fc59491d"
+      }
+    ],
+    "containerCheck": "Both transformations were accepted by the pinned structural checker with no findings or unsupported sections; transformed header CRC and compressed-page checksums were independently recomputed.",
+    "libreDwgPeer": {
+      "reader": "GNU LibreDWG dwgread 0.14",
+      "readerSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "command": "dwgread -O JSON -o <output> <source>",
+      "exitCodes": [
+        0,
+        0,
+        0
+      ],
+      "successToken": true,
+      "errorDiagnostics": [],
+      "canonicalJsonSha256ForOriginalAndBothMutations": "7b55e34a1f96b7556290ccf749a03da7bd39c2182f8f94f97d10aa674a2c1e8e",
+      "rawJsonSha256ForBothMutations": "ac84727c061f1bd0b67ed5dc059237e3f560214130bf814a8080f92359a8e4c2"
+    },
+    "libdxfrw": {
+      "reader": "build-gcc/dwg2dxf/dwg2dxf",
+      "binarySha256": "8fb3fb64873f9cf624704d1cd238a242587a570bdc7301e217c21e8619f15fcf",
+      "partialAsciiAndBinary": {
+        "sourceExitCodes": [
+          1,
+          1
+        ],
+        "zeroExitCodes": [
+          1,
+          1
+        ],
+        "xorExitCodes": [
+          1,
+          1
+        ],
+        "outputsPublished": false
+      },
+      "interpretation": "The explicit partial option does not admit this unknown HEADER suffix; all three inputs remain refused before output."
+    },
+    "limits": "No native AutoCAD or other CAD consumer was run on the mutated files. Peer semantic-output invariance does not identify the suffix as padding, reserved bytes, or semantically irrelevant, and does not authorize dropping it."
   }
 }
