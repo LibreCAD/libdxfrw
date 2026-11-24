@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-header-stream-suffix-authority-2026-11-24",
+  "date": "2026-11-24",
+  "status": "PRIMARY_AUTHORITY_SCREENED_SPAN_BINDING_STILL_OPEN",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": {
+      "5.9": "For R2007+ AcDb:Header, strings are separated into a string stream and handles into a separate stream at the end of the header, in the manner used for objects.",
+      "9": "The header-variable section-locator-0 envelope contains a beginning sentinel, size fields, data, CRC, and ending sentinel; the section's data stream has no gaps and header bits are padded to a byte boundary.",
+      "20.1": "The common object format describes string-stream location and a separate handle stream; it supplies the referenced object-stream model, not a direct mapping for the observed trailing bytes."
+    },
+    "interpretation": "Section 5.9 makes separate header string/handle streams relevant to the investigation. The cited text does not identify the 739 bytes after the validated section-9 envelope as those streams, define their exact spans there, or explain the repeated-save suffix difference."
+  },
+  "priorEvidence": {
+    "repeatabilityReceipt": "docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json",
+    "sourceDiagnostic": "docs/research/p6-ac1024-header-unclaimed-suffix-diagnostic-2026-11-04.json",
+    "profile": "AC1024, app maintenance 55",
+    "logicalHeaderBytes": 1582,
+    "envelopeTrailerEnd": 843,
+    "unclaimedSuffixBytes": 739,
+    "repeatSaveObservation": "Three ODA conversions of one exact generated input retained 739-byte suffixes with distinct hashes and pairwise low-bit differences; this is not padding or semantic proof."
+  },
+  "currentScratchAttempt": {
+    "source": "/private/tmp/p6e-ac1024-spec-lab/in/section-headers.dxf",
+    "createdLocallyFromScratch": true,
+    "converter": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "result": "Aborted before conversion with PasteBoard errors (-4960) and an invalid hiservices XPC connection; no DWG was produced.",
+    "disposition": "Do not repeat the same attempt until the converter or desktop state changes."
+  },
+  "nextAction": "Use a source-distinct AC1024 section trace or independent decode to bind any post-envelope string/handle spans, handle roles, and section boundary. Keep the bytes raw and strict output refused until that proof exists.",
+  "limits": [
+    "The local PDF is the ODA specification named in AGENTS.md and its hash matches the earlier receipts.",
+    "A structural statement about separate streams does not prove the semantics of this specific suffix.",
+    "No parser behavior, support claim, or fixture was changed by this authority screen."
+  ]
+}
