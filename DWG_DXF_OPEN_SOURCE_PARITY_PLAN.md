@@ -25,20 +25,16 @@ Linux GCC and Windows MSVC also passing. Focused macOS Clang remains in
 progress; the broad matrix, extended fuzz, and source-release were skipped by
 workflow design. These checks do not promote support claims.
 
-The next test-only role-matrix addition changed the selected implementation
-digest, so the exact PR head `7d92fa043c634315e751ae3cf0c385711273a1ac`
-failed the qualification workflow contract on its stale overlay. The clean
-worktree digest is now `c4a5c04e41d56ad6bc14249048a8e1dc9232b03bd1e3af8df8875c1bf1694e4a`
-for 774 inputs, and the refreshed overlay is published. At PR source head
-`cc4ca1585dbf0af4b72b3c9148102e1b435ef96c`, fast regressions and the
-qualification workflow contract passed; source-release was skipped. See the
-[digest repair receipt](docs/research/p8-pr106-relative-owner-digest-refresh-2026-11-23.json)
-and [CI snapshot](docs/research/p8-pr106-current-ci-2026-11-23.json).
-
-The later local diagnostic commits recorded below changed the implementation
-digest after these PR CI receipts. Do not treat those checks as validation of
-the current worktree; refresh the clean-input digest and hosted checks before
-integration.
+The exact PR head `28381baedc036eaac96a9759a25ebdfc618f9862` failed two
+hosted jobs: digest verification found a stale excluded status overlay, and the
+fast build found an enum/integer conditional warning in the new entity failure
+diagnostic under GCC 13 `-Werror`. The digest repair for that source was
+validated locally, but the compiler fix changes a selected implementation
+input, so its digest must be recomputed from the final source commit before
+publishing either repair. The fix explicitly converts `DRW::NoHandle` to the
+stored `std::uint32_t` handle type. Recheck both hosted jobs on the refreshed
+head before integration. See the [digest failure receipt](docs/research/p8-pr106-digest-refresh-2026-11-24.json)
+and the [prior CI snapshot](docs/research/p8-pr106-current-ci-2026-11-23.json).
 
 The recorded consumer baselines are libdxfrw `master` `d68fb1ed937ad2a74a54f6208277ec10a1b031b0`,
 LibreCAD `master` `78014ecde2f53fdd8c06453f3854b1cae1a3fd0d`, LibreCAD_3

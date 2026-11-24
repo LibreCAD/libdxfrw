@@ -12318,8 +12318,9 @@ bool dwgReader::readDwgEntityWithOutput(dwgBuffer *dbuf, objHandle &obj,
             recordEntityFailure(obj, oType, m_currentEntityFailurePhase,
                                 DRW::NoHandle, parsedEntityHandleMismatch,
                                 parsedEntityOwnerMismatch,
-                                missingOwnerRecord ? owner
-                                                   : DRW::NoHandle);
+                                missingOwnerRecord
+                                    ? owner
+                                    : static_cast<std::uint32_t>(DRW::NoHandle));
             return false;
           }
         }
