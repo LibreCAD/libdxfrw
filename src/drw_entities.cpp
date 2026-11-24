@@ -17294,11 +17294,10 @@ bool readLegacyTableGrid(dwgBuffer& body, dwgBuffer& handles,
             > (bodyEnd - currentDwgBit(&body)) / 2u)
         return false;
     dwgHandle style;
-    if (version < DRW::AC1015
-        ? !readBoundedDwgHandleWithRole(handles, handleEnd, owner,
-                                        DwgHandleReferenceRole::HardPointer,
-                                        style)
-        : !readBoundedDwgHandle(handles, handleEnd, 0, false, style))
+    const std::uint32_t handleBase = version < DRW::AC1015 ? owner : 0u;
+    if (!readBoundedDwgHandleWithRole(
+            handles, handleEnd, handleBase,
+            DwgHandleReferenceRole::HardPointer, style))
         return false;
     if (!DRW::reserve(staged.content.m_columns, staged.columnCount)
         || !DRW::reserve(staged.content.m_rows, staged.rowCount))
@@ -17444,12 +17443,11 @@ bool DRW_Table::parseDwgWithR21Profile(DRW::Version version, dwgBuffer *buf,
     if (!ret)
         return fail();
     dwgHandle parsedBlockRecH;
-    if (version < DRW::AC1015
-        ? !readBoundedDwgHandleWithRole(hBuff, handleEndBit, handle,
-                                        DwgHandleReferenceRole::HardPointer,
-                                        parsedBlockRecH)
-        : !readBoundedDwgHandle(hBuff, handleEndBit, 0, false,
-                                parsedBlockRecH))
+    const std::uint32_t blockRecordHandleBase =
+        version < DRW::AC1015 ? handle : 0u;
+    if (!readBoundedDwgHandleWithRole(
+            hBuff, handleEndBit, blockRecordHandleBase,
+            DwgHandleReferenceRole::HardPointer, parsedBlockRecH))
         return fail();
 
     std::vector<dwgHandle> parsedAttribHandles;
