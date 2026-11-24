@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p6-ac1024-header-stream-suffix-authority-2026-11-24",
   "date": "2026-11-24",
-  "status": "PRIMARY_AUTHORITY_SCREENED_SPAN_BINDING_STILL_OPEN",
+  "status": "VALID_ODA_SOURCE_STREAMS_MAPPED_SUFFIX_ROLE_OPEN",
   "supportClaimEffect": "none",
   "authority": {
     "document": "Open Design Specification for .dwg files v5.4.1",
@@ -31,7 +31,7 @@
     "result": "Aborted before conversion with PasteBoard errors (-4960) and an invalid hiservices XPC connection; no DWG was produced.",
     "disposition": "Do not repeat the same attempt until the converter or desktop state changes."
   },
-  "nextAction": "Use an AutoCAD/ODA-produced AC1024 source or a source-distinct trace/decoder that binds exact post-envelope string and handle stream spans, roles, and the section boundary. Direct CLI and LaunchServices ODA attempts failed; the installed LibreDWG r2010 writer produced only an unqualified AC1024-magic file. Keep the bytes raw and strict output refused until the source-bound proof exists.",
+  "nextAction": "Use this valid ODA-produced AC1024 sample and independent LibreDWG trace to identify the exact role and boundary of the 739 bytes after the validated header envelope. The observed decoded string stream (bits 4931..6239) and handle fields (byte cursors 782..858) lie before trailer offset 887, so they do not account for the suffix. Seek primary authority or an independent source-distinct trace that explains those bytes; retain strict refusal until then.",
   "limits": [
     "The local PDF is the ODA specification named in AGENTS.md and its hash matches the earlier receipts.",
     "A structural statement about separate streams does not prove the semantics of this specific suffix.",
@@ -97,5 +97,105 @@
     "exitCode": 1,
     "result": "LaunchServices returned NSOSStatusErrorDomain -10827 (kLSNoExecutableErr) before opening the converter; no DWG was produced.",
     "disposition": "The GUI launch path did not provide an alternate conversion route. Do not change the installed application bundle as part of this parser investigation."
+  },
+  "linuxOdaValidR2010SourceAttempt": {
+    "observedAtUtc": "2026-11-24 17:00 UTC",
+    "source": {
+      "path": "/private/tmp/p6e-ac1024-spec-valid-20261124/in/section-headers.dxf",
+      "createdLocallyFromScratch": true,
+      "generator": "ezdxf 1.4.5, R2010; setup tables, P6E_SAMPLE layer, 3DFACE, TEXT, and nondefault $INSBASE",
+      "sizeBytes": 35942,
+      "sha256": "96619352f6ce9888506c8ec0de70c278a4975d7e07c06df3601c75c0ce8ff4fe",
+      "auditErrors": 0
+    },
+    "converter": {
+      "name": "ODA File Converter",
+      "version": "27.10.0.0",
+      "package": "ODAFileConverter_QT6_lnxX64_11dll_27.10.deb",
+      "packageSha256": "c432002cc688f89ddf6a68ad68e877cd16da1d99ab8729386009c552cf73beb5",
+      "binarySha256": "bda7c79a901be17d4e0a76ea6e9dfddb24b83601e98cf41d66c158a9c428ca24",
+      "runtime": "Ubuntu 24.04.5 LTS linux/amd64 container, emulated by Docker Desktop on macOS ARM64 with Xvfb",
+      "command": "ODAFileConverter /input /output ACAD2010 DWG 0 0 *.dxf"
+    },
+    "output": {
+      "path": "/private/tmp/p6e-ac1024-oda-linux-20261124/out/section-headers.dwg",
+      "sizeBytes": 18939,
+      "magic": "AC1024",
+      "sha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+      "scratchOnly": true
+    },
+    "independentReader": {
+      "name": "GNU LibreDWG dwgread 0.14",
+      "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "exitCode": 0,
+      "result": "SUCCESS; AC1024 parsed and JSON output produced",
+      "warnings": [
+        "unstable MATERIAL, MLEADERSTYLE, and TABLESTYLE class records",
+        "TODO TABLESTYLE R2010+ fields"
+      ],
+      "interpretation": "A valid independent read confirms this is a useful source for bounded header investigation; warnings limit broader semantic claims."
+    },
+    "independentHeaderTrace": {
+      "tracePath": "/private/tmp/p6e-ac1024-oda-linux-20261124/out/libredwg-verbose.log",
+      "section": {
+        "name": "AcDb:Header",
+        "logicalSizeBytes": 1626,
+        "pageFileOffset": 16480,
+        "compressedDataSizeBytes": 1590,
+        "decompressedPageSizeBytes": 1632,
+        "headerVariableSizeBytes": 845,
+        "headerVariableHighSizeWord": 0,
+        "headerVariableBitSize": 6064
+      },
+      "stringStream": {
+        "startBit": 4931,
+        "dataSizeBits": 1308,
+        "endBit": 6239,
+        "endMarkerBit": 6255,
+        "decodedStringFieldCursorsBytes": "619.5 through 779.7"
+      },
+      "handleFields": {
+        "firstDecodedField": "CLAYER at byte 782.0",
+        "lastDecodedField": "DRAGVS at byte 858.0",
+        "roleTaggedExamples": [
+          "CLAYER [H 8]",
+          "TEXTSTYLE [H 7]",
+          "CELTYPE [H 6]",
+          "BLOCK_CONTROL_OBJECT [H 0]"
+        ]
+      },
+      "interpretation": "The independent decoder locates decoded header strings and handle fields before the header-envelope trailer; it does not decode or classify bytes after that trailer."
+    },
+    "libdxfrw": {
+      "binary": "build-gcc/dwg2dxf/dwg2dxf",
+      "binarySha256": "8fb3fb64873f9cf624704d1cd238a242587a570bdc7301e217c21e8619f15fcf",
+      "operationSucceeded": true,
+      "legacyError": 0,
+      "publishedSourceFrames": 226,
+      "strictOutput": "refused during preflight; no output was published",
+      "diagnostics": [
+        {
+          "kind": "HeaderSectionCompatibility",
+          "offset": 16,
+          "expected": 865,
+          "observed": 869,
+          "meaning": "validated zero high-size word is excluded from the declared payload size"
+        },
+        {
+          "kind": "HeaderSectionUnclaimedData",
+          "offset": 887,
+          "expected": 887,
+          "observed": 1626,
+          "meaning": "739 logical section bytes remain after the valid envelope"
+        }
+      ],
+      "envelope": {
+        "payloadEnd": 869,
+        "trailerEnd": 887,
+        "unclaimedSuffixBytes": 739,
+        "crcStoredAndCalculated": "0x1feb"
+      }
+    },
+    "disposition": "This sample validates the source-specific frame and decoded string/handle locations, but the 739 bytes after the envelope remain unclassified. Keep them raw, retain strict-output refusal, and do not call them padding or discard them. No support claim is promoted."
   }
 }
