@@ -1,0 +1,38 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-digest-refresh-2026-11-24",
+  "date": "2026-11-24",
+  "sourceCommit": "28381baedc036eaac96a9759a25ebdfc618f9862",
+  "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+  "supportClaimEffect": "none",
+  "failure": {
+    "workflow": "qualification workflow contract",
+    "runId": 45380023077,
+    "jobId": 138396336835,
+    "reason": "The qualification self-tests and workflow contract passed, then digest verification rejected the stale status overlay."
+  },
+  "repair": {
+    "method": "Compute the selected implementation digest from a clean clone of the exact committed source and update only the excluded qualified-format status overlay.",
+    "implementationDigestSha256": "71933d1eb20198f481ead206a074224097c34c3384b37526901c364e6f2c2ceb",
+    "implementationInputs": 774,
+    "claimStatusesChanged": false
+  },
+  "validation": [
+    {
+      "command": "python3 -B tools/check_qualification_digest.py",
+      "result": "PASS in a clean clone of source commit 28381baedc036eaac96a9759a25ebdfc618f9862 with the refreshed excluded status overlay."
+    },
+    {
+      "command": "python3 -B tools/check_qualification_workflow.py --workflow .github/workflows/build.yml --manifest metadata/qualification-required-tests-v1.json",
+      "result": "PASS in the clean clone."
+    },
+    {
+      "command": "python3 -B tools/check_qualified_format_support.py",
+      "result": "PASS: 15 claims, 2 candidate routes, 0 advertised."
+    }
+  ],
+  "limits": [
+    "The receipt changes no format or support claim.",
+    "Hosted checks for the overlay repair commit have not yet been observed."
+  ]
+}

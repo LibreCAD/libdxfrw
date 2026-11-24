@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-gcc-fix-digest-refresh-2026-11-24",
+  "date": "2026-11-24",
+  "sourceCommit": "fc208f4553055657f5b74c14f080c2586de0663f",
+  "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+  "supportClaimEffect": "none",
+  "priorHostedFailures": [
+    {
+      "workflow": "qualification workflow contract",
+      "runId": 45380023077,
+      "jobId": 138396336835,
+      "reason": "Digest verification rejected the stale status overlay after the workflow self-tests passed."
+    },
+    {
+      "workflow": "libdxfrw fast parity regressions",
+      "runId": 45380023062,
+      "jobId": 138396337218,
+      "reason": "GCC 13 -Werror=extra rejected a conditional mixing std::uint32_t and DRW::NoHandle."
+    }
+  ],
+  "repair": {
+    "codeCommit": "fc208f4553055657f5b74c14f080c2586de0663f",
+    "codeChange": "Convert DRW::NoHandle to std::uint32_t at the owner diagnostic boundary.",
+    "statusOverlay": "metadata/qualified-format-status-v1.json",
+    "implementationDigestSha256": "6007acda069c3fd0ef13d96d80651f4ef335a2dd59797726b5ae8f48dda779af",
+    "implementationInputs": 774,
+    "claimStatusesChanged": false
+  },
+  "validation": [
+    {
+      "command": "/opt/homebrew/bin/g++-16 -O1 -DNDEBUG -std=c++17 -Wall -Wextra -pedantic -Werror -Isrc -Isrc/intern -c src/intern/dwgreader.cpp",
+      "result": "PASS."
+    },
+    {
+      "command": "cmake --build build-gcc --target dxfrw --parallel 2",
+      "result": "PASS."
+    },
+    {
+      "command": "python3 -B tools/check_qualification_digest.py",
+      "result": "PASS in a clean clone of fc208f4553055657f5b74c14f080c2586de0663f with the refreshed status overlay."
+    },
+    {
+      "command": "python3 -B tools/check_qualification_workflow.py --workflow .github/workflows/build.yml --manifest metadata/qualification-required-tests-v1.json",
+      "result": "PASS in the clean clone."
+    },
+    {
+      "command": "python3 -B tools/check_qualified_format_support.py",
+      "result": "PASS: 15 claims, 2 candidate routes, 0 advertised."
+    }
+  ],
+  "limits": [
+    "The receipt changes no format or support claim.",
+    "Hosted checks for the repaired source and overlay have not yet been observed."
+  ]
+}

@@ -28,13 +28,15 @@ workflow design. These checks do not promote support claims.
 The exact PR head `28381baedc036eaac96a9759a25ebdfc618f9862` failed two
 hosted jobs: digest verification found a stale excluded status overlay, and the
 fast build found an enum/integer conditional warning in the new entity failure
-diagnostic under GCC 13 `-Werror`. The digest repair for that source was
-validated locally, but the compiler fix changes a selected implementation
-input, so its digest must be recomputed from the final source commit before
-publishing either repair. The fix explicitly converts `DRW::NoHandle` to the
-stored `std::uint32_t` handle type. Recheck both hosted jobs on the refreshed
-head before integration. See the [digest failure receipt](docs/research/p8-pr106-digest-refresh-2026-11-24.json)
-and the [prior CI snapshot](docs/research/p8-pr106-current-ci-2026-11-23.json).
+diagnostic under GCC 13 `-Werror`. Commit `fc208f45` fixes the warning by
+converting `DRW::NoHandle` to the stored `std::uint32_t` handle type. The
+committed candidate digest is now
+`6007acda069c3fd0ef13d96d80651f4ef335a2dd59797726b5ae8f48dda779af` for 774
+inputs; the excluded overlay records it without changing claim statuses.
+Recheck both hosted jobs on the refreshed head before integration. See the
+[initial digest failure receipt](docs/research/p8-pr106-digest-refresh-2026-11-24.json),
+[follow-up repair receipt](docs/research/p8-pr106-gcc-fix-digest-refresh-2026-11-24.json),
+and [prior CI snapshot](docs/research/p8-pr106-current-ci-2026-11-23.json).
 
 The recorded consumer baselines are libdxfrw `master` `d68fb1ed937ad2a74a54f6208277ec10a1b031b0`,
 LibreCAD `master` `78014ecde2f53fdd8c06453f3854b1cae1a3fd0d`, LibreCAD_3
