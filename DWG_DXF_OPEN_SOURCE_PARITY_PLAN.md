@@ -214,6 +214,16 @@ This is a reproducibility refresh, not a new discriminator: native AutoCAD
 open and duplicate-merge behavior remain the only AC1012 semantic blocker for
 this profile, and the scratch DWGs/DXFs are not committed.
 
+The [fresh spec-directed scratch regeneration](docs/research/p6-ac1012-spec-sample-regeneration-2026-11-24.json)
+creates both AC1012 drawings from local LibreDWG recipes, binds the ODA §9
+DIMSTYLE hard pointer, and checks the §20.4.44 DICTIONARY and §20.4.73
+MLINESTYLE graph. The 15°/37° SAME_KEY targets and 22°/51° destination/source
+unique entries are observable; focused parser role/refusal/reset/retry checks
+and bounded partial ASCII/Binary audits pass. Strict ASCII/Binary conversion
+refuses atomically. The pair stays under `/private/tmp`; it is not
+AutoCAD-authored or native open/merge evidence, and does not qualify the
+profile.
+
 The local parser layer now uses the shared version-aware object body/string
 boundary resolver for DICTIONARY and DICTIONARYVAR, shared common and
 dictionary-specific handle-role predicates, and a single version table for
