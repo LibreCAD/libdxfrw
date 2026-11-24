@@ -4585,8 +4585,10 @@ bool parseR2007TableCell(DRW::Version version, bool autoCad2007Profile,
         return false;
     cell.m_type = type;
     cell.m_edgeFlags = edgeFlags;
-    cell.m_valueHandle = readTableHandle(hdlBuf, bounds.handleEndBit,
-                                         "cell-value-handle", buf, strBuf);
+    if (!readTableHandleWithRole(hdlBuf, bounds.handleEndBit,
+                                 DRW::DwgHardPointer, cell.m_valueHandle,
+                                 "cell-value-handle", buf, strBuf))
+        return false;
 
     // R2008 changed table-cell encoding within AC1021, but the available
     // format references do not document the new cell types. Do not interpret
@@ -4602,8 +4604,7 @@ bool parseR2007TableCell(DRW::Version version, bool autoCad2007Profile,
     }
 
     if (cell.m_type == 1) {
-        cell.m_textStyleHandle = cell.m_valueHandle;
-        if (cell.m_textStyleHandle == 0 && version < DRW::AC1021) {
+        if (cell.m_valueHandle == 0 && version < DRW::AC1021) {
             DRW_TableCellContent content;
             content.m_type = 1;
             content.m_text = readTableText(
@@ -4629,9 +4630,11 @@ bool parseR2007TableCell(DRW::Version version, bool autoCad2007Profile,
                 return false;
             for (std::uint16_t i = 0; i < numAttributes; ++i) {
                 DRW_TableCellAttribute attribute;
-                attribute.m_attdefHandle = readTableHandle(
-                    hdlBuf, bounds.handleEndBit, "cell-attribute-attdef",
-                    buf, strBuf);
+                if (!readTableHandleWithRole(
+                        hdlBuf, bounds.handleEndBit, DRW::DwgSoftPointer,
+                        attribute.m_attdefHandle, "cell-attribute-attdef",
+                        buf, strBuf))
+                    return false;
                 std::uint16_t attributeIndex = 0;
                 if (!readBoundedBitShort(*buf, bounds.bodyEndBit,
                                          attributeIndex))
