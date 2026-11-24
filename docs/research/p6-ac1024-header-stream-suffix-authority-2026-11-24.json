@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p6-ac1024-header-stream-suffix-authority-2026-11-24",
   "date": "2026-11-24",
-  "status": "VALID_ODA_SOURCE_STREAMS_MAPPED_SUFFIX_ROLE_OPEN",
+  "status": "VALID_SOURCE_STREAMS_AND_SUFFIX_BOUNDS_CONFIRMED_SUFFIX_ROLE_OPEN",
   "supportClaimEffect": "none",
   "authority": {
     "document": "Open Design Specification for .dwg files v5.4.1",
@@ -13,7 +13,7 @@
       "9": "The header-variable section-locator-0 envelope contains a beginning sentinel, size fields, data, CRC, and ending sentinel; the section's data stream has no gaps and header bits are padded to a byte boundary.",
       "20.1": "The common object format describes string-stream location and a separate handle stream; it supplies the referenced object-stream model, not a direct mapping for the observed trailing bytes."
     },
-    "interpretation": "Section 5.9 makes separate header string/handle streams relevant to the investigation. The cited text does not identify the 739 bytes after the validated section-9 envelope as those streams, define their exact spans there, or explain the repeated-save suffix difference."
+    "interpretation": "ODA v5.4.1 \u00a75.9 establishes separate header string and handle streams. The independent LibreDWG trace maps the decoded streams before the validated envelope trailer in this AC1024 source. Neither the specification text screened here nor the independent bounded container decoder identifies the remaining 739-byte suffix role or semantics."
   },
   "priorEvidence": {
     "repeatabilityReceipt": "docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json",
@@ -31,7 +31,7 @@
     "result": "Aborted before conversion with PasteBoard errors (-4960) and an invalid hiservices XPC connection; no DWG was produced.",
     "disposition": "Do not repeat the same attempt until the converter or desktop state changes."
   },
-  "nextAction": "Use this valid ODA-produced AC1024 sample and independent LibreDWG trace to identify the exact role and boundary of the 739 bytes after the validated header envelope. The observed decoded string stream (bits 4931..6239) and handle fields (byte cursors 782..858) lie before trailer offset 887, so they do not account for the suffix. Seek primary authority or an independent source-distinct trace that explains those bytes; retain strict refusal until then.",
+  "nextAction": "Determine the role and semantics of the independently bounded source bytes [887,1626) (739 bytes, SHA-256 3f841c402344cc07c25ede3d7284824b68ad3e463316adad4b456d80beb9ecdd) using versioned primary authority or an independent source-distinct decode. The known string and handle fields end before trailer offset 887. Retain the suffix raw and strict output refused until its role is established.",
   "limits": [
     "The local PDF is the ODA specification named in AGENTS.md and its hash matches the earlier receipts.",
     "A structural statement about separate streams does not prove the semantics of this specific suffix.",
@@ -197,5 +197,35 @@
       }
     },
     "disposition": "This sample validates the source-specific frame and decoded string/handle locations, but the 739 bytes after the envelope remain unclassified. Keep them raw, retain strict-output refusal, and do not call them padding or discard them. No support claim is promoted."
+  },
+  "pinnedIndependentContainerCheck": {
+    "repository": "https://github.com/realDragonium/dwg-verifier",
+    "commit": "5a7dc5c6790cd8fece1494c710585019a253dbba",
+    "moduleHashes": {
+      "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "r2004.py": "3b0c692a41f0319687f221d6ed0c4bf35919641cf2de29c6e024d8f127ae24b1",
+      "structural.py": "8fd01b73158cbabf8944ff3d903ac83af9a1215e2315ee6cbadd31b444b776b1",
+      "report.py": "8b0ea26b0d64c73fdca20683aae192c731ed2448b0fe64e751bafba9c04d4a6d"
+    },
+    "sourceSha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+    "result": {
+      "findings": [],
+      "unsupported": null
+    },
+    "sectionLogicalBytes": 1626,
+    "headerEnvelope": {
+      "crcOffset": 869,
+      "endSentinelOffset": 871,
+      "trailerEnd": 887,
+      "crc16": "0x1feb"
+    },
+    "unclaimedSuffix": {
+      "start": 887,
+      "endExclusive": 1626,
+      "sizeBytes": 739,
+      "sha256": "3f841c402344cc07c25ede3d7284824b68ad3e463316adad4b456d80beb9ecdd"
+    },
+    "logicalHeaderSha256": "07942fac3769fa24fc9e3c4c391fd76d46587c854f7c0c42cf3c754849d45004",
+    "interpretation": "Independent bounded container parsing confirms exact source bounds and a valid section envelope. It does not assign meaning to the suffix."
   }
 }
