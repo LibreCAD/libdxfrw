@@ -1,0 +1,30 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "Generated AC1024 inline TABLECONTENT specification vectors",
+  "date": "2026-11-24",
+  "supportClaimEffect": "none",
+  "scope": "Correct the AC1024 generated TABLE frame's reference roles and aligned handle-stream bound, then run the ODA-shaped inline TABLECONTENT and malformed-reference controls.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "sections": ["20.4.96.2", "20.4.97", "20.4.99"],
+    "constraints": [
+      "The R2010+ TABLE prefix carries an unknown soft pointer whose default is NULL.",
+      "TABLECONTENT is inline in the R24 TABLE entity and omits a second common OBJECT header.",
+      "CadValue type 2 is a BD double; type 64 Object ID is an H soft pointer.",
+      "The bounded entity handle stream begins at the byte-aligned post-string boundary; its bit length includes byte-alignment bits."
+    ]
+  },
+  "implementation": {
+    "file": "tests/dwg_object_vectors_tests.cpp",
+    "test": "libdxfrw_ac1024_table_content_spec_vectors",
+    "generatedControls": [
+      "The AC1024 TABLE BLOCK_RECORD reference is encoded with the required hard-pointer role, and the stream bound includes its aligned byte size.",
+      "The generated inline TABLECONTENT profile checks name, description, column/cell values, the following body boundary, and correct hard-pointer roles for field/block references.",
+      "Malformed role, truncation, invalid-count, and incomplete-content cases verify atomic prefix retention or rejection as appropriate."
+    ],
+    "command": "cmake -S . -B build-gcc -DCMAKE_POLICY_VERSION_MINIMUM=3.5 && cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2 && ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_ac1024_table_content_spec_vectors$'",
+    "result": "Reconfigured and built with project warning policy; 1 of 1 focused CTests passed."
+  },
+  "fixtureDisposition": "Vectors are authored in memory. No DWG or DXF fixture was added.",
+  "qualificationBoundary": "This verifies a specification-shaped parser/vector contract only. It does not provide an AutoCAD producer witness, qualify the observed AC1024 source-profile string layout, establish strict TABLE output/readback, native appearance, or broader AC1024 support. P5-D remains open for its producer-bound profile."
+}

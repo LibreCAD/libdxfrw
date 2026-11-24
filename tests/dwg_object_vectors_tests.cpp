@@ -16564,7 +16564,9 @@ bool makeR2010EmbeddedTableFrame(R2010EmbeddedTableFrame& frame,
     // ODA §20.4.96.2 R2010 prefix: preserve unknown fields at their documented
     // widths; the first handle is the unknown null soft pointer.
     body.putRawChar8(unknownTablePrefix);
-    handles.putHandle(handle(blockRecordHandle)); // owning BLOCK_RECORD
+    dwgHandle blockRecord = handle(blockRecordHandle);
+    blockRecord.code = DRW::DwgHardPointer;
+    handles.putHandle(blockRecord); // owning BLOCK_RECORD hard pointer
     dwgHandle unknownSoftPointer;
     unknownSoftPointer.code = unknownSoftPointerCode;
     unknownSoftPointer.ref = unknownSoftPointerRef;
@@ -16928,7 +16930,7 @@ bool makeR2010EmbeddedTableFrame(R2010EmbeddedTableFrame& frame,
     full.putRawShort16(static_cast<std::uint16_t>(strings.size() * 8u + 7u));
     full.putBit(1); // R2007+ string stream present
     handles.alignToByte();
-    frame.handleBits = static_cast<std::uint32_t>(handles.bitCount());
+    frame.handleBits = static_cast<std::uint32_t>(handles.size() * 8u);
     frame.handleStreamStartByte = full.size();
     full.putBytes(handles.data().data(), handles.size());
     if (!full.isGood())
