@@ -25,11 +25,12 @@ The exact PR head `28381baedc036eaac96a9759a25ebdfc618f9862` failed two
 hosted jobs: digest verification found a stale excluded status overlay, and the
 fast build found an enum/integer conditional warning in the new entity failure
 diagnostic under GCC 13 `-Werror`. Commit `fc208f45` fixes the warning by
-converting `DRW::NoHandle` to the stored `std::uint32_t` handle type. On PR
-head `f1664f06af2b47610bd54b37c0e20a13367301d1`, the fast regression job,
-qualification contract, and focused Linux GCC, macOS Clang, and Windows MSVC
-jobs all passed. The broad and fuzz lanes and source-release were skipped by
-workflow design. These checks validate this candidate's fast and focused build
+converting `DRW::NoHandle` to the stored `std::uint32_t` handle type. On the
+latest PR head `e2b872034331a23e584a36bb093a7053ccc72bd2`, the fast regression
+job, qualification contract, and focused Linux GCC, macOS Clang, and Windows
+MSVC jobs all passed. The broad, fuzz, and source-release jobs were skipped by
+workflow design. The macOS job's single annotation is a runner-capacity notice,
+not a failure. These checks validate this candidate's fast and focused build
 profiles only; they do not promote a support claim. See the [current CI
 receipt](docs/research/p8-pr106-current-ci-2026-11-24.json). The committed
 candidate digest is now
@@ -209,8 +210,10 @@ The test calls the shared legacy dictionary observer directly; see the
 [absolute-reactor receipt](docs/research/p6-ac1012-common-tail-absolute-reactors-2026-11-23.json).
 This shared framing, dictionary, and handle-role implementation was rechecked
 at implementation revision `8642548e`; its `-Werror` target build is current and the
-focused CTest passes 1/1. This completes the local extraction/control slice;
-the separate native dictionary clone/merge witness remains open.
+focused CTest passes 1/1. On current PR head `e2b872034331a23e584a36bb093a7053ccc72bd2`,
+the focused target rebuilt and `libdxfrw_dwg_ac1014_dictionaryvar` passed 1/1.
+This completes the local extraction/control slice; the separate native
+dictionary clone/merge witness remains open.
 The same self-contained CTest now builds an in-memory AC1012
 DICTIONARY object frame from the ODA §20.4.44 field sequence, including a
 relative soft-pointer parent, then checks the typed parser and shared observer,
