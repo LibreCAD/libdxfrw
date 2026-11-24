@@ -22694,6 +22694,16 @@ void testAc1024PhysicalHighBitClassStringFooter(TestContext& t) {
     t.expect(extendedFooter,
              "AC1024 physical CLASSES stream sets and decodes the high-size extension");
 
+    const std::uint64_t footerEndBit =
+        static_cast<std::uint64_t>(classDataBits) + 159u;
+    dwgBuffer footerFlagProbe(classes.data(), classes.size());
+    const bool footerFlagPositioned =
+        footerFlagProbe.setPosition(footerEndBit >> 3);
+    footerFlagProbe.setBitPos(static_cast<std::uint8_t>(footerEndBit & 7u));
+    const bool footerFlag = footerFlagProbe.getBit() != 0u;
+    t.expect(footerFlagPositioned && footerFlagProbe.isGood() && footerFlag,
+             "AC1024 nonempty physical CLASSES stream sets its footer presence bit");
+
     const bool parsed = reader.readDwgClasses();
     t.expect(parsed, "AC1024 reader parses the complete high-bit CLASSES section");
     DRW_Class expectedClass;
@@ -22729,6 +22739,7 @@ void testR2007ClassStringFooter(TestContext& t) {
     bytes[footerEndBit / 8 - 3] = 0;
     bytes[footerEndBit / 8 - 2] = static_cast<std::uint8_t>(lowSize & 0xff);
     bytes[footerEndBit / 8 - 1] = static_cast<std::uint8_t>(lowSize >> 8);
+    bytes[footerEndBit / 8] = 0x80u;
     dwgBuffer buffer(bytes.data(), bytes.size());
     std::uint64_t start = 0;
     std::uint64_t size = 0;
@@ -22751,7 +22762,7 @@ void testR2007ClassStringFooter(TestContext& t) {
     for (std::uint64_t bit = 0; bit < shortFooterEndBit - 16; ++bit)
         shortEncoded.putBit(0);
     shortEncoded.putRawShort16(static_cast<std::uint16_t>(shortStringSize));
-    shortEncoded.putBit(0);
+    shortEncoded.putBit(1);
     const std::vector<std::uint8_t> shortBytes = shortEncoded.data();
     dwgBuffer shortBuffer(shortBytes.data(), shortBytes.size());
     std::uint64_t shortStart = 0;
@@ -22769,6 +22780,7 @@ void testR2007ClassStringFooter(TestContext& t) {
     malformed[footerEndBit / 8 - 3] = 0xff;
     malformed[footerEndBit / 8 - 2] = 0xff;
     malformed[footerEndBit / 8 - 1] = 0xff;
+    malformed[footerEndBit / 8] = 0x80u;
     dwgBuffer bad(malformed.data(), malformed.size());
     bad.setPosition(10);
     bad.setBitPos(3);
@@ -22789,7 +22801,7 @@ void testR2007ClassStringFooter(TestContext& t) {
     for (std::uint64_t bit = 0; bit < 15; ++bit)
         truncatedEncoded.putBit(0);
     truncatedEncoded.putRawShort16(0x8001);
-    truncatedEncoded.putBit(0);
+    truncatedEncoded.putBit(1);
     const std::vector<std::uint8_t> truncatedBytes = truncatedEncoded.data();
     dwgBuffer truncated(truncatedBytes.data(), truncatedBytes.size());
     truncated.setPosition(1);
@@ -22827,7 +22839,7 @@ void testR2007ClassStringFooter(TestContext& t) {
             encoded.putBit(0);
         encoded.putRawShort16(static_cast<std::uint16_t>(highSize));
         encoded.putRawShort16(static_cast<std::uint16_t>(lowSize));
-        encoded.putBit(0);
+        encoded.putBit(1);
         const std::vector<std::uint8_t> unalignedBytes = encoded.data();
 
         dwgBuffer unaligned(unalignedBytes.data(), unalignedBytes.size());
