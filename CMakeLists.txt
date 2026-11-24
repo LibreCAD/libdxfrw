@@ -2129,6 +2129,12 @@ if(LIBDXFRW_BUILD_TESTS)
     set_tests_properties(libdxfrw_dwg_table_cell_overrides PROPERTIES
         LABELS "fast;dwg;object-vectors;table;generated;transaction"
         TIMEOUT 15)
+    add_test(NAME libdxfrw_ac1021_table_content_reference_roles
+        COMMAND libdxfrw_dwg_object_vectors_tests
+            --table-content-ac1021-reference-roles)
+    set_tests_properties(libdxfrw_ac1021_table_content_reference_roles PROPERTIES
+        LABELS "fast;dwg;object-vectors;table;handles;generated;transaction"
+        TIMEOUT 20)
     add_test(NAME libdxfrw_dwg_classes_high_size_writer_boundary
         COMMAND libdxfrw_dwg_object_vectors_tests
             --dwg-classes-high-size-writer-boundary)

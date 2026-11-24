@@ -17269,6 +17269,59 @@ void testR2007TableContentObjectVector(TestContext& t) {
                  "AC1021 TABLECONTENT rejects a field reference with the wrong ownership role");
     }
 
+    R2007TableContentObjectFrame wrongObjectIdRoleFrame;
+    R2007TableContentObjectFrame correctedObjectIdRoleFrame;
+    const bool wrongObjectIdRoleBuilt = makeR2007TableContentObjectFrame(
+        wrongObjectIdRoleFrame, false, 0u, 0xA710u, false, 0u, 0u,
+        DRW::DwgHardOwnership, 0, DRW::DwgHardPointer, 64,
+        DRW::DwgHardPointer);
+    const bool correctedObjectIdRoleBuilt = makeR2007TableContentObjectFrame(
+        correctedObjectIdRoleFrame, false, 0u, 0xA710u, false, 0u, 0u,
+        DRW::DwgHardOwnership, 0, DRW::DwgHardPointer, 64,
+        DRW::DwgSoftPointer);
+    t.expect(wrongObjectIdRoleBuilt && correctedObjectIdRoleBuilt,
+             "AC1021 TABLECONTENT CadValue object-ID role vectors build from scratch");
+    if (wrongObjectIdRoleBuilt && correctedObjectIdRoleBuilt) {
+        TableContentObjectCodecProbe objectIdRoleObject;
+        dwgBuffer wrongObjectIdRoleInput(
+            wrongObjectIdRoleFrame.bytes.data(),
+            wrongObjectIdRoleFrame.bytes.size());
+        const bool wrongObjectIdRoleParsed = objectIdRoleObject.parseDwg(
+            DRW::AC1021, &wrongObjectIdRoleInput,
+            wrongObjectIdRoleFrame.handleBits);
+        const bool wrongObjectIdRoleReset = !wrongObjectIdRoleParsed
+            && !wrongObjectIdRoleInput.isGood()
+            && !objectIdRoleObject.m_parseComplete
+            && objectIdRoleObject.m_content.m_rows.empty();
+
+        dwgBuffer correctedObjectIdRoleInput(
+            correctedObjectIdRoleFrame.bytes.data(),
+            correctedObjectIdRoleFrame.bytes.size());
+        const bool correctedObjectIdRoleParsed = objectIdRoleObject.parseDwg(
+            DRW::AC1021, &correctedObjectIdRoleInput,
+            correctedObjectIdRoleFrame.handleBits);
+        const DRW_TableCell* objectIdCell =
+            objectIdRoleObject.m_content.m_rows.size() == 1u
+                && objectIdRoleObject.m_content.m_rows.front().m_cells.size() == 1u
+            ? &objectIdRoleObject.m_content.m_rows.front().m_cells.front()
+            : nullptr;
+        const DRW_TableCellContent* objectIdContent =
+            objectIdCell != nullptr && objectIdCell->m_contents.size() == 1u
+                ? &objectIdCell->m_contents.front() : nullptr;
+        const bool correctedObjectIdRoleRetained =
+            correctedObjectIdRoleParsed && correctedObjectIdRoleInput.isGood()
+            && objectIdRoleObject.m_parseComplete
+            && objectIdRoleObject.m_semanticContentComplete
+            && objectIdContent != nullptr
+            && objectIdContent->m_value.m_dataType == 64
+            && objectIdContent->m_value.m_handle == 0xA721u
+            && objectIdRoleObject.m_content.m_tableStyleHandle == 0xA700u;
+        t.expect(wrongObjectIdRoleReset,
+                 "AC1021 TABLECONTENT CadValue object-ID rejects a hard-pointer role and resets parser state");
+        t.expect(correctedObjectIdRoleRetained,
+                 "AC1021 TABLECONTENT CadValue object-ID accepts the soft pointer on corrected same-object retry");
+    }
+
     R2007TableContentObjectFrame shortFieldReferenceStreamFrame;
     const bool shortFieldReferenceStreamBuilt =
         makeR2007TableContentObjectFrame(
@@ -33056,6 +33109,15 @@ int main(int argc, char** argv) {
         TestContext context;
         testDwgEedSizeBoundaries(context);
         std::cout << "DWG EED unsigned size boundaries: "
+                  << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return context.failures == 0 ? 0 : 1;
+    }
+    if (argc == 2
+        && std::string(argv[1])
+            == "--table-content-ac1021-reference-roles") {
+        TestContext context;
+        testR2007TableContentObjectVector(context);
+        std::cout << "AC1021 TABLECONTENT reference-role vectors: "
                   << (context.failures == 0 ? "PASS" : "FAIL") << '\n';
         return context.failures == 0 ? 0 : 1;
     }
