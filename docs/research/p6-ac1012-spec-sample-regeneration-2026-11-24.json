@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-spec-sample-regeneration-2026-11-24",
+  "status": "SPEC_DIRECTED_SCRATCH_PAIR_REGENERATED_LOCAL_CONTROLS_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "sections": ["9 HEADER VARIABLES", "20.4.44 DICTIONARY", "20.4.73 MLINESTYLE"],
+    "url": "https://www.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "appliedConstraints": [
+      "AC1012 DICTIONARY encodes counted entry names and role-2 soft-owner item handles; the later cloning and hard-owner fields are absent.",
+      "The current DIMSTYLE header value is encoded as a hard pointer to the unique Standard DIMSTYLE record.",
+      "Each SAME_KEY target is a same-named MLINESTYLE owned by the ACAD_MLINESTYLE dictionary."
+    ]
+  },
+  "producer": "GNU LibreDWG 0.14 dwgadd/dwgread/dwgwrite from local recipes and JSON; not AutoCAD-authored",
+  "generator": {
+    "path": "tools/research/generate_ac1012_dictionary_merge_samples.py",
+    "sha256": "cd62cfca9d2204362533a8607a1f06484db8f09c7156dcec4de6f895c63476ef"
+  },
+  "scratchDirectory": "/private/tmp/ac1012-user-spec-create-20261124/ac1012-dictionary-merge-gisgyyoy",
+  "samples": {
+    "destination": {
+      "file": "destination-ac1012.dwg",
+      "sha256": "44cd7058f27ad6db8548c401f69cf698ef2448248938e7faf71fe6ed115fdf96",
+      "dictionaryFrame": {
+        "sizeBytes": 50,
+        "sha256": "0d005170285d2dbdc3887520bc5a018a708e58aff8568324818f1f918da95d07",
+        "crcValid": true
+      },
+      "entries": {"SAME_KEY": 46, "DEST_ONLY": 47},
+      "anglesDegrees": {"SAME_KEY": 15, "DEST_ONLY": 22}
+    },
+    "source": {
+      "file": "source-ac1012.dwg",
+      "sha256": "bd1b118e1226f6a49c82c523f32ebebf16d8a0b876729039bb0ef19db5dfab3b",
+      "dictionaryFrame": {
+        "sizeBytes": 52,
+        "sha256": "fbaf235e03a52ceacff32f57b3e0334dd4cb0a535b42e659eaa66bdd7c7a49c7",
+        "crcValid": true
+      },
+      "entries": {"SAME_KEY": 46, "SOURCE_ONLY": 47},
+      "anglesDegrees": {"SAME_KEY": 37, "SOURCE_ONLY": 51}
+    }
+  },
+  "implementationControls": {
+    "candidate": {
+      "path": "build-gcc/dwg2dxf/dwg2dxf",
+      "sha256": "8fb3fb64873f9cf624704d1cd238a242587a570bdc7301e217c21e8619f15fcf",
+      "strictAsciiAndBinary": "both refuse at the AC1012 duplicate-merge semantic guard and preserve the preexisting destination",
+      "partialAsciiSha256": {
+        "destination": "1a4a5b24d6fc8b0788810dafee4f9c24339e37f7f07f0b9a73d5570eaaa84709",
+        "source": "3d3292e59678c8c39866fcef27a593d58881a20fd25a5be6d1f00e30ff64457e"
+      },
+      "partialBinarySha256": {
+        "destination": "d2b142bcd09e6e4aba2b53cbec70d87ff8f707c088f240944a27b18ad4de151d",
+        "source": "db6d7cdd7de121939135cdc96c7846ea1459407fb1c85e979616904cec213c8a"
+      },
+      "partialAudits": "ASCII/Binary bounded audits retain selected key, target identity, owner and angle"
+    },
+    "focusedParserControl": {
+      "path": "build-gcc/tests/libdxfrw_dwg_ac1014_dictionaryvar_tests",
+      "sha256": "5bfd86f4094fc290fff7865574baff8be04833dabab0b8d495859558a2abd975",
+      "result": "PASS for both physical frames, role/refusal/reset/corrected-retry controls"
+    }
+  },
+  "limitations": [
+    "The samples are locally generated, specification-directed controls; they do not prove AutoCAD native open or duplicate-key merge behavior.",
+    "Strict AC1012 output remains refused for this unqualified profile.",
+    "All DWG/DXF outputs remain in scratch storage; no fixture files were added to the repository."
+  ]
+}
