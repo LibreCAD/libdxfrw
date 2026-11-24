@@ -1,0 +1,64 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-current-ci-2026-11-24",
+  "date": "2026-11-24",
+  "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+  "head": "f1664f06af2b47610bd54b37c0e20a13367301d1",
+  "observedAtUtc": "2026-11-24 11:25 UTC",
+  "checks": {
+    "fast-regressions": {
+      "runId": 45381713050,
+      "jobId": 138402124238,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "source-release": {
+      "runId": 45381713050,
+      "jobId": 138402126372,
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    "qualification workflow contract": {
+      "runId": 45381713116,
+      "jobId": 138402123408,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "focused / linux-gcc": {
+      "runId": 45381713116,
+      "jobId": 138402284391,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "focused / macos-clang": {
+      "runId": 45381713116,
+      "jobId": 138402284501,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "focused / windows-msvc": {
+      "runId": 45381713116,
+      "jobId": 138402284321,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "extended deterministic fuzz / linux-gcc": {
+      "runId": 45381713116,
+      "jobId": 138402286817,
+      "status": "completed",
+      "conclusion": "skipped"
+    },
+    "final broad": {
+      "runId": 45381713116,
+      "jobId": 138402287070,
+      "status": "completed",
+      "conclusion": "skipped"
+    }
+  },
+  "supportClaimEffect": "none",
+  "limits": [
+    "All successful checks bind the exact PR head shown above.",
+    "Broad, extended fuzz, and source-release gates were skipped by workflow design.",
+    "No qualification claim or release gate is promoted by this CI snapshot."
+  ]
+}

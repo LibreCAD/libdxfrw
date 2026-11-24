@@ -17,23 +17,26 @@ P8-A/B/C/E/F require receipts matching the frozen candidate's inputs. Reuse
 matching evidence and defer expensive package and consumer runs until freeze.
 The [PR CI inventory and digest refresh](docs/research/p8-pr106-ci-inventory-digest-refresh-2026-11-22.json)
 fixed the source and CTest inventories. The [follow-up digest refresh](docs/research/p8-pr106-followup-digest-refresh-2026-11-22.json)
-updates the excluded status overlay for the AC1012 slice without promoting any
-claim. Recheck hosted CI after that overlay commit; the fast regression job was
-still running at the time of the receipt. The subsequent [current-head poll](docs/research/p8-pr106-current-ci-fc51ed6-2026-11-23.json)
-shows fast regressions and the qualification contract passing, with focused
-Linux GCC and Windows MSVC also passing. Focused macOS Clang remains in
-progress; the broad matrix, extended fuzz, and source-release were skipped by
-workflow design. These checks do not promote support claims.
+updated the excluded status overlay for the AC1012 slice without promoting a
+claim. Those historical CI snapshots bind earlier heads and are not evidence
+for the current candidate.
 
 The exact PR head `28381baedc036eaac96a9759a25ebdfc618f9862` failed two
 hosted jobs: digest verification found a stale excluded status overlay, and the
 fast build found an enum/integer conditional warning in the new entity failure
 diagnostic under GCC 13 `-Werror`. Commit `fc208f45` fixes the warning by
-converting `DRW::NoHandle` to the stored `std::uint32_t` handle type. The
-committed candidate digest is now
+converting `DRW::NoHandle` to the stored `std::uint32_t` handle type. On PR
+head `f1664f06af2b47610bd54b37c0e20a13367301d1`, the fast regression job,
+qualification contract, and focused Linux GCC, macOS Clang, and Windows MSVC
+jobs all passed. The broad and fuzz lanes and source-release were skipped by
+workflow design. These checks validate this candidate's fast and focused build
+profiles only; they do not promote a support claim. See the [current CI
+receipt](docs/research/p8-pr106-current-ci-2026-11-24.json). The committed
+candidate digest is now
 `6007acda069c3fd0ef13d96d80651f4ef335a2dd59797726b5ae8f48dda779af` for 774
 inputs; the excluded overlay records it without changing claim statuses.
-Recheck both hosted jobs on the refreshed head before integration. See the
+For later source changes, refresh the digest and rerun exact-head checks before
+integration. See the
 [initial digest failure receipt](docs/research/p8-pr106-digest-refresh-2026-11-24.json),
 [follow-up repair receipt](docs/research/p8-pr106-gcc-fix-digest-refresh-2026-11-24.json),
 and [prior CI snapshot](docs/research/p8-pr106-current-ci-2026-11-23.json).
