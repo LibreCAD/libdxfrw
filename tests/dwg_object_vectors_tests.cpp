@@ -14884,31 +14884,6 @@ void testR2007TableCellTypeReaderVectors(TestContext& t) {
                  && cursorBit(textInput) == textFrame.tableDataEndBit,
              "known AC1021 TABLE text cell parses completely after same-object unknown-cell refusal");
 
-    R2007TableFrame ac1021CellAlignmentFrame;
-    const bool ac1021CellAlignmentBuilt = makeR2007TableFrame(
-        1u, ac1021CellAlignmentFrame, TablePlacement{}, 0x00000001u);
-    t.expect(ac1021CellAlignmentBuilt,
-             "AC1021 TABLE raw-RS cell-alignment vector builds from scratch");
-    if (!ac1021CellAlignmentBuilt)
-        return;
-    dwgBuffer ac1021CellAlignmentInput(
-        ac1021CellAlignmentFrame.bytes.data(),
-        ac1021CellAlignmentFrame.bytes.size());
-    const bool ac1021CellAlignmentRead = table.parseDwg(
-        DRW::AC1021, &ac1021CellAlignmentInput);
-    const DRW_TableCell* ac1021CellAlignmentCell =
-        table.m_content.m_rows.size() == 1u
-            && table.m_content.m_rows.front().m_cells.size() == 1u
-        ? &table.m_content.m_rows.front().m_cells.front() : nullptr;
-    t.expect(ac1021CellAlignmentRead && ac1021CellAlignmentInput.isGood()
-                 && table.m_semanticContentComplete
-                 && ac1021CellAlignmentCell != nullptr
-                 && ac1021CellAlignmentCell->m_overrideFlags == 0x00000001u
-                 && ac1021CellAlignmentCell->m_textAlignment == 5
-                 && cursorBit(ac1021CellAlignmentInput)
-                     == ac1021CellAlignmentFrame.tableDataEndBit,
-             "AC1021 TABLE cell-alignment RS field decodes its value and preserves the following CadValue/table sentinel boundaries");
-
     R2007TableFrame ac1021BitShortAlignmentFrame;
     const bool ac1021BitShortAlignmentBuilt = makeR2007TableFrame(
         1u, ac1021BitShortAlignmentFrame, TablePlacement{}, 0x00000001u,
@@ -14929,12 +14904,12 @@ void testR2007TableCellTypeReaderVectors(TestContext& t) {
         ? &table.m_content.m_rows.front().m_cells.front() : nullptr;
     t.expect(ac1021BitShortAlignmentRead
                  && ac1021BitShortAlignmentInput.isGood()
-                 && !table.m_semanticContentComplete
+                 && table.m_semanticContentComplete
                  && ac1021BitShortAlignmentCell != nullptr
                  && ac1021BitShortAlignmentCell->m_textAlignment == 6
                  && cursorBit(ac1021BitShortAlignmentInput)
                      == ac1021BitShortAlignmentFrame.tableDataEndBit,
-             "AC1021 TABLE BitShort compatibility candidate retains typed alignment but remains semantically incomplete");
+             "classified AutoCAD 2007 AC1021 TABLE BitShort alignment retains values and following-cell boundaries");
 
     R2007TableFrame blockFrame;
     const bool blockBuilt = makeR2007TableFrame(2, blockFrame);
