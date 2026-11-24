@@ -3,69 +3,61 @@
   "id": "p8-pr106-current-ci-2026-11-24",
   "date": "2026-11-24",
   "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
-  "head": "b335c47ca61521c98dea17a7739262ab52dec1c3",
-  "observedAtUtc": "2026-11-24 12:51 UTC",
+  "head": "dc9b6fd8da7ec6e41d2fc1630a251687b4914c94",
+  "observedAtUtc": "2026-11-24 13:32 UTC",
   "checks": {
     "fast-regressions": {
-      "runId": 45394492219,
-      "jobId": 138446515129,
+      "runId": 45400436347,
+      "jobId": 138467286081,
       "status": "completed",
       "conclusion": "success"
     },
     "source-release": {
-      "runId": 45394492219,
-      "jobId": 138446518225,
+      "runId": 45400436347,
+      "jobId": 138467288823,
       "status": "completed",
       "conclusion": "skipped"
     },
     "qualification workflow contract": {
-      "runId": 45394492066,
-      "jobId": 138446513950,
+      "runId": 45400436214,
+      "jobId": 138467283914,
       "status": "completed",
       "conclusion": "success"
     },
     "focused / linux-gcc": {
-      "runId": 45394492066,
-      "jobId": 138446636568,
+      "runId": 45400436214,
+      "jobId": 138467484965,
       "status": "completed",
       "conclusion": "success"
     },
     "focused / macos-clang": {
-      "runId": 45394492066,
-      "jobId": 138446636725,
+      "runId": 45400436214,
+      "jobId": 138467484864,
       "status": "completed",
-      "conclusion": "success",
-      "annotations": [
-        {
-          "level": "notice",
-          "path": ".github",
-          "line": 1,
-          "message": "Due to capacity constraints, jobs targeting macOS arm64 runners may experience longer queue times."
-        }
-      ]
+      "conclusion": "success"
     },
     "focused / windows-msvc": {
-      "runId": 45394492066,
-      "jobId": 138446636531,
+      "runId": 45400436214,
+      "jobId": 138467485004,
       "status": "completed",
       "conclusion": "success"
     },
     "extended deterministic fuzz / linux-gcc": {
-      "runId": 45394492066,
-      "jobId": 138446639469,
+      "runId": 45400436214,
+      "jobId": 138467486866,
       "status": "completed",
       "conclusion": "skipped"
     },
     "final broad": {
-      "runId": 45394492066,
-      "jobId": 138446640012,
+      "runId": 45400436214,
+      "jobId": 138467486904,
       "status": "completed",
       "conclusion": "skipped"
     }
   },
   "supportClaimEffect": "none",
   "limits": [
-    "All successful checks bind the exact PR head shown above.",
+    "All successful checks bind the exact PR head shown above. The fast regression run is 334 and the native qualification run is 491.",
     "Broad, extended fuzz, and source-release gates were skipped by workflow design.",
     "No qualification claim or release gate is promoted by this CI snapshot."
   ]
