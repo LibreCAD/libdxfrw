@@ -311,10 +311,7 @@ P6-F's organic partial-read failure and the LibreCAD raw-carrier gate below.
 
 Keep the AC1027 173-bit unclaimed suffix as an output-blocking integrity error;
 ordinary AC1027 drawings remain deferred until source-reference closure. Keep
-short-tail LTYPE_CONTROL fail-closed until versioned roles resolve. The
-reported AC1024 CLASSES/high-bit failure is dormant: resume only with the exact
-failing hash and producer/maintenance metadata; do not repeat the
-[corpus recheck](docs/research/p6-ac1024-current-tree-classes-recheck-2026-11-17.json).
+short-tail LTYPE_CONTROL fail-closed until versioned roles resolve. A fresh current-candidate pass on 2026-11-24 checked the nine AC1024 files in `/Users/dli/doc/dwg` plus `/Users/dli/doc/dwg6/framing_AC1024.dwg`; all ten reached `dwgReader24::readDwgClasses END`, none reported BAD_READ_CLASSES, nine completed the full read, and the framing sample advanced to BAD_READ_TABLES. The current workspace report of six class failures was not reproduced on these exact hashes; see the [current corpus receipt](docs/research/p6-ac1024-classes-current-corpus-recheck-2026-11-24.json). Preserve the parser and resume only with a new hash-bound failure and its producer/maintenance metadata. Do not rerun this unchanged corpus.
 Potential DIMASSOC/XREF, remaining 3D positions/OCS/splines, clipping/mesh,
 units/lineweight, text/XDATA/EED/font, proxy identity, header dependencies, and
 CLI atomicity are backlog prompts; add one after a source/profile identifies a
