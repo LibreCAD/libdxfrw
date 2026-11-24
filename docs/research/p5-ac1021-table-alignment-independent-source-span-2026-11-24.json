@@ -31,9 +31,18 @@
         "objectStartBit": 1527048,
         "objectSizeBytes": 35882,
         "objectEndBit": 1814104,
-        "alignmentCell": [8, 0],
-        "alignmentSpanBits": [1805680, 1805690],
-        "alignmentSpanRelativeToObjectStartBits": [278632, 278642],
+        "alignmentCell": [
+          8,
+          0
+        ],
+        "alignmentSpanBits": [
+          1805680,
+          1805690
+        ],
+        "alignmentSpanRelativeToObjectStartBits": [
+          278632,
+          278642
+        ],
         "decodedAlignment": 6,
         "independentCellReadback": "MiddleRight; ESTIMATED COST OF DOORS",
         "nextObjectHandle": "0x2a974",
@@ -46,16 +55,109 @@
         "objectStartBit": 1814152,
         "objectSizeBytes": 40223,
         "objectEndBit": 2135936,
-        "alignmentCell": [9, 0],
-        "alignmentSpanBits": [2126965, 2126975],
-        "alignmentSpanRelativeToObjectStartBits": [312813, 312823],
+        "alignmentCell": [
+          9,
+          0
+        ],
+        "alignmentSpanBits": [
+          2126965,
+          2126975
+        ],
+        "alignmentSpanRelativeToObjectStartBits": [
+          312813,
+          312823
+        ],
         "decodedAlignment": 6,
         "independentCellReadback": "MiddleRight; ESTIMATED COST OF WINDOWS",
         "nextObjectHandle": "0x25",
         "nextObjectMapOffsetBytes": 266994
       }
     ],
-    "comparison": "Both independently measured starts equal the previously recorded libdxfrw alignment starts. Both field spans are 10 bits, matching BitShort consumption. ACadSharp reads the remaining TABLE content, reports the expected strings and dimensions, and continues through the full document. The declared object ends and next object-map entries bound each object."
+    "comparison": "Both independently measured starts equal the previously recorded libdxfrw alignment starts. Both field spans are 10 bits, matching BitShort consumption. ACadSharp reads the remaining TABLE content, reports the expected strings and dimensions, and continues through the full document. The declared object ends and next object-map entries bound each object. The follow-up scratch trace also bounds the selected cells across body, string, and handle streams. Each is a text cell with one content item and a null value handle; both cell spans end before their enclosing object boundary and the next object-map entry.",
+    "cellStreamTrace": {
+      "instrumentedOutput": {
+        "path": "/private/tmp/acadsharp-p5i-20261124/probe/output12.log",
+        "sha256": "61bc2d72e54674cb772dab4e25869d70f65dfc2428c6f95ef13b4cbd3df72fd1",
+        "instrumentation": "Scratch-only trace brackets readTableCellData for the selected cell and records main-body, text-stream, and handle-stream cursors before and after decoding."
+      },
+      "cells": [
+        {
+          "tableHandle": "0x2856e",
+          "cell": [
+            8,
+            0
+          ],
+          "bodySpanBits": [
+            1805619,
+            1806132
+          ],
+          "bodySpanRelativeToObjectStartBits": [
+            278571,
+            279084
+          ],
+          "textStreamSpanBits": [
+            1812742,
+            1813122
+          ],
+          "textStreamSpanRelativeToObjectStartBits": [
+            285694,
+            286074
+          ],
+          "handleStreamSpanBits": [
+            1814003,
+            1814011
+          ],
+          "handleStreamSpanRelativeToObjectStartBits": [
+            286955,
+            286963
+          ],
+          "cellType": "Text",
+          "valueHandle": "0x0",
+          "contentCount": 1,
+          "independentReadback": "MiddleRight; ESTIMATED COST OF DOORS",
+          "enclosingObjectEndBit": 1814104,
+          "nextObjectHandle": "0x2a974"
+        },
+        {
+          "tableHandle": "0x2a974",
+          "cell": [
+            9,
+            0
+          ],
+          "bodySpanBits": [
+            2126904,
+            2127449
+          ],
+          "bodySpanRelativeToObjectStartBits": [
+            312752,
+            313297
+          ],
+          "textStreamSpanBits": [
+            2134447,
+            2134859
+          ],
+          "textStreamSpanRelativeToObjectStartBits": [
+            320295,
+            320707
+          ],
+          "handleStreamSpanBits": [
+            2135836,
+            2135844
+          ],
+          "handleStreamSpanRelativeToObjectStartBits": [
+            321684,
+            321692
+          ],
+          "cellType": "Text",
+          "valueHandle": "0x0",
+          "contentCount": 1,
+          "independentReadback": "MiddleRight; ESTIMATED COST OF WINDOWS",
+          "enclosingObjectEndBit": 2135936,
+          "nextObjectHandle": "0x25"
+        }
+      ],
+      "limits": "These are aggregate cell stream spans, not individually named boundaries for every contained value/string/handle field. They independently cross-check the two alignment spans and object boundaries; they do not establish table-wide graph closure or output semantics."
+    }
   },
   "implementation": {
     "files": [
@@ -81,9 +183,9 @@
     "profileDisposition": "The classified AutoCAD 2007 source uses a 10-bit BitShort field at both disputed cell spans. Keep this exception limited to the classified AutoCAD 2007 text-cell profile; do not broaden it to AC1021 as a whole or other producers."
   },
   "remainingWork": [
-    "Bind the remaining TABLE cell/value/string/handle fields and graph links for the selected profile, including strict malformed, rollback, and retry behavior.",
+    "Bind individual remaining TABLE cell/value/string/handle field spans and graph links for the selected profile; the new trace supplies aggregate body/string/handle spans only for cells [8,0] and [9,0]. Reuse strict malformed, rollback, and retry controls.",
     "Qualify selected-TABLE ASCII and Binary DXF output plus fresh independent readback. Whole-source conversion remains blocked by FIELD/FIELDLIST carriers and unrelated unsupported payloads.",
     "Keep other AC1021 producer profiles and proxy-graphics support outside this slice."
   ],
-  "closure": "The two alignment spans and their following-object boundaries are resolved for the exact classified AutoCAD 2007 source. The narrow parser and generated-vector slice is implemented and fast-tested. P5-I remains open for remaining graph and selected-output/readback gates; no TABLE-wide or AC1021-wide support claim follows."
+  "closure": "The two alignment spans and the aggregate body/string/handle spans for those selected text cells are independently bound, along with following-object boundaries, for the exact classified AutoCAD 2007 source. The narrow parser and generated-vector slice is implemented and fast-tested. P5-I remains open for individual remaining field roles, graph closure, selected output/readback, and other cells; no TABLE-wide or AC1021-wide support claim follows."
 }
