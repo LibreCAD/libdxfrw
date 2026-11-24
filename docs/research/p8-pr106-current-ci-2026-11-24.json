@@ -3,83 +3,90 @@
   "id": "p8-pr106-current-ci-2026-11-24",
   "date": "2026-11-24",
   "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
-  "head": "3b66c2703516d2affb08dc87567337c5d2c5284a",
-  "observedAtUtc": "2026-11-24 13:50 UTC",
+  "head": "e7ce7bbe826f39ed04757bda726733aae2e28bef",
+  "observedAtUtc": "2026-11-24 14:06 UTC",
   "checks": {
     "fast-regressions": {
-      "runId": 45405354829,
-      "jobId": 138484454730,
+      "runId": 45407846257,
+      "jobId": 138493271417,
+      "runNumber": 336,
       "status": "completed",
       "conclusion": "success"
     },
     "source-release": {
-      "runId": 45405354829,
-      "jobId": 138484459579,
+      "runId": 45407846257,
+      "jobId": 138493274628,
       "status": "completed",
       "conclusion": "skipped"
     },
     "qualification workflow contract": {
-      "runId": 45405354785,
-      "jobId": 138484454516,
+      "runId": 45407846318,
+      "jobId": 138493270407,
+      "runNumber": 494,
       "status": "completed",
-      "conclusion": "success"
+      "conclusion": "success",
+      "frozenImplementationDigest": "6007acda069c3fd0ef13d96d80651f4ef335a2dd59797726b5ae8f48dda779af",
+      "selectedInputs": 774
     },
     "focused / linux-gcc": {
-      "runId": 45405354785,
-      "jobId": 138484611132,
+      "runId": 45407846318,
+      "jobId": 138493402091,
       "status": "completed",
       "conclusion": "success"
     },
     "focused / macos-clang": {
-      "runId": 45405354785,
-      "jobId": 138484611246,
+      "runId": 45407846318,
+      "jobId": 138493401682,
       "status": "completed",
       "conclusion": "success"
     },
     "focused / windows-msvc": {
-      "runId": 45405354785,
-      "jobId": 138484611222,
+      "runId": 45407846318,
+      "jobId": 138493401760,
       "status": "completed",
       "conclusion": "success"
     },
     "extended deterministic fuzz / linux-gcc": {
-      "runId": 45405354785,
-      "jobId": 138484614195,
+      "runId": 45407846318,
+      "jobId": 138493403975,
       "status": "completed",
       "conclusion": "skipped"
     },
     "final broad": {
-      "runId": 45405354785,
-      "jobId": 138484613698,
+      "runId": 45407846318,
+      "jobId": 138493404922,
       "status": "completed",
       "conclusion": "skipped"
     }
   },
   "focusedPlatformArtifacts": [
     {
-      "id": 14926815538,
-      "name": "native-qualification-45405354785-1-focused-linux-gcc",
-      "sha256": "0f9b2400a191e6ffed473ac530036a60c575f10974e8f05ea7474a8b2a261f92",
-      "head": "3b66c2703516d2affb08dc87567337c5d2c5284a"
+      "id": 14925384034,
+      "name": "native-qualification-45407846318-1-focused-linux-gcc",
+      "sizeBytes": 71598,
+      "sha256": "20b4deaf0be6629ce6c17759cd3e70746dda2682f2bd00ba7e5b14d824fa22d2",
+      "head": "e7ce7bbe826f39ed04757bda726733aae2e28bef"
     },
     {
-      "id": 14926521630,
-      "name": "native-qualification-45405354785-1-focused-macos-clang",
-      "sha256": "457e80c07ad27724242e325ef76a03fe092d78d396ad51c3ebac8746c3961058",
-      "head": "3b66c2703516d2affb08dc87567337c5d2c5284a"
+      "id": 14925064569,
+      "name": "native-qualification-45407846318-1-focused-macos-clang",
+      "sizeBytes": 71855,
+      "sha256": "6e3a44a3683ed345ea3dd5f5fd1bacbaa68871c1f77160d50ecc1712344711b3",
+      "head": "e7ce7bbe826f39ed04757bda726733aae2e28bef"
     },
     {
-      "id": 14926412054,
-      "name": "native-qualification-45405354785-1-focused-windows-msvc",
-      "sha256": "08c94ac6e5a17255dc1c0e53402e626215ed1122e5750b3889624f1d064c0ecc",
-      "head": "3b66c2703516d2affb08dc87567337c5d2c5284a"
+      "id": 14927198959,
+      "name": "native-qualification-45407846318-1-focused-windows-msvc",
+      "sizeBytes": 84818,
+      "sha256": "4a4fbe42291440f1ad8cbf10759c1e4fd93fad6a8e223d228f5a6cac67aa4002",
+      "head": "e7ce7bbe826f39ed04757bda726733aae2e28bef"
     }
   ],
   "supportClaimEffect": "none",
   "limits": [
-    "All successful checks bind the exact PR head shown above. The fast regression run is 335 and the native qualification run is 492.",
-    "The three focused platform receipt artifacts are associated with the exact head shown above; the qualification workflow contract and frozen implementation digest check passed.",
-    "Broad, extended fuzz, and source-release gates were skipped by workflow design.",
+    "All successful checks bind exact PR head e7ce7bbe826f39ed04757bda726733aae2e28bef. The fast regression run is 336 and the native qualification run is 494.",
+    "The qualification workflow contract verified the frozen 774-input implementation digest; the three focused platform receipt artifacts are bound to the same exact head.",
+    "Broad, extended fuzz, and source-release jobs were skipped by workflow design.",
     "No qualification claim or release gate is promoted by this CI snapshot."
   ]
 }
