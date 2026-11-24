@@ -31,10 +31,27 @@
     "result": "Aborted before conversion with PasteBoard errors (-4960) and an invalid hiservices XPC connection; no DWG was produced.",
     "disposition": "Do not repeat the same attempt until the converter or desktop state changes."
   },
-  "nextAction": "Use a source-distinct AC1024 section trace or independent decode to bind any post-envelope string/handle spans, handle roles, and section boundary. Keep the bytes raw and strict output refused until that proof exists.",
+  "nextAction": "Use a source-distinct AC1024 section trace or independent decode to bind any post-envelope string/handle spans, handle roles, and section boundary. The after-unlock ODA retry also produced no DWG. Keep the bytes raw and strict output refused until that proof exists.",
   "limits": [
     "The local PDF is the ODA specification named in AGENTS.md and its hash matches the earlier receipts.",
     "A structural statement about separate streams does not prove the semantics of this specific suffix.",
     "No parser behavior, support claim, or fixture was changed by this authority screen."
-  ]
+  ],
+  "afterUnlockRetry": {
+    "observedAtUtc": "2026-11-24 16:31 UTC",
+    "source": "/private/tmp/p6e-ac1024-after-unlock-20261124/in/section-headers.dxf",
+    "sourceSha256": "8c87543bea37185e72674e9e1a2f6bdae7331ef27a555feeb27ddf2302f8711c",
+    "createdLocallyFromScratch": true,
+    "converter": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "command": "ODAFileConverter <input-dir> <output-dir> ACAD2010 DWG 0 0 '*.dxf'",
+    "host": "macOS ARM64; Darwin kernel 27.2.0",
+    "stderr": [
+      "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]",
+      "PasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]",
+      "Connection Invalid error for service com.apple.hiservices-xpcservice; message reply handler reports Connection invalid."
+    ],
+    "outputFiles": [],
+    "result": "No AC1024 DWG was produced. The direct converter invocation aborted before conversion; the command wrapper did not retain its process exit code.",
+    "disposition": "Do not repeat this unchanged converter/profile. Continue only after the converter/session state changes or via a source-distinct writer/decoder."
+  }
 }
