@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 TABLE row text-style handle-role matrix",
+  "date": "2026-11-24",
+  "supportClaimEffect": "none",
+  "scope": "Verify all three ODA-defined TABLE-level row text-style hard-pointer slots, malformed-role fallback, and corrected same-object retry using generated AC1021 vectors.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.96.1",
+    "fields": [
+      "Title row text-style handle: H group 7 hard pointer when table override bit 0x20000 is set.",
+      "Header row text-style handle: H group 7 hard pointer when table override bit 0x40000 is set.",
+      "Data row text-style handle: H group 7 hard pointer when table override bit 0x80000 is set."
+    ]
+  },
+  "implementation": {
+    "file": "tests/dwg_object_vectors_tests.cpp",
+    "test": "libdxfrw_dwg_table_cell_overrides",
+    "generatedControls": [
+      "For each individual title/header/data style slot, a soft-pointer encoding leaves the base TABLE readable but withholds that style handle and marks TABLE semantics incomplete.",
+      "The same DRW_Table parser instance then accepts the corrected hard-pointer encoding, retains the slot-specific handle, reports complete semantics, and reaches the expected trailing body sentinel."
+    ],
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2 && ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_table_cell_overrides$'",
+    "result": "Build succeeded; 1 of 1 focused tests passed."
+  },
+  "fixtureDisposition": "Generated in-memory bitstream vectors only. No DWG or DXF fixture was added.",
+  "outputBoundary": "Selected TABLE output/readback remains gated by the FIELD/FIELDLIST carrier gap and the unresolved graph closure. This receipt does not qualify native rendering or broaden AC1021 producer support."
+}
