@@ -23,6 +23,17 @@ for the current candidate.
 
 An earlier exact PR head `28381baedc036eaac96a9759a25ebdfc618f9862` failed two hosted jobs: digest verification found a stale excluded status overlay, and the fast build found an enum/integer conditional warning in the new entity failure diagnostic under GCC 13 `-Werror`. Commit `fc208f45` fixed the warning by converting `DRW::NoHandle` to the stored `std::uint32_t` handle type. The later code-bearing PR head `e2b872034331a23e584a36bb093a7053ccc72bd2` passed the fast regression job, qualification contract, and focused Linux GCC, macOS Clang, and Windows MSVC jobs; broad, fuzz, and source-release jobs were skipped by workflow design. The documentation/tool follow-ups `b335c47ca61521c98dea17a7739262ab52dec1c3` and `dc9b6fd8da7ec6e41d2fc1630a251687b4914c94` also passed fast regressions, the qualification contract, and focused Linux GCC, macOS Clang, and Windows MSVC jobs. The latest exact PR head `e7ce7bbe826f39ed04757bda726733aae2e28bef` passed fast run 336 and native qualification run 494, including the workflow contract and focused Linux GCC, macOS Clang, and Windows MSVC jobs. Broad, deterministic fuzz, and source-release jobs were skipped by workflow design. These checks validate only the fast and focused build profiles and do not promote a support claim. See the [current CI receipt](docs/research/p8-pr106-current-ci-2026-11-24.json), which binds exact head `e7ce7bbe`. The frozen candidate digest remains `6007acda069c3fd0ef13d96d80651f4ef335a2dd59797726b5ae8f48dda779af` for 774 selected inputs; the AC1012 research-tool, plan, and receipt changes are outside that selection. For later selected-source changes, refresh the digest and rerun exact-head checks before integration. See the [initial digest failure receipt](docs/research/p8-pr106-digest-refresh-2026-11-24.json), [follow-up repair receipt](docs/research/p8-pr106-gcc-fix-digest-refresh-2026-11-24.json), and [prior CI snapshot](docs/research/p8-pr106-current-ci-2026-11-23.json).
 
+The AC1012 parser code commit `7a1a8bff72666fe0f2d135b6f2f4c276da270112`
+changes selected implementation inputs. Its frozen digest was recomputed in a
+clean clone as `b6f59d17e0fd19013d545f46bc87150d8944326f327493276a13caa5f4baae68`
+for 774 inputs, then recorded in the excluded status overlay without changing
+claim statuses. Local digest, workflow-contract, and support-policy checks
+pass on that clone. The first exact-head workflow contract failed against the
+stale overlay; fast regressions were still running. See the [AC1012 digest
+refresh receipt](docs/research/p8-pr106-ac1012-digest-refresh-2026-11-24.json).
+Hosted qualification for the refreshed overlay must bind the post-refresh
+head; prior checks at `e7ce7bbe` do not qualify this source change.
+
 The recorded consumer baselines are libdxfrw `master` `d68fb1ed937ad2a74a54f6208277ec10a1b031b0`,
 LibreCAD `master` `78014ecde2f53fdd8c06453f3854b1cae1a3fd0d`, LibreCAD_3
 `master` `4fb48312708b39d499f7e6668104a3b54a8601c7`, and FreeCAD `main`

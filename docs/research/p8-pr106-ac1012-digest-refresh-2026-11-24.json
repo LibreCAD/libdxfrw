@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-ac1012-digest-refresh-2026-11-24",
+  "date": "2026-11-24",
+  "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+  "sourceCommit": "7a1a8bff72666fe0f2d135b6f2f4c276da270112",
+  "supportClaimEffect": "none",
+  "previousImplementationDigestSha256": "6007acda069c3fd0ef13d96d80651f4ef335a2dd59797726b5ae8f48dda779af",
+  "implementationDigestSha256": "b6f59d17e0fd19013d545f46bc87150d8944326f327493276a13caa5f4baae68",
+  "implementationInputs": 774,
+  "digestComputation": {
+    "method": "clean shared clone of the committed source head",
+    "scratchPath": "/private/tmp/libdxfrw-p8-ac1012-digest-20261124",
+    "reason": "The primary worktree contains unrelated untracked external DWG samples and scratch files under selected manifest paths; they were left untouched and excluded from the digest run."
+  },
+  "refresh": {
+    "statusOverlay": "metadata/qualified-format-status-v1.json",
+    "claimStatusesChanged": false,
+    "newDigestRecorded": true
+  },
+  "localValidation": {
+    "qualificationDigest": "PASS on clean committed clone",
+    "qualificationWorkflowContract": "PASS",
+    "qualifiedFormatSupport": "PASS: 15 claims, 2 candidate routes, 0 advertised",
+    "focusedAc1012Regression": "PASS 1/1 at source head 7a1a8bff"
+  },
+  "hostedChecksBeforeOverlayRefresh": {
+    "qualificationWorkflowContract": {
+      "runId": 45419080531,
+      "jobId": 138533301649,
+      "conclusion": "failure",
+      "reason": "The candidate source changed while the frozen status overlay still contained the prior digest."
+    },
+    "fastRegressions": {
+      "runId": 45419082133,
+      "jobId": 138533311993,
+      "status": "in_progress"
+    }
+  },
+  "limits": [
+    "The refreshed digest binds implementation inputs only; it does not qualify new DWG/DXF support.",
+    "The primary worktree's unrelated untracked files were not staged, removed, or changed.",
+    "Hosted checks for the refreshed status overlay are pending the overlay commit."
+  ]
+}
