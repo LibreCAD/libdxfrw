@@ -41,6 +41,24 @@ application cannot establish the originating file, record that limitation
 instead of claiming hash-bound native reopening. Use a separately recorded
 import workflow if native DXF reopen semantics require it.
 
+## Primary API mapping to capture
+
+Autodesk's current `ShadePlotType` reference defines `kVisualStyle = 4` and
+`kRenderPreset = 5`; its `AcDbViewport::setShadePlot` reference requires the
+shade-plot object ID to identify an `AcDbVisualStyle` or
+`AcDbRenderSettings`, respectively. The same setter says the object ID is
+ignored and reset to null for `kAsDisplayed` and `kRendered`. Record these API
+values and target classes before export, then inspect the emitted DXF rather
+than assuming the API enum is serialized directly.
+
+The published VIEWPORT DXF table still lists group 170 values only through 3;
+it also lists group 333 as the optional shade-plot ID and group 348 as an
+optional visual-style ID. Treat group 333 and group 348 as separate fields.
+The API references establish the in-memory states and target-class constraints,
+but do **not** establish whether AutoCAD exports modes 4/5 in group 170, how
+group 333 is emitted for each, or whether group 348 is also present. Those are
+the exact questions the ASCII/Binary producer pair must answer.
+
 ## Bounded wire inspection
 
 Run on the received, hash-verified DXFs from this checkout:
@@ -70,4 +88,6 @@ separate acceptance checks. Only then can P5-H's exact guard and retry behavior
 be reviewed and implemented; this packet cannot promote support by itself.
 
 Autodesk references: [VIEWPORT DXF group codes](https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-2602B0FB-02E4-4B9A-B03C-B1D904753D34.htm),
-[Viewport.SetShadePlot](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Viewport_SetShadePlot_ShadePlotType_ObjectId.html).
+[ShadePlotType enum](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-AcDbPlotSettings__ShadePlotType.html),
+[AcDbViewport::setShadePlot](https://help.autodesk.com/cloudhelp/2017/ENU/OARXMAC-RefGuide/files/OREFMAC-AcDbViewport__setShadePlot_ShadePlotType_AcDbObjectId.html),
+and [managed Viewport.SetShadePlot](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Viewport_SetShadePlot_ShadePlotType_ObjectId.html).
