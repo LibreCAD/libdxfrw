@@ -10194,7 +10194,13 @@ bool makeR2007TableFrame(std::uint16_t cellType, R2007TableFrame& frame,
                          bool cellIsMerged = false,
                          std::int32_t mergedWidth = 1,
                          std::int32_t mergedHeight = 1,
-                         std::uint16_t tableValueFlag = 0u) {
+                         std::uint16_t tableValueFlag = 0u,
+                         std::uint32_t cellValueHandle = 0u,
+                         std::uint8_t cellValueHandleRole = DRW::DwgHardPointer,
+                         std::uint32_t cellTextStyleOverrideHandle = 0u,
+                         std::uint32_t cellAttributeHandle = 0u,
+                         std::uint8_t cellAttributeHandleRole =
+                             DRW::DwgSoftPointer) {
     constexpr std::uint32_t ac1018CellOverrideFlags = 0x0003FFE0u;
     const bool knownCellOverrideProfile = cellOverrideFlags == 0u
         || (version == DRW::AC1018 && cellOverrideFlags != 0u
@@ -10204,7 +10210,8 @@ bool makeR2007TableFrame(std::uint16_t cellType, R2007TableFrame& frame,
                 || cellOverrideFlags == 0x00040020u))
         || (version == DRW::AC1021
             && (cellOverrideFlags == 0x00000001u
-                || cellOverrideFlags == 0x00000004u));
+                || cellOverrideFlags == 0x00000004u
+                || cellOverrideFlags == 0x00000010u));
     constexpr std::uint32_t generatedTableOverrideFlags =
         0x007FFFFFu;
     if (!knownCellOverrideProfile
@@ -10249,7 +10256,20 @@ bool makeR2007TableFrame(std::uint16_t cellType, R2007TableFrame& frame,
     // precede the per-cell value handle in the handle stream.
     handles.putHandle(handle(0xA600u)); // block record
     handles.putHandle(handle(0xA700u)); // table style
-    handles.putHandle(handle(cellType == 2 ? 0xA800u : 0u));
+    dwgHandle cellValue = handle(cellType == 2
+        ? 0xA800u : cellValueHandle);
+    cellValue.code = cellValueHandleRole;
+    handles.putHandle(cellValue);
+    if (cellType == 1 && (cellOverrideFlags & 0x00000010u) != 0u) {
+        dwgHandle textStyleOverride = handle(cellTextStyleOverrideHandle);
+        textStyleOverride.code = DRW::DwgHardPointer;
+        handles.putHandle(textStyleOverride);
+    }
+    if (cellType == 2 && cellAttributeHandle != 0u) {
+        dwgHandle attributeDefinition = handle(cellAttributeHandle);
+        attributeDefinition.code = cellAttributeHandleRole;
+        handles.putHandle(attributeDefinition);
+    }
     for (const auto& rowStyle : {
              std::pair<std::uint32_t, std::uint32_t>{0x00020000u, 0xA900u},
              std::pair<std::uint32_t, std::uint32_t>{0x00040000u, 0xAA00u},
@@ -10274,7 +10294,17 @@ bool makeR2007TableFrame(std::uint16_t cellType, R2007TableFrame& frame,
     if (cellType == 1 || cellType == 2) {
         if (cellType == 2) {
             body.putBitDouble(1.0);
-            body.putBit(0); // no block attributes
+            body.putBit(cellAttributeHandle != 0u);
+            if (cellAttributeHandle != 0u) {
+                body.putBitShort(1u);
+                body.putBitShort(0u);
+                if (version <= DRW::AC1018)
+                    body.putVariableText(version,
+                                         "generated block attribute");
+                else
+                    strings.putVariableText(version,
+                                            "generated block attribute");
+            }
         } else if (version <= DRW::AC1018) {
             body.putVariableText(version, "generated AC1018 cell");
         }
@@ -14957,6 +14987,141 @@ void testR2007TableCellTypeReaderVectors(TestContext& t) {
                  && blockCell->m_contents.size() == 2u
                  && cursorBit(blockInput) == blockFrame.tableDataEndBit,
              "known AC1021 TABLE block cell remains supported after generated read");
+
+    const auto buildAc1021ValueAndStyleHandleFrame = [](
+            R2007TableFrame& frame, std::uint8_t valueHandleRole) {
+        return makeR2007TableFrame(
+            1u, frame, TablePlacement{}, 0x00000010u, 0u, DRW::AC1021,
+            0u, 0u, 1u, DRW::DwgHardPointer, 0u, 0u, 0u, 5u, false,
+            false, 1, 1, 0u, 0xA800u, valueHandleRole, 0xA900u);
+    };
+    R2007TableFrame wrongValueHandleRoleFrame;
+    R2007TableFrame correctValueAndStyleHandlesFrame;
+    const bool wrongValueHandleRoleBuilt =
+        buildAc1021ValueAndStyleHandleFrame(
+            wrongValueHandleRoleFrame, DRW::DwgSoftPointer);
+    const bool correctValueAndStyleHandlesBuilt =
+        buildAc1021ValueAndStyleHandleFrame(
+            correctValueAndStyleHandlesFrame, DRW::DwgHardPointer);
+    bool wrongValueHandleRoleRead = false;
+    bool wrongValueHandleRoleFallback = false;
+    bool correctedValueAndStyleHandlesRead = false;
+    bool valueAndStyleHandlesMatch = false;
+    if (wrongValueHandleRoleBuilt && correctValueAndStyleHandlesBuilt) {
+        TableDwgCodecProbe valueHandleRoleTable;
+        dwgBuffer wrongValueHandleRoleInput(
+            wrongValueHandleRoleFrame.bytes.data(),
+            wrongValueHandleRoleFrame.bytes.size());
+        wrongValueHandleRoleRead = valueHandleRoleTable.parseDwg(
+            DRW::AC1021, &wrongValueHandleRoleInput);
+        const DRW_TableCell* wrongRoleFallbackCell =
+            valueHandleRoleTable.m_content.m_rows.size() == 1u
+                && valueHandleRoleTable.m_content.m_rows.front()
+                       .m_cells.size() == 1u
+            ? &valueHandleRoleTable.m_content.m_rows.front().m_cells.front()
+            : nullptr;
+        wrongValueHandleRoleFallback = wrongValueHandleRoleRead
+            && wrongValueHandleRoleInput.isGood()
+            && valueHandleRoleTable.m_hasSemanticContent
+            && !valueHandleRoleTable.m_semanticContentComplete
+            && wrongRoleFallbackCell != nullptr
+            && wrongRoleFallbackCell->m_valueHandle == 0u;
+        dwgBuffer correctedValueAndStyleHandlesInput(
+            correctValueAndStyleHandlesFrame.bytes.data(),
+            correctValueAndStyleHandlesFrame.bytes.size());
+        correctedValueAndStyleHandlesRead = valueHandleRoleTable.parseDwg(
+            DRW::AC1021, &correctedValueAndStyleHandlesInput);
+        const DRW_TableCell* valueAndStyleCell =
+            valueHandleRoleTable.m_content.m_rows.size() == 1u
+                && valueHandleRoleTable.m_content.m_rows.front()
+                       .m_cells.size() == 1u
+            ? &valueHandleRoleTable.m_content.m_rows.front().m_cells.front()
+            : nullptr;
+        valueAndStyleHandlesMatch = correctedValueAndStyleHandlesRead
+            && correctedValueAndStyleHandlesInput.isGood()
+            && valueHandleRoleTable.m_semanticContentComplete
+            && valueAndStyleCell != nullptr
+            && valueAndStyleCell->m_valueHandle == 0xA800u
+            && valueAndStyleCell->m_textStyleHandle == 0u
+            && valueAndStyleCell->m_textStyleOverrideHandle == 0xA900u
+            && cursorBit(correctedValueAndStyleHandlesInput)
+                == correctValueAndStyleHandlesFrame.tableDataEndBit;
+    }
+    t.expect(wrongValueHandleRoleBuilt && correctValueAndStyleHandlesBuilt,
+             "AC1021 TABLE value/style handle role vectors build from scratch");
+    t.expect(wrongValueHandleRoleFallback,
+             "AC1021 TABLE keeps the entity readable but withholds typed cell semantics for a soft-pointer value handle");
+    t.expect(valueAndStyleHandlesMatch,
+             "AC1021 TABLE keeps its FIELD/value handle distinct from the text-style override on corrected retry");
+
+    const auto buildAc1021BlockAttributeFrame = [](
+            R2007TableFrame& frame, std::uint8_t attributeHandleRole) {
+        return makeR2007TableFrame(
+            2u, frame, TablePlacement{}, 0u, 0u, DRW::AC1021,
+            0u, 0u, 1u, DRW::DwgHardPointer, 0u, 0u, 0u, 5u, false,
+            false, 1, 1, 0u, 0u, DRW::DwgHardPointer, 0u, 0xA900u,
+            attributeHandleRole);
+    };
+    R2007TableFrame wrongAttributeHandleRoleFrame;
+    R2007TableFrame correctAttributeHandleRoleFrame;
+    const bool wrongAttributeHandleRoleBuilt =
+        buildAc1021BlockAttributeFrame(
+            wrongAttributeHandleRoleFrame, DRW::DwgHardPointer);
+    const bool correctAttributeHandleRoleBuilt =
+        buildAc1021BlockAttributeFrame(
+            correctAttributeHandleRoleFrame, DRW::DwgSoftPointer);
+    bool wrongAttributeHandleFallback = false;
+    bool correctedAttributeHandleMatch = false;
+    if (wrongAttributeHandleRoleBuilt && correctAttributeHandleRoleBuilt) {
+        TableDwgCodecProbe attributeRoleTable;
+        dwgBuffer wrongAttributeHandleInput(
+            wrongAttributeHandleRoleFrame.bytes.data(),
+            wrongAttributeHandleRoleFrame.bytes.size());
+        const bool wrongAttributeHandleRead = attributeRoleTable.parseDwg(
+            DRW::AC1021, &wrongAttributeHandleInput);
+        const DRW_TableCell* wrongAttributeFallbackCell =
+            attributeRoleTable.m_content.m_rows.size() == 1u
+                && attributeRoleTable.m_content.m_rows.front()
+                       .m_cells.size() == 1u
+            ? &attributeRoleTable.m_content.m_rows.front().m_cells.front()
+            : nullptr;
+        wrongAttributeHandleFallback = wrongAttributeHandleRead
+            && wrongAttributeHandleInput.isGood()
+            && attributeRoleTable.m_hasSemanticContent
+            && !attributeRoleTable.m_semanticContentComplete
+            && wrongAttributeFallbackCell != nullptr
+            && wrongAttributeFallbackCell->m_attributes.empty();
+
+        dwgBuffer correctedAttributeHandleInput(
+            correctAttributeHandleRoleFrame.bytes.data(),
+            correctAttributeHandleRoleFrame.bytes.size());
+        const bool correctedAttributeHandleRead = attributeRoleTable.parseDwg(
+            DRW::AC1021, &correctedAttributeHandleInput);
+        const DRW_TableCell* correctedBlockAttributeCell =
+            attributeRoleTable.m_content.m_rows.size() == 1u
+                && attributeRoleTable.m_content.m_rows.front()
+                       .m_cells.size() == 1u
+            ? &attributeRoleTable.m_content.m_rows.front().m_cells.front()
+            : nullptr;
+        correctedAttributeHandleMatch = correctedAttributeHandleRead
+            && correctedAttributeHandleInput.isGood()
+            && attributeRoleTable.m_semanticContentComplete
+            && correctedBlockAttributeCell != nullptr
+            && correctedBlockAttributeCell->m_attributes.size() == 1u
+            && correctedBlockAttributeCell->m_attributes.front()
+                   .m_attdefHandle == 0xA900u
+            && correctedBlockAttributeCell->m_attributes.front().m_index == 0
+            && correctedBlockAttributeCell->m_attributes.front().m_text
+                   == "generated block attribute"
+            && cursorBit(correctedAttributeHandleInput)
+                == correctAttributeHandleRoleFrame.tableDataEndBit;
+    }
+    t.expect(wrongAttributeHandleRoleBuilt && correctAttributeHandleRoleBuilt,
+             "AC1021 TABLE block-attribute role vectors build from scratch");
+    t.expect(wrongAttributeHandleFallback,
+             "AC1021 TABLE keeps the entity readable but withholds block-attribute semantics for a hard-pointer ATTDEF handle");
+    t.expect(correctedAttributeHandleMatch,
+             "AC1021 TABLE accepts the soft-pointer ATTDEF handle and its bounded string on corrected same-object retry");
 
     R2007TableFrame cellColorOverrideFrame;
     const bool cellColorOverrideBuilt = makeR2007TableFrame(
