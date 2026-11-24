@@ -73,12 +73,12 @@
         "nextObjectMapOffsetBytes": 266994
       }
     ],
-    "comparison": "Both independently measured starts equal the previously recorded libdxfrw alignment starts. Both field spans are 10 bits, matching BitShort consumption. ACadSharp reads the remaining TABLE content, reports the expected strings and dimensions, and continues through the full document. The declared object ends and next object-map entries bound each object. The follow-up scratch trace also bounds the selected cells across body, string, and handle streams. Each is a text cell with one content item and a null value handle; both cell spans end before their enclosing object boundary and the next object-map entry. The latest trace names the selected cells' text type, edge/merge/autofit fields, merged dimensions, rotation, override flags, alignment, post-override value, null hard-pointer handle code, and CadValue body/text spans.",
+    "comparison": "Both independently measured starts equal the previously recorded libdxfrw alignment starts. Both field spans are 10 bits, matching BitShort consumption. ACadSharp reads the remaining TABLE content, reports the expected strings and dimensions, and continues through the full document. The declared object ends and next object-map entries bound each object. The follow-up scratch trace also bounds the selected cells across body, string, and handle streams. Each is a text cell with one content item and a null value handle; both cell spans end before their enclosing object boundary and the next object-map entry. The latest trace names the selected cells' text type, edge/merge/autofit fields, merged dimensions, rotation, override flags, alignment, post-override value, null hard-pointer handle code, and CadValue body/text spans. A further trace names CadValue flags (6), General type, string payload, NoUnits, empty format string, and formatted-value text with exact body/text stream spans for both selected cells.",
     "cellStreamTrace": {
       "instrumentedOutput": {
-        "path": "/private/tmp/acadsharp-p5i-20261124/probe/output13.log",
-        "sha256": "8a43faf9515df67577261cdf864fc572a7724fa515433cada800ac854fbc24e7",
-        "instrumentation": "Scratch-only source trace records each selected text cell body field start/end, the cell value-handle stream start/end, and the CadValue body/text stream ranges."
+        "path": "/private/tmp/acadsharp-p5i-20261124/probe/output14.log",
+        "sha256": "c2469fa4c9416107a9e1c1592c85f20c4250cb764eabc35f81c4ff4df66d7eff",
+        "instrumentation": "Scratch-only pinned ACadSharp trace brackets CadValue flags/type/payload/units in the object body and format/formatted-value strings in the text stream for the two selected cells."
       },
       "cells": [
         {
@@ -228,7 +228,57 @@
             1813122
           ],
           "cadValueText": "ESTIMATED COST OF DOORS",
-          "valueHandleDeclaredRole": "hard pointer (ACadSharp source comment); encoded value is null"
+          "valueHandleDeclaredRole": "hard pointer (ACadSharp source comment); encoded value is null",
+          "cadValueFieldSpans": [
+            {
+              "field": "flags",
+              "bodySpanBits": [
+                1805692,
+                1805702
+              ],
+              "decodedValue": 6
+            },
+            {
+              "field": "type",
+              "bodySpanBits": [
+                1805702,
+                1805736
+              ],
+              "decodedValue": "General"
+            },
+            {
+              "field": "payload",
+              "bodySpanBits": [
+                1805736,
+                1806130
+              ],
+              "decodedValue": "ESTIMATED COST OF DOORS"
+            },
+            {
+              "field": "units",
+              "bodySpanBits": [
+                1806130,
+                1806132
+              ],
+              "decodedValue": "NoUnits"
+            },
+            {
+              "field": "format",
+              "textStreamSpanBits": [
+                1812742,
+                1812744
+              ],
+              "decodedValue": ""
+            },
+            {
+              "field": "formatted-value",
+              "textStreamSpanBits": [
+                1812744,
+                1813122
+              ],
+              "decodedValue": "ESTIMATED COST OF DOORS"
+            }
+          ]
         },
         {
           "tableHandle": "0x2a974",
@@ -377,10 +427,60 @@
             2134859
           ],
           "cadValueText": "ESTIMATED COST OF WINDOWS",
-          "valueHandleDeclaredRole": "hard pointer (ACadSharp source comment); encoded value is null"
+          "valueHandleDeclaredRole": "hard pointer (ACadSharp source comment); encoded value is null",
+          "cadValueFieldSpans": [
+            {
+              "field": "flags",
+              "bodySpanBits": [
+                2126977,
+                2126987
+              ],
+              "decodedValue": 6
+            },
+            {
+              "field": "type",
+              "bodySpanBits": [
+                2126987,
+                2127021
+              ],
+              "decodedValue": "General"
+            },
+            {
+              "field": "payload",
+              "bodySpanBits": [
+                2127021,
+                2127447
+              ],
+              "decodedValue": "ESTIMATED COST OF WINDOWS"
+            },
+            {
+              "field": "units",
+              "bodySpanBits": [
+                2127447,
+                2127449
+              ],
+              "decodedValue": "NoUnits"
+            },
+            {
+              "field": "format",
+              "textStreamSpanBits": [
+                2134447,
+                2134449
+              ],
+              "decodedValue": ""
+            },
+            {
+              "field": "formatted-value",
+              "textStreamSpanBits": [
+                2134449,
+                2134859
+              ],
+              "decodedValue": "ESTIMATED COST OF WINDOWS"
+            }
+          ]
         }
       ],
-      "limits": "Named spans cover each selected cell header and alignment override plus the null value-handle code. CadValue body/text spans are aggregate; subfields inside CadValue, other cells, complete graph closure, and output semantics remain unproved."
+      "limits": "The selected text cells [8,0] and [9,0] now have individually named header/override, null value-handle, CadValue body, and format/formatted-value stream spans. Other cells, table-level dependencies/graph closure, strict output, and fresh independent DXF readback remain unqualified."
     }
   },
   "implementation": {
@@ -407,9 +507,9 @@
     "profileDisposition": "The classified AutoCAD 2007 source uses a 10-bit BitShort field at both disputed cell spans. Keep this exception limited to the classified AutoCAD 2007 text-cell profile; do not broaden it to AC1021 as a whole or other producers."
   },
   "remainingWork": [
-    "Bind remaining individual CadValue subfields, string details, and graph links across the selected TABLE profile; current field-level evidence covers cells [8,0] and [9,0] only. Reuse strict malformed, rollback, and retry controls.",
+    "Bind remaining cell payloads and all TABLE dependency/handle graph links across the selected profile. The selected cells [8,0] and [9,0] now have exact alignment and CadValue field spans; other cells and table-level graph closure remain open. Reuse strict malformed, rollback, and retry controls.",
     "Qualify selected-TABLE ASCII and Binary DXF output plus fresh independent readback. Whole-source conversion remains blocked by FIELD/FIELDLIST carriers and unrelated unsupported payloads.",
     "Keep other AC1021 producer profiles and proxy-graphics support outside this slice."
   ],
-  "closure": "For the exact classified AutoCAD 2007 source, the two disputed alignment spans, selected cell header/override fields, null value-handle code, aggregate CadValue spans, and following-object boundaries are independently bound. The narrow parser and generated-vector slice is implemented and fast-tested. P5-I remains open for CadValue subfields, remaining cells, graph closure, selected output/readback, and other cells; no TABLE-wide or AC1021-wide support claim follows."
+  "closure": "For the exact classified AutoCAD 2007 source, the two disputed alignment spans, selected cell header/override/value-handle fields, all CadValue subfields, and following-object boundaries are independently bound. The narrow parser and generated-vector slice is implemented and fast-tested. P5-I remains open for other cells, table-level graph closure, selected output/readback, and other producers; no TABLE-wide or AC1021-wide support claim follows."
 }
