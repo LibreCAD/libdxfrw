@@ -55,9 +55,30 @@
       "conclusion": "skipped"
     }
   },
+  "focusedPlatformArtifacts": [
+    {
+      "id": 14923019542,
+      "name": "native-qualification-45400436214-1-focused-linux-gcc",
+      "sha256": "6abd4b184b893605970ab0a5f3562004ab490d245b5449e68f2aaaaa4357c333",
+      "head": "dc9b6fd8da7ec6e41d2fc1630a251687b4914c94"
+    },
+    {
+      "id": 14924531120,
+      "name": "native-qualification-45400436214-1-focused-macos-clang",
+      "sha256": "e387a6f50556c8a6e4ca9ede24713ea572684b80915285de758978442288f513",
+      "head": "dc9b6fd8da7ec6e41d2fc1630a251687b4914c94"
+    },
+    {
+      "id": 14923403263,
+      "name": "native-qualification-45400436214-1-focused-windows-msvc",
+      "sha256": "aa62f240660c95c2cf372ea8548cf4ec7fb867d483601ee96a804643b7245706",
+      "head": "dc9b6fd8da7ec6e41d2fc1630a251687b4914c94"
+    }
+  ],
   "supportClaimEffect": "none",
   "limits": [
     "All successful checks bind the exact PR head shown above. The fast regression run is 334 and the native qualification run is 491.",
+    "The three focused platform receipt artifacts are associated with the exact head shown above; the qualification workflow contract and frozen implementation digest check passed.",
     "Broad, extended fuzz, and source-release gates were skipped by workflow design.",
     "No qualification claim or release gate is promoted by this CI snapshot."
   ]
