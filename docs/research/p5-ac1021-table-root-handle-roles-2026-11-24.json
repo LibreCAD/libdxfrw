@@ -1,0 +1,42 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "AC1021 TABLE BlockRecord and TABLESTYLE hard-pointer roles",
+  "date": "2026-11-24",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.96.1",
+    "fields": [
+      "The TABLE's BLOCK_RECORD link is a hard pointer.",
+      "The TABLESTYLE link is a hard pointer."
+    ]
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "change": "Use the shared bounded handle-role reader for the TABLE's BLOCK_RECORD and TABLESTYLE links across the legacy TABLE versions. R13/R14 references resolve relative to the TABLE owner; R2000+ hard pointers require the absolute hard-pointer code.",
+    "generatedControls": [
+      "A non-hard-pointer BLOCK_RECORD reference fails atomically and clears TABLE state.",
+      "A non-hard-pointer TABLESTYLE reference fails atomically and clears TABLE state.",
+      "The corrected same-object retry preserves the BLOCK_RECORD/TABLESTYLE target handles and reaches the expected table-body cursor."
+    ],
+    "focusedTest": "libdxfrw_dwg_table_cell_overrides",
+    "command": "cmake --build build-gcc --target libdxfrw_dwg_object_vectors_tests -j2 && ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_table_cell_overrides$'",
+    "result": "Build succeeded; 1 of 1 focused tests passed."
+  },
+  "classifiedSourceReadback": [
+    {
+      "path": "~/doc/dwg/blocks_and_tables_-_metric.dwg",
+      "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+      "producer": "AutoCAD 2007 per the existing source-attribution receipt",
+      "result": "Complete AC1021 read, zero entity/object parse failures, no TABLE cell-incomplete diagnostic."
+    },
+    {
+      "path": "~/doc/dwg/blocks_and_tables_-_imperial.dwg",
+      "sha256": "3c95e8a82d5c8c251483fabc61efa8ca904f4e4bc8c2fce4786d74e812284d07",
+      "producer": "AutoCAD 2007 per the existing source-attribution receipt",
+      "result": "Complete AC1021 read, zero entity/object parse failures, no TABLE cell-incomplete diagnostic."
+    }
+  ],
+  "outputBoundary": "Both strict conversions still stop at the FIELD/FIELDLIST serializer preflight before publication. No TABLE output or readback claim is made.",
+  "closure": "The TABLE's BLOCK_RECORD and TABLESTYLE handles now use their ODA-defined hard-pointer roles with atomic refusal and retry coverage. P5-I remains open; no broader support claim follows."
+}

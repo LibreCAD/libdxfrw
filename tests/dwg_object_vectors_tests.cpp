@@ -10200,7 +10200,11 @@ bool makeR2007TableFrame(std::uint16_t cellType, R2007TableFrame& frame,
                          std::uint32_t cellTextStyleOverrideHandle = 0u,
                          std::uint32_t cellAttributeHandle = 0u,
                          std::uint8_t cellAttributeHandleRole =
-                             DRW::DwgSoftPointer) {
+                             DRW::DwgSoftPointer,
+                         std::uint8_t blockRecordHandleRole =
+                             DRW::DwgHardPointer,
+                         std::uint8_t tableStyleHandleRole =
+                             DRW::DwgHardPointer) {
     constexpr std::uint32_t ac1018CellOverrideFlags = 0x0003FFE0u;
     const bool knownCellOverrideProfile = cellOverrideFlags == 0u
         || (version == DRW::AC1018 && cellOverrideFlags != 0u
@@ -10254,8 +10258,12 @@ bool makeR2007TableFrame(std::uint16_t cellType, R2007TableFrame& frame,
 
     // The R2000+ TABLE common block-reference and TABLESTYLE references
     // precede the per-cell value handle in the handle stream.
-    handles.putHandle(handle(0xA600u)); // block record
-    handles.putHandle(handle(0xA700u)); // table style
+    dwgHandle blockRecord = handle(0xA600u);
+    blockRecord.code = blockRecordHandleRole;
+    handles.putHandle(blockRecord);
+    dwgHandle tableStyle = handle(0xA700u);
+    tableStyle.code = tableStyleHandleRole;
+    handles.putHandle(tableStyle);
     dwgHandle cellValue = handle(cellType == 2
         ? 0xA800u : cellValueHandle);
     cellValue.code = cellValueHandleRole;
@@ -15122,6 +15130,78 @@ void testR2007TableCellTypeReaderVectors(TestContext& t) {
              "AC1021 TABLE keeps the entity readable but withholds block-attribute semantics for a hard-pointer ATTDEF handle");
     t.expect(correctedAttributeHandleMatch,
              "AC1021 TABLE accepts the soft-pointer ATTDEF handle and its bounded string on corrected same-object retry");
+
+    const auto buildAc1021BaseReferenceFrame = [](
+            R2007TableFrame& frame, std::uint8_t blockRecordRole,
+            std::uint8_t tableStyleRole) {
+        return makeR2007TableFrame(
+            1u, frame, TablePlacement{}, 0u, 0u, DRW::AC1021,
+            0u, 0u, 1u, DRW::DwgHardPointer, 0u, 0u, 0u, 5u, false,
+            false, 1, 1, 0u, 0u, DRW::DwgHardPointer, 0u, 0u,
+            DRW::DwgSoftPointer, blockRecordRole, tableStyleRole);
+    };
+    R2007TableFrame wrongBlockRecordRoleFrame;
+    R2007TableFrame wrongTableStyleRoleFrame;
+    R2007TableFrame correctBaseReferenceFrame;
+    const bool wrongBlockRecordRoleBuilt = buildAc1021BaseReferenceFrame(
+        wrongBlockRecordRoleFrame, DRW::DwgSoftPointer,
+        DRW::DwgHardPointer);
+    const bool wrongTableStyleRoleBuilt = buildAc1021BaseReferenceFrame(
+        wrongTableStyleRoleFrame, DRW::DwgHardPointer,
+        DRW::DwgSoftPointer);
+    const bool correctBaseReferenceBuilt = buildAc1021BaseReferenceFrame(
+        correctBaseReferenceFrame, DRW::DwgHardPointer,
+        DRW::DwgHardPointer);
+    bool wrongBlockRecordRoleReset = false;
+    bool wrongTableStyleRoleReset = false;
+    bool correctedBaseReferencesMatch = false;
+    if (wrongBlockRecordRoleBuilt && wrongTableStyleRoleBuilt
+        && correctBaseReferenceBuilt) {
+        TableDwgCodecProbe baseReferenceTable;
+        dwgBuffer wrongBlockRecordRoleInput(
+            wrongBlockRecordRoleFrame.bytes.data(),
+            wrongBlockRecordRoleFrame.bytes.size());
+        const bool wrongBlockRecordRead = baseReferenceTable.parseDwg(
+            DRW::AC1021, &wrongBlockRecordRoleInput);
+        wrongBlockRecordRoleReset = !wrongBlockRecordRead
+            && !wrongBlockRecordRoleInput.isGood()
+            && !baseReferenceTable.m_hasSemanticContent
+            && baseReferenceTable.m_content.m_rows.empty()
+            && baseReferenceTable.blockRecH.ref == 0u;
+
+        dwgBuffer wrongTableStyleRoleInput(
+            wrongTableStyleRoleFrame.bytes.data(),
+            wrongTableStyleRoleFrame.bytes.size());
+        const bool wrongTableStyleRead = baseReferenceTable.parseDwg(
+            DRW::AC1021, &wrongTableStyleRoleInput);
+        wrongTableStyleRoleReset = !wrongTableStyleRead
+            && !wrongTableStyleRoleInput.isGood()
+            && !baseReferenceTable.m_hasSemanticContent
+            && baseReferenceTable.m_content.m_rows.empty()
+            && baseReferenceTable.blockRecH.ref == 0u;
+
+        dwgBuffer correctedBaseReferenceInput(
+            correctBaseReferenceFrame.bytes.data(),
+            correctBaseReferenceFrame.bytes.size());
+        const bool correctedBaseReferenceRead = baseReferenceTable.parseDwg(
+            DRW::AC1021, &correctedBaseReferenceInput);
+        correctedBaseReferencesMatch = correctedBaseReferenceRead
+            && correctedBaseReferenceInput.isGood()
+            && baseReferenceTable.m_semanticContentComplete
+            && baseReferenceTable.blockRecH.ref == 0xA600u
+            && baseReferenceTable.m_tableStyleHandle == 0xA700u
+            && cursorBit(correctedBaseReferenceInput)
+                == correctBaseReferenceFrame.tableDataEndBit;
+    }
+    t.expect(wrongBlockRecordRoleBuilt && wrongTableStyleRoleBuilt
+                 && correctBaseReferenceBuilt,
+             "AC1021 TABLE BlockRecord/TableStyle handle-role vectors build from scratch");
+    t.expect(wrongBlockRecordRoleReset,
+             "AC1021 TABLE rejects a non-hard-pointer BlockRecord handle atomically");
+    t.expect(wrongTableStyleRoleReset,
+             "AC1021 TABLE rejects a non-hard-pointer TABLESTYLE handle atomically");
+    t.expect(correctedBaseReferencesMatch,
+             "AC1021 TABLE accepts corrected BlockRecord/TABLESTYLE hard pointers on same-object retry");
 
     R2007TableFrame cellColorOverrideFrame;
     const bool cellColorOverrideBuilt = makeR2007TableFrame(
