@@ -14911,6 +14911,36 @@ void testR2007TableCellTypeReaderVectors(TestContext& t) {
                      == ac1021BitShortAlignmentFrame.tableDataEndBit,
              "classified AutoCAD 2007 AC1021 TABLE BitShort alignment retains values and following-cell boundaries");
 
+    const std::size_t ac1021BodyOnlyBytes = static_cast<std::size_t>(
+        (ac1021BitShortAlignmentFrame.tableDataEndBit + 7u) / 8u);
+    dwgBuffer ac1021TruncatedInput(
+        ac1021BitShortAlignmentFrame.bytes.data(), ac1021BodyOnlyBytes);
+    const bool ac1021TruncatedRead = table.parseDwg(
+        DRW::AC1021, &ac1021TruncatedInput);
+    const bool ac1021FailureReset = !table.m_hasSemanticContent
+        && !table.m_semanticContentComplete
+        && table.m_content.m_rows.empty()
+        && table.m_content.m_columns.empty()
+        && table.blockRecH.ref == 0u;
+    dwgBuffer ac1021CorrectedRetryInput(
+        ac1021BitShortAlignmentFrame.bytes.data(),
+        ac1021BitShortAlignmentFrame.bytes.size());
+    const bool ac1021CorrectedRetryRead = table.parseDwg(
+        DRW::AC1021, &ac1021CorrectedRetryInput);
+    const DRW_TableCell* ac1021CorrectedRetryCell =
+        table.m_content.m_rows.size() == 1u
+            && table.m_content.m_rows.front().m_cells.size() == 1u
+        ? &table.m_content.m_rows.front().m_cells.front() : nullptr;
+    t.expect(!ac1021TruncatedRead && !ac1021TruncatedInput.isGood()
+                 && ac1021FailureReset && ac1021CorrectedRetryRead
+                 && ac1021CorrectedRetryInput.isGood()
+                 && table.m_semanticContentComplete
+                 && ac1021CorrectedRetryCell != nullptr
+                 && ac1021CorrectedRetryCell->m_textAlignment == 6
+                 && cursorBit(ac1021CorrectedRetryInput)
+                     == ac1021BitShortAlignmentFrame.tableDataEndBit,
+             "AC1021 TABLE rejects an input truncated before its trailing streams, resets semantic state, and accepts a corrected same-object retry");
+
     R2007TableFrame blockFrame;
     const bool blockBuilt = makeR2007TableFrame(2, blockFrame);
     t.expect(blockBuilt, "AC1021 TABLE block-cell vector builds from scratch");
