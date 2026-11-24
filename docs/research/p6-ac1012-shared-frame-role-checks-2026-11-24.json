@@ -1,0 +1,43 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-shared-frame-role-checks-2026-11-24",
+  "date": "2026-11-24",
+  "status": "LOCAL_AC1012_FRAME_AND_ROLE_CHECKS_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["2.13 HANDLE REFERENCES", "20.1 Common non-entity object format", "20.4.44 DICTIONARY", "20.4.74 DICTIONARYVAR"]
+  },
+  "implementation": {
+    "files": ["src/drw_objects.cpp", "tests/dwg_ac1014_dictionaryvar_tests.cpp"],
+    "changes": [
+      "DICTIONARY now uses the common version-aware object body/string bounds resolver also used by DICTIONARYVAR.",
+      "Dictionary mode fields are decoded through one version table for plain and default dictionaries.",
+      "Common-object, dictionary-entry, and default-entry handle roles share bounded role predicates while preserving relative soft-pointer rules and typed-null behavior.",
+      "AC1012 and AC1014 inline bodies must end exactly at their declared boundary; AC1012 DICTIONARYVAR now validates common handle roles and qualifies its tail only when byte alignment is the sole remainder."
+    ],
+    "fixturePolicy": "Generated controls are in-memory test vectors. No DWG or DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j2 passed",
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
+      "result": "passed 1/1; labels cover AC1012, AC1014, and AC1015",
+      "testBinarySha256": "5bfd86f4094fc290fff7865574baff8be04833dabab0b8d495859558a2abd975"
+    },
+    "newAc1012DictionaryVarControl": [
+      "valid frame and expected decoded values",
+      "wrong parent, reactor, and extension-dictionary role refusal",
+      "undeclared body-suffix refusal",
+      "all byte truncations refused",
+      "same-object corrected retry after each refusal"
+    ]
+  },
+  "limits": [
+    "The new AC1012 DICTIONARYVAR vector is generated locally from the documented field order, not an AutoCAD producer sample.",
+    "The focused parser tests do not establish native AutoCAD dictionary cloning or duplicate-key merge behavior.",
+    "Strict AC1012 output remains guarded; no support claim is promoted."
+  ]
+}

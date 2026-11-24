@@ -962,13 +962,100 @@ bool expected(const Variable& v) {
         && v.hasDwgCommonLinkTail();
 }
 
+struct Ac1012VariableControl {
+    std::vector<std::uint8_t> bytes;
+    std::uint32_t bodyEnd {0u};
+};
+
+Ac1012VariableControl makeAc1012Variable(bool appendUnknownBodyByte = false) {
+    dwgBufferW prefix;
+    prefix.putObjType(DRW::AC1012, 500u);
+    prefix.putFixedHandle(0u, 1u, 0x23u);
+    prefix.putBitShort(0u);
+
+    dwgBufferW body;
+    body.putBitLong(1u); // Numreactors
+    body.putRawChar8(0u); // Intval / schema
+    body.putBitShort(1u); // one-byte string
+    body.putRawChar8('0');
+    if (appendUnknownBodyByte)
+        body.putRawChar8(0u);
+
+    Ac1012VariableControl control;
+    control.bodyEnd = writtenBits(prefix) + 32u + writtenBits(body);
+    dwgBufferW writer;
+    writer.putObjType(DRW::AC1012, 500u);
+    writer.putFixedHandle(0u, 1u, 0x23u);
+    writer.putBitShort(0u);
+    writer.putRawLong32(control.bodyEnd);
+    writer.putBitLong(1u);
+    writer.putRawChar8(0u);
+    writer.putBitShort(1u);
+    writer.putRawChar8('0');
+    if (appendUnknownBodyByte)
+        writer.putRawChar8(0u);
+    writer.putFixedHandle(8u, 0u, 0u); // relative soft pointer: self - 1
+    writer.putFixedHandle(4u, 1u, 0x22u); // reactor soft pointer
+    writer.putFixedHandle(3u, 0u, 0u); // typed-null extension dictionary
+    while (writer.bitPos() != 0u)
+        writer.putBit(0u);
+    control.bytes = writer.data();
+    return control;
+}
+
+bool parse(DRW::Version version, const std::vector<std::uint8_t>& data,
+           Variable& variable) {
+    dwgBuffer input(data.data(), data.size());
+    return variable.parseDwg(version, &input, 0u) && input.isGood();
+}
+
+bool ac1012DictionaryVarControl() {
+    const auto control = makeAc1012Variable();
+    Variable variable;
+    const auto parseSource = [&](const std::vector<std::uint8_t>& bytes) {
+        return parse(DRW::AC1012, bytes, variable);
+    };
+    if (!parseSource(control.bytes) || !expected(variable))
+        return false;
+
+    const std::array<std::pair<std::size_t, unsigned>, 3> wrongRoles{{
+        {control.bodyEnd, 2u},
+        {static_cast<std::size_t>(control.bodyEnd) + 8u, 2u},
+        {static_cast<std::size_t>(control.bodyEnd) + 24u, 4u}}};
+    for (const auto& wrongRole : wrongRoles) {
+        auto malformed = control.bytes;
+        setNibble(malformed, wrongRole.first, wrongRole.second);
+        if (parseSource(malformed) || variable.hasDwgCommonLinkTail()
+            || !variable.m_value.empty()
+            || !parseSource(control.bytes) || !expected(variable))
+            return false;
+    }
+
+    const auto unknownBody = makeAc1012Variable(true);
+    if (parseSource(unknownBody.bytes) || variable.hasDwgCommonLinkTail()
+        || !variable.m_value.empty()
+        || !parseSource(control.bytes) || !expected(variable))
+        return false;
+
+    for (std::size_t length = 0; length < control.bytes.size(); ++length) {
+        const std::vector<std::uint8_t> truncated(control.bytes.begin(),
+                                                  control.bytes.begin() + length);
+        if (parseSource(truncated) || variable.hasDwgCommonLinkTail()
+            || !variable.m_value.empty()
+            || !parseSource(control.bytes) || !expected(variable))
+            return false;
+    }
+    return true;
+}
+
 bool run() {
     if (!sharedLegacyFrameControl() || !eedLayerWriteOrderControl() || !legacyDictionaryWithDefaultControl() || !r13DictionaryEedControl() || !r13DictionaryEedControl(true) || !r13DictionaryEedControl(false, true) || !r13DictionaryEedControl(false, false, true) || !r13DictionaryEedControl(false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, false, true) || !r13DictionaryEedControl(false, false, false, false, false, false, true)
         || !r13EedChunkGroupBoundary(false) || !r13EedChunkGroupBoundary(true) || !terminatedDictionaryControl(DRW::AC1012)
         || !terminatedDictionaryControl(DRW::AC1014) || !dictionaryWireControl(true, false)
         || !dictionaryWireControl(false, false)
         || !dictionaryWireControl(false, true)
-        || !generatedAc1012DictionaryFrameControl()) {
+        || !generatedAc1012DictionaryFrameControl()
+        || !ac1012DictionaryVarControl()) {
         std::cerr << "generated dictionary source or mutation control failed\n";
         return false;
     }

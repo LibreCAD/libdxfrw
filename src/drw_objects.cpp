@@ -516,6 +516,35 @@ bool validDictionaryHardOwner(int value) {
     return value == 0 || value == 1;
 }
 
+bool dwgHandleRoleMatches(const dwgHandle& handle, std::uint8_t role,
+                          bool offsetResolvedField) noexcept {
+    const std::uint8_t code = handle.rawCode;
+    return code == role
+        || (offsetResolvedField && role == DRW::DwgSoftPointer
+            && (code == 0x06u || code == 0x08u || code == 0x0Au
+                || code == 0x0Cu));
+}
+
+bool dwgHandleHasRole(const dwgHandle& handle, std::uint8_t role,
+                      bool offsetResolvedField) noexcept {
+    return dwgHandleRoleMatches(handle, role, offsetResolvedField)
+        || (handle.ref == 0u && handle.rawCode == 0u);
+}
+
+bool dictionaryHandleReferenceHasRole(const dwgHandle& handle,
+                                      std::uint8_t role,
+                                      bool allowNull) noexcept {
+    if (handle.ref == 0u) {
+        return allowNull && handle.size == 0u
+            && (handle.rawCode == 0u || handle.rawCode == role);
+    }
+    return dwgHandleRoleMatches(handle, role, false);
+}
+
+bool isLegacyInlineObjectDataVersion(DRW::Version version) noexcept {
+    return version == DRW::AC1012 || version == DRW::AC1014;
+}
+
 // R13+ stores the end of the data stream as an absolute bit offset in the
 // object preamble. A zero value is retained for older/synthetic carriers that
 // do not provide a usable boundary.
@@ -525,6 +554,17 @@ bool objectBodyFitsSize(std::uint64_t bodyBitOffset,
 }
 
 std::uint64_t currentObjectDwgBit(const dwgBuffer *buf);
+
+bool objectDataBodyConsumed(DRW::Version version, const dwgBuffer *buf,
+                            std::uint32_t bodyEnd) {
+    if (buf == nullptr || !buf->isGood())
+        return false;
+    const std::uint64_t currentBit = currentObjectDwgBit(buf);
+    if (!objectBodyFitsSize(currentBit, bodyEnd))
+        return false;
+    return !isLegacyInlineObjectDataVersion(version) || bodyEnd == 0u
+        || currentBit == bodyEnd;
+}
 
 #if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE)
 void traceAc1021MLineStyleSpan(std::uint32_t handle, DRW::Version version,
@@ -835,17 +875,6 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
                               parentStartBit, currentObjectDwgBit(&probe),
                               parentH.rawCode, parentH.ref);
 #endif
-    const auto hasRole = [](const dwgHandle& handle, std::uint8_t role,
-                            bool offsetField) {
-        // Null handles are canonically encoded with code zero. Some producers
-        // retain the field's role code on a null value, so accept either form.
-        const std::uint8_t code = handle.rawCode;
-        const bool roleMatches = code == role
-            || (offsetField && role == DRW::DwgSoftPointer
-                && (code == 0x06u || code == 0x08u || code == 0x0Au
-                    || code == 0x0Cu));
-        return roleMatches || (handle.ref == 0 && code == 0);
-    };
     // ODA v5.4.1 §20.1 uses a soft-pointer parent, soft-pointer reactors,
     // and a hard-owner xdictionary. §2.13 permits relative encodings for
     // soft-pointer fields when the field is offset-resolved.
@@ -860,7 +889,7 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
     const bool imageDefHardOwner = imageDefParentHardOwner
         && parentH.rawCode == DRW::DwgHardOwnership;
     if (validateRoles && !imageDefHardOwner
-        && !hasRole(parentH, DRW::DwgSoftPointer, true)) {
+        && !dwgHandleHasRole(parentH, DRW::DwgSoftPointer, true)) {
         DRW_DBG("Common object parent role mismatch: raw code ");
         DRW_DBG(static_cast<unsigned int>(parentH.rawCode));
         DRW_DBG(" ref "); DRW_DBG(parentH.ref); DRW_DBG("\n");
@@ -886,7 +915,7 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
                                   reactor.ref);
 #endif
         if (validateRoles
-            && !hasRole(reactor, DRW::DwgSoftPointer, false)) {
+            && !dwgHandleHasRole(reactor, DRW::DwgSoftPointer, false)) {
             DRW_DBG("Common object reactor role mismatch: raw code ");
             DRW_DBG(static_cast<unsigned int>(reactor.rawCode));
             DRW_DBG(" ref "); DRW_DBG(reactor.ref); DRW_DBG("\n");
@@ -920,7 +949,7 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
             && xDict.rawCode == DRW::DwgSoftPointer && xDict.size == 0u
             && xDict.ref == 0u && xDict.ref64 == 0u;
         if (validateRoles && !dimstyleNullSoftPointer
-            && !hasRole(xDict, DRW::DwgHardOwnership, false)) {
+            && !dwgHandleHasRole(xDict, DRW::DwgHardOwnership, false)) {
             DRW_DBG("Common object xdictionary role mismatch: raw code ");
             DRW_DBG(static_cast<unsigned int>(xDict.rawCode));
             DRW_DBG(" ref "); DRW_DBG(xDict.ref); DRW_DBG("\n");
@@ -1233,6 +1262,25 @@ bool readRawCharWithinBody(dwgBuffer *buf, DRW::Version version,
         return false;
     value = parsedValue;
     *buf = probe;
+    return true;
+}
+
+bool readDictionaryModeFields(DRW::Version version, bool withDefaultHandle,
+                              dwgBuffer *buf, std::uint32_t bodyEnd,
+                              std::int32_t& cloning,
+                              std::uint8_t& hardOwner) {
+    const bool hasCloning = version > DRW::AC1014 || withDefaultHandle;
+    const bool hasHardOwner = version >= DRW::AC1014 || withDefaultHandle;
+    std::int32_t parsedCloning = 0;
+    std::uint8_t parsedHardOwner = 0;
+    if ((hasCloning
+         && !readBitShortWithinBody(buf, version, bodyEnd, parsedCloning))
+        || (hasHardOwner
+            && !readRawCharWithinBody(buf, version, bodyEnd, parsedHardOwner))
+        || !validDictionaryHardOwner(parsedHardOwner))
+        return false;
+    cloning = parsedCloning;
+    hardOwner = parsedHardOwner;
     return true;
 }
 
@@ -11420,22 +11468,11 @@ bool DRW_Dictionary::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
     DRW_DBG("\n***************************** parsing Dictionary (base) ***************************************\n");
     if (!ret)
         return ret;
-    std::uint32_t bodyEnd = objSize;
-    std::uint32_t stringEnd = objSize;
-    if (version > DRW::AC1018 && objSize != 0) {
-        std::uint64_t stringStartBit = 0;
-        std::uint64_t stringEndBit = 0;
-        if (!sBuff.getR2007StringStreamBounds(
-                objSize, stringStartBit, stringEndBit)
-            || stringStartBit > objSize || stringEndBit > objSize
-            || stringEndBit < stringStartBit
-            || stringStartBit > std::numeric_limits<std::uint32_t>::max()
-            || stringEndBit > std::numeric_limits<std::uint32_t>::max()
-            || currentObjectDwgBit(&sBuff) != stringStartBit)
-            return false;
-        bodyEnd = static_cast<std::uint32_t>(stringStartBit);
-        stringEnd = static_cast<std::uint32_t>(stringEndBit);
-    }
+    std::uint32_t bodyEnd = 0;
+    std::uint32_t stringEnd = 0;
+    if (!resolveR2007StreamBounds(version, sBuff, objSize, bodyEnd,
+                                  stringEnd))
+        return false;
     const auto bodyFits = [version, buf, sBuf, bodyEnd, stringEnd]() {
         return version < DRW::AC1012
             || (objectBodyFitsSize(currentObjectDwgBit(buf), bodyEnd)
@@ -11450,40 +11487,14 @@ bool DRW_Dictionary::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
         return false;
     const std::uint32_t numItems = static_cast<std::uint32_t>(rawNumItems);
 
-    if (version == DRW::AC1014 && withDefaultHandle) {
-        std::int32_t parsedCloning = 0;
-        std::uint8_t parsedHardOwner = 0;
-        if (!readBitShortWithinBody(buf, version, bodyEnd, parsedCloning)
-            || !readRawCharWithinBody(buf, version, bodyEnd, parsedHardOwner))
-            return false;
-        cloning = parsedCloning;
-        hardOwner = parsedHardOwner;
-    } else if (version == DRW::AC1014) {
-        // Plain DICTIONARY stores only the legacy hard-owner flag at R14.
-        std::uint8_t parsedHardOwner = 0;
-        if (!readRawCharWithinBody(buf, version, bodyEnd, parsedHardOwner))
-            return false;
-        hardOwner = parsedHardOwner;
-    } else if (version > DRW::AC1014) {
-        std::int32_t parsedCloning = 0;
-        std::uint8_t parsedHardOwner = 0;
-        if (!readBitShortWithinBody(buf, version, bodyEnd, parsedCloning)
-            || !readRawCharWithinBody(buf, version, bodyEnd, parsedHardOwner))
-            return false;
-        cloning = parsedCloning;
-        hardOwner = parsedHardOwner;
-    } else if (withDefaultHandle) {
-        // DICTIONARYWDFLT carries cloning + hard-owner fields even in the
-        // older R13/R13c3 layouts; plain DICTIONARY does not.
-        std::int32_t parsedCloning = 0;
-        std::uint8_t parsedHardOwner = 0;
-        if (!readBitShortWithinBody(buf, version, bodyEnd, parsedCloning)
-            || !readRawCharWithinBody(buf, version, bodyEnd, parsedHardOwner))
-            return false;
-        cloning = parsedCloning;
-        hardOwner = parsedHardOwner;
-    }
-    if (!buf->isGood() || !bodyFits() || !validDictionaryHardOwner(hardOwner))
+    std::int32_t parsedCloning = cloning;
+    std::uint8_t parsedHardOwner = hardOwner;
+    if (!readDictionaryModeFields(version, withDefaultHandle, buf, bodyEnd,
+                                  parsedCloning, parsedHardOwner))
+        return false;
+    cloning = parsedCloning;
+    hardOwner = parsedHardOwner;
+    if (!buf->isGood() || !bodyFits())
         return false;
 
     std::vector<UTF8STRING> names;
@@ -11496,12 +11507,8 @@ bool DRW_Dictionary::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
             return false;
         names.push_back(std::move(name));
     }
-    if (!bodyFits())
-        return false;
-    // Legacy DICTIONARYWDFLT has no independently bounded string stream.
-    // Do not publish its typed body if the declared end skips unknown bits.
-    if (withDefaultHandle && (version == DRW::AC1012 || version == DRW::AC1014)
-        && (objSize == 0u || currentObjectDwgBit(buf) != objSize))
+    if (!bodyFits()
+        || !objectDataBodyConsumed(version, buf, bodyEnd))
         return false;
     // DICTIONARY stores the R2000/R2004 handle stream after the object data;
     // objSize is the absolute bit offset of that stream, not merely a size
@@ -11519,12 +11526,11 @@ bool DRW_Dictionary::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
         dwgHandle itemH;
         if (!readDwgObjectHandleWithinFrame(version, *buf, true, itemH))
             return false;
-        const bool nullItemHandleIsValid = itemH.ref == 0
-            && itemH.size == 0
-            && (itemH.code == 0 || itemH.code == dwgItemHandleCode());
-        if (itemH.ref == 0 && !nullItemHandleIsValid)
-            return false;
-        if (itemH.ref != 0 && itemH.code != dwgItemHandleCode())
+        const bool nullItemHandleIsValid = itemH.ref == 0u
+            && itemH.size == 0u
+            && (itemH.rawCode == 0u
+                || itemH.rawCode == dwgItemHandleCode());
+        if (!dictionaryHandleReferenceHasRole(itemH, dwgItemHandleCode(), true))
             return false;
         // Preserve the observed DWG empty-name/null-handle slot as an exact
         // counted pair. DXF completeness and writer admission still reject an
@@ -11547,8 +11553,9 @@ bool DRW_Dictionary::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
     // been checked by readDwgObjectCommonHandles / the item-handle checks.
     // Keep the intervening R2000/R2004 layouts unqualified until their tail
     // boundary has equivalent evidence.
-    commonLinkTailValidated = version > DRW::AC1018
-        || version == DRW::AC1012 || version == DRW::AC1014;
+    const bool boundedLegacyTail = isLegacyInlineObjectDataVersion(version)
+        && hasOnlyByteAlignmentRemaining(buf);
+    commonLinkTailValidated = version > DRW::AC1018 || boundedLegacyTail;
     DRW_DBG("dictionary entries: "); DRW_DBG(static_cast<int>(m_entries.size())); DRW_DBG("\n");
     return true;
     } catch (...) {
@@ -11597,17 +11604,14 @@ bool DRW_DictionaryWithDefault::parseDwg(DRW::Version version, dwgBuffer *buf, s
     if (!readDwgObjectHandleWithinFrame(version, *buf, true, defaultH)) {
         return fail();
     }
-    if (defaultH.ref == 0 || defaultH.code != DRW::DwgHardPointer) {
+    if (!dictionaryHandleReferenceHasRole(defaultH, DRW::DwgHardPointer,
+                                           false)) {
         DRW_DBG("DICTIONARYWDFLT default entry is not a hard pointer\n");
         return fail();
     }
-    if (version == DRW::AC1012 || version == DRW::AC1014) {
-        std::uint64_t endBit = 0;
-        const auto cursor = currentObjectDwgBit(buf);
-        if (!getDwgHandleEndBit(version, *buf, endBit) || cursor > endBit
-            || endBit - cursor >= 8u)
-            return fail();
-    }
+    if (isLegacyInlineObjectDataVersion(version)
+        && !hasOnlyByteAlignmentRemaining(buf))
+        return fail();
     m_defaultEntryHandle = defaultH.ref;
     DRW_DBG("default entry Handle: "); DRW_DBGHL(defaultH.code, defaultH.size, defaultH.ref); DRW_DBG("\n");
     return true;
@@ -11672,33 +11676,28 @@ bool DRW_DictionaryVar::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint
         return fail();
     }
 
-    // The R14 object-size field ends immediately after this inline value.
-    // Do not turn an unconsumed body suffix into an apparent handle tail.
-    if (version == DRW::AC1014 && currentObjectDwgBit(buf) != objSize)
+    // R13/R14 expose the inline object-data end before the common handle tail.
+    // Reject any unmodeled suffix instead of treating it as handle-stream data.
+    if (!objectDataBodyConsumed(version, buf, bodyEnd))
         return fail();
     // DICTIONARYVAR follows the same object-data boundary as DICTIONARY
     // before its common handle stream.
     seekObjectHandleStream(version, buf, objSize, version >= DRW::AC1015);
-    std::uint64_t handleEnd = 0;
     const bool handlesGood = buf->isGood()
-        && (version != DRW::AC1014
-            ? this->readDwgObjectCommonHandles(version, buf, &parentHandle,
-                                               &reactorHandles, &xDictHandle)
-            : (getDwgHandleEndBit(version, *buf, handleEnd)
-               && readObjectCommonHandles(buf, version, handle, numReactors,
-                    xDictFlag, &parentHandle, &reactorHandles, &xDictHandle,
-                    handleEnd, true)));
+        && this->readDwgObjectCommonHandles(
+            version, buf, &parentHandle, &reactorHandles, &xDictHandle,
+            false, isLegacyInlineObjectDataVersion(version));
     if (!handlesGood) {
         return fail();
     }
     m_schema = parsedSchema;
     m_value = std::move(parsedValue);
     // R2007+ keeps the common owner/reactor/extension-dictionary tail
-    // independently bounded. For AC1014 and AC1018, qualify the legacy inline
-    // tail only when the owner/reactor/xdictionary sequence consumes the
-    // complete object frame, leaving fewer than eight alignment bits. ODA
-    // v5.4.1 §20.4.74 defines the body and common handle sequence.
-    const bool boundedLegacyTail = (version == DRW::AC1014
+    // independently bounded. For R13/R14 and R2004, qualify the legacy inline
+    // tail only when the object data and handle sequence consume the frame,
+    // leaving fewer than eight alignment bits. ODA v5.4.1 §20.4.74 defines
+    // the DICTIONARYVAR fields and §20.1 defines the common object frame.
+    const bool boundedLegacyTail = (isLegacyInlineObjectDataVersion(version)
         || version == DRW::AC1018)
         && hasOnlyByteAlignmentRemaining(buf);
     setDwgCommonLinkTailValidated(version > DRW::AC1018
