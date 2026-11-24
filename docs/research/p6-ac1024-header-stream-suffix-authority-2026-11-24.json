@@ -31,7 +31,7 @@
     "result": "Aborted before conversion with PasteBoard errors (-4960) and an invalid hiservices XPC connection; no DWG was produced.",
     "disposition": "Do not repeat the same attempt until the converter or desktop state changes."
   },
-  "nextAction": "Use an AutoCAD/ODA-produced AC1024 source or a source-distinct trace/decoder that binds exact post-envelope string and handle stream spans, roles, and the section boundary. The after-unlock ODA retry failed before conversion; the installed LibreDWG r2010 writer produced only an unqualified AC1024-magic file. Keep the bytes raw and strict output refused until the source-bound proof exists.",
+  "nextAction": "Use an AutoCAD/ODA-produced AC1024 source or a source-distinct trace/decoder that binds exact post-envelope string and handle stream spans, roles, and the section boundary. Direct CLI and LaunchServices ODA attempts failed; the installed LibreDWG r2010 writer produced only an unqualified AC1024-magic file. Keep the bytes raw and strict output refused until the source-bound proof exists.",
   "limits": [
     "The local PDF is the ODA specification named in AGENTS.md and its hash matches the earlier receipts.",
     "A structural statement about separate streams does not prove the semantics of this specific suffix.",
@@ -90,5 +90,12 @@
       "result": "BAD_READ_FILE_HEADER (legacyError 5); failed before section decoding."
     },
     "disposition": "Not a valid producer witness or regression fixture; do not commit this generated DWG. The writer advertised AC1024 magic but did not produce a file that either reader cleanly accepts."
+  },
+  "desktopLaunchAttempt": {
+    "observedAtUtc": "2026-11-24 16:37 UTC",
+    "command": "open -a /Applications/ODAFileConverter.app --args <input-dir> <output-dir> ACAD2010 DWG 0 0 '*.dxf'",
+    "exitCode": 1,
+    "result": "LaunchServices returned NSOSStatusErrorDomain -10827 (kLSNoExecutableErr) before opening the converter; no DWG was produced.",
+    "disposition": "The GUI launch path did not provide an alternate conversion route. Do not change the installed application bundle as part of this parser investigation."
   }
 }
