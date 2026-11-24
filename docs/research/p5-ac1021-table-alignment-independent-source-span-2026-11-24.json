@@ -73,12 +73,12 @@
         "nextObjectMapOffsetBytes": 266994
       }
     ],
-    "comparison": "Both independently measured starts equal the previously recorded libdxfrw alignment starts. Both field spans are 10 bits, matching BitShort consumption. ACadSharp reads the remaining TABLE content, reports the expected strings and dimensions, and continues through the full document. The declared object ends and next object-map entries bound each object. The follow-up scratch trace also bounds the selected cells across body, string, and handle streams. Each is a text cell with one content item and a null value handle; both cell spans end before their enclosing object boundary and the next object-map entry.",
+    "comparison": "Both independently measured starts equal the previously recorded libdxfrw alignment starts. Both field spans are 10 bits, matching BitShort consumption. ACadSharp reads the remaining TABLE content, reports the expected strings and dimensions, and continues through the full document. The declared object ends and next object-map entries bound each object. The follow-up scratch trace also bounds the selected cells across body, string, and handle streams. Each is a text cell with one content item and a null value handle; both cell spans end before their enclosing object boundary and the next object-map entry. The latest trace names the selected cells' text type, edge/merge/autofit fields, merged dimensions, rotation, override flags, alignment, post-override value, null hard-pointer handle code, and CadValue body/text spans.",
     "cellStreamTrace": {
       "instrumentedOutput": {
-        "path": "/private/tmp/acadsharp-p5i-20261124/probe/output12.log",
-        "sha256": "61bc2d72e54674cb772dab4e25869d70f65dfc2428c6f95ef13b4cbd3df72fd1",
-        "instrumentation": "Scratch-only trace brackets readTableCellData for the selected cell and records main-body, text-stream, and handle-stream cursors before and after decoding."
+        "path": "/private/tmp/acadsharp-p5i-20261124/probe/output13.log",
+        "sha256": "8a43faf9515df67577261cdf864fc572a7724fa515433cada800ac854fbc24e7",
+        "instrumentation": "Scratch-only source trace records each selected text cell body field start/end, the cell value-handle stream start/end, and the CadValue body/text stream ranges."
       },
       "cells": [
         {
@@ -116,7 +116,119 @@
           "contentCount": 1,
           "independentReadback": "MiddleRight; ESTIMATED COST OF DOORS",
           "enclosingObjectEndBit": 1814104,
-          "nextObjectHandle": "0x2a974"
+          "nextObjectHandle": "0x2a974",
+          "namedFieldSpans": [
+            {
+              "field": "cell-type",
+              "bodySpanBits": [
+                1805619,
+                1805629
+              ],
+              "decodedValue": "Text"
+            },
+            {
+              "field": "edge-flags",
+              "bodySpanBits": [
+                1805629,
+                1805637
+              ],
+              "decodedValue": "0"
+            },
+            {
+              "field": "merged",
+              "bodySpanBits": [
+                1805637,
+                1805638
+              ],
+              "decodedValue": "0"
+            },
+            {
+              "field": "auto-fit",
+              "bodySpanBits": [
+                1805638,
+                1805639
+              ],
+              "decodedValue": "false"
+            },
+            {
+              "field": "merged-width",
+              "bodySpanBits": [
+                1805639,
+                1805649
+              ],
+              "decodedValue": "8"
+            },
+            {
+              "field": "merged-height",
+              "bodySpanBits": [
+                1805649,
+                1805659
+              ],
+              "decodedValue": "1"
+            },
+            {
+              "field": "rotation",
+              "bodySpanBits": [
+                1805659,
+                1805661
+              ],
+              "decodedValue": "0"
+            },
+            {
+              "field": "has-overrides",
+              "bodySpanBits": [
+                1805661,
+                1805662
+              ],
+              "decodedValue": "true"
+            },
+            {
+              "field": "override-flags",
+              "bodySpanBits": [
+                1805662,
+                1805672
+              ],
+              "decodedValue": "1"
+            },
+            {
+              "field": "virtual-edge-flags",
+              "bodySpanBits": [
+                1805672,
+                1805680
+              ],
+              "decodedValue": "0"
+            },
+            {
+              "field": "alignment",
+              "bodySpanBits": [
+                1805680,
+                1805690
+              ],
+              "decodedValue": "6"
+            },
+            {
+              "field": "post-override-unknown",
+              "bodySpanBits": [
+                1805690,
+                1805692
+              ],
+              "decodedValue": "0"
+            }
+          ],
+          "valueHandleSpanBits": [
+            1814003,
+            1814011
+          ],
+          "cadValueBodySpanBits": [
+            1805692,
+            1806132
+          ],
+          "cadValueTextStreamSpanBits": [
+            1812742,
+            1813122
+          ],
+          "cadValueText": "ESTIMATED COST OF DOORS",
+          "valueHandleDeclaredRole": "hard pointer (ACadSharp source comment); encoded value is null"
         },
         {
           "tableHandle": "0x2a974",
@@ -153,10 +265,122 @@
           "contentCount": 1,
           "independentReadback": "MiddleRight; ESTIMATED COST OF WINDOWS",
           "enclosingObjectEndBit": 2135936,
-          "nextObjectHandle": "0x25"
+          "nextObjectHandle": "0x25",
+          "namedFieldSpans": [
+            {
+              "field": "cell-type",
+              "bodySpanBits": [
+                2126904,
+                2126914
+              ],
+              "decodedValue": "Text"
+            },
+            {
+              "field": "edge-flags",
+              "bodySpanBits": [
+                2126914,
+                2126922
+              ],
+              "decodedValue": "0"
+            },
+            {
+              "field": "merged",
+              "bodySpanBits": [
+                2126922,
+                2126923
+              ],
+              "decodedValue": "0"
+            },
+            {
+              "field": "auto-fit",
+              "bodySpanBits": [
+                2126923,
+                2126924
+              ],
+              "decodedValue": "false"
+            },
+            {
+              "field": "merged-width",
+              "bodySpanBits": [
+                2126924,
+                2126934
+              ],
+              "decodedValue": "8"
+            },
+            {
+              "field": "merged-height",
+              "bodySpanBits": [
+                2126934,
+                2126944
+              ],
+              "decodedValue": "1"
+            },
+            {
+              "field": "rotation",
+              "bodySpanBits": [
+                2126944,
+                2126946
+              ],
+              "decodedValue": "0"
+            },
+            {
+              "field": "has-overrides",
+              "bodySpanBits": [
+                2126946,
+                2126947
+              ],
+              "decodedValue": "true"
+            },
+            {
+              "field": "override-flags",
+              "bodySpanBits": [
+                2126947,
+                2126957
+              ],
+              "decodedValue": "1"
+            },
+            {
+              "field": "virtual-edge-flags",
+              "bodySpanBits": [
+                2126957,
+                2126965
+              ],
+              "decodedValue": "0"
+            },
+            {
+              "field": "alignment",
+              "bodySpanBits": [
+                2126965,
+                2126975
+              ],
+              "decodedValue": "6"
+            },
+            {
+              "field": "post-override-unknown",
+              "bodySpanBits": [
+                2126975,
+                2126977
+              ],
+              "decodedValue": "0"
+            }
+          ],
+          "valueHandleSpanBits": [
+            2135836,
+            2135844
+          ],
+          "cadValueBodySpanBits": [
+            2126977,
+            2127449
+          ],
+          "cadValueTextStreamSpanBits": [
+            2134447,
+            2134859
+          ],
+          "cadValueText": "ESTIMATED COST OF WINDOWS",
+          "valueHandleDeclaredRole": "hard pointer (ACadSharp source comment); encoded value is null"
         }
       ],
-      "limits": "These are aggregate cell stream spans, not individually named boundaries for every contained value/string/handle field. They independently cross-check the two alignment spans and object boundaries; they do not establish table-wide graph closure or output semantics."
+      "limits": "Named spans cover each selected cell header and alignment override plus the null value-handle code. CadValue body/text spans are aggregate; subfields inside CadValue, other cells, complete graph closure, and output semantics remain unproved."
     }
   },
   "implementation": {
@@ -183,9 +407,9 @@
     "profileDisposition": "The classified AutoCAD 2007 source uses a 10-bit BitShort field at both disputed cell spans. Keep this exception limited to the classified AutoCAD 2007 text-cell profile; do not broaden it to AC1021 as a whole or other producers."
   },
   "remainingWork": [
-    "Bind individual remaining TABLE cell/value/string/handle field spans and graph links for the selected profile; the new trace supplies aggregate body/string/handle spans only for cells [8,0] and [9,0]. Reuse strict malformed, rollback, and retry controls.",
+    "Bind remaining individual CadValue subfields, string details, and graph links across the selected TABLE profile; current field-level evidence covers cells [8,0] and [9,0] only. Reuse strict malformed, rollback, and retry controls.",
     "Qualify selected-TABLE ASCII and Binary DXF output plus fresh independent readback. Whole-source conversion remains blocked by FIELD/FIELDLIST carriers and unrelated unsupported payloads.",
     "Keep other AC1021 producer profiles and proxy-graphics support outside this slice."
   ],
-  "closure": "The two alignment spans and the aggregate body/string/handle spans for those selected text cells are independently bound, along with following-object boundaries, for the exact classified AutoCAD 2007 source. The narrow parser and generated-vector slice is implemented and fast-tested. P5-I remains open for individual remaining field roles, graph closure, selected output/readback, and other cells; no TABLE-wide or AC1021-wide support claim follows."
+  "closure": "For the exact classified AutoCAD 2007 source, the two disputed alignment spans, selected cell header/override fields, null value-handle code, aggregate CadValue spans, and following-object boundaries are independently bound. The narrow parser and generated-vector slice is implemented and fast-tested. P5-I remains open for CadValue subfields, remaining cells, graph closure, selected output/readback, and other cells; no TABLE-wide or AC1021-wide support claim follows."
 }
