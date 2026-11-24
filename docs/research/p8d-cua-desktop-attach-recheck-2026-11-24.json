@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-cua-desktop-attach-recheck-2026-11-24",
+  "date": "2026-11-24",
+  "status": "APP_INVENTORY_VISIBLE_NATIVE_WINDOWS_UNAVAILABLE",
+  "supportClaimEffect": "none",
+  "gate": "P8-D",
+  "purpose": "Retry access to the current LibreCAD candidate window after the earlier no-display preflight.",
+  "observations": [
+    {
+      "operation": "cua.getState",
+      "result": "Returned the macOS app/browser inventory; LibreCAD and FreeCAD processes were listed as running."
+    },
+    {
+      "operation": "cua.getApp('/tmp/librecad-p8d-current-candidate-build/LibreCAD.app')",
+      "result": "Computer Use server error -10005: timeoutReached"
+    },
+    {
+      "operation": "repeat candidate app attach after fresh inventory",
+      "result": "Computer Use server error -10005: timeoutReached"
+    },
+    {
+      "operation": "cua.getApp('org.freecad.FreeCAD')",
+      "result": "Computer Use server error -10005: cgWindowNotFound"
+    }
+  ],
+  "actions": {
+    "drawingOpened": false,
+    "drawingModified": false,
+    "saveAttempted": false,
+    "copyOrMoveAttempted": false,
+    "screenshotCaptured": false
+  },
+  "interpretation": "App inventory is available, but Computer Use could not attach to native app windows. This does not establish that the macOS login session is locked or that a specific drawing was opened. No P8-D GUI result was produced.",
+  "nextTrigger": "Retry when cua.getApp can attach to the explicit LibreCAD candidate path and return a window accessibility state.",
+  "nextAction": "Use scratch-only inputs; rerun LibreCAD Move/Copy with Control held on the target mouse release, then complete named LTYPE and LibreCAD_3 MPOLYGON checks when their app windows are accessible."
+}
