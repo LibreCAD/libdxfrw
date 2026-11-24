@@ -3513,7 +3513,7 @@ bool readDwgClassStringFooter(dwgBuffer &buffer, std::uint64_t footerEndBit,
     restore();
     return false;
   }
-  buffer.getBit(); // end-bit field
+  buffer.getBit(); // String stream presence bit.
   if (!buffer.isGood() || cursor < 16) {
     restore();
     return false;
