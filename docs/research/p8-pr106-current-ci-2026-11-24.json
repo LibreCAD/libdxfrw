@@ -3,36 +3,36 @@
   "id": "p8-pr106-current-ci-2026-11-24",
   "date": "2026-11-24",
   "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
-  "head": "e2b872034331a23e584a36bb093a7053ccc72bd2",
-  "observedAtUtc": "2026-11-24 12:31 UTC",
+  "head": "b335c47ca61521c98dea17a7739262ab52dec1c3",
+  "observedAtUtc": "2026-11-24 12:51 UTC",
   "checks": {
     "fast-regressions": {
-      "runId": 45391761522,
-      "jobId": 138437015021,
+      "runId": 45394492219,
+      "jobId": 138446515129,
       "status": "completed",
       "conclusion": "success"
     },
     "source-release": {
-      "runId": 45391761522,
-      "jobId": 138437017578,
+      "runId": 45394492219,
+      "jobId": 138446518225,
       "status": "completed",
       "conclusion": "skipped"
     },
     "qualification workflow contract": {
-      "runId": 45391761370,
-      "jobId": 138437013551,
+      "runId": 45394492066,
+      "jobId": 138446513950,
       "status": "completed",
       "conclusion": "success"
     },
     "focused / linux-gcc": {
-      "runId": 45391761370,
-      "jobId": 138437146051,
+      "runId": 45394492066,
+      "jobId": 138446636568,
       "status": "completed",
       "conclusion": "success"
     },
     "focused / macos-clang": {
-      "runId": 45391761370,
-      "jobId": 138437145816,
+      "runId": 45394492066,
+      "jobId": 138446636725,
       "status": "completed",
       "conclusion": "success",
       "annotations": [
@@ -45,20 +45,20 @@
       ]
     },
     "focused / windows-msvc": {
-      "runId": 45391761370,
-      "jobId": 138437145738,
+      "runId": 45394492066,
+      "jobId": 138446636531,
       "status": "completed",
       "conclusion": "success"
     },
     "extended deterministic fuzz / linux-gcc": {
-      "runId": 45391761370,
-      "jobId": 138437148794,
+      "runId": 45394492066,
+      "jobId": 138446639469,
       "status": "completed",
       "conclusion": "skipped"
     },
     "final broad": {
-      "runId": 45391761370,
-      "jobId": 138437149281,
+      "runId": 45394492066,
+      "jobId": 138446640012,
       "status": "completed",
       "conclusion": "skipped"
     }

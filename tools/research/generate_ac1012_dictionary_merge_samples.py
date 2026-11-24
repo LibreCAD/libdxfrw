@@ -130,7 +130,8 @@ def read_dictionary_frame(path: Path, dwgread: str, handle: int,
     return proof, frame
 
 
-def read_model(path: Path, dwgread: str) -> dict:
+def read_model(path: Path, dwgread: str,
+               unique_key: str | None = None) -> dict:
     decoded = path.with_suffix(".json")
     run([dwgread, "-O", "JSON", "-o", str(decoded), str(path)])
     drawing = json.loads(decoded.read_text())
@@ -151,15 +152,18 @@ def read_model(path: Path, dwgread: str) -> dict:
     require(len(dictionaries) == 1,
             "ACAD_MLINESTYLE child dictionary is missing or duplicated")
     dictionary = dictionaries[0]
-    require(dictionary.get("numitems") == 2,
-            "expected Standard and SAME_KEY in ACAD_MLINESTYLE")
+    expected_names = {"Standard", ENTRY_KEY}
+    if unique_key is not None:
+        expected_names.add(unique_key)
+    require(dictionary.get("numitems") == len(expected_names),
+            "ACAD_MLINESTYLE item count differs from the selected profile")
     raw_entries = dictionary.get("items", {})
     dictionary_entries = {
         name: value[-1] for name, value in raw_entries.items()
         if isinstance(value, list) and len(value) >= 3
     }
     require(len(dictionary_entries) == dictionary.get("numitems")
-            and ENTRY_KEY in dictionary_entries,
+            and set(dictionary_entries) == expected_names,
             "ACAD_MLINESTYLE entries are incomplete")
     entry = raw_entries.get(ENTRY_KEY)
     require(isinstance(entry, list) and len(entry) >= 3,
@@ -185,6 +189,22 @@ def read_model(path: Path, dwgread: str) -> dict:
     require(isinstance(current_dimstyle, list) and len(current_dimstyle) >= 4
             and current_dimstyle[-1] == dimstyles[0].get("handle", [None])[-1],
             "header current DIMSTYLE handle does not resolve to Standard")
+    styles = {}
+    for name in expected_names - {"Standard"}:
+        style_handle = dictionary_entries[name]
+        style = [
+            obj for obj in objects
+            if obj.get("object") == "MLINESTYLE"
+            and obj.get("handle", [None])[-1] == style_handle
+        ]
+        require(len(style) == 1 and style[0].get("name") == name
+                and style[0].get("ownerhandle", [None])[-1] == dictionary_handle,
+                f"{name} does not resolve to an owned MLINESTYLE")
+        styles[name] = {
+            "handle": style_handle,
+            "ownerHandle": dictionary_handle,
+            "startAngle": style[0].get("start_angle"),
+        }
     return {
         "sha256": sha(path.read_bytes()),
         "dictionaryHandle": dictionary_handle,
@@ -199,6 +219,7 @@ def read_model(path: Path, dwgread: str) -> dict:
             "ownerHandle": target_owner,
             "startAngle": target[0].get("start_angle"),
         },
+        "namedStyles": styles,
         "standardDimStyle": {
             "handle": dimstyles[0].get("handle", [None])[-1],
             "name": dimstyles[0].get("name"),
@@ -208,7 +229,8 @@ def read_model(path: Path, dwgread: str) -> dict:
 
 def run_candidate(candidate: str, source: Path, root: Path, label: str,
                   partial: bool, binary: bool = False,
-                  expected_angle: float | None = None) -> dict:
+                  expected_angle: float | None = None,
+                  expected_styles: dict[str, float] | None = None) -> dict:
     candidate_path = Path(candidate).resolve()
     mode = "explicit-partial" if partial else "strict"
     encoding = "binary" if binary else "ascii"
@@ -273,6 +295,14 @@ def run_candidate(candidate: str, source: Path, root: Path, label: str,
         if expected_angle is not None:
             require(abs(style["start_angle"] - expected_angle) < 1e-8,
                     "output MLINESTYLE start angle differs from the selected source")
+        if expected_styles is not None:
+            for name, angle in expected_styles.items():
+                matches = [item for item in roots[0].get("styles", [])
+                           if item.get("key") == name and item.get("name") == name]
+                require(len(matches) == 1
+                        and matches[0].get("owner") == roots[0]["target"].get("handle")
+                        and abs(matches[0]["start_angle"] - angle) < 1e-8,
+                        f"output MLINESTYLE {name} differs from the selected source")
     lines = [line.strip() for line in log.splitlines()
              if ("DWG read observations:" in line
                  or "frameCoverageStatus=" in line
@@ -293,13 +323,21 @@ def run_candidate(candidate: str, source: Path, root: Path, label: str,
     }
 
 
-def write_recipe(path: Path, angle: int) -> None:
-    path.write_text(
+def write_recipe(path: Path, angle: int, unique_key: str | None = None,
+                 unique_angle: int | None = None) -> None:
+    recipe = (
         "line (0 0 0) (1 1 0)\n"
         'dimstyle "Standard"\n'
         f'mlinestyle "{ENTRY_KEY}"\n'
         f"mlinestyle.start_angle = {angle}\n"
     )
+    if unique_key is not None:
+        require(unique_angle is not None, "unique-key control needs a unique angle")
+        recipe += (
+            f'mlinestyle "{unique_key}"\n'
+            f"mlinestyle.start_angle = {unique_angle}\n"
+        )
+    path.write_text(recipe)
 
 
 def materialize_r13_source(initial: Path, output: Path, dwgread: str,
@@ -361,6 +399,10 @@ def main() -> None:
     parser.add_argument("--candidate", help="optional libdxfrw dwg2dxf executable")
     parser.add_argument("--dictionary-source-test",
                         help="optional libdxfrw AC1012 physical-frame test executable")
+    parser.add_argument(
+        "--unique-entry-control", action="store_true",
+        help=("add DEST_ONLY to the destination and SOURCE_ONLY to the source, "
+              "alongside the SAME_KEY collision"))
     args = parser.parse_args()
     require(b"0.14" in run([args.dwgadd, "--version"]).stdout,
             "LibreDWG 0.14 dwgadd is required")
@@ -373,7 +415,9 @@ def main() -> None:
 
     results = {
         "schema": "libdxfrw.research-receipt.v1",
-        "id": "p6-ac1012-populated-dictionary-merge-samples-2026-11-22",
+        "id": ("p6-ac1012-collision-and-unique-entry-control-2026-11-24"
+               if args.unique_entry_control else
+               "p6-ac1012-populated-dictionary-merge-samples-2026-11-22"),
         "status": "PAIRED_SPEC_BOUND_SOURCE_AND_PARTIAL_ASCII_BINARY_PROOF_PASS_NATIVE_SEMANTICS_OPEN",
         "supportClaimEffect": "none",
         "authority": {
@@ -407,16 +451,25 @@ def main() -> None:
         ("destination", 15),
         ("source", 37),
     ):
+        unique_key = None
+        unique_angle = None
+        if args.unique_entry_control:
+            unique_key = "DEST_ONLY" if label == "destination" else "SOURCE_ONLY"
+            unique_angle = 22 if label == "destination" else 51
         recipe = root / f"{label}.dwgadd"
-        write_recipe(recipe, angle)
+        write_recipe(recipe, angle, unique_key, unique_angle)
         initial = root / f"{label}-dwgadd-ac1012.dwg"
         run([args.dwgadd, "--as", "r13", "-o", str(initial), str(recipe)])
         path = root / f"{label}-ac1012.dwg"
         construction = materialize_r13_source(
             initial, path, args.dwgread, args.dwgwrite, root, label)
-        model = read_model(path, args.dwgread)
+        model = read_model(path, args.dwgread, unique_key)
         require(abs(model["targetStyle"]["startAngle"] - math.radians(angle)) < 1e-10,
                 "source MLINESTYLE start angle differs from the recipe")
+        if unique_key is not None:
+            require(abs(model["namedStyles"][unique_key]["startAngle"]
+                        - math.radians(unique_angle)) < 1e-10,
+                    "source non-conflicting MLINESTYLE differs from the recipe")
         frame, frame_bytes = read_dictionary_frame(
             path, args.dwgread, model["dictionaryHandle"],
             model["dictionaryEntries"])
@@ -441,13 +494,19 @@ def main() -> None:
         candidate_partial = None
         if args.candidate:
             candidate = run_candidate(args.candidate, path, root, label, False)
+            expected_output_styles = (
+                {unique_key: float(unique_angle)}
+                if unique_key is not None else None
+            )
             candidate_partial = {
                 "ascii": run_candidate(
                     args.candidate, path, root, label, True,
-                    expected_angle=float(angle)),
+                    expected_angle=float(angle),
+                    expected_styles=expected_output_styles),
                 "binary": run_candidate(
                     args.candidate, path, root, label, True, binary=True,
-                    expected_angle=float(angle)),
+                    expected_angle=float(angle),
+                    expected_styles=expected_output_styles),
             }
         dictionary_frame_test = None
         if args.dictionary_source_test:
@@ -487,6 +546,18 @@ def main() -> None:
     require(results["samples"]["destination"]["source"]["targetStyle"]["startAngle"]
             != results["samples"]["source"]["source"]["targetStyle"]["startAngle"],
             "paired MLINESTYLE targets do not have distinct values")
+    if args.unique_entry_control:
+        require("DEST_ONLY" in results["samples"]["destination"]["source"]["dictionaryEntries"]
+                and "SOURCE_ONLY" not in results["samples"]["destination"]["source"]["dictionaryEntries"]
+                and "SOURCE_ONLY" in results["samples"]["source"]["source"]["dictionaryEntries"]
+                and "DEST_ONLY" not in results["samples"]["source"]["source"]["dictionaryEntries"],
+                "non-conflicting dictionary keys are not source/destination-distinct")
+        results["discriminator"] = (
+            "Both dictionaries have SAME_KEY with distinct 15/37-degree targets; "
+            "the destination additionally has DEST_ONLY (22 degrees), and the "
+            "source additionally has SOURCE_ONLY (51 degrees). A native merge "
+            "can report both duplicate-key selection and retention of non-conflicting entries."
+        )
     receipt = root / "receipt.json"
     receipt.write_text(json.dumps(results, indent=2) + "\n")
     print(root)

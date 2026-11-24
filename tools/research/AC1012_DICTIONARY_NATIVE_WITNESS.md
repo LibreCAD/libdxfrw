@@ -112,6 +112,7 @@ focused test options when those executables are available:
 ```sh
 PYTHONPATH=tools/research python3 -B \
   tools/research/generate_ac1012_dictionary_merge_samples.py \
+  --unique-entry-control \
   --output-dir /private/tmp/ac1012-dictionary-merge \
   --candidate build/dwg2dxf/dwg2dxf \
   --dictionary-source-test build/tests/libdxfrw_dwg_ac1014_dictionaryvar_tests
@@ -124,6 +125,12 @@ angles. The generator points the current DIMSTYLE header hard pointer to the
 unique Standard DIMSTYLE using the ODA v5.4.1 §9 definition, then writes the
 result as AC1012. This is a LibreDWG-generated, specification-directed control,
 not an AutoCAD-authored source.
+
+With `--unique-entry-control`, the destination also contains `DEST_ONLY` at
+22 degrees and the source contains `SOURCE_ONLY` at 51 degrees. This lets the
+native operation report both the `SAME_KEY` collision result and what happens
+to non-conflicting source and destination entries. It remains a generated
+control; it does not determine AutoCAD's merge policy.
 
 The generator checks the physical DICTIONARY frame, CRC, counted name span,
 NOD parent/reactor links, absent R13 cloning field and role-2 soft-owner item
