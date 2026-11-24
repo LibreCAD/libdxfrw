@@ -562,8 +562,12 @@ bool objectDataBodyConsumed(DRW::Version version, const dwgBuffer *buf,
     const std::uint64_t currentBit = currentObjectDwgBit(buf);
     if (!objectBodyFitsSize(currentBit, bodyEnd))
         return false;
-    return !isLegacyInlineObjectDataVersion(version) || bodyEnd == 0u
-        || currentBit == bodyEnd;
+    // R13/R14 object records always carry an inline object-data boundary.
+    // A zero boundary is not a usable legacy fallback for these typed bodies:
+    // accepting it would let the known fields run directly into the handle
+    // tail without proving where object data ends.
+    return !isLegacyInlineObjectDataVersion(version)
+        || (bodyEnd != 0u && currentBit == bodyEnd);
 }
 
 #if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE)

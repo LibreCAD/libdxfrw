@@ -13,11 +13,12 @@ percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
-P8-A/E/F passed on implementation digest
-`b6f59d17e0fd19013d545f46bc87150d8944326f327493276a13caa5f4baae68` before the
-TABLE parser slice. That slice changes selected implementation inputs; the
-current digest is `04b012d624636fce74f99a86ba0d6787424ce0e5a2b8d17b14e76aaf0d45242f`
-for the same 774 inputs, so P8-A/E/F are reopened. P8-B/C/D/G also remain open.
+P8-A/E/F were qualified for earlier implementation digests. The AC1012 zero-
+boundary guard changes selected implementation inputs; current digest
+`969c16c47fac6a3450754c734d226fa9f86e3dda5dc9009e0de66afac630e0fb` covers the
+same 774 inputs. P8-A/E/F are reopened for this digest; P8-B/C/D/G remain open.
+The [digest refresh receipt](docs/research/p8-pr106-ac1012-boundary-refresh-2026-11-24.json)
+binds the focused local check and pending exact-head hosted qualification.
 Defer expensive package and consumer reruns until the integration freeze unless
 selected inputs change again.
 The [PR CI inventory and digest refresh](docs/research/p8-pr106-ci-inventory-digest-refresh-2026-11-22.json)
@@ -229,14 +230,15 @@ refuses atomically. The pair stays under `/private/tmp`; it is not
 AutoCAD-authored or native open/merge evidence, and does not qualify the
 profile.
 
-The local parser layer now uses the shared version-aware object body/string
+The local parser layer uses the shared version-aware object body/string
 boundary resolver for DICTIONARY and DICTIONARYVAR, shared common and
-dictionary-specific handle-role predicates, and a single version table for
-DICTIONARY ownership fields. AC1012/AC1014 inline bodies must end at their
-declared boundary; generated AC1012 DICTIONARYVAR vectors cover the common
-handle roles, undeclared body suffixes, truncation, reset, and corrected retry.
-The focused [parser receipt](docs/research/p6-ac1012-shared-frame-role-checks-2026-11-24.json)
-records the passing AC1012/14/15 test. This closes only the local parser slice;
+dictionary-specific handle-role predicates, and one version table for
+DICTIONARY ownership fields. AC1012/AC1014 typed bodies must consume a nonzero
+declared inline boundary exactly; generated controls cover zero or extended
+boundaries, common and dictionary handle roles, truncation, parser reset, and
+corrected same-object retry. The focused
+[parser receipt](docs/research/p6-ac1012-shared-frame-role-checks-2026-11-24.json)
+records the passing AC1012/14/15 test. This closes the local parser slice only;
 native AutoCAD open and duplicate-key merge behavior remain open, and strict
 AC1012 output remains guarded.
 

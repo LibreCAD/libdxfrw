@@ -245,6 +245,19 @@ void setNibble(std::vector<std::uint8_t>& bytes, std::size_t start,
     }
 }
 
+void setRawLong32Bits(std::vector<std::uint8_t>& bytes, std::size_t start,
+                      std::uint32_t value) {
+    for (unsigned byte = 0u; byte < 4u; ++byte) {
+        const auto octet = static_cast<std::uint8_t>(value >> (8u * byte));
+        for (unsigned bit = 0u; bit < 8u; ++bit) {
+            const auto position = start + byte * 8u + bit;
+            const auto mask = static_cast<std::uint8_t>(0x80u >> (position % 8u));
+            if ((octet & (0x80u >> bit)) != 0u) bytes[position / 8u] |= mask;
+            else bytes[position / 8u] &= static_cast<std::uint8_t>(~mask);
+        }
+    }
+}
+
 bool generatedAc1012DictionaryFrameControl() {
     const auto reject = [](const char* stage) {
         std::cerr << "generated AC1012 DICTIONARY control failed: " << stage << '\n';
@@ -274,6 +287,7 @@ bool generatedAc1012DictionaryFrameControl() {
     writer.putObjType(DRW::AC1012, DRW_Dictionary::kDwgFixedType);
     writer.putFixedHandle(0u, 1u, dictionaryHandle);
     writer.putBitShort(0u);
+    const std::size_t bodyEndFieldBit = writtenBits(writer);
     writer.putRawLong32(bodyEnd);
     writer.putBitLong(1u);
     writer.putBitLong(static_cast<std::int32_t>(entries.size()));
@@ -315,6 +329,12 @@ bool generatedAc1012DictionaryFrameControl() {
             std::cerr << "  " << entry.m_name << " -> " << entry.m_handle << '\n';
         return reject("decoded model");
     }
+
+    auto missingBodyBoundary = bytes;
+    setRawLong32Bits(missingBodyBoundary, bodyEndFieldBit, 0u);
+    if (parse(missingBodyBoundary) || model.hasCompleteDwgEntries()
+        || !model.m_entries.empty() || !parse(bytes) || !matches())
+        return reject("missing legacy object-data boundary or corrected retry");
 
     DRW_UnsupportedObject raw;
     raw.m_version = DRW::AC1012;
@@ -965,6 +985,7 @@ bool expected(const Variable& v) {
 struct Ac1012VariableControl {
     std::vector<std::uint8_t> bytes;
     std::uint32_t bodyEnd {0u};
+    std::size_t bodyEndFieldBit {0u};
 };
 
 Ac1012VariableControl makeAc1012Variable(bool appendUnknownBodyByte = false) {
@@ -987,6 +1008,7 @@ Ac1012VariableControl makeAc1012Variable(bool appendUnknownBodyByte = false) {
     writer.putObjType(DRW::AC1012, 500u);
     writer.putFixedHandle(0u, 1u, 0x23u);
     writer.putBitShort(0u);
+    control.bodyEndFieldBit = writtenBits(writer);
     writer.putRawLong32(control.bodyEnd);
     writer.putBitLong(1u);
     writer.putRawChar8(0u);
@@ -1016,6 +1038,13 @@ bool ac1012DictionaryVarControl() {
         return parse(DRW::AC1012, bytes, variable);
     };
     if (!parseSource(control.bytes) || !expected(variable))
+        return false;
+
+    auto missingBodyBoundary = control.bytes;
+    setRawLong32Bits(missingBodyBoundary, control.bodyEndFieldBit, 0u);
+    if (parseSource(missingBodyBoundary) || variable.hasDwgCommonLinkTail()
+        || !variable.m_value.empty()
+        || !parseSource(control.bytes) || !expected(variable))
         return false;
 
     const std::array<std::pair<std::size_t, unsigned>, 3> wrongRoles{{

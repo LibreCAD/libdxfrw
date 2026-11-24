@@ -8,15 +8,24 @@
     "document": "ODA Open Design Specification v5.4.1",
     "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
     "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
-    "sections": ["2.13 HANDLE REFERENCES", "20.1 Common non-entity object format", "20.4.44 DICTIONARY", "20.4.74 DICTIONARYVAR"]
+    "sections": [
+      "2.13 HANDLE REFERENCES",
+      "20.1 Common non-entity object format",
+      "20.4.44 DICTIONARY",
+      "20.4.74 DICTIONARYVAR"
+    ]
   },
   "implementation": {
-    "files": ["src/drw_objects.cpp", "tests/dwg_ac1014_dictionaryvar_tests.cpp"],
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg_ac1014_dictionaryvar_tests.cpp"
+    ],
     "changes": [
       "DICTIONARY now uses the common version-aware object body/string bounds resolver also used by DICTIONARYVAR.",
       "Dictionary mode fields are decoded through one version table for plain and default dictionaries.",
       "Common-object, dictionary-entry, and default-entry handle roles share bounded role predicates while preserving relative soft-pointer rules and typed-null behavior.",
-      "AC1012 and AC1014 inline bodies must end exactly at their declared boundary; AC1012 DICTIONARYVAR now validates common handle roles and qualifies its tail only when byte alignment is the sole remainder."
+      "AC1012 and AC1014 inline bodies must end exactly at their declared boundary; AC1012 DICTIONARYVAR now validates common handle roles and qualifies its tail only when byte alignment is the sole remainder.",
+      "AC1012 and AC1014 DICTIONARY and DICTIONARYVAR now require a nonzero declared inline object-data boundary before validating the decoded body."
     ],
     "fixturePolicy": "Generated controls are in-memory test vectors. No DWG or DXF fixture was added."
   },
@@ -32,12 +41,19 @@
       "wrong parent, reactor, and extension-dictionary role refusal",
       "undeclared body-suffix refusal",
       "all byte truncations refused",
-      "same-object corrected retry after each refusal"
-    ]
+      "same-object corrected retry after each refusal",
+      "zero declared object-data boundary refused, parser reset, corrected same-object retry accepted"
+    ],
+    "generatedAc1012DictionaryControl": [
+      "zero declared object-data boundary refused, parser reset, corrected same-object retry accepted",
+      "existing parent/reactor/extension/item role refusal, truncation refusal, and corrected retry still pass"
+    ],
+    "testBinarySha256": "10bf48cc25e326b2db35be5850806d6db9f2eefafbe6917f895e73534a138625"
   },
   "limits": [
     "The new AC1012 DICTIONARYVAR vector is generated locally from the documented field order, not an AutoCAD producer sample.",
     "The focused parser tests do not establish native AutoCAD dictionary cloning or duplicate-key merge behavior.",
-    "Strict AC1012 output remains guarded; no support claim is promoted."
+    "Strict AC1012 output remains guarded; no support claim is promoted.",
+    "The zero-boundary regression vectors are in-memory controls built from ODA field order; they prove parser refusal and retry, not AutoCAD producer behavior."
   ]
 }
