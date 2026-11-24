@@ -174,6 +174,16 @@ The user-directed current-candidate AC1012 sample regeneration applies the ODA ย
 
 The [2026-11-24 collision and unique-entry control](docs/research/p6-ac1012-collision-unique-entry-control-2026-11-24.json) adds `DEST_ONLY` (22 degrees) to the destination and `SOURCE_ONLY` (51 degrees) to the source while retaining the shared 15/37-degree `SAME_KEY` collision. The focused physical-frame observer passes for both AC1012 dictionaries; strict output still preserves its prior destination on the native-semantics guard, and explicit-partial ASCII/Binary audits retain each profile's selected keys and angles. The samples remain scratch-only under `/private/tmp/ac1012-spec-control-20261124-release/ac1012-dictionary-merge-is640zms`. This gives a host witness a second observable (non-conflicting-key retention) but does not establish native merge behavior or promote support.
 
+The user-requested current-binary regeneration reproduces that same pair from
+scratch at `/private/tmp/ac1012-user-spec-response-20261124/ac1012-dictionary-merge-obyu6yl4`.
+The current focused CTest and physical-frame observer pass; strict ASCII/Binary
+conversion refuses with destination preservation, and the four bounded
+partial-output audits pass. Exact artifact hashes are in the [regeneration
+receipt](docs/research/p6-ac1012-user-request-spec-pair-rebuild-2026-11-24.json).
+This is a reproducibility refresh, not a new discriminator: native AutoCAD
+open and duplicate-merge behavior remain the only AC1012 semantic blocker for
+this profile, and the scratch DWGs/DXFs are not committed.
+
 For R14 source and output changes, reuse the [PR review regression controls](docs/research/p6-pr106-r14-conversion-review-fixes-2026-11-20.json). The [generated R13/R14/R2000 implicit INSERT chains](docs/research/p6-generated-legacy-implicit-insert-exact-angle-2026-11-21.json) exercise the next-link fix with complete scratch DWGs. R13 explicit-partial and R14 strict/partial outputs pass independent ASCII/Binary geometry readback; R14 also passes same-adapter refusal/retry. The earlier [R14 refusal](docs/research/p6-generated-legacy-implicit-insert-chain-2026-11-21.json) used a JSON-rounded angle. These controls do not close the organic-failure gate or establish broad support.
 
 The bounded [debug entity-failure attribution](docs/research/p6-cli-entity-failure-attribution-trace-2026-11-23.json) prints handle, source location, DWG type, phase, block context, parsed identity flags, and a known missing `BLOCK_RECORD` target, with an internal cap of 512 rows. On the local AC1018 `Extruder2.dwg` candidate, the full 474-row census identifies missing-owner targets across BLOCK, SOLID, LINE, MTEXT, ENDBLK and POINT; the 40 target handles are absent from libdxfrw's block map. LibreDWG 0.14 independently retains all 474 entity rows with the same owner references and no object at any of the 40 target handles. ODA v5.4.1 ยง20.4.52 documents the versioned BLOCK HEADER handle links that frame this relationship; it does not validate the unauthenticated sample. None of the 474 failures is a typed-body failure. The source is unauthenticated, and 460 integrity rows were omitted, so it remains ineligible for partial output. Preserve strict owner checks and do not use this source to close P6-F.
