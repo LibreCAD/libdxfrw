@@ -32,6 +32,16 @@
       "matchingRpath": "/private/tmp/libdxfrw-p8d-candidate-install/lib"
     }
   },
+  "runtimeSmoke": {
+    "command": "LibreCAD dwg2dxf /private/tmp/ac1012-user-spec-followup-20261123/ac1012-dictionary-merge-buvd8iq6/source-ac1012.dwg -o /private/tmp/p8d-copy-current-app-20261124/ac1012-current-candidate-strict.dxf -V r2010",
+    "environment": "DYLD_PRINT_LIBRARIES=1",
+    "sourceSha256": "d840a01972dd99fbe718e44306b76565ac21983fdac4dc6e843b7781a6aa1c79",
+    "exitCode": 1,
+    "dyldLoadedLibrary": "/private/tmp/libdxfrw-p8d-candidate-install/lib/libdxfrw.3.0.0.dylib",
+    "destinationSentinelSha256": "358a2f2148c4f13580a0037d0ae55e9250c3bfae1b9f8706c99d827bc5257a3e",
+    "destinationPreserved": true,
+    "diagnostic": "ERROR: failed to export; DWG file version: AC1012/R13"
+  },
   "input": {
     "path": "/private/tmp/p8d-copy-current-app-20261124/input-mline.dxf",
     "sha256": "c65d44cd54b7a8f0f07c38cdddee2fc11528105fe9605d80a81b304b7569ccaf",
@@ -47,9 +57,9 @@
       "Selecting the display name returned cgWindowNotFound."
     ]
   },
-  "interpretation": "The full LibreCAD app target builds and links against the hash-pinned current upstream libdxfrw candidate. Computer Use could not attach to a window, so no native MLINE Copy operation, save, reopen, or geometry audit was performed. The prior invalid Copy attempt remains unqualified.",
+  "interpretation": "The full LibreCAD app target builds and links against the hash-pinned current upstream libdxfrw candidate. Its command-line path loads that exact dylib and fails closed on the spec-directed AC1012 source while preserving the existing DXF destination; the generic diagnostic does not establish the refusal cause or dictionary merge semantics. Computer Use could not attach to a window, so no native MLINE Copy operation, save, reopen, or geometry audit was performed. The prior invalid Copy attempt remains unqualified.",
   "limits": [
-    "This is build and dependency evidence only; it does not close P8-D or establish Copy behavior.",
+    "The CLI smoke confirms current-candidate loading and destination-preserving AC1012 refusal only; it does not close P6-F, establish dictionary merge semantics, or close P8-D/Copy behavior.",
     "Named LTYPE and LibreCAD_3 MPOLYGON GUI qualification remain open.",
     "No support claim is promoted.",
     "The input DXF and build artifacts remain in scratch storage; no drawing fixture was added to the repository."
