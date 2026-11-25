@@ -25,7 +25,9 @@ The subsequent [raw plot-style object identity fix](docs/research/p6-plotstyle-p
 digest, focused checks and package qualification. Its clean-checkout digest is
 `2bd3188367f8af53e5d56dbf3ff3bb08f36bcf3a32a89879305c5853a737bd21`
 for 775 inputs. The later [opt-in raw MATERIAL capture](docs/research/p8d-ezdxf-default-material-raw-capture-2026-11-25.json) has clean-checkout digest
-`c05fe891b8acfd5db7ea13d575002b47376d3828439220fd71c11f21cf40c47b`
+`c05fe891b8acfd5db7ea13d575002b47376d3828439220fd71c11f21cf40c47b`.
+The subsequent [raw MATERIAL opt-in fix](docs/research/p8d-sparse-material-policy-and-consumer-guard-2026-11-25.json)
+has digest `7df98118a0e5b6aad55553dee25ec5ca56c2f367cc05f58a3cd50874934bb246`
 for 775 inputs. No earlier qualification is transferred to this candidate. Native GUI, broader FreeCAD coverage, broad and semantic
 gates remain open. The [package receipt](docs/research/p8-pr106-current-cross-platform-package-2026-11-25.json)
 records Linux and Windows hosted package passes and a local macOS substitute
@@ -44,7 +46,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`5969364fe4d9a51b0bc1a935140fe9a62f6adcdc`. The prior merge head built the
+`2b007ecd6444b1f16ea77e2540cc2bb79fc8328e`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -127,13 +129,18 @@ The [selected-graph peer control](docs/research/p8d-ezdxf-default-material-selec
 reopens the three remapped materials, dictionary, owners, reactors, current
 material and layer links with zero ezdxf audit repairs. Its negative control
 omits Global: the generic writer succeeds despite dangling dictionary/layer
-references, and ezdxf removes the broken dictionary entry. Next preserve the
-raw-only marker in consumer metadata, then add a preflight that checks the
-complete ACAD_MATERIAL dictionary, owner/reactor, layer and current-material
-targets and handle uniqueness before enabling capture. Refuse cross-version,
-missing or edited/inconsistent graphs atomically; verify ASCII/binary readback,
-collision remapping, corrected retry, both codecs, and independent
-complete-drawing semantics. Do not promote support on the selected graph.
+references, and ezdxf removes the broken dictionary entry. The [consumer safeguard](docs/research/p8d-sparse-material-policy-and-consumer-guard-2026-11-25.json)
+retains the raw-only marker and refuses all exports containing it; the ordinary
+filter still does not opt in. The same slice fixes an older library path that
+published a sparse raw-only record without the required policy. Next add a
+preflight that checks the complete ACAD_MATERIAL dictionary, owner/reactor,
+layer and current-material targets and handle uniqueness before enabling
+consumer capture and same-version raw replay. Refuse cross-version, missing or
+edited/inconsistent graphs atomically; verify ASCII/binary readback, collision
+remapping, corrected retry, both codecs, and independent complete-drawing
+semantics. Rebuild the consumer against the final library digest; its focused
+system-codec test currently used the preceding installed codec. Do not promote
+support on the selected graph.
 
 The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
 operator-run transfer route, and return route are unknown. Obtain the
