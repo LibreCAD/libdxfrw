@@ -229,6 +229,18 @@ revalidates the implemented AC1012 layout and safety guard; it cannot establish
 AutoCAD's absent-field default or duplicate-key merge behavior, so that native
 semantic gate and strict-output guard remain open.
 
+The user-requested current-checkout sample run regenerated the specification-
+directed AC1012 pair from local recipes and rechecked it against source commit
+`e4cce43c`. The focused AC1012/14/15 parser CTest and both physical dictionary
+frames pass; strict ASCII/Binary output preserves existing destinations, while
+four explicit-partial ASCII/Binary outputs pass bounded audits and LibreDWG
+peer readback for dictionary keys, target identity, owner, and MLINESTYLE
+angles. See the [current-checkout receipt](docs/research/p6-ac1012-shared-parser-current-spec-samples-2026-11-25.json).
+This requested refresh adds no new semantic discriminator. Keep the DWGs and
+DXFs scratch-only; further generation is unnecessary until a new discriminator
+or native AutoCAD witness is available. Native open/merge behavior and strict
+AC1012 output admission remain open.
+
 The local parser layer now uses the shared version-aware object body/string
 boundary resolver for DICTIONARY and DICTIONARYVAR, shared common and
 dictionary-specific handle-role predicates, and a single version table for
