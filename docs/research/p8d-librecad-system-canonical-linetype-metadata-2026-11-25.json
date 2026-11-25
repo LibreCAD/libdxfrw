@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-system-canonical-linetype-metadata-2026-11-25",
+  "status": "LOCAL_CANONICAL_DWG_DXF_CONTROLS_PASS_OTHER_GATES_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "0f00751c762b702d7b2141bde998ee52adc41349",
+    "previousHead": "fcdbaa7a7da690bbc29934f0154529d7471fbc25"
+  },
+  "dependency": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "implementationDigest": "7827d552d5f861a0d3fd16c48d539f6bf70e332d9780132938d329e37661ff74"
+  },
+  "problem": "Generated R2007 and newer DWGs reopen with canonical CONTINUOUS/BYLAYER/BYBLOCK linetypes carrying flags 64. The system-codec DXF export did not register their metadata before the writer emitted its mandatory rows; the later callback failed and prevented the entire save, including otherwise valid LEADER entities.",
+  "change": "For installed libdxfrw and DXF R14 or later, collect the three canonical source rows using the same name lookup used by the callback and pass them to setCanonicalLineTypeMetadata before write. The library retains its existing validation, fixed-row emission and handle rules; the bundled path is unchanged.",
+  "validation": {
+    "host": "macOS ARM64 AppleClang 21 Release",
+    "systemFocused": "PASS: 1,911 assertions in 33 cases. Locally generated DXF and DWG R2000/R2004/R2007/R2010/R2013/R2018 leader controls preserve vertices and arrow flags on DXF save; source canonical flags, including 64 for R2007+, match output. An invalid canonical flag refuses without replacing a sentinel; correcting it succeeds on the same filter.",
+    "systemTestSha256": "6c1ab8e23518028b5e00c3372a5be692e18e38afd7040592258e1c55bd8b43e6",
+    "bundledFast": "PASS: librecad_dxf_fast_tests after the adapter change; the subsequent assertions are system-only.",
+    "systemBroad": "Exploratory [dxf][roundtrip][filter]: 98/131 cases pass, 33 fail and 42 assertions fail versus 97/131 and 50 before this fix; no normalized failure expression increased."
+  },
+  "limits": [
+    "Generated controls are not native producer qualification for arbitrary canonical row metadata or linetypes.",
+    "Current-head hosted CI, native GUI and cross-platform system-codec qualification remain open.",
+    "No generated drawing fixtures were committed."
+  ]
+}

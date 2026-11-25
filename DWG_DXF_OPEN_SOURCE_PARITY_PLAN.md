@@ -40,7 +40,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`fcdbaa7a7da690bbc29934f0154529d7471fbc25`. The prior merge head built the
+`0f00751c762b702d7b2141bde998ee52adc41349`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -62,8 +62,11 @@ cases with 61 failed assertions and no new failure categories. The subsequent
 checks the retained class by identity alongside independently generated CLASS
 records. A further [linetype application-group lookup fix](docs/research/p8d-librecad-system-linetype-application-group-2026-11-25.json)
 confirms two apparently missing binary values were present before the record
-name. The wider filter now passes 97/131 cases with 50 failed assertions;
-investigate the remaining linetype, identity and object-graph gaps. The
+name. The [canonical-linetype metadata fix](docs/research/p8d-librecad-system-canonical-linetype-metadata-2026-11-25.json)
+restores generated DWG-to-DXF leader saves by predeclaring fixed-row metadata;
+its failure/retry and bundled controls pass. The wider filter now passes 98/131
+cases with 42 failed assertions; investigate the remaining linetype, identity
+and object-graph gaps. The
 [library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
 records bounded ASCII/binary field and failure/retry checks.
 Native GUI, runtime loading, new-head hosted checks and final-candidate
