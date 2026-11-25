@@ -40,7 +40,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`a10fa4fa856a1c6b5da2cee3f1c67d3fd1a6cbec`. The prior merge head built the
+`af08fa404d1e2837d286b4de296f912dbad4ee7f`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -54,10 +54,11 @@ targeted AddressSanitizer and bundled-codec controls. A wider system-codec
 filter run improved from 86 to 91 passing cases out of 131. The subsequent
 [system-codec single-line text slice](docs/research/p8d-librecad-system-codec-single-line-text-2026-11-25.json)
 preserves controls and literal carets and passes both consumer lanes. The wider
-filter now passes 93/131 cases; 38 remain failing, with 89 failed assertions
-versus 116 before this slice and no new failure categories. Several old-target
-underlay expectations conflict with intentional unsupported-version refusal;
-classify these separately from actual linetype and object-graph gaps. The
+filter initially passed 93/131 cases with 89 failed assertions. The follow-up
+[underlay refusal and corrected-retry checks](docs/research/p8d-librecad-system-underlay-refusal-2026-11-25.json)
+clarify 28 out-of-profile combinations; the wider filter now passes 94/131
+cases with 61 failed assertions and no new failure categories. Investigate the
+remaining linetype, identity and object-graph gaps. The
 [library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
 records bounded ASCII/binary field and failure/retry checks.
 Native GUI, runtime loading, new-head hosted checks and final-candidate
