@@ -16,8 +16,10 @@
     "checkout": "/private/tmp/librecad-pr3289-refresh-20261125",
     "host": "macOS ARM64, AppleClang 21.0.0",
     "configuration": "Release, LIBRECAD_USE_SYSTEM_LIBDXFRW=ON, BUILD_TESTS=OFF",
-    "installedLibrary": "/private/tmp/libdxfrw-p8d-current-20261123-install/lib/libdxfrw.3.0.0.dylib",
-    "installedLibrarySha256": "09041857fd7770d21986c01a3969f6cacd988fac2c2c094fd38dd89a2eb05653",
+    "installedPackage": "/private/tmp/libdxfrw-package-ce3ff-20261125/shared-install",
+    "installedLibrarySha256": "dc1ce5ab6dae2855cf2ffb39789c6047df128b5753a79ecd58f8a42a5ed41981",
+    "implementationDigest": "ce3ff7f4632615508c31c80f5375f423ca728262fe8c1c63dc87fdb75d977e7b",
+    "binding": "The compile flags include the installed package's include/libdxfrw directory. The object-only compile target does not link the shared library.",
     "target": "librecad_filter_compile_check",
     "result": "PASS"
   },
@@ -26,7 +28,7 @@
     "atObservation": "Text foundations and Pixi Builds queued; CodeQL and DWG/DXF verification in progress."
   },
   "limits": [
-    "The installed library is the prior 2026-11-23 candidate, not a newly built current digest; this is a source-compatibility compile only.",
+    "This is a source-compatibility compile only; it does not link or exercise the installed library.",
     "The application, BUILD_TESTS=ON profile, hosted CI outcomes, native GUI operations and final-candidate integration remain unqualified by this receipt.",
     "No native AutoCAD witness or format support claim is established."
   ]

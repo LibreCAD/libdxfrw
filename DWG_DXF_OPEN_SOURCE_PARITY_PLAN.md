@@ -39,8 +39,8 @@ integration or platform qualification.
 The dependent LibreCAD PR #3289 has since been refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90` at head
 `c468eaaa242767edd9acd69e27ef70d0ed05001a`. The isolated merge was clean,
-and the macOS system-codec adapter compile passed against the previously
-installed 3.0.0 library. Its hosted checks were queued or running when last
+and the macOS system-codec adapter compile passed against headers installed
+from the current implementation digest. Its hosted checks were queued or running when last
 observed; native GUI qualification and final-candidate validation remain open.
 See the [refresh receipt](docs/research/p8d-librecad-3289-master-refresh-2026-11-25.json).
 
