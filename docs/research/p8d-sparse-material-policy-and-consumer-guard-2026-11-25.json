@@ -18,21 +18,21 @@
   },
   "consumer": {
     "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
-    "head": "9192d828d21a890d1bf9e3697254cc80b92ea8b8",
+    "head": "75eb22ccd639caae17768a696211d1ccb03c15d0",
     "dependencyUnderLocalTest": "isolated installed libdxfrw implementation digest 7df98118a0e5b6aad55553dee25ec5ca56c2f367cc05f58a3cd50874934bb246; dylib SHA-256 ab2a007b1a220ff4c335259507e83e41817d5cd9d5dfa849b305947ab1f1f13f",
-    "fix": "Capture the raw-only material property into document metadata using an optional-method compatibility fallback. Before DXF or DWG output, reject while such a record exists; do not reconstruct the incomplete typed record. The production LibreCAD filter does not opt in to capture.",
+    "fix": "Capture the raw-only material property into document metadata using an optional-method compatibility fallback. Before DXF or DWG output, reject while such a record exists; do not reconstruct the incomplete typed record. The codec interface is public so an explicitly opted-in derived filter is discoverable; the production filter itself does not opt in.",
     "validation": [
-      "A public codec test adapter explicitly opts in and imports a locally generated AC1021 minimal MATERIAL into LibreCAD document metadata. Its marker survives; the filter preserves the destination while refusing three DXF versions and DWG, then successfully saves a complete material on the same filter.",
-      "System-codec focused lane: 2,070 assertions in 32 cases passed with the new isolated dylib. DYLD_PRINT_LIBRARIES verified its exact path. Existing consumer objects were compiled against the prior headers; comparison shows the installed public headers differ only in a documentation comment. The updated test translation unit was compiled and linked against the current installation.",
-      "Bundled-codec DXF round-trip lane: 4,751 assertions in 143 cases passed on the preceding consumer commit; the later test-only change is compiled only in the system-codec lane.",
-      "A separate local probe imported the three locally generated ezdxf default materials into consumer metadata and observed all three markers; an ordinary material remained unmarked.",
-      "The first test used a policy on a subclass of RS_FilterDXFRW and passed only because the old library failed to enforce the opt-in. With the fix it correctly failed: private DRW_Interface inheritance prevents the cross-cast. The corrected test uses a public codec adapter; its earlier result is superseded."
+      "The default filter rejects a locally generated AC1021 minimal MATERIAL. A derived filter explicitly opting in imports it through the real LibreCAD filter and preserves the raw-only marker. The ordinary exporter preserves the destination while refusing three DXF versions and DWG, then successfully saves a complete material on the same filter.",
+      "System-codec focused lane: 2,071 assertions in 32 cases passed after a full consumer test-target rebuild against the isolated current shared library. DYLD_PRINT_LIBRARIES confirmed the exact library path; installed public headers and implementation code are unchanged since the test-only digest refresh.",
+      "Bundled-codec DXF round-trip lane: 4,751 assertions in 143 cases passed after rebuilding the affected target.",
+      "The independent compact-material graph CTest passed, exercising the other sparse-tail policy branch.",
+      "An earlier derived-filter test passed incorrectly because the old library failed to enforce opt-in. When enforcement was fixed it failed correctly: private interface inheritance prevented the cross-cast. Public interface inheritance now permits the explicitly opted-in real filter, with no new virtual; the earlier result is superseded."
     ]
   },
   "limits": [
-    "The consumer intentionally refuses all exports containing a marked raw-only material until complete graph validation and same-version replay are implemented.",
-    "RS_FilterDXFRW privately inherits DRW_Interface, so production policy opt-in requires an explicitly accessible adapter or another reviewed interface design; inheriting the policy on a subclass alone does not work.",
-    "Native GUI, a full clean consumer rebuild, external semantic evidence, complete graph behavior after edits and final platform qualification remain open.",
+    "The production filter does not opt in and the consumer refuses all exports containing a marked raw-only material until complete graph validation and same-version replay are implemented.",
+    "The selected graph controls do not establish general graph behavior after edits or native material semantics.",
+    "Native GUI, external semantic evidence and final platform qualification remain open.",
     "No generated drawing was committed and no format support claim was promoted."
   ]
 }

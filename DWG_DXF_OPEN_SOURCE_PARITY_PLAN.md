@@ -49,7 +49,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`9192d828d21a890d1bf9e3697254cc80b92ea8b8`. The prior merge head built the
+`75eb22ccd639caae17768a696211d1ccb03c15d0`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -140,15 +140,16 @@ filter still does not opt in. The same slice fixes an older library path that
 published a sparse raw-only record without the required policy. Next add a
 preflight that checks the complete ACAD_MATERIAL dictionary, owner/reactor,
 layer and current-material targets and handle uniqueness before enabling
-consumer capture and same-version raw replay. RS_FilterDXFRW privately inherits
-DRW_Interface, so an opt-in subclass cannot be found by the codec's cross-cast;
-provide and test a public adapter or another reviewed policy bridge. Refuse
-cross-version, missing or edited/inconsistent graphs atomically; verify
-ASCII/binary readback, collision remapping, corrected retry, both codecs, and
-independent complete-drawing semantics. The focused system-codec lane passes
-against the current isolated shared library; public headers differed only by a
-comment from those used to compile the existing consumer objects. A clean final
-build and native GUI remain open. Do not promote support on the selected graph.
+consumer capture and same-version raw replay. The codec interface is now a
+public base, so a derived filter can explicitly opt in; tests confirm that the
+default filter still refuses and the opted-in filter captures the marker. The
+export guard remains in place. Refuse cross-version, missing or
+edited/inconsistent graphs atomically; verify ASCII/binary readback, collision
+remapping, corrected retry, both codecs, and independent complete-drawing
+semantics. The rebuilt focused system-codec lane passes against the current
+isolated shared library, and the bundled round-trip lane passes. Final platform
+and native GUI qualification remain open. Do not promote support on the selected
+graph.
 
 The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
 operator-run transfer route, and return route are unknown. Obtain the
