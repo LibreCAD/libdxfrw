@@ -13,9 +13,12 @@ percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
-The strict TABLE block-target fix changes selected code and test inputs;
-P8-A/E/F evidence below binds the earlier HATCH digest and must be rerun for
-this candidate. The status overlay remains draft and no claim is promoted.
+The strict TABLE block-target fix changes selected code and test inputs. A
+clean checkout of `0cead675` computes digest
+`e5d949965d563a9454eb458a1034d4981746c27bf2893a6a56920e82356b8dde`
+for 774 inputs. P8-A/E/F evidence below binds the earlier HATCH digest and
+must be rerun for this candidate. The status overlay remains draft; no claim
+is promoted.
 
 The HATCH/MPOLYGON BS count fix changes selected implementation inputs. A
 clean checkout of `c31185da` computes digest
