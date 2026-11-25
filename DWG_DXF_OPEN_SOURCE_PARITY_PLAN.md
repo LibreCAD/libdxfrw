@@ -40,7 +40,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`2a552ed4e4d6a1df94539cbed816f7c8b26675c5`. The prior merge head built the
+`fcdbaa7a7da690bbc29934f0154529d7471fbc25`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -60,7 +60,9 @@ clarify 28 out-of-profile combinations; the wider filter now passes 94/131
 cases with 61 failed assertions and no new failure categories. The subsequent
 [custom CLASS regression](docs/research/p8d-librecad-system-custom-class-regression-2026-11-25.json)
 checks the retained class by identity alongside independently generated CLASS
-records. The wider filter now passes 95/131 cases with 52 failed assertions;
+records. A further [linetype application-group lookup fix](docs/research/p8d-librecad-system-linetype-application-group-2026-11-25.json)
+confirms two apparently missing binary values were present before the record
+name. The wider filter now passes 97/131 cases with 50 failed assertions;
 investigate the remaining linetype, identity and object-graph gaps. The
 [library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
 records bounded ASCII/binary field and failure/retry checks.
