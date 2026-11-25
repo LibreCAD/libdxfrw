@@ -3,7 +3,7 @@
 Tags tableValuePayloadDocument(const std::string& version,bool block,int type,int flags=0) {
     auto tags=tableProfileDocument(version,block,false,false,1u);
     const auto first=blockField(tags,"501",171);
-    tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(first),{{11,"1"},{21,"2"},{31,"3"},{93,"17"},{94,"33"}});
+    tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(first),{{11,"1"},{21,"2"},{31,"3"},{93,"17"},{94,"0"}});
     const auto text=blockField(tags,"501",1);
     Tags value{{91,"19"},{92,"23"},{140,"1.25"},{301,"CELL_VALUE"},{93,std::to_string(flags)},{90,std::to_string(type)}};
     if(!(flags&1))switch(type) {
@@ -192,7 +192,7 @@ bool tableValueProducerForms(const std::filesystem::path& path,unsigned& count) 
             }
             const auto& table=data.tables.front();const auto& content=table.m_content.m_rows[0].m_cells[0].m_contents[0];const auto& v=content.m_value;
             if(v.m_dataType!=types[form]||v.m_formatFlags!=flags[form]||table.m_tableOverrideFlags!=17u
-                ||table.m_borderColorOverrideFlags!=33u||table.parentHandle!=(block?0xB3u:0xB0u))return false;
+                ||table.m_borderColorOverrideFlags!=0u||table.parentHandle!=(block?0xB3u:0xB0u))return false;
             if(flags[form]&1) {
                 if(v.m_value.type()!=DRW_Variant::INVALID||!v.m_rawData.empty()||v.m_dataSize
                     ||v.m_unitType||!v.m_formatString.empty()||!v.m_valueString.empty()||!content.m_text.empty())return false;
@@ -222,7 +222,7 @@ bool tableValuePayloadTests(const std::filesystem::path& dir) {
             if(!writeBlockBinding(path,tableValuePayloadDocument(version,block,type),encoding)||!reader.fileImport(path.string(),&data,false)
                 ||data.tables.size()!=1u){std::cerr<<"TABLE payload import type="<<type<<" version="<<version<<" encoding="<<encoding<<" block="<<block<<'\n';return false;}
             const auto& table=data.tables.front();const auto& cell=table.m_content.m_rows[0].m_cells[0];
-            if(table.parentHandle!=(block?0xB3u:0xB0u)||table.m_tableOverrideFlags!=17u||table.m_borderColorOverrideFlags!=33u||table.m_horizontalDirection.x!=1.0
+            if(table.parentHandle!=(block?0xB3u:0xB0u)||table.m_tableOverrideFlags!=17u||table.m_borderColorOverrideFlags!=0u||table.m_horizontalDirection.x!=1.0
                 ||table.m_horizontalDirection.y!=2.0||table.m_horizontalDirection.z!=3.0||cell.m_overrideFlags!=19u||cell.m_flags!=23||cell.m_textHeight!=1.25
                 ||cell.m_contents.size()!=1u)return false;
             const auto& content=cell.m_contents[0];const auto& value=content.m_value;
@@ -246,8 +246,28 @@ bool tableValuePayloadTests(const std::filesystem::path& dir) {
             if(!report.modeledMatched||report.profilesMatched!=physical||report.ownerTargetsResolved||report.outputEligible)return false;
             ++profiles;
         }
+    // Nonzero table-level border flags remain incomplete; the unit value
+    // inside CELL_VALUE must still be interpreted independently.
+    for(bool binary:{false,true}) {
+        auto tags=tableValuePayloadDocument("AC1032",false,1);
+        const auto marker=blockField(tags,"501",301);
+        auto border=blockField(tags,"501",94);
+        if(border>=marker)return false;
+        tags[border].value="33";
+        dx_iface reader;dx_data data;
+        if(!write(path,tags,binary)||!reader.fileImport(path.string(),&data,false)
+            ||data.tables.size()!=1u||data.tables.front().m_semanticContentComplete
+            ||data.tables.front().m_borderColorOverrideFlags!=33u
+            ||data.tables.front().m_content.m_rows[0].m_cells[0].m_contents[0].m_value.m_unitType!=8)return false;
+    }
     for(bool binary:{false,true})for(bool block:{false,true})for(bool structured:{false,true}) {
-        auto tags=structured?tableValuePayloadDocument("AC1032",block,1):tableProfileDocument("AC1032",block,false,true);
+        auto tags=structured?tableValuePayloadDocument("AC1032",block,1):tableProfileDocument("AC1032",block,false,false);
+        if(!structured) {
+            const auto text=blockField(tags,"501",1);
+            tags.erase(tags.begin()+static_cast<std::ptrdiff_t>(text));
+            tags.insert(tags.begin()+static_cast<std::ptrdiff_t>(text),
+                {{301,"CELL_VALUE"},{90,"4"},{1,"value-é"},{304,"ACVALUE_END"}});
+        }
         tags[blockField(tags,"501",304)].value="END_VALUE";dx_iface reader;dx_data data;
         if(!write(path,tags,binary)||!reader.fileImport(path.string(),&data,false)||data.tables.size()!=1u
             ||data.tables.front().m_semanticContentComplete)return false;
