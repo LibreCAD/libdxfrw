@@ -208,6 +208,18 @@ see the [callback boundary](docs/research/p5-tablecontent-semantic-incomplete-ca
 | P5-H / WAITING_FOR_NATIVE_VIEWPORT_PAIR | Use the [native witness and wire-inspection packet](tools/research/P5H_VIEWPORT_SHADEPLOT_WITNESS_README.md) to capture and correlate AutoCAD ASCII/Binary exports with known VisualStyle, RenderPreset, and null-control state. Record the host profile, native target classes and file-specific handles. Resolve group 170 modes 4/5 and group 333 target classes; reuse the [conflict analysis](docs/research/p6-viewport-shadeplot-dxf-objectarx-conflict-2026-11-16.json). | Prove exact values/target roles and fresh typed readback. Null, wrong-kind, missing, or ambiguous targets must refuse atomically; corrected same-writer retry and native rendering must pass. |
 | P5-I / SOURCE_CELL_SPANS_BOUND_OUTPUT_WAITING_ON_P5-B | The independent [full cell trace](docs/research/p5-ac1021-autocad2007-table-full-cell-spans-2026-11-24.json) now binds all 171 cells across the two classified AutoCAD 2007 tables, contiguous body/text/handle ranges, all 171 hard-pointer value handles, 15 resolved FIELD targets, and both following object-map boundaries. The current libdxfrw read covers 4408/4408 source frames with zero parse failures; strict output still stops at P5-B's FIELD/FIELDLIST serializer preflight. | Keep this exact producer profile and anonymous-block fallback. P5-I remains open: close FIELD graph/output dependencies, then prove selected-TABLE ASCII/Binary output, fresh independent readback, destination-preserving refusal and retry, and native rendering. Capture any still-unbound table-wide tail or graph edge from the matching source before adding typed behavior; keep other AC1021 producers and proxy graphics out of scope. |
 
+**Ready: AC1021+ TABLE plain-string writer.** The [ODA comparison](docs/research/p5-table-string-envelope-oda-control-2026-11-25.json)
+isolates an interoperability defect: current strict ASCII/Binary output emits
+only type 4 and cache and ODA rejects it, while an otherwise identical
+locally authored ASCII control with flags, type-4 payload, units, format and
+cache reopens and re-exports. Implement the complete string envelope and
+validate typed metadata, source/cache equality and repeated export. Add
+ASCII/Binary wire/readback, destination-preserving refusal/retry, short-string
+ODA re-import, and explicit length-boundary checks. ODA emitted a 500-character
+group-302 cache after a long-string control despite Autodesk's documented
+string limit; resolve that boundary before claiming long-string support.
+Keep General-value and full TABLE graph gates separate.
+
 The cached branch proposes an AC1021 TABLE General-value writer, but the
 [independent ODA DXF comparison](docs/research/p5-ac1021-general-value-oda-dxf-comparison-2026-11-25.json)
 shows a different envelope for both selected cells: ODA omits the proposed

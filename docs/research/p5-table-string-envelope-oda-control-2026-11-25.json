@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-table-string-envelope-oda-control-2026-11-25",
+  "date": "2026-11-25",
+  "status": "PLAIN_TABLE_STRING_WRITER_REJECTED_ODA_SHAPED_ENVELOPE_REOPENED",
+  "supportClaimEffect": "none",
+  "candidateHead": "db0e282a8",
+  "producer": "Locally authored one-cell TABLE control generated with current libdxfrw writer, strict block-owner checking, model-space owner, and explicit *T500 block record/body. Files remain scratch-only.",
+  "converter": {
+    "name": "ODA File Converter 27.10.0.0",
+    "packageSha256": "c432002cc688f89ddf6a68ad68e877cd16da1d99ab8729386009c552cf73beb5",
+    "environment": "Linux x86_64 container with Xvfb on macOS ARM64",
+    "scratch": "/private/tmp/table-block-oda-20261125"
+  },
+  "baseline": {
+    "asciiSha256": "5d6bb476793cfb778c24c508fc578b6d54e9e9638238212573eb8870f19c1efc",
+    "binarySha256": "487b8397a357a919dbf3200d21bdd127d955a0369f1b3494f484b638514124fc",
+    "envelope": "301 CELL_VALUE; 90=4; 302=reused-table; 304 ACVALUE_END",
+    "result": "Both independently reopened by libdxfrw. ODA rejected both DXFs with Invalid ResBuf; no DWG was produced. Header warnings occurred as well, so the initial failure alone did not locate the fault."
+  },
+  "stringControl": {
+    "inputSha256": "5544f64b6de3279bf8f12b167225024c5d26409116ca5c078bec704d5a18ef41",
+    "method": "Change only the baseline ASCII TABLE CELL_VALUE envelope; retain all other records and the complete authored block graph.",
+    "envelope": "301 CELL_VALUE; 93=0; 90=4; 1=reused-table; 94=0; 300 empty; 302=reused-table; 304 ACVALUE_END.",
+    "dwgSha256": "8e94350ee10565fbce4b0d79899fe15c640bee081b8b0afde733606ca7ae7261",
+    "reexportSha256": "454b9062805d2d8a33520509512127da9e4f975030c493dac170ff0d248f3d80",
+    "result": "ODA converted to AC1021 DWG and re-exported ASCII DXF without .err files. The re-exported TABLE retained the complete listed string envelope and text; ODA regenerated the anonymous block name."
+  },
+  "generalControl": {
+    "inputSha256": "629ddb98ee8db73afe1f61ad10e7c69b99b6cf34060a864d917245d6f0912f44",
+    "result": "Changing the envelope to a locally authored type-512 26-byte string payload also converted and re-exported without .err. ODA re-export normalized its General value to flags 0, no group-310 bytes, and the displayed cache. This does not establish lossless General-value semantics."
+  },
+  "longStringControl": {
+    "inputSha256": "1020143a2de3ae4ffb12314b3f022afd4d177511756347fd3b2a77d09bd4e6b6",
+    "description": "500 ASCII characters in two string payload chunks with empty input display cache.",
+    "result": "ODA converted/re-exported without .err; the re-export contains two group-2 chunks and a 500-character group-302 cache. Autodesk documentation limits groups 300-309 to 255 characters, so this observation does not qualify that representation."
+  },
+  "primaryDxfSource": "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-DXF_Group_Codes.html",
+  "nextStep": "Correct the AC1021+ TABLE string CELL_VALUE writer to emit a complete string payload and required scalar fields. Preserve and compare the complete typed value on re-import and same-writer retry; add exact ASCII/Binary wire controls, ODA reopen/readback for short strings, and explicit documented-length handling. Retain refusal for unqualified General values; do not equate ODA re-export with native AutoCAD behavior.",
+  "limits": [
+    "This isolates an independently reproduced short-string interoperability defect in a locally authored profile, not all TABLE failures.",
+    "The control changes a complete DXF record manually; the library writer has not yet been fixed or verified.",
+    "No external drawing fixture or generated output was committed."
+  ]
+}
