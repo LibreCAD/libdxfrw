@@ -110,8 +110,13 @@ source-handle collisions and copying, independent DWG semantic checks, and
 native qualification remain open. A wider system `[filter][handles]` run
 passed 13/20 cases: six failures were also in the earlier broad run, while a
 sparse-MATERIAL fixture is rejected by the current default codec policy.
-Investigate all seven against the current candidate; do not count the wider
-run as passing or promote support claims from these controls.
+Do not count the wider run as passing or promote support claims. The subsequent
+[live-handle collision fix](docs/research/p8d-librecad-live-handle-identity-2026-11-25.json)
+restores the omitted-raw/live-entity case, preserves ambiguity handling, and
+improves that same filter to 14/20 cases (before the new ambiguity control).
+Five sparse-MATERIAL imports and one wide proxy-handle export remain failing;
+resolve their underlying policy/serialization constraints without bypassing
+the incomplete-material guard or inventing wide-handle support.
 
 The [macOS ODA re-open control](docs/research/p6-ac1012-oda-macos-peer-reopen-2026-11-25.json)
 reopened the existing generated AC1012 pair in an isolated GUI instance and
