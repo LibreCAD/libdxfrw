@@ -303,12 +303,25 @@ void testLibreCADAc1021ControlFooter(TestContext& t) {
     if (!std::filesystem::is_regular_file(path))
         return;
     const bool imported = interface_.fileImport(path.string(), &data, false);
-    t.expect(imported || data.dwgReadOutcome.error == DRW::BAD_READ_OBJECTS,
-             "LibreCAD AC1021 read reaches the OBJECTS stage");
+    t.expect(imported && data.dwgReadOutcome.error == DRW::BAD_NONE,
+             "LibreCAD AC1021 control boundaries complete the DWG read");
     t.expect(data.dwgReadOutcome.sourceVersion == DRW::AC1021
                  && data.lineTypes.size() == 3u
                  && data.appIds.size() == 1u,
              "LibreCAD AC1021 control footers publish LTYPE and APPID tables");
+    const auto hasRecord = [](const auto& records, std::uint32_t handle,
+                              const char* name) {
+        return std::any_of(records.cbegin(), records.cend(),
+                           [handle, name](const auto& record) {
+                               return record.handle == handle
+                                   && record.name == name;
+                           });
+    };
+    t.expect(hasRecord(data.layers, 0x12u, "0")
+                 && hasRecord(data.textStyles, 0x13u, "STANDARD")
+                 && hasRecord(data.dimStyles, 0x15u, "STANDARD")
+                 && hasRecord(data.VPorts, 0x16u, "*ACTIVE"),
+             "LibreCAD AC1021 declared control boundaries reach table handles");
     t.expect(hasControlRoleDiagnostic(data, "LTYPE_CONTROL"),
              "legacy LTYPE role mismatch remains visible for strict output gating");
 }

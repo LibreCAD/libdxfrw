@@ -79,6 +79,38 @@ std::vector<std::uint8_t> build(unsigned count,bool shortCount,Framing framing,i
     b.patchRawLong32AtBit(sizeBit,declared);
     auto data=b.data();if(bad==4)data.pop_back();return data;
 }
+std::vector<std::uint8_t> buildAc1021LayerControl(bool nonzeroTail = false) {
+    constexpr std::uint32_t rootHandle = 0x30u;
+    constexpr std::uint32_t layerHandle = 0x31u;
+    dwgBufferW body;
+    body.putObjType(DRW::AC1021, DRW::DwgLayerControlObjectType);
+    const std::uint64_t boundaryField = body.bitCount();
+    body.putRawLong32(0u);
+    body.putFixedHandle(0u, 1u, rootHandle);
+    body.putBitShort(0u); // no EED
+    body.putBitLong(0);   // no persistent reactors
+    body.putBit(0u);      // xdictionary handle is present
+    body.putBitLong(1);   // one layer-table member
+    body.putBit(0u);      // no string stream
+    const auto objectDataEnd = static_cast<std::uint32_t>(body.bitCount());
+    body.putFixedHandle(DRW::DwgSoftPointer, 0u, 0u);
+    body.putFixedHandle(DRW::DwgHardOwnership, 0u, 0u);
+    body.putFixedHandle(DRW::DwgSoftOwnership, 1u, layerHandle);
+    const auto padding = (8u - (body.bitCount() & 7u)) & 7u;
+    for (std::uint64_t bit = 0u; bit < padding; ++bit)
+        body.putBit(nonzeroTail && bit == 0u ? 1u : 0u);
+    body.patchRawLong32AtBit(boundaryField, objectDataEnd);
+    return body.data();
+}
+bool parseAc1021LayerControl(const std::vector<std::uint8_t>& bytes,
+                             DRW_ObjControl& control) {
+    dwgBuffer input(bytes.data(), bytes.size());
+    return control.parseDwg(DRW::AC1021, &input, 0u) && input.isGood()
+        && control.handle == 0x30u
+        && control.orderedHandleSlots == std::vector<std::uint32_t>{0x31u}
+        && control.orderedHandleRoles
+               == std::vector<std::uint8_t>{DRW::DwgSoftOwnership};
+}
 bool parse(std::vector<std::uint8_t>& body,unsigned count,
            DRW_ObjControl& control,bool legacy = false) {
     dwgBuffer input(body.data(),body.size());
@@ -219,6 +251,14 @@ int main(int argc,char**argv) {
             std::cerr<<"LibreCAD empty-string footer same-object retry failed mode="
                      <<bad<<'\n';return 1;
         }
+    }
+    DRW_ObjControl layerControl;
+    const auto malformedLayer = buildAc1021LayerControl(true);
+    if (parseAc1021LayerControl(malformedLayer, layerControl)
+        || !layerControl.orderedHandleSlots.empty()
+        || !parseAc1021LayerControl(buildAc1021LayerControl(), layerControl)) {
+        std::cerr << "AC1021 detached table-control boundary refusal/retry failed\n";
+        return 1;
     }
     std::cout<<"AC1021 LTYPE_CONTROL count, boundary and retry PASS\n";return 0;
 }

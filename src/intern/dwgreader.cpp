@@ -16393,6 +16393,10 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       version == DRW::AC1021 && oType == DRW::DwgLTypeControlObjectType
       && handle == DRW::DwgLtypeControlHandle && objSize == totalBits
       && xDictFlag == 0 && numReactors == 0 && extData.empty();
+  const bool detachedR2007ControlHandles =
+      version == DRW::AC1021 && objSize != 0 && objSize < totalBits
+      && !legacyR2007InlineBlockControl
+      && !legacyR2007InlineLtypeControl;
   // Historical LibreCAD ENC fixtures carry APPID_CONTROL data in bounded
   // frames whose declared object-data size does not match the modern strict
   // count boundary. Keep the fallback limited to the known root control and
@@ -16417,15 +16421,9 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       return fail();
     hBuff.setBitPos(static_cast<std::uint8_t>(objectBits & 7u));
     hBuf = &hBuff;
-  } else if (version == DRW::AC1021
-             && ((oType == DRW::DwgBlockControlObjectType
-                  && !legacyR2007InlineBlockControl)
-                 || (oType == DRW::DwgLTypeControlObjectType
-                     && !legacyR2007InlineLtypeControl)
-                 || (oType == DRW::DwgAppIdControlObjectType
-                     && handle == DRW::DwgAppIdControlHandle
-                     && objSize != 0 && objSize < totalBits))) {
-    // R2007 control objects normally use the declared pre-handles boundary.
+  } else if (detachedR2007ControlHandles) {
+    // R2007 control objects use the declared pre-handles boundary. Retain
+    // only the exact historical inline BLOCK/LTYPE profiles above.
     if (objSize == 0 || objSize >= totalBits
         || !hBuff.setPosition(objSize >> 3))
       return fail();
@@ -17034,6 +17032,17 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
     DRW_DBG("Remaining bytes: ");
     DRW_DBG(buf->numRemainingBytes());
     DRW_DBG("\n");
+  }
+  if (detachedR2007ControlHandles) {
+    std::uint64_t handleEndBit = 0;
+    if (!controlCurrentBit(*hBuf, handleEndBit) || handleEndBit > totalBits
+        || totalBits - handleEndBit > 7u)
+      return fail();
+    while (handleEndBit < totalBits) {
+      if (hBuf->getBit() != 0 || !hBuf->isGood())
+        return fail();
+      ++handleEndBit;
+    }
   }
   if (version == DRW::AC1021 && oType == DRW::DwgBlockControlObjectType) {
     const std::uint64_t position =

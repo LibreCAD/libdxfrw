@@ -49,15 +49,17 @@ macOS Clang, and Windows MSVC; see the [exact-head CI receipt](docs/research/p8-
 P8-F was closed for digest `d358fa5a`; that evidence is historical after the
 next code slice.
 
-The latest implementation slice, commit `5592668eb38a0fc837a21e343cc65b81f83b1b53`,
-admits the tracked LibreCAD AC1021 empty-string footer profile for its bounded
-LTYPE_CONTROL and APPID_CONTROL roots. Its 775-input digest is
-`2bd28d3cbaa03e654dcb2df624a2b2a1b257c391b228b0f2f7cc3d164dafd0be`; the
-[digest refresh receipt](docs/research/p8-pr106-ac1021-control-footer-digest-refresh-2026-11-25.json)
-records the status-overlay refresh and local checks. P8-F is reopened for this
-digest and awaits exact-head fast and focused native qualification. All claims
-remain EXPERIMENTAL and zero routes are advertised. P8-A/E package evidence
-remains scheduled for the final frozen candidate.
+The latest implementation slice extends the tracked LibreCAD AC1021 read
+through its declared detached control-object handle streams. The previously
+failing Layer, Style, DimStyle, and VPORT table records now publish, and all
+28 source frames reach a complete read. Strict output remains refused by the
+retained LTYPE BYLAYER role mismatch. The [slice receipt](docs/research/p5-ac1021-librecad-control-boundaries-2026-11-25.json)
+records the ODA field boundary, regression vectors, and limits. This changes
+selected implementation inputs, so the previous 775-input digest
+`2bd28d3cbaa03e654dcb2df624a2b2a1b257c391b228b0f2f7cc3d164dafd0be` is
+historical and P8-F must be refreshed for the new exact head. All claims remain
+EXPERIMENTAL and zero routes are advertised. P8-A/E package evidence remains
+scheduled for the final frozen candidate.
 
 At the inventory-only stage after this rebase, exact-head fast run 45525344271
 stopped before build or test execution because the committed CTest inventory
@@ -248,7 +250,7 @@ P4-D additional unresolved paths:
 
 The [AC1032 TABLECONTENT handle-role controls](docs/research/p5-ac1032-tablecontent-handle-role-controls-2026-11-21.json) now test non-null wrong-role refusal and retry. Keep the existing typed-null compatibility behavior unqualified until producer-specific meaning is established.
 
-The tracked [LibreCAD AC1021 ordinary-encoding fixture](docs/research/p5-ac1021-librecad-control-footer-read-compatibility-2026-11-25.json) now reaches the OBJECTS stage: a source-profile check admits its exact 24-bit zero string footer for the one-entry LTYPE_CONTROL and APPID_CONTROL records, with role and handle constraints. The fast source regression passes. Generated controls reject truncation, nonzero footer/alignment bits and wrong member roles, then accept corrected input on the same parser object. The source still reports the LTYPE BYLAYER role mismatch and four later object parse failures. This is a bounded reader-compatibility fix only: no P5 gate closes, strict output remains blocked, and the experimental support claims do not change.
+The tracked [LibreCAD AC1021 ordinary-encoding fixture](docs/research/p5-ac1021-librecad-control-footer-read-compatibility-2026-11-25.json) first established its exact empty-string footer profile for LTYPE_CONTROL and APPID_CONTROL. The follow-up [detached-control boundary slice](docs/research/p5-ac1021-librecad-control-boundaries-2026-11-25.json) seeks other AC1021 controls to their declared handle boundary, preserves the exact historical inline BLOCK/LTYPE routes, and checks the detached tail padding. The source now publishes its Layer, Style, DimStyle, and VPORT records and completes all 28 frame publications. A generated malformed-tail vector verifies refusal and same-object retry. The LTYPE BYLAYER role mismatch remains; strict output stays blocked. This is a bounded reader-compatibility improvement only: no P5 gate closes and no support claim changes.
 
 The [legacy TABLE insertion prefix](docs/research/p5-ac1014-table-insert-prefix-2026-11-21.json) preserves selected R14 placement and the 2D INSERT projection, with an explicitly unvalidated raw peer. The [opt-in grid observation](docs/research/p5-ac1014-table-grid-side-channel-2026-11-22.json) exposes bounded row/column geometry without passing incomplete cells to existing 2D consumers; an [independent R13/R14 wire walker](docs/research/p5-r13-table-grid-independent-wire-2026-11-22.json) binds a 20-by-9 grid, handle roles and the following frame in two versioned samples. A [controlled R14 attribute compound](docs/research/p5-r14-table-attrib-compound-journal-2026-11-22.json) reuses the legacy INSERT transaction, retains the TABLE projection, opt-in grid and raw peer, and checks malformed ownership and corrected retry. The [controlled AC1012 compound](docs/research/p5-r13-table-attrib-compound-journal-2026-11-22.json) exercises the same callbacks and malformed-role/owner retries with a 9-by-20 grid. An [earlier-child control](docs/research/p5-r13-table-earlier-children-2026-11-22.json) also exercises adoption when ATTRIB and SEQEND precede the TABLE. A [mixed-order control](docs/research/p5-r13-table-mixed-children-2026-11-22.json) stages an earlier SEQEND with a later ATTRIB. A [two-ATTRIB AC1012 control](docs/research/p5-r13-table-multi-attrib-2026-11-22.json) follows links across two children while an earlier SEQEND is staged. Remaining work is native TABLE semantics, complete cell boundaries, strict output, independent readback and native rendering before claiming wider support. The [LibreCAD TABLE projection fix](docs/research/p5-librecad-table-projection-ac1012-sample-recheck-2026-11-22.json) preserves grid metadata while projecting one block; its focused runtime test passes with bundled and separately installed codecs on macOS. Verify native rendering on final candidates.
 
@@ -611,12 +613,13 @@ and [current digest/CI receipt](docs/research/p8-pr106-current-candidate-impleme
 The earlier macOS-only [package receipt](docs/research/p8-macos-relocatable-package-profile-2026-11-24.json)
 is superseded by the three-platform receipt below.
 
-The AC1021 control-footer reader slice `5592668e` changes the selected
-implementation digest to `2bd28d3c` (775 inputs), so the prior P8-F pass no
-longer applies. Its refreshed status overlay preserves all EXPERIMENTAL claim
-statuses. Focused local source and malformed/retry tests pass; exact-head fast
-and focused native qualification must pass before P8-F can close again. See the
-[digest refresh receipt](docs/research/p8-pr106-ac1021-control-footer-digest-refresh-2026-11-25.json).
+The AC1021 control-footer and detached-control boundary slices changed selected
+implementation inputs, so the prior P8-F pass and `2bd28d3c` digest no longer
+apply. The refreshed status overlay must preserve all EXPERIMENTAL claim
+statuses. Focused local source and malformed/retry tests pass; refresh the
+digest, then require exact-head fast and focused native qualification before
+P8-F can close again. See the [control-footer digest refresh receipt](docs/research/p8-pr106-ac1021-control-footer-digest-refresh-2026-11-25.json)
+and the new [control-boundary slice receipt](docs/research/p5-ac1021-librecad-control-boundaries-2026-11-25.json).
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
