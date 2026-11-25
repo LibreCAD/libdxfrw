@@ -13,10 +13,12 @@ percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
-The HATCH/MPOLYGON BS count fix changes selected implementation inputs. Earlier
-P8-A/E/F and local fast results bind prior digests; refresh the digest in a
-clean checkout and rerun the affected package and CI profiles. The existing
-status overlay stays draft, and no support claim is promoted.
+The HATCH/MPOLYGON BS count fix changes selected implementation inputs. A
+clean checkout of `c31185da` computes digest
+`e1b7dc677d2bd2f83b962ab14aa5596e4c97c9c2ad21d9c5ae0786c2049559ea`
+for 774 inputs. Earlier P8-A/E/F and local fast results bind prior digests;
+rerun the affected package and CI profiles. The status overlay stays draft,
+and no support claim is promoted.
 
 P8-A/E/F were qualified only for earlier implementation digests. The prior
 clean-index digest `032325db89ca882a6891d3afd24368e43b5de2c38d3f992ebb483e406dfc8e31`
