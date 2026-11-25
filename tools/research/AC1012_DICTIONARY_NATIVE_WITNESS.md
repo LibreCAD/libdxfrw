@@ -106,6 +106,14 @@ specific limitation.
 
 ## Paired populated AC1012 controls
 
+Prefer the locally generated [two-element ODA pair](../../docs/research/p6-ac1012-oda-two-element-pair-2026-11-25.json)
+at `/private/tmp/ac1012-linux-oda-20261125/valid-style-dwg/`. Hash-check both
+files against the receipt before transfer. They have been reopened by ODA and
+read by LibreDWG, but require native normal-open and style validation. Their
+15/37-degree duplicate and 22/51-degree unique entries make the following
+merge observations distinguishable. The older LibreDWG-origin populated pair
+was rejected by ODA and is not an independently accepted input.
+
 Generate the scratch pair with LibreDWG 0.14 on `PATH`; add the candidate and
 focused test options when those executables are available:
 
