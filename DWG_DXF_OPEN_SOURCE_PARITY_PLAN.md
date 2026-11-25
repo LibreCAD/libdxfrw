@@ -285,8 +285,9 @@ follow-up excluded zero-radius ARC bodies, nonconforming or unqualified HATCH
 sources, AC1032 stub profiles, missing-owner failures, and candidates with
 unclosed object errors. Its original 12-file above-limit exclusion is
 superseded in part by the [medium-file corpus screen](docs/research/p6-f-local-medium-corpus-organic-entity-screen-2026-11-25.json):
-10 files from 5 to 50 MiB were screened, with one timeout; two files over
-50 MiB remain unscanned. The [AC1021 HATCH follow-up](docs/research/p6-f-ac1021-hatch-pattern-line-count-fix-2026-11-25.json)
+10 files from 5 to 50 MiB were screened, with one timeout; that receipt left
+two files over 50 MiB unscanned, now addressed by the large-file follow-up
+below. The [AC1021 HATCH follow-up](docs/research/p6-f-ac1021-hatch-pattern-line-count-fix-2026-11-25.json)
 resolves one of the medium-screen candidates. It exposed a
 real layout defect: ODA v5.4.1 §20.4.75 defines definition-line count as
 BS 78 and each line's dash-item count as BS 79, while HATCH and MPOLYGON
@@ -296,6 +297,15 @@ failures and all 108878 observed frames are published. Strict DXF output still r
 integrity and unsupported-record observations. The source is unauthenticated
 and cannot qualify P6-F. Reuse both receipts for their stated subsets; do not
 claim the entire local corpus was exhausted.
+
+The [large-file follow-up](docs/research/p6-f-local-large-ac1024-screen-2026-11-25.json)
+found eight unique local DWGs over 50 MiB: five AC1009 files outside the
+supported reader range, two AC1032 files on the documented pass-through stub,
+and one AC1024 candidate. That AC1024 file fails first at `BAD_READ_HEADER`
+with zero parsed frames and no output, so it is not a partial-read witness.
+No eligible large local source remains in this screen. Local corpus provenance
+is unauthenticated; P6-F remains open pending a distinct valid source with a
+later published frame and closed output graph.
 
 The 2026-11-25 peer readback roundtrips the collision/unique-entry pair's four
 explicit-partial DXFs through LibreDWG 0.14 `dxf2dwg --as r2000` and
