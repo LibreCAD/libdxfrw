@@ -1,0 +1,56 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-unrepresentable-dictionary-handles-2026-11-24",
+  "status": "LOCAL_FAIL_CLOSED_CONTROL_PASS",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "sections": ["2.13 HANDLE REFERENCES", "20.1 Common non-entity object format", "20.4.44 DICTIONARY"],
+    "constraints": [
+      "A DWG handle payload may contain up to eight bytes.",
+      "The current DICTIONARY and GROUP public graph models retain referenced object IDs as uint32_t.",
+      "A wider common-tail or dictionary-entry handle cannot be represented without truncation and must not alias its low 32-bit value."
+    ]
+  },
+  "scope": {
+    "version": "AC1012 specification-shaped in-memory DICTIONARY object frame",
+    "generatedFrame": true,
+    "fullDwgFixture": false,
+    "repositoryFixtureAdded": false,
+    "wideReference": "0x100000001 encoded as a five-byte handle payload",
+    "positions": ["parent", "reactor", "extension dictionary", "dictionary item"]
+  },
+  "implementation": {
+    "behavior": "Reject unrepresentable DICTIONARY/GROUP common-tail references and DICTIONARY/DICTIONARYWDFLT entry references before publishing the typed model.",
+    "failureState": "typed entries and completeness state reset after refusal",
+    "retry": "the valid AC1012 frame parses successfully after each malformed frame"
+  },
+  "validation": {
+    "source": {
+      "path": "src/drw_objects.cpp",
+      "sha256": "99b3c87cb5f09b292e887eee98ad6316782742d6a0cfb7c1fb2ed7317218a158"
+    },
+    "testSource": {
+      "path": "tests/dwg_ac1014_dictionaryvar_tests.cpp",
+      "sha256": "d4fa7fa0ffcfc73416998760b44f564eb64b92827eddff935649bda9b46ad71c"
+    },
+    "fast": {
+      "build": "cmake --build build-gcc --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j2",
+      "test": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
+      "result": "PASS 1/1; labels AC1012, AC1014, AC1015, dictionaryvar, dwg, fast, generated, transaction",
+      "testBinarySha256": "d31d126db386b7c2a565742466e364abda949a105aa4b72d165b09a5d4595cd6"
+    },
+    "addressSanitizer": {
+      "build": "cmake --build build-asan-custom --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j2",
+      "test": "ctest --test-dir build-asan-custom --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
+      "result": "PASS 1/1",
+      "testBinarySha256": "d27963f78471af32fc713318c00d78eb36b4be76e5c79102df0e03b05aa4c003"
+    },
+    "diffCheck": "PASS"
+  },
+  "limitations": [
+    "The control is generated from the ODA field order and exercises parser representability, refusal, reset, and retry; it is not a producer-authored DWG.",
+    "AutoCAD native open and duplicate-key merge semantics remain unresolved.",
+    "Strict AC1012 output remains guarded."
+  ]
+}
