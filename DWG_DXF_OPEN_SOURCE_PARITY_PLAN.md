@@ -18,17 +18,21 @@ passed P8-F for digest `a7f8a6db5b11cbb1460de7869d0cc8ea3360a9d26f3a4e197aca4fe0
 The current local PR #106 implementation is based on `b0bd311ff16c71b09692f2b24c33443ddb680fd7`
 and includes the AC1021 TABLE General output slice `122ebd51a`; its refreshed
 774-input digest is `cc1b3bd69345e762b51f00f4d7d83e9015419fcb8a4e6532f0d62417a7132957`.
-The focused `libdxfrw_table_general_selected_output` CTest passes locally. P8-F
-is reopened for this digest until exact-head fast and focused Linux GCC, Windows
-MSVC, and macOS Clang jobs pass. P8-A/E remain open for package profiles at
-integration freeze; P8-B/C/D/G remain open. The AC1021 source-payload projection
-and its TABLESTYLE reactor-closure blocker are recorded in the P5-I receipt.
-All claims remain EXPERIMENTAL and no routes are advertised. The six P9
-external-only IDs are advisory and excluded from the gate count. The prior
-digest `aee20c91` is historical; see the [previous exact-head receipt](docs/research/p8-pr106-ctest-inventory-refresh-2026-11-24.json)
+Exact PR head `e88e597c0ad93d59ea263bf51e1feb18f1316e15` passes P8-F for this
+digest. Fast run 374 passes the configured 1,401-test inventory, bounded
+build, seven fast executables, and 53 required CTests. Native qualification run
+532 passes its workflow/digest contract and all seven focused tests on Linux
+GCC, macOS Clang, and Windows MSVC; all three receipts were sealed, uploaded,
+and enforced successfully. P8-F is closed for this digest. P8-A/E remain open
+for package profiles at integration freeze; P8-B/C/D/G remain open. The AC1021
+source-payload projection and its TABLESTYLE reactor-closure blocker are
+recorded in the P5-I receipt. All claims remain EXPERIMENTAL and no routes are
+advertised. The six P9 external-only IDs are advisory and excluded from the
+gate count. The prior digest `aee20c91` is historical; see the [previous
+exact-head receipt](docs/research/p8-pr106-ctest-inventory-refresh-2026-11-24.json)
 and [candidate receipt](docs/research/p8-pr106-ac1012-dictvar-2026-11-24.json).
-The current digest refresh and its local checks are recorded in the [candidate
-digest receipt](docs/research/p8-pr106-current-candidate-implementation-digest-2026-11-25.json).
+The current digest, inventory correction, and exact-head evidence are recorded
+in the [candidate digest receipt](docs/research/p8-pr106-current-candidate-implementation-digest-2026-11-25.json).
 Defer expensive package and consumer reruns until integration freeze unless
 selected inputs change again.
 
@@ -513,20 +517,21 @@ contract, and focused Linux, macOS, and Windows jobs for digest `aee20c91`.
 The DICTIONARYVAR representability guard changed selected input and digest;
 current head `a52a1b05` passed fast run 368 and native qualification run 526 for
 digest `a7f8a6db`, including the qualification contract and focused Linux,
-Windows, and macOS jobs. This evidence is historical for the current candidate:
-commit `122ebd51a` changed selected implementation inputs and refreshed the
-digest to `cc1b3bd6`; P8-F is reopened pending exact-head hosted checks. PR
-head `817b3d7d` failed fast run 373 because its frozen CTest manifest had 1,400
-names while the configured tree registered 1,401, omitting
-`libdxfrw_table_general_selected_output`. Native qualification run 531 built
-all three focused platform targets, then stopped at the same inventory guard
-before tests or receipt generation. The frozen manifest now includes the
-missing test and local inventory validation passes; exact-head hosted reruns
-remain required. Broad, deterministic fuzz, and source-release jobs remain
-deferred. This does not close GUI, FreeCAD, package, or support-claim gates.
-See the [prior exact-head receipt](docs/research/p8-pr106-ctest-inventory-refresh-2026-11-24.json),
+Windows, and macOS jobs. Commit `122ebd51a` added bounded AC1021 TABLE
+General-value output and refreshed the digest; PR head `817b3d7d` then exposed
+an inventory omission (1,400 frozen names versus 1,401 configured tests) in fast
+run 373 and native qualification run 531. Commit `e88e597c` adds
+`libdxfrw_table_general_selected_output` to the manifest and refreshes the
+digest to `cc1b3bd6`. On exact head `e88e597c`, fast run 374 passes seven fast
+executables plus 53 required CTests; native qualification run 532 passes seven
+focused tests on Linux GCC, macOS Clang, and Windows MSVC. The workflow contract,
+receipt sealing/upload/enforcement, inventory, and digest checks pass. This
+closes P8-F for digest `cc1b3bd6`; broad, deterministic fuzz, and source-release
+jobs remain deferred. No support claim is promoted, and GUI, FreeCAD, package,
+and integration gates remain open. See the [prior exact-head
+receipt](docs/research/p8-pr106-ctest-inventory-refresh-2026-11-24.json),
 [current candidate receipt](docs/research/p8-pr106-ac1012-dictvar-2026-11-24.json),
-and [inventory correction receipt](docs/research/p8-pr106-current-candidate-implementation-digest-2026-11-25.json).
+and [current digest/CI receipt](docs/research/p8-pr106-current-candidate-implementation-digest-2026-11-25.json).
 
 The earlier macOS-only [package receipt](docs/research/p8-macos-relocatable-package-profile-2026-11-24.json)
 is superseded by the three-platform receipt below.
