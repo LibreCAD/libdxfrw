@@ -103,6 +103,12 @@ graph. Test multiple loops, handle collisions, source deletion, same-filter
 retry, both codecs, and independent reopened links. Do not claim associative
 editing support from a one-direction reactor check.
 
+The [macOS ODA re-open control](docs/research/p6-ac1012-oda-macos-peer-reopen-2026-11-25.json)
+reopened the existing generated AC1012 pair in an isolated GUI instance and
+retained their named style entries, angles and element counts. Direct CLI
+launch still fails in this environment. Both producer and reader are ODA, so
+native AutoCAD validity and duplicate-key merge semantics remain open.
+
 The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
 operator-run transfer route, and return route are unknown. Obtain the
 [host profile](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) once and use
