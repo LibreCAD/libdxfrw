@@ -6,12 +6,12 @@
   "candidate": {
     "baseHead": "b0bd311ff16c71b09692f2b24c33443ddb680fd7",
     "implementationCommit": "122ebd51a",
-    "documentationHead": "e5848cbd11f6816bec7e92a2343ce74ec663cfa0",
+    "documentationHead": "817b3d7d0558521cfb1412947ecb7098a484beb0",
     "inputCount": 774,
-    "implementationDigestSha256": "ec374de8f315ea98d7dfdc6af52e450887312c4d78e37d3c3f0be8ce84aaa92d",
+    "implementationDigestSha256": "cc1b3bd69345e762b51f00f4d7d83e9015419fcb8a4e6532f0d62417a7132957",
     "claimsDigestSha256": "7f72bd5c6033fb312c89d56fcc5b476063273a2b24faa863e58114a703956ab8"
   },
-  "reason": "Commit 122ebd51a changes selected implementation inputs by adding bounded AC1021 TABLE General-value ASCII/Binary output and its focused regression control. The previous P8-F hosted evidence binds digest a7f8a6db and is historical for this candidate.",
+  "reason": "Commit 122ebd51a adds bounded AC1021 TABLE General-value ASCII/Binary output and its focused CTest. Exact PR head 817b3d7 then failed fast run 373 and native qualification run 531 because the frozen CTest inventory contained 1,400 tests and omitted libdxfrw_table_general_selected_output. The live configured inventory contains 1,401 tests. The manifest now records all 1,401 names; this selected metadata change refreshes the implementation digest. The prior hosted checks bind older digests and do not qualify this candidate.",
   "localValidation": {
     "build": "PASS: Debug build of libdxfrw_table_content_dxf_tests under -Werror",
     "focusedTest": {
@@ -29,8 +29,17 @@
     "P8F": "REOPENED_PENDING_EXACT_HEAD_HOSTED_FAST_AND_FOCUSED_LINUX_WINDOWS_MACOS_JOBS",
     "P8AE": "PRIOR_PACKAGE_RECEIPTS_ARE_STALE_FOR_THIS_DIGEST; refresh at integration freeze",
     "P8BCDG": "OPEN",
-    "hostedChecksForCurrentHead": "NONE",
-    "supportStatus": "All claims remain EXPERIMENTAL; zero routes are advertised."
+    "hostedChecksForCurrentHead": "PR head 817b3d7: fast run 373 and native qualification run 531 failed at the stale 1,400-test inventory guard; focused platform builds succeeded but tests/receipt generation did not run. Rerun on refreshed digest.",
+    "supportStatus": "All claims remain EXPERIMENTAL; zero routes are advertised.",
+    "implementationDigest": "cc1b3bd69345e762b51f00f4d7d83e9015419fcb8a4e6532f0d62417a7132957"
   },
-  "statusOverlay": "metadata/qualified-format-status-v1.json implementationDigestSha256 refreshed; claims digest and all claim statuses unchanged."
+  "statusOverlay": "metadata/qualified-format-status-v1.json implementationDigestSha256 refreshed to cc1b3bd6; claims digest and claim statuses unchanged.",
+  "inventoryCorrection": {
+    "priorCount": 1400,
+    "currentCount": 1401,
+    "addedName": "libdxfrw_table_general_selected_output",
+    "nameDigest": "522d9d52c4397026733e4955d37918a98386408f42d13677ca8de56e6409d946",
+    "generatedAtCommit": "817b3d7d0558521cfb1412947ecb7098a484beb0",
+    "localInventoryCheck": "PASS"
+  }
 }
