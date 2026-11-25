@@ -220,6 +220,15 @@ controls and same-object retries pass the focused AC1012/AC1014/AC1015 test.
 This closes only the local parser consistency slice; native duplicate-merge
 semantics and strict-output admission remain open.
 
+The post-commit [spec-pair recheck](docs/research/p6-ac1012-current-parser-spec-pair-recheck-2026-11-25.json)
+regenerated both collision controls with LibreDWG 0.14 against commit
+`ad5d3340`. Physical DICTIONARY frame checks, the focused parser control,
+strict ASCII/Binary refusal with destination preservation, and independent
+partial ASCII/Binary audits all pass. The samples remain scratch-only. This
+revalidates the implemented AC1012 layout and safety guard; it cannot establish
+AutoCAD's absent-field default or duplicate-key merge behavior, so that native
+semantic gate and strict-output guard remain open.
+
 The local parser layer now uses the shared version-aware object body/string
 boundary resolver for DICTIONARY and DICTIONARYVAR, shared common and
 dictionary-specific handle-role predicates, and a single version table for
