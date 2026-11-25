@@ -52,10 +52,62 @@
     ],
     "result": "PASS"
   },
+  "sourcePayloadProjection": {
+    "sourceFile": "blocks_and_tables_-_metric.dwg",
+    "sourceSha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "sourceProfile": "AC1021 AutoCAD 2007 sample; two TABLE records selected by the existing source-bound cell trace",
+    "projection": "Each selected source cell was copied into a locally constructed one-cell TABLE with a closed modelspace owner. TABLESTYLE, base-style, merge and unrelated source graph state were omitted deliberately.",
+    "cells": [
+      {
+        "sourceTableHandle": "0x2856E",
+        "row": 8,
+        "column": 0,
+        "label": "ESTIMATED COST OF DOORS",
+        "formatFlags": 6,
+        "dataType": 512,
+        "unitType": 0,
+        "formatString": "",
+        "payloadBytes": 48,
+        "payloadSha256": "a1e7757617c1217bc3070b1907fcf2df8840cdda0861f3b87718e52d07ef4015"
+      },
+      {
+        "sourceTableHandle": "0x2A974",
+        "row": 9,
+        "column": 0,
+        "label": "ESTIMATED COST OF WINDOWS",
+        "formatFlags": 6,
+        "dataType": 512,
+        "unitType": 0,
+        "formatString": "",
+        "payloadBytes": 52,
+        "payloadSha256": "6300aceae6a3f20b72f1aef6b6a3c41f4e16804481bbbff60c6f4e7ced483f06"
+      }
+    ],
+    "checks": [
+      "Strict AC1021 ASCII and Binary output accepted each selected source payload in the bounded carrier.",
+      "The emitted ASCII group-310 bytes independently extracted from the output equal the source payload lengths and SHA-256 values listed above.",
+      "Fresh libdxfrw readback preserved the text and raw payload for both encodings; semanticContentComplete remained false."
+    ],
+    "result": "PASS_BOUNDED_PAYLOAD_PROJECTION"
+  },
+  "sourceTableStyleDependencyProbe": {
+    "sourceNamedObjectDictionaryHandle": "0xC",
+    "namedObjectKey": "ACAD_TABLESTYLE",
+    "tableStyleDictionaryHandle": "0x6805",
+    "dictionaryEntries": [
+      { "name": "Schedule", "handle": "0x70E5" },
+      { "name": "Standard", "handle": "0x6806" }
+    ],
+    "reactors": [
+      { "styleHandle": "0x70E5", "handles": ["0x6805", "0x2856E", "0x2A974"] },
+      { "styleHandle": "0x6806", "handles": ["0x6805"] }
+    ],
+    "probe": "A strict-output projection with the source style dictionary and both source TABLE handles represented by one-cell subsets was refused during extension-object graph validation. A follow-up carrier-only experiment passed after removing the source TABLESTYLE reactor edges; this mutation is explicitly lossy and is not evidence of source-style or whole-table support.",
+    "result": "SOURCE_STYLE_GRAPH_NOT_CLOSED"
+  },
   "limits": [
     "No independent semantic peer readback or native CAD open/render was run.",
-    "Generated payload controls do not verify the source sample's actual bytes.",
-    "The selected-cell model has no TABLESTYLE or base-style reference; source graph projection remains open.",
+    "The one-cell projections intentionally omit TABLESTYLE, base-style, merge, and unrelated table graph state; they do not qualify source-table appearance or whole-table semantics.",
     "P5-B FIELD/FIELDLIST output remains a blocker for whole-source conversion.",
     "No fixture was added and no support claim is promoted."
   ]
