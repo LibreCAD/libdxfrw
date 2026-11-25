@@ -14,7 +14,9 @@ IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
 The GROUP member and DICTIONARYVAR common-reference width fix changes selected
-inputs; refresh the clean candidate digest and rerun affected P8 qualification.
+inputs. A clean checkout of `002143da` computes digest
+`1c96b64dd061e85d765284dec4c30b945f8bbf33417f4662c4cab8228b418e51`
+for 774 inputs; rerun affected P8 qualification.
 Focused R13/R14 GROUP and R13 DICTIONARYVAR refusal/reset/retry controls pass.
 
 The empty TABLE string/cache preservation follow-up changes selected inputs.
