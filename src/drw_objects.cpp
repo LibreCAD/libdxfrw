@@ -518,6 +518,11 @@ bool validDictionaryHardOwner(int value) {
 
 bool dwgHandleRoleMatches(const dwgHandle& handle, std::uint8_t role,
                           bool offsetResolvedField) noexcept {
+    // H references to object zero are null values and have no payload bytes.
+    // Reject encoded zero values with a non-empty counter before accepting
+    // either a typed role or one of the canonical offset-resolved soft forms.
+    if (handle.ref == 0u && (handle.size != 0u || handle.ref64 != 0u))
+        return false;
     const std::uint8_t code = handle.rawCode;
     return code == role
         || (offsetResolvedField && role == DRW::DwgSoftPointer
@@ -528,13 +533,15 @@ bool dwgHandleRoleMatches(const dwgHandle& handle, std::uint8_t role,
 bool dwgHandleHasRole(const dwgHandle& handle, std::uint8_t role,
                       bool offsetResolvedField) noexcept {
     return dwgHandleRoleMatches(handle, role, offsetResolvedField)
-        || (handle.ref == 0u && handle.rawCode == 0u);
+        || (handle.ref == 0u && handle.size == 0u && handle.ref64 == 0u
+            && handle.rawCode == 0u);
 }
 
 bool dictionaryHandleReferenceHasRole(const dwgHandle& handle,
                                       std::uint8_t role,
                                       bool allowNull) noexcept {
-    if (handle.ref64 > std::numeric_limits<std::uint32_t>::max())
+    if (handle.ref64 > std::numeric_limits<std::uint32_t>::max()
+        || handle.ref64 != handle.ref)
         return false;
     if (handle.ref == 0u) {
         return allowNull && handle.size == 0u
@@ -546,6 +553,19 @@ bool dictionaryHandleReferenceHasRole(const dwgHandle& handle,
 
 bool isLegacyInlineObjectDataVersion(DRW::Version version) noexcept {
     return version == DRW::AC1012 || version == DRW::AC1014;
+}
+
+struct DictionaryWireLayout {
+    bool hasCloning;
+    bool hasHardOwner;
+    bool inlineLegacyBody;
+};
+
+DictionaryWireLayout dictionaryWireLayout(DRW::Version version,
+                                          bool withDefaultHandle) noexcept {
+    return {version > DRW::AC1014 || withDefaultHandle,
+            version >= DRW::AC1014 || withDefaultHandle,
+            isLegacyInlineObjectDataVersion(version)};
 }
 
 // R13+ stores the end of the data stream as an absolute bit offset in the
@@ -1272,13 +1292,12 @@ bool readDictionaryModeFields(DRW::Version version, bool withDefaultHandle,
                               dwgBuffer *buf, std::uint32_t bodyEnd,
                               std::int32_t& cloning,
                               std::uint8_t& hardOwner) {
-    const bool hasCloning = version > DRW::AC1014 || withDefaultHandle;
-    const bool hasHardOwner = version >= DRW::AC1014 || withDefaultHandle;
+    const auto layout = dictionaryWireLayout(version, withDefaultHandle);
     std::int32_t parsedCloning = 0;
     std::uint8_t parsedHardOwner = 0;
-    if ((hasCloning
+    if ((layout.hasCloning
          && !readBitShortWithinBody(buf, version, bodyEnd, parsedCloning))
-        || (hasHardOwner
+        || (layout.hasHardOwner
             && !readRawCharWithinBody(buf, version, bodyEnd, parsedHardOwner))
         || !validDictionaryHardOwner(parsedHardOwner))
         return false;
@@ -11461,6 +11480,8 @@ bool DRW_Dictionary::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
 
     try {
 
+    const auto layout = dictionaryWireLayout(version, withDefaultHandle);
+
     m_dwgEntriesComplete = false;
 
     // Keep decoded names and handles local until the whole counted stream has
@@ -11553,7 +11574,7 @@ bool DRW_Dictionary::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
 
     m_entries = std::move(entries);
     m_dwgEntriesComplete = true;
-    m_legacyDwgCloningAbsent = !withDefaultHandle
+    m_legacyDwgCloningAbsent = !layout.hasCloning
         && (version == DRW::AC1012 || version == DRW::AC1014);
     // R13/R14 DICTIONARY has an inline object-size boundary followed by the
     // common links and a counted item-handle list. R2007+ has a separately
@@ -11562,7 +11583,7 @@ bool DRW_Dictionary::parseDwgImpl(DRW::Version version, dwgBuffer *buf,
     // been checked by readDwgObjectCommonHandles / the item-handle checks.
     // Keep the intervening R2000/R2004 layouts unqualified until their tail
     // boundary has equivalent evidence.
-    const bool boundedLegacyTail = isLegacyInlineObjectDataVersion(version)
+    const bool boundedLegacyTail = layout.inlineLegacyBody
         && hasOnlyByteAlignmentRemaining(buf);
     commonLinkTailValidated = version > DRW::AC1018 || boundedLegacyTail;
     DRW_DBG("dictionary entries: "); DRW_DBG(static_cast<int>(m_entries.size())); DRW_DBG("\n");
@@ -11618,7 +11639,7 @@ bool DRW_DictionaryWithDefault::parseDwg(DRW::Version version, dwgBuffer *buf, s
         DRW_DBG("DICTIONARYWDFLT default entry is not a hard pointer\n");
         return fail();
     }
-    if (isLegacyInlineObjectDataVersion(version)
+    if (dictionaryWireLayout(version, true).inlineLegacyBody
         && !hasOnlyByteAlignmentRemaining(buf))
         return fail();
     m_defaultEntryHandle = defaultH.ref;
@@ -24393,12 +24414,12 @@ bool DRW_Dictionary::encodeDwg(DRW::Version version, dwgBufferW *buf,
 
 bool DRW_Dictionary::isDwgPayloadValidImpl(
     DRW::Version version, bool withDefaultHandle) const noexcept {
+    const auto layout = dictionaryWireLayout(version, withDefaultHandle);
     if (m_entries.size() > DRW_Dictionary::kMaxEntries ||
         !validDictionaryHardOwner(hardOwner) ||
         !dwgSafety::validReactorCount(numReactors) ||
         reactorHandles.size() > dwgSafety::MaxReactorCount || xDictFlag > 1 ||
-        ((version > DRW::AC1014 || withDefaultHandle) &&
-         !validUnsignedBitShort(cloning))) {
+        (layout.hasCloning && !validUnsignedBitShort(cloning))) {
         return false;
     }
     return std::all_of(m_entries.cbegin(), m_entries.cend(),
@@ -24425,6 +24446,7 @@ bool DRW_Dictionary::encodeDwgImpl(DRW::Version version, dwgBufferW *buf,
                                    bool typedLegacyNulls) const {
     if (buf == nullptr || !isDwgPayloadValidImpl(version, withDefaultHandle))
         return false;
+    const auto layout = dictionaryWireLayout(version, withDefaultHandle);
     dwgBufferW *const stringDest =
         (strBuf != nullptr && version > DRW::AC1018) ? strBuf : buf;
     dwgBufferW *const handleDest =
@@ -24451,13 +24473,10 @@ bool DRW_Dictionary::encodeDwgImpl(DRW::Version version, dwgBufferW *buf,
         const std::int32_t numItems =
             static_cast<std::int32_t>(m_entries.size());
         bodyOut->putBitLong(numItems);
-        if ((version <= DRW::AC1014 && withDefaultHandle)
-            || version > DRW::AC1014) {
+        if (layout.hasCloning)
             bodyOut->putBitShort(static_cast<std::uint16_t>(cloning));
+        if (layout.hasHardOwner)
             bodyOut->putRawChar8(static_cast<std::uint8_t>(hardOwner));
-        } else if (version == DRW::AC1014) {
-            bodyOut->putRawChar8(static_cast<std::uint8_t>(hardOwner));
-        }
         for (const auto& e : m_entries) {
             stringOut->putVariableText(version, e.m_name);
         }

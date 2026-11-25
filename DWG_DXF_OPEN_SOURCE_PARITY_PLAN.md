@@ -201,6 +201,25 @@ This is a reproducibility refresh, not a new discriminator: native AutoCAD
 open and duplicate-merge behavior remain the only AC1012 semantic blocker for
 this profile, and the scratch DWGs/DXFs are not committed.
 
+The [spec-directed scratch regeneration](docs/research/p6-ac1012-spec-sample-regeneration-2026-11-24.json)
+creates a fresh locally-authored pair from `dwgadd` recipes and writes AC1012
+with LibreDWG 0.14. It binds the ODA §9 DIMSTYLE hard pointer, checks §20.4.44
+DICTIONARY frames and §20.4.73 MLINESTYLE ownership, and distinguishes both
+the SAME_KEY targets (15°/37°) and unique entries (DEST_ONLY 22°/SOURCE_ONLY
+51°). The current parser role/refusal/reset/retry control passes; strict
+ASCII/Binary output refuses atomically and partial ASCII/Binary audits pass.
+The drawings stay in `/private/tmp`; they are not AutoCAD-authored or native
+merge evidence, so native open/merge semantics and the strict-output guard
+remain unresolved.
+
+The [AC1012 layout and null-handle follow-up](docs/research/p6-ac1012-dictionary-layout-null-handle-followup-2026-11-25.json)
+consolidates plain/default DICTIONARY mode-field decisions across decode,
+validation and encode, and makes the common/dictionary handle-role checks
+reject zero references with non-empty payloads. Its in-memory malformed-role
+controls and same-object retries pass the focused AC1012/AC1014/AC1015 test.
+This closes only the local parser consistency slice; native duplicate-merge
+semantics and strict-output admission remain open.
+
 The local parser layer now uses the shared version-aware object body/string
 boundary resolver for DICTIONARY and DICTIONARYVAR, shared common and
 dictionary-specific handle-role predicates, and a single version table for
@@ -227,17 +246,6 @@ The bounded [debug entity-failure attribution](docs/research/p6-cli-entity-failu
 The [selected AC1015 plot-style graph](docs/research/p6-ac1015-canonical-plotstyle-output-2026-11-21.json) emits the canonical dictionary record and class for AC1015 and AC1024 targets. The [generated strict control](docs/research/p6-ac1015-generated-strict-same-version-2026-11-21.json) now retains that graph, the selected MLINESTYLE, both LAYOUT backlinks, and the INSERT chain in independent ASCII/Binary readback for both targets; malformed source, graph, and retry controls pass. This bounded generated case does not qualify other source records or close the organic-failure gate.
 
 For the strict AC1012 MLINESTYLE output profile, reuse the [shared version-aware frame and handle-role checks](docs/research/p6-ac1012-shared-object-frame-2026-11-21.json) and R13/R14
-The [spec-directed scratch regeneration](docs/research/p6-ac1012-spec-sample-regeneration-2026-11-24.json)
-creates a fresh locally-authored pair from `dwgadd` recipes and writes AC1012
-with LibreDWG 0.14. It binds the ODA §9 DIMSTYLE hard pointer, checks §20.4.44
-DICTIONARY frames and §20.4.73 MLINESTYLE ownership, and distinguishes both
-the SAME_KEY targets (15°/37°) and unique entries (DEST_ONLY 22°/SOURCE_ONLY
-51°). The current parser role/refusal/reset/retry control passes; strict
-ASCII/Binary output refuses atomically and partial ASCII/Binary audits pass.
-The drawings stay in `/private/tmp`; they are not AutoCAD-authored or native
-merge evidence, so native open/merge semantics and the strict-output guard
-remain unresolved.
-
 source checks and the [generated and ODA-produced controls](docs/research/p6-ac1012-generated-oda-dictionary-witness-2026-11-21.json).
 The shared common-tail fast control now checks all 16 handle-role nibbles for
 the parent, reactor, and typed-null extension-dictionary positions across

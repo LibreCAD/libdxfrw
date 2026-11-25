@@ -407,6 +407,24 @@ bool generatedAc1012DictionaryFrameControl() {
             || !parse(bytes) || !matches())
             return reject("unrepresentable handle refusal or corrected retry");
     }
+    // A null H may use the canonical zero role or the field's typed role, but
+    // neither spelling carries payload bytes. Exercise each shared common
+    // handle role and the dictionary item role with a non-empty zero payload.
+    const std::vector<std::vector<std::uint8_t>> zeroPayloadHandles{
+        makeFrame({4u, 1u, 0u}, reactor, xdictionary, itemHandles),
+        makeFrame({0u, 1u, 0u}, reactor, xdictionary, itemHandles),
+        makeFrame(parent, {4u, 1u, 0u}, xdictionary, itemHandles),
+        makeFrame(parent, {0u, 1u, 0u}, xdictionary, itemHandles),
+        makeFrame(parent, reactor, {3u, 1u, 0u}, itemHandles),
+        makeFrame(parent, reactor, {0u, 1u, 0u}, itemHandles),
+        makeFrame(parent, reactor, xdictionary,
+                  {{2u, 1u, 0u}, itemHandles[1]})};
+    for (const auto& malformed : zeroPayloadHandles) {
+        if (malformed.empty() || parse(malformed)
+            || model.hasCompleteDwgEntries() || !model.m_entries.empty()
+            || !parse(bytes) || !matches())
+            return reject("non-empty null handle refusal or corrected retry");
+    }
     return true;
 }
 

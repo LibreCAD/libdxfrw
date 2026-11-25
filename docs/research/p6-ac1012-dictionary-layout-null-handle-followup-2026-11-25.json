@@ -1,0 +1,45 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-dictionary-layout-null-handle-followup-2026-11-25",
+  "date": "2026-11-25",
+  "status": "LOCAL_VERSIONED_LAYOUT_AND_NULL_HANDLE_GUARDS_PASS",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "2.13 HANDLE REFERENCES",
+      "20.1 Common non-entity object format",
+      "20.4.44 DICTIONARY",
+      "20.4.45 DICTIONARYWDFLT",
+      "20.4.74 DICTIONARYVAR"
+    ]
+  },
+  "implementation": {
+    "files": [
+      "src/drw_objects.cpp",
+      "tests/dwg_ac1014_dictionaryvar_tests.cpp"
+    ],
+    "changes": [
+      "One DictionaryWireLayout now drives DICTIONARY and DICTIONARYWDFLT mode-field decoding, payload validation, and encoding, preserving the R13, R14, and R2000+ boundaries.",
+      "Shared common-handle role checks reject zero references carrying payload bytes while retaining canonical null handles and field-typed null handles with zero payload length.",
+      "Dictionary item references additionally require their retained 64-bit value to match the representable 32-bit model handle.",
+      "Generated AC1012 vectors cover malformed non-empty zero payloads at owner, reactor, extension-dictionary, and item-handle positions, including failure reset and same-object corrected retry."
+    ],
+    "fixturePolicy": "Controls are generated in memory. No DWG or DXF fixture was added."
+  },
+  "validation": {
+    "build": "cmake --build build-gcc --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j2",
+    "buildResult": "passed",
+    "focusedCtest": {
+      "command": "ctest --test-dir build-gcc --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
+      "result": "passed 1/1; labels AC1012, AC1014, AC1015, fast, generated, transaction"
+    }
+  },
+  "limits": [
+    "The generated controls validate parser structure and refusal/retry behavior; they are not AutoCAD producer witnesses.",
+    "AutoCAD native dictionary clone and duplicate-key merge semantics remain unresolved.",
+    "Strict AC1012 output remains guarded; no support claim is promoted."
+  ]
+}
