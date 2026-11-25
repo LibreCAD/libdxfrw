@@ -1,0 +1,65 @@
+{
+  "date": "2026-11-25",
+  "status": "PARSER_DEFECT_FIXED_CANDIDATE_NOT_ELIGIBLE_FOR_P6_F",
+  "purpose": "Resolve an AC1021 HATCH failure cluster found during the local large-file screen, then determine whether the source still qualifies as an organic partial-read witness.",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "section": "20.4.75 HATCH",
+    "fields": [
+      "Number of definition lines, BS 78",
+      "Number of dash length items in each definition line, BS 79"
+    ],
+    "interpretation": "Both pattern-line and per-line dash counts are bit shorts, followed by their declared records."
+  },
+  "source": {
+    "path": "/Users/dli/doc/dwg6/全国通用节点详细解析.dwg",
+    "version": "AC1021",
+    "sha256": "204f70785b2469733cee2469796441828cffa364d069a0687a3b020daa51f1e2",
+    "size_bytes": 6084288,
+    "provenance": "Local corpus sample; producer and source history are unauthenticated. Read in place. No DWG or DXF fixture or derivative was copied into the repository."
+  },
+  "initial_screen": {
+    "tool_sha256": "9f2a6c9f51affb3bee30d94d4e5d1535851c72eb1af351d0af0f8772bb236d3e",
+    "entity_parse_failures": 28,
+    "object_parse_failures": 0,
+    "source_frames": 108878,
+    "published_frames": 108850,
+    "failed_frames": 28,
+    "failure_profile": "All 28 failures are AC1021 HATCH (DWG type 78), phase 3, owner block 0x1f. The debug trace reaches style/pattern and fails before the first pattern-line record. Each peer-decoded HATCH has 405 definition lines.",
+    "independent_reader": "LibreDWG 0.14 local build",
+    "peer_observation": "The minJSON decode contains all 108878 source objects, including the selected HATCH records and their 405 definition lines. This peer result is diagnostic only and does not authenticate the source."
+  },
+  "implementation": {
+    "file": "src/drw_entities.cpp",
+    "change": "Factor the existing bounded, transactional table-body count check so it can decode either BL or BS; use the BS form for HATCH and MPOLYGON pattern definition-line counts and per-line dash counts. Other count fields retain BL decoding.",
+    "reason": "The writer already emits both fields with putBitShort. The former parser used getBitLong, which diverges once a BS value uses its 16-bit payload form, such as the tested counts 405 and 300."
+  },
+  "regression": {
+    "file": "tests/dwg_hatch_pattern_angle_units_tests.cpp",
+    "profiles": ["HATCH", "MPOLYGON"],
+    "count": 405,
+    "checks": [
+      "405 pattern-line records round-trip",
+      "a 300-item dash list round-trips through BS 79",
+      "truncated input fails and resets parsed pattern lines",
+      "the same parser object succeeds on retry with the complete frame"
+    ],
+    "command": "ctest --test-dir build -R '^libdxfrw_dwg_hatch_pattern_angle_units$' --output-on-failure",
+    "result": "passed (1/1; 0.21 s)"
+  },
+  "candidate_recheck": {
+    "tool_sha256": "7bc49d588e59b69a14ace49cc990f5f2d743141e4660f63ae93c1467bc1d8a2c",
+    "command": "build/dwg2dxf/dwg2dxf <source> -y -v2007 <scratch-output>",
+    "read_operation_succeeded": true,
+    "entity_parse_failures": 0,
+    "object_parse_failures": 0,
+    "source_frames": 108878,
+    "published_frames": 108878,
+    "failed_frames": 0,
+    "export": "refused during strict output preparation; no DXF was created",
+    "refusal_context": "The read still reports three integrity observations and one skipped custom class plus one skipped unsupported object. The strict-complete output gate refuses this source; the remaining diagnostics are outside the repaired HATCH count.",
+    "scratch_output": "/private/tmp/p6f-local-large-corpus-screen-20261125/fixed-hatch-candidate.dxf",
+    "scratch_output_created": false
+  },
+  "disposition": "This source is no longer an entity-parse-failure candidate after the BS fix, so it cannot qualify P6-F's independently valid organic partial-read gate. Keep P6-F open for a different eligible source and separately prove guarded partial ASCII/Binary output, independent readback, atomic refusal and retry. The unauthenticated sample and peer agreement do not promote a support claim."
+}
