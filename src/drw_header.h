@@ -324,7 +324,7 @@ public:
     /// (highWaterHandle).  -1 means "not recorded" (binary DXF / pre-2000).
     std::streampos m_handseedValueOffset {std::streampos(-1)};
     /// Fixed character width of the back-patchable $HANDSEED value field.
-    static constexpr int kHandseedFieldWidth = 8;
+    static constexpr int kHandseedFieldWidth = 16;
 
     static int measurement(const int unit);
 

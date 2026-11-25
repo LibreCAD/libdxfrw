@@ -1862,7 +1862,8 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
     {
         std::uint32_t seed = (handSeed != 0) ? handSeed : 0x20000u;
         char buf[kHandseedFieldWidth + 1];
-        snprintf(buf, sizeof(buf), "%0*X", kHandseedFieldWidth, seed);
+        snprintf(buf, sizeof(buf), "%0*llX", kHandseedFieldWidth,
+                 static_cast<unsigned long long>(seed));
         std::ostream *os = writer->stream();
         std::streampos before = os ? os->tellp() : std::streampos(-1);
         writer->writeString(5, std::string(buf));

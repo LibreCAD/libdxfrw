@@ -3,6 +3,7 @@
 #include <array>
 #include <algorithm>
 #include <cstring>
+#include <cstdlib>
 #include <initializer_list>
 #include <functional>
 #include <filesystem>
@@ -15085,13 +15086,23 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
                 wide.name = "XRECORD";
                 wide.m_version = DRW::AC1027;
                 wide.groups = {
-                    DRW_Variant(5, std::string(wideMode == 1 ? "100000000" : "A500")),
+                    DRW_Variant(5, std::string(wideMode == 1 || wideMode == 6 ? "100000000"
+                                               : wideMode == 3 ? "FFFFFFFFFFFFFFFF"
+                                               : wideMode == 4 ? "FFFFFFFF" : "A500")),
                     DRW_Variant(330, std::string(wideMode == 2 ? "100000000" : "C")),
                     DRW_Variant(100, std::string("AcDbXrecord"))};
+                if (wideMode == 5)
+                    wide.groups.emplace_back(340, std::string("100000000"));
                 wideRecordEmitted = dxfW->writeRawDxfObject(&wide);
+                if (wideMode == 6 && wideRecordEmitted) {
+                    wide.groups.front() = DRW_Variant(5, std::string("0000000100000000"));
+                    wideRecordEmitted = dxfW->writeRawDxfObject(&wide);
+                }
             }
         }
         bool finalizeDxfWrite() override {
+            if (wideMode == 1 || wideMode == 4)
+                return wideRecordEmitted;
             const auto* context = dxfW != nullptr
                 ? dxfW->getWritingContext() : nullptr;
             bool lineWasEmitted = false;
@@ -15280,17 +15291,46 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
         const bool objectBindingsRolledBack = failedContext != nullptr
             && failedContext->sourceHandleToWrittenObjectMap.empty();
         interface_.failAfterFirstField = false;
-        for (const int mode : {1, 2}) {
+        for (const int mode : {1, 2, 3, 4, 5, 6}) {
+            {
+                std::ofstream existing(outputPath, std::ios::binary | std::ios::trunc);
+                existing << destinationSentinel;
+            }
             interface_.wideMode = mode;
             interface_.wideRecordEmitted = false;
-            const bool refused = !codec.write(&interface_, DRW::AC1027, binary);
+            const bool wideWritten = codec.write(&interface_, DRW::AC1027, binary);
             const auto diagnostic = codec.getLastDiagnostic();
-            std::ifstream preserved(outputPath, std::ios::binary);
-            const std::string bytes(std::istreambuf_iterator<char>(preserved), {});
-            t.expect(refused && interface_.wideRecordEmitted &&
-                         bytes == destinationSentinel &&
-                         diagnostic.message.find("$HANDSEED backpatch") != std::string::npos,
-                     "DXF wide inventory identity is refused before publishing output");
+            std::ifstream output(outputPath, std::ios::binary);
+            const std::string bytes(std::istreambuf_iterator<char>(output), {});
+            if (mode == 1 || mode == 4) {
+                const std::string expectedSeed = mode == 1
+                    ? "0000000100000001" : "0000000100000000";
+                t.expect(wideWritten && interface_.wideRecordEmitted &&
+                             bytes.find(expectedSeed) != std::string::npos,
+                         "DXF wide self identity writes an above-maximum HANDSEED");
+                if (mode == 1 && wideWritten) {
+                    if (const char* prefix = std::getenv("LIBDXFRW_KEEP_WIDE_SEED_OUTPUT")) {
+                        const std::filesystem::path copy = std::string(prefix)
+                            + (binary ? "-binary.dxf" : "-ascii.dxf");
+                        std::filesystem::copy_file(outputPath, copy,
+                            std::filesystem::copy_options::overwrite_existing);
+                    }
+                }
+            } else if (mode == 2 || mode == 5) {
+                t.expect(!wideWritten && !interface_.wideRecordEmitted &&
+                             bytes == destinationSentinel,
+                         "DXF unqualified wide relationship preserves the destination");
+            } else if (mode == 6) {
+                t.expect(!wideWritten && interface_.wideRecordEmitted &&
+                             bytes == destinationSentinel &&
+                             diagnostic.message.find("inventory finalization") != std::string::npos,
+                         "DXF duplicate numeric wide identity preserves the destination");
+            } else {
+                t.expect(!wideWritten && interface_.wideRecordEmitted &&
+                             bytes == destinationSentinel &&
+                             diagnostic.message.find("$HANDSEED backpatch") != std::string::npos,
+                         "DXF exhausted wide seed preserves the destination");
+            }
         }
         interface_.wideMode = 0;
         const bool written = reserved
@@ -15377,6 +15417,41 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
                 });
         t.expect(fieldEdgesClosed,
                  "DXF FIELD/FIELDLIST references resolve once to emitted remapped objects");
+    }
+
+    class LegacyWideInterface final : public dx_iface {
+    public:
+        LegacyWideInterface() { cData = &storage; currentBlock = storage.mBlock; }
+        void writeEntities() override {
+            DRW_RawDxfObject raw;
+            raw.name = "LOCAL_WIDE_ENTITY";
+            raw.m_version = DRW::AC1009;
+            raw.groups = {DRW_Variant(5, std::string(wide ? "100000000" : "A500"))};
+            emitted = dxfW != nullptr && dxfW->writeRawDxfObject(&raw);
+        }
+        dx_data storage;
+        bool wide {true};
+        bool emitted {false};
+    };
+    for (const bool binary : {false, true}) {
+        LegacyWideInterface legacy;
+        const std::string outputName = outputPath.string();
+        dxfRW codec(outputName.c_str());
+        legacy.dxfW = &codec;
+        codec.setDxfWriteRecordInventoryEnabled(false, 4096u);
+        const std::string sentinel = "legacy-wide-inventory-sentinel\n";
+        {
+            std::ofstream existing(outputPath, std::ios::binary | std::ios::trunc);
+            existing << sentinel;
+        }
+        const bool refused = !codec.write(&legacy, DRW::AC1009, binary);
+        std::ifstream retained(outputPath, std::ios::binary);
+        const std::string bytes(std::istreambuf_iterator<char>(retained), {});
+        retained.close();
+        legacy.wide = false;
+        const bool retried = codec.write(&legacy, DRW::AC1009, binary);
+        t.expect(refused && bytes == sentinel && retried && legacy.emitted,
+                 "DXF legacy output without inventory refuses wide identity and retries");
     }
 }
 

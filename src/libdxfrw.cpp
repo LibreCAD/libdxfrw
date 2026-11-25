@@ -6270,21 +6270,23 @@ bool dxfRW::writeImpl(DRW_Interface *interface_, DRW::Version ver, bool bin,
     // Back-patch $HANDSEED with the final handle high-water mark. The header was
     // streamed first (before any table/block/entity/object handle was minted),
     // so it wrote a fixed-width placeholder and recorded the value-field offset.
-    // Now that the whole body is written, m_handleAllocator.current() is one past
-    // the largest handle reserved or minted, i.e. strictly above every emitted
-    // code-5 handle — exactly what a $HANDSEED needs to be.
+    // The allocator covers generated and reserved 32-bit handles; the emitted
+    // record census also includes raw 64-bit identities. The next seed must be
+    // above both ranges before the staged output can be published.
     if (header.m_handseedValueOffset != std::streampos(-1)) {
         outputStage = "$HANDSEED backpatch";
-        // The current allocator and fixed-width seed are 32-bit. Retain the
-        // existing refusal until wide identities can be reflected in the seed.
-        if (writer->hasWideRecordOwner() ||
-            writer->largestEmittedRecordHandle() >
-                std::numeric_limits<std::uint32_t>::max())
+        // Raw identities may exceed the 32-bit allocation namespace. Include
+        // them in the next seed without narrowing; a wide owner still needs
+        // relationship remapping and remains outside this transport profile.
+        const std::uint64_t largest = writer->largestEmittedRecordHandle();
+        if (writer->hasWideRecordOwner() || largest == UINT64_MAX)
             return failWrite();
-        std::uint32_t seed = highWaterHandle();
+        const std::uint64_t seed = std::max<std::uint64_t>(highWaterHandle(),
+                                                           largest + 1u);
         char buf[DRW_Header::kHandseedFieldWidth + 1];
-        snprintf(buf, sizeof(buf), "%0*X",
-                 DRW_Header::kHandseedFieldWidth, seed);
+        snprintf(buf, sizeof(buf), "%0*llX",
+                 DRW_Header::kHandseedFieldWidth,
+                 static_cast<unsigned long long>(seed));
         std::streampos resume = filestr.tellp();
         if (resume == std::streampos(-1))
             return failWrite();
@@ -6305,7 +6307,9 @@ bool dxfRW::writeImpl(DRW_Interface *interface_, DRW::Version ver, bool bin,
                     std::string_view(buf, DRW_Header::kHandseedFieldWidth)))
                 return failWrite();
         }
-    } else if (m_dxfStagedOutputAuthentication) {
+    } else if (m_dxfStagedOutputAuthentication || writer->hasWideRecordOwner() ||
+               writer->largestEmittedRecordHandle() >
+                   std::numeric_limits<std::uint32_t>::max()) {
         return failWrite();
     }
     outputStage = "file flush";
@@ -33093,6 +33097,21 @@ bool dxfRW::writeRawDxfEntityGroups(
         // The value is a hex handle string; if it names a remapped handle, emit
         // the replacement so this object (and every reference to a remapped
         // object) stays internally consistent.
+        // A wide self handle needs a census for the seed. The semantic
+        // source-reference resolver remains 32-bit, so wide relationships
+        // cannot be claimed as remapped, even when a census is active.
+        const bool opaqueFive = v.code() == 5 &&
+                                (rawApplicationDepth != 0 || groupScope.isSortKey());
+        const bool trackedSelf = writer->recordInventoryEnabled() &&
+                                 (v.code() == 5 || v.code() == 105);
+        if (m_dxfWriteAttemptActive && !trackedSelf && !opaqueFive &&
+            v.type() == DRW_Variant::STRING && v.c_str() != nullptr &&
+            isDxfTranslatedHandleCode(v.code())) {
+            std::uint64_t source = 0;
+            if (!parseRawDxfHandleLexeme(v.c_str(), source) ||
+                source > std::numeric_limits<std::uint32_t>::max())
+                return failDxfWrite();
+        }
         const bool opaqueSortReference =
             (v.code() == 330 || v.code() == 331)
             && groupScope.isOpaqueHandleReference()

@@ -283,9 +283,9 @@ int main() {
     if (emitted.find("TEST_CUSTOM_RECORD") == std::string::npos)
       return 10;
     char expectedHandseed[DRW_Header::kHandseedFieldWidth + 1];
-    std::snprintf(expectedHandseed, sizeof(expectedHandseed), "%08X",
-                  c.highWaterHandle());
-    if (std::string(expectedHandseed) == "00020000"
+    std::snprintf(expectedHandseed, sizeof(expectedHandseed), "%0*X",
+                  DRW_Header::kHandseedFieldWidth, c.highWaterHandle());
+    if (c.highWaterHandle() == 0x20000u
         || emitted.find(expectedHandseed) == std::string::npos)
       return 12;
     dxfRW readbackCodec(path.c_str());

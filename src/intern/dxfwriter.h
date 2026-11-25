@@ -125,6 +125,7 @@ public:
             m_recordNameIds.emplace(std::string{}, 0u);
         }
     }
+    bool recordInventoryEnabled() const noexcept { return m_recordInventoryEnabled; }
     const std::vector<EmittedRecordIdentity>& emittedRecords() const noexcept {
         return m_emittedRecords;
     }
