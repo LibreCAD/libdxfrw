@@ -57,7 +57,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`af6c971430b6cb4346167b8e5dd56d3f4b1decb1`. The prior merge head built the
+`563bb58ccc4555cfdf06e31718e8f793dc095f7b`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -200,7 +200,10 @@ graph admission remain open. The
 keeps imported table metadata with a renamed layer, prevents a replacement or
 foreign layer from inheriting it, and refuses duplicate live identities. Focused
 system, bundled and AddressSanitizer checks pass; qualify additional editing,
-DWG and native workflows separately. Refuse
+DWG and native workflows separately. The subsequent [malformed-XDATA contract
+control](docs/research/p8d-librecad-layer-malformed-xdata-contract-2026-11-25.json)
+checks strict system-codec refusal and corrected retry while retaining the bundled
+behavior; the focused layer selector now passes with both codecs. Refuse
 cross-version, missing or edited/inconsistent graphs atomically; verify ASCII/binary readback,
 collision remapping, corrected retry, both codecs, and independent
 complete-drawing semantics. The rebuilt focused system-codec lane passes against the current
