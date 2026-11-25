@@ -108,6 +108,10 @@ reopened the existing generated AC1012 pair in an isolated GUI instance and
 retained their named style entries, angles and element counts. Direct CLI
 launch still fails in this environment. Both producer and reader are ODA, so
 native AutoCAD validity and duplicate-key merge semantics remain open.
+The [current LibreCAD GUI launch](docs/research/p8d-librecad-native-ltype-launch-2026-11-25.json)
+built successfully but stalled in the library-directory scan before creating
+a window. Identify the blocking directory or use an isolated settings profile
+without modifying the user's profile, then resume the named-LTYPE check.
 
 The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
 operator-run transfer route, and return route are unknown. Obtain the
