@@ -33348,6 +33348,7 @@ bool dxfRW::writeRawDxfObjectInternal(
         }
         return true;
     };
+    RecordStateScope state(*this);
     DxfWriterRecordScope record(*writer);
     const std::string_view outputRecordName = selectedCallerPlotDictionary
         ? std::string_view("ACDBDICTIONARYWDFLT")
@@ -33390,13 +33391,20 @@ bool dxfRW::writeRawDxfObjectInternal(
             0, false, obj->handle, obj->handle != 0u);
         return false;
     }
-    if (!preflightDxfWrite() || !record.commit()) {
+    if (!preflightDxfWrite()) {
         m_writeError = true;
         return false;
     }
     if (selectedCallerPlotDictionary || selectedCallerPlotPlaceholder) {
-        if (!bindDxfWriteSourceObjectHandle(obj->handle, emittedRawHandle))
+        if (!promoteMintedDxfWriteObjectIdentity(obj->handle, emittedRawHandle)
+            || !bindDxfWriteSourceObjectHandle(obj->handle, emittedRawHandle))
             return failDxfWrite();
+    }
+    if (!record.commit()) {
+        m_writeError = true;
+        return false;
+    }
+    if (selectedCallerPlotDictionary || selectedCallerPlotPlaceholder) {
         try {
             m_dxfCallerPlotReactorTargets.insert(
                 m_dxfCallerPlotReactorTargets.end(),
@@ -33409,6 +33417,7 @@ bool dxfRW::writeRawDxfObjectInternal(
         else
             m_dxfCallerPlotPlaceholderWritten = true;
     }
+    state.commit();
     return true;
 }
 

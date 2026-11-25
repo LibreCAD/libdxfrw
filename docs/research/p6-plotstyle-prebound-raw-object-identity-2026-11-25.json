@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-plotstyle-prebound-raw-object-identity-2026-11-25",
+  "status": "LOCAL_MATCHING_PLAN_AND_CONFLICT_REFUSAL_PASS_QUALIFICATION_OPEN",
+  "supportClaimEffect": "none",
+  "problem": "A caller declaring a retained default plot-style graph could prebind its raw dictionary and placeholder identities for references before OBJECTS. The raw graph writer treated those matching tentative bindings as conflicting entities and refused the write.",
+  "change": "Reuse the transactional source-identity promotion for the selected raw default-plot dictionary and placeholder before binding their emitted object identities. A conflicting target or actual entity remains a failure; record state rolls back if validation or commit fails.",
+  "validation": {
+    "host": "macOS ARM64 AppleClang 21",
+    "release": "PASS: libdxfrw_dxf_default_plotstyle_graph across R2000 through R2018, ASCII and binary, identity and remapped handles. Matching prebindings write and read back; mismatched prebindings preserve a sentinel and corrected same-writer retries pass. Existing malformed graph controls remain active.",
+    "asan": "PASS: the same focused graph CTest under AddressSanitizer with leak detection disabled.",
+    "related": "PASS: libdxfrw_raw_application_writer and libdxfrw_raw_object_string_override_allocation. The raw-application reread test now selects its VENDOR_OBJECT by identity because the writer also emits its default plot-style placeholder.",
+    "consumer": "PASS: LibreCAD system-codec and bundled-codec fast CTests on the accompanying uncommitted adapter change; graph admission and consumer receipt are recorded separately after its commit."
+  },
+  "limits": [
+    "Generated controls do not qualify arbitrary caller plot-style graphs or native plotting.",
+    "The changed implementation digest reopens focused and package qualification; no support claims are promoted.",
+    "No drawing fixtures were committed."
+  ]
+}

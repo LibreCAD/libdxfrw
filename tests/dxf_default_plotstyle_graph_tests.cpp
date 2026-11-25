@@ -121,10 +121,17 @@ public:
     DRW_RawDxfObject dictionary, placeholder;
     DRW_Layer layer, explicitLayer;
     Mode mode{Mode::Valid};
+    bool prebind{false}, mismatchedPrebind{false}, prebindOk{true};
     bool dictionaryWrite{false}, placeholderWrite{false};
     void writeLayers() override {
         (void)output.writeLayer(&layer);
         (void)output.writeLayer(&explicitLayer);
+    }
+    void writeEntities() override {
+        prebindOk = !prebind
+            || (output.bindSourceEntityHandle(
+                    0xA0u, mismatchedPrebind ? 0xE0u : output.remapHandle(0xA0u))
+                && output.bindSourceEntityHandle(0xA1u, output.remapHandle(0xA1u)));
     }
     void writeObjects() override {
         DRW_RawDxfObject dict(dictionary), child(placeholder);
@@ -449,6 +456,21 @@ int main(int argc, char** argv) {
                                   << " placeholder=" << adapter.placeholderWrite << '\n';
                         return 1;
                     }
+                    // LibreCAD prebinds retained raw objects for references
+                    // before OBJECTS. A matching plan must promote to object
+                    // identity; a conflicting one must refuse atomically.
+                    adapter.prebind = true;
+                    if (!output.write(&adapter, version, binary) || !adapter.prebindOk
+                        || !checkRawCallerGraph(path, remapped ? 0xB0u : 0xA0u,
+                                                remapped ? 0xB1u : 0xA1u)) return 1;
+                    adapter.mismatchedPrebind = true;
+                    { std::ofstream sentinel(path, std::ios::binary); sentinel << "previous file"; }
+                    if (output.write(&adapter, version, binary) || !adapter.prebindOk
+                        || bytes(path) != "previous file") return 1;
+                    adapter.mismatchedPrebind = false;
+                    if (!output.write(&adapter, version, binary) || !adapter.prebindOk
+                        || !checkRawCallerGraph(path, remapped ? 0xB0u : 0xA0u,
+                                                remapped ? 0xB1u : 0xA1u)) return 1;
                     for (const auto mode : {RawCallerGraphExport::Mode::WrongDictionaryOwner,
                                              RawCallerGraphExport::Mode::WrongNormal,
                                              RawCallerGraphExport::Mode::WrongDefault,

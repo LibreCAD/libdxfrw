@@ -19,10 +19,11 @@ The preceding candidate passed the focused CI profile at code head
 for 775 inputs. The [qualification receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json)
 records local and hosted fast checks plus Linux, macOS and Windows focused
 jobs. All 15 format claims remain EXPERIMENTAL; no route is advertised.
-The subsequent single-line TEXT/ATTRIB/ATTDEF writer change reopens focused
-and package qualification. Its clean-checkout candidate digest is
-`7827d552d5f861a0d3fd16c48d539f6bf70e332d9780132938d329e37661ff74`
-for 775 inputs; no earlier qualification is transferred to that digest. Native GUI, broader FreeCAD coverage, broad and semantic
+The later single-line TEXT/ATTRIB/ATTDEF writer candidate used digest
+`7827d552d5f861a0d3fd16c48d539f6bf70e332d9780132938d329e37661ff74`.
+The subsequent [raw plot-style object identity fix](docs/research/p6-plotstyle-prebound-raw-object-identity-2026-11-25.json) reopens the implementation
+digest, focused checks and package qualification. No earlier qualification is
+transferred to the changed code; the status overlay remains draft until pinned. Native GUI, broader FreeCAD coverage, broad and semantic
 gates remain open. The [package receipt](docs/research/p8-pr106-current-cross-platform-package-2026-11-25.json)
 records Linux and Windows hosted package passes and a local macOS substitute
 for the cancelled hosted macOS job; the overall package workflow was red.

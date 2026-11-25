@@ -224,8 +224,13 @@ bool rawApplicationWriterTests(const std::filesystem::path& path) {
                 <<" C2="<<codec.dxfWriteRecordHandleCount(0xC2u)<<'\n';return false;
         }
         RawScopeProbe reopened;dxfRW reader(destination.string().c_str());
-        if(!check(reader.read(&reopened,false)&&reopened.objects.size()==1u
-            &&rawScopeCarrierMatches(reopened.objects.front(),row,binary),"raw object reread retains exact application and outer fields"))return false;
+        if(!reader.read(&reopened,false))return false;
+        const auto selected=std::find_if(reopened.objects.begin(),reopened.objects.end(),
+            [](const DRW_RawDxfObject& object){return object.name=="VENDOR_OBJECT";});
+        if(!check(selected!=reopened.objects.end()
+            &&std::count_if(reopened.objects.begin(),reopened.objects.end(),
+                [](const DRW_RawDxfObject& object){return object.name=="VENDOR_OBJECT";})==1
+            &&rawScopeCarrierMatches(*selected,row,binary),"raw object reread retains exact application and outer fields"))return false;
         const auto wire=attdefWireTags(destination,binary);
         const auto marker=std::find_if(wire.begin(),wire.end(),[](const auto& t){return t.code==0&&t.text=="VENDOR_OBJECT";});
         if(marker==wire.end()||static_cast<std::size_t>(wire.end()-marker)<=row.size())return false;
