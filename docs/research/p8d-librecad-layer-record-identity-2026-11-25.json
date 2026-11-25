@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-layer-record-identity-2026-11-25",
+  "consumerCommit": "af6c971430b6cb4346167b8e5dd56d3f4b1decb1",
+  "libraryImplementationDigestAtTest": "b274f634af9aeb2ca0e8a3b6ddc907a2429f391d6f9c5bfed6b2cbf200ffe44b",
+  "problem": "Imported layer table metadata was looked up by current layer name, losing metadata on rename and potentially attaching it to a newly created layer that reused the old name.",
+  "change": "Bind each imported layer to a document-scoped opaque source identity; look it up consistently during preflight, writing, plot-style restoration and APPID collection. Fresh clones do not inherit the identity. Duplicate live identities refuse before output; foreign document identities cannot bind to local source metadata.",
+  "validation": [
+    "System-codec focused material/HATCH/proxy/legacy lane passed 396 assertions in 8 cases. Rename and replacement, clone and duplicate identity, cross-document identity, preserved destination and corrected retry are covered.",
+    "Bundled-codec focused lane passed 270 assertions in 6 cases, including renamed-layer XDATA and APPID registration across eight DXF versions.",
+    "macOS ARM64 AddressSanitizer focused material/layer lane passed 293 assertions in 2 cases with leak detection disabled.",
+    "Independent ezdxf 1.4.5 audit of the generated renamed output SHA-256 d29ee2497e9be328fa483b69537e60dd8cbdcc61f098cb24f7de9fc40f2b5766 had zero errors or fixes. Physical tags show RENAMED has 347=A1 and the replacement RAWTEST has no 347. ezdxf supplies a default material to the replacement in memory.",
+    "Wider system [filter][layer] selector passed 3/4 cases, 44/45 assertions. The malformed duplicate-XDATA export expectation already failed in /private/tmp/librecad-system-legacy-layer-broad-20261125.log before this change; current strict codec refuses those groups."
+  ],
+  "limitations": [
+    "Same-version system-codec ASCII material link profile and the tested bundled XDATA paths only; native GUI, all graph dependencies, wide identities and general DWG layer output remain open.",
+    "The sparse raw-only material capture and export guards remain in force.",
+    "No generated drawing was committed."
+  ],
+  "supportClaimEffect": "none"
+}

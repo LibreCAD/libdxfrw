@@ -32,10 +32,14 @@ The subsequent test-only selected-material-graph controls produced digest
 `5bc263cc80c1c5431b0055829b79daf9e9ceafe4b58877ffe3fae6ca1adc2061`.
 The [wide-inventory slice](docs/research/p7-wide-dxf-inventory-2026-11-25.json)
 produced digest `f547e3aad18f3c17600427765ad5318f761ddccb3d33fd2f017c7d8e1ac01037`.
-The current [wide-self-handle slice](docs/research/p7-wide-dxf-self-handle-handseed-2026-11-25.json)
+The preceding [wide-self-handle slice](docs/research/p7-wide-dxf-self-handle-handseed-2026-11-25.json)
 produces clean-checkout digest
 `b274f634af9aeb2ca0e8a3b6ddc907a2429f391d6f9c5bfed6b2cbf200ffe44b`
-for 775 inputs. No earlier qualification is transferred to this candidate. Native GUI, broader FreeCAD coverage, broad and semantic
+for 775 inputs. The [Wave 1 control-text CI correction](docs/research/p8-wave1-control-text-ci-regression-2026-11-25.json)
+updates an outdated refusal expectation to verify ASCII/binary typed readback;
+its clean-checkout digest is `6dd91b2be8f6dd49ddd13bccb0064a5c4a23c2652eb798605c29017b91e5500e` for 775 inputs. The full Wave 1
+executable passes locally; rerun hosted fast checks on the new head. No earlier
+qualification is transferred to this candidate. Native GUI, broader FreeCAD coverage, broad and semantic
 gates remain open. The [package receipt](docs/research/p8-pr106-current-cross-platform-package-2026-11-25.json)
 records Linux and Windows hosted package passes and a local macOS substitute
 for the cancelled hosted macOS job; the overall package workflow was red.
@@ -53,7 +57,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`3afa66a33d0dc8141f138089920a2a4d0c914d9b`. The prior merge head built the
+`af6c971430b6cb4346167b8e5dd56d3f4b1decb1`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -189,8 +193,14 @@ checks every replayed entry and applies the shared identity, owner, name and
 reactor visitor to each retained material; missing or corrupt siblings refuse
 with destination preservation and corrected retry. A separate scratch-only
 marker bypass now retains the three physical layer links and material bodies,
-but does not qualify production sparse replay. Bundled and DWG output, renamed
-layers, legacy-target loss reporting and full graph admission remain open. Refuse
+but does not qualify production sparse replay. Bundled and DWG material output,
+additional rename and deletion workflows, legacy-target loss reporting and full
+graph admission remain open. The
+[layer-identity follow-up](docs/research/p8d-librecad-layer-record-identity-2026-11-25.json)
+keeps imported table metadata with a renamed layer, prevents a replacement or
+foreign layer from inheriting it, and refuses duplicate live identities. Focused
+system, bundled and AddressSanitizer checks pass; qualify additional editing,
+DWG and native workflows separately. Refuse
 cross-version, missing or edited/inconsistent graphs atomically; verify ASCII/binary readback,
 collision remapping, corrected retry, both codecs, and independent
 complete-drawing semantics. The rebuilt focused system-codec lane passes against the current
