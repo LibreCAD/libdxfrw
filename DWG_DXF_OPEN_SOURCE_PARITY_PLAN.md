@@ -40,7 +40,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`76cdccbb0c46844f17d6e21c13bd1a8ba093ac08`. The prior merge head built the
+`a10fa4fa856a1c6b5da2cee3f1c67d3fd1a6cbec`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -51,15 +51,15 @@ and [refresh receipt](docs/research/p8d-librecad-3289-master-refresh-2026-11-25.
 The [coordinate receipt](docs/research/p8d-librecad-system-codec-extrusion-2026-11-25.json)
 records the DXF callback-frame adaptation, same-filter DXF/DWG reuse,
 targeted AddressSanitizer and bundled-codec controls. A wider system-codec
-filter run improved from 86 to 91 passing cases out of 131; 40 cases remain
-failing. A follow-up is implementing semantic single-line control and literal-caret
-transport in the system-codec path with an opt-in consumer regression matrix;
-re-evaluate the broader filter after its current candidate is built.
-The [library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
-records the bounded ASCII/binary field and failure/retry checks.
-Next classify the remaining underlay version
-gates, and object-graph/identity failures against their source semantics, then
-fix each valid gap with focused tests and independent readback where needed.
+filter run improved from 86 to 91 passing cases out of 131. The subsequent
+[system-codec single-line text slice](docs/research/p8d-librecad-system-codec-single-line-text-2026-11-25.json)
+preserves controls and literal carets and passes both consumer lanes. The wider
+filter now passes 93/131 cases; 38 remain failing, with 89 failed assertions
+versus 116 before this slice and no new failure categories. Several old-target
+underlay expectations conflict with intentional unsupported-version refusal;
+classify these separately from actual linetype and object-graph gaps. The
+[library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
+records bounded ASCII/binary field and failure/retry checks.
 Native GUI, runtime loading, new-head hosted checks and final-candidate
 validation remain open.
 
