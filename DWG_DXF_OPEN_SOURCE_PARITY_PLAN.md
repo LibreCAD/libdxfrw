@@ -42,7 +42,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`a4794a3ece1d1087e3502c09b85a89ca54af3d42`. The prior merge head built the
+`742a1f1850aea1f4c9a6b2cd243be1f5b5b68b68`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -77,9 +77,14 @@ resolves 24 generated version/encoding/remap profiles. The [GROUP reactor
 slice](docs/research/p8d-librecad-system-group-reactor-2026-11-25.json)
 preserves selected reserved GROUP identities and checks both membership and
 reactors with both codecs. Its wider filter passes 106/131 cases with 27
-failed assertions. The next [XDATA reference control](docs/research/p8d-librecad-system-xdata-target-2026-11-25.json)
-checks the target rather than requiring a particular renumbering; both codec
-lanes pass. Investigate the remaining linetype, identity and
+failed assertions. The [XDATA reference control](docs/research/p8d-librecad-system-xdata-target-2026-11-25.json)
+checks the target rather than requiring a particular renumbering. The
+[legacy LAYER slice](docs/research/p8d-librecad-system-legacy-layer-width-2026-11-25.json)
+restores R12/R14 export with an explicit loss report for omitted layer
+lineweights; unsupported plot-off state still refuses atomically. Both codec
+lanes pass. The broader filter passes 110/132 cases with 27 failed assertions;
+the newly reachable R12 POLYLINE VERTEX/SEQEND layer and linetype checks need
+investigation. Investigate the remaining linetype, identity and
 object-graph gaps. The
 [library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
 records bounded ASCII/binary field and failure/retry checks.
