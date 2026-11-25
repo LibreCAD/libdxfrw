@@ -42,7 +42,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`75a13a1d446f3a8e40e6e899d51159201f72d6be`. The prior merge head built the
+`aedbf6cbcdd07ac12fc0d790029b6b9bf617adac`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -68,8 +68,13 @@ name. The [canonical-linetype metadata fix](docs/research/p8d-librecad-system-ca
 restores generated DWG-to-DXF leader saves by predeclaring fixed-row metadata;
 its failure/retry and bundled controls pass. The [declared UTF-8 fix](docs/research/p8d-librecad-system-declared-utf8-2026-11-25.json)
 restores legacy explicitly declared UTF-8 while preserving other code-page
-behavior. The wider filter now passes 102/131 cases with 32 failed assertions;
-investigate the remaining linetype, identity and object-graph gaps. The
+behavior. The [retained plot-style graph fix](docs/research/p8d-librecad-system-retained-plotstyle-2026-11-25.json)
+binds the imported Normal placeholder and passes destination-preserving refusal
+and corrected retry; [LibreDWG readback](docs/research/p6-plotstyle-prebound-libredwg-peer-2026-11-25.json)
+agrees on four generated R2000 profiles, with nonfatal header warnings;
+[ezdxf readback](docs/research/p6-plotstyle-prebound-ezdxf-peer-2026-11-25.json)
+resolves 24 generated version/encoding/remap profiles. The wider filter now passes 103/131 cases with 30 failed assertions; investigate
+the remaining linetype, identity and object-graph gaps. The
 [library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
 records bounded ASCII/binary field and failure/retry checks.
 Native GUI, runtime loading, new-head hosted checks and final-candidate

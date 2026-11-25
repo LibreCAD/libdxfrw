@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-system-retained-plotstyle-2026-11-25",
+  "status": "LOCAL_GRAPH_CLOSURE_AND_RETRY_PASS_NATIVE_PLOTTING_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "aedbf6cbcdd07ac12fc0d790029b6b9bf617adac",
+    "previousHead": "75a13a1d446f3a8e40e6e899d51159201f72d6be"
+  },
+  "dependency": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "codeHead": "4a44b8f4",
+    "implementationDigest": "2bd3188367f8af53e5d56dbf3ff3bb08f36bcf3a32a89879305c5853a737bd21"
+  },
+  "problem": "When an imported R2000 plot-style dictionary selected Normal at handle 4A, a new layer was exported with default plot-style handle F although F was not emitted. Declaring the retained graph initially failed because the adapter had prebound raw object identities as tentative references.",
+  "change": "The adapter declares the uniquely identified bounded Normal dictionary/placeholder source graph before writing; the codec promotes matching raw prebindings to object identities, verifies graph closure, and uses the selected placeholder for default layer references. Ambiguous or contradictory selected graph metadata refuses before publishing output.",
+  "validation": {
+    "host": "macOS ARM64 AppleClang 21",
+    "systemFocused": "PASS: 2,112 assertions in 39 cases. The retained graph points original and new layers to 4A and has no dangling handles; a conflicting default preserves an existing destination and corrected same-filter retry passes.",
+    "systemTestSha256": "5e22e97825bb30e1fbefb9a2549976460a685523fe76fb6e24a373aea3720cfc",
+    "systemLibrarySha256": "d7f595613e0ef5106c485708348e120c5c93c000c5d11989d2e6b7370cb5efff",
+    "bundledFast": "PASS: librecad_dxf_fast_tests.",
+    "library": "PASS: default plot-style graph CTest in Release and AddressSanitizer; raw application and raw-object allocation regressions pass.",
+    "independentPeer": "GNU LibreDWG 0.14 converted four generated R2000 ASCII/binary identity/remapped outputs to DWG and independently read the root dictionary, default/Normal edges, owners and layer references; see p6-plotstyle-prebound-libredwg-peer-2026-11-25.json. Nonfatal DIMLDRBLK warnings were reported. ezdxf 1.4.5 also directly reads 24 generated R2000\u2013R2018 ASCII/binary identity/remapped profiles and resolves the same graph and layer links; see p6-plotstyle-prebound-ezdxf-peer-2026-11-25.json.",
+    "systemBroad": "Exploratory [dxf][roundtrip][filter]: 103/131 cases pass, 28 fail and 30 assertions fail versus 102/131 and 32 before this fix; no normalized failure expression increased."
+  },
+  "limits": [
+    "Selected Normal graph only; arbitrary dictionaries, cross-version raw replay, native plotting and 3D consumers are not qualified.",
+    "Current-head hosted CI and cross-platform package, consumer and native GUI qualification remain open.",
+    "No generated drawing fixtures were committed."
+  ]
+}
