@@ -5,6 +5,7 @@
   "status": "AC1021_LIBRECAD_TABLE_READ_PASS_STRICT_OUTPUT_OPEN",
   "scope": "Read the tracked LibreCAD AC1021 source through its detached control-object handles and publish the selected table records.",
   "supportClaimEffect": "none",
+  "supersedingAlignmentNote": "The original zero-only detached-tail check and its nonzero-tail rejection control were superseded by p5-ac1021-control-alignment-bits-2026-11-25.json: ODA specifies alignment to a byte boundary without specifying bit values.",
   "authority": {
     "document": "Open Design Specification for .dwg files v5.4.1",
     "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",

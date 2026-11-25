@@ -17038,8 +17038,11 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
     if (!controlCurrentBit(*hBuf, handleEndBit) || handleEndBit > totalBits
         || totalBits - handleEndBit > 7u)
       return fail();
+    // Object alignment bits fill the final byte; their values are not
+    // specified. Keep the length bound without requiring zero padding.
     while (handleEndBit < totalBits) {
-      if (hBuf->getBit() != 0 || !hBuf->isGood())
+      hBuf->getBit();
+      if (!hBuf->isGood())
         return fail();
       ++handleEndBit;
     }

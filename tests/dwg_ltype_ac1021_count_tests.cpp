@@ -253,11 +253,17 @@ int main(int argc,char**argv) {
         }
     }
     DRW_ObjControl layerControl;
-    const auto malformedLayer = buildAc1021LayerControl(true);
-    if (parseAc1021LayerControl(malformedLayer, layerControl)
+    const auto nonzeroPadding = buildAc1021LayerControl(true);
+    if (!parseAc1021LayerControl(nonzeroPadding, layerControl)) {
+        std::cerr << "AC1021 detached control rejected nonzero alignment bits\n";
+        return 1;
+    }
+    auto oversizedTail = buildAc1021LayerControl();
+    oversizedTail.push_back(0u);
+    if (parseAc1021LayerControl(oversizedTail, layerControl)
         || !layerControl.orderedHandleSlots.empty()
         || !parseAc1021LayerControl(buildAc1021LayerControl(), layerControl)) {
-        std::cerr << "AC1021 detached table-control boundary refusal/retry failed\n";
+        std::cerr << "AC1021 detached control oversized-tail refusal/retry failed\n";
         return 1;
     }
     std::cout<<"AC1021 LTYPE_CONTROL count, boundary and retry PASS\n";return 0;

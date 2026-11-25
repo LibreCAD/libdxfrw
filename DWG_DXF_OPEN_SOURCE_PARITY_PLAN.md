@@ -19,6 +19,10 @@ The legacy zero-body-boundary fix changes selected inputs. A clean checkout of
 for 774 inputs; rerun affected P8 qualification. R13/R14 generated refusal/retry
 controls and the selected AC1012 physical-frame checks pass.
 
+The AC1021 detached-control alignment-bit fix changes selected inputs; refresh
+the clean candidate digest and hosted qualification. Its targeted reader and
+LibreCAD fixture tests pass, including AddressSanitizer for the reader vector.
+
 This candidate reconciles local work with PR head `c13da35d`, preserving the
 AC1021 control-reader slice and keeping General TABLE-value output guarded.
 The clean combined code commit `4758b607` computes digest
@@ -233,8 +237,9 @@ P4-D additional unresolved paths:
 
 The PR's [LibreCAD AC1021 control-boundary slice](docs/research/p5-ac1021-librecad-control-boundaries-2026-11-25.json)
 handles the selected detached control streams and publishes all 28 frames in
-the tracked LibreCAD ordinary-encoding source; its malformed-tail control
-checks refusal and retry. The source retains an LTYPE BYLAYER handle-role
+the tracked LibreCAD ordinary-encoding source. The [alignment follow-up](docs/research/p5-ac1021-control-alignment-bits-2026-11-25.json)
+accepts either bit value in the final bounded alignment and checks oversized
+tail refusal and retry. The source retains an LTYPE BYLAYER handle-role
 diagnostic; the combined CLI reports an incomplete strict-read disposition and
 preserves an existing destination. This bounded read profile does not close a gate.
 The General-value output proposed on the PR branch remains refused here:
