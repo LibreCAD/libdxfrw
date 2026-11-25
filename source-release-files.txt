@@ -768,6 +768,7 @@ tests/fixtures/dwg/generated-dictionary-zero-ac1015.dwg
 tests/fixtures/dwg/large_radial.dwg
 tests/fixtures/dwg/librecad-layer-flags-ac1012.dwg
 tests/fixtures/dwg/librecad-layer-flags-ac1014.dwg
+tests/fixtures/dwg/librecad_ordinary_enc_AC1021.dwg
 tests/fixtures/dwg/mpolygon_solid.dwg
 tests/fixtures/dwg/ordinary_enc_AC1015.dwg
 tests/fixtures/dwg/ordinary_enc_AC1018.dwg

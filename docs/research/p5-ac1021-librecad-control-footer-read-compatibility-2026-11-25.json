@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-25",
+  "scope": "Bounded AC1021 reader compatibility for the tracked LibreCAD writer fixture's LTYPE_CONTROL and APPID_CONTROL empty-string footer profile.",
+  "source": {
+    "repository": "LibreCAD/LibreCAD",
+    "commit": "41678d97626c05ab652ceaa02cf0ac7f7f6205cf",
+    "path": "librecad/src/lib/filters/tests/testdata/ordinary_enc_AC1021.dwg",
+    "bytes": 19584,
+    "sha256": "00b4f1e9757236304c2f7c17b56c12c7ee217f8bc8cb9fdc9b97cda39ac3d136",
+    "localFixture": "tests/fixtures/dwg/librecad_ordinary_enc_AC1021.dwg",
+    "provenance": "Copied from an already-tracked LibreCAD test fixture; no new DWG content was generated."
+  },
+  "authority": {
+    "primary": "Open Design Specification for .dwg files v5.4.1",
+    "sections": [
+      "20.1 common non-entity object format",
+      "20.4.57 LTYPE_CONTROL",
+      "20.4.65 APPID_CONTROL"
+    ],
+    "constraints": [
+      "The R2007 object-data size ends before the detached handle stream.",
+      "The optional string-stream flag is the final pre-handle field; zero means no string payload.",
+      "ODA LTYPE_CONTROL defines BYLAYER and BYBLOCK as hard-owner references; the fixture's soft-owner roles are retained as a compatibility observation and remain an integrity error."
+    ]
+  },
+  "observedSourceProfile": {
+    "ltypeControl": {
+      "type": 56,
+      "rootHandle": 5,
+      "objectDataBits": 104,
+      "entryCount": 1,
+      "countEndBit": 73,
+      "byteAlignedCountEndBit": 80,
+      "emptyStringFooterBits": 24,
+      "footerBitsAreZero": true,
+      "handleRoles": [
+        { "role": 4, "size": 0, "handle": 0 },
+        { "role": 3, "size": 0, "handle": 0 },
+        { "role": 2, "size": 1, "handle": 15 },
+        { "role": 2, "size": 1, "handle": 16 },
+        { "role": 2, "size": 1, "handle": 17 }
+      ]
+    },
+    "appidControl": {
+      "type": 66,
+      "rootHandle": 9,
+      "objectDataBits": 104,
+      "entryCount": 1,
+      "emptyStringFooterBits": 24,
+      "footerBitsAreZero": true,
+      "handleRoles": [
+        { "role": 4, "size": 0, "handle": 0 },
+        { "role": 3, "size": 0, "handle": 0 },
+        { "role": 2, "size": 1, "handle": 20 }
+      ]
+    }
+  },
+  "implementation": {
+    "file": "src/intern/dwgreader.cpp",
+    "behavior": [
+      "Accepts the LTYPE footer only for the exact AC1021 root, one-entry BYBLOCK/BYLAYER/CONTINUOUS graph, null common handles, soft-owner role encoding, and zero trailer.",
+      "Accepts the APPID footer only for the exact AC1021 APPID_CONTROL root, one ACAD entry, null common handles, expected soft-owner role, and zero trailer.",
+      "Leaves the existing broader historical soft-pointer compatibility profile unchanged.",
+      "Retains role-integrity diagnostics; this does not qualify strict output."
+    ]
+  },
+  "validation": {
+    "build": [
+      "cmake --build build --target libdxfrw_dwg_fixture_tests dwg2dxf -j4"
+    ],
+    "fastTest": {
+      "command": "ctest --test-dir build -R '^libdxfrw_ac1021_historical_enc_role_profile$' --output-on-failure",
+      "result": "PASS",
+      "elapsedSeconds": 0.24
+    },
+    "malformedAndRetryControls": {
+      "command": "ctest --test-dir build -R '^libdxfrw_dwg_ltype_ac1021_count$' --output-on-failure",
+      "result": "PASS",
+      "elapsedSeconds": 0.21,
+      "rejectedCases": [
+        "truncated detached handle stream",
+        "nonzero byte-alignment bit",
+        "wrong member handle role",
+        "nonzero empty-string footer bit"
+      ],
+      "retry": "The same DRW_ObjControl instance accepts the corrected source-profile frame after each rejection."
+    },
+    "readback": {
+      "result": "The reader passes TABLES, publishes three LTYPE records and one APPID record, then reaches BAD_READ_OBJECTS.",
+      "objectParseFailures": 4,
+      "sourceFrames": 28,
+      "publishedFrames": 24,
+      "failedFrames": 4,
+      "remainingLtypeRoleMismatch": { "handle": 16, "expectedRole": 3, "observedRole": 2 },
+      "supportClaim": "No support claim promoted; strict output remains blocked."
+    }
+  }
+}
