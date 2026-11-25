@@ -185,3 +185,23 @@ bool tableExportReuseTests(const std::filesystem::path& dir) {
         <<"; reached allocation failures="<<allocationFailures<<"; unreached offsets="<<unreached<<"; projection mismatches="<<mismatches<<'\n';
     return profiles==120u&&successes==360u&&refusals==120u&&late==4u&&allocationFailures>0u&&allocationFailures+unreached==128u&&mismatches==8u;
 }
+
+bool tableStrictBlockTargetTests(const std::filesystem::path& dir) {
+    const auto output=dir/"strict-table-target.dxf";
+    for(bool binary:{false,true}) {
+        dx_data data;dx_iface writer;tableExportReuseDrawing(writer,data,0u,false);
+        DRW_Block_Record model;model.handle=0x1Fu;model.name="*Model_Space";
+        data.blockRecords.push_back(model);
+        const auto identities=tableExportIdentities(data);
+        if(!tableExportSentinel(output,true)
+            ||writer.fileExport(output.string(),DRW::AC1021,binary,&data,false,true)
+            ||!tableExportSentinel(output)||identities!=tableExportIdentities(data))return false;
+        DRW_Block_Record record;record.handle=0xB10u;record.name="*T500";
+        data.blockRecords.push_back(record);
+        DRW_Block definition;definition.handle=0xB11u;definition.parentHandle=record.handle;
+        definition.name=record.name;writer.addBlock(definition);writer.endBlock();
+        if(!writer.fileExport(output.string(),DRW::AC1021,binary,&data,false,true)
+            ||!tableExportReadback(output,binary,0u,false))return false;
+    }
+    return true;
+}

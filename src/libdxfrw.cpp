@@ -12190,7 +12190,7 @@ bool dxfRW::preflightDimensionStyleName(const std::string& styleName,
 
 bool dxfRW::preflightInsertTargetBody(const DRW_Insert *insert) {
     if (!m_requireResolvedBlockOwners || version <= DRW::AC1009
-        || insert == nullptr || insert->name.empty())
+        || insert == nullptr)
         return true;
 
     std::string emittedName;
@@ -12791,6 +12791,21 @@ bool dxfRW::writeTableWithLegacySourcePresence(DRW_Table *ent, const std::vector
         || (ent != nullptr && ent->seqEndEntity != nullptr
             && !preflightEntity(ent->seqEndEntity.get())))
         return false;
+    std::string blockName;
+    if (m_requireResolvedBlockOwners && version > DRW::AC1009) {
+        if (!resolveInsertBlockRecordName(*ent, blockName)) {
+            recordOperationDiagnostic(
+                writingBlock ? DRW::OperationPhase::Blocks
+                             : DRW::OperationPhase::Entities,
+                DRW::OperationCause::ValidationFailure,
+                "unresolved-table-block",
+                "TABLE target does not resolve to an emitted BLOCK_RECORD",
+                0, false, ent->handle, ent->handle != DRW::NoHandle);
+            return failDxfWrite();
+        }
+    } else {
+        blockName = ent->name.empty() ? UTF8STRING("*T1") : ent->name;
+    }
     if (ent->attlist.size() > dwgSafety::MaxOwnedObjectCount)
         return failDxfWrite();
 
@@ -13511,6 +13526,8 @@ bool dxfRW::writeTableWithLegacySourcePresence(DRW_Table *ent, const std::vector
         return failDxfWrite();
 
     EntityRecordScope scope(*this, ent);
+    if (!preflightInsertTargetBody(ent))
+        return false;
     struct AttributeHandleRollback {
         std::vector<std::pair<DRW_Attrib*, std::uint32_t>> handles;
         bool committed {false};
@@ -13535,7 +13552,6 @@ bool dxfRW::writeTableWithLegacySourcePresence(DRW_Table *ent, const std::vector
             writer->writeInt16(66, 1);
     }
 
-    const UTF8STRING blockName = ent->name.empty() ? UTF8STRING("*T1") : ent->name;
     writer->writeUtf8String(2, blockName);
     writer->writeDouble(10, ent->basePoint.x);
     writer->writeDouble(20, ent->basePoint.y);

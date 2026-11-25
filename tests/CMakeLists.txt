@@ -3365,6 +3365,10 @@ add_test(NAME libdxfrw_table_export_reuse
     COMMAND libdxfrw_table_content_dxf_tests --table-export-reuse)
 set_tests_properties(libdxfrw_table_export_reuse PROPERTIES
     LABELS "fast;dxf;adapter;table;generated;transaction" TIMEOUT 30)
+add_test(NAME libdxfrw_table_strict_block_target
+    COMMAND libdxfrw_table_content_dxf_tests --table-strict-target)
+set_tests_properties(libdxfrw_table_strict_block_target PROPERTIES
+    LABELS "fast;dxf;adapter;table;generated;transaction" TIMEOUT 30)
 add_test(NAME libdxfrw_table_value_payload
     COMMAND libdxfrw_table_content_dxf_tests --table-value-payload)
 set_tests_properties(libdxfrw_table_value_payload PROPERTIES

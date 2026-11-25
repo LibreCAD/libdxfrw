@@ -6134,6 +6134,7 @@ int main(int argc,char** argv) {
     const bool tableStyleReferenceWrite=argc==2 && std::string(argv[1])=="--table-style-reference-write";
     const bool tableLinkedGridWrite=argc==2 && std::string(argv[1])=="--table-linked-grid-write";
     const bool tableExportReuse=argc==2 && std::string(argv[1])=="--table-export-reuse";
+    const bool tableStrictTarget=argc==2 && std::string(argv[1])=="--table-strict-target";
     const bool tableValuePayload=argc==2 && std::string(argv[1])=="--table-value-payload";
     const bool tableValueProfiles=argc==2 && std::string(argv[1])=="--table-value-profiles";
     const bool tableReferences=argc==2 && std::string(argv[1])=="--table-references";
@@ -6157,7 +6158,7 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !plotDefaultOutput && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableCellAppearanceWrite && !tableCellBorderVisibilityEdges && !tableRowMarginWrite && !tableColumnTableMarginWrite && !tableSingleCellStyleMarginWrite && !tableStyleFormatWrite && !tableStyleReferenceWrite && !tableLinkedGridWrite && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !plotDefaultOutput && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableCellAppearanceWrite && !tableCellBorderVisibilityEdges && !tableRowMarginWrite && !tableColumnTableMarginWrite && !tableSingleCellStyleMarginWrite && !tableStyleFormatWrite && !tableStyleReferenceWrite && !tableLinkedGridWrite && !tableExportReuse && !tableStrictTarget && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     std::error_code error;const auto dir=reserveTestScratch(parent,stem,error);
@@ -6212,6 +6213,7 @@ int main(int argc,char** argv) {
             ? tableContentTableStyleReferenceWriteTests(dir)
         : tableLinkedGridWrite ? tableContentLinkedGridWriteTests(dir)
         : tableExportReuse ? tableExportReuseTests(dir)
+        : tableStrictTarget ? tableStrictBlockTargetTests(dir)
         : tableValuePayload ? tableValuePayloadTests(dir)
         : tableValueProfiles ? tableValueProfileTests(dir)
         : tableReferences ? tableReferenceTests(dir)
