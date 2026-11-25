@@ -242,13 +242,19 @@ records the passing AC1012/14/15 test. This closes the local parser slice only;
 native AutoCAD open and duplicate-key merge behavior remain open, and strict
 AC1012 output remains guarded.
 
-The follow-up [wide-reference control](docs/research/p6-ac1012-unrepresentable-dictionary-handles-2026-11-24.json)
-rejects five-byte `0x100000001` references in the DICTIONARY parent, reactor,
-extension-dictionary, and item positions because these public graph fields are
-32-bit. Each refusal resets typed state and the valid AC1012 frame then parses
-again. The focused AC1012/AC1014/AC1015 CTest passes in GCC and AddressSanitizer
-builds. No DWG fixture was added; this closes only a local truncation guard,
-not producer semantics, native merge behavior, or strict-output qualification.
+The [wide-reference DICTIONARY control](docs/research/p6-ac1012-unrepresentable-dictionary-handles-2026-11-24.json)
+rejects five-byte `0x100000001` references in the parent, reactor, extension-
+dictionary, and item positions because these public graph fields are 32-bit.
+The follow-up [GROUP member control](docs/research/p6-ac1012-unrepresentable-group-members-2026-11-24.json)
+uses the ODA §20.4.72 hard-pointer role and rejects the same unrepresentable
+reference in the ordered member list for AC1012 and AC1014. The shared
+`dwgHandleReferenceFitsUint32` predicate now guards both common tails, dictionary
+item/default references, and GROUP members before graph publication. The
+current AppleClang focused build and six fast CTests pass; earlier GCC and
+AddressSanitizer results apply to the preceding source revision only. No DWG
+fixture was added. These generated controls close the model-width truncation
+guard only; producer semantics, native merge behavior, and strict-output
+qualification remain open.
 
 For R14 source and output changes, reuse the [PR review regression controls](docs/research/p6-pr106-r14-conversion-review-fixes-2026-11-20.json). The [generated R13/R14/R2000 implicit INSERT chains](docs/research/p6-generated-legacy-implicit-insert-exact-angle-2026-11-21.json) exercise the next-link fix with complete scratch DWGs. R13 explicit-partial and R14 strict/partial outputs pass independent ASCII/Binary geometry readback; R14 also passes same-adapter refusal/retry. The earlier [R14 refusal](docs/research/p6-generated-legacy-implicit-insert-chain-2026-11-21.json) used a JSON-rounded angle. These controls do not close the organic-failure gate or establish broad support.
 

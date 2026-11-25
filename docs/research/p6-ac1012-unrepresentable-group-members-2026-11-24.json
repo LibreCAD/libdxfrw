@@ -1,0 +1,72 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-unrepresentable-group-members-2026-11-24",
+  "date": "2026-11-24",
+  "status": "LOCAL_SPEC_SHAPED_FAIL_CLOSED_CONTROL_PASS",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "sections": [
+      "2.13 HANDLE REFERENCES",
+      "20.1 Common non-entity object format",
+      "20.4.44 DICTIONARY",
+      "20.4.72 GROUP"
+    ],
+    "constraints": [
+      "The DWG H field may carry references wider than the current uint32_t public graph model.",
+      "ODA \u00a720.4.72 defines ordered GROUP member references as hard pointers.",
+      "A wider GROUP member reference must not alias a different object through its low 32 bits."
+    ]
+  },
+  "scope": {
+    "versions": [
+      "AC1012",
+      "AC1014"
+    ],
+    "generatedFrame": "In-memory legacy GROUP object frames encoded from the modeled object and modified only in scratch memory.",
+    "fullDwgFixture": false,
+    "repositoryFixtureAdded": false,
+    "wideReference": "0x100000001 encoded as a five-byte hard-pointer payload",
+    "positions": [
+      "GROUP ordered member handle"
+    ]
+  },
+  "implementation": {
+    "sharedCheck": "dwgHandleReferenceFitsUint32 is shared by DICTIONARY/GROUP common references, dictionary item/default references, and GROUP member references.",
+    "behavior": "Reject unrepresentable references before publishing a uint32_t graph field.",
+    "failureState": "GROUP common-link and member completeness evidence reset after refusal.",
+    "retry": "The corrected same-object AC1012 and AC1014 frames parse successfully."
+  },
+  "validation": {
+    "platform": "macOS ARM64",
+    "compiler": "Apple clang version 21.0.0.21000334",
+    "buildType": "Debug; project warning-as-error flags enabled",
+    "build": {
+      "command": "cmake --build build-ac1012 --target libdxfrw_dwg_ac1014_dictionaryvar_tests libdxfrw_dwg_object_vectors_tests libdxfrw_dwg_reader_matrix_tests -j2",
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "command": "ctest --test-dir build-ac1012 --output-on-failure -R '^(libdxfrw_dwg_ac1014_dictionaryvar|libdxfrw_legacy_dictionary_group_links|libdxfrw_dwg_table_cell_overrides|libdxfrw_ac1021_table_content_reference_roles|libdxfrw_ac1024_table_content_spec_vectors|libdxfrw_dwg_r2007_class_string_footer)$'",
+      "result": "PASS 6/6; 0.89 seconds",
+      "coverage": [
+        "AC1012",
+        "AC1014",
+        "AC1015",
+        "AC1021",
+        "AC1024"
+      ]
+    },
+    "groupRetryCtest": {
+      "name": "libdxfrw_legacy_dictionary_group_links",
+      "result": "PASS 1/1 for AC1012 and AC1014 generated role/bounds controls"
+    },
+    "sourceSha256": "608e5b1465ed7a000f0e5354ccec4d1fac29cd09dd7f6499b30efb7f411606ca",
+    "testSourceSha256": "e8251c6c6bec4d732022be4f3d6dd8d7412c6aa37213d7a7688cd0645f0fb71c",
+    "testBinarySha256": "7471f12259f10e3ae646ebdee5694d5b4873bc8a074c9a70da789e2cf0872e06"
+  },
+  "limitations": [
+    "Generated controls establish parser representability, atomic refusal, and retry only; they are not producer-authored DWGs or native AutoCAD evidence.",
+    "Native AutoCAD GROUP operations, AC1012 dictionary merge behavior, strict output qualification, and broader DWG support remain open.",
+    "No support claim is promoted."
+  ]
+}

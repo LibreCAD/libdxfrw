@@ -20010,6 +20010,7 @@ struct LegacyObjectLinkFrame {
     std::uint64_t commonXDictBit{0};
     std::uint64_t reactorCountBit{0};
     std::uint64_t lastPayloadHandleBit{0};
+    std::uint64_t lastPayloadHandleEndBit{0};
     std::uint64_t endBit{0};
 };
 
@@ -20060,10 +20061,11 @@ bool makeLegacyObjectLinkFrame(DRW::Version version, std::uint16_t type,
         + encoded.handleOccurrences()[1].startBit - firstHandleBit;
     frame.commonXDictBit = frame.commonOwnerBit
         + encoded.handleOccurrences()[2].startBit - firstHandleBit;
-    const std::uint64_t lastOccurrenceBit =
-        encoded.handleOccurrences().back().startBit;
+    const auto& lastOccurrence = encoded.handleOccurrences().back();
     frame.lastPayloadHandleBit = frame.commonOwnerBit
-        + lastOccurrenceBit - firstHandleBit;
+        + lastOccurrence.startBit - firstHandleBit;
+    frame.lastPayloadHandleEndBit = frame.commonOwnerBit
+        + lastOccurrence.endBit - firstHandleBit;
     appendBitRange(object, encoded, firstHandleBit, encoded.bitCount());
     frame.endBit = object.bitCount();
     object.alignToByte();
@@ -20102,6 +20104,37 @@ void testLegacyDictionaryGroupCommonLinkEvidence(TestContext& t) {
                          && parsed.xDictHandle == group.xDictHandle
                          && parsed.m_entityHandles == group.m_entityHandles,
                      "R13/R14 GROUP proves bounded common links and ordered hard-pointer members");
+
+            dwgBufferW wideMemberWriter;
+            appendBitRange(wideMemberWriter, groupFrame.bytes, 0u,
+                           groupFrame.lastPayloadHandleBit);
+            wideMemberWriter.putFixedHandle(DRW::DwgHardPointer, 5u,
+                                             UINT64_C(0x100000001));
+            appendBitRange(wideMemberWriter, groupFrame.bytes,
+                           groupFrame.lastPayloadHandleEndBit,
+                           groupFrame.endBit);
+            wideMemberWriter.alignToByte();
+            const bool wideMemberBuilt = wideMemberWriter.isGood();
+            dwgBuffer wideMemberInput(wideMemberWriter.data().data(),
+                                      wideMemberWriter.size(), &codec);
+            GroupEncodeProbe wideMember;
+            const bool wideMemberRead = wideMember.parseDwg(
+                version, &wideMemberInput);
+            const bool wideMemberRefused = wideMemberBuilt
+                && !wideMemberRead && !wideMemberInput.isGood()
+                && !wideMember.hasDwgCommonLinkTail()
+                && !wideMember.hasCompleteDwgEntityHandles()
+                && wideMember.m_entityHandles.empty();
+            dwgBuffer correctedMemberInput(groupFrame.bytes.data(),
+                                           groupFrame.bytes.size(), &codec);
+            const bool correctedMemberRead = wideMember.parseDwg(
+                version, &correctedMemberInput);
+            t.expect(wideMemberRefused && correctedMemberRead
+                         && correctedMemberInput.isGood()
+                         && wideMember.hasDwgCommonLinkTail()
+                         && wideMember.hasCompleteDwgEntityHandles()
+                         && wideMember.m_entityHandles == group.m_entityHandles,
+                     "R13/R14 GROUP refuses an unrepresentable five-byte member handle and accepts corrected same-object retry");
 
             dwgBufferW followed;
             appendBitRange(followed, groupFrame.bytes, 0u,

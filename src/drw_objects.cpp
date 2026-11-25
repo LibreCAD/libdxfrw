@@ -516,6 +516,10 @@ bool validDictionaryHardOwner(int value) {
     return value == 0 || value == 1;
 }
 
+bool dwgHandleReferenceFitsUint32(const dwgHandle& handle) noexcept {
+    return handle.ref64 <= std::numeric_limits<std::uint32_t>::max();
+}
+
 bool dwgHandleRoleMatches(const dwgHandle& handle, std::uint8_t role,
                           bool offsetResolvedField) noexcept {
     const std::uint8_t code = handle.rawCode;
@@ -534,7 +538,7 @@ bool dwgHandleHasRole(const dwgHandle& handle, std::uint8_t role,
 bool dictionaryHandleReferenceHasRole(const dwgHandle& handle,
                                       std::uint8_t role,
                                       bool allowNull) noexcept {
-    if (handle.ref64 > std::numeric_limits<std::uint32_t>::max())
+    if (!dwgHandleReferenceFitsUint32(handle))
         return false;
     if (handle.ref == 0u) {
         return allowNull && handle.size == 0u
@@ -875,7 +879,7 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
                                  handleEndBit))
         return false;
     if (requireRepresentableHandles
-        && parentH.ref64 > std::numeric_limits<std::uint32_t>::max())
+        && !dwgHandleReferenceFitsUint32(parentH))
         return false;
 #if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
     DRW_MLINESTYLE_TRACE_SPAN(baseHandle, version, "handle", "ownerhandle",
@@ -911,7 +915,7 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
                                      handleEndBit))
             return false;
         if (requireRepresentableHandles
-            && reactor.ref64 > std::numeric_limits<std::uint32_t>::max())
+            && !dwgHandleReferenceFitsUint32(reactor))
             return false;
 #if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
         const std::string reactorField =
@@ -940,7 +944,7 @@ bool readObjectCommonHandles(dwgBuffer *buf, DRW::Version version,
                                      handleEndBit))
             return false;
         if (requireRepresentableHandles
-            && xDict.ref64 > std::numeric_limits<std::uint32_t>::max())
+            && !dwgHandleReferenceFitsUint32(xDict))
             return false;
 #if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE) || defined(DRW_DWG_MLINESTYLE_AC1027_SPAN_TRACE)
         DRW_MLINESTYLE_TRACE_SPAN(baseHandle, version, "handle",
@@ -27010,6 +27014,7 @@ bool DRW_Group::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
         if (!readDwgObjectHandleWithinFrame(version, entityHandleBuffer, false, entityH))
             return fail();
         if (entityH.ref == DRW::NoHandle
+            || !dwgHandleReferenceFitsUint32(entityH)
             || ((version == DRW::AC1012 || version == DRW::AC1014)
                 && entityH.code != DRW::DwgHardPointer))
             return fail();
