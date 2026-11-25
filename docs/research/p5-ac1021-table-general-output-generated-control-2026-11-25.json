@@ -56,7 +56,7 @@
     "sourceFile": "blocks_and_tables_-_metric.dwg",
     "sourceSha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
     "sourceProfile": "AC1021 AutoCAD 2007 sample; two TABLE records selected by the existing source-bound cell trace",
-    "projection": "Each selected source cell was copied into a locally constructed one-cell TABLE with a closed modelspace owner. TABLESTYLE, base-style, merge and unrelated source graph state were omitted deliberately.",
+    "projection": "Each selected source cell was copied into a locally constructed one-cell TABLE with a closed modelspace owner. The source ACAD_TABLESTYLE dictionary and typed style bodies were included, but all source TABLESTYLE reactor edges were removed because the output does not contain full source TABLE snapshots. This is a lossy style projection and does not qualify source appearance or graph closure.",
     "cells": [
       {
         "sourceTableHandle": "0x2856E",
@@ -88,7 +88,48 @@
       "The emitted ASCII group-310 bytes independently extracted from the output equal the source payload lengths and SHA-256 values listed above.",
       "Fresh libdxfrw readback preserved the text and raw payload for both encodings; semanticContentComplete remained false."
     ],
+    "outputFiles": [
+      { "path": "/private/tmp/p5i-source-0-ascii.dxf", "sha256": "f638a07148386363c34c73707d940daaf45b2d48026e5f90d51438aa6904d301" },
+      { "path": "/private/tmp/p5i-source-0-binary.dxf", "sha256": "b3b39a9e892f61d42ed2afe73421eb256082c1413217b91795d495cd4f11fb43" },
+      { "path": "/private/tmp/p5i-source-1-ascii.dxf", "sha256": "d4fdd72db8cc215565fcf6b607ee5b68dcb45e3d8eb33cfaf6e363fa90566d11" },
+      { "path": "/private/tmp/p5i-source-1-binary.dxf", "sha256": "1b5408c792e53c3ece5622e3b5ada93b098e945d7e1846717fe7ed61f579488a" }
+    ],
     "result": "PASS_BOUNDED_PAYLOAD_PROJECTION"
+  },
+  "independentDxfPeerReadback": {
+    "reader": "ACadSharp 3.6.15 DxfReader",
+    "readerSourceEvidence": {
+      "projectVersion": "3.6.15",
+      "dxfReaderCsSha256": "972d41562d83cadd3201c834f80807fa06cc7e1f85f4887c0ff56929de6de4b7",
+      "dxfSectionReaderCsSha256": "46e38f00be44cdd27a1d7331ae890b16408c44ef372d19d5e8fe7597c7ec99a5",
+      "tableCellContentCsSha256": "409365ce3bed82f53e0f94cbb36078295ca43adcff9f91eec8fe9e8e741fc05d",
+      "cadValueCsSha256": "c121121e1c4b9805829a54f0e88e11e12ac9d821682387ee0b2d79185e8f22f3",
+      "localProbeCsSha256": "22fecc6d8161f7c861bfd59b2de3a0675ea58273e26216b611c8cbba096290c8",
+      "dotnetSdk": "11.0.100"
+    },
+    "results": [
+      {
+        "cell": "ESTIMATED COST OF DOORS",
+        "asciiAndBinary": "PASS",
+        "peerObservations": "One TABLE, one row and one column; General value type, flags 6, NoUnits, empty format, formatted value matches; linked Schedule style resolves with horizontal/vertical margins 1/0.4."
+      },
+      {
+        "cell": "ESTIMATED COST OF WINDOWS",
+        "asciiAndBinary": "PASS",
+        "peerObservations": "One TABLE, one row and one column; General value type, flags 6, NoUnits, empty format, formatted value matches; linked Schedule style resolves with horizontal/vertical margins 1/0.4."
+      }
+    ],
+    "limits": [
+      "ACadSharp leaves CadValue.Value empty for these type-512 carriers and does not expose or verify the group-310 raw payload; it confirms the separately emitted formatted-value cache and other typed envelope fields only.",
+      "The peer readback covers the one-cell projections with TABLESTYLE reactor links stripped; it does not establish the original source reactor graph, full TABLE semantics, or native rendering."
+    ],
+    "result": "PASS_DXF_ENVELOPE_AND_CACHE_ONLY"
+  },
+  "libreDwgPeerAttempt": {
+    "version": "0.14",
+    "command": "dxf2dwg --as r2000",
+    "result": "NOT_QUALIFIED",
+    "observation": "LibreDWG reports unknown TABLE codes, errors on row/column counts and CELL_VALUE fields, and reports TABLESTYLE and TABLE unsupported; its conversion output is not a semantic readback."
   },
   "sourceTableStyleDependencyProbe": {
     "sourceNamedObjectDictionaryHandle": "0xC",
@@ -106,8 +147,8 @@
     "result": "SOURCE_STYLE_GRAPH_NOT_CLOSED"
   },
   "limits": [
-    "No independent semantic peer readback or native CAD open/render was run.",
-    "The one-cell projections intentionally omit TABLESTYLE, base-style, merge, and unrelated table graph state; they do not qualify source-table appearance or whole-table semantics.",
+    "ACadSharp independently read back the TABLE envelope and formatted cache only; it did not decode the raw General payload bytes. No native CAD open/render was run.",
+    "The one-cell projections include the source style dictionary/body but strip source TABLESTYLE reactors and omit merge and unrelated table graph state; they do not qualify source-table appearance or whole-table semantics.",
     "P5-B FIELD/FIELDLIST output remains a blocker for whole-source conversion.",
     "No fixture was added and no support claim is promoted."
   ]
