@@ -22,8 +22,9 @@ jobs. All 15 format claims remain EXPERIMENTAL; no route is advertised.
 The later single-line TEXT/ATTRIB/ATTDEF writer candidate used digest
 `7827d552d5f861a0d3fd16c48d539f6bf70e332d9780132938d329e37661ff74`.
 The subsequent [raw plot-style object identity fix](docs/research/p6-plotstyle-prebound-raw-object-identity-2026-11-25.json) reopens the implementation
-digest, focused checks and package qualification. No earlier qualification is
-transferred to the changed code; the status overlay remains draft until pinned. Native GUI, broader FreeCAD coverage, broad and semantic
+digest, focused checks and package qualification. Its clean-checkout digest is
+`2bd3188367f8af53e5d56dbf3ff3bb08f36bcf3a32a89879305c5853a737bd21`
+for 775 inputs. No earlier qualification is transferred to this candidate. Native GUI, broader FreeCAD coverage, broad and semantic
 gates remain open. The [package receipt](docs/research/p8-pr106-current-cross-platform-package-2026-11-25.json)
 records Linux and Windows hosted package passes and a local macOS substitute
 for the cancelled hosted macOS job; the overall package workflow was red.

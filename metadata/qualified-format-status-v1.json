@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "kind": "libdxfrw-qualified-format-status",
-  "freezeState": "DRAFT_WORKFLOW_AND_DIGEST_PENDING",
-  "implementationDigestSha256": null,
-  "claimsDigestSha256": null,
+  "freezeState": "FROZEN",
+  "implementationDigestSha256": "2bd3188367f8af53e5d56dbf3ff3bb08f36bcf3a32a89879305c5853a737bd21",
+  "claimsDigestSha256": "7f72bd5c6033fb312c89d56fcc5b476063273a2b24faa863e58114a703956ab8",
   "allowedTransitions": {
     "EXPERIMENTAL": [
       "EXPERIMENTAL",
