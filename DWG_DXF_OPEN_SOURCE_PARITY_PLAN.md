@@ -13,10 +13,10 @@ percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
-The strict TABLE block-target fix and later value fixture correction change
-selected inputs. The prior clean checkout of `0cead675` computed digest
+The strict TABLE block-target fix and subsequent TABLE fixture corrections
+change selected inputs. The prior clean checkout of `0cead675` computed digest
 `e5d949965d563a9454eb458a1034d4981746c27bf2893a6a56920e82356b8dde`
-for 774 inputs; recompute after the fixture correction. P8-A/E/F evidence
+for 774 inputs; recompute after the fixture corrections. P8-A/E/F evidence
 below binds the earlier HATCH digest and must be rerun for this candidate. The status overlay remains draft; no claim
 is promoted.
 
@@ -223,9 +223,10 @@ reuses INSERT block-record and block-body checks for strict TABLE output.
 ASCII/Binary missing-target refusal, destination preservation, and corrected
 retry pass. The [value-payload fixture correction](docs/research/p5-table-value-test-border-fixture-2026-11-25.json)
 now passes: an unrelated nonzero border override had correctly marked the
-fixture incomplete. The imported TABLE reuse control still fails in the
-dictionary-with-default output path and needs investigation before broad
-qualification. This does not qualify General-value output.
+fixture incomplete. The [TABLE reuse fixture correction](docs/research/p5-table-reuse-cross-version-test-2026-11-25.json)
+adds the referenced anonymous block and checks legacy cross-version refusal
+followed by a strict source-bound retry; all three focused TABLE controls pass.
+This does not qualify General-value output.
 
 The [ODA reopen comparison](docs/research/p5-ac1021-general-oda-roundtrip-2026-11-25.json)
 also inserts the proposed envelopes into the full original DXF graph: ODA

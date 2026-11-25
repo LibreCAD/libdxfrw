@@ -114,6 +114,12 @@ bool tableExportReuseTests(const std::filesystem::path& dir) {
     for(std::size_t revision=0u;revision<versions.size();++revision)for(bool binary:{false,true})for(bool block:{false,true})
         for(unsigned shape=0u;shape<3u;++shape)for(bool imported:{false,true}) {
             dx_data authored,parsed;dx_iface writer,reader;tableExportReuseDrawing(writer,authored,shape,block);
+            if(imported) {
+                DRW_Block_Record record;record.handle=0xB10u;record.name="*T500";
+                authored.blockRecords.push_back(record);
+                DRW_Block definition;definition.handle=0xB11u;definition.parentHandle=record.handle;
+                definition.name=record.name;writer.addBlock(definition);writer.endBlock();
+            }
             if(imported&&(!writer.fileExport(seed.string(),versions[revision],binary,&authored,false)
                 ||!reader.fileImport(seed.string(),&parsed,false)))return false;
             auto& data=imported?parsed:authored;const auto identities=tableExportIdentities(data);const DRW_Table model(data.tables.front());
@@ -132,7 +138,15 @@ bool tableExportReuseTests(const std::filesystem::path& dir) {
                     if(!tableExportSentinel(destination)||!unchanged())return false;
                     ++refusals;
                 }
-                if(!writer.fileExport(destination.string(),version,encoding,&data,false)||!unchanged()
+                // A captured plot-style graph cannot be replayed verbatim
+                // into another version. Check the legacy refusal before the
+                // strict, source-bound cross-version retry below.
+                if(imported&&pass==1u) {
+                    if(!tableExportSentinel(destination,true)
+                        ||writer.fileExport(destination.string(),version,encoding,&data,false)
+                        ||!tableExportSentinel(destination)||!unchanged())return false;
+                }
+                if(!writer.fileExport(destination.string(),version,encoding,&data,false,imported&&pass==1u)||!unchanged()
                     ||!tableExportReadback(destination,encoding,shape,block)) {
                     std::cerr<<"TABLE reuse revision="<<revision<<" binary="<<binary<<" block="<<block<<" shape="<<shape<<" imported="<<imported<<" pass="<<pass<<'\n';
                     tableExportTrace(data,"failed state");return false;
