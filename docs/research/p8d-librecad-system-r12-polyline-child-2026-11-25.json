@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-system-r12-polyline-child-2026-11-25",
+  "status": "LOCAL_R12_CHILD_PRESENTATION_PASS_OTHER_GATES_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "5969364fe4d9a51b0bc1a935140fe9a62f6adcdc",
+    "previousHead": "742a1f1850aea1f4c9a6b2cd243be1f5b5b68b68"
+  },
+  "dependencyImplementationDigest": "2bd3188367f8af53e5d56dbf3ff3bb08f36bcf3a32a89879305c5853a737bd21",
+  "finding": "Once legacy LAYER export succeeded, a generated open R12 POLYLINE exposed VERTEX and SEQEND records with default layer and linetype instead of the parent's PLINE_LAYER and BYBLOCK values. LibreCAD's bundled writer already carries the parent's presentation.",
+  "change": "For system-codec DXF export, copy only layer, linetype and color from the generated parent to newly synthesized vertices; provide an R12 SEQEND with the same presentation. Do not copy source identities, application data or XDATA. The writer retains its compound-record handle allocation and transaction.",
+  "validation": {
+    "host": "macOS ARM64 AppleClang Release",
+    "systemFocused": "PASS: 1874 assertions in 26 tagged cases. The R12 checks include child layer/linetype, distinct parent/vertex/footer handles and open/closed vertex counts.",
+    "systemTestSha256": "7d3bd0f890787fb229db1632c76316b8f6743f54f1019acb557f26849252a507",
+    "bundledFocused": "PASS: 1513 assertions in 19 matching tagged cases.",
+    "bundledTestSha256": "5b47e54df4c8949330c2abefa35a02f4e5bf1575c71395f211fb1a8629dd9754"
+  },
+  "limits": [
+    "The SEQEND presentation change is limited to R12; modern source-retained child metadata and native CAD qualification are separate.",
+    "Independent reopened semantics and failure/retry for other polyline profiles remain open.",
+    "No drawing fixtures were committed."
+  ]
+}

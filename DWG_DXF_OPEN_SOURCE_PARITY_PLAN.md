@@ -42,7 +42,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`742a1f1850aea1f4c9a6b2cd243be1f5b5b68b68`. The prior merge head built the
+`5969364fe4d9a51b0bc1a935140fe9a62f6adcdc`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -82,9 +82,10 @@ checks the target rather than requiring a particular renumbering. The
 [legacy LAYER slice](docs/research/p8d-librecad-system-legacy-layer-width-2026-11-25.json)
 restores R12/R14 export with an explicit loss report for omitted layer
 lineweights; unsupported plot-off state still refuses atomically. Both codec
-lanes pass. The broader filter passes 110/132 cases with 27 failed assertions;
-the newly reachable R12 POLYLINE VERTEX/SEQEND layer and linetype checks need
-investigation. Investigate the remaining linetype, identity and
+lanes pass. The preceding broader filter passed 110/132 cases with 27 failed
+assertions. Its newly reachable R12 POLYLINE child presentation discrepancy is
+addressed by the [child-record slice](docs/research/p8d-librecad-system-r12-polyline-child-2026-11-25.json),
+which checks both codecs and distinct handles. Investigate the remaining linetype, identity and
 object-graph gaps. The
 [library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
 records bounded ASCII/binary field and failure/retry checks.
