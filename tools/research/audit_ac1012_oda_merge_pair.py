@@ -55,7 +55,7 @@ def observe_xrecord(path: Path, dwgread: str, record_id: int, owner_id: int) -> 
             "paddingBits": len(frame) * 8 - bits.position}
 
 
-def audit(path: Path, side: str, dwgread: str, temp: Path) -> dict:
+def audit(path: Path, side: str, dwgread: str, temp: Path, expect_extension: bool) -> dict:
     require(path.read_bytes().startswith(b"AC1012"), "source is not AC1012")
     decoded = temp / f"{side}.json"
     run([dwgread, "-O", "JSON", "-o", str(decoded), str(path)])
@@ -98,30 +98,35 @@ def audit(path: Path, side: str, dwgread: str, temp: Path) -> dict:
             "ACAD EED source profile mismatch")
 
     extension_id = frame["xdictionary"]["value"]
-    require(frame["xdictionary"]["role"] == 3 and extension_id != 0
-            and dictionary.get("xdicobjhandle", [None])[-1] == extension_id,
+    require(frame["xdictionary"]["role"] == 3
+            and dictionary.get("xdicobjhandle", [0])[-1] == extension_id,
             "extension dictionary source role mismatch")
-    extension = object_at(extension_id, "DICTIONARY")
-    require(extension.get("ownerhandle", [None])[-1] == dictionary_id,
-            "extension dictionary owner mismatch")
-    xrecord_link = extension.get("items", {}).get("ACAD_XREC_ROUNDTRIP")
-    require(extension.get("numitems") == 1 and xrecord_link
-            and xrecord_link[0] == 2 and xrecord_link[-1] != 0,
-            "extension dictionary XRECORD reference mismatch")
-    extension_frame, _ = read_dictionary_frame(
-        path, dwgread, extension_id, {"ACAD_XREC_ROUNDTRIP": xrecord_link[-1]},
-        "ACAD_XREC_ROUNDTRIP")
-    require(extension_frame["parent"]["value"] == dictionary_id
-            and not extension_frame["reactors"] and not extension_frame["eed"]
-            and extension_frame["xdictionary"]["role"] == 3
-            and extension_frame["xdictionary"]["value"] == 0,
-            "extension dictionary physical common links mismatch")
-    xrecord = object_at(xrecord_link[-1], "XRECORD")
-    require(xrecord.get("ownerhandle", [None])[-1] == extension_id
-            and [r[-1] for r in xrecord.get("reactors", [])] == [extension_id]
-            and xrecord.get("xdata") == [[102, "EXTNAMES"], [1, "STANDARD"], [2, "Standard"]],
-            "extension XRECORD ownership or selected payload mismatch")
-    xrecord_frame = observe_xrecord(path, dwgread, xrecord_link[-1], extension_id)
+    extension_frame = xrecord_link = xrecord_frame = xrecord = None
+    if expect_extension:
+        require(extension_id != 0, "expected a non-null extension dictionary")
+        extension = object_at(extension_id, "DICTIONARY")
+        require(extension.get("ownerhandle", [None])[-1] == dictionary_id,
+                "extension dictionary owner mismatch")
+        xrecord_link = extension.get("items", {}).get("ACAD_XREC_ROUNDTRIP")
+        require(extension.get("numitems") == 1 and xrecord_link
+                and xrecord_link[0] == 2 and xrecord_link[-1] != 0,
+                "extension dictionary XRECORD reference mismatch")
+        extension_frame, _ = read_dictionary_frame(
+            path, dwgread, extension_id, {"ACAD_XREC_ROUNDTRIP": xrecord_link[-1]},
+            "ACAD_XREC_ROUNDTRIP")
+        require(extension_frame["parent"]["value"] == dictionary_id
+                and not extension_frame["reactors"] and not extension_frame["eed"]
+                and extension_frame["xdictionary"]["role"] == 3
+                and extension_frame["xdictionary"]["value"] == 0,
+                "extension dictionary physical common links mismatch")
+        xrecord = object_at(xrecord_link[-1], "XRECORD")
+        require(xrecord.get("ownerhandle", [None])[-1] == extension_id
+                and [r[-1] for r in xrecord.get("reactors", [])] == [extension_id]
+                and xrecord.get("xdata") == [[102, "EXTNAMES"], [1, "STANDARD"], [2, "Standard"]],
+                "extension XRECORD ownership or selected payload mismatch")
+        xrecord_frame = observe_xrecord(path, dwgread, xrecord_link[-1], extension_id)
+    else:
+        require(extension_id == 0, "expected a null extension dictionary")
 
     for name, angle in PROFILES[side].items():
         style = object_at(entries[name], "MLINESTYLE")
@@ -135,11 +140,13 @@ def audit(path: Path, side: str, dwgread: str, temp: Path) -> dict:
                 f"{name} two-element style mismatch")
     return {"source": str(path), "sha256": sha(path.read_bytes()),
             "rootHandle": root_id, "dictionaryHandle": dictionary_id,
+            "rootExtensionDictionaryHandle": root.get("xdicobjhandle", [0])[-1],
             "frame": frame, "appidName": appid["name"],
             "extensionDictionaryHandle": extension_id,
             "extensionDictionaryFrame": extension_frame,
-            "extensionXrecordHandle": xrecord_link[-1], "extensionXrecordFrame": xrecord_frame,
-            "extensionXrecordData": xrecord["xdata"], "stylesDegrees": PROFILES[side]}
+            "extensionXrecordHandle": xrecord_link[-1] if xrecord_link else None,
+            "extensionXrecordFrame": xrecord_frame,
+            "extensionXrecordData": xrecord["xdata"] if xrecord else None, "stylesDegrees": PROFILES[side]}
 
 
 def main() -> None:
@@ -147,12 +154,13 @@ def main() -> None:
     parser.add_argument("destination", type=Path)
     parser.add_argument("source", type=Path)
     parser.add_argument("--dwgread", default="dwgread")
+    parser.add_argument("--expect-style-extension", choices=("present", "absent"), default="present")
     args = parser.parse_args()
     dwgread = shutil.which(args.dwgread)
     require(dwgread is not None, "dwgread executable not found")
     with tempfile.TemporaryDirectory(prefix="ac1012-oda-pair-audit-") as directory:
         temp = Path(directory)
-        result = {side: audit(getattr(args, side), side, dwgread, temp) for side in PROFILES}
+        result = {side: audit(getattr(args, side), side, dwgread, temp, args.expect_style_extension == "present") for side in PROFILES}
     print(json.dumps({"dwgread": executable_identity(dwgread), "samples": result,
                       "scope": "selected physical dictionary/XRECORD frames and model graph only; no native semantics"},
                      indent=2, sort_keys=True))
