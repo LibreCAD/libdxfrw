@@ -585,8 +585,10 @@ bool objectDataBodyConsumed(DRW::Version version, const dwgBuffer *buf,
     const std::uint64_t currentBit = currentObjectDwgBit(buf);
     if (!objectBodyFitsSize(currentBit, bodyEnd))
         return false;
-    return !isLegacyInlineObjectDataVersion(version) || bodyEnd == 0u
-        || currentBit == bodyEnd;
+    // R13/R14 carry the object-data boundary in the inline object header;
+    // zero cannot bound the decoded fields away from the handle tail.
+    return !isLegacyInlineObjectDataVersion(version)
+        || (bodyEnd != 0u && currentBit == bodyEnd);
 }
 
 #if defined(DRW_DWG_MLINESTYLE_SPAN_TRACE)

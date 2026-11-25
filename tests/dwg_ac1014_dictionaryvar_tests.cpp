@@ -245,6 +245,11 @@ void setNibble(std::vector<std::uint8_t>& bytes, std::size_t start,
     }
 }
 
+void clearRawLongBits(std::vector<std::uint8_t>& bytes, std::size_t start) {
+    for (std::size_t bit = start; bit < start + 32u; ++bit)
+        bytes[bit / 8u] &= static_cast<std::uint8_t>(~(0x80u >> (bit % 8u)));
+}
+
 bool generatedAc1012DictionaryFrameControl() {
     const auto reject = [](const char* stage) {
         std::cerr << "generated AC1012 DICTIONARY control failed: " << stage << '\n';
@@ -264,6 +269,7 @@ bool generatedAc1012DictionaryFrameControl() {
     // Build the bounded R13 DICTIONARY layout from the ODA field order. The
     // relative soft-pointer parent is a valid offset handle; files are never
     // written to the repository or treated as producer/native evidence.
+    std::size_t bodyEndFieldBit = 0u;
     const auto makeFrame = [&](const WireHandle& parent,
                                const WireHandle& reactor,
                                const WireHandle& xdictionary,
@@ -283,6 +289,7 @@ bool generatedAc1012DictionaryFrameControl() {
         writer.putObjType(DRW::AC1012, DRW_Dictionary::kDwgFixedType);
         writer.putFixedHandle(0u, 1u, dictionaryHandle);
         writer.putBitShort(0u);
+        bodyEndFieldBit = writtenBits(writer);
         writer.putRawLong32(bodyEnd);
         writer.putBitLong(1u);
         writer.putBitLong(static_cast<std::int32_t>(entries.size()));
@@ -322,6 +329,11 @@ bool generatedAc1012DictionaryFrameControl() {
         return true;
     };
     if (!parse(bytes)) return reject("typed parser");
+    auto missingBodyBoundary = bytes;
+    clearRawLongBits(missingBodyBoundary, bodyEndFieldBit);
+    if (parse(missingBodyBoundary) || model.hasCompleteDwgEntries()
+        || !model.m_entries.empty() || !parse(bytes))
+        return reject("missing object-data boundary or corrected retry");
     if (!matches()) {
         std::cerr << "AC1012 model: h=" << model.handle << " p=" << model.parentHandle
                   << " r=" << model.reactorCount() << " x=" << model.xDictHandle
@@ -1013,12 +1025,14 @@ bool expected(const Variable& v) {
 struct Ac1012VariableControl {
     std::vector<std::uint8_t> bytes;
     std::uint32_t bodyEnd {0u};
+    std::size_t bodyEndFieldBit {0u};
 };
 
 Ac1012VariableControl makeAc1012Variable(bool appendUnknownBodyByte = false,
-                                         int wideCommonHandleIndex = -1) {
+                                         int wideCommonHandleIndex = -1,
+                                         DRW::Version version = DRW::AC1012) {
     dwgBufferW prefix;
-    prefix.putObjType(DRW::AC1012, 500u);
+    prefix.putObjType(version, 500u);
     prefix.putFixedHandle(0u, 1u, 0x23u);
     prefix.putBitShort(0u);
 
@@ -1033,9 +1047,10 @@ Ac1012VariableControl makeAc1012Variable(bool appendUnknownBodyByte = false,
     Ac1012VariableControl control;
     control.bodyEnd = writtenBits(prefix) + 32u + writtenBits(body);
     dwgBufferW writer;
-    writer.putObjType(DRW::AC1012, 500u);
+    writer.putObjType(version, 500u);
     writer.putFixedHandle(0u, 1u, 0x23u);
     writer.putBitShort(0u);
+    control.bodyEndFieldBit = writtenBits(writer);
     writer.putRawLong32(control.bodyEnd);
     writer.putBitLong(1u);
     writer.putRawChar8(0u);
@@ -1070,6 +1085,23 @@ bool ac1012DictionaryVarControl() {
         return parse(DRW::AC1012, bytes, variable);
     };
     if (!parseSource(control.bytes) || !expected(variable))
+        return false;
+
+    auto missingBodyBoundary = control.bytes;
+    clearRawLongBits(missingBodyBoundary, control.bodyEndFieldBit);
+    if (parseSource(missingBodyBoundary) || variable.hasDwgCommonLinkTail()
+        || !variable.m_value.empty()
+        || !parseSource(control.bytes) || !expected(variable))
+        return false;
+
+    const auto r14 = makeAc1012Variable(false, -1, DRW::AC1014);
+    auto missingR14Boundary = r14.bytes;
+    clearRawLongBits(missingR14Boundary, r14.bodyEndFieldBit);
+    Variable r14Variable;
+    if (!parse(DRW::AC1014, r14.bytes, r14Variable) || !expected(r14Variable)
+        || parse(DRW::AC1014, missingR14Boundary, r14Variable)
+        || r14Variable.hasDwgCommonLinkTail() || !r14Variable.m_value.empty()
+        || !parse(DRW::AC1014, r14.bytes, r14Variable) || !expected(r14Variable))
         return false;
 
     const std::array<std::pair<std::size_t, unsigned>, 3> wrongRoles{{

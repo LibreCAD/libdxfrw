@@ -13,6 +13,10 @@ percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
+The legacy zero-body-boundary fix changes selected inputs; refresh the clean
+candidate digest and rerun affected P8 qualification. R13/R14 generated
+refusal/retry controls and the selected AC1012 physical-frame checks pass.
+
 The GROUP member and DICTIONARYVAR common-reference width fix changes selected
 inputs. A clean checkout of `002143da` computes digest
 `1c96b64dd061e85d765284dec4c30b945f8bbf33417f4662c4cab8228b418e51`
@@ -410,8 +414,9 @@ The [legacy handle-width follow-up](docs/research/p6-legacy-group-dictionaryvar-
 rejects GROUP members and DICTIONARYVAR common links that cannot fit their
 32-bit public fields; controls verify reset and corrected retry. This closes a
 local identity-aliasing defect and does not qualify native merge semantics.
-The diverged tracked PR branch also contains a legacy zero-body-boundary guard;
-review and integrate it separately with targeted refusal/retry controls.
+The [legacy body-boundary fix](docs/research/p6-legacy-dictionary-body-boundary-2026-11-25.json)
+also rejects zero R13/R14 object-data boundaries before publishing DICTIONARY
+or DICTIONARYVAR data; generated controls and selected source-frame checks pass.
 
 The five focused legacy dictionary selectors were rebuilt and rerun at source revision `2eab63cfd7c14885cab6111351986d6cd2818dc3`; all pass on local Darwin ARM64. The AC1012/AC1014/AC1015 parser selector also passes with both library and test fully ASan-instrumented. A clean clone computes the same 774-input implementation digest `1e9e799b…29eca` with the draft status overlay allowed. See the [focused CTest and ASan recheck](docs/research/p6-ac1012-focused-ctest-recheck-2026-11-25.json). This confirms local parser/output guards only; it does not replace the native AutoCAD witness or close P8-F.
 
