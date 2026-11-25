@@ -184,8 +184,13 @@ dictionary carriers refuse before publication. Its generated save/reopen and
 independent physical-tag checks pass. The [reactor follow-up](docs/research/p8d-librecad-layer-material-reactor-validation-2026-11-25.json)
 checks the raw and parsed reactor identities for both material and dictionary;
 corruptions refuse atomically, and generated reactor-bearing output passes
-independent readback. Bundled and DWG output, renamed layers, legacy-target
-loss reporting and full graph admission remain open. Refuse
+independent readback. The [dictionary-target follow-up](docs/research/p8d-librecad-layer-material-dictionary-targets-2026-11-25.json)
+checks every replayed entry and applies the shared identity, owner, name and
+reactor visitor to each retained material; missing or corrupt siblings refuse
+with destination preservation and corrected retry. A separate scratch-only
+marker bypass now retains the three physical layer links and material bodies,
+but does not qualify production sparse replay. Bundled and DWG output, renamed
+layers, legacy-target loss reporting and full graph admission remain open. Refuse
 cross-version, missing or edited/inconsistent graphs atomically; verify ASCII/binary readback,
 collision remapping, corrected retry, both codecs, and independent
 complete-drawing semantics. The rebuilt focused system-codec lane passes against the current
