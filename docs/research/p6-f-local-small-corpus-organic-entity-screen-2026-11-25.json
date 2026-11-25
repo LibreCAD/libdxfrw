@@ -1,0 +1,140 @@
+{
+  "date": "2026-11-25",
+  "status": "NO_ELIGIBLE_PARTIAL_SOURCE_FOUND_IN_SCREENED_SUBSET",
+  "purpose": "Screen a source-distinct local DWG subset for an independently readable entity-frame failure followed by published frames, as input to P6-F candidate selection.",
+  "candidate": {
+    "repository": "LibreCAD/libdxfrw",
+    "commit": "6b38a3827e78392ffa8d2347dc858e587e28ce9b",
+    "tool": "dwg2dxf",
+    "tool_sha256": "9f2a6c9f51affb3bee30d94d4e5d1535851c72eb1af351d0af0f8772bb236d3e",
+    "build_profile": "AppleClang 21.0.0, current source, non-debug CLI screen"
+  },
+  "source_corpus": {
+    "roots": ["/Users/dli/doc/dwg", "/Users/dli/doc/dwg6"],
+    "eligible_magic_filter": ["AC1012", "AC1014", "AC1015", "AC1018", "AC1021", "AC1024", "AC1027", "AC1032"],
+    "unique_supported_files_all_sizes": 305,
+    "all_sizes_version_counts": {
+      "AC1012": 4,
+      "AC1014": 21,
+      "AC1015": 51,
+      "AC1018": 37,
+      "AC1021": 56,
+      "AC1024": 50,
+      "AC1027": 44,
+      "AC1032": 42
+    },
+    "screened_max_bytes": 5242880,
+    "screened_unique_count": 293,
+    "screened_version_counts": {
+      "AC1012": 4,
+      "AC1014": 21,
+      "AC1015": 50,
+      "AC1018": 36,
+      "AC1021": 51,
+      "AC1024": 49,
+      "AC1027": 42,
+      "AC1032": 40
+    },
+    "screened_inventory_sha256": "b48e2f41e798be18abe1a3e2da6160fcf1c54898038ac9554ea34d1f381ef744",
+    "provenance": "Local corpus source provenance was not independently authenticated; files were read in place and no DWG/DXF fixture or derivative was copied into the repository."
+  },
+  "screen": {
+    "operation": "dwg2dxf <source> -y -v2018 <scratch-output>",
+    "elapsed_seconds": 15.3,
+    "timeouts": 0,
+    "rows_with_entity_parse_failures": 9,
+    "entity_parse_failure_count": 551,
+    "rows_with_object_parse_failures": 23,
+    "object_parse_failure_count": 25221,
+    "scratch_output_only": true
+  },
+  "follow_up": {
+    "independent_reader": "LibreDWG 0.13.3.553_6d6a_dirty",
+    "oda_authority": "Open Design Specification for .dwg files v5.4.1, §20.4.75 (HATCH), locally available copy",
+    "candidates": [
+      {
+        "basename": "afslutning-under-terraen-byg_154.dwg",
+        "magic": "AC1012",
+        "sha256": "82830de2fc6874a76820e29bfcb27e83094afc8c439de100da6b1493f90bf6bd",
+        "entity_failures": 1,
+        "object_failures": 0,
+        "source_frames": 1221,
+        "published_frames": 1220,
+        "failed_frames": 1,
+        "disposition": "Excluded: LibreDWG decodes failed ARC handle 0x3E44 with radius 0.0. Autodesk AcDbArc::setRadius requires radius greater than zero; this is not an independently valid parser-failure witness.",
+        "authority": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OREF-RefGuide-AcDbArc__setRadius_double.html"
+      },
+      {
+        "basename": "Big-Blocks-CAD.dwg",
+        "magic": "AC1018",
+        "sha256": "004f82643b5bb1e8b49f985bcd3d542ea202707c73ecc41d5596183071f97008",
+        "entity_failures": 2,
+        "object_failures": 0,
+        "disposition": "Excluded: both independently decoded failed ARC records have radius 0.0."
+      },
+      {
+        "basename": "同步攻丝机总装图.dwg",
+        "magic": "AC1027",
+        "sha256": "622bb0e4405f5904f314163bd0976bd6e1c364bba521a01d4acdcfbe5e62572c",
+        "entity_failures": 42,
+        "object_failures": 0,
+        "source_frames": 10762,
+        "published_frames": 10720,
+        "failed_frames": 42,
+        "disposition": "Excluded: the first failed HATCH declares eight path segments in libdxfrw's trace, while LibreDWG minJSON decodes a spline followed by curve_type 0. ODA §20.4.75 assigns path-segment types 1 through 4. The producer is unverified and the observed source encoding does not establish a conforming parser gap; no code change was made."
+      },
+      {
+        "basename": "Airport.dwg",
+        "magic": "AC1032",
+        "sha256": "bfd0a04563ba8f0c7cd010ce0934eefd93ca6d9ed84e75f2e2676c0b893e3373",
+        "entity_failures": 14,
+        "object_failures": 1,
+        "disposition": "Excluded: unrelated object failure and AC1032 is handled by the documented R2018 pass-through stub; profile qualification is absent."
+      },
+      {
+        "basename": "Little Square.dwg",
+        "magic": "AC1032",
+        "sha256": "9cff05ab7689db1ab6885c1e76aa3da81d49b32d7c482cef2c273354ea4c6c9b",
+        "entity_failures": 5,
+        "object_failures": 0,
+        "disposition": "Excluded: four VIEWPORT and one HATCH failures occur in the unqualified AC1032 pass-through profile."
+      },
+      {
+        "basename": "3D Gas station.dwg",
+        "magic": "AC1032",
+        "sha256": "94ac64ab6b3ab8eab48b74a0db08402794d54cbdb14168dcc1b75685e1a6a558",
+        "entity_failures": 11,
+        "object_failures": 2,
+        "disposition": "Excluded: unrelated object failures; the LibreDWG process exited successfully but its standard JSON output was syntactically invalid, so it does not provide a clean independent semantic readback."
+      },
+      {
+        "basename": "Extruder2.dwg",
+        "magic": "AC1018",
+        "sha256": "fa44ada15684eecf46acc4ef095be2ed4793f438da6d570be46c828279aed21c",
+        "entity_failures": 474,
+        "object_failures": 0,
+        "disposition": "Excluded: prior bounded trace and LibreDWG cross-check attribute the failures to missing BLOCK_RECORD owner targets rather than typed entity-body failures; see docs/research/p6-cli-entity-failure-attribution-trace-2026-11-23.json."
+      },
+      {
+        "basename": "export_sample.dwg",
+        "magic": "AC1032",
+        "sha256": "b60b4a7242e43b34ca35561b105b2dda30f2e373602ab5a12900ebc25b1e499b",
+        "entity_failures": 1,
+        "object_failures": 0,
+        "disposition": "Excluded: the scratch trace ends after num_fitpts=0 and does not contain the ODA §20.4.75 R2010+ start/end tangent pair, boundary-object handle count, or following style/pattern fields; this does not establish a conforming parser gap."
+      },
+      {
+        "basename": "gh44-error.dwg",
+        "magic": "AC1027",
+        "sha256": "55017b3ec51409889179295d6d96ffd51ab8bc2b7204efc563411cd0ecb57a99",
+        "entity_failures": 1,
+        "object_failures": 572,
+        "source_frames": 11073,
+        "published_frames": 10500,
+        "failed_frames": 573,
+        "disposition": "Excluded: 572 object-frame failures prevent graph/output closure; no same-name DXF is present. See this receipt's companion LibreDWG corpus screen."
+      }
+    ]
+  },
+  "conclusion": "No screened file qualifies as an independently valid organic partial-output source. Do not change HATCH or ARC parsing based on these unverified/nonconforming candidates. The 12 unique supported-version files larger than 5 MiB were not screened; the receipt does not claim an exhaustive scan of the full local corpus. Do not rerun this unchanged subset; resume only with new source provenance, a changed candidate/build, or a spec-generated valid source that creates a distinct discriminator."
+}
