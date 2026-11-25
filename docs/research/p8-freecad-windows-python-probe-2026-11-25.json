@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-windows-python-probe-2026-11-25",
+  "date": "2026-11-25",
+  "status": "WINDOWS_PREBUILD_PYTHON_PROBE_TIMEOUT_WORKFLOW_FIX_RETRY_PENDING",
+  "supportClaimEffect": "none",
+  "run": {
+    "repository": "dxli/libdxfrw",
+    "id": 45642791685,
+    "jobId": 139305671403,
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/45642791685",
+    "head": "93115aa31cae9662b6cedb6516db787e0f76654b",
+    "result": "Windows FreeCAD qualification failed during initial CMake configuration, before library build or FreeCAD tests: the five-second Python version probe timed out. PowerShell also split the unquoted CMAKE_POLICY_VERSION_MINIMUM=3.5 argument, producing an extra .5 path warning."
+  },
+  "change": "Pin the official actions/setup-python v5.6.0 commit with Python 3.12, pass its exact interpreter path to CMake, and quote the dotted policy argument. Allow the existing platform selector to limit the ordinary FreeCAD jobs as well as the candidate job, so a Windows-only retry does not repeat Linux. This removes dependence on whichever python3 command the hosted runner resolves; the timeout's underlying cause is not independently established.",
+  "validation": "actionlint and a YAML structure check pass for platform selection, the pinned action, interpreter argument and quoted policy. A matching Windows hosted retry remains required.",
+  "limits": [
+    "This failure occurred before conversion; it neither proves nor disproves FreeCAD or libdxfrw compatibility.",
+    "No Windows qualification or support claim is promoted until the corrected workflow completes and its evidence is inspected."
+  ]
+}

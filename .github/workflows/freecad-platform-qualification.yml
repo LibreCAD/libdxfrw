@@ -14,7 +14,7 @@ on:
         type: boolean
         default: false
       candidate_platform:
-        description: Candidate platforms to build
+        description: Platforms to qualify
         required: false
         type: choice
         options:
@@ -31,7 +31,7 @@ permissions:
 
 jobs:
   linux-freecad:
-    if: ${{ github.event_name != 'workflow_dispatch' || !(inputs.candidate || inputs.candidate_gui) }}
+    if: ${{ (github.event_name != 'workflow_dispatch' || !(inputs.candidate || inputs.candidate_gui)) && (github.event_name != 'workflow_dispatch' || inputs.candidate_platform != 'windows') }}
     name: FreeCAD 1.1.4 / Linux x86_64
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -113,7 +113,7 @@ jobs:
           retention-days: 14
 
   windows-freecad:
-    if: ${{ github.event_name != 'workflow_dispatch' || !(inputs.candidate || inputs.candidate_gui) }}
+    if: ${{ (github.event_name != 'workflow_dispatch' || !(inputs.candidate || inputs.candidate_gui)) && (github.event_name != 'workflow_dispatch' || inputs.candidate_platform != 'linux') }}
     name: FreeCAD 1.1.4 / Windows x64
     runs-on: windows-2022
     timeout-minutes: 60
@@ -122,6 +122,12 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - name: Set up qualification Python
+        id: python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
 
       - name: Check out pinned optional legacy DXF importer
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -170,11 +176,12 @@ jobs:
           git -C $addon diff --quiet HEAD -- dxfReader.py dxfLibrary.py dxfColorMap.py dxfImportObjects.py
           if ($LASTEXITCODE -ne 0) { throw 'Legacy DXF importer files differ from the pinned revision' }
           cmake -S . -B build -G 'Visual Studio 17 2022' -A x64 `
-            -DCMAKE_POLICY_VERSION_MINIMUM=3.5 `
+            '-DCMAKE_POLICY_VERSION_MINIMUM=3.5' `
             -DCMAKE_BUILD_TYPE=Release `
             -DBUILD_SHARED_LIBS=OFF `
             -DLIBDXFRW_BUILD_DOC=OFF `
             -DLIBDXFRW_BUILD_DWG2DXF=ON `
+            "-DLIBDXFRW_PYTHON_EXECUTABLE=${{ steps.python.outputs.python-path }}" `
             -DLIBDXFRW_BUILD_TESTS=ON
           if ($LASTEXITCODE -ne 0) { throw "CMake configure failed: $LASTEXITCODE" }
           cmake --build build --config Release --parallel 2 --target dwg2dxf libdxfrw_dwg_local_roundtrip libdxfrw_batch_output_names_tests libdxfrw_consumer_cxx17_contract
