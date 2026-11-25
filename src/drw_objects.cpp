@@ -4024,7 +4024,8 @@ bool DRW_TableEntry::readDwgObjectCommonHandles(
     // wider common-tail handle alias a different low-32-bit object.
     const bool requireRepresentableHandles =
         oType == DRW_Dictionary::kDwgFixedType
-        || oType == DRW_Group::kDwgFixedType;
+        || oType == DRW_Group::kDwgFixedType
+        || legacyDictionaryRoles;
     return readObjectCommonHandles(buf, version, handle, numReactors, xDictFlag,
                                    parentHandle, reactorHandles, xDictHandle,
                                    endBit,

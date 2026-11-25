@@ -1022,7 +1022,8 @@ struct Ac1012VariableControl {
     std::size_t bodyEndFieldBit {0u};
 };
 
-Ac1012VariableControl makeAc1012Variable(bool appendUnknownBodyByte = false) {
+Ac1012VariableControl makeAc1012Variable(bool appendUnknownBodyByte = false,
+                                         int wideCommonHandleIndex = -1) {
     dwgBufferW prefix;
     prefix.putObjType(DRW::AC1012, 500u);
     prefix.putFixedHandle(0u, 1u, 0x23u);
@@ -1050,9 +1051,15 @@ Ac1012VariableControl makeAc1012Variable(bool appendUnknownBodyByte = false) {
     writer.putRawChar8('0');
     if (appendUnknownBodyByte)
         writer.putRawChar8(0u);
-    writer.putFixedHandle(8u, 0u, 0u); // relative soft pointer: self - 1
-    writer.putFixedHandle(4u, 1u, 0x22u); // reactor soft pointer
-    writer.putFixedHandle(3u, 0u, 0u); // typed-null extension dictionary
+    constexpr std::uint64_t wideReference = UINT64_C(0x100000001);
+    writer.putFixedHandle(wideCommonHandleIndex == 0 ? 4u : 8u,
+                          wideCommonHandleIndex == 0 ? 5u : 0u,
+                          wideCommonHandleIndex == 0 ? wideReference : 0u);
+    writer.putFixedHandle(4u, wideCommonHandleIndex == 1 ? 5u : 1u,
+                          wideCommonHandleIndex == 1
+                              ? wideReference : 0x22u);
+    writer.putFixedHandle(3u, wideCommonHandleIndex == 2 ? 5u : 0u,
+                          wideCommonHandleIndex == 2 ? wideReference : 0u);
     while (writer.bitPos() != 0u)
         writer.putBit(0u);
     control.bytes = writer.data();
@@ -1099,6 +1106,14 @@ bool ac1012DictionaryVarControl() {
         || !variable.m_value.empty()
         || !parseSource(control.bytes) || !expected(variable))
         return false;
+
+    for (int index = 0; index < 3; ++index) {
+        const auto wideReference = makeAc1012Variable(false, index);
+        if (wideReference.bytes.empty() || parseSource(wideReference.bytes)
+            || variable.hasDwgCommonLinkTail() || !variable.m_value.empty()
+            || !parseSource(control.bytes) || !expected(variable))
+            return false;
+    }
 
     for (std::size_t length = 0; length < control.bytes.size(); ++length) {
         const std::vector<std::uint8_t> truncated(control.bytes.begin(),
