@@ -13,8 +13,10 @@ percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
-The empty TABLE string/cache preservation follow-up changes selected inputs;
-refresh the clean candidate digest and rerun affected P8 qualification. The
+The empty TABLE string/cache preservation follow-up changes selected inputs.
+A clean checkout of `2bedaad4` computes digest
+`c654b4bc5c1ae5664aeefc59712c5d6a9399e8d12179d7ade1f1219e29d6dc02`
+for 774 inputs; rerun affected P8 qualification. The
 focused ASCII/Binary regression passes, including AC1018 refusal and retry;
 it does not qualify native rendering or broader TABLE semantics.
 
