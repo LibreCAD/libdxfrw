@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-layer-material-reference-2026-11-25",
+  "supportClaimEffect": "none",
+  "consumerCommit": "d21b3c57140d75a667c81ff8b7e63dfc736bb5c3",
+  "libraryCommit": "58cab886d2ac652f91dc88ab53d372a14a199acd",
+  "implementationDigestSha256": "b274f634af9aeb2ca0e8a3b6ddc907a2429f391d6f9c5bfed6b2cbf200ffe44b",
+  "problem": "LibreCAD imported LAYER group 347 but omitted it on export. Removing the matching material carrier still allowed a save that replaced the destination.",
+  "change": "For system-codec ASCII DXF R2007+ on the same source revision, replay an explicit LAYER material pointer only when the material, raw carrier, ACAD_MATERIAL dictionary and root entry agree in the selected profile; preserve explicit null. Preflight failure happens before the writer opens the destination. Shared common-record framing verifies both material and dictionary self/owner handles, captured values and scoped application groups.",
+  "validation": [
+    "Generated AC1021 tests cover an unchanged handle and a collision with fixed handle 14, output remapping, save/reopen/second save, explicit null, missing or duplicate carrier, invalid layer handle, changed raw self/name, wrong version, missing root or dictionary entry, changed raw dictionary target/name, cross-version refusal, preserved destination and same-filter corrected retry.",
+    "System consumer focused material/HATCH/proxy/handle/R12 lane: 193 assertions in 8 cases passed against isolated shared library SHA-256 e0e12e6b20f841f06b89464f3d3e8202e554eee0dfe9e4aa2c69cf19f15e13e7; dyld confirmed the loaded path. Bundled consumer neighboring HATCH/proxy/handle controls: 42 assertions in 3 cases passed. Named-linetype UI lane: 109 assertions in 10 cases passed.",
+    "Independent ezdxf 1.4.4 reopened the generated collision/remap output and confirmed physical layer handle A1 points to material A1 owned by dictionary A0; audit had zero errors and zero repairs. SHA-256 5f901efca2fb7a18f5ba5429cda4625af14f6818c16ddca0ce6edb2e66f5801c.",
+    "Physical tag inspection corrected an earlier scratch diagnostic: source layers carried 347=21 but the old output contained no layer group 347; ezdxf had supplied defaults in memory."
+  ],
+  "limitations": [
+    "The default consumer still refuses incomplete raw-only MATERIAL input; full raw material graph admission and five sparse-MATERIAL test cases remain open.",
+    "Only system-codec same-version ASCII DXF R2007+ layer links are changed; bundled layer-material output, DWG, legacy-target omission reporting, renamed/deleted layers, non-ASCII raw spellings, and general material graph closure remain unqualified.",
+    "No DWG/DXF fixtures were committed and no support claim was promoted."
+  ],
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm"
+  ]
+}

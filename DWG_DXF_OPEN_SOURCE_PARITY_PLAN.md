@@ -53,7 +53,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`5811bb2c4a5a3ee30789106eda9b85e2b9f7a803`. The prior merge head built the
+`d21b3c57140d75a667c81ff8b7e63dfc736bb5c3`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -166,13 +166,21 @@ default filter still refuses and the opted-in filter captures the marker. The
 same focused control now covers the generated 61-group AC1024 profile through
 the actual filter. The export guard remains in place. A [scratch-only unguarded consumer diagnostic](docs/research/p8d-librecad-raw-material-unguarded-diagnostic-2026-11-25.json)
 replayed the locally generated R2010 drawing with all 61 groups per material
-and matching graph/geometry. Removing Global's raw carrier while bypassing the
-guard caused a successful save that silently reduced it to eight typed groups;
-ezdxf audit still passed. Admission must therefore require the exact retained
+and matching material dictionary and geometry. A later physical-tag check
+found its source layer 347 pointers were missing from that output; ezdxf had
+supplied default links in memory. Removing Global's raw carrier while bypassing
+the guard also caused a successful save that silently reduced it to eight typed
+groups; ezdxf audit still passed. Admission must therefore require the exact retained
 raw payload for every marked material and reject missing or replaced carriers;
 an independently clean audit alone is insufficient. A focused consumer
 regression now confirms the existing guard preserves the destination even after
-the raw carrier is removed, followed by a successful corrected retry. Refuse
+the raw carrier is removed, followed by a successful corrected retry. The
+[layer-material reference slice](docs/research/p8d-librecad-layer-material-reference-2026-11-25.json)
+now preserves explicit group 347, including collision remapping, for a bounded
+same-version system-codec ASCII profile; missing or inconsistent material and
+dictionary carriers refuse before publication. Its generated save/reopen and
+independent physical-tag checks pass. Bundled and DWG output, renamed layers,
+legacy-target loss reporting and full graph admission remain open. Refuse
 cross-version, missing or edited/inconsistent graphs atomically; verify ASCII/binary readback,
 collision remapping, corrected retry, both codecs, and independent
 complete-drawing semantics. The rebuilt focused system-codec lane passes against the current

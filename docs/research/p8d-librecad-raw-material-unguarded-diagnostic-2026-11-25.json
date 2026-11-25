@@ -20,12 +20,12 @@
   },
   "positive": {
     "outputSha256": "b4f2c17d52dabb84c6a93baf0506f27d0c7899a9c949cabe2136a3861a74fbc6",
-    "observation": "Same-version unguarded filter export succeeded. Independent ezdxf 1.4.4 readback resolved ACAD_MATERIAL E, ByBlock 95, ByLayer 96, Global 97, each material owner/reactor E, CMATERIAL 96, and all three layer material links to 97; the LINE retained endpoints (0,0,0) and (100,0,0) and P8D_CUSTOM. Audit returned zero errors and repairs. Independent ordered tag comparison found all 61 groups and values for each material preserved except the intended self-handle remapping 1F->95, 20->96 and 21->97."
+    "observation": "Same-version unguarded filter export succeeded. Independent ezdxf 1.4.4 readback resolved ACAD_MATERIAL E, ByBlock 95, ByLayer 96, Global 97, each material owner/reactor E and CMATERIAL 96; the LINE retained its endpoints and P8D_CUSTOM. Audit returned zero errors and repairs, and ordered tag comparison found all 61 material groups preserved except intended self-handle remapping. A later physical-tag inspection found that all three source LAYER group-347 values were missing from the output. ezdxf supplied default material links in memory, so those links do not prove physical preservation."
   },
   "negative": {
     "outputSha256": "df70bb5d40b5a56b506d1e7749f3b4a20b19688b330bcfad069681736539ecb7",
     "mutation": "In a fresh import, bypass the raw-only markers as above and remove only the retained Global raw MATERIAL carrier; keep its typed metadata, dictionary and layer references.",
-    "observation": "The unguarded exporter returned success and emitted Global as an 8-group typed MATERIAL instead of the original 61 groups. The dictionary and target handles resolved and ezdxf audit still returned zero errors and zero repairs. Thus structural audit alone cannot establish material payload preservation; missing raw capture must prevent typed fallback and refuse atomically."
+    "observation": "The unguarded exporter returned success and emitted Global as an 8-group typed MATERIAL instead of the original 61 groups. The dictionary and target handles resolved and ezdxf audit still returned zero errors and zero repairs. A later physical-tag inspection also found no LAYER group-347 values. Structural audit alone cannot establish material payload or layer-reference preservation; missing raw capture must prevent typed fallback and refuse atomically."
   },
   "limits": [
     "Both results deliberately bypass the production guard and are not supported workflow results. Production opt-in remains disabled and the guard was not modified.",
@@ -36,5 +36,12 @@
     "consumerHead": "06224436ea39befdc4d9261d400b59931c15269f",
     "coverage": "The opted-in filter imports a locally generated AC1021 raw-only material. The production exporter preserves the destination and refuses before and after its retained raw carrier is removed; a subsequent complete-material save succeeds on the same filter.",
     "result": "Focused system-codec test passed: 18 assertions in 1 case. dyld verified the isolated current implementation library. The test deliberately removes the carrier in memory; it never disables the production guard."
+  },
+  "physicalLayerCorrection": {
+    "date": "2026-11-25",
+    "sourceSha256": "e32176333101a243ac5968a8e551096d1e9d872ad8f348f82b0f0bba72f10acc",
+    "oldOutputSha256": "b4f2c17d52dabb84c6a93baf0506f27d0c7899a9c949cabe2136a3861a74fbc6",
+    "wireObservation": "Source layers 0, Defpoints and P8D_LAYER each contain physical group 347 value 21. The old positive output contains no group 347 in any of the three layer records; ezdxf defaulted those in memory. The source CMATERIAL 20 and output CMATERIAL 96 are physically present.",
+    "supersededClaim": "The earlier statement that ezdxf layer links proved source layer-reference preservation was incorrect."
   }
 }
