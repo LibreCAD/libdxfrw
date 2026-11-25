@@ -13744,7 +13744,7 @@ bool dxfRW::writeTableWithLegacySourcePresence(DRW_Table *ent, const std::vector
                 // value, leave that optional cache empty rather than emit an
                 // oversized group 302. A retained cache is never truncated.
                 const std::string& cache = retainedString ? value.m_valueString
-                    : (text.size() <= 250u ? text : value.m_valueString);
+                    : (text.size() <= 255u ? text : value.m_valueString);
                 if (!writer->writeUtf8String(301, "CELL_VALUE")
                     || !writer->writeInt32(93, 0)
                     || !writer->writeInt32(90, 4)

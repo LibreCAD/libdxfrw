@@ -13,11 +13,11 @@ percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
-The TABLE string writer fix changes selected implementation inputs. A clean
-checkout of `13bd12c9` computes digest
+The TABLE string writer fix and authored-cache boundary follow-up change
+selected inputs. The prior clean checkout of `13bd12c9` computed digest
 `dd8a21b3589e8552dad09615aeef3985d825945b5eb35c167dedd024937cfd3b`
-for 774 inputs. Rerun affected P8 qualification; prior results below bind
-earlier code and cannot be reused for this candidate.
+for 774 inputs; recompute it after the boundary follow-up. Rerun affected P8
+qualification; prior results below bind earlier code and cannot be reused.
 
 The strict TABLE block-target fix and subsequent TABLE fixture corrections
 change selected inputs. A clean checkout of `193c3e27` computes digest
