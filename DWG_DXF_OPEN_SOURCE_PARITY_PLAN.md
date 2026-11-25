@@ -27,8 +27,11 @@ digest, focused checks and package qualification. Its clean-checkout digest is
 for 775 inputs. The later [opt-in raw MATERIAL capture](docs/research/p8d-ezdxf-default-material-raw-capture-2026-11-25.json) has clean-checkout digest
 `c05fe891b8acfd5db7ea13d575002b47376d3828439220fd71c11f21cf40c47b`.
 The subsequent [raw MATERIAL opt-in fix](docs/research/p8d-sparse-material-policy-and-consumer-guard-2026-11-25.json)
-has digest `7df98118a0e5b6aad55553dee25ec5ca56c2f367cc05f58a3cd50874934bb246`
-for 775 inputs. No earlier qualification is transferred to this candidate. Native GUI, broader FreeCAD coverage, broad and semantic
+has digest `7df98118a0e5b6aad55553dee25ec5ca56c2f367cc05f58a3cd50874934bb246`.
+The subsequent test-only selected-material-graph controls produce current digest
+`5bc263cc80c1c5431b0055829b79daf9e9ceafe4b58877ffe3fae6ca1adc2061` for
+775 inputs; library implementation code did not change. No earlier qualification
+is transferred to this candidate. Native GUI, broader FreeCAD coverage, broad and semantic
 gates remain open. The [package receipt](docs/research/p8-pr106-current-cross-platform-package-2026-11-25.json)
 records Linux and Windows hosted package passes and a local macOS substitute
 for the cancelled hosted macOS job; the overall package workflow was red.
@@ -129,7 +132,9 @@ The [selected-graph peer control](docs/research/p8d-ezdxf-default-material-selec
 reopens the three remapped materials, dictionary, owners, reactors, current
 material and layer links with zero ezdxf audit repairs. Its negative control
 omits Global: the generic writer succeeds despite dangling dictionary/layer
-references, and ezdxf removes the broken dictionary entry. The [consumer safeguard](docs/research/p8d-sparse-material-policy-and-consumer-guard-2026-11-25.json)
+references, and ezdxf removes the broken dictionary entry. The same receipt
+records a fast generated ASCII/binary regression for the selected graph; it does
+not provide general graph admission. The [consumer safeguard](docs/research/p8d-sparse-material-policy-and-consumer-guard-2026-11-25.json)
 retains the raw-only marker and refuses all exports containing it; the ordinary
 filter still does not opt in. The same slice fixes an older library path that
 published a sparse raw-only record without the required policy. Next add a

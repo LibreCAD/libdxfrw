@@ -26,5 +26,13 @@
     "Both outputs and both probes are scratch-only; no third-party or generated DXF was committed.",
     "This selected ASCII graph does not prove arbitrary DXF graphs, LibreCAD adapter behavior, binary output, mutation handling, native material meaning or full source-drawing preservation.",
     "The negative control demonstrates the need for an explicit preflight and atomic refusal plus corrected retry before enabling consumer capture; it does not establish that generic dxfRW promises to validate arbitrary callbacks."
-  ]
+  ],
+  "generatedRegression": {
+    "commit": "35fcf5e9",
+    "implementationDigestSha256": "5bc263cc80c1c5431b0055829b79daf9e9ceafe4b58877ffe3fae6ca1adc2061",
+    "changes": "Test-only; library implementation unchanged from digest 7df98118a0e5b6aad55553dee25ec5ca56c2f367cc05f58a3cd50874934bb246.",
+    "coverage": "Generated ASCII and binary selected three-material graphs; reader verifies root and dictionary entries, remapped self handles, owners and reactors, raw-only markers, current material and layer reference.",
+    "result": "Focused raw-material CTest passed in release and AddressSanitizer builds; no generated drawing committed. The prior independent positive audit was also rerun successfully against the unchanged library implementation after the opt-in fix.",
+    "limits": "This selected output and own-reader check does not enforce admission of arbitrary complete graphs, nor does it validate native semantics or edited document state."
+  }
 }
