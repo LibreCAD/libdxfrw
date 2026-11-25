@@ -38,7 +38,14 @@ and [candidate receipt](docs/research/p8-pr106-ac1012-dictvar-2026-11-24.json).
 The current digest, inventory correction, and exact-head evidence are recorded
 in the [candidate digest receipt](docs/research/p8-pr106-current-candidate-implementation-digest-2026-11-25.json).
 Defer expensive package and consumer reruns until integration freeze unless
-selected inputs change again.
+selected inputs change again. The later [HATCH count fix](docs/research/p6-f-ac1021-hatch-pattern-line-count-fix-2026-11-25.json)
+changed selected implementation inputs in commits `c5319551` and `b244f914`.
+The current PR #106 head is `b244f914f8d8af3c447bc0ff949be732ef2fbe62`; its
+774-input digest is `d358fa5aa32840c884ae4d6957bfd7769f02d83d50f8fead39c0b824136003fe`.
+The [digest refresh receipt](docs/research/p8-pr106-hatch-digest-refresh-2026-11-25.json)
+binds this head. The status overlay was refreshed without changing claims;
+P8-F is reopened until exact-head fast and focused native qualification pass.
+P8-A/E package evidence remains scheduled for the frozen candidate.
 
 At the inventory-only stage after this rebase, exact-head fast run 45525344271
 stopped before build or test execution because the committed CTest inventory

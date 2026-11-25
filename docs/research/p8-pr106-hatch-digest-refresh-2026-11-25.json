@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw-research-receipt-v1",
+  "title": "PR 106 HATCH parser implementation digest refresh",
+  "date": "2026-11-25",
+  "supportClaimEffect": "none",
+  "candidate": {
+    "baseHead": "b0bd311ff16c71b09692f2b24c33443ddb680fd7",
+    "previouslyValidatedCodeHead": "e88e597c0ad93d59ea263bf51e1feb18f1316e15",
+    "currentHead": "b244f914f8d8af3c447bc0ff949be732ef2fbe62",
+    "implementationCommits": ["c5319551e", "b244f914f"],
+    "inputCount": 774,
+    "previousImplementationDigestSha256": "cc1b3bd69345e762b51f00f4d7d83e9015419fcb8a4e6532f0d62417a7132957",
+    "implementationDigestSha256": "d358fa5aa32840c884ae4d6957bfd7769f02d83d50f8fead39c0b824136003fe",
+    "claimsDigestSha256": "7f72bd5c6033fb312c89d56fcc5b476063273a2b24faa863e58114a703956ab8"
+  },
+  "reason": "The two implementation commits correct ODA-defined HATCH/MPOLYGON BS 78 and BS 79 count fields, factor bounded BL/BS count validation, and add a high-count regression. src/drw_entities.cpp is a selected qualification input, so the previous exact-head CI receipt no longer validates this candidate.",
+  "localValidation": {
+    "focusedBuild": "PASS: libdxfrw_dwg_hatch_pattern_angle_units_tests built under the configured -Werror profile",
+    "focusedTest": "PASS: libdxfrw_dwg_hatch_pattern_angle_units (1/1; 0.21 s)",
+    "candidateReadback": "PASS: the hash-bound local AC1021 screen candidate now reports zero entity and object parse failures and publishes all 108878 observed frames; strict output remains refused for unrelated integrity and unsupported-record findings",
+    "qualificationDigest": "PASS: 774-input implementation digest matches the refreshed status overlay",
+    "qualifiedFormatSupport": "PASS: 15 claims, 2 candidate routes, 0 advertised",
+    "supportMatrix": "PASS",
+    "workflowContract": "PASS"
+  },
+  "qualification": {
+    "P8F": "REOPENED_FOR_DIGEST_D358FA5A; exact-head fast and native qualification CI has not yet run",
+    "P8AE": "Prior package receipts bind older digests; refresh at integration freeze",
+    "P8BCDG": "OPEN",
+    "supportStatus": "All claim statuses and the claims digest are unchanged; every claim remains EXPERIMENTAL and zero routes are advertised.",
+    "broadValidation": "Not run; reserve broad suite and fuzz lane for the frozen integration candidate."
+  },
+  "statusOverlay": "metadata/qualified-format-status-v1.json implementationDigestSha256 refreshed to d358fa5a; claims digest and claim statuses unchanged.",
+  "nextStep": "Run the existing fast and focused native qualification workflows against current head b244f914f8d8af3c447bc0ff949be732ef2fbe62. Do not use earlier hosted runs as evidence for this digest."
+}
