@@ -1,23 +1,73 @@
 {
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p8-pr106-digest-reopen-2026-11-24",
-  "status": "PRIOR_QUALIFICATION_REOPENED_AFTER_IMPLEMENTATION_INPUT_CHANGE",
+  "date": "2026-11-24",
+  "status": "CURRENT_DIGEST_RECOMPUTED_HOSTED_QUALIFICATION_PENDING",
   "supportClaimEffect": "none",
   "candidate": {
-    "commit": "66cf3cf7aaee1d61257b45f3d13bbafa4dcc024d",
-    "implementationDigestSha256": "032325db89ca882a6891d3afd24368e43b5de2c38d3f992ebb483e406dfc8e31",
+    "commit": "64ff368cecda92cad93184a427426b9509d19f21",
+    "implementationDigestSha256": "525013950e5a052e7b8fb5cf8f1a7c36f5f01ee81c317165f874fa4a66da791d",
     "inputCount": 774,
-    "measurement": "Qualification digest computed from a clean temporary index populated from the committed tree; checker passed with --allow-draft."
+    "measurement": "Computed by tools/check_qualification_digest.py from the committed candidate tree with the deliberate DRAFT status overlay; --allow-draft passed. Documentation-only updates do not change the selected input set."
   },
   "previousCandidate": {
-    "implementationDigestSha256": "b6f59d17e0fd19013d545f46bc87150d8944326f327493276a13caa5f4baae68",
+    "commit": "55b89bf4f13882dc58ad5debfd2753945fc9cd2c",
+    "implementationDigestSha256": "969c16c47fac6a3450754c734d226fa9f86e3dda5dc9009e0de66afac630e0fb",
     "inputCount": 774,
+    "workflowEvidence": [
+      {
+        "name": "libdxfrw fast parity regressions",
+        "runId": 45466445808,
+        "runNumber": 363,
+        "conclusion": "success",
+        "jobId": 138702686383
+      },
+      {
+        "name": "libdxfrw native qualification",
+        "runId": 45466445685,
+        "runNumber": 521,
+        "conclusion": "success",
+        "jobs": {
+          "qualification workflow contract": {
+            "id": 138702503441,
+            "conclusion": "success"
+          },
+          "focused / linux-gcc": {
+            "id": 138704483895,
+            "conclusion": "success"
+          },
+          "focused / windows-msvc": {
+            "id": 138704483896,
+            "conclusion": "success"
+          },
+          "focused / macos-clang": {
+            "id": 138704484175,
+            "conclusion": "success"
+          },
+          "final broad": "skipped",
+          "extended deterministic fuzz / linux-gcc": "skipped"
+        }
+      }
+    ],
     "priorReceiptRefs": [
+      "docs/research/p8-pr106-ac1012-boundary-refresh-2026-11-24.json",
       "docs/research/p8-ac1012-cross-platform-package-profile-2026-11-24.json",
       "docs/research/p8-pr106-ac1012-current-ci-2026-11-24.json"
-    ]
+    ],
+    "interpretation": "Run 521 qualifies only the prior digest. Package evidence still binds b6f59d17 and does not close P8-A/E for the current candidate."
   },
-  "reopenedGates": ["P8-A", "P8-E", "P8-F"],
+  "reopenedGates": [
+    "P8-F"
+  ],
+  "stillOpenGates": [
+    "P8-A",
+    "P8-B",
+    "P8-C",
+    "P8-D",
+    "P8-E",
+    "P8-F",
+    "P8-G"
+  ],
   "statusOverlay": {
     "path": "metadata/qualified-format-status-v1.json",
     "sha256": "db56c101f3bef326ca7be786e34c66c5eb6955fbba03dae5ab49ae34bc852cfe",
@@ -26,13 +76,36 @@
     "claimPromotion": false
   },
   "validation": {
-    "digestChecker": "PASS for 774 inputs and current draft status overlay on a clean temporary index",
+    "localBuild": {
+      "platform": "macOS ARM64",
+      "compiler": "Apple clang version 21.0.0.21000334",
+      "warningPolicy": "project warning-as-error flags",
+      "targets": [
+        "libdxfrw_dwg_ac1014_dictionaryvar_tests",
+        "libdxfrw_dwg_object_vectors_tests",
+        "libdxfrw_dwg_reader_matrix_tests"
+      ],
+      "result": "PASS"
+    },
+    "focusedCtest": {
+      "names": [
+        "libdxfrw_dwg_ac1014_dictionaryvar",
+        "libdxfrw_legacy_dictionary_group_links",
+        "libdxfrw_dwg_table_cell_overrides",
+        "libdxfrw_ac1021_table_content_reference_roles",
+        "libdxfrw_ac1024_table_content_spec_vectors",
+        "libdxfrw_dwg_r2007_class_string_footer"
+      ],
+      "result": "PASS 6/6 in 0.89 seconds"
+    },
+    "digestChecker": "PASS for 774 selected inputs and DRAFT status overlay",
     "supportPolicy": "PASS; 15 claims, 2 candidate routes, 0 advertised routes",
-    "newPackageOrHostedCiRuns": "not run; gates are reopened and await exact-digest qualification"
+    "currentCandidateHostedChecks": "not yet run; must bind exact digest 52501395 after the branch update",
+    "packageAndConsumerReruns": "deferred to integration freeze; P8-A/E remain open"
   },
   "limitations": [
-    "The prior package and CI receipts remain valid only for their recorded implementation digest.",
-    "The new digest is not yet qualified by package, hosted CI, FreeCAD, or native consumer evidence.",
-    "No support claim was promoted."
+    "Prior hosted run 521 and package receipts do not qualify the new implementation digest.",
+    "The new digest is not qualified by package, hosted CI, FreeCAD, or native consumer evidence.",
+    "No support claim is promoted."
   ]
 }
