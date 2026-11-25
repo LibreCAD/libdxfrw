@@ -118,6 +118,23 @@ Five sparse-MATERIAL imports and one wide proxy-handle export remain failing;
 resolve their underlying policy/serialization constraints without bypassing
 the incomplete-material guard or inventing wide-handle support.
 
+For the wide proxy control, [Autodesk's DXF group-code reference](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm)
+permits 16 hex digits for entity handles; its [HANDSEED definition](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_Handseed.html)
+identifies a 64-bit next-available-handle counter. The current writer inventory
+parses emitted self and owner handles into 32 bits, and its header reserves an
+eight-digit backpatch, so accepting a wide lexeme without further work could
+produce an invalid seed. Implement the narrow transport slice in this order:
+(1) make the emitted-record inventory and rollback checkpoint preserve 64-bit
+self and owner values, including numeric duplicate detection; (2) compute a
+checked next seed from both generated 32-bit handles and all emitted wide
+identities, enlarge and authenticate the fixed-width backpatch, and refuse
+atomically on exhaustion; (3) retain explicit refusal for wide references that
+need unresolved 32-bit entity remapping; (4) test ASCII and binary output,
+wide owner/self duplicates, leading-zero equivalence, `FFFFFFFF`, values above
+it, the maximum 64-bit value, destination preservation and retry, and an
+independent reopened DXF. Preserve the public 32-bit semantic handle API and
+do not infer support for wide relationship graphs from raw self-handle transport.
+
 The [macOS ODA re-open control](docs/research/p6-ac1012-oda-macos-peer-reopen-2026-11-25.json)
 reopened the existing generated AC1012 pair in an isolated GUI instance and
 retained their named style entries, angles and element counts. Direct CLI
