@@ -1,0 +1,36 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-hatch-digest-local-fast-qualification-2026-11-25",
+  "date": "2026-11-25",
+  "status": "LOCAL_FAST_AND_CONTRACTS_PASS_HOSTED_MATRIX_OPEN",
+  "supportClaimEffect": "none",
+  "codeCommit": "c31185daa",
+  "evidenceHead": "7b466955b54efc06a45b95481c538f3813557708",
+  "cleanCloneCommit": "c31185daa",
+  "implementationDigest": {
+    "algorithm": "sha256-git-blob-records-v1",
+    "sha256": "e1b7dc677d2bd2f83b962ab14aa5596e4c97c9c2ad21d9c5ae0786c2049559ea",
+    "inputCount": 774,
+    "verification": "PASS in clean clone with --allow-draft; overlay remains draft"
+  },
+  "environment": {
+    "platform": "Darwin 27.2.0 arm64",
+    "compiler": "/usr/bin/g++ (Apple Clang)",
+    "buildType": "Release",
+    "releaseFlags": "-O3 -DNDEBUG",
+    "buildDir": "build-gcc"
+  },
+  "localChecks": {
+    "build": "PASS: rebuilt the 21 bounded fast workflow targets including lc3_compat_check and dwg2dxf",
+    "fastFocus": "PASS: 7 executables and all 53 required CTests; 0 failed, 0 skipped; CTest 38.88 seconds",
+    "workflow": "PASS with --allow-unfinalized; broad inventory pending",
+    "qualifiedSupport": "PASS with --allow-draft; 15 claims, 2 candidate routes, 0 advertised",
+    "supportMatrix": "PASS",
+    "cliSha256": "044c53b4d5dd27f278520e8df4771dc7e9bef3829fd9e8bc518561a47f7a3a4e"
+  },
+  "limits": [
+    "This local macOS ARM64 run and draft allowances do not close hosted Linux GCC, macOS Clang, Windows MSVC, or package qualification.",
+    "No broad suite, fuzz lane, source-release lane, native GUI or full FreeCAD qualification was run.",
+    "No support claims were promoted and no fixtures were committed."
+  ]
+}
