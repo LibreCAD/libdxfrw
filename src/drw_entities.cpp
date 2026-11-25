@@ -1257,10 +1257,10 @@ std::uint64_t tableBodyEndBit(DRW::Version version,
     return objectSize;
 }
 
-bool readTableBodyCount(DRW::Version version, dwgBuffer *buf,
-                        std::uint64_t objectSize, std::uint32_t maximum,
-                        std::uint32_t minimumBitsPerItem,
-                        std::uint32_t& value) {
+bool readTableBodyCountImpl(DRW::Version version, dwgBuffer *buf,
+                            std::uint64_t objectSize, std::uint32_t maximum,
+                            std::uint32_t minimumBitsPerItem, bool bitShort,
+                            std::uint32_t& value) {
     if (buf == nullptr || !buf->isGood())
         return false;
 
@@ -1272,9 +1272,11 @@ bool readTableBodyCount(DRW::Version version, dwgBuffer *buf,
         if (tag.get2Bits()==3u || !tag.isGood()) return false;
     }
     dwgBuffer probe = buf->forkIndependent();
-    const std::int32_t parsed = probe.getBitLong();
+    const std::int64_t parsed = bitShort
+        ? static_cast<std::int64_t>(probe.getBitShort())
+        : static_cast<std::int64_t>(probe.getBitLong());
     if (!probe.isGood() || parsed < 0
-        || static_cast<std::uint32_t>(parsed) > maximum)
+        || static_cast<std::uint64_t>(parsed) > maximum)
         return false;
 
     if (version >= DRW::AC1015 && objectSize != 0) {
@@ -1289,6 +1291,22 @@ bool readTableBodyCount(DRW::Version version, dwgBuffer *buf,
     *buf = probe;
     value = static_cast<std::uint32_t>(parsed);
     return true;
+}
+
+bool readTableBodyCount(DRW::Version version, dwgBuffer *buf,
+                        std::uint64_t objectSize, std::uint32_t maximum,
+                        std::uint32_t minimumBitsPerItem,
+                        std::uint32_t& value) {
+    return readTableBodyCountImpl(version, buf, objectSize, maximum,
+                                  minimumBitsPerItem, false, value);
+}
+
+bool readTableBodyShortCount(DRW::Version version, dwgBuffer *buf,
+                             std::uint64_t objectSize, std::uint32_t maximum,
+                             std::uint32_t minimumBitsPerItem,
+                             std::uint32_t& value) {
+    return readTableBodyCountImpl(version, buf, objectSize, maximum,
+                                  minimumBitsPerItem, true, value);
 }
 
 std::uint64_t proxyEntityEndBit(const dwgBuffer& buffer,
@@ -24851,8 +24869,8 @@ bool DRW_MPolygon::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t 
         scale = parsedScale;
         doubleflag = parsedDoubleFlag;
         std::uint32_t parsedDeflines = 0;
-        if (!readTableBodyCount(version, buf, objSize, kMaxHatchItems, 12,
-                                parsedDeflines))
+        if (!readTableBodyShortCount(version, buf, objSize, kMaxHatchItems, 12,
+                                     parsedDeflines))
             return fail();
         if (!DRW::reserve(patternLines, parsedDeflines))
             return fail();
@@ -25650,8 +25668,8 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
         scale = parsedScale;
         doubleflag = parsedDoubleFlag;
         std::uint32_t parsedDeflines = 0;
-        if (!readTableBodyCount(version, buf, objSize, kMaxHatchItems, 12,
-                                parsedDeflines))
+        if (!readTableBodyShortCount(version, buf, objSize, kMaxHatchItems, 12,
+                                     parsedDeflines))
             return fail();
         deflines = static_cast<int>(parsedDeflines);
         for (std::uint32_t i = 0 ; i < parsedDeflines; ++i){
