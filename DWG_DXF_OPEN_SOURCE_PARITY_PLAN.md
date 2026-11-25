@@ -49,7 +49,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`06224436ea39befdc4d9261d400b59931c15269f`. The prior merge head built the
+`4473cd85b667cae55d35129d24972a3dc623ac09`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -143,7 +143,8 @@ layer and current-material targets and handle uniqueness before enabling
 consumer capture and same-version raw replay. The codec interface is now a
 public base, so a derived filter can explicitly opt in; tests confirm that the
 default filter still refuses and the opted-in filter captures the marker. The
-export guard remains in place. A [scratch-only unguarded consumer diagnostic](docs/research/p8d-librecad-raw-material-unguarded-diagnostic-2026-11-25.json)
+same focused control now covers the generated 61-group AC1024 profile through
+the actual filter. The export guard remains in place. A [scratch-only unguarded consumer diagnostic](docs/research/p8d-librecad-raw-material-unguarded-diagnostic-2026-11-25.json)
 replayed the locally generated R2010 drawing with all 61 groups per material
 and matching graph/geometry. Removing Global's raw carrier while bypassing the
 guard caused a successful save that silently reduced it to eight typed groups;

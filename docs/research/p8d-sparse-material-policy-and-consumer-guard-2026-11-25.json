@@ -27,7 +27,12 @@
       "Bundled-codec DXF round-trip lane: 4,751 assertions in 143 cases passed after rebuilding the affected target.",
       "The independent compact-material graph CTest passed, exercising the other sparse-tail policy branch.",
       "An earlier derived-filter test passed incorrectly because the old library failed to enforce opt-in. When enforcement was fixed it failed correctly: private interface inheritance prevented the cross-cast. Public interface inheritance now permits the explicitly opted-in real filter, with no new virtual; the earlier result is superseded."
-    ]
+    ],
+    "ac1024Integration": {
+      "head": "4473cd85b667cae55d35129d24972a3dc623ac09",
+      "coverage": "A locally constructed AC1024 61-group default MATERIAL is refused by the standard filter, captured by an explicitly opted-in derived filter with the raw-only marker and all groups retained, and rejected by the same-version exporter without changing the destination. The existing AC1021 missing-carrier and corrected-retry control runs in the same focus.",
+      "result": "Two system-codec material cases passed, 26 assertions; dyld confirmed the isolated current library."
+    }
   },
   "limits": [
     "The production filter does not opt in and the consumer refuses all exports containing a marked raw-only material until complete graph validation and same-version replay are implemented.",
