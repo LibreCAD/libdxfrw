@@ -200,6 +200,15 @@ see the [callback boundary](docs/research/p5-tablecontent-semantic-incomplete-ca
 | P5-H / WAITING_FOR_NATIVE_VIEWPORT_PAIR | Use the [native witness and wire-inspection packet](tools/research/P5H_VIEWPORT_SHADEPLOT_WITNESS_README.md) to capture and correlate AutoCAD ASCII/Binary exports with known VisualStyle, RenderPreset, and null-control state. Record the host profile, native target classes and file-specific handles. Resolve group 170 modes 4/5 and group 333 target classes; reuse the [conflict analysis](docs/research/p6-viewport-shadeplot-dxf-objectarx-conflict-2026-11-16.json). | Prove exact values/target roles and fresh typed readback. Null, wrong-kind, missing, or ambiguous targets must refuse atomically; corrected same-writer retry and native rendering must pass. |
 | P5-I / SOURCE_CELL_SPANS_BOUND_OUTPUT_WAITING_ON_P5-B | The independent [full cell trace](docs/research/p5-ac1021-autocad2007-table-full-cell-spans-2026-11-24.json) now binds all 171 cells across the two classified AutoCAD 2007 tables, contiguous body/text/handle ranges, all 171 hard-pointer value handles, 15 resolved FIELD targets, and both following object-map boundaries. The current libdxfrw read covers 4408/4408 source frames with zero parse failures; strict output still stops at P5-B's FIELD/FIELDLIST serializer preflight. | Keep this exact producer profile and anonymous-block fallback. P5-I remains open: close FIELD graph/output dependencies, then prove selected-TABLE ASCII/Binary output, fresh independent readback, destination-preserving refusal and retry, and native rendering. Capture any still-unbound table-wide tail or graph edge from the matching source before adding typed behavior; keep other AC1021 producers and proxy graphics out of scope. |
 
+The cached branch proposes an AC1021 TABLE General-value writer, but the
+[independent ODA DXF comparison](docs/research/p5-ac1021-general-value-oda-dxf-comparison-2026-11-25.json)
+shows a different envelope for both selected cells: ODA omits the proposed
+group-310 bytes and changes the flags. The two source payloads decode as the
+matching null-terminated UTF-16LE strings, a narrow observation rather than a
+general schema. Keep strict output refused until native producer output or an
+independent reader proves the mapping and its semantics; the cached writer
+also needs bounded text and source-style graph qualification before admission.
+
 The [P5-H authority follow-up](docs/research/p6-viewport-shadeplot-dxf-objectarx-conflict-2026-11-16.json)
 confirms the API enum values and target classes for VisualStyle and RenderPreset,
 and null-target behavior for AsDisplayed/Rendered. The published VIEWPORT DXF

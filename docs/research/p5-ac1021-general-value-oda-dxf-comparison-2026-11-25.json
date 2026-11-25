@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1021-general-value-oda-dxf-comparison-2026-11-25",
+  "date": "2026-11-25",
+  "status": "INDEPENDENT_CONVERTER_DIFFERS_OUTPUT_MAPPING_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "question": "Does an independent converter serialize the two selected AC1021 TABLE General payloads using the cached proposed group-310 output?",
+  "source": {
+    "name": "blocks_and_tables_-_metric.dwg",
+    "version": "AC1021",
+    "sha256": "7d5507da05fb70ba55875d99e676524ca2caa0ed7a5582ad130c3c06e8d925f1",
+    "sizeBytes": 258848,
+    "provenance": "Previously classified AutoCAD 2007 sample; read locally. No source or derivative fixture committed."
+  },
+  "converter": {
+    "name": "ODA File Converter",
+    "version": "27.10.0.0",
+    "package": "ODAFileConverter_QT6_lnxX64_11dll_27.10.deb",
+    "packageSha256": "c432002cc688f89ddf6a68ad68e877cd16da1d99ab8729386009c552cf73beb5",
+    "environment": "Ubuntu x86_64 Docker container with Xvfb, emulated on macOS ARM64",
+    "command": "ODAFileConverter /work/input /work/output ACAD2007 DXF 0 0 *.dwg",
+    "exitCode": 0,
+    "outputSha256": "69ac93f16d7895e44e48448a25de60378be8af8d1fc7a36764da8feb33cbe989",
+    "scratchOutput": "/private/tmp/p5i-oda-comparison-20261125/output/source.dxf"
+  },
+  "comparison": {
+    "proposedCommit": "122ebd51ac9c33554a59302f781ed08cce6536bf",
+    "previousEvidenceCommit": "817b3d7d0558521cfb1412947ecb7098a484beb0",
+    "method": "Compare the two unique selected label envelopes in ODA output against the previously recorded one-cell ASCII projections, verify their hashes and decode their group-310 bytes as UTF-16LE.",
+    "cells": [
+      {
+        "label": "ESTIMATED COST OF DOORS",
+        "rawBytes": 48,
+        "rawSha256": "a1e7757617c1217bc3070b1907fcf2df8840cdda0861f3b87718e52d07ef4015",
+        "rawUtf16le": "ESTIMATED COST OF DOORS followed by U+0000",
+        "priorProjectionSha256": "f638a07148386363c34c73707d940daaf45b2d48026e5f90d51438aa6904d301"
+      },
+      {
+        "label": "ESTIMATED COST OF WINDOWS",
+        "rawBytes": 52,
+        "rawSha256": "6300aceae6a3f20b72f1aef6b6a3c41f4e16804481bbbff60c6f4e7ced483f06",
+        "rawUtf16le": "ESTIMATED COST OF WINDOWS followed by U+0000",
+        "priorProjectionSha256": "d4fdd72db8cc215565fcf6b607ee5b68dcb45e3d8eb33cfaf6e363fa90566d11"
+      }
+    ],
+    "priorProposedEnvelope": "301 CELL_VALUE; 93=6; 90=512; 92=48 or 52; 310 raw UTF-16LE bytes; 94=0; 300 empty; 302 displayed label; 304 ACVALUE_END.",
+    "odaEnvelope": "301 CELL_VALUE; 93=0; 90=512; 94=0; 300 empty; 302 displayed label; 304 ACVALUE_END. No 92 or 310 appeared within either selected envelope.",
+    "scope": "The ODA output also contains selected labels inside TABLECONTENT-like structures; the observations above are the two CELL_VALUE envelopes in the TABLE entities."
+  },
+  "assessment": [
+    "The two raw payloads independently decode as null-terminated UTF-16LE matching their caches. This is an observation of two selected strings, not a general type-512 schema.",
+    "ODA produced a materially different representation. Its output and process success do not by themselves prove that the raw value survives, that its representation is lossless, or that either representation is accepted by AutoCAD.",
+    "The earlier ACadSharp check confirmed envelope/cache but did not decode group 310; no independent semantic readback proves the proposed raw carrier.",
+    "Keep the current strict refusal and do not integrate the cached output route until native producer output or independently validated readback establishes the group-310 mapping and handle/semantic safety. The source-style graph and FIELD dependencies also remain open."
+  ],
+  "nextStep": "Compare an AutoCAD-produced AC1021 DXF or another independently validated consumer that exposes the General value bytes and semantics; then decide mapping, cover string bounds and failure/retry, and requalify the source graph."
+}
