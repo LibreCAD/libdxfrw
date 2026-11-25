@@ -24,7 +24,8 @@
   "checks": [
     "Both files have AC1012 magic; ODA reopened both without a per-file error.",
     "The bounded DXF audit resolves the ACAD_MLINESTYLE dictionary and selected style owners, names, angles and two-element counts in both ODA exports.",
-    "GNU LibreDWG 0.14 independently reads both DWGs and reports the same dictionary owners and selected start angles; every selected style has offsets +0.5 and -0.5 and BYLAYER linetype index 32767."
+    "GNU LibreDWG 0.14 independently reads both DWGs and reports the same dictionary owners and selected start angles; every selected style has offsets +0.5 and -0.5 and BYLAYER linetype index 32767.",
+    "The locally rebuilt dwg2dxf (SHA-256 f099c97f515cea3d1c6948449a808647e8ac818d5a0e1cbff4dd9e6af946b436) observes 203/203 frames published and zero entity/object parse failures in each source. Strict ASCII and binary AC1024 output each refuse at the unqualified AC1012 dictionary merge-semantics preflight and preserve the preexisting destination. Each source also reports one skipped custom-class instance and one skipped unsupported object instance, so complete frame coverage is not whole-file semantic completeness."
   ],
   "limits": [
     "ODA reopened its own generated files; independent LibreDWG readback is not native AutoCAD acceptance, style validation or duplicate-merge behavior.",

@@ -300,7 +300,9 @@ degree style values; ODA's re-export retains those values. A subsequent
 eliminates the zero-element limitation, retains those values, and passes ODA
 reopen plus independent LibreDWG readback. Prioritize that scratch-only pair
 for native normal-open, style validation and the merge procedure; no AutoCAD
-acceptance or clone behavior has yet been established.
+acceptance or clone behavior has yet been established. The current converter
+reads all 203 frames in each source and preserves existing ASCII/Binary
+destinations on the dictionary-semantics refusal; skipped objects remain.
 
 The user-requested current-binary regeneration reproduces that same pair from
 scratch at `/private/tmp/ac1012-user-spec-response-20261124/ac1012-dictionary-merge-obyu6yl4`.
