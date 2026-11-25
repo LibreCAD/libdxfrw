@@ -1,0 +1,61 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-ctest-inventory-refresh-2026-11-24",
+  "date": "2026-11-24",
+  "status": "INVENTORY_REGENERATED_EXACT_HEAD_CHECKS_PENDING",
+  "supportClaimEffect": "none",
+  "trigger": {
+    "pullRequest": "LibreCAD/libdxfrw#106",
+    "sourceHead": "fc21cda0e408ca114d47f1ab24fad110d5840ba9",
+    "fastWorkflowRun": 45525344271,
+    "fastJob": 138907166621
+  },
+  "failure": {
+    "step": "Check frozen CTest inventory before building",
+    "result": "The exact-head fast workflow stopped before compilation or CTest execution because the live CTest inventory differed from the frozen broad inventory.",
+    "frozen": {
+      "count": 1398,
+      "nameDigestSha256": "3aae4b7a34f86ca0a8154406242aebca91ae8ab2448bb3dcdefba63e7bd6eaf6"
+    },
+    "live": {
+      "count": 1400,
+      "nameDigestSha256": "469e507c44174b2fcbb92f0f33b79cdf50b39b13b9e2f0b292636337288b812f"
+    },
+    "addedTests": [
+      "libdxfrw_ac1021_table_content_reference_roles",
+      "libdxfrw_ac1024_table_content_spec_vectors"
+    ],
+    "removedTests": []
+  },
+  "reproduction": {
+    "host": "macOS ARM64",
+    "compiler": "AppleClang 21.0.0.21000334",
+    "profile": "Ninja; Release; BUILD_SHARED_LIBS=OFF; docs=OFF; dwg2dxf=ON; tests=ON; qualification=OFF; long_fuzz=OFF; independent DXF oracle=OFF",
+    "commands": [
+      "cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release '-DCMAKE_CXX_FLAGS_RELEASE=-O1 -DNDEBUG' -DBUILD_SHARED_LIBS=OFF -DLIBDXFRW_BUILD_DOC=OFF -DLIBDXFRW_BUILD_DWG2DXF=ON -DLIBDXFRW_BUILD_TESTS=ON -DLIBDXFRW_BUILD_QUALIFICATION=OFF -DLIBDXFRW_BUILD_LONG_FUZZ=OFF -DLIBDXFRW_ENABLE_INDEPENDENT_DXF_ORACLE=OFF",
+      "python3 -B tools/run_native_qualification.py freeze-inventory --root . --build-dir build --manifest metadata/qualification-required-tests-v1.json --output /private/tmp/qualification-current-pr106-fc21.json"
+    ]
+  },
+  "repair": {
+    "file": "metadata/qualification-required-tests-v1.json",
+    "method": "Regenerate the frozen CTest inventory from the exact hosted CMake profile, preserving the focused test contract and including both already-registered TABLECONTENT controls.",
+    "count": 1400,
+    "nameDigestSha256": "469e507c44174b2fcbb92f0f33b79cdf50b39b13b9e2f0b292636337288b812f",
+    "implementationDigestSha256": "aee20c918e5c7aa19b4572e371e6361eea446a59d6da1d130cb0b00f78faffed",
+    "selectedInputs": 774,
+    "statusOverlay": "remains DRAFT_WORKFLOW_AND_DIGEST_PENDING; no implementation digest or claims are advertised"
+  },
+  "validation": [
+    "Local hosted-profile CMake configure passed.",
+    "check-inventory passed: 1400 tests.",
+    "check_qualification_digest.py --allow-draft passed for 774 inputs.",
+    "qualified-format-support validation and self-test passed: 15 claims, 2 candidate routes, 0 advertised routes.",
+    "git diff --check passed."
+  ],
+  "limits": [
+    "The failure occurred before building or running tests, so it is not a code regression result.",
+    "Inventory alignment closes no implementation or platform gate and promotes no support claim.",
+    "Exact-head hosted fast and focused checks remain pending after the manifest refresh.",
+    "The local host lacks gcc-13/g++-13; the exact Linux GCC workflow must provide that cross-platform validation."
+  ]
+}
