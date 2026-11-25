@@ -108,10 +108,19 @@ reopened the existing generated AC1012 pair in an isolated GUI instance and
 retained their named style entries, angles and element counts. Direct CLI
 launch still fails in this environment. Both producer and reader are ODA, so
 native AutoCAD validity and duplicate-key merge semantics remain open.
-The [current LibreCAD GUI launch](docs/research/p8d-librecad-native-ltype-launch-2026-11-25.json)
-built successfully but stalled in the library-directory scan before creating
-a window. Identify the blocking directory or use an isolated settings profile
-without modifying the user's profile, then resume the named-LTYPE check.
+The [native named-LTYPE probe](docs/research/p8d-librecad-native-ltype-isolated-2026-11-25.json)
+used a scratch-only settings-profile build to avoid a recursive scan of the
+user's Documents directory. A generated R12 drawing retained its named linetype,
+dash pattern and line geometry through GUI save and reopen, but the selected
+line's Properties panel showed Continuous. Fix the property model to retain and
+display the explicit linetype name, including multi-selection and edits; check
+that changing another property and changing the linetype both preserve the
+intended DXF. Repeat with the unmodified final app and both codecs. The probe's
+separate ezdxf-generated R2010 drawing was refused: its MATERIAL uses group 73
+where Autodesk specifies 76, and correcting that alone reaches a second sparse
+group-94 guard. Investigate a bounded, explicit raw-only import policy with
+source identity, full raw retention, safe same-version replay, cross-version
+refusal, malformed controls and retry; do not silently assign ambiguous fields.
 
 The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
 operator-run transfer route, and return route are unknown. Obtain the
