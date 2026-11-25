@@ -92,10 +92,14 @@ LibreCAD `master` `78014ecde2f53fdd8c06453f3854b1cae1a3fd0d`, LibreCAD_3
 integration or platform qualification.
 
 The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
-operator-run transfer route, and return route are unknown. Obtain the
-[host profile](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) once and use
-only packets reviewed for that profile. A packet or stub build is not a native
-capture. Continue other ready work while waiting.
+operator-run transfer route, and return route remain unknown. The user directed
+the next AC1012 step to create specification-shaped DWG samples instead; that
+route has now been regenerated on the current worktree and read back through
+LibreDWG 0.14 (see the 2026-11-25 AC1012 sample receipts below). This confirms
+only the generated wire and selected projection. It does not establish native
+AutoCAD normal-open or duplicate-merge semantics. Do not repeat the host intake
+or generate an equivalent pair again without a new discriminator; continue
+other ready implementation work.
 
 ## Execution and evidence rules
 
@@ -245,6 +249,21 @@ duplicate-merge evidence. See the [peer receipt](docs/research/p6-ac1012-partial
 The user-directed current-candidate AC1012 sample regeneration applies the ODA §9/§20.4.44/§20.4.73 structure and produces complete destination/source DWGs with `SAME_KEY` targets at 15/37 degrees. Both physical DICTIONARY frames and the current parser controls pass; strict output preserves its destination on the native-semantics guard, while explicit-partial ASCII/Binary outputs pass bounded audits. The DWGs remain scratch-only at `/private/tmp/ac1012-user-spec-followup-20261123/ac1012-dictionary-merge-buvd8iq6`; this repeats the existing discriminator and does not resolve AutoCAD duplicate-key behavior. See the [post-commit regeneration receipt](docs/research/p6-ac1012-spec-pair-postcommit-recheck-2026-11-23.json).
 
 The [2026-11-24 collision and unique-entry control](docs/research/p6-ac1012-collision-unique-entry-control-2026-11-24.json) adds `DEST_ONLY` (22 degrees) to the destination and `SOURCE_ONLY` (51 degrees) to the source while retaining the shared 15/37-degree `SAME_KEY` collision. The focused physical-frame observer passes for both AC1012 dictionaries; strict output still preserves its prior destination on the native-semantics guard, and explicit-partial ASCII/Binary audits retain each profile's selected keys and angles. The samples remain scratch-only under `/private/tmp/ac1012-spec-control-20261124-release/ac1012-dictionary-merge-is640zms`. This gives a host witness a second observable (non-conflicting-key retention) but does not establish native merge behavior or promote support.
+
+Following the user's specification-sample direction, the pair was regenerated
+from scratch on worktree head `a24f2f125677727418a3a5fc7af1e14c8663940f`.
+The physical-frame observer and focused AC1012 parser control passed; strict
+conversion preserved the destination on the native-semantics guard, and
+explicit-partial ASCII/Binary outputs passed the bounded audit. LibreDWG 0.14
+reopened all four fresh partial DXFs and resolved the NOD dictionary, all
+selected MLINESTYLE entries, owners, and expected angles (15/22 degrees for the
+destination; 37/51 degrees for the source). ASCII and Binary projections
+produced identical peer-DWG hashes per source. These are generated-wire and
+selected-projection checks only; the pair does not distinguish AutoCAD's
+native duplicate-merge behavior. The DWGs and peer outputs remain in
+`/private/tmp/ac1012-spec-request-20261125/ac1012-dictionary-merge-wuagbrc2`.
+See the [fresh generation receipt](docs/research/p6-ac1012-spec-sample-regeneration-2026-11-25.json)
+and [fresh peer readback receipt](docs/research/p6-ac1012-spec-sample-peer-readback-2026-11-25.json).
 
 The user-requested current-binary regeneration reproduces that same pair from
 scratch at `/private/tmp/ac1012-user-spec-response-20261124/ac1012-dictionary-merge-obyu6yl4`.
