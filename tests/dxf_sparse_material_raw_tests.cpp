@@ -4,6 +4,7 @@
 #include "libdwgr.h"
 #include "intern/dxfwriter.h"
 #include "intern/dwgbufferw.h"
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -17,6 +18,16 @@ struct Reader:LC3CompatCheck,DRW_DxfSparseMaterialRawPolicy {
  bool enabled=true;
  bool wantsDxfSparseMaterialRawCapture() const noexcept override{return enabled;}
  std::vector<DRW_Material> materials;std::vector<DRW_RawDxfObject> raw;
+ std::vector<DRW_Dictionary> dictionaries;DRW_Dictionary root;
+ std::vector<DRW_Layer> layers;std::string currentMaterial;
+ void addDictionary(const DRW_Dictionary& d)override{dictionaries.push_back(d);}
+ void addNamedObjectDictionary(const DRW_Dictionary& d)override{root=d;}
+ void addLayer(const DRW_Layer& l)override{layers.push_back(l);}
+ void addHeader(const DRW_Header* h)override{
+  auto it=h->vars.find("$CMATERIAL");
+  if(it!=h->vars.end()&&it->second&&it->second->type()==DRW_Variant::STRING&&it->second->c_str())
+   currentMaterial=it->second->c_str();
+ }
  void addMaterial(const DRW_Material& v)override{materials.push_back(v);}
  void addRawDxfObject(const DRW_RawDxfObject& v)override{if(v.name=="MATERIAL")raw.push_back(v);}
 };
@@ -29,6 +40,14 @@ struct DxfWriter:LC3CompatCheck {
  dxfRW& out;DRW_Material value;DRW_RawDxfObject raw;bool useRaw=false,ok=false;
  explicit DxfWriter(dxfRW& w):out(w){}
  void writeObjects()override{ok=useRaw?out.writeRawDxfObject(&raw):out.writeMaterial(&value);}
+ bool finalizeDxfWrite()override{return ok;}
+};
+struct MaterialGraphWriter:LC3CompatCheck {
+ dxfRW& out;std::vector<DRW_RawDxfObject> raw;DRW_Dictionary dict;bool ok=true;
+ explicit MaterialGraphWriter(dxfRW& w):out(w){}
+ void writeHeader(DRW_Header& h)override{h.addStr("$CMATERIAL","20",347);}
+ void writeLayers()override{DRW_Layer layer;layer.name="RAWTEST";layer.materialHandle.ref=0x21;ok=out.writeLayer(&layer)&&ok;}
+ void writeObjects()override{ok=out.writeDictionary(&dict)&&ok;for(auto& object:raw)ok=out.writeRawDxfObject(&object)&&ok;}
  bool finalizeDxfWrite()override{return ok;}
 };
 struct DwgWriter:LC3CompatCheck {
@@ -85,7 +104,7 @@ bool minimalChannelSource(const std::filesystem::path& path,bool binary){
 }
 // A locally generated ezdxf default-material shape. Mode 1 truncates its tail;
 // mode 2 changes the final mask; mode 3 adds a group beyond the bounded shape.
-bool ezdxfDefaultSource(const std::filesystem::path& path,bool binary,int mode){
+bool ezdxfDefaultSource(const std::filesystem::path& path,bool binary,int mode,const char* handle="1F"){
  std::ofstream f(path,std::ios::binary|std::ios::trunc);if(!f)return false;
  if(binary){const char signature[]="AutoCAD Binary DXF\r\n\x1a";f.write(signature,sizeof(signature));}
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
@@ -94,7 +113,7 @@ bool ezdxfDefaultSource(const std::filesystem::path& path,bool binary,int mode){
  const auto i=[&](int c,int v){return w->writeInt32(c,v);};
  const auto d=[&](int c,double v){return w->writeDouble(c,v);};
  if(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,mode==4?"AC1027":"AC1024")||!s(0,"ENDSEC")
-  ||!s(0,"SECTION")||!s(2,"OBJECTS")||!s(0,"MATERIAL")||!s(5,"1F")
+  ||!s(0,"SECTION")||!s(2,"OBJECTS")||!s(0,"MATERIAL")||!s(5,handle)
   ||!s(102,"{ACAD_REACTORS")||!s(330,"E")||!s(102,"}")||!s(330,mode==5?"D":"E")
   ||!s(100,"AcDbMaterial")||!s(1,mode==6?"Other":mode==8?"ByLayer":mode==9?"Global":"ByBlock")||!s(2,"")||!h(70,0)||!d(40,1)
   ||!h(71,1)||!d(41,1)||!i(91,-1023410177)||!d(42,1)||!h(72,1)||!s(3,"")
@@ -275,6 +294,45 @@ int main(){
   if(writer.write(&adapter,DRW::AC1027,binary)||adapter.ok||bytes(dest)!="prior version")return 59;
   adapter.ok=false;
   if(!writer.write(&adapter,DRW::AC1024,binary)||!adapter.ok)return 60;
+ }
+ // A selected graph with three raw-only materials and colliding source
+ // handles. This verifies emitted references, not general graph admission.
+ for(bool binary:{false,true}){
+  const auto input=dir/(binary?"graph-source-binary.dxf":"graph-source-ascii.dxf");
+  const auto output=dir/(binary?"graph-output-binary.dxf":"graph-output-ascii.dxf");
+  dxfRW writer(output.string().c_str());MaterialGraphWriter graph(writer);
+  const char* handles[]={"1F","20","21"};const int modes[]={0,8,9};
+  for(int i=0;i<3;++i){
+   if(!ezdxfDefaultSource(input,binary,modes[i],handles[i]))return 66;
+   Reader read;dxfRW sourceReader(input.string().c_str());
+   if(!sourceReader.read(&read,false)||read.raw.size()!=1u||read.materials.size()!=1u
+      ||!read.materials.front().requiresRawDxfMaterialReplay())return 67;
+   graph.raw.push_back(read.raw.front());
+  }
+  graph.dict.handle=0xE;graph.dict.parentHandle=0xA;
+  graph.dict.m_entries={{"ByBlock",0x1F},{"ByLayer",0x20},{"Global",0x21}};
+  writer.setHandleRemap({{0xA,0xC},{0xE,0xF010},{0x1F,0xF011},{0x20,0xF012},{0x21,0xF013}});
+  writer.setRootDictEntries({{"ACAD_MATERIAL","F010"}});
+  if(!writer.write(&graph,DRW::AC1024,binary)||!graph.ok)return 68;
+  Reader check;dxfRW reread(output.string().c_str());
+  if(!reread.read(&check,false)||check.raw.size()!=3u||check.materials.size()!=3u
+     ||check.currentMaterial!="F012")return 69;
+  bool rootEdge=false;for(const auto& e:check.root.m_entries)
+   if(e.m_name=="ACAD_MATERIAL"&&e.m_handle==0xF010)rootEdge=true;
+  if(!rootEdge)return 70;
+  auto dict=std::find_if(check.dictionaries.begin(),check.dictionaries.end(),[](const auto& d){return d.handle==0xF010;});
+  if(dict==check.dictionaries.end()||dict->parentHandle!=0xC||dict->m_entries.size()!=3u)return 71;
+  for(std::size_t i=0;i<3;++i){
+   const auto expected=static_cast<std::uint32_t>(0xF011+i);
+   if(dict->m_entries[i].m_name!=check.materials[i].m_name
+      ||dict->m_entries[i].m_handle!=expected||check.raw[i].handle!=expected
+      ||check.raw[i].parentHandle!=0xF010||check.raw[i].groups.size()!=61u
+      ||check.materials[i].reactorHandles!=std::vector<std::uint32_t>{0xF010}
+      ||!check.materials[i].requiresRawDxfMaterialReplay())return 72;
+  }
+  auto layer=std::find_if(check.layers.begin(),check.layers.end(),[](const auto& l){return l.name=="RAWTEST";});
+  std::uint32_t target=0;bool present=false;
+  if(layer==check.layers.end()||!layer->getDxfMaterialHandle(target,present)||!present||target!=0xF013)return 73;
  }
  return 0;
 }
