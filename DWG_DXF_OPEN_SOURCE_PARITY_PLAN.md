@@ -42,7 +42,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`aedbf6cbcdd07ac12fc0d790029b6b9bf617adac`. The prior merge head built the
+`c67cab9758c0af7c59893ea2d239ea42b462768e`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -73,12 +73,27 @@ binds the imported Normal placeholder and passes destination-preserving refusal
 and corrected retry; [LibreDWG readback](docs/research/p6-plotstyle-prebound-libredwg-peer-2026-11-25.json)
 agrees on four generated R2000 profiles, with nonfatal header warnings;
 [ezdxf readback](docs/research/p6-plotstyle-prebound-ezdxf-peer-2026-11-25.json)
-resolves 24 generated version/encoding/remap profiles. The wider filter now passes 103/131 cases with 30 failed assertions; investigate
-the remaining linetype, identity and object-graph gaps. The
+resolves 24 generated version/encoding/remap profiles. The [GROUP reactor
+slice](docs/research/p8d-librecad-system-group-reactor-2026-11-25.json)
+preserves selected reserved GROUP identities and checks both membership and
+reactors with both codecs. Its wider filter passes 106/131 cases with 27
+failed assertions; investigate the remaining linetype, identity and
+object-graph gaps. The
 [library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
 records bounded ASCII/binary field and failure/retry checks.
 Native GUI, runtime loading, new-head hosted checks and final-candidate
 validation remain open.
+
+Next consumer graph slice: the HATCH reactor control exposed a missing reverse
+boundary link: import rebuilds hatch loops without retaining their source
+associations, while the boundary still names the HATCH as a reactor. Capture
+per-loop associations and entity identities on import; prove loop matching and
+boundary geometry remain valid after edits before replaying them. For ambiguous,
+edited, missing, or multiply referenced boundaries, choose and test an explicit
+safe refusal or coherent non-associative output rather than emit a one-sided
+graph. Test multiple loops, handle collisions, source deletion, same-filter
+retry, both codecs, and independent reopened links. Do not claim associative
+editing support from a one-direction reactor check.
 
 The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
 operator-run transfer route, and return route are unknown. Obtain the
