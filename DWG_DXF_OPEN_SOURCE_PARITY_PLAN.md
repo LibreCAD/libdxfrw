@@ -15,6 +15,11 @@ evidence are recorded in `docs/research/` and Git history.
 
 P8-A/B/C/E/F require receipts matching the frozen candidate's inputs. Reuse
 matching evidence and defer expensive package and consumer runs until freeze.
+The current selected-input candidate is commit `66cf3cf7` with digest
+`032325db89ca882a6891d3afd24368e43b5de2c38d3f992ebb483e406dfc8e31` for 774
+inputs. Prior P8-A/E/F receipts bind `b6f59d17`, so those gates are open again
+until exact-digest package and focused CI evidence is recorded. See the [digest
+reopening receipt](docs/research/p8-pr106-digest-reopen-2026-11-24.json).
 The [PR CI inventory and digest refresh](docs/research/p8-pr106-ci-inventory-digest-refresh-2026-11-22.json)
 fixed the source and CTest inventories. The [follow-up digest refresh](docs/research/p8-pr106-followup-digest-refresh-2026-11-22.json)
 updated the excluded status overlay for the AC1012 slice without promoting a
