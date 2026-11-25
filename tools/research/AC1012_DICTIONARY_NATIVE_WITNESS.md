@@ -114,6 +114,18 @@ read by LibreDWG, but require native normal-open and style validation. Their
 merge observations distinguishable. The older LibreDWG-origin populated pair
 was rejected by ODA and is not an independently accepted input.
 
+Before transfer, the bounded source audit can recheck both frames and their
+selected EED, APPID, extension-dictionary and XRECORD links:
+
+```sh
+python3 -B tools/research/audit_ac1012_oda_merge_pair.py \
+  /private/tmp/ac1012-linux-oda-20261125/valid-style-dwg/destination.dwg \
+  /private/tmp/ac1012-linux-oda-20261125/valid-style-dwg/source.dwg
+```
+
+The EED and non-null extension dictionary are actual source dependencies;
+the audit does not qualify their lossless output or their native semantics.
+
 Generate the scratch pair with LibreDWG 0.14 on `PATH`; add the candidate and
 focused test options when those executables are available:
 

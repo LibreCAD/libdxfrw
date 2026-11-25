@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-oda-pair-frame-graph-2026-11-25",
+  "date": "2026-11-25",
+  "status": "SELECTED_SOURCE_FRAME_AND_GRAPH_BOUND_OUTPUT_AND_NATIVE_OPEN",
+  "supportClaimEffect": "none",
+  "pair": "docs/research/p6-ac1012-oda-two-element-pair-2026-11-25.json",
+  "tool": "tools/research/audit_ac1012_oda_merge_pair.py",
+  "method": "Reuse the bounded physical DICTIONARY frame walker and LibreDWG 0.14 JSON model; compare source identities, field spans, CRC, EED APPID, selected dictionary references, extension dictionary, XRECORD owner and payload, style owners, angles and element geometry. This is a selected-source audit, not a complete graph or native behavioral proof.",
+  "observations": {
+    "dictionaryHandle": "0x17",
+    "rootHandle": "0xC",
+    "frameOffsets": 5044,
+    "destinationFrame": {"size": 75, "bodyEndBits": 496, "sha256": "b9bce6f2de620d07a51577b8f581ac9d92c8a8affdb55b0eccfa4e7c480d8611", "crcValid": true},
+    "sourceFrame": {"size": 77, "bodyEndBits": 512, "sha256": "2d4b7294f2488b7546e906dcc16e97b760a7878d6d801132d7677649a7fb9e49", "crcValid": true},
+    "eed": {"appidHandle": "0x12", "appidName": "ACAD", "appidRole": 5, "rawHex": "000d000054524541545f41535f48415244460000", "decodedByLibreDWG": ["TREAT_AS_HARD", 0]},
+    "extensionDictionary": {"handle": "0x15B", "sourceRole": 3, "owner": "0x17", "itemKey": "ACAD_XREC_ROUNDTRIP", "itemRole": 2, "itemHandle": "0x15C"},
+    "xrecord": {"owner": "0x15B", "reactor": "0x15B", "decodedPayload": [[102, "EXTNAMES"], [1, "STANDARD"], [2, "Standard"]]}
+  },
+  "validation": [
+    "The audit passed both generated sources and their selected entry identities, angles and two-element offsets.",
+    "A one-bit source-frame mutation was rejected by the CRC check; swapping source and destination was rejected by the selected entry profile. Both mutations were scratch-only."
+  ],
+  "limits": [
+    "The XRECORD payload and its ownership are LibreDWG model observations, not independently decoded physical XRECORD field spans.",
+    "Existing shared source-profile output proof requires a null extension dictionary; this evidence does not admit the non-null extension graph or ACAD EED into lossless output.",
+    "The meaning of the source EED and XRECORD, AutoCAD normal-open, dictionary clone/merge behavior and omitted-object closure remain unqualified. No fixture was committed."
+  ]
+}
