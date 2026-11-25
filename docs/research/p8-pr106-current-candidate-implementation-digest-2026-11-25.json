@@ -6,7 +6,8 @@
   "candidate": {
     "baseHead": "b0bd311ff16c71b09692f2b24c33443ddb680fd7",
     "implementationCommit": "122ebd51a",
-    "documentationHead": "e88e597c0ad93d59ea263bf51e1feb18f1316e15",
+    "documentationHead": "33e87dccc803a4ffe612b32fcba635d959e626c5",
+    "validatedCodeHead": "e88e597c0ad93d59ea263bf51e1feb18f1316e15",
     "inputCount": 774,
     "implementationDigestSha256": "cc1b3bd69345e762b51f00f4d7d83e9015419fcb8a4e6532f0d62417a7132957",
     "claimsDigestSha256": "7f72bd5c6033fb312c89d56fcc5b476063273a2b24faa863e58114a703956ab8"
@@ -26,10 +27,10 @@
     "workflowContractCheck": "PASS"
   },
   "qualification": {
-    "P8F": "CLOSED_FOR_DIGEST_CC1B3BD6_ON_HEAD_E88E597C",
+    "P8F": "CLOSED_FOR_DIGEST_CC1B3BD6; validated code head e88e597c; current documentation-only PR head 33e87dccc",
     "P8AE": "PRIOR_PACKAGE_RECEIPTS_ARE_STALE_FOR_THIS_DIGEST; refresh at integration freeze",
     "P8BCDG": "OPEN",
-    "hostedChecksForCurrentHead": "Exact head e88e597c0ad93d59ea263bf51e1feb18f1316e15: fast run 374 passed (7 executables, 53 required CTests); native qualification run 532 passed the workflow/digest contract and 7 focused tests on linux-gcc, macos-clang, and windows-msvc. All three native receipts were emitted, sealed, uploaded, and enforced successfully.",
+    "hostedChecksForCurrentHead": "Validated code head e88e597c0ad93d59ea263bf51e1feb18f1316e15: fast run 374 passed (7 executables, 53 required CTests); native qualification run 532 passed the workflow/digest contract and 7 focused tests on linux-gcc, macos-clang, and windows-msvc. All three native receipts were emitted, sealed, uploaded, and enforced successfully. Current PR head 33e87dccc803a4ffe612b32fcba635d959e626c5 changes only this receipt and the plan, outside the 774 selected inputs.",
     "supportStatus": "All claims remain EXPERIMENTAL; zero routes are advertised.",
     "implementationDigest": "cc1b3bd69345e762b51f00f4d7d83e9015419fcb8a4e6532f0d62417a7132957"
   },

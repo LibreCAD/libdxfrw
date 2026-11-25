@@ -15,11 +15,15 @@ evidence are recorded in `docs/research/` and Git history.
 
 The previous frozen code head `a52a1b054287ea6a43405c5f0d3733cdd1f436cd`
 passed P8-F for digest `a7f8a6db5b11cbb1460de7869d0cc8ea3360a9d26f3a4e197aca4fe095d0100f`.
-The current local PR #106 implementation is based on `b0bd311ff16c71b09692f2b24c33443ddb680fd7`
-and includes the AC1021 TABLE General output slice `122ebd51a`; its refreshed
-774-input digest is `cc1b3bd69345e762b51f00f4d7d83e9015419fcb8a4e6532f0d62417a7132957`.
-Exact PR head `e88e597c0ad93d59ea263bf51e1feb18f1316e15` passes P8-F for this
-digest. Fast run 374 passes the configured 1,401-test inventory, bounded
+The current local PR #106 head is `33e87dccc803a4ffe612b32fcba635d959e626c5`.
+It adds only plan and evidence-receipt documentation to validated code head
+`e88e597c0ad93d59ea263bf51e1feb18f1316e15`; the selected implementation inputs
+are unchanged. The implementation is based on
+`b0bd311ff16c71b09692f2b24c33443ddb680fd7` and includes the AC1021 TABLE
+General output slice `122ebd51a`; its refreshed 774-input digest is
+`cc1b3bd69345e762b51f00f4d7d83e9015419fcb8a4e6532f0d62417a7132957`.
+Exact validated code head `e88e597c0ad93d59ea263bf51e1feb18f1316e15` passes
+P8-F for this digest. Fast run 374 passes the configured 1,401-test inventory, bounded
 build, seven fast executables, and 53 required CTests. Native qualification run
 532 passes its workflow/digest contract and all seven focused tests on Linux
 GCC, macOS Clang, and Windows MSVC; all three receipts were sealed, uploaded,
