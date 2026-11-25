@@ -33,10 +33,14 @@ AC1021 TABLECONTENT reference-role and AC1024 TABLECONTENT spec-vector tests.
 The [inventory refresh receipt](docs/research/p8-pr106-ctest-inventory-refresh-2026-11-24.json)
 records the exact-profile regeneration. Local `check-inventory` now passes for
 1,400 tests and the 774-input digest is `aee20c918e5c7aa19b4572e371e6361eea446a59d6da1d130cb0b00f78faffed`.
-The support overlay remains draft with zero advertised routes. This metadata
-repair closes no implementation gate; rerun exact-head hosted fast and focused
-checks after the refresh. The local Mac does not have gcc-13/g++-13, so Linux
-GCC validation must come from the hosted workflow.
+The status overlay is now frozen at the refreshed implementation and claims
+digests; every claim remains EXPERIMENTAL and zero routes are advertised. This
+metadata repair closes no implementation gate. The first refreshed-head
+qualification run stopped at digest enforcement because it observed the prior
+draft overlay; the fast run was still in progress at the time of this update.
+After the overlay commit, exact-head hosted fast and focused checks must pass.
+The local Mac does not have gcc-13/g++-13, so Linux GCC validation must come
+from the hosted workflow.
 The [PR CI inventory and digest refresh](docs/research/p8-pr106-ci-inventory-digest-refresh-2026-11-22.json)
 fixed the source and CTest inventories. The [follow-up digest refresh](docs/research/p8-pr106-followup-digest-refresh-2026-11-22.json)
 updated the excluded status overlay for the AC1012 slice without promoting a

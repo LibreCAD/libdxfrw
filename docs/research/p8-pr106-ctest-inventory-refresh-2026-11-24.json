@@ -2,13 +2,15 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p8-pr106-ctest-inventory-refresh-2026-11-24",
   "date": "2026-11-24",
-  "status": "INVENTORY_REGENERATED_EXACT_HEAD_CHECKS_PENDING",
+  "status": "INVENTORY_REFRESHED_STATUS_REFROZEN_EXACT_HEAD_CHECKS_PENDING",
   "supportClaimEffect": "none",
   "trigger": {
     "pullRequest": "LibreCAD/libdxfrw#106",
     "sourceHead": "fc21cda0e408ca114d47f1ab24fad110d5840ba9",
     "fastWorkflowRun": 45525344271,
-    "fastJob": 138907166621
+    "fastJob": 138907166621,
+    "qualificationWorkflowRun": 45526431752,
+    "qualificationContractJob": 138910842059
   },
   "failure": {
     "step": "Check frozen CTest inventory before building",
@@ -25,7 +27,8 @@
       "libdxfrw_ac1021_table_content_reference_roles",
       "libdxfrw_ac1024_table_content_spec_vectors"
     ],
-    "removedTests": []
+    "removedTests": [],
+    "qualificationContract": "The workflow contract passed, then qualification digest enforcement stopped because the overlay was still draft. Hosted CI requires frozen digest metadata even while every claim remains EXPERIMENTAL."
   },
   "reproduction": {
     "host": "macOS ARM64",
@@ -43,19 +46,20 @@
     "nameDigestSha256": "469e507c44174b2fcbb92f0f33b79cdf50b39b13b9e2f0b292636337288b812f",
     "implementationDigestSha256": "aee20c918e5c7aa19b4572e371e6361eea446a59d6da1d130cb0b00f78faffed",
     "selectedInputs": 774,
-    "statusOverlay": "remains DRAFT_WORKFLOW_AND_DIGEST_PENDING; no implementation digest or claims are advertised"
+    "statusOverlay": "FROZEN with the current implementation and claims digests; all claim rows remain EXPERIMENTAL, with no advertised routes."
   },
   "validation": [
     "Local hosted-profile CMake configure passed.",
     "check-inventory passed: 1400 tests.",
-    "check_qualification_digest.py --allow-draft passed for 774 inputs.",
+    "check_qualification_digest.py passed with the frozen status overlay for 774 inputs.",
     "qualified-format-support validation and self-test passed: 15 claims, 2 candidate routes, 0 advertised routes.",
     "git diff --check passed."
   ],
   "limits": [
-    "The failure occurred before building or running tests, so it is not a code regression result.",
-    "Inventory alignment closes no implementation or platform gate and promotes no support claim.",
-    "Exact-head hosted fast and focused checks remain pending after the manifest refresh.",
-    "The local host lacks gcc-13/g++-13; the exact Linux GCC workflow must provide that cross-platform validation."
+    "The fast workflow stopped before building or running tests on its first exact-head attempt because the frozen inventory was stale.",
+    "The first refreshed-head qualification workflow run failed only because the status overlay was draft; it did not run focused tests.",
+    "Inventory alignment and digest refreezing close no implementation or platform gate and promote no support claim.",
+    "Exact-head hosted fast and focused checks remain pending after the metadata refresh.",
+    "The local host lacks gcc-13/g++-13; Linux GCC validation must come from the hosted workflow."
   ]
 }
