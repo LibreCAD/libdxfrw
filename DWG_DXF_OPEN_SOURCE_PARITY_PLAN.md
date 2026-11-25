@@ -7,123 +7,20 @@ preserving LibreCAD 2D consumers, enabling evidence-backed 3D use, and keeping
 `dwg2dxf` usable by FreeCAD. Support claims apply only to qualified source,
 version, operation, consumer, and platform profiles.
 
-There are **26 open package gates**: P4: 3, P5: 7, P6: 5, P7: 4, and P8: 7.
-Gate readiness is 9/35 (25.7%); this is not an overall implementation
+There are **25 open package gates**: P4: 3, P5: 7, P6: 5, P7: 4, and P8: 6.
+Gate readiness is 10/35 (28.6%); this is not an overall implementation
 percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
-The legacy zero-body-boundary fix changes selected inputs. A clean checkout of
-`748ad1e2` computes digest
-`c69142e38161d6945266ddc1aec499915a1cfb3e2dbc77e8c68e587ef9c1a3d4`
-for 774 inputs; rerun affected P8 qualification. R13/R14 generated refusal/retry
-controls and the selected AC1012 physical-frame checks pass.
-
-The AC1021 detached-control alignment-bit fix changes selected inputs. Clean
-checkout `11636a4b` computes digest
+The current candidate is qualified for the focused CI profile at code head
+`e9216367`, implementation digest
 `ce3ff7f4632615508c31c80f5375f423ca728262fe8c1c63dc87fdb75d977e7b`
-for 775 inputs. Its targeted reader and LibreCAD fixture tests pass, including
-AddressSanitizer for the reader vector. The status overlay pins this digest for
-CI with all 15 claims EXPERIMENTAL; hosted qualification remains open.
-
-This candidate reconciles local work with PR head `c13da35d`, preserving the
-AC1021 control-reader slice and keeping General TABLE-value output guarded.
-The clean combined code commit `4758b607` computes digest
-`203f7422ef1a56735c06fb673ba1028047a0b37d14ce7331f29c90df9767c160`
-for 775 inputs. Hosted qualification must be refreshed; earlier candidate
-digests and green checks do not qualify the merged inputs. See the
-[reconciliation receipt](docs/research/p8-pr106-divergent-history-reconciliation-2026-11-25.json).
-That earlier digest is superseded; its pin was not a release or support
-qualification.
-Local Darwin ARM64 fast qualification passes seven executables and all 53
-fixed CTests; hosted Linux, macOS and Windows checks remain open.
-Hosted fast run 393 exposed a stale release inventory for the new AC1012 audit
-tool; the inventory is refreshed and its local check/self-test pass. Rerun CI
-on the corrected head before closing the hosted gate.
-
-The GROUP member and DICTIONARYVAR common-reference width fix changes selected
-inputs. A clean checkout of `002143da` computes digest
-`1c96b64dd061e85d765284dec4c30b945f8bbf33417f4662c4cab8228b418e51`
-for 774 inputs; rerun affected P8 qualification.
-Focused R13/R14 GROUP and R13 DICTIONARYVAR refusal/reset/retry controls pass.
-
-The empty TABLE string/cache preservation follow-up changes selected inputs.
-A clean checkout of `2bedaad4` computes digest
-`c654b4bc5c1ae5664aeefc59712c5d6a9399e8d12179d7ade1f1219e29d6dc02`
-for 774 inputs; rerun affected P8 qualification. The
-focused ASCII/Binary regression passes, including AC1018 refusal and retry;
-it does not qualify native rendering or broader TABLE semantics.
-
-The TABLE string writer and cache-boundary fix changes selected inputs. A
-clean checkout of `51a670ef` computes digest
-`fc8d48ab2b8d40e9033664af44d461dc5f18eca06e90a7697f8ad8a329e82781`
-for 774 inputs. Rerun affected P8 qualification; prior results below bind
-earlier code and cannot be reused.
-
-The strict TABLE block-target fix and subsequent TABLE fixture corrections
-change selected inputs. A clean checkout of `193c3e27` computes digest
-`eb0faf86bb0f21a7f1d2011213954af730267df79c471e9c3df5e506da8e3b8b`
-for 774 inputs. P8-A/E/F evidence below binds earlier digests and must be
-rerun for this candidate. The status overlay remains draft; no claim is promoted.
-
-The HATCH/MPOLYGON BS count fix changes selected implementation inputs. A
-clean checkout of `c31185da` computes digest
-`e1b7dc677d2bd2f83b962ab14aa5596e4c97c9c2ad21d9c5ae0786c2049559ea`
-for 774 inputs. The [local fast requalification](docs/research/p8-hatch-digest-local-fast-qualification-2026-11-25.json)
-passes seven executables, all 53 fixed CTests, the LibreCAD_3 compatibility
-compile, and draft workflow/support contracts. The [macOS package recheck](docs/research/p8-hatch-digest-macos-package-2026-11-25.json)
-passes shared/static installation and relocation. P8-A/E remain open for
-Linux and Windows, and hosted P8-F remains open for this digest. The status overlay stays draft; no claim is promoted.
-
-P8-A/E/F were qualified only for earlier implementation digests. The prior
-clean-index digest `032325db89ca882a6891d3afd24368e43b5de2c38d3f992ebb483e406dfc8e31`
-is superseded by AC1012 parser commit `ad5d3340`; its clean-index digest is
-`1e9e799bb517d017a0c666e14b933199e18e1c88c1abc5f3718f080fdaf29eca` for 774
-inputs. The current [macOS ARM64 package recheck](docs/research/p8-ac1012-current-digest-macos-package-recheck-2026-11-25.json)
-passes shared/static install, relocation and runtime probes against this
-digest. P8-A/E remain open for hosted Linux and Windows package runs; P8-F
-remains open for exact-digest CI. The status overlay is draft pending matching
-receipts; four former
-PENDING_NATIVE rows were demoted to EXPERIMENTAL. Reuse unchanged consumer
-evidence and rerun only profiles invalidated by the selected inputs. See the
-[prior digest reopening receipt](docs/research/p8-pr106-digest-reopen-2026-11-24.json)
-for its historical digest and status-overlay reset, and the [current digest
-receipt](docs/research/p8-pr106-ac1012-dictionary-followup-digest-reopen-2026-11-25.json)
-for this candidate's clean-index value.
-The [PR CI inventory and digest refresh](docs/research/p8-pr106-ci-inventory-digest-refresh-2026-11-22.json)
-fixed the source and CTest inventories. The [follow-up digest refresh](docs/research/p8-pr106-followup-digest-refresh-2026-11-22.json)
-updated the excluded status overlay for the AC1012 slice without promoting a
-claim. Those historical CI snapshots bind earlier heads and are not evidence
-for the current candidate.
-
-An earlier exact PR head `28381baedc036eaac96a9759a25ebdfc618f9862` failed two hosted jobs: digest verification found a stale excluded status overlay, and the fast build found an enum/integer conditional warning in the new entity failure diagnostic under GCC 13 `-Werror`. Commit `fc208f45` fixed the warning by converting `DRW::NoHandle` to the stored `std::uint32_t` handle type. The later code-bearing PR head `e2b872034331a23e584a36bb093a7053ccc72bd2` passed the fast regression job, qualification contract, and focused Linux GCC, macOS Clang, and Windows MSVC jobs; broad, fuzz, and source-release jobs were skipped by workflow design. The documentation/tool follow-ups `b335c47ca61521c98dea17a7739262ab52dec1c3` and `dc9b6fd8da7ec6e41d2fc1630a251687b4914c94` also passed fast regressions, the qualification contract, and focused Linux GCC, macOS Clang, and Windows MSVC jobs. Before the AC1012 source change, exact PR head `e7ce7bbe826f39ed04757bda726733aae2e28bef` passed fast run 336 and native qualification run 494, including the workflow contract and focused Linux GCC, macOS Clang, and Windows MSVC jobs. Broad, deterministic fuzz, and source-release jobs were skipped by workflow design. These checks validate only the fast and focused build profiles and do not promote a support claim. See the [prior CI receipt](docs/research/p8-pr106-current-ci-2026-11-24.json), which binds exact head `e7ce7bbe`. Its frozen candidate digest was `6007acda069c3fd0ef13d96d80651f4ef335a2dd59797726b5ae8f48dda779af` for 774 selected inputs; the AC1012 research-tool, plan, and receipt changes were outside that selection. See the [initial digest failure receipt](docs/research/p8-pr106-digest-refresh-2026-11-24.json), [follow-up repair receipt](docs/research/p8-pr106-gcc-fix-digest-refresh-2026-11-24.json), and [prior CI snapshot](docs/research/p8-pr106-current-ci-2026-11-23.json).
-
-The AC1012 parser code commit `7a1a8bff72666fe0f2d135b6f2f4c276da270112`
-changes selected implementation inputs. Its frozen digest was recomputed in a
-clean clone as `b6f59d17e0fd19013d545f46bc87150d8944326f327493276a13caa5f4baae68`
-for 774 inputs, then recorded in the excluded status overlay without changing
-support claims. Local digest, workflow-contract, and support-policy checks
-pass on that clone. The code revision is
-`e3fd7465824957381a4ede5d72cddd32554f0195`; fast run 343 and native
-qualification run 501 passed on exact head
-`ff68fb4e950471effec086d2ef86f5616f89586d`. Later plan/receipt commits change
-only documentation and retain the same 774-input digest. The qualification
-contract and focused Linux GCC, macOS Clang, and Windows MSVC jobs all pass, so
-P8-F is closed for this digest. Broad, deterministic fuzz, and source-release
-jobs were skipped by workflow design. See the [AC1012 digest refresh receipt](docs/research/p8-pr106-ac1012-digest-refresh-2026-11-24.json)
-and [exact-head CI receipt](docs/research/p8-pr106-ac1012-current-ci-2026-11-24.json).
-
-The [cross-platform package receipt](docs/research/p8-ac1012-cross-platform-package-profile-2026-11-24.json)
-closes P8-A and P8-E for that exact 774-input digest. Linux GCC and Windows
-MSVC shared/static package jobs passed on source commit `7a1a8bff`; their
-uploaded artifacts and probe output bind relocated package selection and
-runtime identity. The matching macOS ARM64 AppleClang Release shared/static
-profile was rebuilt locally and passed the same relocation probes. The
-workflow's macOS hosted leg was cancelled, so only the local macOS profile is
-counted. This closes package qualification only; it does not qualify full C++
-ABI compatibility, DWG/DXF semantics, FreeCAD, or native CAD behavior. Reopen
-P8-A/E at the P8-G freeze if any selected input, build configuration, probe,
-or toolchain changes.
+for 775 inputs. The [qualification receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json)
+records local and hosted fast checks plus Linux, macOS and Windows focused
+jobs. All 15 format claims remain EXPERIMENTAL; no route is advertised.
+Reopen focused qualification when selected inputs change. Package, native
+GUI, FreeCAD, broad and semantic gates remain open.
 
 The recorded consumer baselines are libdxfrw `master` `d68fb1ed937ad2a74a54f6208277ec10a1b031b0`,
 LibreCAD `master` `78014ecde2f53fdd8c06453f3854b1cae1a3fd0d`, LibreCAD_3
@@ -454,7 +351,7 @@ The [legacy body-boundary fix](docs/research/p6-legacy-dictionary-body-boundary-
 also rejects zero R13/R14 object-data boundaries before publishing DICTIONARY
 or DICTIONARYVAR data; generated controls and selected source-frame checks pass.
 
-The five focused legacy dictionary selectors were rebuilt and rerun at source revision `2eab63cfd7c14885cab6111351986d6cd2818dc3`; all pass on local Darwin ARM64. The AC1012/AC1014/AC1015 parser selector also passes with both library and test fully ASan-instrumented. A clean clone computes the same 774-input implementation digest `1e9e799b…29eca` with the draft status overlay allowed. See the [focused CTest and ASan recheck](docs/research/p6-ac1012-focused-ctest-recheck-2026-11-25.json). This confirms local parser/output guards only; it does not replace the native AutoCAD witness or close P8-F.
+The five focused legacy dictionary selectors were rebuilt and rerun at source revision `2eab63cfd7c14885cab6111351986d6cd2818dc3`; all pass on local Darwin ARM64. The AC1012/AC1014/AC1015 parser selector also passes with both library and test fully ASan-instrumented. A clean clone computes the same 774-input implementation digest `1e9e799b…29eca` with the draft status overlay allowed. See the [focused CTest and ASan recheck](docs/research/p6-ac1012-focused-ctest-recheck-2026-11-25.json). This confirms local parser/output guards only; it does not replace native AutoCAD evidence or independently establish hosted qualification.
 
 AC1012 still requires native AutoCAD normal-open and duplicate-key clone/merge behavior, including the default behavior when the legacy cloning field is absent. The ODA-generated two-element pair also requires qualification of its ACAD EED and extension-dictionary/XRECORD graph before lossless output. Continue with the [witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md); do not create another sample without a new discriminator. Keep strict output guarded and make no support claim until the relevant evidence is captured.
 The generated controls bind the absent R13/R14 plain-DICTIONARY cloning field and show that ODA's selected R14
@@ -576,25 +473,12 @@ acceptance separate. CAD Assistant/ezdxf shares OCCT lineage with FreeCAD and
 is not independent-kernel evidence. P7-E is optional; a missing external kernel
 or app blocks only its profile.
 
-### P8 — consumers, packaging, release (7 open)
+### P8 — consumers, packaging, release (6 open)
 
-The previous P8-F run passed on prior digest
-`b6f59d17e0fd19013d545f46bc87150d8944326f327493276a13caa5f4baae68` at exact PR
-head `ff68fb4e950471effec086d2ef86f5616f89586d`. That head passed fast run 343,
-qualification run 501's workflow contract, and focused Linux GCC, macOS Clang,
-and Windows MSVC. The earlier code commit `ad5d3340` produced digest
-`1e9e799bb517d017a0c666e14b933199e18e1c88c1abc5f3718f080fdaf29eca`. On that
-evidence head, the local exact-digest fast profile passed seven
-executables, all 53 fixed CTests, the workflow audit, the support contract and
-the deterministic support-matrix check. Its local draft/unfinalized checks do
-not close P8-F: the status overlay is not frozen and exact-head hosted Linux
-GCC, macOS Clang, and Windows MSVC qualification is still open. See the
-[current local receipt](docs/research/p8-pr106-current-digest-local-fast-qualification-2026-11-25.json)
-and [historical hosted receipt](docs/research/p8-pr106-ac1012-current-ci-2026-11-24.json).
-Broad, deterministic fuzz, and source-release jobs remain reserved for P8-G.
-
-The earlier macOS-only [package receipt](docs/research/p8-macos-relocatable-package-profile-2026-11-24.json)
-is superseded by the three-platform receipt below.
+Focused CI qualification for the current digest is recorded in the
+[current receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json).
+Reopen it after selected-input changes; package and integration gates below
+remain independent.
 
 | Gate / readiness | Next concrete step | Implementation and additional exit evidence |
 |---|---|---|
@@ -603,7 +487,6 @@ is superseded by the three-platform receipt below.
 | P8-C / REVALIDATE_WINDOWS_FREECAD | After the candidate is frozen, rerun the existing Windows FreeCAD generated-profile qualification. | Bind the actual converter and consumer binaries and preserve the original profile limits. |
 | P8-D / PARTIAL_MLINE_MOVE_SAVE_REOPEN_PASS_OTHER_GUI_GATES_OPEN | Once an active display is available, run LibreCAD 2 native save/reopen/render/edit checks for Move/Copy, named LTYPE, and selected MLINE; run LibreCAD_3 native MPOLYGON save/reopen. See the [GUI preflight](docs/research/p8d-post-unlock-preflight-2026-11-18.json). | Review and qualify [LibreCAD draft PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289), which depends on [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106). Its [master refresh](docs/research/p8d-librecad-3289-master-refresh-2026-11-21.json) incorporates upstream fixes for the earlier missing UI test target and catalog inconsistencies; Linux, Windows x64 and Windows ARM64 bounded CI passed on that consumer head. A [current state check](docs/research/p8d-librecad-3289-current-state-2026-11-23.json) captured the stale pre-refresh head. The [2026-11-23 master refresh](docs/research/p8d-librecad-3289-master-refresh-2026-11-23.json) merged master commit `954217a` (#3301) into PR #3289 without conflicts and pushed head `05aaf9f`. On that head, the macOS ARM64 system-codec adapter compile and full `librecad` app build passed against installed libdxfrw 3.0.0; `otool` confirms the executable links `@rpath/libdxfrw.3.dylib`. The console `--help` launch aborted during macOS pasteboard/XPC initialization. A later exact-head GitHub poll shows DWG/DXF fast, Windows x64/ARM64, headless ON/OFF, all five Pixi targets, and CodeQL analysis passing; the Security scan was skipped. See the [hosted-check receipt](docs/research/p8d-librecad-3289-hosted-checks-2026-11-23.json). These checks do not close native GUI, Linux/Windows FreeCAD qualification, or final-candidate support claims. The PR remains draft, and native GUI plus Linux/Windows FreeCAD qualification remain open. A [macOS system-codec consumer build](docs/research/p8d-librecad-3289-system-codec-compile-2026-11-23.json) passes the focused adapter compile and full `librecad` app build; dyld confirms runtime loading of the current upstream `libdxfrw.3.dylib`. Its console `dwg2dxf` command identifies the scratch input as AC1012, refuses default output, and preserves a preexisting destination. The generic refusal does not establish output semantics. The earlier [LibreCAD MLINE GUI attempt](docs/research/p8d-librecad-mline-render-move-ui-2026-11-22.json) recorded a failed Save As. The [2026-11-23 save/reopen move receipt](docs/research/p8d-librecad-mline-save-reopen-move-2026-11-23.json) supersedes that persistence status for the selected profile: LibreCAD saved and reopened a +10 X Move result, and all six paired component-vertex midpoints match the source MLINE centerline translated by (10,0) within 7.11e-15. LibreCAD reports six unsupported objects omitted during the baseline save; the moved output is two LWPOLYLINE projections with LibreCAD_MLINE XDATA, not an MLINE entity. This qualifies only the bounded Move projection. A [fresh Copy attempt](docs/research/p8d-librecad-mline-copy-not-preserved-2026-11-23.json) saved output byte-identical to the moved pair even though Keep Originals was visibly enabled; it did not preserve a source pair or demonstrate Copy semantics, and the copy output was not reopened. Do not count this as a Copy pass: LibreCAD source binds Copy mode to Control on the target mouse release, and this run entered both points in the command field without that modifier. A [2026-11-24 current-candidate consumer build](docs/research/p8d-librecad-current-candidate-build-gui-attach-2026-11-24.json) rebuilt the full PR #3289 app against the hash-pinned current PR #106 library and linked the expected candidate dylib. Its command-line smoke loaded that dylib, refused the spec-directed AC1012 source, and preserved the prior DXF destination; the generic diagnostic does not identify the semantic refusal reason. Computer Use could not attach to a window, so no new Copy/save/reopen operation was performed. Retry Copy with an accessible active display, a fresh verified selection, Control held on target release, and an output audit proving both original and copied projections. Finish named LTYPE and LibreCAD_3 MPOLYGON checks on final inputs. Revalidate the final candidate and resolve any subsequent failures. Revalidate the [ownerless resave fix](docs/research/p8d-librecad-3289-ownerless-resave-fix-2026-11-20.json) and [DIMSTYLE null-handle control](docs/research/p8d-dimstyle-null-xdictionary-cross-codec-2026-11-20.json) against final inputs. Review [LibreCAD_3 draft PR #460](https://github.com/LibreCAD/LibreCAD_3/pull/460), which integrates the supported ordinary-HATCH portions, displays loss notes, fixes reserved-linetype output, and fixes spline move/copy, rotation, scale and mirror, and preserves standalone rational spline and selected planar HATCH spline-edge weights on save with an approximate-rendering warning; see the [standalone](docs/research/p8d-librecad3-rational-spline-weight-2026-11-21.json) and [HATCH](docs/research/p8d-librecad3-rational-hatch-spline-weight-2026-11-21.json) evidence; its [focused evidence](docs/research/p8d-librecad3-hatch-direct-pr-2026-11-21.json) does not cover MPOLYGON. Review [LibreCAD_3 draft PR #462](https://github.com/LibreCAD/LibreCAD_3/pull/462), which depends on #460 and corrects ordinary open-clamped nonuniform and degree-one spline rendering, selected planar degree-one intersections, and [bounded positive-weight rational approximation](docs/research/p8d-librecad3-rational-spline-render-2026-11-21.json); its [focused evidence](docs/research/p8d-librecad3-spline-knot-direct-pr-2026-11-21.json) is supplemented by [bounded generated periodic](docs/research/p8d-librecad3-periodic-spline-2026-11-21.json) and [non-clamped quadratic controls](docs/research/p8d-librecad3-nonclamped-spline-2026-11-21.json) and [high-degree controls](docs/research/p8d-librecad3-high-degree-spline-2026-11-21.json), and [explicit unit-weight control](docs/research/p8d-librecad3-unit-weight-spline-2026-11-21.json), and [builder bounds and 3D area merge](docs/research/p8d-librecad3-spline-builder-bounds-2026-11-21.json), and [weight-preserving builder removal and targeted ASan](docs/research/p8d-librecad3-spline-builder-weight-removal-2026-11-21.json), while exact rational geometry, additional periodic and unsupported knot profiles and broader conic intersections remain open. Review the remaining MPOLYGON integration in [LibreCAD_3 draft PR #461](https://github.com/LibreCAD/LibreCAD_3/pull/461), which depends on #460; its [focused evidence](docs/research/p8d-librecad3-mpolygon-direct-pr-2026-11-21.json) covers both codec paths. The [updated MPOLYGON elevation and rotation slice](docs/research/p8d-librecad3-mpolygon-elevation-rotation-2026-11-21.json) is on PR #461; it preserves the selected default-normal DXF profile with the current codec and retains the bundled fallback. The [ellipse axis rotation fix](docs/research/p8d-librecad3-ellipse-axis-rotation-2026-11-21.json) preserves selected curved HATCH geometry around an off-origin pivot with both codecs. Review [LibreCAD_3 draft PR #463](https://github.com/LibreCAD/LibreCAD_3/pull/463), which fixes 3D POINT editing and 2D reflection; its [focused evidence](docs/research/p8d-librecad3-point-3d-editing-2026-11-21.json) covers both codec paths, with the #460 linetype correction needed for the current candidate. Qualify exact rational geometry, other HATCH spline profiles, additional periodic spline profiles, singular-scale normal semantics, elevated DWG MPOLYGON sources, and tilted planes separately. Verify bundled and upstream codecs where applicable, qualify final macOS, Linux and Windows inputs, and verify native behavior before merging. Headless tests and the remote ObjectARX host do not replace native GUI evidence. |
 | P8-E / RECONCILED_CANDIDATE_REQUALIFICATION_REQUIRED | The [macOS ARM64 shared/static receipt](docs/research/p8-hatch-digest-macos-package-2026-11-25.json) passed package selection and relocation for earlier digest `e1b7dc67`; rerun macOS, Linux and Windows profiles for the changed candidate. | Bind package selection, relocation, runtime identity, and CLI probes to the new digest; this gate does not measure the full C++ ABI or drawing semantics. |
-| P8-F / RECONCILED_CANDIDATE_REQUALIFICATION_REQUIRED | Prior HATCH digest local checks passed: seven fast executables, 53 fixed CTests, workflow audit, support contract, and deterministic matrix check. The local draft allowances are not hosted qualification. | After the status overlay is frozen, run hosted exact-head Linux GCC, macOS Clang, and Windows MSVC jobs. Rebuild and rerun the local fast profile for the changed digest; record the hosted CI receipt and resolve failures. Broad, deterministic fuzz, and source-release jobs remain in P8-G. |
 | P8-G / INTEGRATION_GATE | Set consumer/platform release thresholds and freeze the candidate. Recheck P8-A/B/C/E/F receipts against the final inputs and rerun only mismatched profiles. | After required package and platform gates close, build and test the complete GCC profile, run the broad suite and extended fuzz lane once for the frozen candidate, resolve required failures, and publish the evidence-backed support matrix. No required job may remain red and no unqualified route may be advertised. |
 
 A 2026-11-24 [Computer Use retry](docs/research/p8d-cua-desktop-attach-recheck-2026-11-24.json)
