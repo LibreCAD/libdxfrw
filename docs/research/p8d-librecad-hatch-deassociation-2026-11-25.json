@@ -1,0 +1,32 @@
+{
+  "date": "2026-11-25",
+  "scope": "Bounded LibreCAD consumer HATCH deassociation; not associative editing support",
+  "consumer_commit": "fc2d3d2eb6ca3682dc31245d26ef4afe26b07e53",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "format_sources": [
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-DC5215D6-E73F-4DFF-8BE9-01CA9610FAEE.htm",
+    "https://help.autodesk.com/cloudhelp/2018/ENU/OARX-RefGuide/files/OREF-AcDbHatch.html"
+  ],
+  "behavior": "For associative source hatches with usable source handles, retain each explicitly named boundary identity. Reconstructed hatches export non-associatively and report omitted associativity; on a named boundary, remove matching hatch reactors while retaining unrelated reactors. This does not validate unlisted or ambiguous reverse links or copied identity collisions.",
+  "controls": {
+    "source": "locally generated DXF, two hatches naming one boundary plus an unrelated synthetic reactor",
+    "system_codec": "33 assertions / 1 case passed: DXF, R2004 DWG write/read and DXF re-export, failed-write destination preservation and same-filter retry, moved and deleted boundary",
+    "bundled_codec": "30 assertions / 1 case passed: DXF, R2004 DWG write/read and DXF re-export, moved and deleted boundary",
+    "system_group_reactor": "8 assertions / 1 case passed",
+    "independent_reader": "ezdxf 1.4.4: both outputs have two non-associative HATCH records with no source boundary handles, retained unrelated reactor pointing to emitted LINE; zero audit errors and fixes",
+    "system_dylib_sha256": "ab2a007b1a220ff4c335259507e83e41817d5cd9d5dfa849b305947ab1f1f13f",
+    "system_dxf_sha256": "e293d149e2d54a92aa315f59fcb3d96eaac4e5b9838e2da7e2e4a2fdffc2ae77",
+    "bundled_dxf_sha256": "8cb599b2d83f0ca4588dec6d1e1cad25fbf8cc9e4d5847a37695e1bdb04f654d",
+    "fixtures_committed": false
+  },
+  "wider_check": {
+    "filter": "[filter][handles], system codec",
+    "result": "13/20 cases, 190/197 assertions passed; seven cases failed",
+    "notes": "Six failed in the earlier broad run. The seventh fixture contains sparse MATERIAL records rejected by the current default codec policy. No HATCH support promotion follows; inspect all seven against the current candidate and resolve or explicitly scope their behavior."
+  },
+  "limitations": [
+    "No independent DWG semantic reader was used for this slice.",
+    "Associative edit/replay, unmatched reverse links, missing handles, copied identities and handle collisions require further work.",
+    "Native GUI and final-candidate qualification remain open."
+  ]
+}

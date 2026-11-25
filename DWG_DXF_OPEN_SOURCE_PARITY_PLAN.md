@@ -99,16 +99,19 @@ records bounded ASCII/binary field and failure/retry checks.
 Native GUI, runtime loading, new-head hosted checks and final-candidate
 validation remain open.
 
-Next consumer graph slice: the HATCH reactor control exposed a missing reverse
-boundary link: import rebuilds hatch loops without retaining their source
-associations, while the boundary still names the HATCH as a reactor. Capture
-per-loop associations and entity identities on import; prove loop matching and
-boundary geometry remain valid after edits before replaying them. For ambiguous,
-edited, missing, or multiply referenced boundaries, choose and test an explicit
-safe refusal or coherent non-associative output rather than emit a one-sided
-graph. Test multiple loops, handle collisions, source deletion, same-filter
-retry, both codecs, and independent reopened links. Do not claim associative
-editing support from a one-direction reactor check.
+The [HATCH deassociation slice](docs/research/p8d-librecad-hatch-deassociation-2026-11-25.json)
+records the source hatch-to-boundary pairs and removes their matching boundary
+reactors when reconstructed loops are saved non-associatively, with a loss
+report. Both codec lanes pass locally generated DXF and R2004 DWG save/reopen
+controls for two hatches sharing a boundary; system-codec failed-write/retry
+and both moved/deleted-boundary checks pass. Independent ezdxf readback checks
+DXF links only. Full associative editing, unmatched or malformed reverse links,
+source-handle collisions and copying, independent DWG semantic checks, and
+native qualification remain open. A wider system `[filter][handles]` run
+passed 13/20 cases: six failures were also in the earlier broad run, while a
+sparse-MATERIAL fixture is rejected by the current default codec policy.
+Investigate all seven against the current candidate; do not count the wider
+run as passing or promote support claims from these controls.
 
 The [macOS ODA re-open control](docs/research/p6-ac1012-oda-macos-peer-reopen-2026-11-25.json)
 reopened the existing generated AC1012 pair in an isolated GUI instance and
