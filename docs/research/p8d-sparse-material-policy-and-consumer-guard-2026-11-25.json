@@ -18,19 +18,21 @@
   },
   "consumer": {
     "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
-    "head": "2b007ecd6444b1f16ea77e2540cc2bb79fc8328e",
-    "dependencyUnderLocalTest": "installed libdxfrw with implementation digest 2bd3188367f8af53e5d56dbf3ff3bb08f36bcf3a32a89879305c5853a737bd21; the opt-in API is unchanged, but these results do not qualify the later library digest",
+    "head": "9192d828d21a890d1bf9e3697254cc80b92ea8b8",
+    "dependencyUnderLocalTest": "isolated installed libdxfrw implementation digest 7df98118a0e5b6aad55553dee25ec5ca56c2f367cc05f58a3cd50874934bb246; dylib SHA-256 ab2a007b1a220ff4c335259507e83e41817d5cd9d5dfa849b305947ab1f1f13f",
     "fix": "Capture the raw-only material property into document metadata using an optional-method compatibility fallback. Before DXF or DWG output, reject while such a record exists; do not reconstruct the incomplete typed record. The production LibreCAD filter does not opt in to capture.",
     "validation": [
-      "The system-codec integration test uses an explicitly opted-in test filter to import a locally generated AC1021 minimal MATERIAL, verifies the marker, and checks destination-preserving refusal for three DXF target versions and DWG; a complete material then saves successfully on the same filter.",
-      "System-codec focused lane: 2,070 assertions in 32 cases passed.",
-      "Bundled-codec DXF round-trip lane: 4,751 assertions in 143 cases passed.",
-      "A separate local probe imported the three locally generated ezdxf default materials into consumer metadata and observed all three markers; an ordinary material remained unmarked."
+      "A public codec test adapter explicitly opts in and imports a locally generated AC1021 minimal MATERIAL into LibreCAD document metadata. Its marker survives; the filter preserves the destination while refusing three DXF versions and DWG, then successfully saves a complete material on the same filter.",
+      "System-codec focused lane: 2,070 assertions in 32 cases passed with the new isolated dylib. DYLD_PRINT_LIBRARIES verified its exact path. Existing consumer objects were compiled against the prior headers; comparison shows the installed public headers differ only in a documentation comment. The updated test translation unit was compiled and linked against the current installation.",
+      "Bundled-codec DXF round-trip lane: 4,751 assertions in 143 cases passed on the preceding consumer commit; the later test-only change is compiled only in the system-codec lane.",
+      "A separate local probe imported the three locally generated ezdxf default materials into consumer metadata and observed all three markers; an ordinary material remained unmarked.",
+      "The first test used a policy on a subclass of RS_FilterDXFRW and passed only because the old library failed to enforce the opt-in. With the fix it correctly failed: private DRW_Interface inheritance prevents the cross-cast. The corrected test uses a public codec adapter; its earlier result is superseded."
     ]
   },
   "limits": [
     "The consumer intentionally refuses all exports containing a marked raw-only material until complete graph validation and same-version replay are implemented.",
-    "Native GUI, current-library integrated consumer build, external semantic evidence, complete graph behavior after edits and final platform qualification remain open.",
+    "RS_FilterDXFRW privately inherits DRW_Interface, so production policy opt-in requires an explicitly accessible adapter or another reviewed interface design; inheriting the policy on a subclass alone does not work.",
+    "Native GUI, a full clean consumer rebuild, external semantic evidence, complete graph behavior after edits and final platform qualification remain open.",
     "No generated drawing was committed and no format support claim was promoted."
   ]
 }

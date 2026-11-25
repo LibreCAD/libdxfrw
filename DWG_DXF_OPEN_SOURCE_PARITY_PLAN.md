@@ -46,7 +46,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`2b007ecd6444b1f16ea77e2540cc2bb79fc8328e`. The prior merge head built the
+`9192d828d21a890d1bf9e3697254cc80b92ea8b8`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -135,12 +135,15 @@ filter still does not opt in. The same slice fixes an older library path that
 published a sparse raw-only record without the required policy. Next add a
 preflight that checks the complete ACAD_MATERIAL dictionary, owner/reactor,
 layer and current-material targets and handle uniqueness before enabling
-consumer capture and same-version raw replay. Refuse cross-version, missing or
-edited/inconsistent graphs atomically; verify ASCII/binary readback, collision
-remapping, corrected retry, both codecs, and independent complete-drawing
-semantics. Rebuild the consumer against the final library digest; its focused
-system-codec test currently used the preceding installed codec. Do not promote
-support on the selected graph.
+consumer capture and same-version raw replay. RS_FilterDXFRW privately inherits
+DRW_Interface, so an opt-in subclass cannot be found by the codec's cross-cast;
+provide and test a public adapter or another reviewed policy bridge. Refuse
+cross-version, missing or edited/inconsistent graphs atomically; verify
+ASCII/binary readback, collision remapping, corrected retry, both codecs, and
+independent complete-drawing semantics. The focused system-codec lane passes
+against the current isolated shared library; public headers differed only by a
+comment from those used to compile the existing consumer objects. A clean final
+build and native GUI remain open. Do not promote support on the selected graph.
 
 The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
 operator-run transfer route, and return route are unknown. Obtain the
