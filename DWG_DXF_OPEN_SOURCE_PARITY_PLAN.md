@@ -28,10 +28,12 @@ for 775 inputs. The later [opt-in raw MATERIAL capture](docs/research/p8d-ezdxf-
 `c05fe891b8acfd5db7ea13d575002b47376d3828439220fd71c11f21cf40c47b`.
 The subsequent [raw MATERIAL opt-in fix](docs/research/p8d-sparse-material-policy-and-consumer-guard-2026-11-25.json)
 has digest `7df98118a0e5b6aad55553dee25ec5ca56c2f367cc05f58a3cd50874934bb246`.
-The subsequent test-only selected-material-graph controls produce current digest
-`5bc263cc80c1c5431b0055829b79daf9e9ceafe4b58877ffe3fae6ca1adc2061` for
-775 inputs; library implementation code did not change. No earlier qualification
-is transferred to this candidate. Native GUI, broader FreeCAD coverage, broad and semantic
+The subsequent test-only selected-material-graph controls produced digest
+`5bc263cc80c1c5431b0055829b79daf9e9ceafe4b58877ffe3fae6ca1adc2061`.
+The current [wide-inventory slice](docs/research/p7-wide-dxf-inventory-2026-11-25.json)
+changes the library and produces clean-checkout digest
+`f547e3aad18f3c17600427765ad5318f761ddccb3d33fd2f017c7d8e1ac01037`
+for 775 inputs. No earlier qualification is transferred to this candidate. Native GUI, broader FreeCAD coverage, broad and semantic
 gates remain open. The [package receipt](docs/research/p8-pr106-current-cross-platform-package-2026-11-25.json)
 records Linux and Windows hosted package passes and a local macOS substitute
 for the cancelled hosted macOS job; the overall package workflow was red.
@@ -120,20 +122,20 @@ the incomplete-material guard or inventing wide-handle support.
 
 For the wide proxy control, [Autodesk's DXF group-code reference](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm)
 permits 16 hex digits for entity handles; its [HANDSEED definition](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_Handseed.html)
-identifies a 64-bit next-available-handle counter. The current writer inventory
-parses emitted self and owner handles into 32 bits, and its header reserves an
-eight-digit backpatch, so accepting a wide lexeme without further work could
-produce an invalid seed. Implement the narrow transport slice in this order:
-(1) make the emitted-record inventory and rollback checkpoint preserve 64-bit
-self and owner values, including numeric duplicate detection; (2) compute a
-checked next seed from both generated 32-bit handles and all emitted wide
-identities, enlarge and authenticate the fixed-width backpatch, and refuse
-atomically on exhaustion; (3) retain explicit refusal for wide references that
-need unresolved 32-bit entity remapping; (4) test ASCII and binary output,
-wide owner/self duplicates, leading-zero equivalence, `FFFFFFFF`, values above
-it, the maximum 64-bit value, destination preservation and retry, and an
-independent reopened DXF. Preserve the public 32-bit semantic handle API and
-do not infer support for wide relationship graphs from raw self-handle transport.
+identifies a 64-bit next-available-handle counter. The emitted-record census
+and its rollback checkpoint now preserve 64-bit self and owner values and
+compare numeric identities, while active-inventory file output still refuses
+wide identities before commit. The header retains an eight-digit backpatch.
+For the remaining transport slice: (1) compute a checked next seed from both
+generated 32-bit handles and all emitted wide identities, enlarge and
+authenticate the fixed-width backpatch, and refuse atomically on exhaustion;
+(2) retain explicit refusal for wide references that need unresolved 32-bit
+entity remapping; (3) test ASCII and binary full output, wide owner/self
+duplicates, leading-zero equivalence, `FFFFFFFF`, values above it, the maximum
+64-bit value, destination preservation and retry, and independent reopened
+DXF. Cover non-inventory paths explicitly. Preserve the public 32-bit semantic
+handle API and do not infer support for wide relationship graphs from raw
+self-handle transport.
 
 The [macOS ODA re-open control](docs/research/p6-ac1012-oda-macos-peer-reopen-2026-11-25.json)
 reopened the existing generated AC1012 pair in an isolated GUI instance and
