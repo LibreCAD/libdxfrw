@@ -2167,6 +2167,160 @@ bool bindingTests(const std::filesystem::path& dir) {
 #include "render_preset_output_controls.h"
 #include "render_preset_graph_output_controls.h"
 
+bool tableGeneralSelectedCellOutputTests(const std::filesystem::path& dir) {
+    const auto fail = [](const std::string& why) {
+        std::cerr << "AC1021 TABLE General value output: " << why << '\n';
+        return false;
+    };
+    const auto path = dir / "ac1021-table-general-value.dxf";
+    const std::array<std::pair<std::string, std::size_t>, 2> profiles{{
+        {"ESTIMATED COST OF DOORS", 48u},
+        {"ESTIMATED COST OF WINDOWS", 52u}
+    }};
+    const auto makePayload = [](std::size_t size) {
+        std::vector<std::uint8_t> bytes(size);
+        for (std::size_t index = 0u; index < size; ++index)
+            bytes[index] = static_cast<std::uint8_t>((index * 37u + 11u) & 0xFFu);
+        return bytes;
+    };
+    const auto hex = [](const std::vector<std::uint8_t>& bytes) {
+        static constexpr char digits[] = "0123456789ABCDEF";
+        std::string text;
+        text.reserve(bytes.size() * 2u);
+        for (const std::uint8_t byte : bytes) {
+            text.push_back(digits[byte >> 4u]);
+            text.push_back(digits[byte & 0x0Fu]);
+        }
+        return text;
+    };
+    for (const auto& profile : profiles) {
+        const std::vector<std::uint8_t> payload = makePayload(profile.second);
+        for (const bool binary : {false, true}) {
+            dx_data data;
+            dx_iface writer;
+            tableExportReuseDrawing(writer, data, 0u, false);
+            DRW_Block_Record modelSpace;
+            modelSpace.handle = 0x1Fu;
+            modelSpace.name = "*Model_Space";
+            data.blockRecords.push_back(modelSpace);
+            DRW_TableCellContent& content = data.tables.front()
+                .m_content.m_rows.front().m_cells.front().m_contents.front();
+            content.m_text = profile.first;
+            content.m_value.m_formatFlags = 6;
+            content.m_value.m_dataType = 512;
+            content.m_value.m_dataSize = static_cast<std::uint32_t>(payload.size());
+            content.m_value.m_unitType = 0;
+            content.m_value.m_formatString.clear();
+            content.m_value.m_valueString = profile.first;
+            content.m_value.m_rawData = payload;
+            content.m_value.m_value.addBinary(310, payload);
+
+            if (!writer.fileExport(path.string(), DRW::AC1021, binary,
+                                   &data, false, true))
+                return fail("strict ASCII/Binary output rejected the bounded profile");
+            const auto tags = attdefWireTags(path, binary);
+            const auto start = std::find_if(tags.begin(), tags.end(),
+                [](const AttdefWireTag& tag) {
+                    return tag.code == 301 && tag.text == "CELL_VALUE";
+                });
+            if (start == tags.end())
+                return fail("wire scan did not find the CELL_VALUE envelope");
+            const auto close = std::find_if(start + 1, tags.end(),
+                [](const AttdefWireTag& tag) {
+                    return tag.code == 304 && tag.text == "ACVALUE_END";
+                });
+            if (close == tags.end())
+                return fail("wire scan did not find ACVALUE_END");
+            std::vector<int> codes;
+            std::string observedPayload;
+            bool fieldsMatch = true;
+            for (auto tag = start; tag <= close; ++tag) {
+                codes.push_back(tag->code);
+                if (tag->code == 93) fieldsMatch = fieldsMatch && tag->integer == 6;
+                if (tag->code == 90) fieldsMatch = fieldsMatch && tag->integer == 512;
+                if (tag->code == 92)
+                    fieldsMatch = fieldsMatch
+                        && tag->integer == static_cast<std::int64_t>(payload.size());
+                if (tag->code == 94) fieldsMatch = fieldsMatch && tag->integer == 0;
+                if (tag->code == 300) fieldsMatch = fieldsMatch && tag->text.empty();
+                if (tag->code == 302)
+                    fieldsMatch = fieldsMatch && tag->text == profile.first;
+                if (tag->code == 310) observedPayload += tag->text;
+            }
+            if (!fieldsMatch
+                || codes != std::vector<int>{301, 93, 90, 92, 310, 94, 300, 302, 304}
+                || observedPayload != hex(payload))
+                return fail("independent wire scan found changed field order or bytes");
+
+            dx_iface reader;
+            dx_data readback;
+            if (!reader.fileImport(path.string(), &readback, false)
+                || readback.tables.size() != 1u)
+                return fail("fresh libdxfrw import failed");
+            const DRW_Table& table = readback.tables.front();
+            if (table.m_semanticContentComplete
+                || table.m_content.m_rows.size() != 1u
+                || table.m_content.m_rows.front().m_cells.size() != 1u
+                || table.m_content.m_rows.front().m_cells.front().m_contents.size() != 1u)
+                return fail("readback promoted opaque General semantics or changed grid shape");
+            const DRW_TableCellContent& decoded = table.m_content.m_rows.front()
+                .m_cells.front().m_contents.front();
+            const DRW_CadValue& value = decoded.m_value;
+            if (decoded.m_text != profile.first || value.m_formatFlags != 6
+                || value.m_dataType != 512 || value.m_dataSize != payload.size()
+                || value.m_unitType != 0 || !value.m_formatString.empty()
+                || value.m_valueString != profile.first || value.m_handle != 0u
+                || value.m_rawData != payload
+                || value.m_value.type() != DRW_Variant::BINARY
+                || value.m_value.binary() == nullptr
+                || *value.m_value.binary() != payload)
+                return fail("fresh readback changed opaque value bytes or display metadata");
+
+            const DRW_CadValue original = content.m_value;
+            const std::string versionSentinel = "PRESERVE_AC1024_TABLE_GENERAL_DESTINATION";
+            { std::ofstream out(path, std::ios::binary); out << versionSentinel; }
+            if (writer.fileExport(path.string(), DRW::AC1024, binary,
+                                  &data, false, true))
+                return fail("AC1021-only General profile was accepted for AC1024");
+            { std::ifstream in(path, std::ios::binary);
+              if (std::string(std::istreambuf_iterator<char>(in), {}) != versionSentinel)
+                  return fail("version refusal replaced the existing destination"); }
+            if (!writer.fileExport(path.string(), DRW::AC1021, binary,
+                                   &data, false, true))
+                return fail("AC1021 retry after version refusal failed");
+            for (const unsigned fault : {0u, 1u}) {
+                if (fault == 0u)
+                    content.m_value.m_rawData.pop_back();
+                else
+                    content.m_value.m_formatFlags = 7;
+                const std::string sentinel = "PRESERVE_AC1021_TABLE_GENERAL_DESTINATION";
+                { std::ofstream out(path, std::ios::binary); out << sentinel; }
+                if (writer.fileExport(path.string(), DRW::AC1021, binary,
+                                      &data, false, true))
+                    return fail("malformed General envelope was accepted");
+                { std::ifstream in(path, std::ios::binary);
+                  if (std::string(std::istreambuf_iterator<char>(in), {}) != sentinel)
+                      return fail("refusal replaced the existing destination"); }
+                content.m_value = original;
+                if (!writer.fileExport(path.string(), DRW::AC1021, binary,
+                                       &data, false, true))
+                    return fail("corrected same-writer retry failed");
+                dx_data retry;
+                if (!reader.fileImport(path.string(), &retry, false)
+                    || retry.tables.size() != 1u
+                    || retry.tables.front().m_semanticContentComplete
+                    || retry.tables.front().m_content.m_rows.front().m_cells.front()
+                        .m_contents.front().m_value.m_rawData != payload)
+                    return fail("corrected retry changed opaque bytes or semantic status");
+            }
+        }
+    }
+    std::cout << "AC1021 TABLE General value: generated 48/52-byte raw envelopes, "
+                 "ASCII/Binary wire and readback, destination-preserving refusal, retry; "
+                 "semantics remain unqualified\n";
+    return true;
+}
+
 DRW_TableContentObject tableContentScalarGrid() {
     DRW_TableContentObject table;
     table.handle = 0x5A0u;
@@ -6135,6 +6289,8 @@ int main(int argc,char** argv) {
     const bool tableLinkedGridWrite=argc==2 && std::string(argv[1])=="--table-linked-grid-write";
     const bool tableExportReuse=argc==2 && std::string(argv[1])=="--table-export-reuse";
     const bool tableValuePayload=argc==2 && std::string(argv[1])=="--table-value-payload";
+    const bool tableGeneralOutput=argc==2
+        && std::string(argv[1])=="--table-general-output";
     const bool tableValueProfiles=argc==2 && std::string(argv[1])=="--table-value-profiles";
     const bool tableReferences=argc==2 && std::string(argv[1])=="--table-references";
     const bool resourceOrigins=argc==2 && std::string(argv[1])=="--resource-origins";
@@ -6157,7 +6313,7 @@ int main(int argc,char** argv) {
     const bool auxiliaryProof=argc==2 && std::string(argv[1])=="--auxiliary-source-proof";
     const bool spineProof=argc==2 && std::string(argv[1])=="--spine-source-proof";
     const bool blockRecordProof=argc==2 && std::string(argv[1])=="--block-record-source-proof";
-    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !plotDefaultOutput && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableCellAppearanceWrite && !tableCellBorderVisibilityEdges && !tableRowMarginWrite && !tableColumnTableMarginWrite && !tableSingleCellStyleMarginWrite && !tableStyleFormatWrite && !tableStyleReferenceWrite && !tableLinkedGridWrite && !tableExportReuse && !tableValuePayload && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
+    if (argc!=1 && !viewportSources && !viewUcsSources && !layoutDependencies && !entityDependencies && !tableGeometryDependencies && !effectiveOwnership && !plotSources && !plotDefaultOutput && !styleFont && !dependencies && !symbolOrigins && !resourceOrigins && !compound && !proof && !bindings && !blockBindings && !blockNames && !entitiesSource && !entitiesDelivery && !entitiesOrigins && !entitiesCompounds && !entitiesPrimaries && !layoutSource && !identitySource && !structuralSource && !dictionarySource && !layoutRoles && !entitiesRoles && !blockRoles && !attdefRoles && !tableBlockSource && !tableInputs && !tableBodies && !tableProfiles && !tableValueScopes && !tableGridWrite && !tableCellAppearanceWrite && !tableCellBorderVisibilityEdges && !tableRowMarginWrite && !tableColumnTableMarginWrite && !tableSingleCellStyleMarginWrite && !tableStyleFormatWrite && !tableStyleReferenceWrite && !tableLinkedGridWrite && !tableExportReuse && !tableValuePayload && !tableGeneralOutput && !tableValueProfiles && !tableReferences && !maps && !mapProof && !styleProof && !symbolProof && !complexBindings && !auxiliaryProof && !spineProof && !blockRecordProof) return 2;
     const auto parent=std::filesystem::temp_directory_path();
     const auto stem="libdxfrw-table-content-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     std::error_code error;const auto dir=reserveTestScratch(parent,stem,error);
@@ -6213,6 +6369,7 @@ int main(int argc,char** argv) {
         : tableLinkedGridWrite ? tableContentLinkedGridWriteTests(dir)
         : tableExportReuse ? tableExportReuseTests(dir)
         : tableValuePayload ? tableValuePayloadTests(dir)
+        : tableGeneralOutput ? tableGeneralSelectedCellOutputTests(dir)
         : tableValueProfiles ? tableValueProfileTests(dir)
         : tableReferences ? tableReferenceTests(dir)
         : maps ? mapProfileTests(dir)

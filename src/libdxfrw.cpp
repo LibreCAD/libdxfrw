@@ -2065,6 +2065,45 @@ UTF8STRING tableCellText(const DRW_TableCell& cell) {
     return UTF8STRING();
 }
 
+bool isWritableAc1021TableGeneralValue(
+        DRW::Version version, const DRW_TableCellContent& content) {
+    const DRW_CadValue& value = content.m_value;
+    const std::size_t payloadSize = value.m_rawData.size();
+    return version == DRW::AC1021 && content.m_type == 1
+        // This route transports General bytes without qualifying or
+        // interpreting their application-specific semantics.
+        && payloadSize != 0u
+        && payloadSize <= DRW::kMaxDxfBinaryPayloadBytes
+        && content.m_text == value.m_valueString
+        && value.m_formatFlags == 6 && value.m_dataType == 512
+        && value.m_dataSize == payloadSize && value.m_unitType == 0
+        && value.m_formatString.empty() && value.m_handle == 0u
+        && value.m_value.type() == DRW_Variant::BINARY
+        && value.m_value.binary() != nullptr
+        && *value.m_value.binary() == value.m_rawData;
+}
+
+bool writeAc1021TableGeneralValue(
+        dxfWriter* writer, DRW::Version version,
+        const DRW_TableCellContent& content) {
+    if (writer == nullptr
+        || !isWritableAc1021TableGeneralValue(version, content))
+        return false;
+    const DRW_CadValue& value = content.m_value;
+    const bool headerWritten = writer->writeUtf8String(301, "CELL_VALUE")
+        && writer->writeInt32(93, value.m_formatFlags)
+        && writer->writeInt32(90, value.m_dataType)
+        && writer->writeInt32(92, static_cast<std::int32_t>(value.m_dataSize));
+    if (!headerWritten)
+        return false;
+    writeDxfBinaryChunks(writer, value.m_rawData);
+    return !writer->hasWriteError()
+        && writer->writeInt32(94, value.m_unitType)
+        && writer->writeUtf8String(300, value.m_formatString)
+        && writer->writeUtf8String(302, value.m_valueString)
+        && writer->writeUtf8String(304, "ACVALUE_END");
+}
+
 const char *modelerGeometryDxfName(DRW::ETYPE type) {
     switch (type) {
     case DRW::E3DSOLID:
@@ -13090,10 +13129,15 @@ bool dxfRW::writeTableWithLegacySourcePresence(DRW_Table *ent, const std::vector
                     || (blockCell && cell.m_contents.front().m_type == 4
                         && cell.m_contents.front().m_handle
                             == cell.m_blockHandle));
+            const bool ac1021GeneralValue = cellContentMatches
+                && textCell && isWritableAc1021TableGeneralValue(
+                    version, cell.m_contents.front());
             // This legacy TABLE writer emits plain text/block cells, not a
-            // CELL_VALUE envelope. Do not publish while silently discarding
-            // retained value metadata; full value output needs its own path.
+            // CELL_VALUE envelope. The one bounded AC1021 General profile is
+            // emitted below with its complete raw payload and display cache;
+            // refuse every other retained value shape.
             const bool valueMetadataWouldBeLost = cellContentMatches
+                && !ac1021GeneralValue
                 && (cell.m_contents.front().m_value.m_formatFlags != 0
                     || cell.m_contents.front().m_value.m_unitType != 0
                     || cell.m_contents.front().m_value.m_dataSize != 0u
@@ -13180,7 +13224,8 @@ bool dxfRW::writeTableWithLegacySourcePresence(DRW_Table *ent, const std::vector
                 const UTF8STRING text = tableCellText(cell);
                 if (text.size() > maxTextBytes
                     || (cell.m_contents.front().m_value.m_dataType != 0
-                        && cell.m_contents.front().m_value.m_dataType != 4))
+                        && cell.m_contents.front().m_value.m_dataType != 4
+                        && !ac1021GeneralValue))
                     return failDxfWrite();
             } else {
                 const auto blockRecord = m_sourceBlockRecordHandles.find(
@@ -13705,11 +13750,19 @@ bool dxfRW::writeTableWithLegacySourcePresence(DRW_Table *ent, const std::vector
 
             const UTF8STRING text = tableCellText(*cell);
             if (version >= DRW::AC1021) {
-                writer->writeUtf8String(301, "CELL_VALUE");
-                writer->writeInt32(90, 4);
-                if (!writer->writeUtf8Chunks(text, 303, 302, 250u))
-                    return false;
-                writer->writeUtf8String(304, "ACVALUE_END");
+                if (isWritableAc1021TableGeneralValue(
+                        version, cell->m_contents.front())) {
+                    if (!writeAc1021TableGeneralValue(
+                            writer.get(), version,
+                            cell->m_contents.front()))
+                        return false;
+                } else {
+                    writer->writeUtf8String(301, "CELL_VALUE");
+                    writer->writeInt32(90, 4);
+                    if (!writer->writeUtf8Chunks(text, 303, 302, 250u))
+                        return false;
+                    writer->writeUtf8String(304, "ACVALUE_END");
+                }
             } else if (!writer->writeUtf8Chunks(text, 2, 1, 250u)) {
                 return false;
             }

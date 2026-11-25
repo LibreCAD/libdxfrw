@@ -3369,6 +3369,10 @@ add_test(NAME libdxfrw_table_value_payload
     COMMAND libdxfrw_table_content_dxf_tests --table-value-payload)
 set_tests_properties(libdxfrw_table_value_payload PROPERTIES
     LABELS "fast;dxf;adapter;table;generated;value" TIMEOUT 30)
+add_test(NAME libdxfrw_table_general_selected_output
+    COMMAND libdxfrw_table_content_dxf_tests --table-general-output)
+set_tests_properties(libdxfrw_table_general_selected_output PROPERTIES
+    LABELS "fast;dxf;adapter;table;generated;opaque-value;transaction" TIMEOUT 30)
 add_test(NAME libdxfrw_table_value_inventory_selftest
     COMMAND ${LIBDXFRW_PYTHON_EXECUTABLE} -I -B
         ${CMAKE_SOURCE_DIR}/tools/audit_dxf_table_values.py --self-test)
