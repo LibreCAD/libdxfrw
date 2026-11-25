@@ -108,11 +108,15 @@ The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
 operator-run transfer route, and return route remain unknown. The user directed
 the next AC1012 step to create specification-shaped DWG samples instead; that
 route has now been regenerated on the current worktree and read back through
-LibreDWG 0.14 (see the 2026-11-25 AC1012 sample receipts below). This confirms
-only the generated wire and selected projection. It does not establish native
-AutoCAD normal-open or duplicate-merge semantics. Do not repeat the host intake
-or generate an equivalent pair again without a new discriminator; continue
-other ready implementation work.
+LibreDWG 0.14. The latest scratch rerun binds the colliding `SAME_KEY` targets,
+unique entries on each side, exact DWG/frame/output hashes, strict destination
+preservation, focused parser retry checks, and peer readback for both DXF
+encodings; see [the 2026-11-25 receipt](docs/research/p6-ac1012-spec-pair-rerun-peer-readback-2026-11-25.json).
+The samples remain outside the repository. This confirms only generated wire
+and selected projection behavior. ODA specifies no serialized AC1012 group
+281 default, so these samples cannot establish AutoCAD normal-open or native
+duplicate-merge semantics. Do not regenerate the equivalent pair without a
+new discriminator; continue other ready implementation work.
 
 ## Execution and evidence rules
 
@@ -393,6 +397,7 @@ The [current-build spec pair recheck](docs/research/p6-ac1012-current-build-spec
 The [fresh response-run pair](docs/research/p6-ac1012-spec-pair-user-run-2026-11-23.json) regenerates both samples with the current binaries: the physical DICTIONARY frame and focused parser control pass, strict output preserves the destination on refusal, and bounded partial ASCII/Binary audits pass. LibreDWG 0.14 then imports all four partial DXFs and reopens the selected NOD/dictionary/SAME_KEY/MLINESTYLE graph at the expected 15/37-degree values. Its DXF import warns that `HEADER.DIMLDRBLK` is unsupported; keep this as bounded projection evidence. DWGs and DXFs remain under `/private/tmp`; this closes only the sample-generation/local-check slice. Preserve the native-open and duplicate-merge gate. The [reactor-count notation review](docs/research/p6-ac1012-reactor-count-notation-2026-11-23.json) resolves the practical wire question for ordinary counts: ODA §20.1 says common-object `BL`, §20.4.44 says DICTIONARY `S`, while LibreDWG's common-object schema uses `FIELD_BL` and documents a maximum of 15. ODA §2.2/§2.3 encodes BS and BL identically for 0–255 (zero as `10`; 1–255 as `01` plus one byte); the sample's count of one cannot discriminate them. `S` is not independently defined in ODA's notation key and is used for bit-short elsewhere, so this record does not establish an alternate AC1012 wire layout. Keep the notation discrepancy documented, do not change parsing from this sample, and do not treat the generic local safety cap as a semantic maximum.
 The separate [native-handoff pair](docs/research/p6-ac1012-native-handoff-peer-readback-2026-11-23.json) is packaged in scratch and freshly decodes with LibreDWG 0.14 to the expected NOD/dictionary/SAME_KEY/MLINESTYLE graph and 15/37-degree values. This validates the exact handoff files' structure, not AutoCAD open or clone behavior; keep the pair scratch-only and strict AC1012 output refused until the native witness closes.
 The explicit [strict AC1012 merge-semantics guard](docs/research/p6-ac1012-strict-clone-merge-guard-2026-11-23.json) now refuses complete output for the exact NOD-rooted ACAD_MLINESTYLE dictionary profile when it owns a matching typed MLINESTYLE. This guard is independent of opaque-callback qualification, while `AllowPartial` still reaches the bounded projection path. The scratch-pair generator asserts the refusal reason; strict ASCII/Binary destination preservation, partial ASCII/Binary readback, and the focused dictionary CTest pass. This closes only the local guard/control implementation slice. Native AutoCAD normal-open and duplicate-merge behavior remain unqualified; preserve strict refusal and make no support claim.
+The [2026-11-25 regenerated pair](docs/research/p6-ac1012-spec-pair-rerun-peer-readback-2026-11-25.json) repeats the collision with unique entries on both sides using a fresh current-source build. The focused AC1012 test passes; all four strict ASCII/Binary attempts preserve their destinations; all four partial projections pass LibreDWG 0.14 peer readback with expected keys, owners and values. This is a fresh reproducibility receipt, not native semantics evidence. Keep strict output refused until a qualified AutoCAD normal-open and duplicate operation establishes the absent-field default.
 The generated controls bind the absent R13/R14 plain-DICTIONARY cloning field and show that ODA's selected R14
 output omits group 281 while its R2000 output writes 1; they do not establish
 native duplicate behavior. The ODA sources also contain APPID-bound dictionary

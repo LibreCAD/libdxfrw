@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-spec-pair-rerun-peer-readback-2026-11-25",
+  "date": "2026-11-25",
+  "status": "SCRATCH_SPEC_PAIR_AND_PEER_READBACK_PASS_NATIVE_DEFAULT_OPEN",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "ODA Open Design Specification v5.4.1",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": ["9 HEADER VARIABLES", "20.1 Common non-entity object format", "20.4.44 DICTIONARY", "20.4.73 MLINESTYLE"],
+    "relevantLayout": "AC1012 DICTIONARY carries counted entry names and soft-owner item handles; the R2000+ cloning and hard-owner fields are absent. Each MLINESTYLE is owned by ACAD_MLINESTYLE, and HEADER.DIMSTYLE is an H hard pointer."
+  },
+  "producer": {
+    "tool": "GNU LibreDWG 0.14 dwgadd/dwgread/dwgwrite",
+    "generator": "tools/research/generate_ac1012_dictionary_merge_samples.py",
+    "generatorSha256": "cd62cfca9d2204362533a8607a1f06484db8f09c7156dcec4de6f895c63476ef",
+    "candidateHead": "61010a5f8",
+    "scratchDirectory": "/private/tmp/ac1012-spec-samples-20261125/ac1012-dictionary-merge-ragvv9s4",
+    "fixturePolicy": "All generated DWG/DXF files and peer conversions remain in scratch; no binary fixture is committed."
+  },
+  "discriminator": {
+    "graph": "NOD -> ACAD_MLINESTYLE -> SAME_KEY -> MLINESTYLE",
+    "destination": {"SAME_KEYStartAngleDegrees": 15, "uniqueEntry": {"name": "DEST_ONLY", "startAngleDegrees": 22}},
+    "source": {"SAME_KEYStartAngleDegrees": 37, "uniqueEntry": {"name": "SOURCE_ONLY", "startAngleDegrees": 51}},
+    "purpose": "A native merge can report the colliding target identity/value and preservation of each non-conflicting entry."
+  },
+  "samples": {
+    "destination": {"file": "destination-ac1012.dwg", "sha256": "f5e5abfedc1313a0f2de70fca9e0c7ed7ab4980b38c58be60b017c6102486d63", "dictionaryFrameSha256": "0d005170285d2dbdc3887520bc5a018a708e58aff8568324818f1f918da95d07", "dictionaryFrameBytes": 50, "physicalCloningField": null},
+    "source": {"file": "source-ac1012.dwg", "sha256": "fc1df94801b56a8f41dae2278aae35fdef5cfb1e3cecee68ec4177fdf0c38eae", "dictionaryFrameSha256": "fbaf235e03a52ceacff32f57b3e0334dd4cb0a535b42e659eaa66bdd7c7a49c7", "dictionaryFrameBytes": 52, "physicalCloningField": null}
+  },
+  "validation": {
+    "build": {"compiler": "Apple clang 21.0.0.21000334", "flags": "-Wall -Wextra -pedantic -Werror", "targets": ["dwg2dxf", "libdxfrw_dwg_ac1014_dictionaryvar_tests"], "candidateSha256": "9f2a6c9f51affb3bee30d94d4e5d1535851c72eb1af351d0af0f8772bb236d3e", "focusedTestBinarySha256": "04620de0dbf107f884a0e451b94f5a7cb8172e5b8cd18bfc44020005fce6f8e1"},
+    "focusedTest": {"command": "ctest --test-dir <scratch-build> --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'", "result": "PASS 1/1; physical frame, role/truncation refusal, reset and corrected retry"},
+    "strictOutput": {"encodings": ["ASCII", "Binary"], "sources": ["destination", "source"], "result": "All four attempts refused with the AC1012 duplicate-merge qualification diagnostic and preserved the pre-existing destination."},
+    "explicitPartialOutput": {
+      "result": "Both ASCII and Binary outputs for both DWGs passed bounded dictionary/style wire audits.",
+      "outputs": {
+        "destinationAsciiSha256": "952e962c66b549321b5b63db547c913b25f422285fda6d3d796b1b758623df73",
+        "destinationBinarySha256": "fd1ea0d32053dd43826faacafd03826b58c87475251779f0ba829414c3c4da82",
+        "sourceAsciiSha256": "c171736ad3f06270cc0cb80bad506433476f63c8deeeb60867ac411d1ea36028",
+        "sourceBinarySha256": "6f5b57ed4eae8df0621f733cceea1ce13a2af3141d4b4cf38b5f564db105f041"
+      },
+      "readback": {
+        "peer": "LibreDWG 0.14 dxf2dwg --as r14, followed by dwgread JSON inspection",
+        "destinationPeerDwgSha256": "7738019c2e1c52a7bc7f47e148a3ef5522af45b049afdd6b61edf6b6f1f7a8c9",
+        "sourcePeerDwgSha256": "d0eaa8e1da127f566ebce468bc3a76ce8317e535aacf9a3b9051919a4d68b079",
+        "result": "All four DXFs reopened with the expected dictionary keys, ownership, and 15/22-degree destination or 37/51-degree source MLINESTYLE values. This is independent peer format readback, not AutoCAD evidence."
+      }
+    }
+  },
+  "limits": [
+    "These are locally generated specification-directed controls, not AutoCAD-authored samples.",
+    "ODA specifies no serialized AC1012 group 281 cloning mode; generated files cannot determine the native default for the absent field.",
+    "No AutoCAD normal-open, merge operation, survivor identity, or close/reopen witness was obtained.",
+    "Keep strict AC1012 output guarded; no support claim is promoted."
+  ]
+}
