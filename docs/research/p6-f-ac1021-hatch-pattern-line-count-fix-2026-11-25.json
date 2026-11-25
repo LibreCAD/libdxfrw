@@ -5,8 +5,11 @@
   "authority": {
     "document": "Open Design Specification for .dwg files v5.4.1",
     "section": "20.4.75 HATCH",
-    "field": "Number of definition lines, BS 78",
-    "interpretation": "The pattern-line count is a bit short, followed by the declared number of line records."
+    "fields": [
+      "Number of definition lines, BS 78",
+      "Number of dash length items in each definition line, BS 79"
+    ],
+    "interpretation": "Both pattern-line and per-line dash counts are bit shorts, followed by their declared records."
   },
   "source": {
     "path": "/Users/dli/doc/dwg6/全国通用节点详细解析.dwg",
@@ -28,23 +31,24 @@
   },
   "implementation": {
     "file": "src/drw_entities.cpp",
-    "change": "Factor the existing bounded, transactional table-body count check so it can decode either BL or BS; use the BS form for HATCH and MPOLYGON pattern definition-line counts. Other count fields retain BL decoding.",
-    "reason": "The writer already emits these counts with putBitShort. The former parser used getBitLong, which diverges once the BS value uses its 16-bit payload form, such as 405."
+    "change": "Factor the existing bounded, transactional table-body count check so it can decode either BL or BS; use the BS form for HATCH and MPOLYGON pattern definition-line counts and per-line dash counts. Other count fields retain BL decoding.",
+    "reason": "The writer already emits both fields with putBitShort. The former parser used getBitLong, which diverges once a BS value uses its 16-bit payload form, such as the tested counts 405 and 300."
   },
   "regression": {
     "file": "tests/dwg_hatch_pattern_angle_units_tests.cpp",
     "profiles": ["HATCH", "MPOLYGON"],
     "count": 405,
     "checks": [
-      "all pattern-line fields and nested dash values round-trip",
+      "405 pattern-line records round-trip",
+      "a 300-item dash list round-trips through BS 79",
       "truncated input fails and resets parsed pattern lines",
       "the same parser object succeeds on retry with the complete frame"
     ],
     "command": "ctest --test-dir build -R '^libdxfrw_dwg_hatch_pattern_angle_units$' --output-on-failure",
-    "result": "passed (1/1; 0.18 s)"
+    "result": "passed (1/1; 0.21 s)"
   },
   "candidate_recheck": {
-    "tool_sha256": "ced9d26be5ee1876ea3990cc3b5456fce5a09f94686010c75b70dd6c903ae674",
+    "tool_sha256": "7bc49d588e59b69a14ace49cc990f5f2d743141e4660f63ae93c1467bc1d8a2c",
     "command": "build/dwg2dxf/dwg2dxf <source> -y -v2007 <scratch-output>",
     "read_operation_succeeded": true,
     "entity_parse_failures": 0,

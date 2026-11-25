@@ -107,6 +107,7 @@ bool mpolygonDwgAngleRoundTrip() {
 
 template<class T> bool widePatternLineCountRoundTrip() {
     constexpr std::uint32_t lineCount = 405;
+    constexpr std::uint32_t wideDashCount = 300;
     DRW_Header header;
     dwgWriter21 writer(nullptr, &header);
     if (!writer.prepareDwgClassManifest() || !writer.writeFileHeaderStub()
@@ -126,7 +127,11 @@ template<class T> bool widePatternLineCountRoundTrip() {
         line.baseY = -static_cast<double>(i);
         line.offsetX = 0.25;
         line.offsetY = -0.75;
-        line.dashList.push_back(static_cast<double>(i) + 1.0);
+        const std::uint32_t dashCount = i + 1u == lineCount
+            ? wideDashCount : 1u;
+        line.dashList.reserve(dashCount);
+        for (std::uint32_t dash = 0; dash < dashCount; ++dash)
+            line.dashList.push_back(static_cast<double>(dash) + 1.0);
         source.patternLines.push_back(std::move(line));
     }
     if (!writer.encodeEntity(&source))
@@ -154,9 +159,12 @@ template<class T> bool widePatternLineCountRoundTrip() {
             || line.baseX != static_cast<double>(i)
             || line.baseY != -static_cast<double>(i)
             || line.offsetX != 0.25 || line.offsetY != -0.75
-            || line.dashList.size() != 1u
-            || line.dashList.front() != static_cast<double>(i) + 1.0)
+            || line.dashList.size()
+                != (i + 1u == lineCount ? wideDashCount : 1u))
             return false;
+        for (std::uint32_t dash = 0; dash < line.dashList.size(); ++dash)
+            if (line.dashList[dash] != static_cast<double>(dash) + 1.0)
+                return false;
     }
     return true;
 }

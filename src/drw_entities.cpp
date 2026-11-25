@@ -24889,8 +24889,8 @@ bool DRW_MPolygon::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t 
                 || !std::isfinite(patternLine.offsetY))
                 return fail();
             std::uint32_t numDashL = 0;
-            if (!readTableBodyCount(version, buf, objSize, kMaxHatchItems, 2,
-                                    numDashL)
+            if (!readTableBodyShortCount(version, buf, objSize,
+                                         kMaxHatchItems, 2, numDashL)
                 || !proxyEntityHasBits(
                     *buf, bodyEndBit, static_cast<std::uint64_t>(numDashL) * 2u)
                 || !DRW::reserve(patternLine.dashList, numDashL))
@@ -25686,8 +25686,8 @@ bool DRW_Hatch::parseDwg(DRW::Version version, dwgBuffer *buf, std::uint32_t bs)
                 || !std::isfinite(patternLine.offsetY))
                 return fail();
             std::uint32_t numDashL = 0;
-            if (!readTableBodyCount(version, buf, objSize, kMaxHatchItems, 2,
-                                    numDashL)
+            if (!readTableBodyShortCount(version, buf, objSize,
+                                         kMaxHatchItems, 2, numDashL)
                 || !proxyEntityHasBits(
                     *buf, bodyEndBit, static_cast<std::uint64_t>(numDashL) * 2u)
                 || !DRW::reserve(patternLine.dashList, numDashL))
