@@ -30,9 +30,11 @@ The subsequent [raw MATERIAL opt-in fix](docs/research/p8d-sparse-material-polic
 has digest `7df98118a0e5b6aad55553dee25ec5ca56c2f367cc05f58a3cd50874934bb246`.
 The subsequent test-only selected-material-graph controls produced digest
 `5bc263cc80c1c5431b0055829b79daf9e9ceafe4b58877ffe3fae6ca1adc2061`.
-The current [wide-inventory slice](docs/research/p7-wide-dxf-inventory-2026-11-25.json)
-changes the library and produces clean-checkout digest
-`f547e3aad18f3c17600427765ad5318f761ddccb3d33fd2f017c7d8e1ac01037`
+The [wide-inventory slice](docs/research/p7-wide-dxf-inventory-2026-11-25.json)
+produced digest `f547e3aad18f3c17600427765ad5318f761ddccb3d33fd2f017c7d8e1ac01037`.
+The current [wide-self-handle slice](docs/research/p7-wide-dxf-self-handle-handseed-2026-11-25.json)
+produces clean-checkout digest
+`b274f634af9aeb2ca0e8a3b6ddc907a2429f391d6f9c5bfed6b2cbf200ffe44b`
 for 775 inputs. No earlier qualification is transferred to this candidate. Native GUI, broader FreeCAD coverage, broad and semantic
 gates remain open. The [package receipt](docs/research/p8-pr106-current-cross-platform-package-2026-11-25.json)
 records Linux and Windows hosted package passes and a local macOS substitute
@@ -116,26 +118,20 @@ Do not count the wider run as passing or promote support claims. The subsequent
 [live-handle collision fix](docs/research/p8d-librecad-live-handle-identity-2026-11-25.json)
 restores the omitted-raw/live-entity case, preserves ambiguity handling, and
 improves that same filter to 14/20 cases (before the new ambiguity control).
-Five sparse-MATERIAL imports and one wide proxy-handle export remain failing;
-resolve their underlying policy/serialization constraints without bypassing
-the incomplete-material guard or inventing wide-handle support.
+The subsequent wide-self-handle fix resolves the proxy export and its LibreCAD
+save/reopen/second-save control on both codecs. The current system filter passes
+16/21 cases; five sparse-MATERIAL imports remain failing. Resolve those cases
+without bypassing the incomplete-material guard.
 
-For the wide proxy control, [Autodesk's DXF group-code reference](https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm)
-permits 16 hex digits for entity handles; its [HANDSEED definition](https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_Handseed.html)
-identifies a 64-bit next-available-handle counter. The emitted-record census
-and its rollback checkpoint now preserve 64-bit self and owner values and
-compare numeric identities, while active-inventory file output still refuses
-wide identities before commit. The header retains an eight-digit backpatch.
-For the remaining transport slice: (1) compute a checked next seed from both
-generated 32-bit handles and all emitted wide identities, enlarge and
-authenticate the fixed-width backpatch, and refuse atomically on exhaustion;
-(2) retain explicit refusal for wide references that need unresolved 32-bit
-entity remapping; (3) test ASCII and binary full output, wide owner/self
-duplicates, leading-zero equivalence, `FFFFFFFF`, values above it, the maximum
-64-bit value, destination preservation and retry, and independent reopened
-DXF. Cover non-inventory paths explicitly. Preserve the public 32-bit semantic
-handle API and do not infer support for wide relationship graphs from raw
-self-handle transport.
+The bounded [wide-self-handle and HANDSEED slice](docs/research/p7-wide-dxf-self-handle-handseed-2026-11-25.json)
+uses a 64-bit emitted identity census and a checked 16-digit seed. Generated
+ASCII and binary AC1027 XRECORD output and LibreCAD proxy output reopen in
+ezdxf without audit repairs. Exhausted seeds, wide translated relationships,
+and wide raw identities on uncensused full-file output refuse atomically.
+Complete 64-bit owner and translated-reference mapping, numeric identity
+collisions across graph roles, and source/target closure before promoting wider
+support; preserve the existing 32-bit public semantic API and requalify native
+and platform consumers against the new digest.
 
 The [macOS ODA re-open control](docs/research/p6-ac1012-oda-macos-peer-reopen-2026-11-25.json)
 reopened the existing generated AC1012 pair in an isolated GUI instance and

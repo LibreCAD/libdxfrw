@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-wide-dxf-self-handle-handseed-2026-11-25",
+  "supportClaimEffect": "none",
+  "libraryCommit": "58cab886d2ac652f91dc88ab53d372a14a199acd",
+  "consumerCommit": "6fcd15b9ef8849610ac36dae9673a9fbd1913886",
+  "implementationDigestSha256": "b274f634af9aeb2ca0e8a3b6ddc907a2429f391d6f9c5bfed6b2cbf200ffe44b",
+  "selectedInputCount": 775,
+  "scope": "Bounded raw wide self-handle transport with a checked 64-bit next HANDSEED, not full 64-bit relationship remapping.",
+  "implementation": "A 16-digit backpatch is computed from the larger of the existing 32-bit allocator high-water and the emitted 64-bit record census plus one. Missing patch position and exhausted uint64 seed fail closed. Wide translated references remain refused in full-file output; raw self identities without an active census are also refused.",
+  "controls": [
+    "Focused emitted-inventory control passes ASCII and binary wide-self output and seed checks; wide relationship, numeric duplicate, exhausted uint64, and no-inventory legacy refusal preserve the destination and allow corrected same-writer retry.",
+    "Six focused writer, staged-output, and raw application/proxy CTests pass.",
+    "ezdxf 1.4.4 independently reopened generated AC1027 ASCII and binary XRECORD files, retaining handle 100000000, owner C, and HANDSEED 0000000100000001; audit reported zero errors or repairs. Their SHA-256 values are fc29e961ee129a0eb21675905aca00b8df30525b8a8d8d1d5c5bb449eb5d7eb3 and 499df6ad7ff2c43ca17018dbce9af71ab76b7fdce018dd7179c14a1dc3457b26.",
+    "LibreCAD system and bundled codecs each pass seven assertions for the original wide-proxy regression, including import, save, reopen, second save and retained handle.",
+    "Independent ezdxf readback of generated LibreCAD system output retained ACAD_PROXY_ENTITY 1234567890ABCDEF, owner 1F, HANDSEED 1234567890ABCDF0, with zero audit errors or repairs; SHA-256 48541a3eb7700dcf3a187bb71cd1f2f87df804990bea55d59d257438dc318024.",
+    "LibreCAD system consumer HATCH, handle identity, wide proxy and R12 controls pass 94 assertions in 7 cases; named-linetype/property-sheet controls pass 109 assertions in 10 cases.",
+    "Fresh shared library SHA-256 e0e12e6b20f841f06b89464f3d3e8202e554eee0dfe9e4aa2c69cf19f15e13e7; dyld confirmed this exact path."
+  ],
+  "remaining": [
+    "The system consumer handle filter passes 16 of 21 cases; five sparse-MATERIAL imports remain failing.",
+    "64-bit owners, translated references, collision/remap graphs and full platform/native qualification remain open.",
+    "The prior frozen source digest and platform evidence do not qualify this candidate. No fixtures were committed."
+  ],
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-3F0380A5-1C15-464D-BC66-2C5F094BCFB9.htm",
+    "https://help.autodesk.com/cloudhelp/2026/ENU/OARX-ManagedRefGuide/files/OARX-ManagedRefGuide-Autodesk_AutoCAD_DatabaseServices_Database_Handseed.html"
+  ]
+}
