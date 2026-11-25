@@ -49,7 +49,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`4473cd85b667cae55d35129d24972a3dc623ac09`. The prior merge head built the
+`5811bb2c4a5a3ee30789106eda9b85e2b9f7a803`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -115,15 +115,12 @@ reopened the existing generated AC1012 pair in an isolated GUI instance and
 retained their named style entries, angles and element counts. Direct CLI
 launch still fails in this environment. Both producer and reader are ODA, so
 native AutoCAD validity and duplicate-key merge semantics remain open.
-The [native named-LTYPE probe](docs/research/p8d-librecad-native-ltype-isolated-2026-11-25.json)
-used a scratch-only settings-profile build to avoid a recursive scan of the
-user's Documents directory. A generated R12 drawing retained its named linetype,
-dash pattern and line geometry through GUI save and reopen, but the selected
-line's Properties panel showed Continuous. Fix the property model to retain and
-display the explicit linetype name, including multi-selection and edits; check
-that changing another property and changing the linetype both preserve the
-intended DXF. Repeat with the unmodified final app and both codecs. The probe's
-separate ezdxf-generated R2010 drawing was refused: its MATERIAL uses group 73
+The [named-LTYPE property-sheet slice](docs/research/p8d-librecad-named-linetype-property-sheet-2026-11-25.json)
+retains explicit names, unnamed built-ins and NoPen through property edits and
+multi-selection; offscreen widget, save/reopen and independent readback checks
+pass with both codecs. Repeat the named-LTYPE edit, save and reopen on the
+unmodified final native app and qualify the remaining platforms. A separate
+locally generated ezdxf R2010 drawing was refused: its MATERIAL uses group 73
 where Autodesk specifies 76, and correcting that alone reaches a second sparse
 group-94 guard. The [bounded opt-in raw-only policy](docs/research/p8d-ezdxf-default-material-raw-capture-2026-11-25.json)
 now retains this shape without interpreting the ambiguous field and checks
