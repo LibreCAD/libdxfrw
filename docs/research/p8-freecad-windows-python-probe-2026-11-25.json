@@ -4,6 +4,7 @@
   "date": "2026-11-25",
   "status": "WINDOWS_PREBUILD_PYTHON_PROBE_TIMEOUT_WORKFLOW_FIX_RETRY_PENDING",
   "supportClaimEffect": "none",
+  "followUp": "p8-freecad-windows-current-digest-2026-11-25.json records the successful Windows-only retry.",
   "run": {
     "repository": "dxli/libdxfrw",
     "id": 45642791685,

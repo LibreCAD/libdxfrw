@@ -32,6 +32,6 @@
   "limits": [
     "This qualifies only the recorded generated profiles and pinned Linux FreeCAD consumer; it does not establish general DWG/DXF interoperability or native GUI behavior.",
     "The executable is identified through its unique path in a hash-verified release image; a separate executable-file hash was not recorded.",
-    "The Windows run is separate and remains open until its corrected workflow succeeds. Reopen this gate if selected code, consumer, or profile requirements change."
+    "Windows was separate and is covered by p8-freecad-windows-current-digest-2026-11-25.json. Reopen this gate if selected code, consumer, or profile requirements change."
   ]
 }
