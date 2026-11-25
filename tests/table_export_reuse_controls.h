@@ -251,6 +251,22 @@ bool tableStrictBlockTargetTests(const std::filesystem::path& dir) {
         content.m_value.m_valueString="reused-table";
         if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,true)
             ||!tableExportReadback(output,binary,0u,false))return false;
+        // The cache is a separate field: it must not replace an empty value.
+        content.m_text.clear();content.m_value=DRW_CadValue{};
+        content.m_value.m_dataType=4;content.m_value.m_value=DRW_Variant(1,"");
+        content.m_value.m_valueString="display cache";
+        if(!writer.fileExport(output.string(),DRW::AC1021,binary,&data,false,true))return false;
+        dx_data emptyReadback;
+        if(!reader.fileImport(output.string(),&emptyReadback,false)||emptyReadback.tables.size()!=1u)return false;
+        const auto& emptyContent=emptyReadback.tables.front().m_content.m_rows[0].m_cells[0].m_contents[0];
+        if(!emptyContent.m_text.empty()||emptyContent.m_value.m_value.type()!=DRW_Variant::STRING
+            ||!emptyContent.m_value.m_value.content.s||!emptyContent.m_value.m_value.content.s->empty()
+            ||emptyContent.m_value.m_valueString!="display cache")return false;
+        if(!tableExportSentinel(output,true)
+            ||writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,true)
+            ||!tableExportSentinel(output))return false;
+        content.m_value.m_valueString.clear();
+        if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,true))return false;
         content.m_value=DRW_CadValue{};content.m_text=std::string(500u,'x');
         if(!writer.fileExport(output.string(),DRW::AC1021,binary,&data,false,true))return false;
         dx_data longReadback;

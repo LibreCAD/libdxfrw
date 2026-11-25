@@ -13,6 +13,11 @@ percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
+The empty TABLE string/cache preservation follow-up changes selected inputs;
+refresh the clean candidate digest and rerun affected P8 qualification. The
+focused ASCII/Binary regression passes, including AC1018 refusal and retry;
+it does not qualify native rendering or broader TABLE semantics.
+
 The TABLE string writer and cache-boundary fix changes selected inputs. A
 clean checkout of `51a670ef` computes digest
 `fc8d48ab2b8d40e9033664af44d461dc5f18eca06e90a7697f8ad8a329e82781`
@@ -217,6 +222,8 @@ see the [callback boundary](docs/research/p5-tablecontent-semantic-incomplete-ca
 The [AC1021+ TABLE plain-string fix](docs/research/p5-table-string-envelope-writer-fix-2026-11-25.json)
 emits the complete type-4 envelope and preserves a separately retained
 cache. Focused ASCII/Binary wire, readback, refusal and retry controls pass;
+an explicit empty string is also preserved separately from a nonempty cache
+([regression receipt](docs/research/p5-table-empty-string-distinct-cache-2026-11-25.json)).
 ODA opens and re-exports both short-string encodings with a matching BLOCK
 and BLOCK_RECORD. Retained caches above 255 encoded bytes refuse; authored
 long values use an empty cache and retain their full chunked text. Native

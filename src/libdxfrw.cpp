@@ -2057,6 +2057,12 @@ UTF8STRING tableCellText(const DRW_TableCell& cell) {
     for (const DRW_TableCellContent& content : cell.m_contents) {
         if (!content.m_text.empty())
             return content.m_text;
+        // An explicitly retained string value may be empty even when its
+        // separate display cache is not.
+        if (content.m_value.m_dataType == 4
+            && content.m_value.m_value.type() == DRW_Variant::STRING
+            && content.m_value.m_value.content.s != nullptr)
+            return *content.m_value.m_value.content.s;
         if (!content.m_value.m_valueString.empty())
             return content.m_value.m_valueString;
         if (content.m_value.m_value.type() == DRW_Variant::STRING)

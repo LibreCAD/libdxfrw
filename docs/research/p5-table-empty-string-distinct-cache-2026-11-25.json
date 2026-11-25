@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-table-empty-string-distinct-cache-2026-11-25",
+  "date": "2026-11-25",
+  "status": "LOCAL_ASCII_BINARY_REGRESSION_PASS",
+  "supportClaimEffect": "none",
+  "finding": "An explicitly retained empty type-4 TABLE string was replaced by its nonempty display cache during export because the common text selector preferred a nonempty cache over the empty value.",
+  "change": "The shared selector now honors an explicitly retained type-4 string, including an empty one, before considering the separate cache. Existing authored text and legacy fallback behavior remain available.",
+  "validation": {
+    "beforeFix": "The expanded libdxfrw_table_strict_block_target test failed against the preceding implementation.",
+    "afterFix": "PASS 3/3: libdxfrw_table_export_reuse, libdxfrw_table_strict_block_target, and libdxfrw_table_value_payload on local Darwin. The new control checks empty value and distinct nonempty cache through AC1021 ASCII and binary fresh readback, AC1018 destination-preserving refusal, and corrected same-writer retry."
+  },
+  "limits": [
+    "The control does not independently establish native CAD rendering or behavior for additional TABLE value profiles.",
+    "Selected code and test inputs changed; refresh the candidate digest and rerun affected platform qualification."
+  ]
+}
