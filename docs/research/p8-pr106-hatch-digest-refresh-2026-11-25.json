@@ -24,12 +24,25 @@
     "workflowContract": "PASS"
   },
   "qualification": {
-    "P8F": "REOPENED_FOR_DIGEST_D358FA5A; exact-head fast and native qualification CI has not yet run",
+    "P8F": "IN_PROGRESS_FOR_DIGEST_D358FA5A; exact-head qualification contract passed and fast/focused jobs are running",
     "P8AE": "Prior package receipts bind older digests; refresh at integration freeze",
     "P8BCDG": "OPEN",
     "supportStatus": "All claim statuses and the claims digest are unchanged; every claim remains EXPERIMENTAL and zero routes are advertised.",
     "broadValidation": "Not run; reserve broad suite and fuzz lane for the frozen integration candidate."
   },
   "statusOverlay": "metadata/qualified-format-status-v1.json implementationDigestSha256 refreshed to d358fa5a; claims digest and claim statuses unchanged.",
-  "nextStep": "Run the existing fast and focused native qualification workflows against current head b244f914f8d8af3c447bc0ff949be732ef2fbe62. Do not use earlier hosted runs as evidence for this digest."
+  "hostedChecks": {
+    "workflowHead": "682b2c646f6de16f84a4c266482e33416dd1bdcc",
+    "qualificationWorkflowRun": 45590944597,
+    "fastWorkflowRun": 45590944493,
+    "qualificationContract": "PASS",
+    "fastRegressions": "IN_PROGRESS",
+    "focusedPlatforms": {
+      "linux-gcc": "IN_PROGRESS",
+      "macos-clang": "QUEUED",
+      "windows-msvc": "IN_PROGRESS"
+    },
+    "broadFuzzAndSourceRelease": "SKIPPED_BY_WORKFLOW_DESIGN"
+  },
+  "nextStep": "Poll only the existing exact-head fast and focused runs; update this receipt and P8-F status when they complete. Do not use earlier hosted runs as evidence for this digest."
 }
