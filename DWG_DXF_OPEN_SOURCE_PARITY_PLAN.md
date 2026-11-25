@@ -36,16 +36,18 @@ LibreCAD `master` `78014ecde2f53fdd8c06453f3854b1cae1a3fd0d`, LibreCAD_3
 `d65d3b388743b51da923d6ab36d10ddbc149ba46`. Refresh moving heads before
 integration or platform qualification.
 
-The dependent LibreCAD PR #3289 has since been refreshed onto master
-`b91fbdcf1adeee764938a183018978416d0a8c90` at head
-`c468eaaa242767edd9acd69e27ef70d0ed05001a`. The isolated merge was clean,
-and the macOS system-codec adapter and full application built against the
-installed package from the current implementation digest. The executable's
-link command names that package; native runtime behavior was not exercised.
-The hosted bounded DWG/DXF, headless and Linux ARM64 package jobs passed;
-other hosted checks were running when last observed. Native GUI qualification
-and final-candidate validation remain open.
-See the [refresh receipt](docs/research/p8d-librecad-3289-master-refresh-2026-11-25.json).
+The dependent LibreCAD PR #3289 was refreshed onto master
+`b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
+`633d7ac09790e400b0fe1273b060da08bf36aaf1`. The prior merge head built the
+macOS system-codec application against the current implementation digest;
+its hosted bounded DWG/DXF and platform builds passed. At the new head, a
+unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
+`$INSUNITS`, while nonzero units still refuse without changing the destination.
+The new repeatable system-codec lane and bundled DXF fast lane pass locally;
+see the [units receipt](docs/research/p8d-librecad-system-codec-legacy-units-2026-11-25.json)
+and [refresh receipt](docs/research/p8d-librecad-3289-master-refresh-2026-11-25.json).
+Native GUI, runtime loading, new-head hosted checks and final-candidate
+validation remain open.
 
 The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
 operator-run transfer route, and return route are unknown. Obtain the
