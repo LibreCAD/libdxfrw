@@ -73,6 +73,32 @@ bool source(const std::filesystem::path& path,bool binary,int mode,const char* n
  ||!s(0,"ENDSEC")||!s(0,"EOF"))return false;
  return !w->hasWriteError();
 }
+// A locally generated ezdxf default-material shape. Mode 1 truncates its tail;
+// mode 2 changes the final mask; mode 3 adds a group beyond the bounded shape.
+bool ezdxfDefaultSource(const std::filesystem::path& path,bool binary,int mode){
+ std::ofstream f(path,std::ios::binary|std::ios::trunc);if(!f)return false;
+ if(binary){const char signature[]="AutoCAD Binary DXF\r\n\x1a";f.write(signature,sizeof(signature));}
+ std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
+ const auto s=[&](int c,const char* v){return w->writeString(c,v);};
+ const auto h=[&](int c,int v){return w->writeInt16(c,v);};
+ const auto i=[&](int c,int v){return w->writeInt32(c,v);};
+ const auto d=[&](int c,double v){return w->writeDouble(c,v);};
+ if(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,mode==4?"AC1027":"AC1024")||!s(0,"ENDSEC")
+  ||!s(0,"SECTION")||!s(2,"OBJECTS")||!s(0,"MATERIAL")||!s(5,"1F")
+  ||!s(102,"{ACAD_REACTORS")||!s(330,"E")||!s(102,"}")||!s(330,mode==5?"D":"E")
+  ||!s(100,"AcDbMaterial")||!s(1,mode==6?"Other":mode==8?"ByLayer":mode==9?"Global":"ByBlock")||!s(2,"")||!h(70,0)||!d(40,1)
+  ||!h(71,1)||!d(41,1)||!i(91,-1023410177)||!d(42,1)||!h(72,1)||!s(3,"")
+  ||!h(73,1)||!h(74,1)||!h(75,1)||!d(44,0.5)||!h(73,mode==7?1:0)||!d(45,1)||!d(46,1)
+  ||!h(77,1)||!s(4,"")||!h(78,1)||!h(79,1)||!h(170,1)||!d(48,1)||!h(171,1)
+  ||!s(6,"")||!h(172,1)||!h(173,1)||!h(174,1)||!d(140,1)||!d(141,1)
+  ||!h(175,1)||!s(7,"")||!h(176,1)||!h(177,1)||!h(178,1)||!d(143,1)
+  ||!h(179,1)||!s(8,"")||!h(270,1)||!h(271,1)||!h(272,1)||!d(145,1)
+  ||!d(146,1)||!h(273,1)||!s(9,"")||!h(274,1)||!h(275,1)||!h(276,1)
+  ||!d(42,1)||!h(72,1)||!s(3,"")||!h(73,1)||!h(74,1)||!h(75,1))return false;
+ if(mode!=1&&!i(94,mode==2?62:63))return false;
+ if(mode==3&&!s(1000,"extra"))return false;
+ return s(0,"ENDSEC")&&s(0,"EOF")&&!w->hasWriteError();
+}
 }
 int main(){
  const auto dir=std::filesystem::temp_directory_path()/("sparse-material-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directories(dir);
@@ -176,6 +202,57 @@ int main(){
      ||tailReadback.raw.front().groups.size()!=8u
      ||tailReadback.raw.front().groups.back().code()!=1000
      ||std::string(tailReadback.raw.front().groups.back().c_str())!="raw-tail")return 41;
+ }
+ for(bool binary:{false,true}){
+  const auto inputPath=dir/(binary?"ezdxf-binary.dxf":"ezdxf-ascii.dxf");
+  const auto inputName=inputPath.string();dxfRW input(inputName.c_str());Reader sink;
+  for(int mode:{1,2,3,4,5,6,7,8,9,0}){
+   if(!ezdxfDefaultSource(inputPath,binary,mode))return 45;
+   sink.materials.clear();sink.raw.clear();const bool ok=input.read(&sink,false);
+   if(mode>=1&&mode<=6){if(ok||!sink.materials.empty()||!sink.raw.empty())return 46;continue;}
+   if(!ok||sink.materials.size()!=1u||sink.raw.size()!=1u
+      ||!sink.materials[0].requiresRawDxfMaterialReplay()
+      ||sink.materials[0].m_hasSpecularColorMethod
+      ||sink.materials[0].m_hasChannelFlags
+      ||sink.raw[0].groups.size()!=61u||sink.raw[0].groups[20].code()!=73
+      ||sink.raw[0].groups[20].i_val()!=(mode==7?1:0)||sink.raw[0].groups.back().i_val()!=63)return 47;
+  }
+  LegacyReader legacy;if(input.read(&legacy,false)||legacy.materialCallbacks||legacy.rawCallbacks)return 48;
+  Reader disabled;disabled.enabled=false;if(input.read(&disabled,false)||!disabled.raw.empty())return 49;
+  disabled.enabled=true;if(!input.read(&disabled,false)||disabled.materials.size()!=1u)return 50;
+  DwgProbe probe;static_cast<DRW_Material&>(probe)=sink.materials[0];dwgBufferW data,strings,handles;
+  if(probe.encodeDwg(DRW::AC1024,&data,&strings,&handles)
+     ||!data.data().empty()||!strings.data().empty()||!handles.data().empty())return 61;
+  const auto dest=dir/(binary?"ezdxf-out-binary.dxf":"ezdxf-out-ascii.dxf");
+  {std::ofstream f(dest);f<<"prior";}
+  const auto destName=dest.string();dxfRW writer(destName.c_str());DxfWriter adapter(writer);
+  adapter.value=sink.materials[0];adapter.raw=sink.raw[0];
+  // 1F is the source material's handle but the writer reserves it for the
+  // model-space BLOCK_RECORD; move the source identity before raw replay.
+  writer.setHandleRemap({{0x1Fu,0xF000u}});
+  if(writer.write(&adapter,DRW::AC1024,binary)||adapter.ok||bytes(dest)!="prior")return 51;
+  adapter.useRaw=true;adapter.ok=false;
+  if(!writer.write(&adapter,DRW::AC1024,binary)||!adapter.ok){
+   const auto diagnostic=writer.getLastDiagnostic();
+   std::cerr<<"raw retry: "<<diagnostic.code<<": "<<diagnostic.message<<'\n';return 52;
+  }
+  Reader reread;dxfRW check(destName.c_str());
+  if(!check.read(&reread,false)||reread.raw.size()!=1u
+     ||reread.raw[0].groups.size()!=61u||reread.raw[0].groups[20].code()!=73
+     ||reread.raw[0].groups[20].i_val()!=0||!reread.materials[0].requiresRawDxfMaterialReplay())return 53;
+  for(std::size_t index=0;index<sink.raw[0].groups.size();++index){
+   const auto& a=sink.raw[0].groups[index];const auto& b=reread.raw[0].groups[index];
+   if(a.code()!=b.code()||a.type()!=b.type())return 54;
+   if(index==0){if(std::string(b.c_str())!="F000")return 55;continue;}
+   if(a.type()==DRW_Variant::STRING&&std::string(a.c_str())!=std::string(b.c_str()))return 56;
+   if(a.type()==DRW_Variant::INTEGER&&a.i_val()!=b.i_val())return 57;
+   if(a.type()==DRW_Variant::DOUBLE&&a.d_val()!=b.d_val())return 58;
+  }
+  {std::ofstream f(dest);f<<"prior version";}
+  adapter.ok=false;
+  if(writer.write(&adapter,DRW::AC1027,binary)||adapter.ok||bytes(dest)!="prior version")return 59;
+  adapter.ok=false;
+  if(!writer.write(&adapter,DRW::AC1024,binary)||!adapter.ok)return 60;
  }
  return 0;
 }

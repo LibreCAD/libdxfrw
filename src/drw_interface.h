@@ -1482,7 +1482,7 @@ public:
   virtual bool wantsDxfSectionObjectRaw411Only() const noexcept { return false; }
 };
 
-/** Optional, explicit opt-in for the exact sparse DXF MATERIAL profile.
+/** Optional, explicit opt-in for bounded raw-only DXF MATERIAL profiles.
  * The typed callback is incomplete: the consumer must retain the accompanying
  * raw object and honor DRW_Material::requiresRawDxfMaterialReplay(). Kept
  * outside DRW_Interface to preserve existing consumer vtables. */
