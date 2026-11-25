@@ -14,11 +14,10 @@ IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
 The strict TABLE block-target fix and subsequent TABLE fixture corrections
-change selected inputs. The prior clean checkout of `0cead675` computed digest
-`e5d949965d563a9454eb458a1034d4981746c27bf2893a6a56920e82356b8dde`
-for 774 inputs; recompute after the fixture corrections. P8-A/E/F evidence
-below binds the earlier HATCH digest and must be rerun for this candidate. The status overlay remains draft; no claim
-is promoted.
+change selected inputs. A clean checkout of `193c3e27` computes digest
+`eb0faf86bb0f21a7f1d2011213954af730267df79c471e9c3df5e506da8e3b8b`
+for 774 inputs. P8-A/E/F evidence below binds earlier digests and must be
+rerun for this candidate. The status overlay remains draft; no claim is promoted.
 
 The HATCH/MPOLYGON BS count fix changes selected implementation inputs. A
 clean checkout of `c31185da` computes digest
