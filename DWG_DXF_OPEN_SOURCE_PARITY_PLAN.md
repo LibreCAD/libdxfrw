@@ -38,7 +38,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`633d7ac09790e400b0fe1273b060da08bf36aaf1`. The prior merge head built the
+`76cdccbb0c46844f17d6e21c13bd1a8ba093ac08`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -46,6 +46,13 @@ unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
 The new repeatable system-codec lane and bundled DXF fast lane pass locally;
 see the [units receipt](docs/research/p8d-librecad-system-codec-legacy-units-2026-11-25.json)
 and [refresh receipt](docs/research/p8d-librecad-3289-master-refresh-2026-11-25.json).
+The [coordinate receipt](docs/research/p8d-librecad-system-codec-extrusion-2026-11-25.json)
+records the DXF callback-frame adaptation, same-filter DXF/DWG reuse,
+targeted AddressSanitizer and bundled-codec controls. A wider system-codec
+filter run improved from 86 to 91 passing cases out of 131; 40 cases remain
+failing. Next classify the remaining caret/text transport, underlay version
+gates, and object-graph/identity failures against their source semantics, then
+fix each valid gap with focused tests and independent readback where needed.
 Native GUI, runtime loading, new-head hosted checks and final-candidate
 validation remain open.
 
