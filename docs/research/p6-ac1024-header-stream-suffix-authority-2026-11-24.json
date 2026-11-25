@@ -1,0 +1,300 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1024-header-stream-suffix-authority-2026-11-24",
+  "date": "2026-11-24",
+  "status": "STREAM_SPANS_AND_SUFFIX_BOUNDS_CONFIRMED_PEER_INERT_ROLE_OPEN",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "officialUrl": "https://static.opendesign.com/files/guestdownloads/OpenDesign_Specification_for_.dwg_files.pdf",
+    "sections": {
+      "5.9": "For R2007+ AcDb:Header, strings are separated into a string stream and handles into a separate stream at the end of the header, in the manner used for objects.",
+      "9": "The header-variable section-locator-0 envelope contains a beginning sentinel, size fields, data, CRC, and ending sentinel; the section's data stream has no gaps and header bits are padded to a byte boundary.",
+      "20.1": "The common object format describes string-stream location and a separate handle stream; it supplies the referenced object-stream model, not a direct mapping for the observed trailing bytes."
+    },
+    "interpretation": "ODA v5.4.1 \u00a75.9 establishes separate header string and handle streams. The independent LibreDWG trace maps the decoded streams before the validated envelope trailer in this AC1024 source. Neither the specification text screened here nor the independent bounded container decoder identifies the remaining 739-byte suffix role or semantics."
+  },
+  "section9ScopeReview": {
+    "authority": "ODA v5.4.1 §9, printed page 72",
+    "describedOrder": [
+      "Beginning sentinel",
+      "Four-byte section size",
+      "R2010/R2013 maintenance>3 or R2018+ unknown four-byte word when present",
+      "System-variable data and possibly other data at the beginning",
+      "CRC",
+      "Ending sentinel"
+    ],
+    "paddingStatement": "Header data is padded with random bits to the next byte boundary.",
+    "suffixAssessment": "The observed 739-byte span starts after the declared ending sentinel. Section 9 does not describe that post-sentinel span as padding or assign it fields; its possible extra data is described at the beginning. The specification therefore supplies no basis to discard or semantically ignore the suffix.",
+    "effect": "Keep the raw suffix and strict-output refusal; require a source-distinct producer or independently interpreted decoder trace for any semantic disposition."
+  },
+  "priorEvidence": {
+    "repeatabilityReceipt": "docs/research/p6-oda-ac1024-mesh-header-repeatability-2026-11-15.json",
+    "sourceDiagnostic": "docs/research/p6-ac1024-header-unclaimed-suffix-diagnostic-2026-11-04.json",
+    "profile": "AC1024, app maintenance 55",
+    "logicalHeaderBytes": 1582,
+    "envelopeTrailerEnd": 843,
+    "unclaimedSuffixBytes": 739,
+    "repeatSaveObservation": "Three ODA conversions of one exact generated input retained 739-byte suffixes with distinct hashes and pairwise low-bit differences; this is not padding or semantic proof."
+  },
+  "currentScratchAttempt": {
+    "source": "/private/tmp/p6e-ac1024-spec-lab/in/section-headers.dxf",
+    "createdLocallyFromScratch": true,
+    "converter": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "result": "Aborted before conversion with PasteBoard errors (-4960) and an invalid hiservices XPC connection; no DWG was produced.",
+    "disposition": "Do not repeat the same attempt until the converter or desktop state changes."
+  },
+  "nextAction": "The exact suffix span is bounded and zero/XOR mutation leaves LibreDWG 0.14 JSON unchanged, while libdxfrw continues to refuse strict and explicit-partial output. This does not reveal the suffix role. Obtain versioned primary authority or a source-distinct independent decode/producer profile that classifies [887,1626); retain raw bytes and fail closed until then.",
+  "limits": [
+    "The local PDF is the ODA specification named in AGENTS.md and its hash matches the earlier receipts.",
+    "A structural statement about separate streams does not prove the semantics of this specific suffix.",
+    "No parser behavior, support claim, or fixture was changed by this authority screen."
+  ],
+  "afterUnlockRetry": {
+    "observedAtUtc": "2026-11-24 16:31 UTC",
+    "source": "/private/tmp/p6e-ac1024-after-unlock-20261124/in/section-headers.dxf",
+    "sourceSha256": "8c87543bea37185e72674e9e1a2f6bdae7331ef27a555feeb27ddf2302f8711c",
+    "createdLocallyFromScratch": true,
+    "converter": "/Applications/ODAFileConverter.app/Contents/MacOS/ODAFileConverter",
+    "command": "ODAFileConverter <input-dir> <output-dir> ACAD2010 DWG 0 0 '*.dxf'",
+    "host": "macOS ARM64; Darwin kernel 27.2.0",
+    "stderr": [
+      "PasteBoard: Error creating pasteboard: com.apple.pasteboard.clipboard [-4960]",
+      "PasteBoard: Error creating pasteboard: com.apple.pasteboard.find [-4960]",
+      "Connection Invalid error for service com.apple.hiservices-xpcservice; message reply handler reports Connection invalid."
+    ],
+    "outputFiles": [],
+    "result": "No AC1024 DWG was produced. The direct converter invocation aborted before conversion; the command wrapper did not retain its process exit code.",
+    "disposition": "Do not repeat this unchanged converter/profile. Continue only after the converter/session state changes or via a source-distinct writer/decoder."
+  },
+  "alternativeWriterAttempt": {
+    "writer": "GNU LibreDWG 0.14 dwgwrite",
+    "writerExecutable": "/opt/homebrew/bin/dwgwrite",
+    "writerSha256": "8c5dfd7f733e924723155e5040dd33f3fefdf4682071867a4c1d3499adf73e74",
+    "command": "dwgwrite --as r2010 -I DXF -o <scratch>/out/libredwg-ac1024.dwg <scratch>/in/section-headers.dxf",
+    "sourceSha256": "8c87543bea37185e72674e9e1a2f6bdae7331ef27a555feeb27ddf2302f8711c",
+    "writerExitCode": 0,
+    "writerDiagnostics": [
+      "ERROR: dwg.block_control and HEADER.BLOCK_CONTROL_OBJECT missing",
+      "Warning: Unknown 3DFACE.layer 0"
+    ],
+    "output": {
+      "path": "/private/tmp/p6e-ac1024-after-unlock-20261124/out/libredwg-ac1024.dwg",
+      "sizeBytes": 573048,
+      "magic": "AC1024",
+      "sha256": "f70a9d01a3aaa60ff9b45951507ea0658d76c115dba668f515744fd2aaae1755",
+      "scratchOnly": true
+    },
+    "selfReadback": {
+      "reader": "GNU LibreDWG 0.14 dwgread",
+      "readerExecutableSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "exitCode": 0,
+      "diagnostics": [
+        "ERROR: Invalid max class number 499",
+        "ERROR: dwg.block_control and HEADER.BLOCK_CONTROL_OBJECT missing",
+        "ERROR: BLOCK_CONTROL missing",
+        "SUCCESS"
+      ],
+      "interpretation": "A zero exit with structural ERROR diagnostics is not a clean independent readback."
+    },
+    "libdxfrwReadback": {
+      "reader": "build-gcc/dwg2dxf/dwg2dxf",
+      "exitCode": 1,
+      "result": "BAD_READ_FILE_HEADER (legacyError 5); failed before section decoding."
+    },
+    "disposition": "Not a valid producer witness or regression fixture; do not commit this generated DWG. The writer advertised AC1024 magic but did not produce a file that either reader cleanly accepts."
+  },
+  "desktopLaunchAttempt": {
+    "observedAtUtc": "2026-11-24 16:37 UTC",
+    "command": "open -a /Applications/ODAFileConverter.app --args <input-dir> <output-dir> ACAD2010 DWG 0 0 '*.dxf'",
+    "exitCode": 1,
+    "result": "LaunchServices returned NSOSStatusErrorDomain -10827 (kLSNoExecutableErr) before opening the converter; no DWG was produced.",
+    "disposition": "The GUI launch path did not provide an alternate conversion route. Do not change the installed application bundle as part of this parser investigation."
+  },
+  "linuxOdaValidR2010SourceAttempt": {
+    "observedAtUtc": "2026-11-24 17:00 UTC",
+    "source": {
+      "path": "/private/tmp/p6e-ac1024-spec-valid-20261124/in/section-headers.dxf",
+      "createdLocallyFromScratch": true,
+      "generator": "ezdxf 1.4.5, R2010; setup tables, P6E_SAMPLE layer, 3DFACE, TEXT, and nondefault $INSBASE",
+      "sizeBytes": 35942,
+      "sha256": "96619352f6ce9888506c8ec0de70c278a4975d7e07c06df3601c75c0ce8ff4fe",
+      "auditErrors": 0
+    },
+    "converter": {
+      "name": "ODA File Converter",
+      "version": "27.10.0.0",
+      "package": "ODAFileConverter_QT6_lnxX64_11dll_27.10.deb",
+      "packageSha256": "c432002cc688f89ddf6a68ad68e877cd16da1d99ab8729386009c552cf73beb5",
+      "binarySha256": "bda7c79a901be17d4e0a76ea6e9dfddb24b83601e98cf41d66c158a9c428ca24",
+      "runtime": "Ubuntu 24.04.5 LTS linux/amd64 container, emulated by Docker Desktop on macOS ARM64 with Xvfb",
+      "command": "ODAFileConverter /input /output ACAD2010 DWG 0 0 *.dxf"
+    },
+    "output": {
+      "path": "/private/tmp/p6e-ac1024-oda-linux-20261124/out/section-headers.dwg",
+      "sizeBytes": 18939,
+      "magic": "AC1024",
+      "sha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+      "scratchOnly": true
+    },
+    "independentReader": {
+      "name": "GNU LibreDWG dwgread 0.14",
+      "binarySha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "exitCode": 0,
+      "result": "SUCCESS; AC1024 parsed and JSON output produced",
+      "warnings": [
+        "unstable MATERIAL, MLEADERSTYLE, and TABLESTYLE class records",
+        "TODO TABLESTYLE R2010+ fields"
+      ],
+      "interpretation": "A valid independent read confirms this is a useful source for bounded header investigation; warnings limit broader semantic claims."
+    },
+    "independentHeaderTrace": {
+      "tracePath": "/private/tmp/p6e-ac1024-oda-linux-20261124/out/libredwg-verbose.log",
+      "section": {
+        "name": "AcDb:Header",
+        "logicalSizeBytes": 1626,
+        "pageFileOffset": 16480,
+        "compressedDataSizeBytes": 1590,
+        "decompressedPageSizeBytes": 1632,
+        "headerVariableSizeBytes": 845,
+        "headerVariableHighSizeWord": 0,
+        "headerVariableBitSize": 6064
+      },
+      "stringStream": {
+        "startBit": 4931,
+        "dataSizeBits": 1308,
+        "endBit": 6239,
+        "endMarkerBit": 6255,
+        "decodedStringFieldCursorsBytes": "619.5 through 779.7"
+      },
+      "handleFields": {
+        "firstDecodedField": "CLAYER at byte 782.0",
+        "lastDecodedField": "DRAGVS at byte 858.0",
+        "roleTaggedExamples": [
+          "CLAYER [H 8]",
+          "TEXTSTYLE [H 7]",
+          "CELTYPE [H 6]",
+          "BLOCK_CONTROL_OBJECT [H 0]"
+        ]
+      },
+      "interpretation": "The independent decoder locates decoded header strings and handle fields before the header-envelope trailer; it does not decode or classify bytes after that trailer."
+    },
+    "libdxfrw": {
+      "binary": "build-gcc/dwg2dxf/dwg2dxf",
+      "binarySha256": "8fb3fb64873f9cf624704d1cd238a242587a570bdc7301e217c21e8619f15fcf",
+      "operationSucceeded": true,
+      "legacyError": 0,
+      "publishedSourceFrames": 226,
+      "strictOutput": "refused during preflight; no output was published",
+      "diagnostics": [
+        {
+          "kind": "HeaderSectionCompatibility",
+          "offset": 16,
+          "expected": 865,
+          "observed": 869,
+          "meaning": "validated zero high-size word is excluded from the declared payload size"
+        },
+        {
+          "kind": "HeaderSectionUnclaimedData",
+          "offset": 887,
+          "expected": 887,
+          "observed": 1626,
+          "meaning": "739 logical section bytes remain after the valid envelope"
+        }
+      ],
+      "envelope": {
+        "payloadEnd": 869,
+        "trailerEnd": 887,
+        "unclaimedSuffixBytes": 739,
+        "crcStoredAndCalculated": "0x1feb"
+      }
+    },
+    "disposition": "This sample validates the source-specific frame and decoded string/handle locations, but the 739 bytes after the envelope remain unclassified. Keep them raw, retain strict-output refusal, and do not call them padding or discard them. No support claim is promoted."
+  },
+  "pinnedIndependentContainerCheck": {
+    "repository": "https://github.com/realDragonium/dwg-verifier",
+    "commit": "5a7dc5c6790cd8fece1494c710585019a253dbba",
+    "moduleHashes": {
+      "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "r2004.py": "3b0c692a41f0319687f221d6ed0c4bf35919641cf2de29c6e024d8f127ae24b1",
+      "structural.py": "8fd01b73158cbabf8944ff3d903ac83af9a1215e2315ee6cbadd31b444b776b1",
+      "report.py": "8b0ea26b0d64c73fdca20683aae192c731ed2448b0fe64e751bafba9c04d4a6d"
+    },
+    "sourceSha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+    "result": {
+      "findings": [],
+      "unsupported": null
+    },
+    "sectionLogicalBytes": 1626,
+    "headerEnvelope": {
+      "crcOffset": 869,
+      "endSentinelOffset": 871,
+      "trailerEnd": 887,
+      "crc16": "0x1feb"
+    },
+    "unclaimedSuffix": {
+      "start": 887,
+      "endExclusive": 1626,
+      "sizeBytes": 739,
+      "sha256": "3f841c402344cc07c25ede3d7284824b68ad3e463316adad4b456d80beb9ecdd"
+    },
+    "logicalHeaderSha256": "07942fac3769fa24fc9e3c4c391fd76d46587c854f7c0c42cf3c754849d45004",
+    "interpretation": "Independent bounded container parsing confirms exact source bounds and a valid section envelope. It does not assign meaning to the suffix."
+  },
+  "suffixMutationStudy": {
+    "tool": "tools/research/mutate_ac1024_header_suffix_traced.py",
+    "toolSha256": "03a083f3760ffedd9c65a229506908deaca72eed672f888fa0489a39dace0d4f",
+    "sourceSha256": "3e2732452a4b669c5b3dce4d145e5249a73548400d80ded8bd8d0a1e98632ff2",
+    "method": "Trace pinned R2004-family decompressor literal origins, alter only the independently bounded post-envelope suffix, and reseal page checksums; the tool verifies exact decompression and container structure.",
+    "variants": [
+      {
+        "variant": "zero",
+        "dwgSha256": "03b0c02a138937153e6986a1f5b3666b9279bbb44e74ce4767704d4c2d148b72",
+        "suffixSha256": "eb548e0f3a79fbeb4cf9497863f31bb11a22d29dd17960c013df59fc01bbbd9c"
+      },
+      {
+        "variant": "xor-0xA5",
+        "dwgSha256": "f980f79b14c661460279b7f2bf27685bd0822a3fe3f20b8678f5e5696ca34749",
+        "suffixSha256": "1e77159e67846b9226a17e026e9bba7f4ea5f01ec36e589fe9f927f7fc59491d"
+      }
+    ],
+    "containerCheck": "Both transformations were accepted by the pinned structural checker with no findings or unsupported sections; transformed header CRC and compressed-page checksums were independently recomputed.",
+    "libreDwgPeer": {
+      "reader": "GNU LibreDWG dwgread 0.14",
+      "readerSha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff",
+      "command": "dwgread -O JSON -o <output> <source>",
+      "exitCodes": [
+        0,
+        0,
+        0
+      ],
+      "successToken": true,
+      "errorDiagnostics": [],
+      "canonicalJsonSha256ForOriginalAndBothMutations": "7b55e34a1f96b7556290ccf749a03da7bd39c2182f8f94f97d10aa674a2c1e8e",
+      "rawJsonSha256ForBothMutations": "ac84727c061f1bd0b67ed5dc059237e3f560214130bf814a8080f92359a8e4c2"
+    },
+    "libdxfrw": {
+      "reader": "build-gcc/dwg2dxf/dwg2dxf",
+      "binarySha256": "8fb3fb64873f9cf624704d1cd238a242587a570bdc7301e217c21e8619f15fcf",
+      "partialAsciiAndBinary": {
+        "sourceExitCodes": [
+          1,
+          1
+        ],
+        "zeroExitCodes": [
+          1,
+          1
+        ],
+        "xorExitCodes": [
+          1,
+          1
+        ],
+        "outputsPublished": false
+      },
+      "interpretation": "The explicit partial option does not admit this unknown HEADER suffix; all three inputs remain refused before output."
+    },
+    "limits": "No native AutoCAD or other CAD consumer was run on the mutated files. Peer semantic-output invariance does not identify the suffix as padding, reserved bytes, or semantically irrelevant, and does not authorize dropping it."
+  }
+}

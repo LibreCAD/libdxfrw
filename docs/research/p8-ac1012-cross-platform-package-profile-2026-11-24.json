@@ -1,0 +1,129 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-ac1012-cross-platform-package-profile-2026-11-24",
+  "date": "2026-11-24",
+  "status": "THREE_PLATFORM_SHARED_STATIC_INSTALL_AND_RELOCATION_PASS",
+  "supportClaimEffect": "none",
+  "testedImplementation": {
+    "sourceCommit": "7a1a8bff72666fe0f2d135b6f2f4c276da270112",
+    "implementationDigestSha256": "b6f59d17e0fd19013d545f46bc87150d8944326f327493276a13caa5f4baae68",
+    "implementationInputCount": 774,
+    "laterCommits": "Documentation-only; selected package inputs remain unchanged.",
+    "probe": {
+      "path": "tools/probe_installed_package.py",
+      "sha256": "7a7a6bb0c67e625c14ba71425c50b5eb7f3108f7d2a182759f89be368476ce1d"
+    },
+    "workflow": {
+      "path": ".github/workflows/shared-abi-qualification.yml",
+      "gitBlobSha": "8ba1121dbd1ede1114f1df79273ed7c83bcaa003"
+    }
+  },
+  "profile": {
+    "configuration": "Release",
+    "documentationEnabled": false,
+    "testsEnabled": false,
+    "shared": [
+      "Install shared library and dwg2dxf.",
+      "Check ABI-2 package rejection and ABI-3 package selection.",
+      "Relocate the install tree; build a consumer and confirm it loads the selected installed runtime.",
+      "Run the relocated dwg2dxf CLI with loader overrides cleared and observe its usage path."
+    ],
+    "static": [
+      "Install the static library.",
+      "Check ABI-2 package rejection and ABI-3 package selection.",
+      "Relocate the install tree and build/run a consumer."
+    ]
+  },
+  "platforms": {
+    "linux": {
+      "hostedRunner": "ubuntu-24.04",
+      "os": "Ubuntu 24.04.5 LTS",
+      "workflowRunId": 45419059388,
+      "jobId": 138533230784,
+      "conclusion": "success",
+      "artifact": {
+        "id": 14935160401,
+        "name": "shared-abi-linux-gcc-45419059388-1",
+        "sha256": "1248c6a966d703ac1c927fee0786bfaa9c7fea9f06b29ce0314e75ef31e9e15f"
+      },
+      "shared": {
+        "installedFileCount": 30,
+        "selectedRuntime": "lib/libdxfrw.so.3.0.0",
+        "selectedRuntimeSha256": "ce4024a9a07fdff25c311d4b5c926d69a3ae4c4fd4ed8669bdd36c72953075d9",
+        "loadedRuntimeMatchesSelected": true,
+        "cliSha256": "bc1397a86741275bf5c46fe97b4a19a0ad29cac0ad3266d8a653c0f5dd6bd2f6",
+        "relocatedCliUsagePath": true,
+        "loaderOverridesCleared": true
+      },
+      "static": {
+        "installedFileCount": 26,
+        "selectedArchive": "lib/libdxfrw.a",
+        "selectedArchiveSha256": "36f0e944254db7260b5cc6a15c71138679f12c2b3936f41d0edf4c04cc004581"
+      }
+    },
+    "windows": {
+      "hostedRunner": "windows-2022",
+      "workflowRunId": 45419059388,
+      "jobId": 138533231355,
+      "conclusion": "success",
+      "artifact": {
+        "id": 14935470246,
+        "name": "shared-abi-windows-msvc-45419059388-1",
+        "sha256": "a2900180dcdb06c2d83a103aa5b239b8ebc7479e2066bcaa3f9e3dac7e436f40"
+      },
+      "shared": {
+        "installedFileCount": 29,
+        "selectedRuntime": "bin/dxfrw-3.dll",
+        "selectedRuntimeSha256": "d6e1e7eb592b4f8ce71dff5cbf962cce9908aafb889d04244a3882c8de69c736",
+        "loadedRuntimeMatchesSelected": true,
+        "cliSha256": "dabeb872e13a59b5a7404812341f0964714e0ab0604517464b2b071868e834a1",
+        "relocatedCliUsagePath": true,
+        "loaderOverridesCleared": true
+      },
+      "static": {
+        "installedFileCount": 26,
+        "selectedArchive": "lib/dxfrw.lib",
+        "selectedArchiveSha256": "3ac03862aa031ea39649f29c47ae0f5ff327803334b633cab20d33eda03431eb"
+      },
+      "buildWarnings": "MSVC emitted existing compiler warnings; shared/static build, install, probes, and artifact upload completed successfully."
+    },
+    "macos": {
+      "host": "local ARM64",
+      "os": "macOS 27.2.1",
+      "compiler": "AppleClang 21.0.0 (clang-2100.3.34.2)",
+      "cmake": "4.5.1",
+      "python": "3.15.2",
+      "configuration": "Release",
+      "testsEnabled": false,
+      "documentationEnabled": false,
+      "scratchRoot": "/private/tmp/libdxfrw-p8a-ac1012-7a1a8bff",
+      "shared": {
+        "installManifestSha256": "9b933da1e64f4c06ee1a42513053881eb14924a2bc042b9408c43bc8b074ae8f",
+        "probeReceiptSha256": "7c339b228f4b8937042477348c3cb691a36a893b5d8bf832763192de28bc4dd5",
+        "installedFileCount": 30,
+        "selectedRuntime": "lib/libdxfrw.3.0.0.dylib",
+        "selectedRuntimeSha256": "93ca1e30910899d6fec3cd6272cc05f30bb31771f06b931a6f3cdc388d237baa",
+        "loadedRuntimeMatchesSelected": true,
+        "cliSha256": "dbe6a99b61d9d2df5b83a452990eea675b49cba346424e72db7c70044ce399f1",
+        "relocatedCliUsagePath": true,
+        "loaderOverridesCleared": true
+      },
+      "static": {
+        "installManifestSha256": "dbca6bd6855f7ca3e2b95c54c2d80dabc2817245f3c465681bd2b4e4a89f4a9b",
+        "probeReceiptSha256": "1b878fd9fe4b41821c99a23e49985715bff74e8c89455336dbe31cf210566eb7",
+        "installedFileCount": 26,
+        "selectedArchive": "lib/libdxfrw.a",
+        "selectedArchiveSha256": "0f2d257a886a29557fed956576f6b3c1f5aba1f77cca6cc48e1028c9daabad4e"
+      }
+    }
+  },
+  "interpretation": {
+    "p8a": "Shared/static install, ABI package selection, relocation, shared runtime identity, and relocated CLI smoke pass for all three platforms on implementation digest b6f59d17.",
+    "p8e": "Installed package selection and relocation pass for the same exact profile and digest.",
+    "limits": [
+      "Closes only the tested package and relocation profiles, not the full C++ ABI surface.",
+      "Does not qualify DWG/DXF behavior, FreeCAD, LibreCAD GUI behavior, or native CAD semantics.",
+      "Reopen at P8-G if any selected implementation, package configuration, probe, or toolchain input changes."
+    ]
+  }
+}

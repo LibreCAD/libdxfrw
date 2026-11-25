@@ -38,7 +38,8 @@ bool slots(const DRW_ObjControl& control,unsigned count,bool legacy = false) {
 // Generated controls model three distinct sources: ODA's split handles at
 // the exact bit boundary, older libdxfrw's inline handles with full-frame RL,
 // and the corrected writer's byte-aligned data/handle boundary.
-enum class Framing { Physical, LegacyInline, WriterAligned };
+enum class Framing { Physical, LegacyInline, WriterAligned,
+                     LibreCADEmptyStringFooter };
 std::vector<std::uint8_t> build(unsigned count,bool shortCount,Framing framing,int bad=0) {
     dwgBufferW b;b.putObjType(DRW::AC1021,DRW::DwgLTypeControlObjectType);
     const auto sizeBit=b.bitCount();b.putRawLong32(0);
@@ -46,13 +47,20 @@ std::vector<std::uint8_t> build(unsigned count,bool shortCount,Framing framing,i
     if(shortCount)b.putBitShort(count);else b.putBitLong(count);
     if(bad==5)b.putBit(0); // extra bit in purported exact producer body
     b.putBit(bad==6?1:0);
-    if(framing==Framing::WriterAligned) {
+    if(framing==Framing::WriterAligned
+       ||framing==Framing::LibreCADEmptyStringFooter) {
         const auto pad=(8u-(b.bitCount()&7u))&7u;
         for(std::uint64_t i=0;i<pad;++i)b.putBit(bad==7&&i==0?1:0);
+        if(framing==Framing::LibreCADEmptyStringFooter) {
+            for(int i=0;i<7;++i)b.putBit(0);
+            b.putRawShort16(bad==11?1u:0u);
+            b.putBit(0);
+        }
     }
     const auto boundary=static_cast<std::uint32_t>(b.bitCount());
     b.putHandle(ref(bad==1?0:DRW::DwgSoftPointer,0));b.putHandle(ref(DRW::DwgHardOwnership,0));
-    const bool legacyGraph = framing==Framing::LegacyInline;
+    const bool legacyGraph = framing==Framing::LegacyInline
+        ||framing==Framing::LibreCADEmptyStringFooter;
     auto values=children(count,legacyGraph);
     if(bad==2)values[0]=DRW::DwgLtypeByLayerHandle;
     if(bad==3)values[3]=DRW::DwgLtypeContinuousHandle;
@@ -70,6 +78,38 @@ std::vector<std::uint8_t> build(unsigned count,bool shortCount,Framing framing,i
     if(bad==10)++declared;
     b.patchRawLong32AtBit(sizeBit,declared);
     auto data=b.data();if(bad==4)data.pop_back();return data;
+}
+std::vector<std::uint8_t> buildAc1021LayerControl(bool nonzeroTail = false) {
+    constexpr std::uint32_t rootHandle = 0x30u;
+    constexpr std::uint32_t layerHandle = 0x31u;
+    dwgBufferW body;
+    body.putObjType(DRW::AC1021, DRW::DwgLayerControlObjectType);
+    const std::uint64_t boundaryField = body.bitCount();
+    body.putRawLong32(0u);
+    body.putFixedHandle(0u, 1u, rootHandle);
+    body.putBitShort(0u); // no EED
+    body.putBitLong(0);   // no persistent reactors
+    body.putBit(0u);      // xdictionary handle is present
+    body.putBitLong(1);   // one layer-table member
+    body.putBit(0u);      // no string stream
+    const auto objectDataEnd = static_cast<std::uint32_t>(body.bitCount());
+    body.putFixedHandle(DRW::DwgSoftPointer, 0u, 0u);
+    body.putFixedHandle(DRW::DwgHardOwnership, 0u, 0u);
+    body.putFixedHandle(DRW::DwgSoftOwnership, 1u, layerHandle);
+    const auto padding = (8u - (body.bitCount() & 7u)) & 7u;
+    for (std::uint64_t bit = 0u; bit < padding; ++bit)
+        body.putBit(nonzeroTail && bit == 0u ? 1u : 0u);
+    body.patchRawLong32AtBit(boundaryField, objectDataEnd);
+    return body.data();
+}
+bool parseAc1021LayerControl(const std::vector<std::uint8_t>& bytes,
+                             DRW_ObjControl& control) {
+    dwgBuffer input(bytes.data(), bytes.size());
+    return control.parseDwg(DRW::AC1021, &input, 0u) && input.isGood()
+        && control.handle == 0x30u
+        && control.orderedHandleSlots == std::vector<std::uint32_t>{0x31u}
+        && control.orderedHandleRoles
+               == std::vector<std::uint8_t>{DRW::DwgSoftOwnership};
 }
 bool parse(std::vector<std::uint8_t>& body,unsigned count,
            DRW_ObjControl& control,bool legacy = false) {
@@ -193,6 +233,32 @@ int main(int argc,char**argv) {
         auto badBoundary=build(count,false,Framing::WriterAligned,10);
         if(parse(badBoundary,count,c)||!parse(goodAligned,count,c)){
             std::cerr<<"writer boundary rejection/retry failed\n";return 1;}
+    }
+    auto libreCadFooter=build(1,false,Framing::LibreCADEmptyStringFooter);
+    DRW_ObjControl libreCadControl;
+    if(!parse(libreCadFooter,1,libreCadControl,true)) {
+        std::cerr<<"LibreCAD AC1021 empty-string footer rejected\n";return 1;
+    }
+    for(int bad:{4,7,9,11}) {
+        auto invalid=build(1,false,Framing::LibreCADEmptyStringFooter,bad);
+        const bool rejected=!parse(invalid,1,libreCadControl,true);
+        if(!rejected) {
+            std::cerr<<"invalid LibreCAD empty-string footer accepted mode="
+                     <<bad<<'\n';return 1;
+        }
+        auto retry=build(1,false,Framing::LibreCADEmptyStringFooter);
+        if(!parse(retry,1,libreCadControl,true)) {
+            std::cerr<<"LibreCAD empty-string footer same-object retry failed mode="
+                     <<bad<<'\n';return 1;
+        }
+    }
+    DRW_ObjControl layerControl;
+    const auto malformedLayer = buildAc1021LayerControl(true);
+    if (parseAc1021LayerControl(malformedLayer, layerControl)
+        || !layerControl.orderedHandleSlots.empty()
+        || !parseAc1021LayerControl(buildAc1021LayerControl(), layerControl)) {
+        std::cerr << "AC1021 detached table-control boundary refusal/retry failed\n";
+        return 1;
     }
     std::cout<<"AC1021 LTYPE_CONTROL count, boundary and retry PASS\n";return 0;
 }

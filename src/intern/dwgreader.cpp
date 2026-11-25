@@ -16393,6 +16393,10 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       version == DRW::AC1021 && oType == DRW::DwgLTypeControlObjectType
       && handle == DRW::DwgLtypeControlHandle && objSize == totalBits
       && xDictFlag == 0 && numReactors == 0 && extData.empty();
+  const bool detachedR2007ControlHandles =
+      version == DRW::AC1021 && objSize != 0 && objSize < totalBits
+      && !legacyR2007InlineBlockControl
+      && !legacyR2007InlineLtypeControl;
   // Historical LibreCAD ENC fixtures carry APPID_CONTROL data in bounded
   // frames whose declared object-data size does not match the modern strict
   // count boundary. Keep the fallback limited to the known root control and
@@ -16417,15 +16421,9 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       return fail();
     hBuff.setBitPos(static_cast<std::uint8_t>(objectBits & 7u));
     hBuf = &hBuff;
-  } else if (version == DRW::AC1021
-             && ((oType == DRW::DwgBlockControlObjectType
-                  && !legacyR2007InlineBlockControl)
-                 || (oType == DRW::DwgLTypeControlObjectType
-                     && !legacyR2007InlineLtypeControl)
-                 || (oType == DRW::DwgAppIdControlObjectType
-                     && handle == DRW::DwgAppIdControlHandle
-                     && objSize != 0 && objSize < totalBits))) {
-    // R2007 control objects normally use the declared pre-handles boundary.
+  } else if (detachedR2007ControlHandles) {
+    // R2007 control objects use the declared pre-handles boundary. Retain
+    // only the exact historical inline BLOCK/LTYPE profiles above.
     if (objSize == 0 || objSize >= totalBits
         || !hBuff.setPosition(objSize >> 3))
       return fail();
@@ -16447,6 +16445,34 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       oType == DRW::DwgAppIdControlObjectType && objSize != 0
       && (version == DRW::AC1024 || version == DRW::AC1027
           || version == DRW::AC1032);
+  // Share the common prefix check for the exact LibreCAD AC1021 LTYPE and
+  // APPID control profiles; callers provide their fixed member graph.
+  const auto readLegacyR2007RootControlHandles =
+      [&](dwgBuffer& handles, std::uint32_t root, std::int32_t count,
+          std::int32_t expectedCount,
+          std::initializer_list<std::uint32_t> expectedChildren) {
+    if (version != DRW::AC1021 || handle != root
+        || count != expectedCount || numReactors != 0
+        || !extData.empty() || xDictFlag != 0
+        || hasDataStorageBinaryData())
+      return false;
+    dwgHandle owner, xdict, child;
+    if (!readDwgHandleChecked(handles, 0, false, owner)
+        || owner.code != DRW::DwgSoftPointer || owner.size != 0
+        || owner.ref != 0
+        || !readDwgHandleChecked(handles, 0, false, xdict)
+        || xdict.code != DRW::DwgHardOwnership || xdict.size != 0
+        || xdict.ref != 0)
+      return false;
+    for (const std::uint32_t expected : expectedChildren) {
+      if (!readDwgHandleChecked(handles, 0, false, child)
+          || child.code != DRW::DwgSoftOwnership
+          || child.size != 1
+          || child.ref != expected)
+        return false;
+    }
+    return true;
+  };
   if (historicalAppIdControlProfile && version == DRW::AC1021) {
     // Preserve the pre-boundary-check reader for the identified LibreCAD
     // R2007 source profile. The count and each H remain frame-bounded; any
@@ -16593,6 +16619,31 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       }
       return true;
     };
+    // This historical LTYPE writer emits one counted entry and serializes
+    // BYBLOCK/BYLAYER/CONTINUOUS as soft ownership refs. Preserve that exact
+    // source route; the normal role audit still blocks strict output.
+    const auto validLegacyR2007OwnedLtypeTail = [&](dwgBuffer legacy,
+                                                     std::int32_t count) {
+      if (oType != DRW::DwgLTypeControlObjectType)
+        return false;
+      const std::initializer_list<std::uint32_t> builtinOrder = {
+          DRW::DwgLtypeByBlockHandle,
+          DRW::DwgLtypeByLayerHandle,
+          DRW::DwgLtypeContinuousHandle};
+      if (!readLegacyR2007RootControlHandles(
+              legacy, DRW::DwgLtypeControlHandle, count, 1, builtinOrder))
+        return false;
+      std::uint64_t end = 0;
+      if (!controlCurrentBit(legacy, end) || end > totalBits
+          || totalBits - end > 7u)
+        return false;
+      while (end < totalBits) {
+        if (legacy.getBit() != 0 || !legacy.isGood())
+          return false;
+        ++end;
+      }
+      return true;
+    };
     const auto matchesBoundary = [&](const dwgBuffer &candidate,
                                      std::int32_t count) {
       std::uint64_t end = 0;
@@ -16616,10 +16667,22 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       // or the writer's aligned zero trailer, then use the bounded member
       // handle loop below. Special tail validators are for LTYPE only.
       const bool appIdTail = oType == DRW::DwgAppIdControlObjectType;
-      const bool tailMatch = alignedMatch
+      // The LibreCAD R2007 writer profile also emits its empty 24-bit string
+      // footer (seven zero alignment bits, a zero 16-bit size, then a zero
+      // presence bit). Keep that footer limited to the historical LTYPE
+      // control whose detached handle stream matches the validated legacy
+      // soft-pointer graph. The generic R2007 control path still requires an
+      // exact end-at-flag boundary.
+      const bool legacyR2007EmptyStringFooter =
+          version == DRW::AC1021
+          && oType == DRW::DwgLTypeControlObjectType
+          && aligned <= UINT64_MAX - 24u && aligned + 24u == bodyEndBit
+          && validLegacyR2007OwnedLtypeTail(hBuff.forkIndependent(), count);
+      const bool tailMatch = (alignedMatch
           && (appIdTail
               || validWriterTail(hBuff.forkIndependent(), count)
-              || validLegacySoftPointerTail(hBuff.forkIndependent(), count));
+              || validLegacySoftPointerTail(hBuff.forkIndependent(), count)))
+          || legacyR2007EmptyStringFooter;
       if (!tailMatch) return false;
       dwgBuffer trailer = candidate.forkIndependent();
       for (std::uint64_t i = end; i < bodyEndBit; ++i)
@@ -16701,6 +16764,28 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       std::uint64_t end = 0;
       return controlCurrentBit(candidate, end) && end == countEndBit;
     };
+    const auto matchesLegacyR2007EmptyFooter =
+        [&](const dwgBuffer &candidate, std::int32_t count) {
+      const std::initializer_list<std::uint32_t> expectedChildren = {
+          DRW::DwgAcadAppIdHandle};
+      dwgBuffer handles = hBuff.forkIndependent();
+      if (!readLegacyR2007RootControlHandles(
+              handles, DRW::DwgAppIdControlHandle, count, 1,
+              expectedChildren))
+        return false;
+      std::uint64_t end = 0;
+      if (!controlCurrentBit(candidate, end) || end > UINT64_MAX - 8u)
+        return false;
+      const std::uint64_t aligned = (end + 8u) & ~std::uint64_t(7u);
+      if (aligned > UINT64_MAX - 24u || aligned + 24u != bodyEndBit)
+        return false;
+      dwgBuffer trailer = candidate.forkIndependent();
+      for (std::uint64_t bit = end; bit < bodyEndBit; ++bit) {
+        if (trailer.getBit() != 0 || !trailer.isGood())
+          return false;
+      }
+      return true;
+    };
     dwgBuffer tagProbe = buf->forkIndependent();
     const std::uint8_t tag = tagProbe.get2Bits();
     if (!tagProbe.isGood()) return fail();
@@ -16708,7 +16793,9 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       // Compact BL and BS values share these encodings; the decoded value is
       // identical, so retain the normative BL interpretation.
       countRead = readControlBitLong(*buf, countEndBit, rawNumEntries)
-          && rawNumEntries >= 0 && matchesCountEnd(*buf);
+          && rawNumEntries >= 0
+          && (matchesCountEnd(*buf)
+              || matchesLegacyR2007EmptyFooter(*buf, rawNumEntries));
     } else if (tag == 3u) {
       // BS selector 3 is the legacy count-256 spelling. BL's selector 3
       // decodes to zero, so do not let its shorter false candidate mask this.
@@ -16716,7 +16803,9 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       std::int32_t shortCount = 0;
       const bool shortMatches = readControlBitShort(shortProbe, countEndBit,
                                                     shortCount)
-          && shortCount == 256 && matchesCountEnd(shortProbe);
+          && shortCount == 256
+          && (matchesCountEnd(shortProbe)
+              || matchesLegacyR2007EmptyFooter(shortProbe, shortCount));
       if (shortMatches) {
         *buf = shortProbe;
         rawNumEntries = shortCount;
@@ -16728,10 +16817,14 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
       std::int32_t longCount = 0, shortCount = 0;
       const bool longMatches = readControlBitLong(longProbe, countEndBit,
                                                   longCount)
-          && longCount >= 0 && matchesCountEnd(longProbe);
+          && longCount >= 0
+          && (matchesCountEnd(longProbe)
+              || matchesLegacyR2007EmptyFooter(longProbe, longCount));
       const bool shortMatches = readControlBitShort(shortProbe, countEndBit,
                                                     shortCount)
-          && shortCount >= 257 && matchesCountEnd(shortProbe);
+          && shortCount >= 257
+          && (matchesCountEnd(shortProbe)
+              || matchesLegacyR2007EmptyFooter(shortProbe, shortCount));
       if (longMatches && !shortMatches) {
         *buf = longProbe;
         rawNumEntries = longCount;
@@ -16939,6 +17032,17 @@ bool DRW_ObjControl::parseDwg(DRW::Version version, dwgBuffer *buf,
     DRW_DBG("Remaining bytes: ");
     DRW_DBG(buf->numRemainingBytes());
     DRW_DBG("\n");
+  }
+  if (detachedR2007ControlHandles) {
+    std::uint64_t handleEndBit = 0;
+    if (!controlCurrentBit(*hBuf, handleEndBit) || handleEndBit > totalBits
+        || totalBits - handleEndBit > 7u)
+      return fail();
+    while (handleEndBit < totalBits) {
+      if (hBuf->getBit() != 0 || !hBuf->isGood())
+        return fail();
+      ++handleEndBit;
+    }
   }
   if (version == DRW::AC1021 && oType == DRW::DwgBlockControlObjectType) {
     const std::uint64_t position =

@@ -1,0 +1,57 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-exact-head-ci-2026-11-25",
+  "date": "2026-11-25",
+  "scope": "Exact-head fast and focused native qualification for PR #106 implementation digest d358fa5a.",
+  "supportClaimEffect": "none",
+  "candidate": {
+    "pullRequest": "LibreCAD/libdxfrw#106",
+    "workflowHead": "4de9210d4a63ae319d55e3d8b5fc89e0ee9e34df",
+    "implementationHead": "b244f914f8d8af3c447bc0ff949be732ef2fbe62",
+    "implementationDigestSha256": "d358fa5aa32840c884ae4d6957bfd7769f02d83d50f8fead39c0b824136003fe",
+    "inputCount": 774,
+    "claimsDigestSha256": "7f72bd5c6033fb312c89d56fcc5b476063273a2b24faa863e58114a703956ab8"
+  },
+  "hostedChecks": {
+    "fast": {
+      "runId": 45591731893,
+      "runNumber": 385,
+      "status": "success",
+      "steps": {
+        "inventoryAndProfile": "success",
+        "boundedBuildAndSourceCompatibility": "success",
+        "fastVectorsAndRequiredCliRegressions": "success"
+      },
+      "sourceRelease": "skipped_by_workflow_design"
+    },
+    "nativeQualification": {
+      "runId": 45591732344,
+      "runNumber": 543,
+      "status": "success",
+      "workflowContractAndDigest": "success",
+      "focusedPlatforms": {
+        "linux-gcc": "success",
+        "macos-clang": "success",
+        "windows-msvc": "success"
+      },
+      "broadAndFuzz": "skipped_by_workflow_design"
+    }
+  },
+  "localFocusedValidation": {
+    "target": "libdxfrw_dwg_ac1014_dictionaryvar_tests",
+    "command": "cmake --build build --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j2 && ctest --test-dir build --output-on-failure -R '^libdxfrw_dwg_ac1014_dictionaryvar$'",
+    "result": "PASS 1/1; AC1012, AC1014, and AC1015 labels; 0.17 seconds"
+  },
+  "qualification": {
+    "P8F": "CLOSED_FOR_DIGEST_D358FA5A",
+    "P8AE": "OPEN_FOR_INTEGRATION_FREEZE_PACKAGE_REFRESH",
+    "P8BCD": "OPEN",
+    "P8G": "OPEN",
+    "supportStatus": "Claim statuses and claims digest are unchanged; all claims remain EXPERIMENTAL and zero routes are advertised."
+  },
+  "limits": [
+    "The fast lane and focused platform jobs do not constitute the broad suite or extended fuzz lane; reserve those for the frozen integration candidate.",
+    "These checks do not establish native AutoCAD dictionary merge semantics, full C++ ABI compatibility, FreeCAD qualification, or broad DWG/DXF support."
+  ],
+  "nextStep": "Keep P8-F closed while the selected implementation digest remains d358fa5a. Reopen it if a selected input changes; refresh package and consumer qualification at integration freeze."
+}

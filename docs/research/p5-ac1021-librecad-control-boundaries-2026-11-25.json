@@ -1,0 +1,101 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1021-librecad-control-boundaries-2026-11-25",
+  "date": "2026-11-25",
+  "status": "AC1021_LIBRECAD_TABLE_READ_PASS_STRICT_OUTPUT_OPEN",
+  "scope": "Read the tracked LibreCAD AC1021 source through its detached control-object handles and publish the selected table records.",
+  "supportClaimEffect": "none",
+  "authority": {
+    "document": "Open Design Specification for .dwg files v5.4.1",
+    "path": "/Users/dli/doc/dwg/OpenDesign_Specification_for_.dwg_files (1).pdf",
+    "sha256": "1ed2e02722862188120da606e4b6a816fa4014c96de68da2f84a2ecda09461e7",
+    "sections": [
+      "20.1 Common non-entity object format",
+      "20.4.53 LAYER CONTROL",
+      "20.4.54 LAYER",
+      "20.4.57 LINETYPE CONTROL",
+      "20.4.64 VPORT",
+      "20.4.67 DIMSTYLE CONTROL",
+      "2.13 HANDLE REFERENCES"
+    ],
+    "relevantRule": "For R2007, the object-size field marks the end of object data before the handle references. The LAYER_CONTROL member is a soft-owner reference."
+  },
+  "source": {
+    "repository": "LibreCAD/LibreCAD",
+    "commit": "41678d97626c05ab652ceaa02cf0ac7f7f6205cf",
+    "path": "librecad/src/lib/filters/tests/testdata/ordinary_enc_AC1021.dwg",
+    "localFixture": "tests/fixtures/dwg/librecad_ordinary_enc_AC1021.dwg",
+    "sha256": "00b4f1e9757236304c2f7c17b56c12c7ee217f8bc8cb9fdc9b97cda39ac3d136",
+    "provenance": "Copied from an already-tracked LibreCAD test fixture. No new DWG or DXF fixture was created."
+  },
+  "observation": {
+    "before": {
+      "operation": "DWG read stopped at BAD_READ_OBJECTS",
+      "sourceFrames": 28,
+      "publishedFrames": 24,
+      "failedFrames": 4,
+      "unresolvedFrameTypes": [51, 53, 69, 65],
+      "cause": "Layer, Style, DimStyle, and VPORT control references were read from the object-data cursor rather than the declared AC1021 handle-stream boundary."
+    },
+    "after": {
+      "operationSucceeded": true,
+      "legacyError": "BAD_NONE",
+      "sourceFrames": 28,
+      "publishedFrames": 28,
+      "failedFrames": 0,
+      "selectedTables": [
+        { "record": "LTYPE", "handle": "0x0f", "count": 3 },
+        { "record": "LAYER", "handle": "0x12", "name": "0" },
+        { "record": "STYLE", "handle": "0x13", "name": "STANDARD" },
+        { "record": "APPID", "handle": "0x14", "name": "ACAD" },
+        { "record": "DIMSTYLE", "handle": "0x15", "name": "STANDARD" },
+        { "record": "VPORT", "handle": "0x16", "name": "*ACTIVE" }
+      ],
+      "remainingIntegrityError": {
+        "record": "LTYPE_CONTROL",
+        "handle": "0x10",
+        "expectedRole": 3,
+        "observedRole": 2
+      },
+      "strictOutput": "refused by existing integrity/completeness gate"
+    }
+  },
+  "implementation": {
+    "files": [
+      "src/intern/dwgreader.cpp",
+      "tests/dwg_fixture_tests.cpp",
+      "tests/dwg_ltype_ac1021_count_tests.cpp"
+    ],
+    "behavior": [
+      "For AC1021 controls with a nonzero declared object-data size smaller than the frame body, seek the handle cursor to the declared boundary; preserve the exact legacy inline BLOCK_CONTROL and LTYPE_CONTROL routes.",
+      "Require the detached AC1021 handle stream to end at the frame boundary with at most seven zero padding bits.",
+      "The tracked source regression now requires a complete read and confirms the Layer, Style, DimStyle, and VPORT records at their LibreDWG-observed handles.",
+      "A generated LAYER_CONTROL vector rejects nonzero detached-tail padding, resets the model, and accepts the corrected vector using the same DRW_ObjControl instance."
+    ]
+  },
+  "validation": {
+    "builds": [
+      "cmake --build build --target dwg2dxf -j4",
+      "cmake --build build --target libdxfrw_dwg_fixture_tests -j4",
+      "cmake --build build --target libdxfrw_dwg_ltype_ac1021_count_tests libdxfrw_dwg_fixture_tests -j4"
+    ],
+    "focusedCtests": {
+      "command": "ctest --test-dir build --output-on-failure -R '^(libdxfrw_dwg_ltype_ac1021_count|libdxfrw_ac1021_historical_enc_role_profile)$'",
+      "result": "PASS 2/2"
+    },
+    "cliReadback": {
+      "command": "build/dwg2dxf/dwg2dxf tests/fixtures/dwg/librecad_ordinary_enc_AC1021.dwg -y -d -v2010 /tmp/librecad-ordinary-out.dxf",
+      "read": "operationSucceeded=true; sourceFrames=28; publishedFrames=28; failedFrames=0",
+      "export": "refused before output publication because strict completeness is blocked by the retained LTYPE_CONTROL role mismatch"
+    },
+    "sourceFixtureSha256": "00b4f1e9757236304c2f7c17b56c12c7ee217f8bc8cb9fdc9b97cda39ac3d136",
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "This is one tracked LibreCAD AC1021 writer fixture, not an AutoCAD producer matrix.",
+    "The LTYPE BYLAYER role mismatch remains an integrity error and strict DXF output remains refused.",
+    "The slice closes no P4-P8 package gate and promotes no format or consumer support claim.",
+    "The DWG frame parser completed, but this evidence does not establish native CAD open/save behavior."
+  ],
+  "nextStep": "Continue with the next source-backed, implementation-ready gate; refresh the frozen P8 implementation digest before exact-head CI can qualify this candidate."
+}

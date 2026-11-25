@@ -293,6 +293,39 @@ void testOrdinaryEncoding(TestContext& t, const char* name,
              "modern ordinary ENC preserves linked color graph");
 }
 
+void testLibreCADAc1021ControlFooter(TestContext& t) {
+    FixtureInterface interface_;
+    dx_data data;
+    const std::filesystem::path path =
+        fixturePath("librecad_ordinary_enc_AC1021.dwg");
+    t.expect(std::filesystem::is_regular_file(path),
+             "tracked LibreCAD AC1021 control fixture exists");
+    if (!std::filesystem::is_regular_file(path))
+        return;
+    const bool imported = interface_.fileImport(path.string(), &data, false);
+    t.expect(imported && data.dwgReadOutcome.error == DRW::BAD_NONE,
+             "LibreCAD AC1021 control boundaries complete the DWG read");
+    t.expect(data.dwgReadOutcome.sourceVersion == DRW::AC1021
+                 && data.lineTypes.size() == 3u
+                 && data.appIds.size() == 1u,
+             "LibreCAD AC1021 control footers publish LTYPE and APPID tables");
+    const auto hasRecord = [](const auto& records, std::uint32_t handle,
+                              const char* name) {
+        return std::any_of(records.cbegin(), records.cend(),
+                           [handle, name](const auto& record) {
+                               return record.handle == handle
+                                   && record.name == name;
+                           });
+    };
+    t.expect(hasRecord(data.layers, 0x12u, "0")
+                 && hasRecord(data.textStyles, 0x13u, "STANDARD")
+                 && hasRecord(data.dimStyles, 0x15u, "STANDARD")
+                 && hasRecord(data.VPorts, 0x16u, "*ACTIVE"),
+             "LibreCAD AC1021 declared control boundaries reach table handles");
+    t.expect(hasControlRoleDiagnostic(data, "LTYPE_CONTROL"),
+             "legacy LTYPE role mismatch remains visible for strict output gating");
+}
+
 void testAdvancedTargetFixtures(TestContext& t) {
     {
         FixtureInterface interface_;
@@ -1031,6 +1064,7 @@ int main(int argc, char** argv) {
         TestContext context;
         testOrdinaryEncoding(context, "ordinary_enc_AC1021.dwg", true,
                              "Book$Entry", "ANSI_1252");
+        testLibreCADAc1021ControlFooter(context);
         if (context.failures != 0)
             return 1;
         std::cout << "Historical AC1021 ENC role profile: PASS\n";

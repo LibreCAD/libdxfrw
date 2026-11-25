@@ -234,6 +234,19 @@ bool tableStrictBlockTargetTests(const std::filesystem::path& dir) {
         // A retained cache is emitted unchanged when representable and fails
         // atomically when it exceeds the group-302 bound.
         auto& content=data.tables.front().m_content.m_rows[0].m_cells[0].m_contents[0];
+        // The proposed General carrier disagrees with independent output;
+        // keep it fail-closed until its value mapping is established.
+        const std::vector<std::uint8_t> generalBytes{'A',0u,0u,0u};
+        content.m_value.m_dataType=512;content.m_value.m_formatFlags=6;
+        content.m_value.m_dataSize=generalBytes.size();content.m_value.m_rawData=generalBytes;
+        content.m_value.m_value=DRW_Variant(310,generalBytes);
+        content.m_value.m_valueString="A";
+        if(!tableExportSentinel(output,true)
+            ||writer.fileExport(output.string(),DRW::AC1021,binary,&data,false,true)
+            ||!tableExportSentinel(output))return false;
+        content.m_value=DRW_CadValue{};
+        if(!writer.fileExport(output.string(),DRW::AC1021,binary,&data,false,true)
+            ||!tableExportReadback(output,binary,0u,false))return false;
         content.m_value.m_dataType=4;content.m_value.m_value=DRW_Variant(1,"reused-table");
         content.m_value.m_valueString=std::string(256u,'c');
         if(!tableExportSentinel(output,true)

@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-25",
+  "status": "NO_ELIGIBLE_PARTIAL_SOURCE_FOUND",
+  "purpose": "Screen the checked-in LibreDWG DWG corpus for an organic libdxfrw entity parse failure with later published frames, as input to P6-F candidate selection.",
+  "candidate": {
+    "repository": "LibreCAD/libdxfrw",
+    "commit": "6b38a3827e78392ffa8d2347dc858e587e28ce9b",
+    "tool": "dwg2dxf",
+    "tool_sha256": "9f2a6c9f51affb3bee30d94d4e5d1535851c72eb1af351d0af0f8772bb236d3e",
+    "build_profile": "AppleClang 21.0.0, current worktree source, non-debug CLI screen"
+  },
+  "source_corpus": {
+    "repository": "LibreDWG/libredwg",
+    "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+    "path": "test/test-data",
+    "eligible_magic_filter": "AC1012 and later",
+    "source_count": 130,
+    "same_name_dxf_count": 46,
+    "sorted_inventory_sha256": "91f69f8a21b954d677829813d90151181db5961411c95d657184e46702960209",
+    "tracked_source_changes": false
+  },
+  "screen": {
+    "operation": "dwg2dxf <source> -y -v2018 <scratch-output>",
+    "elapsed_seconds": 15.9,
+    "timeouts": 0,
+    "rows_with_entity_parse_failures": 1,
+    "entity_parse_failure_count": 1,
+    "rows_with_object_parse_failures": 11,
+    "object_parse_failure_count": 601,
+    "paired_dxf_subscreen_entity_failures": 0,
+    "scratch_output_only": true
+  },
+  "entity_failure_candidate": {
+    "path": "test-data/2013/gh44-error.dwg",
+    "magic": "AC1027",
+    "sha256": "55017b3ec51409889179295d6d96ffd51ab8bc2b7204efc563411cd0ecb57a99",
+    "same_name_dxf_exists": false,
+    "entity_parse_failures": 1,
+    "object_parse_failures": 572,
+    "source_frames": 11073,
+    "published_frames": 10500,
+    "failed_frames": 573,
+    "eligible_for_p6f": false,
+    "exclusion": "The single entity failure is accompanied by 572 object failures and 573 total failed frames; output/reference closure is not qualified. This receipt does not claim the drawing is invalid."
+  },
+  "conclusion": "The unchanged checked-in corpus contains no eligible organic partial-output source. Do not rerun this inventory without a corpus or candidate-build change. No DWG or DXF fixtures were copied into libdxfrw."
+}

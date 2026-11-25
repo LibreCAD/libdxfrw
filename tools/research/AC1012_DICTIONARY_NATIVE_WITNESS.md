@@ -71,13 +71,18 @@ selected dictionary key but distinguishable entries. Record the dictionary's
 own `mergeStyle()` and ownership before and after a documented INSERT/merge,
 the source and destination identities, the observed survivor and renamed keys,
 and any id mapping. Repeat using candidate output and the host's R14 output.
+If `setAt()` is used to construct a duplicate key, treat that as setup only:
+Autodesk documents `setAt()` as replacing the existing object, which does not
+establish the dictionary's INSERT merge style or clone policy.
 Do not conflate the dictionary's stored merge style with the separate explicit
 `drc` argument of `wblockCloneObjects`; if using that API, record the exact
 argument and repeat with each relevant allowed option. Test changed and
 unchanged states and repeat after close/reopen. Keep host-created controls,
 producer states, and consumer results distinct.
 
-Autodesk documents [`mergeStyle()` and ownership](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-__MEMBERTYPE_Methods_AcDbDictionary.html),
+Autodesk documents [`setAt()` duplicate-key replacement](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OREF-RefGuide-AcDbDictionary__setAt_ACHAR__AcDbObject__AcDbObjectId_.html)
+separately from [`setMergeStyle()` for INSERT](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OREF-RefGuide-AcDbDictionary__setMergeStyle_AcDb__DuplicateRecordCloning.html).
+Autodesk also documents [`mergeStyle()` and ownership](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OARX-RefGuide-__MEMBERTYPE_Methods_AcDbDictionary.html),
 [group 281 values](https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm),
 and the separate [`wblockCloneObjects` argument](https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbDatabase__wblockCloneObjects_AcDbObjectIdArray__AcDbObjectId__AcDbIdMapping__AcDb__DuplicateRecordCloning_bool.html).
 Those pages do not specify the R13-to-R14 default; behavior must be observed on

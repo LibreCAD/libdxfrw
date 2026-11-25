@@ -1,0 +1,181 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-spec-pair-peer-readback-2026-11-25",
+  "status": "FOUR_FRESH_SPEC_PAIR_PARTIAL_DXF_PEER_READBACKS_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "producer": "LibreDWG 0.14 dxf2dwg R2000 conversion and dwgread JSON",
+  "executables": {
+    "dxf2dwg": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dxf2dwg",
+      "sha256": "d8d27fed5519b67b977170093f3e3d2cd2aeae086ba2db75b5ded2faf2ec31e8"
+    },
+    "dwgread": {
+      "path": "/opt/homebrew/Cellar/libredwg/0.14/bin/dwgread",
+      "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+    }
+  },
+  "scratchDirectory": "/private/tmp/ac1012-spec-request-20261125/ac1012-dictionary-merge-wuagbrc2",
+  "rows": [
+    {
+      "profile": "destination",
+      "encoding": "ascii",
+      "dxf": "/private/tmp/ac1012-spec-request-20261125/ac1012-dictionary-merge-wuagbrc2/destination-candidate-explicit-partial-ascii.dxf",
+      "dxfSha256": "16bfceda0b497a7ffdaa4ff8590491b7b0daaa76038f0cfdd4cb60da20d899b0",
+      "peerDwg": "/private/tmp/ac1012-spec-request-20261125/ac1012-dictionary-merge-wuagbrc2/libredwg-peer/destination-candidate-explicit-partial-ascii-peer.dwg",
+      "peerDwgSha256": "2b74167f3fd33702c2a58dd96d7ec28132705393f6fc7ca92b55a4642f0518d2",
+      "peerJsonSha256": "37bed10d0da91f6d40c1fe4e275b428d51df1ab83a0a844ec26be492c5c0b538",
+      "rootHandle": 12,
+      "dictionaryHandle": 23,
+      "dictionaryEntries": {
+        "Standard": 24,
+        "SAME_KEY": 46,
+        "DEST_ONLY": 47
+      },
+      "styles": {
+        "Standard": {
+          "handle": 24,
+          "ownerHandle": 23,
+          "name": "Standard",
+          "startAngleDegrees": 90.0000000000002
+        },
+        "SAME_KEY": {
+          "handle": 46,
+          "ownerHandle": 23,
+          "name": "SAME_KEY",
+          "startAngleDegrees": 15.000000000000036
+        },
+        "DEST_ONLY": {
+          "handle": 47,
+          "ownerHandle": 23,
+          "name": "DEST_ONLY",
+          "startAngleDegrees": 21.999999999999858
+        }
+      },
+      "converterWarning": "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1\nWarning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1",
+      "readerWarning": "SUCCESS",
+      "result": "PASS"
+    },
+    {
+      "profile": "destination",
+      "encoding": "binary",
+      "dxf": "/private/tmp/ac1012-spec-request-20261125/ac1012-dictionary-merge-wuagbrc2/destination-candidate-explicit-partial-binary.dxf",
+      "dxfSha256": "d27dc4b98f63faf3f41f1c518560923b27a5a05d55e16b41d0de15a759c20da9",
+      "peerDwg": "/private/tmp/ac1012-spec-request-20261125/ac1012-dictionary-merge-wuagbrc2/libredwg-peer/destination-candidate-explicit-partial-binary-peer.dwg",
+      "peerDwgSha256": "2b74167f3fd33702c2a58dd96d7ec28132705393f6fc7ca92b55a4642f0518d2",
+      "peerJsonSha256": "37bed10d0da91f6d40c1fe4e275b428d51df1ab83a0a844ec26be492c5c0b538",
+      "rootHandle": 12,
+      "dictionaryHandle": 23,
+      "dictionaryEntries": {
+        "Standard": 24,
+        "SAME_KEY": 46,
+        "DEST_ONLY": 47
+      },
+      "styles": {
+        "Standard": {
+          "handle": 24,
+          "ownerHandle": 23,
+          "name": "Standard",
+          "startAngleDegrees": 90.0000000000002
+        },
+        "SAME_KEY": {
+          "handle": 46,
+          "ownerHandle": 23,
+          "name": "SAME_KEY",
+          "startAngleDegrees": 15.000000000000036
+        },
+        "DEST_ONLY": {
+          "handle": 47,
+          "ownerHandle": 23,
+          "name": "DEST_ONLY",
+          "startAngleDegrees": 21.999999999999858
+        }
+      },
+      "converterWarning": "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1\nWarning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1",
+      "readerWarning": "SUCCESS",
+      "result": "PASS"
+    },
+    {
+      "profile": "source",
+      "encoding": "ascii",
+      "dxf": "/private/tmp/ac1012-spec-request-20261125/ac1012-dictionary-merge-wuagbrc2/source-candidate-explicit-partial-ascii.dxf",
+      "dxfSha256": "73a20904c10098cbdd2b6a4102e2a7b7c5d36a7a1a749860487cb014182dd657",
+      "peerDwg": "/private/tmp/ac1012-spec-request-20261125/ac1012-dictionary-merge-wuagbrc2/libredwg-peer/source-candidate-explicit-partial-ascii-peer.dwg",
+      "peerDwgSha256": "265cc0a4932b366b7115faf9984d5bb2bf649c57181f32291e07447e72753a49",
+      "peerJsonSha256": "e677565ddbbd2e9af72af09a3e672bc0795fd1d21f5bfc3d29d25b532b0ac74c",
+      "rootHandle": 12,
+      "dictionaryHandle": 23,
+      "dictionaryEntries": {
+        "Standard": 24,
+        "SAME_KEY": 46,
+        "SOURCE_ONLY": 47
+      },
+      "styles": {
+        "Standard": {
+          "handle": 24,
+          "ownerHandle": 23,
+          "name": "Standard",
+          "startAngleDegrees": 90.0000000000002
+        },
+        "SAME_KEY": {
+          "handle": 46,
+          "ownerHandle": 23,
+          "name": "SAME_KEY",
+          "startAngleDegrees": 36.999999999999886
+        },
+        "SOURCE_ONLY": {
+          "handle": 47,
+          "ownerHandle": 23,
+          "name": "SOURCE_ONLY",
+          "startAngleDegrees": 51.00000000000011
+        }
+      },
+      "converterWarning": "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1\nWarning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1",
+      "readerWarning": "SUCCESS",
+      "result": "PASS"
+    },
+    {
+      "profile": "source",
+      "encoding": "binary",
+      "dxf": "/private/tmp/ac1012-spec-request-20261125/ac1012-dictionary-merge-wuagbrc2/source-candidate-explicit-partial-binary.dxf",
+      "dxfSha256": "2cfd502a6deed0f09e3dc8c7ffb4aeeccd23df50628a8cf65c634a9a29ccd408",
+      "peerDwg": "/private/tmp/ac1012-spec-request-20261125/ac1012-dictionary-merge-wuagbrc2/libredwg-peer/source-candidate-explicit-partial-binary-peer.dwg",
+      "peerDwgSha256": "265cc0a4932b366b7115faf9984d5bb2bf649c57181f32291e07447e72753a49",
+      "peerJsonSha256": "e677565ddbbd2e9af72af09a3e672bc0795fd1d21f5bfc3d29d25b532b0ac74c",
+      "rootHandle": 12,
+      "dictionaryHandle": 23,
+      "dictionaryEntries": {
+        "Standard": 24,
+        "SAME_KEY": 46,
+        "SOURCE_ONLY": 47
+      },
+      "styles": {
+        "Standard": {
+          "handle": 24,
+          "ownerHandle": 23,
+          "name": "Standard",
+          "startAngleDegrees": 90.0000000000002
+        },
+        "SAME_KEY": {
+          "handle": 46,
+          "ownerHandle": 23,
+          "name": "SAME_KEY",
+          "startAngleDegrees": 36.999999999999886
+        },
+        "SOURCE_ONLY": {
+          "handle": 47,
+          "ownerHandle": 23,
+          "name": "SOURCE_ONLY",
+          "startAngleDegrees": 51.00000000000011
+        }
+      },
+      "converterWarning": "Warning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1\nWarning: Unknown HEADER.DIMLDRBLK STANDARD dxf:1",
+      "readerWarning": "SUCCESS",
+      "result": "PASS"
+    }
+  ],
+  "limitations": [
+    "The source DWGs are LibreDWG-generated and specification-directed, not AutoCAD-authored.",
+    "Peer readback confirms only selected projected dictionary keys, target identity, owner, and MLINESTYLE angles.",
+    "It does not establish AutoCAD normal-open, native duplicate-merge behavior, complete source graph closure, or general AC1012 support."
+  ]
+}

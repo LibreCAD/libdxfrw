@@ -1,0 +1,55 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-table-alignment-digest-refresh-2026-11-24",
+  "date": "2026-11-24",
+  "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+  "sourceCommit": "00b2faa0e",
+  "supportClaimEffect": "none",
+  "previousImplementationDigestSha256": "b6f59d17e0fd19013d545f46bc87150d8944326f327493276a13caa5f4baae68",
+  "implementationDigestSha256": "04b012d624636fce74f99a86ba0d6787424ce0e5a2b8d17b14e76aaf0d45242f",
+  "implementationInputs": 774,
+  "digestComputation": {
+    "method": "clean committed PR worktree",
+    "scratchPath": "/private/tmp/pr106-table-span-refresh",
+    "reason": "The main worktree contains unrelated scratch files and was left untouched."
+  },
+  "refresh": {
+    "statusOverlay": "metadata/qualified-format-status-v1.json",
+    "claimStatusesChanged": false,
+    "newDigestRecorded": true
+  },
+  "localValidation": {
+    "qualificationDigest": "PASS",
+    "qualificationWorkflowContract": "PASS",
+    "qualifiedFormatSupport": "PASS: 15 claims, 2 candidate routes, 0 advertised",
+    "focusedTableRegression": {
+      "status": "PASS",
+      "testedCommit": "ee73e636a",
+      "prCodeCommit": "00b2faa0e",
+      "sourceAndTestFilesIdentical": true,
+      "build": "libdxfrw_dwg_object_vectors_tests",
+      "ctest": "libdxfrw_dwg_table_cell_overrides; libdxfrw_table_dwg_codec_allocation_retry; libdxfrw_dwg_appinfo_profile",
+      "result": "3/3 passed"
+    }
+  },
+  "hostedChecks": {
+    "status": "PENDING_AFTER_PUSH",
+    "required": [
+      "fast regressions",
+      "qualification workflow contract",
+      "focused Linux GCC",
+      "focused macOS Clang",
+      "focused Windows MSVC"
+    ],
+    "deferred": [
+      "broad suite",
+      "extended deterministic fuzz",
+      "source release"
+    ]
+  },
+  "disposition": {
+    "gatesReopened": ["P8-A", "P8-E", "P8-F"],
+    "reason": "The TABLE parser and test inputs change the frozen implementation digest; prior package and platform CI receipts are historical for the previous digest.",
+    "claimEffect": "No format, consumer, or platform support claim is promoted."
+  }
+}

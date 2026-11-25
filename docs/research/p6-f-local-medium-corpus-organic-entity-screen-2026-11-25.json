@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-25",
+  "status": "MEDIUM_FILE_SUBSET_SCREENED_NO_QUALIFIED_PARTIAL_SOURCE",
+  "purpose": "Extend the local P6-F source screen to supported-version DWGs larger than 5 MiB and no larger than 50 MiB without copying corpus files into the repository.",
+  "tool": {
+    "name": "dwg2dxf",
+    "sha256": "9f2a6c9f51affb3bee30d94d4e5d1535851c72eb1af351d0af0f8772bb236d3e",
+    "profile": "AppleClang current source, non-debug CLI screen",
+    "elapsed_seconds": 37.64,
+    "timeout_seconds": 30
+  },
+  "corpus": {
+    "roots": ["/Users/dli/doc/dwg", "/Users/dli/doc/dwg6"],
+    "total_unique_supported_files": 305,
+    "already_screened_up_to_5_mib": 293,
+    "this_size_range_bytes": [5242881, 52428800],
+    "files_in_range": 10,
+    "inventory_sha256": "e56b5e3b1887adcba283f2bb9d86632fc917d98ad30fa563c326d8fd37dfd6a1",
+    "remaining_over_50_mib": 2,
+    "provenance": "Local corpus provenance is unauthenticated. Files were read in place; no DWG or DXF fixture or derivative was copied into the repository."
+  },
+  "screen": {
+    "timed_out_rows": 1,
+    "rows_with_entity_parse_failures": 3,
+    "entity_parse_failure_count": 42,
+    "rows_with_object_parse_failures": 1,
+    "object_parse_failure_count": 1,
+    "notable_rows": [
+      {
+        "basename": "2带尺寸图库.dwg",
+        "version": "AC1021",
+        "sha256": "bbfc1b93be0fa1f600c46218e523fb573edb1343a39a18eeb30ee88d5702274c",
+        "entity_failures": 2,
+        "object_failures": 1,
+        "disposition": "Ineligible as a P6-F candidate while the independent object failure remains unclosed."
+      },
+      {
+        "basename": "GCE023-510001-101-3230435_ 地板骨架总成.dwg",
+        "version": "AC1027",
+        "sha256": "e47b04d036aef6ed23fedbdb3d9e583d6281769fff1ee2194a4130c95023f9a6",
+        "entity_failures": 12,
+        "unresolved_frames": 3479,
+        "disposition": "Ineligible for partial-output qualification while 3479 source frames remain unresolved; source provenance is also unauthenticated."
+      },
+      {
+        "basename": "全国通用节点详细解析.dwg",
+        "version": "AC1021",
+        "sha256": "204f70785b2469733cee2469796441828cffa364d069a0687a3b020daa51f1e2",
+        "entity_failures_before_fix": 28,
+        "object_failures": 0,
+        "disposition": "All failures were HATCH definition-line count misreads. The [focused follow-up](p6-f-ac1021-hatch-pattern-line-count-fix-2026-11-25.json) fixes BS decoding and confirms zero entity failures; this row is not an organic partial-read witness."
+      }
+    ]
+  },
+  "conclusion": "This medium-size subset identifies one real parser defect, fixed and documented in the linked follow-up, but no source is eligible to establish P6-F partial-output behavior. The 2 files above 50 MiB and the timed-out row were not qualified. Do not reuse entity/object failure totals as valid-source evidence or claim the full local corpus is exhausted."
+}

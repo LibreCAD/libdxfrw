@@ -1,0 +1,131 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-partial-projection-peer-readback-2026-11-25",
+  "date": "2026-11-25",
+  "status": "FOUR_PARTIAL_DXF_PEER_READBACKS_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "source": {
+    "receipt": "docs/research/p6-ac1012-collision-unique-entry-control-2026-11-24.json",
+    "scratchDirectory": "/private/tmp/ac1012-spec-control-20261124-release/ac1012-dictionary-merge-is640zms",
+    "destinationDwgSha256": "35b2ec0f3e851ae3238dd8e1fced4f5256b019c97bf338ba82012233a14f24e9",
+    "sourceDwgSha256": "613a5b2f943fc895fbd81bded2e2589bd9fcb77ee419adc4e064a347455b7e99"
+  },
+  "peer": {
+    "implementation": "GNU LibreDWG 0.14",
+    "conversion": "dxf2dwg --as r2000 -v1 -y -o <output.dwg> <input.dxf>",
+    "readback": "dwgread -O JSON -o <output.json> <output.dwg>",
+    "executables": {
+      "dxf2dwg": {
+        "path": "/opt/homebrew/bin/dxf2dwg",
+        "sha256": "d8d27fed5519b67b977170093f3e3d2cd2aeae086ba2db75b5ded2faf2ec31e8"
+      },
+      "dwgread": {
+        "path": "/opt/homebrew/bin/dwgread",
+        "sha256": "536eef295f1dfdc2e63b4f1cd2961905f98c55bbd1fe017ef3574c0f1345f1ff"
+      }
+    },
+    "scratchDirectory": "/private/tmp/ac1012-pr106-peer-readback-20261125",
+    "controls": [
+      {
+        "sample": "destination",
+        "encoding": "ascii",
+        "dxfSha256": "1f5cd6afaf6d10a77aac15e506f25b24eb5e8ae5f9010da862e743e1449c2e5d",
+        "readbackDwgSha256": "4c7a7c985299e2c0cc4978d7bee01ba1dbb782c242fd6a752129bf706f5e92f0",
+        "jsonSha256": "fc93ab1d425c3860bb6714378205106cba900700d2323a81e6f2796ac9a6dead",
+        "rootDictionaryHandle": 12,
+        "targetDictionaryHandle": 23,
+        "sameKey": {
+          "targetHandle": 46,
+          "ownerHandle": 23,
+          "startAngleDegrees": 15.000000000000036
+        },
+        "uniqueEntry": {
+          "name": "DEST_ONLY",
+          "targetHandle": 47,
+          "ownerHandle": 23,
+          "startAngleDegrees": 21.999999999999858
+        },
+        "result": "PASS"
+      },
+      {
+        "sample": "destination",
+        "encoding": "binary",
+        "dxfSha256": "2a5119a39fb2386184ce3c1b7c3c04c01e474f26fb860ebcf0bfc70dddfaf8e0",
+        "readbackDwgSha256": "4c7a7c985299e2c0cc4978d7bee01ba1dbb782c242fd6a752129bf706f5e92f0",
+        "jsonSha256": "fc93ab1d425c3860bb6714378205106cba900700d2323a81e6f2796ac9a6dead",
+        "rootDictionaryHandle": 12,
+        "targetDictionaryHandle": 23,
+        "sameKey": {
+          "targetHandle": 46,
+          "ownerHandle": 23,
+          "startAngleDegrees": 15.000000000000036
+        },
+        "uniqueEntry": {
+          "name": "DEST_ONLY",
+          "targetHandle": 47,
+          "ownerHandle": 23,
+          "startAngleDegrees": 21.999999999999858
+        },
+        "result": "PASS"
+      },
+      {
+        "sample": "source",
+        "encoding": "ascii",
+        "dxfSha256": "25ff89672d173f4ddaf7c40793256168edd96f8d81641f8666141b5fb2773f80",
+        "readbackDwgSha256": "3e7773556e7b8535264d5fd7d4408ac77a17d455105f724896b96de684b0db72",
+        "jsonSha256": "eebf60a9e627c40b7f7ba0825ca1d1581baf3697532ab720d7eb7e312db16fde",
+        "rootDictionaryHandle": 12,
+        "targetDictionaryHandle": 23,
+        "sameKey": {
+          "targetHandle": 46,
+          "ownerHandle": 23,
+          "startAngleDegrees": 36.999999999999886
+        },
+        "uniqueEntry": {
+          "name": "SOURCE_ONLY",
+          "targetHandle": 47,
+          "ownerHandle": 23,
+          "startAngleDegrees": 51.00000000000011
+        },
+        "result": "PASS"
+      },
+      {
+        "sample": "source",
+        "encoding": "binary",
+        "dxfSha256": "b24e553785c383ed5a7a7da48073586bcdb1e471b6cf034546c69c44da79cdcc",
+        "readbackDwgSha256": "3e7773556e7b8535264d5fd7d4408ac77a17d455105f724896b96de684b0db72",
+        "jsonSha256": "eebf60a9e627c40b7f7ba0825ca1d1581baf3697532ab720d7eb7e312db16fde",
+        "rootDictionaryHandle": 12,
+        "targetDictionaryHandle": 23,
+        "sameKey": {
+          "targetHandle": 46,
+          "ownerHandle": 23,
+          "startAngleDegrees": 36.999999999999886
+        },
+        "uniqueEntry": {
+          "name": "SOURCE_ONLY",
+          "targetHandle": 47,
+          "ownerHandle": 23,
+          "startAngleDegrees": 51.00000000000011
+        },
+        "result": "PASS"
+      }
+    ],
+    "assertions": [
+      "Each AC1015 peer DWG's NOD DICTIONARY points to the selected ACAD_MLINESTYLE DICTIONARY at handle 23.",
+      "SAME_KEY and DEST_ONLY/SOURCE_ONLY references resolve to typed MLINESTYLE objects with owner handle 23.",
+      "The reopened SAME_KEY target retains 15 degrees in the destination and 37 degrees in the source; the unique entries retain 22 and 51 degrees respectively.",
+      "ASCII and Binary DXF inputs produce equivalent selected graph JSON for each corresponding source."
+    ],
+    "diagnostics": [
+      "Each dxf2dwg run warns that HEADER.DIMLDRBLK is unknown and retained only partially.",
+      "All four dwgread invocations exit successfully and report SUCCESS."
+    ]
+  },
+  "limits": [
+    "The peer path converts libdxfrw's partial DXF to an AC1015/R2000 DWG and reads that output; it is not a native AutoCAD open or a fresh AC1012 source read.",
+    "Only the selected NOD/ACAD_MLINESTYLE graph, target roles, and angles are asserted; this does not prove complete source snapshot preservation or all dictionary dependencies.",
+    "The peer output does not establish native AutoCAD duplicate-key merge or clone behavior and does not close the P6-F host-witness gate.",
+    "No DWG or DXF sample was added to the repository."
+  ]
+}
