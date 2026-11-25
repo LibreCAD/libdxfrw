@@ -502,9 +502,12 @@ def main() -> None:
         require(frame["cloningField"] is None,
                 "AC1012 DICTIONARY unexpectedly reports a cloning field")
         candidate = None
+        candidate_strict_binary = None
         candidate_partial = None
         if args.candidate:
             candidate = run_candidate(args.candidate, path, root, label, False)
+            candidate_strict_binary = run_candidate(
+                args.candidate, path, root, label, False, binary=True)
             expected_output_styles = (
                 {unique_key: float(unique_angle)}
                 if unique_key is not None else None
@@ -547,6 +550,7 @@ def main() -> None:
             "source": model,
             "wire": frame,
             "candidateStrict": candidate,
+            "candidateStrictBinary": candidate_strict_binary,
             "candidatePartial": candidate_partial,
             "libdxfrwPhysicalFrameTest": dictionary_frame_test,
         }
