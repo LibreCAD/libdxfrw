@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-ac1021-general-oda-roundtrip-2026-11-25",
+  "date": "2026-11-25",
+  "status": "FULL_SOURCE_ENVELOPES_NORMALIZED_INTERMEDIATE_VALUE_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "source": "docs/research/p5-ac1021-general-value-oda-dxf-comparison-2026-11-25.json",
+  "converter": "ODA File Converter 27.10.0.0 on Linux x86_64 under Xvfb emulation; package SHA-256 c432002cc688f89ddf6a68ad68e877cd16da1d99ab8729386009c552cf73beb5",
+  "fullGraphExperiment": {
+    "baselineInputSha256": "69ac93f16d7895e44e48448a25de60378be8af8d1fc7a36764da8feb33cbe989",
+    "proposedInputSha256": "c1e66dd5fe340e9ee0fd71faaed91b6ffe2ca6a953a3b647edcda42cc83dae08",
+    "construction": "Starting from the ODA DXF of the original two-TABLE DWG, replace only the two selected ACAD_TABLE CELL_VALUE envelopes with the cached writer group order, flags 6 and original 48/52-byte source payloads. The rest of the original drawing graph is retained; ASCII line endings were normalized. TABLECONTENT copies remain untouched.",
+    "baselineIntermediateDwgSha256": "63033bb48fcef9109ac0e10409a34593f4f01140ba8c0de36fcf47bc7dc310c5",
+    "proposedIntermediateDwgSha256": "1b3ef9c57613496ee76cf659b4b3058b6c75443bd217390864a1bc3b4fc221ba",
+    "baselineReexportSha256": "8f452ae7e93162a0c9f2fcf6898d550475834bc204c77ac781cc70fc208bf360",
+    "proposedReexportSha256": "c5422b4accde651261d5fccafc2b191ceaccfb53342d39fb218a8b6bdae226c9",
+    "result": "Both ODA conversions produced files with no .err for these two paths. Each selected ACAD_TABLE re-export has flags 0, type 512, no groups 92 or 310, and retains the displayed label. This observation does not prove the intermediate DWG payload survived."
+  },
+  "oneCellExperiment": {
+    "inputs": "Previously generated two selected cells in ASCII and binary; each partial output has a TABLE group-2 block name *P5I_SELECTED but no corresponding separate block record in the file.",
+    "result": "All four DXFs produced DWGs. Re-export emitted .err files reporting Empty Record name: <AcDbTable> (680F); the resulting DXFs are not accepted as complete output. This separate missing-block issue prevents treating these as standalone native interchange evidence."
+  },
+  "intermediateReaderBoundary": {
+    "currentLibdxfrw": "On the original source it reads 2 TABLE grids with both expected type-512 raw payloads. On both ODA full-graph resaves and the one-cell resaves it reports TABLE callbacks but no parsed rows for these values; no payload conclusion follows.",
+    "acadsharp": "The instrumented ACadSharp 3.6.15 DWG reader independently returns the original two TABLE grids and matching General strings. For both ODA full-graph resaves it returns zero completed TABLE entities; traces enter the TABLE frames, but this is not an independent readback of the selected values.",
+    "probeSourceSha256": "32e622ed304cdf1f7c3aaddf0d80b3b8d2d357cef320c34764fa58b9fad4ca45",
+    "readerBinarySha256": "534fe9d8ff4cbf684308922da44da86b47858d6d511fea4176eb12662095318a"
+  },
+  "limits": [
+    "No conclusion is drawn that ODA retains or discards the 48/52-byte DWG value: the re-exported display cache can originate from other retained TABLE data.",
+    "No AutoCAD native open or independent readback of the selected values after resave was obtained.",
+    "Scratch drawings and source derivatives remain outside the repository; no support claim is promoted."
+  ],
+  "nextStep": "Find a reader that completes the ODA-resaved AC1021 TABLE frames or capture native producer/consumer values. For standalone controls, supply a valid named block and its complete reciprocal graph; keep existing strict refusal."
+}

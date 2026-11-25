@@ -211,6 +211,15 @@ general schema. Keep strict output refused until native producer output or an
 independent reader proves the mapping and its semantics; the cached writer
 also needs bounded text and source-style graph qualification before admission.
 
+The [ODA reopen comparison](docs/research/p5-ac1021-general-oda-roundtrip-2026-11-25.json)
+also inserts the proposed envelopes into the full original DXF graph: ODA
+reopens and re-exports both paths with the same selected cache and normalized
+envelopes, but neither current libdxfrw nor ACadSharp completed the resaved
+TABLE grid, so intermediate value preservation remains unknown. The separate
+one-cell controls lack their named block and fail ODA re-export; supply a
+closed block graph for future standalone controls. Do not interpret a
+displayed cache or a successful conversion as payload readback.
+
 The [P5-H authority follow-up](docs/research/p6-viewport-shadeplot-dxf-objectarx-conflict-2026-11-16.json)
 confirms the API enum values and target classes for VisualStyle and RenderPreset,
 and null-target behavior for AsDisplayed/Rendered. The published VIEWPORT DXF
