@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-freecad-linux-current-digest-2026-11-25",
+  "date": "2026-11-25",
+  "status": "LINUX_FREECAD_GENERATED_PROFILE_PASS_WINDOWS_SEPARATE",
+  "supportClaimEffect": "none",
+  "candidate": {
+    "runHead": "93115aa31cae9662b6cedb6516db787e0f76654b",
+    "implementationDigestSha256": "ce3ff7f4632615508c31c80f5375f423ca728262fe8c1c63dc87fdb75d977e7b",
+    "inputCount": 775,
+    "currentWorkflowFollowup": "The subsequent workflow-only commit changes Windows setup and platform selection, not the Linux qualification steps or selected implementation inputs."
+  },
+  "hosted": {
+    "repository": "dxli/libdxfrw",
+    "runId": 45642791685,
+    "jobId": 139305670184,
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/45642791685",
+    "jobConclusion": "success",
+    "workflowConclusion": "failure because the separate Windows job timed out before build",
+    "artifactId": 15035913211,
+    "artifactSha256": "7ad83499cdfba28e918da70533f6db336d51b1da19b84a652d62dc7a7a11206d"
+  },
+  "consumer": {
+    "version": "FreeCAD 1.1.4, revision 4fd3bf320d9566a27e60069fc8387448aaa3a094",
+    "platform": "Linux x86_64, glibc 2.39",
+    "verifiedReleaseAppImageSha256": "f6dc6ba676e5ac96a565ebc8d657232f94c6158e85b4352141bd1a46f6b43434",
+    "executable": "The unique freecadcmd selected from the extracted hash-verified AppImage; the test reports the exact FreeCAD revision.",
+    "installedConverterSha256": "56d18fa69f0b55742634987399d772125d70217a913dfbcf02b8ce55380cf6e3",
+    "legacyImporterCommit": "e060ef0d8fe7143c2e0ce34734b686ba073f3cc1"
+  },
+  "validation": "All 16 selected CTests passed: installed and CLI handoff, AC1021 line open/insert, AC1021/AC1024/AC1032 generated primitives open/insert, and corresponding legacy POLYFACE open/insert controls. Logs bind converter hash, source version, operation and observed geometry.",
+  "limits": [
+    "This qualifies only the recorded generated profiles and pinned Linux FreeCAD consumer; it does not establish general DWG/DXF interoperability or native GUI behavior.",
+    "The executable is identified through its unique path in a hash-verified release image; a separate executable-file hash was not recorded.",
+    "The Windows run is separate and remains open until its corrected workflow succeeds. Reopen this gate if selected code, consumer, or profile requirements change."
+  ]
+}
