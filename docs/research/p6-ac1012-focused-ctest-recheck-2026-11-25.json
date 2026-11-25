@@ -2,7 +2,7 @@
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p6-ac1012-focused-ctest-recheck-2026-11-25",
   "date": "2026-11-25",
-  "status": "FOCUSED_LEGACY_DICTIONARY_SELECTORS_PASS_NATIVE_SEMANTICS_OPEN",
+  "status": "FOCUSED_AND_FULL_ASAN_DICTIONARY_SELECTORS_PASS_NATIVE_SEMANTICS_OPEN",
   "supportClaimEffect": "none",
   "sourceRevision": "2eab63cfd7c14885cab6111351986d6cd2818dc3",
   "implementationDigest": {
@@ -50,6 +50,18 @@
         "sha256": "95fc1a0c39f54b21f0ef396228996819d2bb2aa68ac696cb16dd00617c15cfcd"
       }
     ]
+  },
+  "addressSanitizer": {
+    "buildCommand": "cmake --build build-asan-custom --target libdxfrw_dwg_ac1014_dictionaryvar_tests -j2",
+    "testCommand": "ctest --test-dir build-asan-custom -R '^libdxfrw_dwg_ac1014_dictionaryvar$' --output-on-failure",
+    "flags": "-fsanitize=address -fno-omit-frame-pointer",
+    "platform": "Darwin 27.2.0 arm64",
+    "compiler": "/usr/bin/c++ (Apple clang 21.0.0 clang-2100.3.34.2)",
+    "exitCode": 0,
+    "passed": 1,
+    "failed": 0,
+    "elapsedSeconds": 0.40,
+    "testBinarySha256": "3504ef2070d3f2f8951a9084cb3a5a0e9d76d4689cb09f5a96e8bbc94d426b16"
   },
   "limits": [
     "This recheck verifies bounded legacy dictionary parsing, encoding, source and retry selectors on the local build; it is not an AutoCAD normal-open or duplicate-key merge witness.",
