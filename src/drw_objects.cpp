@@ -534,8 +534,11 @@ bool dwgHandleHasRole(const dwgHandle& handle, std::uint8_t role,
 bool dictionaryHandleReferenceHasRole(const dwgHandle& handle,
                                       std::uint8_t role,
                                       bool allowNull) noexcept {
+    if (handle.ref64 > std::numeric_limits<std::uint32_t>::max())
+        return false;
     if (handle.ref == 0u) {
         return allowNull && handle.size == 0u
+            && handle.ref64 == 0u
             && (handle.rawCode == 0u || handle.rawCode == role);
     }
     return dwgHandleRoleMatches(handle, role, false);
@@ -4009,12 +4012,18 @@ bool DRW_TableEntry::readDwgObjectCommonHandles(
         (version == DRW::AC1012 || version == DRW::AC1014)
         && (legacyDictionaryRoles || oType == DRW_Dictionary::kDwgFixedType
             || oType == DRW_Group::kDwgFixedType);
+    // These public models retain object references as uint32_t. Do not let a
+    // wider common-tail handle alias a different low-32-bit object.
+    const bool requireRepresentableHandles =
+        oType == DRW_Dictionary::kDwgFixedType
+        || oType == DRW_Group::kDwgFixedType;
     return readObjectCommonHandles(buf, version, handle, numReactors, xDictFlag,
                                    parentHandle, reactorHandles, xDictHandle,
                                    endBit,
                                    validateLegacyDictionaryGroupRoles,
                                    imageDefParentHardOwner,
-                                   oType == DRW::DwgDimStyleObjectType);
+                                   oType == DRW::DwgDimStyleObjectType,
+                                   requireRepresentableHandles);
 }
 
 bool DRW_TableEntry::getDwgHandleEndBit(

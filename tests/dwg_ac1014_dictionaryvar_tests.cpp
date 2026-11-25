@@ -255,38 +255,55 @@ bool generatedAc1012DictionaryFrameControl() {
     constexpr std::uint32_t reactorHandle = 0x32u;
     const std::vector<std::pair<std::string, std::uint32_t>> entries{
         {"Standard", 0x34u}, {"SAME_KEY", 0x35u}};
+    struct WireHandle {
+        std::uint8_t role;
+        std::uint8_t size;
+        std::uint64_t value;
+    };
 
     // Build the bounded R13 DICTIONARY layout from the ODA field order. The
     // relative soft-pointer parent is a valid offset handle; files are never
     // written to the repository or treated as producer/native evidence.
-    dwgBufferW prefix;
-    prefix.putObjType(DRW::AC1012, DRW_Dictionary::kDwgFixedType);
-    prefix.putFixedHandle(0u, 1u, dictionaryHandle);
-    prefix.putBitShort(0u); // no EED
+    const auto makeFrame = [&](const WireHandle& parent,
+                               const WireHandle& reactor,
+                               const WireHandle& xdictionary,
+                               const std::vector<WireHandle>& itemHandles) {
+        dwgBufferW prefix;
+        prefix.putObjType(DRW::AC1012, DRW_Dictionary::kDwgFixedType);
+        prefix.putFixedHandle(0u, 1u, dictionaryHandle);
+        prefix.putBitShort(0u); // no EED
 
-    dwgBufferW body;
-    body.putBitLong(1u); // Numreactors
-    body.putBitLong(static_cast<std::int32_t>(entries.size()));
-    for (const auto& entry : entries) putText(body, entry.first);
-    const auto bodyEnd = writtenBits(prefix) + 32u + writtenBits(body);
+        dwgBufferW body;
+        body.putBitLong(1u); // Numreactors
+        body.putBitLong(static_cast<std::int32_t>(entries.size()));
+        for (const auto& entry : entries) putText(body, entry.first);
+        const auto bodyEnd = writtenBits(prefix) + 32u + writtenBits(body);
 
-    dwgBufferW writer;
-    writer.putObjType(DRW::AC1012, DRW_Dictionary::kDwgFixedType);
-    writer.putFixedHandle(0u, 1u, dictionaryHandle);
-    writer.putBitShort(0u);
-    writer.putRawLong32(bodyEnd);
-    writer.putBitLong(1u);
-    writer.putBitLong(static_cast<std::int32_t>(entries.size()));
-    for (const auto& entry : entries) putText(writer, entry.first);
-    if (writtenBits(writer) != bodyEnd) return reject("body boundary generation");
-    writer.putFixedHandle(6u, 0u, 0u); // relative soft pointer: handle + 1
-    writer.putFixedHandle(4u, 1u, reactorHandle);
-    writer.putFixedHandle(3u, 0u, 0u); // typed-null hard-owner extension dictionary
-    for (const auto& entry : entries)
-        writer.putFixedHandle(2u, 1u, entry.second); // soft-owner dictionary item
-    while (writer.bitPos() != 0u) writer.putBit(0u);
-    if (!writer.isGood()) return reject("writer state");
-    const auto bytes = writer.data();
+        dwgBufferW writer;
+        writer.putObjType(DRW::AC1012, DRW_Dictionary::kDwgFixedType);
+        writer.putFixedHandle(0u, 1u, dictionaryHandle);
+        writer.putBitShort(0u);
+        writer.putRawLong32(bodyEnd);
+        writer.putBitLong(1u);
+        writer.putBitLong(static_cast<std::int32_t>(entries.size()));
+        for (const auto& entry : entries) putText(writer, entry.first);
+        if (writtenBits(writer) != bodyEnd) return std::vector<std::uint8_t>{};
+        writer.putFixedHandle(parent.role, parent.size, parent.value);
+        writer.putFixedHandle(reactor.role, reactor.size, reactor.value);
+        writer.putFixedHandle(xdictionary.role, xdictionary.size,
+                              xdictionary.value);
+        for (const auto& item : itemHandles)
+            writer.putFixedHandle(item.role, item.size, item.value);
+        while (writer.bitPos() != 0u) writer.putBit(0u);
+        return writer.isGood() ? writer.data() : std::vector<std::uint8_t>{};
+    };
+    const WireHandle parent{6u, 0u, 0u}; // relative soft pointer: handle + 1
+    const WireHandle reactor{4u, 1u, reactorHandle};
+    const WireHandle xdictionary{3u, 0u, 0u}; // typed-null hard owner
+    const std::vector<WireHandle> itemHandles{
+        {2u, 1u, entries[0].second}, {2u, 1u, entries[1].second}};
+    const auto bytes = makeFrame(parent, reactor, xdictionary, itemHandles);
+    if (bytes.empty()) return reject("writer state");
 
     Dictionary model;
     const auto parse = [&model](const std::vector<std::uint8_t>& source) {
@@ -376,6 +393,19 @@ bool generatedAc1012DictionaryFrameControl() {
         if (parse(truncated) || model.hasCompleteDwgEntries()
             || !model.m_entries.empty() || !parse(bytes) || !matches())
             return reject("truncation refusal or corrected retry");
+    }
+    const std::uint64_t wideHandle = UINT64_C(0x100000001);
+    const std::vector<std::vector<std::uint8_t>> wideHandleFrames{
+        makeFrame({4u, 5u, wideHandle}, reactor, xdictionary, itemHandles),
+        makeFrame(parent, {4u, 5u, wideHandle}, xdictionary, itemHandles),
+        makeFrame(parent, reactor, {3u, 5u, wideHandle}, itemHandles),
+        makeFrame(parent, reactor, xdictionary,
+                  {{2u, 5u, wideHandle}, itemHandles[1]})};
+    for (const auto& malformed : wideHandleFrames) {
+        if (malformed.empty() || parse(malformed)
+            || model.hasCompleteDwgEntries() || !model.m_entries.empty()
+            || !parse(bytes) || !matches())
+            return reject("unrepresentable handle refusal or corrected retry");
     }
     return true;
 }

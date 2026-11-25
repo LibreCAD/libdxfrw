@@ -207,6 +207,14 @@ records the passing AC1012/14/15 test. This closes only the local parser slice;
 native AutoCAD open and duplicate-key merge behavior remain open, and strict
 AC1012 output remains guarded.
 
+The follow-up [wide-reference control](docs/research/p6-ac1012-unrepresentable-dictionary-handles-2026-11-24.json)
+rejects five-byte `0x100000001` references in the DICTIONARY parent, reactor,
+extension-dictionary, and item positions because these public graph fields are
+32-bit. Each refusal resets typed state and the valid AC1012 frame then parses
+again. The focused AC1012/AC1014/AC1015 CTest passes in GCC and AddressSanitizer
+builds. No DWG fixture was added; this closes only a local truncation guard,
+not producer semantics, native merge behavior, or strict-output qualification.
+
 For R14 source and output changes, reuse the [PR review regression controls](docs/research/p6-pr106-r14-conversion-review-fixes-2026-11-20.json). The [generated R13/R14/R2000 implicit INSERT chains](docs/research/p6-generated-legacy-implicit-insert-exact-angle-2026-11-21.json) exercise the next-link fix with complete scratch DWGs. R13 explicit-partial and R14 strict/partial outputs pass independent ASCII/Binary geometry readback; R14 also passes same-adapter refusal/retry. The earlier [R14 refusal](docs/research/p6-generated-legacy-implicit-insert-chain-2026-11-21.json) used a JSON-rounded angle. These controls do not close the organic-failure gate or establish broad support.
 
 The bounded [debug entity-failure attribution](docs/research/p6-cli-entity-failure-attribution-trace-2026-11-23.json) prints handle, source location, DWG type, phase, block context, parsed identity flags, and a known missing `BLOCK_RECORD` target, with an internal cap of 512 rows. On the local AC1018 `Extruder2.dwg` candidate, the full 474-row census identifies missing-owner targets across BLOCK, SOLID, LINE, MTEXT, ENDBLK and POINT; the 40 target handles are absent from libdxfrw's block map. LibreDWG 0.14 independently retains all 474 entity rows with the same owner references and no object at any of the 40 target handles. ODA v5.4.1 §20.4.52 documents the versioned BLOCK HEADER handle links that frame this relationship; it does not validate the unauthenticated sample. None of the 474 failures is a typed-body failure. The source is unauthenticated, and 460 integrity rows were omitted, so it remains ineligible for partial output. Preserve strict owner checks and do not use this source to close P6-F.
