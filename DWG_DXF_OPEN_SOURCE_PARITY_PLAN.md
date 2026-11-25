@@ -123,12 +123,17 @@ where Autodesk specifies 76, and correcting that alone reaches a second sparse
 group-94 guard. The [bounded opt-in raw-only policy](docs/research/p8d-ezdxf-default-material-raw-capture-2026-11-25.json)
 now retains this shape without interpreting the ambiguous field and checks
 isolated replay, malformed inputs, refusal and retry. LibreCAD does not opt in.
-Next retain the raw-only marker and prove the complete ACAD_MATERIAL dictionary,
-owner/reactor, layer references and collision remapping before enabling consumer
-capture and same-version replay. Refuse cross-version or incomplete graphs
-atomically; verify ASCII/binary readback and edits, corrected retry, both codecs,
-and independent complete-drawing semantics. Do not promote support on the
-isolated record control.
+The [selected-graph peer control](docs/research/p8d-ezdxf-default-material-selected-graph-2026-11-25.json)
+reopens the three remapped materials, dictionary, owners, reactors, current
+material and layer links with zero ezdxf audit repairs. Its negative control
+omits Global: the generic writer succeeds despite dangling dictionary/layer
+references, and ezdxf removes the broken dictionary entry. Next preserve the
+raw-only marker in consumer metadata, then add a preflight that checks the
+complete ACAD_MATERIAL dictionary, owner/reactor, layer and current-material
+targets and handle uniqueness before enabling capture. Refuse cross-version,
+missing or edited/inconsistent graphs atomically; verify ASCII/binary readback,
+collision remapping, corrected retry, both codecs, and independent
+complete-drawing semantics. Do not promote support on the selected graph.
 
 The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
 operator-run transfer route, and return route are unknown. Obtain the
