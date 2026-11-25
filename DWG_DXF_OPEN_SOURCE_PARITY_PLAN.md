@@ -13,9 +13,16 @@ percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
-The legacy zero-body-boundary fix changes selected inputs; refresh the clean
-candidate digest and rerun affected P8 qualification. R13/R14 generated
-refusal/retry controls and the selected AC1012 physical-frame checks pass.
+The legacy zero-body-boundary fix changes selected inputs. A clean checkout of
+`748ad1e2` computes digest
+`c69142e38161d6945266ddc1aec499915a1cfb3e2dbc77e8c68e587ef9c1a3d4`
+for 774 inputs; rerun affected P8 qualification. R13/R14 generated refusal/retry
+controls and the selected AC1012 physical-frame checks pass.
+
+The tracked PR branch has independently advanced to `c13da35d`; this local
+candidate diverges from it. Reconcile both histories and their independently
+validated changes before updating the PR; do not overwrite the newer head or
+carry forward either candidate's qualification digest without rechecking.
 
 The GROUP member and DICTIONARYVAR common-reference width fix changes selected
 inputs. A clean checkout of `002143da` computes digest
