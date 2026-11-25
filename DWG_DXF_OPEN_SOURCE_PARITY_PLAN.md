@@ -254,17 +254,17 @@ revalidates the implemented AC1012 layout and safety guard; it cannot establish
 AutoCAD's absent-field default or duplicate-key merge behavior, so that native
 semantic gate and strict-output guard remain open.
 
-The user-requested current-checkout sample run regenerated the specification-
-directed AC1012 pair from local recipes and rechecked it against source commit
-`e4cce43c`. The focused AC1012/14/15 parser CTest and both physical dictionary
-frames pass; strict ASCII/Binary output preserves existing destinations, while
-four explicit-partial ASCII/Binary outputs pass bounded audits and LibreDWG
-peer readback for dictionary keys, target identity, owner, and MLINESTYLE
-angles. See the [current-checkout receipt](docs/research/p6-ac1012-shared-parser-current-spec-samples-2026-11-25.json).
-This requested refresh adds no new semantic discriminator. Keep the DWGs and
-DXFs scratch-only; further generation is unnecessary until a new discriminator
-or native AutoCAD witness is available. Native open/merge behavior and strict
-AC1012 output admission remain open.
+The user-directed exact-current-head regeneration rebuilt the specification-
+directed AC1012 pair with LibreDWG 0.14 from local recipes at `8f115b9a`.
+Physical DICTIONARY frames and the focused source-frame parser control pass;
+strict ASCII output refuses atomically on the unresolved native merge policy,
+and explicit-partial ASCII/Binary outputs pass independent dictionary and
+MLINESTYLE audits. The source-only and destination-only keys remain distinct
+alongside the 15°/37° `SAME_KEY` conflict. See the [current-head receipt](docs/research/p6-ac1012-current-head-spec-pair-recheck-2026-11-25.json).
+The pair remains scratch-only. This refresh supplies current-head reproducible
+format evidence, not a new native semantic discriminator. Do not regenerate
+again unless a new discriminator or AutoCAD witness becomes available; native
+open/merge behavior and strict AC1012 output admission remain open.
 
 The local parser layer now uses the shared version-aware object body/string
 boundary resolver for DICTIONARY and DICTIONARYVAR, shared common and
