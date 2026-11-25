@@ -1,0 +1,54 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-pr106-current-cross-platform-package-2026-11-25",
+  "date": "2026-11-25",
+  "status": "LINUX_WINDOWS_HOSTED_AND_MACOS_LOCAL_SHARED_STATIC_PACKAGE_PASS",
+  "supportClaimEffect": "none",
+  "implementation": {
+    "codeHead": "e9216367f701f241d08d01e04808b7c28e60443c",
+    "macosCleanCheckout": "4ec9dd31ee093414a151c41a4c4ea22fe20e3d83",
+    "sha256": "ce3ff7f4632615508c31c80f5375f423ca728262fe8c1c63dc87fdb75d977e7b",
+    "inputCount": 775,
+    "binding": "The hosted job source is the code head; the clean macOS checkout has the same selected-input digest and differs only by documentation."
+  },
+  "hosted": {
+    "repository": "dxli/libdxfrw",
+    "runId": 45637971709,
+    "url": "https://github.com/dxli/libdxfrw/actions/runs/45637971709",
+    "overallConclusion": "failure; macOS job cancelled",
+    "linux": {
+      "jobId": 139288455486,
+      "conclusion": "success",
+      "artifactId": 15033642570,
+      "artifactSha256": "87f6b436316c198f710ffba4a2574d4b725398383bbca0a95adcbd9cef9eadb5",
+      "sharedReceiptSha256": "bde2cf65b6748f9aff445987cabf199605d5706f90a5028add6d1a60a91d86d5",
+      "staticReceiptSha256": "28ae1cb9fc259c0532e36db1ff87c7ff92463aea5ddaee5988e115663d28a9f9"
+    },
+    "windows": {
+      "jobId": 139288456028,
+      "conclusion": "success",
+      "artifactId": 15034723032,
+      "artifactSha256": "c48a41037359bbf50d8a4b551682c8728a63cfc62372974a8a282f25956e95e9",
+      "sharedReceiptSha256": "38e85ef46010004854bb161a4f796f996972e8120b44cf1fe425d291424eeedf",
+      "staticReceiptSha256": "de04a1e64139c0db4ed6fd2e476dcb969b33b0638048fb61467037c56a9a4852"
+    }
+  },
+  "macos": {
+    "environment": "macOS 27.2.1 (26B131), AppleClang 21, ARM64, Release; clean shared/static builds with tests and documentation disabled",
+    "sharedReceiptSha256": "cc86fe766079a8336902623e92f2573eb81b8710b4bf7197af79e2eeec22b5fe",
+    "staticReceiptSha256": "7ecf5a182dca7fed260151204d73867e079efacc0e5e780f0e93652f837ea314",
+    "sharedLibrarySha256": "dc1ce5ab6dae2855cf2ffb39789c6047df128b5753a79ecd58f8a42a5ed41981",
+    "staticLibrarySha256": "d5a05c2f67c0a7f46a88ccb6773dc32a2b7825c24a596a108ad912c67d8fae64",
+    "scratchRoot": "/private/tmp/libdxfrw-package-ce3ff-20261125"
+  },
+  "checks": [
+    "All six shared/static probe receipts report ABI version 2 rejected, version 3 accepted, matching relocated files and the expected installed target.",
+    "All three shared probes bind loaded runtime path/hash to the selected target and execute the relocated dwg2dxf usage path. The static probes build relocated consumers.",
+    "Local verification compared each receipt's selected target to its installed-file hash, checked shared runtime identity, and recorded receipt and GitHub artifact digests. The local shared dylib is ARM64."
+  ],
+  "limits": [
+    "This closes package selection, installation, relocation and minimal runtime identity for the stated platforms and digest; it does not establish the complete C++ ABI, drawing semantics, GUI or FreeCAD support.",
+    "The hosted workflow overall did not pass: its macOS leg was cancelled and is replaced only for this package profile by the independently run local macOS probe.",
+    "Reopen the package gates when selected source inputs, configuration, probes, or platform/toolchain requirements change."
+  ]
+}
