@@ -1,0 +1,52 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-autodesk-setat-scope-2026-11-25",
+  "date": "2026-11-25",
+  "status": "DOCUMENTED_SETAT_SCOPE_CONFIRMED_DEFAULT_UNRESOLVED",
+  "supportClaimEffect": "none",
+  "question": "Can Autodesk API documentation resolve the absent AC1012 DICTIONARY group-281 runtime merge style or reduce the native witness?",
+  "sources": [
+    {
+      "title": "Autodesk ObjectARX Reference: AcDbDictionary::setAt",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OREF-RefGuide-AcDbDictionary__setAt_ACHAR__AcDbObject__AcDbObjectId_.html",
+      "finding": "If the key already exists, setAt erases the existing entry, removes the dictionary from that object's reactor list, and adds the new object in its place. This is direct dictionary mutation, not clone/INSERT merge-style behavior."
+    },
+    {
+      "title": "Autodesk ObjectARX Reference: AcDbDictionary::setMergeStyle",
+      "url": "https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OREF-RefGuide-AcDbDictionary__setMergeStyle_AcDb__DuplicateRecordCloning.html",
+      "finding": "setMergeStyle sets the merge style for INSERT operations. The page does not state the constructor or absent-field default."
+    },
+    {
+      "title": "Autodesk ObjectARX Reference: AcDbDatabase::wblockCloneObjects",
+      "url": "https://help.autodesk.com/cloudhelp/2019/ENU/OARX-RefGuide/files/OREF-AcDbDatabase__wblockCloneObjects_AcDbObjectIdArray__AcDbObjectId__AcDbIdMapping__AcDb__DuplicateRecordCloning_bool.html",
+      "finding": "wblockCloneObjects takes an explicit DuplicateRecordCloning argument that determines behavior for duplicate dictionary entries; that operation argument must be reported separately from the dictionary mergeStyle."
+    },
+    {
+      "title": "Autodesk AutoCAD DXF Reference: DICTIONARY",
+      "url": "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-40B92C63-26F0-485B-A9C2-B349099B26D0.htm",
+      "finding": "Group 281 is the serialized duplicate record cloning field and lists values 0 through 5; the page does not specify what an AutoCAD runtime returns when the field is absent in an AC1012 source."
+    }
+  ],
+  "assessment": {
+    "established": [
+      "Direct setAt with a duplicate key replaces the existing object and its dictionary reactor link.",
+      "INSERT merge style and the wblockCloneObjects operation-level duplicate policy are separate variables.",
+      "The native witness should record mergeStyle, the exact operation, and any explicit DRC argument independently."
+    ],
+    "not_established": [
+      "The in-memory mergeStyle for an AC1012 dictionary whose serialized group 281 is absent.",
+      "AutoCAD normal-open behavior for the generated populated AC1012 pair.",
+      "The survivor, remapped identities, and close/reopen behavior for the target AutoCAD release."
+    ],
+    "inference": "The new documentation narrows terminology and removes any need to empirically rediscover setAt's documented replacement behavior. It does not resolve the AC1012 default or justify changing strict-output policy."
+  },
+  "implementationReadiness": {
+    "reuseExistingSamples": [
+      "docs/research/p6-ac1012-common-tail-absolute-reactors-2026-11-23.json",
+      "docs/research/p6-ac1012-collision-unique-entry-control-2026-11-24.json"
+    ],
+    "doNotRegenerate": "The existing scratch pairs already encode absent group 281, a SAME_KEY value collision, and unique entries on both sides. No new specification-shaped DWG can serialize the absent runtime default, and no new discriminator is identified.",
+    "nextAction": "On the identified AutoCAD host, normal-open the existing hash-pinned pair; query the actual dictionary mergeStyle and ownership; run the exact INSERT/deep-clone operation with operation-level DRC recorded separately; then close/reopen and compare key targets and object identities.",
+    "strictOutput": "Keep the AC1012 strict-output guard until the missing-field default and actual merge behavior are witnessed, and until the remaining source/output graph gates close."
+  }
+}

@@ -118,6 +118,14 @@ and selected projection behavior. ODA specifies no serialized AC1012 group
 duplicate-merge semantics. Do not regenerate the equivalent pair without a
 new discriminator; continue other ready implementation work.
 
+The [Autodesk API scope follow-up](docs/research/p6-ac1012-autodesk-setat-scope-2026-11-25.json)
+confirms that duplicate-key `setAt()` replaces the existing object, while
+`setMergeStyle()` governs INSERT and `wblockCloneObjects` accepts a separate
+explicit duplicate policy. None documents the AC1012 absent-group-281 runtime
+default. Reuse the two existing pairs and record the exact native operation;
+do not treat a `setAt()` control or another equivalent generated sample as a
+clone-policy witness.
+
 ## Execution and evidence rules
 
 1. Batch compatible producer captures in one host session, but keep a distinct
