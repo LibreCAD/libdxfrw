@@ -13,14 +13,15 @@ percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
-The current candidate is qualified for the focused CI profile at code head
+The preceding candidate passed the focused CI profile at code head
 `e9216367`, implementation digest
 `ce3ff7f4632615508c31c80f5375f423ca728262fe8c1c63dc87fdb75d977e7b`
 for 775 inputs. The [qualification receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json)
 records local and hosted fast checks plus Linux, macOS and Windows focused
 jobs. All 15 format claims remain EXPERIMENTAL; no route is advertised.
-Reopen focused and package qualification when selected inputs or required
-configurations change. Native GUI, broader FreeCAD coverage, broad and semantic
+The subsequent single-line TEXT/ATTRIB/ATTDEF writer change reopens the
+implementation digest and focused/package qualification; the status overlay
+is draft until the new candidate is pinned. Native GUI, broader FreeCAD coverage, broad and semantic
 gates remain open. The [package receipt](docs/research/p8-pr106-current-cross-platform-package-2026-11-25.json)
 records Linux and Windows hosted package passes and a local macOS substitute
 for the cancelled hosted macOS job; the overall package workflow was red.
@@ -50,7 +51,12 @@ The [coordinate receipt](docs/research/p8d-librecad-system-codec-extrusion-2026-
 records the DXF callback-frame adaptation, same-filter DXF/DWG reuse,
 targeted AddressSanitizer and bundled-codec controls. A wider system-codec
 filter run improved from 86 to 91 passing cases out of 131; 40 cases remain
-failing. Next classify the remaining caret/text transport, underlay version
+failing. A follow-up is implementing semantic single-line control and literal-caret
+transport in the system-codec path with an opt-in consumer regression matrix;
+re-evaluate the broader filter after its current candidate is built.
+The [library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
+records the bounded ASCII/binary field and failure/retry checks.
+Next classify the remaining underlay version
 gates, and object-graph/identity failures against their source semantics, then
 fix each valid gap with focused tests and independent readback where needed.
 Native GUI, runtime loading, new-head hosted checks and final-candidate

@@ -746,7 +746,7 @@ bool dxfWriter::writeUtf8Chunks(std::string_view text, int continuationCode,
 
 bool dxfWriter::encodeTextPreservingCaretJ(
         std::string_view text, std::size_t maxBytes, std::string& encoded,
-        std::vector<EncodedTextChunk>& chunks) {
+        std::vector<EncodedTextChunk>& chunks, bool encodeCarriageReturn) {
     if (maxBytes == 0u)
         return recordWriteResult(false);
     if (requiresLosslessText()) {
@@ -754,6 +754,8 @@ bool dxfWriter::encodeTextPreservingCaretJ(
         // validate the remaining UTF-8 and record-safety constraints normally.
         std::string validationText(text);
         std::replace(validationText.begin(), validationText.end(), '\n', ' ');
+        if (encodeCarriageReturn)
+            std::replace(validationText.begin(), validationText.end(), '\r', ' ');
         if (!validateStrictText(validationText)) return false;
     }
 
@@ -763,11 +765,11 @@ bool dxfWriter::encodeTextPreservingCaretJ(
     for (std::size_t offset = 0u; offset < text.size();) {
         std::size_t sourceBytes = 0u;
         std::string encodedScalar;
-        if (text[offset] == '\n') {
-            // Keep the LF escape atomic; literal carets take the ordinary
+        if (text[offset] == '\n' || (encodeCarriageReturn && text[offset] == '\r')) {
+            // Keep the control escape atomic; literal carets take the ordinary
             // ASCII control-escaping path and become caret-space.
             sourceBytes = 1u;
-            encodedScalar = "^J";
+            encodedScalar = text[offset] == '\n' ? "^J" : "^M";
         } else if (requiresLosslessText()) {
             if (!encodeStrictTextScalar(text, offset, sourceBytes,
                                         encodedScalar))
@@ -805,6 +807,18 @@ bool dxfWriter::encodeTextPreservingCaretJ(
     }
     chunks.push_back({chunkStart, encoded.size() - chunkStart});
     return true;
+}
+
+bool dxfWriter::writeUtf8SingleLineString(int code, std::string_view text) {
+    if (m_binaryStrings || text.find_first_of("\r\n") == std::string_view::npos)
+        return writeUtf8String(code, text);
+    std::string encoded;
+    std::vector<EncodedTextChunk> chunks;
+    if (!encodeTextPreservingCaretJ(text, std::numeric_limits<std::size_t>::max(),
+                                    encoded, chunks, true)
+        || chunks.size() != 1u)
+        return false;
+    return writeString(code, encoded);
 }
 
 bool dxfWriter::writeUtf8StringPreservingCaretJ(int code,

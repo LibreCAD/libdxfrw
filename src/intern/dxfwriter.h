@@ -64,6 +64,9 @@ public:
         return writeString(code, text);
     }
     bool writeUtf8String(int code, std::string_view text);
+    // TEXT, ATTRIB and ATTDEF permit semantic CR/LF; ASCII DXF represents
+    // them as caret controls while binary DXF retains the original bytes.
+    bool writeUtf8SingleLineString(int code, std::string_view text);
     // Write a semantic UTF-8 string only when the encoded DXF value fits the
     // field's byte limit. The limit is checked after the configured DXF
     // version/code-page conversion.
@@ -221,7 +224,7 @@ private:
                           bool preserveMTextCaret = false);
     bool encodeTextPreservingCaretJ(
         std::string_view text, std::size_t maxBytes, std::string& encoded,
-        std::vector<EncodedTextChunk>& chunks);
+        std::vector<EncodedTextChunk>& chunks, bool encodeCarriageReturn = false);
     bool validateStrictText(std::string_view text);
     bool encodeStrictTextScalar(std::string_view text, std::size_t offset,
                                 std::size_t& sourceBytes,

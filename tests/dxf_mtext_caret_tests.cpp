@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -58,6 +59,56 @@ struct EmbeddedExporter final : LC3CompatCheck {
     bool finalizeDxfWrite() override { return ok; }
     dxfRW& out; DRW_Attdef value; bool ok = false;
 };
+struct SingleLineCapture final : LC3CompatCheck {
+    void addText(const DRW_Text& value) override { text = value.text; ++texts; }
+    void addAttDef(const DRW_Attdef& value) override { definition = value.text; ++definitions; }
+    void addInsert(const DRW_Insert& value) override {
+        if (value.attlist.size() == 1u && value.attlist.front()) {
+            attribute = value.attlist.front()->text; ++attributes;
+        }
+    }
+    std::string text, definition, attribute;
+    unsigned texts = 0, definitions = 0, attributes = 0;
+};
+struct SingleLineExporter final : LC3CompatCheck {
+    explicit SingleLineExporter(dxfRW& output) : out(output) {
+        text.height = definition.height = 1.0;
+        definition.tag = "DEF"; definition.prompt = "Prompt";
+        insert.name = "SAMPLE";
+        attribute = std::make_shared<DRW_Attrib>();
+        attribute->height = 1.0; attribute->tag = "ATTR";
+        insert.attlist.push_back(attribute);
+    }
+    void setText(const std::string& value) {
+        text.text = definition.text = attribute->text = value;
+    }
+    void writeEntities() override {
+        ok = out.writeText(&text) && out.writeAttdef(&definition)
+            && out.writeInsert(&insert);
+    }
+    bool finalizeDxfWrite() override { return ok; }
+    dxfRW& out; DRW_Text text; DRW_Attdef definition; DRW_Insert insert;
+    std::shared_ptr<DRW_Attrib> attribute; bool ok = false;
+};
+bool singleLineWire(const std::filesystem::path& path, bool binary,
+                    const std::string& expected) {
+    std::ifstream stream(path, std::ios::binary);
+    if (binary) stream.seekg(22);
+    std::unique_ptr<dxfReader> reader = binary
+        ? std::unique_ptr<dxfReader>(new dxfReaderBinary(&stream))
+        : std::unique_ptr<dxfReader>(new dxfReaderAscii(&stream));
+    std::string type;
+    unsigned count = 0;
+    int code = 0;
+    while (reader->readRec(&code)) {
+        if (code == 0) type = reader->getRawValue();
+        else if (code == 1 && (type == "TEXT" || type == "ATTDEF" || type == "ATTRIB")) {
+            if (reader->getRawValue() != expected) return false;
+            ++count;
+        }
+    }
+    return count == 3u;
+}
 bool makeSource(const std::filesystem::path& path, bool binary,
                 const std::string& text, const char* version) {
     std::ofstream stream(path, std::ios::binary | std::ios::trunc);
@@ -247,5 +298,46 @@ int main(int argc, char** argv) {
             }
         }
     }
-    std::cout << "MTEXT caret source, ASCII/Binary output and typed readback PASS\n";
+    const std::string semantic = "A\tB\nC\rD^I";
+    for (const auto version : {DRW::AC1018, DRW::AC1027}) {
+      for (bool binary : {false, true}) for (bool strict : {false, true}) {
+        const auto target = dir / ("single-line-" + std::to_string(static_cast<int>(version))
+            + (binary ? "-binary" : "-ascii") + (strict ? "-strict.dxf" : "-compat.dxf"));
+        { std::ofstream initial(target, std::ios::binary); initial << "preserve destination"; }
+        dxfRW output(target.string().c_str());
+        if (strict) output.setDxfTextWritePolicy(DRW::DxfTextWritePolicy::RequireLossless);
+        SingleLineExporter exporter(output);
+        exporter.setText(std::string("bad\0text", 8));
+        if (output.write(&exporter, version, binary)) return 1;
+        std::ifstream before(target, std::ios::binary);
+        const std::string retained((std::istreambuf_iterator<char>(before)), {});
+        if (retained != "preserve destination") return 1;
+        before.close();
+        exporter.setText("safe");
+        exporter.definition.style = "bad\nstyle";
+        if (output.write(&exporter, version, binary)) return 1;
+        std::ifstream structural(target, std::ios::binary);
+        const std::string stillRetained((std::istreambuf_iterator<char>(structural)), {});
+        if (stillRetained != "preserve destination") return 1;
+        structural.close();
+        exporter.definition.style = "STANDARD";
+        exporter.setText(semantic);
+        if (!output.write(&exporter, version, binary) || !exporter.ok
+            || !singleLineWire(target, binary, binary ? semantic : "A^IB^JC^MD^ I")) {
+            std::cerr << "single-line control write/retry failed binary=" << binary
+                      << " strict=" << strict << '\n';
+            return 1;
+        }
+        dxfRW input(target.string().c_str()); SingleLineCapture capture;
+        if (!input.read(&capture, false) || capture.texts != 1u
+            || capture.definitions != 1u || capture.attributes != 1u
+            || capture.text != semantic || capture.definition != semantic
+            || capture.attribute != semantic) {
+            std::cerr << "single-line control readback failed binary=" << binary
+                      << " strict=" << strict << '\n';
+            return 1;
+        }
+      }
+    }
+    std::cout << "MTEXT and single-line caret transport PASS\n";
 }

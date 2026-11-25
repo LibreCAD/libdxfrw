@@ -1236,9 +1236,13 @@ bool isValidDxfEntityFields(const DRW_Entity& entity) {
     }
     if (const auto *text = dynamic_cast<const DRW_Text*>(&entity)) {
         const auto* mtext = dynamic_cast<const DRW_MText*>(text);
+        const bool singleLine = typeid(*text) == typeid(DRW_Text)
+            || typeid(*text) == typeid(DRW_Attrib)
+            || typeid(*text) == typeid(DRW_Attdef);
         const bool safeText = mtext != nullptr
             ? isSafeDxfMTextContent(text->text)
-            : isSafeDxfRecordText(text->text);
+            : singleLine ? text->text.find('\0') == std::string::npos
+                         : isSafeDxfRecordText(text->text);
         if (!std::isfinite(text->height) || !std::isfinite(text->angle)
             || !std::isfinite(text->widthscale)
             || !std::isfinite(text->oblique)
@@ -15104,7 +15108,7 @@ bool dxfRW::writeAttrib(DRW_Attrib *ent,
     writer->writeDouble(20, ent->basePoint.y);
     writer->writeDouble(30, ent->basePoint.z);
     writer->writeDouble(40, ent->height);
-    writer->writeUtf8String(1, ent->text);
+    writer->writeUtf8SingleLineString(1, ent->text);
     writer->writeDouble(50, ent->angle);
     writer->writeDouble(41, ent->widthscale);
     writer->writeDouble(51, ent->oblique);
@@ -15171,7 +15175,7 @@ bool dxfRW::writeAttdef(DRW_Attdef *ent,
     writer->writeDouble(20, ent->basePoint.y);
     writer->writeDouble(30, ent->basePoint.z);
     writer->writeDouble(40, ent->height);
-    writer->writeUtf8String(1, ent->text);
+    writer->writeUtf8SingleLineString(1, ent->text);
     writer->writeDouble(50, ent->angle);
     writer->writeDouble(41, ent->widthscale);
     writer->writeDouble(51, ent->oblique);
@@ -15255,7 +15259,7 @@ bool dxfRW::writeText(DRW_Text *ent) {
     writer->writeDouble(20, ent->basePoint.y);
     writer->writeDouble(30, ent->basePoint.z);
     writer->writeDouble(40, ent->height);
-    writer->writeUtf8String(1, ent->text);
+    writer->writeUtf8SingleLineString(1, ent->text);
     writer->writeDouble(50, ent->angle);
     writer->writeDouble(41, ent->widthscale);
     writer->writeDouble(51, ent->oblique);
