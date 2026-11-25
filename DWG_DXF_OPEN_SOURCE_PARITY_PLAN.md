@@ -53,7 +53,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`d21b3c57140d75a667c81ff8b7e63dfc736bb5c3`. The prior merge head built the
+`3afa66a33d0dc8141f138089920a2a4d0c914d9b`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -181,8 +181,11 @@ the raw carrier is removed, followed by a successful corrected retry. The
 now preserves explicit group 347, including collision remapping, for a bounded
 same-version system-codec ASCII profile; missing or inconsistent material and
 dictionary carriers refuse before publication. Its generated save/reopen and
-independent physical-tag checks pass. Bundled and DWG output, renamed layers,
-legacy-target loss reporting and full graph admission remain open. Refuse
+independent physical-tag checks pass. The [reactor follow-up](docs/research/p8d-librecad-layer-material-reactor-validation-2026-11-25.json)
+checks the raw and parsed reactor identities for both material and dictionary;
+corruptions refuse atomically, and generated reactor-bearing output passes
+independent readback. Bundled and DWG output, renamed layers, legacy-target
+loss reporting and full graph admission remain open. Refuse
 cross-version, missing or edited/inconsistent graphs atomically; verify ASCII/binary readback,
 collision remapping, corrected retry, both codecs, and independent
 complete-drawing semantics. The rebuilt focused system-codec lane passes against the current

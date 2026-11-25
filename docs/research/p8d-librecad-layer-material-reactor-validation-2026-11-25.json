@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-layer-material-reactor-validation-2026-11-25",
+  "supportClaimEffect": "none",
+  "consumerCommit": "3afa66a33d0dc8141f138089920a2a4d0c914d9b",
+  "libraryCommit": "58cab886d2ac652f91dc88ab53d372a14a199acd",
+  "implementationDigestSha256": "b274f634af9aeb2ca0e8a3b6ddc907a2429f391d6f9c5bfed6b2cbf200ffe44b",
+  "problem": "The prior carrier check skipped raw application-group contents. Mutating raw material or dictionary reactor references could leave parsed metadata unchanged while replay emitted different references.",
+  "change": "The shared material/dictionary carrier visitor validates ACAD_REACTORS framing, raw and parsed marker/handle agreement, and exact ordered agreement with the typed reactor vector; unsupported nested or other application groups fail closed.",
+  "validation": [
+    "Generated material and dictionary graphs with and without reactors, each with a normal or fixed-handle-collision material, pass 186 assertions including corruption of either raw reactor, preserved destinations and corrected retries.",
+    "Focused system material/HATCH/proxy/handle/R12 lane passes 294 assertions in 8 cases; adjacent bundled controls pass 42 assertions in 3 cases.",
+    "Independent ezdxf 1.4.4 readback and physical tag inspection show layer 347=A1, material A1 owner/reactor A0, dictionary A0 owner/reactor C, zero audit errors and repairs. Generated collision-case SHA-256 19cbcf298ba92ef2ad73380feed96e1609638ffdfab0c4afbd7ebbaf8578d09c."
+  ],
+  "limitations": [
+    "Same-version system-codec ASCII DXF profile only; sparse raw-only materials remain refused.",
+    "Arbitrary application groups, wide references, complete dictionary/material graph admission, DWG and bundled layer-material output, renamed layers, native behavior and platform qualification remain open.",
+    "The five sparse-MATERIAL imports in the broader system handle filter remain failing; no fixture or support promotion was committed."
+  ],
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2020/ENU/AutoCAD-DXF/files/GUID-D94802B0-8BE8-4AC9-8054-17197688AFDB.htm",
+    "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-E540C5BB-E166-44FA-B36C-5C739878B272.htm"
+  ]
+}
