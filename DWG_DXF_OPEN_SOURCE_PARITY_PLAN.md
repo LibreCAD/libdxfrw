@@ -21,8 +21,11 @@ controls and the selected AC1012 physical-frame checks pass.
 
 This candidate reconciles local work with PR head `c13da35d`, preserving the
 AC1021 control-reader slice and keeping General TABLE-value output guarded.
-Its combined implementation digest and hosted qualification must be refreshed;
-earlier candidate digests and green checks do not qualify the merged inputs.
+The clean combined code commit `4758b607` computes digest
+`203f7422ef1a56735c06fb673ba1028047a0b37d14ce7331f29c90df9767c160`
+for 775 inputs. Hosted qualification must be refreshed; earlier candidate
+digests and green checks do not qualify the merged inputs. See the
+[reconciliation receipt](docs/research/p8-pr106-divergent-history-reconciliation-2026-11-25.json).
 
 The GROUP member and DICTIONARYVAR common-reference width fix changes selected
 inputs. A clean checkout of `002143da` computes digest
