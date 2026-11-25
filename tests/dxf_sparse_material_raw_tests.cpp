@@ -73,6 +73,16 @@ bool source(const std::filesystem::path& path,bool binary,int mode,const char* n
  ||!s(0,"ENDSEC")||!s(0,"EOF"))return false;
  return !w->hasWriteError();
 }
+bool minimalChannelSource(const std::filesystem::path& path,bool binary){
+ std::ofstream f(path,std::ios::binary|std::ios::trunc);if(!f)return false;
+ if(binary){const char signature[]="AutoCAD Binary DXF\r\n\x1a";f.write(signature,sizeof(signature));}
+ std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
+ const auto s=[&](int c,const char* v){return w->writeString(c,v);};
+ return s(0,"SECTION")&&s(2,"HEADER")&&s(9,"$ACADVER")&&s(1,"AC1021")&&s(0,"ENDSEC")
+  &&s(0,"SECTION")&&s(2,"OBJECTS")&&s(0,"MATERIAL")&&s(5,"F040")&&s(330,"72")
+  &&s(100,"AcDbMaterial")&&s(1,"RawOnly")&&w->writeInt32(94,63)
+  &&s(0,"ENDSEC")&&s(0,"EOF")&&!w->hasWriteError();
+}
 // A locally generated ezdxf default-material shape. Mode 1 truncates its tail;
 // mode 2 changes the final mask; mode 3 adds a group beyond the bounded shape.
 bool ezdxfDefaultSource(const std::filesystem::path& path,bool binary,int mode){
@@ -202,6 +212,18 @@ int main(){
      ||tailReadback.raw.front().groups.size()!=8u
      ||tailReadback.raw.front().groups.back().code()!=1000
      ||std::string(tailReadback.raw.front().groups.back().c_str())!="raw-tail")return 41;
+ }
+ for(bool binary:{false,true}){
+  const auto inputPath=dir/(binary?"minimal-channel-binary.dxf":"minimal-channel-ascii.dxf");
+  if(!minimalChannelSource(inputPath,binary))return 62;
+  const auto inputName=inputPath.string();dxfRW input(inputName.c_str());
+  LegacyReader legacy;if(input.read(&legacy,false)||legacy.materialCallbacks||legacy.rawCallbacks)return 63;
+  Reader disabled;disabled.enabled=false;
+  if(input.read(&disabled,false)||!disabled.materials.empty()||!disabled.raw.empty())return 64;
+  disabled.enabled=true;
+  if(!input.read(&disabled,false)||disabled.materials.size()!=1u||disabled.raw.size()!=1u
+     ||!disabled.materials.front().requiresRawDxfMaterialReplay()
+     ||!disabled.materials.front().m_hasChannelFlags||disabled.materials.front().m_channelFlags!=63)return 65;
  }
  for(bool binary:{false,true}){
   const auto inputPath=dir/(binary?"ezdxf-binary.dxf":"ezdxf-ascii.dxf");

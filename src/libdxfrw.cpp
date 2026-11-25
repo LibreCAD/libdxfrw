@@ -29007,7 +29007,10 @@ bool dxfRW::processMaterial() {
                 return setError(DRW::BAD_READ_OBJECTS);
             if (pendingEzdxfDefaultMaterial && !hasCompleteEzdxfDefaultShape())
                 return setError(DRW::BAD_CODE_PARSED);
-            if (data.requiresRawDxfMaterialReplay()) {
+            // Pending sparse/minimal tails are marked raw-only below. Check
+            // their policy before publishing either callback as well.
+            if (data.requiresRawDxfMaterialReplay()
+                || pendingSparseTail || pendingMinimalChannelTail) {
                 const auto* policy =
                     dynamic_cast<const DRW_DxfSparseMaterialRawPolicy*>(iface);
                 if (policy == nullptr
