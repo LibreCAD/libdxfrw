@@ -1,0 +1,482 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-organic-entity-failure-candidate-sweep-2026-11-25",
+  "date": "2026-11-25",
+  "status": "NO_ELIGIBLE_ENTITY_PARSE_FAILURE_IN_LOCAL_VALID_PRODUCER_SWEEP",
+  "supportClaimEffect": "none",
+  "question": "Can LibreDWG 0.14 author a locally created, independently readable AC1012 source containing an entity that current libdxfrw rejects, while leaving later valid frames available for partial output?",
+  "candidate": {
+    "path": "/Users/dli/dev/libdxfrw/build-gcc/dwg2dxf/dwg2dxf",
+    "sha256": "0fe8c370f5f2b510eb799eae51fee37f9403e69832344f4f913b2ee5d6e4605a",
+    "sourceCommit": "e4cce43c1a3755c70b7ce9e7462ff8a95c33e2bd"
+  },
+  "producer": "GNU LibreDWG 0.14 dwgadd/dwgread with from-scratch recipes; not AutoCAD-authored",
+  "sweep": {
+    "scratchDirectory": "/private/tmp/ac1012-organic-sweep-2aaa49bd",
+    "recipeCount": 21,
+    "sourceCount": 19,
+    "independentlyReadEntityCount": 19,
+    "allSourcesAC1012": true,
+    "entityKinds": [
+      "3DFACE",
+      "ARC",
+      "CIRCLE",
+      "DIMENSION_ALIGNED",
+      "LWPOLYLINE",
+      "MLINE",
+      "MTEXT",
+      "POINT",
+      "POLYLINE_2D",
+      "POLYLINE_3D",
+      "POLYLINE_MESH",
+      "POLYLINE_PFACE",
+      "RAY",
+      "SEQEND",
+      "SOLID",
+      "TEXT",
+      "TOLERANCE",
+      "TRACE",
+      "VERTEX_2D",
+      "VERTEX_3D",
+      "VERTEX_MESH",
+      "VERTEX_PFACE",
+      "VERTEX_PFACE_FACE",
+      "VIEWPORT",
+      "XLINE"
+    ],
+    "peerReadSucceededForAll": true,
+    "entityParseFailureCount": 0,
+    "failedFrameCount": 0,
+    "laterFrameRecoveryCandidateCount": 0,
+    "partialOutputSuccessCount": 17,
+    "partialOutputRefusalCount": 2,
+    "rows": [
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/arc.dwg",
+        "sourceSha256": "88932791356dde5c5b4025b3f90041d724cf4fb7c8836171281b0f3263474825",
+        "entities": [
+          "ARC"
+        ],
+        "entityHandles": [
+          46
+        ],
+        "sourceFrameCount": 31,
+        "publishedFrames": 31,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "42cd413191772e8ba5bbaedf956f1b7380a82e3343b913d5487d1db6153580ea",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/circle.dwg",
+        "sourceSha256": "20bc53a7471aa235c3f47d42bae04b5b4f4ab2b63aee25486d7805d30aad79f4",
+        "entities": [
+          "CIRCLE"
+        ],
+        "entityHandles": [
+          46
+        ],
+        "sourceFrameCount": 31,
+        "publishedFrames": 31,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "c6283fc2548f82470d8fb10bd1463f3dc3382674ea340ed54fc66d6f96821879",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/dim_aligned.dwg",
+        "sourceSha256": "31ae397821fccdbd86b6048411ccd7f84b63b529b6cad718e0eb9596f0eb6795",
+        "entities": [
+          "DIMENSION_ALIGNED"
+        ],
+        "entityHandles": [
+          46
+        ],
+        "sourceFrameCount": 31,
+        "publishedFrames": 31,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 1,
+        "outputCreated": false,
+        "outputSha256": null,
+        "exportErrors": [
+          "DXF export failed: dimension-picture-placement-unrepresented: DXF DIMENSION has no documented mapping for non-default DWG anonymous-block placement"
+        ]
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/face.dwg",
+        "sourceSha256": "df0f029f2620f6f0d9d81b55af8afe233515a91b469f9a0ef94f55484ef34f74",
+        "entities": [
+          "3DFACE"
+        ],
+        "entityHandles": [
+          46
+        ],
+        "sourceFrameCount": 31,
+        "publishedFrames": 31,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "41876285cb207340ea1f28f51d4696a55e06e0a6ac2dfd72f0fa3be227750ada",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/lwpolyline.dwg",
+        "sourceSha256": "7639e817dafe061336ae1a678ac121795f88ce1ce79afc2fbdc8d17c613f9529",
+        "entities": [
+          "LWPOLYLINE"
+        ],
+        "entityHandles": [
+          46
+        ],
+        "sourceFrameCount": 31,
+        "publishedFrames": 31,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "8bd9a0397bf4a6539b6bc6fd73cda6b619690573bdb1efcea8ce588efd2d1313",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/mesh.dwg",
+        "sourceSha256": "41852c27193452fa72bc871a429bdb1e416e122a2ec6512be52e12fd3bb3e485",
+        "entities": [
+          "POLYLINE_MESH",
+          "VERTEX_MESH",
+          "VERTEX_MESH",
+          "VERTEX_MESH",
+          "VERTEX_MESH",
+          "SEQEND"
+        ],
+        "entityHandles": [
+          46,
+          47,
+          48,
+          49,
+          50,
+          51
+        ],
+        "sourceFrameCount": 36,
+        "publishedFrames": 36,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "26a0c9565bcc5c0956fdf3861d4ed4c2e379ccaa1fad8e6a2a1f2fe10fe5aef4",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/mline.dwg",
+        "sourceSha256": "3450249a29d52424789c49413a2c4d8fe561be43f186d3664222fc420cef4f31",
+        "entities": [
+          "MLINE"
+        ],
+        "entityHandles": [
+          46
+        ],
+        "sourceFrameCount": 31,
+        "publishedFrames": 31,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 1,
+        "outputCreated": false,
+        "outputSha256": null,
+        "exportErrors": [
+          "DXF export preflight failed: MLINE code-340 style target/name or element count is invalid"
+        ]
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/mtext.dwg",
+        "sourceSha256": "6d785da03ab6d4b274a17c782c50a3f06c4a984067dac718810bb2a6454fcec9",
+        "entities": [
+          "MTEXT"
+        ],
+        "entityHandles": [
+          46
+        ],
+        "sourceFrameCount": 31,
+        "publishedFrames": 31,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "344c961ca944c3e37eb20fc333c658842bed76bb990b5dd9597bb58caa9124a0",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/pface.dwg",
+        "sourceSha256": "d005013c22068647123640542b4f22ed81777ef669a8a8424b51b0f85ff12aa4",
+        "entities": [
+          "POLYLINE_PFACE",
+          "VERTEX_PFACE",
+          "VERTEX_PFACE",
+          "VERTEX_PFACE",
+          "VERTEX_PFACE",
+          "VERTEX_PFACE",
+          "VERTEX_PFACE_FACE",
+          "VERTEX_PFACE_FACE",
+          "VERTEX_PFACE_FACE",
+          "SEQEND"
+        ],
+        "entityHandles": [
+          46,
+          47,
+          48,
+          49,
+          50,
+          51,
+          52,
+          53,
+          54,
+          55
+        ],
+        "sourceFrameCount": 40,
+        "publishedFrames": 40,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "8aaa5e98ae1cd460c0d0ad063a4bdf4c02c49a5c55115df2281ca34ca1679a9b",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/point.dwg",
+        "sourceSha256": "c7b5754b79a6c685e49b140539573e920e01386bc7489955dd78521deefc567f",
+        "entities": [
+          "POINT"
+        ],
+        "entityHandles": [
+          46
+        ],
+        "sourceFrameCount": 31,
+        "publishedFrames": 31,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "813747323b8ccd2f953504525e438a13d00efb442c4952ac1b48de69990d1083",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/polyline2d.dwg",
+        "sourceSha256": "41a5a3696885e970a20b26b9f5c9c38337f173408bcd205d2c3dee8e85118420",
+        "entities": [
+          "POLYLINE_2D",
+          "VERTEX_2D",
+          "VERTEX_2D",
+          "VERTEX_2D",
+          "SEQEND"
+        ],
+        "entityHandles": [
+          46,
+          47,
+          48,
+          49,
+          50
+        ],
+        "sourceFrameCount": 35,
+        "publishedFrames": 35,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "038bb56929e2efea44b8ae6325ef3b515027f4d59b53c49f25493a3f96ce3037",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/polyline3d.dwg",
+        "sourceSha256": "e68d329b9322edc6f8f0092de1361ac451689b5a44a4ff37ba150e539e108b74",
+        "entities": [
+          "POLYLINE_3D",
+          "VERTEX_3D",
+          "VERTEX_3D",
+          "VERTEX_3D",
+          "SEQEND"
+        ],
+        "entityHandles": [
+          46,
+          47,
+          48,
+          49,
+          50
+        ],
+        "sourceFrameCount": 35,
+        "publishedFrames": 35,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "a397b2c1da1db4ea2be759c350ccbc268bf66c7ea87e6efbf0c895f1c204298d",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/ray.dwg",
+        "sourceSha256": "4916c46f263f24662236848879d58fa97edc531ebfb95987ec7547050e81ec01",
+        "entities": [
+          "RAY"
+        ],
+        "entityHandles": [
+          46
+        ],
+        "sourceFrameCount": 31,
+        "publishedFrames": 31,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "09ceec786e2384c374c45a8c4637a4ebc45a17d8424b183e41e6af3123deee66",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/solid.dwg",
+        "sourceSha256": "e4c5fb52046c1d9de01fb522640893322be3fb5c73726b4fd32b84cc026646b3",
+        "entities": [
+          "SOLID"
+        ],
+        "entityHandles": [
+          46
+        ],
+        "sourceFrameCount": 31,
+        "publishedFrames": 31,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "29fedbf3b39eaa6592de3a925deb1ed9c65a66ea76c93fe61bdaa3103e3f4557",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/text.dwg",
+        "sourceSha256": "3ec0a677d9601238cb15548654100c4d241c4572d56d303b8da9efb2ba52ff6c",
+        "entities": [
+          "TEXT"
+        ],
+        "entityHandles": [
+          46
+        ],
+        "sourceFrameCount": 31,
+        "publishedFrames": 31,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "30c0c5ee01a6ce2d50539d3324d097a0f45781bbdf1626a8efb7ec58e67eac8f",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/tolerance.dwg",
+        "sourceSha256": "f08d647c3aca7b0eec12a3c25da683ceb77c88ad963a10eefa336dfc8888bee4",
+        "entities": [
+          "TOLERANCE"
+        ],
+        "entityHandles": [
+          46
+        ],
+        "sourceFrameCount": 31,
+        "publishedFrames": 31,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "49c67d849091488b81b6de070a1a2d14fd2ccd1c0e92d8534ea9a29c81095fe9",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/trace.dwg",
+        "sourceSha256": "3e73c999f38adbffc4e45faf660fc15af6b699dc99fc7c3acc890a5b86b3e149",
+        "entities": [
+          "TRACE"
+        ],
+        "entityHandles": [
+          46
+        ],
+        "sourceFrameCount": 31,
+        "publishedFrames": 31,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "38f3eee2e3b668e1bfc207d3f4feb8add753d60593276b47d05c03b8a7a48685",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/viewport.dwg",
+        "sourceSha256": "0db5064dd011998de0145611704659a0ce2b9fea048d1302797cb7f371017d9b",
+        "entities": [
+          "VIEWPORT"
+        ],
+        "entityHandles": [
+          47
+        ],
+        "sourceFrameCount": 32,
+        "publishedFrames": 32,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "fea60f8c543ea629f4ca98f81a5d8b25cf20c6596f3beceb1f8cc2c6061b5afa",
+        "exportErrors": []
+      },
+      {
+        "source": "/private/tmp/ac1012-organic-sweep-2aaa49bd/xline.dwg",
+        "sourceSha256": "91a146fbed5d7b13ab1f0610ba30988e6d70dd85313b4a71e4dbc1ad645d878f",
+        "entities": [
+          "XLINE"
+        ],
+        "entityHandles": [
+          46
+        ],
+        "sourceFrameCount": 31,
+        "publishedFrames": 31,
+        "failedFrames": 0,
+        "unresolvedFrames": 0,
+        "entityParseFailures": 0,
+        "partialExitCode": 0,
+        "outputCreated": true,
+        "outputSha256": "76e4a685378db54996acf838585a9078d11cebdf9939f94bbf143135507f93ad",
+        "exportErrors": []
+      }
+    ],
+    "ignoredRecipes": [
+      {
+        "source": "ellipse.dwg",
+        "reason": "LibreDWG JSON contains no authored non-block entity"
+      },
+      {
+        "source": "spline.dwg",
+        "reason": "LibreDWG JSON contains no authored non-block entity"
+      }
+    ]
+  },
+  "interpretation": [
+    "For each of the 19 sources where LibreDWG JSON contained the authored entity or compound entity, libdxfrw read all source frames without any entity or object parse failures.",
+    "Two explicit-partial output attempts were refused by export representability preflights (DIMENSION anonymous-block placement and MLINE style target/element count); these are not parser failures and do not qualify P6-F.",
+    "No eligible organic entity-failure source was found. Keep the CRC-valid NaN mutation control classified as deliberate fault injection."
+  ],
+  "nextStep": "Resume only when a valid, source-distinct AC1012/AC1014 producer drawing yields a reproducible entity parse failure with later published frames, or a source-backed semantic gap identifies a suitable valid profile.",
+  "fixturePolicy": "Generated DWGs, peer JSON, DXFs, and outputs remain in /private/tmp; no fixture is committed."
+}
