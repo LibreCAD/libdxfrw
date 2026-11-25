@@ -22,6 +22,7 @@
     "The local workflow and pinned digest contracts pass; qualified support passes (15 experimental claims, two candidate routes, zero advertised); support-matrix validation passes."
   ],
   "limits": [
+    "Hosted fast run 393 failed before configuration because the reconciled source-release inventory omitted the newly tracked AC1012 audit tool. Both generated inventories were refreshed; local inventory check and self-test pass. Hosted requalification must rerun on the corrected head.",
     "These focused local checks do not qualify the combined implementation on hosted Linux, macOS or Windows, nor do they establish native AutoCAD semantics or full source graph preservation.",
     "No PR update is implied by this local reconciliation receipt."
   ]

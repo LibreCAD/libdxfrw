@@ -30,6 +30,9 @@ The status overlay pins this digest for CI while all 15 claims remain
 EXPERIMENTAL; the pin is not a release or support qualification.
 Local Darwin ARM64 fast qualification passes seven executables and all 53
 fixed CTests; hosted Linux, macOS and Windows checks remain open.
+Hosted fast run 393 exposed a stale release inventory for the new AC1012 audit
+tool; the inventory is refreshed and its local check/self-test pass. Rerun CI
+on the corrected head before closing the hosted gate.
 
 The GROUP member and DICTIONARYVAR common-reference width fix changes selected
 inputs. A clean checkout of `002143da` computes digest
