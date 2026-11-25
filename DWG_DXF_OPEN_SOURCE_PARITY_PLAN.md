@@ -150,7 +150,9 @@ now retains this shape without interpreting the ambiguous field and checks
 isolated replay, malformed inputs, refusal and retry. LibreCAD does not opt in.
 The [selected-graph peer control](docs/research/p8d-ezdxf-default-material-selected-graph-2026-11-25.json)
 reopens the three remapped materials, dictionary, owners, reactors, current
-material and layer links with zero ezdxf audit repairs. Its negative control
+material and a physical RAWTEST layer link with zero ezdxf audit repairs. A
+later wire check found that layer 0 had no 347 and Defpoints was absent; ezdxf
+created their defaults in memory. Its negative control
 omits Global: the generic writer succeeds despite dangling dictionary/layer
 references, and ezdxf removes the broken dictionary entry. The same receipt
 records a fast generated ASCII/binary regression for the selected graph; it does

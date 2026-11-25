@@ -14,7 +14,7 @@
     "probeSourceSha256": "9070e208c701a6214a4ecdad934331ecde0971b50b1db6bb62927e1b7f5720fd",
     "method": "A scratch C++ dxfRW adapter read the three opted-in raw MATERIALs and their source dictionary, selected that dictionary and those three objects, generated one layer, supplied current-material and root dictionary entries, and remapped collisions. It produced an AC1024 ASCII DXF.",
     "ezdxfVersion": "1.4.4",
-    "observation": "Independent ezdxf readback reports root C -> ACAD_MATERIAL F010, ByBlock F011, ByLayer F012, Global F013; all three owner and reactor links target F010; CMATERIAL F012 and RAWTEST, 0 and Defpoints layer material links target F013. Audit returned zero errors and zero repairs."
+    "observation": "Independent ezdxf readback reports root C -> ACAD_MATERIAL F010, ByBlock F011, ByLayer F012 and Global F013; all three owner and reactor links target F010, and CMATERIAL is F012. A later physical-tag inspection confirms RAWTEST has group 347=F013, while the emitted layer 0 has no group 347 and no Defpoints layer record is present. The earlier ezdxf-reported default links for 0 and Defpoints were in-memory defaults, not proof of physical source records. Audit returned zero errors and zero repairs."
   },
   "negative": {
     "outputSha256": "326c22de44617548e777e17af8824306d4c6a3db62e86b7c7c862bc4a2852a84",
@@ -34,5 +34,11 @@
     "coverage": "Generated ASCII and binary selected three-material graphs; reader verifies root and dictionary entries, remapped self handles, owners and reactors, raw-only markers, current material and layer reference.",
     "result": "Focused raw-material CTest passed in release and AddressSanitizer builds; no generated drawing committed. The prior independent positive audit was also rerun successfully against the unchanged library implementation after the opt-in fix.",
     "limits": "This selected output and own-reader check does not enforce admission of arbitrary complete graphs, nor does it validate native semantics or edited document state."
+  },
+  "physicalLayerCorrection": {
+    "date": "2026-11-25",
+    "outputSha256": "8edd1a80854ef6288cbdac1686c85e2df36f7a68f8bcfaaf3406407c96b68465",
+    "wireObservation": "The positive output physically contains RAWTEST group 347 F013; its layer 0 has no group 347, and Defpoints is absent. The negative output has the same physical layer shapes. ezdxf synthesized defaults for the latter layers in memory.",
+    "supersededClaim": "The earlier observation of three layer material links did not establish three physical links."
   }
 }
