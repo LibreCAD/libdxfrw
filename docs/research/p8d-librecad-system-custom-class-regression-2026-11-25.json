@@ -1,0 +1,29 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-system-custom-class-regression-2026-11-25",
+  "status": "LOCAL_BOTH_CODEC_ROUNDTRIP_PASS_OTHER_GAPS_OPEN",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "2a552ed4e4d6a1df94539cbed816f7c8b26675c5",
+    "previousHead": "af08fa404d1e2837d286b4de296f912dbad4ee7f"
+  },
+  "dependency": {
+    "pullRequest": "https://github.com/LibreCAD/libdxfrw/pull/106",
+    "implementationDigest": "7827d552d5f861a0d3fd16c48d539f6bf70e332d9780132938d329e37661ff74"
+  },
+  "finding": "The WEIRDENT source CLASS and raw entity survived; the installed writer also emitted CLASS records for generated ACDBDICTIONARYWDFLT and ACDBPLACEHOLDER objects. A test that assumed the custom CLASS was the only one produced false failures.",
+  "change": "The regression selects the custom CLASS by its record name and verifies its fields and uniqueness after each of two saves, while retaining source metadata, raw handle, instance-count and reread checks.",
+  "validation": {
+    "host": "macOS ARM64 AppleClang 21 Release",
+    "systemFocused": "PASS: 1,519 assertions in 28 cases.",
+    "bundledFast": "PASS: librecad_dxf_fast_tests.",
+    "systemTestSha256": "1342e61f39aef125362976904f8418b2ef2bd5349d4bbf509ea5b1ef4e665a69",
+    "systemBroad": "Exploratory [dxf][roundtrip][filter]: 95/131 cases pass, 36 fail, and 52 assertions fail versus 94/131 and 61 before this refinement; no normalized failure expression increased."
+  },
+  "limits": [
+    "This verifies the selected custom CLASS and raw entity, not all custom-class or object-graph semantics.",
+    "Current-head hosted CI, native GUI and cross-platform system-codec qualification remain open.",
+    "No drawing fixture was added."
+  ]
+}
