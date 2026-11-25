@@ -24,6 +24,8 @@ The later single-line TEXT/ATTRIB/ATTDEF writer candidate used digest
 The subsequent [raw plot-style object identity fix](docs/research/p6-plotstyle-prebound-raw-object-identity-2026-11-25.json) reopens the implementation
 digest, focused checks and package qualification. Its clean-checkout digest is
 `2bd3188367f8af53e5d56dbf3ff3bb08f36bcf3a32a89879305c5853a737bd21`
+for 775 inputs. The later [opt-in raw MATERIAL capture](docs/research/p8d-ezdxf-default-material-raw-capture-2026-11-25.json) has clean-checkout digest
+`c05fe891b8acfd5db7ea13d575002b47376d3828439220fd71c11f21cf40c47b`
 for 775 inputs. No earlier qualification is transferred to this candidate. Native GUI, broader FreeCAD coverage, broad and semantic
 gates remain open. The [package receipt](docs/research/p8-pr106-current-cross-platform-package-2026-11-25.json)
 records Linux and Windows hosted package passes and a local macOS substitute
@@ -118,9 +120,15 @@ that changing another property and changing the linetype both preserve the
 intended DXF. Repeat with the unmodified final app and both codecs. The probe's
 separate ezdxf-generated R2010 drawing was refused: its MATERIAL uses group 73
 where Autodesk specifies 76, and correcting that alone reaches a second sparse
-group-94 guard. Investigate a bounded, explicit raw-only import policy with
-source identity, full raw retention, safe same-version replay, cross-version
-refusal, malformed controls and retry; do not silently assign ambiguous fields.
+group-94 guard. The [bounded opt-in raw-only policy](docs/research/p8d-ezdxf-default-material-raw-capture-2026-11-25.json)
+now retains this shape without interpreting the ambiguous field and checks
+isolated replay, malformed inputs, refusal and retry. LibreCAD does not opt in.
+Next retain the raw-only marker and prove the complete ACAD_MATERIAL dictionary,
+owner/reactor, layer references and collision remapping before enabling consumer
+capture and same-version replay. Refuse cross-version or incomplete graphs
+atomically; verify ASCII/binary readback and edits, corrected retry, both codecs,
+and independent complete-drawing semantics. Do not promote support on the
+isolated record control.
 
 The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
 operator-run transfer route, and return route are unknown. Obtain the
