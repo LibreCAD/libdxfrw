@@ -115,7 +115,7 @@ merge observations distinguishable. The older LibreDWG-origin populated pair
 was rejected by ODA and is not an independently accepted input.
 
 Before transfer, the bounded source audit can recheck both frames and their
-selected EED, APPID, extension-dictionary and XRECORD links:
+selected EED, APPID, extension-dictionary and XRECORD frames and links:
 
 ```sh
 python3 -B tools/research/audit_ac1012_oda_merge_pair.py \

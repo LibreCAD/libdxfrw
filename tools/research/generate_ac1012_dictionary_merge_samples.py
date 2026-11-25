@@ -36,32 +36,39 @@ ENTRY_KEY = "SAME_KEY"
 STYLE_DICTIONARY = "ACAD_MLINESTYLE"
 
 
-def read_dictionary_frame(path: Path, dwgread: str, handle: int,
-                          expected_entries: dict[str, int]) -> tuple[dict, bytes]:
+def read_object_frame(path: Path, dwgread: str, handle: int,
+                      object_type: int) -> tuple[int, bytes]:
+    """Locate one R13 frame through LibreDWG's trace and validate size/CRC."""
     data = path.read_bytes()
     require(data.startswith(VERSION), "sample is not AC1012")
     trace = run([dwgread, "-v4", str(path)])
     text = (trace.stdout + trace.stderr).decode(errors="replace")
     blocks = re.split(r"(?=Object number:)", text)
     pattern = re.compile(
-        r"\bhandle: 0\.1\." + format(handle, "X") + r"\s+\[H 5\]",
+        r"\bhandle: 0\.\d+\." + format(handle, "X") + r"\s+\[H 5\]",
         re.IGNORECASE,
     )
     selected = [block for block in blocks if pattern.search(block)]
-    require(len(selected) == 1, "trace does not identify one selected dictionary frame")
-    match = re.search(
-        r"Size: (\d+) \[MS\], Type: 42 \[BS\], Address: (\d+)", selected[0]
-    )
-    require(match is not None, "dictionary frame size/address missing")
+    require(len(selected) == 1, "trace does not identify one selected object frame")
+    match = re.search(r"Size: (\d+) \[MS\], Type: " + str(object_type)
+                      + r" \[BS\], Address: (\d+)", selected[0])
+    require(match is not None, "object frame size/address or type missing")
     size, address = map(int, match.groups())
     require(size < 0x8000 and address >= 2 and address + size + 2 <= len(data),
-            "dictionary frame is outside the source")
+            "object frame is outside the source")
     require(data[address - 2:address] == size.to_bytes(2, "little"),
             "unexpected AC1012 frame-size prefix")
     require(int.from_bytes(data[address + size:address + size + 2], "little")
-            == crc16(data[address - 2:address + size]), "dictionary frame CRC mismatch")
+            == crc16(data[address - 2:address + size]), "object frame CRC mismatch")
 
-    frame = data[address:address + size]
+    return address, data[address:address + size]
+
+
+def read_dictionary_frame(path: Path, dwgread: str, handle: int,
+                          expected_entries: dict[str, int],
+                          selected_key: str = ENTRY_KEY) -> tuple[dict, bytes]:
+    address, frame = read_object_frame(path, dwgread, handle, 42)
+    size = len(frame)
     bits = Bits(frame)
     require(bits.bs() == 42, "selected frame is not DICTIONARY")
     own = bits.handle(0, own=True)
@@ -106,7 +113,7 @@ def read_dictionary_frame(path: Path, dwgread: str, handle: int,
             == expected_entries,
             "physical dictionary entries differ from the model")
     require(len(frame) * 8 - bits.position < 8, "unexpected data after dictionary item handle")
-    selected = next((item for item in entries if item["name"] == ENTRY_KEY), None)
+    selected = next((item for item in entries if item["name"] == selected_key), None)
     require(selected is not None and selected["handle"]["value"] != 0,
             "dictionary item differs from the selected key")
     proof = {

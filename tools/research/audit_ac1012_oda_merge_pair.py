@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Audit the bounded ODA-generated AC1012 merge witness pair.
 
-Uses LibreDWG JSON plus the shared independent physical DICTIONARY walker.
+Uses LibreDWG JSON plus the shared physical frame and DICTIONARY walkers.
 This is source-profile evidence, not AutoCAD acceptance or merge semantics.
 """
 from __future__ import annotations
@@ -13,14 +13,46 @@ from pathlib import Path
 import shutil
 import tempfile
 
-from generate_ac1012_dictionary_merge_samples import read_dictionary_frame
-from generate_ac1012_dictionary_witness import executable_identity, require, run, sha
+from generate_ac1012_dictionary_merge_samples import read_dictionary_frame, read_object_frame
+from generate_ac1012_dictionary_witness import Bits, executable_identity, require, run, sha
 
 
 PROFILES = {
     "destination": {"SAME_KEY": 15, "DEST_ONLY": 22},
     "source": {"SAME_KEY": 37, "SOURCE_ONLY": 51},
 }
+
+
+def observe_xrecord(path: Path, dwgread: str, record_id: int, owner_id: int) -> dict:
+    """Walk this profile's R13 XRECORD framing, raw data and handle roles."""
+    address, frame = read_object_frame(path, dwgread, record_id, 511)
+    bits = Bits(frame)
+    require(bits.bs() == 511 and bits.handle(0, own=True)["value"] == record_id,
+            "XRECORD type or self handle mismatch")
+    require(bits.bs() == 0, "unexpected XRECORD EED")
+    body_end = bits.little(4)
+    require(bits.bl() == 1, "XRECORD reactor count mismatch")
+    count = bits.bl()
+    require(count == 39, "XRECORD data size mismatch")
+    data_begin = bits.position
+    payload = bytes(bits.take(8) for _ in range(count))
+    require(bits.position == body_end, "XRECORD body boundary mismatch")
+    expected = bytes.fromhex("66000800004558544e414d455301000800005354414e44415244"
+                             "02000800005374616e64617264")
+    require(payload == expected, "XRECORD selected data bytes mismatch")
+    owner = bits.handle(4, record_id)
+    reactor = bits.handle(4, record_id)
+    extension = bits.handle(3, record_id)
+    require(owner["value"] == owner_id and reactor["role"] == 4
+            and reactor["value"] == owner_id
+            and extension["role"] == 3 and extension["value"] == 0
+            and len(frame) * 8 - bits.position < 8,
+            "XRECORD common handle tail mismatch")
+    return {"offset": address, "sizeBytes": len(frame), "frameSha256": sha(frame),
+            "crcValid": True, "bodyEndBit": body_end,
+            "dataBeginBit": data_begin, "dataBytes": count, "dataHex": payload.hex(),
+            "owner": owner, "reactor": reactor, "xdictionary": extension,
+            "paddingBits": len(frame) * 8 - bits.position}
 
 
 def audit(path: Path, side: str, dwgread: str, temp: Path) -> dict:
@@ -76,11 +108,20 @@ def audit(path: Path, side: str, dwgread: str, temp: Path) -> dict:
     require(extension.get("numitems") == 1 and xrecord_link
             and xrecord_link[0] == 2 and xrecord_link[-1] != 0,
             "extension dictionary XRECORD reference mismatch")
+    extension_frame, _ = read_dictionary_frame(
+        path, dwgread, extension_id, {"ACAD_XREC_ROUNDTRIP": xrecord_link[-1]},
+        "ACAD_XREC_ROUNDTRIP")
+    require(extension_frame["parent"]["value"] == dictionary_id
+            and not extension_frame["reactors"] and not extension_frame["eed"]
+            and extension_frame["xdictionary"]["role"] == 3
+            and extension_frame["xdictionary"]["value"] == 0,
+            "extension dictionary physical common links mismatch")
     xrecord = object_at(xrecord_link[-1], "XRECORD")
     require(xrecord.get("ownerhandle", [None])[-1] == extension_id
             and [r[-1] for r in xrecord.get("reactors", [])] == [extension_id]
             and xrecord.get("xdata") == [[102, "EXTNAMES"], [1, "STANDARD"], [2, "Standard"]],
             "extension XRECORD ownership or selected payload mismatch")
+    xrecord_frame = observe_xrecord(path, dwgread, xrecord_link[-1], extension_id)
 
     for name, angle in PROFILES[side].items():
         style = object_at(entries[name], "MLINESTYLE")
@@ -96,7 +137,8 @@ def audit(path: Path, side: str, dwgread: str, temp: Path) -> dict:
             "rootHandle": root_id, "dictionaryHandle": dictionary_id,
             "frame": frame, "appidName": appid["name"],
             "extensionDictionaryHandle": extension_id,
-            "extensionXrecordHandle": xrecord_link[-1],
+            "extensionDictionaryFrame": extension_frame,
+            "extensionXrecordHandle": xrecord_link[-1], "extensionXrecordFrame": xrecord_frame,
             "extensionXrecordData": xrecord["xdata"], "stylesDegrees": PROFILES[side]}
 
 
@@ -112,7 +154,7 @@ def main() -> None:
         temp = Path(directory)
         result = {side: audit(getattr(args, side), side, dwgread, temp) for side in PROFILES}
     print(json.dumps({"dwgread": executable_identity(dwgread), "samples": result,
-                      "scope": "physical style-dictionary frame and selected model graph only; no native semantics"},
+                      "scope": "selected physical dictionary/XRECORD frames and model graph only; no native semantics"},
                      indent=2, sort_keys=True))
 
 

@@ -22,7 +22,7 @@
     "A one-bit source-frame mutation was rejected by the CRC check; swapping source and destination was rejected by the selected entry profile. Both mutations were scratch-only."
   ],
   "limits": [
-    "The XRECORD payload and its ownership are LibreDWG model observations, not independently decoded physical XRECORD field spans.",
+    "At this audit stage the XRECORD payload and ownership were LibreDWG model observations; the later p6-ac1012-oda-pair-xrecord-wire-2026-11-25 receipt binds the selected physical frame and bytes.",
     "Existing shared source-profile output proof requires a null extension dictionary; this evidence does not admit the non-null extension graph or ACAD EED into lossless output.",
     "The meaning of the source EED and XRECORD, AutoCAD normal-open, dictionary clone/merge behavior and omitted-object closure remain unqualified. No fixture was committed."
   ]
