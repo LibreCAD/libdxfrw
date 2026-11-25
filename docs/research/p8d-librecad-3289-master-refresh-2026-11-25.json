@@ -1,7 +1,7 @@
 {
   "schema": "libdxfrw.research-receipt.v1",
   "id": "p8d-librecad-3289-master-refresh-2026-11-25",
-  "status": "MASTER_REFRESH_PUSHED_ADAPTER_COMPILE_PASS_HOSTED_CHECKS_PENDING",
+  "status": "MASTER_REFRESH_PUSHED_MACOS_SYSTEM_APP_BUILD_PASS_HOSTED_CHECKS_PARTIAL",
   "supportClaimEffect": "none",
   "pullRequest": {
     "url": "https://github.com/LibreCAD/LibreCAD/pull/3289",
@@ -20,16 +20,24 @@
     "installedLibrarySha256": "dc1ce5ab6dae2855cf2ffb39789c6047df128b5753a79ecd58f8a42a5ed41981",
     "implementationDigest": "ce3ff7f4632615508c31c80f5375f423ca728262fe8c1c63dc87fdb75d977e7b",
     "binding": "The compile flags include the installed package's include/libdxfrw directory. The object-only compile target does not link the shared library.",
-    "target": "librecad_filter_compile_check",
-    "result": "PASS"
+    "targets": {
+      "librecad_filter_compile_check": "PASS",
+      "librecad": "PASS"
+    },
+    "application": {
+      "path": "/private/tmp/librecad-pr3289-refresh-build-20261125/LibreCAD.app/Contents/MacOS/LibreCAD",
+      "sha256": "ec7083f01a96f30d88d80f94e5a24520ef552d8784a01ee31afbaecca4b6bd7f",
+      "linkCommand": "Names the shared dylib in the selected installed package.",
+      "otool": "Records @rpath/libdxfrw.3.dylib, compatibility/current version 3.0.0, and an rpath to the selected package directory."
+    }
   },
   "hostedChecks": {
     "head": "c468eaaa242767edd9acd69e27ef70d0ed05001a",
-    "atObservation": "Text foundations and Pixi Builds queued; CodeQL and DWG/DXF verification in progress."
+    "atObservation": "Both headless configurations, Linux bounded DWG/DXF, and Linux ARM64 Pixi build passed; remaining platform and CodeQL jobs in progress."
   },
   "limits": [
-    "This is a source-compatibility compile only; it does not link or exercise the installed library.",
-    "The application, BUILD_TESTS=ON profile, hosted CI outcomes, native GUI operations and final-candidate integration remain unqualified by this receipt.",
+    "The executable links the selected package and records its rpath; no runtime-loaded library identity or GUI behavior was observed.",
+    "The system-codec BUILD_TESTS=ON profile, remaining hosted CI outcomes, native GUI operations and final-candidate integration remain unqualified by this receipt.",
     "No native AutoCAD witness or format support claim is established."
   ]
 }

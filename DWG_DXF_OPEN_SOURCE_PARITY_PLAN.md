@@ -39,9 +39,12 @@ integration or platform qualification.
 The dependent LibreCAD PR #3289 has since been refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90` at head
 `c468eaaa242767edd9acd69e27ef70d0ed05001a`. The isolated merge was clean,
-and the macOS system-codec adapter compile passed against headers installed
-from the current implementation digest. Its hosted checks were queued or running when last
-observed; native GUI qualification and final-candidate validation remain open.
+and the macOS system-codec adapter and full application built against the
+installed package from the current implementation digest. The executable's
+link command names that package; native runtime behavior was not exercised.
+The hosted bounded DWG/DXF, headless and Linux ARM64 package jobs passed;
+other hosted checks were running when last observed. Native GUI qualification
+and final-candidate validation remain open.
 See the [refresh receipt](docs/research/p8d-librecad-3289-master-refresh-2026-11-25.json).
 
 The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
