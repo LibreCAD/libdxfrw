@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-legacy-group-dictionaryvar-wide-handles-2026-11-25",
+  "date": "2026-11-25",
+  "status": "LOCAL_WIDE_HANDLE_REFUSAL_AND_RETRY_PASS",
+  "supportClaimEffect": "none",
+  "authority": "ODA Open Design Specification v5.4.1 sections 20.4.72 GROUP and 20.4.74 DICTIONARYVAR specify member and common handle references; libdxfrw's public representations store these identities as uint32_t.",
+  "source": "Adapted the bounded fixes and controls from locally available diverged tracked-branch commits 64ff368cecda92cad93184a427426b9509d19f21 and a52a1b054287ea6a43405c5f0d3733cdd1f436cd; no merge or overwrite of that branch was performed.",
+  "finding": "A five-byte reference 0x100000001 could alias 0x1 after truncation in a GROUP member or DICTIONARYVAR owner, reactor or extension-dictionary link.",
+  "change": "Require representable common references for DICTIONARYVAR's legacy dictionary-role path and reject unrepresentable GROUP member references before publication.",
+  "validation": [
+    "The new controls failed against the preceding implementation, then passed after the fix: the DWG object-vector executable and libdxfrw_dwg_ac1014_dictionaryvar CTest.",
+    "R13/R14 GROUP wide-member controls and R13 DICTIONARYVAR wide-owner/reactor/extension controls check cleared state and successful same-object retry.",
+    "Both owning targets were rebuilt and passed in the local Debug AddressSanitizer build with the library instrumented."
+  ],
+  "limits": [
+    "The test vectors establish bounded parser safety, not native dictionary merge or whole-file output semantics.",
+    "Selected inputs changed, so prior platform and hosted qualification digests do not qualify this candidate."
+  ]
+}

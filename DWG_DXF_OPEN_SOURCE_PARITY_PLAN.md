@@ -13,6 +13,10 @@ percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
+The GROUP member and DICTIONARYVAR common-reference width fix changes selected
+inputs; refresh the clean candidate digest and rerun affected P8 qualification.
+Focused R13/R14 GROUP and R13 DICTIONARYVAR refusal/reset/retry controls pass.
+
 The empty TABLE string/cache preservation follow-up changes selected inputs.
 A clean checkout of `2bedaad4` computes digest
 `c654b4bc5c1ae5664aeefc59712c5d6a9399e8d12179d7ade1f1219e29d6dc02`
@@ -398,7 +402,14 @@ The bounded [debug entity-failure attribution](docs/research/p6-cli-entity-failu
 
 The [selected AC1015 plot-style graph](docs/research/p6-ac1015-canonical-plotstyle-output-2026-11-21.json) emits the canonical dictionary record and class for AC1015 and AC1024 targets. The [generated strict control](docs/research/p6-ac1015-generated-strict-same-version-2026-11-21.json) now retains that graph, the selected MLINESTYLE, both LAYOUT backlinks, and the INSERT chain in independent ASCII/Binary readback for both targets; malformed source, graph, and retry controls pass. This bounded generated case does not qualify other source records or close the organic-failure gate.
 
-AC1012 local dictionary work is complete. The shared [version-aware frame and handle-role checks](docs/research/p6-ac1012-shared-object-frame-2026-11-21.json) and dictionary-layout selector cover AC1012/AC1014/AC1015 common links, counted entries, legacy field presence, relative-owner encodings, typed nulls, and wrong-role refusal/retry; see the [relative-owner role receipt](docs/research/p6-ac1012-relative-owner-role-matrix-2026-11-23.json). The focused dictionary CTest includes a specification-shaped ODA §20.4.44 frame plus locally generated, scratch-only AC1012 destination/source DWGs following ODA §§9, 20.4.44 and 20.4.73. The [current parser/spec-pair receipt](docs/research/p6-ac1012-current-parser-spec-pair-recheck-2026-11-25.json) records frame/CRC checks, parser reset and corrected retry, strict destination-preserving refusal, and bounded partial ASCII/Binary projection. No fixture was added to the repository.
+The AC1012 local dictionary work includes the shared [version-aware frame and handle-role checks](docs/research/p6-ac1012-shared-object-frame-2026-11-21.json) and dictionary-layout selector cover AC1012/AC1014/AC1015 common links, counted entries, legacy field presence, relative-owner encodings, typed nulls, and wrong-role refusal/retry; see the [relative-owner role receipt](docs/research/p6-ac1012-relative-owner-role-matrix-2026-11-23.json). The focused dictionary CTest includes a specification-shaped ODA §20.4.44 frame plus locally generated, scratch-only AC1012 destination/source DWGs following ODA §§9, 20.4.44 and 20.4.73. The [current parser/spec-pair receipt](docs/research/p6-ac1012-current-parser-spec-pair-recheck-2026-11-25.json) records frame/CRC checks, parser reset and corrected retry, strict destination-preserving refusal, and bounded partial ASCII/Binary projection. No fixture was added to the repository.
+
+The [legacy handle-width follow-up](docs/research/p6-legacy-group-dictionaryvar-wide-handles-2026-11-25.json)
+rejects GROUP members and DICTIONARYVAR common links that cannot fit their
+32-bit public fields; controls verify reset and corrected retry. This closes a
+local identity-aliasing defect and does not qualify native merge semantics.
+The diverged tracked PR branch also contains a legacy zero-body-boundary guard;
+review and integrate it separately with targeted refusal/retry controls.
 
 The five focused legacy dictionary selectors were rebuilt and rerun at source revision `2eab63cfd7c14885cab6111351986d6cd2818dc3`; all pass on local Darwin ARM64. The AC1012/AC1014/AC1015 parser selector also passes with both library and test fully ASan-instrumented. A clean clone computes the same 774-input implementation digest `1e9e799b…29eca` with the draft status overlay allowed. See the [focused CTest and ASan recheck](docs/research/p6-ac1012-focused-ctest-recheck-2026-11-25.json). This confirms local parser/output guards only; it does not replace the native AutoCAD witness or close P8-F.
 
