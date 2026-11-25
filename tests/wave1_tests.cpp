@@ -15577,16 +15577,24 @@ void testDxfWriterControlCharacterFraming(TestContext& t) {
                            static_cast<std::streamsize>(sentinel.size()));
         }
         dx_iface adapter;
-        const bool refused = !adapter.fileExport(
+        const bool exported = adapter.fileExport(
             path.string(), DRW::AC1021, binary, &data, false);
-        std::ifstream retained(path, std::ios::binary);
-        const std::string bytes(
-            (std::istreambuf_iterator<char>(retained)),
-            std::istreambuf_iterator<char>());
-        t.expect(refused && bytes == sentinel,
+        dx_iface importer;
+        dx_data decoded;
+        const bool imported = exported && importer.fileImport(path.string(), &decoded, false);
+        bool sawText = false, sawFollowingLine = false;
+        if (imported) {
+            for (const DRW_Entity* entity : decoded.mBlock->ent) {
+                if (const auto* importedText = dynamic_cast<const DRW_Text*>(entity))
+                    sawText = importedText->text == controlText;
+                else if (sawText && dynamic_cast<const DRW_Line*>(entity))
+                    sawFollowingLine = true;
+            }
+        }
+        t.expect(imported && sawText && sawFollowingLine,
                  binary
-                     ? "typed binary export refuses unsafe text without replacing the destination"
-                     : "typed ASCII export refuses unsafe text without replacing the destination");
+                     ? "typed binary export round-trips control text and the following entity"
+                     : "typed ASCII export round-trips control text and the following entity");
         std::error_code ignored;
         std::filesystem::remove(path, ignored);
     }
