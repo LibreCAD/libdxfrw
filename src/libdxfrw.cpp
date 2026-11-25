@@ -13105,19 +13105,34 @@ bool dxfRW::writeTableWithLegacySourcePresence(DRW_Table *ent, const std::vector
                     || (blockCell && cell.m_contents.front().m_type == 4
                         && cell.m_contents.front().m_handle
                             == cell.m_blockHandle));
-            // This legacy TABLE writer emits plain text/block cells, not a
-            // CELL_VALUE envelope. Do not publish while silently discarding
-            // retained value metadata; full value output needs its own path.
+            // Preserve a plain string and its retained display cache on
+            // modern DXF. The older spelling can carry an identical cache
+            // through its text value; a distinct cache remains fail-closed.
+            const bool retainedPlainString = cellContentMatches && textCell
+                && (version >= DRW::AC1021
+                    || (version == DRW::AC1018
+                        && cell.m_contents.front().m_value.m_valueString
+                            == cell.m_contents.front().m_text))
+                && cell.m_contents.front().m_value.m_dataType == 4
+                && cell.m_contents.front().m_value.m_value.type() == DRW_Variant::STRING
+                && cell.m_contents.front().m_value.m_value.content.s != nullptr
+                && *cell.m_contents.front().m_value.m_value.content.s
+                    == cell.m_contents.front().m_text;
             const bool valueMetadataWouldBeLost = cellContentMatches
                 && (cell.m_contents.front().m_value.m_formatFlags != 0
                     || cell.m_contents.front().m_value.m_unitType != 0
                     || cell.m_contents.front().m_value.m_dataSize != 0u
                     || !cell.m_contents.front().m_value.m_formatString.empty()
-                    || !cell.m_contents.front().m_value.m_valueString.empty()
+                    || (!retainedPlainString
+                        && !cell.m_contents.front().m_value.m_valueString.empty())
                     || cell.m_contents.front().m_value.m_handle != 0u
                     || !cell.m_contents.front().m_value.m_rawData.empty());
             if ((!textCell && !blockCell) || !cellContentMatches
                 || valueMetadataWouldBeLost
+                || (textCell && version >= DRW::AC1021
+                    && cell.m_contents.front().m_value.m_value.type()
+                        != DRW_Variant::INVALID
+                    && !retainedPlainString)
                 || cell.m_attributes.size() > maxCellAttributes
                 || (!blockCell && !cell.m_attributes.empty())
                 || cell.m_hasLinkedData || cell.m_dataLinkHandle != 0u
@@ -13721,11 +13736,24 @@ bool dxfRW::writeTableWithLegacySourcePresence(DRW_Table *ent, const std::vector
 
             const UTF8STRING text = tableCellText(*cell);
             if (version >= DRW::AC1021) {
-                writer->writeUtf8String(301, "CELL_VALUE");
-                writer->writeInt32(90, 4);
-                if (!writer->writeUtf8Chunks(text, 303, 302, 250u))
+                const DRW_CadValue& value = cell->m_contents.front().m_value;
+                const bool retainedString = value.m_dataType == 4
+                    && value.m_value.type() == DRW_Variant::STRING
+                    && value.m_value.content.s != nullptr;
+                // Authored text has no source cache. For a long authored
+                // value, leave that optional cache empty rather than emit an
+                // oversized group 302. A retained cache is never truncated.
+                const std::string& cache = retainedString ? value.m_valueString
+                    : (text.size() <= 250u ? text : value.m_valueString);
+                if (!writer->writeUtf8String(301, "CELL_VALUE")
+                    || !writer->writeInt32(93, 0)
+                    || !writer->writeInt32(90, 4)
+                    || !writer->writeUtf8Chunks(text, 2, 1, 250u)
+                    || !writer->writeInt32(94, 0)
+                    || !writer->writeUtf8String(300, "")
+                    || !writer->writeUtf8StringBounded(302, cache, 255u)
+                    || !writer->writeUtf8String(304, "ACVALUE_END"))
                     return false;
-                writer->writeUtf8String(304, "ACVALUE_END");
             } else if (!writer->writeUtf8Chunks(text, 2, 1, 250u)) {
                 return false;
             }

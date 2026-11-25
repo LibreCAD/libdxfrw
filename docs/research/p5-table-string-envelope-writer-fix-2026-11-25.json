@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p5-table-string-envelope-writer-fix-2026-11-25",
+  "date": "2026-11-25",
+  "status": "PLAIN_STRING_ENVELOPE_LOCAL_AND_ODA_SHORT_CONTROL_PASS",
+  "supportClaimEffect": "none",
+  "motivation": "docs/research/p5-table-string-envelope-oda-control-2026-11-25.json",
+  "implementation": {
+    "files": [
+      "src/libdxfrw.cpp",
+      "tests/table_export_reuse_controls.h"
+    ],
+    "change": "AC1021+ TABLE text writes CELL_VALUE flags 0, type 4, group 2/1 chunked string payload, units 0, empty format, group 302 cache and ACVALUE_END. Parsed plain type-4 strings may be written again with their separate cache. A distinct cache cannot be downgraded to AC1018; an identical cache can be represented by the legacy text.",
+    "cacheBoundary": "Retained caches are limited to 255 encoded bytes and refused atomically above that. For authored text longer than 250 bytes with no retained cache, the optional cache is emitted empty while the full string is carried in chunked value groups.",
+    "limitation": "Only the default plain-string profile is admitted; non-default metadata and General values remain guarded."
+  },
+  "validation": {
+    "focused": "PASS 3/3: libdxfrw_table_export_reuse, libdxfrw_table_strict_block_target, libdxfrw_table_value_payload. Includes ASCII/Binary wire order, fresh libdxfrw readback, 255/256 byte cache refusal and retry, distinct-cache downgrade refusal, identical-cache downgrade, and 500-character authored value readback.",
+    "adjacent": "PASS 4/4: libdxfrw_table_original_profiles, libdxfrw_table_value_metadata_scopes, libdxfrw_table_value_original_profiles, libdxfrw_table_original_reference_targets.",
+    "oda": "ODA File Converter 27.10.0.0 on emulated Linux x86_64 accepted locally authored strict AC1021 ASCII and binary DXFs, saved DWG and re-exported ASCII DXF with no .err files. Both reopened TABLE records contained the exact string envelope and text; block name *T0 matched one BLOCK_RECORD and one BLOCK.",
+    "sourceStaticLibrarySha256": "748956261ec1d5d2787887e3f208ba766020865a74db42c42e5c36f0673da3a0",
+    "generatorSha256": "0312aa1a506839702bb256f66078596e576c06673e44c3d9f4d65aac047dce77",
+    "asciiInputSha256": "c9789abff66cf9f6d72a35cecf48270be4e48bf2a7d9918b7d46fd7d266dd04f",
+    "binaryInputSha256": "7eb191a036e9b74e87e5b3d6ef2e5f60fa8651127b5b78c4e92f271d881868c5",
+    "asciiReexportSha256": "789a096265836f40d2f9c800b7151a3bb4c3d9e2cd8302afbc94215837f52cf1",
+    "binaryReexportSha256": "3fb7bc834d928f3d98cc83a9f1405e01be22937d8e31021ef8f88aecaf6843f0"
+  },
+  "limits": [
+    "ODA control covers a short locally authored value, not native AutoCAD semantics or full TABLE rendering.",
+    "Long strings were checked with local roundtrip only; ODA independently re-exported a hand-assembled long control with a 500-character cache, beyond Autodesk documented DXF string limits. Do not claim wide interoperability for that case.",
+    "No fixtures or derivatives were committed. The code change invalidates earlier package and hosted CI digests."
+  ]
+}

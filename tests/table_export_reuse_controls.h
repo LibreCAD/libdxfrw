@@ -216,6 +216,50 @@ bool tableStrictBlockTargetTests(const std::filesystem::path& dir) {
         definition.name=record.name;writer.addBlock(definition);writer.endBlock();
         if(!writer.fileExport(output.string(),DRW::AC1021,binary,&data,false,true)
             ||!tableExportReadback(output,binary,0u,false))return false;
+        const auto tags=attdefWireTags(output,binary);
+        const auto first=std::find_if(tags.begin(),tags.end(),[](const AttdefWireTag& tag) {
+            return tag.code==301&&tag.text=="CELL_VALUE";
+        });
+        if(first==tags.end()||std::distance(first,tags.end())<8)return false;
+        const std::array<int,8> expected{{301,93,90,1,94,300,302,304}};
+        for(std::size_t i=0;i<expected.size();++i)
+            if((first+static_cast<std::ptrdiff_t>(i))->code!=expected[i])return false;
+        dx_iface reader;dx_data readback;
+        if(!reader.fileImport(output.string(),&readback,false)||readback.tables.size()!=1u)return false;
+        const auto& parsed=readback.tables.front().m_content.m_rows[0].m_cells[0].m_contents[0];
+        if(parsed.m_text!="reused-table"||parsed.m_value.m_dataType!=4
+            ||parsed.m_value.m_value.type()!=DRW_Variant::STRING
+            ||!parsed.m_value.m_value.content.s||*parsed.m_value.m_value.content.s!="reused-table"
+            ||parsed.m_value.m_valueString!="reused-table")return false;
+        // A retained cache is emitted unchanged when representable and fails
+        // atomically when it exceeds the group-302 bound.
+        auto& content=data.tables.front().m_content.m_rows[0].m_cells[0].m_contents[0];
+        content.m_value.m_dataType=4;content.m_value.m_value=DRW_Variant(1,"reused-table");
+        content.m_value.m_valueString=std::string(256u,'c');
+        if(!tableExportSentinel(output,true)
+            ||writer.fileExport(output.string(),DRW::AC1021,binary,&data,false,true)
+            ||!tableExportSentinel(output))return false;
+        content.m_value.m_valueString=std::string(255u,'c');
+        if(!writer.fileExport(output.string(),DRW::AC1021,binary,&data,false,true))return false;
+        dx_data corrected;
+        if(!reader.fileImport(output.string(),&corrected,false)||corrected.tables.size()!=1u
+            ||corrected.tables.front().m_content.m_rows[0].m_cells[0].m_contents[0].m_value.m_valueString
+                !=std::string(255u,'c'))return false;
+        if(!tableExportSentinel(output,true)
+            ||writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,true)
+            ||!tableExportSentinel(output))return false;
+        content.m_value.m_valueString="reused-table";
+        if(!writer.fileExport(output.string(),DRW::AC1018,binary,&data,false,true)
+            ||!tableExportReadback(output,binary,0u,false))return false;
+        content.m_value=DRW_CadValue{};content.m_text=std::string(500u,'x');
+        if(!writer.fileExport(output.string(),DRW::AC1021,binary,&data,false,true))return false;
+        dx_data longReadback;
+        if(!reader.fileImport(output.string(),&longReadback,false)||longReadback.tables.size()!=1u)return false;
+        const auto& longContent=longReadback.tables.front().m_content.m_rows[0].m_cells[0].m_contents[0];
+        if(longContent.m_text!=content.m_text||!longContent.m_value.m_valueString.empty()
+            ||longContent.m_value.m_value.type()!=DRW_Variant::STRING
+            ||!longContent.m_value.m_value.content.s
+            ||*longContent.m_value.m_value.content.s!=content.m_text)return false;
     }
     return true;
 }
