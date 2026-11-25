@@ -571,5 +571,37 @@
     "No nonzero optional high-size word was observed; do not change parser behavior based on these files.",
     "The current scan does not disprove a failure in a distinct hash-bound AutoCAD 2010 RTM save.",
     "All input DWGs and DXFs remain outside the repository; no fixture was copied or committed."
-  ]
+  ],
+  "openSourceImplementationComparison": {
+    "limitation": "Source-layout corroboration only; neither parser implementation establishes the unknown optional word semantics or native producer behavior.",
+    "repositories": [
+      {
+        "name": "LibreDWG",
+        "commit": "6d6a33987a1a97095b069c799c3d8a793320f812",
+        "files": [
+          {
+            "path": "src/decode.c",
+            "sha256": "5df40415eb363e48b225616e789759b5188f65567a77eb2814d2063d49374368",
+            "observation": "The R2004+ CLASSES parser reads the optional RL for R2010 maintenance >3 or R2018+, logs hsize, and leaves the low size variable unchanged; section_string_stream uses the versioned 159/191-bit footer anchor and decodes the 0x8000 string-length extension."
+          },
+          {
+            "path": "src/decode_r2007.c",
+            "sha256": "f7e0c5b8620001801e84e8e7cae93d16957920ba0db6560f13ac623442e1fb76",
+            "observation": "The R2007-specific path uses the 159-bit footer anchor; its separate R2010 high-word read remains commented out and was not treated as the AC1024 implementation."
+          }
+        ]
+      },
+      {
+        "name": "dwg-writer local C++ reader",
+        "commit": "70bb845b207443866c03a86cbf12d451d5c736cb",
+        "files": [
+          {
+            "path": "cpp/src/dwg/DwgClassesReader.cpp",
+            "sha256": "2b0ac143a3b0149d564de070a195c48429b22e1c064c49c34588c08c5c590727",
+            "observation": "Reads/discards the optional RL; the maintenance gate selects the 191-bit footer anchor, and the string stream length high-bit extension is reconstructed."
+          }
+        ]
+      }
+    ]
+  }
 }
