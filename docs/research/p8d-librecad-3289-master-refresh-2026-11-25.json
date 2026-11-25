@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-3289-master-refresh-2026-11-25",
+  "status": "MASTER_REFRESH_PUSHED_ADAPTER_COMPILE_PASS_HOSTED_CHECKS_PENDING",
+  "supportClaimEffect": "none",
+  "pullRequest": {
+    "url": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "previousHead": "05aaf9fd245da753b7ffea17acc9bc1272d87d65",
+    "master": "b91fbdcf1adeee764938a183018978416d0a8c90",
+    "head": "c468eaaa242767edd9acd69e27ef70d0ed05001a",
+    "merge": "Clean merge of master into the existing PR branch; pushed without force.",
+    "mergeableAtObservation": true,
+    "state": "draft"
+  },
+  "localValidation": {
+    "checkout": "/private/tmp/librecad-pr3289-refresh-20261125",
+    "host": "macOS ARM64, AppleClang 21.0.0",
+    "configuration": "Release, LIBRECAD_USE_SYSTEM_LIBDXFRW=ON, BUILD_TESTS=OFF",
+    "installedLibrary": "/private/tmp/libdxfrw-p8d-current-20261123-install/lib/libdxfrw.3.0.0.dylib",
+    "installedLibrarySha256": "09041857fd7770d21986c01a3969f6cacd988fac2c2c094fd38dd89a2eb05653",
+    "target": "librecad_filter_compile_check",
+    "result": "PASS"
+  },
+  "hostedChecks": {
+    "head": "c468eaaa242767edd9acd69e27ef70d0ed05001a",
+    "atObservation": "Text foundations and Pixi Builds queued; CodeQL and DWG/DXF verification in progress."
+  },
+  "limits": [
+    "The installed library is the prior 2026-11-23 candidate, not a newly built current digest; this is a source-compatibility compile only.",
+    "The application, BUILD_TESTS=ON profile, hosted CI outcomes, native GUI operations and final-candidate integration remain unqualified by this receipt.",
+    "No native AutoCAD witness or format support claim is established."
+  ]
+}

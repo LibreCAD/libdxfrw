@@ -20,8 +20,8 @@ for 775 inputs. The [qualification receipt](docs/research/p8-pr106-ac1021-alignm
 records local and hosted fast checks plus Linux, macOS and Windows focused
 jobs. All 15 format claims remain EXPERIMENTAL; no route is advertised.
 Reopen focused and package qualification when selected inputs or required
-configurations change. Native GUI, FreeCAD, broad and semantic gates remain
-open. The [package receipt](docs/research/p8-pr106-current-cross-platform-package-2026-11-25.json)
+configurations change. Native GUI, broader FreeCAD coverage, broad and semantic
+gates remain open. The [package receipt](docs/research/p8-pr106-current-cross-platform-package-2026-11-25.json)
 records Linux and Windows hosted package passes and a local macOS substitute
 for the cancelled hosted macOS job; the overall package workflow was red.
 The [Linux FreeCAD receipt](docs/research/p8-freecad-linux-current-digest-2026-11-25.json)
@@ -35,6 +35,14 @@ LibreCAD `master` `78014ecde2f53fdd8c06453f3854b1cae1a3fd0d`, LibreCAD_3
 `master` `4fb48312708b39d499f7e6668104a3b54a8601c7`, and FreeCAD `main`
 `d65d3b388743b51da923d6ab36d10ddbc149ba46`. Refresh moving heads before
 integration or platform qualification.
+
+The dependent LibreCAD PR #3289 has since been refreshed onto master
+`b91fbdcf1adeee764938a183018978416d0a8c90` at head
+`c468eaaa242767edd9acd69e27ef70d0ed05001a`. The isolated merge was clean,
+and the macOS system-codec adapter compile passed against the previously
+installed 3.0.0 library. Its hosted checks were queued or running when last
+observed; native GUI qualification and final-candidate validation remain open.
+See the [refresh receipt](docs/research/p8d-librecad-3289-master-refresh-2026-11-25.json).
 
 The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
 operator-run transfer route, and return route are unknown. Obtain the
