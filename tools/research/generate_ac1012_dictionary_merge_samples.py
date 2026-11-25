@@ -66,7 +66,8 @@ def read_object_frame(path: Path, dwgread: str, handle: int,
 
 def read_dictionary_frame(path: Path, dwgread: str, handle: int,
                           expected_entries: dict[str, int],
-                          selected_key: str = ENTRY_KEY) -> tuple[dict, bytes]:
+                          selected_key: str = ENTRY_KEY,
+                          allow_empty_name: bool = False) -> tuple[dict, bytes]:
     address, frame = read_object_frame(path, dwgread, handle, 42)
     size = len(frame)
     bits = Bits(frame)
@@ -92,7 +93,8 @@ def read_dictionary_frame(path: Path, dwgread: str, handle: int,
     names = []
     for _ in range(count):
         name_length = bits.bs()
-        require(0 < name_length <= 256, "dictionary TV name length is invalid")
+        require((name_length > 0 or allow_empty_name) and name_length <= 256,
+                "dictionary TV name length is invalid")
         name_bytes = bytes(bits.take(8) for _ in range(name_length))
         require(name_bytes.count(b"\0") <= 1
                 and (b"\0" not in name_bytes or name_bytes.endswith(b"\0")),
@@ -101,6 +103,8 @@ def read_dictionary_frame(path: Path, dwgread: str, handle: int,
             else name_bytes.decode("ascii")
         names.append({"name": name,
                       "nameHasTerminator": name_bytes.endswith(b"\0")})
+    require(len({item["name"] for item in names}) == len(names),
+            "dictionary contains duplicate entry names")
     require(bits.position == data_end, "dictionary data span does not end after its TV entries")
 
     parent = bits.handle(4, handle)

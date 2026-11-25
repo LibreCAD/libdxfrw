@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-oda-root-case-pair-2026-11-25",
+  "date": "2026-11-25",
+  "status": "ROOT_AND_STYLE_EXTENSIONS_NULL_ODA_REOPEN_PHYSICAL_AUDIT_PASS_NATIVE_SEMANTICS_OPEN",
+  "supportClaimEffect": "none",
+  "prior": "docs/research/p6-ac1012-oda-case-aligned-pair-2026-11-25.json",
+  "scratchDirectory": "/private/tmp/ac1012-linux-oda-20261125",
+  "discriminator": "The previous root extension XRECORD contained EXTNAMES ACDBVARIABLEDICTIONARY / AcDbVariableDictionary. Align that root key to uppercase in the locally generated source DXF while preserving the previously case-aligned style dictionary; use ODA File Converter 27.10 to generate and reopen the resulting AC1012 pair.",
+  "samples": {
+    "destination": {"path": "allcase-dwg/destination.dwg", "sha256": "23f2f3282e9a6cef217f0be4944713408fb043f9834ea4689f38c4f768a11be9", "reopenedDxfSha256": "04a9dbfca25f3997b9e0dba5b01c557e241830e70cbbce65ba1beca4b74231de", "angles": {"SAME_KEY": 15, "DEST_ONLY": 22}},
+    "source": {"path": "allcase-dwg/source.dwg", "sha256": "25c08bb8b303ce1729b2171efe163aeebf4ebf31e468fb41dc5236f66a635bd8", "reopenedDxfSha256": "253245ca40d5ffbf5e72753a27bd89b4c2d79c2b77e52d4b8bdd1c2fd72126c5", "angles": {"SAME_KEY": 37, "SOURCE_ONLY": 51}}
+  },
+  "checks": [
+    "ODA reopened both DWGs without per-file errors and its re-export retains the three style names, discriminating start angles and two-element counts.",
+    "LibreDWG 0.14 read both DWGs. The shared physical walker validates both dictionary frame CRCs, fields and referenced entries. Their root frame is identical at offset 2855, size 376 bytes, SHA-256 7cc5e32bf043925d2a03022a1a69a17ee18bf922a370189b1decf4fbea5147f4; root and style dictionary extension handles are role-3 typed nulls. Both retain ACAD TREAT_AS_HARD EED.",
+    "The root frame has one empty name with role-2 typed-null handle. This observation does not establish that the entry is valid, disposable, or safe to serialize.",
+    "The current dwg2dxf preserves existing ASCII/Binary destinations for both sources when strict AC1024 output refuses at the AC1012 merge-semantics guard."
+  ],
+  "limits": [
+    "Case alignment correlates with removing these selected extensions in this generator profile, not a universal AutoCAD or ODA rule.",
+    "The empty-name root entry, ACAD EED, other graph dependencies, native AutoCAD normal-open, and duplicate-key merge semantics remain unqualified.",
+    "ODA reopened its own outputs; LibreDWG source readback is independent but does not establish native behavior. Inputs are local partial DXF projections and all drawings remain scratch-only."
+  ]
+}

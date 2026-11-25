@@ -106,8 +106,8 @@ specific limitation.
 
 ## Paired populated AC1012 controls
 
-Prefer the locally generated [case-aligned two-element ODA pair](../../docs/research/p6-ac1012-oda-case-aligned-pair-2026-11-25.json)
-at `/private/tmp/ac1012-linux-oda-20261125/case-dwg/`. Hash-check both
+Prefer the locally generated [root-case-aligned two-element ODA pair](../../docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json)
+at `/private/tmp/ac1012-linux-oda-20261125/allcase-dwg/`. Hash-check both
 files against the receipt before transfer. They have been reopened by ODA and
 read by LibreDWG, but require native normal-open and style validation. Their
 15/37-degree duplicate and 22/51-degree unique entries make the following
@@ -118,15 +118,17 @@ Before transfer, the bounded source audit can recheck both frames and their
 selected EED, APPID, extension-dictionary and XRECORD frames and links:
 
 ```sh
-python3 -B tools/research/audit_ac1012_oda_merge_pair.py --expect-style-extension absent \
-  /private/tmp/ac1012-linux-oda-20261125/case-dwg/destination.dwg \
-  /private/tmp/ac1012-linux-oda-20261125/case-dwg/source.dwg
+python3 -B tools/research/audit_ac1012_oda_merge_pair.py \
+  --expect-style-extension absent --expect-root-null-extension \
+  /private/tmp/ac1012-linux-oda-20261125/allcase-dwg/destination.dwg \
+  /private/tmp/ac1012-linux-oda-20261125/allcase-dwg/source.dwg
 ```
 
-The style dictionary retains ACAD EED but has a typed-null extension handle.
-LibreDWG reports a separate non-null extension on the root dictionary. The
-audit does not qualify their lossless output or their native semantics. Use the
-earlier pair without the option to audit its style-dictionary extension graph.
+Both dictionaries retain ACAD EED and have typed-null extension handles. The
+root also contains a physically observed empty name with a typed-null
+soft-owner entry. Its validity and output semantics remain unqualified. The
+audit does not qualify lossless output or native semantics. Use the earlier
+pair without the options to audit its style-dictionary extension graph.
 
 Generate the scratch pair with LibreDWG 0.14 on `PATH`; add the candidate and
 focused test options when those executables are available:

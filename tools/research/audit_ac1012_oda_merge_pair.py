@@ -55,7 +55,8 @@ def observe_xrecord(path: Path, dwgread: str, record_id: int, owner_id: int) -> 
             "paddingBits": len(frame) * 8 - bits.position}
 
 
-def audit(path: Path, side: str, dwgread: str, temp: Path, expect_extension: bool) -> dict:
+def audit(path: Path, side: str, dwgread: str, temp: Path,
+          expect_extension: bool, expect_root_null: bool) -> dict:
     require(path.read_bytes().startswith(b"AC1012"), "source is not AC1012")
     decoded = temp / f"{side}.json"
     run([dwgread, "-O", "JSON", "-o", str(decoded), str(path)])
@@ -72,6 +73,19 @@ def audit(path: Path, side: str, dwgread: str, temp: Path, expect_extension: boo
     require(len(roots) == 1, "ACAD_MLINESTYLE root is missing or duplicated")
     root = roots[0]
     root_id = root["handle"][-1]
+    root_frame = None
+    if expect_root_null:
+        root_entries = {name: ref[-1] for name, ref in root["items"].items()}
+        root_frame, _ = read_dictionary_frame(path, dwgread, root_id, root_entries,
+                                              "ACAD_MLINESTYLE", True)
+        null_entries = [entry for entry in root_frame["entries"] if entry["name"] == ""]
+        require(root_frame["parent"]["role"] == 4
+                and root_frame["parent"]["value"] == 0 and not root_frame["reactors"]
+                and root_frame["xdictionary"]["role"] == 3
+                and root_frame["xdictionary"]["value"] == 0
+                and len(null_entries) == 1 and null_entries[0]["handle"]["role"] == 2
+                and null_entries[0]["handle"]["value"] == 0,
+                "root dictionary common links or selected null entry mismatch")
     root_entry = root["items"]["ACAD_MLINESTYLE"]
     require(root_entry[0] == 2, "style dictionary root entry is not a soft owner")
     dictionary_id = root_entry[-1]
@@ -96,6 +110,8 @@ def audit(path: Path, side: str, dwgread: str, temp: Path, expect_extension: boo
     require(eed["appid"]["role"] == 5 and appid.get("name") == "ACAD"
             and eed["hex"] == "000d000054524541545f41535f48415244460000",
             "ACAD EED source profile mismatch")
+    if root_frame is not None:
+        require(root_frame["eed"] == frame["eed"], "root ACAD EED mismatch")
 
     extension_id = frame["xdictionary"]["value"]
     require(frame["xdictionary"]["role"] == 3
@@ -141,6 +157,7 @@ def audit(path: Path, side: str, dwgread: str, temp: Path, expect_extension: boo
     return {"source": str(path), "sha256": sha(path.read_bytes()),
             "rootHandle": root_id, "dictionaryHandle": dictionary_id,
             "rootExtensionDictionaryHandle": root.get("xdicobjhandle", [0])[-1],
+            "rootFrame": root_frame,
             "frame": frame, "appidName": appid["name"],
             "extensionDictionaryHandle": extension_id,
             "extensionDictionaryFrame": extension_frame,
@@ -155,12 +172,15 @@ def main() -> None:
     parser.add_argument("source", type=Path)
     parser.add_argument("--dwgread", default="dwgread")
     parser.add_argument("--expect-style-extension", choices=("present", "absent"), default="present")
+    parser.add_argument("--expect-root-null-extension", action="store_true")
     args = parser.parse_args()
     dwgread = shutil.which(args.dwgread)
     require(dwgread is not None, "dwgread executable not found")
     with tempfile.TemporaryDirectory(prefix="ac1012-oda-pair-audit-") as directory:
         temp = Path(directory)
-        result = {side: audit(getattr(args, side), side, dwgread, temp, args.expect_style_extension == "present") for side in PROFILES}
+        result = {side: audit(getattr(args, side), side, dwgread, temp,
+                              args.expect_style_extension == "present",
+                              args.expect_root_null_extension) for side in PROFILES}
     print(json.dumps({"dwgread": executable_identity(dwgread), "samples": result,
                       "scope": "selected physical dictionary/XRECORD frames and model graph only; no native semantics"},
                      indent=2, sort_keys=True))
