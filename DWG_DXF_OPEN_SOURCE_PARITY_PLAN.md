@@ -19,9 +19,12 @@ The legacy zero-body-boundary fix changes selected inputs. A clean checkout of
 for 774 inputs; rerun affected P8 qualification. R13/R14 generated refusal/retry
 controls and the selected AC1012 physical-frame checks pass.
 
-The AC1021 detached-control alignment-bit fix changes selected inputs; refresh
-the clean candidate digest and hosted qualification. Its targeted reader and
-LibreCAD fixture tests pass, including AddressSanitizer for the reader vector.
+The AC1021 detached-control alignment-bit fix changes selected inputs. Clean
+checkout `11636a4b` computes digest
+`ce3ff7f4632615508c31c80f5375f423ca728262fe8c1c63dc87fdb75d977e7b`
+for 775 inputs. Its targeted reader and LibreCAD fixture tests pass, including
+AddressSanitizer for the reader vector. The status overlay pins this digest for
+CI with all 15 claims EXPERIMENTAL; hosted qualification remains open.
 
 This candidate reconciles local work with PR head `c13da35d`, preserving the
 AC1021 control-reader slice and keeping General TABLE-value output guarded.
@@ -30,8 +33,8 @@ The clean combined code commit `4758b607` computes digest
 for 775 inputs. Hosted qualification must be refreshed; earlier candidate
 digests and green checks do not qualify the merged inputs. See the
 [reconciliation receipt](docs/research/p8-pr106-divergent-history-reconciliation-2026-11-25.json).
-The status overlay pins this digest for CI while all 15 claims remain
-EXPERIMENTAL; the pin is not a release or support qualification.
+That earlier digest is superseded; its pin was not a release or support
+qualification.
 Local Darwin ARM64 fast qualification passes seven executables and all 53
 fixed CTests; hosted Linux, macOS and Windows checks remain open.
 Hosted fast run 393 exposed a stale release inventory for the new AC1012 audit
