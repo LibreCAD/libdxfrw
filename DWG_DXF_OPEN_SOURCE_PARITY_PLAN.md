@@ -143,10 +143,16 @@ layer and current-material targets and handle uniqueness before enabling
 consumer capture and same-version raw replay. The codec interface is now a
 public base, so a derived filter can explicitly opt in; tests confirm that the
 default filter still refuses and the opted-in filter captures the marker. The
-export guard remains in place. Refuse cross-version, missing or
-edited/inconsistent graphs atomically; verify ASCII/binary readback, collision
-remapping, corrected retry, both codecs, and independent complete-drawing
-semantics. The rebuilt focused system-codec lane passes against the current
+export guard remains in place. A [scratch-only unguarded consumer diagnostic](docs/research/p8d-librecad-raw-material-unguarded-diagnostic-2026-11-25.json)
+replayed the locally generated R2010 drawing with all 61 groups per material
+and matching graph/geometry. Removing Global's raw carrier while bypassing the
+guard caused a successful save that silently reduced it to eight typed groups;
+ezdxf audit still passed. Admission must therefore require the exact retained
+raw payload for every marked material and reject missing or replaced carriers;
+an independently clean audit alone is insufficient. Refuse cross-version,
+missing or edited/inconsistent graphs atomically; verify ASCII/binary readback,
+collision remapping, corrected retry, both codecs, and independent
+complete-drawing semantics. The rebuilt focused system-codec lane passes against the current
 isolated shared library, and the bundled round-trip lane passes. Final platform
 and native GUI qualification remain open. Do not promote support on the selected
 graph.

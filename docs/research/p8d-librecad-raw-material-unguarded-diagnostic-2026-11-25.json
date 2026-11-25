@@ -1,0 +1,35 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-raw-material-unguarded-diagnostic-2026-11-25",
+  "status": "SCRATCH_UNGUARDED_POSITIVE_AND_MISSING_RAW_DATA_LOSS_PROVED",
+  "supportClaimEffect": "none",
+  "consumer": {
+    "pullRequest": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+    "head": "75eb22ccd639caae17768a696211d1ccb03c15d0"
+  },
+  "library": {
+    "implementationCodeDigest": "7df98118a0e5b6aad55553dee25ec5ca56c2f367cc05f58a3cd50874934bb246",
+    "currentTestInclusiveDigest": "5bc263cc80c1c5431b0055829b79daf9e9ceafe4b58877ffe3fae6ca1adc2061",
+    "qualificationNote": "Only the selected regression tests changed between these digests; no previous platform qualification is transferred."
+  },
+  "method": "A temporary hidden Catch test used a derived filter with explicit raw capture to import the local ezdxf R2010 source. For this diagnostic only, the test set each stored raw-only marker false to bypass the committed export guard; no production code or source drawing was modified. The diagnostic test was removed afterward and the consumer checkout was clean. The output files were scratch-only.",
+  "source": {
+    "path": "/private/tmp/p8d-native-ltype-20261125/source.dxf",
+    "sha256": "e32176333101a243ac5968a8e551096d1e9d872ad8f348f82b0f0bba72f10acc",
+    "provenance": "Locally generated from scratch using ezdxf 1.4.5 new(R2010, setup=True), with a named linetype and line; see p8d-librecad-native-ltype-isolated-2026-11-25.json."
+  },
+  "positive": {
+    "outputSha256": "b4f2c17d52dabb84c6a93baf0506f27d0c7899a9c949cabe2136a3861a74fbc6",
+    "observation": "Same-version unguarded filter export succeeded. Independent ezdxf 1.4.4 readback resolved ACAD_MATERIAL E, ByBlock 95, ByLayer 96, Global 97, each material owner/reactor E, CMATERIAL 96, and all three layer material links to 97; the LINE retained endpoints (0,0,0) and (100,0,0) and P8D_CUSTOM. Audit returned zero errors and repairs. Independent ordered tag comparison found all 61 groups and values for each material preserved except the intended self-handle remapping 1F->95, 20->96 and 21->97."
+  },
+  "negative": {
+    "outputSha256": "df70bb5d40b5a56b506d1e7749f3b4a20b19688b330bcfad069681736539ecb7",
+    "mutation": "In a fresh import, bypass the raw-only markers as above and remove only the retained Global raw MATERIAL carrier; keep its typed metadata, dictionary and layer references.",
+    "observation": "The unguarded exporter returned success and emitted Global as an 8-group typed MATERIAL instead of the original 61 groups. The dictionary and target handles resolved and ezdxf audit still returned zero errors and zero repairs. Thus structural audit alone cannot establish material payload preservation; missing raw capture must prevent typed fallback and refuse atomically."
+  },
+  "limits": [
+    "Both results deliberately bypass the production guard and are not supported workflow results. Production opt-in remains disabled and the guard was not modified.",
+    "Only one locally generated source, one macOS headless filter configuration, one ASCII same-version target and a selected missing-carrier mutation were observed. No edited-source, Binary DXF, DWG conversion, native material rendering or general graph semantics are established.",
+    "Complete graph and payload admission, output readback, refusal/retry, edit invalidation and native platform qualification remain open."
+  ]
+}
