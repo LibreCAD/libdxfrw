@@ -49,7 +49,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`75eb22ccd639caae17768a696211d1ccb03c15d0`. The prior merge head built the
+`06224436ea39befdc4d9261d400b59931c15269f`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -149,8 +149,10 @@ and matching graph/geometry. Removing Global's raw carrier while bypassing the
 guard caused a successful save that silently reduced it to eight typed groups;
 ezdxf audit still passed. Admission must therefore require the exact retained
 raw payload for every marked material and reject missing or replaced carriers;
-an independently clean audit alone is insufficient. Refuse cross-version,
-missing or edited/inconsistent graphs atomically; verify ASCII/binary readback,
+an independently clean audit alone is insufficient. A focused consumer
+regression now confirms the existing guard preserves the destination even after
+the raw carrier is removed, followed by a successful corrected retry. Refuse
+cross-version, missing or edited/inconsistent graphs atomically; verify ASCII/binary readback,
 collision remapping, corrected retry, both codecs, and independent
 complete-drawing semantics. The rebuilt focused system-codec lane passes against the current
 isolated shared library, and the bundled round-trip lane passes. Final platform

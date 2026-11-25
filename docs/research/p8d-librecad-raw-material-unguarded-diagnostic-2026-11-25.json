@@ -31,5 +31,10 @@
     "Both results deliberately bypass the production guard and are not supported workflow results. Production opt-in remains disabled and the guard was not modified.",
     "Only one locally generated source, one macOS headless filter configuration, one ASCII same-version target and a selected missing-carrier mutation were observed. No edited-source, Binary DXF, DWG conversion, native material rendering or general graph semantics are established.",
     "Complete graph and payload admission, output readback, refusal/retry, edit invalidation and native platform qualification remain open."
-  ]
+  ],
+  "guardRegression": {
+    "consumerHead": "06224436ea39befdc4d9261d400b59931c15269f",
+    "coverage": "The opted-in filter imports a locally generated AC1021 raw-only material. The production exporter preserves the destination and refuses before and after its retained raw carrier is removed; a subsequent complete-material save succeeds on the same filter.",
+    "result": "Focused system-codec test passed: 18 assertions in 1 case. dyld verified the isolated current implementation library. The test deliberately removes the carrier in memory; it never disables the production guard."
+  }
 }
