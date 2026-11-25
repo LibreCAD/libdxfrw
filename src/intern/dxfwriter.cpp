@@ -107,8 +107,8 @@ std::string normalizeDxfRecordName(std::string_view text) {
     return normalized;
 }
 
-bool parseDxfRecordHandle(std::string_view text, std::uint32_t& handle) {
-    if (text.empty())
+bool parseDxfRecordHandle(std::string_view text, std::uint64_t& handle) {
+    if (text.empty() || text.size() > 16u)
         return false;
     handle = 0;
     for (unsigned char character : text) {
@@ -120,7 +120,7 @@ bool parseDxfRecordHandle(std::string_view text, std::uint32_t& handle) {
             digit = upper - 'A' + 10u;
         else
             return false;
-        if (handle > (std::numeric_limits<std::uint32_t>::max() - digit) / 16u)
+        if (handle > (std::numeric_limits<std::uint64_t>::max() - digit) / 16u)
             return false;
         handle = handle * 16u + digit;
     }
@@ -233,7 +233,7 @@ bool dxfWriter::observeRecordString(int code, std::string_view text) {
     }
     if (m_recordHandlePending && m_recordApplicationDepth == 0
         && (code == 5 || code == 105)) {
-        std::uint32_t handle = 0;
+        std::uint64_t handle = 0;
         if (!parseDxfRecordHandle(text, handle)
             || m_emittedRecords.size() >= m_recordInventoryLimit) {
             m_recordInventoryFailure = true;
@@ -267,7 +267,7 @@ bool dxfWriter::observeRecordString(int code, std::string_view text) {
         return true;
     }
     if (m_recordOwnerPending && m_recordApplicationDepth == 0 && code == 330) {
-        std::uint32_t ownerHandle = 0;
+        std::uint64_t ownerHandle = 0;
         if (!parseDxfRecordHandle(text, ownerHandle)
             || m_currentRecordIndex >= m_emittedRecords.size()) {
             m_recordInventoryFailure = true;
@@ -348,16 +348,16 @@ bool dxfWriter::finalizeRecordInventory() noexcept {
     return true;
 }
 
-std::size_t dxfWriter::recordHandleCount(std::uint32_t handle) const noexcept {
+std::size_t dxfWriter::recordHandleCount(std::uint64_t handle) const noexcept {
     if (m_recordInventoryFinalized) {
         const auto first = std::lower_bound(
             m_emittedRecords.begin(), m_emittedRecords.end(), handle,
-            [](const EmittedRecordIdentity& record, std::uint32_t value) {
+            [](const EmittedRecordIdentity& record, std::uint64_t value) {
                 return record.handle < value;
             });
         const auto last = std::upper_bound(
             first, m_emittedRecords.end(), handle,
-            [](std::uint32_t value, const EmittedRecordIdentity& record) {
+            [](std::uint64_t value, const EmittedRecordIdentity& record) {
                 return value < record.handle;
             });
         return static_cast<std::size_t>(last - first);
@@ -370,7 +370,7 @@ std::size_t dxfWriter::recordHandleCount(std::uint32_t handle) const noexcept {
 }
 
 bool dxfWriter::recordHandleHasIdentity(
-        std::uint32_t handle, const std::string& recordName,
+        std::uint64_t handle, const std::string& recordName,
         const std::string& sectionName) const {
     const std::string normalizedRecordName =
         normalizeDxfRecordName(recordName);
@@ -389,7 +389,7 @@ bool dxfWriter::recordHandleHasIdentity(
     if (m_recordInventoryFinalized) {
         const auto first = std::lower_bound(
             m_emittedRecords.begin(), m_emittedRecords.end(), handle,
-            [](const EmittedRecordIdentity& record, std::uint32_t value) {
+            [](const EmittedRecordIdentity& record, std::uint64_t value) {
                 return record.handle < value;
             });
         return first != m_emittedRecords.end() && matches(*first);
@@ -398,7 +398,7 @@ bool dxfWriter::recordHandleHasIdentity(
 }
 
 bool dxfWriter::recordHandleHasOwner(
-        std::uint32_t handle, std::uint32_t ownerHandle) const noexcept {
+        std::uint64_t handle, std::uint64_t ownerHandle) const noexcept {
     const auto matches = [handle, ownerHandle](
                              const EmittedRecordIdentity& record) {
         return record.handle == handle && record.hasOwnerHandle
@@ -407,7 +407,7 @@ bool dxfWriter::recordHandleHasOwner(
     if (m_recordInventoryFinalized) {
         const auto first = std::lower_bound(
             m_emittedRecords.begin(), m_emittedRecords.end(), handle,
-            [](const EmittedRecordIdentity& record, std::uint32_t value) {
+            [](const EmittedRecordIdentity& record, std::uint64_t value) {
                 return record.handle < value;
             });
         return first != m_emittedRecords.end() && matches(*first);
@@ -415,12 +415,27 @@ bool dxfWriter::recordHandleHasOwner(
     return std::any_of(m_emittedRecords.begin(), m_emittedRecords.end(), matches);
 }
 
-std::vector<std::uint32_t> dxfWriter::emittedRecordHandles() const {
-    std::vector<std::uint32_t> handles;
+std::vector<std::uint64_t> dxfWriter::emittedRecordHandles() const {
+    std::vector<std::uint64_t> handles;
     handles.reserve(m_emittedRecords.size());
     for (const EmittedRecordIdentity& record : m_emittedRecords)
         handles.push_back(record.handle);
     return handles;
+}
+
+std::uint64_t dxfWriter::largestEmittedRecordHandle() const noexcept {
+    std::uint64_t largest = 0;
+    for (const auto& record : m_emittedRecords)
+        largest = std::max(largest, record.handle);
+    return largest;
+}
+
+bool dxfWriter::hasWideRecordOwner() const noexcept {
+    return std::any_of(m_emittedRecords.begin(), m_emittedRecords.end(),
+        [](const EmittedRecordIdentity& record) {
+            return record.hasOwnerHandle &&
+                record.ownerHandle > std::numeric_limits<std::uint32_t>::max();
+        });
 }
 
 //RLZ TODO change std::endl to x0D x0A (13 10)

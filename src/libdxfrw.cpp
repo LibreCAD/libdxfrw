@@ -6275,6 +6275,12 @@ bool dxfRW::writeImpl(DRW_Interface *interface_, DRW::Version ver, bool bin,
     // code-5 handle — exactly what a $HANDSEED needs to be.
     if (header.m_handseedValueOffset != std::streampos(-1)) {
         outputStage = "$HANDSEED backpatch";
+        // The current allocator and fixed-width seed are 32-bit. Retain the
+        // existing refusal until wide identities can be reflected in the seed.
+        if (writer->hasWideRecordOwner() ||
+            writer->largestEmittedRecordHandle() >
+                std::numeric_limits<std::uint32_t>::max())
+            return failWrite();
         std::uint32_t seed = highWaterHandle();
         char buf[DRW_Header::kHandseedFieldWidth + 1];
         snprintf(buf, sizeof(buf), "%0*X",

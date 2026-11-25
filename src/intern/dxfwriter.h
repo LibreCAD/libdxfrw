@@ -34,7 +34,7 @@ public:
         bool recordOwnerPending {false};
         std::uint32_t recordApplicationDepth {0};
         std::size_t currentRecordIndex {0};
-        std::uint32_t currentRecordOwnerHandle {0};
+        std::uint64_t currentRecordOwnerHandle {0};
         bool currentRecordHasOwnerHandle {false};
         bool sectionNamePending {false};
         std::uint32_t currentRecordName {0};
@@ -42,10 +42,10 @@ public:
         bool active {false};
     };
     struct EmittedRecordIdentity {
-        std::uint32_t handle {0};
+        std::uint64_t handle {0};
         std::uint32_t recordName {0};
         std::uint32_t sectionName {0};
-        std::uint32_t ownerHandle {0};
+        std::uint64_t ownerHandle {0};
         bool hasOwnerHandle {false};
     };
     explicit dxfWriter(std::ostream *stream, bool binary = false):filestr(stream), m_binaryStrings(binary) {}
@@ -134,13 +134,15 @@ public:
         return nameId < m_recordNames.size() ? &m_recordNames[nameId] : nullptr;
     }
     bool finalizeRecordInventory() noexcept;
-    std::size_t recordHandleCount(std::uint32_t handle) const noexcept;
-    bool recordHandleHasIdentity(std::uint32_t handle,
+    std::size_t recordHandleCount(std::uint64_t handle) const noexcept;
+    bool recordHandleHasIdentity(std::uint64_t handle,
                                  const std::string& recordName,
                                  const std::string& sectionName) const;
-    bool recordHandleHasOwner(std::uint32_t handle,
-                              std::uint32_t ownerHandle) const noexcept;
-    std::vector<std::uint32_t> emittedRecordHandles() const;
+    bool recordHandleHasOwner(std::uint64_t handle,
+                              std::uint64_t ownerHandle) const noexcept;
+    std::vector<std::uint64_t> emittedRecordHandles() const;
+    std::uint64_t largestEmittedRecordHandle() const noexcept;
+    bool hasWideRecordOwner() const noexcept;
     void clearRecordInventory() noexcept {
         m_emittedRecords.clear();
         m_recordNames.clear();

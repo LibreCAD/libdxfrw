@@ -14223,10 +14223,11 @@ void testDxfStandardObjectIdentities(TestContext& t) {
             for (const auto& row : dxfW->writer->emittedRecords()) {
                 const auto* record = dxfW->writer->recordInventoryName(row.recordName);
                 const auto* section = dxfW->writer->recordInventoryName(row.sectionName);
-                if (record == nullptr || section == nullptr)
+                if (record == nullptr || section == nullptr ||
+                    row.handle > UINT32_MAX || row.ownerHandle > UINT32_MAX)
                     return false;
-                inventory.push_back({row.handle, *record, *section,
-                                     row.ownerHandle, row.hasOwnerHandle});
+                inventory.push_back({static_cast<std::uint32_t>(row.handle), *record, *section,
+                                     static_cast<std::uint32_t>(row.ownerHandle), row.hasOwnerHandle});
             }
             const auto primary = context->sourceHandleToWrittenObjectMap.find(0xA503u);
             const auto group = std::find_if(inventory.begin(), inventory.end(),
@@ -14840,7 +14841,7 @@ void testGeneratedDictionarySourceMetadata(TestContext& t) {
 }
 
 void testDxfWriterEmittedHandleInventory(TestContext& t) {
-    std::vector<std::uint32_t> asciiHandles;
+    std::vector<std::uint64_t> asciiHandles;
     for (const bool binary : {false, true}) {
         std::ostringstream output;
         std::unique_ptr<dxfWriter> writer = binary
@@ -14908,10 +14909,10 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
             && writer->writeString(0, "WIRE_END");
 
         const bool inventoryFinalized = writer->finalizeRecordInventory();
-        const std::vector<std::uint32_t> handles =
+        const std::vector<std::uint64_t> handles =
             writer->emittedRecordHandles();
         t.expect(wrote && inventoryFinalized
-                     && handles == std::vector<std::uint32_t>{0xAu, 0x2Bu, 0x3Bu}
+                     && handles == std::vector<std::uint64_t>{0xAu, 0x2Bu, 0x3Bu}
                      && writer->recordHandleHasIdentity(
                          0xAu, "line", "entities")
                      && writer->recordHandleHasIdentity(
@@ -14938,6 +14939,50 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
                  "DXF handle inventory matches committed output bytes");
     }
 
+    for (const bool binary : {false, true}) {
+        std::ostringstream output;
+        std::unique_ptr<dxfWriter> writer = binary
+            ? std::unique_ptr<dxfWriter>(std::make_unique<dxfWriterBinary>(&output))
+            : std::unique_ptr<dxfWriter>(std::make_unique<dxfWriterAscii>(&output));
+        writer->setRecordInventoryEnabled(true, 8u);
+        bool wrote = writer->writeString(0, "SECTION")
+            && writer->writeString(2, "ENTITIES")
+            && writer->writeString(0, "LINE")
+            && writer->writeString(5, "100000000");
+        {
+            DxfWriterRecordScope owner(*writer);
+            wrote = wrote && writer->writeString(330, "100000002");
+        }
+        wrote = wrote && writer->writeString(330, "100000001")
+            && writer->writeString(0, "POINT")
+            && writer->writeString(5, "FFFFFFFFFFFFFFFF")
+            && writer->writeString(0, "ENDSEC")
+            && writer->finalizeRecordInventory();
+        t.expect(wrote
+                     && writer->recordHandleCount(UINT64_C(0x100000000)) == 1u
+                     && writer->recordHandleHasOwner(UINT64_C(0x100000000),
+                                                     UINT64_C(0x100000001))
+                     && !writer->recordHandleHasOwner(UINT64_C(0x100000000),
+                                                      UINT64_C(0x100000002))
+                     && writer->largestEmittedRecordHandle() == UINT64_MAX
+                     && writer->hasWideRecordOwner(),
+                 "DXF inventory preserves wide identities and rollback owners");
+
+        std::ostringstream duplicates;
+        std::unique_ptr<dxfWriter> duplicate = binary
+            ? std::unique_ptr<dxfWriter>(std::make_unique<dxfWriterBinary>(&duplicates))
+            : std::unique_ptr<dxfWriter>(std::make_unique<dxfWriterAscii>(&duplicates));
+        duplicate->setRecordInventoryEnabled(true, 4u);
+        const bool duplicateWritten = duplicate->writeString(0, "SECTION")
+            && duplicate->writeString(2, "ENTITIES")
+            && duplicate->writeString(0, "LINE")
+            && duplicate->writeString(5, "100000000")
+            && duplicate->writeString(0, "POINT")
+            && duplicate->writeString(5, "0000000100000000");
+        t.expect(duplicateWritten && !duplicate->finalizeRecordInventory(),
+                 "DXF inventory detects equivalent wide handle spellings");
+    }
+
     std::ostringstream limitedOutput;
     dxfWriterAscii limitedWriter(&limitedOutput);
     limitedWriter.setRecordInventoryEnabled(true, 1u);
@@ -14954,7 +14999,7 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
     }
     t.expect(withinLimit && limitedWriter.hasWriteError()
                  && limitedWriter.emittedRecordHandles()
-                        == std::vector<std::uint32_t>{1u},
+                        == std::vector<std::uint64_t>{1u},
              "DXF handle inventory limit stays sticky across scope rollback");
 
     std::ostringstream duplicateOutput;
@@ -15035,6 +15080,16 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
             }
             fieldChildEmitted = fieldEmitted && dxfW != nullptr
                 && dxfW->writeField(&fieldChild);
+            if (wideMode != 0 && dxfW != nullptr) {
+                DRW_RawDxfObject wide;
+                wide.name = "XRECORD";
+                wide.m_version = DRW::AC1027;
+                wide.groups = {
+                    DRW_Variant(5, std::string(wideMode == 1 ? "100000000" : "A500")),
+                    DRW_Variant(330, std::string(wideMode == 2 ? "100000000" : "C")),
+                    DRW_Variant(100, std::string("AcDbXrecord"))};
+                wideRecordEmitted = dxfW->writeRawDxfObject(&wide);
+            }
         }
         bool finalizeDxfWrite() override {
             const auto* context = dxfW != nullptr
@@ -15093,9 +15148,14 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
                         inventory.clear();
                         break;
                     }
+                    if (identity.handle > UINT32_MAX || identity.ownerHandle > UINT32_MAX) {
+                        inventoryCaptured = false;
+                        inventory.clear();
+                        break;
+                    }
                     inventory.push_back(
-                        {identity.handle, *recordName, *sectionName,
-                         identity.ownerHandle, identity.hasOwnerHandle});
+                        {static_cast<std::uint32_t>(identity.handle), *recordName, *sectionName,
+                         static_cast<std::uint32_t>(identity.ownerHandle), identity.hasOwnerHandle});
                 }
             }
             const auto modelLine = std::find_if(
@@ -15167,6 +15227,8 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
         bool fieldEmitted {false};
         bool fieldChildEmitted {false};
         bool failAfterFirstField {true};
+        int wideMode {0};
+        bool wideRecordEmitted {false};
         std::uint32_t modelLineEmittedHandle {0};
         std::vector<TestDxfRecordIdentity> inventory;
     };
@@ -15218,6 +15280,19 @@ void testDxfWriterEmittedHandleInventory(TestContext& t) {
         const bool objectBindingsRolledBack = failedContext != nullptr
             && failedContext->sourceHandleToWrittenObjectMap.empty();
         interface_.failAfterFirstField = false;
+        for (const int mode : {1, 2}) {
+            interface_.wideMode = mode;
+            interface_.wideRecordEmitted = false;
+            const bool refused = !codec.write(&interface_, DRW::AC1027, binary);
+            const auto diagnostic = codec.getLastDiagnostic();
+            std::ifstream preserved(outputPath, std::ios::binary);
+            const std::string bytes(std::istreambuf_iterator<char>(preserved), {});
+            t.expect(refused && interface_.wideRecordEmitted &&
+                         bytes == destinationSentinel &&
+                         diagnostic.message.find("$HANDSEED backpatch") != std::string::npos,
+                     "DXF wide inventory identity is refused before publishing output");
+        }
+        interface_.wideMode = 0;
         const bool written = reserved
             && codec.write(&interface_, DRW::AC1027, binary);
         if (!written) {
