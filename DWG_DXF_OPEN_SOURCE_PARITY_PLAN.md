@@ -26,6 +26,10 @@ The clean combined code commit `4758b607` computes digest
 for 775 inputs. Hosted qualification must be refreshed; earlier candidate
 digests and green checks do not qualify the merged inputs. See the
 [reconciliation receipt](docs/research/p8-pr106-divergent-history-reconciliation-2026-11-25.json).
+The status overlay pins this digest for CI while all 15 claims remain
+EXPERIMENTAL; the pin is not a release or support qualification.
+Local Darwin ARM64 fast qualification passes seven executables and all 53
+fixed CTests; hosted Linux, macOS and Windows checks remain open.
 
 The GROUP member and DICTIONARYVAR common-reference width fix changes selected
 inputs. A clean checkout of `002143da` computes digest

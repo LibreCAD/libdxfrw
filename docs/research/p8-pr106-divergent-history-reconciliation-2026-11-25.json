@@ -12,13 +12,14 @@
     "Retain the local version-aware dictionary layout, null-handle, zero-body-boundary and wide-reference guards and the associated refusal/retry controls.",
     "Retain the PR's bounded AC1021 detached-control reader, source fixture, and targeted controls. The fixture hash matches the existing LibreCAD repository file.",
     "Retain the independently verified plain-string TABLE output, strict block-target checks, and empty-value/cache preservation. Keep the proposed General-value output refused because the independent ODA comparison did not validate its wire mapping; add an ASCII/Binary refusal and corrected-retry control.",
-    "Keep the qualification status overlay draft: neither parent's previous implementation digest qualifies their combined source inputs."
+    "Pin the qualification status overlay to the combined candidate digest for CI; retain all 15 claims as EXPERIMENTAL and do not reuse either parent's qualification."
   ],
   "validation": [
     "Six targeted CTests pass: AC1021 LibreCAD fixture and LTYPE control, legacy DICTIONARYVAR, TABLE export reuse, strict TABLE block target, and TABLE value payload. The DWG object-vector executable also passes.",
+    "On local Darwin ARM64, the combined Release candidate passes all seven bounded fast executables and all 53 fixed fast CTests, with no failures or skips.",
     "The combined CLI publishes 28/28 source frames for the LibreCAD AC1021 fixture with no entity or object parse failures; its strict read-disposition guard refuses output and preserves the destination, with one retained integrity error and an LTYPE role diagnostic.",
     "The configured CTest inventory and the manifest each contain the same 1401 test names.",
-    "The local workflow contract passes with --allow-unfinalized; qualified support passes with --allow-draft (15 claims, two candidate routes, zero advertised); support-matrix validation passes."
+    "The local workflow and pinned digest contracts pass; qualified support passes (15 experimental claims, two candidate routes, zero advertised); support-matrix validation passes."
   ],
   "limits": [
     "These focused local checks do not qualify the combined implementation on hosted Linux, macOS or Windows, nor do they establish native AutoCAD semantics or full source graph preservation.",

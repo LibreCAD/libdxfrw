@@ -3,6 +3,7 @@
   "title": "AC1021 TABLE General value output generated control",
   "date": "2026-11-25",
   "supportClaimEffect": "none",
+  "reconciliationNotice": "Historical evidence for the proposed PR-branch writer only. The combined candidate keeps General-value output refused because the independent ODA comparison in p5-ac1021-general-value-oda-dxf-comparison-2026-11-25.json differs and the payload semantics remain unproven. The former success-test registration is not present in the combined candidate.",
   "scope": "Implement a fail-closed ASCII/Binary DXF transport for the bounded AC1021 TABLE General CadValue envelope identified by the P5-I source trace. This checks raw carrier output only; it does not establish General value meaning or whole-table support.",
   "authority": {
     "document": "Open Design Specification for .dwg files v5.4.1",
