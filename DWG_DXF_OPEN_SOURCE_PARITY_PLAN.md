@@ -123,9 +123,8 @@ evidence are recorded in `docs/research/` and Git history.
   Complete binary and zero/one/two/additional-layout profiles, external plot
   resources, unknown references and source identities with explicit refusal,
   destination preservation and retry. Preserve nonempty paper-space contents.
-  Complete consumer adoption of [selective BLOCK_RECORD source capture](docs/research/p8d-selective-block-record-source-2026-11-26.json);
-  a single current row must still fit the retained-byte budget and other raw
-  source families still need large-file qualification. Resolve the R12/R14 orphan paper-space audit
+  A single current row must still fit the retained-byte budget; qualify larger
+  files and other raw source families using the [selective capture receipt](docs/research/p8d-selective-block-record-source-2026-11-26.json). Resolve the R12/R14 orphan paper-space audit
   without discarding content. Extend independent physical/semantic peer checks
   beyond the selected five-version MPOLYGON control and run native
   save/reopen/render/edit on the final consumer and codec heads; qualify hosted

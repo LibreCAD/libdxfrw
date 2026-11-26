@@ -7,11 +7,15 @@
     "macOS ARM64 warnings-as-errors targeted structural source and existing block-record source proof: both passed",
     "Generated ASCII and binary table controls selected one of two source callbacks and delivered both typed callbacks in order",
     "Generated 80-row ASCII table: minimum admitted logical retained budget 39363 bytes selective versus 73663 bytes all-source",
-    "Malformed table published no callbacks and corrected retry succeeded"
+    "Malformed table published no callbacks and corrected retry succeeded",
+    "Consumer macOS ARM64 against this codec: 5/5 layout graph tests and 67/67 DXF round-trip/export tests passed; local plan sync passed"
   ],
   "limits": [
     "The active row must still fit the budget before it can be selected or discarded",
     "This does not make large-file memory or any layout support claim universal",
-    "Consumer integration and hosted platform checks are separate"
-  ]
+    "Hosted platform and native final-head qualification remain open"
+  ],
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_implementation_commit": "76421c44",
+  "consumer_plan_head": "a46b1034"
 }
