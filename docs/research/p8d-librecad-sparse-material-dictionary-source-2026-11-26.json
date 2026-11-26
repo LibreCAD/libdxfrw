@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-26",
+  "scope": "Opted-in bounded source snapshots for the DXF root and ACAD_MATERIAL dictionaries; no replay admission",
+  "libdxfrw_candidate": "4e41aaa5ce0fbc04e26b495bd1ae920963dd3493",
+  "libdxfrw_implementation_digest": "1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be",
+  "librecad_commit": "f01605be751dcd313bb13c4216f31caef0d2d692",
+  "evidence": [
+    "A locally authored ASCII DXF graph with root, material dictionary and material was imported through the explicit sparse-material opt-in.",
+    "The retained dictionary source remains unchanged after editing the live carrier; a duplicate capture invalidates the source.",
+    "The raw-only graph remains refused both before and after mutation; these observations do not authorize output replay.",
+    "System-codec MATERIAL tests: 585 assertions in 6 cases; linetype: 4967 assertions in 56 cases; IMAGE round trip: 84 assertions in 1 case.",
+    "Bundled-codec linetype: 1282 assertions in 52 cases; IMAGE round trip: 46 assertions in 1 case.",
+    "The source drawing was constructed locally by the test and was not committed."
+  ],
+  "remaining": "Compare source, live raw and typed dictionaries; prove full graph closure, references, output readback, rollback and retries before any support promotion."
+}
