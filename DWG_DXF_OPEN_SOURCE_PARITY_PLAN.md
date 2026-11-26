@@ -25,7 +25,7 @@ evidence are recorded in `docs/research/` and Git history.
   Current typed-graph staged checks cover selected root, HEADER, LAYER and
   OBJECTS fields; the [root-name check](docs/research/p8d-root-dictionary-normalized-name-uniqueness-2026-11-26.json)
   rejects aliases throughout the staged root; the [current consumer check](docs/research/p8d-root-name-candidate-librecad-system-codec-2026-11-26.json)
-  passes headlessly. Neither proves graph closure. The
+  passes headlessly. The [large-layer audit fix](docs/research/p8d-typed-material-large-layer-audit-2026-11-26.json) prevents the existing typed-graph checks from silently disabling themselves above 64 imported layers; a 65-layer late-mutation refusal and retry pass. Neither proves sparse graph closure. The
   [independent typed-graph readback](docs/research/p8d-librecad-typed-material-ezdxf-readback-2026-11-26.json)
   covers one selected AC1021 ASCII output only. The
   [converter profile](docs/research/p8d-ac1024-sparse-default-material-converter-2026-11-26.json)
@@ -97,7 +97,7 @@ evidence are recorded in `docs/research/` and Git history.
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  02530f9976e0fd0cdcaa76c1ca5644b176a0cd56 (pushed; final-head CI pending).
+  bdcf1e1348591e12ccfcf1d3dbcfca268ac0e9eb (pushed; final-head CI pending).
   Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
