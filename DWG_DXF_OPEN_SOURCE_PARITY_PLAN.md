@@ -124,11 +124,17 @@ LibreDWG checks match 32 selected totals. The [FIELD EED range control](docs/res
 checks refusal of out-of-range signed values, explicit correction and same-filter
 retry; system and bundled XDATA selectors pass, and LibreDWG confirms selected
 FIELD/FIELDLIST APPID links and stored bit patterns. Qualify broader/native profiles. The [R14 header diagnostic](docs/research/p8d-r14-header-self-resave-diagnostic-2026-11-25.json)
-binds the reimport/resave refusal to three group-290 Boolean variables emitted
-by the first save; an independent version table also flags 64 header variables
-as R2000-or-later. Establish the R14 schema and loss policy, then separately
-handle existing emitted files, clean output and ASCII/binary retry/readback. The
-R14 peer also repaired a root-dictionary owner; review it independently.
+binds the original reimport/resave refusal to three group-290 Boolean variables.
+The [original R14 reference audit](docs/research/p8d-r14-primary-header-reference-audit-2026-11-26.json)
+corrects an independent version table: 24 of its 64 flagged fields are explicitly
+listed for R14 and must remain supported. The current generated header contains
+35 names absent from the reference, grouped as ten dimension settings, eighteen
+UCS/PUCS settings, four display/geometry settings, and three text/stylesheet
+settings. Treat absence as a review lead, not automatic proof of invalidity.
+Next qualify text/stylesheet, then UCS/PUCS and dimension fields in separate
+small slices with source-presence/loss policy, physical output, ASCII/binary
+reimport, rollback and consumer controls. Handle previously emitted files
+separately; retain native qualification.
 The [R14 Boolean field slices](docs/research/p8d-r14-header-modern-booleans-2026-11-26.json)
 omit `$EXTNAMES`, `$PSTYLEMODE`, `$OLESTARTUP`, `$LWDISPLAY`, and `$XEDIT`
 from pre-R2000 output when absent from the source, and refuse any explicit
