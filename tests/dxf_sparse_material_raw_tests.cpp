@@ -17,7 +17,7 @@ namespace {
 struct Reader:LC3CompatCheck,DRW_DxfSparseMaterialRawPolicy {
  bool enabled=true;
  bool wantsDxfSparseMaterialRawCapture() const noexcept override{return enabled;}
- std::vector<DRW_Material> materials;std::vector<DRW_RawDxfObject> raw;
+ std::vector<DRW_Material> materials;std::vector<DRW_RawDxfObject> raw,rawDictionaries;
  std::vector<DRW_Dictionary> dictionaries;DRW_Dictionary root;
  std::vector<DRW_Layer> layers;std::string currentMaterial;
  void addDictionary(const DRW_Dictionary& d)override{dictionaries.push_back(d);}
@@ -29,7 +29,10 @@ struct Reader:LC3CompatCheck,DRW_DxfSparseMaterialRawPolicy {
    currentMaterial=it->second->c_str();
  }
  void addMaterial(const DRW_Material& v)override{materials.push_back(v);}
- void addRawDxfObject(const DRW_RawDxfObject& v)override{if(v.name=="MATERIAL")raw.push_back(v);}
+ void addRawDxfObject(const DRW_RawDxfObject& v)override{
+  if(v.name=="MATERIAL")raw.push_back(v);
+  else if(v.name=="DICTIONARY")rawDictionaries.push_back(v);
+ }
 };
 struct LegacyReader:LC3CompatCheck {
  unsigned materialCallbacks=0,rawCallbacks=0;
@@ -364,6 +367,19 @@ int main(){
   auto layer=std::find_if(check.layers.begin(),check.layers.end(),[](const auto& l){return l.name=="RAWTEST";});
   std::uint32_t target=0;bool present=false;
   if(layer==check.layers.end()||!layer->getDxfMaterialHandle(target,present)||!present||target!=0xF013)return 73;
+  if(check.rawDictionaries.size()!=1u)return 81;
+  selected.push_back(&check.rawDictionaries.front());
+  if(!writer.setDxfObjectsWriteInspector([&](const auto& view){return writer.inspectDxfRawObjectRecords(view,selected);}))return 82;
+  if(!writer.write(&graph,DRW::AC1024,binary)||!graph.ok)return 83;
+  auto wrongDictionary=check.rawDictionaries.front();
+  const auto entry=std::find_if(wrongDictionary.groups.begin(),wrongDictionary.groups.end(),
+      [](const auto& value){return value.code()==3;});
+  if(entry==wrongDictionary.groups.end())return 84;
+  entry->addString(3,"changed");selected.back()=&wrongDictionary;
+  {std::ofstream f(output);f<<"sentinel";}
+  if(writer.write(&graph,DRW::AC1024,binary)||bytes(output)!="sentinel")return 85;
+  selected.back()=&check.rawDictionaries.front();
+  if(!writer.write(&graph,DRW::AC1024,binary))return 86;
  }
  return 0;
 }

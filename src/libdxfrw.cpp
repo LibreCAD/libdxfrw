@@ -4681,6 +4681,14 @@ bool dxfRW::inspectDxfWriteSection(const DxfObjectsWriteInspector& inspector,
 bool dxfRW::inspectDxfRawMaterialRecords(
         const DxfObjectsWriteView& view,
         const std::vector<const DRW_RawDxfObject*>& expected) const noexcept {
+    for (const auto* raw : expected)
+        if (!raw || raw->name != "MATERIAL") return false;
+    return inspectDxfRawObjectRecords(view, expected);
+}
+
+bool dxfRW::inspectDxfRawObjectRecords(
+        const DxfObjectsWriteView& view,
+        const std::vector<const DRW_RawDxfObject*>& expected) const noexcept {
     if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
         || m_writeError || writer->hasWriteError()
         || view.version != version || view.binary != binFile
@@ -4691,7 +4699,8 @@ bool dxfRW::inspectDxfRawMaterialRecords(
         std::size_t groups = 0u;
         constexpr std::size_t maxGroups = 1024u * 1024u;
         for (const auto* raw : expected) {
-            if (!raw || raw->name != "MATERIAL" || raw->m_version != view.version
+            if (!raw || (raw->name != "MATERIAL" && raw->name != "DICTIONARY")
+                || raw->m_version != view.version
                 || raw->handle == 0u || raw->handle == DRW::NoHandle
                 || raw->groups.empty() || raw->groups.size() > maxGroups - groups
                 || (raw->hasRawValues && raw->rawValues.size() != raw->groups.size()))
@@ -4709,13 +4718,15 @@ bool dxfRW::inspectDxfRawMaterialRecords(
         };
         const bool inspected = dx_standard_output::inspectSelected(view,
             [&](std::string_view name, std::uint32_t handle) {
-                if (selected.count(handle) == 0u) return false;
-                if (name != "MATERIAL") wrongName = true;
+                const auto found = selected.find(handle);
+                if (found == selected.end()) return false;
+                if (name != std::string_view(found->second->name)) wrongName = true;
                 return true;
             }, [&](const auto& shape, std::string_view body) {
                 const auto found = selected.find(shape.handle);
                 return !wrongName && found != selected.end() && seen.insert(shape.handle).second
-                    && dx_standard_output::rawScalarTransportEqual(found->second->groups, body, view, map, true);
+                    && dx_standard_output::rawScalarTransportEqual(found->second->groups, body, view, map,
+                                                                    found->second->name == "MATERIAL");
             });
         return inspected && !wrongName && seen.size() == selected.size();
     } catch (...) {

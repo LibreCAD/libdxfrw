@@ -111,6 +111,7 @@ public:
 };
 
 #define LIBDXFRW_HAS_DXF_STAGED_MATERIAL_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_STAGED_RAW_OBJECT_INSPECTOR 1
 class dxfRW {
 public:
     using ImageDefinitionKey = std::pair<std::uint64_t, std::uint32_t>;
@@ -225,6 +226,12 @@ public:
      * not prove source-byte spelling, semantics, dictionary graph, dependent
      * references, or finalization. */
     bool inspectDxfRawMaterialRecords(
+        const DxfObjectsWriteView& view,
+        const std::vector<const DRW_RawDxfObject*>& expected) const noexcept;
+    /** As above, but accepts a mixture of raw MATERIAL and DICTIONARY
+     * records. It verifies only the selected emitted records, not graph
+     * closure or additional unselected records. */
+    bool inspectDxfRawObjectRecords(
         const DxfObjectsWriteView& view,
         const std::vector<const DRW_RawDxfObject*>& expected) const noexcept;
     /** Inspector setters retain an owned copy of the callback and its value

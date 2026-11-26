@@ -1,0 +1,15 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-shared-staged-material-dictionary-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateParent": "9f4fc8d0",
+  "implementationDigestSha256": "936ddfcf83c8dc78896d604bdcc963f44f83e9d07c3ab9ea6e289ed4e43c0275",
+  "scope": "Extend the shared staged raw MATERIAL inspector to mixed MATERIAL and DICTIONARY records, reusing the same bounded decoder and handle mapping.",
+  "evidence": [
+    "The MATERIAL-only entry point retains its stricter name check and delegates to the shared mixed-object routine.",
+    "Generated ASCII and Binary graph controls inspect three remapped MATERIAL records and a DICTIONARY; a changed expected dictionary entry refuses atomically and the same writer succeeds after correction.",
+    "The owning sparse-material and compact-graph CTests passed; the raw-material test passed under AddressSanitizer with detect_leaks=0.",
+    "The utility validates selected output records only. The caller must supply the active OBJECTS view and separately establish source provenance, complete graph, HEADER/LAYER references and successful finalization."
+  ],
+  "remaining": "Integrate staged OBJECTS, root dictionary, HEADER and LAYER checks in LibreCAD; preserve failure/retry and verify independent readback before enabling raw-only consumer replay."
+}
