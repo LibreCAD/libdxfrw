@@ -133,7 +133,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 53fbd21f428eb2cfa15b347083c19460630649f7d00b769adeedd5104378818d
+  digest: 02a4ef43779142760d3e96bef5d63a6ddc6daffc80d5dec58a1c4b3742b22e32
   (781 inputs). The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
   registers both new token controls in the frozen inventory and fast lane;
   its [GCC allocator follow-up](docs/research/p8-sat-gcc-allocator-harness-2026-11-26.json)
@@ -142,7 +142,7 @@ evidence are recorded in `docs/research/` and Git history.
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  652a5679 (pushed; final-head CI pending).
+  a5ae048f (pushed; final-head CI pending).
   Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
@@ -457,11 +457,11 @@ destination-preservation and corrected-retry controls. Next extend admission
 one source profile at a time: prove other LAYER shapes and reference roles,
 additional IMAGE entities, and native/platform behavior independently before
 claiming broader support.
-The clean-checkout digest for this candidate is
+The earlier clean-checkout digest for the referenced candidate was
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `ccb23103e05093b9d0ea9338e66ddd2798b6a59d814e2a0f903277e63fe85ac5` (778 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) added the missing linetype regression at digest `ccb23103e05093b9d0ea9338e66ddd2798b6a59d814e2a0f903277e63fe85ac5` (778 inputs). The current 781-input digest is recorded in Integration above; platform and native qualification remain open.
 
 The earlier [focused CI receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json)
 applies to its recorded digest, not this candidate. Recheck current-head CI and
