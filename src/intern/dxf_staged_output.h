@@ -234,6 +234,43 @@ private:
     std::size_t at{0u}, tokens{0u};
 };
 
+// Check the single selected HEADER reference using the same framing for
+// converter and consumers. Graph closure and source identity are separate.
+inline bool inspectHeaderMaterial(const dxfRW::DxfHeaderWriteView& view,
+                                  bool present, std::uint32_t expectedTarget) {
+    if (!present && expectedTarget != 0u) return false;
+    RecordCursor cursor(view.bytes, view);
+    RecordCursor::Token token;
+    if (!cursor.next(token) || token.code != 2 || token.text != "HEADER") return false;
+    bool selected = false;
+    unsigned variables = 0u, fields = 0u;
+    std::uint32_t target = 0u;
+    while (!cursor.done()) {
+        if (!cursor.next(token) || token.code == 0) return false;
+        if (token.code == 9) {
+            if (selected && fields != 1u) return false;
+            auto alias = token.text;
+            if (!alias.empty() && alias.front() == '$') alias.remove_prefix(1);
+            constexpr std::string_view expected = "CMATERIAL";
+            bool materialAlias = alias.size() == expected.size();
+            for (std::size_t i = 0u; materialAlias && i < alias.size(); ++i) {
+                const auto c = alias[i] >= 'a' && alias[i] <= 'z' ? alias[i] - 'a' + 'A' : alias[i];
+                materialAlias = c == expected[i];
+            }
+            if (materialAlias && token.text != "$CMATERIAL") return false;
+            selected = token.text == "$CMATERIAL";
+            if (selected && ++variables != 1u) return false;
+            continue;
+        }
+        if (!selected) continue;
+        if (token.code != 347 || ++fields != 1u || token.text.empty() || token.text.size() > 16u) return false;
+        const auto parsed = std::from_chars(token.text.data(), token.text.data() + token.text.size(), target, 16);
+        if (parsed.ec != std::errc{} || parsed.ptr != token.text.data() + token.text.size()) return false;
+    }
+    return (!selected || fields == 1u) && variables == (present ? 1u : 0u)
+        && target == expectedTarget;
+}
+
 struct Shape {
     Family kind{Family::Other};
     std::uint32_t handle{0};

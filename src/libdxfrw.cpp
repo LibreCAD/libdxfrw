@@ -4633,6 +4633,23 @@ bool dxfRW::setDxfHeaderWriteInspector(DxfHeaderWriteInspector inspector) {
     return true;
 }
 
+bool dxfRW::inspectDxfHeaderMaterialReference(
+        const DxfHeaderWriteView& view, bool present,
+        std::uint32_t sourceHandle) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
+        || m_writeError || writer->hasWriteError() || view.version != version
+        || view.version < DRW::AC1021 || view.binary != binFile
+        || (!present && sourceHandle != 0u))
+        return false;
+    try {
+        const auto target = sourceHandle ? remapHandle(sourceHandle) : 0u;
+        if (sourceHandle && !target) return false;
+        return dx_standard_output::inspectHeaderMaterial(view, present, target);
+    } catch (...) {
+        return false;
+    }
+}
+
 bool dxfRW::setDxfEntitySectionsWriteInspector(DxfEntitySectionsWriteInspector inspector) {
     if (!preflightDxfSetup() || m_wholeOperationActive || writer != nullptr)
         return failDxfWrite();

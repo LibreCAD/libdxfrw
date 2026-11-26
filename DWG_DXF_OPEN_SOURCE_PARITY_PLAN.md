@@ -27,7 +27,9 @@ evidence are recorded in `docs/research/` and Git history.
   verifies selected staged layer references and rejects unexpected non-null
   references. The [consumer staged-check slice](docs/research/p8d-librecad-staged-layer-material-output-2026-11-26.json)
   uses both inspectors for bounded already-admitted typed graphs and rechecks
-  source state before publication. Extend graph and HEADER admission before
+  source state before publication. The [shared staged HEADER inspector](docs/research/p8d-shared-staged-header-material-2026-11-26.json)
+  checks the emitted material reference through the converter's decoder; bind
+  it in the consumer. Extend graph and HEADER admission before
   enabling raw-only replay.
   The [bounded source-snapshot prerequisite](docs/research/p8d-librecad-sparse-material-source-snapshot-2026-11-26.json)
   retains immutable copies for the explicitly opted-in small-source profile;
@@ -97,8 +99,8 @@ evidence are recorded in `docs/research/` and Git history.
 - **Integration:** verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 58dad684a3d7462791c10f98d4c5f3b55aa024fce91dba2474451a95e065709c
-  (778 inputs). The physical HEADER observer changes selected inputs,
+  digest: 2f44a20e8b1df3818e040748b00507ccc806225f94f69ad6cdda7ee464f8afa8
+  (778 inputs). The shared HEADER inspector changes selected inputs,
   so earlier digest-bound results remain historical. LibreCAD consumer head:
   b25f463bb529305a9248801b1e18752791ad2365. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
@@ -398,7 +400,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `58dad684a3d7462791c10f98d4c5f3b55aa024fce91dba2474451a95e065709c` (778 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `2f44a20e8b1df3818e040748b00507ccc806225f94f69ad6cdda7ee464f8afa8` (778 inputs); platform and native qualification remain open.
 
 The earlier [focused CI receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json)
 applies to its recorded digest, not this candidate. Recheck current-head CI and

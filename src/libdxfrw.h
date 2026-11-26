@@ -113,6 +113,7 @@ public:
 #define LIBDXFRW_HAS_DXF_STAGED_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_RAW_OBJECT_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_LAYER_MATERIAL_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_STAGED_HEADER_MATERIAL_INSPECTOR 1
 class dxfRW {
 public:
     using ImageDefinitionKey = std::pair<std::uint64_t, std::uint32_t>;
@@ -268,6 +269,13 @@ public:
         const std::vector<DxfLayerMaterialReference>& expected) const noexcept;
     using DxfHeaderWriteView = DxfObjectsWriteView;
     using DxfHeaderWriteInspector = DxfObjectsWriteInspector;
+    /** Check one staged HEADER material reference against its source handle
+     * after the active output remap. Call only in the HEADER inspector with
+     * its borrowed view. This checks framing and the selected scalar, not
+     * source provenance, graph closure or published output. */
+    bool inspectDxfHeaderMaterialReference(const DxfHeaderWriteView& view,
+                                           bool present,
+                                           std::uint32_t sourceHandle) const noexcept;
     /** Optional HEADER inspection with the same guard/lifetime/tentative
      * contract as OBJECTS. Bytes include the opening group2 HEADER, exclude
      * SECTION/ENDSEC, and contain the pre-backpatch HANDSEED placeholder.

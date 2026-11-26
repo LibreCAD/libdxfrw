@@ -46770,33 +46770,8 @@ bool dx_iface::inspectDxfHeaderMaterial(const dxfRW::DxfHeaderWriteView& view) n
     if(!state.active)return true;
     if(state.inspected)return false;
     try {
-        dx_standard_output::RecordCursor cursor(view.bytes,view);dx_standard_output::RecordCursor::Token token;
-        if(!cursor.next(token)||token.code!=2||token.text!="HEADER")return false;
-        bool selected=false;unsigned variables=0u,fields=0u;std::uint32_t target=0u;
-        while(!cursor.done()) {
-            if(!cursor.next(token)||token.code==0)return false;
-            if(token.code==9) {
-                if(selected&&fields!=1u)return false;
-                auto alias=token.text;
-                if(!alias.empty()&&alias.front()=='$')alias.remove_prefix(1);
-                constexpr std::string_view expected="CMATERIAL";
-                bool materialAlias=alias.size()==expected.size();
-                for(std::size_t i=0u;materialAlias&&i<alias.size();++i) {
-                    const auto c=alias[i]>='a'&&alias[i]<='z'?alias[i]-'a'+'A':alias[i];
-                    materialAlias=c==expected[i];
-                }
-                if(materialAlias&&token.text!="$CMATERIAL")return false;
-                selected=token.text=="$CMATERIAL";
-                if(selected&&++variables!=1u)return false;
-                continue;
-            }
-            if(!selected)continue;
-            if(token.code!=347||++fields!=1u||token.text.empty()||token.text.size()>16u)return false;
-            const auto parsed=std::from_chars(token.text.data(),token.text.data()+token.text.size(),target,16);
-            if(parsed.ec!=std::errc{}||parsed.ptr!=token.text.data()+token.text.size())return false;
-        }
-        if((selected&&fields!=1u)||variables!=(state.present?1u:0u)
-            ||target!=(state.target?dxfW->remapHandle(state.target):0u))return false;
+        const auto target = state.target ? dxfW->remapHandle(state.target) : 0u;
+        if(!dx_standard_output::inspectHeaderMaterial(view,state.present,target))return false;
         state.inspected=true;return true;
     }catch(...){return false;}
 }

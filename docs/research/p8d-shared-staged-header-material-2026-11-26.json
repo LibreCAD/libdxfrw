@@ -1,0 +1,19 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-shared-staged-header-material-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateParent": "c6bede872",
+  "implementationDigestSha256": "2f44a20e8b1df3818e040748b00507ccc806225f94f69ad6cdda7ee464f8afa8",
+  "scope": "Extract the converter's staged HEADER material decoder into the existing shared staged-output utility and expose an inspection method for the active HEADER callback; bind source handles through the writer's remap.",
+  "validation": [
+    "PASS: generated ASCII and Binary controls cover remapped non-null, explicit null and absent references, malformed case aliases, incorrect expected targets, out-of-callback refusal, preserved destinations and corrected retries.",
+    "PASS: the focused control under AddressSanitizer with detect_leaks=0.",
+    "PASS: freshly rebuilt converter HEADER regression, 80 profiles with 1634 independently inspected fields, 80 readbacks, 68 callback rollbacks and 248 corrected retries.",
+    "PASS: source-release inventory and implementation digest check in a clean scratch checkout."
+  ],
+  "limits": [
+    "The caller must bind the borrowed view to the correct HEADER callback and prove source identity, graph closure and final publication separately.",
+    "The consumer has not yet installed the shared HEADER inspector; raw-only replay remains refused.",
+    "No native or platform support claim is promoted."
+  ]
+}

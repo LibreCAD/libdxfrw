@@ -53,9 +53,10 @@ struct DxfWriter:LC3CompatCheck {
  bool finalizeDxfWrite()override{return ok;}
 };
 struct MaterialGraphWriter:LC3CompatCheck {
- dxfRW& out;std::vector<DRW_RawDxfObject> raw;DRW_Dictionary dict;bool ok=true,extraLayer=false;
+ dxfRW& out;std::vector<DRW_RawDxfObject> raw;DRW_Dictionary dict;bool ok=true,extraLayer=false,headerEnabled=true;
+ std::string headerTarget="20";
  explicit MaterialGraphWriter(dxfRW& w):out(w){}
- void writeHeader(DRW_Header& h)override{h.addStr("$CMATERIAL","20",347);}
+ void writeHeader(DRW_Header& h)override{if(headerEnabled)h.addStr("$CMATERIAL",headerTarget,347);}
  void writeLayers()override{DRW_Layer layer;layer.name="RAWTEST";layer.handle=0x90;layer.materialHandle.ref=0x21;ok=out.writeLayer(&layer)&&ok;
   if(extraLayer){DRW_Layer other;other.name="OTHER";other.handle=0x91;other.materialHandle.ref=0x20;ok=out.writeLayer(&other)&&ok;}}
  void writeObjects()override{ok=out.writeDictionary(&dict)&&ok;for(auto& object:raw)ok=out.writeRawDxfObject(&object)&&ok;}
@@ -398,6 +399,8 @@ int main(){
   const auto input=dir/(binary?"graph-source-binary.dxf":"graph-source-ascii.dxf");
   const auto output=dir/(binary?"graph-output-binary.dxf":"graph-output-ascii.dxf");
   dxfRW writer(output.string().c_str());MaterialGraphWriter graph(writer);
+  const dxfRW::DxfHeaderWriteView inactive{"",DRW::AC1024,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
+  if(writer.inspectDxfHeaderMaterialReference(inactive,false,0u))return 102;
   const char* handles[]={"1F","20","21"};const int modes[]={0,8,9};
   for(int i=0;i<3;++i){
    if(!ezdxfDefaultSource(input,binary,modes[i],handles[i]))return 66;
@@ -410,12 +413,21 @@ int main(){
   graph.dict.m_entries={{"ByBlock",0x1F},{"ByLayer",0x20},{"Global",0x21}};
   writer.setHandleRemap({{0xA,0xC},{0xE,0xF010},{0x1F,0xF011},{0x20,0xF012},{0x21,0xF013}});
   writer.setRootDictEntries({{"ACAD_MATERIAL","F010"}});
+  std::uint32_t headerSource=0x20;bool headerPresent=true,headerSeen=false;
+  if(!writer.setDxfHeaderWriteInspector([&](const auto& view){
+   headerSeen=true;std::string changed(view.bytes);const auto at=changed.find("$CMATERIAL");
+   if(at!=std::string::npos){
+    changed[at+1u]='c';auto bad=view;bad.bytes=changed;
+    if(writer.inspectDxfHeaderMaterialReference(bad,headerPresent,headerSource))return false;
+   }
+   return writer.inspectDxfHeaderMaterialReference(view,headerPresent,headerSource);
+  }))return 96;
   std::vector<dxfRW::DxfLayerMaterialReference> layerReferences{{"RAWTEST",0x90,0x21,true}};
   if(!writer.setDxfTablesWriteInspector([&](const auto& view){return writer.inspectDxfLayerMaterialReferences(view,layerReferences);}))return 87;
   std::vector<const DRW_RawDxfObject*> selected;
   for(const auto& raw:graph.raw)selected.push_back(&raw);
   if(!writer.setDxfObjectsWriteInspector([&](const auto& view){return writer.inspectDxfRawMaterialRecords(view,selected);}))return 77;
-  if(!writer.write(&graph,DRW::AC1024,binary)||!graph.ok)return 68;
+  if(!writer.write(&graph,DRW::AC1024,binary)||!graph.ok||!headerSeen)return 68;
   Reader check;dxfRW reread(output.string().c_str());
   if(!reread.read(&check,false)||check.raw.size()!=3u||check.materials.size()!=3u
      ||check.currentMaterial!="F012")return 69;
@@ -435,6 +447,18 @@ int main(){
   auto layer=std::find_if(check.layers.begin(),check.layers.end(),[](const auto& l){return l.name=="RAWTEST";});
   std::uint32_t target=0;bool present=false;
   if(layer==check.layers.end()||!layer->getDxfMaterialHandle(target,present)||!present||target!=0xF013)return 73;
+  {std::ofstream f(output);f<<"sentinel";}
+  headerSource=0x21;
+  if(writer.write(&graph,DRW::AC1024,binary)||bytes(output)!="sentinel")return 97;
+  headerSource=0x20;headerPresent=false;
+  if(writer.write(&graph,DRW::AC1024,binary)||bytes(output)!="sentinel")return 98;
+  headerPresent=true;
+  if(!writer.write(&graph,DRW::AC1024,binary))return 99;
+  graph.headerTarget="0";headerSource=0;
+  if(!writer.write(&graph,DRW::AC1024,binary))return 100;
+  graph.headerEnabled=false;headerPresent=false;
+  if(!writer.write(&graph,DRW::AC1024,binary))return 101;
+  graph.headerEnabled=true;graph.headerTarget="20";headerPresent=true;headerSource=0x20;
   {std::ofstream f(output);f<<"sentinel";}
   layerReferences.front().sourceMaterialHandle=0x20;
   if(writer.write(&graph,DRW::AC1024,binary)||bytes(output)!="sentinel")return 88;
