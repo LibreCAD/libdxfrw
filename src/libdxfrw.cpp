@@ -5217,6 +5217,23 @@ bool dxfRW::inspectDxfLayerMaterialReferences(
     }
 }
 
+bool dxfRW::inspectDxfLayerPlotStyleReferences(
+        const DxfTablesWriteView& view, std::uint32_t target) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer ||
+        m_writeError || writer->hasWriteError() || view.version != version ||
+        view.version <= DRW::AC1014 || view.binary != binFile ||
+        target == 0u || target == DRW::NoHandle)
+        return false;
+    try {
+        return dx_symbol_output::inspectLayerReferences(view, true,
+            [target](const dx_symbol_output::LayerReferences& row) {
+                return row.hasPlotStyle && row.plotStyle == target;
+            });
+    } catch (...) {
+        return false;
+    }
+}
+
 std::size_t dxfRW::dxfWriteRecordHandleCount(
         std::uint32_t handle) const noexcept {
     return writer == nullptr ? 0u : writer->recordHandleCount(handle);

@@ -115,6 +115,7 @@ public:
 #define LIBDXFRW_HAS_DXF_STAGED_ENTITY_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_DEFAULT_PLOT_PLACEHOLDER_HANDLE 1
 #define LIBDXFRW_HAS_DXF_STAGED_LAYER_MATERIAL_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_STAGED_LAYER_PLOT_STYLE_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_HEADER_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_ROOT_ENTRY_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_REFERENCE_INSPECTOR 1
@@ -298,6 +299,11 @@ public:
     bool inspectDxfLayerMaterialReferences(
         const DxfTablesWriteView& view,
         const std::vector<DxfLayerMaterialReference>& expected) const noexcept;
+    /** Check that every staged LAYER names the selected plot-style target.
+     * This inspects physical group 390 only; callers must separately prove
+     * source provenance and target object closure. */
+    bool inspectDxfLayerPlotStyleReferences(const DxfTablesWriteView& view,
+                                            std::uint32_t target) const noexcept;
     using DxfHeaderWriteView = DxfObjectsWriteView;
     using DxfHeaderWriteInspector = DxfObjectsWriteInspector;
     /** Check one staged HEADER material reference against its source handle

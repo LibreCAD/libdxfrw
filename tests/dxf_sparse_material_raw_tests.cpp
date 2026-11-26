@@ -437,6 +437,7 @@ int main(){
   const dxfRW::DxfHeaderWriteView inactive{"",DRW::AC1024,binary,"UTF-8",dxfRW::DxfCompatibilityProfile::StandaloneSafe};
   if(writer.inspectDxfHeaderMaterialReference(inactive,false,0u))return 102;
   if(writer.inspectDxfRootDictionaryEntry(inactive,"ACAD_MATERIAL",0xEu,350))return 103;
+  if(writer.inspectDxfLayerPlotStyleReferences(inactive,0xFu))return 111;
   const char* handles[]={"1F","20","21"};const int modes[]={0,8,9};
   for(int i=0;i<3;++i){
    if(!ezdxfDefaultSource(input,binary,modes[i],handles[i]))return 66;
@@ -459,7 +460,21 @@ int main(){
    return writer.inspectDxfHeaderMaterialReference(view,headerPresent,headerSource);
   }))return 96;
   std::vector<dxfRW::DxfLayerMaterialReference> layerReferences{{"RAWTEST",0x90,0x21,true}};
-  if(!writer.setDxfTablesWriteInspector([&](const auto& view){return writer.inspectDxfLayerMaterialReferences(view,layerReferences);}))return 87;
+  bool wrongPlotTarget=false;
+  if(!writer.setDxfTablesWriteInspector([&](const auto& view){
+   const auto target=writer.dxfWriteDefaultPlotStylePlaceholderHandle();
+   if(!target)return false;
+   const auto value=writer.toHexStrHandle(target);
+   const auto marker=binary?std::string("\x86\x01",2)+value+std::string(1,'\0'):"390\n"+value+"\n";
+   std::string changed(view.bytes);const auto at=changed.find(marker);
+   if(at==std::string::npos)return false;
+   const auto valueAt=at+(binary?2u:4u);
+   changed[valueAt]=changed[valueAt]=='1'?'2':'1';
+   auto bad=view;bad.bytes=changed;
+   return !writer.inspectDxfLayerPlotStyleReferences(bad,target)
+       && writer.inspectDxfLayerPlotStyleReferences(view,wrongPlotTarget?target+1u:target)
+       && writer.inspectDxfLayerMaterialReferences(view,layerReferences);
+  }))return 87;
   std::vector<const DRW_RawDxfObject*> selected;
   for(const auto& raw:graph.raw)selected.push_back(&raw);
   std::uint32_t rootTarget=0xE;int rootRole=350;
@@ -488,6 +503,11 @@ int main(){
    return !altered&&ownerRejected&&selfRejected&&root&&materials;
   }))return 77;
   if(!writer.write(&graph,DRW::AC1024,binary)||!graph.ok||!headerSeen)return 68;
+  {std::ofstream f(output);f<<"sentinel";}
+  wrongPlotTarget=true;
+  if(writer.write(&graph,DRW::AC1024,binary)||bytes(output)!="sentinel")return 112;
+  wrongPlotTarget=false;
+  if(!writer.write(&graph,DRW::AC1024,binary))return 113;
   Reader check;dxfRW reread(output.string().c_str());
   if(!reread.read(&check,false)||check.raw.size()!=3u||check.materials.size()!=3u
      ||check.currentMaterial!="F012")return 69;
