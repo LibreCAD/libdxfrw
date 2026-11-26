@@ -18,6 +18,7 @@ struct Exporter : LC3CompatCheck {
     std::vector<References> references;
     std::vector<DRW_Image> imageFields;
     std::vector<DRW_ImageDef> definitionFields;
+    std::vector<DRW_RawDxfObject> rawPlot;
     bool ok = false;
     void writeEntities() override {
         references.clear();
@@ -42,6 +43,9 @@ struct Exporter : LC3CompatCheck {
                                   static_cast<std::uint32_t>(std::stoul(pair.first, nullptr, 16))});
         }
     }
+    void writeObjects() override {
+        for (auto& object : rawPlot) ok = output.writeRawDxfObject(&object) && ok;
+    }
     bool finalizeDxfWrite() override { return ok; }
 };
 struct Reader : LC3CompatCheck {
@@ -57,6 +61,25 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
     dxfRW writer(path.string().c_str());
     writer.setDxfCompatibilityProfile(profile);
     Exporter adapter(writer, version);
+    if (version >= DRW::AC1015) {
+        DRW_RawDxfObject dictionary, placeholder;
+        dictionary.name = "ACDBDICTIONARYWDFLT"; dictionary.handle = 0xA0u;
+        dictionary.parentHandle = 0xCu; dictionary.m_version = version;
+        dictionary.groups.emplace_back(5, std::string("A0"));
+        dictionary.groups.emplace_back(330, std::string("C"));
+        dictionary.groups.emplace_back(100, std::string("AcDbDictionary"));
+        dictionary.groups.emplace_back(281, 1);
+        dictionary.groups.emplace_back(3, std::string("Normal"));
+        dictionary.groups.emplace_back(350, std::string("A1"));
+        dictionary.groups.emplace_back(100, std::string("AcDbDictionaryWithDefault"));
+        dictionary.groups.emplace_back(340, std::string("A1"));
+        placeholder.name = "ACDBPLACEHOLDER"; placeholder.handle = 0xA1u;
+        placeholder.parentHandle = 0xA0u; placeholder.m_version = version;
+        placeholder.groups.emplace_back(5, std::string("A1"));
+        placeholder.groups.emplace_back(330, std::string("A0"));
+        adapter.rawPlot = {dictionary, placeholder};
+        writer.setRootDictEntries({{"ACAD_PLOTSTYLENAME", "A0"}});
+    }
     unsigned mode = 0;
     if (!writer.setDxfEntitySectionsWriteInspector([&](const auto& view, std::string_view section) {
         auto expected = section == "ENTITIES" ? adapter.references : std::vector<References>{};
@@ -205,6 +228,7 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             const auto plot = writer.dxfWriteDefaultPlotStyleDictionaryHandle();
             if (plot) root.push_back({"ACAD_PLOTSTYLENAME", plot, 350});
             root.push_back({"ACAD_IMAGE_DICT", dictionary, 350});
+            if (!adapter.rawPlot.empty()) root.push_back({"ACAD_PLOTSTYLENAME", 0xA0u, 350});
             std::vector<dxfRW::DxfDictionaryOutputExpectation> images{
                 {"first", adapter.references[0].definition, 350},
                 {"second", adapter.references[1].definition, 350}};
@@ -226,6 +250,21 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             }
             valid = writer.inspectDxfDictionaryOutput(view, 0xCu, 0u, 0, 1, root) &&
                     writer.inspectDxfDictionaryOutput(view, dictionary, 0xCu, 0, cloning, images);
+            if (valid && !adapter.rawPlot.empty()) {
+                auto changedPlot = adapter.rawPlot;
+                if (mode == 43) changedPlot.front().groups[3] = DRW_Variant(281, 2);
+                std::vector<const DRW_RawDxfObject*> expectedPlot{&changedPlot[0], &changedPlot[1]};
+                if (mode == 44 || mode == 45) {
+                    std::string changed(view.bytes);
+                    const auto position = changed.find(mode == 44 ? "Normal" : "ACDBDICTIONARYWDFLT");
+                    if (position == std::string::npos) return false;
+                    changed[position] = 'X';
+                    auto altered = view;
+                    altered.bytes = changed;
+                    return writer.inspectDxfRawObjectRecords(altered, expectedPlot);
+                }
+                valid = writer.inspectDxfRawObjectRecords(view, expectedPlot);
+            }
         }
         if (!valid && mode == 0) std::cerr << "IMAGE object inspection failed\n";
         return valid;
@@ -234,7 +273,7 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
         std::cerr << "baseline write failed, ok=" << adapter.ok << " references=" << adapter.references.size() << '\n';
         return false;
     }
-    for (mode = 1; mode <= 42; ++mode) {
+    for (mode = 1; mode <= 45; ++mode) {
         if (mode == 33 && version < DRW::AC1024) continue;
         if (mode >= 35 && version < DRW::AC1015) continue;
         { std::ofstream destination(path, std::ios::binary | std::ios::trunc); destination << "sentinel"; }

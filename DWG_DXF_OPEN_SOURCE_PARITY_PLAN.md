@@ -42,6 +42,7 @@ evidence are recorded in `docs/research/` and Git history.
   admission and graph closure. The bounded [IMAGEDEF](docs/research/p8d-shared-staged-imagedef-scalars-2026-11-26.json)
   and [IMAGE entity](docs/research/p8d-shared-staged-image-entity-scalars-2026-11-26.json)
   scalar checks and the [staged dictionary check](docs/research/p8d-shared-staged-dictionary-2026-11-26.json)
+  and [raw plot-style check](docs/research/p8d-shared-staged-plotstyle-raw-2026-11-26.json)
   are ready for multi-image consumer wiring. The [staged object-link
   check](docs/research/p8d-librecad-staged-image-object-links-2026-11-26.json)
   now covers the existing single-image consumer graph; bind physical source,
@@ -79,7 +80,7 @@ evidence are recorded in `docs/research/` and Git history.
   using the next traced hosted run; preserve its diagnostic artifact. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 00eb0a316d3935a9f0e02a4aba0e24d6bbdc9b7b12e54c4da7d05886f4939726
+  digest: 8dafd4af8665d66823c171a3f99aa826860a4d1c63758de9c563b4dc73382748
   (780 inputs). The [CI contract refresh](docs/research/p8-staged-image-ci-contract-refresh-2026-11-26.json)
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier

@@ -236,9 +236,9 @@ public:
     bool inspectDxfRawMaterialRecords(
         const DxfObjectsWriteView& view,
         const std::vector<const DRW_RawDxfObject*>& expected) const noexcept;
-    /** As above, but accepts a mixture of raw MATERIAL and DICTIONARY
-     * records. It verifies only the selected emitted records, not graph
-     * closure or additional unselected records. */
+    /** As above, but accepts a mixture of raw MATERIAL, DICTIONARY,
+     * ACDBDICTIONARYWDFLT and ACDBPLACEHOLDER records. It verifies only the
+     * selected emitted records, not graph closure or additional records. */
     bool inspectDxfRawObjectRecords(
         const DxfObjectsWriteView& view,
         const std::vector<const DRW_RawDxfObject*>& expected) const noexcept;

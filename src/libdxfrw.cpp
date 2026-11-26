@@ -5034,7 +5034,8 @@ bool dxfRW::inspectDxfRawObjectRecords(
         std::size_t groups = 0u;
         constexpr std::size_t maxGroups = 1024u * 1024u;
         for (const auto* raw : expected) {
-            if (!raw || (raw->name != "MATERIAL" && raw->name != "DICTIONARY")
+            if (!raw || (raw->name != "MATERIAL" && raw->name != "DICTIONARY"
+                         && raw->name != "ACDBDICTIONARYWDFLT" && raw->name != "ACDBPLACEHOLDER")
                 || raw->m_version != view.version
                 || raw->handle == 0u || raw->handle == DRW::NoHandle
                 || raw->groups.empty() || raw->groups.size() > maxGroups - groups

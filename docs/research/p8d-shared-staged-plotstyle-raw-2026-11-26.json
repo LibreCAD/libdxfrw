@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-shared-staged-plotstyle-raw-2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "8dafd4af8665d66823c171a3f99aa826860a4d1c63758de9c563b4dc73382748",
+  "change": "Extend the shared selected raw-object staged comparison to ACDBDICTIONARYWDFLT and ACDBPLACEHOLDER, preserving its exact field and translated-handle checks.",
+  "checks": [
+    "PASS: generated R2000\u2013R2018 ASCII/Binary standalone and LibreCAD-profile controls, including modified typed fields, modified staged text and wrong record type, destination preservation and retry.",
+    "PASS: the focused matrix under macOS AddressSanitizer.",
+    "PASS: offline Linux ARM64 GCC 13 warning-as-error syntax checks of the library and regression test.",
+    "PASS: source-release inventory and qualification digest."
+  ],
+  "limits": [
+    "The helper checks only selected raw records; callers must separately prove source admission, graph closure, target classes and final publication.",
+    "The bounded two-image consumer profile is not yet committed or qualified."
+  ]
+}
