@@ -65,7 +65,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`3bb01572eb78399ccf12d6310cc85e19ab4f302a`. The prior merge head built the
+`efdbd24df4554ab10c1d794627ae02394ac6026f`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -120,7 +120,10 @@ collision between a preserved LINE and generated ENDBLK; the selector passed
 50/52. The [linetype total follow-up](docs/research/p8d-linetype-equivalent-total-preservation-2026-11-25.json)
 preserves equivalent declared totals and validates table contents and counts;
 the focused selector now passes 52/52 with both codecs. Independent ezdxf and
-LibreDWG checks match 32 selected totals. Qualify broader/native profiles. The [R14 header diagnostic](docs/research/p8d-r14-header-self-resave-diagnostic-2026-11-25.json)
+LibreDWG checks match 32 selected totals. The [FIELD EED range control](docs/research/p8d-field-eed-signed-range-control-2026-11-25.json)
+checks refusal of out-of-range signed values, explicit correction and same-filter
+retry; system and bundled XDATA selectors pass, and LibreDWG confirms selected
+FIELD/FIELDLIST APPID links and stored bit patterns. Qualify broader/native profiles. The [R14 header diagnostic](docs/research/p8d-r14-header-self-resave-diagnostic-2026-11-25.json)
 binds the reimport/resave refusal to three group-290 Boolean variables emitted
 by the first save; an independent version table also flags 64 header variables
 as R2000-or-later. Establish the R14 schema and loss policy, then separately
