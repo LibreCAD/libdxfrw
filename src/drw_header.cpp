@@ -1003,20 +1003,15 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
         writer->writeBool(290, getInt(name, &value) ? value != 0 : defaultValue);
     };
     if (!resolveDxfDimensionVariables(ver, legacyDimunit, legacyDimfit,
-                                      dimlunit, dimfrac, dimatfit, dimtmove))
-        return;
-    if (!canWriteDxfMaterialReference(ver)) {
+                                      dimlunit, dimfrac, dimatfit, dimtmove)
+        || !canWriteDxfMaterialReference(ver)
+        || !canWriteDxfVisualStyleReferences(ver)
+        || !canWriteDxfCustomProperties(ver)
+        || !canWriteDxfRequiredVersions(ver)
+        || !canWriteDxfPlotStyleId(ver)) {
         writer->markWriteError();
         return;
     }
-    if (!canWriteDxfVisualStyleReferences(ver))
-        return;
-    if (!canWriteDxfCustomProperties(ver))
-        return;
-    if (!canWriteDxfRequiredVersions(ver))
-        return;
-    if (!canWriteDxfPlotStyleId(ver))
-        return;
     writer->writeString(2, "HEADER");
     writer->writeString(9, "$ACADVER");
     switch (ver) {

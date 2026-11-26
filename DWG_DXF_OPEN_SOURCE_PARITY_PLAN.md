@@ -39,6 +39,9 @@ evidence are recorded in `docs/research/` and Git history.
   See the [authority comparison](docs/research/p8d-r14-display-header-authority-2026-11-26.json),
   [R12 guard](docs/research/p8d-r12-pellipse-nonzero-refusal-2026-11-26.json)
   and [omission report](docs/research/p8d-r12-pellipse-zero-omission-report-2026-11-26.json).
+  The [direct-writer guard](docs/research/p8d-direct-header-preflight-error-2026-11-26.json)
+  now marks rejected HEADER states as errors before output; retain those
+  refusal and retry checks when extending the remaining profiles.
 - **Graph editing and wide handles:** close full associative HATCH editing,
   unmatched reverse links, copy and identity collisions; retain the explicit
   deassociation report. Extend the bounded wide-self-handle profile to 64-bit
@@ -54,7 +57,7 @@ evidence are recorded in `docs/research/` and Git history.
 - **Integration:** verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 29a5f8c0f06114a7216607292666ce04b19035a18be7eb2a81df7f8ecb56b833
+  digest: 1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be
   (775 inputs). LibreCAD consumer head:
   92f84081a651e7bb131c5a707531d395abe79a2f. Prior platform receipts apply only
   to their recorded inputs. All format claims remain EXPERIMENTAL.
@@ -550,7 +553,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `29a5f8c0f06114a7216607292666ce04b19035a18be7eb2a81df7f8ecb56b833` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be` (775 inputs); platform and native qualification remain open.
 
 The earlier [focused CI receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json)
 applies to its recorded digest, not this candidate. Recheck current-head CI and

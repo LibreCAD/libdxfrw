@@ -21147,6 +21147,33 @@ void testHeaderPackedFlags(TestContext& t) {
             t.expect(refused && !writer->hasWriteError() && !output.str().empty(),
                      "R14 HEADER refuses an explicit flag before output and retries after correction");
         }
+        for (unsigned scenario = 0; scenario != 5u; ++scenario) {
+            std::ostringstream output(std::ios::out | std::ios::binary);
+            std::unique_ptr<dxfWriter> writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+            writer->setVersion("AC1014", true);
+            HeaderWriteProbe invalid;
+            if (scenario == 0u) {
+                invalid.addInt("$DIMATFIT", 1, 70);
+                invalid.addInt("$DIMTMOVE", 2, 70);
+            } else if (scenario == 1u) {
+                invalid.addStr("$INTERFEREOBJVS", "0", 345);
+            } else if (scenario == 2u) {
+                invalid.addCustomProperty("tag", "value");
+            } else if (scenario == 3u) {
+                invalid.addInt64("$REQUIREDVERSIONS", 7, 160);
+            } else {
+                invalid.addStr("$CEPSNID", "0", 390);
+            }
+            invalid.write(writer, DRW::AC1014);
+            const bool refused = writer->hasWriteError() && output.str().empty();
+            writer->restoreWriteError(false);
+            HeaderWriteProbe corrected;
+            corrected.write(writer, DRW::AC1014);
+            t.expect(refused && !writer->hasWriteError() && !output.str().empty(),
+                     "direct HEADER writer reports invalid fields and retries after correction");
+        }
         for (const auto& field : modernLineweightFields) {
             HeaderWriteProbe source;
             source.addInt(field.first, 0, field.second);
