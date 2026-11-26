@@ -23,5 +23,17 @@
   "limits": [
     "No production behavior changed and no support claim promoted.",
     "The converted source drawings and outputs remain scratch-only."
-  ]
+  ],
+  "nondefaultRoundtripProbe": {
+    "source": "Locally authored bare-key HEADER values: PELLIPSE=1, ISOLINES=9, TEXTQLTY=75, FACETRES=2.5.",
+    "result": "R12 ASCII and Binary save and reopen succeed but omit PELLIPSE; R14 and R2000 preserve it in this library. The other three values survive all six self-readbacks. This establishes a loss, not native DXF semantics.",
+    "outputSha256": {
+      "r12-ascii": "575be0f49b0e55ce117718de73319bf9fe87a7184bbe0b295c023b59ea6ca6f1",
+      "r12-binary": "7f9447a6d515043cd6662b4a9603d5f307d56853708e333b8eee0c0582da9365",
+      "r14-ascii": "5889501c9c61548b26855a2c6c6d559065539df99af5bfb85d81205c80652e2a",
+      "r14-binary": "8c7320e244ca9618220313688e33ede9eac33b4d3bc2314a55981cabcadca0cc",
+      "r2000-ascii": "03b8cd51060549c222bb228c813b062c82c53ffe79e6df60ec1b6da97a7c900e",
+      "r2000-binary": "2bea0ce2e16a0cad31285a1570ca935fdc237a7d941c13a13360892bd75dac98"
+    }
+  }
 }

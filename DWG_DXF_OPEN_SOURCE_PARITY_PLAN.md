@@ -144,8 +144,12 @@ finds all four in the common DWG header; ODA explicitly says PELLIPSE is not
 present in DXF. Two independently converted R14 sources omit all four, but do
 not establish native acceptance or an appropriate loss policy. In particular,
 do not blanket-reject every DWG merely because its common header has these
-values. Resolve source provenance, nondefault settings, explicit omission
-reporting and existing DXF extensions before changing output. Qualify each
+values. A nondefault-value probe demonstrates that R12 ASCII/Binary export
+currently succeeds and drops PELLIPSE, while this library reopens the value in
+R14 and R2000; the other three selected values survive its six round trips.
+Implement a provenance-aware policy that prevents silent R12 loss without
+blanket failure for common DWG defaults, and handle explicit omission reporting
+and existing DXF extensions. Qualify each
 profile with physical output, ASCII/binary reimport, rollback and consumer
 controls. Handle previously emitted files
 separately; retain native qualification.
