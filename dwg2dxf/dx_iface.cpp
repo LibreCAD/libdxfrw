@@ -69330,7 +69330,7 @@ void dx_iface::proveTableResourceSource(std::uint32_t handle) noexcept {
         // output is admitted by this source-only replay.
         const bool legacyRoot=dictionary&&(raw.m_version==DRW::AC1015 || (raw.m_version==DRW::AC1018 && legacyPlotAc1018Enabled()))&&raw.handle==0xCu&&raw.parentHandle==0u;
         const bool legacyLayer=layer&&(raw.m_version==DRW::AC1015 || (raw.m_version==DRW::AC1018 && legacyPlotAc1018Enabled()))
-            &&raw.handle==0x10u&&raw.parentHandle==2u&&raw.groups.size()==11u;
+            &&raw.handle!=0u&&raw.handle!=DRW::NoHandle&&raw.parentHandle==2u&&raw.groups.size()==11u;
         const bool legacyProfile=legacyRoot||legacyLayer;
         dxfRW::DxfReadContext legacyContext;
         if (raw.m_version!=sourceVersionFromDxfHeader(cData->headerC,DRW::UNKNOWNV)
@@ -69886,7 +69886,7 @@ void dx_iface::observeResourceOrigin(const DRW_TableEntry* model,const DRW_RawDx
       (!((live.sourceVersion==DRW::AC1015 || (live.sourceVersion==DRW::AC1018 && legacyPlotAc1018Enabled())) && view.kind==V::Kind::Layer)
        && (live.sourceVersion < DRW::AC1021 || live.sourceVersion > DRW::AC1032)))
     return;
-  if((live.sourceVersion==DRW::AC1015 || live.sourceVersion==DRW::AC1018) && (!view.source || view.source->handle!=0x10u
+  if((live.sourceVersion==DRW::AC1015 || live.sourceVersion==DRW::AC1018) && (!view.source || !view.source->handle || view.source->handle==DRW::NoHandle
       ||view.source->parentHandle!=2u ||view.source->groups.size()!=11u))return;
   const bool symbol = view.kind >= V::Kind::TextStyle;
   const bool first = symbol ? (model && raw) : (model && !raw);

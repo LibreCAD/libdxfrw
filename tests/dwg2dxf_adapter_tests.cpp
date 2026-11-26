@@ -276,6 +276,21 @@ public:
             &&resource->second.rawTypedMismatch && audit->second->legacyPlotLayerBodyMatched
             &&audit->second->legacyPlotLayerOriginBound && !audit->second->bodyMatched && !audit->second->originBound;
     }
+    static bool legacyPlotLayersAreIsolated(const dx_data& data) noexcept {
+        const auto& source=data.m_tableDxfSource;
+        if (data.layers.size()!=2u || source.resourceOriginRecords!=2u
+            || source.resourceOriginInputs.size()!=2u || source.resourceOriginAudits.size()!=2u)
+            return false;
+        for (const auto& layer:data.layers) {
+            const auto resource=source.resources.find(layer.handle);
+            const auto audit=source.resourceOriginAudits.find(layer.handle);
+            if(resource==source.resources.end() || audit==source.resourceOriginAudits.end() || !audit->second
+                || !resource->second.legacyPlotLayerRawTypedMatched || resource->second.rawTypedMatched
+                || !audit->second->legacyPlotLayerBodyMatched || !audit->second->legacyPlotLayerOriginBound
+                || audit->second->bodyMatched || audit->second->originBound) return false;
+        }
+        return !dx_iface::plotStyleSourceReport(data).legacyLayerMatched;
+    }
     static bool legacyPlotRootIsIsolated(const dx_data& data) noexcept {
         const auto& source=data.m_tableDxfSource;
         const auto resource=source.resources.find(0xCu);
@@ -10624,6 +10639,32 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
                 alias->recName = "DICTIONARYWDFLT";
                 if (!dx_iface::plotStyleSourceReport(aliasData).legacyLiveClassesMatched)
                     return fail("restored plot class alias did not retry");
+            }
+            {
+                DRW_Layer extra; extra.name="EXTRA_SOURCE_LAYER"; extra.handle=0xD25Au;
+                storage.layers.push_back(extra);
+                dxfRW multi(target.string().c_str());
+                author.dxfW=&multi; author.ok=true;
+                multi.setRootDictEntries({{"XRECORD_EXTENSIONS","E010"}});
+                bool prepared=multi.setGeneratedDictionarySourceRecords(std::make_unique<DRW_Dictionary>(nod),nullptr);
+                for (const auto h : {0xE010u,0xE020u,0xE030u,0xE040u,0xE050u,0xE060u})
+                    prepared=multi.reserveHandle(h)&&prepared;
+                const bool written=prepared&&multi.write(&author,version,format==1u)&&author.ok;
+                author.dxfW=nullptr;storage.layers.pop_back();
+                dx_data multiple;dx_iface multipleReader;
+                if (!written || !multipleReader.fileImport(target.string(),&multiple,false)
+                    || !Access::legacyPlotLayersAreIsolated(multiple))
+                    return fail("additional legacy LAYER source was not isolated or relaxed the output gate");
+                const std::string sentinel="MULTI_LAYER_SOURCE_MUST_NOT_REPLACE_DESTINATION";
+                { std::ofstream output(target,std::ios::binary|std::ios::trunc);output<<sentinel; }
+                Exporter exporter;
+                if (exporter.fileExport(target.string(),DRW::AC1018,format==1u,&multiple,false,true))
+                    return fail("unqualified multiple legacy LAYER output was accepted");
+                std::ifstream prior(target,std::ios::binary);
+                if (std::string((std::istreambuf_iterator<char>(prior)),{})!=sentinel)
+                    return fail("multiple legacy LAYER refusal replaced the destination");
+                if (!exporter.fileExport(target.string(),DRW::AC1018,format==1u,&data,false,true))
+                    return fail("single legacy LAYER source did not retry after refusal");
             }
             const auto originalClasses=data.dxfClasses;
             const auto rejectLiveClasses=[&]() {
