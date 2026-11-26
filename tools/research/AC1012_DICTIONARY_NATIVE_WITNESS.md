@@ -76,8 +76,16 @@ Autodesk documents `setAt()` as replacing the existing object, which does not
 establish the dictionary's INSERT merge style or clone policy.
 Do not conflate the dictionary's stored merge style with the separate explicit
 `drc` argument of `wblockCloneObjects`; if using that API, record the exact
-argument and repeat with each relevant allowed option. Test changed and
-unchanged states and repeat after close/reopen. Keep host-created controls,
+argument and repeat with each relevant allowed option. When the destination
+owner passed directly to `wblockCloneObjects` is an `AcDbDictionary`, Autodesk
+states that newly cloned entries are anonymous. Such a direct operation does
+not, by itself, test the named `SAME_KEY` collision in the destination. Record
+actual destination keys and object-ID mappings; use the separately documented
+INSERT/merge route to investigate a named collision, and establish which
+operation actually processes the source dictionary and its entries. Do not
+infer the dictionary's stored merge style from the explicit `drc` argument or
+from an anonymous result. Test changed and unchanged states and repeat after
+close/reopen. Keep host-created controls,
 producer states, and consumer results distinct.
 
 Autodesk documents [`setAt()` duplicate-key replacement](https://help.autodesk.com/cloudhelp/2027/ENU/OARX-RefGuide/files/OREF-RefGuide-AcDbDictionary__setAt_ACHAR__AcDbObject__AcDbObjectId_.html)
@@ -96,6 +104,14 @@ docs still do not establish the in-memory default for an AC1012 dictionary
 whose serialized group 281 is absent. A fresh spec-directed LibreDWG pair and
 local physical-frame/refusal/retry proof are in the receipt; these are not
 native-open or native-merge evidence.
+
+Autodesk's [XRECORD DXF reference](https://help.autodesk.com/cloudhelp/2023/ENU/AutoCAD-DXF/files/GUID-24668FAF-AE03-41AE-AFA4-276C3692827F.htm)
+states that XRECORD objects disappear when read into AutoCAD releases before
+R13c4. Record the exact release and maintenance level for every native DXF
+roundtrip involving the pair's extension XRECORD, and verify the object's
+presence and contents after reopening. An AC1012 signature or a successful
+open alone cannot establish this; the reference is about DXF reading and does
+not by itself establish native DWG behavior.
 
 ## Return and acceptance
 

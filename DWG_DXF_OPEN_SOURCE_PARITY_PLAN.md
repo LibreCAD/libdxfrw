@@ -381,8 +381,10 @@ Additional P6 work:
 - **AC1012 source and native semantics:** use the root-case-aligned ODA pair
   and the [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md)
   to establish normal open, absent cloning-field default, duplicate merge,
-  unique entries and reopen. Qualify its ACAD EED, root empty-name/null entry,
-  extension dictionary/XRECORD graph and whole-source closure. Source-default
+  unique entries and reopen. The [native-operation constraints](docs/research/p6-ac1012-native-clone-operation-boundaries-2026-11-26.json)
+  distinguish anonymous direct dictionary clones from a named INSERT collision
+  and require the precise R13 maintenance level for XRECORD DXF checks. Qualify
+  its ACAD EED, root empty-name/null entry, extension dictionary/XRECORD graph and whole-source closure. Source-default
   output also reaches a ModelDocViewStyle cross-version guard; bind the
   [proxy bridge](docs/research/p6-oda-ac1012-modeldoc-proxy-output-screen-2026-11-21.json)
   and independent semantic roundtrip before admitting it. The
