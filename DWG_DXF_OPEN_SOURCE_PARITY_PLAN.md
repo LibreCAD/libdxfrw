@@ -35,7 +35,10 @@ evidence are recorded in `docs/research/` and Git history.
   checks one generated root edge with versioned ASCII/Binary controls. The
   [consumer root-entry slice](docs/research/p8d-librecad-staged-root-entry-2026-11-26.json)
   binds the selected edge for bounded typed graphs; separately establish
-  complete root graph closure. The [Linux ARM64 focused check](docs/research/p8-linux-arm64-material-ac1012-fast-2026-11-26.json)
+  complete root graph closure. The [independent typed-graph readback](docs/research/p8d-librecad-typed-material-ezdxf-readback-2026-11-26.json)
+  confirms one selected AC1021 output's root, material and LAYER links, with
+  the peer's synthesized default entries separated from physical file tags.
+  The [Linux ARM64 focused check](docs/research/p8-linux-arm64-material-ac1012-fast-2026-11-26.json)
   passes with GCC warnings treated as errors; native FreeCAD and GUI gates remain open.
   Extend graph and HEADER admission before
   enabling raw-only replay.
