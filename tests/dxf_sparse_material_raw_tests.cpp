@@ -53,11 +53,11 @@ struct DxfWriter:LC3CompatCheck {
  bool finalizeDxfWrite()override{return ok;}
 };
 struct MaterialGraphWriter:LC3CompatCheck {
- dxfRW& out;std::vector<DRW_RawDxfObject> raw;DRW_Dictionary dict;bool ok=true,extraLayer=false,headerEnabled=true;
+ dxfRW& out;std::vector<DRW_RawDxfObject> raw;DRW_Dictionary dict;bool ok=true,extraLayer=false,headerEnabled=true,layerMaterialEnabled=true;
  std::string headerTarget="20";
  explicit MaterialGraphWriter(dxfRW& w):out(w){}
  void writeHeader(DRW_Header& h)override{if(headerEnabled)h.addStr("$CMATERIAL",headerTarget,347);}
- void writeLayers()override{DRW_Layer layer;layer.name="RAWTEST";layer.handle=0x90;layer.materialHandle.ref=0x21;ok=out.writeLayer(&layer)&&ok;
+ void writeLayers()override{DRW_Layer layer;layer.name="RAWTEST";layer.handle=0x90;layer.materialHandle.ref=layerMaterialEnabled?0x21:0;ok=out.writeLayer(&layer)&&ok;
   if(extraLayer){DRW_Layer other;other.name="OTHER";other.handle=0x91;other.materialHandle.ref=0x20;ok=out.writeLayer(&other)&&ok;}}
  void writeObjects()override{ok=out.writeDictionary(&dict)&&ok;for(auto& object:raw)ok=out.writeRawDxfObject(&object)&&ok;}
  bool finalizeDxfWrite()override{return ok;}
@@ -532,6 +532,14 @@ int main(){
   if(writer.write(&graph,DRW::AC1024,binary)||bytes(output)!="sentinel")return 90;
   layerReferences.pop_back();
   if(!writer.write(&graph,DRW::AC1024,binary))return 91;
+  const auto savedLayerReferences=layerReferences;
+  layerReferences.clear();
+  {std::ofstream f(output);f<<"sentinel";}
+  if(writer.write(&graph,DRW::AC1024,binary)||bytes(output)!="sentinel")return 107;
+  graph.layerMaterialEnabled=false;
+  if(!writer.write(&graph,DRW::AC1024,binary))return 108;
+  graph.layerMaterialEnabled=true;layerReferences=savedLayerReferences;
+  if(!writer.write(&graph,DRW::AC1024,binary))return 109;
   if(check.rawDictionaries.size()!=1u)return 81;
   selected.push_back(&check.rawDictionaries.front());
   if(!writer.setDxfObjectsWriteInspector([&](const auto& view){return writer.inspectDxfRawObjectRecords(view,selected);}))return 82;

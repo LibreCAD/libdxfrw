@@ -23,7 +23,8 @@ evidence are recorded in `docs/research/` and Git history.
   refuse missing, replaced, edited, cross-version or ambiguous graphs
   atomically. The [shared staged entity-material inspector](docs/research/p8d-staged-entity-material-references-2026-11-26.json)
   checks common group-347 output; consumer source binding and inspector
-  composition remain open. Prove ASCII/binary readback, retry and both
+  composition remain open. The [empty-layer audit](docs/research/p8d-empty-layer-material-audit-2026-11-26.json)
+  checks that no unlisted layer has a material reference. Prove ASCII/binary readback, retry and both
   consumer paths.
   Current typed-graph staged checks cover selected root, HEADER, LAYER and
   OBJECTS fields; the [root-name check](docs/research/p8d-root-dictionary-normalized-name-uniqueness-2026-11-26.json)
@@ -95,7 +96,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 34b33e6d972284192b7c50e2dad86ed9fc65a9d2ef7463f3a788fa2448b87d04
+  digest: 03f75af17d8bc8a1745043c1889364b15db8ac86804354a9a5aa16ac5e666189
   (780 inputs). The [CI contract refresh](docs/research/p8-staged-image-ci-contract-refresh-2026-11-26.json)
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier

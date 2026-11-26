@@ -5155,7 +5155,7 @@ bool dxfRW::inspectDxfLayerMaterialReferences(
     if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
         || m_writeError || writer->hasWriteError() || view.version != version
         || view.version < DRW::AC1021 || view.binary != binFile
-        || expected.empty() || expected.size() > 4096u)
+        || expected.size() > 4096u)
         return false;
     try {
         std::map<std::string, std::size_t> names;

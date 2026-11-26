@@ -291,7 +291,8 @@ public:
     };
     /** Check selected LAYER identities and their staged material references.
      * Pass the active TABLES inspector's borrowed view. Unselected layers with
-     * non-null material references are rejected. This does not prove source
+     * non-null material references are rejected, including when the expected
+     * list is empty. This does not prove source
      * provenance, material-object closure, or finalization. */
     bool inspectDxfLayerMaterialReferences(
         const DxfTablesWriteView& view,
