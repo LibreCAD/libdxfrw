@@ -927,6 +927,11 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
         };
         return !contains(vars) && !contains(customVars);
     };
+    static constexpr std::array<const char*, 18> modernOrthographicUcs{{
+        "$UCSBASE", "$UCSORTHOREF", "$UCSORTHOVIEW", "$UCSORGTOP",
+        "$UCSORGBOTTOM", "$UCSORGLEFT", "$UCSORGRIGHT", "$UCSORGFRONT", "$UCSORGBACK",
+        "$PUCSBASE", "$PUCSORTHOREF", "$PUCSORTHOVIEW", "$PUCSORGTOP",
+        "$PUCSORGBOTTOM", "$PUCSORGLEFT", "$PUCSORGRIGHT", "$PUCSORGFRONT", "$PUCSORGBACK"}};
     return canWriteDxfHeaderStructure()
         && canWriteDxfUnknownHeaderVariables()
         && canWriteDxfLinetypeScale()
@@ -948,6 +953,8 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
         && legacyVariableAbsent("$STYLESHEET")
         && legacyVariableAbsent("$TSTACKALIGN")
         && legacyVariableAbsent("$TSTACKSIZE")
+        && std::all_of(modernOrthographicUcs.begin(), modernOrthographicUcs.end(),
+                       legacyVariableAbsent)
         && canWriteDxfHeaderIntegerRange("$LWDISPLAY", 290, 0, 1, &lwdisplayPresent)
         && canWriteDxfHeaderIntegerRange("$XEDIT", 290, 0, 1, &xeditPresent)
         && canWriteDxfHeaderFlags()
@@ -1931,13 +1938,13 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
         writer->writeInt16(70, varInt);
     } else
         writer->writeInt16(70, 6);
-    if (ver > DRW::AC1009) {
-    writer->writeString(9, "$UCSBASE");
-    if (getStr("$UCSBASE", &varStr))
-        writer->writeUtf8String(2, varStr);
-    else
-        writer->writeString(2, "");
-}
+    if (ver > DRW::AC1014) {
+        writer->writeString(9, "$UCSBASE");
+        if (getStr("$UCSBASE", &varStr))
+            writer->writeUtf8String(2, varStr);
+        else
+            writer->writeString(2, "");
+    }
     writer->writeString(9, "$UCSNAME");
     if (getStr("$UCSNAME", &varStr))
         if (ver == DRW::AC1009)
@@ -1976,7 +1983,7 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
         writer->writeDouble(20, 1.0);
         writer->writeDouble(30, 0.0);
     }
-    if (ver > DRW::AC1009) { //begin post r12 UCS vars
+    if (ver > DRW::AC1014) { // R2000+ orthographic UCS variables
         writer->writeString(9, "$UCSORTHOREF");
         if (getStr("$UCSORTHOREF", &varStr))
             writer->writeUtf8String(2, varStr);
@@ -2052,7 +2059,7 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeUtf8String(2, varStr);
         else
             writer->writeString(2, "");
-    } //end post r12 UCS vars
+    }
     writer->writeString(9, "$PUCSNAME");
     if (getStr("$PUCSNAME", &varStr))
         if (ver == DRW::AC1009)
@@ -2091,7 +2098,7 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
         writer->writeDouble(20, 1.0);
         writer->writeDouble(30, 0.0);
     }
-    if (ver > DRW::AC1009) { //begin post r12 PUCS vars
+    if (ver > DRW::AC1014) { // R2000+ orthographic paper-space UCS variables
         writer->writeString(9, "$PUCSORTHOREF");
         if (getStr("$PUCSORTHOREF", &varStr))
             writer->writeUtf8String(2, varStr);
@@ -2162,7 +2169,7 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeDouble(20, 0.0);
             writer->writeDouble(30, 0.0);
         }
-    } //end post r12 PUCS vars
+    }
 
     writer->writeString(9, "$USERI1");
     if (getInt("$USERI1", &varInt))

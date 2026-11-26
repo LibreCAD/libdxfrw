@@ -21052,6 +21052,17 @@ void testHeaderPackedFlags(TestContext& t) {
 
     const std::array<std::pair<const char*, int>, 3> modernLineweightFields{{
         {"$CELWEIGHT", 370}, {"$ENDCAPS", 280}, {"$JOINSTYLE", 280}}};
+    const std::array<const char*, 18> modernOrthographicUcs{{
+        "$UCSBASE", "$UCSORTHOREF", "$UCSORTHOVIEW", "$UCSORGTOP",
+        "$UCSORGBOTTOM", "$UCSORGLEFT", "$UCSORGRIGHT", "$UCSORGFRONT", "$UCSORGBACK",
+        "$PUCSBASE", "$PUCSORTHOREF", "$PUCSORTHOVIEW", "$PUCSORGTOP",
+        "$PUCSORGBOTTOM", "$PUCSORGLEFT", "$PUCSORGRIGHT", "$PUCSORGFRONT", "$PUCSORGBACK"}};
+    const auto addOrthographicUcs = [&](DRW_Header& header, unsigned field) {
+        const auto slot = field % 9u;
+        if (slot < 2u) header.addStr(modernOrthographicUcs[field], "WORLD", 2);
+        else if (slot == 2u) header.addInt(modernOrthographicUcs[field], 2, 70);
+        else header.addCoord(modernOrthographicUcs[field], DRW_Coord(1., 2., 3.), 10);
+    };
     const auto addModernHeaderScalar = [](DRW_Header& header, unsigned field) {
         if (field == 0u) header.addStr("$HYPERLINKBASE", "assets", 1);
         else if (field == 1u) header.addInt("$CEPSNTYPE", 2, 380);
@@ -21094,6 +21105,13 @@ void testHeaderPackedFlags(TestContext& t) {
                          && (bytes.find("$TSTACKALIGN") != std::string::npos) == modern
                          && (bytes.find("$TSTACKSIZE") != std::string::npos) == modern,
                      "DXF HEADER emits these fields only for R2000 and later");
+            for (const char* name : modernOrthographicUcs)
+                t.expect((bytes.find(name) != std::string::npos) == modern,
+                         "orthographic UCS header appears only for R2000 and later");
+            for (const char* name : {"$UCSNAME", "$UCSORG", "$UCSXDIR", "$UCSYDIR",
+                                     "$PUCSNAME", "$PUCSORG", "$PUCSXDIR", "$PUCSYDIR"})
+                t.expect(bytes.find(name) != std::string::npos,
+                         "ordinary UCS header remains available in R14 and R2000");
         }
         for (const char* field : {"$EXTNAMES", "$PSTYLEMODE", "$OLESTARTUP",
                                   "$LWDISPLAY", "$XEDIT"})
@@ -21126,6 +21144,13 @@ void testHeaderPackedFlags(TestContext& t) {
             t.expect(!source.canWriteDxfHeaderInitialPreflight(DRW::AC1014)
                          && source.canWriteDxfHeaderInitialPreflight(DRW::AC1015),
                      "R14 HEADER refuses an explicit R2000 scalar setting");
+        }
+        for (unsigned field = 0; field != modernOrthographicUcs.size(); ++field) {
+            HeaderWriteProbe source;
+            addOrthographicUcs(source, field);
+            t.expect(!source.canWriteDxfHeaderInitialPreflight(DRW::AC1014)
+                         && source.canWriteDxfHeaderInitialPreflight(DRW::AC1015),
+                     "R14 HEADER refuses an explicit orthographic UCS setting");
         }
     }
 
@@ -21286,6 +21311,23 @@ void testHeaderPackedFlags(TestContext& t) {
         t.expect(refused && unchanged && retried,
                  "R14 adapter preserves the destination and retries after removing an explicit scalar");
     }
+    for (const bool binary : {false, true})
+    for (unsigned field = 0; field != modernOrthographicUcs.size(); ++field) {
+        dx_data data;
+        dx_iface adapter;
+        addOrthographicUcs(data.headerC, field);
+        { std::ofstream output(legacyPath, std::ios::binary); output << "preserve"; }
+        const bool refused = !adapter.fileExport(legacyPath.string(), DRW::AC1014,
+                                                binary, &data, false);
+        std::ifstream input(legacyPath, std::ios::binary);
+        const bool unchanged = std::string(std::istreambuf_iterator<char>(input), {}) == "preserve";
+        input.close();
+        data.headerC = DRW_Header{};
+        const bool retried = adapter.fileExport(legacyPath.string(), DRW::AC1014,
+                                                binary, &data, false);
+        t.expect(refused && unchanged && retried,
+                 "R14 adapter preserves the destination and retries after removing an orthographic UCS setting");
+    }
     const auto legacyResavePath = legacyPath.parent_path()
         / (legacyPath.stem().string() + "-again.dxf");
     const auto hasRootOwner = [](const std::filesystem::path& path, bool binary) {
@@ -21324,6 +21366,8 @@ void testHeaderPackedFlags(TestContext& t) {
         dx_iface writer, reader;
         writer.cData = &sourceData;
         writer.currentBlock = sourceData.mBlock;
+        sourceData.headerC.addCoord("$UCSORG", DRW_Coord(10., 20., 0.), 10);
+        sourceData.headerC.addCoord("$PUCSORG", DRW_Coord(4., 5., 0.), 10);
         DRW_Line line;
         line.basePoint = {1., 2., 0.};
         line.secPoint = {3., 5., 0.};
@@ -21342,6 +21386,16 @@ void testHeaderPackedFlags(TestContext& t) {
         t.expect(result != nullptr && result->basePoint.x == 1. && result->basePoint.y == 2.
                      && result->secPoint.x == 3. && result->secPoint.y == 5.,
                  "generated R14 LINE survives save, import, resave and reopen");
+        for (const auto& field : {std::pair<const char*, DRW_Coord>{"$UCSORG", {10., 20., 0.}},
+                                  {"$PUCSORG", {4., 5., 0.}}}) {
+            const auto item = reopenedData.headerC.vars.find(field.first);
+            const auto* value = item == reopenedData.headerC.vars.end() ? nullptr : item->second;
+            const auto* coord = value != nullptr && value->type() == DRW_Variant::COORD
+                ? value->coord() : nullptr;
+            t.expect(reopened && coord != nullptr && coord->x == field.second.x
+                         && coord->y == field.second.y && coord->z == field.second.z,
+                     "ordinary R14 UCS origin survives save, import, resave and reopen");
+        }
     }
     const auto modernPath = legacyPath.parent_path()
         / (legacyPath.stem().string() + "-modern.dxf");
@@ -21350,6 +21404,8 @@ void testHeaderPackedFlags(TestContext& t) {
         dx_iface writer, reader;
         for (unsigned field = 0; field != 6u; ++field)
             addModernHeaderScalar(sourceData.headerC, field);
+        for (unsigned field = 0; field != modernOrthographicUcs.size(); ++field)
+            addOrthographicUcs(sourceData.headerC, field);
         const bool saved = writer.fileExport(modernPath.string(), DRW::AC1015,
                                              binary, &sourceData, false);
         const bool imported = saved && reader.fileImport(modernPath.string(), &importedData, false);
@@ -21379,6 +21435,21 @@ void testHeaderPackedFlags(TestContext& t) {
                      && stackSize->second->type() == DRW_Variant::INTEGER
                      && stackSize->second->i_val() == 80,
                  "R2000 scalar header values survive save and reimport");
+        for (unsigned field = 0; field != modernOrthographicUcs.size(); ++field) {
+            const auto item = vars.find(modernOrthographicUcs[field]);
+            const auto slot = field % 9u;
+            bool valid = imported && item != vars.end() && item->second != nullptr;
+            if (valid && slot < 2u)
+                valid = item->second->type() == DRW_Variant::STRING
+                    && std::string(item->second->c_str()) == "WORLD";
+            else if (valid && slot == 2u)
+                valid = item->second->type() == DRW_Variant::INTEGER && item->second->i_val() == 2;
+            else if (valid)
+                valid = item->second->type() == DRW_Variant::COORD && item->second->coord() != nullptr
+                    && item->second->coord()->x == 1. && item->second->coord()->y == 2.
+                    && item->second->coord()->z == 3.;
+            t.expect(valid, "R2000 orthographic UCS header value survives save and reimport");
+        }
     }
     std::error_code legacyCleanupError;
     std::filesystem::remove(legacyPath, legacyCleanupError);

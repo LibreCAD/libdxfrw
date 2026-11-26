@@ -129,12 +129,14 @@ The [original R14 reference audit](docs/research/p8d-r14-primary-header-referenc
 corrects an independent version table: 24 of its 64 flagged fields are explicitly
 listed for R14 and must remain supported. The audited generated header initially contained 35 names absent from the
 reference. The [text/stylesheet slice](docs/research/p8d-r14-header-textstyle-2026-11-26.json)
-removes three generated defaults and refuses explicit values; 32 names remain:
-ten dimension settings, eighteen UCS/PUCS settings, and four display/geometry
-settings. Treat absence as a review lead, not automatic proof of invalidity.
-Next qualify UCS/PUCS and dimension fields in separate small slices with
-source-presence/loss policy, physical output, ASCII/binary reimport, rollback
-and consumer controls. Handle previously emitted files
+removes three generated defaults and refuses explicit values. The [orthographic
+UCS slice](docs/research/p8d-r14-header-orthographic-ucs-2026-11-26.json)
+handles eighteen newer UCS/PUCS settings while preserving and testing ordinary
+R14 UCS origins. Fourteen names remain: ten dimension settings and four
+display/geometry settings. Treat absence as a review lead, not automatic proof
+of invalidity. Next qualify dimension and display/geometry fields in small
+slices with source-presence/loss policy, physical output, ASCII/binary reimport,
+rollback and consumer controls. Handle previously emitted files
 separately; retain native qualification.
 The [R14 Boolean field slices](docs/research/p8d-r14-header-modern-booleans-2026-11-26.json)
 omit `$EXTNAMES`, `$PSTYLEMODE`, `$OLESTARTUP`, `$LWDISPLAY`, and `$XEDIT`
@@ -757,7 +759,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `c28d1b070492e075aa258d8cab90c76007977078793626caf4401372c61ed7b7` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `0a93f4a5061f928af3e5104eee5a0e7e8abf4b90594cdcebc642c0d805c6fabb` (775 inputs); platform and native qualification remain open.
 
 The earlier [focused CI receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json)
 applies to its recorded digest, not this candidate. Recheck current-head CI and
