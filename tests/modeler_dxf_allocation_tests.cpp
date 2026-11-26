@@ -390,10 +390,6 @@ void *operator new(std::size_t size) {
 }
 
 void *operator new[](std::size_t size) { return ::operator new(size); }
-void operator delete(void *value) noexcept { std::free(value); }
-void operator delete[](void *value) noexcept { std::free(value); }
-void operator delete(void *value, std::size_t) noexcept { std::free(value); }
-void operator delete[](void *value, std::size_t) noexcept { std::free(value); }
 
 int main(int argc, char **argv) {
   if (argc == 3 && std::string(argv[2]) == "--sat-token")

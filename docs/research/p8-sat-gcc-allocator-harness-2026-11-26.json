@@ -1,0 +1,16 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-26",
+  "scope": "Make the existing SAT allocation-fault harness available to the fast GCC PR lane without weakening compiler warnings.",
+  "trigger": "The fast job at 4216663ce reached compilation after the inventory repair, then GCC 13 treated inlined free-based replacement delete operators as mismatched new/delete in standard-library code.",
+  "failedJob": "https://github.com/LibreCAD/libdxfrw/actions/runs/45875703072/job/140102106807",
+  "change": "Move the already-matching free-based replacement delete operators into a separate translation unit; the allocation hook and its injected failures remain unchanged. Register the new source in CMake and the generated release inventories.",
+  "checks": [
+    "PASS: compile both harness translation units with Ubuntu GCC 13.3, -O1 -Wall -Wextra -pedantic -Werror, in an offline Linux ARM64 container.",
+    "PASS: macOS ARM64 token controls and existing modeler writer matrix, 3/3.",
+    "PASS: existing modeler allocation-failure/rollback/retry matrix, 1/1.",
+    "The frozen CTest names are unchanged by this harness split."
+  ],
+  "implementationDigestSha256": "f6445fbcb7c4a312f277592022fece4e1382274d67276a4a41803c61d38a6d85",
+  "limits": "Linux x64 and Windows hosted checks for the new commit remain required; this compilation is not format qualification."
+}

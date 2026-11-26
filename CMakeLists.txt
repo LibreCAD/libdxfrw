@@ -1657,6 +1657,7 @@ if(LIBDXFRW_BUILD_TESTS)
         TIMEOUT 30)
     add_executable(libdxfrw_modeler_dxf_allocation_tests
         tests/modeler_dxf_allocation_tests.cpp
+        tests/modeler_dxf_test_deallocation.cpp
         ${_libdxfrw_root_test_adapter_source})
     target_compile_features(libdxfrw_modeler_dxf_allocation_tests PRIVATE cxx_std_17)
     target_compile_options(libdxfrw_modeler_dxf_allocation_tests

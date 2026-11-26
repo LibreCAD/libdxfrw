@@ -853,6 +853,7 @@ tests/mleaderstyle_objects_allocation_tests.cpp
 tests/mline_style_objects_allocation_tests.cpp
 tests/modeler_block_census_tests.cpp
 tests/modeler_dxf_allocation_tests.cpp
+tests/modeler_dxf_test_deallocation.cpp
 tests/modeler_dxf_writer_matrix_tests.cpp
 tests/modeler_sat_dxf_compare.cpp
 tests/modeler_sat_v1_allocation_tests.cpp
