@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-native-linetype-dialog-edit-288d-2026-11-26",
+  "supportClaimEffect": "none",
+  "librecadCommit": "288d78ccb8853bdb995f535edf04abe162bb5e63",
+  "libdxfrwCommit": "2845e87eec49459f633c34339e9160d528437f43",
+  "libdxfrwImplementationDigestSha256": "1bc188a918b00d79823b711a90b3a62981f3a65029b16ca82a20c2041db20f93",
+  "platform": "macOS 27.2.1 build 26B131, arm64",
+  "harness": "The candidate was rebuilt with a scratch-only main.cpp patch that uses a separate settings identity, disables first-run/splash, and points the library browser at an empty scratch directory. The production source was restored afterward. The dialog, adapter and codec sources were not changed by the harness.",
+  "harnessPatchSha256": "125f91f440450e0118c84918ffa998d8db8e3e635fb501a745559a16d7774feb",
+  "appSha256": "f0fbc72b8f75263e58275d45742ff54bed50900fadec1dbc34ff7553af3a8c97",
+  "librarySha256": "9e4a3cae1672827845db819c44a7532f263a02c1fb80b40eb59507773d67f7ed",
+  "inputSha256": "f9223467ad3e791f71643c4e5fff0272ee3a6de8682e68b707073b2483a4084e",
+  "outputSha256": "78d4a68b262d3c5e1e935c59cebf30450ac0332a0fd8db037a1b7624c4058790",
+  "observations": [
+    "The native Line Properties dialog displayed P8D_CUSTOM for the input LINE, correcting the earlier displayed Continuous label.",
+    "Changed the endpoint from (100,0) to (120,0), saved as AC1021 DXF, reopened the scratch output and confirmed the dialog showed P8D_CUSTOM and endpoint (120,0).",
+    "Independent ezdxf 1.4.5 readback found one LINE on P8D_LAYER with explicit P8D_CUSTOM, the edited endpoint and pattern length 6 with elements 4 and -2; its audit found zero errors and fixes.",
+    "The application reported two objects omitted because the target DXF version could not hold them."
+  ],
+  "limits": [
+    "This demonstrates the selected native dialog, geometry edit, linetype preservation and reopen in an isolated-settings build, not whole-drawing losslessness or a different linetype selection.",
+    "The application executable contains the recorded test-only startup patch and is not the exact unmodified candidate binary. Additional profiles and platforms remain open; no fixture or output was committed."
+  ]
+}
