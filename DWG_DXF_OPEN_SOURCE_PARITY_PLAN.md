@@ -34,7 +34,9 @@ evidence are recorded in `docs/research/` and Git history.
   MATERIAL imports remain failing. Native FreeCAD and GUI gates remain open.
   Earlier prerequisite evidence is recorded in `docs/research/` and Git history.
 - **IMAGE / plot-style graphs:** extend the admitted single-IMAGE and
-  two-layer profiles one source shape at a time, binding physical source,
+  two-layer profiles one source shape at a time. The [bounded raster capture](docs/research/p8d-librecad-multiple-image-source-capture-2026-11-26.json)
+  retains multiple IMAGE and IMAGEDEF frames by handle; next qualify their
+  complete graph, binding physical source,
   dictionary edge roles, dependencies, staged output, independent readback,
   rollback and retry. Multi-image, unknown fields, unqualified clipping,
   references, layers and native/platform behavior remain open; see P8.
@@ -71,7 +73,7 @@ evidence are recorded in `docs/research/` and Git history.
   digest: 63e6c7f77b863b7aa2495970b3193ef90517553c5bde6717d0438eb09a186183
   (778 inputs). The root-name fix changes selected inputs, so earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  ff9e56154bee8ae54acd7209a364eee7953dd48b. Prior platform receipts apply only
+  92c501cfb826245d4692af4386e0b31381f01ae8. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
   passed on `b1eea19e5900c1e55e2316ba215213071c8fc9b2`; revalidate the final
