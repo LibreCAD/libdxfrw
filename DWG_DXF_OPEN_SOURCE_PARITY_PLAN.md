@@ -38,7 +38,10 @@ produces clean-checkout digest
 for 775 inputs. The [Wave 1 control-text CI correction](docs/research/p8-wave1-control-text-ci-regression-2026-11-25.json)
 updates an outdated refusal expectation to verify ASCII/binary typed readback;
 its clean-checkout digest is `6dd91b2be8f6dd49ddd13bccb0064a5c4a23c2652eb798605c29017b91e5500e` for 775 inputs. The full Wave 1
-executable passes locally; rerun hosted fast checks on the new head. No earlier
+executable and the hosted fast, Linux, macOS and Windows focused jobs now pass;
+see the [current CI receipt](docs/research/p8-current-fast-ci-2026-11-25.json).
+The same receipt records the current LibreCAD headless, DWG/DXF, Pixi and CodeQL
+checks. Broad/fuzz and native qualification remain open. No earlier
 qualification is transferred to this candidate. Native GUI, broader FreeCAD coverage, broad and semantic
 gates remain open. The [package receipt](docs/research/p8-pr106-current-cross-platform-package-2026-11-25.json)
 records Linux and Windows hosted package passes and a local macOS substitute

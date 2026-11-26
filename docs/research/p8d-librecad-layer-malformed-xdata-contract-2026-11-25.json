@@ -8,7 +8,8 @@
   "change": "Retain the bundled-codec preservation expectation. For the system codec, assert refusal, preserve an existing destination, correct the duplicate APPID group, and retry through the same filter.",
   "validation": [
     "The complete [filter][layer] selector passed 55 assertions in 4 cases with the system codec and 51 assertions in 4 cases with the bundled codec.",
-    "The corrected retry checks the surviving layer markers and unrelated APPID name."
+    "The corrected retry checks the surviving layer markers and unrelated APPID name.",
+    "The [filter][layer] system-codec selector also passed 55 assertions in 4 cases under AddressSanitizer, with leak detection disabled."
   ],
   "limitations": [
     "This is a test-contract correction, not a change to the codec policy or a claim of support for malformed XDATA.",
