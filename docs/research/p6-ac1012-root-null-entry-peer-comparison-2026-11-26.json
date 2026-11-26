@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-root-null-entry-peer-comparison-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "scope": "Compare the physical root dictionary after independent conversions of the existing locally authored, ODA-produced AC1012 collision-and-unique-entry pair. This does not test a native clone or decide the empty entry's semantics.",
+  "sourceReceipt": "docs/research/p6-ac1012-oda-root-case-pair-2026-11-25.json",
+  "inputs": {
+    "destinationDwgSha256": "23f2f3282e9a6cef217f0be4944713408fb043f9834ea4689f38c4f768a11be9",
+    "sourceDwgSha256": "25c08bb8b303ce1729b2171efe163aeebf4ebf31e468fb41dc5236f66a635bd8"
+  },
+  "observations": [
+    "The existing physical DWG frame proof identifies one empty dictionary name and its typed-null soft-owner handle in both sources. ODA 27.10 reopen/export to AC1024 DXF emits neither an empty-name root entry nor a null target, and emits root group 281 value 1; it also changes other root entries.",
+    "LibreDWG dwg2dxf 0.14 --as r2010 emits an empty group 3 followed by group 350 value 0 in both outputs and omits the root group 281. Conversion logs also report invalid XDATA types and unstable-class warnings, so these are physical observations rather than qualified lossless conversions.",
+    "The existing tools/research/audit_dxf_dictionary_cloning.py --details reports the same root entry and field-presence difference. ezdxf 1.4.5's object model does not expose the empty/null entry even before explicit audit. Its explicit audits report zero errors and zero fixes for each ODA output, and zero errors but eleven fixes for each LibreDWG output, including removed invalid dictionary entries and deleted XRECORDs."
+  ],
+  "scratchOnly": {
+    "libredwgDestinationDxfSha256": "a5ee848a510fdd3021a4930ea39dab872021a3c52447cc5c83c3a7a5be32bd2a",
+    "libredwgSourceDxfSha256": "09f4399bf2588b6d42b78b1ca646245696d6dc561cd0423e7f22129c1e7af3a1",
+    "fixturesCommitted": false
+  },
+  "limits": "The two converters disagree, both operate on the same ODA-produced DWGs, and ezdxf normalizes before audit. None establishes AutoCAD's native validity, duplicate-key clone behavior, absent cloning-field default, or whether dropping this source entry is safe. The preexisting strict-output guard and native witness procedure remain required."
+}

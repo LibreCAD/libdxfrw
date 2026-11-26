@@ -358,7 +358,10 @@ Additional P6 work:
   and independent semantic roundtrip before admitting it. The
   [specification-directed pair](docs/research/p6-ac1012-existing-spec-pair-current-recheck-2026-11-26.json)
   proves bounded strict refusal and partial output only. Do not regenerate an
-  unchanged pair or equate an ODA reopen with native AutoCAD semantics.
+  unchanged pair or equate an ODA reopen with native AutoCAD semantics. The
+  [root-entry peer comparison](docs/research/p6-ac1012-root-null-entry-peer-comparison-2026-11-26.json)
+  finds that LibreDWG retains the empty-name/null entry in DXF while ODA omits it;
+  neither result establishes whether the entry is safe to discard.
 - **Organic partial recovery:** obtain a valid producer-identified source with
   a real entity failure and later published frames, then prove partial
   ASCII/binary output. The 21-recipe [local sweep](docs/research/p6-ac1012-organic-entity-candidate-sweep-2026-11-25.json),
