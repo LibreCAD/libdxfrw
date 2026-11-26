@@ -31,7 +31,10 @@ evidence are recorded in `docs/research/` and Git history.
   [converter profile](docs/research/p8d-ac1024-sparse-default-material-converter-2026-11-26.json)
   covers an unchanged same-encoding AC1024 default-material graph, not edits or
   cross-encoding. The system `[filter][handles]` result is 16/21; five sparse
-  MATERIAL imports remain failing. Native FreeCAD and GUI gates remain open.
+  MATERIAL imports remain failing. The [failure diagnosis](docs/research/p8d-sparse-material-handles-diagnosis-2026-11-26.json)
+  separates four versionless synthetic inputs from a versioned input refused
+  by the consumer's default raw-capture policy. Native FreeCAD and GUI gates
+  remain open.
   Earlier prerequisite evidence is recorded in `docs/research/` and Git history.
 - **IMAGE / plot-style graphs:** extend the admitted single-IMAGE and
   two-layer profiles one source shape at a time. The [bounded raster capture](docs/research/p8d-librecad-multiple-image-source-capture-2026-11-26.json)
@@ -91,7 +94,7 @@ evidence are recorded in `docs/research/` and Git history.
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  4b0b2eb2f90bd32cb7ad2b2e9a4746612735aed5 (push after its dependency).
+  4b0b2eb2f90bd32cb7ad2b2e9a4746612735aed5 (pushed).
   Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
