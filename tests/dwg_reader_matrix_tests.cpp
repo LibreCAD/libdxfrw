@@ -21234,8 +21234,32 @@ void testHeaderPackedFlags(TestContext& t) {
         t.expect(refused && unchanged && retried,
                  "R14 adapter preserves the destination and retries after removing an explicit flag");
     }
+    const auto legacyResavePath = legacyPath.parent_path()
+        / (legacyPath.stem().string() + "-again.dxf");
+    for (const bool binary : {false, true}) {
+        dx_data sourceData, importedData, reopenedData;
+        dx_iface writer, reader;
+        writer.cData = &sourceData;
+        writer.currentBlock = sourceData.mBlock;
+        DRW_Line line;
+        line.basePoint = {1., 2., 0.};
+        line.secPoint = {3., 5., 0.};
+        writer.addLine(line);
+        const bool saved = writer.fileExport(legacyPath.string(), DRW::AC1014,
+                                             binary, &sourceData, false);
+        const bool imported = saved && reader.fileImport(legacyPath.string(), &importedData, false);
+        const bool resaved = imported && writer.fileExport(legacyResavePath.string(), DRW::AC1014,
+                                                          binary, &importedData, false);
+        const bool reopened = resaved && reader.fileImport(legacyResavePath.string(), &reopenedData, false);
+        const auto* result = reopened && reopenedData.mBlock->ent.size() == 1u
+            ? dynamic_cast<const DRW_Line*>(reopenedData.mBlock->ent.front()) : nullptr;
+        t.expect(result != nullptr && result->basePoint.x == 1. && result->basePoint.y == 2.
+                     && result->secPoint.x == 3. && result->secPoint.y == 5.,
+                 "generated R14 LINE survives save, import, resave and reopen");
+    }
     std::error_code legacyCleanupError;
     std::filesystem::remove(legacyPath, legacyCleanupError);
+    std::filesystem::remove(legacyResavePath, legacyCleanupError);
 }
 
 std::uint32_t readHeaderReferenceBits(const std::vector<std::uint8_t>& bytes,
