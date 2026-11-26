@@ -1,0 +1,16 @@
+{
+  "date": "2026-11-26",
+  "scope": "Capture bounded LAYER source rows for opt-in sparse-MATERIAL consumers and bind group 347 to the live layer",
+  "libdxfrw_commit": "b1eea19e",
+  "libdxfrw_implementation_digest": "06ba732933db713765991ea93821f76e28915ba5b9ccc9488dc5499ab55c97c1",
+  "librecad_commit": "ab9659e58999f683c13c44a0f14786b8b6bfa938",
+  "evidence": [
+    "The existing namespace-source callback is selected only by the explicit small-file sparse-MATERIAL policy; it retains at most 32 bounded LAYER source rows and fails closed on duplicates, missing handles and capture errors.",
+    "The preflight compares source version, handle and owner, and the optional group-347 value with the live imported layer and the selected material dictionary.",
+    "Locally authored ASCII and Binary DXF controls cover capture, mutation, restored state, version mismatch and duplicate source; no generated drawings were committed.",
+    "System MATERIAL selector: 687 assertions in 6 cases. System linetype: 4967 assertions in 56 cases; bundled linetype: 1282 assertions in 52 cases; IMAGE control: 84 system and 46 bundled assertions.",
+    "A first build exposed inconsistent class layout when a file-local compile flag controlled inheritance; the public libdxfrw feature macro fixes this and the rebuilt controls pass. An earlier sanitizer run used stale installed headers and is inconclusive; the corrected configuration is rebuilding."
+  ],
+  "sanitizer": "PENDING",
+  "remaining": "Run the corrected sanitizer selector. HEADER physical provenance, output remapping/staging, independent readback and successful replay remain open; raw-only output remains refused."
+}
