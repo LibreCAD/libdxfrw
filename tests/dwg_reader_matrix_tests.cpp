@@ -21062,6 +21062,8 @@ void testHeaderPackedFlags(TestContext& t) {
                 flags.addInt("$EXTNAMES", 0, 290);
                 flags.addInt("$PSTYLEMODE", 1, 290);
                 flags.addInt("$OLESTARTUP", 0, 290);
+                flags.addInt("$LWDISPLAY", 0, 290);
+                flags.addInt("$XEDIT", 1, 290);
             }
             flags.write(writer, target);
             const auto bytes = output.str();
@@ -21069,10 +21071,13 @@ void testHeaderPackedFlags(TestContext& t) {
             t.expect(!writer->hasWriteError()
                          && (bytes.find("$EXTNAMES") != std::string::npos) == modern
                          && (bytes.find("$PSTYLEMODE") != std::string::npos) == modern
-                         && (bytes.find("$OLESTARTUP") != std::string::npos) == modern,
+                         && (bytes.find("$OLESTARTUP") != std::string::npos) == modern
+                         && (bytes.find("$LWDISPLAY") != std::string::npos) == modern
+                         && (bytes.find("$XEDIT") != std::string::npos) == modern,
                      "DXF HEADER emits these flags only for R2000 and later");
         }
-        for (const char* field : {"$EXTNAMES", "$PSTYLEMODE", "$OLESTARTUP"})
+        for (const char* field : {"$EXTNAMES", "$PSTYLEMODE", "$OLESTARTUP",
+                                  "$LWDISPLAY", "$XEDIT"})
         for (const int code : {70, 290}) for (const int value : {0, 1}) {
             std::ostringstream output(std::ios::out | std::ios::binary);
             std::unique_ptr<dxfWriter> writer = binary
@@ -21212,7 +21217,8 @@ void testHeaderPackedFlags(TestContext& t) {
            + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count())
            + ".dxf");
     for (const bool binary : {false, true})
-    for (const char* field : {"$EXTNAMES", "$PSTYLEMODE", "$OLESTARTUP"}) {
+    for (const char* field : {"$EXTNAMES", "$PSTYLEMODE", "$OLESTARTUP",
+                              "$LWDISPLAY", "$XEDIT"}) {
         dx_data data;
         dx_iface adapter;
         data.headerC.addInt(field, 0, 290);

@@ -916,6 +916,7 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
     const int headerBooleanGroupCode = 70;
     const int alternateHeaderBooleanGroupCode = 290;
     bool extnamesPresent = false, pstylemodePresent = false, olestartupPresent = false;
+    bool lwdisplayPresent = false, xeditPresent = false;
     return canWriteDxfHeaderStructure()
         && canWriteDxfUnknownHeaderVariables()
         && canWriteDxfLinetypeScale()
@@ -928,8 +929,8 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
         && canWriteDxfCelweight()
         && canWriteDxfEndcaps()
         && canWriteDxfJoinstyle()
-        && canWriteDxfLwdisplay()
-        && canWriteDxfXedit()
+        && canWriteDxfHeaderIntegerRange("$LWDISPLAY", 290, 0, 1, &lwdisplayPresent)
+        && canWriteDxfHeaderIntegerRange("$XEDIT", 290, 0, 1, &xeditPresent)
         && canWriteDxfHeaderFlags()
         && canWriteDxfHeaderIntegerRange("$EXTNAMES", headerBooleanGroupCode, 0, 1,
                                          &extnamesPresent, alternateHeaderBooleanGroupCode)
@@ -940,7 +941,8 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
         // These settings were added after R14; refuse rather than silently
         // discard any caller-supplied value for an older target.
         && (ver > DRW::AC1014
-            || !(extnamesPresent || pstylemodePresent || olestartupPresent))
+            || !(extnamesPresent || pstylemodePresent || olestartupPresent
+                 || lwdisplayPresent || xeditPresent))
         && canWriteDxfHeaderIntegerRange("$ANGDIR", 70, 0, 1)
         && canWriteDxfHeaderIntegerRange("$ATTMODE", 70, 0, 2)
         && canWriteDxfHeaderIntegerRange("$MIRRTEXT", 70, 0, 1)
@@ -965,6 +967,13 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
     int dimfrac = 0;
     int dimatfit = 3;
     int dimtmove = 0;
+    const auto writeModernBoolean = [&](const char* name, bool defaultValue) {
+        if (ver <= DRW::AC1014)
+            return;
+        int value = 0;
+        writer->writeString(9, name);
+        writer->writeBool(290, getInt(name, &value) ? value != 0 : defaultValue);
+    };
     if (!resolveDxfDimensionVariables(ver, legacyDimunit, legacyDimfit,
                                       dimlunit, dimfrac, dimatfit, dimtmove))
         return;
@@ -2369,11 +2378,7 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeInt16(280, varInt);
         else
             writer->writeInt16(280, 0);
-        writer->writeString(9, "$LWDISPLAY"); //RLZ bool flag, verify in bin version
-        if (getInt("$LWDISPLAY", &varInt))
-            writer->writeBool(290, varInt != 0);
-        else
-            writer->writeBool(290, false);
+        writeModernBoolean("$LWDISPLAY", false);
         if (ver > DRW::AC1014 && hasInsunits) {
             writer->writeString(9, "$INSUNITS");
             writer->writeInt16(70, insunits);
@@ -2388,11 +2393,7 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeUtf8String(1, varStr);
         else
             writer->writeString(1, "");
-        writer->writeString(9, "$XEDIT"); //RLZ bool flag, verify in bin version
-        if (getInt("$XEDIT", &varInt))
-            writer->writeBool(290, varInt != 0);
-        else
-            writer->writeBool(290, true);
+        writeModernBoolean("$XEDIT", true);
         writer->writeString(9, "$CEPSNTYPE");
         if (getInt("$CEPSNTYPE", &varInt))
             writer->writeInt16(380, varInt);
@@ -2409,12 +2410,8 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeString(390, plotStyleHandle == 0
                 ? "0" : value->second->c_str());
         }
+        writeModernBoolean("$PSTYLEMODE", true);
         if (ver > DRW::AC1014) {
-            writer->writeString(9, "$PSTYLEMODE");
-            if (getInt("$PSTYLEMODE", &varInt))
-                writer->writeBool(290, varInt != 0);
-            else
-                writer->writeBool(290, true);
             static const std::string nullGuid = "{00000000-0000-0000-0000-000000000000}";
             writer->writeString(9, "$FINGERPRINTGUID");
             if (getStr("$FINGERPRINTGUID", &varStr))
@@ -2427,13 +2424,7 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             else
                 writer->writeString(2, nullGuid);
         }
-        if (ver > DRW::AC1014) {
-            writer->writeString(9, "$EXTNAMES");
-            if (getInt("$EXTNAMES", &varInt))
-                writer->writeBool(290, varInt != 0);
-            else
-                writer->writeBool(290, true);
-        }
+        writeModernBoolean("$EXTNAMES", true);
         writer->writeString(9, "$PSVPSCALE");
         if (getDouble("$PSVPSCALE", &varDouble))
             writer->writeDouble(40, varDouble);
@@ -2449,13 +2440,7 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeInt16(70, varInt);
         else
             writer->writeInt16(70, 70);
-        if (ver > DRW::AC1014) {
-            writer->writeString(9, "$OLESTARTUP");
-            if (getInt("$OLESTARTUP", &varInt))
-                writer->writeBool(290, varInt != 0);
-            else
-                writer->writeBool(290, false);
-        }
+        writeModernBoolean("$OLESTARTUP", false);
     }
     if (ver > DRW::AC1015) {// and post v2004 vars
         writer->writeString(9, "$SORTENTS");

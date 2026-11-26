@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-r14-header-modern-booleans-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateBase": "ddcae4d8331b24b7af4f98061b3e71849c974d1f",
+  "implementationDigestSha256": "fe5b05f4bb923995db18ebcfb7d2d7f67f114ee2cc2e125554ffabdf04120700",
+  "inputCount": 775,
+  "previousReceipt": "docs/research/p8d-r14-header-boolean-version-gate-2026-11-26.json",
+  "authority": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+      "scope": "Autodesk current header variable names and group-290 codes."
+    },
+    {
+      "url": "https://www.codil.or.kr/filebank/original/RK/OTMCRK500947/OTMCRK500947.pdf",
+      "scope": "Secondary reproduction of the attributed R14-to-R2000 DXF revision history lists LWDISPLAY and XEDIT as new header variables and introduces codes 290-299."
+    }
+  ],
+  "change": "Extend pre-R2000 absence/refusal policy to LWDISPLAY and XEDIT. A shared version-aware helper writes all five Boolean fields on R2000+ and omits them when absent on older targets. Explicit source values refuse before output; source group 290 is valid for both new fields and group 70 is rejected.",
+  "validation": {
+    "headerFlags": "PASS: optimized packed-header selector checks ASCII/binary R14 and R2000 emission, source groups 70/290 with both Boolean values, and pre-output refusal with corrected same-writer retry.",
+    "fullAdapter": "PASS: ten ASCII/binary field controls check destination-preserving refusal and corrected same-adapter retry.",
+    "image": "PASS: imported-common and two-layer matrices, including their 176 wire retries and 600 destination-preserving atomic retries respectively.",
+    "libreCADSystemCodec": "PASS: macOS offscreen linetype selector, 4905 assertions in 52 cases, with a scratch shared library built from the current candidate.",
+    "qualification": "PASS: 1403-test inventory, required-test and workflow contracts, clean-checkout digest (775 inputs)."
+  },
+  "limits": [
+    "Other post-R14 fields still require version-specific schema and loss handling; this is not complete R14 support.",
+    "Prior incorrectly emitted files containing explicit modern Boolean values remain refused pending a disclosed compatibility/loss policy.",
+    "Native R14 behavior, complete consumer resave and final platform qualification remain open.",
+    "No DWG or DXF fixture was added."
+  ]
+}
