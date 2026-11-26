@@ -54,10 +54,10 @@
   ],
   "remaining_failure": {
     "test": "dwg2dxf_image_dictionary_imported_common",
-    "source": "AC1018",
+    "source": "AC1021",
     "target": "AC1015",
-    "observation": "The bounded AC1015 source to AC1018 through AC1032 targets passes; the broader matrix reaches and refuses the reverse legacy target.",
-    "next": "Prove the reverse-version source, per-layer output, target class/placeholder and full IMAGE graph before extending the profile."
+    "observation": "The bounded AC1015/AC1018 source cross-version profiles pass; the broader matrix reaches and refuses the AC1021 source.",
+    "next": "Prove the source, per-layer output, target class/placeholder and full IMAGE graph before extending the profile."
   },
   "claims": "All format claims remain EXPERIMENTAL."
 }

@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-25",
+  "baseline": "e2bfc9b8",
+  "implementation_digest_sha256": "8abb0b8457eb2e9a82ac4e7ddca0b4afd7dd59efab44a64707aee1b990cc5801",
+  "input_count": 775,
+  "scope": "Extend the existing strictly checked two-null-layer IMAGE dictionary profile to AC1018 DXF source and the other AC1015 through AC1032 targets; same-version behavior follows its existing path.",
+  "checks": [
+    "40 combined AC1015/AC1018 source and cross-version target encoding cells and 200 destination-preserving failure/retry controls pass.",
+    "Four focused image, plot-style and raster CTests pass.",
+    "ezdxf 1.4.5 pre-audit graph comparison matches the locally generated AC1018 source against AC1015, AC1021, AC1024, AC1027 and AC1032 ASCII/binary outputs, including IMAGE dictionary and two IMAGEDEF records, extension/XRECORD owner backlinks, reactors, EED and both layers.",
+    "A separate AC1015 layer-only output has the expected exact two-row wire shape and canonical classes; ezdxf audit reports zero errors and repairs for that limited projection."
+  ],
+  "source_sha256": "ae5056c703291addfd3c69db02f513b02a9b1deef8dbad5c81c9426f017623a5",
+  "ac1015_output_sha256": [
+    "b47bfe20aa50d88f9cb560b1ab9a1decbb92bb1554b2efa094893eaae41e7c25",
+    "0b8e46106579bff62bf939e75a9bdd7d04f2db42fd9217add98e8d14e6e9c2d2"
+  ],
+  "limits": [
+    "The same reproducible ezdxf dictionary-extension audit repair and partial LibreDWG evidence described in the earlier receipt apply.",
+    "No IMAGE entity, native application qualification or general format support is claimed.",
+    "All drawing inputs and outputs are locally generated scratch files; no new fixture is committed."
+  ],
+  "remaining": "The broader matrix advances to AC1021 source -> AC1015 target and remains guarded pending source, output and graph proof."
+}

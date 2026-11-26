@@ -97351,7 +97351,8 @@ bool legacyPlotInt(const dx_standard_output::RecordCursor::Token& token,int code
 }
 
 bool dx_iface::hasLegacyNullPlotLayerProfile(const dx_data& data) noexcept {
-    if(data.sourceFormat!=dx_source_format::DXF||data.sourceVersion!=DRW::AC1015||data.layers.size()!=2u)return false;
+    if(data.sourceFormat!=dx_source_format::DXF
+        ||(data.sourceVersion!=DRW::AC1015&&data.sourceVersion!=DRW::AC1018)||data.layers.size()!=2u)return false;
     const auto report=plotStyleSourceReport(data);
     if(!report.legacyLayerInventoryMatched||!report.legacyLiveLayerInventoryMatched||!report.legacyLayerReferencesMatched)return false;
     try {
@@ -97386,7 +97387,7 @@ bool dx_iface::hasUnchangedLegacyPlot() const noexcept {
 
 bool dx_iface::inspectLegacyNullPlotLayers(const dxfRW::DxfTablesWriteView& view,
         const std::map<std::uint32_t,UTF8STRING>& expected) noexcept {
-    if(view.version<DRW::AC1018||view.version>DRW::AC1032||expected.size()!=2u)return false;
+    if(view.version<DRW::AC1015||view.version>DRW::AC1032||expected.size()!=2u)return false;
     try {
         std::set<UTF8STRING> names;
         for(const auto& row:expected) {
@@ -97565,8 +97566,8 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
                     &&std::any_of(cData->namedObjectDictionary.m_entries.begin(),cData->namedObjectDictionary.m_entries.end(),
                         [](const auto& entry){return asciiIdentifierEquals(entry.m_name,"ACAD_PLOTSTYLENAME");}));
             if(hasPlotGraph) {
-                const bool multipleNullLayers=cData->sourceVersion==DRW::AC1015
-                    &&version>=DRW::AC1018&&version<=DRW::AC1032
+                const bool multipleNullLayers=(cData->sourceVersion==DRW::AC1015||cData->sourceVersion==DRW::AC1018)
+                    &&version>=DRW::AC1015&&version<=DRW::AC1032&&version!=cData->sourceVersion
                     &&hasLegacyNullPlotLayerProfile(*cData);
                 if(!source.originalSourcesMatched || !source.legacyClassRowsMatched || !source.legacyLiveClassesMatched
                     || !source.legacyBodiesMatched || !source.legacyLiveBodiesMatched

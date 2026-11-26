@@ -12809,7 +12809,7 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false, bo
             return true;
         };
         for (const auto targetVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool binary : {false, true}) {
-            if(focusedLegacyPair&&targetVersion!=DRW::AC1015)continue;
+            if(focusedLegacyPair&&targetVersion!=DRW::AC1015&&targetVersion!=DRW::AC1018)continue;
             if (version == DRW::AC1027) {
                 const std::string sentinel = "AC1027_UNSELECTED_RASTER_DESTINATION";
                 {
@@ -12862,7 +12862,7 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false, bo
                 }
                 ++importedSources;
                 for (const auto outputVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool outputBinary : {false, true}) {
-                    if(focusedLegacyPair&&outputVersion==DRW::AC1015)continue;
+                    if(focusedLegacyPair&&targetVersion==outputVersion)continue;
                     if (!exporter.fileExport(target.string(), outputVersion, outputBinary, &imported, false, true) || !check(true))
                         return fail("image dictionary actual-DXF common metadata reexport/readback failed: source="
                             + std::to_string(static_cast<int>(targetVersion)) + " output="
@@ -13106,7 +13106,7 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false, bo
     }
     if (importedCommonOnly) {
         if(focusedLegacyPair) {
-            if(cells!=2u||importedSources!=2u||importedCells!=20u||importedRetries!=100u)
+            if(cells!=4u||importedSources!=4u||importedCells!=40u||importedRetries!=200u)
                 return fail("focused IMAGE/two-layer matrix skipped a control");
             std::cout<<"IMAGE/two-layer legacy cells="<<importedCells<<" atomic retries="<<importedRetries<<'\n';return true;
         }
