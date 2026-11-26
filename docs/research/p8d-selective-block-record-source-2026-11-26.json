@@ -84,9 +84,9 @@
   "native_consumer_check": {
     "type": "isolated macOS ARM64 title-instrumented LibreCAD_3 executable with rebuilt persistence library",
     "app_executable_sha256": "d112ba1aeffd9c7f4d1529fe8564adceb6a6b785245b0144c2d233b5e5767134",
-    "persistence_library_sha256": "48f3570cc80c749dcfbc3c9faf1ddf783aa98b7fa6d5026027e5986199032ac4",
     "input_sha256": "34ef69a2b128dd084458e7efb92b03a12190efb848c677c9963a64271fe7dae3",
     "output_sha256": "69f11c65e9fa39cd12b64daffd8a2bce2e9b437ced95b444386787c5b9e2d854",
-    "observation": "Native open, save as R2004 and reopen succeeded with MPOLYGON-as-HATCH warning but no layout loss warning. ezdxf 1.4.5 reports zero errors/fixes and confirms three layouts and unchanged polygon/offset. The rendering canvas was black; render and edit remain unqualified. The executable predates latest master UI merge and is instrumented, so this does not qualify the exact final app binary."
+    "observation": "The prior GUI output was reopened with the MPOLYGON warning and ezdxf found its layout graph intact; it must not be attributed to the current codec or consumer head. The canvas was black; rendering and editing remain unqualified.",
+    "status": "INVALIDATED_FOR_CANDIDATE: the app process remained running after the attempted restart, so the persistence library loaded by that process was not established."
   }
 }
