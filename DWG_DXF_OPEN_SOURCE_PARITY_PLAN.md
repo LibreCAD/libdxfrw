@@ -38,20 +38,21 @@ evidence are recorded in `docs/research/` and Git history.
   retains multiple IMAGE and IMAGEDEF frames by handle. The [shared staged
   IMAGE-reference check](docs/research/p8d-shared-staged-image-references-2026-11-26.json)
   now checks the existing single-IMAGE consumer graph; the [consumer slice](docs/research/p8d-librecad-staged-image-references-2026-11-26.json)
-  covers top-level and named-block references. Next qualify multi-image graph
-  admission and graph closure. The bounded [IMAGEDEF](docs/research/p8d-shared-staged-imagedef-scalars-2026-11-26.json)
+  covers top-level and named-block references. A [two-IMAGE slice](docs/research/p8d-librecad-two-image-shared-definition-2026-11-26.json)
+  admits one bounded AC1021 model-space graph with one shared definition and
+  two reactors; it checks source and staged graph, fields, rollback and retry.
+  Extend to other shapes only with equivalent closure. The bounded [IMAGEDEF](docs/research/p8d-shared-staged-imagedef-scalars-2026-11-26.json)
   and [IMAGE entity](docs/research/p8d-shared-staged-image-entity-scalars-2026-11-26.json)
   scalar checks and the [staged dictionary check](docs/research/p8d-shared-staged-dictionary-2026-11-26.json)
   and [raw plot-style check](docs/research/p8d-shared-staged-plotstyle-raw-2026-11-26.json)
-  are ready for multi-image consumer wiring. The [bounded IMAGE common-field
+  provide the multi-image consumer checks. The [bounded IMAGE common-field
   check](docs/research/p8d-shared-staged-image-common-2026-11-26.json)
   additionally refuses unsupported common entity fields and proves the
   canonical layer-0/ByLayer staged record. The [staged object-link
   check](docs/research/p8d-librecad-staged-image-object-links-2026-11-26.json)
-  now covers the existing single-image consumer graph; bind physical source,
-  dictionary edge roles, dependencies, staged output, independent readback,
-  rollback and retry. Multi-image, unknown fields, unqualified clipping,
-  references, layers and native/platform behavior remain open; see P8.
+  covers the existing single-image graph. Additional multi-image layouts,
+  versions, unknown fields, clipping, references, layers and native/platform
+  behavior remain open; see P8.
 - **Legacy headers:** investigate $FACETRES, $ISOLINES, $PELLIPSE,
   $TEXTQLTY, original-source provenance and DXF extension behavior. R12
   rejects nonzero PELLIPSE and reports an explicit zero omission; zero is
@@ -91,7 +92,8 @@ evidence are recorded in `docs/research/` and Git history.
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  1e84e4de566ffaefdeac4cff2f7443f2c6c19beb. Prior platform receipts apply only
+  ee0789f1ab6afab2ca137cf9ad15e7e5fbcc2ac2 (local until its dependency is pushed).
+  Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
   passed on `b1eea19e5900c1e55e2316ba215213071c8fc9b2`; revalidate the final
