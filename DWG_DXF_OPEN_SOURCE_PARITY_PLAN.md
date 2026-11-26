@@ -125,7 +125,9 @@ evidence are recorded in `docs/research/` and Git history.
   plot resources, unknown references and source identities. Keep explicit refusal,
   destination preservation and retry for unsupported graphs. The [independent field comparison](docs/research/p8d-librecad3-binary-layout-field-comparison-2026-11-26.json)
   checks reader-exposed layout/block fields and reciprocal graph links for ten
-  generated binary replay pairs; independent producer and native evidence remain open.
+  generated binary replay pairs. [Same-revision ASCII-to-binary conversion](docs/research/p8d-librecad3-ascii-binary-layout-2026-11-26.json)
+  reuses the same bounded checks and preserves both paper-space lines in five peer
+  comparisons; independent producer and native evidence remain open.
   The [preparation diagnostic](docs/research/p8d-librecad3-layout-preparation-diagnostic-2026-11-26.json)
   reports the reason when a checked graph can no longer be prepared. The [unowned-paper guard](docs/research/p8d-librecad3-unowned-paper-refusal-2026-11-26.json)
   refuses checked-codec outputs that cannot retain modeled extra-paper content;

@@ -1,0 +1,106 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "296886683501edd64cce724474e7996511f48955",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "scope": "Same-revision ASCII to binary R2000-R2013 conversion for the checked three-layout/three-block graph and exact Normal plot-style pair, with no extra block records or raw objects.",
+  "persistence_library_sha256": "276451175835c54850dc9c40d90f580d800003ec580ce74e11a844afc7bc2a9b",
+  "layout_test_sha256": "96de312ac409bd412059e8f28595bef365c7793752610cae8c445dd41b19ba1e",
+  "checker": "tools/research/check_lc3_binary_layout_pair.py",
+  "checker_sha256": "992e12e67b910d1c3bd20d962b4f56f0e88f047f1aaff2abfe15b34802cb1074",
+  "focused_tests": {
+    "layout_graph": 14,
+    "dwg_import": 17,
+    "dxf_roundtrip_export": 71,
+    "plan_checker": 31,
+    "older_bundled_codec_headers": "syntax-only pass with pre-existing warnings"
+  },
+  "independent_reader": "ezdxf 1.4.5",
+  "independent_comparisons": [
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "15ec64ba1bd3ff677852983be2af5e367225f82c66d71f9f2a6554d5cab35f17",
+      "source_encoding": "ascii",
+      "source_sha256": "5276c2e2035d9c3cfc41dfd40e288098493fff06435e6ed6250d0bca0cb9a79e",
+      "version": "AC1015"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "7269f9d66217aa9b6f7fb8179720ba58d86f2184af0ed24512d27a895b69e49e",
+      "source_encoding": "ascii",
+      "source_sha256": "581f982c70f956927a9700a3e4e166069f978cc6ac89d217895fd99c5283e286",
+      "version": "AC1018"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "910f2bb9aa808fd96a956350e2206c4196dce4c574e00ca740d0a3c887277b34",
+      "source_encoding": "ascii",
+      "source_sha256": "4a909a9f26e73166faf02f8d1a2ee9867b4775dc9bf130fcf625b9607c6a81d0",
+      "version": "AC1021"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "1f70452e490cf574fc412659aba17981eb34dd5be8bf79d7e5c07863c6e6dc9e",
+      "source_encoding": "ascii",
+      "source_sha256": "517c02115e9ea9047459e9ad57abf72a353134331874311e35a11fb0ad307604",
+      "version": "AC1024"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_sha256": "9235d2c8758e3d1a7ce8c999026d6c06c828f08504da10c68cfdbc39c9ebaeb5",
+      "source_encoding": "ascii",
+      "source_sha256": "022f97105a2c856b3edc42eb58834eb4c8223d84f6b88fcf57a6eaf52d5b447e",
+      "version": "AC1027"
+    }
+  ],
+  "negative_controls": [
+    "unknown raw XRECORD refuses binary save; destination preserved; corrected ASCII retry succeeds",
+    "different revision refuses binary save; destination preserved; same-revision retry succeeds",
+    "independent checker rejects ASCII source without explicit option"
+  ],
+  "limits": [
+    "Locally generated pairs do not establish independent producer or native application behavior.",
+    "Other block records, resources, object graphs, reverse conversion and cross-version output remain unqualified."
+  ]
+}
