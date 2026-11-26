@@ -21050,6 +21050,8 @@ void testHeaderPackedFlags(TestContext& t) {
     t.expect(!DrwHeaderEncodeTestAccess::encodeFlags(modernDxfFlags, encoded),
              "modern HEADER flag variables still reject unrelated group codes");
 
+    const std::array<std::pair<const char*, int>, 3> modernLineweightFields{{
+        {"$CELWEIGHT", 370}, {"$ENDCAPS", 280}, {"$JOINSTYLE", 280}}};
     for (const bool binary : {false, true}) {
         for (const DRW::Version target : {DRW::AC1014, DRW::AC1015}) {
             std::ostringstream output(std::ios::out | std::ios::binary);
@@ -21073,8 +21075,11 @@ void testHeaderPackedFlags(TestContext& t) {
                          && (bytes.find("$PSTYLEMODE") != std::string::npos) == modern
                          && (bytes.find("$OLESTARTUP") != std::string::npos) == modern
                          && (bytes.find("$LWDISPLAY") != std::string::npos) == modern
-                         && (bytes.find("$XEDIT") != std::string::npos) == modern,
-                     "DXF HEADER emits these flags only for R2000 and later");
+                         && (bytes.find("$XEDIT") != std::string::npos) == modern
+                         && (bytes.find("$CELWEIGHT") != std::string::npos) == modern
+                         && (bytes.find("$ENDCAPS") != std::string::npos) == modern
+                         && (bytes.find("$JOINSTYLE") != std::string::npos) == modern,
+                     "DXF HEADER emits these fields only for R2000 and later");
         }
         for (const char* field : {"$EXTNAMES", "$PSTYLEMODE", "$OLESTARTUP",
                                   "$LWDISPLAY", "$XEDIT"})
@@ -21093,6 +21098,13 @@ void testHeaderPackedFlags(TestContext& t) {
             corrected.write(writer, DRW::AC1014);
             t.expect(refused && !writer->hasWriteError() && !output.str().empty(),
                      "R14 HEADER refuses an explicit flag before output and retries after correction");
+        }
+        for (const auto& field : modernLineweightFields) {
+            HeaderWriteProbe source;
+            source.addInt(field.first, 0, field.second);
+            t.expect(!source.canWriteDxfHeaderInitialPreflight(DRW::AC1014)
+                         && source.canWriteDxfHeaderInitialPreflight(DRW::AC1015),
+                     "R14 HEADER refuses an explicit R2000 lineweight setting");
         }
     }
 
@@ -21216,12 +21228,15 @@ void testHeaderPackedFlags(TestContext& t) {
         / ("libdxfrw-legacy-header-flags-"
            + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count())
            + ".dxf");
+    const std::array<std::pair<const char*, int>, 8> legacyGuardedFields{{
+        {"$EXTNAMES", 290}, {"$PSTYLEMODE", 290}, {"$OLESTARTUP", 290},
+        {"$LWDISPLAY", 290}, {"$XEDIT", 290}, {"$CELWEIGHT", 370},
+        {"$ENDCAPS", 280}, {"$JOINSTYLE", 280}}};
     for (const bool binary : {false, true})
-    for (const char* field : {"$EXTNAMES", "$PSTYLEMODE", "$OLESTARTUP",
-                              "$LWDISPLAY", "$XEDIT"}) {
+    for (const auto& field : legacyGuardedFields) {
         dx_data data;
         dx_iface adapter;
-        data.headerC.addInt(field, 0, 290);
+        data.headerC.addInt(field.first, 0, field.second);
         { std::ofstream output(legacyPath, std::ios::binary); output << "preserve"; }
         const bool refused = !adapter.fileExport(legacyPath.string(), DRW::AC1014,
                                                 binary, &data, false);

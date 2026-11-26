@@ -917,6 +917,13 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
     const int alternateHeaderBooleanGroupCode = 290;
     bool extnamesPresent = false, pstylemodePresent = false, olestartupPresent = false;
     bool lwdisplayPresent = false, xeditPresent = false;
+    const auto legacyIntegerAbsent = [this, ver](const char* name, int code) {
+        if (ver > DRW::AC1014)
+            return true;
+        int value = 0;
+        bool present = false;
+        return getDxfHeaderIntegerValue(name, code, value, present) && !present;
+    };
     return canWriteDxfHeaderStructure()
         && canWriteDxfUnknownHeaderVariables()
         && canWriteDxfLinetypeScale()
@@ -929,6 +936,9 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
         && canWriteDxfCelweight()
         && canWriteDxfEndcaps()
         && canWriteDxfJoinstyle()
+        && legacyIntegerAbsent("$CELWEIGHT", 370)
+        && legacyIntegerAbsent("$ENDCAPS", 280)
+        && legacyIntegerAbsent("$JOINSTYLE", 280)
         && canWriteDxfHeaderIntegerRange("$LWDISPLAY", 290, 0, 1, &lwdisplayPresent)
         && canWriteDxfHeaderIntegerRange("$XEDIT", 290, 0, 1, &xeditPresent)
         && canWriteDxfHeaderFlags()
@@ -2363,21 +2373,23 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeString(9, "$MEASUREMENT");
             writer->writeInt16(70, measurementValue);
         }
-        writer->writeString(9, "$CELWEIGHT");
-        if (getInt("$CELWEIGHT", &varInt))
-            writer->writeInt16(370, varInt);
-        else
-            writer->writeInt16(370, -1);
-        writer->writeString(9, "$ENDCAPS");
-        if (getInt("$ENDCAPS", &varInt))
-            writer->writeInt16(280, varInt);
-        else
-            writer->writeInt16(280, 0);
-        writer->writeString(9, "$JOINSTYLE");
-        if (getInt("$JOINSTYLE", &varInt))
-            writer->writeInt16(280, varInt);
-        else
-            writer->writeInt16(280, 0);
+        if (ver > DRW::AC1014) {
+            writer->writeString(9, "$CELWEIGHT");
+            if (getInt("$CELWEIGHT", &varInt))
+                writer->writeInt16(370, varInt);
+            else
+                writer->writeInt16(370, -1);
+            writer->writeString(9, "$ENDCAPS");
+            if (getInt("$ENDCAPS", &varInt))
+                writer->writeInt16(280, varInt);
+            else
+                writer->writeInt16(280, 0);
+            writer->writeString(9, "$JOINSTYLE");
+            if (getInt("$JOINSTYLE", &varInt))
+                writer->writeInt16(280, varInt);
+            else
+                writer->writeInt16(280, 0);
+        }
         writeModernBoolean("$LWDISPLAY", false);
         if (ver > DRW::AC1014 && hasInsunits) {
             writer->writeString(9, "$INSUNITS");

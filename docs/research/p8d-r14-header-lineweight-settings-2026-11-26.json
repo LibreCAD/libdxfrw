@@ -1,0 +1,34 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-r14-header-lineweight-settings-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateBase": "9a78661238d12e44e3de25965eef2329ec5c99dd",
+  "implementationDigestSha256": "9ac8b190d7eaf81c1f7e851e59d102849f87176ad3e61e4557f1e5c55056b875",
+  "inputCount": 775,
+  "consumerCommit": "e9eb79a2b0ae7c397584d868883e7c917233ee23",
+  "authority": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+      "scope": "Current Autodesk DXF header group codes and meanings."
+    },
+    {
+      "url": "https://www.codil.or.kr/filebank/original/RK/OTMCRK500947/OTMCRK500947.pdf",
+      "scope": "Secondary reproduction of the attributed R14-to-R2000 DXF revision history lists CELWEIGHT, ENDCAPS and JOINSTYLE as new header variables."
+    }
+  ],
+  "change": "The library omits CELWEIGHT, ENDCAPS and JOINSTYLE when absent for targets before R2000 and refuses an explicit value rather than discard it. LibreCAD adds cap/join defaults on import: its system-codec adapter omits only its default value 1 for those two fields with a user-visible loss report, preserves the graphic, and lets the codec refuse other values. Bundled-codec behavior is unchanged.",
+  "validation": {
+    "header": "PASS optimized: generated R14 LINE save/import/resave/reopen, versioned field emission, explicit field refusal and corrected retry for ASCII/binary.",
+    "transaction": "PASS: 16 full-adapter ASCII/binary header-field controls preserve the previous destination and retry.",
+    "consumerSystem": "PASS: 4925 assertions in 53 linetype cases; new case covers R12/R14 non-default refusal, destination preservation, report reset, corrected retry, loss report and unchanged graphic.",
+    "consumerBundled": "PASS: 1282 assertions in 52 linetype cases.",
+    "image": "PASS: imported-common and two-layer matrices, with their existing mutation/rollback/retry checks.",
+    "independentReader": "ezdxf 1.4.5 reads the generated LINE coordinates after first/second save in both encodings but upgrades AC1014 to AC1015; it repairs the first root dictionary owner, and reports no repair for the second.",
+    "qualification": "PASS: clean-checkout implementation digest, required-test, inventory and workflow contracts."
+  },
+  "limits": [
+    "Other post-R14 header fields and explicit settings require their own representability or disclosed-loss policy.",
+    "The independently observed root dictionary owner repair remains unresolved and native R14 verification is absent.",
+    "No drawing fixture was committed."
+  ]
+}
