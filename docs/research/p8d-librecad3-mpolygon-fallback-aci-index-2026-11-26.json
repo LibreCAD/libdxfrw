@@ -1,0 +1,26 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "91376ae17d41f19055c0aecb939c6d3fcfe8e269",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "problem": "Reconstructing the fill ACI from RGB changed an explicit source index when palette entries shared the same RGB. An ACI 90 source was projected to ACI 3.",
+  "change": "Retain the imported source ACI alongside the separate fill color and use it when projecting the supported solid MPOLYGON to HATCH. For metadata without a valid source ACI, retain the prior RGB mapping.",
+  "validation": [
+    "A physical group-code regression first failed for the ACI 90 to ACI 3 projection and passes after the fix.",
+    "17 DWG/persistence, 15 layout and 71 DXF tests pass; plan full, worktree and base-ref checks and 31 checker tests pass.",
+    "ezdxf 1.4.5 independently read locally generated ACI 90 and ACI 255 sources and HATCH outputs; both outputs preserve their input indices and have zero audit errors or fixes."
+  ],
+  "artifacts": {
+    "aci90_source_sha256": "d820d1a326e3a32ca15efdf87f9d029ef49f5f559d898cd2daf52be09d71faeb",
+    "aci90_before_sha256": "655727e24fa5e8db91fc7ee9128e87107a766d8798a7e665f472638f948c6ffb",
+    "aci90_after_sha256": "2519a4687a77e291ab0c3bc820989e5daf20ac59a1416c52f74b8feecad5c50d",
+    "aci255_source_sha256": "c32541a92dbc810232100252256427d03b3deb4a433bb0dcf1198785aa05ae21",
+    "aci255_after_sha256": "cf179b0d4befb4db10e4776b688dbe971e1bd59074bc1c242a0afdc5413ef96c"
+  },
+  "limits": [
+    "Generated controls only; no added DWG or DXF fixtures.",
+    "No native GUI, Linux or Windows test of this new commit; unsupported color and gradient profiles remain unqualified."
+  ],
+  "supportClaimEffect": "none"
+}
