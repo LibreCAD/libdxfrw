@@ -1,0 +1,22 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "date": "2026-11-25",
+  "scope": "Fail closed on mismatched typed/raw MATERIAL dictionary edge roles and on root ownership the current generated-root path cannot preserve",
+  "librecadCommit": "383132b6bfb61fa641c8b04e8af9b02cbf72e4f8",
+  "codecImplementationDigestSha256": "73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad",
+  "implementation": [
+    "The existing dictionary sibling inventory now retains each captured 350/360 role and compares it against the physical raw edge.",
+    "The layer-MATERIAL route refuses a source root edge other than 350 because this output route regenerates the root with 350."
+  ],
+  "validation": {
+    "systemCodecBuild": "PASS",
+    "focusedSystemTests": "4/4 PASS, 336 assertions; includes role mismatch refusal, destination preservation, restoration and same-filter retry plus dictionary metadata and typed output controls",
+    "bundled": "The changed production check is system-codec-only; the prior bundled extrusion test passed on the immediately preceding consumer commit.",
+    "fullSuite": "not run"
+  },
+  "limits": [
+    "This is a bounded admission check, not general MATERIAL semantic support.",
+    "The IMAGE dictionary graph remains open.",
+    "No DWG/DXF fixture added."
+  ]
+}

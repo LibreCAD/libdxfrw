@@ -65,7 +65,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`362d242561226e4ca93e5d032866235998c65ff5`. The prior merge head built the
+`383132b6bfb61fa641c8b04e8af9b02cbf72e4f8`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -698,6 +698,7 @@ dictionary edge roles and metadata, and test duplicate paths, edits, refusal,
 retry, independent output and both consumer codecs before claiming closure.
 The shared dictionary metadata now retains 350/360 edge roles for typed output;
 see the [focused consumer receipt](docs/research/p8d-librecad-dictionary-entry-roles-2026-11-25.json).
+The [MATERIAL admission follow-up](docs/research/p8d-librecad-material-dictionary-role-check-2026-11-25.json) checks typed/raw entry roles and refuses a root role the generated-root path cannot preserve.
 The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
