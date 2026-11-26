@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-ordinary-sparse-material-import-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "ff538d539",
+  "libdxfrwImplementationDigestSha256": "5346c5dd100f7b3a85f8b2bab4798b7f3502d8cf4ff1a06b6929c18d0ac8bb27",
+  "librecadCommit": "87f3b4280ed1df9e6000a6434b70028047d743ac",
+  "scope": "Ordinary system-codec consumer captures bounded raw-only materials from sources up to 256 KiB for viewing, warns of limited editing/save behavior, and retains the existing guarded save policy. Raw replay remains a separate explicit opt-in.",
+  "checks": [
+    "PASS: MATERIAL and IMAGE focused system-codec tests, 2143 assertions in 14 cases; ordinary ASCII and binary raw-only imports, destination-preserving refusal, oversized-source refusal, explicit replay and retry controls.",
+    "PASS: bundled-codec filter compile and system-codec application-library rebuild.",
+    "PASS: AC1018 DWG reactor/HATCH roundtrip regression, 33 assertions in one case.",
+    "PARTIAL: the system-codec [filter][handles] selection remains 16 of 21 cases passing. The versioned fixture that previously failed on import now imports and is refused on unqualified save; four versionless minimal-material inputs still fail import."
+  ],
+  "limits": [
+    "This is a viewing/import improvement; it does not establish general material editing, ordinary raw replay, binary output, cross-version conversion or native rendering semantics.",
+    "Inputs over the source bound remain outside ordinary raw-material capture; explicit capture without a retained snapshot cannot enable replay.",
+    "Final-head hosted checks and native/platform qualification remain open. No fixture was committed."
+  ]
+}

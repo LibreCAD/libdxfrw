@@ -25,7 +25,11 @@ evidence are recorded in `docs/research/` and Git history.
   checks common group-347 output. The [consumer integration](docs/research/p8d-entity-material-and-image-graph-2026-11-26.json) binds selected model/block LINE references and composes the existing IMAGE and MATERIAL checks; new/copy entities without stable source handles and broader profiles remain open. The [empty-layer audit](docs/research/p8d-empty-layer-material-audit-2026-11-26.json)
   checks that no unlisted layer has a material reference. The [opt-in replay slice](docs/research/p8d-opt-in-sparse-material-replay-2026-11-26.json)
   admits selected unchanged same-version ASCII graphs and verifies refusal and retry;
-  the normal exporter remains guarded. The [plot-style resave slice](docs/research/p8d-sparse-material-plotstyle-resave-2026-11-26.json)
+  the normal exporter remains guarded. The [ordinary import slice](docs/research/p8d-ordinary-sparse-material-import-2026-11-26.json)
+  retains bounded ASCII/binary raw-only materials for viewing, warns about editing
+  and save limits, and preserves the destination when ordinary save is refused.
+  Extend this beyond the 256 KiB source bound only after aggregate capture and
+  memory limits are established. The [plot-style resave slice](docs/research/p8d-sparse-material-plotstyle-resave-2026-11-26.json)
   binds selected LAYER references to the verified default placeholder and checks
   reopen/resave, refusal, retry and independent readback for two ASCII profiles.
   Extend source and output proof for additional layer relationships and fields
@@ -43,8 +47,8 @@ evidence are recorded in `docs/research/` and Git history.
   restores DWG imports with entity reactors and applies the unqualified-link guard
   during sparse replay, including late-mutation refusal. The system `[filter][handles]` result is 16/21; five sparse
   MATERIAL imports remain failing. The [failure diagnosis](docs/research/p8d-sparse-material-handles-diagnosis-2026-11-26.json)
-  separates four versionless synthetic inputs from a versioned input refused
-  by the consumer's default raw-capture policy. Native FreeCAD and GUI gates
+  separates four versionless synthetic inputs from a versioned input. The latter
+  now imports; its unqualified save remains refused. Native FreeCAD and GUI gates
   remain open.
   Earlier prerequisite evidence is recorded in `docs/research/` and Git history.
 - **IMAGE / plot-style graphs:** extend the admitted single-IMAGE and
@@ -108,7 +112,7 @@ evidence are recorded in `docs/research/` and Git history.
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  7601055d5321567827b41f43fe8554eddef0929b (pushed; final-head CI pending).
+  87f3b4280ed1df9e6000a6434b70028047d743ac (pushed; final-head CI pending).
   Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
