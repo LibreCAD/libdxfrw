@@ -1,0 +1,17 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-material-link-guard-scope-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "6c11c3775",
+  "libdxfrwImplementationDigestSha256": "5346c5dd100f7b3a85f8b2bab4798b7f3502d8cf4ff1a06b6929c18d0ac8bb27",
+  "librecadCommit": "7601055d5321567827b41f43fe8554eddef0929b",
+  "regression": "The earlier sparse-material replay change accidentally applied its entity-link guard to all successful DWG imports and did not apply it to the intended replay preflight.",
+  "fix": "Move the guard to sparse replay graph validation, which is also rerun before publication; ordinary DWG import no longer rejects those links solely because of this replay-specific rule.",
+  "checks": [
+    "PASS: focused AC1018 write/import/re-export reactor and HATCH test, 33 assertions in one case; it failed during DWG import before this change.",
+    "PASS: MATERIAL and IMAGE system-codec selection, 2131 assertions in 14 cases; rejects source reactors, late extension-dictionary edits and XDATA handle references with destination preservation and retry.",
+    "PASS: bundled-codec filter compile check.",
+    "PARTIAL: system-codec [filter][handles] selection returns 16 of 21 cases passing; the five already diagnosed sparse-MATERIAL import failures remain."
+  ],
+  "limits": ["This is a bounded regression fix, not a claim of complete DWG graph or sparse MATERIAL support.", "Final-head hosted and native platform checks remain open."]
+}
