@@ -122,6 +122,7 @@ evidence are recorded in `docs/research/` and Git history.
   reopens the bounded polygon with its offset and vertices, but its saved DXF
   has no physical LAYOUT objects and an orphaned `*Paper_Space0` block record.
   A standard generated input also reports two LAYOUT records not imported.
+  Reuse the [staged authored-layout graph checks](docs/research/p8d-staged-authored-layout-graph-2026-11-26.json), which cover reciprocal links and atomic refusal/retry across six ASCII/binary versions; they do not capture source data or complete consumer integration.
   Implement source LAYOUT capture and complete generated/preserved layout graphs:
   bind the root dictionary, LAYOUT dictionary entries, layout owners and both
   directions of BLOCK_RECORD links. Preserve nonempty paper-space contents and
@@ -147,7 +148,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 02a4ef43779142760d3e96bef5d63a6ddc6daffc80d5dec58a1c4b3742b22e32
+  digest: 4a2d03375c7763144c325c86df8d4ed230195ff021b56fe46134d2d8685ee388
   (781 inputs). The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
   registers both new token controls in the frozen inventory and fast lane;
   its [GCC allocator follow-up](docs/research/p8-sat-gcc-allocator-harness-2026-11-26.json)
