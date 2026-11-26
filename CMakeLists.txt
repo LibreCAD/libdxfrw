@@ -1086,6 +1086,10 @@ if(LIBDXFRW_BUILD_TESTS)
     set_tests_properties(libdxfrw_render_settings_identity_remapping
         PROPERTIES LABELS "fast;dxf;writer;render-settings;identity;generated;transaction"
         TIMEOUT 15)
+    add_test(NAME libdxfrw_ltype_equivalent_length
+        COMMAND libdxfrw_wave1_tests --ltype-equivalent-length)
+    set_tests_properties(libdxfrw_ltype_equivalent_length PROPERTIES
+        LABELS "fast;dxf;writer;ltype;transaction;generated" TIMEOUT 15)
     add_test(NAME libdxfrw_blockrecord_insert_reference_remapping
         COMMAND libdxfrw_wave1_tests
             --blockrecord-insert-reference-remapping)

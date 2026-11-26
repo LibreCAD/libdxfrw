@@ -5368,13 +5368,25 @@ bool DRW_LType::update() {
                 return false;
         }
         const int resolvedSize = static_cast<int>(resolvedPath.size());
+        // Preserve a caller's equivalent total when summing the same dashes
+        // changes its last bit. A changed pattern or a materially different
+        // total still uses the freshly computed value.
+        const bool unchangedPath = !hasSynchronizedLengths ||
+            sameLengths(resolvedPath, synchronizedLengths);
+        const bool equivalentTotal = std::isfinite(length) &&
+            (total == 0.0 ? length == 0.0 : length > 0.0) &&
+            (length == total ||
+             length == std::nextafter(total, std::numeric_limits<double>::infinity()) ||
+             length == std::nextafter(total, -std::numeric_limits<double>::infinity()));
+        const double resolvedLength = unchangedPath && size == resolvedSize && equivalentTotal
+            ? length : total;
 
         // Commit only after all validation and allocation has succeeded.
         path = std::move(resolvedPath);
         segments = std::move(resolvedSegments);
         shapeHandles = std::move(resolvedShapeHandles);
         size = resolvedSize;
-        length = total;
+        length = resolvedLength;
         if (resized)
             declaredSize = resolvedSize;
         synchronizedLengths = path;

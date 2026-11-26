@@ -3951,6 +3951,78 @@ void testRenderSettingsIdentityRemapping(TestContext& t) {
     }
 }
 
+void testLTypeEquivalentLengthPreservation(TestContext& t) {
+    class ExposedLType : public DRW_LType {
+    public:
+        using DRW_LType::update;
+    } value;
+    value.updateValues("ROUNDING", "", 2, 19.05, {12.7, -6.35});
+    const double computed = 12.7 + 6.35;
+    t.expect(computed != 19.05 && value.update() && value.length == 19.05
+                 && value.update() && value.length == 19.05,
+             "LTYPE preserves a one-ULP-equivalent declared length across synchronization");
+    value.path[0] = 10.0;
+    t.expect(value.update() && value.length == 10.0 + 6.35
+                 && value.segments[0].length == 10.0,
+             "LTYPE changed path recomputes total and synchronizes segments");
+    value.segments[0].length = 9.0;
+    t.expect(value.update() && value.length == 9.0 + 6.35 && value.path[0] == 9.0,
+             "LTYPE changed segment recomputes total and synchronizes path");
+    value.updateValues("MISMATCH", "", 2, 20.0, {12.7, -6.35});
+    t.expect(value.update() && value.length == computed,
+             "LTYPE materially inconsistent total is recomputed");
+    const double smallest = std::numeric_limits<double>::denorm_min();
+    value.updateValues("TINY", "", 1, 0.0, {smallest});
+    t.expect(value.update() && value.length == smallest,
+             "LTYPE nonzero subnormal pattern does not retain a zero total");
+    value.updateValues("INVALID", "", 1, 1.0,
+                       {std::numeric_limits<double>::quiet_NaN()});
+    const bool refused = !value.update() && value.length == 1.0 && std::isnan(value.path[0]);
+    value.path[0] = 1.0;
+    t.expect(refused && value.update() && value.length == 1.0,
+             "LTYPE invalid pattern leaves caller state intact and permits correction");
+
+    class Interface final : public dx_iface {
+    public:
+        Interface() { cData = &data; currentBlock = data.mBlock; lineType.updateValues(
+            "ROUNDING", "", 2, 19.05, {12.7, -6.35}); }
+        void writeLTypes() override { written = dxfW->writeLineType(&lineType); }
+        dx_data data;
+        DRW_LType lineType;
+        bool written{false};
+    };
+    for (const bool binary : {false, true}) {
+        const auto path = std::filesystem::temp_directory_path() /
+            ("libdxfrw-ltype-total-retry-" + std::to_string(
+                std::chrono::steady_clock::now().time_since_epoch().count()) +
+             (binary ? "-binary.dxf" : "-ascii.dxf"));
+        const std::string sentinel = "preserve linetype destination";
+        { std::ofstream output(path, std::ios::binary); output << sentinel; }
+        Interface iface;
+        dxfRW codec(path.string().c_str());
+        iface.dxfW = &codec;
+        iface.lineType.path[0] = std::numeric_limits<double>::quiet_NaN();
+        const bool rejected = !codec.write(&iface, DRW::AC1027, binary);
+        std::ifstream retained(path, std::ios::binary);
+        const std::string bytes(std::istreambuf_iterator<char>(retained), {});
+        retained.close();
+        iface.lineType.path[0] = 12.7;
+        const bool retried = codec.write(&iface, DRW::AC1027, binary);
+        dx_iface reader;
+        dx_data imported;
+        const bool read = retried && reader.fileImport(path.string(), &imported, false);
+        const auto record = std::find_if(imported.lineTypes.begin(), imported.lineTypes.end(),
+            [](const DRW_LType& item) { return item.name == "ROUNDING"; });
+        t.expect(rejected && bytes == sentinel && retried && iface.written && read
+                     && record != imported.lineTypes.end() && record->length == 19.05
+                     && record->path == std::vector<double>({12.7, -6.35}),
+                 "LTYPE whole-file refusal preserves destination and corrected same-codec retry retains the total");
+        iface.dxfW = nullptr;
+        std::error_code ignored;
+        std::filesystem::remove(path, ignored);
+    }
+}
+
 void testBlockRecordInsertReferenceRemapping(TestContext& t) {
     for (const bool binary : {false, true}) {
         for (const bool useResolver : {false, true}) {
@@ -24034,6 +24106,12 @@ int main(int argc, char** argv) {
                   << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
         return focused.failures == 0 ? 0 : 1;
     }
+    if (argc == 2 && std::string(argv[1]) == "--ltype-equivalent-length") {
+        TestContext focused;
+        testLTypeEquivalentLengthPreservation(focused);
+        std::cout << "LTYPE equivalent length: " << (focused.failures == 0 ? "PASS" : "FAIL") << '\n';
+        return focused.failures == 0 ? 0 : 1;
+    }
     if (argc == 2
         && std::string(argv[1])
             == "--blockrecord-insert-reference-remapping") {
@@ -24621,6 +24699,7 @@ int main(int argc, char** argv) {
     testFieldDxfVersionFloor(context);
     testFieldCadValueEmissionPreflight(context);
     testDxfWriterEmittedHandleInventory(context);
+    testLTypeEquivalentLengthPreservation(context);
     testDxfWriterControlCharacterFraming(context);
     testGeoDataVersionedWriter(context);
     testGeneratedDictionaryGroupCommonMetadata(context);
