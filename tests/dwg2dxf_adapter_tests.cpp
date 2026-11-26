@@ -289,7 +289,9 @@ public:
                 || !audit->second->legacyPlotLayerBodyMatched || !audit->second->legacyPlotLayerOriginBound
                 || audit->second->bodyMatched || audit->second->originBound) return false;
         }
-        return !dx_iface::plotStyleSourceReport(data).legacyLayerMatched;
+        const auto report=dx_iface::plotStyleSourceReport(data);
+        return report.legacyLayerInventoryMatched&&report.legacyLiveLayerInventoryMatched
+            &&!report.legacyLayerMatched;
     }
     static bool legacyPlotRootIsIsolated(const dx_data& data) noexcept {
         const auto& source=data.m_tableDxfSource;
@@ -10655,6 +10657,22 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
                 if (!written || !multipleReader.fileImport(target.string(),&multiple,false)
                     || !Access::legacyPlotLayersAreIsolated(multiple))
                     return fail("additional legacy LAYER source was not isolated or relaxed the output gate");
+                const auto originalLayers=multiple.layers;
+                multiple.layers.front().color=3;
+                auto changed=dx_iface::plotStyleSourceReport(multiple);
+                if(!changed.legacyLayerInventoryMatched||changed.legacyLiveLayerInventoryMatched)
+                    return fail("changed legacy LAYER was accepted by the source inventory");
+                multiple.layers=originalLayers;multiple.layers.pop_back();
+                changed=dx_iface::plotStyleSourceReport(multiple);
+                if(!changed.legacyLayerInventoryMatched||changed.legacyLiveLayerInventoryMatched)
+                    return fail("missing legacy LAYER was accepted by the source inventory");
+                multiple.layers=originalLayers;multiple.layers.push_back(multiple.layers.front());
+                changed=dx_iface::plotStyleSourceReport(multiple);
+                if(!changed.legacyLayerInventoryMatched||changed.legacyLiveLayerInventoryMatched)
+                    return fail("duplicate legacy LAYER was accepted by the source inventory");
+                multiple.layers=originalLayers;
+                if(!Access::legacyPlotLayersAreIsolated(multiple))
+                    return fail("restored legacy LAYER inventory did not retry");
                 const std::string sentinel="MULTI_LAYER_SOURCE_MUST_NOT_REPLACE_DESTINATION";
                 { std::ofstream output(target,std::ios::binary|std::ios::trunc);output<<sentinel; }
                 Exporter exporter;

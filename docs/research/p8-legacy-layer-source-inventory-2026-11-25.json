@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-25",
+  "baseline": "9fc7564ad",
+  "implementation_digest_sha256": "aa44b9a46d7a9bfedcaa0364c0a5224b4acad0741f753b3de88df4a0c21a8e34",
+  "input_count": 775,
+  "scope": "Source-only legacy LAYER inventory for bounded physical identity/source and live-row matching; max 64 layer rows and 4096 source records.",
+  "checks": [
+    "Generated AC1015 ASCII and binary two-layer inputs bind each raw source and physical origin to its unchanged live layer.",
+    "Changing, removing or duplicating a live layer fails the live inventory, while restoring it succeeds.",
+    "Strict multi-layer output refuses with an unchanged sentinel destination and the same exporter retries with a supported single-layer source.",
+    "Three focused default plot-style and raster tests pass.",
+    "The locally generated IMAGE source has two matching physical and live layer inventory rows; its existing single-layer output proof still refuses."
+  ],
+  "remaining": [
+    "Bind each source plot-style reference to an approved target and verify every emitted layer and target class.",
+    "Keep strict export refusal, graph closure, atomic failure/retry and independent readback gates until output is proven.",
+    "No native/platform or general format support claim."
+  ]
+}

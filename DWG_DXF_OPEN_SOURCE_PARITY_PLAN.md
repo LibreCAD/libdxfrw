@@ -715,14 +715,14 @@ single fixed default layer required by that check. ezdxf additionally presents a
 `Defpoints` row after loading; the physical scan does not contain that row. See the [diagnosis](docs/research/p8-image-cross-version-plotstyle-diagnosis-2026-11-25.json).
 The source CLASS alias is now bound to the original spelling, with ASCII/binary
 mutation and restoration controls; see the [alias receipt](docs/research/p8-plotstyle-source-class-alias-2026-11-25.json). Target CLASS output still needs proof. The legacy source observer now isolates both physical LAYER rows in the captured
-profile; the [layer-source receipt](docs/research/p8-legacy-multiple-layer-source-observation-2026-11-25.json) includes ASCII/binary refusal and corrected retry. Keep the output refusal and destination preservation. Bind each physical LAYER and plot-style reference to its live row and output, including changed-reference and extra-row refusal with corrected retry. Require the IMAGE graph's existing source and output proofs and independent
+profile; the [layer-source receipt](docs/research/p8-legacy-multiple-layer-source-observation-2026-11-25.json) includes ASCII/binary refusal and corrected retry. The [bounded layer inventory](docs/research/p8-legacy-layer-source-inventory-2026-11-25.json) now matches each physical source to an immutable observation and its live row, with changed, missing and duplicate live-row controls. Keep the output refusal and destination preservation. Bind each plot-style reference to its target and emitted LAYER, including changed-reference and extra-output-row refusal with corrected retry. Require the IMAGE graph's existing source and output proofs and independent
 readback before admitting the cross-version graph. The [eight-row CLASS observer](docs/research/p8-class-shape-eight-row-observation-2026-11-25.json) supplies bounded source-shape
 transport for future larger inventories; it grants no output authority.
 The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `cb9839bacff40c95b33b1f7d9f3123652b2eb79309cf55c9c1dc73edd2389e7b` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `aa44b9a46d7a9bfedcaa0364c0a5224b4acad0741f753b3de88df4a0c21a8e34` (775 inputs); platform and native qualification remain open.
 
 Focused CI qualification for the current digest is recorded in the
 [current receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json).

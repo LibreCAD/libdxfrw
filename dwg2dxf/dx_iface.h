@@ -372,6 +372,7 @@ public:
         std::uint32_t defaultTarget{0};
         bool originalSourcesMatched{false},legacyClassRowsMatched{false},legacyLiveClassesMatched{false};
         bool legacyBodiesMatched{false},legacyLiveBodiesMatched{false},legacyLayerMatched{false},legacyLiveLayerMatched{false};
+        bool legacyLayerInventoryMatched{false},legacyLiveLayerInventoryMatched{false};
         bool ownerTargetsResolved{false},outputEligible{false};
     };
     static PlotSourceReport plotStyleSourceReport(const dx_data&) noexcept;

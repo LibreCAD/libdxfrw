@@ -339,6 +339,47 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
             }
         }
     } catch (...) { r.legacyBodiesMatched=false;r.legacyLiveBodiesMatched=false; }
+    // Source-only inventory for bounded legacy LAYER rows. This deliberately
+    // does not grant target-reference or output authority.
+    if ((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected)
+        &&r.legacyBodiesMatched&&s.identityInput&&s.identityInput->source
+        &&s.identityInput->source->records.size()<=4096u
+        &&s.identityAudit&&!s.resourceCaptureFailed&&!s.resourceProofCaptureFailed
+        &&!s.resourceOriginCaptureFailed&&s.resourceOriginPending.empty()) try {
+        const auto& physical=s.identityInput->source->records;
+        const auto count=static_cast<std::size_t>(std::count_if(physical.begin(),physical.end(),[](const auto& row) {
+            return row.kind==DRW_DxfIdentitySource::Kind::TableRecord&&asciiIdentifierEquals(row.name,"LAYER");
+        }));
+        if(count>0u&&count<=64u&&count==s.resourceOriginRecords
+            &&count==s.resourceOriginInputs.size()&&count==s.resourceOriginAudits.size()
+            &&count==s.resourceOriginInputOwners.size()&&count==s.resourceOriginAuditOwners.size()) {
+            bool sources=true,live=data.layers.size()==count;
+            std::set<std::uint32_t> liveHandles;
+            for(const auto& layer:data.layers)if(!liveHandles.insert(layer.handle).second)live=false;
+            for(const auto& item:s.resourceOriginAudits) {
+                const auto& audit=item.second;const auto input=s.resourceOriginInputs.find(item.first);
+                const auto resource=s.resources.find(item.first);
+                if(!audit||!audit->input||input==s.resourceOriginInputs.end()||resource==s.resources.end()
+                    ||!same(audit->input,input->second)||!audit->input->raw||!audit->input->model||!audit->input->sourceModel
+                    ||!same(audit->input->raw,resource->second.raw)||!same(audit->input->model,resource->second.model)
+                    ||audit->input->index>=s.resourceOriginInputOwners.size()||audit->index>=s.resourceOriginAuditOwners.size()
+                    ||!same(audit->input,s.resourceOriginInputOwners[audit->input->index])||!same(audit,s.resourceOriginAuditOwners[audit->index])
+                    ||!same(audit->identities,s.identityAudit)||audit->input->container!=&data||audit->input->generation!=s.generation
+                    ||audit->input->containerId!=data.m_entitiesContainerIdentity.value||!audit->input->context
+                    ||audit->input->context->sourceVersion!=data.sourceVersion||audit->input->raw->m_version!=data.sourceVersion
+                    ||audit->input->kind!=dxfRW::DxfResourceSourceView::Kind::Layer||!audit->input->paired
+                    ||!audit->stateComplete||!audit->legacyPlotLayerBodyMatched||!audit->legacyPlotLayerOriginBound
+                    ||!resource->second.legacyPlotLayerRawTypedMatched||audit->physical>=physical.size()
+                    ||physical[audit->physical].kind!=DRW_DxfIdentitySource::Kind::TableRecord
+                    ||!asciiIdentifierEquals(physical[audit->physical].name,"LAYER")) {sources=false;break;}
+                const auto* original=dynamic_cast<const DRW_Layer*>(audit->input->sourceModel.get());
+                const auto row=std::find_if(data.layers.begin(),data.layers.end(),[&](const auto& value){return value.handle==item.first;});
+                if(!original||row==data.layers.end()||!layerSourceEqual(*original,*row,data.sourceVersion))live=false;
+            }
+            r.legacyLayerInventoryMatched=sources;
+            r.legacyLiveLayerInventoryMatched=sources&&live;
+        }
+    } catch (...) {r.legacyLayerInventoryMatched=false;r.legacyLiveLayerInventoryMatched=false;}
     // The selected source has exactly one physical LAYER and one plot-style
     // reference. This comparison still grants no object or output authority.
     if((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected||(data.sourceVersion>=DRW::AC1021&&data.sourceVersion<=DRW::AC1032&&s.legacyPlotClassCount==2u)) && r.legacyBodiesMatched && s.identityInput && s.identityInput->source
