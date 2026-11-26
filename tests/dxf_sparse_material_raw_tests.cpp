@@ -39,6 +39,13 @@ struct LegacyReader:LC3CompatCheck {
  void addMaterial(const DRW_Material&)override{++materialCallbacks;}
  void addRawDxfObject(const DRW_RawDxfObject& v)override{if(v.name=="MATERIAL")++rawCallbacks;}
 };
+struct HeaderSourceReader:LC3CompatCheck,DRW_DxfHeaderMaterialSourceHandler {
+ bool enabled=true, headerAfterSource=false;
+ std::vector<DRW_DxfHeaderMaterialSource> captured;
+ bool wantsDxfHeaderMaterialSource()const override{return enabled;}
+ void addDxfHeaderMaterialSource(const DRW_DxfHeaderMaterialSource& value)override{captured.push_back(value);}
+ void addHeader(const DRW_Header*)override{headerAfterSource=!captured.empty();}
+};
 struct DxfWriter:LC3CompatCheck {
  dxfRW& out;DRW_Material value;DRW_RawDxfObject raw;bool useRaw=false,ok=false;
  explicit DxfWriter(dxfRW& w):out(w){}
@@ -63,6 +70,52 @@ struct DwgWriter:LC3CompatCheck {
 };
 struct DwgProbe:DRW_Material {using DRW_Material::encodeDwg;};
 std::string bytes(const std::filesystem::path& p){std::ifstream f(p,std::ios::binary);return {std::istreambuf_iterator<char>(f),{}};}
+bool physicalHeaderSource(const std::filesystem::path& path,bool binary,int mode){
+ {
+  std::ofstream f(path,std::ios::binary|std::ios::trunc);if(!f)return false;
+  if(binary){const char signature[]="AutoCAD Binary DXF\r\n\x1a";f.write(signature,sizeof(signature));}
+  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
+  const auto s=[&](int code,const char* text){return w->writeString(code,text);};
+  if(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,"AC1024"))return false;
+  if(mode!=0){
+   if(!s(9,mode==10?"CMATERIAL":"$CMATERIAL"))return false;
+   if(mode==7&&!s(999,"between records"))return false;
+   if(mode!=3&&!s(347,mode==4?"0":mode==5?"00000000000000A1":mode==8?"10000000000000000":"A1"))return false;
+   if(mode==2&&(!s(9,"$CMATERIAL")||!s(347,"A2")))return false;
+   if(mode==6&&!s(347,"A2"))return false;
+   if(mode==9&&(!s(9,"CMATERIAL")||!s(347,"A1")))return false;
+  }
+  if(!s(0,"ENDSEC"))return false;
+  if(mode==11&&(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$CMATERIAL")||!s(347,"A2")||!s(0,"ENDSEC")))return false;
+  if(!s(0,"EOF")||w->hasWriteError())return false;
+ }
+ HeaderSourceReader sink;dxfRW input(path.string().c_str());
+ if(!input.read(&sink,false))return mode==8&&sink.captured.empty();
+ if(sink.captured.size()!=(mode==11?2u:1u)||!sink.headerAfterSource)return false;
+ if(mode==11&&(sink.captured[1].status!=DRW_DxfHeaderMaterialSource::Status::Complete||
+    sink.captured[1].handleLength!=2u||sink.captured[1].handleLexeme[1]!='2'))return false;
+ const auto& source=sink.captured.front();
+ const bool malformed=mode==2||mode==3||mode==6||mode==8||mode==9;
+ if((source.status==DRW_DxfHeaderMaterialSource::Status::Malformed)!=malformed||
+    source.version!=DRW::AC1024||source.binary!=binary||source.present!=(mode!=0))return false;
+ if(!malformed&&mode!=0){
+  const std::string expected=mode==4?"0":mode==5?"00000000000000A1":"A1";
+  if(source.dollarName!=(mode!=10)||std::string(source.handleLexeme.data(),source.handleLength)!=expected)return false;
+  const auto data=bytes(path);
+  const auto valid=[&](const DRW_DxfPhysicalRecordSpan& span){return span.beginOffset<span.endOffset&&span.endOffset<=data.size();};
+  if(!valid(source.sectionName)||!valid(source.variableName)||!valid(source.value)||!valid(source.endMarker)||
+     source.sectionName.endOffset>source.variableName.beginOffset||source.variableName.endOffset>source.value.beginOffset||
+     source.value.endOffset>source.endMarker.beginOffset)return false;
+  const auto variable=data.substr(source.variableName.beginOffset,source.variableName.endOffset-source.variableName.beginOffset);
+  const auto value=data.substr(source.value.beginOffset,source.value.endOffset-source.value.beginOffset);
+  if(variable.find(mode==10?"CMATERIAL":"$CMATERIAL")==std::string::npos||value.find(expected)==std::string::npos)return false;
+  if(binary&&(static_cast<unsigned char>(variable[0])!=9||static_cast<unsigned char>(variable[1])!=0||
+              static_cast<unsigned char>(value[0])!=0x5b||static_cast<unsigned char>(value[1])!=1))return false;
+  if((source.value.ordinal>source.variableName.ordinal+1u)!=(mode==7))return false;
+ }
+ HeaderSourceReader disabled;disabled.enabled=false;dxfRW again(path.string().c_str());
+ return again.read(&disabled,false)&&disabled.captured.empty();
+}
 bool source(const std::filesystem::path& path,bool binary,int mode,const char* name){
  std::ofstream f(path,std::ios::binary|std::ios::trunc);if(!f)return false;
  if(binary){const char signature[]="AutoCAD Binary DXF\r\n\x1a";f.write(signature,sizeof(signature));}
@@ -136,6 +189,12 @@ bool ezdxfDefaultSource(const std::filesystem::path& path,bool binary,int mode,c
 int main(){
  const auto dir=std::filesystem::temp_directory_path()/("sparse-material-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directories(dir);
  struct Cleanup{std::filesystem::path p;~Cleanup(){std::error_code e;std::filesystem::remove_all(p,e);}}cleanup{dir};
+ for(bool binary:{false,true})for(int mode=0;mode<=11;++mode){
+  if(binary&&mode==7)continue; // binary writer does not admit group 999
+  if(!physicalHeaderSource(dir/"physical-header.dxf",binary,mode)){
+   std::cerr<<"physical header source failed: binary="<<binary<<" mode="<<mode<<'\n';return 95;
+  }
+ }
  for(bool binary:{false,true}){
   const auto inputPath=dir/(binary?"in-binary.dxf":"in-ascii.dxf");const auto inputName=inputPath.string();dxfRW input(inputName.c_str());
   Reader r;

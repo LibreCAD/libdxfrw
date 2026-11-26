@@ -20889,8 +20889,89 @@ bool dxfRW::processRawDxfSection(std::string_view sectionName) {
 
 /********* Header Section *********/
 
+namespace {
+class DxfHeaderMaterialCapture final : public DxfReadRecordObserver {
+    dxfReader& reader;
+    DxfReadRecordObserver* previous{nullptr};
+    bool attached{false}, valid{true}, active{false}, gotValue{false};
+    std::size_t nextOrdinal{0}, lastOffset{0};
+    static DRW_DxfPhysicalRecordSpan span(const DxfReadRecordView& value) noexcept {
+        return {value.ordinal, value.beginOffset, value.endOffset, value.ignoredComment};
+    }
+public:
+    DRW_DxfHeaderMaterialSource result;
+    DxfHeaderMaterialCapture(dxfReader& input, bool enabled) noexcept : reader(input) {
+        if (!enabled) return;
+        DxfReadRecordView first;
+        if (!reader.currentRecordView(first) || first.code != 2 ||
+            !dxfKeywordEquals(first.raw, "HEADER") || !first.ordinal ||
+            first.endOffset <= first.beginOffset ||
+            first.ordinal == (std::numeric_limits<std::size_t>::max)()) {
+            valid = false;
+        } else {
+            result.sectionName = span(first);
+            nextOrdinal = first.ordinal + 1u;
+            lastOffset = first.endOffset;
+        }
+        result.binary = reader.isBinary();
+        previous = reader.exchangeRecordObserver(this);
+        attached = true;
+    }
+    ~DxfHeaderMaterialCapture() override { detach(); }
+    void detach() noexcept {
+        if (attached) { reader.exchangeRecordObserver(previous); attached = false; }
+    }
+    void observe(const DxfReadRecordView& value) noexcept override {
+        if (previous) previous->observe(value);
+        if (!valid) return;
+        if (value.ordinal != nextOrdinal || value.endOffset <= value.beginOffset ||
+            value.beginOffset != lastOffset ||
+            value.ordinal == (std::numeric_limits<std::size_t>::max)()) {
+            valid = false;
+            return;
+        }
+        nextOrdinal = value.ordinal + 1u;
+        lastOffset = value.endOffset;
+        if (value.ignoredComment) return;
+        if (value.code == 0 || value.code == 9) {
+            if (active && !gotValue) valid = false;
+            active = false;
+            if (value.code == 0) { result.endMarker = span(value); return; }
+            if (value.raw == "$CMATERIAL" || value.raw == "CMATERIAL") {
+                if (result.present) { valid = false; return; }
+                result.present = active = true;
+                gotValue = false;
+                result.dollarName = value.raw == "$CMATERIAL";
+                result.variableName = span(value);
+            }
+            return;
+        }
+        if (!active) return;
+        if (gotValue || value.code != 347 || value.kind != DxfReadRecordView::Text ||
+            value.raw.empty() || value.raw.size() > result.handleLexeme.size()) {
+            valid = false;
+            return;
+        }
+        result.value = span(value);
+        result.handleLength = value.raw.size();
+        std::copy(value.raw.begin(), value.raw.end(), result.handleLexeme.begin());
+        gotValue = true;
+    }
+    void finish() noexcept {
+        result.version = reader.getSourceVersion();
+        result.status = valid && result.endMarker.endOffset > result.endMarker.beginOffset
+            ? DRW_DxfHeaderMaterialSource::Status::Complete
+            : DRW_DxfHeaderMaterialSource::Status::Malformed;
+        detach();
+    }
+};
+}
+
 bool dxfRW::processHeader() {
     DRW_DBG("dxfRW::processHeader\n");
+    auto* materialSource = dynamic_cast<DRW_DxfHeaderMaterialSourceHandler*>(iface);
+    const bool captureMaterial = materialSource && materialSource->wantsDxfHeaderMaterialSource();
+    DxfHeaderMaterialCapture materialCapture(*reader, captureMaterial);
     int code;
     std::string_view sectionstr;
     while (reader->readRec(&code)) {
@@ -20939,6 +21020,9 @@ bool dxfRW::processHeader() {
                             DRW::OperationCause::ValidationFailure,
                             diagnosticCode, diagnosticMessage, 0, false, 0, false, true);
                 }
+                materialCapture.finish();
+                if (captureMaterial)
+                    materialSource->addDxfHeaderMaterialSource(materialCapture.result);
                 iface->addHeader(&header);
                 return true;  //found ENDSEC terminate
             }

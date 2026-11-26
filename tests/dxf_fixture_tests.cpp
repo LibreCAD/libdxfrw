@@ -54764,7 +54764,9 @@ bool run(const std::filesystem::path& dir){
         dxfRW target(output.string().c_str());target.setHandleRemap({{2u,0xEA02u},{0xEA02u,0xEA12u}});Direct codec(target);codec.bare=true;codec.materialHandle=0xEA12u;
         sentinel(output);if(target.write(&codec,DRW::AC1027,binary)||!kept(output))return fail(__LINE__);++callbacks;
         codec.material="EA02";if(!target.write(&codec,DRW::AC1027,binary)||codec.inventory!=1u||!proof(wire(output,binary),2u,fields,true))return fail(__LINE__);++direct;++retries;
-        codec.material.clear();if(!target.write(&codec,DRW::AC1027,binary)||codec.inventory||!proof(wire(output,binary),0u,fields,true))return fail(__LINE__);++direct;
+        // The default plot-style graph independently enables inventory even
+        // when HEADER has no current-material reference.
+        codec.material.clear();if(!target.write(&codec,DRW::AC1027,binary)||codec.inventory!=1u||!proof(wire(output,binary),0u,fields,true))return fail(__LINE__);++direct;
         codec.material="EA02";
         unsigned guard=0u;target.setDxfHeaderWriteInspector([&](const auto& view){codec.inspected=true;if(view.bytes.empty()||view.bytes.find("ENDSEC")!=std::string_view::npos)return false;
             if(guard==1u)return false;if(guard==2u)throw std::runtime_error("authored HEADER inspector failure");if(guard==3u)target.setDxfHeaderWriteInspector({});if(guard==4u&&target.write(&codec,DRW::AC1027,binary))return false;return true;});

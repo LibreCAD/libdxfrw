@@ -30,6 +30,7 @@
 #endif
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstring>
 #include <filesystem>
@@ -1458,6 +1459,28 @@ public:
 struct DRW_DxfPhysicalRecordSpan {
   std::size_t ordinal{0},beginOffset{0},endOffset{0};
   bool ignoredComment{false};
+};
+/** Bounded physical observations for one DXF HEADER section. Offsets are
+ * source-byte offsets; spans and the original hexadecimal spelling do not
+ * establish handle identity, graph closure, output or semantic support. */
+struct DRW_DxfHeaderMaterialSource {
+  enum class Status : std::uint8_t {Complete,Malformed};
+  Status status{Status::Malformed};
+  DRW::Version version{DRW::UNKNOWNV};
+  bool binary{false}, present{false}, dollarName{false};
+  DRW_DxfPhysicalRecordSpan sectionName, variableName, value, endMarker;
+  std::array<char,16> handleLexeme{};
+  std::size_t handleLength{0};
+};
+/** Optional physical HEADER observation, delivered before addHeader().
+ * Each completed HEADER section is reported separately; consumers must
+ * reject conflicting or repeated sections and bind the parsed value. */
+#define LIBDXFRW_HAS_DXF_HEADER_MATERIAL_SOURCE_HANDLER 1
+class DRW_DxfHeaderMaterialSourceHandler {
+public:
+  virtual ~DRW_DxfHeaderMaterialSourceHandler() = default;
+  virtual bool wantsDxfHeaderMaterialSource() const { return false; }
+  virtual void addDxfHeaderMaterialSource(const DRW_DxfHeaderMaterialSource&) {}
 };
 /** Actual per-scalar OBJECTS observations. Fields include ignored comments;
  * code0 markers are separate. No value, role or support semantics are inferred.

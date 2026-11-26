@@ -44,8 +44,11 @@ evidence are recorded in `docs/research/` and Git history.
   checks live layer and current-material targets. The [LAYER source capture](docs/research/p8d-librecad-sparse-material-layer-source-2026-11-26.json)
   binds group 347 to bounded ASCII/Binary source rows; its corrected
   AddressSanitizer selector passes. The [HEADER source check](docs/research/p8d-librecad-sparse-material-header-source-2026-11-26.json)
-  binds the parsed original `$CMATERIAL` presence and handle; independent
-  physical-span proof is still open. Next bind references to staged output
+  binds the parsed original `$CMATERIAL` presence and handle. The
+  [opt-in physical HEADER observer](docs/research/p8d-dxf-header-material-physical-source-2026-11-26.json)
+  exposes bounded source spans and original handle spelling; connect it to
+  the consumer's parsed snapshot and independently verify source/readback.
+  Next bind references to staged output
   and independent readback.
   Validate the entire ACAD_MATERIAL dictionary, exact raw carriers, source
   identities, owners/reactors, layer and current-material references, handle
@@ -91,8 +94,8 @@ evidence are recorded in `docs/research/` and Git history.
 - **Integration:** verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 73472a8b26362f36232886809faae81a1ebf51cb1fef788f3c98274a4a073abf
-  (778 inputs). The shared staged inspector changes selected inputs,
+  digest: 78eb534ad10b8b9a319d1f5b66a4983c5d52dcd3293356859bd891f74c972840
+  (778 inputs). The physical HEADER observer changes selected inputs,
   so earlier digest-bound results remain historical. LibreCAD consumer head:
   21600b3931430f2ba757e97b06120f12628ac203. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
@@ -392,7 +395,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `73472a8b26362f36232886809faae81a1ebf51cb1fef788f3c98274a4a073abf` (778 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `78eb534ad10b8b9a319d1f5b66a4983c5d52dcd3293356859bd891f74c972840` (778 inputs); platform and native qualification remain open.
 
 The earlier [focused CI receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json)
 applies to its recorded digest, not this candidate. Recheck current-head CI and

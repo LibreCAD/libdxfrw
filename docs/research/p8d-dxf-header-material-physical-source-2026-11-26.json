@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-dxf-header-material-physical-source-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateParent": "5fcf0f764",
+  "implementationDigestSha256": "78eb534ad10b8b9a319d1f5b66a4983c5d52dcd3293356859bd891f74c972840",
+  "scope": "Optional bounded observation of a completed DXF HEADER section's physical $CMATERIAL or CMATERIAL records. The separate facet preserves existing DRW_Interface and facade layout and leaves typed parsing unchanged.",
+  "validation": [
+    "PASS: generated ASCII and Binary DXF controls check source byte spans against the actual locally authored input, ordinal ordering, lexical handle, optional absence, explicit null, 16-character value, bare name, duplicate fields and names, missing values, overlong parser refusal, opt-out and repeated HEADER-section callbacks. ASCII additionally checks ignored comments between records.",
+    "PASS: existing sparse-material read/write, graph and rollback/retry controls with the current static library.",
+    "PASS: the same focused control under AddressSanitizer with detect_leaks=0.",
+    "PASS: freshly rebuilt existing HEADER material regression: 80 profiles, 1634 independent fields, 80 readbacks, 68 callback rollbacks, 248 corrected retries and 52 malformed/target refusals.",
+    "The HEADER regression previously failed unchanged on the candidate parent because default plot-style graph output independently enables record inventory. Its expectation now checks the emitted MATERIAL inventory while separately verifying that no $CMATERIAL is written."
+  ],
+  "limits": [
+    "Physical spans and spelling alone do not establish semantic handle identity, graph closure, native compatibility, output or replay eligibility.",
+    "The consumer has not yet bound this facet to its parsed source snapshot. Multiple HEADER callbacks and incomplete capture must remain unavailable to replay.",
+    "No binary group-999 comment is generated: the binary writer does not admit that group."
+  ]
+}
