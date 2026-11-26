@@ -1,0 +1,28 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-polygon-image-clip-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "bounded-generated-dxf-consumer-profile-only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "a5ae048f7878da578d1c583f2ff95f8bb14209f2",
+  "codecCommit": "d3923ba73cbe9e98545775815448270e6acab0f4",
+  "codecImplementationDigestSha256": "02a4ef43779142760d3e96bef5d63a6ddc6daffc80d5dec58a1c4b3742b22e32",
+  "authority": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-3A2FF847-BE14-4AC5-9BD4-BD3DCAEF2281.htm",
+  "scope": "Extend the shared staged IMAGE inspector and LibreCAD same-version bounded multi-IMAGE ASCII graph to polygonal clipping, while retaining earlier rectangular behavior and gating the consumer on the codec capability.",
+  "validation": [
+    "PASS: workspace-source macOS ARM64 CTest libdxfrw_dxf_staged_image_reference (0.88s). It checks rectangular and 3-point polygon records in AC1014 through AC1032, ASCII and binary, both compatibility profiles, with incorrect type, count, final vertex and over-limit controls, atomic refusal, retry and readback. Separate AC1024 ASCII/Binary controls exercise the 256-vertex limit and refusal at 257.",
+    "PASS: final installed system-codec LibreCAD focused IMAGE and MATERIAL selection, 8874 assertions in 17 cases. The modern clip test includes both rectangular and enabled 3-point polygon cases for AC1024, AC1027 and AC1032, cross-version refusal, coordinated late raw/typed vertex and mode changes, destination preservation, corrected retry and reimport.",
+    "PASS: the bundled-codec LibreCAD filter object compiles without the new capability.",
+    "PASS: ezdxf 1.4.5 independently reads six generated polygon/rectangle source-output pairs across AC1024/AC1027/AC1032, matches flags, clip mode, clipping state, corners, geometry and IMAGEDEF/reactor links, and reports zero errors and zero fixes for all twelve audits."
+  ],
+  "scratchOnly": {
+    "ac1024PolygonSourceSha256": "fc7f7f2387239a15d018b638072d6d02ccbe728dfdb47274788c4ffbd69b2c75",
+    "ac1024PolygonOutputSha256": "0764c92410e2bdf306769791ec2297f62f107eda06a890d0ba8684821dd1ed4e",
+    "ac1027PolygonSourceSha256": "9d41ee8f8f6cd105b120701cfae2dc0fd4c9bb45502f15acfb3f0be895dd9935",
+    "ac1027PolygonOutputSha256": "46f639203918150834cea0c7c82697295a659613b82c0991ed1194a640f3e438",
+    "ac1032PolygonSourceSha256": "caa8149e41f2d85dc4e0bf5c9336471dde28c4b34e5d6f3b06e6262353ef60ca",
+    "ac1032PolygonOutputSha256": "6063b0add44c531c6c2da967ba16b1c9f0c83923e2bca0457894840d1278eef8",
+    "fixturesCommitted": false
+  },
+  "limits": "Consumer admission is limited to multi-image graphs with AC1024/AC1027/AC1032 source/output version equality and at most 256 vertices. The generated consumer control has three vertices; the codec boundary controls do not qualify native polygon rendering, external producer files, binary consumer output, other platforms or DWG."
+}
