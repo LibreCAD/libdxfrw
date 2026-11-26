@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p6-ac1012-generated-pair-shared-checks-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateCommit": "ecb93e7bcc5066196887e9e667a844926e1465da",
+  "implementationDigestSha256": "73472a8b26362f36232886809faae81a1ebf51cb1fef788f3c98274a4a073abf",
+  "source": "Previously locally authored specification-directed LibreDWG pair, recorded in p6-ac1012-spec-pair-root-owner-recheck-2026-11-26.json; no additional fixture or generated drawing is committed.",
+  "sourceDrawingSha256": {
+    "destination": "4294f69bde22fe3ac2852a035bd96f203520b1d56a7e642015552c9e8dcfbfe6",
+    "source": "9d82bd451e1174feef42bb22c6cfcbd695dcd16942f1d8e65456b95bb24f7f5a"
+  },
+  "frameSha256": {
+    "destination": "0d005170285d2dbdc3887520bc5a018a708e58aff8568324818f1f918da95d07",
+    "source": "fbaf235e03a52ceacff32f57b3e0334dd4cb0a535b42e659eaa66bdd7c7a49c7"
+  },
+  "testExecutableSha256": "150f7f3cfcbbf32b860750c70f071c9154d2aab9f37e8fef232ecc725fe3b059",
+  "results": [
+    "PASS: generated AC1012, AC1014 and AC1015 dictionary/DICTIONARYVAR version and transaction regression.",
+    "PASS: both physical AC1012 dictionary frames with dictionary handle 23, owner 12 and selected target 46; shared version-aware frame, dictionary and handle-role proof, malformed-role refusal and corrected retry."
+  ],
+  "limits": [
+    "Rechecking generated source frames does not independently qualify native AutoCAD normal-open, cloning defaults, duplicate-key merge behavior or full-source output.",
+    "Strict output remains guarded; previously observed explicit-partial results retain their bounded scope."
+  ]
+}
