@@ -708,16 +708,13 @@ DRW_Header::DxfDimunitAliasState DRW_Header::dxfDimunitAliasState() const {
 bool DRW_Header::resolveDxfDimensionVariables(
     DRW::Version target, int& legacyUnit, int& legacyFit,
     int& linearUnit, int& fraction, int& textArrowFit, int& textMove) const {
-    const auto findInt = [this](const char* key, int& value) {
-        const auto found = vars.find(key);
-        if (found == vars.end() || found->second == nullptr
-            || found->second->type() != DRW_Variant::INTEGER)
+    const auto readInt = [this](const char* key, int& value, bool& present) {
+        int source = 0;
+        if (!getDxfHeaderIntegerValue(key, 70, source, present))
             return false;
-        value = found->second->content.i;
+        if (present)
+            value = source;
         return true;
-    };
-    const auto hasKey = [this](const char* key) {
-        return vars.find(key) != vars.end();
     };
     int sourceLegacyUnit = 2;
     int sourceLegacyFit = 3;
@@ -725,24 +722,18 @@ bool DRW_Header::resolveDxfDimensionVariables(
     int sourceFraction = 0;
     int sourceTextArrowFit = 3;
     int sourceTextMove = 0;
-    const bool hasLegacyUnit = findInt("$DIMUNIT", sourceLegacyUnit);
-    const bool hasLegacyFit = findInt("$DIMFIT", sourceLegacyFit);
+    bool hasLegacyUnit = false, hasLegacyFit = false, hasModernLinearUnit = false;
+    bool hasModernFraction = false, hasModernTextArrowFit = false, hasModernTextMove = false;
+    if (!readInt("$DIMUNIT", sourceLegacyUnit, hasLegacyUnit)
+        || !readInt("$DIMFIT", sourceLegacyFit, hasLegacyFit)
+        || !readInt("$DIMLUNIT", sourceLinearUnit, hasModernLinearUnit)
+        || !readInt("$DIMFRAC", sourceFraction, hasModernFraction)
+        || !readInt("$DIMATFIT", sourceTextArrowFit, hasModernTextArrowFit)
+        || !readInt("$DIMTMOVE", sourceTextMove, hasModernTextMove))
+        return false;
     const bool dimunitAlias = dxfDimunitAliasState()
         != DxfDimunitAliasState::None;
-    const bool hasModernLinearUnit =
-        findInt("$DIMLUNIT", sourceLinearUnit) && !dimunitAlias;
-    const bool hasModernFraction = findInt("$DIMFRAC", sourceFraction);
-    const bool hasModernTextArrowFit =
-        findInt("$DIMATFIT", sourceTextArrowFit);
-    const bool hasModernTextMove = findInt("$DIMTMOVE", sourceTextMove);
-    if ((hasKey("$DIMUNIT") && !hasLegacyUnit)
-        || (hasKey("$DIMFIT") && !hasLegacyFit)
-        || (hasKey("$DIMLUNIT") && !dimunitAlias
-            && !hasModernLinearUnit)
-        || (hasKey("$DIMFRAC") && !hasModernFraction)
-        || (hasKey("$DIMATFIT") && !hasModernTextArrowFit)
-        || (hasKey("$DIMTMOVE") && !hasModernTextMove))
-        return false;
+    hasModernLinearUnit = hasModernLinearUnit && !dimunitAlias;
     const bool hasModernUnitFamily =
         hasModernLinearUnit || hasModernFraction;
     const bool hasModernFitFamily =
@@ -932,6 +923,8 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
         "$UCSORGBOTTOM", "$UCSORGLEFT", "$UCSORGRIGHT", "$UCSORGFRONT", "$UCSORGBACK",
         "$PUCSBASE", "$PUCSORTHOREF", "$PUCSORTHOVIEW", "$PUCSORGTOP",
         "$PUCSORGBOTTOM", "$PUCSORGLEFT", "$PUCSORGRIGHT", "$PUCSORGFRONT", "$PUCSORGBACK"}};
+    static constexpr std::array<const char*, 7> modernDimensionFields{{
+        "$DIMADEC", "$DIMALTRND", "$DIMAZIN", "$DIMDSEP", "$DIMLDRBLK", "$DIMLWD", "$DIMLWE"}};
     return canWriteDxfHeaderStructure()
         && canWriteDxfUnknownHeaderVariables()
         && canWriteDxfLinetypeScale()
@@ -954,6 +947,8 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
         && legacyVariableAbsent("$TSTACKALIGN")
         && legacyVariableAbsent("$TSTACKSIZE")
         && std::all_of(modernOrthographicUcs.begin(), modernOrthographicUcs.end(),
+                       legacyVariableAbsent)
+        && std::all_of(modernDimensionFields.begin(), modernDimensionFields.end(),
                        legacyVariableAbsent)
         && canWriteDxfHeaderIntegerRange("$LWDISPLAY", 290, 0, 1, &lwdisplayPresent)
         && canWriteDxfHeaderIntegerRange("$XEDIT", 290, 0, 1, &xeditPresent)
@@ -1578,51 +1573,51 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeInt16(70, varInt);
         else
             writer->writeInt16(70, 0);
-        writer->writeString(9, "$DIMADEC");
-        if (getInt("$DIMADEC", &varInt))
-            writer->writeInt16(70, varInt);
-        else
-            writer->writeInt16(70, 0);
-        writer->writeString(9, "$DIMALTRND");
-        if (getDouble("$DIMALTRND", &varDouble))
-            writer->writeDouble(40, varDouble);
-        else
-            writer->writeDouble(40, 0.0);
-        writer->writeString(9, "$DIMAZIN");
-        if (getInt("$DIMAZIN", &varInt))
-            writer->writeInt16(70, varInt);
-        else
-            writer->writeInt16(70, 0);
-        writer->writeString(9, "$DIMDSEP");
-        if (getInt("$DIMDSEP", &varInt))
-            writer->writeInt16(70, varInt);
-        else
-            writer->writeInt16(70, 44);
-        writer->writeString(9, "$DIMATFIT");
-        writer->writeInt16(70, dimatfit);
-        writer->writeString(9, "$DIMFRAC");
-        writer->writeInt16(70, dimfrac);
-        writer->writeString(9, "$DIMLDRBLK");
-        if (getStr("$DIMLDRBLK", &varStr))
-            writer->writeUtf8String(1, varStr);
-        else
-            writer->writeString(1, "STANDARD");
         if (ver > DRW::AC1014) {
+            writer->writeString(9, "$DIMADEC");
+            if (getInt("$DIMADEC", &varInt))
+                writer->writeInt16(70, varInt);
+            else
+                writer->writeInt16(70, 0);
+            writer->writeString(9, "$DIMALTRND");
+            if (getDouble("$DIMALTRND", &varDouble))
+                writer->writeDouble(40, varDouble);
+            else
+                writer->writeDouble(40, 0.0);
+            writer->writeString(9, "$DIMAZIN");
+            if (getInt("$DIMAZIN", &varInt))
+                writer->writeInt16(70, varInt);
+            else
+                writer->writeInt16(70, 0);
+            writer->writeString(9, "$DIMDSEP");
+            if (getInt("$DIMDSEP", &varInt))
+                writer->writeInt16(70, varInt);
+            else
+                writer->writeInt16(70, 44);
+            writer->writeString(9, "$DIMATFIT");
+            writer->writeInt16(70, dimatfit);
+            writer->writeString(9, "$DIMFRAC");
+            writer->writeInt16(70, dimfrac);
+            writer->writeString(9, "$DIMLDRBLK");
+            if (getStr("$DIMLDRBLK", &varStr))
+                writer->writeUtf8String(1, varStr);
+            else
+                writer->writeString(1, "STANDARD");
             writer->writeString(9, "$DIMLUNIT");
             writer->writeInt16(70, dimlunit);
+            writer->writeString(9, "$DIMLWD");
+            if (getInt("$DIMLWD", &varInt))
+                writer->writeInt16(70, varInt);
+            else
+                writer->writeInt16(70, -2);
+            writer->writeString(9, "$DIMLWE");
+            if (getInt("$DIMLWE", &varInt))
+                writer->writeInt16(70, varInt);
+            else
+                writer->writeInt16(70, -2);
+            writer->writeString(9, "$DIMTMOVE");
+            writer->writeInt16(70, dimtmove);
         }
-        writer->writeString(9, "$DIMLWD");
-        if (getInt("$DIMLWD", &varInt))
-            writer->writeInt16(70, varInt);
-        else
-            writer->writeInt16(70, -2);
-        writer->writeString(9, "$DIMLWE");
-        if (getInt("$DIMLWE", &varInt))
-            writer->writeInt16(70, varInt);
-        else
-            writer->writeInt16(70, -2);
-        writer->writeString(9, "$DIMTMOVE");
-        writer->writeInt16(70, dimtmove);
 
         if (ver > DRW::AC1018) {// and post v2004 dim vars
             writer->writeString(9, "$DIMFXL");

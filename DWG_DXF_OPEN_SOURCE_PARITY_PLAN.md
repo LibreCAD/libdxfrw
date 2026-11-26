@@ -65,7 +65,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`16132a8b009ed728b2a65a4b068c40ff660f5f6c`. The prior merge head built the
+`d574254f28ade16119d4f4a9511f8cfc5934a804`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -132,11 +132,15 @@ reference. The [text/stylesheet slice](docs/research/p8d-r14-header-textstyle-20
 removes three generated defaults and refuses explicit values. The [orthographic
 UCS slice](docs/research/p8d-r14-header-orthographic-ucs-2026-11-26.json)
 handles eighteen newer UCS/PUCS settings while preserving and testing ordinary
-R14 UCS origins. Fourteen names remain: ten dimension settings and four
-display/geometry settings. Treat absence as a review lead, not automatic proof
-of invalidity. Next qualify dimension and display/geometry fields in small
-slices with source-presence/loss policy, physical output, ASCII/binary reimport,
-rollback and consumer controls. Handle previously emitted files
+R14 UCS origins. The [dimension migration slice](docs/research/p8d-r14-header-dimension-migration-2026-11-26.json)
+maps representable modern dimension families to legacy DIMUNIT/DIMFIT, retains
+the established modern-value precedence, accepts bare DWG header keys, and
+refuses seven explicitly supplied newer fields instead of silently dropping them.
+LibreCAD reports omission of its generated default angular precision and rejects
+nondefault values. Four names remain for investigation: `$FACETRES`, `$ISOLINES`,
+`$PELLIPSE`, and `$TEXTQLTY`. Treat absence as a review lead, not automatic
+proof of invalidity. Qualify these settings with source-presence/loss policy,
+physical output, ASCII/binary reimport, rollback and consumer controls. Handle previously emitted files
 separately; retain native qualification.
 The [R14 Boolean field slices](docs/research/p8d-r14-header-modern-booleans-2026-11-26.json)
 omit `$EXTNAMES`, `$PSTYLEMODE`, `$OLESTARTUP`, `$LWDISPLAY`, and `$XEDIT`
@@ -759,7 +763,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `0a93f4a5061f928af3e5104eee5a0e7e8abf4b90594cdcebc642c0d805c6fabb` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `78f05d6baabea99f631e03be3d3b4da0d0a58ef59e1aadc36c0fbc9c38ab9a2f` (775 inputs); platform and native qualification remain open.
 
 The earlier [focused CI receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json)
 applies to its recorded digest, not this candidate. Recheck current-head CI and

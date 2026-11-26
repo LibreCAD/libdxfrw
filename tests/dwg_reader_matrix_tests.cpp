@@ -21063,6 +21063,16 @@ void testHeaderPackedFlags(TestContext& t) {
         else if (slot == 2u) header.addInt(modernOrthographicUcs[field], 2, 70);
         else header.addCoord(modernOrthographicUcs[field], DRW_Coord(1., 2., 3.), 10);
     };
+    const std::array<const char*, 7> modernDimensionFields{{
+        "$DIMADEC", "$DIMALTRND", "$DIMAZIN", "$DIMDSEP", "$DIMLDRBLK", "$DIMLWD", "$DIMLWE"}};
+    const auto addModernDimensionField = [&](DRW_Header& header, unsigned field) {
+        if (field == 1u) header.addDouble(modernDimensionFields[field], 0.25, 40);
+        else if (field == 4u) header.addStr(modernDimensionFields[field], "_CLOSED", 1);
+        else {
+            const int values[] = {3, 0, 3, 46, 0, 25, 50};
+            header.addInt(modernDimensionFields[field], values[field], 70);
+        }
+    };
     const auto addModernHeaderScalar = [](DRW_Header& header, unsigned field) {
         if (field == 0u) header.addStr("$HYPERLINKBASE", "assets", 1);
         else if (field == 1u) header.addInt("$CEPSNTYPE", 2, 380);
@@ -21108,6 +21118,12 @@ void testHeaderPackedFlags(TestContext& t) {
             for (const char* name : modernOrthographicUcs)
                 t.expect((bytes.find(name) != std::string::npos) == modern,
                          "orthographic UCS header appears only for R2000 and later");
+            for (const char* name : modernDimensionFields)
+                t.expect((bytes.find(name) != std::string::npos) == modern,
+                         "newer dimension header appears only for R2000 and later");
+            for (const char* name : {"$DIMFRAC", "$DIMATFIT", "$DIMTMOVE"})
+                t.expect((bytes.find(name) != std::string::npos) == modern,
+                         "mapped dimension header appears only for R2000 and later");
             for (const char* name : {"$UCSNAME", "$UCSORG", "$UCSXDIR", "$UCSYDIR",
                                      "$PUCSNAME", "$PUCSORG", "$PUCSXDIR", "$PUCSYDIR"})
                 t.expect(bytes.find(name) != std::string::npos,
@@ -21151,6 +21167,13 @@ void testHeaderPackedFlags(TestContext& t) {
             t.expect(!source.canWriteDxfHeaderInitialPreflight(DRW::AC1014)
                          && source.canWriteDxfHeaderInitialPreflight(DRW::AC1015),
                      "R14 HEADER refuses an explicit orthographic UCS setting");
+        }
+        for (unsigned field = 0; field != modernDimensionFields.size(); ++field) {
+            HeaderWriteProbe source;
+            addModernDimensionField(source, field);
+            t.expect(!source.canWriteDxfHeaderInitialPreflight(DRW::AC1014)
+                         && source.canWriteDxfHeaderInitialPreflight(DRW::AC1015),
+                     "R14 HEADER refuses an explicit unrepresented dimension setting");
         }
     }
 
@@ -21328,6 +21351,58 @@ void testHeaderPackedFlags(TestContext& t) {
         t.expect(refused && unchanged && retried,
                  "R14 adapter preserves the destination and retries after removing an orthographic UCS setting");
     }
+    for (const bool binary : {false, true})
+    for (unsigned field = 0; field != modernDimensionFields.size(); ++field) {
+        dx_data data;
+        dx_iface adapter;
+        addModernDimensionField(data.headerC, field);
+        { std::ofstream output(legacyPath, std::ios::binary); output << "preserve"; }
+        const bool refused = !adapter.fileExport(legacyPath.string(), DRW::AC1014,
+                                                binary, &data, false);
+        std::ifstream input(legacyPath, std::ios::binary);
+        const bool unchanged = std::string(std::istreambuf_iterator<char>(input), {}) == "preserve";
+        input.close();
+        data.headerC = DRW_Header{};
+        const bool retried = adapter.fileExport(legacyPath.string(), DRW::AC1014,
+                                                binary, &data, false);
+        t.expect(refused && unchanged && retried,
+                 "R14 adapter preserves the destination and retries after removing a newer dimension setting");
+    }
+    for (const bool binary : {false, true}) {
+        dx_data data;
+        dx_iface adapter;
+        data.headerC.addInt("$DIMATFIT", 1, 70);
+        data.headerC.addInt("$DIMTMOVE", 2, 70);
+        { std::ofstream output(legacyPath, std::ios::binary); output << "preserve"; }
+        const bool refused = !adapter.fileExport(legacyPath.string(), DRW::AC1014,
+                                                binary, &data, false);
+        std::ifstream input(legacyPath, std::ios::binary);
+        const bool unchanged = std::string(std::istreambuf_iterator<char>(input), {}) == "preserve";
+        input.close();
+        data.headerC.addInt("$DIMATFIT", 3, 70);
+        const bool retried = adapter.fileExport(legacyPath.string(), DRW::AC1014,
+                                                binary, &data, false);
+        t.expect(refused && unchanged && retried,
+                 "R14 dimension fit refuses an unrepresentable combination and retries after correction");
+    }
+    for (const bool binary : {false, true}) {
+        dx_data data;
+        dx_iface adapter;
+        data.headerC.addInt("DIMFRAC", 0, 70);
+        data.headerC.addInt("$DIMFRAC", 0, 70);
+        { std::ofstream output(legacyPath, std::ios::binary); output << "preserve"; }
+        const bool refused = !adapter.fileExport(legacyPath.string(), DRW::AC1014,
+                                                binary, &data, false);
+        std::ifstream input(legacyPath, std::ios::binary);
+        const bool unchanged = std::string(std::istreambuf_iterator<char>(input), {}) == "preserve";
+        input.close();
+        data.headerC = DRW_Header{};
+        data.headerC.addInt("DIMFRAC", 0, 70);
+        const bool retried = adapter.fileExport(legacyPath.string(), DRW::AC1014,
+                                                binary, &data, false);
+        t.expect(refused && unchanged && retried,
+                 "R14 dimension aliases refuse ambiguity and retry after correction");
+    }
     const auto legacyResavePath = legacyPath.parent_path()
         / (legacyPath.stem().string() + "-again.dxf");
     const auto hasRootOwner = [](const std::filesystem::path& path, bool binary) {
@@ -21368,6 +21443,12 @@ void testHeaderPackedFlags(TestContext& t) {
         writer.currentBlock = sourceData.mBlock;
         sourceData.headerC.addCoord("$UCSORG", DRW_Coord(10., 20., 0.), 10);
         sourceData.headerC.addCoord("$PUCSORG", DRW_Coord(4., 5., 0.), 10);
+        sourceData.headerC.addInt(binary ? "DIMLUNIT" : "$DIMLUNIT", 4, 70);
+        sourceData.headerC.addInt(binary ? "DIMFRAC" : "$DIMFRAC", 2, 70);
+        sourceData.headerC.addInt(binary ? "DIMATFIT" : "$DIMATFIT", 3, 70);
+        sourceData.headerC.addInt(binary ? "DIMTMOVE" : "$DIMTMOVE", 1, 70);
+        sourceData.headerC.addInt("$DIMDEC", 4, 70);
+        sourceData.headerC.addInt("$DIMJUST", 2, 70);
         DRW_Line line;
         line.basePoint = {1., 2., 0.};
         line.secPoint = {3., 5., 0.};
@@ -21396,6 +21477,14 @@ void testHeaderPackedFlags(TestContext& t) {
                          && coord->y == field.second.y && coord->z == field.second.z,
                      "ordinary R14 UCS origin survives save, import, resave and reopen");
         }
+        for (const auto& field : {std::pair<const char*, int>{"$DIMUNIT", 6}, {"$DIMFIT", 4},
+                                  {"$DIMDEC", 4}, {"$DIMJUST", 2}}) {
+            const auto item = reopenedData.headerC.vars.find(field.first);
+            const auto* value = item == reopenedData.headerC.vars.end() ? nullptr : item->second;
+            t.expect(reopened && value != nullptr && value->type() == DRW_Variant::INTEGER
+                         && value->i_val() == field.second,
+                     "R14 dimension settings survive conversion, resave and reopen");
+        }
     }
     const auto modernPath = legacyPath.parent_path()
         / (legacyPath.stem().string() + "-modern.dxf");
@@ -21406,6 +21495,12 @@ void testHeaderPackedFlags(TestContext& t) {
             addModernHeaderScalar(sourceData.headerC, field);
         for (unsigned field = 0; field != modernOrthographicUcs.size(); ++field)
             addOrthographicUcs(sourceData.headerC, field);
+        for (unsigned field = 0; field != modernDimensionFields.size(); ++field)
+            addModernDimensionField(sourceData.headerC, field);
+        sourceData.headerC.addInt(binary ? "DIMLUNIT" : "$DIMLUNIT", 4, 70);
+        sourceData.headerC.addInt(binary ? "DIMFRAC" : "$DIMFRAC", 2, 70);
+        sourceData.headerC.addInt(binary ? "DIMATFIT" : "$DIMATFIT", 3, 70);
+        sourceData.headerC.addInt(binary ? "DIMTMOVE" : "$DIMTMOVE", 1, 70);
         const bool saved = writer.fileExport(modernPath.string(), DRW::AC1015,
                                              binary, &sourceData, false);
         const bool imported = saved && reader.fileImport(modernPath.string(), &importedData, false);
@@ -21449,6 +21544,29 @@ void testHeaderPackedFlags(TestContext& t) {
                     && item->second->coord()->x == 1. && item->second->coord()->y == 2.
                     && item->second->coord()->z == 3.;
             t.expect(valid, "R2000 orthographic UCS header value survives save and reimport");
+        }
+        for (unsigned field = 0; field != modernDimensionFields.size(); ++field) {
+            const auto item = vars.find(modernDimensionFields[field]);
+            bool valid = imported && item != vars.end() && item->second != nullptr;
+            if (valid && field == 1u)
+                valid = item->second->type() == DRW_Variant::DOUBLE && item->second->d_val() == 0.25;
+            else if (valid && field == 4u)
+                valid = item->second->type() == DRW_Variant::STRING
+                    && std::string(item->second->c_str()) == "_CLOSED";
+            else if (valid) {
+                const int values[] = {3, 0, 3, 46, 0, 25, 50};
+                valid = item->second->type() == DRW_Variant::INTEGER
+                    && item->second->i_val() == values[field];
+            }
+            t.expect(valid, "R2000 dimension header value survives save and reimport");
+        }
+        for (const auto& field : {std::pair<const char*, int>{"$DIMLUNIT", 4}, {"$DIMFRAC", 2},
+                                  {"$DIMATFIT", 3}, {"$DIMTMOVE", 1}}) {
+            const auto item = vars.find(field.first);
+            const auto* value = item == vars.end() ? nullptr : item->second;
+            t.expect(imported && value != nullptr && value->type() == DRW_Variant::INTEGER
+                         && value->i_val() == field.second,
+                     "R2000 dimension mapping field survives save and reimport");
         }
     }
     std::error_code legacyCleanupError;
