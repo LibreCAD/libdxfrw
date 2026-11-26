@@ -46910,47 +46910,19 @@ bool dx_iface::inspectDxfLayerMaterials(const dxfRW::DxfTablesWriteView& view) n
             const auto target=dxfW->remapHandle(provider.first);
             if(!target||target==DRW::NoHandle||!targets.emplace(target,provider.first).second)return false;
         }
-        if(!dx_standard_output::inspectSelected(view,[](std::string_view name,std::uint32_t){return name=="LAYER";},
-            [&](const auto& shape,std::string_view body) {
-                dx_standard_output::RecordCursor cursor(body,view);dx_standard_output::RecordCursor::Token token;
-                unsigned depth=0u,fields=0u,plotFields=0u;bool layer=false,xdata=false;std::uint32_t target=0u,plotTarget=0u;
-                while(!cursor.done()) {
-                    if(!cursor.next(token))return false;
-                    if(token.code==102) {
-                        if(token.text=="}"){if(!depth)return false;--depth;}
-                        else if(!token.text.empty()&&token.text.front()=='{'){if(++depth>DRW::kMaxDxfApplicationGroupNesting)return false;}
-                        else return false;
-                        continue;
-                    }
-                    if(depth)continue;
-                    if(token.code>=1000){xdata=true;continue;}
-                    if(xdata)return false;
-                    if(token.code==100)layer=token.text=="AcDbLayerTableRecord";
-                    else if(token.code==390 && state.plotActive) {
-                        if(!layer||++plotFields!=1u||token.text.empty()||token.text.size()>8u)return false;
-                        const auto parsed=std::from_chars(token.text.data(),token.text.data()+token.text.size(),plotTarget,16);
-                        if(parsed.ec!=std::errc{}||parsed.ptr!=token.text.data()+token.text.size())return false;
-                    } else if(token.code==347) {
-                        if(!layer||++fields!=1u||token.text.empty()||token.text.size()>16u)return false;
-                        for(unsigned char c:token.text) {
-                            const unsigned digit=c>='0'&&c<='9'?c-'0':c>='A'&&c<='F'?c-'A'+10u:c>='a'&&c<='f'?c-'a'+10u:16u;
-                            if (digit > 15u ||
-                                target > (UINT32_MAX - digit) / 16u)
-                              return false;
-                            target = target * 16u + digit;
-                        }
-                    }
-                }
-                if(depth)return false;
-                const auto found=emitted.find(shape.handle);
+        if(!dx_symbol_output::inspectLayerReferences(view,state.plotActive,
+            [&](const dx_symbol_output::LayerReferences& actual) {
+                const auto found=emitted.find(actual.handle);
                 if(found!=emitted.end()) {
                     auto& row=state.rows[found->second];
-                    if(row.inspected||fields!=(row.present?1u:0u)||target!=(row.target?dxfW->remapHandle(row.target):0u)
-                        ||(state.plotActive&&(plotFields!=1u||plotTarget!=dxfW->remapHandle(state.plotTarget))))return false;
+                    if(row.inspected||actual.hasMaterial!=row.present
+                        ||actual.material!=(row.target?dxfW->remapHandle(row.target):0u)
+                        ||(state.plotActive&&(!actual.hasPlotStyle
+                            ||actual.plotStyle!=dxfW->remapHandle(state.plotTarget))))return false;
                     row.inspected=true;
                 }
-                if(target) {
-                    const auto provider=targets.find(target);if(provider==targets.end())return false;
+                if(actual.material) {
+                    const auto provider=targets.find(actual.material);if(provider==targets.end())return false;
                     state.providers.at(provider->second).observed=true;
                 }
                 return true;

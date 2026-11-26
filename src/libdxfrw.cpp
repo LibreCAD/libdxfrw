@@ -46,6 +46,7 @@
 #include "intern/dxfwriter.h"
 #include "intern/dxfmaterial.h"
 #include "intern/dxf_staged_output.h"
+#include "intern/dxf_symbol_output.h"
 #include "intern/dxftransparency.h"
 #include "intern/dxf_ac1027_bound_layer.h"
 #include "intern/dxftablecapacity.h"
@@ -4729,6 +4730,69 @@ bool dxfRW::inspectDxfRawObjectRecords(
                                                                     found->second->name == "MATERIAL");
             });
         return inspected && !wrongName && seen.size() == selected.size();
+    } catch (...) {
+        return false;
+    }
+}
+
+bool dxfRW::inspectDxfLayerMaterialReferences(
+        const DxfTablesWriteView& view,
+        const std::vector<DxfLayerMaterialReference>& expected) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
+        || m_writeError || writer->hasWriteError() || view.version != version
+        || view.version < DRW::AC1021 || view.binary != binFile
+        || expected.empty() || expected.size() > 4096u)
+        return false;
+    try {
+        std::map<std::string, std::size_t> names;
+        std::map<std::uint32_t, std::size_t> handles;
+        std::set<std::string> normalizedNames;
+        std::vector<bool> named(expected.size(), false), inspected(expected.size(), false);
+        std::size_t nameBytes = 0u;
+        constexpr std::size_t maxNameBytes = 1024u * 1024u;
+        for (std::size_t i = 0; i < expected.size(); ++i) {
+            const auto& row = expected[i];
+            std::string key;
+            if (row.name.empty() || row.name.size() > maxNameBytes - nameBytes
+                || !dx_symbol_output::nameKey(row.name, key)
+                || !normalizedNames.insert(key).second || !names.emplace(row.name, i).second
+                || row.sourceLayerHandle == 0u || row.sourceLayerHandle == DRW::NoHandle
+                || (!row.present && row.sourceMaterialHandle != 0u))
+                return false;
+            nameBytes += row.name.size();
+            const auto emitted = dxfWriteEmittedSourceTableHandle(row.sourceLayerHandle);
+            const auto target = row.sourceMaterialHandle == 0u ? 0u : remapHandle(row.sourceMaterialHandle);
+            if (emitted == 0u || emitted == DRW::NoHandle || !handles.emplace(emitted, i).second
+                || (row.sourceMaterialHandle != 0u && (target == 0u || target == DRW::NoHandle)))
+                return false;
+        }
+        if (!dx_symbol_output::inspect(view, [&](const auto& row) {
+                if (row.type != dx_symbol_output::Kind::Layer) return true;
+                const auto found = names.find(row.name);
+                if (found == names.end()) return true;
+                const auto index = found->second;
+                const auto handle = handles.find(row.handle);
+                if (named[index] || !row.qualified || row.tableHandle != 0x2u
+                    || row.owner != 0x2u || handle == handles.end() || handle->second != index)
+                    return false;
+                named[index] = true;
+                return true;
+            })) return false;
+        if (std::find(named.begin(), named.end(), false) != named.end()) return false;
+        if (!dx_symbol_output::inspectLayerReferences(view, false,
+                [&](const dx_symbol_output::LayerReferences& row) {
+                    const auto found = handles.find(row.handle);
+                    if (found == handles.end()) return row.material == 0u;
+                    const auto index = found->second;
+                    const auto& source = expected[index];
+                    const auto target = source.sourceMaterialHandle == 0u
+                        ? 0u : remapHandle(source.sourceMaterialHandle);
+                    if (inspected[index] || row.hasMaterial != source.present || row.material != target)
+                        return false;
+                    inspected[index] = true;
+                    return true;
+                })) return false;
+        return std::find(inspected.begin(), inspected.end(), false) == inspected.end();
     } catch (...) {
         return false;
     }

@@ -126,6 +126,8 @@ set(LIBDXFRW_PRIVATE_HEADERS
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxflayout.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxf_ac1027_bound_layer.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxf_staged_output.h"
+    "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxf_symbol_name_key.h"
+    "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxf_symbol_output.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfmaterial.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfnumber.h"
     "${CMAKE_CURRENT_LIST_DIR}/src/intern/dxfobjectphysicalsource.h"

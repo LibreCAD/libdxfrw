@@ -46,10 +46,11 @@ struct DxfWriter:LC3CompatCheck {
  bool finalizeDxfWrite()override{return ok;}
 };
 struct MaterialGraphWriter:LC3CompatCheck {
- dxfRW& out;std::vector<DRW_RawDxfObject> raw;DRW_Dictionary dict;bool ok=true;
+ dxfRW& out;std::vector<DRW_RawDxfObject> raw;DRW_Dictionary dict;bool ok=true,extraLayer=false;
  explicit MaterialGraphWriter(dxfRW& w):out(w){}
  void writeHeader(DRW_Header& h)override{h.addStr("$CMATERIAL","20",347);}
- void writeLayers()override{DRW_Layer layer;layer.name="RAWTEST";layer.materialHandle.ref=0x21;ok=out.writeLayer(&layer)&&ok;}
+ void writeLayers()override{DRW_Layer layer;layer.name="RAWTEST";layer.handle=0x90;layer.materialHandle.ref=0x21;ok=out.writeLayer(&layer)&&ok;
+  if(extraLayer){DRW_Layer other;other.name="OTHER";other.handle=0x91;other.materialHandle.ref=0x20;ok=out.writeLayer(&other)&&ok;}}
  void writeObjects()override{ok=out.writeDictionary(&dict)&&ok;for(auto& object:raw)ok=out.writeRawDxfObject(&object)&&ok;}
  bool finalizeDxfWrite()override{return ok;}
 };
@@ -344,6 +345,8 @@ int main(){
   graph.dict.m_entries={{"ByBlock",0x1F},{"ByLayer",0x20},{"Global",0x21}};
   writer.setHandleRemap({{0xA,0xC},{0xE,0xF010},{0x1F,0xF011},{0x20,0xF012},{0x21,0xF013}});
   writer.setRootDictEntries({{"ACAD_MATERIAL","F010"}});
+  std::vector<dxfRW::DxfLayerMaterialReference> layerReferences{{"RAWTEST",0x90,0x21,true}};
+  if(!writer.setDxfTablesWriteInspector([&](const auto& view){return writer.inspectDxfLayerMaterialReferences(view,layerReferences);}))return 87;
   std::vector<const DRW_RawDxfObject*> selected;
   for(const auto& raw:graph.raw)selected.push_back(&raw);
   if(!writer.setDxfObjectsWriteInspector([&](const auto& view){return writer.inspectDxfRawMaterialRecords(view,selected);}))return 77;
@@ -367,6 +370,16 @@ int main(){
   auto layer=std::find_if(check.layers.begin(),check.layers.end(),[](const auto& l){return l.name=="RAWTEST";});
   std::uint32_t target=0;bool present=false;
   if(layer==check.layers.end()||!layer->getDxfMaterialHandle(target,present)||!present||target!=0xF013)return 73;
+  {std::ofstream f(output);f<<"sentinel";}
+  layerReferences.front().sourceMaterialHandle=0x20;
+  if(writer.write(&graph,DRW::AC1024,binary)||bytes(output)!="sentinel")return 88;
+  layerReferences.front().sourceMaterialHandle=0x21;
+  if(!writer.write(&graph,DRW::AC1024,binary))return 89;
+  {std::ofstream f(output);f<<"sentinel";}
+  layerReferences.push_back(layerReferences.front());
+  if(writer.write(&graph,DRW::AC1024,binary)||bytes(output)!="sentinel")return 90;
+  layerReferences.pop_back();
+  if(!writer.write(&graph,DRW::AC1024,binary))return 91;
   if(check.rawDictionaries.size()!=1u)return 81;
   selected.push_back(&check.rawDictionaries.front());
   if(!writer.setDxfObjectsWriteInspector([&](const auto& view){return writer.inspectDxfRawObjectRecords(view,selected);}))return 82;
@@ -380,6 +393,13 @@ int main(){
   if(writer.write(&graph,DRW::AC1024,binary)||bytes(output)!="sentinel")return 85;
   selected.back()=&check.rawDictionaries.front();
   if(!writer.write(&graph,DRW::AC1024,binary))return 86;
+  {std::ofstream f(output);f<<"sentinel";}
+  graph.extraLayer=true;
+  if(writer.write(&graph,DRW::AC1024,binary)||bytes(output)!="sentinel")return 92;
+  layerReferences.push_back({"OTHER",0x91,0x20,true});
+  if(!writer.write(&graph,DRW::AC1024,binary))return 93;
+  graph.extraLayer=false;layerReferences.pop_back();
+  if(!writer.write(&graph,DRW::AC1024,binary))return 94;
  }
  return 0;
 }

@@ -112,6 +112,7 @@ public:
 
 #define LIBDXFRW_HAS_DXF_STAGED_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_RAW_OBJECT_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_STAGED_LAYER_MATERIAL_INSPECTOR 1
 class dxfRW {
 public:
     using ImageDefinitionKey = std::pair<std::uint64_t, std::uint32_t>;
@@ -252,6 +253,19 @@ public:
      * capacity backpatching. Called before BLOCKS/ENTITIES/OBJECTS; table names
      * alone do not qualify complete table semantics or future publication. */
     bool setDxfTablesWriteInspector(DxfTablesWriteInspector inspector);
+    struct DxfLayerMaterialReference {
+        std::string name;
+        std::uint32_t sourceLayerHandle{0u};
+        std::uint32_t sourceMaterialHandle{0u};
+        bool present{false};
+    };
+    /** Check selected LAYER identities and their staged material references.
+     * Pass the active TABLES inspector's borrowed view. Unselected layers with
+     * non-null material references are rejected. This does not prove source
+     * provenance, material-object closure, or finalization. */
+    bool inspectDxfLayerMaterialReferences(
+        const DxfTablesWriteView& view,
+        const std::vector<DxfLayerMaterialReference>& expected) const noexcept;
     using DxfHeaderWriteView = DxfObjectsWriteView;
     using DxfHeaderWriteInspector = DxfObjectsWriteInspector;
     /** Optional HEADER inspection with the same guard/lifetime/tentative

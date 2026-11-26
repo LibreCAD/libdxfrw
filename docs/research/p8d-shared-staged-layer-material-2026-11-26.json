@@ -1,0 +1,16 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-shared-staged-layer-material-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateParent": "ee0f7853",
+  "implementationDigestSha256": "73472a8b26362f36232886809faae81a1ebf51cb1fef788f3c98274a4a073abf",
+  "scope": "Share the converter table decoder and expose a bounded staged LAYER material-reference inspector.",
+  "evidence": [
+    "The converter and library use one extracted LAYER reference decoder; the existing converter plot-style path uses the same helper.",
+    "The API verifies selected layer names, emitted source-table identities and mapped group-347 values, rejects duplicate expectations and unexpected non-null material links from unselected layers, and remains tentative until caller finalization.",
+    "Generated ASCII/Binary controls cover handle remapping, wrong targets, duplicate expectations, unexpected linked layers, destination preservation and corrected retries.",
+    "Five focused CTests passed, including converter plot-style, symbol/table and MATERIAL graph checks. The targeted raw-material test passed under AddressSanitizer with detect_leaks=0.",
+    "Source-release inventory passed with 1410 released files."
+  ],
+  "remaining": "Integrate staged OBJECTS, root dictionary, HEADER and LAYER checks in LibreCAD, verify complete graph and independent readback, and keep raw-only consumer replay refused until qualification."
+}

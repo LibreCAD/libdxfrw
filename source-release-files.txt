@@ -449,6 +449,8 @@ src/intern/dwgwriterlayoutvalidation.cpp
 src/intern/dwgwriterlayoutvalidation.h
 src/intern/dxf_ac1027_bound_layer.h
 src/intern/dxf_staged_output.h
+src/intern/dxf_symbol_name_key.h
+src/intern/dxf_symbol_output.h
 src/intern/dxfattdef.h
 src/intern/dxfblock.h
 src/intern/dxfblockchildren.h

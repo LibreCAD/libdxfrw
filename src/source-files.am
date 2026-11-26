@@ -140,6 +140,8 @@ dist_noinst_HEADERS = \
     intern/dxflayout.h \
     intern/dxf_ac1027_bound_layer.h \
     intern/dxf_staged_output.h \
+    intern/dxf_symbol_name_key.h \
+    intern/dxf_symbol_output.h \
     intern/dxfmaterial.h \
     intern/dxfnumber.h \
     intern/dxfobjectphysicalsource.h \
