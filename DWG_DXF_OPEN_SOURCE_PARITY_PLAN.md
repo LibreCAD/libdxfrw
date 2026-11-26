@@ -80,11 +80,10 @@ evidence are recorded in `docs/research/` and Git history.
   duplicate-key semantics. Continue P6-F with the existing
   [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md);
   do not regenerate unchanged samples without a new discriminator.
-- **Integration:** investigate the [Windows reader-matrix crash](docs/research/p8-windows-reader-matrix-crash-2026-11-26.json).
-  The traced hosted run passed all NOD retries and reached the header-writer
-  group. A test-only MSVC stack-reserve change and finer trace are awaiting a
-  hosted rerun; stack exhaustion remains a hypothesis, not a confirmed cause.
-  Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
+- **Integration:** the [Windows reader-matrix investigation](docs/research/p8-windows-reader-matrix-crash-2026-11-26.json)
+  passed its seven focused hosted tests on `6f49a372c` after a test-only MSVC
+  stack-reserve change; the exact crash cause remains unconfirmed. Recheck the
+  final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
   digest: d51f3204eadc44842903914b883c2d91e18ec2d77a3d185aed21e701f4b09b8a
@@ -92,7 +91,7 @@ evidence are recorded in `docs/research/` and Git history.
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  4b0b2eb2f90bd32cb7ad2b2e9a4746612735aed5 (local until its dependency is pushed).
+  4b0b2eb2f90bd32cb7ad2b2e9a4746612735aed5 (push after its dependency).
   Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
