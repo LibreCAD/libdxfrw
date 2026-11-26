@@ -43,7 +43,9 @@ evidence are recorded in `docs/research/` and Git history.
   now checks the existing single-IMAGE consumer graph; the [consumer slice](docs/research/p8d-librecad-staged-image-references-2026-11-26.json)
   covers top-level and named-block references. A [two-IMAGE slice](docs/research/p8d-librecad-two-image-shared-definition-2026-11-26.json)
   admits one bounded AC1021 model-space graph with one shared definition and
-  two reactors; it checks source and staged graph, fields, rollback and retry.
+  two reactors; the [two-definition extension](docs/research/p8d-librecad-two-image-distinct-definitions-2026-11-26.json)
+  covers two separate definitions. Both check source and staged graph, fields,
+  rollback and retry.
   Extend to other shapes only with equivalent closure. The bounded [IMAGEDEF](docs/research/p8d-shared-staged-imagedef-scalars-2026-11-26.json)
   and [IMAGE entity](docs/research/p8d-shared-staged-image-entity-scalars-2026-11-26.json)
   scalar checks and the [staged dictionary check](docs/research/p8d-shared-staged-dictionary-2026-11-26.json)
@@ -94,7 +96,7 @@ evidence are recorded in `docs/research/` and Git history.
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  4b0b2eb2f90bd32cb7ad2b2e9a4746612735aed5 (pushed).
+  6c354d2e765c3bda7ae900d7aee03b571dfad11d (local; previous head pushed).
   Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
