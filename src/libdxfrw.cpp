@@ -6141,6 +6141,7 @@ bool dxfRW::writeImpl(DRW_Interface *interface_, DRW::Version ver, bool bin,
     std::uint32_t headerMaterial = 0u;
     bool hasHeaderMaterial = false;
     if (!header.getDxfMaterialReferenceHandle(headerMaterial, hasHeaderMaterial)
+        || !header.canWriteDxfHeaderInitialPreflight(version)
         || !header.canWriteDxfMaterialReference(version)
         || !header.canWriteDxfHeaderStructure()
         || !header.canWriteDxfUnknownHeaderVariables()
@@ -6156,6 +6157,13 @@ bool dxfRW::writeImpl(DRW_Interface *interface_, DRW::Version ver, bool bin,
         || !header.canWriteDxfRequiredVersions(version)
         || !header.canWriteDxfPlotStyleId(version))
         return failWrite();
+    if (version <= DRW::AC1009) {
+        int pellipse = 0;
+        bool present = false;
+        if (!header.getDxfHeaderIntegerValue("$PELLIPSE", 70, pellipse, present)
+            || (present && !leaveOutUnsupportedDxfWrite("PELLIPSE")))
+            return failWrite();
+    }
     const bool needsHeaderMaterialInventory = hasHeaderMaterial && headerMaterial != 0u;
     if (needsHeaderMaterialInventory) {
         headerMaterial = remapObjectHandle(headerMaterial);

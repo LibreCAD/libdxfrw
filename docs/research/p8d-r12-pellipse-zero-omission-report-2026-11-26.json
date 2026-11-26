@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-r12-pellipse-zero-omission-report-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateBase": "27e47f1476a323f20583c91f8bcff382db68ae2e",
+  "implementationDigestSha256": "29a5f8c0f06114a7216607292666ce04b19035a18be7eb2a81df7f8ecb56b833",
+  "inputCount": 775,
+  "consumerCommit": "d574254f28ade16119d4f4a9511f8cfc5934a804",
+  "change": "For an admitted R12 write with an explicit zero PELLIPSE, report its omission using the existing dxfRW leftOut map; dwg2dxf prints the corresponding successful-export warning. An absent field does not generate an omission. The previously added nonzero guard and unchanged R14+ output remain in effect.",
+  "validation": {
+    "focused": "PASS: optimized ASCII/binary direct-writer tests verify the omission count, no omission after a same-writer export without the field, and no R14 omission; adapter tests retain destination-preserving nonzero refusal and corrected retry. The adapter emits the successful R12 omission warning.",
+    "existing": "PASS: existing dimension migration and header alias fixtures.",
+    "consumer": "PASS: system-codec LibreCAD linetype selector, 4957 assertions in 55 cases; LibreCAD copies the existing codec leftOut report. Prior bundled-codec run passed 1282 assertions in 52 cases; bundled code is unchanged.",
+    "image": "PASS: imported-common 144 metadata reexports and 176 wire retries; legacy two-layer 120 cells and 600 atomic retries."
+  },
+  "limits": [
+    "Omission is disclosed, not declared semantically lossless; native default behavior, provenance and extension interoperability remain open.",
+    "Native and platform qualification remain open."
+  ]
+}

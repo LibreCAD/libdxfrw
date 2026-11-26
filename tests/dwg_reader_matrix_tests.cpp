@@ -21334,6 +21334,27 @@ void testHeaderPackedFlags(TestContext& t) {
         t.expect(refused && unchanged && retried,
                  "R12 adapter preserves the destination and retries after correcting PELLIPSE");
     }
+    for (const bool binary : {false, true}) {
+        dx_data data;
+        dx_iface adapter;
+        adapter.cData = &data;
+        adapter.currentBlock = data.mBlock;
+        dxfRW writer(legacyPath.string().c_str());
+        adapter.dxfW = &writer;
+        data.headerC.addInt("PELLIPSE", 0, 70);
+        const bool saved = writer.write(&adapter, DRW::AC1009, binary);
+        const auto omission = writer.leftOut().find("PELLIPSE (not in this DXF version)");
+        const bool reported = omission != writer.leftOut().end() && omission->second == 1u;
+        data.headerC = DRW_Header{};
+        const bool next = writer.write(&adapter, DRW::AC1009, binary);
+        t.expect(saved && reported && next && writer.leftOut().empty(),
+                 "R12 reports an explicit zero PELLIPSE omission and clears it on the next export");
+        data.headerC.addInt("$PELLIPSE", 1, 70);
+        const bool modern = writer.write(&adapter, DRW::AC1014, binary);
+        t.expect(modern && writer.leftOut().empty(),
+                 "R14 retains PELLIPSE without reporting an omission");
+        adapter.dxfW = nullptr;
+    }
     const std::array<std::pair<const char*, int>, 8> legacyGuardedFields{{
         {"$EXTNAMES", 290}, {"$PSTYLEMODE", 290}, {"$OLESTARTUP", 290},
         {"$LWDISPLAY", 290}, {"$XEDIT", 290}, {"$CELWEIGHT", 370},

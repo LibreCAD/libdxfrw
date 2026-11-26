@@ -149,10 +149,11 @@ previously succeeded and dropped PELLIPSE, while this library reopens the value
 in R14 and R2000; the other three selected values survive its six round trips.
 The [R12 nonzero guard](docs/research/p8d-r12-pellipse-nonzero-refusal-2026-11-26.json)
 now refuses that loss before replacing the destination, and corrected retries
-pass. The existing zero/default path remains accepted without a claim that its
-omission is semantically lossless. Resolve source provenance, explicit omission
-reporting, default semantics, and existing DXF extensions without blanket failure
-for common DWG defaults. Qualify each
+pass. The [zero-value follow-up](docs/research/p8d-r12-pellipse-zero-omission-report-2026-11-26.json)
+keeps the existing accepted path and reports an explicit source omission through
+the codec report and CLI; it does not claim semantic losslessness. Resolve source
+provenance, default semantics, and existing DXF extensions without blanket
+failure for common DWG defaults. Qualify each
 profile with physical output, ASCII/binary reimport, rollback and consumer
 controls. Handle previously emitted files
 separately; retain native qualification.
@@ -777,7 +778,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `0984c3931bc926841efa3938e691914221602d96b57857f373b4f6a747e0f170` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `29a5f8c0f06114a7216607292666ce04b19035a18be7eb2a81df7f8ecb56b833` (775 inputs); platform and native qualification remain open.
 
 The earlier [focused CI receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json)
 applies to its recorded digest, not this candidate. Recheck current-head CI and

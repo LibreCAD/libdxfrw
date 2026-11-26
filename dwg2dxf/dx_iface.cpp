@@ -95497,6 +95497,11 @@ bool dx_iface::fileExport(const std::string& file, DRW::Version v, bool binary,
                       << " count=" << omission.second << '\n';
         }
     }
+    if (success) {
+        const auto omission = dxfW->leftOut().find("PELLIPSE (not in this DXF version)");
+        if (omission != dxfW->leftOut().end())
+            std::cerr << "DXF export omitted PELLIPSE (not in this DXF version)\n";
+    }
     if (success && cData->sourceFormat == dx_source_format::DWG
         && cData->dwgReadOutcome.attempted) {
         cData->m_opaqueDwgOutputQualifiedFrameIdentities.swap(
