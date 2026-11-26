@@ -64,7 +64,9 @@ evidence are recorded in `docs/research/` and Git history.
   digest: 1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be
   (775 inputs). LibreCAD consumer head:
   368c6f17117923847247fe9dd03a724e8d989818. Prior platform receipts apply only
-  to their recorded inputs. All format claims remain EXPERIMENTAL.
+  to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
+  repairs the hosted fast job's stale source-release list; rerun that job on
+  the pushed head. All format claims remain EXPERIMENTAL.
 - **External host:** its release, OS, SDK and access route remain unknown.
   Use the [host intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) once
   available and only the witness packets reviewed for that profile. Work on

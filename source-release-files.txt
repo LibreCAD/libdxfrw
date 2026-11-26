@@ -1276,6 +1276,7 @@ tools/research/audit_mtext_field_roundtrip.py
 tools/research/audit_mtext_field_source.py
 tools/research/audit_p5d_dxf_versions.py
 tools/research/audit_p5h_viewport_shadeplot.py
+tools/research/audit_r14_header_reference.py
 tools/research/canonical_ltype_peer_generator.cpp
 tools/research/check_mpolygon_projection_ezdxf.py
 tools/research/check_r2000_layout_projection_peer.py
