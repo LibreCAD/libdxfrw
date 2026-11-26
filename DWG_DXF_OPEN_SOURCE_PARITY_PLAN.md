@@ -75,10 +75,11 @@ evidence are recorded in `docs/research/` and Git history.
   duplicate-key semantics. Continue P6-F with the existing
   [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md);
   do not regenerate unchanged samples without a new discriminator.
-- **Integration:** verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
+- **Integration:** investigate the [Windows reader-matrix crash](docs/research/p8-windows-reader-matrix-crash-2026-11-26.json)
+  using the next traced hosted run; preserve its diagnostic artifact. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: bf527a6dd272601967c759fa28a9e3d295d077bc20b82be1085045b09d8a8510
+  digest: 00eb0a316d3935a9f0e02a4aba0e24d6bbdc9b7b12e54c4da7d05886f4939726
   (780 inputs). The [CI contract refresh](docs/research/p8-staged-image-ci-contract-refresh-2026-11-26.json)
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier

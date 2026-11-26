@@ -18836,6 +18836,9 @@ void testDwgNodReference(TestContext& t) {
     DRW_Header header;
     t.expect(headerReader.readDwgHeader(header), "object-root controls have a decoded source HEADER");
     for (const std::string variant : {"valid", "missing", "wrong-type", "wrong-owner", "malformed"}) {
+#ifdef _WIN32
+        std::cerr << "DWG matrix: NOD variant " << variant << '\n';
+#endif
         NodObjectWriter writer(nullptr, &fresh);
         DRW_Dictionary child;
         child.handle = 0x100u;
@@ -18954,6 +18957,9 @@ void testDwgNodReference(TestContext& t) {
             corrected.m_entries = {{"LOCAL_CHILD", 0x100u}, {"LOCAL_RECORD", 0xA001u}};
             sink.data.hasNamedObjectDictionary = true;
             for (const bool binary : {false, true}) {
+#ifdef _WIN32
+                std::cerr << "DWG matrix: NOD corrected retry binary=" << binary << '\n';
+#endif
                 t.expect(converter.fileExport(destination.string(), DRW::AC1032, binary,
                                               &sink.data, false, true),
                          "explicit corrected root permits same-model/converter retry");
@@ -24968,6 +24974,11 @@ int main(int argc, char** argv) {
     }
 
     TestContext context;
+#ifdef _WIN32
+    const auto trace = [](const char* name) { std::cerr << "DWG matrix: " << name << '\n'; };
+#else
+    const auto trace = [](const char*) {};
+#endif
     testR2007CrcLiteralVectors(context);
     testDisjointRangeIndex(context);
     testBoundedPolylineStagingGrowth(context);
@@ -25017,30 +25028,55 @@ int main(int argc, char** argv) {
     testHeaderSectionBounds(context);
     testHeaderDateTimeEncoding(context);
     testHeaderVersionEnvelopes(context);
+    trace("named-object dictionary");
     testDwgNodReference(context);
+    trace("header compatibility");
     testHeaderCompatibilityProfile(context);
+    trace("AC1027 entity handle order");
     testAc1027CommonEntityHandleOrder(context);
+    trace("tracked header read");
     testTrackedHeaderRead(context);
+    trace("public header read");
     testHeaderPublicRead(context);
+    trace("header reference roles");
     testHeaderReferenceRoles(context);
+    trace("header current references");
     testHeaderCurrentReferences(context);
+    trace("header writers");
     testHeaderWriters(context);
+    trace("header writer sealing");
     testHeaderWriterSealingFailures(context);
+    trace("operation admission");
     testDwgOperationAdmission(context);
+    trace("version dispatch");
     testVersionDispatch(context);
+    trace("legacy reader controls");
     testR140RepeatFailsClosed(context);
+    trace("R11 unsupported markers");
     testR11UnsupportedMarkersFailClosed(context);
+    trace("R140 header bounds");
     testR140HeaderBounds(context);
+    trace("R140 load");
     testR140LoadFailsClosed(context);
+    trace("R140 shape");
     testR140ShapeFailsClosed(context);
+    trace("R140 endrep");
     testR140EndrepFailsClosed(context);
+    trace("buffer rejection");
     testReadBufferRejection(context);
+    trace("section names");
     testSectionNameMatrix(context);
+    trace("UTF16 section names");
     testSectionNameUtf16Framing(context);
+    trace("R2007 class footer");
     testR2007ClassStringFooter(context);
+    trace("template fields");
     testTemplateFields(context);
+    trace("template description");
     testTemplateDescriptionCallback(context);
+    trace("template public matrix");
     testTemplatePublicMatrix(context);
+    trace("template publication");
     testTemplateFilePublication(context);
     if (context.failures != 0) {
         std::cerr << context.failures << " DWG reader matrix assertion(s) failed\n";
