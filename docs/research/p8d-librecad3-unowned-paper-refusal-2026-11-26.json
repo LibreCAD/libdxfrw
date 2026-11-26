@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_code_commit": "82bdc63c",
+  "consumer_plan_head": "e63f9c1a6a45cb146ca9c641f2776c387cbab4ff",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "scope": "For the checked-layout codec path, refuse output with modeled additional-paper content, metadata or INSERT references when no verified layout graph was prepared.",
+  "persistence_library_sha256": "44b5660c36eeded6ba94609a574d0a9d9a87cef3d8b4a733a37b3bb4b813b34b",
+  "test_binary_sha256": "5ef93efac37202b6ff4bf01bda8475102c8ca598ee06eaa846a1ecd83d0a1eb2",
+  "validation": [
+    "macOS ARM64: seven layout graph tests pass; five binary targets R2000-R2013 refuse with destination intact, and the same writer retries as matching ASCII and reopens the paper LINE",
+    "A source layout with an unrecognized reactor and nonempty extra paper is reported on import and its unsafe save refuses without overwriting destination",
+    "71 DXF round-trip/export controls pass",
+    "Older bundled codec headers pass syntax compilation; the new modern-layout guard is feature-gated and does not qualify the older writer"
+  ],
+  "limits": [
+    "This is a fail-closed safety guard, not binary layout support or preservation of unknown metadata and references.",
+    "Native final-head and hosted platform qualification remain open."
+  ]
+}

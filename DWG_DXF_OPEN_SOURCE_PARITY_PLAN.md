@@ -122,7 +122,9 @@ evidence are recorded in `docs/research/` and Git history.
   its current evidence are recorded in the [consumer receipt](docs/research/p8d-librecad3-plain-layout-graph-2026-11-26.json).
   Complete binary and zero/one/two/additional-layout profiles, external plot
   resources, unknown references and source identities with explicit refusal,
-  destination preservation and retry. Preserve nonempty paper-space contents.
+  destination preservation and retry. The [unowned-paper guard](docs/research/p8d-librecad3-unowned-paper-refusal-2026-11-26.json)
+  refuses checked-codec outputs that cannot retain modeled extra-paper content;
+  implement binary and broader source graph preservation before admitting them.
   A single current row must still fit the retained-byte budget; qualify larger
   files and other raw source families using the [selective capture receipt](docs/research/p8d-selective-block-record-source-2026-11-26.json). The [legacy guard](docs/research/p8d-librecad3-legacy-paper-refusal-2026-11-26.json)
   refuses unsafe R12/R14 extra-paper output and keeps destinations intact.
