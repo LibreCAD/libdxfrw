@@ -1,0 +1,25 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-legacy-multi-image-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "bounded-generated-dxf-consumer-profile-only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "0a0d1b79",
+  "codecCommit": "985a48c89",
+  "codecImplementationDigestSha256": "53fbd21f428eb2cfa15b347083c19460630649f7d00b769adeedd5104378818d",
+  "scope": "Reuse the existing bounded multi-image source and staged-output checks for same-version AC1015 and AC1018 ASCII DXF with no material dictionary; reject legacy material graphs.",
+  "validation": [
+    "PASS: macOS ARM64 system-codec IMAGE and MATERIAL selection: 8172 assertions in 17 cases before the final added clean-document retry assertion. The final multi-image definition-graph case alone passes 6378 assertions across all six versions.",
+    "PASS: locally authored legacy controls cover 2, 3, 4 and 32 model-space images, shared and distinct definitions, malformed reactor or source records, late mutations, sentinel destination preservation and corrected same-graph retry. Synthetic legacy MATERIAL graphs refuse and preserve the destination; the same filter then writes a clean document.",
+    "PASS: independently, ezdxf 1.4.5 reads the generated AC1015 and AC1018 four-image/two-definition sources and outputs spanning model space and two named blocks, agrees on ownership, geometry, IMAGEDEF/reactor reciprocity and two INSERTs, and reports no audit errors or fixes.",
+    "PASS: bundled-codec LibreCAD filter object compilation."
+  ],
+  "scratchOnly": {
+    "ac1015SourceSha256": "ab5ead00f78e563f2cac1801bb44293be7294960198cbdbc965c8cf06c03124f",
+    "ac1015OutputSha256": "aba1b32c5dc6dfd573d876616ebd73136240a82e715a6358efd644866ecd316c",
+    "ac1018SourceSha256": "b549701c514ea3d53ef2f7609c6bd723873eaa51ab5916942f5a1b7c00ba639d",
+    "ac1018OutputSha256": "a21009b927f65b38cf326ae318af00303204990ca334f967bad8dc353e31d68b",
+    "fixturesCommitted": false
+  },
+  "limits": "Generated ASCII DXF only; no legacy MATERIAL, binary output, cross-version output, unsupported physical fields, native GUI, external producer or broader platform qualification. This does not qualify DWG, R14 or earlier."
+}
