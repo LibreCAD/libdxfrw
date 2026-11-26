@@ -23,7 +23,11 @@ evidence are recorded in `docs/research/` and Git history.
   refuse missing, replaced, edited, cross-version or ambiguous graphs
   atomically. The [shared staged entity-material inspector](docs/research/p8d-staged-entity-material-references-2026-11-26.json)
   checks common group-347 output. The [consumer integration](docs/research/p8d-entity-material-and-image-graph-2026-11-26.json) binds selected model/block LINE references and composes the existing IMAGE and MATERIAL checks; new/copy entities without stable source handles and broader profiles remain open. The [empty-layer audit](docs/research/p8d-empty-layer-material-audit-2026-11-26.json)
-  checks that no unlisted layer has a material reference. Prove ASCII/binary readback, retry and both
+  checks that no unlisted layer has a material reference. The [opt-in replay slice](docs/research/p8d-opt-in-sparse-material-replay-2026-11-26.json)
+  admits selected unchanged same-version ASCII graphs and verifies refusal and retry;
+  the normal exporter remains guarded. Next bind source and staged LAYER plot-style
+  references to the actual placeholder, then verify reopen/resave without weakening
+  refusal of other unproved layer fields. Prove ASCII/binary readback, retry and both
   consumer paths.
   Current typed-graph staged checks cover selected root, HEADER, LAYER and
   OBJECTS fields; the [root-name check](docs/research/p8d-root-dictionary-normalized-name-uniqueness-2026-11-26.json)
@@ -100,7 +104,7 @@ evidence are recorded in `docs/research/` and Git history.
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  90694451877ec4554e79596dff217fa3c63831dc (pushed; final-head CI pending).
+  d0cb79d7 (pushed; final-head CI pending).
   Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)

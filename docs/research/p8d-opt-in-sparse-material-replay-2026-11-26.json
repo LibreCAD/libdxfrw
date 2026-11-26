@@ -1,0 +1,24 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-opt-in-sparse-material-replay-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "1849ef220",
+  "libdxfrwImplementationDigestSha256": "ca3940c9b15680370c85bcd5cdc3e4ad606c1e54f5fd1b0fcc288eed13d39fe7",
+  "librecadCommit": "d0cb79d7",
+  "scope": "Explicitly opted-in, unchanged, same-version ASCII sparse MATERIAL graphs with bounded dictionary, object, header, layer and entity references; the normal LibreCAD exporter remains guarded.",
+  "checks": [
+    "PASS: system-codec MATERIAL and IMAGE focused tests, 2082 assertions in 14 cases; includes handle collision, sibling materials, source and late-mutation refusal, destination preservation, corrected retry, unsupported version, unqualified layer plot-style and malformed physical header refusal.",
+    "PASS: bundled-codec filter compile check and libdxfrw sparse-material focused CTest.",
+    "PASS: ezdxf 1.4.5 reads the selected locally generated AC1021 and AC1024 ASCII outputs; audits report zero errors and zero fixes. The library adds standard defaults while loading, so this is bounded structural evidence, not an independent exact-byte or native semantic qualification.",
+    "PASS: generated output reopened by the system consumer and its attempted resave refused atomically because its LAYER plot-style edge is outside the admitted source profile."
+  ],
+  "scratchOutputSha256": {
+    "ac1021": "04030f35e90a84ed8b2da91f66bf4c3e33d9af0dd675dbfd2ca56f09ac1bf97e",
+    "ac1024": "efb81751f4f4d1994bc8db431c876be863c1b9559f01f0d125ae7273ccd51a75"
+  },
+  "limits": [
+    "No generated drawings are committed. Binary, cross-version, general edits, unproved source fields, native GUI behavior, and ordinary-consumer opt-in remain unqualified.",
+    "Resaving a generated output remains refused until the source and staged LAYER plot-style relationship and its placeholder are independently bound and checked.",
+    "The independent readback does not establish visual material semantics or general interoperability."
+  ]
+}
