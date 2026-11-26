@@ -1429,6 +1429,19 @@ public:
                                   const DRW_RawDxfObject& source) = 0;
 };
 
+/** Optional writer facet for children of the canonical paper-space BLOCK.
+ * Called synchronously after its BLOCK header and before ENDBLK; ordinary
+ * entity writers use the canonical paper-space BLOCK_RECORD as owner. Return
+ * false to abort the whole staged write. Do not start or end another BLOCK
+ * from this callback. Existing consumers need not implement this facet.
+ * Consumers must rebuild for the accompanying dxfRW private-state change. */
+#define LIBDXFRW_HAS_DXF_FIXED_PAPER_SPACE_WRITER 1
+class DRW_DxfFixedPaperSpaceWriter {
+public:
+  virtual ~DRW_DxfFixedPaperSpaceWriter() = default;
+  virtual bool writeDxfFixedPaperSpaceContents() = 0;
+};
+
 /** Optional BLOCK/ENDBLK source transport, separate from DRW_Interface.
  * Selection is latched once per BLOCK. Begin is the original parsed model,
  * before absent-name clearing and BLOCK_RECORD name/units/preview reconciliation;

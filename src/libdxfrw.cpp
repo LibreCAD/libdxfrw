@@ -19060,6 +19060,8 @@ bool dxfRW::writeBlockRecord(
     const std::vector<DRW_Variant*>& extData) {
     if (!preflightDxfWrite())
         return false;
+    if (m_dxfFixedPaperContentActive)
+        return failDxfWrite();
     if (version <= DRW::AC1009 && !extData.empty()) {
         m_writeError = true;
         return false;
@@ -19323,6 +19325,8 @@ bool dxfRW::completeCurrentDxfBlockBody() {
 }
 
 bool dxfRW::writeBlockEnd(const DRW_Block *footer) {
+    if (m_dxfFixedPaperContentActive)
+        return failDxfWrite();
     return writeBlockEndWithHandle(footer, 0);
 }
 
@@ -19461,7 +19465,7 @@ bool dxfRW::writeBlockEndWithHandle(const DRW_Block *footer,
 }
 
 bool dxfRW::writeBlock(DRW_Block *bk){
-    if (!preflightEntity(bk) || m_collectingBlockRecords) {
+    if (!preflightEntity(bk) || m_collectingBlockRecords || m_dxfFixedPaperContentActive) {
         m_writeError = true;
         return false;
     }
@@ -20329,6 +20333,30 @@ bool dxfRW::writeBlocks() {
     else
         writer->writeString(3, "$PAPER_SPACE");
     writer->writeString(1, "");
+    if (auto* paperWriter = dynamic_cast<DRW_DxfFixedPaperSpaceWriter*>(iface)) {
+        struct PaperContentScope {
+            dxfRW& owner;
+            const bool previousWriting;
+            const std::uint32_t previousHandle;
+            std::string previousName;
+            explicit PaperContentScope(dxfRW& o)
+                : owner(o), previousWriting(o.writingBlock), previousHandle(o.currHandle),
+                  previousName(o.m_currentDxfBlockName) {
+                owner.m_currentDxfBlockName = "*PAPER_SPACE";
+                owner.m_dxfFixedPaperContentActive = true;
+                owner.writingBlock = true;
+                owner.currHandle = DRW::DxfPaperSpaceBlockRecordHandle;
+            }
+            ~PaperContentScope() {
+                owner.m_dxfFixedPaperContentActive = false;
+                owner.writingBlock = previousWriting;
+                owner.currHandle = previousHandle;
+                owner.m_currentDxfBlockName.swap(previousName);
+            }
+        } scope(*this);
+        if (!paperWriter->writeDxfFixedPaperSpaceContents()
+            || m_writeError || writer->hasWriteError()) return failDxfWrite();
+    }
     if (m_fixedPaperSpaceBlockEnd != nullptr) {
         if (version > DRW::AC1009
             && !bindSourceBlockEndHandle(

@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -354,10 +355,21 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
 }
 
 bool runLayoutReferences(const std::filesystem::path& path, DRW::Version version, bool binary) {
-    struct LayoutAdapter : LC3CompatCheck {
+    struct LayoutAdapter : LC3CompatCheck, DRW_DxfFixedPaperSpaceWriter {
         dxfRW& writer;
         bool ok = true;
+        unsigned failure = 0;
         explicit LayoutAdapter(dxfRW& writer) : writer(writer) {}
+        bool writeDxfFixedPaperSpaceContents() override {
+            DRW_Line line; line.basePoint = {2, 3, 0}; line.secPoint = {7, 11, 0};
+            if (!writer.writeLine(&line)) return false;
+            if (failure == 1) return false;
+            if (failure == 2) { DRW_Block nested; nested.name = "BAD"; writer.writeBlock(&nested); }
+            if (failure == 3) writer.writeBlockEnd();
+            if (failure == 4) writer.writeBlockRecord("BAD");
+            if (failure == 5) throw std::runtime_error("paper callback failure");
+            return true;
+        }
         void writeBlockRecords() override { ok = writer.writeBlockRecord("*Paper_Space0") && ok; }
         void writeBlocks() override {
             DRW_Block block; block.name = "*Paper_Space0";
@@ -459,14 +471,25 @@ bool runLayoutReferences(const std::filesystem::path& path, DRW::Version version
         return writer.inspectDxfLayoutObjects(view, 0x900u, expected);
     })) return false;
     if (!writer.write(&adapter, version, binary)) return false;
-    for (mode = 1; mode <= 10; ++mode) {
+    for (mode = 1; mode <= 15; ++mode) {
+        adapter.failure = mode > 10 ? mode - 10 : 0;
         { std::ofstream output(path, std::ios::binary | std::ios::trunc); output << "layout sentinel"; }
         if (writer.write(&adapter, version, binary) || read(path) != "layout sentinel") {
             std::cerr << "layout refusal failed, mode=" << mode << '\n'; return false;
         }
     }
     mode = 0;
-    return writer.write(&adapter, version, binary) && adapter.ok;
+    adapter.failure = 0;
+    if (!writer.write(&adapter, version, binary) || !adapter.ok) return false;
+    struct LineReader : LC3CompatCheck {
+        std::vector<DRW_Line> lines;
+        void addLine(const DRW_Line& line) override { lines.push_back(line); }
+    } reader;
+    dxfRW input(path.string().c_str());
+    return input.read(&reader, false) && reader.lines.size() == 1 &&
+           reader.lines[0].parentHandle == DRW::DxfPaperSpaceBlockRecordHandle &&
+           reader.lines[0].basePoint.x == 2 && reader.lines[0].basePoint.y == 3 &&
+           reader.lines[0].secPoint.x == 7 && reader.lines[0].secPoint.y == 11;
 }
 
 bool runMaterialReferences(const std::filesystem::path& path, DRW::Version version,

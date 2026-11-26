@@ -2342,6 +2342,7 @@ private:
     std::string m_currentDxfBlockName;
     bool m_dxfBlockSectionActive {false};
     bool m_dxfBlockSectionComplete {false};
+    bool m_dxfFixedPaperContentActive {false};
     std::vector<DRW_Block_Record> m_sourceBlockRecords;
     bool m_dxfSourceBlockRecordsInputRejected{false};
     std::unordered_set<std::uint32_t> m_writtenDxfFieldSourceHandles;
