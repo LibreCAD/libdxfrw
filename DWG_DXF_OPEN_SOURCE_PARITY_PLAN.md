@@ -60,7 +60,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`2fcaa5262c1621ccc95490d04a1d3d97eeb6b17a`. The prior merge head built the
+`7cae53fe2a505866541560be2e14dd4e641fed14`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -106,8 +106,9 @@ addressed by the [child-record slice](docs/research/p8d-librecad-system-r12-poly
 which checks both codecs and distinct handles. The [legacy INSERT follow-up](docs/research/p8d-librecad-legacy-insert-reverse-references-2026-11-25.json)
 avoids unsupported R12/R14 reverse BLOCK_RECORD references; R12 save/reopen/resave
 and R14 handle-bearing output pass focused controls on both codecs. The wider
-system linetype selector now passes 47/52 cases. Investigate its five remaining
-cases. The [R14 header diagnostic](docs/research/p8d-r14-header-self-resave-diagnostic-2026-11-25.json)
+system linetype selector passed 47/52 cases. The [alignment contract control](docs/research/p8d-librecad-linetype-alignment-contract-2026-11-25.json)
+retains the invalid-value refusal and tests reconstruction with valid alignment;
+the selector now passes 48/52 cases. Investigate its four remaining cases. The [R14 header diagnostic](docs/research/p8d-r14-header-self-resave-diagnostic-2026-11-25.json)
 binds the reimport/resave refusal to three group-290 Boolean variables emitted
 by the first save; an independent version table also flags 64 header variables
 as R2000-or-later. Establish the R14 schema and loss policy, then separately

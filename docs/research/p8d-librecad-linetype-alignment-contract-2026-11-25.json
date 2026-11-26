@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-linetype-alignment-contract-2026-11-25",
+  "supportClaimEffect": "none",
+  "consumerCommit": "7cae53fe2a505866541560be2e14dd4e641fed14",
+  "libraryImplementationDigestSha256": "6dd91b2be8f6dd49ddd13bccb0064a5c4a23c2652eb798605c29017b91e5500e",
+  "problem": "A pattern-reconstruction test uses LTYPE alignment 66 to test preservation, but the system codec refuses this out-of-spec value during import.",
+  "change": "Keep the bundled codec preservation control. For the system codec explicitly check that 66 is refused, then use the specified value 65 to exercise the same pattern reconstruction and retained metadata checks.",
+  "validation": [
+    "Focused control passed 21 assertions with the system codec and 19 with the bundled codec.",
+    "The system [filter][linetype] selector now passes 48/52 cases and 1230/1269 assertions; four cases still fail."
+  ],
+  "limits": [
+    "This is a codec-contract test correction, not a change to invalid-alignment support or a broader compatibility claim.",
+    "No generated drawing was committed."
+  ],
+  "sources": [
+    "https://help.autodesk.com/cloudhelp/2025/ENU/AutoCAD-DXF/files/GUID-F57A316C-94A2-416C-8280-191E34B182AC.htm"
+  ]
+}
