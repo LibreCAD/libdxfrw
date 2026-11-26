@@ -97,11 +97,14 @@ evidence are recorded in `docs/research/` and Git history.
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  750c757729f9cdfef7da0548b952ff6c17855e3b (local; previous head pushed).
+  750c757729f9cdfef7da0548b952ff6c17855e3b (pushed; final-head CI running).
   Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
-  passed on `b1eea19e5900c1e55e2316ba215213071c8fc9b2`; revalidate the final
+  passed on `b1eea19e5900c1e55e2316ba215213071c8fc9b2`. The later
+  [hosted recheck](docs/research/p8-pr106-hosted-focused-pass-2026-11-26.json)
+  passed fast, Linux, Windows and macOS focused jobs on `ef5f77cc8`; remaining
+  changes in this repository are documentation only. Revalidate the final
   pushed head. All format claims remain EXPERIMENTAL.
 - **External host:** its release, OS, SDK and access route remain unknown.
   Use the [host intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) once
