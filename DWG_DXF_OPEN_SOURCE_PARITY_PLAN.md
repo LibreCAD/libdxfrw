@@ -45,10 +45,13 @@ evidence are recorded in `docs/research/` and Git history.
   covers an unchanged same-encoding AC1024 default-material graph, not edits or
   cross-encoding. The [link-guard correction](docs/research/p8d-material-link-guard-scope-2026-11-26.json)
   restores DWG imports with entity reactors and applies the unqualified-link guard
-  during sparse replay, including late-mutation refusal. The system `[filter][handles]` result is 16/21; five sparse
-  MATERIAL imports remain failing. The [failure diagnosis](docs/research/p8d-sparse-material-handles-diagnosis-2026-11-26.json)
-  separates four versionless synthetic inputs from a versioned input. The latter
-  now imports; its unqualified save remains refused. Native FreeCAD and GUI gates
+  during sparse replay, including late-mutation refusal. The [versionless capture](docs/research/p8d-versionless-sparse-material-consumer-2026-11-26.json)
+  retains the bounded minimal raw record without interpreting its final group;
+  the consumer refuses save until source version and graph are qualified. The
+  system `[filter][handles]` result is 17/21; all four remaining failures are
+  unqualified sparse-material saves, not import failures. The earlier
+  [failure diagnosis](docs/research/p8d-sparse-material-handles-diagnosis-2026-11-26.json)
+  records the original import failures. Native FreeCAD and GUI gates
   remain open.
   Earlier prerequisite evidence is recorded in `docs/research/` and Git history.
 - **IMAGE / plot-style graphs:** extend the admitted single-IMAGE and
@@ -112,7 +115,7 @@ evidence are recorded in `docs/research/` and Git history.
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  87f3b4280ed1df9e6000a6434b70028047d743ac (pushed; final-head CI pending).
+  288d78ccb8853bdb995f535edf04abe162bb5e63 (pushed; final-head CI pending).
   Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
