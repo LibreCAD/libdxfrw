@@ -1,0 +1,111 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_commit": "01e82b84b49a34f8bc9bcfebb4c5f782fdab6691",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "platform": "macOS ARM64",
+  "scope": "Same-revision binary to ASCII R2000-R2013 conversion for the checked three-layout/three-block graph and Normal plot-style pair, without additional block records or raw objects.",
+  "persistence_library_sha256": "dfbd803cf2667d556d31f8b946c1fd5286c1e5c704543d72bd04f2e0344c1522",
+  "layout_test_sha256": "33bd3160c83130f3ae6fb31c9a8a50427465c0cdb4d3e263e8e305f936c0d5b2",
+  "checker": "tools/research/check_lc3_binary_layout_pair.py",
+  "checker_sha256": "fffa107d5f6aa6debadf5638f159497de444cc24c3a8932af98db2aaadc7b105",
+  "focused_tests": {
+    "layout_graph": 15,
+    "dwg_import": 17,
+    "dxf_roundtrip_export": 71,
+    "plan_checker": 31,
+    "older_bundled_codec_headers": "syntax-only pass with pre-existing warnings"
+  },
+  "independent_reader": "ezdxf 1.4.5",
+  "independent_comparisons": [
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_encoding": "ascii",
+      "replay_sha256": "c577214a3bb80be92216f4d462fcc2dafd080d9a0f7ef152df7940da1485568f",
+      "source_encoding": "binary",
+      "source_sha256": "7765b2ab2473fe6a0e09b3963483a6c6bba85cae2a9521bf04b70ee60eeeaa7e",
+      "version": "AC1015"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_encoding": "ascii",
+      "replay_sha256": "6930bb1ffb659b1fe0f286e2f97d732f16f4eacba7fb7ed0e7fe0caca71b53d7",
+      "source_encoding": "binary",
+      "source_sha256": "bb82db25c8191aa79f11bea5e366c2af276f432fa7d76b845b831873cce302e0",
+      "version": "AC1018"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_encoding": "ascii",
+      "replay_sha256": "63e5b3e1ae82e800795a8a400f7bfaeda3c8477b3d9cfe20bd96f287b464208b",
+      "source_encoding": "binary",
+      "source_sha256": "ec3f5192ee768ca2c96e5f47fdd7ed742cfede8728e2b63e0ec0eed264620dc9",
+      "version": "AC1021"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_encoding": "ascii",
+      "replay_sha256": "0f45d708aa1c94b9b44499ad66daed773b916d74697028661dc571a57b26a672",
+      "source_encoding": "binary",
+      "source_sha256": "3ae844efa33136a5f8d51f774c8ed9ac02503e1de5859318ac95fefe51118d05",
+      "version": "AC1024"
+    },
+    {
+      "audit_errors": 0,
+      "audit_fixes": 0,
+      "line_counts": {
+        "Layout1": 1,
+        "Layout2": 1,
+        "Model": 0
+      },
+      "ok": true,
+      "reader": "ezdxf 1.4.5",
+      "replay_encoding": "ascii",
+      "replay_sha256": "2c0436a1c9a4e1817bb68cee94653ed16650f70e6526586d1418da3d07066a24",
+      "source_encoding": "binary",
+      "source_sha256": "610b1557c9229de379cc83df4dc64c10b23c214aa62baab02dc09c427f384b03",
+      "version": "AC1027"
+    }
+  ],
+  "negative_controls": [
+    "unrecognized extra raw object refuses binary and ASCII saves with paper content and preserves the destination",
+    "different revision refuses save, preserves destination and permits same-writer same-revision retry",
+    "independent checker requires explicit permission for ASCII replay"
+  ],
+  "limits": [
+    "Locally generated pairs do not establish independent producer or native application behavior.",
+    "Other block records, resources, object graphs and cross-version output remain unqualified."
+  ]
+}

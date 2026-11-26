@@ -2,8 +2,9 @@
 """Compare a bounded LibreCAD_3 binary layout source/replay with ezdxf.
 
 This is a research control, not a producer or native-application qualification.
-Requires ezdxf. The replay must be binary DXF; the source is binary unless
---allow-ascii-source is specified. Versions must match.
+Requires ezdxf. Each path must be binary DXF unless its corresponding
+--allow-ascii-source or --allow-ascii-replay option is specified. Versions
+must match.
 """
 import argparse
 import hashlib
@@ -58,13 +59,16 @@ def main():
     parser.add_argument("source", type=Path)
     parser.add_argument("replay", type=Path)
     parser.add_argument("--allow-ascii-source", action="store_true")
+    parser.add_argument("--allow-ascii-replay", action="store_true")
     args = parser.parse_args()
     sentinel = b"AutoCAD Binary DXF\r\n\x1a\x00"
     try:
         source_binary = args.source.read_bytes().startswith(sentinel)
-        require((source_binary or args.allow_ascii_source) and
-                args.replay.read_bytes().startswith(sentinel),
-                "replay must be binary; ASCII source requires --allow-ascii-source")
+        replay_binary = args.replay.read_bytes().startswith(sentinel)
+        require(source_binary or args.allow_ascii_source,
+                "ASCII source requires --allow-ascii-source")
+        require(replay_binary or args.allow_ascii_replay,
+                "ASCII replay requires --allow-ascii-replay")
         source, replay = ezdxf.readfile(args.source), ezdxf.readfile(args.replay)
         require(source.dxfversion == replay.dxfversion and
                 source.dxfversion in {"AC1015", "AC1018", "AC1021", "AC1024", "AC1027"},
@@ -90,7 +94,7 @@ def main():
             counts[name] = len(old_lines)
         print(json.dumps({"ok": True, "reader": f"ezdxf {ezdxf.__version__}",
                           "version": source.dxfversion, "source_encoding": "binary" if source_binary else "ascii",
-                          "source_sha256": digest(args.source),
+                          "replay_encoding": "binary" if replay_binary else "ascii", "source_sha256": digest(args.source),
                           "replay_sha256": digest(args.replay), "line_counts": counts,
                           "audit_errors": 0, "audit_fixes": 0}, sort_keys=True))
     except (DXFError, OSError, ValueError, KeyError, AttributeError) as error:

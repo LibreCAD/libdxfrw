@@ -127,7 +127,8 @@ evidence are recorded in `docs/research/` and Git history.
   checks reader-exposed layout/block fields and reciprocal graph links for ten
   generated binary replay pairs. [Same-revision ASCII-to-binary conversion](docs/research/p8d-librecad3-ascii-binary-layout-2026-11-26.json)
   reuses the same bounded checks and preserves both paper-space lines in five peer
-  comparisons; independent producer and native evidence remain open.
+  comparisons; the [reverse conversion](docs/research/p8d-librecad3-binary-ascii-layout-2026-11-26.json)
+  passes the equivalent five-version controls. Independent producer and native evidence remain open.
   The [preparation diagnostic](docs/research/p8d-librecad3-layout-preparation-diagnostic-2026-11-26.json)
   reports the reason when a checked graph can no longer be prepared. The [unowned-paper guard](docs/research/p8d-librecad3-unowned-paper-refusal-2026-11-26.json)
   refuses checked-codec outputs that cannot retain modeled extra-paper content;
