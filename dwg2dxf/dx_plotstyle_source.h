@@ -339,27 +339,35 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
             }
         }
     } catch (...) { r.legacyBodiesMatched=false;r.legacyLiveBodiesMatched=false; }
-    // Source-only inventory for bounded legacy LAYER rows. This deliberately
+    // Source-only inventory for bounded LAYER rows. This deliberately
     // does not grant target-reference or output authority.
-    if ((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected)
+    const bool modernLayerSource=data.sourceVersion>=DRW::AC1021&&data.sourceVersion<=DRW::AC1032;
+    if ((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected||modernLayerSource)
         &&r.legacyBodiesMatched&&s.identityInput&&s.identityInput->source
         &&s.identityInput->source->records.size()<=4096u
         &&s.identityAudit&&!s.resourceCaptureFailed&&!s.resourceProofCaptureFailed
-        &&!s.resourceOriginCaptureFailed&&s.resourceOriginPending.empty()) try {
+        &&!s.resourceOriginCaptureFailed&&s.resourceOriginPending.empty()
+        &&(!modernLayerSource||resourceOriginReport(data).state==ResourceOriginState::OriginsBound)) try {
         const auto& physical=s.identityInput->source->records;
         const auto count=static_cast<std::size_t>(std::count_if(physical.begin(),physical.end(),[](const auto& row) {
             return row.kind==DRW_DxfIdentitySource::Kind::TableRecord&&asciiIdentifierEquals(row.name,"LAYER");
         }));
-        if(count>0u&&count<=64u&&count==s.resourceOriginRecords
-            &&count==s.resourceOriginInputs.size()&&count==s.resourceOriginAudits.size()
-            &&count==s.resourceOriginInputOwners.size()&&count==s.resourceOriginAuditOwners.size()) {
+        const auto layerCount=static_cast<std::size_t>(std::count_if(s.resourceOriginAudits.begin(),s.resourceOriginAudits.end(),[](const auto& item) {
+            return item.second&&item.second->input&&item.second->input->kind==dxfRW::DxfResourceSourceView::Kind::Layer;
+        }));
+        if(count>0u&&count<=64u&&count==layerCount&&s.resourceOriginRecords==s.resourceOriginInputs.size()
+            &&s.resourceOriginInputs.size()==s.resourceOriginAudits.size()
+            &&s.resourceOriginInputs.size()==s.resourceOriginInputOwners.size()
+            &&s.resourceOriginAudits.size()==s.resourceOriginAuditOwners.size()) {
             bool sources=true,live=data.layers.size()==count;
             std::set<std::uint32_t> liveHandles;
             for(const auto& layer:data.layers)if(!liveHandles.insert(layer.handle).second)live=false;
             for(const auto& item:s.resourceOriginAudits) {
                 const auto& audit=item.second;const auto input=s.resourceOriginInputs.find(item.first);
+                if(!audit||!audit->input) {sources=false;break;}
+                if(audit->input->kind!=dxfRW::DxfResourceSourceView::Kind::Layer)continue;
                 const auto resource=s.resources.find(item.first);
-                if(!audit||!audit->input||input==s.resourceOriginInputs.end()||resource==s.resources.end()
+                if(input==s.resourceOriginInputs.end()||resource==s.resources.end()
                     ||!same(audit->input,input->second)||!audit->input->raw||!audit->input->model||!audit->input->sourceModel
                     ||!same(audit->input->raw,resource->second.raw)||!same(audit->input->model,resource->second.model)
                     ||audit->input->index>=s.resourceOriginInputOwners.size()||audit->index>=s.resourceOriginAuditOwners.size()
@@ -368,8 +376,10 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
                     ||audit->input->containerId!=data.m_entitiesContainerIdentity.value||!audit->input->context
                     ||audit->input->context->sourceVersion!=data.sourceVersion||audit->input->raw->m_version!=data.sourceVersion
                     ||audit->input->kind!=dxfRW::DxfResourceSourceView::Kind::Layer||!audit->input->paired
-                    ||!audit->stateComplete||!audit->legacyPlotLayerBodyMatched||!audit->legacyPlotLayerOriginBound
-                    ||!resource->second.legacyPlotLayerRawTypedMatched||audit->physical>=physical.size()
+                    ||!audit->stateComplete
+                    ||(modernLayerSource?(!audit->bodyMatched||!audit->originBound||!resource->second.rawTypedMatched||resource->second.rawTypedMismatch)
+                                        :(!audit->legacyPlotLayerBodyMatched||!audit->legacyPlotLayerOriginBound||!resource->second.legacyPlotLayerRawTypedMatched))
+                    ||audit->physical>=physical.size()
                     ||physical[audit->physical].kind!=DRW_DxfIdentitySource::Kind::TableRecord
                     ||!asciiIdentifierEquals(physical[audit->physical].name,"LAYER")) {sources=false;break;}
                 const auto* original=dynamic_cast<const DRW_Layer*>(audit->input->sourceModel.get());
@@ -381,6 +391,7 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
             if(r.legacyLiveLayerInventoryMatched) {
                 bool references=true;
                 for(const auto& item:s.resourceOriginAudits) {
+                    if(item.second->input->kind!=dxfRW::DxfResourceSourceView::Kind::Layer)continue;
                     unsigned found=0u;
                     for(const auto& value:item.second->input->raw->groups)if(value.code()==390) {
                         std::uint64_t handle=0u;

@@ -717,15 +717,15 @@ of both independent tools. No format support claim follows.
 The full `dwg2dxf_image_dictionary_imported_common` matrix now reaches its next
 unqualified cell: generated AC1021 source exported strictly to AC1015 is refused
 by the plot-style profile. Preserve the refusal and destination until the
-version-specific source, target class/placeholder, layer output and IMAGE graph
+version-specific target class/placeholder, layer output and IMAGE graph
 are proved in both encodings with altered-input/output rejection and independent
-readback. Other layer shapes, reference roles and source/target versions remain
+readback. The [modern source-inventory receipt](docs/research/p8-image-modern-source-layer-inventory-2026-11-26.json) binds both layers and their recognized references through existing general resource-origin checks for AC1021/AC1024/AC1027/AC1032 sources; it does not admit output. Other layer shapes, reference roles and source/target versions remain
 outside the admitted profile. The [eight-row CLASS observer](docs/research/p8-class-shape-eight-row-observation-2026-11-25.json) remains bounded source transport only.
 The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `8abb0b8457eb2e9a82ac4e7ddca0b4afd7dd59efab44a64707aee1b990cc5801` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `ab912007681a339fa0476af1441fe27d4b8da69b8b88a95d81a541ab153fecf3` (775 inputs); platform and native qualification remain open.
 
 Focused CI qualification for the current digest is recorded in the
 [current receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json).
