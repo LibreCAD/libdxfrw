@@ -117,6 +117,7 @@ public:
 #define LIBDXFRW_HAS_DXF_STAGED_ROOT_ENTRY_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_REFERENCE_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_OBJECT_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_STAGED_IMAGE_DEFINITION_SCALAR_INSPECTOR 1
 class dxfRW {
 public:
     using ImageDefinitionKey = std::pair<std::uint64_t, std::uint32_t>;
@@ -318,6 +319,8 @@ public:
         std::uint32_t definition{0u};
         std::uint32_t owner{0u};
         std::vector<std::uint32_t> reactors;
+        // Optional borrowed scalar expectation, valid only during inspection.
+        const DRW_ImageDef* scalarFields{nullptr};
     };
     struct DxfImageReactorOutputLinks {
         std::uint32_t reactor{0u};
@@ -325,8 +328,10 @@ public:
     };
     /** Inspect all IMAGEDEF and IMAGEDEF_REACTOR links in an active staged
      * OBJECTS view. An owner of zero requires the IMAGEDEF owner to be absent.
-     * This checks emitted identities and reference roles, not source fields,
-     * dictionary membership, complete document closure or publication. */
+     * If scalarFields is supplied, also check its class version, ASCII path,
+     * dimensions, pixel size, load and resolution fields exactly. This does
+     * not prove source provenance, dictionary membership, complete document
+     * closure or publication. */
     bool inspectDxfImageOutputObjects(
         const DxfObjectsWriteView& view,
         const std::vector<DxfImageDefinitionOutputLinks>& definitions,

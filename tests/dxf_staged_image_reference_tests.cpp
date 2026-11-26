@@ -16,9 +16,11 @@ struct Exporter : LC3CompatCheck {
     dxfRW& output;
     DRW::Version version;
     std::vector<References> references;
+    std::vector<DRW_ImageDef> definitionFields;
     bool ok = false;
     void writeEntities() override {
         references.clear();
+        definitionFields.clear();
         ok = true;
         for (unsigned i = 0; i != 2; ++i) {
             DRW_Image image;
@@ -31,6 +33,7 @@ struct Exporter : LC3CompatCheck {
             auto* definition = output.writeImage(&image, i ? "second.png" : "first.png");
             if (!definition || definition->reactors.empty()) { ok = false; return; }
             const auto& pair = *definition->reactors.begin();
+            definitionFields.push_back(*definition);
             references.push_back({static_cast<std::uint32_t>(std::stoul(pair.second, nullptr, 16)),
                                   version == DRW::AC1014 ? 0u : DRW::DxfModelSpaceBlockRecordHandle, definition->handle,
                                   static_cast<std::uint32_t>(std::stoul(pair.first, nullptr, 16))});
@@ -101,17 +104,30 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
         const auto dictionary = writer.dxfWriteImageDictionaryHandle();
         std::vector<dxfRW::DxfImageDefinitionOutputLinks> definitions;
         std::vector<dxfRW::DxfImageReactorOutputLinks> reactors;
-        for (const auto& reference : adapter.references) {
+        for (std::size_t i = 0; i < adapter.references.size(); ++i) {
+            const auto& reference = adapter.references[i];
             definitions.push_back({reference.definition, version == DRW::AC1014 ? 0u : dictionary,
-                                   {reference.reactor}});
+                                   {reference.reactor}, &adapter.definitionFields[i]});
             reactors.push_back({reference.reactor, reference.image});
+        }
+        auto changedFields = adapter.definitionFields.front();
+        if (mode == 16) { changedFields.u += 1; definitions.front().scalarFields = &changedFields; }
+        if (mode == 18) { changedFields.name = "unsafe\\path"; definitions.front().scalarFields = &changedFields; }
+        if (mode >= 19 && mode <= 24) {
+            if (mode == 19) ++changedFields.imgVersion;
+            if (mode == 20) ++changedFields.v;
+            if (mode == 21) ++changedFields.up;
+            if (mode == 22) ++changedFields.vp;
+            if (mode == 23) changedFields.loaded = 1 - changedFields.loaded;
+            if (mode == 24) ++changedFields.resolution;
+            definitions.front().scalarFields = &changedFields;
         }
         if (mode == 9) ++definitions.front().owner;
         if (mode == 10) ++reactors.front().image;
         if (mode == 11) definitions.pop_back();
         if (mode == 12) definitions.front().reactors.clear();
         if (mode == 13) reactors.push_back(reactors.front());
-        if (mode == 14 || mode == 15) {
+        if (mode == 14 || mode == 15 || mode == 17 || mode == 25) {
             std::string changed(view.bytes);
             const auto profile = view.compatibilityProfile == dxfRW::DxfCompatibilityProfile::StandaloneSafe
                 ? dx_raster_output::Profile::StandaloneSafe : dx_raster_output::Profile::LibreCadMasterLegacy;
@@ -143,6 +159,21 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
                     changed[offset] = changed[offset] == 'A' ? 'B' : 'A';
                     mutated = true;
                     break;
+                } else if (mode == 17 && name == "IMAGEDEF" && token.code == 1 && !token.text.empty()) {
+                    const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                    changed[offset] = changed[offset] == 'x' ? 'y' : 'x';
+                    mutated = true;
+                    break;
+                } else if (mode == 25 && name == "IMAGEDEF" && token.code == 20) {
+                    if (binary) changed[start] = 10;
+                    else {
+                        const auto end = changed.find('\n', start);
+                        const auto digit = changed.find('2', start);
+                        if (end == std::string::npos || digit == std::string::npos || digit >= end) return false;
+                        changed[digit] = '1';
+                    }
+                    mutated = true;
+                    break;
                 }
             }
             if (!mutated) return false;
@@ -158,7 +189,7 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
         std::cerr << "baseline write failed, ok=" << adapter.ok << " references=" << adapter.references.size() << '\n';
         return false;
     }
-    for (mode = 1; mode <= 15; ++mode) {
+    for (mode = 1; mode <= 25; ++mode) {
         { std::ofstream destination(path, std::ios::binary | std::ios::trunc); destination << "sentinel"; }
         if (writer.write(&adapter, version, binary) || read(path) != "sentinel") {
             std::cerr << "refusal failed, mode=" << mode << '\n'; return false;

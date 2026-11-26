@@ -4742,6 +4742,13 @@ bool dxfRW::inspectDxfImageOutputObjects(
             if (!definition.definition || definition.reactors.size() > 4096u ||
                 recs.count(definition.definition) ||
                 !defs.emplace(definition.definition, &definition).second) return false;
+            if (definition.scalarFields) {
+                const auto& path = definition.scalarFields->name;
+                if (path.empty() || path.size() > 4096u ||
+                    !std::all_of(path.begin(), path.end(), [](unsigned char c) {
+                        return c >= 32u && c < 127u && c != '\\' && c != '^';
+                    })) return false;
+            }
             for (const auto reactor : definition.reactors)
                 if (!recs.count(reactor) || !linked.insert(reactor).second) return false;
         }
@@ -4758,6 +4765,7 @@ bool dxfRW::inspectDxfImageOutputObjects(
                 dx_raster_output::Cursor cursor(body, view.binary, profile);
                 dx_raster_output::Token token;
                 unsigned depth = 0, groups = 0, owners = 0, subclasses = 0, versions = 0;
+                unsigned scalarMask = 0;
                 bool reactorGroup = false, raster = false;
                 std::set<std::uint32_t> actualLinks;
                 while (!cursor.done()) {
@@ -4786,6 +4794,27 @@ bool dxfRW::inspectDxfImageOutputObjects(
                         } else {
                             if (++owners != (raster ? 2u : 1u) || target != rec->second->image) return false;
                         }
+                    } else if (definition && !depth && raster && def->second->scalarFields) {
+                        const auto& expected = *def->second->scalarFields;
+                        unsigned bit = 0;
+                        bool matched = true;
+                        switch (token.code) {
+                        case 90: bit = 1u; matched = token.type == dx_raster_output::Kind::Integer && token.number == expected.imgVersion; break;
+                        case 1: bit = 2u; matched = token.type == dx_raster_output::Kind::Text && token.text == expected.name; break;
+                        case 10: case 20: case 11: case 21: {
+                            bit = token.code == 10 ? 4u : token.code == 20 ? 8u : token.code == 11 ? 16u : 32u;
+                            const double value = token.code == 10 ? expected.u : token.code == 20 ? expected.v
+                                : token.code == 11 ? expected.up : expected.vp;
+                            matched = token.type == dx_raster_output::Kind::Double &&
+                                std::memcmp(&token.real, &value, sizeof(value)) == 0;
+                            break;
+                        }
+                        case 280: bit = 64u; matched = token.type == dx_raster_output::Kind::Integer && token.number == expected.loaded; break;
+                        case 281: bit = 128u; matched = token.type == dx_raster_output::Kind::Integer && token.number == expected.resolution; break;
+                        default: break;
+                        }
+                        if (bit && (!matched || (scalarMask & bit))) return false;
+                        scalarMask |= bit;
                     } else if (!definition && !depth && raster && token.code == 90) {
                         if (++versions != 1u || token.number != 2) return false;
                     }
@@ -4793,7 +4822,8 @@ bool dxfRW::inspectDxfImageOutputObjects(
                 if (depth || subclasses != 1u) return false;
                 if (!definition) return owners == 2u && versions == 1u;
                 const std::set<std::uint32_t> expected(def->second->reactors.begin(), def->second->reactors.end());
-                return owners == (def->second->owner ? 1u : 0u) && groups == 1u && actualLinks == expected;
+                return owners == (def->second->owner ? 1u : 0u) && groups == 1u && actualLinks == expected
+                    && (!def->second->scalarFields || scalarMask == 255u);
             }, profile) && seenDefs.size() == defs.size() && seenRecs.size() == recs.size();
     } catch (...) {
         return false;
