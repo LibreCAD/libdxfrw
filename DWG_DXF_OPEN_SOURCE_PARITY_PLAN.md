@@ -46,7 +46,8 @@ evidence are recorded in `docs/research/` and Git history.
   AddressSanitizer selector passes. The [HEADER source check](docs/research/p8d-librecad-sparse-material-header-source-2026-11-26.json)
   binds the parsed original `$CMATERIAL` presence and handle. The
   [opt-in physical HEADER observer](docs/research/p8d-dxf-header-material-physical-source-2026-11-26.json)
-  exposes bounded source spans and original handle spelling; connect it to
+  exposes bounded source spans and original handle spelling, including the
+  [CRLF offset control](docs/research/p8d-dxf-header-material-crlf-2026-11-26.json); connect it to
   the consumer's parsed snapshot and independently verify source/readback.
   Next bind references to staged output
   and independent readback.
@@ -94,7 +95,7 @@ evidence are recorded in `docs/research/` and Git history.
 - **Integration:** verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 78eb534ad10b8b9a319d1f5b66a4983c5d52dcd3293356859bd891f74c972840
+  digest: 58dad684a3d7462791c10f98d4c5f3b55aa024fce91dba2474451a95e065709c
   (778 inputs). The physical HEADER observer changes selected inputs,
   so earlier digest-bound results remain historical. LibreCAD consumer head:
   21600b3931430f2ba757e97b06120f12628ac203. Prior platform receipts apply only
@@ -395,7 +396,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `78eb534ad10b8b9a319d1f5b66a4983c5d52dcd3293356859bd891f74c972840` (778 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `58dad684a3d7462791c10f98d4c5f3b55aa024fce91dba2474451a95e065709c` (778 inputs); platform and native qualification remain open.
 
 The earlier [focused CI receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json)
 applies to its recorded digest, not this candidate. Recheck current-head CI and

@@ -89,6 +89,12 @@ bool physicalHeaderSource(const std::filesystem::path& path,bool binary,int mode
   if(mode==11&&(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$CMATERIAL")||!s(347,"A2")||!s(0,"ENDSEC")))return false;
   if(!s(0,"EOF")||w->hasWriteError())return false;
  }
+ if(mode==12){
+  const auto original=bytes(path);std::string crlf;crlf.reserve(original.size()*2u);
+  for(char c:original){if(c=='\n')crlf.push_back('\r');crlf.push_back(c);}
+  std::ofstream f(path,std::ios::binary|std::ios::trunc);f.write(crlf.data(),static_cast<std::streamsize>(crlf.size()));
+  if(!f)return false;
+ }
  HeaderSourceReader sink;dxfRW input(path.string().c_str());
  if(!input.read(&sink,false))return mode==8&&sink.captured.empty();
  if(sink.captured.size()!=(mode==11?2u:1u)||!sink.headerAfterSource)return false;
@@ -189,8 +195,8 @@ bool ezdxfDefaultSource(const std::filesystem::path& path,bool binary,int mode,c
 int main(){
  const auto dir=std::filesystem::temp_directory_path()/("sparse-material-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));std::filesystem::create_directories(dir);
  struct Cleanup{std::filesystem::path p;~Cleanup(){std::error_code e;std::filesystem::remove_all(p,e);}}cleanup{dir};
- for(bool binary:{false,true})for(int mode=0;mode<=11;++mode){
-  if(binary&&mode==7)continue; // binary writer does not admit group 999
+ for(bool binary:{false,true})for(int mode=0;mode<=12;++mode){
+  if(binary&&(mode==7||mode==12))continue; // comment and CRLF controls are ASCII
   if(!physicalHeaderSource(dir/"physical-header.dxf",binary,mode)){
    std::cerr<<"physical header source failed: binary="<<binary<<" mode="<<mode<<'\n';return 95;
   }
