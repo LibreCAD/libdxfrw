@@ -22265,9 +22265,11 @@ bool dxfRW::processBlockRecord() {
     std::vector<DRW_Block_Record> pendingPublicBlockRecords;
     auto* sourceHandler=dynamic_cast<DRW_DxfBlockRecordSourceHandler*>(iface);
     const bool captureSource=sourceHandler&&sourceHandler->wantsDxfBlockRecordSource();
+    auto* sourceSelector=dynamic_cast<const DRW_DxfBlockRecordSourceSelector*>(iface);
     DRW_RawDxfObject raw;
     std::vector<DRW_RawDxfObject> pendingSources;
-    std::vector<std::pair<bool,std::uint8_t>> pendingSourceStates;
+    struct SourceState { bool selected; bool pending; std::uint8_t coordinateMask; };
+    std::vector<SourceState> pendingSourceStates;
     DxfReadRetainedReservation sourceStateReservation(reader->retainedByteBudget(),0u);
 
     const auto finishRecord = [&]() -> bool {
@@ -22281,7 +22283,9 @@ bool dxfRW::processBlockRecord() {
             raw.handle=publicRecord.handle;raw.parentHandle=publicRecord.parentHandle;
             if(pendingSourceStates.size()>=(std::numeric_limits<std::size_t>::max)()/sizeof(pendingSourceStates.front())
                 ||!sourceStateReservation.resize((pendingSourceStates.size()+1u)*sizeof(pendingSourceStates.front())))return false;
-            pendingSourceStates.emplace_back(publicRecord.curr!=nullptr,publicRecord.currCoordMask);
+            const bool selected=!sourceSelector||sourceSelector->retainDxfBlockRecordSource(publicRecord);
+            pendingSourceStates.push_back({selected,publicRecord.curr!=nullptr,publicRecord.currCoordMask});
+            if (!selected) raw=DRW_RawDxfObject{};
             pendingSources.push_back(std::move(raw));
         }
         // One staged public owner; context copies are admitted at publication.
@@ -22291,8 +22295,9 @@ bool dxfRW::processBlockRecord() {
     const auto publishBlockRecords = [&]() -> bool {
         if(captureSource) {
             if(pendingSources.size()!=pendingPublicBlockRecords.size()||pendingSourceStates.size()!=pendingPublicBlockRecords.size())return false;
-            for(const auto& source:pendingSources)
-                if(!validateCapturedRawDxfObject(source,binFile,reader->classifierProfile()))return false;
+            for(std::size_t i=0;i<pendingSources.size();++i)
+                if(pendingSourceStates[i].selected &&
+                   !validateCapturedRawDxfObject(pendingSources[i],binFile,reader->classifierProfile()))return false;
         }
         std::size_t contextRecordCount = 0u;
         std::size_t contextCopyBytes = 0u;
@@ -22361,10 +22366,10 @@ bool dxfRW::processBlockRecord() {
         contextCopyReservation.transfer();
 
         for (std::size_t i=0;i<pendingPublicBlockRecords.size();++i) {
-            if(captureSource) {
+            if(captureSource && pendingSourceStates[i].selected) {
                 const DRW_RawDxfObject original=std::move(pendingSources[i]);
                 auto& view=reader->m_structuralPublication;
-                view={1u,1u,pendingSourceStates[i].second,pendingSourceStates[i].first,&pendingPublicBlockRecords[i],&original};
+                view={1u,1u,pendingSourceStates[i].coordinateMask,pendingSourceStates[i].pending,&pendingPublicBlockRecords[i],&original};
                 struct Clear {DxfStructuralPublication& view;~Clear(){view={};}} clear{view};
                 sourceHandler->addDxfBlockRecordSource(pendingPublicBlockRecords[i],original);
                 view.phase=2u;iface->addBlockRecord(pendingPublicBlockRecords[i]);

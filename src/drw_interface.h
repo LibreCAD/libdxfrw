@@ -1400,6 +1400,18 @@ public:
                                       const DRW_RawDxfObject& source) = 0;
 };
 
+/** Optional row selector for DRW_DxfBlockRecordSourceHandler. Called after a
+ * complete typed row has parsed, before the table is published. False discards
+ * its raw source immediately; the ordinary typed callback still runs after a
+ * valid ENDTAB. An implementation without this facet receives every source row
+ * as before. The current row must still fit the read budget before selection. */
+#define LIBDXFRW_HAS_DXF_BLOCK_RECORD_SOURCE_SELECTOR 1
+class DRW_DxfBlockRecordSourceSelector {
+public:
+  virtual ~DRW_DxfBlockRecordSourceSelector() = default;
+  virtual bool retainDxfBlockRecordSource(const DRW_Block_Record& row) const = 0;
+};
+
 /** Optional original non-root DICTIONARY source. Selected once before the
  * record; default false adds no publication/copy or established vtable slot.
  * Delivered after accepted boundary and the existing typed/raw callbacks.

@@ -85,6 +85,73 @@ bool structuralPublicLifetime(unsigned& contexts) {
     }
     return true;
 }
+bool selectiveBlockRecordSources(const std::filesystem::path& dir) {
+    struct Consumer final:dx_iface, DRW_DxfBlockRecordSourceSelector {
+        bool filtered=true;
+        std::vector<std::string> calls;
+        bool wantsDxfBlockRecordSource() const override {return true;}
+        bool retainDxfBlockRecordSource(const DRW_Block_Record& row) const override {
+            return !filtered || row.name=="KEEP" || row.name=="*Paper_Space";
+        }
+        bool wantsDxfRootDictionarySource() const override {return false;}
+        void addHeader(const DRW_Header*) override {}
+        void addDictionary(const DRW_Dictionary&) override {}
+        void addNamedObjectDictionary(const DRW_Dictionary&) override {}
+        void addDxfBlockRecordSource(const DRW_Block_Record& row,const DRW_RawDxfObject&) override {
+            calls.push_back("source:"+row.name);
+        }
+        void addBlockRecord(const DRW_Block_Record& row) override {calls.push_back("typed:"+row.name);}
+    } consumer;
+    std::ostringstream text;
+    text<<"0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1021\n0\nENDSEC\n"
+           "0\nSECTION\n2\nTABLES\n0\nTABLE\n2\nBLOCK_RECORD\n5\n8\n";
+    for(unsigned i=0;i<80u;++i) {
+        text<<"0\nBLOCK_RECORD\n5\n"<<std::hex<<(0x100u+i)<<std::dec
+            <<"\n330\n8\n2\n"<<(i==40u?"KEEP":"OTHER"+std::to_string(i))
+            <<"\n1001\nAPP\n1000\n"<<std::string(200u,'x')<<"\n";
+    }
+    const std::string prefix=text.str();
+    const std::string document=prefix+"0\nENDTAB\n0\nENDSEC\n0\nEOF\n";
+    dxfRW input("unused");
+    auto run=[&](bool filtered,std::size_t budget,const std::string& bytes) {
+        consumer.filtered=filtered;consumer.calls.clear();input.setDxfReadRetainedByteBudget(budget);
+        auto content=bytes;
+        return input.readAscii(&consumer,false,content);
+    };
+    auto minimum=[&](bool filtered) {
+        std::size_t low=1u,high=2000000u;
+        if(!run(filtered,high,document))return std::size_t{0};
+        while(low<high) {const auto mid=low+(high-low)/2u;
+            if(run(filtered,mid,document))high=mid;else low=mid+1u;}
+        return low;
+    };
+    const auto selected=minimum(true), all=minimum(false);
+    if(!selected||all<=selected||!run(true,selected,document))return false;
+    std::vector<std::string> expected;
+    for(unsigned i=0;i<80u;++i) {
+        const auto name=i==40u?std::string("KEEP"):"OTHER"+std::to_string(i);
+        if(i==40u)expected.push_back("source:"+name);
+        expected.push_back("typed:"+name);
+    }
+    if(consumer.calls!=expected)return false;
+    // A failed table publishes neither typed nor source rows; reuse succeeds.
+    if(run(true,2000000u,prefix+"0\nBROKEN\n0\nEOF\n")||!consumer.calls.empty())return false;
+    if(!run(true,selected,document)||consumer.calls!=expected)return false;
+    const auto path=dir/"selective-block-record.dxf";
+    const Tags tags{{0,"SECTION"},{2,"HEADER"},{9,"$ACADVER"},{1,"AC1021"},{0,"ENDSEC"},
+        {0,"SECTION"},{2,"TABLES"},{0,"TABLE"},{2,"BLOCK_RECORD"},{5,"8"},
+        {0,"BLOCK_RECORD"},{5,"B0"},{330,"8"},{2,"DEF"},
+        {0,"BLOCK_RECORD"},{5,"B1"},{330,"8"},{2,"*Paper_Space"},
+        {0,"ENDTAB"},{0,"ENDSEC"},{0,"EOF"}};
+    for(bool binary:{false,true}) {
+        if(!write(path,tags,binary))return false;
+        dxfRW file(path.string().c_str());consumer.calls.clear();consumer.filtered=true;
+        if(!file.read(&consumer,false) || consumer.calls!=std::vector<std::string>{
+                "typed:DEF","source:*Paper_Space","typed:*Paper_Space"})return false;
+    }
+    std::cout<<"Selective BLOCK_RECORD read budget "<<selected<<" versus "<<all<<" bytes\n";
+    return true;
+}
 bool structuralSourceTests(const std::filesystem::path& dir) {
     struct Stage {const char* name="matrix";bool done=false;~Stage(){if(!done)std::cerr<<"Structural source stage="<<name<<'\n';}} stage;
     using A=DxIfaceTableSourceTestAccess;using S=dx_iface::StructuralSourceState;
@@ -188,7 +255,7 @@ bool structuralSourceTests(const std::filesystem::path& dir) {
             reader.throwAt=-1;if(!write(path,good,binary))return false;dx_data retry;if(!reader.fileImport(path.string(),&retry,false)||!complete(retry))return false;++exceptions;
         }
     }
-    if(!structuralPublicLifetime(contexts))return false;
+    if(!structuralPublicLifetime(contexts)||!selectiveBlockRecordSources(dir))return false;
     std::cout<<"Structural source profiles="<<profiles<<" physical origins="<<origins<<" refusals="<<refusals<<" quotas="<<quotas
         <<" contexts="<<contexts<<" allocation faults="<<allocations<<" exceptions="<<exceptions<<'\n';stage.done=true;return true;
 }
