@@ -185,14 +185,15 @@ bool source(const std::filesystem::path& path,bool binary,int mode,const char* n
  ||!s(0,"ENDSEC")||!s(0,"EOF"))return false;
  return !w->hasWriteError();
 }
-bool minimalChannelSource(const std::filesystem::path& path,bool binary){
+bool minimalChannelSource(const std::filesystem::path& path,bool binary,bool versioned=true,bool extra=false){
  std::ofstream f(path,std::ios::binary|std::ios::trunc);if(!f)return false;
  if(binary){const char signature[]="AutoCAD Binary DXF\r\n\x1a";f.write(signature,sizeof(signature));}
  std::unique_ptr<dxfWriter> w=binary?std::unique_ptr<dxfWriter>(new dxfWriterBinary(&f)):std::unique_ptr<dxfWriter>(new dxfWriterAscii(&f));
  const auto s=[&](int c,const char* v){return w->writeString(c,v);};
- return s(0,"SECTION")&&s(2,"HEADER")&&s(9,"$ACADVER")&&s(1,"AC1021")&&s(0,"ENDSEC")
-  &&s(0,"SECTION")&&s(2,"OBJECTS")&&s(0,"MATERIAL")&&s(5,"F040")&&s(330,"72")
+ if(versioned&&(!s(0,"SECTION")||!s(2,"HEADER")||!s(9,"$ACADVER")||!s(1,"AC1021")||!s(0,"ENDSEC")))return false;
+ return s(0,"SECTION")&&s(2,"OBJECTS")&&s(0,"MATERIAL")&&s(5,"F040")&&s(330,"72")
   &&s(100,"AcDbMaterial")&&s(1,"RawOnly")&&w->writeInt32(94,63)
+  &&(!extra||s(1,"extra"))
   &&s(0,"ENDSEC")&&s(0,"EOF")&&!w->hasWriteError();
 }
 // A locally generated ezdxf default-material shape. Mode 1 truncates its tail;
@@ -372,6 +373,27 @@ int main(){
   if(!input.read(&disabled,false)||disabled.materials.size()!=1u||disabled.raw.size()!=1u
      ||!disabled.materials.front().requiresRawDxfMaterialReplay()
      ||!disabled.materials.front().m_hasChannelFlags||disabled.materials.front().m_channelFlags!=63)return 65;
+  if(!minimalChannelSource(inputPath,binary,false))return 114;
+  LegacyReader versionlessLegacy;
+  if(input.read(&versionlessLegacy,false)||versionlessLegacy.materialCallbacks||versionlessLegacy.rawCallbacks)return 115;
+  Reader versionlessDisabled;versionlessDisabled.enabled=false;
+  if(input.read(&versionlessDisabled,false)||!versionlessDisabled.materials.empty()||!versionlessDisabled.raw.empty())return 116;
+  versionlessDisabled.enabled=true;
+  if(!input.read(&versionlessDisabled,false)||versionlessDisabled.materials.size()!=1u||versionlessDisabled.raw.size()!=1u
+     ||input.getSourceVersion()!=DRW::UNKNOWNV||versionlessDisabled.raw.front().m_version!=DRW::UNKNOWNV
+     ||!versionlessDisabled.materials.front().requiresRawDxfMaterialReplay()
+     ||versionlessDisabled.materials.front().m_hasChannelFlags
+     ||versionlessDisabled.raw.front().groups.back().code()!=94
+     ||versionlessDisabled.raw.front().groups.back().i_val()!=63)return 117;
+  const auto output=dir/(binary?"versionless-out-binary.dxf":"versionless-out-ascii.dxf");
+  {std::ofstream f(output);f<<"sentinel";}
+  dxfRW writer(output.string().c_str());DxfWriter adapter(writer);adapter.value=versionlessDisabled.materials.front();
+  if(writer.write(&adapter,DRW::AC1021,binary)||adapter.ok||bytes(output)!="sentinel")return 118;
+  if(!minimalChannelSource(inputPath,binary,false,true))return 119;
+  Reader malformed;
+  if(input.read(&malformed,false)||!malformed.materials.empty()||!malformed.raw.empty())return 120;
+  if(!minimalChannelSource(inputPath,binary,false))return 121;
+  if(!input.read(&malformed,false)||malformed.materials.size()!=1u||malformed.raw.size()!=1u)return 122;
  }
  for(bool binary:{false,true}){
   const auto inputPath=dir/(binary?"ezdxf-binary.dxf":"ezdxf-ascii.dxf");

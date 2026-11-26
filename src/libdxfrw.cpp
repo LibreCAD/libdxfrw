@@ -29616,10 +29616,12 @@ bool dxfRW::processMaterial() {
         return text(1u, "{ACAD_REACTORS") && text(3u, "}")
             && text(5u, "AcDbMaterial");
     };
-    // A bounded R2007 prefix with only common metadata and a material name
-    // makes a final group 94 unambiguous without guessing any map fields.
+    // A bounded R2007 prefix makes a final group 94 unambiguous. When the
+    // version is missing, retain the same shape only as an opaque raw source;
+    // do not assign a version-dependent meaning to its last group.
     const auto isMinimalChannelPrefix = [&]() {
-        if (reader->getSourceVersion() != DRW::AC1021
+        if ((reader->getSourceVersion() != DRW::AC1021
+             && reader->getSourceVersion() != DRW::UNKNOWNV)
             || raw.handle == 0u || raw.parentHandle == 0u
             || raw.handle == DRW::NoHandle || raw.parentHandle == DRW::NoHandle
             || data.handle != raw.handle || data.parentHandle != raw.parentHandle
@@ -29742,8 +29744,8 @@ bool dxfRW::processMaterial() {
             }
             if (pendingMinimalChannelTail) {
                 // The omitted body has no qualified typed-output profile.
-                // Publish the known flag to readers while forcing both typed
-                // encoders to refuse this partial source representation.
+                // The versioned flag is exposed to readers; an unversioned
+                // group stays opaque. Both typed encoders refuse this body.
                 data.m_dxfMaterialGenProcTableStarted = true;
                 data.m_dxfMaterialImplicitTail = true;
             }
@@ -29781,8 +29783,10 @@ bool dxfRW::processMaterial() {
             const std::int32_t channelFlags = reader->getInt32();
             if (!captureRawGroup(raw, code, /*validateHandles=*/true))
                 return setError(DRW::BAD_CODE_PARSED);
-            data.m_channelFlags = channelFlags;
-            data.m_hasChannelFlags = true;
+            if (reader->getSourceVersion() == DRW::AC1021) {
+                data.m_channelFlags = channelFlags;
+                data.m_hasChannelFlags = true;
+            }
             pendingMinimalChannelTail = true;
             continue;
         }
