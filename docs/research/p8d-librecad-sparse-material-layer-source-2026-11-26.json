@@ -9,8 +9,8 @@
     "The preflight compares source version, handle and owner, and the optional group-347 value with the live imported layer and the selected material dictionary.",
     "Locally authored ASCII and Binary DXF controls cover capture, mutation, restored state, version mismatch and duplicate source; no generated drawings were committed.",
     "System MATERIAL selector: 687 assertions in 6 cases. System linetype: 4967 assertions in 56 cases; bundled linetype: 1282 assertions in 52 cases; IMAGE control: 84 system and 46 bundled assertions.",
-    "A first build exposed inconsistent class layout when a file-local compile flag controlled inheritance; the public libdxfrw feature macro fixes this and the rebuilt controls pass. An earlier sanitizer run used stale installed headers and is inconclusive; the corrected configuration is rebuilding."
+    "A first build exposed inconsistent class layout when a file-local compile flag controlled inheritance; the public libdxfrw feature macro fixes this and the rebuilt controls pass. An earlier sanitizer run used stale installed headers and is inconclusive; after reconfiguring against the current candidate headers, AddressSanitizer passed 687 assertions in 6 MATERIAL cases with detect_leaks=0."
   ],
-  "sanitizer": "PENDING",
-  "remaining": "Run the corrected sanitizer selector. HEADER physical provenance, output remapping/staging, independent readback and successful replay remain open; raw-only output remains refused."
+  "sanitizer": "PASS: AddressSanitizer; 687 assertions / 6 cases; detect_leaks=0; current candidate headers and dylib.",
+  "remaining": "HEADER physical provenance, output remapping/staging, independent readback and successful replay remain open; raw-only output remains refused."
 }
