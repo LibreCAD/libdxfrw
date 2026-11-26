@@ -65,7 +65,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`d574254f28ade16119d4f4a9511f8cfc5934a804`. The prior merge head built the
+`92f84081a651e7bb131c5a707531d395abe79a2f`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -151,7 +151,9 @@ The [R12 nonzero guard](docs/research/p8d-r12-pellipse-nonzero-refusal-2026-11-2
 now refuses that loss before replacing the destination, and corrected retries
 pass. The [zero-value follow-up](docs/research/p8d-r12-pellipse-zero-omission-report-2026-11-26.json)
 keeps the existing accepted path and reports an explicit source omission through
-the codec report and CLI; it does not claim semantic losslessness. Resolve source
+the codec report and CLI; a [LibreCAD consumer control](docs/research/p8d-librecad-r12-pellipse-report-2026-11-26.json)
+checks visible reporting, refusal, retry and later R14 export. This does not
+claim semantic losslessness. Resolve source
 provenance, default semantics, and existing DXF extensions without blanket
 failure for common DWG defaults. Qualify each
 profile with physical output, ASCII/binary reimport, rollback and consumer
