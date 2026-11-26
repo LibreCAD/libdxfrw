@@ -113,7 +113,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: f6445fbcb7c4a312f277592022fece4e1382274d67276a4a41803c61d38a6d85
+  digest: 53fbd21f428eb2cfa15b347083c19460630649f7d00b769adeedd5104378818d
   (781 inputs). The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
   registers both new token controls in the frozen inventory and fast lane;
   its [GCC allocator follow-up](docs/research/p8-sat-gcc-allocator-harness-2026-11-26.json)
@@ -380,6 +380,11 @@ values. DWG-derived SAT now uses token-aware continuations and refuses an
 oversized token; ASCII/Binary rollback and retry pass. One patched-writer cube
 also survives an ODA round trip and independent mesh readback. This does not
 resolve the open R2013+ mappings, native acceptance, or general 3D semantics.
+The [SAT 4.0 follow-up](docs/research/p7-sat-bare-count-and-product-header-2026-11-26.json)
+protects bare counted strings and refuses product headers requiring continuation:
+ODA failed to preserve that header even when the cut was at a token boundary.
+Possible bare counts are conservatively combined; qualify a less restrictive
+rule with source-specific grammar and peer evidence before expanding it.
 
 Keep AcDs association, source/output identity, geometry semantics, and native
 acceptance separate. CAD Assistant/ezdxf shares OCCT lineage with FreeCAD and

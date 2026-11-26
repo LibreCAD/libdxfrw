@@ -216,6 +216,10 @@ bool runSatTokenTransaction(const std::filesystem::path &directory) {
     if (codec.write(&adapter, DRW::AC1015, binary) ||
         !readBytes(path, actual) || actual != sentinel || hasStagedOutput(path))
       return false;
+    setPayload("400 0 1 0\n" + std::string(124u, 'A') + " 7 a b c d Z");
+    if (codec.write(&adapter, DRW::AC1015, binary) ||
+        !readBytes(path, actual) || actual != sentinel || hasStagedOutput(path))
+      return false;
     setPayload(valid);
     if (!codec.write(&adapter, DRW::AC1015, binary) || !adapter.written ||
         hasStagedOutput(path))

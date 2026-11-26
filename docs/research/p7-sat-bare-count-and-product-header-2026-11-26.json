@@ -1,0 +1,40 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p7-sat-bare-count-and-product-header-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "scope": "DWG-derived SAT v1 DXF continuations and native-focused regression follow-up",
+  "authority": {
+    "url": "https://paulbourke.net/dataformats/sat/sat.pdf",
+    "document": "Spatial SAT Format 7.0, save-file example and counted-string descriptions",
+    "sha256": "f2af4d399497328ffeff7e9235b8bba9d794496c966bebf52dfe1c8cb372d61d",
+    "observation": "The SAT 4.0 example uses bare decimal lengths for product strings containing spaces. The local SAB-to-SAT serializer also produces bare counted strings for its selected non-700 carrier."
+  },
+  "peerObservation": {
+    "producer": "ODA File Converter 27.10.0.0 Linux x64, offline container; DXF R2000 to DWG R2000 and back",
+    "input": "Scratch-only public SAT 4.0 documentation example; the long control changes the first counted product string to 220 ASCII bytes. Both byte-cut and token-boundary-cut DXFs have the same SAT bytes.",
+    "longSatSha256": "800725d50868aa490476d0d5ad11a1abce4b4ed1b1b3d7748ea9dc2a727ab79b",
+    "result": "The unmodified short header survives in three SAT lines. For the long header, ODA's re-export turns a product continuation into a separate group 1 and joins its remainder to the following tolerance line in both split variants. Thus token boundaries alone do not establish product-header preservation for this peer.",
+    "shortOutputSha256": "6b16cb15d587732cf107209caaad6a021b50f7702c1990bc3b06495969350f95",
+    "tokenBoundaryOutputSha256": "222b349c8aa57ae10415571e0cecebdba1a60d09323b004ab1dc4a24fcb06e99",
+    "byteBoundaryOutputSha256": "9f05dd5d664847bd30c46e762b4faef2ae693e65b5cddc8fb7ea5e053777c736",
+    "limits": "ezdxf's ACIS parser did not interpret this SAT 4.0 sample's numeric coedge booleans, so this is header framing evidence, not a geometry or native AutoCAD acceptance claim. External derivatives remain scratch-only."
+  },
+  "implementation": [
+    "Protect possible bare decimal counted-string spans as well as explicit @ spans when choosing continuation boundaries. Overlapping possible spans are conservatively combined; unrepresentable spans are refused.",
+    "For recognized SAT version 200+ headers, refuse a product-information line that would need multiple encoded DXF values; retain single-value headers and version 106 body continuation.",
+    "Replace the prior generated round-trip control's unbroken oversized fake token with bounded tokens while preserving multi-chunk, caret escape, ASCII/Binary and public readback checks."
+  ],
+  "validation": [
+    "PASS: macOS ARM64 focused full libdxfrw_dwg_local_roundtrip, transaction and SAT token controls; the formerly failing native-focused executable passes.",
+    "PASS: focused bare and @ counted-string boundary, exact reconstruction, embedded apparent marker, product-header refusal, SAT 106 body and caret tests.",
+    "PASS: product-header refusal preserves a preexisting destination and a corrected retry succeeds in ASCII and Binary output; an additional actual-writer scratch probe preserved a sentinel for the long 4.0 sample.",
+    "PASS: GCC 13.3 Linux ARM64 compiles src/libdxfrw.cpp with -O1 -Wall -Wextra -pedantic -Werror."
+  ],
+  "limitations": "Potential bare counts can conservatively overlap ordinary numeric tokens and cause refusal for a representable long line; no universal SAT grammar, native AutoCAD behavior, other peer releases, or broad 3D support is claimed.",
+  "hostedRegression": {
+    "commit": "385a9e590",
+    "jobs": "Linux GCC, macOS Clang and Windows MSVC focused",
+    "observed": "Each failed the generated oversized-token AC1015 SAT export control; local replacement control passes the full focused executable. Hosted validation of this correction remains pending."
+  }
+}

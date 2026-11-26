@@ -2478,87 +2478,114 @@ bool writeDxfSatTextValue(dxfWriter *writer, int groupCode,
     return flush();
 }
 
-// SAT readers may restore each DXF value separately: a continuation must
-// therefore start at a token boundary, rather than at an arbitrary byte.
-// Keep length-prefixed @ strings together, including their embedded spaces.
+// SAT readers may restore each DXF value separately. Keep continuations at
+// token boundaries and protect both @length strings and bare length strings
+// (the latter also occur in older and converted SAT carriers).
 bool writeDxfSatV1Line(dxfWriter *writer, const std::uint8_t *data,
                        std::size_t size) {
     constexpr std::size_t kChunkSize = 255;
-    char chunk[kChunkSize];
-    std::size_t chunkSize = 0;
-    int code = 1;
-    const auto flush = [&]() {
-        if (chunkSize == 0)
-            return true;
-        if (!writer->writeString(code, std::string_view(chunk, chunkSize)))
-            return false;
-        code = 3;
-        chunkSize = 0;
-        return true;
+    const auto whitespace = [](std::uint8_t value) {
+        return value == ' ' || value == '\t';
     };
-    // The SAT v1 transform is involutive; DWG retains decoded SAT bytes.
     const auto encoded = [](std::uint8_t value) {
         return value > 0x20u ? static_cast<std::uint8_t>(0x9Fu - value)
                              : value;
     };
-    const auto whitespace = [](std::uint8_t value) {
-        return value == ' ' || value == '\t';
-    };
-    for (std::size_t pos = 0; pos < size;) {
-        std::size_t end = pos + 1;
-        if (!whitespace(data[pos])) {
-            while (end < size && !whitespace(data[end]))
-                ++end;
-            if (data[pos] == '@' && end > pos + 1 && end < size
-                && data[end] == ' ') {
-                bool numeric = true;
-                for (std::size_t i = pos + 1; i < end; ++i)
-                    numeric = numeric && data[i] >= '0' && data[i] <= '9';
-                if (numeric) {
-                    std::size_t length = 0;
-                    for (std::size_t i = pos + 1; i < end; ++i) {
-                        const std::size_t digit = data[i] - '0';
-                        if (length > size / 10u
-                            || (length == size / 10u && digit > size % 10u))
+    int code = 1;
+    for (std::size_t start = 0; start < size;) {
+        std::size_t end = start, safeEnd = start, protectedUntil = start;
+        std::size_t encodedSize = 0;
+        while (end < size) {
+            const std::uint8_t value = data[end];
+            if (value == '\0' || value == '\r' || value == '\n'
+                || value > 0x7Eu)
+                return false;
+            const bool tokenStart = end == 0 || whitespace(data[end - 1]);
+            if (tokenStart && (value == '@' || (value >= '0' && value <= '9'))) {
+                const bool explicitLength = value == '@';
+                const bool insideCountedString = end < protectedUntil;
+                std::size_t digit = end + (explicitLength ? 1u : 0u);
+                const std::size_t firstDigit = digit;
+                std::size_t length = 0;
+                bool overflow = false;
+                while (digit < size && data[digit] >= '0' && data[digit] <= '9') {
+                    const std::size_t next = data[digit] - '0';
+                    if (length > size / 10u
+                        || (length == size / 10u && next > size % 10u))
+                        overflow = true;
+                    else if (!overflow)
+                        length = length * 10u + next;
+                    ++digit;
+                }
+                if (digit != firstDigit && digit < size && data[digit] == ' ') {
+                    const std::size_t content = digit + 1u;
+                    if (overflow || length > size - content) {
+                        if (explicitLength && !insideCountedString) return false;
+                    } else {
+                        const std::size_t after = content + length;
+                        if (after == size || whitespace(data[after]))
+                            protectedUntil = std::max(protectedUntil, after);
+                        else if (explicitLength && !insideCountedString)
                             return false;
-                        length = length * 10u + digit;
                     }
-                    ++end; // The single separator before the string.
-                    if (length > size - end)
-                        return false;
-                    end += length;
-                    if (end < size && !whitespace(data[end]))
-                        return false;
                 }
             }
+            const std::size_t bytes = encoded(value) == '^' ? 2u : 1u;
+            if (encodedSize + bytes > kChunkSize)
+                break;
+            encodedSize += bytes;
+            ++end;
+            if (whitespace(value) && end >= protectedUntil)
+                safeEnd = end;
         }
-        std::size_t encodedSize = 0;
-        for (std::size_t i = pos; i < end; ++i) {
-            if (data[i] == '\0' || data[i] == '\r' || data[i] == '\n'
-                || data[i] > 0x7Eu)
-                return false;
-            encodedSize += encoded(data[i]) == '^' ? 2u : 1u;
-            if (encodedSize > kChunkSize)
-                return false;
+        if (end < size) {
+            if (safeEnd == start) return false;
+            end = safeEnd;
         }
-        if (chunkSize + encodedSize > kChunkSize && !flush())
-            return false;
-        for (std::size_t i = pos; i < end; ++i) {
+        char chunk[kChunkSize];
+        std::size_t chunkSize = 0;
+        for (std::size_t i = start; i < end; ++i) {
             const std::uint8_t value = encoded(data[i]);
             chunk[chunkSize++] = static_cast<char>(value);
-            if (value == '^')
-                chunk[chunkSize++] = ' ';
+            if (value == '^') chunk[chunkSize++] = ' ';
         }
-        pos = end;
+        if (!writer->writeString(code, std::string_view(chunk, chunkSize)))
+            return false;
+        code = 3;
+        start = end;
     }
-    return flush();
+    return true;
 }
 
 bool writeDxfSatV1Text(dxfWriter *writer,
                        const std::vector<std::uint8_t>& data) {
     if (data.empty())
         return false;
+    // Product metadata occupies one physical SAT header line for versions
+    // 200+. ODA 27.10 does not preserve that line when it spans DXF values.
+    const char *first = reinterpret_cast<const char *>(data.data());
+    const char *last = first + data.size();
+    const char *headerEnd = std::find(first, last, '\n');
+    const char *cursor = first;
+    std::int64_t satVersion = 0;
+    bool hasProductLine = true;
+    for (int field = 0; field < 4; ++field) {
+        while (cursor < headerEnd && (*cursor == ' ' || *cursor == '\t')) ++cursor;
+        std::int64_t number = 0;
+        const auto parsed = std::from_chars(cursor, headerEnd, number);
+        if (parsed.ec != std::errc{} || parsed.ptr == cursor ||
+            (parsed.ptr < headerEnd && *parsed.ptr != ' ' && *parsed.ptr != '\t' &&
+             *parsed.ptr != '\r')) {
+            hasProductLine = false;
+            break;
+        }
+        if (field == 0) satVersion = number;
+        cursor = parsed.ptr;
+    }
+    while (cursor < headerEnd && (*cursor == ' ' || *cursor == '\t' || *cursor == '\r')) ++cursor;
+    hasProductLine = hasProductLine && cursor == headerEnd && satVersion >= 200;
     std::size_t lineStart = 0;
+    std::size_t lineIndex = 0;
     bool wroteLine = false;
     while (lineStart < data.size()) {
         std::size_t lineEnd = lineStart;
@@ -2568,6 +2595,15 @@ bool writeDxfSatV1Text(dxfWriter *writer,
         if (contentEnd > lineStart && data[contentEnd - 1] == '\r')
             --contentEnd;
         if (contentEnd > lineStart) {
+            if (hasProductLine && lineIndex == 1u) {
+                std::size_t encodedSize = 0;
+                for (std::size_t i = lineStart; i < contentEnd; ++i) {
+                    const auto value = data[i] > 0x20u
+                        ? static_cast<std::uint8_t>(0x9Fu - data[i]) : data[i];
+                    encodedSize += value == '^' ? 2u : 1u;
+                    if (encodedSize > 255u) return false;
+                }
+            }
             if (!writeDxfSatV1Line(writer, data.data() + lineStart,
                                    contentEnd - lineStart))
                 return false;
@@ -2576,6 +2612,7 @@ bool writeDxfSatV1Text(dxfWriter *writer,
         if (lineEnd == data.size())
             break;
         lineStart = lineEnd + 1;
+        ++lineIndex;
     }
     return wroteLine;
 }

@@ -19114,21 +19114,42 @@ void testDxfModelerTextChunkBorrow(TestContext& t) {
         const std::string lengthString = std::string(124u, 'A')
             + " @7 a b c d Z";
         const auto stringResult = encodeSatLine(lengthString);
-        std::string decoded;
-        for (const std::string& value : stringResult.second) {
-            for (std::size_t i = 0; i < value.size(); ++i) {
-                unsigned char c = static_cast<unsigned char>(value[i]);
-                if (c == '^' && i + 1u < value.size() && value[i + 1u] == ' ')
-                    ++i;
-                if (c > 0x20u)
-                    c = static_cast<unsigned char>(0x9Fu - c);
-                decoded.push_back(static_cast<char>(c));
+        const auto decodeSatValues = [](const std::vector<std::string>& values) {
+            std::string decoded;
+            for (const std::string& value : values) {
+                for (std::size_t i = 0; i < value.size(); ++i) {
+                    unsigned char c = static_cast<unsigned char>(value[i]);
+                    if (c == '^' && i + 1u < value.size() && value[i + 1u] == ' ')
+                        ++i;
+                    if (c > 0x20u)
+                        c = static_cast<unsigned char>(0x9Fu - c);
+                    decoded.push_back(static_cast<char>(c));
+                }
             }
-        }
+            return decoded;
+        };
         t.expect(stringResult.first && stringResult.second.size() == 2u
                      && stringResult.second[0].size() == 249u
-                     && decoded == lengthString,
+                     && decodeSatValues(stringResult.second) == lengthString,
                  "SAT-v1 length-prefixed string stays in one continuation and reconstructs exactly");
+        const std::string bareLengthString = std::string(124u, 'A')
+            + " 7 a b c d Z";
+        const auto bareResult = encodeSatLine(bareLengthString);
+        t.expect(bareResult.first && bareResult.second.size() == 2u
+                     && bareResult.second[0].size() == 249u
+                     && decodeSatValues(bareResult.second) == bareLengthString,
+                 "SAT-v1 keeps a bare length-prefixed string in one continuation");
+        const std::string markerInString = std::string(124u, 'A')
+            + " @10 a @99999 z Q";
+        const auto nestedResult = encodeSatLine(markerInString);
+        t.expect(nestedResult.first && nestedResult.second.size() == 2u
+                     && nestedResult.second[0].size() == 249u
+                     && decodeSatValues(nestedResult.second) == markerInString,
+                 "SAT-v1 treats an apparent marker inside counted text as data");
+        t.expect(encodeSatLine("400 0 1 0\n11 Scheme AIDE 11 ACIS 4.0 NT").first
+                     && !encodeSatLine("400 0 1 0\n" + bareLengthString).first
+                     && encodeSatLine("106 0 1 0\n" + bareLengthString).first,
+                 "SAT-v1 refuses a split product header while older body lines remain eligible");
         t.expect(!encodeSatLine(std::string(128u, 'A')).first
                      && !encodeSatLine("@9 short").first,
                  "SAT-v1 refuses an unsplittable token and a truncated length-prefixed string");

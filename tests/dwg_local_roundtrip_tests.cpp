@@ -23812,16 +23812,20 @@ bool runModelerDwgSatV1Extraction() {
         std::cerr << "SAT v1 extraction check failed: " << stage << '\n';
         return false;
     };
-    std::vector<std::uint8_t> satText{
-        '4', '0', '0', ' ', '2', '7', ' ', '1', ' ', '0', '\n',
-        'A', 'C', 'I', 'S', ' ', 'S', 'A', 'T', '\t', 'C', 'O', 'N', 'T',
-        'R', 'O', 'L', ' ', '^', 'X'};
-    satText.insert(satText.end(), 280u, static_cast<std::uint8_t>('Z'));
+    // Keep the product header within one DXF value. Long generated body
+    // records use whitespace-delimited tokens and exercise continuation.
+    const std::string prefix =
+        "400 27 1 0\n11 Scheme AIDE 11 ACIS 4.0 NT 24 Mon Apr 12 13:59:03 1998\n"
+        "ACIS SAT\tCONTROL ^X";
+    std::vector<std::uint8_t> satText(prefix.begin(), prefix.end());
+    satText.insert(satText.end(), 140u, static_cast<std::uint8_t>('Z'));
+    satText.push_back(' ');
+    satText.insert(satText.end(), 140u, static_cast<std::uint8_t>('Z'));
     satText.push_back('\n');
-    // ODA SAT-v1 encodes plaintext 'A' as '^'. Place that escape after 254
-    // ordinary encoded bytes so the writer must flush before the indivisible
-    // two-byte DXF '^ ' escape rather than splitting it across 255-byte tags.
-    satText.insert(satText.end(), 254u, static_cast<std::uint8_t>('Z'));
+    // Leave a token boundary after 254 bytes; plaintext 'A' becomes the
+    // indivisible two-byte DXF caret escape in the continuation.
+    satText.insert(satText.end(), 253u, static_cast<std::uint8_t>('Z'));
+    satText.push_back(' ');
     satText.push_back('A');
     satText.push_back('Z');
     satText.push_back('\n');
@@ -24006,14 +24010,15 @@ bool runModelerDwgSatV1Extraction() {
             const auto* decoded =
                 static_cast<const DRW_ModelerGeometry*>(entity);
             reimportedPayloadMatches = decoded->m_rawBytes == expectedDxfPayload
-                && decoded->m_dxfPayloadChunks.size() == 5
+                && decoded->m_dxfPayloadChunks.size() == 6
                 && decoded->m_dxfPayloadChunks[0].m_groupCode == 1
                 && decoded->m_dxfPayloadChunks[1].m_groupCode == 1
-                && decoded->m_dxfPayloadChunks[2].m_groupCode == 3
-                && decoded->m_dxfPayloadChunks[3].m_groupCode == 1
-                && decoded->m_dxfPayloadChunks[4].m_groupCode == 3
-                && decoded->m_dxfPayloadChunks[3].m_length == 254u
-                && decoded->m_dxfPayloadChunks[4].m_length == 2u;
+                && decoded->m_dxfPayloadChunks[2].m_groupCode == 1
+                && decoded->m_dxfPayloadChunks[3].m_groupCode == 3
+                && decoded->m_dxfPayloadChunks[4].m_groupCode == 1
+                && decoded->m_dxfPayloadChunks[5].m_groupCode == 3
+                && decoded->m_dxfPayloadChunks[4].m_length == 254u
+                && decoded->m_dxfPayloadChunks[5].m_length == 2u;
             break;
         }
     }
