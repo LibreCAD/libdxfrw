@@ -2,7 +2,7 @@
   "date": "2026-11-26",
   "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
   "consumer_code_commit": "673d567a",
-  "consumer_plan_head": "b0b5abba",
+  "consumer_plan_head": "9a635f35",
   "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
   "finding": "A locally generated LINE in additional paper space was present in R12/R14 ASCII and binary output; ezdxf 1.4.5 audit removed the orphaned block and the line while the exporter reported no loss.",
   "pre_guard_output_sha256": {
@@ -21,7 +21,8 @@
     "Older bundled codec headers passed syntax compilation; linked runtime qualification remains open",
     "Consumer plan sync passed locally",
     "Locally generated R12 with nonzero additional-paper base and LINE retains both on import and refuses unsafe export without touching destination, including a versionless-header control.",
-    "Locally authored R14 cases preserve nonzero block base, children and both anonymous states, and refuse unsafe output without overwriting the destination."
+    "Locally authored R14 cases preserve nonzero block base, children and both anonymous states, and refuse unsafe output without overwriting the destination.",
+    "After sharing case-folding, the 71 DXF round-trip/export and six layout tests passed; the application built with the later Save As filename rollback. The GUI refusal observation predates that filename change."
   ],
   "limitations": [
     "The empty orphan block still incurs an ezdxf audit repair; distinguish application-created and imported blocks and qualify references before removing it.",
@@ -53,5 +54,7 @@
     "source_sha256": "3621c77311101c3bbd31f069d93c95cf3dd4790d32c59f1b2fea711bd8c4fb0c",
     "result": "Fresh isolated app process opened the source, confirmed the save action owned that source, refused an R12 save, displayed the paper-space explanation and R2000 recommendation, and created no destination file.",
     "limits": "The proof app contains scratch-only title and save-owner instrumentation; it is not the final packaged UI. Rendering/editing and other platforms remain open."
-  }
+  },
+  "consumer_shared_names_commit": "c61ce0d5",
+  "consumer_save_state_commit": "c48f203a"
 }
