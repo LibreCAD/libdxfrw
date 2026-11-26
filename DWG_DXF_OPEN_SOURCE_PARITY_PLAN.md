@@ -13,288 +13,58 @@ percentage because the remaining slices are not known. The six P9 external-only
 IDs are advisory and excluded from the gate count. Completed actions and their
 evidence are recorded in `docs/research/` and Git history.
 
-The preceding candidate passed the focused CI profile at code head
-`e9216367`, implementation digest
-`ce3ff7f4632615508c31c80f5375f423ca728262fe8c1c63dc87fdb75d977e7b`
-for 775 inputs. The [qualification receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json)
-records local and hosted fast checks plus Linux, macOS and Windows focused
-jobs. All 15 format claims remain EXPERIMENTAL; no route is advertised.
-The later single-line TEXT/ATTRIB/ATTDEF writer candidate used digest
-`7827d552d5f861a0d3fd16c48d539f6bf70e332d9780132938d329e37661ff74`.
-The subsequent [raw plot-style object identity fix](docs/research/p6-plotstyle-prebound-raw-object-identity-2026-11-25.json) reopens the implementation
-digest, focused checks and package qualification. Its clean-checkout digest is
-`2bd3188367f8af53e5d56dbf3ff3bb08f36bcf3a32a89879305c5853a737bd21`
-for 775 inputs. The later [opt-in raw MATERIAL capture](docs/research/p8d-ezdxf-default-material-raw-capture-2026-11-25.json) has clean-checkout digest
-`c05fe891b8acfd5db7ea13d575002b47376d3828439220fd71c11f21cf40c47b`.
-The subsequent [raw MATERIAL opt-in fix](docs/research/p8d-sparse-material-policy-and-consumer-guard-2026-11-25.json)
-has digest `7df98118a0e5b6aad55553dee25ec5ca56c2f367cc05f58a3cd50874934bb246`.
-The subsequent test-only selected-material-graph controls produced digest
-`5bc263cc80c1c5431b0055829b79daf9e9ceafe4b58877ffe3fae6ca1adc2061`.
-The [wide-inventory slice](docs/research/p7-wide-dxf-inventory-2026-11-25.json)
-produced digest `f547e3aad18f3c17600427765ad5318f761ddccb3d33fd2f017c7d8e1ac01037`.
-The preceding [wide-self-handle slice](docs/research/p7-wide-dxf-self-handle-handseed-2026-11-25.json)
-produces clean-checkout digest
-`b274f634af9aeb2ca0e8a3b6ddc907a2429f391d6f9c5bfed6b2cbf200ffe44b`
-for 775 inputs. The [Wave 1 control-text CI correction](docs/research/p8-wave1-control-text-ci-regression-2026-11-25.json)
-updates an outdated refusal expectation to verify ASCII/binary typed readback;
-its clean-checkout digest was `6dd91b2be8f6dd49ddd13bccb0064a5c4a23c2652eb798605c29017b91e5500e` for 775 inputs. The full Wave 1
-executable and the hosted fast, Linux, macOS and Windows focused jobs passed on
-that candidate;
-see the [current CI receipt](docs/research/p8-current-fast-ci-2026-11-25.json).
-The same receipt records the current LibreCAD headless, DWG/DXF, Pixi and CodeQL
-checks. The subsequent [block handle allocation fix](docs/research/p8d-block-record-adjacent-handle-collision-2026-11-25.json)
-changed the candidate digest to `0c90642a63bb7bbb08ce74324e952a7675207d1812563cea1715efa300f4dc03` (775 inputs). The subsequent
-[linetype total fix](docs/research/p8d-linetype-equivalent-total-preservation-2026-11-25.json)
-changes it to `335261b9750f6cda518170ed91531b3282600f44e0233552cba599c19f81af5e` (775 inputs); recheck focused platform
-jobs and downstream receipts. Broad/fuzz and native qualification
-remain open. No earlier qualification is transferred to this candidate. Native GUI, broader FreeCAD coverage, broad and semantic
-gates remain open. The [package receipt](docs/research/p8-pr106-current-cross-platform-package-2026-11-25.json)
-records Linux and Windows hosted package passes and a local macOS substitute
-for the cancelled hosted macOS job; the overall package workflow was red.
-The [Linux FreeCAD receipt](docs/research/p8-freecad-linux-current-digest-2026-11-25.json)
-records 16 generated-profile tests passing with the pinned FreeCAD release and
-installed converter. The [Windows retry](docs/research/p8-freecad-windows-current-digest-2026-11-25.json)
-passes 17 tests on the same implementation digest; its pinned C++ importer
-reports 3DFACE and SOLID unsupported and the tested POLYFACE wire limitation.
+## Ready work and cross-cutting dependencies
 
-The recorded consumer baselines are libdxfrw `master` `d68fb1ed937ad2a74a54f6208277ec10a1b031b0`,
-LibreCAD `master` `78014ecde2f53fdd8c06453f3854b1cae1a3fd0d`, LibreCAD_3
-`master` `4fb48312708b39d499f7e6668104a3b54a8601c7`, and FreeCAD `main`
-`d65d3b388743b51da923d6ab36d10ddbc149ba46`. Refresh moving heads before
-integration or platform qualification.
+- **Sparse MATERIAL / LibreCAD:** qualify complete same-version raw replay
+  before enabling consumer capture or weakening the existing export guard.
+  Validate the entire ACAD_MATERIAL dictionary, exact raw carriers, source
+  identities, owners/reactors, layer and current-material references, handle
+  uniqueness and remapping. Refuse missing, replaced, edited, cross-version or
+  ambiguous graphs atomically; prove ASCII/binary readback, retry and both
+  consumer paths. The current system [filter][handles] result is 16/21;
+  five sparse-MATERIAL imports remain failing. See the
+  [consumer guard](docs/research/p8d-sparse-material-policy-and-consumer-guard-2026-11-25.json),
+  [selected graph](docs/research/p8d-ezdxf-default-material-selected-graph-2026-11-25.json),
+  and [dictionary-target checks](docs/research/p8d-librecad-layer-material-dictionary-targets-2026-11-25.json).
+- **IMAGE / plot-style graphs:** extend the admitted single-IMAGE and
+  two-layer profiles one source shape at a time, binding physical source,
+  dictionary edge roles, dependencies, staged output, independent readback,
+  rollback and retry. Multi-image, unknown fields, unqualified clipping,
+  references, layers and native/platform behavior remain open; see P8.
+- **Legacy headers:** investigate $FACETRES, $ISOLINES, $PELLIPSE,
+  $TEXTQLTY, original-source provenance and DXF extension behavior. R12
+  rejects nonzero PELLIPSE and reports an explicit zero omission; zero is
+  not claimed lossless. Qualify R14/native behavior and broader object-graph
+  resave, preserving ordinary R14 fields and existing dimension precedence.
+  See the [authority comparison](docs/research/p8d-r14-display-header-authority-2026-11-26.json),
+  [R12 guard](docs/research/p8d-r12-pellipse-nonzero-refusal-2026-11-26.json)
+  and [omission report](docs/research/p8d-r12-pellipse-zero-omission-report-2026-11-26.json).
+- **Graph editing and wide handles:** close full associative HATCH editing,
+  unmatched reverse links, copy and identity collisions; retain the explicit
+  deassociation report. Extend the bounded wide-self-handle profile to 64-bit
+  owners and translated references with source/target closure, while keeping
+  the existing 32-bit public semantic API. Qualify consumers independently.
+- **AC1012:** reuse the locally authored specification-directed pair and
+  shared version-aware frame, dictionary and handle-role checks. The
+  [current-candidate recheck](docs/research/p6-ac1012-existing-spec-pair-current-recheck-2026-11-26.json)
+  validates strict refusal and bounded partial output; it does not prove native
+  duplicate-key semantics. Continue P6-F with the existing
+  [native witness procedure](tools/research/AC1012_DICTIONARY_NATIVE_WITNESS.md);
+  do not regenerate unchanged samples without a new discriminator.
+- **Integration:** verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
+  and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
+  including final-head hosted checks and native consumers. Current implementation
+  digest: 29a5f8c0f06114a7216607292666ce04b19035a18be7eb2a81df7f8ecb56b833
+  (775 inputs). LibreCAD consumer head:
+  92f84081a651e7bb131c5a707531d395abe79a2f. Prior platform receipts apply only
+  to their recorded inputs. All format claims remain EXPERIMENTAL.
+- **External host:** its release, OS, SDK and access route remain unknown.
+  Use the [host intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) once
+  available and only the witness packets reviewed for that profile. Work on
+  other ready items while waiting.
 
-The dependent LibreCAD PR #3289 was refreshed onto master
-`b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`92f84081a651e7bb131c5a707531d395abe79a2f`. The prior merge head built the
-macOS system-codec application against the current implementation digest;
-its hosted bounded DWG/DXF and platform builds passed. At the new head, a
-unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
-`$INSUNITS`, while nonzero units still refuse without changing the destination.
-The new repeatable system-codec lane and bundled DXF fast lane pass locally;
-see the [units receipt](docs/research/p8d-librecad-system-codec-legacy-units-2026-11-25.json)
-and [refresh receipt](docs/research/p8d-librecad-3289-master-refresh-2026-11-25.json).
-The [coordinate receipt](docs/research/p8d-librecad-system-codec-extrusion-2026-11-25.json)
-records the DXF callback-frame adaptation, same-filter DXF/DWG reuse,
-targeted AddressSanitizer and bundled-codec controls. A wider system-codec
-filter run improved from 86 to 91 passing cases out of 131. The subsequent
-[system-codec single-line text slice](docs/research/p8d-librecad-system-codec-single-line-text-2026-11-25.json)
-preserves controls and literal carets and passes both consumer lanes. The wider
-filter initially passed 93/131 cases with 89 failed assertions. The follow-up
-[underlay refusal and corrected-retry checks](docs/research/p8d-librecad-system-underlay-refusal-2026-11-25.json)
-clarify 28 out-of-profile combinations; the wider filter now passes 94/131
-cases with 61 failed assertions and no new failure categories. The subsequent
-[custom CLASS regression](docs/research/p8d-librecad-system-custom-class-regression-2026-11-25.json)
-checks the retained class by identity alongside independently generated CLASS
-records. A further [linetype application-group lookup fix](docs/research/p8d-librecad-system-linetype-application-group-2026-11-25.json)
-confirms two apparently missing binary values were present before the record
-name. The [canonical-linetype metadata fix](docs/research/p8d-librecad-system-canonical-linetype-metadata-2026-11-25.json)
-restores generated DWG-to-DXF leader saves by predeclaring fixed-row metadata;
-its failure/retry and bundled controls pass. The [declared UTF-8 fix](docs/research/p8d-librecad-system-declared-utf8-2026-11-25.json)
-restores legacy explicitly declared UTF-8 while preserving other code-page
-behavior. The [retained plot-style graph fix](docs/research/p8d-librecad-system-retained-plotstyle-2026-11-25.json)
-binds the imported Normal placeholder and passes destination-preserving refusal
-and corrected retry; [LibreDWG readback](docs/research/p6-plotstyle-prebound-libredwg-peer-2026-11-25.json)
-agrees on four generated R2000 profiles, with nonfatal header warnings;
-[ezdxf readback](docs/research/p6-plotstyle-prebound-ezdxf-peer-2026-11-25.json)
-resolves 24 generated version/encoding/remap profiles. The [GROUP reactor
-slice](docs/research/p8d-librecad-system-group-reactor-2026-11-25.json)
-preserves selected reserved GROUP identities and checks both membership and
-reactors with both codecs. Its wider filter passes 106/131 cases with 27
-failed assertions. The [XDATA reference control](docs/research/p8d-librecad-system-xdata-target-2026-11-25.json)
-checks the target rather than requiring a particular renumbering. The
-[legacy LAYER slice](docs/research/p8d-librecad-system-legacy-layer-width-2026-11-25.json)
-restores R12/R14 export with an explicit loss report for omitted layer
-lineweights; unsupported plot-off state still refuses atomically. Both codec
-lanes pass. The preceding broader filter passed 110/132 cases with 27 failed
-assertions. Its newly reachable R12 POLYLINE child presentation discrepancy is
-addressed by the [child-record slice](docs/research/p8d-librecad-system-r12-polyline-child-2026-11-25.json),
-which checks both codecs and distinct handles. The [legacy INSERT follow-up](docs/research/p8d-librecad-legacy-insert-reverse-references-2026-11-25.json)
-avoids unsupported R12/R14 reverse BLOCK_RECORD references; R12 save/reopen/resave
-and R14 handle-bearing output pass focused controls on both codecs. The wider
-system linetype selector passed 47/52 cases. The [alignment contract control](docs/research/p8d-librecad-linetype-alignment-contract-2026-11-25.json)
-retains the invalid-value refusal and tests reconstruction with valid alignment;
-the selector passed 48/52 cases. The [QCad-1 layer-width fix](docs/research/p8d-librecad-qcad1-layer-default-width-2026-11-25.json)
-uses a default width for layers whose legacy source has no width; save/reopen
-passes with both codecs, and system-codec refusal/retry passes. The selector passed 49/52 cases. The block-handle range fix eliminates a
-collision between a preserved LINE and generated ENDBLK; the selector passed
-50/52. The [linetype total follow-up](docs/research/p8d-linetype-equivalent-total-preservation-2026-11-25.json)
-preserves equivalent declared totals and validates table contents and counts;
-the focused selector now passes 52/52 with both codecs. Independent ezdxf and
-LibreDWG checks match 32 selected totals. The [FIELD EED range control](docs/research/p8d-field-eed-signed-range-control-2026-11-25.json)
-checks refusal of out-of-range signed values, explicit correction and same-filter
-retry; system and bundled XDATA selectors pass, and LibreDWG confirms selected
-FIELD/FIELDLIST APPID links and stored bit patterns. Qualify broader/native profiles. The [R14 header diagnostic](docs/research/p8d-r14-header-self-resave-diagnostic-2026-11-25.json)
-binds the original reimport/resave refusal to three group-290 Boolean variables.
-The [original R14 reference audit](docs/research/p8d-r14-primary-header-reference-audit-2026-11-26.json)
-corrects an independent version table: 24 of its 64 flagged fields are explicitly
-listed for R14 and must remain supported. The audited generated header initially contained 35 names absent from the
-reference. The [text/stylesheet slice](docs/research/p8d-r14-header-textstyle-2026-11-26.json)
-removes three generated defaults and refuses explicit values. The [orthographic
-UCS slice](docs/research/p8d-r14-header-orthographic-ucs-2026-11-26.json)
-handles eighteen newer UCS/PUCS settings while preserving and testing ordinary
-R14 UCS origins. The [dimension migration slice](docs/research/p8d-r14-header-dimension-migration-2026-11-26.json)
-maps representable modern dimension families to legacy DIMUNIT/DIMFIT, retains
-the established modern-value precedence, accepts bare DWG header keys, and
-refuses seven explicitly supplied newer fields instead of silently dropping them.
-LibreCAD reports omission of its generated default angular precision and rejects
-nondefault values. Four names remain for investigation: `$FACETRES`, `$ISOLINES`,
-`$PELLIPSE`, and `$TEXTQLTY`. Treat absence as a review lead, not automatic
-proof of invalidity. The [DWG/DXF authority comparison](docs/research/p8d-r14-display-header-authority-2026-11-26.json)
-finds all four in the common DWG header; ODA explicitly says PELLIPSE is not
-present in DXF. Two independently converted R14 sources omit all four, but do
-not establish native acceptance or an appropriate loss policy. In particular,
-do not blanket-reject every DWG merely because its common header has these
-values. A nondefault-value probe demonstrates that R12 ASCII/Binary export
-previously succeeded and dropped PELLIPSE, while this library reopens the value
-in R14 and R2000; the other three selected values survive its six round trips.
-The [R12 nonzero guard](docs/research/p8d-r12-pellipse-nonzero-refusal-2026-11-26.json)
-now refuses that loss before replacing the destination, and corrected retries
-pass. The [zero-value follow-up](docs/research/p8d-r12-pellipse-zero-omission-report-2026-11-26.json)
-keeps the existing accepted path and reports an explicit source omission through
-the codec report and CLI; a [LibreCAD consumer control](docs/research/p8d-librecad-r12-pellipse-report-2026-11-26.json)
-checks visible reporting, refusal, retry and later R14 export. This does not
-claim semantic losslessness. Resolve source
-provenance, default semantics, and existing DXF extensions without blanket
-failure for common DWG defaults. Qualify each
-profile with physical output, ASCII/binary reimport, rollback and consumer
-controls. Handle previously emitted files
-separately; retain native qualification.
-The [R14 Boolean field slices](docs/research/p8d-r14-header-modern-booleans-2026-11-26.json)
-omit `$EXTNAMES`, `$PSTYLEMODE`, `$OLESTARTUP`, `$LWDISPLAY`, and `$XEDIT`
-from pre-R2000 output when absent from the source, and refuse any explicit
-source value before writing. R2000+ output keeps these fields. Other newer
-variables, previously emitted files with explicit values, complete resave and
-native verification remain open. The [lineweight header slice](docs/research/p8d-r14-header-lineweight-settings-2026-11-26.json)
-applies the same no-loss policy to `$CELWEIGHT`, `$ENDCAPS`, and `$JOINSTYLE`.
-LibreCAD reports omission of its generated cap/join defaults and still refuses
-other values; system and bundled codec controls pass. The [legacy scalar slice](docs/research/p8d-r14-header-scalars-2026-11-26.json)
-applies that policy to `$HYPERLINKBASE`, `$CEPSNTYPE`, and `$PSVPSCALE`.
-LibreCAD reports omission of its generated default paper scale and refuses
-non-default values. The [R2000 readback control](docs/research/p8d-r2000-header-scalars-peer-2026-11-26.json)
-checks non-default values in both encodings with the library and ezdxf. Other
-later header fields remain open. The [generated LINE resave control](docs/research/p8d-r14-line-resave-peer-2026-11-26.json)
-checks save/import/resave/reopen in both encodings. The LibreCAD INSERT control
-also now resaves its reimport with both codecs. ezdxf reads selected geometry, but upgrades R14 to R2000 in memory. The prior
-root-owner repairs for the first LINE and LibreCAD INSERT outputs are addressed
-by the [generated-root owner slice](docs/research/p8d-r14-generated-root-owner-2026-11-26.json):
-the selected ASCII/binary LINE and LibreCAD INSERT outputs now reopen with zero
-ezdxf audit repairs, and two independent LibreDWG conversions emit the same
-null owner. Native R14 behavior and broader object graphs remain open. Investigate the remaining identity and
-object-graph gaps. The
-[library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
-records bounded ASCII/binary field and failure/retry checks.
-Native GUI, runtime loading, new-head hosted checks and final-candidate
-validation remain open.
-
-The [HATCH deassociation slice](docs/research/p8d-librecad-hatch-deassociation-2026-11-25.json)
-records the source hatch-to-boundary pairs and removes their matching boundary
-reactors when reconstructed loops are saved non-associatively, with a loss
-report. Both codec lanes pass locally generated DXF and R2004 DWG save/reopen
-controls for two hatches sharing a boundary; system-codec failed-write/retry
-and both moved/deleted-boundary checks pass. Independent ezdxf readback checks
-DXF links only. Full associative editing, unmatched or malformed reverse links,
-source-handle collisions and copying, independent DWG semantic checks, and
-native qualification remain open. A wider system `[filter][handles]` run
-passed 13/20 cases: six failures were also in the earlier broad run, while a
-sparse-MATERIAL fixture is rejected by the current default codec policy.
-Do not count the wider run as passing or promote support claims. The subsequent
-[live-handle collision fix](docs/research/p8d-librecad-live-handle-identity-2026-11-25.json)
-restores the omitted-raw/live-entity case, preserves ambiguity handling, and
-improves that same filter to 14/20 cases (before the new ambiguity control).
-The subsequent wide-self-handle fix resolves the proxy export and its LibreCAD
-save/reopen/second-save control on both codecs. The current system filter passes
-16/21 cases; five sparse-MATERIAL imports remain failing. Resolve those cases
-without bypassing the incomplete-material guard.
-
-The bounded [wide-self-handle and HANDSEED slice](docs/research/p7-wide-dxf-self-handle-handseed-2026-11-25.json)
-uses a 64-bit emitted identity census and a checked 16-digit seed. Generated
-ASCII and binary AC1027 XRECORD output and LibreCAD proxy output reopen in
-ezdxf without audit repairs. Exhausted seeds, wide translated relationships,
-and wide raw identities on uncensused full-file output refuse atomically.
-Complete 64-bit owner and translated-reference mapping, numeric identity
-collisions across graph roles, and source/target closure before promoting wider
-support; preserve the existing 32-bit public semantic API and requalify native
-and platform consumers against the new digest.
-
-The [macOS ODA re-open control](docs/research/p6-ac1012-oda-macos-peer-reopen-2026-11-25.json)
-reopened the existing generated AC1012 pair in an isolated GUI instance and
-retained their named style entries, angles and element counts. Direct CLI
-launch still fails in this environment. Both producer and reader are ODA, so
-native AutoCAD validity and duplicate-key merge semantics remain open.
-The [named-LTYPE property-sheet slice](docs/research/p8d-librecad-named-linetype-property-sheet-2026-11-25.json)
-retains explicit names, unnamed built-ins and NoPen through property edits and
-multi-selection; offscreen widget, save/reopen and independent readback checks
-pass with both codecs. Repeat the named-LTYPE edit, save and reopen on the
-unmodified final native app and qualify the remaining platforms. A separate
-locally generated ezdxf R2010 drawing was refused: its MATERIAL uses group 73
-where Autodesk specifies 76, and correcting that alone reaches a second sparse
-group-94 guard. The [bounded opt-in raw-only policy](docs/research/p8d-ezdxf-default-material-raw-capture-2026-11-25.json)
-now retains this shape without interpreting the ambiguous field and checks
-isolated replay, malformed inputs, refusal and retry. LibreCAD does not opt in.
-The [selected-graph peer control](docs/research/p8d-ezdxf-default-material-selected-graph-2026-11-25.json)
-reopens the three remapped materials, dictionary, owners, reactors, current
-material and a physical RAWTEST layer link with zero ezdxf audit repairs. A
-later wire check found that layer 0 had no 347 and Defpoints was absent; ezdxf
-created their defaults in memory. Its negative control
-omits Global: the generic writer succeeds despite dangling dictionary/layer
-references, and ezdxf removes the broken dictionary entry. The same receipt
-records a fast generated ASCII/binary regression for the selected graph; it does
-not provide general graph admission. The [consumer safeguard](docs/research/p8d-sparse-material-policy-and-consumer-guard-2026-11-25.json)
-retains the raw-only marker and refuses all exports containing it; the ordinary
-filter still does not opt in. The same slice fixes an older library path that
-published a sparse raw-only record without the required policy. Next add a
-preflight that checks the complete ACAD_MATERIAL dictionary, owner/reactor,
-layer and current-material targets and handle uniqueness before enabling
-consumer capture and same-version raw replay. The codec interface is now a
-public base, so a derived filter can explicitly opt in; tests confirm that the
-default filter still refuses and the opted-in filter captures the marker. The
-same focused control now covers the generated 61-group AC1024 profile through
-the actual filter. The export guard remains in place. A [scratch-only unguarded consumer diagnostic](docs/research/p8d-librecad-raw-material-unguarded-diagnostic-2026-11-25.json)
-replayed the locally generated R2010 drawing with all 61 groups per material
-and matching material dictionary and geometry. A later physical-tag check
-found its source layer 347 pointers were missing from that output; ezdxf had
-supplied default links in memory. Removing Global's raw carrier while bypassing
-the guard also caused a successful save that silently reduced it to eight typed
-groups; ezdxf audit still passed. Admission must therefore require the exact retained
-raw payload for every marked material and reject missing or replaced carriers;
-an independently clean audit alone is insufficient. A focused consumer
-regression now confirms the existing guard preserves the destination even after
-the raw carrier is removed, followed by a successful corrected retry. The
-[layer-material reference slice](docs/research/p8d-librecad-layer-material-reference-2026-11-25.json)
-now preserves explicit group 347, including collision remapping, for a bounded
-same-version system-codec ASCII profile; missing or inconsistent material and
-dictionary carriers refuse before publication. Its generated save/reopen and
-independent physical-tag checks pass. The [reactor follow-up](docs/research/p8d-librecad-layer-material-reactor-validation-2026-11-25.json)
-checks the raw and parsed reactor identities for both material and dictionary;
-corruptions refuse atomically, and generated reactor-bearing output passes
-independent readback. The [dictionary-target follow-up](docs/research/p8d-librecad-layer-material-dictionary-targets-2026-11-25.json)
-checks every replayed entry and applies the shared identity, owner, name and
-reactor visitor to each retained material; missing or corrupt siblings refuse
-with destination preservation and corrected retry. A separate scratch-only
-marker bypass now retains the three physical layer links and material bodies,
-but does not qualify production sparse replay. Bundled and DWG material output,
-additional rename and deletion workflows, legacy-target loss reporting and full
-graph admission remain open. The
-[layer-identity follow-up](docs/research/p8d-librecad-layer-record-identity-2026-11-25.json)
-keeps imported table metadata with a renamed layer, prevents a replacement or
-foreign layer from inheriting it, and refuses duplicate live identities. Focused
-system, bundled and AddressSanitizer checks pass; qualify additional editing,
-DWG and native workflows separately. The subsequent [malformed-XDATA contract
-control](docs/research/p8d-librecad-layer-malformed-xdata-contract-2026-11-25.json)
-checks strict system-codec refusal and corrected retry while retaining the bundled
-behavior; the focused layer selector now passes with both codecs. Refuse
-cross-version, missing or edited/inconsistent graphs atomically; verify ASCII/binary readback,
-collision remapping, corrected retry, both codecs, and independent
-complete-drawing semantics. The rebuilt focused system-codec lane passes against the current
-isolated shared library, and the bundled round-trip lane passes. Final platform
-and native GUI qualification remain open. Do not promote support on the selected
-graph.
-
-The remote ObjectARX host's AutoCAD release/build, OS, SDK/toolchain, access or
-operator-run transfer route, and return route are unknown. Obtain the
-[host profile](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) once and use
-only packets reviewed for that profile. A packet or stub build is not a native
-capture. Continue other ready work while waiting.
+Completed slice history is in docs/research/ and Git history. The prior
+full queue is available at Git commit 5b01bd461.
 
 ## Execution and evidence rules
 
