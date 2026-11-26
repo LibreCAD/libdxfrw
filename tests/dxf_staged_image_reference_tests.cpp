@@ -199,7 +199,34 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             altered.bytes = changed;
             return writer.inspectDxfImageOutputObjects(altered, definitions, reactors);
         }
-        const bool valid = writer.inspectDxfImageOutputObjects(view, definitions, reactors);
+        bool valid = writer.inspectDxfImageOutputObjects(view, definitions, reactors);
+        if (valid && version >= DRW::AC1015) {
+            std::vector<dxfRW::DxfDictionaryOutputExpectation> root{{"ACAD_GROUP", 0xDu, 350}};
+            const auto plot = writer.dxfWriteDefaultPlotStyleDictionaryHandle();
+            if (plot) root.push_back({"ACAD_PLOTSTYLENAME", plot, 350});
+            root.push_back({"ACAD_IMAGE_DICT", dictionary, 350});
+            std::vector<dxfRW::DxfDictionaryOutputExpectation> images{
+                {"first", adapter.references[0].definition, 350},
+                {"second", adapter.references[1].definition, 350}};
+            if (mode == 35) ++root.back().target;
+            if (mode == 36) ++images.front().target;
+            if (mode == 37) images.pop_back();
+            if (mode == 38) images.front().role = 360;
+            if (mode == 41) images.front().name.assign(1025u, 'x');
+            if (mode == 42) images.back().name = "FIRST";
+            const int cloning = mode == 39 ? 2 : 1;
+            if (mode == 40) {
+                std::string changed(view.bytes);
+                const auto position = changed.find("first");
+                if (position == std::string::npos) return false;
+                changed[position] = 'x';
+                auto altered = view;
+                altered.bytes = changed;
+                return writer.inspectDxfDictionaryOutput(altered, dictionary, 0xCu, 0, cloning, images);
+            }
+            valid = writer.inspectDxfDictionaryOutput(view, 0xCu, 0u, 0, 1, root) &&
+                    writer.inspectDxfDictionaryOutput(view, dictionary, 0xCu, 0, cloning, images);
+        }
         if (!valid && mode == 0) std::cerr << "IMAGE object inspection failed\n";
         return valid;
     })) return false;
@@ -207,8 +234,9 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
         std::cerr << "baseline write failed, ok=" << adapter.ok << " references=" << adapter.references.size() << '\n';
         return false;
     }
-    for (mode = 1; mode <= 34; ++mode) {
+    for (mode = 1; mode <= 42; ++mode) {
         if (mode == 33 && version < DRW::AC1024) continue;
+        if (mode >= 35 && version < DRW::AC1015) continue;
         { std::ofstream destination(path, std::ios::binary | std::ios::trunc); destination << "sentinel"; }
         if (writer.write(&adapter, version, binary) || read(path) != "sentinel") {
             std::cerr << "refusal failed, mode=" << mode << '\n'; return false;

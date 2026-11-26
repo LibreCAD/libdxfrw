@@ -119,6 +119,7 @@ public:
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_OBJECT_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_DEFINITION_SCALAR_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_ENTITY_SCALAR_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_STAGED_DICTIONARY_INSPECTOR 1
 class dxfRW {
 public:
     using ImageDefinitionKey = std::pair<std::uint64_t, std::uint32_t>;
@@ -250,6 +251,18 @@ public:
                                        const std::string& name,
                                        std::uint32_t sourceTarget,
                                        int role) const noexcept;
+    struct DxfDictionaryOutputExpectation {
+        std::string name;
+        std::uint32_t target{0u};
+        int role{350};
+    };
+    /** Check one R2000+ staged DICTIONARY's emitted identity, owner, flags and
+     * exact ordered entries. Targets are output handles. This does not establish
+     * target types, source provenance or publication. */
+    bool inspectDxfDictionaryOutput(
+        const DxfObjectsWriteView& view, std::uint32_t handle,
+        std::uint32_t owner, int hardOwner, int cloning,
+        const std::vector<DxfDictionaryOutputExpectation>& entries) const noexcept;
     /** Inspector setters retain an owned copy of the callback and its value
      * captures. Objects reached through reference captures remain the caller's
      * lifetime responsibility and must outlive every possible invocation. */

@@ -4972,6 +4972,55 @@ bool dxfRW::inspectDxfRootDictionaryEntry(
     }
 }
 
+bool dxfRW::inspectDxfDictionaryOutput(
+        const DxfObjectsWriteView& view, std::uint32_t handle,
+        std::uint32_t owner, int hardOwner, int cloning,
+        const std::vector<DxfDictionaryOutputExpectation>& entries) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
+        || m_writeError || writer->hasWriteError() || view.version != version
+        || view.version < DRW::AC1015 || view.binary != binFile || !handle
+        || (hardOwner != 0 && hardOwner != 1) || cloning < 0 || cloning > 32767
+        || entries.size() > 4096u) return false;
+    try {
+        std::set<std::string> keys;
+        for (const auto& entry : entries) {
+            std::string key;
+            if (entry.name.empty() || entry.name.size() > 1024u
+                || !entry.target || (entry.role != 350 && entry.role != 360)
+                || !dx_symbol_output::nameKey(entry.name, key) || !keys.insert(key).second)
+                return false;
+        }
+        dx_standard_output::Decoder decoder(view);
+        if (!decoder.good()) return false;
+        bool seen = false;
+        const bool inspected = dx_standard_output::inspectSelected(view,
+            [handle](std::string_view, std::uint32_t candidate) { return candidate == handle; },
+            [&](const auto& shape, std::string_view body) {
+                if (seen || shape.kind != dx_standard_output::Family::Dictionary
+                    || !shape.valid || shape.self != 1u || shape.owner != 1u
+                    || shape.subclass != 1u || shape.depth != 0u || shape.pointNext != 0
+                    || shape.entryPending || shape.hardOwner > 1u || shape.cloning != 1u
+                    || shape.handle != handle) return false;
+                seen = true;
+                return decoder.decodeRecord<DRW_Dictionary>(body, [&](const auto& dictionary) {
+                    if (dictionary.handle != handle || dictionary.parentHandle != owner
+                        || dictionary.hardOwner != hardOwner || dictionary.cloning != cloning
+                        || !dictionary.hasCompleteDxfEntries() || dictionary.m_entries.size() != entries.size())
+                        return false;
+                    for (std::size_t i = 0; i < entries.size(); ++i)
+                        if (dictionary.m_entries[i].m_name != entries[i].name
+                            || dictionary.m_entries[i].m_handle != entries[i].target
+                            || static_cast<int>(dictionary.m_entries[i].m_dxfHandleCode) != entries[i].role)
+                            return false;
+                    return true;
+                });
+            });
+        return inspected && seen;
+    } catch (...) {
+        return false;
+    }
+}
+
 bool dxfRW::inspectDxfRawObjectRecords(
         const DxfObjectsWriteView& view,
         const std::vector<const DRW_RawDxfObject*>& expected) const noexcept {
