@@ -12968,6 +12968,8 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false, bo
                             auto value = source; (void)dxfW->writeDictionary(&value);
                         }
                         for (const auto& source : cData->xRecords) { auto value = source; (void)dxfW->writeXRecord(&value); }
+                        for (const auto& source : cData->dictionaryWithDefaults) { auto value = source; (void)dxfW->writeDictionaryWithDefault(&value); }
+                        for (const auto& source : cData->rawPlaceholders) { auto value = source; (void)dxfW->writeRawDxfObject(&value); }
                     }
                 } direct;
                 direct.cData = &imported; direct.currentBlock = imported.mBlock; direct.imageRoot = rootHandle;
@@ -12980,7 +12982,28 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false, bo
                     {3,0},{3,1},{360,1},{360,2},{102,0},{102,2},{102,4},{102,5},{1,0},{320,0},{1001,0},{1003,0},{1000,0}};
                 for (const bool encoding : {false, true}) {
                     dxfRW codec(target.string().c_str()); direct.dxfW = &codec;
+                    auto directClasses=imported.dxfClasses;
+                    for(auto& cls:directClasses)if(cls.recName=="DICTIONARYWDFLT")cls.recName="ACDBDICTIONARYWDFLT";
+                    codec.setDxfClasses(std::move(directClasses));
+                    std::vector<DRW_LType> canonicalLineTypes;
+                    for (const auto& row : imported.lineTypes) {
+                        std::string name = row.name;
+                        for (char& character : name)
+                            if (character >= 'a' && character <= 'z') character -= 'a' - 'A';
+                        if (name != "BYBLOCK" && name != "BYLAYER" && name != "CONTINUOUS") continue;
+                        DRW_LType metadata;
+                        static_cast<DRW_TableEntry&>(metadata) = static_cast<const DRW_TableEntry&>(row);
+                        metadata.desc = row.desc;
+                        canonicalLineTypes.push_back(std::move(metadata));
+                    }
+                    codec.setCanonicalLineTypeMetadata(std::move(canonicalLineTypes));
                     codec.setHandleRemap({{imported.namedObjectDictionary.handle,0xCu},{direct.groupRoot,0xDu}});
+                    if(imported.dictionaryWithDefaults.size()!=1u||imported.rawPlaceholders.size()!=1u)
+                        return fail("direct imported image test lacks the default plot graph");
+                    const auto& plotDictionary=imported.dictionaryWithDefaults.front();
+                    codec.setRootDictEntries({{"ACAD_PLOTSTYLENAME",DRW::toHexStr(plotDictionary.handle)}});
+                    if(!codec.setDxfDefaultPlotStyleSourceHandles(plotDictionary.handle,plotDictionary.m_defaultEntryHandle))
+                        return fail("direct imported image default plot setup failed");
                     codec.setDxfWriteRecordInventoryEnabled(true);
                     for (const auto& item : imported.dictionaries) if (item.handle != direct.groupRoot) (void)codec.reserveHandle(item.handle);
                     for (const auto& item : imported.xRecords) (void)codec.reserveHandle(item.handle);
@@ -13040,7 +13063,15 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false, bo
                     });
                     codec.setDxfEntitySectionsWriteInspector([&](const auto& view, auto section) { return Access::rasterImages(direct, view, section); });
                     const auto directWrite = [&]() { Access::resetRasterOutput(direct); return codec.write(&direct, DRW::AC1032, encoding); };
-                    if (!directWrite() || !check(true, &direct) || !Access::generatedRootsFinal(direct, 2u)) return fail("direct imported image dictionary output/readback proof failed");
+                    const bool directWritten=directWrite();
+                    const bool directReadback=directWritten&&check(true,&direct);
+                    const bool directRoots=directWritten&&Access::generatedRootsFinal(direct,2u);
+                    if(!directWritten||!directReadback||!directRoots) {
+                        const auto diagnostic=codec.getLastDiagnostic();
+                        return fail("direct imported image dictionary proof failed: binary="+std::to_string(encoding)
+                            +" write="+std::to_string(directWritten)+" readback="+std::to_string(directReadback)
+                            +" roots="+std::to_string(directRoots)+" code="+diagnostic.code+" message="+diagnostic.message);
+                    }
                     std::size_t low = 0u, high = 1024u * 1024u;
                     while (low < high) { const auto middle = low + (high - low) / 2u; Access::rasterOutputBudget(direct,middle); if (directWrite()) high = middle; else low = middle + 1u; }
                     Access::rasterOutputBudget(direct,low ? low - 1u : 0u); const bool below = directWrite(); Access::rasterOutputBudget(direct,low);

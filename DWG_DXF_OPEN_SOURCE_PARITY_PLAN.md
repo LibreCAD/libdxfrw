@@ -716,18 +716,20 @@ preservation and corrected-retry controls. The [peer receipt](docs/research/p8-i
 records independent pre-audit graph comparisons and the limitations of both
 external tools. No native application or general format support claim follows.
 
-The full `dwg2dxf_image_dictionary_imported_common` matrix now reaches its
-subsequent direct-writer output/readback proof, where it fails. Separate the
-direct write, fresh readback and generated-root finalization checks to locate
-the first failing condition, fix it without weakening the existing graph and
-transaction guards, and rerun the focused direct-writer mutation/retry controls.
-Other layer shapes, reference roles, IMAGE entities and native/platform behavior
-remain outside this bounded profile.
+The [direct-writer regression repair](docs/research/p8-image-imported-common-direct-writer-2026-11-26.json)
+predeclares the imported CLASS, default plot-style graph, and case-insensitive
+canonical linetype metadata needed by this test's direct codec caller. It emits
+the plot graph and preserves the existing graph and transaction guards. The
+imported-common matrix now exercises its wire-field, inspector, output-budget,
+destination-preservation and corrected-retry controls. Next extend admission
+one source profile at a time: prove other LAYER shapes and reference roles,
+additional IMAGE entities, and native/platform behavior independently before
+claiming broader support.
 The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `57b9ac92685cf030d6c210d463a90ce494a08525ed2f14f269feade7fcc51b29` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `f24a6570b24bf1f90324444814a3be1c5b924edc6ac4776fbd9fc214f8c50676` (775 inputs); platform and native qualification remain open.
 
 Focused CI qualification for the current digest is recorded in the
 [current receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json).
