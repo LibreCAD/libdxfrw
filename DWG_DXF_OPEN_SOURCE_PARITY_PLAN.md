@@ -123,6 +123,7 @@ evidence are recorded in `docs/research/` and Git history.
   has no physical LAYOUT objects and an orphaned `*Paper_Space0` block record.
   A standard generated input also reports two LAYOUT records not imported.
   Reuse the [staged authored-layout graph checks](docs/research/p8d-staged-authored-layout-graph-2026-11-26.json), which cover reciprocal links and atomic refusal/retry across six ASCII/binary versions; they do not capture source data or complete consumer integration.
+  The [canonical paper-space writer facet](docs/research/p8d-canonical-paper-space-content-2026-11-26.json) retains nonempty paper-space children without a duplicate block; integrate it in LibreCAD_3 and validate its source ownership.
   Implement source LAYOUT capture and complete generated/preserved layout graphs:
   bind the root dictionary, LAYOUT dictionary entries, layout owners and both
   directions of BLOCK_RECORD links. Preserve nonempty paper-space contents and
@@ -148,7 +149,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 4a2d03375c7763144c325c86df8d4ed230195ff021b56fe46134d2d8685ee388
+  digest: 4541599ed54edef164cd9907f4aeed4bc6157f18e4abdf430cf8579a0b35e778
   (781 inputs). The [SAT CI follow-up](docs/research/p8-sat-ci-inventory-refresh-2026-11-26.json)
   registers both new token controls in the frozen inventory and fast lane;
   its [GCC allocator follow-up](docs/research/p8-sat-gcc-allocator-harness-2026-11-26.json)

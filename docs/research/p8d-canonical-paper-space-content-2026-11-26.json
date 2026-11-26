@@ -1,0 +1,15 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-canonical-paper-space-content-2026-11-26",
+  "supportClaimEffect": "none",
+  "codeCommit": "06e3532ae",
+  "implementationDigestSha256": "4541599ed54edef164cd9907f4aeed4bc6157f18e4abdf430cf8579a0b35e778",
+  "finding": "LibreCAD_3's current adapter writes its own *Paper_Space record and block although the codec already emits canonical equivalents. The duplicate prevents a strictly checked layout graph; simply discarding the second block would also discard its children.",
+  "implementation": "An optional separate writer facet supplies entity children synchronously inside the codec's existing canonical paper-space BLOCK; nested block or block-record operations are refused. Existing interfaces need not implement the facet; consumers must rebuild.",
+  "verification": [
+    "Focused staged-reference CTest passed for AC1015, AC1018, AC1021, AC1024, AC1027 and AC1032 in ASCII and binary; readback checks the paper-space LINE owner and endpoints.",
+    "Callback refusal, nested block, ENDBLK and BLOCK_RECORD attempts, and an exception preserve the destination; a corrected retry succeeds.",
+    "Independent ezdxf 1.4.5 readback of twelve locally generated drawings passed audits without errors or fixes and found the LINE in Layout1, owned by 1E, with expected endpoints and absent from model space. No generated drawing was committed."
+  ],
+  "remaining": "Integrate the facet into LibreCAD_3, capture and preserve source layouts and their references, retain loss reporting for unhandled source records, and validate native save/reopen plus nonempty paper-space edits. The facet and authored graphs do not establish complete source-document or plotting support."
+}
