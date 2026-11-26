@@ -31,8 +31,10 @@ evidence are recorded in `docs/research/` and Git history.
   The [consumer reference check](docs/research/p8d-librecad-sparse-material-live-references-2026-11-26.json)
   checks live layer and current-material targets. The [LAYER source capture](docs/research/p8d-librecad-sparse-material-layer-source-2026-11-26.json)
   binds group 347 to bounded ASCII/Binary source rows; its corrected
-  AddressSanitizer selector passes. Next establish HEADER source provenance and bind references to
-  staged output and independent readback.
+  AddressSanitizer selector passes. The [HEADER source check](docs/research/p8d-librecad-sparse-material-header-source-2026-11-26.json)
+  binds the parsed original `$CMATERIAL` presence and handle; independent
+  physical-span proof is still open. Next bind references to staged output
+  and independent readback.
   Validate the entire ACAD_MATERIAL dictionary, exact raw carriers, source
   identities, owners/reactors, layer and current-material references, handle
   uniqueness and remapping. Refuse missing, replaced, edited, cross-version or
@@ -76,10 +78,10 @@ evidence are recorded in `docs/research/` and Git history.
   digest: 06ba732933db713765991ea93821f76e28915ba5b9ccc9488dc5499ab55c97c1
   (775 inputs). The namespace-source feature macro changes the selected header,
   so earlier digest-bound results remain historical. LibreCAD consumer head:
-  ab9659e58999f683c13c44a0f14786b8b6bfa938. Prior platform receipts apply only
+  d04cf16c7b632f8f0c6e3b3205b942c48904c315 (local; pushed head may lag). Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
-  repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45778518603)
-  passed on `e458fcb5fb2ad253f28fae58e97cc7a0dbe047ff`; revalidate the final
+  repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
+  passed on `b1eea19e5900c1e55e2316ba215213071c8fc9b2`; revalidate the final
   pushed head. All format claims remain EXPERIMENTAL.
 - **External host:** its release, OS, SDK and access route remain unknown.
   Use the [host intake](tools/research/OBJECTARX_HOST_PROFILE_INTAKE.md) once
