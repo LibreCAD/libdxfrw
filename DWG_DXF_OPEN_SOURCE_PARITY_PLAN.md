@@ -71,8 +71,9 @@ evidence are recorded in `docs/research/` and Git history.
 - **Integration:** verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be
-  (775 inputs). LibreCAD consumer head:
+  digest: 06ba732933db713765991ea93821f76e28915ba5b9ccc9488dc5499ab55c97c1
+  (775 inputs). The namespace-source feature macro changes the selected header,
+  so earlier digest-bound results remain historical. LibreCAD consumer head:
   547ea9d56de750656ea04b0a4354d6c77126e0a9. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45778518603)
@@ -371,7 +372,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `1a6592ed0f3cea14901bf51b83ce0441228198153939a5bd41f9bfe8d4b9d7be` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `06ba732933db713765991ea93821f76e28915ba5b9ccc9488dc5499ab55c97c1` (775 inputs); platform and native qualification remain open.
 
 The earlier [focused CI receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json)
 applies to its recorded digest, not this candidate. Recheck current-head CI and

@@ -1310,6 +1310,7 @@ public:
  * row or original-state vector. Separate from both DRW_Interface and the
  * established STYLE/LTYPE source facet; existing callback contracts stay intact.
  * Source transport alone does not qualify names, targets, semantics or output. */
+#define LIBDXFRW_HAS_DXF_NAMESPACE_SOURCE_HANDLER 1
 class DRW_DxfNamespaceSourceHandler {
 public:
   virtual ~DRW_DxfNamespaceSourceHandler()=default;
