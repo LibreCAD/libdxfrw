@@ -125,6 +125,7 @@ public:
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_ENTITY_SCALAR_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_POLYGON_INSPECTOR 1
 #define LIBDXFRW_DXF_STAGED_IMAGE_MAX_CLIP_VERTICES 256u
+#define LIBDXFRW_HAS_DXF_STAGED_LAYOUT_LINK_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_IMAGE_CANONICAL_COMMON_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_DICTIONARY_INSPECTOR 1
 class dxfRW {
@@ -270,6 +271,25 @@ public:
         const DxfObjectsWriteView& view, std::uint32_t handle,
         std::uint32_t owner, int hardOwner, int cloning,
         const std::vector<DxfDictionaryOutputExpectation>& entries) const noexcept;
+    /** Output identities for one authored layout and its BLOCK_RECORD.
+     * Values are emitted handles, not source handles. The complete authored
+     * graph must contain 1..128 entries with unique printable ASCII names,
+     * handles and tab orders. The OBJECTS check accepts plain LAYOUT records
+     * and a hard-owner ACAD_LAYOUT dictionary rooted at the generated root C.
+     * These checks do not qualify plotting fields or source completeness. */
+    struct DxfLayoutOutputLinks {
+        std::string name;
+        std::string blockName;
+        std::uint32_t layout;
+        std::uint32_t blockRecord;
+        int tabOrder;
+    };
+    bool inspectDxfLayoutBlockRecords(
+        const DxfObjectsWriteView& view,
+        const std::vector<DxfLayoutOutputLinks>& expected) const noexcept;
+    bool inspectDxfLayoutObjects(
+        const DxfObjectsWriteView& view, std::uint32_t dictionary,
+        const std::vector<DxfLayoutOutputLinks>& expected) const noexcept;
     /** Inspector setters retain an owned copy of the callback and its value
      * captures. Objects reached through reference captures remain the caller's
      * lifetime responsibility and must outlive every possible invocation. */

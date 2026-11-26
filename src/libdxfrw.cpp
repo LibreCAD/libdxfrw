@@ -5217,6 +5217,153 @@ bool dxfRW::inspectDxfDictionaryOutput(
     }
 }
 
+namespace {
+bool validLayoutOutputLinks(const std::vector<dxfRW::DxfLayoutOutputLinks>& links) {
+    if (links.empty() || links.size() > 128u) return false;
+    std::set<std::string> names, blockNames;
+    std::set<std::uint32_t> layouts, blocks;
+    std::set<int> orders;
+    for (const auto& link : links) {
+        if (link.name.empty() || link.name.size() > 255u ||
+            link.blockName.empty() || link.blockName.size() > 255u ||
+            !std::all_of(link.name.begin(), link.name.end(), [](unsigned char c) { return c >= 32u && c < 127u; }) ||
+            !std::all_of(link.blockName.begin(), link.blockName.end(), [](unsigned char c) { return c >= 32u && c < 127u; }) ||
+            !link.layout || !link.blockRecord || link.layout == link.blockRecord ||
+            link.tabOrder < 0 || link.tabOrder > 32767 ||
+            !names.insert(dxfSymbolNameKey(link.name)).second ||
+            !blockNames.insert(dxfSymbolNameKey(link.blockName)).second ||
+            !layouts.insert(link.layout).second || !blocks.insert(link.blockRecord).second ||
+            !orders.insert(link.tabOrder).second) return false;
+    }
+    for (const auto handle : layouts) if (blocks.count(handle)) return false;
+    return true;
+}
+}
+
+bool dxfRW::inspectDxfLayoutBlockRecords(
+        const DxfObjectsWriteView& view,
+        const std::vector<DxfLayoutOutputLinks>& expected) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer ||
+        m_writeError || writer->hasWriteError() || view.version != version ||
+        view.version < DRW::AC1015 || view.binary != binFile) return false;
+    try {
+        if (!validLayoutOutputLinks(expected)) return false;
+        const auto profile = view.compatibilityProfile == DxfCompatibilityProfile::StandaloneSafe
+            ? dx_raster_output::Profile::StandaloneSafe
+            : view.compatibilityProfile == DxfCompatibilityProfile::LibreCadMasterLegacy
+                ? dx_raster_output::Profile::LibreCadMasterLegacy : dx_raster_output::Profile::Invalid;
+        if (!dx_raster_output::valid(profile)) return false;
+        dx_standard_output::Decoder decoder(view);
+        if (!decoder.good()) return false;
+        std::set<std::uint32_t> seen;
+        const bool valid = dx_raster_output::inspect(view.bytes, view.binary,
+            [&](std::string_view name, std::uint32_t handle, std::string_view body) {
+                if (name != "BLOCK_RECORD") return true;
+                const auto found = std::find_if(expected.begin(), expected.end(),
+                    [handle](const auto& link) { return link.blockRecord == handle; });
+                if (found == expected.end()) {
+                    // The expected set describes the complete authored layout graph.
+                    // A further layout-bearing block would leave an unchecked edge.
+                    return decoder.decodeBlockRecord(body, [&](const auto& record) {
+                        return record.layoutHandle == 0u &&
+                            std::none_of(expected.begin(), expected.end(), [&](const auto& link) {
+                                return dxfSymbolNameKey(link.blockName) == dxfSymbolNameKey(record.name);
+                            });
+                    });
+                }
+                if (!seen.insert(handle).second) return false;
+                dx_raster_output::Cursor cursor(body, view.binary, profile);
+                dx_raster_output::Token token;
+                unsigned depth = 0u, links = 0u;
+                bool blockSubclass = false;
+                while (!cursor.done()) {
+                    if (!cursor.next(token)) return false;
+                    if (token.code == 102) {
+                        if (!token.text.empty() && token.text.front() == '{') {
+                            if (++depth > 64u) return false;
+                        } else if (token.text == "}" && depth) --depth;
+                        else return false;
+                    } else if (!depth && token.code == 100) {
+                        blockSubclass = token.text == "AcDbBlockTableRecord";
+                    } else if (!depth && token.code == 340) {
+                        std::uint32_t value = 0u;
+                        if (!blockSubclass || ++links != 1u ||
+                            !dx_raster_output::integer(token.text, value, 16) || value != found->layout) return false;
+                    }
+                }
+                return !depth && links == 1u && decoder.decodeBlockRecord(body, [&](const auto& record) {
+                    return record.handle == found->blockRecord && record.parentHandle == 1u &&
+                           record.name == found->blockName && record.layoutHandle == found->layout;
+                });
+            }, profile);
+        return valid && seen.size() == expected.size();
+    } catch (...) { return false; }
+}
+
+bool dxfRW::inspectDxfLayoutObjects(
+        const DxfObjectsWriteView& view, std::uint32_t dictionary,
+        const std::vector<DxfLayoutOutputLinks>& expected) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer ||
+        m_writeError || writer->hasWriteError() || view.version != version ||
+        view.version < DRW::AC1015 || view.binary != binFile || !dictionary) return false;
+    try {
+        if (!validLayoutOutputLinks(expected) || remapHandle(dictionary) != dictionary) return false;
+        std::vector<DxfDictionaryOutputExpectation> entries;
+        for (const auto& link : expected) {
+            if (link.layout == dictionary || link.blockRecord == dictionary) return false;
+            entries.push_back({link.name, link.layout, 360});
+        }
+        if (!inspectDxfRootDictionaryEntry(view, "ACAD_LAYOUT", dictionary, 350) ||
+            !inspectDxfDictionaryOutput(view, dictionary, 0xCu, 1, 1, entries)) return false;
+        const auto profile = view.compatibilityProfile == DxfCompatibilityProfile::StandaloneSafe
+            ? dx_raster_output::Profile::StandaloneSafe
+            : view.compatibilityProfile == DxfCompatibilityProfile::LibreCadMasterLegacy
+                ? dx_raster_output::Profile::LibreCadMasterLegacy : dx_raster_output::Profile::Invalid;
+        if (!dx_raster_output::valid(profile)) return false;
+        dx_standard_output::Decoder decoder(view);
+        if (!decoder.good()) return false;
+        std::set<std::uint32_t> seen;
+        const bool valid = dx_raster_output::inspect(view.bytes, view.binary,
+            [&](std::string_view name, std::uint32_t handle, std::string_view body) {
+                if (name != "LAYOUT") return true;
+                const auto found = std::find_if(expected.begin(), expected.end(),
+                    [handle](const auto& link) { return link.layout == handle; });
+                if (found == expected.end() || !seen.insert(handle).second) return false;
+                dx_raster_output::Cursor cursor(body, view.binary, profile);
+                dx_raster_output::Token token;
+                unsigned owner = 0u, block = 0u, names = 0u, orders = 0u, subclasses = 0u;
+                bool layoutSubclass = false, plotSubclass = false;
+                while (!cursor.done()) {
+                    if (!cursor.next(token)) return false;
+                    if (token.code == 102) return false; // Authored plain profile.
+                    if (token.code == 100) {
+                        if (token.text == "AcDbPlotSettings" && subclasses++ == 0u) plotSubclass = true;
+                        else if (token.text == "AcDbLayout" && subclasses++ == 1u) layoutSubclass = true;
+                        else return false;
+                    } else if (token.code == 330) {
+                        std::uint32_t value = 0u;
+                        if (!dx_raster_output::integer(token.text, value, 16)) return false;
+                        if (!plotSubclass) { if (++owner != 1u || value != dictionary) return false; }
+                        else if (layoutSubclass) { if (++block != 1u || value != found->blockRecord) return false; }
+                        else return false;
+                    } else if (layoutSubclass && token.code == 1) {
+                        if (++names != 1u || token.text != found->name) return false;
+                    } else if (layoutSubclass && token.code == 71) {
+                        if (++orders != 1u || token.type != dx_raster_output::Kind::Integer ||
+                            token.number != found->tabOrder) return false;
+                    }
+                }
+                return owner == 1u && block == 1u && names == 1u && orders == 1u && subclasses == 2u &&
+                    decoder.decodeRecord<DRW_Layout>(body, [&](const auto& layout) {
+                        return layout.handle == found->layout && layout.parentHandle == dictionary &&
+                               layout.name == found->name && layout.tabOrder == found->tabOrder &&
+                               layout.paperSpaceBlockRecordHandle.ref == found->blockRecord;
+                    });
+            }, profile);
+        return valid && seen.size() == expected.size();
+    } catch (...) { return false; }
+}
+
 bool dxfRW::inspectDxfRawObjectRecords(
         const DxfObjectsWriteView& view,
         const std::vector<const DRW_RawDxfObject*>& expected) const noexcept {

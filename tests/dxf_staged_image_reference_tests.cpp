@@ -353,6 +353,122 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
     return true;
 }
 
+bool runLayoutReferences(const std::filesystem::path& path, DRW::Version version, bool binary) {
+    struct LayoutAdapter : LC3CompatCheck {
+        dxfRW& writer;
+        bool ok = true;
+        explicit LayoutAdapter(dxfRW& writer) : writer(writer) {}
+        void writeBlockRecords() override { ok = writer.writeBlockRecord("*Paper_Space0") && ok; }
+        void writeBlocks() override {
+            DRW_Block block; block.name = "*Paper_Space0";
+            ok = writer.writeBlock(&block) && ok;
+        }
+        void writeObjects() override {
+            for (unsigned i = 0; i < 3; ++i) {
+                DRW_Layout layout; layout.handle = 0x901u + i; layout.parentHandle = 0x900u;
+                layout.name = i == 0 ? "Model" : i == 1 ? "Layout1" : "Layout2";
+                layout.tabOrder = static_cast<int>(i);
+                layout.paperSpaceBlockRecordHandle.ref = 0xA01u + i;
+                ok = writer.writeLayout(&layout) && ok;
+            }
+        }
+        bool finalizeDxfWrite() override {
+            const auto extra = writer.getBlockRecordHandleToWrite("*Paper_Space0");
+            return ok && writer.dxfWriteRecordHasIdentity(0x900u, "DICTIONARY", "OBJECTS") &&
+                writer.dxfWriteRecordHasOwner(0x900u, 0xCu) &&
+                writer.dxfWriteRecordHasIdentity(0x903u, "LAYOUT", "OBJECTS") &&
+                writer.dxfWriteRecordHasOwner(0x903u, 0x900u) &&
+                writer.dxfWriteRecordHasIdentity(extra, "BLOCK_RECORD", "TABLES");
+        }
+    };
+    dxfRW writer(path.string().c_str());
+    LayoutAdapter adapter(writer);
+    writer.setDxfWriteRecordInventoryEnabled(true);
+    for (std::uint32_t handle = 0x900u; handle <= 0x903u; ++handle)
+        if (!writer.reserveHandle(handle)) return false;
+    DRW_Dictionary dictionary;
+    dictionary.handle = 0x900u; dictionary.parentHandle = 0xCu;
+    dictionary.hardOwner = 1; dictionary.cloning = 1;
+    dictionary.m_entries = {{"Model", 0x901u}, {"Layout1", 0x902u}, {"Layout2", 0x903u}};
+    writer.setRootDictEntries({{"ACAD_LAYOUT", "900"}});
+    writer.setNamedDictObjects({dictionary});
+    std::vector<DRW_Block_Record> records;
+    for (unsigned i = 0; i < 3; ++i) {
+        DRW_Block_Record block; block.handle = 0xA01u + i; block.layoutHandle = 0x901u + i;
+        block.name = i == 0 ? "*Model_Space" : i == 1 ? "*Paper_Space" : "*Paper_Space0";
+        records.push_back(block);
+    }
+    writer.setSourceBlockRecords(records);
+    unsigned mode = 0;
+    const auto links = [&] {
+        return std::vector<dxfRW::DxfLayoutOutputLinks>{
+            {"Model", "*Model_Space", 0x901u, 0x1Fu, 0},
+            {"Layout1", "*Paper_Space", 0x902u, 0x1Eu, 1},
+            {"Layout2", "*Paper_Space0", 0x903u,
+             writer.getBlockRecordHandleToWrite("*Paper_Space0"), 2}};
+    };
+    if (!writer.setDxfTablesWriteInspector([&](const auto& view) {
+        auto expected = links();
+        if (mode == 1) ++expected.front().layout;
+        if (mode == 2) ++expected.back().blockRecord;
+        if (mode == 3) expected.back().blockName = "OTHER";
+        if (mode == 6) expected.pop_back();
+        if (mode == 7) expected.push_back(expected.front());
+        if (mode == 10) {
+            std::string changed(view.bytes);
+            dx_raster_output::Cursor cursor(changed, binary, dx_raster_output::Profile::StandaloneSafe);
+            dx_raster_output::Token token;
+            bool block = false, altered = false;
+            while (!cursor.done()) {
+                if (!cursor.next(token)) return false;
+                if (token.code == 0) block = token.text == "BLOCK_RECORD";
+                else if (block && token.code == 340 && !token.text.empty()) {
+                    const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                    changed[offset] = changed[offset] == '9' ? '8' : '9'; altered = true; break;
+                }
+            }
+            if (!altered) return false;
+            auto alteredView = view; alteredView.bytes = changed;
+            return writer.inspectDxfLayoutBlockRecords(alteredView, expected);
+        }
+        return writer.inspectDxfLayoutBlockRecords(view, expected);
+    })) return false;
+    if (!writer.setDxfObjectsWriteInspector([&](const auto& view) {
+        auto expected = links();
+        if (mode == 4) ++expected.front().tabOrder;
+        if (mode == 5) expected.front().name = "Other";
+        if (mode == 8) return writer.inspectDxfLayoutObjects(view, 0x999u, expected);
+        if (mode == 9) {
+            std::string changed(view.bytes);
+            dx_raster_output::Cursor cursor(changed, binary, dx_raster_output::Profile::StandaloneSafe);
+            dx_raster_output::Token token;
+            bool inLayout = false, body = false, altered = false;
+            while (!cursor.done()) {
+                if (!cursor.next(token)) return false;
+                if (token.code == 0) { inLayout = token.text == "LAYOUT"; body = false; }
+                else if (inLayout && token.code == 100 && token.text == "AcDbLayout") body = true;
+                else if (inLayout && body && token.code == 330 && !token.text.empty()) {
+                    const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                    changed[offset] = changed[offset] == '1' ? '2' : '1'; altered = true; break;
+                }
+            }
+            if (!altered) return false;
+            auto alteredView = view; alteredView.bytes = changed;
+            return writer.inspectDxfLayoutObjects(alteredView, 0x900u, expected);
+        }
+        return writer.inspectDxfLayoutObjects(view, 0x900u, expected);
+    })) return false;
+    if (!writer.write(&adapter, version, binary)) return false;
+    for (mode = 1; mode <= 10; ++mode) {
+        { std::ofstream output(path, std::ios::binary | std::ios::trunc); output << "layout sentinel"; }
+        if (writer.write(&adapter, version, binary) || read(path) != "layout sentinel") {
+            std::cerr << "layout refusal failed, mode=" << mode << '\n'; return false;
+        }
+    }
+    mode = 0;
+    return writer.write(&adapter, version, binary) && adapter.ok;
+}
+
 bool runMaterialReferences(const std::filesystem::path& path, DRW::Version version,
                            bool binary, dxfRW::DxfCompatibilityProfile profile) {
     struct Lines : LC3CompatCheck {
@@ -459,5 +575,12 @@ int main() {
                 std::cerr << "staged entity MATERIAL references failed for version " << static_cast<int>(version)
                           << " binary=" << binary << " profile=" << static_cast<int>(profile) << '\n';
                 return 1;
+            }
+    for (const auto version : {DRW::AC1015, DRW::AC1018, DRW::AC1021, DRW::AC1024,
+                               DRW::AC1027, DRW::AC1032})
+        for (const bool binary : {false, true})
+            if (!runLayoutReferences(directory / "layouts.dxf", version, binary)) {
+                std::cerr << "staged layout references failed, version=" << static_cast<int>(version)
+                          << " binary=" << binary << '\n'; return 1;
             }
 }
