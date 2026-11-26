@@ -378,8 +378,21 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
             }
             r.legacyLayerInventoryMatched=sources;
             r.legacyLiveLayerInventoryMatched=sources&&live;
+            if(r.legacyLiveLayerInventoryMatched) {
+                bool references=true;
+                for(const auto& item:s.resourceOriginAudits) {
+                    unsigned found=0u;
+                    for(const auto& value:item.second->input->raw->groups)if(value.code()==390) {
+                        std::uint64_t handle=0u;
+                        if(++found!=1u||!dx_standard_output::handleValue(value,handle)
+                            ||(handle!=0u&&handle!=a->defaultTarget))references=false;
+                    }
+                    if(found!=1u)references=false;
+                }
+                r.legacyLayerReferencesMatched=references;
+            }
         }
-    } catch (...) {r.legacyLayerInventoryMatched=false;r.legacyLiveLayerInventoryMatched=false;}
+    } catch (...) {r.legacyLayerInventoryMatched=false;r.legacyLiveLayerInventoryMatched=false;r.legacyLayerReferencesMatched=false;}
     // The selected source has exactly one physical LAYER and one plot-style
     // reference. This comparison still grants no object or output authority.
     if((data.sourceVersion==DRW::AC1015||s.legacyPlotAc1018Selected||(data.sourceVersion>=DRW::AC1021&&data.sourceVersion<=DRW::AC1032&&s.legacyPlotClassCount==2u)) && r.legacyBodiesMatched && s.identityInput && s.identityInput->source

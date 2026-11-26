@@ -373,6 +373,7 @@ public:
         bool originalSourcesMatched{false},legacyClassRowsMatched{false},legacyLiveClassesMatched{false};
         bool legacyBodiesMatched{false},legacyLiveBodiesMatched{false},legacyLayerMatched{false},legacyLiveLayerMatched{false};
         bool legacyLayerInventoryMatched{false},legacyLiveLayerInventoryMatched{false};
+        bool legacyLayerReferencesMatched{false};
         bool ownerTargetsResolved{false},outputEligible{false};
     };
     static PlotSourceReport plotStyleSourceReport(const dx_data&) noexcept;

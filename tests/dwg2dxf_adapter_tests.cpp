@@ -290,7 +290,7 @@ public:
                 || audit->second->bodyMatched || audit->second->originBound) return false;
         }
         const auto report=dx_iface::plotStyleSourceReport(data);
-        return report.legacyLayerInventoryMatched&&report.legacyLiveLayerInventoryMatched
+        return report.legacyLayerInventoryMatched&&report.legacyLiveLayerInventoryMatched&&report.legacyLayerReferencesMatched
             &&!report.legacyLayerMatched;
     }
     static bool legacyPlotRootIsIsolated(const dx_data& data) noexcept {
@@ -10673,6 +10673,24 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
                 multiple.layers=originalLayers;
                 if(!Access::legacyPlotLayersAreIsolated(multiple))
                     return fail("restored legacy LAYER inventory did not retry");
+                {
+                    std::ifstream original(target,std::ios::binary);
+                    std::string bytes((std::istreambuf_iterator<char>(original)),{});
+                    const auto name=bytes.find("EXTRA_SOURCE_LAYER");
+                    const auto marker=format==0u?std::string("\n390\n"):std::string("\x86\x01",2u);
+                    const auto at=name==std::string::npos?std::string::npos:bytes.find(marker,name);
+                    const auto value=at==std::string::npos?std::string::npos:at+marker.size();
+                    if(value==std::string::npos||value>=bytes.size()||(bytes[value]!='0'&&bytes[value]!='F'))
+                        return fail("legacy LAYER plot reference control was not found");
+                    bytes[value]='E';
+                    {std::ofstream changed(target,std::ios::binary|std::ios::trunc);changed.write(bytes.data(),static_cast<std::streamsize>(bytes.size()));}
+                    dx_data wrong;dx_iface wrongReader;
+                    if(!wrongReader.fileImport(target.string(),&wrong,false))return fail("wrong LAYER plot reference control did not import");
+                    const auto wrongReport=dx_iface::plotStyleSourceReport(wrong);
+                    if(!wrongReport.legacyLayerInventoryMatched||!wrongReport.legacyLiveLayerInventoryMatched
+                        ||wrongReport.legacyLayerReferencesMatched)
+                        return fail("nondefault LAYER plot reference was accepted");
+                }
                 const std::string sentinel="MULTI_LAYER_SOURCE_MUST_NOT_REPLACE_DESTINATION";
                 { std::ofstream output(target,std::ios::binary|std::ios::trunc);output<<sentinel; }
                 Exporter exporter;
