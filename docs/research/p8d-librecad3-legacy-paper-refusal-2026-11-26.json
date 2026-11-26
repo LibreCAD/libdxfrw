@@ -2,7 +2,7 @@
   "date": "2026-11-26",
   "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
   "consumer_code_commit": "673d567a",
-  "consumer_plan_head": "0a95b3220d545721a496c9d7329cab295af3c837",
+  "consumer_plan_head": "1df7786225458f8f40f402f5bb6495f6d1d83bf0",
   "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
   "finding": "A locally generated LINE in additional paper space was present in R12/R14 ASCII and binary output; ezdxf 1.4.5 audit removed the orphaned block and the line while the exporter reported no loss.",
   "pre_guard_output_sha256": {
@@ -13,17 +13,26 @@
   },
   "fix": "Before touching the destination, refuse legacy output when additional paper blocks contain modeled children, nondefault metadata or modeled INSERT references. A plain R12 uppercased paper block is matched to the kernel default on import.",
   "validation": [
-    "macOS ARM64: 69 DXF round-trip/export tests and six layout graph tests passed",
+    "macOS ARM64: 70 DXF round-trip/export tests and six layout graph tests passed",
     "Four legacy targets refused additional paper content without overwriting destination; removing the offending content allowed retry",
     "The same DXFimpl writer object refused then successfully retried after correction",
     "The primary paper-space LINE survived R12 reopen and independent ezdxf audit",
     "Focused controls refuse a referenced empty block and a block with nonzero base",
     "Older bundled codec headers passed syntax compilation; linked runtime qualification remains open",
-    "Consumer plan sync passed locally"
+    "Consumer plan sync passed locally",
+    "Locally generated R12 with nonzero additional-paper base and LINE retains both on import and refuses unsafe export without touching destination, including a versionless-header control."
   ],
   "limitations": [
     "The empty orphan block still incurs an ezdxf audit repair; distinguish application-created and imported blocks and qualify references before removing it.",
     "Additional nondefault source metadata, binary layout replay and broader producer/consumer behavior remain unqualified.",
     "Native final-head and hosted Linux/Windows checks remain open."
-  ]
+  ],
+  "consumer_import_followup_commit": "57c9a553",
+  "import_followup": {
+    "source_sha256": "3621c77311101c3bbd31f069d93c95cf3dd4790d32c59f1b2fea711bd8c4fb0c",
+    "persistence_library_sha256": "a816436d0cfbe3a1badedfa7029a79f6b39f9f000b864ab8e6181c73f7aea92d",
+    "focused_test_sha256": "dc3561776aab5404bda644c58143ce11d5562cae24ec9f5ae9783dab3bd2cfbf",
+    "finding": "Before the follow-up, uppercased nondefault source paper was stored outside the kernel default lookup, so export succeeded and dropped its LINE.",
+    "result": "The import now replaces the matching default using the source base/anonymous state and canonical block name; the source LINE remains reachable and legacy export refuses."
+  }
 }
