@@ -711,9 +711,8 @@ for generated AC1015 input exported strictly to AC1018. A captured generated
 source has two CLASS rows; its dictionary class uses the `DICTIONARYWDFLT` alias
 while the plot-style source check accepts only `ACDBDICTIONARYWDFLT`. It also has
 three layers while that check requires exactly one. See the [diagnosis](docs/research/p8-image-cross-version-plotstyle-diagnosis-2026-11-25.json).
-Keep the refusal and destination preservation. First bind the source CLASS alias
-as immutable source evidence and verify its exact target spelling and flags; then
-bind each physical LAYER and plot-style reference to its live row and output,
+The source CLASS alias is now bound to the original spelling, with ASCII/binary
+mutation and restoration controls; see the [alias receipt](docs/research/p8-plotstyle-source-class-alias-2026-11-25.json). Target CLASS output still needs proof. Keep the refusal and destination preservation. Bind each physical LAYER and plot-style reference to its live row and output,
 including multiple-layer, changed-reference and extra-row refusal with corrected
 retry. Require the IMAGE graph's existing source and output proofs and independent
 readback before admitting the cross-version graph. The [eight-row CLASS observer](docs/research/p8-class-shape-eight-row-observation-2026-11-25.json) supplies bounded source-shape
@@ -722,7 +721,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `e0f52d874718040a6c894f3a5089255a6cfa05a73ad956131ce8f641275f371e` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `1d39fd6521e47ac4873acbe877fb5e092fa311da351e619834597f167b2ee887` (775 inputs); platform and native qualification remain open.
 
 Focused CI qualification for the current digest is recorded in the
 [current receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json).

@@ -280,7 +280,7 @@ dx_iface::PlotSourceReport dx_iface::plotStyleSourceReport(const dx_data& data) 
             return section.kind==DRW_DxfIdentitySource::Section::Classes;
         })==1;
         if(r.legacyClassRowsMatched && !data.dxfClassCaptureFailed && data.dxfClassRetainedRecords==2u && data.dxfClasses.size()==2u) {
-            const char* records[]={"ACDBDICTIONARYWDFLT","ACDBPLACEHOLDER"};
+            const char* records[]={s.legacyPlotClassDictionaryAlias?"DICTIONARYWDFLT":"ACDBDICTIONARYWDFLT","ACDBPLACEHOLDER"};
             const char* names[]={"AcDbDictionaryWithDefault","AcDbPlaceHolder"};
             std::array<bool,2> seen{{false,false}};bool valid=true;
             for(const auto& value:data.dxfClasses) {

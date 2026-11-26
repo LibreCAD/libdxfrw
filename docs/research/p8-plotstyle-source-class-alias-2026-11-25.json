@@ -1,0 +1,17 @@
+{
+  "date": "2026-11-25",
+  "baseline": "54c423a2abb3b59e36ad377a40493c0c5d31d63c",
+  "implementation_digest_sha256": "1d39fd6521e47ac4873acbe877fb5e092fa311da351e619834597f167b2ee887",
+  "input_count": 775,
+  "change": "Bind the accepted DICTIONARYWDFLT or ACDBDICTIONARYWDFLT CLASS spelling to its source observation, and compare that exact spelling to the live row.",
+  "checks": [
+    "Generated AC1015 ASCII and binary alias sources are accepted as source observations; changing the live alias to the other accepted spelling is refused and restoring it succeeds.",
+    "Existing default plot-style source/output controls and raster observer checks pass (4 focused CTests; the CLI check used the prior executable).",
+    "On the locally captured failing image source, class-row and live-class source checks change from false to true, while both layer checks remain false."
+  ],
+  "limitations": [
+    "No cross-version output authority is granted by this source check.",
+    "Multiple physical LAYER records, their references, and emitted target CLASS spelling remain unqualified.",
+    "No new DWG/DXF fixture committed."
+  ]
+}

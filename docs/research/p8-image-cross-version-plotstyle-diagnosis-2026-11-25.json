@@ -28,5 +28,12 @@
     "The observed generated source is one test profile and is not an external producer witness.",
     "No destination/output claim follows from identifying these gates.",
     "No fixture is committed."
-  ]
+  ],
+  "post_alias_source_fix": {
+    "legacyClassRowsMatched": true,
+    "legacyLiveClassesMatched": true,
+    "legacyLayerMatched": false,
+    "legacyLiveLayerMatched": false,
+    "scope": "source observation only; target output and multi-layer gate remain open"
+  }
 }

@@ -1888,6 +1888,7 @@ private:
         bool repeatClassValid{true};
         bool legacyPlotAc1018Selected{false};
         std::array<bool,2> legacyPlotClassSeen{{false,false}};
+        bool legacyPlotClassDictionaryAlias{false};
         std::size_t legacyPlotClassCount{0u};
         bool legacyPlotClassValid{true};
         struct Table {

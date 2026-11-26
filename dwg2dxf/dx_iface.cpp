@@ -71403,8 +71403,10 @@ void dx_iface::addDxfClassShape(const DRW_Class& value, bool known, InstanceCoun
     const char* names[]={"AcDbDictionaryWithDefault","AcDbPlaceHolder"};
     unsigned index=2u;
     for(unsigned i=0u;i<2u;++i)if(value.recName==records[i])index=i;
+    if(value.recName=="DICTIONARYWDFLT")index=0u;
     if(index==2u || source.legacyPlotClassSeen[index]) {source.legacyPlotClassValid=false;return;}
     source.legacyPlotClassSeen[index]=true;
+    if(index==0u)source.legacyPlotClassDictionaryAlias=value.recName=="DICTIONARYWDFLT";
     if(!known || countShape!=(live.sourceVersion==DRW::AC1015?InstanceCountShape::Absent:InstanceCountShape::Present) || value.className!=names[index] || value.appName!="ObjectDBX Classes"
         || value.proxyFlag!=0 || value.instanceCount!=(live.sourceVersion==DRW::AC1015?0:1) || value.wasaProxyFlag!=0 || value.entityFlag!=0)
         source.legacyPlotClassValid=false;

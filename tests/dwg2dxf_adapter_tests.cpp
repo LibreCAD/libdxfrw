@@ -10599,6 +10599,32 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
                 || source.originsBound != 2u || source.namedTargets != 1u || source.defaultTarget != 0xFu
                 || source.ownerTargetsResolved || source.outputEligible)
                 return fail("AC1015 default plot source capture did not bind the isolated graph");
+            {
+                std::ifstream input(dxf, std::ios::binary);
+                std::string bytes((std::istreambuf_iterator<char>(input)), {});
+                const std::string canonical = "ACDBDICTIONARYWDFLT";
+                const auto position = bytes.find(canonical);
+                if (position == std::string::npos) return fail("plot class source alias control is missing");
+                bytes.replace(position, canonical.size(), "DICTIONARYWDFLT");
+                std::ofstream output(target, std::ios::binary | std::ios::trunc);
+                output.write(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+                output.close();
+                dx_data aliasData; dx_iface aliasReader;
+                if (!aliasReader.fileImport(target.string(), &aliasData, false))
+                    return fail("plot class alias source import failed");
+                auto alias = std::find_if(aliasData.dxfClasses.begin(), aliasData.dxfClasses.end(),
+                    [](const DRW_Class& row) { return row.recName == "DICTIONARYWDFLT"; });
+                const auto aliasReport = dx_iface::plotStyleSourceReport(aliasData);
+                if (alias == aliasData.dxfClasses.end() || !aliasReport.legacyClassRowsMatched
+                    || !aliasReport.legacyLiveClassesMatched)
+                    return fail("plot class alias source was not bound");
+                alias->recName = canonical;
+                if (dx_iface::plotStyleSourceReport(aliasData).legacyLiveClassesMatched)
+                    return fail("changed plot class alias was accepted");
+                alias->recName = "DICTIONARYWDFLT";
+                if (!dx_iface::plotStyleSourceReport(aliasData).legacyLiveClassesMatched)
+                    return fail("restored plot class alias did not retry");
+            }
             const auto originalClasses=data.dxfClasses;
             const auto rejectLiveClasses=[&]() {
                 const auto report=dx_iface::plotStyleSourceReport(data);
