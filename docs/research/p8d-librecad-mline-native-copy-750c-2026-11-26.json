@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-mline-native-copy-750c-2026-11-26",
+  "supportClaimEffect": "none",
+  "librecadCommit": "750c757729f9cdfef7da0548b952ff6c17855e3b",
+  "libdxfrwCommit": "1cd3b590027504a3308f60946d2b3e94c15985c5",
+  "platform": "macOS arm64, native LibreCAD 2.2.2.6-alpha scratch application",
+  "artifacts": {
+    "appSha256": "b7a34dda6b03b76669952aff468d5af878c04de78019699c7bb29007315c0d2c",
+    "librarySha256": "b1d680efb47f5068e4660d8003c725ca9190a26c77ca9db5b009cedaaee9416e",
+    "originalMlineDxfSha256": "dd7b814c5314bebddb19c9e2f9ea02afc551dd361a7b5e4f892e0b56cab360b9",
+    "copyInputSha256": "86fc82b0134a174ad0fe3d43325b54c9a207d54d49b5ecbd808a4dfed925eb19",
+    "copyOutputSha256": "3970fc913f470aceba45317e94f7a3d57504d263257f19e76640b34c6a7ab215"
+  },
+  "procedure": [
+    "Opened the AC1018-derived MLINE DXF and rendered its two component polylines.",
+    "A first attempt used accessibility activation on Keep Originals and resulted in a move; this was not counted as a copy pass. Saved as AC1032 and reopened. The first save reported six omitted objects from another DXF version.",
+    "Selected both existing polylines, activated Keep Originals with a physical-coordinate click, and entered reference (0,0) and target (10,0). The UI showed original and copied geometry. Saved to a new scratch DXF and reopened it in the native application.",
+    "Independent ezdxf readback found two input and four output LWPOLYLINE entities, each carrying LibreCAD_MLINE XDATA. Matching every vertex to the retained original and its (10,0) copy yields maximum error 0.0; both audits reported zero errors and fixes."
+  ],
+  "limits": [
+    "This is a copy of an already-saved two-polyline MLINE projection, not proof of native MLINE object preservation or full-drawing losslessness.",
+    "The initial cross-version save reported six omitted objects; native rendering and copy of this projection only are covered.",
+    "The first accessibility activation result does not establish a product bug. Other MLINE profiles and platforms remain unqualified; no external or generated drawing was committed."
+  ]
+}
