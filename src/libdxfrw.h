@@ -115,6 +115,7 @@ public:
 #define LIBDXFRW_HAS_DXF_STAGED_LAYER_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_HEADER_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_ROOT_ENTRY_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_STAGED_IMAGE_REFERENCE_INSPECTOR 1
 class dxfRW {
 public:
     using ImageDefinitionKey = std::pair<std::uint64_t, std::uint32_t>;
@@ -297,6 +298,21 @@ public:
     // inspector, ENTITIES keeps its ordinary streaming path. No new callback.
     using DxfEntitySectionsWriteInspector = std::function<bool(const DxfObjectsWriteView&, std::string_view)>;
     bool setDxfEntitySectionsWriteInspector(DxfEntitySectionsWriteInspector inspector);
+    struct DxfImageOutputReferences {
+        std::uint32_t image{0u};
+        std::uint32_t owner{0u};
+        std::uint32_t definition{0u};
+        std::uint32_t reactor{0u};
+    };
+    /** Check every IMAGE in one staged BLOCKS or ENTITIES body against
+     * caller-supplied emitted handles. An owner of zero requires group 330
+     * to be absent. Call only with the active inspector's
+     * borrowed view. This checks selected reference roles and completeness
+     * of the IMAGE list, not image fields, target objects, source provenance
+     * or final publication. */
+    bool inspectDxfImageOutputReferences(
+        const DxfObjectsWriteView& view,
+        const std::vector<DxfImageOutputReferences>& expected) const noexcept;
     /**
      * Opt in to post-append verification of every generated DXF section body
      * against the transaction's staged file, including CLASSES. The final

@@ -35,8 +35,9 @@ evidence are recorded in `docs/research/` and Git history.
   Earlier prerequisite evidence is recorded in `docs/research/` and Git history.
 - **IMAGE / plot-style graphs:** extend the admitted single-IMAGE and
   two-layer profiles one source shape at a time. The [bounded raster capture](docs/research/p8d-librecad-multiple-image-source-capture-2026-11-26.json)
-  retains multiple IMAGE and IMAGEDEF frames by handle; next qualify their
-  complete graph, binding physical source,
+  retains multiple IMAGE and IMAGEDEF frames by handle. The [shared staged
+  IMAGE-reference check](docs/research/p8d-shared-staged-image-references-2026-11-26.json)
+  is ready for consumer wiring; next qualify the complete graph, binding physical source,
   dictionary edge roles, dependencies, staged output, independent readback,
   rollback and retry. Multi-image, unknown fields, unqualified clipping,
   references, layers and native/platform behavior remain open; see P8.
@@ -70,8 +71,8 @@ evidence are recorded in `docs/research/` and Git history.
 - **Integration:** verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: 63e6c7f77b863b7aa2495970b3193ef90517553c5bde6717d0438eb09a186183
-  (778 inputs). The root-name fix changes selected inputs, so earlier
+  digest: a8b7d681be7aedd9e84b8ec155674a603fdde5d7fe59efeb1d4e245fab6aceb5
+  (780 inputs). The shared IMAGE inspector changes selected inputs, so earlier
   digest-bound results remain historical. LibreCAD consumer head:
   92c501cfb826245d4692af4386e0b31381f01ae8. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)

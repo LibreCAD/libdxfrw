@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-shared-staged-image-references-2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "a8b7d681be7aedd9e84b8ec155674a603fdde5d7fe59efeb1d4e245fab6aceb5",
+  "change": "Share the converter independent raster token observer and expose an active-staged-section check for the complete emitted IMAGE handle list and each selected owner, IMAGEDEF and reactor reference. An expected zero owner means group 330 must be physically absent.",
+  "checks": [
+    "PASS: 28 generated profiles: R14 through R2018, ASCII and binary, StandaloneSafe and LibreCadMasterLegacy. Each has two IMAGE records; eight wrong or missing expected references or mutated staged-output controls refuse while preserving an existing destination, followed by corrected same-writer retry and readback.",
+    "PASS: same focused staged-IMAGE CTest under macOS AddressSanitizer.",
+    "PASS: existing converter IMAGE version/allocation transaction CTest after extracting the observer.",
+    "PASS: source-release inventory check with 1412 tracked released files."
+  ],
+  "limits": [
+    "The physical R14 owner omission is observed writer behavior, not proof of native R14 semantics.",
+    "The check verifies IMAGE reference fields in the supplied section; it does not verify scalar IMAGE fields, IMAGEDEF/reactor objects, source provenance, complete graph closure, actual publication or native CAD behavior.",
+    "Consumer wiring and multi-image export admission are separate remaining work. No DWG or DXF fixture was committed."
+  ]
+}

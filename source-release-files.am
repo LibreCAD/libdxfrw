@@ -450,6 +450,7 @@ EXTRA_DIST = \
     src/intern/dwgwriterlayoutvalidation.cpp \
     src/intern/dwgwriterlayoutvalidation.h \
     src/intern/dxf_ac1027_bound_layer.h \
+    src/intern/dxf_raster_output.h \
     src/intern/dxf_staged_output.h \
     src/intern/dxf_symbol_name_key.h \
     src/intern/dxf_symbol_output.h \
@@ -734,6 +735,7 @@ EXTRA_DIST = \
     tests/dxf_sectionobject_vertices_tests.cpp \
     tests/dxf_sparse_material_raw_tests.cpp \
     tests/dxf_spline_helix_dispatch_tests.cpp \
+    tests/dxf_staged_image_reference_tests.cpp \
     tests/dxf_sun_color_order_tests.cpp \
     tests/dxf_symbol_output_tests.cpp \
     tests/dxf_tablestyle_allocation_tests.cpp \

@@ -46,6 +46,7 @@
 #include "intern/dxfwriter.h"
 #include "intern/dxfmaterial.h"
 #include "intern/dxf_staged_output.h"
+#include "intern/dxf_raster_output.h"
 #include "intern/dxf_symbol_output.h"
 #include "intern/dxftransparency.h"
 #include "intern/dxf_ac1027_bound_layer.h"
@@ -4655,6 +4656,64 @@ bool dxfRW::setDxfEntitySectionsWriteInspector(DxfEntitySectionsWriteInspector i
         return failDxfWrite();
     m_dxfEntitySectionsWriteInspector = std::move(inspector);
     return true;
+}
+
+bool dxfRW::inspectDxfImageOutputReferences(
+        const DxfObjectsWriteView& view,
+        const std::vector<DxfImageOutputReferences>& expected) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
+        || m_writeError || writer->hasWriteError() || view.version != version
+        || view.version < DRW::AC1014 || view.binary != binFile
+        || expected.size() > 4096u)
+        return false;
+    try {
+        const auto profile = view.compatibilityProfile == DxfCompatibilityProfile::StandaloneSafe
+            ? dx_raster_output::Profile::StandaloneSafe
+            : view.compatibilityProfile == DxfCompatibilityProfile::LibreCadMasterLegacy
+                ? dx_raster_output::Profile::LibreCadMasterLegacy
+                : dx_raster_output::Profile::Invalid;
+        if (!dx_raster_output::valid(profile)) return false;
+        std::map<std::uint32_t, DxfImageOutputReferences> records;
+        for (const auto& item : expected)
+            if (!item.image || !item.definition || !item.reactor
+                || !records.emplace(item.image, item).second) return false;
+        std::set<std::uint32_t> seen;
+        return dx_raster_output::inspect(view.bytes, view.binary,
+            [&](std::string_view name, std::uint32_t handle, std::string_view body) {
+                if (name != "IMAGE") return true;
+                const auto found = records.find(handle);
+                if (found == records.end() || !seen.insert(handle).second) return false;
+                dx_raster_output::Cursor cursor(body, view.binary, profile);
+                dx_raster_output::Token token;
+                unsigned depth = 0, owners = 0, subclasses = 0, definitions = 0, reactors = 0;
+                bool raster = false;
+                while (!cursor.done()) {
+                    if (!cursor.next(token)) return false;
+                    if (token.code == 102) {
+                        if (!token.text.empty() && token.text.front() == '{') {
+                            if (++depth > 64u) return false;
+                        } else if (token.text == "}" && depth) --depth;
+                        else return false;
+                    } else if (!depth && token.code == 100) {
+                        raster = token.text == "AcDbRasterImage";
+                        if (raster && ++subclasses != 1u) return false;
+                    } else if (!depth && (token.code == 330 || token.code == 340 || token.code == 360)) {
+                        std::uint32_t target = 0;
+                        if (!dx_raster_output::integer(token.text, target, 16)) return false;
+                        if (token.code == 330) {
+                            if (!found->second.owner || ++owners != 1u || target != found->second.owner) return false;
+                        } else if (!raster) return false;
+                        else if (token.code == 340) {
+                            if (++definitions != 1u || target != found->second.definition) return false;
+                        } else if (++reactors != 1u || target != found->second.reactor) return false;
+                    }
+                }
+                return depth == 0u && owners == (found->second.owner ? 1u : 0u) && subclasses == 1u
+                    && definitions == 1u && reactors == 1u;
+            }, profile) && seen.size() == records.size();
+    } catch (...) {
+        return false;
+    }
 }
 
 bool dxfRW::setDxfStagedOutputAuthentication(bool enabled) {
