@@ -1,0 +1,21 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-native-ltype-750c-2026-11-26",
+  "supportClaimEffect": "none",
+  "librecadCommit": "750c757729f9cdfef7da0548b952ff6c17855e3b",
+  "libdxfrwCommit": "1cd3b590027504a3308f60946d2b3e94c15985c5",
+  "platform": "macOS arm64; unmodified current candidate binary in a scratch application bundle with a unique bundle identifier",
+  "appSha256": "b7a34dda6b03b76669952aff468d5af878c04de78019699c7bb29007315c0d2c",
+  "librarySha256": "b1d680efb47f5068e4660d8003c725ca9190a26c77ca9db5b009cedaaee9416e",
+  "inputSha256": "88c7d8cff6d0fae20741306429331922de9c0f6c81b921002bb162b3593fcbcc",
+  "outputSha256": "f9223467ad3e791f71643c4e5fff0272ee3a6de8682e68b707073b2483a4084e",
+  "observations": [
+    "Opened the locally authored R12 control with one green dashed LINE; saved it as DXF 2018 and reopened it in the native application. The line appeared after Redraw.",
+    "Independent ezdxf 1.4.5 readback found one LINE from (0,0,0) to (100,0,0), layer P8D_LAYER, explicit P8D_CUSTOM linetype, pattern length 6 and dash lengths 4 and -2 in both input and output. Both audits reported zero errors and fixes."
+  ],
+  "limits": [
+    "This qualifies one R12-to-2018 named linetype save/reopen/render path on this macOS build; it does not cover edits, additional linetypes or platforms.",
+    "The previously observed property-label discrepancy was not retested. The R2010 default-material input remains a separate open import issue.",
+    "No fixture or generated output was committed; no general support claim is promoted."
+  ]
+}
