@@ -917,12 +917,15 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
     const int alternateHeaderBooleanGroupCode = 290;
     bool extnamesPresent = false, pstylemodePresent = false, olestartupPresent = false;
     bool lwdisplayPresent = false, xeditPresent = false;
-    const auto legacyIntegerAbsent = [this, ver](const char* name, int code) {
+    const auto legacyVariableAbsent = [this, ver](const char* name) {
         if (ver > DRW::AC1014)
             return true;
-        int value = 0;
-        bool present = false;
-        return getDxfHeaderIntegerValue(name, code, value, present) && !present;
+        const auto contains = [name](const auto& values) {
+            return std::any_of(values.begin(), values.end(), [name](const auto& item) {
+                return headerNamesEqualIgnoringAsciiCase(item.first, name);
+            });
+        };
+        return !contains(vars) && !contains(customVars);
     };
     return canWriteDxfHeaderStructure()
         && canWriteDxfUnknownHeaderVariables()
@@ -936,9 +939,12 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
         && canWriteDxfCelweight()
         && canWriteDxfEndcaps()
         && canWriteDxfJoinstyle()
-        && legacyIntegerAbsent("$CELWEIGHT", 370)
-        && legacyIntegerAbsent("$ENDCAPS", 280)
-        && legacyIntegerAbsent("$JOINSTYLE", 280)
+        && legacyVariableAbsent("$CELWEIGHT")
+        && legacyVariableAbsent("$ENDCAPS")
+        && legacyVariableAbsent("$JOINSTYLE")
+        && legacyVariableAbsent("$HYPERLINKBASE")
+        && legacyVariableAbsent("$CEPSNTYPE")
+        && legacyVariableAbsent("$PSVPSCALE")
         && canWriteDxfHeaderIntegerRange("$LWDISPLAY", 290, 0, 1, &lwdisplayPresent)
         && canWriteDxfHeaderIntegerRange("$XEDIT", 290, 0, 1, &xeditPresent)
         && canWriteDxfHeaderFlags()
@@ -2395,22 +2401,26 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeString(9, "$INSUNITS");
             writer->writeInt16(70, insunits);
         }
-        writer->writeString(9, "$HYPERLINKBASE");
-        if (getStr("$HYPERLINKBASE", &varStr))
-            writer->writeUtf8String(1, varStr);
-        else
-            writer->writeString(1, "");
+        if (ver > DRW::AC1014) {
+            writer->writeString(9, "$HYPERLINKBASE");
+            if (getStr("$HYPERLINKBASE", &varStr))
+                writer->writeUtf8String(1, varStr);
+            else
+                writer->writeString(1, "");
+        }
         writer->writeString(9, "$STYLESHEET");
         if (getStr("$STYLESHEET", &varStr))
             writer->writeUtf8String(1, varStr);
         else
             writer->writeString(1, "");
         writeModernBoolean("$XEDIT", true);
-        writer->writeString(9, "$CEPSNTYPE");
-        if (getInt("$CEPSNTYPE", &varInt))
-            writer->writeInt16(380, varInt);
-        else
-            writer->writeInt16(380, 0);
+        if (ver > DRW::AC1014) {
+            writer->writeString(9, "$CEPSNTYPE");
+            if (getInt("$CEPSNTYPE", &varInt))
+                writer->writeInt16(380, varInt);
+            else
+                writer->writeInt16(380, 0);
+        }
         bool hasPlotStyleHandle = false;
         std::uint64_t plotStyleHandle = 0;
         if (getDxfPlotStyleIdHandle(plotStyleHandle, hasPlotStyleHandle)
@@ -2437,11 +2447,13 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
                 writer->writeString(2, nullGuid);
         }
         writeModernBoolean("$EXTNAMES", true);
-        writer->writeString(9, "$PSVPSCALE");
-        if (getDouble("$PSVPSCALE", &varDouble))
-            writer->writeDouble(40, varDouble);
-        else
-            writer->writeDouble(40, 0.0);
+        if (ver > DRW::AC1014) {
+            writer->writeString(9, "$PSVPSCALE");
+            if (getDouble("$PSVPSCALE", &varDouble))
+                writer->writeDouble(40, varDouble);
+            else
+                writer->writeDouble(40, 0.0);
+        }
         writer->writeString(9, "$TSTACKALIGN");
         if (getInt("$TSTACKALIGN", &varInt))
             writer->writeInt16(70, varInt);

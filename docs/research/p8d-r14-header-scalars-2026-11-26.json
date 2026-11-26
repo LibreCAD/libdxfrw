@@ -1,0 +1,33 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-r14-header-scalars-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateBase": "960a4ad7a150979cf36dc560b3bbb34ce1678e8a",
+  "implementationDigestSha256": "025a35fd5cbeb811ca097914289c2f7f155a13c5dcef63b7773e2976d9b925ca",
+  "inputCount": 775,
+  "consumerCommit": "16132a8b009ed728b2a65a4b068c40ff660f5f6c",
+  "authority": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+      "scope": "Current Autodesk header group codes and descriptions."
+    },
+    {
+      "url": "https://www.codil.or.kr/filebank/original/RK/OTMCRK500947/OTMCRK500947.pdf",
+      "scope": "Secondary reproduction of the attributed R14-to-R2000 revision history lists HYPERLINKBASE, CEPSNTYPE, and PSVPSCALE as new header variables."
+    }
+  ],
+  "change": "Omit these three generated fields for pre-R2000 output and refuse any explicit source value, including aliases, before writing. R2000 and later output stays unchanged. Reuse the same legacy source-presence guard for the earlier lineweight fields. LibreCAD discloses omission of its paper-scale default of 1; non-default scale still refuses without replacing the destination.",
+  "validation": {
+    "header": "PASS: optimized focused packed-header selector checks physical R14/R2000 field presence, source refusal and retry, generated LINE resave/reopen, and root owner for ASCII/binary.",
+    "transaction": "PASS: full-adapter ASCII/binary controls preserve destination and retry for the three scalar fields and eight previously guarded fields.",
+    "consumerSystem": "PASS: 4941 assertions in 54 linetype cases; new R12/R14 test covers default paper-scale loss report, non-default refusal, destination preservation, corrected retry and unchanged graphic.",
+    "consumerBundled": "PASS: 1282 assertions in 52 linetype cases.",
+    "image": "PASS: imported-common and two-layer matrices with rollback/retry controls.",
+    "qualification": "PASS: clean-checkout implementation digest, required-test, inventory and workflow contracts."
+  },
+  "limits": [
+    "Other post-R14 header fields and explicit source values require their own representability or disclosed-loss policy.",
+    "Native R14 application behavior, broader graph semantics and final platform qualification remain open.",
+    "No drawing fixture was committed."
+  ]
+}

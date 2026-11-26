@@ -21078,7 +21078,10 @@ void testHeaderPackedFlags(TestContext& t) {
                          && (bytes.find("$XEDIT") != std::string::npos) == modern
                          && (bytes.find("$CELWEIGHT") != std::string::npos) == modern
                          && (bytes.find("$ENDCAPS") != std::string::npos) == modern
-                         && (bytes.find("$JOINSTYLE") != std::string::npos) == modern,
+                         && (bytes.find("$JOINSTYLE") != std::string::npos) == modern
+                         && (bytes.find("$HYPERLINKBASE") != std::string::npos) == modern
+                         && (bytes.find("$CEPSNTYPE") != std::string::npos) == modern
+                         && (bytes.find("$PSVPSCALE") != std::string::npos) == modern,
                      "DXF HEADER emits these fields only for R2000 and later");
         }
         for (const char* field : {"$EXTNAMES", "$PSTYLEMODE", "$OLESTARTUP",
@@ -21105,6 +21108,15 @@ void testHeaderPackedFlags(TestContext& t) {
             t.expect(!source.canWriteDxfHeaderInitialPreflight(DRW::AC1014)
                          && source.canWriteDxfHeaderInitialPreflight(DRW::AC1015),
                      "R14 HEADER refuses an explicit R2000 lineweight setting");
+        }
+        for (unsigned field = 0; field != 3u; ++field) {
+            HeaderWriteProbe source;
+            if (field == 0u) source.addStr("$HYPERLINKBASE", "assets", 1);
+            else if (field == 1u) source.addInt("$CEPSNTYPE", 2, 380);
+            else source.addDouble("$PSVPSCALE", 1.5, 40);
+            t.expect(!source.canWriteDxfHeaderInitialPreflight(DRW::AC1014)
+                         && source.canWriteDxfHeaderInitialPreflight(DRW::AC1015),
+                     "R14 HEADER refuses an explicit R2000 scalar setting");
         }
     }
 
@@ -21248,6 +21260,24 @@ void testHeaderPackedFlags(TestContext& t) {
                                                 binary, &data, false);
         t.expect(refused && unchanged && retried,
                  "R14 adapter preserves the destination and retries after removing an explicit flag");
+    }
+    for (const bool binary : {false, true}) for (unsigned field = 0; field != 3u; ++field) {
+        dx_data data;
+        dx_iface adapter;
+        if (field == 0u) data.headerC.addStr("$HYPERLINKBASE", "assets", 1);
+        else if (field == 1u) data.headerC.addInt("$CEPSNTYPE", 2, 380);
+        else data.headerC.addDouble("$PSVPSCALE", 1.5, 40);
+        { std::ofstream output(legacyPath, std::ios::binary); output << "preserve"; }
+        const bool refused = !adapter.fileExport(legacyPath.string(), DRW::AC1014,
+                                                binary, &data, false);
+        std::ifstream input(legacyPath, std::ios::binary);
+        const bool unchanged = std::string(std::istreambuf_iterator<char>(input), {}) == "preserve";
+        input.close();
+        data.headerC = DRW_Header{};
+        const bool retried = adapter.fileExport(legacyPath.string(), DRW::AC1014,
+                                                binary, &data, false);
+        t.expect(refused && unchanged && retried,
+                 "R14 adapter preserves the destination and retries after removing an explicit scalar");
     }
     const auto legacyResavePath = legacyPath.parent_path()
         / (legacyPath.stem().string() + "-again.dxf");

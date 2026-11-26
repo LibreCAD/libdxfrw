@@ -65,7 +65,7 @@ integration or platform qualification.
 
 The dependent LibreCAD PR #3289 was refreshed onto master
 `b91fbdcf1adeee764938a183018978416d0a8c90`; its current head is
-`e9eb79a2b0ae7c397584d868883e7c917233ee23`. The prior merge head built the
+`16132a8b009ed728b2a65a4b068c40ff660f5f6c`. The prior merge head built the
 macOS system-codec application against the current implementation digest;
 its hosted bounded DWG/DXF and platform builds passed. At the new head, a
 unitless R12/R14 DXF export no longer fails on LibreCAD's generated default
@@ -137,8 +137,10 @@ variables, previously emitted files with explicit values, complete resave and
 native verification remain open. The [lineweight header slice](docs/research/p8d-r14-header-lineweight-settings-2026-11-26.json)
 applies the same no-loss policy to `$CELWEIGHT`, `$ENDCAPS`, and `$JOINSTYLE`.
 LibreCAD reports omission of its generated cap/join defaults and still refuses
-other values; system and bundled codec controls pass. Other later header fields
-remain open. The [generated LINE resave control](docs/research/p8d-r14-line-resave-peer-2026-11-26.json)
+other values; system and bundled codec controls pass. The [legacy scalar slice](docs/research/p8d-r14-header-scalars-2026-11-26.json)
+applies that policy to `$HYPERLINKBASE`, `$CEPSNTYPE`, and `$PSVPSCALE`.
+LibreCAD reports omission of its generated default paper scale and refuses
+non-default values. Other later header fields remain open. The [generated LINE resave control](docs/research/p8d-r14-line-resave-peer-2026-11-26.json)
 checks save/import/resave/reopen in both encodings. The LibreCAD INSERT control
 also now resaves its reimport with both codecs. ezdxf reads selected geometry, but upgrades R14 to R2000 in memory. The prior
 root-owner repairs for the first LINE and LibreCAD INSERT outputs are addressed
@@ -746,7 +748,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `402eab4f710a99d7d50ce90f0b906067ce075a791646802c7605e111b8519604` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `025a35fd5cbeb811ca097914289c2f7f155a13c5dcef63b7773e2976d9b925ca` (775 inputs); platform and native qualification remain open.
 
 Focused CI qualification for the current digest is recorded in the
 [current receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json).
