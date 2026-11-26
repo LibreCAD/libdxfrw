@@ -4733,9 +4733,11 @@ bool dxfRW::inspectDxfRootDictionaryEntry(
                 return decoder.decodeRecord<DRW_Dictionary>(body, [&](const auto& root) {
                     if (root.handle != 0xCu || root.parentHandle != 0
                         || !root.hasCompleteDxfEntries()) return false;
+                    std::set<std::string> keys;
                     for (const auto& entry : root.m_entries) {
                         std::string key;
-                        if (!dx_symbol_output::nameKey(entry.m_name, key)) return false;
+                        if (!dx_symbol_output::nameKey(entry.m_name, key)
+                            || !keys.insert(key).second) return false;
                         if (key != expectedKey) continue;
                         if (seenEntry || entry.m_name != name || entry.m_handle != target
                             || static_cast<int>(entry.m_dxfHandleCode) != role) return false;

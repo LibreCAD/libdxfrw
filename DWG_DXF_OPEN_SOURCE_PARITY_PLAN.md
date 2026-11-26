@@ -23,7 +23,8 @@ evidence are recorded in `docs/research/` and Git history.
   refuse missing, replaced, edited, cross-version or ambiguous graphs
   atomically. Prove ASCII/binary readback, retry and both consumer paths.
   Current typed-graph staged checks cover selected root, HEADER, LAYER and
-  OBJECTS fields, but not complete root graph closure. The
+  OBJECTS fields; the [root-name check](docs/research/p8d-root-dictionary-normalized-name-uniqueness-2026-11-26.json)
+  rejects aliases throughout the staged root, but does not prove graph closure. The
   [independent typed-graph readback](docs/research/p8d-librecad-typed-material-ezdxf-readback-2026-11-26.json)
   covers one selected AC1021 ASCII output only. The
   [converter profile](docs/research/p8d-ac1024-sparse-default-material-converter-2026-11-26.json)
@@ -66,9 +67,9 @@ evidence are recorded in `docs/research/` and Git history.
 - **Integration:** verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: ccb23103e05093b9d0ea9338e66ddd2798b6a59d814e2a0f903277e63fe85ac5
-  (778 inputs). The GCC test-source fix changes selected inputs,
-  so earlier digest-bound results remain historical. LibreCAD consumer head:
+  digest: 63e6c7f77b863b7aa2495970b3193ef90517553c5bde6717d0438eb09a186183
+  (778 inputs). The root-name fix changes selected inputs, so earlier
+  digest-bound results remain historical. LibreCAD consumer head:
   ff9e56154bee8ae54acd7209a364eee7953dd48b. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)

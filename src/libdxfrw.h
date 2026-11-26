@@ -239,7 +239,8 @@ public:
         const std::vector<const DRW_RawDxfObject*>& expected) const noexcept;
     /** Inspect one named entry of the generated root DICTIONARY in the active
      * OBJECTS callback. The target is mapped through the active output remap;
-     * role must be group 350 or 360. Other entries, source provenance and graph
+     * role must be group 350 or 360. All root names must be unique after DXF
+     * name normalization; other entry targets, source provenance and graph
      * closure require separate checks. The caller binds the borrowed view. */
     bool inspectDxfRootDictionaryEntry(const DxfObjectsWriteView& view,
                                        const std::string& name,

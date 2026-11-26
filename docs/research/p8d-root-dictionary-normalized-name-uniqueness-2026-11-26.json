@@ -1,0 +1,18 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-root-dictionary-normalized-name-uniqueness-2026-11-26",
+  "supportClaimEffect": "none",
+  "implementationDigestSha256": "63e6c7f77b863b7aa2495970b3193ef90517553c5bde6717d0438eb09a186183",
+  "change": "The selected staged-root entry inspector also rejects duplicate normalized names anywhere in the root dictionary; it does not validate other targets or full graph closure.",
+  "regression": "For each R14, R2000, R2004, R2007, R2010, R2013 and R2018 output in ASCII and binary, mutate an unrelated root entry to a case alias of ACAD_GROUP while preserving the selected entry. Refusal preserves a preexisting destination; a corrected retry on the same writer succeeds.",
+  "results": [
+    "PASS: focused libdxfrw_dxf_sparse_material_raw CTest with the candidate library.",
+    "PASS: the same focused CTest with AddressSanitizer on macOS. Leak detection was not enabled because this platform does not support the detect_leaks option.",
+    "PASS: the new test linked to the previous installed shared library (SHA-256 ef36053c2f889aba6f1048f3e9766b27314f31eb95bd2a8c30630346012153db) fails at the first duplicate-name control, demonstrating that the regression distinguishes the old implementation."
+  ],
+  "limits": [
+    "The mutated view is a locally generated test input; no DWG or DXF fixture was added to the repository.",
+    "This checks root-name uniqueness and one selected target, not full graph closure, source authenticity, native CAD semantics or raw-only replay.",
+    "The offline Linux ARM64 consumer builds started on the previous implementation digest were stopped before completion after this source change; they are not candidate qualification."
+  ]
+}

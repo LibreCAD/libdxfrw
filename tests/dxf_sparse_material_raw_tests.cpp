@@ -132,16 +132,24 @@ bool physicalHeaderSource(const std::filesystem::path& path,bool binary,int mode
 bool rootEntryVersion(const std::filesystem::path& output,bool binary,DRW::Version version){
  dxfRW writer(output.string().c_str());RootEntryWriter adapter(writer);
  writer.setHandleRemap({{0xEu,0xF010u}});
- writer.setRootDictEntries({{"TEST_ENTRY","F010"}});
- int role=350;
+ writer.setRootDictEntries({{"TEST_ENTRY","F010"},{"XXXX_GROUP","F011"}});
+ int role=350;bool duplicateOtherKey=false;
  if(!writer.setDxfObjectsWriteInspector([&](const auto& view){
+  if(duplicateOtherKey){
+   std::string altered(view.bytes);const auto position=altered.find("XXXX_GROUP");
+   if(position==std::string::npos||altered.find("XXXX_GROUP",position+1)!=std::string::npos)return false;
+   altered.replace(position,10,"acad_group");auto changed=view;changed.bytes=altered;
+   return writer.inspectDxfRootDictionaryEntry(changed,"TEST_ENTRY",0xEu,role);
+  }
   return writer.inspectDxfRootDictionaryEntry(view,"TEST_ENTRY",0xEu,role);
  }))return false;
  if(!writer.write(&adapter,version,binary)||!adapter.ok)return false;
  {std::ofstream f(output,std::ios::binary|std::ios::trunc);f<<"sentinel";}
  role=360;
  if(writer.write(&adapter,version,binary)||bytes(output)!="sentinel")return false;
- role=350;
+ role=350;duplicateOtherKey=true;
+ if(writer.write(&adapter,version,binary)||bytes(output)!="sentinel")return false;
+ duplicateOtherKey=false;
  return writer.write(&adapter,version,binary)&&adapter.ok;
 }
 bool source(const std::filesystem::path& path,bool binary,int mode,const char* name){
