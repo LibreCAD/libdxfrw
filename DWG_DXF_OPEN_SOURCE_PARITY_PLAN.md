@@ -71,8 +71,9 @@ evidence are recorded in `docs/research/` and Git history.
 - **Integration:** verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: a8b7d681be7aedd9e84b8ec155674a603fdde5d7fe59efeb1d4e245fab6aceb5
-  (780 inputs). The shared IMAGE inspector changes selected inputs, so earlier
+  digest: 288c4e67bb60738ff41161889906f591a20634d8b6882edd8d56db048cca651c
+  (780 inputs). The [CI contract refresh](docs/research/p8-staged-image-ci-contract-refresh-2026-11-26.json)
+  adds the new test to the frozen inventory; earlier
   digest-bound results remain historical. LibreCAD consumer head:
   92c501cfb826245d4692af4386e0b31381f01ae8. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)

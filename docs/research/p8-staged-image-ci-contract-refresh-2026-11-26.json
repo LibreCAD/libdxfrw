@@ -1,0 +1,16 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8-staged-image-ci-contract-refresh-2026-11-26",
+  "supportClaimEffect": "none",
+  "sourceCommit": "981341470231db84203dd4acc2858939927e4078",
+  "implementationDigestSha256": "288c4e67bb60738ff41161889906f591a20634d8b6882edd8d56db048cca651c",
+  "trigger": "Hosted fast-regressions rejected the added CTest as missing from the frozen inventory; hosted qualification contract rejected the stale implementation digest.",
+  "checks": [
+    "PASS: freeze the hosted-profile CTest inventory in a clean local clone: 1404 tests, exactly one added test (libdxfrw_dxf_staged_image_reference), none removed.",
+    "PASS: qualification digest, CTest inventory, workflow contract, and qualified support metadata checks against that clean configured clone.",
+    "All 15 claims remain EXPERIMENTAL, with zero native or broad-matrix receipt references and zero advertised routes."
+  ],
+  "limits": [
+    "Inventory refresh is not a test execution or platform qualification; final hosted CI and native evidence remain required."
+  ]
+}
