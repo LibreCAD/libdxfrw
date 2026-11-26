@@ -22,5 +22,6 @@
     "reader": "ezdxf 1.4.5",
     "output_sha256": "ccce9c3870a1471212a1668766c594284eec1a89258f63b027f38664bdbf880b",
     "result": "Three layouts and the extra-paper LINE with endpoints (2,3,0) and (7,11,0); zero audit errors and fixes."
-  }
+  },
+  "superseded_new_document_binary_refusal": "New-document binary writing is now admitted for the bounded authored graph; see p8d-librecad3-authored-binary-layout-2026-11-26.json. Imported unverified binary graphs remain guarded."
 }

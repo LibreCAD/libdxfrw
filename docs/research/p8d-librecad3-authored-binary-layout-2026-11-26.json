@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-26",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_code_commit": "eff88af0",
+  "consumer_plan_head": "9d5432cc5a85fee0abeefb9b896ea9e39f272a5c",
+  "codec_commit": "845591df450f08380754b97cf2351317dbc17c40",
+  "scope": "New documents with the checked canonical three-layout graph can emit binary DXF R2000-R2013, including additional paper-space children. Imported binary layouts remain unverified and guarded.",
+  "persistence_library_sha256": "82ce8407fae847d0dda48427bb8e48ef4bb56647253803e5d882eedbc8dd6bb9",
+  "layout_test_sha256": "876916c327b5d071975e580218732660d82f5cddc4ccd8a363ebaf1d71ab5c21",
+  "independent_reader": "ezdxf 1.4.5",
+  "outputs": [
+    {
+      "version": "AC1015",
+      "sha256": "503adb8f8befcd783052d75fa2b910e5d03118f0b72bf57f83ccd4b6b6029efd",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "version": "AC1018",
+      "sha256": "f4d3417db2eb970c014cbf140b45b14b48efda210c60465e8fd1f736618fbb49",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "version": "AC1021",
+      "sha256": "6e1704f478a37c2ff8de719ab684ede07b7f2e155290c4adaf3b63cafe11b317",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "version": "AC1024",
+      "sha256": "e489f71e4a95ed3eb97a30df77aeb0dbca725b65898189d9b4d46deb4d931f54",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    },
+    {
+      "version": "AC1027",
+      "sha256": "95eb2611a0c5c00719fb00f32ff535d71a21f97ced5a98aeceb04e54d104001b",
+      "audit_errors": 0,
+      "audit_fixes": 0
+    }
+  ],
+  "validation": [
+    "All five binary outputs independently contain Model, Layout1, Layout2 and the expected additional-paper LINE; audit reports zero errors and fixes.",
+    "macOS ARM64: seven layout graph tests and 71 DXF round-trip/export checks pass.",
+    "Each generated binary file reopens with the paper LINE but reports unverified layouts; a subsequent binary save with that content refuses and preserves the destination.",
+    "Older bundled codec headers compile; local consumer plan sync passes."
+  ],
+  "limits": [
+    "This is authored output for a bounded generated profile, not imported binary layout replay or universal format support.",
+    "Native final-head and hosted platform qualification remain open."
+  ]
+}
