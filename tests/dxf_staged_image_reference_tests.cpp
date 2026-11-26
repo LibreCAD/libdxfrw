@@ -110,7 +110,7 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             auto extra = expected.front(); extra.image = 0xFEEDu;
             expected.push_back(extra);
         }
-        if (section == "ENTITIES" && (mode == 6 || mode == 8 || (mode >= 46 && mode <= 49))) {
+        if (section == "ENTITIES" && (mode == 6 || mode == 8 || (mode >= 46 && mode <= 51))) {
             std::string changed(view.bytes);
             const auto profile = view.compatibilityProfile == dxfRW::DxfCompatibilityProfile::StandaloneSafe
                 ? dx_raster_output::Profile::StandaloneSafe : dx_raster_output::Profile::LibreCadMasterLegacy;
@@ -119,12 +119,32 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             bool mutated = false;
             std::string firstHandle;
             while (!cursor.done()) {
+                const auto start = cursor.position();
                 if (!cursor.next(token)) return false;
                 if (mode == 8 && token.code == 5 && firstHandle.empty()) {
                     firstHandle = token.text;
                     continue;
                 }
                 if (mode >= 46) {
+                    if (mode == 51) {
+                        if (token.code != 100 || token.text != "AcDbEntity") continue;
+                        const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                        changed[offset] = 'X';
+                        mutated = true;
+                        break;
+                    }
+                    if (mode == 50) {
+                        if (token.code != 370) continue;
+                        if (binary) changed[start] ^= 1;
+                        else {
+                            const auto end = changed.find('\n', start);
+                            const auto digit = changed.find('0', start);
+                            if (end == std::string::npos || digit == std::string::npos || digit >= end) return false;
+                            changed[digit] = '1';
+                        }
+                        mutated = true;
+                        break;
+                    }
                     const int target = mode == 46 ? 8 : mode == 47 ? 6 : mode == 48 ? 62 : 370;
                     if (token.code != target) continue;
                     if (token.type == dx_raster_output::Kind::Text && !token.text.empty()) {
@@ -296,7 +316,7 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
         std::cerr << "baseline write failed, ok=" << adapter.ok << " references=" << adapter.references.size() << '\n';
         return false;
     }
-    for (mode = 1; mode <= 49; ++mode) {
+    for (mode = 1; mode <= 51; ++mode) {
         if (mode == 33 && version < DRW::AC1024) continue;
         if (mode >= 35 && version < DRW::AC1015) continue;
         { std::ofstream destination(path, std::ios::binary | std::ios::trunc); destination << "sentinel"; }

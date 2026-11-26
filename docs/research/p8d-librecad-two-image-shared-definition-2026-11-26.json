@@ -10,7 +10,8 @@
     "PASS: 236 image test assertions in four system-codec cases, including generated 3D Z sidecars, strict source/staged graph and scalar checks, rejected modified reactors/plot styles/paths, late geometry/sidecar/pen mutations, destination preservation and corrected retry.",
     "PASS: 845 assertions in six system-codec MATERIAL cases; bundled-codec filter source compiles.",
     "PASS: independent ezdxf 1.4.5 resolves two IMAGE records, one shared IMAGEDEF, both reciprocal reactor links, model-space ownership and nonzero WCS Z components; its audit reports zero errors and zero fixes.",
-    "PASS: libdxfrw implementation digest and 15-claim overlay check; zero advertised claims."
+    "PASS: libdxfrw implementation digest and 15-claim overlay check; zero advertised claims.",
+    "PASS: selected system-codec 2D linetype regressions: 4,967 assertions in 56 cases."
   ],
   "artifacts": {
     "libdxfrwSharedSha256": "b1d680efb47f5068e4660d8003c725ca9190a26c77ca9db5b009cedaaee9416e",

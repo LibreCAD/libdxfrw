@@ -87,7 +87,7 @@ evidence are recorded in `docs/research/` and Git history.
   Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: acab980dfbceb5cc649c61c4465e9fae747fc44f689607e249747255d2b6557e
+  digest: d51f3204eadc44842903914b883c2d91e18ec2d77a3d185aed21e701f4b09b8a
   (780 inputs). The [CI contract refresh](docs/research/p8-staged-image-ci-contract-refresh-2026-11-26.json)
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
