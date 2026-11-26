@@ -162,7 +162,8 @@ evidence are recorded in `docs/research/` and Git history.
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head
   187a1ee5 has [12 passing hosted checks and one skipped scan](docs/research/p8d-librecad-pr3289-hosted-checks-2026-11-26.json);
-  requalify integration against the later codec and native consumers.
+  its [current-codec macOS headless IMAGE/MATERIAL check](docs/research/p8d-librecad-current-codec-compatibility-2026-11-26.json)
+  passes 18 cases. Qualify remaining profiles, platforms and native consumers.
   Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
