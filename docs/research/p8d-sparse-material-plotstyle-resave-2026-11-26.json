@@ -1,0 +1,23 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-sparse-material-plotstyle-resave-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "d8d007af1",
+  "libdxfrwImplementationDigestSha256": "5346c5dd100f7b3a85f8b2bab4798b7f3502d8cf4ff1a06b6929c18d0ac8bb27",
+  "librecadCommit": "c7fdd4f18c517411ccd4201322177a9e111b8399",
+  "scope": "Opt-in selected same-version ASCII sparse MATERIAL graph replay and resave, with LAYER plot-style references restricted to the verified default placeholder.",
+  "checks": [
+    "PASS: system-codec MATERIAL and IMAGE focused tests, 2107 assertions in 14 cases, including reopen/resave, source plot-style mutation and unqualified target refusal, destination preservation and corrected retry.",
+    "PASS: bundled-codec filter compile check; shared staged plot-style checker tested in ASCII and binary, including AddressSanitizer.",
+    "PASS: ezdxf 1.4.5 reads both resaved outputs, follows the selected references, and reports zero audit errors and fixes; reader-added defaults make this structural rather than exact-byte evidence."
+  ],
+  "scratchResavedSha256": {
+    "ac1021": "6dc4463de081e0ab3b80a0ffa6ed02ca92592ea10a417d7267ef248ff8c1915a",
+    "ac1024": "20c179b09eaa2dfb6aca25fe2e016ac530b58fd05d29a356e8f431c29d202ca3"
+  },
+  "limits": [
+    "Generated drawings remain in scratch storage; no fixture was committed.",
+    "The normal consumer export guard remains in place. Binary consumer replay, cross-version conversion, edits, nondefault plot styles, unproved LAYER fields and native visual semantics remain unqualified.",
+    "Hosted final-head and native platform checks remain open."
+  ]
+}
