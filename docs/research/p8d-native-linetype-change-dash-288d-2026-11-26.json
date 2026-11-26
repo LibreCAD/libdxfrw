@@ -1,0 +1,22 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-native-linetype-change-dash-288d-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "none",
+  "priorReceipt": "docs/research/p8d-native-linetype-dialog-edit-288d-2026-11-26.json",
+  "librecadCommit": "288d78ccb8853bdb995f535edf04abe162bb5e63",
+  "libdxfrwCommit": "2845e87eec49459f633c34339e9160d528437f43",
+  "libdxfrwImplementationDigestSha256": "1bc188a918b00d79823b711a90b3a62981f3a65029b16ca82a20c2041db20f93",
+  "platform": "macOS 27.2.1 build 26B131, arm64",
+  "harness": "Previously documented isolated-settings LibreCAD GUI build; see prior receipt for the startup-only patch and executable and library hashes.",
+  "observations": [
+    "Opened the previously generated AC1021 drawing; the native Line Properties dialog showed P8D_CUSTOM for the LINE. Selected Dash in the dialog, applied the change, saved a new scratch DXF 2007 file and reopened it; the native dialog showed Dash and the original endpoint (120,0).",
+    "Independent ezdxf 1.4.5 reads both drawings: one LINE on P8D_LAYER changes from P8D_CUSTOM to DASHED, while start (0,0,0), end (120,0,0), and both linetype pattern records remain unchanged. Both audits report zero errors and zero fixes."
+  ],
+  "scratchOnly": {
+    "inputSha256": "78d4a68b262d3c5e1e935c59cebf30450ac0332a0fd8db037a1b7624c4058790",
+    "outputSha256": "f6b596b037251b286f10d0c984c0e5fc37e8fd54043a126e4f30c85bc49f4675",
+    "fixturesCommitted": false
+  },
+  "limits": "This single dialog replacement uses the older 288d isolated-settings candidate and a previously saved source. It does not qualify the final PR heads, other platforms, whole-drawing completeness or unrelated linetype operations."
+}
