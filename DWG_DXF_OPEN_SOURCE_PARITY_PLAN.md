@@ -705,6 +705,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `0f89b0a60ff246b4cce2dd51d8de4b377c2c64df6634cddb92f19aebc154bdcd` (775 inputs); platform and native qualification remain open.
 
 Focused CI qualification for the current digest is recorded in the
 [current receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json).
