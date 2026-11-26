@@ -12873,7 +12873,6 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false, bo
                     imported.layers=layers;report=dx_iface::plotStyleSourceReport(imported);
                     if(!report.legacyLiveLayerInventoryMatched||!report.legacyLayerReferencesMatched)
                         return fail("restored modern IMAGE LAYER source did not retry");
-                    continue;
                 }
                 for (const auto outputVersion : {DRW::AC1015,DRW::AC1018,DRW::AC1021,DRW::AC1024,DRW::AC1027,DRW::AC1032}) for (const bool outputBinary : {false, true}) {
                     if(focusedLegacyPair&&targetVersion==outputVersion)continue;
@@ -13120,7 +13119,7 @@ bool rootedImageDictionaryUnselectedControls(bool importedCommonOnly = false, bo
     }
     if (importedCommonOnly) {
         if(focusedLegacyPair) {
-            if(cells!=12u||importedSources!=12u||importedCells!=40u||importedRetries!=200u)
+            if(cells!=12u||importedSources!=12u||importedCells!=120u||importedRetries!=600u)
                 return fail("focused IMAGE/two-layer matrix skipped a control");
             std::cout<<"IMAGE/two-layer legacy cells="<<importedCells<<" atomic retries="<<importedRetries<<'\n';return true;
         }

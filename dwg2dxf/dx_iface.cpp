@@ -97352,7 +97352,7 @@ bool legacyPlotInt(const dx_standard_output::RecordCursor::Token& token,int code
 
 bool dx_iface::hasLegacyNullPlotLayerProfile(const dx_data& data) noexcept {
     if(data.sourceFormat!=dx_source_format::DXF
-        ||(data.sourceVersion!=DRW::AC1015&&data.sourceVersion!=DRW::AC1018)||data.layers.size()!=2u)return false;
+        ||data.sourceVersion<DRW::AC1015||data.sourceVersion>DRW::AC1032||data.layers.size()!=2u)return false;
     const auto report=plotStyleSourceReport(data);
     if(!report.legacyLayerInventoryMatched||!report.legacyLiveLayerInventoryMatched||!report.legacyLayerReferencesMatched)return false;
     try {
@@ -97566,7 +97566,7 @@ bool dx_iface::prepareDxfLayerPlot(DRW::Version version, bool strict) noexcept {
                     &&std::any_of(cData->namedObjectDictionary.m_entries.begin(),cData->namedObjectDictionary.m_entries.end(),
                         [](const auto& entry){return asciiIdentifierEquals(entry.m_name,"ACAD_PLOTSTYLENAME");}));
             if(hasPlotGraph) {
-                const bool multipleNullLayers=(cData->sourceVersion==DRW::AC1015||cData->sourceVersion==DRW::AC1018)
+                const bool multipleNullLayers=cData->sourceVersion>=DRW::AC1015&&cData->sourceVersion<=DRW::AC1032
                     &&version>=DRW::AC1015&&version<=DRW::AC1032&&version!=cData->sourceVersion
                     &&hasLegacyNullPlotLayerProfile(*cData);
                 if(!source.originalSourcesMatched || !source.legacyClassRowsMatched || !source.legacyLiveClassesMatched
