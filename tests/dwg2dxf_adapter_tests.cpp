@@ -293,6 +293,10 @@ public:
         return report.legacyLayerInventoryMatched&&report.legacyLiveLayerInventoryMatched&&report.legacyLayerReferencesMatched
             &&!report.legacyLayerMatched;
     }
+    static bool inspectLegacyNullPlotLayers(const dxfRW::DxfTablesWriteView& view,
+                                           const std::map<std::uint32_t, UTF8STRING>& rows) noexcept {
+        return dx_iface::inspectLegacyNullPlotLayers(view,rows);
+    }
     static bool legacyPlotRootIsIsolated(const dx_data& data) noexcept {
         const auto& source=data.m_tableDxfSource;
         const auto resource=source.resources.find(0xCu);
@@ -10690,6 +10694,49 @@ bool xrecordOwnedExtensionClosure(bool faultsOnly = false, bool plotSourceOnly =
                     if(!wrongReport.legacyLayerInventoryMatched||!wrongReport.legacyLiveLayerInventoryMatched
                         ||wrongReport.legacyLayerReferencesMatched)
                         return fail("nondefault LAYER plot reference was accepted");
+                }
+                {
+                    storage.layers=multiple.layers;
+                    for(auto& layer:storage.layers) {
+                        layer.flags=64;layer.color=7;layer.color24=-1;layer.colorName.clear();
+                        layer.lineType="CONTINUOUS";layer.plotF=true;layer.lWeight=DRW_LW_Conv::widthDefault;
+                        layer.handlePlotS="0";layer.plotStyleHandle=dwgHandle{};
+                    }
+                    dxfRW probe(target.string().c_str());author.dxfW=&probe;author.ok=true;
+                    probe.setDxfWriteRecordInventoryEnabled(true);
+                    probe.setRootDictEntries({{"XRECORD_EXTENSIONS","E010"}});
+                    bool prepared=probe.setGeneratedDictionarySourceRecords(std::make_unique<DRW_Dictionary>(nod),nullptr);
+                    for(const auto h:{0xE010u,0xE020u,0xE030u,0xE040u,0xE050u,0xE060u})prepared=probe.reserveHandle(h)&&prepared;
+                    bool corrupt=false,called=false,checked=false;
+                    prepared=probe.setDxfTablesWriteInspector([&](const dxfRW::DxfTablesWriteView& view) {
+                        called=true;std::map<std::uint32_t,UTF8STRING> rows;
+                        for(const auto& layer:storage.layers) {
+                            const auto outputHandle=probe.dxfWriteEmittedSourceTableHandle(layer.handle);
+                            if(!outputHandle||!rows.emplace(outputHandle,layer.name).second)return false;
+                        }
+                        if(!Access::inspectLegacyNullPlotLayers(view,rows))return false;
+                        auto missing=rows;missing.erase(missing.begin());
+                        auto renamed=rows;renamed.begin()->second+="_CHANGED";
+                        if(Access::inspectLegacyNullPlotLayers(view,missing)||Access::inspectLegacyNullPlotLayers(view,renamed))return false;
+                        checked=true;
+                        if(!corrupt)return true;
+                        std::string bytes(view.bytes);const auto name=bytes.find("EXTRA_SOURCE_LAYER");
+                        const auto marker=format==0u?std::string("\n390\n"):std::string("\x86\x01",2u);
+                        const auto at=name==std::string::npos?std::string::npos:bytes.find(marker,name);
+                        const auto value=at==std::string::npos?std::string::npos:at+marker.size();
+                        if(value==std::string::npos||value>=bytes.size()||bytes[value]!='0')return false;
+                        bytes[value]='E';auto changed=view;changed.bytes=bytes;
+                        return Access::inspectLegacyNullPlotLayers(changed,rows);
+                    })&&prepared;
+                    const std::string sentinel="LAYER_OUTPUT_INSPECTOR_DESTINATION";
+                    {std::ofstream prior(target,std::ios::binary|std::ios::trunc);prior<<sentinel;}
+                    corrupt=true;const bool accepted=prepared&&probe.write(&author,DRW::AC1018,format==1u);
+                    std::ifstream prior(target,std::ios::binary);const std::string actual((std::istreambuf_iterator<char>(prior)),{});
+                    if(accepted||!called||!checked||actual!=sentinel)return fail("changed legacy LAYER output was published");
+                    corrupt=false;called=checked=false;author.ok=true;
+                    if(!probe.write(&author,DRW::AC1018,format==1u)||!called||!checked)
+                        return fail("corrected legacy LAYER output did not retry");
+                    author.dxfW=nullptr;storage.layers.clear();
                 }
                 const std::string sentinel="MULTI_LAYER_SOURCE_MUST_NOT_REPLACE_DESTINATION";
                 { std::ofstream output(target,std::ios::binary|std::ios::trunc);output<<sentinel; }

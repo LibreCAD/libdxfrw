@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-25",
+  "baseline": "a9e34a26",
+  "implementation_digest_sha256": "08b9ef91f7815c839bc67a5a013d12245745b5f099925a43ceb9e9e0e399b6e1",
+  "input_count": 775,
+  "scope": "Reusable source-independent staged TABLES inspector for exactly two AC1018 LAYER rows with ASCII names, fixed flags/color/linetype/plot/lineweight and explicit zero 390 references. It does not enable export.",
+  "checks": [
+    "Generated ASCII and binary writer outputs pass after resolving the two source layer handles to actual emitted identities.",
+    "A missing expected row or changed expected name is rejected.",
+    "A staged group-390 mutation from zero to dictionary handle E is rejected before publication; the existing destination is preserved and the same writer retries successfully.",
+    "Three focused default plot and raster CTests pass.",
+    "Independent ezdxf readback for the earlier scratch layer projection is documented separately."
+  ],
+  "remaining": [
+    "Bind expected target rows to the immutable source inventory and verify output-record identity and complete dependency graph.",
+    "Prove target CLASS and placeholder identities and the full IMAGE graph; add extra-output-row and late-mutation controls.",
+    "The inspector does not promote strict export, native compatibility or format support.",
+    "No new fixture committed."
+  ]
+}

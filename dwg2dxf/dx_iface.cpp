@@ -97363,6 +97363,45 @@ bool dx_iface::hasUnchangedLegacyPlot() const noexcept {
         &&r.legacyBodiesMatched&&r.legacyLiveBodiesMatched&&r.legacyLayerMatched&&r.legacyLiveLayerMatched;
 }
 
+bool dx_iface::inspectLegacyNullPlotLayers(const dxfRW::DxfTablesWriteView& view,
+        const std::map<std::uint32_t,UTF8STRING>& expected) noexcept {
+    if(view.version!=DRW::AC1018||expected.size()!=2u)return false;
+    try {
+        std::set<UTF8STRING> names;
+        for(const auto& row:expected) {
+            if(!row.first||row.first==DRW::NoHandle||row.second.empty()||!names.insert(row.second).second
+                ||!std::all_of(row.second.begin(),row.second.end(),[](unsigned char c){return c>=0x20u&&c<=0x7eu;}))return false;
+        }
+        if(names.count("0")!=1u)return false;
+        std::set<std::uint32_t> seen;
+        const bool good=dx_standard_output::inspectSelected(view,[](std::string_view name,std::uint32_t){return name=="LAYER";},
+            [&](const auto& shape,std::string_view body) {
+                const auto match=expected.find(shape.handle);
+                if(match==expected.end()||!seen.insert(shape.handle).second)return false;
+                dx_standard_output::RecordCursor c(body,view);dx_standard_output::RecordCursor::Token t;unsigned n=0u;
+                while(!c.done()) {
+                    if(!c.next(t))return false;
+                    switch(n++) {
+                    case 0:if(!legacyPlotHandle(t,5,shape.handle))return false;break;
+                    case 1:if(!legacyPlotHandle(t,330,2u))return false;break;
+                    case 2:if(t.code!=100||t.text!="AcDbSymbolTableRecord")return false;break;
+                    case 3:if(t.code!=100||t.text!="AcDbLayerTableRecord")return false;break;
+                    case 4:if(t.code!=2||t.text!=match->second)return false;break;
+                    case 5:if(!legacyPlotInt(t,70,64,view.binary))return false;break;
+                    case 6:if(!legacyPlotInt(t,62,7,view.binary))return false;break;
+                    case 7:if(t.code!=6||t.text!="CONTINUOUS")return false;break;
+                    case 8:if(!legacyPlotInt(t,290,1,view.binary))return false;break;
+                    case 9:if(!legacyPlotInt(t,370,-3,view.binary))return false;break;
+                    case 10:if(!legacyPlotHandle(t,390,0u))return false;break;
+                    default:return false;
+                    }
+                }
+                return n==11u;
+            });
+        return good&&seen.size()==expected.size();
+    } catch (...) {return false;}
+}
+
 bool dx_iface::inspectLegacyPlotTables(const dxfRW::DxfTablesWriteView& view) noexcept {
     auto& state=m_dxfLayerMaterialState;if(!state.legacyPlotCrossVersion)return true;
     if(!hasUnchangedLegacyPlot()||!dxfW||state.legacyTablesInspected||view.version!=state.legacyPlotTargetVersion)return false;

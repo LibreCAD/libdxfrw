@@ -4840,6 +4840,8 @@ private:
     bool prepareDxfLayerMaterials(DRW::Version) noexcept;
     bool hasUnchangedLegacyPlot() const noexcept;
     bool inspectLegacyPlotTables(const dxfRW::DxfTablesWriteView&) noexcept;
+    static bool inspectLegacyNullPlotLayers(const dxfRW::DxfTablesWriteView&,
+                                           const std::map<std::uint32_t, UTF8STRING>&) noexcept;
     bool inspectLegacyPlotObjects(const dxfRW::DxfObjectsWriteView&) noexcept;
     bool finalizeLegacyPlot() const noexcept;
     bool prepareDxfLayerPlot(DRW::Version, bool) noexcept;
