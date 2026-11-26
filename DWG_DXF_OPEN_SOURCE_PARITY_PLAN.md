@@ -118,20 +118,16 @@ evidence are recorded in `docs/research/` and Git history.
   deassociation report. Extend the bounded wide-self-handle profile to 64-bit
   owners and translated references with source/target closure, while keeping
   the existing 32-bit public semantic API. Qualify consumers independently.
-- **LibreCAD_3 layouts:** the [native MPOLYGON probe](docs/research/p8d-librecad3-native-mpolygon-layout-gap-2026-11-26.json)
-  reopens the bounded polygon with its offset and vertices, but its saved DXF
-  has no physical LAYOUT objects and an orphaned `*Paper_Space0` block record.
-  A standard generated input also reports two LAYOUT records not imported.
-  Reuse the [staged authored-layout graph checks](docs/research/p8d-staged-authored-layout-graph-2026-11-26.json), which cover reciprocal links and atomic refusal/retry across six ASCII/binary versions; they do not capture source data or complete consumer integration.
-  The [canonical paper-space writer facet](docs/research/p8d-canonical-paper-space-content-2026-11-26.json) retains nonempty paper-space children without a duplicate block; integrate it in LibreCAD_3 and validate its source ownership.
-  Implement source LAYOUT capture and complete generated/preserved layout graphs:
-  bind the root dictionary, LAYOUT dictionary entries, layout owners and both
-  directions of BLOCK_RECORD links. Preserve nonempty paper-space contents and
-  source identities; do not simply discard paper-space blocks to clear an audit.
-  Add zero/one/two-layout ASCII and binary controls, unknown-reference refusal,
-  destination preservation and retry, and independent physical/semantic audit;
-  then repeat the native MPOLYGON save/reopen/render/edit check on the final
-  consumer and codec heads.
+- **LibreCAD_3 layouts:** the bounded ASCII three-layout implementation and
+  its current evidence are recorded in the [consumer receipt](docs/research/p8d-librecad3-plain-layout-graph-2026-11-26.json).
+  Complete binary and zero/one/two/additional-layout profiles, external plot
+  resources, unknown references and source identities with explicit refusal,
+  destination preservation and retry. Preserve nonempty paper-space contents.
+  Bound or gracefully degrade whole-table source capture on large ASCII files;
+  binary imports already opt out. Resolve the R12/R14 orphan paper-space audit
+  without discarding content. Run independent physical/semantic peer checks and
+  native save/reopen/render/edit on the final consumer and codec heads; qualify
+  hosted Linux and Windows independently.
 - **AC1012:** reuse the locally authored specification-directed pair and
   shared version-aware frame, dictionary and handle-role checks. The
   [current-candidate recheck](docs/research/p6-ac1012-existing-spec-pair-current-recheck-2026-11-26.json)

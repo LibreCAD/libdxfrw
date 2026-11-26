@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-26",
+  "scope": "Bounded LibreCAD_3 ASCII layout graph and legacy save compatibility",
+  "consumer_pr": "https://github.com/LibreCAD/LibreCAD_3/pull/461",
+  "consumer_implementation_commit": "b1d8aaa42a2af739b6a3773f322bd094e76ae00c",
+  "consumer_merge_commit": "eed1366a",
+  "consumer_plan_commit": "ec4a927a",
+  "codec_commit": "dca76c5f54acf00e5d95fdbf1e7c18f939f20a13",
+  "codec_pr": "https://github.com/LibreCAD/libdxfrw/pull/106",
+  "verified_scope": [
+    "New ASCII R2000 through R2013 default three-layout output and narrowly checked source graph replay",
+    "Paper-space LINE content survives two saves and reopens; block begin/end reference remapping checked",
+    "Atomic refusal preserves destination and corrected retry succeeds",
+    "Noncanonical LAYOUT reactor, paper BLOCK metadata and named printer resource remain reported",
+    "Legacy R12/R14 writes omit unavailable lineweights and unit variables, reporting explicit information lost; implicit layer defaults do not cause false warnings",
+    "Binary inputs do not opt in to ASCII-only source capture"
+  ],
+  "validation": {
+    "consumer_layout_graph_gtests": "5 passed on macOS ARM64, zero skipped",
+    "consumer_roundtrip_export_gtests": "67 passed on macOS ARM64",
+    "bundled_codec": "Current persistence source and file entry point pass compiler syntax check against previously pinned d68fb1ed codec headers; this is not a linked runtime test",
+    "plan_sync": "Passed locally on merged consumer branch against upstream master 60727c6c",
+    "prior_intermediate_native": "Instrumented window-title build saved and reopened selected MPOLYGON and plain layouts; independent ezdxf checked both files with no errors or fixes. This predates final metadata changes and does not establish rendering or editing.",
+    "prior_intermediate_matrix": "ezdxf 1.4.5 audited two saves each for five ASCII versions with zero fixes; this predates final metadata changes.",
+    "hosted_checks": "Pending exact consumer plan head; no release qualification inferred"
+  },
+  "limitations": [
+    "Only the exact checked graph is admitted; binary, additional layouts, external plot resources and noncanonical sources remain reported or unsupported",
+    "The raw source callback captures BLOCK_RECORD rows before the consumer filters them; retained-byte limits can be reached earlier on large ASCII drawings and need a selective or gracefully degradable capture profile",
+    "R12/R14 output audit may flag a synthetic or orphaned paper-space record; preserve nonempty paper-space and resolve source-aware",
+    "Native final-head render/edit, final-head semantic peer matrix and Linux/Windows hosted checks remain open",
+    "Support claims remain experimental"
+  ]
+}
