@@ -1,0 +1,20 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-staged-root-entry-2026-11-26",
+  "supportClaimEffect": "none",
+  "libdxfrwCommit": "c63435126",
+  "implementationDigestSha256": "552b95a01e8cc592e0224e0785f511c6e8545656a6462e01e3c79eb842256b25",
+  "librecadCommit": "ff9e56154bee8ae54acd7209a364eee7953dd48b",
+  "runtimeLibrarySha256": "ef36053c2f889aba6f1048f3e9766b27314f31eb95bd2a8c30630346012153db",
+  "scope": "For the bounded already-admitted typed-material graph, inspect the selected generated ACAD_MATERIAL root entry and recheck its source spelling and selected graph before publication.",
+  "validation": [
+    "PASS: system-codec material selector, 845 assertions in 6 cases; covers accepted lowercase spelling, root-key edits after OBJECTS and before finalization, destination-preserving refusal and same-filter retry.",
+    "PASS: system-codec linetype selector, 4967 assertions in 56 cases; bundled-codec selector, 1282 assertions in 52 cases.",
+    "PASS: IMAGE WCS frame selector, system codec 84 assertions and bundled codec 46 assertions.",
+    "PASS: macOS dyld diagnostic identifies the installed current-candidate libdxfrw.3.0.0.dylib used for system tests."
+  ],
+  "limits": [
+    "The check is limited to the selected root entry and bounded typed graph; it does not qualify all root entries or complete graph closure.",
+    "Raw-only replay, binary consumer output, native GUI, platform and independent semantic qualification remain open."
+  ]
+}

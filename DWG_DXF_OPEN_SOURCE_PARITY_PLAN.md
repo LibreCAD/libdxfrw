@@ -32,8 +32,10 @@ evidence are recorded in `docs/research/` and Git history.
   [consumer HEADER slice](docs/research/p8d-librecad-staged-header-material-2026-11-26.json)
   binds that check and final source-state validation for bounded typed graphs.
   The [selected root-entry inspector](docs/research/p8d-shared-staged-root-entry-2026-11-26.json)
-  checks one generated root edge with versioned ASCII/Binary controls; bind it
-  in the consumer and separately establish complete root graph closure.
+  checks one generated root edge with versioned ASCII/Binary controls. The
+  [consumer root-entry slice](docs/research/p8d-librecad-staged-root-entry-2026-11-26.json)
+  binds the selected edge for bounded typed graphs; separately establish
+  complete root graph closure.
   Extend graph and HEADER admission before
   enabling raw-only replay.
   The [bounded source-snapshot prerequisite](docs/research/p8d-librecad-sparse-material-source-snapshot-2026-11-26.json)
@@ -107,7 +109,7 @@ evidence are recorded in `docs/research/` and Git history.
   digest: 552b95a01e8cc592e0224e0785f511c6e8545656a6462e01e3c79eb842256b25
   (778 inputs). The selected root-entry inspector changes selected inputs,
   so earlier digest-bound results remain historical. LibreCAD consumer head:
-  e523caa2196964931c7c1aa99ef86d87b7a6e955. Prior platform receipts apply only
+  ff9e56154bee8ae54acd7209a364eee7953dd48b. Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)
   passed on `b1eea19e5900c1e55e2316ba215213071c8fc9b2`; revalidate the final
