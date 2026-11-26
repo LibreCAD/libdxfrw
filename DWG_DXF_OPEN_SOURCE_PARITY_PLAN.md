@@ -81,8 +81,10 @@ evidence are recorded in `docs/research/` and Git history.
   also preserves an enabled nondefault rectangular clip and mode through
   independent readback. The [bounded polygon extension](docs/research/p8d-librecad-polygon-image-clip-2026-11-26.json)
   adds staged checks for 3–256 vertices and admits same-version AC1024–AC1032
-  multi-IMAGE polygons with physical-source and retry checks; native clipping
-  rendering and external-producer qualification remain open.
+  multi-IMAGE polygons with physical-source and retry checks. The [legacy
+  polygon extension](docs/research/p8d-librecad-legacy-polygon-image-clip-2026-11-26.json)
+  applies the same checks to AC1015–AC1021. Native clipping rendering and
+  external-producer qualification remain open.
   The [R2000/R2004 extension](docs/research/p8d-librecad-legacy-multi-image-2026-11-26.json)
   admits the equivalent bounded graph without MATERIAL and independently checks
   model/block ownership and links. Legacy graphs carrying MATERIAL remain refused.
@@ -142,7 +144,7 @@ evidence are recorded in `docs/research/` and Git history.
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier
   digest-bound results remain historical. LibreCAD consumer head:
-  a5ae048f (pushed; final-head CI pending).
+  187a1ee5 (pushed; final-head CI pending).
   Prior platform receipts apply only
   to their recorded inputs. The [inventory fix](docs/research/p8-source-release-inventory-r14-audit-fix-2026-11-26.json)
   repairs the hosted fast job's stale source-release list. The [hosted fast run](https://github.com/LibreCAD/libdxfrw/actions/runs/45783703290)

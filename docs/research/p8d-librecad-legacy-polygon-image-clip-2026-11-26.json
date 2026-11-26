@@ -1,0 +1,26 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-librecad-legacy-polygon-image-clip-2026-11-26",
+  "date": "2026-11-26",
+  "supportClaimEffect": "bounded-generated-dxf-consumer-profile-only",
+  "consumerPr": "https://github.com/LibreCAD/LibreCAD/pull/3289",
+  "consumerCommit": "187a1ee5",
+  "codecCommit": "d3923ba73cbe9e98545775815448270e6acab0f4",
+  "codecImplementationDigestSha256": "02a4ef43779142760d3e96bef5d63a6ddc6daffc80d5dec58a1c4b3742b22e32",
+  "scope": "Extend the capability-gated same-version bounded multi-image polygon route to AC1015, AC1018 and AC1021 ASCII DXF, which do not emit the modern group-290 clip mode.",
+  "validation": [
+    "PASS: macOS ARM64 system-codec IMAGE and MATERIAL selection, 8958 assertions in 18 cases. The new focused case covers enabled three-vertex clipping, two images sharing a definition, cross-version refusal, late coordinated typed/raw vertex mutation, preservation of the destination, corrected retry, physical output comparison and library reimport.",
+    "PASS: ezdxf 1.4.5 independently reads source/output pairs for AC1015, AC1018 and AC1021, checks polygon vertices, geometry, definition ownership, reactor owner/reference reciprocity and shared-definition backlinks; all six audits report zero errors and fixes.",
+    "PASS: bundled-codec LibreCAD filter object compilation without the new capability."
+  ],
+  "scratchOnly": {
+    "ac1015SourceSha256": "e826d3d97d6e391ec9e711a3102fc1a17aa9c77a23357468ae8aaae0bd267591",
+    "ac1015OutputSha256": "a0883a60229ff07f280f01cfca560056e0291ac06a1c38bb3e58442b81a5d9eb",
+    "ac1018SourceSha256": "4789803d62fd114d63b9a8ffc01c79bad93afbd24f933242da896fea71301e2f",
+    "ac1018OutputSha256": "1e64ede1becc077c8fe2b63ec2d492704c8527d4b53ddde5ae7a8e033704bf07",
+    "ac1021SourceSha256": "fbd79782878394f7e63e5cda59c9eb659c642e56cc96aeaa4ea0b5952a004dcb",
+    "ac1021OutputSha256": "06c7d222b5ea78b37d0350fdc9d45fd742123b3f93aaada886509695f057a211",
+    "fixturesCommitted": false
+  },
+  "limits": "Generated ASCII source/output with three polygon vertices. Native rendering, external producers, binary consumer output, larger boundary graphs, cross-version conversion and DWG remain unqualified."
+}
