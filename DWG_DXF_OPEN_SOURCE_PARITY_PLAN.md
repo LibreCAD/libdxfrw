@@ -15,66 +15,22 @@ evidence are recorded in `docs/research/` and Git history.
 
 ## Ready work and cross-cutting dependencies
 
-- **Sparse MATERIAL / LibreCAD:** qualify complete same-version raw replay
-  before weakening the consumer export guard. The [converter profile](docs/research/p8d-ac1024-sparse-default-material-converter-2026-11-26.json)
-  now transports the unchanged 61-group AC1024 default-material graph in the
-  original encoding, with staged checks, retry, and independent graph and
-  group readback. Cross-encoding, edits, and broader semantics remain open.
-  The [shared staged MATERIAL inspector](docs/research/p8d-shared-staged-material-inspector-2026-11-26.json)
-  lets consumers reuse the converter's scalar and handle-remap checks; the
-  [mixed OBJECTS extension](docs/research/p8d-shared-staged-material-dictionary-2026-11-26.json)
-  also checks raw DICTIONARY records. The [shared LAYER inspector](docs/research/p8d-shared-staged-layer-material-2026-11-26.json)
-  verifies selected staged layer references and rejects unexpected non-null
-  references. The [consumer staged-check slice](docs/research/p8d-librecad-staged-layer-material-output-2026-11-26.json)
-  uses both inspectors for bounded already-admitted typed graphs and rechecks
-  source state before publication. The [shared staged HEADER inspector](docs/research/p8d-shared-staged-header-material-2026-11-26.json)
-  checks the emitted material reference through the converter's decoder. The
-  [consumer HEADER slice](docs/research/p8d-librecad-staged-header-material-2026-11-26.json)
-  binds that check and final source-state validation for bounded typed graphs.
-  The [selected root-entry inspector](docs/research/p8d-shared-staged-root-entry-2026-11-26.json)
-  checks one generated root edge with versioned ASCII/Binary controls. The
-  [consumer root-entry slice](docs/research/p8d-librecad-staged-root-entry-2026-11-26.json)
-  binds the selected edge for bounded typed graphs; separately establish
-  complete root graph closure. The [independent typed-graph readback](docs/research/p8d-librecad-typed-material-ezdxf-readback-2026-11-26.json)
-  confirms one selected AC1021 output's root, material and LAYER links, with
-  the peer's synthesized default entries separated from physical file tags.
-  The [Linux ARM64 focused check](docs/research/p8-linux-arm64-material-ac1012-fast-2026-11-26.json)
-  passes with GCC warnings treated as errors; native FreeCAD and GUI gates remain open.
-  Extend graph and HEADER admission before
-  enabling raw-only replay.
-  The [bounded source-snapshot prerequisite](docs/research/p8d-librecad-sparse-material-source-snapshot-2026-11-26.json)
-  retains immutable copies for the explicitly opted-in small-source profile;
-  it does not enable replay. The [source comparison](docs/research/p8d-librecad-sparse-material-source-comparison-2026-11-26.json)
-  checks the retained payload, modeled identity and common links in ASCII and
-  binary, and retains an unavailable-source marker if capture fails. The
-  [dictionary source capture](docs/research/p8d-librecad-sparse-material-dictionary-source-2026-11-26.json)
-  retains bounded root and MATERIAL dictionary frames for opted-in small files;
-  duplicate source frames fail closed. The [dictionary comparison](docs/research/p8d-librecad-sparse-material-dictionary-comparison-2026-11-26.json)
-  checks the captured root against its typed frame and the captured child
-  against typed and live raw frames. The [target check](docs/research/p8d-librecad-sparse-material-dictionary-targets-2026-11-26.json)
-  checks all selected-dictionary entries, including unreferenced siblings.
-  The [consumer reference check](docs/research/p8d-librecad-sparse-material-live-references-2026-11-26.json)
-  checks live layer and current-material targets. The [LAYER source capture](docs/research/p8d-librecad-sparse-material-layer-source-2026-11-26.json)
-  binds group 347 to bounded ASCII/Binary source rows; its corrected
-  AddressSanitizer selector passes. The [HEADER source check](docs/research/p8d-librecad-sparse-material-header-source-2026-11-26.json)
-  binds the parsed original `$CMATERIAL` presence and handle. The
-  [opt-in physical HEADER observer](docs/research/p8d-dxf-header-material-physical-source-2026-11-26.json)
-  exposes bounded source spans and original handle spelling, including the
-  [CRLF offset control](docs/research/p8d-dxf-header-material-crlf-2026-11-26.json).
-  The [consumer binding](docs/research/p8d-librecad-header-material-physical-binding-2026-11-26.json)
-  checks those observations against its parsed snapshot for the bounded opt-in
-  profile. Independently verify source/readback and the complete graph.
-  Next bind references to staged output
-  and independent readback.
-  Validate the entire ACAD_MATERIAL dictionary, exact raw carriers, source
-  identities, owners/reactors, layer and current-material references, handle
-  uniqueness and remapping. Refuse missing, replaced, edited, cross-version or
-  ambiguous graphs atomically; prove ASCII/binary readback, retry and both
-  consumer paths. The current system [filter][handles] result is 16/21;
-  five sparse-MATERIAL imports remain failing. See the
-  [consumer guard](docs/research/p8d-sparse-material-policy-and-consumer-guard-2026-11-25.json),
-  [selected graph](docs/research/p8d-ezdxf-default-material-selected-graph-2026-11-25.json),
-  and [dictionary-target checks](docs/research/p8d-librecad-layer-material-dictionary-targets-2026-11-25.json).
+- **Sparse MATERIAL / LibreCAD:** complete same-version raw replay before
+  weakening the consumer export guard. Validate the entire ACAD_MATERIAL
+  dictionary, exact raw carriers, source identities, owners/reactors, layer and
+  current-material references, handle uniqueness and remapping. Bind all
+  admitted references and root edges to staged output and independent readback;
+  refuse missing, replaced, edited, cross-version or ambiguous graphs
+  atomically. Prove ASCII/binary readback, retry and both consumer paths.
+  Current typed-graph staged checks cover selected root, HEADER, LAYER and
+  OBJECTS fields, but not complete root graph closure. The
+  [independent typed-graph readback](docs/research/p8d-librecad-typed-material-ezdxf-readback-2026-11-26.json)
+  covers one selected AC1021 ASCII output only. The
+  [converter profile](docs/research/p8d-ac1024-sparse-default-material-converter-2026-11-26.json)
+  covers an unchanged same-encoding AC1024 default-material graph, not edits or
+  cross-encoding. The system `[filter][handles]` result is 16/21; five sparse
+  MATERIAL imports remain failing. Native FreeCAD and GUI gates remain open.
+  Earlier prerequisite evidence is recorded in `docs/research/` and Git history.
 - **IMAGE / plot-style graphs:** extend the admitted single-IMAGE and
   two-layer profiles one source shape at a time, binding physical source,
   dictionary edge roles, dependencies, staged output, independent readback,
