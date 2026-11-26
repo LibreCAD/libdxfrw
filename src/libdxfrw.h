@@ -112,6 +112,7 @@ public:
 
 #define LIBDXFRW_HAS_DXF_STAGED_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_RAW_OBJECT_INSPECTOR 1
+#define LIBDXFRW_HAS_DXF_STAGED_ENTITY_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_LAYER_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_HEADER_MATERIAL_INSPECTOR 1
 #define LIBDXFRW_HAS_DXF_STAGED_ROOT_ENTRY_INSPECTOR 1
@@ -315,6 +316,18 @@ public:
     // inspector, ENTITIES keeps its ordinary streaming path. No new callback.
     using DxfEntitySectionsWriteInspector = std::function<bool(const DxfObjectsWriteView&, std::string_view)>;
     bool setDxfEntitySectionsWriteInspector(DxfEntitySectionsWriteInspector inspector);
+    struct DxfEntityMaterialReference {
+        std::uint32_t entity{0u};   //!< Emitted entity handle.
+        std::uint32_t material{0u}; //!< Emitted MATERIAL handle.
+    };
+    /** Check the common AcDbEntity group-347 references in one staged BLOCKS
+     * or ENTITIES body. Every non-null reference must be listed exactly once;
+     * handles are output handles. This does not prove object type, source
+     * provenance, graph closure, or publication. Use only in the active
+     * entity-section inspector with its borrowed view. */
+    bool inspectDxfEntityMaterialReferences(
+        const DxfObjectsWriteView& view,
+        const std::vector<DxfEntityMaterialReference>& expected) const noexcept;
     struct DxfImageOutputReferences {
         std::uint32_t image{0u};
         std::uint32_t owner{0u};

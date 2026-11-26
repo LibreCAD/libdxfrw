@@ -21,7 +21,10 @@ evidence are recorded in `docs/research/` and Git history.
   current-material references, handle uniqueness and remapping. Bind all
   admitted references and root edges to staged output and independent readback;
   refuse missing, replaced, edited, cross-version or ambiguous graphs
-  atomically. Prove ASCII/binary readback, retry and both consumer paths.
+  atomically. The [shared staged entity-material inspector](docs/research/p8d-staged-entity-material-references-2026-11-26.json)
+  checks common group-347 output; consumer source binding and inspector
+  composition remain open. Prove ASCII/binary readback, retry and both
+  consumer paths.
   Current typed-graph staged checks cover selected root, HEADER, LAYER and
   OBJECTS fields; the [root-name check](docs/research/p8d-root-dictionary-normalized-name-uniqueness-2026-11-26.json)
   rejects aliases throughout the staged root; the [current consumer check](docs/research/p8d-root-name-candidate-librecad-system-codec-2026-11-26.json)
@@ -92,7 +95,7 @@ evidence are recorded in `docs/research/` and Git history.
   final pushed head. Verify [libdxfrw PR #106](https://github.com/LibreCAD/libdxfrw/pull/106)
   and dependent [LibreCAD PR #3289](https://github.com/LibreCAD/LibreCAD/pull/3289),
   including final-head hosted checks and native consumers. Current implementation
-  digest: d51f3204eadc44842903914b883c2d91e18ec2d77a3d185aed21e701f4b09b8a
+  digest: 34b33e6d972284192b7c50e2dad86ed9fc65a9d2ef7463f3a788fa2448b87d04
   (780 inputs). The [CI contract refresh](docs/research/p8-staged-image-ci-contract-refresh-2026-11-26.json)
   adds the new test to the frozen inventory; the [fast-lane update](docs/research/p8-staged-image-fast-lane-2026-11-26.json)
   builds and runs it on PRs. Earlier

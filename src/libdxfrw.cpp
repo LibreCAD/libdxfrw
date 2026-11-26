@@ -4658,6 +4658,58 @@ bool dxfRW::setDxfEntitySectionsWriteInspector(DxfEntitySectionsWriteInspector i
     return true;
 }
 
+bool dxfRW::inspectDxfEntityMaterialReferences(
+        const DxfObjectsWriteView& view,
+        const std::vector<DxfEntityMaterialReference>& expected) const noexcept {
+    if (!m_dxfWriteAttemptActive || !m_dxfWriteInspecting || !writer
+        || m_writeError || writer->hasWriteError() || view.version != version
+        || view.version < DRW::AC1021 || view.binary != binFile
+        || expected.size() > 4096u) return false;
+    try {
+        const auto profile = view.compatibilityProfile == DxfCompatibilityProfile::StandaloneSafe
+            ? dx_raster_output::Profile::StandaloneSafe
+            : view.compatibilityProfile == DxfCompatibilityProfile::LibreCadMasterLegacy
+                ? dx_raster_output::Profile::LibreCadMasterLegacy
+                : dx_raster_output::Profile::Invalid;
+        if (!dx_raster_output::valid(profile)) return false;
+        std::map<std::uint32_t, std::uint32_t> references;
+        for (const auto& item : expected)
+            if (!item.entity || !item.material || item.entity == DRW::NoHandle
+                || item.material == DRW::NoHandle
+                || !references.emplace(item.entity, item.material).second) return false;
+        std::set<std::uint32_t> seen;
+        const bool valid = dx_raster_output::inspect(view.bytes, view.binary,
+            [&](std::string_view, std::uint32_t handle, std::string_view body) {
+                const auto found = references.find(handle);
+                dx_raster_output::Cursor cursor(body, view.binary, profile);
+                dx_raster_output::Token token;
+                unsigned depth = 0u, commonCount = 0u, materialCount = 0u;
+                std::uint32_t target = 0u;
+                bool common = false;
+                while (!cursor.done()) {
+                    if (!cursor.next(token)) return false;
+                    if (token.code == 102) {
+                        if (!token.text.empty() && token.text.front() == '{') {
+                            if (++depth > 64u) return false;
+                        } else if (token.text == "}" && depth) --depth;
+                        else return false;
+                    } else if (!depth && token.code == 100) {
+                        common = token.text == "AcDbEntity";
+                        if (common && ++commonCount != 1u) return false;
+                    } else if (!depth && common && token.code == 347) {
+                        if (++materialCount != 1u ||
+                            !dx_raster_output::integer(token.text, target, 16)) return false;
+                    }
+                }
+                if (depth) return false;
+                if (found == references.end()) return target == 0u;
+                return commonCount == 1u && materialCount == 1u && target == found->second
+                    && seen.insert(handle).second;
+            }, profile);
+        return valid && seen.size() == references.size();
+    } catch (...) { return false; }
+}
+
 bool dxfRW::inspectDxfImageOutputReferences(
         const DxfObjectsWriteView& view,
         const std::vector<DxfImageOutputReferences>& expected) const noexcept {

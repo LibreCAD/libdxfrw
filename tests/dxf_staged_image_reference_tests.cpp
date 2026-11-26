@@ -336,6 +336,83 @@ bool run(const std::filesystem::path& path, DRW::Version version, bool binary,
             reader.images[i].m_imageDefReactorHandle != adapter.references[i].reactor) return false;
     return true;
 }
+
+bool runMaterialReferences(const std::filesystem::path& path, DRW::Version version,
+                           bool binary, dxfRW::DxfCompatibilityProfile profile) {
+    struct Lines : LC3CompatCheck {
+        dxfRW& writer;
+        bool ok = false;
+        explicit Lines(dxfRW& output) : writer(output) {}
+        void writeEntities() override {
+            DRW_Line line;
+            line.handle = 0x600u;
+            line.material = 0xA1u;
+            line.basePoint = {1, 2, 3};
+            line.secPoint = {4, 5, 6};
+            ok = writer.writeLine(&line);
+            DRW_Line ordinary;
+            ordinary.handle = 0x601u;
+            ok = writer.writeLine(&ordinary) && ok;
+        }
+        bool finalizeDxfWrite() override { return ok; }
+    };
+    struct LineReader : LC3CompatCheck {
+        std::vector<std::uint32_t> materials;
+        void addLine(const DRW_Line& line) override { materials.push_back(line.material); }
+    };
+    dxfRW writer(path.string().c_str());
+    writer.setDxfCompatibilityProfile(profile);
+    writer.setHandleRemap({{0xA1u, 0xB1u}});
+    Lines adapter(writer);
+    unsigned mode = 0;
+    if (!writer.setDxfEntitySectionsWriteInspector([&](const auto& view, std::string_view section) {
+        std::vector<dxfRW::DxfEntityMaterialReference> expected;
+        if (section == "ENTITIES") {
+            const auto* context = writer.getWritingContext();
+            if (!context) return false;
+            const auto entity = context->sourceHandleToMintedMap.find(0x600u);
+            if (entity == context->sourceHandleToMintedMap.end()) return false;
+            expected.push_back({entity->second, 0xB1u});
+            if (mode == 1) ++expected.front().material;
+            if (mode == 2) expected.clear();
+            if (mode == 3) expected.push_back(expected.front());
+            if (mode == 4) ++expected.front().entity;
+            if (mode == 5) {
+                std::string changed(view.bytes);
+                const auto outputProfile = profile == dxfRW::DxfCompatibilityProfile::StandaloneSafe
+                    ? dx_raster_output::Profile::StandaloneSafe : dx_raster_output::Profile::LibreCadMasterLegacy;
+                dx_raster_output::Cursor cursor(changed, binary, outputProfile);
+                dx_raster_output::Token token;
+                bool changedReference = false;
+                while (!cursor.done()) {
+                    if (!cursor.next(token)) return false;
+                    if (token.code != 347 || token.text.empty()) continue;
+                    const auto offset = static_cast<std::size_t>(token.text.data() - changed.data());
+                    changed[offset] = changed[offset] == 'B' ? 'C' : 'B';
+                    changedReference = true;
+                    break;
+                }
+                if (!changedReference) return false;
+                auto altered = view;
+                altered.bytes = changed;
+                return writer.inspectDxfEntityMaterialReferences(altered, expected);
+            }
+        } else if (section != "BLOCKS") return false;
+        return writer.inspectDxfEntityMaterialReferences(view, expected);
+    })) return false;
+    if (!writer.write(&adapter, version, binary)) return false;
+    for (mode = 1; mode <= 5; ++mode) {
+        { std::ofstream destination(path, std::ios::binary | std::ios::trunc); destination << "sentinel"; }
+        if (writer.write(&adapter, version, binary) || read(path) != "sentinel") return false;
+    }
+    mode = 0;
+    if (!writer.write(&adapter, version, binary)) return false;
+    LineReader reader;
+    dxfRW input(path.string().c_str());
+    input.setDxfCompatibilityProfile(profile);
+    return input.read(&reader, false) && reader.materials.size() == 2u &&
+           reader.materials[0] == 0xB1u && reader.materials[1] == DRW::MaterialByLayer;
+}
 }
 int main() {
     const auto directory = std::filesystem::temp_directory_path() /
@@ -349,6 +426,15 @@ int main() {
                                      dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy})
             if (!run(directory / "output.dxf", version, binary, profile)) {
                 std::cerr << "staged IMAGE references failed for version " << static_cast<int>(version)
+                          << " binary=" << binary << " profile=" << static_cast<int>(profile) << '\n';
+                return 1;
+            }
+    for (const auto version : {DRW::AC1021, DRW::AC1024, DRW::AC1027, DRW::AC1032})
+        for (const bool binary : {false, true})
+          for (const auto profile : {dxfRW::DxfCompatibilityProfile::StandaloneSafe,
+                                     dxfRW::DxfCompatibilityProfile::LibreCadMasterLegacy})
+            if (!runMaterialReferences(directory / "material.dxf", version, binary, profile)) {
+                std::cerr << "staged entity MATERIAL references failed for version " << static_cast<int>(version)
                           << " binary=" << binary << " profile=" << static_cast<int>(profile) << '\n';
                 return 1;
             }
