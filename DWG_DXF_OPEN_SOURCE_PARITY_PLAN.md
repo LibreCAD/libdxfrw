@@ -129,7 +129,13 @@ by the first save; an independent version table also flags 64 header variables
 as R2000-or-later. Establish the R14 schema and loss policy, then separately
 handle existing emitted files, clean output and ASCII/binary retry/readback. The
 R14 peer also repaired a root-dictionary owner; review it independently.
-Investigate the remaining identity and object-graph gaps. The
+The [R14 Boolean field slice](docs/research/p8d-r14-header-boolean-version-gate-2026-11-26.json)
+omits `$EXTNAMES`, `$PSTYLEMODE`, and `$OLESTARTUP` from pre-R2000 output
+when they are absent from the source, and refuses any explicit source value
+before writing. It preserves R2000+ emission. This removes three incorrect
+fields from new R14 output only; other newer variables, previously emitted
+files with explicit values, complete resave and native verification remain open. Investigate the remaining identity and
+object-graph gaps. The
 [library control-transport receipt](docs/research/p8d-libdxfrw-single-line-control-transport-2026-11-25.json)
 records bounded ASCII/binary field and failure/retry checks.
 Native GUI, runtime loading, new-head hosted checks and final-candidate
@@ -729,7 +735,7 @@ The clean-checkout digest for this candidate is
 `73fb9f26076b7b2e03fba4225b1f78c852f4a1a1f5e6ce5f01c13ec909adb6ad`
 (775 inputs); prior digest-bound platform and integration qualification must be
 rechecked. All format claims remain EXPERIMENTAL.
-The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `f24a6570b24bf1f90324444814a3be1c5b924edc6ac4776fbd9fc214f8c50676` (775 inputs); platform and native qualification remain open.
+The [clean CTest inventory refresh](docs/research/p8-ci-clean-ctest-inventory-refresh-2026-11-25.json) adds the missing linetype regression. The current digest is `41014b3b8e344715c2acae0319c185d4aa311312d8efcd11f1fc16bc13a6f0aa` (775 inputs); platform and native qualification remain open.
 
 Focused CI qualification for the current digest is recorded in the
 [current receipt](docs/research/p8-pr106-ac1021-alignment-qualification-2026-11-25.json).

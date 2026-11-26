@@ -21040,7 +21040,7 @@ void testHeaderPackedFlags(TestContext& t) {
                  && modernDxfFlags.canWriteDxfHeaderInitialPreflight(DRW::AC1024)
                  && modernDxfFlags.canWriteDxfHeaderInitialPreflight(DRW::AC1032)
                  && !modernDxfFlags.canWriteDxfHeaderInitialPreflight(DRW::AC1014),
-             "DXF group-290 boolean HEADER variables are accepted from AC1015 and rejected for AC1014");
+             "DXF group-290 boolean HEADER values are accepted from AC1015 and rejected for AC1014");
     encoded = 0u;
     t.expect(DrwHeaderEncodeTestAccess::encodeFlags(modernDxfFlags, encoded)
                  && encoded == ((1u << 11u) | (1u << 14u)),
@@ -21049,6 +21049,47 @@ void testHeaderPackedFlags(TestContext& t) {
     encoded = 0u;
     t.expect(!DrwHeaderEncodeTestAccess::encodeFlags(modernDxfFlags, encoded),
              "modern HEADER flag variables still reject unrelated group codes");
+
+    for (const bool binary : {false, true}) {
+        for (const DRW::Version target : {DRW::AC1014, DRW::AC1015}) {
+            std::ostringstream output(std::ios::out | std::ios::binary);
+            std::unique_ptr<dxfWriter> writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+            writer->setVersion(target == DRW::AC1014 ? "AC1014" : "AC1015", true);
+            HeaderWriteProbe flags;
+            if (target > DRW::AC1014) {
+                flags.addInt("$EXTNAMES", 0, 290);
+                flags.addInt("$PSTYLEMODE", 1, 290);
+                flags.addInt("$OLESTARTUP", 0, 290);
+            }
+            flags.write(writer, target);
+            const auto bytes = output.str();
+            const bool modern = target > DRW::AC1014;
+            t.expect(!writer->hasWriteError()
+                         && (bytes.find("$EXTNAMES") != std::string::npos) == modern
+                         && (bytes.find("$PSTYLEMODE") != std::string::npos) == modern
+                         && (bytes.find("$OLESTARTUP") != std::string::npos) == modern,
+                     "DXF HEADER emits these flags only for R2000 and later");
+        }
+        for (const char* field : {"$EXTNAMES", "$PSTYLEMODE", "$OLESTARTUP"})
+        for (const int code : {70, 290}) for (const int value : {0, 1}) {
+            std::ostringstream output(std::ios::out | std::ios::binary);
+            std::unique_ptr<dxfWriter> writer = binary
+                ? std::unique_ptr<dxfWriter>(new dxfWriterBinary(&output))
+                : std::unique_ptr<dxfWriter>(new dxfWriterAscii(&output));
+            writer->setVersion("AC1014", true);
+            HeaderWriteProbe flags;
+            flags.addInt(field, value, code);
+            flags.write(writer, DRW::AC1014);
+            const bool refused = writer->hasWriteError() && output.str().empty();
+            writer->restoreWriteError(false);
+            HeaderWriteProbe corrected;
+            corrected.write(writer, DRW::AC1014);
+            t.expect(refused && !writer->hasWriteError() && !output.str().empty(),
+                     "R14 HEADER refuses an explicit flag before output and retries after correction");
+        }
+    }
 
     modeled.addInt("$ENDCAPS", 4, 280);
     encoded = 0u;
@@ -21165,6 +21206,30 @@ void testHeaderPackedFlags(TestContext& t) {
                  std::string(binary ? "Binary" : "ASCII")
                      + " DXF HEADER refuses undefined flags before output and retries after repair");
     }
+
+    const auto legacyPath = std::filesystem::temp_directory_path()
+        / ("libdxfrw-legacy-header-flags-"
+           + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count())
+           + ".dxf");
+    for (const bool binary : {false, true})
+    for (const char* field : {"$EXTNAMES", "$PSTYLEMODE", "$OLESTARTUP"}) {
+        dx_data data;
+        dx_iface adapter;
+        data.headerC.addInt(field, 0, 290);
+        { std::ofstream output(legacyPath, std::ios::binary); output << "preserve"; }
+        const bool refused = !adapter.fileExport(legacyPath.string(), DRW::AC1014,
+                                                binary, &data, false);
+        std::ifstream input(legacyPath, std::ios::binary);
+        const bool unchanged = std::string(std::istreambuf_iterator<char>(input), {}) == "preserve";
+        input.close();
+        data.headerC = DRW_Header{};
+        const bool retried = adapter.fileExport(legacyPath.string(), DRW::AC1014,
+                                                binary, &data, false);
+        t.expect(refused && unchanged && retried,
+                 "R14 adapter preserves the destination and retries after removing an explicit flag");
+    }
+    std::error_code legacyCleanupError;
+    std::filesystem::remove(legacyPath, legacyCleanupError);
 }
 
 std::uint32_t readHeaderReferenceBits(const std::vector<std::uint8_t>& bytes,

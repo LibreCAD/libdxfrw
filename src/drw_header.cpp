@@ -911,13 +911,11 @@ bool DRW_Header::finalizeDxfHeader(const std::unique_ptr<dxfReader>& reader) {
 }
 
 bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexcept {
-    // Packed DWG flags decode to their legacy group-70 representation, while
-    // DXF R2000+ uses group 290 for these boolean HEADER variables. Accept
-    // both source representations and let the target-version writer below
-    // normalize the emitted code.
+    // Packed DWG flags decode to group 70, while DXF R2000+ uses group 290.
+    // Accept either source form and apply the target's representability check.
     const int headerBooleanGroupCode = 70;
-    const int alternateHeaderBooleanGroupCode =
-        ver > DRW::AC1014 ? 290 : -1;
+    const int alternateHeaderBooleanGroupCode = 290;
+    bool extnamesPresent = false, pstylemodePresent = false, olestartupPresent = false;
     return canWriteDxfHeaderStructure()
         && canWriteDxfUnknownHeaderVariables()
         && canWriteDxfLinetypeScale()
@@ -934,11 +932,15 @@ bool DRW_Header::canWriteDxfHeaderInitialPreflight(DRW::Version ver) const noexc
         && canWriteDxfXedit()
         && canWriteDxfHeaderFlags()
         && canWriteDxfHeaderIntegerRange("$EXTNAMES", headerBooleanGroupCode, 0, 1,
-                                         nullptr, alternateHeaderBooleanGroupCode)
+                                         &extnamesPresent, alternateHeaderBooleanGroupCode)
         && canWriteDxfHeaderIntegerRange("$PSTYLEMODE", headerBooleanGroupCode, 0, 1,
-                                         nullptr, alternateHeaderBooleanGroupCode)
+                                         &pstylemodePresent, alternateHeaderBooleanGroupCode)
         && canWriteDxfHeaderIntegerRange("$OLESTARTUP", headerBooleanGroupCode, 0, 1,
-                                         nullptr, alternateHeaderBooleanGroupCode)
+                                         &olestartupPresent, alternateHeaderBooleanGroupCode)
+        // These settings were added after R14; refuse rather than silently
+        // discard any caller-supplied value for an older target.
+        && (ver > DRW::AC1014
+            || !(extnamesPresent || pstylemodePresent || olestartupPresent))
         && canWriteDxfHeaderIntegerRange("$ANGDIR", 70, 0, 1)
         && canWriteDxfHeaderIntegerRange("$ATTMODE", 70, 0, 2)
         && canWriteDxfHeaderIntegerRange("$MIRRTEXT", 70, 0, 1)
@@ -2407,12 +2409,12 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeString(390, plotStyleHandle == 0
                 ? "0" : value->second->c_str());
         }
-        writer->writeString(9, "$PSTYLEMODE"); //RLZ bool flag, verify in bin version
-        if (getInt("$PSTYLEMODE", &varInt))
-            writer->writeBool(290, varInt != 0);
-        else
-            writer->writeBool(290, true);
         if (ver > DRW::AC1014) {
+            writer->writeString(9, "$PSTYLEMODE");
+            if (getInt("$PSTYLEMODE", &varInt))
+                writer->writeBool(290, varInt != 0);
+            else
+                writer->writeBool(290, true);
             static const std::string nullGuid = "{00000000-0000-0000-0000-000000000000}";
             writer->writeString(9, "$FINGERPRINTGUID");
             if (getStr("$FINGERPRINTGUID", &varStr))
@@ -2425,11 +2427,13 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             else
                 writer->writeString(2, nullGuid);
         }
-        writer->writeString(9, "$EXTNAMES"); //RLZ bool flag, verify in bin version
-        if (getInt("$EXTNAMES", &varInt))
-            writer->writeBool(290, varInt != 0);
-        else
-            writer->writeBool(290, true);
+        if (ver > DRW::AC1014) {
+            writer->writeString(9, "$EXTNAMES");
+            if (getInt("$EXTNAMES", &varInt))
+                writer->writeBool(290, varInt != 0);
+            else
+                writer->writeBool(290, true);
+        }
         writer->writeString(9, "$PSVPSCALE");
         if (getDouble("$PSVPSCALE", &varDouble))
             writer->writeDouble(40, varDouble);
@@ -2445,11 +2449,13 @@ void DRW_Header::write(const std::unique_ptr<dxfWriter>& writer, DRW::Version ve
             writer->writeInt16(70, varInt);
         else
             writer->writeInt16(70, 70);
-        writer->writeString(9, "$OLESTARTUP"); //RLZ bool flag, verify in bin version
-        if (getInt("$OLESTARTUP", &varInt))
-            writer->writeBool(290, varInt != 0);
-        else
-            writer->writeBool(290, false);
+        if (ver > DRW::AC1014) {
+            writer->writeString(9, "$OLESTARTUP");
+            if (getInt("$OLESTARTUP", &varInt))
+                writer->writeBool(290, varInt != 0);
+            else
+                writer->writeBool(290, false);
+        }
     }
     if (ver > DRW::AC1015) {// and post v2004 vars
         writer->writeString(9, "$SORTENTS");

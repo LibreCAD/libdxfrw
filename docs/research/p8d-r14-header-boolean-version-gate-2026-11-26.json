@@ -1,0 +1,37 @@
+{
+  "schema": "libdxfrw.research-receipt.v1",
+  "id": "p8d-r14-header-boolean-version-gate-2026-11-26",
+  "supportClaimEffect": "none",
+  "candidateBase": "dc3bce071641488540ca3e22d96699d273bf77b9",
+  "implementationDigestSha256": "41014b3b8e344715c2acae0319c185d4aa311312d8efcd11f1fc16bc13a6f0aa",
+  "inputCount": 775,
+  "finding": "The header writer emitted EXTNAMES, PSTYLEMODE and OLESTARTUP as group 290 in R14 output, then rejected those same source fields during R14 preflight. They cannot be represented as the documented modern fields in the earlier target.",
+  "authority": [
+    {
+      "url": "https://help.autodesk.com/cloudhelp/2024/ENU/AutoCAD-DXF/files/GUID-A85E8E67-27CD-4C59-BE61-4DC9FADBE74A.htm",
+      "scope": "Autodesk describes EXTNAMES and PSTYLEMODE as group-290 fields and describes their meanings."
+    },
+    {
+      "url": "https://www.codil.or.kr/filebank/original/RK/OTMCRK500947/OTMCRK500947.pdf",
+      "scope": "This publication reproduces the attributed AutoCAD R14-to-2000 DXF revision history: group range 290-299, EXTNAMES and PSTYLEMODE were introduced after R14. It is a secondary reproduction, not an independently accessed Autodesk original."
+    },
+    {
+      "url": "https://forums.autodesk.com/autodesk/attachments/autodesk/autocad-forum-en/260811/1/AutoCAD%20System%20Variables.pdf",
+      "scope": "A community-hosted historical system-variable list associates OLESTARTUP with R2000 onward; this is supporting, non-native evidence."
+    }
+  ],
+  "change": "Pre-R2000 output omits all three automatically generated fields. Any explicit source value, in modeled group 70 or DXF group 290, refuses before header output rather than losing metadata. R2000 and newer keep their existing group-290 output.",
+  "validation": {
+    "headerPackedFlags": "PASS in optimized build: ASCII and binary R14/R2000 emission; each explicit zero/one in group 70/290 refuses before output and same-writer retry succeeds with the source corrected.",
+    "adapterTransaction": "PASS: six ASCII/binary full-adapter destination-preserving refusals and same-adapter corrected retries.",
+    "imageCompatibility": "PASS: imported-common matrix (144 reexports, 176 wire retries) and two-layer matrix (120 cells, 600 atomic retries).",
+    "qualificationContracts": "PASS: 1403-test inventory, required-test and workflow contracts, and clean-checkout implementation digest.",
+    "libreCADSystemCodec": "PASS: macOS offscreen system-codec linetype selector, 4905 assertions in 52 cases, including selected legacy R12/R14 INSERT control (28 assertions); dyld confirms a scratch dylib linked from the candidate archive was loaded. This does not qualify full R14 resave or native UI."
+  },
+  "limits": [
+    "This is a narrow no-loss field gate, not a complete R14 schema fix. Other post-R14 variables remain emitted and require independent handling.",
+    "Previously emitted R14 files with explicit instances of the three fields still refuse until an explicit, disclosed compatibility or loss policy is implemented.",
+    "Native R14 rendering, independent source compatibility, final consumer and platform qualification remain open; no support claims are promoted.",
+    "No drawing fixture was added."
+  ]
+}
