@@ -73,6 +73,11 @@ evidence are recorded in `docs/research/` and Git history.
   aggregate-memory accounting. The [mixed model/block slice](docs/research/p8d-librecad-block-multi-image-2026-11-26.json)
   binds unique named-block source owners and staged block records in one
   four-image/two-block profile, with independent graph and geometry readback.
+  The [modern-version extension](docs/research/p8d-librecad-modern-multi-image-2026-11-26.json)
+  reuses those checks for AC1024, AC1027 and AC1032 ASCII, including the
+  physical group 290 clip-mode value, mixed MATERIAL graphs, named-block
+  ownership, refusal and retry. The nondefault clip-mode control has clipping
+  disabled; it does not qualify clipping rendering or polygonal boundaries.
   Extend other shapes only with equivalent closure. The bounded [IMAGEDEF](docs/research/p8d-shared-staged-imagedef-scalars-2026-11-26.json)
   and [IMAGE entity](docs/research/p8d-shared-staged-image-entity-scalars-2026-11-26.json)
   scalar checks and the [staged dictionary check](docs/research/p8d-shared-staged-dictionary-2026-11-26.json)
@@ -83,7 +88,7 @@ evidence are recorded in `docs/research/` and Git history.
   canonical layer-0/ByLayer staged record. The [staged object-link
   check](docs/research/p8d-librecad-staged-image-object-links-2026-11-26.json)
   covers the existing single-image graph. Additional multi-image layouts,
-  versions, unknown fields, clipping, references, layers and native/platform
+  older versions, unknown fields, clipping, references, layers and native/platform
   behavior remain open; see P8.
 - **Legacy headers:** investigate $FACETRES, $ISOLINES, $PELLIPSE,
   $TEXTQLTY, original-source provenance and DXF extension behavior. R12
@@ -409,7 +414,7 @@ records the discrepancy and bounded ezdxf readback. A bounded single-IMAGE
 same-version LibreCAD reopen/resave now connects the source IMAGEDEF, reactor,
 dictionary and entity identities to the preplanned graph; focused system and
 bundled codec checks, refusal/retry controls and independent ezdxf readback
-cover that profile; see the [bounded IMAGE receipt](docs/research/p8d-librecad-bounded-image-resave-2026-11-25.json). Remain fail-closed for multi-image or orphan graphs, unknown
+cover that profile; see the [bounded IMAGE receipt](docs/research/p8d-librecad-bounded-image-resave-2026-11-25.json). The bounded multi-image profiles above are also admitted; remain fail-closed for unqualified multi-image or orphan graphs, unknown
 physical fields, nondefault entity attributes, unsupported clipping, source
 files over the capture bound, and unqualified cross-version IMAGE graphs. Extend one profile
 at a time with physical source, reference, destination-preservation, retry and
