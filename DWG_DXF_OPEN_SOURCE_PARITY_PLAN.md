@@ -118,6 +118,11 @@ evidence are recorded in `docs/research/` and Git history.
   deassociation report. Extend the bounded wide-self-handle profile to 64-bit
   owners and translated references with source/target closure, while keeping
   the existing 32-bit public semantic API. Qualify consumers independently.
+- **LibreCAD_3 entity true color:** the [shared color and model-only binary fixes](docs/research/p8d-librecad3-truecolor-and-model-only-binary-2026-11-26.json)
+  preserve selected imported RGB and color names through edits and R2004+ output,
+  report indexed approximation for older versions, and avoid an orphaned synthetic
+  paper block when complete source inspection proves it absent. Qualify color books,
+  transparency, native applications and other platforms before broader claims.
 - **LibreCAD_3 layouts:** the bounded ASCII three-layout implementation and
   its current evidence are recorded in the [consumer receipt](docs/research/p8d-librecad3-plain-layout-graph-2026-11-26.json).
   Extend imported-binary replay beyond the [checked canonical profile](docs/research/p8d-librecad3-checked-binary-replay-2026-11-26.json),
