@@ -24,7 +24,8 @@ evidence are recorded in `docs/research/` and Git history.
   atomically. Prove ASCII/binary readback, retry and both consumer paths.
   Current typed-graph staged checks cover selected root, HEADER, LAYER and
   OBJECTS fields; the [root-name check](docs/research/p8d-root-dictionary-normalized-name-uniqueness-2026-11-26.json)
-  rejects aliases throughout the staged root, but does not prove graph closure. The
+  rejects aliases throughout the staged root; the [current consumer check](docs/research/p8d-root-name-candidate-librecad-system-codec-2026-11-26.json)
+  passes headlessly. Neither proves graph closure. The
   [independent typed-graph readback](docs/research/p8d-librecad-typed-material-ezdxf-readback-2026-11-26.json)
   covers one selected AC1021 ASCII output only. The
   [converter profile](docs/research/p8d-ac1024-sparse-default-material-converter-2026-11-26.json)
